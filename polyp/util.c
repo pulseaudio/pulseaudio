@@ -501,3 +501,20 @@ finish:
     pa_xfree(gids);
     return r;
 }
+
+int pa_lock_file(int fd, int b) {
+
+    struct flock flock;
+
+    flock.l_type = b ? F_WRLCK : F_UNLCK;
+    flock.l_whence = SEEK_SET;
+    flock.l_start = 0;
+    flock.l_len = 0;
+
+    if (fcntl(fd, F_SETLKW, &flock) < 0) {
+        pa_log(__FILE__": %slock failed: %s\n", !b ? "un" : "", strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}

@@ -872,7 +872,7 @@ static void do_work(struct connection *c) {
 
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
     c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
-
+    
     if (c->dead)
         return;
     
@@ -891,6 +891,7 @@ fail:
     if (c->state == ESD_STREAMING_DATA && c->sink_input) {
         c->dead = 1;
         pa_memblockq_prebuf_disable(c->input_memblockq);
+        c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
     } else
         connection_free(c);
 }
@@ -937,7 +938,9 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
 
     /* do something */
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
-    c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
+
+    if (!c->dead)
+        c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
 
 /*     assert(pa_memblockq_get_length(c->input_memblockq) > 2048); */
 }
@@ -963,7 +966,9 @@ static void source_output_push_cb(struct pa_source_output *o, const struct pa_me
 
     /* do something */
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
-    c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
+
+    if (!c->dead)
+        c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
 }
 
 static void source_output_kill_cb(struct pa_source_output *o) {
