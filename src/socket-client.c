@@ -110,6 +110,7 @@ static int do_connect(struct socket_client *c, const struct sockaddr *sa, sockle
 struct socket_client* socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port) {
     struct socket_client *c;
     struct sockaddr_in sa;
+    assert(m && address && port);
 
     c = socket_client_new(m);
     assert(c);
@@ -136,6 +137,7 @@ fail:
 struct socket_client* socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
     struct socket_client *c;
     struct sockaddr_un sa;
+    assert(m && filename);
     
     c = socket_client_new(m);
     assert(c);

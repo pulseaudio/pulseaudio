@@ -15,6 +15,7 @@
 #define DEFAULT_MAX_LENGTH 20480
 #define DEFAULT_PREBUF 4096
 #define DEFAULT_TIMEOUT 5
+#define DEFAULT_SERVER "/tmp/foo"
 
 struct pa_context {
     char *name;
@@ -212,7 +213,7 @@ int pa_context_connect(struct pa_context *c, const char *server, void (*complete
     assert(c && c->state == CONTEXT_UNCONNECTED);
 
     assert(!c->client);
-    if (!(c->client = socket_client_new_unix(c->mainloop, server))) {
+    if (!(c->client = socket_client_new_unix(c->mainloop, server ? server : DEFAULT_SERVER))) {
         c->errno = PA_ERROR_CONNECTIONREFUSED;
         return -1;
     }
