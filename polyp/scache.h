@@ -8,6 +8,7 @@
 struct pa_scache_entry {
     uint32_t index;
     char *name;
+    uint32_t volume;
     struct pa_sample_spec sample_spec;
     struct pa_memchunk memchunk;
 };

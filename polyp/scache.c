@@ -32,6 +32,8 @@ void pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_sp
         assert(e->name);
     }
 
+    e->volume = 0x100;
+    
     if (ss)
         e->sample_spec = *ss;
     else

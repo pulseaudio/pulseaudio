@@ -53,7 +53,7 @@
 
 #define MAX_CACHE_SAMPLE_SIZE (1024000)
 
-#define SCACHE_PREFIX "esound~"
+#define SCACHE_PREFIX "esound."
 
 /* This is heavily based on esound's code */
 
@@ -299,8 +299,10 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     if (!pa_sample_spec_valid(&ss))
         return -1;
 
-    if (!(sink = get_output_sink(c->protocol)))
+    if (!(sink = get_output_sink(c->protocol))) {
+        fprintf(stderr, __FILE__": No output sink\n");
         return -1;
+    }
     
     strncpy(name, data + sizeof(int)*2, sizeof(name));
     name[sizeof(name)-1] = 0;
@@ -438,6 +440,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
     size_t t, k, s;
     struct connection *conn;
     size_t index = PA_IDXSET_INVALID;
+    unsigned nsamples;
     assert(c && data && length == sizeof(int));
     
     if (esd_proto_server_info(c, request, data, length) < 0)
@@ -445,7 +448,8 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
 
     k = sizeof(int)*5+ESD_NAME_MAX;
     s = sizeof(int)*6+ESD_NAME_MAX;
-    response = connection_write(c, (t = s+k*(c->protocol->n_player+1)));
+    nsamples = c->protocol->core->scache_idxset ? pa_idxset_ncontents(c->protocol->core->scache_idxset) : 0;
+    response = connection_write(c, (t = s*(nsamples+1) + k*(c->protocol->n_player+1)));
     assert(k);
 
     for (conn = pa_idxset_first(c->protocol->connections, &index); conn; conn = pa_idxset_next(c->protocol->connections, &index)) {
@@ -455,7 +459,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             continue;
 
         assert(t >= s+k+k);
-
+        
         if (conn->sink_input) {
             rate = conn->sink_input->sample_spec.rate;
             volume = (conn->sink_input->volume*0xFF)/0x100;
@@ -463,7 +467,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         }
         
         /* id */
-        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (int) conn->index);
+        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (int) (conn->index+1));
         response += sizeof(int);
 
         /* name */
@@ -490,8 +494,56 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         t-= k;
     }
 
-    assert(t == s+k);
-    memset(response, 0, t);
+    assert(t == s*(nsamples+1)+k);
+    memset(response, 0, k);
+    response += k;
+    t -= k;
+
+    if (nsamples) {
+        struct pa_scache_entry *ce;
+        
+        index = PA_IDXSET_INVALID;
+        for (ce = pa_idxset_first(c->protocol->core->scache_idxset, &index); ce; ce = pa_idxset_next(c->protocol->core->scache_idxset, &index)) {
+            assert(t >= s*2);
+            
+            /* id */
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (int) (ce->index+1));
+            response += sizeof(int);
+            
+            /* name */
+            if (strncmp(ce->name, SCACHE_PREFIX, sizeof(SCACHE_PREFIX)-1) == 0)
+                strncpy(response, ce->name+sizeof(SCACHE_PREFIX)-1, ESD_NAME_MAX);
+            else
+                snprintf(response, ESD_NAME_MAX, "native.%s", ce->name);
+            response += ESD_NAME_MAX;
+            
+            /* rate */
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, ce->sample_spec.rate);
+            response += sizeof(int);
+            
+            /* left */
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume*0xFF)/0x100);
+            response += sizeof(int);
+            
+            /*right*/
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume*0xFF)/0x100);
+            response += sizeof(int);
+            
+            /*format*/
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, format_native2esd(&ce->sample_spec));
+            response += sizeof(int);
+
+            /*length*/
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (int) ce->memchunk.length);
+            response += sizeof(int);
+
+            t -= s;
+        }
+    }
+
+    assert(t == s);
+    memset(response, 0, s);
+
     return 0;
 }
 
@@ -501,7 +553,7 @@ static int esd_proto_stream_pan(struct connection *c, esd_proto_t request, const
     struct connection *conn;
     assert(c && data && length == sizeof(int)*3);
     
-    index = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *(int*)data);
+    index = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *(int*)data)-1;
     volume = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *((int*)data + 1));
     volume = (volume*0x100)/0xFF;
 

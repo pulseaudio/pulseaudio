@@ -4,7 +4,6 @@
 
 - enable searchdir
 
-- scache memory leak
 - scache remove()
 - scache in native protocol
 - scache/debug.h copyright
