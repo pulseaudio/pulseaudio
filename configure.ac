@@ -40,8 +40,6 @@ AC_SUBST(INCLTDL)
 AC_SUBST(LIBLTDL)
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
-AC_PROG_LEX
-AC_PROG_YACC
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -108,7 +106,10 @@ AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
 
 # If using GCC specifiy some additional parameters
 if test "x$GCC" = "xyes" ; then
-   CFLAGS="$CFLAGS -pipe -W -Wall -Wno-unused-parameter -pedantic -std=c99"
+   CFLAGS="$CFLAGS -pipe -W -Wall -pedantic"
+
+   AC_LANG_CONFTEST([int main()])
+   $CC -std=c99 -Wno-unused-parameter -E conftest.c -o - > /dev/null 2>&1 && CFLAGS="$CFLAGS -std=c99 -Wno-unused-parameter"
 fi
 
 # LYNX documentation generation

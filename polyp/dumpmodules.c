@@ -40,8 +40,8 @@ static void short_info(const char *name, const char *path, struct pa_modinfo *i)
 }
 
 static void long_info(const char *name, const char *path, struct pa_modinfo *i) {
-    assert(name && i);
     static int nl = 0;
+    assert(name && i);
     
     if (nl)
         printf("\n");
