@@ -15,6 +15,8 @@ struct iochannel {
     int readable;
     int writable;
 
+    int no_close;
+
     struct mainloop_source* input_source, *output_source;
 };
 
@@ -83,6 +85,7 @@ struct iochannel* iochannel_new(struct mainloop*m, int ifd, int ofd) {
     io->callback = NULL;
     io->readable = 0;
     io->writable = 0;
+    io->no_close = 0;
 
     if (ifd == ofd) {
         assert(ifd >= 0);
@@ -109,10 +112,12 @@ struct iochannel* iochannel_new(struct mainloop*m, int ifd, int ofd) {
 void iochannel_free(struct iochannel*io) {
     assert(io);
 
-    if (io->ifd >= 0)
-        close(io->ifd);
-    if (io->ofd >= 0 && io->ofd != io->ifd)
-        close(io->ofd);
+    if (!io->no_close) {
+        if (io->ifd >= 0)
+            close(io->ifd);
+        if (io->ofd >= 0 && io->ofd != io->ifd)
+            close(io->ofd);
+    }
 
     if (io->input_source)
         mainloop_source_free(io->input_source);
@@ -161,4 +166,9 @@ void iochannel_set_callback(struct iochannel*io, void (*callback)(struct iochann
     assert(io);
     io->callback = callback;
     io->userdata = userdata;
+}
+
+void iochannel_set_noclose(struct iochannel*io, int b) {
+    assert(io);
+    io->no_close = b;
 }

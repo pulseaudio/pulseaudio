@@ -111,7 +111,7 @@ static void line_callback(struct ioline *line, const char *s, void *userdata) {
         l = strcspn(s, delimiter);
 
         for (command = commands; command->name; command++) 
-            if (!strncmp(s, command->name, l)) {
+            if (strlen(command->name) == l && !strncmp(s, command->name, l)) {
                 struct tokenizer *t = tokenizer_new(s, command->args);
                 assert(t);
                 command->proc(c, t);

@@ -19,6 +19,7 @@ int module_init(struct core *c, struct module*m) {
     stdin_inuse = stdout_inuse = 1;
     io = iochannel_new(c->mainloop, STDIN_FILENO, STDOUT_FILENO);
     assert(io);
+    iochannel_set_noclose(io, 1);
 
     m->userdata = cli_new(c, io);
     assert(m->userdata);

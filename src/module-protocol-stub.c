@@ -6,12 +6,14 @@
 
 #ifdef USE_PROTOCOL_SIMPLE
   #include "protocol-simple.h"
-  #define protocol_free protcol_simple_free
+  #define protocol_free protocol_simple_free
+  #define IPV4_PORT 4712
 #else
   #ifdef USE_PROTOCOL_CLI
     #include "protocol-cli.h" 
     #define protocol_new protocol_cli_new
     #define protocol_free protocol_cli_free
+    #define IPV4_PORT 4711
   #else
     #error "Broken build system"
   #endif
@@ -22,7 +24,7 @@ int module_init(struct core *c, struct module*m) {
     assert(c && m);
 
 #ifdef USE_TCP_SOCKETS
-    if (!(s = socket_server_new_ipv4(c->mainloop, INADDR_LOOPBACK, 4712)))
+    if (!(s = socket_server_new_ipv4(c->mainloop, INADDR_LOOPBACK, IPV4_PORT)))
         return -1;
 #else
     if (!(s = socket_server_new_unix(c->mainloop, "/tmp/polypsimple")))
@@ -42,5 +44,5 @@ int module_init(struct core *c, struct module*m) {
 void module_done(struct core *c, struct module*m) {
     assert(c && m);
 
-    protocol_simple_free(m->userdata);
+    protocol_free(m->userdata);
 }

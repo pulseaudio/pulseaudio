@@ -15,6 +15,8 @@ ssize_t iochannel_read(struct iochannel*io, void*data, size_t l);
 int iochannel_is_readable(struct iochannel*io);
 int iochannel_is_writable(struct iochannel*io);
 
+void iochannel_set_noclose(struct iochannel*io, int b);
+
 void iochannel_set_callback(struct iochannel*io, void (*callback)(struct iochannel*io, void *userdata), void *userdata);
 
 #endif
