@@ -162,9 +162,10 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     }
 
     u = pa_xmalloc0(sizeof(struct userdata));
-
     u->filename = pa_xstrdup(p);
     u->core = c;
+    u->module = m;
+    m->userdata = u;
     
     if (!(u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
         pa_log(__FILE__": failed to create sink.\n");
@@ -186,9 +187,6 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->defer_event = c->mainloop->defer_new(c->mainloop, defer_callback, u);
     assert(u->defer_event);
     c->mainloop->defer_enable(u->defer_event, 0);
-
-    u->module = m;
-    m->userdata = u;
 
     pa_modargs_free(ma);
     

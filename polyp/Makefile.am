@@ -33,14 +33,15 @@ AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
 EXTRA_DIST = default.pa.in daemon.conf.in client.conf.in depmod.py esdcompat.sh.in
-bin_PROGRAMS = polypaudio pacat pactl paplay voltest
+bin_PROGRAMS = polypaudio pacat pactl paplay
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = \
 		mainloop-test \
 		pacat-simple \
 		parec-simple \
 		cpulimit-test \
-		cpulimit-test2
+		cpulimit-test2 \
+		voltest
 
 polypconf_DATA=default.pa daemon.conf client.conf
 
@@ -108,7 +109,8 @@ modlib_LTLIBRARIES= \
 		module-esound-compat-spawnpid.la \
 		module-match.la \
 		module-tunnel-sink.la \
-		module-tunnel-source.la
+		module-tunnel-source.la \
+		module-null-sink.la
 
 lib_LTLIBRARIES= \
 		libpolyp-@PA_MAJORMINOR@.la \
@@ -307,6 +309,10 @@ module_sine_la_LIBADD = $(AM_LIBADD)
 module_combine_la_SOURCES = module-combine.c
 module_combine_la_LDFLAGS = -module -avoid-version
 module_combine_la_LIBADD = $(AM_LIBADD)
+
+module_null_sink_la_SOURCES = module-null-sink.c
+module_null_sink_la_LDFLAGS = -module -avoid-version
+module_null_sink_la_LIBADD = $(AM_LIBADD)
 
 module_match_la_SOURCES = module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
