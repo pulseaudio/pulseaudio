@@ -193,9 +193,10 @@ static int pa_cli_command_load(struct pa_core *c, struct pa_tokenizer *t, struct
         return -1;
     }
 
-    if (*verbose)
+    if (*verbose) {
         snprintf(txt, sizeof(txt), "Module successfully loaded, index: %u.\n", m->index);
-    pa_strbuf_puts(buf, txt);
+        pa_strbuf_puts(buf, txt);
+    }
     return 0;
 }
 

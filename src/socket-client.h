@@ -11,6 +11,7 @@ struct pa_socket_client;
 
 struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port);
 struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename);
+struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m, const struct sockaddr *sa, size_t salen);
 
 void pa_socket_client_free(struct pa_socket_client *c);
 

@@ -1,7 +1,9 @@
+- modargs memory leak
+
+- clean secure directory handling (with username)
+
 - native library/protocol:
        more functions (esp. latency)
-
-- daemonizing
 
 - prefix modules/libraries with pa_
 
@@ -25,6 +27,7 @@
 - doxygen
 - make mcalign merge chunks
 - modinfo
+- daemonizing
 
 drivers:
 - libao

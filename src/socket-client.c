@@ -80,7 +80,7 @@ static void connect_fixed_cb(struct pa_mainloop_api *m, void *id, void *userdata
 
 static void connect_io_cb(struct pa_mainloop_api*m, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
     struct pa_socket_client *c = userdata;
-    assert(m && c && c->io_source == id && fd >= 0 && events == PA_MAINLOOP_API_IO_EVENT_OUTPUT);
+    assert(m && c && c->io_source == id && fd >= 0);
     m->cancel_io(m, c->io_source);
     c->io_source = NULL;
     do_call(c);
@@ -93,7 +93,7 @@ static int do_connect(struct pa_socket_client *c, const struct sockaddr *sa, soc
     pa_make_nonblock_fd(c->fd);
     
     if ((r = connect(c->fd, sa, len)) < 0) {
-        if (r != EINPROGRESS) {
+        if (errno != EINPROGRESS) {
             fprintf(stderr, "connect(): %s\n", strerror(errno));
             return -1;
         }
@@ -165,7 +165,34 @@ fail:
     pa_socket_client_free(c);
     return NULL;
 }
+
+struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m, const struct sockaddr *sa, size_t salen) {
+    struct pa_socket_client *c;
+    assert(m && sa);
+    c = pa_socket_client_new(m);
+    assert(c);
+
+    if ((c->fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0) {
+        fprintf(stderr, "socket(): %s\n", strerror(errno));
+        goto fail;
+    }
+
+    if (sa->sa_family == AF_INET)
+        pa_socket_tcp_low_delay(c->fd);
+    else
+        pa_socket_low_delay(c->fd);
+
+    if (do_connect(c, sa, salen) < 0)
+        goto fail;
     
+    return c;
+
+fail:
+    pa_socket_client_free(c);
+    return NULL;
+    
+}
+
 void pa_socket_client_free(struct pa_socket_client *c) {
     assert(c && c->mainloop);
     if (c->io_source)

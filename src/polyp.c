@@ -2,6 +2,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #include "polyp.h"
 #include "protocol-native-spec.h"
@@ -21,6 +24,7 @@
 
 #define DEFAULT_TIMEOUT (5*60)
 #define DEFAULT_SERVER "/tmp/polypaudio/native"
+#define DEFAULT_PORT "4713"
 
 struct pa_context {
     char *name;
@@ -284,7 +288,7 @@ static void on_connection(struct pa_socket_client *client, struct pa_iochannel*i
     struct pa_context *c = userdata;
     struct pa_tagstruct *t;
     uint32_t tag;
-    assert(client && io && c && c->state == CONTEXT_CONNECTING);
+    assert(client && c && c->state == CONTEXT_CONNECTING);
 
     pa_socket_client_free(client);
     c->client = NULL;
@@ -318,6 +322,36 @@ static void on_connection(struct pa_socket_client *client, struct pa_iochannel*i
     c->state = CONTEXT_AUTHORIZING;
 }
 
+static struct sockaddr *resolve_server(const char *server, size_t *len) {
+    struct sockaddr *sa;
+    struct addrinfo hints, *result = NULL;
+    char *port;
+    assert(server && len);
+
+    if ((port = strrchr(server, ':')))
+        port++;
+    if (!port)
+        port = DEFAULT_PORT;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = PF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 0;
+
+    if (getaddrinfo(server, port, &hints, &result) != 0)
+        return NULL;
+    assert(result);
+    
+    sa = malloc(*len = result->ai_addrlen);
+    assert(sa);
+    memcpy(sa, result->ai_addr, *len);
+
+    freeaddrinfo(result);
+    
+    return sa;
+    
+}
+
 int pa_context_connect(struct pa_context *c, const char *server, void (*complete) (struct pa_context*c, int success, void *userdata), void *userdata) {
     assert(c && c->state == CONTEXT_UNCONNECTED);
 
@@ -326,10 +360,33 @@ int pa_context_connect(struct pa_context *c, const char *server, void (*complete
         return -1;
     }
 
+    if (!server)
+        if (!(server = getenv("POLYP_SERVER")))
+            server = DEFAULT_SERVER;
+
     assert(!c->client);
-    if (!(c->client = pa_socket_client_new_unix(c->mainloop, server ? server : DEFAULT_SERVER))) {
-        c->error = PA_ERROR_CONNECTIONREFUSED;
-        return -1;
+    
+    if (*server == '/') {
+        if (!(c->client = pa_socket_client_new_unix(c->mainloop, server))) {
+            c->error = PA_ERROR_CONNECTIONREFUSED;
+            return -1;
+        }
+    } else {
+        struct sockaddr* sa;
+        size_t sa_len;
+
+        if (!(sa = resolve_server(server, &sa_len))) {
+            c->error = PA_ERROR_INVALIDSERVER;
+            return -1;
+        }
+
+        c->client = pa_socket_client_new_sockaddr(c->mainloop, sa, sa_len);
+        free(sa);
+
+        if (!c->client) {
+            c->error = PA_ERROR_CONNECTIONREFUSED;
+            return -1;
+        }
     }
 
     c->connect_complete_callback = complete;
