@@ -41,9 +41,12 @@ void pa_check_signal_is_blocked(int sig);
 char *pa_sprintf_malloc(const char *format, ...) PA_GCC_PRINTF_ATTR(1,2);
 char *pa_vsprintf_malloc(const char *format, va_list ap);
 
+char *pa_strlcpy(char *b, const char *s, size_t l);
+
 char *pa_get_user_name(char *s, size_t l);
 char *pa_get_host_name(char *s, size_t l);
 char *pa_get_binary_name(char *s, size_t l);
+char *pa_get_home(char *s, size_t l);
 
 char *pa_path_get_filename(const char *p);
 

@@ -50,16 +50,20 @@
 #include "xmalloc.h"
 #include "log.h"
 
+/** Make a file descriptor nonblock. Doesn't do any error checking */
 void pa_make_nonblock_fd(int fd) {
     int v;
+    assert(fd >= 0);
 
     if ((v = fcntl(fd, F_GETFL)) >= 0)
         if (!(v & O_NONBLOCK))
             fcntl(fd, F_SETFL, v|O_NONBLOCK);
 }
 
+/** Creates a directory securely */
 int pa_make_secure_dir(const char* dir) {
     struct stat st;
+    assert(dir);
 
     if (mkdir(dir, 0700) < 0) 
         if (errno != EEXIST)
@@ -78,6 +82,8 @@ fail:
     return -1;
 }
 
+/** Calls read() in a loop. Makes sure that as much as 'size' bytes,
+ * unless EOF is reached or an error occured */
 ssize_t pa_loop_read(int fd, void*data, size_t size) {
     ssize_t ret = 0;
     assert(fd >= 0 && data && size);
@@ -99,6 +105,7 @@ ssize_t pa_loop_read(int fd, void*data, size_t size) {
     return ret;
 }
 
+/** Similar to pa_loop_read(), but wraps write() */
 ssize_t pa_loop_write(int fd, const void*data, size_t size) {
     ssize_t ret = 0;
     assert(fd >= 0 && data && size);
@@ -120,10 +127,16 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size) {
     return ret;
 }
 
+/* Print a warning messages in case that the given signal is not
+ * blocked or trapped */
 void pa_check_signal_is_blocked(int sig) {
     struct sigaction sa;
     sigset_t set;
 
+    /* If POSIX threads are supported use thread-aware
+     * pthread_sigmask() function, to check if the signal is
+     * blocked. Otherwise fall back to sigprocmask() */
+    
 #ifdef HAVE_PTHREAD    
     if (pthread_sigmask(SIG_SETMASK, NULL, &set) < 0) {
 #endif
@@ -137,6 +150,8 @@ void pa_check_signal_is_blocked(int sig) {
 
     if (sigismember(&set, sig))
         return;
+
+    /* Check whether the signal is trapped */
     
     if (sigaction(sig, NULL, &sa) < 0) {
         pa_log(__FILE__": sigaction() failed: %s\n", strerror(errno));
@@ -149,7 +164,8 @@ void pa_check_signal_is_blocked(int sig) {
     pa_log(__FILE__": WARNING: %s is not trapped. This might cause malfunction!\n", pa_strsignal(sig));
 }
 
-/* The following is based on an example from the GNU libc documentation */
+/* The following function is based on an example from the GNU libc
+ * documentation. This function is similar to GNU's asprintf(). */
 char *pa_sprintf_malloc(const char *format, ...) {
     int  size = 100;
     char *c = NULL;
@@ -176,6 +192,8 @@ char *pa_sprintf_malloc(const char *format, ...) {
     }
 }
 
+/* Same as the previous function, but use a va_list instead of an
+ * ellipsis */
 char *pa_vsprintf_malloc(const char *format, va_list ap) {
     int  size = 100;
     char *c = NULL;
@@ -199,11 +217,12 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
     }
 }
 
-
+/* Return the current username in the specified string buffer. */
 char *pa_get_user_name(char *s, size_t l) {
     struct passwd pw, *r;
     char buf[1024];
     char *p;
+    assert(s && l > 0);
 
     if (!(p = getenv("USER")))
         if (!(p = getenv("LOGNAME")))
@@ -222,21 +241,50 @@ char *pa_get_user_name(char *s, size_t l) {
                 
                 p = r->pw_name;
             }
-    
-    snprintf(s, l, "%s", p);
-    return s;
+
+    return pa_strlcpy(s, p, l);
 }
 
+/* Return the current hostname in the specified buffer. */
 char *pa_get_host_name(char *s, size_t l) {
+    assert(s && l > 0);
     gethostname(s, l);
     s[l-1] = 0;
     return s;
 }
 
+/* Return the home directory of the current user */
+char *pa_get_home(char *s, size_t l) {
+    char *e;
+    char buf[1024];
+    struct passwd pw, *r;
+    assert(s && l);
+
+    if ((e = getenv("HOME")))
+        return pa_strlcpy(s, e, l);
+
+    if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r)
+        return NULL;
+
+    return pa_strlcpy(s, r->pw_dir, l);
+}
+
+/* Similar to OpenBSD's strlcpy() function */
+char *pa_strlcpy(char *b, const char *s, size_t l) {
+    assert(b && s && l > 0);
+
+    strncpy(b, s, l);
+    b[l-1] = 0;
+    return b;
+}
+
+/* Calculate the difference between the two specfified timeval
+ * timestamsps. */
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
     pa_usec_t r;
     assert(a && b);
 
+    /* Check which whan is the earlier time and swap the two arguments if reuqired. */
     if (pa_timeval_cmp(a, b) < 0) {
         const struct timeval *c;
         c = a;
@@ -244,8 +292,10 @@ pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
         b = c;
     }
 
+    /* Calculate the second difference*/
     r = ((pa_usec_t) a->tv_sec - b->tv_sec)* 1000000;
 
+    /* Calculate the microsecond difference */
     if (a->tv_usec > b->tv_usec)
         r += ((pa_usec_t) a->tv_usec - b->tv_usec);
     else if (a->tv_usec < b->tv_usec)
@@ -254,6 +304,7 @@ pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
     return r;
 }
 
+/* Compare the two timeval structs and return 0 when equal, negative when a < b, positive otherwse */
 int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) {
     assert(a && b);
 
@@ -272,6 +323,7 @@ int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) {
     return 0;
 }
 
+/* Return the time difference between now and the specified timestamp */
 pa_usec_t pa_timeval_age(const struct timeval *tv) {
     struct timeval now;
     assert(tv);
@@ -279,6 +331,7 @@ pa_usec_t pa_timeval_age(const struct timeval *tv) {
     return pa_timeval_diff(&now, tv);
 }
 
+/* Add the specified time inmicroseconds to the specified timeval structure */
 void pa_timeval_add(struct timeval *tv, pa_usec_t v) {
     unsigned long secs;
     assert(tv);
@@ -289,6 +342,7 @@ void pa_timeval_add(struct timeval *tv, pa_usec_t v) {
 
     tv->tv_usec += v;
 
+    /* Normalize */
     while (tv->tv_usec >= 1000000) {
         tv->tv_sec++;
         tv->tv_usec -= 1000000;
@@ -297,12 +351,16 @@ void pa_timeval_add(struct timeval *tv, pa_usec_t v) {
 
 #define NICE_LEVEL (-15)
 
+/* Raise the priority of the current process as much as possible and
+sensible: set the nice level to -15 and enable realtime scheduling if
+supportted.*/
+
 void pa_raise_priority(void) {
+
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
         pa_log(__FILE__": setpriority() failed: %s\n", strerror(errno));
-    else
-        pa_log(__FILE__": Successfully gained nice level %i.\n", NICE_LEVEL);
-
+    else pa_log(__FILE__": Successfully gained nice level %i.\n", NICE_LEVEL);
+    
 #ifdef _POSIX_PRIORITY_SCHEDULING
     {
         struct sched_param sp;

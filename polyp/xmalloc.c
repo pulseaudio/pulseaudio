@@ -30,19 +30,22 @@
 #include "memory.h"
 #include "util.h"
 
-#define MAX_ALLOC_SIZE (1024*1024*20)
+/* Make sure not to allocate more than this much memory. */
+#define MAX_ALLOC_SIZE (1024*1024*20) /* 20MB */
 
-#undef malloc
-#undef free
-#undef realloc
-#undef strndup
-#undef strdup
+/* #undef malloc */
+/* #undef free */
+/* #undef realloc */
+/* #undef strndup */
+/* #undef strdup */
 
+/** called in case of an OOM situation. Prints an error message and
+ * exits */
 static void oom(void) {
     static const char e[] = "Not enough memory\n";
-    pa_loop_write(2, e, sizeof(e)-1);
+    pa_loop_write(STDERR_FILENO, e, sizeof(e)-1);
     raise(SIGQUIT);
-    exit(1);
+    _exit(1);
 }
 
 void* pa_xmalloc(size_t size) {
