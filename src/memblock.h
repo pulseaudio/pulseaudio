@@ -13,11 +13,6 @@ struct memblock {
     void *data;
 };
 
-struct memchunk {
-    struct memblock *memblock;
-    size_t index, length;
-};
-
 struct memblock *memblock_new(size_t length);
 struct memblock *memblock_new_fixed(void *data, size_t length);
 struct memblock *memblock_new_dynamic(void *data, size_t length);
@@ -28,8 +23,6 @@ struct memblock* memblock_ref(struct memblock*b);
 void memblock_unref_fixed(struct memblock*b);
 
 #define memblock_assert_exclusive(b) assert((b)->ref == 1)
-
-void memchunk_make_writable(struct memchunk *c);
 
 extern unsigned memblock_count, memblock_total;
 

@@ -3,6 +3,7 @@
 
 #include "sample.h"
 #include "memblock.h"
+#include "memchunk.h"
 
 #define DEFAULT_SAMPLE_SPEC default_sample_spec
 

@@ -18,6 +18,7 @@ struct memblockq {
     size_t total_length, maxlength, base, prebuf;
     int measure_delay;
     uint32_t delay;
+    struct mcalign *mcalign;
 };
 
 struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
@@ -40,6 +41,8 @@ struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
 
     bq->measure_delay = 0;
     bq->delay = 0;
+
+    bq->mcalign = NULL;
     
     return bq;
 }
@@ -47,6 +50,9 @@ struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
 void memblockq_free(struct memblockq* bq) {
     struct memblock_list *l;
     assert(bq);
+
+    if (bq->mcalign)
+        mcalign_free(bq->mcalign);
 
     while ((l = bq->blocks)) {
         bq->blocks = l->next;
@@ -57,9 +63,9 @@ void memblockq_free(struct memblockq* bq) {
     free(bq);
 }
 
-void memblockq_push(struct memblockq* bq, struct memchunk *chunk, size_t delta) {
+void memblockq_push(struct memblockq* bq, const struct memchunk *chunk, size_t delta) {
     struct memblock_list *q;
-    assert(bq && chunk && chunk->memblock && chunk->length);
+    assert(bq && chunk && chunk->memblock && chunk->length && (chunk->length % bq->base) == 0);
 
     q = malloc(sizeof(struct memblock_list));
     assert(q);
@@ -97,9 +103,14 @@ int memblockq_peek(struct memblockq* bq, struct memchunk *chunk) {
 
     *chunk = bq->blocks->chunk;
     memblock_ref(chunk->memblock);
+
+    if (chunk->memblock->ref != 2)
+        fprintf(stderr, "block %p with ref %u peeked.\n", chunk->memblock, chunk->memblock->ref);
+    
     return 0;
 }
 
+/*
 int memblockq_pop(struct memblockq* bq, struct memchunk *chunk) {
     struct memblock_list *q;
     
@@ -121,6 +132,7 @@ int memblockq_pop(struct memblockq* bq, struct memchunk *chunk) {
     free(q);
     return 0;
 }
+*/
 
 static uint32_t age(struct timeval *tv) {
     assert(tv);
@@ -143,7 +155,7 @@ static uint32_t age(struct timeval *tv) {
 }
 
 void memblockq_drop(struct memblockq *bq, size_t length) {
-    assert(bq);
+    assert(bq && length && (length % bq->base) == 0);
 
     while (length > 0) {
         size_t l = length;
@@ -228,4 +240,27 @@ uint32_t memblockq_missing_to(struct memblockq *bq, size_t qlen) {
         return 0;
 
     return qlen - bq->total_length;
+}
+
+void memblockq_push_align(struct memblockq* bq, const struct memchunk *chunk, size_t delta) {
+    struct memchunk rchunk;
+    assert(bq && chunk && bq->base);
+
+    if (bq->base == 1) {
+        memblockq_push(bq, chunk, delta);
+        return;
+    }
+
+    if (!bq->mcalign) {
+        bq->mcalign = mcalign_new(bq->base);
+        assert(bq->mcalign);
+    }
+    
+    mcalign_push(bq->mcalign, chunk);
+
+    while (mcalign_pop(bq->mcalign, &rchunk) >= 0) {
+        memblockq_push(bq, &rchunk, delta);
+        memblock_unref(rchunk.memblock);
+        delta = 0;
+    }
 }

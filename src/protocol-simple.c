@@ -25,14 +25,16 @@ struct protocol_simple {
     struct socket_server*server;
     struct idxset *connections;
     enum protocol_simple_mode mode;
+    struct pa_sample_spec sample_spec;
 };
 
 #define BUFSIZE PIPE_BUF
 
-static void free_connection(void *data, void *userdata) {
-    struct connection *c = data;
-    assert(data);
-    
+static void connection_free(struct connection *c) {
+    assert(c);
+
+    idxset_remove_by_data(c->protocol->connections, c, NULL);
+
     if (c->sink_input)
         sink_input_free(c->sink_input);
     if (c->source_output)
@@ -47,13 +49,6 @@ static void free_connection(void *data, void *userdata) {
         memblockq_free(c->output_memblockq);
     free(c);
 }
-
-static void destroy_connection(struct connection *c) {
-    assert(c && c->protocol);
-    idxset_remove_by_data(c->protocol->connections, c, NULL);
-    free_connection(c, NULL);
-}
-
 static int do_read(struct connection *c) {
     struct memchunk chunk;
     ssize_t r;
@@ -77,7 +72,7 @@ static int do_read(struct connection *c) {
     chunk.index = 0;
 
     assert(c->input_memblockq);
-    memblockq_push(c->input_memblockq, &chunk, 0);
+    memblockq_push_align(c->input_memblockq, &chunk, 0);
     memblock_unref(chunk.memblock);
     assert(c->sink_input);
     sink_notify(c->sink_input->sink);
@@ -132,12 +127,12 @@ static void sink_input_drop_cb(struct sink_input *i, size_t length) {
     memblockq_drop(c->input_memblockq, length);
     
     if (do_read(c) < 0)
-        destroy_connection(c);
+        connection_free(c);
 }
 
 static void sink_input_kill_cb(struct sink_input *i) {
     assert(i && i->userdata);
-    destroy_connection((struct connection *) i->userdata);
+    connection_free((struct connection *) i->userdata);
 }
 
 
@@ -149,26 +144,26 @@ static uint32_t sink_input_get_latency_cb(struct sink_input *i) {
 
 /*** source_output callbacks ***/
 
-static void source_output_push_cb(struct source_output *o, struct memchunk *chunk) {
+static void source_output_push_cb(struct source_output *o, const struct memchunk *chunk) {
     struct connection *c = o->userdata;
     assert(o && c && chunk);
 
     memblockq_push(c->output_memblockq, chunk, 0);
 
     if (do_write(c) < 0)
-        destroy_connection(c);
+        connection_free(c);
 }
 
 static void source_output_kill_cb(struct source_output *o) {
     assert(o && o->userdata);
-    destroy_connection((struct connection *) o->userdata);
+    connection_free((struct connection *) o->userdata);
 }
 
 /*** client callbacks ***/
 
 static void client_kill_cb(struct client *c) {
     assert(c && c->userdata);
-    destroy_connection((struct connection *) c->userdata);
+    connection_free((struct connection *) c->userdata);
 }
 
 /*** iochannel callbacks ***/
@@ -178,7 +173,7 @@ static void io_callback(struct iochannel*io, void *userdata) {
     assert(io && c && c->io == io);
 
     if (do_read(c) < 0 || do_write(c) < 0)
-        destroy_connection(c);
+        connection_free(c);
 }
 
 /*** socket_server callbacks */
@@ -212,14 +207,14 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
             goto fail;
         }
 
-        c->source_output = source_output_new(source, &DEFAULT_SAMPLE_SPEC, c->client->name);
+        c->source_output = source_output_new(source, c->client->name, &p->sample_spec);
         assert(c->source_output);
         c->source_output->push = source_output_push_cb;
         c->source_output->kill = source_output_kill_cb;
         c->source_output->userdata = c;
 
         l = 5*pa_bytes_per_second(&DEFAULT_SAMPLE_SPEC); /* 5s */
-        c->output_memblockq = memblockq_new(l, pa_sample_size(&DEFAULT_SAMPLE_SPEC), l/2);
+        c->output_memblockq = memblockq_new(l, pa_sample_size(&p->sample_spec), l/2);
     }
 
     if (p->mode & PROTOCOL_SIMPLE_PLAYBACK) {
@@ -231,7 +226,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
             goto fail;
         }
 
-        c->sink_input = sink_input_new(sink, &DEFAULT_SAMPLE_SPEC, c->client->name);
+        c->sink_input = sink_input_new(sink, c->client->name, &p->sample_spec);
         assert(c->sink_input);
         c->sink_input->peek = sink_input_peek_cb;
         c->sink_input->drop = sink_input_drop_cb;
@@ -240,7 +235,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
         c->sink_input->userdata = c;
 
         l = pa_bytes_per_second(&DEFAULT_SAMPLE_SPEC)/2; /* half a second */
-        c->input_memblockq = memblockq_new(l, pa_sample_size(&DEFAULT_SAMPLE_SPEC), l/2);
+        c->input_memblockq = memblockq_new(l, pa_sample_size(&p->sample_spec), l/2);
     }
 
 
@@ -249,11 +244,8 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
     return;
     
 fail:
-    if (c) {
-        free_connection(c, NULL);
-        iochannel_free(c->io);
-        free(c);
-    }
+    if (c)
+        connection_free(c);
 }
 
 struct protocol_simple* protocol_simple_new(struct core *core, struct socket_server *server, enum protocol_simple_mode mode) {
@@ -266,6 +258,7 @@ struct protocol_simple* protocol_simple_new(struct core *core, struct socket_ser
     p->server = server;
     p->connections = idxset_new(NULL, NULL);
     p->mode = mode;
+    p->sample_spec = DEFAULT_SAMPLE_SPEC;
 
     socket_server_set_callback(p->server, on_connection, p);
     
@@ -274,9 +267,15 @@ struct protocol_simple* protocol_simple_new(struct core *core, struct socket_ser
 
 
 void protocol_simple_free(struct protocol_simple *p) {
+    struct connection *c;
     assert(p);
 
-    idxset_free(p->connections, free_connection, NULL);
+    while((c = idxset_first(p->connections, NULL)))
+        connection_free(c);
+
+    idxset_free(p->connections, NULL, NULL);
+    
     socket_server_free(p->server);
     free(p);
 }
+

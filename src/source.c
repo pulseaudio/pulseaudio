@@ -70,7 +70,7 @@ static int do_post(void *p, uint32_t index, int *del, void*userdata) {
     struct source_output *o = p;
     assert(o && o->push && del && chunk);
 
-    o->push(o, chunk);
+    source_output_push(o, chunk);
     return 0;
 }
 

@@ -15,7 +15,7 @@ struct iochannel {
     
     int readable;
     int writable;
-
+    
     int no_close;
 
     void* input_source, *output_source;
@@ -147,8 +147,8 @@ ssize_t iochannel_write(struct iochannel*io, const void*data, size_t l) {
 ssize_t iochannel_read(struct iochannel*io, void*data, size_t l) {
     ssize_t r;
     
-    assert(io && data && l && io->ifd >= 0);
-
+    assert(io && data && io->ifd >= 0);
+    
     if ((r = read(io->ifd, data, l)) >= 0) {
         io->readable = 0;
         enable_mainloop_sources(io);

@@ -210,7 +210,7 @@ static int esd_proto_stream_play(struct connection *c, const void *data, size_t 
     assert(c->input_memblockq);
 
     assert(!c->sink_input);
-    c->sink_input = sink_input_new(sink, &ss, name);
+    c->sink_input = sink_input_new(sink, name, &ss);
     assert(c->sink_input);
 
     c->sink_input->peek = sink_input_peek_cb;
@@ -218,7 +218,7 @@ static int esd_proto_stream_play(struct connection *c, const void *data, size_t 
     c->sink_input->kill = sink_input_kill_cb;
     c->sink_input->get_latency = sink_input_get_latency_cb;
     c->sink_input->userdata = c;
-    
+
     c->state = ESD_STREAMING_DATA;
 
     c->protocol->n_player++;
@@ -460,7 +460,7 @@ static int do_read(struct connection *c) {
         chunk.index = 0;
 
         assert(c->input_memblockq);
-        memblockq_push(c->input_memblockq, &chunk, 0);
+        memblockq_push_align(c->input_memblockq, &chunk, 0);
         memblock_unref(chunk.memblock);
         assert(c->sink_input);
         sink_notify(c->sink_input->sink);

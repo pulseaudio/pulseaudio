@@ -29,7 +29,7 @@ struct pa_sample_spec {
 size_t pa_bytes_per_second(const struct pa_sample_spec *spec);
 size_t pa_sample_size(const struct pa_sample_spec *spec);
 uint32_t pa_samples_usec(size_t length, const struct pa_sample_spec *spec);
-
 int pa_sample_spec_valid(const struct pa_sample_spec *spec);
+int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b);
 
 #endif

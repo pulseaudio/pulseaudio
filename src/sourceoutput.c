@@ -5,11 +5,16 @@
 #include "sourceoutput.h"
 #include "strbuf.h"
 
-struct source_output* source_output_new(struct source *s, struct pa_sample_spec *spec, const char *name) {
+struct source_output* source_output_new(struct source *s, const char *name, const struct pa_sample_spec *spec) {
     struct source_output *o;
+    struct resampler *resampler = NULL;
     int r;
     assert(s && spec);
 
+    if (!pa_sample_spec_equal(&s->sample_spec, spec))
+        if (!(resampler = resampler_new(&s->sample_spec, spec)))
+            return NULL;
+    
     o = malloc(sizeof(struct source_output));
     assert(o);
     o->name = name ? strdup(name) : NULL;
@@ -19,6 +24,7 @@ struct source_output* source_output_new(struct source *s, struct pa_sample_spec 
     o->push = NULL;
     o->kill = NULL;
     o->userdata = NULL;
+    o->resampler = resampler;
     
     assert(s->core);
     r = idxset_put(s->core->source_outputs, o, &o->index);
@@ -35,6 +41,9 @@ void source_output_free(struct source_output* o) {
     assert(o->source && o->source->core);
     idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     idxset_remove_by_data(o->source->outputs, o, NULL);
+
+    if (o->resampler)
+        resampler_free(o->resampler);
     
     free(o->name);
     free(o);
@@ -67,4 +76,22 @@ char *source_output_list_to_string(struct core *c) {
     }
     
     return strbuf_tostring_free(s);
+}
+
+void source_output_push(struct source_output *o, const struct memchunk *chunk) {
+    struct memchunk rchunk;
+    assert(o && chunk && chunk->length && o->push);
+
+    if (!o->resampler) {
+        o->push(o, chunk);
+        return;
+    }
+
+    resampler_run(o->resampler, chunk, &rchunk);
+    if (!rchunk.length)
+        return;
+    
+    assert(rchunk.memblock);
+    o->push(o, &rchunk);
+    memblock_unref(rchunk.memblock);
 }

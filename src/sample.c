@@ -49,3 +49,9 @@ int pa_sample_spec_valid(const struct pa_sample_spec *spec) {
 
     return 1;
 }
+
+int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b) {
+    assert(a && b);
+
+    return (a->format == b->format) && (a->rate == b->rate) && (a->channels == b->channels);
+}

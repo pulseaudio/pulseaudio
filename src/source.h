@@ -8,6 +8,7 @@ struct source;
 #include "sample.h"
 #include "idxset.h"
 #include "memblock.h"
+#include "memchunk.h"
 
 struct source {
     uint32_t index;

@@ -7,6 +7,7 @@
 #include "memblock.h"
 #include "iochannel.h"
 #include "mainloop-api.h"
+#include "memchunk.h"
 
 struct pstream;
 

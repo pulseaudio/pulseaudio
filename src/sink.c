@@ -90,8 +90,7 @@ static unsigned fill_mix_info(struct sink *s, struct mix_info *info, unsigned ma
     assert(s && info);
 
     for (i = idxset_first(s->inputs, &index); maxinfo > 0 && i; i = idxset_next(s->inputs, &index)) {
-        assert(i->peek);
-        if (i->peek(i, &info->chunk) < 0)
+        if (sink_input_peek(i, &info->chunk) < 0)
             continue;
 
         info->volume = i->volume;
@@ -115,11 +114,10 @@ static void inputs_drop(struct sink *s, struct mix_info *info, unsigned maxinfo,
         assert(i && info->chunk.memblock);
         
         memblock_unref(info->chunk.memblock);
-        assert(i->drop);
-        i->drop(i, length);
+        sink_input_drop(i, length);
     }
 }
-
+        
 int sink_render(struct sink*s, size_t length, struct memchunk *result) {
     struct mix_info info[MAX_MIX_CHANNELS];
     unsigned n;

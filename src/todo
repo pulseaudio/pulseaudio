@@ -1,20 +1,17 @@
+- recording (general, simple, esound, native)
+- make it embedable (add pa_ prefix too all identifiers)
 - native library/protocol:
-       recording
        sync() function
        more functions
-- esound protocol:
-       recording
-- move more stuff from module-oss[-dma] to liboss-util
 - simple library
-- simple control protocol: 
-       kill client/input/output
 - kill() routines in all modules
-- resampling
+- command line protocol: 
+       kill client/input/output
 - config parser/cmdline
-- record testing
-- mixing/volume
+- move more stuff from module-oss[-dma] to liboss-util
+- svn-id and license in every file
 
--- 0.1
+-- post 0.1
 - future cancellation
 - client-ui
 - clip cache

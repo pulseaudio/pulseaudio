@@ -89,7 +89,7 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     s->connection = c;
     s->qlength = qlen;
     
-    s->sink_input = sink_input_new(sink, ss, name);
+    s->sink_input = sink_input_new(sink, name, ss);
     assert(s->sink_input);
     s->sink_input->peek = sink_input_peek_cb;
     s->sink_input->drop = sink_input_drop_cb;
@@ -323,7 +323,7 @@ static int memblock_callback(struct pstream *p, uint32_t channel, int32_t delta,
     else
         stream->requested_bytes -= chunk->length;
     
-    memblockq_push(stream->memblockq, chunk, delta);
+    memblockq_push_align(stream->memblockq, chunk, delta);
     assert(stream->sink_input);
     sink_notify(stream->sink_input->sink);
 

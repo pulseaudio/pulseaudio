@@ -77,7 +77,7 @@ static void context_complete_callback(struct pa_context *c, int success, void *u
     static const struct pa_sample_spec ss = {
         .format = PA_SAMPLE_S16NE,
         .rate = 44100,
-        .channels = 2
+        .channels = 1
     };
         
     assert(c && !stream);

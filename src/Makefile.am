@@ -55,7 +55,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		namereg.c namereg.h \
 		sconv.c sconv.h \
 		resampler.c resampler.h \
-		endianmacros.h
+		endianmacros.h \
+		memchunk.c memchunk.h
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(LIBLTDL) $(LIBSAMPLERATE_LIBS)
@@ -196,7 +197,8 @@ libpolyp_la_SOURCES = polyp.c polyp.h \
 		socket-client.c socket-client.h \
 		packet.c packet.h \
 		queue.c queue.h \
-		dynarray.c dynarray.h
+		dynarray.c dynarray.h \
+		memchunk.c memchunk.h
 
 pacat_SOURCES = pacat.c
 pacat_LDADD = libpolyp.la

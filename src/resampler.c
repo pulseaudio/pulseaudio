@@ -30,12 +30,13 @@ struct resampler* resampler_new(const struct pa_sample_spec *a, const struct pa_
     if (a->format == PA_SAMPLE_ALAW || a->format == PA_SAMPLE_ULAW || b->format == PA_SAMPLE_ALAW || b->format == PA_SAMPLE_ULAW)
         goto fail;
 
+    r = malloc(sizeof(struct resampler));
+    assert(r);
+
     r->channels = a->channels;
     if (b->channels < r->channels)
         r->channels = b->channels;
     
-    r = malloc(sizeof(struct resampler));
-    assert(r);
     r->i_buf = r->o_buf = NULL;
     r->i_alloc = r->o_alloc = 0;
 
@@ -82,11 +83,10 @@ size_t resampler_request(struct resampler *r, size_t out_length) {
 }
 
 
-int resampler_run(struct resampler *r, struct memchunk *in, struct memchunk *out) {
+void resampler_run(struct resampler *r, const struct memchunk *in, struct memchunk *out) {
     unsigned i_nchannels, o_nchannels, ins, ons, eff_ins, eff_ons;
     float *cbuf;
-    size_t in_bytes_used = 0;
-    assert(r && in && out && in->length && in->memblock);
+    assert(r && in && out && in->length && in->memblock && (in->length % r->i_sz) == 0);
 
     /* How many input samples? */
     ins = in->length/r->i_sz;
@@ -138,8 +138,8 @@ int resampler_run(struct resampler *r, struct memchunk *in, struct memchunk *out
         
         ret = src_process(r->src_state, &data);
         assert(ret == 0);
-
-        in_bytes_used = data.input_frames_used*r->i_sz;
+        assert((unsigned) data.input_frames_used == ins);
+        
         cbuf = r->o_buf;
         ons = data.output_frames_gen;
 
@@ -147,16 +147,9 @@ int resampler_run(struct resampler *r, struct memchunk *in, struct memchunk *out
             eff_ons = ons*r->o_ss.channels;
         else
             eff_ons = ons;
-    } else {
-        in_bytes_used = ins*r->i_sz;
+    } else
         cbuf = r->i_buf;
-    }
 
-    assert(in_bytes_used < in->length);
-    in->index += in_bytes_used;
-    in->length -= in_bytes_used;
-    
     r->from_float32_func(eff_ons, cbuf, out->memblock->data+out->index, o_nchannels);
     out->length = ons*r->o_sz;
-    return 0;
 }

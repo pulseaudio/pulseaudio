@@ -78,17 +78,3 @@ void memblock_unref_fixed(struct memblock *b) {
     b->type = MEMBLOCK_DYNAMIC;
 }
 
-void memchunk_make_writable(struct memchunk *c) {
-    struct memblock *n;
-    assert(c && c->memblock && c->memblock->ref >= 1);
-
-    if (c->memblock->ref == 1)
-        return;
-    
-    n = memblock_new(c->length);
-    assert(n);
-    memcpy(n->data, c->memblock->data+c->index, c->length);
-    memblock_unref(c->memblock);
-    c->memblock = n;
-    c->index = 0;
-}
