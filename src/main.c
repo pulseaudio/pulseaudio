@@ -9,6 +9,7 @@
 #include "mainloop.h"
 #include "module.h"
 #include "mainloop-signal.h"
+#include "cmdline.h"
 
 static struct pa_mainloop *mainloop;
 
@@ -26,8 +27,20 @@ static void aux_signal_callback(void *id, int sig, void *userdata) {
 
 int main(int argc, char *argv[]) {
     struct pa_core *c;
+    struct pa_cmdline *cmdline = NULL;
     int r, retval = 0;
 
+    if (!(cmdline = pa_cmdline_parse(argc, argv))) {
+        fprintf(stderr, "Failed to parse command line.\n");
+        return 1;
+    }
+
+    if (cmdline->help) {
+        pa_cmdline_help(argv[0]);
+        pa_cmdline_free(cmdline);
+        return 0;
+    }
+    
     r = lt_dlinit();
     assert(r == 0);
     
@@ -67,6 +80,8 @@ int main(int argc, char *argv[]) {
     pa_signal_done();
     pa_mainloop_free(mainloop);
 
+        
+        
     lt_dlexit();
     
     return retval;

@@ -84,7 +84,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		sconv-s16le.c sconv-s16le.h \
 		sconv-s16be.c sconv-s16be.h \
 		sioman.c sioman.h \
-		modargs.c modargs.h
+		modargs.c modargs.h \
+		cmdline.c cmdline.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
