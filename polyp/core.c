@@ -69,6 +69,8 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->subscriptions = NULL;
 
     c->memblock_stat = pa_memblock_stat_new();
+
+    c->disallow_module_loading = 0;
     
     pa_check_for_sigpipe();
     

@@ -46,6 +46,8 @@ struct pa_core {
     struct pa_subscription *subscriptions;
 
     struct pa_memblock_stat *memblock_stat;
+
+    int disallow_module_loading;
 };
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m);

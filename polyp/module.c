@@ -54,6 +54,9 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     
     assert(c && name);
 
+    if (c->disallow_module_loading)
+        goto fail;
+
     m = pa_xmalloc(sizeof(struct pa_module));
 
     m->name = pa_xstrdup(name);

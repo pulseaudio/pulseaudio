@@ -31,7 +31,7 @@
 #include "cpulimit.h"
 #include "util.h"
 
-/* Utilize this much CPU time at most */
+/* Utilize this much CPU time at maximum */
 #define CPUTIME_PERCENT 70
 
 #define CPUTIME_INTERVAL_SOFT (5)
@@ -77,12 +77,17 @@ static void signal_handler(int sig) {
 
     if (phase == PHASE_IDLE) {
         time_t now;
+
+#ifdef PRINT_CPU_LOAD
         char t[256];
+#endif
 
         time(&now);
 
+#ifdef PRINT_CPU_LOAD
         snprintf(t, sizeof(t), "Using %0.1f%% CPU\n", (double)CPUTIME_INTERVAL_SOFT/(now-last_time)*100);
         write_err(t);
+#endif
         
         if (CPUTIME_INTERVAL_SOFT >= ((now-last_time)*(double)CPUTIME_PERCENT/100)) {
             static const char c = 'X';
@@ -115,7 +120,6 @@ static void callback(struct pa_mainloop_api*m, struct pa_io_event*e, int fd, enu
 }
 
 int pa_cpu_limit_init(struct pa_mainloop_api *m) {
-    int r;
     struct sigaction sa;
     assert(m && !api && !io_event && the_pipe[0] == -1 && the_pipe[1] == -1);
     
@@ -141,8 +145,10 @@ int pa_cpu_limit_init(struct pa_mainloop_api *m) {
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     
-    r = sigaction(SIGXCPU, &sa, &sigaction_prev);
-    assert(r >= 0);
+    if (sigaction(SIGXCPU, &sa, &sigaction_prev) < 0) {
+        pa_cpu_limit_done();
+        return -1;
+    }
 
     installed = 1;
 

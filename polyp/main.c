@@ -211,6 +211,9 @@ int main(int argc, char *argv[]) {
         retval = 0;
         if (cmdline->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+
+        c->disallow_module_loading = cmdline->disallow_module_loading;
+        
         fprintf(stderr, __FILE__": mainloop entry.\n");
         if (pa_mainloop_run(mainloop, &retval) < 0)
             retval = 1;
