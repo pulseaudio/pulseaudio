@@ -33,10 +33,10 @@ README:
 
 homepage: all dist doxygen
 	test -d $$HOME/homepage/private
-	mkdir -p $$HOME/homepage/private/projects/polypaudio
+	mkdir -p $$HOME/homepage/private/projects/polypaudio $$HOME/homepage/private/projects/polypaudio/doxygen
 	cp *.tar.gz $$HOME/homepage/private/projects/polypaudio
 	cp doc/README.html doc/cli.html doc/daemon.html doc/modules.html doc/style.css $$HOME/homepage/private/projects/polypaudio
-	cp -a doxygen/html $$HOME/homepage/private/projects/polypaudio/doxygen
+	cp -a doxygen/html/* $$HOME/homepage/private/projects/polypaudio/doxygen
 	cp $$HOME/homepage/private/projects/polypaudio/README.html $$HOME/homepage/private/projects/polypaudio/index.html
 
 distcleancheck:
