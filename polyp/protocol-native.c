@@ -159,8 +159,12 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REMOVE_SAMPLE] = { command_remove_sample },
     [PA_COMMAND_GET_SINK_INFO] = { command_get_info },
     [PA_COMMAND_GET_SOURCE_INFO] = { command_get_info },
+    [PA_COMMAND_GET_CLIENT_INFO] = { command_get_info },
+    [PA_COMMAND_GET_MODULE_INFO] = { command_get_info },
     [PA_COMMAND_GET_SINK_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SOURCE_INFO_LIST] = { command_get_info_list },
+    [PA_COMMAND_GET_MODULE_INFO_LIST] = { command_get_info_list },
+    [PA_COMMAND_GET_CLIENT_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SERVER_INFO] = { command_get_server_info },
     [PA_COMMAND_SUBSCRIBE] = { command_subscribe },
 };
@@ -964,11 +968,30 @@ static void source_fill_tagstruct(struct pa_tagstruct *t, struct pa_source *sour
     pa_tagstruct_puts(t, source->monitor_of ? source->monitor_of->name : "");
 }
 
+static void client_fill_tagstruct(struct pa_tagstruct *t, struct pa_client *client) {
+    assert(t && client);
+    pa_tagstruct_putu32(t, client->index);
+    pa_tagstruct_puts(t, client->name);
+    pa_tagstruct_puts(t, client->protocol_name);
+    pa_tagstruct_putu32(t, client->owner ? client->owner->index : (uint32_t) -1);
+}
+
+static void module_fill_tagstruct(struct pa_tagstruct *t, struct pa_module *module) {
+    assert(t && module);
+    pa_tagstruct_putu32(t, module->index);
+    pa_tagstruct_puts(t, module->name);
+    pa_tagstruct_puts(t, module->argument ? module->argument : "");
+    pa_tagstruct_putu32(t, module->n_used);
+    pa_tagstruct_putu32(t, module->auto_unload);
+}
+
 static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     uint32_t index;
     struct pa_sink *sink = NULL;
     struct pa_source *source = NULL;
+    struct pa_client *client = NULL;
+    struct pa_module *module = NULL;
     const char *name;
     struct pa_tagstruct *reply;
     assert(c && t);
@@ -990,15 +1013,19 @@ static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t
             sink = pa_idxset_get_by_index(c->protocol->core->sinks, index);
         else
             sink = pa_namereg_get(c->protocol->core, *name ? name : NULL, PA_NAMEREG_SINK, 1);
-    } else {
-        assert(command == PA_COMMAND_GET_SOURCE_INFO);
+    } else if (command == PA_COMMAND_GET_SOURCE_INFO) {
         if (index != (uint32_t) -1)
             source = pa_idxset_get_by_index(c->protocol->core->sources, index);
         else
             source = pa_namereg_get(c->protocol->core, *name ? name : NULL, PA_NAMEREG_SOURCE, 1);
+    } else if (command == PA_COMMAND_GET_CLIENT_INFO)
+        client = pa_idxset_get_by_index(c->protocol->core->clients, index);
+    else {
+        assert(command == PA_COMMAND_GET_MODULE_INFO);
+        module = pa_idxset_get_by_index(c->protocol->core->modules, index);
     }
-
-    if (!sink && !source) {
+    
+    if (!sink && !source && !client && !module) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
         return;
     }
@@ -1009,8 +1036,12 @@ static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_putu32(reply, tag); 
     if (sink)
         sink_fill_tagstruct(reply, sink);
-    else
+    else if (source)
         source_fill_tagstruct(reply, source);
+    else if (client)
+        client_fill_tagstruct(reply, client);
+    else
+        module_fill_tagstruct(reply, module);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1039,17 +1070,25 @@ static void command_get_info_list(struct pa_pdispatch *pd, uint32_t command, uin
 
     if (command == PA_COMMAND_GET_SINK_INFO_LIST)
         i = c->protocol->core->sinks;
-    else {
-        assert(command == PA_COMMAND_GET_SOURCE_INFO_LIST);
+    else if (command == PA_COMMAND_GET_SOURCE_INFO_LIST)
         i = c->protocol->core->sources;
+    else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
+        i = c->protocol->core->clients;
+    else {
+        assert(command == PA_COMMAND_GET_MODULE_INFO_LIST);
+        i = c->protocol->core->modules;
     }
 
     for (p = pa_idxset_first(i, &index); p; p = pa_idxset_next(i, &index)) {
         if (command == PA_COMMAND_GET_SINK_INFO_LIST)
             sink_fill_tagstruct(reply, p);
-        else {
-            assert(command == PA_COMMAND_GET_SOURCE_INFO_LIST);
+        else if (command == PA_COMMAND_GET_SOURCE_INFO_LIST)
             source_fill_tagstruct(reply, p);
+        else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
+            client_fill_tagstruct(reply, p);
+        else {
+            assert(command == PA_COMMAND_GET_MODULE_INFO_LIST);
+            module_fill_tagstruct(reply, p);
         }
     } 
     

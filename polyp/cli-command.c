@@ -300,7 +300,7 @@ static int pa_cli_command_sink_volume(struct pa_core *c, struct pa_tokenizer *t,
         return -1;
     }
 
-    sink->volume = (uint32_t) volume;
+    pa_sink_set_volume(sink, (uint32_t) volume);
     return 0;
 }
 

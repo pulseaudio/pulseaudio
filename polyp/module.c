@@ -218,6 +218,9 @@ void pa_module_unload_request(struct pa_core *c, struct pa_module *m) {
 void pa_module_set_used(struct pa_module*m, int used) {
     assert(m);
 
+    if (m->n_used != used)
+        pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_CHANGE, m->index);
+    
     if (m->n_used != used && used == 0)
         time(&m->last_used_time);
 

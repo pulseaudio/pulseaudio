@@ -102,6 +102,12 @@ struct pa_context {
     void *subscribe_userdata;
     enum pa_subscription_mask subscribe_mask;
 
+    void (*get_client_info_callback)(struct pa_context*c, const struct pa_client_info* i, int is_last, void *userdata);
+    void *get_client_info_userdata;
+
+    void (*get_module_info_callback)(struct pa_context*c, const struct pa_module_info* i, int is_last, void *userdata);
+    void *get_module_info_userdata;
+
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
 };
 
@@ -209,6 +215,12 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->subscribe_callback = NULL;
     c->subscribe_userdata = NULL;
 
+    c->get_client_info_callback = NULL;
+    c->get_client_info_userdata = NULL;
+    
+    c->get_module_info_callback = NULL;
+    c->get_module_info_userdata = NULL;
+    
     pa_check_for_sigpipe();
     return c;
 }
@@ -1385,4 +1397,154 @@ void pa_context_get_source_info_by_index(struct pa_context *c, uint32_t index, v
     pa_tagstruct_puts(t, "");
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_info_callback, c);
+}
+
+static void context_get_client_info_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_context *c = userdata;
+    assert(pd && c);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (handle_error(c, command, t) < 0) {
+            context_dead(c);
+            return;
+        }
+
+        if (c->get_client_info_callback)
+            c->get_client_info_callback(c, NULL, 0, c->get_client_info_userdata);
+        return;
+    }
+
+    while (!pa_tagstruct_eof(t)) {
+        struct pa_client_info i;
+
+        if (pa_tagstruct_getu32(t, &i.index) < 0 ||
+            pa_tagstruct_gets(t, &i.name) < 0 ||
+            pa_tagstruct_gets(t, &i.protocol_name) < 0 ||
+            pa_tagstruct_getu32(t, &i.owner_module) < 0) {
+            c->error = PA_ERROR_PROTOCOL;
+            context_dead(c);
+            return;
+        }
+        
+        if (c->get_client_info_callback)
+            c->get_client_info_callback(c, &i, 0, c->get_client_info_userdata);
+    }
+
+    if (c->get_client_info_callback)
+        c->get_client_info_callback(c, NULL, 1, c->get_client_info_userdata);
+}
+
+
+void pa_context_get_client_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_client_info*i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c);
+
+    c->get_client_info_callback = cb;
+    c->get_client_info_userdata = userdata;
+
+    if (!cb)
+        return;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_CLIENT_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_client_info_callback, c);
+}
+
+void pa_context_get_client_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_client_info*i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c);
+
+    c->get_client_info_callback = cb;
+    c->get_client_info_userdata = userdata;
+
+    if (!cb)
+        return;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_CLIENT_INFO_LIST);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_client_info_callback, c);
+}
+
+static void context_get_module_info_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_context *c = userdata;
+    assert(pd && c);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (handle_error(c, command, t) < 0) {
+            context_dead(c);
+            return;
+        }
+
+        if (c->get_module_info_callback)
+            c->get_module_info_callback(c, NULL, 0, c->get_module_info_userdata);
+        return;
+    }
+
+    while (!pa_tagstruct_eof(t)) {
+        struct pa_module_info i;
+
+        if (pa_tagstruct_getu32(t, &i.index) < 0 ||
+            pa_tagstruct_gets(t, &i.name) < 0 ||
+            pa_tagstruct_gets(t, &i.argument) < 0 ||
+            pa_tagstruct_getu32(t, &i.n_used) < 0 ||
+            pa_tagstruct_getu32(t, &i.auto_unload) < 0) {
+            c->error = PA_ERROR_PROTOCOL;
+            context_dead(c);
+            return;
+        }
+        
+        if (c->get_module_info_callback)
+            c->get_module_info_callback(c, &i, 0, c->get_module_info_userdata);
+    }
+
+    if (c->get_module_info_callback)
+        c->get_module_info_callback(c, NULL, 1, c->get_module_info_userdata);
+}
+
+void pa_context_get_module_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_module_info*i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c);
+
+    c->get_module_info_callback = cb;
+    c->get_module_info_userdata = userdata;
+
+    if (!cb)
+        return;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_MODULE_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_module_info_callback, c);
+}
+
+void pa_context_get_module_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_module_info*i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c);
+
+    c->get_module_info_callback = cb;
+    c->get_module_info_userdata = userdata;
+
+    if (!cb)
+        return;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_MODULE_INFO_LIST);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_module_info_callback, c);
 }

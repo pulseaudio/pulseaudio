@@ -62,4 +62,6 @@ void pa_sink_notify(struct pa_sink*s);
 
 void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m);
 
+void pa_sink_set_volume(struct pa_sink *sink, uint32_t volume);
+
 #endif

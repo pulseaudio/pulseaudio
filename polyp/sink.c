@@ -276,10 +276,17 @@ uint32_t pa_sink_get_latency(struct pa_sink *s) {
     return s->get_latency(s);
 }
 
-
 void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m) {
     sink->owner = m;
 
     if (sink->monitor_source)
         pa_source_set_owner(sink->monitor_source, m);
+}
+
+void pa_sink_set_volume(struct pa_sink *sink, uint32_t volume) {
+    assert(sink);
+    if (sink->volume != volume) {
+        pa_subscription_post(sink->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, sink->index);
+        sink->volume = volume;
+    }
 }
