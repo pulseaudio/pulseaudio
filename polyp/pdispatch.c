@@ -30,6 +30,8 @@
 #include "pdispatch.h"
 #include "native-common.h"
 
+/*#define DEBUG_OPCODES*/
+
 #ifdef DEBUG_OPCODES
 
 static const char *command_names[PA_COMMAND_MAX] = {
@@ -51,6 +53,11 @@ static const char *command_names[PA_COMMAND_MAX] = {
     [PA_COMMAND_RECORD_STREAM_KILLED] = "RECORD_STREAM_KILLED",
     [PA_COMMAND_STAT] = "STAT",
     [PA_COMMAND_GET_PLAYBACK_LATENCY] = "PLAYBACK_LATENCY",
+    [PA_COMMAND_CREATE_UPLOAD_STREAM] = "CREATE_UPLOAD_STREAM",
+    [PA_COMMAND_DELETE_UPLOAD_STREAM] = "DELETE_UPLOAD_STREAM",
+    [PA_COMMAND_FINISH_UPLOAD_STREAM] = "FINISH_UPLOAD_STREAM",
+    [PA_COMMAND_PLAY_SAMPLE] = "PLAY_SAMPLE",
+    [PA_COMMAND_REMOVE_SAMPLE] = "REMOVE_SAMPLE",
 };
 
 #endif
@@ -108,12 +115,13 @@ struct pa_pdispatch* pa_pdispatch_new(struct pa_mainloop_api *mainloop, const st
     pd->drain_userdata = NULL;
 
     pd->in_use = pd->shall_free = 0;
+
     return pd;
 }
 
 void pa_pdispatch_free(struct pa_pdispatch *pd) {
     assert(pd);
-    
+
     if (pd->in_use) {
         pd->shall_free = 1;
         return;

@@ -142,7 +142,7 @@ static uint32_t sink_get_latency_cb(struct pa_sink *s) {
     if (frames < 0)
         frames = 0;
     
-    return pa_samples_usec(frames * u->frame_size, &s->sample_spec);
+    return pa_bytes_to_usec(frames * u->frame_size, &s->sample_spec);
 }
 
 int pa_module_init(struct pa_core *c, struct pa_module*m) {
@@ -165,7 +165,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         fprintf(stderr, __FILE__": failed to parse sample specification\n");
         goto fail;
     }
-    frame_size = pa_sample_size(&ss);
+    frame_size = pa_frame_size(&ss);
     
     periods = 12;
     fragsize = 1024;

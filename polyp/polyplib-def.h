@@ -26,7 +26,8 @@
 
 enum pa_stream_direction {
     PA_STREAM_PLAYBACK,
-    PA_STREAM_RECORD
+    PA_STREAM_RECORD,
+    PA_STREAM_UPLOAD
 };
 
 struct pa_buffer_attr {

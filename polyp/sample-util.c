@@ -111,7 +111,7 @@ size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, siz
 void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec, uint32_t volume) {
     int16_t *d;
     size_t n;
-    assert(c && spec && (c->length % pa_sample_size(spec) == 0));
+    assert(c && spec && (c->length % pa_frame_size(spec) == 0));
     assert(spec->format == PA_SAMPLE_S16NE);
 
     if (volume == PA_VOLUME_NORM)

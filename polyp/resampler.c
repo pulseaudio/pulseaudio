@@ -75,8 +75,8 @@ struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const stru
     r->i_ss = *a;
     r->o_ss = *b;
 
-    r->i_sz = pa_sample_size(a);
-    r->o_sz = pa_sample_size(b);
+    r->i_sz = pa_frame_size(a);
+    r->o_sz = pa_frame_size(b);
 
     r->to_float32_func = pa_get_convert_to_float32_function(a->format);
     r->from_float32_func = pa_get_convert_from_float32_function(b->format);

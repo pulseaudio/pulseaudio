@@ -30,19 +30,37 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+
+#include <sndfile.h>
 
 #include <polyp/polyplib.h>
 #include <polyp/polyplib-error.h>
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
+#include <polyp/sample.h>
+
+#define BUFSIZE 1024
 
 static struct pa_context *context = NULL;
 static struct pa_mainloop_api *mainloop_api = NULL;
 
+static char **process_argv = NULL;
+
+static SNDFILE *sndfile = NULL;
+static struct pa_stream *sample_stream = NULL;
+static struct pa_sample_spec sample_spec;
+static size_t sample_length = 0;
+
+static char *sample_name = NULL;
+
 static enum {
     NONE,
     EXIT,
-    STAT
+    STAT,
+    UPLOAD_SAMPLE,
+    PLAY_SAMPLE,
+    REMOVE_SAMPLE
 } action = NONE;
 
 static void quit(int ret) {
@@ -78,6 +96,79 @@ static void stat_callback(struct pa_context *c, uint32_t blocks, uint32_t total,
     drain();
 }
 
+static void play_sample_callback(struct pa_context *c, int success, void *userdata) {
+    if (!success) {
+        fprintf(stderr, "Failed to play sample: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    drain();
+}
+
+static void remove_sample_callback(struct pa_context *c, int success, void *userdata) {
+    if (!success) {
+        fprintf(stderr, "Failed to remove sample: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    drain();
+}
+
+static void stream_die_callback(struct pa_stream *s, void *userdata) {
+    assert(s);
+    fprintf(stderr, "Stream deleted, exiting.\n");
+    quit(1);
+}
+
+static void finish_sample_callback(struct pa_stream *s, int success, void *userdata) {
+    assert(s);
+
+    if (!success) {
+        fprintf(stderr, "Failed to upload sample: %s\n", pa_strerror(pa_context_errno(context)));
+        quit(1);
+        return;
+    }
+
+    drain();
+}
+
+static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
+    sf_count_t l;
+    float *d;
+    assert(s && length && sndfile);
+
+    d = malloc(length);
+    assert(d);
+
+    assert(sample_length >= length);
+    l = length/pa_frame_size(&sample_spec);
+
+    if ((sf_readf_float(sndfile, d, l)) != l) {
+        free(d);
+        fprintf(stderr, "Premature end of file\n");
+        quit(1);
+    }
+    
+    pa_stream_write(s, d, length);
+    free(d);
+
+    sample_length -= length;
+
+    if (sample_length  <= 0) {
+        pa_stream_set_write_callback(sample_stream, NULL, NULL);
+        pa_stream_finish_sample(sample_stream, finish_sample_callback, NULL);
+    }
+}
+
+static void upload_callback(struct pa_stream *s, int success, void *userdata) {
+    if (!success) {
+        fprintf(stderr, "Failed to upload sample: %s\n", pa_strerror(pa_context_errno(context)));
+        quit(1);
+    }
+}
+
 static void context_complete_callback(struct pa_context *c, int success, void *userdata) {
     assert(c);
 
@@ -90,7 +181,19 @@ static void context_complete_callback(struct pa_context *c, int success, void *u
 
     if (action == STAT)
         pa_context_stat(c, stat_callback, NULL);
-    else {
+    else if (action == PLAY_SAMPLE)
+        pa_context_play_sample(c, process_argv[2], NULL, 0x100, play_sample_callback, NULL);
+    else if (action == REMOVE_SAMPLE)
+        pa_context_remove_sample(c, process_argv[2], remove_sample_callback, NULL);
+    else if (action == UPLOAD_SAMPLE) {
+        if (!(sample_stream = pa_context_upload_sample(c, sample_name, &sample_spec, sample_length, upload_callback, NULL))) {
+            fprintf(stderr, "Failed to upload sample: %s\n", pa_strerror(pa_context_errno(c)));
+            goto fail;
+        }
+        
+        pa_stream_set_die_callback(sample_stream, stream_die_callback, NULL);
+        pa_stream_set_write_callback(sample_stream, stream_write_callback, NULL);
+    } else {
         assert(action == EXIT);
         pa_context_exit(c);
         drain();
@@ -105,11 +208,12 @@ fail:
 static void exit_signal_callback(void *id, int sig, void *userdata) {
     fprintf(stderr, "Got SIGINT, exiting.\n");
     quit(0);
-    
 }
 
 int main(int argc, char *argv[]) {
     struct pa_mainloop* m = NULL;
+    char tmp[PATH_MAX];
+    
     int ret = 1, r;
 
     if (argc >= 2) {
@@ -117,13 +221,60 @@ int main(int argc, char *argv[]) {
             action = STAT;
         else if (!strcmp(argv[1], "exit"))
             action = EXIT;
+        else if (!strcmp(argv[1], "scache_upload")) {
+            struct SF_INFO sfinfo;
+            action = UPLOAD_SAMPLE;
+
+            if (argc < 3) {
+                fprintf(stderr, "Please specify a sample file to load\n");
+                goto quit;
+            }
+
+            if (argc >= 4)
+                sample_name = argv[3];
+            else {
+                char *f = strrchr(argv[2], '/');
+                if (f)
+                    f++;
+                else
+                    f = argv[2];
+
+                strncpy(sample_name = tmp, f, strcspn(f, "."));
+            }
+            
+            memset(&sfinfo, 0, sizeof(sfinfo));
+            if (!(sndfile = sf_open(argv[2], SFM_READ, &sfinfo))) {
+                fprintf(stderr, "Failed to open sound file.\n");
+                goto quit;
+            }
+            
+            sample_spec.format =  PA_SAMPLE_FLOAT32;
+            sample_spec.rate = sfinfo.samplerate;
+            sample_spec.channels = sfinfo.channels;
+
+            sample_length = sfinfo.frames*pa_frame_size(&sample_spec);
+        } else if (!strcmp(argv[1], "scache_play")) {
+            action = PLAY_SAMPLE;
+            if (argc < 3) {
+                fprintf(stderr, "You have to specify a sample name to play\n");
+                goto quit;
+            }
+        } else if (!strcmp(argv[1], "scache_remove")) {
+            action = REMOVE_SAMPLE;
+            if (argc < 3) {
+                fprintf(stderr, "You have to specify a sample name to remove\n");
+                goto quit;
+            }
+        }
     }
 
     if (action == NONE) {
-        fprintf(stderr, "No valid action specified. Use one of: stat, exit\n");
+        fprintf(stderr, "No valid action specified. Use one of: stat, exit, scache_upload, scache_play, scache_remove\n");
         goto quit;
     }
 
+    process_argv = argv;
+    
     if (!(m = pa_mainloop_new())) {
         fprintf(stderr, "pa_mainloop_new() failed.\n");
         goto quit;
@@ -161,6 +312,9 @@ quit:
         pa_signal_done();
         pa_mainloop_free(m);
     }
+    
+    if (sndfile)
+        sf_close(sndfile);
     
     return ret;
 }

@@ -42,6 +42,8 @@
 #include "clitext.h"
 #include "scache.h"
 #include "sample-util.h"
+#include "sound-file.h"
+#include "play-memchunk.h"
 
 struct command {
     const char *name;
@@ -72,6 +74,8 @@ static int pa_cli_command_kill_source_output(struct pa_core *c, struct pa_tokeni
 static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 
 static const struct command commands[] = {
     { "exit",                    pa_cli_command_exit,               "Terminate the daemon",         1 },
@@ -98,6 +102,8 @@ static const struct command commands[] = {
     { "scache_list",             pa_cli_command_scache_list,        "List all entries in the sample cache", 2},
     { "scache_play",             pa_cli_command_scache_play,        "Play a sample from the sample cache (args: name, sink|index)", 3},
     { "scache_remove",           pa_cli_command_scache_remove,      "Remove a sample from the sample cache (args: name)", 2},
+    { "scache_load",             pa_cli_command_scache_load,        "Load a sound file into the sample cache (args: filename,name)", 3},
+    { "play_file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -486,6 +492,55 @@ static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *
     }
 
     return 0;
+}
+
+static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    const char *fname, *n;
+    struct pa_memchunk chunk;
+    struct pa_sample_spec ss;
+    assert(c && t && buf && fail && verbose);
+
+    if (!(fname = pa_tokenizer_get(t, 1)) || !(n = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a file name and a sample name.\n");
+        return -1;
+    }
+
+    if (pa_sound_file_load(fname, &ss, &chunk) < 0) {
+        pa_strbuf_puts(buf, "Failed to load sound file.\n");
+        return -1;
+    }
+
+    pa_scache_add_item(c, n, &ss, &chunk, NULL);
+    pa_memblock_unref(chunk.memblock);
+    return 0;
+}
+
+static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    const char *fname, *sink_name;
+    struct pa_memchunk chunk;
+    struct pa_sample_spec ss;
+    struct pa_sink *sink;
+    int ret;
+    assert(c && t && buf && fail && verbose);
+
+    if (!(fname = pa_tokenizer_get(t, 1)) || !(sink_name = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a file name and a sink name.\n");
+        return -1;
+    }
+
+    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK))) {
+        pa_strbuf_puts(buf, "No sink by that name.\n");
+        return -1;
+    }
+
+    if (pa_sound_file_load(fname, &ss, &chunk) < 0) {
+        pa_strbuf_puts(buf, "Failed to load sound file.\n");
+        return -1;
+    }
+
+    ret = pa_play_memchunk(sink, fname, &ss, &chunk, PA_VOLUME_NORM);
+    pa_memblock_unref(chunk.memblock);
+    return ret;
 }
 
 int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail, int *verbose) {

@@ -198,7 +198,7 @@ static uint32_t sink_get_latency_cb(struct pa_sink *s) {
     assert(s && u);
 
     do_write(u);
-    return pa_samples_usec(u->out_fill, &s->sample_spec);
+    return pa_bytes_to_usec(u->out_fill, &s->sample_spec);
 }
 
 int pa_module_init(struct pa_core *c, struct pa_module*m) {

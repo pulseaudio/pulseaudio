@@ -107,11 +107,13 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		clitext.c clitext.h \
 		tokenizer.c tokenizer.h \
 		dynarray.c dynarray.h \
-		scache.c scache.h
+		scache.c scache.h \
+		sound-file.c sound-file.h \
+		play-memchunk.c play-memchunk.h
 
-polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
+polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
-polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS)
+polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS)
 polypaudio_LDFLAGS=-export-dynamic
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h
@@ -270,7 +272,8 @@ libpolyp_la_SOURCES = polyplib.c polyplib.h \
 		memchunk.c memchunk.h \
 		authkey.c authkey.h \
 		socket-util.c socket-util.h \
-		native-common.h
+		native-common.h \
+		sample.c sample.h
 libpolyp_la_CFLAGS = $(AM_CFLAGS)
 
 libpolyp_mainloop_la_SOURCES = mainloop-api.h mainloop-api.c \
@@ -290,8 +293,8 @@ pacat_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la
 pacat_CFLAGS = $(AM_CFLAGS) 
 
 pactl_SOURCES = pactl.c
-pactl_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la
-pactl_CFLAGS = $(AM_CFLAGS) 
+pactl_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la $(LIBSNDFILE_LIBS)
+pactl_CFLAGS = $(AM_CFLAGS) $(LIBSDNFILE_CFLAGS)
 
 pacat_simple_SOURCES = pacat-simple.c
 pacat_simple_LDADD = $(AM_LDADD) libpolyp-simple.la libpolyp-error.la

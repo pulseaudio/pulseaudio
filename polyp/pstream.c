@@ -23,6 +23,7 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <netinet/in.h>
@@ -40,7 +41,7 @@ enum pa_pstream_descriptor_index {
 typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 
 #define PA_PSTREAM_DESCRIPTOR_SIZE (PA_PSTREAM_DESCRIPTOR_MAX*sizeof(uint32_t))
-#define FRAME_SIZE_MAX (1024*64)
+#define FRAME_SIZE_MAX (1024*500) /* half a megabyte */
 
 struct item_info {
     enum { PA_PSTREAM_ITEM_PACKET, PA_PSTREAM_ITEM_MEMBLOCK } type;
@@ -361,8 +362,10 @@ static void do_read(struct pa_pstream *p) {
         /* Reading of frame descriptor complete */
 
         /* Frame size too large */
-        if (ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) > FRAME_SIZE_MAX)
+        if (ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) > FRAME_SIZE_MAX) {
+            fprintf(stderr, "frame size too large\n");
             goto die;
+        }
         
         assert(!p->read.packet && !p->read.memblock);
 

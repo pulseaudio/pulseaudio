@@ -225,12 +225,13 @@ char *pa_scache_list_to_string(struct pa_core *c) {
             l = (double) e->memchunk.length / pa_bytes_per_second(&e->sample_spec);
             
             pa_strbuf_printf(
-                s, "    name: <%s>\n\tindex: <%i>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n",
+                s, "    name: <%s>\n\tindex: <%i>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n\tvolume: <0x%04x>\n",
                 e->name,
                 e->index,
                 ss,
                 e->memchunk.length,
-                l);
+                l,
+                e->volume);
         }
     }
 

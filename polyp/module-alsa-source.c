@@ -149,7 +149,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         fprintf(stderr, __FILE__": failed to parse sample specification\n");
         goto fail;
     }
-    frame_size = pa_sample_size(&ss);
+    frame_size = pa_frame_size(&ss);
     
     periods = 12;
     fragsize = 1024;

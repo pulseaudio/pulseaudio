@@ -312,7 +312,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     assert(!c->input_memblockq);
 
     l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS); 
-    c->input_memblockq = pa_memblockq_new(l, 0, pa_sample_size(&ss), l/2, l/PLAYBACK_BUFFER_FRAGMENTS);
+    c->input_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), l/2, l/PLAYBACK_BUFFER_FRAGMENTS);
     assert(c->input_memblockq);
     pa_iochannel_socket_set_rcvbuf(c->io, l/PLAYBACK_BUFFER_FRAGMENTS*2);
     c->playback.fragment_size = l/10;
@@ -376,7 +376,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     assert(!c->output_memblockq);
 
     l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS); 
-    c->output_memblockq = pa_memblockq_new(l, 0, pa_sample_size(&ss), 0, 0);
+    c->output_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), 0, 0);
     assert(c->output_memblockq);
     pa_iochannel_socket_set_sndbuf(c->io, l/RECORD_BUFFER_FRAGMENTS*2);
     
@@ -936,7 +936,7 @@ static void sink_input_kill_cb(struct pa_sink_input *i) {
 static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i) {
     struct connection*c = i->userdata;
     assert(i && c);
-    return pa_samples_usec(pa_memblockq_get_length(c->input_memblockq), &c->sink_input->sample_spec);
+    return pa_bytes_to_usec(pa_memblockq_get_length(c->input_memblockq), &c->sink_input->sample_spec);
 }
 
 /*** source_output callbacks ***/

@@ -6,6 +6,8 @@
 #include "scache.h"
 #include "sink-input.h"
 #include "mainloop.h"
+#include "sample-util.h"
+#include "play-memchunk.h"
 
 static void free_entry(struct pa_scache_entry *e) {
     assert(e);
@@ -100,50 +102,8 @@ void pa_scache_free(struct pa_core *c) {
     }
 }
 
-static void sink_input_kill(struct pa_sink_input *i) {
-    struct pa_memchunk *c;
-    assert(i && i->userdata);
-    c = i->userdata;
-
-    pa_memblock_unref(c->memblock);
-    free(c);
-    pa_sink_input_free(i);
-}
-
-static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
-    struct pa_memchunk *c;
-    assert(i && chunk && i->userdata);
-    c = i->userdata;
-
-    assert(c->length && c->memblock && c->memblock->length);
-    *chunk = *c;
-    pa_memblock_ref(c->memblock);
-
-    return 0;
-}
-
-static void si_kill(void *i) {
-    sink_input_kill(i);
-}
-
-static void sink_input_drop(struct pa_sink_input *i, size_t length) {
-    struct pa_memchunk *c;
-    assert(i && length && i->userdata);
-    c = i->userdata;
-
-    assert(length <= c->length);
-
-    c->length -= length;
-    c->index += length;
-
-    if (c->length <= 0)
-        pa_mainloop_api_once(i->sink->core->mainloop, si_kill, i);
-}
-
 int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume) {
-    struct pa_sink_input *si;
     struct pa_scache_entry *e;
-    struct pa_memchunk *chunk;
     assert(c && name && sink);
 
     if (!c->scache_hashmap || !(e = pa_hashmap_get(c->scache_hashmap, name)))
@@ -151,20 +111,10 @@ int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sin
 
     if (!e->memchunk.memblock)
         return -1;
-    
-    if (!(si = pa_sink_input_new(sink, name, &e->sample_spec)))
+
+    if (pa_play_memchunk(sink, name, &e->sample_spec, &e->memchunk, pa_volume_multiply(volume, e->volume)) < 0)
         return -1;
-
-    si->volume = volume;
-
-    si->peek = sink_input_peek;
-    si->drop = sink_input_drop;
-    si->kill = sink_input_kill;
-    si->userdata = chunk = malloc(sizeof(struct pa_memchunk));
-    assert(chunk);
-    *chunk = e->memchunk;
-    pa_memblock_ref(chunk->memblock);
-
+    
     return 0;
 }
 

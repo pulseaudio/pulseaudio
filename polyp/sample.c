@@ -28,7 +28,7 @@
 
 #include "sample.h"
 
-size_t pa_sample_size(const struct pa_sample_spec *spec) {
+size_t pa_frame_size(const struct pa_sample_spec *spec) {
     assert(spec);
     size_t b = 1;
 
@@ -55,14 +55,13 @@ size_t pa_sample_size(const struct pa_sample_spec *spec) {
 
 size_t pa_bytes_per_second(const struct pa_sample_spec *spec) {
     assert(spec);
-    return spec->rate*pa_sample_size(spec);
+    return spec->rate*pa_frame_size(spec);
 }
 
-
-uint32_t pa_samples_usec(size_t length, const struct pa_sample_spec *spec) {
+uint32_t pa_bytes_to_usec(size_t length, const struct pa_sample_spec *spec) {
     assert(spec);
 
-    return (uint32_t) (((double) length /pa_sample_size(spec))/spec->rate*1000000);
+    return (uint32_t) (((double) length /pa_frame_size(spec))/spec->rate*1000000);
 }
 
 int pa_sample_spec_valid(const struct pa_sample_spec *spec) {

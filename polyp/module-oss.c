@@ -153,7 +153,7 @@ static uint32_t sink_get_latency_cb(struct pa_sink *s) {
         return 0;
     }
 
-    return pa_samples_usec(arg, &s->sample_spec);
+    return pa_bytes_to_usec(arg, &s->sample_spec);
 }
 
 int pa_module_init(struct pa_core *c, struct pa_module*m) {
@@ -258,7 +258,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
 
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
-    u->sample_size = pa_sample_size(&ss);
+    u->sample_size = pa_frame_size(&ss);
 
     u->out_fragment_size = out_frag_size;
     u->in_fragment_size = in_frag_size;

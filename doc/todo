@@ -2,16 +2,14 @@
 
 *** 0.2 ***
 
-- enable searchdir
-
-- scache remove()
-- scache in native protocol
-- scache/debug.h copyright
-
 - future cancellation
 - autoloading/autounloading
-- doxygen
 - make mcalign merge chunks
+
+- doxygen
+
+- scache.[ch]/module-x11-bell.c/debug.h copyright
+- enable searchdir
 - autoscan
 - rename clitext.[ch] to cli-text.[ch]
 

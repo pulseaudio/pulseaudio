@@ -81,6 +81,12 @@ struct pa_context {
 
     void (*stat_callback)(struct pa_context*c, uint32_t count, uint32_t total, void *userdata);
     void *stat_userdata;
+
+    void (*play_sample_callback)(struct pa_context*c, int success, void *userdata);
+    void *play_sample_userdata;
+    
+    void (*remove_sample_callback)(struct pa_context*c, int success, void *userdata);
+    void *remove_sample_userdata;
     
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
 };
@@ -92,12 +98,12 @@ struct pa_stream {
     char *name;
     struct pa_buffer_attr buffer_attr;
     struct pa_sample_spec sample_spec;
-    uint32_t device_index;
     uint32_t channel;
     int channel_valid;
+    uint32_t device_index;
     enum pa_stream_direction direction;
     
-    enum { STREAM_LOOKING_UP, STREAM_CREATING, STREAM_READY, STREAM_DEAD} state;
+    enum { STREAM_CREATING, STREAM_READY, STREAM_DEAD} state;
     uint32_t requested_bytes;
 
     void (*read_callback)(struct pa_stream *p, const void*data, size_t length, void *userdata);
@@ -117,6 +123,9 @@ struct pa_stream {
 
     void (*get_latency_callback)(struct pa_stream*c, uint32_t latency, void *userdata);
     void *get_latency_userdata;
+
+    void (*finish_sample_callback)(struct pa_stream*c, int success, void *userdata);
+    void *finish_sample_userdata;
 };
 
 static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
@@ -166,6 +175,12 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
 
     c->stat_callback = NULL;
     c->stat_userdata = NULL;
+
+    c->play_sample_callback = NULL;
+    c->play_sample_userdata = NULL;
+
+    c->remove_sample_callback = NULL;
+    c->remove_sample_userdata = NULL;
 
     pa_check_for_sigpipe();
     return c;
@@ -494,7 +509,7 @@ static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t 
         return;
     
     s->requested_bytes += bytes;
-    
+
     if (s->requested_bytes && s->write_callback)
         s->write_callback(s, s->requested_bytes, s->write_userdata);
 }
@@ -517,7 +532,7 @@ static void create_stream_callback(struct pa_pdispatch *pd, uint32_t command, ui
     }
 
     if (pa_tagstruct_getu32(t, &s->channel) < 0 ||
-        pa_tagstruct_getu32(t, &s->device_index) < 0 ||
+        ((s->direction != PA_STREAM_UPLOAD) && pa_tagstruct_getu32(t, &s->device_index) < 0) ||
         !pa_tagstruct_eof(t)) {
         s->context->error = PA_ERROR_PROTOCOL;
         context_dead(s->context);
@@ -525,14 +540,14 @@ static void create_stream_callback(struct pa_pdispatch *pd, uint32_t command, ui
     }
 
     s->channel_valid = 1;
-    pa_dynarray_put((s->direction == PA_STREAM_PLAYBACK) ? s->context->playback_streams :  s->context->record_streams, s->channel, s);
+    pa_dynarray_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, s->channel, s);
     
     s->state = STREAM_READY;
     if (s->create_complete_callback)
         s->create_complete_callback(s, 1, s->create_complete_userdata);
 }
 
-static void create_stream(struct pa_stream *s, uint32_t tdev_index) {
+static void create_stream(struct pa_stream *s, const char *dev) {
     struct pa_tagstruct *t;
     uint32_t tag;
     assert(s);
@@ -546,7 +561,8 @@ static void create_stream(struct pa_stream *s, uint32_t tdev_index) {
     pa_tagstruct_putu32(t, tag = s->context->ctag++);
     pa_tagstruct_puts(t, s->name);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
-    pa_tagstruct_putu32(t, tdev_index);
+    pa_tagstruct_putu32(t, (uint32_t) -1);
+    pa_tagstruct_puts(t, dev ? dev : "");
     pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
     if (s->direction == PA_STREAM_PLAYBACK) {
         pa_tagstruct_putu32(t, s->buffer_attr.tlength);
@@ -559,49 +575,42 @@ static void create_stream(struct pa_stream *s, uint32_t tdev_index) {
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, s);
 }
 
-static void lookup_device_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
-    struct pa_stream *s = userdata;
-    uint32_t tdev;
-    assert(pd && s && s->state == STREAM_LOOKING_UP);
+static struct pa_stream *internal_stream_new(struct pa_context *c) {
+    struct pa_stream *s;
 
-    if (command != PA_COMMAND_REPLY) {
-        if (handle_error(s->context, command, t) < 0) {
-            context_dead(s->context);
-            return;
-        }
-
-        stream_dead(s);
-        if (s->create_complete_callback)
-            s->create_complete_callback(s, 0, s->create_complete_userdata);
-        return;
-    }
-
-    if (pa_tagstruct_getu32(t, &tdev) < 0 ||
-        !pa_tagstruct_eof(t)) {
-        s->context->error = PA_ERROR_PROTOCOL;
-        context_dead(s->context);
-        return;
-    }
-    
-    create_stream(s, tdev);
-}
-
-static void lookup_device(struct pa_stream *s, const char *tdev) {
-    struct pa_tagstruct *t;
-    uint32_t tag;
+    s = malloc(sizeof(struct pa_stream));
     assert(s);
+    s->context = c;
+
+    s->read_callback = NULL;
+    s->read_userdata = NULL;
+    s->write_callback = NULL;
+    s->write_userdata = NULL;
+    s->die_callback = NULL;
+    s->die_userdata = NULL;
+    s->create_complete_callback = NULL;
+    s->create_complete_userdata = NULL;
+    s->get_latency_callback = NULL;
+    s->get_latency_userdata = NULL;
+    s->finish_sample_callback = NULL;
+    s->finish_sample_userdata = NULL;
+
+    s->name = NULL;
+    s->state = STREAM_CREATING;
+    s->requested_bytes = 0;
+    s->channel = 0;
+    s->channel_valid = 0;
+    s->device_index = (uint32_t) -1;
+
+    memset(&s->buffer_attr, 0, sizeof(s->buffer_attr));
     
-    s->state = STREAM_LOOKING_UP;
+    s->next = c->first_stream;
+    if (s->next)
+        s->next->previous = s;
+    s->previous = NULL;
+    c->first_stream = s;
 
-    t = pa_tagstruct_new(NULL, 0);
-    assert(t);
-
-    pa_tagstruct_putu32(t, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_LOOKUP_SINK : PA_COMMAND_LOOKUP_SOURCE);
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
-    pa_tagstruct_puts(t, tdev);
-
-    pa_pstream_send_tagstruct(s->context->pstream, t);
-    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, lookup_device_callback, s);
+    return s;
 }
 
 struct pa_stream* pa_stream_new(
@@ -616,29 +625,15 @@ struct pa_stream* pa_stream_new(
     
     struct pa_stream *s;
 
-    assert(c && name && ss && c->state == CONTEXT_READY);
-    
-    s = malloc(sizeof(struct pa_stream));
+    assert(c && name && ss && c->state == CONTEXT_READY && (dir == PA_STREAM_PLAYBACK || dir == PA_STREAM_RECORD));
+
+    s = internal_stream_new(c);
     assert(s);
-    s->context = c;
 
-    s->read_callback = NULL;
-    s->read_userdata = NULL;
-    s->write_callback = NULL;
-    s->write_userdata = NULL;
-    s->die_callback = NULL;
-    s->die_userdata = NULL;
     s->create_complete_callback = complete;
-    s->create_complete_userdata = NULL;
-    s->get_latency_callback = NULL;
-    s->get_latency_userdata = NULL;
-
+    s->create_complete_userdata = userdata;
     s->name = strdup(name);
     s->state = STREAM_CREATING;
-    s->requested_bytes = 0;
-    s->channel = 0;
-    s->channel_valid = 0;
-    s->device_index = (uint32_t) -1;
     s->direction = dir;
     s->sample_spec = *ss;
     if (attr)
@@ -651,16 +646,7 @@ struct pa_stream* pa_stream_new(
         s->buffer_attr.fragsize = DEFAULT_FRAGSIZE;
     }
 
-    s->next = c->first_stream;
-    if (s->next)
-        s->next->previous = s;
-    s->previous = NULL;
-    c->first_stream = s;
-
-    if (dev)
-        lookup_device(s, dev);
-    else
-        create_stream(s, (uint32_t) -1);
+    create_stream(s, dev);
     
     return s;
 }
@@ -677,7 +663,8 @@ void pa_stream_free(struct pa_stream *s) {
         struct pa_tagstruct *t = pa_tagstruct_new(NULL, 0);
         assert(t);
     
-        pa_tagstruct_putu32(t, PA_COMMAND_DELETE_PLAYBACK_STREAM);
+        pa_tagstruct_putu32(t, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_DELETE_PLAYBACK_STREAM :
+                            (s->direction == PA_STREAM_RECORD ? PA_COMMAND_DELETE_RECORD_STREAM : PA_COMMAND_DELETE_UPLOAD_STREAM));
         pa_tagstruct_putu32(t, s->context->ctag++);
         pa_tagstruct_putu32(t, s->channel);
         pa_pstream_send_tagstruct(s->context->pstream, t);
@@ -697,7 +684,6 @@ void pa_stream_free(struct pa_stream *s) {
 }
 
 void pa_stream_set_write_callback(struct pa_stream *s, void (*cb)(struct pa_stream *p, size_t length, void *userdata), void *userdata) {
-    assert(s && cb);
     s->write_callback = cb;
     s->write_userdata = userdata;
 }
@@ -970,4 +956,164 @@ void pa_stream_get_latency(struct pa_stream *p, void (*cb)(struct pa_stream *p, 
     pa_tagstruct_putu32(t, p->channel);
     pa_pstream_send_tagstruct(p->context->pstream, t);
     pa_pdispatch_register_reply(p->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, p);
+}
+
+struct pa_stream* pa_context_upload_sample(struct pa_context *c, const char *name, const struct pa_sample_spec *ss, size_t length, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata) {
+    struct pa_stream *s;
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    
+    s = internal_stream_new(c);
+    assert(s);
+
+    s->create_complete_callback = cb;
+    s->create_complete_userdata = userdata;
+    s->name = strdup(name);
+    s->state = STREAM_CREATING;
+    s->direction = PA_STREAM_UPLOAD;
+    s->sample_spec = *ss;
+
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_CREATE_UPLOAD_STREAM);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_puts(t, name);
+    pa_tagstruct_put_sample_spec(t, ss);
+    pa_tagstruct_putu32(t, length);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, s);
+
+    return s;
+}
+
+static void stream_finish_sample_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_stream *s = userdata;
+    assert(pd && s);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (handle_error(s->context, command, t) < 0) {
+            context_dead(s->context);
+            return;
+        }
+
+        if (s->finish_sample_callback)
+            s->finish_sample_callback(s, 0, s->finish_sample_userdata);
+        return;
+    }
+
+    if (!pa_tagstruct_eof(t)) {
+        s->context->error = PA_ERROR_PROTOCOL;
+        context_dead(s->context);
+        return;
+    }
+
+    if (s->finish_sample_callback)
+        s->finish_sample_callback(s, 1, s->finish_sample_userdata);
+}
+
+void pa_stream_finish_sample(struct pa_stream *p, void (*cb)(struct pa_stream*s, int success, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(p);
+
+    p->finish_sample_callback = cb;
+    p->finish_sample_userdata = userdata;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_FINISH_UPLOAD_STREAM);
+    pa_tagstruct_putu32(t, tag = p->context->ctag++);
+    pa_tagstruct_putu32(t, p->channel);
+    pa_pstream_send_tagstruct(p->context->pstream, t);
+    pa_pdispatch_register_reply(p->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_finish_sample_callback, p);
+}
+
+static void context_play_sample_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_context *c = userdata;
+    assert(pd && c);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (handle_error(c, command, t) < 0) {
+            context_dead(c);
+            return;
+        }
+
+        if (c->play_sample_callback)
+            c->play_sample_callback(c, 0, c->play_sample_userdata);
+        return;
+    }
+
+    if (!pa_tagstruct_eof(t)) {
+        c->error = PA_ERROR_PROTOCOL;
+        context_dead(c);
+        return;
+    }
+
+    if (c->play_sample_callback)
+        c->play_sample_callback(c, 1, c->play_sample_userdata);
+}
+
+void pa_context_play_sample(struct pa_context *c, const char *name, const char *dev, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c && name && *name && (!dev || *dev));
+
+    if (!volume)
+        return;
+    
+    c->play_sample_callback = cb;
+    c->play_sample_userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_PLAY_SAMPLE);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, (uint32_t) -1);
+    pa_tagstruct_puts(t, dev ? dev : "");
+    pa_tagstruct_putu32(t, volume);
+    pa_tagstruct_puts(t, name);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_play_sample_callback, c);
+}
+
+static void context_remove_sample_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_context *c = userdata;
+    assert(pd && c);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (handle_error(c, command, t) < 0) {
+            context_dead(c);
+            return;
+        }
+
+        if (c->remove_sample_callback)
+            c->remove_sample_callback(c, 0, c->remove_sample_userdata);
+        return;
+    }
+
+    if (!pa_tagstruct_eof(t)) {
+        c->error = PA_ERROR_PROTOCOL;
+        context_dead(c);
+        return;
+    }
+
+    if (c->remove_sample_callback)
+        c->remove_sample_callback(c, 1, c->remove_sample_userdata);
+}
+
+void pa_context_remove_sample(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c && name);
+
+    c->remove_sample_callback = cb;
+    c->remove_sample_userdata = userdata;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_REMOVE_SAMPLE);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_puts(t, name);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_remove_sample_callback, c);
 }

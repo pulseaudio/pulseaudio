@@ -110,7 +110,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->core = c;
     u->display = NULL;
     u->x11_sources = NULL;
-    u->scache_item = strdup(pa_modargs_get_value(ma, "sample", "bell"));
+    u->scache_item = strdup(pa_modargs_get_value(ma, "sample", "x11-bell"));
     assert(u->scache_item);
         
     if (pa_modargs_get_sink_index(ma, c, &u->sink_index) < 0) {

@@ -36,7 +36,7 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
     struct pa_source *s;
     char st[256];
     int r;
-    assert(core && spec && name);
+    assert(core && spec && name && *name);
 
     s = malloc(sizeof(struct pa_source));
     assert(s);

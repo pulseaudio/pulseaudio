@@ -41,7 +41,7 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     char *n = NULL;
     char st[256];
     int r;
-    assert(core && name && spec);
+    assert(core && name && *name && spec);
 
     s = malloc(sizeof(struct pa_sink));
     assert(s);
