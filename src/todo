@@ -1,9 +1,9 @@
-- config.h
-- svn-id and license in every file
+*** $Id$ ***
+
 - documentation
 - pkgconfig
 
--- post 0.1
+*** post 0.1 ***
 - future cancellation
 - client-ui
 - clip cache
