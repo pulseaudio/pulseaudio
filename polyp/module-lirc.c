@@ -42,11 +42,12 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("LIRC volume control")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("config=<config file> sink=<sink name>")
+PA_MODULE_USAGE("config=<config file> sink=<sink name> appname=<lirc application name>")
 
 static const char* const valid_modargs[] = {
     "config",
     "sink",
+    "appname",
     NULL,
 };
 
@@ -170,7 +171,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->lirc_fd = -1;
     u->mute_toggle_save = 0;
 
-    if ((u->lirc_fd = lirc_init("polypaudio", 1)) < 0) {
+    if ((u->lirc_fd = lirc_init(pa_modargs_get_value(ma, "appname", "polypaudio"), 1)) < 0) {
         pa_log(__FILE__": lirc_init() failed.\n");
         goto fail;
     }
