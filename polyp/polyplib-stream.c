@@ -351,8 +351,8 @@ void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void 
 }
 
 size_t pa_stream_writable_size(struct pa_stream *s) {
-    assert(s && s->state == PA_STREAM_READY && s->ref >= 1);
-    return s->requested_bytes;
+    assert(s && s->ref >= 1);
+    return s->state == PA_STREAM_READY ? s->requested_bytes : 0;
 }
 
 struct pa_operation * pa_stream_drain(struct pa_stream *s, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata) {

@@ -50,11 +50,11 @@
 #ifdef TUNNEL_SINK
 #include "module-tunnel-sink-symdef.h"
 PA_MODULE_DESCRIPTION("Tunnel module for sinks")
-PA_MODULE_USAGE("server=<filename> sink=<remote sink name> cookie=<filename> format=<sample format> channels=<number of channels> rate=<sample rate> sink_name=<name for the local sink>")
+PA_MODULE_USAGE("server=<address> sink=<remote sink name> cookie=<filename> format=<sample format> channels=<number of channels> rate=<sample rate> sink_name=<name for the local sink>")
 #else
 #include "module-tunnel-source-symdef.h"
 PA_MODULE_DESCRIPTION("Tunnel module for sources")
-PA_MODULE_USAGE("server=<filename> source=<remote source name> cookie=<filename> format=<sample format> channels=<number of channels> rate=<sample rate> source_name=<name for the local source>")
+PA_MODULE_USAGE("server=<address> source=<remote source name> cookie=<filename> format=<sample format> channels=<number of channels> rate=<sample rate> source_name=<name for the local source>")
 #endif
 
 PA_MODULE_AUTHOR("Lennart Poettering")
