@@ -36,14 +36,19 @@
 #include "caps.h"
 
 void pa_drop_root(void) {
-    if (getuid() != 0 && geteuid() == 0) {
-        pa_log(__FILE__": Started SUID root, dropping root rights.\n");
-        setuid(getuid());
-        seteuid(getuid());
-    }
+    uid_t uid = getuid();
+    
+    if (uid == 0 || geteuid() != 0)
+        return;
+    
+    pa_log(__FILE__": dropping root rights.\n");
+    
+    setuid(uid);
+    seteuid(uid);
 }
 
 #ifdef HAVE_SYS_CAPABILITY_H
+
 int pa_limit_caps(void) {
     int r = -1;
     cap_t caps;
@@ -53,14 +58,15 @@ int pa_limit_caps(void) {
     assert(caps);
 
     cap_clear(caps);
+
     cap_set_flag(caps, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET);
     cap_set_flag(caps, CAP_PERMITTED, 1, &nice_cap, CAP_SET);
 
     if (cap_set_proc(caps) < 0)
         goto fail;
 
-    pa_log(__FILE__": Started SUID root, capabilities limited.\n");
-
+    pa_log(__FILE__": dropped capabilities successfully.\n");
+    
     r = 0;
 
 fail:
@@ -78,10 +84,10 @@ int pa_drop_caps(void) {
 
     cap_clear(caps);
 
-    if (cap_set_proc(caps) < 0)
+    if (cap_set_proc(caps) < 0) {
+        pa_log(__FILE__": failed to drop capabilities: %s\n", strerror(errno));
         goto fail;
-
-    pa_drop_root();
+    }
     
     r = 0;
 

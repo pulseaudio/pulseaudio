@@ -49,8 +49,6 @@
 #include "dumpmodules.h"
 #include "caps.h"
 
-static struct pa_mainloop *mainloop;
-
 static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     pa_log(__FILE__": Got signal %s.\n", pa_strsignal(sig));
 
@@ -84,22 +82,33 @@ int main(int argc, char *argv[]) {
     struct pa_core *c;
     struct pa_strbuf *buf = NULL;
     struct pa_daemon_conf *conf;
+    struct pa_mainloop *mainloop;
+
     char *s;
     int r, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
+    gid_t gid = (gid_t) -1;
+    int suid_root;
 
     pa_limit_caps();
+
+    suid_root = getuid() != 0 && geteuid() == 0;
+    
+    if (suid_root && (pa_uid_in_group("realtime", &gid) <= 0 || gid >= 1000)) {
+        pa_log(__FILE__": WARNING: called SUID root, but not in group 'realtime'.\n");
+        pa_drop_root();
+    }
     
     r = lt_dlinit();
     assert(r == 0);
     
     pa_log_set_ident("polypaudio");
-
+    
     conf = pa_daemon_conf_new();
-
+    
     if (pa_daemon_conf_load(conf, NULL) < 0)
         goto finish;
-
+    
     if (pa_daemon_conf_env(conf) < 0)
         goto finish;
     
@@ -107,13 +116,16 @@ int main(int argc, char *argv[]) {
         pa_log(__FILE__": failed to parse command line.\n");
         goto finish;
     }
-
+    
     pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target, NULL);
 
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority();
-    
+
     pa_drop_caps();
+
+    if (suid_root)
+        pa_drop_root();
     
     if (conf->dl_search_path)
         lt_dlsetsearchpath(conf->dl_search_path);

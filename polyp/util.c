@@ -41,11 +41,8 @@
 #include <sched.h>
 #include <sys/resource.h>
 #include <limits.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
-
+#include <grp.h>
 
 #include <samplerate.h>
 
@@ -443,4 +440,63 @@ int pa_parse_resample_method(const char *string) {
         return SRC_LINEAR;
     else
         return -1;
+}
+
+static int is_group(gid_t gid, const char *name) {
+    struct group group, *result = NULL;
+    long n = sysconf(_SC_GETGR_R_SIZE_MAX);
+    void *data;
+    int r = -1;
+    
+    assert(n > 0);
+    data = pa_xmalloc(n);
+
+    if (getgrgid_r(gid, &group, data, n, &result) < 0 || !result) {
+        pa_log(__FILE__ ": getgrgid_r(%u) failed: %s\n", gid, strerror(errno));
+        goto finish;
+    }
+
+    
+    r = strcmp(name, result->gr_name) == 0;
+    
+finish:
+    pa_xfree(data);
+    
+    return r;
+}
+
+int pa_uid_in_group(const char *name, gid_t *gid) {
+    gid_t *gids, tgid;
+    long n = sysconf(_SC_NGROUPS_MAX);
+    int r = -1, i;
+
+    assert(n > 0);
+    
+    gids = pa_xmalloc(sizeof(gid_t)*n);
+    
+    if ((n = getgroups(n, gids)) < 0) {
+        pa_log(__FILE__": getgroups() failed: %s\n", strerror(errno));
+        goto finish;
+    }
+
+    for (i = 0; i < n; i++) {
+        if (is_group(gids[i], name) > 0) {
+            *gid = gids[i];
+            r = 1;
+            goto finish;
+        }
+    }
+
+    if (is_group(tgid = getgid(), name) > 0) {
+        *gid = tgid;
+        r = 1;
+        goto finish;
+    }
+
+    r = 0;
+    
+finish:
+
+    pa_xfree(gids);
+    return r;
 }

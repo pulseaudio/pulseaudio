@@ -66,5 +66,6 @@ const char *pa_strsignal(int sig);
 
 int pa_parse_resample_method(const char *string);
 
+int pa_uid_in_group(const char *name, gid_t *gid);
 
 #endif
