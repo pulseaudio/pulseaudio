@@ -39,6 +39,9 @@
 #include "xmalloc.h"
 #include "log.h"
 
+/* Don't allow more than this many concurrent connections */
+#define MAX_CONNECTIONS 10
+
 struct connection {
     struct pa_protocol_simple *protocol;
     struct pa_iochannel *io;
@@ -286,6 +289,12 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     struct connection *c = NULL;
     char cname[256];
     assert(s && io && p);
+
+    if (pa_idxset_ncontents(p->connections)+1 > MAX_CONNECTIONS) {
+        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
+        pa_iochannel_free(io);
+        return;
+    }
 
     c = pa_xmalloc(sizeof(struct connection));
     c->io = io;

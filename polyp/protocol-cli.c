@@ -29,6 +29,10 @@
 #include "protocol-cli.h"
 #include "cli.h"
 #include "xmalloc.h"
+#include "log.h"
+
+/* Don't allow more than this many concurrent connections */
+#define MAX_CONNECTIONS 10
 
 struct pa_protocol_cli {
     struct pa_module *module;
@@ -49,6 +53,12 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     struct pa_cli *c;
     assert(s && io && p);
 
+    if (pa_idxset_ncontents(p->connections)+1 > MAX_CONNECTIONS) {
+        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
+        pa_iochannel_free(io);
+        return;
+    }
+    
     c = pa_cli_new(p->core, io, p->module);
     assert(c);
     pa_cli_set_eof_callback(c, cli_eof_cb, p);

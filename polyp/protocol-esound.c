@@ -46,6 +46,12 @@
 #include "xmalloc.h"
 #include "log.h"
 
+/* Don't accept more connection than this */
+#define MAX_CONNECTIONS 10
+
+/* Kick a client if it doesn't authenticate within this time */
+#define AUTH_TIMEOUT 5
+
 #define DEFAULT_COOKIE_FILE ".esd_auth"
 
 #define PLAYBACK_BUFFER_SECONDS (.5)
@@ -87,6 +93,8 @@ struct connection {
         char *name;
         struct pa_sample_spec sample_spec;
     } scache;
+
+    struct pa_time_event *auth_timeout_event;
 };
 
 struct pa_protocol_esound {
@@ -202,6 +210,9 @@ static void connection_free(struct connection *c) {
     if (c->scache.memchunk.memblock)
         pa_memblock_unref(c->scache.memchunk.memblock);
     pa_xfree(c->scache.name);
+
+    if (c->auth_timeout_event)
+        c->protocol->core->mainloop->time_free(c->auth_timeout_event);
     
     pa_xfree(c);
 }
@@ -256,6 +267,8 @@ static int esd_proto_connect(struct connection *c, esd_proto_t request, const vo
         }
 
         c->authorized = 1;
+        if (c->auth_timeout_event)
+            c->protocol->core->mainloop->time_free(c->auth_timeout_event);
     }
     
     ekey = *(uint32_t*)((uint8_t*) data+ESD_KEY_LEN);
@@ -1003,25 +1016,40 @@ static pa_usec_t source_output_get_latency_cb(struct pa_source_output *o) {
 
 /*** socket server callback ***/
 
+static void auth_timeout(struct pa_mainloop_api*m, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
+    struct connection *c = userdata;
+    assert(m && tv && c && c->auth_timeout_event == e);
+
+    if (!c->authorized)
+        connection_free(c);
+}
+
 static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata) {
     struct connection *c;
+    struct pa_protocol_esound *p = userdata;
     char cname[256];
-    assert(s && io && userdata);
+    assert(s && io && p);
 
+    if (pa_idxset_ncontents(p->connections)+1 > MAX_CONNECTIONS) {
+        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
+        pa_iochannel_free(io);
+        return;
+    }
+    
     c = pa_xmalloc(sizeof(struct connection));
-    c->protocol = userdata;
+    c->protocol = p;
     c->io = io;
     pa_iochannel_set_callback(c->io, io_callback, c);
 
     pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
-    assert(c->protocol->core);
-    c->client = pa_client_new(c->protocol->core, "ESOUND", cname);
+    assert(p->core);
+    c->client = pa_client_new(p->core, "ESOUND", cname);
     assert(c->client);
-    c->client->owner = c->protocol->module;
+    c->client->owner = p->module;
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
     
-    c->authorized = c->protocol->public;
+    c->authorized = p->public;
     c->swap_byte_order = 0;
     c->dead = 0;
 
@@ -1047,19 +1075,27 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     c->scache.memchunk.length = c->scache.memchunk.index = 0;
     c->scache.memchunk.memblock = NULL;
     c->scache.name = NULL;
-    
-    c->defer_event = c->protocol->core->mainloop->defer_new(c->protocol->core->mainloop, defer_callback, c);
-    assert(c->defer_event);
-    c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
 
-    pa_idxset_put(c->protocol->connections, c, &c->index);
+    if (!c->authorized) {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        tv.tv_sec += AUTH_TIMEOUT;
+        c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
+    } else
+        c->auth_timeout_event = NULL;
+    
+    c->defer_event = p->core->mainloop->defer_new(p->core->mainloop, defer_callback, c);
+    assert(c->defer_event);
+    p->core->mainloop->defer_enable(c->defer_event, 0);
+
+    pa_idxset_put(p->connections, c, &c->index);
 }
 
 /*** entry points ***/
 
 struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
     struct pa_protocol_esound *p;
-    int public;
+    int public = 0;
     assert(core && server && ma);
 
     p = pa_xmalloc(sizeof(struct pa_protocol_esound));

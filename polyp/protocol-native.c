@@ -50,6 +50,12 @@
 #include "strlist.h"
 #include "props.h"
 
+/* Kick a client if it doesn't authenticate within this time */
+#define AUTH_TIMEOUT 5
+
+/* Don't accept more connection than this */
+#define MAX_CONNECTIONS 10
+
 struct connection;
 struct pa_protocol_native;
 
@@ -100,6 +106,7 @@ struct connection {
     struct pa_idxset *record_streams, *output_streams;
     uint32_t rrobin_index;
     struct pa_subscription *subscription;
+    struct pa_time_event *auth_timeout_event;
 };
 
 struct pa_protocol_native {
@@ -374,6 +381,9 @@ static void connection_free(struct connection *c) {
 
     if (c->subscription)
         pa_subscription_free(c->subscription);
+
+    if (c->auth_timeout_event)
+        c->protocol->core->mainloop->time_free(c->auth_timeout_event);
     
     pa_xfree(c);
 }
@@ -746,6 +756,10 @@ static void command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag
         }
         
         c->authorized = 1;
+        if (c->auth_timeout_event) {
+            c->protocol->core->mainloop->time_free(c->auth_timeout_event);
+            c->auth_timeout_event = NULL;
+        }
     }
     
     pa_pstream_send_simple_ack(c->pstream, tag);
@@ -1973,14 +1987,37 @@ static void client_kill_cb(struct pa_client *c) {
 
 /*** socket server callbacks ***/
 
+static void auth_timeout(struct pa_mainloop_api*m, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
+    struct connection *c = userdata;
+    assert(m && tv && c && c->auth_timeout_event == e);
+
+    if (!c->authorized)
+        connection_free(c);
+}
+
 static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata) {
     struct pa_protocol_native *p = userdata;
     struct connection *c;
     assert(io && p);
 
+    if (pa_idxset_ncontents(p->connections)+1 > MAX_CONNECTIONS) {
+        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
+        pa_iochannel_free(io);
+        return;
+    }
+
     c = pa_xmalloc(sizeof(struct connection));
 
     c->authorized =!! p->public;
+
+    if (!c->authorized) {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        tv.tv_sec += AUTH_TIMEOUT;
+        c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
+    } else
+        c->auth_timeout_event = NULL;
+    
     c->protocol = p;
     assert(p->core);
     c->client = pa_client_new(p->core, "NATIVE", "Client");
