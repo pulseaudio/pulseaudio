@@ -147,8 +147,8 @@ static void inputs_drop(struct pa_sink *s, struct pa_mix_info *info, unsigned ma
         struct pa_sink_input *i = info->userdata;
         assert(i && info->chunk.memblock);
         
+        pa_sink_input_drop(i, &info->chunk, length);
         pa_memblock_unref(info->chunk.memblock);
-        pa_sink_input_drop(i, length);
     }
 }
         

@@ -28,22 +28,20 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "memblockq.h"
 #include "xmalloc.h"
 
 struct memblock_list {
-    struct memblock_list *next;
+    struct memblock_list *next, *prev;
     struct pa_memchunk chunk;
-    struct timeval stamp;
 };
 
 struct pa_memblockq {
     struct memblock_list *blocks, *blocks_tail;
     unsigned n_blocks;
     size_t current_length, maxlength, tlength, base, prebuf, minreq;
-    int measure_delay;
-    uint32_t delay;
     struct pa_mcalign *mcalign;
     struct pa_memblock_stat *memblock_stat;
 };
@@ -66,7 +64,7 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
     assert(bq->maxlength >= base);
 
     bq->tlength = ((tlength+base-1)/base)*base;
-    if (bq->tlength == 0 || bq->tlength >= bq->maxlength)
+    if (!bq->tlength || bq->tlength >= bq->maxlength)
         bq->tlength = bq->maxlength;
     
     bq->prebuf = (prebuf == (size_t) -1) ? bq->maxlength/2 : prebuf;
@@ -80,29 +78,21 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
 
     fprintf(stderr, "memblockq sanitized: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", bq->maxlength, bq->tlength, bq->base, bq->prebuf, bq->minreq);
     
-    bq->measure_delay = 0;
-    bq->delay = 0;
-
     bq->mcalign = NULL;
 
     bq->memblock_stat = s;
-    
+
     return bq;
 }
 
 void pa_memblockq_free(struct pa_memblockq* bq) {
-    struct memblock_list *l;
     assert(bq);
 
+    pa_memblockq_flush(bq);
+    
     if (bq->mcalign)
         pa_mcalign_free(bq->mcalign);
 
-    while ((l = bq->blocks)) {
-        bq->blocks = l->next;
-        pa_memblock_unref(l->chunk.memblock);
-        pa_xfree(l);
-    }
-    
     pa_xfree(bq);
 }
 
@@ -110,31 +100,25 @@ void pa_memblockq_push(struct pa_memblockq* bq, const struct pa_memchunk *chunk,
     struct memblock_list *q;
     assert(bq && chunk && chunk->memblock && chunk->length && (chunk->length % bq->base) == 0);
 
+    pa_memblockq_seek(bq, delta);
+    
     if (bq->blocks_tail && bq->blocks_tail->chunk.memblock == chunk->memblock) {
         /* Try to merge memory chunks */
 
         if (bq->blocks_tail->chunk.index+bq->blocks_tail->chunk.length == chunk->index) {
             bq->blocks_tail->chunk.length += chunk->length;
             bq->current_length += chunk->length;
-
-    /*        fprintf(stderr, __FILE__": merge succeeded: %u\n", chunk->length);*/
             return;
         }
     }
     
     q = pa_xmalloc(sizeof(struct memblock_list));
 
-    if (bq->measure_delay)
-        gettimeofday(&q->stamp, NULL);
-    else
-        timerclear(&q->stamp);
-
     q->chunk = *chunk;
     pa_memblock_ref(q->chunk.memblock);
     assert(q->chunk.index+q->chunk.length <= q->chunk.memblock->length);
     q->next = NULL;
-    
-    if (bq->blocks_tail)
+    if ((q->prev = bq->blocks_tail))
         bq->blocks_tail->next = q;
     else
         bq->blocks = q;
@@ -158,57 +142,43 @@ int pa_memblockq_peek(struct pa_memblockq* bq, struct pa_memchunk *chunk) {
     *chunk = bq->blocks->chunk;
     pa_memblock_ref(chunk->memblock);
 
-/*     if (chunk->memblock->ref != 2) */
-/*         fprintf(stderr, "block %p with ref %u peeked.\n", chunk->memblock, chunk->memblock->ref); */
-    
     return 0;
 }
 
-/*
-int memblockq_pop(struct memblockq* bq, struct pa_memchunk *chunk) {
-    struct memblock_list *q;
+void pa_memblockq_drop(struct pa_memblockq *bq, const struct pa_memchunk *chunk, size_t length) {
+    assert(bq && chunk && length);
+
+    if (!bq->blocks || memcmp(&bq->blocks->chunk, chunk, sizeof(struct pa_memchunk)))
+        return;
+
+    assert(length <= bq->blocks->chunk.length);
+    pa_memblockq_skip(bq, length);
+}
+
+static void remove_block(struct pa_memblockq *bq, struct memblock_list *q) {
+    assert(bq && q);
+
+    if (q->prev)
+        q->prev->next = q->next;
+    else {
+        assert(bq->blocks == q);
+        bq->blocks = q->next;
+    }
     
-    assert(bq && chunk);
-
-    if (!bq->blocks || bq->current_length < bq->prebuf)
-        return -1;
-
-    bq->prebuf = 0;
-
-    q = bq->blocks;
-    bq->blocks = bq->blocks->next;
-
-    *chunk = q->chunk;
-
-    bq->n_blocks--;
-    bq->current_length -= chunk->length;
-
+    if (q->next)
+        q->next->prev = q->prev;
+    else {
+        assert(bq->blocks_tail == q);
+        bq->blocks_tail = q->prev;
+    }
+    
+    pa_memblock_unref(q->chunk.memblock);
     pa_xfree(q);
-    return 0;
-}
-*/
-
-static uint32_t age(struct timeval *tv) {
-    struct timeval now;
-    uint32_t r;
-    assert(tv);
-
-    if (tv->tv_sec == 0)
-        return 0;
-
-    gettimeofday(&now, NULL);
     
-    r = (now.tv_sec-tv->tv_sec) * 1000000;
-
-    if (now.tv_usec >= tv->tv_usec)
-        r += now.tv_usec - tv->tv_usec;
-    else
-        r -= tv->tv_usec - now.tv_usec;
-
-    return r;
+    bq->n_blocks--;
 }
 
-void pa_memblockq_drop(struct pa_memblockq *bq, size_t length) {
+void pa_memblockq_skip(struct pa_memblockq *bq, size_t length) {
     assert(bq && length && (length % bq->base) == 0);
 
     while (length > 0) {
@@ -218,25 +188,12 @@ void pa_memblockq_drop(struct pa_memblockq *bq, size_t length) {
         if (l > bq->blocks->chunk.length)
             l = bq->blocks->chunk.length;
 
-        if (bq->measure_delay)
-            bq->delay = age(&bq->blocks->stamp);
-        
         bq->blocks->chunk.index += l;
         bq->blocks->chunk.length -= l;
         bq->current_length -= l;
         
-        if (bq->blocks->chunk.length == 0) {
-            struct memblock_list *q;
-            
-            q = bq->blocks;
-            bq->blocks = bq->blocks->next;
-            if (bq->blocks == NULL)
-                bq->blocks_tail = NULL;
-            pa_memblock_unref(q->chunk.memblock);
-            pa_xfree(q);
-            
-            bq->n_blocks--;
-        }
+        if (!bq->blocks->chunk.length)
+            remove_block(bq, bq->blocks);
 
         length -= l;
     }
@@ -255,7 +212,7 @@ void pa_memblockq_shorten(struct pa_memblockq *bq, size_t length) {
     l /= bq->base;
     l *= bq->base;
 
-    pa_memblockq_drop(bq, l);
+    pa_memblockq_skip(bq, l);
 }
 
 
@@ -274,11 +231,6 @@ int pa_memblockq_is_writable(struct pa_memblockq *bq, size_t length) {
     assert(bq);
 
     return bq->current_length + length <= bq->tlength;
-}
-
-uint32_t pa_memblockq_get_delay(struct pa_memblockq *bq) {
-    assert(bq);
-    return bq->delay;
 }
 
 uint32_t pa_memblockq_get_length(struct pa_memblockq *bq) {
@@ -330,4 +282,45 @@ uint32_t pa_memblockq_get_minreq(struct pa_memblockq *bq) {
 void pa_memblockq_prebuf_disable(struct pa_memblockq *bq) {
     assert(bq);
     bq->prebuf = 0;
+}
+
+void pa_memblockq_seek(struct pa_memblockq *bq, size_t length) {
+    assert(bq);
+
+    if (!length)
+        return;
+
+    while (length >= bq->base) {
+        size_t l = length;
+        if (!bq->current_length)
+            return;
+
+        assert(bq->blocks_tail);
+        
+        if (l > bq->blocks_tail->chunk.length)
+            l = bq->blocks_tail->chunk.length;
+
+        bq->blocks_tail->chunk.length -= l;
+        bq->current_length -= l;
+        
+        if (bq->blocks_tail->chunk.length == 0)
+            remove_block(bq, bq->blocks);
+
+        length -= l;
+    }
+}
+
+void pa_memblockq_flush(struct pa_memblockq *bq) {
+    struct memblock_list *l;
+    assert(bq);
+    
+    while ((l = bq->blocks)) {
+        bq->blocks = l->next;
+        pa_memblock_unref(l->chunk.memblock);
+        pa_xfree(l);
+    }
+
+    bq->blocks_tail = NULL;
+    bq->n_blocks = 0;
+    bq->current_length = 0;
 }

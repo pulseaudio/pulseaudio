@@ -59,6 +59,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     i->get_latency = NULL;
     i->userdata = NULL;
 
+    i->corked = 0;
     i->volume = PA_VOLUME_NORM;
 
     i->resampled_chunk.memblock = NULL;
@@ -120,6 +121,9 @@ uint32_t pa_sink_input_get_latency(struct pa_sink_input *i) {
 int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     assert(i && chunk && i->peek && i->drop);
 
+    if (i->corked == 0)
+        return -1;
+    
     if (!i->resampler)
         return i->peek(i, chunk);
 
@@ -134,10 +138,11 @@ int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
         assert(tchunk.length);
         
         l = pa_resampler_request(i->resampler, CONVERT_BUFFER_LENGTH);
+
+        i->drop(i, &tchunk, l);
+
         if (tchunk.length > l)
             tchunk.length = l;
-
-        i->drop(i, tchunk.length);
 
         pa_resampler_run(i->resampler, &tchunk, &i->resampled_chunk);
         pa_memblock_unref(tchunk.memblock);
@@ -149,11 +154,11 @@ int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     return 0;
 }
 
-void pa_sink_input_drop(struct pa_sink_input *i, size_t length) {
+void pa_sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length) {
     assert(i && length);
 
     if (!i->resampler) {
-        i->drop(i, length);
+        i->drop(i, chunk, length);
         return;
     }
     
@@ -176,4 +181,14 @@ void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume) {
         i->volume = volume;
         pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     }
+}
+
+void pa_sink_input_cork(struct pa_sink_input *i, int b) {
+    int n;
+    assert(i);
+    n = i->corked && !b;
+    i->corked = b;
+
+    if (n)
+        pa_sink_notify(i->sink);
 }

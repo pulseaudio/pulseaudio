@@ -36,6 +36,7 @@
 #include <pwd.h>
 #include <signal.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 #include "util.h"
 #include "xmalloc.h"
@@ -191,4 +192,24 @@ char *pa_get_host_name(char *s, size_t l) {
     gethostname(s, l);
     s[l-1] = 0;
     return s;
+}
+
+uint32_t pa_age(struct timeval *tv) {
+    struct timeval now;
+    uint32_t r;
+    assert(tv);
+
+    if (tv->tv_sec == 0)
+        return 0;
+
+    gettimeofday(&now, NULL);
+    
+    r = (now.tv_sec-tv->tv_sec) * 1000000;
+
+    if (now.tv_usec >= tv->tv_usec)
+        r += now.tv_usec - tv->tv_usec;
+    else
+        r -= tv->tv_usec - now.tv_usec;
+
+    return r;
 }

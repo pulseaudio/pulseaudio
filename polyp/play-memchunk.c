@@ -59,11 +59,12 @@ static void si_kill(struct pa_mainloop_api *m, void *i) {
     sink_input_kill(i);
 }
 
-static void sink_input_drop(struct pa_sink_input *i, size_t length) {
+static void sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk*chunk, size_t length) {
     struct pa_memchunk *c;
     assert(i && length && i->userdata);
     c = i->userdata;
 
+    assert(chunk == c);
     assert(length <= c->length);
 
     c->length -= length;

@@ -102,7 +102,7 @@ typedef struct proto_handler {
     const char *description;
 } esd_proto_handler_info_t;
 
-static void sink_input_drop_cb(struct pa_sink_input *i, size_t length);
+static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk);
 static void sink_input_kill_cb(struct pa_sink_input *i);
 static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i);
@@ -835,7 +835,7 @@ static int do_write(struct connection *c) {
             return -1;
         }
     
-        pa_memblockq_drop(c->output_memblockq, r);
+        pa_memblockq_drop(c->output_memblockq, &chunk, r);
         pa_memblock_unref(chunk.memblock);
     }
     
@@ -894,11 +894,11 @@ static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk
     return 0;
 }
 
-static void sink_input_drop_cb(struct pa_sink_input *i, size_t length) {
+static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length) {
     struct connection*c = i->userdata;
     assert(i && c && length);
 
-    pa_memblockq_drop(c->input_memblockq, length);
+    pa_memblockq_drop(c->input_memblockq, chunk, length);
 
     /* do something */
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);

@@ -193,7 +193,7 @@ static void pstream_packet_callback(struct pa_pstream *p, struct pa_packet *pack
     pa_context_unref(c);
 }
 
-static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk, void *userdata) {
+static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk, void *userdata) {
     struct pa_context *c = userdata;
     struct pa_stream *s;
     assert(p && chunk && c && chunk->memblock && chunk->memblock->data);

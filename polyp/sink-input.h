@@ -34,6 +34,8 @@
 struct pa_sink_input {
     uint32_t index;
 
+    int corked;
+    
     char *name;
     struct pa_module *owner;
     struct pa_client *client;
@@ -42,7 +44,7 @@ struct pa_sink_input {
     uint32_t volume;
     
     int (*peek) (struct pa_sink_input *i, struct pa_memchunk *chunk);
-    void (*drop) (struct pa_sink_input *i, size_t length);
+    void (*drop) (struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
     void (*kill) (struct pa_sink_input *i);
     uint32_t (*get_latency) (struct pa_sink_input *i);
 
@@ -62,8 +64,10 @@ void pa_sink_input_kill(struct pa_sink_input *i);
 uint32_t pa_sink_input_get_latency(struct pa_sink_input *i);
 
 int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk);
-void pa_sink_input_drop(struct pa_sink_input *i, size_t length);
+void pa_sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
 
 void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume);
+
+void pa_sink_input_cork(struct pa_sink_input *i, int b);
 
 #endif

@@ -65,7 +65,7 @@ static void do_stream_write(size_t length) {
     if (l > buffer_length)
         l = buffer_length;
     
-    pa_stream_write(stream, buffer+buffer_index, l, NULL);
+    pa_stream_write(stream, buffer+buffer_index, l, NULL, 0);
     buffer_length -= l;
     buffer_index += l;
     

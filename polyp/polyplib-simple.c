@@ -187,7 +187,7 @@ int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *pe
         if (l > length)
             l = length;
 
-        pa_stream_write(p->stream, data, l, NULL);
+        pa_stream_write(p->stream, data, l, NULL, 0);
         data += l;
         length -= l;
     }

@@ -70,7 +70,30 @@ void pa_stream_disconnect(struct pa_stream *s);
  * and an internal reference to the specified data is kept, the data
  * is not copied. If NULL, the data is copied into an internal
  * buffer. */ 
-void pa_stream_write(struct pa_stream *p, const void *data, size_t length, void (*free_cb)(void *p));
+void pa_stream_write(struct pa_stream *p      /**< The stream to use */,
+                     const void *data         /**< The data to write */,
+                     size_t length            /**< The length of the data to write */,
+                     void (*free_cb)(void *p) /**< A cleanup routine for the data or NULL to request an internal copy */,
+                     size_t delta             /**< Drop this many
+                                                 bytes in the playback
+                                                 buffer before writing
+                                                 this data. Use
+                                                 (size_t) -1 for
+                                                 clearing the whole
+                                                 playback
+                                                 buffer. Normally you
+                                                 will specify 0 here,
+                                                 .i.e. append to the
+                                                 playback buffer. If
+                                                 the value given here
+                                                 is greater than the
+                                                 buffered data length
+                                                 the buffer is cleared
+                                                 and the data is
+                                                 written to the
+                                                 buffer's start. This
+                                                 value is ignored on
+                                                 upload streams. */);
 
 /** Return the amount of bytes that may be written using pa_stream_write() */
 size_t pa_stream_writable_size(struct pa_stream *p);
@@ -89,6 +112,16 @@ void pa_stream_set_write_callback(struct pa_stream *p, void (*cb)(struct pa_stre
 
 /** Set the callback function that is called when new data is available from the stream */
 void pa_stream_set_read_callback(struct pa_stream *p, void (*cb)(struct pa_stream *p, const void*data, size_t length, void *userdata), void *userdata);
+
+/** Pause (or resume) playback of this stream temporarily
+ * \since 0.3 */
+struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata);
+
+/** Flush the playback buffer of this stream. Most of the time you're
+ * better off using the delta of pa_stream_write() instead of this
+ * function.
+ * \since 0.3*/
+struct pa_operation* pa_stream_flush(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata);
 
 PA_C_DECL_END
 

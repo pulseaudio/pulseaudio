@@ -23,6 +23,7 @@
 ***/
 
 #include <sys/types.h>
+#include <inttypes.h>
 
 void pa_make_nonblock_fd(int fd);
 
@@ -37,5 +38,7 @@ char *pa_sprintf_malloc(const char *format, ...) __attribute__ ((format (printf,
 
 char *pa_get_user_name(char *s, size_t l);
 char *pa_get_host_name(char *s, size_t l);
+
+uint32_t pa_age(struct timeval *tv);
 
 #endif

@@ -50,7 +50,7 @@ struct item_info {
     /* memblock info */
     struct pa_memchunk chunk;
     uint32_t channel;
-    int32_t delta;
+    uint32_t delta;
 
     /* packet info */
     struct pa_packet *packet;
@@ -86,7 +86,7 @@ struct pa_pstream {
     void (*recieve_packet_callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata);
     void *recieve_packet_callback_userdata;
 
-    void (*recieve_memblock_callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk, void *userdata);
+    void (*recieve_memblock_callback) (struct pa_pstream *p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk, void *userdata);
     void *recieve_memblock_callback_userdata;
 
     void (*drain_callback)(struct pa_pstream *p, void *userdata);
@@ -219,7 +219,7 @@ void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
-void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk) {
+void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk) {
     struct item_info *i;
     assert(p && channel != (uint32_t) -1 && chunk);
     
@@ -242,7 +242,7 @@ void pa_pstream_set_recieve_packet_callback(struct pa_pstream *p, void (*callbac
     p->recieve_packet_callback_userdata = userdata;
 }
 
-void pa_pstream_set_recieve_memblock_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk, void *userdata), void *userdata) {
+void pa_pstream_set_recieve_memblock_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk, void *userdata), void *userdata) {
     assert(p && callback);
 
     p->recieve_memblock_callback = callback;
@@ -378,7 +378,7 @@ static void do_read(struct pa_pstream *p) {
                     p->recieve_memblock_callback(
                         p,
                         ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL]),
-                        (int32_t) ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_DELTA]),
+                        ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_DELTA]),
                         &chunk,
                         p->recieve_memblock_callback_userdata);
             }

@@ -150,7 +150,7 @@ static void stream_write_callback(struct pa_stream *s, size_t length, void *user
         quit(1);
     }
     
-    pa_stream_write(s, d, length, free);
+    pa_stream_write(s, d, length, free, 0);
 
     sample_length -= length;
 

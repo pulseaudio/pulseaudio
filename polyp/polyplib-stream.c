@@ -267,7 +267,7 @@ void pa_stream_connect_record(struct pa_stream *s, const char *dev, const struct
     create_stream(s, dev, attr);
 }
 
-void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void (*free_cb)(void *p)) {
+void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void (*free_cb)(void *p), size_t delta) {
     struct pa_memchunk chunk;
     assert(s && s->context && data && length && s->state == PA_STREAM_READY && s->ref >= 1);
 
@@ -282,7 +282,7 @@ void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void 
     chunk.index = 0;
     chunk.length = length;
 
-    pa_pstream_send_memblock(s->context->pstream, s->channel, 0, &chunk);
+    pa_pstream_send_memblock(s->context->pstream, s->channel, delta, &chunk);
     pa_memblock_unref(chunk.memblock);
     
     if (length < s->requested_bytes)
@@ -451,4 +451,49 @@ void pa_stream_simple_ack_callback(struct pa_pdispatch *pd, uint32_t command, ui
 finish:
     pa_operation_done(o);
     pa_operation_unref(o);
+}
+
+struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata) {
+    struct pa_operation *o;
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(s && s->ref >= 1 && s->state == PA_STREAM_READY);
+
+    o = pa_operation_new(s->context, s);
+    assert(o);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_CORK_PLAYBACK_STREAM);
+    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    pa_tagstruct_putu32(t, s->channel);
+    pa_tagstruct_putu32(t, !!b);
+    pa_pstream_send_tagstruct(s->context->pstream, t);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_stream_flush(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata) {
+    struct pa_operation *o;
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(s && s->ref >= 1 && s->state == PA_STREAM_READY);
+
+    o = pa_operation_new(s->context, s);
+    assert(o);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_FLUSH_PLAYBACK_STREAM);
+    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    pa_tagstruct_putu32(t, s->channel);
+    pa_pstream_send_tagstruct(s->context->pstream, t);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, o);
+
+    return pa_operation_ref(o);   
 }

@@ -107,7 +107,7 @@ struct pa_protocol_native {
 };
 
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk);
-static void sink_input_drop_cb(struct pa_sink_input *i, size_t length);
+static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
 static void sink_input_kill_cb(struct pa_sink_input *i);
 static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i);
 
@@ -135,6 +135,8 @@ static void command_get_info_list(struct pa_pdispatch *pd, uint32_t command, uin
 static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_subscribe(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_cork_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_flush_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -176,6 +178,8 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_SUBSCRIBE] = { command_subscribe },
     [PA_COMMAND_SET_SINK_VOLUME] = { command_set_volume },
     [PA_COMMAND_SET_SINK_INPUT_VOLUME] = { command_set_volume },
+    [PA_COMMAND_CORK_PLAYBACK_STREAM] = { command_cork_playback_stream },
+    [PA_COMMAND_FLUSH_PLAYBACK_STREAM] = { command_flush_playback_stream },
 };
 
 /* structure management */
@@ -376,7 +380,7 @@ static void send_memblock(struct connection *c) {
                 chunk.length = r->fragment_size;
 
             pa_pstream_send_memblock(c->pstream, r->index, 0, &chunk);
-            pa_memblockq_drop(r->memblockq, chunk.length);
+            pa_memblockq_drop(r->memblockq, &chunk, chunk.length);
             pa_memblock_unref(chunk.memblock);
             
             return;
@@ -422,12 +426,12 @@ static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk
     return 0;
 }
 
-static void sink_input_drop_cb(struct pa_sink_input *i, size_t length) {
+static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length) {
     struct playback_stream *s;
     assert(i && i->userdata && length);
     s = i->userdata;
 
-    pa_memblockq_drop(s->memblockq, length);
+    pa_memblockq_drop(s->memblockq, chunk, length);
     request_bytes(s);
 
     if (s->drain_request && !pa_memblockq_is_readable(s->memblockq)) {
@@ -1293,6 +1297,59 @@ static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
+static void command_cork_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    uint32_t b;
+    struct playback_stream *s;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        pa_tagstruct_getu32(t, &b) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (!(s = pa_idxset_get_by_index(c->output_streams, index)) || s->type != PLAYBACK_STREAM) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    pa_sink_input_cork(s->sink_input, b);
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_flush_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    struct playback_stream *s;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (!(s = pa_idxset_get_by_index(c->output_streams, index)) || s->type != PLAYBACK_STREAM) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    pa_memblockq_flush(s->memblockq);
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
 
 /*** pstream callbacks ***/
 
@@ -1306,7 +1363,7 @@ static void pstream_packet_callback(struct pa_pstream *p, struct pa_packet *pack
     }
 }
 
-static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk, void *userdata) {
+static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk, void *userdata) {
     struct connection *c = userdata;
     struct output_stream *stream;
     assert(p && chunk && userdata);
@@ -1338,7 +1395,6 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, in
                 u->memchunk = *chunk;
                 pa_memblock_ref(u->memchunk.memblock);
                 u->length = 0;
-                fprintf(stderr, "COPY\n");
             } else {
                 u->memchunk.memblock = pa_memblock_new(u->length, c->protocol->core->memblock_stat);
                 u->memchunk.index = u->memchunk.length = 0;
