@@ -39,9 +39,6 @@ int pa_iochannel_is_readable(struct pa_iochannel*io);
 int pa_iochannel_is_writable(struct pa_iochannel*io);
 int pa_iochannel_is_hungup(struct pa_iochannel*io);
 
-void pa_iochannel_force_unreadable(struct pa_iochannel *io);
-void pa_iochannel_force_unwritable(struct pa_iochannel *io);
-
 void pa_iochannel_set_noclose(struct pa_iochannel*io, int b);
 
 void pa_iochannel_set_callback(struct pa_iochannel*io, void (*callback)(struct pa_iochannel*io, void *userdata), void *userdata);

@@ -193,8 +193,9 @@ static void connection_free(struct connection *c) {
     
     pa_xfree(c->read_data);
     pa_xfree(c->write_data);
-    
-    pa_iochannel_free(c->io);
+
+    if (c->io)
+        pa_iochannel_free(c->io);
     
     if (c->defer_event)
         c->protocol->core->mainloop->defer_free(c->defer_event);
@@ -680,6 +681,8 @@ static void client_kill_cb(struct pa_client *c) {
 static int do_read(struct connection *c) {
     assert(c && c->io);
 
+/*      pa_log("READ\n");  */
+    
     if (c->state == ESD_NEXT_REQUEST) {
         ssize_t r;
         assert(c->read_data_length < sizeof(c->request));
@@ -702,7 +705,7 @@ static int do_read(struct connection *c) {
 
             handler = proto_map+c->request;
 
-            pa_log(__FILE__": executing request #%u\n", c->request);
+/*             pa_log(__FILE__": executing request #%u\n", c->request); */
 
             if (!handler->proc) {
                 pa_log(__FILE__": recieved unimplemented request #%u.\n", c->request);
@@ -789,6 +792,8 @@ static int do_read(struct connection *c) {
 
         assert(c->input_memblockq);
 
+/*         pa_log("STREAMING_DATA\n"); */
+
         if (!(l = pa_memblockq_missing(c->input_memblockq)))
             return 0;
 
@@ -812,6 +817,8 @@ static int do_read(struct connection *c) {
             pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
+
+/*         pa_log(__FILE__": read %u\n", r); */
         
         chunk.memblock = c->playback.current_memblock;
         chunk.index = c->playback.memblock_index;
@@ -832,6 +839,8 @@ static int do_read(struct connection *c) {
 static int do_write(struct connection *c) {
     assert(c && c->io);
 
+/*     pa_log("WRITE\n"); */
+    
     if (c->write_data_length) {
         ssize_t r;
         
@@ -872,18 +881,20 @@ static void do_work(struct connection *c) {
 
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
     c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
+
+/*     pa_log("DOWORK\n");  */
     
-    if (c->dead)
+    if (c->dead || !c->io)
         return;
-    
+
     if (pa_iochannel_is_readable(c->io))
         if (do_read(c) < 0)
             goto fail;
-
+    
     if (pa_iochannel_is_writable(c->io))
         if (do_write(c) < 0)
             goto fail;
-
+    
     return;
 
 fail:
@@ -891,7 +902,10 @@ fail:
     if (c->state == ESD_STREAMING_DATA && c->sink_input) {
         c->dead = 1;
         pa_memblockq_prebuf_disable(c->input_memblockq);
-        c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
+
+        pa_iochannel_free(c->io);
+        c->io = NULL;
+        
     } else
         connection_free(c);
 }
@@ -900,6 +914,8 @@ static void io_callback(struct pa_iochannel*io, void *userdata) {
     struct connection *c = userdata;
     assert(io && c && c->io == io);
 
+/*     pa_log("IO\n");  */
+    
     do_work(c);
 }
 
@@ -909,6 +925,8 @@ static void defer_callback(struct pa_mainloop_api*a, struct pa_defer_event *e, v
     struct connection *c = userdata;
     assert(a && c && c->defer_event == e);
 
+/*     pa_log("DEFER\n"); */
+    
     do_work(c);
 }
 
@@ -934,6 +952,8 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
     struct connection*c = i->userdata;
     assert(i && c && length);
 
+/*     pa_log("DROP\n"); */
+    
     pa_memblockq_drop(c->input_memblockq, chunk, length);
 
     /* do something */

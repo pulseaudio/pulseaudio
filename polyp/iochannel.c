@@ -52,7 +52,7 @@ struct pa_iochannel {
 static void enable_mainloop_sources(struct pa_iochannel *io) {
     assert(io);
 
-    if (io->input_event == io->output_event) {
+    if (io->input_event == io->output_event && io->input_event) {
         enum pa_io_event_flags f = PA_IO_EVENT_NULL;
         assert(io->input_event);
         
@@ -78,18 +78,29 @@ static void callback(struct pa_mainloop_api* m, struct pa_io_event *e, int fd, e
     if ((f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) && !io->hungup) {
         io->hungup = 1;
         changed = 1;
-    }
-    
-    if ((f & PA_IO_EVENT_INPUT) && !io->readable) {
-        io->readable = 1;
-        changed = 1;
-        assert(e == io->input_event);
-    }
-    
-    if ((f & PA_IO_EVENT_OUTPUT) && !io->writable) {
-        io->writable = 1;
-        changed = 1;
-        assert(e == io->output_event);
+
+        if (e == io->input_event) {
+            io->mainloop->io_free(io->input_event);
+            io->input_event = NULL;
+        }
+
+        if (e == io->output_event) {
+            io->mainloop->io_free(io->output_event);
+            io->output_event = NULL;
+        }
+    } else {
+
+        if ((f & PA_IO_EVENT_INPUT) && !io->readable) {
+            io->readable = 1;
+            changed = 1;
+            assert(e == io->input_event);
+        }
+        
+        if ((f & PA_IO_EVENT_OUTPUT) && !io->writable) {
+            io->writable = 1;
+            changed = 1;
+            assert(e == io->output_event);
+        }
     }
 
     if (changed) {
@@ -158,12 +169,12 @@ void pa_iochannel_free(struct pa_iochannel*io) {
 
 int pa_iochannel_is_readable(struct pa_iochannel*io) {
     assert(io);
-    return io->readable;
+    return io->readable || io->hungup;
 }
 
 int pa_iochannel_is_writable(struct pa_iochannel*io) {
     assert(io);
-    return io->writable;
+    return io->writable && !io->hungup;
 }
 
 int pa_iochannel_is_hungup(struct pa_iochannel*io) {
@@ -173,16 +184,8 @@ int pa_iochannel_is_hungup(struct pa_iochannel*io) {
 
 ssize_t pa_iochannel_write(struct pa_iochannel*io, const void*data, size_t l) {
     ssize_t r;
-    assert(io);
-    assert(data);
-    assert(l);
-    assert(io->ofd >= 0);
-
-    
     assert(io && data && l && io->ofd >= 0);
 
-
-    
     if ((r = write(io->ofd, data, l)) >= 0) {
         io->writable = 0;
         enable_mainloop_sources(io);
@@ -193,7 +196,6 @@ ssize_t pa_iochannel_write(struct pa_iochannel*io, const void*data, size_t l) {
 
 ssize_t pa_iochannel_read(struct pa_iochannel*io, void*data, size_t l) {
     ssize_t r;
-    
     assert(io && data && io->ifd >= 0);
     
     if ((r = read(io->ifd, data, l)) >= 0) {
@@ -230,13 +232,3 @@ int pa_iochannel_socket_set_sndbuf(struct pa_iochannel *io, size_t l) {
     return pa_socket_set_sndbuf(io->ofd, l);
 }
 
-void pa_iochannel_force_unreadable(struct pa_iochannel *io) {
-    assert(io);
-    io->readable = 0;
-    enable_mainloop_sources(io);
-}
-
-void pa_iochannel_force_unwritable(struct pa_iochannel *io) {
-    io->writable = 0;
-    enable_mainloop_sources(io);
-}
