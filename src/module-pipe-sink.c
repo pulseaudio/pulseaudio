@@ -34,7 +34,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "format",
-    "sink",
+    "sink_name",
     NULL
 };
 
@@ -131,7 +131,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(u->filename);
     u->core = c;
     
-    if (!(u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink", DEFAULT_SINK_NAME), 0, &ss))) {
+    if (!(u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
         fprintf(stderr, __FILE__": failed to create sink.\n");
         goto fail;
     }

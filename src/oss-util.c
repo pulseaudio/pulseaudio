@@ -4,8 +4,62 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "oss-util.h"
+
+int pa_oss_open(const char *device, int *mode, int* pcaps) {
+    int fd = -1;
+    assert(device && mode && (*mode == O_RDWR || *mode == O_RDONLY || *mode == O_WRONLY));
+
+    if (*mode == O_RDWR) {
+        if ((fd = open(device, O_RDWR|O_NDELAY)) >= 0) {
+            int dcaps, *tcaps;
+            ioctl(fd, SNDCTL_DSP_SETDUPLEX, 0);
+
+            tcaps = pcaps ? pcaps : &dcaps;
+            
+            if (ioctl(fd, SNDCTL_DSP_GETCAPS, tcaps) < 0) {
+                fprintf(stderr, __FILE__": SNDCTL_DSP_GETCAPS: %s\n", strerror(errno));
+                goto fail;
+            }
+
+            if (*tcaps & DSP_CAP_DUPLEX)
+                return fd;
+
+            close(fd);
+        }
+        
+        if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY)) < 0) {
+            if ((fd = open(device, (*mode = O_RDONLY)|O_NDELAY)) < 0) {
+                fprintf(stderr, __FILE__": open('%s'): %s\n", device, strerror(errno));
+                goto fail;
+            }
+        }
+    } else {
+        if ((fd = open(device, *mode|O_NDELAY)) < 0) {
+            fprintf(stderr, __FILE__": open('%s'): %s\n", device, strerror(errno));
+            goto fail;
+        }
+    } 
+
+    if (pcaps) {
+        if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
+            fprintf(stderr, "SNDCTL_DSP_GETCAPS: %s\n", strerror(errno));
+            goto fail;
+        }
+    }
+    
+    return fd;
+
+fail:
+    if (fd >= 0)
+        close(fd);
+    return fd;
+}
 
 int pa_oss_auto_format(int fd, struct pa_sample_spec *ss) {
     int format, channels, speed;

@@ -1,13 +1,7 @@
 - native library/protocol:
        more functions (esp. latency)
 
-- make all modules use modargs.c:
-   module-oss.c
-   module-oss-mmap.c
-- cmdline
-- daemonizing
-
-- move more stuff from module-oss[-dma] to liboss-util
+- cmdline & daemonizing
 
 - prefix modules/libraries with pa_
 
@@ -17,7 +11,10 @@
 - svn-id and license in every file
 - documentation
 
-- eliminate global variables
+- eliminate global variables:
+            pa_default_sample_spec
+            pa_memblock_count
+            pa_memblock_total
 
 -- post 0.1
 - future cancellation
@@ -27,6 +24,7 @@
 - slp/rendezvous
 - doxygen
 - make mcalign merge chunks
+- modinfo
 
 drivers:
 - libao

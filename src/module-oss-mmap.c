@@ -18,6 +18,7 @@
 #include "oss-util.h"
 #include "sample-util.h"
 #include "util.h"
+#include "modargs.h"
 
 struct userdata {
     struct pa_sink *sink;
@@ -38,8 +39,18 @@ struct userdata {
     unsigned out_current, in_current;
 };
 
-void module_done(struct pa_core *c, struct pa_module*m);
+static const char* const valid_modargs[] = {
+    "sink_name",
+    "source_name",
+    "device",
+    "record",
+    "playback",
+    NULL
+};
 
+#define DEFAULT_SINK_NAME "oss_output"
+#define DEFAULT_SOURCE_NAME "oss_input"
+#define DEFAULT_DEVICE "/dev/dsp"
 
 static void out_fill_memblocks(struct userdata *u, unsigned n) {
     assert(u && u->out_memblocks);
@@ -163,10 +174,12 @@ static uint32_t sink_get_latency_cb(struct pa_sink *s) {
 int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct audio_buf_info info;
     struct userdata *u = NULL;
-    char *p;
+    const char *p;
     int frag_size;
-    int mode, caps, caps_read = 0;
+    int mode, caps;
     int enable_bits = 0, zero = 0;
+    int playback = 1, record = 1;
+    struct pa_modargs *ma = NULL;
     assert(c && m);
 
     m->userdata = u = malloc(sizeof(struct userdata));
@@ -174,39 +187,26 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     memset(u, 0, sizeof(struct userdata));
     u->fd = -1;
     u->core = c;
+
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        fprintf(stderr, __FILE__": failed to parse module arguments.\n");
+        goto fail;
+    }
     
-    p = m->argument ? m->argument : "/dev/dsp";
-    if ((u->fd = open(p, (mode = O_RDWR)|O_NDELAY)) >= 0) {
-        ioctl(u->fd, SNDCTL_DSP_SETDUPLEX, 0);
-        
-        if (ioctl(u->fd, SNDCTL_DSP_GETCAPS, &caps) < 0) {
-            fprintf(stderr, "SNDCTL_DSP_GETCAPS: %s\n", strerror(errno));
-            goto fail;
-        }
-
-        if (!(caps & DSP_CAP_DUPLEX)) {
-            close(u->fd);
-            u->fd = -1;
-        } else
-            caps_read = 1;
+    if (pa_modargs_get_value_u32(ma, "record", &record) < 0 || pa_modargs_get_value_u32(ma, "playback", &playback) < 0) {
+        fprintf(stderr, __FILE__": record= and playback= expect numeric arguments.\n");
+        goto fail;
     }
 
-    if (u->fd < 0) {
-        if ((u->fd = open(p, (mode = O_WRONLY)|O_NDELAY)) < 0) {
-            if ((u->fd = open(p, (mode = O_RDONLY)|O_NDELAY)) < 0) {
-                fprintf(stderr, "open('%s'): %s\n", p, strerror(errno));
-                goto fail;
-            }
-        }
+    mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
+    if (mode == 0) {
+        fprintf(stderr, __FILE__": neither playback nor record enabled for device.\n");
+        goto fail;
     }
 
-    if (!caps_read) {
-        if (ioctl(u->fd, SNDCTL_DSP_GETCAPS, &caps) < 0) {
-            fprintf(stderr, "SNDCTL_DSP_GETCAPS: %s\n", strerror(errno));
-            goto fail;
-        }
-    }
-        
+    if ((u->fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, &caps)) < 0)
+        goto fail;
+
     if (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_REALTIME) || !(caps & DSP_CAP_TRIGGER)) {
         fprintf(stderr, "OSS device not mmap capable.\n");
         goto fail;
@@ -242,7 +242,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
             }
         } else {
         
-            u->source = pa_source_new(c, "oss_input", 0, &u->sample_spec);
+            u->source = pa_source_new(c, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &u->sample_spec);
             assert(u->source);
             u->source->userdata = u;
             pa_source_set_owner(u->source, m);
@@ -276,7 +276,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         } else {
             pa_silence_memory(u->out_mmap, u->out_mmap_length, &u->sample_spec);
             
-            u->sink = pa_sink_new(c, "oss_output", 0, &u->sample_spec);
+            u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &u->sample_spec);
             assert(u->sink);
             u->sink->get_latency = sink_get_latency_cb;
             u->sink->userdata = u;
@@ -309,7 +309,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     return 0;
 
 fail:
-    module_done(c, m);
+    pa_module_done(c, m);
 
     return -1;
 }
