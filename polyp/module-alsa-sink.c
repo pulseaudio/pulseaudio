@@ -174,8 +174,8 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u = NULL;
     const char *dev;
     struct pa_sample_spec ss;
-    unsigned periods, fragsize;
-    snd_pcm_uframes_t buffer_size;
+    uint32_t periods, fragsize;
+    snd_pcm_uframes_t period_size;
     size_t frame_size;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -196,7 +196,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
         pa_log(__FILE__": failed to parse buffer metrics\n");
         goto fail;
     }
-    buffer_size = fragsize/frame_size*periods;
+    period_size = fragsize;
     
     u = pa_xmalloc0(sizeof(struct userdata));
     m->userdata = u;
@@ -207,7 +207,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
 
-    if (pa_alsa_set_hw_params(u->pcm_handle, &ss, &periods, &buffer_size) < 0) {
+    if (pa_alsa_set_hw_params(u->pcm_handle, &ss, &periods, &period_size) < 0) {
         pa_log(__FILE__": Failed to set hardware parameters\n");
         goto fail;
     }
@@ -226,7 +226,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     }
     
     u->frame_size = frame_size;
-    u->fragment_size = buffer_size*u->frame_size/periods;
+    u->fragment_size = period_size;
 
     pa_log(__FILE__": using %u fragments of size %u bytes.\n", periods, u->fragment_size);
 

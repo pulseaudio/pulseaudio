@@ -1,17 +1,16 @@
 *** $Id$ ***
 
 *** 0.7 ****
-- per-channel volume
-- option to use default fragment size on alsa drivers
-- improve module-oss-mmap latency measurement
-- add radio module
 - make most buffer sizes dependant on the sample type
 - limit all resources
 - commenting
-- module-tunnel: use latency interpolation
 - polish for starting polypaudio as root/system-wide instance
 
 ** later ***
+- per-channel volume
+- improve module-oss-mmap latency measurement
+- module-tunnel: improve latency calculation
+- add radio module
 - pass meta info for hearing impaired
 - add sync API
 - X11: support for the X11 synchronization extension
