@@ -2,6 +2,7 @@
 #define foocorehfoo
 
 #include "idxset.h"
+#include "hashset.h"
 #include "mainloop-api.h"
 
 struct core {
@@ -9,6 +10,8 @@ struct core {
 
     struct idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules;
 
+    struct hashset *namereg;
+    
     uint32_t default_source_index, default_sink_index;
 };
 

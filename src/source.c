@@ -6,8 +6,9 @@
 #include "source.h"
 #include "sourceoutput.h"
 #include "strbuf.h"
+#include "namereg.h"
 
-struct source* source_new(struct core *core, const char *name, const struct pa_sample_spec *spec) {
+struct source* source_new(struct core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
     struct source *s;
     int r;
     assert(core && spec);
@@ -15,7 +16,12 @@ struct source* source_new(struct core *core, const char *name, const struct pa_s
     s = malloc(sizeof(struct source));
     assert(s);
 
-    s->name = name ? strdup(name) : NULL;
+    if (!(name = namereg_register(core, name, NAMEREG_SOURCE, s, fail))) {
+        free(s);
+        return NULL;
+    }
+
+    s->name = strdup(name);
     s->core = core;
     s->sample_spec = *spec;
     s->outputs = idxset_new(NULL, NULL);
@@ -35,6 +41,8 @@ void source_free(struct source *s) {
     struct source_output *o, *j = NULL;
     assert(s);
 
+    namereg_unregister(s->core, s->name);
+    
     while ((o = idxset_first(s->outputs, NULL))) {
         assert(o != j);
         source_output_kill(o);

@@ -49,7 +49,10 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		module.c module.h \
 		mainloop-signal.c mainloop-signal.h \
 		mainloop-api.c mainloop-api.h \
-		util.c util.h
+		util.c util.h \
+		hashset.c hashset.h \
+		namereg.c namereg.h
+
 polypaudio_CFLAGS = $(AM_CFLAGS)
 
 polypaudio_INCLUDES = $(INCLTDL)

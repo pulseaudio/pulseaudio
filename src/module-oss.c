@@ -180,7 +180,7 @@ int module_init(struct core *c, struct module*m) {
     u->core = c;
 
     if (mode != O_RDONLY) {
-        u->sink = sink_new(c, "dsp", &ss);
+        u->sink = sink_new(c, "dsp", 0, &ss);
         assert(u->sink);
         u->sink->get_latency = sink_get_latency_cb;
         u->sink->userdata = u;
@@ -188,7 +188,7 @@ int module_init(struct core *c, struct module*m) {
         u->sink = NULL;
 
     if (mode != O_WRONLY) {
-        u->source = source_new(c, "dsp", &ss);
+        u->source = source_new(c, "dsp", 0, &ss);
         assert(u->source);
         u->source->userdata = u;
     } else

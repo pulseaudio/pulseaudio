@@ -21,7 +21,7 @@ struct source {
     void *userdata;
 };
 
-struct source* source_new(struct core *core, const char *name, const struct pa_sample_spec *spec);
+struct source* source_new(struct core *core, const char *name, int fail, const struct pa_sample_spec *spec);
 void source_free(struct source *s);
 
 /* Pass a new memory block to all output streams */

@@ -109,7 +109,7 @@ int module_init(struct core *c, struct module*m) {
     u->filename = strdup(p);
     assert(u->filename);
     u->core = c;
-    u->sink = sink_new(c, "fifo", &ss);
+    u->sink = sink_new(c, "fifo", 0, &ss);
     assert(u->sink);
     u->sink->notify = notify_cb;
     u->sink->userdata = u;

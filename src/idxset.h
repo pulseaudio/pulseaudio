@@ -5,9 +5,15 @@
 
 #define IDXSET_INVALID ((uint32_t) -1)
 
+unsigned idxset_trivial_hash_func(const void *p);
+int idxset_trivial_compare_func(const void *a, const void *b);
+
+unsigned idxset_string_hash_func(const void *p);
+int idxset_string_compare_func(const void *a, const void *b);
+
 struct idxset;
 
-struct idxset* idxset_new(unsigned (*hash_func) (void *p), int (*compare_func) (void*a, void*b));
+struct idxset* idxset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b));
 void idxset_free(struct idxset *s, void (*free_func) (void *p, void *userdata), void *userdata);
 
 int idxset_put(struct idxset*s, void *p, uint32_t *index);

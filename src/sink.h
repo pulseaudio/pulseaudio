@@ -27,7 +27,7 @@ struct sink {
     void *userdata;
 };
 
-struct sink* sink_new(struct core *core, const char *name, const struct pa_sample_spec *spec);
+struct sink* sink_new(struct core *core, const char *name, int fail, const struct pa_sample_spec *spec);
 void sink_free(struct sink* s);
 
 int sink_render(struct sink*s, size_t length, struct memchunk *result);

@@ -7,10 +7,11 @@
 #include "sinkinput.h"
 #include "strbuf.h"
 #include "sample-util.h"
+#include "namereg.h"
 
 #define MAX_MIX_CHANNELS 32
 
-struct sink* sink_new(struct core *core, const char *name, const struct pa_sample_spec *spec) {
+struct sink* sink_new(struct core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
     struct sink *s;
     char *n = NULL;
     int r;
@@ -18,8 +19,13 @@ struct sink* sink_new(struct core *core, const char *name, const struct pa_sampl
 
     s = malloc(sizeof(struct sink));
     assert(s);
+
+    if (!(name = namereg_register(core, name, NAMEREG_SINK, s, fail))) {
+        free(s);
+        return NULL;
+    }
     
-    s->name = name ? strdup(name) : NULL;
+    s->name = strdup(name);
     s->core = core;
     s->sample_spec = *spec;
     s->inputs = idxset_new(NULL, NULL);
@@ -29,7 +35,8 @@ struct sink* sink_new(struct core *core, const char *name, const struct pa_sampl
         sprintf(n, "%s_monitor", name);
     }
     
-    s->monitor_source = source_new(core, n, spec);
+    s->monitor_source = source_new(core, n, 0, spec);
+    assert(s->monitor_source);
     free(n);
     
     s->volume = 0xFF;
@@ -50,6 +57,8 @@ void sink_free(struct sink *s) {
     struct sink_input *i, *j = NULL;
     assert(s);
 
+    namereg_unregister(s->core, s->name);
+    
     while ((i = idxset_first(s->inputs, NULL))) {
         assert(i != j);
         sink_input_kill(i);

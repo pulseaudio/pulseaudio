@@ -6,6 +6,7 @@
 #include "module.h"
 #include "sink.h"
 #include "source.h"
+#include "namereg.h"
 
 struct core* core_new(struct pa_mainloop_api *m) {
     struct core* c;
@@ -22,6 +23,7 @@ struct core* core_new(struct pa_mainloop_api *m) {
     c->default_source_index = c->default_sink_index = IDXSET_INVALID;
 
     c->modules = NULL;
+    c->namereg = NULL;
     
     return c;
 };
@@ -47,6 +49,8 @@ void core_free(struct core *c) {
     assert(idxset_isempty(c->sink_inputs));
     idxset_free(c->sink_inputs, NULL, NULL);
 
+    namereg_free(c);
+    
     free(c);    
 };
 

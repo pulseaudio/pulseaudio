@@ -262,7 +262,7 @@ int module_init(struct core *c, struct module*m) {
             }
         } else {
         
-            u->source = source_new(c, "dsp", &u->sample_spec);
+            u->source = source_new(c, "dsp", 0, &u->sample_spec);
             assert(u->source);
             u->source->userdata = u;
             
@@ -293,7 +293,7 @@ int module_init(struct core *c, struct module*m) {
         } else {
             silence_memory(u->out_mmap, u->out_mmap_length, &u->sample_spec);
             
-            u->sink = sink_new(c, "dsp", &u->sample_spec);
+            u->sink = sink_new(c, "dsp", 0, &u->sample_spec);
             assert(u->sink);
             u->sink->get_latency = sink_get_latency_cb;
             u->sink->userdata = u;

@@ -1,13 +1,19 @@
-- sync() function in native library
-- name registrar
-- native protocol/library
-- simple control protocol: kill client/input/output; set_volume
+- native library/protocol:
+       recording
+       sync() function
+       more functions
+- simple library
+- simple control protocol: 
+       kill client/input/output
+       set_volume
 - resampling
+- volume adjust on single sink input
+- fp volume scaling (both < and > 1)
 - esound protocol
 - config parser/cmdline
 - record testing
+
 -- 0.1
-- optimierung von rebuild_pollfds()
 - future cancellation
 - client-ui
 - clip cache

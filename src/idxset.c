@@ -15,29 +15,43 @@ struct idxset_entry {
 };
 
 struct idxset {
-    unsigned (*hash_func) (void *p);
-    int (*compare_func)(void *a, void *b);
+    unsigned (*hash_func) (const void *p);
+    int (*compare_func)(const void *a, const void *b);
     
     unsigned hash_table_size, n_entries;
     struct idxset_entry **hash_table, **array, *iterate_list_head, *iterate_list_tail;
     uint32_t index, start_index, array_size;
 };
 
-static unsigned trivial_hash_func(void *p) {
+unsigned idxset_string_hash_func(const void *p) {
+    unsigned hash = 0;
+    const char *c;
+    
+    for (c = p; *c; c++)
+        hash = 31 * hash + *c;
+
+    return hash;
+}
+
+int idxset_string_compare_func(const void *a, const void *b) {
+    return strcmp(a, b);
+}
+
+unsigned idxset_trivial_hash_func(const void *p) {
     return (unsigned) p;
 }
 
-static int trivial_compare_func(void *a, void *b) {
+int idxset_trivial_compare_func(const void *a, const void *b) {
     return a != b;
 }
 
-struct idxset* idxset_new(unsigned (*hash_func) (void *p), int (*compare_func) (void*a, void*b)) {
+struct idxset* idxset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
     struct idxset *s;
 
     s = malloc(sizeof(struct idxset));
     assert(s);
-    s->hash_func = hash_func ? hash_func : trivial_hash_func;
-    s->compare_func = compare_func ? compare_func : trivial_compare_func;
+    s->hash_func = hash_func ? hash_func : idxset_trivial_hash_func;
+    s->compare_func = compare_func ? compare_func : idxset_trivial_compare_func;
     s->hash_table_size = 1023;
     s->hash_table = malloc(sizeof(struct idxset_entry*)*s->hash_table_size);
     assert(s->hash_table);
