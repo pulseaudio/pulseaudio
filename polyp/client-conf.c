@@ -74,15 +74,22 @@ int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
     char *def = NULL;
     int r;
 
-    const struct pa_config_item table[] = {
-        { "daemon-binary",          pa_config_parse_string,  &c->daemon_binary },
-        { "extra-arguments",        pa_config_parse_string,  &c->extra_arguments },
-        { "default-sink",           pa_config_parse_string,  &c->default_sink },
-        { "default-source",         pa_config_parse_string,  &c->default_source },
-        { "default-server",         pa_config_parse_string,  &c->default_server },
-        { "autospawn",              pa_config_parse_bool,    &c->autospawn },
+    struct pa_config_item table[] = {
+        { "daemon-binary",          pa_config_parse_string,  NULL },
+        { "extra-arguments",        pa_config_parse_string,  NULL },
+        { "default-sink",           pa_config_parse_string,  NULL },
+        { "default-source",         pa_config_parse_string,  NULL },
+        { "default-server",         pa_config_parse_string,  NULL },
+        { "autospawn",              pa_config_parse_bool,    NULL },
         { NULL,                     NULL,                    NULL },
     };
+
+    table[0].data = &c->daemon_binary;
+    table[1].data = &c->extra_arguments;
+    table[2].data = &c->default_sink;
+    table[3].data = &c->default_source;
+    table[4].data = &c->default_server;
+    table[5].data = &c->autospawn;
 
     if (!filename)
         filename = getenv(ENV_CLIENT_CONFIG_FILE);
