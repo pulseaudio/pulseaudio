@@ -37,12 +37,6 @@
 #include "strlist.h"
 #include "mcalign.h"
 
-#define DEFAULT_TLENGTH (44100*2*2/2)  //(10240*8)
-#define DEFAULT_MAXLENGTH ((DEFAULT_TLENGTH*3)/2)
-#define DEFAULT_MINREQ 512
-#define DEFAULT_PREBUF (DEFAULT_TLENGTH-DEFAULT_MINREQ)
-#define DEFAULT_FRAGSIZE 1024
-
 #define DEFAULT_TIMEOUT (10)
 
 struct pa_context {

@@ -283,11 +283,12 @@ static void create_stream(struct pa_stream *s, const char *dev, const struct pa_
     if (attr)
         s->buffer_attr = *attr;
     else {
-        s->buffer_attr.maxlength = DEFAULT_MAXLENGTH;
-        s->buffer_attr.tlength = DEFAULT_TLENGTH;
-        s->buffer_attr.prebuf = DEFAULT_PREBUF;
-        s->buffer_attr.minreq = DEFAULT_MINREQ;
-        s->buffer_attr.fragsize = DEFAULT_FRAGSIZE;
+        /* half a second */
+        s->buffer_attr.tlength = pa_bytes_per_second(&s->sample_spec)/2;
+        s->buffer_attr.maxlength = (s->buffer_attr.tlength*3)/2;
+        s->buffer_attr.minreq = s->buffer_attr.tlength/100;
+        s->buffer_attr.prebuf = s->buffer_attr.tlength - s->buffer_attr.minreq;
+        s->buffer_attr.fragsize = s->buffer_attr.tlength/100;
     }
 
     pa_stream_set_state(s, PA_STREAM_CREATING);

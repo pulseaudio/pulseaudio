@@ -68,18 +68,21 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
     bq->tlength = ((tlength+base-1)/base)*base;
     if (!bq->tlength || bq->tlength >= bq->maxlength)
         bq->tlength = bq->maxlength;
+
+    bq->minreq = (minreq/base)*base;
+    if (bq->minreq == 0)
+        bq->minreq = 1;
     
     bq->prebuf = (prebuf == (size_t) -1) ? bq->maxlength/2 : prebuf;
     bq->prebuf = (bq->prebuf/base)*base;
     if (bq->prebuf > bq->maxlength)
         bq->prebuf = bq->maxlength;
 
+    if (bq->prebuf > bq->tlength - bq->minreq)
+        bq->prebuf = bq->tlength - bq->minreq;
+
     bq->orig_prebuf = bq->prebuf;
     
-    bq->minreq = (minreq/base)*base;
-    if (bq->minreq == 0)
-        bq->minreq = 1;
-
     pa_log(__FILE__": memblockq sanitized: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", bq->maxlength, bq->tlength, bq->base, bq->prebuf, bq->minreq);
     
     bq->mcalign = NULL;
