@@ -365,7 +365,7 @@ static void on_connection(struct pa_socket_client *sc, struct pa_iochannel *io, 
     struct userdata *u = userdata;
     struct pa_tagstruct *t;
     uint32_t tag;
-    assert(sc && io && u && u->client == sc);
+    assert(sc && u && u->client == sc);
 
     pa_socket_client_unref(u->client);
     u->client = NULL;
