@@ -122,6 +122,7 @@ static int esd_proto_stream_pan(struct connection *c, esd_proto_t request, const
 static int esd_proto_sample_cache(struct connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_sample_free_or_play(struct connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_sample_get_id(struct connection *c, esd_proto_t request, const void *data, size_t length);
+static int esd_proto_noop(struct connection *c, esd_proto_t request, const void *data, size_t length);
 
 /* the big map of protocol handler info */
 static struct proto_handler proto_map[ESD_PROTO_MAX] = {
@@ -140,8 +141,8 @@ static struct proto_handler proto_map[ESD_PROTO_MAX] = {
     { sizeof(int),                    NULL, "sample stop" },
     { -1,                             NULL, "TODO: sample kill" },
 
-    { ESD_KEY_LEN + sizeof(int),      NULL, "standby" },
-    { ESD_KEY_LEN + sizeof(int),      NULL, "resume" },
+    { ESD_KEY_LEN + sizeof(int),      esd_proto_noop, "standby" },  /* NOOP! */
+    { ESD_KEY_LEN + sizeof(int),      esd_proto_noop, "resume" },   /* NOOP! */
 
     { ESD_NAME_MAX,                   esd_proto_sample_get_id, "sample getid" },
     { ESD_NAME_MAX + 2 * sizeof(int), NULL, "stream filter" },
@@ -651,6 +652,14 @@ static int esd_proto_sample_free_or_play(struct connection *c, esd_proto_t reque
         }
     }
     
+    return 0;
+}
+
+static int esd_proto_noop(struct connection *c, esd_proto_t request, const void *data, size_t length) {
+    int *ok;
+    ok = connection_write(c, sizeof(int));
+    assert(ok);
+    *ok = 1;
     return 0;
 }
 

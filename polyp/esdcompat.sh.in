@@ -22,7 +22,7 @@
 VERSION_STRING="@PACKAGE_NAME@ esd wrapper @PACKAGE_VERSION@"
 
 fail() {
-    echo "$1" > /dev/stderr
+    echo "ERROR: $1"
     exit 1
 }
 
