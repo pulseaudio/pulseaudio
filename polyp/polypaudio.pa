@@ -22,7 +22,7 @@
 
 #load module-alsa-sink
 #load module-alsa-source device=plughw:1,0
-#load module-oss device="/dev/dsp" sink_name=output source_name=input
+load module-oss device="/dev/dsp" sink_name=output source_name=input record=0
 #load module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
 #load module-pipe-sink
 
@@ -46,8 +46,8 @@ load module-native-protocol-unix
 load module-cli
 
 # Make some devices default
-sink_default output
-source_default input
+#isink_default output
+#source_default input
 
 .nofail
 
@@ -57,6 +57,6 @@ scache_load /usr/share/sounds/KDE_Notify.wav x11-bell
 # Load X11 bell module
 #load module-x11-bell sample=x11-bell sink=output
 
-load module-pipe-source
-load module-pipe-sink
+#load module-pipe-source
+#load module-pipe-sink
 

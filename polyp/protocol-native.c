@@ -138,6 +138,7 @@ static void command_subscribe(struct pa_pdispatch *pd, uint32_t command, uint32_
 static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_cork_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_set_default_sink_or_source(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -182,6 +183,8 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_CORK_PLAYBACK_STREAM] = { command_cork_playback_stream },
     [PA_COMMAND_FLUSH_PLAYBACK_STREAM] = { command_flush_or_trigger_playback_stream },
     [PA_COMMAND_TRIGGER_PLAYBACK_STREAM] = { command_flush_or_trigger_playback_stream },
+    [PA_COMMAND_SET_DEFAULT_SINK] = { command_set_default_sink_or_source },
+    [PA_COMMAND_SET_DEFAULT_SOURCE] = { command_set_default_sink_or_source },
 };
 
 /* structure management */
@@ -1221,6 +1224,8 @@ static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, u
     pa_tagstruct_puts(reply, pa_get_user_name(txt, sizeof(txt)));
     pa_tagstruct_puts(reply, pa_get_host_name(txt, sizeof(txt)));
     pa_tagstruct_put_sample_spec(reply, &c->protocol->core->default_sample_spec);
+    pa_tagstruct_puts(reply, c->protocol->core->default_sink_name ?  c->protocol->core->default_sink_name : "");
+    pa_tagstruct_puts(reply, c->protocol->core->default_source_name ?  c->protocol->core->default_source_name : "");
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1371,6 +1376,28 @@ static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, ui
     pa_sink_notify(s->sink_input->sink);
     pa_pstream_send_simple_ack(c->pstream, tag);
     request_bytes(s);
+}
+
+static void command_set_default_sink_or_source(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    const char *s;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        pa_tagstruct_gets(t, &s) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    pa_namereg_set_default(c->protocol->core, s, command == PA_COMMAND_SET_DEFAULT_SOURCE ? PA_NAMEREG_SOURCE : PA_NAMEREG_SINK);
+    pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
 /*** pstream callbacks ***/

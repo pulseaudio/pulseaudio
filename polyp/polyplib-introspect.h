@@ -96,6 +96,8 @@ struct pa_server_info {
     const char *server_version;         /**< Version string of the daemon */
     const char *server_name;            /**< Server package name (usually "polypaudio") */
     struct pa_sample_spec sample_spec;  /**< Default sample specification */
+    const char *default_sink_name;      /**< Name of default sink. \since 0.4 */
+    const char *default_source_name;      /**< Name of default sink. \since 0.4*/
 };
 
 /** Get some information about the server */

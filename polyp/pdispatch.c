@@ -62,8 +62,20 @@ static const char *command_names[PA_COMMAND_MAX] = {
     [PA_COMMAND_PLAY_SAMPLE] = "PLAY_SAMPLE",
     [PA_COMMAND_REMOVE_SAMPLE] = "REMOVE_SAMPLE",
     [PA_COMMAND_GET_SERVER_INFO] = "GET_SERVER_INFO",
-    [PA_COMMAND_GET_SINK_INFO] = "GET_SET_INFO",
+    [PA_COMMAND_GET_SINK_INFO] = "GET_SINK_INFO",
+    [PA_COMMAND_GET_SINK_INFO_LIST] = "GET_SINK_INFO_LIST",
+    [PA_COMMAND_GET_SOURCE_INFO] = "GET_SOURCE_INFO",
+    [PA_COMMAND_GET_SOURCE_INFO_LIST] = "GET_SOURCE_INFO_LIST",
+    [PA_COMMAND_GET_MODULE_INFO] = "GET_MODULE_INFO",
+    [PA_COMMAND_GET_MODULE_INFO_LIST] = "GET_MODULE_INFO_LIST",
+    [PA_COMMAND_GET_CLIENT_INFO] = "GET_CLIENT_INFO",
+    [PA_COMMAND_GET_CLIENT_INFO_LIST] = "GET_CLIENT_INFO_LIST",
+    [PA_COMMAND_GET_SAMPLE_INFO] = "GET_SAMPLE_INFO",
+    [PA_COMMAND_GET_SAMPLE_INFO_LIST] = "GET_SAMPLE_INFO_LIST",
     [PA_COMMAND_GET_SINK_INPUT_INFO] = "GET_SINK_INPUT_INFO",
+    [PA_COMMAND_GET_SINK_INPUT_INFO_LIST] = "GET_SINK_INPUT_INFO_LIST",
+    [PA_COMMAND_GET_SOURCE_OUTPUT_INFO] = "GET_SOURCE_OUTPUT_INFO",
+    [PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST] = "GET_SOURCE_OUTPUT_INFO_LIST",
     [PA_COMMAND_SUBSCRIBE] = "SUBSCRIBE",
     [PA_COMMAND_SUBSCRIBE_EVENT] = "SUBSCRIBE_EVENT",
     [PA_COMMAND_SET_SINK_VOLUME] = "SET_SINK_VOLUME",
@@ -71,7 +83,6 @@ static const char *command_names[PA_COMMAND_MAX] = {
     [PA_COMMAND_TRIGGER_PLAYBACK_STREAM] = "TRIGGER_PLAYBACK_STREAM",
     [PA_COMMAND_FLUSH_PLAYBACK_STREAM] = "FLUSH_PLAYBACK_STREAM",
     [PA_COMMAND_CORK_PLAYBACK_STREAM] = "CORK_PLAYBACK_STREAM",
-    
 };
 
 #endif
@@ -174,7 +185,14 @@ int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *use
         goto finish;
 
 #ifdef DEBUG_OPCODES
-    pa_log(__FILE__": Recieved opcode <%s>\n", command_names[command]);
+{
+    char t[256];
+    char const *p;
+    if (!(p = command_names[command]))
+        snprintf((char*) (p = t), sizeof(t), "%u", command);
+        
+    pa_log(__FILE__": Recieved opcode <%s>\n", p);
+}
 #endif
 
     if (command == PA_COMMAND_ERROR || command == PA_COMMAND_REPLY) {

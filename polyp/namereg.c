@@ -35,6 +35,7 @@
 #include "source.h"
 #include "sink.h"
 #include "xmalloc.h"
+#include "subscribe.h"
 
 struct namereg_entry {
     enum pa_namereg_type type;
@@ -186,6 +187,13 @@ void pa_namereg_set_default(struct pa_core*c, const char *name, enum pa_namereg_
     s = type == PA_NAMEREG_SINK ? &c->default_sink_name : &c->default_source_name;
     assert(s);
 
+    if (!name && !*s)
+        return;
+    
+    if (name && *s && !strcmp(name, *s))
+        return;
+    
     pa_xfree(*s);
     *s = pa_xstrdup(name);
+    pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
 }

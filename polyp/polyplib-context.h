@@ -98,6 +98,12 @@ struct pa_operation* pa_context_drain(struct pa_context *c, void (*cb) (struct p
  * would never complete. */
 void pa_context_exit_daemon(struct pa_context *c);
 
+/** Set the name of the default sink. \since 0.4 */
+struct pa_operation* pa_context_set_default_sink(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success, void *userdata), void *userdata);
+
+/** Set the name of the default source. \since 0.4 */
+struct pa_operation* pa_context_set_default_source(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success,  void *userdata), void *userdata);
+
 PA_C_DECL_END
 
 #endif
