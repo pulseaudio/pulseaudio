@@ -1,4 +1,4 @@
-#!./polypaudio -nF 
+#!@POLYPAUDIO_BINARY@ -nF 
 
 #
 # This file is part of polypaudio.

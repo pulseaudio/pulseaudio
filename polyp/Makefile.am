@@ -32,7 +32,7 @@ AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
-EXTRA_DIST = default.pa daemon.conf.in client.conf.in depmod.py esdcompat.sh.in
+EXTRA_DIST = default.pa.in daemon.conf.in client.conf.in depmod.py esdcompat.sh.in
 bin_PROGRAMS = polypaudio pacat pactl
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = \
@@ -555,6 +555,9 @@ esdcompat.sh: esdcompat.sh.in Makefile
 		-e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
 
 client.conf: client.conf.in Makefile
+	sed -e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
+
+default.pa: default.pa.in Makefile
 	sed -e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
 
 daemon.conf: daemon.conf.in Makefile
