@@ -18,10 +18,9 @@
 
 AM_CFLAGS=-ansi -D_GNU_SOURCE
 
-EXTRA_DIST = polypaudio.run
+EXTRA_DIST = polypaudio.run depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
 noinst_PROGRAMS = pacat-simple parec-simple
-noinst_SCRIPTS = depmod.py
 
 pkglib_LTLIBRARIES=libiochannel.la \
 		libsocket-server.la \
@@ -241,7 +240,6 @@ libpolyp_la_SOURCES = polyplib.c polyplib.h \
 		pstream.c pstream.h \
 		pstream-util.c pstream-util.h \
 		pdispatch.c pdispatch.h \
-		protocol-native-spec.h \
 		mainloop-api.c mainloop-api.h \
 		idxset.c idxset.h \
 		util.c util.h \
