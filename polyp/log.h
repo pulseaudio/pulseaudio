@@ -6,7 +6,7 @@
 enum pa_log_target {
     PA_LOG_SYSLOG,
     PA_LOG_STDERR,
-    PA_LOG_USER,
+    PA_LOG_USER
 };
 
 void pa_log_set_ident(const char *p);

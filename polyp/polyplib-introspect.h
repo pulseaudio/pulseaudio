@@ -229,7 +229,7 @@ struct pa_operation* pa_context_unload_module(struct pa_context *c, uint32_t ind
 /** Type of an autoload entry. \since 0.5 */
 enum pa_autoload_type {
     PA_AUTOLOAD_SINK = 0,
-    PA_AUTOLOAD_SOURCE = 1,
+    PA_AUTOLOAD_SOURCE = 1
 };
 
 /** Stores information about autoload entries. \since 0.5 */

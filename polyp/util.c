@@ -385,7 +385,7 @@ char *pa_split(const char *c, const char *delimiter, const char**state) {
     *state = current+l;
 
     if (**state)
-        *state++;
+        (*state)++;
 
     return pa_xstrndup(current, l);
 }

@@ -46,7 +46,7 @@ enum tags {
     TAG_BOOLEAN_TRUE = '1',
     TAG_BOOLEAN_FALSE = '0',
     TAG_TIMEVAL = 'T',
-    TAG_USEC = 'U',  /* 64bit unsigned */
+    TAG_USEC = 'U'  /* 64bit unsigned */
 };
 
 struct pa_tagstruct {

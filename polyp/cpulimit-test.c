@@ -80,5 +80,6 @@ int main() {
     pa_cpu_limit_done();
     
     pa_mainloop_free(m);
-    
+
+    return 0;
 }

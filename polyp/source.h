@@ -36,7 +36,7 @@ struct pa_source;
 
 enum pa_source_state {
     PA_SOURCE_RUNNING,
-    PA_SOURCE_DISCONNECTED,
+    PA_SOURCE_DISCONNECTED
 };
 
 struct pa_source {

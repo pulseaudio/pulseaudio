@@ -104,12 +104,13 @@ AC_SUBST(GLIB12_LIBS)
 AC_SUBST(HAVE_GLIB12)
 AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
 
-# If using GCC specifiy some additional parameters
+# If using GCC specify some additional parameters
 if test "x$GCC" = "xyes" ; then
    CFLAGS="$CFLAGS -pipe -W -Wall -pedantic"
 
-   AC_LANG_CONFTEST([int main()])
-   $CC -std=c99 -Wno-unused-parameter -E conftest.c -o - > /dev/null 2>&1 && CFLAGS="$CFLAGS -std=c99 -Wno-unused-parameter"
+   AC_LANG_CONFTEST([int main() {}])
+   $CC -c conftest.c -std=c99 -Wno-unused-parameter $CFLAGS > /dev/null 2> /dev/null && CFLAGS="$CFLAGS -std=c99 -Wno-unused-parameter"
+   rm -f conftest.o
 fi
 
 # LYNX documentation generation
