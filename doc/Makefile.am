@@ -17,7 +17,7 @@
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
 noinst_DATA = README.html cli.html modules.html daemon.html README
-EXTRA_DIST = $(noinst_DATA) style.css README.html.in cli.html.in modules.html.in daemon.html.in
+EXTRA_DIST = $(noinst_DATA) style.css README.html.in cli.html.in modules.html.in daemon.html.in todo
 
 MAINTAINERCLEANFILES = README README.html cli.html modules.html daemon.html
 CLEANFILES =
