@@ -59,12 +59,9 @@ static const struct pa_client_conf default_conf = {
 
 struct pa_client_conf *pa_client_conf_new(void) {
     struct pa_client_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
-
-
     
     c->daemon_binary = pa_xstrdup(POLYPAUDIO_BINARY);
     c->extra_arguments = pa_xstrdup("--log-target=syslog --exit-idle-time=5");
-
     c->cookie_file = pa_xstrdup(PA_NATIVE_COOKIE_FILE);
     
     return c;

@@ -397,7 +397,7 @@ static int trivial_init(struct pa_resampler*r) {
 }
 
 const char *pa_resample_method_to_string(enum pa_resample_method m) {
-    static const char const* resample_methods[] = {
+    static const char * const resample_methods[] = {
         "src-sinc-best-quality",
         "src-sinc-medium-quality",
         "src-sinc-fastest",

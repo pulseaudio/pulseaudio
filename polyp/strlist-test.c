@@ -36,4 +36,6 @@ int main(int argc, char* argv[]) {
     pa_xfree(t);
 
     pa_strlist_free(l);
+
+    return 0;
 }

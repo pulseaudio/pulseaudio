@@ -31,7 +31,7 @@
 #include "xmalloc.h"
 
 /* Set the hardware parameters of the given ALSA device. Returns the
- * selected fragment settings in *period/*period_size */
+ * selected fragment settings in *period and *period_size */
 int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const struct pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size) {
     int ret = -1;
     snd_pcm_uframes_t buffer_size;

@@ -225,8 +225,6 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
     
     for(;;) {
         int r;
-        va_list ap;
-
         c = pa_xrealloc(c, size);
         r = vsnprintf(c, size, format, ap);
         
