@@ -22,6 +22,7 @@
    subscription
    module load/unload
    kill client/...
+   set volume
 - more complete pactl
 
 ** later ***
