@@ -624,7 +624,7 @@ endif
 ### Some minor stuff
 
 suid: polypaudio
-	chown root:root $<
+	chown root $<
 	chmod u+s $<
 
 esdcompat.sh: esdcompat.sh.in Makefile
@@ -643,7 +643,7 @@ daemon.conf: daemon.conf.in Makefile
 		-e 's,@DEFAULT_CONFIG_FILE\@,$(polypconfdir)/daemon.conf,g' < $< > $@
 
 install-exec-hook:
-	chown root:root $(DESTDIR)$(bindir)/polypaudio
+	chown root $(DESTDIR)$(bindir)/polypaudio
 	chmod u+s $(DESTDIR)$(bindir)/polypaudio
 
 $(SYMDEF_FILES): module-defs.h.m4

@@ -23,7 +23,7 @@
 ***/
 
 #include <sys/types.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 struct pa_packet {
     enum { PA_PACKET_APPENDED, PA_PACKET_DYNAMIC } type;
