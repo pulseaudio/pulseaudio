@@ -271,7 +271,7 @@ int main(int argc, char *argv[]) {
             }
 
             if (retval)
-                pa_log(__FILE__": daemon startup failed .\n");
+                pa_log(__FILE__": daemon startup failed.\n");
             else
                 pa_log_info(__FILE__": daemon startup successful.\n");
             
@@ -308,8 +308,10 @@ int main(int argc, char *argv[]) {
     chdir("/");
     
     if (conf->use_pid_file) {
-        if (pa_pid_file_create() < 0)
+        if (pa_pid_file_create() < 0) {
+            pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
             goto finish;
+        }
 
         valid_pid_file = 1;
     }
