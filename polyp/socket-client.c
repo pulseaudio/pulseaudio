@@ -395,8 +395,8 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
     
     switch (a.type) {
         case PA_PARSED_ADDRESS_UNIX:
-            c = pa_socket_client_new_unix(m, a.path_or_host);
-            start_timeout(c);
+            if ((c = pa_socket_client_new_unix(m, a.path_or_host)))
+            	start_timeout(c);
             break;
 
         case PA_PARSED_ADDRESS_TCP4:  /* Fallthrough */
@@ -437,9 +437,8 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
                     goto finish;
 
                 if (res->ai_addr) {
-                    c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen);
-                    start_timeout(c);
-                }
+                    if ((c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen)))
+                    	tart_timeout(c);
                 
                 freeaddrinfo(res);
             }

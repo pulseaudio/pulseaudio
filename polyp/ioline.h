@@ -23,6 +23,7 @@
 ***/
 
 #include "iochannel.h"
+#include "util.h"
 
 /* An ioline wraps an iochannel for line based communication. A
  * callback function is called whenever a new line has been recieved
@@ -38,7 +39,13 @@ void pa_ioline_close(struct pa_ioline *l);
 /* Write a string to the channel */
 void pa_ioline_puts(struct pa_ioline *s, const char *c);
 
+/* Write a string to the channel */
+void pa_ioline_printf(struct pa_ioline *s, const char *format, ...) PA_GCC_PRINTF_ATTR(2,3);
+
 /* Set the callback function that is called for every recieved line */
 void pa_ioline_set_callback(struct pa_ioline*io, void (*callback)(struct pa_ioline*io, const char *s, void *userdata), void *userdata);
+
+/* Make sure to close the ioline object as soon as the send buffer is emptied */
+void pa_ioline_defer_close(struct pa_ioline *io);
 
 #endif

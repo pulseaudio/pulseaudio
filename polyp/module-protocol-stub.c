@@ -85,6 +85,23 @@
   #endif
   PA_MODULE_DESCRIPTION("Command line interface protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE(SOCKET_USAGE)
+#elif defined(USE_PROTOCOL_HTTP)
+  #include "protocol-http.h" 
+  #define protocol_new pa_protocol_http_new
+  #define protocol_free pa_protocol_http_free
+  #define TCPWRAP_SERVICE "polypaudio-http"
+  #define IPV4_PORT 4714
+  #define UNIX_SOCKET "http"
+  #define MODULE_ARGUMENTS 
+  #ifdef USE_TCP_SOCKETS
+    #include "module-http-protocol-tcp-symdef.h"
+  #elif defined(USE_TCP6_SOCKETS)
+    #include "module-http-protocol-tcp6-symdef.h"
+  #else
+    #include "module-http-protocol-unix-symdef.h"
+  #endif
+  PA_MODULE_DESCRIPTION("HTTP "SOCKET_DESCRIPTION)
+  PA_MODULE_USAGE(SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_NATIVE)
   #include "protocol-native.h"
   #define protocol_new pa_protocol_native_new

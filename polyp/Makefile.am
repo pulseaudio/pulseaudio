@@ -103,6 +103,7 @@ modlib_LTLIBRARIES= \
 		libprotocol-simple.la \
 		libprotocol-esound.la \
 		libprotocol-native.la \
+		libprotocol-http.la \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
 		module-cli-protocol-tcp6.la \
@@ -129,7 +130,10 @@ modlib_LTLIBRARIES= \
 		module-tunnel-sink.la \
 		module-tunnel-source.la \
 		module-null-sink.la \
-		module-esound-sink.la
+		module-esound-sink.la \
+		module-http-protocol-tcp.la \
+		module-http-protocol-tcp6.la \
+		module-http-protocol-unix.la
 
 SYMDEF_FILES= \
 		module-cli-symdef.h \
@@ -161,7 +165,10 @@ SYMDEF_FILES= \
 		module-esound-sink-symdef.h \
 		module-zeroconf-publish-symdef.h \
 		module-lirc-symdef.h \
-		module-mmkbd-evdev-symdef.h
+		module-mmkbd-evdev-symdef.h \
+		module-http-protocol-tcp-symdef.h \
+		module-http-protocol-tcp6-symdef.h \
+		module-http-protocol-unix-symdef.h
 
 EXTRA_DIST+=$(SYMDEF_FILES)
 BUILT_SOURCES+=$(SYMDEF_FILES)
@@ -288,6 +295,10 @@ libprotocol_cli_la_SOURCES = protocol-cli.c protocol-cli.h
 libprotocol_cli_la_LDFLAGS = -avoid-version
 libprotocol_cli_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la libcli.la
 
+libprotocol_http_la_SOURCES = protocol-http.c protocol-http.h
+libprotocol_http_la_LDFLAGS = -avoid-version
+libprotocol_http_la_LIBADD = $(AM_LIBADD) libsocket-server.la libioline.la
+
 libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h native-common.h
 libprotocol_native_la_LDFLAGS = -avoid-version
 libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libstrlist.la
@@ -337,6 +348,21 @@ module_cli_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_cli_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
 module_cli_protocol_unix_la_LDFLAGS = -module -avoid-version
 module_cli_protocol_unix_la_LIBADD = $(AM_LIBADD) libprotocol-cli.la libsocket-server.la libsocket-util.la
+
+module_http_protocol_tcp_la_SOURCES = module-protocol-stub.c
+module_http_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_HTTP $(AM_CFLAGS)
+module_http_protocol_tcp_la_LDFLAGS = -module -avoid-version
+module_http_protocol_tcp_la_LIBADD = $(AM_LIBADD) libprotocol-http.la libsocket-server.la
+
+module_http_protocol_tcp6_la_SOURCES = module-protocol-stub.c
+module_http_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_HTTP $(AM_CFLAGS)
+module_http_protocol_tcp6_la_LDFLAGS = -module -avoid-version
+module_http_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libprotocol-http.la libsocket-server.la
+
+module_http_protocol_unix_la_SOURCES = module-protocol-stub.c
+module_http_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_HTTP $(AM_CFLAGS)
+module_http_protocol_unix_la_LDFLAGS = -module -avoid-version
+module_http_protocol_unix_la_LIBADD = $(AM_LIBADD) libprotocol-http.la libsocket-server.la libsocket-util.la
 
 module_native_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)

@@ -23,9 +23,6 @@
 #include <config.h>
 #endif
 
-/* setresuid() is only available on GNU */
-#define _GNU_SOURCE
-
 #include <assert.h>
 #include <unistd.h>
 #include <errno.h>

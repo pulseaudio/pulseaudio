@@ -93,7 +93,7 @@ const char *pa_sample_format_to_string(enum pa_sample_format f);
 #define PA_SAMPLE_SPEC_SNPRINT_MAX 32
 
 /** Pretty print a sample type specification to a string */
-void pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
+char* pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
 
 /** Volume specification: 0: silence; < 256: diminished volume; 256: normal volume; > 256 amplified volume */
 typedef uint32_t pa_volume_t;

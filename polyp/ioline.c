@@ -51,6 +51,8 @@ struct pa_ioline {
 
     void (*callback)(struct pa_ioline*io, const char *s, void *userdata);
     void *userdata;
+
+    int defer_close;
 };
 
 static void io_callback(struct pa_iochannel*io, void *userdata);
@@ -78,6 +80,8 @@ struct pa_ioline* pa_ioline_new(struct pa_iochannel *io) {
 
     l->defer_event = l->mainloop->defer_new(l->mainloop, defer_callback, l);
     l->mainloop->defer_enable(l->defer_event, 0);
+
+    l->defer_close = 0;
     
     pa_iochannel_set_callback(io, io_callback, l);
     
@@ -181,8 +185,10 @@ static void failure(struct pa_ioline *l) {
 
     pa_ioline_close(l);
 
-    if (l->callback)
+    if (l->callback) {
         l->callback(l, NULL, l->userdata);
+        l->callback = NULL;
+    }
 }
 
 static void scan_for_lines(struct pa_ioline *l, size_t skip) {
@@ -309,6 +315,9 @@ static void do_work(struct pa_ioline *l) {
     if (!l->dead)
         do_read(l);
 
+    if (l->defer_close && !l->wbuf_valid_length)
+        failure(l);
+
     pa_ioline_unref(l);
 }
 
@@ -324,4 +333,26 @@ static void defer_callback(struct pa_mainloop_api*m, struct pa_defer_event*e, vo
     assert(l && l->ref >= 1 && l->mainloop == m && l->defer_event == e);
 
     do_work(l);
+}
+
+void pa_ioline_defer_close(struct pa_ioline *l) {
+    assert(l);
+
+    l->defer_close = 1;
+
+    if (!l->wbuf_valid_length)
+        l->mainloop->defer_enable(l->defer_event, 1);
+}
+
+void pa_ioline_printf(struct pa_ioline *s, const char *format, ...) {
+    char *t;
+    va_list ap;
+
+    
+    va_start(ap, format);
+    t = pa_vsprintf_malloc(format, ap);
+    va_end(ap);
+
+    pa_ioline_puts(s, t);
+    pa_xfree(t);
 }

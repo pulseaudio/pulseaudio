@@ -101,15 +101,15 @@ const char *pa_sample_format_to_string(enum pa_sample_format f) {
     return table[f];
 }
 
-void pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec) {
+char *pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec) {
     assert(s && l && spec);
     
-    if (!pa_sample_spec_valid(spec)) {
+    if (!pa_sample_spec_valid(spec))
         snprintf(s, l, "Invalid");
-        return;
-    }
-    
-    snprintf(s, l, "%s %uch %uHz", pa_sample_format_to_string(spec->format), spec->channels, spec->rate);
+    else
+        snprintf(s, l, "%s %uch %uHz", pa_sample_format_to_string(spec->format), spec->channels, spec->rate);
+
+    return s;
 }
 
 pa_volume_t pa_volume_multiply(pa_volume_t a, pa_volume_t b) {
