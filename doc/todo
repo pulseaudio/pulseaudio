@@ -19,6 +19,7 @@
 - input latency
 - fix tcp/native
 - suid
+- add volume to create_stream command in native protocol
 
 ** later ***
 - xmlrpc/http

@@ -162,6 +162,7 @@ static void io_callback(struct pa_iochannel *io, void*userdata) {
 }
 
 static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
+    pa_usec_t r = 0;
     int arg;
     struct userdata *u = s->userdata;
     assert(s && u && u->sink);
@@ -172,7 +173,12 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
         return 0;
     }
 
-    return pa_bytes_to_usec(arg, &s->sample_spec);
+    r += pa_bytes_to_usec(arg, &s->sample_spec);
+
+    if (u->memchunk.memblock)
+        r += pa_bytes_to_usec(u->memchunk.length, &s->sample_spec);
+
+    return r;
 }
 
 int pa__init(struct pa_core *c, struct pa_module*m) {

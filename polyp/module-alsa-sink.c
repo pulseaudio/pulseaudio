@@ -144,6 +144,7 @@ static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd,
 }
 
 static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
+    pa_usec_t r = 0;
     struct userdata *u = s->userdata;
     snd_pcm_sframes_t frames;
     assert(s && u && u->sink);
@@ -157,7 +158,12 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
     if (frames < 0)
         frames = 0;
     
-    return pa_bytes_to_usec(frames * u->frame_size, &s->sample_spec);
+    r += pa_bytes_to_usec(frames * u->frame_size, &s->sample_spec);
+
+    if (u->memchunk.memblock)
+        r += pa_bytes_to_usec(u->memchunk.length, &s->sample_spec);
+
+    return r;
 }
 
 int pa__init(struct pa_core *c, struct pa_module*m) {

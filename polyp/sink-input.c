@@ -112,12 +112,16 @@ void pa_sink_input_kill(struct pa_sink_input*i) {
 }
 
 pa_usec_t pa_sink_input_get_latency(struct pa_sink_input *i) {
+    pa_usec_t r = 0;
     assert(i);
     
     if (i->get_latency)
-        return i->get_latency(i);
+        r += i->get_latency(i);
 
-    return 0;
+    if (i->resampled_chunk.memblock)
+        r += pa_bytes_to_usec(i->resampled_chunk.length, &i->sample_spec);
+
+    return r;
 }
 
 int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
