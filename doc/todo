@@ -5,6 +5,7 @@
 - fix tcp/native in regard to latencies
 - add client config file
 - remove autospawn stuff in conf.c
+- make resampler configurable
 
 *** 0.6 ****
 - per-channel volume

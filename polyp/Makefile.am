@@ -25,14 +25,14 @@ modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
 AM_CFLAGS+=-DDLSEARCHPATH=\"$(modlibdir)\"
 AM_CFLAGS+=-DDEFAULT_SCRIPT_FILE=\"$(polypconfdir)/default.pa\"
-AM_CFLAGS+=-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/default.conf\"
-AM_CFLAGS+=-DAUTOSPAWN_CONFIG_FILE=\"$(polypconfdir)/autospawn.conf\"
+AM_CFLAGS+=-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/daemon.conf\"
+AM_CFLAGS+=-DDEFAULT_CLIENT_CONFIG_FILE=\"$(polypconfdir)/client.conf\"
 AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 
 AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
-EXTRA_DIST = default.pa config depmod.py esdcompat.sh.in
+EXTRA_DIST = default.pa daemon.conf client.conf config depmod.py esdcompat.sh.in
 bin_PROGRAMS = polypaudio pacat pactl
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = \
@@ -42,7 +42,7 @@ noinst_PROGRAMS = \
 		cpulimit-test \
 		cpulimit-test2
 
-polypconf_DATA=default.pa config
+polypconf_DATA=default.pa daemon.conf client.conf
 
 BUILT_SOURCES=polyplib-version.h
 
@@ -158,7 +158,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		gcc-printf.h \
 		modinfo.c modinfo.h \
 		conf.c conf.h \
-		dumpmodules.c dumpmodules.h
+		dumpmodules.c dumpmodules.h \
+		conparser.h confparser.c 
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
@@ -332,7 +333,9 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		cdecl.h \
 		llist.h \
 		log.c log.h \
-		gcc-printf.h
+		gcc-printf.h \
+        config-client.c config-client.h \
+		confparser.c confparser.h
 
 libpolyp_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0

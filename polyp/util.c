@@ -390,6 +390,23 @@ char *pa_split(const char *c, const char *delimiter, const char**state) {
     return pa_xstrndup(current, l);
 }
 
+#define WHITESPACE " \t\n"
+
+char *pa_split_spaces(const char *c, const char **state) {
+    const char *current = *state ? *state : c;
+    size_t l;
+
+    if (*current)
+        return NULL;
+
+    current += strspn(current, WHITESPACE);
+    l = strcspn(current, WHITESPACE);
+
+    *state = current+l;
+
+    return pa_xstrndup(current, l);
+}
+
 const char *pa_strsignal(int sig) {
     switch(sig) {
         case SIGINT: return "SIGINT";

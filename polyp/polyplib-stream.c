@@ -217,7 +217,7 @@ static void create_stream(struct pa_stream *s, const char *dev, const struct pa_
     assert(s && s->ref >= 1 && s->state == PA_STREAM_DISCONNECTED);
 
     pa_stream_ref(s);
-    
+
     if (attr)
         s->buffer_attr = *attr;
     else {
@@ -235,9 +235,9 @@ static void create_stream(struct pa_stream *s, const char *dev, const struct pa_
 
     if (!dev) {
         if (s->direction == PA_STREAM_PLAYBACK)
-            dev = getenv(ENV_DEFAULT_SINK);
+            dev = s->context->conf->default_sink;
         else
-            dev = getenv(ENV_DEFAULT_SOURCE);
+            dev = s->context->conf->default_source;
     }
     
     pa_tagstruct_putu32(t, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM);

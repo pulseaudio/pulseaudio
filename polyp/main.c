@@ -119,10 +119,6 @@ int main(int argc, char *argv[]) {
     
     if (conf->dl_search_path)
         lt_dlsetsearchpath(conf->dl_search_path);
-#ifdef DLSEARCHPATH
-    else
-        lt_dlsetsearchpath(DLSEARCHPATH);
-#endif
 
     switch (conf->cmd) {
         case PA_CMD_DUMP_MODULES:
@@ -245,6 +241,8 @@ int main(int argc, char *argv[]) {
         c->disallow_module_loading = conf->disallow_module_loading;
         c->exit_idle_time = conf->exit_idle_time;
         c->module_idle_time = conf->module_idle_time;
+        c->scache_idle_time = conf->scache_idle_time;
+        c->resample_method = conf->resample_method;
         
         pa_log(__FILE__": Daemon startup complete.\n");
         if (pa_mainloop_run(mainloop, &retval) < 0)

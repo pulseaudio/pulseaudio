@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <signal.h>
+#include <samplerate.h>
 
 #include "core.h"
 #include "module.h"
@@ -79,6 +80,8 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->exit_idle_time = -1;
     c->module_idle_time = 20;
     c->scache_idle_time = 20;
+
+    c->resample_method = SRC_SINC_FASTEST;
     
     pa_check_signal_is_blocked(SIGPIPE);
     

@@ -45,7 +45,7 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
     }
 
     if (!pa_sample_spec_equal(&s->sample_spec, spec))
-        if (!(resampler = pa_resampler_new(&s->sample_spec, spec, s->core->memblock_stat)))
+        if (!(resampler = pa_resampler_new(&s->sample_spec, spec, s->core->memblock_stat, s->core->resample_method)))
             return NULL;
     
     o = pa_xmalloc(sizeof(struct pa_source_output));

@@ -47,7 +47,7 @@ struct pa_resampler {
     struct pa_memblock_stat *memblock_stat;
 };
 
-struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b, struct pa_memblock_stat *s) {
+struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b, struct pa_memblock_stat *s, int resample_method) {
     struct pa_resampler *r = NULL;
     int err;
     assert(a && b && pa_sample_spec_valid(a) && pa_sample_spec_valid(b));
@@ -67,7 +67,7 @@ struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const stru
     r->i_buf = r->o_buf = NULL;
     r->i_alloc = r->o_alloc = 0;
 
-    r->src_state = src_new(SRC_SINC_FASTEST, r->channels, &err);
+    r->src_state = src_new(resample_method, r->channels, &err);
     if (err != 0 || !r->src_state)
         goto fail;
 

@@ -47,6 +47,9 @@
 #include "util.h"
 #include "xmalloc.h"
 #include "log.h"
+#include "config-client.h"
+
+#define DEFAULT_SERVER "/tmp/polypaudio/native"
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = { pa_command_request },
@@ -87,6 +90,11 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->local = -1;
     
     pa_check_signal_is_blocked(SIGPIPE);
+
+    c->conf = pa_client_conf_new();
+    pa_client_conf_load(c->conf, NULL);
+    pa_client_conf_env(c->conf);
+    
     return c;
 }
 
@@ -114,6 +122,9 @@ static void context_free(struct pa_context *c) {
         pa_dynarray_free(c->playback_streams, NULL, NULL);
 
     pa_memblock_stat_unref(c->memblock_stat);
+
+    if (c->conf)
+        pa_client_conf_free(c->conf);
     
     pa_xfree(c->name);
     pa_xfree(c);
@@ -366,7 +377,7 @@ static struct sockaddr *resolve_server(const char *server, size_t *len) {
     return sa;
 }
 
-static int is_running(void) {
+static int default_server_is_running(void) {
     struct stat st;
     
     if (DEFAULT_SERVER[0] != '/')
@@ -404,24 +415,39 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
         
         goto fail;
     } else if (!pid) {
-        char t[128];
-        char *p;
         /* Child */
+        
+        char t[128];
+        const char *state = NULL;
+#define MAX_ARGS 64
+        char *argv[MAX_ARGS+1];
+        int n = 0;
 
         close(fds[0]);
         
         if (api && api->atfork)
             api->atfork();
 
-        if (!(p = getenv(ENV_DEFAULT_BINARY)))
-            p = POLYPAUDIO_BINARY;
-
         snprintf(t, sizeof(t), "%s=1", ENV_AUTOSPAWNED);
-        putenv(t); 
-        
+        putenv(t);
+
+        argv[n++] = c->conf->daemon_binary;
+
         snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
-        execl(p, p, "--daemonize=yes", "--log-target=syslog", t, NULL);
-        
+        argv[n++] = pa_xstrdup(t);
+
+        while (n < MAX_ARGS) {
+            char *a;
+
+            if (!(a = pa_split_spaces(c->conf->extra_arguments, &state)))
+                break;
+
+            argv[n++] = a;
+        }
+
+        argv[n++] = NULL;
+
+        execv(argv[0], argv);
         exit(1);
     } 
 
@@ -468,19 +494,12 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
     assert(c && c->ref >= 1 && c->state == PA_CONTEXT_UNCONNECTED);
 
     if (!server)
-        if (!(server = getenv(ENV_DEFAULT_SERVER))) {
-            if (spawn && !is_running()) {
-                char *b;
-                
-                if ((b = getenv(ENV_DISABLE_AUTOSPAWN)))
-                    if (pa_parse_boolean(b) > 1)
-                        return -1;
-                
-                return context_connect_spawn(c, api);
-            }
+        server = c->conf->default_server;
 
-            server = DEFAULT_SERVER;
-        }
+    if (!server && spawn && c->conf->autospawn && !default_server_is_running())
+        return context_connect_spawn(c, api);
+
+    server = DEFAULT_SERVER;
 
     pa_context_ref(c);
 

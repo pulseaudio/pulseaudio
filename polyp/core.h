@@ -53,6 +53,8 @@ struct pa_core {
     struct pa_time_event *quit_event;
 
     struct pa_time_event *scache_auto_unload_event;
+
+    int resample_method;
 };
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m);

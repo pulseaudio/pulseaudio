@@ -33,6 +33,7 @@
 #include "polyplib-operation.h"
 #include "llist.h"
 #include "native-common.h"
+#include "config-client.h"
 
 #define DEFAULT_TLENGTH (10240*8)
 #define DEFAULT_MAXLENGTH ((DEFAULT_TLENGTH*3)/2)
@@ -41,14 +42,8 @@
 #define DEFAULT_FRAGSIZE 1024
 
 #define DEFAULT_TIMEOUT (5*60)
-#define DEFAULT_SERVER "/tmp/polypaudio/native"
 #define DEFAULT_PORT "4713"
 
-#define ENV_DEFAULT_SINK "POLYP_SINK"
-#define ENV_DEFAULT_SOURCE "POLYP_SOURCE"
-#define ENV_DEFAULT_SERVER "POLYP_SERVER"
-#define ENV_DEFAULT_BINARY "POLYP_BINARY"
-#define ENV_DISABLE_AUTOSPAWN "POLYP_NOAUTOSPAWN"
 #define ENV_AUTOSPAWNED "POLYP_AUTOSPAWNED"
 
 struct pa_context {
@@ -80,6 +75,8 @@ struct pa_context {
     struct pa_memblock_stat *memblock_stat;
 
     int local;
+
+    struct pa_client_conf *conf;
 };
 
 struct pa_stream {

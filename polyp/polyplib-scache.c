@@ -88,7 +88,7 @@ struct pa_operation * pa_context_play_sample(struct pa_context *c, const char *n
     o->userdata = userdata;
 
     if (!dev)
-        dev = getenv(ENV_DEFAULT_SINK);
+        dev = c->conf->default_sink;
     
     t = pa_tagstruct_new(NULL, 0);
     assert(t);
