@@ -3,15 +3,15 @@
 
 #include "socket-server.h"
 
-struct protocol_simple;
+struct pa_protocol_simple;
 
-enum protocol_simple_mode {
-    PROTOCOL_SIMPLE_RECORD = 1,
-    PROTOCOL_SIMPLE_PLAYBACK = 2,
-    PROTOCOL_SIMPLE_DUPLEX = 3
+enum pa_protocol_simple_mode {
+    PA_PROTOCOL_SIMPLE_RECORD = 1,
+    PA_PROTOCOL_SIMPLE_PLAYBACK = 2,
+    PA_PROTOCOL_SIMPLE_DUPLEX = 3
 };
 
-struct protocol_simple* protocol_simple_new(struct core *core, struct socket_server *server, enum protocol_simple_mode mode);
-void protocol_simple_free(struct protocol_simple *n);
+struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct pa_socket_server *server, enum pa_protocol_simple_mode mode);
+void pa_protocol_simple_free(struct pa_protocol_simple *n);
 
 #endif

@@ -20,17 +20,36 @@ AM_CFLAGS=-ansi -D_GNU_SOURCE
 
 bin_PROGRAMS = polypaudio pacat
 
-pkglib_LTLIBRARIES=libiochannel.la libsocket-server.la libsocket-client.la \
-		libprotocol-simple.la module-simple-protocol-tcp.la \
-		module-pipe-sink.la libpstream.la \
-		libpacket.la module-oss.la module-oss-mmap.la liboss-util.la libioline.la \
-		libcli.la module-cli.la libtokenizer.la libdynarray.la \
-		module-simple-protocol-unix.la module-cli-protocol-tcp.la \
-		libprotocol-cli.la module-cli-protocol-unix.la libtagstruct.la \
-		libpdispatch.la libprotocol-native.la libpstream-util.la \
-		module-native-protocol-tcp.la module-native-protocol-unix.la \
-		libpolyp.la libprotocol-esound.la module-esound-protocol-unix.la \
-		module-esound-protocol-tcp.la
+pkglib_LTLIBRARIES=libiochannel.la \
+		libsocket-server.la \
+		libsocket-client.la \
+		libpstream.la \
+		libpacket.la \
+		liboss-util.la \
+		libioline.la \
+		libcli.la \
+		libtokenizer.la \
+		libdynarray.la \
+		libprotocol-cli.la \
+		libtagstruct.la \
+		libpstream-util.la \
+		libpdispatch.la \
+		libprotocol-simple.la \
+		libprotocol-esound.la \
+		libprotocol-native.la \
+		module-cli.la \
+		module-cli-protocol-tcp.la \
+		module-cli-protocol-unix.la \
+		module-pipe-sink.la \
+		module-oss.la \
+		module-oss-mmap.la \
+		module-simple-protocol-tcp.la \
+		module-simple-protocol-unix.la \
+		module-esound-protocol-tcp.la \
+		module-esound-protocol-unix.la \
+		module-native-protocol-tcp.la \
+		module-native-protocol-unix.la \
+		libpolyp.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
@@ -56,7 +75,9 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		sconv.c sconv.h \
 		resampler.c resampler.h \
 		endianmacros.h \
-		memchunk.c memchunk.h
+		memchunk.c memchunk.h \
+		sconv-s16le.c sconv-s16le.h \
+		sconv-s16be.c sconv-s16be.h
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(LIBLTDL) $(LIBSAMPLERATE_LIBS)

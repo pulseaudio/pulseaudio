@@ -9,18 +9,18 @@
 #include "mainloop-api.h"
 #include "memchunk.h"
 
-struct pstream;
+struct pa_pstream;
 
-struct pstream* pstream_new(struct pa_mainloop_api *m, struct iochannel *io);
-void pstream_free(struct pstream*p);
+struct pa_pstream* pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel *io);
+void pa_pstream_free(struct pa_pstream*p);
 
-void pstream_set_send_callback(struct pstream*p, void (*callback) (struct pstream *p, void *userdata), void *userdata);
-void pstream_send_packet(struct pstream*p, struct packet *packet);
-void pstream_send_memblock(struct pstream*p, uint32_t channel, int32_t delta, struct memchunk *chunk);
+void pa_pstream_set_send_callback(struct pa_pstream*p, void (*callback) (struct pa_pstream *p, void *userdata), void *userdata);
+void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet);
+void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk);
 
-void pstream_set_recieve_packet_callback(struct pstream *p, int (*callback) (struct pstream *p, struct packet *packet, void *userdata), void *userdata);
-void pstream_set_recieve_memblock_callback(struct pstream *p, int (*callback) (struct pstream *p, uint32_t channel, int32_t delta, struct memchunk *chunk, void *userdata), void *userdata);
+void pa_pstream_set_recieve_packet_callback(struct pa_pstream *p, int (*callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata), void *userdata);
+void pa_pstream_set_recieve_memblock_callback(struct pa_pstream *p, int (*callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata), void *userdata);
 
-void pstream_set_die_callback(struct pstream *p, void (*callback)(struct pstream *p, void *userdata), void *userdata);
+void pa_pstream_set_die_callback(struct pa_pstream *p, void (*callback)(struct pa_pstream *p, void *userdata), void *userdata);
 
 #endif

@@ -8,20 +8,20 @@ struct queue_entry {
     void *data;
 };
 
-struct queue {
+struct pa_queue {
     struct queue_entry *front, *back;
     unsigned length;
 };
 
-struct queue* queue_new(void) {
-    struct queue *q = malloc(sizeof(struct queue));
+struct pa_queue* pa_queue_new(void) {
+    struct pa_queue *q = malloc(sizeof(struct pa_queue));
     assert(q);
     q->front = q->back = NULL;
     q->length = 0;
     return q;
 }
 
-void queue_free(struct queue* q, void (*destroy)(void *p, void *userdata), void *userdata) {
+void pa_queue_free(struct pa_queue* q, void (*destroy)(void *p, void *userdata), void *userdata) {
     struct queue_entry *e;
     assert(q);
 
@@ -39,7 +39,7 @@ void queue_free(struct queue* q, void (*destroy)(void *p, void *userdata), void 
     free(q);
 }
 
-void queue_push(struct queue *q, void *p) {
+void pa_queue_push(struct pa_queue *q, void *p) {
     struct queue_entry *e;
 
     e = malloc(sizeof(struct queue_entry));
@@ -58,7 +58,7 @@ void queue_push(struct queue *q, void *p) {
     q->length++;
 }
 
-void* queue_pop(struct queue *q) {
+void* pa_queue_pop(struct pa_queue *q) {
     void *p;
     struct queue_entry *e;
     assert(q);
@@ -78,7 +78,7 @@ void* queue_pop(struct queue *q) {
     return p;
 }
 
-int queue_is_empty(struct queue *q) {
+int pa_queue_is_empty(struct pa_queue *q) {
     assert(q);
     return q->length == 0;
 }

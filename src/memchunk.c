@@ -5,34 +5,34 @@
 
 #include "memchunk.h"
 
-void memchunk_make_writable(struct memchunk *c) {
-    struct memblock *n;
+void pa_memchunk_make_writable(struct pa_memchunk *c) {
+    struct pa_memblock *n;
     assert(c && c->memblock && c->memblock->ref >= 1);
 
     if (c->memblock->ref == 1)
         return;
     
-    n = memblock_new(c->length);
+    n = pa_memblock_new(c->length);
     assert(n);
     memcpy(n->data, c->memblock->data+c->index, c->length);
-    memblock_unref(c->memblock);
+    pa_memblock_unref(c->memblock);
     c->memblock = n;
     c->index = 0;
 }
 
 
-struct mcalign {
+struct pa_mcalign {
     size_t base;
-    struct memchunk chunk;
+    struct pa_memchunk chunk;
     uint8_t *buffer;
     size_t buffer_fill;
 };
 
-struct mcalign *mcalign_new(size_t base) {
-    struct mcalign *m;
+struct pa_mcalign *pa_mcalign_new(size_t base) {
+    struct pa_mcalign *m;
     assert(base);
 
-    m = malloc(sizeof(struct mcalign));
+    m = malloc(sizeof(struct pa_mcalign));
     assert(m);
     m->base = base;
     m->chunk.memblock = NULL;
@@ -42,25 +42,25 @@ struct mcalign *mcalign_new(size_t base) {
     return m;
 }
 
-void mcalign_free(struct mcalign *m) {
+void pa_mcalign_free(struct pa_mcalign *m) {
     assert(m);
 
     free(m->buffer);
     
     if (m->chunk.memblock)
-        memblock_unref(m->chunk.memblock);
+        pa_memblock_unref(m->chunk.memblock);
     
     free(m);
 }
 
-void mcalign_push(struct mcalign *m, const struct memchunk *c) {
+void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c) {
     assert(m && c && !m->chunk.memblock && c->memblock && c->length);
 
     m->chunk = *c;
-    memblock_ref(m->chunk.memblock);
+    pa_memblock_ref(m->chunk.memblock);
 }
 
-int mcalign_pop(struct mcalign *m, struct memchunk *c) {
+int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c) {
     assert(m && c && m->base > m->buffer_fill);
     int ret;
 
@@ -80,13 +80,13 @@ int mcalign_pop(struct mcalign *m, struct memchunk *c) {
 
         if (m->chunk.length == 0) {
             m->chunk.length = m->chunk.index = 0;
-            memblock_unref(m->chunk.memblock);
+            pa_memblock_unref(m->chunk.memblock);
             m->chunk.memblock = NULL;
         }
 
         assert(m->buffer_fill <= m->base);
         if (m->buffer_fill == m->base) {
-            c->memblock = memblock_new_dynamic(m->buffer, m->base);
+            c->memblock = pa_memblock_new_dynamic(m->buffer, m->base);
             assert(c->memblock);
             c->index = 0;
             c->length = m->base;
@@ -111,13 +111,13 @@ int mcalign_pop(struct mcalign *m, struct memchunk *c) {
 
     if (m->chunk.length) {
         *c = m->chunk;
-        memblock_ref(c->memblock);
+        pa_memblock_ref(c->memblock);
         ret = 0;
     } else
         ret = -1;
     
     m->chunk.length = m->chunk.index = 0;
-    memblock_unref(m->chunk.memblock);
+    pa_memblock_unref(m->chunk.memblock);
     m->chunk.memblock = NULL;
 
     return ret;

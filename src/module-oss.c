@@ -18,12 +18,12 @@
 #include "sample-util.h"
 
 struct userdata {
-    struct sink *sink;
-    struct source *source;
-    struct iochannel *io;
-    struct core *core;
+    struct pa_sink *sink;
+    struct pa_source *source;
+    struct pa_iochannel *io;
+    struct pa_core *core;
 
-    struct memchunk memchunk, silence;
+    struct pa_memchunk memchunk, silence;
 
     uint32_t in_fragment_size, out_fragment_size, sample_size;
 
@@ -31,15 +31,15 @@ struct userdata {
 };
 
 static void do_write(struct userdata *u) {
-    struct memchunk *memchunk;
+    struct pa_memchunk *memchunk;
     ssize_t r;
     assert(u);
 
-    if (!u->sink || !iochannel_is_writable(u->io))
+    if (!u->sink || !pa_iochannel_is_writable(u->io))
         return;
 
     if (!u->memchunk.length) {
-        if (sink_render(u->sink, u->out_fragment_size, &u->memchunk) < 0)
+        if (pa_sink_render(u->sink, u->out_fragment_size, &u->memchunk) < 0)
             memchunk = &u->silence;
         else
             memchunk = &u->memchunk;
@@ -47,7 +47,7 @@ static void do_write(struct userdata *u) {
 
     assert(memchunk->memblock && memchunk->length);
     
-    if ((r = iochannel_write(u->io, memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
+    if ((r = pa_iochannel_write(u->io, memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
         fprintf(stderr, "write() failed: %s\n", strerror(errno));
         return;
     }
@@ -59,24 +59,24 @@ static void do_write(struct userdata *u) {
         u->memchunk.length -= r;
         
         if (u->memchunk.length <= 0) {
-            memblock_unref(u->memchunk.memblock);
+            pa_memblock_unref(u->memchunk.memblock);
             u->memchunk.memblock = NULL;
         }
     }
 }
 
 static void do_read(struct userdata *u) {
-    struct memchunk memchunk;
+    struct pa_memchunk memchunk;
     ssize_t r;
     assert(u);
     
-    if (!u->source || !iochannel_is_readable(u->io))
+    if (!u->source || !pa_iochannel_is_readable(u->io))
         return;
 
-    memchunk.memblock = memblock_new(u->in_fragment_size);
+    memchunk.memblock = pa_memblock_new(u->in_fragment_size);
     assert(memchunk.memblock);
-    if ((r = iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
-        memblock_unref(memchunk.memblock);
+    if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
+        pa_memblock_unref(memchunk.memblock);
         fprintf(stderr, "read() failed: %s\n", strerror(errno));
         return;
     }
@@ -85,18 +85,18 @@ static void do_read(struct userdata *u) {
     memchunk.length = memchunk.memblock->length = r;
     memchunk.index = 0;
 
-    source_post(u->source, &memchunk);
-    memblock_unref(memchunk.memblock);
+    pa_source_post(u->source, &memchunk);
+    pa_memblock_unref(memchunk.memblock);
 };
 
-static void io_callback(struct iochannel *io, void*userdata) {
+static void io_callback(struct pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_write(u);
     do_read(u);
 }
 
-static uint32_t sink_get_latency_cb(struct sink *s) {
+static uint32_t sink_get_latency_cb(struct pa_sink *s) {
     int arg;
     struct userdata *u = s->userdata;
     assert(s && u && u->sink);
@@ -110,7 +110,7 @@ static uint32_t sink_get_latency_cb(struct sink *s) {
     return pa_samples_usec(arg, &s->sample_spec);
 }
 
-int module_init(struct core *c, struct module*m) {
+int module_init(struct pa_core *c, struct pa_module*m) {
     struct audio_buf_info info;
     struct userdata *u = NULL;
     char *p;
@@ -154,7 +154,7 @@ int module_init(struct core *c, struct module*m) {
         goto fail;
     }
 
-    if (oss_auto_format(fd, &ss) < 0)
+    if (pa_oss_auto_format(fd, &ss) < 0)
         goto fail;
 
     if (ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &frag_size) < 0) {
@@ -180,7 +180,7 @@ int module_init(struct core *c, struct module*m) {
     u->core = c;
 
     if (mode != O_RDONLY) {
-        u->sink = sink_new(c, "dsp", 0, &ss);
+        u->sink = pa_sink_new(c, "dsp", 0, &ss);
         assert(u->sink);
         u->sink->get_latency = sink_get_latency_cb;
         u->sink->userdata = u;
@@ -188,7 +188,7 @@ int module_init(struct core *c, struct module*m) {
         u->sink = NULL;
 
     if (mode != O_WRONLY) {
-        u->source = source_new(c, "dsp", 0, &ss);
+        u->source = pa_source_new(c, "dsp", 0, &ss);
         assert(u->source);
         u->source->userdata = u;
     } else
@@ -196,9 +196,9 @@ int module_init(struct core *c, struct module*m) {
 
     assert(u->source || u->sink);
 
-    u->io = iochannel_new(c->mainloop, u->source ? fd : -1, u->sink ? fd : 0);
+    u->io = pa_iochannel_new(c->mainloop, u->source ? fd : -1, u->sink ? fd : 0);
     assert(u->io);
-    iochannel_set_callback(u->io, io_callback, u);
+    pa_iochannel_set_callback(u->io, io_callback, u);
     u->fd = fd;
 
     u->memchunk.memblock = NULL;
@@ -207,9 +207,9 @@ int module_init(struct core *c, struct module*m) {
 
     u->out_fragment_size = out_frag_size;
     u->in_fragment_size = in_frag_size;
-    u->silence.memblock = memblock_new(u->silence.length = u->out_fragment_size);
+    u->silence.memblock = pa_memblock_new(u->silence.length = u->out_fragment_size);
     assert(u->silence.memblock);
-    silence_memblock(u->silence.memblock, &ss);
+    pa_silence_memblock(u->silence.memblock, &ss);
     u->silence.index = 0;
     
     m->userdata = u;
@@ -223,7 +223,7 @@ fail:
     return -1;
 }
 
-void module_done(struct core *c, struct module*m) {
+void module_done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 
@@ -231,14 +231,14 @@ void module_done(struct core *c, struct module*m) {
     assert(u);
     
     if (u->memchunk.memblock)
-        memblock_unref(u->memchunk.memblock);
+        pa_memblock_unref(u->memchunk.memblock);
     if (u->silence.memblock)
-        memblock_unref(u->silence.memblock);
+        pa_memblock_unref(u->silence.memblock);
 
     if (u->sink)
-        sink_free(u->sink);
+        pa_sink_free(u->sink);
     if (u->source)
-        source_free(u->source);
-    iochannel_free(u->io);
+        pa_source_free(u->source);
+    pa_iochannel_free(u->io);
     free(u);
 }

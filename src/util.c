@@ -12,7 +12,7 @@
 
 #include "util.h"
 
-void make_nonblock_fd(int fd) {
+void pa_make_nonblock_fd(int fd) {
     int v;
 
     if ((v = fcntl(fd, F_GETFL)) >= 0)
@@ -20,7 +20,7 @@ void make_nonblock_fd(int fd) {
             fcntl(fd, F_SETFL, v|O_NONBLOCK);
 }
 
-void peer_to_string(char *c, size_t l, int fd) {
+void pa_peer_to_string(char *c, size_t l, int fd) {
     struct stat st;
 
     assert(c && l && fd >= 0);
@@ -66,7 +66,7 @@ void peer_to_string(char *c, size_t l, int fd) {
     snprintf(c, l, "Unknown client");
 }
 
-int make_secure_dir(const char* dir) {
+int pa_make_secure_dir(const char* dir) {
     struct stat st;
 
     if (mkdir(dir, 0700) < 0) 
@@ -86,7 +86,7 @@ fail:
     return -1;
 }
 
-int make_socket_low_delay(int fd) {
+int pa_make_socket_low_delay(int fd) {
     int ret = 0, buf_size, priority;
 
     assert(fd >= 0);
@@ -106,12 +106,12 @@ int make_socket_low_delay(int fd) {
     return ret;
 }
 
-int make_tcp_socket_low_delay(int fd) {
+int pa_make_tcp_socket_low_delay(int fd) {
     int ret, tos, on;
     
     assert(fd >= 0);
 
-    ret = make_socket_low_delay(fd);
+    ret = pa_make_socket_low_delay(fd);
     
     on = 1;
     if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)

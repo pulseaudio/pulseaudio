@@ -14,52 +14,52 @@
 #include "pstream-util.h"
 
 struct connection;
-struct protocol_native;
+struct pa_protocol_native;
 
 struct record_stream {
     struct connection *connection;
     uint32_t index;
-    struct source_output *source_output;
-    struct memblockq *memblockq;
+    struct pa_source_output *source_output;
+    struct pa_memblockq *memblockq;
 };
 
 struct playback_stream {
     struct connection *connection;
     uint32_t index;
     size_t qlength;
-    struct sink_input *sink_input;
-    struct memblockq *memblockq;
+    struct pa_sink_input *sink_input;
+    struct pa_memblockq *memblockq;
     size_t requested_bytes;
 };
 
 struct connection {
     int authorized;
-    struct protocol_native *protocol;
-    struct client *client;
-    struct pstream *pstream;
-    struct pdispatch *pdispatch;
-    struct idxset *record_streams, *playback_streams;
+    struct pa_protocol_native *protocol;
+    struct pa_client *client;
+    struct pa_pstream *pstream;
+    struct pa_pdispatch *pdispatch;
+    struct pa_idxset *record_streams, *playback_streams;
 };
 
-struct protocol_native {
+struct pa_protocol_native {
     int public;
-    struct core *core;
-    struct socket_server *server;
-    struct idxset *connections;
+    struct pa_core *core;
+    struct pa_socket_server *server;
+    struct pa_idxset *connections;
 };
 
-static int sink_input_peek_cb(struct sink_input *i, struct memchunk *chunk);
-static void sink_input_drop_cb(struct sink_input *i, size_t length);
-static void sink_input_kill_cb(struct sink_input *i);
-static uint32_t sink_input_get_latency_cb(struct sink_input *i);
+static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk);
+static void sink_input_drop_cb(struct pa_sink_input *i, size_t length);
+static void sink_input_kill_cb(struct pa_sink_input *i);
+static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i);
 
 static void request_bytes(struct playback_stream*s);
 
-static int command_exit(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata);
-static int command_create_playback_stream(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata);
-static int command_delete_playback_stream(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata);
+static int command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static int command_create_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static int command_delete_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
-static const struct pdispatch_command command_table[PA_COMMAND_MAX] = {
+static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
     [PA_COMMAND_REPLY] = { NULL },
     [PA_COMMAND_CREATE_PLAYBACK_STREAM] = { command_create_playback_stream },
@@ -74,13 +74,13 @@ static const struct pdispatch_command command_table[PA_COMMAND_MAX] = {
 static void record_stream_free(struct record_stream* r) {
     assert(r && r->connection);
 
-    idxset_remove_by_data(r->connection->record_streams, r, NULL);
-    source_output_free(r->source_output);
-    memblockq_free(r->memblockq);
+    pa_idxset_remove_by_data(r->connection->record_streams, r, NULL);
+    pa_source_output_free(r->source_output);
+    pa_memblockq_free(r->memblockq);
     free(r);
 }
 
-static struct playback_stream* playback_stream_new(struct connection *c, struct sink *sink, struct pa_sample_spec *ss, const char *name, size_t qlen, size_t maxlength, size_t prebuf) {
+static struct playback_stream* playback_stream_new(struct connection *c, struct pa_sink *sink, struct pa_sample_spec *ss, const char *name, size_t qlen, size_t maxlength, size_t prebuf) {
     struct playback_stream *s;
     assert(c && sink && ss && name && qlen && maxlength && prebuf);
 
@@ -89,7 +89,7 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     s->connection = c;
     s->qlength = qlen;
     
-    s->sink_input = sink_input_new(sink, name, ss);
+    s->sink_input = pa_sink_input_new(sink, name, ss);
     assert(s->sink_input);
     s->sink_input->peek = sink_input_peek_cb;
     s->sink_input->drop = sink_input_drop_cb;
@@ -97,21 +97,21 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     s->sink_input->get_latency = sink_input_get_latency_cb;
     s->sink_input->userdata = s;
     
-    s->memblockq = memblockq_new(maxlength, pa_sample_size(ss), prebuf);
+    s->memblockq = pa_memblockq_new(maxlength, pa_sample_size(ss), prebuf);
     assert(s->memblockq);
 
     s->requested_bytes = 0;
     
-    idxset_put(c->playback_streams, s, &s->index);
+    pa_idxset_put(c->playback_streams, s, &s->index);
     return s;
 }
 
 static void playback_stream_free(struct playback_stream* p) {
     assert(p && p->connection);
 
-    idxset_remove_by_data(p->connection->playback_streams, p, NULL);
-    sink_input_free(p->sink_input);
-    memblockq_free(p->memblockq);
+    pa_idxset_remove_by_data(p->connection->playback_streams, p, NULL);
+    pa_sink_input_free(p->sink_input);
+    pa_memblockq_free(p->memblockq);
     free(p);
 }
 
@@ -120,27 +120,27 @@ static void connection_free(struct connection *c) {
     struct playback_stream *p;
     assert(c && c->protocol);
 
-    idxset_remove_by_data(c->protocol->connections, c, NULL);
-    while ((r = idxset_first(c->record_streams, NULL)))
+    pa_idxset_remove_by_data(c->protocol->connections, c, NULL);
+    while ((r = pa_idxset_first(c->record_streams, NULL)))
         record_stream_free(r);
-    idxset_free(c->record_streams, NULL, NULL);
+    pa_idxset_free(c->record_streams, NULL, NULL);
 
-    while ((p = idxset_first(c->playback_streams, NULL)))
+    while ((p = pa_idxset_first(c->playback_streams, NULL)))
         playback_stream_free(p);
-    idxset_free(c->playback_streams, NULL, NULL);
+    pa_idxset_free(c->playback_streams, NULL, NULL);
 
-    pdispatch_free(c->pdispatch);
-    pstream_free(c->pstream);
-    client_free(c->client);
+    pa_pdispatch_free(c->pdispatch);
+    pa_pstream_free(c->pstream);
+    pa_client_free(c->client);
     free(c);
 }
 
 static void request_bytes(struct playback_stream *s) {
-    struct tagstruct *t;
+    struct pa_tagstruct *t;
     size_t l;
     assert(s);
 
-    if (!(l = memblockq_missing_to(s->memblockq, s->qlength)))
+    if (!(l = pa_memblockq_missing_to(s->memblockq, s->qlength)))
         return;
 
     if (l <= s->requested_bytes)
@@ -149,40 +149,40 @@ static void request_bytes(struct playback_stream *s) {
     l -= s->requested_bytes;
     s->requested_bytes += l;
 
-    t = tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new(NULL, 0);
     assert(t);
-    tagstruct_putu32(t, PA_COMMAND_REQUEST);
-    tagstruct_putu32(t, (uint32_t) -1); /* tag */
-    tagstruct_putu32(t, s->index);
-    tagstruct_putu32(t, l);
-    pstream_send_tagstruct(s->connection->pstream, t);
+    pa_tagstruct_putu32(t, PA_COMMAND_REQUEST);
+    pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+    pa_tagstruct_putu32(t, s->index);
+    pa_tagstruct_putu32(t, l);
+    pa_pstream_send_tagstruct(s->connection->pstream, t);
 
 /*    fprintf(stderr, "Requesting %u bytes\n", l);*/
 }
 
 /*** sinkinput callbacks ***/
 
-static int sink_input_peek_cb(struct sink_input *i, struct memchunk *chunk) {
+static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     struct playback_stream *s;
     assert(i && i->userdata && chunk);
     s = i->userdata;
 
-    if (memblockq_peek(s->memblockq, chunk) < 0)
+    if (pa_memblockq_peek(s->memblockq, chunk) < 0)
         return -1;
 
     return 0;
 }
 
-static void sink_input_drop_cb(struct sink_input *i, size_t length) {
+static void sink_input_drop_cb(struct pa_sink_input *i, size_t length) {
     struct playback_stream *s;
     assert(i && i->userdata && length);
     s = i->userdata;
 
-    memblockq_drop(s->memblockq, length);
+    pa_memblockq_drop(s->memblockq, length);
     request_bytes(s);
 }
 
-static void sink_input_kill_cb(struct sink_input *i) {
+static void sink_input_kill_cb(struct pa_sink_input *i) {
     struct playback_stream *s;
     assert(i && i->userdata);
     s = i->userdata;
@@ -190,117 +190,117 @@ static void sink_input_kill_cb(struct sink_input *i) {
     playback_stream_free(s);
 }
 
-static uint32_t sink_input_get_latency_cb(struct sink_input *i) {
+static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i) {
     struct playback_stream *s;
     assert(i && i->userdata);
     s = i->userdata;
 
-    return pa_samples_usec(memblockq_get_length(s->memblockq), &s->sink_input->sample_spec);
+    return pa_samples_usec(pa_memblockq_get_length(s->memblockq), &s->sink_input->sample_spec);
 }
 
 /*** pdispatch callbacks ***/
 
-static int command_create_playback_stream(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata) {
+static int command_create_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     struct playback_stream *s;
     size_t maxlength, prebuf, qlength;
     uint32_t sink_index;
     const char *name;
     struct pa_sample_spec ss;
-    struct tagstruct *reply;
-    struct sink *sink;
+    struct pa_tagstruct *reply;
+    struct pa_sink *sink;
     assert(c && t && c->protocol && c->protocol->core);
     
-    if (tagstruct_gets(t, &name) < 0 ||
-        tagstruct_get_sample_spec(t, &ss) < 0 ||
-        tagstruct_getu32(t, &sink_index) < 0 ||
-        tagstruct_getu32(t, &qlength) < 0 ||
-        tagstruct_getu32(t, &maxlength) < 0 ||
-        tagstruct_getu32(t, &prebuf) < 0 ||
-        !tagstruct_eof(t))
+    if (pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
+        pa_tagstruct_getu32(t, &sink_index) < 0 ||
+        pa_tagstruct_getu32(t, &qlength) < 0 ||
+        pa_tagstruct_getu32(t, &maxlength) < 0 ||
+        pa_tagstruct_getu32(t, &prebuf) < 0 ||
+        !pa_tagstruct_eof(t))
         return -1;
 
     if (!c->authorized) {
-        pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
         return 0;
     }
 
     if (sink_index == (uint32_t) -1)
-        sink = sink_get_default(c->protocol->core);
+        sink = pa_sink_get_default(c->protocol->core);
     else
-        sink = idxset_get_by_index(c->protocol->core->sinks, sink_index);
+        sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
 
     if (!sink) {
-        pstream_send_error(c->pstream, tag, PA_ERROR_EXIST);
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_EXIST);
         return 0;
     }
     
     if (!(s = playback_stream_new(c, sink, &ss, name, qlength, maxlength, prebuf))) {
-        pstream_send_error(c->pstream, tag, PA_ERROR_INVALID);
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_INVALID);
         return 0;
     }
     
-    reply = tagstruct_new(NULL, 0);
+    reply = pa_tagstruct_new(NULL, 0);
     assert(reply);
-    tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    tagstruct_putu32(reply, tag);
-    tagstruct_putu32(reply, s->index);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+    pa_tagstruct_putu32(reply, s->index);
     assert(s->sink_input);
-    tagstruct_putu32(reply, s->sink_input->index);
-    pstream_send_tagstruct(c->pstream, reply);
+    pa_tagstruct_putu32(reply, s->sink_input->index);
+    pa_pstream_send_tagstruct(c->pstream, reply);
     request_bytes(s);
     return 0;
 }
 
-static int command_delete_playback_stream(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata) {
+static int command_delete_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     uint32_t channel;
     struct playback_stream *s;
     assert(c && t);
     
-    if (tagstruct_getu32(t, &channel) < 0 ||
-        !tagstruct_eof(t))
+    if (pa_tagstruct_getu32(t, &channel) < 0 ||
+        !pa_tagstruct_eof(t))
         return -1;
 
     if (!c->authorized) {
-        pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
         return 0;
     }
     
-    if (!(s = idxset_get_by_index(c->playback_streams, channel))) {
-        pstream_send_error(c->pstream, tag, PA_ERROR_EXIST);
+    if (!(s = pa_idxset_get_by_index(c->playback_streams, channel))) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_EXIST);
         return 0;
     }
 
-    pstream_send_simple_ack(c->pstream, tag);
+    pa_pstream_send_simple_ack(c->pstream, tag);
     return 0;
 }
 
-static int command_exit(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata) {
+static int command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     assert(c && t);
     
-    if (!tagstruct_eof(t))
+    if (!pa_tagstruct_eof(t))
         return -1;
 
     if (!c->authorized) {
-        pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
         return 0;
     }
     
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop);
     c->protocol->core->mainloop->quit(c->protocol->core->mainloop, 0);
-    pstream_send_simple_ack(c->pstream, tag); /* nonsense */
+    pa_pstream_send_simple_ack(c->pstream, tag); /* nonsense */
     return 0;
 }
 
 /*** pstream callbacks ***/
 
-static int packet_callback(struct pstream *p, struct packet *packet, void *userdata) {
+static int packet_callback(struct pa_pstream *p, struct pa_packet *packet, void *userdata) {
     struct connection *c = userdata;
     assert(p && packet && packet->data && c);
 
-    if (pdispatch_run(c->pdispatch, packet, c) < 0) {
+    if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
         fprintf(stderr, "protocol-native: invalid packet.\n");
         return -1;
     }
@@ -308,12 +308,12 @@ static int packet_callback(struct pstream *p, struct packet *packet, void *userd
     return 0;
 }
 
-static int memblock_callback(struct pstream *p, uint32_t channel, int32_t delta, struct memchunk *chunk, void *userdata) {
+static int memblock_callback(struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata) {
     struct connection *c = userdata;
     struct playback_stream *stream;
     assert(p && chunk && userdata);
 
-    if (!(stream = idxset_get_by_index(c->playback_streams, channel))) {
+    if (!(stream = pa_idxset_get_by_index(c->playback_streams, channel))) {
         fprintf(stderr, "protocol-native: client sent block for invalid stream.\n");
         return -1;
     }
@@ -323,16 +323,16 @@ static int memblock_callback(struct pstream *p, uint32_t channel, int32_t delta,
     else
         stream->requested_bytes -= chunk->length;
     
-    memblockq_push_align(stream->memblockq, chunk, delta);
+    pa_memblockq_push_align(stream->memblockq, chunk, delta);
     assert(stream->sink_input);
-    sink_notify(stream->sink_input->sink);
+    pa_sink_notify(stream->sink_input->sink);
 
     /*fprintf(stderr, "Recieved %u bytes.\n", chunk->length);*/
 
     return 0;
 }
 
-static void die_callback(struct pstream *p, void *userdata) {
+static void die_callback(struct pa_pstream *p, void *userdata) {
     struct connection *c = userdata;
     assert(p && c);
     connection_free(c);
@@ -342,8 +342,8 @@ static void die_callback(struct pstream *p, void *userdata) {
 
 /*** socket server callbacks ***/
 
-static void on_connection(struct socket_server*s, struct iochannel *io, void *userdata) {
-    struct protocol_native *p = userdata;
+static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata) {
+    struct pa_protocol_native *p = userdata;
     struct connection *c;
     assert(s && io && p);
 
@@ -352,52 +352,52 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
     c->authorized = p->public;
     c->protocol = p;
     assert(p->core);
-    c->client = client_new(p->core, "NATIVE", "Client");
+    c->client = pa_client_new(p->core, "NATIVE", "Client");
     assert(c->client);
-    c->pstream = pstream_new(p->core->mainloop, io);
+    c->pstream = pa_pstream_new(p->core->mainloop, io);
     assert(c->pstream);
 
-    pstream_set_recieve_packet_callback(c->pstream, packet_callback, c);
-    pstream_set_recieve_memblock_callback(c->pstream, memblock_callback, c);
-    pstream_set_die_callback(c->pstream, die_callback, c);
+    pa_pstream_set_recieve_packet_callback(c->pstream, packet_callback, c);
+    pa_pstream_set_recieve_memblock_callback(c->pstream, memblock_callback, c);
+    pa_pstream_set_die_callback(c->pstream, die_callback, c);
 
-    c->pdispatch = pdispatch_new(p->core->mainloop, command_table, PA_COMMAND_MAX);
+    c->pdispatch = pa_pdispatch_new(p->core->mainloop, command_table, PA_COMMAND_MAX);
     assert(c->pdispatch);
 
-    c->record_streams = idxset_new(NULL, NULL);
-    c->playback_streams = idxset_new(NULL, NULL);
+    c->record_streams = pa_idxset_new(NULL, NULL);
+    c->playback_streams = pa_idxset_new(NULL, NULL);
     assert(c->record_streams && c->playback_streams);
 
-    idxset_put(p->connections, c, NULL);
+    pa_idxset_put(p->connections, c, NULL);
 }
 
 /*** module entry points ***/
 
-struct protocol_native* protocol_native_new(struct core *core, struct socket_server *server) {
-    struct protocol_native *p;
+struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct pa_socket_server *server) {
+    struct pa_protocol_native *p;
     assert(core && server);
 
-    p = malloc(sizeof(struct protocol_native));
+    p = malloc(sizeof(struct pa_protocol_native));
     assert(p);
 
     p->public = 1;
     p->server = server;
     p->core = core;
-    p->connections = idxset_new(NULL, NULL);
+    p->connections = pa_idxset_new(NULL, NULL);
     assert(p->connections);
 
-    socket_server_set_callback(p->server, on_connection, p);
+    pa_socket_server_set_callback(p->server, on_connection, p);
     
     return p;
 }
 
-void protocol_native_free(struct protocol_native *p) {
+void pa_protocol_native_free(struct pa_protocol_native *p) {
     struct connection *c;
     assert(p);
 
-    while ((c = idxset_first(p->connections, NULL)))
+    while ((c = pa_idxset_first(p->connections, NULL)))
         connection_free(c);
-    idxset_free(p->connections, NULL, NULL);
-    socket_server_free(p->server);
+    pa_idxset_free(p->connections, NULL, NULL);
+    pa_socket_server_free(p->server);
     free(p);
 }

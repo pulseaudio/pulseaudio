@@ -11,20 +11,20 @@
 #include "socket-client.h"
 #include "util.h"
 
-struct socket_client {
+struct pa_socket_client {
     struct pa_mainloop_api *mainloop;
     int fd;
 
     void *io_source, *fixed_source;
-    void (*callback)(struct socket_client*c, struct iochannel *io, void *userdata);
+    void (*callback)(struct pa_socket_client*c, struct pa_iochannel *io, void *userdata);
     void *userdata;
 };
 
-static struct socket_client*socket_client_new(struct pa_mainloop_api *m) {
-    struct socket_client *c;
+static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
+    struct pa_socket_client *c;
     assert(m);
 
-    c = malloc(sizeof(struct socket_client));
+    c = malloc(sizeof(struct pa_socket_client));
     assert(c);
     c->mainloop = m;
     c->fd = -1;
@@ -34,8 +34,8 @@ static struct socket_client*socket_client_new(struct pa_mainloop_api *m) {
     return c;
 }
 
-static void do_call(struct socket_client *c) {
-    struct iochannel *io;
+static void do_call(struct pa_socket_client *c) {
+    struct pa_iochannel *io;
     int error, lerror;
     assert(c && c->callback);
 
@@ -55,7 +55,7 @@ static void do_call(struct socket_client *c) {
         goto failed;
     }
         
-    io = iochannel_new(c->mainloop, c->fd, c->fd);
+    io = pa_iochannel_new(c->mainloop, c->fd, c->fd);
     assert(io);
     c->fd = -1;
     c->callback(c, io, c->userdata);
@@ -70,7 +70,7 @@ failed:
 }
 
 static void connect_fixed_cb(struct pa_mainloop_api *m, void *id, void *userdata) {
-    struct socket_client *c = userdata;
+    struct pa_socket_client *c = userdata;
     assert(m && c && c->fixed_source == id);
     m->cancel_fixed(m, c->fixed_source);
     c->fixed_source = NULL;
@@ -78,18 +78,18 @@ static void connect_fixed_cb(struct pa_mainloop_api *m, void *id, void *userdata
 }
 
 static void connect_io_cb(struct pa_mainloop_api*m, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
-    struct socket_client *c = userdata;
+    struct pa_socket_client *c = userdata;
     assert(m && c && c->io_source == id && fd >= 0 && events == PA_MAINLOOP_API_IO_EVENT_OUTPUT);
     m->cancel_io(m, c->io_source);
     c->io_source = NULL;
     do_call(c);
 }
 
-static int do_connect(struct socket_client *c, const struct sockaddr *sa, socklen_t len) {
+static int do_connect(struct pa_socket_client *c, const struct sockaddr *sa, socklen_t len) {
     int r;
     assert(c && sa && len);
     
-    make_nonblock_fd(c->fd);
+    pa_make_nonblock_fd(c->fd);
     
     if ((r = connect(c->fd, sa, len)) < 0) {
         if (r != EINPROGRESS) {
@@ -107,12 +107,12 @@ static int do_connect(struct socket_client *c, const struct sockaddr *sa, sockle
     return 0;
 }
 
-struct socket_client* socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port) {
-    struct socket_client *c;
+struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port) {
+    struct pa_socket_client *c;
     struct sockaddr_in sa;
     assert(m && address && port);
 
-    c = socket_client_new(m);
+    c = pa_socket_client_new(m);
     assert(c);
 
     if ((c->fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -120,7 +120,7 @@ struct socket_client* socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t
         goto fail;
     }
 
-    make_tcp_socket_low_delay(c->fd);
+    pa_make_tcp_socket_low_delay(c->fd);
 
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
@@ -132,16 +132,16 @@ struct socket_client* socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t
     return c;
 
 fail:
-    socket_client_free(c);
+    pa_socket_client_free(c);
     return NULL;
 }
 
-struct socket_client* socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
-    struct socket_client *c;
+struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
+    struct pa_socket_client *c;
     struct sockaddr_un sa;
     assert(m && filename);
     
-    c = socket_client_new(m);
+    c = pa_socket_client_new(m);
     assert(c);
 
     if ((c->fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
@@ -149,7 +149,7 @@ struct socket_client* socket_client_new_unix(struct pa_mainloop_api *m, const ch
         goto fail;
     }
 
-    make_socket_low_delay(c->fd);
+    pa_make_socket_low_delay(c->fd);
 
     sa.sun_family = AF_LOCAL;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
@@ -161,11 +161,11 @@ struct socket_client* socket_client_new_unix(struct pa_mainloop_api *m, const ch
     return c;
 
 fail:
-    socket_client_free(c);
+    pa_socket_client_free(c);
     return NULL;
 }
     
-void socket_client_free(struct socket_client *c) {
+void pa_socket_client_free(struct pa_socket_client *c) {
     assert(c && c->mainloop);
     if (c->io_source)
         c->mainloop->cancel_io(c->mainloop, c->io_source);
@@ -176,7 +176,7 @@ void socket_client_free(struct socket_client *c) {
     free(c);
 }
 
-void socket_client_set_callback(struct socket_client *c, void (*on_connection)(struct socket_client *c, struct iochannel*io, void *userdata), void *userdata) {
+void pa_socket_client_set_callback(struct pa_socket_client *c, void (*on_connection)(struct pa_socket_client *c, struct pa_iochannel*io, void *userdata), void *userdata) {
     assert(c);
     c->callback = on_connection;
     c->userdata = userdata;

@@ -3,15 +3,15 @@
 
 #include "core.h"
 
-enum namereg_type {
-    NAMEREG_SINK,
-    NAMEREG_SOURCE
+enum pa_namereg_type {
+    PA_NAMEREG_SINK,
+    PA_NAMEREG_SOURCE
 };
 
-void namereg_free(struct core *c);
+void pa_namereg_free(struct pa_core *c);
 
-const char *namereg_register(struct core *c, const char *name, enum namereg_type type, void *data, int fail);
-void namereg_unregister(struct core *c, const char *name);
-void* namereg_get(struct core *c, const char *name, enum namereg_type type);
+const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_namereg_type type, void *data, int fail);
+void pa_namereg_unregister(struct pa_core *c, const char *name);
+void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type type);
 
 #endif

@@ -19,9 +19,9 @@
 #include "sample-util.h"
 
 struct userdata {
-    struct sink *sink;
-    struct source *source;
-    struct core *core;
+    struct pa_sink *sink;
+    struct pa_source *source;
+    struct pa_core *core;
     struct pa_sample_spec sample_spec;
 
     size_t in_fragment_size, out_fragment_size, in_fragments, out_fragments, out_fill;
@@ -31,13 +31,13 @@ struct userdata {
     void *in_mmap, *out_mmap;
     size_t in_mmap_length, out_mmap_length;
 
-    struct mainloop_source *mainloop_source;
+    void *mainloop_source;
 
-    struct memblock **in_memblocks, **out_memblocks;
+    struct pa_memblock **in_memblocks, **out_memblocks;
     unsigned out_current, in_current;
 };
 
-void module_done(struct core *c, struct module*m);
+void module_done(struct pa_core *c, struct pa_module*m);
 
 static void out_clear_memblocks(struct userdata*u, unsigned n) {
     unsigned i = u->out_current;
@@ -48,7 +48,7 @@ static void out_clear_memblocks(struct userdata*u, unsigned n) {
     
     while (n > 0) {
         if (u->out_memblocks[i]) {
-            memblock_unref_fixed(u->out_memblocks[i]);
+            pa_memblock_unref_fixed(u->out_memblocks[i]);
             u->out_memblocks[i] = NULL;
         }
 
@@ -64,15 +64,15 @@ static void out_fill_memblocks(struct userdata *u, unsigned n) {
     assert(u && u->out_memblocks);
     
     while (n > 0) {
-        struct memchunk chunk;
+        struct pa_memchunk chunk;
         
         if (!u->out_memblocks[u->out_current]) {
 
-            u->out_memblocks[u->out_current] = chunk.memblock = memblock_new_fixed(u->out_mmap+u->out_fragment_size*u->out_current,  u->out_fragment_size);
+            u->out_memblocks[u->out_current] = chunk.memblock = pa_memblock_new_fixed(u->out_mmap+u->out_fragment_size*u->out_current,  u->out_fragment_size);
             chunk.length = chunk.memblock->length;
             chunk.index = 0;
             
-            sink_render_into_full(u->sink, &chunk);
+            pa_sink_render_into_full(u->sink, &chunk);
         }
             
         u->out_current++;
@@ -106,14 +106,14 @@ static void in_post_memblocks(struct userdata *u, unsigned n) {
     assert(u && u->in_memblocks);
     
     while (n > 0) {
-        struct memchunk chunk;
+        struct pa_memchunk chunk;
         
         if (!u->in_memblocks[u->in_current]) {
-            u->in_memblocks[u->in_current] = chunk.memblock = memblock_new_fixed(u->in_mmap+u->in_fragment_size*u->in_current, u->in_fragment_size);
+            u->in_memblocks[u->in_current] = chunk.memblock = pa_memblock_new_fixed(u->in_mmap+u->in_fragment_size*u->in_current, u->in_fragment_size);
             chunk.length = chunk.memblock->length;
             chunk.index = 0;
             
-            source_post(u->source, &chunk);
+            pa_source_post(u->source, &chunk);
         }
 
         u->in_current++;
@@ -133,7 +133,7 @@ static void in_clear_memblocks(struct userdata*u, unsigned n) {
     
     while (n > 0) {
         if (u->in_memblocks[i]) {
-            memblock_unref_fixed(u->in_memblocks[i]);
+            pa_memblock_unref_fixed(u->in_memblocks[i]);
             u->in_memblocks[i] = NULL;
         }
 
@@ -172,7 +172,7 @@ static void io_callback(struct pa_mainloop_api *m, void *id, int fd, enum pa_mai
         do_write(u);
 }
 
-static uint32_t sink_get_latency_cb(struct sink *s) {
+static uint32_t sink_get_latency_cb(struct pa_sink *s) {
     struct userdata *u = s->userdata;
     assert(s && u);
 
@@ -180,7 +180,7 @@ static uint32_t sink_get_latency_cb(struct sink *s) {
     return pa_samples_usec(u->out_fill, &s->sample_spec);
 }
 
-int module_init(struct core *c, struct module*m) {
+int module_init(struct pa_core *c, struct pa_module*m) {
     struct audio_buf_info info;
     struct userdata *u = NULL;
     char *p;
@@ -240,7 +240,7 @@ int module_init(struct core *c, struct module*m) {
         goto fail;
     }
 
-    if (oss_auto_format(u->fd, &u->sample_spec) < 0)
+    if (pa_oss_auto_format(u->fd, &u->sample_spec) < 0)
         goto fail;
 
     if (mode != O_WRONLY) {
@@ -262,12 +262,12 @@ int module_init(struct core *c, struct module*m) {
             }
         } else {
         
-            u->source = source_new(c, "dsp", 0, &u->sample_spec);
+            u->source = pa_source_new(c, "dsp", 0, &u->sample_spec);
             assert(u->source);
             u->source->userdata = u;
             
-            u->in_memblocks = malloc(sizeof(struct memblock *)*u->in_fragments);
-            memset(u->in_memblocks, 0, sizeof(struct memblock *)*u->in_fragments);
+            u->in_memblocks = malloc(sizeof(struct pa_memblock *)*u->in_fragments);
+            memset(u->in_memblocks, 0, sizeof(struct pa_memblock *)*u->in_fragments);
             
             enable_bits |= PCM_ENABLE_INPUT;
         }
@@ -291,15 +291,15 @@ int module_init(struct core *c, struct module*m) {
                 goto fail;
             }
         } else {
-            silence_memory(u->out_mmap, u->out_mmap_length, &u->sample_spec);
+            pa_silence_memory(u->out_mmap, u->out_mmap_length, &u->sample_spec);
             
-            u->sink = sink_new(c, "dsp", 0, &u->sample_spec);
+            u->sink = pa_sink_new(c, "dsp", 0, &u->sample_spec);
             assert(u->sink);
             u->sink->get_latency = sink_get_latency_cb;
             u->sink->userdata = u;
             
             u->out_memblocks = malloc(sizeof(struct memblock *)*u->out_fragments);
-            memset(u->out_memblocks, 0, sizeof(struct memblock *)*u->out_fragments);
+            memset(u->out_memblocks, 0, sizeof(struct pa_memblock *)*u->out_fragments);
             
             enable_bits |= PCM_ENABLE_OUTPUT;
         }
@@ -329,7 +329,7 @@ fail:
     return -1;
 }
 
-void module_done(struct core *c, struct module*m) {
+void pa_module_done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 
@@ -353,10 +353,10 @@ void module_done(struct core *c, struct module*m) {
         munmap(u->out_mmap, u->out_mmap_length);
     
     if (u->sink)
-        sink_free(u->sink);
+        pa_sink_free(u->sink);
 
     if (u->source)
-        source_free(u->source);
+        pa_source_free(u->source);
 
     if (u->mainloop_source)
         u->core->mainloop->cancel_io(u->core->mainloop, u->mainloop_source);

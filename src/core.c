@@ -8,19 +8,19 @@
 #include "source.h"
 #include "namereg.h"
 
-struct core* core_new(struct pa_mainloop_api *m) {
-    struct core* c;
-    c = malloc(sizeof(struct core));
+struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
+    struct pa_core* c;
+    c = malloc(sizeof(struct pa_core));
     assert(c);
 
     c->mainloop = m;
-    c->clients = idxset_new(NULL, NULL);
-    c->sinks = idxset_new(NULL, NULL);
-    c->sources = idxset_new(NULL, NULL);
-    c->source_outputs = idxset_new(NULL, NULL);
-    c->sink_inputs = idxset_new(NULL, NULL);
+    c->clients = pa_idxset_new(NULL, NULL);
+    c->sinks = pa_idxset_new(NULL, NULL);
+    c->sources = pa_idxset_new(NULL, NULL);
+    c->source_outputs = pa_idxset_new(NULL, NULL);
+    c->sink_inputs = pa_idxset_new(NULL, NULL);
 
-    c->default_source_index = c->default_sink_index = IDXSET_INVALID;
+    c->default_source_index = c->default_sink_index = PA_IDXSET_INVALID;
 
     c->modules = NULL;
     c->namereg = NULL;
@@ -28,28 +28,28 @@ struct core* core_new(struct pa_mainloop_api *m) {
     return c;
 };
 
-void core_free(struct core *c) {
+void pa_core_free(struct pa_core *c) {
     assert(c);
 
-    module_unload_all(c);
+    pa_module_unload_all(c);
     assert(!c->modules);
     
-    assert(idxset_isempty(c->clients));
-    idxset_free(c->clients, NULL, NULL);
+    assert(pa_idxset_isempty(c->clients));
+    pa_idxset_free(c->clients, NULL, NULL);
     
-    assert(idxset_isempty(c->sinks));
-    idxset_free(c->sinks, NULL, NULL);
+    assert(pa_idxset_isempty(c->sinks));
+    pa_idxset_free(c->sinks, NULL, NULL);
 
-    assert(idxset_isempty(c->sources));
-    idxset_free(c->sources, NULL, NULL);
+    assert(pa_idxset_isempty(c->sources));
+    pa_idxset_free(c->sources, NULL, NULL);
     
-    assert(idxset_isempty(c->source_outputs));
-    idxset_free(c->source_outputs, NULL, NULL);
+    assert(pa_idxset_isempty(c->source_outputs));
+    pa_idxset_free(c->source_outputs, NULL, NULL);
     
-    assert(idxset_isempty(c->sink_inputs));
-    idxset_free(c->sink_inputs, NULL, NULL);
+    assert(pa_idxset_isempty(c->sink_inputs));
+    pa_idxset_free(c->sink_inputs, NULL, NULL);
 
-    namereg_free(c);
+    pa_namereg_free(c);
     
     free(c);    
 };

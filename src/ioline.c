@@ -9,8 +9,8 @@
 #define BUFFER_LIMIT (64*1024)
 #define READ_SIZE (1024)
 
-struct ioline {
-    struct iochannel *io;
+struct pa_ioline {
+    struct pa_iochannel *io;
     int dead;
 
     char *wbuf;
@@ -19,18 +19,18 @@ struct ioline {
     char *rbuf;
     size_t rbuf_length, rbuf_index, rbuf_valid_length;
 
-    void (*callback)(struct ioline*io, const char *s, void *userdata);
+    void (*callback)(struct pa_ioline*io, const char *s, void *userdata);
     void *userdata;
 };
 
-static void io_callback(struct iochannel*io, void *userdata);
-static int do_write(struct ioline *l);
+static void io_callback(struct pa_iochannel*io, void *userdata);
+static int do_write(struct pa_ioline *l);
 
-struct ioline* ioline_new(struct iochannel *io) {
-    struct ioline *l;
+struct pa_ioline* pa_ioline_new(struct pa_iochannel *io) {
+    struct pa_ioline *l;
     assert(io);
     
-    l = malloc(sizeof(struct ioline));
+    l = malloc(sizeof(struct pa_ioline));
     assert(l);
     l->io = io;
     l->dead = 0;
@@ -44,20 +44,20 @@ struct ioline* ioline_new(struct iochannel *io) {
     l->callback = NULL;
     l->userdata = NULL;
 
-    iochannel_set_callback(io, io_callback, l);
+    pa_iochannel_set_callback(io, io_callback, l);
     
     return l;
 }
 
-void ioline_free(struct ioline *l) {
+void pa_ioline_free(struct pa_ioline *l) {
     assert(l);
-    iochannel_free(l->io);
+    pa_iochannel_free(l->io);
     free(l->wbuf);
     free(l->rbuf);
     free(l);
 }
 
-void ioline_puts(struct ioline *l, const char *c) {
+void pa_ioline_puts(struct pa_ioline *l, const char *c) {
     size_t len;
     assert(l && c);
     
@@ -89,19 +89,19 @@ void ioline_puts(struct ioline *l, const char *c) {
     do_write(l);
 }
 
-void ioline_set_callback(struct ioline*l, void (*callback)(struct ioline*io, const char *s, void *userdata), void *userdata) {
+void pa_ioline_set_callback(struct pa_ioline*l, void (*callback)(struct pa_ioline*io, const char *s, void *userdata), void *userdata) {
     assert(l && callback);
     l->callback = callback;
     l->userdata = userdata;
 }
 
-static int do_read(struct ioline *l) {
+static int do_read(struct pa_ioline *l) {
     ssize_t r;
     size_t m, len;
     char *e;
     assert(l);
 
-    if (!iochannel_is_readable(l->io))
+    if (!pa_iochannel_is_readable(l->io))
         return 0;
 
     len = l->rbuf_length - l->rbuf_index - l->rbuf_valid_length;
@@ -129,7 +129,7 @@ static int do_read(struct ioline *l) {
 
     len = l->rbuf_length - l->rbuf_index - l->rbuf_valid_length;
     
-    if ((r = iochannel_read(l->io, l->rbuf+l->rbuf_index+l->rbuf_valid_length, len)) <= 0)
+    if ((r = pa_iochannel_read(l->io, l->rbuf+l->rbuf_index+l->rbuf_valid_length, len)) <= 0)
         return -1;
 
     e = memchr(l->rbuf+l->rbuf_index+l->rbuf_valid_length, '\n', r);
@@ -159,14 +159,14 @@ static int do_read(struct ioline *l) {
     return 0;
 }
 
-static int do_write(struct ioline *l) {
+static int do_write(struct pa_ioline *l) {
     ssize_t r;
     assert(l);
 
-    if (!l->wbuf_valid_length || !iochannel_is_writable(l->io))
+    if (!l->wbuf_valid_length || !pa_iochannel_is_writable(l->io))
         return 0;
     
-    if ((r = iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) < 0)
+    if ((r = pa_iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) < 0)
         return -1;
 
     l->wbuf_valid_length -= r;
@@ -176,8 +176,8 @@ static int do_write(struct ioline *l) {
     return 0;
 }
 
-static void io_callback(struct iochannel*io, void *userdata) {
-    struct ioline *l = userdata;
+static void io_callback(struct pa_iochannel*io, void *userdata) {
+    struct pa_ioline *l = userdata;
     assert(io && l);
     
     if (!l->dead && do_read(l) < 0)

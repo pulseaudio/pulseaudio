@@ -1,16 +1,16 @@
 #ifndef foodynarrayhfoo
 #define foodynarrayhfoo
 
-struct dynarray;
+struct pa_dynarray;
 
-struct dynarray* dynarray_new(void);
-void dynarray_free(struct dynarray* a, void (*func)(void *p, void *userdata), void *userdata);
+struct pa_dynarray* pa_dynarray_new(void);
+void pa_dynarray_free(struct pa_dynarray* a, void (*func)(void *p, void *userdata), void *userdata);
 
-void dynarray_put(struct dynarray*a, unsigned i, void *p);
-unsigned dynarray_append(struct dynarray*a, void *p);
+void pa_dynarray_put(struct pa_dynarray*a, unsigned i, void *p);
+unsigned pa_dynarray_append(struct pa_dynarray*a, void *p);
 
-void *dynarray_get(struct dynarray*a, unsigned i);
+void *pa_dynarray_get(struct pa_dynarray*a, unsigned i);
 
-unsigned dynarray_ncontents(struct dynarray*a);
+unsigned pa_dynarray_ncontents(struct pa_dynarray*a);
 
 #endif

@@ -11,16 +11,17 @@
 
 #define MAX_MIX_CHANNELS 32
 
-struct sink* sink_new(struct core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
-    struct sink *s;
+struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
+    struct pa_sink *s;
     char *n = NULL;
+    char st[256];
     int r;
     assert(core && spec);
 
-    s = malloc(sizeof(struct sink));
+    s = malloc(sizeof(struct pa_sink));
     assert(s);
 
-    if (!(name = namereg_register(core, name, NAMEREG_SINK, s, fail))) {
+    if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SINK, s, fail))) {
         free(s);
         return NULL;
     }
@@ -28,46 +29,47 @@ struct sink* sink_new(struct core *core, const char *name, int fail, const struc
     s->name = strdup(name);
     s->core = core;
     s->sample_spec = *spec;
-    s->inputs = idxset_new(NULL, NULL);
+    s->inputs = pa_idxset_new(NULL, NULL);
 
     if (name) {
         n = malloc(strlen(name)+9);
         sprintf(n, "%s_monitor", name);
     }
     
-    s->monitor_source = source_new(core, n, 0, spec);
+    s->monitor_source = pa_source_new(core, n, 0, spec);
     assert(s->monitor_source);
     free(n);
     
-    s->volume = VOLUME_NORM;
+    s->volume = PA_VOLUME_NORM;
 
     s->notify = NULL;
     s->get_latency = NULL;
     s->userdata = NULL;
 
-    r = idxset_put(core->sinks, s, &s->index);
-    assert(s->index != IDXSET_INVALID && r >= 0);
+    r = pa_idxset_put(core->sinks, s, &s->index);
+    assert(s->index != PA_IDXSET_INVALID && r >= 0);
     
-    fprintf(stderr, "sink: created %u \"%s\".\n", s->index, s->name);
+    pa_sample_snprint(st, sizeof(st), spec);
+    fprintf(stderr, "sink: created %u \"%s\" with sample spec \"%s\"\n", s->index, s->name, st);
     
     return s;
 }
 
-void sink_free(struct sink *s) {
-    struct sink_input *i, *j = NULL;
+void pa_sink_free(struct pa_sink *s) {
+    struct pa_sink_input *i, *j = NULL;
     assert(s);
 
-    namereg_unregister(s->core, s->name);
+    pa_namereg_unregister(s->core, s->name);
     
-    while ((i = idxset_first(s->inputs, NULL))) {
+    while ((i = pa_idxset_first(s->inputs, NULL))) {
         assert(i != j);
-        sink_input_kill(i);
+        pa_sink_input_kill(i);
         j = i;
     }
-    idxset_free(s->inputs, NULL, NULL);
+    pa_idxset_free(s->inputs, NULL, NULL);
 
-    source_free(s->monitor_source);
-    idxset_remove_by_data(s->core->sinks, s, NULL);
+    pa_source_free(s->monitor_source);
+    pa_idxset_remove_by_data(s->core->sinks, s, NULL);
 
     fprintf(stderr, "sink: freed %u \"%s\"\n", s->index, s->name);
     
@@ -75,22 +77,22 @@ void sink_free(struct sink *s) {
     free(s);
 }
 
-void sink_notify(struct sink*s) {
+void pa_sink_notify(struct pa_sink*s) {
     assert(s);
 
     if (s->notify)
         s->notify(s);
 }
 
-static unsigned fill_mix_info(struct sink *s, struct mix_info *info, unsigned maxinfo) {
-    uint32_t index = IDXSET_INVALID;
-    struct sink_input *i;
+static unsigned fill_mix_info(struct pa_sink *s, struct pa_mix_info *info, unsigned maxinfo) {
+    uint32_t index = PA_IDXSET_INVALID;
+    struct pa_sink_input *i;
     unsigned n = 0;
     
     assert(s && info);
 
-    for (i = idxset_first(s->inputs, &index); maxinfo > 0 && i; i = idxset_next(s->inputs, &index)) {
-        if (sink_input_peek(i, &info->chunk) < 0)
+    for (i = pa_idxset_first(s->inputs, &index); maxinfo > 0 && i; i = pa_idxset_next(s->inputs, &index)) {
+        if (pa_sink_input_peek(i, &info->chunk) < 0)
             continue;
 
         info->volume = i->volume;
@@ -106,20 +108,20 @@ static unsigned fill_mix_info(struct sink *s, struct mix_info *info, unsigned ma
     return n;
 }
 
-static void inputs_drop(struct sink *s, struct mix_info *info, unsigned maxinfo, size_t length) {
+static void inputs_drop(struct pa_sink *s, struct pa_mix_info *info, unsigned maxinfo, size_t length) {
     assert(s && info);
     
     for (; maxinfo > 0; maxinfo--, info++) {
-        struct sink_input *i = info->userdata;
+        struct pa_sink_input *i = info->userdata;
         assert(i && info->chunk.memblock);
         
-        memblock_unref(info->chunk.memblock);
-        sink_input_drop(i, length);
+        pa_memblock_unref(info->chunk.memblock);
+        pa_sink_input_drop(i, length);
     }
 }
         
-int sink_render(struct sink*s, size_t length, struct memchunk *result) {
-    struct mix_info info[MAX_MIX_CHANNELS];
+int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result) {
+    struct pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
     size_t l;
     assert(s && length && result);
@@ -130,29 +132,29 @@ int sink_render(struct sink*s, size_t length, struct memchunk *result) {
         return -1;
 
     if (n == 1) {
-        uint32_t volume = VOLUME_NORM;
-        struct sink_info *i = info[0].userdata;
+        uint32_t volume = PA_VOLUME_NORM;
+        struct pa_sink_input *i = info[0].userdata;
         assert(i);
         *result = info[0].chunk;
-        memblock_ref(result->memblock);
+        pa_memblock_ref(result->memblock);
 
         if (result->length > length)
             result->length = length;
 
         l = result->length;
 
-        if (s->volume != VOLUME_NORM || info[0].volume != VOLUME_NORM)
-            volume = volume_multiply(s->volume, info[0].volume);
+        if (s->volume != PA_VOLUME_NORM || info[0].volume != PA_VOLUME_NORM)
+            volume = pa_volume_multiply(s->volume, info[0].volume);
         
-        if (volume != VOLUME_NORM) {
-            memchunk_make_writable(result);
-            volume_memchunk(result, &s->sample_spec, volume);
+        if (volume != PA_VOLUME_NORM) {
+            pa_memchunk_make_writable(result);
+            pa_volume_memchunk(result, &s->sample_spec, volume);
         }
     } else {
-        result->memblock = memblock_new(length);
+        result->memblock = pa_memblock_new(length);
         assert(result->memblock);
 
-        result->length = l = mix_chunks(info, n, result->memblock->data, length, &s->sample_spec, s->volume);
+        result->length = l = pa_mix(info, n, result->memblock->data, length, &s->sample_spec, s->volume);
         result->index = 0;
         
         assert(l);
@@ -161,17 +163,17 @@ int sink_render(struct sink*s, size_t length, struct memchunk *result) {
     inputs_drop(s, info, n, l);
 
     assert(s->monitor_source);
-    source_post(s->monitor_source, result);
+    pa_source_post(s->monitor_source, result);
 
     return 0;
 }
 
-int sink_render_into(struct sink*s, struct memchunk *target) {
-    struct mix_info info[MAX_MIX_CHANNELS];
+int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target) {
+    struct pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
     size_t l;
     assert(s && target && target->length && target->memblock && target->memblock->data);
-    memblock_assert_exclusive(target->memblock);
+    pa_memblock_assert_exclusive(target->memblock);
     
     n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
 
@@ -179,8 +181,8 @@ int sink_render_into(struct sink*s, struct memchunk *target) {
         return -1;
 
     if (n == 1) {
-        uint32_t volume = VOLUME_NORM;
-        struct sink_info *i = info[0].userdata;
+        uint32_t volume = PA_VOLUME_NORM;
+        struct pa_sink_info *i = info[0].userdata;
         assert(i);
 
         l = target->length;
@@ -190,25 +192,25 @@ int sink_render_into(struct sink*s, struct memchunk *target) {
         memcpy(target->memblock->data+target->index, info[0].chunk.memblock->data + info[0].chunk.index, l);
         target->length = l;
 
-        if (s->volume != VOLUME_NORM || info[0].volume != VOLUME_NORM)
-            volume = volume_multiply(s->volume, info[0].volume);
+        if (s->volume != PA_VOLUME_NORM || info[0].volume != PA_VOLUME_NORM)
+            volume = pa_volume_multiply(s->volume, info[0].volume);
 
-        if (volume != VOLUME_NORM)
-            volume_memchunk(target, &s->sample_spec, volume);
+        if (volume != PA_VOLUME_NORM)
+            pa_volume_memchunk(target, &s->sample_spec, volume);
     } else
-        target->length = l = mix_chunks(info, n, target->memblock->data+target->index, target->length, &s->sample_spec, s->volume);
+        target->length = l = pa_mix(info, n, target->memblock->data+target->index, target->length, &s->sample_spec, s->volume);
     
     assert(l);
     inputs_drop(s, info, n, l);
 
     assert(s->monitor_source);
-    source_post(s->monitor_source, target);
+    pa_source_post(s->monitor_source, target);
 
     return 0;
 }
 
-void sink_render_into_full(struct sink *s, struct memchunk *target) {
-    struct memchunk chunk;
+void pa_sink_render_into_full(struct pa_sink *s, struct pa_memchunk *target) {
+    struct pa_memchunk chunk;
     size_t l, d;
     assert(s && target && target->memblock && target->length && target->memblock->data);
 
@@ -219,7 +221,7 @@ void sink_render_into_full(struct sink *s, struct memchunk *target) {
         chunk.index += d;
         chunk.length -= d;
         
-        if (sink_render_into(s, &chunk) < 0)
+        if (pa_sink_render_into(s, &chunk) < 0)
             break;
 
         d += chunk.length;
@@ -230,11 +232,11 @@ void sink_render_into_full(struct sink *s, struct memchunk *target) {
         chunk = *target;
         chunk.index += d;
         chunk.length -= d;
-        silence_memchunk(&chunk, &s->sample_spec);
+        pa_silence_memchunk(&chunk, &s->sample_spec);
     }
 }
 
-uint32_t sink_get_latency(struct sink *s) {
+uint32_t pa_sink_get_latency(struct pa_sink *s) {
     assert(s);
 
     if (!s->get_latency)
@@ -243,38 +245,38 @@ uint32_t sink_get_latency(struct sink *s) {
     return s->get_latency(s);
 }
 
-struct sink* sink_get_default(struct core *c) {
-    struct sink *sink;
+struct pa_sink* pa_sink_get_default(struct pa_core *c) {
+    struct pa_sink *sink;
     assert(c);
 
-    if ((sink = idxset_get_by_index(c->sinks, c->default_sink_index)))
+    if ((sink = pa_idxset_get_by_index(c->sinks, c->default_sink_index)))
         return sink;
 
-    if (!(sink = idxset_first(c->sinks, &c->default_sink_index)))
+    if (!(sink = pa_idxset_first(c->sinks, &c->default_sink_index)))
         return NULL;
 
     fprintf(stderr, "core: default sink vanished, setting to %u.\n", sink->index);
     return sink;
 }
 
-char *sink_list_to_string(struct core *c) {
-    struct strbuf *s;
-    struct sink *sink, *default_sink;
-    uint32_t index = IDXSET_INVALID;
+char *pa_sink_list_to_string(struct pa_core *c) {
+    struct pa_strbuf *s;
+    struct pa_sink *sink, *default_sink;
+    uint32_t index = PA_IDXSET_INVALID;
     assert(c);
 
-    s = strbuf_new();
+    s = pa_strbuf_new();
     assert(s);
 
-    strbuf_printf(s, "%u sink(s) available.\n", idxset_ncontents(c->sinks));
+    pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_ncontents(c->sinks));
 
-    default_sink = sink_get_default(c);
+    default_sink = pa_sink_get_default(c);
     
-    for (sink = idxset_first(c->sinks, &index); sink; sink = idxset_next(c->sinks, &index)) {
+    for (sink = pa_idxset_first(c->sinks, &index); sink; sink = pa_idxset_next(c->sinks, &index)) {
         assert(sink->monitor_source);
-        strbuf_printf(s, "  %c index: %u, name: <%s>, volume: <0x%04x>, latency: <%u usec>, monitor_source: <%u>\n", sink == default_sink ? '*' : ' ', sink->index, sink->name, (unsigned) sink->volume, sink_get_latency(sink), sink->monitor_source->index);
+        pa_strbuf_printf(s, "  %c index: %u, name: <%s>, volume: <0x%04x>, latency: <%u usec>, monitor_source: <%u>\n", sink == default_sink ? '*' : ' ', sink->index, sink->name, (unsigned) sink->volume, pa_sink_get_latency(sink), sink->monitor_source->index);
     }
     
-    return strbuf_tostring_free(s);
+    return pa_strbuf_tostring_free(s);
 }
 

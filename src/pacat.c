@@ -75,9 +75,9 @@ static void stream_complete_callback(struct pa_context*c, struct pa_stream *s, v
 
 static void context_complete_callback(struct pa_context *c, int success, void *userdata) {
     static const struct pa_sample_spec ss = {
-        .format = PA_SAMPLE_S16NE,
+        .format = PA_SAMPLE_S16LE,
         .rate = 44100,
-        .channels = 1
+        .channels = 2
     };
         
     assert(c && !stream);

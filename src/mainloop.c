@@ -46,7 +46,7 @@ struct mainloop_source_time {
 };
 
 struct pa_mainloop {
-    struct idxset *io_sources, *fixed_sources, *idle_sources, *time_sources;
+    struct pa_idxset *io_sources, *fixed_sources, *idle_sources, *time_sources;
     int io_sources_scan_dead, fixed_sources_scan_dead, idle_sources_scan_dead, time_sources_scan_dead;
 
     struct pollfd *pollfds;
@@ -65,10 +65,10 @@ struct pa_mainloop *pa_mainloop_new(void) {
     m = malloc(sizeof(struct pa_mainloop));
     assert(m);
 
-    m->io_sources = idxset_new(NULL, NULL);
-    m->fixed_sources = idxset_new(NULL, NULL);
-    m->idle_sources = idxset_new(NULL, NULL);
-    m->time_sources = idxset_new(NULL, NULL);
+    m->io_sources = pa_idxset_new(NULL, NULL);
+    m->fixed_sources = pa_idxset_new(NULL, NULL);
+    m->idle_sources = pa_idxset_new(NULL, NULL);
+    m->time_sources = pa_idxset_new(NULL, NULL);
 
     assert(m->io_sources && m->fixed_sources && m->idle_sources && m->time_sources);
 
@@ -100,15 +100,15 @@ static int foreach(void *p, uint32_t index, int *del, void*userdata) {
 void pa_mainloop_free(struct pa_mainloop* m) {
     int all = 1;
     assert(m);
-    idxset_foreach(m->io_sources, foreach, &all);
-    idxset_foreach(m->fixed_sources, foreach, &all);
-    idxset_foreach(m->idle_sources, foreach, &all);
-    idxset_foreach(m->time_sources, foreach, &all);
+    pa_idxset_foreach(m->io_sources, foreach, &all);
+    pa_idxset_foreach(m->fixed_sources, foreach, &all);
+    pa_idxset_foreach(m->idle_sources, foreach, &all);
+    pa_idxset_foreach(m->time_sources, foreach, &all);
 
-    idxset_free(m->io_sources, NULL, NULL);
-    idxset_free(m->fixed_sources, NULL, NULL);
-    idxset_free(m->idle_sources, NULL, NULL);
-    idxset_free(m->time_sources, NULL, NULL);
+    pa_idxset_free(m->io_sources, NULL, NULL);
+    pa_idxset_free(m->fixed_sources, NULL, NULL);
+    pa_idxset_free(m->idle_sources, NULL, NULL);
+    pa_idxset_free(m->time_sources, NULL, NULL);
 
     free(m->pollfds);
     free(m);
@@ -118,22 +118,22 @@ static void scan_dead(struct pa_mainloop *m) {
     int all = 0;
     assert(m);
     if (m->io_sources_scan_dead)
-        idxset_foreach(m->io_sources, foreach, &all);
+        pa_idxset_foreach(m->io_sources, foreach, &all);
     if (m->fixed_sources_scan_dead)
-        idxset_foreach(m->fixed_sources, foreach, &all);
+        pa_idxset_foreach(m->fixed_sources, foreach, &all);
     if (m->idle_sources_scan_dead)
-        idxset_foreach(m->idle_sources, foreach, &all);
+        pa_idxset_foreach(m->idle_sources, foreach, &all);
     if (m->time_sources_scan_dead)
-        idxset_foreach(m->time_sources, foreach, &all);
+        pa_idxset_foreach(m->time_sources, foreach, &all);
 }
 
 static void rebuild_pollfds(struct pa_mainloop *m) {
     struct mainloop_source_io*s;
     struct pollfd *p;
-    uint32_t index = IDXSET_INVALID;
+    uint32_t index = PA_IDXSET_INVALID;
     unsigned l;
 
-    l = idxset_ncontents(m->io_sources);
+    l = pa_idxset_ncontents(m->io_sources);
     if (m->max_pollfds < l) {
         m->pollfds = realloc(m->pollfds, sizeof(struct pollfd)*l);
         m->max_pollfds = l;
@@ -141,7 +141,7 @@ static void rebuild_pollfds(struct pa_mainloop *m) {
 
     m->n_pollfds = 0;
     p = m->pollfds;
-    for (s = idxset_first(m->io_sources, &index); s; s = idxset_next(m->io_sources, &index)) {
+    for (s = pa_idxset_first(m->io_sources, &index); s; s = pa_idxset_next(m->io_sources, &index)) {
         if (s->header.dead) {
             s->pollfd = NULL;
             continue;
@@ -158,10 +158,10 @@ static void rebuild_pollfds(struct pa_mainloop *m) {
 }
 
 static void dispatch_pollfds(struct pa_mainloop *m) {
-    uint32_t index = IDXSET_INVALID;
+    uint32_t index = PA_IDXSET_INVALID;
     struct mainloop_source_io *s;
 
-    for (s = idxset_first(m->io_sources, &index); s; s = idxset_next(m->io_sources, &index)) {
+    for (s = pa_idxset_first(m->io_sources, &index); s; s = pa_idxset_next(m->io_sources, &index)) {
         if (s->header.dead || !s->pollfd || !s->pollfd->revents)
             continue;
         
@@ -173,11 +173,11 @@ static void dispatch_pollfds(struct pa_mainloop *m) {
     }
 }
 
-static void run_fixed_or_idle(struct pa_mainloop *m, struct idxset *i) {
-    uint32_t index = IDXSET_INVALID;
+static void run_fixed_or_idle(struct pa_mainloop *m, struct pa_idxset *i) {
+    uint32_t index = PA_IDXSET_INVALID;
     struct mainloop_source_fixed_or_idle *s;
 
-    for (s = idxset_first(i, &index); s; s = idxset_next(i, &index)) {
+    for (s = pa_idxset_first(i, &index); s; s = pa_idxset_next(i, &index)) {
         if (s->header.dead || !s->enabled)
             continue;
 
@@ -187,17 +187,17 @@ static void run_fixed_or_idle(struct pa_mainloop *m, struct idxset *i) {
 }
 
 static int calc_next_timeout(struct pa_mainloop *m) {
-    uint32_t index = IDXSET_INVALID;
+    uint32_t index = PA_IDXSET_INVALID;
     struct mainloop_source_time *s;
     struct timeval now;
     int t = -1;
 
-    if (idxset_isempty(m->time_sources))
+    if (pa_idxset_isempty(m->time_sources))
         return -1;
 
     gettimeofday(&now, NULL);
     
-    for (s = idxset_first(m->time_sources, &index); s; s = idxset_next(m->time_sources, &index)) {
+    for (s = pa_idxset_first(m->time_sources, &index); s; s = pa_idxset_next(m->time_sources, &index)) {
         int tmp;
         
         if (s->header.dead || !s->enabled)
@@ -223,16 +223,16 @@ static int calc_next_timeout(struct pa_mainloop *m) {
 }
 
 static void dispatch_timeout(struct pa_mainloop *m) {
-    uint32_t index = IDXSET_INVALID;
+    uint32_t index = PA_IDXSET_INVALID;
     struct mainloop_source_time *s;
     struct timeval now;
     assert(m);
 
-    if (idxset_isempty(m->time_sources))
+    if (pa_idxset_isempty(m->time_sources))
         return;
 
     gettimeofday(&now, NULL);
-    for (s = idxset_first(m->time_sources, &index); s; s = idxset_next(m->time_sources, &index)) {
+    for (s = pa_idxset_first(m->time_sources, &index); s; s = pa_idxset_next(m->time_sources, &index)) {
         
         if (s->header.dead || !s->enabled)
             continue;
@@ -251,7 +251,7 @@ static int any_idle_sources(struct pa_mainloop *m) {
     uint32_t index;
     assert(m);
     
-    for (s = idxset_first(m->idle_sources, &index); s; s = idxset_next(m->idle_sources, &index))
+    for (s = pa_idxset_first(m->idle_sources, &index); s; s = pa_idxset_next(m->idle_sources, &index))
         if (!s->header.dead && s->enabled)
             return 1;
 
@@ -334,7 +334,7 @@ static void* mainloop_source_io(struct pa_mainloop_api*a, int fd, enum pa_mainlo
     s->userdata = userdata;
     s->pollfd = NULL;
 
-    idxset_put(m->io_sources, s, NULL);
+    pa_idxset_put(m->io_sources, s, NULL);
     m->rebuild_pollfds = 1;
     return s;
 }
@@ -380,7 +380,7 @@ static void* mainloop_source_fixed(struct pa_mainloop_api*a, void (*callback) (s
     s->callback = callback;
     s->userdata = userdata;
 
-    idxset_put(m->fixed_sources, s, NULL);
+    pa_idxset_put(m->fixed_sources, s, NULL);
     return s;
 }
 
@@ -422,7 +422,7 @@ static void* mainloop_source_idle(struct pa_mainloop_api*a, void (*callback) (st
     s->callback = callback;
     s->userdata = userdata;
 
-    idxset_put(m->idle_sources, s, NULL);
+    pa_idxset_put(m->idle_sources, s, NULL);
     return s;
 }
 
@@ -457,7 +457,7 @@ static void* mainloop_source_time(struct pa_mainloop_api*a, const struct timeval
     s->callback = callback;
     s->userdata = userdata;
 
-    idxset_put(m->time_sources, s, NULL);
+    pa_idxset_put(m->time_sources, s, NULL);
     return s;
 }
 

@@ -5,12 +5,12 @@
 #include "memblock.h"
 #include "memchunk.h"
 
-struct resampler;
+struct pa_resampler;
 
-struct resampler* resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b);
-void resampler_free(struct resampler *r);
+struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b);
+void pa_resampler_free(struct pa_resampler *r);
 
-size_t resampler_request(struct resampler *r, size_t out_length);
-void resampler_run(struct resampler *r, const struct memchunk *in, struct memchunk *out);
+size_t pa_resampler_request(struct pa_resampler *r, size_t out_length);
+void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out);
 
 #endif

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,17 +9,18 @@
 
 #define CONVERT_BUFFER_LENGTH 4096
 
-struct sink_input* sink_input_new(struct sink *s, const char *name, const struct pa_sample_spec *spec) {
-    struct sink_input *i;
-    struct resampler *resampler = NULL;
+struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec) {
+    struct pa_sink_input *i;
+    struct pa_resampler *resampler = NULL;
     int r;
+    char st[256];
     assert(s && spec);
 
     if (!pa_sample_spec_equal(spec, &s->sample_spec))
-        if (!(resampler = resampler_new(spec, &s->sample_spec)))
+        if (!(resampler = pa_resampler_new(spec, &s->sample_spec)))
             return NULL;
     
-    i = malloc(sizeof(struct sink_input));
+    i = malloc(sizeof(struct pa_sink_input));
     assert(i);
     i->name = name ? strdup(name) : NULL;
     i->sink = s;
@@ -30,69 +32,72 @@ struct sink_input* sink_input_new(struct sink *s, const char *name, const struct
     i->get_latency = NULL;
     i->userdata = NULL;
 
-    i->volume = VOLUME_NORM;
+    i->volume = PA_VOLUME_NORM;
 
     i->resampled_chunk.memblock = NULL;
     i->resampled_chunk.index = i->resampled_chunk.length = 0;
     i->resampler = resampler;
     
     assert(s->core);
-    r = idxset_put(s->core->sink_inputs, i, &i->index);
-    assert(r == 0 && i->index != IDXSET_INVALID);
-    r = idxset_put(s->inputs, i, NULL);
+    r = pa_idxset_put(s->core->sink_inputs, i, &i->index);
+    assert(r == 0 && i->index != PA_IDXSET_INVALID);
+    r = pa_idxset_put(s->inputs, i, NULL);
     assert(r == 0);
 
+    pa_sample_snprint(st, sizeof(st), spec);
+    fprintf(stderr, "sink-input: created %u \"%s\" on %u with sample spec \"%s\"\n", i->index, i->name, s->index, st);
+    
     return i;    
 }
 
-void sink_input_free(struct sink_input* i) {
+void pa_sink_input_free(struct pa_sink_input* i) {
     assert(i);
 
     assert(i->sink && i->sink->core);
-    idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
-    idxset_remove_by_data(i->sink->inputs, i, NULL);
+    pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
+    pa_idxset_remove_by_data(i->sink->inputs, i, NULL);
 
     if (i->resampled_chunk.memblock)
-        memblock_unref(i->resampled_chunk.memblock);
+        pa_memblock_unref(i->resampled_chunk.memblock);
     if (i->resampler)
-        resampler_free(i->resampler);
+        pa_resampler_free(i->resampler);
     
     free(i->name);
     free(i);
 }
 
-void sink_input_kill(struct sink_input*i) {
+void pa_sink_input_kill(struct pa_sink_input*i) {
     assert(i);
 
     if (i->kill)
         i->kill(i);
 }
 
-char *sink_input_list_to_string(struct core *c) {
-    struct strbuf *s;
-    struct sink_input *i;
-    uint32_t index = IDXSET_INVALID;
+char *pa_sink_input_list_to_string(struct pa_core *c) {
+    struct pa_strbuf *s;
+    struct pa_sink_input *i;
+    uint32_t index = PA_IDXSET_INVALID;
     assert(c);
 
-    s = strbuf_new();
+    s = pa_strbuf_new();
     assert(s);
 
-    strbuf_printf(s, "%u sink input(s) available.\n", idxset_ncontents(c->sink_inputs));
+    pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_ncontents(c->sink_inputs));
 
-    for (i = idxset_first(c->sink_inputs, &index); i; i = idxset_next(c->sink_inputs, &index)) {
+    for (i = pa_idxset_first(c->sink_inputs, &index); i; i = pa_idxset_next(c->sink_inputs, &index)) {
         assert(i->sink);
-        strbuf_printf(s, "    index: %u, name: <%s>, sink: <%u>; volume: <0x%04x>, latency: <%u usec>\n",
+        pa_strbuf_printf(s, "    index: %u, name: <%s>, sink: <%u>; volume: <0x%04x>, latency: <%u usec>\n",
                       i->index,
                       i->name,
                       i->sink->index,
                       (unsigned) i->volume,
-                      sink_input_get_latency(i));
+                      pa_sink_input_get_latency(i));
     }
     
-    return strbuf_tostring_free(s);
+    return pa_strbuf_tostring_free(s);
 }
 
-uint32_t sink_input_get_latency(struct sink_input *i) {
+uint32_t pa_sink_input_get_latency(struct pa_sink_input *i) {
     uint32_t l = 0;
     
     assert(i);
@@ -100,43 +105,43 @@ uint32_t sink_input_get_latency(struct sink_input *i) {
         l += i->get_latency(i);
 
     assert(i->sink);
-    l += sink_get_latency(i->sink);
+    l += pa_sink_get_latency(i->sink);
 
     return l;
 }
 
 
-int sink_input_peek(struct sink_input *i, struct memchunk *chunk) {
+int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     assert(i && chunk && i->peek && i->drop);
 
     if (!i->resampler)
         return i->peek(i, chunk);
 
     if (!i->resampled_chunk.memblock) {
-        struct memchunk tchunk;
+        struct pa_memchunk tchunk;
         size_t l;
         int ret;
         
         if ((ret = i->peek(i, &tchunk)) < 0)
             return ret;
 
-        l = resampler_request(i->resampler, CONVERT_BUFFER_LENGTH);
+        l = pa_resampler_request(i->resampler, CONVERT_BUFFER_LENGTH);
         if (tchunk.length > l)
             tchunk.length = l;
 
         i->drop(i, tchunk.length);
         
-        resampler_run(i->resampler, &tchunk, &i->resampled_chunk);
-        memblock_unref(tchunk.memblock);
+        pa_resampler_run(i->resampler, &tchunk, &i->resampled_chunk);
+        pa_memblock_unref(tchunk.memblock);
     }
 
     assert(i->resampled_chunk.memblock && i->resampled_chunk.length);
     *chunk = i->resampled_chunk;
-    memblock_ref(i->resampled_chunk.memblock);
+    pa_memblock_ref(i->resampled_chunk.memblock);
     return 0;
 }
 
-void sink_input_drop(struct sink_input *i, size_t length) {
+void pa_sink_input_drop(struct pa_sink_input *i, size_t length) {
     assert(i && length);
 
     if (!i->resampler) {
@@ -150,7 +155,7 @@ void sink_input_drop(struct sink_input *i, size_t length) {
     i->resampled_chunk.length -= length;
 
     if (!i->resampled_chunk.length) {
-        memblock_unref(i->resampled_chunk.memblock);
+        pa_memblock_unref(i->resampled_chunk.memblock);
         i->resampled_chunk.memblock = NULL;
         i->resampled_chunk.index = i->resampled_chunk.length = 0;
     }

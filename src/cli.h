@@ -4,11 +4,11 @@
 #include "iochannel.h"
 #include "core.h"
 
-struct cli;
+struct pa_cli;
 
-struct cli* cli_new(struct core *core, struct iochannel *io);
-void cli_free(struct cli *cli);
+struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io);
+void pa_cli_free(struct pa_cli *cli);
 
-void cli_set_eof_callback(struct cli *cli, void (*cb)(struct cli*c, void *userdata), void *userdata);
+void pa_cli_set_eof_callback(struct pa_cli *cli, void (*cb)(struct pa_cli*c, void *userdata), void *userdata);
 
 #endif

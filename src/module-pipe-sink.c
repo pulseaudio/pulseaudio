@@ -15,13 +15,13 @@
 struct userdata {
     char *filename;
     
-    struct sink *sink;
-    struct iochannel *io;
-    struct core *core;
+    struct pa_sink *sink;
+    struct pa_iochannel *io;
+    struct pa_core *core;
     void *mainloop_source;
     struct pa_mainloop_api *mainloop;
 
-    struct memchunk memchunk;
+    struct pa_memchunk memchunk;
 };
 
 static void do_write(struct userdata *u) {
@@ -30,16 +30,16 @@ static void do_write(struct userdata *u) {
 
     u->mainloop->enable_fixed(u->mainloop, u->mainloop_source, 0);
         
-    if (!iochannel_is_writable(u->io))
+    if (!pa_iochannel_is_writable(u->io))
         return;
 
     if (!u->memchunk.length)
-        if (sink_render(u->sink, PIPE_BUF, &u->memchunk) < 0)
+        if (pa_sink_render(u->sink, PIPE_BUF, &u->memchunk) < 0)
             return;
 
     assert(u->memchunk.memblock && u->memchunk.length);
     
-    if ((r = iochannel_write(u->io, u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
+    if ((r = pa_iochannel_write(u->io, u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
         fprintf(stderr, "write() failed: %s\n", strerror(errno));
         return;
     }
@@ -48,16 +48,16 @@ static void do_write(struct userdata *u) {
     u->memchunk.length -= r;
         
     if (u->memchunk.length <= 0) {
-        memblock_unref(u->memchunk.memblock);
+        pa_memblock_unref(u->memchunk.memblock);
         u->memchunk.memblock = NULL;
     }
 }
 
-static void notify_cb(struct sink*s) {
+static void notify_cb(struct pa_sink*s) {
     struct userdata *u = s->userdata;
     assert(s && u);
 
-    if (iochannel_is_writable(u->io))
+    if (pa_iochannel_is_writable(u->io))
         u->mainloop->enable_fixed(u->mainloop, u->mainloop_source, 1);
 }
 
@@ -67,13 +67,13 @@ static void fixed_callback(struct pa_mainloop_api *m, void *id, void *userdata) 
     do_write(u);
 }
 
-static void io_callback(struct iochannel *io, void*userdata) {
+static void io_callback(struct pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_write(u);
 }
 
-int module_init(struct core *c, struct module*m) {
+int module_init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u = NULL;
     struct stat st;
     char *p;
@@ -109,14 +109,14 @@ int module_init(struct core *c, struct module*m) {
     u->filename = strdup(p);
     assert(u->filename);
     u->core = c;
-    u->sink = sink_new(c, "fifo", 0, &ss);
+    u->sink = pa_sink_new(c, "fifo", 0, &ss);
     assert(u->sink);
     u->sink->notify = notify_cb;
     u->sink->userdata = u;
 
-    u->io = iochannel_new(c->mainloop, -1, fd);
+    u->io = pa_iochannel_new(c->mainloop, -1, fd);
     assert(u->io);
-    iochannel_set_callback(u->io, io_callback, u);
+    pa_iochannel_set_callback(u->io, io_callback, u);
 
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
@@ -137,7 +137,7 @@ fail:
     return -1;
 }
 
-void module_done(struct core *c, struct module*m) {
+void module_done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 
@@ -145,10 +145,10 @@ void module_done(struct core *c, struct module*m) {
     assert(u);
     
     if (u->memchunk.memblock)
-        memblock_unref(u->memchunk.memblock);
+        pa_memblock_unref(u->memchunk.memblock);
         
-    sink_free(u->sink);
-    iochannel_free(u->io);
+    pa_sink_free(u->sink);
+    pa_iochannel_free(u->io);
     u->mainloop->cancel_fixed(u->mainloop, u->mainloop_source);
 
     assert(u->filename);

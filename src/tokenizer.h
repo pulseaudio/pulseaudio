@@ -1,11 +1,11 @@
 #ifndef footokenizerhfoo
 #define footokenizerhfoo
 
-struct tokenizer;
+struct pa_tokenizer;
 
-struct tokenizer* tokenizer_new(const char *s, unsigned args);
-void tokenizer_free(struct tokenizer *t);
+struct pa_tokenizer* pa_tokenizer_new(const char *s, unsigned args);
+void pa_tokenizer_free(struct pa_tokenizer *t);
 
-const char *tokenizer_get(struct tokenizer *t, unsigned i);
+const char *pa_tokenizer_get(struct pa_tokenizer *t, unsigned i);
 
 #endif

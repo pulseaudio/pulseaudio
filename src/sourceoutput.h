@@ -8,28 +8,28 @@
 #include "memblockq.h"
 #include "resampler.h"
 
-struct source_output {
+struct pa_source_output {
     uint32_t index;
 
     char *name;
-    struct source *source;
+    struct pa_source *source;
     struct pa_sample_spec sample_spec;
     
-    void (*push)(struct source_output *o, const struct memchunk *chunk);
-    void (*kill)(struct source_output* o);
+    void (*push)(struct pa_source_output *o, const struct pa_memchunk *chunk);
+    void (*kill)(struct pa_source_output* o);
 
-    struct resampler* resampler;
+    struct pa_resampler* resampler;
     
     void *userdata;
 };
 
-struct source_output* source_output_new(struct source *s, const char *name, const struct pa_sample_spec *spec);
-void source_output_free(struct source_output* o);
+struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec);
+void pa_source_output_free(struct pa_source_output* o);
 
-void source_output_kill(struct source_output*o);
+void pa_source_output_kill(struct pa_source_output*o);
 
-char *source_output_list_to_string(struct core *c);
+char *pa_source_output_list_to_string(struct pa_core *c);
 
-void source_output_push(struct source_output *o, const struct memchunk *chunk);
+void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk *chunk);
 
 #endif

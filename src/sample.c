@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <assert.h>
 
 #include "sample.h"
@@ -44,7 +45,7 @@ int pa_sample_spec_valid(const struct pa_sample_spec *spec) {
     if (!spec->rate || !spec->channels)
         return 0;
 
-    if (spec->format <= 0 || spec->format >= PA_SAMPLE_MAX)
+    if (spec->format >= PA_SAMPLE_MAX)
         return 0;
 
     return 1;
@@ -54,4 +55,18 @@ int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_s
     assert(a && b);
 
     return (a->format == b->format) && (a->rate == b->rate) && (a->channels == b->channels);
+}
+
+void pa_sample_snprint(char *s, size_t l, const struct pa_sample_spec *spec) {
+    static const char* const table[]= {
+        [PA_SAMPLE_U8] = "U8",
+        [PA_SAMPLE_ALAW] = "ALAW",
+        [PA_SAMPLE_ULAW] = "ULAW",
+        [PA_SAMPLE_S16LE] = "S16LE",
+        [PA_SAMPLE_S16BE] = "S16BE",
+        [PA_SAMPLE_FLOAT32] = "FLOAT32",
+    };
+
+    assert(pa_sample_spec_valid(spec));
+    snprintf(s, l, "%s %uch %uHz", table[spec->format], spec->channels, spec->rate);
 }

@@ -7,7 +7,7 @@
 
 #include "oss-util.h"
 
-int oss_auto_format(int fd, struct pa_sample_spec *ss) {
+int pa_oss_auto_format(int fd, struct pa_sample_spec *ss) {
     int format, channels, speed;
 
     assert(fd >= 0 && ss);

@@ -6,7 +6,7 @@
 #include "resampler.h"
 #include "sconv.h"
 
-struct resampler {
+struct pa_resampler {
     struct pa_sample_spec i_ss, o_ss;
     float* i_buf, *o_buf;
     unsigned i_alloc, o_alloc;
@@ -14,13 +14,13 @@ struct resampler {
 
     int channels;
 
-    convert_to_float32_func_t to_float32_func;
-    convert_from_float32_func_t from_float32_func;
+    pa_convert_to_float32_func_t to_float32_func;
+    pa_convert_from_float32_func_t from_float32_func;
     SRC_STATE *src_state;
 };
 
-struct resampler* resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b) {
-    struct resampler *r;
+struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b) {
+    struct pa_resampler *r;
     int err;
     assert(a && b && pa_sample_spec_valid(a) && pa_sample_spec_valid(b));
 
@@ -30,7 +30,7 @@ struct resampler* resampler_new(const struct pa_sample_spec *a, const struct pa_
     if (a->format == PA_SAMPLE_ALAW || a->format == PA_SAMPLE_ULAW || b->format == PA_SAMPLE_ALAW || b->format == PA_SAMPLE_ULAW)
         goto fail;
 
-    r = malloc(sizeof(struct resampler));
+    r = malloc(sizeof(struct pa_resampler));
     assert(r);
 
     r->channels = a->channels;
@@ -53,8 +53,8 @@ struct resampler* resampler_new(const struct pa_sample_spec *a, const struct pa_
     r->i_sz = pa_sample_size(a);
     r->o_sz = pa_sample_size(b);
 
-    r->to_float32_func = get_convert_to_float32_function(a->format);
-    r->from_float32_func = get_convert_from_float32_function(b->format);
+    r->to_float32_func = pa_get_convert_to_float32_function(a->format);
+    r->from_float32_func = pa_get_convert_from_float32_function(b->format);
 
     assert(r->to_float32_func && r->from_float32_func);
     
@@ -67,7 +67,7 @@ fail:
     return NULL;
 }
 
-void resampler_free(struct resampler *r) {
+void pa_resampler_free(struct pa_resampler *r) {
     assert(r);
     if (r->src_state)
         src_delete(r->src_state);
@@ -76,14 +76,14 @@ void resampler_free(struct resampler *r) {
     free(r);
 }
 
-size_t resampler_request(struct resampler *r, size_t out_length) {
+size_t pa_resampler_request(struct pa_resampler *r, size_t out_length) {
     assert(r && (out_length % r->o_sz) == 0);
     
     return (((out_length / r->o_sz)*r->i_ss.rate)/r->o_ss.rate) * r->i_sz;
 }
 
 
-void resampler_run(struct resampler *r, const struct memchunk *in, struct memchunk *out) {
+void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out) {
     unsigned i_nchannels, o_nchannels, ins, ons, eff_ins, eff_ons;
     float *cbuf;
     assert(r && in && out && in->length && in->memblock && (in->length % r->i_sz) == 0);
@@ -109,7 +109,7 @@ void resampler_run(struct resampler *r, const struct memchunk *in, struct memchu
         eff_ons = ons;
     }
     
-    out->memblock = memblock_new(out->length = (ons*r->o_sz));
+    out->memblock = pa_memblock_new(out->length = (ons*r->o_sz));
     out->index = 0;
     assert(out->memblock);
 

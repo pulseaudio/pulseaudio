@@ -1,6 +1,6 @@
 #ifndef foomainhfoo
 #define foomainhfoo
 
-extern int stdin_inuse, stdout_inuse;
+extern int pa_stdin_inuse, pa_stdout_inuse;
 
 #endif

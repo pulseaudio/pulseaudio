@@ -20,10 +20,10 @@
 struct pa_context {
     char *name;
     struct pa_mainloop_api* mainloop;
-    struct socket_client *client;
-    struct pstream *pstream;
-    struct pdispatch *pdispatch;
-    struct dynarray *streams;
+    struct pa_socket_client *client;
+    struct pa_pstream *pstream;
+    struct pa_pdispatch *pdispatch;
+    struct pa_dynarray *streams;
     struct pa_stream *first_stream;
     uint32_t ctag;
     uint32_t errno;
@@ -59,9 +59,9 @@ struct pa_stream {
     void *die_userdata;
 };
 
-static int command_request(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata);
+static int command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
-static const struct pdispatch_command command_table[PA_COMMAND_MAX] = {
+static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
     [PA_COMMAND_REPLY] = { NULL },
     [PA_COMMAND_CREATE_PLAYBACK_STREAM] = { NULL },
@@ -82,7 +82,7 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->client = NULL;
     c->pstream = NULL;
     c->pdispatch = NULL;
-    c->streams = dynarray_new();
+    c->streams = pa_dynarray_new();
     assert(c->streams);
     c->first_stream = NULL;
     c->errno = PA_ERROR_OK;
@@ -105,13 +105,13 @@ void pa_context_free(struct pa_context *c) {
         pa_stream_free(c->first_stream);
     
     if (c->client)
-        socket_client_free(c->client);
+        pa_socket_client_free(c->client);
     if (c->pdispatch)
-        pdispatch_free(c->pdispatch);
+        pa_pdispatch_free(c->pdispatch);
     if (c->pstream)
-        pstream_free(c->pstream);
+        pa_pstream_free(c->pstream);
     if (c->streams)
-        dynarray_free(c->streams, NULL, NULL);
+        pa_dynarray_free(c->streams, NULL, NULL);
         
     free(c->name);
     free(c);
@@ -141,7 +141,7 @@ static void context_dead(struct pa_context *c) {
         c->die_callback(c, c->die_userdata);
 }
 
-static void pstream_die_callback(struct pstream *p, void *userdata) {
+static void pstream_die_callback(struct pa_pstream *p, void *userdata) {
     struct pa_context *c = userdata;
     assert(p && c);
 
@@ -152,11 +152,11 @@ static void pstream_die_callback(struct pstream *p, void *userdata) {
     context_dead(c);
 }
 
-static int pstream_packet_callback(struct pstream *p, struct packet *packet, void *userdata) {
+static int pstream_packet_callback(struct pa_pstream *p, struct pa_packet *packet, void *userdata) {
     struct pa_context *c = userdata;
     assert(p && packet && c);
 
-    if (pdispatch_run(c->pdispatch, packet, c) < 0) {
+    if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
         fprintf(stderr, "polyp.c: invalid packet.\n");
         return -1;
     }
@@ -164,12 +164,12 @@ static int pstream_packet_callback(struct pstream *p, struct packet *packet, voi
     return 0;
 }
 
-static int pstream_memblock_callback(struct pstream *p, uint32_t channel, int32_t delta, struct memchunk *chunk, void *userdata) {
+static int pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata) {
     struct pa_context *c = userdata;
     struct pa_stream *s;
     assert(p && chunk && c && chunk->memblock && chunk->memblock->data);
 
-    if (!(s = dynarray_get(c->streams, channel)))
+    if (!(s = pa_dynarray_get(c->streams, channel)))
         return -1;
 
     if (s->read_callback)
@@ -178,11 +178,11 @@ static int pstream_memblock_callback(struct pstream *p, uint32_t channel, int32_
     return 0;
 }
 
-static void on_connection(struct socket_client *client, struct iochannel*io, void *userdata) {
+static void on_connection(struct pa_socket_client *client, struct pa_iochannel*io, void *userdata) {
     struct pa_context *c = userdata;
     assert(client && io && c && c->state == CONTEXT_CONNECTING);
 
-    socket_client_free(client);
+    pa_socket_client_free(client);
     c->client = NULL;
 
     if (!io) {
@@ -195,13 +195,13 @@ static void on_connection(struct socket_client *client, struct iochannel*io, voi
         return;
     }
     
-    c->pstream = pstream_new(c->mainloop, io);
+    c->pstream = pa_pstream_new(c->mainloop, io);
     assert(c->pstream);
-    pstream_set_die_callback(c->pstream, pstream_die_callback, c);
-    pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
-    pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
+    pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);
+    pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
+    pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
     
-    c->pdispatch = pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
+    c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
     assert(c->pdispatch);
 
     c->state = CONTEXT_READY;
@@ -214,7 +214,7 @@ int pa_context_connect(struct pa_context *c, const char *server, void (*complete
     assert(c && c->state == CONTEXT_UNCONNECTED);
 
     assert(!c->client);
-    if (!(c->client = socket_client_new_unix(c->mainloop, server ? server : DEFAULT_SERVER))) {
+    if (!(c->client = pa_socket_client_new_unix(c->mainloop, server ? server : DEFAULT_SERVER))) {
         c->errno = PA_ERROR_CONNECTIONREFUSED;
         return -1;
     }
@@ -222,7 +222,7 @@ int pa_context_connect(struct pa_context *c, const char *server, void (*complete
     c->connect_complete_callback = complete;
     c->connect_complete_userdata = userdata;
     
-    socket_client_set_callback(c->client, on_connection, c);
+    pa_socket_client_set_callback(c->client, on_connection, c);
     c->state = CONTEXT_CONNECTING;
 
     return 0;
@@ -249,20 +249,20 @@ void pa_context_set_die_callback(struct pa_context *c, void (*cb)(struct pa_cont
     c->die_userdata = userdata;
 }
 
-static int command_request(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata) {
+static int command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct pa_stream *s;
     struct pa_context *c = userdata;
     uint32_t bytes, channel;
     assert(pd && command == PA_COMMAND_REQUEST && t && c);
 
-    if (tagstruct_getu32(t, &channel) < 0 ||
-        tagstruct_getu32(t, &bytes) < 0 ||
-        !tagstruct_eof(t)) {
+    if (pa_tagstruct_getu32(t, &channel) < 0 ||
+        pa_tagstruct_getu32(t, &bytes) < 0 ||
+        !pa_tagstruct_eof(t)) {
         c->errno = PA_ERROR_PROTOCOL;
         return -1;
     }
     
-    if (!(s = dynarray_get(c->streams, channel))) {
+    if (!(s = pa_dynarray_get(c->streams, channel))) {
         c->errno = PA_ERROR_PROTOCOL;
         return -1;
     }
@@ -277,7 +277,7 @@ static int command_request(struct pdispatch *pd, uint32_t command, uint32_t tag,
     return 0;
 }
 
-static int create_playback_callback(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata) {
+static int create_playback_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     int ret = 0;
     struct pa_stream *s = userdata;
     assert(pd && s && s->state == STREAM_CREATING);
@@ -286,7 +286,7 @@ static int create_playback_callback(struct pdispatch *pd, uint32_t command, uint
         struct pa_context *c = s->context;
         assert(c);
 
-        if (command == PA_COMMAND_ERROR && tagstruct_getu32(t, &s->context->errno) < 0) {
+        if (command == PA_COMMAND_ERROR && pa_tagstruct_getu32(t, &s->context->errno) < 0) {
             s->context->errno = PA_ERROR_PROTOCOL;
             ret = -1;
         } else if (command == PA_COMMAND_TIMEOUT) {
@@ -297,16 +297,16 @@ static int create_playback_callback(struct pdispatch *pd, uint32_t command, uint
         goto fail;
     }
 
-    if (tagstruct_getu32(t, &s->channel) < 0 ||
-        tagstruct_getu32(t, &s->device_index) < 0 ||
-        !tagstruct_eof(t)) {
+    if (pa_tagstruct_getu32(t, &s->channel) < 0 ||
+        pa_tagstruct_getu32(t, &s->device_index) < 0 ||
+        !pa_tagstruct_eof(t)) {
         s->context->errno = PA_ERROR_PROTOCOL;
         ret = -1;
         goto fail;
     }
 
     s->channel_valid = 1;
-    dynarray_put(s->context->streams, s->channel, s);
+    pa_dynarray_put(s->context->streams, s->channel, s);
     
     s->state = STREAM_READY;
     assert(s->create_complete_callback);
@@ -331,7 +331,7 @@ int pa_stream_new(
     void *userdata) {
     
     struct pa_stream *s;
-    struct tagstruct *t;
+    struct pa_tagstruct *t;
     uint32_t tag;
 
     assert(c && name && ss && c->state == CONTEXT_READY && complete);
@@ -356,21 +356,21 @@ int pa_stream_new(
     s->device_index = (uint32_t) -1;
     s->direction = dir;
 
-    t = tagstruct_new(NULL, 0);
+    t = pa_tagstruct_new(NULL, 0);
     assert(t);
     
-    tagstruct_putu32(t, dir == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM);
-    tagstruct_putu32(t, tag = c->ctag++);
-    tagstruct_puts(t, name);
-    tagstruct_put_sample_spec(t, ss);
-    tagstruct_putu32(t, (uint32_t) -1);
-    tagstruct_putu32(t, attr ? attr->queue_length : DEFAULT_QUEUE_LENGTH);
-    tagstruct_putu32(t, attr ? attr->max_length  : DEFAULT_MAX_LENGTH);
-    tagstruct_putu32(t, attr ? attr->prebuf : DEFAULT_PREBUF);
+    pa_tagstruct_putu32(t, dir == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_puts(t, name);
+    pa_tagstruct_put_sample_spec(t, ss);
+    pa_tagstruct_putu32(t, (uint32_t) -1);
+    pa_tagstruct_putu32(t, attr ? attr->queue_length : DEFAULT_QUEUE_LENGTH);
+    pa_tagstruct_putu32(t, attr ? attr->max_length  : DEFAULT_MAX_LENGTH);
+    pa_tagstruct_putu32(t, attr ? attr->prebuf : DEFAULT_PREBUF);
 
-    pstream_send_tagstruct(c->pstream, t);
+    pa_pstream_send_tagstruct(c->pstream, t);
 
-    pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, create_playback_callback, s);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, create_playback_callback, s);
     
     s->next = c->first_stream;
     if (s->next)
@@ -385,17 +385,17 @@ void pa_stream_free(struct pa_stream *s) {
     assert(s && s->context);
     
     if (s->channel_valid) {
-        struct tagstruct *t = tagstruct_new(NULL, 0);
+        struct pa_tagstruct *t = pa_tagstruct_new(NULL, 0);
         assert(t);
     
-        tagstruct_putu32(t, PA_COMMAND_DELETE_PLAYBACK_STREAM);
-        tagstruct_putu32(t, s->context->ctag++);
-        tagstruct_putu32(t, s->channel);
-        pstream_send_tagstruct(s->context->pstream, t);
+        pa_tagstruct_putu32(t, PA_COMMAND_DELETE_PLAYBACK_STREAM);
+        pa_tagstruct_putu32(t, s->context->ctag++);
+        pa_tagstruct_putu32(t, s->channel);
+        pa_pstream_send_tagstruct(s->context->pstream, t);
     }
     
     if (s->channel_valid)
-        dynarray_put(s->context->streams, s->channel, NULL);
+        pa_dynarray_put(s->context->streams, s->channel, NULL);
 
     if (s->next)
         s->next->previous = s->previous;
@@ -414,17 +414,17 @@ void pa_stream_set_write_callback(struct pa_stream *s, void (*cb)(struct pa_stre
 }
 
 void pa_stream_write(struct pa_stream *s, const void *data, size_t length) {
-    struct memchunk chunk;
+    struct pa_memchunk chunk;
     assert(s && s->context && data && length);
 
-    chunk.memblock = memblock_new(length);
+    chunk.memblock = pa_memblock_new(length);
     assert(chunk.memblock && chunk.memblock->data);
     memcpy(chunk.memblock->data, data, length);
     chunk.index = 0;
     chunk.length = length;
 
-    pstream_send_memblock(s->context->pstream, s->channel, 0, &chunk);
-    memblock_unref(chunk.memblock);
+    pa_pstream_send_memblock(s->context->pstream, s->channel, 0, &chunk);
+    pa_memblock_unref(chunk.memblock);
 
     /*fprintf(stderr, "Sent %u bytes\n", length);*/
     

@@ -5,14 +5,14 @@
 #include "mainloop-api.h"
 #include "iochannel.h"
 
-struct socket_server;
+struct pa_socket_server;
 
-struct socket_server* socket_server_new(struct pa_mainloop_api *m, int fd);
-struct socket_server* socket_server_new_unix(struct pa_mainloop_api *m, const char *filename);
-struct socket_server* socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port);
+struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd);
+struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename);
+struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port);
 
-void socket_server_free(struct socket_server*s);
+void pa_socket_server_free(struct pa_socket_server*s);
 
-void socket_server_set_callback(struct socket_server*s, void (*on_connection)(struct socket_server*s, struct iochannel *io, void *userdata), void *userdata);
+void pa_socket_server_set_callback(struct pa_socket_server*s, void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata), void *userdata);
 
 #endif

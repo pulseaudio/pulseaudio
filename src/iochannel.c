@@ -6,11 +6,11 @@
 #include "iochannel.h"
 #include "util.h"
 
-struct iochannel {
+struct pa_iochannel {
     int ifd, ofd;
     struct pa_mainloop_api* mainloop;
 
-    void (*callback)(struct iochannel*io, void *userdata);
+    void (*callback)(struct pa_iochannel*io, void *userdata);
     void*userdata;
     
     int readable;
@@ -21,7 +21,7 @@ struct iochannel {
     void* input_source, *output_source;
 };
 
-static void enable_mainloop_sources(struct iochannel *io) {
+static void enable_mainloop_sources(struct pa_iochannel *io) {
     assert(io);
 
     if (io->input_source == io->output_source) {
@@ -43,7 +43,7 @@ static void enable_mainloop_sources(struct iochannel *io) {
 }
 
 static void callback(struct pa_mainloop_api* m, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
-    struct iochannel *io = userdata;
+    struct pa_iochannel *io = userdata;
     int changed = 0;
     assert(m && fd >= 0 && events && userdata);
 
@@ -67,11 +67,11 @@ static void callback(struct pa_mainloop_api* m, void *id, int fd, enum pa_mainlo
     }
 }
 
-struct iochannel* iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd) {
-    struct iochannel *io;
+struct pa_iochannel* pa_iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd) {
+    struct pa_iochannel *io;
     assert(m && (ifd >= 0 || ofd >= 0));
 
-    io = malloc(sizeof(struct iochannel));
+    io = malloc(sizeof(struct pa_iochannel));
     io->ifd = ifd;
     io->ofd = ofd;
     io->mainloop = m;
@@ -84,18 +84,18 @@ struct iochannel* iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd) {
 
     if (ifd == ofd) {
         assert(ifd >= 0);
-        make_nonblock_fd(io->ifd);
+        pa_make_nonblock_fd(io->ifd);
         io->input_source = io->output_source = m->source_io(m, ifd, PA_MAINLOOP_API_IO_EVENT_BOTH, callback, io);
     } else {
 
         if (ifd >= 0) {
-            make_nonblock_fd(io->ifd);
+            pa_make_nonblock_fd(io->ifd);
             io->input_source = m->source_io(m, ifd, PA_MAINLOOP_API_IO_EVENT_INPUT, callback, io);
         } else
             io->input_source = NULL;
 
         if (ofd >= 0) {
-            make_nonblock_fd(io->ofd);
+            pa_make_nonblock_fd(io->ofd);
             io->output_source = m->source_io(m, ofd, PA_MAINLOOP_API_IO_EVENT_OUTPUT, callback, io);
         } else
             io->output_source = NULL;
@@ -104,7 +104,7 @@ struct iochannel* iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd) {
     return io;
 }
 
-void iochannel_free(struct iochannel*io) {
+void pa_iochannel_free(struct pa_iochannel*io) {
     assert(io);
 
     if (!io->no_close) {
@@ -122,17 +122,17 @@ void iochannel_free(struct iochannel*io) {
     free(io);
 }
 
-int iochannel_is_readable(struct iochannel*io) {
+int pa_iochannel_is_readable(struct pa_iochannel*io) {
     assert(io);
     return io->readable;
 }
 
-int iochannel_is_writable(struct iochannel*io) {
+int pa_iochannel_is_writable(struct pa_iochannel*io) {
     assert(io);
     return io->writable;
 }
 
-ssize_t iochannel_write(struct iochannel*io, const void*data, size_t l) {
+ssize_t pa_iochannel_write(struct pa_iochannel*io, const void*data, size_t l) {
     ssize_t r;
     assert(io && data && l && io->ofd >= 0);
 
@@ -144,7 +144,7 @@ ssize_t iochannel_write(struct iochannel*io, const void*data, size_t l) {
     return r;
 }
 
-ssize_t iochannel_read(struct iochannel*io, void*data, size_t l) {
+ssize_t pa_iochannel_read(struct pa_iochannel*io, void*data, size_t l) {
     ssize_t r;
     
     assert(io && data && io->ifd >= 0);
@@ -157,18 +157,18 @@ ssize_t iochannel_read(struct iochannel*io, void*data, size_t l) {
     return r;
 }
 
-void iochannel_set_callback(struct iochannel*io, void (*callback)(struct iochannel*io, void *userdata), void *userdata) {
+void pa_iochannel_set_callback(struct pa_iochannel*io, void (*callback)(struct pa_iochannel*io, void *userdata), void *userdata) {
     assert(io);
     io->callback = callback;
     io->userdata = userdata;
 }
 
-void iochannel_set_noclose(struct iochannel*io, int b) {
+void pa_iochannel_set_noclose(struct pa_iochannel*io, int b) {
     assert(io);
     io->no_close = b;
 }
 
-void iochannel_peer_to_string(struct iochannel*io, char*s, size_t l) {
+void pa_iochannel_peer_to_string(struct pa_iochannel*io, char*s, size_t l) {
     assert(io && s && l);
-    peer_to_string(s, l, io->ifd);
+    pa_peer_to_string(s, l, io->ifd);
 }

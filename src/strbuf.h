@@ -1,14 +1,14 @@
 #ifndef foostrbufhfoo
 #define foostrbufhfoo
 
-struct strbuf;
+struct pa_strbuf;
 
-struct strbuf *strbuf_new(void);
-void strbuf_free(struct strbuf *sb);
-char *strbuf_tostring(struct strbuf *sb);
-char *strbuf_tostring_free(struct strbuf *sb);
+struct pa_strbuf *pa_strbuf_new(void);
+void pa_strbuf_free(struct pa_strbuf *sb);
+char *pa_strbuf_tostring(struct pa_strbuf *sb);
+char *pa_strbuf_tostring_free(struct pa_strbuf *sb);
 
-int strbuf_printf(struct strbuf *sb, const char *format, ...);
-void strbuf_puts(struct strbuf *sb, const char *t);
+int pa_strbuf_printf(struct pa_strbuf *sb, const char *format, ...);
+void pa_strbuf_puts(struct pa_strbuf *sb, const char *t);
 
 #endif

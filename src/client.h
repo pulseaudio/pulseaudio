@@ -3,28 +3,28 @@
 
 #include "core.h"
 
-struct client {
+struct pa_client {
     uint32_t index;
 
     char *name;
-    struct core *core;
+    struct pa_core *core;
     const char *protocol_name;
 
-    void (*kill)(struct client *c);
+    void (*kill)(struct pa_client *c);
     void *userdata;
 };
 
-struct client *client_new(struct core *c, const char *protocol_name, char *name);
+struct pa_client *pa_client_new(struct pa_core *c, const char *protocol_name, char *name);
 
 /* This function should be called only by the code that created the client */
-void client_free(struct client *c);
+void pa_client_free(struct pa_client *c);
 
 /* Code that didn't create the client should call this function to
  * request destruction of the client */
-void client_kill(struct client *c);
+void pa_client_kill(struct pa_client *c);
 
-char *client_list_to_string(struct core *c);
+char *pa_client_list_to_string(struct pa_core *c);
 
-void client_rename(struct client *c, const char *name);
+void pa_client_rename(struct pa_client *c, const char *name);
 
 #endif

@@ -8,20 +8,20 @@
 #include "namereg.h"
 
 struct namereg_entry {
-    enum namereg_type type;
+    enum pa_namereg_type type;
     char *name;
     void *data;
 };
 
-void namereg_free(struct core *c) {
+void pa_namereg_free(struct pa_core *c) {
     assert(c);
     if (!c->namereg)
         return;
-    assert(hashset_ncontents(c->namereg) == 0);
-    hashset_free(c->namereg, NULL, NULL);
+    assert(pa_hashset_ncontents(c->namereg) == 0);
+    pa_hashset_free(c->namereg, NULL, NULL);
 }
 
-const char *namereg_register(struct core *c, const char *name, enum namereg_type type, void *data, int fail) {
+const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_namereg_type type, void *data, int fail) {
     struct namereg_entry *e;
     char *n = NULL;
     int r;
@@ -29,11 +29,11 @@ const char *namereg_register(struct core *c, const char *name, enum namereg_type
     assert(c && name && data);
 
     if (!c->namereg) {
-        c->namereg = hashset_new(idxset_string_hash_func, idxset_string_compare_func);
+        c->namereg = pa_hashset_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
         assert(c->namereg);
     }
 
-    if ((e = hashset_get(c->namereg, name)) && fail)
+    if ((e = pa_hashset_get(c->namereg, name)) && fail)
         return NULL;
 
     if (!e)
@@ -47,7 +47,7 @@ const char *namereg_register(struct core *c, const char *name, enum namereg_type
         for (i = 1; i <= 99; i++) {
             snprintf(n, l+2, "%s%u", name, i);
 
-            if (!(e = hashset_get(c->namereg, n)))
+            if (!(e = pa_hashset_get(c->namereg, n)))
                 break;
         }
 
@@ -64,36 +64,36 @@ const char *namereg_register(struct core *c, const char *name, enum namereg_type
     e->name = n;
     e->data = data;
 
-    r = hashset_put(c->namereg, e->name, e);
+    r = pa_hashset_put(c->namereg, e->name, e);
     assert (r >= 0);
 
     return e->name;
     
 }
 
-void namereg_unregister(struct core *c, const char *name) {
+void pa_namereg_unregister(struct pa_core *c, const char *name) {
     struct namereg_entry *e;
     int r;
     assert(c && name);
 
-    e = hashset_get(c->namereg, name);
+    e = pa_hashset_get(c->namereg, name);
     assert(e);
 
-    r = hashset_remove(c->namereg, name);
+    r = pa_hashset_remove(c->namereg, name);
     assert(r >= 0);
 
     free(e->name);
     free(e);
 }
 
-void* namereg_get(struct core *c, const char *name, enum namereg_type type) {
+void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type type) {
     struct namereg_entry *e;
     uint32_t index;
     char *x = NULL;
     void *d = NULL;
     assert(c && name);
 
-    if ((e = hashset_get(c->namereg, name)))
+    if ((e = pa_hashset_get(c->namereg, name)))
         if (e->type == e->type)
             return e->data;
 
@@ -102,10 +102,10 @@ void* namereg_get(struct core *c, const char *name, enum namereg_type type) {
     if (!x || *x != 0)
         return NULL;
 
-    if (type == NAMEREG_SINK)
-        d = idxset_get_by_index(c->sinks, index);
-    else if (type == NAMEREG_SOURCE)
-        d = idxset_get_by_index(c->sources, index);
+    if (type == PA_NAMEREG_SINK)
+        d = pa_idxset_get_by_index(c->sinks, index);
+    else if (type == PA_NAMEREG_SOURCE)
+        d = pa_idxset_get_by_index(c->sources, index);
 
     return d;
 }

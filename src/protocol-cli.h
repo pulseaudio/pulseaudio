@@ -4,9 +4,9 @@
 #include "core.h"
 #include "socket-server.h"
 
-struct protocol_cli;
+struct pa_protocol_cli;
 
-struct protocol_cli* protocol_cli_new(struct core *core, struct socket_server *server);
-void protocol_cli_free(struct protocol_cli *n);
+struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_socket_server *server);
+void pa_protocol_cli_free(struct pa_protocol_cli *n);
 
 #endif

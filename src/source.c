@@ -8,15 +8,16 @@
 #include "strbuf.h"
 #include "namereg.h"
 
-struct source* source_new(struct core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
-    struct source *s;
+struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
+    struct pa_source *s;
+    char st[256];
     int r;
     assert(core && spec);
 
-    s = malloc(sizeof(struct source));
+    s = malloc(sizeof(struct pa_source));
     assert(s);
 
-    if (!(name = namereg_register(core, name, NAMEREG_SOURCE, s, fail))) {
+    if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SOURCE, s, fail))) {
         free(s);
         return NULL;
     }
@@ -24,33 +25,34 @@ struct source* source_new(struct core *core, const char *name, int fail, const s
     s->name = strdup(name);
     s->core = core;
     s->sample_spec = *spec;
-    s->outputs = idxset_new(NULL, NULL);
+    s->outputs = pa_idxset_new(NULL, NULL);
 
     s->notify = NULL;
     s->userdata = NULL;
 
-    r = idxset_put(core->sources, s, &s->index);
-    assert(s->index != IDXSET_INVALID && r >= 0);
+    r = pa_idxset_put(core->sources, s, &s->index);
+    assert(s->index != PA_IDXSET_INVALID && r >= 0);
 
-    fprintf(stderr, "source: created %u \"%s\"\n", s->index, s->name);
+    pa_sample_snprint(st, sizeof(st), spec);
+    fprintf(stderr, "source: created %u \"%s\" with sample spec \"%s\"\n", s->index, s->name, st);
     
     return s;
 }
 
-void source_free(struct source *s) {
-    struct source_output *o, *j = NULL;
+void pa_source_free(struct pa_source *s) {
+    struct pa_source_output *o, *j = NULL;
     assert(s);
 
-    namereg_unregister(s->core, s->name);
+    pa_namereg_unregister(s->core, s->name);
     
-    while ((o = idxset_first(s->outputs, NULL))) {
+    while ((o = pa_idxset_first(s->outputs, NULL))) {
         assert(o != j);
-        source_output_kill(o);
+        pa_source_output_kill(o);
         j = o;
     }
-    idxset_free(s->outputs, NULL, NULL);
+    pa_idxset_free(s->outputs, NULL, NULL);
     
-    idxset_remove_by_data(s->core->sources, s, NULL);
+    pa_idxset_remove_by_data(s->core->sources, s, NULL);
 
     fprintf(stderr, "source: freed %u \"%s\"\n", s->index, s->name);
 
@@ -58,7 +60,7 @@ void source_free(struct source *s) {
     free(s);
 }
 
-void source_notify(struct source*s) {
+void pa_source_notify(struct pa_source*s) {
     assert(s);
 
     if (s->notify)
@@ -66,50 +68,50 @@ void source_notify(struct source*s) {
 }
 
 static int do_post(void *p, uint32_t index, int *del, void*userdata) {
-    struct memchunk *chunk = userdata;
-    struct source_output *o = p;
+    struct pa_memchunk *chunk = userdata;
+    struct pa_source_output *o = p;
     assert(o && o->push && del && chunk);
 
-    source_output_push(o, chunk);
+    pa_source_output_push(o, chunk);
     return 0;
 }
 
-void source_post(struct source*s, struct memchunk *chunk) {
+void pa_source_post(struct pa_source*s, struct pa_memchunk *chunk) {
     assert(s && chunk);
 
-    idxset_foreach(s->outputs, do_post, chunk);
+    pa_idxset_foreach(s->outputs, do_post, chunk);
 }
 
-struct source* source_get_default(struct core *c) {
-    struct source *source;
+struct pa_source* pa_source_get_default(struct pa_core *c) {
+    struct pa_source *source;
     assert(c);
 
-    if ((source = idxset_get_by_index(c->sources, c->default_source_index)))
+    if ((source = pa_idxset_get_by_index(c->sources, c->default_source_index)))
         return source;
 
-    if (!(source = idxset_first(c->sources, &c->default_source_index)))
+    if (!(source = pa_idxset_first(c->sources, &c->default_source_index)))
         return NULL;
 
     fprintf(stderr, "core: default source vanished, setting to %u.\n", source->index);
     return source;
 }
 
-char *source_list_to_string(struct core *c) {
-    struct strbuf *s;
-    struct source *source, *default_source;
-    uint32_t index = IDXSET_INVALID;
+char *pa_source_list_to_string(struct pa_core *c) {
+    struct pa_strbuf *s;
+    struct pa_source *source, *default_source;
+    uint32_t index = PA_IDXSET_INVALID;
     assert(c);
 
-    s = strbuf_new();
+    s = pa_strbuf_new();
     assert(s);
 
-    strbuf_printf(s, "%u source(s) available.\n", idxset_ncontents(c->sources));
+    pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_ncontents(c->sources));
 
-    default_source = source_get_default(c);
+    default_source = pa_source_get_default(c);
     
-    for (source = idxset_first(c->sources, &index); source; source = idxset_next(c->sources, &index))
-        strbuf_printf(s, "  %c index: %u, name: <%s>\n", source == default_source ? '*' : ' ', source->index, source->name);
+    for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index))
+        pa_strbuf_printf(s, "  %c index: %u, name: <%s>\n", source == default_source ? '*' : ' ', source->index, source->name);
     
-    return strbuf_tostring_free(s);
+    return pa_strbuf_tostring_free(s);
 }
 

@@ -1,7 +1,7 @@
 #ifndef foosourcehfoo
 #define foosourcehfoo
 
-struct source;
+struct pa_source;
 
 #include <inttypes.h>
 #include "core.h"
@@ -10,28 +10,28 @@ struct source;
 #include "memblock.h"
 #include "memchunk.h"
 
-struct source {
+struct pa_source {
     uint32_t index;
     
     char *name;
-    struct core *core;
+    struct pa_core *core;
     struct pa_sample_spec sample_spec;
-    struct idxset *outputs;
+    struct pa_idxset *outputs;
 
-    void (*notify)(struct source*source);
+    void (*notify)(struct pa_source*source);
     void *userdata;
 };
 
-struct source* source_new(struct core *core, const char *name, int fail, const struct pa_sample_spec *spec);
-void source_free(struct source *s);
+struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec);
+void pa_source_free(struct pa_source *s);
 
 /* Pass a new memory block to all output streams */
-void source_post(struct source*s, struct memchunk *b);
+void pa_source_post(struct pa_source*s, struct pa_memchunk *b);
 
-void source_notify(struct source *s);
+void pa_source_notify(struct pa_source *s);
 
-char *source_list_to_string(struct core *c);
+char *pa_source_list_to_string(struct pa_core *c);
 
-struct source* source_get_default(struct core *c);
+struct pa_source* pa_source_get_default(struct pa_core *c);
 
 #endif

@@ -6,28 +6,28 @@
 
 #include "core.h"
 
-struct module {
-    struct core *core;
+struct pa_module {
+    struct pa_core *core;
     char *name, *argument;
     uint32_t index;
 
     lt_dlhandle dl;
     
-    int (*init)(struct core *c, struct module*m);
-    void (*done)(struct core *c, struct module*m);
+    int (*init)(struct pa_core *c, struct pa_module*m);
+    void (*done)(struct pa_core *c, struct pa_module*m);
 
     void *userdata;
 };
 
-struct module* module_load(struct core *c, const char *name, const char*argument);
-void module_unload(struct core *c, struct module *m);
-void module_unload_by_index(struct core *c, uint32_t index);
+struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char*argument);
+void pa_module_unload(struct pa_core *c, struct pa_module *m);
+void pa_module_unload_by_index(struct pa_core *c, uint32_t index);
 
-void module_unload_all(struct core *c);
+void pa_module_unload_all(struct pa_core *c);
 
-char *module_list_to_string(struct core *c);
+char *pa_module_list_to_string(struct pa_core *c);
 
-void module_unload_request(struct core *c, struct module *m);
+void pa_module_unload_request(struct pa_core *c, struct pa_module *m);
 
 
 #endif

@@ -63,8 +63,8 @@ int pa_signal_init(struct pa_mainloop_api *a) {
         return -1;
     }
 
-    make_nonblock_fd(signal_pipe[0]);
-    make_nonblock_fd(signal_pipe[1]);
+    pa_make_nonblock_fd(signal_pipe[0]);
+    pa_make_nonblock_fd(signal_pipe[1]);
 
     api = a;
     mainloop_source = api->source_io(api, signal_pipe[0], PA_MAINLOOP_API_IO_EVENT_INPUT, callback, NULL);

@@ -11,20 +11,20 @@ struct chunk {
     char text[];
 };
 
-struct strbuf {
+struct pa_strbuf {
     size_t length;
     struct chunk *head, *tail;
 };
 
-struct strbuf *strbuf_new(void) {
-    struct strbuf *sb = malloc(sizeof(struct strbuf));
+struct pa_strbuf *pa_strbuf_new(void) {
+    struct pa_strbuf *sb = malloc(sizeof(struct pa_strbuf));
     assert(sb);
     sb->length = 0;
     sb->head = sb->tail = NULL;
     return sb;
 }
 
-void strbuf_free(struct strbuf *sb) {
+void pa_strbuf_free(struct pa_strbuf *sb) {
     assert(sb);
     while (sb->head) {
         struct chunk *c = sb->head;
@@ -35,7 +35,7 @@ void strbuf_free(struct strbuf *sb) {
     free(sb);
 }
 
-char *strbuf_tostring(struct strbuf *sb) {
+char *pa_strbuf_tostring(struct pa_strbuf *sb) {
     char *t, *e;
     struct chunk *c;
     assert(sb);
@@ -54,15 +54,15 @@ char *strbuf_tostring(struct strbuf *sb) {
     return t;
 }
 
-char *strbuf_tostring_free(struct strbuf *sb) {
+char *pa_strbuf_tostring_free(struct pa_strbuf *sb) {
     char *t;
     assert(sb);
-    t = strbuf_tostring(sb);
-    strbuf_free(sb);
+    t = pa_strbuf_tostring(sb);
+    pa_strbuf_free(sb);
     return t;
 }
 
-void strbuf_puts(struct strbuf *sb, const char *t) {
+void pa_strbuf_puts(struct pa_strbuf *sb, const char *t) {
     struct chunk *c;
     size_t l;
     assert(sb && t);
@@ -87,7 +87,7 @@ void strbuf_puts(struct strbuf *sb, const char *t) {
     sb->length += l;
 }
 
-int strbuf_printf(struct strbuf *sb, const char *format, ...) {
+int pa_strbuf_printf(struct pa_strbuf *sb, const char *format, ...) {
     int r, size = 100;
     struct chunk *c = NULL;
 

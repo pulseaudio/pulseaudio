@@ -5,17 +5,17 @@
 #include "protocol-native-spec.h"
 
 struct reply_info {
-    struct pdispatch *pdispatch;
+    struct pa_pdispatch *pdispatch;
     struct reply_info *next, *previous;
-    int (*callback)(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata);
+    int (*callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
     void *userdata;
     uint32_t tag;
     void *mainloop_timeout;
 };
 
-struct pdispatch {
+struct pa_pdispatch {
     struct pa_mainloop_api *mainloop;
-    const struct pdispatch_command *command_table;
+    const struct pa_pdispatch_command *command_table;
     unsigned n_commands;
     struct reply_info *replies;
 };
@@ -37,13 +37,13 @@ static void reply_info_free(struct reply_info *r) {
     free(r);
 }
 
-struct pdispatch* pdispatch_new(struct pa_mainloop_api *mainloop, const struct pdispatch_command*table, unsigned entries) {
-    struct pdispatch *pd;
+struct pa_pdispatch* pa_pdispatch_new(struct pa_mainloop_api *mainloop, const struct pa_pdispatch_command*table, unsigned entries) {
+    struct pa_pdispatch *pd;
     assert(mainloop);
 
     assert((entries && table) || (!entries && !table));
     
-    pd = malloc(sizeof(struct pdispatch));
+    pd = malloc(sizeof(struct pa_pdispatch));
     assert(pd);
     pd->mainloop = mainloop;
     pd->command_table = table;
@@ -52,27 +52,27 @@ struct pdispatch* pdispatch_new(struct pa_mainloop_api *mainloop, const struct p
     return pd;
 }
 
-void pdispatch_free(struct pdispatch *pd) {
+void pa_pdispatch_free(struct pa_pdispatch *pd) {
     assert(pd);
     while (pd->replies)
         reply_info_free(pd->replies);
     free(pd);
 }
 
-int pdispatch_run(struct pdispatch *pd, struct packet*packet, void *userdata) {
+int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *userdata) {
     uint32_t tag, command;
     assert(pd && packet);
-    struct tagstruct *ts = NULL;
+    struct pa_tagstruct *ts = NULL;
     assert(pd && packet && packet->data);
 
     if (packet->length <= 8)
         goto fail;
 
-    ts = tagstruct_new(packet->data, packet->length);
+    ts = pa_tagstruct_new(packet->data, packet->length);
     assert(ts);
     
-    if (tagstruct_getu32(ts, &command) < 0 ||
-        tagstruct_getu32(ts, &tag) < 0)
+    if (pa_tagstruct_getu32(ts, &command) < 0 ||
+        pa_tagstruct_getu32(ts, &tag) < 0)
         goto fail;
 
     if (command == PA_COMMAND_ERROR || command == PA_COMMAND_REPLY) {
@@ -96,7 +96,7 @@ int pdispatch_run(struct pdispatch *pd, struct packet*packet, void *userdata) {
             goto fail;
 
     } else if (pd->command_table && command < pd->n_commands) {
-        const struct pdispatch_command *c = pd->command_table+command;
+        const struct pa_pdispatch_command *c = pd->command_table+command;
 
         if (!c->proc)
             goto fail;
@@ -106,13 +106,13 @@ int pdispatch_run(struct pdispatch *pd, struct packet*packet, void *userdata) {
     } else
         goto fail;
     
-    tagstruct_free(ts);    
+    pa_tagstruct_free(ts);    
         
     return 0;
 
 fail:
     if (ts)
-        tagstruct_free(ts);    
+        pa_tagstruct_free(ts);    
 
     return -1;
 }
@@ -125,7 +125,7 @@ static void timeout_callback(struct pa_mainloop_api*m, void *id, const struct ti
     reply_info_free(r);
 }
 
-void pdispatch_register_reply(struct pdispatch *pd, uint32_t tag, int timeout, int (*cb)(struct pdispatch *pd, uint32_t command, uint32_t tag, struct tagstruct *t, void *userdata), void *userdata) {
+void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int timeout, int (*cb)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata), void *userdata) {
     struct reply_info *r;
     struct timeval tv;
     assert(pd && cb);

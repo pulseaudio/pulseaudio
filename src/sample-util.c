@@ -4,26 +4,26 @@
 
 #include "sample-util.h"
 
-struct pa_sample_spec default_sample_spec = {
+struct pa_sample_spec pa_default_sample_spec = {
     .format = PA_SAMPLE_S16NE,
     .rate = 44100,
     .channels = 2
 };
 
-struct memblock *silence_memblock(struct memblock* b, struct pa_sample_spec *spec) {
+struct pa_memblock *pa_silence_memblock(struct pa_memblock* b, const struct pa_sample_spec *spec) {
     assert(b && b->data && spec);
-    memblock_assert_exclusive(b);
-    silence_memory(b->data, b->length, spec);
+    pa_memblock_assert_exclusive(b);
+    pa_silence_memory(b->data, b->length, spec);
     return b;
 }
 
-void silence_memchunk(struct memchunk *c, struct pa_sample_spec *spec) {
+void pa_silence_memchunk(struct pa_memchunk *c, const struct pa_sample_spec *spec) {
     assert(c && c->memblock && c->memblock->data && spec && c->length);
-    memblock_assert_exclusive(c->memblock);
-    silence_memory(c->memblock->data+c->index, c->length, spec);
+    pa_memblock_assert_exclusive(c->memblock);
+    pa_silence_memory(c->memblock->data+c->index, c->length, spec);
 }
 
-void silence_memory(void *p, size_t length, struct pa_sample_spec *spec) {
+void pa_silence_memory(void *p, size_t length, const struct pa_sample_spec *spec) {
     char c = 0;
     assert(p && length && spec);
 
@@ -47,7 +47,7 @@ void silence_memory(void *p, size_t length, struct pa_sample_spec *spec) {
     memset(p, c, length);
 }
 
-size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct pa_sample_spec *spec, uint32_t volume) {
+size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, size_t length, const struct pa_sample_spec *spec, uint32_t volume) {
     unsigned c, d;
     assert(channels && data && length && spec);
     assert(spec->format == PA_SAMPLE_S16NE);
@@ -65,22 +65,22 @@ size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, si
             if (d >= channels[c].chunk.length)
                 return d;
 
-            if (volume == VOLUME_MUTE)
+            if (volume == PA_VOLUME_MUTE)
                 v = 0;
             else {
                 v = *((int16_t*) (channels[c].chunk.memblock->data + channels[c].chunk.index + d));
 
-                if (volume != VOLUME_NORM)
-                    v = (int32_t) ((float)v*volume/VOLUME_NORM);
+                if (volume != PA_VOLUME_NORM)
+                    v = (int32_t) ((float)v*volume/PA_VOLUME_NORM);
             }
 
             sum += v;
         }
 
-        if (volume == VOLUME_MUTE)
+        if (volume == PA_VOLUME_MUTE)
             sum = 0;
-        else if (volume != VOLUME_NORM)
-            sum = (int32_t) ((float) sum*volume/VOLUME_NORM);
+        else if (volume != PA_VOLUME_NORM)
+            sum = (int32_t) ((float) sum*volume/PA_VOLUME_NORM);
         
         if (sum < -0x8000) sum = -0x8000;
         if (sum > 0x7FFF) sum = 0x7FFF;
@@ -91,18 +91,18 @@ size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, si
 }
 
 
-void volume_memchunk(struct memchunk*c, struct pa_sample_spec *spec, uint32_t volume) {
+void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec, uint32_t volume) {
     int16_t *d;
     size_t n;
     assert(c && spec && (c->length % pa_sample_size(spec) == 0));
     assert(spec->format == PA_SAMPLE_S16NE);
-    memblock_assert_exclusive(c->memblock);
+    pa_memblock_assert_exclusive(c->memblock);
 
-    if (volume == VOLUME_NORM)
+    if (volume == PA_VOLUME_NORM)
         return;
 
-    if (volume == VOLUME_MUTE) {
-        silence_memchunk(c, spec);
+    if (volume == PA_VOLUME_MUTE) {
+        pa_silence_memchunk(c, spec);
         return;
     }
 
@@ -110,7 +110,7 @@ void volume_memchunk(struct memchunk*c, struct pa_sample_spec *spec, uint32_t vo
         int32_t t = (int32_t)(*d);
 
         t *= volume;
-        t /= VOLUME_NORM;
+        t /= PA_VOLUME_NORM;
 
         if (t < -0x8000) t = -0x8000;
         if (t > 0x7FFF) t = 0x7FFF;
@@ -119,10 +119,10 @@ void volume_memchunk(struct memchunk*c, struct pa_sample_spec *spec, uint32_t vo
     }
 }
 
-uint32_t volume_multiply(uint32_t a, uint32_t b) {
+uint32_t pa_volume_multiply(uint32_t a, uint32_t b) {
     uint64_t p = a;
     p *= b;
-    p /= VOLUME_NORM;
+    p /= PA_VOLUME_NORM;
 
     return (uint32_t) p;
 }

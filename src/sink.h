@@ -1,7 +1,7 @@
 #ifndef foosinkhfoo
 #define foosinkhfoo
 
-struct sink;
+struct pa_sink;
 
 #include <inttypes.h>
 
@@ -10,37 +10,37 @@ struct sink;
 #include "idxset.h"
 #include "source.h"
 
-struct sink {
+struct pa_sink {
     uint32_t index;
 
     char *name;
-    struct core *core;
+    struct pa_core *core;
     struct pa_sample_spec sample_spec;
-    struct idxset *inputs;
+    struct pa_idxset *inputs;
 
-    struct source *monitor_source;
+    struct pa_source *monitor_source;
 
     uint32_t volume;
 
-    void (*notify)(struct sink*sink);
-    uint32_t (*get_latency)(struct sink *s);
+    void (*notify)(struct pa_sink*sink);
+    uint32_t (*get_latency)(struct pa_sink *s);
     void *userdata;
 };
 
-struct sink* sink_new(struct core *core, const char *name, int fail, const struct pa_sample_spec *spec);
-void sink_free(struct sink* s);
+struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec);
+void pa_sink_free(struct pa_sink* s);
 
-int sink_render(struct sink*s, size_t length, struct memchunk *result);
-int sink_render_into(struct sink*s, struct memchunk *target);
-void sink_render_into_full(struct sink *s, struct memchunk *target);
+int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result);
+int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target);
+void pa_sink_render_into_full(struct pa_sink *s, struct pa_memchunk *target);
 
-uint32_t sink_get_latency(struct sink *s);
+uint32_t pa_sink_get_latency(struct pa_sink *s);
 
-void sink_notify(struct sink*s);
+void pa_sink_notify(struct pa_sink*s);
 
-char *sink_list_to_string(struct core *core);
+char *pa_sink_list_to_string(struct pa_core *core);
 
-struct sink* sink_get_default(struct core *c);
+struct pa_sink* pa_sink_get_default(struct pa_core *c);
 
 
 

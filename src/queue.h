@@ -1,13 +1,13 @@
 #ifndef fooqueuehfoo
 #define fooqueuehfoo
 
-struct queue;
+struct pa_queue;
 
-struct queue* queue_new(void);
-void queue_free(struct queue* q, void (*destroy)(void *p, void *userdata), void *userdata);
-void queue_push(struct queue *q, void *p);
-void* queue_pop(struct queue *q);
+struct pa_queue* pa_queue_new(void);
+void pa_queue_free(struct pa_queue* q, void (*destroy)(void *p, void *userdata), void *userdata);
+void pa_queue_push(struct pa_queue *q, void *p);
+void* pa_queue_pop(struct pa_queue *q);
 
-int queue_is_empty(struct queue *q);
+int pa_queue_is_empty(struct pa_queue *q);
 
 #endif

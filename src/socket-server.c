@@ -13,20 +13,21 @@
 #include "socket-server.h"
 #include "util.h"
 
-struct socket_server {
+struct pa_socket_server {
     int fd;
     char *filename;
 
-    void (*on_connection)(struct socket_server*s, struct iochannel *io, void *userdata);
+    void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata);
     void *userdata;
 
     void *mainloop_source;
     struct pa_mainloop_api *mainloop;
+    enum { SOCKET_SERVER_GENERIC, SOCKET_SERVER_IPV4, SOCKET_SERVER_UNIX } type;
 };
 
 static void callback(struct pa_mainloop_api *mainloop, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
-    struct socket_server *s = userdata;
-    struct iochannel *io;
+    struct pa_socket_server *s = userdata;
+    struct pa_iochannel *io;
     int nfd;
     assert(s && s->mainloop == mainloop && s->mainloop_source == id && id && fd >= 0 && fd == s->fd && events == PA_MAINLOOP_API_IO_EVENT_INPUT);
 
@@ -41,18 +42,21 @@ static void callback(struct pa_mainloop_api *mainloop, void *id, int fd, enum pa
     }
 
     /* There should be a check for socket type here */
-    make_tcp_socket_low_delay(fd);
+    if (s->type == SOCKET_SERVER_IPV4) 
+        pa_make_tcp_socket_low_delay(fd);
+    else
+        pa_make_socket_low_delay(fd);
     
-    io = iochannel_new(s->mainloop, nfd, nfd);
+    io = pa_iochannel_new(s->mainloop, nfd, nfd);
     assert(io);
     s->on_connection(s, io, s->userdata);
 }
 
-struct socket_server* socket_server_new(struct pa_mainloop_api *m, int fd) {
-    struct socket_server *s;
+struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd) {
+    struct pa_socket_server *s;
     assert(m && fd >= 0);
     
-    s = malloc(sizeof(struct socket_server));
+    s = malloc(sizeof(struct pa_socket_server));
     assert(s);
     s->fd = fd;
     s->filename = NULL;
@@ -62,14 +66,16 @@ struct socket_server* socket_server_new(struct pa_mainloop_api *m, int fd) {
     s->mainloop = m;
     s->mainloop_source = m->source_io(m, fd, PA_MAINLOOP_API_IO_EVENT_INPUT, callback, s);
     assert(s->mainloop_source);
+
+    s->type = SOCKET_SERVER_GENERIC;
     
     return s;
 }
 
-struct socket_server* socket_server_new_unix(struct pa_mainloop_api *m, const char *filename) {
+struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename) {
     int fd = -1;
     struct sockaddr_un sa;
-    struct socket_server *s;
+    struct pa_socket_server *s;
     
     assert(m && filename);
 
@@ -82,7 +88,7 @@ struct socket_server* socket_server_new_unix(struct pa_mainloop_api *m, const ch
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
-    make_socket_low_delay(fd);
+    pa_make_socket_low_delay(fd);
     
     if (bind(fd, (struct sockaddr*) &sa, SUN_LEN(&sa)) < 0) {
         fprintf(stderr, "bind(): %s\n", strerror(errno));
@@ -94,12 +100,14 @@ struct socket_server* socket_server_new_unix(struct pa_mainloop_api *m, const ch
         goto fail;
     }
 
-    s = socket_server_new(m, fd);
+    s = pa_socket_server_new(m, fd);
     assert(s);
 
     s->filename = strdup(filename);
     assert(s->filename);
 
+    s->type = SOCKET_SERVER_UNIX;
+    
     return s;
                                                                                                                                                                          
 fail:
@@ -109,7 +117,8 @@ fail:
     return NULL;
 }
 
-struct socket_server* socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port) {
+struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port) {
+    struct pa_socket_server *ss;
     int fd = -1;
     struct sockaddr_in sa;
     int on = 1;
@@ -124,7 +133,7 @@ struct socket_server* socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
         fprintf(stderr, "setsockopt(): %s\n", strerror(errno));
 
-    make_tcp_socket_low_delay(fd);
+    pa_make_tcp_socket_low_delay(fd);
     
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
@@ -140,7 +149,10 @@ struct socket_server* socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t
         goto fail;
     }
 
-    return socket_server_new(m, fd);
+    if ((ss = pa_socket_server_new(m, fd)))
+        ss->type = SOCKET_SERVER_IPV4;
+
+    return ss;
     
 fail:
     if (fd >= 0)
@@ -149,7 +161,7 @@ fail:
     return NULL;
 }
 
-void socket_server_free(struct socket_server*s) {
+void pa_socket_server_free(struct pa_socket_server*s) {
     assert(s);
     close(s->fd);
 
@@ -164,7 +176,7 @@ void socket_server_free(struct socket_server*s) {
     free(s);
 }
 
-void socket_server_set_callback(struct socket_server*s, void (*on_connection)(struct socket_server*s, struct iochannel *io, void *userdata), void *userdata) {
+void pa_socket_server_set_callback(struct pa_socket_server*s, void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata), void *userdata) {
     assert(s);
 
     s->on_connection = on_connection;

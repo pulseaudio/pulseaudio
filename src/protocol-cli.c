@@ -4,55 +4,55 @@
 #include "protocol-cli.h"
 #include "cli.h"
 
-struct protocol_cli {
-    struct core *core;
-    struct socket_server*server;
-    struct idxset *connections;
+struct pa_protocol_cli {
+    struct pa_core *core;
+    struct pa_socket_server*server;
+    struct pa_idxset *connections;
 };
 
-static void cli_eof_cb(struct cli*c, void*userdata) {
-    struct protocol_cli *p = userdata;
+static void cli_eof_cb(struct pa_cli*c, void*userdata) {
+    struct pa_protocol_cli *p = userdata;
     assert(p);
-    idxset_remove_by_data(p->connections, c, NULL);
-    cli_free(c);
+    pa_idxset_remove_by_data(p->connections, c, NULL);
+    pa_cli_free(c);
 }
 
-static void on_connection(struct socket_server*s, struct iochannel *io, void *userdata) {
-    struct protocol_cli *p = userdata;
-    struct cli *c;
+static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata) {
+    struct pa_protocol_cli *p = userdata;
+    struct pa_cli *c;
     assert(s && io && p);
 
-    c = cli_new(p->core, io);
+    c = pa_cli_new(p->core, io);
     assert(c);
-    cli_set_eof_callback(c, cli_eof_cb, p);
+    pa_cli_set_eof_callback(c, cli_eof_cb, p);
 
-    idxset_put(p->connections, c, NULL);
+    pa_idxset_put(p->connections, c, NULL);
 }
 
-struct protocol_cli* protocol_cli_new(struct core *core, struct socket_server *server) {
-    struct protocol_cli* p;
+struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_socket_server *server) {
+    struct pa_protocol_cli* p;
     assert(core && server);
 
-    p = malloc(sizeof(struct protocol_cli));
+    p = malloc(sizeof(struct pa_protocol_cli));
     assert(p);
     p->core = core;
     p->server = server;
-    p->connections = idxset_new(NULL, NULL);
+    p->connections = pa_idxset_new(NULL, NULL);
 
-    socket_server_set_callback(p->server, on_connection, p);
+    pa_socket_server_set_callback(p->server, on_connection, p);
     
     return p;
 }
 
 static void free_connection(void *p, void *userdata) {
     assert(p);
-    cli_free(p);
+    pa_cli_free(p);
 }
 
-void protocol_cli_free(struct protocol_cli *p) {
+void pa_protocol_cli_free(struct pa_protocol_cli *p) {
     assert(p);
 
-    idxset_free(p->connections, free_connection, NULL);
-    socket_server_free(p->server);
+    pa_idxset_free(p->connections, free_connection, NULL);
+    pa_socket_server_free(p->server);
     free(p);
 }

@@ -3,18 +3,18 @@
 
 #include "memblock.h"
 
-struct memchunk {
-    struct memblock *memblock;
+struct pa_memchunk {
+    struct pa_memblock *memblock;
     size_t index, length;
 };
 
-void memchunk_make_writable(struct memchunk *c);
+void pa_memchunk_make_writable(struct pa_memchunk *c);
 
-struct mcalign;
+struct pa_mcalign;
 
-struct mcalign *mcalign_new(size_t base);
-void mcalign_free(struct mcalign *m);
-void mcalign_push(struct mcalign *m, const struct memchunk *c);
-int mcalign_pop(struct mcalign *m, struct memchunk *c);
+struct pa_mcalign *pa_mcalign_new(size_t base);
+void pa_mcalign_free(struct pa_mcalign *m);
+void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c);
+int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c);
 
 #endif

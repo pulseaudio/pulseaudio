@@ -4,9 +4,9 @@
 #include "core.h"
 #include "socket-server.h"
 
-struct protocol_native;
+struct pa_protocol_native;
 
-struct protocol_native* protocol_native_new(struct core*core, struct socket_server *server);
-void protocol_native_free(struct protocol_native *n);
+struct pa_protocol_native* pa_protocol_native_new(struct pa_core*core, struct pa_socket_server *server);
+void pa_protocol_native_free(struct pa_protocol_native *n);
 
 #endif

@@ -4,14 +4,14 @@
 
 #include "dynarray.h"
 
-struct dynarray {
+struct pa_dynarray {
     void **data;
     unsigned n_allocated, n_entries;
 };
 
-struct dynarray* dynarray_new(void) {
-    struct dynarray *a;
-    a = malloc(sizeof(struct dynarray));
+struct pa_dynarray* pa_dynarray_new(void) {
+    struct pa_dynarray *a;
+    a = malloc(sizeof(struct pa_dynarray));
     assert(a);
     a->data = NULL;
     a->n_entries = 0;
@@ -19,7 +19,7 @@ struct dynarray* dynarray_new(void) {
     return a;
 }
 
-void dynarray_free(struct dynarray* a, void (*func)(void *p, void *userdata), void *userdata) {
+void pa_dynarray_free(struct pa_dynarray* a, void (*func)(void *p, void *userdata), void *userdata) {
     unsigned i;
     assert(a);
 
@@ -32,7 +32,7 @@ void dynarray_free(struct dynarray* a, void (*func)(void *p, void *userdata), vo
     free(a);
 }
 
-void dynarray_put(struct dynarray*a, unsigned i, void *p) {
+void pa_dynarray_put(struct pa_dynarray*a, unsigned i, void *p) {
     assert(a);
 
     if (i >= a->n_allocated) {
@@ -53,13 +53,13 @@ void dynarray_put(struct dynarray*a, unsigned i, void *p) {
         a->n_entries = i+1;
 }
 
-unsigned dynarray_append(struct dynarray*a, void *p) {
+unsigned pa_dynarray_append(struct pa_dynarray*a, void *p) {
     unsigned i = a->n_entries;
-    dynarray_put(a, i, p);
+    pa_dynarray_put(a, i, p);
     return i;
 }
 
-void *dynarray_get(struct dynarray*a, unsigned i) {
+void *pa_dynarray_get(struct pa_dynarray*a, unsigned i) {
     assert(a);
     if (i >= a->n_allocated)
         return NULL;
@@ -67,7 +67,7 @@ void *dynarray_get(struct dynarray*a, unsigned i) {
     return a->data[i];
 }
 
-unsigned dynarray_ncontents(struct dynarray*a) {
+unsigned pa_dynarray_ncontents(struct pa_dynarray*a) {
     assert(a);
     return a->n_entries;
 }

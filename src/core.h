@@ -5,17 +5,17 @@
 #include "hashset.h"
 #include "mainloop-api.h"
 
-struct core {
+struct pa_core {
     struct pa_mainloop_api *mainloop;
 
-    struct idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules;
+    struct pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules;
 
-    struct hashset *namereg;
+    struct pa_hashset *namereg;
     
     uint32_t default_source_index, default_sink_index;
 };
 
-struct core* core_new(struct pa_mainloop_api *m);
-void core_free(struct core*c);
+struct pa_core* pa_core_new(struct pa_mainloop_api *m);
+void pa_core_free(struct pa_core*c);
 
 #endif

@@ -16,7 +16,7 @@ enum tags {
     TAG_SAMPLE_SPEC = 'a'
 };
 
-struct tagstruct {
+struct pa_tagstruct {
     uint8_t *data;
     size_t length, allocated;
     size_t rindex;
@@ -24,12 +24,12 @@ struct tagstruct {
     int dynamic;
 };
 
-struct tagstruct *tagstruct_new(const uint8_t* data, size_t length) {
-    struct tagstruct*t;
+struct pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length) {
+    struct pa_tagstruct*t;
 
     assert(!data || (data && length));
     
-    t = malloc(sizeof(struct tagstruct));
+    t = malloc(sizeof(struct pa_tagstruct));
     assert(t);
     t->data = (uint8_t*) data;
     t->allocated = t->length = data ? length : 0;
@@ -38,14 +38,14 @@ struct tagstruct *tagstruct_new(const uint8_t* data, size_t length) {
     return t;
 }
     
-void tagstruct_free(struct tagstruct*t) {
+void pa_tagstruct_free(struct pa_tagstruct*t) {
     assert(t);
     if (t->dynamic)
         free(t->data);
     free(t);
 }
 
-uint8_t* tagstruct_free_data(struct tagstruct*t, size_t *l) {
+uint8_t* pa_tagstruct_free_data(struct pa_tagstruct*t, size_t *l) {
     uint8_t *p;
     assert(t && t->dynamic && l);
     p = t->data;
@@ -54,7 +54,7 @@ uint8_t* tagstruct_free_data(struct tagstruct*t, size_t *l) {
     return p;
 }
 
-static void extend(struct tagstruct*t, size_t l) {
+static void extend(struct pa_tagstruct*t, size_t l) {
     assert(t && t->dynamic);
 
     if (l <= t->allocated)
@@ -64,7 +64,7 @@ static void extend(struct tagstruct*t, size_t l) {
     assert(t->data);
 }
 
-void tagstruct_puts(struct tagstruct*t, const char *s) {
+void pa_tagstruct_puts(struct pa_tagstruct*t, const char *s) {
     size_t l;
     assert(t && s);
     l = strlen(s)+2;
@@ -74,7 +74,7 @@ void tagstruct_puts(struct tagstruct*t, const char *s) {
     t->length += l;
 }
 
-void tagstruct_putu32(struct tagstruct*t, uint32_t i) {
+void pa_tagstruct_putu32(struct pa_tagstruct*t, uint32_t i) {
     assert(t);
     extend(t, 5);
     t->data[t->length] = TAG_U32;
@@ -82,7 +82,7 @@ void tagstruct_putu32(struct tagstruct*t, uint32_t i) {
     t->length += 5;
 }
 
-void tagstruct_putu8(struct tagstruct*t, uint8_t c) {
+void pa_tagstruct_putu8(struct pa_tagstruct*t, uint8_t c) {
     assert(t);
     extend(t, 2);
     t->data[t->length] = TAG_U8;
@@ -90,7 +90,7 @@ void tagstruct_putu8(struct tagstruct*t, uint8_t c) {
     t->length += 2;
 }
 
-void tagstruct_put_sample_spec(struct tagstruct *t, const struct pa_sample_spec *ss) {
+void pa_tagstruct_put_sample_spec(struct pa_tagstruct *t, const struct pa_sample_spec *ss) {
     assert(t && ss);
     extend(t, 7);
     t->data[t->length] = TAG_SAMPLE_SPEC;
@@ -100,7 +100,7 @@ void tagstruct_put_sample_spec(struct tagstruct *t, const struct pa_sample_spec 
     t->length += 7;
 }
 
-int tagstruct_gets(struct tagstruct*t, const char **s) {
+int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s) {
     int error = 0;
     size_t n;
     char *c;
@@ -128,7 +128,7 @@ int tagstruct_gets(struct tagstruct*t, const char **s) {
     return 0;
 }
 
-int tagstruct_getu32(struct tagstruct*t, uint32_t *i) {
+int pa_tagstruct_getu32(struct pa_tagstruct*t, uint32_t *i) {
     assert(t && i);
 
     if (t->rindex+5 > t->length)
@@ -142,7 +142,7 @@ int tagstruct_getu32(struct tagstruct*t, uint32_t *i) {
     return 0;
 }
 
-int tagstruct_getu8(struct tagstruct*t, uint8_t *c) {
+int pa_tagstruct_getu8(struct pa_tagstruct*t, uint8_t *c) {
     assert(t && c);
 
     if (t->rindex+2 > t->length)
@@ -156,7 +156,7 @@ int tagstruct_getu8(struct tagstruct*t, uint8_t *c) {
     return 0;
 }
 
-int tagstruct_get_sample_spec(struct tagstruct *t, struct pa_sample_spec *ss) {
+int pa_tagstruct_get_sample_spec(struct pa_tagstruct *t, struct pa_sample_spec *ss) {
     assert(t && ss);
 
     if (t->rindex+7 > t->length)
@@ -174,12 +174,12 @@ int tagstruct_get_sample_spec(struct tagstruct *t, struct pa_sample_spec *ss) {
 }
 
 
-int tagstruct_eof(struct tagstruct*t) {
+int pa_tagstruct_eof(struct pa_tagstruct*t) {
     assert(t);
     return t->rindex >= t->length;
 }
 
-const uint8_t* tagstruct_data(struct tagstruct*t, size_t *l) {
+const uint8_t* pa_tagstruct_data(struct pa_tagstruct*t, size_t *l) {
     assert(t && t->dynamic && l);
     *l = t->length;
     return t->data;
