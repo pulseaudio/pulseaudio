@@ -188,7 +188,7 @@ int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *rss
     struct pa_sample_spec ss;
     assert(ma && rss);
 
-    ss = pa_default_sample_spec;
+    ss = *rss;
     if ((pa_modargs_get_value_u32(ma, "rate", &ss.rate)) < 0)
         return -1;
 

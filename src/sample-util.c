@@ -4,12 +4,6 @@
 
 #include "sample-util.h"
 
-struct pa_sample_spec pa_default_sample_spec = {
-    .format = PA_SAMPLE_S16NE,
-    .rate = 44100,
-    .channels = 2
-};
-
 struct pa_memblock *pa_silence_memblock(struct pa_memblock* b, const struct pa_sample_spec *spec) {
     assert(b && b->data && spec);
     pa_silence_memory(b->data, b->length, spec);

@@ -355,6 +355,7 @@ struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct p
     p->server = server;
     p->connections = pa_idxset_new(NULL, NULL);
 
+    p->sample_spec = core->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &p->sample_spec) < 0) {
         fprintf(stderr, "Failed to parse sample type specification.\n");
         goto fail;

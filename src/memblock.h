@@ -22,6 +22,7 @@ struct pa_memblock* pa_memblock_ref(struct pa_memblock*b);
 
 void pa_memblock_unref_fixed(struct pa_memblock*b);
 
-extern unsigned pa_memblock_count, pa_memblock_total;
+unsigned pa_memblock_get_count(void);
+unsigned pa_memblock_get_total(void);
 
 #endif

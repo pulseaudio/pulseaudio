@@ -101,6 +101,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
 
+    ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
         fprintf(stderr, __FILE__": invalid sample format specification\n");
         goto fail;

@@ -5,7 +5,7 @@
 
 #include "memblock.h"
 
-unsigned pa_memblock_count = 0, pa_memblock_total = 0;
+static unsigned memblock_count = 0, memblock_total = 0;
 
 struct pa_memblock *pa_memblock_new(size_t length) {
     struct pa_memblock *b = malloc(sizeof(struct pa_memblock)+length);
@@ -13,8 +13,8 @@ struct pa_memblock *pa_memblock_new(size_t length) {
     b->ref = 1;
     b->length = length;
     b->data = b+1;
-    pa_memblock_count++;
-    pa_memblock_total += length;
+    memblock_count++;
+    memblock_total += length;
     return b;
 }
 
@@ -24,8 +24,8 @@ struct pa_memblock *pa_memblock_new_fixed(void *d, size_t length) {
     b->ref = 1;
     b->length = length;
     b->data = d;
-    pa_memblock_count++;
-    pa_memblock_total += length;
+    memblock_count++;
+    memblock_total += length;
     return b;
 }
 
@@ -35,8 +35,8 @@ struct pa_memblock *pa_memblock_new_dynamic(void *d, size_t length) {
     b->ref = 1;
     b->length = length;
     b->data = d;
-    pa_memblock_count++;
-    pa_memblock_total += length;
+    memblock_count++;
+    memblock_total += length;
     return b;
 }
 
@@ -54,8 +54,8 @@ void pa_memblock_unref(struct pa_memblock*b) {
         if (b->type == PA_MEMBLOCK_DYNAMIC)
             free(b->data);
 
-        pa_memblock_count--;
-        pa_memblock_total -= b->length;
+        memblock_count--;
+        memblock_total -= b->length;
 
         free(b);
     }
@@ -79,3 +79,10 @@ void pa_memblock_unref_fixed(struct pa_memblock *b) {
     }
 }
 
+unsigned pa_memblock_get_count(void) {
+    return memblock_count;
+}
+
+unsigned pa_memblock_get_total(void) {
+    return memblock_total;
+}

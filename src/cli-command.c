@@ -161,7 +161,7 @@ static int pa_cli_command_source_outputs(struct pa_core *c, struct pa_tokenizer 
 
 static int pa_cli_command_stat(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
     assert(c && t);
-    pa_strbuf_printf(buf, "Memory blocks allocated: %u, total size: %u bytes.\n", pa_memblock_count, pa_memblock_total);
+    pa_strbuf_printf(buf, "Memory blocks allocated: %u, total size: %u bytes.\n", pa_memblock_get_count(), pa_memblock_get_total());
     return 0;
 }
 

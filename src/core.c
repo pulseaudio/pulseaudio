@@ -26,6 +26,10 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->modules = NULL;
     c->namereg = NULL;
 
+    c->default_sample_spec.format = PA_SAMPLE_S16NE;
+    c->default_sample_spec.rate = 44100;
+    c->default_sample_spec.channels = 2;
+    
     pa_check_for_sigpipe();
     
     return c;

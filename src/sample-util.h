@@ -5,10 +5,6 @@
 #include "memblock.h"
 #include "memchunk.h"
 
-#define PA_DEFAULT_SAMPLE_SPEC pa_default_sample_spec
-
-extern struct pa_sample_spec pa_default_sample_spec;
-
 #define PA_VOLUME_NORM (0x100)
 #define PA_VOLUME_MUTE (0)
 
