@@ -560,10 +560,12 @@ struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (stru
     uint32_t tag;
     assert(s && s->ref >= 1 && s->state == PA_STREAM_READY);
 
-    if (!s->corked && b)
-        s->ipol_usec = pa_stream_get_interpolated_time(s);
-    else if (s->corked && !b)
-        gettimeofday(&s->ipol_timestamp, NULL);
+    if (s->interpolate) {
+	    if (!s->corked && b)
+        	s->ipol_usec = pa_stream_get_interpolated_time(s);
+	    else if (s->corked && !b)
+	        gettimeofday(&s->ipol_timestamp, NULL);
+    }
 
     s->corked = b;
     
