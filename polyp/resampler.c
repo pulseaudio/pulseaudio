@@ -23,7 +23,6 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include <samplerate.h>
@@ -31,6 +30,7 @@
 #include "resampler.h"
 #include "sconv.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct pa_resampler {
     struct pa_sample_spec i_ss, o_ss;
@@ -120,6 +120,8 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
     /* How many input samples? */
     ins = in->length/r->i_sz;
 
+/*     pa_log("%u / %u = %u\n", in->length, r->i_sz, ins); */
+
     /* How much space for output samples? */
     if (r->src_state)
         ons = (ins*r->o_ss.rate/r->i_ss.rate)+1024;
@@ -137,6 +139,9 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
         eff_ins = ins;
         eff_ons = ons;
     }
+
+/*     pa_log("eff_ins = %u \n", eff_ins); */
+    
     
     out->memblock = pa_memblock_new(out->length = (ons*r->o_sz), r->memblock_stat);
     out->index = 0;
@@ -145,7 +150,9 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
     if (r->i_alloc < eff_ins)
         r->i_buf = pa_xrealloc(r->i_buf, sizeof(float) * (r->i_alloc = eff_ins));
     assert(r->i_buf);
-    
+
+/*     pa_log("eff_ins = %u \n", eff_ins); */
+
     r->to_float32_func(eff_ins, (uint8_t*) in->memblock->data+in->index, i_nchannels, r->i_buf);
 
     if (r->src_state) {
@@ -179,6 +186,13 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
     } else
         cbuf = r->i_buf;
 
-    r->from_float32_func(eff_ons, cbuf, (uint8_t*)out->memblock->data+out->index, o_nchannels);
+    if (eff_ons)
+        r->from_float32_func(eff_ons, cbuf, (uint8_t*)out->memblock->data+out->index, o_nchannels);
     out->length = ons*r->o_sz;
+
+
+    if (!out->length) {
+        pa_memblock_unref(out->memblock);
+        out->memblock = NULL;
+    }
 }

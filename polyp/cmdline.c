@@ -78,6 +78,7 @@ void pa_cmdline_help(const char *argv0) {
            "  -X SECS    Terminate the daemon after the last client quit and this time passed\n"
            "  -h         Show this help\n"
            "  -l TARGET  Specify the log target (syslog, stderr, auto)\n"
+           "  -p DIR     Append a directory to the search path for dynamic modules\n"
            "  -V         Show version\n", e, cfg);
 
     pa_xfree(cfg);
@@ -101,11 +102,12 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
     cmdline->fail = cmdline->auto_log_target = 1;
     cmdline->quit_after_last_client_time = -1;
     cmdline->log_target = -1;
+    cmdline->dl_searchdir = NULL;
 
     buf = pa_strbuf_new();
     assert(buf);
     
-    while ((c = getopt(argc, argv, "L:F:CDhfvrRVndX:l:")) != -1) {
+    while ((c = getopt(argc, argv, "L:F:CDhfvrRVndX:l:p:")) != -1) {
         switch (c) {
             case 'L':
                 pa_strbuf_printf(buf, "load %s\n", optarg);
@@ -146,6 +148,11 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
             case 'X':
                 cmdline->quit_after_last_client_time = atoi(optarg);
                 break;
+            case 'p':
+                if (cmdline->dl_searchdir)
+                    pa_xfree(cmdline->dl_searchdir);
+                cmdline->dl_searchdir = pa_xstrdup(optarg);
+                break;
             case 'l':
                 if (!strcmp(optarg, "syslog")) {
                     cmdline->auto_log_target = 0;
@@ -185,5 +192,6 @@ fail:
 void pa_cmdline_free(struct pa_cmdline *cmd) {
     assert(cmd);
     pa_xfree(cmd->cli_commands);
+    pa_xfree(cmd->dl_searchdir);
     pa_xfree(cmd);
 }

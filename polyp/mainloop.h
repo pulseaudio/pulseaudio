@@ -50,7 +50,7 @@ void pa_mainloop_free(struct pa_mainloop* m);
 on error or exit request. If block is nonzero, block for events if
 none are queued. Optionally return the return value as specified with
 the main loop's quit() routine in the integer variable retval points
-to */
+to. On success returns the number of source dispatched in this iteration. */
 int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval);
 
 /** Run unlimited iterations of the main loop object until the main loop's quit() routine is called. */

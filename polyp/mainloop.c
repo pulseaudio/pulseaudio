@@ -378,9 +378,10 @@ static void rebuild_pollfds(struct pa_mainloop *m) {
     }
 }
 
-static void dispatch_pollfds(struct pa_mainloop *m) {
+static int dispatch_pollfds(struct pa_mainloop *m) {
     uint32_t index = PA_IDXSET_INVALID;
     struct pa_io_event *e;
+    int r = 0;
 
     for (e = pa_idxset_first(m->io_events, &index); e; e = pa_idxset_next(m->io_events, &index)) {
         if (e->dead || !e->pollfd || !e->pollfd->revents)
@@ -394,12 +395,16 @@ static void dispatch_pollfds(struct pa_mainloop *m) {
                     (e->pollfd->revents & POLLERR ? PA_IO_EVENT_ERROR : 0),
                     e->userdata);
         e->pollfd->revents = 0;
+        r++;
     }
+
+    return r;
 }
 
-static void dispatch_defer(struct pa_mainloop *m) {
+static int dispatch_defer(struct pa_mainloop *m) {
     uint32_t index;
     struct pa_defer_event *e;
+    int r = 0;
 
     for (e = pa_idxset_first(m->defer_events, &index); e; e = pa_idxset_next(m->defer_events, &index)) {
         if (e->dead || !e->enabled)
@@ -407,7 +412,10 @@ static void dispatch_defer(struct pa_mainloop *m) {
  
         assert(e->callback);
         e->callback(&m->api, e, e->userdata);
+        r++;
     }
+
+    return r;
 }
 
 static int calc_next_timeout(struct pa_mainloop *m) {
@@ -451,15 +459,16 @@ static int calc_next_timeout(struct pa_mainloop *m) {
     return t;
 }
 
-static void dispatch_timeout(struct pa_mainloop *m) {
+static int dispatch_timeout(struct pa_mainloop *m) {
     uint32_t index;
     struct pa_time_event *e;
     struct timeval now;
     int got_time = 0;
+    int r = 0;
     assert(m);
 
     if (pa_idxset_isempty(m->time_events))
-        return;
+        return 0;
 
     for (e = pa_idxset_first(m->time_events, &index); e; e = pa_idxset_next(m->time_events, &index)) {
         
@@ -477,51 +486,66 @@ static void dispatch_timeout(struct pa_mainloop *m) {
 
             e->enabled = 0;
             e->callback(&m->api, e, &e->timeval, e->userdata);
+
+            r++;
         }
     }
+
+    return r;
 }
 
 int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
-    int r;
+    int r, t, dispatched = 0;
     assert(m && !m->running);
     
     if(m->quit) {
         if (retval)
             *retval = m->retval;
-        return 1;
+        return -2;
     }
 
     m->running = 1;
 
     scan_dead(m);
-    dispatch_defer(m);
+    dispatched += dispatch_defer(m);
 
     if (m->rebuild_pollfds) {
         rebuild_pollfds(m);
         m->rebuild_pollfds = 0;
     }
 
-    do {
-        int t = block ? calc_next_timeout(m) : 0;
-        /*pa_log(__FILE__": %u\n", t);*/
-        r = poll(m->pollfds, m->n_pollfds, t);
-    } while (r < 0 && errno == EINTR);
+    t = block ? calc_next_timeout(m) : 0;
+    r = poll(m->pollfds, m->n_pollfds, t);
 
-    dispatch_timeout(m);
-    
-    if (r > 0)
-        dispatch_pollfds(m);
-    else if (r < 0)
-        pa_log(__FILE__": select(): %s\n", strerror(errno));
+    if (r < 0) {
+        if (errno == EINTR)
+            r = 0;
+        else
+            pa_log(__FILE__": select(): %s\n", strerror(errno));
+    } else {
+        dispatched += dispatch_timeout(m);
+        
+        if (r > 0)
+            dispatched += dispatch_pollfds(m);
+    }
     
     m->running = 0;
-    return r < 0 ? -1 : 0;
+
+/*     pa_log("dispatched: %i\n", dispatched); */
+    
+    return r < 0 ? -1 : dispatched;
 }
 
 int pa_mainloop_run(struct pa_mainloop *m, int *retval) {
     int r;
-    while ((r = pa_mainloop_iterate(m, 1, retval)) == 0);
-    return r;
+    while ((r = pa_mainloop_iterate(m, 1, retval)) >= 0);
+
+    if (r == -2)
+        return 1;
+    else if (r < 0)
+        return -1;
+    else
+        return 0;
 }
 
 void pa_mainloop_quit(struct pa_mainloop *m, int r) {

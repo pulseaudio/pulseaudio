@@ -27,6 +27,7 @@
 #include <stdarg.h>
 
 #include "gcc-printf.h"
+#include "sample.h"
 
 void pa_make_nonblock_fd(int fd);
 
@@ -43,7 +44,9 @@ char *pa_vsprintf_malloc(const char *format, va_list ap);
 char *pa_get_user_name(char *s, size_t l);
 char *pa_get_host_name(char *s, size_t l);
 
-uint32_t pa_age(struct timeval *tv);
+pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b);
+int pa_timeval_cmp(const struct timeval *a, const struct timeval *b);
+pa_usec_t pa_age(const struct timeval *tv);
 
 void pa_raise_priority(void);
 void pa_reset_priority(void);

@@ -43,6 +43,7 @@ enum tags {
     TAG_ARBITRARY = 'x',
     TAG_BOOLEAN_TRUE = '1',
     TAG_BOOLEAN_FALSE = '0',
+    TAG_TIMEVAL = 'T',
 };
 
 struct pa_tagstruct {
@@ -143,6 +144,15 @@ void pa_tagstruct_put_boolean(struct pa_tagstruct*t, int b) {
     extend(t, 1);
     t->data[t->length] = b ? TAG_BOOLEAN_TRUE : TAG_BOOLEAN_FALSE;
     t->length += 1;
+}
+
+void pa_tagstruct_put_timeval(struct pa_tagstruct*t, const struct timeval *tv) {
+    assert(t);
+    extend(t, 9);
+    t->data[t->length] = TAG_TIMEVAL;
+    *((uint32_t*) (t->data+t->length+1)) = htonl(tv->tv_sec);
+    *((uint32_t*) (t->data+t->length+5)) = htonl(tv->tv_usec);
+    t->length += 9;
 }
 
 int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s) {
@@ -263,4 +273,18 @@ int pa_tagstruct_get_boolean(struct pa_tagstruct*t, int *b) {
     return 0;
 }
 
+int pa_tagstruct_get_timeval(struct pa_tagstruct*t, struct timeval *tv) {
+
+    if (t->rindex+9 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != TAG_TIMEVAL)
+        return -1;
+    
+    tv->tv_sec = ntohl(*((uint32_t*) (t->data+t->rindex+1)));
+    tv->tv_usec = ntohl(*((uint32_t*) (t->data+t->rindex+5)));
+    t->rindex += 9;
+    return 0;
+    
+}
 

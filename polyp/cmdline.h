@@ -36,6 +36,7 @@ struct pa_cmdline {
         quit_after_last_client_time,
         auto_log_target;
     char *cli_commands;
+    char *dl_searchdir;
     enum pa_log_target log_target;
 };
 

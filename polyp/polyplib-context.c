@@ -431,11 +431,10 @@ void pa_context_set_state_callback(struct pa_context *c, void (*cb)(struct pa_co
 int pa_context_is_pending(struct pa_context *c) {
     assert(c && c->ref >= 1);
 
-    if (c->state != PA_CONTEXT_READY)
-        return 0;
-
-    assert(c->pstream && c->pdispatch);
-    return pa_pstream_is_pending(c->pstream) || pa_pdispatch_is_pending(c->pdispatch);
+/*     pa_log("pstream: %i\n", pa_pstream_is_pending(c->pstream)); */
+/*     pa_log("pdispatch: %i\n", pa_pdispatch_is_pending(c->pdispatch)); */
+    
+    return (c->pstream && pa_pstream_is_pending(c->pstream)) || (c->pdispatch && pa_pdispatch_is_pending(c->pdispatch)) || c->client;
 }
 
 static void set_dispatch_callbacks(struct pa_operation *o);

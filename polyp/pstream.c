@@ -215,7 +215,7 @@ void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
     struct item_info *i;
     assert(p && packet);
 
-    /*pa_log(__FILE__": push-packet %p\n", packet);*/
+/*     pa_log(__FILE__": push-packet %p\n", packet); */
     
     i = pa_xmalloc(sizeof(struct item_info));
     i->type = PA_PSTREAM_ITEM_PACKET;
@@ -228,6 +228,8 @@ void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
 void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk) {
     struct item_info *i;
     assert(p && channel != (uint32_t) -1 && chunk);
+
+/*     pa_log(__FILE__": push-memblock %p\n", chunk); */
     
     i = pa_xmalloc(sizeof(struct item_info));
     i->type = PA_PSTREAM_ITEM_MEMBLOCK;

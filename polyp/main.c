@@ -180,6 +180,10 @@ int main(int argc, char *argv[]) {
     
     r = lt_dlinit();
     assert(r == 0);
+
+    if (cmdline->dl_searchdir)
+        lt_dladdsearchdir(cmdline->dl_searchdir);
+    
 #ifdef DLSEARCHDIR
     lt_dladdsearchdir(DLSEARCHDIR);
 #endif

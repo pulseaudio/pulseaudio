@@ -221,24 +221,50 @@ char *pa_get_host_name(char *s, size_t l) {
     return s;
 }
 
-uint32_t pa_age(struct timeval *tv) {
-    struct timeval now;
-    uint32_t r;
-    assert(tv);
+pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
+    pa_usec_t r;
+    assert(a && b);
 
-    if (tv->tv_sec == 0)
-        return 0;
+    if (pa_timeval_cmp(a, b) < 0) {
+        const struct timeval *c;
+        c = a;
+        a = b;
+        b = c;
+    }
 
-    gettimeofday(&now, NULL);
-    
-    r = (now.tv_sec-tv->tv_sec) * 1000000;
+    r = (a->tv_sec - b->tv_sec)* 1000000;
 
-    if (now.tv_usec >= tv->tv_usec)
-        r += now.tv_usec - tv->tv_usec;
-    else
-        r -= tv->tv_usec - now.tv_usec;
+    if (a->tv_usec > b->tv_usec)
+        r += (a->tv_usec - b->tv_usec);
+    else if (a->tv_usec < b->tv_usec)
+        r -= (b->tv_usec - a->tv_usec);
 
     return r;
+}
+
+int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) {
+    assert(a && b);
+
+    if (a->tv_sec < b->tv_sec)
+        return -1;
+
+    if (a->tv_sec > b->tv_sec)
+        return 1;
+
+    if (a->tv_usec < b->tv_usec)
+        return -1;
+
+    if (a->tv_usec > b->tv_usec)
+        return 1;
+
+    return 0;
+}
+
+pa_usec_t pa_age(const struct timeval *tv) {
+    struct timeval now;
+    assert(tv);
+    gettimeofday(&now, NULL);
+    return pa_timeval_diff(&now, tv);
 }
 
 #define NICE_LEVEL (-15)

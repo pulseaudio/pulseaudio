@@ -133,7 +133,8 @@ enum pa_subscription_event_type {
 
 /** A structure for latency info. See pa_stream_get_latency().  The
  * total latency a sample that is written with pa_stream_write() takes
- * to be played is buffer_usec+sink_usec. The buffer to which
+ * to be played may be estimated by
+ * buffer_usec+sink_usec+transport_usec. The buffer to which
  * buffer_usec relates may be manipulated freely (with
  * pa_stream_write()'s delta argument, pa_stream_flush() and friends),
  * the playback buffer sink_usec relates to is a FIFO which cannot be
@@ -141,6 +142,7 @@ enum pa_subscription_event_type {
 struct pa_latency_info {
     pa_usec_t buffer_usec;    /**< Time in usecs the current buffer takes to play */
     pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink.  */
+    pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to the daemon. \since 0.5 */
     int playing;              /**< Non-zero when the stream is currently playing */
     uint32_t queue_length;    /**< Queue size in bytes. */  
 };

@@ -342,7 +342,7 @@ static void request_bytes(struct playback_stream *s) {
 
     if (!(l = pa_memblockq_missing(s->memblockq)))
         return;
-
+    
     if (l <= s->requested_bytes)
         return;
 
@@ -361,7 +361,7 @@ static void request_bytes(struct playback_stream *s) {
     pa_tagstruct_putu32(t, l);
     pa_pstream_send_tagstruct(s->connection->pstream, t);
 
-    /*pa_log(__FILE__": Requesting %u bytes\n", l);*/
+/*     pa_log(__FILE__": Requesting %u bytes\n", l); */
 }
 
 static void send_memblock(struct connection *c) {
@@ -541,6 +541,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
     pa_tagstruct_putu32(reply, s->index);
     assert(s->sink_input);
     pa_tagstruct_putu32(reply, s->sink_input->index);
+    pa_tagstruct_putu32(reply, s->requested_bytes = pa_memblockq_missing(s->memblockq));
     pa_pstream_send_tagstruct(c->pstream, reply);
     request_bytes(s);
 }
@@ -809,10 +810,12 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
     struct connection *c = userdata;
     struct pa_tagstruct *reply;
     struct playback_stream *s;
+    struct timeval tv, now;
     uint32_t index;
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &index) < 0 ||
+        pa_tagstruct_get_timeval(t, &tv) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -836,6 +839,9 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
     pa_tagstruct_putu32(reply, pa_sink_get_latency(s->sink_input->sink));
     pa_tagstruct_put_boolean(reply, pa_memblockq_is_readable(s->memblockq));
     pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
+    pa_tagstruct_put_timeval(reply, &tv);
+    gettimeofday(&now, NULL);
+    pa_tagstruct_put_timeval(reply, &now);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1439,7 +1445,7 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
         /*pa_log(__FILE__": after_recv: %u\n", pa_memblockq_get_length(p->memblockq));*/
 
         pa_sink_notify(p->sink_input->sink);
-        /*pa_log(__FILE__": Recieved %u bytes.\n", chunk->length);*/
+/*         pa_log(__FILE__": Recieved %u bytes.\n", chunk->length); */
 
     } else {
         struct upload_stream *u = (struct upload_stream*) stream;

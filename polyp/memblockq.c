@@ -149,9 +149,9 @@ int pa_memblockq_peek(struct pa_memblockq* bq, struct pa_memchunk *chunk) {
 void pa_memblockq_drop(struct pa_memblockq *bq, const struct pa_memchunk *chunk, size_t length) {
     assert(bq && chunk && length);
 
-    if (!bq->blocks || memcmp(&bq->blocks->chunk, chunk, sizeof(struct pa_memchunk)))
+    if (!bq->blocks || memcmp(&bq->blocks->chunk, chunk, sizeof(struct pa_memchunk))) 
         return;
-
+    
     assert(length <= bq->blocks->chunk.length);
     pa_memblockq_skip(bq, length);
 }

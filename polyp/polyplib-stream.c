@@ -30,6 +30,7 @@
 #include "polyplib-internal.h"
 #include "xmalloc.h"
 #include "pstream-util.h"
+#include "util.h"
 
 struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const struct pa_sample_spec *ss) {
     struct pa_stream *s;
@@ -193,6 +194,7 @@ void pa_create_stream_callback(struct pa_pdispatch *pd, uint32_t command, uint32
 
     if (pa_tagstruct_getu32(t, &s->channel) < 0 ||
         ((s->direction != PA_STREAM_UPLOAD) && pa_tagstruct_getu32(t, &s->device_index) < 0) ||
+        ((s->direction == PA_STREAM_PLAYBACK) && pa_tagstruct_getu32(t, &s->requested_bytes) < 0) ||
         !pa_tagstruct_eof(t)) {
         pa_context_fail(s->context, PA_ERROR_PROTOCOL);
         goto finish;
@@ -201,6 +203,9 @@ void pa_create_stream_callback(struct pa_pdispatch *pd, uint32_t command, uint32
     s->channel_valid = 1;
     pa_dynarray_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, s->channel, s);
     pa_stream_set_state(s, PA_STREAM_READY);
+
+    if (s->requested_bytes && s->ref > 1 && s->write_callback)
+        s->write_callback(s, s->requested_bytes, s->write_userdata);
 
 finish:
     pa_stream_unref(s);
@@ -321,6 +326,7 @@ struct pa_operation * pa_stream_drain(struct pa_stream *s, void (*cb) (struct pa
 static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct pa_operation *o = userdata;
     struct pa_latency_info i, *p = NULL;
+    struct timeval local, remote, now;
     assert(pd && o && o->stream && o->context);
 
     if (command != PA_COMMAND_REPLY) {
@@ -331,11 +337,22 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
                pa_tagstruct_getu32(t, &i.sink_usec) < 0 ||
                pa_tagstruct_get_boolean(t, &i.playing) < 0 ||
                pa_tagstruct_getu32(t, &i.queue_length) < 0 ||
+               pa_tagstruct_get_timeval(t, &local) < 0 ||
+               pa_tagstruct_get_timeval(t, &remote) < 0 ||
                !pa_tagstruct_eof(t)) {
         pa_context_fail(o->context, PA_ERROR_PROTOCOL);
         goto finish;
     } else
         p = &i;
+
+    gettimeofday(&now, NULL);
+
+    if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now))
+        /* local and remote seem to have synchronized clocks */
+        i.transport_usec = pa_timeval_diff(&remote, &local);
+    else
+        /* clocks are not synchronized, let's estimate latency then */
+        i.transport_usec = pa_timeval_diff(&now, &local)/2;
 
     if (o->callback) {
         void (*cb)(struct pa_stream *s, const struct pa_latency_info *i, void *userdata) = o->callback;
@@ -351,6 +368,7 @@ struct pa_operation* pa_stream_get_latency(struct pa_stream *s, void (*cb)(struc
     uint32_t tag;
     struct pa_operation *o;
     struct pa_tagstruct *t;
+    struct timeval now;
 
     o = pa_operation_new(s->context, s);
     assert(o);
@@ -362,6 +380,10 @@ struct pa_operation* pa_stream_get_latency(struct pa_stream *s, void (*cb)(struc
     pa_tagstruct_putu32(t, PA_COMMAND_GET_PLAYBACK_LATENCY);
     pa_tagstruct_putu32(t, tag = s->context->ctag++);
     pa_tagstruct_putu32(t, s->channel);
+
+    gettimeofday(&now, NULL);
+    pa_tagstruct_put_timeval(t, &now);
+    
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, o);
 

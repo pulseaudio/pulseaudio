@@ -12,6 +12,13 @@
 - add sample directory
 - config file for command line arguments
 - option to use default fragment size on alsa drivers
+- keep volume in xmms-polyp (and allow volume changing when not playing)
+- lazy sample cache
+- per-channel volume
+- add version number to library names
+- extend pa_usec_t to 64 bit
+- make use of network latency in all apps
+- rename streams/contexts
 
 ** later ***
 - xmlrpc/http
@@ -23,7 +30,8 @@
 ***********
 
 backends for:
-- mplayer
-- sdl
-- gstreamer
 - portaudio
+- sdl
+- gstreamer (semi-done)
+- alsa-lib
+- OSS (esddsp style)

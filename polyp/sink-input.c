@@ -129,7 +129,7 @@ int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     if (!i->resampler)
         return i->peek(i, chunk);
 
-    if (!i->resampled_chunk.memblock) {
+    while (!i->resampled_chunk.memblock) {
         struct pa_memchunk tchunk;
         size_t l;
         int ret;
@@ -141,10 +141,11 @@ int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
         
         l = pa_resampler_request(i->resampler, CONVERT_BUFFER_LENGTH);
 
-        if (tchunk.length > l)
-            tchunk.length = l;
+        if (l > tchunk.length)
+            l = tchunk.length;
 
-        i->drop(i, &tchunk, tchunk.length);
+        i->drop(i, &tchunk, l);
+        tchunk.length = l;
 
         pa_resampler_run(i->resampler, &tchunk, &i->resampled_chunk);
         pa_memblock_unref(tchunk.memblock);
