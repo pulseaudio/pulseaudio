@@ -23,7 +23,7 @@ polypconfdir=$(sysconfdir)/polyp
 modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
 
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
-AM_CFLAGS+=-DDLSEARCHDIR=\"$(modlibdir)\"
+AM_CFLAGS+=-DDLSEARCHPATH=\"$(modlibdir)\"
 AM_CFLAGS+=-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/polypaudio.pa\"
 AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 
@@ -31,7 +31,7 @@ AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
 EXTRA_DIST = polypaudio.pa depmod.py esdcompat.sh.in
-bin_PROGRAMS = polypaudio pacat pactl
+bin_PROGRAMS = polypaudio pacat pactl pamodinfo
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = mainloop-test mainloop-test-glib mainloop-test-glib12 pacat-simple parec-simple cpulimit-test cpulimit-test2 
 
@@ -148,12 +148,19 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		sound-file-stream.c sound-file-stream.h \
 		cpulimit.c cpulimit.h \
 		log.c log.h \
-		gcc-printf.h
+		gcc-printf.h \
+		modinfo.c modinfo.h 
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS)
 polypaudio_LDFLAGS=-export-dynamic
+
+pamodinfo_SOURCES = log.c log.h pamodinfo.c pamodinfo.h modinfo.c modinfo.h util.c util.h xmalloc.c xmalloc.h
+pamodinfo_CFLAGS = $(AM_CFLAGS)
+pamodinfo_INCLUDES = $(INCLTDL)
+pamodinfo_LDADD = $(AM_LDADD) $(LIBLTDL)
+pamodinfo_LDFLAGS=-export-dynamic
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version

@@ -26,6 +26,7 @@
 #include <ltdl.h>
 
 #include "core.h"
+#include "modinfo.h"
 
 struct pa_module {
     struct pa_core *core;
@@ -53,10 +54,17 @@ void pa_module_unload_unused(struct pa_core *c);
 
 void pa_module_unload_request(struct pa_core *c, struct pa_module *m);
 
-/* These to following prototypes are for module entrypoints and not implemented by the core */
-int pa_module_init(struct pa_core *c, struct pa_module*m);
-void pa_module_done(struct pa_core *c, struct pa_module*m);
-
 void pa_module_set_used(struct pa_module*m, int used);
+
+/* prototypes for the module's entry points */
+int pa__init(struct pa_core *c, struct pa_module*m);
+void pa__done(struct pa_core *c, struct pa_module*m);
+
+#define PA_MODULE_AUTHOR(s) const char *pa__get_author(void) { return s; }
+#define PA_MODULE_DESCRIPTION(s) const char *pa__get_description(void) { return s; }
+#define PA_MODULE_USAGE(s) const char *pa__get_usage(void) { return s; }
+#define PA_MODULE_VERSION(s) const char *pa__get_version(void) { return s; }
+
+struct pa_modinfo *pa_module_get_info(struct pa_module *m);
 
 #endif

@@ -34,6 +34,11 @@
 #include "namereg.h"
 #include "log.h"
 
+PA_MODULE_AUTHOR("Lennart Poettering")
+PA_MODULE_DESCRIPTION("Sine wave generator")
+PA_MODULE_USAGE("sink=<sink to connect to> frequency=<frequency in Hz>")
+PA_MODULE_VERSION(PACKAGE_VERSION)
+
 struct userdata {
     struct pa_core *core;
     struct pa_sink_input *sink_input;
@@ -89,7 +94,7 @@ static void calc_sine(float *f, size_t l, float freq) {
         f[i] = (float) sin((double) i/l*M_PI*2*freq)/2;
 }
 
-int pa_module_init(struct pa_core *c, struct pa_module*m) {
+int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_modargs *ma = NULL;
     struct userdata *u;
     struct pa_sink *sink;
@@ -147,11 +152,11 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    pa_module_done(c, m);
+    pa__done(c, m);
     return -1;
 }
 
-void pa_module_done(struct pa_core *c, struct pa_module*m) {
+void pa__done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u = m->userdata;
     assert(c && m);
 
@@ -164,3 +169,4 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
         pa_memblock_unref(u->memblock);
     pa_xfree(u);
 }
+

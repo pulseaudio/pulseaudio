@@ -8,6 +8,7 @@
    module load/unload
    kill client/...
    autoload management
+   rename streams/contexts
 - more complete pactl
 - add sample directory
 - config file for command line arguments
@@ -17,7 +18,8 @@
 - per-channel volume
 - extend pa_usec_t to 64 bit
 - make use of network latency in all apps
-- rename streams/contexts
+- fix or work around libtool bug
+- merge pa_context_connect_*
 
 ** later ***
 - xmlrpc/http

@@ -33,6 +33,10 @@
 #include "protocol-native.h"
 #include "log.h"
 
+PA_MODULE_AUTHOR("Lennart Poettering")
+PA_MODULE_DESCRIPTION("Native protocol autospawn helper")
+PA_MODULE_VERSION(PACKAGE_VERSION)
+
 static const char* const valid_modargs[] = {
     "fd",
     "public",
@@ -40,7 +44,7 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-int pa_module_init(struct pa_core *c, struct pa_module*m) {
+int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_iochannel *io;
     struct pa_modargs *ma;
     int fd, r = -1;
@@ -72,7 +76,7 @@ finish:
     return r;
 }
 
-void pa_module_done(struct pa_core *c, struct pa_module*m) {
+void pa__done(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     pa_protocol_native_free(m->userdata);

@@ -181,11 +181,11 @@ int main(int argc, char *argv[]) {
     r = lt_dlinit();
     assert(r == 0);
 
-    if (cmdline->dl_searchdir)
-        lt_dladdsearchdir(cmdline->dl_searchdir);
-    
-#ifdef DLSEARCHDIR
-    lt_dladdsearchdir(DLSEARCHDIR);
+    if (cmdline->dl_search_path)
+        lt_dlsetsearchpath(cmdline->dl_search_path);
+#ifdef DLSEARCHPATH
+    else
+        lt_dlsetsearchpath(DLSEARCHPATH);
 #endif
 
     mainloop = pa_mainloop_new();

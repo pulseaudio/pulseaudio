@@ -35,6 +35,9 @@
 #include "subscribe.h"
 #include "log.h"
 
+#define PA_SYMBOL_INIT "pa__init"
+#define PA_SYMBOL_DONE "pa__done"
+
 #define UNLOAD_POLL_TIME 10
 
 static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
@@ -58,21 +61,25 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     if (c->disallow_module_loading)
         goto fail;
     
-    pa_log(__FILE__": Trying to load \"%s\" with argument \"%s\".\n", name, argument);
-
     m = pa_xmalloc(sizeof(struct pa_module));
 
     m->name = pa_xstrdup(name);
     m->argument = pa_xstrdup(argument);
     
-    if (!(m->dl = lt_dlopenext(name)))
+    if (!(m->dl = lt_dlopenext(name))) {
+        pa_log(__FILE__": Failed to open module \"%s\": %s\n", name, lt_dlerror());
         goto fail;
+    }
 
-    if (!(m->init = (int (*)(struct pa_core *c, struct pa_module*m)) lt_dlsym(m->dl, "pa_module_init")))
+    if (!(m->init = (int (*)(struct pa_core *c, struct pa_module*m)) lt_dlsym(m->dl, PA_SYMBOL_INIT))) {
+        pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_INIT"\" not found.\n", name);
         goto fail;
+    }
 
-    if (!(m->done = (void (*)(struct pa_core *c, struct pa_module*m)) lt_dlsym(m->dl, "pa_module_done")))
+    if (!(m->done = (void (*)(struct pa_core *c, struct pa_module*m)) lt_dlsym(m->dl, PA_SYMBOL_DONE))) {
+        pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_DONE"\" not found.\n", name);
         goto fail;
+    }
     
     m->userdata = NULL;
     m->core = c;
@@ -80,8 +87,10 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     m->auto_unload = 0;
 
     assert(m->init);
-    if (m->init(c, m) < 0)
+    if (m->init(c, m) < 0) {
+        pa_log(__FILE__": Failed to load  module \"%s\" (argument: \"%s\"): initialization failed.\n", name, argument ? argument : "");
         goto fail;
+    }
 
     if (!c->modules)
         c->modules = pa_idxset_new(NULL, NULL);
@@ -98,7 +107,7 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     r = pa_idxset_put(c->modules, m, &m->index);
     assert(r >= 0 && m->index != PA_IDXSET_INVALID);
 
-    pa_log(__FILE__": Loaded \"%s\" (index: #%u) with argument \"%s\".\n", m->name, m->index, m->argument);
+    pa_log(__FILE__": Loaded \"%s\" (index: #%u; argument: \"%s\").\n", m->name, m->index, m->argument ? m->argument : "");
 
     pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_NEW, m->index);
     
@@ -106,8 +115,6 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     
 fail:
 
-    pa_log(__FILE__": Failed to load \"%s\" with argument \"%s\".\n", name, argument);
-    
     if (m) {
         pa_xfree(m->argument);
         pa_xfree(m->name);
@@ -239,3 +246,8 @@ void pa_module_set_used(struct pa_module*m, int used) {
     m->n_used = used;
 }
 
+struct pa_modinfo *pa_module_get_info(struct pa_module *m) {
+    assert(m);
+
+    return pa_modinfo_get_by_handle(m->dl);
+}

@@ -1,5 +1,5 @@
-#ifndef foocmdlinehfoo
-#define foocmdlinehfoo
+#ifndef foomodinfohfoo
+#define foomodinfohfoo
 
 /* $Id$ */
 
@@ -22,27 +22,16 @@
   USA.
 ***/
 
-#include "log.h"
-
-struct pa_cmdline {
-    int daemonize,
-        help,
-        fail,
-        verbose,
-        high_priority,
-        stay_root,
-        version,
-        disallow_module_loading,
-        quit_after_last_client_time,
-        auto_log_target;
-    char *cli_commands;
-    char *dl_search_path;
-    enum pa_log_target log_target;
+struct pa_modinfo {
+    char *author;
+    char *description;
+    char *usage;
+    char *version;
 };
 
-struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []);
-void pa_cmdline_free(struct pa_cmdline *cmd);
+struct pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl);
+struct pa_modinfo *pa_modinfo_get_by_name(const char *name);
 
-void pa_cmdline_help(const char *argv0);
+void pa_modinfo_free(struct pa_modinfo *i);
 
 #endif

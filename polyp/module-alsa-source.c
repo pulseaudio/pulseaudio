@@ -40,6 +40,10 @@
 #include "xmalloc.h"
 #include "log.h"
 
+PA_MODULE_AUTHOR("Lennart Poettering")
+PA_MODULE_DESCRIPTION("ALSA Source")
+PA_MODULE_VERSION(PACKAGE_VERSION)
+
 struct userdata {
     snd_pcm_t *pcm_handle;
     struct pa_source *source;
@@ -139,7 +143,7 @@ static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd,
     do_read(u);
 }
 
-int pa_module_init(struct pa_core *c, struct pa_module*m) {
+int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_modargs *ma = NULL;
     int ret = -1;
     struct userdata *u = NULL;
@@ -216,12 +220,12 @@ finish:
 fail:
     
     if (u)
-        pa_module_done(c, m);
+        pa__done(c, m);
 
     goto finish;
 }
 
-void pa_module_done(struct pa_core *c, struct pa_module*m) {
+void pa__done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

@@ -33,6 +33,10 @@
 #include "sioman.h"
 #include "log.h"
 
+PA_MODULE_AUTHOR("Lennart Poettering")
+PA_MODULE_DESCRIPTION("Command line interface")
+PA_MODULE_VERSION(PACKAGE_VERSION)
+
 static void eof_cb(struct pa_cli*c, void *userdata) {
     struct pa_module *m = userdata;
     assert(c && m);
@@ -40,7 +44,7 @@ static void eof_cb(struct pa_cli*c, void *userdata) {
     pa_module_unload_request(m->core, m);
 }
 
-int pa_module_init(struct pa_core *c, struct pa_module*m) {
+int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_iochannel *io;
     assert(c && m);
 
@@ -66,7 +70,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     return 0;
 }
 
-void pa_module_done(struct pa_core *c, struct pa_module*m) {
+void pa__done(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     pa_cli_free(m->userdata);

@@ -37,6 +37,16 @@
 #include "modargs.h"
 #include "log.h"
 
+PA_MODULE_AUTHOR("Lennart Poettering")
+PA_MODULE_VERSION(PACKAGE_VERSION)
+
+#ifdef USE_TCP_SOCKETS
+#define SOCKET_DESCRIPTION "(TCP sockets)"
+#else
+#define SOCKET_DESCRIPTION "(UNIX sockets)"
+#endif
+
+
 #if defined(USE_PROTOCOL_SIMPLE)
   #include "protocol-simple.h"
   #define protocol_new pa_protocol_simple_new
@@ -44,6 +54,7 @@
   #define IPV4_PORT 4711
   #define UNIX_SOCKET "/tmp/polypaudio/simple"
   #define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
+  PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION)
 #elif defined(USE_PROTOCOL_CLI)
   #include "protocol-cli.h" 
   #define protocol_new pa_protocol_cli_new
@@ -51,6 +62,7 @@
   #define IPV4_PORT 4712
   #define UNIX_SOCKET "/tmp/polypaudio/cli"
   #define MODULE_ARGUMENTS 
+  PA_MODULE_DESCRIPTION("Command line interface protocol "SOCKET_DESCRIPTION)
 #elif defined(USE_PROTOCOL_NATIVE)
   #include "protocol-native.h"
   #define protocol_new pa_protocol_native_new
@@ -58,6 +70,7 @@
   #define IPV4_PORT 4713
   #define UNIX_SOCKET "/tmp/polypaudio/native"
   #define MODULE_ARGUMENTS "public", "cookie",
+  PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION)
 #elif defined(USE_PROTOCOL_ESOUND)
   #include "protocol-esound.h"
   #include "esound.h"
@@ -66,6 +79,7 @@
   #define IPV4_PORT ESD_DEFAULT_PORT
   #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
   #define MODULE_ARGUMENTS "sink", "source", "public", "cookie",
+  PA_MODULE_DESCRIPTION("EsounD protocol "SOCKET_DESCRIPTION)
 #else
   #error "Broken build system" 
 #endif
@@ -126,7 +140,7 @@ static struct pa_socket_server *create_socket_server(struct pa_core *c, struct p
     return s;
 }
 
-int pa_module_init(struct pa_core *c, struct pa_module*m) {
+int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_socket_server *s;
     struct pa_modargs *ma = NULL;
     int ret = -1;
@@ -154,7 +168,7 @@ finish:
     return ret;
 }
 
-void pa_module_done(struct pa_core *c, struct pa_module*m) {
+void pa__done(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     protocol_free(m->userdata);

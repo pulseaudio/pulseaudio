@@ -102,7 +102,7 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
     cmdline->fail = cmdline->auto_log_target = 1;
     cmdline->quit_after_last_client_time = -1;
     cmdline->log_target = -1;
-    cmdline->dl_searchdir = NULL;
+    cmdline->dl_search_path = NULL;
 
     buf = pa_strbuf_new();
     assert(buf);
@@ -149,9 +149,9 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
                 cmdline->quit_after_last_client_time = atoi(optarg);
                 break;
             case 'p':
-                if (cmdline->dl_searchdir)
-                    pa_xfree(cmdline->dl_searchdir);
-                cmdline->dl_searchdir = pa_xstrdup(optarg);
+                if (cmdline->dl_search_path)
+                    pa_xfree(cmdline->dl_search_path);
+                cmdline->dl_search_path = pa_xstrdup(optarg);
                 break;
             case 'l':
                 if (!strcmp(optarg, "syslog")) {
@@ -192,6 +192,6 @@ fail:
 void pa_cmdline_free(struct pa_cmdline *cmd) {
     assert(cmd);
     pa_xfree(cmd->cli_commands);
-    pa_xfree(cmd->dl_searchdir);
+    pa_xfree(cmd->dl_search_path);
     pa_xfree(cmd);
 }

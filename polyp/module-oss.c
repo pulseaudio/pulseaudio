@@ -46,6 +46,10 @@
 #include "xmalloc.h"
 #include "log.h"
 
+PA_MODULE_AUTHOR("Lennart Poettering")
+PA_MODULE_DESCRIPTION("OSS Sink/Source")
+PA_MODULE_VERSION(PACKAGE_VERSION)
+
 struct userdata {
     struct pa_sink *sink;
     struct pa_source *source;
@@ -171,7 +175,7 @@ static uint32_t sink_get_latency_cb(struct pa_sink *s) {
     return pa_bytes_to_usec(arg, &s->sample_spec);
 }
 
-int pa_module_init(struct pa_core *c, struct pa_module*m) {
+int pa__init(struct pa_core *c, struct pa_module*m) {
     struct audio_buf_info info;
     struct userdata *u = NULL;
     const char *p;
@@ -300,7 +304,7 @@ fail:
     return -1;
 }
 
-void pa_module_done(struct pa_core *c, struct pa_module*m) {
+void pa__done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

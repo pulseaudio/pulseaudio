@@ -39,6 +39,11 @@
 #include "namereg.h"
 #include "log.h"
 
+PA_MODULE_AUTHOR("Lennart Poettering")
+PA_MODULE_DESCRIPTION("X11 Bell interceptor")
+PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_USAGE("sink=<sink to connect to> sample=<sample name> display=<X11 display>")
+
 struct x11_source {
     struct pa_io_event *io_event;
     struct x11_source *next;
@@ -105,7 +110,7 @@ static void new_io_source(struct userdata *u, int fd) {
     u->x11_sources = s;
 }
 
-int pa_module_init(struct pa_core *c, struct pa_module*m) {
+int pa__init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u = NULL;
     struct pa_modargs *ma = NULL;
     int major, minor;
@@ -160,11 +165,11 @@ fail:
     if (ma)
         pa_modargs_free(ma);
     if (m->userdata)
-        pa_module_done(c, m);
+        pa__done(c, m);
     return -1;
 }
 
-void pa_module_done(struct pa_core *c, struct pa_module*m) {
+void pa__done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u = m->userdata;
     assert(c && m && u);
 

@@ -41,6 +41,10 @@
 #include "xmalloc.h"
 #include "log.h"
 
+PA_MODULE_AUTHOR("Lennart Poettering")
+PA_MODULE_DESCRIPTION("UNIX pipe source")
+PA_MODULE_VERSION(PACKAGE_VERSION)
+
 #define DEFAULT_FIFO_NAME "/tmp/music.input"
 #define DEFAULT_SOURCE_NAME "fifo_input"
 
@@ -102,7 +106,7 @@ static void io_callback(struct pa_iochannel *io, void*userdata) {
     do_read(u);
 }
 
-int pa_module_init(struct pa_core *c, struct pa_module*m) {
+int pa__init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u = NULL;
     struct stat st;
     const char *p;
@@ -176,12 +180,12 @@ fail:
     if (fd >= 0)
         close(fd);
 
-    pa_module_done(c, m);
+    pa__done(c, m);
 
     return -1;
 }
 
-void pa_module_done(struct pa_core *c, struct pa_module*m) {
+void pa__done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 
