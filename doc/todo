@@ -13,13 +13,11 @@
 - add sample directory
 - config file for command line arguments
 - option to use default fragment size on alsa drivers
-- keep volume in xmms-polyp (and allow volume changing when not playing)
 - lazy sample cache
 - per-channel volume
-- extend pa_usec_t to 64 bit
-- make use of network latency in all apps
 - fix or work around libtool bug
 - merge pa_context_connect_*
+- input latency
 
 ** later ***
 - xmlrpc/http

@@ -59,10 +59,10 @@ size_t pa_bytes_per_second(const struct pa_sample_spec *spec) {
     return spec->rate*pa_frame_size(spec);
 }
 
-uint32_t pa_bytes_to_usec(size_t length, const struct pa_sample_spec *spec) {
+pa_usec_t pa_bytes_to_usec(size_t length, const struct pa_sample_spec *spec) {
     assert(spec);
 
-    return (uint32_t) (((double) length/pa_frame_size(spec)*1000000)/spec->rate);
+    return (pa_usec_t) (((double) length/pa_frame_size(spec)*1000000)/spec->rate);
 }
 
 int pa_sample_spec_valid(const struct pa_sample_spec *spec) {

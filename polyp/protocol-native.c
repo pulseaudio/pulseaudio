@@ -110,7 +110,7 @@ struct pa_protocol_native {
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk);
 static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
 static void sink_input_kill_cb(struct pa_sink_input *i);
-static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i);
+static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i);
 
 static void request_bytes(struct playback_stream*s);
 
@@ -455,7 +455,7 @@ static void sink_input_kill_cb(struct pa_sink_input *i) {
     playback_stream_free((struct playback_stream *) i->userdata);
 }
 
-static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i) {
+static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i) {
     struct playback_stream *s;
     assert(i && i->userdata);
     s = i->userdata;
@@ -835,8 +835,8 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
     assert(reply);
     pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
     pa_tagstruct_putu32(reply, tag);
-    pa_tagstruct_putu32(reply, pa_sink_input_get_latency(s->sink_input));
-    pa_tagstruct_putu32(reply, pa_sink_get_latency(s->sink_input->sink));
+    pa_tagstruct_put_usec(reply, pa_sink_input_get_latency(s->sink_input));
+    pa_tagstruct_put_usec(reply, pa_sink_get_latency(s->sink_input->sink));
     pa_tagstruct_put_boolean(reply, pa_memblockq_is_readable(s->memblockq));
     pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
     pa_tagstruct_put_timeval(reply, &tv);
@@ -994,7 +994,7 @@ static void sink_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink *sink) {
     pa_tagstruct_putu32(t, sink->volume);
     pa_tagstruct_putu32(t, sink->monitor_source->index);
     pa_tagstruct_puts(t, sink->monitor_source->name);
-    pa_tagstruct_putu32(t, pa_sink_get_latency(sink));
+    pa_tagstruct_put_usec(t, pa_sink_get_latency(sink));
 }
 
 static void source_fill_tagstruct(struct pa_tagstruct *t, struct pa_source *source) {
@@ -1034,8 +1034,8 @@ static void sink_input_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink_inp
     pa_tagstruct_putu32(t, s->sink->index);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_putu32(t, s->volume);
-    pa_tagstruct_putu32(t, pa_sink_input_get_latency(s));
-    pa_tagstruct_putu32(t, pa_sink_get_latency(s->sink));
+    pa_tagstruct_put_usec(t, pa_sink_input_get_latency(s));
+    pa_tagstruct_put_usec(t, pa_sink_get_latency(s->sink));
 }
 
 static void source_output_fill_tagstruct(struct pa_tagstruct *t, struct pa_source_output *s) {
@@ -1053,7 +1053,7 @@ static void scache_fill_tagstruct(struct pa_tagstruct *t, struct pa_scache_entry
     pa_tagstruct_putu32(t, e->index);
     pa_tagstruct_puts(t, e->name);
     pa_tagstruct_putu32(t, e->volume);
-    pa_tagstruct_putu32(t, pa_bytes_to_usec(e->memchunk.length, &e->sample_spec));
+    pa_tagstruct_put_usec(t, pa_bytes_to_usec(e->memchunk.length, &e->sample_spec));
     pa_tagstruct_put_sample_spec(t, &e->sample_spec);
     pa_tagstruct_putu32(t, e->memchunk.length);
 }

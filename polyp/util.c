@@ -232,12 +232,12 @@ pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
         b = c;
     }
 
-    r = (a->tv_sec - b->tv_sec)* 1000000;
+    r = ((pa_usec_t) a->tv_sec - b->tv_sec)* 1000000;
 
     if (a->tv_usec > b->tv_usec)
-        r += (a->tv_usec - b->tv_usec);
+        r += ((pa_usec_t) a->tv_usec - b->tv_usec);
     else if (a->tv_usec < b->tv_usec)
-        r -= (b->tv_usec - a->tv_usec);
+        r -= ((pa_usec_t) b->tv_usec - a->tv_usec);
 
     return r;
 }

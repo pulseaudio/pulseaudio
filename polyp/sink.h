@@ -47,7 +47,7 @@ struct pa_sink {
     pa_volume_t volume;
 
     void (*notify)(struct pa_sink*sink);
-    uint32_t (*get_latency)(struct pa_sink *s);
+    pa_usec_t (*get_latency)(struct pa_sink *s);
     void *userdata;
 };
 

@@ -130,7 +130,7 @@ static void context_get_sink_info_callback(struct pa_pdispatch *pd, uint32_t com
                 pa_tagstruct_getu32(t, &i.volume) < 0 ||
                 pa_tagstruct_getu32(t, &i.monitor_source) < 0 ||
                 pa_tagstruct_gets(t, &i.monitor_source_name) < 0 ||
-                pa_tagstruct_getu32(t, &i.latency) < 0) {
+                pa_tagstruct_get_usec(t, &i.latency) < 0) {
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
             }
@@ -446,8 +446,8 @@ static void context_get_sink_input_info_callback(struct pa_pdispatch *pd, uint32
                 pa_tagstruct_getu32(t, &i.sink) < 0 ||
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
                 pa_tagstruct_getu32(t, &i.volume) < 0 ||
-                pa_tagstruct_getu32(t, &i.buffer_usec) < 0 ||
-                pa_tagstruct_getu32(t, &i.sink_usec) < 0) {
+                pa_tagstruct_get_usec(t, &i.buffer_usec) < 0 ||
+                pa_tagstruct_get_usec(t, &i.sink_usec) < 0) {
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
             }
@@ -648,7 +648,7 @@ static void context_get_sample_info_callback(struct pa_pdispatch *pd, uint32_t c
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.volume) < 0 ||
-                pa_tagstruct_getu32(t, &i.duration) < 0 ||
+                pa_tagstruct_get_usec(t, &i.duration) < 0 ||
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
                 pa_tagstruct_getu32(t, &i.bytes) < 0) {
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);

@@ -46,7 +46,7 @@ struct pa_sink_input {
     int (*peek) (struct pa_sink_input *i, struct pa_memchunk *chunk);
     void (*drop) (struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
     void (*kill) (struct pa_sink_input *i);
-    uint32_t (*get_latency) (struct pa_sink_input *i);
+    pa_usec_t (*get_latency) (struct pa_sink_input *i);
 
     void *userdata;
 

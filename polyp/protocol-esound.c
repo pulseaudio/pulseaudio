@@ -106,7 +106,7 @@ typedef struct proto_handler {
 static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk);
 static void sink_input_kill_cb(struct pa_sink_input *i);
-static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i);
+static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i);
 
 static void source_output_push_cb(struct pa_source_output *o, const struct pa_memchunk *chunk);
 static void source_output_kill_cb(struct pa_source_output *o);
@@ -385,7 +385,7 @@ static int esd_proto_get_latency(struct connection *c, esd_proto_t request, cons
     if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1)))
         latency = 0;
     else {
-        float usec = pa_sink_get_latency(sink);
+        double usec = pa_sink_get_latency(sink);
         usec += PLAYBACK_BUFFER_SECONDS*1000000;          /* A better estimation would be a good idea! */
         latency = (int) ((usec*44100)/1000000);
     }
@@ -914,7 +914,7 @@ static void sink_input_kill_cb(struct pa_sink_input *i) {
 }
 
 
-static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i) {
+static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i) {
     struct connection*c = i->userdata;
     assert(i && c);
     return pa_bytes_to_usec(pa_memblockq_get_length(c->input_memblockq), &c->sink_input->sample_spec);

@@ -39,11 +39,14 @@ enum tags {
     TAG_S16 = 's',
     TAG_U8 = 'B',
     TAG_S8 = 'b',
+    TAG_U64 = 'R',
+    TAG_S64 = 'r',
     TAG_SAMPLE_SPEC = 'a',
     TAG_ARBITRARY = 'x',
     TAG_BOOLEAN_TRUE = '1',
     TAG_BOOLEAN_FALSE = '0',
     TAG_TIMEVAL = 'T',
+    TAG_USEC = 'U',  /* 64bit unsigned */
 };
 
 struct pa_tagstruct {
@@ -152,6 +155,15 @@ void pa_tagstruct_put_timeval(struct pa_tagstruct*t, const struct timeval *tv) {
     t->data[t->length] = TAG_TIMEVAL;
     *((uint32_t*) (t->data+t->length+1)) = htonl(tv->tv_sec);
     *((uint32_t*) (t->data+t->length+5)) = htonl(tv->tv_usec);
+    t->length += 9;
+}
+
+void pa_tagstruct_put_usec(struct pa_tagstruct*t, pa_usec_t u) {
+    assert(t);
+    extend(t, 9);
+    t->data[t->length] = TAG_USEC;
+    *((uint32_t*) (t->data+t->length+1)) = htonl((uint32_t) (u >> 32));
+    *((uint32_t*) (t->data+t->length+5)) = htonl((uint32_t) u);
     t->length += 9;
 }
 
@@ -288,3 +300,17 @@ int pa_tagstruct_get_timeval(struct pa_tagstruct*t, struct timeval *tv) {
     
 }
 
+int pa_tagstruct_get_usec(struct pa_tagstruct*t, pa_usec_t *u) {
+    assert(t && u);
+
+    if (t->rindex+9 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != TAG_USEC)
+        return -1;
+
+    *u = (pa_usec_t) ntohl(*((uint32_t*) (t->data+t->rindex+1))) << 32;
+    *u |= (pa_usec_t) ntohl(*((uint32_t*) (t->data+t->rindex+5)));
+    t->rindex +=9;
+    return 0;
+}

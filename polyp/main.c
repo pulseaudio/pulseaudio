@@ -188,6 +188,8 @@ int main(int argc, char *argv[]) {
         lt_dlsetsearchpath(DLSEARCHPATH);
 #endif
 
+    pa_log(__FILE__": sizeof(pa_usec_t) = %u\n", sizeof(pa_usec_t));
+    
     mainloop = pa_mainloop_new();
     assert(mainloop);
 

@@ -143,7 +143,7 @@ static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd,
     do_write(u);
 }
 
-static uint32_t sink_get_latency_cb(struct pa_sink *s) {
+static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
     struct userdata *u = s->userdata;
     snd_pcm_sframes_t frames;
     assert(s && u && u->sink);

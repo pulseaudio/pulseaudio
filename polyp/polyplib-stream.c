@@ -333,8 +333,8 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
 
-    } else if (pa_tagstruct_getu32(t, &i.buffer_usec) < 0 ||
-               pa_tagstruct_getu32(t, &i.sink_usec) < 0 ||
+    } else if (pa_tagstruct_get_usec(t, &i.buffer_usec) < 0 ||
+               pa_tagstruct_get_usec(t, &i.sink_usec) < 0 ||
                pa_tagstruct_get_boolean(t, &i.playing) < 0 ||
                pa_tagstruct_getu32(t, &i.queue_length) < 0 ||
                pa_tagstruct_get_timeval(t, &local) < 0 ||

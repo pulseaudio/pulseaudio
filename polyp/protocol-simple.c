@@ -220,7 +220,7 @@ static void sink_input_kill_cb(struct pa_sink_input *i) {
 }
 
 
-static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i) {
+static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i) {
     struct connection*c = i->userdata;
     assert(i && c);
     return pa_bytes_to_usec(pa_memblockq_get_length(c->input_memblockq), &c->sink_input->sample_spec);
