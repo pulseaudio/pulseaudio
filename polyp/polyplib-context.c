@@ -85,7 +85,7 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
 
     c->memblock_stat = pa_memblock_stat_new();
     
-    pa_check_for_sigpipe();
+    pa_check_signal_is_blocked(SIGPIPE);
     return c;
 }
 
@@ -365,15 +365,116 @@ static struct sockaddr *resolve_server(const char *server, size_t *len) {
     return sa;
 }
 
-int pa_context_connect(struct pa_context *c, const char *server) {
+static int is_running(void) {
+    struct stat st;
+    
+    if (DEFAULT_SERVER[0] != '/')
+        return 1;
+
+    if (stat(DEFAULT_SERVER, &st) < 0)
+        return 0;
+
+    return 1;
+}
+
+static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api *api) {
+    pid_t pid;
+    int status, r;
+    int fds[2] = { -1, -1} ;
+    struct pa_iochannel *io;
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
+        pa_log(__FILE__": socketpair() failed: %s\n", strerror(errno));
+        pa_context_fail(c, PA_ERROR_INTERNAL);
+        goto fail;
+    }
+
+    if (api && api->prefork)
+        api->prefork();
+
+    if ((pid = fork()) < 0) {
+        pa_log(__FILE__": fork() failed: %s\n", strerror(errno));
+        pa_context_fail(c, PA_ERROR_INTERNAL);
+
+        if (api && api->postfork)
+            api->postfork();
+        
+        goto fail;
+    } else if (!pid) {
+        char t[128];
+        char *p;
+        /* Child */
+
+        close(fds[0]);
+        
+        if (api && api->atfork)
+            api->atfork();
+
+        if (!(p = getenv(ENV_DEFAULT_BINARY)))
+            p = POLYPAUDIO_BINARY;
+
+        snprintf(t, sizeof(t), "%s=1", ENV_AUTOSPAWNED);
+        putenv(t); 
+        
+        snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
+        execl(p, p, t, NULL);
+        
+        exit(1);
+    } 
+
+    /* Parent */
+
+    r = waitpid(pid, &status, 0);
+
+    if (api && api->postfork)
+        api->postfork();
+        
+    if (r < 0) {
+        pa_log(__FILE__": waitpid() failed: %s\n", strerror(errno));
+        pa_context_fail(c, PA_ERROR_INTERNAL);
+        goto fail;
+    } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+        pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
+        goto fail;
+    }
+
+    close(fds[1]);
+    
+    io = pa_iochannel_new(c->mainloop, fds[0], fds[0]);
+    setup_context(c, io);
+    return 0;
+
+fail:
+    if (fds[0] != -1)
+        close(fds[0]);
+    if (fds[1] != -1)
+        close(fds[1]);
+
+    return -1;
+}
+
+
+
+int pa_context_connect(struct pa_context *c, const char *server, int spawn, const struct pa_spawn_api *api) {
     int r = -1;
     assert(c && c->ref >= 1 && c->state == PA_CONTEXT_UNCONNECTED);
 
-    pa_context_ref(c);
-    
     if (!server)
-        if (!(server = getenv(ENV_DEFAULT_SERVER)))
+        if (!(server = getenv(ENV_DEFAULT_SERVER))) {
+            if (spawn && !is_running()) {
+                char *b;
+                
+                if ((b = getenv(ENV_DISABLE_AUTOSPAWN)))
+                    if (pa_parse_boolean(b) > 1)
+                        return -1;
+                
+                return context_connect_spawn(c, api);
+            }
+
             server = DEFAULT_SERVER;
+        }
+
+    pa_context_ref(c);
 
     assert(!c->client);
     
@@ -560,94 +661,6 @@ struct pa_operation* pa_context_send_simple_command(struct pa_context *c, uint32
 
 const char* pa_get_library_version(void) {
     return PACKAGE_VERSION;
-}
-
-static int is_running(void) {
-    struct stat st;
-    
-    if (DEFAULT_SERVER[0] != '/')
-        return 1;
-
-    if (stat(DEFAULT_SERVER, &st) < 0)
-        return 0;
-
-    return 1;
-}
-
-int pa_context_connect_spawn(struct pa_context *c, void (*atfork)(void), void (*prefork)(void), void (*postfork)(void)) {
-    pid_t pid;
-    int status, r;
-    int fds[2] = { -1, -1} ;
-    struct pa_iochannel *io;
-    
-    if (getenv(ENV_DEFAULT_SERVER) || is_running())
-        return pa_context_connect(c, NULL);
-
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
-        pa_log(__FILE__": socketpair() failed: %s\n", strerror(errno));
-        pa_context_fail(c, PA_ERROR_INTERNAL);
-        goto fail;
-    }
-
-    if (prefork)
-        prefork();
-
-    if ((pid = fork()) < 0) {
-        pa_log(__FILE__": fork() failed: %s\n", strerror(errno));
-        pa_context_fail(c, PA_ERROR_INTERNAL);
-
-        if (postfork)
-            postfork();
-        
-        goto fail;
-    } else if (!pid) {
-        char t[64];
-        char *p;
-        /* Child */
-
-        close(fds[0]);
-        
-        if (atfork)
-            atfork();
-
-        if (!(p = getenv(ENV_DEFAULT_BINARY)))
-            p = POLYPAUDIO_BINARY;
-        
-        snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
-        execl(p, p, "-r", "-D", "-lsyslog", "-X 5", t, NULL);
-        
-        exit(1);
-    } 
-
-    /* Parent */
-
-    r = waitpid(pid, &status, 0);
-
-    if (postfork)
-        postfork();
-        
-    if (r < 0) {
-        pa_log(__FILE__": waitpid() failed: %s\n", strerror(errno));
-        pa_context_fail(c, PA_ERROR_INTERNAL);
-        goto fail;
-    } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-        pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
-        goto fail;
-    }
-
-    close(fds[1]);
-    
-    io = pa_iochannel_new(c->mainloop, fds[0], fds[0]);
-    setup_context(c, io);
-    return 0;
-
-fail:
-    if (fds[0] != -1)
-        close(fds[0]);
-    if (fds[1] != -1)
-        close(fds[1]);
-
-    return -1;
 }
 
 struct pa_operation* pa_context_set_default_sink(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success, void *userdata), void *userdata) {

@@ -292,7 +292,7 @@ int main(int argc, char *argv[]) {
     }
 
     pa_context_set_state_callback(context, context_state_callback, NULL);
-    pa_context_connect(context, NULL);
+    pa_context_connect(context, NULL, 1, NULL);
 
     if (pa_mainloop_run(m, &ret) < 0) {
         fprintf(stderr, "pa_mainloop_run() failed.\n");

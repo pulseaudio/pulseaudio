@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <signal.h>
 
 #include "core.h"
 #include "module.h"
@@ -79,7 +80,7 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->module_idle_time = 20;
     c->scache_idle_time = 20;
     
-    pa_check_for_sigpipe();
+    pa_check_signal_is_blocked(SIGPIPE);
     
     return c;
 }

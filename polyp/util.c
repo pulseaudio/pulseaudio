@@ -115,7 +115,7 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size) {
     return ret;
 }
 
-void pa_check_for_sigpipe(void) {
+void pa_check_signal_is_blocked(int sig) {
     struct sigaction sa;
     sigset_t set;
 
@@ -130,10 +130,10 @@ void pa_check_for_sigpipe(void) {
     }
 #endif
 
-    if (sigismember(&set, SIGPIPE))
+    if (sigismember(&set, sig))
         return;
     
-    if (sigaction(SIGPIPE, NULL, &sa) < 0) {
+    if (sigaction(sig, NULL, &sa) < 0) {
         pa_log(__FILE__": sigaction() failed: %s\n", strerror(errno));
         return;
     }
@@ -141,7 +141,7 @@ void pa_check_for_sigpipe(void) {
     if (sa.sa_handler != SIG_DFL)
         return;
     
-    pa_log(__FILE__": WARNING: SIGPIPE is not trapped. This might cause malfunction!\n");
+    pa_log(__FILE__": WARNING: %s is not trapped. This might cause malfunction!\n", pa_strsignal(sig));
 }
 
 /* The following is based on an example from the GNU libc documentation */
@@ -389,3 +389,17 @@ char *pa_split(const char *c, const char *delimiter, const char**state) {
 
     return pa_xstrndup(current, l);
 }
+
+const char *pa_strsignal(int sig) {
+    switch(sig) {
+        case SIGINT: return "SIGINT";
+        case SIGTERM: return "SIGTERM";
+        case SIGUSR1: return "SIGUSR1";
+        case SIGUSR2: return "SIGUSR2";
+        case SIGXCPU: return "SIGXCPU";
+        case SIGPIPE: return "SIGPIPE";
+        case SIGCHLD: return "SIGCHLD";
+        default: return "UNKNOWN SIGNAL";
+    }
+}
+

@@ -130,7 +130,7 @@ struct pa_simple* pa_simple_new(
     if (!(p->context = pa_context_new(pa_mainloop_get_api(p->mainloop), name)))
         goto fail;
     
-    pa_context_connect(p->context, server);
+    pa_context_connect(p->context, server, 1, NULL);
 
     /* Wait until the context is ready */
     while (pa_context_get_state(p->context) != PA_CONTEXT_READY) {

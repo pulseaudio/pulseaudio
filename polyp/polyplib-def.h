@@ -156,6 +156,25 @@ struct pa_latency_info {
     struct timeval timestamp; /**< The time when this latency info was current */
 };
 
+/** A structure for the spawn api. This may be used to integrate auto
+ * spawned daemons into your application. For more information see
+ * pa_context_connect(). When spawning a new child process the
+ * waitpid() is used on the child's PID. The spawn routine will not
+ * block or ignore SIGCHLD signals, since this cannot be done in a
+ * thread compatible way. You might have to do this in
+ * prefork/postfork. \since 0.4 */
+struct pa_spawn_api {
+    void (*prefork)(void);     /**< Is called just before the fork in the parent process. May be NULL. */
+    void (*postfork)(void);    /**< Is called immediately after the fork in the parent process. May be NULL.*/
+    void (*atfork)(void);      /**< Is called immediately after the
+                                * fork in the child process. May be
+                                * NULL. It is not safe to close all
+                                * file descriptors in this function
+                                * unconditionally, since a UNIX socket
+                                * (created using socketpair()) is
+                                * passed to the new process. */
+};
+
 PA_C_DECL_END
 
 #endif

@@ -36,7 +36,7 @@ int pa_make_secure_dir(const char* dir);
 ssize_t pa_loop_read(int fd, void*data, size_t size);
 ssize_t pa_loop_write(int fd, const void*data, size_t size);
 
-void pa_check_for_sigpipe(void);
+void pa_check_signal_is_blocked(int sig);
 
 char *pa_sprintf_malloc(const char *format, ...) PA_GCC_PRINTF_ATTR(1,2);
 char *pa_vsprintf_malloc(const char *format, va_list ap);
@@ -60,5 +60,7 @@ int pa_fd_set_cloexec(int fd, int b);
 int pa_parse_boolean(const char *s);
 
 char *pa_split(const char *c, const char*delimiters, const char **state);
+
+const char *pa_strsignal(int sig);
 
 #endif

@@ -25,7 +25,8 @@ modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
 AM_CFLAGS+=-DDLSEARCHPATH=\"$(modlibdir)\"
 AM_CFLAGS+=-DDEFAULT_SCRIPT_FILE=\"$(polypconfdir)/default.pa\"
-AM_CFLAGS+=-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/config\"
+AM_CFLAGS+=-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/default.conf\"
+AM_CFLAGS+=-DAUTOSPAWN_CONFIG_FILE=\"$(polypconfdir)/autospawn.conf\"
 AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 
 AM_LDADD=$(PTHREAD_LIBS) -lm

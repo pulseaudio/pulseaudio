@@ -53,17 +53,23 @@ static const struct pa_conf default_conf = {
 
 #define ENV_SCRIPT_FILE "POLYP_SCRIPT"
 #define ENV_CONFIG_FILE "POLYP_CONFIG"
+#define ENV_AUTOSPAWNED "POLYP_AUTOSPAWNED"
 
 #ifndef DEFAULT_SCRIPT_FILE
 #define DEFAULT_SCRIPT_FILE "/etc/polypaudio/default.pa"
 #endif
 
 #ifndef DEFAULT_CONFIG_FILE
-#define DEFAULT_CONFIG_FILE "/etc/polypaudio/config"
+#define DEFAULT_CONFIG_FILE "/etc/polypaudio/default.conf"
+#endif
+
+#ifndef AUTOSPAWN_CONFIG_FILE
+#define AUTOSPAWN_CONFIG_FILE "/etc/polypaudio/autospawn.conf"
 #endif
 
 #define DEFAULT_SCRIPT_FILE_LOCAL ".polypaudio.pa"
 #define DEFAULT_CONFIG_FILE_LOCAL ".polypaudio.conf"
+#define AUTOSPAWN_CONFIG_FILE_LOCAL ".polypaudio-autospawn.conf"
 
 char* default_file(const char *envvar, const char *global, const char *local) {
     char *p, *h;
@@ -85,10 +91,26 @@ char* default_file(const char *envvar, const char *global, const char *local) {
     return pa_xstrdup(global);
 }
 
+char *default_config_file(void) {
+    char *b;
+    int autospawned = 0;
+    
+    if ((b = getenv(ENV_AUTOSPAWNED)))
+        autospawned = pa_parse_boolean(b) > 0;
+    
+    return default_file(ENV_CONFIG_FILE,
+                        autospawned ? AUTOSPAWN_CONFIG_FILE : DEFAULT_CONFIG_FILE,
+                        autospawned ? AUTOSPAWN_CONFIG_FILE_LOCAL : DEFAULT_CONFIG_FILE_LOCAL);
+
+}
+
+char *default_script_file(void) {
+    return default_file(ENV_SCRIPT_FILE, DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_LOCAL);
+}
 
 struct pa_conf* pa_conf_new(void) {
     struct pa_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
-    c->default_script_file = default_file(ENV_SCRIPT_FILE, DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_LOCAL);
+    c->default_script_file = default_script_file();
     return c;
 }
 
@@ -223,7 +245,7 @@ int pa_conf_load(struct pa_conf *c, const char *filename) {
     assert(c);
     
     if (!filename)
-        filename = def = default_file(ENV_CONFIG_FILE, DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_LOCAL);
+        filename = def = default_config_file();
 
     if (!(f = fopen(filename, "r"))) {
         if (errno != ENOENT)
@@ -259,7 +281,7 @@ char *pa_conf_dump(struct pa_conf *c) {
     struct pa_strbuf *s = pa_strbuf_new();
     char *d;
 
-    d = default_file(ENV_CONFIG_FILE, DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_LOCAL);
+    d = default_config_file();
     pa_strbuf_printf(s, "### Default configuration file: %s ###\n", d);
     
     pa_strbuf_printf(s, "verbose = %i\n", !!c->verbose);

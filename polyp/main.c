@@ -58,20 +58,8 @@ static void drop_root(void) {
     }
 }
 
-static const char* signal_name(int s) {
-    switch(s) {
-        case SIGINT: return "SIGINT";
-        case SIGTERM: return "SIGTERM";
-        case SIGUSR1: return "SIGUSR1";
-        case SIGUSR2: return "SIGUSR2";
-        case SIGXCPU: return "SIGXCPU";
-        case SIGPIPE: return "SIGPIPE";
-        default: return "UNKNOWN SIGNAL";
-    }
-}
-
 static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
-    pa_log(__FILE__": Got signal %s.\n", signal_name(sig));
+    pa_log(__FILE__": Got signal %s.\n", pa_strsignal(sig));
 
     switch (sig) {
         case SIGUSR1:
