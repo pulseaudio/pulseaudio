@@ -78,7 +78,10 @@ available.</p>
 
 <p>Version @PACKAGE_VERSION@ is quite usable. <tt>polypaudio</tt> does
 not yet match all ESOUND features: currently a sample cache and
-automatic releasing of unused sound drivers are missing. Have a look on the more extensive <a href="http://0pointer.de/cgi-bin/viewcvs.cgi/trunk/src/todo?view=markup">TODO list</a>.</p>
+automatic releasing of unused sound drivers are missing. Have a look
+on the more extensive <a
+href="http://0pointer.de/cgi-bin/viewcvs.cgi/trunk/doc/todo?view=markup">TODO
+list</a>.</p>
   
 <h2><a name="documentation">Documentation</a></h2>
 
@@ -89,6 +92,26 @@ href="daemon.html"><tt>daemeon.html</tt></a>.</p>
 
 <p>Documentation for developing with <tt>polypaudio</tt> is not yet
 available. Read the source, Luke!</p>
+
+<h3>First Steps</h1>
+
+<p>Simply start the polypaudio daemon with the argument <tt>-C</tt></p>
+
+<pre>polypaudio -C</pre>
+
+<p>This will present you a screen like this:</p>
+
+<pre>Welcome to polypaudio! Use "help" for usage information.
+&gt;&gt;&gt; </pre>
+
+<p>Now you can issue CLI commands as described in <a
+href="cli.html"><tt>cli.html</tt></a>. Another way to start
+<tt>polypaudio</tt> is by specifying a configuration script on the
+command line like that one included in the distribution:</p>
+
+<pre>polypaudio -F polypaudio.pa</pre>
+
+<p>This will load some drivers and protocols automatically.</p>
 
 <h2><a name="requirements">Requirements</a></h2>
 

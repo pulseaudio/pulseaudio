@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-AM_CFLAGS=-ansi -D_GNU_SOURCE
+AM_CFLAGS=-ansi -D_GNU_SOURCE -DDLSEARCHDIR=\"$(pkglibdir)\"
 
 EXTRA_DIST = polypaudio.run depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
