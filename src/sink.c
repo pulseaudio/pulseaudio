@@ -29,6 +29,8 @@ struct sink* sink_new(struct core *core, const char *name, const struct sample_s
     }
     
     s->monitor_source = source_new(core, n, spec);
+    free(n);
+    
     s->volume = 0xFF;
 
     s->notify_callback = NULL;
@@ -41,12 +43,13 @@ void sink_free(struct sink *s) {
     struct input_stream *i;
     assert(s);
 
+    while ((i = idxset_rrobin(s->input_streams, NULL)))
+        input_stream_free(i);
+    idxset_free(s->input_streams, NULL, NULL);
+        
     idxset_remove_by_data(s->core->sinks, s, NULL);
     source_free(s->monitor_source);
 
-    while ((i = idxset_rrobin(s->input_streams, NULL)))
-        input_stream_free(i);
-        
     free(s->name);
     free(s);
 }

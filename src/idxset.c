@@ -27,7 +27,7 @@ static unsigned trivial_hash_func(void *p) {
 }
 
 static int trivial_compare_func(void *a, void *b) {
-    return !(a == b);
+    return a != b;
 }
 
 struct idxset* idxset_new(unsigned (*hash_func) (void *p), int (*compare_func) (void*a, void*b)) {
@@ -40,11 +40,13 @@ struct idxset* idxset_new(unsigned (*hash_func) (void *p), int (*compare_func) (
     s->hash_table_size = 1023;
     s->hash_table = malloc(sizeof(struct idxset_entry*)*s->hash_table_size);
     assert(s->hash_table);
+    memset(s->hash_table, 0, sizeof(struct idxset_entry*)*s->hash_table_size);
     s->array = NULL;
     s->array_size = 0;
     s->index = 0;
     s->start_index = 0;
     s->n_entries = 0;
+    s->rrobin = NULL;
 
     s->iterate_list_head = s->iterate_list_tail = NULL;
 
@@ -75,7 +77,7 @@ static struct idxset_entry* hash_scan(struct idxset *s, struct idxset_entry* e, 
 
     assert(s->compare_func);
     for (; e; e = e->hash_next)
-        if (s->compare_func(e->data, p))
+        if (s->compare_func(e->data, p) == 0)
             return e;
 
     return NULL;
@@ -278,7 +280,7 @@ void* idxset_remove_by_data(struct idxset*s, void *data, uint32_t *index) {
 }
 
 void* idxset_rrobin(struct idxset *s, uint32_t *index) {
-    assert(s && index);
+    assert(s);
 
     if (s->rrobin)
         s->rrobin = s->rrobin->iterate_next;

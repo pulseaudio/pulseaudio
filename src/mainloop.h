@@ -14,7 +14,8 @@ enum mainloop_io_event {
 enum mainloop_source_type {
     MAINLOOP_SOURCE_TYPE_IO,
     MAINLOOP_SOURCE_TYPE_PREPARE,
-    MAINLOOP_SOURCE_TYPE_IDLE
+    MAINLOOP_SOURCE_TYPE_IDLE,
+    MAINLOOP_SOURCE_TYPE_SIGNAL
 };
 
 struct mainloop *mainloop_new(void);
@@ -27,6 +28,7 @@ void mainloop_quit(struct mainloop *m, int r);
 struct mainloop_source* mainloop_source_new_io(struct mainloop*m, int fd, enum mainloop_io_event event, void (*callback)(struct mainloop_source*s, int fd, enum mainloop_io_event event, void *userdata), void *userdata);
 struct mainloop_source* mainloop_source_new_prepare(struct mainloop*m, void (*callback)(struct mainloop_source *s, void*userdata), void*userdata);
 struct mainloop_source* mainloop_source_new_idle(struct mainloop*m, void (*callback)(struct mainloop_source *s, void*userdata), void*userdata);
+struct mainloop_source* mainloop_source_new_signal(struct mainloop*m, int sig, void (*callback)(struct mainloop_source *s, int sig, void*userdata), void*userdata);
 
 void mainloop_source_free(struct mainloop_source*s);
 void mainloop_source_enable(struct mainloop_source*s, int b);

@@ -85,7 +85,7 @@ int module_init(struct core *c, struct module*m) {
 
     mkfifo((p = m->argument ? m->argument : "/tmp/musicfifo"), 0777);
 
-    if ((fd = open(p, O_RDWR) < 0)) {
+    if ((fd = open(p, O_RDWR)) < 0) {
         fprintf(stderr, "open('%s'): %s\n", p, strerror(errno));
         goto fail;
     }

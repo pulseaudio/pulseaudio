@@ -1,7 +1,11 @@
+#include <signal.h>
+#include <unistd.h>
 #include <sys/poll.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include "mainloop.h"
 
@@ -28,6 +32,12 @@ struct mainloop_source {
     struct  {
         void (*callback)(struct mainloop_source*s, void *userdata);
     } idle;
+
+    struct {
+        int sig;
+        struct sigaction sigaction;
+        void (*callback)(struct mainloop_source*s, int sig, void *userdata);
+    } signal;
 };
 
 struct mainloop_source_list {
@@ -37,7 +47,7 @@ struct mainloop_source_list {
 };
 
 struct mainloop {
-    struct mainloop_source_list io_sources, prepare_sources, idle_sources;
+    struct mainloop_source_list io_sources, prepare_sources, idle_sources, signal_sources;
     
     struct pollfd *pollfds;
     int max_pollfds, n_pollfds;
@@ -45,14 +55,43 @@ struct mainloop {
 
     int quit;
     int running;
+    int signal_pipe[2];
+    struct pollfd signal_pollfd;
 };
 
+static int signal_pipe = -1;
+
+static void signal_func(int sig) {
+    if (signal_pipe >= 0)
+        write(signal_pipe, &sig, sizeof(sig));
+}
+
+static void make_nonblock(int fd) {
+    int v;
+    
+    if ((v = fcntl(fd, F_GETFL)) >= 0)
+        fcntl(fd, F_SETFL, v|O_NONBLOCK);
+}
+
+
 struct mainloop *mainloop_new(void) {
+    int r;
     struct mainloop *m;
 
     m = malloc(sizeof(struct mainloop));
     assert(m);
     memset(m, 0, sizeof(struct mainloop));
+
+    r = pipe(m->signal_pipe);
+    assert(r >= 0 && m->signal_pipe[0] >= 0 && m->signal_pipe[1] >= 0);
+
+    make_nonblock(m->signal_pipe[0]);
+    make_nonblock(m->signal_pipe[1]);
+    
+    signal_pipe = m->signal_pipe[1];
+    m->signal_pollfd.fd = m->signal_pipe[0];
+    m->signal_pollfd.events = POLLIN;
+    m->signal_pollfd.revents = 0;
     
     return m;
 }
@@ -61,7 +100,7 @@ static void free_sources(struct mainloop_source_list *l, int all) {
     struct mainloop_source *s, *p;
     assert(l);
 
-    if (!l->dead_sources)
+    if (!all && !l->dead_sources)
         return;
 
     p = NULL;
@@ -86,7 +125,7 @@ static void free_sources(struct mainloop_source_list *l, int all) {
     l->dead_sources = 0;
 
     if (all) {
-        assert(l->sources);
+        assert(!l->sources);
         l->n_sources = 0;
     }
 }
@@ -96,15 +135,23 @@ void mainloop_free(struct mainloop* m) {
     free_sources(&m->io_sources, 1);
     free_sources(&m->prepare_sources, 1);
     free_sources(&m->idle_sources, 1);
+    free_sources(&m->signal_sources, 1);
+
+    if (signal_pipe == m->signal_pipe[1])
+        signal_pipe = -1;
+    close(m->signal_pipe[0]);
+    close(m->signal_pipe[1]);
+    
     free(m->pollfds);
+    free(m);
 }
 
 static void rebuild_pollfds(struct mainloop *m) {
     struct mainloop_source*s;
     struct pollfd *p;
     
-    if (m->max_pollfds < m->io_sources.n_sources) {
-        m->max_pollfds = m->io_sources.n_sources*2;
+    if (m->max_pollfds < m->io_sources.n_sources+1) {
+        m->max_pollfds = (m->io_sources.n_sources+1)*2;
         m->pollfds = realloc(m->pollfds, sizeof(struct pollfd)*m->max_pollfds);
     }
 
@@ -117,6 +164,9 @@ static void rebuild_pollfds(struct mainloop *m) {
             m->n_pollfds++;
         }
     }
+
+    *(p++) = m->signal_pollfd;
+    m->n_pollfds++;
 }
 
 static void dispatch_pollfds(struct mainloop *m) {
@@ -128,10 +178,42 @@ static void dispatch_pollfds(struct mainloop *m) {
 
     s = m->io_sources.sources;
     for (p = m->pollfds, i = 0; i < m->n_pollfds; p++, i++) {
-        for (;;) {
-            assert(s && s->type == MAINLOOP_SOURCE_TYPE_IO);
+        if (!p->revents)
+            continue;
+
+        if (p->fd == m->signal_pipe[0]) {
+            /* Event from signal pipe */
+
+            if (p->revents & POLLIN) {
+                int sig;
+                ssize_t r;
+                r = read(m->signal_pipe[0], &sig, sizeof(sig));
+                assert((r < 0 && errno == EAGAIN) || r == sizeof(sig));
             
-            if (p->fd == s->io.fd) {
+                if (r == sizeof(sig)) {
+                    struct mainloop_source *l = m->signal_sources.sources;
+                    while (l) {
+                        assert(l->type == MAINLOOP_SOURCE_TYPE_SIGNAL);
+                        
+                        if (l->signal.sig == sig && l->enabled && !l->dead) {
+                            assert(l->signal.callback);
+                            l->signal.callback(l, sig, l->userdata);
+                        }
+                        
+                        l = l->next;
+                    }
+                }
+            }
+
+        } else {
+            /* Event from I/O source */
+
+            for (; s; s = s->next) {
+                if (p->fd != s->io.fd)
+                    continue;
+                
+                assert(s->type == MAINLOOP_SOURCE_TYPE_IO);
+
                 if (!s->dead && s->enabled) {
                     enum mainloop_io_event e = (p->revents & POLLIN ? MAINLOOP_IO_EVENT_IN : 0) | (p->revents & POLLOUT ? MAINLOOP_IO_EVENT_OUT : 0);
                     if (e) {
@@ -142,7 +224,6 @@ static void dispatch_pollfds(struct mainloop *m) {
 
                 break;
             }
-            s = s->next;
         }
     }
 }
@@ -172,7 +253,11 @@ int mainloop_iterate(struct mainloop *m, int block) {
 
     m->running = 1;
 
-    if ((c = poll(m->pollfds, m->n_pollfds, (block && !m->idle_sources.n_sources) ? -1 : 0)) > 0)
+    do {
+        c = poll(m->pollfds, m->n_pollfds, (block && !m->idle_sources.n_sources) ? -1 : 0);
+    } while (c < 0 && errno == EINTR);
+        
+    if (c > 0)
         dispatch_pollfds(m);
     else if (c == 0) {
         for (s = m->idle_sources.sources; s; s = s->next) {
@@ -211,6 +296,9 @@ static struct mainloop_source_list* get_source_list(struct mainloop *m, enum mai
             break;
         case MAINLOOP_SOURCE_TYPE_IDLE:
             l = &m->idle_sources;
+            break;
+        case MAINLOOP_SOURCE_TYPE_SIGNAL:
+            l = &m->signal_sources;
             break;
         default:
             l = NULL;
@@ -279,7 +367,33 @@ struct mainloop_source* mainloop_source_new_idle(struct mainloop*m, void (*callb
 
     s = source_new(m, MAINLOOP_SOURCE_TYPE_IDLE);
 
-    s->prepare.callback = callback;
+    s->idle.callback = callback;
+    s->userdata = userdata;
+    s->enabled = 1;
+    return s;
+}
+
+struct mainloop_source* mainloop_source_new_signal(struct mainloop*m, int sig, void (*callback)(struct mainloop_source *s, int sig, void*userdata), void*userdata) {
+    struct mainloop_source* s;
+    struct sigaction save_sa, sa;
+    
+    assert(m && callback);
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = signal_func;
+    sa.sa_flags = SA_RESTART;
+    sigemptyset(&sa.sa_mask);
+
+    memset(&save_sa, 0, sizeof(save_sa));
+
+    if (sigaction(sig, &sa, &save_sa) < 0)
+        return NULL;
+    
+    s = source_new(m, MAINLOOP_SOURCE_TYPE_SIGNAL);
+    s->signal.sig = sig;
+    s->signal.sigaction = save_sa;
+    
+    s->signal.callback = callback;
     s->userdata = userdata;
     s->enabled = 1;
     return s;
@@ -299,6 +413,8 @@ void mainloop_source_free(struct mainloop_source*s) {
 
     if (s->type == MAINLOOP_SOURCE_TYPE_IO)
         s->mainloop->rebuild_pollfds = 1;
+    else if (s->type == MAINLOOP_SOURCE_TYPE_SIGNAL)
+        sigaction(s->signal.sig, &s->signal.sigaction, NULL);
 }
 
 void mainloop_source_enable(struct mainloop_source*s, int b) {

@@ -34,10 +34,16 @@ static void do_free(void *p, void *userdata) {
 };
 
 void source_free(struct source *s) {
+    struct output_stream *o;
     assert(s);
 
+    while ((o = idxset_rrobin(s->output_streams, NULL)))
+        output_stream_free(o);
+    idxset_free(s->output_streams, NULL, NULL);
+    
     idxset_remove_by_data(s->core->sources, s, NULL);
     idxset_free(s->output_streams, do_free, NULL);
+
     free(s->name);
     free(s);
 }

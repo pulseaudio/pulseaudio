@@ -20,8 +20,8 @@ AM_CFLAGS=-ansi -D_GNU_SOURCE
 
 bin_PROGRAMS = polypaudio 
 
-pkglib_LTLIBRARIES=protocol-simple.la protocol-simple-tcp.la \
-		socket-server.la sink-pipe.la pstream.la iochannel.la packet.la
+pkglib_LTLIBRARIES=libprotocol-simple.la protocol-simple-tcp.la \
+		libsocket-server.la sink-pipe.la libpstream.la libiochannel.la libpacket.la
 
 polypaudio_SOURCES = idxset.c queue.c strbuf.c mainloop.c  \
 		memblock.c sample.c memblockq.c client.c \
@@ -31,25 +31,28 @@ polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(LIBLTDL) 
 polypaudio_LDFLAGS=-export-dynamic
 
-protocol_simple_la_SOURCES = protocol-simple.c
-protocol_simple_la_LDFLAGS = -module -avoid-version
+libprotocol_simple_la_SOURCES = protocol-simple.c
+libprotocol_simple_la_LDFLAGS = -avoid-version
+libprotocol_simple_la_LIBADD = libsocket-server.la libiochannel.la
+
+libsocket_server_la_SOURCES = socket-server.c
+libsocket_server_la_LDFLAGS = -avoid-version
+libsocket_server_la_LIBADD = libiochannel.la
+
+libpstream_la_SOURCES = pstream.c
+libpstream_la_LDFLAGS = -avoid-version
+libpstream_la_LIBADD = libpacket.la
+
+libiochannel_la_SOURCES = iochannel.c
+libiochannel_la_LDFLAGS = -avoid-version
+
+libpacket_la_SOURCES = packet.c
+libpacket_la_LDFLAGS = -avoid-version
 
 protocol_simple_tcp_la_SOURCES = protocol-simple-tcp.c
 protocol_simple_tcp_la_LDFLAGS = -module -avoid-version
-protocol_simple_tcp_la_LIBADD = protocol-simple.la socket-server.la
-
-socket_server_la_SOURCES = socket-server.c
-socket_server_la_LDFLAGS = -module -avoid-version
+protocol_simple_tcp_la_LIBADD = libprotocol-simple.la libiochannel.la
 
 sink_pipe_la_SOURCES = sink-pipe.c
 sink_pipe_la_LDFLAGS = -module -avoid-version
-
-pstream_la_SOURCES = pstream.c
-pstream_la_LDFLAGS = -module -avoid-version
-
-iochannel_la_SOURCES = pstream.c
-iochannel_la_LDFLAGS = -module -avoid-version 
-
-packet_la_SOURCES = pstream.c
-packet_la_LDFLAGS = -module -avoid-version 
-
+sink_pipe_la_LIBADD = libiochannel.la

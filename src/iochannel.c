@@ -156,3 +156,9 @@ ssize_t iochannel_read(struct iochannel*io, void*data, size_t l) {
 
     return r;
 }
+
+void iochannel_set_callback(struct iochannel*io, void (*callback)(struct iochannel*io, void *userdata), void *userdata) {
+    assert(io);
+    io->callback = callback;
+    io->userdata = userdata;
+}
