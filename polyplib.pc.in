@@ -4,7 +4,8 @@ libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
 Name: polyplib
-Description: Client interface to polypaudio sound daemon
+Description: Client interface to polypaudio
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lpolyp
 Cflags: -D_REENTRANT -I${includedir}
+Requires: polyplib-error polyplib-mainloop

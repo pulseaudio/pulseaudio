@@ -169,7 +169,7 @@ void pa_sink_input_drop(struct pa_sink_input *i, size_t length) {
     }
 }
 
-void pa_sink_input_set_volume(struct pa_sink_input *i, uint32_t volume) {
+void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume) {
     assert(i && i->sink && i->sink->core);
 
     if (i->volume != volume) {

@@ -47,11 +47,13 @@ static size_t buffer_length = 0, buffer_index = 0;
 
 static struct pa_io_event* stdio_event = NULL;
 
+/* A shortcut for terminating the application */
 static void quit(int ret) {
     assert(mainloop_api);
     mainloop_api->quit(mainloop_api, ret);
 }
 
+/* Write some data to the stream */
 static void do_stream_write(size_t length) {
     size_t l;
     assert(length);
@@ -74,6 +76,7 @@ static void do_stream_write(size_t length) {
     }
 }
 
+/* This is called whenever new data may be written to the stream */
 static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
     assert(s && length);
 
@@ -86,6 +89,7 @@ static void stream_write_callback(struct pa_stream *s, size_t length, void *user
     do_stream_write(length);
 }
 
+/* This is called whenever new data may is available */
 static void stream_read_callback(struct pa_stream *s, const void*data, size_t length, void *userdata) {
     assert(s && data && length);
 
@@ -103,6 +107,7 @@ static void stream_read_callback(struct pa_stream *s, const void*data, size_t le
     buffer_index = 0;
 }
 
+/* This routine is called whenever the stream state changes */
 static void stream_state_callback(struct pa_stream *s, void *userdata) {
     assert(s);
 
@@ -125,6 +130,7 @@ static void stream_state_callback(struct pa_stream *s, void *userdata) {
     }
 }
 
+/* This is called whenever the context status changes */
 static void context_state_callback(struct pa_context *c, void *userdata) {
     static const struct pa_sample_spec ss = {
         .format = PA_SAMPLE_S16LE,
@@ -170,10 +176,12 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
     }
 }
 
+/* Connection draining complete */
 static void context_drain_complete(struct pa_context*c, void *userdata) {
     pa_context_disconnect(c);
 }
 
+/* Stream draining complete */
 static void stream_drain_complete(struct pa_stream*s, int success, void *userdata) {
     struct pa_operation *o;
 
@@ -196,6 +204,7 @@ static void stream_drain_complete(struct pa_stream*s, int success, void *userdat
     }
 }
 
+/* New data on STDIN **/
 static void stdin_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     size_t l, w = 0;
     ssize_t r;
@@ -232,6 +241,7 @@ static void stdin_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int 
         do_stream_write(w);
 }
 
+/* Some data may be written to STDOUT */
 static void stdout_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     ssize_t r;
     assert(a == mainloop_api && e && stdio_event == e);
@@ -262,12 +272,14 @@ static void stdout_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int
     }
 }
 
+/* UNIX signal to quit recieved */
 static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got SIGINT, exiting.\n");
     quit(0);
     
 }
 
+/* Show the current playback latency */
 static void stream_get_latency_callback(struct pa_stream *s, uint32_t latency, void *userdata) {
     assert(s);
 
@@ -280,6 +292,7 @@ static void stream_get_latency_callback(struct pa_stream *s, uint32_t latency, v
     fprintf(stderr, "Current latency is %u usecs.\n", latency);
 }
 
+/* Someone requested that the latency is shown */
 static void sigusr1_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     if (mode != PLAYBACK)
         return;
@@ -295,6 +308,8 @@ int main(int argc, char *argv[]) {
 
     if (!(bn = strrchr(argv[0], '/')))
         bn = argv[0];
+    else
+        bn++;
 
     if (strstr(bn, "rec") || strstr(bn, "mon"))
         mode = RECORD;
@@ -302,7 +317,8 @@ int main(int argc, char *argv[]) {
         mode = PLAYBACK;
 
     fprintf(stderr, "Opening a %s stream.\n", mode == RECORD ? "recording" : "playback");
-    
+
+    /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {
         fprintf(stderr, "pa_mainloop_new() failed.\n");
         goto quit;
@@ -323,16 +339,19 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "source_io() failed.\n");
         goto quit;
     }
-    
-    if (!(context = pa_context_new(mainloop_api, argv[0]))) {
+
+    /* Create a new connection context */
+    if (!(context = pa_context_new(mainloop_api, bn))) {
         fprintf(stderr, "pa_context_new() failed.\n");
         goto quit;
     }
 
     pa_context_set_state_callback(context, context_state_callback, NULL);
 
+    /* Connect the context */
     pa_context_connect(context, NULL);
 
+    /* Run the main loop */
     if (pa_mainloop_run(m, &ret) < 0) {
         fprintf(stderr, "pa_mainloop_run() failed.\n");
         goto quit;

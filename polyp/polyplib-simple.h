@@ -29,12 +29,20 @@
 #include "cdecl.h"
 
 /** \file
- * A simple but limited synchronous playback and recording API. */
+ * A simple but limited synchronous playback and recording
+ * API. This is synchronouse, simplified wrapper around the standard
+ * asynchronous API. */
+
+/** \example pacat-simple.c
+ * A simple playback tool using the simple API */
+
+/** \example parec-simple.c
+ * A simple recording tool using the simple API */
 
 PA_C_DECL_BEGIN
 
 /** \struct pa_simple
- * A simple connection object */
+ * An opaque simple connection object */
 struct pa_simple;
 
 /** Create a new connection to the server */

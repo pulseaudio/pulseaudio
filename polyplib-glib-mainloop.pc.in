@@ -3,8 +3,9 @@ exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
-Name: polyplib-mainloop
-Description: Main loop support for polypaudio
+Name: polyplib-glib-mainloop
+Description: GLIB main loop wrapper for polypaudio
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lpolyp-mainloop
+Libs: -L${libdir} -lpolyp-mainloop-glib
 Cflags: -D_REENTRANT -I${includedir}
+Requires: polyplib-mainloop

@@ -12,7 +12,7 @@
 PA_C_DECL_BEGIN
 
 /** \struct pa_glib_mainloop
- * A GLIB main loop object */
+ * An opaque GLIB main loop object */
 struct pa_glib_mainloop;
 
 /** Create a new GLIB main loop object for the specified GLIB main loop context. If c is NULL the default context is used. */

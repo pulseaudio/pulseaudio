@@ -54,15 +54,15 @@ enum pa_io_event_flags {
 };
 
 /** \struct pa_io_event
- * An IO event source object */
+ * An opaque IO event source object */
 struct pa_io_event;
 
 /** \struct pa_defer_event
- * A deferred event source object. Events of this type are triggered once in every main loop iteration */
+ * An opaque deferred event source object. Events of this type are triggered once in every main loop iteration */
 struct pa_defer_event;
 
 /** \struct pa_time_event
- * A timer event source object */
+ * An opaque timer event source object */
 struct pa_time_event;
 
 /** An abstract mainloop API vtable */

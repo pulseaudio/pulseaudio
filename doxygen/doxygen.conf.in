@@ -417,7 +417,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../polyp/polyplib-context.h ../polyp/polyplib-stream.h ../polyp/polyplib.h ../polyp/sample.h ../polyp/polyplib-def.h ../polyp/polyplib-subscribe.h ../polyp/polyplib-introspect.h ../polyp/polyplib-scache.h ../polyp/mainloop-api.h ../polyp/cdecl.h ../polyp/glib-mainloop.h ../polyp/mainloop.h ../polyp/mainloop-signal.h ../polyp/native-common.h ../polyp/polyplib-error.h ../polyp/polyplib-operation.h ../polyp/polyplib-simple.h
+INPUT                  = ../polyp/polyplib-context.h ../polyp/polyplib-stream.h ../polyp/polyplib.h ../polyp/sample.h ../polyp/polyplib-def.h ../polyp/polyplib-subscribe.h ../polyp/polyplib-introspect.h ../polyp/polyplib-scache.h ../polyp/mainloop-api.h ../polyp/cdecl.h ../polyp/glib-mainloop.h ../polyp/mainloop.h ../polyp/mainloop-signal.h ../polyp/polyplib-error.h ../polyp/polyplib-operation.h ../polyp/polyplib-simple.h
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -455,7 +455,7 @@ EXCLUDE_PATTERNS       =
 # directories that contain example code fragments that are included (see 
 # the \include command).
 
-EXAMPLE_PATH           = 
+EXAMPLE_PATH           = ../polyp/
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

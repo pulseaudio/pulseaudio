@@ -84,7 +84,6 @@ lib_LTLIBRARIES=libpolyp.la \
 		libpolyp-mainloop-glib.la \
 		libpolyp-simple.la
 
-
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
 		strbuf.c strbuf.h \

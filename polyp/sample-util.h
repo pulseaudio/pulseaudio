@@ -33,12 +33,12 @@ void pa_silence_memory(void *p, size_t length, const struct pa_sample_spec *spec
 
 struct pa_mix_info {
     struct pa_memchunk chunk;
-    uint32_t volume;
+    pa_volume_t volume;
     void *userdata;
 };
 
-size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, size_t length, const struct pa_sample_spec *spec, uint32_t volume);
+size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, size_t length, const struct pa_sample_spec *spec, pa_volume_t volume);
 
-void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec, uint32_t volume);
+void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec, pa_volume_t volume);
 
 #endif

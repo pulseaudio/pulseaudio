@@ -36,7 +36,7 @@ PA_C_DECL_BEGIN
  * as long as you access the main loop object from a single thread only.*/
 
 /** \struct pa_mainloop
- * A main loop object
+ * An opaque main loop object
  */
 struct pa_mainloop;
 

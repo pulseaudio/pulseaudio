@@ -32,6 +32,7 @@
 #include "polyplib-stream.h"
 #include "polyplib-operation.h"
 #include "llist.h"
+#include "native-common.h"
 
 #define DEFAULT_MAXLENGTH 204800
 #define DEFAULT_TLENGTH 10240

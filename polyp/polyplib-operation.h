@@ -29,12 +29,6 @@
 
 PA_C_DECL_BEGIN
 
-enum pa_operation_state {
-    PA_OPERATION_RUNNING,      /**< The operation is still running */
-    PA_OPERATION_DONE,         /**< The operation has been completed */
-    PA_OPERATION_CANCELED,     /**< The operation has been canceled */
-};
-
 /** \struct pa_operation
  * An asynchronous operation object */
 struct pa_operation;

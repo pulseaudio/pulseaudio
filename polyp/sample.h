@@ -27,26 +27,36 @@
 
 #include "cdecl.h"
 
+/** \file
+ * Constants and routines for sample type handling */
+
 PA_C_DECL_BEGIN
 
+/** Sample format */
 enum pa_sample_format {
-    PA_SAMPLE_U8,
-    PA_SAMPLE_ALAW,
-    PA_SAMPLE_ULAW,
-    PA_SAMPLE_S16LE,
-    PA_SAMPLE_S16BE,
-    PA_SAMPLE_FLOAT32LE,
-    PA_SAMPLE_FLOAT32BE,
-    PA_SAMPLE_MAX
+    PA_SAMPLE_U8,              /**< Unsigned 8 Bit PCM */
+    PA_SAMPLE_ALAW,            /**< 8 Bit a-Law */
+    PA_SAMPLE_ULAW,            /**< 8 Bit mu-Law */
+    PA_SAMPLE_S16LE,           /**< Signed 16 Bit PCM, little endian (PC) */
+    PA_SAMPLE_S16BE,           /**< Signed 16 Bit PCM, big endian */
+    PA_SAMPLE_FLOAT32LE,       /**< 32 Bit IEEE floating point, little endian, range -1..1 */
+    PA_SAMPLE_FLOAT32BE,       /**< 32 Bit IEEE floating point, big endian, range -1..1 */
+    PA_SAMPLE_MAX              /**< Upper limit of valid sample types */
 };
 
 #ifdef WORDS_BIGENDIAN
+/** Signed 16 Bit PCM, native endian */
 #define PA_SAMPLE_S16NE PA_SAMPLE_S16BE
+/** 32 Bit IEEE floating point, native endian */
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32BE
 #else
+/** Signed 16 Bit PCM, native endian */
 #define PA_SAMPLE_S16NE PA_SAMPLE_S16LE
+/** 32 Bit IEEE floating point, native endian */
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32LE
 #endif
+
+/** A Shortcut for PA_SAMPLE_FLOAT32NE */
 #define PA_SAMPLE_FLOAT32 PA_SAMPLE_FLOAT32NE
 
 /** A sample format and attribute specification */
@@ -56,23 +66,38 @@ struct pa_sample_spec {
     uint8_t channels;              /**< Audio channels. (1 for mono, 2 for stereo, ...) */
 };
 
+/** Return the amount of bytes playback of a second of audio with the speicified sample type takes */
 size_t pa_bytes_per_second(const struct pa_sample_spec *spec);
+
+/** Return the size of a frame with the specific sample type */
 size_t pa_frame_size(const struct pa_sample_spec *spec);
+
+/** Calculate the time the specified bytes take to play with the specified sample type */
 uint32_t pa_bytes_to_usec(size_t length, const struct pa_sample_spec *spec);
+
+/** Return non-zero when the sample type specification is valid */
 int pa_sample_spec_valid(const struct pa_sample_spec *spec);
+
+/** Return non-zero when the two sample type specifications match */
 int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b);
 
+/** Maximum required string length for pa_sample_spec_snprint() */
 #define PA_SAMPLE_SNPRINT_MAX_LENGTH 32
-void pa_sample_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
+
+/** Pretty print a sample type specification to a string */
+void pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
+
+/** Volume specification: 0: silence; < 256: diminished volume; 256: normal volume; > 256 amplified volume */
+typedef uint32_t pa_volume_t;
 
 /** Normal volume (100%) */
 #define PA_VOLUME_NORM (0x100)
 
 /** Muted volume (0%) */
-#define PA_VOLUME_MUTE (0)
+#define PA_VOLUME_MUTED (0)
 
 /** Multiply two volumes specifications, return the result. This uses PA_VOLUME_NORM as neutral element of multiplication. */
-uint32_t pa_volume_multiply(uint32_t a, uint32_t b);
+pa_volume_t pa_volume_multiply(pa_volume_t a, pa_volume_t b);
 
 PA_C_DECL_END
 

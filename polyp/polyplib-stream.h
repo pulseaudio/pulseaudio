@@ -34,17 +34,8 @@
 
 PA_C_DECL_BEGIN
 
-/** The state of a stream */
-enum pa_stream_state {
-    PA_STREAM_DISCONNECTED, /**< The stream is not yet connected to any sink or source */
-    PA_STREAM_CREATING,     /**< The stream is being created */
-    PA_STREAM_READY,        /**< The stream is established, you may pass audio data to it now */
-    PA_STREAM_FAILED,       /**< An error occured that made the stream invalid */
-    PA_STREAM_TERMINATED,   /**< The stream has been terminated cleanly */
-};
-
 /** \struct pa_stream
- * A stream for playback or recording */
+ * An opaque stream for playback or recording */
 struct pa_stream;
 
 /** Create a new, unconnected stream with the specified name and sample type */

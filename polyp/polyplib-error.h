@@ -25,6 +25,9 @@
 #include <inttypes.h>
 #include "cdecl.h"
 
+/** \file
+ * Error management */
+
 PA_C_DECL_BEGIN
 
 /** Return a human readable error message for the specified numeric error code */

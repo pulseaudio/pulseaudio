@@ -5,6 +5,7 @@
 - future cancellation
 - make mcalign merge chunks
 - ref counting foo
+- pacat quit() ?
 
 - doxygen
 

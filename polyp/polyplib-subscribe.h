@@ -28,9 +28,18 @@
 #include "polyplib-context.h"
 #include "cdecl.h"
 
+/** \file
+ * Daemon introspection event subscription subsystem. Use this
+ * to be notified whenever the internal layout of daemon changes:
+ * i.e. entities such as sinks or sources are create, removed or
+ * modified. */
+
 PA_C_DECL_BEGIN
 
+/** Enable event notification */
 struct pa_operation* pa_context_subscribe(struct pa_context *c, enum pa_subscription_mask m, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+
+/** Set the context specific call back function that is called whenever the state of the daemon changes */
 void pa_context_set_subscribe_callback(struct pa_context *c, void (*cb)(struct pa_context *c, enum pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata);
 
 PA_C_DECL_END

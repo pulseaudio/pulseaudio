@@ -43,7 +43,7 @@ int pa_signal_init(struct pa_mainloop_api *api);
 void pa_signal_done(void);
 
 /** \struct pa_signal_event
- * A UNIX signal event source object */
+ * An opaque UNIX signal event source object */
 struct pa_signal_event;
 
 /** Create a new UNIX signal event source object */

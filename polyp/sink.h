@@ -42,7 +42,7 @@ struct pa_sink {
 
     struct pa_source *monitor_source;
 
-    uint32_t volume;
+    pa_volume_t volume;
 
     void (*notify)(struct pa_sink*sink);
     uint32_t (*get_latency)(struct pa_sink *s);
@@ -62,6 +62,6 @@ void pa_sink_notify(struct pa_sink*s);
 
 void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m);
 
-void pa_sink_set_volume(struct pa_sink *sink, uint32_t volume);
+void pa_sink_set_volume(struct pa_sink *sink, pa_volume_t volume);
 
 #endif

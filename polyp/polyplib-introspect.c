@@ -514,7 +514,7 @@ struct pa_operation* pa_context_get_source_output_info_list(struct pa_context *c
 
 /*** Volume manipulation ***/
 
-struct pa_operation* pa_context_set_sink_volume_by_index(struct pa_context *c, uint32_t index, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+struct pa_operation* pa_context_set_sink_volume_by_index(struct pa_context *c, uint32_t index, pa_volume_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
     struct pa_operation *o;
     struct pa_tagstruct *t;
     uint32_t tag;
@@ -536,7 +536,7 @@ struct pa_operation* pa_context_set_sink_volume_by_index(struct pa_context *c, u
     return pa_operation_ref(o);
 }
 
-struct pa_operation* pa_context_set_sink_volume_by_name(struct pa_context *c, const char *name, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+struct pa_operation* pa_context_set_sink_volume_by_name(struct pa_context *c, const char *name, pa_volume_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
     struct pa_operation *o;
     struct pa_tagstruct *t;
     uint32_t tag;
@@ -558,7 +558,7 @@ struct pa_operation* pa_context_set_sink_volume_by_name(struct pa_context *c, co
     return pa_operation_ref(o);
 }
 
-struct pa_operation* pa_context_set_sink_input_volume(struct pa_context *c, uint32_t index, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+struct pa_operation* pa_context_set_sink_input_volume(struct pa_context *c, uint32_t index, pa_volume_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
     struct pa_operation *o;
     struct pa_tagstruct *t;
     uint32_t tag;

@@ -34,15 +34,19 @@
 #define BUFSIZE 1024
 
 int main(int argc, char*argv[]) {
+
+    /* The Sample format to use */
     static const struct pa_sample_spec ss = {
         .format = PA_SAMPLE_S16LE,
         .rate = 44100,
         .channels = 2
     };
+    
     struct pa_simple *s = NULL;
     int ret = 1;
     int error;
 
+    /* Create a new playback stream */
     if (!(s = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, &error))) {
         fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
         goto finish;
@@ -51,22 +55,24 @@ int main(int argc, char*argv[]) {
     for (;;) {
         uint8_t buf[BUFSIZE];
         ssize_t r;
-        
+
+        /* Read some data ... */
         if ((r = read(STDIN_FILENO, buf, sizeof(buf))) <= 0) {
-            if (r == 0) /* eof */
+            if (r == 0) /* EOF */
                 break;
             
             fprintf(stderr, __FILE__": read() failed: %s\n", strerror(errno));
             goto finish;
         }
 
+        /* ... and play it */
         if (pa_simple_write(s, buf, r, &error) < 0) {
             fprintf(stderr, __FILE__": pa_simple_write() failed: %s\n", pa_strerror(error));
             goto finish;
         }
     }
 
-    /* Make sure that every single sample way played */
+    /* Make sure that every single sample was played */
     if (pa_simple_drain(s, &error) < 0) {
         fprintf(stderr, __FILE__": pa_simple_drain() failed: %s\n", pa_strerror(error));
         goto finish;

@@ -29,23 +29,25 @@
 #include "polyplib-operation.h"
 
 /** \file
- * Connection contexts */
+ * Connection contexts for asynchrononous communication with a
+ * server. A pa_context object wraps a connection to a polypaudio
+ * server using its native protocol. A context may be used to issue
+ * commands on the server or to create playback or recording
+ * streams. Multiple playback streams may be piped through a single
+ * connection context. Operations on the contect involving
+ * communication with the server are executed asynchronously: i.e. the
+ * client function do not implicitely wait for completion of the
+ * operation on the server. Instead the caller specifies a call back
+ * function that is called when the operation is completed. Currently
+ * running operations may be canceled using pa_operation_cancel(). */
+
+/** \example pacat.c
+ * A playback and recording tool using the asynchronous API */
 
 PA_C_DECL_BEGIN
 
-/** The state of a connection context */
-enum pa_context_state {
-    PA_CONTEXT_UNCONNECTED,    /**< The context hasn't been connected yet */
-    PA_CONTEXT_CONNECTING,     /**< A connection is being established */
-    PA_CONTEXT_AUTHORIZING,    /**< The client is authorizing itself to the daemon */
-    PA_CONTEXT_SETTING_NAME,   /**< The client is passing its application name to the daemon */
-    PA_CONTEXT_READY,          /**< The connection is established, the context is ready to execute operations */
-    PA_CONTEXT_FAILED,         /**< The connection failed or was disconnected */
-    PA_CONTEXT_TERMINATED      /**< The connect was terminated cleanly */
-};
-
 /** \struct pa_context
- * A connection context to a daemon */
+ * An opaque connection context to a daemon */
 struct pa_context;
 
 /** Instantiate a new connection context with an abstract mainloop API

@@ -283,7 +283,7 @@ void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m) {
         pa_source_set_owner(sink->monitor_source, m);
 }
 
-void pa_sink_set_volume(struct pa_sink *sink, uint32_t volume) {
+void pa_sink_set_volume(struct pa_sink *sink, pa_volume_t volume) {
     assert(sink);
     
     if (sink->volume != volume) {
