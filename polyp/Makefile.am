@@ -17,16 +17,21 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
+polypincludedir=$(includedir)/polyp
+polypconfdir=$(sysconfdir)/polyp
+
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
-#AM_CFLAGS+= -DDLSEARCHDIR=\"$(pkglibdir)\" 
+#AM_CFLAGS+= -DPA_DLSEARCHDIR=\"$(pkglibdir)\" 
+AM_CFLAGS+= -DPA_DEFAULT_CONFIG_FILE=\"$(polypconfdir)/polypaudio.pa\"
 AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
-polypincludedir=$(includedir)/polyp
 
 EXTRA_DIST = polypaudio.pa depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
 noinst_PROGRAMS = mainloop-test mainloop-test-glib mainloop-test-glib12 pacat-simple parec-simple 
+
+polypconf_DATA=polypaudio.pa 
 
 BUILT_SOURCES=polyplib-version.h
 

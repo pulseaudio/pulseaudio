@@ -145,8 +145,8 @@ int main(int argc, char *argv[]) {
     
     r = lt_dlinit();
     assert(r == 0);
-#ifdef DLSEARCHDIR
-    lt_dladdsearchdir(DLSEARCHDIR);
+#ifdef PA_DLSEARCHDIR
+    lt_dladdsearchdir(PA_DLSEARCHDIR);
 #endif
 
     mainloop = pa_mainloop_new();

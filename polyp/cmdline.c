@@ -48,6 +48,7 @@ void pa_cmdline_help(const char *argv0) {
            "  -L MODULE  Load the specified plugin module with the specified argument\n"
            "  -F FILE    Run the specified script\n"
            "  -C         Open a command line on the running TTY\n"
+           "  -n         Don't load configuration file ("PA_DEFAULT_CONFIG_FILE")\n"
            "  -D         Daemonize after loading the modules\n"
            "  -f         Dont quit when the startup fails\n"
            "  -v         Verbose startup\n"
@@ -59,6 +60,7 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
     char c;
     struct pa_cmdline *cmdline = NULL;
     struct pa_strbuf *buf = NULL;
+    int no_default_config_file = 0;
     assert(argc && argv);
 
     cmdline = pa_xmalloc(sizeof(struct pa_cmdline));
@@ -68,7 +70,7 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
     buf = pa_strbuf_new();
     assert(buf);
     
-    while ((c = getopt(argc, argv, "L:F:CDhfvrRV")) != -1) {
+    while ((c = getopt(argc, argv, "L:F:CDhfvrRVn")) != -1) {
         switch (c) {
             case 'L':
                 pa_strbuf_printf(buf, "load %s\n", optarg);
@@ -100,11 +102,18 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
             case 'V':
                 cmdline->version = 1;
                 break;
+            case 'n':
+                no_default_config_file =1;
+                break;
                 
             default:
                 goto fail;
         }
     }
+
+    if (!no_default_config_file)
+        pa_strbuf_puts(buf, ".include "PA_DEFAULT_CONFIG_FILE"\n");
+    
 
     cmdline->cli_commands = pa_strbuf_tostring_free(buf);
     return cmdline;
