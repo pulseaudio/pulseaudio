@@ -1,4 +1,4 @@
-- make the sample spec configurable for oss devices
+- run depmod once again
 - prefix modules/libraries with pa_
 - rename files
 - svn-id and license in every file

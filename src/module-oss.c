@@ -38,6 +38,11 @@ static const char* const valid_modargs[] = {
     "device",
     "record",
     "playback",
+    "fragments",
+    "fragment_size",
+    "format",
+    "rate",
+    "channels",
     NULL
 };
 
@@ -131,7 +136,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u = NULL;
     const char *p;
     int fd = -1;
-    int frag_size, in_frag_size, out_frag_size;
+    int nfrags, frag_size, in_frag_size, out_frag_size;
     int mode;
     uint32_t record = 1, playback = 1;
     struct pa_sample_spec ss;
@@ -154,16 +159,26 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
 
+    nfrags = 12;
+    frag_size = 1024;
+    if (pa_modargs_get_value_u32(ma, "fragments", &nfrags) < 0 || nfrags < 2 || pa_modargs_get_value_u32(ma, "fragment_size", &frag_size) < 0 || frag_size < 1) {
+        fprintf(stderr, __FILE__": failed to parse fragments arguments\n");
+        goto fail;
+    }
+
+    ss = c->default_sample_spec;
+    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
+        fprintf(stderr, __FILE__": failed to parse sample specification\n");
+        goto fail;
+    }
+    
     if ((fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, NULL)) < 0)
         goto fail;
 
     fprintf(stderr, "module-oss: device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
-    
-    frag_size = ((int) 12 << 16) | 10; /* nfrags = 12; frag_size = 2^10 */
-    if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag_size) < 0) {
-        fprintf(stderr, "SNDCTL_DSP_SETFRAGMENT: %s\n", strerror(errno));
+
+    if (pa_oss_set_fragments(fd, nfrags, frag_size) < 0)
         goto fail;
-    }
 
     if (pa_oss_auto_format(fd, &ss) < 0)
         goto fail;
