@@ -1,5 +1,3 @@
-- xmms+esound latency testing
-
 - prefix modules/libraries with pa_
 - rename files
 - svn-id and license in every file

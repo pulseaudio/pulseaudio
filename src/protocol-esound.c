@@ -254,7 +254,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS); 
     c->input_memblockq = pa_memblockq_new(l, 0, pa_sample_size(&ss), l/2, l/PLAYBACK_BUFFER_FRAGMENTS);
     assert(c->input_memblockq);
-    pa_iochannel_socket_set_rcvbuf(c->io, l/PLAYBACK_BUFFER_FRAGMENTS*5);
+    pa_iochannel_socket_set_rcvbuf(c->io, l/PLAYBACK_BUFFER_FRAGMENTS*2);
     c->playback.fragment_size = l/10;
     
     assert(!c->sink_input);
@@ -347,7 +347,7 @@ static int esd_proto_get_latency(struct connection *c, esd_proto_t request, cons
         latency = 0;
     else {
         float usec = pa_sink_get_latency(sink);
-        usec += PLAYBACK_BUFFER_SECONDS*1000000*.9;          /* A better estimation would be a good idea! */
+        usec += PLAYBACK_BUFFER_SECONDS*1000000;          /* A better estimation would be a good idea! */
         latency = (int) ((usec*44100)/1000000);
     }
     
@@ -560,7 +560,6 @@ static int do_read(struct connection *c) {
                 c->playback.current_memblock = NULL;
                 c->playback.memblock_index = 0;
             }
-
         
         if (!c->playback.current_memblock) {
             c->playback.current_memblock = pa_memblock_new(c->playback.fragment_size*2);
