@@ -57,10 +57,10 @@ struct pa_context* pa_stream_get_context(struct pa_stream *p);
 uint32_t pa_stream_get_index(struct pa_stream *s);
 
 /** Connect the stream to a sink */
-void pa_stream_connect_playback(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, pa_volume_t volume);
+void pa_stream_connect_playback(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, enum pa_stream_flags flags, pa_volume_t volume);
 
 /** Connect the stream to a source */
-void pa_stream_connect_record(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr);
+void pa_stream_connect_record(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, enum pa_stream_flags flags);
 
 /** Disconnect a stream from a source/sink */
 void pa_stream_disconnect(struct pa_stream *s);
@@ -107,27 +107,55 @@ struct pa_operation* pa_stream_get_latency(struct pa_stream *p, void (*cb)(struc
 /** Set the callback function that is called whenever the state of the stream changes */
 void pa_stream_set_state_callback(struct pa_stream *s, void (*cb)(struct pa_stream *s, void *userdata), void *userdata);
 
-/** Set the callback function that is called when new data may be written to the stream */
+/** Set the callback function that is called when new data may be
+ * written to the stream. */
 void pa_stream_set_write_callback(struct pa_stream *p, void (*cb)(struct pa_stream *p, size_t length, void *userdata), void *userdata);
 
 /** Set the callback function that is called when new data is available from the stream */
 void pa_stream_set_read_callback(struct pa_stream *p, void (*cb)(struct pa_stream *p, const void*data, size_t length, void *userdata), void *userdata);
 
-/** Pause (or resume) playback of this stream temporarily. \since 0.3 */
+/** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. \since 0.3 */
 struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata);
 
 /** Flush the playback buffer of this stream. Most of the time you're
  * better off using the parameter delta of pa_stream_write() instead of this
- * function. \since 0.3 */
+ * function. Available on both playback and recording streams. \since 0.3 */
 struct pa_operation* pa_stream_flush(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata);
 
+/** Reenable prebuffering. Available for playback streams only. \since 0.6 */
+struct pa_operation* pa_stream_prebuf(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata);
+
 /** Request immediate start of playback on this stream. This disables
- * prebuffering as specified in the pa_buffer_attr structure. \since
+ * prebuffering as specified in the pa_buffer_attr structure. Available for playback streams only. \since
  * 0.3 */
 struct pa_operation* pa_stream_trigger(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata);
 
 /** Rename the stream. \since 0.5 */
 struct pa_operation* pa_stream_set_name(struct pa_stream *s, const char *name, void(*cb)(struct pa_stream*c, int success,  void *userdata), void *userdata);
+
+/** Return the total number of bytes written to/read from the
+ * stream. This counter is not reset on pa_stream_flush(), you may do
+ * this yourself using pa_stream_reset_counter(). \since 0.6 */
+uint64_t pa_stream_get_counter(struct pa_stream *s);
+
+/** Reset the total byte count to 0. \since 0.6 */
+void pa_stream_reset_counter(struct pa_stream *s);
+
+/** Return the current playback/recording time. This is based on the
+ * counter accessible with pa_stream_get_counter(). This function
+ * requires a pa_latency_info structure as argument, which should be
+ * acquired using pa_stream_get_latency(). \since 0.6 */
+pa_usec_t pa_stream_get_time(struct pa_stream *s, const struct pa_latency_info *i);
+
+/** Return the total stream latency. Thus function requires a
+ * pa_latency_info structure as argument, which should be aquired
+ * using pa_stream_get_latency(). In case the stream is a monitoring
+ * stream the result can be negative, i.e. the captured samples are
+ * not yet played. In this case *negative is set to 1. \since 0.6 */
+pa_usec_t pa_stream_get_total_latency(struct pa_stream *s, const struct pa_latency_info *i, int *negative);
+
+/** Return a pointer to the streams sample specification. \since 0.6 */
+const struct pa_sample_spec* pa_stream_get_sample_spec(struct pa_stream *s);
 
 PA_C_DECL_END
 

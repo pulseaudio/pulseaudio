@@ -150,6 +150,8 @@ static void command_add_autoload(struct pa_pdispatch *pd, uint32_t command, uint
 static void command_remove_autoload(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_get_autoload_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_get_autoload_info_list(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_cork_record_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_flush_record_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -190,11 +192,18 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_SAMPLE_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SERVER_INFO] = { command_get_server_info },
     [PA_COMMAND_SUBSCRIBE] = { command_subscribe },
+
     [PA_COMMAND_SET_SINK_VOLUME] = { command_set_volume },
     [PA_COMMAND_SET_SINK_INPUT_VOLUME] = { command_set_volume },
+    
     [PA_COMMAND_CORK_PLAYBACK_STREAM] = { command_cork_playback_stream },
     [PA_COMMAND_FLUSH_PLAYBACK_STREAM] = { command_flush_or_trigger_playback_stream },
     [PA_COMMAND_TRIGGER_PLAYBACK_STREAM] = { command_flush_or_trigger_playback_stream },
+    [PA_COMMAND_PREBUF_PLAYBACK_STREAM] = { command_flush_or_trigger_playback_stream },
+    
+    [PA_COMMAND_CORK_RECORD_STREAM] = { command_cork_record_stream },
+    [PA_COMMAND_FLUSH_RECORD_STREAM] = { command_flush_record_stream },
+    
     [PA_COMMAND_SET_DEFAULT_SINK] = { command_set_default_sink_or_source },
     [PA_COMMAND_SET_DEFAULT_SOURCE] = { command_set_default_sink_or_source },
     [PA_COMMAND_SET_PLAYBACK_STREAM_NAME] = { command_set_stream_name }, 
@@ -208,6 +217,7 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_AUTOLOAD_INFO_LIST] = { command_get_autoload_info_list },
     [PA_COMMAND_ADD_AUTOLOAD] = { command_add_autoload },
     [PA_COMMAND_REMOVE_AUTOLOAD] = { command_remove_autoload },
+
 };
 
 /* structure management */
@@ -538,6 +548,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
     struct pa_tagstruct *reply;
     struct pa_sink *sink;
     pa_volume_t volume;
+    int corked;
     assert(c && t && c->protocol && c->protocol->core);
     
     if (pa_tagstruct_gets(t, &name) < 0 || !name ||
@@ -545,6 +556,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
         pa_tagstruct_getu32(t, &sink_index) < 0 ||
         pa_tagstruct_gets(t, &sink_name) < 0 ||
         pa_tagstruct_getu32(t, &maxlength) < 0 ||
+        pa_tagstruct_get_boolean(t, &corked) < 0 ||
         pa_tagstruct_getu32(t, &tlength) < 0 ||
         pa_tagstruct_getu32(t, &prebuf) < 0 ||
         pa_tagstruct_getu32(t, &minreq) < 0 ||
@@ -574,6 +586,8 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_INVALID);
         return;
     }
+
+    pa_sink_input_cork(s->sink_input, corked);
     
     reply = pa_tagstruct_new(NULL, 0);
     assert(reply);
@@ -1412,12 +1426,12 @@ static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32
 static void command_cork_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     uint32_t index;
-    uint32_t b;
+    int b;
     struct playback_stream *s;
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &index) < 0 ||
-        pa_tagstruct_getu32(t, &b) < 0 ||
+        pa_tagstruct_get_boolean(t, &b) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -1459,7 +1473,9 @@ static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, ui
         return;
     }
 
-    if (command == PA_COMMAND_TRIGGER_PLAYBACK_STREAM)
+    if (command == PA_COMMAND_PREBUF_PLAYBACK_STREAM)
+        pa_memblockq_prebuf_reenable(s->memblockq);
+    else if (command == PA_COMMAND_TRIGGER_PLAYBACK_STREAM)
         pa_memblockq_prebuf_disable(s->memblockq);
     else {
         assert(command == PA_COMMAND_FLUSH_PLAYBACK_STREAM);
@@ -1470,6 +1486,60 @@ static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, ui
     pa_sink_notify(s->sink_input->sink);
     pa_pstream_send_simple_ack(c->pstream, tag);
     request_bytes(s);
+}
+
+static void command_cork_record_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    struct record_stream *s;
+    int b;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        pa_tagstruct_get_boolean(t, &b) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (!(s = pa_idxset_get_by_index(c->record_streams, index))) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    pa_source_output_cork(s->source_output, b);
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_flush_record_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    struct record_stream *s;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (!(s = pa_idxset_get_by_index(c->record_streams, index))) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    pa_memblockq_flush(s->memblockq);
+    pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
 static void command_set_default_sink_or_source(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {

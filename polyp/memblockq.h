@@ -83,6 +83,9 @@ uint32_t pa_memblockq_get_minreq(struct pa_memblockq *bq);
 /* Force disabling of pre-buf even when the pre-buffer is not yet filled */
 void pa_memblockq_prebuf_disable(struct pa_memblockq *bq);
 
+/* Reenable pre-buf to the initial level */
+void pa_memblockq_prebuf_reenable(struct pa_memblockq *bq);
+
 /* Manipulate the write pointer */
 void pa_memblockq_seek(struct pa_memblockq *bq, size_t delta);
 

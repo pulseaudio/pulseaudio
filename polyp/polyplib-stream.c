@@ -47,7 +47,7 @@ struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const st
     s->state_callback = NULL;
     s->state_userdata = NULL;
 
-    s->state = PA_STREAM_NODIRECTION;
+    s->direction = PA_STREAM_NODIRECTION;
     s->name = pa_xstrdup(name);
     s->sample_spec = *ss;
     s->channel = 0;
@@ -56,6 +56,9 @@ struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const st
     s->requested_bytes = 0;
     s->state = PA_STREAM_DISCONNECTED;
     memset(&s->buffer_attr, 0, sizeof(s->buffer_attr));
+
+    s->counter = 0;
+    s->previous_time = 0;
 
     PA_LLIST_PREPEND(struct pa_stream, c->streams, s);
 
@@ -211,7 +214,7 @@ finish:
     pa_stream_unref(s);
 }
 
-static void create_stream(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, pa_volume_t volume) {
+static void create_stream(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, enum pa_stream_flags flags, pa_volume_t volume) {
     struct pa_tagstruct *t;
     uint32_t tag;
     assert(s && s->ref >= 1 && s->state == PA_STREAM_DISCONNECTED);
@@ -247,6 +250,7 @@ static void create_stream(struct pa_stream *s, const char *dev, const struct pa_
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, dev);
     pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
+    pa_tagstruct_put_boolean(t, !!(flags & PA_STREAM_START_CORKED));
     if (s->direction == PA_STREAM_PLAYBACK) {
         pa_tagstruct_putu32(t, s->buffer_attr.tlength);
         pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
@@ -261,16 +265,16 @@ static void create_stream(struct pa_stream *s, const char *dev, const struct pa_
     pa_stream_unref(s);
 }
 
-void pa_stream_connect_playback(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, pa_volume_t volume) {
+void pa_stream_connect_playback(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, enum pa_stream_flags flags, pa_volume_t volume) {
     assert(s && s->context->state == PA_CONTEXT_READY && s->ref >= 1);
     s->direction = PA_STREAM_PLAYBACK;
-    create_stream(s, dev, attr, volume);
+    create_stream(s, dev, attr, flags, volume);
 }
 
-void pa_stream_connect_record(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr) {
+void pa_stream_connect_record(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, enum pa_stream_flags flags) {
     assert(s && s->context->state == PA_CONTEXT_READY && s->ref >= 1);
     s->direction = PA_STREAM_RECORD;
-    create_stream(s, dev, attr, 0);
+    create_stream(s, dev, attr, flags, 0);
 }
 
 void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void (*free_cb)(void *p), size_t delta) {
@@ -295,6 +299,8 @@ void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void 
         s->requested_bytes -= length;
     else
         s->requested_bytes = 0;
+
+    s->counter += length;
 }
 
 size_t pa_stream_writable_size(struct pa_stream *s) {
@@ -506,10 +512,10 @@ struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (stru
 
     t = pa_tagstruct_new(NULL, 0);
     assert(t);
-    pa_tagstruct_putu32(t, PA_COMMAND_CORK_PLAYBACK_STREAM);
+    pa_tagstruct_putu32(t, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CORK_PLAYBACK_STREAM : PA_COMMAND_CORK_RECORD_STREAM);
     pa_tagstruct_putu32(t, tag = s->context->ctag++);
     pa_tagstruct_putu32(t, s->channel);
-    pa_tagstruct_putu32(t, !!b);
+    pa_tagstruct_put_boolean(t, !!b);
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, o);
 
@@ -537,7 +543,11 @@ struct pa_operation* pa_stream_send_simple_command(struct pa_stream *s, uint32_t
 }
 
 struct pa_operation* pa_stream_flush(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata) {
-    return pa_stream_send_simple_command(s, PA_COMMAND_FLUSH_PLAYBACK_STREAM, cb, userdata);
+    return pa_stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata);
+}
+
+struct pa_operation* pa_stream_prebuf(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata) {
+    return pa_stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata);
 }
 
 struct pa_operation* pa_stream_trigger(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata) {
@@ -565,4 +575,78 @@ struct pa_operation* pa_stream_set_name(struct pa_stream *s, const char *name, v
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, o);
 
     return pa_operation_ref(o);
+}
+
+uint64_t pa_stream_get_counter(struct pa_stream *s) {
+    assert(s);
+    return s->counter;
+}
+
+void pa_stream_reset_counter(struct pa_stream *s) {
+    assert(s);
+    s->counter = 0;
+    s->previous_time = 0;
+}
+
+pa_usec_t pa_stream_get_time(struct pa_stream *s, const struct pa_latency_info *i) {
+    pa_usec_t usec;
+    assert(s);
+    
+    usec = pa_bytes_to_usec(s->counter, &s->sample_spec);
+
+    if (i) {
+        if (s->direction == PA_STREAM_PLAYBACK) {
+            pa_usec_t latency = i->transport_usec + i->buffer_usec + i->sink_usec;
+            if (usec < latency)
+                usec = 0;
+            else
+                usec -= latency;
+                
+        } else if (s->direction == PA_STREAM_RECORD) {
+            usec += i->source_usec + i->buffer_usec + i->transport_usec;
+
+            if (usec > i->sink_usec)
+                usec -= i->sink_usec;
+            else
+                usec = 0;
+        }
+    }
+
+    if (usec < s->previous_time)
+        usec = s->previous_time;
+
+    s->previous_time = usec;
+    
+    return usec;
+}
+
+pa_usec_t pa_stream_get_total_latency(struct pa_stream *s, const struct pa_latency_info *i, int *negative) {
+    assert(s && i);
+
+    if (s->direction == PA_STREAM_PLAYBACK) {
+        if (negative)
+            *negative = 0;
+        
+        return i->transport_usec + i->buffer_usec + i->sink_usec;
+    } else if (s->direction == PA_STREAM_RECORD) {
+        pa_usec_t usec = i->source_usec + i->buffer_usec + i->transport_usec;
+
+        if (usec >= i->sink_usec) {
+            if (negative)
+                *negative = 0;
+            return usec - i->sink_usec;
+        } else {
+            if (negative)
+                *negative = 1;
+
+            return i->sink_usec - usec;
+        }
+    }
+
+    return 0;
+}
+
+const struct pa_sample_spec* pa_stream_get_sample_spec(struct pa_stream *s) {
+    assert(s);
+    return &s->sample_spec;
 }

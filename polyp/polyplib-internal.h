@@ -92,6 +92,8 @@ struct pa_stream {
     uint32_t device_index;
     enum pa_stream_direction direction;
     uint32_t requested_bytes;
+    uint64_t counter;
+    pa_usec_t previous_time;
     enum pa_stream_state state;
 
     void (*state_callback)(struct pa_stream*c, void *userdata);

@@ -83,11 +83,4 @@
  * synchronous API is available as "polyplib-simple".
  */
 
-PA_C_DECL_BEGIN
-
-/** Return the version of the library the current application is linked to */
-const char* pa_get_library_version(void);
-
-PA_C_DECL_END
-
 #endif

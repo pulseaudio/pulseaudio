@@ -156,9 +156,9 @@ struct pa_simple* pa_simple_new(
         goto fail;
 
     if (dir == PA_STREAM_PLAYBACK)
-        pa_stream_connect_playback(p->stream, dev, attr, volume);
+        pa_stream_connect_playback(p->stream, dev, attr, 0, volume);
     else
-        pa_stream_connect_record(p->stream, dev, attr);
+        pa_stream_connect_record(p->stream, dev, attr, 0);
 
     /* Wait until the stream is ready */
     while (pa_stream_get_state(p->stream) != PA_STREAM_READY) {

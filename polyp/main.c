@@ -48,6 +48,7 @@
 #include "daemon-conf.h"
 #include "dumpmodules.h"
 #include "caps.h"
+#include "cli-text.h"
 
 static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     pa_log(__FILE__": Got signal %s.\n", pa_strsignal(sig));
@@ -60,7 +61,47 @@ static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e,
         case SIGUSR2:
             pa_module_load(userdata, "module-cli-protocol-unix", NULL);
             return;
-        
+
+        case SIGHUP: {
+            int i;
+
+            for (i = 0;; i++) {
+                char *c;
+                switch (i) {
+                    case 0: 
+                        c = pa_sink_list_to_string(userdata);
+                        break;
+                    case 1:
+                        c = pa_source_list_to_string(userdata);
+                        break;
+                    case 2:
+                        c = pa_sink_input_list_to_string(userdata);
+                        break;
+                    case 3:
+                        c = pa_source_output_list_to_string(userdata);
+                        break;
+                    case 4: 
+                        c = pa_client_list_to_string(userdata);
+                        break;
+                    case 5:
+                        c = pa_module_list_to_string(userdata);
+                        break;
+                    case 6:
+                        c = pa_scache_list_to_string(userdata);
+                        break;
+                    case 7:
+                        c = pa_autoload_list_to_string(userdata);
+                        break;
+                    default:
+                        return;
+                }
+                pa_log(c);
+                pa_xfree(c);
+            }
+
+            return;
+        }
+
         case SIGINT:
         case SIGTERM:
         default:
@@ -70,7 +111,8 @@ static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e,
     }
 }
 
-static void close_pipe(int p[2]) {
+
+            static void close_pipe(int p[2]) {
     if (p[0] != -1)
         close(p[0]);
     if (p[1] != -1)
@@ -223,6 +265,7 @@ int main(int argc, char *argv[]) {
     
     pa_signal_new(SIGUSR1, signal_callback, c);
     pa_signal_new(SIGUSR2, signal_callback, c);
+    pa_signal_new(SIGHUP, signal_callback, c);
 
     r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);

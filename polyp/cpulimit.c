@@ -35,7 +35,7 @@
 /* Utilize this much CPU time at maximum */
 #define CPUTIME_PERCENT 70
 
-#define CPUTIME_INTERVAL_SOFT (5)
+#define CPUTIME_INTERVAL_SOFT (10)
 #define CPUTIME_INTERVAL_HARD (2)
 
 static time_t last_time = 0;

@@ -218,8 +218,10 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
     pa_context_ref(c);
     
     if ((s = pa_dynarray_get(c->record_streams, channel))) {
-        if (s->read_callback)
+        if (s->read_callback) {
             s->read_callback(s, (uint8_t*) chunk->memblock->data + chunk->index, chunk->length, s->read_userdata);
+            s->counter += chunk->length;
+        }
     }
 
     pa_context_unref(c);

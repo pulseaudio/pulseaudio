@@ -41,6 +41,10 @@
 #include <polyp/mainloop-signal.h>
 #include <polyp/sample.h>
 
+#if PA_API_VERSION != PA_API_VERSION_0_6
+#error Invalid Polypaudio API version
+#endif
+
 #define BUFSIZE 1024
 
 static struct pa_context *context = NULL;

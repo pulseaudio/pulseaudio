@@ -42,7 +42,7 @@ struct memblock_list {
 struct pa_memblockq {
     struct memblock_list *blocks, *blocks_tail;
     unsigned n_blocks;
-    size_t current_length, maxlength, tlength, base, prebuf, minreq;
+    size_t current_length, maxlength, tlength, base, prebuf, orig_prebuf, minreq;
     struct pa_mcalign *mcalign;
     struct pa_memblock_stat *memblock_stat;
 };
@@ -72,6 +72,8 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
     bq->prebuf = (bq->prebuf/base)*base;
     if (bq->prebuf > bq->maxlength)
         bq->prebuf = bq->maxlength;
+
+    bq->orig_prebuf = bq->prebuf;
     
     bq->minreq = (minreq/base)*base;
     if (bq->minreq == 0)
@@ -283,6 +285,11 @@ uint32_t pa_memblockq_get_minreq(struct pa_memblockq *bq) {
 void pa_memblockq_prebuf_disable(struct pa_memblockq *bq) {
     assert(bq);
     bq->prebuf = 0;
+}
+
+void pa_memblockq_prebuf_reenable(struct pa_memblockq *bq) {
+    assert(bq);
+    bq->prebuf = bq->orig_prebuf;
 }
 
 void pa_memblockq_seek(struct pa_memblockq *bq, size_t length) {

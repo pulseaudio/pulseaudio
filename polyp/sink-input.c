@@ -70,7 +70,6 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     i->get_latency = NULL;
     i->userdata = NULL;
 
-    i->corked = 0;
     i->volume = PA_VOLUME_NORM;
 
     i->resampled_chunk.memblock = NULL;
@@ -92,7 +91,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
 }
 
 void pa_sink_input_disconnect(struct pa_sink_input *i) {
-    assert(i && i->state == PA_SINK_INPUT_RUNNING && i->sink && i->sink->core);
+    assert(i && i->state != PA_SINK_INPUT_DISCONNECTED && i->sink && i->sink->core);
 
     pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
     pa_idxset_remove_by_data(i->sink->inputs, i, NULL);
@@ -163,7 +162,7 @@ int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     if (!i->peek || !i->drop)
         return -1;
 
-    if (i->corked)
+    if (i->state == PA_SINK_INPUT_CORKED)
         return -1;
     
     if (!i->resampler)
@@ -238,9 +237,12 @@ void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume) {
 void pa_sink_input_cork(struct pa_sink_input *i, int b) {
     int n;
     assert(i && i->ref >= 1);
-    
-    n = i->corked && !b;
-    i->corked = b;
+
+    if (i->state == PA_SINK_INPUT_DISCONNECTED)
+        return;
+
+    n = i->state == PA_SINK_INPUT_CORKED && !b;
+    i->state = b ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING;
 
     if (n)
         pa_sink_notify(i->sink);

@@ -37,6 +37,10 @@
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
 
+#if PA_API_VERSION != PA_API_VERSION_0_6
+#error Invalid Polypaudio API version
+#endif
+
 static enum { RECORD, PLAYBACK } mode = PLAYBACK;
 
 static struct pa_context *context = NULL;
@@ -165,9 +169,9 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
             pa_stream_set_read_callback(stream, stream_read_callback, NULL);
 
             if (mode == PLAYBACK)
-                pa_stream_connect_playback(stream, device, NULL, volume);
+                pa_stream_connect_playback(stream, device, NULL, 0, volume);
             else
-                pa_stream_connect_record(stream, device, NULL);
+                pa_stream_connect_record(stream, device, NULL, 0);
                 
             break;
             

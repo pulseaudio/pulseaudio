@@ -33,6 +33,7 @@
 
 enum pa_sink_input_state {
     PA_SINK_INPUT_RUNNING,
+    PA_SINK_INPUT_CORKED,
     PA_SINK_INPUT_DISCONNECTED
 };
 
@@ -42,8 +43,6 @@ struct pa_sink_input {
     
     uint32_t index;
 
-    int corked;
-    
     char *name;
     struct pa_module *owner;
     struct pa_client *client;

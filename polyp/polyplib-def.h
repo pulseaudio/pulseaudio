@@ -72,6 +72,11 @@ enum pa_stream_direction {
     PA_STREAM_UPLOAD         /**< Sample upload stream */
 };
 
+/** Some special flags for stream connections. \since 0.6 */
+enum pa_stream_flags {
+    PA_STREAM_START_CORKED = 1,   /**< Create the stream corked, requiring an explicit pa_stream_cork() call to uncork it. */
+};
+
 /** Playback and record buffer metrics */
 struct pa_buffer_attr{
     uint32_t maxlength;      /**< Maximum length of the buffer */

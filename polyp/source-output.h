@@ -33,6 +33,7 @@
 
 enum pa_source_output_state {
     PA_SOURCE_OUTPUT_RUNNING,
+    PA_SOURCE_OUTPUT_CORKED,
     PA_SOURCE_OUTPUT_DISCONNECTED
 };
 
@@ -72,6 +73,8 @@ void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk 
 void pa_source_output_set_name(struct pa_source_output *i, const char *name);
 
 pa_usec_t pa_source_output_get_latency(struct pa_source_output *i);
+
+void pa_source_output_cork(struct pa_source_output *i, int b);
 
 
 #endif

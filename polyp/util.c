@@ -421,6 +421,7 @@ const char *pa_strsignal(int sig) {
         case SIGXCPU: return "SIGXCPU";
         case SIGPIPE: return "SIGPIPE";
         case SIGCHLD: return "SIGCHLD";
+        case SIGHUP: return "SIGHUP";
         default: return "UNKNOWN SIGNAL";
     }
 }

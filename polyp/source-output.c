@@ -79,7 +79,7 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
 }
 
 void pa_source_output_disconnect(struct pa_source_output*o) {
-    assert(o && o->state == PA_SOURCE_OUTPUT_RUNNING && o->source && o->source->core);
+    assert(o && o->state != PA_SOURCE_OUTPUT_DISCONNECTED && o->source && o->source->core);
     
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     pa_idxset_remove_by_data(o->source->outputs, o, NULL);
@@ -133,6 +133,9 @@ void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk 
     struct pa_memchunk rchunk;
     assert(o && chunk && chunk->length && o->push);
 
+    if (o->state == PA_SOURCE_OUTPUT_CORKED)
+        return;
+    
     if (!o->resampler) {
         o->push(o, chunk);
         return;
@@ -162,4 +165,13 @@ pa_usec_t pa_source_output_get_latency(struct pa_source_output *o) {
         return o->get_latency(o);
 
     return 0;
+}
+
+void pa_source_output_cork(struct pa_source_output *o, int b) {
+    assert(o && o->ref >= 1);
+
+    if (o->state == PA_SOURCE_OUTPUT_DISCONNECTED)
+        return;
+    
+    o->state = b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
 }

@@ -64,7 +64,7 @@ char *pa_client_list_to_string(struct pa_core *c) {
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u client(s).\n", pa_idxset_ncontents(c->clients));
+    pa_strbuf_printf(s, "%u client(s) logged in.\n", pa_idxset_ncontents(c->clients));
     
     for (client = pa_idxset_first(c->clients, &index); client; client = pa_idxset_next(c->clients, &index)) {
         pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\tprotocol_name: <%s>\n", client->index, client->name, client->protocol_name);
@@ -148,6 +148,11 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
     struct pa_source_output *o;
     uint32_t index = PA_IDXSET_INVALID;
+    static const char* const state_table[] = {
+        "RUNNING",
+        "CORKED",
+        "DISCONNECTED"
+    };
     assert(c);
 
     s = pa_strbuf_new();
@@ -160,15 +165,16 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
         pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec);
         assert(o->source);
         pa_strbuf_printf(
-            s, "  index: %u\n\tname: <%s>\n\tsource: <%u>\n\tsample_spec: <%s>\n",
+            s, "  index: %u\n\tname: '%s'\n\tstate: %s\n\tsource: <%u> '%s'\n\tsample_spec: <%s>\n",
             o->index,
             o->name,
-            o->source->index,
+            state_table[o->state],
+            o->source->index, o->source->name,
             ss);
         if (o->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", o->owner->index);
         if (o->client)
-            pa_strbuf_printf(s, "\tclient: <%u>\n", o->client->index);
+            pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", o->client->index, o->client->name);
     }
     
     return pa_strbuf_tostring_free(s);
@@ -178,8 +184,13 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
     struct pa_sink_input *i;
     uint32_t index = PA_IDXSET_INVALID;
-    assert(c);
+    static const char* const state_table[] = {
+        "RUNNING",
+        "CORKED",
+        "DISCONNECTED"
+    };
 
+    assert(c);
     s = pa_strbuf_new();
     assert(s);
 
@@ -190,10 +201,11 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
         pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
         assert(i->sink);
         pa_strbuf_printf(
-            s, "    index: %u\n\tname: <%s>\n\tsink: <%u>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
+            s, "    index: %u\n\tname: <%s>\n\tstate: %s\n\tsink: <%u> '%s'\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
             i->index,
             i->name,
-            i->sink->index,
+            state_table[i->state],
+            i->sink->index, i->sink->name,
             (unsigned) i->volume,
             pa_volume_to_dB(i->volume),
             (float) pa_sink_input_get_latency(i),
@@ -202,7 +214,7 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
         if (i->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", i->owner->index);
         if (i->client)
-            pa_strbuf_printf(s, "\tclient: <%u>\n", i->client->index);
+            pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", i->client->index, i->client->name);
     }
     
     return pa_strbuf_tostring_free(s);

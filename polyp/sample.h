@@ -77,7 +77,7 @@ size_t pa_bytes_per_second(const struct pa_sample_spec *spec);
 size_t pa_frame_size(const struct pa_sample_spec *spec);
 
 /** Calculate the time the specified bytes take to play with the specified sample type */
-pa_usec_t pa_bytes_to_usec(size_t length, const struct pa_sample_spec *spec);
+pa_usec_t pa_bytes_to_usec(uint64_t length, const struct pa_sample_spec *spec);
 
 /** Return non-zero when the sample type specification is valid */
 int pa_sample_spec_valid(const struct pa_sample_spec *spec);

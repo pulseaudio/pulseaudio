@@ -62,6 +62,7 @@
 
 struct connection {
     uint32_t index;
+    int dead;
     struct pa_protocol_esound *protocol;
     struct pa_iochannel *io;
     struct pa_client *client;
@@ -76,14 +77,17 @@ struct connection {
     struct pa_source_output *source_output;
     struct pa_memblockq *input_memblockq, *output_memblockq;
     struct pa_defer_event *defer_event;
+    
     struct {
         struct pa_memblock *current_memblock;
         size_t memblock_index, fragment_size;
     } playback;
 
-    struct pa_memchunk scache_memchunk;
-    char *scache_name;
-    struct pa_sample_spec scache_sample_spec;
+    struct {
+        struct pa_memchunk memchunk;
+        char *name;
+        struct pa_sample_spec sample_spec;
+    } scache;
 };
 
 struct pa_protocol_esound {
@@ -195,9 +199,9 @@ static void connection_free(struct connection *c) {
     if (c->defer_event)
         c->protocol->core->mainloop->defer_free(c->defer_event);
 
-    if (c->scache_memchunk.memblock)
-        pa_memblock_unref(c->scache_memchunk.memblock);
-    pa_xfree(c->scache_name);
+    if (c->scache.memchunk.memblock)
+        pa_memblock_unref(c->scache.memchunk.memblock);
+    pa_xfree(c->scache.name);
     
     pa_xfree(c);
 }
@@ -583,17 +587,17 @@ static int esd_proto_sample_cache(struct connection *c, esd_proto_t request, con
     strncpy(name+sizeof(SCACHE_PREFIX)-1, (char*) data+3*sizeof(int), ESD_NAME_MAX);
     name[sizeof(name)-1] = 0;
     
-    assert(!c->scache_memchunk.memblock);
-    c->scache_memchunk.memblock = pa_memblock_new(sc_length, c->protocol->core->memblock_stat);
-    c->scache_memchunk.index = 0;
-    c->scache_memchunk.length = sc_length;
-    c->scache_sample_spec = ss;
-    assert(!c->scache_name);
-    c->scache_name = pa_xstrdup(name);
+    assert(!c->scache.memchunk.memblock);
+    c->scache.memchunk.memblock = pa_memblock_new(sc_length, c->protocol->core->memblock_stat);
+    c->scache.memchunk.index = 0;
+    c->scache.memchunk.length = sc_length;
+    c->scache.sample_spec = ss;
+    assert(!c->scache.name);
+    c->scache.name = pa_xstrdup(name);
 
     c->state = ESD_CACHING_SAMPLE;
 
-    pa_scache_add_item(c->protocol->core, c->scache_name, NULL, NULL, &index);
+    pa_scache_add_item(c->protocol->core, c->scache.name, NULL, NULL, &index);
 
     ok = connection_write(c, sizeof(int));
     assert(ok);
@@ -747,29 +751,29 @@ static int do_read(struct connection *c) {
     } else if (c->state == ESD_CACHING_SAMPLE) {
         ssize_t r;
 
-        assert(c->scache_memchunk.memblock && c->scache_name && c->scache_memchunk.index < c->scache_memchunk.length);
+        assert(c->scache.memchunk.memblock && c->scache.name && c->scache.memchunk.index < c->scache.memchunk.length);
         
-        if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache_memchunk.memblock->data+c->scache_memchunk.index, c->scache_memchunk.length-c->scache_memchunk.index)) <= 0) {
+        if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache.memchunk.memblock->data+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index)) <= 0) {
             pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
 
-        c->scache_memchunk.index += r;
-        assert(c->scache_memchunk.index <= c->scache_memchunk.length);
+        c->scache.memchunk.index += r;
+        assert(c->scache.memchunk.index <= c->scache.memchunk.length);
         
-        if (c->scache_memchunk.index == c->scache_memchunk.length) {
+        if (c->scache.memchunk.index == c->scache.memchunk.length) {
             uint32_t index;
             int *ok;
             
-            c->scache_memchunk.index = 0;
-            pa_scache_add_item(c->protocol->core, c->scache_name, &c->scache_sample_spec, &c->scache_memchunk, &index);
+            c->scache.memchunk.index = 0;
+            pa_scache_add_item(c->protocol->core, c->scache.name, &c->scache.sample_spec, &c->scache.memchunk, &index);
 
-            pa_memblock_unref(c->scache_memchunk.memblock);
-            c->scache_memchunk.memblock = NULL;
-            c->scache_memchunk.index = c->scache_memchunk.length = 0;
+            pa_memblock_unref(c->scache.memchunk.memblock);
+            c->scache.memchunk.memblock = NULL;
+            c->scache.memchunk.index = c->scache.memchunk.length = 0;
 
-            pa_xfree(c->scache_name);
-            c->scache_name = NULL;
+            pa_xfree(c->scache.name);
+            c->scache.name = NULL;
 
             c->state = ESD_NEXT_REQUEST;
 
@@ -869,21 +873,26 @@ static void do_work(struct connection *c) {
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
     c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
 
-    if (pa_iochannel_is_hungup(c->io))
-        goto fail;
+    if (c->dead)
+        return;
+    
+    if (pa_iochannel_is_readable(c->io))
+        if (do_read(c) < 0)
+            goto fail;
 
     if (pa_iochannel_is_writable(c->io))
         if (do_write(c) < 0)
             goto fail;
 
-    if (pa_iochannel_is_readable(c->io))
-        if (do_read(c) < 0)
-            goto fail;
-
     return;
 
 fail:
-    connection_free(c);
+
+    if (c->state == ESD_STREAMING_DATA && c->sink_input) {
+        c->dead = 1;
+        pa_memblockq_prebuf_disable(c->input_memblockq);
+    } else
+        connection_free(c);
 }
 
 static void io_callback(struct pa_iochannel*io, void *userdata) {
@@ -909,8 +918,13 @@ static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk
     assert(i && i->userdata && chunk);
     c = i->userdata;
     
-    if (pa_memblockq_peek(c->input_memblockq, chunk) < 0)
+    if (pa_memblockq_peek(c->input_memblockq, chunk) < 0) {
+
+        if (c->dead)
+            connection_free(c);
+        
         return -1;
+    }
 
     return 0;
 }
@@ -985,6 +999,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     
     c->authorized = c->protocol->public;
     c->swap_byte_order = 0;
+    c->dead = 0;
 
     c->read_data_length = 0;
     c->read_data = pa_xmalloc(c->read_data_alloc = proto_map[ESD_PROTO_CONNECT].data_length);
@@ -1005,9 +1020,9 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     c->playback.memblock_index = 0;
     c->playback.fragment_size = 0;
 
-    c->scache_memchunk.length = c->scache_memchunk.index = 0;
-    c->scache_memchunk.memblock = NULL;
-    c->scache_name = NULL;
+    c->scache.memchunk.length = c->scache.memchunk.index = 0;
+    c->scache.memchunk.memblock = NULL;
+    c->scache.name = NULL;
     
     c->defer_event = c->protocol->core->mainloop->defer_new(c->protocol->core->mainloop, defer_callback, c);
     assert(c->defer_event);
