@@ -175,13 +175,14 @@ int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *use
         if (r)
             run_action(pd, r, command, ts);
 
-    } else if (pd->command_table && command < pd->n_commands) {
+    } else if (pd->command_table && (command < pd->n_commands) && pd->command_table[command].proc) {
         const struct pa_pdispatch_command *c = pd->command_table+command;
 
-        if (c->proc)
-            c->proc(pd, command, tag, ts, userdata);
-    } else
+        c->proc(pd, command, tag, ts, userdata);
+    } else {
+        fprintf(stderr, "Recieved unsupported command %u\n", command);
         goto finish;
+    }
 
     ret = 0;
         

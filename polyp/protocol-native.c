@@ -134,6 +134,7 @@ static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t
 static void command_get_info_list(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_subscribe(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -167,6 +168,7 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_CLIENT_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SERVER_INFO] = { command_get_server_info },
     [PA_COMMAND_SUBSCRIBE] = { command_subscribe },
+    [PA_COMMAND_SET_SINK_VOLUME] = { command_set_volume },
 };
 
 /* structure management */
@@ -1164,8 +1166,52 @@ static void command_subscribe(struct pa_pdispatch *pd, uint32_t command, uint32_
         c->subscription = NULL;
 
     pa_pstream_send_simple_ack(c->pstream, tag);
-    
 }
+
+static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index, volume;
+    struct pa_sink *sink = NULL;
+    struct pa_sink_input *si = NULL;
+    const char *name = NULL;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        (command == PA_COMMAND_SET_SINK_VOLUME && pa_tagstruct_gets(t, &name) < 0) ||
+        pa_tagstruct_getu32(t, &volume) ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (command == PA_COMMAND_SET_SINK_VOLUME) {
+        if (index != (uint32_t) -1)
+            sink = pa_idxset_get_by_index(c->protocol->core->sinks, index);
+        else
+            sink = pa_namereg_get(c->protocol->core, *name ? name : NULL, PA_NAMEREG_SINK, 1);
+    }  else {
+        assert(command == PA_COMMAND_SET_SINK_INPUT_VOLUME);
+        si = pa_idxset_get_by_index(c->protocol->core->sinks, index);
+    }
+
+    if (!si && !sink) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    if (sink)
+        pa_sink_set_volume(sink, volume);
+    else if (si)
+        pa_sink_input_set_volume(si, volume);
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
 
 /*** pstream callbacks ***/
 

@@ -338,7 +338,7 @@ static int pa_cli_command_sink_input_volume(struct pa_core *c, struct pa_tokeniz
         return -1;
     }
 
-    si->volume = (uint32_t) volume;
+    pa_sink_input_set_volume(si, (uint32_t) volume);
     return 0;
 }
 

@@ -168,3 +168,12 @@ void pa_sink_input_drop(struct pa_sink_input *i, size_t length) {
         i->resampled_chunk.index = i->resampled_chunk.length = 0;
     }
 }
+
+void pa_sink_input_set_volume(struct pa_sink_input *i, uint32_t volume) {
+    assert(i);
+
+    if (i->volume != volume) {
+        i->volume = volume;
+        pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    }
+}

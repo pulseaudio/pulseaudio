@@ -285,8 +285,9 @@ void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m) {
 
 void pa_sink_set_volume(struct pa_sink *sink, uint32_t volume) {
     assert(sink);
+    
     if (sink->volume != volume) {
-        pa_subscription_post(sink->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, sink->index);
         sink->volume = volume;
+        pa_subscription_post(sink->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, sink->index);
     }
 }

@@ -65,8 +65,13 @@ int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_s
 #define PA_SAMPLE_SNPRINT_MAX_LENGTH 32
 void pa_sample_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
 
+/** Normal volume (100%) */
 #define PA_VOLUME_NORM (0x100)
+
+/** Muted volume (0%) */
 #define PA_VOLUME_MUTE (0)
+
+/** Multiply two volumes specifications, return the result. This uses PA_VOLUME_NORM as neutral element of multiplication. */
 uint32_t pa_volume_multiply(uint32_t a, uint32_t b);
 
 PA_C_DECL_END
