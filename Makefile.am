@@ -35,7 +35,7 @@ homepage: all dist
 	test -d $$HOME/homepage/private
 	mkdir -p $$HOME/homepage/private/projects/polypaudio
 	cp *.tar.gz $$HOME/homepage/private/projects/polypaudio
-	cp doc/README.html doc/cli.html doc/daemon.html doc/modules.html doc/style.css doc/NEWS $$HOME/homepage/private/projects/polypaudio
+	cp doc/README.html doc/cli.html doc/daemon.html doc/modules.html doc/style.css $$HOME/homepage/private/projects/polypaudio
 	cp $$HOME/homepage/private/projects/polypaudio/README.html $$HOME/homepage/private/projects/polypaudio/index.html
 
 distcleancheck:
