@@ -36,6 +36,7 @@
 #include "scache.h"
 #include "autoload.h"
 #include "xmalloc.h"
+#include "subscribe.h"
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     struct pa_core* c;
@@ -63,6 +64,10 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
 
     c->auto_unload_time = 20;
     c->auto_unload_event = NULL;
+
+    c->subscription_defer_event = NULL;
+    c->subscription_event_queue = NULL;
+    c->subscriptions = NULL;
     
     pa_check_for_sigpipe();
     
@@ -93,7 +98,8 @@ void pa_core_free(struct pa_core *c) {
     pa_namereg_free(c);
     pa_scache_free(c);
     pa_autoload_free(c);
-
+    pa_subscription_free_all(c);
+    
     pa_xfree(c->default_source_name);
     pa_xfree(c->default_sink_name);
     

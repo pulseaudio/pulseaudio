@@ -29,6 +29,7 @@
 
 #include "source-output.h"
 #include "xmalloc.h"
+#include "subscribe.h"
 
 struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec) {
     struct pa_source_output *o;
@@ -57,6 +58,8 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
     assert(r == 0 && o->index != PA_IDXSET_INVALID);
     r = pa_idxset_put(s->outputs, o, NULL);
     assert(r == 0);
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
     
     return o;    
 }
@@ -70,6 +73,8 @@ void pa_source_output_free(struct pa_source_output* o) {
 
     if (o->resampler)
         pa_resampler_free(o->resampler);
+
+    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
     
     pa_xfree(o->name);
     pa_xfree(o);

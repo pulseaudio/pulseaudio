@@ -34,6 +34,7 @@
 #include "util.h"
 #include "sample-util.h"
 #include "xmalloc.h"
+#include "subscribe.h"
 
 #define MAX_MIX_CHANNELS 32
 
@@ -77,6 +78,8 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     
     pa_sample_snprint(st, sizeof(st), spec);
     fprintf(stderr, "sink: created %u \"%s\" with sample spec \"%s\"\n", s->index, s->name, st);
+
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     
     return s;
 }
@@ -98,6 +101,8 @@ void pa_sink_free(struct pa_sink *s) {
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
 
     fprintf(stderr, "sink: freed %u \"%s\"\n", s->index, s->name);
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
     
     pa_xfree(s->name);
     pa_xfree(s->description);

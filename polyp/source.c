@@ -32,6 +32,7 @@
 #include "source-output.h"
 #include "namereg.h"
 #include "xmalloc.h"
+#include "subscribe.h"
 
 struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
     struct pa_source *s;
@@ -63,6 +64,8 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
 
     pa_sample_snprint(st, sizeof(st), spec);
     fprintf(stderr, "source: created %u \"%s\" with sample spec \"%s\"\n", s->index, s->name, st);
+
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     
     return s;
 }
@@ -84,6 +87,8 @@ void pa_source_free(struct pa_source *s) {
 
     fprintf(stderr, "source: freed %u \"%s\"\n", s->index, s->name);
 
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
+    
     pa_xfree(s->name);
     pa_xfree(s->description);
     pa_xfree(s);

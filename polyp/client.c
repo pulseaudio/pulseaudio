@@ -30,6 +30,7 @@
 
 #include "client.h"
 #include "xmalloc.h"
+#include "subscribe.h"
 
 struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name, char *name) {
     struct pa_client *c;
@@ -49,6 +50,7 @@ struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name,
     assert(c->index != PA_IDXSET_INVALID && r >= 0);
 
     fprintf(stderr, "client: created %u \"%s\"\n", c->index, c->name);
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_NEW, c->index);
     
     return c;
 }
@@ -58,6 +60,7 @@ void pa_client_free(struct pa_client *c) {
 
     pa_idxset_remove_by_data(c->core->clients, c, NULL);
     fprintf(stderr, "client: freed %u \"%s\"\n", c->index, c->name);
+    pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
     pa_xfree(c->name);
     pa_xfree(c);
 }

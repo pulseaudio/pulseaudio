@@ -31,6 +31,7 @@
 #include "sink-input.h"
 #include "sample-util.h"
 #include "xmalloc.h"
+#include "subscribe.h"
 
 #define CONVERT_BUFFER_LENGTH 4096
 
@@ -72,6 +73,8 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
 
     pa_sample_snprint(st, sizeof(st), spec);
     fprintf(stderr, "sink-input: created %u \"%s\" on %u with sample spec \"%s\"\n", i->index, i->name, s->index, st);
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
     
     return i;    
 }
@@ -87,6 +90,8 @@ void pa_sink_input_free(struct pa_sink_input* i) {
         pa_memblock_unref(i->resampled_chunk.memblock);
     if (i->resampler)
         pa_resampler_free(i->resampler);
+
+    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
     
     pa_xfree(i->name);
     pa_xfree(i);

@@ -32,6 +32,7 @@
 
 #include "module.h"
 #include "xmalloc.h"
+#include "subscribe.h"
 
 #define UNLOAD_POLL_TIME 10
 
@@ -92,6 +93,8 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     assert(r >= 0 && m->index != PA_IDXSET_INVALID);
 
     fprintf(stderr, "module: loaded %u \"%s\" with argument \"%s\".\n", m->index, m->name, m->argument);
+
+    pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_NEW, m->index);
     
     return m;
     
@@ -117,6 +120,8 @@ static void pa_module_free(struct pa_module *m) {
     
     fprintf(stderr, "module: unloaded %u \"%s\".\n", m->index, m->name);
 
+    pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_REMOVE, m->index);
+    
     pa_xfree(m->name);
     pa_xfree(m->argument);
     pa_xfree(m);
