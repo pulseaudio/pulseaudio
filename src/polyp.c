@@ -53,6 +53,9 @@ struct pa_context {
     
     void (*die_callback)(struct pa_context*c, void *userdata);
     void *die_userdata;
+
+    void (*stat_callback)(struct pa_context*c, uint32_t count, uint32_t total, void *userdata);
+    void *stat_userdata;
     
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
 };
@@ -132,6 +135,9 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
 
     c->die_callback = NULL;
     c->die_userdata = NULL;
+
+    c->stat_callback = NULL;
+    c->stat_userdata = NULL;
 
     pa_check_for_sigpipe();
     return c;
@@ -833,4 +839,59 @@ void pa_stream_drain(struct pa_stream *s, void (*complete) (struct pa_stream*s, 
     pa_tagstruct_putu32(t, s->channel);
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_drain_callback, s);
+}
+
+void pa_context_exit(struct pa_context *c) {
+    struct pa_tagstruct *t;
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_EXIT);
+    pa_tagstruct_putu32(t, c->ctag++);
+    pa_pstream_send_tagstruct(c->pstream, t);
+}
+
+static void context_stat_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_context *c = userdata;
+    uint32_t total, count;
+    assert(pd && c);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (handle_error(c, command, t) < 0) {
+            context_dead(c);
+            return;
+        }
+
+        if (c->stat_callback)
+            c->stat_callback(c, (uint32_t) -1, (uint32_t) -1, c->stat_userdata);
+        return;
+    }
+
+    if (pa_tagstruct_getu32(t, &count) < 0 ||
+        pa_tagstruct_getu32(t, &total) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        c->error = PA_ERROR_PROTOCOL;
+        context_dead(c);
+        return;
+    }
+
+    if (c->stat_callback)
+        c->stat_callback(c, count, total, c->stat_userdata);
+}
+
+void pa_context_stat(struct pa_context *c, void (*cb)(struct pa_context *c, uint32_t count, uint32_t total, void *userdata), void *userdata) {
+    uint32_t tag;
+    struct pa_tagstruct *t;
+
+    c->stat_callback = cb;
+    c->stat_userdata = userdata;
+
+    if (cb == NULL)
+        return;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_STAT);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_stat_callback, c);
 }

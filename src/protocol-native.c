@@ -75,6 +75,7 @@ static void command_delete_record_stream(struct pa_pdispatch *pd, uint32_t comma
 static void command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_stat(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -91,6 +92,7 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_SET_NAME] = { command_set_name },
     [PA_COMMAND_LOOKUP_SINK] = { command_lookup },
     [PA_COMMAND_LOOKUP_SOURCE] = { command_lookup },
+    [PA_COMMAND_STAT] = { command_stat },
 };
 
 /* structure management */
@@ -637,6 +639,30 @@ static void command_drain_playback_stream(struct pa_pdispatch *pd, uint32_t comm
         s->drain_tag = tag;
     }
 } 
+
+static void command_stat(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    assert(c && t);
+    struct pa_tagstruct *reply;
+
+    if (!pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    reply = pa_tagstruct_new(NULL, 0);
+    assert(reply);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+    pa_tagstruct_putu32(reply, pa_memblock_get_count());
+    pa_tagstruct_putu32(reply, pa_memblock_get_total());
+    pa_pstream_send_tagstruct(c->pstream, reply);
+}
 
 /*** pstream callbacks ***/
 

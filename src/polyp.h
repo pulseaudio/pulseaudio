@@ -32,6 +32,9 @@ int pa_context_errno(struct pa_context *c);
 
 int pa_context_is_pending(struct pa_context *c);
 
+void pa_context_exit(struct pa_context *c);
+void pa_context_stat(struct pa_context *c, void (*cb)(struct pa_context *c, uint32_t count, uint32_t total, void *userdata), void *userdata);
+
 struct pa_stream;
 
 struct pa_stream* pa_stream_new(

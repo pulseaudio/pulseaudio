@@ -222,7 +222,7 @@ static void exit_signal_callback(void *id, int sig, void *userdata) {
 }
 
 int main(int argc, char *argv[]) {
-    struct pa_mainloop* m;
+    struct pa_mainloop* m = NULL;
     int ret = 1, r;
     char *bn;
 
@@ -279,9 +279,11 @@ quit:
     if (context)
         pa_context_free(context);
 
-    pa_signal_done();
-    if (m)
+    if (m) {
+        pa_signal_done();
         pa_mainloop_free(m);
+    }
+    
     if (buffer)
         free(buffer);
     
