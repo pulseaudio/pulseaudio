@@ -168,7 +168,7 @@ if test x$lynx = xyes ; then
    AC_CHECK_PROG(have_lynx, lynx, yes, no)
 
    if test x$have_lynx = xno ; then
-     AC_MSG_ERROR([*** Sorry, you have to install lynx or use --disable-lynx ***])
+     AC_MSG_WARN([*** lynx not found, plain text README will not be built ***])
    fi
 fi
 

@@ -729,7 +729,7 @@ daemon.conf: daemon.conf.in Makefile
 		-e 's,@DEFAULT_CONFIG_FILE\@,$(polypconfdir)/daemon.conf,g' < $< > $@
 
 install-exec-hook:
-	chown root $(DESTDIR)$(bindir)/polypaudio
+	chown root $(DESTDIR)$(bindir)/polypaudio ; true
 	chmod u+s $(DESTDIR)$(bindir)/polypaudio
 	ln -s pacat $(DESTDIR)$(bindir)/parec
 

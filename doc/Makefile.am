@@ -19,7 +19,7 @@
 noinst_DATA = README.html cli.html modules.html daemon.html README
 EXTRA_DIST = $(noinst_DATA) style.css README.html.in cli.html.in modules.html.in daemon.html.in todo FAQ.html.in
 
-MAINTAINERCLEANFILES = README README.html cli.html modules.html daemon.html FAQ.html
+MAINTAINERCLEANFILES = README.html cli.html modules.html daemon.html FAQ.html
 CLEANFILES =
 
 if USE_LYNX

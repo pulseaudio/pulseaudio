@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             pa_loop_write(STDOUT_FILENO, (uint8_t*) t.memblock->data + t.index, t.length);
-            fprintf(stderr, "Wrote %u bytes.\n", t.length);
+            fprintf(stderr, "Wrote %lu bytes.\n", (unsigned long) t.length);
 
             pa_memblock_unref(t.memblock);
         }
