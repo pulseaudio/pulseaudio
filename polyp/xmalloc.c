@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "memory.h"
 #include "util.h"
