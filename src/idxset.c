@@ -1,0 +1,329 @@
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "idxset.h"
+
+struct idxset_entry {
+    void *data;
+    uint32_t index;
+    unsigned hash_value;
+
+    struct idxset_entry *hash_prev, *hash_next;
+    struct idxset_entry* iterate_prev, *iterate_next;
+};
+
+struct idxset {
+    unsigned (*hash_func) (void *p);
+    int (*compare_func)(void *a, void *b);
+    
+    unsigned hash_table_size, n_entries;
+    struct idxset_entry **hash_table, **array, *iterate_list_head, *iterate_list_tail, *rrobin;
+    uint32_t index, start_index, array_size;
+};
+
+static unsigned trivial_hash_func(void *p) {
+    return (unsigned) p;
+}
+
+static int trivial_compare_func(void *a, void *b) {
+    return !(a == b);
+}
+
+struct idxset* idxset_new(unsigned (*hash_func) (void *p), int (*compare_func) (void*a, void*b)) {
+    struct idxset *s;
+
+    s = malloc(sizeof(struct idxset));
+    assert(s);
+    s->hash_func = hash_func ? hash_func : trivial_hash_func;
+    s->compare_func = compare_func ? compare_func : trivial_compare_func;
+    s->hash_table_size = 1023;
+    s->hash_table = malloc(sizeof(struct idxset_entry*)*s->hash_table_size);
+    assert(s->hash_table);
+    s->array = NULL;
+    s->array_size = 0;
+    s->index = 0;
+    s->start_index = 0;
+    s->n_entries = 0;
+
+    s->iterate_list_head = s->iterate_list_tail = NULL;
+
+    return s;
+}
+
+void idxset_free(struct idxset *s, void (*free_func) (void *p, void *userdata), void *userdata) {
+    assert(s);
+
+    if (free_func) {
+        while (s->iterate_list_head) {
+            struct idxset_entry *e = s->iterate_list_head;
+            s->iterate_list_head = s->iterate_list_head->iterate_next;
+
+            if (free_func)
+                free_func(e->data, userdata);
+            free(e);
+        }
+    }
+
+    free(s->hash_table);
+    free(s->array);
+    free(s);
+}
+
+static struct idxset_entry* hash_scan(struct idxset *s, struct idxset_entry* e, void *p) {
+    assert(p);
+
+    assert(s->compare_func);
+    for (; e; e = e->hash_next)
+        if (s->compare_func(e->data, p))
+            return e;
+
+    return NULL;
+}
+
+static void extend_array(struct idxset *s, uint32_t index) {
+    uint32_t i, j, l;
+    struct idxset_entry** n;
+    assert(index >= s->start_index );
+
+    if (index <= s->start_index + s->array_size)
+        return;
+
+    for (i = 0; i < s->array_size; i++)
+        if (s->array[i])
+            break;
+
+    l = index - s->start_index - i + 100;
+    n = malloc(sizeof(struct hash_table_entry*)*l);
+    assert(n);
+    memset(n, 0, sizeof(struct hash_table_entry*)*l);
+    
+    for (j = 0; j < s->array_size-i; j++)
+        n[j] = s->array[i+j];
+
+    free(s->array);
+    
+    s->array = n;
+    s->array_size = l;
+    s->start_index += i;
+}
+
+static struct idxset_entry** array_index(struct idxset*s, uint32_t index) {
+
+    if (index >= s->start_index + s->array_size)
+        return NULL;
+    
+    if (index < s->start_index)
+        return NULL;
+
+    return s->array + (index - s->start_index);
+}
+
+int idxset_put(struct idxset*s, void *p, uint32_t *index) {
+    unsigned h;
+    struct idxset_entry *e, **a;
+    assert(s && p);
+
+    assert(s->hash_func);
+    h = s->hash_func(p) % s->hash_table_size;
+
+    assert(s->hash_table);
+    if ((e = hash_scan(s, s->hash_table[h], p))) {
+        if (index)
+            *index = e->index;
+        
+        return -1;
+    }
+
+    e = malloc(sizeof(struct idxset_entry));
+    assert(e);
+
+    e->data = p;
+    e->index = s->index++;
+    e->hash_value = h;
+
+    /* Insert into hash table */
+    e->hash_next = s->hash_table[h];
+    e->hash_prev = NULL;
+    if (s->hash_table[h])
+        s->hash_table[h]->hash_prev = e;
+    s->hash_table[h] = e;
+
+    /* Insert into array */
+    extend_array(s, s->index);
+    a = array_index(s, s->index);
+    assert(a && !*a);
+    *a = e;
+
+    /* Insert into linked list */
+    e->iterate_next = NULL;
+    e->iterate_prev = s->iterate_list_tail;
+    if (s->iterate_list_tail) {
+        assert(s->iterate_list_head);
+        s->iterate_list_tail->iterate_next = e;
+    } else {
+        assert(!s->iterate_list_head);
+        s->iterate_list_head = e;
+    }
+    s->iterate_list_tail = e;
+    
+    s->n_entries++;
+    assert(s->n_entries >= 1);
+    
+    if (index)
+        *index = e->index;
+
+    return 0;
+}
+
+void* idxset_get_by_index(struct idxset*s, uint32_t index) {
+    struct idxset_entry **a;
+    assert(s);
+    
+    if (!(a = array_index(s, index)))
+        return NULL;
+
+    return (*a)->data;
+}
+
+void* idxset_get_by_data(struct idxset*s, void *p, uint32_t *index) {
+    unsigned h;
+    struct idxset_entry *e;
+    assert(s && p);
+    
+    assert(s->hash_func);
+    h = s->hash_func(p) % s->hash_table_size;
+
+    assert(s->hash_table);
+    if (!(e = hash_scan(s, s->hash_table[h], p)))
+        return NULL;
+
+    if (index)
+        *index = e->index;
+
+    return e->data;
+}
+
+static void remove_entry(struct idxset *s, struct idxset_entry *e) {
+    struct idxset_entry **a;
+    assert(s && e);
+
+    /* Remove from array */
+    a = array_index(s, s->index);
+    assert(a && *a == e);
+    *a = NULL;
+    
+    /* Remove from linked list */
+    if (e->iterate_next)
+        e->iterate_next->iterate_prev = e->iterate_prev;
+    else
+        s->iterate_list_tail = e->iterate_prev;
+    
+    if (e->iterate_prev)
+        e->iterate_prev->iterate_next = e->iterate_next;
+    else
+        s->iterate_list_head = e->iterate_next;
+
+    /* Remove from hash table */
+    if (e->hash_next)
+        e->hash_next->hash_prev = e->hash_prev;
+
+    if (e->hash_prev)
+        e->hash_prev->hash_next = e->hash_next;
+    else
+        s->hash_table[e->hash_value] = e->hash_next;
+
+    if (s->rrobin == e)
+        s->rrobin = NULL;
+    
+    free(e);
+
+    assert(s->n_entries >= 1);
+    s->n_entries--;
+}
+
+void* idxset_remove_by_index(struct idxset*s, uint32_t index) {
+    struct idxset_entry **a;
+    void *data;
+    
+    assert(s);
+
+    if (!(a = array_index(s, index)))
+        return NULL;
+
+    data = (*a)->data;
+    remove_entry(s, *a);
+    
+    return data; 
+}
+
+void* idxset_remove_by_data(struct idxset*s, void *data, uint32_t *index) {
+    struct idxset_entry *e;
+    unsigned h;
+
+    assert(s->hash_func);
+    h = s->hash_func(data) % s->hash_table_size;
+
+    assert(s->hash_table);
+    if (!(e = hash_scan(s, s->hash_table[h], data)))
+        return NULL;
+
+    data = e->data;
+    if (index)
+        *index = e->index;
+
+    remove_entry(s, e);
+
+    return data;
+}
+
+void* idxset_rrobin(struct idxset *s, uint32_t *index) {
+    assert(s && index);
+
+    if (s->rrobin)
+        s->rrobin = s->rrobin->iterate_next;
+    
+    if (!s->rrobin)
+        s->rrobin = s->iterate_list_head;
+
+    if (!s->rrobin)
+        return NULL;
+
+    if (index)
+        *index = s->rrobin->index;
+
+    return s->rrobin->data;
+}
+
+int idxset_foreach(struct idxset*s, int (*func)(void *p, uint32_t index, int *del, void*userdata), void *userdata) {
+    struct idxset_entry *e;
+    assert(s && func);
+
+    e = s->iterate_list_head;
+    while (e) {
+        int del = 0, r;
+        struct idxset_entry *n = e->iterate_next;
+
+        r = func(e->data, e->index, &del, userdata);
+
+        if (del)
+            remove_entry(s, e);
+
+        if (r < 0)
+            return r;
+
+        e = n;
+    }
+    
+    return 0;
+}
+
+unsigned idxset_ncontents(struct idxset*s) {
+    assert(s);
+    return s->n_entries;
+}
+
+int idxset_isempty(struct idxset *s) {
+    assert(s);
+    return s->n_entries == 0;
+}
