@@ -1246,7 +1246,7 @@ static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32
             sink = pa_namereg_get(c->protocol->core, *name ? name : NULL, PA_NAMEREG_SINK, 1);
     }  else {
         assert(command == PA_COMMAND_SET_SINK_INPUT_VOLUME);
-        si = pa_idxset_get_by_index(c->protocol->core->sinks, index);
+        si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, index);
     }
 
     if (!si && !sink) {
