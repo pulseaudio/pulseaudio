@@ -33,7 +33,7 @@
 #include "llist.h"
 #include "log.h"
 
-/* #define DEBUG_OPCODES */
+/*#define DEBUG_OPCODES */
 
 #ifdef DEBUG_OPCODES
 

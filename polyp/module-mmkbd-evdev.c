@@ -27,83 +27,72 @@
 #include <assert.h>
 #include <unistd.h>
 #include <string.h>
-#include <lirc/lirc_client.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <fcntl.h>
+
+#include <linux/input.h>
 
 #include "module.h"
 #include "log.h"
-#include "module-lirc-symdef.h"
+#include "module-mmkbd-evdev-symdef.h"
 #include "namereg.h"
 #include "sink.h"
 #include "xmalloc.h"
 #include "modargs.h"
+#include "util.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("LIRC volume control")
+PA_MODULE_DESCRIPTION("Multimedia keyboard support via Linux evdev")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("config=<config file> sink=<sink name> appname=<lirc application name>")
+PA_MODULE_USAGE("device=<evdev device> sink=<sink name>")
+
+#define DEFAULT_DEVICE "/dev/input/event0"
 
 static const char* const valid_modargs[] = {
-    "config",
+    "device",
     "sink",
-    "appname",
     NULL,
 };
 
 struct userdata {
-    int lirc_fd;
+    int fd;
     struct pa_io_event *io;
-    struct lirc_config *config;
     char *sink_name;
     struct pa_module *module;
     float mute_toggle_save;
 };
 
-static int lirc_in_use = 0;
-
 static void io_callback(struct pa_mainloop_api *io, struct pa_io_event *e, int fd, enum pa_io_event_flags events, void*userdata) {
     struct userdata *u = userdata;
-    char *name = NULL, *code = NULL;
     assert(io);
     assert(u);
 
     if (events & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) {
-        pa_log(__FILE__": lost connection to LIRC daemon.\n");
+        pa_log(__FILE__": lost connection to evdev device.\n");
         goto fail;
     }
         
     if (events & PA_IO_EVENT_INPUT) {
-        char *c;
-        
-        if (lirc_nextcode(&code) != 0 || !code) {
-            pa_log(__FILE__": lirc_nextcode() failed.\n");
+        struct input_event e;
+
+        if (pa_loop_read(u->fd, &e, sizeof(e)) <= 0) {
+            pa_log(__FILE__": failed to read from event device: %s\n", strerror(errno));
             goto fail;
         }
-        
-        c = pa_xstrdup(code);
-        c[strcspn(c, "\n\r")] = 0;
-        pa_log_debug(__FILE__": raw IR code '%s'\n", c);
-        pa_xfree(c);
-        
-        while (lirc_code2char(u->config, code, &name) == 0 && name) {
-            enum { INVALID, UP, DOWN, MUTE, RESET, MUTE_TOGGLE } volchange = INVALID;
-            
-            pa_log_info(__FILE__": translated IR code '%s'\n", name);
-            
-            if (strcasecmp(name, "volume-up") == 0)
-                volchange = UP;
-            else if (strcasecmp(name, "volume-down") == 0)
-                volchange = DOWN;
-            else if (strcasecmp(name, "mute") == 0)
-                volchange = MUTE;
-            else if (strcasecmp(name, "mute-toggle") == 0)
-                volchange = MUTE_TOGGLE;
-            else if (strcasecmp(name, "reset") == 0)
-                volchange = RESET;
-            
-            if (volchange == INVALID)
-                pa_log_warn(__FILE__": recieved unknown IR code '%s'\n", name);
-            else {
+
+        if (e.type == EV_KEY && (e.value == 1 || e.value == 2)) {
+            enum { INVALID, UP, DOWN, MUTE_TOGGLE } volchange = INVALID;
+
+            pa_log_debug(__FILE__": key code=%u, value=%u\n", e.code, e.value);
+
+            switch (e.code) {
+                case KEY_VOLUMEDOWN:  volchange = DOWN; break;
+                case KEY_VOLUMEUP:    volchange = UP; break;
+                case KEY_MUTE:        volchange = MUTE_TOGGLE; break;
+            }
+
+            if (volchange != INVALID) {
                 struct pa_sink *s;
                 
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
@@ -114,8 +103,6 @@ static void io_callback(struct pa_mainloop_api *io, struct pa_io_event *e, int f
                     switch (volchange) {
                         case UP:       v += .05; break;
                         case DOWN:     v -= .05; break;
-                        case MUTE:     v  =  0; break;
-                        case RESET:    v  =  1; break;
                         case MUTE_TOGGLE: {
 
                             if (v > 0) {
@@ -134,8 +121,6 @@ static void io_callback(struct pa_mainloop_api *io, struct pa_io_event *e, int f
         }
     }
 
-    free(code);
-
     return;
     
 fail:
@@ -143,20 +128,19 @@ fail:
     u->io = NULL;
 
     pa_module_unload_request(u->module);
-
-    free(code);
 }
+
+#define test_bit(bit, array) (array[bit/8] & (1<<(bit%8)))
     
 int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_modargs *ma = NULL;
     struct userdata *u;
+    int version;
+    struct input_id input_id;
+    char name[256];
+    uint8_t evtype_bitmask[EV_MAX/8 + 1];
     assert(c && m);
 
-    if (lirc_in_use) {
-        pa_log(__FILE__": module-lirc may no be loaded twice.\n");
-        return -1;
-    }
-    
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": Failed to parse module arguments\n");
         goto fail;
@@ -165,24 +149,49 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     m->userdata = u = pa_xmalloc(sizeof(struct userdata));
     u->module = m;
     u->io = NULL;
-    u->config = NULL;
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
-    u->lirc_fd = -1;
+    u->fd = -1;
     u->mute_toggle_save = 0;
 
-    if ((u->lirc_fd = lirc_init((char*) pa_modargs_get_value(ma, "appname", "polypaudio"), 1)) < 0) {
-        pa_log(__FILE__": lirc_init() failed.\n");
+    if ((u->fd = open(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY)) < 0) {
+        pa_log(__FILE__": failed to open evdev device: %s\n", strerror(errno));
         goto fail;
     }
 
-    if (lirc_readconfig((char*) pa_modargs_get_value(ma, "config", NULL), &u->config, NULL) < 0) {
-        pa_log(__FILE__": lirc_readconfig() failed.\n");
+    if (ioctl(u->fd, EVIOCGVERSION, &version) < 0) {
+        pa_log(__FILE__": EVIOCGVERSION failed: %s\n", strerror(errno));
         goto fail;
     }
-    
-    u->io = c->mainloop->io_new(c->mainloop, u->lirc_fd, PA_IO_EVENT_INPUT|PA_IO_EVENT_HANGUP, io_callback, u);
 
-    lirc_in_use = 1;
+    pa_log_info(__FILE__": evdev driver version %i.%i.%i\n", version >> 16, (version >> 8) & 0xff, version & 0xff);
+
+    if(ioctl(u->fd, EVIOCGID, &input_id)) {
+        pa_log(__FILE__": EVIOCGID failed: %s\n", strerror(errno));
+        goto fail;
+    }
+
+    pa_log_info(__FILE__": evdev vendor 0x%04hx product 0x%04hx version 0x%04hx bustype %u\n",
+                input_id.vendor, input_id.product, input_id.version, input_id.bustype);
+
+    if(ioctl(u->fd, EVIOCGNAME(sizeof(name)), name) < 0) {
+        pa_log(__FILE__": EVIOCGNAME failed: %s\n", strerror(errno));
+        goto fail;
+    }
+
+    pa_log_info(__FILE__": evdev device name: %s\n", name);
+
+    memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
+    if (ioctl(u->fd, EVIOCGBIT(0, EV_MAX), evtype_bitmask) < 0) {
+        pa_log(__FILE__": EVIOCGBIT failed: %s\n", strerror(errno));
+        goto fail;
+    }
+
+    if (!test_bit(EV_KEY, evtype_bitmask)) {
+        pa_log(__FILE__": device has no keys.\n");
+        goto fail;
+    }
+
+    u->io = c->mainloop->io_new(c->mainloop, u->fd, PA_IO_EVENT_INPUT|PA_IO_EVENT_HANGUP, io_callback, u);
 
     pa_modargs_free(ma);
     
@@ -208,14 +217,9 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
     if (u->io)
         m->core->mainloop->io_free(u->io);
 
-    if (u->config)
-        lirc_freeconfig(u->config);
-
-    if (u->lirc_fd >= 0)
-        lirc_deinit();
+    if (u->fd >= 0)
+        close(u->fd);
 
     pa_xfree(u->sink_name);
     pa_xfree(u);
-
-    lirc_in_use = 0;
 }

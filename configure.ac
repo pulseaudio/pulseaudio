@@ -174,6 +174,9 @@ AC_SUBST(LIRC_CFLAGS)
 AC_SUBST(LIRC_LIBS)
 AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 
+AC_CHECK_HEADER(linux/input.h,HAVE_EVDEV=1,HAVE_EVDEV=0)
+AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = x1])
+
 # If using GCC specify some additional parameters
 if test "x$GCC" = "xyes" ; then
    CFLAGS="$CFLAGS -pipe -W -Wall -pedantic"

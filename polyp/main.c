@@ -309,7 +309,8 @@ int main(int argc, char *argv[]) {
     
     if (conf->use_pid_file) {
         if (pa_pid_file_create() < 0) {
-            pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+            if (conf->daemonize)
+                pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
             goto finish;
         }
 

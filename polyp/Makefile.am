@@ -160,7 +160,8 @@ SYMDEF_FILES= \
 		module-null-sink-symdef.h \
 		module-esound-sink-symdef.h \
 		module-zeroconf-publish-symdef.h \
-		module-lirc-symdef.h
+		module-lirc-symdef.h \
+		module-mmkbd-evdev-symdef.h
 
 EXTRA_DIST+=$(SYMDEF_FILES)
 BUILT_SOURCES+=$(SYMDEF_FILES)
@@ -704,6 +705,21 @@ module_lirc_la_SOURCES = module-lirc.c
 module_lirc_la_LDFLAGS = -module -avoid-version
 module_lirc_la_LIBADD = $(AM_LIBADD) $(LIRC_LIBS) 
 module_lirc_la_CFLAGS = $(AM_CFLAGS) $(LIRC_CFLAGS)
+
+endif
+
+
+### Linux evdev
+
+if HAVE_EVDEV
+
+modlib_LTLIBRARIES+= \
+		module-mmkbd-evdev.la
+
+module_mmkbd_evdev_la_SOURCES = module-mmkbd-evdev.c
+module_mmkbd_evdev_la_LDFLAGS = -module -avoid-version
+module_mmkbd_evdev_la_LIBADD = $(AM_LIBADD)
+module_mmkbd_evdev_la_CFLAGS = $(AM_CFLAGS)
 
 endif
 
