@@ -102,7 +102,7 @@ size_t pa_stream_writable_size(struct pa_stream *p);
 struct pa_operation* pa_stream_drain(struct pa_stream *s, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata);
 
 /** Get the playback latency of a stream */
-struct pa_operation* pa_stream_get_latency(struct pa_stream *p, void (*cb)(struct pa_stream *p, uint32_t latency, void *userdata), void *userdata);
+struct pa_operation* pa_stream_get_latency(struct pa_stream *p, void (*cb)(struct pa_stream *p, const struct pa_latency_info *i, void *userdata), void *userdata);
 
 /** Set the callback function that is called whenever the state of the stream changes */
 void pa_stream_set_state_callback(struct pa_stream *s, void (*cb)(struct pa_stream *s, void *userdata), void *userdata);
@@ -120,6 +120,11 @@ struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (stru
  * better off using the parameter delta of pa_stream_write() instead of this
  * function. \since 0.3 */
 struct pa_operation* pa_stream_flush(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata);
+
+/** Request immediate start of playback on this stream. This disables
+ * prebuffering as specified in the pa_buffer_attr structure. \since
+ * 0.3 */
+struct pa_operation* pa_stream_trigger(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata);
 
 PA_C_DECL_END
 

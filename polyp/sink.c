@@ -142,7 +142,7 @@ static unsigned fill_mix_info(struct pa_sink *s, struct pa_mix_info *info, unsig
 
 static void inputs_drop(struct pa_sink *s, struct pa_mix_info *info, unsigned maxinfo, size_t length) {
     assert(s && info);
-    
+
     for (; maxinfo > 0; maxinfo--, info++) {
         struct pa_sink_input *i = info->userdata;
         assert(i && info->chunk.memblock);
@@ -267,7 +267,7 @@ void pa_sink_render_into_full(struct pa_sink *s, struct pa_memchunk *target) {
     }
 }
 
-uint32_t pa_sink_get_latency(struct pa_sink *s) {
+pa_usec_t pa_sink_get_latency(struct pa_sink *s) {
     assert(s);
 
     if (!s->get_latency)

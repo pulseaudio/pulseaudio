@@ -463,7 +463,10 @@ static void set_dispatch_callbacks(struct pa_operation *o) {
 
 struct pa_operation* pa_context_drain(struct pa_context *c, void (*cb) (struct pa_context*c, void *userdata), void *userdata) {
     struct pa_operation *o;
-    assert(c && c->ref >= 1 && c->state == PA_CONTEXT_READY);
+    assert(c && c->ref >= 1);
+
+    if (c->state != PA_CONTEXT_READY)
+        return NULL;
 
     if (!pa_context_is_pending(c))
         return NULL;

@@ -66,6 +66,9 @@ struct pa_sample_spec {
     uint8_t channels;              /**< Audio channels. (1 for mono, 2 for stereo, ...) */
 };
 
+/** Type for usec specifications */
+typedef uint32_t pa_usec_t;
+
 /** Return the amount of bytes playback of a second of audio with the speicified sample type takes */
 size_t pa_bytes_per_second(const struct pa_sample_spec *spec);
 
@@ -73,7 +76,7 @@ size_t pa_bytes_per_second(const struct pa_sample_spec *spec);
 size_t pa_frame_size(const struct pa_sample_spec *spec);
 
 /** Calculate the time the specified bytes take to play with the specified sample type */
-uint32_t pa_bytes_to_usec(size_t length, const struct pa_sample_spec *spec);
+pa_usec_t pa_bytes_to_usec(size_t length, const struct pa_sample_spec *spec);
 
 /** Return non-zero when the sample type specification is valid */
 int pa_sample_spec_valid(const struct pa_sample_spec *spec);

@@ -56,7 +56,7 @@ int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result);
 int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target);
 void pa_sink_render_into_full(struct pa_sink *s, struct pa_memchunk *target);
 
-uint32_t pa_sink_get_latency(struct pa_sink *s);
+pa_usec_t pa_sink_get_latency(struct pa_sink *s);
 
 void pa_sink_notify(struct pa_sink*s);
 

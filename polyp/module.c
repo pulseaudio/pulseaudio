@@ -62,10 +62,10 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     if (!(m->dl = lt_dlopenext(name)))
         goto fail;
 
-    if (!(m->init = lt_dlsym(m->dl, "pa_module_init")))
+    if (!(m->init = (int (*)(struct pa_core *c, struct pa_module*m)) lt_dlsym(m->dl, "pa_module_init")))
         goto fail;
 
-    if (!(m->done = lt_dlsym(m->dl, "pa_module_done")))
+    if (!(m->done = (void (*)(struct pa_core *c, struct pa_module*m)) lt_dlsym(m->dl, "pa_module_done")))
         goto fail;
     
     m->userdata = NULL;

@@ -186,6 +186,7 @@ static struct pa_time_event* mainloop_time_new(struct pa_mainloop_api*a, const s
     e->destroy_callback = NULL;
 
     pa_idxset_put(m->time_events, e, NULL);
+    
     return e;
 }
 
@@ -201,6 +202,7 @@ static void mainloop_time_restart(struct pa_time_event *e, const struct timeval 
 
 static void mainloop_time_free(struct pa_time_event *e) {
     assert(e);
+
     e->dead = e->mainloop->time_events_scan_dead = 1;
 }
 
@@ -271,7 +273,7 @@ static int io_foreach(void *p, uint32_t index, int *del, void*userdata) {
     int *all = userdata;
     assert(e && del && all);
 
-    if (!*all || !e->dead)
+    if (!*all && !e->dead)
         return 0;
     
     if (e->destroy_callback)
@@ -286,7 +288,7 @@ static int time_foreach(void *p, uint32_t index, int *del, void*userdata) {
     int *all = userdata;
     assert(e && del && all);
 
-    if (!*all || !e->dead)
+    if (!*all && !e->dead)
         return 0;
     
     if (e->destroy_callback)
@@ -301,7 +303,7 @@ static int defer_foreach(void *p, uint32_t index, int *del, void*userdata) {
     int *all = userdata;
     assert(e && del && all);
 
-    if (!*all || !e->dead)
+    if (!*all && !e->dead)
         return 0;
     
     if (e->destroy_callback)
@@ -336,6 +338,8 @@ static void scan_dead(struct pa_mainloop *m) {
         pa_idxset_foreach(m->time_events, time_foreach, &all);
     if (m->defer_events_scan_dead)
         pa_idxset_foreach(m->defer_events, defer_foreach, &all);
+
+    m->io_events_scan_dead = m->time_events_scan_dead = m->defer_events_scan_dead = 0;
 }
 
 static void rebuild_pollfds(struct pa_mainloop *m) {

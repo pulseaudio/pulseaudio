@@ -136,7 +136,7 @@ static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, u
 static void command_subscribe(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_cork_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-static void command_flush_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -179,7 +179,8 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_SET_SINK_VOLUME] = { command_set_volume },
     [PA_COMMAND_SET_SINK_INPUT_VOLUME] = { command_set_volume },
     [PA_COMMAND_CORK_PLAYBACK_STREAM] = { command_cork_playback_stream },
-    [PA_COMMAND_FLUSH_PLAYBACK_STREAM] = { command_flush_playback_stream },
+    [PA_COMMAND_FLUSH_PLAYBACK_STREAM] = { command_flush_or_trigger_playback_stream },
+    [PA_COMMAND_TRIGGER_PLAYBACK_STREAM] = { command_flush_or_trigger_playback_stream },
 };
 
 /* structure management */
@@ -438,6 +439,8 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
         pa_pstream_send_simple_ack(s->connection->pstream, s->drain_tag);
         s->drain_request = 0;
     }
+
+    /*fprintf(stderr, "after_drop: %u\n", pa_memblockq_get_length(s->memblockq));*/
 }
 
 static void sink_input_kill_cb(struct pa_sink_input *i) {
@@ -451,6 +454,8 @@ static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i) {
     assert(i && i->userdata);
     s = i->userdata;
 
+    /*fprintf(stderr, "get_latency: %u\n", pa_memblockq_get_length(s->memblockq));*/
+    
     return pa_bytes_to_usec(pa_memblockq_get_length(s->memblockq), &s->sink_input->sample_spec);
 }
 
@@ -797,7 +802,7 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
     struct connection *c = userdata;
     struct pa_tagstruct *reply;
     struct playback_stream *s;
-    uint32_t index, latency;
+    uint32_t index;
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &index) < 0 ||
@@ -816,12 +821,14 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
         return;
     }
 
-    latency = pa_sink_input_get_latency(s->sink_input);
     reply = pa_tagstruct_new(NULL, 0);
     assert(reply);
     pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
     pa_tagstruct_putu32(reply, tag);
-    pa_tagstruct_putu32(reply, latency);
+    pa_tagstruct_putu32(reply, pa_sink_input_get_latency(s->sink_input));
+    pa_tagstruct_putu32(reply, pa_sink_get_latency(s->sink_input->sink));
+    pa_tagstruct_putu32(reply, pa_memblockq_is_readable(s->memblockq));
+    pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1325,7 +1332,7 @@ static void command_cork_playback_stream(struct pa_pdispatch *pd, uint32_t comma
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
-static void command_flush_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     uint32_t index;
     struct playback_stream *s;
@@ -1347,7 +1354,14 @@ static void command_flush_playback_stream(struct pa_pdispatch *pd, uint32_t comm
         return;
     }
 
-    pa_memblockq_flush(s->memblockq);
+    if (command == PA_COMMAND_TRIGGER_PLAYBACK_STREAM)
+        pa_memblockq_prebuf_disable(s->memblockq);
+    else {
+        assert(command == PA_COMMAND_FLUSH_PLAYBACK_STREAM);
+        pa_memblockq_flush(s->memblockq);
+    }
+
+    pa_sink_notify(s->sink_input->sink);
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
@@ -1383,8 +1397,11 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
         
         pa_memblockq_push_align(p->memblockq, chunk, delta);
         assert(p->sink_input);
+        /*fprintf(stderr, "after_recv: %u\n", pa_memblockq_get_length(p->memblockq));*/
+
         pa_sink_notify(p->sink_input->sink);
         /*fprintf(stderr, "Recieved %u bytes.\n", chunk->length);*/
+
     } else {
         struct upload_stream *u = (struct upload_stream*) stream;
         size_t l;

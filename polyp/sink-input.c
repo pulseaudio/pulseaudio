@@ -105,23 +105,19 @@ void pa_sink_input_kill(struct pa_sink_input*i) {
         i->kill(i);
 }
 
-uint32_t pa_sink_input_get_latency(struct pa_sink_input *i) {
-    uint32_t l = 0;
-    
+pa_usec_t pa_sink_input_get_latency(struct pa_sink_input *i) {
     assert(i);
+    
     if (i->get_latency)
-        l += i->get_latency(i);
+        return i->get_latency(i);
 
-    assert(i->sink);
-    l += pa_sink_get_latency(i->sink);
-
-    return l;
+    return 0;
 }
 
 int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     assert(i && chunk && i->peek && i->drop);
 
-    if (i->corked == 0)
+    if (i->corked)
         return -1;
     
     if (!i->resampler)
@@ -139,10 +135,10 @@ int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
         
         l = pa_resampler_request(i->resampler, CONVERT_BUFFER_LENGTH);
 
-        i->drop(i, &tchunk, l);
-
         if (tchunk.length > l)
             tchunk.length = l;
+
+        i->drop(i, &tchunk, tchunk.length);
 
         pa_resampler_run(i->resampler, &tchunk, &i->resampled_chunk);
         pa_memblock_unref(tchunk.memblock);

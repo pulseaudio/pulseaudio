@@ -42,7 +42,7 @@ struct pa_sink_info {
     pa_volume_t volume;
     uint32_t monitor_source;
     const char *monitor_source_name;
-    uint32_t latency;
+    pa_usec_t latency;
 };
 
 struct pa_operation* pa_context_get_sink_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata), void *userdata);
@@ -101,7 +101,7 @@ struct pa_sink_input_info {
     uint32_t sink;
     struct pa_sample_spec sample_spec;
     pa_volume_t volume;
-    uint32_t latency;
+    pa_usec_t latency;
 };
 
 struct pa_operation* pa_context_get_sink_input_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_sink_input_info*i, int is_last, void *userdata), void *userdata);

@@ -25,6 +25,8 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "play-memchunk.h"
 #include "sink-input.h"
@@ -64,7 +66,7 @@ static void sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk*ch
     assert(i && length && i->userdata);
     c = i->userdata;
 
-    assert(chunk == c);
+    assert(!memcmp(chunk, c, sizeof(chunk)));
     assert(length <= c->length);
 
     c->length -= length;

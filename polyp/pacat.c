@@ -277,16 +277,16 @@ static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_even
 }
 
 /* Show the current playback latency */
-static void stream_get_latency_callback(struct pa_stream *s, uint32_t latency, void *userdata) {
+static void stream_get_latency_callback(struct pa_stream *s, const struct pa_latency_info *i, void *userdata) {
     assert(s);
 
-    if (latency == (uint32_t) -1) {
+    if (!i) {
         fprintf(stderr, "Failed to get latency: %s\n", strerror(errno));
         quit(1);
         return;
     }
 
-    fprintf(stderr, "Current latency is %u usecs.\n", latency);
+    fprintf(stderr, "Current latency is %u usecs.\n", i->buffer_usec+i->sink_usec);
 }
 
 /* Someone requested that the latency is shown */
