@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-EXTRA_DIST = bootstrap.sh README LICENSE
+EXTRA_DIST = bootstrap.sh README LICENSE doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in
 SUBDIRS=polyp doc
 
 MAINTAINERCLEANFILES=README

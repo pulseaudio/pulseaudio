@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-AM_CFLAGS=-ansi -D_GNU_SOURCE -DDLSEARCHDIR=\"$(pkglibdir)\" -I$(srcdir)/.. $(PTHREAD_CFLAGS)
+AM_CFLAGS=-D_GNU_SOURCE -DDLSEARCHDIR=\"$(pkglibdir)\" -I$(top_srcdir) $(PTHREAD_CFLAGS)
 AM_LDADD=$(PTHREAD_LIBS)
 AM_LIBADD=$(PTHREAD_LIBS)
 
@@ -39,6 +39,7 @@ polypinclude_HEADERS=polyplib.h \
 		polyplib-subscribe.h \
 		polyplib-operation.h \
 		polyplib-scache.h \
+		polyplib-version.h \
 		cdecl.h \
 		mainloop-api.h \
 		mainloop.h \
@@ -304,6 +305,7 @@ libpolyp_la_SOURCES = polyplib.h \
 		polyplib-introspect.c polyplib-introspect.h \
 		polyplib-scache.c polyplib-scache.h \
 		polyplib-subscribe.c polyplib-subscribe.h \
+		polyplib-internal.h \
 		cdecl.h \
 		llist.h
 libpolyp_la_CFLAGS = $(AM_CFLAGS)

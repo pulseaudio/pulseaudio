@@ -1,12 +1,7 @@
 *** $Id$ ***
 
-*** 0.2 ***
-
-- enable searchdir
-- update docs
-- pacat drain
-
 *** 0.3 ***
+- pacat drain fix
 - future cancellation
 - make mcalign merge chunks
 - use ref counting in more objects

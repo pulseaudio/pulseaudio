@@ -1154,25 +1154,27 @@ static void command_get_info_list(struct pa_pdispatch *pd, uint32_t command, uin
         assert(command == PA_COMMAND_GET_SAMPLE_INFO_LIST);
         i = c->protocol->core->scache;
     }
-            
-    for (p = pa_idxset_first(i, &index); p; p = pa_idxset_next(i, &index)) {
-        if (command == PA_COMMAND_GET_SINK_INFO_LIST)
-            sink_fill_tagstruct(reply, p);
-        else if (command == PA_COMMAND_GET_SOURCE_INFO_LIST)
-            source_fill_tagstruct(reply, p);
-        else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
-            client_fill_tagstruct(reply, p);
-        else if (command == PA_COMMAND_GET_MODULE_INFO_LIST)
-            module_fill_tagstruct(reply, p);
-        else if (command == PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
-            sink_input_fill_tagstruct(reply, p);
-        else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST) 
-            source_output_fill_tagstruct(reply, p);
-        else {
-            assert(command == PA_COMMAND_GET_SAMPLE_INFO_LIST);
-            scache_fill_tagstruct(reply, p);
+
+    if (i) {
+        for (p = pa_idxset_first(i, &index); p; p = pa_idxset_next(i, &index)) {
+            if (command == PA_COMMAND_GET_SINK_INFO_LIST)
+                sink_fill_tagstruct(reply, p);
+            else if (command == PA_COMMAND_GET_SOURCE_INFO_LIST)
+                source_fill_tagstruct(reply, p);
+            else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
+                client_fill_tagstruct(reply, p);
+            else if (command == PA_COMMAND_GET_MODULE_INFO_LIST)
+                module_fill_tagstruct(reply, p);
+            else if (command == PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
+                sink_input_fill_tagstruct(reply, p);
+            else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST) 
+                source_output_fill_tagstruct(reply, p);
+            else {
+                assert(command == PA_COMMAND_GET_SAMPLE_INFO_LIST);
+                scache_fill_tagstruct(reply, p);
+            }
         }
-    } 
+    }
     
     pa_pstream_send_tagstruct(c->pstream, reply);
 }

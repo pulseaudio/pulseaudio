@@ -133,8 +133,8 @@ management.</p>
 
 <p><tt>polypaudio</tt> needs <a
 href="http://www.mega-nerd.com/SRC/">Secret Rabbit Code (aka
-<tt>libsamplerate</tt>)</a>, <a href="http://www.mega-nerd.com/SND"><tt>libsndfile</tt></a> and <a
-href="http://www.alsa-project.org/">alsa-lib</a>.</p>
+<tt>libsamplerate</tt>)</a>, <a href="http://www.mega-nerd.com/SND"><tt>libsndfile</tt></a>, <a
+href="http://www.alsa-project.org/">alsa-lib</a> and <a href="http://www.gtk.org/">GLIB</a>. (The latter is required for building the GLIB main loop integration module only.)</p>
  
 <h2><a name="installation">Installation</a></h2>
 
