@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: polyplib-glib-mainloop
 Description: GLIB main loop wrapper for polypaudio
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lpolyp-mainloop-glib
+Libs: -L${libdir} -lpolyp-mainloop-glib-@PA_MAJORMINOR@
 Cflags: -D_REENTRANT -I${includedir}
 Requires: polyplib-mainloop

@@ -20,10 +20,12 @@
 polypincludedir=$(includedir)/polyp
 polypconfdir=$(sysconfdir)/polyp
 
+modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
+
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
-AM_CFLAGS+= -DDLSEARCHDIR=\"$(pkglibdir)\" 
-AM_CFLAGS+="-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/polypaudio.pa\""
-AM_CFLAGS+="-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\""
+AM_CFLAGS+=-DDLSEARCHDIR=\"$(modlibdir)\"
+AM_CFLAGS+=-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/polypaudio.pa\"
+AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 
 AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
@@ -55,7 +57,7 @@ polypinclude_HEADERS=polyplib.h \
 		sample.h \
 		glib-mainloop.h
 
-pkglib_LTLIBRARIES=libiochannel.la \
+modlib_LTLIBRARIES=libiochannel.la \
 		libsocket-server.la \
 		libsocket-client.la \
 		libpstream.la \
@@ -92,15 +94,15 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-sine.la
 
 if !X_DISPLAY_MISSING
-pkglib_LTLIBRARIES+=module-x11-bell.la
+modlib_LTLIBRARIES+=module-x11-bell.la
 endif
 
-lib_LTLIBRARIES=libpolyp.la \
-		libpolyp-error.la \
-		libpolyp-mainloop.la \
-		libpolyp-mainloop-glib.la \
-		libpolyp-mainloop-glib12.la \
-		libpolyp-simple.la
+lib_LTLIBRARIES=libpolyp-@PA_MAJORMINOR@.la \
+		libpolyp-error-@PA_MAJORMINOR@.la \
+		libpolyp-mainloop-@PA_MAJORMINOR@.la \
+		libpolyp-mainloop-glib-@PA_MAJORMINOR@.la \
+		libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la \
+		libpolyp-simple-@PA_MAJORMINOR@.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
@@ -307,7 +309,7 @@ module_x11_bell_la_LDFLAGS = -module -avoid-version
 module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
 endif
 
-libpolyp_la_SOURCES = polyplib.h \
+libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		polyplib-def.h \
 		tagstruct.c tagstruct.h \
 		iochannel.c iochannel.h \
@@ -340,71 +342,71 @@ libpolyp_la_SOURCES = polyplib.h \
 		log.c log.h \
 		gcc-printf.h
 
-libpolyp_la_CFLAGS = $(AM_CFLAGS)
-libpolyp_la_LDFLAGS = -version-info 0:0:0
+libpolyp_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 
-libpolyp_mainloop_la_SOURCES = mainloop-api.h mainloop-api.c \
+libpolyp_mainloop_@PA_MAJORMINOR@_la_SOURCES = mainloop-api.h mainloop-api.c \
 		mainloop.c mainloop.h \
 		mainloop-signal.c mainloop-signal.h
-libpolyp_mainloop_la_CFLAGS = $(AM_CFLAGS)
-libpolyp_mainloop_la_LIBADD = $(AM_LIBADD) libpolyp.la
-libpolyp_mainloop_la_LDFLAGS = -version-info 0:0:0
+libpolyp_mainloop_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_mainloop_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la
+libpolyp_mainloop_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 
-libpolyp_error_la_SOURCES = polyplib-error.c polyplib-error.h
-libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
-libpolyp_error_la_LIBADD = $(AM_LIBADD) libpolyp.la
-libpolyp_error_la_LDFLAGS = -version-info 0:0:0
+libpolyp_error_@PA_MAJORMINOR@_la_SOURCES = polyplib-error.c polyplib-error.h
+libpolyp_error_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_error_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la
+libpolyp_error_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 
-libpolyp_simple_la_SOURCES = polyplib-simple.c polyplib-simple.h 
-libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
-libpolyp_simple_la_LIBADD = $(AM_LIBADD) libpolyp.la libpolyp-mainloop.la
-libpolyp_simple_la_LDFLAGS = -version-info 0:0:0
+libpolyp_simple_@PA_MAJORMINOR@_la_SOURCES = polyplib-simple.c polyplib-simple.h 
+libpolyp_simple_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_simple_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
+libpolyp_simple_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 
-libpolyp_mainloop_glib_la_SOURCES = glib-mainloop.h glib-mainloop.c
-libpolyp_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
-libpolyp_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB20_LIBS)
-libpolyp_mainloop_glib_la_LDFLAGS = -version-info 0:0:0
+libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_SOURCES = glib-mainloop.h glib-mainloop.c
+libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
+libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop-@PA_MAJORMINOR@.la $(GLIB20_LIBS)
+libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 
-libpolyp_mainloop_glib12_la_SOURCES = glib-mainloop.h glib12-mainloop.c
-libpolyp_mainloop_glib12_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
-libpolyp_mainloop_glib12_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB12_LIBS)
-libpolyp_mainloop_glib12_la_LDFLAGS = -version-info 0:0:0
+libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_SOURCES = glib-mainloop.h glib12-mainloop.c
+libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
+libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop-@PA_MAJORMINOR@.la $(GLIB12_LIBS)
+libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 
 pacat_SOURCES = pacat.c
-pacat_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la
+pacat_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 pacat_CFLAGS = $(AM_CFLAGS) 
 
 pactl_SOURCES = pactl.c
-pactl_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la $(LIBSNDFILE_LIBS)
+pactl_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
 pactl_CFLAGS = $(AM_CFLAGS) $(LIBSDNFILE_CFLAGS)
 
 pacat_simple_SOURCES = pacat-simple.c
-pacat_simple_LDADD = $(AM_LDADD) libpolyp.la libpolyp-simple.la libpolyp-error.la
+pacat_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
 
 parec_simple_SOURCES = parec-simple.c
-parec_simple_LDADD = $(AM_LDADD) libpolyp.la libpolyp-simple.la libpolyp-error.la
+parec_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
 
 mainloop_test_SOURCES = mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
-mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop.la libpolyp.la
+mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la libpolyp-@PA_MAJORMINOR@.la
 
 mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
-mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainloop-glib.la
+mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainloop-glib-@PA_MAJORMINOR@.la
 
 mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
-mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12.la
+mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
 
 cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c
 cpulimit_test_CFLAGS = $(AM_CFLAGS)
-cpulimit_test_LDADD = $(AM_LDADD) libpolyp-mainloop.la
+cpulimit_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
 
 cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c log.c
 cpulimit_test2_CFLAGS = $(AM_CFLAGS) -DTEST2
-cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop.la
+cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
 
 
 if BUILD_LIBPOLYPCORE

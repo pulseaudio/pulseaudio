@@ -6,5 +6,5 @@ includedir=${prefix}/include
 Name: polyplib-error
 Description: Error library for the polypaudio sound daemon
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lpolyp-error
+Libs: -L${libdir} -lpolyp-error-@PA_MAJORMINOR@
 Cflags: -D_REENTRANT -I${includedir}

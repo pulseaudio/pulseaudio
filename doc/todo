@@ -15,7 +15,6 @@
 - keep volume in xmms-polyp (and allow volume changing when not playing)
 - lazy sample cache
 - per-channel volume
-- add version number to library names
 - extend pa_usec_t to 64 bit
 - make use of network latency in all apps
 - rename streams/contexts

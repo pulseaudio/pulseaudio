@@ -25,6 +25,7 @@ AC_CONFIG_SRCDIR([polyp/main.c])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall])
 
+AC_SUBST(PA_MAJORMINOR, "$PACKAGE_VERSION")
 AC_SUBST(PACKAGE_URL, [http://0pointer.de/lennart/projects/polypaudio/])
 
 if type -p stow > /dev/null && test -d /usr/local/stow ; then
