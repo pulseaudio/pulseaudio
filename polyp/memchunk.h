@@ -29,11 +29,11 @@ struct pa_memchunk {
     size_t index, length;
 };
 
-void pa_memchunk_make_writable(struct pa_memchunk *c);
+void pa_memchunk_make_writable(struct pa_memchunk *c, struct pa_memblock_stat *s);
 
 struct pa_mcalign;
 
-struct pa_mcalign *pa_mcalign_new(size_t base);
+struct pa_mcalign *pa_mcalign_new(size_t base, struct pa_memblock_stat *s);
 void pa_mcalign_free(struct pa_mcalign *m);
 void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c);
 int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c);

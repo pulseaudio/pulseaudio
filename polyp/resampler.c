@@ -43,9 +43,11 @@ struct pa_resampler {
     pa_convert_to_float32_func_t to_float32_func;
     pa_convert_from_float32_func_t from_float32_func;
     SRC_STATE *src_state;
+
+    struct pa_memblock_stat *memblock_stat;
 };
 
-struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b) {
+struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b, struct pa_memblock_stat *s) {
     struct pa_resampler *r = NULL;
     int err;
     assert(a && b && pa_sample_spec_valid(a) && pa_sample_spec_valid(b));
@@ -82,6 +84,8 @@ struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const stru
     r->from_float32_func = pa_get_convert_from_float32_function(b->format);
 
     assert(r->to_float32_func && r->from_float32_func);
+
+    r->memblock_stat = s;
     
     return r;
     
@@ -134,7 +138,7 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
         eff_ons = ons;
     }
     
-    out->memblock = pa_memblock_new(out->length = (ons*r->o_sz));
+    out->memblock = pa_memblock_new(out->length = (ons*r->o_sz), r->memblock_stat);
     out->index = 0;
     assert(out->memblock);
 

@@ -2,7 +2,6 @@
 
 *** 0.2 ***
 
-- pacat quit() ?
 - several files: copyright and config.h
 - enable searchdir
 
@@ -10,7 +9,6 @@
 - future cancellation
 - make mcalign merge chunks
 - use ref counting in more objects
-- move the global memblock statistics variables to the core
 - unix socket directories include user name
 - native library/protocol:
    module load/unload

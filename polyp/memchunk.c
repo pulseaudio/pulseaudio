@@ -31,14 +31,14 @@
 #include "memchunk.h"
 #include "xmalloc.h"
 
-void pa_memchunk_make_writable(struct pa_memchunk *c) {
+void pa_memchunk_make_writable(struct pa_memchunk *c, struct pa_memblock_stat *s) {
     struct pa_memblock *n;
     assert(c && c->memblock && c->memblock->ref >= 1);
 
     if (c->memblock->ref == 1)
         return;
     
-    n = pa_memblock_new(c->length);
+    n = pa_memblock_new(c->length, s);
     assert(n);
     memcpy(n->data, c->memblock->data+c->index, c->length);
     pa_memblock_unref(c->memblock);
@@ -52,9 +52,10 @@ struct pa_mcalign {
     struct pa_memchunk chunk;
     uint8_t *buffer;
     size_t buffer_fill;
+    struct pa_memblock_stat *memblock_stat;
 };
 
-struct pa_mcalign *pa_mcalign_new(size_t base) {
+struct pa_mcalign *pa_mcalign_new(size_t base, struct pa_memblock_stat *s) {
     struct pa_mcalign *m;
     assert(base);
 
@@ -64,6 +65,7 @@ struct pa_mcalign *pa_mcalign_new(size_t base) {
     m->chunk.length = m->chunk.index = 0;
     m->buffer = NULL;
     m->buffer_fill = 0;
+    m->memblock_stat = s;
     return m;
 }
 
@@ -111,7 +113,7 @@ int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c) {
 
         assert(m->buffer_fill <= m->base);
         if (m->buffer_fill == m->base) {
-            c->memblock = pa_memblock_new_dynamic(m->buffer, m->base);
+            c->memblock = pa_memblock_new_dynamic(m->buffer, m->base, m->memblock_stat);
             assert(c->memblock);
             c->index = 0;
             c->length = m->base;

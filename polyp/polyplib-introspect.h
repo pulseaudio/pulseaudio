@@ -130,8 +130,10 @@ struct pa_operation* pa_context_set_sink_input_volume(struct pa_context *c, uint
 
 /** Memory block statistics */
 struct pa_stat_info {
-    uint32_t memblock_count; /**< Allocated memory blocks */
-    uint32_t memblock_total; /**< Total size of allocated memory blocks */
+    uint32_t memblock_total;           /**< Currently allocated memory blocks */
+    uint32_t memblock_total_size;      /**< Currentl total size of allocated memory blocks */
+    uint32_t memblock_allocated;       /**< Allocated memory blocks during the whole lifetime of the daemon */
+    uint32_t memblock_allocated_size;  /**< Total size of all memory blocks allocated during the whole lifetime of the daemon */
 };
 
 /** Get daemon memory block statistics */

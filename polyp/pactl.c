@@ -88,7 +88,9 @@ static void stat_callback(struct pa_context *c, const struct pa_stat_info *i, vo
         return;
     }
     
-    fprintf(stderr, "Currently in use: %u blocks containing %u bytes total.\n", i->memblock_count, i->memblock_total);
+    fprintf(stderr, "Currently in use: %u blocks containing %u bytes total.\n"
+            "Allocated during whole lifetime: %u blocks containing %u bytes total.\n",
+            i->memblock_total, i->memblock_total_size, i->memblock_allocated, i->memblock_allocated_size);
     drain();
 }
 

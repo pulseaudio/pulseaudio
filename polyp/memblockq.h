@@ -40,7 +40,8 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength,
                                       size_t tlength,
                                       size_t base,
                                       size_t prebuf,
-                                      size_t minreq);
+                                      size_t minreq,
+                                      struct pa_memblock_stat *s);
 void pa_memblockq_free(struct pa_memblockq*bq);
 
 /* Push a new memory chunk into the queue. Optionally specify a value for future cancellation. This is currently not implemented, however! */

@@ -8,7 +8,7 @@
 
 #define MAX_FILE_SIZE (1024*1024)
 
-int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_memchunk *chunk) {
+int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_memchunk *chunk, struct pa_memblock_stat *s) {
     SNDFILE*sf = NULL;
     SF_INFO sfinfo;
     int ret = -1;
@@ -39,7 +39,7 @@ int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_m
         goto finish;
     }
 
-    chunk->memblock = pa_memblock_new(l);
+    chunk->memblock = pa_memblock_new(l, s);
     assert(chunk->memblock);
     chunk->index = 0;
     chunk->length = l;

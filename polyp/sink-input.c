@@ -43,7 +43,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     assert(s && spec);
 
     if (!pa_sample_spec_equal(spec, &s->sample_spec))
-        if (!(resampler = pa_resampler_new(spec, &s->sample_spec)))
+        if (!(resampler = pa_resampler_new(spec, &s->sample_spec, s->core->memblock_stat)))
             return NULL;
     
     i = pa_xmalloc(sizeof(struct pa_sink_input));

@@ -217,7 +217,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
 
     fprintf(stderr, __FILE__": using %u fragments of size %u bytes.\n", periods, u->fragment_size);
 
-    u->silence.memblock = pa_memblock_new(u->silence.length = u->fragment_size);
+    u->silence.memblock = pa_memblock_new(u->silence.length = u->fragment_size, c->memblock_stat);
     assert(u->silence.memblock);
     pa_silence_memblock(u->silence.memblock, &ss);
     u->silence.index = 0;

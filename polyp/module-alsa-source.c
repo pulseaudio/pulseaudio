@@ -89,7 +89,7 @@ static void do_read(struct userdata *u) {
         size_t l;
         
         if (!u->memchunk.memblock) {
-            u->memchunk.memblock = pa_memblock_new(u->memchunk.length = u->fragment_size);
+            u->memchunk.memblock = pa_memblock_new(u->memchunk.length = u->fragment_size, u->source->core->memblock_stat);
             u->memchunk.index = 0;
         }
             

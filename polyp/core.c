@@ -68,6 +68,8 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->subscription_defer_event = NULL;
     c->subscription_event_queue = NULL;
     c->subscriptions = NULL;
+
+    c->memblock_stat = pa_memblock_stat_new();
     
     pa_check_for_sigpipe();
     
@@ -102,6 +104,8 @@ void pa_core_free(struct pa_core *c) {
     
     pa_xfree(c->default_source_name);
     pa_xfree(c->default_sink_name);
+
+    pa_memblock_stat_unref(c->memblock_stat);
     
     pa_xfree(c);    
 };

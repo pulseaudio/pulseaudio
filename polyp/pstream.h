@@ -32,7 +32,7 @@
 
 struct pa_pstream;
 
-struct pa_pstream* pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel *io);
+struct pa_pstream* pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel *io, struct pa_memblock_stat *s);
 void pa_pstream_unref(struct pa_pstream*p);
 struct pa_pstream* pa_pstream_ref(struct pa_pstream*p);
 

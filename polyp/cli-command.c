@@ -210,7 +210,7 @@ static int pa_cli_command_source_outputs(struct pa_core *c, struct pa_tokenizer 
 
 static int pa_cli_command_stat(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
     assert(c && t);
-    pa_strbuf_printf(buf, "Memory blocks allocated: %u, total size: %u bytes.\n", pa_memblock_get_count(), pa_memblock_get_total());
+    pa_strbuf_printf(buf, "Memory blocks currently allocated: %u, size: %u bytes.\nMemory blocks allocated during the whole lifetime: %u, size: %u bytes.\n", c->memblock_stat->total, c->memblock_stat->total_size, c->memblock_stat->allocated, c->memblock_stat->allocated_size);
     return 0;
 }
 
@@ -504,7 +504,7 @@ static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t,
         return -1;
     }
 
-    if (pa_sound_file_load(fname, &ss, &chunk) < 0) {
+    if (pa_sound_file_load(fname, &ss, &chunk, c->memblock_stat) < 0) {
         pa_strbuf_puts(buf, "Failed to load sound file.\n");
         return -1;
     }
@@ -532,7 +532,7 @@ static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, s
         return -1;
     }
 
-    if (pa_sound_file_load(fname, &ss, &chunk) < 0) {
+    if (pa_sound_file_load(fname, &ss, &chunk, c->memblock_stat) < 0) {
         pa_strbuf_puts(buf, "Failed to load sound file.\n");
         return -1;
     }

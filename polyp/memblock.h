@@ -27,25 +27,37 @@
 
 enum pa_memblock_type { PA_MEMBLOCK_FIXED, PA_MEMBLOCK_APPENDED, PA_MEMBLOCK_DYNAMIC, PA_MEMBLOCK_USER };
 
+struct pa_memblock_stat;
+
 struct pa_memblock {
     enum pa_memblock_type type;
     unsigned ref;
     size_t length;
     void *data;
     void (*free_cb)(void *p);
+    struct pa_memblock_stat *stat;
 };
 
-struct pa_memblock *pa_memblock_new(size_t length);
-struct pa_memblock *pa_memblock_new_fixed(void *data, size_t length);
-struct pa_memblock *pa_memblock_new_dynamic(void *data, size_t length);
-struct pa_memblock *pa_memblock_new_user(void *data, size_t length, void (*free_cb)(void *p));
+struct pa_memblock *pa_memblock_new(size_t length, struct pa_memblock_stat*s);
+struct pa_memblock *pa_memblock_new_fixed(void *data, size_t length, struct pa_memblock_stat*s);
+struct pa_memblock *pa_memblock_new_dynamic(void *data, size_t length, struct pa_memblock_stat*s);
+struct pa_memblock *pa_memblock_new_user(void *data, size_t length, void (*free_cb)(void *p), struct pa_memblock_stat*s);
 
 void pa_memblock_unref(struct pa_memblock*b);
 struct pa_memblock* pa_memblock_ref(struct pa_memblock*b);
 
 void pa_memblock_unref_fixed(struct pa_memblock*b);
 
-unsigned pa_memblock_get_count(void);
-unsigned pa_memblock_get_total(void);
+struct pa_memblock_stat {
+    int ref;
+    unsigned total;
+    unsigned total_size;
+    unsigned allocated;
+    unsigned allocated_size;
+};
+
+struct pa_memblock_stat* pa_memblock_stat_new(void);
+void pa_memblock_stat_unref(struct pa_memblock_stat *s);
+struct pa_memblock_stat * pa_memblock_stat_ref(struct pa_memblock_stat *s);
 
 #endif

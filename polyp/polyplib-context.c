@@ -78,6 +78,8 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->subscribe_callback = NULL;
     c->subscribe_userdata = NULL;
 
+    c->memblock_stat = pa_memblock_stat_new();
+    
     pa_check_for_sigpipe();
     return c;
 }
@@ -104,7 +106,9 @@ static void context_free(struct pa_context *c) {
         pa_dynarray_free(c->record_streams, NULL, NULL);
     if (c->playback_streams)
         pa_dynarray_free(c->playback_streams, NULL, NULL);
-        
+
+    pa_memblock_stat_unref(c->memblock_stat);
+    
     pa_xfree(c->name);
     pa_xfree(c);
 }
@@ -280,7 +284,7 @@ static void on_connection(struct pa_socket_client *client, struct pa_iochannel*i
     }
 
     assert(!c->pstream);
-    c->pstream = pa_pstream_new(c->mainloop, io);
+    c->pstream = pa_pstream_new(c->mainloop, io, c->memblock_stat);
     assert(c->pstream);
     
     pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);

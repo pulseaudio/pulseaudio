@@ -131,7 +131,7 @@ static void do_read(struct userdata *u) {
 
     update_usage(u);
 
-    memchunk.memblock = pa_memblock_new(u->in_fragment_size);
+    memchunk.memblock = pa_memblock_new(u->in_fragment_size, u->core->memblock_stat);
     assert(memchunk.memblock);
     if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
         pa_memblock_unref(memchunk.memblock);
@@ -273,7 +273,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
 
     u->out_fragment_size = out_frag_size;
     u->in_fragment_size = in_frag_size;
-    u->silence.memblock = pa_memblock_new(u->silence.length = u->out_fragment_size);
+    u->silence.memblock = pa_memblock_new(u->silence.length = u->out_fragment_size, u->core->memblock_stat);
     assert(u->silence.memblock);
     pa_silence_memblock(u->silence.memblock, &ss);
     u->silence.index = 0;

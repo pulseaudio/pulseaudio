@@ -45,9 +45,10 @@ struct pa_memblockq {
     int measure_delay;
     uint32_t delay;
     struct pa_mcalign *mcalign;
+    struct pa_memblock_stat *memblock_stat;
 };
 
-struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t base, size_t prebuf, size_t minreq) {
+struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t base, size_t prebuf, size_t minreq, struct pa_memblock_stat *s) {
     struct pa_memblockq* bq;
     assert(maxlength && base && maxlength);
     
@@ -83,6 +84,8 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
     bq->delay = 0;
 
     bq->mcalign = NULL;
+
+    bq->memblock_stat = s;
     
     return bq;
 }
@@ -306,7 +309,7 @@ void pa_memblockq_push_align(struct pa_memblockq* bq, const struct pa_memchunk *
     }
 
     if (!bq->mcalign) {
-        bq->mcalign = pa_mcalign_new(bq->base);
+        bq->mcalign = pa_mcalign_new(bq->base, bq->memblock_stat);
         assert(bq->mcalign);
     }
     

@@ -179,11 +179,11 @@ int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result) 
             volume = pa_volume_multiply(s->volume, info[0].volume);
         
         if (volume != PA_VOLUME_NORM) {
-            pa_memchunk_make_writable(result);
+            pa_memchunk_make_writable(result, s->core->memblock_stat);
             pa_volume_memchunk(result, &s->sample_spec, volume);
         }
     } else {
-        result->memblock = pa_memblock_new(length);
+        result->memblock = pa_memblock_new(length, s->core->memblock_stat);
         assert(result->memblock);
 
         result->length = l = pa_mix(info, n, result->memblock->data, length, &s->sample_spec, s->volume);

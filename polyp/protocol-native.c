@@ -229,7 +229,7 @@ static struct record_stream* record_stream_new(struct connection *c, struct pa_s
     s->source_output->owner = c->protocol->module;
     s->source_output->client = c->client;
 
-    s->memblockq = pa_memblockq_new(maxlength, 0, base = pa_frame_size(ss), 0, 0);
+    s->memblockq = pa_memblockq_new(maxlength, 0, base = pa_frame_size(ss), 0, 0, c->protocol->core->memblock_stat);
     assert(s->memblockq);
 
     s->fragment_size = (fragment_size/base)*base;
@@ -274,7 +274,7 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     s->sink_input->owner = c->protocol->module;
     s->sink_input->client = c->client;
     
-    s->memblockq = pa_memblockq_new(maxlength, tlength, pa_frame_size(ss), prebuf, minreq);
+    s->memblockq = pa_memblockq_new(maxlength, tlength, pa_frame_size(ss), prebuf, minreq, c->protocol->core->memblock_stat);
     assert(s->memblockq);
 
     s->requested_bytes = 0;
@@ -780,8 +780,10 @@ static void command_stat(struct pa_pdispatch *pd, uint32_t command, uint32_t tag
     assert(reply);
     pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
     pa_tagstruct_putu32(reply, tag);
-    pa_tagstruct_putu32(reply, pa_memblock_get_count());
-    pa_tagstruct_putu32(reply, pa_memblock_get_total());
+    pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->total);
+    pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->total_size);
+    pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->allocated);
+    pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->allocated_size);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1313,7 +1315,7 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, in
                 u->length = 0;
                 fprintf(stderr, "COPY\n");
             } else {
-                u->memchunk.memblock = pa_memblock_new(u->length);
+                u->memchunk.memblock = pa_memblock_new(u->length, c->protocol->core->memblock_stat);
                 u->memchunk.index = u->memchunk.length = 0;
             }
         }
@@ -1372,7 +1374,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     c->client->userdata = c;
     c->client->owner = p->module;
     
-    c->pstream = pa_pstream_new(p->core->mainloop, io);
+    c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->memblock_stat);
     assert(c->pstream);
 
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);

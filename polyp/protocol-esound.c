@@ -291,7 +291,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     assert(!c->input_memblockq);
 
     l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS); 
-    c->input_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), l/2, l/PLAYBACK_BUFFER_FRAGMENTS);
+    c->input_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), l/2, l/PLAYBACK_BUFFER_FRAGMENTS, c->protocol->core->memblock_stat);
     assert(c->input_memblockq);
     pa_iochannel_socket_set_rcvbuf(c->io, l/PLAYBACK_BUFFER_FRAGMENTS*2);
     c->playback.fragment_size = l/10;
@@ -355,7 +355,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     assert(!c->output_memblockq);
 
     l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS); 
-    c->output_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), 0, 0);
+    c->output_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), 0, 0, c->protocol->core->memblock_stat);
     assert(c->output_memblockq);
     pa_iochannel_socket_set_sndbuf(c->io, l/RECORD_BUFFER_FRAGMENTS*2);
     
@@ -574,7 +574,7 @@ static int esd_proto_sample_cache(struct connection *c, esd_proto_t request, con
     name[sizeof(name)-1] = 0;
     
     assert(!c->scache_memchunk.memblock);
-    c->scache_memchunk.memblock = pa_memblock_new(sc_length);
+    c->scache_memchunk.memblock = pa_memblock_new(sc_length, c->protocol->core->memblock_stat);
     c->scache_memchunk.index = 0;
     c->scache_memchunk.length = sc_length;
     c->scache_sample_spec = ss;
@@ -778,7 +778,7 @@ static int do_read(struct connection *c) {
             }
         
         if (!c->playback.current_memblock) {
-            c->playback.current_memblock = pa_memblock_new(c->playback.fragment_size*2);
+            c->playback.current_memblock = pa_memblock_new(c->playback.fragment_size*2, c->protocol->core->memblock_stat);
             assert(c->playback.current_memblock && c->playback.current_memblock->length >= l);
             c->playback.memblock_index = 0;
         }

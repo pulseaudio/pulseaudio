@@ -73,6 +73,8 @@ struct pa_context {
 
     void (*subscribe_callback)(struct pa_context *c, enum pa_subscription_event_type t, uint32_t index, void *userdata);
     void *subscribe_userdata;
+
+    struct pa_memblock_stat *memblock_stat;
 };
 
 struct pa_stream {

@@ -26,6 +26,7 @@
 #include "hashmap.h"
 #include "mainloop-api.h"
 #include "sample.h"
+#include "memblock.h"
 
 struct pa_core {
     struct pa_mainloop_api *mainloop;
@@ -43,6 +44,8 @@ struct pa_core {
     struct pa_defer_event *subscription_defer_event;
     struct pa_queue *subscription_event_queue;
     struct pa_subscription *subscriptions;
+
+    struct pa_memblock_stat *memblock_stat;
 };
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m);

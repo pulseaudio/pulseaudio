@@ -91,6 +91,8 @@ struct pa_pstream {
 
     void (*drain_callback)(struct pa_pstream *p, void *userdata);
     void *drain_userdata;
+
+    struct pa_memblock_stat *memblock_stat;
 };
 
 static void do_write(struct pa_pstream *p);
@@ -129,7 +131,7 @@ static void defer_callback(struct pa_mainloop_api *m, struct pa_defer_event *e, 
     do_something(p);
 }
 
-struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel *io) {
+struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel *io, struct pa_memblock_stat *s) {
     struct pa_pstream *p;
     assert(io);
 
@@ -164,6 +166,8 @@ struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel
 
     p->drain_callback = NULL;
     p->drain_userdata = NULL;
+
+    p->memblock_stat = s;
 
     return p;
 }
@@ -350,7 +354,7 @@ static void do_read(struct pa_pstream *p) {
             p->read.data = p->read.packet->data;
         } else {
             /* Frame is a memblock frame */
-            p->read.memblock = pa_memblock_new(ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]));
+            p->read.memblock = pa_memblock_new(ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]), p->memblock_stat);
             assert(p->read.memblock);
             p->read.data = p->read.memblock->data;
         }

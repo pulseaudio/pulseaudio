@@ -31,45 +31,63 @@
 #include "memblock.h"
 #include "xmalloc.h"
 
-static unsigned memblock_count = 0, memblock_total = 0;
+static void stat_add(struct pa_memblock*m, struct pa_memblock_stat *s) {
+    assert(m);
 
-struct pa_memblock *pa_memblock_new(size_t length) {
+    m->stat = pa_memblock_stat_ref(s);
+    s->total++;
+    s->allocated++;
+    s->total_size += m->length;
+    s->allocated_size += m->length;
+}
+
+static void stat_remove(struct pa_memblock *m) {
+    assert(m);
+
+    if (!m->stat)
+        return;
+
+    m->stat->total--;
+    m->stat->total_size -= m->length;
+    
+    pa_memblock_stat_unref(m->stat);
+    m->stat = NULL;
+}
+
+struct pa_memblock *pa_memblock_new(size_t length, struct pa_memblock_stat*s) {
     struct pa_memblock *b = pa_xmalloc(sizeof(struct pa_memblock)+length);
     b->type = PA_MEMBLOCK_APPENDED;
     b->ref = 1;
     b->length = length;
     b->data = b+1;
     b->free_cb = NULL;
-    memblock_count++;
-    memblock_total += length;
+    stat_add(b, s);
     return b;
 }
 
-struct pa_memblock *pa_memblock_new_fixed(void *d, size_t length) {
+struct pa_memblock *pa_memblock_new_fixed(void *d, size_t length, struct pa_memblock_stat*s) {
     struct pa_memblock *b = pa_xmalloc(sizeof(struct pa_memblock));
     b->type = PA_MEMBLOCK_FIXED;
     b->ref = 1;
     b->length = length;
     b->data = d;
     b->free_cb = NULL;
-    memblock_count++;
-    memblock_total += length;
+    stat_add(b, s);
     return b;
 }
 
-struct pa_memblock *pa_memblock_new_dynamic(void *d, size_t length) {
+struct pa_memblock *pa_memblock_new_dynamic(void *d, size_t length, struct pa_memblock_stat*s) {
     struct pa_memblock *b = pa_xmalloc(sizeof(struct pa_memblock));
     b->type = PA_MEMBLOCK_DYNAMIC;
     b->ref = 1;
     b->length = length;
     b->data = d;
     b->free_cb = NULL;
-    memblock_count++;
-    memblock_total += length;
+    stat_add(b, s);
     return b;
 }
 
-struct pa_memblock *pa_memblock_new_user(void *d, size_t length, void (*free_cb)(void *p)) {
+struct pa_memblock *pa_memblock_new_user(void *d, size_t length, void (*free_cb)(void *p), struct pa_memblock_stat*s) {
     struct pa_memblock *b;
     assert(d && length && free_cb);
     b = pa_xmalloc(sizeof(struct pa_memblock));
@@ -78,8 +96,7 @@ struct pa_memblock *pa_memblock_new_user(void *d, size_t length, void (*free_cb)
     b->length = length;
     b->data = d;
     b->free_cb = free_cb;
-    memblock_count++;
-    memblock_total += length;
+    stat_add(b, s);
     return b;
 }
 
@@ -93,8 +110,7 @@ void pa_memblock_unref(struct pa_memblock*b) {
     assert(b && b->ref >= 1);
 
     if ((--(b->ref)) == 0) {
-        memblock_count--;
-        memblock_total -= b->length;
+        stat_remove(b);
 
         if (b->type == PA_MEMBLOCK_USER) {
             assert(b->free_cb);
@@ -118,10 +134,27 @@ void pa_memblock_unref_fixed(struct pa_memblock *b) {
     }
 }
 
-unsigned pa_memblock_get_count(void) {
-    return memblock_count;
+struct pa_memblock_stat* pa_memblock_stat_new(void) {
+    struct pa_memblock_stat *s;
+
+    s = pa_xmalloc(sizeof(struct pa_memblock_stat));
+    s->ref = 1;
+    s->total = s->total_size = s->allocated = s->allocated_size = 0;
+
+    return s;
 }
 
-unsigned pa_memblock_get_total(void) {
-    return memblock_total;
+void pa_memblock_stat_unref(struct pa_memblock_stat *s) {
+    assert(s && s->ref >= 1);
+
+    if (!(--(s->ref))) {
+        assert(!s->total);
+        pa_xfree(s);
+    }
+}
+
+struct pa_memblock_stat * pa_memblock_stat_ref(struct pa_memblock_stat *s) {
+    assert(s);
+    s->ref++;
+    return s;
 }

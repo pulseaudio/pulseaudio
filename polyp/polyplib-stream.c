@@ -272,10 +272,10 @@ void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void 
     assert(s && s->context && data && length && s->state == PA_STREAM_READY && s->ref >= 1);
 
     if (free_cb) {
-        chunk.memblock = pa_memblock_new_user((void*) data, length, free_cb);
+        chunk.memblock = pa_memblock_new_user((void*) data, length, free_cb, s->context->memblock_stat);
         assert(chunk.memblock && chunk.memblock->data);
     } else {
-        chunk.memblock = pa_memblock_new(length);
+        chunk.memblock = pa_memblock_new(length, s->context->memblock_stat);
         assert(chunk.memblock && chunk.memblock->data);
         memcpy(chunk.memblock->data, data, length);
     }
