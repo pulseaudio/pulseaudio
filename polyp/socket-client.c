@@ -23,6 +23,8 @@
 #include <config.h>
 #endif
 
+/* #undef HAVE_LIBASYNCNS */
+
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -33,6 +35,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#ifdef HAVE_LIBASYNCNS
+#include <asyncns.h>
+#endif
 
 #include "socket-client.h"
 #include "socket-util.h"
@@ -50,6 +55,11 @@ struct pa_socket_client {
     void (*callback)(struct pa_socket_client*c, struct pa_iochannel *io, void *userdata);
     void *userdata;
     int local;
+#ifdef HAVE_LIBASYNCNS
+    asyncns_t *asyncns;
+    asyncns_query_t * asyncns_query;
+    struct pa_io_event *asyncns_io_event;
+#endif
 };
 
 static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
@@ -65,6 +75,13 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
     c->callback = NULL;
     c->userdata = NULL;
     c->local = 0;
+
+#ifdef HAVE_LIBASYNCNS
+    c->asyncns = NULL;
+    c->asyncns_io_event = NULL;
+    c->asyncns_query = NULL;
+#endif
+
     return c;
 }
 
@@ -75,6 +92,9 @@ static void do_call(struct pa_socket_client *c) {
     assert(c && c->callback);
 
     pa_socket_client_ref(c);
+
+    if (c->fd < 0)
+        goto finish;
     
     lerror = sizeof(error);
     if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, &error, &lerror) < 0) {
@@ -97,7 +117,7 @@ static void do_call(struct pa_socket_client *c) {
     assert(io);
     
 finish:
-    if (!io)
+    if (!io && c->fd >= 0)
         close(c->fd);
     c->fd = -1;
     
@@ -169,12 +189,11 @@ struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, co
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
 
-struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m, const struct sockaddr *sa, size_t salen) {
-    struct pa_socket_client *c;
-    assert(m && sa);
-    c = pa_socket_client_new(m);
+static int sockaddr_prepare(struct pa_socket_client *c, const struct sockaddr *sa, size_t salen) {
     assert(c);
-
+    assert(sa);
+    assert(salen);
+    
     switch (sa->sa_family) {
         case AF_UNIX:
             c->local = 1;
@@ -194,7 +213,7 @@ struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m
     
     if ((c->fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0) {
         pa_log(__FILE__": socket(): %s\n", strerror(errno));
-        goto fail;
+        return -1;
     }
 
     pa_fd_set_cloexec(c->fd, 1);
@@ -204,6 +223,18 @@ struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m
         pa_socket_low_delay(c->fd);
 
     if (do_connect(c, sa, salen) < 0)
+        return -1;
+
+    return 0;
+}
+
+struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m, const struct sockaddr *sa, size_t salen) {
+    struct pa_socket_client *c;
+    assert(m && sa);
+    c = pa_socket_client_new(m);
+    assert(c);
+
+    if (sockaddr_prepare(c, sa, salen) < 0)
         goto fail;
     
     return c;
@@ -222,6 +253,16 @@ void socket_client_free(struct pa_socket_client *c) {
         c->mainloop->defer_free(c->defer_event);
     if (c->fd >= 0)
         close(c->fd);
+
+#ifdef HAVE_LIBASYNCNS
+    if (c->asyncns_query)
+        asyncns_cancel(c->asyncns, c->asyncns_query);
+    if (c->asyncns)
+        asyncns_free(c->asyncns);
+    if (c->asyncns_io_event)
+        c->mainloop->io_free(c->asyncns_io_event);
+#endif
+    
     pa_xfree(c);
 }
 
@@ -255,6 +296,40 @@ struct pa_socket_client* pa_socket_client_new_ipv6(struct pa_mainloop_api *m, ui
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
 
+#ifdef HAVE_LIBASYNCNS
+
+static void asyncns_cb(struct pa_mainloop_api*m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
+    struct pa_socket_client *c = userdata;
+    struct addrinfo *res = NULL;
+    int ret;
+    assert(m && c && c->asyncns_io_event == e && fd >= 0);
+
+    if (asyncns_wait(c->asyncns, 0) < 0)
+        goto finish;
+
+    if (!asyncns_isdone(c->asyncns, c->asyncns_query))
+        return;
+
+    ret = asyncns_getaddrinfo_done(c->asyncns, c->asyncns_query, &res);
+    c->asyncns_query = NULL;
+
+    if (ret != 0 || !res)
+        goto finish;
+    
+    if (res->ai_addr)
+        sockaddr_prepare(c, res->ai_addr, res->ai_addrlen);
+    
+    asyncns_freeaddrinfo(res);
+
+finish:
+    
+    m->io_free(c->asyncns_io_event);
+    c->asyncns_io_event = NULL;
+    do_call(c);
+}
+
+#endif
+
 struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, const char*name, uint16_t default_port) {
     struct pa_socket_client *c = NULL;
     struct pa_parsed_address a;
@@ -274,34 +349,45 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
         case PA_PARSED_ADDRESS_TCP4:  /* Fallthrough */
         case PA_PARSED_ADDRESS_TCP6:  /* Fallthrough */
         case PA_PARSED_ADDRESS_TCP_AUTO:{
-            int ret;
-            struct addrinfo hints, *res;
+
+            struct addrinfo hints;
+            char port[12];
+
+            snprintf(port, sizeof(port), "%u", (unsigned) a.port);
 
             memset(&hints, 0, sizeof(hints));
-            hints.ai_family = a.type == PA_PARSED_ADDRESS_TCP4 ? AF_INET : (a.type == PA_PARSED_ADDRESS_TCP6 ? AF_INET6 : AF_UNSPEC);
+            hints.ai_family = a.type == PA_PARSED_ADDRESS_TCP4 ? PF_INET : (a.type == PA_PARSED_ADDRESS_TCP6 ? PF_INET6 : PF_UNSPEC);
+            hints.ai_socktype = SOCK_STREAM;
             
-            ret = getaddrinfo(a.path_or_host, NULL, &hints, &res);
-
-            if (ret < 0 || !res || !res->ai_addr)
-                goto finish;
-
-            if (res->ai_family == AF_INET) {
-                if (res->ai_addrlen != sizeof(struct sockaddr_in))
-                    goto finish;
-                assert(res->ai_addr->sa_family == res->ai_family);
+#ifdef HAVE_LIBASYNCNS
+            {
+                asyncns_t *asyncns;
                 
-                ((struct sockaddr_in*) res->ai_addr)->sin_port = htons(a.port);
-            } else if (res->ai_family == AF_INET6) {
-                if (res->ai_addrlen != sizeof(struct sockaddr_in6))
+                if (!(asyncns = asyncns_new(1)))
                     goto finish;
-                assert(res->ai_addr->sa_family == res->ai_family);
-                
-                ((struct sockaddr_in6*) res->ai_addr)->sin6_port = htons(a.port);
-            } else
-                goto finish;
 
-            c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen);
-            freeaddrinfo(res);
+                c = pa_socket_client_new(m);
+                c->asyncns = asyncns;
+                c->asyncns_io_event = m->io_new(m, asyncns_fd(c->asyncns), PA_IO_EVENT_INPUT, asyncns_cb, c);
+                c->asyncns_query = asyncns_getaddrinfo(c->asyncns, a.path_or_host, port, &hints);
+                assert(c->asyncns_query);
+            }
+#else
+            {
+                int ret;
+                struct addrinfo *res = NULL;
+
+                ret = getaddrinfo(a.path_or_host, port, &hints, &res);
+                
+                if (ret < 0 || !res)
+                    goto finish;
+
+                if (res->ai_addr)
+                    c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen);
+                
+                freeaddrinfo(res);
+            }
+#endif            
         }
     }
 

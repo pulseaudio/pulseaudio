@@ -470,6 +470,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 
 libpolyp_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
+libpolyp_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD)
 
 libpolyp_mainloop_@PA_MAJORMINOR@_la_SOURCES = mainloop-api.h mainloop-api.c \
 		mainloop.c mainloop.h \
@@ -579,6 +580,13 @@ libpolyp_@PA_MAJORMINOR@_la_CFLAGS += $(X_CFLAGS)
 libpolyp_@PA_MAJORMINOR@_la_LDFLAGS += $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
 libpolyp_@PA_MAJORMINOR@_la_SOURCES += x11prop.c x11prop.h client-conf-x11.c client-conf-x11.h
 
+endif
+
+### libasyncns stuff
+
+if HAVE_LIBASYNCNS
+libpolyp_@PA_MAJORMINOR@_la_CFLAGS += $(LIBASYNCNS_CFLAGS)
+libpolyp_@PA_MAJORMINOR@_la_LIBADD += $(LIBASYNCNS_LIBS)
 endif
 
 ### ALSA modules
