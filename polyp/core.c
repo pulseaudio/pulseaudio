@@ -62,6 +62,7 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->default_sample_spec.channels = 2;
 
     c->auto_unload_event = NULL;
+    c->defer_unload_event = NULL;
 
     c->subscription_defer_event = NULL;
     c->subscription_event_queue = NULL;

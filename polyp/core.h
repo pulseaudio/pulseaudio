@@ -39,6 +39,7 @@ struct pa_core {
 
     struct pa_sample_spec default_sample_spec;
     struct pa_time_event *auto_unload_event;
+    struct pa_defer_event *defer_unload_event;
 
     struct pa_defer_event *subscription_defer_event;
     struct pa_queue *subscription_event_queue;

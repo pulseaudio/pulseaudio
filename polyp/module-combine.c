@@ -38,7 +38,7 @@
 #include "namereg.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Makes one playback device out of many")
+PA_MODULE_DESCRIPTION("Combine multiple sinks to one")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slave=<slave sinks>")
 
@@ -85,7 +85,7 @@ static void adjust_rates(struct userdata *u) {
     assert(u && u->sink);
 
     for (o = u->outputs; o; o = o->next) {
-        o->sink_latency = pa_sink_get_latency(o->sink_input->sink);
+        o->sink_latency = o->sink_input->sink ? pa_sink_get_latency(o->sink_input->sink) : 0;
 
         if (o->sink_latency > max)
             max = o->sink_latency;
@@ -165,6 +165,7 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
 static void sink_input_kill_cb(struct pa_sink_input *i) {
     struct output *o = i->userdata;
     assert(i && o && o->sink_input);
+    pa_module_unload_request(o->userdata->module);
     clear_up(o->userdata);
 }
 
@@ -211,8 +212,10 @@ static struct output *output_new(struct userdata *u, struct pa_sink *sink) {
 fail:
 
     if (o) {
-        if (o->sink_input)
-            pa_sink_input_free(o->sink_input);
+        if (o->sink_input) {
+            pa_sink_input_disconnect(o->sink_input);
+            pa_sink_input_unref(o->sink_input);
+        }
 
         if (o->memblockq)
             pa_memblockq_free(o->memblockq);
@@ -228,7 +231,8 @@ static void output_free(struct output *o) {
     PA_LLIST_REMOVE(struct output, o->userdata->outputs, o);
     o->userdata->n_outputs--;
     pa_memblockq_free(o->memblockq);
-    pa_sink_input_free(o->sink_input);
+    pa_sink_input_disconnect(o->sink_input);
+    pa_sink_input_unref(o->sink_input);
     pa_xfree(o);
 }
 
@@ -247,7 +251,8 @@ static void clear_up(struct userdata *u) {
     u->master = NULL;
     
     if (u->sink) {
-        pa_sink_free(u->sink);
+        pa_sink_disconnect(u->sink);
+        pa_sink_unref(u->sink);
         u->sink = NULL;
     }
 }

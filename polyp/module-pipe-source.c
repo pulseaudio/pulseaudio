@@ -195,7 +195,8 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
     if (u->chunk.memblock)
         pa_memblock_unref(u->chunk.memblock);
         
-    pa_source_free(u->source);
+    pa_source_disconnect(u->source);
+    pa_source_unref(u->source);
     pa_iochannel_free(u->io);
 
     assert(u->filename);

@@ -33,7 +33,15 @@ struct pa_sink;
 
 #define PA_MAX_INPUTS_PER_SINK 6
 
+enum pa_sink_state {
+    PA_SINK_RUNNING,
+    PA_SINK_DISCONNECTED
+};
+
 struct pa_sink {
+    int ref;
+    enum pa_sink_state state;
+    
     uint32_t index;
 
     char *name, *description;
@@ -52,7 +60,10 @@ struct pa_sink {
 };
 
 struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec);
-void pa_sink_free(struct pa_sink* s);
+void pa_sink_disconnect(struct pa_sink* s);
+void pa_sink_unref(struct pa_sink*s);
+struct pa_sink* pa_sink_ref(struct pa_sink *s);
+
 
 int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result);
 void pa_sink_render_full(struct pa_sink *s, size_t length, struct pa_memchunk *result);

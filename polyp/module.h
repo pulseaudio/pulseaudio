@@ -43,16 +43,18 @@ struct pa_module {
     int n_used;
     int auto_unload;
     time_t last_used_time;
+
+    int unload_requested;
 };
 
 struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char*argument);
-void pa_module_unload(struct pa_core *c, struct pa_module *m);
-void pa_module_unload_by_index(struct pa_core *c, uint32_t index);
+/* void pa_module_unload(struct pa_core *c, struct pa_module *m); */
+/* void pa_module_unload_by_index(struct pa_core *c, uint32_t index); */
 
 void pa_module_unload_all(struct pa_core *c);
 void pa_module_unload_unused(struct pa_core *c);
 
-void pa_module_unload_request(struct pa_core *c, struct pa_module *m);
+void pa_module_unload_request(struct pa_module *m);
 
 void pa_module_set_used(struct pa_module*m, int used);
 

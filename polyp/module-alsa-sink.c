@@ -259,8 +259,10 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
     if (!(u = m->userdata))
         return;
     
-    if (u->sink)
-        pa_sink_free(u->sink);
+    if (u->sink) {
+        pa_sink_disconnect(u->sink);
+        pa_sink_unref(u->sink);
+    }
     
     if (u->io_events)
         pa_free_io_events(c->mainloop, u->io_events, u->n_io_events);

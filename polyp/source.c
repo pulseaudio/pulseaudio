@@ -48,6 +48,9 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
         return NULL;
     }
 
+    s->ref = 1;
+    s->state = PA_SOURCE_RUNNING;
+    
     s->name = pa_xstrdup(name);
     s->description = NULL;
 
@@ -71,9 +74,9 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
     return s;
 }
 
-void pa_source_free(struct pa_source *s) {
+void pa_source_disconnect(struct pa_source *s) {
     struct pa_source_output *o, *j = NULL;
-    assert(s);
+    assert(s && s->state == PA_SOURCE_RUNNING);
 
     pa_namereg_unregister(s->core, s->name);
     
@@ -82,21 +85,45 @@ void pa_source_free(struct pa_source *s) {
         pa_source_output_kill(o);
         j = o;
     }
-    pa_idxset_free(s->outputs, NULL, NULL);
-    
-    pa_idxset_remove_by_data(s->core->sources, s, NULL);
 
+    pa_idxset_remove_by_data(s->core->sources, s, NULL);
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
+
+    s->notify = NULL;
+    
+    s->state = PA_SOURCE_DISCONNECTED;
+}
+
+static void source_free(struct pa_source *s) {
+    assert(s && !s->ref);
+    
+    if (s->state != PA_SOURCE_DISCONNECTED)
+        pa_source_disconnect(s);
+    
     pa_log(__FILE__": freed %u \"%s\"\n", s->index, s->name);
 
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
-    
+    pa_idxset_free(s->outputs, NULL, NULL);
+
     pa_xfree(s->name);
     pa_xfree(s->description);
     pa_xfree(s);
 }
 
+void pa_source_unref(struct pa_source *s) {
+    assert(s && s->ref >= 1);
+
+    if (!(--s->ref))
+        source_free(s);
+}
+
+struct pa_source* pa_source_ref(struct pa_source *s) {
+    assert(s && s->ref >= 1);
+    s->ref++;
+    return s;
+}
+
 void pa_source_notify(struct pa_source*s) {
-    assert(s);
+    assert(s && s->ref >= 1);
 
     if (s->notify)
         s->notify(s);
@@ -112,9 +139,11 @@ static int do_post(void *p, uint32_t index, int *del, void*userdata) {
 }
 
 void pa_source_post(struct pa_source*s, struct pa_memchunk *chunk) {
-    assert(s && chunk);
+    assert(s && s->ref >= 1 && chunk);
 
+    pa_source_ref(s);
     pa_idxset_foreach(s->outputs, do_post, chunk);
+    pa_source_unref(s);
 }
 
 void pa_source_set_owner(struct pa_source *s, struct pa_module *m) {

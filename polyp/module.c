@@ -85,6 +85,7 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     m->core = c;
     m->n_used = -1;
     m->auto_unload = 0;
+    m->unload_requested = 0;
 
     assert(m->init);
     if (m->init(c, m) < 0) {
@@ -183,9 +184,15 @@ void pa_module_unload_all(struct pa_core *c) {
     pa_idxset_free(c->modules, free_callback, NULL);
     c->modules = NULL;
 
-    if (c->auto_unload_event)
+    if (c->auto_unload_event) {
         c->mainloop->time_free(c->auto_unload_event);
-    c->auto_unload_event = NULL;
+        c->auto_unload_event = NULL;
+    }
+
+    if (c->defer_unload_event) {
+        c->mainloop->defer_free(c->defer_unload_event);
+        c->defer_unload_event = NULL;
+    }
 }
 
 static int unused_callback(void *p, uint32_t index, int *del, void *userdata) {
@@ -212,26 +219,38 @@ void pa_module_unload_unused(struct pa_core *c) {
     pa_idxset_foreach(c->modules, unused_callback, &now);
 }
 
-struct once_info {
-    struct pa_core *core;
-    uint32_t index;
-};
-    
-static void module_unload_once_callback(struct pa_mainloop_api *m, void *userdata) {
-    struct once_info *i = userdata;
-    assert(i);
-    pa_module_unload_by_index(i->core, i->index);
-    pa_xfree(i);
+static int unload_callback(void *p, uint32_t index, int *del, void *userdata) {
+    struct pa_module *m = p;
+    assert(m);
+
+    if (m->unload_requested) {
+        pa_module_free(m);
+        *del = 1;
+    }
+
+    return 0;
 }
 
-void pa_module_unload_request(struct pa_core *c, struct pa_module *m) {
-    struct once_info *i;
-    assert(c && m);
+static void defer_cb(struct pa_mainloop_api*api, struct pa_defer_event *e, void *userdata) {
+    struct pa_core *core = userdata;
+    api->defer_enable(e, 0);
 
-    i = pa_xmalloc(sizeof(struct once_info));
-    i->core = c;
-    i->index = m->index;
-    pa_mainloop_api_once(c->mainloop, module_unload_once_callback, i);
+    if (!core->modules)
+        return;
+
+    pa_idxset_foreach(core->modules, unload_callback, NULL);
+
+}
+
+void pa_module_unload_request(struct pa_module *m) {
+    assert(m);
+
+    m->unload_requested = 1;
+
+    if (!m->core->defer_unload_event)
+        m->core->defer_unload_event = m->core->mainloop->defer_new(m->core->mainloop, defer_cb, m->core);
+
+    m->core->mainloop->defer_enable(m->core->defer_unload_event, 1);
 }
 
 void pa_module_set_used(struct pa_module*m, int used) {

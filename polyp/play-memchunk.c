@@ -37,9 +37,12 @@ static void sink_input_kill(struct pa_sink_input *i) {
     assert(i && i->userdata);
     c = i->userdata;
 
+    pa_sink_input_disconnect(i);
+    pa_sink_input_unref(i);
+
     pa_memblock_unref(c->memblock);
     pa_xfree(c);
-    pa_sink_input_free(i);
+    
 }
 
 static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {

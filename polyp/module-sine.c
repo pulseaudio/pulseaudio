@@ -41,6 +41,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 
 struct userdata {
     struct pa_core *core;
+    struct pa_module *module;
     struct pa_sink_input *sink_input;
     struct pa_memblock *memblock;
     size_t peek_index;
@@ -81,8 +82,11 @@ static void sink_input_kill(struct pa_sink_input *i) {
     assert(i && i->userdata);
     u = i->userdata;
 
-    pa_sink_input_free(u->sink_input);
+    pa_sink_input_disconnect(u->sink_input);
+    pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
+
+    pa_module_unload_request(u->module);
 }
 
 static void calc_sine(float *f, size_t l, float freq) {
@@ -110,6 +114,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     
     m->userdata = u = pa_xmalloc(sizeof(struct userdata));
     u->core = c;
+    u->module = m;
     u->sink_input = NULL;
     u->memblock = NULL;
 
@@ -163,8 +168,11 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
     if (!u)
         return;
 
-    if (u->sink_input)
-        pa_sink_input_free(u->sink_input);
+    if (u->sink_input) {
+        pa_sink_input_disconnect(u->sink_input);
+        pa_sink_input_unref(u->sink_input);
+    }
+    
     if (u->memblock)
         pa_memblock_unref(u->memblock);
     pa_xfree(u);

@@ -294,7 +294,7 @@ static int pa_cli_command_unload(struct pa_core *c, struct pa_tokenizer *t, stru
         return -1;
     }
 
-    pa_module_unload_request(c, m);
+    pa_module_unload_request(m);
     return 0;
 }
 

@@ -167,10 +167,16 @@ static void connection_free(struct connection *c) {
     
     pa_client_free(c->client);
 
-    if (c->sink_input)
-        pa_sink_input_free(c->sink_input);
-    if (c->source_output)
-        pa_source_output_free(c->source_output);
+    if (c->sink_input) {
+        pa_sink_input_disconnect(c->sink_input);
+        pa_sink_input_unref(c->sink_input);
+    }
+    
+    if (c->source_output) {
+        pa_source_output_disconnect(c->source_output);
+        pa_source_output_unref(c->source_output);
+    }
+    
     if (c->input_memblockq)
         pa_memblockq_free(c->input_memblockq);
     if (c->output_memblockq)

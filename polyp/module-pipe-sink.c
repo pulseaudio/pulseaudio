@@ -215,7 +215,8 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
         
-    pa_sink_free(u->sink);
+    pa_sink_disconnect(u->sink);
+    pa_sink_unref(u->sink);
     pa_iochannel_free(u->io);
     u->core->mainloop->defer_free(u->defer_event);
 

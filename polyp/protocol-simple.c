@@ -80,10 +80,14 @@ static void connection_free(struct connection *c) {
 
     if (c->playback.current_memblock)
         pa_memblock_unref(c->playback.current_memblock);
-    if (c->sink_input)
-        pa_sink_input_free(c->sink_input);
-    if (c->source_output)
-        pa_source_output_free(c->source_output);
+    if (c->sink_input) {
+        pa_sink_input_disconnect(c->sink_input);
+        pa_sink_input_unref(c->sink_input);
+    }
+    if (c->source_output) {
+        pa_source_output_disconnect(c->source_output);
+        pa_source_output_unref(c->source_output);
+    }
     if (c->client)
         pa_client_free(c->client);
     if (c->io)

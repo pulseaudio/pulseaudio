@@ -255,7 +255,8 @@ static void record_stream_free(struct record_stream* r) {
     assert(r && r->connection);
 
     pa_idxset_remove_by_data(r->connection->record_streams, r, NULL);
-    pa_source_output_free(r->source_output);
+    pa_source_output_disconnect(r->source_output);
+    pa_source_output_unref(r->source_output);
     pa_memblockq_free(r->memblockq);
     pa_xfree(r);
 }
@@ -302,7 +303,8 @@ static void playback_stream_free(struct playback_stream* p) {
         pa_pstream_send_error(p->connection->pstream, p->drain_tag, PA_ERROR_NOENTITY);
 
     pa_idxset_remove_by_data(p->connection->output_streams, p, NULL);
-    pa_sink_input_free(p->sink_input);
+    pa_sink_input_disconnect(p->sink_input);
+    pa_sink_input_unref(p->sink_input);
     pa_memblockq_free(p->memblockq);
     pa_xfree(p);
 }

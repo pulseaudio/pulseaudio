@@ -34,7 +34,15 @@ struct pa_source;
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 16
 
+enum pa_source_state {
+    PA_SOURCE_RUNNING,
+    PA_SOURCE_DISCONNECTED,
+};
+
 struct pa_source {
+    int ref;
+    enum pa_source_state state;
+    
     uint32_t index;
     
     char *name, *description;
@@ -49,7 +57,9 @@ struct pa_source {
 };
 
 struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec);
-void pa_source_free(struct pa_source *s);
+void pa_source_disconnect(struct pa_source *s);
+void pa_source_unref(struct pa_source *s);
+struct pa_source* pa_source_ref(struct pa_source *c);
 
 /* Pass a new memory block to all output streams */
 void pa_source_post(struct pa_source*s, struct pa_memchunk *b);

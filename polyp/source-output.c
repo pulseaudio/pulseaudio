@@ -49,6 +49,8 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
             return NULL;
     
     o = pa_xmalloc(sizeof(struct pa_source_output));
+    o->ref = 1;
+    o->state = PA_SOURCE_OUTPUT_RUNNING;
     o->name = pa_xstrdup(name);
     o->client = NULL;
     o->owner = NULL;
@@ -71,27 +73,55 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
     return o;    
 }
 
-void pa_source_output_free(struct pa_source_output* o) {
-    assert(o);
-
-    assert(o->source && o->source->core);
+void pa_source_output_disconnect(struct pa_source_output*o) {
+    assert(o && o->state == PA_SOURCE_OUTPUT_RUNNING && o->source && o->source->core);
+    
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     pa_idxset_remove_by_data(o->source->outputs, o, NULL);
+
+    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
+    o->source = NULL;
+
+    o->push = NULL;
+    o->kill = NULL;
+    
+    
+    o->state = PA_SOURCE_OUTPUT_DISCONNECTED;
+}
+
+static void source_output_free(struct pa_source_output* o) {
+    assert(o);
+
+    if (o->state != PA_SOURCE_OUTPUT_DISCONNECTED)
+        pa_source_output_disconnect(o);
 
     if (o->resampler)
         pa_resampler_free(o->resampler);
 
-    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
-    
     pa_xfree(o->name);
     pa_xfree(o);
 }
 
-void pa_source_output_kill(struct pa_source_output*i) {
-    assert(i);
 
-    if (i->kill)
-        i->kill(i);
+void pa_source_output_unref(struct pa_source_output* o) {
+    assert(o && o->ref >= 1);
+
+    if (!(--o->ref))
+        source_output_free(o);
+}
+
+struct pa_source_output* pa_source_output_ref(struct pa_source_output *o) {
+    assert(o && o->ref >= 1);
+    o->ref++;
+    return o;
+}
+
+
+void pa_source_output_kill(struct pa_source_output*o) {
+    assert(o && o->ref >= 1);
+
+    if (o->kill)
+        o->kill(o);
 }
 
 void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk *chunk) {
@@ -110,4 +140,10 @@ void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk 
     assert(rchunk.memblock);
     o->push(o, &rchunk);
     pa_memblock_unref(rchunk.memblock);
+}
+
+void pa_source_output_set_name(struct pa_source_output *o, const char *name) {
+    assert(o && o->ref >= 1);
+    pa_xfree(o->name);
+    o->name = pa_xstrdup(name);
 }

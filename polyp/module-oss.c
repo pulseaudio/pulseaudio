@@ -322,10 +322,15 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
     if (u->silence.memblock)
         pa_memblock_unref(u->silence.memblock);
 
-    if (u->sink)
-        pa_sink_free(u->sink);
-    if (u->source)
-        pa_source_free(u->source);
+    if (u->sink) {
+        pa_sink_disconnect(u->sink);
+        pa_sink_unref(u->sink);
+    }
+    
+    if (u->source) {
+        pa_source_disconnect(u->source);
+        pa_source_unref(u->source);
+    }
     
     pa_iochannel_free(u->io);
     pa_xfree(u);

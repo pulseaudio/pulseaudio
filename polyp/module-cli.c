@@ -41,7 +41,7 @@ static void eof_cb(struct pa_cli*c, void *userdata) {
     struct pa_module *m = userdata;
     assert(c && m);
 
-    pa_module_unload_request(m->core, m);
+    pa_module_unload_request(m);
 }
 
 int pa__init(struct pa_core *c, struct pa_module*m) {

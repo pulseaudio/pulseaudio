@@ -31,7 +31,15 @@
 #include "module.h"
 #include "client.h"
 
+enum pa_sink_input_state {
+    PA_SINK_INPUT_RUNNING,
+    PA_SINK_INPUT_DISCONNECTED
+};
+
 struct pa_sink_input {
+    int ref;
+    enum pa_sink_input_state state;
+    
     uint32_t index;
 
     int corked;
@@ -55,11 +63,14 @@ struct pa_sink_input {
 };
 
 struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec, int variable_rate);
-void pa_sink_input_free(struct pa_sink_input* i);
+void pa_sink_input_unref(struct pa_sink_input* i);
+struct pa_sink_input* pa_sink_input_ref(struct pa_sink_input* i);
 
-/* Code that didn't create the input stream should call this function to
- * request destruction of it */
-void pa_sink_input_kill(struct pa_sink_input *i);
+/* To be called by the implementing module only */
+void pa_sink_input_disconnect(struct pa_sink_input* i);
+
+/* External code may request disconnection with this funcion */
+void pa_sink_input_kill(struct pa_sink_input*i);
 
 pa_usec_t pa_sink_input_get_latency(struct pa_sink_input *i);
 
@@ -71,5 +82,7 @@ void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume);
 void pa_sink_input_cork(struct pa_sink_input *i, int b);
 
 void pa_sink_input_set_rate(struct pa_sink_input *i, uint32_t rate);
+
+void pa_sink_input_set_name(struct pa_sink_input *i, const char *name);
 
 #endif

@@ -45,8 +45,11 @@ struct userdata {
 
 static void free_userdata(struct userdata *u) {
     assert(u);
-    if (u->sink_input)
-        pa_sink_input_free(u->sink_input);
+    if (u->sink_input) {
+        pa_sink_input_disconnect(u->sink_input);
+        pa_sink_input_unref(u->sink_input);
+    }
+    
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
     if (u->sndfile)

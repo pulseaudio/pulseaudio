@@ -403,11 +403,15 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
     if (u->out_mmap && u->out_mmap != MAP_FAILED)
         munmap(u->out_mmap, u->out_mmap_length);
     
-    if (u->sink)
-        pa_sink_free(u->sink);
+    if (u->sink) {
+        pa_sink_disconnect(u->sink);
+        pa_sink_unref(u->sink);
+    }
 
-    if (u->source)
-        pa_source_free(u->source);
+    if (u->source) {
+        pa_source_disconnect(u->source);
+        pa_source_unref(u->source);
+    }
 
     if (u->io_event)
         u->core->mainloop->io_free(u->io_event);

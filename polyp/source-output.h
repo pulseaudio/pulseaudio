@@ -31,7 +31,15 @@
 #include "module.h"
 #include "client.h"
 
+enum pa_source_output_state {
+    PA_SOURCE_OUTPUT_RUNNING,
+    PA_SOURCE_OUTPUT_DISCONNECTED
+};
+
 struct pa_source_output {
+    int ref;
+    enum pa_source_output_state state;
+    
     uint32_t index;
 
     char *name;
@@ -49,10 +57,17 @@ struct pa_source_output {
 };
 
 struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec);
-void pa_source_output_free(struct pa_source_output* o);
+void pa_source_output_unref(struct pa_source_output* o);
+struct pa_source_output* pa_source_output_ref(struct pa_source_output *o);
 
+/* To be called by the implementing module only */
+void pa_source_output_disconnect(struct pa_source_output*o);
+
+/* External code may request disconnection with this funcion */
 void pa_source_output_kill(struct pa_source_output*o);
 
 void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk *chunk);
+
+void pa_source_output_set_name(struct pa_source_output *i, const char *name);
 
 #endif

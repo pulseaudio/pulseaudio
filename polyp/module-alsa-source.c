@@ -232,8 +232,10 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
     if (!(u = m->userdata))
         return;
     
-    if (u->source)
-        pa_source_free(u->source);
+    if (u->source) {
+        pa_source_disconnect(u->source);
+        pa_source_unref(u->source);
+    }
     
     if (u->io_events)
         pa_free_io_events(c->mainloop, u->io_events, u->n_io_events);
