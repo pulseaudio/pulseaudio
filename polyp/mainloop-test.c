@@ -29,12 +29,21 @@
 #include <assert.h>
 
 #ifdef GLIB_MAIN_LOOP
+
 #include <glib.h>
 #include "glib-mainloop.h"
 static GMainLoop* glib_main_loop = NULL;
+
+#if GLIB_MAJOR_VERSION >= 2
+#define GLIB20
 #else
+#undef GLIB20
+#endif 
+
+
+#else /* GLIB_MAIN_LOOP */
 #include "mainloop.h"
-#endif
+#endif /* GLIB_MAIN_LOOP */
 
 static struct pa_defer_event *de;
 
@@ -53,8 +62,10 @@ static void dcb(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userda
 static void tcb(struct pa_mainloop_api*a, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
     fprintf(stderr, "TIME EVENT\n");
 
-#ifdef GLIB_MAIN_LOOP
+#if defined(GLIB_MAIN_LOOP) && defined(GLIB20)
     g_main_loop_quit(glib_main_loop);
+#elif defined(GLIB_MAIN_LOOP)
+    g_main_quit(glib_main_loop);
 #else
     a->quit(a, 0);
 #endif
@@ -68,15 +79,23 @@ int main(int argc, char *argv[]) {
 
 #ifdef GLIB_MAIN_LOOP
     struct pa_glib_mainloop *g;
+
+#ifdef GLIB20 
     glib_main_loop = g_main_loop_new(NULL, FALSE);
     assert(glib_main_loop);
 
     g = pa_glib_mainloop_new(NULL);
+#else /* GLIB20 */
+    glib_main_loop = g_main_new(FALSE);
+    assert(glib_main_loop);
+    
+    g = pa_glib_mainloop_new();
+#endif /* GLIB20 */
     assert(g);
 
     a = pa_glib_mainloop_get_api(g);
     assert(a);
-#else
+#else /* GLIB_MAIN_LOOP */
     struct pa_mainloop *m;
 
     m = pa_mainloop_new();
@@ -84,7 +103,7 @@ int main(int argc, char *argv[]) {
 
     a = pa_mainloop_get_api(m);
     assert(a);
-#endif
+#endif /* GLIB_MAIN_LOOP */
 
     ioe = a->io_new(a, 0, PA_IO_EVENT_INPUT, iocb, NULL);
     assert(ioe);
@@ -96,8 +115,10 @@ int main(int argc, char *argv[]) {
     tv.tv_sec += 10;
     te = a->time_new(a, &tv, tcb, NULL);
 
-#ifdef GLIB_MAIN_LOOP
+#if defined(GLIB_MAIN_LOOP) && defined(GLIB20)
     g_main_loop_run(glib_main_loop);
+#elif defined(GLIB_MAIN_LOOP)
+    g_main_run(glib_main_loop);
 #else
     pa_mainloop_run(m, NULL);
 #endif
@@ -108,7 +129,11 @@ int main(int argc, char *argv[]) {
 
 #ifdef GLIB_MAIN_LOOP
     pa_glib_mainloop_free(g);
+#ifdef GLIB20
     g_main_loop_unref(glib_main_loop);
+#else
+    g_main_destroy(glib_main_loop);
+#endif
 #else
     pa_mainloop_free(m);
 #endif

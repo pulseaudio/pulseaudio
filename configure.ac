@@ -85,6 +85,10 @@ PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.4.0 ])
 AC_SUBST(GLIB20_CFLAGS)
 AC_SUBST(GLIB20_LIBS)
 
+PKG_CHECK_MODULES(GLIB12, [ glib >= 1.2.0 ])
+AC_SUBST(GLIB12_CFLAGS)
+AC_SUBST(GLIB12_LIBS)
+
 # If using GCC specifiy some additional parameters
 if test "x$GCC" = "xyes" ; then
    CFLAGS="$CFLAGS -pipe -W -Wall -Wno-unused-parameter -pedantic -std=c99"

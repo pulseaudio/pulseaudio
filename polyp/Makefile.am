@@ -17,7 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-AM_CFLAGS=-D_GNU_SOURCE -DDLSEARCHDIR=\"$(pkglibdir)\" -I$(top_srcdir) $(PTHREAD_CFLAGS)
+AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
+#AM_CFLAGS+= -DDLSEARCHDIR=\"$(pkglibdir)\" 
 AM_LDADD=$(PTHREAD_LIBS)
 AM_LIBADD=$(PTHREAD_LIBS)
 
@@ -25,7 +26,7 @@ polypincludedir=$(includedir)/polyp
 
 EXTRA_DIST = polypaudio.pa depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
-noinst_PROGRAMS = mainloop-test mainloop-test-glib pacat-simple parec-simple 
+noinst_PROGRAMS = mainloop-test mainloop-test-glib mainloop-test-glib12 pacat-simple parec-simple 
 
 BUILT_SOURCES=polyplib-version.h
 
@@ -88,6 +89,7 @@ lib_LTLIBRARIES=libpolyp.la \
 		libpolyp-error.la \
 		libpolyp-mainloop.la \
 		libpolyp-mainloop-glib.la \
+		libpolyp-mainloop-glib12.la \
 		libpolyp-simple.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
@@ -333,6 +335,11 @@ libpolyp_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
 libpolyp_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB20_LIBS)
 libpolyp_mainloop_glib_la_LDFLAGS = -version-info 0:0:0
 
+libpolyp_mainloop_glib12_la_SOURCES = glib-mainloop.h glib12-mainloop.c
+libpolyp_mainloop_glib12_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
+libpolyp_mainloop_glib12_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB12_LIBS)
+libpolyp_mainloop_glib12_la_LDFLAGS = -version-info 0:0:0
+
 pacat_SOURCES = pacat.c
 pacat_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la
 pacat_CFLAGS = $(AM_CFLAGS) 
@@ -356,6 +363,10 @@ mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop.la libpolyp.la
 mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
 mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainloop-glib.la
+
+mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
+mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
+mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12.la
 
 if BUILD_LIBPOLYPCORE
 
