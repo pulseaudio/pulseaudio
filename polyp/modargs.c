@@ -76,7 +76,7 @@ struct pa_modargs *pa_modargs_new(const char *args, const char* const* valid_key
     if (args) {
         enum { WHITESPACE, KEY, VALUE_START, VALUE_SIMPLE, VALUE_DOUBLE_QUOTES, VALUE_TICKS } state;
         const char *p, *key, *value;
-        size_t key_len, value_len;
+        size_t key_len = 0, value_len = 0;
         
         key = value = NULL;
         state = WHITESPACE;

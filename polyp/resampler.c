@@ -45,7 +45,7 @@ struct pa_resampler {
 };
 
 struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b) {
-    struct pa_resampler *r;
+    struct pa_resampler *r = NULL;
     int err;
     assert(a && b && pa_sample_spec_valid(a) && pa_sample_spec_valid(b));
 
