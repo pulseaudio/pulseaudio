@@ -36,6 +36,7 @@
 
 #include "oss-util.h"
 #include "util.h"
+#include "log.h"
 
 int pa_oss_open(const char *device, int *mode, int* pcaps) {
     int fd = -1;
@@ -49,7 +50,7 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
             tcaps = pcaps ? pcaps : &dcaps;
             
             if (ioctl(fd, SNDCTL_DSP_GETCAPS, tcaps) < 0) {
-                fprintf(stderr, __FILE__": SNDCTL_DSP_GETCAPS: %s\n", strerror(errno));
+                pa_log(__FILE__": SNDCTL_DSP_GETCAPS: %s\n", strerror(errno));
                 goto fail;
             }
 
@@ -61,20 +62,20 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
         
         if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY)) < 0) {
             if ((fd = open(device, (*mode = O_RDONLY)|O_NDELAY)) < 0) {
-                fprintf(stderr, __FILE__": open('%s'): %s\n", device, strerror(errno));
+                pa_log(__FILE__": open('%s'): %s\n", device, strerror(errno));
                 goto fail;
             }
         }
     } else {
         if ((fd = open(device, *mode|O_NDELAY)) < 0) {
-            fprintf(stderr, __FILE__": open('%s'): %s\n", device, strerror(errno));
+            pa_log(__FILE__": open('%s'): %s\n", device, strerror(errno));
             goto fail;
         }
     } 
 
     if (pcaps) {
         if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
-            fprintf(stderr, "SNDCTL_DSP_GETCAPS: %s\n", strerror(errno));
+            pa_log(__FILE__": SNDCTL_DSP_GETCAPS: %s\n", strerror(errno));
             goto fail;
         }
     }
@@ -112,7 +113,7 @@ int pa_oss_auto_format(int fd, struct pa_sample_spec *ss) {
             if (ioctl(fd, SNDCTL_DSP_SETFMT, &format) < 0 || format != f) {
                 format = AFMT_U8;
                 if (ioctl(fd, SNDCTL_DSP_SETFMT, &format) < 0 || format != AFMT_U8) {
-                    fprintf(stderr, "SNDCTL_DSP_SETFMT: %s\n", format != AFMT_U8 ? "No supported sample format" : strerror(errno));
+                    pa_log(__FILE__": SNDCTL_DSP_SETFMT: %s\n", format != AFMT_U8 ? "No supported sample format" : strerror(errno));
                     return -1;
                 } else
                     ss->format = PA_SAMPLE_U8;
@@ -124,7 +125,7 @@ int pa_oss_auto_format(int fd, struct pa_sample_spec *ss) {
         
     channels = ss->channels;
     if (ioctl(fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {
-        fprintf(stderr, "SNDCTL_DSP_CHANNELS: %s\n", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_CHANNELS: %s\n", strerror(errno));
         return -1;
     }
     assert(channels);
@@ -132,7 +133,7 @@ int pa_oss_auto_format(int fd, struct pa_sample_spec *ss) {
 
     speed = ss->rate;
     if (ioctl(fd, SNDCTL_DSP_SPEED, &speed) < 0) {
-        fprintf(stderr, "SNDCTL_DSP_SPEED: %s\n", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_SPEED: %s\n", strerror(errno));
         return -1;
     }
     assert(speed);
@@ -158,7 +159,7 @@ int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
     arg = ((int) nfrags << 16) | simple_log2(frag_size);
     
     if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &arg) < 0) {
-        fprintf(stderr, "SNDCTL_DSP_SETFRAGMENT: %s\n", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_SETFRAGMENT: %s\n", strerror(errno));
         return -1;
     }
 

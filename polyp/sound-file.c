@@ -30,6 +30,7 @@
 
 #include "sound-file.h"
 #include "sample.h"
+#include "log.h"
 
 #define MAX_FILE_SIZE (1024*1024)
 
@@ -46,7 +47,7 @@ int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_m
     chunk->index = chunk->length = 0;
     
     if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
-        fprintf(stderr, __FILE__": Failed to open file %s\n", fname);
+        pa_log(__FILE__": Failed to open file %s\n", fname);
         goto finish;
     }
 
@@ -55,12 +56,12 @@ int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_m
     ss->channels = sfinfo.channels;
 
     if (!pa_sample_spec_valid(ss)) {
-        fprintf(stderr, __FILE__": Unsupported sample format in file %s\n", fname);
+        pa_log(__FILE__": Unsupported sample format in file %s\n", fname);
         goto finish;
     }
     
     if ((l = pa_frame_size(ss)*sfinfo.frames) > MAX_FILE_SIZE) {
-        fprintf(stderr, __FILE__": File to large\n");
+        pa_log(__FILE__": File to large\n");
         goto finish;
     }
 
@@ -70,7 +71,7 @@ int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_m
     chunk->length = l;
 
     if (sf_readf_float(sf, chunk->memblock->data, sfinfo.frames) != sfinfo.frames) {
-        fprintf(stderr, __FILE__": Premature file end\n");
+        pa_log(__FILE__": Premature file end\n");
         goto finish;
     }
 

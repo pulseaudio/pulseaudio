@@ -44,6 +44,7 @@
 #include "xmalloc.h"
 #include "util.h"
 #include "subscribe.h"
+#include "log.h"
 
 struct connection;
 struct pa_protocol_native;
@@ -357,7 +358,7 @@ static void request_bytes(struct playback_stream *s) {
     pa_tagstruct_putu32(t, l);
     pa_pstream_send_tagstruct(s->connection->pstream, t);
 
-    /*fprintf(stderr, "Requesting %u bytes\n", l);*/
+    /*pa_log(__FILE__": Requesting %u bytes\n", l);*/
 }
 
 static void send_memblock(struct connection *c) {
@@ -421,7 +422,7 @@ static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk
     assert(i && i->userdata && chunk);
     s = i->userdata;
 
-    /*fprintf(stderr, "%3.0f      \r", (double) pa_memblockq_get_length(s->memblockq)/pa_memblockq_get_tlength(s->memblockq)*100);*/
+    /*pa_log(__FILE__": %3.0f      \r", (double) pa_memblockq_get_length(s->memblockq)/pa_memblockq_get_tlength(s->memblockq)*100);*/
     
     if (pa_memblockq_peek(s->memblockq, chunk) < 0)
         return -1;
@@ -442,7 +443,7 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
         s->drain_request = 0;
     }
 
-    /*fprintf(stderr, "after_drop: %u\n", pa_memblockq_get_length(s->memblockq));*/
+    /*pa_log(__FILE__": after_drop: %u\n", pa_memblockq_get_length(s->memblockq));*/
 }
 
 static void sink_input_kill_cb(struct pa_sink_input *i) {
@@ -456,7 +457,7 @@ static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i) {
     assert(i && i->userdata);
     s = i->userdata;
 
-    /*fprintf(stderr, "get_latency: %u\n", pa_memblockq_get_length(s->memblockq));*/
+    /*pa_log(__FILE__": get_latency: %u\n", pa_memblockq_get_length(s->memblockq));*/
     
     return pa_bytes_to_usec(pa_memblockq_get_length(s->memblockq), &s->sink_input->sample_spec);
 }
@@ -482,7 +483,7 @@ static void source_output_kill_cb(struct pa_source_output *o) {
 /*** pdispatch callbacks ***/
 
 static void protocol_error(struct connection *c) {
-    fprintf(stderr, __FILE__": protocol error, kicking client\n");
+    pa_log(__FILE__": protocol error, kicking client\n");
     connection_free(c);
 }
 
@@ -671,7 +672,7 @@ static void command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag
     }
         
     if (memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) != 0) {
-        fprintf(stderr, "protocol-native.c: Denied access to client with invalid authorization key.\n");
+        pa_log(__FILE__": Denied access to client with invalid authorization key.\n");
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
         return;
     }
@@ -1364,7 +1365,7 @@ static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, ui
     else {
         assert(command == PA_COMMAND_FLUSH_PLAYBACK_STREAM);
         pa_memblockq_flush(s->memblockq);
-        /*fprintf(stderr, "flush: %u\n", pa_memblockq_get_length(s->memblockq));*/
+        /*pa_log(__FILE__": flush: %u\n", pa_memblockq_get_length(s->memblockq));*/
     }
 
     pa_sink_notify(s->sink_input->sink);
@@ -1379,7 +1380,7 @@ static void pstream_packet_callback(struct pa_pstream *p, struct pa_packet *pack
     assert(p && packet && packet->data && c);
 
     if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
-        fprintf(stderr, "protocol-native: invalid packet.\n");
+        pa_log(__FILE__": invalid packet.\n");
         connection_free(c);
     }
 }
@@ -1390,7 +1391,7 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
     assert(p && chunk && userdata);
 
     if (!(stream = pa_idxset_get_by_index(c->output_streams, channel))) {
-        fprintf(stderr, "protocol-native: client sent block for invalid stream.\n");
+        pa_log(__FILE__": client sent block for invalid stream.\n");
         connection_free(c);
         return;
     }
@@ -1404,10 +1405,10 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
         
         pa_memblockq_push_align(p->memblockq, chunk, delta);
         assert(p->sink_input);
-        /*fprintf(stderr, "after_recv: %u\n", pa_memblockq_get_length(p->memblockq));*/
+        /*pa_log(__FILE__": after_recv: %u\n", pa_memblockq_get_length(p->memblockq));*/
 
         pa_sink_notify(p->sink_input->sink);
-        /*fprintf(stderr, "Recieved %u bytes.\n", chunk->length);*/
+        /*pa_log(__FILE__": Recieved %u bytes.\n", chunk->length);*/
 
     } else {
         struct upload_stream *u = (struct upload_stream*) stream;
@@ -1445,7 +1446,7 @@ static void pstream_die_callback(struct pa_pstream *p, void *userdata) {
     assert(p && c);
     connection_free(c);
 
-/*    fprintf(stderr, "protocol-native: connection died.\n");*/
+/*    pa_log(__FILE__": connection died.\n");*/
 }
 
 
@@ -1509,7 +1510,7 @@ static struct pa_protocol_native* protocol_new_internal(struct pa_core *c, struc
     assert(c && ma);
 
     if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {
-        fprintf(stderr, __FILE__": public= expects numeric argument.\n");
+        pa_log(__FILE__": public= expects numeric argument.\n");
         return NULL;
     }
     

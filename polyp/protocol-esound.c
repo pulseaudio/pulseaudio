@@ -45,6 +45,7 @@
 #include "debug.h"
 #include "namereg.h"
 #include "xmalloc.h"
+#include "log.h"
 
 #define DEFAULT_COOKIE_FILE ".esd_auth"
 
@@ -238,7 +239,7 @@ static int esd_proto_connect(struct connection *c, esd_proto_t request, const vo
 
     if (!c->authorized) {
         if (memcmp(data, c->protocol->esd_key, ESD_KEY_LEN) != 0) {
-            fprintf(stderr, __FILE__": kicked client with invalid authorization key.\n");
+            pa_log(__FILE__": kicked client with invalid authorization key.\n");
             return -1;
         }
 
@@ -251,7 +252,7 @@ static int esd_proto_connect(struct connection *c, esd_proto_t request, const vo
     else if (ekey == ESD_SWAP_ENDIAN_KEY)
         c->swap_byte_order = 1;
     else {
-        fprintf(stderr, __FILE__": client sent invalid endian key\n");
+        pa_log(__FILE__": client sent invalid endian key\n");
         return -1;
     }
 
@@ -279,7 +280,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
         return -1;
 
     if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1))) {
-        fprintf(stderr, __FILE__": No output sink\n");
+        pa_log(__FILE__": No output sink\n");
         return -1;
     }
     
@@ -662,7 +663,7 @@ static int do_read(struct connection *c) {
         assert(c->read_data_length < sizeof(c->request));
 
         if ((r = pa_iochannel_read(c->io, ((uint8_t*) &c->request) + c->read_data_length, sizeof(c->request) - c->read_data_length)) <= 0) {
-            fprintf(stderr, "protocol-esound.c: read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
+            pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
 
@@ -673,14 +674,14 @@ static int do_read(struct connection *c) {
                 c->request = swap_endian_32(c->request);
 
             if (c->request < ESD_PROTO_CONNECT || c->request > ESD_PROTO_MAX) {
-                fprintf(stderr, "protocol-esound.c: recieved invalid request.\n");
+                pa_log(__FILE__": recieved invalid request.\n");
                 return -1;
             }
 
             handler = proto_map+c->request;
 
             if (!handler->proc) {
-                fprintf(stderr, "protocol-sound.c: recieved unimplemented request.\n");
+                pa_log(__FILE__": recieved unimplemented request.\n");
                 return -1;
             }
             
@@ -709,7 +710,7 @@ static int do_read(struct connection *c) {
         assert(c->read_data && c->read_data_length < handler->data_length);
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
-            fprintf(stderr, "protocol-esound.c: read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
+            pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
 
@@ -729,7 +730,7 @@ static int do_read(struct connection *c) {
         assert(c->scache_memchunk.memblock && c->scache_name && c->scache_memchunk.index < c->scache_memchunk.length);
         
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache_memchunk.memblock->data+c->scache_memchunk.index, c->scache_memchunk.length-c->scache_memchunk.index)) <= 0) {
-            fprintf(stderr, __FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
+            pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
 
@@ -784,7 +785,7 @@ static int do_read(struct connection *c) {
         }
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
-            fprintf(stderr, __FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
+            pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
         
@@ -812,7 +813,7 @@ static int do_write(struct connection *c) {
         
         assert(c->write_data_index < c->write_data_length);
         if ((r = pa_iochannel_write(c->io, (uint8_t*) c->write_data+c->write_data_index, c->write_data_length-c->write_data_index)) < 0) {
-            fprintf(stderr, __FILE__": write() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": write() failed: %s\n", strerror(errno));
             return -1;
         }
         
@@ -831,7 +832,7 @@ static int do_write(struct connection *c) {
         
         if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
             pa_memblock_unref(chunk.memblock);
-            fprintf(stderr, __FILE__": write(): %s\n", strerror(errno));
+            pa_log(__FILE__": write(): %s\n", strerror(errno));
             return -1;
         }
     

@@ -31,6 +31,7 @@
 #include "iochannel.h"
 #include "cli.h"
 #include "sioman.h"
+#include "log.h"
 
 static void eof_cb(struct pa_cli*c, void *userdata) {
     struct pa_module *m = userdata;
@@ -44,12 +45,12 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     if (m->argument) {
-        fprintf(stderr, __FILE__": module doesn't accept arguments.\n");
+        pa_log(__FILE__": module doesn't accept arguments.\n");
         return -1;
     }
     
     if (pa_stdio_acquire() < 0) {
-        fprintf(stderr, __FILE__": STDIN/STDUSE already in use.\n");
+        pa_log(__FILE__": STDIN/STDUSE already in use.\n");
         return -1;
     }
 

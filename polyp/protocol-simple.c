@@ -37,6 +37,7 @@
 #include "sample-util.h"
 #include "namereg.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct connection {
     struct pa_protocol_simple *protocol;
@@ -121,7 +122,7 @@ static int do_read(struct connection *c) {
     }
     
     if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
-        fprintf(stderr, __FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
+        pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
         return -1;
     }
 
@@ -155,7 +156,7 @@ static int do_write(struct connection *c) {
     
     if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
         pa_memblock_unref(chunk.memblock);
-        fprintf(stderr, "write(): %s\n", strerror(errno));
+        pa_log(__FILE__": write(): %s\n", strerror(errno));
         return -1;
     }
     
@@ -299,12 +300,12 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         size_t l;
 
         if (!(sink = pa_namereg_get(p->core, p->sink_name, PA_NAMEREG_SINK, 1))) {
-            fprintf(stderr, "Failed to get sink.\n");
+            pa_log(__FILE__": Failed to get sink.\n");
             goto fail;
         }
 
         if (!(c->sink_input = pa_sink_input_new(sink, c->client->name, &p->sample_spec))) {
-            fprintf(stderr, "Failed to create sink input.\n");
+            pa_log(__FILE__": Failed to create sink input.\n");
             goto fail;
         }
         
@@ -329,13 +330,13 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         size_t l;
 
         if (!(source = pa_namereg_get(p->core, p->source_name, PA_NAMEREG_SOURCE, 1))) {
-            fprintf(stderr, "Failed to get source.\n");
+            pa_log(__FILE__": Failed to get source.\n");
             goto fail;
         }
 
         c->source_output = pa_source_output_new(source, c->client->name, &p->sample_spec);
         if (!c->source_output) {
-            fprintf(stderr, "Failed to create source output.\n");
+            pa_log(__FILE__": Failed to create source output.\n");
             goto fail;
         }
         c->source_output->owner = p->module;
@@ -377,7 +378,7 @@ struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct p
 
     p->sample_spec = core->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &p->sample_spec) < 0) {
-        fprintf(stderr, "Failed to parse sample type specification.\n");
+        pa_log(__FILE__": Failed to parse sample type specification.\n");
         goto fail;
     }
 
@@ -386,20 +387,20 @@ struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct p
     
     enable = 0;
     if (pa_modargs_get_value_boolean(ma, "record", &enable) < 0) {
-        fprintf(stderr, __FILE__": record= expects a numeric argument.\n");
+        pa_log(__FILE__": record= expects a numeric argument.\n");
         goto fail;
     }
     p->mode = enable ? RECORD : 0;
 
     enable = 1;
     if (pa_modargs_get_value_boolean(ma, "playback", &enable) < 0) {
-        fprintf(stderr, __FILE__": playback= expects a numeric argument.\n");
+        pa_log(__FILE__": playback= expects a numeric argument.\n");
         goto fail;
     }
     p->mode |= enable ? PLAYBACK : 0;
 
     if ((p->mode & (RECORD|PLAYBACK)) == 0) {
-        fprintf(stderr, __FILE__": neither playback nor recording enabled for protocol.\n");
+        pa_log(__FILE__": neither playback nor recording enabled for protocol.\n");
         goto fail;
     }
     

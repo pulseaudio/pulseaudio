@@ -51,7 +51,6 @@ struct pa_core {
     int quit_after_last_client_time;
 
     struct pa_time_event *quit_event;
-
 };
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m);

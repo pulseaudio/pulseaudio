@@ -31,6 +31,7 @@
 #include "iochannel.h"
 #include "modargs.h"
 #include "protocol-native.h"
+#include "log.h"
 
 static const char* const valid_modargs[] = {
     "fd",
@@ -46,12 +47,12 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        fprintf(stderr, __FILE__": failed to parse module arguments.\n");
+        pa_log(__FILE__": failed to parse module arguments.\n");
         goto finish;
     }
 
     if (pa_modargs_get_value_s32(ma, "fd", &fd) < 0) {
-        fprintf(stderr, __FILE__": invalid file descriptor.\n");
+        pa_log(__FILE__": invalid file descriptor.\n");
         goto finish;
     }
     

@@ -29,6 +29,7 @@
 #include "queue.h"
 #include "subscribe.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct pa_subscription {
     struct pa_core *core;
@@ -109,44 +110,44 @@ void pa_subscription_free_all(struct pa_core *c) {
 /*static void dump_event(struct pa_subscription_event*e) {
     switch (e->type & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
         case PA_SUBSCRIPTION_EVENT_SINK:
-            fprintf(stderr, "SINK_EVENT");
+            pa_log(__FILE__": SINK_EVENT");
             break;
         case PA_SUBSCRIPTION_EVENT_SOURCE:
-            fprintf(stderr, "SOURCE_EVENT");
+            pa_log(__FILE__": SOURCE_EVENT");
             break;
         case PA_SUBSCRIPTION_EVENT_SINK_INPUT:
-            fprintf(stderr, "SINK_INPUT_EVENT");
+            pa_log(__FILE__": SINK_INPUT_EVENT");
             break;
         case PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT:
-            fprintf(stderr, "SOURCE_OUTPUT_EVENT");
+            pa_log(__FILE__": SOURCE_OUTPUT_EVENT");
             break;
         case PA_SUBSCRIPTION_EVENT_MODULE:
-            fprintf(stderr, "MODULE_EVENT");
+            pa_log(__FILE__": MODULE_EVENT");
             break;
         case PA_SUBSCRIPTION_EVENT_CLIENT:
-            fprintf(stderr, "CLIENT_EVENT");
+            pa_log(__FILE__": CLIENT_EVENT");
             break;
         default:
-            fprintf(stderr, "OTHER");
+            pa_log(__FILE__": OTHER");
             break;
     }
 
     switch (e->type & PA_SUBSCRIPTION_EVENT_TYPE_MASK) {
         case PA_SUBSCRIPTION_EVENT_NEW:
-            fprintf(stderr, " NEW");
+            pa_log(__FILE__":  NEW");
             break;
         case PA_SUBSCRIPTION_EVENT_CHANGE:
-            fprintf(stderr, " CHANGE");
+            pa_log(__FILE__":  CHANGE");
             break;
         case PA_SUBSCRIPTION_EVENT_REMOVE:
-            fprintf(stderr, " REMOVE");
+            pa_log(__FILE__":  REMOVE");
             break;
         default:
-            fprintf(stderr, " OTHER");
+            pa_log(__FILE__":  OTHER");
             break;
     }
 
-    fprintf(stderr, " %u\n", e->index);
+    pa_log(__FILE__":  %u\n", e->index);
 }*/
 
 static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {

@@ -143,7 +143,9 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		subscribe.h subscribe.c \
 		debug.h \
 		sound-file-stream.c sound-file-stream.h \
-		cpulimit.c cpulimit.h
+		cpulimit.c cpulimit.h \
+		log.c log.h \
+		gcc-printf.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
@@ -329,7 +331,10 @@ libpolyp_la_SOURCES = polyplib.h \
 		polyplib-subscribe.c polyplib-subscribe.h \
 		polyplib-internal.h \
 		cdecl.h \
-		llist.h
+		llist.h \
+		log.c log.h \
+		gcc-printf.h
+
 libpolyp_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_la_LDFLAGS = -version-info 0:0:0
 

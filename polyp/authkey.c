@@ -36,6 +36,7 @@
 
 #include "authkey.h"
 #include "util.h"
+#include "log.h"
 
 #define RANDOM_DEVICE "/dev/urandom"
 
@@ -80,7 +81,7 @@ static int generate(const char *fn, void *data, size_t length) {
     } else {
         uint8_t *p;
         size_t l;
-        fprintf(stderr, "WARNING: Failed to open entropy device '"RANDOM_DEVICE"': %s, falling back to unsecure pseudo RNG.\n", strerror(errno));
+        pa_log(__FILE__": WARNING: Failed to open entropy device '"RANDOM_DEVICE"': %s, falling back to unsecure pseudo RNG.\n", strerror(errno));
 
         srandom(time(NULL));
         
@@ -122,7 +123,7 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
     }
 
     if (ret < 0)
-        fprintf(stderr, "Failed to load authorization key '%s': %s\n", path, (ret == -1) ? strerror(errno) : "file corrupt");
+        pa_log(__FILE__": Failed to load authorization key '%s': %s\n", path, (ret == -1) ? strerror(errno) : "file corrupt");
 
     return ret;
 }

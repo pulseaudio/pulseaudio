@@ -52,6 +52,7 @@ AM_CONDITIONAL(X_DISPLAY_MISSING, test "x$X_DISPLAY_MISSING" != "x")
 AC_C_CONST
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
+AC_TYPE_OFF_T
 AC_HEADER_TIME
 
 # Checks for library functions.
@@ -65,7 +66,9 @@ AC_FUNC_MMAP
 AC_FUNC_REALLOC
 AC_FUNC_SETPGRP
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([gethostname gettimeofday memchr memmove memset mkdir mkfifo munmap rmdir socket strcspn strerror strrchr strspn strstr strtol strtoul])
+AC_CHECK_FUNCS([gethostname gettimeofday memchr memmove memset mkdir mkfifo munmap rmdir socket strcspn strerror strrchr strspn strstr strtol strtoul pow strcasecmp])
+AC_FUNC_STAT
+AC_HEADER_SYS_WAIT
 
 AC_C_BIGENDIAN
 

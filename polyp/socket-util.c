@@ -41,6 +41,7 @@
 #include "socket-util.h"
 #include "util.h"
 #include "xmalloc.h"
+#include "log.h"
 
 void pa_socket_peer_to_string(int fd, char *c, size_t l) {
     struct stat st;
@@ -122,7 +123,7 @@ int pa_socket_set_rcvbuf(int fd, size_t l) {
     assert(fd >= 0);
 
     if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &l, sizeof(l)) < 0) {
-        fprintf(stderr, "SO_RCVBUF: %s\n", strerror(errno));
+        pa_log(__FILE__": SO_RCVBUF: %s\n", strerror(errno));
         return -1;
     }
 
@@ -133,7 +134,7 @@ int pa_socket_set_sndbuf(int fd, size_t l) {
     assert(fd >= 0);
 
     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &l, sizeof(l)) < 0) {
-        fprintf(stderr, "SO_SNDBUF: %s\n", strerror(errno));
+        pa_log(__FILE__": SO_SNDBUF: %s\n", strerror(errno));
         return -1;
     }
 
@@ -145,7 +146,7 @@ int pa_unix_socket_is_stale(const char *fn) {
     int fd = -1, ret = -1;
 
     if ((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
-        fprintf(stderr, "socket(): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto finish;
     }
 

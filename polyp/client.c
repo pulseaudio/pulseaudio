@@ -31,6 +31,7 @@
 #include "client.h"
 #include "xmalloc.h"
 #include "subscribe.h"
+#include "log.h"
 
 struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name, char *name) {
     struct pa_client *c;
@@ -49,7 +50,7 @@ struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name,
     r = pa_idxset_put(core->clients, c, &c->index);
     assert(c->index != PA_IDXSET_INVALID && r >= 0);
 
-    fprintf(stderr, "client: created %u \"%s\"\n", c->index, c->name);
+    pa_log(__FILE__": created %u \"%s\"\n", c->index, c->name);
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_NEW, c->index);
 
     pa_core_check_quit(core);
@@ -64,7 +65,7 @@ void pa_client_free(struct pa_client *c) {
 
     pa_core_check_quit(c->core);
 
-    fprintf(stderr, "client: freed %u \"%s\"\n", c->index, c->name);
+    pa_log(__FILE__": freed %u \"%s\"\n", c->index, c->name);
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
     pa_xfree(c->name);
     pa_xfree(c);
@@ -74,7 +75,7 @@ void pa_client_free(struct pa_client *c) {
 void pa_client_kill(struct pa_client *c) {
     assert(c);
     if (!c->kill) {
-        fprintf(stderr, "kill() operation not implemented for client %u\n", c->index);
+        pa_log(__FILE__": kill() operation not implemented for client %u\n", c->index);
         return;
     }
 

@@ -33,6 +33,7 @@
 #include "module.h"
 #include "xmalloc.h"
 #include "subscribe.h"
+#include "log.h"
 
 #define UNLOAD_POLL_TIME 10
 
@@ -56,6 +57,8 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
 
     if (c->disallow_module_loading)
         goto fail;
+    
+    pa_log(__FILE__": Trying to load \"%s\" with argument \"%s\".\n", name, argument);
 
     m = pa_xmalloc(sizeof(struct pa_module));
 
@@ -95,13 +98,16 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     r = pa_idxset_put(c->modules, m, &m->index);
     assert(r >= 0 && m->index != PA_IDXSET_INVALID);
 
-    fprintf(stderr, "module: loaded %u \"%s\" with argument \"%s\".\n", m->index, m->name, m->argument);
+    pa_log(__FILE__": Loaded \"%s\" (index: #%u) with argument \"%s\".\n", m->name, m->index, m->argument);
 
     pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_NEW, m->index);
     
     return m;
     
 fail:
+
+    pa_log(__FILE__": Failed to load \"%s\" with argument \"%s\".\n", name, argument);
+    
     if (m) {
         pa_xfree(m->argument);
         pa_xfree(m->name);
@@ -125,7 +131,7 @@ static void pa_module_free(struct pa_module *m) {
 
     lt_dlclose(m->dl);
     
-    fprintf(stderr, "module: unloaded %u \"%s\".\n", m->index, m->name);
+    pa_log(__FILE__": Unloaded \"%s\" (index: #%u).\n", m->name, m->index);
 
     pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_REMOVE, m->index);
     

@@ -33,6 +33,7 @@
 #include "mainloop.h"
 #include "native-common.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct pa_simple {
     struct pa_mainloop *mainloop;
@@ -204,7 +205,7 @@ static void read_callback(struct pa_stream *s, const void*data, size_t length, v
     assert(s && data && length && p);
 
     if (p->read_data) {
-        fprintf(stderr, __FILE__": Buffer overflow, dropping incoming memory blocks.\n");
+        pa_log(__FILE__": Buffer overflow, dropping incoming memory blocks.\n");
         pa_xfree(p->read_data);
     }
 

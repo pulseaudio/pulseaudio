@@ -39,6 +39,7 @@
 #include "util.h"
 #include "modargs.h"
 #include "xmalloc.h"
+#include "log.h"
 
 #define DEFAULT_FIFO_NAME "/tmp/musicfifo"
 #define DEFAULT_SINK_NAME "fifo_output"
@@ -83,7 +84,7 @@ static void do_write(struct userdata *u) {
     assert(u->memchunk.memblock && u->memchunk.length);
     
     if ((r = pa_iochannel_write(u->io, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
-        fprintf(stderr, "write() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": write() failed: %s\n", strerror(errno));
         return;
     }
 
@@ -126,32 +127,32 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        fprintf(stderr, __FILE__": failed to parse module arguments\n");
+        pa_log(__FILE__": failed to parse module arguments\n");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        fprintf(stderr, __FILE__": invalid sample format specification\n");
+        pa_log(__FILE__": invalid sample format specification\n");
         goto fail;
     }
     
     mkfifo(p = pa_modargs_get_value(ma, "file", DEFAULT_FIFO_NAME), 0777);
 
     if ((fd = open(p, O_RDWR)) < 0) {
-        fprintf(stderr, __FILE__": open('%s'): %s\n", p, strerror(errno));
+        pa_log(__FILE__": open('%s'): %s\n", p, strerror(errno));
         goto fail;
     }
 
     pa_fd_set_cloexec(fd, 1);
     
     if (fstat(fd, &st) < 0) {
-        fprintf(stderr, __FILE__": fstat('%s'): %s\n", p, strerror(errno));
+        pa_log(__FILE__": fstat('%s'): %s\n", p, strerror(errno));
         goto fail;
     }
 
     if (!S_ISFIFO(st.st_mode)) {
-        fprintf(stderr, __FILE__": '%s' is not a FIFO.\n", p);
+        pa_log(__FILE__": '%s' is not a FIFO.\n", p);
         goto fail;
     }
 
@@ -161,7 +162,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->core = c;
     
     if (!(u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
-        fprintf(stderr, __FILE__": failed to create sink.\n");
+        pa_log(__FILE__": failed to create sink.\n");
         goto fail;
     }
     u->sink->notify = notify_cb;

@@ -42,6 +42,7 @@
 
 #include "util.h"
 #include "xmalloc.h"
+#include "log.h"
 
 void pa_make_nonblock_fd(int fd) {
     int v;
@@ -121,7 +122,7 @@ void pa_check_for_sigpipe(void) {
     if (pthread_sigmask(SIG_SETMASK, NULL, &set) < 0) {
 #endif
         if (sigprocmask(SIG_SETMASK, NULL, &set) < 0) {
-            fprintf(stderr, __FILE__": sigprocmask() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": sigprocmask() failed: %s\n", strerror(errno));
             return;
         }
 #ifdef HAVE_PTHREAD
@@ -132,14 +133,14 @@ void pa_check_for_sigpipe(void) {
         return;
     
     if (sigaction(SIGPIPE, NULL, &sa) < 0) {
-        fprintf(stderr, __FILE__": sigaction() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": sigaction() failed: %s\n", strerror(errno));
         return;
     }
         
     if (sa.sa_handler != SIG_DFL)
         return;
     
-    fprintf(stderr, "polypaudio: WARNING: SIGPIPE is not trapped. This might cause malfunction!\n");
+    pa_log(__FILE__": WARNING: SIGPIPE is not trapped. This might cause malfunction!\n");
 }
 
 /* The following is based on an example from the GNU libc documentation */
@@ -168,6 +169,30 @@ char *pa_sprintf_malloc(const char *format, ...) {
             size *= 2;
     }
 }
+
+char *pa_vsprintf_malloc(const char *format, va_list ap) {
+    int  size = 100;
+    char *c = NULL;
+    
+    assert(format);
+    
+    for(;;) {
+        int r;
+        va_list ap;
+
+        c = pa_xrealloc(c, size);
+        r = vsnprintf(c, size, format, ap);
+        
+        if (r > -1 && r < size)
+            return c;
+
+        if (r > -1)    /* glibc 2.1 */
+            size = r+1; 
+        else           /* glibc 2.0 */
+            size *= 2;
+    }
+}
+
 
 char *pa_get_user_name(char *s, size_t l) {
     struct passwd pw, *r;
@@ -220,26 +245,26 @@ uint32_t pa_age(struct timeval *tv) {
 
 void pa_raise_priority(void) {
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
-        fprintf(stderr, __FILE__": setpriority() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": setpriority() failed: %s\n", strerror(errno));
     else
-        fprintf(stderr, __FILE__": Successfully gained nice level %i.\n", NICE_LEVEL);
+        pa_log(__FILE__": Successfully gained nice level %i.\n", NICE_LEVEL);
 
 #ifdef _POSIX_PRIORITY_SCHEDULING
     {
         struct sched_param sp;
 
         if (sched_getparam(0, &sp) < 0) {
-            fprintf(stderr, __FILE__": sched_getparam() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": sched_getparam() failed: %s\n", strerror(errno));
             return;
         }
         
         sp.sched_priority = 1;
         if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0) {
-            fprintf(stderr, __FILE__": sched_setscheduler() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": sched_setscheduler() failed: %s\n", strerror(errno));
             return;
         }
 
-        fprintf(stderr, __FILE__": Successfully enabled SCHED_FIFO scheduling.\n");
+        pa_log(__FILE__": Successfully enabled SCHED_FIFO scheduling.\n");
     }
 #endif
 }

@@ -40,7 +40,7 @@ autoload_source_add input module-alsa-source source_name=input
 #load module-simple-protocol-tcp
 load module-native-protocol-unix
 #load module-cli-protocol-unix
-load module-esound-protocol-unix
+#load module-esound-protocol-unix
 
 # Load the CLI module
 #load module-cli

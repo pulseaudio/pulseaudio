@@ -32,6 +32,7 @@
 
 #include "memblockq.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct memblock_list {
     struct memblock_list *next, *prev;
@@ -56,7 +57,7 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
 
     bq->current_length = 0;
 
-    /*fprintf(stderr, "memblockq requested: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", maxlength, tlength, base, prebuf, minreq);*/
+    /*pa_log(__FILE__": memblockq requested: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", maxlength, tlength, base, prebuf, minreq);*/
     
     bq->base = base;
 
@@ -76,7 +77,7 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
     if (bq->minreq == 0)
         bq->minreq = 1;
 
-    fprintf(stderr, "memblockq sanitized: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", bq->maxlength, bq->tlength, bq->base, bq->prebuf, bq->minreq);
+    pa_log(__FILE__": memblockq sanitized: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", bq->maxlength, bq->tlength, bq->base, bq->prebuf, bq->minreq);
     
     bq->mcalign = NULL;
 
@@ -206,7 +207,7 @@ void pa_memblockq_shorten(struct pa_memblockq *bq, size_t length) {
     if (bq->current_length <= length)
         return;
 
-    fprintf(stderr, "Warning! pa_memblockq_shorten()\n");
+    pa_log(__FILE__": Warning! pa_memblockq_shorten()\n");
     
     l = bq->current_length - length;
     l /= bq->base;

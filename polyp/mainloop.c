@@ -37,6 +37,7 @@
 #include "util.h"
 #include "idxset.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct pa_io_event {
     struct pa_mainloop *mainloop;
@@ -502,7 +503,7 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
 
     do {
         int t = block ? calc_next_timeout(m) : 0;
-        /*fprintf(stderr, "%u\n", t);*/
+        /*pa_log(__FILE__": %u\n", t);*/
         r = poll(m->pollfds, m->n_pollfds, t);
     } while (r < 0 && errno == EINTR);
 
@@ -511,7 +512,7 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
     if (r > 0)
         dispatch_pollfds(m);
     else if (r < 0)
-        fprintf(stderr, "select(): %s\n", strerror(errno));
+        pa_log(__FILE__": select(): %s\n", strerror(errno));
     
     m->running = 0;
     return r < 0 ? -1 : 0;

@@ -39,6 +39,7 @@
 #include "socket-util.h"
 #include "xmalloc.h"
 #include "util.h"
+#include "log.h"
 
 struct pa_socket_server {
     int ref;
@@ -62,7 +63,7 @@ static void callback(struct pa_mainloop_api *mainloop, struct pa_io_event *e, in
     pa_socket_server_ref(s);
     
     if ((nfd = accept(fd, NULL, NULL)) < 0) {
-        fprintf(stderr, "accept(): %s\n", strerror(errno));
+        pa_log(__FILE__": accept(): %s\n", strerror(errno));
         goto finish;
     }
 
@@ -121,7 +122,7 @@ struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, co
     assert(m && filename);
 
     if ((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
-        fprintf(stderr, "socket(): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto fail;
     }
 
@@ -134,12 +135,12 @@ struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, co
     pa_socket_low_delay(fd);
     
     if (bind(fd, (struct sockaddr*) &sa, SUN_LEN(&sa)) < 0) {
-        fprintf(stderr, "bind(): %s\n", strerror(errno));
+        pa_log(__FILE__": bind(): %s\n", strerror(errno));
         goto fail;
     }
 
     if (listen(fd, 5) < 0) {
-        fprintf(stderr, "listen(): %s\n", strerror(errno));
+        pa_log(__FILE__": listen(): %s\n", strerror(errno));
         goto fail;
     }
 
@@ -167,14 +168,14 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
     assert(m && port);
 
     if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-        fprintf(stderr, "socket(): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto fail;
     }
 
     pa_fd_set_cloexec(fd, 1);
 
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
-        fprintf(stderr, "setsockopt(): %s\n", strerror(errno));
+        pa_log(__FILE__": setsockopt(): %s\n", strerror(errno));
 
     pa_socket_tcp_low_delay(fd);
     
@@ -183,12 +184,12 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
     sa.sin_addr.s_addr = htonl(address);
 
     if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
-        fprintf(stderr, "bind(): %s\n", strerror(errno));
+        pa_log(__FILE__": bind(): %s\n", strerror(errno));
         goto fail;
     }
 
     if (listen(fd, 5) < 0) {
-        fprintf(stderr, "listen(): %s\n", strerror(errno));
+        pa_log(__FILE__": listen(): %s\n", strerror(errno));
         goto fail;
     }
 

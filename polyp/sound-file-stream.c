@@ -33,6 +33,7 @@
 #include "sound-file-stream.h"
 #include "sink-input.h"
 #include "xmalloc.h"
+#include "log.h"
 
 #define BUF_SIZE (1024*10)
 
@@ -128,7 +129,7 @@ int pa_play_file(struct pa_sink *sink, const char *fname, pa_volume_t volume) {
     memset(&sfinfo, 0, sizeof(sfinfo));
 
     if (!(u->sndfile = sf_open(fname, SFM_READ, &sfinfo))) {
-        fprintf(stderr, __FILE__": Failed to open file %s\n", fname);
+        pa_log(__FILE__": Failed to open file %s\n", fname);
         goto fail;
     }
 
@@ -137,7 +138,7 @@ int pa_play_file(struct pa_sink *sink, const char *fname, pa_volume_t volume) {
     ss.channels = sfinfo.channels;
 
     if (!pa_sample_spec_valid(&ss)) {
-        fprintf(stderr, __FILE__": Unsupported sample format in file %s\n", fname);
+        pa_log(__FILE__": Unsupported sample format in file %s\n", fname);
         goto fail;
     }
     

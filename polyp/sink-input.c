@@ -32,6 +32,7 @@
 #include "sample-util.h"
 #include "xmalloc.h"
 #include "subscribe.h"
+#include "log.h"
 
 #define CONVERT_BUFFER_LENGTH 4096
 
@@ -43,7 +44,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     assert(s && spec);
 
     if (pa_idxset_ncontents(s->inputs) >= PA_MAX_INPUTS_PER_SINK) {
-        fprintf(stderr, __FILE__": Failed to create sink input: too many inputs per sink.\n");
+        pa_log(__FILE__": Failed to create sink input: too many inputs per sink.\n");
         return NULL;
     }
     
@@ -78,7 +79,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     assert(r == 0);
 
     pa_sample_spec_snprint(st, sizeof(st), spec);
-    fprintf(stderr, "sink-input: created %u \"%s\" on %u with sample spec \"%s\"\n", i->index, i->name, s->index, st);
+    pa_log(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"\n", i->index, i->name, s->index, st);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
     

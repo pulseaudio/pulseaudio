@@ -37,6 +37,7 @@
 #include "modargs.h"
 #include "xmalloc.h"
 #include "namereg.h"
+#include "log.h"
 
 struct x11_source {
     struct pa_io_event *io_event;
@@ -65,7 +66,7 @@ static int ring_bell(struct userdata *u, int percent) {
     assert(u);
 
     if (!(s = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
-        fprintf(stderr, __FILE__": Invalid sink\n");
+        pa_log(__FILE__": Invalid sink\n");
         return -1;
     }
 
@@ -88,7 +89,7 @@ static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd,
         bne = ((XkbBellNotifyEvent*) &e);
             
         if (ring_bell(u, bne->percent) < 0) {
-            fprintf(stderr, __FILE__": Ringing bell failed, reverting to X11 device bell.\n");
+            pa_log(__FILE__": Ringing bell failed, reverting to X11 device bell.\n");
             XkbForceDeviceBell(u->display, bne->device, bne->bell_class, bne->bell_id, bne->percent);
         }
     }
@@ -112,7 +113,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        fprintf(stderr, __FILE__": failed to parse module arguments\n");
+        pa_log(__FILE__": failed to parse module arguments\n");
         goto fail;
     }
     
@@ -124,7 +125,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
 
     if (!(u->display = XOpenDisplay(pa_modargs_get_value(ma, "display", NULL)))) {
-        fprintf(stderr, __FILE__": XOpenDisplay() failed\n");
+        pa_log(__FILE__": XOpenDisplay() failed\n");
         goto fail;
     }
 
@@ -134,7 +135,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     minor = XkbMinorVersion;
     
     if (!XkbLibraryVersion(&major, &minor)) {
-        fprintf(stderr, __FILE__": XkbLibraryVersion() failed\n");
+        pa_log(__FILE__": XkbLibraryVersion() failed\n");
         goto fail;
     }
 
@@ -142,7 +143,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     minor = XkbMinorVersion;
 
     if (!XkbQueryExtension(u->display, NULL, &u->xkb_event_base, NULL, &major, &minor)) {
-        fprintf(stderr, __FILE__": XkbQueryExtension() failed\n");
+        pa_log(__FILE__": XkbQueryExtension() failed\n");
         goto fail;
     }
 

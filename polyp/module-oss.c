@@ -44,6 +44,7 @@
 #include "util.h"
 #include "modargs.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct userdata {
     struct pa_sink *sink;
@@ -105,7 +106,7 @@ static void do_write(struct userdata *u) {
     assert(memchunk->length);
     
     if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
-        fprintf(stderr, "write() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": write() failed: %s\n", strerror(errno));
         return;
     }
         
@@ -137,7 +138,7 @@ static void do_read(struct userdata *u) {
     if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
         pa_memblock_unref(memchunk.memblock);
         if (errno != EAGAIN)
-            fprintf(stderr, "read() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": read() failed: %s\n", strerror(errno));
         return;
     }
 
@@ -162,7 +163,7 @@ static uint32_t sink_get_latency_cb(struct pa_sink *s) {
     assert(s && u && u->sink);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
-        fprintf(stderr, "module-oss: device doesn't support SNDCTL_DSP_GETODELAY.\n");
+        pa_log(__FILE__": device doesn't support SNDCTL_DSP_GETODELAY.\n");
         s->get_latency = NULL;
         return 0;
     }
@@ -183,17 +184,17 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        fprintf(stderr, __FILE__": failed to parse module arguments.\n");
+        pa_log(__FILE__": failed to parse module arguments.\n");
         goto fail;
     }
     
     if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
-        fprintf(stderr, __FILE__": record= and playback= expect numeric argument.\n");
+        pa_log(__FILE__": record= and playback= expect numeric argument.\n");
         goto fail;
     }
 
     if (!playback && !record) {
-        fprintf(stderr, __FILE__": neither playback nor record enabled for device.\n");
+        pa_log(__FILE__": neither playback nor record enabled for device.\n");
         goto fail;
     }
 
@@ -202,20 +203,20 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     nfrags = 12;
     frag_size = 1024;
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || nfrags < 2 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0 || frag_size < 1) {
-        fprintf(stderr, __FILE__": failed to parse fragments arguments\n");
+        pa_log(__FILE__": failed to parse fragments arguments\n");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        fprintf(stderr, __FILE__": failed to parse sample specification\n");
+        pa_log(__FILE__": failed to parse sample specification\n");
         goto fail;
     }
     
     if ((fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, NULL)) < 0)
         goto fail;
 
-    fprintf(stderr, "module-oss: device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
+    pa_log(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
     if (pa_oss_set_fragments(fd, nfrags, frag_size) < 0)   
         goto fail;   
@@ -224,19 +225,19 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto fail;
 
     if (ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &frag_size) < 0) {
-        fprintf(stderr, "SNDCTL_DSP_GETBLKSIZE: %s\n", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_GETBLKSIZE: %s\n", strerror(errno));
         goto fail;
     }
     assert(frag_size);
     in_frag_size = out_frag_size = frag_size;
 
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
-        fprintf(stderr, "module-oss: input -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        pa_log(__FILE__": input -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         in_frag_size = info.fragsize;
     }
 
     if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
-        fprintf(stderr, "module-oss: output -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        pa_log(__FILE__": output -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         out_frag_size = info.fragsize;
     }
 

@@ -37,6 +37,7 @@
 #include "socket-util.h"
 #include "util.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct pa_socket_client {
     int ref;
@@ -73,17 +74,17 @@ static void do_call(struct pa_socket_client *c) {
     
     lerror = sizeof(error);
     if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, &error, &lerror) < 0) {
-        fprintf(stderr, "getsockopt(): %s\n", strerror(errno));
+        pa_log(__FILE__": getsockopt(): %s\n", strerror(errno));
         goto finish;
     }
 
     if (lerror != sizeof(error)) {
-        fprintf(stderr, "getsocktop() returned invalid size.\n");
+        pa_log(__FILE__": getsockopt() returned invalid size.\n");
         goto finish;
     }
 
     if (error != 0) {
-        fprintf(stderr, "connect(): %s\n", strerror(error));
+        pa_log(__FILE__": connect(): %s\n", strerror(error));
         goto finish;
     }
         
@@ -125,7 +126,7 @@ static int do_connect(struct pa_socket_client *c, const struct sockaddr *sa, soc
     
     if ((r = connect(c->fd, sa, len)) < 0) {
         if (errno != EINPROGRESS) {
-            /*fprintf(stderr, "connect(): %s\n", strerror(errno));*/
+            /*pa_log(__FILE__": connect(): %s\n", strerror(errno));*/
             return -1;
         }
 
@@ -148,7 +149,7 @@ struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, ui
     assert(c);
 
     if ((c->fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-        fprintf(stderr, "socket(): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto fail;
     }
 
@@ -178,7 +179,7 @@ struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, co
     assert(c);
 
     if ((c->fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
-        fprintf(stderr, "socket(): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto fail;
     }
 
@@ -206,7 +207,7 @@ struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m
     assert(c);
 
     if ((c->fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0) {
-        fprintf(stderr, "socket(): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto fail;
     }
 

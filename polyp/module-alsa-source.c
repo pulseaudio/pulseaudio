@@ -38,6 +38,7 @@
 #include "sample-util.h"
 #include "alsa-util.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct userdata {
     snd_pcm_t *pcm_handle;
@@ -72,10 +73,10 @@ static void update_usage(struct userdata *u) {
 static void xrun_recovery(struct userdata *u) {
     assert(u);
 
-    fprintf(stderr, "*** ALSA-XRUN (capture) ***\n");
+    pa_log(__FILE__": *** ALSA-XRUN (capture) ***\n");
     
     if (snd_pcm_prepare(u->pcm_handle) < 0)
-        fprintf(stderr, "snd_pcm_prepare() failed\n");
+        pa_log(__FILE__": snd_pcm_prepare() failed\n");
 }
 
 static void do_read(struct userdata *u) {
@@ -104,7 +105,7 @@ static void do_read(struct userdata *u) {
                 continue;
             }
 
-            fprintf(stderr, "snd_pcm_readi() failed: %s\n", strerror(-frames));
+            pa_log(__FILE__": snd_pcm_readi() failed: %s\n", strerror(-frames));
             return;
         }
 
@@ -149,13 +150,13 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     size_t frame_size;
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        fprintf(stderr, __FILE__": failed to parse module arguments\n");
+        pa_log(__FILE__": failed to parse module arguments\n");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        fprintf(stderr, __FILE__": failed to parse sample specification\n");
+        pa_log(__FILE__": failed to parse sample specification\n");
         goto fail;
     }
     frame_size = pa_frame_size(&ss);
@@ -163,7 +164,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     periods = 12;
     fragsize = 1024;
     if (pa_modargs_get_value_u32(ma, "fragments", &periods) < 0 || pa_modargs_get_value_u32(ma, "fragment_size", &fragsize) < 0) {
-        fprintf(stderr, __FILE__": failed to parse buffer metrics\n");
+        pa_log(__FILE__": failed to parse buffer metrics\n");
         goto fail;
     }
     buffer_size = fragsize/frame_size*periods;
@@ -173,12 +174,12 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->module = m;
     
     if (snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) < 0) {
-        fprintf(stderr, __FILE__": Error opening PCM device %s\n", dev);
+        pa_log(__FILE__": Error opening PCM device %s\n", dev);
         goto fail;
     }
 
     if (pa_alsa_set_hw_params(u->pcm_handle, &ss, &periods, &buffer_size) < 0) {
-        fprintf(stderr, __FILE__": Failed to set hardware parameters\n");
+        pa_log(__FILE__": Failed to set hardware parameters\n");
         goto fail;
     }
 
@@ -190,14 +191,14 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->source->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s'", dev);
 
     if (pa_create_io_events(u->pcm_handle, c->mainloop, &u->io_events, &u->n_io_events, io_callback, u) < 0) {
-        fprintf(stderr, __FILE__": failed to obtain file descriptors\n");
+        pa_log(__FILE__": failed to obtain file descriptors\n");
         goto fail;
     }
 
     u->frame_size = frame_size;
     u->fragment_size = buffer_size*u->frame_size/periods;
 
-    fprintf(stderr, __FILE__": using %u fragments of size %u bytes.\n", periods, u->fragment_size);
+    pa_log(__FILE__": using %u fragments of size %u bytes.\n", periods, u->fragment_size);
 
     u->memchunk.memblock = NULL;
     u->memchunk.index = u->memchunk.length = 0;

@@ -22,10 +22,21 @@
   USA.
 ***/
 
+#include "log.h"
 
 struct pa_cmdline {
-    int daemonize, help, fail, verbose, high_priority, stay_root, version, disallow_module_loading, quit_after_last_client_time;
+    int daemonize,
+        help,
+        fail,
+        verbose,
+        high_priority,
+        stay_root,
+        version,
+        disallow_module_loading,
+        quit_after_last_client_time,
+        auto_log_target;
     char *cli_commands;
+    enum pa_log_target log_target;
 };
 
 struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []);

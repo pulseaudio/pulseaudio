@@ -24,6 +24,9 @@
 
 #include <sys/types.h>
 #include <inttypes.h>
+#include <stdarg.h>
+
+#include "gcc-printf.h"
 
 void pa_make_nonblock_fd(int fd);
 
@@ -34,7 +37,8 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size);
 
 void pa_check_for_sigpipe(void);
 
-char *pa_sprintf_malloc(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
+char *pa_sprintf_malloc(const char *format, ...) PA_GCC_PRINTF_ATTR(1,2);
+char *pa_vsprintf_malloc(const char *format, va_list ap);
 
 char *pa_get_user_name(char *s, size_t l);
 char *pa_get_host_name(char *s, size_t l);

@@ -46,6 +46,7 @@
 #include "authkey.h"
 #include "util.h"
 #include "xmalloc.h"
+#include "log.h"
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = { pa_command_request },
@@ -190,7 +191,7 @@ static void pstream_packet_callback(struct pa_pstream *p, struct pa_packet *pack
     pa_context_ref(c);
     
     if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
-        fprintf(stderr, "polyp.c: invalid packet.\n");
+        pa_log(__FILE__": invalid packet.\n");
         pa_context_fail(c, PA_ERROR_PROTOCOL);
     }
 
@@ -580,13 +581,13 @@ int pa_context_connect_spawn(struct pa_context *c, void (*atfork)(void)) {
         return pa_context_connect(c, NULL);
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
-        fprintf(stderr, __FILE__": socketpair() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": socketpair() failed: %s\n", strerror(errno));
         pa_context_fail(c, PA_ERROR_INTERNAL);
         goto fail;
     }
 
     if ((pid = fork()) < 0) {
-        fprintf(stderr, __FILE__": fork() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": fork() failed: %s\n", strerror(errno));
         pa_context_fail(c, PA_ERROR_INTERNAL);
         goto fail;
     } else if (!pid) {
@@ -603,14 +604,14 @@ int pa_context_connect_spawn(struct pa_context *c, void (*atfork)(void)) {
             p = POLYPAUDIO_BINARY;
         
         snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
-        execl(p, p, "-r", "-D", t, NULL);
+        execl(p, p, "-r", "-D", "-lsyslog", "-X 5", t, NULL);
         
         exit(1);
     } 
 
     /* Parent */
     if (waitpid(pid, &status, 0) < 0) {
-        fprintf(stderr, __FILE__": waitpid() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": waitpid() failed: %s\n", strerror(errno));
         pa_context_fail(c, PA_ERROR_INTERNAL);
         goto fail;
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {

@@ -32,6 +32,7 @@
 #include "modargs.h"
 #include "xmalloc.h"
 #include "namereg.h"
+#include "log.h"
 
 struct userdata {
     struct pa_core *core;
@@ -98,7 +99,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     char t[256];
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        fprintf(stderr, __FILE__": Failed to parse module arguments\n");
+        pa_log(__FILE__": Failed to parse module arguments\n");
         goto fail;
     }
     
@@ -110,7 +111,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     sink_name = pa_modargs_get_value(ma, "sink", NULL);
 
     if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, 1))) {
-        fprintf(stderr, __FILE__": No such sink\n");
+        pa_log(__FILE__": No such sink.\n");
         goto fail;
     }
 
@@ -120,7 +121,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
 
     frequency = 440;
     if (pa_modargs_get_value_u32(ma, "frequency", &frequency) < 0 || frequency < 1 || frequency > ss.rate/2) {
-        fprintf(stderr, __FILE__": Invalid frequency specification\n");
+        pa_log(__FILE__": Invalid frequency specification\n");
         goto fail;
     }
     

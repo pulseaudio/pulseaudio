@@ -9,7 +9,6 @@
    kill client/...
    autoload management
 - more complete pactl
-- logging
 - add sample directory
 - add timing parameter to write callback of stream in client API
 

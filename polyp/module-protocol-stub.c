@@ -35,6 +35,7 @@
 #include "socket-util.h"
 #include "util.h"
 #include "modargs.h"
+#include "log.h"
 
 #if defined(USE_PROTOCOL_SIMPLE)
   #include "protocol-simple.h"
@@ -87,12 +88,12 @@ static struct pa_socket_server *create_socket_server(struct pa_core *c, struct p
     uint32_t port = IPV4_PORT;
 
     if (pa_modargs_get_value_boolean(ma, "loopback", &loopback) < 0) {
-        fprintf(stderr, "loopback= expects a numerical argument.\n");
+        pa_log(__FILE__": loopback= expects a numerical argument.\n");
         return NULL;
     }
 
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
-        fprintf(stderr, "port= expects a numerical argument between 1 and 65535.\n");
+        pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.\n");
         return NULL;
     }
     
@@ -106,17 +107,17 @@ static struct pa_socket_server *create_socket_server(struct pa_core *c, struct p
     assert(p);
 
     if (pa_unix_socket_make_secure_dir(p) < 0) {
-        fprintf(stderr, "Failed to create secure socket directory.\n");
+        pa_log(__FILE__": Failed to create secure socket directory.\n");
         return NULL;
     }
 
     if ((r = pa_unix_socket_remove_stale(p)) < 0) {
-        fprintf(stderr, "Failed to remove stale UNIX socket '%s': %s\n", p, strerror(errno));
+        pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s\n", p, strerror(errno));
         return NULL;
     }
     
     if (r)
-        fprintf(stderr, "Removed stale UNIX socket '%s'.", p);
+        pa_log(__FILE__": Removed stale UNIX socket '%s'.", p);
     
     if (!(s = pa_socket_server_new_unix(c->mainloop, p)))
         return NULL;
@@ -132,7 +133,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        fprintf(stderr, "Failed to parse module arguments\n");
+        pa_log(__FILE__": Failed to parse module arguments\n");
         goto finish;
     }
 

@@ -31,6 +31,7 @@
 #include "source-output.h"
 #include "xmalloc.h"
 #include "subscribe.h"
+#include "log.h"
 
 struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec) {
     struct pa_source_output *o;
@@ -39,7 +40,7 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
     assert(s && spec);
 
     if (pa_idxset_ncontents(s->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
-        fprintf(stderr, __FILE__": Failed to create source output: too many outputs per source.\n");
+        pa_log(__FILE__": Failed to create source output: too many outputs per source.\n");
         return NULL;
     }
 

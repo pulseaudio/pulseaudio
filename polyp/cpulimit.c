@@ -30,6 +30,7 @@
 
 #include "cpulimit.h"
 #include "util.h"
+#include "log.h"
 
 /* Utilize this much CPU time at maximum */
 #define CPUTIME_PERCENT 70
@@ -126,7 +127,7 @@ int pa_cpu_limit_init(struct pa_mainloop_api *m) {
     time(&last_time);
 
     if (pipe(the_pipe) < 0) {
-        fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": pipe() failed: %s\n", strerror(errno));
         return -1;
     }
 

@@ -34,6 +34,7 @@
 #include "mainloop-signal.h"
 #include "util.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct pa_signal_event {
     int sig;
@@ -64,12 +65,12 @@ static void callback(struct pa_mainloop_api*a, struct pa_io_event*e, int fd, enu
         if (errno == EAGAIN)
             return;
 
-        fprintf(stderr, "signal.c: read(): %s\n", strerror(errno));
+        pa_log(__FILE__": read(): %s\n", strerror(errno));
         return;
     }
     
     if (r != sizeof(sig)) {
-        fprintf(stderr, "signal.c: short read()\n");
+        pa_log(__FILE__": short read()\n");
         return;
     }
     
@@ -85,7 +86,7 @@ int pa_signal_init(struct pa_mainloop_api *a) {
     assert(!api && a && signal_pipe[0] == -1 && signal_pipe[1] == -1 && !io_event);
     
     if (pipe(signal_pipe) < 0) {
-        fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": pipe() failed: %s\n", strerror(errno));
         return -1;
     }
 

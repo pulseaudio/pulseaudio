@@ -31,6 +31,7 @@
 #include "native-common.h"
 #include "xmalloc.h"
 #include "llist.h"
+#include "log.h"
 
 /*#define DEBUG_OPCODES*/
 
@@ -173,7 +174,7 @@ int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *use
         goto finish;
 
 #ifdef DEBUG_OPCODES
-    fprintf(stderr, __FILE__": Recieved opcode <%s>\n", command_names[command]);
+    pa_log(__FILE__": Recieved opcode <%s>\n", command_names[command]);
 #endif
 
     if (command == PA_COMMAND_ERROR || command == PA_COMMAND_REPLY) {
@@ -191,7 +192,7 @@ int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *use
 
         c->proc(pd, command, tag, ts, userdata);
     } else {
-        fprintf(stderr, "Recieved unsupported command %u\n", command);
+        pa_log(__FILE__": Recieved unsupported command %u\n", command);
         goto finish;
     }
 

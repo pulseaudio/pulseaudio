@@ -31,6 +31,7 @@
 #include "pstream.h"
 #include "queue.h"
 #include "xmalloc.h"
+#include "log.h"
 
 enum pa_pstream_descriptor_index {
     PA_PSTREAM_DESCRIPTOR_LENGTH,
@@ -214,7 +215,7 @@ void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
     struct item_info *i;
     assert(p && packet);
 
-    /*fprintf(stderr, "push-packet %p\n", packet);*/
+    /*pa_log(__FILE__": push-packet %p\n", packet);*/
     
     i = pa_xmalloc(sizeof(struct item_info));
     i->type = PA_PSTREAM_ITEM_PACKET;
@@ -263,7 +264,7 @@ static void prepare_next_write_item(struct pa_pstream *p) {
     p->write.index = 0;
     
     if (p->write.current->type == PA_PSTREAM_ITEM_PACKET) {
-        /*fprintf(stderr, "pop-packet %p\n", p->write.current->packet);*/
+        /*pa_log(__FILE__": pop-packet %p\n", p->write.current->packet);*/
         
         assert(p->write.current->packet);
         p->write.data = p->write.current->packet->data;
@@ -348,7 +349,7 @@ static void do_read(struct pa_pstream *p) {
 
         /* Frame size too large */
         if (ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) > FRAME_SIZE_MAX) {
-            fprintf(stderr, "frame size too large\n");
+            pa_log(__FILE__": Frame size too large\n");
             goto die;
         }
         

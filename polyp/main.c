@@ -44,12 +44,13 @@
 #include "sioman.h"
 #include "xmalloc.h"
 #include "cpulimit.h"
+#include "log.h"
 
 static struct pa_mainloop *mainloop;
 
 static void drop_root(void) {
     if (getuid() != 0 && geteuid() == 0) {
-        fprintf(stderr, __FILE__": started SUID root, dropping root rights.\n");
+        pa_log(__FILE__": Started SUID root, dropping root rights.\n");
         setuid(getuid());
         seteuid(getuid());
     }
@@ -68,7 +69,7 @@ static const char* signal_name(int s) {
 }
 
 static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
-    fprintf(stderr, __FILE__": got signal %s.\n", signal_name(sig));
+    pa_log(__FILE__": Got signal %s.\n", signal_name(sig));
 
     switch (sig) {
         case SIGUSR1:
@@ -82,7 +83,7 @@ static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e,
         case SIGINT:
         case SIGTERM:
         default:
-            fprintf(stderr, "Exiting.\n");
+            pa_log(__FILE__": Exiting.\n");
             m->quit(m, 1);
             return;
     }
@@ -104,10 +105,14 @@ int main(int argc, char *argv[]) {
     int r, retval = 1;
     int daemon_pipe[2] = { -1, -1 };
 
+    pa_log_set_ident("polypaudio");
+
     if (!(cmdline = pa_cmdline_parse(argc, argv))) {
-        fprintf(stderr, __FILE__": failed to parse command line.\n");
+        pa_log(__FILE__": failed to parse command line.\n");
         goto finish;
     }
+
+    pa_log_set_target(cmdline->auto_log_target ? PA_LOG_STDERR : cmdline->log_target, NULL);
 
     if (cmdline->help) {
         pa_cmdline_help(argv[0]);
@@ -131,17 +136,17 @@ int main(int argc, char *argv[]) {
         pid_t child;
 
         if (pa_stdio_acquire() < 0) {
-            fprintf(stderr, __FILE__": failed to acquire stdio.\n");
+            pa_log(__FILE__": failed to acquire stdio.\n");
             goto finish;
         }
 
         if (pipe(daemon_pipe) < 0) {
-            fprintf(stderr, __FILE__": failed to create pipe.\n");
+            pa_log(__FILE__": failed to create pipe.\n");
             goto finish;
         }
         
         if ((child = fork()) < 0) {
-            fprintf(stderr, __FILE__": fork() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": fork() failed: %s\n", strerror(errno));
             goto finish;
         }
 
@@ -152,7 +157,7 @@ int main(int argc, char *argv[]) {
             daemon_pipe[1] = -1;
 
             if (pa_loop_read(daemon_pipe[0], &retval, sizeof(retval)) != sizeof(retval)) {
-                fprintf(stderr, __FILE__": read() failed: %s\n", strerror(errno));
+                pa_log(__FILE__": read() failed: %s\n", strerror(errno));
                 retval = 1;
             }
 
@@ -162,6 +167,10 @@ int main(int argc, char *argv[]) {
         close(daemon_pipe[0]);
         daemon_pipe[0] = -1;
         
+
+        if (cmdline->auto_log_target)
+            pa_log_set_target(PA_LOG_SYSLOG, NULL);
+
         setsid();
         setpgrp();
         
@@ -196,15 +205,15 @@ int main(int argc, char *argv[]) {
     buf = pa_strbuf_new();
     assert(buf);
     r = pa_cli_command_execute(c, cmdline->cli_commands, buf, &cmdline->fail, &cmdline->verbose);
-    fprintf(stderr, s = pa_strbuf_tostring_free(buf));
+    pa_log(s = pa_strbuf_tostring_free(buf));
     pa_xfree(s);
     
     if (r < 0 && cmdline->fail) {
-        fprintf(stderr, __FILE__": failed to initialize daemon.\n");
+        pa_log(__FILE__": failed to initialize daemon.\n");
         if (cmdline->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
     } else if (!c->modules || pa_idxset_ncontents(c->modules) == 0) {
-        fprintf(stderr, __FILE__": daemon startup without any loaded modules, refusing to work.\n");
+        pa_log(__FILE__": daemon startup without any loaded modules, refusing to work.\n");
         if (cmdline->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
     } else {
@@ -215,10 +224,10 @@ int main(int argc, char *argv[]) {
         c->disallow_module_loading = cmdline->disallow_module_loading;
         c->quit_after_last_client_time = cmdline->quit_after_last_client_time;
         
-        fprintf(stderr, __FILE__": mainloop entry.\n");
+        pa_log(__FILE__": Daemon startup complete.\n");
         if (pa_mainloop_run(mainloop, &retval) < 0)
             retval = 1;
-        fprintf(stderr, __FILE__": mainloop exit.\n");
+        pa_log(__FILE__": Daemon shutdown initiated.\n");
     }
         
     pa_core_free(c);
@@ -229,12 +238,14 @@ int main(int argc, char *argv[]) {
     
     lt_dlexit();
 
+    pa_log(__FILE__": Daemon terminated.\n");
+    
 finish:
 
     if (cmdline)
         pa_cmdline_free(cmdline);
 
     close_pipe(daemon_pipe);
-    
+
     return retval;
 }
