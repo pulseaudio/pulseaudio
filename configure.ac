@@ -21,7 +21,7 @@
 
 AC_PREREQ(2.57)
 AC_INIT([polypaudio],[0.1],[mzcbylcnhqvb (at) 0pointer (dot) de])
-AC_CONFIG_SRCDIR([src/main.c])
+AC_CONFIG_SRCDIR([polyp/main.c])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall])
 
@@ -76,5 +76,5 @@ AM_CONDITIONAL([USE_LYNX], [test "x$lynx" = xyes])
 
 AM_CONDITIONAL(BUILD_LIBPOLYPCORE, false)
 
-AC_CONFIG_FILES([Makefile src/Makefile polyplib.pc polyplib-simple.pc polyplib-mainloop.pc polyplib-error.pc doc/Makefile doc/README.html doc/cli.html doc/daemon.html doc/modules.html])
+AC_CONFIG_FILES([Makefile polyp/Makefile polyplib.pc polyplib-simple.pc polyplib-mainloop.pc polyplib-error.pc doc/Makefile doc/README.html doc/cli.html doc/daemon.html doc/modules.html])
 AC_OUTPUT
