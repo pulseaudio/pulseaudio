@@ -122,30 +122,10 @@ void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type t
     assert(c);
     
     if (!name) {
-        if (type == PA_NAMEREG_SOURCE) {
-            if (!c->default_source_name) {
-                struct pa_source *s;
-
-                for (s = pa_idxset_first(c->sources, &index); s; s = pa_idxset_next(c->sources, &index))
-                    if (!s->monitor_of) {
-                        pa_namereg_set_default(c, s->name, PA_NAMEREG_SOURCE);
-                        break;
-                    }
-            }
-
-            name = c->default_source_name;
-                
-        } else if (type == PA_NAMEREG_SINK) {
-
-            if (!c->default_sink_name) {
-                struct pa_sink *s;
-
-                if ((s = pa_idxset_first(c->sinks, NULL)))
-                    pa_namereg_set_default(c, s->name, PA_NAMEREG_SINK);
-            }
-
-            name = c->default_sink_name;
-        }
+        if (type == PA_NAMEREG_SOURCE)
+            name = pa_namereg_get_default_source_name(c);
+        else if (type == PA_NAMEREG_SINK)
+            name = pa_namereg_get_default_sink_name(c);
     }
 
     if (!name)
@@ -196,4 +176,45 @@ void pa_namereg_set_default(struct pa_core*c, const char *name, enum pa_namereg_
     pa_xfree(*s);
     *s = pa_xstrdup(name);
     pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
+}
+
+const char *pa_namereg_get_default_sink_name(struct pa_core *c) {
+    struct pa_sink *s;
+    assert(c);
+
+    if (c->default_sink_name)
+        return c->default_sink_name;
+    
+    if ((s = pa_idxset_first(c->sinks, NULL)))
+        pa_namereg_set_default(c, s->name, PA_NAMEREG_SINK);
+
+    if (c->default_sink_name)
+        return c->default_sink_name;
+
+    return NULL;
+}
+
+const char *pa_namereg_get_default_source_name(struct pa_core *c) {
+    struct pa_source *s;
+    uint32_t index;
+    
+    assert(c);
+
+    if (c->default_source_name)
+        return c->default_source_name;
+
+    for (s = pa_idxset_first(c->sources, &index); s; s = pa_idxset_next(c->sources, &index))
+        if (!s->monitor_of) {
+            pa_namereg_set_default(c, s->name, PA_NAMEREG_SOURCE);
+            break;
+        }
+
+    if (!c->default_source_name)
+        if ((s = pa_idxset_first(c->sources, NULL)))
+            pa_namereg_set_default(c, s->name, PA_NAMEREG_SOURCE);
+
+    if (c->default_source_name)
+        return c->default_source_name;
+
+    return NULL;
 }

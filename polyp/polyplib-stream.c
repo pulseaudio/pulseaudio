@@ -239,7 +239,7 @@ static void create_stream(struct pa_stream *s, const char *dev, const struct pa_
     pa_tagstruct_putu32(t, tag = s->context->ctag++);
     pa_tagstruct_puts(t, s->name);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
-    pa_tagstruct_putu32(t, (uint32_t) -1);
+    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, dev ? dev : "");
     pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
     if (s->direction == PA_STREAM_PLAYBACK) {

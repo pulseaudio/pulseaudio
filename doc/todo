@@ -10,11 +10,12 @@
    autoload management
 - more complete pactl
 - add sample directory
-- add timing parameter to write callback of stream in client API
 - config file for command line arguments
+
 - add FAQ
 - pa_context_connect_spawn(): change function to fork+exec+waitpid-like function
 - on delete event in paman
+- add feature to dump config file
 
 ** later ***
 - xmlrpc/http

@@ -55,7 +55,6 @@ struct pa_core {
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m);
 void pa_core_free(struct pa_core*c);
-
 void pa_core_check_quit(struct pa_core *c);
 
 #endif

@@ -210,8 +210,30 @@ static int pa_cli_command_source_outputs(struct pa_core *c, struct pa_tokenizer 
 }
 
 static int pa_cli_command_stat(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    char s[256];
     assert(c && t);
-    pa_strbuf_printf(buf, "Memory blocks currently allocated: %u, size: %u bytes.\nMemory blocks allocated during the whole lifetime: %u, size: %u bytes.\n", c->memblock_stat->total, c->memblock_stat->total_size, c->memblock_stat->allocated, c->memblock_stat->allocated_size);
+
+    pa_bytes_snprint(s, sizeof(s), c->memblock_stat->total_size);
+    pa_strbuf_printf(buf, "Memory blocks currently allocated: %u, size: %s.\n",
+                     c->memblock_stat->total,
+                     s);
+
+    pa_bytes_snprint(s, sizeof(s), c->memblock_stat->allocated_size);
+    pa_strbuf_printf(buf, "Memory blocks allocated during the whole lifetime: %u, size: %s.\n",
+                     c->memblock_stat->allocated,
+                     s);
+
+    pa_bytes_snprint(s, sizeof(s), pa_scache_total_size(c));
+    pa_strbuf_printf(buf, "Total sample cache size: %s.\n", s);
+
+    pa_sample_spec_snprint(s, sizeof(s), &c->default_sample_spec);
+    pa_strbuf_printf(buf, "Default sample spec: %s\n", s);
+
+    pa_strbuf_printf(buf, "Default sink name: %s\n"
+                     "Default source name: %s\n",
+                     pa_namereg_get_default_sink_name(c),
+                     pa_namereg_get_default_source_name(c));
+    
     return 0;
 }
 

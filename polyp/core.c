@@ -139,3 +139,4 @@ void pa_core_check_quit(struct pa_core *c) {
         c->quit_event = NULL;
     }
 }
+

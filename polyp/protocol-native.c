@@ -1203,6 +1203,7 @@ static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, u
     struct connection *c = userdata;
     struct pa_tagstruct *reply;
     char txt[256];
+    const char *n;
     assert(c && t);
 
     if (!pa_tagstruct_eof(t)) {
@@ -1224,8 +1225,11 @@ static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, u
     pa_tagstruct_puts(reply, pa_get_user_name(txt, sizeof(txt)));
     pa_tagstruct_puts(reply, pa_get_host_name(txt, sizeof(txt)));
     pa_tagstruct_put_sample_spec(reply, &c->protocol->core->default_sample_spec);
-    pa_tagstruct_puts(reply, c->protocol->core->default_sink_name ?  c->protocol->core->default_sink_name : "");
-    pa_tagstruct_puts(reply, c->protocol->core->default_source_name ?  c->protocol->core->default_source_name : "");
+
+    n = pa_namereg_get_default_sink_name(c->protocol->core);
+    pa_tagstruct_puts(reply, n ? n : "");
+    n = pa_namereg_get_default_source_name(c->protocol->core);
+    pa_tagstruct_puts(reply, n ? n : "");
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
