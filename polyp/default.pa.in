@@ -52,7 +52,7 @@ set-default-source input
 .nofail
 
 # Load something to the sample cache
-load-sample /usr/share/sounds/KDE_Notify.wav x11-bell
+load-sample x11-bell /usr/share/sounds/KDE_Notify.wav
 
 # Load X11 bell module
 load-module module-x11-bell sample=x11-bell sink=output

@@ -85,9 +85,9 @@ finish:
 static int load(const char *fn, void *data, size_t length) {
     int fd = -1;
     int writable = 1;
-    assert(fn && data && length);
     int unlock = 0, ret;
     ssize_t r;
+    assert(fn && data && length);
 
     if ((fd = open(fn, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
         if (errno != EACCES || (fd = open(fn, O_RDONLY)) < 0) {
