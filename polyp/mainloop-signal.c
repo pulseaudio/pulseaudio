@@ -54,33 +54,31 @@ static void signal_handler(int sig) {
 }
 
 static void callback(struct pa_mainloop_api*a, struct pa_io_event*e, int fd, enum pa_io_event_flags f, void *userdata) {
+    ssize_t r;
+    int sig;
+    struct pa_signal_event*s;
     assert(a && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == signal_pipe[0]);
 
-    for (;;) {
-        ssize_t r;
-        int sig;
-        struct pa_signal_event*s;
         
-        if ((r = read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
-            if (errno == EAGAIN)
-                return;
-
-            fprintf(stderr, "signal.c: read(): %s\n", strerror(errno));
+    if ((r = read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
+        if (errno == EAGAIN)
             return;
-        }
 
-        if (r != sizeof(sig)) {
-            fprintf(stderr, "signal.c: short read()\n");
-            return;
-        }
-
-        for (s = signals; s; s = s->next) 
-            if (s->sig == sig) {
-                assert(s->callback);
-                s->callback(a, s, sig, s->userdata);
-                break;
-            }
+        fprintf(stderr, "signal.c: read(): %s\n", strerror(errno));
+        return;
     }
+    
+    if (r != sizeof(sig)) {
+        fprintf(stderr, "signal.c: short read()\n");
+        return;
+    }
+    
+    for (s = signals; s; s = s->next) 
+        if (s->sig == sig) {
+            assert(s->callback);
+            s->callback(a, s, sig, s->userdata);
+            break;
+        }
 }
 
 int pa_signal_init(struct pa_mainloop_api *a) {
@@ -108,7 +106,8 @@ void pa_signal_done(void) {
     while (signals)
         pa_signal_free(signals);
 
-    api->io_free(io_event);
+
+        api->io_free(io_event);
     io_event = NULL;
 
     close(signal_pipe[0]);

@@ -116,6 +116,9 @@ double pa_volume_to_dB(pa_volume_t v);
 #define PA_DECIBEL_MININFTY (-200)
 #endif
 
+/** Pretty print a byte size value. (i.e. "2.5 MB") */
+void pa_bytes_snprint(char *s, size_t l, off_t v);
+
 PA_C_DECL_END
 
 #endif

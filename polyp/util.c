@@ -223,16 +223,23 @@ void pa_raise_priority(void) {
         fprintf(stderr, __FILE__": setpriority() failed: %s\n", strerror(errno));
     else
         fprintf(stderr, __FILE__": Successfully gained nice level %i.\n", NICE_LEVEL);
-    
+
 #ifdef _POSIX_PRIORITY_SCHEDULING
     {
         struct sched_param sp;
-        sched_getparam(0, &sp);
+
+        if (sched_getparam(0, &sp) < 0) {
+            fprintf(stderr, __FILE__": sched_getparam() failed: %s\n", strerror(errno));
+            return;
+        }
+        
         sp.sched_priority = 1;
-        if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0)
+        if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0) {
             fprintf(stderr, __FILE__": sched_setscheduler() failed: %s\n", strerror(errno));
-        else
-            fprintf(stderr, __FILE__": Successfully gained SCHED_FIFO scheduling.\n");
+            return;
+        }
+
+        fprintf(stderr, __FILE__": Successfully enabled SCHED_FIFO scheduling.\n");
     }
 #endif
 }

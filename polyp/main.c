@@ -43,6 +43,7 @@
 #include "util.h"
 #include "sioman.h"
 #include "xmalloc.h"
+#include "cpulimit.h"
 
 static struct pa_mainloop *mainloop;
 
@@ -54,15 +55,37 @@ static void drop_root(void) {
     }
 }
 
-static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
-    m->quit(m, 1);
-    fprintf(stderr, __FILE__": got signal.\n");
+static const char* signal_name(int s) {
+    switch(s) {
+        case SIGINT: return "SIGINT";
+        case SIGTERM: return "SIGTERM";
+        case SIGUSR1: return "SIGUSR1";
+        case SIGUSR2: return "SIGUSR2";
+        case SIGXCPU: return "SIGXCPU";
+        case SIGPIPE: return "SIGPIPE";
+        default: return "UNKNOWN SIGNAL";
+    }
 }
 
-static void aux_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
-    struct pa_core *c = userdata;
-    assert(c);
-    pa_module_load(c, sig == SIGUSR1 ? "module-cli" : "module-cli-protocol-unix", NULL);
+static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
+    fprintf(stderr, __FILE__": got signal %s.\n", signal_name(sig));
+
+    switch (sig) {
+        case SIGUSR1:
+            pa_module_load(userdata, "module-cli", NULL);
+            return;
+            
+        case SIGUSR2:
+            pa_module_load(userdata, "module-cli-protocol-unix", NULL);
+            return;
+        
+        case SIGINT:
+        case SIGTERM:
+        default:
+            fprintf(stderr, "Exiting.\n");
+            m->quit(m, 1);
+            return;
+    }
 }
 
 static void close_pipe(int p[2]) {
@@ -157,16 +180,19 @@ int main(int argc, char *argv[]) {
 
     r = pa_signal_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);
-    pa_signal_new(SIGINT, exit_signal_callback, NULL);
-    pa_signal_new(SIGTERM, exit_signal_callback, NULL);
+    pa_signal_new(SIGINT, signal_callback, c);
+    pa_signal_new(SIGTERM, signal_callback, c);
     signal(SIGPIPE, SIG_IGN);
 
     c = pa_core_new(pa_mainloop_get_api(mainloop));
     assert(c);
     
-    pa_signal_new(SIGUSR1, aux_signal_callback, c);
-    pa_signal_new(SIGUSR2, aux_signal_callback, c);
+    pa_signal_new(SIGUSR1, signal_callback, c);
+    pa_signal_new(SIGUSR2, signal_callback, c);
 
+    r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
+    assert(r == 0);
+    
     buf = pa_strbuf_new();
     assert(buf);
     r = pa_cli_command_execute(c, cmdline->cli_commands, buf, &cmdline->fail, &cmdline->verbose);
@@ -193,6 +219,7 @@ int main(int argc, char *argv[]) {
         
     pa_core_free(c);
 
+    pa_cpu_limit_done();
     pa_signal_done();
     pa_mainloop_free(mainloop);
     

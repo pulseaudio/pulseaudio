@@ -31,7 +31,7 @@ AM_LIBADD=$(PTHREAD_LIBS) -lm
 EXTRA_DIST = polypaudio.pa depmod.py esdcompat.sh.in
 bin_PROGRAMS = polypaudio pacat pactl
 bin_SCRIPTS = esdcompat.sh
-noinst_PROGRAMS = mainloop-test mainloop-test-glib mainloop-test-glib12 pacat-simple parec-simple 
+noinst_PROGRAMS = mainloop-test mainloop-test-glib mainloop-test-glib12 pacat-simple parec-simple cpulimit-test cpulimit-test2 
 
 polypconf_DATA=polypaudio.pa 
 
@@ -142,7 +142,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		xmalloc.c xmalloc.h \
 		subscribe.h subscribe.c \
 		debug.h \
-		sound-file-stream.c sound-file-stream.h
+		sound-file-stream.c sound-file-stream.h \
+		cpulimit.c cpulimit.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
@@ -386,6 +387,15 @@ mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainlo
 mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
 mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12.la
+
+cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c
+cpulimit_test_CFLAGS = $(AM_CFLAGS)
+cpulimit_test_LDADD = $(AM_LDADD) libpolyp-mainloop.la
+
+cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c
+cpulimit_test2_CFLAGS = $(AM_CFLAGS) -DTEST2
+cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop.la
+
 
 if BUILD_LIBPOLYPCORE
 

@@ -16,6 +16,8 @@
 - automatic termination of daemon if unused
 - add sample directory
 - paman: show scache and sample size
+- add timing parameter to write callback of stream in client API
+- add option for disabling module loading
 
 ** later ***
 - xmlrpc/http
