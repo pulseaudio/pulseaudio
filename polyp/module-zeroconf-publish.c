@@ -137,7 +137,7 @@ static int publish_service(struct userdata *u, struct service *s) {
         s->published = 0;
     }
 
-    snprintf(t, sizeof(t), "Networked Audio device %s on %s", s->name, pa_get_host_name(hn, sizeof(hn)));
+    snprintf(t, sizeof(t), "Networked Audio Device %s on %s", s->name, pa_get_host_name(hn, sizeof(hn)));
 
     if (sw_text_record_init(&txt) != SW_OKAY) {
         pa_log(__FILE__": sw_text_record_init() failed\n");
@@ -434,7 +434,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
             if (publish_autoload(u, autoload) < 0)
                 goto fail;
 
-    snprintf(t, sizeof(t), "Networked Audio on %s", pa_get_host_name(hn, sizeof(hn)));   
+    snprintf(t, sizeof(t), "Networked Audio Server on %s", pa_get_host_name(hn, sizeof(hn)));   
 
     if (sw_text_record_init(&txt) != SW_OKAY) {
         pa_log(__FILE__": sw_text_record_init() failed\n");
