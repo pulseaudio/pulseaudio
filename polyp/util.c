@@ -880,7 +880,7 @@ int pa_atoi(const char *s, int32_t *ret_i) {
 
     l = strtol(s, &x, 0);
 
-    if (x || *x)
+    if (!x || *x)
         return -1;
 
     *ret_i = (int32_t) l;

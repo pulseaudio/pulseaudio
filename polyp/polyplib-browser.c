@@ -221,7 +221,6 @@ static sw_result browse_reply(
     switch (status) {
         case SW_DISCOVERY_BROWSE_ADD_SERVICE: {
             sw_discovery_oid oid;
-            fprintf(stderr, "debug: new service: %s\n", name);
 
             if (sw_discovery_resolve(b->discovery, 0, name, type, domain, resolve_reply, b, &oid) != SW_OKAY)
                 pa_log("sw_discovery_resolve() failed\n");

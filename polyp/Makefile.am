@@ -87,6 +87,7 @@ modlib_LTLIBRARIES= \
 		libiochannel.la \
 		libsocket-server.la \
 		libsocket-client.la \
+		libparseaddr.la \
 		libpacket.la \
 		libpstream.la \
 		liboss-util.la \
@@ -228,7 +229,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_CPPFLAGS = $(AM_CPPFLAGS) $(LTDLINCL)
 polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
-polypaudio_LDFLAGS= $(AM_LDFLAGS) -export-dynamic -dlopen force #-static $(foreach f,$(modlib_LTLIBRARIES),-dlpreopen $(f))
+polypaudio_LDFLAGS= $(AM_LDFLAGS) -export-dynamic -dlopen force 
+#q-static $(foreach f,$(modlib_LTLIBRARIES),-dlpreopen $(f))
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version
@@ -240,7 +242,10 @@ libsocket_server_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la $(LI
 
 libsocket_client_la_SOURCES = socket-client.c socket-client.h
 libsocket_client_la_LDFLAGS = -avoid-version
-libsocket_client_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la
+libsocket_client_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la libparseaddr.la
+
+libparseaddr_la_SOURCES = parseaddr.c parseaddr.h
+libparseaddr_la_LDFLAGS = -avoid-version
 
 libpstream_la_SOURCES = pstream.c pstream.h
 libpstream_la_LDFLAGS = -avoid-version
@@ -434,6 +439,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		util.c util.h \
 		memblock.c memblock.h \
 		socket-client.c socket-client.h \
+		parseaddr.c parseaddr.h \
 		packet.c packet.h \
 		queue.c queue.h \
 		dynarray.c dynarray.h \

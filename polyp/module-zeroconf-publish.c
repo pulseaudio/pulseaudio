@@ -41,14 +41,21 @@
 #include "subscribe.h"
 #include "dynarray.h"
 #include "endianmacros.h"
+#include "modargs.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher")
 PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_USAGE("port=<IP port number>")
 
 #define SERVICE_NAME_SINK "_polypaudio-sink._tcp"
 #define SERVICE_NAME_SOURCE "_polypaudio-source._tcp"
 #define SERVICE_NAME_SERVER "_polypaudio-server._tcp"
+
+static const char* const valid_modargs[] = {
+    "port",
+    NULL
+};
 
 struct service {
     sw_discovery_oid oid;
@@ -74,6 +81,9 @@ struct userdata {
     struct pa_hashmap *services;
     struct pa_dynarray *sink_dynarray, *source_dynarray, *autoload_dynarray;
     struct pa_subscription *subscription;
+
+    uint16_t port;
+    sw_discovery_oid server_oid;
 };
 
 static sw_result publish_reply(sw_discovery discovery, sw_discovery_publish_status status, sw_discovery_oid oid, sw_opaque extra) {
@@ -127,7 +137,7 @@ static int publish_service(struct userdata *u, struct service *s) {
         s->published = 0;
     }
 
-    snprintf(t, sizeof(t), "%s@%s", s->name, pa_get_host_name(hn, sizeof(hn)));   
+    snprintf(t, sizeof(t), "Networked Audio device %s on %s", s->name, pa_get_host_name(hn, sizeof(hn)));
 
     if (sw_text_record_init(&txt) != SW_OKAY) {
         pa_log(__FILE__": sw_text_record_init() failed\n");
@@ -160,7 +170,7 @@ static int publish_service(struct userdata *u, struct service *s) {
         
         if (sw_discovery_publish(pa_howl_wrapper_get_discovery(u->howl_wrapper), 0, t,
                                  s->loaded.type == PA_NAMEREG_SINK ? SERVICE_NAME_SINK : SERVICE_NAME_SOURCE,
-                                 NULL, NULL, PA_NATIVE_DEFAULT_PORT, sw_text_record_bytes(txt), sw_text_record_len(txt),
+                                 NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
                                  publish_reply, s, &s->oid) != SW_OKAY) {
             pa_log(__FILE__": failed to register sink on zeroconf.\n");
             goto finish;
@@ -171,7 +181,7 @@ static int publish_service(struct userdata *u, struct service *s) {
 
         if (sw_discovery_publish(pa_howl_wrapper_get_discovery(u->howl_wrapper), 0, t,
                                  s->autoload.type == PA_NAMEREG_SINK ? SERVICE_NAME_SINK : SERVICE_NAME_SOURCE,
-                                 NULL, NULL, PA_NATIVE_DEFAULT_PORT, sw_text_record_bytes(txt), sw_text_record_len(txt),
+                                 NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
                                  publish_reply, s, &s->oid) != SW_OKAY) {
             pa_log(__FILE__": failed to register sink on zeroconf.\n");
             goto finish;
@@ -375,13 +385,28 @@ fail:
 
 int pa__init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
-    uint32_t index;
+    uint32_t index, port = PA_NATIVE_DEFAULT_PORT;
     struct pa_sink *sink;
     struct pa_source *source;
     struct pa_autoload_entry *autoload;
+    struct pa_modargs *ma = NULL;
+    char t[256], hn[256];
+    int free_txt = 0;
+    sw_text_record txt;
+
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log(__FILE__": failed to parse module arguments.\n");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port == 0 || port >= 0xFFFF) {
+        pa_log(__FILE__": invalid port specified.\n");
+        goto fail;
+    }
 
     m->userdata = u = pa_xmalloc(sizeof(struct userdata));
     u->core = c;
+    u->port = (uint16_t) port;
 
     if (!(u->howl_wrapper = pa_howl_wrapper_get(c)))
         goto fail;
@@ -409,10 +434,38 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
             if (publish_autoload(u, autoload) < 0)
                 goto fail;
 
+    snprintf(t, sizeof(t), "Networked Audio on %s", pa_get_host_name(hn, sizeof(hn)));   
+
+    if (sw_text_record_init(&txt) != SW_OKAY) {
+        pa_log(__FILE__": sw_text_record_init() failed\n");
+        goto fail;
+    }
+    free_txt = 1;
+
+    txt_record_server_data(u->core, txt);
+    
+    if (sw_discovery_publish(pa_howl_wrapper_get_discovery(u->howl_wrapper), 0, t,
+                             SERVICE_NAME_SERVER,
+                             NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
+                             publish_reply, u, &u->server_oid) != SW_OKAY) {
+        pa_log(__FILE__": failed to register server on zeroconf.\n");
+        goto fail;
+    }
+    
+    sw_text_record_fina(txt);
+    pa_modargs_free(ma);
+    
     return 0;
     
 fail:
     pa__done(c, m);
+
+    if (ma)
+        pa_modargs_free(ma);
+
+    if (free_txt)
+        sw_text_record_fina(txt);
+    
     return -1;
 }
 

@@ -39,6 +39,7 @@
 #include "util.h"
 #include "xmalloc.h"
 #include "log.h"
+#include "parseaddr.h"
 
 struct pa_socket_client {
     int ref;
@@ -254,121 +255,56 @@ struct pa_socket_client* pa_socket_client_new_ipv6(struct pa_mainloop_api *m, ui
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
 
-/* Parse addresses in one of the following forms:
- *    HOSTNAME
- *    HOSTNAME:PORT
- *    [HOSTNAME]
- *    [HOSTNAME]:PORT
- *
- *  Return a newly allocated string of the hostname and fill in *port if specified  */
-
-static char *parse_address(const char *s, uint16_t *port) {
-    assert(s && port);
-    if (*s == '[') {
-        char *e;
-        if (!(e = strchr(s+1, ']')))
-            return NULL;
-
-        if (e[1] == ':')
-            *port = atoi(e+2);
-        else if (e[1] != 0)
-            return NULL;
-        
-        return pa_xstrndup(s+1, e-s-1);
-    } else {
-        char *e;
-        
-        if (!(e = strrchr(s, ':')))
-            return pa_xstrdup(s);
-
-        *port = atoi(e+1);
-        return pa_xstrndup(s, e-s);
-    }
-}
-
 struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, const char*name, uint16_t default_port) {
-    const char *p;
     struct pa_socket_client *c = NULL;
-    enum { KIND_UNIX, KIND_TCP_AUTO, KIND_TCP4, KIND_TCP6 } kind = KIND_TCP_AUTO;
+    struct pa_parsed_address a;
     assert(m && name);
 
-    if (*name == '{') {
-        char hn[256], *pfx;
-        /* The URL starts with a host specification for detecting local connections */
-        
-        if (!pa_get_host_name(hn, sizeof(hn)))
-            return NULL;
-                
-        pfx = pa_sprintf_malloc("{%s}", hn);
-        if (!pa_startswith(name, pfx))
-            /* Not local */
-            return NULL;
-        
-        p = name + strlen(pfx);
-    } else
-        p = name;
-    
-    if (*p == '/')
-        kind = KIND_UNIX;
-    else if (pa_startswith(p, "unix:")) {
-        kind = KIND_UNIX;
-        p += sizeof("unix:")-1;
-    } else if (pa_startswith(p, "tcp:") || pa_startswith(p, "tcp4:")) {
-        kind = KIND_TCP4;
-        p += sizeof("tcp:")-1;
-    } else if (pa_startswith(p, "tcp6:")) {
-        kind = KIND_TCP6;
-        p += sizeof("tcp6:")-1;
-    }
+    if (pa_parse_address(name, &a) < 0)
+        return NULL;
 
-    switch (kind) {
-        case KIND_UNIX:
-            return pa_socket_client_new_unix(m, p);
+    switch (a.type) {
+        case PA_PARSED_ADDRESS_UNIX:
+            c = pa_socket_client_new_unix(m, a.path_or_host);
+            break;
 
-        case KIND_TCP_AUTO:  /* Fallthrough */
-        case KIND_TCP4: 
-        case KIND_TCP6: {
-            uint16_t port = default_port;
-            char *h;
+        case PA_PARSED_ADDRESS_TCP4:  /* Fallthrough */
+        case PA_PARSED_ADDRESS_TCP6:  /* Fallthrough */
+        case PA_PARSED_ADDRESS_TCP_AUTO:{
             int ret;
             struct addrinfo hints, *res;
 
-            if (!(h = parse_address(p, &port)))
-                return NULL;
-
             memset(&hints, 0, sizeof(hints));
-            hints.ai_family = kind == KIND_TCP4 ? AF_INET : (kind == KIND_TCP6 ? AF_INET6 : AF_UNSPEC);
+            hints.ai_family = a.type == PA_PARSED_ADDRESS_TCP4 ? AF_INET : (a.type == PA_PARSED_ADDRESS_TCP6 ? AF_INET6 : AF_UNSPEC);
             
-            ret = getaddrinfo(h, NULL, &hints, &res);
-            pa_xfree(h);
+            ret = getaddrinfo(a.path_or_host, NULL, &hints, &res);
 
             if (ret < 0 || !res || !res->ai_addr)
-                return NULL;
+                goto finish;
 
             if (res->ai_family == AF_INET) {
                 if (res->ai_addrlen != sizeof(struct sockaddr_in))
-                    return NULL;
+                    goto finish;
                 assert(res->ai_addr->sa_family == res->ai_family);
                 
-                ((struct sockaddr_in*) res->ai_addr)->sin_port = htons(port);
+                ((struct sockaddr_in*) res->ai_addr)->sin_port = htons(a.port);
             } else if (res->ai_family == AF_INET6) {
                 if (res->ai_addrlen != sizeof(struct sockaddr_in6))
-                    return NULL;
+                    goto finish;
                 assert(res->ai_addr->sa_family == res->ai_family);
                 
-                ((struct sockaddr_in6*) res->ai_addr)->sin6_port = htons(port);
+                ((struct sockaddr_in6*) res->ai_addr)->sin6_port = htons(a.port);
             } else
-                return NULL;
+                goto finish;
 
             c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen);
             freeaddrinfo(res);
-            return c;
         }
     }
 
-    /* Should never be reached */
-    assert(0);
-    return NULL;
+finish:
+    pa_xfree(a.path_or_host);
+    return c;
     
 }
 
