@@ -689,7 +689,7 @@ static int do_read(struct connection *c) {
             handler = proto_map+c->request;
 
             if (!handler->proc) {
-                pa_log(__FILE__": recieved unimplemented request.\n");
+                pa_log(__FILE__": recieved unimplemented request #%u.\n", c->request);
                 return -1;
             }
             
