@@ -41,11 +41,12 @@ int main(int argc, char *argv[]) {
     module_load(c, "module-oss-mmap", "/dev/dsp1");
 /*    module_load(c, "module-pipe-sink", NULL);
     module_load(c, "module-simple-protocol-tcp", NULL);
-    module_load(c, "module-simple-protocol-unix", NULL);*/
+    module_load(c, "module-simple-protocol-unix", NULL);
     module_load(c, "module-cli-protocol-tcp", NULL);
-/*    module_load(c, "module-cli-protocol-unix", NULL);
-    module_load(c, "module-native-protocol-tcp", NULL);*/
-    module_load(c, "module-native-protocol-unix", NULL);
+    module_load(c, "module-cli-protocol-unix", NULL);
+    module_load(c, "module-native-protocol-tcp", NULL);
+    module_load(c, "module-native-protocol-unix", NULL);*/
+    module_load(c, "module-esound-protocol-tcp", NULL);
     module_load(c, "module-cli", NULL);
     
     fprintf(stderr, "main: mainloop entry.\n");

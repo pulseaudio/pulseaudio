@@ -79,7 +79,7 @@ int module_init(struct core *c, struct module*m) {
     char *p;
     int fd = -1;
     static const struct pa_sample_spec ss = {
-        .format = SAMPLE_S16NE,
+        .format = PA_SAMPLE_S16NE,
         .rate = 44100,
         .channels = 2,
     };

@@ -73,8 +73,7 @@ static int do_read(struct connection *c) {
         return -1;
     }
 
-    chunk.memblock->length = r;
-    chunk.length = r;
+    chunk.memblock->length = chunk.length = r;
     chunk.index = 0;
 
     assert(c->input_memblockq);

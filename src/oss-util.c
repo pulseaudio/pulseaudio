@@ -22,11 +22,11 @@ int oss_auto_format(int fd, struct pa_sample_spec *ss) {
                 fprintf(stderr, "SNDCTL_DSP_SETFMT: %s\n", format != AFMT_U8 ? "No supported sample format" : strerror(errno));
                 return -1;
             } else
-                ss->format = SAMPLE_U8;
+                ss->format = PA_SAMPLE_U8;
         } else
-            ss->format = f == AFMT_S16_LE ? SAMPLE_S16LE : SAMPLE_S16BE;
+            ss->format = f == AFMT_S16_LE ? PA_SAMPLE_S16LE : PA_SAMPLE_S16BE;
     } else
-        ss->format = SAMPLE_S16NE;
+        ss->format = PA_SAMPLE_S16NE;
         
     channels = 2;
     if (ioctl(fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {

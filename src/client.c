@@ -60,3 +60,9 @@ char *client_list_to_string(struct core *c) {
     return strbuf_tostring_free(s);
 }
 
+
+void client_rename(struct client *c, const char *name) {
+    assert(c);
+    free(c->name);
+    c->name = name ? strdup(name) : NULL;
+}

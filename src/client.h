@@ -25,4 +25,6 @@ void client_kill(struct client *c);
 
 char *client_list_to_string(struct core *c);
 
+void client_rename(struct client *c, const char *name);
+
 #endif

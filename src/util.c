@@ -1,9 +1,12 @@
+#include <errno.h>
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include "util.h"
 
@@ -59,4 +62,24 @@ void peer_to_string(char *c, size_t l, int fd) {
     }
 
     snprintf(c, l, "Unknown client");
+}
+
+int make_secure_dir(const char* dir) {
+    struct stat st;
+
+    if (mkdir(dir, 0700) < 0) 
+        if (errno != EEXIST)
+            return -1;
+    
+    if (lstat(dir, &st) < 0) 
+        goto fail;
+    
+    if (!S_ISDIR(st.st_mode) || (st.st_uid != getuid()) || ((st.st_mode & 0777) != 0700))
+        goto fail;
+    
+    return 0;
+    
+fail:
+    rmdir(dir);
+    return -1;
 }

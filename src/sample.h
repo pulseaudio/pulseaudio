@@ -5,15 +5,16 @@
 #include <sys/types.h>
 
 enum pa_sample_format {
-    SAMPLE_U8,
-    SAMPLE_ALAW,
-    SAMPLE_ULAW,
-    SAMPLE_S16LE,
-    SAMPLE_S16BE,
-    SAMPLE_FLOAT32
+    PA_SAMPLE_U8,
+    PA_SAMPLE_ALAW,
+    PA_SAMPLE_ULAW,
+    PA_SAMPLE_S16LE,
+    PA_SAMPLE_S16BE,
+    PA_SAMPLE_FLOAT32,
+    PA_SAMPLE_MAX
 };
 
-#define SAMPLE_S16NE SAMPLE_S16LE
+#define PA_SAMPLE_S16NE PA_SAMPLE_S16LE
 
 struct pa_sample_spec {
     enum pa_sample_format format;
@@ -24,5 +25,7 @@ struct pa_sample_spec {
 size_t pa_bytes_per_second(struct pa_sample_spec *spec);
 size_t pa_sample_size(struct pa_sample_spec *spec);
 uint32_t pa_samples_usec(size_t length, struct pa_sample_spec *spec);
+
+int pa_sample_spec_valid(struct pa_sample_spec *spec);
 
 #endif

@@ -29,7 +29,8 @@ pkglib_LTLIBRARIES=libiochannel.la libsocket-server.la libsocket-client.la \
 		libprotocol-cli.la module-cli-protocol-unix.la libtagstruct.la \
 		libpdispatch.la libprotocol-native.la libpstream-util.la \
 		module-native-protocol-tcp.la module-native-protocol-unix.la \
-		libpolyp.la
+		libpolyp.la libprotocol-esound.la module-esound-protocol-unix.la \
+		module-esound-protocol-tcp.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
@@ -113,40 +114,54 @@ libprotocol_cli_la_LIBADD = libsocket-server.la libiochannel.la libcli.la
 
 libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la libpstream-util.la libpdispatch.la
+libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la
 
 libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
 
+libprotocol_esound_la_SOURCES = protocol-esound.c protocol-esound.h protocol-esound-spec.h
+libprotocol_esound_la_LDFLAGS = -avoid-version
+libprotocol_esound_la_LIBADD = libsocket-server.la libiochannel.la
+
 module_simple_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_simple_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
 module_simple_protocol_tcp_la_LDFLAGS = -module -avoid-version
-module_simple_protocol_tcp_la_LIBADD = libprotocol-simple.la libiochannel.la
+module_simple_protocol_tcp_la_LIBADD = libprotocol-simple.la libsocket-server.la
 
 module_simple_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_simple_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
 module_simple_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_simple_protocol_unix_la_LIBADD = libprotocol-simple.la libiochannel.la
+module_simple_protocol_unix_la_LIBADD = libprotocol-simple.la libsocket-server.la
 
 module_cli_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_cli_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
 module_cli_protocol_tcp_la_LDFLAGS = -module -avoid-version
-module_cli_protocol_tcp_la_LIBADD = libprotocol-cli.la libiochannel.la
+module_cli_protocol_tcp_la_LIBADD = libprotocol-cli.la libsocket-server.la
 
 module_cli_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_cli_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
 module_cli_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_cli_protocol_unix_la_LIBADD = libprotocol-cli.la libiochannel.la
+module_cli_protocol_unix_la_LIBADD = libprotocol-cli.la libsocket-server.la
 
 module_native_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
 module_native_protocol_tcp_la_LDFLAGS = -module -avoid-version
-module_native_protocol_tcp_la_LIBADD = libprotocol-native.la libiochannel.la libtagstruct.la
+module_native_protocol_tcp_la_LIBADD = libprotocol-native.la libsocket-server.la
 
 module_native_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
 module_native_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_native_protocol_unix_la_LIBADD = libprotocol-native.la libiochannel.la libtagstruct.la
+module_native_protocol_unix_la_LIBADD = libprotocol-native.la libsocket-server.la
+
+module_esound_protocol_tcp_la_SOURCES = module-protocol-stub.c
+module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
+module_esound_protocol_tcp_la_LDFLAGS = -module -avoid-version
+module_esound_protocol_tcp_la_LIBADD = libprotocol-esound.la libsocket-server.la
+
+module_esound_protocol_unix_la_SOURCES = module-protocol-stub.c
+module_esound_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
+module_esound_protocol_unix_la_LDFLAGS = -module -avoid-version
+module_esound_protocol_unix_la_LIBADD = libprotocol-esound.la libsocket-server.la
 
 module_pipe_sink_la_SOURCES = module-pipe-sink.c
 module_pipe_sink_la_LDFLAGS = -module -avoid-version

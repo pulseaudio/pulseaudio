@@ -384,6 +384,7 @@ struct protocol_native* protocol_native_new(struct core *core, struct socket_ser
     p->server = server;
     p->core = core;
     p->connections = idxset_new(NULL, NULL);
+    assert(p->connections);
 
     socket_server_set_callback(p->server, on_connection, p);
     

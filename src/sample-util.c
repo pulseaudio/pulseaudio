@@ -4,7 +4,7 @@
 #include "sample-util.h"
 
 struct pa_sample_spec default_sample_spec = {
-    .format = SAMPLE_S16NE,
+    .format = PA_SAMPLE_S16NE,
     .rate = 44100,
     .channels = 2
 };
@@ -27,18 +27,20 @@ void silence_memory(void *p, size_t length, struct pa_sample_spec *spec) {
     assert(p && length && spec);
 
     switch (spec->format) {
-        case SAMPLE_U8:
+        case PA_SAMPLE_U8:
             c = 127;
             break;
-        case SAMPLE_S16LE:
-        case SAMPLE_S16BE:
-        case SAMPLE_FLOAT32:
+        case PA_SAMPLE_S16LE:
+        case PA_SAMPLE_S16BE:
+        case PA_SAMPLE_FLOAT32:
             c = 0;
             break;
-        case SAMPLE_ALAW:
-        case SAMPLE_ULAW:
+        case PA_SAMPLE_ALAW:
+        case PA_SAMPLE_ULAW:
             c = 80;
             break;
+        default:
+            assert(0);
     }
                 
     memset(p, c, length);
@@ -47,7 +49,7 @@ void silence_memory(void *p, size_t length, struct pa_sample_spec *spec) {
 size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct pa_sample_spec *spec, uint8_t volume) {
     unsigned c, d;
     assert(channels && data && length && spec);
-    assert(spec->format == SAMPLE_S16NE);
+    assert(spec->format == PA_SAMPLE_S16NE);
 
     for (d = 0;; d += sizeof(int16_t)) {
         int32_t sum = 0;
