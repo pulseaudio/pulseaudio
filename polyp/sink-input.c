@@ -126,12 +126,14 @@ int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
         if ((ret = i->peek(i, &tchunk)) < 0)
             return ret;
 
+        assert(tchunk.length);
+        
         l = pa_resampler_request(i->resampler, CONVERT_BUFFER_LENGTH);
         if (tchunk.length > l)
             tchunk.length = l;
 
         i->drop(i, tchunk.length);
-        
+
         pa_resampler_run(i->resampler, &tchunk, &i->resampled_chunk);
         pa_memblock_unref(tchunk.memblock);
     }

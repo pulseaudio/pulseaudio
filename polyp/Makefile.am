@@ -65,7 +65,8 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-esound-protocol-tcp.la \
 		module-esound-protocol-unix.la \
 		module-native-protocol-tcp.la \
-		module-native-protocol-unix.la
+		module-native-protocol-unix.la \
+		module-x11-bell.la
 
 lib_LTLIBRARIES=libpolyp.la \
 		libpolyp-simple.la \
@@ -246,6 +247,10 @@ module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la
 module_cli_la_SOURCES = module-cli.c
 module_cli_la_LDFLAGS = -module -avoid-version
 module_cli_la_LIBADD = $(AM_LIBADD) libcli.la libiochannel.la
+
+module_x11_bell_la_SOURCES = module-x11-bell.c
+module_x11_bell_la_LDFLAGS = -module -avoid-version
+module_x11_bell_la_LIBADD = $(AM_LIBADD) -lX11 -L/usr/X11R6/lib
 
 libpolyp_la_SOURCES = polyplib.c polyplib.h \
 		polyplib-def.h \

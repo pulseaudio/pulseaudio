@@ -202,7 +202,7 @@ static struct pa_sink* get_output_sink(struct pa_protocol_esound *p) {
     p->sink_index = s ? s->index : PA_IDXSET_INVALID;
     return s;
 }
-
+ 
 static struct pa_source* get_input_source(struct pa_protocol_esound *p) {
     struct pa_source *s;
     assert(p);

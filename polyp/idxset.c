@@ -95,15 +95,13 @@ struct pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*com
 void pa_idxset_free(struct pa_idxset *s, void (*free_func) (void *p, void *userdata), void *userdata) {
     assert(s);
 
-    if (free_func) {
-        while (s->iterate_list_head) {
-            struct idxset_entry *e = s->iterate_list_head;
-            s->iterate_list_head = s->iterate_list_head->iterate_next;
-
-            if (free_func)
-                free_func(e->data, userdata);
-            free(e);
-        }
+    while (s->iterate_list_head) {
+        struct idxset_entry *e = s->iterate_list_head;
+        s->iterate_list_head = s->iterate_list_head->iterate_next;
+        
+        if (free_func)
+            free_func(e->data, userdata);
+        free(e);
     }
 
     free(s->hash_table);

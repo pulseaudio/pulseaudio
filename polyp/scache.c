@@ -1,9 +1,11 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "scache.h"
 #include "sink-input.h"
+#include "mainloop.h"
 
 static void free_entry(struct pa_scache_entry *e) {
     assert(e);
@@ -70,7 +72,8 @@ int pa_scache_remove_item(struct pa_core *c, const char *name) {
         return -1;
 
     pa_hashmap_remove(c->scache_hashmap, name);
-    pa_idxset_remove_by_index(c->scache_idxset, e->index);
+    if (pa_idxset_remove_by_data(c->scache_idxset, e, NULL) != e)
+        assert(0);
     free_entry(e);
     return 0;
 }
@@ -113,8 +116,12 @@ static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     assert(c->length && c->memblock && c->memblock->length);
     *chunk = *c;
     pa_memblock_ref(c->memblock);
-    
+
     return 0;
+}
+
+static void si_kill(void *i) {
+    sink_input_kill(i);
 }
 
 static void sink_input_drop(struct pa_sink_input *i, size_t length) {
@@ -128,7 +135,7 @@ static void sink_input_drop(struct pa_sink_input *i, size_t length) {
     c->index += length;
 
     if (c->length <= 0)
-        sink_input_kill(i);
+        pa_mainloop_api_once(i->sink->core->mainloop, si_kill, i);
 }
 
 int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume) {
