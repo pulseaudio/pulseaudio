@@ -44,7 +44,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <div class="news-date">Fri Aug 27 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.3.tar.gz">Version 0.3</a> released;
-changes include: support for both glib 2.0 and glib 1.2, future cancellation, API updates, many fixes.</p>
+changes include: support for both glib 2.0 and glib 1.2, future cancellation, API updates, many fixes; relicense client library to LGPL.</p>
 
 <div class="news-date">Fri Aug 20 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.2.tar.gz">Version 0.2</a> released;
