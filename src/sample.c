@@ -113,3 +113,9 @@ size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, si
         data += sizeof(int16_t);
     }
 }
+
+uint32_t samples_usec(size_t length, struct sample_spec *spec) {
+    assert(spec);
+
+    return (uint32_t) (((double) length /sample_size(spec))/spec->rate*1000000);
+}

@@ -56,7 +56,6 @@ static void destroy_connection(struct connection *c) {
 static int do_read(struct connection *c) {
     struct memchunk chunk;
     ssize_t r;
-    uint32_t u1, u2;
 
     if (!iochannel_is_readable(c->io))
         return 0;
@@ -81,12 +80,6 @@ static int do_read(struct connection *c) {
     memblockq_push(c->input_memblockq, &chunk, 0);
     memblock_unref(chunk.memblock);
     sink_notify(c->sink_input->sink);
-
-
-    u1 = memblockq_get_latency(c->input_memblockq);
-    u2 = sink_get_latency(c->sink_input->sink);
-
-    fprintf(stderr, "latency: %u+%u=%u\r", u1, u2, u1+u2);
     
     return 0;
 }
@@ -120,14 +113,13 @@ static int do_write(struct connection *c) {
 
 /*** sink_input callbacks ***/
 
-static int sink_input_peek_cb(struct sink_input *i, struct memchunk *chunk, uint8_t *volume) {
+static int sink_input_peek_cb(struct sink_input *i, struct memchunk *chunk) {
     struct connection*c = i->userdata;
-    assert(i && c && chunk && volume);
+    assert(i && c && chunk);
 
     if (memblockq_peek(c->input_memblockq, chunk) < 0)
         return -1;
 
-    *volume = 0xFF;
     return 0;
 }
 
@@ -146,6 +138,13 @@ static void sink_input_kill_cb(struct sink_input *i) {
     destroy_connection((struct connection *) i->userdata);
 }
 
+
+static uint32_t sink_input_get_latency_cb(struct sink_input *i) {
+    struct connection*c = i->userdata;
+    assert(i && c);
+    return samples_usec(memblockq_get_length(c->input_memblockq), &DEFAULT_SAMPLE_SPEC);
+}
+
 /*** source_output callbacks ***/
 
 static void source_output_push_cb(struct source_output *o, struct memchunk *chunk) {
@@ -162,7 +161,6 @@ static void source_output_kill_cb(struct source_output *o) {
     assert(o && o->userdata);
     destroy_connection((struct connection *) o->userdata);
 }
-
 
 /*** client callbacks ***/
 
@@ -234,6 +232,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
         c->sink_input->peek = sink_input_peek_cb;
         c->sink_input->drop = sink_input_drop_cb;
         c->sink_input->kill = sink_input_kill_cb;
+        c->sink_input->get_latency = sink_input_get_latency_cb;
         c->sink_input->userdata = c;
 
         l = bytes_per_second(&DEFAULT_SAMPLE_SPEC)/2; /* half a second */

@@ -13,10 +13,13 @@ struct sink_input {
     char *name;
     struct sink *sink;
     struct sample_spec spec;
+    uint8_t volume;
     
-    int (*peek) (struct sink_input *i, struct memchunk *chunk, uint8_t *volume);
+    int (*peek) (struct sink_input *i, struct memchunk *chunk);
     void (*drop) (struct sink_input *i, size_t length);
     void (*kill) (struct sink_input *i);
+    uint32_t (*get_latency) (struct sink_input *i);
+    
 
     void *userdata;
 };
@@ -28,5 +31,7 @@ void sink_input_free(struct sink_input* i);
  * request destruction of it */
 void sink_input_kill(struct sink_input *i);
 
+uint32_t sink_input_get_latency(struct sink_input *i);
+char *sink_input_list_to_string(struct core *c);
 
 #endif

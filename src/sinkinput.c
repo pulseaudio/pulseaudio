@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "sinkinput.h"
+#include "strbuf.h"
 
 struct sink_input* sink_input_new(struct sink *s, struct sample_spec *spec, const char *name) {
     struct sink_input *i;
@@ -18,6 +19,7 @@ struct sink_input* sink_input_new(struct sink *s, struct sample_spec *spec, cons
     i->peek = NULL;
     i->drop = NULL;
     i->kill = NULL;
+    i->get_latency = NULL;
     i->userdata = NULL;
 
     assert(s->core);
@@ -45,4 +47,41 @@ void sink_input_kill(struct sink_input*i) {
 
     if (i->kill)
         i->kill(i);
+}
+
+char *sink_input_list_to_string(struct core *c) {
+    struct strbuf *s;
+    struct sink_input *i;
+    uint32_t index = IDXSET_INVALID;
+    assert(c);
+
+    s = strbuf_new();
+    assert(s);
+
+    strbuf_printf(s, "%u sink input(s) available.\n", idxset_ncontents(c->sink_inputs));
+
+    for (i = idxset_first(c->sink_inputs, &index); i; i = idxset_next(c->sink_inputs, &index)) {
+        assert(i->sink);
+        strbuf_printf(s, "    index: %u, name: <%s>, sink: <%u>; volume: <0x%02x>, latency: <%u usec>\n",
+                      i->index,
+                      i->name,
+                      i->sink->index,
+                      (unsigned) i->volume,
+                      sink_input_get_latency(i));
+    }
+    
+    return strbuf_tostring_free(s);
+}
+
+uint32_t sink_input_get_latency(struct sink_input *i) {
+    uint32_t l = 0;
+    
+    assert(i);
+    if (i->get_latency)
+        l += i->get_latency(i);
+
+    assert(i->sink);
+    l += sink_get_latency(i->sink);
+
+    return l;
 }

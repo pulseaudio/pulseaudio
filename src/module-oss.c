@@ -25,7 +25,7 @@ struct userdata {
 
     struct memchunk memchunk, silence;
 
-    uint32_t in_fragment_size, out_fragment_size, sample_size, sample_usec;
+    uint32_t in_fragment_size, out_fragment_size, sample_size;
 
     int fd;
 };
@@ -99,7 +99,7 @@ static void io_callback(struct iochannel *io, void*userdata) {
 static uint32_t sink_get_latency_cb(struct sink *s) {
     int arg;
     struct userdata *u = s->userdata;
-    assert(s && u);
+    assert(s && u && u->sink);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
         fprintf(stderr, "module-oss: device doesn't support SNDCTL_DSP_GETODELAY.\n");
@@ -107,7 +107,7 @@ static uint32_t sink_get_latency_cb(struct sink *s) {
         return 0;
     }
 
-    return arg/u->sample_size*u->sample_usec;
+    return samples_usec(arg, &s->sample_spec);
 }
 
 int module_init(struct core *c, struct module*m) {
@@ -204,7 +204,6 @@ int module_init(struct core *c, struct module*m) {
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
     u->sample_size = sample_size(&ss);
-    u->sample_usec = 1000000/ss.rate;
 
     u->out_fragment_size = out_frag_size;
     u->in_fragment_size = in_frag_size;

@@ -29,6 +29,6 @@ void memblock_unref_fixed(struct memblock*b);
 
 #define memblock_assert_exclusive(b) assert((b)->ref == 1)
 
-extern unsigned n_blocks;
+extern unsigned memblock_count, memblock_total;
 
 #endif

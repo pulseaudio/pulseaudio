@@ -9,6 +9,8 @@
 #include "sink.h"
 #include "source.h"
 #include "client.h"
+#include "sinkinput.h"
+#include "sourceoutput.h"
 
 struct cli {
     struct core *core;
@@ -34,7 +36,7 @@ struct cli* cli_new(struct core *core, struct iochannel *io) {
     c->eof_callback = NULL;
 
     ioline_set_callback(c->line, line_callback, c);
-    ioline_puts(c->line, "Welcome to polypaudio!\n> ");
+    ioline_puts(c->line, "Welcome to polypaudio! Use \"help\" for usage information.\n> ");
 
     return c;
 }
@@ -66,10 +68,30 @@ static void line_callback(struct ioline *line, const char *s, void *userdata) {
         ioline_puts(line, (t = sink_list_to_string(c->core)));
     else if (!strcmp(s, "clients"))
         ioline_puts(line, (t = client_list_to_string(c->core)));
-    else if (!strcmp(s, "exit")) {
+    else if (!strcmp(s, "source_outputs"))
+        ioline_puts(line, (t = source_output_list_to_string(c->core)));
+    else if (!strcmp(s, "sink_inputs"))
+        ioline_puts(line, (t = sink_input_list_to_string(c->core)));
+    else if (!strcmp(s, "stat")) {
+        char txt[256];
+        snprintf(txt, sizeof(txt), "Memory blocks allocated: %u, total size: %u bytes.\n", memblock_count, memblock_total);
+        ioline_puts(line, txt);
+    } else if (!strcmp(s, "exit")) {
         assert(c->core && c->core->mainloop);
         mainloop_quit(c->core->mainloop, -1);
-    } else if (*s)
+    } else if (!strcmp(s, "help"))
+        ioline_puts(line,
+                    "Available commands:\n"
+                    "    modules\t\tlist modules\n"
+                    "    sinks\t\tlist sinks\n"
+                    "    sources\t\tlist sources\n"
+                    "    clients\t\tlist clients\n"
+                    "    source_outputs\tlist source outputs\n"
+                    "    sink_inputs\t\tlist sink inputs\n"
+                    "    stat\t\tshow memblock statistics\n"
+                    "    exit\t\tterminate the daemon\n"
+                    "    help\t\tshow this help\n");
+    else if (*s)
         ioline_puts(line, "Unknown command\n");
 
     free(t);

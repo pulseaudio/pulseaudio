@@ -5,7 +5,7 @@
 
 #include "memblock.h"
 
-unsigned n_blocks = 0;
+unsigned memblock_count = 0, memblock_total = 0;
 
 struct memblock *memblock_new(size_t length) {
     struct memblock *b = malloc(sizeof(struct memblock)+length);
@@ -13,7 +13,8 @@ struct memblock *memblock_new(size_t length) {
     b->ref = 1;
     b->length = length;
     b->data = b+1;
-    n_blocks++;
+    memblock_count++;
+    memblock_total += length;
     return b;
 }
 
@@ -23,7 +24,8 @@ struct memblock *memblock_new_fixed(void *d, size_t length) {
     b->ref = 1;
     b->length = length;
     b->data = d;
-    n_blocks++;
+    memblock_count++;
+    memblock_total += length;
     return b;
 }
 
@@ -33,7 +35,8 @@ struct memblock *memblock_new_dynamic(void *d, size_t length) {
     b->ref = 1;
     b->length = length;
     b->data = d;
-    n_blocks++;
+    memblock_count++;
+    memblock_total += length;
     return b;
 }
 
@@ -50,8 +53,11 @@ void memblock_unref(struct memblock*b) {
     if (b->ref == 0) {
         if (b->type == MEMBLOCK_DYNAMIC)
             free(b->data);
+
+        memblock_count--;
+        memblock_total -= b->length;
+
         free(b);
-        n_blocks--;
     }
 }
 

@@ -16,8 +16,8 @@ struct memblockq {
     struct memblock_list *blocks, *blocks_tail;
     unsigned n_blocks;
     size_t total_length, maxlength, base, prebuf;
-    int measure_latency;
-    uint32_t latency;
+    int measure_delay;
+    uint32_t delay;
 };
 
 struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
@@ -38,8 +38,8 @@ struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
     
     assert(bq->maxlength >= base);
 
-    bq->measure_latency = 1;
-    bq->latency = 0;
+    bq->measure_delay = 0;
+    bq->delay = 0;
     
     return bq;
 }
@@ -64,7 +64,7 @@ void memblockq_push(struct memblockq* bq, struct memchunk *chunk, size_t delta) 
     q = malloc(sizeof(struct memblock_list));
     assert(q);
 
-    if (bq->measure_latency)
+    if (bq->measure_delay)
         gettimeofday(&q->stamp, NULL);
     else
         timerclear(&q->stamp);
@@ -152,8 +152,8 @@ void memblockq_drop(struct memblockq *bq, size_t length) {
         if (l > bq->blocks->chunk.length)
             l = bq->blocks->chunk.length;
 
-        if (bq->measure_latency)
-            bq->latency = age(&bq->blocks->stamp);
+        if (bq->measure_delay)
+            bq->delay = age(&bq->blocks->stamp);
         
         bq->blocks->chunk.index += l;
         bq->blocks->chunk.length -= l;
@@ -211,6 +211,12 @@ int memblockq_is_writable(struct memblockq *bq, size_t length) {
     return bq->total_length + length <= bq->maxlength;
 }
 
-uint32_t memblockq_get_latency(struct memblockq *bq) {
-    return bq->latency;
+uint32_t memblockq_get_delay(struct memblockq *bq) {
+    assert(bq);
+    return bq->delay;
+}
+
+uint32_t memblockq_get_length(struct memblockq *bq) {
+    assert(bq);
+    return bq->total_length;
 }

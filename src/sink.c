@@ -81,9 +81,11 @@ static unsigned fill_mix_info(struct sink *s, struct mix_info *info, unsigned ma
 
     for (i = idxset_first(s->inputs, &index); maxinfo > 0 && i; i = idxset_next(s->inputs, &index)) {
         assert(i->peek);
-        if (i->peek(i, &info->chunk, &info->volume) < 0)
+        if (i->peek(i, &info->chunk) < 0)
             continue;
 
+        info->volume = i->volume;
+        
         assert(info->chunk.memblock && info->chunk.memblock->data && info->chunk.length);
         info->userdata = i;
         

@@ -25,4 +25,6 @@ void source_output_free(struct source_output* o);
 
 void source_output_kill(struct source_output*o);
 
+char *source_output_list_to_string(struct core *c);
+
 #endif
