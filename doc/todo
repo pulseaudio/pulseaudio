@@ -2,7 +2,6 @@
 
 *** 0.3 ***
 - pacat drain fix
-- future cancellation
 - make mcalign merge chunks
 - use ref counting in more objects
 - unix socket directories include user name
@@ -19,10 +18,9 @@
 ***********
 
 backends for:
-- libao
 - xmms
-- portaudio
 - mplayer
+- portaudio
 - python
 
 modules:

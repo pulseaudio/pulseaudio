@@ -83,7 +83,7 @@ void pa_stream_write(struct pa_stream *p      /**< The stream to use */,
                                                  playback
                                                  buffer. Normally you
                                                  will specify 0 here,
-                                                 .i.e. append to the
+                                                 i.e. append to the
                                                  playback buffer. If
                                                  the value given here
                                                  is greater than the
@@ -113,14 +113,12 @@ void pa_stream_set_write_callback(struct pa_stream *p, void (*cb)(struct pa_stre
 /** Set the callback function that is called when new data is available from the stream */
 void pa_stream_set_read_callback(struct pa_stream *p, void (*cb)(struct pa_stream *p, const void*data, size_t length, void *userdata), void *userdata);
 
-/** Pause (or resume) playback of this stream temporarily
- * \since 0.3 */
+/** Pause (or resume) playback of this stream temporarily. \since 0.3 */
 struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata);
 
 /** Flush the playback buffer of this stream. Most of the time you're
- * better off using the delta of pa_stream_write() instead of this
- * function.
- * \since 0.3*/
+ * better off using the parameter delta of pa_stream_write() instead of this
+ * function. \since 0.3 */
 struct pa_operation* pa_stream_flush(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata);
 
 PA_C_DECL_END
