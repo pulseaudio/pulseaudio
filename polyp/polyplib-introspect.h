@@ -93,7 +93,7 @@ struct pa_sink_input_info {
     uint32_t index;
     const char *name;
     uint32_t owner_module;
-    uint32_t owner_client;
+    uint32_t client;
     uint32_t sink;
     struct pa_sample_spec sample_spec;
     uint32_t volume;
@@ -107,7 +107,7 @@ struct pa_source_output_info {
     uint32_t index;
     const char *name;
     uint32_t owner_module;
-    uint32_t owner_client;
+    uint32_t client;
     uint32_t source;
     struct pa_sample_spec sample_spec;
 };

@@ -297,7 +297,6 @@ struct pa_operation* pa_context_get_client_info(struct pa_context *c, uint32_t i
     pa_tagstruct_putu32(t, PA_COMMAND_GET_CLIENT_INFO);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_putu32(t, index);
-    pa_tagstruct_puts(t, "");
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_client_info_callback, o);
 
@@ -373,6 +372,144 @@ struct pa_operation* pa_context_get_module_info(struct pa_context *c, uint32_t i
 
 struct pa_operation* pa_context_get_module_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_module_info*i, int is_last, void *userdata), void *userdata) {
     return pa_context_send_simple_command(c, PA_COMMAND_GET_MODULE_INFO_LIST, context_get_module_info_callback, cb, userdata);
+}
+
+/*** Sink input info ***/
+
+static void context_get_sink_input_info_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_operation *o = userdata;
+    int eof = 1;
+    assert(pd && o && o->context && o->ref >= 1);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+        eof = -1;
+    } else {
+        
+        while (!pa_tagstruct_eof(t)) {
+            struct pa_sink_input_info i;
+            
+            if (pa_tagstruct_getu32(t, &i.index) < 0 ||
+                pa_tagstruct_gets(t, &i.name) < 0 ||
+                pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
+                pa_tagstruct_getu32(t, &i.client) < 0 ||
+                pa_tagstruct_getu32(t, &i.sink) < 0 ||
+                pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
+                pa_tagstruct_getu32(t, &i.volume) < 0 ||
+                pa_tagstruct_getu32(t, &i.latency) < 0) {
+                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                goto finish;
+            }
+
+            if (o->callback) {
+                void (*cb)(struct pa_context *s, const struct pa_sink_input_info*i, int eof, void *userdata) = o->callback;
+                cb(o->context, &i, 0, o->userdata);
+            }
+        }
+    }
+    
+    if (o->callback) {
+        void (*cb)(struct pa_context *s, const struct pa_sink_input_info*i, int eof, void *userdata) = o->callback;
+        cb(o->context, NULL, eof, o->userdata);
+    }
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
+struct pa_operation* pa_context_get_sink_input_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_sink_input_info*i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    struct pa_operation *o;
+    uint32_t tag;
+    assert(c && cb);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INPUT_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_input_info_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_context_get_sink_input_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sink_input_info*i, int is_last, void *userdata), void *userdata) {
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_SINK_INPUT_INFO_LIST, context_get_sink_input_info_callback, cb, userdata);
+}
+
+/*** Source output info ***/
+
+static void context_get_source_output_info_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_operation *o = userdata;
+    int eof = 1;
+    assert(pd && o && o->context && o->ref >= 1);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+        eof = -1;
+    } else {
+        
+        while (!pa_tagstruct_eof(t)) {
+            struct pa_source_output_info i;
+            
+            if (pa_tagstruct_getu32(t, &i.index) < 0 ||
+                pa_tagstruct_gets(t, &i.name) < 0 ||
+                pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
+                pa_tagstruct_getu32(t, &i.client) < 0 ||
+                pa_tagstruct_getu32(t, &i.source) < 0 ||
+                pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0) {
+                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                goto finish;
+            }
+
+            if (o->callback) {
+                void (*cb)(struct pa_context *s, const struct pa_source_output_info*i, int eof, void *userdata) = o->callback;
+                cb(o->context, &i, 0, o->userdata);
+            }
+        }
+    }
+    
+    if (o->callback) {
+        void (*cb)(struct pa_context *s, const struct pa_source_output_info*i, int eof, void *userdata) = o->callback;
+        cb(o->context, NULL, eof, o->userdata);
+    }
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
+struct pa_operation* pa_context_get_source_output_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_source_output_info*i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    struct pa_operation *o;
+    uint32_t tag;
+    assert(c && cb);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_SOURCE_OUTPUT_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_output_info_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_context_get_source_output_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_source_output_info*i, int is_last, void *userdata), void *userdata) {
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST, context_get_source_output_info_callback, cb, userdata);
 }
 
 /*** Volume manipulation ***/
