@@ -267,6 +267,26 @@ about the two possible suffixes of this module.</p>
   <tr><td><tt>sink=</tt></td><td>Name of the sink to play the sample on. If ommited defaults to the default sink.</td></tr>
 </table>
 
+<h3>module-x11-publish</h3>
+
+<p>Publishes the access credentials to the Polypaudio server in the
+X11 root window. The following properties are used:
+<tt>POLYP_SERVER</tt>, <tt>POYLP_SINK</tt>, <tt>POLYP_SOURCE</tt>,
+<tt>POLYP_COOKIE</tt>. This is very useful when using SSH or any other
+remote login tool for logging into other machines and getting audio
+playback to your local speakers. The Polypaudio client libraries make
+use of this data automatically. Instead of using this module you may
+use the tool <tt>pax11publish</tt> which may be used to access, modify
+and import credential data from/to the X11 display.</p>
+
+<table>
+  <tr><td><tt>display=</tt></td><td>X11 display to connect to. If ommited defaults to the value of <tt>$DISPLAY</tt></td></tr>
+  <tr><td><tt>sink=</tt></td><td>Name of the default sink. If ommited this property isn't stored in the X11 display.</td></tr>
+  <tr><td><tt>source=</tt></td><td>Name of the default source. If ommited this property isn't stored in the X11 display.</td></tr>
+  <tr><td><tt>cookie=</tt></td><td>Name of the cookie file of the
+cookie to store in the X11 display. If ommited the cookie of an
+already loaded protocol module is used.</td></tr> </table>
+
 <h3>module-sine</h3>
 
 <p>Creates a sink input and generates a sine waveform stream.</p>
@@ -301,6 +321,6 @@ about the two possible suffixes of this module.</p>
 <p>The volumes of all streams with titles starting with <tt>sample:</tt> are automatically set to 25. (FYI: All sample cache streams start with <tt>sample:</tt>)</p>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, September 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, November 2004</address>
 <div class="grey"><i>$Id$</i></div>
 </body> </html>

@@ -44,15 +44,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <div class="news-date">Sun Nov 21 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.7.tar.gz">Version 0.7</a> released;
-changes include: TCP wrappers support; don't load the complete sound
-file into memory when playing back using <tt>pa_play_file()</tt>;
-autoload API change; don't load all sound files as FLOAT32; shorten
-default buffers; client-side latency interpolation; add new user
-volume metrics; add <tt>module-tunnel</tt>, <tt>module-null-sink</tt>,
-<tt>module-match</tt> and new tool <tt>paplay</tt>; new API version
-macros; many client API improvements; correctly lock cookie file
-generation; correctly lock daemon autospawning; print daemon layout to
-STDERR on SIGHUP; new options for <tt>pacat</tt>: allow sample type specification.</p>
+changes include: IPv6 support; PID file support; publish credentials
+in X11 root window (<tt>module-x11-publish</tt>; new tool <tt>pacmd</tt>; ESOUND backend; new command <tt>load-sample-dir-lazy</tt>; many, many minor fixes.</p>
 
 <div class="news-date">Thu Oct 28 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.6.tar.gz">Version 0.6</a> released;
@@ -103,8 +96,9 @@ href="@PACKAGE_URL@polypaudio-0.1.tar.gz">Version 0.1</a> released</p>
 operating systems. It is intended to be an improved drop-in
 replacement for the <a
 href="http://www.tux.org/~ricdude/apps.html">Enlightened Sound
-Daemon</a> (ESOUND). In addition to the features ESOUND provides
-<tt>polypaudio</tt> has:</p>
+Daemon</a> (ESOUND). It is my ultimate ambition to get Polypaudio into
+<a href="http://www.gnome.org/">Gnome</a> as a replacement for ESOUND. In
+addition to the features ESOUND provides <tt>polypaudio</tt> has:</p>
 
 <ul>
   <li>Extensible plugin architecture (by loading dynamic loadable modules with <tt>dlopen()</tt>)</li>
@@ -139,13 +133,15 @@ available. A simple main loop implementation is available as well.</p>
   <li><tt>module-combine</tt>: combine multiple sinks into one.</li>
   <li><tt>module-sine</tt>: a sine generate sink input.</li>
   <li><tt>module-x11-bell</tt>: play a sample from the sample cache on every X11 bell event.</li>
-  <li><tt>module-esound-protocol-tcp</tt>, <tt>module-esound-protocol-unix</tt>: ESOUND compatibility modules (for TCP/IP resp. UNIX domain sockets)</li>
-  <li><tt>module-native-protocol-tcp</tt>, <tt>module-native-protocol-unix</tt>: Native polypaudio protocol (for TCP/IP resp. UNIX domain sockets)</li>
-  <li><tt>module-simple-protocol-tcp</tt>, <tt>module-simple-protocol-unix</tt>: Simplistic protocol for playback/capture for usage with tools like <tt>netcat</tt> (for TCP/IP resp. UNIX domain sockets)</li>
-  <li><tt>module-cli-protocol-tcp</tt>, <tt>module-cli-protocol-unix</tt>, <tt>module-cli</tt>: Expose polypaudio's internals whith a simple command line interface. (for TCP/IP resp. UNIX domain sockets resp. STDIN/STDOUT)</li>
+  <li><tt>module-x11-publish</tt>: store Polypaudio credentials in the X11 root window.</li>
+  <li><tt>module-esound-protocol-tcp</tt>, <tt>module-esound-protocol-tcp6</tt>, <tt>module-esound-protocol-unix</tt>: ESOUND compatibility modules (for TCP/IPv6 resp. TCP/IPv6 resp. UNIX domain sockets)</li>
+  <li><tt>module-native-protocol-tcp</tt>, <tt>module-native-protocol-tcp6</tt>, <tt>module-native-protocol-unix</tt>: Native polypaudio protocol (for TCP/IPv4 resp. TCP/IPv6 resp. UNIX domain sockets)</li>
+  <li><tt>module-simple-protocol-tcp</tt>, <tt>module-simple-protocol-tcp6</tt>, <tt>module-simple-protocol-unix</tt>: Simplistic protocol for playback/capture for usage with tools like <tt>netcat</tt> (for TCP/IP resp. UNIX domain sockets)</li>
+  <li><tt>module-cli-protocol-tcp</tt>, <tt>module-cli-protocol-tcp6</tt>, <tt>module-cli-protocol-unix</tt>, <tt>module-cli</tt>: Expose polypaudio's internals whith a simple command line interface. (for TCP/IP resp. UNIX domain sockets resp. STDIN/STDOUT)</li>
   <li><tt>module-tunnel-sink</tt>, <tt>module-tunnel-source</tt>: make sinks/sources from other hosts available locally.</li>
   <li><tt>module-match</tt>: adjust volume automatically for newly created playback streams based on a regular expression matching table.</li>
   <li><tt>module-null-sink</tt>: a clocked sink similar to <tt>/dev/null</tt>.</li>
+  <li><tt>module-esound-sink</tt>: a sink for forwarding audio data to an ESOUND server.</li>
 </ul>
 
 <p><tt>polypaudio</tt> is the successor of my previous, ill-fated
@@ -156,10 +152,18 @@ href="http://asd.sf.net/">asd</a>.</p>
 href="http://0pointer.de/lennart/projects/paman/">Polypaudio
 Manager</a>. Another GTK GUI tool for Polypaudio is the <a
 href="http://0pointer.de/lennart/projects/pavumeter">Polypaudio Volume
-Meter</a>. There are output plugins for <a
+Meter</a>.</p>
+
+<p>There are output plugins for <a
 href="http://0pointer.de/lennart/projects/xmms-polyp/">XMMS</a>, <a
-href="http://0pointer.de/lennart/projects/libao-polyp/">libao</a> and <a href="http://0pointer.de/lennart/projects/gst-polyp/">gstreamer</a>. Drivers
-for <a href="http://mplayerhq.hu">MPlayer</a> and <a href="http://www.portaudio.com/">PortAudio</a> will be released shortly.</p>
+href="http://0pointer.de/lennart/projects/libao-polyp/">libao</a>
+(merged in <tt>libao</tt> SVN) and <a
+href="http://0pointer.de/lennart/projects/gst-polyp/">gstreamer</a>
+(merged in <tt>gstreamer-plugins</tt> CVS), <a
+href="http://mplayerhq.hu">MPlayer</a> (merged in MPlayer CVS) and <a
+href="http://xine.sf.net/">Xine</a> (merged in Xine CVS). Drivers for
+<a href="http://www.portaudio.com/">PortAudio</a> will be released
+shortly.</p>
 
 <h2><a name="status">Status</a></h2>
 
@@ -227,10 +231,10 @@ questions.</p>
 
 <h2><a name="requirements">Requirements</a></h2>
 
-<p>Currently, <tt>polypaudio</tt> is tested on Linux only. It requires an OSS or ALSA compatible soundcard.</p>
+<p>Currently, <tt>polypaudio</tt> is tested on Linux and FreeBSD only. It requires an OSS or ALSA compatible soundcard.</p>
 
 <p><tt>polypaudio</tt> was developed and tested on Debian GNU/Linux
-"testing" from July 2004, it should work on most other Linux
+"testing" from November 2004, it should work on most other Linux
 distributions (and maybe Unix versions) since it uses GNU autoconf and
 GNU libtool for source code configuration and shared library
 management.</p>
@@ -255,6 +259,12 @@ compilation and <tt>make install</tt> (as root) for installation of
 
 <p>Eric B. Mitchell for writing ESOUND</p>
 
+<p>Jeff Waugh for creating Ubuntu packages (and hopefully soon Debian)</p>
+
+<p>Miguel Freitas for writing a Polypaudio driver for Xine</p>
+
+<p>Joe Marcus Clarke for porting Polypaudio to FreeBSD</p>
+
 <h2><a name="download">Download</a></h2>
 
 <p>The newest release is always available from <a href="@PACKAGE_URL@">@PACKAGE_URL@</a></p>
@@ -272,7 +282,7 @@ compilation and <tt>make install</tt> (as root) for installation of
 <p><b>New!</b> There is now a <a href="http://0pointer.de/trac/polypaudio/">Polypaudio wiki</a> (based on <a href="http://www.edgewall.com/products/trac/">trac</a>) available.</p>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, October 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, November 2004</address>
 <div class="grey"><i>$Id$</i></div>
 
 </body>

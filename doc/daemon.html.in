@@ -14,26 +14,42 @@
 The <tt>polypaudio</tt> daemon accepts several command line arguments:
 
 <pre>
+COMMANDS:
   -h, --help                            Show this help
       --version                         Show version
       --dump-conf                       Dump default configuration
       --dump-modules                    Dump list of available modules
+  -k  --kill                            Kill a running daemon
+      --check                           Check for a running daemon
 
+OPTIONS:
   -D, --daemonize[=BOOL]                Daemonize after startup
       --fail[=BOOL]                     Quit when startup fails
       --verbose[=BOOL]                  Be slightly more verbose
-      --high-priority[=BOOL]            Try to set high process priority (only available as root)
+      --high-priority[=BOOL]            Try to set high process priority
+                                        (only available as root)
       --disallow-module-loading[=BOOL]  Disallow module loading after startup
-      --exit-idle-time=SECS             Terminate the daemon when idle and this time passed
-      --module-idle-time=SECS           Unload autoloaded modules when idle and this time passed
-      --scache-idle-time=SECS           Unload autoloaded samples when idle and this time passed
+      --exit-idle-time=SECS             Terminate the daemon when idle and this
+                                        time passed
+      --module-idle-time=SECS           Unload autoloaded modules when idle and
+                                        this time passed
+      --scache-idle-time=SECS           Unload autoloaded samples when idle and
+                                        this time passed
       --log-target={auto,syslog,stderr} Specify the log target
-  -p, --dl-search-path=PATH             Set the search path for dynamic shared objects (plugins)
+  -p, --dl-search-path=PATH             Set the search path for dynamic shared
+                                        objects (plugins)
       --resample-method=[METHOD]        Use the specified resampling method
+                                        (one of src-sinc-medium-quality,
+                                        src-sinc-best-quality,src-sinc-fastest
+                                        src-zero-order-hold,src-linear,trivial)
+      --use-pid-file[=BOOL]             Create a PID file
 
-  -L, --load="MODULE ARGUMENTS"         Load the specified plugin module with the specified argument
+STARTUP SCRIPT:
+  -L, --load="MODULE ARGUMENTS"         Load the specified plugin module with
+                                        the specified argument
   -F, --file=FILENAME                   Run the specified script
-  -C                                    Open a command line on the running TTY after startup (identical to -Lmodule-cli)
+  -C                                    Open a command line on the running TTY
+                                        after startup
 
   -n                                    Don't load default script file
 </pre>
@@ -67,6 +83,6 @@ The <tt>polypaudio</tt> daemon accepts several command line arguments:
 <p>The daemon logs the current server layout.</p>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, September 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, November 2004</address>
 <div class="grey"><i>$Id$</i></div>
 </body> </html>

@@ -30,11 +30,11 @@ CLEANFILES += README
 endif
 
 tidy: README.html cli.html modules.html daemon.html
-	tidy -e < README.html
-	tidy -e < cli.html
-	tidy -e < daemon.html
-	tidy -e < modules.html
-	tidy -e < FAQ.html
+	tidy -qe < README.html
+	tidy -qe < cli.html
+	tidy -qe < daemon.html
+	tidy -qe < modules.html
+	tidy -qe < FAQ.html
 
 .PHONY: tidy
 

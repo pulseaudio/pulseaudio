@@ -126,9 +126,11 @@ connect to a running polypaudio daemon try using the following commands:</p>
 <pre>killall -USR2 polypaudio
 bidilink unix-client:/tmp/polypaudio/cli</pre>
 
-<p><i>BTW: Someone should package that great tool for Debian!</i></p></li>
+<p><i>BTW: Someone should package that great tool for Debian!</i></p>
 
 
+<p><b>New:</b> There's now a tool <tt>pacmd</tt> that automates sending SIGUSR2 to the daemon and running a bidilink like tool for you.</p>
+</li>
 
 <li><p><b>How do the polypaudio libraries decide where to connect to?</b></p>
 <p>The following rule applies:</p>
@@ -142,9 +144,10 @@ bidilink unix-client:/tmp/polypaudio/cli</pre>
   <li>If <tt>$DISPLAY</tt> is set, the library tries to connect to the default TCP port of that host. If the connection fails, it proceeds with the next item.</li>
   <li>The connection fails.</li>
 </ol>
-<p></p>
-
 </li>
+
+<li><p><b>Why the heck does libpolyp link against libX11?</b></p>
+<p>The Polypaudio client libraries look for some X11 root window properties for the credentials of the Polypaudio server to access. You may compile Polypaudio without X11 for disabling this.</p></li>
 
 </ol>
 

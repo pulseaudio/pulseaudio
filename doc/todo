@@ -1,10 +1,7 @@
 *** $Id$ ***
 
-*** 0.7 ****
-- limit all resources
-- commenting
-
-** later ***
+*** later ****
+- event more commenting
 - polish for starting polypaudio as root/system-wide instance
 - per-channel volume
 - improve module-oss-mmap latency measurement
