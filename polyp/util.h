@@ -88,4 +88,6 @@ int pa_startswith(const char *s, const char *pfx);
 
 char *pa_runtime_path(const char *fn, char *s, size_t l);
 
+int pa_msleep(unsigned long t);
+
 #endif

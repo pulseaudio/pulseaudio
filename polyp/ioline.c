@@ -89,6 +89,10 @@ static void ioline_free(struct pa_ioline *l) {
 
     if (l->io)
         pa_iochannel_free(l->io);
+
+    if (l->defer_event)
+        l->mainloop->defer_free(l->defer_event);
+
     pa_xfree(l->wbuf);
     pa_xfree(l->rbuf);
     pa_xfree(l);
@@ -115,6 +119,11 @@ void pa_ioline_close(struct pa_ioline *l) {
     if (l->io) {
         pa_iochannel_free(l->io);
         l->io = NULL;
+    }
+
+    if (l->defer_event) {
+        l->mainloop->defer_free(l->defer_event);
+        l->defer_event = NULL;
     }
 }
 

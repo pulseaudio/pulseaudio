@@ -34,8 +34,15 @@ AM_LIBADD=$(PTHREAD_LIBS) -lm
 AM_LDADD=$(PTHREAD_LIBS) -lm
 
 EXTRA_DIST = default.pa.in daemon.conf.in client.conf.in depmod.py esdcompat.sh.in module-defs.h.m4
-bin_PROGRAMS = polypaudio pacat pactl paplay
+bin_PROGRAMS = \
+		polypaudio \
+		pacat \
+		pactl \
+		paplay \
+		pacmd
+
 bin_SCRIPTS = esdcompat.sh
+
 noinst_PROGRAMS = \
 		mainloop-test \
 		pacat-simple \
@@ -504,6 +511,10 @@ strlist_test_LDADD = $(AM_LDADD)
 mcalign_test_SOURCES = mcalign-test.c util.c util.h xmalloc.c xmalloc.h log.c log.h mcalign.c mcalign.h memchunk.c memchunk.h memblock.c memblock.h
 mcalign_test_CFLAGS = $(AM_CFLAGS)
 mcalign_test_LDADD = $(AM_LDADD)
+
+pacmd_SOURCES = pacmd.c util.c util.h xmalloc.c xmalloc.h log.c log.h pid.c pid.h
+pacmd_CFLAGS = $(AM_CFLAGS)
+pacmd_LDADD = $(AM_LDADD)
 
 cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h
 cpulimit_test_CFLAGS = $(AM_CFLAGS)

@@ -861,3 +861,12 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
     snprintf(s, l, PA_RUNTIME_PATH_PREFIX"%s%s%s", pa_get_user_name(u, sizeof(u)), fn ? "/" : "", fn ? fn : "");
     return s;
 }
+
+int pa_msleep(unsigned long t) {
+    struct timespec ts;
+
+    ts.tv_sec = t/1000;
+    ts.tv_nsec = (t % 1000) * 1000000;
+
+    return nanosleep(&ts, NULL);
+}
