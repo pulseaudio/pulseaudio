@@ -26,6 +26,7 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
     s->core = core;
     s->sample_spec = *spec;
     s->outputs = pa_idxset_new(NULL, NULL);
+    s->monitor_of = NULL;
 
     s->notify = NULL;
     s->userdata = NULL;
@@ -109,8 +110,12 @@ char *pa_source_list_to_string(struct pa_core *c) {
 
     default_source = pa_source_get_default(c);
     
-    for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index))
-        pa_strbuf_printf(s, "  %c index: %u, name: <%s>\n", source == default_source ? '*' : ' ', source->index, source->name);
+    for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
+        char mo[256] = "";
+        if (source->monitor_of) 
+            snprintf(mo, sizeof(mo), ", monitor_of: <%u>", source->monitor_of->index);
+        pa_strbuf_printf(s, "  %c index: %u, name: <%s>%s\n", source == default_source ? '*' : ' ', source->index, source->name, mo);
+    }
     
     return pa_strbuf_tostring_free(s);
 }

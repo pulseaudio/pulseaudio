@@ -9,6 +9,7 @@ struct pa_source;
 #include "idxset.h"
 #include "memblock.h"
 #include "memchunk.h"
+#include "sink.h"
 
 struct pa_source {
     uint32_t index;
@@ -17,6 +18,7 @@ struct pa_source {
     struct pa_core *core;
     struct pa_sample_spec sample_spec;
     struct pa_idxset *outputs;
+    struct pa_sink *monitor_of;
 
     void (*notify)(struct pa_source*source);
     void *userdata;

@@ -39,8 +39,12 @@ void pa_client_free(struct pa_client *c) {
 
 void pa_client_kill(struct pa_client *c) {
     assert(c);
-    if (c->kill)
-        c->kill(c);
+    if (!c->kill) {
+        fprintf(stderr, "kill() operation not implemented for client %u\n", c->index);
+        return;
+    }
+
+    c->kill(c);
 }
 
 char *pa_client_list_to_string(struct pa_core *c) {

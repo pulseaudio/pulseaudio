@@ -10,8 +10,6 @@
 #include "module.h"
 #include "mainloop-signal.h"
 
-int pa_stdin_inuse = 0, pa_stdout_inuse = 0;
-
 static struct pa_mainloop *mainloop;
 
 static void signal_callback(void *id, int sig, void *userdata) {

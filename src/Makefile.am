@@ -54,7 +54,7 @@ pkglib_LTLIBRARIES=libiochannel.la \
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
 		strbuf.c strbuf.h \
-		main.c main.h \
+		main.c \
 		mainloop.c mainloop.h \
 		memblock.c memblock.h \
 		sample.c sample.h \
@@ -77,7 +77,9 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		endianmacros.h \
 		memchunk.c memchunk.h \
 		sconv-s16le.c sconv-s16le.h \
-		sconv-s16be.c sconv-s16be.h
+		sconv-s16be.c sconv-s16be.h \
+		sioman.c sioman.h
+
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(LIBLTDL) $(LIBSAMPLERATE_LIBS)

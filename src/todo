@@ -4,13 +4,10 @@
        more functions
 - simple library
 - kill() routines in all modules
-- command line protocol: 
-       kill client/input/output
-       default_sink/source
 - config parser/cmdline
 - move more stuff from module-oss[-dma] to liboss-util
-- stdin_inuse/stdout_inuse
 - svn-id and license in every file
+- in module-oss: create source first, than sink
 
 -- post 0.1
 - future cancellation

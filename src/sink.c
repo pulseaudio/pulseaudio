@@ -39,6 +39,7 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     s->monitor_source = pa_source_new(core, n, 0, spec);
     assert(s->monitor_source);
     free(n);
+    s->monitor_source->monitor_of = s;
     
     s->volume = PA_VOLUME_NORM;
 

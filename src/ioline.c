@@ -146,14 +146,14 @@ static int do_read(struct pa_ioline *l) {
         p = l->rbuf+l->rbuf_index;
         m = strlen(p);
 
-        if (l->callback)
-            l->callback(l, p, l->userdata);
-
         l->rbuf_index += m+1;
         l->rbuf_valid_length -= m+1;
 
         if (l->rbuf_valid_length == 0)
             l->rbuf_index = 0;
+
+        if (l->callback)
+            l->callback(l, p, l->userdata);
     }
 
     return 0;
@@ -180,10 +180,10 @@ static void io_callback(struct pa_iochannel*io, void *userdata) {
     struct pa_ioline *l = userdata;
     assert(io && l);
     
-    if (!l->dead && do_read(l) < 0)
+    if (!l->dead && do_write(l) < 0)
         goto fail;
     
-    if (!l->dead && do_write(l) < 0)
+    if (!l->dead && do_read(l) < 0)
         goto fail;
     
     return;
