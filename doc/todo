@@ -1,7 +1,6 @@
 *** $Id$ ***
 
 *** 0.7 ****
-- make most buffer sizes dependant on the sample type
 - limit all resources
 - commenting
 
