@@ -63,7 +63,7 @@ void pa_source_unref(struct pa_source *s);
 struct pa_source* pa_source_ref(struct pa_source *c);
 
 /* Pass a new memory block to all output streams */
-void pa_source_post(struct pa_source*s, struct pa_memchunk *b);
+void pa_source_post(struct pa_source*s, const struct pa_memchunk *b);
 
 void pa_source_notify(struct pa_source *s);
 

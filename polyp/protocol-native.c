@@ -656,6 +656,7 @@ static void command_create_record_stream(struct pa_pdispatch *pd, uint32_t comma
     struct pa_sample_spec ss;
     struct pa_tagstruct *reply;
     struct pa_source *source;
+    int corked;
     assert(c && t && c->protocol && c->protocol->core);
     
     if (pa_tagstruct_gets(t, &name) < 0 || !name ||
@@ -663,6 +664,7 @@ static void command_create_record_stream(struct pa_pdispatch *pd, uint32_t comma
         pa_tagstruct_getu32(t, &source_index) < 0 ||
         pa_tagstruct_gets(t, &source_name) < 0 ||
         pa_tagstruct_getu32(t, &maxlength) < 0 ||
+        pa_tagstruct_get_boolean(t, &corked) < 0 ||
         pa_tagstruct_getu32(t, &fragment_size) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
@@ -688,6 +690,8 @@ static void command_create_record_stream(struct pa_pdispatch *pd, uint32_t comma
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_INVALID);
         return;
     }
+
+    pa_source_output_cork(s->source_output, corked);
     
     reply = pa_tagstruct_new(NULL, 0);
     assert(reply);

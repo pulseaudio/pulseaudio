@@ -131,7 +131,7 @@ void pa_source_notify(struct pa_source*s) {
 }
 
 static int do_post(void *p, uint32_t index, int *del, void*userdata) {
-    struct pa_memchunk *chunk = userdata;
+    const struct pa_memchunk *chunk = userdata;
     struct pa_source_output *o = p;
     assert(o && o->push && del && chunk);
 
@@ -139,7 +139,7 @@ static int do_post(void *p, uint32_t index, int *del, void*userdata) {
     return 0;
 }
 
-void pa_source_post(struct pa_source*s, struct pa_memchunk *chunk) {
+void pa_source_post(struct pa_source*s, const struct pa_memchunk *chunk) {
     assert(s && s->ref >= 1 && chunk);
 
     pa_source_ref(s);

@@ -107,7 +107,8 @@ modlib_LTLIBRARIES= \
 		module-esound-compat-spawnfd.la \
 		module-esound-compat-spawnpid.la \
 		module-match.la \
-		module-tunnel.la
+		module-tunnel-sink.la \
+		module-tunnel-source.la
 
 lib_LTLIBRARIES= \
 		libpolyp-@PA_MAJORMINOR@.la \
@@ -311,9 +312,14 @@ module_match_la_SOURCES = module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
 module_match_la_LIBADD = $(AM_LIBADD)
 
-module_tunnel_la_SOURCES = module-tunnel.c
-module_tunnel_la_LDFLAGS = -module -avoid-version
-module_tunnel_la_LIBADD = $(AM_LIBADD) libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
+module_tunnel_sink_la_SOURCES = module-tunnel.c
+module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
+module_tunnel_sink_la_LDFLAGS = -module -avoid-version
+module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
+
+module_tunnel_source_la_SOURCES = module-tunnel.c
+module_tunnel_source_la_LDFLAGS = -module -avoid-version
+module_tunnel_source_la_LIBADD = $(AM_LIBADD) libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
 
 module_esound_compat_spawnfd_la_SOURCES = module-esound-compat-spawnfd.c
 module_esound_compat_spawnfd_la_LDFLAGS = -module -avoid-version
