@@ -420,7 +420,7 @@ static void stream_get_latency_info_callback(struct pa_pdispatch *pd, uint32_t c
         }
         
         if (o->stream->interpolate) {
-            o->stream->ipol_timestamp = now;
+            o->stream->ipol_timestamp = i.timestamp;
             o->stream->ipol_usec = pa_stream_get_time(o->stream, &i);
         }
 
@@ -659,7 +659,7 @@ pa_usec_t pa_stream_get_time(struct pa_stream *s, const struct pa_latency_info *
     pa_usec_t usec;
     assert(s);
     
-    usec = pa_bytes_to_usec(s->counter, &s->sample_spec);
+    usec = pa_bytes_to_usec(i->counter, &s->sample_spec);
 
     if (i) {
         if (s->direction == PA_STREAM_PLAYBACK) {

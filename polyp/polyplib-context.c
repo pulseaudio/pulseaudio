@@ -230,9 +230,11 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
 }
 
 int pa_context_handle_error(struct pa_context *c, uint32_t command, struct pa_tagstruct *t) {
-    assert(c && t);
+    assert(c);
 
     if (command == PA_COMMAND_ERROR) {
+        assert(t);
+        
         if (pa_tagstruct_getu32(t, &c->error) < 0) {
             pa_context_fail(c, PA_ERROR_PROTOCOL);
             return -1;
