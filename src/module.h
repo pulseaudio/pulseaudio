@@ -6,12 +6,19 @@
 
 #include "core.h"
 
+struct dependency_module {
+    lt_dlhandle dl;
+    struct dependency_module *next;
+};
+
 struct module {
     struct core *core;
     char *name, *argument;
     uint32_t index;
 
     lt_dlhandle dl;
+    struct dependency_module *dependencies;
+    
     
     int (*init)(struct core *c, struct module*m);
     void (*done)(struct core *c, struct module*m);
