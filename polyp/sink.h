@@ -31,6 +31,8 @@ struct pa_sink;
 #include "idxset.h"
 #include "source.h"
 
+#define PA_MAX_INPUTS_PER_SINK 6
+
 struct pa_sink {
     uint32_t index;
 

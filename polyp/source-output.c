@@ -23,6 +23,7 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +37,11 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
     struct pa_resampler *resampler = NULL;
     int r;
     assert(s && spec);
+
+    if (pa_idxset_ncontents(s->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
+        fprintf(stderr, __FILE__": Failed to create source output: too many outputs per source.\n");
+        return NULL;
+    }
 
     if (!pa_sample_spec_equal(&s->sample_spec, spec))
         if (!(resampler = pa_resampler_new(&s->sample_spec, spec, s->core->memblock_stat)))

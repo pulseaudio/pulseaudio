@@ -13,7 +13,8 @@
 - cleanup tagstruct and modargs (add s32, pa_volume_t, pa_usec_t)
 - remove all gcc warnings
 - esd compatible startup script or personality
-- limit number of concurrent streams
+- add total sample size to stat
+- implement streamed file playbacj
 
 ** later ***
 - xmlrpc/http

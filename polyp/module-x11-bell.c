@@ -69,11 +69,7 @@ static int ring_bell(struct userdata *u, int percent) {
         return -1;
     }
 
-    if (pa_scache_play_item(u->core, u->scache_item, s, percent*2) < 0) {
-        fprintf(stderr, __FILE__": Failed to play sample\n");
-        return -1;
-    }
-
+    pa_scache_play_item(u->core, u->scache_item, s, percent*2);
     return 0;
 }
 

@@ -32,6 +32,8 @@ struct pa_source;
 #include "memchunk.h"
 #include "sink.h"
 
+#define PA_MAX_OUTPUTS_PER_SOURCE 16
+
 struct pa_source {
     uint32_t index;
     
