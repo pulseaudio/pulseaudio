@@ -24,6 +24,10 @@
 
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum pa_stream_direction {
     PA_STREAM_PLAYBACK,
     PA_STREAM_RECORD,
@@ -37,5 +41,9 @@ struct pa_buffer_attr {
     uint32_t minreq;
     uint32_t fragsize;
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

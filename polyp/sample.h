@@ -25,6 +25,10 @@
 #include <inttypes.h>
 #include <sys/types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum pa_sample_format {
     PA_SAMPLE_U8,
     PA_SAMPLE_ALAW,
@@ -59,5 +63,9 @@ int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_s
 
 #define PA_SAMPLE_SNPRINT_MAX_LENGTH 32
 void pa_sample_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

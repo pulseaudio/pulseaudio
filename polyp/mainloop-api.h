@@ -25,6 +25,10 @@
 #include <time.h>
 #include <sys/time.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum pa_io_event_flags {
     PA_IO_EVENT_NULL = 0,
     PA_IO_EVENT_INPUT = 1,
@@ -63,5 +67,9 @@ struct pa_mainloop_api {
 };
 
 void pa_mainloop_api_once(struct pa_mainloop_api*m, void (*callback)(struct pa_mainloop_api*m, void *userdata), void *userdata);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

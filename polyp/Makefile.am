@@ -21,18 +21,21 @@ AM_CFLAGS=-ansi -D_GNU_SOURCE -DDLSEARCHDIR=\"$(pkglibdir)\" -I$(srcdir)/..
 AM_LDADD=-L.
 AM_LIBADD=-L.
 
+polypincludedir=$(includedir)/polyp
+
 EXTRA_DIST = polypaudio.pa depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
-noinst_PROGRAMS = pacat-simple parec-simple
+noinst_PROGRAMS = pacat-simple parec-simple glib-test
 
-pkginclude_HEADERS=polyplib.h \
+polypinclude_HEADERS=polyplib.h \
 		polyplib-def.h \
 		polyplib-simple.h \
 		polyplib-error.h \
 		mainloop-api.h \
 		mainloop.h \
 		mainloop-signal.h \
-		sample.h
+		sample.h \
+		glib-mainloop.h
 
 pkglib_LTLIBRARIES=libiochannel.la \
 		libsocket-server.la \
@@ -312,9 +315,13 @@ libpolyp_mainloop_glib_la_SOURCES = glib-mainloop.h glib-mainloop.c
 libpolyp_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
 libpolyp_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB20_LIBS)
 
+glib_test_SOURCES = glib-test.c
+glib_test_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
+glib_test_LDADD = $(AM_LDADD) $(GLIB20_LIBS) libpolyp.la libpolyp-mainloop-glib.la
+
 if BUILD_LIBPOLYPCORE
 
-pkginclude_HEADERS+=cli-command.h\
+polypinclude_HEADERS+=cli-command.h\
 		client.h \
 		core.h \
 		dynarray.h \
@@ -380,3 +387,4 @@ libpolypcore_la_SOURCES = idxset.c idxset.h \
 		dynarray.c dynarray.h
 
 endif
+
