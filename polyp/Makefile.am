@@ -439,7 +439,7 @@ lib_LTLIBRARIES+= \
 		libpolyp-mainloop-glib-@PA_MAJORMINOR@.la
 
 noinst_PROGRAMS+= \
-		mainloop-test-glib12 
+		mainloop-test-glib
 
 libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_SOURCES = glib-mainloop.h glib-mainloop.c
 libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
@@ -459,7 +459,8 @@ lib_LTLIBRARIES+= \
 		libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
 
 noinst_PROGRAMS+= \
-		mainloop-test-glib
+		mainloop-test-glib12
+		
 libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_SOURCES = glib-mainloop.h glib12-mainloop.c
 libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
 libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop-@PA_MAJORMINOR@.la $(GLIB12_LIBS)
