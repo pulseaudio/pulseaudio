@@ -107,7 +107,7 @@ pa_volume_t pa_volume_multiply(pa_volume_t a, pa_volume_t b) {
 }
 
 pa_volume_t pa_volume_from_dB(double f) {
-    if (f <= -200)
+    if (f <= PA_DECIBEL_MININFTY)
         return PA_VOLUME_MUTED;
 
     return (pa_volume_t) (pow(10, f/20)*PA_VOLUME_NORM);
@@ -115,7 +115,7 @@ pa_volume_t pa_volume_from_dB(double f) {
 
 double pa_volume_to_dB(pa_volume_t v) {
     if (v == PA_VOLUME_MUTED)
-        return -200;
+        return PA_DECIBEL_MININFTY;
 
     return 20*log10((double) v/PA_VOLUME_NORM);
 }

@@ -138,7 +138,7 @@ int pa_oss_auto_format(int fd, struct pa_sample_spec *ss) {
     return 0;
 }
 
-static int log2(int v) {
+static int simple_log2(int v) {
     int k = 0;
 
     for (;;) {
@@ -152,7 +152,7 @@ static int log2(int v) {
 
 int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
     int arg;
-    arg = ((int) nfrags << 16) | log2(frag_size);
+    arg = ((int) nfrags << 16) | simple_log2(frag_size);
     
     if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &arg) < 0) {
         fprintf(stderr, "SNDCTL_DSP_SETFRAGMENT: %s\n", strerror(errno));

@@ -24,6 +24,7 @@
 
 #include <inttypes.h>
 #include <sys/types.h>
+#include <math.h>
 
 #include "cdecl.h"
 
@@ -107,6 +108,13 @@ pa_volume_t pa_volume_from_dB(double f);
 
 /** Convert volume from linear level to decibel.  \since 0.4 */
 double pa_volume_to_dB(pa_volume_t v);
+
+#ifdef INFINITY
+#define PA_DECIBEL_MININFTY -INFINITY
+#else
+/** This value is used as minus infinity when using pa_volume_{to,from}_dB(). \since 0.4 */
+#define PA_DECIBEL_MININFTY -200
+#endif
 
 PA_C_DECL_END
 
