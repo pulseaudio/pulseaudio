@@ -35,6 +35,7 @@
 #include <memblock.h>
 #include <limits.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 
 #ifdef HAVE_LIBWRAP
 #include <syslog.h>
@@ -241,6 +242,7 @@ int main(int argc, char *argv[]) {
 
     if (conf->daemonize) {
         pid_t child;
+        int tty_fd;
 
         if (pa_stdio_acquire() < 0) {
             pa_log(__FILE__": failed to acquire stdio.\n");
@@ -292,6 +294,15 @@ int main(int argc, char *argv[]) {
         open("/dev/null", O_RDONLY);
         open("/dev/null", O_WRONLY);
         open("/dev/null", O_WRONLY);
+        
+        signal(SIGTTOU, SIG_IGN);
+        signal(SIGTTIN, SIG_IGN);
+        signal(SIGTSTP, SIG_IGN);
+        
+        if ((tty_fd = open("/dev/tty", O_RDWR)) >= 0) {
+            ioctl(tty_fd, TIOCNOTTY, (char*) 0);
+            close(tty_fd);
+        }
     }
 
     chdir("/");
