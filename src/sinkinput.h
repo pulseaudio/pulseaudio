@@ -39,7 +39,6 @@ void pa_sink_input_free(struct pa_sink_input* i);
 void pa_sink_input_kill(struct pa_sink_input *i);
 
 uint32_t pa_sink_input_get_latency(struct pa_sink_input *i);
-char *pa_sink_input_list_to_string(struct pa_core *c);
 
 int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk);
 void pa_sink_input_drop(struct pa_sink_input *i, size_t length);

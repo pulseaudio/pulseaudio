@@ -33,8 +33,6 @@ void pa_source_post(struct pa_source*s, struct pa_memchunk *b);
 
 void pa_source_notify(struct pa_source *s);
 
-char *pa_source_list_to_string(struct pa_core *c);
-
 struct pa_source* pa_source_get_default(struct pa_core *c);
 
 void pa_source_set_owner(struct pa_source *s, struct pa_module *m);

@@ -25,10 +25,7 @@ void pa_module_unload_by_index(struct pa_core *c, uint32_t index);
 
 void pa_module_unload_all(struct pa_core *c);
 
-char *pa_module_list_to_string(struct pa_core *c);
-
 void pa_module_unload_request(struct pa_core *c, struct pa_module *m);
-
 
 /* These to following prototypes are for module entrypoints and not implemented by the core */
 int pa_module_init(struct pa_core *c, struct pa_module*m);

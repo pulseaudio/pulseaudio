@@ -32,8 +32,6 @@ void pa_source_output_free(struct pa_source_output* o);
 
 void pa_source_output_kill(struct pa_source_output*o);
 
-char *pa_source_output_list_to_string(struct pa_core *c);
-
 void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk *chunk);
 
 #endif

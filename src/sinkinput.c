@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include "sinkinput.h"
-#include "strbuf.h"
 #include "sample-util.h"
 
 #define CONVERT_BUFFER_LENGTH 4096
@@ -75,39 +74,6 @@ void pa_sink_input_kill(struct pa_sink_input*i) {
         i->kill(i);
 }
 
-char *pa_sink_input_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_sink_input *i;
-    uint32_t index = PA_IDXSET_INVALID;
-    assert(c);
-
-    s = pa_strbuf_new();
-    assert(s);
-
-    pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_ncontents(c->sink_inputs));
-
-    for (i = pa_idxset_first(c->sink_inputs, &index); i; i = pa_idxset_next(c->sink_inputs, &index)) {
-        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-        pa_sample_snprint(ss, sizeof(ss), &i->sample_spec);
-        assert(i->sink);
-        pa_strbuf_printf(
-            s, "    index: %u\n\tname: <%s>\n\tsink: <%u>\n\tvolume: <0x%04x>\n\tlatency: <%u usec>\n\tsample_spec: <%s>\n",
-            i->index,
-            i->name,
-            i->sink->index,
-            (unsigned) i->volume,
-            pa_sink_input_get_latency(i),
-            ss);
-
-        if (i->owner)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", i->owner->index);
-        if (i->client)
-            pa_strbuf_printf(s, "\tclient: <%u>\n", i->client->index);
-    }
-    
-    return pa_strbuf_tostring_free(s);
-}
-
 uint32_t pa_sink_input_get_latency(struct pa_sink_input *i) {
     uint32_t l = 0;
     
@@ -120,7 +86,6 @@ uint32_t pa_sink_input_get_latency(struct pa_sink_input *i) {
 
     return l;
 }
-
 
 int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     assert(i && chunk && i->peek && i->drop);

@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "sourceoutput.h"
-#include "strbuf.h"
 
 struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec) {
     struct pa_source_output *o;
@@ -56,36 +55,6 @@ void pa_source_output_kill(struct pa_source_output*i) {
 
     if (i->kill)
         i->kill(i);
-}
-
-char *pa_source_output_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_source_output *o;
-    uint32_t index = PA_IDXSET_INVALID;
-    assert(c);
-
-    s = pa_strbuf_new();
-    assert(s);
-
-    pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_ncontents(c->source_outputs));
-
-    for (o = pa_idxset_first(c->source_outputs, &index); o; o = pa_idxset_next(c->source_outputs, &index)) {
-        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-        pa_sample_snprint(ss, sizeof(ss), &o->sample_spec);
-        assert(o->source);
-        pa_strbuf_printf(
-            s, "  index: %u\n\tname: <%s>\n\tsource: <%u>\n\tsample_spec: <%s>\n",
-            o->index,
-            o->name,
-            o->source->index,
-            ss);
-        if (o->owner)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", o->owner->index);
-        if (o->client)
-            pa_strbuf_printf(s, "\tclient: <%u>\n", o->client->index);
-    }
-    
-    return pa_strbuf_tostring_free(s);
 }
 
 void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk *chunk) {

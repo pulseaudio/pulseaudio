@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 
 #include "socket-server.h"
-#include "util.h"
+#include "socket-util.h"
 
 struct pa_socket_server {
     int fd;

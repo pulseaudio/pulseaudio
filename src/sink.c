@@ -5,10 +5,9 @@
 
 #include "sink.h"
 #include "sinkinput.h"
-#include "strbuf.h"
-#include "sample-util.h"
 #include "namereg.h"
 #include "util.h"
+#include "sample-util.h"
 
 #define MAX_MIX_CHANNELS 32
 
@@ -258,42 +257,6 @@ struct pa_sink* pa_sink_get_default(struct pa_core *c) {
 
     fprintf(stderr, "core: default sink vanished, setting to %u.\n", sink->index);
     return sink;
-}
-
-char *pa_sink_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_sink *sink, *default_sink;
-    uint32_t index = PA_IDXSET_INVALID;
-    assert(c);
-
-    s = pa_strbuf_new();
-    assert(s);
-
-    pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_ncontents(c->sinks));
-
-    default_sink = pa_sink_get_default(c);
-    
-    for (sink = pa_idxset_first(c->sinks, &index); sink; sink = pa_idxset_next(c->sinks, &index)) {
-        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-        pa_sample_snprint(ss, sizeof(ss), &sink->sample_spec);
-        assert(sink->monitor_source);
-        pa_strbuf_printf(
-            s,
-            "  %c index: %u\n\tname: <%s>\n\tvolume: <0x%04x>\n\tlatency: <%u usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
-            sink == default_sink ? '*' : ' ',
-            sink->index, sink->name,
-            (unsigned) sink->volume,
-            pa_sink_get_latency(sink),
-            sink->monitor_source->index,
-            ss);
-
-        if (sink->owner)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", sink->owner->index);
-        if (sink->description)
-            pa_strbuf_printf(s, "\tdescription: <%s>\n", sink->description);
-    }
-    
-    return pa_strbuf_tostring_free(s);
 }
 
 void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m) {

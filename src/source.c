@@ -5,7 +5,6 @@
 
 #include "source.h"
 #include "sourceoutput.h"
-#include "strbuf.h"
 #include "namereg.h"
 
 struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
@@ -99,35 +98,6 @@ struct pa_source* pa_source_get_default(struct pa_core *c) {
 
     fprintf(stderr, "core: default source vanished, setting to %u.\n", source->index);
     return source;
-}
-
-char *pa_source_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_source *source, *default_source;
-    uint32_t index = PA_IDXSET_INVALID;
-    assert(c);
-
-    s = pa_strbuf_new();
-    assert(s);
-
-    pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_ncontents(c->sources));
-
-    default_source = pa_source_get_default(c);
-    
-    for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
-        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-        pa_sample_snprint(ss, sizeof(ss), &source->sample_spec);
-        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tsample_spec: <%s>\n", source == default_source ? '*' : ' ', source->index, source->name, ss);
-
-        if (source->monitor_of) 
-            pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);
-        if (source->owner)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", source->owner->index);
-        if (source->description)
-            pa_strbuf_printf(s, "\tdescription: <%s>\n", source->description);
-    }
-    
-    return pa_strbuf_tostring_free(s);
 }
 
 void pa_source_set_owner(struct pa_source *s, struct pa_module *m) {

@@ -25,8 +25,6 @@ void pa_client_free(struct pa_client *c);
  * request destruction of the client */
 void pa_client_kill(struct pa_client *c);
 
-char *pa_client_list_to_string(struct pa_core *c);
-
 void pa_client_rename(struct pa_client *c, const char *name);
 
 #endif

@@ -7,6 +7,7 @@
 
 #include "module.h"
 #include "socket-server.h"
+#include "socket-util.h"
 #include "util.h"
 
 #ifdef USE_PROTOCOL_SIMPLE

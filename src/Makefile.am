@@ -35,6 +35,8 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		libpstream-util.la \
 		libpdispatch.la \
 		libauthkey.la \
+		libclitext.la \
+		libsocket-util.la \
 		libprotocol-simple.la \
 		libprotocol-esound.la \
 		libprotocol-native.la \
@@ -94,26 +96,27 @@ libprotocol_simple_la_LIBADD = libsocket-server.la libiochannel.la
 
 libsocket_server_la_SOURCES = socket-server.c socket-server.h
 libsocket_server_la_LDFLAGS = -avoid-version
-libsocket_server_la_LIBADD = libiochannel.la
+libsocket_server_la_LIBADD = libiochannel.la libsocket-util.la
 
 libsocket_client_la_SOURCES = socket-client.c socket-client.h
 libsocket_client_la_LDFLAGS = -avoid-version
-libsocket_client_la_LIBADD = libiochannel.la
+libsocket_client_la_LIBADD = libiochannel.la libsocket-util.la
 
 libpstream_la_SOURCES = pstream.c pstream.h
 libpstream_la_LDFLAGS = -avoid-version
-libpstream_la_LIBADD = libpacket.la
+libpstream_la_LIBADD = libpacket.la libiochannel.la
 
 libpstream_util_la_SOURCES = pstream-util.c pstream-util.h
 libpstream_util_la_LDFLAGS = -avoid-version
-libpstream_util_la_LIBADD = libpstream.la libtagstruct.la
+libpstream_util_la_LIBADD = libpacket.la libpstream.la libtagstruct.la
 
 libpdispatch_la_SOURCES = pdispatch.c pdispatch.h
 libpdispatch_la_LDFLAGS = -avoid-version
-libpdispatch_la_LIBADD = libpacket.la libtagstruct.la
+libpdispatch_la_LIBADD = libtagstruct.la
 
 libiochannel_la_SOURCES = iochannel.c iochannel.h
 libiochannel_la_LDFLAGS = -avoid-version
+libiochannel_la_LIBDADD = libsocket-util.la
 
 libpacket_la_SOURCES = packet.c packet.h
 libpacket_la_LDFLAGS = -avoid-version
@@ -127,7 +130,7 @@ libioline_la_LIBADD = libiochannel.la
 
 libcli_la_SOURCES = cli.c cli.h
 libcli_la_LDFLAGS = -avoid-version
-libcli_la_LIBADD = libiochannel.la libioline.la
+libcli_la_LIBADD = libiochannel.la libioline.la libclitext.la libtokenizer.la
 
 libdynarray_la_SOURCES = dynarray.c dynarray.h
 libdynarray_la_LDFLAGS = -avoid-version
@@ -142,17 +145,23 @@ libprotocol_cli_la_LIBADD = libsocket-server.la libiochannel.la libcli.la
 
 libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
+libprotocol_native_la_LIBADD = libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
 
 libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
 
-libprotocol_esound_la_SOURCES = protocol-esound.c protocol-esound.h protocol-esound-spec.h
+libprotocol_esound_la_SOURCES = protocol-esound.c protocol-esound.h esound-spec.h
 libprotocol_esound_la_LDFLAGS = -avoid-version
 libprotocol_esound_la_LIBADD = libsocket-server.la libiochannel.la libauthkey.la
 
 libauthkey_la_SOURCES = authkey.c authkey.h
 libauthkey_la_LDFLAGS = -avoid-version
+
+libclitext_la_SOURCES = clitext.c clitext.h
+libclitext_la_LDFLAGS = -avoid-version
+
+libsocket_util_la_SOURCES = socket-util.c socket-util.h
+libsocket_util_la_LDFLAGS = -avoid-version
 
 module_simple_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_simple_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
@@ -162,7 +171,7 @@ module_simple_protocol_tcp_la_LIBADD = libprotocol-simple.la libsocket-server.la
 module_simple_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_simple_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
 module_simple_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_simple_protocol_unix_la_LIBADD = libprotocol-simple.la libsocket-server.la
+module_simple_protocol_unix_la_LIBADD = libprotocol-simple.la libsocket-server.la libsocket-util.la
 
 module_cli_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_cli_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
@@ -172,7 +181,7 @@ module_cli_protocol_tcp_la_LIBADD = libprotocol-cli.la libsocket-server.la
 module_cli_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_cli_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
 module_cli_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_cli_protocol_unix_la_LIBADD = libprotocol-cli.la libsocket-server.la
+module_cli_protocol_unix_la_LIBADD = libprotocol-cli.la libsocket-server.la libsocket-util.la
 
 module_native_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
@@ -182,7 +191,7 @@ module_native_protocol_tcp_la_LIBADD = libprotocol-native.la libsocket-server.la
 module_native_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
 module_native_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_native_protocol_unix_la_LIBADD = libprotocol-native.la libsocket-server.la
+module_native_protocol_unix_la_LIBADD = libprotocol-native.la libsocket-server.la libsocket-util.la
 
 module_esound_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
@@ -192,7 +201,7 @@ module_esound_protocol_tcp_la_LIBADD = libprotocol-esound.la libsocket-server.la
 module_esound_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_esound_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
 module_esound_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_esound_protocol_unix_la_LIBADD = libprotocol-esound.la libsocket-server.la
+module_esound_protocol_unix_la_LIBADD = libprotocol-esound.la libsocket-server.la libsocket-util.la
 
 module_pipe_sink_la_SOURCES = module-pipe-sink.c
 module_pipe_sink_la_LDFLAGS = -module -avoid-version
@@ -204,7 +213,7 @@ module_oss_la_LIBADD = libiochannel.la liboss-util.la
 
 module_oss_mmap_la_SOURCES = module-oss-mmap.c
 module_oss_mmap_la_LDFLAGS = -module -avoid-version
-module_oss_mmap_la_LIBADD = libiochannel.la liboss-util.la
+module_oss_mmap_la_LIBADD = liboss-util.la
 
 module_cli_la_SOURCES = module-cli.c
 module_cli_la_LDFLAGS = -module -avoid-version
@@ -229,9 +238,9 @@ libpolyp_la_SOURCES = polyp.c polyp.h \
 		queue.c queue.h \
 		dynarray.c dynarray.h \
 		memchunk.c memchunk.h \
-		authkey.c authkey.h
+		authkey.c authkey.h \
+		socket-util.c socket-util.h
 libpolyp_la_CFLAGS = $(AM_CFLAGS)
-#libpolyp_la_LIBADD = libpolyp-error.la
 
 libpolyp_error_la_SOURCES = polyp-error.c polyp-error.h
 libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
@@ -239,16 +248,15 @@ libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_simple_la_SOURCES = simple.c simple.h 
 libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_simple_la_LIBADD = libpolyp.la
-#libpolyp-error.la
 
-pacat_SOURCES = pacat.c $(libpolyp_la_SOURCES) $(libpolyp_error_la_SOURCES)
-#pacat_LDADD = libpolyp.la
+pacat_SOURCES = pacat.c #$(libpolyp_la_SOURCES) $(libpolyp_error_la_SOURCES)
+pacat_LDADD = libpolyp.la libpolyp-error.la
 pacat_CFLAGS = $(AM_CFLAGS) 
 
-pacat_simple_SOURCES = pacat-simple.c $(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)
-#pacat_simple_LDADD = libpolyp-simple.la libpolyp-error.la
+pacat_simple_SOURCES = pacat-simple.c #$(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)
+pacat_simple_LDADD = libpolyp-simple.la libpolyp-error.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
 
-parec_simple_SOURCES = parec-simple.c $(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)
-#parec_simple_LDADD = libpolyp-simple.la libpolyp-error.la
+parec_simple_SOURCES = parec-simple.c #$(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)
+parec_simple_LDADD = libpolyp-simple.la libpolyp-error.la
 parec_simple_CFLAGS = $(AM_CFLAGS)

@@ -14,6 +14,7 @@
 #include "tokenizer.h"
 #include "strbuf.h"
 #include "namereg.h"
+#include "clitext.h"
 
 struct pa_cli {
     struct pa_core *core;

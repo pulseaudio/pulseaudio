@@ -229,7 +229,7 @@ static void io_callback(struct pa_iochannel*io, void *userdata) {
 
 /*** fixed callback ***/
 
-void fixed_callback(struct pa_mainloop_api*a, void *id, void *userdata) {
+static void fixed_callback(struct pa_mainloop_api*a, void *id, void *userdata) {
     struct connection *c = userdata;
     assert(a && c && c->fixed_source == id);
 

@@ -5,6 +5,7 @@
 
 #include "iochannel.h"
 #include "util.h"
+#include "socket-util.h"
 
 struct pa_iochannel {
     int ifd, ofd;
@@ -182,7 +183,7 @@ void pa_iochannel_set_noclose(struct pa_iochannel*io, int b) {
 
 void pa_iochannel_socket_peer_to_string(struct pa_iochannel*io, char*s, size_t l) {
     assert(io && s && l);
-    pa_peer_to_string(s, l, io->ifd);
+    pa_socket_peer_to_string(io->ifd, s, l);
 }
 
 int pa_iochannel_socket_set_rcvbuf(struct pa_iochannel *io, size_t l) {

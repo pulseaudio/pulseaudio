@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 
 #include "socket-client.h"
+#include "socket-util.h"
 #include "util.h"
 
 struct pa_socket_client {

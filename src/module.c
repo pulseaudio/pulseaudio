@@ -6,7 +6,6 @@
 #include <errno.h>
 
 #include "module.h"
-#include "strbuf.h"
 
 struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char *argument) {
     struct pa_module *m = NULL;
@@ -111,24 +110,6 @@ void pa_module_unload_all(struct pa_core *c) {
     pa_idxset_free(c->modules, free_callback, NULL);
     c->modules = NULL;
 }
-
-char *pa_module_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_module *m;
-    uint32_t index = PA_IDXSET_INVALID;
-    assert(c);
-
-    s = pa_strbuf_new();
-    assert(s);
-
-    pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_ncontents(c->modules));
-    
-    for (m = pa_idxset_first(c->modules, &index); m; m = pa_idxset_next(c->modules, &index))
-        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\targument: <%s>\n", m->index, m->name, m->argument);
-    
-    return pa_strbuf_tostring_free(s);
-}
-
 
 struct once_info {
     struct pa_core *core;
