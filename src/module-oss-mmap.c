@@ -306,11 +306,16 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->mainloop_source = c->mainloop->source_io(c->mainloop, u->fd, (u->source ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) | (u->sink ? PA_MAINLOOP_API_IO_EVENT_OUTPUT : 0), io_callback, u);
     assert(u->mainloop_source);
 
+    pa_modargs_free(ma);
+    
     return 0;
 
 fail:
     pa_module_done(c, m);
 
+    if (ma)
+        pa_modargs_free(ma);
+    
     return -1;
 }
 

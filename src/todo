@@ -1,5 +1,3 @@
-- modargs memory leak
-
 - clean secure directory handling (with username)
 
 - native library/protocol:

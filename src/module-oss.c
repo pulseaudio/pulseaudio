@@ -229,6 +229,8 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     
     m->userdata = u;
 
+    pa_modargs_free(ma);
+
     return 0;
 
 fail:

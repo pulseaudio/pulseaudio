@@ -107,23 +107,30 @@ struct pa_socket_server *create_socket_server(struct pa_core *c, struct pa_modar
 
 int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct pa_socket_server *s;
-    struct pa_modargs *ma;
+    struct pa_modargs *ma = NULL;
+    int ret = -1;
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         fprintf(stderr, "Failed to parse module arguments\n");
-        return -1;
+        goto finish;
     }
 
     if (!(s = create_socket_server(c, ma)))
-        return -1;
+        goto finish;
 
     if (!(m->userdata = protocol_new(c, s, m, ma))) {
         pa_socket_server_free(s);
-        return -1;
+        goto finish;
     }
 
-    return 0;
+    ret = 0;
+
+finish:
+    if (ma)
+        pa_modargs_free(ma);
+
+    return ret;
 }
 
 void pa_module_done(struct pa_core *c, struct pa_module*m) {
