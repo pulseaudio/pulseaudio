@@ -26,6 +26,7 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		libpstream.la \
 		libpacket.la \
 		liboss-util.la \
+		libalsa-util.la \
 		libioline.la \
 		libcli.la \
 		libprotocol-cli.la \
@@ -42,6 +43,7 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-cli-protocol-unix.la \
 		module-pipe-sink.la \
 		module-alsa-sink.la \
+		module-alsa-source.la \
 		module-oss.la \
 		module-oss-mmap.la \
 		module-simple-protocol-tcp.la \
@@ -128,6 +130,11 @@ libpacket_la_LDFLAGS = -avoid-version
 liboss_util_la_SOURCES = oss-util.c oss-util.h
 liboss_util_la_LDFLAGS = -avoid-version
 
+libalsa_util_la_SOURCES = alsa-util.c alsa-util.h
+libalsa_util_la_LDFLAGS = -avoid-version
+libalsa_util_la_LIBADD = $(ASOUNDLIB_LIBS)
+libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+
 libioline_la_SOURCES = ioline.c ioline.h
 libioline_la_LDFLAGS = -avoid-version
 libioline_la_LIBADD = libiochannel.la
@@ -203,8 +210,13 @@ module_pipe_sink_la_LIBADD = libiochannel.la
 
 module_alsa_sink_la_SOURCES = module-alsa-sink.c
 module_alsa_sink_la_LDFLAGS = -module -avoid-version
-module_alsa_sink_la_LIBADD = $(ASOUNDLIB_LIBS)
+module_alsa_sink_la_LIBADD = $(ASOUNDLIB_LIBS) libalsa-util.la
 module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+
+module_alsa_source_la_SOURCES = module-alsa-source.c
+module_alsa_source_la_LDFLAGS = -module -avoid-version
+module_alsa_source_la_LIBADD = $(ASOUNDLIB_LIBS) libalsa-util.la
+module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 module_oss_la_SOURCES = module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version

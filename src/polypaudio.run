@@ -1,12 +1,20 @@
 #!./polypaudio -F
 
-# Load the CLI module
-load module-cli
+# Load audio drivers
+load module-alsa-sink
+load module-alsa-source device=plughw:1,0
+#load module-oss-mmap device="/dev/dsp"
 
+# Make some devices default
+sink_default alsa_output
+source_default alsa_input
+
+# Load several protocols
 load module-esound-protocol-tcp
 load module-simple-protocol-tcp
 load module-native-protocol-unix
 load module-cli-protocol-unix
 
-load module-alsa-sink
-#load module-oss-mmap device="/dev/dsp"
+# Load the CLI module
+load module-cli
+

@@ -15,17 +15,17 @@
 
 struct userdata {
     snd_pcm_t *pcm_handle;
-    struct pa_sink *sink;
+    struct pa_source *source;
     void **io_sources;
     unsigned n_io_sources;
 
     size_t frame_size, fragment_size;
-    struct pa_memchunk memchunk, silence;
+    struct pa_memchunk memchunk;
 };
 
 static const char* const valid_modargs[] = {
     "device",
-    "sink_name",
+    "source_name",
     "format",
     "channels",
     "rate",
@@ -34,59 +34,60 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-#define DEFAULT_SINK_NAME "alsa_output"
-#define DEFAULT_DEVICE "plughw:0,0"
+#define DEFAULT_SOURCE_NAME "alsa_input"
+#define DEFAULT_DEVICE "hw:0,0"
 
 static void xrun_recovery(struct userdata *u) {
     assert(u);
 
-    fprintf(stderr, "*** ALSA-XRUN (playback) ***\n");
+    fprintf(stderr, "*** ALSA-XRUN (capture) ***\n");
     
     if (snd_pcm_prepare(u->pcm_handle) < 0)
         fprintf(stderr, "snd_pcm_prepare() failed\n");
 }
 
-static void do_write(struct userdata *u) {
+static void do_read(struct userdata *u) {
     assert(u);
 
     for (;;) {
-        struct pa_memchunk *memchunk = NULL;
+        struct pa_memchunk post_memchunk;
         snd_pcm_sframes_t frames;
+        size_t l;
         
-        if (u->memchunk.memblock)
-            memchunk = &u->memchunk;
-        else {
-            if (pa_sink_render(u->sink, u->fragment_size, &u->memchunk) < 0)
-                memchunk = &u->silence;
-            else
-                memchunk = &u->memchunk;
+        if (!u->memchunk.memblock) {
+            u->memchunk.memblock = pa_memblock_new(u->memchunk.length = u->fragment_size);
+            u->memchunk.index = 0;
         }
             
-        assert(memchunk->memblock && memchunk->memblock->data && memchunk->length && memchunk->memblock->length && (memchunk->length % u->frame_size) == 0);
+        assert(u->memchunk.memblock && u->memchunk.memblock->data && u->memchunk.length && u->memchunk.memblock->length && (u->memchunk.length % u->frame_size) == 0);
 
-        if ((frames = snd_pcm_writei(u->pcm_handle, memchunk->memblock->data + memchunk->index, memchunk->length / u->frame_size)) < 0) {
+        if ((frames = snd_pcm_readi(u->pcm_handle, u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length / u->frame_size)) < 0) {
             if (frames == -EAGAIN)
                 return;
-
+            
             if (frames == -EPIPE) {
                 xrun_recovery(u);
                 continue;
             }
 
-            fprintf(stderr, "snd_pcm_writei() failed\n");
+            fprintf(stderr, "snd_pcm_readi() failed: %s\n", strerror(-frames));
             return;
         }
 
-        if (memchunk == &u->memchunk) {
-            size_t l = frames * u->frame_size;
-            memchunk->index += l;
-            memchunk->length -= l;
+        l = frames * u->frame_size;
+        
+        post_memchunk = u->memchunk;
+        post_memchunk.length = l;
 
-            if (memchunk->length == 0) {
-                pa_memblock_unref(memchunk->memblock);
-                memchunk->memblock = NULL;
-                memchunk->index = memchunk->length = 0;
-            }
+        pa_source_post(u->source, &post_memchunk);
+
+        u->memchunk.index += l;
+        u->memchunk.length -= l;
+        
+        if (u->memchunk.length == 0) {
+            pa_memblock_unref(u->memchunk.memblock);
+            u->memchunk.memblock = NULL;
+            u->memchunk.index = u->memchunk.length = 0;
         }
         
         break;
@@ -100,24 +101,7 @@ static void io_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_main
     if (snd_pcm_state(u->pcm_handle) == SND_PCM_STATE_XRUN)
         xrun_recovery(u);
 
-    do_write(u);
-}
-
-static uint32_t sink_get_latency_cb(struct pa_sink *s) {
-    struct userdata *u = s->userdata;
-    snd_pcm_sframes_t frames;
-    assert(s && u && u->sink);
-
-    if (snd_pcm_delay(u->pcm_handle, &frames) < 0) {
-        fprintf(stderr, __FILE__": failed to get delay\n");
-        s->get_latency = NULL;
-        return 0;
-    }
-
-    if (frames < 0)
-        frames = 0;
-    
-    return pa_samples_usec(frames * u->frame_size, &s->sample_spec);
+    do_read(u);
 }
 
 int pa_module_init(struct pa_core *c, struct pa_module*m) {
@@ -155,7 +139,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     memset(u, 0, sizeof(struct userdata));
     m->userdata = u;
     
-    if (snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) {
+    if (snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) < 0) {
         fprintf(stderr, __FILE__": Error opening PCM device %s\n", dev);
         goto fail;
     }
@@ -165,34 +149,30 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
 
-    u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss);
-    assert(u->sink);
+    u->source = pa_source_new(c, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss);
+    assert(u->source);
 
-    u->sink->get_latency = sink_get_latency_cb;
-    u->sink->userdata = u;
-    pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s'", dev);
+    u->source->userdata = u;
+    pa_source_set_owner(u->source, m);
+    u->source->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s'", dev);
 
     if (pa_create_io_sources(u->pcm_handle, c->mainloop, &u->io_sources, &u->n_io_sources, io_callback, u) < 0) {
         fprintf(stderr, __FILE__": failed to obtain file descriptors\n");
         goto fail;
     }
-    
+
     u->frame_size = frame_size;
     u->fragment_size = buffer_size*u->frame_size/periods;
 
     fprintf(stderr, __FILE__": using %u fragments of size %u bytes.\n", periods, u->fragment_size);
 
-    u->silence.memblock = pa_memblock_new(u->silence.length = u->fragment_size);
-    assert(u->silence.memblock);
-    pa_silence_memblock(u->silence.memblock, &ss);
-    u->silence.index = 0;
-
     u->memchunk.memblock = NULL;
     u->memchunk.index = u->memchunk.length = 0;
+
+    snd_pcm_start(u->pcm_handle);
     
     ret = 0;
-     
+
 finish:
      if (ma)
          pa_modargs_free(ma);
@@ -212,8 +192,8 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     if ((u = m->userdata)) {
-        if (u->sink)
-            pa_sink_free(u->sink);
+        if (u->source)
+            pa_source_free(u->source);
 
         if (u->io_sources)
             pa_free_io_sources(c->mainloop, u->io_sources, u->n_io_sources);
@@ -225,8 +205,6 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
 
         if (u->memchunk.memblock)
             pa_memblock_unref(u->memchunk.memblock);
-        if (u->silence.memblock)
-            pa_memblock_unref(u->silence.memblock);
         
         free(u);
     }

@@ -1,5 +1,4 @@
-- alsa source
-
+- make the sample spec configurable for oss devices
 - prefix modules/libraries with pa_
 - rename files
 - svn-id and license in every file
@@ -33,4 +32,4 @@ drivers:
 - python
 
 modules:
-- http
+- http?
