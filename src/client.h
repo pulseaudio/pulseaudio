@@ -11,7 +11,6 @@ struct client {
     const char *protocol_name;
 
     void (*kill)(struct client *c);
-
     void *userdata;
 };
 
@@ -23,5 +22,7 @@ void client_free(struct client *c);
 /* Code that didn't create the client should call this function to
  * request destruction of the client */
 void client_kill(struct client *c);
+
+char *client_list_to_string(struct core *c);
 
 #endif

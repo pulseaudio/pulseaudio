@@ -6,11 +6,6 @@
 
 #include "core.h"
 
-struct dependency_module {
-    lt_dlhandle dl;
-    struct dependency_module *next;
-};
-
 struct module {
     struct core *core;
     char *name, *argument;
@@ -29,5 +24,7 @@ void module_unload(struct core *c, struct module *m);
 void module_unload_by_index(struct core *c, uint32_t index);
 
 void module_unload_all(struct core *c);
+
+char *module_list_to_string(struct core *c);
 
 #endif

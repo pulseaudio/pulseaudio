@@ -29,4 +29,8 @@ void source_post(struct source*s, struct memchunk *b);
 
 void source_notify(struct source *s);
 
+char *source_list_to_string(struct core *c);
+
+struct source* source_get_default(struct core *c);
+
 #endif

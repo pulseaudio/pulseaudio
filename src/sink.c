@@ -5,6 +5,7 @@
 
 #include "sink.h"
 #include "sinkinput.h"
+#include "strbuf.h"
 
 #define MAX_MIX_CHANNELS 32
 
@@ -213,4 +214,39 @@ uint32_t sink_get_latency(struct sink *s) {
         return 0;
 
     return s->get_latency(s);
+}
+
+struct sink* sink_get_default(struct core *c) {
+    struct sink *sink;
+    assert(c);
+
+    if ((sink = idxset_get_by_index(c->sinks, c->default_sink_index)))
+        return sink;
+
+    if (!(sink = idxset_first(c->sinks, &c->default_sink_index)))
+        return NULL;
+
+    fprintf(stderr, "core: default sink vanished, setting to %u.\n", sink->index);
+    return sink;
+}
+
+char *sink_list_to_string(struct core *c) {
+    struct strbuf *s;
+    struct sink *sink, *default_sink;
+    uint32_t index = IDXSET_INVALID;
+    assert(c);
+
+    s = strbuf_new();
+    assert(s);
+
+    strbuf_printf(s, "%u sink(s) available.\n", idxset_ncontents(c->sinks));
+
+    default_sink = sink_get_default(c);
+    
+    for (sink = idxset_first(c->sinks, &index); sink; sink = idxset_next(c->sinks, &index)) {
+        assert(sink->monitor_source);
+        strbuf_printf(s, "  %c index: %u, name: <%s>, volume: <0x%02x>, latency: <%u usec>, monitor_source: <%u>\n", sink == default_sink ? '*' : ' ', sink->index, sink->name, (unsigned) sink->volume, sink_get_latency(sink), sink->monitor_source->index);
+    }
+    
+    return strbuf_tostring_free(s);
 }

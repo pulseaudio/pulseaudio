@@ -1,6 +1,3 @@
-#ifndef foostrbufhfoo
-#define foostrbufhfoo
-
 #include <sys/types.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -52,6 +49,14 @@ char *strbuf_tostring(struct strbuf *sb) {
         e = strchr(e, 0);
     }
 
+    return t;
+}
+
+char *strbuf_tostring_free(struct strbuf *sb) {
+    char *t;
+    assert(sb);
+    t = strbuf_tostring(sb);
+    strbuf_free(sb);
     return t;
 }
 
@@ -118,5 +123,3 @@ int strbuf_printf(struct strbuf *sb, const char *format, ...) {
             size *= 2;
     }
 }
-
-#endif

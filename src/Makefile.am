@@ -22,12 +22,25 @@ bin_PROGRAMS = polypaudio
 
 pkglib_LTLIBRARIES=libprotocol-simple.la module-simple-protocol-tcp.la \
 		libsocket-server.la module-pipe-sink.la libpstream.la libiochannel.la \
-		libpacket.la module-oss.la module-oss-mmap.la liboss.la
+		libpacket.la module-oss.la module-oss-mmap.la liboss.la libioline.la \
+		libcli.la module-cli.la
 
-polypaudio_SOURCES = idxset.c queue.c strbuf.c mainloop.c  \
-		memblock.c sample.c memblockq.c client.c \
-		core.c main.c sourceoutput.c sinkinput.c source.c sink.c \
-		module.c
+polypaudio_SOURCES = idxset.c idxset.h \
+		queue.c queue.h \
+		strbuf.c strbuf.h \
+		mainloop.c mainloop.h \
+		memblock.c memblock.h \
+		sample.c sample.h \
+		memblockq.c memblockq.h \
+		client.c client.h \
+		core.c core.h \
+		main.c main.h \
+		sourceoutput.c sourceoutput.h \
+		sinkinput.c sinkinput.h \
+		source.c source.h \
+		sink.c sink.h \
+		module.c module.h
+
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(LIBLTDL) 
 polypaudio_LDFLAGS=-export-dynamic
@@ -53,6 +66,14 @@ libpacket_la_LDFLAGS = -avoid-version
 liboss_la_SOURCES = oss.c
 liboss_la_LDFLAGS = -avoid-version
 
+libioline_la_SOURCES = ioline.c
+libioline_la_LDFLAGS = -avoid-version
+libioline_la_LIBADD = libiochannel.la
+
+libcli_la_SOURCES = cli.c
+libcli_la_LDFLAGS = -avoid-version
+libcli_la_LIBADD = libiochannel.la libioline.la
+
 module_simple_protocol_tcp_la_SOURCES = module-simple-protocol-tcp.c
 module_simple_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_simple_protocol_tcp_la_LIBADD = libprotocol-simple.la libiochannel.la
@@ -68,3 +89,7 @@ module_oss_la_LIBADD = libiochannel.la liboss.la
 module_oss_mmap_la_SOURCES = module-oss-mmap.c
 module_oss_mmap_la_LDFLAGS = -module -avoid-version
 module_oss_mmap_la_LIBADD = libiochannel.la liboss.la
+
+module_cli_la_SOURCES = module-cli.c
+module_cli_la_LDFLAGS = -module -avoid-version
+module_cli_la_LIBADD = libcli.la libiochannel.la

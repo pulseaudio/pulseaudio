@@ -6,6 +6,7 @@
 #include <errno.h>
 
 #include "module.h"
+#include "strbuf.h"
 
 struct module* module_load(struct core *c, const char *name, const char *argument) {
     struct module *m = NULL;
@@ -110,3 +111,19 @@ void module_unload_all(struct core *c) {
     c->modules = NULL;
 }
 
+char *module_list_to_string(struct core *c) {
+    struct strbuf *s;
+    struct module *m;
+    uint32_t index = IDXSET_INVALID;
+    assert(c);
+
+    s = strbuf_new();
+    assert(s);
+
+    strbuf_printf(s, "%u module(s) loaded.\n", idxset_ncontents(c->modules));
+    
+    for (m = idxset_first(c->modules, &index); m; m = idxset_next(c->modules, &index))
+        strbuf_printf(s, "    index: %u, name: <%s>, argument: <%s>\n", m->index, m->name, m->argument);
+    
+    return strbuf_tostring_free(s);
+}

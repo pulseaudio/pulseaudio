@@ -9,6 +9,8 @@
 #include "mainloop.h"
 #include "module.h"
 
+int stdin_inuse = 0, stdout_inuse = 0;
+
 static void signal_callback(struct mainloop_source *m, int sig, void *userdata) {
     mainloop_quit(mainloop_source_get_mainloop(m), -1);
     fprintf(stderr, "main: got signal.\n");
@@ -33,12 +35,12 @@ int main(int argc, char *argv[]) {
     module_load(c, "module-oss-mmap", "/dev/dsp1");
     module_load(c, "module-pipe-sink", NULL);
     module_load(c, "module-simple-protocol-tcp", NULL);
+    module_load(c, "module-cli", NULL);
     
     fprintf(stderr, "main: mainloop entry.\n");
     while (mainloop_iterate(m, 1) == 0);
 /*        fprintf(stderr, "main: %u blocks\n", n_blocks);*/
     fprintf(stderr, "main: mainloop exit.\n");
-        
 
     mainloop_run(m);
     

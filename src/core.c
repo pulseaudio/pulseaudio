@@ -50,30 +50,3 @@ void core_free(struct core *c) {
     free(c);    
 };
 
-struct sink* core_get_default_sink(struct core *c) {
-    struct sink *sink;
-    assert(c);
-
-    if ((sink = idxset_get_by_index(c->sinks, c->default_sink_index)))
-        return sink;
-
-    if (!(sink = idxset_first(c->sinks, &c->default_sink_index)))
-        return NULL;
-
-    fprintf(stderr, "core: default sink vanished, setting to %u.\n", sink->index);
-    return sink;
-}
-
-struct source* core_get_default_source(struct core *c) {
-    struct source *source;
-    assert(c);
-
-    if ((source = idxset_get_by_index(c->sources, c->default_source_index)))
-        return source;
-
-    if (!(source = idxset_first(c->sources, &c->default_source_index)))
-        return NULL;
-
-    fprintf(stderr, "core: default source vanished, setting to %u.\n", source->index);
-    return source;
-}

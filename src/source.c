@@ -5,6 +5,7 @@
 
 #include "source.h"
 #include "sourceoutput.h"
+#include "strbuf.h"
 
 struct source* source_new(struct core *core, const char *name, const struct sample_spec *spec) {
     struct source *s;
@@ -70,3 +71,37 @@ void source_post(struct source*s, struct memchunk *chunk) {
 
     idxset_foreach(s->outputs, do_post, chunk);
 }
+
+struct source* source_get_default(struct core *c) {
+    struct source *source;
+    assert(c);
+
+    if ((source = idxset_get_by_index(c->sources, c->default_source_index)))
+        return source;
+
+    if (!(source = idxset_first(c->sources, &c->default_source_index)))
+        return NULL;
+
+    fprintf(stderr, "core: default source vanished, setting to %u.\n", source->index);
+    return source;
+}
+
+char *source_list_to_string(struct core *c) {
+    struct strbuf *s;
+    struct source *source, *default_source;
+    uint32_t index = IDXSET_INVALID;
+    assert(c);
+
+    s = strbuf_new();
+    assert(s);
+
+    strbuf_printf(s, "%u source(s) available.\n", idxset_ncontents(c->sources));
+
+    default_source = source_get_default(c);
+    
+    for (source = idxset_first(c->sources, &index); source; source = idxset_next(c->sources, &index))
+        strbuf_printf(s, "  %c index: %u, name: <%s>\n", source == default_source ? '*' : ' ', source->index, source->name);
+    
+    return strbuf_tostring_free(s);
+}
+

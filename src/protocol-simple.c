@@ -205,7 +205,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
         struct source *source;
         size_t l;
 
-        if (!(source = core_get_default_source(p->core))) {
+        if (!(source = source_get_default(p->core))) {
             fprintf(stderr, "Failed to get default source.\n");
             goto fail;
         }
@@ -224,7 +224,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
         struct sink *sink;
         size_t l;
 
-        if (!(sink = core_get_default_sink(p->core))) {
+        if (!(sink = sink_get_default(p->core))) {
             fprintf(stderr, "Failed to get default sink.\n");
             goto fail;
         }

@@ -38,4 +38,10 @@ uint32_t sink_get_latency(struct sink *s);
 
 void sink_notify(struct sink*s);
 
+char *sink_list_to_string(struct core *core);
+
+struct sink* sink_get_default(struct core *c);
+
+
+
 #endif
