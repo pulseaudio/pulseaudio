@@ -90,9 +90,12 @@ int pa_pid_file_create(void) {
         pa_log(__FILE__": stale PID file, overwriting.\n");
     }
 
-    lseek(fd, 0, SEEK_SET);
+    if (lseek(fd, 0, SEEK_SET) == (off_t) -1 || ftruncate(fd, 0) < 0) {
+        pa_log(__FILE__": failed to truncate PID fil: %s.\n", strerror(errno));
+        goto fail;
+    }
     
-    snprintf(t, sizeof(t), "%lu", (unsigned long) getpid());
+    snprintf(t, sizeof(t), "%lu\n", (unsigned long) getpid());
     l = strlen(t);
     
     if (pa_loop_write(fd, t, l) != (ssize_t) l) {
