@@ -2,7 +2,7 @@
 
 *** 0.4 ***
 - make mcalign merge chunks
-- use ref counting in more objects
+- use ref counting in more objects (i.e. sink, source, sink_input, source_output)
 - unix socket directories include user name
 - native library/protocol:
    module load/unload
@@ -14,6 +14,7 @@
 - remove all gcc warnings
 - esd compatible startup script or personality
 - limit number of concurrent streams
+- decibel macros
 
 ** later ***
 - xmlrpc/http
@@ -28,4 +29,3 @@ backends for:
 - sdl
 - gstreamer
 - portaudio
-- python

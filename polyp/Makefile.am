@@ -79,7 +79,8 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-esound-protocol-tcp.la \
 		module-esound-protocol-unix.la \
 		module-native-protocol-tcp.la \
-		module-native-protocol-unix.la
+		module-native-protocol-unix.la \
+		module-sine.la
 
 if !X_DISPLAY_MISSING
 pkglib_LTLIBRARIES+=module-x11-bell.la
@@ -272,6 +273,10 @@ module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la
 module_cli_la_SOURCES = module-cli.c
 module_cli_la_LDFLAGS = -module -avoid-version
 module_cli_la_LIBADD = $(AM_LIBADD) libcli.la libiochannel.la
+
+module_sine_la_SOURCES = module-sine.c
+module_sine_la_LDFLAGS = -module -avoid-version
+module_sine_la_LIBADD = $(AM_LIBADD) -lm
 
 if !X_DISPLAY_MISSING
 module_x11_bell_la_SOURCES = module-x11-bell.c

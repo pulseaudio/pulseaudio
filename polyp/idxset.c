@@ -107,7 +107,7 @@ void pa_idxset_free(struct pa_idxset *s, void (*free_func) (void *p, void *userd
     pa_xfree(s);
 }
 
-static struct idxset_entry* hash_scan(struct pa_idxset *s, struct idxset_entry* e, void *p) {
+static struct idxset_entry* hash_scan(struct pa_idxset *s, struct idxset_entry* e, const void *p) {
     assert(p);
 
     assert(s->compare_func);
@@ -221,7 +221,7 @@ void* pa_idxset_get_by_index(struct pa_idxset*s, uint32_t index) {
     return (*a)->data;
 }
 
-void* pa_idxset_get_by_data(struct pa_idxset*s, void *p, uint32_t *index) {
+void* pa_idxset_get_by_data(struct pa_idxset*s, const void *p, uint32_t *index) {
     unsigned h;
     struct idxset_entry *e;
     assert(s && p);
@@ -289,9 +289,10 @@ void* pa_idxset_remove_by_index(struct pa_idxset*s, uint32_t index) {
     return data; 
 }
 
-void* pa_idxset_remove_by_data(struct pa_idxset*s, void *data, uint32_t *index) {
+void* pa_idxset_remove_by_data(struct pa_idxset*s, const void *data, uint32_t *index) {
     struct idxset_entry *e;
     unsigned h;
+    void *r;
     
     assert(s->hash_func);
     h = s->hash_func(data) % s->hash_table_size;
@@ -300,13 +301,13 @@ void* pa_idxset_remove_by_data(struct pa_idxset*s, void *data, uint32_t *index) 
     if (!(e = hash_scan(s, s->hash_table[h], data)))
         return NULL;
 
-    data = e->data;
+    r = e->data;
     if (index)
         *index = e->index;
 
     remove_entry(s, e);
 
-    return data;
+    return r;
 }
 
 void* pa_idxset_rrobin(struct pa_idxset *s, uint32_t *index) {

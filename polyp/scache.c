@@ -157,5 +157,14 @@ const char * pa_scache_get_name_by_id(struct pa_core *c, uint32_t id) {
         return NULL;
 
     return e->name;
-    
+}
+
+uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name) {
+    struct pa_scache_entry *e;
+    assert(c && name);
+
+    if (!c->scache || !(e = pa_idxset_get_by_data(c->scache, name, NULL)))
+        return PA_IDXSET_INVALID;
+
+    return e->index;
 }

@@ -40,10 +40,10 @@ void pa_idxset_free(struct pa_idxset *s, void (*free_func) (void *p, void *userd
 int pa_idxset_put(struct pa_idxset*s, void *p, uint32_t *index);
 
 void* pa_idxset_get_by_index(struct pa_idxset*s, uint32_t index);
-void* pa_idxset_get_by_data(struct pa_idxset*s, void *p, uint32_t *index);
+void* pa_idxset_get_by_data(struct pa_idxset*s, const void *p, uint32_t *index);
 
 void* pa_idxset_remove_by_index(struct pa_idxset*s, uint32_t index);
-void* pa_idxset_remove_by_data(struct pa_idxset*s, void *p, uint32_t *index);
+void* pa_idxset_remove_by_data(struct pa_idxset*s, const void *p, uint32_t *index);
 
 /* This may be used to iterate through all entries. When called with
    an invalid index value it returns the first entry, otherwise the
