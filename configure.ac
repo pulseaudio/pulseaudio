@@ -40,6 +40,12 @@ AC_SUBST(LIBLTDL)
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
+AC_C_BIGENDIAN
+
+PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ])
+AC_SUBST(LIBSAMPLERATE_CFLAGS)
+AC_SUBST(LIBSAMPLERATE_LIBS)
+
 # If using GCC specifiy some additional parameters
 if test "x$GCC" = "xyes" ; then
    CFLAGS="$CFLAGS -pipe -Wall -W -Wno-unused-parameter"
