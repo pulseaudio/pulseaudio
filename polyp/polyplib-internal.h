@@ -108,6 +108,7 @@ struct pa_stream {
     uint32_t ipol_usec;
     struct timeval ipol_timestamp;
     struct pa_time_event *ipol_event;
+    int ipol_requested;
     
     void (*state_callback)(struct pa_stream*c, void *userdata);
     void *state_userdata;

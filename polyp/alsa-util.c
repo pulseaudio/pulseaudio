@@ -23,6 +23,7 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
 #include <asoundlib.h>
 
 #include "alsa-util.h"

@@ -32,8 +32,9 @@
 #include "xmalloc.h"
 #include "pstream-util.h"
 #include "util.h"
+#include "log.h"
 
-#define LATENCY_IPOL_INTERVAL_USEC (100000L)
+#define LATENCY_IPOL_INTERVAL_USEC (10000L)
 
 struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const struct pa_sample_spec *ss) {
     struct pa_stream *s;
@@ -72,6 +73,7 @@ struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const st
     s->ipol_usec = 0;
     memset(&s->ipol_timestamp, 0, sizeof(s->ipol_timestamp));
     s->ipol_event = NULL;
+    s->ipol_requested = 0;
 
     PA_LLIST_PREPEND(struct pa_stream, c->streams, s);
 
@@ -208,11 +210,15 @@ static void ipol_callback(struct pa_mainloop_api *m, struct pa_time_event *e, co
 
     pa_stream_ref(s);
 
-    if (s->state == PA_STREAM_READY)
+/*     pa_log("requesting new ipol data\n"); */
+    
+    if (s->state == PA_STREAM_READY && !s->ipol_requested) {
         pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
+        s->ipol_requested = 1;
+    }
     
     gettimeofday(&tv2, NULL);
-    tv2.tv_usec += LATENCY_IPOL_INTERVAL_USEC;
+    pa_timeval_add(&tv2, LATENCY_IPOL_INTERVAL_USEC);
     
     m->time_restart(e, &tv2);
     
@@ -426,8 +432,10 @@ static void stream_get_latency_info_callback(struct pa_pdispatch *pd, uint32_t c
         }
         
         if (o->stream->interpolate) {
+/*              pa_log("new interpol data\n");  */
             o->stream->ipol_timestamp = i.timestamp;
             o->stream->ipol_usec = pa_stream_get_time(o->stream, &i);
+            o->stream->ipol_requested = 0;
         }
 
         p = &i;
@@ -567,10 +575,12 @@ struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (stru
     assert(s && s->ref >= 1 && s->state == PA_STREAM_READY);
 
     if (s->interpolate) {
-	    if (!s->corked && b)
-        	s->ipol_usec = pa_stream_get_interpolated_time(s);
-	    else if (s->corked && !b)
-	        gettimeofday(&s->ipol_timestamp, NULL);
+        if (!s->corked && b)
+            /* Pausing */
+            s->ipol_usec = pa_stream_get_interpolated_time(s);
+        else if (s->corked && !b)
+            /* Unpausing */
+            gettimeofday(&s->ipol_timestamp, NULL);
     }
 
     s->corked = b;
@@ -764,6 +774,5 @@ pa_usec_t pa_stream_get_interpolated_latency(struct pa_stream *s, int *negative)
 
     t = pa_stream_get_interpolated_time(s);
     c = pa_bytes_to_usec(s->counter, &s->sample_spec);
-    
     return time_counter_diff(s, t, c, negative);
 }

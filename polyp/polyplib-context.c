@@ -635,7 +635,9 @@ int pa_context_is_pending(struct pa_context *c) {
 /*     pa_log("pstream: %i\n", pa_pstream_is_pending(c->pstream)); */
 /*     pa_log("pdispatch: %i\n", pa_pdispatch_is_pending(c->pdispatch)); */
     
-    return (c->pstream && pa_pstream_is_pending(c->pstream)) || (c->pdispatch && pa_pdispatch_is_pending(c->pdispatch)) || c->client;
+    return (c->pstream && pa_pstream_is_pending(c->pstream)) ||
+        (c->pdispatch && pa_pdispatch_is_pending(c->pdispatch)) ||
+        c->client;
 }
 
 static void set_dispatch_callbacks(struct pa_operation *o);

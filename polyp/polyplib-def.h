@@ -176,7 +176,7 @@ struct pa_latency_info {
     pa_usec_t source_usec;    /**< Time in usecs a sample takes from being recorded to being delivered to the application. Only for record streams. \since 0.5*/
     pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to/from the daemon. For both playback and record streams. \since 0.5 */
     int playing;              /**< Non-zero when the stream is currently playing. Only for playback streams. */
-    uint32_t queue_length;    /**< Queue size in bytes. For both playback and recrd streams. */
+    uint32_t queue_length;    /**< Queue size in bytes. For both playback and record streams. */
     int synchronized_clocks;  /**< Non-zero if the local and the
                                * remote machine have synchronized
                                * clocks. If synchronized clocks are

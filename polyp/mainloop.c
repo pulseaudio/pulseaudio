@@ -425,6 +425,9 @@ static int dispatch_defer(struct pa_mainloop *m) {
     struct pa_defer_event *e;
     int r = 0;
 
+    if (!m->deferred_pending)
+        return 0;
+
     for (e = pa_idxset_first(m->defer_events, &index); e && !m->quit; e = pa_idxset_next(m->defer_events, &index)) {
         if (e->dead || !e->enabled)
             continue;
@@ -516,10 +519,10 @@ static int dispatch_timeout(struct pa_mainloop *m) {
 int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
     int r, t, dispatched = 0;
     assert(m && !m->running);
-    
-    m->running = 1;
 
-    if(m->quit)
+    m->running ++;
+
+    if (m->quit)
         goto quit;
 
     scan_dead(m);
@@ -534,6 +537,7 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
     }
 
     t = block ? calc_next_timeout(m) : 0;
+
     r = poll(m->pollfds, m->n_pollfds, t);
 
     if (r < 0) {
@@ -555,15 +559,15 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
         }
     }
     
-    m->running = 0;
-
+    m->running--;
+    
 /*     pa_log("dispatched: %i\n", dispatched); */
     
     return r < 0 ? -1 : dispatched;
 
 quit:
-
-    m->running = 0;
+    
+    m->running--;
     
     if (retval) 
         *retval = m->retval;
@@ -596,4 +600,45 @@ struct pa_mainloop_api* pa_mainloop_get_api(struct pa_mainloop*m) {
 int pa_mainloop_deferred_pending(struct pa_mainloop *m) {
     assert(m);
     return m->deferred_pending > 0;
+}
+
+
+void pa_mainloop_dump(struct pa_mainloop *m) {
+    assert(m);
+
+    pa_log(__FILE__": Dumping mainloop sources START\n");
+    
+    {
+        uint32_t index = PA_IDXSET_INVALID;
+        struct pa_io_event *e;
+        for (e = pa_idxset_first(m->io_events, &index); e; e = pa_idxset_next(m->io_events, &index)) {
+            if (e->dead)
+                continue;
+            
+            pa_log(__FILE__": kind=io fd=%i events=%i callback=%p userdata=%p\n", e->fd, (int) e->events, e->callback, e->userdata);
+        }
+    }
+    {
+        uint32_t index = PA_IDXSET_INVALID;
+        struct pa_defer_event *e;
+        for (e = pa_idxset_first(m->defer_events, &index); e; e = pa_idxset_next(m->defer_events, &index)) {
+            if (e->dead)
+                continue;
+            
+            pa_log(__FILE__": kind=defer enabled=%i callback=%p userdata=%p\n", e->enabled, e->callback, e->userdata);
+        }
+    }
+    {
+        uint32_t index = PA_IDXSET_INVALID;
+        struct pa_time_event *e;
+        for (e = pa_idxset_first(m->time_events, &index); e; e = pa_idxset_next(m->time_events, &index)) {
+            if (e->dead)
+                continue;
+            
+            pa_log(__FILE__": kind=time enabled=%i time=%u.%u callback=%p userdata=%p\n", e->enabled, e->timeval.tv_sec, e->timeval.tv_usec, e->callback, e->userdata);
+        }
+    }
+
+    pa_log(__FILE__": Dumping mainloop sources STOP\n");
+
 }
