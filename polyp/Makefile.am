@@ -18,7 +18,7 @@
 # USA.
 
 polypincludedir=$(includedir)/polyp
-polypconfdir=$(sysconfdir)/polyp
+polypconfdir=$(sysconfdir)/polypaudio
 
 modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
 
