@@ -69,6 +69,12 @@ int pa_simple_drain(struct pa_simple *s, int *error);
 /** Read some data from the server */
 int pa_simple_read(struct pa_simple *s, void*data, size_t length, int *error);
 
+/** Return the playback latency. \since 0.5 */
+pa_usec_t pa_simple_get_playback_latency(struct pa_simple *s, int *perror);
+
+/** Flush the playback buffer. \since 0.5 */
+int pa_simple_flush(struct pa_simple *s, int *perror);
+
 PA_C_DECL_END
 
 #endif

@@ -56,6 +56,17 @@ int main(int argc, char*argv[]) {
         uint8_t buf[BUFSIZE];
         ssize_t r;
 
+#if 0
+        pa_usec_t latency;
+
+        if ((latency = pa_simple_get_playback_latency(s, &error)) == (pa_usec_t) -1) {
+            fprintf(stderr, __FILE__": pa_simple_get_playback_latency() failed: %s\n", pa_strerror(error));
+            goto finish;
+        }
+
+        fprintf(stderr, "%0.0f usec    \r", (float)latency);
+#endif
+
         /* Read some data ... */
         if ((r = read(STDIN_FILENO, buf, sizeof(buf))) <= 0) {
             if (r == 0) /* EOF */

@@ -93,7 +93,7 @@ char *pa_sink_list_to_string(struct pa_core *c) {
         assert(sink->monitor_source);
         pa_strbuf_printf(
             s,
-            "  %c index: %u\n\tname: <%s>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%f usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
+            "  %c index: %u\n\tname: <%s>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index, sink->name,
             (unsigned) sink->volume,
@@ -189,7 +189,7 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
         pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
         assert(i->sink);
         pa_strbuf_printf(
-            s, "    index: %u\n\tname: <%s>\n\tsink: <%u>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%f usec>\n\tsample_spec: <%s>\n",
+            s, "    index: %u\n\tname: <%s>\n\tsink: <%u>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
             i->index,
             i->name,
             i->sink->index,

@@ -39,6 +39,7 @@
 #include <sys/time.h>
 #include <sched.h>
 #include <sys/resource.h>
+#include <limits.h>
 
 #include "util.h"
 #include "xmalloc.h"
@@ -321,4 +322,28 @@ int pa_fd_set_cloexec(int fd, int b) {
         return -1;
     
     return 0;
+}
+
+char *pa_get_binary_name(char *s, size_t l) {
+    char path[PATH_MAX];
+    int i;
+    assert(s && l);
+
+    /* This works on Linux only */
+    
+    snprintf(path, sizeof(path), "/proc/%u/exe", (unsigned) getpid());
+    if ((i = readlink(path, s, l-1)) < 0)
+        return NULL;
+
+    s[i] = 0;
+    return s;
+}
+
+char *pa_path_get_filename(const char *p) {
+    char *fn;
+
+    if ((fn = strrchr(p, '/')))
+        return fn+1;
+
+    return (char*) p;
 }

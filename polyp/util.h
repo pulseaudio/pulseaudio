@@ -43,6 +43,9 @@ char *pa_vsprintf_malloc(const char *format, va_list ap);
 
 char *pa_get_user_name(char *s, size_t l);
 char *pa_get_host_name(char *s, size_t l);
+char *pa_get_binary_name(char *s, size_t l);
+
+char *pa_path_get_filename(const char *p);
 
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b);
 int pa_timeval_cmp(const struct timeval *a, const struct timeval *b);

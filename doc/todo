@@ -18,6 +18,7 @@
 - fix or work around libtool bug
 - merge pa_context_connect_*
 - input latency
+- check if all mainloop stuff works still
 
 ** later ***
 - xmlrpc/http
