@@ -143,6 +143,8 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
 
+    pa_fd_set_cloexec(fd, 1);
+    
     if (fstat(fd, &st) < 0) {
         fprintf(stderr, __FILE__": fstat('%s'): %s\n", p, strerror(errno));
         goto fail;

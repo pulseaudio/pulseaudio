@@ -93,6 +93,8 @@ int pa_signal_init(struct pa_mainloop_api *a) {
 
     pa_make_nonblock_fd(signal_pipe[0]);
     pa_make_nonblock_fd(signal_pipe[1]);
+    pa_fd_set_cloexec(signal_pipe[0], 1);
+    pa_fd_set_cloexec(signal_pipe[1], 1);
 
     api = a;
     io_event = api->io_new(api, signal_pipe[0], PA_IO_EVENT_INPUT, callback, NULL);

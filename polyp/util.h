@@ -44,4 +44,6 @@ uint32_t pa_age(struct timeval *tv);
 void pa_raise_priority(void);
 void pa_reset_priority(void);
 
+int pa_fd_set_cloexec(int fd, int b);
+
 #endif

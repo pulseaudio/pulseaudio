@@ -38,6 +38,7 @@
 #include "socket-server.h"
 #include "socket-util.h"
 #include "xmalloc.h"
+#include "util.h"
 
 struct pa_socket_server {
     int ref;
@@ -65,6 +66,8 @@ static void callback(struct pa_mainloop_api *mainloop, struct pa_io_event *e, in
         goto finish;
     }
 
+    pa_fd_set_cloexec(nfd, 1);
+    
     if (!s->on_connection) {
         close(nfd);
         goto finish;
@@ -122,6 +125,8 @@ struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, co
         goto fail;
     }
 
+    pa_fd_set_cloexec(fd, 1);
+
     sa.sun_family = AF_LOCAL;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
@@ -165,6 +170,8 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
         fprintf(stderr, "socket(): %s\n", strerror(errno));
         goto fail;
     }
+
+    pa_fd_set_cloexec(fd, 1);
 
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
         fprintf(stderr, "setsockopt(): %s\n", strerror(errno));

@@ -13,7 +13,6 @@
 - remove all gcc warnings
 - add total sample cache size to stat
 - make fragments settings runtime configurable
-- CLOEXEC
 - logging
 - automatic termination of daemon if unused
 - add sample directory

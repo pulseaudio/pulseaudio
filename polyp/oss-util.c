@@ -35,6 +35,7 @@
 #include <fcntl.h>
 
 #include "oss-util.h"
+#include "util.h"
 
 int pa_oss_open(const char *device, int *mode, int* pcaps) {
     int fd = -1;
@@ -77,6 +78,8 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
             goto fail;
         }
     }
+
+    pa_fd_set_cloexec(fd, 1);
     
     return fd;
 

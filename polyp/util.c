@@ -249,3 +249,18 @@ void pa_reset_priority(void) {
 
     setpriority(PRIO_PROCESS, 0, 0);
 }
+
+int pa_fd_set_cloexec(int fd, int b) {
+    int v;
+    assert(fd >= 0);
+
+    if ((v = fcntl(fd, F_GETFD, 0)) < 0)
+        return -1;
+    
+    v = (v & ~FD_CLOEXEC) | (b ? FD_CLOEXEC : 0);
+    
+    if (fcntl(fd, F_SETFD, v) < 0)
+        return -1;
+    
+    return 0;
+}

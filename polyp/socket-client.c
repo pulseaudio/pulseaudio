@@ -152,6 +152,7 @@ struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, ui
         goto fail;
     }
 
+    pa_fd_set_cloexec(c->fd, 1);
     pa_socket_tcp_low_delay(c->fd);
 
     sa.sin_family = AF_INET;
@@ -181,6 +182,7 @@ struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, co
         goto fail;
     }
 
+    pa_fd_set_cloexec(c->fd, 1);
     pa_socket_low_delay(c->fd);
 
     sa.sun_family = AF_LOCAL;
@@ -208,6 +210,7 @@ struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m
         goto fail;
     }
 
+    pa_fd_set_cloexec(c->fd, 1);
     if (sa->sa_family == AF_INET)
         pa_socket_tcp_low_delay(c->fd);
     else
