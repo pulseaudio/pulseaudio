@@ -47,4 +47,6 @@ void pa_iochannel_socket_peer_to_string(struct pa_iochannel*io, char*s, size_t l
 int pa_iochannel_socket_set_rcvbuf(struct pa_iochannel*io, size_t l);
 int pa_iochannel_socket_set_sndbuf(struct pa_iochannel*io, size_t l);
 
+struct pa_mainloop_api* pa_iochannel_get_mainloop_api(struct pa_iochannel *io);
+
 #endif

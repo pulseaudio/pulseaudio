@@ -215,8 +215,7 @@ polypaudio_SOURCES = idxset.c idxset.h \
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
-polypaudio_LDFLAGS= -export-dynamic -dlopen force
-# -static $(foreach f,$(modlib_LTLIBRARIES),-dlpreopen $(f))
+polypaudio_LDFLAGS= -export-dynamic -dlopen force #-static $(foreach f,$(modlib_LTLIBRARIES),-dlpreopen $(f))
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version

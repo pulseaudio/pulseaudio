@@ -116,8 +116,7 @@ static void mainloop_io_enable(struct pa_io_event *e, enum pa_io_event_flags eve
         e->pollfd->events =
             (events & PA_IO_EVENT_INPUT ? POLLIN : 0) |
             (events & PA_IO_EVENT_OUTPUT ? POLLOUT : 0) |
-            POLLHUP |
-            POLLERR;
+            POLLERR | POLLHUP;
 }
 
 static void mainloop_io_free(struct pa_io_event *e) {

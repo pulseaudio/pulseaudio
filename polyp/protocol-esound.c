@@ -267,8 +267,10 @@ static int esd_proto_connect(struct connection *c, esd_proto_t request, const vo
         }
 
         c->authorized = 1;
-        if (c->auth_timeout_event)
+        if (c->auth_timeout_event) {
             c->protocol->core->mainloop->time_free(c->auth_timeout_event);
+            c->auth_timeout_event = NULL;
+        }
     }
     
     ekey = *(uint32_t*)((uint8_t*) data+ESD_KEY_LEN);
@@ -301,11 +303,13 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     ss.rate = rate;
     format_esd2native(format, &ss);
 
-    if (!pa_sample_spec_valid(&ss))
+    if (!pa_sample_spec_valid(&ss)) {
+        pa_log(__FILE__": invalid sample specification\n");
         return -1;
+    }
 
     if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1))) {
-        pa_log(__FILE__": No output sink\n");
+        pa_log(__FILE__": no such sink\n");
         return -1;
     }
     
@@ -314,17 +318,17 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
 
     pa_client_set_name(c->client, name);
 
-    assert(!c->input_memblockq);
+    assert(!c->sink_input && !c->input_memblockq);
+
+    if (!(c->sink_input = pa_sink_input_new(sink, name, &ss, 0, -1))) {
+        pa_log(__FILE__": failed to create sink input.\n");
+        return -1;
+    }
 
     l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS); 
     c->input_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), l/2, l/PLAYBACK_BUFFER_FRAGMENTS, c->protocol->core->memblock_stat);
-    assert(c->input_memblockq);
     pa_iochannel_socket_set_rcvbuf(c->io, l/PLAYBACK_BUFFER_FRAGMENTS*2);
     c->playback.fragment_size = l/10;
-    
-    assert(!c->sink_input);
-    c->sink_input = pa_sink_input_new(sink, name, &ss, 0, -1);
-    assert(c->sink_input);
 
     c->sink_input->owner = c->protocol->module;
     c->sink_input->client = c->client;
@@ -355,22 +359,30 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     ss.rate = rate;
     format_esd2native(format, &ss);
 
-    if (!pa_sample_spec_valid(&ss))
+    if (!pa_sample_spec_valid(&ss)) {
+        pa_log(__FILE__": invalid sample specification.\n");
         return -1;
+    }
 
     if (request == ESD_PROTO_STREAM_MON) {
         struct pa_sink* sink;
 
-        if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1)))
+        if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1))) {
+            pa_log(__FILE__": no such sink.\n");
             return -1;
+        }
 
-        if (!(source = sink->monitor_source))
+        if (!(source = sink->monitor_source)) {
+            pa_log(__FILE__": no such monitor source.\n");
             return -1;
+        }
     } else {
         assert(request == ESD_PROTO_STREAM_REC);
         
-        if (!(source = pa_namereg_get(c->protocol->core, c->protocol->source_name, PA_NAMEREG_SOURCE, 1)))
+        if (!(source = pa_namereg_get(c->protocol->core, c->protocol->source_name, PA_NAMEREG_SOURCE, 1))) {
+            pa_log(__FILE__": no such source.\n");
             return -1;
+        }
     }
     
     strncpy(name, (char*) data + sizeof(int)*2, sizeof(name));
@@ -378,16 +390,16 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
 
     pa_client_set_name(c->client, name);
 
-    assert(!c->output_memblockq);
+    assert(!c->output_memblockq && !c->source_output);
+
+    if (!(c->source_output = pa_source_output_new(source, name, &ss, -1))) {
+        pa_log(__FILE__": failed to create source output\n");
+        return -1;
+    }
 
     l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS); 
     c->output_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), 0, 0, c->protocol->core->memblock_stat);
-    assert(c->output_memblockq);
     pa_iochannel_socket_set_sndbuf(c->io, l/RECORD_BUFFER_FRAGMENTS*2);
-    
-    assert(!c->source_output);
-    c->source_output = pa_source_output_new(source, name, &ss, -1);
-    assert(c->source_output);
     
     c->source_output->owner = c->protocol->module;
     c->source_output->client = c->client;
@@ -829,8 +841,8 @@ static int do_read(struct connection *c) {
             pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
-
-/*         pa_log(__FILE__": read %u\n", r); */
+        
+/*         pa_log(__FILE__": read %u\n", r);  */
         
         chunk.memblock = c->playback.current_memblock;
         chunk.index = c->playback.memblock_index;
@@ -880,7 +892,7 @@ static int do_write(struct connection *c) {
             pa_log(__FILE__": write(): %s\n", strerror(errno));
             return -1;
         }
-    
+
         pa_memblockq_drop(c->output_memblockq, &chunk, r);
         pa_memblock_unref(chunk.memblock);
     }
@@ -894,18 +906,21 @@ static void do_work(struct connection *c) {
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
     c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
 
-/*     pa_log("DOWORK\n");  */
-    
-    if (c->dead || !c->io)
-        return;
+/*     pa_log("DOWORK %i\n", pa_iochannel_is_hungup(c->io));   */
 
-    if (pa_iochannel_is_readable(c->io))
+    if (!c->dead && pa_iochannel_is_readable(c->io))
         if (do_read(c) < 0)
             goto fail;
-    
-    if (pa_iochannel_is_writable(c->io))
+
+    if (!c->dead && pa_iochannel_is_writable(c->io))
         if (do_write(c) < 0)
             goto fail;
+
+    /* In case the line was hungup, make sure to rerun this function
+       as soon as possible, until all data has been read. */
+
+    if (!c->dead && pa_iochannel_is_hungup(c->io))
+        c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
     
     return;
 

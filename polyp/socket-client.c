@@ -330,6 +330,7 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
         case KIND_TCP6: {
             uint16_t port = default_port;
             char *h;
+            int ret;
             struct addrinfo hints, *res;
 
             if (!(h = parse_address(p, &port)))
@@ -338,7 +339,10 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
             memset(&hints, 0, sizeof(hints));
             hints.ai_family = kind == KIND_TCP4 ? AF_INET : (kind == KIND_TCP6 ? AF_INET6 : AF_UNSPEC);
             
-            if (getaddrinfo(h, NULL, &hints, &res) < 0 || !res || !res->ai_addr)
+            ret = getaddrinfo(h, NULL, &hints, &res);
+            pa_xfree(h);
+
+            if (ret < 0 || !res || !res->ai_addr)
                 return NULL;
 
             if (res->ai_family == AF_INET) {

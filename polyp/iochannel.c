@@ -235,3 +235,8 @@ int pa_iochannel_socket_set_sndbuf(struct pa_iochannel *io, size_t l) {
     return pa_socket_set_sndbuf(io->ofd, l);
 }
 
+
+struct pa_mainloop_api* pa_iochannel_get_mainloop_api(struct pa_iochannel *io) {
+    assert(io);
+    return io->mainloop;
+}

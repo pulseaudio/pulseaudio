@@ -180,9 +180,6 @@ static void do_work(struct connection *c) {
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
     c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
 
-    if (pa_iochannel_is_hungup(c->io))
-        goto fail;
-    
     if (pa_iochannel_is_writable(c->io))
         if (do_write(c) < 0)
             goto fail;
@@ -190,6 +187,9 @@ static void do_work(struct connection *c) {
     if (pa_iochannel_is_readable(c->io))
         if (do_read(c) < 0)
             goto fail;
+
+    if (pa_iochannel_is_hungup(c->io))
+        c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
 
     return;
 

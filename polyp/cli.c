@@ -92,7 +92,8 @@ struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io, struct 
 
 void pa_cli_free(struct pa_cli *c) {
     assert(c);
-    pa_ioline_free(c->line);
+    pa_ioline_close(c->line);
+    pa_ioline_unref(c->line);
     pa_client_free(c->client);
     pa_xfree(c);
 }

@@ -103,25 +103,22 @@ static void do_read(struct pa_pstream *p);
 static void do_something(struct pa_pstream *p) {
     assert(p);
 
-    if (p->dead)
-        return;
-    
     p->mainloop->defer_enable(p->defer_event, 0);
 
     pa_pstream_ref(p);
     
-    if (!p->dead && pa_iochannel_is_hungup(p->io)) {
-        p->dead = 1;
-        if (p->die_callback)
-            p->die_callback(p, p->die_callback_userdata);
-    }
+    if (!p->dead && pa_iochannel_is_readable(p->io))
+        do_read(p);
 
     if (!p->dead && pa_iochannel_is_writable(p->io))
         do_write(p);
 
-    if (!p->dead && pa_iochannel_is_readable(p->io))
-        do_read(p);
-
+    /* In case the line was hungup, make sure to rerun this function
+       as soon as possible, until all data has been read. */
+    
+    if (!p->dead && pa_iochannel_is_hungup(p->io))
+        p->mainloop->defer_enable(p->defer_event, 1);
+    
     pa_pstream_unref(p);
 }
 
