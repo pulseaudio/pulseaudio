@@ -35,8 +35,7 @@
 #include "namereg.h"
 #include "sink.h"
 #include "source.h"
-
-#include "debug.h"
+#include "xmalloc.h"
 
 struct pa_modargs;
 
@@ -55,14 +54,13 @@ static int add_key_value(struct pa_hashmap *map, char *key, char *value, const c
                 break;
 
         if (!*v) {
-            free(key);
-            free(value);
+            pa_xfree(key);
+            pa_xfree(value);
             return -1;
         }
     }
     
-    e = malloc(sizeof(struct entry));
-    assert(e);
+    e = pa_xmalloc(sizeof(struct entry));
     e->key = key;
     e->value = value;
     pa_hashmap_put(map, key, e);
@@ -109,7 +107,7 @@ struct pa_modargs *pa_modargs_new(const char *args, const char* const* valid_key
                         value = p+1;
                         value_len = 0;
                     } else if (isspace(*p)) {
-                        if (add_key_value(map, strndup(key, key_len), strdup(""), valid_keys) < 0)
+                        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
                             goto fail;
                         state = WHITESPACE;
                     } else {
@@ -120,7 +118,7 @@ struct pa_modargs *pa_modargs_new(const char *args, const char* const* valid_key
                     break;
                 case VALUE_SIMPLE:
                     if (isspace(*p)) {
-                        if (add_key_value(map, strndup(key, key_len), strndup(value, value_len), valid_keys) < 0)
+                        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
                             goto fail;
                         state = WHITESPACE;
                     } else
@@ -128,7 +126,7 @@ struct pa_modargs *pa_modargs_new(const char *args, const char* const* valid_key
                     break;
                 case VALUE_DOUBLE_QUOTES:
                     if (*p == '"') {
-                        if (add_key_value(map, strndup(key, key_len), strndup(value, value_len), valid_keys) < 0)
+                        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
                             goto fail;
                         state = WHITESPACE;
                     } else
@@ -136,7 +134,7 @@ struct pa_modargs *pa_modargs_new(const char *args, const char* const* valid_key
                     break;
                 case VALUE_TICKS:
                     if (*p == '\'') {
-                        if (add_key_value(map, strndup(key, key_len), strndup(value, value_len), valid_keys) < 0)
+                        if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrndup(value, value_len), valid_keys) < 0)
                             goto fail;
                         state = WHITESPACE;
                     } else
@@ -146,10 +144,10 @@ struct pa_modargs *pa_modargs_new(const char *args, const char* const* valid_key
         }
 
         if (state == VALUE_START) {
-            if (add_key_value(map, strndup(key, key_len), strdup(""), valid_keys) < 0)
+            if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(""), valid_keys) < 0)
                 goto fail;
         } else if (state == VALUE_SIMPLE) {
-            if (add_key_value(map, strndup(key, key_len), strdup(value), valid_keys) < 0)
+            if (add_key_value(map, pa_xstrndup(key, key_len), pa_xstrdup(value), valid_keys) < 0)
                 goto fail;
         } else if (state != WHITESPACE)
             goto fail;
@@ -169,9 +167,9 @@ fail:
 static void free_func(void *p, void*userdata) {
     struct entry *e = p;
     assert(e);
-    free(e->key);
-    free(e->value);
-    free(e);
+    pa_xfree(e->key);
+    pa_xfree(e->value);
+    pa_xfree(e);
 }
 
 void pa_modargs_free(struct pa_modargs*ma) {
@@ -254,39 +252,5 @@ int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *rss
 
     *rss = ss;
     
-    return 0;
-}
-
-int pa_modargs_get_source_index(struct pa_modargs *ma, struct pa_core *c, uint32_t *index) {
-    const char *t;
-    assert(ma && index);
-    
-    if (!(t = pa_modargs_get_value(ma, "source", NULL)))
-        *index = PA_IDXSET_INVALID;
-    else {
-        struct pa_source *source;
-        if (!(source = pa_namereg_get(c, t, PA_NAMEREG_SOURCE)))
-            return -1;
-
-        *index = source->index;
-    }
-
-    return 0;
-}
-
-int pa_modargs_get_sink_index(struct pa_modargs *ma, struct pa_core *c, uint32_t *index) {
-    const char *t;
-    assert(ma && index);
-
-    if (!(t = pa_modargs_get_value(ma, "sink", NULL)))
-        *index = PA_IDXSET_INVALID;
-    else {
-        struct pa_sink *sink;
-        if (!(sink = pa_namereg_get(c, t, PA_NAMEREG_SINK)))
-            return -1;
-
-        *index = sink->index;
-    }
-
     return 0;
 }

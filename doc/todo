@@ -3,12 +3,11 @@
 *** 0.2 ***
 
 - future cancellation
-- autoloading/autounloading
 - make mcalign merge chunks
 
 - doxygen
 
-- scache.[ch]/module-x11-bell.c/debug.h copyright
+- several files: copyright and config.h
 - enable searchdir
 - autoscan
 - rename clitext.[ch] to cli-text.[ch]

@@ -31,6 +31,7 @@
 #include "source.h"
 #include "source-output.h"
 #include "namereg.h"
+#include "xmalloc.h"
 
 struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
     struct pa_source *s;
@@ -38,15 +39,14 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
     int r;
     assert(core && spec && name && *name);
 
-    s = malloc(sizeof(struct pa_source));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct pa_source));
 
     if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SOURCE, s, fail))) {
-        free(s);
+        pa_xfree(s);
         return NULL;
     }
 
-    s->name = strdup(name);
+    s->name = pa_xstrdup(name);
     s->description = NULL;
 
     s->owner = NULL;
@@ -84,9 +84,9 @@ void pa_source_free(struct pa_source *s) {
 
     fprintf(stderr, "source: freed %u \"%s\"\n", s->index, s->name);
 
-    free(s->name);
-    free(s->description);
-    free(s);
+    pa_xfree(s->name);
+    pa_xfree(s->description);
+    pa_xfree(s);
 }
 
 void pa_source_notify(struct pa_source*s) {
@@ -109,20 +109,6 @@ void pa_source_post(struct pa_source*s, struct pa_memchunk *chunk) {
     assert(s && chunk);
 
     pa_idxset_foreach(s->outputs, do_post, chunk);
-}
-
-struct pa_source* pa_source_get_default(struct pa_core *c) {
-    struct pa_source *source;
-    assert(c);
-
-    if ((source = pa_idxset_get_by_index(c->sources, c->default_source_index)))
-        return source;
-
-    if (!(source = pa_idxset_first(c->sources, &c->default_source_index)))
-        return NULL;
-
-    fprintf(stderr, "core: default source vanished, setting to %u.\n", source->index);
-    return source;
 }
 
 void pa_source_set_owner(struct pa_source *s, struct pa_module *m) {

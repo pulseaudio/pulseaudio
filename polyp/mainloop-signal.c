@@ -33,6 +33,7 @@
 
 #include "mainloop-signal.h"
 #include "util.h"
+#include "xmalloc.h"
 
 struct signal_info {
     int sig;
@@ -122,8 +123,7 @@ void* pa_signal_register(int sig, void (*callback) (void *id, int signal, void *
         if (s->sig == sig)
             goto fail;
     
-    s = malloc(sizeof(struct signal_info));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct signal_info));
     s->sig = sig;
     s->callback = callback;
     s->userdata = userdata;
@@ -143,7 +143,7 @@ void* pa_signal_register(int sig, void (*callback) (void *id, int signal, void *
     return s;
 fail:
     if (s)
-        free(s);
+        pa_xfree(s);
     return NULL;
 }
 
@@ -159,5 +159,5 @@ void pa_signal_unregister(void *id) {
         signals = s->next;
 
     sigaction(s->sig, &s->saved_sigaction, NULL);
-    free(s);
+    pa_xfree(s);
 }

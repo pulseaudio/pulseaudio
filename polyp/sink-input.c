@@ -30,6 +30,7 @@
 
 #include "sink-input.h"
 #include "sample-util.h"
+#include "xmalloc.h"
 
 #define CONVERT_BUFFER_LENGTH 4096
 
@@ -44,9 +45,8 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
         if (!(resampler = pa_resampler_new(spec, &s->sample_spec)))
             return NULL;
     
-    i = malloc(sizeof(struct pa_sink_input));
-    assert(i);
-    i->name = name ? strdup(name) : NULL;
+    i = pa_xmalloc(sizeof(struct pa_sink_input));
+    i->name = pa_xstrdup(name);
     i->client = NULL;
     i->owner = NULL;
     i->sink = s;
@@ -88,8 +88,8 @@ void pa_sink_input_free(struct pa_sink_input* i) {
     if (i->resampler)
         pa_resampler_free(i->resampler);
     
-    free(i->name);
-    free(i);
+    pa_xfree(i->name);
+    pa_xfree(i);
 }
 
 void pa_sink_input_kill(struct pa_sink_input*i) {

@@ -41,6 +41,7 @@
 #include "namereg.h"
 #include "clitext.h"
 #include "cli-command.h"
+#include "xmalloc.h"
 
 struct pa_cli {
     struct pa_core *core;
@@ -65,8 +66,7 @@ struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io, struct 
     struct pa_cli *c;
     assert(io);
 
-    c = malloc(sizeof(struct pa_cli));
-    assert(c);
+    c = pa_xmalloc(sizeof(struct pa_cli));
     c->core = core;
     c->line = pa_ioline_new(io);
     assert(c->line);
@@ -95,7 +95,7 @@ void pa_cli_free(struct pa_cli *c) {
     assert(c);
     pa_ioline_free(c->line);
     pa_client_free(c->client);
-    free(c);
+    pa_xfree(c);
 }
 
 static void client_kill(struct pa_client *client) {
@@ -132,7 +132,7 @@ static void line_callback(struct pa_ioline *line, const char *s, void *userdata)
     pa_cli_command_execute_line(c->core, s, buf, &c->fail, &c->verbose);
     c->defer_kill--;
     pa_ioline_puts(line, p = pa_strbuf_tostring_free(buf));
-    free(p);
+    pa_xfree(p);
 
     if (c->kill_requested) {
         if (c->eof_callback)

@@ -43,6 +43,7 @@
 #include "sample-util.h"
 #include "util.h"
 #include "modargs.h"
+#include "xmalloc.h"
 
 struct userdata {
     struct pa_sink *sink;
@@ -55,6 +56,7 @@ struct userdata {
     uint32_t in_fragment_size, out_fragment_size, sample_size;
 
     int fd;
+    struct pa_module *module;
 };
 
 static const char* const valid_modargs[] = {
@@ -75,6 +77,13 @@ static const char* const valid_modargs[] = {
 #define DEFAULT_SOURCE_NAME "oss_input"
 #define DEFAULT_DEVICE "/dev/dsp"
 
+static void update_usage(struct userdata *u) {
+   pa_module_set_used(u->module,
+                      (u->sink ? pa_idxset_ncontents(u->sink->inputs) : 0) +
+                      (u->sink ? pa_idxset_ncontents(u->sink->monitor_source->outputs) : 0) +
+                      (u->source ? pa_idxset_ncontents(u->source->outputs) : 0));
+}
+
 static void do_write(struct userdata *u) {
     struct pa_memchunk *memchunk;
     ssize_t r;
@@ -83,6 +92,8 @@ static void do_write(struct userdata *u) {
     if (!u->sink || !pa_iochannel_is_writable(u->io))
         return;
 
+    update_usage(u);
+     
     if (!u->memchunk.length) {
         if (pa_sink_render(u->sink, u->out_fragment_size, &u->memchunk) < 0)
             memchunk = &u->silence;
@@ -117,6 +128,8 @@ static void do_read(struct userdata *u) {
     
     if (!u->source || !pa_iochannel_is_readable(u->io))
         return;
+
+    update_usage(u);
 
     memchunk.memblock = pa_memblock_new(u->in_fragment_size);
     assert(memchunk.memblock);
@@ -225,9 +238,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         out_frag_size = info.fragsize;
     }
 
-    u = malloc(sizeof(struct userdata));
-    assert(u);
-
+    u = pa_xmalloc(sizeof(struct userdata));
     u->core = c;
 
     if (mode != O_WRONLY) {
@@ -266,7 +277,8 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(u->silence.memblock);
     pa_silence_memblock(u->silence.memblock, &ss);
     u->silence.index = 0;
-    
+
+    u->module = m;
     m->userdata = u;
 
     pa_modargs_free(ma);
@@ -287,8 +299,8 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 
-    u = m->userdata;
-    assert(u);
+    if (!(u = m->userdata))
+        return;
     
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
@@ -299,6 +311,7 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
         pa_sink_free(u->sink);
     if (u->source)
         pa_source_free(u->source);
+    
     pa_iochannel_free(u->io);
-    free(u);
+    pa_xfree(u);
 }

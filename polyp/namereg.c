@@ -31,6 +31,10 @@
 #include <stdio.h>
 
 #include "namereg.h"
+#include "autoload.h"
+#include "source.h"
+#include "sink.h"
+#include "xmalloc.h"
 
 struct namereg_entry {
     enum pa_namereg_type type;
@@ -62,12 +66,11 @@ const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_nam
         return NULL;
 
     if (!e)
-        n = strdup(name);
+        n = pa_xstrdup(name);
     else {
         unsigned i;
         size_t l = strlen(name);
-        n = malloc(l+3);
-        assert(n);
+        n = pa_xmalloc(l+3);
         
         for (i = 1; i <= 99; i++) {
             snprintf(n, l+2, "%s%u", name, i);
@@ -77,14 +80,13 @@ const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_nam
         }
 
         if (e) {
-            free(n);
+            pa_xfree(n);
             return NULL;
         }
     }
     
     assert(n);
-    e = malloc(sizeof(struct namereg_entry));
-    assert(e);
+    e = pa_xmalloc(sizeof(struct namereg_entry));
     e->type = type;
     e->name = n;
     e->data = data;
@@ -107,25 +109,66 @@ void pa_namereg_unregister(struct pa_core *c, const char *name) {
     r = pa_hashmap_remove(c->namereg, name);
     assert(r >= 0);
 
-    free(e->name);
-    free(e);
+    pa_xfree(e->name);
+    pa_xfree(e);
 }
 
-void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type type) {
+void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type type, int autoload) {
     struct namereg_entry *e;
     uint32_t index;
     char *x = NULL;
     void *d = NULL;
-    assert(c && name);
+    assert(c);
+    
+    if (!name) {
+        if (type == PA_NAMEREG_SOURCE) {
+            if (!c->default_source_name) {
+                struct pa_source *s;
 
-    if ((e = pa_hashmap_get(c->namereg, name)))
+                for (s = pa_idxset_first(c->sources, &index); s; s = pa_idxset_next(c->sources, &index))
+                    if (!s->monitor_of) {
+                        pa_namereg_set_default(c, s->name, PA_NAMEREG_SOURCE);
+                        break;
+                    }
+            }
+
+            name = c->default_source_name;
+                
+        } else {
+            assert(type == PA_NAMEREG_SINK);
+
+            if (!c->default_sink_name) {
+                struct pa_sink *s;
+
+                if ((s = pa_idxset_first(c->sinks, NULL)))
+                    pa_namereg_set_default(c, s->name, PA_NAMEREG_SINK);
+            }
+
+            name = c->default_sink_name;
+        }
+    }
+
+    if (!name)
+        return NULL;
+    
+    if (c->namereg && (e = pa_hashmap_get(c->namereg, name)))
         if (e->type == e->type)
             return e->data;
 
     index = (uint32_t) strtol(name, &x, 0);
 
-    if (!x || *x != 0)
+    if (!x || *x != 0) {
+
+        if (autoload) {
+            pa_autoload_request(c, name, type);
+            
+            if (c->namereg && (e = pa_hashmap_get(c->namereg, name)))
+                if (e->type == e->type)
+                    return e->data;
+        }
+        
         return NULL;
+    }
 
     if (type == PA_NAMEREG_SINK)
         d = pa_idxset_get_by_index(c->sinks, index);
@@ -133,4 +176,15 @@ void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type t
         d = pa_idxset_get_by_index(c->sources, index);
 
     return d;
+}
+
+void pa_namereg_set_default(struct pa_core*c, const char *name, enum pa_namereg_type type) {
+    char **s;
+    assert(c);
+
+    s = type == PA_NAMEREG_SINK ? &c->default_sink_name : &c->default_source_name;
+    assert(s);
+
+    pa_xfree(*s);
+    *s = pa_xstrdup(name);
 }

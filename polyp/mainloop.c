@@ -36,6 +36,7 @@
 #include "mainloop.h"
 #include "util.h"
 #include "idxset.h"
+#include "xmalloc.h"
 
 struct mainloop_source_header {
     struct pa_mainloop *mainloop;
@@ -87,8 +88,7 @@ static void setup_api(struct pa_mainloop *m);
 struct pa_mainloop *pa_mainloop_new(void) {
     struct pa_mainloop *m;
 
-    m = malloc(sizeof(struct pa_mainloop));
-    assert(m);
+    m = pa_xmalloc(sizeof(struct pa_mainloop));
 
     m->io_sources = pa_idxset_new(NULL, NULL);
     m->fixed_sources = pa_idxset_new(NULL, NULL);
@@ -115,7 +115,7 @@ static int foreach(void *p, uint32_t index, int *del, void*userdata) {
     assert(p && del && all);
 
     if (*all || h->dead) {
-        free(h);
+        pa_xfree(h);
         *del = 1;
     }
 
@@ -135,8 +135,8 @@ void pa_mainloop_free(struct pa_mainloop* m) {
     pa_idxset_free(m->idle_sources, NULL, NULL);
     pa_idxset_free(m->time_sources, NULL, NULL);
 
-    free(m->pollfds);
-    free(m);
+    pa_xfree(m->pollfds);
+    pa_xfree(m);
 }
 
 static void scan_dead(struct pa_mainloop *m) {
@@ -160,7 +160,7 @@ static void rebuild_pollfds(struct pa_mainloop *m) {
 
     l = pa_idxset_ncontents(m->io_sources);
     if (m->max_pollfds < l) {
-        m->pollfds = realloc(m->pollfds, sizeof(struct pollfd)*l);
+        m->pollfds = pa_xrealloc(m->pollfds, sizeof(struct pollfd)*l);
         m->max_pollfds = l;
     }
 
@@ -349,8 +349,7 @@ static void* mainloop_source_io(struct pa_mainloop_api*a, int fd, enum pa_mainlo
     m = a->userdata;
     assert(a == &m->api);
 
-    s = malloc(sizeof(struct mainloop_source_io));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct mainloop_source_io));
     s->header.mainloop = m;
     s->header.dead = 0;
 
@@ -397,8 +396,7 @@ static void* mainloop_source_fixed(struct pa_mainloop_api*a, void (*callback) (s
     m = a->userdata;
     assert(a == &m->api);
 
-    s = malloc(sizeof(struct mainloop_source_fixed_or_idle));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct mainloop_source_fixed_or_idle));
     s->header.mainloop = m;
     s->header.dead = 0;
 
@@ -439,8 +437,7 @@ static void* mainloop_source_idle(struct pa_mainloop_api*a, void (*callback) (st
     m = a->userdata;
     assert(a == &m->api);
 
-    s = malloc(sizeof(struct mainloop_source_fixed_or_idle));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct mainloop_source_fixed_or_idle));
     s->header.mainloop = m;
     s->header.dead = 0;
 
@@ -471,8 +468,7 @@ static void* mainloop_source_time(struct pa_mainloop_api*a, const struct timeval
     m = a->userdata;
     assert(a == &m->api);
 
-    s = malloc(sizeof(struct mainloop_source_time));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct mainloop_source_time));
     s->header.mainloop = m;
     s->header.dead = 0;
 

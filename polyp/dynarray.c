@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "dynarray.h"
+#include "xmalloc.h"
 
 struct pa_dynarray {
     void **data;
@@ -36,8 +37,7 @@ struct pa_dynarray {
 
 struct pa_dynarray* pa_dynarray_new(void) {
     struct pa_dynarray *a;
-    a = malloc(sizeof(struct pa_dynarray));
-    assert(a);
+    a = pa_xmalloc(sizeof(struct pa_dynarray));
     a->data = NULL;
     a->n_entries = 0;
     a->n_allocated = 0;
@@ -53,8 +53,8 @@ void pa_dynarray_free(struct pa_dynarray* a, void (*func)(void *p, void *userdat
             if (a->data[i])
                 func(a->data[i], userdata);
 
-    free(a->data);
-    free(a);
+    pa_xfree(a->data);
+    pa_xfree(a);
 }
 
 void pa_dynarray_put(struct pa_dynarray*a, unsigned i, void *p) {
@@ -67,7 +67,7 @@ void pa_dynarray_put(struct pa_dynarray*a, unsigned i, void *p) {
             return;
 
         n = i+100;
-        a->data = realloc(a->data, sizeof(void*)*n);
+        a->data = pa_xrealloc(a->data, sizeof(void*)*n);
         memset(a->data+a->n_allocated, 0, sizeof(void*)*(n-a->n_allocated));
         a->n_allocated = n;
     }

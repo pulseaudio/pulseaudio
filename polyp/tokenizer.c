@@ -29,13 +29,14 @@
 
 #include "tokenizer.h"
 #include "dynarray.h"
+#include "xmalloc.h"
 
 struct pa_tokenizer {
     struct pa_dynarray *dynarray;
 };
 
 static void token_free(void *p, void *userdata) {
-    free(p);
+    pa_xfree(p);
 }
 
 static void parse(struct pa_dynarray*a, const char *s, unsigned args) {
@@ -50,8 +51,7 @@ static void parse(struct pa_dynarray*a, const char *s, unsigned args) {
     p = s+strspn(s, delimiter);
     while (*p && (infty || args >= 2)) {
         size_t l = strcspn(p, delimiter);
-        char *n = strndup(p, l);
-        assert(n);
+        char *n = pa_xstrndup(p, l);
         pa_dynarray_append(a, n);
         p += l;
         p += strspn(p, delimiter);
@@ -59,8 +59,7 @@ static void parse(struct pa_dynarray*a, const char *s, unsigned args) {
     }
 
     if (args && *p) {
-        char *n = strdup(p);
-        assert(n);
+        char *n = pa_xstrdup(p);
         pa_dynarray_append(a, n);
     }
 }
@@ -68,8 +67,7 @@ static void parse(struct pa_dynarray*a, const char *s, unsigned args) {
 struct pa_tokenizer* pa_tokenizer_new(const char *s, unsigned args) {
     struct pa_tokenizer *t;
     
-    t = malloc(sizeof(struct pa_tokenizer));
-    assert(t);
+    t = pa_xmalloc(sizeof(struct pa_tokenizer));
     t->dynarray = pa_dynarray_new();
     assert(t->dynarray);
 
@@ -80,7 +78,7 @@ struct pa_tokenizer* pa_tokenizer_new(const char *s, unsigned args) {
 void pa_tokenizer_free(struct pa_tokenizer *t) {
     assert(t);
     pa_dynarray_free(t->dynarray, token_free, NULL);
-    free(t);
+    pa_xfree(t);
 }
 
 const char *pa_tokenizer_get(struct pa_tokenizer *t, unsigned i) {

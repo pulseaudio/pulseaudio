@@ -42,6 +42,7 @@
 #include "cli-command.h"
 #include "util.h"
 #include "sioman.h"
+#include "xmalloc.h"
 
 static struct pa_mainloop *mainloop;
 
@@ -147,7 +148,7 @@ int main(int argc, char *argv[]) {
     assert(buf);
     r = pa_cli_command_execute(c, cmdline->cli_commands, buf, &cmdline->fail, &cmdline->verbose);
     fprintf(stderr, s = pa_strbuf_tostring_free(buf));
-    free(s);
+    pa_xfree(s);
     
     if (r < 0 && cmdline->fail) {
         fprintf(stderr, __FILE__": failed to initialize daemon.\n");

@@ -37,6 +37,7 @@
 #include "util.h"
 #include "sample-util.h"
 #include "alsa-util.h"
+#include "xmalloc.h"
 
 struct userdata {
     snd_pcm_t *pcm_handle;
@@ -46,6 +47,7 @@ struct userdata {
 
     size_t frame_size, fragment_size;
     struct pa_memchunk memchunk;
+    struct pa_module *module;
 };
 
 static const char* const valid_modargs[] = {
@@ -62,6 +64,11 @@ static const char* const valid_modargs[] = {
 #define DEFAULT_SOURCE_NAME "alsa_input"
 #define DEFAULT_DEVICE "hw:0,0"
 
+static void update_usage(struct userdata *u) {
+   pa_module_set_used(u->module,
+                      (u->source ? pa_idxset_ncontents(u->source->outputs) : 0));
+}
+
 static void xrun_recovery(struct userdata *u) {
     assert(u);
 
@@ -74,6 +81,8 @@ static void xrun_recovery(struct userdata *u) {
 static void do_read(struct userdata *u) {
     assert(u);
 
+    update_usage(u);
+    
     for (;;) {
         struct pa_memchunk post_memchunk;
         snd_pcm_sframes_t frames;
@@ -159,10 +168,9 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     }
     buffer_size = fragsize/frame_size*periods;
     
-    u = malloc(sizeof(struct userdata));
-    assert(u);
-    memset(u, 0, sizeof(struct userdata));
+    u = pa_xmalloc0(sizeof(struct userdata));
     m->userdata = u;
+    u->module = m;
     
     if (snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) < 0) {
         fprintf(stderr, __FILE__": Error opening PCM device %s\n", dev);
@@ -216,22 +224,23 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 
-    if ((u = m->userdata)) {
-        if (u->source)
-            pa_source_free(u->source);
-
-        if (u->io_sources)
-            pa_free_io_sources(c->mainloop, u->io_sources, u->n_io_sources);
-        
-        if (u->pcm_handle) {
-            snd_pcm_drop(u->pcm_handle);
-            snd_pcm_close(u->pcm_handle);
-        }
-
-        if (u->memchunk.memblock)
-            pa_memblock_unref(u->memchunk.memblock);
-        
-        free(u);
+    if (!(u = m->userdata))
+        return;
+    
+    if (u->source)
+        pa_source_free(u->source);
+    
+    if (u->io_sources)
+        pa_free_io_sources(c->mainloop, u->io_sources, u->n_io_sources);
+    
+    if (u->pcm_handle) {
+        snd_pcm_drop(u->pcm_handle);
+        snd_pcm_close(u->pcm_handle);
     }
+    
+    if (u->memchunk.memblock)
+        pa_memblock_unref(u->memchunk.memblock);
+    
+    pa_xfree(u);
 }
 

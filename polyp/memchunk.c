@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include "memchunk.h"
+#include "xmalloc.h"
 
 void pa_memchunk_make_writable(struct pa_memchunk *c) {
     struct pa_memblock *n;
@@ -57,8 +58,7 @@ struct pa_mcalign *pa_mcalign_new(size_t base) {
     struct pa_mcalign *m;
     assert(base);
 
-    m = malloc(sizeof(struct pa_mcalign));
-    assert(m);
+    m = pa_xmalloc(sizeof(struct pa_mcalign));
     m->base = base;
     m->chunk.memblock = NULL;
     m->chunk.length = m->chunk.index = 0;
@@ -70,12 +70,12 @@ struct pa_mcalign *pa_mcalign_new(size_t base) {
 void pa_mcalign_free(struct pa_mcalign *m) {
     assert(m);
 
-    free(m->buffer);
+    pa_xfree(m->buffer);
     
     if (m->chunk.memblock)
         pa_memblock_unref(m->chunk.memblock);
     
-    free(m);
+    pa_xfree(m);
 }
 
 void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c) {
@@ -128,8 +128,7 @@ int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c) {
 
     if (m->buffer_fill) {
         assert(!m->buffer);
-        m->buffer = malloc(m->base);
-        assert(m->buffer);
+        m->buffer = pa_xmalloc(m->base);
         m->chunk.length -= m->buffer_fill;
         memcpy(m->buffer, m->chunk.memblock->data + m->chunk.index + m->chunk.length, m->buffer_fill);
     }

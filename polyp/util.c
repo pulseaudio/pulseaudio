@@ -35,6 +35,7 @@
 #include <sys/types.h>
 
 #include "util.h"
+#include "xmalloc.h"
 
 void pa_make_nonblock_fd(int fd) {
     int v;
@@ -129,8 +130,7 @@ char *pa_sprintf_malloc(const char *format, ...) {
         int r;
         va_list ap;
 
-        c = realloc(c, size);
-        assert(c);
+        c = pa_xrealloc(c, size);
 
         va_start(ap, format);
         r = vsnprintf(c, size, format, ap);

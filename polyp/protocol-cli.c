@@ -28,6 +28,7 @@
 
 #include "protocol-cli.h"
 #include "cli.h"
+#include "xmalloc.h"
 
 struct pa_protocol_cli {
     struct pa_module *module;
@@ -59,8 +60,7 @@ struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_sock
     struct pa_protocol_cli* p;
     assert(core && server);
 
-    p = malloc(sizeof(struct pa_protocol_cli));
-    assert(p);
+    p = pa_xmalloc(sizeof(struct pa_protocol_cli));
     p->module = m;
     p->core = core;
     p->server = server;
@@ -81,5 +81,5 @@ void pa_protocol_cli_free(struct pa_protocol_cli *p) {
 
     pa_idxset_free(p->connections, free_connection, NULL);
     pa_socket_server_free(p->server);
-    free(p);
+    pa_xfree(p);
 }

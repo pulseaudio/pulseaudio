@@ -38,6 +38,7 @@
 #include "module.h"
 #include "util.h"
 #include "modargs.h"
+#include "xmalloc.h"
 
 #define DEFAULT_FIFO_NAME "/tmp/musicfifo"
 #define DEFAULT_SINK_NAME "fifo_output"
@@ -52,6 +53,7 @@ struct userdata {
     void *mainloop_source;
 
     struct pa_memchunk memchunk;
+    struct pa_module *module;
 };
 
 static const char* const valid_modargs[] = {
@@ -72,6 +74,8 @@ static void do_write(struct userdata *u) {
     if (!pa_iochannel_is_writable(u->io))
         return;
 
+    pa_module_set_used(u->module, pa_idxset_ncontents(u->sink->inputs) + pa_idxset_ncontents(u->sink->monitor_source->outputs));
+    
     if (!u->memchunk.length)
         if (pa_sink_render(u->sink, PIPE_BUF, &u->memchunk) < 0)
             return;
@@ -149,12 +153,9 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
 
-    u = malloc(sizeof(struct userdata));
-    assert(u);
-    memset(u, 0, sizeof(struct userdata));
+    u = pa_xmalloc0(sizeof(struct userdata));
 
-    u->filename = strdup(p);
-    assert(u->filename);
+    u->filename = pa_xstrdup(p);
     u->core = c;
     
     if (!(u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
@@ -177,7 +178,8 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->mainloop_source = c->mainloop->source_fixed(c->mainloop, fixed_callback, u);
     assert(u->mainloop_source);
     c->mainloop->enable_fixed(c->mainloop, u->mainloop_source, 0);
-        
+
+    u->module = m;
     m->userdata = u;
 
     pa_modargs_free(ma);
@@ -212,7 +214,7 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
 
     assert(u->filename);
     unlink(u->filename);
-    free(u->filename);
+    pa_xfree(u->filename);
     
-    free(u);
+    pa_xfree(u);
 }

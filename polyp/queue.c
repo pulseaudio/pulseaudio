@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "queue.h"
+#include "xmalloc.h"
 
 struct queue_entry {
     struct queue_entry *next;
@@ -39,8 +40,7 @@ struct pa_queue {
 };
 
 struct pa_queue* pa_queue_new(void) {
-    struct pa_queue *q = malloc(sizeof(struct pa_queue));
-    assert(q);
+    struct pa_queue *q = pa_xmalloc(sizeof(struct pa_queue));
     q->front = q->back = NULL;
     q->length = 0;
     return q;
@@ -57,18 +57,17 @@ void pa_queue_free(struct pa_queue* q, void (*destroy)(void *p, void *userdata),
         if (destroy)
             destroy(e->data, userdata);
 
-        free(e);
+        pa_xfree(e);
         e = n;
     }
 
-    free(q);
+    pa_xfree(q);
 }
 
 void pa_queue_push(struct pa_queue *q, void *p) {
     struct queue_entry *e;
 
-    e = malloc(sizeof(struct queue_entry));
-
+    e = pa_xmalloc(sizeof(struct queue_entry));
     e->data = p;
     e->next = NULL;
 
@@ -96,7 +95,7 @@ void* pa_queue_pop(struct pa_queue *q) {
         q->back = NULL;
 
     p = e->data;
-    free(e);
+    pa_xfree(e);
 
     q->length--;
     

@@ -60,8 +60,6 @@ uint32_t pa_sink_get_latency(struct pa_sink *s);
 
 void pa_sink_notify(struct pa_sink*s);
 
-struct pa_sink* pa_sink_get_default(struct pa_core *c);
-
 void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m);
 
 #endif

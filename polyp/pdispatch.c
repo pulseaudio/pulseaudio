@@ -29,6 +29,7 @@
 
 #include "pdispatch.h"
 #include "native-common.h"
+#include "xmalloc.h"
 
 /*#define DEBUG_OPCODES*/
 
@@ -96,7 +97,7 @@ static void reply_info_free(struct reply_info *r) {
     if (r->next)
         r->next->previous = r->previous;
     
-    free(r);
+    pa_xfree(r);
 }
 
 struct pa_pdispatch* pa_pdispatch_new(struct pa_mainloop_api *mainloop, const struct pa_pdispatch_command*table, unsigned entries) {
@@ -105,8 +106,7 @@ struct pa_pdispatch* pa_pdispatch_new(struct pa_mainloop_api *mainloop, const st
 
     assert((entries && table) || (!entries && !table));
     
-    pd = malloc(sizeof(struct pa_pdispatch));
-    assert(pd);
+    pd = pa_xmalloc(sizeof(struct pa_pdispatch));
     pd->mainloop = mainloop;
     pd->command_table = table;
     pd->n_commands = entries;
@@ -129,7 +129,7 @@ void pa_pdispatch_free(struct pa_pdispatch *pd) {
     
     while (pd->replies)
         reply_info_free(pd->replies);
-    free(pd);
+    pa_xfree(pd);
 }
 
 int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *userdata) {
@@ -207,8 +207,7 @@ void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int time
     struct timeval tv;
     assert(pd && cb);
 
-    r = malloc(sizeof(struct reply_info));
-    assert(r);
+    r = pa_xmalloc(sizeof(struct reply_info));
     r->pdispatch = pd;
     r->callback = cb;
     r->userdata = userdata;

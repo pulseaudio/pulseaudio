@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include "ioline.h"
+#include "xmalloc.h"
 
 #define BUFFER_LIMIT (64*1024)
 #define READ_SIZE (1024)
@@ -55,8 +56,7 @@ struct pa_ioline* pa_ioline_new(struct pa_iochannel *io) {
     struct pa_ioline *l;
     assert(io);
     
-    l = malloc(sizeof(struct pa_ioline));
-    assert(l);
+    l = pa_xmalloc(sizeof(struct pa_ioline));
     l->io = io;
     l->dead = 0;
 
@@ -77,9 +77,9 @@ struct pa_ioline* pa_ioline_new(struct pa_iochannel *io) {
 void pa_ioline_free(struct pa_ioline *l) {
     assert(l);
     pa_iochannel_free(l->io);
-    free(l->wbuf);
-    free(l->rbuf);
-    free(l);
+    pa_xfree(l->wbuf);
+    pa_xfree(l->rbuf);
+    pa_xfree(l);
 }
 
 void pa_ioline_puts(struct pa_ioline *l, const char *c) {
@@ -95,10 +95,10 @@ void pa_ioline_puts(struct pa_ioline *l, const char *c) {
     
     if (len > l->wbuf_length - l->wbuf_valid_length) {
         size_t n = l->wbuf_valid_length+len;
-        char *new = malloc(n);
+        char *new = pa_xmalloc(n);
         if (l->wbuf) {
             memcpy(new, l->wbuf+l->wbuf_index, l->wbuf_valid_length);
-            free(l->wbuf);
+            pa_xfree(l->wbuf);
         }
         l->wbuf = new;
         l->wbuf_length = n;
@@ -141,10 +141,10 @@ static int do_read(struct pa_ioline *l) {
             if (l->rbuf_valid_length)
                 memmove(l->rbuf, l->rbuf+l->rbuf_index, l->rbuf_valid_length);
         } else {
-            char *new = malloc(n);
+            char *new = pa_xmalloc(n);
             if (l->rbuf_valid_length)
                 memcpy(new, l->rbuf+l->rbuf_index, l->rbuf_valid_length);
-            free(l->rbuf);
+            pa_xfree(l->rbuf);
             l->rbuf = new;
             l->rbuf_length = n;
         }

@@ -36,6 +36,7 @@
 #include "socket-client.h"
 #include "socket-util.h"
 #include "util.h"
+#include "xmalloc.h"
 
 struct pa_socket_client {
     struct pa_mainloop_api *mainloop;
@@ -50,8 +51,7 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
     struct pa_socket_client *c;
     assert(m);
 
-    c = malloc(sizeof(struct pa_socket_client));
-    assert(c);
+    c = pa_xmalloc(sizeof(struct pa_socket_client));
     c->mainloop = m;
     c->fd = -1;
     c->io_source = c->fixed_source = NULL;
@@ -226,7 +226,7 @@ void pa_socket_client_free(struct pa_socket_client *c) {
         c->mainloop->cancel_fixed(c->mainloop, c->fixed_source);
     if (c->fd >= 0)
         close(c->fd);
-    free(c);
+    pa_xfree(c);
 }
 
 void pa_socket_client_set_callback(struct pa_socket_client *c, void (*on_connection)(struct pa_socket_client *c, struct pa_iochannel*io, void *userdata), void *userdata) {

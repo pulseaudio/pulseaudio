@@ -10,6 +10,8 @@
 #include "sink.h"
 #include "scache.h"
 #include "modargs.h"
+#include "xmalloc.h"
+#include "namereg.h"
 
 struct x11_source {
     void *io_source;
@@ -22,7 +24,7 @@ struct userdata {
     struct x11_source *x11_sources;
     int xkb_event_base;
 
-    int sink_index;
+    char *sink_name;
     char *scache_item;
 };
 
@@ -33,22 +35,11 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static struct pa_sink* get_output_sink(struct userdata *u) {
-    struct pa_sink *s;
-    assert(u);
-
-    if (!(s = pa_idxset_get_by_index(u->core->sinks, u->sink_index)))
-        s = pa_sink_get_default(u->core);
-
-    u->sink_index = s ? s->index : PA_IDXSET_INVALID;
-    return s;
-}
-
 static int ring_bell(struct userdata *u, int percent) {
     struct pa_sink *s;
     assert(u);
 
-    if (!(s = get_output_sink(u))) {
+    if (!(s = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
         fprintf(stderr, __FILE__": Invalid sink\n");
         return -1;
     }
@@ -85,8 +76,7 @@ static void io_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_main
 static void new_io_source(struct userdata *u, int fd) {
     struct x11_source *s;
 
-    s = malloc(sizeof(struct x11_source));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct x11_source));
     s->io_source = u->core->mainloop->source_io(u->core->mainloop, fd, PA_MAINLOOP_API_IO_EVENT_INPUT, io_callback, u);
     assert(s->io_source);
     s->next = u->x11_sources;
@@ -105,18 +95,12 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
     
-    m->userdata = u = malloc(sizeof(struct userdata));
-    assert(u);
+    m->userdata = u = pa_xmalloc(sizeof(struct userdata));
     u->core = c;
     u->display = NULL;
     u->x11_sources = NULL;
-    u->scache_item = strdup(pa_modargs_get_value(ma, "sample", "x11-bell"));
-    assert(u->scache_item);
-        
-    if (pa_modargs_get_sink_index(ma, c, &u->sink_index) < 0) {
-        fprintf(stderr, __FILE__": Invalid sink specified\n");
-        goto fail;
-    }
+    u->scache_item = pa_xstrdup(pa_modargs_get_value(ma, "sample", "x11-bell"));
+    u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
 
     if (!(u->display = XOpenDisplay(pa_modargs_get_value(ma, "display", NULL)))) {
         fprintf(stderr, __FILE__": XOpenDisplay() failed\n");
@@ -166,12 +150,12 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
         struct x11_source *s = u->x11_sources;
         u->x11_sources = u->x11_sources->next;
         c->mainloop->cancel_io(c->mainloop, s->io_source);
-        free(s);
+        pa_xfree(s);
     }
 
-    free(u->scache_item);
+    pa_xfree(u->scache_item);
     
     if (u->display)
         XCloseDisplay(u->display);
-    free(u);
+    pa_xfree(u);
 }

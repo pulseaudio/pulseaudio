@@ -31,6 +31,7 @@
 #include "iochannel.h"
 #include "util.h"
 #include "socket-util.h"
+#include "xmalloc.h"
 
 struct pa_iochannel {
     int ifd, ofd;
@@ -103,7 +104,7 @@ struct pa_iochannel* pa_iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd
     struct pa_iochannel *io;
     assert(m && (ifd >= 0 || ofd >= 0));
 
-    io = malloc(sizeof(struct pa_iochannel));
+    io = pa_xmalloc(sizeof(struct pa_iochannel));
     io->ifd = ifd;
     io->ofd = ofd;
     io->mainloop = m;
@@ -152,7 +153,7 @@ void pa_iochannel_free(struct pa_iochannel*io) {
     if (io->output_source && (io->output_source != io->input_source))
         io->mainloop->cancel_io(io->mainloop, io->output_source);
     
-    free(io);
+    pa_xfree(io);
 }
 
 int pa_iochannel_is_readable(struct pa_iochannel*io) {

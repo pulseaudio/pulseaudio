@@ -29,6 +29,7 @@
 
 #include "hashmap.h"
 #include "idxset.h"
+#include "xmalloc.h"
 
 struct hashmap_entry {
     struct hashmap_entry *next, *previous, *bucket_next, *bucket_previous;
@@ -49,11 +50,8 @@ struct pa_hashmap {
 
 struct pa_hashmap *pa_hashmap_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
     struct pa_hashmap *h;
-    h = malloc(sizeof(struct pa_hashmap));
-    assert(h);
-    h->data = malloc(sizeof(struct hashmap_entry*)*(h->size = 1023));
-    assert(h->data);
-    memset(h->data, 0, sizeof(struct hashmap_entry*)*(h->size = 1023));
+    h = pa_xmalloc(sizeof(struct pa_hashmap));
+    h->data = pa_xmalloc0(sizeof(struct hashmap_entry*)*(h->size = 1023));
     h->first_entry = NULL;
     h->n_entries = 0;
     h->hash_func = hash_func ? hash_func : pa_idxset_trivial_hash_func;
@@ -78,7 +76,7 @@ static void remove(struct pa_hashmap *h, struct hashmap_entry *e) {
     else
         h->data[e->hash] = e->bucket_next;
 
-    free(e);
+    pa_xfree(e);
     h->n_entries--;
 }
 
@@ -91,8 +89,8 @@ void pa_hashmap_free(struct pa_hashmap*h, void (*free_func)(void *p, void *userd
         remove(h, h->first_entry);
     }
     
-    free(h->data);
-    free(h);
+    pa_xfree(h->data);
+    pa_xfree(h);
 }
 
 static struct hashmap_entry *get(struct pa_hashmap *h, unsigned hash, const void *key) {
@@ -115,9 +113,7 @@ int pa_hashmap_put(struct pa_hashmap *h, const void *key, void *value) {
     if ((e = get(h, hash, key)))
         return -1;
     
-    e = malloc(sizeof(struct hashmap_entry));
-    assert(e);
-    
+    e = pa_xmalloc(sizeof(struct hashmap_entry));
     e->hash = hash;
     e->key = key;
     e->value = value;

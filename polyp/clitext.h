@@ -31,6 +31,7 @@ char *pa_source_list_to_string(struct pa_core *c);
 char *pa_client_list_to_string(struct pa_core *c);
 char *pa_module_list_to_string(struct pa_core *c);
 char *pa_scache_list_to_string(struct pa_core *c);
+char *pa_autoload_list_to_string(struct pa_core *c);
 
 #endif
 

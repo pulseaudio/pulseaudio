@@ -30,6 +30,7 @@
 #include <stdlib.h>
 
 #include "memblockq.h"
+#include "xmalloc.h"
 
 struct memblock_list {
     struct memblock_list *next;
@@ -50,8 +51,7 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
     struct pa_memblockq* bq;
     assert(maxlength && base && maxlength);
     
-    bq = malloc(sizeof(struct pa_memblockq));
-    assert(bq);
+    bq = pa_xmalloc(sizeof(struct pa_memblockq));
     bq->blocks = bq->blocks_tail = 0;
     bq->n_blocks = 0;
 
@@ -97,10 +97,10 @@ void pa_memblockq_free(struct pa_memblockq* bq) {
     while ((l = bq->blocks)) {
         bq->blocks = l->next;
         pa_memblock_unref(l->chunk.memblock);
-        free(l);
+        pa_xfree(l);
     }
     
-    free(bq);
+    pa_xfree(bq);
 }
 
 void pa_memblockq_push(struct pa_memblockq* bq, const struct pa_memchunk *chunk, size_t delta) {
@@ -119,8 +119,7 @@ void pa_memblockq_push(struct pa_memblockq* bq, const struct pa_memchunk *chunk,
         }
     }
     
-    q = malloc(sizeof(struct memblock_list));
-    assert(q);
+    q = pa_xmalloc(sizeof(struct memblock_list));
 
     if (bq->measure_delay)
         gettimeofday(&q->stamp, NULL);
@@ -181,7 +180,7 @@ int memblockq_pop(struct memblockq* bq, struct pa_memchunk *chunk) {
     bq->n_blocks--;
     bq->current_length -= chunk->length;
 
-    free(q);
+    pa_xfree(q);
     return 0;
 }
 */
@@ -231,7 +230,7 @@ void pa_memblockq_drop(struct pa_memblockq *bq, size_t length) {
             if (bq->blocks == NULL)
                 bq->blocks_tail = NULL;
             pa_memblock_unref(q->chunk.memblock);
-            free(q);
+            pa_xfree(q);
             
             bq->n_blocks--;
         }

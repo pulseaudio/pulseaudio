@@ -27,6 +27,7 @@
 
 #include "alsa-util.h"
 #include "sample.h"
+#include "xmalloc.h"
 
 int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, struct pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *buffer_size) {
     int ret = 0;
@@ -66,15 +67,13 @@ int pa_create_io_sources(snd_pcm_t *pcm_handle, struct pa_mainloop_api* m, void 
 
     *n_io_sources = snd_pcm_poll_descriptors_count(pcm_handle);
 
-    pfds = malloc(sizeof(struct pollfd) * *n_io_sources);
-    assert(pfds);
+    pfds = pa_xmalloc(sizeof(struct pollfd) * *n_io_sources);
     if (snd_pcm_poll_descriptors(pcm_handle, pfds, *n_io_sources) < 0) {
-        free(pfds);
+        pa_xfree(pfds);
         return -1;
     }
     
-    *io_sources = malloc(sizeof(void*) * *n_io_sources);
-    assert(io_sources);
+    *io_sources = pa_xmalloc(sizeof(void*) * *n_io_sources);
 
     for (i = 0, ios = *io_sources, ppfd = pfds; i < *n_io_sources; i++, ios++, ppfd++) {
         *ios = m->source_io(m, ppfd->fd,
@@ -83,7 +82,7 @@ int pa_create_io_sources(snd_pcm_t *pcm_handle, struct pa_mainloop_api* m, void 
         assert(*ios);
     }
 
-    free(pfds);
+    pa_xfree(pfds);
     return 0;
 }
 
@@ -94,5 +93,5 @@ void pa_free_io_sources(struct pa_mainloop_api* m, void **io_sources, unsigned n
     
     for (ios = io_sources, i = 0; i < n_io_sources; i++, ios++)
         m->cancel_io(m, *ios);
-    free(io_sources);
+    pa_xfree(io_sources);
 }

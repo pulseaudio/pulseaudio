@@ -21,7 +21,7 @@
 # Load audio drivers
 #load module-alsa-sink
 #load module-alsa-source device=plughw:1,0
-load module-oss device="/dev/dsp"
+#load module-oss device="/dev/dsp"
 #load module-oss-mmap device="/dev/dsp"
 
 # Load several protocols
@@ -36,9 +36,15 @@ load module-x11-bell
 # Load the CLI module
 load module-cli
 
-.nofail
+autoload_sink_add oss_output module-oss device="/dev/dsp" sink_name=oss_output source_name=oss_input
+autoload_source_add oss_input module-oss device="/dev/dsp" sink_name=oss_output source_name=oss_input
 
 # Make some devices default
 sink_default oss_output
 source_default oss_input
 
+.nofail
+
+# Load something to the sample cache
+scache_load /usr/share/sounds/KDE_Notify.wav x11-bell
+scache_play x11-bell oss_output

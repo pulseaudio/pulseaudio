@@ -30,6 +30,7 @@
 
 #include "pstream.h"
 #include "queue.h"
+#include "xmalloc.h"
 
 enum pa_pstream_descriptor_index {
     PA_PSTREAM_DESCRIPTOR_LENGTH,
@@ -148,8 +149,7 @@ struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel
     struct pa_pstream *p;
     assert(io);
 
-    p = malloc(sizeof(struct pa_pstream));
-    assert(p);
+    p = pa_xmalloc(sizeof(struct pa_pstream));
 
     p->io = io;
     pa_iochannel_set_callback(io, io_callback, p);
@@ -199,7 +199,7 @@ static void item_free(void *item, void *p) {
         pa_packet_unref(i->packet);
     }
 
-    free(i);
+    pa_xfree(i);
 }
 
 void pa_pstream_free(struct pa_pstream *p) {
@@ -224,15 +224,14 @@ void pa_pstream_free(struct pa_pstream *p) {
         pa_packet_unref(p->read.packet);
 
     p->mainloop->cancel_fixed(p->mainloop, p->mainloop_source);
-    free(p);
+    pa_xfree(p);
 }
 
 void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
     struct item_info *i;
     assert(p && packet);
 
-    i = malloc(sizeof(struct item_info));
-    assert(i);
+    i = pa_xmalloc(sizeof(struct item_info));
     i->type = PA_PSTREAM_ITEM_PACKET;
     i->packet = pa_packet_ref(packet);
 
@@ -244,8 +243,7 @@ void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, int32_t del
     struct item_info *i;
     assert(p && channel != (uint32_t) -1 && chunk);
     
-    i = malloc(sizeof(struct item_info));
-    assert(i);
+    i = pa_xmalloc(sizeof(struct item_info));
     i->type = PA_PSTREAM_ITEM_MEMBLOCK;
     i->chunk = *chunk;
     i->channel = channel;

@@ -25,7 +25,9 @@
 
 #include <assert.h>
 #include <stdlib.h>
+
 #include "mainloop-api.h"
+#include "xmalloc.h"
 
 struct once_info {
     void (*callback)(void *userdata);
@@ -38,7 +40,7 @@ static void once_callback(struct pa_mainloop_api *api, void *id, void *userdata)
     i->callback(i->userdata);
     assert(api->cancel_fixed);
     api->cancel_fixed(api, id);
-    free(i);
+    pa_xfree(i);
 }
 
 void pa_mainloop_api_once(struct pa_mainloop_api* api, void (*callback)(void *userdata), void *userdata) {
@@ -46,8 +48,7 @@ void pa_mainloop_api_once(struct pa_mainloop_api* api, void (*callback)(void *us
     void *id;
     assert(api && callback);
 
-    i = malloc(sizeof(struct once_info));
-    assert(i);
+    i = pa_xmalloc(sizeof(struct once_info));
     i->callback = callback;
     i->userdata = userdata;
 

@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "source-output.h"
+#include "xmalloc.h"
 
 struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec) {
     struct pa_source_output *o;
@@ -39,9 +40,8 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
         if (!(resampler = pa_resampler_new(&s->sample_spec, spec)))
             return NULL;
     
-    o = malloc(sizeof(struct pa_source_output));
-    assert(o);
-    o->name = name ? strdup(name) : NULL;
+    o = pa_xmalloc(sizeof(struct pa_source_output));
+    o->name = pa_xstrdup(name);
     o->client = NULL;
     o->owner = NULL;
     o->source = s;
@@ -71,8 +71,8 @@ void pa_source_output_free(struct pa_source_output* o) {
     if (o->resampler)
         pa_resampler_free(o->resampler);
     
-    free(o->name);
-    free(o);
+    pa_xfree(o->name);
+    pa_xfree(o);
 }
 
 void pa_source_output_kill(struct pa_source_output*i) {

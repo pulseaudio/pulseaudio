@@ -44,6 +44,7 @@
 #include "sample-util.h"
 #include "util.h"
 #include "modargs.h"
+#include "xmalloc.h"
 
 struct userdata {
     struct pa_sink *sink;
@@ -62,6 +63,7 @@ struct userdata {
 
     struct pa_memblock **in_memblocks, **out_memblocks;
     unsigned out_current, in_current;
+    struct pa_module *module;
 };
 
 static const char* const valid_modargs[] = {
@@ -81,6 +83,13 @@ static const char* const valid_modargs[] = {
 #define DEFAULT_SINK_NAME "oss_output"
 #define DEFAULT_SOURCE_NAME "oss_input"
 #define DEFAULT_DEVICE "/dev/dsp"
+
+static void update_usage(struct userdata *u) {
+   pa_module_set_used(u->module,
+                      (u->sink ? pa_idxset_ncontents(u->sink->inputs) : 0) +
+                      (u->sink ? pa_idxset_ncontents(u->sink->monitor_source->outputs) : 0) +
+                      (u->source ? pa_idxset_ncontents(u->source->outputs) : 0));
+}
 
 static void out_fill_memblocks(struct userdata *u, unsigned n) {
     assert(u && u->out_memblocks);
@@ -110,6 +119,8 @@ static void do_write(struct userdata *u) {
     struct count_info info;
     assert(u && u->sink);
 
+    update_usage(u);
+    
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
         fprintf(stderr, "SNDCTL_DSP_GETOPTR: %s\n", strerror(errno));
         return;
@@ -170,6 +181,8 @@ static void do_read(struct userdata *u) {
     struct count_info info;
     assert(u && u->source);
 
+    update_usage(u);
+    
     if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
         fprintf(stderr, "SNDCTL_DSP_GETIPTR: %s\n", strerror(errno));
         return;
@@ -212,9 +225,8 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct pa_modargs *ma = NULL;
     assert(c && m);
 
-    m->userdata = u = malloc(sizeof(struct userdata));
-    assert(u);
-    memset(u, 0, sizeof(struct userdata));
+    m->userdata = u = pa_xmalloc0(sizeof(struct userdata));
+    u->module = m;
     u->fd = -1;
     u->core = c;
 
@@ -288,9 +300,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
             pa_source_set_owner(u->source, m);
             u->source->description = pa_sprintf_malloc("Open Sound System PCM/mmap() on '%s'", p);
             
-            
-            u->in_memblocks = malloc(sizeof(struct pa_memblock *)*u->in_fragments);
-            memset(u->in_memblocks, 0, sizeof(struct pa_memblock *)*u->in_fragments);
+            u->in_memblocks = pa_xmalloc0(sizeof(struct pa_memblock *)*u->in_fragments);
             
             enable_bits |= PCM_ENABLE_INPUT;
         }
@@ -323,8 +333,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
             pa_sink_set_owner(u->sink, m);
             u->sink->description = pa_sprintf_malloc("Open Sound System PCM/mmap() on '%s'", p);
             
-            u->out_memblocks = malloc(sizeof(struct memblock *)*u->out_fragments);
-            memset(u->out_memblocks, 0, sizeof(struct pa_memblock *)*u->out_fragments);
+            u->out_memblocks = pa_xmalloc0(sizeof(struct memblock *)*u->out_fragments);
             
             enable_bits |= PCM_ENABLE_OUTPUT;
         }
@@ -363,15 +372,15 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 
-    u = m->userdata;
-    assert(u);
+    if (!(u = m->userdata))
+        return;
 
     if (u->out_memblocks) {
         unsigned i;
         for (i = 0; i < u->out_fragments; i++)
             if (u->out_memblocks[i])
                 pa_memblock_unref_fixed(u->out_memblocks[i]);
-        free(u->out_memblocks);
+        pa_xfree(u->out_memblocks);
     }
 
     if (u->in_memblocks) {
@@ -379,7 +388,7 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
         for (i = 0; i < u->in_fragments; i++)
             if (u->in_memblocks[i])
                 pa_memblock_unref_fixed(u->in_memblocks[i]);
-        free(u->in_memblocks);
+        pa_xfree(u->in_memblocks);
     }
     
     if (u->in_mmap && u->in_mmap != MAP_FAILED)
@@ -400,5 +409,5 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     if (u->fd >= 0)
         close(u->fd);
 
-    free(u);
+    pa_xfree(u);
 }

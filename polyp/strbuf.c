@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <xmalloc.h>
 
 #include "strbuf.h"
 
@@ -44,8 +45,7 @@ struct pa_strbuf {
 };
 
 struct pa_strbuf *pa_strbuf_new(void) {
-    struct pa_strbuf *sb = malloc(sizeof(struct pa_strbuf));
-    assert(sb);
+    struct pa_strbuf *sb = pa_xmalloc(sizeof(struct pa_strbuf));
     sb->length = 0;
     sb->head = sb->tail = NULL;
     return sb;
@@ -56,10 +56,10 @@ void pa_strbuf_free(struct pa_strbuf *sb) {
     while (sb->head) {
         struct chunk *c = sb->head;
         sb->head = sb->head->next;
-        free(c);
+        pa_xfree(c);
     }
 
-    free(sb);
+    pa_xfree(sb);
 }
 
 char *pa_strbuf_tostring(struct pa_strbuf *sb) {
@@ -67,8 +67,7 @@ char *pa_strbuf_tostring(struct pa_strbuf *sb) {
     struct chunk *c;
     assert(sb);
 
-    t = malloc(sb->length+1);
-    assert(t);
+    t = pa_xmalloc(sb->length+1);
 
     e = t;
     for (c = sb->head; c; c = c->next) {
@@ -101,8 +100,7 @@ void pa_strbuf_putsn(struct pa_strbuf *sb, const char *t, size_t l) {
     if (!l)
        return;
    
-    c = malloc(sizeof(struct chunk)+l);
-    assert(c);
+    c = pa_xmalloc(sizeof(struct chunk)+l);
 
     c->next = NULL;
     c->length = l;
@@ -131,8 +129,7 @@ int pa_strbuf_printf(struct pa_strbuf *sb, const char *format, ...) {
     for(;;) {
         va_list ap;
 
-        c = realloc(c, sizeof(struct chunk)+size);
-        assert(c);
+        c = pa_xrealloc(c, sizeof(struct chunk)+size);
 
         va_start(ap, format);
         r = vsnprintf(c->text, size, format, ap);

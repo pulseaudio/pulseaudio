@@ -44,6 +44,8 @@
 #include "sample-util.h"
 #include "sound-file.h"
 #include "play-memchunk.h"
+#include "autoload.h"
+#include "xmalloc.h"
 
 struct command {
     const char *name;
@@ -76,6 +78,9 @@ static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *
 static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 
 static const struct command commands[] = {
     { "exit",                    pa_cli_command_exit,               "Terminate the daemon",         1 },
@@ -99,11 +104,16 @@ static const struct command commands[] = {
     { "kill_client",             pa_cli_command_kill_client,        "Kill a client (args: index)", 2},
     { "kill_sink_input",         pa_cli_command_kill_sink_input,    "Kill a sink input (args: index)", 2},
     { "kill_source_output",      pa_cli_command_kill_source_output, "Kill a source output (args: index)", 2},
-    { "scache_list",             pa_cli_command_scache_list,        "List all entries in the sample cache", 2},
+    { "scache_list",             pa_cli_command_scache_list,        "List all entries in the sample cache", 1},
     { "scache_play",             pa_cli_command_scache_play,        "Play a sample from the sample cache (args: name, sink|index)", 3},
     { "scache_remove",           pa_cli_command_scache_remove,      "Remove a sample from the sample cache (args: name)", 2},
     { "scache_load",             pa_cli_command_scache_load,        "Load a sound file into the sample cache (args: filename,name)", 3},
     { "play_file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
+    { "autoload_list",           pa_cli_command_autoload_list,      "List autoload entries", 1},
+    { "autoload_sink_add",       pa_cli_command_autoload_add,       "Add autoload entry for a sink (args: sink, name, arguments)", 4},
+    { "autoload_source_add",     pa_cli_command_autoload_add,       "Add autoload entry for a source (args: source, name, arguments)", 4},
+    { "autoload_sink_remove",    pa_cli_command_autoload_remove,    "Remove autoload entry for a sink (args: sink)", 2},
+    { "autoload_source_remove",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: source)", 2},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -144,7 +154,7 @@ static int pa_cli_command_modules(struct pa_core *c, struct pa_tokenizer *t, str
     s = pa_module_list_to_string(c);
     assert(s);
     pa_strbuf_puts(buf, s);
-    free(s);
+    pa_xfree(s);
     return 0;
 }
 
@@ -154,7 +164,7 @@ static int pa_cli_command_clients(struct pa_core *c, struct pa_tokenizer *t, str
     s = pa_client_list_to_string(c);
     assert(s);
     pa_strbuf_puts(buf, s);
-    free(s);
+    pa_xfree(s);
     return 0;
 }
 
@@ -164,7 +174,7 @@ static int pa_cli_command_sinks(struct pa_core *c, struct pa_tokenizer *t, struc
     s = pa_sink_list_to_string(c);
     assert(s);
     pa_strbuf_puts(buf, s);
-    free(s);
+    pa_xfree(s);
     return 0;
 }
 
@@ -174,7 +184,7 @@ static int pa_cli_command_sources(struct pa_core *c, struct pa_tokenizer *t, str
     s = pa_source_list_to_string(c);
     assert(s);
     pa_strbuf_puts(buf, s);
-    free(s);
+    pa_xfree(s);
     return 0;
 }
 
@@ -184,7 +194,7 @@ static int pa_cli_command_sink_inputs(struct pa_core *c, struct pa_tokenizer *t,
     s = pa_sink_input_list_to_string(c);
     assert(s);
     pa_strbuf_puts(buf, s);
-    free(s);
+    pa_xfree(s);
     return 0;
 }
 
@@ -194,7 +204,7 @@ static int pa_cli_command_source_outputs(struct pa_core *c, struct pa_tokenizer 
     s = pa_source_output_list_to_string(c);
     assert(s);
     pa_strbuf_puts(buf, s);
-    free(s);
+    pa_xfree(s);
     return 0;
 }
 
@@ -214,6 +224,7 @@ static int pa_cli_command_info(struct pa_core *c, struct pa_tokenizer *t, struct
     pa_cli_command_sink_inputs(c, t, buf, fail, verbose);
     pa_cli_command_source_outputs(c, t, buf, fail, verbose);
     pa_cli_command_scache_list(c, t, buf, fail, verbose);
+    pa_cli_command_autoload_list(c, t, buf, fail, verbose);
     return 0;
 }
 
@@ -284,7 +295,7 @@ static int pa_cli_command_sink_volume(struct pa_core *c, struct pa_tokenizer *t,
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK))) {
+    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK, 1))) {
         pa_strbuf_puts(buf, "No sink found by this name or index.\n");
         return -1;
     }
@@ -333,7 +344,6 @@ static int pa_cli_command_sink_input_volume(struct pa_core *c, struct pa_tokeniz
 
 static int pa_cli_command_sink_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
     const char *n;
-    struct pa_sink *sink;
     assert(c && t);
 
     if (!(n = pa_tokenizer_get(t, 1))) {
@@ -341,18 +351,12 @@ static int pa_cli_command_sink_default(struct pa_core *c, struct pa_tokenizer *t
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK))) {
-        pa_strbuf_puts(buf, "No sink found by this name or index.\n");
-        return -1;
-    }
-
-    c->default_sink_index = sink->index;
+    pa_namereg_set_default(c, n, PA_NAMEREG_SINK);
     return 0;
 }
 
 static int pa_cli_command_source_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
     const char *n;
-    struct pa_source *source;
     assert(c && t);
 
     if (!(n = pa_tokenizer_get(t, 1))) {
@@ -360,12 +364,7 @@ static int pa_cli_command_source_default(struct pa_core *c, struct pa_tokenizer 
         return -1;
     }
 
-    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE))) {
-        pa_strbuf_puts(buf, "No source found by this name or index.\n");
-        return -1;
-    }
-
-    c->default_source_index = source->index;
+    pa_namereg_set_default(c, n, PA_NAMEREG_SOURCE);
     return 0;
 }
 
@@ -450,7 +449,7 @@ static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t,
     s = pa_scache_list_to_string(c);
     assert(s);
     pa_strbuf_puts(buf, s);
-    free(s);
+    pa_xfree(s);
     return 0;
 }
 
@@ -464,7 +463,7 @@ static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t,
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK))) {
+    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, 1))) {
         pa_strbuf_puts(buf, "No sink by that name.\n");
         return -1;
     }
@@ -528,7 +527,7 @@ static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, s
         return -1;
     }
 
-    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK))) {
+    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, 1))) {
         pa_strbuf_puts(buf, "No sink by that name.\n");
         return -1;
     }
@@ -541,6 +540,46 @@ static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, s
     ret = pa_play_memchunk(sink, fname, &ss, &chunk, PA_VOLUME_NORM);
     pa_memblock_unref(chunk.memblock);
     return ret;
+}
+
+static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    const char *devname, *module;
+    assert(c && t && buf && fail && verbose);
+
+    if (!(devname = pa_tokenizer_get(t, 1)) || !(module = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a device name, a module name and optionally module arguments\n");
+        return -1;
+    }
+    
+    pa_autoload_add(c, devname, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, module, pa_tokenizer_get(t, 3));
+    return 0;
+}
+
+static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    const char *devname;
+    assert(c && t && buf && fail && verbose);
+
+    if (!(devname = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a device name\n");
+        return -1;
+    }
+
+    if (pa_autoload_remove(c, devname, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE) < 0) {
+        pa_strbuf_puts(buf, "Failed to remove autload entry\n");
+        return -1;
+    }
+
+    return 0;        
+}
+
+static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    char *s;
+    assert(c && t);
+    s = pa_autoload_list_to_string(c);
+    assert(s);
+    pa_strbuf_puts(buf, s);
+    pa_xfree(s);
+    return 0;
 }
 
 int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail, int *verbose) {
@@ -654,14 +693,13 @@ int pa_cli_command_execute(struct pa_core *c, const char *s, struct pa_strbuf *b
     p = s;
     while (*p) {
         size_t l = strcspn(p, linebreak);
-        char *line = strndup(p, l);
-        assert(line);
+        char *line = pa_xstrndup(p, l);
         
         if (pa_cli_command_execute_line(c, line, buf, fail, verbose) < 0&& *fail) {
-            free(line);
+            pa_xfree(line);
             return -1;
         }
-        free(line);
+        pa_xfree(line);
 
         p += l;
         p += strspn(p, linebreak);

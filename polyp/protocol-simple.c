@@ -36,6 +36,7 @@
 #include "client.h"
 #include "sample-util.h"
 #include "namereg.h"
+#include "xmalloc.h"
 
 struct connection {
     struct pa_protocol_simple *protocol;
@@ -63,7 +64,7 @@ struct pa_protocol_simple {
         DUPLEX = 3
     } mode;
     struct pa_sample_spec sample_spec;
-    uint32_t sink_index, source_index;
+    char *source_name, *sink_name;
 };
 
 #define PLAYBACK_BUFFER_SECONDS (.5)
@@ -92,7 +93,7 @@ static void connection_free(struct connection *c) {
         pa_memblockq_free(c->output_memblockq);
     if (c->fixed_source)
         c->protocol->core->mainloop->cancel_fixed(c->protocol->core->mainloop, c->fixed_source);
-    free(c);
+    pa_xfree(c);
 }
 
 static int do_read(struct connection *c) {
@@ -275,8 +276,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     char cname[256];
     assert(s && io && p);
 
-    c = malloc(sizeof(struct connection));
-    assert(c);
+    c = pa_xmalloc(sizeof(struct connection));
     c->io = io;
     c->sink_input = NULL;
     c->source_output = NULL;
@@ -298,17 +298,16 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         struct pa_sink *sink;
         size_t l;
 
-        if (!(sink = pa_idxset_get_by_index(p->core->sinks, p->sink_index)))
-            if (!(sink = pa_sink_get_default(p->core))) {
-                fprintf(stderr, "Failed to get sink.\n");
-                goto fail;
-            }
+        if (!(sink = pa_namereg_get(p->core, p->sink_name, PA_NAMEREG_SINK, 1))) {
+            fprintf(stderr, "Failed to get sink.\n");
+            goto fail;
+        }
 
-        c->sink_input = pa_sink_input_new(sink, c->client->name, &p->sample_spec);
-        if (!c->sink_input) {
+        if (!(c->sink_input = pa_sink_input_new(sink, c->client->name, &p->sample_spec))) {
             fprintf(stderr, "Failed to create sink input.\n");
             goto fail;
         }
+        
         c->sink_input->owner = p->module;
         c->sink_input->client = c->client;
         
@@ -329,11 +328,10 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         struct pa_source *source;
         size_t l;
 
-        if (!(source = pa_idxset_get_by_index(p->core->sources, p->source_index)))
-            if (!(source = pa_source_get_default(p->core))) {
-                fprintf(stderr, "Failed to get source.\n");
-                goto fail;
-            }
+        if (!(source = pa_namereg_get(p->core, p->source_name, PA_NAMEREG_SOURCE, 1))) {
+            fprintf(stderr, "Failed to get source.\n");
+            goto fail;
+        }
 
         c->source_output = pa_source_output_new(source, c->client->name, &p->sample_spec);
         if (!c->source_output) {
@@ -371,10 +369,7 @@ struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct p
     uint32_t enable;
     assert(core && server && ma);
 
-    p = malloc(sizeof(struct pa_protocol_simple));
-    assert(p);
-    memset(p, 0, sizeof(struct pa_protocol_simple));
-    
+    p = pa_xmalloc0(sizeof(struct pa_protocol_simple));
     p->module = m;
     p->core = core;
     p->server = server;
@@ -386,15 +381,8 @@ struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct p
         goto fail;
     }
 
-    if (pa_modargs_get_source_index(ma, core, &p->source_index) < 0) {
-        fprintf(stderr, __FILE__": source does not exist.\n");
-        goto fail;
-    }
-
-    if (pa_modargs_get_sink_index(ma, core, &p->sink_index) < 0) {
-        fprintf(stderr, __FILE__": sink does not exist.\n");
-        goto fail;
-    }
+    p->source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));
+    p->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     
     enable = 0;
     if (pa_modargs_get_value_u32(ma, "record", &enable) < 0) {
@@ -439,6 +427,6 @@ void pa_protocol_simple_free(struct pa_protocol_simple *p) {
 
     if (p->server)
         pa_socket_server_free(p->server);
-    free(p);
+    pa_xfree(p);
 }
 

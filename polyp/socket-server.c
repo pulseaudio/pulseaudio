@@ -37,6 +37,7 @@
 
 #include "socket-server.h"
 #include "socket-util.h"
+#include "xmalloc.h"
 
 struct pa_socket_server {
     int fd;
@@ -81,8 +82,7 @@ struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd)
     struct pa_socket_server *s;
     assert(m && fd >= 0);
     
-    s = malloc(sizeof(struct pa_socket_server));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct pa_socket_server));
     s->fd = fd;
     s->filename = NULL;
     s->on_connection = NULL;
@@ -128,9 +128,7 @@ struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, co
     s = pa_socket_server_new(m, fd);
     assert(s);
 
-    s->filename = strdup(filename);
-    assert(s->filename);
-
+    s->filename = pa_xstrdup(filename);
     s->type = SOCKET_SERVER_UNIX;
     
     return s;
@@ -192,13 +190,11 @@ void pa_socket_server_free(struct pa_socket_server*s) {
 
     if (s->filename) {
         unlink(s->filename);
-        free(s->filename);
+        pa_xfree(s->filename);
     }
 
-    
     s->mainloop->cancel_io(s->mainloop, s->mainloop_source);
-    
-    free(s);
+    pa_xfree(s);
 }
 
 void pa_socket_server_set_callback(struct pa_socket_server*s, void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata), void *userdata) {

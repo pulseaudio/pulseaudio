@@ -30,6 +30,7 @@
 
 #include "resampler.h"
 #include "sconv.h"
+#include "xmalloc.h"
 
 struct pa_resampler {
     struct pa_sample_spec i_ss, o_ss;
@@ -55,8 +56,7 @@ struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const stru
     if (a->format == PA_SAMPLE_ALAW || a->format == PA_SAMPLE_ULAW || b->format == PA_SAMPLE_ALAW || b->format == PA_SAMPLE_ULAW)
         goto fail;
 
-    r = malloc(sizeof(struct pa_resampler));
-    assert(r);
+    r = pa_xmalloc(sizeof(struct pa_resampler));
 
     r->channels = a->channels;
     if (b->channels < r->channels)
@@ -87,7 +87,7 @@ struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const stru
     
 fail:
     if (r)
-        free(r);
+        pa_xfree(r);
     
     return NULL;
 }
@@ -96,9 +96,9 @@ void pa_resampler_free(struct pa_resampler *r) {
     assert(r);
     if (r->src_state)
         src_delete(r->src_state);
-    free(r->i_buf);
-    free(r->o_buf);
-    free(r);
+    pa_xfree(r->i_buf);
+    pa_xfree(r->o_buf);
+    pa_xfree(r);
 }
 
 size_t pa_resampler_request(struct pa_resampler *r, size_t out_length) {
@@ -139,7 +139,7 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
     assert(out->memblock);
 
     if (r->i_alloc < eff_ins)
-        r->i_buf = realloc(r->i_buf, sizeof(float) * (r->i_alloc = eff_ins));
+        r->i_buf = pa_xrealloc(r->i_buf, sizeof(float) * (r->i_alloc = eff_ins));
     assert(r->i_buf);
     
     r->to_float32_func(eff_ins, in->memblock->data+in->index, i_nchannels, r->i_buf);
@@ -149,7 +149,7 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
         SRC_DATA data;
 
         if (r->o_alloc < eff_ons)
-            r->o_buf = realloc(r->o_buf, sizeof(float) * (r->o_alloc = eff_ons));
+            r->o_buf = pa_xrealloc(r->o_buf, sizeof(float) * (r->o_alloc = eff_ons));
         assert(r->o_buf);
 
         data.data_in = r->i_buf;

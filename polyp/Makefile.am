@@ -109,7 +109,9 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		dynarray.c dynarray.h \
 		scache.c scache.h \
 		sound-file.c sound-file.h \
-		play-memchunk.c play-memchunk.h
+		play-memchunk.c play-memchunk.h \
+		autoload.c autoload.h \
+		xmalloc.c xmalloc.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
@@ -273,7 +275,8 @@ libpolyp_la_SOURCES = polyplib.c polyplib.h \
 		authkey.c authkey.h \
 		socket-util.c socket-util.h \
 		native-common.h \
-		sample.c sample.h
+		sample.c sample.h \
+		xmalloc.c xmalloc.h
 libpolyp_la_CFLAGS = $(AM_CFLAGS)
 
 libpolyp_mainloop_la_SOURCES = mainloop-api.h mainloop-api.c \

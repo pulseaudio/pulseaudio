@@ -29,15 +29,15 @@
 #include <string.h>
 
 #include "client.h"
+#include "xmalloc.h"
 
 struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name, char *name) {
     struct pa_client *c;
     int r;
     assert(core);
 
-    c = malloc(sizeof(struct pa_client));
-    assert(c);
-    c->name = name ? strdup(name) : NULL;
+    c = pa_xmalloc(sizeof(struct pa_client));
+    c->name = pa_xstrdup(name);
     c->owner = NULL;
     c->core = core;
     c->protocol_name = protocol_name;
@@ -58,8 +58,8 @@ void pa_client_free(struct pa_client *c) {
 
     pa_idxset_remove_by_data(c->core->clients, c, NULL);
     fprintf(stderr, "client: freed %u \"%s\"\n", c->index, c->name);
-    free(c->name);
-    free(c);
+    pa_xfree(c->name);
+    pa_xfree(c);
 }
 
 void pa_client_kill(struct pa_client *c) {
@@ -74,6 +74,6 @@ void pa_client_kill(struct pa_client *c) {
 
 void pa_client_rename(struct pa_client *c, const char *name) {
     assert(c);
-    free(c->name);
-    c->name = name ? strdup(name) : NULL;
+    pa_xfree(c->name);
+    c->name = pa_xstrdup(name);
 }

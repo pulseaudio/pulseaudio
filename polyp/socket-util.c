@@ -40,6 +40,7 @@
 
 #include "socket-util.h"
 #include "util.h"
+#include "xmalloc.h"
 
 void pa_socket_peer_to_string(int fd, char *c, size_t l) {
     struct stat st;
@@ -179,8 +180,7 @@ int pa_unix_socket_remove_stale(const char *fn) {
 
 int pa_unix_socket_make_secure_dir(const char *fn) {
     int ret = -1;
-    char *slash, *dir = strdup(fn);
-    assert(dir);
+    char *slash, *dir = pa_xstrdup(fn);
     
     if (!(slash = strrchr(dir, '/')))
         goto finish;
@@ -192,14 +192,13 @@ int pa_unix_socket_make_secure_dir(const char *fn) {
     ret = 0;
     
 finish:
-    free(dir);
+    pa_xfree(dir);
     return ret;
 }
 
 int pa_unix_socket_remove_secure_dir(const char *fn) {
     int ret = -1;
-    char *slash, *dir = strdup(fn);
-    assert(dir);
+    char *slash, *dir = pa_xstrdup(fn);
     
     if (!(slash = strrchr(dir, '/')))
         goto finish;
@@ -211,6 +210,6 @@ int pa_unix_socket_remove_secure_dir(const char *fn) {
     ret = 0;
     
 finish:
-    free(dir);
+    pa_xfree(dir);
     return ret;
 }

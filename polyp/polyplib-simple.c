@@ -32,7 +32,7 @@
 #include "polyplib.h"
 #include "mainloop.h"
 #include "native-common.h"
-/*#include "polyp-error.h"*/
+#include "xmalloc.h"
 
 struct pa_simple {
     struct pa_mainloop *mainloop;
@@ -98,8 +98,7 @@ struct pa_simple* pa_simple_new(
     int error = PA_ERROR_INTERNAL;
     assert(ss);
 
-    p = malloc(sizeof(struct pa_simple));
-    assert(p);
+    p = pa_xmalloc(sizeof(struct pa_simple));
     p->context = NULL;
     p->stream = NULL;
     p->mainloop = pa_mainloop_new();
@@ -146,7 +145,7 @@ fail:
 void pa_simple_free(struct pa_simple *s) {
     assert(s);
 
-    free(s->read_data);
+    pa_xfree(s->read_data);
 
     if (s->stream)
         pa_stream_free(s->stream);
@@ -157,7 +156,7 @@ void pa_simple_free(struct pa_simple *s) {
     if (s->mainloop)
         pa_mainloop_free(s->mainloop);
 
-    free(s);
+    pa_xfree(s);
 }
 
 int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *perror) {
@@ -191,11 +190,10 @@ static void read_callback(struct pa_stream *s, const void*data, size_t length, v
 
     if (p->read_data) {
         fprintf(stderr, __FILE__": Buffer overflow, dropping incoming memory blocks.\n");
-        free(p->read_data);
+        pa_xfree(p->read_data);
     }
 
-    p->read_data = malloc(p->read_length = length);
-    assert(p->read_data);
+    p->read_data = pa_xmalloc(p->read_length = length);
     memcpy(p->read_data, data, length);
     p->read_index = 0;
 }
@@ -219,7 +217,7 @@ int pa_simple_read(struct pa_simple *p, void*data, size_t length, int *perror) {
             p->read_length -= l;
 
             if (!p->read_length) {
-                free(p->read_data);
+                pa_xfree(p->read_data);
                 p->read_data = NULL;
                 p->read_index = 0;
             }

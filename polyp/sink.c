@@ -33,6 +33,7 @@
 #include "namereg.h"
 #include "util.h"
 #include "sample-util.h"
+#include "xmalloc.h"
 
 #define MAX_MIX_CHANNELS 32
 
@@ -43,15 +44,14 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     int r;
     assert(core && name && *name && spec);
 
-    s = malloc(sizeof(struct pa_sink));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct pa_sink));
 
     if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SINK, s, fail))) {
-        free(s);
+        pa_xfree(s);
         return NULL;
     }
     
-    s->name = strdup(name);
+    s->name = pa_xstrdup(name);
     s->description = NULL;
     
     s->owner = NULL;
@@ -62,7 +62,7 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     n = pa_sprintf_malloc("%s_monitor", name);
     s->monitor_source = pa_source_new(core, n, 0, spec);
     assert(s->monitor_source);
-    free(n);
+    pa_xfree(n);
     s->monitor_source->monitor_of = s;
     
     s->volume = PA_VOLUME_NORM;
@@ -98,9 +98,9 @@ void pa_sink_free(struct pa_sink *s) {
 
     fprintf(stderr, "sink: freed %u \"%s\"\n", s->index, s->name);
     
-    free(s->name);
-    free(s->description);
-    free(s);
+    pa_xfree(s->name);
+    pa_xfree(s->description);
+    pa_xfree(s);
 }
 
 void pa_sink_notify(struct pa_sink*s) {
@@ -270,19 +270,6 @@ uint32_t pa_sink_get_latency(struct pa_sink *s) {
     return s->get_latency(s);
 }
 
-struct pa_sink* pa_sink_get_default(struct pa_core *c) {
-    struct pa_sink *sink;
-    assert(c);
-
-    if ((sink = pa_idxset_get_by_index(c->sinks, c->default_sink_index)))
-        return sink;
-
-    if (!(sink = pa_idxset_first(c->sinks, &c->default_sink_index)))
-        return NULL;
-
-    fprintf(stderr, "core: default sink vanished, setting to %u.\n", sink->index);
-    return sink;
-}
 
 void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m) {
     sink->owner = m;

@@ -29,6 +29,7 @@
 #include <assert.h>
 
 #include "tagstruct.h"
+#include "xmalloc.h"
 
 enum tags {
     TAG_STRING = 't',
@@ -55,8 +56,7 @@ struct pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length) {
 
     assert(!data || (data && length));
     
-    t = malloc(sizeof(struct pa_tagstruct));
-    assert(t);
+    t = pa_xmalloc(sizeof(struct pa_tagstruct));
     t->data = (uint8_t*) data;
     t->allocated = t->length = data ? length : 0;
     t->rindex = 0;
@@ -67,8 +67,8 @@ struct pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length) {
 void pa_tagstruct_free(struct pa_tagstruct*t) {
     assert(t);
     if (t->dynamic)
-        free(t->data);
-    free(t);
+        pa_xfree(t->data);
+    pa_xfree(t);
 }
 
 uint8_t* pa_tagstruct_free_data(struct pa_tagstruct*t, size_t *l) {
@@ -76,7 +76,7 @@ uint8_t* pa_tagstruct_free_data(struct pa_tagstruct*t, size_t *l) {
     assert(t && t->dynamic && l);
     p = t->data;
     *l = t->length;
-    free(t);
+    pa_xfree(t);
     return p;
 }
 
@@ -86,8 +86,7 @@ static void extend(struct pa_tagstruct*t, size_t l) {
     if (l <= t->allocated)
         return;
 
-    t->data = realloc(t->data, t->allocated = l+100);
-    assert(t->data);
+    t->data = pa_xrealloc(t->data, t->allocated = l+100);
 }
 
 void pa_tagstruct_puts(struct pa_tagstruct*t, const char *s) {

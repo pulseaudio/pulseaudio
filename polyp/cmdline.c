@@ -32,6 +32,7 @@
 #include "cmdline.h"
 #include "util.h"
 #include "strbuf.h"
+#include "xmalloc.h"
 
 void pa_cmdline_help(const char *argv0) {
     const char *e;
@@ -57,8 +58,7 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
     struct pa_strbuf *buf = NULL;
     assert(argc && argv);
 
-    cmdline = malloc(sizeof(struct pa_cmdline));
-    assert(cmdline);
+    cmdline = pa_xmalloc(sizeof(struct pa_cmdline));
     cmdline->daemonize = cmdline->help = cmdline->verbose = 0;
     cmdline->fail = 1;
 
@@ -106,6 +106,6 @@ fail:
 
 void pa_cmdline_free(struct pa_cmdline *cmd) {
     assert(cmd);
-    free(cmd->cli_commands);
-    free(cmd);
+    pa_xfree(cmd->cli_commands);
+    pa_xfree(cmd);
 }

@@ -41,6 +41,7 @@
 #include "authkey.h"
 #include "namereg.h"
 #include "scache.h"
+#include "xmalloc.h"
 
 struct connection;
 struct pa_protocol_native;
@@ -157,13 +158,11 @@ static struct upload_stream* upload_stream_new(struct connection *c, const struc
     struct upload_stream *s;
     assert(c && ss && name && length);
     
-    s = malloc(sizeof(struct upload_stream));
-    assert (s);
+    s = pa_xmalloc(sizeof(struct upload_stream));
     s->type = UPLOAD_STREAM;
     s->connection = c;
     s->sample_spec = *ss;
-    s->name = strdup(name);
-    assert(s->name);
+    s->name = pa_xstrdup(name);
 
     s->memchunk.memblock = NULL;
     s->memchunk.index = 0;
@@ -180,12 +179,12 @@ static void upload_stream_free(struct upload_stream *o) {
 
     pa_idxset_remove_by_data(o->connection->output_streams, o, NULL);
 
-    free(o->name);
+    pa_xfree(o->name);
     
     if (o->memchunk.memblock)
         pa_memblock_unref(o->memchunk.memblock);
     
-    free(o);
+    pa_xfree(o);
 }
 
 static struct record_stream* record_stream_new(struct connection *c, struct pa_source *source, const struct pa_sample_spec *ss, const char *name, size_t maxlength, size_t fragment_size) {
@@ -197,8 +196,7 @@ static struct record_stream* record_stream_new(struct connection *c, struct pa_s
     if (!(source_output = pa_source_output_new(source, name, ss)))
         return NULL;
 
-    s = malloc(sizeof(struct record_stream));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct record_stream));
     s->connection = c;
     s->source_output = source_output;
     s->source_output->push = source_output_push_cb;
@@ -224,7 +222,7 @@ static void record_stream_free(struct record_stream* r) {
     pa_idxset_remove_by_data(r->connection->record_streams, r, NULL);
     pa_source_output_free(r->source_output);
     pa_memblockq_free(r->memblockq);
-    free(r);
+    pa_xfree(r);
 }
 
 static struct playback_stream* playback_stream_new(struct connection *c, struct pa_sink *sink, const struct pa_sample_spec *ss, const char *name,
@@ -239,8 +237,7 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     if (!(sink_input = pa_sink_input_new(sink, name, ss)))
         return NULL;
     
-    s = malloc(sizeof(struct playback_stream));
-    assert (s);
+    s = pa_xmalloc(sizeof(struct playback_stream));
     s->type = PLAYBACK_STREAM;
     s->connection = c;
     s->sink_input = sink_input;
@@ -272,7 +269,7 @@ static void playback_stream_free(struct playback_stream* p) {
     pa_idxset_remove_by_data(p->connection->output_streams, p, NULL);
     pa_sink_input_free(p->sink_input);
     pa_memblockq_free(p->memblockq);
-    free(p);
+    pa_xfree(p);
 }
 
 static void connection_free(struct connection *c) {
@@ -295,7 +292,7 @@ static void connection_free(struct connection *c) {
     pa_pdispatch_free(c->pdispatch);
     pa_pstream_free(c->pstream);
     pa_client_free(c->client);
-    free(c);
+    pa_xfree(c);
 }
 
 static void request_bytes(struct playback_stream *s) {
@@ -476,12 +473,10 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
         return;
     }
 
-    if (!*sink_name || sink_index == (uint32_t) -1)
-        sink = pa_sink_get_default(c->protocol->core);
-    else if (sink_index != (uint32_t) -1)
+    if (sink_index != (uint32_t) -1)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
     else
-        sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK);
+        sink = pa_namereg_get(c->protocol->core, *sink_name ? sink_name : NULL, PA_NAMEREG_SINK, 1);
 
     if (!sink) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
@@ -577,12 +572,10 @@ static void command_create_record_stream(struct pa_pdispatch *pd, uint32_t comma
         return;
     }
 
-    if (!*source_name || source_index == (uint32_t) -1)
-        source = pa_source_get_default(c->protocol->core);
-    else if (source_index != (uint32_t) -1)
+    if (source_index != (uint32_t) -1)
         source = pa_idxset_get_by_index(c->protocol->core->sources, source_index);
     else
-        source = pa_namereg_get(c->protocol->core, source_name, PA_NAMEREG_SOURCE);
+        source = pa_namereg_get(c->protocol->core, *source_name ? source_name : NULL, PA_NAMEREG_SOURCE, 1);
 
     if (!source) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
@@ -681,12 +674,12 @@ static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t t
 
     if (command == PA_COMMAND_LOOKUP_SINK) {
         struct pa_sink *sink;
-        if ((sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK)))
+        if ((sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1)))
             index = sink->index;
     } else {
         struct pa_source *source;
         assert(command == PA_COMMAND_LOOKUP_SOURCE);
-        if ((source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE)))
+        if ((source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1)))
             index = source->index;
     }
 
@@ -888,12 +881,10 @@ static void command_play_sample(struct pa_pdispatch *pd, uint32_t command, uint3
         return;
     }
 
-    if (!*sink_name && sink_index == (uint32_t) -1)
-        sink = pa_sink_get_default(c->protocol->core);
-    else if (sink_index != (uint32_t) -1)
+    if (sink_index != (uint32_t) -1)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
     else
-        sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK);
+        sink = pa_namereg_get(c->protocol->core, *sink_name ? sink_name : NULL, PA_NAMEREG_SINK, 1);
 
     if (!sink) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
@@ -1027,8 +1018,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     struct connection *c;
     assert(s && io && p);
 
-    c = malloc(sizeof(struct connection));
-    assert(c);
+    c = pa_xmalloc(sizeof(struct connection));
     c->authorized = p->public;
     c->protocol = p;
     assert(p->core);
@@ -1070,11 +1060,10 @@ struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct p
         return NULL;
     }
     
-    p = malloc(sizeof(struct pa_protocol_native));
-    assert(p);
+    p = pa_xmalloc(sizeof(struct pa_protocol_native));
 
     if (pa_authkey_load_from_home(pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), p->auth_cookie, sizeof(p->auth_cookie)) < 0) {
-        free(p);
+        pa_xfree(p);
         return NULL;
     }
 
@@ -1098,5 +1087,5 @@ void pa_protocol_native_free(struct pa_protocol_native *p) {
         connection_free(c);
     pa_idxset_free(p->connections, NULL, NULL);
     pa_socket_server_free(p->server);
-    free(p);
+    pa_xfree(p);
 }

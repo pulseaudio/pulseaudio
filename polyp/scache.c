@@ -8,13 +8,14 @@
 #include "mainloop.h"
 #include "sample-util.h"
 #include "play-memchunk.h"
+#include "xmalloc.h"
 
 static void free_entry(struct pa_scache_entry *e) {
     assert(e);
-    free(e->name);
+    pa_xfree(e->name);
     if (e->memchunk.memblock)
         pa_memblock_unref(e->memchunk.memblock);
-    free(e);
+    pa_xfree(e);
 }
 
 void pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index) {
@@ -28,10 +29,8 @@ void pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_sp
             pa_memblock_unref(e->memchunk.memblock);
     } else {
         put = 1;
-        e = malloc(sizeof(struct pa_scache_entry));
-        assert(e);
-        e->name = strdup(name);
-        assert(e->name);
+        e = pa_xmalloc(sizeof(struct pa_scache_entry));
+        e->name = pa_xstrdup(name);
     }
 
     e->volume = 0x100;

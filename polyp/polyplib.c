@@ -40,6 +40,7 @@
 #include "pstream-util.h"
 #include "authkey.h"
 #include "util.h"
+#include "xmalloc.h"
 
 #define DEFAULT_MAXLENGTH 204800
 #define DEFAULT_TLENGTH 10240
@@ -148,9 +149,8 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     struct pa_context *c;
     assert(mainloop && name);
     
-    c = malloc(sizeof(struct pa_context));
-    assert(c);
-    c->name = strdup(name);
+    c = pa_xmalloc(sizeof(struct pa_context));
+    c->name = pa_xstrdup(name);
     c->mainloop = mainloop;
     c->client = NULL;
     c->pstream = NULL;
@@ -203,8 +203,8 @@ void pa_context_free(struct pa_context *c) {
     if (c->playback_streams)
         pa_dynarray_free(c->playback_streams, NULL, NULL);
         
-    free(c->name);
-    free(c);
+    pa_xfree(c->name);
+    pa_xfree(c);
 }
 
 static void stream_dead(struct pa_stream *s) {
@@ -391,14 +391,12 @@ static struct sockaddr *resolve_server(const char *server, size_t *len) {
         return NULL;
     assert(result);
     
-    sa = malloc(*len = result->ai_addrlen);
-    assert(sa);
+    sa = pa_xmalloc(*len = result->ai_addrlen);
     memcpy(sa, result->ai_addr, *len);
 
     freeaddrinfo(result);
     
     return sa;
-    
 }
 
 int pa_context_connect(struct pa_context *c, const char *server, void (*complete) (struct pa_context*c, int success, void *userdata), void *userdata) {
@@ -430,7 +428,7 @@ int pa_context_connect(struct pa_context *c, const char *server, void (*complete
         }
 
         c->client = pa_socket_client_new_sockaddr(c->mainloop, sa, sa_len);
-        free(sa);
+        pa_xfree(sa);
 
         if (!c->client) {
             c->error = PA_ERROR_CONNECTIONREFUSED;
@@ -578,8 +576,7 @@ static void create_stream(struct pa_stream *s, const char *dev) {
 static struct pa_stream *internal_stream_new(struct pa_context *c) {
     struct pa_stream *s;
 
-    s = malloc(sizeof(struct pa_stream));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct pa_stream));
     s->context = c;
 
     s->read_callback = NULL;
@@ -632,7 +629,7 @@ struct pa_stream* pa_stream_new(
 
     s->create_complete_callback = complete;
     s->create_complete_userdata = userdata;
-    s->name = strdup(name);
+    s->name = pa_xstrdup(name);
     s->state = STREAM_CREATING;
     s->direction = dir;
     s->sample_spec = *ss;
@@ -657,7 +654,7 @@ void pa_stream_free(struct pa_stream *s) {
     if (s->context->pdispatch) 
         pa_pdispatch_unregister_reply(s->context->pdispatch, s);
     
-    free(s->name);
+    pa_xfree(s->name);
 
     if (s->channel_valid && s->context->state == CONTEXT_READY) {
         struct pa_tagstruct *t = pa_tagstruct_new(NULL, 0);
@@ -680,7 +677,7 @@ void pa_stream_free(struct pa_stream *s) {
     else
         s->context->first_stream = s->next;
     
-    free(s);
+    pa_xfree(s);
 }
 
 void pa_stream_set_write_callback(struct pa_stream *s, void (*cb)(struct pa_stream *p, size_t length, void *userdata), void *userdata) {
@@ -968,7 +965,7 @@ struct pa_stream* pa_context_upload_sample(struct pa_context *c, const char *nam
 
     s->create_complete_callback = cb;
     s->create_complete_userdata = userdata;
-    s->name = strdup(name);
+    s->name = pa_xstrdup(name);
     s->state = STREAM_CREATING;
     s->direction = PA_STREAM_UPLOAD;
     s->sample_spec = *ss;

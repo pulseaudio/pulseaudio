@@ -36,6 +36,7 @@
 #include "strbuf.h"
 #include "sample-util.h"
 #include "scache.h"
+#include "autoload.h"
 
 char *pa_module_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
@@ -49,7 +50,7 @@ char *pa_module_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_ncontents(c->modules));
     
     for (m = pa_idxset_first(c->modules, &index); m; m = pa_idxset_next(c->modules, &index))
-        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\targument: <%s>\n", m->index, m->name, m->argument);
+        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\targument: <%s>\n\tused: %i\n\tauto unload: %s\n", m->index, m->name, m->argument, m->n_used, m->auto_unload ? "yes" : "no");
     
     return pa_strbuf_tostring_free(s);
 }
@@ -77,7 +78,7 @@ char *pa_client_list_to_string(struct pa_core *c) {
 
 char *pa_sink_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
-    struct pa_sink *sink, *default_sink;
+    struct pa_sink *sink;
     uint32_t index = PA_IDXSET_INVALID;
     assert(c);
 
@@ -86,8 +87,6 @@ char *pa_sink_list_to_string(struct pa_core *c) {
 
     pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_ncontents(c->sinks));
 
-    default_sink = pa_sink_get_default(c);
-    
     for (sink = pa_idxset_first(c->sinks, &index); sink; sink = pa_idxset_next(c->sinks, &index)) {
         char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
         pa_sample_snprint(ss, sizeof(ss), &sink->sample_spec);
@@ -95,7 +94,7 @@ char *pa_sink_list_to_string(struct pa_core *c) {
         pa_strbuf_printf(
             s,
             "  %c index: %u\n\tname: <%s>\n\tvolume: <0x%04x>\n\tlatency: <%u usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
-            sink == default_sink ? '*' : ' ',
+            !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index, sink->name,
             (unsigned) sink->volume,
             pa_sink_get_latency(sink),
@@ -113,7 +112,7 @@ char *pa_sink_list_to_string(struct pa_core *c) {
 
 char *pa_source_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
-    struct pa_source *source, *default_source;
+    struct pa_source *source;
     uint32_t index = PA_IDXSET_INVALID;
     assert(c);
 
@@ -122,12 +121,14 @@ char *pa_source_list_to_string(struct pa_core *c) {
 
     pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_ncontents(c->sources));
 
-    default_source = pa_source_get_default(c);
-    
     for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
         char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
         pa_sample_snprint(ss, sizeof(ss), &source->sample_spec);
-        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tsample_spec: <%s>\n", source == default_source ? '*' : ' ', source->index, source->name, ss);
+        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tsample_spec: <%s>\n",
+                         !strcmp(source->name, c->default_source_name) ? '*' : ' ',
+                         source->index,
+                         source->name,
+                         ss);
 
         if (source->monitor_of) 
             pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);
@@ -205,8 +206,6 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
 }
 
 char *pa_scache_list_to_string(struct pa_core *c) {
-    struct pa_scache_entry *e;
-    void *state = NULL;
     struct pa_strbuf *s;
     assert(c);
 
@@ -216,6 +215,8 @@ char *pa_scache_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u cache entries available.\n", c->scache_hashmap ? pa_hashmap_ncontents(c->scache_hashmap) : 0);
 
     if (c->scache_hashmap) {
+        struct pa_scache_entry *e;
+        void *state = NULL;
 
         while ((e = pa_hashmap_iterate(c->scache_hashmap, &state))) {
             double l;
@@ -232,6 +233,32 @@ char *pa_scache_list_to_string(struct pa_core *c) {
                 e->memchunk.length,
                 l,
                 e->volume);
+        }
+    }
+
+    return pa_strbuf_tostring_free(s);
+}
+
+char *pa_autoload_list_to_string(struct pa_core *c) {
+    struct pa_strbuf *s;
+    assert(c);
+
+    s = pa_strbuf_new();
+    assert(s);
+
+    pa_strbuf_printf(s, "%u autoload entries available.\n", c->autoload_hashmap ? pa_hashmap_ncontents(c->autoload_hashmap) : 0);
+
+    if (c->autoload_hashmap) {
+        struct pa_autoload_entry *e;
+        void *state = NULL;
+
+        while ((e = pa_hashmap_iterate(c->autoload_hashmap, &state))) {
+            pa_strbuf_printf(
+                s, "    name: <%s>\n\ttype: <%s>\n\tmodule_name: <%s>\n\targuments: <%s>\n",
+                e->name,
+                e->type == PA_NAMEREG_SOURCE ? "source" : "sink",
+                e->module,
+                e->argument);
         }
     }
 

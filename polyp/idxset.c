@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include "idxset.h"
+#include "xmalloc.h"
 
 struct idxset_entry {
     void *data;
@@ -73,14 +74,11 @@ int pa_idxset_trivial_compare_func(const void *a, const void *b) {
 struct pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
     struct pa_idxset *s;
 
-    s = malloc(sizeof(struct pa_idxset));
-    assert(s);
+    s = pa_xmalloc(sizeof(struct pa_idxset));
     s->hash_func = hash_func ? hash_func : pa_idxset_trivial_hash_func;
     s->compare_func = compare_func ? compare_func : pa_idxset_trivial_compare_func;
     s->hash_table_size = 1023;
-    s->hash_table = malloc(sizeof(struct idxset_entry*)*s->hash_table_size);
-    assert(s->hash_table);
-    memset(s->hash_table, 0, sizeof(struct idxset_entry*)*s->hash_table_size);
+    s->hash_table = pa_xmalloc0(sizeof(struct idxset_entry*)*s->hash_table_size);
     s->array = NULL;
     s->array_size = 0;
     s->index = 0;
@@ -101,12 +99,12 @@ void pa_idxset_free(struct pa_idxset *s, void (*free_func) (void *p, void *userd
         
         if (free_func)
             free_func(e->data, userdata);
-        free(e);
+        pa_xfree(e);
     }
 
-    free(s->hash_table);
-    free(s->array);
-    free(s);
+    pa_xfree(s->hash_table);
+    pa_xfree(s->array);
+    pa_xfree(s);
 }
 
 static struct idxset_entry* hash_scan(struct pa_idxset *s, struct idxset_entry* e, void *p) {
@@ -133,14 +131,12 @@ static void extend_array(struct pa_idxset *s, uint32_t index) {
             break;
 
     l = index - s->start_index - i + 100;
-    n = malloc(sizeof(struct hash_table_entry*)*l);
-    assert(n);
-    memset(n, 0, sizeof(struct hash_table_entry*)*l);
+    n = pa_xmalloc0(sizeof(struct hash_table_entry*)*l);
     
     for (j = 0; j < s->array_size-i; j++)
         n[j] = s->array[i+j];
 
-    free(s->array);
+    pa_xfree(s->array);
     
     s->array = n;
     s->array_size = l;
@@ -173,9 +169,7 @@ int pa_idxset_put(struct pa_idxset*s, void *p, uint32_t *index) {
         return -1;
     }
 
-    e = malloc(sizeof(struct idxset_entry));
-    assert(e);
-
+    e = pa_xmalloc(sizeof(struct idxset_entry));
     e->data = p;
     e->index = s->index++;
     e->hash_value = h;
@@ -274,7 +268,7 @@ static void remove_entry(struct pa_idxset *s, struct idxset_entry *e) {
     else
         s->hash_table[e->hash_value] = e->hash_next;
 
-    free(e);
+    pa_xfree(e);
 
     assert(s->n_entries >= 1);
     s->n_entries--;
