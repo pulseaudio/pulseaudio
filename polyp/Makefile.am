@@ -731,6 +731,7 @@ daemon.conf: daemon.conf.in Makefile
 install-exec-hook:
 	chown root $(DESTDIR)$(bindir)/polypaudio
 	chmod u+s $(DESTDIR)$(bindir)/polypaudio
+	ln -s pacat $(DESTDIR)$(bindir)/parec
 
 $(SYMDEF_FILES): module-defs.h.m4
 	$(M4) -Dfname="$@" $< > $@
