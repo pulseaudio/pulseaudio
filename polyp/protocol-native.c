@@ -43,6 +43,7 @@
 #include "scache.h"
 #include "xmalloc.h"
 #include "util.h"
+#include "subscribe.h"
 
 struct connection;
 struct pa_protocol_native;
@@ -93,6 +94,7 @@ struct connection {
     struct pa_pdispatch *pdispatch;
     struct pa_idxset *record_streams, *output_streams;
     uint32_t rrobin_index;
+    struct pa_subscription *subscription;
 };
 
 struct pa_protocol_native {
@@ -131,6 +133,7 @@ static void command_remove_sample(struct pa_pdispatch *pd, uint32_t command, uin
 static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_get_info_list(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_subscribe(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -159,6 +162,7 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_SINK_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SOURCE_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SERVER_INFO] = { command_get_server_info },
+    [PA_COMMAND_SUBSCRIBE] = { command_subscribe },
 };
 
 /* structure management */
@@ -301,6 +305,10 @@ static void connection_free(struct connection *c) {
     pa_pdispatch_free(c->pdispatch);
     pa_pstream_free(c->pstream);
     pa_client_free(c->client);
+
+    if (c->subscription)
+        pa_subscription_free(c->subscription);
+    
     pa_xfree(c);
 }
 
@@ -1076,6 +1084,49 @@ static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, u
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
+static void subscription_cb(struct pa_core *core, enum pa_subscription_event_type e, uint32_t index, void *userdata) {
+    struct pa_tagstruct *t;
+    struct connection *c = userdata;
+    assert(c && core);
+
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE_EVENT);
+    pa_tagstruct_putu32(t, (uint32_t) -1);
+    pa_tagstruct_putu32(t, e);
+    pa_tagstruct_putu32(t, index);
+    pa_pstream_send_tagstruct(c->pstream, t);
+}
+
+static void command_subscribe(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    enum pa_subscription_mask m;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &m) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (c->subscription)
+        pa_subscription_free(c->subscription);
+
+    if (m != 0) {
+        c->subscription = pa_subscription_new(c->protocol->core, m, subscription_cb, c);
+        assert(c->subscription);
+    } else
+        c->subscription = NULL;
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+    
+}
+
 /*** pstream callbacks ***/
 
 static void pstream_packet_callback(struct pa_pstream *p, struct pa_packet *packet, void *userdata) {
@@ -1197,6 +1248,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     assert(c->record_streams && c->output_streams);
 
     c->rrobin_index = PA_IDXSET_INVALID;
+    c->subscription = NULL;
 
     pa_idxset_put(p->connections, c, NULL);
 }

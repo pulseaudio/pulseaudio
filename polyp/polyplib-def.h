@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#include "native-common.h"
+
 enum pa_stream_direction {
     PA_STREAM_PLAYBACK,
     PA_STREAM_RECORD,
@@ -41,7 +43,7 @@ struct pa_buffer_attr {
     uint32_t minreq;
     uint32_t fragsize;
 };
-
+    
 #ifdef __cplusplus
 }
 #endif

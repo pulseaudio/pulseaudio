@@ -37,7 +37,7 @@ struct pa_subscription* pa_subscription_new(struct pa_core *c, enum pa_subscript
         s->next->prev = s;
     s->prev = NULL;
     c->subscriptions = s;
-    return NULL;
+    return s;
 }
 
 void pa_subscription_free(struct pa_subscription*s) {
@@ -81,6 +81,49 @@ void pa_subscription_free_all(struct pa_core *c) {
     }
 }
 
+/*static void dump_event(struct pa_subscription_event*e) {
+    switch (e->type & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
+        case PA_SUBSCRIPTION_EVENT_SINK:
+            fprintf(stderr, "SINK_EVENT");
+            break;
+        case PA_SUBSCRIPTION_EVENT_SOURCE:
+            fprintf(stderr, "SOURCE_EVENT");
+            break;
+        case PA_SUBSCRIPTION_EVENT_SINK_INPUT:
+            fprintf(stderr, "SINK_INPUT_EVENT");
+            break;
+        case PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT:
+            fprintf(stderr, "SOURCE_OUTPUT_EVENT");
+            break;
+        case PA_SUBSCRIPTION_EVENT_MODULE:
+            fprintf(stderr, "MODULE_EVENT");
+            break;
+        case PA_SUBSCRIPTION_EVENT_CLIENT:
+            fprintf(stderr, "CLIENT_EVENT");
+            break;
+        default:
+            fprintf(stderr, "OTHER");
+            break;
+    }
+
+    switch (e->type & PA_SUBSCRIPTION_EVENT_TYPE_MASK) {
+        case PA_SUBSCRIPTION_EVENT_NEW:
+            fprintf(stderr, " NEW");
+            break;
+        case PA_SUBSCRIPTION_EVENT_CHANGE:
+            fprintf(stderr, " CHANGE");
+            break;
+        case PA_SUBSCRIPTION_EVENT_REMOVE:
+            fprintf(stderr, " REMOVE");
+            break;
+        default:
+            fprintf(stderr, " OTHER");
+            break;
+    }
+
+    fprintf(stderr, " %u\n", e->index);
+}*/
+
 static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
     struct pa_core *c = userdata;
     struct pa_subscription *s;
@@ -98,6 +141,7 @@ static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *
             struct pa_subscription *s;
 
             for (s = c->subscriptions; s; s = s->next) {
+
                 if (!s->dead && pa_subscription_match_flags(s->mask, e->type))
                     s->callback(c, e->type, e->index, s->userdata);
             }
@@ -119,7 +163,7 @@ static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *
 
 static void sched_event(struct pa_core *c) {
     assert(c);
-    
+
     if (!c->subscription_defer_event) {
         c->subscription_defer_event = c->mainloop->defer_new(c->mainloop, defer_cb, c);
         assert(c->subscription_defer_event);
@@ -147,6 +191,3 @@ void pa_subscription_post(struct pa_core *c, enum pa_subscription_event_type t, 
 }
 
 
-int pa_subscription_match_flags(enum pa_subscription_mask m, enum pa_subscription_event_type t) {
-    return !!(m & (1 >> (t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK)));
-}

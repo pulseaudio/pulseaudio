@@ -98,6 +98,10 @@ struct pa_context {
     void (*get_source_info_callback)(struct pa_context*c, const struct pa_source_info* i, int is_last, void *userdata);
     void *get_source_info_userdata;
 
+    void (*subscribe_callback)(struct pa_context *c, enum pa_subscription_event_type t, uint32_t index, void *userdata);
+    void *subscribe_userdata;
+    enum pa_subscription_mask subscribe_mask;
+
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
 };
 
@@ -140,6 +144,7 @@ struct pa_stream {
 
 static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_playback_stream_killed(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_subscribe_event(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -152,6 +157,7 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = { command_request },
     [PA_COMMAND_PLAYBACK_STREAM_KILLED] = { command_playback_stream_killed },
     [PA_COMMAND_RECORD_STREAM_KILLED] = { command_playback_stream_killed },
+    [PA_COMMAND_SUBSCRIBE_EVENT] = { command_subscribe_event },
 };
 
 struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *name) {
@@ -199,6 +205,9 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
 
     c->get_source_info_callback = NULL;
     c->get_source_info_userdata = NULL;
+
+    c->subscribe_callback = NULL;
+    c->subscribe_userdata = NULL;
 
     pa_check_for_sigpipe();
     return c;
@@ -1298,6 +1307,82 @@ void pa_context_get_source_info_list(struct pa_context *c, void (*cb)(struct pa_
     assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_GET_SOURCE_INFO_LIST);
     pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_info_callback, c);
+}
+
+void pa_context_subscribe(struct pa_context *c, enum pa_subscription_mask m, void (*cb)(struct pa_context *c, enum pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    assert(c);
+
+    c->subscribe_callback = cb;
+    c->subscribe_userdata = userdata;
+    c->subscribe_mask = m;
+
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE);
+    pa_tagstruct_putu32(t, c->ctag++);
+    pa_tagstruct_putu32(t, cb ? m : 0);
+    pa_pstream_send_tagstruct(c->pstream, t);
+}
+
+static void command_subscribe_event(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_context *c = userdata;
+    enum pa_subscription_event_type e;
+    uint32_t index;
+    assert(pd && command == PA_COMMAND_SUBSCRIBE_EVENT && t && c);
+
+    if (pa_tagstruct_getu32(t, &e) < 0 ||
+        pa_tagstruct_getu32(t, &index) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        c->error = PA_ERROR_PROTOCOL;
+        context_dead(c);
+        return;
+    }
+
+    if (pa_subscription_match_flags(c->subscribe_mask, e) && c->subscribe_callback)
+        c->subscribe_callback(c, e, index, c->subscribe_userdata);
+}
+
+void pa_context_get_sink_info_by_index(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c);
+
+    c->get_sink_info_callback = cb;
+    c->get_sink_info_userdata = userdata;
+
+    if (!cb)
+        return;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
+    pa_tagstruct_puts(t, "");
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_info_callback, c);
+}
+
+void pa_context_get_source_info_by_index(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c);
+
+    c->get_source_info_callback = cb;
+    c->get_source_info_userdata = userdata;
+
+    if (!cb)
+        return;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_SOURCE_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
+    pa_tagstruct_puts(t, "");
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_info_callback, c);
 }

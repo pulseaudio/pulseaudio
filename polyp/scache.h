@@ -6,6 +6,7 @@
 #include "sink.h"
 
 struct pa_scache_entry {
+    struct pa_core *core;
     uint32_t index;
     char *name;
     uint32_t volume;

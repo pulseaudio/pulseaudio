@@ -9,9 +9,11 @@
 #include "sample-util.h"
 #include "play-memchunk.h"
 #include "xmalloc.h"
+#include "subscribe.h"
 
 static void free_entry(struct pa_scache_entry *e) {
     assert(e);
+    pa_subscription_post(e->core, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_REMOVE, e->index);
     pa_xfree(e->name);
     if (e->memchunk.memblock)
         pa_memblock_unref(e->memchunk.memblock);
@@ -27,10 +29,12 @@ void pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_sp
         put = 0;
         if (e->memchunk.memblock)
             pa_memblock_unref(e->memchunk.memblock);
+        assert(e->core == c);
     } else {
         put = 1;
         e = pa_xmalloc(sizeof(struct pa_scache_entry));
         e->name = pa_xstrdup(name);
+        e->core = c;
     }
 
     e->volume = 0x100;
@@ -61,6 +65,8 @@ void pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_sp
         
         pa_idxset_put(c->scache_idxset, e, &e->index);
         pa_hashmap_put(c->scache_hashmap, e->name, e);
+
+        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_NEW, e->index);
     }
         
     if (index)
@@ -77,6 +83,7 @@ int pa_scache_remove_item(struct pa_core *c, const char *name) {
     pa_hashmap_remove(c->scache_hashmap, name);
     if (pa_idxset_remove_by_data(c->scache_idxset, e, NULL) != e)
         assert(0);
+
     free_entry(e);
     return 0;
 }
