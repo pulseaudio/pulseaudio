@@ -76,7 +76,10 @@ uint32_t pa_memblockq_get_length(struct pa_memblockq *bq);
 /* Return how many bytes are missing in queue to the specified fill amount */
 uint32_t pa_memblockq_missing(struct pa_memblockq *bq);
 
-
+/* Returns the minimal request value */
 uint32_t pa_memblockq_get_minreq(struct pa_memblockq *bq);
+
+/* Force disabling of pre-buf even when the pre-buffer is not yet filled */
+void pa_memblockq_prebuf_disable(struct pa_memblockq *bq);
 
 #endif

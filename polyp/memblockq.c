@@ -323,3 +323,8 @@ uint32_t pa_memblockq_get_minreq(struct pa_memblockq *bq) {
     assert(bq);
     return bq->minreq;
 }
+
+void pa_memblockq_prebuf_disable(struct pa_memblockq *bq) {
+    assert(bq);
+    bq->prebuf = 0;
+}

@@ -272,7 +272,7 @@ if !X_DISPLAY_MISSING
 module_x11_bell_la_SOURCES = module-x11-bell.c
 module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_bell_la_LDFLAGS = -module -avoid-version
-module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIB)
+module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
 endif
 
 libpolyp_la_SOURCES = polyplib.h \

@@ -113,14 +113,11 @@ static void stream_state_callback(struct pa_stream *s, void *userdata) {
 
     switch (pa_stream_get_state(s)) {
         case PA_STREAM_CREATING:
+        case PA_STREAM_TERMINATED:
             break;
 
         case PA_STREAM_READY:
             fprintf(stderr, "Stream successfully created\n");
-            break;
-            
-        case PA_STREAM_TERMINATED:
-            quit(0);
             break;
             
         case PA_STREAM_FAILED:

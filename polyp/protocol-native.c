@@ -748,12 +748,16 @@ static void command_drain_playback_stream(struct pa_pdispatch *pd, uint32_t comm
     }
 
     s->drain_request = 0;
+
+    pa_memblockq_prebuf_disable(s->memblockq);
     
     if (!pa_memblockq_is_readable(s->memblockq))
         pa_pstream_send_simple_ack(c->pstream, tag);
     else {
         s->drain_request = 1;
         s->drain_tag = tag;
+
+        pa_sink_notify(s->sink_input->sink);
     }
 } 
 
