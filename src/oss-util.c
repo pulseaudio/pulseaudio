@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include "oss.h"
+#include "oss-util.h"
 
 int oss_auto_format(int fd, struct pa_sample_spec *ss) {
     int format, channels, speed;

@@ -15,7 +15,7 @@
 #include "sink.h"
 #include "source.h"
 #include "module.h"
-#include "oss.h"
+#include "oss-util.h"
 #include "sample-util.h"
 
 struct userdata {

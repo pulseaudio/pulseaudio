@@ -1,5 +1,5 @@
-#ifndef fooosshfoo
-#define fooosshfoo
+#ifndef fooossutilhfoo
+#define fooossutilhfoo
 
 #include "sample.h"
 

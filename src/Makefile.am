@@ -23,12 +23,12 @@ bin_PROGRAMS = polypaudio pacat
 pkglib_LTLIBRARIES=libiochannel.la libsocket-server.la libsocket-client.la \
 		libprotocol-simple.la module-simple-protocol-tcp.la \
 		module-pipe-sink.la libpstream.la \
-		libpacket.la module-oss.la module-oss-mmap.la liboss.la libioline.la \
+		libpacket.la module-oss.la module-oss-mmap.la liboss-util.la libioline.la \
 		libcli.la module-cli.la libtokenizer.la libdynarray.la \
 		module-simple-protocol-unix.la module-cli-protocol-tcp.la \
 		libprotocol-cli.la module-cli-protocol-unix.la libtagstruct.la \
 		libpdispatch.la libprotocol-native.la libpstream-util.la \
-        module-native-protocol-tcp.la module-native-protocol-unix.la \
+        	module-native-protocol-tcp.la module-native-protocol-unix.la \
 		libpolyp.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
@@ -86,8 +86,8 @@ libiochannel_la_LDFLAGS = -avoid-version
 libpacket_la_SOURCES = packet.c packet.h
 libpacket_la_LDFLAGS = -avoid-version
 
-liboss_la_SOURCES = oss.c oss.h
-liboss_la_LDFLAGS = -avoid-version
+liboss_util_la_SOURCES = oss-util.c oss-util.h
+liboss_util_la_LDFLAGS = -avoid-version
 
 libioline_la_SOURCES = ioline.c ioline.h
 libioline_la_LDFLAGS = -avoid-version
@@ -151,11 +151,11 @@ module_pipe_sink_la_LIBADD = libiochannel.la
 
 module_oss_la_SOURCES = module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version
-module_oss_la_LIBADD = libiochannel.la liboss.la
+module_oss_la_LIBADD = libiochannel.la liboss-util.la
 
 module_oss_mmap_la_SOURCES = module-oss-mmap.c
 module_oss_mmap_la_LDFLAGS = -module -avoid-version
-module_oss_mmap_la_LIBADD = libiochannel.la liboss.la
+module_oss_mmap_la_LIBADD = libiochannel.la liboss-util.la
 
 module_cli_la_SOURCES = module-cli.c
 module_cli_la_LDFLAGS = -module -avoid-version
