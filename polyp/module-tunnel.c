@@ -53,13 +53,15 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 
 #define DEFAULT_SINK_NAME "tunnel"
 
-#define DEFAULT_TLENGTH (10240*8)
+#define DEFAULT_TLENGTH (44100*2*2/10)  //(10240*8)
 #define DEFAULT_MAXLENGTH ((DEFAULT_TLENGTH*3)/2)
-#define DEFAULT_PREBUF DEFAULT_TLENGTH
 #define DEFAULT_MINREQ 512
+#define DEFAULT_PREBUF (DEFAULT_TLENGTH-DEFAULT_MINREQ)
 #define DEFAULT_FRAGSIZE 1024
 
 #define DEFAULT_TIMEOUT 5
+
+#define LATENCY_INTERVAL 10
 
 static const char* const valid_modargs[] = {
     "server",
@@ -98,6 +100,10 @@ struct userdata {
     uint32_t device_index;
     uint32_t requested_bytes;
     uint32_t channel;
+
+    pa_usec_t host_latency;
+
+    struct pa_time_event *time_event;
 };
 
 
@@ -123,6 +129,11 @@ static void close_stuff(struct userdata *u) {
         pa_sink_unref(u->sink);
         u->sink = NULL;
     }
+
+    if (u->time_event) {
+        u->core->mainloop->time_free(u->time_event);
+        u->time_event = NULL;
+    }
 }
 
 static void die(struct userdata *u) {
@@ -131,16 +142,32 @@ static void die(struct userdata *u) {
     pa_module_unload_request(u->module);
 }
 
-static void request_bytes(struct userdata *u) {
+static void send_prebuf_request(struct userdata *u) {
+    struct pa_tagstruct *t;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_PREBUF_PLAYBACK_STREAM);
+    pa_tagstruct_putu32(t, u->ctag++);
+    pa_tagstruct_putu32(t, u->channel);
+    pa_pstream_send_tagstruct(u->pstream, t);
+}
+
+static void send_bytes(struct userdata *u) {
     assert(u);
 
     if (!u->pstream)
         return;
-    
+
     while (u->requested_bytes > 0) {
         struct pa_memchunk chunk;
-        if (pa_sink_render(u->sink, u->requested_bytes, &chunk) < 0)
+        if (pa_sink_render(u->sink, u->requested_bytes, &chunk) < 0) {
+
+            
+            if (u->requested_bytes >= DEFAULT_TLENGTH-DEFAULT_PREBUF) 
+                send_prebuf_request(u);
+            
             return;
+        }
 
         pa_pstream_send_memblock(u->pstream, u->channel, 0, &chunk);
         pa_memblock_unref(chunk.memblock);
@@ -180,9 +207,69 @@ static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t 
     }
     
     u->requested_bytes += bytes;
-    request_bytes(u);
+    send_bytes(u);
 }
 
+static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct userdata *u = userdata;
+    pa_usec_t buffer_usec, sink_usec, source_usec, transport_usec;
+    int playing;
+    uint32_t queue_length;
+    struct timeval local, remote, now;
+    assert(pd && u && t);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (command == PA_COMMAND_ERROR)
+            pa_log(__FILE__": failed to get latency.\n");
+        else
+            pa_log(__FILE__": protocol error.\n");
+        die(u);
+        return;
+    }
+    
+    if (pa_tagstruct_get_usec(t, &buffer_usec) < 0 ||
+        pa_tagstruct_get_usec(t, &sink_usec) < 0 ||
+        pa_tagstruct_get_usec(t, &source_usec) < 0 ||
+        pa_tagstruct_get_boolean(t, &playing) < 0 ||
+        pa_tagstruct_getu32(t, &queue_length) < 0 ||
+        pa_tagstruct_get_timeval(t, &local) < 0 ||
+        pa_tagstruct_get_timeval(t, &remote) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        pa_log(__FILE__": invalid reply.\n");
+        die(u);
+        return;
+    }
+
+    gettimeofday(&now, NULL);
+
+    if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now)) 
+        /* local and remote seem to have synchronized clocks */
+        transport_usec = pa_timeval_diff(&remote, &local);
+    else
+        transport_usec = pa_timeval_diff(&now, &local)/2;
+    
+    u->host_latency = sink_usec + transport_usec;
+
+/*     pa_log(__FILE__": estimated host latency: %0.0f usec\n", (double) u->host_latency); */
+}
+
+static void request_latency(struct userdata *u) {
+    struct pa_tagstruct *t;
+    struct timeval now;
+    uint32_t tag;
+    assert(u);
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_PLAYBACK_LATENCY);
+    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, u->channel);
+
+    gettimeofday(&now, NULL);
+    pa_tagstruct_put_timeval(t, &now);
+    
+    pa_pstream_send_tagstruct(u->pstream, t);
+    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, u);
+}
 
 static void create_stream_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
@@ -206,7 +293,8 @@ static void create_stream_callback(struct pa_pdispatch *pd, uint32_t command, ui
         return;
     }
 
-    request_bytes(u);
+    request_latency(u);
+    send_bytes(u);
 }
 
 static void setup_complete_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
@@ -308,26 +396,50 @@ static void sink_notify(struct pa_sink*sink) {
     assert(sink && sink->userdata);
     u = sink->userdata;
 
-    request_bytes(u);
+    send_bytes(u);
 }
 
 static pa_usec_t sink_get_latency(struct pa_sink *sink) {
     struct userdata *u;
+    uint32_t l;
+    pa_usec_t usec = 0;
     assert(sink && sink->userdata);
     u = sink->userdata;
 
-    return 0;
+    l = DEFAULT_TLENGTH;
+
+    if (l > u->requested_bytes) {
+        l -= u->requested_bytes;
+        usec += pa_bytes_to_usec(l, &u->sink->sample_spec);
+    }
+
+    usec += u->host_latency;
+
+    return usec;
+}
+
+static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
+    struct userdata *u = userdata;
+    struct timeval ntv;
+    assert(m && e && u);
+
+    request_latency(u);
+    
+    gettimeofday(&ntv, NULL);
+    ntv.tv_sec += LATENCY_INTERVAL;
+    m->time_restart(e, &ntv);
 }
 
 int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_modargs *ma = NULL;
     struct userdata *u = NULL;
     struct pa_sample_spec ss;
+    struct timeval ntv;
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments\n");
-        
+        goto fail;
     }
 
     u = pa_xmalloc(sizeof(struct userdata));
@@ -342,6 +454,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->ctag = 1;
     u->device_index = u->channel = PA_INVALID_INDEX;
     u->requested_bytes = 0;
+    u->host_latency = 0;
 
     if (pa_authkey_load_from_home(pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), u->auth_cookie, sizeof(u->auth_cookie)) < 0) {
         pa_log(__FILE__": failed to load cookie.\n");
@@ -390,6 +503,10 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->sink->get_latency = sink_get_latency;
     u->sink->userdata = u;
     u->sink->description = pa_sprintf_malloc("Tunnel to '%s%s%s'", u->sink_name ? u->sink_name : "", u->sink_name ? "@" : "", u->server_name);
+
+    gettimeofday(&ntv, NULL);
+    ntv.tv_sec += LATENCY_INTERVAL;
+    u->time_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, u);
 
     pa_sink_set_owner(u->sink, m);
 
