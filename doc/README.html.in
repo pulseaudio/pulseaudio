@@ -42,6 +42,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
 
+<div class="news-date">Fri Aug 27 2004: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.3.tar.gz">Version 0.3</a> released;
+changes include: support for both glib 2.0 and glib 1.2, future cancellation, API updates, many fixes.</p>
+
 <div class="news-date">Fri Aug 20 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.2.tar.gz">Version 0.2</a> released;
 changes include: added sample cache, introspection API, client API
@@ -84,12 +88,16 @@ attempt to write a sound server <a
 href="http://asd.sf.net/">asd</a>.</p>
 
 <p>A GTK GUI manager application for polypaudio is the <a
-href="http://0pointer.de/lennart/projects/paman/">Polypaudio Manager</a>.</p>
+href="http://0pointer.de/lennart/projects/paman/">Polypaudio Manager</a>. There are output plugins for <a href="http://0pointer.de/lennart/projects/xmms-polyp/">XMMS</a> and <a href="http://0pointer.de/lennart/projects/libao-polyp/">libao</a>.</p>
 
 <h2><a name="status">Status</a></h2>
 
 <p>Version @PACKAGE_VERSION@ is quite usable. It matches and supersedes ESOUND's feature set in nearly all areas.</p>
-  
+
+<p><b>Warning:</b> polypaudio's client API and protocol are not stable
+yet. The client interface is still a moving target and changes from
+release to release. The client API's library version number is currently fixed to <tt>0.0.0</tt>.</p>
+
 <h2><a name="documentation">Documentation</a></h2>
 
 <p>There is some preliminary documentation available: <a

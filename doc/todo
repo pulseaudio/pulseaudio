@@ -14,7 +14,6 @@
 - cleanup tagstruct (add s32, pa_volume_t, pa_usec_t)
 - xmlrpc
 - remove all gcc warnings
-- complete doxygen coverage
 
 ** later ***
 - slp/rendezvous
@@ -24,8 +23,9 @@
 ***********
 
 backends for:
-- xmms
 - mplayer
+- sdl
+- gstreamer
 - portaudio
 - python
 
