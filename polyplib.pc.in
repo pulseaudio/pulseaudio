@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: polyplib
+Description: Client interface to polypaudio sound daemon
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lpolyp
+Cflags: -D_REENTRANT -I${includedir}

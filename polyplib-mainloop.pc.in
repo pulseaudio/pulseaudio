@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: polyplib-mainloop
+Description: Mainloop API of the polypaudio sound daemon
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lpolyp-mainloop
+Cflags: -D_REENTRANT -I${includedir}

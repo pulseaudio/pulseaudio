@@ -20,5 +20,8 @@
 EXTRA_DIST = bootstrap.sh
 SUBDIRS=src
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = polyplib.pc polyplib-simple.pc polyplib-error.pc polyplib-mainloop.pc
+
 distcleancheck:
 	@:

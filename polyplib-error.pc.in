@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: polyplib-error
+Description: Error library for the polypaudio sound daemon
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lpolyp-error
+Cflags: -D_REENTRANT -I${includedir}

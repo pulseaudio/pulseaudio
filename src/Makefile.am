@@ -23,6 +23,15 @@ EXTRA_DIST = polypaudio.run depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
 noinst_PROGRAMS = pacat-simple parec-simple
 
+pkginclude_HEADERS=polyplib.h \
+		polyplib-def.h \
+		polyplib-simple.h \
+		polyplib-error.h \
+		mainloop-api.h \
+		mainloop.h \
+		mainloop-signal.h \
+		sample.h
+
 pkglib_LTLIBRARIES=libiochannel.la \
 		libsocket-server.la \
 		libsocket-client.la \
@@ -54,8 +63,9 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-esound-protocol-tcp.la \
 		module-esound-protocol-unix.la \
 		module-native-protocol-tcp.la \
-		module-native-protocol-unix.la \
-		libpolyp.la \
+		module-native-protocol-unix.la
+
+lib_LTLIBRARIES=libpolyp.la \
 		libpolyp-simple.la \
 		libpolyp-error.la \
 		libpolyp-mainloop.la
@@ -267,18 +277,88 @@ libpolyp_simple_la_SOURCES = polyplib-simple.c polyplib-simple.h
 libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_simple_la_LIBADD = libpolyp.la libpolyp-mainloop.la
 
-pacat_SOURCES = pacat.c #$(libpolyp_la_SOURCES) $(libpolyp_error_la_SOURCES)
+pacat_SOURCES = pacat.c
 pacat_LDADD = libpolyp.la libpolyp-error.la libpolyp-mainloop.la
 pacat_CFLAGS = $(AM_CFLAGS) 
 
-pactl_SOURCES = pactl.c #$(libpolyp_la_SOURCES) $(libpolyp_error_la_SOURCES)
+pactl_SOURCES = pactl.c
 pactl_LDADD = libpolyp.la libpolyp-error.la libpolyp-mainloop.la
 pactl_CFLAGS = $(AM_CFLAGS) 
 
-pacat_simple_SOURCES = pacat-simple.c #$(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)
+pacat_simple_SOURCES = pacat-simple.c
 pacat_simple_LDADD = libpolyp-simple.la libpolyp-error.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
 
-parec_simple_SOURCES = parec-simple.c #$(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)
+parec_simple_SOURCES = parec-simple.c
 parec_simple_LDADD = libpolyp-simple.la libpolyp-error.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
+
+if BUILD_LIBPOLYPCORE
+
+pkginclude_HEADERS+=cli-command.h\
+		client.h \
+		core.h \
+		dynarray.h \
+		endianmacros.h \
+		hashmap.h \
+		idxset.h \
+		iochannel.h \
+		memblock.h \
+		memblockq.h \
+		memchunk.h \
+		modargs.h \
+		module.h \
+		namereg.h \
+		queue.h \
+		resampler.h \
+		sample-util.h \
+		sink.h \
+		sink-input.h \
+		sioman.h \
+		socket-server.h \
+		socket-client.h \
+		socket-util.h \
+		source.h \
+		source-output.h \
+		strbuf.h \
+		tokenizer.h \
+		tagstruct.h \
+		util.h
+
+lib_LTLIBRARIES+= libpolypcore.la
+
+libpolypcore_la_SOURCES = idxset.c idxset.h \
+		queue.c queue.h \
+		strbuf.c strbuf.h \
+		mainloop.c mainloop.h \
+		memblock.c memblock.h \
+		sample.c sample.h \
+		sample-util.c sample-util.h \
+		memblockq.c memblockq.h \
+		client.c client.h \
+		core.c core.h \
+		source-output.c source-output.h \
+		sink-input.c sink-input.h \
+		source.c source.h \
+		sink.c sink.h \
+		module.c module.h \
+		mainloop-signal.c mainloop-signal.h \
+		mainloop-api.c mainloop-api.h \
+		util.c util.h \
+		hashmap.c hashmap.h \
+		namereg.c namereg.h \
+		sconv.c sconv.h \
+		resampler.c resampler.h \
+		endianmacros.h \
+		memchunk.c memchunk.h \
+		sconv-s16le.c sconv-s16le.h \
+		sconv-s16be.c sconv-s16be.h \
+		sioman.c sioman.h \
+		modargs.c modargs.h \
+		cmdline.c cmdline.h \
+		cli-command.c cli-command.h \
+		clitext.c clitext.h \
+		tokenizer.c tokenizer.h \
+		dynarray.c dynarray.h
+
+endif

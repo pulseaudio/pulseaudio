@@ -55,5 +55,7 @@ if test "x$GCC" = "xyes" ; then
    CFLAGS="$CFLAGS -pipe -Wall -W -Wno-unused-parameter"
 fi
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AM_CONDITIONAL(BUILD_LIBPOLYPCORE, false)
+
+AC_CONFIG_FILES([Makefile src/Makefile polyplib.pc polyplib-simple.pc polyplib-mainloop.pc polyplib-error.pc])
 AC_OUTPUT
