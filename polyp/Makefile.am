@@ -77,6 +77,7 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-cli-protocol-tcp.la \
 		module-cli-protocol-unix.la \
 		module-pipe-sink.la \
+		module-pipe-source.la \
 		module-alsa-sink.la \
 		module-alsa-source.la \
 		module-oss.la \
@@ -268,6 +269,10 @@ module_esound_protocol_unix_la_LIBADD = $(AM_LIBADD) libprotocol-esound.la libso
 module_pipe_sink_la_SOURCES = module-pipe-sink.c
 module_pipe_sink_la_LDFLAGS = -module -avoid-version
 module_pipe_sink_la_LIBADD = $(AM_LIBADD) libiochannel.la
+
+module_pipe_source_la_SOURCES = module-pipe-source.c
+module_pipe_source_la_LDFLAGS = -module -avoid-version
+module_pipe_source_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
 module_alsa_sink_la_SOURCES = module-alsa-sink.c
 module_alsa_sink_la_LDFLAGS = -module -avoid-version

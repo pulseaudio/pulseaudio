@@ -34,27 +34,25 @@
 #include <limits.h>
 
 #include "iochannel.h"
-#include "sink.h"
+#include "source.h"
 #include "module.h"
 #include "util.h"
 #include "modargs.h"
 #include "xmalloc.h"
 #include "log.h"
 
-#define DEFAULT_FIFO_NAME "/tmp/music.output"
-#define DEFAULT_SINK_NAME "fifo_output"
+#define DEFAULT_FIFO_NAME "/tmp/music.input"
+#define DEFAULT_SOURCE_NAME "fifo_input"
 
 struct userdata {
     struct pa_core *core;
 
     char *filename;
     
-    struct pa_sink *sink;
+    struct pa_source *source;
     struct pa_iochannel *io;
-    struct pa_defer_event *defer_event;
-
-    struct pa_memchunk memchunk;
     struct pa_module *module;
+    struct pa_memchunk chunk;
 };
 
 static const char* const valid_modargs[] = {
@@ -62,59 +60,46 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "format",
-    "sink_name",
+    "source_name",
     NULL
 };
 
-static void do_write(struct userdata *u) {
+static void do_read(struct userdata *u) {
     ssize_t r;
+    struct pa_memchunk chunk;
     assert(u);
 
-    u->core->mainloop->defer_enable(u->defer_event, 0);
-        
-    if (!pa_iochannel_is_writable(u->io))
+    if (!pa_iochannel_is_readable(u->io))
         return;
 
-    pa_module_set_used(u->module, pa_idxset_ncontents(u->sink->inputs) + pa_idxset_ncontents(u->sink->monitor_source->outputs));
-    
-    if (!u->memchunk.length)
-        if (pa_sink_render(u->sink, PIPE_BUF, &u->memchunk) < 0)
-            return;
+    pa_module_set_used(u->module, pa_idxset_ncontents(u->source->outputs));
 
-    assert(u->memchunk.memblock && u->memchunk.length);
-    
-    if ((r = pa_iochannel_write(u->io, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
-        pa_log(__FILE__": write() failed: %s\n", strerror(errno));
+    if (!u->chunk.memblock) {
+        u->chunk.memblock = pa_memblock_new(1024, u->core->memblock_stat);
+        u->chunk.index = chunk.length = 0;
+    }
+
+    assert(u->chunk.memblock && u->chunk.memblock->length > u->chunk.index);
+    if ((r = pa_iochannel_read(u->io, (uint8_t*) u->chunk.memblock->data + u->chunk.index, u->chunk.memblock->length - u->chunk.index)) <= 0) {
+        pa_log(__FILE__": read() failed: %s\n", strerror(errno));
         return;
     }
 
-    u->memchunk.index += r;
-    u->memchunk.length -= r;
-        
-    if (u->memchunk.length <= 0) {
-        pa_memblock_unref(u->memchunk.memblock);
-        u->memchunk.memblock = NULL;
+    u->chunk.length = r;
+    pa_source_post(u->source, &u->chunk);
+    u->chunk.index += r;
+
+    if (u->chunk.index >= u->chunk.memblock->length) {
+        u->chunk.index = u->chunk.length = 0;
+        pa_memblock_unref(u->chunk.memblock);
+        u->chunk.memblock = NULL;
     }
-}
-
-static void notify_cb(struct pa_sink*s) {
-    struct userdata *u = s->userdata;
-    assert(s && u);
-
-    if (pa_iochannel_is_writable(u->io))
-        u->core->mainloop->defer_enable(u->defer_event, 1);
-}
-
-static void defer_callback(struct pa_mainloop_api *m, struct pa_defer_event*e, void *userdata) {
-    struct userdata *u = userdata;
-    assert(u);
-    do_write(u);
 }
 
 static void io_callback(struct pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     assert(u);
-    do_write(u);
+    do_read(u);
 }
 
 int pa_module_init(struct pa_core *c, struct pa_module*m) {
@@ -161,27 +146,22 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->filename = pa_xstrdup(p);
     u->core = c;
     
-    if (!(u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
-        pa_log(__FILE__": failed to create sink.\n");
+    if (!(u->source = pa_source_new(c, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss))) {
+        pa_log(__FILE__": failed to create source.\n");
         goto fail;
     }
-    u->sink->notify = notify_cb;
-    u->sink->userdata = u;
-    pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("Unix FIFO sink '%s'", p);
-    assert(u->sink->description);
+    u->source->userdata = u;
+    pa_source_set_owner(u->source, m);
+    u->source->description = pa_sprintf_malloc("Unix FIFO source '%s'", p);
+    assert(u->source->description);
 
-    u->io = pa_iochannel_new(c->mainloop, -1, fd);
+    u->io = pa_iochannel_new(c->mainloop, fd, -1);
     assert(u->io);
     pa_iochannel_set_callback(u->io, io_callback, u);
 
-    u->memchunk.memblock = NULL;
-    u->memchunk.length = 0;
-
-    u->defer_event = c->mainloop->defer_new(c->mainloop, defer_callback, u);
-    assert(u->defer_event);
-    c->mainloop->defer_enable(u->defer_event, 0);
-
+    u->chunk.memblock = NULL;
+    u->chunk.index = u->chunk.length = 0;
+    
     u->module = m;
     m->userdata = u;
 
@@ -208,12 +188,11 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     if (!(u = m->userdata))
         return;
     
-    if (u->memchunk.memblock)
-        pa_memblock_unref(u->memchunk.memblock);
+    if (u->chunk.memblock)
+        pa_memblock_unref(u->chunk.memblock);
         
-    pa_sink_free(u->sink);
+    pa_source_free(u->source);
     pa_iochannel_free(u->io);
-    u->core->mainloop->defer_free(u->defer_event);
 
     assert(u->filename);
     unlink(u->filename);

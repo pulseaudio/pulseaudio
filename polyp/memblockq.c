@@ -207,7 +207,7 @@ void pa_memblockq_shorten(struct pa_memblockq *bq, size_t length) {
     if (bq->current_length <= length)
         return;
 
-    pa_log(__FILE__": Warning! pa_memblockq_shorten()\n");
+    /*pa_log(__FILE__": Warning! pa_memblockq_shorten()\n");*/
     
     l = bq->current_length - length;
     l /= bq->base;

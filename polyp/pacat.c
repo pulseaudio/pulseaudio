@@ -313,6 +313,17 @@ int main(int argc, char *argv[]) {
     else if (strstr(bn, "cat") || strstr(bn, "play"))
         mode = PLAYBACK;
 
+    if (argc >= 2) {
+        if (!strcmp(argv[1], "-r"))
+            mode = RECORD;
+        else if (!strcmp(argv[1], "-p"))
+            mode = PLAYBACK;
+        else {
+            fprintf(stderr, "Invalid argument\n");
+            goto quit;
+        }
+    }
+
     fprintf(stderr, "Opening a %s stream.\n", mode == RECORD ? "recording" : "playback");
 
     /* Set up a new main loop */

@@ -422,8 +422,6 @@ static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk
     assert(i && i->userdata && chunk);
     s = i->userdata;
 
-    /*pa_log(__FILE__": %3.0f      \r", (double) pa_memblockq_get_length(s->memblockq)/pa_memblockq_get_tlength(s->memblockq)*100);*/
-    
     if (pa_memblockq_peek(s->memblockq, chunk) < 0)
         return -1;
 
@@ -469,7 +467,7 @@ static void source_output_push_cb(struct pa_source_output *o, const struct pa_me
     assert(o && o->userdata && chunk);
     s = o->userdata;
     
-    pa_memblockq_push(s->memblockq, chunk, 0);
+    pa_memblockq_push_align(s->memblockq, chunk, 0);
     if (!pa_pstream_is_pending(s->connection->pstream))
         send_memblock(s->connection);
 }
@@ -765,9 +763,9 @@ static void command_drain_playback_stream(struct pa_pdispatch *pd, uint32_t comm
 
     pa_memblockq_prebuf_disable(s->memblockq);
     
-    if (!pa_memblockq_is_readable(s->memblockq))
+    if (!pa_memblockq_is_readable(s->memblockq)) {
         pa_pstream_send_simple_ack(c->pstream, tag);
-    else {
+    } else {
         s->drain_request = 1;
         s->drain_tag = tag;
 

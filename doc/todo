@@ -11,6 +11,9 @@
 - more complete pactl
 - add sample directory
 - add timing parameter to write callback of stream in client API
+- config file for command line arguments
+- vumeter
+- add FAQ
 
 ** later ***
 - xmlrpc/http
