@@ -63,6 +63,11 @@ polypinclude_HEADERS= \
 		sample.h \
 		glib-mainloop.h
 
+### Warning! Due to an obscure bug in libtool/automake it is required
+### that the libraries in modlib_LTLIBRARIES are specified in-order,
+### i.e. libraries near the end of the list depend on libraries near
+### the head, and not the other way!
+
 modlib_LTLIBRARIES= \
 		libsocket-util.la \
 		libiochannel.la \

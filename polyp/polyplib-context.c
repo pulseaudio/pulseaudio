@@ -336,11 +336,15 @@ finish:
 static struct sockaddr *resolve_server(const char *server, size_t *len) {
     struct sockaddr *sa;
     struct addrinfo hints, *result = NULL;
-    char *port;
+    char *port, host[256];
     assert(server && len);
 
+    snprintf(host, sizeof(host), "%s", server);
+    host[strcspn(host, ":")] = 0;
+    
     if ((port = strrchr(server, ':')))
         port++;
+    
     if (!port)
         port = DEFAULT_PORT;
 
@@ -349,7 +353,7 @@ static struct sockaddr *resolve_server(const char *server, size_t *len) {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = 0;
 
-    if (getaddrinfo(server, port, &hints, &result) != 0)
+    if (getaddrinfo(host, port, &hints, &result) != 0)
         return NULL;
     assert(result);
     

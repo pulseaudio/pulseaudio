@@ -84,7 +84,7 @@ static void do_call(struct pa_socket_client *c) {
     }
 
     if (error != 0) {
-        pa_log(__FILE__": connect(): %s\n", strerror(error));
+/*         pa_log(__FILE__": connect(): %s\n", strerror(error)); */
         goto finish;
     }
         

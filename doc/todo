@@ -15,11 +15,8 @@
 - option to use default fragment size on alsa drivers
 - lazy sample cache
 - per-channel volume
-- fix or work around libtool bug
 - merge pa_context_connect_*
 - input latency
-- fix public=
-- fix POLYP_SERVER=foo:4711
 - fix tcp/native
 - suid
 
