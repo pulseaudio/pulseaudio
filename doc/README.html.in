@@ -44,6 +44,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
 
+<div class="news-date">Mon Sep 24 2004: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.5.1.tar.gz">Version 0.5.1</a> released;
+changes include: improve esound protocol compatibility; fix
+autospawning via <tt>libesd</tt>; make use of POSIX capabilities;
+allow <tt>SCHED_FIFO</tt> scheduling only for users in group
+<tt>realtime</tt>; minor build system fix.</p>
+
 <div class="news-date">Mon Sep 20 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.5.tar.gz">Version 0.5</a> released;
 changes include: extensive API improvements, new module
@@ -222,7 +229,9 @@ compilation and <tt>make install</tt> (as root) for installation of
 
 <p>The current release is <a href="@PACKAGE_URL@polypaudio-@PACKAGE_VERSION@.tar.gz">@PACKAGE_VERSION@</a></p>
 
-<p>Get <tt>polypaudio</tt>'s development sources from the <a href="http://subversion.tigris.org/">Subversion</a> <a href="https://seth.intheinter.net:8081/svn/polypaudio/">repository</a>. (<a href="http://0pointer.de/cgi-bin/viewcvs.cgi/?root=polypaudio">viewcvs</a>)</p>
+<p>Get <tt>polypaudio</tt>'s development sources from the <a href="http://subversion.tigris.org/">Subversion</a> <a href="svn://seth.intheinter.net/polypaudio/">repository</a> (<a href="http://0pointer.de/cgi-bin/viewcvs.cgi/?root=polypaudio">viewcvs</a>): </p>
+
+<pre>svn checkout svn://seth.intheinter.net/polypaudio/trunk polypaudio</pre>
 
 <p>If you want to be notified whenever I release a new version of this software use the subscription feature of <a href="http://freshmeat.net/projects/polypaudio/">Freshmeat</a>.</p>
 

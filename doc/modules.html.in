@@ -220,7 +220,7 @@ about the two possible suffixes of this module.</p>
 
 <h3>module-native-protocol-fd</h3>
 
-<p>This is used internally when auto spawning a new daemon.</p>
+<p>This is used internally when auto spawning a new daemon. Don't use it directly.</p>
 
 <h2>Miscellaneous</h2>
 
@@ -242,6 +242,14 @@ about the two possible suffixes of this module.</p>
   <tr><td><tt>sink=</tt></td><td>The sink to connect to. If ommited defaults to the default sink.</td></tr>
   <tr><td><tt>frequency=</tt></td><td>The frequency to generate in Hertz. Defaults to 440.</td></tr>
 </table>
+
+<h3>module-esound-compat-spawnfd</h3>
+
+<p>This is a compatibility module for <tt>libesd</tt> based autospawning of polypaudio. Don't use it directly.</p>
+
+<h3>module-esound-compat-spawnpid</h3>
+
+<p>This is a compatibility module for <tt>libesd</tt> based autospawning of polypaudio. Don't use it directly.</p>
 
 <hr/>
 <address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, September 2004</address>
