@@ -91,6 +91,7 @@ void pa_cmdline_help(const char *argv0) {
         e = argv0;
     
     printf("%s [options]\n\n"
+           "COMMANDS:\n"
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n"
            "      --dump-conf                       Dump default configuration\n"
@@ -98,22 +99,34 @@ void pa_cmdline_help(const char *argv0) {
            "  -k  --kill                            Kill a running daemon\n"
            "      --check                           Check for a running daemon\n\n"
 
+           "OPTIONS:\n"
            "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
            "      --fail[=BOOL]                     Quit when startup fails\n"
            "      --verbose[=BOOL]                  Be slightly more verbose\n"
-           "      --high-priority[=BOOL]            Try to set high process priority (only available as root)\n"
+           "      --high-priority[=BOOL]            Try to set high process priority\n"
+           "                                        (only available as root)\n"
            "      --disallow-module-loading[=BOOL]  Disallow module loading after startup\n"
-           "      --exit-idle-time=SECS             Terminate the daemon when idle and this time passed\n"
-           "      --module-idle-time=SECS           Unload autoloaded modules when idle and this time passed\n"
-           "      --scache-idle-time=SECS           Unload autoloaded samples when idle and this time passed\n"
+           "      --exit-idle-time=SECS             Terminate the daemon when idle and this\n"
+           "                                        time passed\n"
+           "      --module-idle-time=SECS           Unload autoloaded modules when idle and\n"
+           "                                        this time passed\n"
+           "      --scache-idle-time=SECS           Unload autoloaded samples when idle and\n"
+           "                                        this time passed\n"
            "      --log-target={auto,syslog,stderr} Specify the log target\n"
-           "  -p, --dl-search-path=PATH             Set the search path for dynamic shared objects (plugins)\n"
+           "  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
+           "                                        objects (plugins)\n"
            "      --resample-method=[METHOD]        Use the specified resampling method\n"
+           "                                        (one of src-sinc-medium-quality,\n"
+           "                                        src-sinc-best-quality,src-sinc-fastest\n"
+           "                                        src-zero-order-hold,src-linear,trivial)\n"
            "      --use-pid-file[=BOOL]             Create a PID file\n\n"
-           
-           "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with the specified argument\n"
+
+           "STARTUP SCRIPT:\n"
+           "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with\n"
+           "                                        the specified argument\n"
            "  -F, --file=FILENAME                   Run the specified script\n"
-           "  -C                                    Open a command line on the running TTY after startup\n\n"
+           "  -C                                    Open a command line on the running TTY\n"
+           "                                        after startup\n\n"
            
            "  -n                                    Don't load default script file\n", e);
 }
