@@ -35,6 +35,7 @@ struct protocol_esound {
     struct core *core;
     struct socket_server *server;
     struct idxset *connections;
+    uint32_t sink_index;
 };
 
 typedef struct proto_handler {
@@ -42,6 +43,9 @@ typedef struct proto_handler {
     int (*proc)(struct connection *c, const void *data, size_t length);
     const char *description;
 } esd_proto_handler_info_t;
+
+#define MEMBLOCKQ_LENGTH (10*1204)
+#define MEMBLOCKQ_PREBUF (2*1024)
 
 #define BUFSIZE PIPE_BUF
 
@@ -53,42 +57,44 @@ static uint32_t sink_input_get_latency_cb(struct sink_input *i);
 static int esd_proto_connect(struct connection *c, const void *data, size_t length);
 static int esd_proto_stream_play(struct connection *c, const void *data, size_t length);
 static int esd_proto_stream_record(struct connection *c, const void *data, size_t length);
+static int esd_proto_get_latency(struct connection *c, const void *data, size_t length);
+static int esd_proto_server_info(struct connection *c, const void *data, size_t length);
 
 static int do_write(struct connection *c);
 
 /* the big map of protocol handler info */
 static struct proto_handler proto_map[ESD_PROTO_MAX] = {
-    { ESD_KEY_LEN + sizeof(int), &esd_proto_connect, "connect" },
-    { ESD_KEY_LEN + sizeof(int), NULL, "lock" },
-    { ESD_KEY_LEN + sizeof(int), NULL, "unlock" },
+    { ESD_KEY_LEN + sizeof(int),      esd_proto_connect, "connect" },
+    { ESD_KEY_LEN + sizeof(int),      NULL, "lock" },
+    { ESD_KEY_LEN + sizeof(int),      NULL, "unlock" },
 
-    { ESD_NAME_MAX + 2 * sizeof(int), &esd_proto_stream_play, "stream play" },
-    { ESD_NAME_MAX + 2 * sizeof(int), &esd_proto_stream_record, "stream rec" },
+    { ESD_NAME_MAX + 2 * sizeof(int), esd_proto_stream_play, "stream play" },
+    { ESD_NAME_MAX + 2 * sizeof(int), esd_proto_stream_record, "stream rec" },
     { ESD_NAME_MAX + 2 * sizeof(int), NULL, "stream mon" },
 
     { ESD_NAME_MAX + 3 * sizeof(int), NULL, "sample cache" },
-    { sizeof(int), NULL, "sample free" },
-    { sizeof(int), NULL, "sample play" },
-    { sizeof(int), NULL, "sample loop" },
-    { sizeof(int), NULL, "sample stop" },
-    { -1, NULL, "TODO: sample kill" },
+    { sizeof(int),                    NULL, "sample free" },
+    { sizeof(int),                    NULL, "sample play" },
+    { sizeof(int),                    NULL, "sample loop" },
+    { sizeof(int),                    NULL, "sample stop" },
+    { -1,                             NULL, "TODO: sample kill" },
 
-    { ESD_KEY_LEN + sizeof(int), NULL, "standby" },
-    { ESD_KEY_LEN + sizeof(int), NULL, "resume" },
+    { ESD_KEY_LEN + sizeof(int),      NULL, "standby" },
+    { ESD_KEY_LEN + sizeof(int),      NULL, "resume" },
 
-    { ESD_NAME_MAX, NULL, "sample getid" },
+    { ESD_NAME_MAX,                   NULL, "sample getid" },
     { ESD_NAME_MAX + 2 * sizeof(int), NULL, "stream filter" },
 
-    { sizeof(int), NULL, "server info" },
-    { sizeof(int), NULL, "all info" },
-    { -1, NULL, "TODO: subscribe" },
-    { -1, NULL, "TODO: unsubscribe" },
+    { sizeof(int),                    esd_proto_server_info, "server info" },
+    { sizeof(int),                    NULL, "all info" },
+    { -1,                             NULL, "TODO: subscribe" },
+    { -1,                             NULL, "TODO: unsubscribe" },
 
-    { 3 * sizeof(int), NULL, "stream pan"},
-    { 3 * sizeof(int), NULL, "sample pan" },
-
-    { sizeof(int), NULL, "standby mode" },
-    { 0, NULL, "get latency" }
+    { 3 * sizeof(int),                NULL, "stream pan"},
+    { 3 * sizeof(int),                NULL, "sample pan" },
+     
+    { sizeof(int),                    NULL, "standby mode" },
+    { 0,                              esd_proto_get_latency, "get latency" }
 };
 
 
@@ -111,8 +117,18 @@ static void connection_free(struct connection *c) {
 }
 
 static struct sink* get_output_sink(struct protocol_esound *p) {
+    struct sink *s;
     assert(p);
-    return sink_get_default(p->core);
+
+    if (!(s = idxset_get_by_index(p->core->sinks, p->sink_index)))
+        s = sink_get_default(p->core);
+
+    if (s->index)
+        p->sink_index = s->index;
+    else
+        p->sink_index = IDXSET_INVALID;
+
+    return s;
 }
 
 static void* connection_write(struct connection *c, size_t length) {
@@ -191,7 +207,7 @@ static int esd_proto_stream_play(struct connection *c, const void *data, size_t 
     client_rename(c->client, name);
 
     assert(!c->input_memblockq);
-    c->input_memblockq = memblockq_new(1024*10, pa_sample_size(&ss), 1024*2);
+    c->input_memblockq = memblockq_new(MEMBLOCKQ_LENGTH, pa_sample_size(&ss), MEMBLOCKQ_PREBUF);
     assert(c->input_memblockq);
 
     assert(!c->sink_input);
@@ -210,7 +226,51 @@ static int esd_proto_stream_play(struct connection *c, const void *data, size_t 
 }
 
 static int esd_proto_stream_record(struct connection *c, const void *data, size_t length) {
+    assert(c && data && length == (sizeof(int)*2+ESD_NAME_MAX));
+
     assert(0);
+}
+
+static int esd_proto_get_latency(struct connection *c, const void *data, size_t length) {
+    struct sink *sink;
+    int latency, *lag;
+    assert(c && data && length == 0);
+
+    if (!(sink = get_output_sink(c->protocol)))
+        latency = 0;
+    else {
+        float usec = sink_get_latency(sink);
+        usec += pa_samples_usec(MEMBLOCKQ_LENGTH, &sink->sample_spec);
+        latency = (int) (usec*441/10000);
+    }
+    
+    lag = connection_write(c, sizeof(int));
+    assert(lag);
+    *lag = c->swap_byte_order ? swap_endian_32(latency) : latency;
+
+    do_write(c);
+    return 0;
+}
+
+static int esd_proto_server_info(struct connection *c, const void *data, size_t length) {
+    int rate = 44100, format = ESD_STEREO|ESD_BITS16;
+    int *response;
+    struct sink *sink;
+    assert(c && data && length == sizeof(int));
+
+    if ((sink = get_output_sink(c->protocol))) {
+        rate = sink->sample_spec.rate;
+        format = (sink->sample_spec.format == PA_SAMPLE_U8) ? ESD_BITS8 : ESD_BITS16;
+        format |= (sink->sample_spec.channels >= 2) ? ESD_STEREO : ESD_MONO;
+    }
+    
+    response = connection_write(c, sizeof(int)*3);
+    assert(response);
+    *(response++) = 0;
+    *(response++) = c->swap_byte_order ? swap_endian_32(rate) : rate;
+    *(response++) = c->swap_byte_order ? swap_endian_32(format) : format;
+    do_write(c);
+    return 0;
 }
 
 /*** client callbacks ***/
@@ -426,7 +486,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
 
     c->sink_input = NULL;
     c->input_memblockq = NULL;
-    
+
     idxset_put(c->protocol->connections, c, NULL);
 }
 
@@ -443,6 +503,7 @@ struct protocol_esound* protocol_esound_new(struct core*core, struct socket_serv
     p->core = core;
     p->connections = idxset_new(NULL, NULL);
     assert(p->connections);
+    p->sink_index = IDXSET_INVALID;
 
     socket_server_set_callback(p->server, on_connection, p);
 
