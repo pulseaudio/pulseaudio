@@ -56,6 +56,7 @@ struct command {
     unsigned args;
 };
 
+/* Prototypes for all available commands */
 static int pa_cli_command_exit(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_help(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_modules(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
@@ -86,6 +87,9 @@ static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t
 static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_list_props(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+
+
+/* A method table for all available commands */
 
 static const struct command commands[] = {
     { "exit",                    pa_cli_command_exit,               "Terminate the daemon",         1 },

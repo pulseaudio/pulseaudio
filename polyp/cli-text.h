@@ -24,6 +24,9 @@
 
 #include "core.h"
 
+/* Some functions to generate pretty formatted listings of
+ * entities. The returned strings have to be freed manually. */
+
 char *pa_sink_input_list_to_string(struct pa_core *c);
 char *pa_source_output_list_to_string(struct pa_core *c);
 char *pa_sink_list_to_string(struct pa_core *core);

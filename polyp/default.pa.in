@@ -21,8 +21,8 @@
 # Load audio drivers statically
 
 #load-module module-alsa-sink
-load-module module-alsa-source device=plughw:1,0
-load-module module-oss device="/dev/dsp" sink_name=output source_name=input record=0
+# load-module module-alsa-source device=plughw:1,0
+load-module module-oss device="/dev/dsp" sink_name=output source_name=input
 #load-module module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
 load-module module-null-sink
 #load-module module-pipe-sink
@@ -37,11 +37,11 @@ load-module module-null-sink
 #add-autoload-source input module-alsa-source source_name=input
 
 # Load several protocols
-load-module module-esound-protocol-tcp
-#load-module module-simple-protocol-tcp
+load-module module-esound-protocol-unix
+#load-module module-esound-protocol-tcp
 load-module module-native-protocol-unix
+#load-module module-simple-protocol-tcp
 #load-module module-cli-protocol-unix
-#load-module module-esound-protocol-unix
 
 # Load the CLI module
 load-module module-cli
@@ -54,10 +54,13 @@ set-default-source input
 
 # Load something to the sample cache
 load-sample x11-bell /usr/share/sounds/KDE_Notify.wav
+load-sample-dir-lazy /usr/share/sounds/*.wav
 
 # Load X11 bell module
 load-module module-x11-bell sample=x11-bell sink=output
 
+# Publish connection data in the X11 root window
+load-module module-x11-publish
+
 #load-module module-pipe-source
 #load-module module-pipe-sink
-

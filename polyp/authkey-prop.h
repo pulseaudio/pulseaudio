@@ -24,6 +24,10 @@
 
 #include "core.h"
 
+/* The authkey-prop uses a central property to store a previously
+ * loaded cookie in memory. Useful for sharing the same cookie between
+ * several modules. */
+
 /* Return the data of the specified authorization key property. Doesn't alter the refernce count of the key */
 int pa_authkey_prop_get(struct pa_core *c, const char *name, void *data, size_t len);
 

@@ -40,9 +40,19 @@ Lesser General Public License for more details.</p>
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
-<p><i>Exception: The client libraries are licensed under LGPL, the Lesser GNU General Plublic License.</i></p>
-
 <h2><a name="news">News</a></h2>
+
+<div class="news-date">Sun Nov 21 2004: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.7.tar.gz">Version 0.7</a> released;
+changes include: TCP wrappers support; don't load the complete sound
+file into memory when playing back using <tt>pa_play_file()</tt>;
+autoload API change; don't load all sound files as FLOAT32; shorten
+default buffers; client-side latency interpolation; add new user
+volume metrics; add <tt>module-tunnel</tt>, <tt>module-null-sink</tt>,
+<tt>module-match</tt> and new tool <tt>paplay</tt>; new API version
+macros; many client API improvements; correctly lock cookie file
+generation; correctly lock daemon autospawning; print daemon layout to
+STDERR on SIGHUP; new options for <tt>pacat</tt>: allow sample type specification.</p>
 
 <div class="news-date">Thu Oct 28 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.6.tar.gz">Version 0.6</a> released;

@@ -24,14 +24,22 @@
 
 #include <stdio.h>
 
+/* An abstract parser for simple, line based, shallow configuration
+ * files consisting of variable assignments only. */
+
+/* Wraps info for parsing a specific configuration variable */
 struct pa_config_item {
-    const char *lvalue;
-    int (*parse)(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);
-    void *data;
+    const char *lvalue; /* name of the variable */
+    int (*parse)(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata); /* Function that is called to parse the variable's value */
+    void *data; /* Where to store the variable's data */
 };
 
+/* The configuration file parsing routine. Expects a table of
+ * pa_config_items in *t that is terminated by an item where lvalue is
+ * NULL */
 int pa_config_parse(const char *filename, FILE *f, const struct pa_config_item *t, void *userdata);
 
+/* Generic parsers for integers, booleans and strings */
 int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);
 int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);
 int pa_config_parse_string(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);

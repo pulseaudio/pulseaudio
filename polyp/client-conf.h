@@ -24,19 +24,29 @@
 
 #include "native-common.h"
 
+/* A structure containing configuration data for polypaudio clients. */
+
 struct pa_client_conf {
     char *daemon_binary, *extra_arguments, *default_sink, *default_source, *default_server, *cookie_file;
     int autospawn;
     uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
-    int cookie_valid;
+    int cookie_valid; /* non-zero, when cookie is valid */
 };
 
+/* Create a new configuration data object and reset it to defaults */
 struct pa_client_conf *pa_client_conf_new(void);
 void pa_client_conf_free(struct pa_client_conf *c);
 
+/* Load the configuration data from the speicified file, overwriting
+ * the current settings in *c. When the filename is NULL, the
+ * default client configuration file name is used. */
 int pa_client_conf_load(struct pa_client_conf *c, const char *filename);
+
+/* Load the configuration data from the environment of the current
+   process, overwriting the current settings in *c. */
 int pa_client_conf_env(struct pa_client_conf *c);
 
+/* Load cookie data from c->cookie_file into c->cookie */
 int pa_client_conf_load_cookie(struct pa_client_conf* c);
 
 #endif

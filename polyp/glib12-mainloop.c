@@ -29,6 +29,8 @@
 #include "idxset.h"
 #include "xmalloc.h"
 
+/* A mainloop implementation based on GLIB 1.2 */
+
 struct pa_io_event {
     struct pa_glib_mainloop *mainloop;
     int dead;

@@ -25,6 +25,10 @@
 #include "core.h"
 #include "module.h"
 
+/* Every connection to the server should have a pa_client
+ * attached. That way the user may generate a listing of all connected
+ * clients easily and kill them if he wants.*/
+
 struct pa_client {
     uint32_t index;
 
@@ -37,6 +41,7 @@ struct pa_client {
     void *userdata;
 };
 
+/* Protocol name should be something like "ESOUND", "NATIVE", ... */
 struct pa_client *pa_client_new(struct pa_core *c, const char *protocol_name, char *name);
 
 /* This function should be called only by the code that created the client */
@@ -46,6 +51,7 @@ void pa_client_free(struct pa_client *c);
  * request destruction of the client */
 void pa_client_kill(struct pa_client *c);
 
+/* Rename the client */
 void pa_client_set_name(struct pa_client *c, const char *name);
 
 #endif

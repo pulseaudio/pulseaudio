@@ -35,6 +35,7 @@
 #include "strbuf.h"
 #include "xmalloc.h"
 
+/* Argument codes for getopt_long() */
 enum {
     ARG_HELP = 256,
     ARG_VERSION,
@@ -58,6 +59,7 @@ enum {
     ARG_CHECK
 };
 
+/* Tabel for getopt_long() */
 static struct option long_options[] = {
     {"help",                        0, 0, ARG_HELP},
     {"version",                     0, 0, ARG_VERSION},

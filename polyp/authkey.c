@@ -41,6 +41,7 @@
 
 #define RANDOM_DEVICE "/dev/urandom"
 
+/* Generate a new authorization key, store it in file fd and return it in *data  */
 static int generate(int fd, void *data, size_t length) {
     int random_fd, ret = -1;
     ssize_t r;
@@ -66,6 +67,7 @@ static int generate(int fd, void *data, size_t length) {
     }
 
     lseek(fd, 0, SEEK_SET);
+    ftruncate(fd, 0);
 
     if ((r = pa_loop_write(fd, data, length)) < 0 || (size_t) r != length) {
         pa_log(__FILE__": failed to write cookie file: %s\n", strerror(errno));
@@ -82,6 +84,8 @@ finish:
     return ret;
 }
 
+/* Load an euthorization cookie from file fn and store it in data. If
+ * the cookie file doesn't exist, create it */
 static int load(const char *fn, void *data, size_t length) {
     int fd = -1;
     int writable = 1;
@@ -130,6 +134,7 @@ finish:
     return ret;
 }
 
+/* Load a cookie from a cookie file. If the file doesn't exist, create it. */
 int pa_authkey_load(const char *path, void *data, size_t length) {
     int ret;
 
@@ -144,6 +149,8 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
     return ret;
 }
 
+/* If the specified file path starts with / return it, otherwise
+ * return path prepended with home directory */
 static const char *normalize_path(const char *fn, char *s, size_t l) {
     assert(fn && s && l > 0);
 
@@ -159,7 +166,9 @@ static const char *normalize_path(const char *fn, char *s, size_t l) {
     return fn;
 }
 
-int pa_authkey_load_from_home(const char *fn, void *data, size_t length) {
+/* Load a cookie from a file in the home directory. If the specified
+ * path starts with /, use it as absolute path instead. */
+int pa_authkey_load_auto(const char *fn, void *data, size_t length) {
     char path[PATH_MAX];
     const char *p;
     assert(fn && data && length);
@@ -170,15 +179,7 @@ int pa_authkey_load_from_home(const char *fn, void *data, size_t length) {
     return pa_authkey_load(p, data, length);
 }
 
-int pa_authkey_load_auto(const char *fn, void *data, size_t length) {
-    assert(fn && data && length);
-
-    if (*fn == '/')
-        return pa_authkey_load(fn, data, length);
-    else
-        return pa_authkey_load_from_home(fn, data, length);
-}
-
+/* Store the specified cookie in the speicified cookie file */
 int pa_authkey_save(const char *fn, const void *data, size_t length) {
     int fd = -1;
     int unlock = 0, ret = -1;

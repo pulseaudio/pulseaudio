@@ -60,8 +60,18 @@
 ## true, otherwise to "stderr".
 ; log-target = auto
 
-## The resampling algorithm to use. Use one of sinc-best-quality,
-## sinc-medium-quality, sinc-fastest, zero-order-hold, linear.  See
-## the documentation of libsamplerate for an explanation fot the
-## different methods.
+## The resampling algorithm to use. Use one of src-sinc-best-quality,
+## src-sinc-medium-quality, src-sinc-fastest, src-zero-order-hold,
+## src-linear, trivial. See the documentation of libsamplerate for an
+## explanation for the different methods. The method 'trivial' is the
+## only algorithm implemented without usage of floating point
+## numbers. If you're tight on CPU consider using this. On the other
+## hand it has the worst quality of all.
 ; resample-method = sinc-fastest
+
+## Create a PID file in /tmp/polypaudio-$USER/pid. Of this is enabled
+## you may use commands like "polypaudio --kill" or "polypaudio
+## --check". If you are planning to start more than one polypaudio
+## process per user, you better disable this option since it
+## effectively disables multiple instances.
+; use-pid-file = 1

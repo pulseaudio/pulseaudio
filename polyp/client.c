@@ -42,7 +42,7 @@ struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name,
     c->name = pa_xstrdup(name);
     c->owner = NULL;
     c->core = core;
-    c->protocol_name = protocol_name;
+    c->protocol_name = pa_xstrdup(protocol_name);
 
     c->kill = NULL;
     c->userdata = NULL;
@@ -68,6 +68,7 @@ void pa_client_free(struct pa_client *c) {
     pa_log(__FILE__": freed %u \"%s\"\n", c->index, c->name);
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
     pa_xfree(c->name);
+    pa_xfree(c->protocol_name);
     pa_xfree(c);
 
 }

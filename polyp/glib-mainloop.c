@@ -106,6 +106,7 @@ static struct pa_io_event* glib_io_new(struct pa_mainloop_api*m, int fd, enum pa
     return e;
 }
 
+/* The callback GLIB calls whenever an IO condition is met */
 static gboolean io_cb(GIOChannel *source, GIOCondition condition, gpointer data) {
     struct pa_io_event *e = data;
     enum pa_io_event_flags f;

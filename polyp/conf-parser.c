@@ -32,6 +32,7 @@
 #define WHITESPACE " \t\n"
 #define COMMENTS "#;\n"
 
+/* Run the user supplied parser for an assignment */
 static int next_assignment(const char *filename, unsigned line, const struct pa_config_item *t, const char *lvalue, const char *rvalue, void *userdata) {
     assert(filename && t && lvalue && rvalue);
     
@@ -44,6 +45,7 @@ static int next_assignment(const char *filename, unsigned line, const struct pa_
     return -1;
 }
 
+/* Returns non-zero when c is contained in s */
 static int in_string(char c, const char *s) {
     assert(s);
     
@@ -54,6 +56,8 @@ static int in_string(char c, const char *s) {
     return 0;
 }
 
+/* Remove all whitepsapce from the beginning and the end of *s. *s may
+ * be modified. */
 static char *strip(char *s) {
     char *b = s+strspn(s, WHITESPACE);
     char *e, *l = NULL;
@@ -68,6 +72,7 @@ static char *strip(char *s) {
     return b;
 }
 
+/* Parse a variable assignment line */
 static int parse_line(const char *filename, unsigned line, const struct pa_config_item *t, char *l, void *userdata) {
     char *e, *c, *b = l+strspn(l, WHITESPACE);
 
@@ -88,7 +93,7 @@ static int parse_line(const char *filename, unsigned line, const struct pa_confi
     return next_assignment(filename, line, t, strip(b), strip(e), userdata);
 }
 
-
+/* Go through the file and parse each line */
 int pa_config_parse(const char *filename, FILE *f, const struct pa_config_item *t, void *userdata) {
     int r = -1;
     unsigned line = 0;

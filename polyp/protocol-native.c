@@ -2066,7 +2066,7 @@ static int load_key(struct pa_protocol_native*p, const char*fn) {
     if (!fn)
         fn = PA_NATIVE_COOKIE_FILE;
 
-    if (pa_authkey_load_from_home(fn, p->auth_cookie, sizeof(p->auth_cookie)) < 0)
+    if (pa_authkey_load_auto(fn, p->auth_cookie, sizeof(p->auth_cookie)) < 0)
         return -1;
 
     pa_log(__FILE__": loading cookie from disk.\n");

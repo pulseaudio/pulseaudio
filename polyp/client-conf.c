@@ -82,6 +82,7 @@ int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
     char *fn = NULL;
     int r = -1;
 
+    /* Prepare the configuration parse table */
     struct pa_config_item table[] = {
         { "daemon-binary",          pa_config_parse_string,  NULL },
         { "extra-arguments",        pa_config_parse_string,  NULL },

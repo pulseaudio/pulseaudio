@@ -24,8 +24,12 @@
 
 #include "daemon-conf.h"
 
+/* Parese the command line and store its data in *c. Return the index
+ * of the first unparsed argument in *d. */
 int pa_cmdline_parse(struct pa_daemon_conf*c, int argc, char *const argv [], int *d);
 
+/* Show the command line help. The command name is extracted from
+ * argv[0] which should be passed in argv0. */
 void pa_cmdline_help(const char *argv0);
 
 #endif

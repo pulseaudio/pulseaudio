@@ -7,17 +7,17 @@
   This file is part of polypaudio.
  
   polypaudio is free software; you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License as published
-  by the Free Software Foundation; either version 2 of the License,
-  or (at your option) any later version.
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2 of the
+  License, or (at your option) any later version.
  
   polypaudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
  
-  You should have received a copy of the GNU Lesser General Public License
-  along with polypaudio; if not, write to the Free Software
+  You should have received a copy of the GNU Lesser General Public
+  License along with polypaudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
 ***/
@@ -26,6 +26,12 @@
 
 #include "memblock.h"
 #include "memchunk.h"
+
+/* A memblockq is a queue of pa_memchunks (yepp, the name is not
+ * perfect). It is similar to the ring buffers used by most other
+ * audio software. In contrast to a ring buffer this memblockq data
+ * type doesn't need to copy any data around, it just maintains
+ * references to reference counted memory blocks. */
 
 struct pa_memblockq;
 

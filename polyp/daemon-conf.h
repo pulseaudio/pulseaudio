@@ -24,16 +24,18 @@
 
 #include "log.h"
 
+/* The actual command to execute */
 enum pa_daemon_conf_cmd {
-	PA_CMD_DAEMON,
-	PA_CMD_HELP,
-        PA_CMD_VERSION,
-	PA_CMD_DUMP_CONF,
-	PA_CMD_DUMP_MODULES,
-        PA_CMD_KILL,
-        PA_CMD_CHECK
+    PA_CMD_DAEMON,  /* the default */
+    PA_CMD_HELP,
+    PA_CMD_VERSION,
+    PA_CMD_DUMP_CONF,
+    PA_CMD_DUMP_MODULES,
+    PA_CMD_KILL,
+    PA_CMD_CHECK
 };
 
+/* A structure containing configuration data for the Polypaudio server . */
 struct pa_daemon_conf {
     enum pa_daemon_conf_cmd cmd;
     int daemonize,
@@ -52,13 +54,25 @@ struct pa_daemon_conf {
     char *config_file;
 };
 
+/* Allocate a new structure and fill it with sane defaults */
 struct pa_daemon_conf* pa_daemon_conf_new(void);
 void pa_daemon_conf_free(struct pa_daemon_conf*c);
 
+/* Load configuration data from the specified file overwriting the
+ * current settings in *c. If filename is NULL load the default daemon
+ * configuration file */
 int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename);
+
+/* Pretty print the current configuration data of the daemon. The
+ * returned string has to be freed manually. The output of this
+ * function may be parsed with pa_daemon_conf_load(). */
 char *pa_daemon_conf_dump(struct pa_daemon_conf *c);
+
+/* Load the configuration data from the process' environment
+ * overwriting the current settings in *c. */
 int pa_daemon_conf_env(struct pa_daemon_conf *c);
 
+/* Set these configuration variables in the structure by passing a string */
 int pa_daemon_conf_set_log_target(struct pa_daemon_conf *c, const char *string);
 int pa_daemon_conf_set_resample_method(struct pa_daemon_conf *c, const char *string);
 

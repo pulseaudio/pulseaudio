@@ -25,9 +25,22 @@
 #include <sys/types.h>
 #include "mainloop-api.h"
 
-/* It is safe to destroy the calling iochannel object from the callback */
+/* A wrapper around UNIX file descriptors for attaching them to the a
+   main event loop. Everytime new data may be read or be written to
+   the channel a callback function is called. It is safe to destroy
+   the calling iochannel object from the callback */
+
+/* When pa_iochannel_is_readable() returns non-zero, the user has to
+ * call this function in a loop until it is no longer set or EOF
+ * reached. Otherwise strange things may happen when an EOF is
+ * reached. */
 
 struct pa_iochannel;
+
+/* Create a new IO channel for the specified file descriptors for
+input resp. output. It is safe to pass the same file descriptor for
+both parameters (in case of full-duplex channels). For a simplex
+channel specify -1 for the other direction. */
 
 struct pa_iochannel* pa_iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd);
 void pa_iochannel_free(struct pa_iochannel*io);
@@ -39,11 +52,17 @@ int pa_iochannel_is_readable(struct pa_iochannel*io);
 int pa_iochannel_is_writable(struct pa_iochannel*io);
 int pa_iochannel_is_hungup(struct pa_iochannel*io);
 
+/* Don't close the file descirptors when the io channel is freed. By
+ * default the file descriptors are closed. */
 void pa_iochannel_set_noclose(struct pa_iochannel*io, int b);
 
+/* Set the callback function that is called whenever data becomes available for read or write */
 void pa_iochannel_set_callback(struct pa_iochannel*io, void (*callback)(struct pa_iochannel*io, void *userdata), void *userdata);
 
+/* In case the file descriptor is a socket, return a pretty-printed string in *s which describes the peer connected */
 void pa_iochannel_socket_peer_to_string(struct pa_iochannel*io, char*s, size_t l);
+
+/* Use setsockopt() to tune the recieve and send buffers of TCP sockets */
 int pa_iochannel_socket_set_rcvbuf(struct pa_iochannel*io, size_t l);
 int pa_iochannel_socket_set_sndbuf(struct pa_iochannel*io, size_t l);
 

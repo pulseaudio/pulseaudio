@@ -44,7 +44,7 @@ struct entry {
     char *key, *value;
 };
 
-static int add_key_value(struct pa_hashmap *map, char *key, char *value, const char* const* valid_keys) {
+static int add_key_value(struct pa_hashmap *map, char *key, char *value, const char* const valid_keys[]) {
     struct entry *e;
     assert(map && key && value);
 
