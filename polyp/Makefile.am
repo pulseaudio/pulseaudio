@@ -32,7 +32,7 @@ AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
-EXTRA_DIST = default.pa daemon.conf client.conf config depmod.py esdcompat.sh.in
+EXTRA_DIST = default.pa daemon.conf.in client.conf.in config depmod.py esdcompat.sh.in
 bin_PROGRAMS = polypaudio pacat pactl
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = \
@@ -541,6 +541,13 @@ esdcompat.sh: esdcompat.sh.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
 		-e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
+		
+client.conf: client.conf.in Makefile
+	sed -e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
+
+daemon.conf: daemon.conf.in Makefile
+	sed -e 's,@DLSEARCHPATH\@,$(modlibdir),g' \
+		-e 's,@DEFAULT_CONFIG_FILE\@,$(polypconfdir)/daemon.conf,g' < $< > $@
 
 install-exec-hook:
 	chown root:root $(DESTDIR)$(bindir)/polypaudio
