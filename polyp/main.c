@@ -47,16 +47,9 @@
 #include "log.h"
 #include "daemon-conf.h"
 #include "dumpmodules.h"
+#include "caps.h"
 
 static struct pa_mainloop *mainloop;
-
-static void drop_root(void) {
-    if (getuid() != 0 && geteuid() == 0) {
-        pa_log(__FILE__": Started SUID root, dropping root rights.\n");
-        setuid(getuid());
-        seteuid(getuid());
-    }
-}
 
 static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     pa_log(__FILE__": Got signal %s.\n", pa_strsignal(sig));
@@ -95,6 +88,8 @@ int main(int argc, char *argv[]) {
     int r, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
 
+    pa_limit_caps();
+    
     r = lt_dlinit();
     assert(r == 0);
     
@@ -118,7 +113,7 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority();
     
-    drop_root();
+    pa_drop_caps();
     
     if (conf->dl_search_path)
         lt_dlsetsearchpath(conf->dl_search_path);

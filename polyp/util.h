@@ -66,4 +66,5 @@ const char *pa_strsignal(int sig);
 
 int pa_parse_resample_method(const char *string);
 
+
 #endif

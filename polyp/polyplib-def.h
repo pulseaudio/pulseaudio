@@ -23,6 +23,9 @@
 ***/
 
 #include <inttypes.h>
+#include <sys/time.h>
+#include <time.h>
+
 #include "cdecl.h"
 #include "sample.h"
 

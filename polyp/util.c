@@ -40,6 +40,11 @@
 #include <sched.h>
 #include <sys/resource.h>
 #include <limits.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 
 #include <samplerate.h>
 

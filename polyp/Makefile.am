@@ -22,7 +22,7 @@ polypconfdir=$(sysconfdir)/polypaudio
 
 modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
 
-AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
+AM_CFLAGS=-D_GNU_SOURCE  -I$(top_srcdir) $(PTHREAD_CFLAGS)
 AM_CFLAGS+=-DDLSEARCHPATH=\"$(modlibdir)\"
 AM_CFLAGS+=-DDEFAULT_SCRIPT_FILE=\"$(polypconfdir)/default.pa\"
 AM_CFLAGS+=-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/daemon.conf\"
@@ -161,11 +161,12 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		modinfo.c modinfo.h \
 		daemon-conf.c daemon-conf.h \
 		dumpmodules.c dumpmodules.h \
-		conf-parser.h conf-parser.c 
+		conf-parser.h conf-parser.c \
+		caps.h caps.c
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
-polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LEXLIB)
+polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
 polypaudio_LDFLAGS=-export-dynamic
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h

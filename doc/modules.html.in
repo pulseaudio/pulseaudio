@@ -106,8 +106,8 @@ resampling required for this may be very CPU intensive.</p>
   <tr><td><tt>sink_name=</tt></td><td>The name for the combined sink. (defaults to  <tt>combined</tt>)</td></tr>
   <tr><td><tt>master=</tt></td><td>The name of the first sink to link into the combined think. The sample rate/type is taken from this sink.</td></tr>
   <tr><td><tt>slaves=</tt></td><td>Name of additional sinks to link into the combined think, seperated by commas.</td></tr>
-  <tr><td><tt>adjust_time=</td><td>Time in seconds when to readjust the sample rate of all sinks. (defaults to 20)</td></tr>
-  <tr><td><tt>resample_method=</td><td>Resampling algorithm to
+  <tr><td><tt>adjust_time=</tt></td><td>Time in seconds when to readjust the sample rate of all sinks. (defaults to 20)</td></tr>
+  <tr><td><tt>resample_method=</tt></td><td>Resampling algorithm to
 use. See <tt>libsamplerate</tt>'s documentation for more
 information. Use one of <tt>sinc-best-quality</tt>,
 <tt>sinc-medium-quality</tt>, <tt>sinc-fastest</tt>,
