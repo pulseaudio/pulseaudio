@@ -36,6 +36,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Command line interface")
 PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_USAGE("No arguments")
 
 static void eof_cb(struct pa_cli*c, void *userdata) {
     struct pa_module *m = userdata;

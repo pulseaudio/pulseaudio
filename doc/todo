@@ -12,6 +12,7 @@
 - make mcalign merge chunks
 - option to use default fragment size on alsa drivers
 - improve module-oss-mmap latency measurement
+- proper locking around native protocol socket
 
 ** later ***
 - xmlrpc/http

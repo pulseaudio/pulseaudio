@@ -42,10 +42,11 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"
+#define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?>"
 #else
 #define SOCKET_DESCRIPTION "(UNIX sockets)"
+#define SOCKET_USAGE "socket=<path to UNIX socket>"
 #endif
-
 
 #if defined(USE_PROTOCOL_SIMPLE)
   #include "protocol-simple.h"
@@ -55,6 +56,8 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #define UNIX_SOCKET "/tmp/polypaudio/simple"
   #define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
   PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION)
+  PA_MODULE_USAGE("rate=<sample rate> format=<sample format> channels=<number of channels> sink=<sink to connect to> source=<source to connect to> playback=<enable playback?> record=<enable record?> "SOCKET_USAGE)
+
 #elif defined(USE_PROTOCOL_CLI)
   #include "protocol-cli.h" 
   #define protocol_new pa_protocol_cli_new
@@ -63,6 +66,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #define UNIX_SOCKET "/tmp/polypaudio/cli"
   #define MODULE_ARGUMENTS 
   PA_MODULE_DESCRIPTION("Command line interface protocol "SOCKET_DESCRIPTION)
+  PA_MODULE_USAGE(SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_NATIVE)
   #include "protocol-native.h"
   #define protocol_new pa_protocol_native_new
@@ -71,6 +75,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #define UNIX_SOCKET "/tmp/polypaudio/native"
   #define MODULE_ARGUMENTS "public", "cookie",
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION)
+  PA_MODULE_USAGE("public=<don't check for cookies?> cookie=<path to cookie file> "SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_ESOUND)
   #include "protocol-esound.h"
   #include "esound.h"
@@ -80,6 +85,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
   #define MODULE_ARGUMENTS "sink", "source", "public", "cookie",
   PA_MODULE_DESCRIPTION("EsounD protocol "SOCKET_DESCRIPTION)
+  PA_MODULE_USAGE("sink=<sink to connect to> source=<source to connect to> public=<don't check for cookies?> cookie=<path to cookie file> "SOCKET_USAGE)
 #else
   #error "Broken build system" 
 #endif

@@ -44,6 +44,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("UNIX pipe source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_USAGE("source_name=<name for the source> file=<path of the FIFO> format=<sample format> channels=<number of channels> rate=<sample rate>")
 
 #define DEFAULT_FIFO_NAME "/tmp/music.input"
 #define DEFAULT_SOURCE_NAME "fifo_input"

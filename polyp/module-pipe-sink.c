@@ -44,6 +44,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("UNIX pipe sink")
 PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_USAGE("sink_name=<name for the sink> file=<path of the FIFO> format=<sample format> channels=<number of channels> rate=<sample rate>")
 
 #define DEFAULT_FIFO_NAME "/tmp/music.output"
 #define DEFAULT_SINK_NAME "fifo_output"
@@ -64,8 +65,8 @@ struct userdata {
 static const char* const valid_modargs[] = {
     "file",
     "rate",
-    "channels",
     "format",
+    "channels",
     "sink_name",
     NULL
 };

@@ -43,6 +43,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("ALSA Sink")
 PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_USAGE("sink_name=<name for the sink> device=<ALSA device> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
 
 struct userdata {
     snd_pcm_t *pcm_handle;

@@ -43,6 +43,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("ALSA Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_USAGE("source_name=<name for the source> device=<ALSA device> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
 
 struct userdata {
     snd_pcm_t *pcm_handle;
@@ -58,9 +59,9 @@ struct userdata {
 static const char* const valid_modargs[] = {
     "device",
     "source_name",
-    "format",
     "channels",
     "rate",
+    "format",
     "fragments",
     "fragment_size",
     NULL
