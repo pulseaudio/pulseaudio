@@ -34,6 +34,10 @@
  * variables for the daemon. */
 
 struct pa_core {
+    /* A random value which may be used to identify this instance of
+     * polypaudio. Not cryptographically secure in any way. */
+    uint32_t cookie;
+    
     struct pa_mainloop_api *mainloop;
 
     /* idxset of all kinds of entities */

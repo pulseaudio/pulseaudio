@@ -52,6 +52,8 @@ PA_MODULE_DESCRIPTION("OSS Sink/Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source> device=<OSS device> record=<enable source?> playback=<enable sink?> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
 
+#define PA_TYPEID_OSS PA_TYPEID_MAKE('O', 'S', 'S', '_')
+
 struct userdata {
     struct pa_sink *sink;
     struct pa_source *source;
@@ -325,7 +327,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     }
 
     if (mode != O_WRONLY) {
-        u->source = pa_source_new(c, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss);
+        u->source = pa_source_new(c, PA_TYPEID_OSS, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss);
         assert(u->source);
         u->source->userdata = u;
         u->source->get_latency = source_get_latency_cb;
@@ -335,7 +337,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
         u->source = NULL;
 
     if (mode != O_RDONLY) {
-        u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss);
+        u->sink = pa_sink_new(c, PA_TYPEID_OSS, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss);
         assert(u->sink);
         u->sink->get_latency = sink_get_latency_cb;
         u->sink->userdata = u;

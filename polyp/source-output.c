@@ -33,7 +33,7 @@
 #include "subscribe.h"
 #include "log.h"
 
-struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec, int resample_method) {
+struct pa_source_output* pa_source_output_new(struct pa_source *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int resample_method) {
     struct pa_source_output *o;
     struct pa_resampler *resampler = NULL;
     int r;
@@ -56,6 +56,8 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
     o->ref = 1;
     o->state = PA_SOURCE_OUTPUT_RUNNING;
     o->name = pa_xstrdup(name);
+    o->typeid = typeid;
+    
     o->client = NULL;
     o->owner = NULL;
     o->source = s;

@@ -38,50 +38,24 @@
 #include "authkey.h"
 #include "util.h"
 #include "log.h"
-
-#define RANDOM_DEVICE "/dev/urandom"
+#include "random.h"
 
 /* Generate a new authorization key, store it in file fd and return it in *data  */
-static int generate(int fd, void *data, size_t length) {
-    int random_fd, ret = -1;
+static int generate(int fd, void *ret_data, size_t length) {
     ssize_t r;
-    assert(fd >= 0 && data && length);
+    assert(fd >= 0 && ret_data && length);
 
-    if ((random_fd = open(RANDOM_DEVICE, O_RDONLY)) >= 0) {
-
-        if ((r = pa_loop_read(random_fd, data, length)) < 0 || (size_t) r != length) {
-            pa_log(__FILE__": failed to read entropy from '%s'\n", RANDOM_DEVICE);
-            goto finish;
-        }
-        
-    } else {
-        uint8_t *p;
-        size_t l;
-        pa_log(__FILE__": WARNING: Failed to open entropy device '"RANDOM_DEVICE"': %s"
-               ", falling back to unsecure pseudo RNG.\n", strerror(errno));
-
-        srandom(time(NULL));
-        
-        for (p = data, l = length; l > 0; p++, l--)
-            *p = (uint8_t) random();
-    }
+    pa_random(ret_data, length);
 
     lseek(fd, 0, SEEK_SET);
     ftruncate(fd, 0);
 
-    if ((r = pa_loop_write(fd, data, length)) < 0 || (size_t) r != length) {
+    if ((r = pa_loop_write(fd, ret_data, length)) < 0 || (size_t) r != length) {
         pa_log(__FILE__": failed to write cookie file: %s\n", strerror(errno));
-        goto finish;
+        return -1;
     }
 
-    ret = 0;
-
-finish:
-
-    if (random_fd >= 0)
-        close(random_fd);
-
-    return ret;
+    return 0;
 }
 
 /* Load an euthorization cookie from file fn and store it in data. If

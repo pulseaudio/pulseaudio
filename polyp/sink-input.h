@@ -42,6 +42,7 @@ struct pa_sink_input {
     enum pa_sink_input_state state;
     
     uint32_t index;
+    pa_typeid_t typeid;
 
     char *name;
     struct pa_module *owner;
@@ -64,7 +65,7 @@ struct pa_sink_input {
     struct pa_resampler *resampler;
 };
 
-struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec, int variable_rate, int resample_method);
+struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int variable_rate, int resample_method);
 void pa_sink_input_unref(struct pa_sink_input* i);
 struct pa_sink_input* pa_sink_input_ref(struct pa_sink_input* i);
 

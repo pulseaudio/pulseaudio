@@ -24,10 +24,10 @@
 
 #include <sys/types.h>
 
-#include "sample.h"
-#include "polyplib-def.h"
-#include "cdecl.h"
-#include "polyplib-operation.h"
+#include <polyp/sample.h>
+#include <polyp/polyplib-def.h>
+#include <polyp/cdecl.h>
+#include <polyp/polyplib-operation.h>
 
 /** \file
  * Audio streams for input, output and sample upload */

@@ -38,7 +38,7 @@
 #include <polyp/mainloop-signal.h>
 #include <polyp/polyplib-version.h>
 
-#if PA_API_VERSION != 7
+#if PA_API_VERSION != 8
 #error Invalid Polypaudio API version
 #endif
 
@@ -290,7 +290,7 @@ static void stdout_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int
 /* UNIX signal to quit recieved */
 static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     if (verbose)
-        fprintf(stderr, "Got SIGINT, exiting.\n");
+        fprintf(stderr, "Got signal, exiting.\n");
     quit(0);
     
 }
@@ -479,6 +479,7 @@ int main(int argc, char *argv[]) {
     r = pa_signal_init(mainloop_api);
     assert(r == 0);
     pa_signal_new(SIGINT, exit_signal_callback, NULL);
+    pa_signal_new(SIGTERM, exit_signal_callback, NULL);
     pa_signal_new(SIGUSR1, sigusr1_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
     

@@ -22,8 +22,8 @@
   USA.
 ***/
 
-#include "cdecl.h"
-#include "polyplib-def.h"
+#include <polyp/cdecl.h>
+#include <polyp/polyplib-def.h>
 
 /** \file
  * Asynchronous operations */

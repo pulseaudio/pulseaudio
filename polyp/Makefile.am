@@ -220,7 +220,9 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		props.h props.c \
 		mcalign.c mcalign.h \
 		g711.c g711.h \
-		pid.c pid.h
+		pid.c pid.h \
+		random.c random.h \
+		typeid.c typeid.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_CPPFLAGS = $(AM_CPPFLAGS) $(LTDLINCL)
@@ -455,7 +457,9 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		conf-parser.c conf-parser.h \
 		strlist.c strlist.h \
 		strbuf.c strbuf.h \
-		mcalign.c mcalign.h
+		mcalign.c mcalign.h \
+		typeid.c typeid.h \
+		random.c random.h
 
 libpolyp_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
@@ -560,7 +564,7 @@ module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EX
 bin_PROGRAMS+= \
 		pax11publish
 
-pax11publish_SOURCES = pax11publish.c util.c xmalloc.c log.c authkey.c client-conf.c conf-parser.c x11prop.c
+pax11publish_SOURCES = pax11publish.c util.c util.h xmalloc.c xmalloc.h log.c log.h authkey.c authkey.h client-conf.c client-conf.h conf-parser.c conf-parser.h x11prop.c x11prop.h random.c random.h
 pax11publish_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 pax11publish_LDADD = $(AM_LDADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
 
@@ -612,6 +616,21 @@ module_zeroconf_publish_la_SOURCES = module-zeroconf-publish.c
 module_zeroconf_publish_la_LDFLAGS = -module -avoid-version
 module_zeroconf_publish_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS) libhowl-wrap.la
 module_zeroconf_publish_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
+
+lib_LTLIBRARIES+= \
+		libpolyp-browse-@PA_MAJORMINOR@.la
+
+libpolyp_browse_@PA_MAJORMINOR@_la_SOURCES = polyplib-browser.c polyplib-browser.h 
+libpolyp_browse_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
+libpolyp_browse_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la $(HOWL_LIBS)
+libpolyp_browse_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0 
+
+bin_PROGRAMS += \
+		pabrowse
+
+pabrowse_SOURCES = pabrowse.c
+pabrowse_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la libpolyp-browse-@PA_MAJORMINOR@.la
+pabrowse_CFLAGS = $(AM_CFLAGS)
 
 endif
 

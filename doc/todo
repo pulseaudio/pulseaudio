@@ -1,23 +1,31 @@
 *** $Id$ ***
 
-*** later ****
-- event more commenting
-- polish for starting polypaudio as root/system-wide instance
+Architectural changes:
 - per-channel volume
+- channel mapping ("left", "right", "rear", "subwoofer")
+- add API for synchronizing multiple sinks/sources to a common clock
+- absolutely indexed write()s from client
+- remove "polyplib-" prefix
+
+Fixes:
 - improve module-oss-mmap latency measurement
 - module-tunnel: improve latency calculation
+- make alsa modules use mmap
+- event more commenting
+
+Features:
 - add radio module
-- pass meta info for hearing impaired
-- add sync API
-- X11: support for the X11 synchronization extension
 - xmlrpc/http
 - dbus
 - rendezvous
-- make alsa modules use mmap
+- polish for starting polypaudio as root/system-wide instance
+- export connection fd
 
-***********
+Long term:
+- pass meta info for hearing impaired
+- X11: support for the X11 synchronization extension
 
-backends for:
+Backends for:
 - portaudio  (semi-done)
 - alsa-lib
 - sdl

@@ -39,7 +39,7 @@
 
 #define MAX_MIX_CHANNELS 32
 
-struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
+struct pa_sink* pa_sink_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec) {
     struct pa_sink *s;
     char *n = NULL;
     char st[256];
@@ -55,6 +55,7 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
 
     s->name = pa_xstrdup(name);
     s->description = NULL;
+    s->typeid = typeid;
 
     s->ref = 1;
     s->state = PA_SINK_RUNNING;
@@ -65,7 +66,7 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     s->inputs = pa_idxset_new(NULL, NULL);
 
     n = pa_sprintf_malloc("%s_monitor", name);
-    s->monitor_source = pa_source_new(core, n, 0, spec);
+    s->monitor_source = pa_source_new(core, typeid, n, 0, spec);
     assert(s->monitor_source);
     pa_xfree(n);
     s->monitor_source->monitor_of = s;

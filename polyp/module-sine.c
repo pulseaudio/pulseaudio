@@ -40,6 +40,8 @@ PA_MODULE_DESCRIPTION("Sine wave generator")
 PA_MODULE_USAGE("sink=<sink to connect to> frequency=<frequency in Hz>")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 
+#define PA_TYPEID_SINE PA_TYPEID_MAKE('S', 'I', 'N', 'E')
+
 struct userdata {
     struct pa_core *core;
     struct pa_module *module;
@@ -140,7 +142,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     calc_sine(u->memblock->data, u->memblock->length, frequency);
 
     snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
-    if (!(u->sink_input = pa_sink_input_new(sink, t, &ss, 0, -1)))
+    if (!(u->sink_input = pa_sink_input_new(sink, PA_TYPEID_SINE, t, &ss, 0, -1)))
         goto fail;
 
     u->sink_input->peek = sink_input_peek;

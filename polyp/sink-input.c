@@ -36,7 +36,7 @@
 
 #define CONVERT_BUFFER_LENGTH 4096
 
-struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec, int variable_rate, int resample_method) {
+struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int variable_rate, int resample_method) {
     struct pa_sink_input *i;
     struct pa_resampler *resampler = NULL;
     int r;
@@ -59,6 +59,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     i->ref = 1;
     i->state = PA_SINK_INPUT_RUNNING;
     i->name = pa_xstrdup(name);
+    i->typeid = typeid;
     i->client = NULL;
     i->owner = NULL;
     i->sink = s;

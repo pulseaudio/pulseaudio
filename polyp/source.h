@@ -31,6 +31,7 @@ struct pa_source;
 #include "memblock.h"
 #include "memchunk.h"
 #include "sink.h"
+#include "typeid.h"
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 16
 
@@ -44,6 +45,7 @@ struct pa_source {
     enum pa_source_state state;
     
     uint32_t index;
+    pa_typeid_t typeid;
     
     char *name, *description;
     struct pa_module *owner;
@@ -57,7 +59,7 @@ struct pa_source {
     void *userdata;
 };
 
-struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec);
+struct pa_source* pa_source_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec);
 void pa_source_disconnect(struct pa_source *s);
 void pa_source_unref(struct pa_source *s);
 struct pa_source* pa_source_ref(struct pa_source *c);

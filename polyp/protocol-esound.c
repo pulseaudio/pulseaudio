@@ -63,6 +63,8 @@
 
 #define SCACHE_PREFIX "esound."
 
+#define PA_TYPEID_ESOUND PA_TYPEID_MAKE('E', 'S', 'D', 'P')
+
 /* This is heavily based on esound's code */
 
 struct connection {
@@ -320,7 +322,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
 
     assert(!c->sink_input && !c->input_memblockq);
 
-    if (!(c->sink_input = pa_sink_input_new(sink, name, &ss, 0, -1))) {
+    if (!(c->sink_input = pa_sink_input_new(sink, PA_TYPEID_ESOUND, name, &ss, 0, -1))) {
         pa_log(__FILE__": failed to create sink input.\n");
         return -1;
     }
@@ -392,7 +394,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
 
     assert(!c->output_memblockq && !c->source_output);
 
-    if (!(c->source_output = pa_source_output_new(source, name, &ss, -1))) {
+    if (!(c->source_output = pa_source_output_new(source, PA_TYPEID_ESOUND, name, &ss, -1))) {
         pa_log(__FILE__": failed to create source output\n");
         return -1;
     }
@@ -1058,7 +1060,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
     pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
     assert(p->core);
-    c->client = pa_client_new(p->core, "ESOUND", cname);
+    c->client = pa_client_new(p->core, PA_TYPEID_ESOUND, cname);
     assert(c->client);
     c->client->owner = p->module;
     c->client->kill = client_kill_cb;

@@ -24,9 +24,9 @@
 
 #include <inttypes.h>
 
-#include "polyplib-def.h"
-#include "polyplib-context.h"
-#include "cdecl.h"
+#include <polyp/polyplib-def.h>
+#include <polyp/polyplib-context.h>
+#include <polyp/cdecl.h>
 
 /** \file
  * Daemon introspection event subscription subsystem. Use this

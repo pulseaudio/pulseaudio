@@ -39,6 +39,7 @@
 #include "xmalloc.h"
 #include "subscribe.h"
 #include "props.h"
+#include "random.h"
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     struct pa_core* c;
@@ -84,9 +85,10 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->resample_method = PA_RESAMPLER_SRC_SINC_FASTEST;
 
     pa_property_init(c);
+
+    pa_random(&c->cookie, sizeof(c->cookie));
     
     pa_check_signal_is_blocked(SIGPIPE);
-    
     return c;
 }
 

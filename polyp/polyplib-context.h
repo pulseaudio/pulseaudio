@@ -1,4 +1,3 @@
-
 #ifndef foopolyplibcontexthfoo
 #define foopolyplibcontexthfoo
 
@@ -23,11 +22,11 @@
   USA.
 ***/
 
-#include "sample.h"
-#include "polyplib-def.h"
-#include "mainloop-api.h"
-#include "cdecl.h"
-#include "polyplib-operation.h"
+#include <polyp/sample.h>
+#include <polyp/polyplib-def.h>
+#include <polyp/mainloop-api.h>
+#include <polyp/cdecl.h>
+#include <polyp/polyplib-operation.h>
 
 /** \file
  * Connection contexts for asynchrononous communication with a

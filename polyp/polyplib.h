@@ -22,16 +22,16 @@
   USA.
 ***/
 
-#include "cdecl.h"
-#include "mainloop-api.h"
-#include "sample.h"
-#include "polyplib-def.h"
-#include "polyplib-context.h"
-#include "polyplib-stream.h"
-#include "polyplib-introspect.h"
-#include "polyplib-subscribe.h"
-#include "polyplib-scache.h"
-#include "polyplib-version.h"
+#include <polyp/cdecl.h>
+#include <polyp/mainloop-api.h>
+#include <polyp/sample.h>
+#include <polyp/polyplib-def.h>
+#include <polyp/polyplib-context.h>
+#include <polyp/polyplib-stream.h>
+#include <polyp/polyplib-introspect.h>
+#include <polyp/polyplib-subscribe.h>
+#include <polyp/polyplib-scache.h>
+#include <polyp/polyplib-version.h>
 
 /** \file
  * Include all polyplib header file at once. The following files are included: \ref mainloop-api.h, \ref sample.h,

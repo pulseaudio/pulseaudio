@@ -163,23 +163,23 @@ void pa_bytes_snprint(char *s, size_t l, unsigned v) {
 
 enum pa_sample_format pa_parse_sample_format(const char *format) {
     
-    if (strcmp(format, "s16le") == 0)
+    if (strcasecmp(format, "s16le") == 0)
         return PA_SAMPLE_S16LE;
-    else if (strcmp(format, "s16be") == 0)
+    else if (strcasecmp(format, "s16be") == 0)
         return PA_SAMPLE_S16BE;
-    else if (strcmp(format, "s16ne") == 0 || strcmp(format, "s16") == 0 || strcmp(format, "16") == 0)
+    else if (strcasecmp(format, "s16ne") == 0 || strcasecmp(format, "s16") == 0 || strcasecmp(format, "16") == 0)
         return PA_SAMPLE_S16NE;
-    else if (strcmp(format, "u8") == 0 || strcmp(format, "8") == 0)
+    else if (strcasecmp(format, "u8") == 0 || strcasecmp(format, "8") == 0)
         return PA_SAMPLE_U8;
-    else if (strcmp(format, "float32") == 0 || strcmp(format, "float32ne") == 0)
+    else if (strcasecmp(format, "float32") == 0 || strcasecmp(format, "float32ne") == 0)
         return PA_SAMPLE_FLOAT32;
-    else if (strcmp(format, "float32le") == 0)
+    else if (strcasecmp(format, "float32le") == 0)
         return PA_SAMPLE_FLOAT32LE;
-    else if (strcmp(format, "float32be") == 0)
+    else if (strcasecmp(format, "float32be") == 0)
         return PA_SAMPLE_FLOAT32BE;
-    else if (strcmp(format, "ulaw") == 0)
+    else if (strcasecmp(format, "ulaw") == 0)
         return PA_SAMPLE_ULAW;
-    else if (strcmp(format, "alaw") == 0)
+    else if (strcasecmp(format, "alaw") == 0)
         return PA_SAMPLE_ALAW;
 
     return -1;

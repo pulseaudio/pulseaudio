@@ -24,9 +24,9 @@
 
 #include <sys/types.h>
 
-#include "polyplib-context.h"
-#include "polyplib-stream.h"
-#include "cdecl.h"
+#include <polyp/polyplib-context.h>
+#include <polyp/polyplib-stream.h>
+#include <polyp/cdecl.h>
 
 /** \file
  * All sample cache related routines */

@@ -33,7 +33,7 @@
 #include "subscribe.h"
 #include "log.h"
 
-struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name, char *name) {
+struct pa_client *pa_client_new(struct pa_core *core, pa_typeid_t typeid, const char *name) {
     struct pa_client *c;
     int r;
     assert(core);
@@ -42,7 +42,7 @@ struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name,
     c->name = pa_xstrdup(name);
     c->owner = NULL;
     c->core = core;
-    c->protocol_name = pa_xstrdup(protocol_name);
+    c->typeid = typeid;
 
     c->kill = NULL;
     c->userdata = NULL;
@@ -68,7 +68,6 @@ void pa_client_free(struct pa_client *c) {
     pa_log_info(__FILE__": freed %u \"%s\"\n", c->index, c->name);
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
     pa_xfree(c->name);
-    pa_xfree(c->protocol_name);
     pa_xfree(c);
 
 }

@@ -46,6 +46,8 @@ PA_MODULE_DESCRIPTION("ALSA Sink")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> device=<ALSA device> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
 
+#define PA_TYPEID_ALSA PA_TYPEID_MAKE('A', 'L', 'S', 'A')
+
 struct userdata {
     snd_pcm_t *pcm_handle;
     struct pa_sink *sink;
@@ -212,7 +214,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
 
-    u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss);
+    u->sink = pa_sink_new(c, PA_TYPEID_ALSA, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss);
     assert(u->sink);
 
     u->sink->get_latency = sink_get_latency_cb;

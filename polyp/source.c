@@ -35,7 +35,7 @@
 #include "subscribe.h"
 #include "log.h"
 
-struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec) {
+struct pa_source* pa_source_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec) {
     struct pa_source *s;
     char st[256];
     int r;
@@ -53,6 +53,7 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
     
     s->name = pa_xstrdup(name);
     s->description = NULL;
+    s->typeid = typeid; 
 
     s->owner = NULL;
     s->core = core;

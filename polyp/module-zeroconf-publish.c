@@ -40,6 +40,7 @@
 #include "log.h"
 #include "subscribe.h"
 #include "dynarray.h"
+#include "endianmacros.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher")
@@ -79,19 +80,34 @@ static sw_result publish_reply(sw_discovery discovery, sw_discovery_publish_stat
     return SW_OKAY;
 }
 
-static void get_service_sample_spec(struct userdata *u, struct service *s, struct pa_sample_spec *ret_ss) {
-    assert(u && s && s->loaded.valid && ret_ss);
+static void get_service_data(struct userdata *u, struct service *s, struct pa_sample_spec *ret_ss, char **ret_description, pa_typeid_t *ret_typeid) {
+    assert(u && s && s->loaded.valid && ret_ss && ret_description && ret_typeid);
 
     if (s->loaded.type == PA_NAMEREG_SINK) {
         struct pa_sink *sink = pa_idxset_get_by_index(u->core->sinks, s->loaded.index);
         assert(sink);
         *ret_ss = sink->sample_spec;
+        *ret_description = sink->description;
+        *ret_typeid = sink->typeid;
     } else if (s->loaded.type == PA_NAMEREG_SOURCE) {
         struct pa_source *source = pa_idxset_get_by_index(u->core->sources, s->loaded.index);
         assert(source);
         *ret_ss = source->sample_spec;
+        *ret_description = source->description;
+        *ret_typeid = source->typeid;
     } else
         assert(0);
+}
+
+static void txt_record_server_data(struct pa_core *c, sw_text_record t) {
+    char s[256];
+    assert(c);
+
+    sw_text_record_add_key_and_string_value(t, "server-version", PACKAGE_NAME" "PACKAGE_VERSION);
+    sw_text_record_add_key_and_string_value(t, "user-name", pa_get_user_name(s, sizeof(s)));
+    sw_text_record_add_key_and_string_value(t, "fqdn", pa_get_fqdn(s, sizeof(s)));
+    snprintf(s, sizeof(s), "0x%08x", c->cookie);
+    sw_text_record_add_key_and_string_value(t, "cookie", s);
 }
 
 static int publish_service(struct userdata *u, struct service *s) {
@@ -120,18 +136,27 @@ static int publish_service(struct userdata *u, struct service *s) {
     free_txt = 1;
 
     sw_text_record_add_key_and_string_value(txt, "device", s->name);
+
+    txt_record_server_data(u->core, txt);
     
     if (s->loaded.valid) {
-        char z[64];
+        char z[64], *description;
+        pa_typeid_t typeid;
         struct pa_sample_spec ss;
 
-        get_service_sample_spec(u, s, &ss);
+        get_service_data(u, s, &ss, &description, &typeid);
             
         snprintf(z, sizeof(z), "%u", ss.rate);
         sw_text_record_add_key_and_string_value(txt, "rate", z);
         snprintf(z, sizeof(z), "%u", ss.channels);
         sw_text_record_add_key_and_string_value(txt, "channels", z);
         sw_text_record_add_key_and_string_value(txt, "format", pa_sample_format_to_string(ss.format));
+
+        sw_text_record_add_key_and_string_value(txt, "description", description);
+
+        snprintf(z, sizeof(z), "0x%8x", typeid);
+        sw_text_record_add_key_and_string_value(txt, "typeid", z);
+        
         
         if (sw_discovery_publish(pa_howl_wrapper_get_discovery(u->howl_wrapper), 0, t,
                                  s->loaded.type == PA_NAMEREG_SINK ? SERVICE_NAME_SINK : SERVICE_NAME_SOURCE,

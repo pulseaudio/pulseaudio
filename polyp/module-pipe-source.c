@@ -50,6 +50,8 @@ PA_MODULE_USAGE("source_name=<name for the source> file=<path of the FIFO> forma
 #define DEFAULT_FIFO_NAME "/tmp/music.input"
 #define DEFAULT_SOURCE_NAME "fifo_input"
 
+#define PA_TYPEID_PIPE PA_TYPEID_MAKE('P', 'I', 'P', 'E')
+
 struct userdata {
     struct pa_core *core;
 
@@ -152,7 +154,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->filename = pa_xstrdup(p);
     u->core = c;
     
-    if (!(u->source = pa_source_new(c, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss))) {
+    if (!(u->source = pa_source_new(c, PA_TYPEID_PIPE, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss))) {
         pa_log(__FILE__": failed to create source.\n");
         goto fail;
     }

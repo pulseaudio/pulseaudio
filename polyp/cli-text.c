@@ -59,6 +59,7 @@ char *pa_client_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
     struct pa_client *client;
     uint32_t index = PA_IDXSET_INVALID;
+    char tid[5];
     assert(c);
 
     s = pa_strbuf_new();
@@ -67,7 +68,7 @@ char *pa_client_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u client(s) logged in.\n", pa_idxset_ncontents(c->clients));
     
     for (client = pa_idxset_first(c->clients, &index); client; client = pa_idxset_next(c->clients, &index)) {
-        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\tprotocol_name: <%s>\n", client->index, client->name, client->protocol_name);
+        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\ttype: <%s>\n", client->index, client->name, pa_typeid_to_string(client->typeid, tid, sizeof(tid)));
 
         if (client->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", client->owner->index);
@@ -80,6 +81,7 @@ char *pa_sink_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
     struct pa_sink *sink;
     uint32_t index = PA_IDXSET_INVALID;
+    char tid[5];
     assert(c);
 
     s = pa_strbuf_new();
@@ -93,9 +95,10 @@ char *pa_sink_list_to_string(struct pa_core *c) {
         assert(sink->monitor_source);
         pa_strbuf_printf(
             s,
-            "  %c index: %u\n\tname: <%s>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
+            "  %c index: %u\n\tname: <%s>\n\ttype: <%s>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index, sink->name,
+            pa_typeid_to_string(sink->typeid, tid, sizeof(tid)),
             (unsigned) sink->volume,
             pa_volume_to_dB(sink->volume),
             (float) pa_sink_get_latency(sink),
@@ -115,6 +118,7 @@ char *pa_source_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
     struct pa_source *source;
     uint32_t index = PA_IDXSET_INVALID;
+    char tid[5];
     assert(c);
 
     s = pa_strbuf_new();
@@ -125,10 +129,11 @@ char *pa_source_list_to_string(struct pa_core *c) {
     for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec);
-        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
+        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\ttype: <%s>\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
                          c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
                          source->index,
                          source->name,
+                         pa_typeid_to_string(source->typeid, tid, sizeof(tid)),
                          (float) pa_source_get_latency(source),
                          ss);
 
@@ -148,6 +153,7 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
     struct pa_source_output *o;
     uint32_t index = PA_IDXSET_INVALID;
+    char tid[5];
     static const char* const state_table[] = {
         "RUNNING",
         "CORKED",
@@ -170,9 +176,10 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
             rm = "invalid";
         
         pa_strbuf_printf(
-            s, "  index: %u\n\tname: '%s'\n\tstate: %s\n\tsource: <%u> '%s'\n\tsample_spec: <%s>\n\tresample method: %s\n",
+            s, "  index: %u\n\tname: '%s'\n\ttype: <%s>\n\tstate: %s\n\tsource: <%u> '%s'\n\tsample_spec: <%s>\n\tresample method: %s\n",
             o->index,
             o->name,
+            pa_typeid_to_string(o->typeid, tid, sizeof(tid)),
             state_table[o->state],
             o->source->index, o->source->name,
             ss,
@@ -190,6 +197,7 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
     struct pa_sink_input *i;
     uint32_t index = PA_IDXSET_INVALID;
+    char tid[5];
     static const char* const state_table[] = {
         "RUNNING",
         "CORKED",
@@ -212,9 +220,10 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
         pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
         assert(i->sink);
         pa_strbuf_printf(
-            s, "    index: %u\n\tname: <%s>\n\tstate: %s\n\tsink: <%u> '%s'\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n\tresample method: %s\n",
+            s, "    index: %u\n\tname: <%s>\n\ttype: <%s>\n\tstate: %s\n\tsink: <%u> '%s'\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n\tresample method: %s\n",
             i->index,
             i->name,
+            pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
             state_table[i->state],
             i->sink->index, i->sink->name,
             (unsigned) i->volume,

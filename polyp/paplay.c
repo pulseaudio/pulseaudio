@@ -40,7 +40,7 @@
 #include <polyp/mainloop-signal.h>
 #include <polyp/polyplib-version.h>
 
-#if PA_API_VERSION != 7
+#if PA_API_VERSION != 8
 #error Invalid Polypaudio API version
 #endif
 

@@ -56,6 +56,8 @@
 /* Don't accept more connection than this */
 #define MAX_CONNECTIONS 10
 
+#define PA_TYPEID_NATIVE PA_TYPEID_MAKE('N', 'A', 'T', 'V')
+
 struct connection;
 struct pa_protocol_native;
 
@@ -272,7 +274,7 @@ static struct record_stream* record_stream_new(struct connection *c, struct pa_s
     size_t base;
     assert(c && source && ss && name && maxlength);
 
-    if (!(source_output = pa_source_output_new(source, name, ss, -1)))
+    if (!(source_output = pa_source_output_new(source, PA_TYPEID_NATIVE, name, ss, -1)))
         return NULL;
 
     s = pa_xmalloc(sizeof(struct record_stream));
@@ -316,7 +318,7 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     struct pa_sink_input *sink_input;
     assert(c && sink && ss && name && maxlength);
 
-    if (!(sink_input = pa_sink_input_new(sink, name, ss, 0, -1)))
+    if (!(sink_input = pa_sink_input_new(sink, PA_TYPEID_NATIVE, name, ss, 0, -1)))
         return NULL;
     
     s = pa_xmalloc(sizeof(struct playback_stream));
@@ -1118,6 +1120,7 @@ static void sink_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink *sink) {
     pa_tagstruct_putu32(t, sink->monitor_source->index);
     pa_tagstruct_puts(t, sink->monitor_source->name);
     pa_tagstruct_put_usec(t, pa_sink_get_latency(sink));
+    pa_tagstruct_putu32(t, sink->typeid);
 }
 
 static void source_fill_tagstruct(struct pa_tagstruct *t, struct pa_source *source) {
@@ -1130,14 +1133,15 @@ static void source_fill_tagstruct(struct pa_tagstruct *t, struct pa_source *sour
     pa_tagstruct_putu32(t, source->monitor_of ? source->monitor_of->index : (uint32_t) -1);
     pa_tagstruct_puts(t, source->monitor_of ? source->monitor_of->name : NULL);
     pa_tagstruct_put_usec(t, pa_source_get_latency(source));
+    pa_tagstruct_putu32(t, source->typeid);
 }
 
 static void client_fill_tagstruct(struct pa_tagstruct *t, struct pa_client *client) {
     assert(t && client);
     pa_tagstruct_putu32(t, client->index);
     pa_tagstruct_puts(t, client->name);
-    pa_tagstruct_puts(t, client->protocol_name);
     pa_tagstruct_putu32(t, client->owner ? client->owner->index : (uint32_t) -1);
+    pa_tagstruct_putu32(t, client->typeid);
 }
 
 static void module_fill_tagstruct(struct pa_tagstruct *t, struct pa_module *module) {
@@ -1161,6 +1165,7 @@ static void sink_input_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink_inp
     pa_tagstruct_put_usec(t, pa_sink_input_get_latency(s));
     pa_tagstruct_put_usec(t, pa_sink_get_latency(s->sink));
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_sink_input_get_resample_method(s)));
+    pa_tagstruct_putu32(t, s->typeid);
 }
 
 static void source_output_fill_tagstruct(struct pa_tagstruct *t, struct pa_source_output *s) {
@@ -1174,6 +1179,7 @@ static void source_output_fill_tagstruct(struct pa_tagstruct *t, struct pa_sourc
     pa_tagstruct_put_usec(t, pa_source_output_get_latency(s));
     pa_tagstruct_put_usec(t, pa_source_get_latency(s->source));
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_source_output_get_resample_method(s)));
+    pa_tagstruct_putu32(t, s->typeid);
 }
 
 static void scache_fill_tagstruct(struct pa_tagstruct *t, struct pa_scache_entry *e) {
@@ -1366,6 +1372,9 @@ static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, u
     pa_tagstruct_puts(reply, n);
     n = pa_namereg_get_default_source_name(c->protocol->core);
     pa_tagstruct_puts(reply, n);
+
+    pa_tagstruct_putu32(reply, c->protocol->core->cookie);
+    
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -2022,7 +2031,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     
     c->protocol = p;
     assert(p->core);
-    c->client = pa_client_new(p->core, "NATIVE", "Client");
+    c->client = pa_client_new(p->core, PA_TYPEID_NATIVE, "Client");
     assert(c->client);
     c->client->kill = client_kill_cb;
     c->client->userdata = c;

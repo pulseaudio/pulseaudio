@@ -30,6 +30,7 @@ struct pa_sink;
 #include "sample.h"
 #include "idxset.h"
 #include "source.h"
+#include "typeid.h"
 
 #define PA_MAX_INPUTS_PER_SINK 6
 
@@ -43,6 +44,7 @@ struct pa_sink {
     enum pa_sink_state state;
     
     uint32_t index;
+    pa_typeid_t typeid;
 
     char *name, *description;
     struct pa_module *owner;
@@ -59,7 +61,7 @@ struct pa_sink {
     void *userdata;
 };
 
-struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec);
+struct pa_sink* pa_sink_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec);
 void pa_sink_disconnect(struct pa_sink* s);
 void pa_sink_unref(struct pa_sink*s);
 struct pa_sink* pa_sink_ref(struct pa_sink *s);

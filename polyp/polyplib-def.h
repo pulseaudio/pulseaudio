@@ -26,8 +26,8 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include "cdecl.h"
-#include "sample.h"
+#include <polyp/cdecl.h>
+#include <polyp/sample.h>
 
 /** \file
  * Global definitions */

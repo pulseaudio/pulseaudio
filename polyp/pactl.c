@@ -41,7 +41,7 @@
 #include <polyp/mainloop-signal.h>
 #include <polyp/sample.h>
 
-#if PA_API_VERSION != 7
+#if PA_API_VERSION != 8
 #error Invalid Polypaudio API version
 #endif
 
@@ -134,20 +134,22 @@ static void get_server_info_callback(struct pa_context *c, const struct pa_serve
            "Server Version: %s\n"
            "Default Sample Specification: %s\n"
            "Default Sink: %s\n"
-           "Default Source: %s\n",
+           "Default Source: %s\n"
+           "Cookie: %08x\n",
            i->user_name,
            i->host_name,
            i->server_name,
            i->server_version,
            s,
            i->default_sink_name,
-           i->default_source_name);
+           i->default_source_name,
+           i->cookie);
 
     complete_action();
 }
 
 static void get_sink_info_callback(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata) {
-    char s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], tid[5];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get sink information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -170,6 +172,7 @@ static void get_sink_info_callback(struct pa_context *c, const struct pa_sink_in
     
     printf("*** Sink #%u ***\n"
            "Name: %s\n"
+           "Type: %s\n"
            "Description: %s\n"
            "Sample Specification: %s\n"
            "Owner Module: %u\n"
@@ -178,16 +181,18 @@ static void get_sink_info_callback(struct pa_context *c, const struct pa_sink_in
            "Latency: %0.0f usec\n",
            i->index,
            i->name,
+           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
            i->description,
            s,
            i->owner_module,
            i->volume, pa_volume_to_dB(i->volume),
            i->monitor_source,
            (double) i->latency);
+
 }
 
 static void get_source_info_callback(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata) {
-    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], t[32];
+    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], t[32], tid[5];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get source information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -212,18 +217,21 @@ static void get_source_info_callback(struct pa_context *c, const struct pa_sourc
     
     printf("*** Source #%u ***\n"
            "Name: %s\n"
+           "Type: %s\n"
            "Description: %s\n"
            "Sample Specification: %s\n"
            "Owner Module: %u\n"
            "Monitor of Sink: %s\n"
            "Latency: %0.0f usec\n",
            i->index,
+           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
            i->name,
            i->description,
            s,
            i->owner_module,
            i->monitor_of_sink != PA_INVALID_INDEX ? t : "no",
            (double) i->latency);
+    
 }
 
 static void get_module_info_callback(struct pa_context *c, const struct pa_module_info *i, int is_last, void *userdata) {
@@ -261,7 +269,7 @@ static void get_module_info_callback(struct pa_context *c, const struct pa_modul
 }
 
 static void get_client_info_callback(struct pa_context *c, const struct pa_client_info *i, int is_last, void *userdata) {
-    char t[32];
+    char t[32], tid[5];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get client information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -284,16 +292,16 @@ static void get_client_info_callback(struct pa_context *c, const struct pa_clien
     
     printf("*** Client #%u ***\n"
            "Name: %s\n"
-           "Owner Module: %s\n"
-           "Protocol Name: %s\n",
+           "Type: %s\n"
+           "Owner Module: %s\n",
            i->index,
            i->name,
-           i->owner_module != PA_INVALID_INDEX ? t : "n/a",
-           i->protocol_name);
+           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
+           i->owner_module != PA_INVALID_INDEX ? t : "n/a");
 }
 
 static void get_sink_input_info_callback(struct pa_context *c, const struct pa_sink_input_info *i, int is_last, void *userdata) {
-    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], tid[5];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get sink input information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -318,6 +326,7 @@ static void get_sink_input_info_callback(struct pa_context *c, const struct pa_s
     
     printf("*** Sink Input #%u ***\n"
            "Name: %s\n"
+           "Type: %s\n"
            "Owner Module: %s\n"
            "Client: %s\n"
            "Sink: %u\n"
@@ -328,6 +337,7 @@ static void get_sink_input_info_callback(struct pa_context *c, const struct pa_s
            "Resample method: %s\n",
            i->index,
            i->name,
+           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
            i->owner_module != PA_INVALID_INDEX ? t : "n/a",
            i->client != PA_INVALID_INDEX ? k : "n/a",
            i->sink,
@@ -338,8 +348,9 @@ static void get_sink_input_info_callback(struct pa_context *c, const struct pa_s
            i->resample_method ? i->resample_method : "n/a");
 }
 
+
 static void get_source_output_info_callback(struct pa_context *c, const struct pa_source_output_info *i, int is_last, void *userdata) {
-    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], tid[5];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get source output information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -364,6 +375,7 @@ static void get_source_output_info_callback(struct pa_context *c, const struct p
     
     printf("*** Source Output #%u ***\n"
            "Name: %s\n"
+           "Type: %s\n"
            "Owner Module: %s\n"
            "Client: %s\n"
            "Source: %u\n"
@@ -373,6 +385,7 @@ static void get_source_output_info_callback(struct pa_context *c, const struct p
            "Resample method: %s\n",
            i->index,
            i->name,
+           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
            i->owner_module != PA_INVALID_INDEX ? t : "n/a",
            i->client != PA_INVALID_INDEX ? k : "n/a",
            i->source,

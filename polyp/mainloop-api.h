@@ -25,7 +25,7 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include "cdecl.h"
+#include <polyp/cdecl.h>
 
 /** \file
  * 

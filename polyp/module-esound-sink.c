@@ -52,6 +52,8 @@ PA_MODULE_USAGE("sink_name=<name for the sink> server=<address> cookie=<filename
 
 #define DEFAULT_SINK_NAME "esound_output"
 
+#define PA_TYPEID_ESOUND_SINK PA_TYPEID_MAKE('E', 'S', 'D', 'S')
+
 struct userdata {
     struct pa_core *core;
 
@@ -352,7 +354,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->state = STATE_AUTH;
     u->latency = 0;
 
-    if (!(u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
+    if (!(u->sink = pa_sink_new(c, PA_TYPEID_ESOUND_SINK, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
         pa_log(__FILE__": failed to create sink.\n");
         goto fail;
     }

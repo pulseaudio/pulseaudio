@@ -26,7 +26,7 @@
 #include <sys/types.h>
 #include <math.h>
 
-#include "cdecl.h"
+#include <polyp/cdecl.h>
 
 /** \file
  * Constants and routines for sample type handling */
@@ -86,7 +86,7 @@ int pa_sample_spec_valid(const struct pa_sample_spec *spec);
 /** Return non-zero when the two sample type specifications match */
 int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b);
 
-/* Return a descriptive string for the specified sample format. \since 0.7.1 */
+/* Return a descriptive string for the specified sample format. \since 0.8 */
 const char *pa_sample_format_to_string(enum pa_sample_format f);
 
 /** Maximum required string length for pa_sample_spec_snprint() */
