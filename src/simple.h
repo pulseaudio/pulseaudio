@@ -21,6 +21,8 @@ struct pa_simple* pa_simple_new(
 void pa_simple_free(struct pa_simple *s);
 
 int pa_simple_write(struct pa_simple *s, const void*data, size_t length, int *error);
+int pa_simple_drain(struct pa_simple *s, int *error);
+
 int pa_simple_read(struct pa_simple *s, void*data, size_t length, int *error);
 
 #endif

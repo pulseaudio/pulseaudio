@@ -11,23 +11,25 @@ struct pa_simple {
     struct pa_context *context;
     struct pa_stream *stream;
 
-    int dead;
+    int dead, drained;
 };
 
 static int iterate(struct pa_simple *p, int block, int *perror) {
-    assert(p && p->context && p->mainloop && perror);
+    assert(p && p->context && p->mainloop);
 
     if (!block && !pa_context_is_pending(p->context))
         return 0;
     
     do {
         if (pa_context_is_dead(p->context) || (p->stream && pa_stream_is_dead(p->stream))) {
-            *perror = pa_context_errno(p->context);
+            if (perror)
+                *perror = pa_context_errno(p->context);
             return -1;
         }
         
         if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0) {
-            *perror = PA_ERROR_INTERNAL;
+            if (perror)
+                *perror = PA_ERROR_INTERNAL;
             return -1;
         }
     } while (pa_context_is_pending(p->context));
@@ -83,7 +85,8 @@ struct pa_simple* pa_simple_new(
     return p;
     
 fail:
-    *perror = error;
+    if (perror)
+        *perror = error;
     pa_simple_free(p);
     return NULL;
 }
@@ -132,3 +135,24 @@ int pa_simple_read(struct pa_simple *s, void*data, size_t length, int *perror) {
     assert(0);
 }
 
+
+static void drain_complete(struct pa_stream *s, void *userdata) {
+    struct pa_simple *p = userdata;
+    assert(s && p);
+    p->drained = 1;
+}
+
+int pa_simple_drain(struct pa_simple *p, int *perror) {
+    assert(p);
+    p->drained = 0;
+    pa_stream_drain(p->stream, drain_complete, p);
+
+    while (!p->drained) {
+        if (iterate(p, 1, perror) < 0) {
+            pa_stream_drain(p->stream, NULL, NULL);
+            return -1;
+        }
+    }
+
+    return 0;
+}

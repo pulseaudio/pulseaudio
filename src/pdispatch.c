@@ -18,6 +18,7 @@ static const char *command_names[PA_COMMAND_MAX] = {
     [PA_COMMAND_SET_NAME] = "SET_NAME",
     [PA_COMMAND_LOOKUP_SINK] = "LOOKUP_SINK",
     [PA_COMMAND_LOOKUP_SOURCE] = "LOOKUP_SOURCE",
+    [PA_COMMAND_DRAIN_PLAYBACK_STREAM] = "DRAIN_PLAYBACK_STREAM",
 };
 
 struct reply_info {
@@ -27,6 +28,7 @@ struct reply_info {
     void *userdata;
     uint32_t tag;
     void *mainloop_timeout;
+    int callback_is_running;
 };
 
 struct pa_pdispatch {
@@ -77,7 +79,7 @@ struct pa_pdispatch* pa_pdispatch_new(struct pa_mainloop_api *mainloop, const st
 
 void pa_pdispatch_free(struct pa_pdispatch *pd) {
     assert(pd);
-
+    
     if (pd->in_use) {
         pd->shall_free = 1;
         return;
@@ -109,25 +111,23 @@ int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *use
     if (command == PA_COMMAND_ERROR || command == PA_COMMAND_REPLY) {
         struct reply_info *r;
 
-        for (r = pd->replies; r; r = r->next) {
-            if (r->tag != tag)
-                continue;
-            
-            pd->in_use = 1;
+        for (r = pd->replies; r; r = r->next)
+            if (r->tag == tag)
+                break;
+
+        if (r) {
+            pd->in_use = r->callback_is_running = 1;
             assert(r->callback);
             r->callback(r->pdispatch, command, tag, ts, r->userdata);
-            pd->in_use = 0;
+            pd->in_use = r->callback_is_running = 0;
             reply_info_free(r);
             
-            if (pd->shall_free) {
+            if (pd->shall_free)
                 pa_pdispatch_free(pd);
-                break;
+            else {
+                if (pd->drain_callback && !pa_pdispatch_is_pending(pd))
+                    pd->drain_callback(pd, pd->drain_userdata);
             }
-
-            if (pd->drain_callback && !pa_pdispatch_is_pending(r->pdispatch))
-                pd->drain_callback(r->pdispatch, r->pdispatch->drain_userdata);
-
-            break;
         }
 
     } else if (pd->command_table && command < pd->n_commands) {
@@ -169,7 +169,8 @@ void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int time
     r->callback = cb;
     r->userdata = userdata;
     r->tag = tag;
-
+    r->callback_is_running = 0;
+    
     gettimeofday(&tv, NULL);
     tv.tv_sec += timeout;
 
@@ -195,4 +196,16 @@ void pa_pdispatch_set_drain_callback(struct pa_pdispatch *pd, void (*cb)(struct 
 
     pd->drain_callback = cb;
     pd->drain_userdata = userdata;
+}
+
+void pa_pdispatch_unregister_reply(struct pa_pdispatch *pd, void *userdata) {
+    struct reply_info *r, *n;
+    assert(pd);
+
+    for (r = pd->replies; r; r = n) {
+        n = r->next;
+
+        if (!r->callback_is_running && r->userdata == userdata) /* when this item's callback is currently running it is destroyed anyway in the very near future */
+            reply_info_free(r);
+    }
 }

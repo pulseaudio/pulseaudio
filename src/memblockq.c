@@ -228,7 +228,7 @@ void pa_memblockq_empty(struct pa_memblockq *bq) {
 int pa_memblockq_is_readable(struct pa_memblockq *bq) {
     assert(bq);
 
-    return bq->current_length >= bq->prebuf;
+    return bq->current_length && (bq->current_length >= bq->prebuf);
 }
 
 int pa_memblockq_is_writable(struct pa_memblockq *bq, size_t length) {

@@ -25,4 +25,7 @@ int pa_pdispatch_is_pending(struct pa_pdispatch *pd);
 
 void pa_pdispatch_set_drain_callback(struct pa_pdispatch *pd, void (*cb)(struct pa_pdispatch *pd, void *userdata), void *userdata);
 
+/* Remove all reply slots with the give userdata parameter */
+void pa_pdispatch_unregister_reply(struct pa_pdispatch *pd, void *userdata);
+
 #endif

@@ -41,6 +41,12 @@ int main(int argc, char*argv[]) {
         }
     }
 
+    /* Make sure that every single sample way played */
+    if (pa_simple_drain(s, &error) < 0) {
+        fprintf(stderr, __FILE__": pa_simple_drain() failed: %s\n", pa_strerror(error));
+        goto finish;
+    }
+
     ret = 0;
 
 finish:

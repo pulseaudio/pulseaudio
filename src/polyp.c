@@ -75,6 +75,9 @@ struct pa_stream {
     
     void (*create_complete_callback)(struct pa_stream *s, int success, void *userdata);
     void *create_complete_userdata;
+
+    void (*drain_complete_callback)(struct pa_stream *s, void *userdata);
+    void *drain_complete_userdata;
     
     void (*die_callback)(struct pa_stream*c, void *userdata);
     void *die_userdata;
@@ -538,8 +541,10 @@ struct pa_stream* pa_stream_new(
 void pa_stream_free(struct pa_stream *s) {
     assert(s && s->context);
 
-    free(s->name);
+    pa_pdispatch_unregister_reply(s->context->pdispatch, s);
     
+    free(s->name);
+
     if (s->channel_valid && s->context->state == CONTEXT_READY) {
         struct pa_tagstruct *t = pa_tagstruct_new(NULL, 0);
         assert(t);
@@ -682,4 +687,58 @@ int pa_context_drain(
     set_dispatch_callbacks(c);
 
     return 0;
+}
+
+static void stream_drain_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_stream *s = userdata;
+    assert(pd && s);
+    
+    if (command != PA_COMMAND_REPLY) {
+        if (handle_error(s->context, command, t) < 0) {
+            context_dead(s->context);
+            return;
+        }
+
+        stream_dead(s);
+        return;
+    }
+
+    if (s->state != STREAM_READY)
+        return;
+
+    if (!pa_tagstruct_eof(t)) {
+        s->context->error = PA_ERROR_PROTOCOL;
+        context_dead(s->context);
+        return;
+    }
+
+    if (s->drain_complete_callback) {
+        void (*temp) (struct pa_stream*s, void *userdata) = s->drain_complete_callback;
+        s->drain_complete_callback = NULL;
+        temp(s, s->drain_complete_userdata);
+    }
+}
+
+
+void pa_stream_drain(struct pa_stream *s, void (*complete) (struct pa_stream*s, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(s && s->state == STREAM_READY);
+
+    if (!complete) {
+        s->drain_complete_callback = NULL;
+        return;
+    }
+
+    s->drain_complete_callback = complete;
+    s->drain_complete_userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    
+    pa_tagstruct_putu32(t, PA_COMMAND_DRAIN_PLAYBACK_STREAM);
+    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    pa_tagstruct_putu32(t, s->channel);
+    pa_pstream_send_tagstruct(s->context->pstream, t);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_drain_callback, s);
 }

@@ -32,6 +32,8 @@ struct playback_stream {
     struct pa_sink_input *sink_input;
     struct pa_memblockq *memblockq;
     size_t requested_bytes;
+    int drain_request;
+    uint32_t drain_tag;
 };
 
 struct connection {
@@ -61,6 +63,7 @@ static void request_bytes(struct playback_stream*s);
 static void command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_delete_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_drain_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
@@ -71,6 +74,7 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REPLY] = { NULL },
     [PA_COMMAND_CREATE_PLAYBACK_STREAM] = { command_create_playback_stream },
     [PA_COMMAND_DELETE_PLAYBACK_STREAM] = { command_delete_playback_stream },
+    [PA_COMMAND_DRAIN_PLAYBACK_STREAM] = { command_drain_playback_stream },
     [PA_COMMAND_CREATE_RECORD_STREAM] = { NULL },
     [PA_COMMAND_DELETE_RECORD_STREAM] = { NULL },
     [PA_COMMAND_AUTH] = { command_auth },
@@ -116,6 +120,7 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     assert(s->memblockq);
 
     s->requested_bytes = 0;
+    s->drain_request = 0;
     
     pa_idxset_put(c->playback_streams, s, &s->index);
     return s;
@@ -123,6 +128,9 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
 
 static void playback_stream_free(struct playback_stream* p) {
     assert(p && p->connection);
+
+    if (p->drain_request)
+        pa_pstream_send_error(p->connection->pstream, p->drain_tag, PA_ERROR_NOENTITY);
 
     pa_idxset_remove_by_data(p->connection->playback_streams, p, NULL);
     pa_sink_input_free(p->sink_input);
@@ -199,6 +207,11 @@ static void sink_input_drop_cb(struct pa_sink_input *i, size_t length) {
 
     pa_memblockq_drop(s->memblockq, length);
     request_bytes(s);
+
+    if (s->drain_request && !pa_memblockq_is_readable(s->memblockq)) {
+        pa_pstream_send_simple_ack(s->connection->pstream, s->drain_tag);
+        s->drain_request = 0;
+    }
 }
 
 static void sink_input_kill_cb(struct pa_sink_input *i) {
@@ -258,7 +271,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
 
     if (!sink) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERROR_EXIST);
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
         return;
     }
     
@@ -373,6 +386,11 @@ static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t t
         return;
     }
 
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
     if (command == PA_COMMAND_LOOKUP_SINK) {
         struct pa_sink *sink;
         if ((sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK)))
@@ -396,6 +414,38 @@ static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t t
         pa_pstream_send_tagstruct(c->pstream, reply);
     }
 }
+
+static void command_drain_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    struct playback_stream *s;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (!(s = pa_idxset_get_by_index(c->playback_streams, index))) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    s->drain_request = 0;
+    
+    if (!pa_memblockq_is_readable(s->memblockq))
+        pa_pstream_send_simple_ack(c->pstream, tag);
+    else {
+        s->drain_request = 1;
+        s->drain_tag = tag;
+    }
+} 
 
 /*** pstream callbacks ***/
 

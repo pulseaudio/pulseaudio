@@ -46,6 +46,12 @@ struct pa_stream* pa_stream_new(
 
 void pa_stream_free(struct pa_stream *p);
 
+void pa_stream_drain(
+    struct pa_stream *s, 
+    void (*complete) (struct pa_stream*s, void *userdata),
+    void *userdata);
+
+
 void pa_stream_set_die_callback(struct pa_stream *s, void (*cb)(struct pa_stream *s, void *userdata), void *userdata);
 
 void pa_stream_set_write_callback(struct pa_stream *p, void (*cb)(struct pa_stream *p, size_t length, void *userdata), void *userdata);

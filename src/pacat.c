@@ -117,6 +117,18 @@ static void context_drain_complete(struct pa_context*c, void *userdata) {
     quit(0);
 }
 
+static void stream_drain_complete(struct pa_stream*s, void *userdata) {
+    fprintf(stderr, "Playback stream drained.\n");
+
+    pa_stream_free(stream);
+    stream = NULL;
+    
+    if (pa_context_drain(context, context_drain_complete, NULL) < 0)
+        quit(0);
+    else
+        fprintf(stderr, "Draining connection to server.\n");
+}
+
 static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
     size_t l, w = 0;
     ssize_t r;
@@ -135,10 +147,7 @@ static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_m
     if ((r = read(fd, buffer, l)) <= 0) {
         if (r == 0) {
             fprintf(stderr, "Got EOF.\n");
-            if (pa_context_drain(context, context_drain_complete, NULL) < 0)
-                quit(0);
-            else
-                fprintf(stderr, "Draining connection to server.\n");
+            pa_stream_drain(stream, stream_drain_complete, NULL);
         } else {
             fprintf(stderr, "read() failed: %s\n", strerror(errno));
             quit(1);

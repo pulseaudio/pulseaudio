@@ -1,6 +1,5 @@
 - recording (general, simple, esound, native)
 - native library/protocol:
-       sync() function
        more functions (esp. latency)
 - simple library
 
