@@ -99,6 +99,19 @@ static int iterate(struct pa_simple *p, int block, int *perror) {
         
     } while (pa_context_is_pending(p->context));
 
+    
+    while (pa_mainloop_deferred_pending(p->mainloop)) {
+
+        if (pa_mainloop_iterate(p->mainloop, 0, NULL) < 0) {
+            if (perror)
+                *perror = PA_ERROR_INTERNAL;
+            return -1;
+        }
+
+        if (check_error(p, perror) < 0)
+            return -1;
+    }
+    
     return 0;
 }
 

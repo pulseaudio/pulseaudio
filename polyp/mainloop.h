@@ -59,6 +59,9 @@ int pa_mainloop_run(struct pa_mainloop *m, int *retval);
 /** Return the abstract main loop abstraction layer vtable for this main loop. This calls pa_mainloop_iterate() iteratively.*/
 struct pa_mainloop_api* pa_mainloop_get_api(struct pa_mainloop*m);
 
+/** Return non-zero when there are any deferred events pending. \since 0.5 */
+int pa_mainloop_deferred_pending(struct pa_mainloop *m);
+
 PA_C_DECL_END
 
 #endif

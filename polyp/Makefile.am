@@ -334,7 +334,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		llist.h \
 		log.c log.h \
 		gcc-printf.h \
-        	client-conf.c client-conf.h \
+		client-conf.c client-conf.h \
 		conf-parser.c conf-parser.h
 
 libpolyp_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
@@ -366,11 +366,11 @@ pactl_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMI
 pactl_CFLAGS = $(AM_CFLAGS) $(LIBSDNFILE_CFLAGS)
 
 pacat_simple_SOURCES = pacat-simple.c
-pacat_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la
+pacat_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
 
 parec_simple_SOURCES = parec-simple.c
-parec_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la
+parec_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
 
 mainloop_test_SOURCES = mainloop-test.c
@@ -541,7 +541,7 @@ esdcompat.sh: esdcompat.sh.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
 		-e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
-		
+
 client.conf: client.conf.in Makefile
 	sed -e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
 

@@ -12,7 +12,6 @@
 - make mcalign merge chunks
 - option to use default fragment size on alsa drivers
 - improve module-oss-mmap latency measurement
-- new mainloop method: defer_pending()
 
 ** later ***
 - xmlrpc/http

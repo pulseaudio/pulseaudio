@@ -79,6 +79,8 @@ struct pa_mainloop {
 
     int quit, running, retval;
     struct pa_mainloop_api api;
+
+    int deferred_pending;
 };
 
 /* IO events */
@@ -147,17 +149,32 @@ struct pa_defer_event* mainloop_defer_new(struct pa_mainloop_api*a, void (*callb
     e->destroy_callback = NULL;
 
     pa_idxset_put(m->defer_events, e, NULL);
+
+    m->deferred_pending++;
     return e;
 }
 
 static void mainloop_defer_enable(struct pa_defer_event *e, int b) {
     assert(e);
+
+    if (e->enabled && !b) {
+        assert(e->mainloop->deferred_pending > 0);
+        e->mainloop->deferred_pending--;
+    } else if (!e->enabled && b)
+        e->mainloop->deferred_pending++;
+    
     e->enabled = b;
 }
 
 static void mainloop_defer_free(struct pa_defer_event *e) {
     assert(e);
     e->dead = e->mainloop->defer_events_scan_dead = 1;
+
+    if (e->enabled) {
+        e->enabled = 0;
+        assert(e->mainloop->deferred_pending > 0);
+        e->mainloop->deferred_pending--;
+    }
 }
 
 static void mainloop_defer_set_destroy(struct pa_defer_event *e, void (*callback)(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata)) {
@@ -265,6 +282,8 @@ struct pa_mainloop *pa_mainloop_new(void) {
 
     m->api = vtable;
     m->api.userdata = m;
+
+    m->deferred_pending = 0;
     
     return m;
 }
@@ -383,7 +402,7 @@ static int dispatch_pollfds(struct pa_mainloop *m) {
     struct pa_io_event *e;
     int r = 0;
 
-    for (e = pa_idxset_first(m->io_events, &index); e; e = pa_idxset_next(m->io_events, &index)) {
+    for (e = pa_idxset_first(m->io_events, &index); e && !m->quit; e = pa_idxset_next(m->io_events, &index)) {
         if (e->dead || !e->pollfd || !e->pollfd->revents)
             continue;
         
@@ -406,7 +425,7 @@ static int dispatch_defer(struct pa_mainloop *m) {
     struct pa_defer_event *e;
     int r = 0;
 
-    for (e = pa_idxset_first(m->defer_events, &index); e; e = pa_idxset_next(m->defer_events, &index)) {
+    for (e = pa_idxset_first(m->defer_events, &index); e && !m->quit; e = pa_idxset_next(m->defer_events, &index)) {
         if (e->dead || !e->enabled)
             continue;
  
@@ -470,7 +489,7 @@ static int dispatch_timeout(struct pa_mainloop *m) {
     if (pa_idxset_isempty(m->time_events))
         return 0;
 
-    for (e = pa_idxset_first(m->time_events, &index); e; e = pa_idxset_next(m->time_events, &index)) {
+    for (e = pa_idxset_first(m->time_events, &index); e && !m->quit; e = pa_idxset_next(m->time_events, &index)) {
         
         if (e->dead || !e->enabled)
             continue;
@@ -498,17 +517,17 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
     int r, t, dispatched = 0;
     assert(m && !m->running);
     
-    if(m->quit) {
-        if (retval)
-            *retval = m->retval;
-        return -2;
-    }
-
     m->running = 1;
+
+    if(m->quit)
+        goto quit;
 
     scan_dead(m);
     dispatched += dispatch_defer(m);
 
+    if(m->quit)
+        goto quit;
+    
     if (m->rebuild_pollfds) {
         rebuild_pollfds(m);
         m->rebuild_pollfds = 0;
@@ -524,9 +543,16 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
             pa_log(__FILE__": select(): %s\n", strerror(errno));
     } else {
         dispatched += dispatch_timeout(m);
+
+        if(m->quit)
+            goto quit;
         
-        if (r > 0)
+        if (r > 0) {
             dispatched += dispatch_pollfds(m);
+
+            if(m->quit)
+                goto quit;
+        }
     }
     
     m->running = 0;
@@ -534,6 +560,15 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
 /*     pa_log("dispatched: %i\n", dispatched); */
     
     return r < 0 ? -1 : dispatched;
+
+quit:
+
+    m->running = 0;
+    
+    if (retval) 
+        *retval = m->retval;
+    
+    return -2;
 }
 
 int pa_mainloop_run(struct pa_mainloop *m, int *retval) {
@@ -556,4 +591,9 @@ void pa_mainloop_quit(struct pa_mainloop *m, int r) {
 struct pa_mainloop_api* pa_mainloop_get_api(struct pa_mainloop*m) {
     assert(m);
     return &m->api;
+}
+
+int pa_mainloop_deferred_pending(struct pa_mainloop *m) {
+    assert(m);
+    return m->deferred_pending > 0;
 }
