@@ -565,7 +565,7 @@ pax11publish_LDADD = $(AM_LDADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
 
 libpolyp_@PA_MAJORMINOR@_la_CFLAGS += $(X_CFLAGS)
 libpolyp_@PA_MAJORMINOR@_la_LDFLAGS += $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
-libpolyp_@PA_MAJORMINOR@_la_SOURCES += x11prop.c client-conf-x11.c
+libpolyp_@PA_MAJORMINOR@_la_SOURCES += x11prop.c x11prop.h client-conf-x11.c client-conf-x11.h
 
 endif
 

@@ -77,13 +77,16 @@ AC_FUNC_MMAP
 AC_FUNC_REALLOC
 AC_FUNC_SETPGRP
 AC_FUNC_VPRINTF
+AC_FUNC_CLOSEDIR_VOID
+AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_TYPE_UID_T
-AC_CHECK_FUNCS([gethostname gettimeofday memchr memmove memset mkdir mkfifo munmap rmdir socket strcspn strerror strrchr strspn strstr strtol strtoul strcasecmp putenv strchr strpbrk strdup getgrgid_r getpwuid_r regcomp])
+AC_CHECK_FUNCS([gethostname gettimeofday memchr memmove memset mkdir mkfifo munmap rmdir socket strcspn strerror strrchr strspn strstr strtol strtoul strcasecmp putenv strchr strpbrk strdup getgrgid_r getpwuid_r regcomp ftruncate select])
 AC_CHECK_LIB(m, pow)
 AC_CHECK_FUNCS(pow)
 AC_FUNC_STAT
 AC_HEADER_SYS_WAIT
+AC_HEADER_DIRENT
 
 AC_C_BIGENDIAN
 AC_FUNC_GETGROUPS
