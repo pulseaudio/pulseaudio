@@ -236,6 +236,8 @@ static int pa_cli_command_stat(struct pa_core *c, struct pa_tokenizer *t, struct
                      "Default source name: %s\n",
                      pa_namereg_get_default_sink_name(c),
                      pa_namereg_get_default_source_name(c));
+
+    
     
     return 0;
 }

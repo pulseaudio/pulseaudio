@@ -84,7 +84,7 @@ void pa_cmdline_help(const char *argv0) {
     else
         e = argv0;
     
-    printf("%s [options]\n"
+    printf("%s [options]\n\n"
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n"
            "      --dump-conf                       Dump default configuration\n"

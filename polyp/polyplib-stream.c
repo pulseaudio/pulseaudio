@@ -194,7 +194,7 @@ void pa_create_stream_callback(struct pa_pdispatch *pd, uint32_t command, uint32
 
     if (pa_tagstruct_getu32(t, &s->channel) < 0 ||
         ((s->direction != PA_STREAM_UPLOAD) && pa_tagstruct_getu32(t, &s->device_index) < 0) ||
-        ((s->direction == PA_STREAM_PLAYBACK) && pa_tagstruct_getu32(t, &s->requested_bytes) < 0) ||
+        ((s->direction != PA_STREAM_RECORD) && pa_tagstruct_getu32(t, &s->requested_bytes) < 0) ||
         !pa_tagstruct_eof(t)) {
         pa_context_fail(s->context, PA_ERROR_PROTOCOL);
         goto finish;
@@ -245,7 +245,7 @@ static void create_stream(struct pa_stream *s, const char *dev, const struct pa_
     pa_tagstruct_puts(t, s->name);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
-    pa_tagstruct_puts(t, dev ? dev : "");
+    pa_tagstruct_puts(t, dev);
     pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
     if (s->direction == PA_STREAM_PLAYBACK) {
         pa_tagstruct_putu32(t, s->buffer_attr.tlength);
@@ -535,7 +535,6 @@ struct pa_operation* pa_stream_send_simple_command(struct pa_stream *s, uint32_t
 
     return pa_operation_ref(o);
 }
-
 
 struct pa_operation* pa_stream_flush(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata) {
     return pa_stream_send_simple_command(s, PA_COMMAND_FLUSH_PLAYBACK_STREAM, cb, userdata);

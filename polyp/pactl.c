@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <getopt.h>
 
 #include <sndfile.h>
 
@@ -45,14 +46,16 @@
 static struct pa_context *context = NULL;
 static struct pa_mainloop_api *mainloop_api = NULL;
 
-static char **process_argv = NULL;
+static char *device = NULL, *sample_name = NULL;
 
 static SNDFILE *sndfile = NULL;
 static struct pa_stream *sample_stream = NULL;
 static struct pa_sample_spec sample_spec;
 static size_t sample_length = 0;
 
-static char *sample_name = NULL;
+static int actions = 1;
+
+static int nl = 0;
 
 static enum {
     NONE,
@@ -60,7 +63,8 @@ static enum {
     STAT,
     UPLOAD_SAMPLE,
     PLAY_SAMPLE,
-    REMOVE_SAMPLE
+    REMOVE_SAMPLE,
+    LIST
 } action = NONE;
 
 static void quit(int ret) {
@@ -81,37 +85,373 @@ static void drain(void) {
         pa_operation_unref(o);
 }
 
+
+static void complete_action(void) {
+    assert(actions > 0);
+
+    if (!(--actions))
+        drain();
+}
+
 static void stat_callback(struct pa_context *c, const struct pa_stat_info *i, void *userdata) {
+    char s[128];
     if (!i) {
         fprintf(stderr, "Failed to get statistics: %s\n", pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
+
+    pa_bytes_snprint(s, sizeof(s), i->memblock_total_size);
+    printf("Currently in use: %u blocks containing %s bytes total.\n", i->memblock_total, s);
+
+    pa_bytes_snprint(s, sizeof(s), i->memblock_allocated_size);
+    printf("Allocated during whole lifetime: %u blocks containing %s bytes total.\n", i->memblock_allocated, s);
+
+    pa_bytes_snprint(s, sizeof(s), i->scache_size);
+    printf("Sample cache size: %s\n", s);
     
-    fprintf(stderr, "Currently in use: %u blocks containing %u bytes total.\n"
-            "Allocated during whole lifetime: %u blocks containing %u bytes total.\n",
-            i->memblock_total, i->memblock_total_size, i->memblock_allocated, i->memblock_allocated_size);
-    drain();
+    complete_action();
 }
 
-static void play_sample_callback(struct pa_context *c, int success, void *userdata) {
-    if (!success) {
-        fprintf(stderr, "Failed to play sample: %s\n", pa_strerror(pa_context_errno(c)));
+static void get_server_info_callback(struct pa_context *c, const struct pa_server_info *i, void *useerdata) {
+    char s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    
+    if (!i) {
+        fprintf(stderr, "Failed to get server information: %s\n", pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
 
-    drain();
+    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
+
+    printf("User name: %s\n"
+           "Host Name: %s\n"
+           "Server Name: %s\n"
+           "Server Version: %s\n"
+           "Default Sample Specification: %s\n"
+           "Default Sink: %s\n"
+           "Default Source: %s\n",
+           i->user_name,
+           i->host_name,
+           i->server_name,
+           i->server_version,
+           s,
+           i->default_sink_name,
+           i->default_source_name);
+
+    complete_action();
 }
 
-static void remove_sample_callback(struct pa_context *c, int success, void *userdata) {
-    if (!success) {
-        fprintf(stderr, "Failed to remove sample: %s\n", pa_strerror(pa_context_errno(c)));
+static void get_sink_info_callback(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata) {
+    char s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+
+    if (is_last < 0) {
+        fprintf(stderr, "Failed to get sink information: %s\n", pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
 
-    drain();
+    if (is_last) {
+        complete_action();
+        return;
+    }
+    
+    assert(i);
+
+    if (nl)
+        printf("\n");
+    nl = 1;
+
+    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
+    
+    printf("*** Sink #%u ***\n"
+           "Name: %s\n"
+           "Description: %s\n"
+           "Sample Specification: %s\n"
+           "Owner Module: %u\n"
+           "Volume: 0x%03x (%0.2f dB)\n"
+           "Monitor Source: %u\n"
+           "Latency: %0.0f usec\n",
+           i->index,
+           i->name,
+           i->description,
+           s,
+           i->owner_module,
+           i->volume, pa_volume_to_dB(i->volume),
+           i->monitor_source,
+           (double) i->latency);
+}
+
+static void get_source_info_callback(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata) {
+    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], t[32];
+
+    if (is_last < 0) {
+        fprintf(stderr, "Failed to get source information: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last) {
+        complete_action();
+        return;
+    }
+    
+    assert(i);
+
+    if (nl)
+        printf("\n");
+    nl = 1;
+
+    snprintf(t, sizeof(t), "%u", i->monitor_of_sink);
+    
+    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
+    
+    printf("*** Source #%u ***\n"
+           "Name: %s\n"
+           "Description: %s\n"
+           "Sample Specification: %s\n"
+           "Owner Module: %u\n"
+           "Monitor of Sink: %s\n"
+           "Latency: %0.0f usec\n",
+           i->index,
+           i->name,
+           i->description,
+           s,
+           i->owner_module,
+           i->monitor_of_sink != PA_INVALID_INDEX ? t : "no",
+           (double) i->latency);
+}
+
+static void get_module_info_callback(struct pa_context *c, const struct pa_module_info *i, int is_last, void *userdata) {
+    char t[32];
+
+    if (is_last < 0) {
+        fprintf(stderr, "Failed to get module information: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last) {
+        complete_action();
+        return;
+    }
+    
+    assert(i);
+
+    if (nl)
+        printf("\n");
+    nl = 1;
+
+    snprintf(t, sizeof(t), "%u", i->n_used);
+    
+    printf("*** Module #%u ***\n"
+           "Name: %s\n"
+           "Argument: %s\n"
+           "Usage counter: %s\n"
+           "Auto unload: %s\n",
+           i->index,
+           i->name,
+           i->argument,
+           i->n_used != PA_INVALID_INDEX ? t : "n/a",
+           i->auto_unload ? "yes" : "no");
+}
+
+static void get_client_info_callback(struct pa_context *c, const struct pa_client_info *i, int is_last, void *userdata) {
+    char t[32];
+
+    if (is_last < 0) {
+        fprintf(stderr, "Failed to get client information: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last) {
+        complete_action();
+        return;
+    }
+    
+    assert(i);
+
+    if (nl)
+        printf("\n");
+    nl = 1;
+
+    snprintf(t, sizeof(t), "%u", i->owner_module);
+    
+    printf("*** Client #%u ***\n"
+           "Name: %s\n"
+           "Owner Module: %s\n"
+           "Protocol Name: %s\n",
+           i->index,
+           i->name,
+           i->owner_module != PA_INVALID_INDEX ? t : "n/a",
+           i->protocol_name);
+}
+
+static void get_sink_input_info_callback(struct pa_context *c, const struct pa_sink_input_info *i, int is_last, void *userdata) {
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+
+    if (is_last < 0) {
+        fprintf(stderr, "Failed to get sink input information: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last) {
+        complete_action();
+        return;
+    }
+    
+    assert(i);
+
+    if (nl)
+        printf("\n");
+    nl = 1;
+
+    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
+    snprintf(t, sizeof(t), "%u", i->owner_module);
+    snprintf(k, sizeof(k), "%u", i->client);
+    
+    printf("*** Sink Input #%u ***\n"
+           "Name: %s\n"
+           "Owner Module: %s\n"
+           "Client: %s\n"
+           "Sink: %u\n"
+           "Sample Specification: %s\n"
+           "Volume: 0x%03x (%0.2f dB)\n"
+           "Buffer Latency: %0.0f usec\n"
+           "Sink Latency: %0.0f usec\n",
+           i->index,
+           i->name,
+           i->owner_module != PA_INVALID_INDEX ? t : "n/a",
+           i->client != PA_INVALID_INDEX ? k : "n/a",
+           i->sink,
+           s,
+           i->volume, pa_volume_to_dB(i->volume),
+           (double) i->buffer_usec,
+           (double) i->sink_usec);
+}
+
+static void get_source_output_info_callback(struct pa_context *c, const struct pa_source_output_info *i, int is_last, void *userdata) {
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+
+    if (is_last < 0) {
+        fprintf(stderr, "Failed to get source output information: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last) {
+        complete_action();
+        return;
+    }
+    
+    assert(i);
+
+    if (nl)
+        printf("\n");
+    nl = 1;
+
+    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
+    snprintf(t, sizeof(t), "%u", i->owner_module);
+    snprintf(k, sizeof(k), "%u", i->client);
+    
+    printf("*** Source Output #%u ***\n"
+           "Name: %s\n"
+           "Owner Module: %s\n"
+           "Client: %s\n"
+           "Source: %u\n"
+           "Sample Specification: %s\n"
+           "Buffer Latency: %0.0f usec\n"
+           "Source Latency: %0.0f usec\n",
+           i->index,
+           i->name,
+           i->owner_module != PA_INVALID_INDEX ? t : "n/a",
+           i->client != PA_INVALID_INDEX ? k : "n/a",
+           i->source,
+           s,
+           (double) i->buffer_usec,
+           (double) i->source_usec);
+}
+
+static void get_sample_info_callback(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata) {
+    char t[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+
+    if (is_last < 0) {
+        fprintf(stderr, "Failed to get sample information: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last) {
+        complete_action();
+        return;
+    }
+    
+    assert(i);
+
+    if (nl)
+        printf("\n");
+    nl = 1;
+
+    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
+    pa_bytes_snprint(t, sizeof(t), i->bytes);
+    
+    printf("*** Sample #%u ***\n"
+           "Name: %s\n"
+           "Volume: 0x%03x (%0.2f dB)\n"
+           "Sample Specification: %s\n"
+           "Duration: %0.1fs\n"
+           "Size: %s\n"
+           "Lazy: %s\n"
+           "Filename: %s\n",
+           i->index,
+           i->name,
+           i->volume, pa_volume_to_dB(i->volume),
+           pa_sample_spec_valid(&i->sample_spec) ? s : "n/a",
+           (double) i->duration/1000000,
+           t,
+           i->lazy ? "yes" : "no",
+           i->filename ? i->filename : "n/a");
+}
+
+static void get_autoload_info_callback(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        fprintf(stderr, "Failed to get autoload information: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last) {
+        complete_action();
+        return;
+    }
+    
+    assert(i);
+
+    if (nl)
+        printf("\n");
+    nl = 1;
+
+    printf("*** Autoload Entry ***\n"
+           "Name: %s\n"
+           "Type: %s\n"
+           "Module: %s\n"
+           "Argument: %s\n",
+           i->name,
+           i->type == PA_AUTOLOAD_SINK ? "sink" : "source",
+           i->module,
+           i->argument);
+}
+
+static void simple_callback(struct pa_context *c, int success, void *userdata) {
+    if (!success) {
+        fprintf(stderr, "Failure: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    complete_action();
 }
 
 static void stream_state_callback(struct pa_stream *s, void *userdata) {
@@ -169,24 +509,48 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
             break;
 
         case PA_CONTEXT_READY:
-            if (action == STAT)
-                pa_operation_unref(pa_context_stat(c, stat_callback, NULL));
-            else if (action == PLAY_SAMPLE)
-                pa_operation_unref(pa_context_play_sample(c, process_argv[2], NULL, 0x100, play_sample_callback, NULL));
-            else if (action == REMOVE_SAMPLE)
-                pa_operation_unref(pa_context_remove_sample(c, process_argv[2], remove_sample_callback, NULL));
-            else if (action == UPLOAD_SAMPLE) {
+            switch (action) {
+                case STAT:
+                    actions = 2;
+                    pa_operation_unref(pa_context_stat(c, stat_callback, NULL));
+                    pa_operation_unref(pa_context_get_server_info(c, get_server_info_callback, NULL));
+                    break;
 
-                sample_stream = pa_stream_new(c, sample_name, &sample_spec);
-                assert(sample_stream);
+                case PLAY_SAMPLE: 
+                    pa_operation_unref(pa_context_play_sample(c, sample_name, device, PA_VOLUME_NORM, simple_callback, NULL));
+                    break;
 
-                pa_stream_set_state_callback(sample_stream, stream_state_callback, NULL);
-                pa_stream_set_write_callback(sample_stream, stream_write_callback, NULL);
-                pa_stream_connect_upload(sample_stream, sample_length);
-            } else {
-                assert(action == EXIT);
-                pa_context_exit_daemon(c);
-                drain();
+                case REMOVE_SAMPLE:
+                    pa_operation_unref(pa_context_remove_sample(c, sample_name, simple_callback, NULL));
+                    break;
+
+                case UPLOAD_SAMPLE:
+                    sample_stream = pa_stream_new(c, sample_name, &sample_spec);
+                    assert(sample_stream);
+                    
+                    pa_stream_set_state_callback(sample_stream, stream_state_callback, NULL);
+                    pa_stream_set_write_callback(sample_stream, stream_write_callback, NULL);
+                    pa_stream_connect_upload(sample_stream, sample_length);
+                    break;
+                    
+                case EXIT:
+                    pa_context_exit_daemon(c);
+                    drain();
+
+                case LIST:
+                    actions = 8;
+                    pa_operation_unref(pa_context_get_module_info_list(c, get_module_info_callback, NULL));
+                    pa_operation_unref(pa_context_get_sink_info_list(c, get_sink_info_callback, NULL));
+                    pa_operation_unref(pa_context_get_source_info_list(c, get_source_info_callback, NULL));
+                    pa_operation_unref(pa_context_get_sink_input_info_list(c, get_sink_input_info_callback, NULL));
+                    pa_operation_unref(pa_context_get_source_output_info_list(c, get_source_output_info_callback, NULL)); 
+                    pa_operation_unref(pa_context_get_client_info_list(c, get_client_info_callback, NULL));
+                    pa_operation_unref(pa_context_get_sample_info_list(c, get_sample_info_callback, NULL));
+                    pa_operation_unref(pa_context_get_autoload_info_list(c, get_autoload_info_callback, NULL));
+                    break;
+
+                default:
+                    assert(0);
             }
             break;
 
@@ -206,43 +570,106 @@ static void exit_signal_callback(struct pa_mainloop_api *m, struct pa_signal_eve
     quit(0);
 }
 
+static void help(const char *argv0) {
+
+    printf("%s [options] stat\n"
+           "%s [options] list\n"
+           "%s [options] exit\n"
+           "%s [options] upload-sample FILENAME [NAME]\n"
+           "%s [options] play-sample NAME [SINK]\n"
+           "%s [options] remove-sample NAME\n\n"
+           "  -h, --help                            Show this help\n"
+           "      --version                         Show version\n\n"
+           "  -s, --server=SERVER                   The name of the server to connect to\n"
+           "  -n, --client-name=NAME                How to call this client on the server\n",
+           argv0, argv0, argv0, argv0, argv0, argv0);
+}
+
+enum { ARG_VERSION = 256 };
+
 int main(int argc, char *argv[]) {
     struct pa_mainloop* m = NULL;
     char tmp[PATH_MAX];
-    
-    int ret = 1, r;
+    int ret = 1, r, c;
+    char *server = NULL, *client_name = NULL, *bn;
 
-    if (argc >= 2) {
-        if (!strcmp(argv[1], "stat"))
+    static const struct option long_options[] = {
+        {"server",      1, NULL, 's'},
+        {"client-name", 1, NULL, 'n'},
+        {"version",     0, NULL, ARG_VERSION},
+        {"help",        0, NULL, 'h'},
+        {NULL,          0, NULL, 0}
+    };
+
+    if (!(bn = strrchr(argv[0], '/')))
+        bn = argv[0];
+    else
+        bn++;
+    
+    while ((c = getopt_long(argc, argv, "s:n:h", long_options, NULL)) != -1) {
+        switch (c) {
+            case 'h' :
+                help(bn);
+                ret = 0;
+                goto quit;
+                
+            case ARG_VERSION:
+                printf("pactl "PACKAGE_VERSION"\nCompiled with libpolyp %s\nLinked with libpolyp %s\n", pa_get_headers_version(), pa_get_library_version());
+                ret = 0;
+                goto quit;
+
+            case 's':
+                free(server);
+                server = strdup(optarg);
+                break;
+
+            case 'n':
+                free(client_name);
+                client_name = strdup(optarg);
+                break;
+
+            default:
+                goto quit;
+        }
+    }
+
+    if (!client_name)
+        client_name = strdup(bn);
+    
+    if (optind < argc) {
+        if (!strcmp(argv[optind], "stat"))
             action = STAT;
-        else if (!strcmp(argv[1], "exit"))
+        else if (!strcmp(argv[optind], "exit"))
             action = EXIT;
-        else if (!strcmp(argv[1], "scache_upload")) {
+        else if (!strcmp(argv[optind], "list"))
+            action = LIST;
+        else if (!strcmp(argv[optind], "upload-sample")) {
             struct SF_INFO sfinfo;
             action = UPLOAD_SAMPLE;
 
-            if (argc < 3) {
+            if (optind+1 >= argc) {
                 fprintf(stderr, "Please specify a sample file to load\n");
                 goto quit;
             }
 
-            if (argc >= 4)
-                sample_name = argv[3];
+            if (optind+2 < argc)
+                sample_name = strdup(argv[optind+2]);
             else {
-                char *f = strrchr(argv[2], '/');
+                char *f = strrchr(argv[optind+1], '/');
                 size_t n;
                 if (f)
                     f++;
                 else
-                    f = argv[2];
+                    f = argv[optind];
 
                 n = strcspn(f, ".");
-                strncpy(sample_name = tmp, f, n);
-                tmp[n] = 0; 
+                strncpy(tmp, f, n);
+                tmp[n] = 0;
+                sample_name = strdup(tmp);
             }
             
             memset(&sfinfo, 0, sizeof(sfinfo));
-            if (!(sndfile = sf_open(argv[2], SFM_READ, &sfinfo))) {
+            if (!(sndfile = sf_open(argv[optind+1], SFM_READ, &sfinfo))) {
                 fprintf(stderr, "Failed to open sound file.\n");
                 goto quit;
             }
@@ -252,28 +679,34 @@ int main(int argc, char *argv[]) {
             sample_spec.channels = sfinfo.channels;
 
             sample_length = sfinfo.frames*pa_frame_size(&sample_spec);
-        } else if (!strcmp(argv[1], "scache_play")) {
+        } else if (!strcmp(argv[optind], "play-sample")) {
             action = PLAY_SAMPLE;
-            if (argc < 3) {
+            if (optind+1 >= argc) {
                 fprintf(stderr, "You have to specify a sample name to play\n");
                 goto quit;
             }
-        } else if (!strcmp(argv[1], "scache_remove")) {
+
+            sample_name = strdup(argv[optind+1]);
+
+            if (optind+2 < argc)
+                device = strdup(argv[optind+2]);
+            
+        } else if (!strcmp(argv[optind], "remove-sample")) {
             action = REMOVE_SAMPLE;
-            if (argc < 3) {
+            if (optind+1 >= argc) {
                 fprintf(stderr, "You have to specify a sample name to remove\n");
                 goto quit;
             }
+
+            sample_name = strdup(argv[optind+1]);
         }
     }
 
     if (action == NONE) {
-        fprintf(stderr, "No valid action specified. Use one of: stat, exit, scache_upload, scache_play, scache_remove\n");
+        fprintf(stderr, "No valid command specified.\n");
         goto quit;
     }
 
-    process_argv = argv;
-    
     if (!(m = pa_mainloop_new())) {
         fprintf(stderr, "pa_mainloop_new() failed.\n");
         goto quit;
@@ -286,13 +719,13 @@ int main(int argc, char *argv[]) {
     pa_signal_new(SIGINT, exit_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
     
-    if (!(context = pa_context_new(mainloop_api, argv[0]))) {
+    if (!(context = pa_context_new(mainloop_api, client_name))) {
         fprintf(stderr, "pa_context_new() failed.\n");
         goto quit;
     }
 
     pa_context_set_state_callback(context, context_state_callback, NULL);
-    pa_context_connect(context, NULL, 1, NULL);
+    pa_context_connect(context, server, 1, NULL);
 
     if (pa_mainloop_run(m, &ret) < 0) {
         fprintf(stderr, "pa_mainloop_run() failed.\n");
@@ -313,6 +746,10 @@ quit:
     
     if (sndfile)
         sf_close(sndfile);
+
+    free(server);
+    free(device);
+    free(sample_name);
 
     return ret;
 }

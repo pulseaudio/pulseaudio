@@ -106,7 +106,7 @@ static void adjust_rates(struct userdata *u) {
             min_total_latency = o->total_latency;
     }
 
-    assert(max_sink_latency > 0 && min_total_latency != (pa_usec_t) -1);
+    assert(min_total_latency != (pa_usec_t) -1);
 
     target_latency = max_sink_latency > min_total_latency ? max_sink_latency : min_total_latency;
     

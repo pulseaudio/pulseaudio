@@ -33,6 +33,7 @@
 
 enum tags {
     TAG_STRING = 't',
+    TAG_NULL_STRING = 'N',
     TAG_U32 = 'L',
     TAG_S32 = 'l',
     TAG_U16 = 'S',
@@ -97,12 +98,18 @@ static void extend(struct pa_tagstruct*t, size_t l) {
 
 void pa_tagstruct_puts(struct pa_tagstruct*t, const char *s) {
     size_t l;
-    assert(t && s);
-    l = strlen(s)+2;
-    extend(t, l);
-    t->data[t->length] = TAG_STRING;
-    strcpy((char*) (t->data+t->length+1), s);
-    t->length += l;
+    assert(t);
+    if (s) {
+        l = strlen(s)+2;
+        extend(t, l);
+        t->data[t->length] = TAG_STRING;
+        strcpy((char*) (t->data+t->length+1), s);
+        t->length += l;
+    } else {
+        extend(t, 1);
+        t->data[t->length] = TAG_NULL_STRING;
+        t->length += 1;
+    }
 }
 
 void pa_tagstruct_putu32(struct pa_tagstruct*t, uint32_t i) {
@@ -173,6 +180,15 @@ int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s) {
     char *c;
     assert(t && s);
 
+    if (t->rindex+1 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] == TAG_NULL_STRING) {
+        t->rindex++;
+        *s = NULL;
+        return 0;
+    }
+    
     if (t->rindex+2 > t->length)
         return -1;
     

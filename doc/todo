@@ -1,8 +1,8 @@
 *** $Id$ ***
 
 *** 0.5 ***
-- more complete pactl/parec
 - xmms segfault when daemon not executable
+- update modinfo
 
 *** 0.6 ****
 - per-channel volume

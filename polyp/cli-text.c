@@ -88,7 +88,7 @@ char *pa_sink_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_ncontents(c->sinks));
 
     for (sink = pa_idxset_first(c->sinks, &index); sink; sink = pa_idxset_next(c->sinks, &index)) {
-        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec);
         assert(sink->monitor_source);
         pa_strbuf_printf(
@@ -123,7 +123,7 @@ char *pa_source_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_ncontents(c->sources));
 
     for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
-        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec);
         pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
                          c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
@@ -156,7 +156,7 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_ncontents(c->source_outputs));
 
     for (o = pa_idxset_first(c->source_outputs, &index); o; o = pa_idxset_next(c->source_outputs, &index)) {
-        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec);
         assert(o->source);
         pa_strbuf_printf(
@@ -186,7 +186,7 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_ncontents(c->sink_inputs));
 
     for (i = pa_idxset_first(c->sink_inputs, &index); i; i = pa_idxset_next(c->sink_inputs, &index)) {
-        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
         assert(i->sink);
         pa_strbuf_printf(
@@ -223,7 +223,7 @@ char *pa_scache_list_to_string(struct pa_core *c) {
 
         for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index)) {
             double l = 0;
-            char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH] = "n/a";
+            char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a";
             
             if (e->memchunk.memblock) {
                 pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);

@@ -540,7 +540,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
     pa_volume_t volume;
     assert(c && t && c->protocol && c->protocol->core);
     
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
         pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
         pa_tagstruct_getu32(t, &sink_index) < 0 ||
         pa_tagstruct_gets(t, &sink_name) < 0 ||
@@ -554,6 +554,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
         return;
     }
 
+
     if (!c->authorized) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
         return;
@@ -562,7 +563,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
     if (sink_index != (uint32_t) -1)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
     else
-        sink = pa_namereg_get(c->protocol->core, *sink_name ? sink_name : NULL, PA_NAMEREG_SINK, 1);
+        sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK, 1);
 
     if (!sink) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
@@ -643,7 +644,7 @@ static void command_create_record_stream(struct pa_pdispatch *pd, uint32_t comma
     struct pa_source *source;
     assert(c && t && c->protocol && c->protocol->core);
     
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
         pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
         pa_tagstruct_getu32(t, &source_index) < 0 ||
         pa_tagstruct_gets(t, &source_name) < 0 ||
@@ -662,7 +663,7 @@ static void command_create_record_stream(struct pa_pdispatch *pd, uint32_t comma
     if (source_index != (uint32_t) -1)
         source = pa_idxset_get_by_index(c->protocol->core->sources, source_index);
     else
-        source = pa_namereg_get(c->protocol->core, *source_name ? source_name : NULL, PA_NAMEREG_SOURCE, 1);
+        source = pa_namereg_get(c->protocol->core, source_name, PA_NAMEREG_SOURCE, 1);
 
     if (!source) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
@@ -734,7 +735,7 @@ static void command_set_client_name(struct pa_pdispatch *pd, uint32_t command, u
     const char *name;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -751,7 +752,7 @@ static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t t
     uint32_t index = PA_IDXSET_INVALID;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -939,7 +940,7 @@ static void command_create_upload_stream(struct pa_pdispatch *pd, uint32_t comma
     struct pa_tagstruct *reply;
     assert(c && t && c->protocol && c->protocol->core);
     
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
         pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
         pa_tagstruct_getu32(t, &length) < 0 ||
         !pa_tagstruct_eof(t)) {
@@ -966,13 +967,6 @@ static void command_create_upload_stream(struct pa_pdispatch *pd, uint32_t comma
     assert(reply);
     pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
     pa_tagstruct_putu32(reply, tag);
-    pa_tagstruct_putu32(reply, s->index);
-    pa_pstream_send_tagstruct(c->pstream, reply);
-    
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REQUEST);
-    pa_tagstruct_putu32(reply, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(reply, s->index);
     pa_tagstruct_putu32(reply, length);
     pa_pstream_send_tagstruct(c->pstream, reply);
@@ -1016,7 +1010,7 @@ static void command_play_sample(struct pa_pdispatch *pd, uint32_t command, uint3
     if (pa_tagstruct_getu32(t, &sink_index) < 0 ||
         pa_tagstruct_gets(t, &sink_name) < 0 ||
         pa_tagstruct_getu32(t, &volume) < 0 ||
-        pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 || !name || 
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -1030,7 +1024,7 @@ static void command_play_sample(struct pa_pdispatch *pd, uint32_t command, uint3
     if (sink_index != (uint32_t) -1)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
     else
-        sink = pa_namereg_get(c->protocol->core, *sink_name ? sink_name : NULL, PA_NAMEREG_SINK, 1);
+        sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK, 1);
 
     if (!sink) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
@@ -1050,7 +1044,7 @@ static void command_remove_sample(struct pa_pdispatch *pd, uint32_t command, uin
     const char *name;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || !name || 
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -1073,7 +1067,7 @@ static void sink_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink *sink) {
     assert(t && sink);
     pa_tagstruct_putu32(t, sink->index);
     pa_tagstruct_puts(t, sink->name);
-    pa_tagstruct_puts(t, sink->description ? sink->description : "");
+    pa_tagstruct_puts(t, sink->description);
     pa_tagstruct_put_sample_spec(t, &sink->sample_spec);
     pa_tagstruct_putu32(t, sink->owner ? sink->owner->index : (uint32_t) -1);
     pa_tagstruct_putu32(t, sink->volume);
@@ -1086,11 +1080,11 @@ static void source_fill_tagstruct(struct pa_tagstruct *t, struct pa_source *sour
     assert(t && source);
     pa_tagstruct_putu32(t, source->index);
     pa_tagstruct_puts(t, source->name);
-    pa_tagstruct_puts(t, source->description ? source->description : "");
+    pa_tagstruct_puts(t, source->description);
     pa_tagstruct_put_sample_spec(t, &source->sample_spec);
     pa_tagstruct_putu32(t, source->owner ? source->owner->index : (uint32_t) -1);
     pa_tagstruct_putu32(t, source->monitor_of ? source->monitor_of->index : (uint32_t) -1);
-    pa_tagstruct_puts(t, source->monitor_of ? source->monitor_of->name : "");
+    pa_tagstruct_puts(t, source->monitor_of ? source->monitor_of->name : NULL);
     pa_tagstruct_put_usec(t, pa_source_get_latency(source));
 }
 
@@ -1106,7 +1100,7 @@ static void module_fill_tagstruct(struct pa_tagstruct *t, struct pa_module *modu
     assert(t && module);
     pa_tagstruct_putu32(t, module->index);
     pa_tagstruct_puts(t, module->name);
-    pa_tagstruct_puts(t, module->argument ? module->argument : "");
+    pa_tagstruct_puts(t, module->argument);
     pa_tagstruct_putu32(t, module->n_used);
     pa_tagstruct_put_boolean(t, module->auto_unload);
 }
@@ -1114,7 +1108,7 @@ static void module_fill_tagstruct(struct pa_tagstruct *t, struct pa_module *modu
 static void sink_input_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink_input *s) {
     assert(t && s);
     pa_tagstruct_putu32(t, s->index);
-    pa_tagstruct_puts(t, s->name ? s->name : "");
+    pa_tagstruct_puts(t, s->name);
     pa_tagstruct_putu32(t, s->owner ? s->owner->index : (uint32_t) -1);
     pa_tagstruct_putu32(t, s->client ? s->client->index : (uint32_t) -1);
     pa_tagstruct_putu32(t, s->sink->index);
@@ -1127,7 +1121,7 @@ static void sink_input_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink_inp
 static void source_output_fill_tagstruct(struct pa_tagstruct *t, struct pa_source_output *s) {
     assert(t && s);
     pa_tagstruct_putu32(t, s->index);
-    pa_tagstruct_puts(t, s->name ? s->name : "");
+    pa_tagstruct_puts(t, s->name);
     pa_tagstruct_putu32(t, s->owner ? s->owner->index : (uint32_t) -1);
     pa_tagstruct_putu32(t, s->client ? s->client->index : (uint32_t) -1);
     pa_tagstruct_putu32(t, s->source->index);
@@ -1183,12 +1177,12 @@ static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t
         if (index != (uint32_t) -1)
             sink = pa_idxset_get_by_index(c->protocol->core->sinks, index);
         else
-            sink = pa_namereg_get(c->protocol->core, *name ? name : NULL, PA_NAMEREG_SINK, 1);
+            sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
     } else if (command == PA_COMMAND_GET_SOURCE_INFO) {
         if (index != (uint32_t) -1)
             source = pa_idxset_get_by_index(c->protocol->core->sources, index);
         else
-            source = pa_namereg_get(c->protocol->core, *name ? name : NULL, PA_NAMEREG_SOURCE, 1);
+            source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
     } else if (command == PA_COMMAND_GET_CLIENT_INFO)
         client = pa_idxset_get_by_index(c->protocol->core->clients, index);
     else if (command == PA_COMMAND_GET_MODULE_INFO) 
@@ -1198,7 +1192,7 @@ static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t
     else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO)
         so = pa_idxset_get_by_index(c->protocol->core->source_outputs, index);
     else {
-        assert(command == PA_COMMAND_GET_SAMPLE_INFO && name);
+        assert(command == PA_COMMAND_GET_SAMPLE_INFO);
         if (index != (uint32_t) -1)
             sce = pa_idxset_get_by_index(c->protocol->core->scache, index);
         else
@@ -1323,9 +1317,9 @@ static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, u
     pa_tagstruct_put_sample_spec(reply, &c->protocol->core->default_sample_spec);
 
     n = pa_namereg_get_default_sink_name(c->protocol->core);
-    pa_tagstruct_puts(reply, n ? n : "");
+    pa_tagstruct_puts(reply, n);
     n = pa_namereg_get_default_source_name(c->protocol->core);
-    pa_tagstruct_puts(reply, n ? n : "");
+    pa_tagstruct_puts(reply, n);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1396,7 +1390,7 @@ static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32
         if (index != (uint32_t) -1)
             sink = pa_idxset_get_by_index(c->protocol->core->sinks, index);
         else
-            sink = pa_namereg_get(c->protocol->core, *name ? name : NULL, PA_NAMEREG_SINK, 1);
+            sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
     }  else {
         assert(command == PA_COMMAND_SET_SINK_INPUT_VOLUME);
         si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, index);
@@ -1485,7 +1479,7 @@ static void command_set_default_sink_or_source(struct pa_pdispatch *pd, uint32_t
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &index) < 0 ||
-        pa_tagstruct_gets(t, &s) < 0 ||
+        pa_tagstruct_gets(t, &s) < 0 || !s ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -1507,7 +1501,7 @@ static void command_set_stream_name(struct pa_pdispatch *pd, uint32_t command, u
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &index) < 0 ||
-        pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 || !name || 
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -1599,7 +1593,7 @@ static void command_load_module(struct pa_pdispatch *pd, uint32_t command, uint3
     struct pa_tagstruct *reply;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
         pa_tagstruct_gets(t, &argument) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
@@ -1655,9 +1649,9 @@ static void command_add_autoload(struct pa_pdispatch *pd, uint32_t command, uint
     uint32_t type;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
         pa_tagstruct_getu32(t, &type) < 0 || type > 1 ||
-        pa_tagstruct_gets(t, &module) < 0 ||
+        pa_tagstruct_gets(t, &module) < 0 || !module ||
         pa_tagstruct_gets(t, &argument) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
@@ -1683,7 +1677,7 @@ static void command_remove_autoload(struct pa_pdispatch *pd, uint32_t command, u
     uint32_t type;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
         pa_tagstruct_getu32(t, &type) < 0 || type > 1 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
@@ -1719,7 +1713,7 @@ static void command_get_autoload_info(struct pa_pdispatch *pd, uint32_t command,
     struct pa_tagstruct *reply;
     assert(c && t);
     
-    if (pa_tagstruct_gets(t, &name) < 0 ||
+    if (pa_tagstruct_gets(t, &name) < 0 || name ||
         pa_tagstruct_getu32(t, &type) < 0 || type > 1 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);

@@ -320,7 +320,7 @@ static void sigusr1_signal_callback(struct pa_mainloop_api*m, struct pa_signal_e
 
 static void help(const char *argv0) {
 
-    printf("%s [options]\n"
+    printf("%s [options]\n\n"
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n\n"
            "  -r, --record                          Create a connection for recording\n"
@@ -378,7 +378,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
                 
             case ARG_VERSION:
-                printf("pacat "PACKAGE_VERSION"\n");
+                printf("pacat "PACKAGE_VERSION"\nCompiled with libpolyp %s\nLinked with libpolyp %s\n", pa_get_headers_version(), pa_get_library_version());
                 ret = 0;
                 goto quit;
 

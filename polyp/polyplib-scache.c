@@ -95,7 +95,7 @@ struct pa_operation * pa_context_play_sample(struct pa_context *c, const char *n
     pa_tagstruct_putu32(t, PA_COMMAND_PLAY_SAMPLE);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_putu32(t, (uint32_t) -1);
-    pa_tagstruct_puts(t, dev ? dev : "");
+    pa_tagstruct_puts(t, dev);
     pa_tagstruct_putu32(t, volume);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);

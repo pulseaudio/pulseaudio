@@ -170,7 +170,7 @@ struct pa_operation* pa_context_get_sink_info_by_index(struct pa_context *c, uin
     pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INFO);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_putu32(t, index);
-    pa_tagstruct_puts(t, "");
+    pa_tagstruct_puts(t, NULL);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_info_callback, o);
 
@@ -263,7 +263,7 @@ struct pa_operation* pa_context_get_source_info_by_index(struct pa_context *c, u
     pa_tagstruct_putu32(t, PA_COMMAND_GET_SOURCE_INFO);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_putu32(t, index);
-    pa_tagstruct_puts(t, "");
+    pa_tagstruct_puts(t, NULL);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_info_callback, o);
 
@@ -581,7 +581,7 @@ struct pa_operation* pa_context_set_sink_volume_by_index(struct pa_context *c, u
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_VOLUME);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_putu32(t, index);
-    pa_tagstruct_puts(t, "");
+    pa_tagstruct_puts(t, NULL);
     pa_tagstruct_putu32(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
@@ -713,7 +713,7 @@ struct pa_operation* pa_context_get_sample_info_by_index(struct pa_context *c, u
     pa_tagstruct_putu32(t, PA_COMMAND_GET_SAMPLE_INFO);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_putu32(t, index);
-    pa_tagstruct_puts(t, "");
+    pa_tagstruct_puts(t, NULL);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sample_info_callback, o);
 

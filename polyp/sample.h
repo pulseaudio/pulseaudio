@@ -86,7 +86,7 @@ int pa_sample_spec_valid(const struct pa_sample_spec *spec);
 int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b);
 
 /** Maximum required string length for pa_sample_spec_snprint() */
-#define PA_SAMPLE_SNPRINT_MAX_LENGTH 32
+#define PA_SAMPLE_SPEC_SNPRINT_MAX 32
 
 /** Pretty print a sample type specification to a string */
 void pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
@@ -117,7 +117,7 @@ double pa_volume_to_dB(pa_volume_t v);
 #endif
 
 /** Pretty print a byte size value. (i.e. "2.5 MB") */
-void pa_bytes_snprint(char *s, size_t l, off_t v);
+void pa_bytes_snprint(char *s, size_t l, unsigned v);
 
 PA_C_DECL_END
 

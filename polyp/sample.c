@@ -94,7 +94,11 @@ void pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec
         [PA_SAMPLE_FLOAT32BE] = "FLOAT32BE",
     };
 
-    assert(pa_sample_spec_valid(spec));
+    if (!pa_sample_spec_valid(spec)) {
+        snprintf(s, l, "Invalid");
+        return;
+    }
+    
     snprintf(s, l, "%s %uch %uHz", table[spec->format], spec->channels, spec->rate);
 }
 
@@ -120,13 +124,13 @@ double pa_volume_to_dB(pa_volume_t v) {
     return 20*log10((double) v/PA_VOLUME_NORM);
 }
 
-void pa_bytes_snprint(char *s, size_t l, off_t v) {
-    if (v >= (off_t) 1024*1024*1024)
-        snprintf(s, l, "%0.1f GB", (double) v/1024/1024/1024);
-    else if (v >= (off_t) 1024*1024)
-        snprintf(s, l, "%0.1f MB", (double) v/1024/1024);
-    else if (v >= (off_t) 1024)
-        snprintf(s, l, "%0.1f KB", (double) v/1024);
+void pa_bytes_snprint(char *s, size_t l, unsigned v) {
+    if (v >= ((unsigned) 1024)*1024*1024)
+        snprintf(s, l, "%0.1f GB", ((double) v)/1024/1024/1024);
+    else if (v >= ((unsigned) 1024)*1024)
+        snprintf(s, l, "%0.1f MB", ((double) v)/1024/1024);
+    else if (v >= (unsigned) 1024)
+        snprintf(s, l, "%0.1f KB", ((double) v)/1024);
     else
         snprintf(s, l, "%u B", (unsigned) v);
 }
