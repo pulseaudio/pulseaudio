@@ -37,6 +37,7 @@
 #include "sample-util.h"
 #include "scache.h"
 #include "autoload.h"
+#include "xmalloc.h"
 
 char *pa_module_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
@@ -302,6 +303,49 @@ char *pa_autoload_list_to_string(struct pa_core *c) {
                 e->argument);
 
         }
+    }
+
+    return pa_strbuf_tostring_free(s);
+}
+
+char *pa_full_status_string(struct pa_core *c) {
+    struct pa_strbuf *s;
+    int i;
+
+    s = pa_strbuf_new();
+
+    for (i = 0; i < 8; i++) {
+        char *t = NULL;
+        
+        switch (i) {
+            case 0: 
+                t = pa_sink_list_to_string(c);
+                break;
+            case 1:
+                t = pa_source_list_to_string(c);
+                break;
+            case 2:
+                t = pa_sink_input_list_to_string(c);
+                break;
+            case 3:
+                t = pa_source_output_list_to_string(c);
+                break;
+            case 4: 
+                t = pa_client_list_to_string(c);
+                break;
+            case 5:
+                t = pa_module_list_to_string(c);
+                break;
+            case 6:
+                t = pa_scache_list_to_string(c);
+                break;
+            case 7:
+                t = pa_autoload_list_to_string(c);
+                break;
+        }
+
+        pa_strbuf_puts(s, t);
+        pa_xfree(t);
     }
 
     return pa_strbuf_tostring_free(s);

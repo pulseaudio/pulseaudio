@@ -71,49 +71,16 @@ static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e,
     switch (sig) {
         case SIGUSR1:
             pa_module_load(userdata, "module-cli", NULL);
-            return;
+            break;
             
         case SIGUSR2:
             pa_module_load(userdata, "module-cli-protocol-unix", NULL);
-            return;
+            break;
 
         case SIGHUP: {
-            int i;
-
-            for (i = 0;; i++) {
-                char *c;
-                switch (i) {
-                    case 0: 
-                        c = pa_sink_list_to_string(userdata);
-                        break;
-                    case 1:
-                        c = pa_source_list_to_string(userdata);
-                        break;
-                    case 2:
-                        c = pa_sink_input_list_to_string(userdata);
-                        break;
-                    case 3:
-                        c = pa_source_output_list_to_string(userdata);
-                        break;
-                    case 4: 
-                        c = pa_client_list_to_string(userdata);
-                        break;
-                    case 5:
-                        c = pa_module_list_to_string(userdata);
-                        break;
-                    case 6:
-                        c = pa_scache_list_to_string(userdata);
-                        break;
-                    case 7:
-                        c = pa_autoload_list_to_string(userdata);
-                        break;
-                    default:
-                        return;
-                }
-                pa_log_notice(c);
-                pa_xfree(c);
-            }
-
+            char *c = pa_full_status_string(userdata);
+            pa_log_notice(c);
+            pa_xfree(c);
             return;
         }
 
@@ -122,7 +89,7 @@ static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e,
         default:
             pa_log_info(__FILE__": Exiting.\n");
             m->quit(m, 1);
-            return;
+            break;
     }
 }
 

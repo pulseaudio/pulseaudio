@@ -33,6 +33,7 @@
 #include "xmalloc.h"
 #include "log.h"
 #include "namereg.h"
+#include "cli-text.h"
 
 /* Don't allow more than this many concurrent connections */
 #define MAX_CONNECTIONS 10
@@ -40,7 +41,8 @@
 #define internal_server_error(c) http_message((c), 500, "Internal Server Error", NULL)
 
 #define URL_ROOT "/"
-#define URL_CSS "/style.css"
+#define URL_CSS "/style"
+#define URL_STATUS "/status"
 
 struct connection {
     struct pa_protocol_http *protocol;
@@ -66,6 +68,9 @@ static void http_response(struct connection *c, int code, const char *msg, const
              "HTTP/1.0 %i %s\n"
              "Connection: close\n"
              "Content-Type: %s\n"
+             "Cache-Control: no-cache\n"
+             "Expires: 0\n"
+             "Server: "PACKAGE_NAME"/"PACKAGE_VERSION"\n"
              "\n", code, msg, mime);
 
     pa_ioline_puts(c->line, s);
@@ -80,8 +85,10 @@ static void http_message(struct connection *c, int code, const char *msg, const 
     if (!text)
         text = msg;
 
-    snprintf(s, sizeof(s), 
-             "<html><head><title>%s</title></head>\n"
+    snprintf(s, sizeof(s),
+             "<?xml version=\"1.0\"?>\n"
+             "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n"
+             "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>%s</title></head>\n"
              "<body>%s</body></html>\n",
              text, text);
 
@@ -120,7 +127,7 @@ static void line_callback(struct pa_ioline *line, const char *s, void *userdata)
 
             s +=4;
 
-            c->url = pa_xstrndup(s, strcspn(s, " \r\n\t"));
+            c->url = pa_xstrndup(s, strcspn(s, " \r\n\t?"));
             c->state = MIME_HEADER;
             break;
 
@@ -135,19 +142,20 @@ static void line_callback(struct pa_ioline *line, const char *s, void *userdata)
             /* We're done */
             c->state = DATA;
 
-            pa_log("req for %s\n", c->url);
+            pa_log_info(__FILE__": request for %s\n", c->url);
             
             if (!strcmp(c->url, URL_ROOT)) {
                 char txt[256];
                 http_response(c, 200, "OK", "text/html");
 
                 pa_ioline_puts(c->line,
-                               "<html><head><title>"PACKAGE_NAME" "PACKAGE_VERSION"</title>\n"
-                               "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"/></head><body>\n");
+                               "<?xml version=\"1.0\"?>\n"
+                               "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n"
+                               "<html xmlns=\"http://www.w3.org/1999/xhtml\"><title>"PACKAGE_NAME" "PACKAGE_VERSION"</title>\n"
+                               "<link rel=\"stylesheet\" type=\"text/css\" href=\"style\"/></head><body>\n");
 
                 pa_ioline_puts(c->line,
                                "<h1>"PACKAGE_NAME" "PACKAGE_VERSION"</h1>\n"
-                               "<h2>Server Information</h2>\n"
                                "<table>");
 
 #define PRINTF_FIELD(a,b) pa_ioline_printf(c->line, "<tr><td><b>%s</b></td><td>%s</td></tr>\n",(a),(b))
@@ -157,7 +165,11 @@ static void line_callback(struct pa_ioline *line, const char *s, void *userdata)
                 PRINTF_FIELD("Default Sample Specification:", pa_sample_spec_snprint(txt, sizeof(txt), &c->protocol->core->default_sample_spec));
                 PRINTF_FIELD("Default Sink:", pa_namereg_get_default_sink_name(c->protocol->core));
                 PRINTF_FIELD("Default Source:", pa_namereg_get_default_source_name(c->protocol->core));
+                
                 pa_ioline_puts(c->line, "</table>");
+
+                pa_ioline_puts(c->line, "<p><a href=\"/status\">Click here</a> for an extensive server status report.</p>");
+                
                 pa_ioline_puts(c->line, "</body></html>\n");
                 
                 pa_ioline_defer_close(c->line); 
@@ -177,7 +189,16 @@ static void line_callback(struct pa_ioline *line, const char *s, void *userdata)
                                "table {  margin-left: 1cm; border:1px solid lightgrey; padding: 0.2cm; }\n"
                                "td { padding-left:10px; padding-right:10px;  }\n");
 
-                pa_ioline_defer_close(c->line); 
+                pa_ioline_defer_close(c->line);
+            } else if (!strcmp(c->url, URL_STATUS)) {
+                char *s;
+
+                http_response(c, 200, "OK", "text/plain");
+                s = pa_full_status_string(c->protocol->core);
+                pa_ioline_puts(c->line, s);
+                pa_xfree(s);
+
+                pa_ioline_defer_close(c->line);
             } else
                 http_message(c, 404, "Not Found", NULL);
 
@@ -200,7 +221,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     assert(s && io && p);
 
     if (pa_idxset_ncontents(p->connections)+1 > MAX_CONNECTIONS) {
-        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
+        pa_log_warn(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
     }
