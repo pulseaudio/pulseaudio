@@ -89,13 +89,13 @@ static int parse_line(const char *filename, unsigned line, const struct pa_confi
 }
 
 
-int pa_config_parse(const char *filename, const struct pa_config_item *t, void *userdata) {
-    FILE *f;
+int pa_config_parse(const char *filename, FILE *f, const struct pa_config_item *t, void *userdata) {
     int r = -1;
     unsigned line = 0;
+    int do_close = !f;
     assert(filename && t);
     
-    if (!(f = fopen(filename, "r"))) {
+    if (!f && !(f = fopen(filename, "r"))) {
         if (errno == ENOENT) {
             r = 0;
             goto finish;
@@ -123,7 +123,7 @@ int pa_config_parse(const char *filename, const struct pa_config_item *t, void *
     
 finish:
 
-    if (f)
+    if (do_close && f)
         fclose(f);
     
     return r;

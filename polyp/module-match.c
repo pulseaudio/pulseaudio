@@ -48,6 +48,13 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 
 #define WHITESPACE "\n\r \t"
 
+#ifndef DEFAULT_CONFIG_DIR
+#define DEFAULT_CONFIG_DIR "/etc/polypaudio"
+#endif
+
+#define DEFAULT_MATCH_TABLE_FILE DEFAULT_CONFIG_DIR"/match.table"
+#define DEFAULT_MATCH_TABLE_FILE_USER ".polypaudio/.match.table"
+
 static const char* const valid_modargs[] = {
     "table",
     NULL,
@@ -69,9 +76,14 @@ static int load_rules(struct userdata *u, const char *filename) {
     int n = 0;
     int ret = -1;
     struct rule *end = NULL;
+    char *fn = NULL;
 
-    if (!(f = fopen(filename, "r"))) {
-        pa_log(__FILE__": failed to open file '%s': %s\n", filename, strerror(errno));
+    f = filename ?
+        fopen(fn = pa_xstrdup(filename), "r") :
+        pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn);
+
+    if (!f) {
+        pa_log(__FILE__": failed to open file '%s': %s\n", fn, strerror(errno));
         goto finish;
     }
 
@@ -134,6 +146,9 @@ static int load_rules(struct userdata *u, const char *filename) {
 finish:
     if (f)
         fclose(f);
+
+    if (fn)
+        pa_xfree(fn);
 
     return ret;
 }

@@ -36,21 +36,14 @@
 #include "strbuf.h"
 #include "conf-parser.h"
 
-#ifndef DEFAULT_SCRIPT_FILE
-#define DEFAULT_SCRIPT_FILE "/etc/polypaudio/default.pa"
+#ifndef DEFAULT_CONFIG_DIR
+#define DEFAULT_CONFIG_DIR "/etc/polypaudio"
 #endif
 
-#ifndef DEFAULT_SCRIPT_FILE_USER
+#define DEFAULT_SCRIPT_FILE DEFAULT_CONFIG_DIR"/default.pa"
 #define DEFAULT_SCRIPT_FILE_USER ".polypaudio/default.pa"
-#endif
-
-#ifndef DEFAULT_CONFIG_FILE
-#define DEFAULT_CONFIG_FILE "/etc/polypaudio/daemon.conf"
-#endif
-
-#ifndef DEFAULT_CONFIG_FILE_USER
+#define DEFAULT_CONFIG_FILE DEFAULT_CONFIG_DIR"/daemon.conf"
 #define DEFAULT_CONFIG_FILE_USER ".polypaudio/daemon.conf"
-#endif
 
 #define ENV_SCRIPT_FILE "POLYP_SCRIPT"
 #define ENV_CONFIG_FILE "POLYP_CONFIG"
@@ -71,31 +64,17 @@ static const struct pa_daemon_conf default_conf = {
     .dl_search_path = NULL,
     .default_script_file = NULL,
     .log_target = PA_LOG_SYSLOG,
-    .resample_method = SRC_SINC_FASTEST
+    .resample_method = SRC_SINC_FASTEST,
+    .config_file = NULL,
 };
 
-char* default_file(const char *envvar, const char *global, const char *local) {
-    char *p, *h;
-
-    assert(envvar && global && local);
-
-    if ((p = getenv(envvar)))
-        return pa_xstrdup(p);
-
-    if ((h = getenv("HOME"))) {
-        p = pa_sprintf_malloc("%s/%s", h, local);
-        if (!access(p, F_OK)) 
-            return p;
-        
-        pa_xfree(p);
-    }
-
-    return pa_xstrdup(global);
-}
-
 struct pa_daemon_conf* pa_daemon_conf_new(void) {
+    FILE *f;
     struct pa_daemon_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
-    c->default_script_file = default_file(ENV_SCRIPT_FILE, DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER);
+
+    if ((f = pa_open_config_file(DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER, ENV_SCRIPT_FILE, &c->default_script_file)))
+        fclose(f);
+
 #ifdef DLSEARCHPATH
     c->dl_search_path = pa_xstrdup(DLSEARCHPATH);
 #endif
@@ -107,6 +86,7 @@ void pa_daemon_conf_free(struct pa_daemon_conf *c) {
     pa_xfree(c->script_commands);
     pa_xfree(c->dl_search_path);
     pa_xfree(c->default_script_file);
+    pa_xfree(c->config_file);
     pa_xfree(c);
 }
 
@@ -163,8 +143,8 @@ int parse_resample_method(const char *filename, unsigned line, const char *lvalu
 }
 
 int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename) {
-    char *def = NULL;
-    int r;
+    int r = -1;
+    FILE *f = NULL;
     
     struct pa_config_item table[] = {
         { "verbose",                 pa_config_parse_bool,    NULL },
@@ -195,11 +175,24 @@ int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename) {
     table[10].data = c;
     table[11].data = c;
     
-    if (!filename)
-        filename = def = default_file(ENV_CONFIG_FILE, DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER);
+    pa_xfree(c->config_file);
+    c->config_file = NULL;
+
+    f = filename ?
+        fopen(c->config_file = pa_xstrdup(filename), "r") :
+        pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file);
+
+    if (!f && errno != EINTR) {
+        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s\n", filename, strerror(errno));
+        goto finish;
+    }
+
+    r = pa_config_parse(c->config_file, f, table, NULL);
     
-    r = pa_config_parse(filename, table, NULL);
-    pa_xfree(def);
+finish:
+    if (f)
+        fclose(f);
+    
     return r;
 }
 
@@ -220,7 +213,6 @@ int pa_daemon_conf_env(struct pa_daemon_conf *c) {
 
 char *pa_daemon_conf_dump(struct pa_daemon_conf *c) {
     struct pa_strbuf *s = pa_strbuf_new();
-    char *d;
 
     static const char const* resample_methods[] = {
         "sinc-best-quality",
@@ -230,8 +222,8 @@ char *pa_daemon_conf_dump(struct pa_daemon_conf *c) {
         "linear"
     };
 
-    d = default_file(ENV_CONFIG_FILE, DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER);
-    pa_strbuf_printf(s, "### Default configuration file: %s ###\n", d);
+    if (c->config_file)
+        pa_strbuf_printf(s, "### Read from configuration file: %s ###\n", c->config_file);
     
     pa_strbuf_printf(s, "verbose = %i\n", !!c->verbose);
     pa_strbuf_printf(s, "daemonize = %i\n", !!c->daemonize);
@@ -247,8 +239,6 @@ char *pa_daemon_conf_dump(struct pa_daemon_conf *c) {
 
     assert(c->resample_method <= 4 && c->resample_method >= 0);
     pa_strbuf_printf(s, "resample-method = %s\n", resample_methods[c->resample_method]);
-    
-    pa_xfree(d);
     
     return pa_strbuf_tostring_free(s);
 }

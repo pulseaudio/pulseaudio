@@ -22,13 +22,15 @@
   USA.
 ***/
 
+#include <stdio.h>
+
 struct pa_config_item {
     const char *lvalue;
     int (*parse)(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);
     void *data;
 };
 
-int pa_config_parse(const char *filename, const struct pa_config_item *t, void *userdata);
+int pa_config_parse(const char *filename, FILE *f, const struct pa_config_item *t, void *userdata);
 
 int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);
 int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata);

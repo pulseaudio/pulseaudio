@@ -46,6 +46,7 @@ struct pa_daemon_conf {
     char *script_commands, *dl_search_path, *default_script_file;
     enum pa_log_target log_target;
     int resample_method;
+    char *config_file;
 };
 
 struct pa_daemon_conf* pa_daemon_conf_new(void);

@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
 
 #include "client-conf.h"
 #include "xmalloc.h"
@@ -29,13 +31,12 @@
 #include "conf-parser.h"
 #include "util.h"
 
-#ifndef DEFAULT_CLIENT_CONFIG_FILE
-#define DEFAULT_CLIENT_CONFIG_FILE "/etc/polypaudio/client.conf"
+#ifndef DEFAULT_CONFIG_DIR
+#define DEFAULT_CONFIG_DIR "/etc/polypaudio"
 #endif
 
-#ifndef DEFAULT_CLIENT_CONFIG_FILE_USER
+#define DEFAULT_CLIENT_CONFIG_FILE DEFAULT_CONFIG_DIR"/client.conf"
 #define DEFAULT_CLIENT_CONFIG_FILE_USER ".polypaudio/client.conf"
-#endif
 
 #define ENV_CLIENT_CONFIG_FILE "POLYP_CLIENTCONFIG"
 #define ENV_DEFAULT_SINK "POLYP_SINK"
@@ -71,8 +72,9 @@ void pa_client_conf_free(struct pa_client_conf *c) {
     pa_xfree(c);
 }
 int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
-    char *def = NULL;
-    int r;
+    FILE *f = NULL;
+    char *fn = NULL;
+    int r = -1;
 
     struct pa_config_item table[] = {
         { "daemon-binary",          pa_config_parse_string,  NULL },
@@ -91,29 +93,23 @@ int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
     table[4].data = &c->default_server;
     table[5].data = &c->autospawn;
 
-    if (!filename)
-        filename = getenv(ENV_CLIENT_CONFIG_FILE);
+    f = filename ?
+        fopen((fn = pa_xstrdup(filename)), "r") :
+        pa_open_config_file(DEFAULT_CLIENT_CONFIG_FILE, DEFAULT_CLIENT_CONFIG_FILE_USER, ENV_CLIENT_CONFIG_FILE, &fn);
 
-    if (!filename) {
-        char *h;
-        
-        if ((h = getenv("HOME"))) {
-            def = pa_sprintf_malloc("%s/%s", h, DEFAULT_CLIENT_CONFIG_FILE_USER);
-            
-            if (!access(def, F_OK)) 
-                filename = def;
-            else {
-                pa_xfree(def);
-                def = NULL;
-            }
-        }
+    if (!f && errno != EINTR) {
+        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s\n", filename, strerror(errno));
+        goto finish;
     }
-
-    if (!filename)
-        filename = DEFAULT_CLIENT_CONFIG_FILE;
     
-    r = pa_config_parse(filename, table, NULL);
-    pa_xfree(def);
+    r = pa_config_parse(fn, f, table, NULL);
+
+finish:
+    pa_xfree(fn);
+
+    if (f)
+        fclose(f);
+    
     return r;
 }
 

@@ -254,7 +254,7 @@ char *pa_get_host_name(char *s, size_t l) {
 }
 
 /* Return the home directory of the current user */
-char *pa_get_home(char *s, size_t l) {
+char *pa_get_home_dir(char *s, size_t l) {
     char *e;
     char buf[1024];
     struct passwd pw, *r;
@@ -353,8 +353,7 @@ void pa_timeval_add(struct timeval *tv, pa_usec_t v) {
 
 /* Raise the priority of the current process as much as possible and
 sensible: set the nice level to -15 and enable realtime scheduling if
-supportted.*/
-
+supported.*/
 void pa_raise_priority(void) {
 
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
@@ -381,6 +380,7 @@ void pa_raise_priority(void) {
 #endif
 }
 
+/* Reset the priority to normal, inverting the changes made by pa_raise_priority() */
 void pa_reset_priority(void) {
 #ifdef _POSIX_PRIORITY_SCHEDULING
     {
@@ -394,6 +394,7 @@ void pa_reset_priority(void) {
     setpriority(PRIO_PROCESS, 0, 0);
 }
 
+/* Set the FD_CLOEXEC flag for a fd */
 int pa_fd_set_cloexec(int fd, int b) {
     int v;
     assert(fd >= 0);
@@ -409,6 +410,9 @@ int pa_fd_set_cloexec(int fd, int b) {
     return 0;
 }
 
+/* Return the binary file name of the current process. Works on Linux
+ * only. This shoul be used for eyecandy only, don't rely on return
+ * non-NULL! */
 char *pa_get_binary_name(char *s, size_t l) {
     char path[PATH_MAX];
     int i;
@@ -424,6 +428,8 @@ char *pa_get_binary_name(char *s, size_t l) {
     return s;
 }
 
+/* Return a pointer to the filename inside a path (which is the last
+ * component). */
 char *pa_path_get_filename(const char *p) {
     char *fn;
 
@@ -433,6 +439,7 @@ char *pa_path_get_filename(const char *p) {
     return (char*) p;
 }
 
+/* Try to parse a boolean string value.*/
 int pa_parse_boolean(const char *v) {
     
     if (!strcmp(v, "1") || v[0] == 'y' || v[0] == 'Y' || v[0] == 't' || v[0] == 'T' || !strcasecmp(v, "on"))
@@ -443,6 +450,10 @@ int pa_parse_boolean(const char *v) {
     return -1;
 }
 
+/* Split the specified string wherever one of the strings in delimiter
+ * occurs. Each time it is called returns a newly allocated string
+ * with pa_xmalloc(). The variable state points to, should be
+ * initiallized to NULL before the first call. */
 char *pa_split(const char *c, const char *delimiter, const char**state) {
     const char *current = *state ? *state : c;
     size_t l;
@@ -459,8 +470,10 @@ char *pa_split(const char *c, const char *delimiter, const char**state) {
     return pa_xstrndup(current, l);
 }
 
+/* What is interpreted as whitespace? */
 #define WHITESPACE " \t\n"
 
+/* Split a string into words. Otherwise similar to pa_split(). */
 char *pa_split_spaces(const char *c, const char **state) {
     const char *current = *state ? *state : c;
     size_t l;
@@ -476,6 +489,7 @@ char *pa_split_spaces(const char *c, const char **state) {
     return pa_xstrndup(current, l);
 }
 
+/* Return the name of an UNIX signal. Similar to GNU's strsignal() */
 const char *pa_strsignal(int sig) {
     switch(sig) {
         case SIGINT: return "SIGINT";
@@ -490,6 +504,7 @@ const char *pa_strsignal(int sig) {
     }
 }
 
+/* Parse a libsamplrate compatible resampling implementation */
 int pa_parse_resample_method(const char *string) {
     assert(string);
 
@@ -507,6 +522,7 @@ int pa_parse_resample_method(const char *string) {
         return -1;
 }
 
+/* Check whether the specified GID and the group name match */
 static int is_group(gid_t gid, const char *name) {
     struct group group, *result = NULL;
     long n;
@@ -548,6 +564,7 @@ finish:
     return r;
 }
 
+/* Check the current user is member of the specified group */
 int pa_uid_in_group(const char *name, gid_t *gid) {
     gid_t *gids, tgid;
     long n = sysconf(_SC_NGROUPS_MAX);
@@ -584,6 +601,7 @@ finish:
     return r;
 }
 
+/* Lock or unlock a file entirely. (advisory) */
 int pa_lock_fd(int fd, int b) {
 
     struct flock flock;
@@ -601,6 +619,7 @@ int pa_lock_fd(int fd, int b) {
     return 0;
 }
 
+/* Remove trailing newlines from a string */
 char* pa_strip_nl(char *s) {
     assert(s);
 
@@ -608,6 +627,7 @@ char* pa_strip_nl(char *s) {
     return s;
 }
 
+/* Create a temporary lock file and lock it. */
 int pa_lock_lockfile(const char *fn) {
     int fd;
     assert(fn);
@@ -630,7 +650,7 @@ fail:
     return -1;
 }
 
-
+/* Unlock a temporary lcok file */
 int pa_unlock_lockfile(int fd) {
     int r = 0;
     assert(fd >= 0);
@@ -648,3 +668,50 @@ int pa_unlock_lockfile(int fd) {
     return r;
 }
 
+/* Try to open a configuration file. If "env" is specified, open the
+ * value of the specified environment variable. Otherwise look for a
+ * file "local" in the home directory or a file "global" in global
+ * file system. If "result" is non-NULL, a pointer to a newly
+ * allocated buffer containing the used configuration file is
+ * stored there.*/
+FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result) {
+    const char *e;
+    char h[PATH_MAX];
+
+    if (env && (e = getenv(env))) {
+        if (result)
+            *result = pa_xstrdup(e);
+        return fopen(e, "r");
+    }
+
+    if (local && pa_get_home_dir(h, sizeof(h))) {
+        FILE *f;
+        char *l;
+        
+        l = pa_sprintf_malloc("%s/%s", h, local);
+        f = fopen(l, "r");
+
+        if (f || errno != ENOENT) {
+            if (result)
+                *result = l;
+            else
+                pa_xfree(l);
+            return f;
+        }
+        
+        pa_xfree(l);
+    }
+
+    if (!global) {
+        if (result)
+            *result = NULL;
+        errno = ENOENT;
+        return NULL;
+    }
+
+    if (result)
+        *result = pa_xstrdup(global);
+    
+    return fopen(global, "r");
+}
+                 

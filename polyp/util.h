@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <inttypes.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 #include "gcc-printf.h"
 #include "sample.h"
@@ -46,7 +47,7 @@ char *pa_strlcpy(char *b, const char *s, size_t l);
 char *pa_get_user_name(char *s, size_t l);
 char *pa_get_host_name(char *s, size_t l);
 char *pa_get_binary_name(char *s, size_t l);
-char *pa_get_home(char *s, size_t l);
+char *pa_get_home_dir(char *s, size_t l);
 
 char *pa_path_get_filename(const char *p);
 
@@ -77,5 +78,7 @@ int pa_lock_fd(int fd, int b);
 
 int pa_lock_lockfile(const char *fn);
 int pa_unlock_lockfile(int fd);
+
+FILE *pa_open_config_file(const char *env, const char *global, const char *local, char **result);
 
 #endif
