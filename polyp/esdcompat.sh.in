@@ -26,9 +26,13 @@ fail() {
     exit 1
 }
 
+ARGS=""
+
 for N in $(seq $#) ; do
 
     case "$1" in
+        "")
+            ;;
 
         -v|--version)
             echo "$VERSION_STRING"
@@ -62,6 +66,16 @@ Ignored directives:
 EOF
             exit 0
             ;;
+
+        -spawnpid)
+            shift
+            ARGS="$ARGS '-Lmodule-esound-compat-spawnpid pid=$1'"
+            ;;
+
+        -spawnfd)
+            shift
+            ARGS="$ARGS '-Lmodule-esound-compat-spawnfd fd=$1'"
+            ;;
         
         -unix|-b|-public|-terminate|-nobeeps|-trust|-tcp|-promiscuous)  
             # Ignore these commands
@@ -70,6 +84,7 @@ EOF
         -d|-r|-as|-port|-bind)
             # Ignore these commands and their arguments
             shift
+
             ;;
 
         *)
@@ -80,4 +95,4 @@ EOF
     shift
 done
 
-exec "@POLYPAUDIO_BINARY@"
+eval "exec '@POLYPAUDIO_BINARY@'$ARGS"

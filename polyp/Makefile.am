@@ -103,7 +103,9 @@ modlib_LTLIBRARIES= \
 		module-native-protocol-unix.la \
 		module-native-protocol-fd.la \
 		module-sine.la \
-		module-combine.la
+		module-combine.la \
+		module-esound-compat-spawnfd.la \
+		module-esound-compat-spawnpid.la
 
 lib_LTLIBRARIES= \
 		libpolyp-@PA_MAJORMINOR@.la \
@@ -301,6 +303,14 @@ module_sine_la_LIBADD = $(AM_LIBADD)
 module_combine_la_SOURCES = module-combine.c
 module_combine_la_LDFLAGS = -module -avoid-version
 module_combine_la_LIBADD = $(AM_LIBADD)
+
+module_esound_compat_spawnfd_la_SOURCES = module-esound-compat-spawnfd.c
+module_esound_compat_spawnfd_la_LDFLAGS = -module -avoid-version
+module_esound_compat_spawnfd_la_LIBADD = $(AM_LIBADD)
+
+module_esound_compat_spawnpid_la_SOURCES = module-esound-compat-spawnpid.c
+module_esound_compat_spawnpid_la_LDFLAGS = -module -avoid-version
+module_esound_compat_spawnpid_la_LIBADD = $(AM_LIBADD)
 
 libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		polyplib-def.h \
