@@ -84,7 +84,7 @@ attempt to write a sound server <a
 href="http://asd.sf.net/">asd</a>.</p>
 
 <p>A GTK GUI manager application for polypaudio is the <a
-href="http://0pointer.de/projects/paman/">Polypaudio Manager</a>.</p>
+href="http://0pointer.de/lennart/projects/paman/">Polypaudio Manager</a>.</p>
 
 <h2><a name="status">Status</a></h2>
 
@@ -152,7 +152,7 @@ management.</p>
 
 <p><tt>polypaudio</tt> needs <a
 href="http://www.mega-nerd.com/SRC/">Secret Rabbit Code (aka
-<tt>libsamplerate</tt>)</a>, <a href="http://www.mega-nerd.com/SND"><tt>libsndfile</tt></a>, <a
+<tt>libsamplerate</tt>)</a>, <a href="http://www.mega-nerd.com/libsndfile"><tt>libsndfile</tt></a>, <a
 href="http://www.alsa-project.org/">alsa-lib</a> and <a href="http://www.gtk.org/">GLIB</a>. (The latter is required for building the GLIB main loop integration module only.)</p>
  
 <h2><a name="installation">Installation</a></h2>
