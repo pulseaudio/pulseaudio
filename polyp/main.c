@@ -34,6 +34,7 @@
 #include <ltdl.h>
 #include <memblock.h>
 #include <limits.h>
+#include <fcntl.h>
 
 #ifdef HAVE_LIBWRAP
 #include <syslog.h>
@@ -286,6 +287,11 @@ int main(int argc, char *argv[]) {
         
         close(0);
         close(1);
+        close(2);
+
+        open("/dev/null", O_RDONLY);
+        open("/dev/null", O_WRONLY);
+        open("/dev/null", O_WRONLY);
     }
 
     chdir("/");
