@@ -1,7 +1,6 @@
 *** $Id$ ***
 
-*** 0.3 ***
-- pacat drain fix
+*** 0.4 ***
 - make mcalign merge chunks
 - use ref counting in more objects
 - unix socket directories include user name
