@@ -34,7 +34,7 @@ struct tagstruct *tagstruct_new(const uint8_t* data, size_t length) {
     t->data = (uint8_t*) data;
     t->allocated = t->length = data ? length : 0;
     t->rindex = 0;
-    t->dynamic = !!data;
+    t->dynamic = !data;
     return t;
 }
     
@@ -57,7 +57,7 @@ uint8_t* tagstruct_free_data(struct tagstruct*t, size_t *l) {
 static void extend(struct tagstruct*t, size_t l) {
     assert(t && t->dynamic);
 
-    if (t->allocated <= l)
+    if (l <= t->allocated)
         return;
 
     t->data = realloc(t->data, t->allocated = l+100);
@@ -75,7 +75,7 @@ void tagstruct_puts(struct tagstruct*t, const char *s) {
 }
 
 void tagstruct_putu32(struct tagstruct*t, uint32_t i) {
-    assert(t && i);
+    assert(t);
     extend(t, 5);
     t->data[t->length] = TAG_U32;
     *((uint32_t*) (t->data+t->length+1)) = htonl(i);
@@ -83,7 +83,7 @@ void tagstruct_putu32(struct tagstruct*t, uint32_t i) {
 }
 
 void tagstruct_putu8(struct tagstruct*t, uint8_t c) {
-    assert(t && c);
+    assert(t);
     extend(t, 2);
     t->data[t->length] = TAG_U8;
     *(t->data+t->length+1) = c;

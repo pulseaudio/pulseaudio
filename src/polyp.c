@@ -15,7 +15,7 @@
 #define DEFAULT_MAX_LENGTH 20480
 #define DEFAULT_PREBUF 4096
 #define DEFAULT_TIMEOUT 5
-#define DEFAULT_SERVER "/tmp/foo"
+#define DEFAULT_SERVER "/tmp/polypaudio_native"
 
 struct pa_context {
     char *name;

@@ -46,6 +46,7 @@ struct pdispatch* pdispatch_new(struct pa_mainloop_api *mainloop, const struct p
     pd->mainloop = mainloop;
     pd->command_table = table;
     pd->n_commands = entries;
+    pd->replies = NULL;
     return pd;
 }
 

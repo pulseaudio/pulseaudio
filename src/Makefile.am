@@ -28,7 +28,7 @@ pkglib_LTLIBRARIES=libiochannel.la libsocket-server.la libsocket-client.la \
 		module-simple-protocol-unix.la module-cli-protocol-tcp.la \
 		libprotocol-cli.la module-cli-protocol-unix.la libtagstruct.la \
 		libpdispatch.la libprotocol-native.la libpstream-util.la \
-        	module-native-protocol-tcp.la module-native-protocol-unix.la \
+		module-native-protocol-tcp.la module-native-protocol-unix.la \
 		libpolyp.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
@@ -110,7 +110,7 @@ libprotocol_cli_la_LIBADD = libsocket-server.la libiochannel.la libcli.la
 
 libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la libpstream-util.la
+libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la libpstream-util.la libpdispatch.la
 
 libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version

@@ -101,7 +101,7 @@ static int do_connect(struct socket_client *c, const struct sockaddr *sa, sockle
         assert(c->io_source);
     } else {
         c->fixed_source = c->mainloop->source_fixed(c->mainloop, connect_fixed_cb, c);
-        assert(c->io_source);
+        assert(c->fixed_source);
     }
 
     return 0;

@@ -8,18 +8,21 @@
   #include "protocol-simple.h"
   #define protocol_free protocol_simple_free
   #define IPV4_PORT 4711
+  #define UNIX_SOCKET "/tmp/polypaudio_simple"
 #else
   #ifdef USE_PROTOCOL_CLI
     #include "protocol-cli.h" 
     #define protocol_new protocol_cli_new
     #define protocol_free protocol_cli_free
     #define IPV4_PORT 4712
+    #define UNIX_SOCKET "/tmp/polypaudio_cli"
   #else
     #ifdef USE_PROTOCOL_NATIVE
       #include "protocol-native.h"
       #define protocol_new protocol_native_new
       #define protocol_free protocol_native_free
       #define IPV4_PORT 4713
+      #define UNIX_SOCKET "/tmp/polypaudio_native"
     #else
       #error "Broken build system"
     #endif
@@ -34,7 +37,7 @@ int module_init(struct core *c, struct module*m) {
     if (!(s = socket_server_new_ipv4(c->mainloop, INADDR_LOOPBACK, IPV4_PORT)))
         return -1;
 #else
-    if (!(s = socket_server_new_unix(c->mainloop, "/tmp/polypsimple")))
+    if (!(s = socket_server_new_unix(c->mainloop, UNIX_SOCKET)))
         return -1;
 #endif
 
