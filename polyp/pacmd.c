@@ -75,11 +75,11 @@ int main() {
             goto fail;
         }
 
-        pa_msleep(10);
+        pa_msleep(50);
     }
 
     if (i >= 5) {
-        pa_log(__FILE__": daemon to responding.\n");
+        pa_log(__FILE__": daemon not responding.\n");
         goto fail;
     }
 
