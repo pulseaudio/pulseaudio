@@ -39,6 +39,7 @@
 #include "util.h"
 #include "log.h"
 #include "subscribe.h"
+#include "dynarray.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher")
@@ -70,6 +71,7 @@ struct userdata {
     struct pa_core *core;
     struct pa_howl_wrapper *howl_wrapper;
     struct pa_hashmap *services;
+    struct pa_dynarray *sink_dynarray, *source_dynarray, *autoload_dynarray;
     struct pa_subscription *subscription;
 };
 
@@ -198,6 +200,8 @@ static int publish_sink(struct userdata *u, struct pa_sink *s) {
     svc->loaded.type = PA_NAMEREG_SINK;
     svc->loaded.index = s->index;
 
+    pa_dynarray_put(u->sink_dynarray, s->index, svc);
+
     return publish_service(u, svc);
 }
 
@@ -212,6 +216,8 @@ static int publish_source(struct userdata *u, struct pa_source *s) {
     svc->loaded.valid = 1;
     svc->loaded.type = PA_NAMEREG_SOURCE;
     svc->loaded.index = s->index;
+
+    pa_dynarray_put(u->source_dynarray, s->index, svc);
     
     return publish_service(u, svc);
 }
@@ -227,49 +233,57 @@ static int publish_autoload(struct userdata *u, struct pa_autoload_entry *s) {
     svc->autoload.valid = 1;
     svc->autoload.type = s->type;
     svc->autoload.index = s->index;
+
+    pa_dynarray_put(u->autoload_dynarray, s->index, svc);
     
     return publish_service(u, svc);
 }
 
-static int remove_sink(struct userdata *u, struct pa_sink *s) {
+static int remove_sink(struct userdata *u, uint32_t index) {
     struct service *svc;
-    assert(u && s);
+    assert(u && index != PA_INVALID_INDEX);
 
-    if (!(svc = pa_hashmap_get(u->services, s->name)))
+    if (!(svc = pa_dynarray_get(u->sink_dynarray, index)))
         return 0;
 
     if (!svc->loaded.valid || svc->loaded.type != PA_NAMEREG_SINK)
         return 0;
 
     svc->loaded.valid = 0;
+    pa_dynarray_put(u->sink_dynarray, index, NULL);
+    
     return publish_service(u, svc);
 }
 
-static int remove_source(struct userdata *u, struct pa_source *s) {
+static int remove_source(struct userdata *u, uint32_t index) {
     struct service *svc;
-    assert(u && s);
+    assert(u && index != PA_INVALID_INDEX);
     
-    if (!(svc = pa_hashmap_get(u->services, s->name)))
+    if (!(svc = pa_dynarray_get(u->source_dynarray, index)))
         return 0;
 
     if (!svc->loaded.valid || svc->loaded.type != PA_NAMEREG_SOURCE)
         return 0;
 
     svc->loaded.valid = 0;
+    pa_dynarray_put(u->source_dynarray, index, NULL);
+
     return publish_service(u, svc);
 }
 
-static int remove_autoload(struct userdata *u, struct pa_autoload_entry *s) {
+static int remove_autoload(struct userdata *u, uint32_t index) {
     struct service *svc;
-    assert(u && s);
+    assert(u && index != PA_INVALID_INDEX);
     
-    if (!(svc = pa_hashmap_get(u->services, s->name)))
+    if (!(svc = pa_dynarray_get(u->autoload_dynarray, index)))
         return 0;
 
-    if (!svc->autoload.valid || svc->autoload.type != s->type)
+    if (!svc->autoload.valid)
         return 0;
 
     svc->autoload.valid = 0;
+    pa_dynarray_put(u->autoload_dynarray, index, NULL);
+
     return publish_service(u, svc);
 }
 
@@ -277,63 +291,52 @@ static void subscribe_callback(struct pa_core *c, enum pa_subscription_event_typ
     struct userdata *u = userdata;
     assert(u && c);
 
-    switch (t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
+    switch (t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK)
         case PA_SUBSCRIPTION_EVENT_SINK: {
-            struct pa_sink *sink;
+            if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
+                struct pa_sink *sink;
 
-            pa_log("subscribe: %x\n", t);
-    
-    
-
-            
-            if ((sink = pa_idxset_get_by_index(c->sinks, index))) {
-                if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                    pa_log("add\n");
+                if ((sink = pa_idxset_get_by_index(c->sinks, index))) {
                     if (publish_sink(u, sink) < 0)
                         goto fail;
-                } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-                    pa_log("remove\n");
-
-
-                    if (remove_sink(u, sink) < 0)
-                        goto fail;
                 }
+            } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
+                if (remove_sink(u, index) < 0)
+                    goto fail;
             }
         
             break;
-        }
 
-        case PA_SUBSCRIPTION_EVENT_SOURCE: {
-            struct pa_source *source;
+        case PA_SUBSCRIPTION_EVENT_SOURCE:
 
-            if ((source = pa_idxset_get_by_index(c->sources, index))) {
-                if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
+            if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
+                struct pa_source *source;
+                
+                if ((source = pa_idxset_get_by_index(c->sources, index))) {
                     if (publish_source(u, source) < 0)
                         goto fail;
-                } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-                    if (remove_source(u, source) < 0)
-                        goto fail;
                 }
+            } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
+                if (remove_source(u, index) < 0)
+                    goto fail;
             }
             
             break;
-        }
 
-        case PA_SUBSCRIPTION_EVENT_AUTOLOAD: {
-            struct pa_autoload_entry *autoload;
-            
-            if ((autoload = pa_idxset_get_by_index(c->autoload_idxset, index))) {
-                if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
+        case PA_SUBSCRIPTION_EVENT_AUTOLOAD:
+            if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
+                struct pa_autoload_entry *autoload;
+                    
+                if ((autoload = pa_idxset_get_by_index(c->autoload_idxset, index))) {
                     if (publish_autoload(u, autoload) < 0)
                         goto fail;
-                } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-                    if (remove_autoload(u, autoload) < 0)
-                        goto fail;
                 }
+            } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
+                if (remove_autoload(u, index) < 0)
+                        goto fail;
             }
             
             break;
-        }
     }
 
     return;
@@ -359,7 +362,10 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
         goto fail;
 
     u->services = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-
+    u->sink_dynarray = pa_dynarray_new();
+    u->source_dynarray = pa_dynarray_new();
+    u->autoload_dynarray = pa_dynarray_new();
+    
     u->subscription = pa_subscription_new(c,
                                           PA_SUBSCRIPTION_MASK_SINK|
                                           PA_SUBSCRIPTION_MASK_SOURCE|
@@ -404,11 +410,19 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
     if (u->services)
         pa_hashmap_free(u->services, service_free, u);
 
+    if (u->sink_dynarray)
+        pa_dynarray_free(u->sink_dynarray, NULL, NULL);
+    if (u->source_dynarray)
+        pa_dynarray_free(u->source_dynarray, NULL, NULL);
+    if (u->autoload_dynarray)
+        pa_dynarray_free(u->autoload_dynarray, NULL, NULL);
+    
     if (u->subscription)
         pa_subscription_free(u->subscription);
     
     if (u->howl_wrapper)
         pa_howl_wrapper_unref(u->howl_wrapper);
+
     
     pa_xfree(u);
 }
