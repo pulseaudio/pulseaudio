@@ -24,7 +24,7 @@ MAINTAINERCLEANFILES=README
 noinst_DATA = README
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = polyplib.pc polyplib-simple.pc polyplib-error.pc polyplib-mainloop.pc polyplib-glib-mainloop.pc
+pkgconfig_DATA = polyplib.pc polyplib-simple.pc polyplib-error.pc polyplib-mainloop.pc polyplib-glib-mainloop.pc polyplib-glib12-mainloop.pc
 
 README:
 	rm -f README

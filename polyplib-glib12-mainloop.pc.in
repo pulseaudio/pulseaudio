@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: polyplib-glib-mainloop
+Description: GLIB main loop wrapper for polypaudio
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lpolyp-mainloop-glib12
+Cflags: -D_REENTRANT -I${includedir}
+Requires: polyplib-mainloop
