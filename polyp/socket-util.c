@@ -114,6 +114,7 @@ int pa_socket_tcp_low_delay(int fd) {
     ret = pa_socket_low_delay(fd);
     
     on = 1;
+/*
 #if defined(SOL_TCP) || defined(IPPROTO_TCP)
 #if defined(SOL_TCP)
     if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
@@ -122,6 +123,7 @@ int pa_socket_tcp_low_delay(int fd) {
 #endif
         ret = -1;
 #endif
+*/
 
 #if defined(IPTOS_LOWDELAY) && defined(IP_TOS) && (defined(SOL_IP) || \
 	defined(IPPROTO_IP))

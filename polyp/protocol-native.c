@@ -46,6 +46,7 @@
 #include "subscribe.h"
 #include "log.h"
 #include "autoload.h"
+#include "authkey-prop.h"
 
 struct connection;
 struct pa_protocol_native;
@@ -106,6 +107,7 @@ struct pa_protocol_native {
     struct pa_socket_server *server;
     struct pa_idxset *connections;
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
+    int auth_cookie_in_property;
 };
 
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk);
@@ -2008,6 +2010,32 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
 /*** module entry points ***/
 
+static int load_key(struct pa_protocol_native*p, const char*fn) {
+    assert(p);
+
+    p->auth_cookie_in_property = 0;
+    
+    if (!fn && pa_authkey_prop_get(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0) {
+        pa_log(__FILE__": using already loaded auth cookie.\n");
+        pa_authkey_prop_ref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
+        p->auth_cookie_in_property = 1;
+        return 0;
+    }
+    
+    if (!fn)
+        fn = PA_NATIVE_COOKIE_FILE;
+
+    if (pa_authkey_load_from_home(fn, p->auth_cookie, sizeof(p->auth_cookie)) < 0)
+        return -1;
+
+    pa_log(__FILE__": loading cookie from disk.\n");
+
+    if (pa_authkey_prop_put(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0)
+        p->auth_cookie_in_property = 1;
+        
+    return 0;
+}
+
 static struct pa_protocol_native* protocol_new_internal(struct pa_core *c, struct pa_module *m, struct pa_modargs *ma) {
     struct pa_protocol_native *p;
     int public = 0;
@@ -2019,16 +2047,16 @@ static struct pa_protocol_native* protocol_new_internal(struct pa_core *c, struc
     }
     
     p = pa_xmalloc(sizeof(struct pa_protocol_native));
+    p->core = c;
+    p->module = m;
+    p->public = public;
+    p->server = NULL;
 
-    if (pa_authkey_load_from_home(pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), p->auth_cookie, sizeof(p->auth_cookie)) < 0) {
+    if (load_key(p, pa_modargs_get_value(ma, "cookie", NULL)) < 0) {
         pa_xfree(p);
         return NULL;
     }
 
-    p->module = m;
-    p->public = public;
-    p->server = NULL;
-    p->core = c;
     p->connections = pa_idxset_new(NULL, NULL);
     assert(p->connections);
 
@@ -2057,7 +2085,10 @@ void pa_protocol_native_free(struct pa_protocol_native *p) {
 
     if (p->server)
         pa_socket_server_unref(p->server);
-    
+
+    if (p->auth_cookie_in_property)
+        pa_authkey_prop_unref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
+        
     pa_xfree(p);
 }
 

@@ -41,8 +41,10 @@
 #include "log.h"
 #include "x11wrap.h"
 #include "util.h"
-
+#include "native-common.h"
 #include "module-x11-publish-symdef.h"
+#include "authkey-prop.h"
+#include "authkey.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("X11 Credential Publisher")
@@ -53,6 +55,7 @@ static const char* const valid_modargs[] = {
     "display",
     "sink",
     "source",
+    "cookie",
     NULL
 };
 
@@ -61,6 +64,8 @@ struct userdata {
     struct pa_x11_wrapper *x11_wrapper;
     Display *display;
     char *id;
+    uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
+    int auth_cookie_in_property;
 };
 
 static void set_x11_prop(Display *d, const char *name, const char *data) {
@@ -91,11 +96,38 @@ static char* get_x11_prop(Display *d, const char *name, char *p, size_t l) {
     return p;
 }
 
+static int load_key(struct userdata *u, const char*fn) {
+    assert(u);
+
+    u->auth_cookie_in_property = 0;
+    
+    if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
+        pa_log(__FILE__": using already loaded auth cookie.\n");
+        pa_authkey_prop_ref(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
+        u->auth_cookie_in_property = 1;
+        return 0;
+    }
+    
+    if (!fn)
+        fn = PA_NATIVE_COOKIE_FILE;
+
+    if (pa_authkey_load_from_home(fn, u->auth_cookie, sizeof(u->auth_cookie)) < 0)
+        return -1;
+
+    pa_log(__FILE__": loading cookie from disk.\n");
+    
+    if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
+        u->auth_cookie_in_property = 1;
+
+    return 0;
+}
+
 int pa__init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     struct pa_modargs *ma = NULL;
     char hn[256], un[128];
-     const char *t;
+    char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
+    const char *t;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments\n");
@@ -105,6 +137,10 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     m->userdata = u = pa_xmalloc(sizeof(struct userdata));
     u->core = c;
     u->id = NULL;
+    u->auth_cookie_in_property = 0;
+
+    if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
+        goto fail;
 
     if (!(u->x11_wrapper = pa_x11_wrapper_get(c, pa_modargs_get_value(ma, "display", NULL)))) 
         goto fail;
@@ -124,6 +160,8 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
 
     if ((t = pa_modargs_get_value(ma, "sink", NULL)))
         set_x11_prop(u->display, "POLYP_SINK", t);
+
+    set_x11_prop(u->display, "POLYP_COOKIE", pa_hexstr(u->auth_cookie, sizeof(u->auth_cookie), hx, sizeof(hx)));
     
     pa_modargs_free(ma);
     return 0;
@@ -154,12 +192,16 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
             del_x11_prop(u->display, "POLYP_SERVER");
             del_x11_prop(u->display, "POLYP_SINK");
             del_x11_prop(u->display, "POLYP_SOURCE");
+            del_x11_prop(u->display, "POLYP_COOKIE");
             XSync(u->display, False);
         }
     }
     
     if (u->x11_wrapper)
         pa_x11_wrapper_unref(u->x11_wrapper);
+
+    if (u->auth_cookie_in_property)
+        pa_authkey_prop_unref(c, PA_NATIVE_COOKIE_PROPERTY_NAME);
 
     pa_xfree(u->id);
     pa_xfree(u);

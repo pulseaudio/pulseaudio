@@ -115,6 +115,11 @@ AC_SUBST(GLIB12_LIBS)
 AC_SUBST(HAVE_GLIB12)
 AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
 
+AC_PATH_PROG([M4], [m4 gm4], [no])
+if test "x$M4" = xno ; then
+   AC_MSG_ERROR([m4 missing])
+fi
+
 AC_MSG_CHECKING([for tcpwrap library and headers])
 LIBWRAP_LIBS=
 saved_LIBS="$LIBS"

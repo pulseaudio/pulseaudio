@@ -715,3 +715,20 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
     return fopen(global, "r");
 }
                  
+/* Format the specified data as a hexademical string */
+char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength) {
+    size_t i = 0, j = 0;
+    const char hex[] = "0123456789abcdef";
+    assert(d && s && slength > 0);
+
+    while (i < dlength && j+3 <= slength) {
+        s[j++] = hex[*d >> 4];
+        s[j++] = hex[*d & 0xF];
+
+        d++;
+        i++;
+    }
+
+    s[j < slength ? j : slength] = 0;
+    return s;
+}

@@ -45,6 +45,7 @@
 #include "authkey.h"
 #include "socket-client.h"
 #include "socket-util.h"
+#include "authkey-prop.h"
 
 #ifdef TUNNEL_SINK
 #include "module-tunnel-sink-symdef.h"
@@ -129,10 +130,13 @@ struct userdata {
     pa_usec_t host_latency;
 
     struct pa_time_event *time_event;
+
+    int auth_cookie_in_property;
 };
 
-
 static void close_stuff(struct userdata *u) {
+    assert(u);
+    
     if (u->pstream) {
         pa_pstream_close(u->pstream);
         pa_pstream_unref(u->pstream);
@@ -532,6 +536,32 @@ static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, 
     m->time_restart(e, &ntv);
 }
 
+static int load_key(struct userdata *u, const char*fn) {
+    assert(u);
+
+    u->auth_cookie_in_property = 0;
+    
+    if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
+        pa_log(__FILE__": using already loaded auth cookie.\n");
+        pa_authkey_prop_ref(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
+        u->auth_cookie_in_property = 1;
+        return 0;
+    }
+    
+    if (!fn)
+        fn = PA_NATIVE_COOKIE_FILE;
+
+    if (pa_authkey_load_from_home(fn, u->auth_cookie, sizeof(u->auth_cookie)) < 0)
+        return -1;
+
+    pa_log(__FILE__": loading cookie from disk.\n");
+    
+    if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
+        u->auth_cookie_in_property = 1;
+
+    return 0;
+}
+
 int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_modargs *ma = NULL;
     struct userdata *u = NULL;
@@ -563,11 +593,11 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->ctag = 1;
     u->device_index = u->channel = PA_INVALID_INDEX;
     u->host_latency = 0;
-
-    if (pa_authkey_load_from_home(pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), u->auth_cookie, sizeof(u->auth_cookie)) < 0) {
-        pa_log(__FILE__": failed to load cookie.\n");
+    u->auth_cookie_in_property = 0;
+    u->time_event = NULL;
+    
+    if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
         goto fail;
-    }
     
     if (!(u->server_name = pa_xstrdup(pa_modargs_get_value(ma, "server", NULL)))) {
         pa_log(__FILE__": no server specified.\n");
@@ -650,6 +680,9 @@ void pa__done(struct pa_core *c, struct pa_module*m) {
 
     close_stuff(u);
 
+    if (u->auth_cookie_in_property)
+        pa_authkey_prop_unref(c, PA_NATIVE_COOKIE_PROPERTY_NAME);
+    
 #ifdef TUNNEL_SINK
     pa_xfree(u->sink_name);
 #else

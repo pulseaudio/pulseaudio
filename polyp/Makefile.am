@@ -84,6 +84,7 @@ modlib_LTLIBRARIES= \
 		libpstream-util.la \
 		libpdispatch.la \
 		libauthkey.la \
+		libauthkey-prop.la \
 		libprotocol-simple.la \
 		libprotocol-esound.la \
 		libprotocol-native.la \
@@ -199,7 +200,7 @@ polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
 polypaudio_LDFLAGS= -export-dynamic -dlopen force
-#-static $(foreach f,$(modlib_LTLIBRARIES),-dlpreopen $(f))
+# -static $(foreach f,$(modlib_LTLIBRARIES),-dlpreopen $(f))
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version
@@ -249,7 +250,7 @@ libprotocol_cli_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la lib
 
 libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h native-common.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
+libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la
 
 libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
@@ -260,6 +261,9 @@ libprotocol_esound_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la 
 
 libauthkey_la_SOURCES = authkey.c authkey.h
 libauthkey_la_LDFLAGS = -avoid-version
+
+libauthkey_prop_la_SOURCES = authkey-prop.c authkey-prop.h
+libauthkey_prop_la_LDFLAGS = -avoid-version
 
 libsocket_util_la_SOURCES = socket-util.c socket-util.h
 libsocket_util_la_LDFLAGS = -avoid-version
@@ -348,11 +352,11 @@ module_match_la_LIBADD = $(AM_LIBADD)
 module_tunnel_sink_la_SOURCES = module-tunnel.c
 module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
 module_tunnel_sink_la_LDFLAGS = -module -avoid-version
-module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
+module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
 
 module_tunnel_source_la_SOURCES = module-tunnel.c
 module_tunnel_source_la_LDFLAGS = -module -avoid-version
-module_tunnel_source_la_LIBADD = $(AM_LIBADD) libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
+module_tunnel_source_la_LIBADD = $(AM_LIBADD) libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
 
 module_esound_compat_spawnfd_la_SOURCES = module-esound-compat-spawnfd.c
 module_esound_compat_spawnfd_la_LDFLAGS = -module -avoid-version
@@ -477,7 +481,7 @@ module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA
 module_x11_publish_la_SOURCES = module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
-module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB) libx11wrap.la
+module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB) libx11wrap.la libauthkey.la libauthkey-prop.la
 
 endif
 
@@ -645,4 +649,4 @@ install-exec-hook:
 	chmod u+s $(DESTDIR)$(bindir)/polypaudio
 
 $(SYMDEF_FILES): module-defs.h.m4
-	m4 -Dfname="$@" $< > $@
+	$(M4) -Dfname="$@" $< > $@

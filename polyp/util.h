@@ -81,4 +81,6 @@ int pa_unlock_lockfile(int fd);
 
 FILE *pa_open_config_file(const char *env, const char *global, const char *local, char **result);
 
+char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength);
+
 #endif

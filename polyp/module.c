@@ -135,6 +135,8 @@ static void pa_module_free(struct pa_module *m) {
     if (m->core->disallow_module_loading)
         return;
 
+    pa_log(__FILE__": Unloading \"%s\" (index: #%u).\n", m->name, m->index);
+
     m->done(m->core, m);
 
     lt_dlclose(m->dl);

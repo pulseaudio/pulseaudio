@@ -53,7 +53,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 #endif
 
 #define DEFAULT_MATCH_TABLE_FILE DEFAULT_CONFIG_DIR"/match.table"
-#define DEFAULT_MATCH_TABLE_FILE_USER ".polypaudio/.match.table"
+#define DEFAULT_MATCH_TABLE_FILE_USER ".polypaudio/match.table"
 
 static const char* const valid_modargs[] = {
     "table",
