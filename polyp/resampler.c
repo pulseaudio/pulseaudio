@@ -333,7 +333,7 @@ static void trivial_run(struct pa_resampler *r, const struct pa_memchunk *in, st
         unsigned o_index;
         
         /* The length of the new memory block rounded up */
-        l = ((nframes * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * fz;
+        l = ((((nframes+1) * r->o_ss.rate) / r->i_ss.rate) + 1) * fz;
         
         out->index = 0;
         out->memblock = pa_memblock_new(l, r->memblock_stat);
@@ -342,12 +342,11 @@ static void trivial_run(struct pa_resampler *r, const struct pa_memchunk *in, st
             unsigned j;
             
             j = (i->o_counter * r->i_ss.rate / r->o_ss.rate);
-            
             j = j > i->i_counter ? j - i->i_counter : 0;
             
             if (j >= nframes)
                 break;
-            
+
             assert(o_index*fz < out->memblock->length);
             
             memcpy((uint8_t*) out->memblock->data + fz*o_index,
@@ -357,15 +356,15 @@ static void trivial_run(struct pa_resampler *r, const struct pa_memchunk *in, st
             
         out->length = o_index*fz;
     }
-        
-    /* Normalize the output counter */
-    while (i->o_counter >= r->o_ss.rate)
-        i->o_counter -= r->o_ss.rate;
 
     i->i_counter += nframes;
     
-    while (i->i_counter >= r->i_ss.rate)
+    /* Normalize counters */
+    while (i->i_counter >= r->i_ss.rate) {
         i->i_counter -= r->i_ss.rate;
+        assert(i->o_counter >= r->o_ss.rate);
+        i->o_counter -= r->o_ss.rate;
+    }
 }
 
 static void trivial_free(struct pa_resampler *r) {
