@@ -141,6 +141,7 @@ int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename
         
     r = pa_scache_add_item(c, name, &ss, &chunk, index);
     pa_memblock_unref(chunk.memblock);
+
     return r;
 }
 
@@ -203,9 +204,12 @@ int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sin
     if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 1)))
         return -1;
 
-    if (e->lazy && !e->memchunk.memblock)
+    if (e->lazy && !e->memchunk.memblock) {
         if (pa_sound_file_load(e->filename, &e->sample_spec, &e->memchunk, c->memblock_stat) < 0)
             return -1;
+
+        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
+    }
     
     if (!e->memchunk.memblock)
         return -1;
@@ -276,5 +280,7 @@ void pa_scache_unload_unused(struct pa_core *c) {
         pa_memblock_unref(e->memchunk.memblock);
         e->memchunk.memblock = NULL;
         e->memchunk.index = e->memchunk.length = 0;
+
+        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
     }
 }

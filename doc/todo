@@ -1,26 +1,20 @@
 *** $Id$ ***
 
 *** 0.5 ***
-- make mcalign merge chunks
-- native library/protocol:
-   module load/unload
-   kill client/...
-   autoload management
-   rename streams/contexts
 - more complete pactl
-- option to use default fragment size on alsa drivers
-- merge pa_context_connect_*
 - input latency
 - fix tcp/native
-- add volume to create_stream command in native protocol
-- udp based protocol
+- paman: add support for killing sink inputs, source outputs, clients
 - add client config file
-- beefup sample_info stuff in native protocol
+- remove autospawn stuff in conf.c
 
 *** 0.6 ****
 - per-channel volume
 - unix socket directories include user name
 - add sample directory
+- udp based protocol
+- make mcalign merge chunks
+- option to use default fragment size on alsa drivers
 
 ** later ***
 - xmlrpc/http

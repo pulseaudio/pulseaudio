@@ -38,8 +38,7 @@
  * and the structures themselves point to internal memory that may not
  * be modified. That memory is only valid during the call to the
  * callback function. A deep copy is required if you need this data
- * outside the callback functions. An error is signalled by a call to
- * the callback function with i=NULL and is_last=0.
+ * outside the callback functions. An error is signalled by a call to * the callback function with i=NULL and is_last=0.
  *
  * When using the routines that ask fo a single entry only, a callback
  * with the same signature is used. However, no finishing call to the
@@ -196,6 +195,8 @@ struct pa_sample_info {
     struct pa_sample_spec sample_spec;    /**< Sample specification of the sampel */
     pa_usec_t duration;                   /**< Duration of this entry */
     uint32_t bytes;                       /**< Length of this sample in bytes. \since 0.4 */
+    int lazy;                             /**< Non-zero when this is a lazy cache entry. \since 0.5 */
+    const char *filename;                 /**< In case this is a lazy cache entry, the filename for the sound file to be loaded on demand. \since 0.5 */
 };
 
 /** Get information about a sample by its name */
@@ -206,6 +207,47 @@ struct pa_operation* pa_context_get_sample_info_by_index(struct pa_context *c, u
 
 /** Get the complete list of samples stored in the daemon. */
 struct pa_operation* pa_context_get_sample_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata), void *userdata);
+
+/** Kill a client. \since 0.5 */
+struct pa_operation* pa_context_kill_client(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+                                            
+/** Kill a sink input. \since 0.5 */
+struct pa_operation* pa_context_kill_sink_input(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+
+/** Kill a source output. \since 0.5 */
+struct pa_operation* pa_context_kill_source_output(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+
+/** Load a module. \since 0.5 */
+struct pa_operation* pa_context_load_module(struct pa_context *c, const char*name, const char *argument, void (*cb)(struct pa_context *c, uint32_t index, void *userdata), void *userdata);
+
+/** Unload a module. \since 0.5 */
+struct pa_operation* pa_context_unload_module(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+
+/** Type of an autoload entry. \since 0.5 */
+enum pa_autoload_type {
+    PA_AUTOLOAD_SINK = 0,
+    PA_AUTOLOAD_SOURCE = 1,
+};
+
+/** Stores information about autoload entries. \since 0.5 */
+struct pa_autoload_info {
+    const char *name;             /**< Name of the sink or source */
+    enum pa_autoload_type type;   /**< Type of the autoload entry */
+    const char *module;           /**< Module name to load */
+    const char *argument;         /**< Argument string for module */
+};
+
+/** Get info about a specific autoload entry. \since 0.5 */
+struct pa_operation* pa_context_get_autoload_info(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata);
+
+/** Get the complete list of autoload entries. \since 0.5 */
+struct pa_operation* pa_context_get_autoload_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata);
+
+/** Add a new autoload entry. \since 0.5 */
+struct pa_operation* pa_context_add_autoload(struct pa_context *c, const char *name, enum pa_autoload_type type, const char *module, const char*argument, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata);
+
+/** Remove an autoload entry. \since 0.5 */
+struct pa_operation* pa_context_remove_autoload(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata);
 
 PA_C_DECL_END
 

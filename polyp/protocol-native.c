@@ -45,6 +45,7 @@
 #include "util.h"
 #include "subscribe.h"
 #include "log.h"
+#include "autoload.h"
 
 struct connection;
 struct pa_protocol_native;
@@ -123,7 +124,7 @@ static void command_drain_playback_stream(struct pa_pdispatch *pd, uint32_t comm
 static void command_create_record_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_delete_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-static void command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_set_client_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_stat(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
@@ -139,6 +140,14 @@ static void command_set_volume(struct pa_pdispatch *pd, uint32_t command, uint32
 static void command_cork_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_set_default_sink_or_source(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_set_stream_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_kill(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_load_module(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_unload_module(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_add_autoload(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_remove_autoload(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_get_autoload_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_get_autoload_info_list(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -152,7 +161,7 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_AUTH] = { command_auth },
     [PA_COMMAND_REQUEST] = { NULL },
     [PA_COMMAND_EXIT] = { command_exit },
-    [PA_COMMAND_SET_NAME] = { command_set_name },
+    [PA_COMMAND_SET_CLIENT_NAME] = { command_set_client_name },
     [PA_COMMAND_LOOKUP_SINK] = { command_lookup },
     [PA_COMMAND_LOOKUP_SOURCE] = { command_lookup },
     [PA_COMMAND_STAT] = { command_stat },
@@ -185,6 +194,17 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_TRIGGER_PLAYBACK_STREAM] = { command_flush_or_trigger_playback_stream },
     [PA_COMMAND_SET_DEFAULT_SINK] = { command_set_default_sink_or_source },
     [PA_COMMAND_SET_DEFAULT_SOURCE] = { command_set_default_sink_or_source },
+    [PA_COMMAND_SET_PLAYBACK_STREAM_NAME] = { command_set_stream_name }, 
+    [PA_COMMAND_SET_RECORD_STREAM_NAME] = { command_set_stream_name },
+    [PA_COMMAND_KILL_CLIENT] = { command_kill },
+    [PA_COMMAND_KILL_SINK_INPUT] = { command_kill },
+    [PA_COMMAND_KILL_SOURCE_OUTPUT] = { command_kill },
+    [PA_COMMAND_LOAD_MODULE] = { command_load_module },
+    [PA_COMMAND_UNLOAD_MODULE] = { command_unload_module },
+    [PA_COMMAND_GET_AUTOLOAD_INFO] = { command_get_autoload_info },
+    [PA_COMMAND_GET_AUTOLOAD_INFO_LIST] = { command_get_autoload_info_list },
+    [PA_COMMAND_ADD_AUTOLOAD] = { command_add_autoload },
+    [PA_COMMAND_REMOVE_AUTOLOAD] = { command_remove_autoload },
 };
 
 /* structure management */
@@ -265,7 +285,8 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
                                                    size_t maxlength,
                                                    size_t tlength,
                                                    size_t prebuf,
-                                                   size_t minreq) {
+                                                   size_t minreq,
+                                                   pa_volume_t volume) {
     struct playback_stream *s;
     struct pa_sink_input *sink_input;
     assert(c && sink && ss && name && maxlength);
@@ -291,6 +312,8 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
 
     s->requested_bytes = 0;
     s->drain_request = 0;
+
+    s->sink_input->volume = volume;
     
     pa_idxset_put(c->output_streams, s, &s->index);
     return s;
@@ -501,6 +524,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
     struct pa_sample_spec ss;
     struct pa_tagstruct *reply;
     struct pa_sink *sink;
+    pa_volume_t volume;
     assert(c && t && c->protocol && c->protocol->core);
     
     if (pa_tagstruct_gets(t, &name) < 0 ||
@@ -511,6 +535,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
         pa_tagstruct_getu32(t, &tlength) < 0 ||
         pa_tagstruct_getu32(t, &prebuf) < 0 ||
         pa_tagstruct_getu32(t, &minreq) < 0 ||
+        pa_tagstruct_getu32(t, &volume) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -531,7 +556,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
         return;
     }
     
-    if (!(s = playback_stream_new(c, sink, &ss, name, maxlength, tlength, prebuf, minreq))) {
+    if (!(s = playback_stream_new(c, sink, &ss, name, maxlength, tlength, prebuf, minreq, volume))) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_INVALID);
         return;
     }
@@ -691,7 +716,7 @@ static void command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag
     return;
 }
 
-static void command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void command_set_client_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     const char *name;
     assert(c && t);
@@ -702,7 +727,7 @@ static void command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t
         return;
     }
 
-    pa_client_rename(c->client, name);
+    pa_client_set_name(c->client, name);
     pa_pstream_send_simple_ack(c->pstream, tag);
     return;
 }
@@ -1061,6 +1086,8 @@ static void scache_fill_tagstruct(struct pa_tagstruct *t, struct pa_scache_entry
     pa_tagstruct_put_usec(t, pa_bytes_to_usec(e->memchunk.length, &e->sample_spec));
     pa_tagstruct_put_sample_spec(t, &e->sample_spec);
     pa_tagstruct_putu32(t, e->memchunk.length);
+    pa_tagstruct_put_boolean(t, e->lazy);
+    pa_tagstruct_puts(t, e->filename);
 }
 
 static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
@@ -1413,6 +1440,280 @@ static void command_set_default_sink_or_source(struct pa_pdispatch *pd, uint32_t
 
     pa_namereg_set_default(c->protocol->core, s, command == PA_COMMAND_SET_DEFAULT_SOURCE ? PA_NAMEREG_SOURCE : PA_NAMEREG_SINK);
     pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_set_stream_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    const char *name;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (command == PA_COMMAND_SET_PLAYBACK_STREAM_NAME) {
+        struct playback_stream *s;
+        
+        if (!(s = pa_idxset_get_by_index(c->output_streams, index)) || s->type != PLAYBACK_STREAM) {
+            pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+            return;
+        }
+
+        pa_sink_input_set_name(s->sink_input, name);
+        
+    } else {
+        struct record_stream *s;
+        
+        if (!(s = pa_idxset_get_by_index(c->record_streams, index))) {
+            pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+            return;
+        }
+
+        pa_source_output_set_name(s->source_output, name);
+    }
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_kill(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (command == PA_COMMAND_KILL_CLIENT) {
+        struct pa_client *client;
+        
+        if (!(client = pa_idxset_get_by_index(c->protocol->core->clients, index))) {
+            pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+            return;
+        }
+
+        pa_client_kill(client);
+    } else if (command == PA_COMMAND_KILL_SINK_INPUT) {
+        struct pa_sink_input *s;
+        
+        if (!(s = pa_idxset_get_by_index(c->protocol->core->sink_inputs, index))) {
+            pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+            return;
+        }
+
+        pa_sink_input_kill(s);
+    } else {
+        struct pa_source_output *s;
+
+        assert(command == PA_COMMAND_KILL_SOURCE_OUTPUT);
+        
+        if (!(s = pa_idxset_get_by_index(c->protocol->core->source_outputs, index))) {
+            pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+            return;
+        }
+
+        pa_source_output_kill(s);
+    }
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_load_module(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    struct pa_module *m;
+    const char *name, *argument;
+    struct pa_tagstruct *reply;
+    assert(c && t);
+
+    if (pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_gets(t, &argument) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (!(m = pa_module_load(c->protocol->core, name, argument))) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_INITFAILED);
+        return;
+    }
+
+    reply = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+    pa_tagstruct_putu32(reply, m->index);
+    pa_pstream_send_tagstruct(c->pstream, reply);
+}
+
+static void command_unload_module(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    struct pa_module *m;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (!(m = pa_idxset_get_by_index(c->protocol->core->modules, index))) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    pa_module_unload_request(m);
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_add_autoload(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    const char *name, *module, *argument;
+    uint32_t type;
+    assert(c && t);
+
+    if (pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_getu32(t, &type) < 0 || type > 1 ||
+        pa_tagstruct_gets(t, &module) < 0 ||
+        pa_tagstruct_gets(t, &argument) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (pa_autoload_add(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, module, argument) < 0) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_EXIST);
+        return;
+    }
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_remove_autoload(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    const char *name;
+    uint32_t type;
+    assert(c && t);
+
+    if (pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_getu32(t, &type) < 0 || type > 1 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (pa_autoload_remove(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE) < 0) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void autoload_fill_tagstruct(struct pa_tagstruct *t, struct pa_autoload_entry *e) {
+    assert(t && e);
+    pa_tagstruct_puts(t, e->name);
+    pa_tagstruct_putu32(t, e->type == PA_NAMEREG_SINK ? 0 : 1);
+    pa_tagstruct_puts(t, e->module);
+    pa_tagstruct_puts(t, e->argument);
+}
+
+static void command_get_autoload_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    struct pa_autoload_entry *a = NULL;
+    uint32_t type;
+    const char *name;
+    struct pa_tagstruct *reply;
+    assert(c && t);
+    
+    if (pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_getu32(t, &type) < 0 || type > 1 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (!c->protocol->core->autoload_hashmap || !(a = pa_hashmap_get(c->protocol->core->autoload_hashmap, name)) || (a->type == PA_NAMEREG_SINK && type != 0) || (a->type == PA_NAMEREG_SOURCE && type != 1)) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    reply = pa_tagstruct_new(NULL, 0);
+    assert(reply);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+    autoload_fill_tagstruct(reply, a);
+    pa_pstream_send_tagstruct(c->pstream, reply);
+}
+
+static void command_get_autoload_info_list(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    struct pa_tagstruct *reply;
+    assert(c && t);
+
+    if (!pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    reply = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+
+    if (c->protocol->core->autoload_hashmap) {
+        struct pa_autoload_entry *a;
+        void *state = NULL;
+
+        while ((a = pa_hashmap_iterate(c->protocol->core->autoload_hashmap, &state)))
+            autoload_fill_tagstruct(reply, a);
+    }
+    
+    pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
 /*** pstream callbacks ***/

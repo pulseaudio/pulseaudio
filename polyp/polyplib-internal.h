@@ -78,6 +78,8 @@ struct pa_context {
     void *subscribe_userdata;
 
     struct pa_memblock_stat *memblock_stat;
+
+    int local;
 };
 
 struct pa_stream {

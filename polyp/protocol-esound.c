@@ -293,7 +293,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     strncpy(name, (char*) data + sizeof(int)*2, sizeof(name));
     name[sizeof(name)-1] = 0;
 
-    pa_client_rename(c->client, name);
+    pa_client_set_name(c->client, name);
 
     assert(!c->input_memblockq);
 
@@ -357,7 +357,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     strncpy(name, (char*) data + sizeof(int)*2, sizeof(name));
     name[sizeof(name)-1] = 0;
 
-    pa_client_rename(c->client, name);
+    pa_client_set_name(c->client, name);
 
     assert(!c->output_memblockq);
 

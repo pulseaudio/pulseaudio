@@ -84,6 +84,7 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->subscribe_userdata = NULL;
 
     c->memblock_stat = pa_memblock_stat_new();
+    c->local = -1;
     
     pa_check_signal_is_blocked(SIGPIPE);
     return c;
@@ -252,7 +253,7 @@ static void setup_complete_callback(struct pa_pdispatch *pd, uint32_t command, u
             struct pa_tagstruct *t;
             t = pa_tagstruct_new(NULL, 0);
             assert(t);
-            pa_tagstruct_putu32(t, PA_COMMAND_SET_NAME);
+            pa_tagstruct_putu32(t, PA_COMMAND_SET_CLIENT_NAME);
             pa_tagstruct_putu32(t, tag = c->ctag++);
             pa_tagstruct_puts(t, c->name);
             pa_pstream_send_tagstruct(c->pstream, t);
@@ -383,6 +384,8 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
     int fds[2] = { -1, -1} ;
     struct pa_iochannel *io;
 
+    pa_context_ref(c);
+    
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
         pa_log(__FILE__": socketpair() failed: %s\n", strerror(errno));
         pa_context_fail(c, PA_ERROR_INTERNAL);
@@ -417,7 +420,7 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
         putenv(t); 
         
         snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
-        execl(p, p, t, NULL);
+        execl(p, p, "--daemonize=yes", "--log-target=syslog", t, NULL);
         
         exit(1);
     } 
@@ -439,9 +442,14 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
     }
 
     close(fds[1]);
+
+    c->local = 1;
     
     io = pa_iochannel_new(c->mainloop, fds[0], fds[0]);
     setup_context(c, io);
+
+    pa_context_unref(c);
+
     return 0;
 
 fail:
@@ -450,10 +458,10 @@ fail:
     if (fds[1] != -1)
         close(fds[1]);
 
+    pa_context_unref(c);
+
     return -1;
 }
-
-
 
 int pa_context_connect(struct pa_context *c, const char *server, int spawn, const struct pa_spawn_api *api) {
     int r = -1;
@@ -483,6 +491,8 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
             pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
             goto finish;
         }
+
+        c->local = 1;
     } else {
         struct sockaddr* sa;
         size_t sa_len;
@@ -499,6 +509,8 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
             pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
             goto finish;
         }
+
+        c->local = 0;
     }
 
     pa_socket_client_set_callback(c->client, on_connection, c);
@@ -695,6 +707,31 @@ struct pa_operation* pa_context_set_default_source(struct pa_context *c, const c
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SET_DEFAULT_SOURCE);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_puts(t, name);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+int pa_context_is_local(struct pa_context *c) {
+    assert(c);
+    return c->local;
+}
+
+struct pa_operation* pa_context_set_name(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success,  void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    struct pa_operation *o;
+    uint32_t tag;
+    assert(c && name && cb);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_SET_CLIENT_NAME);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);

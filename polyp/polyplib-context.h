@@ -99,6 +99,12 @@ struct pa_operation* pa_context_set_default_sink(struct pa_context *c, const cha
 /** Set the name of the default source. \since 0.4 */
 struct pa_operation* pa_context_set_default_source(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success,  void *userdata), void *userdata);
 
+/** Returns 1 when the connection is to a local daemon. Returns negative when no connection has been made yet. \since 0.5 */
+int pa_context_is_local(struct pa_context *c);
+
+/** Set a different application name for context on the server. \since 0.5 */
+struct pa_operation* pa_context_set_name(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success,  void *userdata), void *userdata);
+
 PA_C_DECL_END
 
 #endif

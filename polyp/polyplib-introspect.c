@@ -650,7 +650,9 @@ static void context_get_sample_info_callback(struct pa_pdispatch *pd, uint32_t c
                 pa_tagstruct_getu32(t, &i.volume) < 0 ||
                 pa_tagstruct_get_usec(t, &i.duration) < 0 ||
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
-                pa_tagstruct_getu32(t, &i.bytes) < 0) {
+                pa_tagstruct_getu32(t, &i.bytes) < 0 ||
+                pa_tagstruct_get_boolean(t, &i.lazy) < 0 ||
+                pa_tagstruct_gets(t, &i.filename) < 0) {
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
             }
@@ -716,4 +718,197 @@ struct pa_operation* pa_context_get_sample_info_by_index(struct pa_context *c, u
 
 struct pa_operation* pa_context_get_sample_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata), void *userdata) {
     return pa_context_send_simple_command(c, PA_COMMAND_GET_SAMPLE_INFO_LIST, context_get_sample_info_callback, cb, userdata);
+}
+
+static struct pa_operation* command_kill(struct pa_context *c, uint32_t command, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+    struct pa_operation *o;
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c && index != PA_INVALID_INDEX);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, command);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_context_kill_client(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+    return command_kill(c, PA_COMMAND_KILL_CLIENT, index, cb, userdata);
+}
+                                            
+struct pa_operation* pa_context_kill_sink_input(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+    return command_kill(c, PA_COMMAND_KILL_SINK_INPUT, index, cb, userdata);
+}
+
+struct pa_operation* pa_context_kill_source_output(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+    return command_kill(c, PA_COMMAND_KILL_SOURCE_OUTPUT, index, cb, userdata);
+}
+
+static void load_module_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_operation *o = userdata;
+    uint32_t index = -1;
+    assert(pd && o && o->context && o->ref >= 1);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+    } else if (pa_tagstruct_getu32(t, &index) < 0 ||
+               !pa_tagstruct_eof(t)) {
+        pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+        goto finish;
+    }
+    
+    if (o->callback) {
+        void (*cb)(struct pa_context *c, uint32_t index, void *userdata) = o->callback;
+        cb(o->context, index, o->userdata);
+    }
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
+struct pa_operation* pa_context_load_module(struct pa_context *c, const char*name, const char *argument, void (*cb)(struct pa_context *c, uint32_t index, void *userdata), void *userdata) {
+    struct pa_operation *o;
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c && name && argument);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_LOAD_MODULE);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_puts(t, name);
+    pa_tagstruct_puts(t, argument);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, load_module_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_context_unload_module(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
+    return command_kill(c, PA_COMMAND_UNLOAD_MODULE, index, cb, userdata);
+}
+
+/*** Autoload stuff ***/
+
+static void context_get_autoload_info_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_operation *o = userdata;
+    int eof = 1;
+    assert(pd && o && o->context && o->ref >= 1);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+        eof = -1;
+    } else {
+        
+        while (!pa_tagstruct_eof(t)) {
+            struct pa_autoload_info i;
+            
+            if (pa_tagstruct_gets(t, &i.name) < 0 ||
+                pa_tagstruct_getu32(t, &i.type) < 0 ||
+                pa_tagstruct_gets(t, &i.module) < 0 ||
+                pa_tagstruct_gets(t, &i.argument) < 0) {
+                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                goto finish;
+            }
+
+            if (o->callback) {
+                void (*cb)(struct pa_context *s, const struct pa_autoload_info*i, int eof, void *userdata) = o->callback;
+                cb(o->context, &i, 0, o->userdata);
+            }
+        }
+    }
+    
+    if (o->callback) {
+        void (*cb)(struct pa_context *s, const struct pa_autoload_info*i, int eof, void *userdata) = o->callback;
+        cb(o->context, NULL, eof, o->userdata);
+    }
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
+struct pa_operation* pa_context_get_autoload_info(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    struct pa_operation *o;
+    uint32_t tag;
+    assert(c && cb && name);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_AUTOLOAD_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_puts(t, name);
+    pa_tagstruct_putu32(t, type);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_autoload_info_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_context_get_autoload_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata) {
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_AUTOLOAD_INFO_LIST, context_get_autoload_info_callback, cb, userdata);
+}
+
+struct pa_operation* pa_context_add_autoload(struct pa_context *c, const char *name, enum pa_autoload_type type, const char *module, const char*argument, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata) {
+    struct pa_operation *o;
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c && name && module && argument);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_ADD_AUTOLOAD);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_puts(t, name);
+    pa_tagstruct_putu32(t, type);
+    pa_tagstruct_puts(t, module);
+    pa_tagstruct_puts(t, argument);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_context_remove_autoload(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata) {
+    struct pa_operation *o;
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c && name);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_REMOVE_AUTOLOAD);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_puts(t, name);
+    pa_tagstruct_putu32(t, type);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
+
+    return pa_operation_ref(o);
 }

@@ -82,7 +82,7 @@ void pa_client_kill(struct pa_client *c) {
     c->kill(c);
 }
 
-void pa_client_rename(struct pa_client *c, const char *name) {
+void pa_client_set_name(struct pa_client *c, const char *name) {
     assert(c);
     pa_xfree(c->name);
     c->name = pa_xstrdup(name);

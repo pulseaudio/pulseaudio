@@ -146,4 +146,6 @@ void pa_source_output_set_name(struct pa_source_output *o, const char *name) {
     assert(o && o->ref >= 1);
     pa_xfree(o->name);
     o->name = pa_xstrdup(name);
+
+    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
 }

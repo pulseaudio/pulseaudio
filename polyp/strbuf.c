@@ -33,10 +33,22 @@
 
 #include "strbuf.h"
 
+#ifdef __STDC_VERSION__
+#if __STDC_VERSION__ >= 199901L
+#ifndef STDC99
+#define STDC99
+#endif
+#endif
+#endif
+
 struct chunk {
     struct chunk *next;
     size_t length;
+#ifdef STDC99
     char text[];
+#else
+    char text[0];
+#endif
 };
 
 struct pa_strbuf {

@@ -46,6 +46,6 @@ void pa_client_free(struct pa_client *c);
  * request destruction of the client */
 void pa_client_kill(struct pa_client *c);
 
-void pa_client_rename(struct pa_client *c, const char *name);
+void pa_client_set_name(struct pa_client *c, const char *name);
 
 #endif

@@ -258,4 +258,6 @@ void pa_sink_input_set_name(struct pa_sink_input *i, const char *name) {
 
     pa_xfree(i->name);
     i->name = pa_xstrdup(name);
+
+    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }

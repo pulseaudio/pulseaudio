@@ -94,6 +94,7 @@ enum {
     PA_ERROR_CONNECTIONTERMINATED,   /**< Connection terminated */
     PA_ERROR_KILLED,                 /**< Entity killed */
     PA_ERROR_INVALIDSERVER,          /**< Invalid server */
+    PA_ERROR_INITFAILED,             /**< Module initialization failed */
     PA_ERROR_MAX                     /**< Not really an error but the first invalid error code */
 };
 

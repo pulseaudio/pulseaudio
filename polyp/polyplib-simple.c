@@ -110,6 +110,7 @@ struct pa_simple* pa_simple_new(
     const char *stream_name,
     const struct pa_sample_spec *ss,
     const struct pa_buffer_attr *attr,
+    pa_volume_t volume, 
     int *perror) {
     
     struct pa_simple *p;
@@ -142,7 +143,7 @@ struct pa_simple* pa_simple_new(
         goto fail;
 
     if (dir == PA_STREAM_PLAYBACK)
-        pa_stream_connect_playback(p->stream, dev, attr);
+        pa_stream_connect_playback(p->stream, dev, attr, volume);
     else
         pa_stream_connect_record(p->stream, dev, attr);
 

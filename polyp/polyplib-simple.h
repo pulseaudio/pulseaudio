@@ -54,7 +54,8 @@ struct pa_simple* pa_simple_new(
     const char *stream_name,            /**< A descriptive name for this client (application name, song title, ...) */
     const struct pa_sample_spec *ss,    /**< The sample type to use */
     const struct pa_buffer_attr *attr,  /**< Buffering attributes, or NULL for default */
-    int *error                        /**< A pointer where the error code is stored when the routine returns NULL. It is OK to pass NULL here. */
+    pa_volume_t volume,                 /**< Initial volume. Only for playback streams. \since 0.5 */
+    int *error                          /**< A pointer where the error code is stored when the routine returns NULL. It is OK to pass NULL here. */
     );
 
 /** Close and free the connection to the server. The connection objects becomes invalid when this is called. */

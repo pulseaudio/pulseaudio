@@ -156,7 +156,7 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
             pa_stream_set_read_callback(stream, stream_read_callback, NULL);
 
             if (mode == PLAYBACK)
-                pa_stream_connect_playback(stream, NULL, NULL);
+                pa_stream_connect_playback(stream, NULL, NULL, PA_VOLUME_NORM);
             else
                 pa_stream_connect_record(stream, NULL, NULL);
                 

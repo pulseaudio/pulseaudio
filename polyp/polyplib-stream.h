@@ -57,7 +57,7 @@ struct pa_context* pa_stream_get_context(struct pa_stream *p);
 uint32_t pa_stream_get_index(struct pa_stream *s);
 
 /** Connect the stream to a sink */
-void pa_stream_connect_playback(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr);
+void pa_stream_connect_playback(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, pa_volume_t volume);
 
 /** Connect the stream to a source */
 void pa_stream_connect_record(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr);
@@ -125,6 +125,9 @@ struct pa_operation* pa_stream_flush(struct pa_stream *s, void (*cb)(struct pa_s
  * prebuffering as specified in the pa_buffer_attr structure. \since
  * 0.3 */
 struct pa_operation* pa_stream_trigger(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata);
+
+/** Rename the stream. \since 0.5 */
+struct pa_operation* pa_stream_set_name(struct pa_stream *s, const char *name, void(*cb)(struct pa_stream*c, int success,  void *userdata), void *userdata);
 
 PA_C_DECL_END
 
