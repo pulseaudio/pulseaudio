@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <netinet/tcp.h>
+#include <netinet/ip.h>
 
 #include "util.h"
 
@@ -82,4 +84,43 @@ int make_secure_dir(const char* dir) {
 fail:
     rmdir(dir);
     return -1;
+}
+
+int make_socket_low_delay(int fd) {
+    int ret = 0, buf_size, priority;
+
+    assert(fd >= 0);
+
+    buf_size = 1024;
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buf_size, sizeof(buf_size)) < 0)
+        ret = -1;
+
+    buf_size = 1024;
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &buf_size, sizeof(buf_size)) < 0)
+        ret = -1;
+
+    priority = 7;
+    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority)) < 0)
+        ret = -1;
+
+    return ret;
+}
+
+int make_tcp_socket_low_delay(int fd) {
+    int ret, tos, on;
+    
+    assert(fd >= 0);
+
+    ret = make_socket_low_delay(fd);
+    
+    on = 1;
+    if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+        ret = -1;
+
+    tos = IPTOS_LOWDELAY;
+    if (setsockopt(fd, SOL_IP, IP_TOS, &tos, sizeof(tos)) < 0)
+        ret = -1;
+
+    return ret;
+
 }

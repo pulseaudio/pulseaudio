@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 
 #include "socket-server.h"
+#include "util.h"
 
 struct socket_server {
     int fd;
@@ -39,6 +40,9 @@ static void callback(struct pa_mainloop_api *mainloop, void *id, int fd, enum pa
         return;
     }
 
+    /* There should be a check for socket type here */
+    make_tcp_socket_low_delay(fd);
+    
     io = iochannel_new(s->mainloop, nfd, nfd);
     assert(io);
     s->on_connection(s, io, s->userdata);
@@ -78,6 +82,8 @@ struct socket_server* socket_server_new_unix(struct pa_mainloop_api *m, const ch
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
+    make_socket_low_delay(fd);
+    
     if (bind(fd, (struct sockaddr*) &sa, SUN_LEN(&sa)) < 0) {
         fprintf(stderr, "bind(): %s\n", strerror(errno));
         goto fail;
@@ -117,6 +123,8 @@ struct socket_server* socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t
 
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
         fprintf(stderr, "setsockopt(): %s\n", strerror(errno));
+
+    make_tcp_socket_low_delay(fd);
     
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);

@@ -120,6 +120,8 @@ struct socket_client* socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t
         goto fail;
     }
 
+    make_tcp_socket_low_delay(c->fd);
+
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
     sa.sin_addr.s_addr = htonl(address);
@@ -146,6 +148,8 @@ struct socket_client* socket_client_new_unix(struct pa_mainloop_api *m, const ch
         fprintf(stderr, "socket(): %s\n", strerror(errno));
         goto fail;
     }
+
+    make_socket_low_delay(c->fd);
 
     sa.sun_family = AF_LOCAL;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
