@@ -3,10 +3,6 @@
 
 - config parser/cmdline
 
-- description field for all entities
-- client field for sinkinput/sourceoutput
-- module field for all entities
-
 - move more stuff from module-oss[-dma] to liboss-util
 
 - create libstatustext, libsocketutil

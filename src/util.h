@@ -23,4 +23,6 @@ int pa_unix_socket_remove_stale(const char *fn);
 
 void pa_check_for_sigpipe(void);
 
+char *pa_sprintf_malloc(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
+
 #endif

@@ -23,6 +23,8 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     i = malloc(sizeof(struct pa_sink_input));
     assert(i);
     i->name = name ? strdup(name) : NULL;
+    i->client = NULL;
+    i->owner = NULL;
     i->sink = s;
     i->sample_spec = *spec;
 
@@ -96,6 +98,11 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
             (unsigned) i->volume,
             pa_sink_input_get_latency(i),
             ss);
+
+        if (i->owner)
+            pa_strbuf_printf(s, "\towner module: <%u>\n", i->owner->index);
+        if (i->client)
+            pa_strbuf_printf(s, "\tclient: <%u>\n", i->client->index);
     }
     
     return pa_strbuf_tostring_free(s);

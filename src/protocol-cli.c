@@ -5,6 +5,7 @@
 #include "cli.h"
 
 struct pa_protocol_cli {
+    struct pa_module *module;
     struct pa_core *core;
     struct pa_socket_server*server;
     struct pa_idxset *connections;
@@ -22,19 +23,20 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     struct pa_cli *c;
     assert(s && io && p);
 
-    c = pa_cli_new(p->core, io);
+    c = pa_cli_new(p->core, io, p->module);
     assert(c);
     pa_cli_set_eof_callback(c, cli_eof_cb, p);
 
     pa_idxset_put(p->connections, c, NULL);
 }
 
-struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_socket_server *server) {
+struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m) {
     struct pa_protocol_cli* p;
     assert(core && server);
 
     p = malloc(sizeof(struct pa_protocol_cli));
     assert(p);
+    p->module = m;
     p->core = core;
     p->server = server;
     p->connections = pa_idxset_new(NULL, NULL);

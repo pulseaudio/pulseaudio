@@ -2,10 +2,12 @@
 #define fooclienthfoo
 
 #include "core.h"
+#include "module.h"
 
 struct pa_client {
     uint32_t index;
 
+    struct pa_module *owner;
     char *name;
     struct pa_core *core;
     const char *protocol_name;

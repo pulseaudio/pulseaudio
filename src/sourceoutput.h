@@ -7,11 +7,15 @@
 #include "sample.h"
 #include "memblockq.h"
 #include "resampler.h"
+#include "module.h"
+#include "client.h"
 
 struct pa_source_output {
     uint32_t index;
 
     char *name;
+    struct pa_module *owner;
+    struct pa_client *client;
     struct pa_source *source;
     struct pa_sample_spec sample_spec;
     

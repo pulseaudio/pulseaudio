@@ -14,6 +14,7 @@ struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name,
     c = malloc(sizeof(struct pa_client));
     assert(c);
     c->name = name ? strdup(name) : NULL;
+    c->owner = NULL;
     c->core = core;
     c->protocol_name = protocol_name;
 
@@ -58,9 +59,13 @@ char *pa_client_list_to_string(struct pa_core *c) {
 
     pa_strbuf_printf(s, "%u client(s).\n", pa_idxset_ncontents(c->clients));
     
-    for (client = pa_idxset_first(c->clients, &index); client; client = pa_idxset_next(c->clients, &index))
+    for (client = pa_idxset_first(c->clients, &index); client; client = pa_idxset_next(c->clients, &index)) {
         pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\tprotocol_name: <%s>\n", client->index, client->name, client->protocol_name);
-    
+
+        if (client->owner)
+            pa_strbuf_printf(s, "\towner module: <%u>\n", client->owner->index);
+    }
+        
     return pa_strbuf_tostring_free(s);
 }
 

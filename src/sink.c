@@ -8,6 +8,7 @@
 #include "strbuf.h"
 #include "sample-util.h"
 #include "namereg.h"
+#include "util.h"
 
 #define MAX_MIX_CHANNELS 32
 
@@ -16,7 +17,7 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     char *n = NULL;
     char st[256];
     int r;
-    assert(core && spec);
+    assert(core && name && spec);
 
     s = malloc(sizeof(struct pa_sink));
     assert(s);
@@ -27,15 +28,14 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     }
     
     s->name = strdup(name);
+    s->description = NULL;
+    
+    s->owner = NULL;
     s->core = core;
     s->sample_spec = *spec;
     s->inputs = pa_idxset_new(NULL, NULL);
 
-    if (name) {
-        n = malloc(strlen(name)+9);
-        sprintf(n, "%s_monitor", name);
-    }
-    
+    n = pa_sprintf_malloc("%s_monitor", name);
     s->monitor_source = pa_source_new(core, n, 0, spec);
     assert(s->monitor_source);
     free(n);
@@ -75,6 +75,7 @@ void pa_sink_free(struct pa_sink *s) {
     fprintf(stderr, "sink: freed %u \"%s\"\n", s->index, s->name);
     
     free(s->name);
+    free(s->description);
     free(s);
 }
 
@@ -285,8 +286,19 @@ char *pa_sink_list_to_string(struct pa_core *c) {
             pa_sink_get_latency(sink),
             sink->monitor_source->index,
             ss);
+
+        if (sink->owner)
+            pa_strbuf_printf(s, "\towner module: <%u>\n", sink->owner->index);
+        if (sink->description)
+            pa_strbuf_printf(s, "\tdescription: <%s>\n", sink->description);
     }
     
     return pa_strbuf_tostring_free(s);
 }
 
+void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m) {
+    sink->owner = m;
+
+    if (sink->monitor_source)
+        pa_source_set_owner(sink->monitor_source, m);
+}

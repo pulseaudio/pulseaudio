@@ -50,6 +50,7 @@ struct connection {
 
 struct pa_protocol_esound {
     int public;
+    struct pa_module *module;
     struct pa_core *core;
     struct pa_socket_server *server;
     struct pa_idxset *connections;
@@ -260,6 +261,8 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     c->sink_input = pa_sink_input_new(sink, name, &ss);
     assert(c->sink_input);
 
+    c->sink_input->owner = c->protocol->module;
+    c->sink_input->client = c->client;
     c->sink_input->peek = sink_input_peek_cb;
     c->sink_input->drop = sink_input_drop_cb;
     c->sink_input->kill = sink_input_kill_cb;
@@ -321,7 +324,9 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     assert(!c->source_output);
     c->source_output = pa_source_output_new(source, name, &ss);
     assert(c->source_output);
-
+    
+    c->source_output->owner = c->protocol->module;
+    c->source_output->client = c->client;
     c->source_output->push = source_output_push_cb;
     c->source_output->kill = source_output_kill_cb;
     c->source_output->userdata = c;
@@ -733,6 +738,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     assert(c->protocol->core);
     c->client = pa_client_new(c->protocol->core, "ESOUND", cname);
     assert(c->client);
+    c->client->owner = c->protocol->module;
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
     
@@ -768,7 +774,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
 /*** entry points ***/
 
-struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa_socket_server *server) {
+struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa_socket_server *server, struct pa_module *m) {
     struct pa_protocol_esound *p;
     assert(core && server);
 
@@ -779,7 +785,8 @@ struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa
         free(p);
         return NULL;
     }
-    
+
+    p->module = m;
     p->public = 0;
     p->server = server;
     pa_socket_server_set_callback(p->server, on_connection, p);

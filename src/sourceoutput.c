@@ -18,6 +18,8 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
     o = malloc(sizeof(struct pa_source_output));
     assert(o);
     o->name = name ? strdup(name) : NULL;
+    o->client = NULL;
+    o->owner = NULL;
     o->source = s;
     o->sample_spec = *spec;
 
@@ -77,6 +79,10 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
             o->name,
             o->source->index,
             ss);
+        if (o->owner)
+            pa_strbuf_printf(s, "\towner module: <%u>\n", o->owner->index);
+        if (o->client)
+            pa_strbuf_printf(s, "\tclient: <%u>\n", o->client->index);
     }
     
     return pa_strbuf_tostring_free(s);

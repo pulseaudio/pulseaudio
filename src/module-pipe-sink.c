@@ -11,6 +11,7 @@
 #include "iochannel.h"
 #include "sink.h"
 #include "module.h"
+#include "util.h"
 
 struct userdata {
     char *filename;
@@ -113,6 +114,9 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(u->sink);
     u->sink->notify = notify_cb;
     u->sink->userdata = u;
+    pa_sink_set_owner(u->sink, m);
+    u->sink->description = pa_sprintf_malloc("Unix FIFO sink '%s'", p);
+    assert(u->sink->description);
 
     u->io = pa_iochannel_new(c->mainloop, -1, fd);
     assert(u->io);

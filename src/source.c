@@ -12,7 +12,7 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
     struct pa_source *s;
     char st[256];
     int r;
-    assert(core && spec);
+    assert(core && spec && name);
 
     s = malloc(sizeof(struct pa_source));
     assert(s);
@@ -23,6 +23,9 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
     }
 
     s->name = strdup(name);
+    s->description = NULL;
+
+    s->owner = NULL;
     s->core = core;
     s->sample_spec = *spec;
     s->outputs = pa_idxset_new(NULL, NULL);
@@ -58,6 +61,7 @@ void pa_source_free(struct pa_source *s) {
     fprintf(stderr, "source: freed %u \"%s\"\n", s->index, s->name);
 
     free(s->name);
+    free(s->description);
     free(s);
 }
 
@@ -112,13 +116,21 @@ char *pa_source_list_to_string(struct pa_core *c) {
     
     for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
         char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-        char mo[256] = "";
-        if (source->monitor_of) 
-            snprintf(mo, sizeof(mo), "\n\tmonitor_of: <%u>", source->monitor_of->index);
         pa_sample_snprint(ss, sizeof(ss), &source->sample_spec);
-        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tsample_spec: <%s>%s\n", source == default_source ? '*' : ' ', source->index, source->name, ss, mo);
+        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tsample_spec: <%s>\n", source == default_source ? '*' : ' ', source->index, source->name, ss);
+
+        if (source->monitor_of) 
+            pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);
+        if (source->owner)
+            pa_strbuf_printf(s, "\towner module: <%u>\n", source->owner->index);
+        if (source->description)
+            pa_strbuf_printf(s, "\tdescription: <%s>\n", source->description);
     }
     
     return pa_strbuf_tostring_free(s);
 }
 
+void pa_source_set_owner(struct pa_source *s, struct pa_module *m) {
+    assert(s);
+    s->owner = m;
+}

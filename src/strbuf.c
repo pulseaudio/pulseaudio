@@ -87,6 +87,8 @@ void pa_strbuf_puts(struct pa_strbuf *sb, const char *t) {
     sb->length += l;
 }
 
+/* The following is based on an example from the GNU libc documentation */
+
 int pa_strbuf_printf(struct pa_strbuf *sb, const char *format, ...) {
     int r, size = 100;
     struct chunk *c = NULL;

@@ -48,6 +48,7 @@ struct connection {
 };
 
 struct pa_protocol_native {
+    struct pa_module *module;
     int public;
     struct pa_core *core;
     struct pa_socket_server *server;
@@ -110,6 +111,8 @@ static struct record_stream* record_stream_new(struct connection *c, struct pa_s
     s->source_output->push = source_output_push_cb;
     s->source_output->kill = source_output_kill_cb;
     s->source_output->userdata = s;
+    s->source_output->owner = c->protocol->module;
+    s->source_output->client = c->client;
 
     s->memblockq = pa_memblockq_new(maxlength, 0, base = pa_sample_size(ss), 0, 0);
     assert(s->memblockq);
@@ -153,6 +156,8 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     s->sink_input->kill = sink_input_kill_cb;
     s->sink_input->get_latency = sink_input_get_latency_cb;
     s->sink_input->userdata = s;
+    s->sink_input->owner = c->protocol->module;
+    s->sink_input->client = c->client;
     
     s->memblockq = pa_memblockq_new(maxlength, tlength, pa_sample_size(ss), prebuf, minreq);
     assert(s->memblockq);
@@ -707,6 +712,8 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     assert(c->client);
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
+    c->client->owner = p->module;
+    
     c->pstream = pa_pstream_new(p->core->mainloop, io);
     assert(c->pstream);
 
@@ -729,7 +736,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
 /*** module entry points ***/
 
-struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct pa_socket_server *server) {
+struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m) {
     struct pa_protocol_native *p;
     assert(core && server);
 
@@ -740,7 +747,8 @@ struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct p
         free(p);
         return NULL;
     }
-    
+
+    p->module = m;
     p->public = 1;
     p->server = server;
     p->core = core;

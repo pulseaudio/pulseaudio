@@ -13,7 +13,8 @@ struct pa_sink;
 struct pa_sink {
     uint32_t index;
 
-    char *name;
+    char *name, *description;
+    struct pa_module *owner;
     struct pa_core *core;
     struct pa_sample_spec sample_spec;
     struct pa_idxset *inputs;
@@ -42,6 +43,6 @@ char *pa_sink_list_to_string(struct pa_core *core);
 
 struct pa_sink* pa_sink_get_default(struct pa_core *c);
 
-
+void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m);
 
 #endif

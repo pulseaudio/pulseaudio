@@ -27,7 +27,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     assert(io);
     pa_iochannel_set_noclose(io, 1);
 
-    m->userdata = pa_cli_new(c, io);
+    m->userdata = pa_cli_new(c, io, m);
     assert(m->userdata);
 
     pa_cli_set_eof_callback(m->userdata, eof_cb, m);

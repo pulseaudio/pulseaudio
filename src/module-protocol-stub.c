@@ -78,9 +78,9 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
 #endif
 
 #ifdef USE_PROTOCOL_SIMPLE
-    m->userdata = pa_protocol_simple_new(c, s, PA_PROTOCOL_SIMPLE_PLAYBACK);
+    m->userdata = pa_protocol_simple_new(c, s, m, PA_PROTOCOL_SIMPLE_PLAYBACK);
 #else
-    m->userdata = protocol_new(c, s);
+    m->userdata = protocol_new(c, s, m);
 #endif
 
     if (!m->userdata) {

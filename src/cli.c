@@ -83,7 +83,7 @@ static const char prompt[] = ">>> ";
 
 static void client_kill(struct pa_client *c);
 
-struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io) {
+struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io, struct pa_module *m) {
     char cname[256];
     struct pa_cli *c;
     assert(io);
@@ -102,6 +102,7 @@ struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io) {
     assert(c->client);
     c->client->kill = client_kill;
     c->client->userdata = c;
+    c->client->owner = m;
     
     pa_ioline_set_callback(c->line, line_callback, c);
     pa_ioline_puts(c->line, "Welcome to polypaudio! Use \"help\" for usage information.\n");

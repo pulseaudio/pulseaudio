@@ -27,6 +27,7 @@ struct connection {
 };
 
 struct pa_protocol_simple {
+    struct pa_module *module;
     struct pa_core *core;
     struct pa_socket_server*server;
     struct pa_idxset *connections;
@@ -258,6 +259,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
     c->client = pa_client_new(p->core, "SIMPLE", cname);
     assert(c->client);
+    c->client->owner = p->module;
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
 
@@ -275,6 +277,8 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
             fprintf(stderr, "Failed to create sink input.\n");
             goto fail;
         }
+        c->sink_input->owner = p->module;
+        c->sink_input->client = c->client;
         
         c->sink_input->peek = sink_input_peek_cb;
         c->sink_input->drop = sink_input_drop_cb;
@@ -304,6 +308,8 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
             fprintf(stderr, "Failed to create source output.\n");
             goto fail;
         }
+        c->source_output->owner = p->module;
+        c->source_output->client = c->client;
         
         c->source_output->push = source_output_push_cb;
         c->source_output->kill = source_output_kill_cb;
@@ -328,12 +334,13 @@ fail:
         connection_free(c);
 }
 
-struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct pa_socket_server *server, enum pa_protocol_simple_mode mode) {
+struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, enum pa_protocol_simple_mode mode) {
     struct pa_protocol_simple* p;
     assert(core && server && mode <= PA_PROTOCOL_SIMPLE_DUPLEX && mode > 0);
 
     p = malloc(sizeof(struct pa_protocol_simple));
     assert(p);
+    p->module = m;
     p->core = core;
     p->server = server;
     p->connections = pa_idxset_new(NULL, NULL);

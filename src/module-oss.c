@@ -16,6 +16,7 @@
 #include "module.h"
 #include "oss-util.h"
 #include "sample-util.h"
+#include "util.h"
 
 struct userdata {
     struct pa_sink *sink;
@@ -180,20 +181,24 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
 
     u->core = c;
 
+    if (mode != O_WRONLY) {
+        u->source = pa_source_new(c, "oss_input", 0, &ss);
+        assert(u->source);
+        u->source->userdata = u;
+        pa_source_set_owner(u->source, m);
+        u->sink->description = pa_sprintf_malloc("Open Sound System PCM on '%s'", p);
+    } else
+        u->source = NULL;
+
     if (mode != O_RDONLY) {
-        u->sink = pa_sink_new(c, "dsp", 0, &ss);
+        u->sink = pa_sink_new(c, "oss_output", 0, &ss);
         assert(u->sink);
         u->sink->get_latency = sink_get_latency_cb;
         u->sink->userdata = u;
+        pa_sink_set_owner(u->sink, m);
+        u->sink->description = pa_sprintf_malloc("Open Sound System PCM on '%s'", p);
     } else
         u->sink = NULL;
-
-    if (mode != O_WRONLY) {
-        u->source = pa_source_new(c, "dsp", 0, &ss);
-        assert(u->source);
-        u->source->userdata = u;
-    } else
-        u->source = NULL;
 
     assert(u->source || u->sink);
 

@@ -1,3 +1,5 @@
+#include <stdarg.h>
+#include <stdlib.h>
 #include <signal.h>
 #include <errno.h>
 #include <assert.h>
@@ -229,4 +231,32 @@ void pa_check_for_sigpipe(void) {
         
     if (sa.sa_handler == SIG_DFL)
         fprintf(stderr, "polypaudio: WARNING: SIGPIPE is not trapped. This might cause malfunction!\n");
+}
+
+/* The following is based on an example from the GNU libc documentation */
+char *pa_sprintf_malloc(const char *format, ...) {
+    int  size = 100;
+    char *c = NULL;
+    
+    assert(format);
+    
+    for(;;) {
+        int r;
+        va_list ap;
+
+        c = realloc(c, size);
+        assert(c);
+
+        va_start(ap, format);
+        r = vsnprintf(c, size, format, ap);
+        va_end(ap);
+        
+        if (r > -1 && r < size)
+            return c;
+
+        if (r > -1)    /* glibc 2.1 */
+            size = r+1; 
+        else           /* glibc 2.0 */
+            size *= 2;
+    }
 }
