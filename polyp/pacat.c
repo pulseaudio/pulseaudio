@@ -52,18 +52,6 @@ static void quit(int ret) {
     mainloop_api->quit(mainloop_api, ret);
 }
 
-static void context_die_callback(struct pa_context *c, void *userdata) {
-    assert(c);
-    fprintf(stderr, "Connection to server shut down, exiting.\n");
-    quit(1);
-}
-
-static void stream_die_callback(struct pa_stream *s, void *userdata) {
-    assert(s);
-    fprintf(stderr, "Stream deleted, exiting.\n");
-    quit(1);
-}
-
 static void do_stream_write(size_t length) {
     size_t l;
     assert(length);
@@ -75,7 +63,7 @@ static void do_stream_write(size_t length) {
     if (l > buffer_length)
         l = buffer_length;
     
-    pa_stream_write(stream, buffer+buffer_index, l);
+    pa_stream_write(stream, buffer+buffer_index, l, NULL);
     buffer_length -= l;
     buffer_index += l;
     
@@ -115,63 +103,97 @@ static void stream_read_callback(struct pa_stream *s, const void*data, size_t le
     buffer_index = 0;
 }
 
-static void stream_complete_callback(struct pa_stream*s, int success, void *userdata) {
+static void stream_state_callback(struct pa_stream *s, void *userdata) {
     assert(s);
 
-    if (!success) {
-        fprintf(stderr, "Stream creation failed: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
-        quit(1);
-        return;
-    }
+    switch (pa_stream_get_state(s)) {
+        case PA_STREAM_CREATING:
+            break;
 
-    fprintf(stderr, "Stream created.\n");
+        case PA_STREAM_READY:
+            fprintf(stderr, "Stream successfully created\n");
+            break;
+            
+        case PA_STREAM_TERMINATED:
+            quit(0);
+            break;
+            
+        case PA_STREAM_FAILED:
+        default:
+            fprintf(stderr, "Stream errror: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
+            quit(1);
+    }
 }
 
-static void context_complete_callback(struct pa_context *c, int success, void *userdata) {
+static void context_state_callback(struct pa_context *c, void *userdata) {
     static const struct pa_sample_spec ss = {
         .format = PA_SAMPLE_S16LE,
         .rate = 44100,
         .channels = 2
     };
+
+    assert(c);
+
+    switch (pa_context_get_state(c)) {
+        case PA_CONTEXT_CONNECTING:
+        case PA_CONTEXT_AUTHORIZING:
+        case PA_CONTEXT_SETTING_NAME:
+            break;
         
-    assert(c && !stream);
+        case PA_CONTEXT_READY:
+            
+            assert(c && !stream);
+            fprintf(stderr, "Connection established.\n");
 
-    if (!success) {
-        fprintf(stderr, "Connection failed: %s\n", pa_strerror(pa_context_errno(c)));
-        goto fail;
+            stream = pa_stream_new(c, "pacat", &ss);
+            assert(stream);
+
+            pa_stream_set_state_callback(stream, stream_state_callback, NULL);
+            pa_stream_set_write_callback(stream, stream_write_callback, NULL);
+            pa_stream_set_read_callback(stream, stream_read_callback, NULL);
+
+            if (mode == PLAYBACK)
+                pa_stream_connect_playback(stream, NULL, NULL);
+            else
+                pa_stream_connect_record(stream, NULL, NULL);
+                
+            break;
+            
+        case PA_CONTEXT_TERMINATED:
+            quit(0);
+            break;
+
+        case PA_CONTEXT_FAILED:
+        default:
+            fprintf(stderr, "Connection failure: %s\n", pa_strerror(pa_context_errno(c)));
+            quit(1);
     }
-
-    fprintf(stderr, "Connection established.\n");
-    
-    if (!(stream = pa_stream_new(c, mode == PLAYBACK ? PA_STREAM_PLAYBACK : PA_STREAM_RECORD, NULL, "pacat", &ss, NULL, stream_complete_callback, NULL))) {
-        fprintf(stderr, "pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(c)));
-        goto fail;
-    }
-
-    pa_stream_set_die_callback(stream, stream_die_callback, NULL);
-    pa_stream_set_write_callback(stream, stream_write_callback, NULL);
-    pa_stream_set_read_callback(stream, stream_read_callback, NULL);
-    
-    return;
-    
-fail:
-    quit(1);
 }
 
 static void context_drain_complete(struct pa_context*c, void *userdata) {
-    quit(0);
+    pa_context_disconnect(c);
 }
 
-static void stream_drain_complete(struct pa_stream*s, void *userdata) {
+static void stream_drain_complete(struct pa_stream*s, int success, void *userdata) {
+    struct pa_operation *o;
+
+    if (!success) {
+        fprintf(stderr, "Failed to drain stream: %s\n", pa_strerror(pa_context_errno(context)));
+        quit(1);
+    }
+        
     fprintf(stderr, "Playback stream drained.\n");
 
-    pa_stream_free(stream);
+    pa_stream_disconnect(stream);
+    pa_stream_unref(stream);
     stream = NULL;
     
-    if (pa_context_drain(context, context_drain_complete, NULL) < 0)
-        quit(0);
-    else
+    if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
+        pa_context_disconnect(context);
+    else {
+        pa_operation_unref(o);
         fprintf(stderr, "Draining connection to server.\n");
+    }
 }
 
 static void stdin_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
@@ -184,7 +206,7 @@ static void stdin_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int 
         return;
     }
 
-    if (!stream || !pa_stream_is_ready(stream) || !(l = w = pa_stream_writable_size(stream)))
+    if (!stream || pa_stream_get_state(stream) != PA_STREAM_READY || !(l = w = pa_stream_writable_size(stream)))
         l = 4096;
     
     buffer = malloc(l);
@@ -192,7 +214,7 @@ static void stdin_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int 
     if ((r = read(fd, buffer, l)) <= 0) {
         if (r == 0) {
             fprintf(stderr, "Got EOF.\n");
-            pa_stream_drain(stream, stream_drain_complete, NULL);
+            pa_operation_unref(pa_stream_drain(stream, stream_drain_complete, NULL));
         } else {
             fprintf(stderr, "read() failed: %s\n", strerror(errno));
             quit(1);
@@ -259,10 +281,11 @@ static void stream_get_latency_callback(struct pa_stream *s, uint32_t latency, v
 }
 
 static void sigusr1_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
-    if (mode == PLAYBACK) {
-        fprintf(stderr, "Got SIGUSR1, requesting latency.\n");
-        pa_stream_get_latency(stream, stream_get_latency_callback, NULL);
-    }
+    if (mode != PLAYBACK)
+        return;
+    
+    fprintf(stderr, "Got SIGUSR1, requesting latency.\n");
+    pa_operation_unref(pa_stream_get_latency(stream, stream_get_latency_callback, NULL));
 }
 
 int main(int argc, char *argv[]) {
@@ -306,12 +329,9 @@ int main(int argc, char *argv[]) {
         goto quit;
     }
 
-    if (pa_context_connect(context, NULL, context_complete_callback, NULL) < 0) {
-        fprintf(stderr, "pa_context_connext() failed.\n");
-        goto quit;
-    }
-        
-    pa_context_set_die_callback(context, context_die_callback, NULL);
+    pa_context_set_state_callback(context, context_state_callback, NULL);
+
+    pa_context_connect(context, NULL);
 
     if (pa_mainloop_run(m, &ret) < 0) {
         fprintf(stderr, "pa_mainloop_run() failed.\n");
@@ -320,15 +340,21 @@ int main(int argc, char *argv[]) {
     
 quit:
     if (stream)
-        pa_stream_free(stream);
-    if (context)
-        pa_context_free(context);
+        pa_stream_unref(stream);
 
+    if (context)
+        pa_context_unref(context);
+
+    if (stdio_event) {
+        assert(mainloop_api);
+        mainloop_api->io_free(stdio_event);
+    }
+    
     if (m) {
         pa_signal_done();
         pa_mainloop_free(m);
     }
-    
+
     if (buffer)
         free(buffer);
     

@@ -1,5 +1,5 @@
-#ifndef foopolyplibhfoo
-#define foopolyplibhfoo
+#ifndef foopolyplibstreamhfoo
+#define foopolyplibstreamhfoo
 
 /* $Id$ */
 
@@ -26,153 +26,79 @@
 
 #include "sample.h"
 #include "polyplib-def.h"
-#include "mainloop-api.h"
+#include "cdecl.h"
+#include "polyplib-operation.h"
 
-#ifdef __cplusplus
-//extern "C" {
-#endif
+/** \file
+ * Audio streams for input, output and sample upload */
 
-struct pa_context;
+PA_C_DECL_BEGIN
+
+/** The state of a stream */
+enum pa_stream_state {
+    PA_STREAM_DISCONNECTED, /**< The stream is not yet connected to any sink or source */
+    PA_STREAM_CREATING,     /**< The stream is being created */
+    PA_STREAM_READY,        /**< The stream is established, you may pass audio data to it now */
+    PA_STREAM_FAILED,       /**< An error occured that made the stream invalid */
+    PA_STREAM_TERMINATED,   /**< The stream has been terminated cleanly */
+};
+
+/** \struct pa_stream
+ * A stream for playback or recording */
 struct pa_stream;
 
-struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *name);
-void pa_context_unref(struct pa_context *c);
-struct pa_context* pa_context_ref(struct pa_context *c);
+/** Create a new, unconnected stream with the specified name and sample type */
+struct pa_stream* pa_stream_new(struct pa_context *c, const char *name, const struct pa_sample_spec *ss);
 
-int pa_context_connect(struct pa_context *c, const char *server, void (*complete) (struct pa_context*c, int success, void *userdata), void *userdata);
-int pa_context_drain(struct pa_context *c, void (*complete) (struct pa_context*c, void *userdata), void *userdata);
-void pa_context_set_die_callback(struct pa_context *c, void (*cb)(struct pa_context *c, void *userdata), void *userdata);
-
-int pa_context_is_dead(struct pa_context *c);
-int pa_context_is_ready(struct pa_context *c);
-int pa_context_errno(struct pa_context *c);
-
-int pa_context_is_pending(struct pa_context *c);
-
-struct pa_stream* pa_stream_new(struct pa_context *c, enum pa_stream_direction dir, const char *dev, const char *name, const struct pa_sample_spec *ss, const struct pa_buffer_attr *attr, void (*complete) (struct pa_stream*s, int success, void *userdata), void *userdata);
+/** Decrease the reference counter by one */
 void pa_stream_unref(struct pa_stream *s);
+
+/** Increase the reference counter by one */
 struct pa_stream *pa_stream_ref(struct pa_stream *s);
 
-void pa_stream_drain(struct pa_stream *s, void (*complete) (struct pa_stream*s, void *userdata), void *userdata);
+/** Return the current state of the stream */
+enum pa_stream_state pa_stream_get_state(struct pa_stream *p);
 
-void pa_stream_set_die_callback(struct pa_stream *s, void (*cb)(struct pa_stream *s, void *userdata), void *userdata);
-
-void pa_stream_set_write_callback(struct pa_stream *p, void (*cb)(struct pa_stream *p, size_t length, void *userdata), void *userdata);
-void pa_stream_write(struct pa_stream *p, const void *data, size_t length);
-size_t pa_stream_writable_size(struct pa_stream *p);
-
-void pa_stream_set_read_callback(struct pa_stream *p, void (*cb)(struct pa_stream *p, const void*data, size_t length, void *userdata), void *userdata);
-
-int pa_stream_is_dead(struct pa_stream *p);
-int pa_stream_is_ready(struct pa_stream*p);
-
-void pa_stream_get_latency(struct pa_stream *p, void (*cb)(struct pa_stream *p, uint32_t latency, void *userdata), void *userdata);
-
+/** Return the context this stream is attached to */
 struct pa_context* pa_stream_get_context(struct pa_stream *p);
 
+/** Return the device (sink input or source output) index this stream is connected to */
 uint32_t pa_stream_get_index(struct pa_stream *s);
 
-struct pa_stream* pa_context_upload_sample(struct pa_context *c, const char *name, const struct pa_sample_spec *ss, size_t length, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata);
-void pa_stream_finish_sample(struct pa_stream *p, void (*cb)(struct pa_stream*s, int success, void *userdata), void *userdata);
+/** Connect the stream to a sink */
+void pa_stream_connect_playback(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr);
 
-void pa_context_play_sample(struct pa_context *c, const char *name, const char *dev, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
-void pa_context_remove_sample(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+/** Connect the stream to a source */
+void pa_stream_connect_record(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr);
 
-struct pa_sink_info {
-    const char *name;
-    uint32_t index;
-    const char *description;
-    struct pa_sample_spec sample_spec;
-    uint32_t owner_module;
-    uint32_t volume;
-    uint32_t monitor_source;
-    const char *monitor_source_name;
-    uint32_t latency;
-};
+/** Disconnect a stream from a source/sink */
+void pa_stream_disconnect(struct pa_stream *s);
 
-void pa_context_get_sink_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata), void *userdata);
-void pa_context_get_sink_info_by_index(struct pa_context *c, uint32_t id, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata), void *userdata);
-void pa_context_get_sink_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata), void *userdata);
+/** Write some data to the server (for playback sinks), if free_cb is
+ * non-NULL this routine is called when all data has been written out
+ * and an internal reference to the specified data is kept, the data
+ * is not copied. If NULL, the data is copied into an internal
+ * buffer. */ 
+void pa_stream_write(struct pa_stream *p, const void *data, size_t length, void (*free_cb)(void *p));
 
-struct pa_source_info {
-    const char *name;
-    uint32_t index;
-    const char *description;
-    struct pa_sample_spec sample_spec;
-    uint32_t owner_module;
-    uint32_t monitor_of_sink;
-    const char *monitor_of_sink_name;
-};
+/** Return the amount of bytes that may be written using pa_stream_write() */
+size_t pa_stream_writable_size(struct pa_stream *p);
 
-void pa_context_get_source_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata), void *userdata);
-void pa_context_get_source_info_by_index(struct pa_context *c, uint32_t id, void (*cb)(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata), void *userdata);
-void pa_context_get_source_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata), void *userdata);
+/** Drain a playback stream */
+struct pa_operation* pa_stream_drain(struct pa_stream *s, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata);
 
-struct pa_server_info {
-    const char *user_name;
-    const char *host_name;
-    const char *server_version;
-    const char *server_name;
-    struct pa_sample_spec sample_spec;
-};
+/** Get the playback latency of a stream */
+struct pa_operation* pa_stream_get_latency(struct pa_stream *p, void (*cb)(struct pa_stream *p, uint32_t latency, void *userdata), void *userdata);
 
-void pa_context_get_server_info(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_server_info*i, void *userdata), void *userdata);
+/** Set the callback function that is called whenever the state of the stream changes */
+void pa_stream_set_state_callback(struct pa_stream *s, void (*cb)(struct pa_stream *s, void *userdata), void *userdata);
 
-struct pa_module_info {
-    uint32_t index;
-    const char*name, *argument;
-    uint32_t n_used, auto_unload;
-};
+/** Set the callback function that is called when new data may be written to the stream */
+void pa_stream_set_write_callback(struct pa_stream *p, void (*cb)(struct pa_stream *p, size_t length, void *userdata), void *userdata);
 
-void pa_context_get_module_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_module_info*i, int is_last, void *userdata), void *userdata);
-void pa_context_get_module_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_module_info*i, int is_last, void *userdata), void *userdata);
+/** Set the callback function that is called when new data is available from the stream */
+void pa_stream_set_read_callback(struct pa_stream *p, void (*cb)(struct pa_stream *p, const void*data, size_t length, void *userdata), void *userdata);
 
-struct pa_client_info {
-    uint32_t index;
-    const char *name;
-    uint32_t owner_module;
-    const char *protocol_name;
-};
-
-void pa_context_get_client_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_client_info*i, int is_last, void *userdata), void *userdata);
-void pa_context_get_client_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_client_info*i, int is_last, void *userdata), void *userdata);
-
-struct pa_sink_input_info {
-    uint32_t index;
-    const char *name;
-    uint32_t owner_module;
-    uint32_t owner_client;
-    uint32_t sink;
-    struct pa_sample_spec sample_spec;
-    uint32_t volume;
-    uint32_t latency;
-};
-
-void pa_context_get_sink_input_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_sink_input_info*i, int is_last, void *userdata), void *userdata);
-void pa_context_get_sink_input_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sink_input_info*i, int is_last, void *userdata), void *userdata);
-
-struct pa_source_output_info {
-    uint32_t index;
-    const char *name;
-    uint32_t owner_module;
-    uint32_t owner_client;
-    uint32_t source;
-    struct pa_sample_spec sample_spec;
-};
-
-void pa_context_get_source_output_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_source_output_info*i, int is_last, void *userdata), void *userdata);
-void pa_context_get_source_output_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_source_output_info*i, int is_last, void *userdata), void *userdata);
-
-void pa_context_set_sink_volume(struct pa_context *c, uint32_t index, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
-void pa_context_set_sink_input_volume(struct pa_context *c, uint32_t index, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
-
-void pa_context_exit(struct pa_context *c);
-void pa_context_stat(struct pa_context *c, void (*cb)(struct pa_context *c, uint32_t count, uint32_t total, void *userdata), void *userdata);
-
-void pa_context_subscribe(struct pa_context *c, enum pa_subscription_mask m, void (*cb)(struct pa_context *c, enum pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata);
-
-#ifdef __cplusplus
-}
-#endif
+PA_C_DECL_END
 
 #endif

@@ -23,14 +23,13 @@
 ***/
 
 #include <inttypes.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "native-common.h"
+#include "cdecl.h"
+
+PA_C_DECL_BEGIN
 
 enum pa_stream_direction {
+    PA_STREAM_NODIRECTION,
     PA_STREAM_PLAYBACK,
     PA_STREAM_RECORD,
     PA_STREAM_UPLOAD
@@ -43,9 +42,9 @@ struct pa_buffer_attr {
     uint32_t minreq;
     uint32_t fragsize;
 };
-    
-#ifdef __cplusplus
-}
-#endif
+
+#define PA_INVALID_INDEX ((uint32_t) -1)
+
+PA_C_DECL_END
 
 #endif

@@ -25,12 +25,19 @@ polypincludedir=$(includedir)/polyp
 
 EXTRA_DIST = polypaudio.pa depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
-noinst_PROGRAMS = pacat-simple parec-simple mainloop-test mainloop-test-glib
+noinst_PROGRAMS = mainloop-test mainloop-test-glib pacat-simple parec-simple 
 
 polypinclude_HEADERS=polyplib.h \
 		polyplib-def.h \
 		polyplib-simple.h \
 		polyplib-error.h \
+		polyplib-stream.h \
+		polyplib-context.h \
+		polyplib-introspect.h \
+		polyplib-subscribe.h \
+		polyplib-operation.h \
+		polyplib-scache.h \
+		cdecl.h \
 		mainloop-api.h \
 		mainloop.h \
 		mainloop-signal.h \
@@ -72,10 +79,11 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-x11-bell.la
 
 lib_LTLIBRARIES=libpolyp.la \
-		libpolyp-simple.la \
 		libpolyp-error.la \
 		libpolyp-mainloop.la \
-		libpolyp-mainloop-glib.la
+		libpolyp-mainloop-glib.la \
+		libpolyp-simple.la
+
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
@@ -261,7 +269,7 @@ module_x11_bell_la_SOURCES = module-x11-bell.c
 module_x11_bell_la_LDFLAGS = -module -avoid-version
 module_x11_bell_la_LIBADD = $(AM_LIBADD) -lX11 -L/usr/X11R6/lib
 
-libpolyp_la_SOURCES = polyplib.c polyplib.h \
+libpolyp_la_SOURCES = polyplib.h \
 		polyplib-def.h \
 		tagstruct.c tagstruct.h \
 		iochannel.c iochannel.h \
@@ -281,7 +289,14 @@ libpolyp_la_SOURCES = polyplib.c polyplib.h \
 		socket-util.c socket-util.h \
 		native-common.h \
 		sample.c sample.h \
-		xmalloc.c xmalloc.h
+		xmalloc.c xmalloc.h \
+		polyplib-operation.c polyplib-operation.h \
+		polyplib-context.c polyplib-context.h \
+		polyplib-stream.c polyplib-stream.h \
+		polyplib-introspect.c polyplib-introspect.h \
+		polyplib-scache.c polyplib-scache.h \
+		polyplib-subscribe.c polyplib-subscribe.h \
+		cdecl.h
 libpolyp_la_CFLAGS = $(AM_CFLAGS)
 
 libpolyp_mainloop_la_SOURCES = mainloop-api.h mainloop-api.c \

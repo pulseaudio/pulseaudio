@@ -25,18 +25,20 @@
 #include <sys/types.h>
 #include <inttypes.h>
 
-enum pa_memblock_type { PA_MEMBLOCK_FIXED, PA_MEMBLOCK_APPENDED, PA_MEMBLOCK_DYNAMIC };
+enum pa_memblock_type { PA_MEMBLOCK_FIXED, PA_MEMBLOCK_APPENDED, PA_MEMBLOCK_DYNAMIC, PA_MEMBLOCK_USER };
 
 struct pa_memblock {
     enum pa_memblock_type type;
     unsigned ref;
     size_t length;
     void *data;
+    void (*free_cb)(void *p);
 };
 
 struct pa_memblock *pa_memblock_new(size_t length);
 struct pa_memblock *pa_memblock_new_fixed(void *data, size_t length);
 struct pa_memblock *pa_memblock_new_dynamic(void *data, size_t length);
+struct pa_memblock *pa_memblock_new_user(void *data, size_t length, void (*free_cb)(void *p));
 
 void pa_memblock_unref(struct pa_memblock*b);
 struct pa_memblock* pa_memblock_ref(struct pa_memblock*b);

@@ -120,7 +120,7 @@ static int do_connect(struct pa_socket_client *c, const struct sockaddr *sa, soc
     
     if ((r = connect(c->fd, sa, len)) < 0) {
         if (errno != EINPROGRESS) {
-            fprintf(stderr, "connect(): %s\n", strerror(errno));
+            /*fprintf(stderr, "connect(): %s\n", strerror(errno));*/
             return -1;
         }
 

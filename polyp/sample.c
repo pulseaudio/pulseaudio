@@ -96,3 +96,11 @@ void pa_sample_snprint(char *s, size_t l, const struct pa_sample_spec *spec) {
     assert(pa_sample_spec_valid(spec));
     snprintf(s, l, "%s %uch %uHz", table[spec->format], spec->channels, spec->rate);
 }
+
+uint32_t pa_volume_multiply(uint32_t a, uint32_t b) {
+    uint64_t p = a;
+    p *= b;
+    p /= PA_VOLUME_NORM;
+
+    return (uint32_t) p;
+}

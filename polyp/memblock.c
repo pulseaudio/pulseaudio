@@ -39,6 +39,7 @@ struct pa_memblock *pa_memblock_new(size_t length) {
     b->ref = 1;
     b->length = length;
     b->data = b+1;
+    b->free_cb = NULL;
     memblock_count++;
     memblock_total += length;
     return b;
@@ -50,6 +51,7 @@ struct pa_memblock *pa_memblock_new_fixed(void *d, size_t length) {
     b->ref = 1;
     b->length = length;
     b->data = d;
+    b->free_cb = NULL;
     memblock_count++;
     memblock_total += length;
     return b;
@@ -61,6 +63,21 @@ struct pa_memblock *pa_memblock_new_dynamic(void *d, size_t length) {
     b->ref = 1;
     b->length = length;
     b->data = d;
+    b->free_cb = NULL;
+    memblock_count++;
+    memblock_total += length;
+    return b;
+}
+
+struct pa_memblock *pa_memblock_new_user(void *d, size_t length, void (*free_cb)(void *p)) {
+    struct pa_memblock *b;
+    assert(d && length && free_cb);
+    b = pa_xmalloc(sizeof(struct pa_memblock));
+    b->type = PA_MEMBLOCK_USER;
+    b->ref = 1;
+    b->length = length;
+    b->data = d;
+    b->free_cb = free_cb;
     memblock_count++;
     memblock_total += length;
     return b;
@@ -74,31 +91,28 @@ struct pa_memblock* pa_memblock_ref(struct pa_memblock*b) {
 
 void pa_memblock_unref(struct pa_memblock*b) {
     assert(b && b->ref >= 1);
-    b->ref--;
 
-    if (b->ref == 0) {
-        if (b->type == PA_MEMBLOCK_DYNAMIC)
-            pa_xfree(b->data);
-
+    if ((--(b->ref)) == 0) {
         memblock_count--;
         memblock_total -= b->length;
+
+        if (b->type == PA_MEMBLOCK_USER) {
+            assert(b->free_cb);
+            b->free_cb(b->data);
+        } else if (b->type == PA_MEMBLOCK_DYNAMIC)
+            pa_xfree(b->data);
 
         pa_xfree(b);
     }
 }
 
 void pa_memblock_unref_fixed(struct pa_memblock *b) {
-    void *d;
-    
-    assert(b && b->ref >= 1);
+    assert(b && b->ref >= 1 && b->type == PA_MEMBLOCK_FIXED);
 
-    if (b->ref == 1) {
+    if (b->ref == 1)
         pa_memblock_unref(b);
-        return;
-    } else {
-        d = pa_xmalloc(b->length);
-        memcpy(d, b->data, b->length);
-        b->data = d;
+    else {
+        b->data = pa_xmemdup(b->data, b->length);
         b->type = PA_MEMBLOCK_DYNAMIC;
         b->ref--;
     }

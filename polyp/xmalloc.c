@@ -52,25 +52,36 @@ void *pa_xrealloc(void *ptr, size_t size) {
     return p;
 }
 
+void* pa_xmemdup(const void *p, size_t l) {
+    if (!p)
+        return NULL;
+    else {
+        char *r = pa_xmalloc(l);
+        memcpy(r, p, l);
+        return r;
+    }
+}
+
 char *pa_xstrdup(const char *s) {
     if (!s)
         return NULL;
-    else {
-        char *r = strdup(s);
-        if (!r)
-            oom();
 
-        return r;
-    }
+    return pa_xmemdup(s, strlen(s)+1);
 }
 
 char *pa_xstrndup(const char *s, size_t l) {
     if (!s)
         return NULL;
     else {
-        char *r = strndup(s, l);
-        if (!r)
-            oom();
+        char *r;
+        size_t t = strlen(s);
+
+        if (t > l)
+            t = l;
+        
+        r = pa_xmemdup(s, t+1);
+        r[t] = 0;
         return r;
     }
 }
+

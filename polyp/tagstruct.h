@@ -48,6 +48,4 @@ int pa_tagstruct_get_arbitrary(struct pa_tagstruct *t, const void **p, size_t le
 int pa_tagstruct_eof(struct pa_tagstruct*t);
 const uint8_t* pa_tagstruct_data(struct pa_tagstruct*t, size_t *l);
 
-
-
 #endif

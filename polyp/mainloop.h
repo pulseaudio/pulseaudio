@@ -23,6 +23,9 @@
 ***/
 
 #include "mainloop-api.h"
+#include "cdecl.h"
+
+PA_C_DECL_BEGIN
 
 struct pa_mainloop;
 
@@ -33,5 +36,7 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval);
 int pa_mainloop_run(struct pa_mainloop *m, int *retval);
 
 struct pa_mainloop_api* pa_mainloop_get_api(struct pa_mainloop*m);
+
+PA_C_DECL_END
 
 #endif

@@ -41,4 +41,7 @@ homepage: all dist
 distcleancheck:
 	@:
 
-.PHONY: homepage distcleancheck
+doxygen:
+	$(MAKE) -C doxygen
+
+.PHONY: homepage distcleancheck doxygen

@@ -12,4 +12,6 @@ void *pa_xrealloc(void *ptr, size_t size);
 char *pa_xstrdup(const char *s);
 char *pa_xstrndup(const char *s, size_t l);
 
+void* pa_xmemdup(const void *p, size_t l);
+
 #endif

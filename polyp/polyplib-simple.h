@@ -26,24 +26,41 @@
 
 #include "sample.h"
 #include "polyplib-def.h"
+#include "cdecl.h"
 
+/** \file
+ * A simple but limited synchronous playback and recording API. */
+
+PA_C_DECL_BEGIN
+
+/** \struct pa_simple
+ * A simple connection object */
 struct pa_simple;
 
+/** Create a new connection to the server */
 struct pa_simple* pa_simple_new(
-    const char *server,
-    const char *name,
-    enum pa_stream_direction dir,
-    const char *dev,
-    const char *stream_name,
-    const struct pa_sample_spec *ss,
-    const struct pa_buffer_attr *attr,
-    int *error);
+    const char *server,                 /**< Server name, or NULL for default */
+    const char *name,                   /**< A descriptive name for this client (application name, ...) */
+    enum pa_stream_direction dir,       /**< Open this stream for recording or playback? */
+    const char *dev,                    /**< Sink (resp. source) name, or NULL for default */
+    const char *stream_name,            /**< A descriptive name for this client (application name, song title, ...) */
+    const struct pa_sample_spec *ss,    /**< The sample type to use */
+    const struct pa_buffer_attr *attr,  /**< Buffering attributes, or NULL for default */
+    int *error                        /**< A pointer where the error code is stored when the routine returns NULL. It is OK to pass NULL here. */
+    );
 
+/** Close and free the connection to the server. The connection objects becomes invalid when this is called. */
 void pa_simple_free(struct pa_simple *s);
 
+/** Write some data to the server */
 int pa_simple_write(struct pa_simple *s, const void*data, size_t length, int *error);
+
+/** Wait until all data already written is played by the daemon */
 int pa_simple_drain(struct pa_simple *s, int *error);
 
+/** Read some data from the server */
 int pa_simple_read(struct pa_simple *s, void*data, size_t length, int *error);
+
+PA_C_DECL_END
 
 #endif

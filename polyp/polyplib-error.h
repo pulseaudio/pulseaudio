@@ -23,15 +23,13 @@
 ***/
 
 #include <inttypes.h>
+#include "cdecl.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+PA_C_DECL_BEGIN;
 
+/** Return a human readable error message for the specified numeric error code */
 const char* pa_strerror(uint32_t error);
 
-#ifdef __cplusplus
-}
-#endif
-    
+PA_C_DECL_END;
+
 #endif

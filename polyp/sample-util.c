@@ -135,10 +135,3 @@ void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec,
     }
 }
 
-uint32_t pa_volume_multiply(uint32_t a, uint32_t b) {
-    uint64_t p = a;
-    p *= b;
-    p /= PA_VOLUME_NORM;
-
-    return (uint32_t) p;
-}

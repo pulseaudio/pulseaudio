@@ -49,15 +49,28 @@ struct pa_simple {
 static void read_callback(struct pa_stream *s, const void*data, size_t length, void *userdata);
 
 static int check_error(struct pa_simple *p, int *perror) {
+    enum pa_context_state cst;
+    enum pa_stream_state sst;
     assert(p);
     
-    if (pa_context_is_dead(p->context) || (p->stream && pa_stream_is_dead(p->stream))) {
-        if (perror)
-            *perror = pa_context_errno(p->context);
-        return -1;
-    }
+    if ((cst = pa_context_get_state(p->context)) == PA_CONTEXT_FAILED)
+        goto fail;
 
+    assert(cst != PA_CONTEXT_TERMINATED);
+
+    if (p->stream) {
+        if ((sst = pa_stream_get_state(p->stream)) == PA_STREAM_FAILED)
+            goto fail;
+        
+        assert(sst != PA_STREAM_TERMINATED);
+    }
+    
     return 0;
+    
+fail:
+    if (perror)
+        *perror = pa_context_errno(p->context);
+    return -1;
 }
 
 static int iterate(struct pa_simple *p, int block, int *perror) {
@@ -96,7 +109,7 @@ struct pa_simple* pa_simple_new(
     
     struct pa_simple *p;
     int error = PA_ERROR_INTERNAL;
-    assert(ss);
+    assert(ss && (dir == PA_STREAM_PLAYBACK || dir == PA_STREAM_RECORD));
 
     p = pa_xmalloc(sizeof(struct pa_simple));
     p->context = NULL;
@@ -110,23 +123,25 @@ struct pa_simple* pa_simple_new(
 
     if (!(p->context = pa_context_new(pa_mainloop_get_api(p->mainloop), name)))
         goto fail;
-
-    if (pa_context_connect(p->context, server, NULL, NULL) < 0) {
-        error = pa_context_errno(p->context);
-        goto fail;
-    }
+    
+    pa_context_connect(p->context, server);
 
     /* Wait until the context is ready */
-    while (!pa_context_is_ready(p->context)) {
+    while (pa_context_get_state(p->context) != PA_CONTEXT_READY) {
         if (iterate(p, 1, &error) < 0)
             goto fail;
     }
 
-    if (!(p->stream = pa_stream_new(p->context, dir, dev, stream_name, ss, attr, NULL, NULL)))
+    if (!(p->stream = pa_stream_new(p->context, stream_name, ss)))
         goto fail;
 
+    if (dir == PA_STREAM_PLAYBACK)
+        pa_stream_connect_playback(p->stream, dev, attr);
+    else
+        pa_stream_connect_record(p->stream, dev, attr);
+
     /* Wait until the stream is ready */
-    while (!pa_stream_is_ready(p->stream)) {
+    while (pa_stream_get_state(p->stream) != PA_STREAM_READY) {
         if (iterate(p, 1, &error) < 0)
             goto fail;
     }
@@ -148,10 +163,10 @@ void pa_simple_free(struct pa_simple *s) {
     pa_xfree(s->read_data);
 
     if (s->stream)
-        pa_stream_free(s->stream);
+        pa_stream_unref(s->stream);
     
     if (s->context)
-        pa_context_free(s->context);
+        pa_context_unref(s->context);
 
     if (s->mainloop)
         pa_mainloop_free(s->mainloop);
@@ -172,7 +187,7 @@ int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *pe
         if (l > length)
             l = length;
 
-        pa_stream_write(p->stream, data, l);
+        pa_stream_write(p->stream, data, l, NULL);
         data += l;
         length -= l;
     }
@@ -193,8 +208,7 @@ static void read_callback(struct pa_stream *s, const void*data, size_t length, v
         pa_xfree(p->read_data);
     }
 
-    p->read_data = pa_xmalloc(p->read_length = length);
-    memcpy(p->read_data, data, length);
+    p->read_data = pa_xmemdup(data, p->read_length = length);
     p->read_index = 0;
 }
 
@@ -235,23 +249,31 @@ int pa_simple_read(struct pa_simple *p, void*data, size_t length, int *perror) {
     return 0;
 }
 
-static void drain_complete(struct pa_stream *s, void *userdata) {
+static void drain_complete(struct pa_stream *s, int success, void *userdata) {
     struct pa_simple *p = userdata;
     assert(s && p);
-    p->drained = 1;
+    p->drained = success ? 1 : -1;
 }
 
 int pa_simple_drain(struct pa_simple *p, int *perror) {
+    struct pa_operation *o;
+    
     assert(p && p->direction == PA_STREAM_PLAYBACK);
     p->drained = 0;
-    pa_stream_drain(p->stream, drain_complete, p);
+    o = pa_stream_drain(p->stream, drain_complete, p);
 
     while (!p->drained) {
         if (iterate(p, 1, perror) < 0) {
-            pa_stream_drain(p->stream, NULL, NULL);
+            pa_operation_cancel(o);
+            pa_operation_unref(o);
             return -1;
         }
     }
+
+    pa_operation_unref(o);
+
+    if (p->drained < 0 && perror)
+        *perror = pa_context_errno(p->context);
 
     return 0;
 }

@@ -68,31 +68,27 @@ static void quit(int ret) {
     mainloop_api->quit(mainloop_api, ret);
 }
 
-static void context_die_callback(struct pa_context *c, void *userdata) {
-    assert(c);
-    fprintf(stderr, "Connection to server shut down, exiting.\n");
-    quit(1);
-}
 
 static void context_drain_complete(struct pa_context *c, void *userdata) {
-    assert(c);
-    fprintf(stderr, "Connection to server shut down, exiting.\n");
-    quit(0);
+    pa_context_disconnect(c);
 }
 
 static void drain(void) {
-    if (pa_context_drain(context, context_drain_complete, NULL) < 0)
-        quit(0);
+    struct pa_operation *o;
+    if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
+        pa_context_disconnect(context);
+    else
+        pa_operation_unref(o);
 }
 
-static void stat_callback(struct pa_context *c, uint32_t blocks, uint32_t total, void *userdata) {
-    if (blocks == (uint32_t) -1) {
+static void stat_callback(struct pa_context *c, const struct pa_stat_info *i, void *userdata) {
+    if (!i) {
         fprintf(stderr, "Failed to get statistics: %s\n", pa_strerror(pa_context_errno(c)));
         quit(1);
         return;
     }
     
-    fprintf(stderr, "Currently in use: %u blocks containing %u bytes total.\n", blocks, total);
+    fprintf(stderr, "Currently in use: %u blocks containing %u bytes total.\n", i->memblock_count, i->memblock_total);
     drain();
 }
 
@@ -116,22 +112,23 @@ static void remove_sample_callback(struct pa_context *c, int success, void *user
     drain();
 }
 
-static void stream_die_callback(struct pa_stream *s, void *userdata) {
-    assert(s);
-    fprintf(stderr, "Stream deleted, exiting.\n");
-    quit(1);
-}
-
-static void finish_sample_callback(struct pa_stream *s, int success, void *userdata) {
+static void stream_state_callback(struct pa_stream *s, void *userdata) {
     assert(s);
 
-    if (!success) {
-        fprintf(stderr, "Failed to upload sample: %s\n", pa_strerror(pa_context_errno(context)));
-        quit(1);
-        return;
+    switch (pa_stream_get_state(s)) {
+        case PA_STREAM_CREATING:
+        case PA_STREAM_READY:
+            break;
+            
+        case PA_STREAM_TERMINATED:
+            drain();
+            break;
+            
+        case PA_STREAM_FAILED:
+        default:
+            fprintf(stderr, "Failed to upload sample: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
+            quit(1);
     }
-
-    drain();
 }
 
 static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
@@ -151,58 +148,55 @@ static void stream_write_callback(struct pa_stream *s, size_t length, void *user
         quit(1);
     }
     
-    pa_stream_write(s, d, length);
-    free(d);
+    pa_stream_write(s, d, length, free);
 
     sample_length -= length;
 
     if (sample_length  <= 0) {
         pa_stream_set_write_callback(sample_stream, NULL, NULL);
-        pa_stream_finish_sample(sample_stream, finish_sample_callback, NULL);
+        pa_stream_finish_upload(sample_stream);
     }
 }
 
-static void upload_callback(struct pa_stream *s, int success, void *userdata) {
-    if (!success) {
-        fprintf(stderr, "Failed to upload sample: %s\n", pa_strerror(pa_context_errno(context)));
-        quit(1);
-    }
-}
-
-static void context_complete_callback(struct pa_context *c, int success, void *userdata) {
+static void context_state_callback(struct pa_context *c, void *userdata) {
     assert(c);
+    switch (pa_context_get_state(c)) {
+        case PA_CONTEXT_CONNECTING:
+        case PA_CONTEXT_AUTHORIZING:
+        case PA_CONTEXT_SETTING_NAME:
+            break;
 
-    if (!success) {
-        fprintf(stderr, "Connection failed: %s\n", pa_strerror(pa_context_errno(c)));
-        goto fail;
+        case PA_CONTEXT_READY:
+            if (action == STAT)
+                pa_operation_unref(pa_context_stat(c, stat_callback, NULL));
+            else if (action == PLAY_SAMPLE)
+                pa_operation_unref(pa_context_play_sample(c, process_argv[2], NULL, 0x100, play_sample_callback, NULL));
+            else if (action == REMOVE_SAMPLE)
+                pa_operation_unref(pa_context_remove_sample(c, process_argv[2], remove_sample_callback, NULL));
+            else if (action == UPLOAD_SAMPLE) {
+
+                sample_stream = pa_stream_new(c, sample_name, &sample_spec);
+                assert(sample_stream);
+
+                pa_stream_set_state_callback(sample_stream, stream_state_callback, NULL);
+                pa_stream_set_write_callback(sample_stream, stream_write_callback, NULL);
+                pa_stream_connect_upload(sample_stream, sample_length);
+            } else {
+                assert(action == EXIT);
+                pa_context_exit_daemon(c);
+                drain();
+            }
+            break;
+
+        case PA_CONTEXT_TERMINATED:
+            quit(0);
+            break;
+
+        case PA_CONTEXT_FAILED:
+        default:
+            fprintf(stderr, "Connection failure: %s\n", pa_strerror(pa_context_errno(c)));
+            quit(1);
     }
-
-    fprintf(stderr, "Connection established.\n");
-
-    if (action == STAT)
-        pa_context_stat(c, stat_callback, NULL);
-    else if (action == PLAY_SAMPLE)
-        pa_context_play_sample(c, process_argv[2], NULL, 0x100, play_sample_callback, NULL);
-    else if (action == REMOVE_SAMPLE)
-        pa_context_remove_sample(c, process_argv[2], remove_sample_callback, NULL);
-    else if (action == UPLOAD_SAMPLE) {
-        if (!(sample_stream = pa_context_upload_sample(c, sample_name, &sample_spec, sample_length, upload_callback, NULL))) {
-            fprintf(stderr, "Failed to upload sample: %s\n", pa_strerror(pa_context_errno(c)));
-            goto fail;
-        }
-        
-        pa_stream_set_die_callback(sample_stream, stream_die_callback, NULL);
-        pa_stream_set_write_callback(sample_stream, stream_write_callback, NULL);
-    } else {
-        assert(action == EXIT);
-        pa_context_exit(c);
-        drain();
-    }
-    
-    return;
-    
-fail:
-    quit(1);
 }
 
 static void exit_signal_callback(struct pa_mainloop_api *m, struct pa_signal_event *e, int sig, void *userdata) {
@@ -234,12 +228,15 @@ int main(int argc, char *argv[]) {
                 sample_name = argv[3];
             else {
                 char *f = strrchr(argv[2], '/');
+                size_t n;
                 if (f)
                     f++;
                 else
                     f = argv[2];
 
-                strncpy(sample_name = tmp, f, strcspn(f, "."));
+                n = strcspn(f, ".");
+                strncpy(sample_name = tmp, f, n);
+                tmp[n] = 0; 
             }
             
             memset(&sfinfo, 0, sizeof(sfinfo));
@@ -292,12 +289,8 @@ int main(int argc, char *argv[]) {
         goto quit;
     }
 
-    if (pa_context_connect(context, NULL, context_complete_callback, NULL) < 0) {
-        fprintf(stderr, "pa_context_connext() failed.\n");
-        goto quit;
-    }
-        
-    pa_context_set_die_callback(context, context_die_callback, NULL);
+    pa_context_set_state_callback(context, context_state_callback, NULL);
+    pa_context_connect(context, NULL);
 
     if (pa_mainloop_run(m, &ret) < 0) {
         fprintf(stderr, "pa_mainloop_run() failed.\n");
@@ -305,8 +298,11 @@ int main(int argc, char *argv[]) {
     }
 
 quit:
+    if (sample_stream)
+        pa_stream_unref(sample_stream);
+
     if (context)
-        pa_context_free(context);
+        pa_context_unref(context);
 
     if (m) {
         pa_signal_done();
@@ -315,6 +311,6 @@ quit:
     
     if (sndfile)
         sf_close(sndfile);
-    
+
     return ret;
 }

@@ -23,6 +23,8 @@
 ***/
 
 #include <inttypes.h>
+#include <sys/socket.h>
+
 #include "mainloop-api.h"
 #include "iochannel.h"
 

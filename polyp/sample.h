@@ -25,9 +25,9 @@
 #include <inttypes.h>
 #include <sys/types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "cdecl.h"
+
+PA_C_DECL_BEGIN
 
 enum pa_sample_format {
     PA_SAMPLE_U8,
@@ -49,10 +49,11 @@ enum pa_sample_format {
 #endif
 #define PA_SAMPLE_FLOAT32 PA_SAMPLE_FLOAT32NE
 
+/** A sample format and attribute specification */
 struct pa_sample_spec {
-    enum pa_sample_format format;
-    uint32_t rate;
-    uint8_t channels;
+    enum pa_sample_format format;  /**< The sample format */
+    uint32_t rate;                 /**< The sample rate. (e.g. 44100) */
+    uint8_t channels;              /**< Audio channels. (1 for mono, 2 for stereo, ...) */
 };
 
 size_t pa_bytes_per_second(const struct pa_sample_spec *spec);
@@ -64,8 +65,10 @@ int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_s
 #define PA_SAMPLE_SNPRINT_MAX_LENGTH 32
 void pa_sample_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
 
-#ifdef __cplusplus
-}
-#endif
+#define PA_VOLUME_NORM (0x100)
+#define PA_VOLUME_MUTE (0)
+uint32_t pa_volume_multiply(uint32_t a, uint32_t b);
+
+PA_C_DECL_END
 
 #endif
