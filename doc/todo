@@ -10,6 +10,7 @@
 - filter capture data in client through alignment
 - add radio module
 - make autoload list use idxset
+- enlarge mqmblockq sizes
 
 ** later ***
 - xmlrpc/http
