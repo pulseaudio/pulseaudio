@@ -35,7 +35,7 @@
 #include "native-common.h"
 #include "client-conf.h"
 
-#define DEFAULT_TLENGTH (44100*2*2/10)  //(10240*8)
+#define DEFAULT_TLENGTH (44100*2*2/2)  //(10240*8)
 #define DEFAULT_MAXLENGTH ((DEFAULT_TLENGTH*3)/2)
 #define DEFAULT_MINREQ 512
 #define DEFAULT_PREBUF (DEFAULT_TLENGTH-DEFAULT_MINREQ)
