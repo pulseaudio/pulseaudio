@@ -53,6 +53,6 @@ distcleancheck:
 	@:
 
 doxygen:
-	$(MAKE) -C doxygen
+	$(MAKE) -C doxygen doxygen
 
 .PHONY: homepage distcleancheck doxygen

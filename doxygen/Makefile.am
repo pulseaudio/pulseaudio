@@ -17,12 +17,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-noinst_DATA=html
-
-html: doxygen.conf
+doxygen: doxygen.conf
 	doxygen $<
 
 clean-local:
 	rm -rf html
 
-.PHONY: all html
+.PHONY: all doxygen
