@@ -58,6 +58,12 @@ static char *stream_name = NULL, *client_name = NULL, *device = NULL;
 static int verbose = 0;
 static pa_volume_t volume = PA_VOLUME_NORM;
 
+static struct pa_sample_spec sample_spec = {
+    .format = PA_SAMPLE_S16LE,
+    .rate = 44100,
+    .channels = 2
+};
+
 /* A shortcut for terminating the application */
 static void quit(int ret) {
     assert(mainloop_api);
@@ -141,12 +147,6 @@ static void stream_state_callback(struct pa_stream *s, void *userdata) {
 
 /* This is called whenever the context status changes */
 static void context_state_callback(struct pa_context *c, void *userdata) {
-    static const struct pa_sample_spec ss = {
-        .format = PA_SAMPLE_S16LE,
-        .rate = 44100,
-        .channels = 2
-    };
-
     assert(c);
 
     switch (pa_context_get_state(c)) {
@@ -162,7 +162,7 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
             if (verbose)
                 fprintf(stderr, "Connection established.\n");
 
-            stream = pa_stream_new(c, stream_name, &ss);
+            stream = pa_stream_new(c, stream_name, &sample_spec);
             assert(stream);
 
             pa_stream_set_state_callback(stream, stream_state_callback, NULL);
@@ -335,14 +335,22 @@ static void help(const char *argv0) {
            "  -d, --device=DEVICE                   The name of the sink/source to connect to\n"
            "  -n, --client-name=NAME                How to call this client on the server\n"
            "      --stream-name=NAME                How to call this stream on the server\n"
-           "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...256\n",
+           "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...256\n"
+           "      --rate=SAMPLERATE                 The sample rate in Hz (defaults to 44100)\n"
+           "      --format=SAMPLEFORMAT             The sample type, one of s16le, s16be, u8, float32le,\n"
+           "                                        float32be, ulaw, alaw (defaults to s16ne)\n"
+           "      --channels=CHANNELS               The number of channels, 1 for mono, 2 for stereo\n"
+           "                                        (defaults to 2)\n",
            argv0);
 }
 
 enum {
     ARG_VERSION = 256,
     ARG_STREAM_NAME,
-    ARG_VOLUME
+    ARG_VOLUME,
+    ARG_SAMPLERATE,
+    ARG_SAMPLEFORMAT,
+    ARG_CHANNELS
 };
 
 int main(int argc, char *argv[]) {
@@ -361,6 +369,9 @@ int main(int argc, char *argv[]) {
         {"help",        0, NULL, 'h'},
         {"verbose",     0, NULL, 'v'},
         {"volume",      1, NULL, ARG_VOLUME},
+        {"rate",        1, NULL, ARG_SAMPLERATE},
+        {"format",      1, NULL, ARG_SAMPLEFORMAT},
+        {"channels",    1, NULL, ARG_CHANNELS},
         {NULL,          0, NULL, 0}
     };
 
@@ -425,6 +436,18 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
+            case ARG_CHANNELS: 
+                sample_spec.channels = atoi(optarg);
+                break;
+
+            case ARG_SAMPLEFORMAT:
+                sample_spec.format = pa_parse_sample_format(optarg);
+                break;
+
+            case ARG_SAMPLERATE:
+                sample_spec.rate = atoi(optarg);
+                break;
+
             default:
                 goto quit;
         }
@@ -435,9 +458,17 @@ int main(int argc, char *argv[]) {
 
     if (!stream_name)
         stream_name = strdup(client_name);
+
+    if (!pa_sample_spec_valid(&sample_spec)) {
+        fprintf(stderr, "Invalid sample specification\n");
+        goto quit;
+    }
     
-    if (verbose)
-        fprintf(stderr, "Opening a %s stream.\n", mode == RECORD ? "recording" : "playback");
+    if (verbose) {
+        char t[PA_SAMPLE_SPEC_SNPRINT_MAX];
+        pa_sample_spec_snprint(t, sizeof(t), &sample_spec);
+        fprintf(stderr, "Opening a %s stream with sample specification '%s'.\n", mode == RECORD ? "recording" : "playback", t);
+    }
 
     /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {

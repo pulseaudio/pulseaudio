@@ -263,28 +263,9 @@ int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *rss
         return -1;
     ss.channels = (uint8_t) channels;
 
-    if ((format = pa_modargs_get_value(ma, "format", NULL))) {
-        if (strcmp(format, "s16le") == 0)
-            ss.format = PA_SAMPLE_S16LE;
-        else if (strcmp(format, "s16be") == 0)
-            ss.format = PA_SAMPLE_S16BE;
-        else if (strcmp(format, "s16ne") == 0 || strcmp(format, "s16") == 0 || strcmp(format, "16") == 0)
-            ss.format = PA_SAMPLE_S16NE;
-        else if (strcmp(format, "u8") == 0 || strcmp(format, "8") == 0)
-            ss.format = PA_SAMPLE_U8;
-        else if (strcmp(format, "float32") == 0 || strcmp(format, "float32ne") == 0)
-            ss.format = PA_SAMPLE_FLOAT32;
-        else if (strcmp(format, "float32le") == 0)
-            ss.format = PA_SAMPLE_FLOAT32LE;
-        else if (strcmp(format, "float32be") == 0)
-            ss.format = PA_SAMPLE_FLOAT32BE;
-        else if (strcmp(format, "ulaw") == 0)
-            ss.format = PA_SAMPLE_ULAW;
-        else if (strcmp(format, "alaw") == 0)
-            ss.format = PA_SAMPLE_ALAW;
-        else
+    if ((format = pa_modargs_get_value(ma, "format", NULL)))
+        if ((ss.format = pa_parse_sample_format(format)) < 0)
             return -1;
-    }
 
     if (!pa_sample_spec_valid(&ss))
         return -1;

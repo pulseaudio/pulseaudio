@@ -42,7 +42,8 @@ enum pa_sample_format {
     PA_SAMPLE_S16BE,           /**< Signed 16 Bit PCM, big endian */
     PA_SAMPLE_FLOAT32LE,       /**< 32 Bit IEEE floating point, little endian, range -1..1 */
     PA_SAMPLE_FLOAT32BE,       /**< 32 Bit IEEE floating point, big endian, range -1..1 */
-    PA_SAMPLE_MAX              /**< Upper limit of valid sample types */
+    PA_SAMPLE_MAX,             /**< Upper limit of valid sample types */
+    PA_SAMPLE_INVALID = -1     /**< An invalid value */
 };
 
 #ifdef WORDS_BIGENDIAN
@@ -118,6 +119,9 @@ double pa_volume_to_dB(pa_volume_t v);
 
 /** Pretty print a byte size value. (i.e. "2.5 MB") */
 void pa_bytes_snprint(char *s, size_t l, unsigned v);
+
+/** Parse a sample format text */
+enum pa_sample_format pa_parse_sample_format(const char *format);
 
 PA_C_DECL_END
 

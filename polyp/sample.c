@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 
 #include "sample.h"
 
@@ -68,10 +69,10 @@ pa_usec_t pa_bytes_to_usec(uint64_t length, const struct pa_sample_spec *spec) {
 int pa_sample_spec_valid(const struct pa_sample_spec *spec) {
     assert(spec);
 
-    if (!spec->rate || !spec->channels)
+    if (spec->rate <= 0 || spec->channels <= 0)
         return 0;
 
-    if (spec->format >= PA_SAMPLE_MAX)
+    if (spec->format >= PA_SAMPLE_MAX || spec->format < 0)
         return 0;
 
     return 1;
@@ -133,4 +134,28 @@ void pa_bytes_snprint(char *s, size_t l, unsigned v) {
         snprintf(s, l, "%0.1f KB", ((double) v)/1024);
     else
         snprintf(s, l, "%u B", (unsigned) v);
+}
+
+enum pa_sample_format pa_parse_sample_format(const char *format) {
+    
+    if (strcmp(format, "s16le") == 0)
+        return PA_SAMPLE_S16LE;
+    else if (strcmp(format, "s16be") == 0)
+        return PA_SAMPLE_S16BE;
+    else if (strcmp(format, "s16ne") == 0 || strcmp(format, "s16") == 0 || strcmp(format, "16") == 0)
+        return PA_SAMPLE_S16NE;
+    else if (strcmp(format, "u8") == 0 || strcmp(format, "8") == 0)
+        return PA_SAMPLE_U8;
+    else if (strcmp(format, "float32") == 0 || strcmp(format, "float32ne") == 0)
+        return PA_SAMPLE_FLOAT32;
+    else if (strcmp(format, "float32le") == 0)
+        return PA_SAMPLE_FLOAT32LE;
+    else if (strcmp(format, "float32be") == 0)
+        return PA_SAMPLE_FLOAT32BE;
+    else if (strcmp(format, "ulaw") == 0)
+        return PA_SAMPLE_ULAW;
+    else if (strcmp(format, "alaw") == 0)
+        return PA_SAMPLE_ALAW;
+
+    return -1;
 }
