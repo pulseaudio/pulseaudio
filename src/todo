@@ -1,8 +1,3 @@
-- pactl
-
-- native library/protocol:
-       more functions (esp. latency)
-
 - xmms+esound latency testing
 
 - prefix modules/libraries with pa_
@@ -21,7 +16,12 @@
 - modinfo
 - move the global memblock statistics variables to the core
 - unix socket directories include user name
-
+- more complete pactl
+- native library/protocol:
+   get server layout 
+   subscription
+   module load/unload
+   kill client/...
 
 drivers:
 - libao

@@ -89,6 +89,9 @@ struct pa_stream {
     
     void (*die_callback)(struct pa_stream*c, void *userdata);
     void *die_userdata;
+
+    void (*get_latency_callback)(struct pa_stream*c, uint32_t latency, void *userdata);
+    void *get_latency_userdata;
 };
 
 static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
@@ -602,6 +605,8 @@ struct pa_stream* pa_stream_new(
     s->die_userdata = NULL;
     s->create_complete_callback = complete;
     s->create_complete_userdata = NULL;
+    s->get_latency_callback = NULL;
+    s->get_latency_userdata = NULL;
 
     s->name = strdup(name);
     s->state = STREAM_CREATING;
@@ -894,4 +899,50 @@ void pa_context_stat(struct pa_context *c, void (*cb)(struct pa_context *c, uint
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_stat_callback, c);
+}
+
+static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_stream *s = userdata;
+    uint32_t latency;
+    assert(pd && s);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (handle_error(s->context, command, t) < 0) {
+            context_dead(s->context);
+            return;
+        }
+
+        if (s->get_latency_callback)
+            s->get_latency_callback(s, (uint32_t) -1, s->get_latency_userdata);
+        return;
+    }
+
+    if (pa_tagstruct_getu32(t, &latency) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        s->context->error = PA_ERROR_PROTOCOL;
+        context_dead(s->context);
+        return;
+    }
+
+    if (s->get_latency_callback)
+        s->get_latency_callback(s, latency, s->get_latency_userdata);
+}
+
+void pa_stream_get_latency(struct pa_stream *p, void (*cb)(struct pa_stream *p, uint32_t latency, void *userdata), void *userdata) {
+    uint32_t tag;
+    struct pa_tagstruct *t;
+
+    p->get_latency_callback = cb;
+    p->get_latency_userdata = userdata;
+
+    if (cb == NULL)
+        return;
+    
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_PLAYBACK_LATENCY);
+    pa_tagstruct_putu32(t, tag = p->context->ctag++);
+    pa_tagstruct_putu32(t, p->channel);
+    pa_pstream_send_tagstruct(p->context->pstream, t);
+    pa_pdispatch_register_reply(p->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, p);
 }

@@ -66,6 +66,8 @@ void pa_stream_set_read_callback(struct pa_stream *p, void (*cb)(struct pa_strea
 int pa_stream_is_dead(struct pa_stream *p);
 int pa_stream_is_ready(struct pa_stream*p);
 
+void pa_stream_get_latency(struct pa_stream *p, void (*cb)(struct pa_stream *p, uint32_t latency, void *userdata), void *userdata);
+
 struct pa_context* pa_stream_get_context(struct pa_stream *p);
 
 #endif

@@ -221,6 +221,25 @@ static void exit_signal_callback(void *id, int sig, void *userdata) {
     
 }
 
+static void stream_get_latency_callback(struct pa_stream *s, uint32_t latency, void *userdata) {
+    assert(s);
+
+    if (latency == (uint32_t) -1) {
+        fprintf(stderr, "Failed to get latency: %s\n", strerror(errno));
+        quit(1);
+        return;
+    }
+
+    fprintf(stderr, "Current latency is %u usecs.\n", latency);
+}
+
+static void sigusr1_signal_callback(void *id, int sig, void *userdata) {
+    if (mode == PLAYBACK) {
+        fprintf(stderr, "Got SIGUSR1, requesting latency.\n");
+        pa_stream_get_latency(stream, stream_get_latency_callback, NULL);
+    }
+}
+
 int main(int argc, char *argv[]) {
     struct pa_mainloop* m = NULL;
     int ret = 1, r;
@@ -246,6 +265,7 @@ int main(int argc, char *argv[]) {
     r = pa_signal_init(mainloop_api);
     assert(r == 0);
     pa_signal_register(SIGINT, exit_signal_callback, NULL);
+    pa_signal_register(SIGUSR1, sigusr1_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
     
     if (!(stdio_source = mainloop_api->source_io(mainloop_api,

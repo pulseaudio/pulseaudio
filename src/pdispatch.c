@@ -4,6 +4,8 @@
 #include "pdispatch.h"
 #include "protocol-native-spec.h"
 
+#ifdef DEBUG_OPCODES
+
 static const char *command_names[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = "ERROR",
     [PA_COMMAND_TIMEOUT] = "TIMEOUT",
@@ -19,7 +21,13 @@ static const char *command_names[PA_COMMAND_MAX] = {
     [PA_COMMAND_LOOKUP_SINK] = "LOOKUP_SINK",
     [PA_COMMAND_LOOKUP_SOURCE] = "LOOKUP_SOURCE",
     [PA_COMMAND_DRAIN_PLAYBACK_STREAM] = "DRAIN_PLAYBACK_STREAM",
+    [PA_COMMAND_PLAYBACK_STREAM_KILLED] = "PLAYBACK_STREAM_KILLED",
+    [PA_COMMAND_RECORD_STREAM_KILLED] = "RECORD_STREAM_KILLED",
+    [PA_COMMAND_STAT] = "STAT",
+    [PA_COMMAND_GET_PLAYBACK_LATENCY] = "PLAYBACK_LATENCY",
 };
+
+#endif
 
 struct reply_info {
     struct pa_pdispatch *pdispatch;
@@ -106,7 +114,9 @@ int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *use
         pa_tagstruct_getu32(ts, &tag) < 0)
         goto finish;
 
-    /*fprintf(stderr, __FILE__": Recieved opcode <%s>\n", command_names[command]);*/
+#ifdef DEBUG_OPCODES
+    fprintf(stderr, __FILE__": Recieved opcode <%s>\n", command_names[command]);
+#endif
 
     if (command == PA_COMMAND_ERROR || command == PA_COMMAND_REPLY) {
         struct reply_info *r;
