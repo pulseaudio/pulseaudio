@@ -921,7 +921,7 @@ static void command_finish_upload_stream(struct pa_pdispatch *pd, uint32_t comma
         return;
     }
 
-    pa_scache_add_item(c->protocol->core, s->name, &s->sample_spec, &s->memchunk, &index, 0);
+    pa_scache_add_item(c->protocol->core, s->name, &s->sample_spec, &s->memchunk, &index);
     pa_pstream_send_simple_ack(c->pstream, tag);
     upload_stream_free(s);
 }

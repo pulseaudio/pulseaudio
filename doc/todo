@@ -14,6 +14,8 @@
 - fix tcp/native
 - add volume to create_stream command in native protocol
 - udp based protocol
+- add client config file
+- beefup sample_info stuff in native protocol
 
 *** 0.6 ****
 - per-channel volume

@@ -40,7 +40,6 @@ static void entry_free(struct pa_autoload_entry *e) {
     pa_xfree(e->name);
     pa_xfree(e->module);
     pa_xfree(e->argument);
-    pa_xfree(e->filename);
     pa_xfree(e);
 }
 
@@ -53,7 +52,7 @@ static struct pa_autoload_entry* entry_new(struct pa_core *c, const char *name) 
     
     e = pa_xmalloc(sizeof(struct pa_autoload_entry));
     e->name = pa_xstrdup(name);
-    e->module = e->argument = e->filename = NULL;
+    e->module = e->argument = NULL;
     e->in_action = 0;
     
     if (!c->autoload_hashmap)
@@ -65,28 +64,16 @@ static struct pa_autoload_entry* entry_new(struct pa_core *c, const char *name) 
     return e;
 }
 
-int pa_autoload_add_module(struct pa_core *c, const char*name, enum pa_namereg_type type, const char*module, const char *argument) {
+int pa_autoload_add(struct pa_core *c, const char*name, enum pa_namereg_type type, const char*module, const char *argument) {
     struct pa_autoload_entry *e = NULL;
-    assert(c && name && module);
-
+    assert(c && name && module && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
+    
     if (!(e = entry_new(c, name)))
         return -1;
         
     e->module = pa_xstrdup(module);
     e->argument = pa_xstrdup(argument);
     e->type = type;
-    return 0;
-}
-
-int pa_autoload_add_sample(struct pa_core *c, const char*name, enum pa_namereg_type type, const char*filename) {
-    struct pa_autoload_entry *e = NULL;
-    assert(c && name && filename);
-
-    if (!(e = entry_new(c, name)))
-        return -1;
-        
-    e->filename = pa_xstrdup(filename);
-    e->type = PA_NAMEREG_SAMPLE;
     return 0;
 }
 
@@ -118,20 +105,8 @@ void pa_autoload_request(struct pa_core *c, const char *name, enum pa_namereg_ty
     if (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE) {
         if ((m = pa_module_load(c, e->module, e->argument)))
             m->auto_unload = 1;
-            
-    } else {
-        struct pa_sample_spec ss;
-        struct pa_memchunk chunk;
-        assert(type == PA_NAMEREG_SAMPLE);
-
-        if (pa_sound_file_load(e->filename, &ss, &chunk, c->memblock_stat) < 0) 
-            pa_log(__FILE__": failed to load sound file '%s' for autoload entry '%s'.\n", e->filename, e->name);
-        else {
-            pa_scache_add_item(c, e->name, &ss, &chunk, NULL, 1);
-            pa_memblock_unref(chunk.memblock);
-        }
     }
-
+    
     e->in_action = 0;
 }
 

@@ -221,21 +221,24 @@ char *pa_scache_list_to_string(struct pa_core *c) {
         uint32_t index = PA_IDXSET_INVALID;
 
         for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index)) {
-            double l;
-            char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-            pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
+            double l = 0;
+            char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH] = "n/a";
             
-            l = (double) e->memchunk.length / pa_bytes_per_second(&e->sample_spec);
+            if (e->memchunk.memblock) {
+                pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
+                l = (double) e->memchunk.length / pa_bytes_per_second(&e->sample_spec);
+            }
             
             pa_strbuf_printf(
-                s, "    name: <%s>\n\tindex: <%i>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n\tvolume: <0x%04x>\n\tauto unload: %s\n",
+                s, "    name: <%s>\n\tindex: <%i>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n\tvolume: <0x%04x>\n\tlazy: %s\n\tfilename: %s\n",
                 e->name,
                 e->index,
                 ss,
-                e->memchunk.length,
+                e->memchunk.memblock ? e->memchunk.length : 0,
                 l,
                 e->volume,
-                e->auto_unload ? "yes" : "no");
+                e->lazy ? "yes" : "no",
+                e->filename ? e->filename : "n/a");
         }
     }
 
@@ -257,19 +260,12 @@ char *pa_autoload_list_to_string(struct pa_core *c) {
 
         while ((e = pa_hashmap_iterate(c->autoload_hashmap, &state))) {
             pa_strbuf_printf(
-                s, "    name: <%s>\n\ttype: <%s>\n",
+                s, "    name: <%s>\n\ttype: <%s>\n\tmodule_name: <%s>\n\targuments: <%s>\n",
                 e->name,
-                e->type == PA_NAMEREG_SOURCE ? "source" : (e->type == PA_NAMEREG_SINK ? "sink" : "sample"));
-            
-            if (e->type != PA_NAMEREG_SAMPLE)
-                pa_strbuf_printf(
-                    s, "\tmodule_name: <%s>\n\targuments: <%s>\n",
-                    e->module,
-                    e->argument);
-            else
-                pa_strbuf_printf(
-                    s, "\tfilename: <%s>\n",
-                    e->filename);
+                e->type == PA_NAMEREG_SOURCE ? "source" : "sink",
+                e->module,
+                e->argument);
+
         }
     }
 

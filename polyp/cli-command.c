@@ -110,14 +110,13 @@ static const struct command commands[] = {
     { "play-sample",             pa_cli_command_scache_play,        "Play a sample from the sample cache (args: name, sink|index)", 3},
     { "remove-sample",           pa_cli_command_scache_remove,      "Remove a sample from the sample cache (args: name)", 2},
     { "load-sample",             pa_cli_command_scache_load,        "Load a sound file into the sample cache (args: name, filename)", 3},
+    { "load-sample-lazy",        pa_cli_command_scache_load,        "Lazy load a sound file into the sample cache (args: name, filename)", 3},
     { "play-file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
     { "list-autoload",           pa_cli_command_autoload_list,      "List autoload entries", 1},
     { "add-autoload-sink",       pa_cli_command_autoload_add,       "Add autoload entry for a sink (args: sink, module name, arguments)", 4},
     { "add-autoload-source",     pa_cli_command_autoload_add,       "Add autoload entry for a source (args: source, module name, arguments)", 4},
-    { "add-autoload-sample",     pa_cli_command_autoload_add,       "Add autoload entry for a smple (args: name, filename)", 3},
     { "remove-autoload-sink",    pa_cli_command_autoload_remove,    "Remove autoload entry for a sink (args: name)", 2},
     { "remove-autoload-source",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: name)", 2},
-    { "remove-autoload-sample",  pa_cli_command_autoload_remove,    "Remove autoload entry for a sample (args: name)", 2},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
     { NULL, NULL, NULL, 0 }
 };
@@ -522,8 +521,7 @@ static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *
 
 static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
     const char *fname, *n;
-    struct pa_memchunk chunk;
-    struct pa_sample_spec ss;
+    int r;
     assert(c && t && buf && fail && verbose);
 
     if (!(fname = pa_tokenizer_get(t, 2)) || !(n = pa_tokenizer_get(t, 1))) {
@@ -531,13 +529,14 @@ static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t,
         return -1;
     }
 
-    if (pa_sound_file_load(fname, &ss, &chunk, c->memblock_stat) < 0) {
-        pa_strbuf_puts(buf, "Failed to load sound file.\n");
-        return -1;
-    }
+    if (strstr(pa_tokenizer_get(t, 0), "lazy"))
+        r = pa_scache_add_file_lazy(c, n, fname, NULL);
+    else
+        r = pa_scache_add_file(c, n, fname, NULL);
 
-    pa_scache_add_item(c, n, &ss, &chunk, NULL, 0);
-    pa_memblock_unref(chunk.memblock);
+    if (r < 0)
+        pa_strbuf_puts(buf, "Failed to load sound file.\n");
+
     return 0;
 }
 
@@ -569,10 +568,7 @@ static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t
         return -1;
     }
 
-    if (strstr(pa_tokenizer_get(t, 0), "sample")) 
-        pa_autoload_add_sample(c, a, PA_NAMEREG_SAMPLE, b);
-    else
-        pa_autoload_add_module(c, a, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, b, pa_tokenizer_get(t, 3));
+    pa_autoload_add(c, a, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, b, pa_tokenizer_get(t, 3));
     
     return 0;
 }
@@ -586,8 +582,7 @@ static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer
         return -1;
     }
 
-    if (pa_autoload_remove(c, name, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK :
-                           (strstr(pa_tokenizer_get(t, 0), "source") ? PA_NAMEREG_SOURCE : PA_NAMEREG_SAMPLE)) < 0) {
+    if (pa_autoload_remove(c, name, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE) < 0) {
         pa_strbuf_puts(buf, "Failed to remove autload entry\n");
         return -1;
     }
@@ -664,7 +659,7 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
                 nl = 1;
             }
             
-            pa_strbuf_printf(buf, "add-autoload-%s %s %s", a->type == PA_NAMEREG_SINK ? "sink" : (a->type == PA_NAMEREG_SOURCE ? "source" : "sample"), a->name, a->type == PA_NAMEREG_SAMPLE ? a->filename : a->module);
+            pa_strbuf_printf(buf, "add-autoload-%s %s %s", a->type == PA_NAMEREG_SINK ? "sink" : "source", a->name, a->module);
             
             if (a->argument)
                 pa_strbuf_printf(buf, " %s", a->argument);

@@ -37,9 +37,7 @@ void pa_namereg_unregister(struct pa_core *c, const char *name);
 void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type type, int autoload);
 void pa_namereg_set_default(struct pa_core*c, const char *name, enum pa_namereg_type type);
 
-
 const char *pa_namereg_get_default_sink_name(struct pa_core *c);
 const char *pa_namereg_get_default_source_name(struct pa_core *c);
-
 
 #endif

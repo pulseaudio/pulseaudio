@@ -40,18 +40,19 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Combine multiple sinks to one")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slave=<slave sinks>")
+PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slave=<slave sinks> adjust_time")
 
 #define DEFAULT_SINK_NAME "combined"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
 #define RENDER_SIZE (1024*10)
 
-#define ADJUST_TIME 5
+#define DEFAULT_ADJUST_TIME 20
 
 static const char* const valid_modargs[] = {
     "sink_name",
     "master",
     "slaves",
+    "adjust_time",
     NULL
 };
 
@@ -71,6 +72,7 @@ struct userdata {
     unsigned n_outputs;
     struct output *master;
     struct pa_time_event *time_event;
+    uint32_t adjust_time;
     
     PA_LLIST_HEAD(struct output, outputs);
 };
@@ -109,9 +111,9 @@ static void adjust_rates(struct userdata *u) {
         l = o->sink_latency + pa_sink_input_get_latency(o->sink_input);
 
         if (l < max)
-            r -= (uint32_t) (((((double) max-l))/ADJUST_TIME)*r/ 1000000);
+            r -= (uint32_t) (((((double) max-l))/u->adjust_time)*r/ 1000000);
         else if (l > max)
-            r += (uint32_t) (((((double) l-max))/ADJUST_TIME)*r/ 1000000);
+            r += (uint32_t) (((((double) l-max))/u->adjust_time)*r/ 1000000);
 
         if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1))
             pa_log(__FILE__": [%s] sample rates too different, not adjusting (%u vs. %u).\n", o->sink_input->name, base_rate, r);
@@ -146,7 +148,7 @@ static void time_callback(struct pa_mainloop_api*a, struct pa_time_event* e, con
     adjust_rates(u);
 
     gettimeofday(&n, NULL);
-    n.tv_sec += ADJUST_TIME;
+    n.tv_sec += u->adjust_time;
     u->sink->core->mainloop->time_restart(e, &n);
 }
 
@@ -289,8 +291,14 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->module = m;
     u->core = c;
     u->time_event = NULL;
+    u->adjust_time = DEFAULT_ADJUST_TIME;
     PA_LLIST_HEAD_INIT(struct output, u->outputs);
 
+    if (pa_modargs_get_value_u32(ma, "adjust_time", &u->adjust_time) < 0) {
+        pa_log(__FILE__": failed to parse adjust_time value\n");
+        goto fail;
+    }
+    
     if (!(master_name = pa_modargs_get_value(ma, "master", NULL)) || !(slaves = pa_modargs_get_value(ma, "slaves", NULL))) {
         pa_log(__FILE__": no master or slave sinks specified\n");
         goto fail;
@@ -336,9 +344,11 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     if (u->n_outputs <= 1)
         pa_log(__FILE__": WARNING: no slave sinks specified.\n");
 
-    gettimeofday(&tv, NULL);
-    tv.tv_sec += ADJUST_TIME;
-    u->time_event = c->mainloop->time_new(c->mainloop, &tv, time_callback, u);
+    if (u->adjust_time > 0) {
+        gettimeofday(&tv, NULL);
+        tv.tv_sec += u->adjust_time;
+        u->time_event = c->mainloop->time_new(c->mainloop, &tv, time_callback, u);
+    }
     
     pa_modargs_free(ma);
     return 0;    

@@ -36,6 +36,7 @@
 #include "xmalloc.h"
 #include "subscribe.h"
 #include "namereg.h"
+#include "sound-file.h"
 
 #define UNLOAD_POLL_TIME 2
 
@@ -56,74 +57,110 @@ static void free_entry(struct pa_scache_entry *e) {
     pa_namereg_unregister(e->core, e->name);
     pa_subscription_post(e->core, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_REMOVE, e->index);
     pa_xfree(e->name);
+    pa_xfree(e->filename);
     if (e->memchunk.memblock)
         pa_memblock_unref(e->memchunk.memblock);
     pa_xfree(e);
 }
 
-int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index, int auto_unload) {
+static struct pa_scache_entry* scache_add_item(struct pa_core *c, const char *name) {
     struct pa_scache_entry *e;
-    int put;
     assert(c && name);
 
     if ((e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0))) {
-        put = 0;
         if (e->memchunk.memblock)
             pa_memblock_unref(e->memchunk.memblock);
-        assert(e->core == c);
-    } else {
 
-        put = 1;
+        pa_xfree(e->filename);
+        
+        assert(e->core == c);
+
+        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
+    } else {
         e = pa_xmalloc(sizeof(struct pa_scache_entry));
 
         if (!pa_namereg_register(c, name, PA_NAMEREG_SAMPLE, e, 1)) {
             pa_xfree(e);
-            return -1;
+            return NULL;
         }
-        
+
         e->name = pa_xstrdup(name);
         e->core = c;
-    }
 
-    e->volume = PA_VOLUME_NORM;
-    e->auto_unload = auto_unload;
-    e->last_used_time = 0;
-
-    if (ss)
-        e->sample_spec = *ss;
-    else
-        memset(&e->sample_spec, 0, sizeof(struct pa_sample_spec));
-
-    if (chunk) {
-        e->memchunk = *chunk;
-        pa_memblock_ref(e->memchunk.memblock);
-    } else {
-        e->memchunk.memblock = NULL;
-        e->memchunk.index = e->memchunk.length = 0;
-    }
-
-    if (put) {
         if (!c->scache) {
             c->scache = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
             assert(c->scache);
         }
-        
+
         pa_idxset_put(c->scache, e, &e->index);
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_NEW, e->index);
-    } else
-        pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
-        
+    }
+
+    e->volume = PA_VOLUME_NORM;
+    e->last_used_time = 0;
+    e->memchunk.memblock = NULL;
+    e->memchunk.index = e->memchunk.length = 0;
+    e->filename = NULL;
+    e->lazy = 0;
+    e->last_used_time = 0;
+
+    memset(&e->sample_spec, 0, sizeof(struct pa_sample_spec));
+
+    return e;
+}
+
+int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index) {
+    struct pa_scache_entry *e;
+    assert(c && name);
+
+    if (!(e = scache_add_item(c, name)))
+        return -1;
+
+    if (ss)
+        e->sample_spec = *ss;
+
+    if (chunk) {
+        e->memchunk = *chunk;
+        pa_memblock_ref(e->memchunk.memblock);
+    }
+
     if (index)
         *index = e->index;
 
+    return 0;
+}
+
+int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename, uint32_t *index) {
+    struct pa_sample_spec ss;
+    struct pa_memchunk chunk;
+    int r;
+
+    if (pa_sound_file_load(filename, &ss, &chunk, c->memblock_stat) < 0)
+        return -1;
+        
+    r = pa_scache_add_item(c, name, &ss, &chunk, index);
+    pa_memblock_unref(chunk.memblock);
+    return r;
+}
+
+int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *filename, uint32_t *index) {
+    struct pa_scache_entry *e;
+    assert(c && name);
+
+    if (!(e = scache_add_item(c, name)))
+        return -1;
+
+    e->lazy = 1;
+    e->filename = pa_xstrdup(filename);
+    
     if (!c->scache_auto_unload_event) {
         struct timeval ntv;
         gettimeofday(&ntv, NULL);
         ntv.tv_sec += UNLOAD_POLL_TIME;
         c->scache_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
     }
-                                                            
+
     return 0;
 }
 
@@ -166,13 +203,17 @@ int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sin
     if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 1)))
         return -1;
 
+    if (e->lazy && !e->memchunk.memblock)
+        if (pa_sound_file_load(e->filename, &e->sample_spec, &e->memchunk, c->memblock_stat) < 0)
+            return -1;
+    
     if (!e->memchunk.memblock)
         return -1;
 
     if (pa_play_memchunk(sink, name, &e->sample_spec, &e->memchunk, pa_volume_multiply(volume, e->volume)) < 0)
         return -1;
 
-    if (e->auto_unload)
+    if (e->lazy)
         time(&e->last_used_time);
     
     return 0;
@@ -200,42 +241,40 @@ uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name) {
 
 uint32_t pa_scache_total_size(struct pa_core *c) {
     struct pa_scache_entry *e;
-    uint32_t index;
-    uint32_t sum = 0;
+    uint32_t index, sum = 0;
+    assert(c);
 
-    if (!c->scache)
+    if (!c->scache || !pa_idxset_ncontents(c->scache))
         return 0;
     
     for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index))
-        sum += e->memchunk.length;
+        if (e->memchunk.memblock)
+            sum += e->memchunk.length;
 
     return sum;
 }
 
-static int unload_func(void *p, uint32_t index, int *del, void *userdata) {
-    struct pa_scache_entry *e = p;
-    time_t *now = userdata;
-    assert(e);
-
-    if (!e->auto_unload)
-        return 0;
-
-    if (e->last_used_time + e->core->scache_idle_time > *now)
-        return 0;
-
-    free_entry(e);
-    *del = 1;
-    return 0;
-}
-
 void pa_scache_unload_unused(struct pa_core *c) {
+    struct pa_scache_entry *e;
     time_t now;
+    uint32_t index;
     assert(c);
 
-    if (!c->scache)
+    if (!c->scache || !pa_idxset_ncontents(c->scache))
         return;
     
     time(&now);
 
-    pa_idxset_foreach(c->scache, unload_func, &now);
+    for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index)) {
+
+        if (!e->lazy || !e->memchunk.memblock)
+            continue;
+
+        if (e->last_used_time + c->scache_idle_time > now)
+            continue;
+        
+        pa_memblock_unref(e->memchunk.memblock);
+        e->memchunk.memblock = NULL;
+        e->memchunk.index = e->memchunk.length = 0;
+    }
 }

@@ -30,15 +30,20 @@ struct pa_scache_entry {
     struct pa_core *core;
     uint32_t index;
     char *name;
+    
     uint32_t volume;
     struct pa_sample_spec sample_spec;
     struct pa_memchunk memchunk;
 
-    int auto_unload;
+    char *filename;
+    
+    int lazy;
     time_t last_used_time;
 };
 
-int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index, int auto_unload);
+int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index);
+int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename, uint32_t *index);
+int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *filename, uint32_t *index);
 
 int pa_scache_remove_item(struct pa_core *c, const char *name);
 int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume);
