@@ -291,6 +291,7 @@ libpolyp_mainloop_la_LIBADD = $(AM_LIBADD) libpolyp.la
 
 libpolyp_error_la_SOURCES = polyplib-error.c polyplib-error.h
 libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_error_la_LIBADD = $(AM_LIBADD) libpolyp.la
 
 libpolyp_simple_la_SOURCES = polyplib-simple.c polyplib-simple.h 
 libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
@@ -305,11 +306,11 @@ pactl_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la $(L
 pactl_CFLAGS = $(AM_CFLAGS) $(LIBSDNFILE_CFLAGS)
 
 pacat_simple_SOURCES = pacat-simple.c
-pacat_simple_LDADD = $(AM_LDADD) libpolyp-simple.la libpolyp-error.la
+pacat_simple_LDADD = $(AM_LDADD) libpolyp.la libpolyp-simple.la libpolyp-error.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
 
 parec_simple_SOURCES = parec-simple.c
-parec_simple_LDADD = $(AM_LDADD) libpolyp-simple.la libpolyp-error.la
+parec_simple_LDADD = $(AM_LDADD) libpolyp.la libpolyp-simple.la libpolyp-error.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
 
 libpolyp_mainloop_glib_la_SOURCES = glib-mainloop.h glib-mainloop.c
@@ -318,7 +319,7 @@ libpolyp_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB20_LI
 
 mainloop_test_SOURCES = mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
-mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop.la
+mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop.la libpolyp.la
 
 mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
