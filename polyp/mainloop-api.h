@@ -50,7 +50,7 @@ enum pa_io_event_flags {
     PA_IO_EVENT_INPUT = 1,    /**< Input event */
     PA_IO_EVENT_OUTPUT = 2,   /**< Output event */
     PA_IO_EVENT_HANGUP = 4,   /**< Hangup event */
-    PA_IO_EVENT_ERROR = 8,    /**< Error event */
+    PA_IO_EVENT_ERROR = 8     /**< Error event */
 };
 
 /** \struct pa_io_event

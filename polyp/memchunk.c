@@ -88,8 +88,8 @@ void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c) {
 }
 
 int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c) {
-    assert(m && c && m->base > m->buffer_fill);
     int ret;
+    assert(m && c && m->base > m->buffer_fill);
 
     if (!m->chunk.memblock)
         return -1;

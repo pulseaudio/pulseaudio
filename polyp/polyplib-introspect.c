@@ -580,3 +580,92 @@ struct pa_operation* pa_context_set_sink_input_volume(struct pa_context *c, uint
 
     return pa_operation_ref(o);
 }
+
+/** Sample Cache **/
+
+static void context_get_sample_info_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_operation *o = userdata;
+    int eof = 1;
+    assert(pd && o && o->context && o->ref >= 1);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+        eof = -1;
+    } else {
+        
+        while (!pa_tagstruct_eof(t)) {
+            struct pa_sample_info i;
+            
+            if (pa_tagstruct_getu32(t, &i.index) < 0 ||
+                pa_tagstruct_gets(t, &i.name) < 0 ||
+                pa_tagstruct_getu32(t, &i.volume) < 0 ||
+                pa_tagstruct_getu32(t, &i.duration) < 0 ||
+                pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0) {
+                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                goto finish;
+            }
+
+            if (o->callback) {
+                void (*cb)(struct pa_context *s, const struct pa_sample_info*i, int eof, void *userdata) = o->callback;
+                cb(o->context, &i, 0, o->userdata);
+            }
+        }
+    }
+    
+    if (o->callback) {
+        void (*cb)(struct pa_context *s, const struct pa_sample_info*i, int eof, void *userdata) = o->callback;
+        cb(o->context, NULL, eof, o->userdata);
+    }
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
+struct pa_operation* pa_context_get_sample_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    struct pa_operation *o;
+    uint32_t tag;
+    assert(c && cb && name);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_SAMPLE_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
+    pa_tagstruct_puts(t, name);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sample_info_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_context_get_sample_info_by_index(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    struct pa_operation *o;
+    uint32_t tag;
+    assert(c && cb);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_SAMPLE_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
+    pa_tagstruct_puts(t, "");
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sample_info_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_context_get_sample_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata), void *userdata) {
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_SAMPLE_INFO_LIST, context_get_sample_info_callback, cb, userdata);
+}

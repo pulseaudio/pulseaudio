@@ -212,13 +212,13 @@ char *pa_scache_list_to_string(struct pa_core *c) {
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u cache entries available.\n", c->scache_hashmap ? pa_hashmap_ncontents(c->scache_hashmap) : 0);
+    pa_strbuf_printf(s, "%u cache entries available.\n", c->scache ? pa_idxset_ncontents(c->scache) : 0);
 
-    if (c->scache_hashmap) {
+    if (c->scache) {
         struct pa_scache_entry *e;
-        void *state = NULL;
+        uint32_t index = PA_IDXSET_INVALID;
 
-        while ((e = pa_hashmap_iterate(c->scache_hashmap, &state))) {
+        for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index)) {
             double l;
             char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
             pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);

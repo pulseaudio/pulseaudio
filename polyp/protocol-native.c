@@ -164,12 +164,14 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_MODULE_INFO] = { command_get_info },
     [PA_COMMAND_GET_SINK_INPUT_INFO] = { command_get_info },
     [PA_COMMAND_GET_SOURCE_OUTPUT_INFO] = { command_get_info },
+    [PA_COMMAND_GET_SAMPLE_INFO] = { command_get_info },
     [PA_COMMAND_GET_SINK_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SOURCE_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_MODULE_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_CLIENT_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SINK_INPUT_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST] = { command_get_info_list },
+    [PA_COMMAND_GET_SAMPLE_INFO_LIST] = { command_get_info_list },
     [PA_COMMAND_GET_SERVER_INFO] = { command_get_server_info },
     [PA_COMMAND_SUBSCRIBE] = { command_subscribe },
     [PA_COMMAND_SET_SINK_VOLUME] = { command_set_volume },
@@ -763,8 +765,8 @@ static void command_drain_playback_stream(struct pa_pdispatch *pd, uint32_t comm
 
 static void command_stat(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
-    assert(c && t);
     struct pa_tagstruct *reply;
+    assert(c && t);
 
     if (!pa_tagstruct_eof(t)) {
         protocol_error(c);
@@ -789,10 +791,10 @@ static void command_stat(struct pa_pdispatch *pd, uint32_t command, uint32_t tag
 
 static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
-    assert(c && t);
     struct pa_tagstruct *reply;
     struct playback_stream *s;
     uint32_t index, latency;
+    assert(c && t);
 
     if (pa_tagstruct_getu32(t, &index) < 0 ||
         !pa_tagstruct_eof(t)) {
@@ -1021,6 +1023,15 @@ static void source_output_fill_tagstruct(struct pa_tagstruct *t, struct pa_sourc
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
 }
 
+static void scache_fill_tagstruct(struct pa_tagstruct *t, struct pa_scache_entry *e) {
+    assert(t && e);
+    pa_tagstruct_putu32(t, e->index);
+    pa_tagstruct_puts(t, e->name);
+    pa_tagstruct_putu32(t, e->volume);
+    pa_tagstruct_putu32(t, pa_bytes_to_usec(e->memchunk.length, &e->sample_spec));
+    pa_tagstruct_put_sample_spec(t, &e->sample_spec);
+}
+
 static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     uint32_t index;
@@ -1030,6 +1041,7 @@ static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t
     struct pa_module *module = NULL;
     struct pa_sink_input *si = NULL;
     struct pa_source_output *so = NULL;
+    struct pa_scache_entry *sce = NULL;
     const char *name;
     struct pa_tagstruct *reply;
     assert(c && t);
@@ -1067,12 +1079,17 @@ static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t
         module = pa_idxset_get_by_index(c->protocol->core->modules, index);
     else if (command == PA_COMMAND_GET_SINK_INPUT_INFO)
         si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, index);
-    else {
-        assert(command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO);
+    else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO)
         so = pa_idxset_get_by_index(c->protocol->core->source_outputs, index);
+    else {
+        assert(command == PA_COMMAND_GET_SAMPLE_INFO && name);
+        if (index != (uint32_t) -1)
+            sce = pa_idxset_get_by_index(c->protocol->core->scache, index);
+        else
+            sce = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SAMPLE, 0);
     }
             
-    if (!sink && !source && !client && !module && !si && !so) {
+    if (!sink && !source && !client && !module && !si && !so && !sce) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
         return;
     }
@@ -1091,8 +1108,10 @@ static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t
         module_fill_tagstruct(reply, module);
     else if (si)
         sink_input_fill_tagstruct(reply, si);
-    else
+    else if (so)
         source_output_fill_tagstruct(reply, so);
+    else
+        scache_fill_tagstruct(reply, sce);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1129,11 +1148,13 @@ static void command_get_info_list(struct pa_pdispatch *pd, uint32_t command, uin
         i = c->protocol->core->modules;
     else if (command == PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
         i = c->protocol->core->sink_inputs;
-    else {
-        assert(command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST);
+    else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)
         i = c->protocol->core->source_outputs;
+    else {
+        assert(command == PA_COMMAND_GET_SAMPLE_INFO_LIST);
+        i = c->protocol->core->scache;
     }
-
+            
     for (p = pa_idxset_first(i, &index); p; p = pa_idxset_next(i, &index)) {
         if (command == PA_COMMAND_GET_SINK_INFO_LIST)
             sink_fill_tagstruct(reply, p);
@@ -1145,9 +1166,11 @@ static void command_get_info_list(struct pa_pdispatch *pd, uint32_t command, uin
             module_fill_tagstruct(reply, p);
         else if (command == PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
             sink_input_fill_tagstruct(reply, p);
-        else {
-            assert(command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST);
+        else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST) 
             source_output_fill_tagstruct(reply, p);
+        else {
+            assert(command == PA_COMMAND_GET_SAMPLE_INFO_LIST);
+            scache_fill_tagstruct(reply, p);
         }
     } 
     

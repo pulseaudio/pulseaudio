@@ -87,7 +87,7 @@ AC_SUBST(GLIB20_LIBS)
 
 # If using GCC specifiy some additional parameters
 if test "x$GCC" = "xyes" ; then
-   CFLAGS="$CFLAGS -pipe -Wall -W -Wno-unused-parameter"
+   CFLAGS="$CFLAGS -pipe -W -Wall -Wno-unused-parameter -pedantic -std=c99"
 fi
 
 # LYNX documentation generation

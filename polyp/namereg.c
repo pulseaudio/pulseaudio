@@ -134,8 +134,7 @@ void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type t
 
             name = c->default_source_name;
                 
-        } else {
-            assert(type == PA_NAMEREG_SINK);
+        } else if (type == PA_NAMEREG_SINK) {
 
             if (!c->default_sink_name) {
                 struct pa_sink *s;
@@ -174,13 +173,15 @@ void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type t
         d = pa_idxset_get_by_index(c->sinks, index);
     else if (type == PA_NAMEREG_SOURCE)
         d = pa_idxset_get_by_index(c->sources, index);
-
+    else if (type == PA_NAMEREG_SAMPLE && c->scache)
+        d = pa_idxset_get_by_index(c->scache, index);
+    
     return d;
 }
 
 void pa_namereg_set_default(struct pa_core*c, const char *name, enum pa_namereg_type type) {
     char **s;
-    assert(c);
+    assert(c && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
 
     s = type == PA_NAMEREG_SINK ? &c->default_sink_name : &c->default_source_name;
     assert(s);

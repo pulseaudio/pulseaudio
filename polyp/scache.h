@@ -35,7 +35,7 @@ struct pa_scache_entry {
     struct pa_memchunk memchunk;
 };
 
-void pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index);
+int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index);
 
 int pa_scache_remove_item(struct pa_core *c, const char *name);
 int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume);

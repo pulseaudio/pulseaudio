@@ -29,8 +29,8 @@
 #include "sample.h"
 
 size_t pa_frame_size(const struct pa_sample_spec *spec) {
-    assert(spec);
     size_t b = 1;
+    assert(spec);
 
     switch (spec->format) {
         case PA_SAMPLE_U8:

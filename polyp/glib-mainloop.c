@@ -384,24 +384,24 @@ static void glib_quit(struct pa_mainloop_api*a, int retval) {
 }
 
 static const struct pa_mainloop_api vtable = {
-    userdata: NULL,
+    .userdata = NULL,
 
-    io_new: glib_io_new,
-    io_enable: glib_io_enable,
-    io_free: glib_io_free,
-    io_set_destroy: glib_io_set_destroy,
+    .io_new = glib_io_new,
+    .io_enable = glib_io_enable,
+    .io_free = glib_io_free,
+    .io_set_destroy= glib_io_set_destroy,
 
-    time_new : glib_time_new,
-    time_restart : glib_time_restart,
-    time_free : glib_time_free,
-    time_set_destroy : glib_time_set_destroy,
+    .time_new = glib_time_new,
+    .time_restart = glib_time_restart,
+    .time_free = glib_time_free,
+    .time_set_destroy = glib_time_set_destroy,
     
-    defer_new : glib_defer_new,
-    defer_enable : glib_defer_enable,
-    defer_free : glib_defer_free,
-    defer_set_destroy : glib_defer_set_destroy,
+    .defer_new = glib_defer_new,
+    .defer_enable = glib_defer_enable,
+    .defer_free = glib_defer_free,
+    .defer_set_destroy = glib_defer_set_destroy,
     
-    quit : glib_quit,
+    .quit = glib_quit,
 };
 
 struct pa_glib_mainloop *pa_glib_mainloop_new(GMainContext *c) {

@@ -42,6 +42,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
 
+<div class="news-date">Fri Aug 20 2004: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.2.tar.gz">Version 0.2</a> released;
+changes include: added sample cache, introspection API, client API
+documentation, module autoloading, glib support, a module for intercepting X11 bell events, and much more.</p>
 
 <div class="news-date">Sat Jul 17 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.1.tar.gz">Version 0.1</a> released</p>
@@ -56,7 +60,7 @@ Daemon</a> (ESOUND). In addition to the features ESOUND provides
 <tt>polypaudio</tt> has:</p>
 
 <ul>
-  <li>Extensible plugin architecture (<tt>dlopen()</tt>)</li>
+  <li>Extensible plugin architecture (by loading dynamic loadable modules with <tt>dlopen()</tt>)</li>
   <li>Support for more than one sink/source</li>
   <li>Better low latency behaviour</li>
   <li>Embedabble into other software (the core is available as C library)</li>
@@ -64,6 +68,7 @@ Daemon</a> (ESOUND). In addition to the features ESOUND provides
   <li>Simple command line interface for reconfiguring the daemon while running</li>
   <li>Flexible, implicit sample type conversion and resampling</li>
   <li>"Zero-Copy" architecture</li>
+  <li>Module autoloading</li>
 </ul>
 
 <p>Both the core and the client API are completely asynchronous making
@@ -74,31 +79,27 @@ available through <tt>polyplib</tt> is quite difficult to use there is
 a simplified synchronous API wrapper <tt>polyplib-simple</tt>
 available. A simple main loop implementation is available as well.</p>
 
-<p><tt>polypaudio</tt> is the successor of my previous, ill-fated attempt to write a sound server <a href="http://asd.sf.net/">asd</a>.</p>
+<p><tt>polypaudio</tt> is the successor of my previous, ill-fated
+attempt to write a sound server <a
+href="http://asd.sf.net/">asd</a>.</p>
+
+<p>A GTK GUI manager application for polypaudio is the <a
+href="http://0pointer.de/projects/paman/">Polypaudio Manager</a>.</p>
 
 <h2><a name="status">Status</a></h2>
 
-<p>Version @PACKAGE_VERSION@ is quite usable. <tt>polypaudio</tt> does
-not yet match all ESOUND features: currently a sample cache and
-automatic releasing of unused sound drivers are missing. Have a look
-on the more extensive <a
-href="http://0pointer.de/cgi-bin/viewcvs.cgi/trunk/doc/todo?view=markup">TODO
-list</a>.</p>
+<p>Version @PACKAGE_VERSION@ is quite usable. It matches and supersedes ESOUND's feature set in nearly all areas.</p>
   
 <h2><a name="documentation">Documentation</a></h2>
 
-<p>There is some prelimenary documentation available: <a
+<p>There is some preliminary documentation available: <a
 href="modules.html"><tt>modules.html</tt></a>, <a
 href="cli.html"><tt>cli.html</tt></a>, <a
-href="daemon.html"><tt>daemeon.html</tt></a>.</p>
+href="daemon.html"><tt>daemon.html</tt></a>.</p>
 
-<p>Documentation for developing with <tt>polypaudio</tt> is not yet
-available. Read the source, Luke! There are some example application
-available: for the <a
-href="http://0pointer.de/cgi-bin/viewcvs.cgi/trunk/polyp/pacat.c?view=markup">asynchronous
-API</a> and for the <a
-href="http://0pointer.de/cgi-bin/viewcvs.cgi/trunk/polyp/pacat-simple.c?view=markup">simple,
-synchronous API</a>.</p>
+<p>You may browser the <a href="http://www.doxygen.org/">Doxygen</a> generated <a
+href="http://0pointer.de/lennart/projects/polypaudio/doxygen/">programing
+documentation</a> for the client API. (Run <tt>make doxygen</tt> to generate this documentation from the source tree)</p>
 
 <h3>First Steps</h3>
 
@@ -131,7 +132,9 @@ GNU libtool for source code configuration and shared library
 management.</p>
 
 <p><tt>polypaudio</tt> needs <a
-href="http://www.mega-nerd.com/SRC/">Secret Rabbit Code (aka <tt>libsamplerate</tt>)</a> and <a href="http://www.alsa-project.org/">alsa-lib</a>.</p>
+href="http://www.mega-nerd.com/SRC/">Secret Rabbit Code (aka
+<tt>libsamplerate</tt>)</a>, <a href="http://www.mega-nerd.com/SND"><tt>libsndfile</tt></a> and <a
+href="http://www.alsa-project.org/">alsa-lib</a>.</p>
  
 <h2><a name="installation">Installation</a></h2>
 
@@ -156,7 +159,7 @@ compilation and <tt>make install</tt> (as root) for installation of
 <p>If you want to be notified whenever I release a new version of this software use the subscription feature of <a href="http://freshmeat.net/projects/polypaudio/">Freshmeat</a>.</p>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, July 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, August 2004</address>
 <div class="grey"><i>$Id$</i></div>
 
 </body>

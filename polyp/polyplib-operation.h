@@ -23,6 +23,7 @@
 ***/
 
 #include "cdecl.h"
+#include "polyplib-def.h"
 
 /** \file
  * Asynchronous operations */

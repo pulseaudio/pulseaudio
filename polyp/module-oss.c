@@ -146,7 +146,7 @@ static void do_read(struct userdata *u) {
 
     pa_source_post(u->source, &memchunk);
     pa_memblock_unref(memchunk.memblock);
-};
+}
 
 static void io_callback(struct pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;

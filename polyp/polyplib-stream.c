@@ -32,8 +32,8 @@
 #include "pstream-util.h"
 
 struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const struct pa_sample_spec *ss) {
-    assert(c && ss);
     struct pa_stream *s;
+    assert(c && ss);
 
     s = pa_xmalloc(sizeof(struct pa_stream));
     s->ref = 1;

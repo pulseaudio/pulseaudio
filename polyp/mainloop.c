@@ -38,9 +38,6 @@
 #include "idxset.h"
 #include "xmalloc.h"
 
-struct pa_base_event {
-};
-
 struct pa_io_event {
     struct pa_mainloop *mainloop;
     int dead;
@@ -225,24 +222,24 @@ static void mainloop_quit(struct pa_mainloop_api*a, int retval) {
 }
     
 static const struct pa_mainloop_api vtable = {
-    userdata: NULL,
+    .userdata = NULL,
 
-    io_new: mainloop_io_new,
-    io_enable: mainloop_io_enable,
-    io_free: mainloop_io_free,
-    io_set_destroy: mainloop_io_set_destroy,
+    .io_new= mainloop_io_new,
+    .io_enable= mainloop_io_enable,
+    .io_free= mainloop_io_free,
+    .io_set_destroy= mainloop_io_set_destroy,
 
-    time_new : mainloop_time_new,
-    time_restart : mainloop_time_restart,
-    time_free : mainloop_time_free,
-    time_set_destroy : mainloop_time_set_destroy,
+    .time_new = mainloop_time_new,
+    .time_restart = mainloop_time_restart,
+    .time_free = mainloop_time_free,
+    .time_set_destroy = mainloop_time_set_destroy,
     
-    defer_new : mainloop_defer_new,
-    defer_enable : mainloop_defer_enable,
-    defer_free : mainloop_defer_free,
-    defer_set_destroy : mainloop_defer_set_destroy,
+    .defer_new = mainloop_defer_new,
+    .defer_enable = mainloop_defer_enable,
+    .defer_free = mainloop_defer_free,
+    .defer_set_destroy = mainloop_defer_set_destroy,
     
-    quit : mainloop_quit,
+    .quit = mainloop_quit,
 };
 
 struct pa_mainloop *pa_mainloop_new(void) {
@@ -282,7 +279,7 @@ static int io_foreach(void *p, uint32_t index, int *del, void*userdata) {
     pa_xfree(e);
     *del = 1;
     return 0;
-};
+}
 
 static int time_foreach(void *p, uint32_t index, int *del, void*userdata) {
     struct pa_time_event *e = p;
@@ -297,7 +294,7 @@ static int time_foreach(void *p, uint32_t index, int *del, void*userdata) {
     pa_xfree(e);
     *del = 1;
     return 0;
-};
+}
 
 static int defer_foreach(void *p, uint32_t index, int *del, void*userdata) {
     struct pa_defer_event *e = p;
@@ -312,7 +309,7 @@ static int defer_foreach(void *p, uint32_t index, int *del, void*userdata) {
     pa_xfree(e);
     *del = 1;
     return 0;
-};
+}
 
 void pa_mainloop_free(struct pa_mainloop* m) {
     int all = 1;

@@ -139,6 +139,18 @@ struct pa_stat_info {
 /** Get daemon memory block statistics */
 struct pa_operation* pa_context_stat(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_stat_info *i, void *userdata), void *userdata);
 
+struct pa_sample_info {
+    uint32_t index;
+    const char *name;
+    uint32_t volume;
+    struct pa_sample_spec sample_spec;
+    uint32_t duration;
+};
+
+struct pa_operation* pa_context_get_sample_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata), void *userdata);
+struct pa_operation* pa_context_get_sample_info_by_index(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata), void *userdata);
+struct pa_operation* pa_context_get_sample_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata), void *userdata);
+
 PA_C_DECL_END
 
 #endif

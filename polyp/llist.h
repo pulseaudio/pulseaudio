@@ -24,7 +24,7 @@
 
 #define PA_LLIST_HEAD(t,name) t *name
 
-#define PA_LLIST_FIELDS(t) t *next, *prev;
+#define PA_LLIST_FIELDS(t) t *next, *prev
 
 #define PA_LLIST_HEAD_INIT(t,item) do { (item) = NULL; } while(0)
 

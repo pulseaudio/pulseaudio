@@ -427,7 +427,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
 
     k = sizeof(int)*5+ESD_NAME_MAX;
     s = sizeof(int)*6+ESD_NAME_MAX;
-    nsamples = c->protocol->core->scache_idxset ? pa_idxset_ncontents(c->protocol->core->scache_idxset) : 0;
+    nsamples = c->protocol->core->scache ? pa_idxset_ncontents(c->protocol->core->scache) : 0;
     response = connection_write(c, (t = s*(nsamples+1) + k*(c->protocol->n_player+1)));
     assert(k);
 
@@ -482,7 +482,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         struct pa_scache_entry *ce;
         
         index = PA_IDXSET_INVALID;
-        for (ce = pa_idxset_first(c->protocol->core->scache_idxset, &index); ce; ce = pa_idxset_next(c->protocol->core->scache_idxset, &index)) {
+        for (ce = pa_idxset_first(c->protocol->core->scache, &index); ce; ce = pa_idxset_next(c->protocol->core->scache, &index)) {
             assert(t >= s*2);
             
             /* id */

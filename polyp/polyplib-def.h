@@ -47,14 +47,14 @@ enum pa_stream_state {
     PA_STREAM_CREATING,     /**< The stream is being created */
     PA_STREAM_READY,        /**< The stream is established, you may pass audio data to it now */
     PA_STREAM_FAILED,       /**< An error occured that made the stream invalid */
-    PA_STREAM_TERMINATED,   /**< The stream has been terminated cleanly */
+    PA_STREAM_TERMINATED    /**< The stream has been terminated cleanly */
 };
 
 /** The state of an operation */
 enum pa_operation_state {
     PA_OPERATION_RUNNING,      /**< The operation is still running */
     PA_OPERATION_DONE,         /**< The operation has been completed */
-    PA_OPERATION_CANCELED,     /**< The operation has been canceled */
+    PA_OPERATION_CANCELED      /**< The operation has been canceled */
 };
 
 /** An invalid index */
@@ -105,7 +105,7 @@ enum pa_subscription_mask {
     PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT = 8,      /**< Source output events */
     PA_SUBSCRIPTION_MASK_MODULE = 16,            /**< Module events */
     PA_SUBSCRIPTION_MASK_CLIENT = 32,            /**< Client events */
-    PA_SUBSCRIPTION_MASK_SAMPLE_CACHE = 64,      /**< Sample cache events */
+    PA_SUBSCRIPTION_MASK_SAMPLE_CACHE = 64       /**< Sample cache events */
 };
 
 /** Subscription event types, as used by pa_context_subscribe() */
@@ -122,7 +122,7 @@ enum pa_subscription_event_type {
     PA_SUBSCRIPTION_EVENT_NEW = 0,            /**< A new object was created */
     PA_SUBSCRIPTION_EVENT_CHANGE = 16,        /**< A property of the object was modified */
     PA_SUBSCRIPTION_EVENT_REMOVE = 32,        /**< An object was removed */
-    PA_SUBSCRIPTION_EVENT_TYPE_MASK = 16+32,  /**< A mask to extract the event operation from an event value */
+    PA_SUBSCRIPTION_EVENT_TYPE_MASK = 16+32   /**< A mask to extract the event operation from an event value */
 };
 
 /** Return one if an event type t matches an event mask bitfield */

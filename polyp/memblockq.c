@@ -189,9 +189,9 @@ int memblockq_pop(struct memblockq* bq, struct pa_memchunk *chunk) {
 */
 
 static uint32_t age(struct timeval *tv) {
-    assert(tv);
     struct timeval now;
     uint32_t r;
+    assert(tv);
 
     if (tv->tv_sec == 0)
         return 0;

@@ -53,8 +53,7 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
 
     c->modules = NULL;
     c->namereg = NULL;
-    c->scache_idxset = NULL;
-    c->scache_hashmap = NULL;
+    c->scache = NULL;
 
     c->autoload_hashmap = NULL;
 
@@ -74,7 +73,7 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     pa_check_for_sigpipe();
     
     return c;
-};
+}
 
 void pa_core_free(struct pa_core *c) {
     assert(c);
@@ -97,8 +96,8 @@ void pa_core_free(struct pa_core *c) {
     assert(pa_idxset_isempty(c->sink_inputs));
     pa_idxset_free(c->sink_inputs, NULL, NULL);
 
-    pa_namereg_free(c);
     pa_scache_free(c);
+    pa_namereg_free(c);
     pa_autoload_free(c);
     pa_subscription_free_all(c);
     
@@ -108,5 +107,5 @@ void pa_core_free(struct pa_core *c) {
     pa_memblock_stat_unref(c->memblock_stat);
     
     pa_xfree(c);    
-};
+}
 

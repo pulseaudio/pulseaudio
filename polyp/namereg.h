@@ -26,7 +26,8 @@
 
 enum pa_namereg_type {
     PA_NAMEREG_SINK,
-    PA_NAMEREG_SOURCE
+    PA_NAMEREG_SOURCE,
+    PA_NAMEREG_SAMPLE
 };
 
 void pa_namereg_free(struct pa_core *c);

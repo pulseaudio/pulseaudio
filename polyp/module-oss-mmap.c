@@ -193,7 +193,7 @@ static void do_read(struct userdata *u) {
     
     in_post_memblocks(u, info.blocks);
     in_clear_memblocks(u, u->in_fragments/2);
-};
+}
 
 static void io_callback(struct pa_mainloop_api *m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     struct userdata *u = userdata;
