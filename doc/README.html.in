@@ -10,7 +10,7 @@
 <body>
 <h1><a name="top">polypaudio @PACKAGE_VERSION@</a></h1>
 
-<p><i>Copyright 2002-2004 Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;</i></p>
+<p><i>Copyright 2004 Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;</i></p>
 
 <ul class="toc">
     <li><a href="#license">License</a></li>
@@ -72,7 +72,7 @@ integration with asynchronous applications using the
 <tt>glib</tt>/<tt>gtk</tt> mainloop. Since the asynchronous API
 available through <tt>polyplib</tt> is quite difficult to use there is
 a simplified synchronous API wrapper <tt>polyplib-simple</tt>
-available.</p>
+available. A simple main loop implementation is available as well.</p>
   
 <h2><a name="status">Status</a></h2>
 
@@ -91,7 +91,12 @@ href="cli.html"><tt>cli.html</tt></a>, <a
 href="daemon.html"><tt>daemeon.html</tt></a>.</p>
 
 <p>Documentation for developing with <tt>polypaudio</tt> is not yet
-available. Read the source, Luke!</p>
+available. Read the source, Luke! There are some example application
+available: for the <a
+href="http://0pointer.de/cgi-bin/viewcvs.cgi/trunk/polyp/pacat.c?view=markup">asynchronous
+API</a> and for the <a
+href="http://0pointer.de/cgi-bin/viewcvs.cgi/trunk/polyp/pacat-simple.c?view=markup">simple,
+synchronous API</a>.</p>
 
 <h3>First Steps</h1>
 

@@ -31,10 +31,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "polyplib.h"
-#include "polyplib-error.h"
-#include "mainloop.h"
-#include "mainloop-signal.h"
+#include <polyp/polyplib.h>
+#include <polyp/polyplib-error.h>
+#include <polyp/mainloop.h>
+#include <polyp/mainloop-signal.h>
 
 static struct pa_context *context = NULL;
 static struct pa_mainloop_api *mainloop_api = NULL;

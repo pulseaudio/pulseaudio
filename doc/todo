@@ -1,27 +1,31 @@
 *** $Id$ ***
 
-- documentation
-
-*** post 0.1 ***
+*** 0.2 ***
 - future cancellation
-- client-ui
 - clip cache
 - autoloading/autounloading
-- slp/rendezvous
 - doxygen
 - make mcalign merge chunks
-- modinfo
+
+*** 0.3 ***
+- client-ui
 - move the global memblock statistics variables to the core
 - unix socket directories include user name
-- more complete pactl
 - native library/protocol:
    get server layout 
    subscription
    module load/unload
    kill client/...
+- more complete pactl
+
+** later ***
+- slp/rendezvous
+- modinfo
 - make alsa modules use mmap
 
-drivers:
+***********
+
+backends for:
 - libao
 - xmms
 - portaudio
