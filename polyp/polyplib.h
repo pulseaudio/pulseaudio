@@ -22,6 +22,7 @@
   USA.
 ***/
 
+#include "cdecl.h"
 #include "mainloop-api.h"
 #include "sample.h"
 #include "polyplib-def.h"
@@ -30,11 +31,12 @@
 #include "polyplib-introspect.h"
 #include "polyplib-subscribe.h"
 #include "polyplib-scache.h"
+#include "polyplib-version.h"
 
 /** \file
  * Include all polyplib header file at once. The following files are included: \ref mainloop-api.h, \ref sample.h,
  * \ref polyplib-def.h, \ref polyplib-context.h, \ref polyplib-stream.h,
- * \ref polyplib-introspect.h, \ref polyplib-subscribe.h and \ref polyplib-scache.h
+ * \ref polyplib-introspect.h, \ref polyplib-subscribe.h and \ref polyplib-scache.h \ref polyplib-version.h
  * at once */
 
 /** \mainpage
@@ -80,5 +82,12 @@
  * support is available as "polyplib-glib-mainloop". The simple
  * synchronous API is available as "polyplib-simple".
  */
+
+PA_C_DECL_BEGIN
+
+/** Return the version of the library the current application is linked to */
+const char* pa_get_library_version(void);
+
+PA_C_DECL_END
 
 #endif

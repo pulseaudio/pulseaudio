@@ -532,3 +532,7 @@ struct pa_operation* pa_context_send_simple_command(struct pa_context *c, uint32
 
     return pa_operation_ref(o);
 }
+
+const char* pa_get_library_version(void) {
+    return PACKAGE_VERSION;
+}

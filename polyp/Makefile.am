@@ -27,6 +27,8 @@ EXTRA_DIST = polypaudio.pa depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
 noinst_PROGRAMS = mainloop-test mainloop-test-glib pacat-simple parec-simple 
 
+BUILT_SOURCES=polyplib-version.h
+
 polypinclude_HEADERS=polyplib.h \
 		polyplib-def.h \
 		polyplib-simple.h \

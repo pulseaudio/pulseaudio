@@ -36,43 +36,37 @@
 #include "util.h"
 #include "modargs.h"
 
-#ifdef USE_PROTOCOL_SIMPLE
+#if defined(USE_PROTOCOL_SIMPLE)
   #include "protocol-simple.h"
   #define protocol_new pa_protocol_simple_new
   #define protocol_free pa_protocol_simple_free
   #define IPV4_PORT 4711
   #define UNIX_SOCKET "/tmp/polypaudio/simple"
   #define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
+#elif defined(USE_PROTOCOL_CLI)
+  #include "protocol-cli.h" 
+  #define protocol_new pa_protocol_cli_new
+  #define protocol_free pa_protocol_cli_free
+  #define IPV4_PORT 4712
+  #define UNIX_SOCKET "/tmp/polypaudio/cli"
+  #define MODULE_ARGUMENTS 
+#elif defined(USE_PROTOCOL_NATIVE)
+  #include "protocol-native.h"
+  #define protocol_new pa_protocol_native_new
+  #define protocol_free pa_protocol_native_free
+  #define IPV4_PORT 4713
+  #define UNIX_SOCKET "/tmp/polypaudio/native"
+  #define MODULE_ARGUMENTS "public", "cookie",
+#elif defined(USE_PROTOCOL_ESOUND)
+  #include "protocol-esound.h"
+  #include "esound.h"
+  #define protocol_new pa_protocol_esound_new
+  #define protocol_free pa_protocol_esound_free
+  #define IPV4_PORT ESD_DEFAULT_PORT
+  #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
+  #define MODULE_ARGUMENTS "sink", "source", "public", "cookie",
 #else
-  #ifdef USE_PROTOCOL_CLI
-    #include "protocol-cli.h" 
-    #define protocol_new pa_protocol_cli_new
-    #define protocol_free pa_protocol_cli_free
-    #define IPV4_PORT 4712
-    #define UNIX_SOCKET "/tmp/polypaudio/cli"
-    #define MODULE_ARGUMENTS 
-  #else
-    #ifdef USE_PROTOCOL_NATIVE
-      #include "protocol-native.h"
-      #define protocol_new pa_protocol_native_new
-      #define protocol_free pa_protocol_native_free
-      #define IPV4_PORT 4713
-      #define UNIX_SOCKET "/tmp/polypaudio/native"
-      #define MODULE_ARGUMENTS "public", "cookie",
-    #else
-      #ifdef USE_PROTOCOL_ESOUND
-        #include "protocol-esound.h"
-        #include "esound.h"
-        #define protocol_new pa_protocol_esound_new
-        #define protocol_free pa_protocol_esound_free
-        #define IPV4_PORT ESD_DEFAULT_PORT
-        #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
-        #define MODULE_ARGUMENTS "sink", "source", "public", "cookie",
-      #else
-        #error "Broken build system" 
-      #endif
-    #endif 
-  #endif
+  #error "Broken build system" 
 #endif
 
 static const char* const valid_modargs[] = {
