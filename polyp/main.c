@@ -34,6 +34,11 @@
 #include <ltdl.h>
 #include <memblock.h>
 
+#ifdef HAVE_LIBWRAP
+#include <syslog.h>
+#include <tcpd.h>
+#endif
+
 #include "core.h"
 #include "mainloop.h"
 #include "module.h"
@@ -49,6 +54,12 @@
 #include "dumpmodules.h"
 #include "caps.h"
 #include "cli-text.h"
+
+#ifdef HAVE_LIBWRAP
+/* Only one instance of these variables */
+int allow_severity = LOG_INFO;
+int deny_severity = LOG_WARNING;
+#endif
 
 static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     pa_log(__FILE__": Got signal %s.\n", pa_strsignal(sig));

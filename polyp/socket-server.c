@@ -35,6 +35,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#ifdef HAVE_LIBWRAP
+#include <tcpd.h>
+#endif
+
 #include "socket-server.h"
 #include "socket-util.h"
 #include "xmalloc.h"
@@ -45,6 +49,7 @@ struct pa_socket_server {
     int ref;
     int fd;
     char *filename;
+    char *tcpwrap_service;
 
     void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata);
     void *userdata;
@@ -74,6 +79,23 @@ static void callback(struct pa_mainloop_api *mainloop, struct pa_io_event *e, in
         goto finish;
     }
 
+#ifdef HAVE_LIBWRAP
+
+    if (s->type == SOCKET_SERVER_IPV4 && s->tcpwrap_service) {
+        struct request_info req;
+
+        request_init(&req, RQ_DAEMON, s->tcpwrap_service, RQ_FILE, nfd, NULL);
+        fromhost(&req);
+        if (!hosts_access(&req)) {
+            pa_log(__FILE__": TCP connection refused by tcpwrap.\n");
+            close(nfd);
+            goto finish;
+        }
+
+        pa_log(__FILE__": TCP connection accepted by tcpwrap.\n");
+    }
+#endif
+    
     /* There should be a check for socket type here */
     if (s->type == SOCKET_SERVER_IPV4) 
         pa_socket_tcp_low_delay(fd);
@@ -98,6 +120,7 @@ struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd)
     s->filename = NULL;
     s->on_connection = NULL;
     s->userdata = NULL;
+    s->tcpwrap_service = NULL;
 
     s->mainloop = m;
     s->io_event = m->io_new(m, fd, PA_IO_EVENT_INPUT, callback, s);
@@ -159,7 +182,7 @@ fail:
     return NULL;
 }
 
-struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port) {
+struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port, const char *tcpwrap_service) {
     struct pa_socket_server *ss;
     int fd = -1;
     struct sockaddr_in sa;
@@ -193,8 +216,10 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
         goto fail;
     }
 
-    if ((ss = pa_socket_server_new(m, fd)))
+    if ((ss = pa_socket_server_new(m, fd))) {
         ss->type = SOCKET_SERVER_IPV4;
+        ss->tcpwrap_service = pa_xstrdup(tcpwrap_service);
+    }
 
     return ss;
     
@@ -213,6 +238,8 @@ static void socket_server_free(struct pa_socket_server*s) {
         unlink(s->filename);
         pa_xfree(s->filename);
     }
+
+    pa_xfree(s->tcpwrap_service);
 
     s->mainloop->io_free(s->io_event);
     pa_xfree(s);

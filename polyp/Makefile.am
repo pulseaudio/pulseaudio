@@ -178,7 +178,7 @@ libprotocol_simple_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la
 
 libsocket_server_la_SOURCES = socket-server.c socket-server.h
 libsocket_server_la_LDFLAGS = -avoid-version
-libsocket_server_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la
+libsocket_server_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la $(LIBWRAP_LIBS)
 
 libsocket_client_la_SOURCES = socket-client.c socket-client.h
 libsocket_client_la_LDFLAGS = -avoid-version

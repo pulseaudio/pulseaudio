@@ -147,7 +147,7 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
 int pa_authkey_load_from_home(const char *fn, void *data, size_t length) {
     char *home;
     char path[PATH_MAX];
-    char *p;
+    const char *p;
 
     assert(fn && data && length);
 
@@ -155,7 +155,8 @@ int pa_authkey_load_from_home(const char *fn, void *data, size_t length) {
         if (!(home = getenv("HOME")))
             return -2;
         
-        snprintf(p = path, sizeof(path), "%s/%s", home, fn);
+        snprintf(path, sizeof(path), "%s/%s", home, fn);
+        p = path;
     } else
         p = fn;
         

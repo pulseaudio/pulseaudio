@@ -54,16 +54,17 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #include "protocol-simple.h"
   #define protocol_new pa_protocol_simple_new
   #define protocol_free pa_protocol_simple_free
+  #define TCPWRAP_SERVICE "polypaudio-simple"
   #define IPV4_PORT 4711
   #define UNIX_SOCKET "/tmp/polypaudio/simple"
   #define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
   PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE("rate=<sample rate> format=<sample format> channels=<number of channels> sink=<sink to connect to> source=<source to connect to> playback=<enable playback?> record=<enable record?> "SOCKET_USAGE)
-
 #elif defined(USE_PROTOCOL_CLI)
   #include "protocol-cli.h" 
   #define protocol_new pa_protocol_cli_new
   #define protocol_free pa_protocol_cli_free
+  #define TCPWRAP_SERVICE "polypaudio-cli"
   #define IPV4_PORT 4712
   #define UNIX_SOCKET "/tmp/polypaudio/cli"
   #define MODULE_ARGUMENTS 
@@ -73,6 +74,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #include "protocol-native.h"
   #define protocol_new pa_protocol_native_new
   #define protocol_free pa_protocol_native_free
+  #define TCPWRAP_SERVICE "polypaudio-native"
   #define IPV4_PORT PA_NATIVE_DEFAULT_PORT
   #define UNIX_SOCKET "/tmp/polypaudio/native"
   #define MODULE_ARGUMENTS "public", "cookie",
@@ -83,6 +85,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #include "esound.h"
   #define protocol_new pa_protocol_esound_new
   #define protocol_free pa_protocol_esound_free
+  #define TCPWRAP_SERVICE "esound"
   #define IPV4_PORT ESD_DEFAULT_PORT
   #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
   #define MODULE_ARGUMENTS "sink", "source", "public", "cookie",
@@ -119,7 +122,7 @@ static struct pa_socket_server *create_socket_server(struct pa_core *c, struct p
         return NULL;
     }
     
-    if (!(s = pa_socket_server_new_ipv4(c->mainloop, loopback ? INADDR_LOOPBACK : INADDR_ANY, port)))
+    if (!(s = pa_socket_server_new_ipv4(c->mainloop, loopback ? INADDR_LOOPBACK : INADDR_ANY, port, TCPWRAP_SERVICE)))
         return NULL;
 #else
     int r;

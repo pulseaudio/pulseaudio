@@ -143,7 +143,7 @@ void pa_source_post(struct pa_source*s, const struct pa_memchunk *chunk) {
     assert(s && s->ref >= 1 && chunk);
 
     pa_source_ref(s);
-    pa_idxset_foreach(s->outputs, do_post, chunk);
+    pa_idxset_foreach(s->outputs, do_post, (void*) chunk);
     pa_source_unref(s);
 }
 

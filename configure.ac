@@ -111,6 +111,25 @@ AC_SUBST(GLIB12_LIBS)
 AC_SUBST(HAVE_GLIB12)
 AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
 
+AC_MSG_CHECKING([for tcpwrap library and headers])
+LIBWRAP_LIBS=
+saved_LIBS="$LIBS"
+LIBS="$LIBS -lwrap"
+AC_LINK_IFELSE(
+AC_LANG_PROGRAM(
+[#include <tcpd.h>
+#include <syslog.h>
+int allow_severity = LOG_INFO;
+int deny_severity = LOG_WARNING;],
+[struct request_info *req; 
+return hosts_access (req);]),
+[AC_DEFINE(HAVE_LIBWRAP, [], [Have tcpwrap?])
+LIBWRAP_LIBS="-lwrap"
+AC_MSG_RESULT(yes)],
+[AC_MSG_RESULT(no)])
+AC_SUBST(LIBWRAP_LIBS)
+LIBS="$saved_LIBS"
+
 # If using GCC specify some additional parameters
 if test "x$GCC" = "xyes" ; then
    CFLAGS="$CFLAGS -pipe -W -Wall -pedantic"
