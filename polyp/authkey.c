@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
+#include <sys/stat.h>
 
 #include "authkey.h"
 #include "util.h"

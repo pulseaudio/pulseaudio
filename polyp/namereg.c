@@ -27,7 +27,6 @@
 #include <string.h>
 #include <assert.h>
 #include <string.h>
-#include <malloc.h>
 #include <stdio.h>
 
 #include "namereg.h"

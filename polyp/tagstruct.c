@@ -25,6 +25,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <assert.h>
 

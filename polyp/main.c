@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
             pa_log_set_target(PA_LOG_SYSLOG, NULL);
 
         setsid();
-        setpgrp();
+        setpgid(0,0);
         
         close(0);
         close(1);
