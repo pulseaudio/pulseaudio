@@ -105,7 +105,8 @@ modlib_LTLIBRARIES= \
 		module-sine.la \
 		module-combine.la \
 		module-esound-compat-spawnfd.la \
-		module-esound-compat-spawnpid.la
+		module-esound-compat-spawnpid.la \
+		module-match.la
 
 lib_LTLIBRARIES= \
 		libpolyp-@PA_MAJORMINOR@.la \
@@ -304,6 +305,10 @@ module_sine_la_LIBADD = $(AM_LIBADD)
 module_combine_la_SOURCES = module-combine.c
 module_combine_la_LDFLAGS = -module -avoid-version
 module_combine_la_LIBADD = $(AM_LIBADD)
+
+module_match_la_SOURCES = module-match.c
+module_match_la_LDFLAGS = -module -avoid-version
+module_match_la_LIBADD = $(AM_LIBADD)
 
 module_esound_compat_spawnfd_la_SOURCES = module-esound-compat-spawnfd.c
 module_esound_compat_spawnfd_la_LDFLAGS = -module -avoid-version

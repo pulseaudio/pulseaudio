@@ -39,19 +39,34 @@ int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_m
     SF_INFO sfinfo;
     int ret = -1;
     size_t l;
+    sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
     assert(fname && ss && chunk);
-
-    memset(&sfinfo, 0, sizeof(sfinfo));
 
     chunk->memblock = NULL;
     chunk->index = chunk->length = 0;
-    
+
+    memset(&sfinfo, 0, sizeof(sfinfo));
+
     if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
         pa_log(__FILE__": Failed to open file %s\n", fname);
         goto finish;
     }
 
-    ss->format = PA_SAMPLE_FLOAT32;
+    switch (sfinfo.format & 0xFF) {
+        case SF_FORMAT_PCM_16:
+        case SF_FORMAT_PCM_U8:
+        case SF_FORMAT_ULAW:
+        case SF_FORMAT_ALAW:
+            ss->format = PA_SAMPLE_S16NE;
+            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
+            break;
+        case SF_FORMAT_FLOAT:
+        default:
+            ss->format = PA_SAMPLE_FLOAT32NE;
+            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
+            break;
+    }
+
     ss->rate = sfinfo.samplerate;
     ss->channels = sfinfo.channels;
 
@@ -70,7 +85,7 @@ int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_m
     chunk->index = 0;
     chunk->length = l;
 
-    if (sf_readf_float(sf, chunk->memblock->data, sfinfo.frames) != sfinfo.frames) {
+    if (readf_function(sf, chunk->memblock->data, sfinfo.frames) != sfinfo.frames) {
         pa_log(__FILE__": Premature file end\n");
         goto finish;
     }

@@ -11,10 +11,8 @@
 - pacat sample type args
 - filter capture data in client through alignment
 - add redirection module
-- add matching module
 - add radio module
 - make autoload list use idxset
-- improve file load to note force sample typ to PA_SAMPLE_FLOAT32
 
 ** later ***
 - xmlrpc/http

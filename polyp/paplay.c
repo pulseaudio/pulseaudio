@@ -192,7 +192,7 @@ static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_even
 
 static void help(const char *argv0) {
 
-    printf("%s [options] FILE\n\n"
+    printf("%s [options] [FILE]\n\n"
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n\n"
            "  -v, --verbose                         Enable verbose operations\n\n"
@@ -213,7 +213,7 @@ enum {
 int main(int argc, char *argv[]) {
     struct pa_mainloop* m = NULL;
     int ret = 1, r, c;
-    char *bn, *server = NULL;
+    char *bn, *server = NULL, *filename;
     SF_INFO sfinfo;
 
     static const struct option long_options[] = {
@@ -281,24 +281,28 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (optind >= argc) {
-        fprintf(stderr, "Missing file name.\n");
-        goto quit;
-    }
 
+    filename = optind < argc ? argv[optind] : "STDIN";
+    
+    
     if (!client_name)
         client_name = strdup(bn);
 
     if (!stream_name)
-        stream_name = strdup(argv[optind]);
+        stream_name = strdup(filename);
 
     memset(&sfinfo, 0, sizeof(sfinfo));
-    
-    if (!(sndfile = sf_open(argv[optind], SFM_READ, &sfinfo))) {
-        fprintf(stderr, "Faile to open file '%s'\n", argv[optind]);
+
+    if (optind < argc)
+        sndfile = sf_open(filename, SFM_READ, &sfinfo);
+    else
+        sndfile = sf_open_fd(STDIN_FILENO, SFM_READ, &sfinfo, 0);
+
+    if (!sndfile) {
+        fprintf(stderr, "Failed to open file '%s'\n", filename);
         goto quit;
     }
-
+              
     sample_spec.rate = sfinfo.samplerate;
     sample_spec.channels = sfinfo.channels;
     

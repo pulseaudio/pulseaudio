@@ -37,6 +37,7 @@
 #include "subscribe.h"
 #include "namereg.h"
 #include "sound-file.h"
+#include "util.h"
 
 #define UNLOAD_POLL_TIME 2
 
@@ -199,6 +200,7 @@ void pa_scache_free(struct pa_core *c) {
 
 int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume) {
     struct pa_scache_entry *e;
+    char *t;
     assert(c && name && sink);
 
     if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 1)))
@@ -214,8 +216,13 @@ int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sin
     if (!e->memchunk.memblock)
         return -1;
 
-    if (pa_play_memchunk(sink, name, &e->sample_spec, &e->memchunk, pa_volume_multiply(volume, e->volume)) < 0)
+    t = pa_sprintf_malloc("sample:%s", name);
+    if (pa_play_memchunk(sink, t, &e->sample_spec, &e->memchunk, pa_volume_multiply(volume, e->volume)) < 0) {
+        free(t);
         return -1;
+    }
+
+    free(t);
 
     if (e->lazy)
         time(&e->last_used_time);

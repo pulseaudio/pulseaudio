@@ -62,6 +62,8 @@ int pa_parse_boolean(const char *s);
 char *pa_split(const char *c, const char*delimiters, const char **state);
 char *pa_split_spaces(const char *c, const char **state);
 
+char *pa_strip_nl(char *s);
+
 const char *pa_strsignal(int sig);
 
 int pa_parse_resample_method(const char *string);

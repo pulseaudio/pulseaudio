@@ -518,3 +518,10 @@ int pa_lock_file(int fd, int b) {
 
     return 0;
 }
+
+char* pa_strip_nl(char *s) {
+    assert(s);
+
+    s[strcspn(s, "\r\n")] = 0;
+    return s;
+}

@@ -41,6 +41,7 @@ struct userdata {
     SNDFILE *sndfile;
     struct pa_sink_input *sink_input;
     struct pa_memchunk memchunk;
+    sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
 };
 
 static void free_userdata(struct userdata *u) {
@@ -78,7 +79,7 @@ static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
 
         u->memchunk.memblock = pa_memblock_new(BUF_SIZE, i->sink->core->memblock_stat);
         u->memchunk.index = 0;
-        samples = sf_readf_float(u->sndfile, u->memchunk.memblock->data, samples);
+        samples = u->readf_function(u->sndfile, u->memchunk.memblock->data, samples);
         u->memchunk.length = samples*fs;
         
         if (!u->memchunk.length) {
@@ -136,7 +137,21 @@ int pa_play_file(struct pa_sink *sink, const char *fname, pa_volume_t volume) {
         goto fail;
     }
 
-    ss.format = PA_SAMPLE_FLOAT32;
+    switch (sfinfo.format & 0xFF) {
+        case SF_FORMAT_PCM_16:
+        case SF_FORMAT_PCM_U8:
+        case SF_FORMAT_ULAW:
+        case SF_FORMAT_ALAW:
+            ss.format = PA_SAMPLE_S16NE;
+            u->readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
+            break;
+        case SF_FORMAT_FLOAT:
+        default:
+            ss.format = PA_SAMPLE_FLOAT32NE;
+            u->readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
+            break;
+    }
+            
     ss.rate = sfinfo.samplerate;
     ss.channels = sfinfo.channels;
 
