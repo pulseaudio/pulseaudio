@@ -10,6 +10,7 @@
 #include "dynarray.h"
 #include "socket-client.h"
 #include "pstream-util.h"
+#include "authkey.h"
 
 #define DEFAULT_QUEUE_LENGTH 10240
 #define DEFAULT_MAX_LENGTH 20480
@@ -26,14 +27,16 @@ struct pa_context {
     struct pa_dynarray *streams;
     struct pa_stream *first_stream;
     uint32_t ctag;
-    uint32_t errno;
-    enum { CONTEXT_UNCONNECTED, CONTEXT_CONNECTING, CONTEXT_READY, CONTEXT_DEAD} state;
+    uint32_t error;
+    enum { CONTEXT_UNCONNECTED, CONTEXT_CONNECTING, CONTEXT_AUTHORIZING, CONTEXT_SETTING_NAME, CONTEXT_READY, CONTEXT_DEAD} state;
 
     void (*connect_complete_callback)(struct pa_context*c, int success, void *userdata);
     void *connect_complete_userdata;
 
     void (*die_callback)(struct pa_context*c, void *userdata);
     void *die_userdata;
+
+    uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
 };
 
 struct pa_stream {
@@ -52,7 +55,7 @@ struct pa_stream {
     void (*write_callback)(struct pa_stream *p, size_t length, void *userdata);
     void *write_userdata;
     
-    void (*create_complete_callback)(struct pa_context*c, struct pa_stream *s, void *userdata);
+    void (*create_complete_callback)(struct pa_stream *s, int success, void *userdata);
     void *create_complete_userdata;
     
     void (*die_callback)(struct pa_stream*c, void *userdata);
@@ -85,7 +88,7 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->streams = pa_dynarray_new();
     assert(c->streams);
     c->first_stream = NULL;
-    c->errno = PA_ERROR_OK;
+    c->error = PA_ERROR_OK;
     c->state = CONTEXT_UNCONNECTED;
     c->ctag = 0;
 
@@ -158,8 +161,10 @@ static int pstream_packet_callback(struct pa_pstream *p, struct pa_packet *packe
 
     if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
         fprintf(stderr, "polyp.c: invalid packet.\n");
+        context_dead(c);
         return -1;
     }
+
 
     return 0;
 }
@@ -170,7 +175,7 @@ static int pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, int
     assert(p && chunk && c && chunk->memblock && chunk->memblock->data);
 
     if (!(s = pa_dynarray_get(c->streams, channel)))
-        return -1;
+        return 0;
 
     if (s->read_callback)
         s->read_callback(s, chunk->memblock->data + chunk->index, chunk->length, s->read_userdata);
@@ -178,15 +183,57 @@ static int pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, int
     return 0;
 }
 
+static int auth_complete_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_context *c = userdata;
+    assert(pd && c && (c->state == CONTEXT_AUTHORIZING || c->state == CONTEXT_SETTING_NAME));
+
+    if (command != PA_COMMAND_REPLY) {
+        if (command == PA_COMMAND_ERROR && pa_tagstruct_getu32(t, &c->error) < 0)
+            c->error = PA_ERROR_PROTOCOL;
+        else if (command == PA_COMMAND_TIMEOUT)
+            c->error = PA_ERROR_TIMEOUT;
+
+        c->state = CONTEXT_DEAD;
+
+        if (c->connect_complete_callback)
+            c->connect_complete_callback(c, 0, c->connect_complete_userdata);
+        
+        return -1;
+    }
+
+    if (c->state == CONTEXT_AUTHORIZING) {
+        struct pa_tagstruct *t;
+        c->state = CONTEXT_SETTING_NAME;
+        t = pa_tagstruct_new(NULL, 0);
+        assert(t);
+        pa_tagstruct_putu32(t, PA_COMMAND_SET_NAME);
+        pa_tagstruct_putu32(t, tag = c->ctag++);
+        pa_tagstruct_puts(t, c->name);
+        pa_pstream_send_tagstruct(c->pstream, t);
+        pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, auth_complete_callback, c);
+    } else {
+        assert(c->state == CONTEXT_SETTING_NAME);
+        
+        c->state = CONTEXT_READY;
+
+        if (c->connect_complete_callback) 
+            c->connect_complete_callback(c, 1, c->connect_complete_userdata);
+    }
+
+    return 0;
+}
+
 static void on_connection(struct pa_socket_client *client, struct pa_iochannel*io, void *userdata) {
     struct pa_context *c = userdata;
+    struct pa_tagstruct *t;
+    uint32_t tag;
     assert(client && io && c && c->state == CONTEXT_CONNECTING);
 
     pa_socket_client_free(client);
     c->client = NULL;
 
     if (!io) {
-        c->errno = PA_ERROR_CONNECTIONREFUSED;
+        c->error = PA_ERROR_CONNECTIONREFUSED;
         c->state = CONTEXT_UNCONNECTED;
 
         if (c->connect_complete_callback)
@@ -204,18 +251,27 @@ static void on_connection(struct pa_socket_client *client, struct pa_iochannel*i
     c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
     assert(c->pdispatch);
 
-    c->state = CONTEXT_READY;
-
-    if (c->connect_complete_callback)
-        c->connect_complete_callback(c, 1, c->connect_complete_userdata);
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_put_arbitrary(t, c->auth_cookie, sizeof(c->auth_cookie));
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, auth_complete_callback, c);
+    c->state = CONTEXT_AUTHORIZING;
 }
 
 int pa_context_connect(struct pa_context *c, const char *server, void (*complete) (struct pa_context*c, int success, void *userdata), void *userdata) {
     assert(c && c->state == CONTEXT_UNCONNECTED);
 
+    if (pa_authkey_load_from_home(PA_NATIVE_COOKIE_FILE, c->auth_cookie, sizeof(c->auth_cookie)) < 0) {
+        c->error = PA_ERROR_AUTHKEY;
+        return -1;
+    }
+
     assert(!c->client);
     if (!(c->client = pa_socket_client_new_unix(c->mainloop, server ? server : DEFAULT_SERVER))) {
-        c->errno = PA_ERROR_CONNECTIONREFUSED;
+        c->error = PA_ERROR_CONNECTIONREFUSED;
         return -1;
     }
 
@@ -240,7 +296,7 @@ int pa_context_is_ready(struct pa_context *c) {
 
 int pa_context_errno(struct pa_context *c) {
     assert(c);
-    return c->errno;
+    return c->error;
 }
 
 void pa_context_set_die_callback(struct pa_context *c, void (*cb)(struct pa_context *c, void *userdata), void *userdata) {
@@ -258,12 +314,12 @@ static int command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t t
     if (pa_tagstruct_getu32(t, &channel) < 0 ||
         pa_tagstruct_getu32(t, &bytes) < 0 ||
         !pa_tagstruct_eof(t)) {
-        c->errno = PA_ERROR_PROTOCOL;
+        c->error = PA_ERROR_PROTOCOL;
         return -1;
     }
     
     if (!(s = pa_dynarray_get(c->streams, channel))) {
-        c->errno = PA_ERROR_PROTOCOL;
+        c->error = PA_ERROR_PROTOCOL;
         return -1;
     }
 
@@ -286,21 +342,19 @@ static int create_playback_callback(struct pa_pdispatch *pd, uint32_t command, u
         struct pa_context *c = s->context;
         assert(c);
 
-        if (command == PA_COMMAND_ERROR && pa_tagstruct_getu32(t, &s->context->errno) < 0) {
-            s->context->errno = PA_ERROR_PROTOCOL;
-            ret = -1;
-        } else if (command == PA_COMMAND_TIMEOUT) {
-            s->context->errno = PA_ERROR_TIMEOUT;
-            ret = -1;
-        }
-
+        if (command == PA_COMMAND_ERROR && pa_tagstruct_getu32(t, &s->context->error) < 0)
+            s->context->error = PA_ERROR_PROTOCOL;
+        else if (command == PA_COMMAND_TIMEOUT)
+            s->context->error = PA_ERROR_TIMEOUT;
+        
+        ret = -1;
         goto fail;
     }
 
     if (pa_tagstruct_getu32(t, &s->channel) < 0 ||
         pa_tagstruct_getu32(t, &s->device_index) < 0 ||
         !pa_tagstruct_eof(t)) {
-        s->context->errno = PA_ERROR_PROTOCOL;
+        s->context->error = PA_ERROR_PROTOCOL;
         ret = -1;
         goto fail;
     }
@@ -310,24 +364,24 @@ static int create_playback_callback(struct pa_pdispatch *pd, uint32_t command, u
     
     s->state = STREAM_READY;
     assert(s->create_complete_callback);
-    s->create_complete_callback(s->context, s, s->create_complete_userdata);
+    s->create_complete_callback(s, 1, s->create_complete_userdata);
     return 0;
 
 fail:
     assert(s->create_complete_callback);
-    s->create_complete_callback(s->context, NULL, s->create_complete_userdata);
+    s->create_complete_callback(s, 0, s->create_complete_userdata);
     pa_stream_free(s);
     return ret;
 }
 
-int pa_stream_new(
+struct pa_stream* pa_stream_new(
     struct pa_context *c,
     enum pa_stream_direction dir,
     const char *dev,
     const char *name,
     const struct pa_sample_spec *ss,
     const struct pa_buffer_attr *attr,
-    void (*complete) (struct pa_context*c, struct pa_stream *s, void *userdata),
+    void (*complete) (struct pa_stream*s, int success, void *userdata),
     void *userdata) {
     
     struct pa_stream *s;

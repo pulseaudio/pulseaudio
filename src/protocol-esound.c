@@ -13,6 +13,14 @@
 #include "sink.h"
 #include "sample.h"
 
+#include "authkey.h"
+
+#define COOKIE_FILE ".esd_auth"
+
+#define MEMBLOCKQ_LENGTH (10*1204)
+#define MEMBLOCKQ_PREBUF (2*1024)
+#define BUFSIZE (1024)
+
 /* This is heavily based on esound's code */
 
 struct connection {
@@ -38,6 +46,7 @@ struct pa_protocol_esound {
     struct pa_idxset *connections;
     uint32_t sink_index;
     unsigned n_player;
+    uint8_t esd_key[ESD_KEY_LEN];
 };
 
 typedef struct proto_handler {
@@ -45,11 +54,6 @@ typedef struct proto_handler {
     int (*proc)(struct connection *c, const void *data, size_t length);
     const char *description;
 } esd_proto_handler_info_t;
-
-#define MEMBLOCKQ_LENGTH (10*1204)
-#define MEMBLOCKQ_PREBUF (2*1024)
-
-#define BUFSIZE (1024)
 
 static void sink_input_drop_cb(struct pa_sink_input *i, size_t length);
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk);
@@ -162,7 +166,14 @@ static int esd_proto_connect(struct connection *c, const void *data, size_t leng
     int *ok;
     assert(length == (ESD_KEY_LEN + sizeof(uint32_t)));
 
-    c->authorized = 1;
+    if (!c->authorized) {
+        if (memcmp(data, c->protocol->esd_key, ESD_KEY_LEN) != 0) {
+            fprintf(stderr, "protocol-esound.c: Kicked client with invalid authorization key.\n");
+            return -1;
+        }
+
+        c->authorized = 1;
+    }
     
     ekey = *(uint32_t*)(data+ESD_KEY_LEN);
     if (ekey == ESD_ENDIAN_KEY)
@@ -583,16 +594,20 @@ struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa
 
     p = malloc(sizeof(struct pa_protocol_esound));
     assert(p);
-    p->public = 1;
+
+    if (pa_authkey_load_from_home(COOKIE_FILE, p->esd_key, sizeof(p->esd_key)) < 0) {
+        free(p);
+        return NULL;
+    }
+    
+    p->public = 0;
     p->server = server;
+    pa_socket_server_set_callback(p->server, on_connection, p);
     p->core = core;
     p->connections = pa_idxset_new(NULL, NULL);
     assert(p->connections);
     p->sink_index = PA_IDXSET_INVALID;
-
     p->n_player = 0;
-
-    pa_socket_server_set_callback(p->server, on_connection, p);
 
     return p;
 }

@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 #include "tagstruct.h"
 #include "pdispatch.h"
 #include "pstream-util.h"
+#include "authkey.h"
 
 struct connection;
 struct pa_protocol_native;
@@ -46,6 +48,7 @@ struct pa_protocol_native {
     struct pa_core *core;
     struct pa_socket_server *server;
     struct pa_idxset *connections;
+    uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
 };
 
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk);
@@ -58,15 +61,21 @@ static void request_bytes(struct playback_stream*s);
 static int command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static int command_create_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static int command_delete_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static int command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static int command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
+    [PA_COMMAND_TIMEOUT] = { NULL },
     [PA_COMMAND_REPLY] = { NULL },
     [PA_COMMAND_CREATE_PLAYBACK_STREAM] = { command_create_playback_stream },
     [PA_COMMAND_DELETE_PLAYBACK_STREAM] = { command_delete_playback_stream },
     [PA_COMMAND_CREATE_RECORD_STREAM] = { NULL },
     [PA_COMMAND_DELETE_RECORD_STREAM] = { NULL },
+    [PA_COMMAND_AUTH] = { command_auth },
+    [PA_COMMAND_REQUEST] = { NULL },
     [PA_COMMAND_EXIT] = { command_exit },
+    [PA_COMMAND_SET_NAME] = { command_set_name },
 };
 
 /* structure management */
@@ -294,6 +303,40 @@ static int command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag,
     return 0;
 }
 
+static int command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    const void*cookie;
+    assert(c && t);
+
+    if (pa_tagstruct_get_arbitrary(t, &cookie, PA_NATIVE_COOKIE_LENGTH) < 0 ||
+        !pa_tagstruct_eof(t))
+        return -1;
+
+    if (memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) != 0) {
+        fprintf(stderr, "protocol-native.c: Denied access to client with invalid authorization key.\n");
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return 0;
+    }
+
+    c->authorized = 1;
+    pa_pstream_send_simple_ack(c->pstream, tag);
+    return 0;
+}
+
+static int command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    const char *name;
+    assert(c && t);
+
+    if (pa_tagstruct_gets(t, &name) < 0 ||
+        !pa_tagstruct_eof(t))
+        return -1;
+
+    pa_client_rename(c->client, name);
+    pa_pstream_send_simple_ack(c->pstream, tag);
+    return 0;
+}
+
 /*** pstream callbacks ***/
 
 static int packet_callback(struct pa_pstream *p, struct pa_packet *packet, void *userdata) {
@@ -340,6 +383,13 @@ static void die_callback(struct pa_pstream *p, void *userdata) {
     fprintf(stderr, "protocol-native: connection died.\n");
 }
 
+/*** client callbacks ***/
+
+static void client_kill_cb(struct pa_client *c) {
+    assert(c && c->userdata);
+    connection_free(c->userdata);
+}
+
 /*** socket server callbacks ***/
 
 static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata) {
@@ -354,6 +404,8 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     assert(p->core);
     c->client = pa_client_new(p->core, "NATIVE", "Client");
     assert(c->client);
+    c->client->kill = client_kill_cb;
+    c->client->userdata = c;
     c->pstream = pa_pstream_new(p->core->mainloop, io);
     assert(c->pstream);
 
@@ -380,6 +432,11 @@ struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct p
     p = malloc(sizeof(struct pa_protocol_native));
     assert(p);
 
+    if (pa_authkey_load_from_home(PA_NATIVE_COOKIE_FILE, p->auth_cookie, sizeof(p->auth_cookie)) < 0) {
+        free(p);
+        return NULL;
+    }
+    
     p->public = 1;
     p->server = server;
     p->core = core;

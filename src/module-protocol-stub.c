@@ -1,3 +1,5 @@
+#include <string.h>
+#include <errno.h>
 #include <stdio.h>
 #include <assert.h>
 #include <arpa/inet.h>
@@ -50,12 +52,23 @@ int module_init(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
 #ifdef USE_TCP_SOCKETS
-    if (!(s = pa_socket_server_new_ipv4(c->mainloop, INADDR_LOOPBACK, IPV4_PORT)))
+    if (!(s = pa_socket_server_new_ipv4(c->mainloop, INADDR_ANY, IPV4_PORT)))
         return -1;
 #else
     if (pa_make_secure_dir(UNIX_SOCKET_DIR) < 0) {
         fprintf(stderr, "Failed to create secure socket directory.\n");
         return -1;
+    }
+
+    {
+        int r;
+        if ((r = pa_unix_socket_remove_stale(UNIX_SOCKET)) < 0) {
+            fprintf(stderr, "Failed to remove stale UNIX socket '%s': %s\n", UNIX_SOCKET, strerror(errno));
+            return -1;
+        }
+
+        if (r)
+            fprintf(stderr, "Removed stale UNIX socket '%s'.", UNIX_SOCKET);
     }
     
     if (!(s = pa_socket_server_new_unix(c->mainloop, UNIX_SOCKET))) {
@@ -69,8 +82,12 @@ int module_init(struct pa_core *c, struct pa_module*m) {
 #else
     m->userdata = protocol_new(c, s);
 #endif
-    
-    assert(m->userdata);
+
+    if (!m->userdata) {
+        pa_socket_server_free(s);
+        return -1;
+    }
+
     return 0;
 }
 

@@ -13,7 +13,8 @@ enum tags {
     TAG_S16 = 's',
     TAG_U8 = 'B',
     TAG_S8 = 'b',
-    TAG_SAMPLE_SPEC = 'a'
+    TAG_SAMPLE_SPEC = 'a',
+    TAG_ARBITRARY = 'x'
 };
 
 struct pa_tagstruct {
@@ -100,6 +101,18 @@ void pa_tagstruct_put_sample_spec(struct pa_tagstruct *t, const struct pa_sample
     t->length += 7;
 }
 
+
+void pa_tagstruct_put_arbitrary(struct pa_tagstruct *t, const void *p, size_t length) {
+    assert(t && p);
+
+    extend(t, 5+length);
+    t->data[t->length] = TAG_ARBITRARY;
+    *((uint32_t*) (t->data+t->length+1)) = htonl(length);
+    if (length)
+        memcpy(t->data+t->length+5, p, length);
+    t->length += 5+length;
+}
+
 int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s) {
     int error = 0;
     size_t n;
@@ -173,6 +186,22 @@ int pa_tagstruct_get_sample_spec(struct pa_tagstruct *t, struct pa_sample_spec *
     return 0;
 }
 
+int pa_tagstruct_get_arbitrary(struct pa_tagstruct *t, const void **p, size_t length) {
+    assert(t && p);
+    
+    if (t->rindex+5+length > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != TAG_ARBITRARY)
+        return -1;
+
+    if (ntohl(*((uint32_t*) (t->data+t->rindex+1))) != length)
+        return -1;
+
+    *p = t->data+t->rindex+5;
+    t->rindex += 5+length;
+    return 0;
+}
 
 int pa_tagstruct_eof(struct pa_tagstruct*t) {
     assert(t);

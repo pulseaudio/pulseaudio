@@ -59,18 +59,17 @@ static void stream_write_callback(struct pa_stream *s, size_t length, void *user
     do_write(length);
 }
 
-static void stream_complete_callback(struct pa_context*c, struct pa_stream *s, void *userdata) {
-    assert(c);
+static void stream_complete_callback(struct pa_stream*s, int success, void *userdata) {
+    assert(s);
 
-    if (!s) {
+    if (!success) {
         fprintf(stderr, "Stream creation failed.\n");
         mainloop_api->quit(mainloop_api, 1);
         return;
     }
 
-    stream = s;
-    pa_stream_set_die_callback(stream, stream_die_callback, NULL);
-    pa_stream_set_write_callback(stream, stream_write_callback, NULL);
+    pa_stream_set_die_callback(s, stream_die_callback, NULL);
+    pa_stream_set_write_callback(s, stream_write_callback, NULL);
 }
 
 static void context_complete_callback(struct pa_context *c, int success, void *userdata) {
@@ -87,7 +86,7 @@ static void context_complete_callback(struct pa_context *c, int success, void *u
         goto fail;
     }
     
-    if (pa_stream_new(c, PA_STREAM_PLAYBACK, NULL, "pacat", &ss, NULL, stream_complete_callback, NULL) < 0) {
+    if (!(stream = pa_stream_new(c, PA_STREAM_PLAYBACK, NULL, "pacat", &ss, NULL, stream_complete_callback, NULL))) {
         fprintf(stderr, "pa_stream_new() failed.\n");
         goto fail;
     }

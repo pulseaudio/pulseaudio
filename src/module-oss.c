@@ -77,7 +77,8 @@ static void do_read(struct userdata *u) {
     assert(memchunk.memblock);
     if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
         pa_memblock_unref(memchunk.memblock);
-        fprintf(stderr, "read() failed: %s\n", strerror(errno));
+        if (errno != EAGAIN)
+            fprintf(stderr, "read() failed: %s\n", strerror(errno));
         return;
     }
 

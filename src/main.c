@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     pa_module_load(c, "module-cli-protocol-unix", NULL);
     pa_module_load(c, "module-native-protocol-tcp", NULL);*/
     pa_module_load(c, "module-native-protocol-unix", NULL);
-/*    pa_module_load(c, "module-esound-protocol-tcp", NULL);*/
+    pa_module_load(c, "module-esound-protocol-tcp", NULL);
     pa_module_load(c, "module-cli", NULL);
     
     fprintf(stderr, "main: mainloop entry.\n");

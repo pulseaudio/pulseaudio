@@ -18,7 +18,7 @@
 
 AM_CFLAGS=-ansi -D_GNU_SOURCE
 
-bin_PROGRAMS = polypaudio pacat
+bin_PROGRAMS = polypaudio pacat pacat-simple
 
 pkglib_LTLIBRARIES=libiochannel.la \
 		libsocket-server.la \
@@ -34,6 +34,7 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		libtagstruct.la \
 		libpstream-util.la \
 		libpdispatch.la \
+		libauthkey.la \
 		libprotocol-simple.la \
 		libprotocol-esound.la \
 		libprotocol-native.la \
@@ -49,7 +50,9 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-esound-protocol-unix.la \
 		module-native-protocol-tcp.la \
 		module-native-protocol-unix.la \
-		libpolyp.la
+		libpolyp.la \
+		libpolyp-simple.la \
+		libpolyp-error.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
@@ -139,14 +142,17 @@ libprotocol_cli_la_LIBADD = libsocket-server.la libiochannel.la libcli.la
 
 libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la
+libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
 
 libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
 
 libprotocol_esound_la_SOURCES = protocol-esound.c protocol-esound.h protocol-esound-spec.h
 libprotocol_esound_la_LDFLAGS = -avoid-version
-libprotocol_esound_la_LIBADD = libsocket-server.la libiochannel.la
+libprotocol_esound_la_LIBADD = libsocket-server.la libiochannel.la libauthkey.la
+
+libauthkey_la_SOURCES = authkey.c authkey.h
+libauthkey_la_LDFLAGS = -avoid-version
 
 module_simple_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_simple_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
@@ -221,7 +227,22 @@ libpolyp_la_SOURCES = polyp.c polyp.h \
 		packet.c packet.h \
 		queue.c queue.h \
 		dynarray.c dynarray.h \
-		memchunk.c memchunk.h
+		memchunk.c memchunk.h \
+		authkey.c authkey.h
+libpolyp_la_CFLAGS = $(AM_CFLAGS)
+#libpolyp_la_LIBADD = libpolyp-error.la
 
-pacat_SOURCES = pacat.c
+libpolyp_error_la_SOURCES = polyp-error.c polyp-error.h
+libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
+
+libpolyp_simple_la_SOURCES = simple.c simple.h 
+libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_simple_la_LIBADD = libpolyp.la #libpolyp-error.la
+
+pacat_SOURCES = pacat.c       #$(libpolyp_la_SOURCES)
 pacat_LDADD = libpolyp.la
+pacat_CFLAGS = $(AM_CFLAGS) 
+
+pacat_simple_SOURCES = pacat-simple.c
+pacat_simple_LDADD = libpolyp-simple.a
+pacat_simple_CFLAGS = $(AM_CFLAGS)

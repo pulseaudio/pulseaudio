@@ -3,17 +3,25 @@
        sync() function
        more functions
 - simple library
-- kill() routines in all modules
+
 - config parser/cmdline
+
 - move more stuff from module-oss[-dma] to liboss-util
-- svn-id and license in every file
 - in module-oss: create source first, than sink
+
+- rename files
+- svn-id and license in every file
+- documentation
+
+
 
 -- post 0.1
 - future cancellation
 - client-ui
 - clip cache
 - autoloading/autounloading
+- ldap/rendezvous
+- doxygen
 
 drivers:
 - libao

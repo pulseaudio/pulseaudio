@@ -23,18 +23,18 @@ void pa_context_set_die_callback(struct pa_context *c, void (*cb)(struct pa_cont
 
 int pa_context_is_dead(struct pa_context *c);
 int pa_context_is_ready(struct pa_context *c);
-int pa_contect_errno(struct pa_context *c);
+int pa_context_errno(struct pa_context *c);
 
 struct pa_stream;
 
-int pa_stream_new(
+struct pa_stream* pa_stream_new(
     struct pa_context *c,
     enum pa_stream_direction dir,
     const char *dev,
     const char *name,
     const struct pa_sample_spec *ss,
     const struct pa_buffer_attr *attr,
-    void (*complete) (struct pa_context*c, struct pa_stream *s, void *userdata),
+    void (*complete) (struct pa_stream*s, int success, void *userdata),
     void *userdata);
 
 void pa_stream_free(struct pa_stream *p);

@@ -124,3 +124,87 @@ int pa_make_tcp_socket_low_delay(int fd) {
     return ret;
 
 }
+
+ssize_t pa_loop_read(int fd, void*data, size_t size) {
+    ssize_t ret = 0;
+    assert(fd >= 0 && data && size);
+
+    while (size > 0) {
+        ssize_t r;
+
+        if ((r = read(fd, data, size)) < 0)
+            return r;
+
+        if (r == 0)
+            break;
+        
+        ret += r;
+        data += r;
+        size -= r;
+    }
+
+    return ret;
+}
+
+ssize_t pa_loop_write(int fd, const void*data, size_t size) {
+    ssize_t ret = 0;
+    assert(fd >= 0 && data && size);
+
+    while (size > 0) {
+        ssize_t r;
+
+        if ((r = write(fd, data, size)) < 0)
+            return r;
+
+        if (r == 0)
+            break;
+        
+        ret += r;
+        data += r;
+        size -= r;
+    }
+
+    return ret;
+}
+
+int pa_unix_socket_is_stale(const char *fn) {
+    struct sockaddr_un sa;
+    int fd = -1, ret = -1;
+
+    if ((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
+        fprintf(stderr, "socket(): %s\n", strerror(errno));
+        goto finish;
+    }
+
+    sa.sun_family = AF_LOCAL;
+    strncpy(sa.sun_path, fn, sizeof(sa.sun_path)-1);
+    sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
+
+    if (connect(fd, (struct sockaddr*) &sa, sizeof(sa)) < 0) {
+        if (errno == ECONNREFUSED)
+            ret = 1;
+    } else
+        ret = 0;
+
+finish:
+    if (fd >= 0)
+        close(fd);
+
+    return ret;
+}
+
+int pa_unix_socket_remove_stale(const char *fn) {
+    int r;
+    
+    if ((r = pa_unix_socket_is_stale(fn)) < 0)
+        return errno != ENOENT ? -1 : 0;
+
+    if (!r)
+        return 0;
+        
+    /* Yes, here is a race condition. But who cares? */
+    if (unlink(fn) < 0)
+        return -1;
+
+    return 0;
+}
