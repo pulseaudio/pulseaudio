@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <getopt.h>
 
 #include <polyp/polyplib.h>
 #include <polyp/polyplib-error.h>
@@ -46,6 +47,11 @@ static void *buffer = NULL;
 static size_t buffer_length = 0, buffer_index = 0;
 
 static struct pa_io_event* stdio_event = NULL;
+
+static char *stream_name = NULL, *client_name = NULL, *device = NULL;
+
+static int verbose = 0;
+static pa_volume_t volume = PA_VOLUME_NORM;
 
 /* A shortcut for terminating the application */
 static void quit(int ret) {
@@ -117,7 +123,8 @@ static void stream_state_callback(struct pa_stream *s, void *userdata) {
             break;
 
         case PA_STREAM_READY:
-            fprintf(stderr, "Stream successfully created\n");
+            if (verbose)
+                fprintf(stderr, "Stream successfully created\n");
             break;
             
         case PA_STREAM_FAILED:
@@ -146,9 +153,11 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
         case PA_CONTEXT_READY:
             
             assert(c && !stream);
-            fprintf(stderr, "Connection established.\n");
 
-            stream = pa_stream_new(c, "pacat", &ss);
+            if (verbose)
+                fprintf(stderr, "Connection established.\n");
+
+            stream = pa_stream_new(c, stream_name, &ss);
             assert(stream);
 
             pa_stream_set_state_callback(stream, stream_state_callback, NULL);
@@ -156,9 +165,9 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
             pa_stream_set_read_callback(stream, stream_read_callback, NULL);
 
             if (mode == PLAYBACK)
-                pa_stream_connect_playback(stream, NULL, NULL, PA_VOLUME_NORM);
+                pa_stream_connect_playback(stream, device, NULL, volume);
             else
-                pa_stream_connect_record(stream, NULL, NULL);
+                pa_stream_connect_record(stream, device, NULL);
                 
             break;
             
@@ -186,8 +195,9 @@ static void stream_drain_complete(struct pa_stream*s, int success, void *userdat
         fprintf(stderr, "Failed to drain stream: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
     }
-        
-    fprintf(stderr, "Playback stream drained.\n");
+    
+    if (verbose)    
+        fprintf(stderr, "Playback stream drained.\n");
 
     pa_stream_disconnect(stream);
     pa_stream_unref(stream);
@@ -197,7 +207,9 @@ static void stream_drain_complete(struct pa_stream*s, int success, void *userdat
         pa_context_disconnect(context);
     else {
         pa_operation_unref(o);
-        fprintf(stderr, "Draining connection to server.\n");
+
+        if (verbose)
+            fprintf(stderr, "Draining connection to server.\n");
     }
 }
 
@@ -219,7 +231,8 @@ static void stdin_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int 
     assert(buffer);
     if ((r = read(fd, buffer, l)) <= 0) {
         if (r == 0) {
-            fprintf(stderr, "Got EOF.\n");
+            if (verbose)
+                fprintf(stderr, "Got EOF.\n");
             pa_operation_unref(pa_stream_drain(stream, stream_drain_complete, NULL));
         } else {
             fprintf(stderr, "read() failed: %s\n", strerror(errno));
@@ -271,7 +284,8 @@ static void stdout_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int
 
 /* UNIX signal to quit recieved */
 static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
-    fprintf(stderr, "Got SIGINT, exiting.\n");
+    if (verbose)
+        fprintf(stderr, "Got SIGINT, exiting.\n");
     quit(0);
     
 }
@@ -303,10 +317,47 @@ static void sigusr1_signal_callback(struct pa_mainloop_api*m, struct pa_signal_e
     pa_operation_unref(pa_stream_get_latency(stream, stream_get_latency_callback, NULL));
 }
 
+
+static void help(const char *argv0) {
+
+    printf("%s [options]\n"
+           "  -h, --help                            Show this help\n"
+           "      --version                         Show version\n\n"
+           "  -r, --record                          Create a connection for recording\n"
+           "  -p, --playback                        Create a connection for playback\n\n"
+           "  -v, --verbose                         Enable verbose operations\n\n"
+           "  -s, --server=SERVER                   The name of the server to connect to\n"
+           "  -d, --device=DEVICE                   The name of the sink/source to connect to\n"
+           "  -n, --client-name=NAME                How to call this client on the server\n"
+           "      --stream-name=NAME                How to call this stream on the server\n"
+           "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...256\n",
+           argv0);
+}
+
+enum {
+    ARG_VERSION = 256,
+    ARG_STREAM_NAME,
+    ARG_VOLUME
+};
+
 int main(int argc, char *argv[]) {
     struct pa_mainloop* m = NULL;
-    int ret = 1, r;
-    char *bn;
+    int ret = 1, r, c;
+    char *bn, *server = NULL;
+
+    static const struct option long_options[] = {
+        {"record",      0, NULL, 'r'},
+        {"playback",    0, NULL, 'p'},
+        {"device",      1, NULL, 'd'},
+        {"server",      1, NULL, 's'},
+        {"client-name", 1, NULL, 'n'},
+        {"stream-name", 1, NULL, ARG_STREAM_NAME},
+        {"version",     0, NULL, ARG_VERSION},
+        {"help",        0, NULL, 'h'},
+        {"verbose",     0, NULL, 'v'},
+        {"volume",      1, NULL, ARG_VOLUME},
+        {NULL,          0, NULL, 0}
+    };
 
     if (!(bn = strrchr(argv[0], '/')))
         bn = argv[0];
@@ -318,18 +369,70 @@ int main(int argc, char *argv[]) {
     else if (strstr(bn, "cat") || strstr(bn, "play"))
         mode = PLAYBACK;
 
-    if (argc >= 2) {
-        if (!strcmp(argv[1], "-r"))
-            mode = RECORD;
-        else if (!strcmp(argv[1], "-p"))
-            mode = PLAYBACK;
-        else {
-            fprintf(stderr, "Invalid argument\n");
-            goto quit;
+    while ((c = getopt_long(argc, argv, "rpd:s:n:hv", long_options, NULL)) != -1) {
+
+        switch (c) {
+            case 'h' :
+                help(bn);
+                ret = 0;
+                goto quit;
+                
+            case ARG_VERSION:
+                printf("pacat "PACKAGE_VERSION"\n");
+                ret = 0;
+                goto quit;
+
+            case 'r':
+                mode = RECORD;
+                break;
+
+            case 'p':
+                mode = PLAYBACK;
+                break;
+
+            case 'd':
+                free(device);
+                device = strdup(optarg);
+                break;
+
+            case 's':
+                free(server);
+                server = strdup(optarg);
+                break;
+
+            case 'n':
+                free(client_name);
+                client_name = strdup(optarg);
+                break;
+
+            case ARG_STREAM_NAME:
+                free(stream_name);
+                stream_name = strdup(optarg);
+                break;
+
+            case 'v':
+                verbose = 1;
+                break;
+
+            case ARG_VOLUME: {
+                int v = atoi(optarg);
+                volume = v < 0 ? 0 : v;
+                break;
+            }
+
+            default:
+                goto quit;
         }
     }
 
-    fprintf(stderr, "Opening a %s stream.\n", mode == RECORD ? "recording" : "playback");
+    if (!client_name)
+        client_name = strdup(bn);
+
+    if (!stream_name)
+        stream_name = strdup(client_name);
+    
+    if (verbose)
+        fprintf(stderr, "Opening a %s stream.\n", mode == RECORD ? "recording" : "playback");
 
     /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {
@@ -354,7 +457,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Create a new connection context */
-    if (!(context = pa_context_new(mainloop_api, bn))) {
+    if (!(context = pa_context_new(mainloop_api, client_name))) {
         fprintf(stderr, "pa_context_new() failed.\n");
         goto quit;
     }
@@ -362,7 +465,7 @@ int main(int argc, char *argv[]) {
     pa_context_set_state_callback(context, context_state_callback, NULL);
 
     /* Connect the context */
-    pa_context_connect(context, NULL, 1, NULL);
+    pa_context_connect(context, server, 1, NULL);
 
     /* Run the main loop */
     if (pa_mainloop_run(m, &ret) < 0) {
@@ -387,8 +490,12 @@ quit:
         pa_mainloop_free(m);
     }
 
-    if (buffer)
-        free(buffer);
+    free(buffer);
+
+    free(server);
+    free(device);
+    free(client_name);
+    free(stream_name);
     
     return ret;
 }

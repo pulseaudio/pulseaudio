@@ -76,7 +76,6 @@ static struct option long_options[] = {
     {NULL, 0, 0, 0}
 };
 
-
 void pa_cmdline_help(const char *argv0) {
     const char *e;
 
