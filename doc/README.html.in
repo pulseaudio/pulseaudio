@@ -97,7 +97,7 @@ href="modules.html"><tt>modules.html</tt></a>, <a
 href="cli.html"><tt>cli.html</tt></a>, <a
 href="daemon.html"><tt>daemon.html</tt></a>.</p>
 
-<p>You may browser the <a href="http://www.doxygen.org/">Doxygen</a> generated <a
+<p>You may browse the <a href="http://www.doxygen.org/">Doxygen</a> generated <a
 href="http://0pointer.de/lennart/projects/polypaudio/doxygen/">programing
 documentation</a> for the client API. (Run <tt>make doxygen</tt> to generate this documentation from the source tree)</p>
 
