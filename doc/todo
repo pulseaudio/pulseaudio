@@ -2,8 +2,9 @@
 
 *** 0.2 ***
 
-- several files: copyright and config.h
 - enable searchdir
+- run dep script
+- version routines 
 
 *** 0.3 ***
 - future cancellation
