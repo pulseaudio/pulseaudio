@@ -9,10 +9,22 @@ struct sample_spec default_sample_spec = {
     .channels = 2
 };
 
-struct memblock *silence(struct memblock* b, struct sample_spec *spec) {
-    char c = 0;
-    assert(b && spec);
+struct memblock *silence_memblock(struct memblock* b, struct sample_spec *spec) {
+    assert(b && b->data && spec);
     memblock_assert_exclusive(b);
+    silence_memory(b->data, b->length, spec);
+    return b;
+}
+
+void silence_memchunk(struct memchunk *c, struct sample_spec *spec) {
+    assert(c && c->memblock && c->memblock->data && spec && c->length);
+    memblock_assert_exclusive(c->memblock);
+    silence_memory(c->memblock->data+c->index, c->length, spec);
+}
+
+void silence_memory(void *p, size_t length, struct sample_spec *spec) {
+    char c = 0;
+    assert(p && length && spec);
 
     switch (spec->format) {
         case SAMPLE_U8:
@@ -29,8 +41,7 @@ struct memblock *silence(struct memblock* b, struct sample_spec *spec) {
             break;
     }
                 
-    memset(b->data, c, b->length);
-    return b;
+    memset(p, c, length);
 }
 
 size_t sample_size(struct sample_spec *spec) {

@@ -14,6 +14,8 @@
 #include "sink.h"
 #include "source.h"
 #include "module.h"
+#include "oss.h"
+#include "sample.h"
 
 struct userdata {
     struct sink *sink;
@@ -23,7 +25,9 @@ struct userdata {
 
     struct memchunk memchunk, silence;
 
-    uint32_t in_fragment_size, out_fragment_size, sample_size;
+    uint32_t in_fragment_size, out_fragment_size, sample_size, sample_usec;
+
+    int fd;
 };
 
 static void do_write(struct userdata *u) {
@@ -92,12 +96,26 @@ static void io_callback(struct iochannel *io, void*userdata) {
     do_read(u);
 }
 
+static uint32_t sink_get_latency_cb(struct sink *s) {
+    int arg;
+    struct userdata *u = s->userdata;
+    assert(s && u);
+
+    if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
+        fprintf(stderr, "module-oss: device doesn't support SNDCTL_DSP_GETODELAY.\n");
+        s->get_latency = NULL;
+        return 0;
+    }
+
+    return arg/u->sample_size*u->sample_usec;
+}
+
 int module_init(struct core *c, struct module*m) {
     struct audio_buf_info info;
     struct userdata *u = NULL;
     char *p;
     int fd = -1;
-    int format, channels, speed, frag_size, in_frag_size, out_frag_size;
+    int frag_size, in_frag_size, out_frag_size;
     int mode;
     struct sample_spec ss;
     assert(c && m);
@@ -136,37 +154,8 @@ int module_init(struct core *c, struct module*m) {
         goto fail;
     }
 
-    format = AFMT_S16_NE;
-    if (ioctl(fd, SNDCTL_DSP_SETFMT, &format) < 0 || format != AFMT_S16_NE) {
-        int f = AFMT_S16_NE == AFMT_S16_LE ? AFMT_S16_BE : AFMT_S16_LE;
-        format = f;
-        if (ioctl(fd, SNDCTL_DSP_SETFMT, &format) < 0 || format != f) {
-            format = AFMT_U8;
-            if (ioctl(fd, SNDCTL_DSP_SETFMT, &format) < 0 || format != AFMT_U8) {
-                fprintf(stderr, "SNDCTL_DSP_SETFMT: %s\n", format != AFMT_U8 ? "No supported sample format" : strerror(errno));
-                goto fail;
-            } else
-                ss.format = SAMPLE_U8;
-        } else
-            ss.format = f == AFMT_S16_LE ? SAMPLE_S16LE : SAMPLE_S16BE;
-    } else
-        ss.format = SAMPLE_S16NE;
-        
-    channels = 2;
-    if (ioctl(fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {
-        fprintf(stderr, "SNDCTL_DSP_CHANNELS: %s\n", strerror(errno));
+    if (oss_auto_format(fd, &ss) < 0)
         goto fail;
-    }
-    assert(channels);
-    ss.channels = channels;
-
-    speed = 44100;
-    if (ioctl(fd, SNDCTL_DSP_SPEED, &speed) < 0) {
-        fprintf(stderr, "SNDCTL_DSP_SPEED: %s\n", strerror(errno));
-        goto fail;
-    }
-    assert(speed);
-    ss.rate = speed;
 
     if (ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &frag_size) < 0) {
         fprintf(stderr, "SNDCTL_DSP_GETBLKSIZE: %s\n", strerror(errno));
@@ -193,12 +182,15 @@ int module_init(struct core *c, struct module*m) {
     if (mode != O_RDONLY) {
         u->sink = sink_new(c, "dsp", &ss);
         assert(u->sink);
+        u->sink->get_latency = sink_get_latency_cb;
+        u->sink->userdata = u;
     } else
         u->sink = NULL;
 
     if (mode != O_WRONLY) {
         u->source = source_new(c, "dsp", &ss);
         assert(u->source);
+        u->source->userdata = u;
     } else
         u->source = NULL;
 
@@ -207,16 +199,18 @@ int module_init(struct core *c, struct module*m) {
     u->io = iochannel_new(c->mainloop, u->source ? fd : -1, u->sink ? fd : 0);
     assert(u->io);
     iochannel_set_callback(u->io, io_callback, u);
+    u->fd = fd;
 
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
     u->sample_size = sample_size(&ss);
+    u->sample_usec = 1000000/ss.rate;
 
     u->out_fragment_size = out_frag_size;
     u->in_fragment_size = in_frag_size;
     u->silence.memblock = memblock_new(u->silence.length = u->out_fragment_size);
     assert(u->silence.memblock);
-    silence(u->silence.memblock, &ss);
+    silence_memblock(u->silence.memblock, &ss);
     u->silence.index = 0;
     
     m->userdata = u;

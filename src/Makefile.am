@@ -22,7 +22,7 @@ bin_PROGRAMS = polypaudio
 
 pkglib_LTLIBRARIES=libprotocol-simple.la module-simple-protocol-tcp.la \
 		libsocket-server.la module-pipe-sink.la libpstream.la libiochannel.la \
-		libpacket.la module-oss.la
+		libpacket.la module-oss.la module-oss-mmap.la liboss.la
 
 polypaudio_SOURCES = idxset.c queue.c strbuf.c mainloop.c  \
 		memblock.c sample.c memblockq.c client.c \
@@ -50,6 +50,9 @@ libiochannel_la_LDFLAGS = -avoid-version
 libpacket_la_SOURCES = packet.c
 libpacket_la_LDFLAGS = -avoid-version
 
+liboss_la_SOURCES = oss.c
+liboss_la_LDFLAGS = -avoid-version
+
 module_simple_protocol_tcp_la_SOURCES = module-simple-protocol-tcp.c
 module_simple_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_simple_protocol_tcp_la_LIBADD = libprotocol-simple.la libiochannel.la
@@ -60,4 +63,8 @@ module_pipe_sink_la_LIBADD = libiochannel.la
 
 module_oss_la_SOURCES = module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version
-module_oss_la_LIBADD = libiochannel.la
+module_oss_la_LIBADD = libiochannel.la liboss.la
+
+module_oss_mmap_la_SOURCES = module-oss-mmap.c
+module_oss_mmap_la_LDFLAGS = -module -avoid-version
+module_oss_mmap_la_LIBADD = libiochannel.la liboss.la

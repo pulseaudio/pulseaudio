@@ -1,3 +1,5 @@
+#include <sys/time.h>
+#include <time.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -7,17 +9,16 @@
 struct memblock_list {
     struct memblock_list *next;
     struct memchunk chunk;
+    struct timeval stamp;
 };
 
 struct memblockq {
     struct memblock_list *blocks, *blocks_tail;
     unsigned n_blocks;
-    size_t total_length;
-    size_t maxlength;
-    size_t base;
-    size_t prebuf;
+    size_t total_length, maxlength, base, prebuf;
+    int measure_latency;
+    uint32_t latency;
 };
-
 
 struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
     struct memblockq* bq;
@@ -37,6 +38,9 @@ struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
     
     assert(bq->maxlength >= base);
 
+    bq->measure_latency = 1;
+    bq->latency = 0;
+    
     return bq;
 }
 
@@ -59,6 +63,11 @@ void memblockq_push(struct memblockq* bq, struct memchunk *chunk, size_t delta) 
 
     q = malloc(sizeof(struct memblock_list));
     assert(q);
+
+    if (bq->measure_latency)
+        gettimeofday(&q->stamp, NULL);
+    else
+        timerclear(&q->stamp);
 
     q->chunk = *chunk;
     memblock_ref(q->chunk.memblock);
@@ -113,6 +122,26 @@ int memblockq_pop(struct memblockq* bq, struct memchunk *chunk) {
     return 0;
 }
 
+static uint32_t age(struct timeval *tv) {
+    assert(tv);
+    struct timeval now;
+    uint32_t r;
+
+    if (tv->tv_sec == 0)
+        return 0;
+
+    gettimeofday(&now, NULL);
+    
+    r = (now.tv_sec-tv->tv_sec) * 1000000;
+
+    if (now.tv_usec >= tv->tv_usec)
+        r += now.tv_usec - tv->tv_usec;
+    else
+        r -= tv->tv_usec - now.tv_usec;
+
+    return r;
+}
+
 void memblockq_drop(struct memblockq *bq, size_t length) {
     assert(bq);
 
@@ -122,7 +151,10 @@ void memblockq_drop(struct memblockq *bq, size_t length) {
         
         if (l > bq->blocks->chunk.length)
             l = bq->blocks->chunk.length;
-    
+
+        if (bq->measure_latency)
+            bq->latency = age(&bq->blocks->stamp);
+        
         bq->blocks->chunk.index += l;
         bq->blocks->chunk.length -= l;
         bq->total_length -= l;
@@ -177,4 +209,8 @@ int memblockq_is_writable(struct memblockq *bq, size_t length) {
 
     assert(length <= bq->maxlength);
     return bq->total_length + length <= bq->maxlength;
+}
+
+uint32_t memblockq_get_latency(struct memblockq *bq) {
+    return bq->latency;
 }

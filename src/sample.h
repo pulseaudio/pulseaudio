@@ -26,8 +26,9 @@ struct sample_spec {
 
 extern struct sample_spec default_sample_spec;
 
-struct memblock *silence(struct memblock* b, struct sample_spec *spec);
-
+struct memblock *silence_memblock(struct memblock* b, struct sample_spec *spec);
+void silence_memchunk(struct memchunk *c, struct sample_spec *spec);
+void silence_memory(void *p, size_t length, struct sample_spec *spec);
 
 struct mix_info {
     struct memchunk chunk;

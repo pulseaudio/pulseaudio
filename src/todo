@@ -1,12 +1,11 @@
-- mixing
-- latenzoptimierung
-- optimierung von rebuild_pollfds()
-- resampling
+- simple control protocol
 - native protocol/library
-- oss/mmap
-- esound prodocol
+- resampling
+- esound protocol
 - config-parser
+- record-testing
 -- 0.1
+- optimierung von rebuild_pollfds()
 - future cancellation
 - client-ui
 
@@ -16,3 +15,6 @@ drivers:
 - portaudio
 - mplayer
 - python
+
+modules:
+- alsa?

@@ -22,5 +22,6 @@ void memblockq_empty(struct memblockq *bq);
 int memblockq_is_readable(struct memblockq *bq);
 int memblockq_is_writable(struct memblockq *bq, size_t length);
 
+uint32_t memblockq_get_latency(struct memblockq *bq);
 
 #endif

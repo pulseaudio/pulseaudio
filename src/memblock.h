@@ -11,7 +11,6 @@ struct memblock {
     unsigned ref;
     size_t length;
     void *data;
-    struct timeval stamp;
 };
 
 struct memchunk {
@@ -27,9 +26,6 @@ void memblock_unref(struct memblock*b);
 struct memblock* memblock_ref(struct memblock*b);
 
 void memblock_unref_fixed(struct memblock*b);
-
-void memblock_stamp(struct memblock*b);
-uint32_t memblock_age(struct memblock*b);
 
 #define memblock_assert_exclusive(b) assert((b)->ref == 1)
 

@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include <sys/time.h>
-#include <time.h>
 
 #include "memblock.h"
 
@@ -16,7 +14,6 @@ struct memblock *memblock_new(size_t length) {
     b->length = length;
     b->data = b+1;
     n_blocks++;
-    timerclear(&b->stamp);
     return b;
 }
 
@@ -27,7 +24,6 @@ struct memblock *memblock_new_fixed(void *d, size_t length) {
     b->length = length;
     b->data = d;
     n_blocks++;
-    timerclear(&b->stamp);
     return b;
 }
 
@@ -38,7 +34,6 @@ struct memblock *memblock_new_dynamic(void *d, size_t length) {
     b->length = length;
     b->data = d;
     n_blocks++;
-    timerclear(&b->stamp);
     return b;
 }
 
@@ -77,29 +72,3 @@ void memblock_unref_fixed(struct memblock *b) {
     b->type = MEMBLOCK_DYNAMIC;
 }
 
-void memblock_stamp(struct memblock*b) {
-    assert(b);
-    gettimeofday(&b->stamp, NULL);
-}
-
-uint32_t memblock_age(struct memblock*b) {
-    assert(b);
-    struct timeval tv;
-    uint32_t r;
-
-    if (b->stamp.tv_sec == 0)
-        return (suseconds_t) -1;
-
-    gettimeofday(&tv, NULL);
-
-    /*fprintf(stderr, "memblock: (%lu,%lu) -- (%lu,%lu)\r", b->stamp.tv_sec, b->stamp.tv_usec, tv.tv_sec, tv.tv_usec);*/
-    
-    r = (tv.tv_sec-b->stamp.tv_sec) * 1000000;
-
-    if (tv.tv_usec >= b->stamp.tv_usec)
-        r += tv.tv_usec - b->stamp.tv_usec;
-    else
-        r -= b->stamp.tv_usec - tv.tv_usec;
-
-    return r;
-}

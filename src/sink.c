@@ -33,6 +33,7 @@ struct sink* sink_new(struct core *core, const char *name, const struct sample_s
     s->volume = 0xFF;
 
     s->notify = NULL;
+    s->get_latency = NULL;
     s->userdata = NULL;
 
     r = idxset_put(core->sinks, s, &s->index);
@@ -138,14 +139,18 @@ int sink_render(struct sink*s, size_t length, struct memchunk *result) {
     }
 
     inputs_drop(s, info, n, l);
+
+    assert(s->monitor_source);
+    source_post(s->monitor_source, result);
+
     return 0;
 }
 
-int sink_render_into(struct sink*s, struct memblock *target, struct memchunk *result) {
+int sink_render_into(struct sink*s, struct memchunk *target) {
     struct mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
     size_t l;
-    assert(s && target && target->length && target->data && result);
+    assert(s && target && target->length && target->memblock && target->memblock->data);
     
     n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
 
@@ -160,18 +165,52 @@ int sink_render_into(struct sink*s, struct memblock *target, struct memchunk *re
         if (l > info[0].chunk.length)
             l = info[0].chunk.length;
         
-        result->memblock = target;
-        memcpy(target->data, info[0].chunk.memblock->data + info[0].chunk.index, l);
-        result->length = target->length = l;
-        result->index = 0;
-    } else {
+        memcpy(target->memblock->data+target->index, info[0].chunk.memblock->data + info[0].chunk.index, l);
+        target->length = l;
+    } else
+        target->length = l = mix_chunks(info, n, target->memblock->data+target->index, target->length, &s->sample_spec, s->volume);
+    
+    assert(l);
+    inputs_drop(s, info, n, l);
 
-        result->memblock = target;
-        result->length = l = mix_chunks(info, n, target->data, target->length, &s->sample_spec, s->volume);
-        result->index = 0;
-        assert(l);
+    assert(s->monitor_source);
+    source_post(s->monitor_source, target);
+
+    return 0;
+}
+
+void sink_render_into_full(struct sink *s, struct memchunk *target) {
+    struct memchunk chunk;
+    size_t l, d;
+    assert(s && target && target->memblock && target->length && target->memblock->data);
+
+    l = target->length;
+    d = 0;
+    while (l > 0) {
+        chunk = *target;
+        chunk.index += d;
+        chunk.length -= d;
+        
+        if (sink_render_into(s, &chunk) < 0)
+            break;
+
+        d += chunk.length;
+        l -= chunk.length;
     }
 
-    inputs_drop(s, info, n, l);
-    return 0;
+    if (l > 0) {
+        chunk = *target;
+        chunk.index += d;
+        chunk.length -= d;
+        silence_memchunk(&chunk, &s->sample_spec);
+    }
+}
+
+uint32_t sink_get_latency(struct sink *s) {
+    assert(s);
+
+    if (!s->get_latency)
+        return 0;
+
+    return s->get_latency(s);
 }
