@@ -143,6 +143,20 @@ static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd,
     do_read(u);
 }
 
+static pa_usec_t source_get_latency_cb(struct pa_source *s) {
+    struct userdata *u = s->userdata;
+    snd_pcm_sframes_t frames;
+    assert(s && u && u->source);
+
+    if (snd_pcm_delay(u->pcm_handle, &frames) < 0) {
+        pa_log(__FILE__": failed to get delay\n");
+        s->get_latency = NULL;
+        return 0;
+    }
+
+    return pa_bytes_to_usec(frames * u->frame_size, &s->sample_spec);
+}
+
 int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_modargs *ma = NULL;
     int ret = -1;
@@ -191,6 +205,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     assert(u->source);
 
     u->source->userdata = u;
+    u->source->get_latency = source_get_latency_cb;
     pa_source_set_owner(u->source, m);
     u->source->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s'", dev);
 

@@ -56,7 +56,7 @@ struct pa_sink_info {
     pa_volume_t volume;                /**< Volume of the sink */
     uint32_t monitor_source;           /**< Index of the monitor source connected to this sink */
     const char *monitor_source_name;   /**< The name of the monitor source */
-    pa_usec_t latency;                 /**< Length of the playback buffer of this sink */
+    pa_usec_t latency;                 /**< Length of filled playback buffer of this sink */
 };
 
 /** Get information about a sink by its name */
@@ -77,6 +77,7 @@ struct pa_source_info {
     uint32_t owner_module;              /**< Owning module index, or PA_INVALID_INDEX */
     uint32_t monitor_of_sink;           /**< If this is a monitor source the index of the owning sink, otherwise PA_INVALID_INDEX */
     const char *monitor_of_sink_name;   /**< Name of the owning sink, or PA_INVALID_INDEX */
+    pa_usec_t latency;                  /**< Length of filled record buffer of this source. \since 0.5 */
 };
 
 /** Get information about a source by its name */
@@ -158,6 +159,8 @@ struct pa_source_output_info {
     uint32_t client;                     /**< Index of the client this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any client */  
     uint32_t source;                     /**< Index of the connected source */ 
     struct pa_sample_spec sample_spec;   /**< The sample specification of the source output */
+    pa_usec_t buffer_usec;               /**< Latency due to buffering in the source output, see pa_latency_info for details. \since 0.5 */
+    pa_usec_t source_usec;               /**< Latency of the source device, see pa_latency_info for details. \since 0.5 */
 };
 
 /** Get information about a source output by its index */

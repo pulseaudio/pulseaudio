@@ -2,7 +2,6 @@
 
 *** 0.5 ***
 - more complete pactl
-- input latency
 - fix tcp/native
 - paman: add support for killing sink inputs, source outputs, clients
 - add client config file
@@ -15,6 +14,7 @@
 - udp based protocol
 - make mcalign merge chunks
 - option to use default fragment size on alsa drivers
+- improve module-oss-mmap latency measurement
 
 ** later ***
 - xmlrpc/http
@@ -27,7 +27,7 @@
 
 backends for:
 - portaudio
+- alsa-lib
 - sdl
 - gstreamer (semi-done)
-- alsa-lib
 - OSS (esddsp style)

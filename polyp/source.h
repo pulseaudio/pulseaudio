@@ -53,6 +53,7 @@ struct pa_source {
     struct pa_sink *monitor_of;
 
     void (*notify)(struct pa_source*source);
+    pa_usec_t (*get_latency)(struct pa_source *s);
     void *userdata;
 };
 
@@ -67,5 +68,7 @@ void pa_source_post(struct pa_source*s, struct pa_memchunk *b);
 void pa_source_notify(struct pa_source *s);
 
 void pa_source_set_owner(struct pa_source *s, struct pa_module *m);
+
+pa_usec_t pa_source_get_latency(struct pa_source *s);
 
 #endif

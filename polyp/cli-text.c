@@ -125,10 +125,11 @@ char *pa_source_list_to_string(struct pa_core *c) {
     for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
         char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
         pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec);
-        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tsample_spec: <%s>\n",
+        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
                          c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
                          source->index,
                          source->name,
+                         (float) pa_source_get_latency(source),
                          ss);
 
         if (source->monitor_of) 

@@ -50,6 +50,7 @@ struct pa_source_output {
     
     void (*push)(struct pa_source_output *o, const struct pa_memchunk *chunk);
     void (*kill)(struct pa_source_output* o);
+    pa_usec_t (*get_latency) (struct pa_source_output *i);
 
     struct pa_resampler* resampler;
     
@@ -69,5 +70,8 @@ void pa_source_output_kill(struct pa_source_output*o);
 void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk *chunk);
 
 void pa_source_output_set_name(struct pa_source_output *i, const char *name);
+
+pa_usec_t pa_source_output_get_latency(struct pa_source_output *i);
+
 
 #endif

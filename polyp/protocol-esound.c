@@ -107,6 +107,7 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk);
 static void sink_input_kill_cb(struct pa_sink_input *i);
 static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i);
+static pa_usec_t source_output_get_latency_cb(struct pa_source_output *o);
 
 static void source_output_push_cb(struct pa_source_output *o, const struct pa_memchunk *chunk);
 static void source_output_kill_cb(struct pa_source_output *o);
@@ -374,6 +375,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     c->source_output->client = c->client;
     c->source_output->push = source_output_push_cb;
     c->source_output->kill = source_output_kill_cb;
+    c->source_output->get_latency = source_output_get_latency_cb;
     c->source_output->userdata = c;
 
     c->state = ESD_STREAMING_DATA;
@@ -919,7 +921,6 @@ static void sink_input_kill_cb(struct pa_sink_input *i) {
     connection_free((struct connection *) i->userdata);
 }
 
-
 static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i) {
     struct connection*c = i->userdata;
     assert(i && c);
@@ -942,6 +943,12 @@ static void source_output_push_cb(struct pa_source_output *o, const struct pa_me
 static void source_output_kill_cb(struct pa_source_output *o) {
     assert(o && o->userdata);
     connection_free((struct connection *) o->userdata);
+}
+
+static pa_usec_t source_output_get_latency_cb(struct pa_source_output *o) {
+    struct connection*c = o->userdata;
+    assert(o && c);
+    return pa_bytes_to_usec(pa_memblockq_get_length(c->output_memblockq), &c->source_output->sample_spec);
 }
 
 /*** socket server callback ***/

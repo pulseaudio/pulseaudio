@@ -336,6 +336,7 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
 
     } else if (pa_tagstruct_get_usec(t, &i.buffer_usec) < 0 ||
                pa_tagstruct_get_usec(t, &i.sink_usec) < 0 ||
+               pa_tagstruct_get_usec(t, &i.source_usec) < 0 ||
                pa_tagstruct_get_boolean(t, &i.playing) < 0 ||
                pa_tagstruct_getu32(t, &i.queue_length) < 0 ||
                pa_tagstruct_get_timeval(t, &local) < 0 ||
@@ -350,7 +351,12 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
 
     if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now)) {
         /* local and remote seem to have synchronized clocks */
-        i.transport_usec = pa_timeval_diff(&remote, &local);
+
+        if (o->stream->direction == PA_STREAM_PLAYBACK)
+            i.transport_usec = pa_timeval_diff(&remote, &local);
+        else
+            i.transport_usec = pa_timeval_diff(&now, &remote);
+        
         i.synchronized_clocks = 1;
         i.timestamp = remote;
     } else {
@@ -376,6 +382,7 @@ struct pa_operation* pa_stream_get_latency(struct pa_stream *s, void (*cb)(struc
     struct pa_operation *o;
     struct pa_tagstruct *t;
     struct timeval now;
+    assert(s && s->direction != PA_STREAM_UPLOAD);
 
     o = pa_operation_new(s->context, s);
     assert(o);
@@ -384,7 +391,7 @@ struct pa_operation* pa_stream_get_latency(struct pa_stream *s, void (*cb)(struc
 
     t = pa_tagstruct_new(NULL, 0);
     assert(t);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_PLAYBACK_LATENCY);
+    pa_tagstruct_putu32(t, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_GET_PLAYBACK_LATENCY : PA_COMMAND_GET_RECORD_LATENCY);
     pa_tagstruct_putu32(t, tag = s->context->ctag++);
     pa_tagstruct_putu32(t, s->channel);
 

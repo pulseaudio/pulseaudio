@@ -197,7 +197,10 @@ int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result) 
     unsigned n;
     size_t l;
     int r = -1;
-    assert(s && s->ref >= 1 && length && result);
+    assert(s);
+    assert(s->ref >= 1);
+    assert(length);
+    assert(result);
 
     pa_sink_ref(s);
     

@@ -276,27 +276,29 @@ static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_even
     
 }
 
-/* Show the current playback latency */
+/* Show the current latency */
 static void stream_get_latency_callback(struct pa_stream *s, const struct pa_latency_info *i, void *userdata) {
+    double total;
     assert(s);
 
     if (!i) {
-        fprintf(stderr, "Failed to get latency: %s\n", strerror(errno));
+        fprintf(stderr, "Failed to get latency: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
         return;
     }
 
-    fprintf(stderr, "Latency: buffer: %0.0f usec; sink: %0.0f usec; transport: %0.0f usec; total: %0.0f usec; synchronized clocks: %s.\n",
-            (float) i->buffer_usec, (float) i->sink_usec, (float) i->transport_usec,
-            (float) (i->buffer_usec+i->sink_usec+i->transport_usec),
+    if (mode == PLAYBACK)
+        total = (double) i->sink_usec + i->buffer_usec + i->transport_usec;
+    else
+        total = (double) i->source_usec + i->buffer_usec + i->transport_usec - i->sink_usec;
+
+    fprintf(stderr, "Latency: buffer: %0.0f usec; sink: %0.0f usec; source: %0.0f usec; transport: %0.0f usec; total: %0.0f usec; synchronized clocks: %s.\n",
+            (float) i->buffer_usec, (float) i->sink_usec, (float) i->source_usec, (float) i->transport_usec, total,
             i->synchronized_clocks ? "yes" : "no");
 }
 
 /* Someone requested that the latency is shown */
 static void sigusr1_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
-    if (mode != PLAYBACK)
-        return;
-    
     fprintf(stderr, "Got SIGUSR1, requesting latency.\n");
     pa_operation_unref(pa_stream_get_latency(stream, stream_get_latency_callback, NULL));
 }

@@ -229,3 +229,14 @@ int pa_iochannel_socket_set_sndbuf(struct pa_iochannel *io, size_t l) {
     assert(io);
     return pa_socket_set_sndbuf(io->ofd, l);
 }
+
+void pa_iochannel_force_unreadable(struct pa_iochannel *io) {
+    assert(io);
+    io->readable = 0;
+    enable_mainloop_sources(io);
+}
+
+void pa_iochannel_force_unwritable(struct pa_iochannel *io) {
+    io->writable = 0;
+    enable_mainloop_sources(io);
+}

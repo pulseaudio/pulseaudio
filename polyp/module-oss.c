@@ -59,6 +59,7 @@ struct userdata {
     struct pa_memchunk memchunk, silence;
 
     uint32_t in_fragment_size, out_fragment_size, sample_size;
+    int use_getospace, use_getispace;
 
     int fd;
     struct pa_module *module;
@@ -92,6 +93,9 @@ static void update_usage(struct userdata *u) {
 static void do_write(struct userdata *u) {
     struct pa_memchunk *memchunk;
     ssize_t r;
+    size_t l;
+    int loop = 0;
+    
     assert(u);
 
     if (!u->sink || !pa_iochannel_is_writable(u->io))
@@ -99,37 +103,58 @@ static void do_write(struct userdata *u) {
 
     update_usage(u);
 
-    memchunk = &u->memchunk;
+    l = u->out_fragment_size;
     
-    if (!memchunk->length)
-        if (pa_sink_render(u->sink, u->out_fragment_size, memchunk) < 0)
-            memchunk = &u->silence;
-    
-    assert(memchunk->memblock);
-    assert(memchunk->memblock->data);
-    assert(memchunk->length);
-    
-    if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
-        pa_log(__FILE__": write() failed: %s\n", strerror(errno));
-        return;
-    }
+    if (u->use_getospace) {
+        audio_buf_info info;
         
-    if (memchunk == &u->silence)
-        assert(r % u->sample_size == 0);
-    else {
-        u->memchunk.index += r;
-        u->memchunk.length -= r;
-        
-        if (u->memchunk.length <= 0) {
-            pa_memblock_unref(u->memchunk.memblock);
-            u->memchunk.memblock = NULL;
+        if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0)
+            u->use_getospace = 0;
+        else {
+            if (info.bytes/l > 0) {
+                l = (info.bytes/l)*l;
+                loop = 1;
+            }
         }
     }
+
+    do {
+        memchunk = &u->memchunk;
+        
+        if (!memchunk->length)
+            if (pa_sink_render(u->sink, l, memchunk) < 0)
+                memchunk = &u->silence;
+        
+        assert(memchunk->memblock);
+        assert(memchunk->memblock->data);
+        assert(memchunk->length);
+        
+        if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
+            pa_log(__FILE__": write() failed: %s\n", strerror(errno));
+            break;
+        }
+        
+        if (memchunk == &u->silence)
+            assert(r % u->sample_size == 0);
+        else {
+            u->memchunk.index += r;
+            u->memchunk.length -= r;
+            
+            if (u->memchunk.length <= 0) {
+                pa_memblock_unref(u->memchunk.memblock);
+                u->memchunk.memblock = NULL;
+            }
+        }
+
+        l = l > (size_t) r ? l - r : 0;
+    } while (loop && l > 0);
 }
 
 static void do_read(struct userdata *u) {
     struct pa_memchunk memchunk;
     ssize_t r;
+    size_t l;
+    int loop = 0;
     assert(u);
     
     if (!u->source || !pa_iochannel_is_readable(u->io))
@@ -137,21 +162,40 @@ static void do_read(struct userdata *u) {
 
     update_usage(u);
 
-    memchunk.memblock = pa_memblock_new(u->in_fragment_size, u->core->memblock_stat);
-    assert(memchunk.memblock);
-    if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
-        pa_memblock_unref(memchunk.memblock);
-        if (errno != EAGAIN)
-            pa_log(__FILE__": read() failed: %s\n", strerror(errno));
-        return;
+    l = u->in_fragment_size;
+
+    if (u->use_getispace) {
+        audio_buf_info info;
+        
+        if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0)
+            u->use_getispace = 0;
+        else {
+            if (info.bytes/l > 0) {
+                l = (info.bytes/l)*l;
+                loop = 1;
+            }
+        }
     }
+    
+    do {
+        memchunk.memblock = pa_memblock_new(l, u->core->memblock_stat);
+        assert(memchunk.memblock);
+        if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
+            pa_memblock_unref(memchunk.memblock);
+            if (errno != EAGAIN)
+                pa_log(__FILE__": read() failed: %s\n", strerror(errno));
+            break;
+        }
+        
+        assert(r <= (ssize_t) memchunk.memblock->length);
+        memchunk.length = memchunk.memblock->length = r;
+        memchunk.index = 0;
+        
+        pa_source_post(u->source, &memchunk);
+        pa_memblock_unref(memchunk.memblock);
 
-    assert(r <= (ssize_t) memchunk.memblock->length);
-    memchunk.length = memchunk.memblock->length = r;
-    memchunk.index = 0;
-
-    pa_source_post(u->source, &memchunk);
-    pa_memblock_unref(memchunk.memblock);
+        l = l > (size_t) r ? l - r : 0;
+    } while (loop && l > 0);
 }
 
 static void io_callback(struct pa_iochannel *io, void*userdata) {
@@ -179,6 +223,25 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
         r += pa_bytes_to_usec(u->memchunk.length, &s->sample_spec);
 
     return r;
+}
+
+static pa_usec_t source_get_latency_cb(struct pa_source *s) {
+    struct userdata *u = s->userdata;
+    audio_buf_info info;
+    assert(s && u && u->sink);
+
+    if (!u->use_getispace)
+        return 0;
+    
+    if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0) {
+        u->use_getispace = 0;
+        return 0;
+    }
+    
+    if (info.bytes <= 0)
+        return 0;
+
+    return pa_bytes_to_usec(info.bytes, &s->sample_spec);
 }
 
 int pa__init(struct pa_core *c, struct pa_module*m) {
@@ -243,23 +306,27 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     assert(frag_size);
     in_frag_size = out_frag_size = frag_size;
 
+    u = pa_xmalloc(sizeof(struct userdata));
+    u->core = c;
+    u->use_getospace = u->use_getispace = 0;
+    
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
         pa_log(__FILE__": input -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         in_frag_size = info.fragsize;
+        u->use_getispace = 1;
     }
 
     if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
         pa_log(__FILE__": output -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         out_frag_size = info.fragsize;
+        u->use_getospace = 1;
     }
-
-    u = pa_xmalloc(sizeof(struct userdata));
-    u->core = c;
 
     if (mode != O_WRONLY) {
         u->source = pa_source_new(c, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss);
         assert(u->source);
         u->source->userdata = u;
+        u->source->get_latency = source_get_latency_cb;
         pa_source_set_owner(u->source, m);
         u->source->description = pa_sprintf_malloc("Open Sound System PCM on '%s'", p);
     } else

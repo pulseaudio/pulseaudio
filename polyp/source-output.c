@@ -60,6 +60,8 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
     o->push = NULL;
     o->kill = NULL;
     o->userdata = NULL;
+    o->get_latency = NULL;
+    
     o->resampler = resampler;
     
     assert(s->core);
@@ -148,4 +150,13 @@ void pa_source_output_set_name(struct pa_source_output *o, const char *name) {
     o->name = pa_xstrdup(name);
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+}
+
+pa_usec_t pa_source_output_get_latency(struct pa_source_output *o) {
+    assert(o && o->ref >= 1);
+    
+    if (o->get_latency)
+        return o->get_latency(o);
+
+    return 0;
 }

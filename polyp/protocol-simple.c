@@ -248,6 +248,12 @@ static void source_output_kill_cb(struct pa_source_output *o) {
     connection_free((struct connection *) o->userdata);
 }
 
+static pa_usec_t source_output_get_latency_cb(struct pa_source_output *o) {
+    struct connection*c = o->userdata;
+    assert(o && c);
+    return pa_bytes_to_usec(pa_memblockq_get_length(c->output_memblockq), &c->source_output->sample_spec);
+}
+
 /*** client callbacks ***/
 
 static void client_kill_cb(struct pa_client *c) {
@@ -348,6 +354,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         
         c->source_output->push = source_output_push_cb;
         c->source_output->kill = source_output_kill_cb;
+        c->source_output->get_latency = source_output_get_latency_cb;
         c->source_output->userdata = c;
 
         l = (size_t) (pa_bytes_per_second(&p->sample_spec)*RECORD_BUFFER_SECONDS);

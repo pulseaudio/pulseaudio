@@ -132,20 +132,26 @@ enum pa_subscription_event_type {
 /** Return one if an event type t matches an event mask bitfield */
 #define pa_subscription_match_flags(m, t) (!!((m) & (1 << ((t) & PA_SUBSCRIPTION_EVENT_FACILITY_MASK))))
 
-/** A structure for latency info. See pa_stream_get_latency().  The
- * total latency a sample that is written with pa_stream_write() takes
- * to be played may be estimated by
- * buffer_usec+sink_usec+transport_usec. The buffer to which
+/** A structure for latency info. See pa_stream_get_latency(). The
+ * total output latency a sample that is written with
+ * pa_stream_write() takes to be played may be estimated by
+ * sink_usec+buffer_usec+transport_usec. The output buffer to which
  * buffer_usec relates may be manipulated freely (with
  * pa_stream_write()'s delta argument, pa_stream_flush() and friends),
- * the playback buffer sink_usec relates to is a FIFO which cannot be
- * flushed or manipulated in any way. */
+ * the buffers sink_usec/source_usec relates to is a first-in
+ * first-out buffer which cannot be flushed or manipulated in any
+ * way. The total input latency a sample that is recorded takes to be
+ * delivered to the application is:
+ * source_usec+buffer_usec+transport_usec-sink_usec. (Take care of
+ * sign issues!) When connected to a monitor source sink_usec contains
+ * the latency of the owning sink.*/
 struct pa_latency_info {
-    pa_usec_t buffer_usec;    /**< Time in usecs the current buffer takes to play */
-    pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink.  */
-    pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to the daemon. \since 0.5 */
-    int playing;              /**< Non-zero when the stream is currently playing */
-    uint32_t queue_length;    /**< Queue size in bytes. */
+    pa_usec_t buffer_usec;    /**< Time in usecs the current buffer takes to play. For both playback and record streams. */
+    pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink. For playback streams and record streams connected to a monitor source. */
+    pa_usec_t source_usec;    /**< Time in usecs a sample takes from being recorded to being delivered to the application. Only for record streams. \since 0.5*/
+    pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to/from the daemon. For both playback and record streams. \since 0.5 */
+    int playing;              /**< Non-zero when the stream is currently playing. Only for playback streams. */
+    uint32_t queue_length;    /**< Queue size in bytes. For both playback and recrd streams. */
     int synchronized_clocks;  /**< Non-zero if the local and the
                                * remote machine have synchronized
                                * clocks. If synchronized clocks are

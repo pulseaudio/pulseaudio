@@ -60,6 +60,7 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
     s->outputs = pa_idxset_new(NULL, NULL);
     s->monitor_of = NULL;
 
+    s->get_latency = NULL;
     s->notify = NULL;
     s->userdata = NULL;
 
@@ -150,3 +151,13 @@ void pa_source_set_owner(struct pa_source *s, struct pa_module *m) {
     assert(s);
     s->owner = m;
 }
+
+pa_usec_t pa_source_get_latency(struct pa_source *s) {
+    assert(s && s->ref >= 1);
+
+    if (!s->get_latency)
+        return 0;
+
+    return s->get_latency(s);
+}
+

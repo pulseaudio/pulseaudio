@@ -117,6 +117,7 @@ static void request_bytes(struct playback_stream*s);
 
 static void source_output_kill_cb(struct pa_source_output *o);
 static void source_output_push_cb(struct pa_source_output *o, const struct pa_memchunk *chunk);
+static pa_usec_t source_output_get_latency_cb(struct pa_source_output *o);
 
 static void command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
@@ -128,6 +129,7 @@ static void command_set_client_name(struct pa_pdispatch *pd, uint32_t command, u
 static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_stat(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_get_record_latency(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_create_upload_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_finish_upload_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_play_sample(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
@@ -166,6 +168,7 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_LOOKUP_SOURCE] = { command_lookup },
     [PA_COMMAND_STAT] = { command_stat },
     [PA_COMMAND_GET_PLAYBACK_LATENCY] = { command_get_playback_latency },
+    [PA_COMMAND_GET_RECORD_LATENCY] = { command_get_record_latency },
     [PA_COMMAND_CREATE_UPLOAD_STREAM] = { command_create_upload_stream },
     [PA_COMMAND_DELETE_UPLOAD_STREAM] = { command_delete_stream },
     [PA_COMMAND_FINISH_UPLOAD_STREAM] = { command_finish_upload_stream },
@@ -256,6 +259,7 @@ static struct record_stream* record_stream_new(struct connection *c, struct pa_s
     s->source_output = source_output;
     s->source_output->push = source_output_push_cb;
     s->source_output->kill = source_output_kill_cb;
+    s->source_output->get_latency = source_output_get_latency_cb;
     s->source_output->userdata = s;
     s->source_output->owner = c->protocol->module;
     s->source_output->client = c->client;
@@ -444,7 +448,6 @@ static void send_record_stream_killed(struct record_stream *r) {
     pa_pstream_send_tagstruct(r->connection->pstream, t);
 }
 
-
 /*** sinkinput callbacks ***/
 
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk) {
@@ -506,6 +509,16 @@ static void source_output_kill_cb(struct pa_source_output *o) {
     assert(o && o->userdata);
     send_record_stream_killed((struct record_stream *) o->userdata);
     record_stream_free((struct record_stream *) o->userdata);
+}
+
+static pa_usec_t source_output_get_latency_cb(struct pa_source_output *o) {
+    struct record_stream *s;
+    assert(o && o->userdata);
+    s = o->userdata;
+
+    /*pa_log(__FILE__": get_latency: %u\n", pa_memblockq_get_length(s->memblockq));*/
+    
+    return pa_bytes_to_usec(pa_memblockq_get_length(s->memblockq), &o->sample_spec);
 }
 
 /*** pdispatch callbacks ***/
@@ -843,7 +856,7 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
     struct timeval tv, now;
     uint32_t index;
     assert(c && t);
-
+    
     if (pa_tagstruct_getu32(t, &index) < 0 ||
         pa_tagstruct_get_timeval(t, &tv) < 0 ||
         !pa_tagstruct_eof(t)) {
@@ -867,6 +880,7 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
     pa_tagstruct_putu32(reply, tag);
     pa_tagstruct_put_usec(reply, pa_sink_input_get_latency(s->sink_input));
     pa_tagstruct_put_usec(reply, pa_sink_get_latency(s->sink_input->sink));
+    pa_tagstruct_put_usec(reply, 0);
     pa_tagstruct_put_boolean(reply, pa_memblockq_is_readable(s->memblockq));
     pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
     pa_tagstruct_put_timeval(reply, &tv);
@@ -874,6 +888,47 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
     pa_tagstruct_put_timeval(reply, &now);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
+
+static void command_get_record_latency(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    struct pa_tagstruct *reply;
+    struct record_stream *s;
+    struct timeval tv, now;
+    uint32_t index;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        pa_tagstruct_get_timeval(t, &tv) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (!(s = pa_idxset_get_by_index(c->record_streams, index))) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    reply = pa_tagstruct_new(NULL, 0);
+    assert(reply);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+    pa_tagstruct_put_usec(reply, pa_source_output_get_latency(s->source_output));
+    pa_tagstruct_put_usec(reply, s->source_output->source->monitor_of ? pa_sink_get_latency(s->source_output->source->monitor_of) : 0);
+    pa_tagstruct_put_usec(reply, pa_source_get_latency(s->source_output->source));
+    pa_tagstruct_put_boolean(reply, 0);
+    pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
+    pa_tagstruct_put_timeval(reply, &tv);
+    gettimeofday(&now, NULL);
+    pa_tagstruct_put_timeval(reply, &now);
+    pa_pstream_send_tagstruct(c->pstream, reply);
+}
+
 
 static void command_create_upload_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
@@ -1036,6 +1091,7 @@ static void source_fill_tagstruct(struct pa_tagstruct *t, struct pa_source *sour
     pa_tagstruct_putu32(t, source->owner ? source->owner->index : (uint32_t) -1);
     pa_tagstruct_putu32(t, source->monitor_of ? source->monitor_of->index : (uint32_t) -1);
     pa_tagstruct_puts(t, source->monitor_of ? source->monitor_of->name : "");
+    pa_tagstruct_put_usec(t, pa_source_get_latency(source));
 }
 
 static void client_fill_tagstruct(struct pa_tagstruct *t, struct pa_client *client) {
@@ -1076,6 +1132,8 @@ static void source_output_fill_tagstruct(struct pa_tagstruct *t, struct pa_sourc
     pa_tagstruct_putu32(t, s->client ? s->client->index : (uint32_t) -1);
     pa_tagstruct_putu32(t, s->source->index);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
+    pa_tagstruct_put_usec(t, pa_source_output_get_latency(s));
+    pa_tagstruct_put_usec(t, pa_source_get_latency(s->source));
 }
 
 static void scache_fill_tagstruct(struct pa_tagstruct *t, struct pa_scache_entry *e) {
