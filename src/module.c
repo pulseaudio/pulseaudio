@@ -1,10 +1,12 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "module.h"
 
 struct module* module_load(struct core *c, const char *name, const char *argument) {
     struct module *m = NULL;
+    int r;
     
     assert(c && name);
 
@@ -23,6 +25,7 @@ struct module* module_load(struct core *c, const char *name, const char *argumen
     m->name = strdup(name);
     m->argument = argument ? strdup(argument) : NULL;
     m->userdata = NULL;
+    m->core = c;
 
     assert(m->init);
     if (m->init(c, m) < 0)
@@ -30,6 +33,7 @@ struct module* module_load(struct core *c, const char *name, const char *argumen
 
     if (!c->modules)
         c->modules = idxset_new(NULL, NULL);
+
     
     assert(c->modules);
     r = idxset_put(c->modules, m, &m->index);
@@ -48,18 +52,17 @@ fail:
 }
 
 static void module_free(struct module *m) {
-    assert(m && m->done);
-    m->done(c, m);
+    assert(m && m->done && m->core);
+    m->done(m->core, m);
 
-    lt_dlcose(m->dl);
+    lt_dlclose(m->dl);
     free(m->name);
     free(m->argument);
     free(m);
 }
 
 void module_unload(struct core *c, struct module *m) {
-    struct module *m;
-    assert(c && index != IDXSET_INVALID);
+    assert(c && m);
 
     assert(c->modules);
     if (!(m = idxset_remove_by_data(c->modules, m, NULL)))
@@ -68,7 +71,7 @@ void module_unload(struct core *c, struct module *m) {
     module_free(m);
 }
 
-void module_unload_by_index(struct core *c, guint32_t index) {
+void module_unload_by_index(struct core *c, uint32_t index) {
     struct module *m;
     assert(c && index != IDXSET_INVALID);
 

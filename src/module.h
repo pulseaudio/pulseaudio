@@ -7,10 +7,11 @@
 #include "core.h"
 
 struct module {
+    struct core *core;
     char *name, *argument;
     uint32_t index;
 
-    lt_dlhandle *dl;
+    lt_dlhandle dl;
     
     int (*init)(struct core *c, struct module*m);
     void (*done)(struct core *c, struct module*m);
