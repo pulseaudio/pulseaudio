@@ -8,7 +8,13 @@
 - native library/protocol:
    module load/unload
    kill client/...
+   autoload management
 - more complete pactl
+- daemon autostart
+- cleanup tagstruct (add s32, pa_volume_t, pa_usec_t)
+- xmlrpc
+- remove all gcc warnings
+- complete doxygen coverage
 
 ** later ***
 - slp/rendezvous

@@ -168,8 +168,6 @@ void pa_command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag,
     
     s->requested_bytes += bytes;
 
-    fprintf(stderr, "total req: %u (%u)\n", s->requested_bytes, bytes);
-
     if (s->requested_bytes && s->write_callback)
         s->write_callback(s, s->requested_bytes, s->write_userdata);
 

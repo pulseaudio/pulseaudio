@@ -400,7 +400,8 @@ static void context_get_sink_input_info_callback(struct pa_pdispatch *pd, uint32
                 pa_tagstruct_getu32(t, &i.sink) < 0 ||
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
                 pa_tagstruct_getu32(t, &i.volume) < 0 ||
-                pa_tagstruct_getu32(t, &i.latency) < 0) {
+                pa_tagstruct_getu32(t, &i.buffer_usec) < 0 ||
+                pa_tagstruct_getu32(t, &i.sink_usec) < 0) {
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
             }

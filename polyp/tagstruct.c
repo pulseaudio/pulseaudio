@@ -95,7 +95,7 @@ void pa_tagstruct_puts(struct pa_tagstruct*t, const char *s) {
     l = strlen(s)+2;
     extend(t, l);
     t->data[t->length] = TAG_STRING;
-    strcpy(t->data+t->length+1, s);
+    strcpy((char*) (t->data+t->length+1), s);
     t->length += l;
 }
 

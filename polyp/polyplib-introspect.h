@@ -93,15 +93,17 @@ struct pa_client_info {
 struct pa_operation* pa_context_get_client_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_client_info*i, int is_last, void *userdata), void *userdata);
 struct pa_operation* pa_context_get_client_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_client_info*i, int is_last, void *userdata), void *userdata);
 
+/** Stores information about sink inputs */
 struct pa_sink_input_info {
-    uint32_t index;
-    const char *name;
-    uint32_t owner_module;
-    uint32_t client;
-    uint32_t sink;
-    struct pa_sample_spec sample_spec;
-    pa_volume_t volume;
-    pa_usec_t latency;
+    uint32_t index;                      /**< Name of this index */  
+    const char *name;                    /**< Name of the sink input */
+    uint32_t owner_module;               /**< Index of the module this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any module */
+    uint32_t client;                     /**< Index of the client this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any client */
+    uint32_t sink;                       /**< Index of the connected sink */
+    struct pa_sample_spec sample_spec;   /**< The sample specification of the sink input */
+    pa_volume_t volume;                  /**< The volume of this sink input */
+    pa_usec_t buffer_usec;               /**< Latency due to buffering in sink input, see pa_latency_info for details */
+    pa_usec_t sink_usec;                 /**< Latency of the sink device, see pa_latency_info for details */
 };
 
 struct pa_operation* pa_context_get_sink_input_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_sink_input_info*i, int is_last, void *userdata), void *userdata);

@@ -1022,6 +1022,7 @@ static void sink_input_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink_inp
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_putu32(t, s->volume);
     pa_tagstruct_putu32(t, pa_sink_input_get_latency(s));
+    pa_tagstruct_putu32(t, pa_sink_get_latency(s->sink));
 }
 
 static void source_output_fill_tagstruct(struct pa_tagstruct *t, struct pa_source_output *s) {
@@ -1363,6 +1364,7 @@ static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, ui
 
     pa_sink_notify(s->sink_input->sink);
     pa_pstream_send_simple_ack(c->pstream, tag);
+    request_bytes(s);
 }
 
 /*** pstream callbacks ***/

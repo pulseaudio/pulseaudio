@@ -129,10 +129,16 @@ enum pa_subscription_event_type {
 /** Return one if an event type t matches an event mask bitfield */
 #define pa_subscription_match_flags(m, t) (!!((m) & (1 << ((t) & PA_SUBSCRIPTION_EVENT_FACILITY_MASK))))
 
-/** A structure for latency info. See pa_stream_get_latency().  */
+/** A structure for latency info. See pa_stream_get_latency().  The
+ * total latency a sample that is written with pa_stream_write() takes
+ * to be played is buffer_usec+sink_usec. The buffer to which
+ * buffer_usec relates may be manipulated freely (with
+ * pa_stream_write()'s delta argument, pa_stream_flush() and friends),
+ * the playback buffer sink_usec relates to is a FIFO which cannot be
+ * flushed or manipulated in any way. */
 struct pa_latency_info {
     pa_usec_t buffer_usec;    /**< Time in usecs the current buffer takes to play */
-    pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink. The total latency is buffer_usec+sink_usec. */
+    pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink.  */
     int playing;              /**< Non-zero when the stream is currently playing */
     int queue_length;         /**< Queue size in bytes. */  
 };
