@@ -10,9 +10,8 @@
 - filter capture data in client through alignment
 - add radio module
 - make autoload list use idxset
-- enlarge memblockq sizes
-- add null-sink
 - add sync API
+- make most buffer sizes dependant on the sample type
 
 ** later ***
 - xmlrpc/http
