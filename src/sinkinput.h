@@ -19,7 +19,6 @@ struct sink_input {
     void (*drop) (struct sink_input *i, size_t length);
     void (*kill) (struct sink_input *i);
     uint32_t (*get_latency) (struct sink_input *i);
-    
 
     void *userdata;
 };

@@ -1,4 +1,4 @@
-# $Id: Makefile.am 27 2003-10-22 22:34:06Z lennart $
+# $Id$
 #
 # This file is part of polypaudio.
 #
@@ -25,7 +25,8 @@ pkglib_LTLIBRARIES=libprotocol-simple.la module-simple-protocol-tcp.la \
 		libpacket.la module-oss.la module-oss-mmap.la liboss.la libioline.la \
 		libcli.la module-cli.la libtokenizer.la libdynarray.la \
 		module-simple-protocol-unix.la module-cli-protocol-tcp.la \
-		libprotocol-cli.la
+		libprotocol-cli.la libprotocol-native.la module-native-protocol-tcp.la \
+        module-native-protocol-unix.la module-cli-protocol-unix.la libtagstruct.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
@@ -87,6 +88,13 @@ libprotocol_cli_la_SOURCES = protocol-cli.c protocol-cli.h
 libprotocol_cli_la_LDFLAGS = -avoid-version
 libprotocol_cli_la_LIBADD = libsocket-server.la libiochannel.la libcli.la
 
+libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h
+libprotocol_native_la_LDFLAGS = -avoid-version
+libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la
+
+libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
+libtagstruct_la_LDFLAGS = -avoid-version
+
 module_simple_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_simple_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
 module_simple_protocol_tcp_la_LDFLAGS = -module -avoid-version
@@ -101,6 +109,21 @@ module_cli_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_cli_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
 module_cli_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_cli_protocol_tcp_la_LIBADD = libprotocol-cli.la libiochannel.la
+
+module_cli_protocol_unix_la_SOURCES = module-protocol-stub.c
+module_cli_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
+module_cli_protocol_unix_la_LDFLAGS = -module -avoid-version
+module_cli_protocol_unix_la_LIBADD = libprotocol-cli.la libiochannel.la
+
+module_native_protocol_tcp_la_SOURCES = module-protocol-stub.c
+module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
+module_native_protocol_tcp_la_LDFLAGS = -module -avoid-version
+module_native_protocol_tcp_la_LIBADD = libprotocol-native.la libiochannel.la libtagstruct.la
+
+module_native_protocol_unix_la_SOURCES = module-protocol-stub.c
+module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
+module_native_protocol_unix_la_LDFLAGS = -module -avoid-version
+module_native_protocol_unix_la_LIBADD = libprotocol-native.la libiochannel.la libtagstruct.la
 
 module_pipe_sink_la_SOURCES = module-pipe-sink.c
 module_pipe_sink_la_LDFLAGS = -module -avoid-version

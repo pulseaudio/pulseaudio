@@ -7,15 +7,22 @@
 #ifdef USE_PROTOCOL_SIMPLE
   #include "protocol-simple.h"
   #define protocol_free protocol_simple_free
-  #define IPV4_PORT 4712
+  #define IPV4_PORT 4711
 #else
   #ifdef USE_PROTOCOL_CLI
     #include "protocol-cli.h" 
     #define protocol_new protocol_cli_new
     #define protocol_free protocol_cli_free
-    #define IPV4_PORT 4711
+    #define IPV4_PORT 4712
   #else
-    #error "Broken build system"
+    #ifdef USE_PROTOCOL_NATIVE
+      #include "protocol-native.h"
+      #define protocol_new protocol_native_new
+      #define protocol_free protocol_native_free
+      #define IPV4_PORT 4713
+    #else
+      #error "Broken build system"
+    #endif
   #endif
 #endif
 

@@ -79,6 +79,7 @@ static int do_read(struct connection *c) {
     assert(c->input_memblockq);
     memblockq_push(c->input_memblockq, &chunk, 0);
     memblock_unref(chunk.memblock);
+    assert(c->sink_input);
     sink_notify(c->sink_input->sink);
     
     return 0;

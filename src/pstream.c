@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <netinet/in.h>
 
 #include "pstream.h"
 #include "queue.h"
@@ -35,6 +36,8 @@ struct pstream {
     struct queue *send_queue;
 
     int dead;
+    void (*die_callback) (struct pstream *p, void *userdad);
+    void *die_callback_userdata;
 
     struct {
         struct item_info* current;
@@ -54,10 +57,10 @@ struct pstream {
         size_t index;
     } read;
 
-    void (*recieve_packet_callback) (struct pstream *p, struct packet *packet, void *userdata);
+    int (*recieve_packet_callback) (struct pstream *p, struct packet *packet, void *userdata);
     void *recieve_packet_callback_userdata;
 
-    void (*recieve_memblock_callback) (struct pstream *p, uint32_t channel, int32_t delta, struct memchunk *chunk, void *userdata);
+    int (*recieve_memblock_callback) (struct pstream *p, uint32_t channel, int32_t delta, struct memchunk *chunk, void *userdata);
     void *recieve_memblock_callback_userdata;
 };
 
@@ -89,6 +92,8 @@ struct pstream *pstream_new(struct mainloop *m, struct iochannel *io) {
     iochannel_set_callback(io, io_callback, p);
 
     p->dead = 0;
+    p->die_callback = NULL;
+    p->die_callback_userdata = NULL;
 
     p->mainloop = m;
     p->mainloop_source = mainloop_source_new_fixed(m, prepare_callback, p);
@@ -165,7 +170,7 @@ void pstream_send_packet(struct pstream*p, struct packet *packet) {
     i = malloc(sizeof(struct item_info));
     assert(i);
     i->type = PSTREAM_ITEM_PACKET;
-    i->packet = packet;
+    i->packet = packet_ref(packet);
 
     queue_push(p->send_queue, i);
     mainloop_source_enable(p->mainloop_source, 1);
@@ -182,18 +187,20 @@ void pstream_send_memblock(struct pstream*p, uint32_t channel, int32_t delta, st
     i->channel = channel;
     i->delta = delta;
 
+    memblock_ref(i->chunk.memblock);
+
     queue_push(p->send_queue, i);
     mainloop_source_enable(p->mainloop_source, 1);
 }
 
-void pstream_set_recieve_packet_callback(struct pstream *p, void (*callback) (struct pstream *p, struct packet *packet, void *userdata), void *userdata) {
+void pstream_set_recieve_packet_callback(struct pstream *p, int (*callback) (struct pstream *p, struct packet *packet, void *userdata), void *userdata) {
     assert(p && callback);
 
     p->recieve_packet_callback = callback;
     p->recieve_packet_callback_userdata = userdata;
 }
 
-void pstream_set_recieve_memblock_callback(struct pstream *p, void (*callback) (struct pstream *p, uint32_t channel, int32_t delta, struct memchunk *chunk, void *userdata), void *userdata) {
+void pstream_set_recieve_memblock_callback(struct pstream *p, int (*callback) (struct pstream *p, uint32_t channel, int32_t delta, struct memchunk *chunk, void *userdata), void *userdata) {
     assert(p && callback);
 
     p->recieve_memblock_callback = callback;
@@ -211,15 +218,15 @@ static void prepare_next_write_item(struct pstream *p) {
     if (p->write.current->type == PSTREAM_ITEM_PACKET) {
         assert(p->write.current->packet);
         p->write.data = p->write.current->packet->data;
-        p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH] = p->write.current->packet->length;
+        p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->packet->length);
         p->write.descriptor[PSTREAM_DESCRIPTOR_CHANNEL] = 0;
         p->write.descriptor[PSTREAM_DESCRIPTOR_DELTA] = 0;
     } else {
         assert(p->write.current->type == PSTREAM_ITEM_MEMBLOCK && p->write.current->chunk.memblock);
         p->write.data = p->write.current->chunk.memblock->data + p->write.current->chunk.index;
-        p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH] = p->write.current->chunk.length;
-        p->write.descriptor[PSTREAM_DESCRIPTOR_CHANNEL] = p->write.current->channel;
-        p->write.descriptor[PSTREAM_DESCRIPTOR_DELTA] = p->write.current->delta;
+        p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->chunk.length);
+        p->write.descriptor[PSTREAM_DESCRIPTOR_CHANNEL] = htonl(p->write.current->channel);
+        p->write.descriptor[PSTREAM_DESCRIPTOR_DELTA] = htonl(p->write.current->delta);
     }
 }
 
@@ -247,17 +254,15 @@ static void do_write(struct pstream *p) {
         l = PSTREAM_DESCRIPTOR_SIZE - p->write.index;
     } else {
         d = (void*) p->write.data + p->write.index - PSTREAM_DESCRIPTOR_SIZE;
-        l = p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH] - p->write.index - PSTREAM_DESCRIPTOR_SIZE;
+        l = ntohl(p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH]) - p->write.index - PSTREAM_DESCRIPTOR_SIZE;
     }
 
-    if ((r = iochannel_write(p->io, d, l)) < 0) {
-        p->dead = 1;
-        return;
-    }
+    if ((r = iochannel_write(p->io, d, l)) < 0) 
+        goto die;
 
     p->write.index += r;
 
-    if (p->write.index >= PSTREAM_DESCRIPTOR_SIZE+p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH]) {
+    if (p->write.index >= PSTREAM_DESCRIPTOR_SIZE+ntohl(p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH])) {
         assert(p->write.current);
         item_free(p->write.current, (void *) 1);
         p->write.current = NULL;
@@ -265,6 +270,13 @@ static void do_write(struct pstream *p) {
         if (p->send_callback && queue_is_empty(p->send_queue))
             p->send_callback(p, p->send_callback_userdata);
     }
+
+    return;
+    
+die:
+    p->dead = 1;
+    if (p->die_callback)
+        p->die_callback(p, p->die_callback_userdata);
 }
 
 static void do_read(struct pstream *p) {
@@ -284,35 +296,31 @@ static void do_read(struct pstream *p) {
     } else {
         assert(p->read.data);
         d = (void*) p->read.data + p->read.index - PSTREAM_DESCRIPTOR_SIZE;
-        l = p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH] - p->read.index - PSTREAM_DESCRIPTOR_SIZE;
+        l = ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]) - p->read.index - PSTREAM_DESCRIPTOR_SIZE;
     }
 
-    if ((r = iochannel_read(p->io, d, l)) <= 0) {
-        p->dead = 1;
-        return;
-    }
-
+    if ((r = iochannel_read(p->io, d, l)) <= 0)
+        goto die;
+    
     p->read.index += r;
 
     if (p->read.index == PSTREAM_DESCRIPTOR_SIZE) {
         /* Reading of frame descriptor complete */
 
         /* Frame size too large */
-        if (p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH] > FRAME_SIZE_MAX) {
-            p->dead = 1;
-            return;
-        }
+        if (ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]) > FRAME_SIZE_MAX)
+            goto die;
         
         assert(!p->read.packet && !p->read.memblock);
 
-        if (p->read.descriptor[PSTREAM_DESCRIPTOR_CHANNEL] == 0) {
+        if (ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_CHANNEL]) == 0) {
             /* Frame is a packet frame */
-            p->read.packet = packet_new(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]);
+            p->read.packet = packet_new(ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]));
             assert(p->read.packet);
             p->read.data = p->read.packet->data;
         } else {
             /* Frame is a memblock frame */
-            p->read.memblock = memblock_new(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]);
+            p->read.memblock = memblock_new(ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]));
             assert(p->read.memblock);
             p->read.data = p->read.memblock->data;
         }
@@ -320,7 +328,7 @@ static void do_read(struct pstream *p) {
     } else if (p->read.index > PSTREAM_DESCRIPTOR_SIZE) {
         /* Frame payload available */
         
-        if (p->read.memblock && p->recieve_memblock_callback) { /* Is this memblockd data? Than pass it to the user */
+        if (p->read.memblock && p->recieve_memblock_callback) { /* Is this memblock data? Than pass it to the user */
             size_t l;
 
             l = p->read.index - r < PSTREAM_DESCRIPTOR_SIZE ? p->read.index - PSTREAM_DESCRIPTOR_SIZE : r;
@@ -332,28 +340,51 @@ static void do_read(struct pstream *p) {
                 chunk.index = p->read.index - PSTREAM_DESCRIPTOR_SIZE - l;
                 chunk.length = l;
                 
-                p->recieve_memblock_callback(p, p->read.descriptor[PSTREAM_DESCRIPTOR_CHANNEL], (int32_t) p->read.descriptor[PSTREAM_DESCRIPTOR_DELTA], &chunk, p->recieve_memblock_callback_userdata);
+                if (p->recieve_memblock_callback(p,
+                                                 ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_CHANNEL]),
+                                                 (int32_t) ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_DELTA]),
+                                                 &chunk,
+                                                 p->recieve_memblock_callback_userdata) < 0)
+                    goto die;
             }
         }
 
         /* Frame complete */
-        if (p->read.index >= p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH] + PSTREAM_DESCRIPTOR_SIZE) {
+        if (p->read.index >= ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]) + PSTREAM_DESCRIPTOR_SIZE) {
             if (p->read.memblock) {
                 assert(!p->read.packet);
                 
                 memblock_unref(p->read.memblock);
                 p->read.memblock = NULL;
             } else {
+                int r = 0;
                 assert(p->read.packet);
 
                 if (p->recieve_packet_callback)
-                    p->recieve_packet_callback(p, p->read.packet, p->recieve_packet_callback_userdata);
+                    r = p->recieve_packet_callback(p, p->read.packet, p->recieve_packet_callback_userdata);
 
                 packet_unref(p->read.packet);
                 p->read.packet = NULL;
+
+                if (r < 0)
+                    goto die;
             }
 
             p->read.index = 0;
         }
     }
+
+    return;
+
+die:
+    p->dead = 1;
+    if (p->die_callback)
+        p->die_callback(p, p->die_callback_userdata);
+   
+}
+
+void pstream_set_die_callback(struct pstream *p, void (*callback)(struct pstream *p, void *userdata), void *userdata) {
+    assert(p && callback);
+    p->die_callback = callback;
+    p->die_callback_userdata = userdata;
 }

@@ -1,4 +1,3 @@
-- cli protocol
 - native protocol/library
 - simple control protocol: kill client/input/output; set_volume
 - resampling

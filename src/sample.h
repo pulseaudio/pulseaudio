@@ -19,7 +19,7 @@ enum sample_format {
 struct sample_spec {
     enum sample_format format;
     uint32_t rate;
-    uint32_t channels;
+    uint8_t channels;
 };
 
 #define DEFAULT_SAMPLE_SPEC default_sample_spec
