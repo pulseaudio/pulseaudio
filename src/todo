@@ -1,7 +1,7 @@
 - recording (general, simple, esound, native)
 - native library/protocol:
        sync() function
-       more functions
+       more functions (esp. latency)
 - simple library
 
 - config parser/cmdline
@@ -9,18 +9,20 @@
 - move more stuff from module-oss[-dma] to liboss-util
 - in module-oss: create source first, than sink
 
+- client field for sinkinput/sourceoutput
+
+- xmms+esound latency testing
+
 - rename files
 - svn-id and license in every file
 - documentation
-
-
 
 -- post 0.1
 - future cancellation
 - client-ui
 - clip cache
 - autoloading/autounloading
-- ldap/rendezvous
+- slp/rendezvous
 - doxygen
 
 drivers:

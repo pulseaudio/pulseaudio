@@ -14,6 +14,7 @@
 #include "pdispatch.h"
 #include "pstream-util.h"
 #include "authkey.h"
+#include "namereg.h"
 
 struct connection;
 struct pa_protocol_native;
@@ -28,7 +29,6 @@ struct record_stream {
 struct playback_stream {
     struct connection *connection;
     uint32_t index;
-    size_t qlength;
     struct pa_sink_input *sink_input;
     struct pa_memblockq *memblockq;
     size_t requested_bytes;
@@ -58,11 +58,12 @@ static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i);
 
 static void request_bytes(struct playback_stream*s);
 
-static int command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-static int command_create_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-static int command_delete_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-static int command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-static int command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_delete_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -76,6 +77,8 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = { NULL },
     [PA_COMMAND_EXIT] = { command_exit },
     [PA_COMMAND_SET_NAME] = { command_set_name },
+    [PA_COMMAND_LOOKUP_SINK] = { command_lookup },
+    [PA_COMMAND_LOOKUP_SOURCE] = { command_lookup },
 };
 
 /* structure management */
@@ -89,14 +92,17 @@ static void record_stream_free(struct record_stream* r) {
     free(r);
 }
 
-static struct playback_stream* playback_stream_new(struct connection *c, struct pa_sink *sink, struct pa_sample_spec *ss, const char *name, size_t qlen, size_t maxlength, size_t prebuf) {
+static struct playback_stream* playback_stream_new(struct connection *c, struct pa_sink *sink, struct pa_sample_spec *ss, const char *name,
+                                                   size_t maxlength,
+                                                   size_t tlength,
+                                                   size_t prebuf,
+                                                   size_t minreq) {
     struct playback_stream *s;
-    assert(c && sink && ss && name && qlen && maxlength && prebuf);
+    assert(c && sink && ss && name && maxlength);
 
     s = malloc(sizeof(struct playback_stream));
     assert (s);
     s->connection = c;
-    s->qlength = qlen;
     
     s->sink_input = pa_sink_input_new(sink, name, ss);
     assert(s->sink_input);
@@ -106,7 +112,7 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     s->sink_input->get_latency = sink_input_get_latency_cb;
     s->sink_input->userdata = s;
     
-    s->memblockq = pa_memblockq_new(maxlength, pa_sample_size(ss), prebuf);
+    s->memblockq = pa_memblockq_new(maxlength, tlength, pa_sample_size(ss), prebuf, minreq);
     assert(s->memblockq);
 
     s->requested_bytes = 0;
@@ -149,13 +155,17 @@ static void request_bytes(struct playback_stream *s) {
     size_t l;
     assert(s);
 
-    if (!(l = pa_memblockq_missing_to(s->memblockq, s->qlength)))
+    if (!(l = pa_memblockq_missing(s->memblockq)))
         return;
 
     if (l <= s->requested_bytes)
         return;
 
     l -= s->requested_bytes;
+
+    if (l < pa_memblockq_get_minreq(s->memblockq))
+        return;
+    
     s->requested_bytes += l;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -166,7 +176,7 @@ static void request_bytes(struct playback_stream *s) {
     pa_tagstruct_putu32(t, l);
     pa_pstream_send_tagstruct(s->connection->pstream, t);
 
-/*    fprintf(stderr, "Requesting %u bytes\n", l);*/
+    /*fprintf(stderr, "Requesting %u bytes\n", l);*/
 }
 
 /*** sinkinput callbacks ***/
@@ -209,10 +219,15 @@ static uint32_t sink_input_get_latency_cb(struct pa_sink_input *i) {
 
 /*** pdispatch callbacks ***/
 
-static int command_create_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void protocol_error(struct connection *c) {
+    fprintf(stderr, __FILE__": protocol error, kicking client\n");
+    connection_free(c);
+}
+
+static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     struct playback_stream *s;
-    size_t maxlength, prebuf, qlength;
+    size_t maxlength, tlength, prebuf, minreq;
     uint32_t sink_index;
     const char *name;
     struct pa_sample_spec ss;
@@ -223,15 +238,18 @@ static int command_create_playback_stream(struct pa_pdispatch *pd, uint32_t comm
     if (pa_tagstruct_gets(t, &name) < 0 ||
         pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
         pa_tagstruct_getu32(t, &sink_index) < 0 ||
-        pa_tagstruct_getu32(t, &qlength) < 0 ||
         pa_tagstruct_getu32(t, &maxlength) < 0 ||
+        pa_tagstruct_getu32(t, &tlength) < 0 ||
         pa_tagstruct_getu32(t, &prebuf) < 0 ||
-        !pa_tagstruct_eof(t))
-        return -1;
+        pa_tagstruct_getu32(t, &minreq) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
 
     if (!c->authorized) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
-        return 0;
+        return;
     }
 
     if (sink_index == (uint32_t) -1)
@@ -241,12 +259,12 @@ static int command_create_playback_stream(struct pa_pdispatch *pd, uint32_t comm
 
     if (!sink) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_EXIST);
-        return 0;
+        return;
     }
     
-    if (!(s = playback_stream_new(c, sink, &ss, name, qlength, maxlength, prebuf))) {
+    if (!(s = playback_stream_new(c, sink, &ss, name, maxlength, tlength, prebuf, minreq))) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_INVALID);
-        return 0;
+        return;
     }
     
     reply = pa_tagstruct_new(NULL, 0);
@@ -258,107 +276,148 @@ static int command_create_playback_stream(struct pa_pdispatch *pd, uint32_t comm
     pa_tagstruct_putu32(reply, s->sink_input->index);
     pa_pstream_send_tagstruct(c->pstream, reply);
     request_bytes(s);
-    return 0;
 }
 
-static int command_delete_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void command_delete_playback_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     uint32_t channel;
     struct playback_stream *s;
     assert(c && t);
     
     if (pa_tagstruct_getu32(t, &channel) < 0 ||
-        !pa_tagstruct_eof(t))
-        return -1;
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
 
     if (!c->authorized) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
-        return 0;
+        return;
     }
     
     if (!(s = pa_idxset_get_by_index(c->playback_streams, channel))) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_EXIST);
-        return 0;
+        return;
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
-    return 0;
 }
 
-static int command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void command_exit(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     assert(c && t);
     
-    if (!pa_tagstruct_eof(t))
-        return -1;
+    if (!pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
 
     if (!c->authorized) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
-        return 0;
+        return;
     }
     
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop);
     c->protocol->core->mainloop->quit(c->protocol->core->mainloop, 0);
     pa_pstream_send_simple_ack(c->pstream, tag); /* nonsense */
-    return 0;
+    return;
 }
 
-static int command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     const void*cookie;
     assert(c && t);
 
     if (pa_tagstruct_get_arbitrary(t, &cookie, PA_NATIVE_COOKIE_LENGTH) < 0 ||
-        !pa_tagstruct_eof(t))
-        return -1;
-
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+        
     if (memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) != 0) {
         fprintf(stderr, "protocol-native.c: Denied access to client with invalid authorization key.\n");
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
-        return 0;
+        return;
     }
 
     c->authorized = 1;
     pa_pstream_send_simple_ack(c->pstream, tag);
-    return 0;
+    return;
 }
 
-static int command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void command_set_name(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     const char *name;
     assert(c && t);
 
     if (pa_tagstruct_gets(t, &name) < 0 ||
-        !pa_tagstruct_eof(t))
-        return -1;
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
 
     pa_client_rename(c->client, name);
     pa_pstream_send_simple_ack(c->pstream, tag);
-    return 0;
+    return;
+}
+
+static void command_lookup(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    const char *name;
+    uint32_t index = PA_IDXSET_INVALID;
+    assert(c && t);
+
+    if (pa_tagstruct_gets(t, &name) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    if (command == PA_COMMAND_LOOKUP_SINK) {
+        struct pa_sink *sink;
+        if ((sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK)))
+            index = sink->index;
+    } else {
+        struct pa_source *source;
+        assert(command == PA_COMMAND_LOOKUP_SOURCE);
+        if ((source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE)))
+            index = source->index;
+    }
+
+    if (index == PA_IDXSET_INVALID)
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+    else {
+        struct pa_tagstruct *reply;
+        reply = pa_tagstruct_new(NULL, 0);
+        assert(reply);
+        pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+        pa_tagstruct_putu32(reply, tag);
+        pa_tagstruct_putu32(reply, index);
+        pa_pstream_send_tagstruct(c->pstream, reply);
+    }
 }
 
 /*** pstream callbacks ***/
 
-static int packet_callback(struct pa_pstream *p, struct pa_packet *packet, void *userdata) {
+static void packet_callback(struct pa_pstream *p, struct pa_packet *packet, void *userdata) {
     struct connection *c = userdata;
     assert(p && packet && packet->data && c);
 
     if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
         fprintf(stderr, "protocol-native: invalid packet.\n");
-        return -1;
+        connection_free(c);
     }
-    
-    return 0;
 }
 
-static int memblock_callback(struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata) {
+static void memblock_callback(struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata) {
     struct connection *c = userdata;
     struct playback_stream *stream;
     assert(p && chunk && userdata);
 
     if (!(stream = pa_idxset_get_by_index(c->playback_streams, channel))) {
         fprintf(stderr, "protocol-native: client sent block for invalid stream.\n");
-        return -1;
+        connection_free(c);
+        return;
     }
 
     if (chunk->length >= stream->requested_bytes)
@@ -371,8 +430,6 @@ static int memblock_callback(struct pa_pstream *p, uint32_t channel, int32_t del
     pa_sink_notify(stream->sink_input->sink);
 
     /*fprintf(stderr, "Recieved %u bytes.\n", chunk->length);*/
-
-    return 0;
 }
 
 static void die_callback(struct pa_pstream *p, void *userdata) {

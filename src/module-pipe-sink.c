@@ -73,7 +73,7 @@ static void io_callback(struct pa_iochannel *io, void*userdata) {
     do_write(u);
 }
 
-int module_init(struct pa_core *c, struct pa_module*m) {
+int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u = NULL;
     struct stat st;
     char *p;
@@ -137,7 +137,7 @@ fail:
     return -1;
 }
 
-void module_done(struct pa_core *c, struct pa_module*m) {
+void pa_module_done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

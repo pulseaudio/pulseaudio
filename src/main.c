@@ -12,10 +12,16 @@
 
 static struct pa_mainloop *mainloop;
 
-static void signal_callback(void *id, int sig, void *userdata) {
+static void exit_signal_callback(void *id, int sig, void *userdata) {
     struct pa_mainloop_api* m = pa_mainloop_get_api(mainloop);
     m->quit(m, 1);
-    fprintf(stderr, "main: got signal.\n");
+    fprintf(stderr, __FILE__": got signal.\n");
+}
+
+static void aux_signal_callback(void *id, int sig, void *userdata) {
+    struct pa_core *c = userdata;
+    assert(c);
+    pa_module_load(c, sig == SIGUSR1 ? "module-cli" : "module-cli-protocol-unix", NULL);
 }
 
 int main(int argc, char *argv[]) {
@@ -30,12 +36,12 @@ int main(int argc, char *argv[]) {
 
     r = pa_signal_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);
-    pa_signal_register(SIGINT, signal_callback, NULL);
+    pa_signal_register(SIGINT, exit_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
 
     c = pa_core_new(pa_mainloop_get_api(mainloop));
     assert(c);
-
+    
     pa_module_load(c, "module-oss", "/dev/dsp");
 /*    pa_module_load(c, "module-pipe-sink", NULL);*/
     pa_module_load(c, "module-simple-protocol-tcp", NULL);
@@ -46,6 +52,9 @@ int main(int argc, char *argv[]) {
     pa_module_load(c, "module-native-protocol-unix", NULL);
     pa_module_load(c, "module-esound-protocol-tcp", NULL);
     pa_module_load(c, "module-cli", NULL);
+
+    pa_signal_register(SIGUSR1, aux_signal_callback, c);
+    pa_signal_register(SIGUSR2, aux_signal_callback, c);
     
     fprintf(stderr, "main: mainloop entry.\n");
     if (pa_mainloop_run(mainloop, &retval) < 0)

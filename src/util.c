@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <errno.h>
 #include <assert.h>
 #include <string.h>
@@ -51,7 +52,7 @@ void pa_peer_to_string(char *c, size_t l, int fd) {
                          ntohs(sa.in.sin_port));
                 return;
             } else if (sa.sa.sa_family == AF_LOCAL) {
-                snprintf(c, l, "UNIX client for %s", sa.un.sun_path);
+                snprintf(c, l, "UNIX socket client");
                 return;
             }
 
@@ -207,4 +208,16 @@ int pa_unix_socket_remove_stale(const char *fn) {
         return -1;
 
     return 0;
+}
+
+void pa_check_for_sigpipe(void) {
+    struct sigaction sa;
+
+    if (sigaction(SIGPIPE, NULL, &sa) < 0) {
+        fprintf(stderr, __FILE__": sigaction() failed: %s\n", strerror(errno));
+        return;
+    }
+        
+    if (sa.sa_handler == SIG_DFL)
+        fprintf(stderr, "polypaudio: WARNING: SIGPIPE is not trapped. This might cause malfunction!\n");
 }

@@ -59,7 +59,7 @@ char *pa_client_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u client(s).\n", pa_idxset_ncontents(c->clients));
     
     for (client = pa_idxset_first(c->clients, &index); client; client = pa_idxset_next(c->clients, &index))
-        pa_strbuf_printf(s, "    index: %u, name: <%s>, protocol_name: <%s>\n", client->index, client->name, client->protocol_name);
+        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\tprotocol_name: <%s>\n", client->index, client->name, client->protocol_name);
     
     return pa_strbuf_tostring_free(s);
 }

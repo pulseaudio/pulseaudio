@@ -35,6 +35,8 @@ struct pa_pstream {
     struct pa_iochannel *io;
     struct pa_queue *send_queue;
 
+    int in_use, shall_free;
+    
     int dead;
     void (*die_callback) (struct pa_pstream *p, void *userdad);
     void *die_callback_userdata;
@@ -46,9 +48,6 @@ struct pa_pstream {
         size_t index;
     } write;
 
-    void (*send_callback) (struct pa_pstream *p, void *userdata);
-    void *send_callback_userdata;
-
     struct {
         struct pa_memblock *memblock;
         struct pa_packet *packet;
@@ -57,34 +56,51 @@ struct pa_pstream {
         size_t index;
     } read;
 
-    int (*recieve_packet_callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata);
+    void (*recieve_packet_callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata);
     void *recieve_packet_callback_userdata;
 
-    int (*recieve_memblock_callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata);
+    void (*recieve_memblock_callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata);
     void *recieve_memblock_callback_userdata;
+
+    void (*drain_callback)(struct pa_pstream *p, void *userdata);
+    void *drain_userdata;
 };
 
 static void do_write(struct pa_pstream *p);
 static void do_read(struct pa_pstream *p);
 
+static void do_something(struct pa_pstream *p) {
+    assert(p && !p->shall_free);
+    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 0);
+
+    p->in_use = 1;
+    do_write(p);
+    p->in_use = 0;
+
+    if (p->shall_free) {
+        pa_pstream_free(p);
+        return;
+    }
+    
+    p->in_use = 1;
+    do_read(p);
+    p->in_use = 0;
+    if (p->shall_free) {
+        pa_pstream_free(p);
+        return;
+    }
+}
+
 static void io_callback(struct pa_iochannel*io, void *userdata) {
     struct pa_pstream *p = userdata;
     assert(p && p->io == io);
-
-    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 0);
-    
-    do_write(p);
-    do_read(p);
+    do_something(p);
 }
 
 static void fixed_callback(struct pa_mainloop_api *m, void *id, void*userdata) {
     struct pa_pstream *p = userdata;
     assert(p && p->mainloop_source == id && p->mainloop == m);
-
-    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 0);
-    
-    do_write(p);
-    do_read(p);
+    do_something(p);
 }
 
 struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel *io) {
@@ -115,14 +131,16 @@ struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel
     p->read.packet = NULL;
     p->read.index = 0;
 
-    p->send_callback = NULL;
-    p->send_callback_userdata = NULL;
-
     p->recieve_packet_callback = NULL;
     p->recieve_packet_callback_userdata = NULL;
     
     p->recieve_memblock_callback = NULL;
     p->recieve_memblock_callback_userdata = NULL;
+
+    p->drain_callback = NULL;
+    p->drain_userdata = NULL;
+
+    p->in_use = p->shall_free = 0;
 
     return p;
 }
@@ -146,6 +164,12 @@ static void item_free(void *item, void *p) {
 void pa_pstream_free(struct pa_pstream *p) {
     assert(p);
 
+    if (p->in_use) {
+        /* If this pstream object is used by someone else on the call stack, we have to postpone the freeing */
+        p->dead = p->shall_free = 1;
+        return;
+    }
+
     pa_iochannel_free(p->io);
     pa_queue_free(p->send_queue, item_free, NULL);
 
@@ -160,13 +184,6 @@ void pa_pstream_free(struct pa_pstream *p) {
 
     p->mainloop->cancel_fixed(p->mainloop, p->mainloop_source);
     free(p);
-}
-
-void pa_pstream_set_send_callback(struct pa_pstream*p, void (*callback) (struct pa_pstream *p, void *userdata), void *userdata) {
-    assert(p && callback);
-
-    p->send_callback = callback;
-    p->send_callback_userdata = userdata;
 }
 
 void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
@@ -199,14 +216,14 @@ void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, int32_t del
     p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 1);
 }
 
-void pa_pstream_set_recieve_packet_callback(struct pa_pstream *p, int (*callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata), void *userdata) {
+void pa_pstream_set_recieve_packet_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata), void *userdata) {
     assert(p && callback);
 
     p->recieve_packet_callback = callback;
     p->recieve_packet_callback_userdata = userdata;
 }
 
-void pa_pstream_set_recieve_memblock_callback(struct pa_pstream *p, int (*callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata), void *userdata) {
+void pa_pstream_set_recieve_memblock_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata), void *userdata) {
     assert(p && callback);
 
     p->recieve_memblock_callback = callback;
@@ -261,7 +278,7 @@ static void do_write(struct pa_pstream *p) {
         l = ntohl(p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) - (p->write.index - PA_PSTREAM_DESCRIPTOR_SIZE);
     }
 
-    if ((r = pa_iochannel_write(p->io, d, l)) < 0) 
+    if ((r = pa_iochannel_write(p->io, d, l)) < 0)
         goto die;
 
     p->write.index += r;
@@ -271,8 +288,8 @@ static void do_write(struct pa_pstream *p) {
         item_free(p->write.current, (void *) 1);
         p->write.current = NULL;
 
-        if (p->send_callback && pa_queue_is_empty(p->send_queue))
-            p->send_callback(p, p->send_callback_userdata);
+        if (p->drain_callback && !pa_pstream_is_pending(p))
+            p->drain_callback(p, p->drain_userdata);
     }
 
     return;
@@ -341,13 +358,14 @@ static void do_read(struct pa_pstream *p) {
                 chunk.memblock = p->read.memblock;
                 chunk.index = p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE - l;
                 chunk.length = l;
-                
-                if (p->recieve_memblock_callback(p,
-                                                 ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL]),
-                                                 (int32_t) ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_DELTA]),
-                                                 &chunk,
-                                                 p->recieve_memblock_callback_userdata) < 0)
-                    goto die;
+
+                if (p->recieve_memblock_callback)
+                    p->recieve_memblock_callback(
+                        p,
+                        ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL]),
+                        (int32_t) ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_DELTA]),
+                        &chunk,
+                        p->recieve_memblock_callback_userdata);
             }
         }
 
@@ -359,17 +377,13 @@ static void do_read(struct pa_pstream *p) {
                 pa_memblock_unref(p->read.memblock);
                 p->read.memblock = NULL;
             } else {
-                int r = 0;
                 assert(p->read.packet);
-
+                
                 if (p->recieve_packet_callback)
-                    r = p->recieve_packet_callback(p, p->read.packet, p->recieve_packet_callback_userdata);
+                    p->recieve_packet_callback(p, p->read.packet, p->recieve_packet_callback_userdata);
 
                 pa_packet_unref(p->read.packet);
                 p->read.packet = NULL;
-
-                if (r < 0)
-                    goto die;
             }
 
             p->read.index = 0;
@@ -390,3 +404,21 @@ void pa_pstream_set_die_callback(struct pa_pstream *p, void (*callback)(struct p
     p->die_callback = callback;
     p->die_callback_userdata = userdata;
 }
+
+int pa_pstream_is_pending(struct pa_pstream *p) {
+    assert(p);
+
+    if (p->dead)
+        return 0;
+
+    return p->write.current || !pa_queue_is_empty(p->send_queue);
+}
+
+void pa_pstream_set_drain_callback(struct pa_pstream *p, void (*cb)(struct pa_pstream *p, void *userdata), void *userdata) {
+    assert(p);
+    assert(!cb || pa_pstream_is_pending(p));
+
+    p->drain_callback = cb;
+    p->drain_userdata = userdata;
+}
+

@@ -9,9 +9,10 @@ enum pa_stream_direction {
 };
 
 struct pa_buffer_attr {
-    uint32_t queue_length;
-    uint32_t max_length;
+    uint32_t maxlength;
+    uint32_t tlength;
     uint32_t prebuf;
+    uint32_t minreq;
 };
 
 

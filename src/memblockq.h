@@ -8,11 +8,18 @@
 
 struct pa_memblockq;
 
-/* Parameters: the maximum length of the memblock queue, a base value
-for all operations (that is, all byte operations shall work on
-multiples of this base value) and an amount of bytes to prebuffer
-before having pa_memblockq_peek() succeed. */
-struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t base, size_t prebuf);
+/* Parameters:
+   - maxlength: maximum length of queue. If more data is pushed into the queue, data from the front is dropped
+   - length:    the target length of the queue.
+   - base:      a base value for all metrics. Only multiples of this value are popped from the queue
+   - prebuf:    before passing the first byte out, make sure that enough bytes are in the queue
+   - minreq:    pa_memblockq_missing() will only return values greater than this value
+*/
+struct pa_memblockq* pa_memblockq_new(size_t maxlength,
+                                      size_t tlength,
+                                      size_t base,
+                                      size_t prebuf,
+                                      size_t minreq);
 void pa_memblockq_free(struct pa_memblockq*bq);
 
 /* Push a new memory chunk into the queue. Optionally specify a value for future cancellation. This is currently not implemented, however! */
@@ -46,6 +53,9 @@ uint32_t pa_memblockq_get_delay(struct pa_memblockq *bq);
 uint32_t pa_memblockq_get_length(struct pa_memblockq *bq);
 
 /* Return how many bytes are missing in queue to the specified fill amount */
-uint32_t pa_memblockq_missing_to(struct pa_memblockq *bq, size_t qlen);
+uint32_t pa_memblockq_missing(struct pa_memblockq *bq);
+
+
+uint32_t pa_memblockq_get_minreq(struct pa_memblockq *bq);
 
 #endif

@@ -18,4 +18,6 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size);
 int pa_unix_socket_is_stale(const char *fn);
 int pa_unix_socket_remove_stale(const char *fn);
 
+void pa_check_for_sigpipe(void);
+
 #endif

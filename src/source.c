@@ -111,10 +111,12 @@ char *pa_source_list_to_string(struct pa_core *c) {
     default_source = pa_source_get_default(c);
     
     for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
+        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
         char mo[256] = "";
         if (source->monitor_of) 
-            snprintf(mo, sizeof(mo), ", monitor_of: <%u>", source->monitor_of->index);
-        pa_strbuf_printf(s, "  %c index: %u, name: <%s>%s\n", source == default_source ? '*' : ' ', source->index, source->name, mo);
+            snprintf(mo, sizeof(mo), "\n\tmonitor_of: <%u>", source->monitor_of->index);
+        pa_sample_snprint(ss, sizeof(ss), &source->sample_spec);
+        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tsample_spec: <%s>%s\n", source == default_source ? '*' : ' ', source->index, source->name, ss, mo);
     }
     
     return pa_strbuf_tostring_free(s);

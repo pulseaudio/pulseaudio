@@ -274,8 +274,18 @@ char *pa_sink_list_to_string(struct pa_core *c) {
     default_sink = pa_sink_get_default(c);
     
     for (sink = pa_idxset_first(c->sinks, &index); sink; sink = pa_idxset_next(c->sinks, &index)) {
+        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
+        pa_sample_snprint(ss, sizeof(ss), &sink->sample_spec);
         assert(sink->monitor_source);
-        pa_strbuf_printf(s, "  %c index: %u, name: <%s>, volume: <0x%04x>, latency: <%u usec>, monitor_source: <%u>\n", sink == default_sink ? '*' : ' ', sink->index, sink->name, (unsigned) sink->volume, pa_sink_get_latency(sink), sink->monitor_source->index);
+        pa_strbuf_printf(
+            s,
+            "  %c index: %u\n\tname: <%s>\n\tvolume: <0x%04x>\n\tlatency: <%u usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
+            sink == default_sink ? '*' : ' ',
+            sink->index, sink->name,
+            (unsigned) sink->volume,
+            pa_sink_get_latency(sink),
+            sink->monitor_source->index,
+            ss);
     }
     
     return pa_strbuf_tostring_free(s);

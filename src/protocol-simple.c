@@ -28,7 +28,8 @@ struct pa_protocol_simple {
     struct pa_sample_spec sample_spec;
 };
 
-#define BUFSIZE PIPE_BUF
+#define PLAYBACK_BUFFER_SECONDS (.5)
+#define RECORD_BUFFER_SECONDS (5)
 
 static void connection_free(struct connection *c) {
     assert(c);
@@ -52,17 +53,18 @@ static void connection_free(struct connection *c) {
 static int do_read(struct connection *c) {
     struct pa_memchunk chunk;
     ssize_t r;
+    size_t l;
 
     if (!pa_iochannel_is_readable(c->io))
         return 0;
     
-    if (!c->sink_input || !pa_memblockq_is_writable(c->input_memblockq, BUFSIZE))
+    if (!c->sink_input || !(l = pa_memblockq_missing(c->input_memblockq)))
         return 0;
-    
-    chunk.memblock = pa_memblock_new(BUFSIZE);
+
+    chunk.memblock = pa_memblock_new(l);
     assert(chunk.memblock);
 
-    if ((r = pa_iochannel_read(c->io, chunk.memblock->data, BUFSIZE)) <= 0) {
+    if ((r = pa_iochannel_read(c->io, chunk.memblock->data, l)) <= 0) {
         fprintf(stderr, "read(): %s\n", r == 0 ? "EOF" : strerror(errno));
         pa_memblock_unref(chunk.memblock);
         return -1;
@@ -213,8 +215,8 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         c->source_output->kill = source_output_kill_cb;
         c->source_output->userdata = c;
 
-        l = 5*pa_bytes_per_second(&p->sample_spec); /* 5s */
-        c->output_memblockq = pa_memblockq_new(l, pa_sample_size(&p->sample_spec), l/2);
+        l = (size_t) (pa_bytes_per_second(&p->sample_spec)*RECORD_BUFFER_SECONDS);
+        c->output_memblockq = pa_memblockq_new(l, 0, pa_sample_size(&p->sample_spec), l/2, 0);
     }
 
     if (p->mode & PA_PROTOCOL_SIMPLE_PLAYBACK) {
@@ -234,8 +236,8 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         c->sink_input->get_latency = sink_input_get_latency_cb;
         c->sink_input->userdata = c;
 
-        l = pa_bytes_per_second(&p->sample_spec)/2; /* half a second */
-        c->input_memblockq = pa_memblockq_new(l, pa_sample_size(&p->sample_spec), l/2);
+        l = (size_t) (pa_bytes_per_second(&p->sample_spec)*PLAYBACK_BUFFER_SECONDS);
+        c->input_memblockq = pa_memblockq_new(l, 0, pa_sample_size(&p->sample_spec), l/2, l/10);
     }
 
 

@@ -19,7 +19,7 @@ int main(int argc, char*argv[]) {
     int error;
 
     if (!(s = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, &error))) {
-        fprintf(stderr, "Failed to connect to server: %s\n", pa_strerror(error));
+        fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
         goto finish;
     }
 
@@ -31,16 +31,16 @@ int main(int argc, char*argv[]) {
             if (r == 0) /* eof */
                 break;
             
-            fprintf(stderr, "read() failed: %s\n", strerror(errno));
+            fprintf(stderr, __FILE__": read() failed: %s\n", strerror(errno));
             goto finish;
         }
 
         if (pa_simple_write(s, buf, r, &error) < 0) {
-            fprintf(stderr, "Failed to write data: %s\n", pa_strerror(error));
+            fprintf(stderr, __FILE__": pa_simple_write() failed: %s\n", pa_strerror(error));
             goto finish;
         }
     }
-    
+
     ret = 0;
 
 finish:

@@ -220,6 +220,7 @@ libpolyp_la_SOURCES = polyp.c polyp.h \
 		protocol-native-spec.h \
 		mainloop-api.c mainloop-api.h \
 		mainloop.c mainloop.h \
+		mainloop-signal.c mainloop-signal.h \
 		idxset.c idxset.h \
 		util.c util.h \
 		memblock.c memblock.h \
@@ -237,12 +238,13 @@ libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
 
 libpolyp_simple_la_SOURCES = simple.c simple.h 
 libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
-libpolyp_simple_la_LIBADD = libpolyp.la #libpolyp-error.la
+libpolyp_simple_la_LIBADD = libpolyp.la
+#libpolyp-error.la
 
-pacat_SOURCES = pacat.c       #$(libpolyp_la_SOURCES)
-pacat_LDADD = libpolyp.la
+pacat_SOURCES = pacat.c $(libpolyp_la_SOURCES) $(libpolyp_error_la_SOURCES)
+#pacat_LDADD = libpolyp.la
 pacat_CFLAGS = $(AM_CFLAGS) 
 
-pacat_simple_SOURCES = pacat-simple.c
-pacat_simple_LDADD = libpolyp-simple.a
+pacat_simple_SOURCES = pacat-simple.c $(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)
+#pacat_simple_LDADD = libpolyp-simple.la libpolyp-error.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)

@@ -14,7 +14,7 @@ static void eof_cb(struct pa_cli*c, void *userdata) {
     pa_module_unload_request(m->core, m);
 }
 
-int module_init(struct pa_core *c, struct pa_module*m) {
+int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct pa_iochannel *io;
     assert(c && m);
 
@@ -35,7 +35,7 @@ int module_init(struct pa_core *c, struct pa_module*m) {
     return 0;
 }
 
-void module_done(struct pa_core *c, struct pa_module*m) {
+void pa_module_done(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     pa_cli_free(m->userdata);

@@ -7,6 +7,7 @@
 #include "sink.h"
 #include "source.h"
 #include "namereg.h"
+#include "util.h"
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     struct pa_core* c;
@@ -24,6 +25,8 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
 
     c->modules = NULL;
     c->namereg = NULL;
+
+    pa_check_for_sigpipe();
     
     return c;
 };

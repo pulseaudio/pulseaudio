@@ -17,6 +17,11 @@ int pa_context_connect(
     void (*complete) (struct pa_context*c, int success, void *userdata),
     void *userdata);
 
+int pa_context_drain(
+    struct pa_context *c, 
+    void (*complete) (struct pa_context*c, void *userdata),
+    void *userdata);
+
 void pa_context_free(struct pa_context *c);
 
 void pa_context_set_die_callback(struct pa_context *c, void (*cb)(struct pa_context *c, void *userdata), void *userdata);
@@ -24,6 +29,8 @@ void pa_context_set_die_callback(struct pa_context *c, void (*cb)(struct pa_cont
 int pa_context_is_dead(struct pa_context *c);
 int pa_context_is_ready(struct pa_context *c);
 int pa_context_errno(struct pa_context *c);
+
+int pa_context_is_pending(struct pa_context *c);
 
 struct pa_stream;
 
@@ -49,5 +56,7 @@ void pa_stream_set_read_callback(struct pa_stream *p, void (*cb)(struct pa_strea
 
 int pa_stream_is_dead(struct pa_stream *p);
 int pa_stream_is_ready(struct pa_stream*p);
+
+struct pa_context* pa_stream_get_context(struct pa_stream *p);
 
 #endif

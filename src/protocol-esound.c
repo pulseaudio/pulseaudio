@@ -17,9 +17,7 @@
 
 #define COOKIE_FILE ".esd_auth"
 
-#define MEMBLOCKQ_LENGTH (10*1204)
-#define MEMBLOCKQ_PREBUF (2*1024)
-#define BUFSIZE (1024)
+#define BUFFER_SECONDS (0.5)
 
 /* This is heavily based on esound's code */
 
@@ -196,6 +194,7 @@ static int esd_proto_stream_play(struct connection *c, const void *data, size_t 
     int format, rate;
     struct pa_sink *sink;
     struct pa_sample_spec ss;
+    size_t l;
     assert(length == (sizeof(int)*2+ESD_NAME_MAX));
     
     format = maybe_swap_endian_32(c->swap_byte_order, *(int*)data);
@@ -217,7 +216,9 @@ static int esd_proto_stream_play(struct connection *c, const void *data, size_t 
     pa_client_rename(c->client, name);
 
     assert(!c->input_memblockq);
-    c->input_memblockq = pa_memblockq_new(MEMBLOCKQ_LENGTH, pa_sample_size(&ss), MEMBLOCKQ_PREBUF);
+
+    l = (size_t) (pa_bytes_per_second(&ss)*BUFFER_SECONDS); 
+    c->input_memblockq = pa_memblockq_new(l, 0, pa_sample_size(&ss), l/2, l/10);
     assert(c->input_memblockq);
 
     assert(!c->sink_input);
@@ -252,7 +253,7 @@ static int esd_proto_get_latency(struct connection *c, const void *data, size_t 
         latency = 0;
     else {
         float usec = pa_sink_get_latency(sink);
-        usec += pa_samples_usec(MEMBLOCKQ_LENGTH-BUFSIZE, &sink->sample_spec);
+        usec += BUFFER_SECONDS*1000000*.9;          /* A better estimation would be a good idea! */
         latency = (int) ((usec*44100)/1000000);
     }
     
@@ -452,16 +453,17 @@ static int do_read(struct connection *c) {
     } else if (c->state == ESD_STREAMING_DATA) {
         struct pa_memchunk chunk;
         ssize_t r;
+        size_t l;
 
         assert(c->input_memblockq);
 
-        if (!pa_memblockq_is_writable(c->input_memblockq, BUFSIZE))
+        if (!(l = pa_memblockq_missing(c->input_memblockq)))
             return 0;
 
-        chunk.memblock = pa_memblock_new(BUFSIZE);
+        chunk.memblock = pa_memblock_new(l);
         assert(chunk.memblock && chunk.memblock->data);
 
-        if ((r = pa_iochannel_read(c->io, chunk.memblock->data, BUFSIZE)) <= 0) {
+        if ((r = pa_iochannel_read(c->io, chunk.memblock->data, l)) <= 0) {
             fprintf(stderr, "protocol-esound.c: read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             pa_memblock_unref(chunk.memblock);
             return -1;

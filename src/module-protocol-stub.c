@@ -47,7 +47,7 @@
   #endif
 #endif
 
-int module_init(struct pa_core *c, struct pa_module*m) {
+int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct pa_socket_server *s;
     assert(c && m);
 
@@ -91,7 +91,7 @@ int module_init(struct pa_core *c, struct pa_module*m) {
     return 0;
 }
 
-void module_done(struct pa_core *c, struct pa_module*m) {
+void pa_module_done(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
     protocol_free(m->userdata);

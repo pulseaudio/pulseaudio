@@ -23,10 +23,10 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     if (!(m->dl = lt_dlopenext(name)))
         goto fail;
 
-    if (!(m->init = lt_dlsym(m->dl, "module_init")))
+    if (!(m->init = lt_dlsym(m->dl, "pa_module_init")))
         goto fail;
 
-    if (!(m->done = lt_dlsym(m->dl, "module_done")))
+    if (!(m->done = lt_dlsym(m->dl, "pa_module_done")))
         goto fail;
     
     m->userdata = NULL;
@@ -124,7 +124,7 @@ char *pa_module_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_ncontents(c->modules));
     
     for (m = pa_idxset_first(c->modules, &index); m; m = pa_idxset_next(c->modules, &index))
-        pa_strbuf_printf(s, "    index: %u, name: <%s>, argument: <%s>\n", m->index, m->name, m->argument);
+        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\targument: <%s>\n", m->index, m->name, m->argument);
     
     return pa_strbuf_tostring_free(s);
 }

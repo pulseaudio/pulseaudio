@@ -14,6 +14,27 @@ struct pa_simple {
     int dead;
 };
 
+static int iterate(struct pa_simple *p, int block, int *perror) {
+    assert(p && p->context && p->mainloop && perror);
+
+    if (!block && !pa_context_is_pending(p->context))
+        return 0;
+    
+    do {
+        if (pa_context_is_dead(p->context) || (p->stream && pa_stream_is_dead(p->stream))) {
+            *perror = pa_context_errno(p->context);
+            return -1;
+        }
+        
+        if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0) {
+            *perror = PA_ERROR_INTERNAL;
+            return -1;
+        }
+    } while (pa_context_is_pending(p->context));
+
+    return 0;
+}
+
 struct pa_simple* pa_simple_new(
     const char *server,
     const char *name,
@@ -44,26 +65,18 @@ struct pa_simple* pa_simple_new(
         goto fail;
     }
 
+    /* Wait until the context is ready */
     while (!pa_context_is_ready(p->context)) {
-        if (pa_context_is_dead(p->context)) {
-            error = pa_context_errno(p->context);
-            goto fail;
-        }
-        
-        if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0)
+        if (iterate(p, 1, &error) < 0)
             goto fail;
     }
 
     if (!(p->stream = pa_stream_new(p->context, dir, dev, stream_name, ss, attr, NULL, NULL)))
         goto fail;
 
+    /* Wait until the stream is ready */
     while (!pa_stream_is_ready(p->stream)) {
-        if (pa_stream_is_dead(p->stream)) {
-            error = pa_context_errno(p->context);
-            goto fail;
-        }
-
-        if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0)
+        if (iterate(p, 1, &error) < 0)
             goto fail;
     }
 
@@ -96,17 +109,9 @@ int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *pe
     while (length > 0) {
         size_t l;
         
-        while (!(l = pa_stream_writable_size(p->stream))) {
-            if (pa_context_is_dead(p->context)) {
-                *perror = pa_context_errno(p->context);
+        while (!(l = pa_stream_writable_size(p->stream)))
+            if (iterate(p, 1, perror) < 0)
                 return -1;
-            }
-            
-            if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0) {
-                *perror = PA_ERROR_INTERNAL;
-                return -1;
-            }
-        }
 
         if (l > length)
             l = length;
@@ -116,9 +121,14 @@ int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *pe
         length -= l;
     }
 
+    /* Make sure that no data is pending for write */
+    if (iterate(p, 0, perror) < 0)
+        return -1;
+
     return 0;
 }
 
 int pa_simple_read(struct pa_simple *s, void*data, size_t length, int *perror) {
     assert(0);
 }
+

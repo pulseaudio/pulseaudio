@@ -4,10 +4,26 @@
 #include "pdispatch.h"
 #include "protocol-native-spec.h"
 
+static const char *command_names[PA_COMMAND_MAX] = {
+    [PA_COMMAND_ERROR] = "ERROR",
+    [PA_COMMAND_TIMEOUT] = "TIMEOUT",
+    [PA_COMMAND_REPLY] = "REPLY",
+    [PA_COMMAND_CREATE_PLAYBACK_STREAM] = "CREATE_PLAYBACK_STREAM",
+    [PA_COMMAND_DELETE_PLAYBACK_STREAM] = "DELETE_PLAYBACK_STREAM",
+    [PA_COMMAND_CREATE_RECORD_STREAM] = "CREATE_RECORD_STREAM",
+    [PA_COMMAND_DELETE_RECORD_STREAM] = "DELETE_RECORD_STREAM",
+    [PA_COMMAND_AUTH] = "AUTH",
+    [PA_COMMAND_REQUEST] = "REQUEST",
+    [PA_COMMAND_EXIT] = "EXIT",
+    [PA_COMMAND_SET_NAME] = "SET_NAME",
+    [PA_COMMAND_LOOKUP_SINK] = "LOOKUP_SINK",
+    [PA_COMMAND_LOOKUP_SOURCE] = "LOOKUP_SOURCE",
+};
+
 struct reply_info {
     struct pa_pdispatch *pdispatch;
     struct reply_info *next, *previous;
-    int (*callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+    void (*callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
     void *userdata;
     uint32_t tag;
     void *mainloop_timeout;
@@ -18,6 +34,9 @@ struct pa_pdispatch {
     const struct pa_pdispatch_command *command_table;
     unsigned n_commands;
     struct reply_info *replies;
+    void (*drain_callback)(struct pa_pdispatch *pd, void *userdata);
+    void *drain_userdata;
+    int in_use, shall_free;
 };
 
 static void reply_info_free(struct reply_info *r) {
@@ -49,11 +68,21 @@ struct pa_pdispatch* pa_pdispatch_new(struct pa_mainloop_api *mainloop, const st
     pd->command_table = table;
     pd->n_commands = entries;
     pd->replies = NULL;
+    pd->drain_callback = NULL;
+    pd->drain_userdata = NULL;
+
+    pd->in_use = pd->shall_free = 0;
     return pd;
 }
 
 void pa_pdispatch_free(struct pa_pdispatch *pd) {
     assert(pd);
+
+    if (pd->in_use) {
+        pd->shall_free = 1;
+        return;
+    }
+    
     while (pd->replies)
         reply_info_free(pd->replies);
     free(pd);
@@ -61,60 +90,61 @@ void pa_pdispatch_free(struct pa_pdispatch *pd) {
 
 int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *userdata) {
     uint32_t tag, command;
-    assert(pd && packet);
     struct pa_tagstruct *ts = NULL;
-    assert(pd && packet && packet->data);
+    int ret = -1;
+    assert(pd && packet && packet->data && !pd->in_use);
 
     if (packet->length <= 8)
-        goto fail;
+        goto finish;
 
     ts = pa_tagstruct_new(packet->data, packet->length);
     assert(ts);
     
     if (pa_tagstruct_getu32(ts, &command) < 0 ||
         pa_tagstruct_getu32(ts, &tag) < 0)
-        goto fail;
+        goto finish;
+
+    /*fprintf(stderr, __FILE__": Recieved opcode <%s>\n", command_names[command]);*/
 
     if (command == PA_COMMAND_ERROR || command == PA_COMMAND_REPLY) {
         struct reply_info *r;
-        int done = 0;
 
         for (r = pd->replies; r; r = r->next) {
-            if (r->tag == tag) {
-                int ret = r->callback(r->pdispatch, command, tag, ts, r->userdata);
-                reply_info_free(r);
-                
-                if (ret < 0)
-                    goto fail;
-                
-                done = 1;
+            if (r->tag != tag)
+                continue;
+            
+            pd->in_use = 1;
+            assert(r->callback);
+            r->callback(r->pdispatch, command, tag, ts, r->userdata);
+            pd->in_use = 0;
+            reply_info_free(r);
+            
+            if (pd->shall_free) {
+                pa_pdispatch_free(pd);
                 break;
             }
-        }
 
-        if (!done)
-            goto fail;
+            if (pd->drain_callback && !pa_pdispatch_is_pending(r->pdispatch))
+                pd->drain_callback(r->pdispatch, r->pdispatch->drain_userdata);
+
+            break;
+        }
 
     } else if (pd->command_table && command < pd->n_commands) {
         const struct pa_pdispatch_command *c = pd->command_table+command;
 
-        if (!c->proc)
-            goto fail;
-        
-        if (c->proc(pd, command, tag, ts, userdata) < 0)
-            goto fail;
+        if (c->proc)
+            c->proc(pd, command, tag, ts, userdata);
     } else
-        goto fail;
-    
-    pa_tagstruct_free(ts);    
-        
-    return 0;
+        goto finish;
 
-fail:
+    ret = 0;
+        
+finish:
     if (ts)
         pa_tagstruct_free(ts);    
 
-    return -1;
+    return ret;
 }
 
 static void timeout_callback(struct pa_mainloop_api*m, void *id, const struct timeval *tv, void *userdata) {
@@ -123,9 +153,12 @@ static void timeout_callback(struct pa_mainloop_api*m, void *id, const struct ti
 
     r->callback(r->pdispatch, PA_COMMAND_TIMEOUT, r->tag, NULL, r->userdata);
     reply_info_free(r);
+
+    if (r->pdispatch->drain_callback && !pa_pdispatch_is_pending(r->pdispatch))
+        r->pdispatch->drain_callback(r->pdispatch, r->pdispatch->drain_userdata);
 }
 
-void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int timeout, int (*cb)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata), void *userdata) {
+void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int timeout, void (*cb)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata), void *userdata) {
     struct reply_info *r;
     struct timeval tv;
     assert(pd && cb);
@@ -148,4 +181,18 @@ void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int time
     if (r->next)
         r->next->previous = r;
     pd->replies = r;
+}
+
+int pa_pdispatch_is_pending(struct pa_pdispatch *pd) {
+    assert(pd);
+
+    return !!pd->replies;
+}
+
+void pa_pdispatch_set_drain_callback(struct pa_pdispatch *pd, void (*cb)(struct pa_pdispatch *pd, void *userdata), void *userdata) {
+    assert(pd);
+    assert(!cb || pa_pdispatch_is_pending(pd));
+
+    pd->drain_callback = cb;
+    pd->drain_userdata = userdata;
 }

@@ -32,6 +32,8 @@ uint32_t pa_samples_usec(size_t length, const struct pa_sample_spec *spec);
 int pa_sample_spec_valid(const struct pa_sample_spec *spec);
 int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b);
 
+
+#define PA_SAMPLE_SNPRINT_MAX_LENGTH 32
 void pa_sample_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
 
 #endif

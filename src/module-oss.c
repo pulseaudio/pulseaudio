@@ -111,7 +111,7 @@ static uint32_t sink_get_latency_cb(struct pa_sink *s) {
     return pa_samples_usec(arg, &s->sample_spec);
 }
 
-int module_init(struct pa_core *c, struct pa_module*m) {
+int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct audio_buf_info info;
     struct userdata *u = NULL;
     char *p;
@@ -224,7 +224,7 @@ fail:
     return -1;
 }
 
-void module_done(struct pa_core *c, struct pa_module*m) {
+void pa_module_done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

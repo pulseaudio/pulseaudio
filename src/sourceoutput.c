@@ -68,11 +68,16 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_ncontents(c->source_outputs));
 
     for (o = pa_idxset_first(c->source_outputs, &index); o; o = pa_idxset_next(c->source_outputs, &index)) {
+        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
+        pa_sample_snprint(ss, sizeof(ss), &o->sample_spec);
         assert(o->source);
-        pa_strbuf_printf(s, "  %c index: %u, name: <%s>, source: <%u>\n",
-                         o->index,
-                         o->name,
-                         o->source->index);
+        pa_strbuf_printf(
+            s, "  %c index: %u\n\tname: <%s>\n\tsource: <%u>\n\tsample_spec: <%u>\n",
+            o->index,
+            o->name,
+            o->source->index,
+            ss,
+            ss);
     }
     
     return pa_strbuf_tostring_free(s);

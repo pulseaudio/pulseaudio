@@ -85,13 +85,18 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
     pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_ncontents(c->sink_inputs));
 
     for (i = pa_idxset_first(c->sink_inputs, &index); i; i = pa_idxset_next(c->sink_inputs, &index)) {
+        char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
+        pa_sample_snprint(ss, sizeof(ss), &i->sample_spec);
         assert(i->sink);
-        pa_strbuf_printf(s, "    index: %u, name: <%s>, sink: <%u>; volume: <0x%04x>, latency: <%u usec>\n",
-                      i->index,
-                      i->name,
-                      i->sink->index,
-                      (unsigned) i->volume,
-                      pa_sink_input_get_latency(i));
+        pa_strbuf_printf(
+            s,
+            "    index: %u\n\tname: <%s>\n\tsink: <%u>\n\tvolume: <0x%04x>\n\tlatency: <%u usec>\n\tsample_spec: <%s>\n",
+            i->index,
+            i->name,
+            i->sink->index,
+            (unsigned) i->volume,
+            pa_sink_input_get_latency(i),
+            ss);
     }
     
     return pa_strbuf_tostring_free(s);

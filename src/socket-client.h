@@ -5,6 +5,8 @@
 #include "mainloop-api.h"
 #include "iochannel.h"
 
+/* It is safe to destroy the calling socket_client object from the callback */
+
 struct pa_socket_client;
 
 struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port);

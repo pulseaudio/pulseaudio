@@ -15,30 +15,45 @@ struct memblock_list {
 struct pa_memblockq {
     struct memblock_list *blocks, *blocks_tail;
     unsigned n_blocks;
-    size_t total_length, maxlength, base, prebuf;
+    size_t current_length, maxlength, tlength, base, prebuf, minreq;
     int measure_delay;
     uint32_t delay;
     struct pa_mcalign *mcalign;
 };
 
-struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
+struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t base, size_t prebuf, size_t minreq) {
     struct pa_memblockq* bq;
-    assert(maxlength && base);
+    assert(maxlength && base && maxlength);
     
     bq = malloc(sizeof(struct pa_memblockq));
     assert(bq);
     bq->blocks = bq->blocks_tail = 0;
     bq->n_blocks = 0;
-    bq->total_length = 0;
-    bq->base = base;
-    bq->maxlength = ((maxlength+base-1)/base)*base;
-    bq->prebuf = prebuf == (size_t) -1 ? bq->maxlength/2 : prebuf;
+
+    bq->current_length = 0;
+
+    fprintf(stderr, "memblockq requested: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", maxlength, tlength, base, prebuf, minreq);
     
+    bq->base = base;
+
+    bq->maxlength = ((maxlength+base-1)/base)*base;
+    assert(bq->maxlength >= base);
+
+    bq->tlength = ((tlength+base-1)/base)*base;
+    if (bq->tlength == 0 || bq->tlength >= bq->maxlength)
+        bq->tlength = bq->maxlength;
+    
+    bq->prebuf = (prebuf == (size_t) -1) ? bq->maxlength/2 : prebuf;
+    bq->prebuf = (bq->prebuf/base)*base;
     if (bq->prebuf > bq->maxlength)
         bq->prebuf = bq->maxlength;
     
-    assert(bq->maxlength >= base);
+    bq->minreq = (minreq/base)*base;
+    if (bq->minreq == 0)
+        bq->minreq = 1;
 
+    fprintf(stderr, "memblockq sanitized: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", bq->maxlength, bq->tlength, bq->base, bq->prebuf, bq->minreq);
+    
     bq->measure_delay = 0;
     bq->delay = 0;
 
@@ -88,7 +103,7 @@ void pa_memblockq_push(struct pa_memblockq* bq, const struct pa_memchunk *chunk,
     bq->blocks_tail = q;
 
     bq->n_blocks++;
-    bq->total_length += chunk->length;
+    bq->current_length += chunk->length;
 
     pa_memblockq_shorten(bq, bq->maxlength);
 }
@@ -96,7 +111,7 @@ void pa_memblockq_push(struct pa_memblockq* bq, const struct pa_memchunk *chunk,
 int pa_memblockq_peek(struct pa_memblockq* bq, struct pa_memchunk *chunk) {
     assert(bq && chunk);
 
-    if (!bq->blocks || bq->total_length < bq->prebuf)
+    if (!bq->blocks || bq->current_length < bq->prebuf)
         return -1;
 
     bq->prebuf = 0;
@@ -116,7 +131,7 @@ int memblockq_pop(struct memblockq* bq, struct pa_memchunk *chunk) {
     
     assert(bq && chunk);
 
-    if (!bq->blocks || bq->total_length < bq->prebuf)
+    if (!bq->blocks || bq->current_length < bq->prebuf)
         return -1;
 
     bq->prebuf = 0;
@@ -127,7 +142,7 @@ int memblockq_pop(struct memblockq* bq, struct pa_memchunk *chunk) {
     *chunk = q->chunk;
 
     bq->n_blocks--;
-    bq->total_length -= chunk->length;
+    bq->current_length -= chunk->length;
 
     free(q);
     return 0;
@@ -159,7 +174,7 @@ void pa_memblockq_drop(struct pa_memblockq *bq, size_t length) {
 
     while (length > 0) {
         size_t l = length;
-        assert(bq->blocks && bq->total_length >= length);
+        assert(bq->blocks && bq->current_length >= length);
         
         if (l > bq->blocks->chunk.length)
             l = bq->blocks->chunk.length;
@@ -169,7 +184,7 @@ void pa_memblockq_drop(struct pa_memblockq *bq, size_t length) {
         
         bq->blocks->chunk.index += l;
         bq->blocks->chunk.length -= l;
-        bq->total_length -= l;
+        bq->current_length -= l;
         
         if (bq->blocks->chunk.length == 0) {
             struct memblock_list *q;
@@ -192,12 +207,12 @@ void pa_memblockq_shorten(struct pa_memblockq *bq, size_t length) {
     size_t l;
     assert(bq);
 
-    if (bq->total_length <= length)
+    if (bq->current_length <= length)
         return;
 
     fprintf(stderr, "Warning! pa_memblockq_shorten()\n");
     
-    l = bq->total_length - length;
+    l = bq->current_length - length;
     l /= bq->base;
     l *= bq->base;
 
@@ -213,14 +228,13 @@ void pa_memblockq_empty(struct pa_memblockq *bq) {
 int pa_memblockq_is_readable(struct pa_memblockq *bq) {
     assert(bq);
 
-    return bq->total_length >= bq->prebuf;
+    return bq->current_length >= bq->prebuf;
 }
 
 int pa_memblockq_is_writable(struct pa_memblockq *bq, size_t length) {
     assert(bq);
 
-    assert(length <= bq->maxlength);
-    return bq->total_length + length <= bq->maxlength;
+    return bq->current_length + length <= bq->tlength;
 }
 
 uint32_t pa_memblockq_get_delay(struct pa_memblockq *bq) {
@@ -230,16 +244,20 @@ uint32_t pa_memblockq_get_delay(struct pa_memblockq *bq) {
 
 uint32_t pa_memblockq_get_length(struct pa_memblockq *bq) {
     assert(bq);
-    return bq->total_length;
+    return bq->current_length;
 }
 
-uint32_t pa_memblockq_missing_to(struct pa_memblockq *bq, size_t qlen) {
-    assert(bq && qlen);
+uint32_t pa_memblockq_missing(struct pa_memblockq *bq) {
+    size_t l;
+    assert(bq);
 
-    if (bq->total_length >= qlen)
+    if (bq->current_length >= bq->tlength)
         return 0;
 
-    return qlen - bq->total_length;
+    l = bq->tlength - bq->current_length;
+    assert(l);
+
+    return (l >= bq->minreq) ? l : 0;
 }
 
 void pa_memblockq_push_align(struct pa_memblockq* bq, const struct pa_memchunk *chunk, size_t delta) {
@@ -263,4 +281,9 @@ void pa_memblockq_push_align(struct pa_memblockq* bq, const struct pa_memchunk *
         pa_memblock_unref(rchunk.memblock);
         delta = 0;
     }
+}
+
+uint32_t pa_memblockq_get_minreq(struct pa_memblockq *bq) {
+    assert(bq);
+    return bq->minreq;
 }

@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include "mainloop-api.h"
 
+/* It is safe to destroy the calling iochannel object from the callback */
+
 struct pa_iochannel;
 
 struct pa_iochannel* pa_iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd);
