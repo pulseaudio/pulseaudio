@@ -93,10 +93,11 @@ char *pa_sink_list_to_string(struct pa_core *c) {
         assert(sink->monitor_source);
         pa_strbuf_printf(
             s,
-            "  %c index: %u\n\tname: <%s>\n\tvolume: <0x%04x>\n\tlatency: <%u usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
+            "  %c index: %u\n\tname: <%s>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%u usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index, sink->name,
             (unsigned) sink->volume,
+            pa_volume_to_dB(sink->volume),
             pa_sink_get_latency(sink),
             sink->monitor_source->index,
             ss);
@@ -188,11 +189,12 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
         pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
         assert(i->sink);
         pa_strbuf_printf(
-            s, "    index: %u\n\tname: <%s>\n\tsink: <%u>\n\tvolume: <0x%04x>\n\tlatency: <%u usec>\n\tsample_spec: <%s>\n",
+            s, "    index: %u\n\tname: <%s>\n\tsink: <%u>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%u usec>\n\tsample_spec: <%s>\n",
             i->index,
             i->name,
             i->sink->index,
             (unsigned) i->volume,
+            pa_volume_to_dB(i->volume),
             pa_sink_input_get_latency(i),
             ss);
 

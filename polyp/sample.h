@@ -102,6 +102,12 @@ typedef uint32_t pa_volume_t;
 /** Multiply two volumes specifications, return the result. This uses PA_VOLUME_NORM as neutral element of multiplication. */
 pa_volume_t pa_volume_multiply(pa_volume_t a, pa_volume_t b);
 
+/** Convert volume from decibel to linear level */
+pa_volume_t pa_volume_from_dB(double f);
+
+/** Convert volume from linear level to decibel */
+double pa_volume_to_dB(pa_volume_t v);
+
 PA_C_DECL_END
 
 #endif

@@ -14,7 +14,6 @@
 - remove all gcc warnings
 - esd compatible startup script or personality
 - limit number of concurrent streams
-- decibel macros
 
 ** later ***
 - xmlrpc/http

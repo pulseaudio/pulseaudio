@@ -19,8 +19,8 @@
 
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
 #AM_CFLAGS+= -DDLSEARCHDIR=\"$(pkglibdir)\" 
-AM_LDADD=$(PTHREAD_LIBS)
-AM_LIBADD=$(PTHREAD_LIBS)
+AM_LDADD=$(PTHREAD_LIBS) -lm
+AM_LIBADD=$(PTHREAD_LIBS) -lm
 
 polypincludedir=$(includedir)/polyp
 
@@ -276,7 +276,7 @@ module_cli_la_LIBADD = $(AM_LIBADD) libcli.la libiochannel.la
 
 module_sine_la_SOURCES = module-sine.c
 module_sine_la_LDFLAGS = -module -avoid-version
-module_sine_la_LIBADD = $(AM_LIBADD) -lm
+module_sine_la_LIBADD = $(AM_LIBADD)
 
 if !X_DISPLAY_MISSING
 module_x11_bell_la_SOURCES = module-x11-bell.c

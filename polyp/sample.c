@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <math.h>
 
 #include "sample.h"
 
@@ -103,4 +104,18 @@ pa_volume_t pa_volume_multiply(pa_volume_t a, pa_volume_t b) {
     p /= PA_VOLUME_NORM;
 
     return (pa_volume_t) p;
+}
+
+pa_volume_t pa_volume_from_dB(double f) {
+    if (f <= -200)
+        return PA_VOLUME_MUTED;
+
+    return (pa_volume_t) (pow(10, f/20)*PA_VOLUME_NORM);
+}
+
+double pa_volume_to_dB(pa_volume_t v) {
+    if (v == PA_VOLUME_MUTED)
+        return -200;
+
+    return 20*log10((double) v/PA_VOLUME_NORM);
 }
