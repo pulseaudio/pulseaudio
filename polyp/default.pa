@@ -1,4 +1,4 @@
-#!./polypaudio -rnF 
+#!./polypaudio -nF 
 
 #
 # This file is part of polypaudio.
@@ -28,12 +28,12 @@ load-module module-oss device="/dev/dsp" sink_name=output source_name=input reco
 
 # Load audio drivers automatically on access
 
-#add-autoload_sink output module-oss device="/dev/dsp" sink_name=output source_name=input
-#add-autoload_source input module-oss device="/dev/dsp" sink_name=output source_name=input
-#add-autoload_sink output module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
-#add-autoload_source input module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
-#add-autoload_sink output module-alsa-sink sink_name=output
-#add-autoload_source input module-alsa-source source_name=input
+#add-autoload-sink output module-oss device="/dev/dsp" sink_name=output source_name=input
+#add-autoload-source input module-oss device="/dev/dsp" sink_name=output source_name=input
+#add-autoload-sink output module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+#add-autoload-source input module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+#add-autoload-sink output module-alsa-sink sink_name=output
+#add-autoload-source input module-alsa-source source_name=input
 
 # Load several protocols
 load-module module-esound-protocol-tcp

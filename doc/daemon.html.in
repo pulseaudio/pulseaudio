@@ -13,28 +13,38 @@
 
 The <tt>polypaudio</tt> daemon accepts several command line arguments:
 
-<p><tt>-r</tt>: Set low nice value (high priority) and SCHED_FIFO scheduling if available. Works only when started as root or SUID root.</p>
-<p><tt>-R</tt>: Don't drop root rights if started SUID root.</p>
-<p><tt>-L MODULE</tt>: Load the specified module. This option may be specified more than once.</p>
-<p><tt>-F FILE</tt>: Run the specified script. This option may be specified more than once.</p>
-<p><tt>-C</tt>: Load the module <a href="modules.html#module-cli"><tt>module-cli</tt></a> after startup.</p>
-<p><tt>-n</tt>: Don't load the default configuration file. Normally <tt>~/.polypaudio</tt> or <tt>/etc/polyp/polypaudio.pa</tt> are loaded on startup.</p>
-<p><tt>-D</tt>: Daemonize after successfully executing all scripts and loading all modules.</p>
-<p><tt>-d</tt>: Disallow module load and unload after startup.</p>
-<p><tt>-f</tt>: Unless this option is given the daemon will terminate if any of the specified modules failed to load or the script didn't execute successfully.</p>
-<p><tt>-v</tt>: Increase the verbosity of the daemon.</p>
-<p><tt>-X SECS</tt>: Terminate the daemon after the last client exited an SECS seconds passed.</p>
-<p><tt>-h</tt>: Show a quick help.</p>
-<p><tt>-l TARGET</tt>: Specify the log target (<tt>syslog</tt>, <tt>stderr</tt>, <tt>auto</tt>). Defaults to <tt>auto</tt>, which means <tt>stderr</tt> when run without <tt>-D</tt> and <tt>syslog</tt> when run with <tt>-D</tt>.</p>
-<p><tt>-V</tt>: Show version.</p>
+<pre>
+  -h, --help                            Show this help
+      --version                         Show version
+      --dump-conf                       Dump default configuration
+      --dump-modules                    Dump list of available modules
+
+  -D, --daemonize[=BOOL]                Daemonize after startup
+      --fail[=BOOL]                     Quit when startup fails
+      --verbose[=BOOL]                  Be slightly more verbose
+      --high-priority[=BOOL]            Try to set high process priority (only available as root)
+      --disallow-module-loading[=BOOL]  Disallow module loading after startup
+      --exit-idle-time=SECS             Terminate the daemon when idle and this time passed
+      --module-idle-time=SECS           Unload autoloaded modules when idle and this time passed
+      --scache-idle-time=SECS           Unload autoloaded samples when idle and this time passed
+      --log-target={auto,syslog,stderr} Specify the log target
+  -p, --dl-search-path=PATH             Set the search path for dynamic shared objects (plugins)
+      --resample-method=[METHOD]        Use the specified resampling method
+
+  -L, --load="MODULE ARGUMENTS"         Load the specified plugin module with the specified argument
+  -F, --file=FILENAME                   Run the specified script
+  -C                                    Open a command line on the running TTY after startup (identical to -Lmodule-cli)
+
+  -n                                    Don't load default script file
+</pre>
 
 <h3>Example</h3>
 
 <p>It is a good idea to run the daemon like this:</p>
 
-<pre>polypaudio -rD</pre>
+<pre>polypaudio -D</pre>
 
-<p>This will run <tt>/etc/polypaudio/polypaudio.pa</tt> after startup. This should be a script written in the CLI language described in <a href="cli.html">cli.html</a>. </p>
+<p>This will run <tt>/etc/polypaudio/default.pa</tt> after startup. This should be a script written in the CLI language described in <a href="cli.html">cli.html</a>. </p>
 
 <h2>Signals</h2>
 

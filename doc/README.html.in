@@ -44,6 +44,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
 
+<div class="news-date">Mon Sep 20 2004: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.5.tar.gz">Version 0.5</a> released;
+changes include: extensive API improvements, new module
+<tt>module-combine</tt> for combining multiple sound cards into one,
+gcc 2.95 compatibility, configuration files, add "lazy" samples,
+support for source and network latency measurements, add
+<tt>module-pipe-source</tt>, many other fixes and improvements.</p>
+
 <div class="news-date">Wed Sep 8 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.4.tar.gz">Version 0.4</a> released;
 changes include: daemon auto spawning, support for <tt>SCHED_FIFO</tt> scheduling, three new modules, proper logging, CPU load watchdog, many fixes.</p>
@@ -79,6 +87,8 @@ Daemon</a> (ESOUND). In addition to the features ESOUND provides
   <li>Flexible, implicit sample type conversion and resampling</li>
   <li>"Zero-Copy" architecture</li>
   <li>Module autoloading</li>
+  <li>Very accurate latency measurement for playback and recordin.</li>
+  <li>May be used to combine multiple sound cards to one (with sample rate adjustment)</li>
 </ul>
 
 <p>Both the core and the client API are completely asynchronous making
@@ -89,15 +99,35 @@ available through <tt>polyplib</tt> is quite difficult to use there is
 a simplified synchronous API wrapper <tt>polyplib-simple</tt>
 available. A simple main loop implementation is available as well.</p>
 
+<p>The following modules are currently available:</p>
+
+<ul>
+  <li><tt>module-oss</tt>: driver for Open Sound System audio sinks and sources.</li>
+  <li><tt>module-oss-mmap</tt>: same as above, but uses <tt>mmap()</tt> access to the audio buffer. Not as compatible</li>
+  <li><tt>module-alsa-sink</tt>, <tt>module-alsa-source</tt>: drivers for ALSA sinks and sources</li>
+  <li><tt>module-pipe-sink</tt>, <tt>module-pipe-source</tt>: demonstration module providing UNIX fifos backed sinks/sources</li>
+  <li><tt>module-combine</tt>: combine multiple sinks into one.</li>
+  <li><tt>module-sine</tt>: a sine generate sink input.</li>
+  <li><tt>module-x11-bell</tt>: play a sample from the sample cache on every X11 bell event.</li>
+  <li><tt>module-esound-protocol-tcp</tt>, <tt>module-esound-protocol-unix</tt>: ESOUND compatibility modules (for TCP/IP resp. UNIX domain sockets)</li>
+  <li><tt>module-native-protocol-tcp</tt>, <tt>module-native-protocol-unix</tt>: Native polypaudio protocol (for TCP/IP resp. UNIX domain sockets)</li>
+  <li><tt>module-simple-protocol-tcp</tt>, <tt>module-simple-protocol-unix</tt>: Simplistic protocol for playback/capture for usage with tools like <tt>netcat</tt> (for TCP/IP resp. UNIX domain sockets)</li>
+  <li><tt>module-cli-protocol-tcp</tt>, <tt>module-cli-protocol-unix</tt>, <tt>module-cli</tt>: Expose polypaudio's internals whith a simple command line interface. (for TCP/IP resp. UNIX domain sockets resp. STDIN/STDOUT)</li>
+  </ul>
+
 <p><tt>polypaudio</tt> is the successor of my previous, ill-fated
-attempt to write a sound server <a
+attempt to write a sound server, <a
 href="http://asd.sf.net/">asd</a>.</p>
 
 <p>A GTK GUI manager application for polypaudio is the <a
 href="http://0pointer.de/lennart/projects/paman/">Polypaudio
-Manager</a>. Another GTK GUI tool for Polypaudio is the <a href="http://0pointer.de/lennart/projects/pavumeter">Polypaudio Volume Meter</a>. There are output plugins for <a
+Manager</a>. Another GTK GUI tool for Polypaudio is the <a
+href="http://0pointer.de/lennart/projects/pavumeter">Polypaudio Volume
+Meter</a>. There are output plugins for <a
 href="http://0pointer.de/lennart/projects/xmms-polyp/">XMMS</a> and <a
-href="http://0pointer.de/lennart/projects/libao-polyp/">libao</a>.</p>
+href="http://0pointer.de/lennart/projects/libao-polyp/">libao</a>. Drivers
+for <a href="http://gstreamer.net">gstreamer</a> and <a
+href="http://mplayerhq.hu">MPlayer</a> will be released shortly.</p>
 
 <h2><a name="status">Status</a></h2>
 
@@ -116,9 +146,9 @@ href="daemon.html"><tt>daemon.html</tt></a>, <a href="FAQ.html"><tt>FAQ.html</tt
 
 <h3>First Steps</h3>
 
-<p>Simply start the polypaudio daemon with the argument <tt>-C</tt></p>
+<p>Simply start the polypaudio daemon with the argument <tt>-nC</tt></p>
 
-<pre>polypaudio -C</pre>
+<pre>polypaudio -nC</pre>
 
 <p>This will present you a screen like this:</p>
 
@@ -130,9 +160,11 @@ href="cli.html"><tt>cli.html</tt></a>. Another way to start
 <tt>polypaudio</tt> is by specifying a configuration script like that one included in the distribution on the
 command line :</p>
 
-<pre>polypaudio -F polypaudio.pa</pre>
+<pre>polypaudio -nF polypaudio.pa</pre>
 
 <p>This will load some drivers and protocols automatically.</p>
+
+<p>The best idea is to configure your daemon in <tt>/etc/polypaudio/daemon.conf</tt> and <tt>/etc/polypaudio/default.pa</tt> and to run polypaudio without any arguments.</p>
 
 <h3>Developing polypaudio Clients</h3>
 
@@ -149,7 +181,7 @@ documentation</a> for the client API. (Run <tt>make doxygen</tt> to generate thi
   <li>Protocol support beyond ESOUND's protocol and the native protocol. (such as NAS or a subset of aRts)</li>
   <li>New programming interfaces such as XMLRPC or DBUS for controlling the daemon.</li>
   <li>Hooking audio event sources directly into polypaudio (similar to <tt>module-x11-bell</tt>)</li>
-  <li>For low latency applications such as VOIP: load the VOIP core directly into polypaudio and have a slim GUI frontend to control it.</li> 
+  <li>For low latency applications such as VOIP: load the VOIP core directly into polypaudio and have a slim GUI frontend to control it.</li>
 </ul>
 
 <p>There is currently no documentation how to write loadable modules

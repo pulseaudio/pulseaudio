@@ -28,19 +28,19 @@ commands are supported:</p>
 
 <h2>Status Commands</h2>
 
-<h3><tt>modules</tt></h3>
+<h3><tt>list-modules</tt></h3>
 
 <p>Show all currently loaded modules with their arguments.</p>
 
-<h3><tt>sinks/sources</tt></h3>
+<h3><tt>list-sinks/list-sources</tt></h3>
 
 <p>Show all currently registered sinks (resp. sources).</p>
 
-<h3><tt>clients</tt></h3>
+<h3><tt>list-clients</tt></h3>
 
 <p>Show all currently active clients.</p>
 
-<h3><tt>sink_inputs/sink_outputs</tt></h3>
+<h3><tt>list-sink-inputs/list-sink-outputs</tt></h3>
 
 <p>Show all currently active inputs to sinks (resp. outputs of sources).</p>
 
@@ -56,19 +56,19 @@ and <tt>list</tt> are synonyms for <tt>info</tt>.</p>
 
 <h2>Module Management</h2>
 
-<h3><tt>load</tt></h3>
+<h3><tt>load-module</tt></h3>
 
 <p>Load a module specified by its name and arguments. For most modules
 it is OK to be loaded more than once.</p>
 
-<h3><tt>unload</tt></h3>
+<h3><tt>unload-module</tt></h3>
 
 <p>Unload a module specified by its index in the module list as
 returned by <tt>modules</tt>.</p>
 
 <h2>Configuration Commands</h2>
 
-<h3><tt>sink_volume</tt></h3>
+<h3><tt>set-sink-volume</tt></h3>
 
 <p>Set the volume of the specified sink. You may specify the sink either
 by its index in the sink list or by its name. The volume should be an
@@ -76,12 +76,12 @@ integer value greater or equal than 0 (= muted). Volume 256
 (<tt>0x100</tt>) is normal volume, values greater than this amplify
 the audio signal with clipping.</p>
 
-<h3><tt>sink_input_volume</tt></h3>
+<h3><tt>set-sink-input-volume</tt></h3>
 
 <p>Set the volume of a sink input specified by its index the the sink
 input list. The same volume rules apply as with <tt>sink_volume</tt>.</p>
 
-<h3><tt>sink_default/source_default</tt></h3>
+<h3><tt>set-default-sink</tt>/<tt>set-default-source</tt></h3>
 
 <p>Make a sink (resp. source) the default. You may specify the sink
 (resp. ssource) by its index in the sink (resp. source) list or by its
@@ -89,39 +89,46 @@ name.</p>
 
 <h2>Sample Cache</h2>
 
-<h3><tt>scache_list</tt></h3>
+<h3><tt>list-samples</tt></h3>
 
 <p>Lists the contents of the sample cache.</p>
 
-<h3><tt>scache_play</tt></h3>
+<h3><tt>play-sample</tt></h3>
 
 <p>Play a sample cache entry to a sink. Expects the sample name and the sink name as arguments.</p>
 
-<h3><tt>sache_remove</tt></h3>
+<h3><tt>remove-sample</tt></h3>
 
 <p>Remove an entry from the sample cache. Expects the sample name as argument.</p>
 
-<h3><tt>sache_load</tt></h3>
+<h3><tt>load-sample</tt></h3>
 
 <p>Load an audio file to the sample cache. Expects the file name to load and the desired sample name as arguments.</p>
 
+<h3><tt>load-sample-lazy</tt></h3>
+
+<p>Create a new entry in the sample cache, but don't load the sample
+immediately. The sample is loaded only when it is first used. After a
+certain idle time it is freed again. Expects the the desired sample
+name and file name to load as arguments.</p>
+
 <h2>Module Autoloading</h2>
 
-<h3><tt>autoload_list</tt></h3>
+<h3><tt>list-autoload</tt></h3>
 
 <p>Lists all currently defined autoloading entries.</p>
 
-<h3><tt>autoload_sink_add/autoload_source_add</tt></h3>
+<h3><tt>add-autoload-sink/add-autoload-source</tt></h3>
 
 <p>Adds an autoloading entry for a sink (resp. source). Expects the sink name (resp. source name), the module name and the module arguments as arguments.</p>
 
-<h3><tt>autoload_sink_remove/autoload_source_remove</tt></h3>
+<h3><tt>remove-autoload-sink/remove-autoload-source</tt></h3>
 
 <p>Remove an autoloading entry. Expects the sink name (resp. source name) as argument.</p>
 
 <h2>Miscellaneous Commands</h2>
 
-<h3><tt>play_file</tt></h3>
+<h3><tt>play-file</tt></h3>
 
 <p>Play an audio file to a sink. Expects the file name and the sink name as argumens.</p>
 
@@ -131,12 +138,12 @@ name.</p>
 
 <h2>Killing Clients/Streams</h2>
 
-<h3><tt>kill_client</tt></h3>
+<h3><tt>kill-client</tt></h3>
 
 <p>Remove a client forcibly from the server. There is no protection that
 the client reconnects immediately.</p>
 
-<h3><tt>kill_sink_input/kill_source_output</tt></h3>
+<h3><tt>kill-sink-input/kill-source-output</tt></h3>
 
 <p>Remove a sink input (resp. source output) forcibly from the
 server. This will not remove the owning client or any other streams
@@ -165,34 +172,34 @@ on the interactive command line.</p>
 <p>Mark the following script as executable (<tt>chmod +x</tt>) and run it for a sensible polypaudio configuration.</p>
 
 <pre>
-#!/usr/bin/polaudio -F
+#!/usr/bin/polaudio -nF
 
 # Create autoload entries for the device drivers
-autoload_sink_add output module-alsa-sink device=plughw:0,0 rate=48000 sink_name=output
-autoload_source_add input load module-alsa-source device=hw:1,0 source_name=input
+add-autoload-sink output module-alsa-sink device=plughw:0,0 rate=48000 sink_name=output
+add-autoload-sink output2 module-oss device=/dev/dsp1 record=0 sink_name=output2
+add-autoload-sink combined module-combine master=output slaves=output2 sink_name=combined
+
+add-autoload-source input module-alsa-source device=hw:1,0 source_name=input
 
 # Load several protocols
-load module-esound-protocol-tcp
-load module-simple-protocol-tcp
-load module-native-protocol-unix
-load module-cli-protocol-unix
-
-# Load the CLI module (This is similar to passing "-C" on the command line of polypaudio)
-load module-cli
+load-module module-esound-protocol-unix
+load-module module-simple-protocol-tcp
+load-module module-native-protocol-unix
+load-module module-cli-protocol-unix
 
 # Make some devices default
-sink_default output
-source_default input
+set-default-sink combined
+set-default-source input
 
 # Don't fail if the audio files referred to below don't exist
 .nofail
 
 # Load an audio to the sample cache for usage with module-x11-bell
-scache_load /usr/share/sounds/KDE_Notify.wav x11-bell
-load module-x11-bell
+load-sample-lazy  /usr/share/sounds/KDE_Notify.wav x11-bell
+load-module module-x11-bell sample=x11-bell
 
 # Play a welcome sound
-play_file /usr/share/sounds/startup3.wav output
+play-file /usr/share/sounds/startup3.wav combined
 </pre>
 
 <hr/>

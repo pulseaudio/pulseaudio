@@ -93,6 +93,29 @@ compatible as <tt>module-oss</tt>.</p>
 
 <p>This module accepts exactly the same arguments as <a href="#module-oss"><tt>module-oss</tt></a>.</p>
 
+<h3>module-combine</h3>
+
+<p>This combines two or more sinks into one. A new virtual sink is
+allocated. All data written to it is forwarded to all connected
+sinks. In aequidistant intervals the sample rates of the output sinks
+is recalculated: i.e. even when the sink's crystals deviate (which is
+normally the case) output appears synchronously to the human ear. The
+resampling required for this may be very CPU intensive.</p>
+
+<table>
+  <tr><td><tt>sink_name=</tt></td><td>The name for the combined sink. (defaults to  <tt>combined</tt>)</td></tr>
+  <tr><td><tt>master=</tt></td><td>The name of the first sink to link into the combined think. The sample rate/type is taken from this sink.</td></tr>
+  <tr><td><tt>slaves=</tt></td><td>Name of additional sinks to link into the combined think, seperated by commas.</td></tr>
+  <tr><td><tt>adjust_time=</td><td>Time in seconds when to readjust the sample rate of all sinks. (defaults to 20)</td></tr>
+  <tr><td><tt>resample_method=</td><td>Resampling algorithm to
+use. See <tt>libsamplerate</tt>'s documentation for more
+information. Use one of <tt>sinc-best-quality</tt>,
+<tt>sinc-medium-quality</tt>, <tt>sinc-fastest</tt>,
+<tt>zero-order-hold</tt>, <tt>linear</tt>. If the default happens to
+be to slow on your machine try using <tt>zero-order-hold</tt>. This
+will decrease output quality however. (defaults to
+<tt>sinc-fastest</tt>)</td></tr> </table>
+
 <h2>Protocols</h2>
 
 <a name="module-cli"/>

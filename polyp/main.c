@@ -180,12 +180,14 @@ int main(int argc, char *argv[]) {
                 retval = 1;
             }
 
+            if (conf->verbose)
+                pa_log(__FILE__": daemon startup %s.\n", retval ? "failed" : "succeeded");
+            
             goto finish;
         }
 
         close(daemon_pipe[0]);
         daemon_pipe[0] = -1;
-        
 
         if (conf->auto_log_target)
             pa_log_set_target(PA_LOG_SYSLOG, NULL);

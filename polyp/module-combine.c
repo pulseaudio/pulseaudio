@@ -40,7 +40,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Combine multiple sinks to one")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slave=<slave sinks> adjust_time=<seconds> resample_method=<method>")
+PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slaves=<slave sinks> adjust_time=<seconds> resample_method=<method>")
 
 #define DEFAULT_SINK_NAME "combined"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)

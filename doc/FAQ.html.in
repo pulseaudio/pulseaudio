@@ -64,11 +64,29 @@
   <li><p><b>I often hear noises when playing back with Polypaudio, what can I do?</b></p>
   <p>There are to possible solutions: either make the polypaudio
   binary SUID root (<tt>chmod u+s /usr/bin/polypaudio</tt>) and run it
-  with argument <tt>-r</tt> or increase the fragment sizes of the audio
+  with argument <tt>--high-priority=1</tt> or increase the fragment sizes of the audio
   drivers. The former will allow Polypaudio to activate
   <tt>SCHED_FIFO</tt> high priority scheduling (root rights are dropped
-  immediately after this).</p></li>
+  immediately after this) Keep in mind that is a potential security hole!</p></li>
 
+  <li><p><b>I only want to run polypaudio when it is needed, how do I do this?</b></p>
+
+  <p>Set <tt>autospawn = yes</tt> in <tt>client.conf</tt>. That
+configuration file may be found either in <tt>/etc/polypaudio/</tt> or
+in <tt>~/.polypaudio/</tt>.</p></li>
+
+  <li><p><b>How do I list all polypaudio modules installed?</b></p>
+
+   <p><tt>polypaudio --dump-modules</tt></p>
+
+   <p>Add <tt>-v</tt> for terse usage instructions.</p>
+
+   <li><p><b>What environment does polypaudio care about?</b></p>
+
+<p>The client honors: <tt>POLYP_SINK</tt> (default sink to connect to), <tt>POLYP_SOURCE</tt> (default source to connect to), <tt>POLYP_SERVER</tt> (default server to connect to, like <tt>ESPEAKER</tt>), <tt>POLYP_BINARY</tt> (the binary to start when autospawning a daemon), <tt>POLYP_CLIENTCONFIG</tt> (path to the client configuration file).</p>
+
+<p>The daemon honors: <tt>POLYP_SCRIPT</tt> (default CLI script file run after startup), <tt>POLYP_CONFIG</tt> (default daemon configuration file), <tt>POLYP_DLPATH</tt> (colon separated list of paths where to look for modules)</p></li>
+  
 </ol>
 
 <hr/>
