@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "strbuf.h"
+
 struct chunk {
     struct chunk *next;
     size_t length;
@@ -63,11 +65,17 @@ char *pa_strbuf_tostring_free(struct pa_strbuf *sb) {
 }
 
 void pa_strbuf_puts(struct pa_strbuf *sb, const char *t) {
-    struct chunk *c;
-    size_t l;
     assert(sb && t);
+    pa_strbuf_putsn(sb, t, strlen(t));
+} 
 
-    l = strlen(t);
+void pa_strbuf_putsn(struct pa_strbuf *sb, const char *t, size_t l) {
+    struct chunk *c;
+    assert(sb && t);
+    
+    if (!l)
+       return;
+   
     c = malloc(sizeof(struct chunk)+l);
     assert(c);
 

@@ -270,7 +270,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
                 fprintf(stderr, "module-oss-mmap: mmap filed for output. Changing to O_RDONLY mode.\n");
                 mode = O_RDONLY;
             } else {
-                fprintf(stderr, "modeule-oss-mmap: mmap(): %s\n", strerror(errno));
+                fprintf(stderr, "module-oss-mmap: mmap(): %s\n", strerror(errno));
                 goto fail;
             }
         } else {

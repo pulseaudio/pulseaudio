@@ -28,14 +28,11 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		liboss-util.la \
 		libioline.la \
 		libcli.la \
-		libtokenizer.la \
-		libdynarray.la \
 		libprotocol-cli.la \
 		libtagstruct.la \
 		libpstream-util.la \
 		libpdispatch.la \
 		libauthkey.la \
-		libclitext.la \
 		libsocket-util.la \
 		libprotocol-simple.la \
 		libprotocol-esound.la \
@@ -85,7 +82,11 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		sconv-s16be.c sconv-s16be.h \
 		sioman.c sioman.h \
 		modargs.c modargs.h \
-		cmdline.c cmdline.h
+		cmdline.c cmdline.h \
+		cli-command.c cli-command.h \
+		clitext.c clitext.h \
+		tokenizer.c tokenizer.h \
+		dynarray.c dynarray.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
@@ -118,7 +119,7 @@ libpdispatch_la_LIBADD = libtagstruct.la
 
 libiochannel_la_SOURCES = iochannel.c iochannel.h
 libiochannel_la_LDFLAGS = -avoid-version
-libiochannel_la_LIBDADD = libsocket-util.la
+libiochannel_la_LIBADD = libsocket-util.la
 
 libpacket_la_SOURCES = packet.c packet.h
 libpacket_la_LDFLAGS = -avoid-version
@@ -132,14 +133,7 @@ libioline_la_LIBADD = libiochannel.la
 
 libcli_la_SOURCES = cli.c cli.h
 libcli_la_LDFLAGS = -avoid-version
-libcli_la_LIBADD = libiochannel.la libioline.la libclitext.la libtokenizer.la
-
-libdynarray_la_SOURCES = dynarray.c dynarray.h
-libdynarray_la_LDFLAGS = -avoid-version
-
-libtokenizer_la_SOURCES = tokenizer.c tokenizer.h
-libtokenizer_la_LDFLAGS = -avoid-version
-libtokenizer_la_LIBADD = libdynarray.la
+libcli_la_LIBADD = libiochannel.la libioline.la
 
 libprotocol_cli_la_SOURCES = protocol-cli.c protocol-cli.h
 libprotocol_cli_la_LDFLAGS = -avoid-version
@@ -158,9 +152,6 @@ libprotocol_esound_la_LIBADD = libsocket-server.la libiochannel.la libauthkey.la
 
 libauthkey_la_SOURCES = authkey.c authkey.h
 libauthkey_la_LDFLAGS = -avoid-version
-
-libclitext_la_SOURCES = clitext.c clitext.h
-libclitext_la_LDFLAGS = -avoid-version
 
 libsocket_util_la_SOURCES = socket-util.c socket-util.h
 libsocket_util_la_LDFLAGS = -avoid-version
@@ -219,7 +210,7 @@ module_oss_mmap_la_LIBADD = liboss-util.la
 
 module_cli_la_SOURCES = module-cli.c
 module_cli_la_LDFLAGS = -module -avoid-version
-module_cli_la_LIBADD = libcli.la libiochannel.la libtokenizer.la
+module_cli_la_LIBADD = libcli.la libiochannel.la
 
 libpolyp_la_SOURCES = polyp.c polyp.h \
 		polypdef.h \

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
 #include <stddef.h>
@@ -10,6 +11,7 @@
 #include "module.h"
 #include "mainloop-signal.h"
 #include "cmdline.h"
+#include "cli-command.h"
 
 static struct pa_mainloop *mainloop;
 
@@ -28,10 +30,12 @@ static void aux_signal_callback(void *id, int sig, void *userdata) {
 int main(int argc, char *argv[]) {
     struct pa_core *c;
     struct pa_cmdline *cmdline = NULL;
+    struct pa_strbuf *buf = NULL;
+    char *s;
     int r, retval = 0;
 
     if (!(cmdline = pa_cmdline_parse(argc, argv))) {
-        fprintf(stderr, "Failed to parse command line.\n");
+        fprintf(stderr, __FILE__": failed to parse command line.\n");
         return 1;
     }
 
@@ -55,33 +59,48 @@ int main(int argc, char *argv[]) {
     c = pa_core_new(pa_mainloop_get_api(mainloop));
     assert(c);
     
-    pa_module_load(c, "module-oss-mmap", "device=/dev/dsp playback=1 record=1");
-/*    pa_module_load(c, "module-oss-mmap", "/dev/dsp1");*/
-/*    pa_module_load(c, "module-pipe-sink", NULL);*/
+/*    pa_module_load(c, "module-oss-mmap", "device=/dev/dsp playback=1 record=1");
+    pa_module_load(c, "module-oss-mmap", "/dev/dsp1");
+    pa_module_load(c, "module-pipe-sink", NULL);
     pa_module_load(c, "module-simple-protocol-tcp", NULL);
-/*    pa_module_load(c, "module-simple-protocol-unix", NULL);
+    pa_module_load(c, "module-simple-protocol-unix", NULL);
     pa_module_load(c, "module-cli-protocol-tcp", NULL);
     pa_module_load(c, "module-cli-protocol-unix", NULL);
-    pa_module_load(c, "module-native-protocol-tcp", NULL);*/
+    pa_module_load(c, "module-native-protocol-tcp", NULL);
     pa_module_load(c, "module-native-protocol-unix", NULL);
     pa_module_load(c, "module-esound-protocol-tcp", NULL);
-    pa_module_load(c, "module-cli", NULL);
+    pa_module_load(c, "module-cli", NULL);*/
 
     pa_signal_register(SIGUSR1, aux_signal_callback, c);
     pa_signal_register(SIGUSR2, aux_signal_callback, c);
+
+    buf = pa_strbuf_new();
+    assert(buf);
+    r = pa_cli_command_execute(c, cmdline->cli_commands, buf, &cmdline->fail, &cmdline->verbose);
+    fprintf(stderr, s = pa_strbuf_tostring_free(buf));
+    free(s);
     
-    fprintf(stderr, "main: mainloop entry.\n");
-    if (pa_mainloop_run(mainloop, &retval) < 0)
+    if (r < 0 && cmdline->fail) {
+        fprintf(stderr, __FILE__": failed to initialize daemon.\n");
         retval = 1;
-    fprintf(stderr, "main: mainloop exit.\n");
-    
+    } else if (!c->modules || pa_idxset_ncontents(c->modules) == 0) {
+        fprintf(stderr, __FILE__": daemon startup without any loaded modules, refusing to work.\n");
+        retval = 1;
+    } else {
+        fprintf(stderr, __FILE__": mainloop entry.\n");
+        if (pa_mainloop_run(mainloop, &retval) < 0)
+            retval = 1;
+        fprintf(stderr, __FILE__": mainloop exit.\n");
+    }
+
+        
     pa_core_free(c);
 
     pa_signal_done();
     pa_mainloop_free(mainloop);
+    
+    pa_cmdline_free(cmdline);
 
-        
-        
     lt_dlexit();
     
     return retval;

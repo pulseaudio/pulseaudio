@@ -195,7 +195,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         assert(u->source);
         u->source->userdata = u;
         pa_source_set_owner(u->source, m);
-        u->sink->description = pa_sprintf_malloc("Open Sound System PCM on '%s'", p);
+        u->source->description = pa_sprintf_malloc("Open Sound System PCM on '%s'", p);
     } else
         u->source = NULL;
 

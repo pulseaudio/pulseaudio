@@ -1,14 +1,10 @@
 #ifndef foocmdlinehfoo
 #define foocmdlinehfoo
 
-struct pa_cmdline_module {
-    char *name, *arguments;
-    struct pa_cmdline_module *next;
-};
 
 struct pa_cmdline {
-    int daemonize, help;
-    struct pa_cmdline_module *first_module, *last_module;
+    int daemonize, help, fail, verbose;
+    char *cli_commands;
 };
 
 struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []);
