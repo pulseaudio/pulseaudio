@@ -32,6 +32,8 @@
 #include "xmalloc.h"
 #include "log.h"
 
+#define BUCKETS 1023
+
 struct hashmap_entry {
     struct hashmap_entry *next, *previous, *bucket_next, *bucket_previous;
     unsigned hash;
@@ -52,7 +54,7 @@ struct pa_hashmap {
 struct pa_hashmap *pa_hashmap_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
     struct pa_hashmap *h;
     h = pa_xmalloc(sizeof(struct pa_hashmap));
-    h->data = pa_xmalloc0(sizeof(struct hashmap_entry*)*(h->size = 1023));
+    h->data = pa_xmalloc0(sizeof(struct hashmap_entry*)*(h->size = BUCKETS));
     h->first_entry = NULL;
     h->n_entries = 0;
     h->hash_func = hash_func ? hash_func : pa_idxset_trivial_hash_func;
@@ -74,8 +76,10 @@ static void remove(struct pa_hashmap *h, struct hashmap_entry *e) {
         e->bucket_next->bucket_previous = e->bucket_previous;
     if (e->bucket_previous)
         e->bucket_previous->bucket_next = e->bucket_next;
-    else
+    else {
+        assert(e->hash < h->size);
         h->data[e->hash] = e->bucket_next;
+    }
 
     pa_xfree(e);
     h->n_entries--;
@@ -96,6 +100,7 @@ void pa_hashmap_free(struct pa_hashmap*h, void (*free_func)(void *p, void *userd
 
 static struct hashmap_entry *get(struct pa_hashmap *h, unsigned hash, const void *key) {
     struct hashmap_entry *e;
+    assert(h && hash < h->size);
 
     for (e = h->data[hash]; e; e = e->bucket_next)
         if (h->compare_func(e->key, key) == 0)
@@ -107,7 +112,7 @@ static struct hashmap_entry *get(struct pa_hashmap *h, unsigned hash, const void
 int pa_hashmap_put(struct pa_hashmap *h, const void *key, void *value) {
     struct hashmap_entry *e;
     unsigned hash;
-    assert(h && key);
+    assert(h);
 
     hash = h->hash_func(key) % h->size;
 
@@ -171,9 +176,9 @@ unsigned pa_hashmap_ncontents(struct pa_hashmap *h) {
 void *pa_hashmap_iterate(struct pa_hashmap *h, void **state, const void **key) {
     assert(h && state);
 
-    if (!*state) {
+    if (!*state) 
         *state = h->first_entry;
-    } else
+    else
         *state = ((struct hashmap_entry*) *state)->next;
 
     if (!*state) {

@@ -30,6 +30,9 @@
 #include "dynarray.h"
 #include "xmalloc.h"
 
+/* If the array becomes to small, increase its size by 100 entries */
+#define INCREASE_BY 100
+
 struct pa_dynarray {
     void **data;
     unsigned n_allocated, n_entries;
@@ -66,7 +69,7 @@ void pa_dynarray_put(struct pa_dynarray*a, unsigned i, void *p) {
         if (!p)
             return;
 
-        n = i+100;
+        n = i+INCREASE_BY;
         a->data = pa_xrealloc(a->data, sizeof(void*)*n);
         memset(a->data+a->n_allocated, 0, sizeof(void*)*(n-a->n_allocated));
         a->n_allocated = n;
@@ -88,6 +91,7 @@ void *pa_dynarray_get(struct pa_dynarray*a, unsigned i) {
     assert(a);
     if (i >= a->n_allocated)
         return NULL;
+
     assert(a->data);
     return a->data[i];
 }

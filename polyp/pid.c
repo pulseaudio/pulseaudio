@@ -38,6 +38,8 @@
 #include "util.h"
 #include "log.h"
 
+/* Read the PID data from the file descriptor fd, and return it. If no
+ * pid could be read, return 0, on failure (pid_t) -1 */
 static pid_t read_pid(const char *fn, int fd) {
     ssize_t r;
     char t[20], *e = NULL;
@@ -63,6 +65,7 @@ static pid_t read_pid(const char *fn, int fd) {
     return (pid_t) pid;
 }
 
+/* Create a new PID file for the current process. */
 int pa_pid_file_create(void) {
     int fd = -1, lock = -1;
     int ret = -1;
@@ -77,19 +80,21 @@ int pa_pid_file_create(void) {
         goto fail;
     }
 
+    /* Try to lock the file. If that fails, go without */
     lock = pa_lock_fd(fd, 1);
 
     if ((pid = read_pid(fn, fd)) == (pid_t) -1)
         pa_log(__FILE__": corrupt PID file, overwriting.\n");
     else if (pid > 0) {
         if (kill(pid, 0) >= 0 || errno != ESRCH) {
-            pa_log(__FILE__": valid PID file.\n");
+            pa_log(__FILE__": daemon already running.\n");
             goto fail;
         }
 
         pa_log(__FILE__": stale PID file, overwriting.\n");
     }
 
+    /* Overwrite the current PID file */
     if (lseek(fd, 0, SEEK_SET) == (off_t) -1 || ftruncate(fd, 0) < 0) {
         pa_log(__FILE__": failed to truncate PID fil: %s.\n", strerror(errno));
         goto fail;
@@ -116,6 +121,7 @@ fail:
     return ret;
 }
 
+/* Remove the PID file, if it is ours */
 int pa_pid_file_remove(void) {
     int fd = -1, lock = -1;
     char fn[PATH_MAX];
@@ -162,10 +168,17 @@ fail:
     return ret;
 }
 
+/* Check whether the daemon is currently running, i.e. if a PID file
+ * exists and the PID therein too. Returns 0 on succcess, -1
+ * otherwise. If pid is non-NULL and a running daemon was found,
+ * return its PID therein */
 int pa_pid_file_check_running(pid_t *pid) {
     return pa_pid_file_kill(0, pid);
 }
 
+/* Kill a current running daemon. Return non-zero on success, -1
+ * otherwise. If successful *pid contains the PID of the daemon
+ * process. */
 int pa_pid_file_kill(int sig, pid_t *pid) {
     int fd = -1, lock = -1;
     char fn[PATH_MAX];

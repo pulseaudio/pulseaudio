@@ -24,10 +24,22 @@
 
 struct pa_dynarray;
 
+/* Implementation of a simple dynamically sized array. The array
+ * expands if required, but doesn't shrink if possible. Memory
+ * management of the array's entries is the user's job. */
+
 struct pa_dynarray* pa_dynarray_new(void);
+
+/* Free the array calling the specified function for every entry in
+ * the array. The function may be NULL. */
 void pa_dynarray_free(struct pa_dynarray* a, void (*func)(void *p, void *userdata), void *userdata);
 
+/* Store p at position i in the array */
 void pa_dynarray_put(struct pa_dynarray*a, unsigned i, void *p);
+
+/* Store p a the first free position in the array. Returns the index
+ * of that entry. If entries are removed from the array their position
+ * are not filled any more by this function. */
 unsigned pa_dynarray_append(struct pa_dynarray*a, void *p);
 
 void *pa_dynarray_get(struct pa_dynarray*a, unsigned i);

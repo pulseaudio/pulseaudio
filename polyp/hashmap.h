@@ -22,14 +22,23 @@
   USA.
 ***/
 
+/* Simple Implementation of a hash table. Memory management is the
+ * user's job. It's a good idea to have the key pointer point to a
+ * string in the value data. */
+
 struct pa_hashmap;
 
+/* Create a new hashmap. Use the specified functions for hashing and comparing objects in the map */
 struct pa_hashmap *pa_hashmap_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b));
+
+/* Free the hash table. Calls the specified function for every value in the table. The function may be NULL */
 void pa_hashmap_free(struct pa_hashmap*, void (*free_func)(void *p, void *userdata), void *userdata);
 
+/* Returns non-zero when the entry already exists */
 int pa_hashmap_put(struct pa_hashmap *h, const void *key, void *value);
 void* pa_hashmap_get(struct pa_hashmap *h, const void *key);
 
+/* Returns the data of the entry while removing */
 void* pa_hashmap_remove(struct pa_hashmap *h, const void *key);
 
 unsigned pa_hashmap_ncontents(struct pa_hashmap *h);

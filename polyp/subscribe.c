@@ -31,6 +31,13 @@
 #include "xmalloc.h"
 #include "log.h"
 
+/* The subscription subsystem may be used to be notified whenever an
+ * entity (sink, source, ...) is created or deleted. Modules may
+ * register a callback function that is called whenever an event
+ * matching a subscription mask happens. The execution of the callback
+ * function is postponed to the next main loop iteration, i.e. is not
+ * called from within the stack frame the entity was created in. */
+
 struct pa_subscription {
     struct pa_core *core;
     int dead;
@@ -48,6 +55,7 @@ struct pa_subscription_event {
 
 static void sched_event(struct pa_core *c);
 
+/* Allocate a new subscription object for the given subscription mask. Use the specified callback function and user data */
 struct pa_subscription* pa_subscription_new(struct pa_core *c, enum pa_subscription_mask m, void (*callback)(struct pa_core *c, enum pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata) {
     struct pa_subscription *s;
     assert(c);
@@ -66,6 +74,7 @@ struct pa_subscription* pa_subscription_new(struct pa_core *c, enum pa_subscript
     return s;
 }
 
+/* Free a subscription object, effectively marking it for deletion */
 void pa_subscription_free(struct pa_subscription*s) {
     assert(s && !s->dead);
     s->dead = 1;
@@ -86,6 +95,7 @@ static void free_item(struct pa_subscription *s) {
     pa_xfree(s);
 }
 
+/* Free all subscription objects */
 void pa_subscription_free_all(struct pa_core *c) {
     struct pa_subscription_event *e;
     assert(c);
@@ -150,6 +160,7 @@ void pa_subscription_free_all(struct pa_core *c) {
     pa_log(__FILE__":  %u\n", e->index);
 }*/
 
+/* Deferred callback for dispatching subscirption events */
 static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
     struct pa_core *c = userdata;
     struct pa_subscription *s;
@@ -187,6 +198,7 @@ static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *
     }
 }
 
+/* Schedule an mainloop event so that a pending subscription event is dispatched */
 static void sched_event(struct pa_core *c) {
     assert(c);
 
@@ -198,7 +210,7 @@ static void sched_event(struct pa_core *c) {
     c->mainloop->defer_enable(c->subscription_defer_event, 1);
 }
 
-
+/* Append a new subscription event to the subscription event queue and schedule a main loop event */
 void pa_subscription_post(struct pa_core *c, enum pa_subscription_event_type t, uint32_t index) {
     struct pa_subscription_event *e;
     assert(c);

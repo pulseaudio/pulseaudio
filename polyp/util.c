@@ -384,7 +384,8 @@ void pa_raise_priority(void) {
 
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
         pa_log(__FILE__": setpriority() failed: %s\n", strerror(errno));
-    else pa_log(__FILE__": Successfully gained nice level %i.\n", NICE_LEVEL);
+/*     else */
+/*         pa_log(__FILE__": Successfully gained nice level %i.\n", NICE_LEVEL); */
     
 #ifdef _POSIX_PRIORITY_SCHEDULING
     {
@@ -401,7 +402,7 @@ void pa_raise_priority(void) {
             return;
         }
 
-        pa_log(__FILE__": Successfully enabled SCHED_FIFO scheduling.\n");
+/*         pa_log(__FILE__": Successfully enabled SCHED_FIFO scheduling.\n"); */
     }
 #endif
 }

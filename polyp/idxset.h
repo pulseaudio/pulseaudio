@@ -24,6 +24,10 @@
 
 #include <inttypes.h>
 
+/* A combination of a hashtable and a dynamic array. Entries are both
+ * indexiable through a numeric automaticly generated index and an
+ * opaque key. As usual, memory management is the user's job. */
+
 #define PA_IDXSET_INVALID ((uint32_t) -1)
 
 unsigned pa_idxset_trivial_hash_func(const void *p);
