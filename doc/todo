@@ -1,9 +1,5 @@
 *** $Id$ ***
 
-*** 0.5 ***
-- xmms segfault when daemon not executable
-- update modinfo
-
 *** 0.6 ****
 - per-channel volume
 - unix socket directories include user name

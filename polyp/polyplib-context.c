@@ -388,7 +388,6 @@ static int default_server_is_running(void) {
 
     return 1;
 }
-
 static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api *api) {
     pid_t pid;
     int status, r;
@@ -416,26 +415,27 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
         goto fail;
     } else if (!pid) {
         /* Child */
-        
+
         char t[128];
         const char *state = NULL;
 #define MAX_ARGS 64
         char *argv[MAX_ARGS+1];
-        int n = 0;
+        int n;
 
         close(fds[0]);
         
         if (api && api->atfork)
             api->atfork();
 
-        snprintf(t, sizeof(t), "%s=1", ENV_AUTOSPAWNED);
-        putenv(t);
+        /* Setup argv */
 
+        n = 0;
+        
         argv[n++] = c->conf->daemon_binary;
         argv[n++] = "--daemonize=yes";
         
         snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
-        argv[n++] = t;
+        argv[n++] = strdup(t);
 
         while (n < MAX_ARGS) {
             char *a;
@@ -449,7 +449,7 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
         argv[n++] = NULL;
 
         execv(argv[0], argv);
-        exit(1);
+        _exit(1);
     } 
 
     /* Parent */
