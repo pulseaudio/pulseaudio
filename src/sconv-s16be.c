@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "sconv-s16be.h"
 
 #define INT16_FROM INT16_FROM_BE
