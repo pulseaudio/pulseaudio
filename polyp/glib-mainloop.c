@@ -226,7 +226,7 @@ static void glib_time_restart(struct pa_time_event*e, const struct timeval *tv) 
         e->source = g_timeout_source_new(msec_diff(tv, &now));
         assert(e->source);
         g_source_set_callback(e->source, time_cb, e, NULL);
-        g_source_set_priority(e->source, G_PRIORITY_HIGH);
+        g_source_set_priority(e->source, G_PRIORITY_DEFAULT);
         g_source_attach(e->source, e->mainloop->glib_main_context);
     } else
         e->source = NULL;
@@ -312,7 +312,7 @@ static void glib_defer_enable(struct pa_defer_event *e, int b) {
         assert(e->source);
         g_source_set_callback(e->source, idle_cb, e, NULL);
         g_source_attach(e->source, e->mainloop->glib_main_context);
-        g_source_set_priority(e->source, G_PRIORITY_HIGH_IDLE);
+        g_source_set_priority(e->source, G_PRIORITY_HIGH);
     }
 }
 

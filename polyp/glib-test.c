@@ -3,7 +3,7 @@
 #include <sys/time.h>
 #include <assert.h>
 
-/*#define GLIB_MAIN_LOOP*/
+#define GLIB_MAIN_LOOP
 
 #ifdef GLIB_MAIN_LOOP
 #include <glib.h>
@@ -13,10 +13,13 @@ static GMainLoop* glib_main_loop = NULL;
 #include "mainloop.h"
 #endif
 
+static struct pa_defer_event *de;
+
 static void iocb(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     unsigned char c;
     read(fd, &c, sizeof(c));
     fprintf(stderr, "IO EVENT: %c\n", c < 32 ? '.' : c);
+    a->defer_enable(de, 1);
 }
 
 static void dcb(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata) {
@@ -37,7 +40,6 @@ static void tcb(struct pa_mainloop_api*a, struct pa_time_event *e, const struct 
 int main(int argc, char *argv[]) {
     struct pa_mainloop_api *a;
     struct pa_io_event *ioe;
-    struct pa_defer_event *de;
     struct pa_time_event *te;
     struct timeval tv;
 
