@@ -29,26 +29,18 @@
 #include "mainloop-api.h"
 
 #ifdef __cplusplus
-extern "C" {
+//extern "C" {
 #endif
 
 struct pa_context;
+struct pa_stream;
 
 struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *name);
+void pa_context_unref(struct pa_context *c);
+struct pa_context* pa_context_ref(struct pa_context *c);
 
-int pa_context_connect(
-    struct pa_context *c,
-    const char *server,
-    void (*complete) (struct pa_context*c, int success, void *userdata),
-    void *userdata);
-
-int pa_context_drain(
-    struct pa_context *c, 
-    void (*complete) (struct pa_context*c, void *userdata),
-    void *userdata);
-
-void pa_context_free(struct pa_context *c);
-
+int pa_context_connect(struct pa_context *c, const char *server, void (*complete) (struct pa_context*c, int success, void *userdata), void *userdata);
+int pa_context_drain(struct pa_context *c, void (*complete) (struct pa_context*c, void *userdata), void *userdata);
 void pa_context_set_die_callback(struct pa_context *c, void (*cb)(struct pa_context *c, void *userdata), void *userdata);
 
 int pa_context_is_dead(struct pa_context *c);
@@ -57,28 +49,11 @@ int pa_context_errno(struct pa_context *c);
 
 int pa_context_is_pending(struct pa_context *c);
 
-void pa_context_exit(struct pa_context *c);
-void pa_context_stat(struct pa_context *c, void (*cb)(struct pa_context *c, uint32_t count, uint32_t total, void *userdata), void *userdata);
+struct pa_stream* pa_stream_new(struct pa_context *c, enum pa_stream_direction dir, const char *dev, const char *name, const struct pa_sample_spec *ss, const struct pa_buffer_attr *attr, void (*complete) (struct pa_stream*s, int success, void *userdata), void *userdata);
+void pa_stream_unref(struct pa_stream *s);
+struct pa_stream *pa_stream_ref(struct pa_stream *s);
 
-struct pa_stream;
-
-struct pa_stream* pa_stream_new(
-    struct pa_context *c,
-    enum pa_stream_direction dir,
-    const char *dev,
-    const char *name,
-    const struct pa_sample_spec *ss,
-    const struct pa_buffer_attr *attr,
-    void (*complete) (struct pa_stream*s, int success, void *userdata),
-    void *userdata);
-
-void pa_stream_free(struct pa_stream *p);
-
-void pa_stream_drain(
-    struct pa_stream *s, 
-    void (*complete) (struct pa_stream*s, void *userdata),
-    void *userdata);
-
+void pa_stream_drain(struct pa_stream *s, void (*complete) (struct pa_stream*s, void *userdata), void *userdata);
 
 void pa_stream_set_die_callback(struct pa_stream *s, void (*cb)(struct pa_stream *s, void *userdata), void *userdata);
 
@@ -94,6 +69,8 @@ int pa_stream_is_ready(struct pa_stream*p);
 void pa_stream_get_latency(struct pa_stream *p, void (*cb)(struct pa_stream *p, uint32_t latency, void *userdata), void *userdata);
 
 struct pa_context* pa_stream_get_context(struct pa_stream *p);
+
+uint32_t pa_stream_get_index(struct pa_stream *s);
 
 struct pa_stream* pa_context_upload_sample(struct pa_context *c, const char *name, const struct pa_sample_spec *ss, size_t length, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata);
 void pa_stream_finish_sample(struct pa_stream *p, void (*cb)(struct pa_stream*s, int success, void *userdata), void *userdata);
@@ -159,6 +136,38 @@ struct pa_client_info {
 
 void pa_context_get_client_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_client_info*i, int is_last, void *userdata), void *userdata);
 void pa_context_get_client_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_client_info*i, int is_last, void *userdata), void *userdata);
+
+struct pa_sink_input_info {
+    uint32_t index;
+    const char *name;
+    uint32_t owner_module;
+    uint32_t owner_client;
+    uint32_t sink;
+    struct pa_sample_spec sample_spec;
+    uint32_t volume;
+    uint32_t latency;
+};
+
+void pa_context_get_sink_input_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_sink_input_info*i, int is_last, void *userdata), void *userdata);
+void pa_context_get_sink_input_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sink_input_info*i, int is_last, void *userdata), void *userdata);
+
+struct pa_source_output_info {
+    uint32_t index;
+    const char *name;
+    uint32_t owner_module;
+    uint32_t owner_client;
+    uint32_t source;
+    struct pa_sample_spec sample_spec;
+};
+
+void pa_context_get_source_output_info(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_source_output_info*i, int is_last, void *userdata), void *userdata);
+void pa_context_get_source_output_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_source_output_info*i, int is_last, void *userdata), void *userdata);
+
+void pa_context_set_sink_volume(struct pa_context *c, uint32_t index, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+void pa_context_set_sink_input_volume(struct pa_context *c, uint32_t index, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+
+void pa_context_exit(struct pa_context *c);
+void pa_context_stat(struct pa_context *c, void (*cb)(struct pa_context *c, uint32_t count, uint32_t total, void *userdata), void *userdata);
 
 void pa_context_subscribe(struct pa_context *c, enum pa_subscription_mask m, void (*cb)(struct pa_context *c, enum pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata);
 
