@@ -138,6 +138,17 @@ buffer control is lost through this tunneling.</p>
   <tr><td><tt>cookie=</tt></td><td>The authentication cookie file to use.</td></tr>
 </table>
 
+<h3>module-esound-sink</h3>
+
+<p>Create a playback sink using an ESOUND server as backend. Whenever you can, try to omit this
+module since it has many disadvantages including bad latency
+and even worse latency measurement. </p>
+
+<table>
+  <tr><td><tt>server=</tt></td><td>The server to connect to</td></tr>
+  <tr><td><tt>cookie=</tt></td><td>The authentication cookie file to use.</td></tr>
+</table>
+
 <h2>Protocols</h2>
 
 <a name="module-cli"/>
@@ -157,7 +168,7 @@ module see <a href="cli.html"><tt>cli.html</tt></a>.
 <a name="module-cli-protocol-tcp"/>
 <a name="module-cli-protocol"/>
 
-<h3>module-cli-protocol-{unix,tcp}</h3>
+<h3>module-cli-protocol-{unix,tcp,tcp6}</h3>
 
 <p>An implemenation of a simple command line based protocol for
 controlling the <tt>polypaudio</tt> daemon. If loaded, the user may
@@ -183,7 +194,7 @@ device, i.e. not publicly accessible. (defaults to 1)</td></tr>
   <tr><td><tt>socket=</tt></td><td>(only for <tt>-unix</tt>) The UNIX socket name (defaults to <tt>/tmp/polypaudio/cli</tt>)</td></tr>
 </table>
 
-<h3>module-simple-protocol-{unix,tcp}</h3>
+<h3>module-simple-protocol-{unix,tcp,tcp6}</h3>
 
 <p>An implementation of a simple protocol which allows playback by using
 simple tools like <tt>netcat</tt>. Just connect to the listening
@@ -226,7 +237,7 @@ about the two possible suffixes of this module.</p>
 
 <p>This implementation misses some features the original ESOUND has: e.g. there is no sample cache yet. However: XMMS works fine.</p>
 
-<h3>module-native-protocol-{unix,tcp}</h3>
+<h3>module-native-protocol-{unix,tcp,tcp6}</h3>
 
 <p>The native protocol of <tt>polypaudio</tt>.</p>
 

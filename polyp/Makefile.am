@@ -115,7 +115,8 @@ modlib_LTLIBRARIES= \
 		module-match.la \
 		module-tunnel-sink.la \
 		module-tunnel-source.la \
-		module-null-sink.la
+		module-null-sink.la \
+		module-esound-sink.la
 
 SYMDEF_FILES= \
 		module-cli-symdef.h \
@@ -143,7 +144,8 @@ SYMDEF_FILES= \
 		module-match-symdef.h \
 		module-tunnel-sink-symdef.h \
 		module-tunnel-source-symdef.h \
-		module-null-sink-symdef.h
+		module-null-sink-symdef.h \
+		module-esound-sink-symdef.h
 
 EXTRA_DIST+=$(SYMDEF_FILES)
 BUILT_SOURCES+=$(SYMDEF_FILES)
@@ -399,6 +401,10 @@ module_esound_compat_spawnfd_la_LIBADD = $(AM_LIBADD)
 module_esound_compat_spawnpid_la_SOURCES = module-esound-compat-spawnpid.c
 module_esound_compat_spawnpid_la_LDFLAGS = -module -avoid-version
 module_esound_compat_spawnpid_la_LIBADD = $(AM_LIBADD)
+
+module_esound_sink_la_SOURCES = module-esound-sink.c
+module_esound_sink_la_LDFLAGS = -module -avoid-version
+module_esound_sink_la_LIBADD = $(AM_LIBADD) libsocket-client.la libauthkey.la
 
 libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		polyplib-def.h \

@@ -18,7 +18,6 @@
 - add LGPL blurb to all concerning files
 - non-fp mixing
 - non-fp resampling
-- esound backend
 
 ** later ***
 - xmlrpc/http

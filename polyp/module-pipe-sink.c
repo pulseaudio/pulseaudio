@@ -111,6 +111,13 @@ static void notify_cb(struct pa_sink*s) {
         u->core->mainloop->defer_enable(u->defer_event, 1);
 }
 
+static pa_usec_t get_latency_cb(struct pa_sink *s) {
+    struct userdata *u = s->userdata;
+    assert(s && u);
+
+    return u->memchunk.memblock ? pa_bytes_to_usec(u->memchunk.length, &s->sample_spec) : 0;
+}
+
 static void defer_callback(struct pa_mainloop_api *m, struct pa_defer_event*e, void *userdata) {
     struct userdata *u = userdata;
     assert(u);
@@ -173,6 +180,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
     u->sink->notify = notify_cb;
+    u->sink->get_latency = get_latency_cb;
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
     u->sink->description = pa_sprintf_malloc("Unix FIFO sink '%s'", p);
