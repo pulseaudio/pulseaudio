@@ -39,26 +39,6 @@ struct userdata {
 
 void module_done(struct pa_core *c, struct pa_module*m);
 
-static void out_clear_memblocks(struct userdata*u, unsigned n) {
-    unsigned i = u->out_current;
-    assert(u && u->out_memblocks);
-
-    if (n > u->out_fragments)
-        n = u->out_fragments;
-    
-    while (n > 0) {
-        if (u->out_memblocks[i]) {
-            pa_memblock_unref_fixed(u->out_memblocks[i]);
-            u->out_memblocks[i] = NULL;
-        }
-
-        i++;
-        while (i >= u->out_fragments)
-            i -= u->out_fragments;
-
-        n--;
-    }
-}
 
 static void out_fill_memblocks(struct userdata *u, unsigned n) {
     assert(u && u->out_memblocks);
@@ -66,14 +46,15 @@ static void out_fill_memblocks(struct userdata *u, unsigned n) {
     while (n > 0) {
         struct pa_memchunk chunk;
         
-        if (!u->out_memblocks[u->out_current]) {
-
-            chunk.memblock = u->out_memblocks[u->out_current] = pa_memblock_new_fixed(u->out_mmap+u->out_fragment_size*u->out_current, u->out_fragment_size);
-            chunk.length = chunk.memblock->length;
-            chunk.index = 0;
-
-            pa_sink_render_into_full(u->sink, &chunk);
-        }
+        if (u->out_memblocks[u->out_current])
+            pa_memblock_unref_fixed(u->out_memblocks[u->out_current]);
+            
+        chunk.memblock = u->out_memblocks[u->out_current] = pa_memblock_new_fixed(u->out_mmap+u->out_fragment_size*u->out_current, u->out_fragment_size);
+        assert(chunk.memblock);
+        chunk.length = chunk.memblock->length;
+        chunk.index = 0;
+        
+        pa_sink_render_into_full(u->sink, &chunk);
             
         u->out_current++;
         while (u->out_current >= u->out_fragments)
@@ -97,9 +78,7 @@ static void do_write(struct userdata *u) {
     if (!info.blocks)
         return;
     
-    out_clear_memblocks(u, info.blocks);
     out_fill_memblocks(u, info.blocks);
-
 }
 
 static void in_post_memblocks(struct userdata *u, unsigned n) {
@@ -109,7 +88,7 @@ static void in_post_memblocks(struct userdata *u, unsigned n) {
         struct pa_memchunk chunk;
         
         if (!u->in_memblocks[u->in_current]) {
-            u->in_memblocks[u->in_current] = chunk.memblock = pa_memblock_new_fixed(u->in_mmap+u->in_fragment_size*u->in_current, u->in_fragment_size);
+            chunk.memblock = u->in_memblocks[u->in_current] = pa_memblock_new_fixed(u->in_mmap+u->in_fragment_size*u->in_current, u->in_fragment_size);
             chunk.length = chunk.memblock->length;
             chunk.index = 0;
             
@@ -262,7 +241,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
             }
         } else {
         
-            u->source = pa_source_new(c, "dsp", 0, &u->sample_spec);
+            u->source = pa_source_new(c, "oss_input", 0, &u->sample_spec);
             assert(u->source);
             u->source->userdata = u;
             
@@ -293,7 +272,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         } else {
             pa_silence_memory(u->out_mmap, u->out_mmap_length, &u->sample_spec);
             
-            u->sink = pa_sink_new(c, "dsp", 0, &u->sample_spec);
+            u->sink = pa_sink_new(c, "oss_output", 0, &u->sample_spec);
             assert(u->sink);
             u->sink->get_latency = sink_get_latency_cb;
             u->sink->userdata = u;
@@ -337,12 +316,18 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     assert(u);
 
     if (u->out_memblocks) {
-        out_clear_memblocks(u, u->out_fragments);
+        unsigned i;
+        for (i = 0; i < u->out_fragments; i++)
+            if (u->out_memblocks[i])
+                pa_memblock_unref_fixed(u->out_memblocks[i]);
         free(u->out_memblocks);
     }
 
     if (u->in_memblocks) {
-        in_clear_memblocks(u, u->in_fragments);
+        unsigned i;
+        for (i = 0; i < u->in_fragments; i++)
+            if (u->in_memblocks[i])
+                pa_memblock_unref_fixed(u->in_memblocks[i]);
         free(u->in_memblocks);
     }
     

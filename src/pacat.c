@@ -11,6 +11,8 @@
 #include "mainloop.h"
 #include "mainloop-signal.h"
 
+static enum { RECORD, PLAYBACK } mode = PLAYBACK;
+
 static struct pa_context *context = NULL;
 static struct pa_stream *stream = NULL;
 static struct pa_mainloop_api *mainloop_api = NULL;
@@ -18,7 +20,7 @@ static struct pa_mainloop_api *mainloop_api = NULL;
 static void *buffer = NULL;
 static size_t buffer_length = 0, buffer_index = 0;
 
-static void* stdin_source = NULL;
+static void* stdio_source = NULL;
 
 static void quit(int ret) {
     assert(mainloop_api);
@@ -37,7 +39,7 @@ static void stream_die_callback(struct pa_stream *s, void *userdata) {
     quit(1);
 }
 
-static void do_write(size_t length) {
+static void do_stream_write(size_t length) {
     size_t l;
     assert(length);
 
@@ -62,13 +64,30 @@ static void do_write(size_t length) {
 static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
     assert(s && length);
 
-    if (stdin_source)
-        mainloop_api->enable_io(mainloop_api, stdin_source, PA_MAINLOOP_API_IO_EVENT_INPUT);
+    if (stdio_source)
+        mainloop_api->enable_io(mainloop_api, stdio_source, PA_MAINLOOP_API_IO_EVENT_INPUT);
 
     if (!buffer)
         return;
 
-    do_write(length);
+    do_stream_write(length);
+}
+
+static void stream_read_callback(struct pa_stream *s, const void*data, size_t length, void *userdata) {
+    assert(s && data && length);
+
+    if (stdio_source)
+        mainloop_api->enable_io(mainloop_api, stdio_source, PA_MAINLOOP_API_IO_EVENT_OUTPUT);
+
+    if (buffer) {
+        fprintf(stderr, "Buffer overrrun, dropping incoming data\n");
+        return;
+    }
+
+    buffer = malloc(buffer_length = length);
+    assert(buffer);
+    memcpy(buffer, data, length);
+    buffer_index = 0;
 }
 
 static void stream_complete_callback(struct pa_stream*s, int success, void *userdata) {
@@ -99,13 +118,14 @@ static void context_complete_callback(struct pa_context *c, int success, void *u
 
     fprintf(stderr, "Connection established.\n");
     
-    if (!(stream = pa_stream_new(c, PA_STREAM_PLAYBACK, NULL, "pacat", &ss, NULL, stream_complete_callback, NULL))) {
+    if (!(stream = pa_stream_new(c, mode == PLAYBACK ? PA_STREAM_PLAYBACK : PA_STREAM_RECORD, NULL, "pacat", &ss, NULL, stream_complete_callback, NULL))) {
         fprintf(stderr, "pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(c)));
         goto fail;
     }
 
     pa_stream_set_die_callback(stream, stream_die_callback, NULL);
     pa_stream_set_write_callback(stream, stream_write_callback, NULL);
+    pa_stream_set_read_callback(stream, stream_read_callback, NULL);
     
     return;
     
@@ -132,10 +152,10 @@ static void stream_drain_complete(struct pa_stream*s, void *userdata) {
 static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
     size_t l, w = 0;
     ssize_t r;
-    assert(a == mainloop_api && id && fd == STDIN_FILENO && stdin_source == id);
+    assert(a == mainloop_api && id && stdio_source == id);
 
     if (buffer) {
-        mainloop_api->enable_io(mainloop_api, stdin_source, PA_MAINLOOP_API_IO_EVENT_NULL);
+        mainloop_api->enable_io(mainloop_api, stdio_source, PA_MAINLOOP_API_IO_EVENT_NULL);
         return;
     }
 
@@ -153,8 +173,8 @@ static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_m
             quit(1);
         }
 
-        mainloop_api->cancel_io(mainloop_api, stdin_source);
-        stdin_source = NULL;
+        mainloop_api->cancel_io(mainloop_api, stdio_source);
+        stdio_source = NULL;
         return;
     }
 
@@ -162,9 +182,38 @@ static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_m
     buffer_index = 0;
 
     if (w)
-        do_write(w);
+        do_stream_write(w);
 }
 
+static void stdout_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
+    ssize_t r;
+    assert(a == mainloop_api && id && stdio_source == id);
+
+    if (!buffer) {
+        mainloop_api->enable_io(mainloop_api, stdio_source, PA_MAINLOOP_API_IO_EVENT_NULL);
+        return;
+    }
+
+    assert(buffer_length);
+    
+    if ((r = write(fd, buffer+buffer_index, buffer_length)) <= 0) {
+        fprintf(stderr, "write() failed: %s\n", strerror(errno));
+        quit(1);
+
+        mainloop_api->cancel_io(mainloop_api, stdio_source);
+        stdio_source = NULL;
+        return;
+    }
+
+    buffer_length -= r;
+    buffer_index += r;
+
+    if (!buffer_length) {
+        free(buffer);
+        buffer = NULL;
+        buffer_length = buffer_index = 0;
+    }
+}
 
 static void exit_signal_callback(void *id, int sig, void *userdata) {
     fprintf(stderr, "Got SIGINT, exiting.\n");
@@ -175,7 +224,18 @@ static void exit_signal_callback(void *id, int sig, void *userdata) {
 int main(int argc, char *argv[]) {
     struct pa_mainloop* m;
     int ret = 1, r;
+    char *bn;
 
+    if (!(bn = strrchr(argv[0], '/')))
+        bn = argv[0];
+
+    if (strstr(bn, "rec") || strstr(bn, "mon"))
+        mode = RECORD;
+    else if (strstr(bn, "cat") || strstr(bn, "play"))
+        mode = PLAYBACK;
+
+    fprintf(stderr, "Opening a %s stream.\n", mode == RECORD ? "recording" : "playback");
+    
     if (!(m = pa_mainloop_new())) {
         fprintf(stderr, "pa_mainloop_new() failed.\n");
         goto quit;
@@ -188,7 +248,10 @@ int main(int argc, char *argv[]) {
     pa_signal_register(SIGINT, exit_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
     
-    if (!(stdin_source = mainloop_api->source_io(mainloop_api, STDIN_FILENO, PA_MAINLOOP_API_IO_EVENT_INPUT, stdin_callback, NULL))) {
+    if (!(stdio_source = mainloop_api->source_io(mainloop_api,
+                                                 mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO,
+                                                 mode == PLAYBACK ? PA_MAINLOOP_API_IO_EVENT_INPUT : PA_MAINLOOP_API_IO_EVENT_OUTPUT,
+                                                 mode == PLAYBACK ? stdin_callback : stdout_callback, NULL))) {
         fprintf(stderr, "source_io() failed.\n");
         goto quit;
     }
@@ -215,6 +278,8 @@ quit:
         pa_stream_free(stream);
     if (context)
         pa_context_free(context);
+
+    pa_signal_done();
     if (m)
         pa_mainloop_free(m);
     if (buffer)

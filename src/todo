@@ -1,4 +1,4 @@
-- recording (esound, native)
+- implement parec-simple
 - native library/protocol:
        more functions (esp. latency)
 
@@ -9,7 +9,6 @@
 - module field for all entities
 
 - move more stuff from module-oss[-dma] to liboss-util
-- in module-oss: create source first, than sink
 
 - merge memchunks in memblockq
 
@@ -41,3 +40,4 @@ drivers:
 
 modules:
 - alsa?
+- http

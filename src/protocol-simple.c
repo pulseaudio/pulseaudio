@@ -271,7 +271,11 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         }
 
         c->sink_input = pa_sink_input_new(sink, c->client->name, &p->sample_spec);
-        assert(c->sink_input);
+        if (!c->sink_input) {
+            fprintf(stderr, "Failed to create sink input.\n");
+            goto fail;
+        }
+        
         c->sink_input->peek = sink_input_peek_cb;
         c->sink_input->drop = sink_input_drop_cb;
         c->sink_input->kill = sink_input_kill_cb;
@@ -296,7 +300,11 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         }
 
         c->source_output = pa_source_output_new(source, c->client->name, &p->sample_spec);
-        assert(c->source_output);
+        if (!c->source_output) {
+            fprintf(stderr, "Failed to create source output.\n");
+            goto fail;
+        }
+        
         c->source_output->push = source_output_push_cb;
         c->source_output->kill = source_output_kill_cb;
         c->source_output->userdata = c;

@@ -13,6 +13,7 @@ struct pa_buffer_attr {
     uint32_t tlength;
     uint32_t prebuf;
     uint32_t minreq;
+    uint32_t fragsize;
 };
 
 

@@ -13,10 +13,11 @@
 #include "authkey.h"
 #include "util.h"
 
-#define DEFAULT_MAXLENGTH 20480
+#define DEFAULT_MAXLENGTH 204800
 #define DEFAULT_TLENGTH 10240
 #define DEFAULT_PREBUF 4096
 #define DEFAULT_MINREQ 1024
+#define DEFAULT_FRAGSIZE 1024
 
 #define DEFAULT_TIMEOUT (5*60)
 #define DEFAULT_SERVER "/tmp/polypaudio/native"
@@ -187,7 +188,7 @@ static void context_dead(struct pa_context *c) {
         if (c->die_callback)
             c->die_callback(c, c->die_userdata);
     } else
-        s->state = CONTEXT_DEAD;
+        c->state = CONTEXT_DEAD;
 }
 
 static void pstream_die_callback(struct pa_pstream *p, void *userdata) {
@@ -206,7 +207,7 @@ static void pstream_packet_callback(struct pa_pstream *p, struct pa_packet *pack
     }
 }
 
-static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata) {
+static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk, void *userdata) {
     struct pa_context *c = userdata;
     struct pa_stream *s;
     assert(p && chunk && c && chunk->memblock && chunk->memblock->data);
@@ -378,7 +379,7 @@ static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t 
         s->write_callback(s, s->requested_bytes, s->write_userdata);
 }
 
-static void create_playback_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void create_stream_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct pa_stream *s = userdata;
     assert(pd && s && s->state == STREAM_CREATING);
 
@@ -427,12 +428,15 @@ static void create_stream(struct pa_stream *s, uint32_t tdev_index) {
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_putu32(t, tdev_index);
     pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
-    pa_tagstruct_putu32(t, s->buffer_attr.tlength);
-    pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
-    pa_tagstruct_putu32(t, s->buffer_attr.minreq);
+    if (s->direction == PA_STREAM_PLAYBACK) {
+        pa_tagstruct_putu32(t, s->buffer_attr.tlength);
+        pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
+        pa_tagstruct_putu32(t, s->buffer_attr.minreq);
+    } else
+        pa_tagstruct_putu32(t, s->buffer_attr.fragsize);
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
-    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, create_playback_callback, s);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, s);
 }
 
 static void lookup_device_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
@@ -522,6 +526,7 @@ struct pa_stream* pa_stream_new(
         s->buffer_attr.tlength = DEFAULT_TLENGTH;
         s->buffer_attr.prebuf = DEFAULT_PREBUF;
         s->buffer_attr.minreq = DEFAULT_MINREQ;
+        s->buffer_attr.fragsize = DEFAULT_FRAGSIZE;
     }
 
     s->next = c->first_stream;

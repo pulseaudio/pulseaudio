@@ -580,9 +580,8 @@ static int do_read(struct connection *c) {
         assert(c->sink_input);
         pa_sink_notify(c->sink_input->sink);
 
-    } else
-        assert(0);
-
+    }
+    
     return 0;
 }
 

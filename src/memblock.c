@@ -69,12 +69,13 @@ void pa_memblock_unref_fixed(struct pa_memblock *b) {
     if (b->ref == 1) {
         pa_memblock_unref(b);
         return;
+    } else {
+        d = malloc(b->length);
+        assert(d);
+        memcpy(d, b->data, b->length);
+        b->data = d;
+        b->type = PA_MEMBLOCK_DYNAMIC;
+        b->ref--;
     }
-
-    d = malloc(b->length);
-    assert(d);
-    memcpy(d, b->data, b->length);
-    b->data = d;
-    b->type = PA_MEMBLOCK_DYNAMIC;
 }
 

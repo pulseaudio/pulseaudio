@@ -38,7 +38,7 @@ struct pa_pstream {
     int in_use, shall_free;
     
     int dead;
-    void (*die_callback) (struct pa_pstream *p, void *userdad);
+    void (*die_callback) (struct pa_pstream *p, void *userdata);
     void *die_callback_userdata;
 
     struct {
@@ -59,7 +59,7 @@ struct pa_pstream {
     void (*recieve_packet_callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata);
     void *recieve_packet_callback_userdata;
 
-    void (*recieve_memblock_callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata);
+    void (*recieve_memblock_callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk, void *userdata);
     void *recieve_memblock_callback_userdata;
 
     void (*drain_callback)(struct pa_pstream *p, void *userdata);
@@ -73,21 +73,36 @@ static void do_something(struct pa_pstream *p) {
     assert(p && !p->shall_free);
     p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 0);
 
-    p->in_use = 1;
-    do_write(p);
-    p->in_use = 0;
+    if (p->dead)
+        return;
 
-    if (p->shall_free) {
-        pa_pstream_free(p);
+    if (pa_iochannel_is_hungup(p->io)) {
+        p->dead = 1;
+        if (p->die_callback)
+            p->die_callback(p, p->die_callback_userdata);
+
         return;
     }
-    
-    p->in_use = 1;
-    do_read(p);
-    p->in_use = 0;
-    if (p->shall_free) {
-        pa_pstream_free(p);
-        return;
+
+    if (pa_iochannel_is_writable(p->io)) {
+        p->in_use = 1;
+        do_write(p);
+        p->in_use = 0;
+
+        if (p->shall_free) {
+            pa_pstream_free(p);
+            return;
+        }
+    }
+
+    if (pa_iochannel_is_readable(p->io)) {
+        p->in_use = 1;
+        do_read(p);
+        p->in_use = 0;
+        if (p->shall_free) {
+            pa_pstream_free(p);
+            return;
+        }
     }
 }
 
@@ -199,7 +214,7 @@ void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
     p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 1);
 }
 
-void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk) {
+void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk) {
     struct item_info *i;
     assert(p && channel != (uint32_t) -1 && chunk);
     
@@ -223,7 +238,7 @@ void pa_pstream_set_recieve_packet_callback(struct pa_pstream *p, void (*callbac
     p->recieve_packet_callback_userdata = userdata;
 }
 
-void pa_pstream_set_recieve_memblock_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, struct pa_memchunk *chunk, void *userdata), void *userdata) {
+void pa_pstream_set_recieve_memblock_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk, void *userdata), void *userdata) {
     assert(p && callback);
 
     p->recieve_memblock_callback = callback;
@@ -259,9 +274,6 @@ static void do_write(struct pa_pstream *p) {
     ssize_t r;
     assert(p);
 
-    if (p->dead || !pa_iochannel_is_writable(p->io))
-        return;
-    
     if (!p->write.current)
         prepare_next_write_item(p);
 
@@ -305,9 +317,6 @@ static void do_read(struct pa_pstream *p) {
     size_t l;
     ssize_t r;
     assert(p);
-
-    if (p->dead || !pa_iochannel_is_readable(p->io))
-        return;
 
     if (p->read.index < PA_PSTREAM_DESCRIPTOR_SIZE) {
         d = (void*) p->read.descriptor + p->read.index;
@@ -416,7 +425,6 @@ int pa_pstream_is_pending(struct pa_pstream *p) {
 
 void pa_pstream_set_drain_callback(struct pa_pstream *p, void (*cb)(struct pa_pstream *p, void *userdata), void *userdata) {
     assert(p);
-    assert(!cb || pa_pstream_is_pending(p));
 
     p->drain_callback = cb;
     p->drain_userdata = userdata;
