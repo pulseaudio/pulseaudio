@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "confparser.h"
+#include "conf-parser.h"
 #include "log.h"
 #include "util.h"
 #include "xmalloc.h"

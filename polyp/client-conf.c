@@ -26,7 +26,7 @@
 #include "client-conf.h"
 #include "xmalloc.h"
 #include "log.h"
-#include "confparser.h"
+#include "conf-parser.h"
 #include "util.h"
 
 #ifndef DEFAULT_CLIENT_CONFIG_FILE

@@ -34,7 +34,7 @@
 #include "util.h"
 #include "xmalloc.h"
 #include "strbuf.h"
-#include "confparser.h"
+#include "conf-parser.h"
 
 #ifndef DEFAULT_SCRIPT_FILE
 #define DEFAULT_SCRIPT_FILE "/etc/polypaudio/default.pa"
