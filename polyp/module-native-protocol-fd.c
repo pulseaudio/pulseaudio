@@ -32,6 +32,7 @@
 #include "modargs.h"
 #include "protocol-native.h"
 #include "log.h"
+#include "module-native-protocol-fd-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Native protocol autospawn helper")

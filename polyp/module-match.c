@@ -39,6 +39,7 @@
 #include "subscribe.h"
 #include "xmalloc.h"
 #include "sink-input.h"
+#include "module-match-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Sink input matching module")

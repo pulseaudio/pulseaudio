@@ -40,6 +40,7 @@
 #include "modargs.h"
 #include "xmalloc.h"
 #include "log.h"
+#include "module-null-sink-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Clocked NULL sink")

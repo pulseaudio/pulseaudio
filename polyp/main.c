@@ -152,9 +152,11 @@ int main(int argc, char *argv[]) {
         pa_drop_root();
     }
     
+    LTDL_SET_PRELOADED_SYMBOLS();
+    
     r = lt_dlinit();
     assert(r == 0);
-    
+
     pa_log_set_ident("polypaudio");
     
     conf = pa_daemon_conf_new();

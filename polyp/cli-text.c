@@ -271,7 +271,7 @@ char *pa_autoload_list_to_string(struct pa_core *c) {
         struct pa_autoload_entry *e;
         void *state = NULL;
 
-        while ((e = pa_hashmap_iterate(c->autoload_hashmap, &state))) {
+        while ((e = pa_hashmap_iterate(c->autoload_hashmap, &state, NULL))) {
             pa_strbuf_printf(
                 s, "    name: <%s>\n\ttype: <%s>\n\tindex: <%u>\n\tmodule_name: <%s>\n\targuments: <%s>\n",
                 e->name,

@@ -47,6 +47,7 @@
 #include "autoload.h"
 #include "xmalloc.h"
 #include "sound-file-stream.h"
+#include "props.h"
 
 struct command {
     const char *name;
@@ -83,6 +84,7 @@ static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *
 static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_list_props(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 
 static const struct command commands[] = {
     { "exit",                    pa_cli_command_exit,               "Terminate the daemon",         1 },
@@ -118,6 +120,7 @@ static const struct command commands[] = {
     { "remove-autoload-sink",    pa_cli_command_autoload_remove,    "Remove autoload entry for a sink (args: name)", 2},
     { "remove-autoload-source",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: name)", 2},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
+    { "list-props",              pa_cli_command_list_props,         NULL, 1},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -602,6 +605,12 @@ static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *
     return 0;
 }
 
+static int pa_cli_command_list_props(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    assert(c && t);
+    pa_property_dump(c, buf);
+    return 0;
+}
+
 static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
     struct pa_module *m;
     struct pa_sink *s;
@@ -654,7 +663,7 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
         nl = 0;
         
         i = NULL;
-        while ((a = pa_hashmap_iterate(c->autoload_hashmap, &i))) {
+        while ((a = pa_hashmap_iterate(c->autoload_hashmap, &i, NULL))) {
 
             if (!nl) {
                 pa_strbuf_puts(buf, "\n");

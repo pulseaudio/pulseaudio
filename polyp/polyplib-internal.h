@@ -43,8 +43,6 @@
 
 #define DEFAULT_TIMEOUT (10)
 
-#define ENV_AUTOSPAWNED "POLYP_AUTOSPAWNED"
-
 struct pa_context {
     int ref;
     

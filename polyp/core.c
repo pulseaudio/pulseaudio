@@ -39,6 +39,7 @@
 #include "autoload.h"
 #include "xmalloc.h"
 #include "subscribe.h"
+#include "props.h"
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     struct pa_core* c;
@@ -82,6 +83,8 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->scache_idle_time = 20;
 
     c->resample_method = SRC_SINC_FASTEST;
+
+    pa_property_init(c);
     
     pa_check_signal_is_blocked(SIGPIPE);
     
@@ -121,6 +124,8 @@ void pa_core_free(struct pa_core *c) {
     pa_xfree(c->default_sink_name);
 
     pa_memblock_stat_unref(c->memblock_stat);
+
+    pa_property_cleanup(c);
     
     pa_xfree(c);    
 }

@@ -30,6 +30,7 @@
 #include "hashmap.h"
 #include "idxset.h"
 #include "xmalloc.h"
+#include "log.h"
 
 struct hashmap_entry {
     struct hashmap_entry *next, *previous, *bucket_next, *bucket_previous;
@@ -147,25 +148,27 @@ void* pa_hashmap_get(struct pa_hashmap *h, const void *key) {
     return e->value;
 }
 
-int pa_hashmap_remove(struct pa_hashmap *h, const void *key) {
+void* pa_hashmap_remove(struct pa_hashmap *h, const void *key) {
     struct hashmap_entry *e;
     unsigned hash;
+    void *data;
     assert(h && key);
 
     hash = h->hash_func(key) % h->size;
 
     if (!(e = get(h, hash, key)))
-        return 1;
+        return NULL;
 
+    data = e->value;
     remove(h, e);
-    return 0;
+    return data;
 }
 
 unsigned pa_hashmap_ncontents(struct pa_hashmap *h) {
     return h->n_entries;
 }
 
-void *pa_hashmap_iterate(struct pa_hashmap *h, void **state) {
+void *pa_hashmap_iterate(struct pa_hashmap *h, void **state, const void **key) {
     assert(h && state);
 
     if (!*state) {
@@ -173,8 +176,14 @@ void *pa_hashmap_iterate(struct pa_hashmap *h, void **state) {
     } else
         *state = ((struct hashmap_entry*) *state)->next;
 
-    if (!*state)
+    if (!*state) {
+        if (key)
+            *key = NULL;
         return NULL;
+    }
+
+    if (key)
+        *key = ((struct hashmap_entry*) *state)->key;
     
     return ((struct hashmap_entry*) *state)->value;
 }

@@ -32,6 +32,7 @@
 #include "cli.h"
 #include "sioman.h"
 #include "log.h"
+#include "module-cli-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Command line interface")

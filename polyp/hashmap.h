@@ -30,13 +30,15 @@ void pa_hashmap_free(struct pa_hashmap*, void (*free_func)(void *p, void *userda
 int pa_hashmap_put(struct pa_hashmap *h, const void *key, void *value);
 void* pa_hashmap_get(struct pa_hashmap *h, const void *key);
 
-int pa_hashmap_remove(struct pa_hashmap *h, const void *key);
+void* pa_hashmap_remove(struct pa_hashmap *h, const void *key);
 
 unsigned pa_hashmap_ncontents(struct pa_hashmap *h);
 
-/* Maybe used to iterate through the hashmap. Initial state should
-   point to a NULL pointer. The hashmap may not be modified during
-   iteration */
-void *pa_hashmap_iterate(struct pa_hashmap *h, void **state);
+/* May be used to iterate through the hashmap. Initially the opaque
+   pointer *state has to be set to NULL. The hashmap may not be
+   modified during iteration. The key of the entry is returned in
+   *key, if key is non-NULL. After the last entry in the hashmap NULL
+   is returned. */
+void *pa_hashmap_iterate(struct pa_hashmap *h, void **state, const void**key);
 
 #endif

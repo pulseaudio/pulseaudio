@@ -45,6 +45,7 @@
 #include "modargs.h"
 #include "xmalloc.h"
 #include "log.h"
+#include "module-oss-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("OSS Sink/Source")

@@ -100,14 +100,10 @@ const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_nam
 
 void pa_namereg_unregister(struct pa_core *c, const char *name) {
     struct namereg_entry *e;
-    int r;
     assert(c && name);
 
-    e = pa_hashmap_get(c->namereg, name);
+    e = pa_hashmap_remove(c->namereg, name);
     assert(e);
-
-    r = pa_hashmap_remove(c->namereg, name);
-    assert(r >= 0);
 
     pa_xfree(e->name);
     pa_xfree(e);

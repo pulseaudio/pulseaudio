@@ -32,6 +32,7 @@
 #include "util.h"
 #include "modargs.h"
 #include "log.h"
+#include "module-esound-compat-spawnfd-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("ESOUND compatibility module: -spawnfd emulation")

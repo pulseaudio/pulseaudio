@@ -1869,7 +1869,7 @@ static void command_get_autoload_info_list(struct pa_pdispatch *pd, uint32_t com
         struct pa_autoload_entry *a;
         void *state = NULL;
 
-        while ((a = pa_hashmap_iterate(c->protocol->core->autoload_hashmap, &state)))
+        while ((a = pa_hashmap_iterate(c->protocol->core->autoload_hashmap, &state, NULL)))
             autoload_fill_tagstruct(reply, a);
     }
     

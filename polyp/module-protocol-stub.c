@@ -39,9 +39,6 @@
 #include "log.h"
 #include "native-common.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_VERSION(PACKAGE_VERSION)
-
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"
 #define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?>"
@@ -58,6 +55,11 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #define IPV4_PORT 4711
   #define UNIX_SOCKET "/tmp/polypaudio/simple"
   #define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
+  #ifdef USE_TCP_SOCKETS
+    #include "module-simple-protocol-tcp-symdef.h"
+  #else
+    #include "module-simple-protocol-unix-symdef.h"
+  #endif
   PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE("rate=<sample rate> format=<sample format> channels=<number of channels> sink=<sink to connect to> source=<source to connect to> playback=<enable playback?> record=<enable record?> "SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_CLI)
@@ -68,6 +70,11 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #define IPV4_PORT 4712
   #define UNIX_SOCKET "/tmp/polypaudio/cli"
   #define MODULE_ARGUMENTS 
+  #ifdef USE_TCP_SOCKETS
+    #include "module-cli-protocol-tcp-symdef.h"
+  #else
+    #include "module-cli-protocol-unix-symdef.h"
+  #endif
   PA_MODULE_DESCRIPTION("Command line interface protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE(SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_NATIVE)
@@ -78,6 +85,11 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #define IPV4_PORT PA_NATIVE_DEFAULT_PORT
   #define UNIX_SOCKET "/tmp/polypaudio/native"
   #define MODULE_ARGUMENTS "public", "cookie",
+  #ifdef USE_TCP_SOCKETS
+    #include "module-native-protocol-tcp-symdef.h"
+  #else
+    #include "module-native-protocol-unix-symdef.h"
+  #endif
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE("public=<don't check for cookies?> cookie=<path to cookie file> "SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_ESOUND)
@@ -89,11 +101,19 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #define IPV4_PORT ESD_DEFAULT_PORT
   #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
   #define MODULE_ARGUMENTS "sink", "source", "public", "cookie",
+  #ifdef USE_TCP_SOCKETS
+    #include "module-esound-protocol-tcp-symdef.h"
+  #else
+    #include "module-esound-protocol-unix-symdef.h"
+  #endif
   PA_MODULE_DESCRIPTION("EsounD protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE("sink=<sink to connect to> source=<source to connect to> public=<don't check for cookies?> cookie=<path to cookie file> "SOCKET_USAGE)
 #else
   #error "Broken build system" 
 #endif
+
+PA_MODULE_AUTHOR("Lennart Poettering")
+PA_MODULE_VERSION(PACKAGE_VERSION)
 
 static const char* const valid_modargs[] = {
     MODULE_ARGUMENTS

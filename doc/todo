@@ -12,6 +12,15 @@
 - add sync API
 - make most buffer sizes dependant on the sample type
 
+- X11: support for the X11 synchronization extension
+- X11: save auth info in root window
+- pass meta info for hearing impaired
+- fall back to getpwnam if $HOME doesn't exist
+- module-match: look in $HOME for table
+- limit all resources
+- getaddrinfo
+- add LGPL blurb to all concerning files
+
 ** later ***
 - xmlrpc/http
 - dbus

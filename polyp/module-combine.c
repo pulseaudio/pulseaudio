@@ -36,6 +36,7 @@
 #include "xmalloc.h"
 #include "modargs.h"
 #include "namereg.h"
+#include "module-combine-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Combine multiple sinks to one")

@@ -33,7 +33,7 @@ struct pa_core {
 
     struct pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache, *autoload_idxset;
 
-    struct pa_hashmap *namereg, *autoload_hashmap;
+    struct pa_hashmap *namereg, *autoload_hashmap, *properties;
 
     char *default_source_name, *default_sink_name;
 

@@ -32,7 +32,7 @@ AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
-EXTRA_DIST = default.pa.in daemon.conf.in client.conf.in depmod.py esdcompat.sh.in
+EXTRA_DIST = default.pa.in daemon.conf.in client.conf.in depmod.py esdcompat.sh.in module-defs.h.m4
 bin_PROGRAMS = polypaudio pacat pactl paplay
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = \
@@ -112,6 +112,33 @@ modlib_LTLIBRARIES= \
 		module-tunnel-source.la \
 		module-null-sink.la
 
+SYMDEF_FILES= \
+		module-cli-symdef.h \
+		module-cli-protocol-tcp-symdef.h \
+		module-cli-protocol-unix-symdef.h \
+		module-pipe-sink-symdef.h \
+		module-pipe-source-symdef.h \
+		module-oss-symdef.h \
+		module-oss-mmap-symdef.h \
+		module-simple-protocol-tcp-symdef.h \
+		module-simple-protocol-unix-symdef.h \
+		module-esound-protocol-tcp-symdef.h \
+		module-esound-protocol-unix-symdef.h \
+		module-native-protocol-tcp-symdef.h \
+		module-native-protocol-unix-symdef.h \
+		module-native-protocol-fd-symdef.h \
+		module-sine-symdef.h \
+		module-combine-symdef.h \
+		module-esound-compat-spawnfd-symdef.h \
+		module-esound-compat-spawnpid-symdef.h \
+		module-match-symdef.h \
+		module-tunnel-sink-symdef.h \
+		module-tunnel-source-symdef.h \
+		module-null-sink-symdef.h
+
+EXTRA_DIST+=$(SYMDEF_FILES)
+BUILT_SOURCES+=$(SYMDEF_FILES)
+
 lib_LTLIBRARIES= \
 		libpolyp-@PA_MAJORMINOR@.la \
 		libpolyp-error-@PA_MAJORMINOR@.la \
@@ -167,12 +194,14 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		daemon-conf.c daemon-conf.h \
 		dumpmodules.c dumpmodules.h \
 		conf-parser.h conf-parser.c \
-		caps.h caps.c
+		caps.h caps.c \
+		props.h props.c
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
-polypaudio_LDFLAGS=-export-dynamic
+polypaudio_LDFLAGS= -export-dynamic -dlopen force
+#-static $(foreach f,$(modlib_LTLIBRARIES),-dlpreopen $(f))
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version
@@ -430,12 +459,28 @@ cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
 
 if HAVE_X11
 modlib_LTLIBRARIES+= \
-		module-x11-bell.la
+		libx11wrap.la \
+		module-x11-bell.la \
+		module-x11-publish.la
+SYMDEF_FILES += \
+		module-x11-bell-symdef.h \
+		module-x11-publish-symdef.h
+
+libx11wrap_la_SOURCES = x11wrap.c x11wrap.h
+libx11wrap_la_LDFLAGS = -avoid-version
+libx11wrap_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+libx11wrap_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
 
 module_x11_bell_la_SOURCES = module-x11-bell.c
 module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_bell_la_LDFLAGS = -module -avoid-version
-module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
+module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB) libx11wrap.la
+
+module_x11_publish_la_SOURCES = module-x11-publish.c
+module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+module_x11_publish_la_LDFLAGS = -module -avoid-version
+module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB) libx11wrap.la
+
 endif
 
 ### ALSA modules
@@ -445,6 +490,9 @@ modlib_LTLIBRARIES+= \
 		libalsa-util.la \
 		module-alsa-sink.la \
 		module-alsa-source.la
+SYMDEF_FILES += \
+		module-alsa-sink-symdef.h \
+		module-alsa-source-symdef.h
 
 libalsa_util_la_SOURCES = alsa-util.c alsa-util.h
 libalsa_util_la_LDFLAGS = -avoid-version
@@ -597,3 +645,6 @@ daemon.conf: daemon.conf.in Makefile
 install-exec-hook:
 	chown root:root $(DESTDIR)$(bindir)/polypaudio
 	chmod u+s $(DESTDIR)$(bindir)/polypaudio
+
+$(SYMDEF_FILES): module-defs.h.m4
+	m4 -Dfname="$@" $< > $@
