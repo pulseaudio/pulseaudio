@@ -4,10 +4,11 @@
 #include <unistd.h>
 
 #include "iochannel.h"
+#include "util.h"
 
 struct iochannel {
     int ifd, ofd;
-    struct mainloop* mainloop;
+    struct pa_mainloop_api* mainloop;
 
     void (*callback)(struct iochannel*io, void *userdata);
     void*userdata;
@@ -17,43 +18,45 @@ struct iochannel {
 
     int no_close;
 
-    struct mainloop_source* input_source, *output_source;
+    void* input_source, *output_source;
 };
 
 static void enable_mainloop_sources(struct iochannel *io) {
     assert(io);
 
     if (io->input_source == io->output_source) {
-        enum mainloop_io_event e = MAINLOOP_IO_EVENT_NULL;
+        enum pa_mainloop_api_io_events e = PA_MAINLOOP_API_IO_EVENT_NULL;
         assert(io->input_source);
         
         if (!io->readable)
-            e |= MAINLOOP_IO_EVENT_IN;
+            e |= PA_MAINLOOP_API_IO_EVENT_INPUT;
         if (!io->writable)
-            e |= MAINLOOP_IO_EVENT_OUT;
+            e |= PA_MAINLOOP_API_IO_EVENT_OUTPUT;
 
-        mainloop_source_io_set_events(io->input_source, e);
+        io->mainloop->enable_io(io->mainloop, io->input_source, e);
     } else {
         if (io->input_source)
-            mainloop_source_io_set_events(io->input_source, io->readable ? MAINLOOP_IO_EVENT_NULL : MAINLOOP_IO_EVENT_IN);
+            io->mainloop->enable_io(io->mainloop, io->input_source, io->readable ? PA_MAINLOOP_API_IO_EVENT_NULL : PA_MAINLOOP_API_IO_EVENT_INPUT);
         if (io->output_source)
-            mainloop_source_io_set_events(io->output_source, io->writable ? MAINLOOP_IO_EVENT_NULL : MAINLOOP_IO_EVENT_OUT);
+            io->mainloop->enable_io(io->mainloop, io->output_source, io->writable ? PA_MAINLOOP_API_IO_EVENT_NULL : PA_MAINLOOP_API_IO_EVENT_OUTPUT);
     }
 }
 
-static void callback(struct mainloop_source*s, int fd, enum mainloop_io_event events, void *userdata) {
+static void callback(struct pa_mainloop_api* m, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
     struct iochannel *io = userdata;
     int changed = 0;
-    assert(s && fd >= 0 && userdata);
+    assert(m && fd >= 0 && events && userdata);
 
-    if ((events & MAINLOOP_IO_EVENT_IN) && !io->readable) {
+    if ((events & PA_MAINLOOP_API_IO_EVENT_INPUT) && !io->readable) {
         io->readable = 1;
         changed = 1;
+        assert(id == io->input_source);
     }
     
-    if ((events & MAINLOOP_IO_EVENT_OUT) && !io->writable) {
+    if ((events & PA_MAINLOOP_API_IO_EVENT_OUTPUT) && !io->writable) {
         io->writable = 1;
         changed = 1;
+        assert(id == io->output_source);
     }
 
     if (changed) {
@@ -64,15 +67,7 @@ static void callback(struct mainloop_source*s, int fd, enum mainloop_io_event ev
     }
 }
 
-static void make_nonblock_fd(int fd) {
-    int v;
-
-    if ((v = fcntl(fd, F_GETFL)) >= 0)
-        if (!(v & O_NONBLOCK))
-            fcntl(fd, F_SETFL, v|O_NONBLOCK);
-}
-
-struct iochannel* iochannel_new(struct mainloop*m, int ifd, int ofd) {
+struct iochannel* iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd) {
     struct iochannel *io;
     assert(m && (ifd >= 0 || ofd >= 0));
 
@@ -90,18 +85,18 @@ struct iochannel* iochannel_new(struct mainloop*m, int ifd, int ofd) {
     if (ifd == ofd) {
         assert(ifd >= 0);
         make_nonblock_fd(io->ifd);
-        io->input_source = io->output_source = mainloop_source_new_io(m, ifd, MAINLOOP_IO_EVENT_IN|MAINLOOP_IO_EVENT_OUT, callback, io);
+        io->input_source = io->output_source = m->source_io(m, ifd, PA_MAINLOOP_API_IO_EVENT_BOTH, callback, io);
     } else {
 
         if (ifd >= 0) {
             make_nonblock_fd(io->ifd);
-            io->input_source = mainloop_source_new_io(m, ifd, MAINLOOP_IO_EVENT_IN, callback, io);
+            io->input_source = m->source_io(m, ifd, PA_MAINLOOP_API_IO_EVENT_INPUT, callback, io);
         } else
             io->input_source = NULL;
 
         if (ofd >= 0) {
             make_nonblock_fd(io->ofd);
-            io->output_source = mainloop_source_new_io(m, ofd, MAINLOOP_IO_EVENT_OUT, callback, io);
+            io->output_source = m->source_io(m, ofd, PA_MAINLOOP_API_IO_EVENT_OUTPUT, callback, io);
         } else
             io->output_source = NULL;
     }
@@ -120,9 +115,9 @@ void iochannel_free(struct iochannel*io) {
     }
 
     if (io->input_source)
-        mainloop_source_free(io->input_source);
+        io->mainloop->cancel_io(io->mainloop, io->input_source);
     if (io->output_source && io->output_source != io->input_source)
-        mainloop_source_free(io->output_source);
+        io->mainloop->cancel_io(io->mainloop, io->output_source);
     
     free(io);
 }
@@ -171,4 +166,9 @@ void iochannel_set_callback(struct iochannel*io, void (*callback)(struct iochann
 void iochannel_set_noclose(struct iochannel*io, int b) {
     assert(io);
     io->no_close = b;
+}
+
+void iochannel_peer_to_string(struct iochannel*io, char*s, size_t l) {
+    assert(io && s && l);
+    peer_to_string(s, l, io->ifd);
 }

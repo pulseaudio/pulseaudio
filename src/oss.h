@@ -3,6 +3,6 @@
 
 #include "sample.h"
 
-int oss_auto_format(int fd, struct sample_spec *ss);
+int oss_auto_format(int fd, struct pa_sample_spec *ss);
 
 #endif

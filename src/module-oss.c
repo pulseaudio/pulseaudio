@@ -15,7 +15,7 @@
 #include "source.h"
 #include "module.h"
 #include "oss.h"
-#include "sample.h"
+#include "sample-util.h"
 
 struct userdata {
     struct sink *sink;
@@ -81,7 +81,7 @@ static void do_read(struct userdata *u) {
         return;
     }
 
-    assert(r <= memchunk.memblock->length);
+    assert(r <= (ssize_t) memchunk.memblock->length);
     memchunk.length = memchunk.memblock->length = r;
     memchunk.index = 0;
 
@@ -107,7 +107,7 @@ static uint32_t sink_get_latency_cb(struct sink *s) {
         return 0;
     }
 
-    return samples_usec(arg, &s->sample_spec);
+    return pa_samples_usec(arg, &s->sample_spec);
 }
 
 int module_init(struct core *c, struct module*m) {
@@ -117,7 +117,7 @@ int module_init(struct core *c, struct module*m) {
     int fd = -1;
     int frag_size, in_frag_size, out_frag_size;
     int mode;
-    struct sample_spec ss;
+    struct pa_sample_spec ss;
     assert(c && m);
 
     p = m->argument ? m->argument : "/dev/dsp";
@@ -203,7 +203,7 @@ int module_init(struct core *c, struct module*m) {
 
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
-    u->sample_size = sample_size(&ss);
+    u->sample_size = pa_sample_size(&ss);
 
     u->out_fragment_size = out_frag_size;
     u->in_fragment_size = in_frag_size;

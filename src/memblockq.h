@@ -25,4 +25,6 @@ int memblockq_is_writable(struct memblockq *bq, size_t length);
 uint32_t memblockq_get_delay(struct memblockq *bq);
 uint32_t memblockq_get_length(struct memblockq *bq);
 
+uint32_t memblockq_missing_to(struct memblockq *bq, size_t qlen);
+
 #endif

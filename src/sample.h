@@ -2,10 +2,9 @@
 #define foosamplehfoo
 
 #include <inttypes.h>
+#include <sys/types.h>
 
-#include "memblock.h"
-
-enum sample_format {
+enum pa_sample_format {
     SAMPLE_U8,
     SAMPLE_ALAW,
     SAMPLE_ULAW,
@@ -16,30 +15,14 @@ enum sample_format {
 
 #define SAMPLE_S16NE SAMPLE_S16LE
 
-struct sample_spec {
-    enum sample_format format;
+struct pa_sample_spec {
+    enum pa_sample_format format;
     uint32_t rate;
     uint8_t channels;
 };
 
-#define DEFAULT_SAMPLE_SPEC default_sample_spec
-
-extern struct sample_spec default_sample_spec;
-
-struct memblock *silence_memblock(struct memblock* b, struct sample_spec *spec);
-void silence_memchunk(struct memchunk *c, struct sample_spec *spec);
-void silence_memory(void *p, size_t length, struct sample_spec *spec);
-
-struct mix_info {
-    struct memchunk chunk;
-    uint8_t volume;
-    void *userdata;
-};
-
-size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct sample_spec *spec, uint8_t volume);
-
-size_t bytes_per_second(struct sample_spec *spec);
-size_t sample_size(struct sample_spec *spec);
-uint32_t samples_usec(size_t length, struct sample_spec *spec);
+size_t pa_bytes_per_second(struct pa_sample_spec *spec);
+size_t pa_sample_size(struct pa_sample_spec *spec);
+uint32_t pa_samples_usec(size_t length, struct pa_sample_spec *spec);
 
 #endif

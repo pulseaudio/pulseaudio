@@ -33,7 +33,7 @@ else
     automake -a -c
     autoconf -Wall
 
-    ./configure --sysconfdir=/etc "$@"
+    CFLAGS="-g -O0" ./configure --sysconfdir=/etc "$@"
 
     make clean
 fi

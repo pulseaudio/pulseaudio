@@ -12,8 +12,7 @@ struct protocol_cli {
 
 static void cli_eof_cb(struct cli*c, void*userdata) {
     struct protocol_cli *p = userdata;
-    assert(c && p);
-
+    assert(p);
     idxset_remove_by_data(p->connections, c, NULL);
     cli_free(c);
 }
@@ -22,7 +21,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
     struct protocol_cli *p = userdata;
     struct cli *c;
     assert(s && io && p);
-    
+
     c = cli_new(p->core, io);
     assert(c);
     cli_set_eof_callback(c, cli_eof_cb, p);

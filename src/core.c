@@ -7,7 +7,7 @@
 #include "sink.h"
 #include "source.h"
 
-struct core* core_new(struct mainloop *m) {
+struct core* core_new(struct pa_mainloop_api *m) {
     struct core* c;
     c = malloc(sizeof(struct core));
     assert(c);

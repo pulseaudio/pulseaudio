@@ -7,7 +7,7 @@
 #include "sourceoutput.h"
 #include "strbuf.h"
 
-struct source* source_new(struct core *core, const char *name, const struct sample_spec *spec) {
+struct source* source_new(struct core *core, const char *name, const struct pa_sample_spec *spec) {
     struct source *s;
     int r;
     assert(core && spec);

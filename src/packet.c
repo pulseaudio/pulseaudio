@@ -16,7 +16,7 @@ struct packet* packet_new(size_t length) {
     return p;
 }
 
-struct packet* packet_dynamic(uint8_t* data, size_t length) {
+struct packet* packet_new_dynamic(uint8_t* data, size_t length) {
     struct packet *p;
     assert(data && length);
     p = malloc(sizeof(struct packet));
@@ -26,6 +26,7 @@ struct packet* packet_dynamic(uint8_t* data, size_t length) {
     p->length = length;
     p->data = data;
     p->type = PACKET_DYNAMIC;
+    return p;
 }
 
 struct packet* packet_ref(struct packet *p) {

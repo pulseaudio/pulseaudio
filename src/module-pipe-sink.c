@@ -18,7 +18,8 @@ struct userdata {
     struct sink *sink;
     struct iochannel *io;
     struct core *core;
-    struct mainloop_source *mainloop_source;
+    void *mainloop_source;
+    struct pa_mainloop_api *mainloop;
 
     struct memchunk memchunk;
 };
@@ -27,7 +28,7 @@ static void do_write(struct userdata *u) {
     ssize_t r;
     assert(u);
 
-    mainloop_source_enable(u->mainloop_source, 0);
+    u->mainloop->enable_fixed(u->mainloop, u->mainloop_source, 0);
         
     if (!iochannel_is_writable(u->io))
         return;
@@ -57,10 +58,10 @@ static void notify_cb(struct sink*s) {
     assert(s && u);
 
     if (iochannel_is_writable(u->io))
-        mainloop_source_enable(u->mainloop_source, 1);
+        u->mainloop->enable_fixed(u->mainloop, u->mainloop_source, 1);
 }
 
-static void prepare_callback(struct mainloop_source *src, void *userdata) {
+static void fixed_callback(struct pa_mainloop_api *m, void *id, void *userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_write(u);
@@ -77,7 +78,7 @@ int module_init(struct core *c, struct module*m) {
     struct stat st;
     char *p;
     int fd = -1;
-    static const struct sample_spec ss = {
+    static const struct pa_sample_spec ss = {
         .format = SAMPLE_S16NE,
         .rate = 44100,
         .channels = 2,
@@ -120,10 +121,11 @@ int module_init(struct core *c, struct module*m) {
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
 
-    u->mainloop_source = mainloop_source_new_fixed(c->mainloop, prepare_callback, u);
+    u->mainloop = c->mainloop;
+    u->mainloop_source = u->mainloop->source_fixed(u->mainloop, fixed_callback, u);
     assert(u->mainloop_source);
-    mainloop_source_enable(u->mainloop_source, 0);
-    
+    u->mainloop->enable_fixed(u->mainloop, u->mainloop_source, 0);
+        
     m->userdata = u;
 
     return 0;
@@ -147,7 +149,7 @@ void module_done(struct core *c, struct module*m) {
         
     sink_free(u->sink);
     iochannel_free(u->io);
-    mainloop_source_free(u->mainloop_source);
+    u->mainloop->cancel_fixed(u->mainloop, u->mainloop_source);
 
     assert(u->filename);
     unlink(u->filename);

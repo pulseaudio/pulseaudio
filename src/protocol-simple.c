@@ -9,6 +9,7 @@
 #include "sourceoutput.h"
 #include "protocol-simple.h"
 #include "client.h"
+#include "sample-util.h"
 
 struct connection {
     struct protocol_simple *protocol;
@@ -115,9 +116,10 @@ static int do_write(struct connection *c) {
 /*** sink_input callbacks ***/
 
 static int sink_input_peek_cb(struct sink_input *i, struct memchunk *chunk) {
-    struct connection*c = i->userdata;
-    assert(i && c && chunk);
-
+    struct connection*c;
+    assert(i && i->userdata && chunk);
+    c = i->userdata;
+    
     if (memblockq_peek(c->input_memblockq, chunk) < 0)
         return -1;
 
@@ -143,7 +145,7 @@ static void sink_input_kill_cb(struct sink_input *i) {
 static uint32_t sink_input_get_latency_cb(struct sink_input *i) {
     struct connection*c = i->userdata;
     assert(i && c);
-    return samples_usec(memblockq_get_length(c->input_memblockq), &DEFAULT_SAMPLE_SPEC);
+    return pa_samples_usec(memblockq_get_length(c->input_memblockq), &c->sink_input->sample_spec);
 }
 
 /*** source_output callbacks ***/
@@ -185,6 +187,7 @@ static void io_callback(struct iochannel*io, void *userdata) {
 static void on_connection(struct socket_server*s, struct iochannel *io, void *userdata) {
     struct protocol_simple *p = userdata;
     struct connection *c = NULL;
+    char cname[256];
     assert(s && io && p);
 
     c = malloc(sizeof(struct connection));
@@ -195,7 +198,8 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
     c->input_memblockq = c->output_memblockq = NULL;
     c->protocol = p;
 
-    c->client = client_new(p->core, "SIMPLE", "Client");
+    iochannel_peer_to_string(io, cname, sizeof(cname));
+    c->client = client_new(p->core, "SIMPLE", cname);
     assert(c->client);
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
@@ -215,8 +219,8 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
         c->source_output->kill = source_output_kill_cb;
         c->source_output->userdata = c;
 
-        l = 5*bytes_per_second(&DEFAULT_SAMPLE_SPEC); /* 5s */
-        c->output_memblockq = memblockq_new(l, sample_size(&DEFAULT_SAMPLE_SPEC), l/2);
+        l = 5*pa_bytes_per_second(&DEFAULT_SAMPLE_SPEC); /* 5s */
+        c->output_memblockq = memblockq_new(l, pa_sample_size(&DEFAULT_SAMPLE_SPEC), l/2);
     }
 
     if (p->mode & PROTOCOL_SIMPLE_PLAYBACK) {
@@ -236,8 +240,8 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
         c->sink_input->get_latency = sink_input_get_latency_cb;
         c->sink_input->userdata = c;
 
-        l = bytes_per_second(&DEFAULT_SAMPLE_SPEC)/2; /* half a second */
-        c->input_memblockq = memblockq_new(l, sample_size(&DEFAULT_SAMPLE_SPEC), l/2);
+        l = pa_bytes_per_second(&DEFAULT_SAMPLE_SPEC)/2; /* half a second */
+        c->input_memblockq = memblockq_new(l, pa_sample_size(&DEFAULT_SAMPLE_SPEC), l/2);
     }
 
 

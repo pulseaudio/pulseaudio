@@ -6,10 +6,11 @@
 #include "sink.h"
 #include "sinkinput.h"
 #include "strbuf.h"
+#include "sample-util.h"
 
 #define MAX_MIX_CHANNELS 32
 
-struct sink* sink_new(struct core *core, const char *name, const struct sample_spec *spec) {
+struct sink* sink_new(struct core *core, const char *name, const struct pa_sample_spec *spec) {
     struct sink *s;
     char *n = NULL;
     int r;

@@ -220,3 +220,12 @@ uint32_t memblockq_get_length(struct memblockq *bq) {
     assert(bq);
     return bq->total_length;
 }
+
+uint32_t memblockq_missing_to(struct memblockq *bq, size_t qlen) {
+    assert(bq && qlen);
+
+    if (bq->total_length >= qlen)
+        return 0;
+
+    return qlen - bq->total_length;
+}

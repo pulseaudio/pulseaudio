@@ -8,29 +8,35 @@
 #include "core.h"
 #include "mainloop.h"
 #include "module.h"
+#include "mainloop-signal.h"
 
 int stdin_inuse = 0, stdout_inuse = 0;
 
-static void signal_callback(struct mainloop_source *m, int sig, void *userdata) {
-    mainloop_quit(mainloop_source_get_mainloop(m), -1);
+static struct pa_mainloop *mainloop;
+
+static void signal_callback(void *id, int sig, void *userdata) {
+    struct pa_mainloop_api* m = pa_mainloop_get_api(mainloop);
+    m->quit(m, 1);
     fprintf(stderr, "main: got signal.\n");
 }
 
 int main(int argc, char *argv[]) {
-    struct mainloop *m;
     struct core *c;
-    int r;
+    int r, retval = 0;
 
     r = lt_dlinit();
     assert(r == 0);
     
-    m = mainloop_new();
-    assert(m);
-    c = core_new(m);
-    assert(c);
+    mainloop = pa_mainloop_new();
+    assert(mainloop);
 
-    mainloop_source_new_signal(m, SIGINT, signal_callback, NULL);
+    r = pa_signal_init(pa_mainloop_get_api(mainloop));
+    assert(r == 0);
+    pa_signal_register(SIGINT, signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
+
+    c = core_new(pa_mainloop_get_api(mainloop));
+    assert(c);
 
     module_load(c, "module-oss-mmap", "/dev/dsp1");
     module_load(c, "module-pipe-sink", NULL);
@@ -38,16 +44,16 @@ int main(int argc, char *argv[]) {
     module_load(c, "module-cli", NULL);
     
     fprintf(stderr, "main: mainloop entry.\n");
-    while (mainloop_iterate(m, 1) == 0);
-/*        fprintf(stderr, "main: %u blocks\n", n_blocks);*/
+    if (pa_mainloop_run(mainloop, &retval) < 0)
+        retval = 1;
     fprintf(stderr, "main: mainloop exit.\n");
-
-    mainloop_run(m);
     
     core_free(c);
-    mainloop_free(m);
+
+    pa_signal_done();
+    pa_mainloop_free(mainloop);
 
     lt_dlexit();
     
-    return 0;
+    return retval;
 }

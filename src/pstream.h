@@ -6,10 +6,11 @@
 #include "packet.h"
 #include "memblock.h"
 #include "iochannel.h"
+#include "mainloop-api.h"
 
 struct pstream;
 
-struct pstream* pstream_new(struct mainloop *m, struct iochannel *io);
+struct pstream* pstream_new(struct pa_mainloop_api *m, struct iochannel *io);
 void pstream_free(struct pstream*p);
 
 void pstream_set_send_callback(struct pstream*p, void (*callback) (struct pstream *p, void *userdata), void *userdata);

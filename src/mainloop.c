@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
 #include <sys/poll.h>
@@ -8,468 +9,515 @@
 #include <errno.h>
 
 #include "mainloop.h"
+#include "util.h"
+#include "idxset.h"
 
-struct mainloop_source {
-    struct mainloop_source *next;
-    struct mainloop *mainloop;
-    enum mainloop_source_type type;
-
-    int enabled;
+struct mainloop_source_header {
+    struct pa_mainloop *mainloop;
     int dead;
+};
+    
+struct mainloop_source_io {
+    struct mainloop_source_header header;
+    
+    int fd;
+    enum pa_mainloop_api_io_events events;
+    void (*callback) (struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata);
     void *userdata;
 
-    struct {
-        int fd;
-        enum mainloop_io_event events;
-        void (*callback)(struct mainloop_source*s, int fd, enum mainloop_io_event event, void *userdata);
-        struct pollfd pollfd;
-    } io;
-    
-    struct  {
-        void (*callback)(struct mainloop_source*s, void *userdata);
-    } fixed;
-    
-    struct  {
-        void (*callback)(struct mainloop_source*s, void *userdata);
-    } idle;
-
-    struct {
-        int sig;
-        struct sigaction sigaction;
-        void (*callback)(struct mainloop_source*s, int sig, void *userdata);
-    } signal;
+    struct pollfd *pollfd;
 };
 
-struct mainloop_source_list {
-    struct mainloop_source *sources;
-    int n_sources;
-    int dead_sources;
+struct mainloop_source_fixed_or_idle {
+    struct mainloop_source_header header;
+    int enabled;
+
+    void (*callback)(struct pa_mainloop_api*a, void *id, void *userdata);
+    void *userdata;
 };
 
-struct mainloop {
-    struct mainloop_source_list io_sources, fixed_sources, idle_sources, signal_sources;
+struct mainloop_source_time {
+    struct mainloop_source_header header;
+    int enabled;
     
+    struct timeval timeval;
+    void (*callback)(struct pa_mainloop_api*a, void *id, const struct timeval*tv, void *userdata);
+    void *userdata;
+};
+
+struct pa_mainloop {
+    struct idxset *io_sources, *fixed_sources, *idle_sources, *time_sources;
+    int io_sources_scan_dead, fixed_sources_scan_dead, idle_sources_scan_dead, time_sources_scan_dead;
+
     struct pollfd *pollfds;
-    int max_pollfds, n_pollfds;
+    unsigned max_pollfds, n_pollfds;
     int rebuild_pollfds;
 
-    int quit;
-    int running;
-    int signal_pipe[2];
-    struct pollfd signal_pollfd;
+    int quit, running, retval;
+    struct pa_mainloop_api api;
 };
 
-static int signal_pipe = -1;
+static void setup_api(struct pa_mainloop *m);
 
-static void signal_func(int sig) {
-    if (signal_pipe >= 0)
-        write(signal_pipe, &sig, sizeof(sig));
-}
+struct pa_mainloop *pa_mainloop_new(void) {
+    struct pa_mainloop *m;
 
-static void make_nonblock(int fd) {
-    int v;
-    
-    if ((v = fcntl(fd, F_GETFL)) >= 0)
-        fcntl(fd, F_SETFL, v|O_NONBLOCK);
-}
-
-
-struct mainloop *mainloop_new(void) {
-    int r;
-    struct mainloop *m;
-
-    m = malloc(sizeof(struct mainloop));
+    m = malloc(sizeof(struct pa_mainloop));
     assert(m);
-    memset(m, 0, sizeof(struct mainloop));
 
-    r = pipe(m->signal_pipe);
-    assert(r >= 0 && m->signal_pipe[0] >= 0 && m->signal_pipe[1] >= 0);
+    m->io_sources = idxset_new(NULL, NULL);
+    m->fixed_sources = idxset_new(NULL, NULL);
+    m->idle_sources = idxset_new(NULL, NULL);
+    m->time_sources = idxset_new(NULL, NULL);
 
-    make_nonblock(m->signal_pipe[0]);
-    make_nonblock(m->signal_pipe[1]);
+    assert(m->io_sources && m->fixed_sources && m->idle_sources && m->time_sources);
+
+    m->io_sources_scan_dead = m->fixed_sources_scan_dead = m->idle_sources_scan_dead = m->time_sources_scan_dead = 0;
     
-    signal_pipe = m->signal_pipe[1];
-    m->signal_pollfd.fd = m->signal_pipe[0];
-    m->signal_pollfd.events = POLLIN;
-    m->signal_pollfd.revents = 0;
+    m->pollfds = NULL;
+    m->max_pollfds = m->n_pollfds = m->rebuild_pollfds = 0;
+
+    m->quit = m->running = m->retval = 0;
+
+    setup_api(m);
     
     return m;
 }
 
-static void free_sources(struct mainloop_source_list *l, int all) {
-    struct mainloop_source *s, *p;
-    assert(l);
+static int foreach(void *p, uint32_t index, int *del, void*userdata) {
+    struct mainloop_source_header *h = p;
+    int *all = userdata;
+    assert(p && del && all);
 
-    if (!all && !l->dead_sources)
-        return;
-
-    p = NULL;
-    s = l->sources;
-    while (s) {
-        if (all || s->dead) {
-            struct mainloop_source *t = s;
-            s = s->next;
-
-            if (p)
-                p->next = s;
-            else
-                l->sources = s;
-            
-            free(t);
-        } else {
-            p = s;
-            s = s->next;
-        }
+    if (*all || h->dead) {
+        free(h);
+        *del = 1;
     }
 
-    l->dead_sources = 0;
+    return 0;
+};
 
-    if (all) {
-        assert(!l->sources);
-        l->n_sources = 0;
-    }
-}
-
-void mainloop_free(struct mainloop* m) {
+void pa_mainloop_free(struct pa_mainloop* m) {
+    int all = 1;
     assert(m);
-    free_sources(&m->io_sources, 1);
-    free_sources(&m->fixed_sources, 1);
-    free_sources(&m->idle_sources, 1);
-    free_sources(&m->signal_sources, 1);
+    idxset_foreach(m->io_sources, foreach, &all);
+    idxset_foreach(m->fixed_sources, foreach, &all);
+    idxset_foreach(m->idle_sources, foreach, &all);
+    idxset_foreach(m->time_sources, foreach, &all);
 
-    if (signal_pipe == m->signal_pipe[1])
-        signal_pipe = -1;
-    close(m->signal_pipe[0]);
-    close(m->signal_pipe[1]);
-    
+    idxset_free(m->io_sources, NULL, NULL);
+    idxset_free(m->fixed_sources, NULL, NULL);
+    idxset_free(m->idle_sources, NULL, NULL);
+    idxset_free(m->time_sources, NULL, NULL);
+
     free(m->pollfds);
     free(m);
 }
 
-static void rebuild_pollfds(struct mainloop *m) {
-    struct mainloop_source*s;
+static void scan_dead(struct pa_mainloop *m) {
+    int all = 0;
+    assert(m);
+    if (m->io_sources_scan_dead)
+        idxset_foreach(m->io_sources, foreach, &all);
+    if (m->fixed_sources_scan_dead)
+        idxset_foreach(m->fixed_sources, foreach, &all);
+    if (m->idle_sources_scan_dead)
+        idxset_foreach(m->idle_sources, foreach, &all);
+    if (m->time_sources_scan_dead)
+        idxset_foreach(m->time_sources, foreach, &all);
+}
+
+static void rebuild_pollfds(struct pa_mainloop *m) {
+    struct mainloop_source_io*s;
     struct pollfd *p;
-    
-    if (m->max_pollfds < m->io_sources.n_sources+1) {
-        m->max_pollfds = (m->io_sources.n_sources+1)*2;
-        m->pollfds = realloc(m->pollfds, sizeof(struct pollfd)*m->max_pollfds);
+    uint32_t index = IDXSET_INVALID;
+    unsigned l;
+
+    l = idxset_ncontents(m->io_sources);
+    if (m->max_pollfds < l) {
+        m->pollfds = realloc(m->pollfds, sizeof(struct pollfd)*l);
+        m->max_pollfds = l;
     }
 
     m->n_pollfds = 0;
     p = m->pollfds;
-    for (s = m->io_sources.sources; s; s = s->next) {
-        assert(s->type == MAINLOOP_SOURCE_TYPE_IO);
-        if (!s->dead && s->enabled && s->io.events != MAINLOOP_IO_EVENT_NULL) {
-            *(p++) = s->io.pollfd;
-            m->n_pollfds++;
+    for (s = idxset_first(m->io_sources, &index); s; s = idxset_next(m->io_sources, &index)) {
+        if (s->header.dead) {
+            s->pollfd = NULL;
+            continue;
         }
-    }
 
-    *(p++) = m->signal_pollfd;
-    m->n_pollfds++;
+        s->pollfd = p;
+        p->fd = s->fd;
+        p->events = ((s->events & PA_MAINLOOP_API_IO_EVENT_INPUT) ? POLLIN : 0) | ((s->events & PA_MAINLOOP_API_IO_EVENT_OUTPUT) ? POLLOUT : 0);
+        p->revents = 0;
+
+        p++;
+        m->n_pollfds++;
+    }
 }
 
-static void dispatch_pollfds(struct mainloop *m) {
-    int i;
-    struct pollfd *p;
-    struct mainloop_source *s;
-    /* This loop assumes that m->sources and m->pollfds have the same
-     * order and that m->pollfds is a subset of m->sources! */
+static void dispatch_pollfds(struct pa_mainloop *m) {
+    uint32_t index = IDXSET_INVALID;
+    struct mainloop_source_io *s;
 
-    s = m->io_sources.sources;
-    for (p = m->pollfds, i = 0; i < m->n_pollfds; p++, i++) {
-        if (!p->revents)
+    for (s = idxset_first(m->io_sources, &index); s; s = idxset_next(m->io_sources, &index)) {
+        if (s->header.dead || !s->events || !s->pollfd || !s->pollfd->revents)
+            continue;
+        
+        assert(s->pollfd->revents <= s->pollfd->events && s->pollfd->fd == s->fd && s->callback);
+        s->callback(&m->api, s, s->fd, ((s->pollfd->revents & POLLIN) ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) | ((s->pollfd->revents & POLLOUT) ? PA_MAINLOOP_API_IO_EVENT_OUTPUT : 0), s->userdata);
+    }
+}
+
+static void run_fixed_or_idle(struct pa_mainloop *m, struct idxset *i) {
+    uint32_t index = IDXSET_INVALID;
+    struct mainloop_source_fixed_or_idle *s;
+
+    for (s = idxset_first(i, &index); s; s = idxset_next(i, &index)) {
+        if (s->header.dead || !s->enabled)
             continue;
 
-        if (p->fd == m->signal_pipe[0]) {
-            /* Event from signal pipe */
+        assert(s->callback);
+        s->callback(&m->api, s, s->userdata);
+    }
+}
 
-            if (p->revents & POLLIN) {
-                int sig;
-                ssize_t r;
-                r = read(m->signal_pipe[0], &sig, sizeof(sig));
-                assert((r < 0 && errno == EAGAIN) || r == sizeof(sig));
+static int calc_next_timeout(struct pa_mainloop *m) {
+    uint32_t index = IDXSET_INVALID;
+    struct mainloop_source_time *s;
+    struct timeval now;
+    int t = -1;
+
+    if (idxset_isempty(m->time_sources))
+        return -1;
+
+    gettimeofday(&now, NULL);
+    
+    for (s = idxset_first(m->time_sources, &index); s; s = idxset_next(m->time_sources, &index)) {
+        int tmp;
+        
+        if (s->header.dead || !s->enabled)
+            continue;
+
+        if (s->timeval.tv_sec < now.tv_sec || (s->timeval.tv_sec == now.tv_sec && s->timeval.tv_usec <= now.tv_usec)) 
+            return 0;
+
+        tmp = (s->timeval.tv_sec - now.tv_sec)*1000;
             
-                if (r == sizeof(sig)) {
-                    struct mainloop_source *l = m->signal_sources.sources;
-                    while (l) {
-                        assert(l->type == MAINLOOP_SOURCE_TYPE_SIGNAL);
-                        
-                        if (l->signal.sig == sig && l->enabled && !l->dead) {
-                            assert(l->signal.callback);
-                            l->signal.callback(l, sig, l->userdata);
-                        }
-                        
-                        l = l->next;
-                    }
-                }
-            }
+        if (s->timeval.tv_usec > now.tv_usec)
+            tmp += (s->timeval.tv_usec - now.tv_usec)/1000;
+        else
+            tmp -= (now.tv_usec - s->timeval.tv_usec)/1000;
 
-        } else {
-            /* Event from I/O source */
+        if (tmp == 0)
+            return 0;
+        else if (tmp < t)
+            t = tmp;
+    }
 
-            for (; s; s = s->next) {
-                if (p->fd != s->io.fd)
-                    continue;
-                
-                assert(s->type == MAINLOOP_SOURCE_TYPE_IO);
+    return t;
+}
 
-                if (!s->dead && s->enabled) {
-                    enum mainloop_io_event e = (p->revents & POLLIN ? MAINLOOP_IO_EVENT_IN : 0) | (p->revents & POLLOUT ? MAINLOOP_IO_EVENT_OUT : 0);
-                    if (e) {
-                        assert(s->io.callback);
-                        s->io.callback(s, s->io.fd, e, s->userdata);
-                    }
-                }
+static void dispatch_timeout(struct pa_mainloop *m) {
+    uint32_t index = IDXSET_INVALID;
+    struct mainloop_source_time *s;
+    struct timeval now;
+    assert(m);
 
-                break;
-            }
+    if (idxset_isempty(m->time_sources))
+        return;
+
+    gettimeofday(&now, NULL);
+    for (s = idxset_first(m->time_sources, &index); s; s = idxset_next(m->time_sources, &index)) {
+        
+        if (s->header.dead || !s->enabled)
+            continue;
+
+        if (s->timeval.tv_sec < now.tv_sec || (s->timeval.tv_sec == now.tv_sec && s->timeval.tv_usec <= now.tv_usec)) {
+            assert(s->callback);
+
+            s->enabled = 0;
+            s->callback(&m->api, s, &s->timeval, s->userdata);
         }
     }
 }
 
-int mainloop_iterate(struct mainloop *m, int block) {
-    struct mainloop_source *s;
-    int c;
+static int any_idle_sources(struct pa_mainloop *m) {
+    struct mainloop_source_fixed_or_idle *s;
+    uint32_t index;
+    assert(m);
+    
+    for (s = idxset_first(m->idle_sources, &index); s; s = idxset_next(m->idle_sources, &index))
+        if (!s->header.dead && s->enabled)
+            return 1;
+
+    return 0;
+}
+
+int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
+    int r, idle;
     assert(m && !m->running);
     
-    if(m->quit)
-        return m->quit;
-
-    free_sources(&m->io_sources, 0);
-    free_sources(&m->fixed_sources, 0);
-    free_sources(&m->idle_sources, 0);
-    free_sources(&m->signal_sources, 0);
-
-    for (s = m->fixed_sources.sources; s; s = s->next) {
-        assert(s->type == MAINLOOP_SOURCE_TYPE_FIXED);
-        if (!s->dead && s->enabled) {
-            assert(s->fixed.callback);
-            s->fixed.callback(s, s->userdata);
-        }   
+    if(m->quit) {
+        if (retval)
+            *retval = m->retval;
+        return 1;
     }
+
+    m->running = 1;
+
+    scan_dead(m);
+    run_fixed_or_idle(m, m->fixed_sources);
 
     if (m->rebuild_pollfds) {
         rebuild_pollfds(m);
         m->rebuild_pollfds = 0;
     }
 
-    m->running = 1;
+    idle = any_idle_sources(m);
 
     do {
-        c = poll(m->pollfds, m->n_pollfds, (block && !m->idle_sources.n_sources) ? -1 : 0);
-    } while (c < 0 && errno == EINTR);
-        
-    if (c > 0)
+        int t;
+
+        if (!block || idle)
+            t = 0;
+        else 
+            t = calc_next_timeout(m);
+            
+        r = poll(m->pollfds, m->n_pollfds, t);
+    } while (r < 0 && errno == EINTR);
+
+    dispatch_timeout(m);
+    
+    if (r > 0)
         dispatch_pollfds(m);
-    else if (c == 0) {
-        for (s = m->idle_sources.sources; s; s = s->next) {
-            assert(s->type == MAINLOOP_SOURCE_TYPE_IDLE);
-            if (!s->dead && s->enabled) {
-                assert(s->idle.callback);
-                s->idle.callback(s, s->userdata);
-            }
-        }
-    }
+    else if (r == 0 && idle)
+        run_fixed_or_idle(m, m->idle_sources);
+    else if (r < 0)
+        fprintf(stderr, "select(): %s\n", strerror(errno));
     
     m->running = 0;
-    return c < 0 ? -1 : 0;
+    return r < 0 ? -1 : 0;
 }
 
-int mainloop_run(struct mainloop *m) {
+int pa_mainloop_run(struct pa_mainloop *m, int *retval) {
     int r;
-    while (!(r = mainloop_iterate(m, 1)));
+    while ((r = pa_mainloop_iterate(m, 1, retval)) == 0);
     return r;
 }
 
-void mainloop_quit(struct mainloop *m, int r) {
+void pa_mainloop_quit(struct pa_mainloop *m, int r) {
     assert(m);
     m->quit = r;
 }
 
-static struct mainloop_source_list* get_source_list(struct mainloop *m, enum mainloop_source_type type) {
-    struct mainloop_source_list *l;
-    
-    switch(type) {
-        case MAINLOOP_SOURCE_TYPE_IO:
-            l = &m->io_sources;
-            break;
-        case MAINLOOP_SOURCE_TYPE_FIXED:
-            l = &m->fixed_sources;
-            break;
-        case MAINLOOP_SOURCE_TYPE_IDLE:
-            l = &m->idle_sources;
-            break;
-        case MAINLOOP_SOURCE_TYPE_SIGNAL:
-            l = &m->signal_sources;
-            break;
-        default:
-            l = NULL;
-            break;
-    }
-    
-    return l;
-}
+/* IO sources */
+static void* mainloop_source_io(struct pa_mainloop_api*a, int fd, enum pa_mainloop_api_io_events events, void (*callback) (struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata), void *userdata) {
+    struct pa_mainloop *m;
+    struct mainloop_source_io *s;
+    assert(a && a->userdata && fd >= 0 && callback);
+    m = a->userdata;
+    assert(a == &m->api);
 
-static struct mainloop_source *source_new(struct mainloop*m, enum mainloop_source_type type) {
-    struct mainloop_source_list *l;
-    struct mainloop_source* s;
-    assert(m);
-
-    s = malloc(sizeof(struct mainloop_source));
+    s = malloc(sizeof(struct mainloop_source_io));
     assert(s);
-    memset(s, 0, sizeof(struct mainloop_source));
+    s->header.mainloop = m;
+    s->header.dead = 0;
 
-    s->type = type;
-    s->mainloop = m;
-
-    l = get_source_list(m, type);
-    assert(l);
-            
-    s->next = l->sources;
-    l->sources = s;
-    l->n_sources++;
-    return s;
-}
-
-struct mainloop_source* mainloop_source_new_io(struct mainloop*m, int fd, enum mainloop_io_event event, void (*callback)(struct mainloop_source*s, int fd, enum mainloop_io_event event, void *userdata), void *userdata) {
-    struct mainloop_source* s;
-    assert(m && fd>=0 && callback);
-
-    s = source_new(m, MAINLOOP_SOURCE_TYPE_IO);
-
-    s->io.fd = fd;
-    s->io.events = event;
-    s->io.callback = callback;
+    s->fd = fd;
+    s->events = events;
+    s->callback = callback;
     s->userdata = userdata;
-    s->io.pollfd.fd = fd;
-    s->io.pollfd.events = (event & MAINLOOP_IO_EVENT_IN ? POLLIN : 0) | (event & MAINLOOP_IO_EVENT_OUT ? POLLOUT : 0);
-    s->io.pollfd.revents = 0;
+    s->pollfd = NULL;
 
-    s->enabled = 1;
-
+    idxset_put(m->io_sources, s, NULL);
     m->rebuild_pollfds = 1;
     return s;
 }
 
-struct mainloop_source* mainloop_source_new_fixed(struct mainloop*m, void (*callback)(struct mainloop_source *s, void*userdata), void*userdata) {
-    struct mainloop_source* s;
-    assert(m && callback);
+static void mainloop_enable_io(struct pa_mainloop_api*a, void* id, enum pa_mainloop_api_io_events events) {
+    struct pa_mainloop *m;
+    struct mainloop_source_io *s = id;
+    assert(a && a->userdata && s && !s->header.dead);
+    m = a->userdata;
+    assert(a == &m->api && s->header.mainloop == m);
 
-    s = source_new(m, MAINLOOP_SOURCE_TYPE_FIXED);
+    s->events = events;
+    if (s->pollfd)
+        s->pollfd->events = ((s->events & PA_MAINLOOP_API_IO_EVENT_INPUT) ? POLLIN : 0) | ((s->events & PA_MAINLOOP_API_IO_EVENT_OUTPUT) ? POLLOUT : 0);
+}
 
-    s->fixed.callback = callback;
-    s->userdata = userdata;
+static void mainloop_cancel_io(struct pa_mainloop_api*a, void* id) {
+    struct pa_mainloop *m;
+    struct mainloop_source_io *s = id;
+    assert(a && a->userdata && s && !s->header.dead);
+    m = a->userdata;
+    assert(a == &m->api && s->header.mainloop == m);
+
+    s->header.dead = 1;
+    m->io_sources_scan_dead = 1;
+}
+
+/* Fixed sources */
+static void* mainloop_source_fixed(struct pa_mainloop_api*a, void (*callback) (struct pa_mainloop_api*a, void *id, void *userdata), void *userdata) {
+    struct pa_mainloop *m;
+    struct mainloop_source_fixed_or_idle *s;
+    assert(a && a->userdata && callback);
+    m = a->userdata;
+    assert(a == &m->api);
+
+    s = malloc(sizeof(struct mainloop_source_fixed_or_idle));
+    assert(s);
+    s->header.mainloop = m;
+    s->header.dead = 0;
+
     s->enabled = 1;
+    s->callback = callback;
+    s->userdata = userdata;
+
+    idxset_put(m->fixed_sources, s, NULL);
     return s;
 }
 
-struct mainloop_source* mainloop_source_new_idle(struct mainloop*m, void (*callback)(struct mainloop_source *s, void*userdata), void*userdata) {
-    struct mainloop_source* s;
-    assert(m && callback);
-
-    s = source_new(m, MAINLOOP_SOURCE_TYPE_IDLE);
-
-    s->idle.callback = callback;
-    s->userdata = userdata;
-    s->enabled = 1;
-    return s;
-}
-
-struct mainloop_source* mainloop_source_new_signal(struct mainloop*m, int sig, void (*callback)(struct mainloop_source *s, int sig, void*userdata), void*userdata) {
-    struct mainloop_source* s;
-    struct sigaction save_sa, sa;
-    
-    assert(m && callback);
-
-    memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = signal_func;
-    sa.sa_flags = SA_RESTART;
-    sigemptyset(&sa.sa_mask);
-
-    memset(&save_sa, 0, sizeof(save_sa));
-
-    if (sigaction(sig, &sa, &save_sa) < 0)
-        return NULL;
-    
-    s = source_new(m, MAINLOOP_SOURCE_TYPE_SIGNAL);
-    s->signal.sig = sig;
-    s->signal.sigaction = save_sa;
-    
-    s->signal.callback = callback;
-    s->userdata = userdata;
-    s->enabled = 1;
-    return s;
-}
-
-void mainloop_source_free(struct mainloop_source*s) {
-    struct mainloop_source_list *l;
-    assert(s && !s->dead);
-    s->dead = 1;
-
-    assert(s->mainloop);
-    l = get_source_list(s->mainloop, s->type);
-    assert(l);
-
-    l->n_sources--;
-    l->dead_sources = 1;
-
-    if (s->type == MAINLOOP_SOURCE_TYPE_IO)
-        s->mainloop->rebuild_pollfds = 1;
-    else if (s->type == MAINLOOP_SOURCE_TYPE_SIGNAL)
-        sigaction(s->signal.sig, &s->signal.sigaction, NULL);
-}
-
-void mainloop_source_enable(struct mainloop_source*s, int b) {
-    assert(s && !s->dead);
-
-    if (s->type == MAINLOOP_SOURCE_TYPE_IO && ((s->enabled && !b) || (!s->enabled && b))) {
-        assert(s->mainloop);
-        s->mainloop->rebuild_pollfds = 1;
-    }
+static void mainloop_enable_fixed(struct pa_mainloop_api*a, void* id, int b) {
+    struct pa_mainloop *m;
+    struct mainloop_source_fixed_or_idle *s = id;
+    assert(a && a->userdata && s && !s->header.dead);
+    m = a->userdata;
+    assert(a == &m->api);
 
     s->enabled = b;
 }
 
-void mainloop_source_io_set_events(struct mainloop_source*s, enum mainloop_io_event events) {
-    assert(s && !s->dead && s->type == MAINLOOP_SOURCE_TYPE_IO);
+static void mainloop_cancel_fixed(struct pa_mainloop_api*a, void* id) {
+    struct pa_mainloop *m;
+    struct mainloop_source_fixed_or_idle *s = id;
+    assert(a && a->userdata && s && !s->header.dead);
+    m = a->userdata;
+    assert(a == &m->api);
 
-    if (s->io.events != events) {
-        assert(s->mainloop);
-        s->mainloop->rebuild_pollfds = 1;
-    }
-
-    s->io.events = events;
-    s->io.pollfd.events = ((events & MAINLOOP_IO_EVENT_IN) ? POLLIN : 0) | ((events & MAINLOOP_IO_EVENT_OUT) ? POLLOUT : 0);
+    s->header.dead = 1;
+    m->fixed_sources_scan_dead = 1;
 }
 
-struct mainloop *mainloop_source_get_mainloop(struct mainloop_source *s) {
+/* Idle sources */
+static void* mainloop_source_idle(struct pa_mainloop_api*a, void (*callback) (struct pa_mainloop_api*a, void *id, void *userdata), void *userdata) {
+    struct pa_mainloop *m;
+    struct mainloop_source_fixed_or_idle *s;
+    assert(a && a->userdata && callback);
+    m = a->userdata;
+    assert(a == &m->api);
+
+    s = malloc(sizeof(struct mainloop_source_fixed_or_idle));
     assert(s);
+    s->header.mainloop = m;
+    s->header.dead = 0;
 
-    return s->mainloop;
+    s->enabled = 1;
+    s->callback = callback;
+    s->userdata = userdata;
+
+    idxset_put(m->idle_sources, s, NULL);
+    return s;
 }
 
-struct once_info {
-    void (*callback)(void *userdata);
-    void *userdata;
-};
+static void mainloop_cancel_idle(struct pa_mainloop_api*a, void* id) {
+    struct pa_mainloop *m;
+    struct mainloop_source_fixed_or_idle *s = id;
+    assert(a && a->userdata && s && !s->header.dead);
+    m = a->userdata;
+    assert(a == &m->api);
 
-static void once_callback(struct mainloop_source *s, void *userdata) {
-    struct once_info *i = userdata;
-    assert(s && i && i->callback);
-    i->callback(i->userdata);
-    mainloop_source_free(s);
-    free(i);
+    s->header.dead = 1;
+    m->idle_sources_scan_dead = 1;
 }
 
-void mainloop_once(struct mainloop*m, void (*callback)(void *userdata), void *userdata) {
-    struct once_info *i;
-    assert(m && callback);
+/* Time sources */
+static void* mainloop_source_time(struct pa_mainloop_api*a, const struct timeval *tv, void (*callback) (struct pa_mainloop_api*a, void *id, const struct timeval *tv, void *userdata), void *userdata) {
+    struct pa_mainloop *m;
+    struct mainloop_source_time *s;
+    assert(a && a->userdata && callback);
+    m = a->userdata;
+    assert(a == &m->api);
 
-    i = malloc(sizeof(struct once_info));
-    assert(i);
-    i->callback = callback;
-    i->userdata = userdata;
+    s = malloc(sizeof(struct mainloop_source_time));
+    assert(s);
+    s->header.mainloop = m;
+    s->header.dead = 0;
+
+    s->enabled = !!tv;
+    if (tv)
+        s->timeval = *tv;
+
+    s->callback = callback;
+    s->userdata = userdata;
+
+    idxset_put(m->time_sources, s, NULL);
+    return s;
+}
+
+static void mainloop_enable_time(struct pa_mainloop_api*a, void *id, const struct timeval *tv) {
+    struct pa_mainloop *m;
+    struct mainloop_source_time *s = id;
+    assert(a && a->userdata && s && !s->header.dead);
+    m = a->userdata;
+    assert(a == &m->api);
+
+    if (tv) {
+        s->enabled = 1;
+        s->timeval = *tv;
+    } else
+        s->enabled = 0;
+}
+
+static void mainloop_cancel_time(struct pa_mainloop_api*a, void* id) {
+    struct pa_mainloop *m;
+    struct mainloop_source_time *s = id;
+    assert(a && a->userdata && s && !s->header.dead);
+    m = a->userdata;
+    assert(a == &m->api);
+
+    s->header.dead = 1;
+    m->time_sources_scan_dead = 1;
+
+}
+
+static void mainloop_quit(struct pa_mainloop_api*a, int retval) {
+    struct pa_mainloop *m;
+    assert(a && a->userdata);
+    m = a->userdata;
+    assert(a == &m->api);
+
+    m->quit = 1;
+    m->retval = retval;
+}
     
-    mainloop_source_new_fixed(m, once_callback, i);
+static void setup_api(struct pa_mainloop *m) {
+    assert(m);
+    
+    m->api.userdata = m;
+    m->api.source_io = mainloop_source_io;
+    m->api.enable_io = mainloop_enable_io;
+    m->api.cancel_io = mainloop_cancel_io;
+
+    m->api.source_fixed = mainloop_source_fixed;
+    m->api.enable_fixed = mainloop_enable_fixed;
+    m->api.cancel_fixed = mainloop_cancel_fixed;
+
+    m->api.source_idle = mainloop_source_idle;
+    m->api.enable_idle = mainloop_enable_fixed; /* (!) */
+    m->api.cancel_idle = mainloop_cancel_idle;
+    
+    m->api.source_time = mainloop_source_time;
+    m->api.enable_time = mainloop_enable_time;
+    m->api.cancel_time = mainloop_cancel_time;
+
+    m->api.quit = mainloop_quit;
 }
+
+struct pa_mainloop_api* pa_mainloop_get_api(struct pa_mainloop*m) {
+    assert(m);
+    return &m->api;
+}
+        

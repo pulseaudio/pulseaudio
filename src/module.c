@@ -151,5 +151,5 @@ void module_unload_request(struct core *c, struct module *m) {
     assert(i);
     i->core = c;
     i->index = m->index;
-    mainloop_once(c->mainloop, module_unload_once_callback, i);
+    pa_mainloop_api_once(c->mainloop, module_unload_once_callback, i);
 }

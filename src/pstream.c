@@ -30,7 +30,7 @@ struct item_info {
 };
 
 struct pstream {
-    struct mainloop *mainloop;
+    struct pa_mainloop_api *mainloop;
     struct mainloop_source *mainloop_source;
     struct iochannel *io;
     struct queue *send_queue;
@@ -70,18 +70,24 @@ static void do_read(struct pstream *p);
 static void io_callback(struct iochannel*io, void *userdata) {
     struct pstream *p = userdata;
     assert(p && p->io == io);
+
+    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 0);
+    
     do_write(p);
     do_read(p);
 }
 
-static void prepare_callback(struct mainloop_source *s, void*userdata) {
+static void fixed_callback(struct pa_mainloop_api *m, void *id, void*userdata) {
     struct pstream *p = userdata;
-    assert(p && p->mainloop_source == s);
+    assert(p && p->mainloop_source == id && p->mainloop == m);
+
+    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 0);
+    
     do_write(p);
     do_read(p);
 }
 
-struct pstream *pstream_new(struct mainloop *m, struct iochannel *io) {
+struct pstream *pstream_new(struct pa_mainloop_api *m, struct iochannel *io) {
     struct pstream *p;
     assert(io);
 
@@ -96,8 +102,8 @@ struct pstream *pstream_new(struct mainloop *m, struct iochannel *io) {
     p->die_callback_userdata = NULL;
 
     p->mainloop = m;
-    p->mainloop_source = mainloop_source_new_fixed(m, prepare_callback, p);
-    mainloop_source_enable(p->mainloop_source, 0);
+    p->mainloop_source = m->source_fixed(m, fixed_callback, p);
+    m->enable_fixed(m, p->mainloop_source, 0);
     
     p->send_queue = queue_new();
     assert(p->send_queue);
@@ -152,7 +158,7 @@ void pstream_free(struct pstream *p) {
     if (p->read.packet)
         packet_unref(p->read.packet);
 
-    mainloop_source_free(p->mainloop_source);
+    p->mainloop->cancel_fixed(p->mainloop, p->mainloop_source);
     free(p);
 }
 
@@ -173,7 +179,7 @@ void pstream_send_packet(struct pstream*p, struct packet *packet) {
     i->packet = packet_ref(packet);
 
     queue_push(p->send_queue, i);
-    mainloop_source_enable(p->mainloop_source, 1);
+    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 1);
 }
 
 void pstream_send_memblock(struct pstream*p, uint32_t channel, int32_t delta, struct memchunk *chunk) {
@@ -190,7 +196,7 @@ void pstream_send_memblock(struct pstream*p, uint32_t channel, int32_t delta, st
     memblock_ref(i->chunk.memblock);
 
     queue_push(p->send_queue, i);
-    mainloop_source_enable(p->mainloop_source, 1);
+    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 1);
 }
 
 void pstream_set_recieve_packet_callback(struct pstream *p, int (*callback) (struct pstream *p, struct packet *packet, void *userdata), void *userdata) {
@@ -219,7 +225,7 @@ static void prepare_next_write_item(struct pstream *p) {
         assert(p->write.current->packet);
         p->write.data = p->write.current->packet->data;
         p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->packet->length);
-        p->write.descriptor[PSTREAM_DESCRIPTOR_CHANNEL] = 0;
+        p->write.descriptor[PSTREAM_DESCRIPTOR_CHANNEL] = htonl((uint32_t) -1);
         p->write.descriptor[PSTREAM_DESCRIPTOR_DELTA] = 0;
     } else {
         assert(p->write.current->type == PSTREAM_ITEM_MEMBLOCK && p->write.current->chunk.memblock);
@@ -235,8 +241,6 @@ static void do_write(struct pstream *p) {
     size_t l;
     ssize_t r;
     assert(p);
-
-    mainloop_source_enable(p->mainloop_source, 0);
 
     if (p->dead || !iochannel_is_writable(p->io))
         return;
@@ -285,8 +289,6 @@ static void do_read(struct pstream *p) {
     ssize_t r;
     assert(p);
 
-    mainloop_source_enable(p->mainloop_source, 0);
-    
     if (p->dead || !iochannel_is_readable(p->io))
         return;
 
@@ -313,7 +315,7 @@ static void do_read(struct pstream *p) {
         
         assert(!p->read.packet && !p->read.memblock);
 
-        if (ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_CHANNEL]) == 0) {
+        if (ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_CHANNEL]) == (uint32_t) -1) {
             /* Frame is a packet frame */
             p->read.packet = packet_new(ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]));
             assert(p->read.packet);
@@ -331,7 +333,7 @@ static void do_read(struct pstream *p) {
         if (p->read.memblock && p->recieve_memblock_callback) { /* Is this memblock data? Than pass it to the user */
             size_t l;
 
-            l = p->read.index - r < PSTREAM_DESCRIPTOR_SIZE ? p->read.index - PSTREAM_DESCRIPTOR_SIZE : r;
+            l = (p->read.index - r) < PSTREAM_DESCRIPTOR_SIZE ? p->read.index - PSTREAM_DESCRIPTOR_SIZE : (size_t) r;
                 
             if (l > 0) {
                 struct memchunk chunk;

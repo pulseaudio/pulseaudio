@@ -18,31 +18,39 @@
 
 AM_CFLAGS=-ansi -D_GNU_SOURCE
 
-bin_PROGRAMS = polypaudio 
+bin_PROGRAMS = polypaudio pacat
 
-pkglib_LTLIBRARIES=libprotocol-simple.la module-simple-protocol-tcp.la \
-		libsocket-server.la module-pipe-sink.la libpstream.la libiochannel.la \
+pkglib_LTLIBRARIES=libiochannel.la libsocket-server.la libsocket-client.la \
+		libprotocol-simple.la module-simple-protocol-tcp.la \
+		module-pipe-sink.la libpstream.la \
 		libpacket.la module-oss.la module-oss-mmap.la liboss.la libioline.la \
 		libcli.la module-cli.la libtokenizer.la libdynarray.la \
 		module-simple-protocol-unix.la module-cli-protocol-tcp.la \
-		libprotocol-cli.la libprotocol-native.la module-native-protocol-tcp.la \
-        module-native-protocol-unix.la module-cli-protocol-unix.la libtagstruct.la
+		libprotocol-cli.la module-cli-protocol-unix.la libtagstruct.la \
+		libpdispatch.la libprotocol-native.la libpstream-util.la \
+        module-native-protocol-tcp.la module-native-protocol-unix.la \
+		libpolyp.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
 		strbuf.c strbuf.h \
+		main.c main.h \
 		mainloop.c mainloop.h \
 		memblock.c memblock.h \
 		sample.c sample.h \
+		sample-util.c sample-util.h \
 		memblockq.c memblockq.h \
 		client.c client.h \
 		core.c core.h \
-		main.c main.h \
 		sourceoutput.c sourceoutput.h \
 		sinkinput.c sinkinput.h \
 		source.c source.h \
 		sink.c sink.h \
-		module.c module.h
+		module.c module.h \
+		mainloop-signal.c mainloop-signal.h \
+		mainloop-api.c mainloop-api.h \
+		util.c util.h
+polypaudio_CFLAGS = $(AM_CFLAGS)
 
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(LIBLTDL) 
@@ -56,9 +64,21 @@ libsocket_server_la_SOURCES = socket-server.c socket-server.h
 libsocket_server_la_LDFLAGS = -avoid-version
 libsocket_server_la_LIBADD = libiochannel.la
 
+libsocket_client_la_SOURCES = socket-client.c socket-client.h
+libsocket_client_la_LDFLAGS = -avoid-version
+libsocket_client_la_LIBADD = libiochannel.la
+
 libpstream_la_SOURCES = pstream.c pstream.h
 libpstream_la_LDFLAGS = -avoid-version
 libpstream_la_LIBADD = libpacket.la
+
+libpstream_util_la_SOURCES = pstream-util.c pstream-util.h
+libpstream_util_la_LDFLAGS = -avoid-version
+libpstream_util_la_LIBADD = libpstream.la libtagstruct.la
+
+libpdispatch_la_SOURCES = pdispatch.c pdispatch.h
+libpdispatch_la_LDFLAGS = -avoid-version
+libpdispatch_la_LIBADD = libpacket.la libtagstruct.la
 
 libiochannel_la_SOURCES = iochannel.c iochannel.h
 libiochannel_la_LDFLAGS = -avoid-version
@@ -90,7 +110,7 @@ libprotocol_cli_la_LIBADD = libsocket-server.la libiochannel.la libcli.la
 
 libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la
+libprotocol_native_la_LIBADD = libsocket-server.la libiochannel.la libpacket.la libpstream.la libpstream-util.la
 
 libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
@@ -140,3 +160,24 @@ module_oss_mmap_la_LIBADD = libiochannel.la liboss.la
 module_cli_la_SOURCES = module-cli.c
 module_cli_la_LDFLAGS = -module -avoid-version
 module_cli_la_LIBADD = libcli.la libiochannel.la libtokenizer.la
+
+libpolyp_la_SOURCES = polyp.c polyp.h \
+		polypdef.h \
+		tagstruct.c tagstruct.h \
+		iochannel.c iochannel.h \
+		pstream.c pstream.h \
+		pstream-util.c pstream-util.h \
+		pdispatch.c pdispatch.h \
+		protocol-native-spec.h \
+		mainloop-api.c mainloop-api.h \
+		mainloop.c mainloop.h \
+		idxset.c idxset.h \
+		util.c util.h \
+		memblock.c memblock.h \
+		socket-client.c socket-client.h \
+		packet.c packet.h \
+		queue.c queue.h \
+		dynarray.c dynarray.h
+
+pacat_SOURCES = pacat.c
+pacat_LDADD = libpolyp.la

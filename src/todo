@@ -1,8 +1,10 @@
+- sync() function in native library
+- name registrar
 - native protocol/library
 - simple control protocol: kill client/input/output; set_volume
 - resampling
 - esound protocol
-- config parser
+- config parser/cmdline
 - record testing
 -- 0.1
 - optimierung von rebuild_pollfds()

@@ -5,7 +5,7 @@
 #include "sourceoutput.h"
 #include "strbuf.h"
 
-struct source_output* source_output_new(struct source *s, struct sample_spec *spec, const char *name) {
+struct source_output* source_output_new(struct source *s, struct pa_sample_spec *spec, const char *name) {
     struct source_output *o;
     int r;
     assert(s && spec);
@@ -14,7 +14,7 @@ struct source_output* source_output_new(struct source *s, struct sample_spec *sp
     assert(o);
     o->name = name ? strdup(name) : NULL;
     o->source = s;
-    o->spec = *spec;
+    o->sample_spec = *spec;
 
     o->push = NULL;
     o->kill = NULL;

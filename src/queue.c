@@ -73,5 +73,12 @@ void* queue_pop(struct queue *q) {
     p = e->data;
     free(e);
 
+    q->length--;
+    
     return p;
+}
+
+int queue_is_empty(struct queue *q) {
+    assert(q);
+    return q->length == 0;
 }

@@ -12,7 +12,7 @@ struct sink_input {
 
     char *name;
     struct sink *sink;
-    struct sample_spec spec;
+    struct pa_sample_spec sample_spec;
     uint8_t volume;
     
     int (*peek) (struct sink_input *i, struct memchunk *chunk);
@@ -23,7 +23,7 @@ struct sink_input {
     void *userdata;
 };
 
-struct sink_input* sink_input_new(struct sink *s, struct sample_spec *spec, const char *name);
+struct sink_input* sink_input_new(struct sink *s, struct pa_sample_spec *spec, const char *name);
 void sink_input_free(struct sink_input* i);
 
 /* Code that didn't create the input stream should call this function to

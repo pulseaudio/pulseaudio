@@ -90,7 +90,7 @@ void tagstruct_putu8(struct tagstruct*t, uint8_t c) {
     t->length += 2;
 }
 
-void tagstruct_put_sample_spec(struct tagstruct *t, struct sample_spec *ss) {
+void tagstruct_put_sample_spec(struct tagstruct *t, const struct pa_sample_spec *ss) {
     assert(t && ss);
     extend(t, 7);
     t->data[t->length] = TAG_SAMPLE_SPEC;
@@ -156,7 +156,7 @@ int tagstruct_getu8(struct tagstruct*t, uint8_t *c) {
     return 0;
 }
 
-int tagstruct_get_sample_spec(struct tagstruct *t, struct sample_spec *ss) {
+int tagstruct_get_sample_spec(struct tagstruct *t, struct pa_sample_spec *ss) {
     assert(t && ss);
 
     if (t->rindex+7 > t->length)

@@ -16,15 +16,15 @@
 #include "source.h"
 #include "module.h"
 #include "oss.h"
+#include "sample-util.h"
 
 struct userdata {
     struct sink *sink;
     struct source *source;
     struct core *core;
-    struct sample_spec sample_spec;
+    struct pa_sample_spec sample_spec;
 
-    size_t in_fragment_size, out_fragment_size, in_fragments, out_fragments, sample_size, out_fill;
-    uint32_t sample_usec;
+    size_t in_fragment_size, out_fragment_size, in_fragments, out_fragments, out_fill;
 
     int fd;
 
@@ -161,12 +161,14 @@ static void do_read(struct userdata *u) {
     in_clear_memblocks(u, u->in_fragments/2);
 };
 
-static void io_callback(struct mainloop_source*s, int fd, enum mainloop_io_event event, void *userdata) {
+static void io_callback(struct pa_mainloop_api *m, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
     struct userdata *u = userdata;
 
-    if (event & MAINLOOP_IO_EVENT_IN)
+    assert (u && u->core->mainloop == m && u->mainloop_source == id);
+
+    if (events & PA_MAINLOOP_API_IO_EVENT_INPUT)
         do_read(u);
-    if (event & MAINLOOP_IO_EVENT_OUT)
+    if (events & PA_MAINLOOP_API_IO_EVENT_OUTPUT)
         do_write(u);
 }
 
@@ -175,7 +177,7 @@ static uint32_t sink_get_latency_cb(struct sink *s) {
     assert(s && u);
 
     do_write(u);
-    return u->out_fill/u->sample_size*u->sample_usec;
+    return pa_samples_usec(u->out_fill, &s->sample_spec);
 }
 
 int module_init(struct core *c, struct module*m) {
@@ -316,10 +318,7 @@ int module_init(struct core *c, struct module*m) {
         
     assert(u->source || u->sink);
 
-    u->sample_size = sample_size(&u->sample_spec);
-    u->sample_usec = 1000000/u->sample_spec.rate;
-
-    u->mainloop_source = mainloop_source_new_io(c->mainloop, u->fd, (u->source ? MAINLOOP_IO_EVENT_IN : 0) | (u->sink ? MAINLOOP_IO_EVENT_OUT : 0), io_callback, u);
+    u->mainloop_source = c->mainloop->source_io(c->mainloop, u->fd, (u->source ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) | (u->sink ? PA_MAINLOOP_API_IO_EVENT_OUTPUT : 0), io_callback, u);
     assert(u->mainloop_source);
 
     return 0;
@@ -360,7 +359,7 @@ void module_done(struct core *c, struct module*m) {
         source_free(u->source);
 
     if (u->mainloop_source)
-        mainloop_source_free(u->mainloop_source);
+        u->core->mainloop->cancel_io(u->core->mainloop, u->mainloop_source);
 
     if (u->fd >= 0)
         close(u->fd);

@@ -12,7 +12,7 @@ struct source_output {
 
     char *name;
     struct source *source;
-    struct sample_spec spec;
+    struct pa_sample_spec sample_spec;
     
     void (*push)(struct source_output *o, struct memchunk *chunk);
     void (*kill)(struct source_output* o);
@@ -20,7 +20,7 @@ struct source_output {
     void *userdata;
 };
 
-struct source_output* source_output_new(struct source *s, struct sample_spec *spec, const char *name);
+struct source_output* source_output_new(struct source *s, struct pa_sample_spec *spec, const char *name);
 void source_output_free(struct source_output* o);
 
 void source_output_kill(struct source_output*o);

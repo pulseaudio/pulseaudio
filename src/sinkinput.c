@@ -5,7 +5,7 @@
 #include "sinkinput.h"
 #include "strbuf.h"
 
-struct sink_input* sink_input_new(struct sink *s, struct sample_spec *spec, const char *name) {
+struct sink_input* sink_input_new(struct sink *s, struct pa_sample_spec *spec, const char *name) {
     struct sink_input *i;
     int r;
     assert(s && spec);
@@ -14,7 +14,7 @@ struct sink_input* sink_input_new(struct sink *s, struct sample_spec *spec, cons
     assert(i);
     i->name = name ? strdup(name) : NULL;
     i->sink = s;
-    i->spec = *spec;
+    i->sample_spec = *spec;
 
     i->peek = NULL;
     i->drop = NULL;

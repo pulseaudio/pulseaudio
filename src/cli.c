@@ -20,6 +20,8 @@ struct cli {
 
     void (*eof_callback)(struct cli *c, void *userdata);
     void *userdata;
+
+    struct client *client;
 };
 
 struct command {
@@ -63,6 +65,7 @@ static const struct command commands[] = {
 static const char prompt[] = ">>> ";
 
 struct cli* cli_new(struct core *core, struct iochannel *io) {
+    char cname[256];
     struct cli *c;
     assert(io);
 
@@ -75,16 +78,21 @@ struct cli* cli_new(struct core *core, struct iochannel *io) {
     c->userdata = NULL;
     c->eof_callback = NULL;
 
+    iochannel_peer_to_string(io, cname, sizeof(cname));
+    c->client = client_new(core, "CLI", cname);
+    assert(c->client);
+    
     ioline_set_callback(c->line, line_callback, c);
     ioline_puts(c->line, "Welcome to polypaudio! Use \"help\" for usage information.\n");
     ioline_puts(c->line, prompt);
-
+    
     return c;
 }
 
 void cli_free(struct cli *c) {
     assert(c);
     ioline_free(c->line);
+    client_free(c->client);
     free(c);
 }
 
@@ -135,7 +143,7 @@ void cli_set_eof_callback(struct cli *c, void (*cb)(struct cli*c, void *userdata
 
 static void cli_command_exit(struct cli *c, struct tokenizer *t) {
     assert(c && c->core && c->core->mainloop && t);
-    mainloop_quit(c->core->mainloop, -1);
+    c->core->mainloop->quit(c->core->mainloop, 0);
 }
 
 static void cli_command_help(struct cli *c, struct tokenizer *t) {

@@ -42,7 +42,7 @@ AC_PROG_LIBTOOL
 
 # If using GCC specifiy some additional parameters
 if test "x$GCC" = "xyes" ; then
-   CFLAGS="$CFLAGS -pipe -Wall -W"
+   CFLAGS="$CFLAGS -pipe -Wall -W -Wno-unused-parameter"
 fi
 
 AC_CONFIG_FILES([Makefile src/Makefile])

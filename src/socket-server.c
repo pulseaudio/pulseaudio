@@ -19,14 +19,15 @@ struct socket_server {
     void (*on_connection)(struct socket_server*s, struct iochannel *io, void *userdata);
     void *userdata;
 
-    struct mainloop_source *mainloop_source;
+    void *mainloop_source;
+    struct pa_mainloop_api *mainloop;
 };
 
-static void callback(struct mainloop_source*src, int fd, enum mainloop_io_event event, void *userdata) {
+static void callback(struct pa_mainloop_api *mainloop, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
     struct socket_server *s = userdata;
     struct iochannel *io;
     int nfd;
-    assert(src && fd >= 0 && fd == s->fd && event == MAINLOOP_IO_EVENT_IN && s);
+    assert(s && s->mainloop == mainloop && s->mainloop_source == id && id && fd >= 0 && fd == s->fd && events == PA_MAINLOOP_API_IO_EVENT_INPUT);
 
     if ((nfd = accept(fd, NULL, NULL)) < 0) {
         fprintf(stderr, "accept(): %s\n", strerror(errno));
@@ -38,12 +39,12 @@ static void callback(struct mainloop_source*src, int fd, enum mainloop_io_event 
         return;
     }
 
-    io = iochannel_new(mainloop_source_get_mainloop(src), nfd, nfd);
+    io = iochannel_new(s->mainloop, nfd, nfd);
     assert(io);
     s->on_connection(s, io, s->userdata);
 }
 
-struct socket_server* socket_server_new(struct mainloop *m, int fd) {
+struct socket_server* socket_server_new(struct pa_mainloop_api *m, int fd) {
     struct socket_server *s;
     assert(m && fd >= 0);
     
@@ -54,13 +55,14 @@ struct socket_server* socket_server_new(struct mainloop *m, int fd) {
     s->on_connection = NULL;
     s->userdata = NULL;
 
-    s->mainloop_source = mainloop_source_new_io(m, fd, MAINLOOP_IO_EVENT_IN, callback, s);
+    s->mainloop = m;
+    s->mainloop_source = m->source_io(m, fd, PA_MAINLOOP_API_IO_EVENT_INPUT, callback, s);
     assert(s->mainloop_source);
     
     return s;
 }
 
-struct socket_server* socket_server_new_unix(struct mainloop *m, const char *filename) {
+struct socket_server* socket_server_new_unix(struct pa_mainloop_api *m, const char *filename) {
     int fd = -1;
     struct sockaddr_un sa;
     struct socket_server *s;
@@ -101,7 +103,7 @@ fail:
     return NULL;
 }
 
-struct socket_server* socket_server_new_ipv4(struct mainloop *m, uint32_t address, uint16_t port) {
+struct socket_server* socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port) {
     int fd = -1;
     struct sockaddr_in sa;
     int on = 1;
@@ -148,7 +150,8 @@ void socket_server_free(struct socket_server*s) {
         free(s->filename);
     }
 
-    mainloop_source_free(s->mainloop_source);
+    
+    s->mainloop->cancel_io(s->mainloop, s->mainloop_source);
     
     free(s);
 }
