@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -10,9 +12,15 @@ struct pa_simple {
     struct pa_mainloop *mainloop;
     struct pa_context *context;
     struct pa_stream *stream;
+    enum pa_stream_direction direction;
 
     int dead, drained;
+
+    void *read_data;
+    size_t read_index, read_length;
 };
+
+static void read_callback(struct pa_stream *s, const void*data, size_t length, void *userdata);
 
 static int check_error(struct pa_simple *p, int *perror) {
     assert(p);
@@ -71,6 +79,9 @@ struct pa_simple* pa_simple_new(
     p->mainloop = pa_mainloop_new();
     assert(p->mainloop);
     p->dead = 0;
+    p->direction = dir;
+    p->read_data = NULL;
+    p->read_index = p->read_length = 0;
 
     if (!(p->context = pa_context_new(pa_mainloop_get_api(p->mainloop), name)))
         goto fail;
@@ -95,6 +106,8 @@ struct pa_simple* pa_simple_new(
             goto fail;
     }
 
+    pa_stream_set_read_callback(p->stream, read_callback, p);
+    
     return p;
     
 fail:
@@ -106,6 +119,8 @@ fail:
 
 void pa_simple_free(struct pa_simple *s) {
     assert(s);
+
+    free(s->read_data);
 
     if (s->stream)
         pa_stream_free(s->stream);
@@ -120,7 +135,7 @@ void pa_simple_free(struct pa_simple *s) {
 }
 
 int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *perror) {
-    assert(p && data);
+    assert(p && data && p->direction == PA_STREAM_PLAYBACK);
 
     while (length > 0) {
         size_t l;
@@ -144,10 +159,57 @@ int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *pe
     return 0;
 }
 
-int pa_simple_read(struct pa_simple *s, void*data, size_t length, int *perror) {
-    assert(0);
+static void read_callback(struct pa_stream *s, const void*data, size_t length, void *userdata) {
+    struct pa_simple *p = userdata;
+    assert(s && data && length && p);
+
+    if (p->read_data) {
+        fprintf(stderr, __FILE__": Buffer overflow, dropping incoming memory blocks.\n");
+        free(p->read_data);
+    }
+
+    p->read_data = malloc(p->read_length = length);
+    assert(p->read_data);
+    memcpy(p->read_data, data, length);
+    p->read_index = 0;
 }
 
+int pa_simple_read(struct pa_simple *p, void*data, size_t length, int *perror) {
+    assert(p && data && p->direction == PA_STREAM_RECORD);
+
+    while (length > 0) {
+        if (p->read_data) {
+            size_t l = length;
+
+            if (p->read_length <= l)
+                l = p->read_length;
+
+            memcpy(data, p->read_data+p->read_index, l);
+
+            data += l;
+            length -= l;
+            
+            p->read_index += l;
+            p->read_length -= l;
+
+            if (!p->read_length) {
+                free(p->read_data);
+                p->read_data = NULL;
+                p->read_index = 0;
+            }
+            
+            if (!length)
+                return 0;
+
+            assert(!p->read_data);
+        }
+
+        if (iterate(p, 1, perror) < 0)
+            return -1;
+    }
+
+    return 0;
+}
 
 static void drain_complete(struct pa_stream *s, void *userdata) {
     struct pa_simple *p = userdata;
@@ -156,7 +218,7 @@ static void drain_complete(struct pa_stream *s, void *userdata) {
 }
 
 int pa_simple_drain(struct pa_simple *p, int *perror) {
-    assert(p);
+    assert(p && p->direction == PA_STREAM_PLAYBACK);
     p->drained = 0;
     pa_stream_drain(p->stream, drain_complete, p);
 

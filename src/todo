@@ -1,4 +1,3 @@
-- implement parec-simple
 - native library/protocol:
        more functions (esp. latency)
 
@@ -21,7 +20,7 @@
 - svn-id and license in every file
 - documentation
 
-
+- dependency checking script
 
 -- post 0.1
 - future cancellation

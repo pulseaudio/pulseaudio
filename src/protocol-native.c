@@ -254,6 +254,31 @@ static void send_memblock(struct connection *c) {
     }
 }
 
+static void send_playback_stream_killed(struct playback_stream *p) {
+    struct pa_tagstruct *t;
+    assert(p);
+
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_KILLED);
+    pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+    pa_tagstruct_putu32(t, p->index);
+    pa_pstream_send_tagstruct(p->connection->pstream, t);
+}
+
+static void send_record_stream_killed(struct record_stream *r) {
+    struct pa_tagstruct *t;
+    assert(r);
+
+    t = pa_tagstruct_new(NULL, 0);
+    assert(t);
+    pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_KILLED);
+    pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
+    pa_tagstruct_putu32(t, r->index);
+    pa_pstream_send_tagstruct(r->connection->pstream, t);
+}
+
+
 /*** sinkinput callbacks ***/
 
 static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk) {
@@ -283,6 +308,7 @@ static void sink_input_drop_cb(struct pa_sink_input *i, size_t length) {
 
 static void sink_input_kill_cb(struct pa_sink_input *i) {
     assert(i && i->userdata);
+    send_playback_stream_killed((struct playback_stream *) i->userdata);
     playback_stream_free((struct playback_stream *) i->userdata);
 }
 
@@ -308,6 +334,7 @@ static void source_output_push_cb(struct pa_source_output *o, const struct pa_me
 
 static void source_output_kill_cb(struct pa_source_output *o) {
     assert(o && o->userdata);
+    send_record_stream_killed((struct record_stream *) o->userdata);
     record_stream_free((struct record_stream *) o->userdata);
 }
 

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "polyp-error.h"
@@ -14,7 +15,9 @@ static const char* const errortab[PA_ERROR_MAX] = {
     [PA_ERROR_PROTOCOL] = "Protocol corrupt",
     [PA_ERROR_TIMEOUT] = "Timeout",
     [PA_ERROR_AUTHKEY] = "Not authorization key",
-    [PA_ERROR_INTERNAL] = "Internal error"
+    [PA_ERROR_INTERNAL] = "Internal error",
+    [PA_ERROR_CONNECTIONTERMINATED] = "Connection terminated",
+    [PA_ERROR_KILLED] = "Entity killed",
 };
 
 const char*pa_strerror(uint32_t error) {

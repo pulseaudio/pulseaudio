@@ -28,7 +28,7 @@ struct pa_context {
     struct pa_socket_client *client;
     struct pa_pstream *pstream;
     struct pa_pdispatch *pdispatch;
-    struct pa_dynarray *streams;
+    struct pa_dynarray *record_streams, *playback_streams;
     struct pa_stream *first_stream;
     uint32_t ctag;
     uint32_t error;
@@ -85,6 +85,7 @@ struct pa_stream {
 };
 
 static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_playback_stream_killed(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -95,6 +96,8 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_DELETE_RECORD_STREAM] = { NULL },
     [PA_COMMAND_EXIT] = { NULL },
     [PA_COMMAND_REQUEST] = { command_request },
+    [PA_COMMAND_PLAYBACK_STREAM_KILLED] = { command_playback_stream_killed },
+    [PA_COMMAND_RECORD_STREAM_KILLED] = { command_playback_stream_killed },
 };
 
 struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *name) {
@@ -108,8 +111,10 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->client = NULL;
     c->pstream = NULL;
     c->pdispatch = NULL;
-    c->streams = pa_dynarray_new();
-    assert(c->streams);
+    c->playback_streams = pa_dynarray_new();
+    assert(c->playback_streams);
+    c->record_streams = pa_dynarray_new();
+    assert(c->record_streams);
     c->first_stream = NULL;
     c->error = PA_ERROR_OK;
     c->state = CONTEXT_UNCONNECTED;
@@ -140,8 +145,10 @@ void pa_context_free(struct pa_context *c) {
         pa_pdispatch_free(c->pdispatch);
     if (c->pstream)
         pa_pstream_free(c->pstream);
-    if (c->streams)
-        pa_dynarray_free(c->streams, NULL, NULL);
+    if (c->record_streams)
+        pa_dynarray_free(c->record_streams, NULL, NULL);
+    if (c->playback_streams)
+        pa_dynarray_free(c->playback_streams, NULL, NULL);
         
     free(c->name);
     free(c);
@@ -194,6 +201,7 @@ static void context_dead(struct pa_context *c) {
 static void pstream_die_callback(struct pa_pstream *p, void *userdata) {
     struct pa_context *c = userdata;
     assert(p && c);
+    c->error = PA_ERROR_CONNECTIONTERMINATED;
     context_dead(c);
 }
 
@@ -203,6 +211,7 @@ static void pstream_packet_callback(struct pa_pstream *p, struct pa_packet *pack
 
     if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
         fprintf(stderr, "polyp.c: invalid packet.\n");
+        c->error = PA_ERROR_PROTOCOL;
         context_dead(c);
     }
 }
@@ -212,7 +221,7 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, in
     struct pa_stream *s;
     assert(p && chunk && c && chunk->memblock && chunk->memblock->data);
 
-    if (!(s = pa_dynarray_get(c->streams, channel)))
+    if (!(s = pa_dynarray_get(c->record_streams, channel)))
         return;
 
     if (s->read_callback)
@@ -353,6 +362,26 @@ void pa_context_set_die_callback(struct pa_context *c, void (*cb)(struct pa_cont
     c->die_userdata = userdata;
 }
 
+static void command_playback_stream_killed(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_context *c = userdata;
+    struct pa_stream *s;
+    uint32_t channel;
+    assert(pd && (command == PA_COMMAND_PLAYBACK_STREAM_KILLED || command == PA_COMMAND_RECORD_STREAM_KILLED) && t && c);
+
+    if (pa_tagstruct_getu32(t, &channel) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        c->error = PA_ERROR_PROTOCOL;
+        context_dead(c);
+        return;
+    }
+    
+    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_STREAM_KILLED ? c->playback_streams : c->record_streams, channel)))
+        return;
+
+    c->error = PA_ERROR_KILLED;
+    stream_dead(s);
+}
+
 static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct pa_stream *s;
     struct pa_context *c = userdata;
@@ -367,7 +396,7 @@ static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t 
         return;
     }
     
-    if (!(s = pa_dynarray_get(c->streams, channel)))
+    if (!(s = pa_dynarray_get(c->playback_streams, channel)))
         return;
 
     if (s->state != STREAM_READY)
@@ -405,7 +434,7 @@ static void create_stream_callback(struct pa_pdispatch *pd, uint32_t command, ui
     }
 
     s->channel_valid = 1;
-    pa_dynarray_put(s->context->streams, s->channel, s);
+    pa_dynarray_put((s->direction == PA_STREAM_PLAYBACK) ? s->context->playback_streams :  s->context->record_streams, s->channel, s);
     
     s->state = STREAM_READY;
     if (s->create_complete_callback)
@@ -562,7 +591,7 @@ void pa_stream_free(struct pa_stream *s) {
     }
     
     if (s->channel_valid)
-        pa_dynarray_put(s->context->streams, s->channel, NULL);
+        pa_dynarray_put((s->direction == PA_STREAM_PLAYBACK) ? s->context->playback_streams : s->context->record_streams, s->channel, NULL);
 
     if (s->next)
         s->next->previous = s->previous;

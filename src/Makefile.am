@@ -18,7 +18,7 @@
 
 AM_CFLAGS=-ansi -D_GNU_SOURCE
 
-bin_PROGRAMS = polypaudio pacat pacat-simple
+bin_PROGRAMS = polypaudio pacat pacat-simple parec-simple
 
 pkglib_LTLIBRARIES=libiochannel.la \
 		libsocket-server.la \
@@ -248,3 +248,7 @@ pacat_CFLAGS = $(AM_CFLAGS)
 pacat_simple_SOURCES = pacat-simple.c $(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)
 #pacat_simple_LDADD = libpolyp-simple.la libpolyp-error.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
+
+parec_simple_SOURCES = parec-simple.c $(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)
+#parec_simple_LDADD = libpolyp-simple.la libpolyp-error.la
+parec_simple_CFLAGS = $(AM_CFLAGS)
