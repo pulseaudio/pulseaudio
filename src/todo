@@ -1,14 +1,15 @@
-- 
-- simple control protocol: kill client/input/output; set_volume
+- cli protocol
 - native protocol/library
+- simple control protocol: kill client/input/output; set_volume
 - resampling
 - esound protocol
-- config-parser
-- record-testing
+- config parser
+- record testing
 -- 0.1
 - optimierung von rebuild_pollfds()
 - future cancellation
 - client-ui
+- clip cache
 
 drivers:
 - libao

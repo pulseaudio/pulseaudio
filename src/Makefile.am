@@ -23,7 +23,8 @@ bin_PROGRAMS = polypaudio
 pkglib_LTLIBRARIES=libprotocol-simple.la module-simple-protocol-tcp.la \
 		libsocket-server.la module-pipe-sink.la libpstream.la libiochannel.la \
 		libpacket.la module-oss.la module-oss-mmap.la liboss.la libioline.la \
-		libcli.la module-cli.la libtokenizer.la libdynarray.la
+		libcli.la module-cli.la libtokenizer.la libdynarray.la \
+		module-simple-protocol-unix.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
@@ -81,9 +82,15 @@ libtokenizer_la_SOURCES = tokenizer.c tokenizer.h
 libtokenizer_la_LDFLAGS = -avoid-version
 libtokenizer_la_LIBADD = libdynarray.la
 
-module_simple_protocol_tcp_la_SOURCES = module-simple-protocol-tcp.c
+module_simple_protocol_tcp_la_SOURCES = module-simple-protocol.c
+module_simple_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS $(AM_CFLAGS)
 module_simple_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_simple_protocol_tcp_la_LIBADD = libprotocol-simple.la libiochannel.la
+
+module_simple_protocol_unix_la_SOURCES = module-simple-protocol.c
+module_simple_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS $(AM_CFLAGS)
+module_simple_protocol_unix_la_LDFLAGS = -module -avoid-version
+module_simple_protocol_unix_la_LIBADD = libprotocol-simple.la libiochannel.la
 
 module_pipe_sink_la_SOURCES = module-pipe-sink.c
 module_pipe_sink_la_LDFLAGS = -module -avoid-version
