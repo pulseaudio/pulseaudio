@@ -687,6 +687,24 @@ pa_usec_t pa_stream_get_time(struct pa_stream *s, const struct pa_latency_info *
     return usec;
 }
 
+static pa_usec_t time_counter_diff(struct pa_stream *s, pa_usec_t t, pa_usec_t c, int *negative) {
+    assert(s);
+    
+    if (negative)
+        *negative = 0;
+
+    if (c < t) {
+        if (s->direction == PA_STREAM_RECORD) {
+            if (negative)
+                *negative = 1;
+
+            return t-c;
+        } else
+            return 0;
+    } else
+        return c-t;
+}
+
 pa_usec_t pa_stream_get_latency(struct pa_stream *s, const struct pa_latency_info *i, int *negative) {
     pa_usec_t t, c;
     assert(s && i);
@@ -694,18 +712,7 @@ pa_usec_t pa_stream_get_latency(struct pa_stream *s, const struct pa_latency_inf
     t = pa_stream_get_time(s, i);
     c = pa_bytes_to_usec(s->counter, &s->sample_spec);
 
-    if (t <= c) {
-        if (negative)
-            *negative = 1;
-
-        return c-t;
-    } else {
-        if (negative)
-            *negative = 0;
-        return t-c;
-    }
-
-    return 0;
+    return time_counter_diff(s, t, c, negative);
 }
 
 const struct pa_sample_spec* pa_stream_get_sample_spec(struct pa_stream *s) {
@@ -749,15 +756,6 @@ pa_usec_t pa_stream_get_interpolated_latency(struct pa_stream *s, int *negative)
 
     t = pa_stream_get_interpolated_time(s);
     c = pa_bytes_to_usec(s->counter, &s->sample_spec);
-
-    if (t <= c) {
-        if (negative)
-            *negative = 1;
-
-        return c-t;
-    } else {
-        if (negative)
-            *negative = 0;
-        return t-c;
-    }
+    
+    return time_counter_diff(s, t, c, negative);
 }

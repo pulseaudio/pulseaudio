@@ -54,8 +54,11 @@ struct pa_sink_input {
     void (*drop) (struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
     void (*kill) (struct pa_sink_input *i);
     pa_usec_t (*get_latency) (struct pa_sink_input *i);
+    void (*underrun) (struct pa_sink_input *i);
 
     void *userdata;
+
+    int playing;
 
     struct pa_memchunk resampled_chunk;
     struct pa_resampler *resampler;

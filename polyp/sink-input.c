@@ -69,8 +69,10 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     i->kill = NULL;
     i->get_latency = NULL;
     i->userdata = NULL;
+    i->underrun = NULL;
 
     i->volume = PA_VOLUME_NORM;
+    i->playing = 0;
 
     i->resampled_chunk.memblock = NULL;
     i->resampled_chunk.index = i->resampled_chunk.length = 0;
@@ -156,19 +158,18 @@ pa_usec_t pa_sink_input_get_latency(struct pa_sink_input *i) {
 }
 
 int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
-    int ret = 0;
+    int ret = -1;
     assert(i && chunk && i->ref >= 1);
 
-    if (!i->peek || !i->drop)
-        return -1;
-
-    if (i->state == PA_SINK_INPUT_CORKED)
-        return -1;
-    
-    if (!i->resampler)
-        return i->peek(i, chunk);
-
     pa_sink_input_ref(i);
+
+    if (!i->peek || !i->drop || i->state == PA_SINK_INPUT_CORKED)
+        goto finish;
+        
+    if (!i->resampler) {
+        ret = i->peek(i, chunk);
+        goto finish;
+    }
 
     while (!i->resampled_chunk.memblock) {
         struct pa_memchunk tchunk;
@@ -199,6 +200,11 @@ int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
 
 finish:
 
+    if (ret < 0 && i->playing && i->underrun)
+        i->underrun(i);
+
+    i->playing = ret >= 0;
+    
     pa_sink_input_unref(i);
     
     return ret;
