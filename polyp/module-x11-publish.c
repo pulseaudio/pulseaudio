@@ -147,8 +147,11 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
 
     u->display = pa_x11_wrapper_get_display(u->x11_wrapper);
 
-    pa_get_host_name(hn, sizeof(hn));
-    pa_get_user_name(un, sizeof(un));
+    if (!pa_get_fqdn(hn, sizeof(hn)))
+        goto fail;
+    
+    if (!pa_get_user_name(un, sizeof(un)))
+        goto fail;
     
     u->id = pa_sprintf_malloc("%s@%s/%u", un, hn, (unsigned) getpid());
 
