@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: polyplib-browse
+Description: Polypaudio network browsing API
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lpolyp-browse-@PA_MAJORMINOR@
+Cflags: -D_REENTRANT -I${includedir}
+Requires: polyplib-mainloop

@@ -74,7 +74,8 @@ polypinclude_HEADERS= \
 		mainloop.h \
 		mainloop-signal.h \
 		sample.h \
-		glib-mainloop.h
+		glib-mainloop.h \
+		typeid.h
 
 ### Warning! Due to an obscure bug in libtool/automake it is required
 ### that the libraries in modlib_LTLIBRARIES are specified in-order,
@@ -631,6 +632,8 @@ bin_PROGRAMS += \
 pabrowse_SOURCES = pabrowse.c
 pabrowse_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la libpolyp-browse-@PA_MAJORMINOR@.la
 pabrowse_CFLAGS = $(AM_CFLAGS)
+
+polypinclude_HEADERS+=polyplib-browser.h
 
 endif
 

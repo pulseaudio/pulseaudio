@@ -185,5 +185,5 @@ AM_CONDITIONAL([USE_LYNX], [test "x$lynx" = xyes])
 
 AM_CONDITIONAL(BUILD_LIBPOLYPCORE, false)
 
-AC_CONFIG_FILES([Makefile polyp/Makefile polyplib.pc polyplib-simple.pc polyplib-mainloop.pc polyplib-error.pc polyplib-glib-mainloop.pc polyplib-glib12-mainloop.pc doc/Makefile doc/README.html doc/cli.html doc/daemon.html doc/modules.html doxygen/Makefile doxygen/doxygen.conf polyp/polyplib-version.h doc/FAQ.html])
+AC_CONFIG_FILES([Makefile polyp/Makefile polyplib.pc polyplib-simple.pc polyplib-mainloop.pc polyplib-browse.pc polyplib-error.pc polyplib-glib-mainloop.pc polyplib-glib12-mainloop.pc doc/Makefile doc/README.html doc/cli.html doc/daemon.html doc/modules.html doxygen/Makefile doxygen/doxygen.conf polyp/polyplib-version.h doc/FAQ.html])
 AC_OUTPUT
