@@ -11,15 +11,14 @@
    rename streams/contexts
 - more complete pactl
 - add sample directory
-- config file for command line arguments
 - option to use default fragment size on alsa drivers
 - lazy sample cache
 - per-channel volume
 - merge pa_context_connect_*
 - input latency
 - fix tcp/native
-- suid
 - add volume to create_stream command in native protocol
+- udp based protocol
 
 ** later ***
 - xmlrpc/http

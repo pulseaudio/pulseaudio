@@ -1,0 +1,61 @@
+# $Id$
+#
+# This file is part of polypaudio.
+#
+# polypaudio is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# polypaudio is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with polypaudio; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+
+## Configuration file for polypaudio. Default values are commented out.
+## Use either ; or # for commenting
+
+# Extra verbositiy
+; verbose = 0
+
+## Daemonize after startup
+; daemonize = 0
+
+## Quit if startup fails
+; fail = 1
+
+## Renice the daemon to level -15 and try to get SCHED_FIFO
+## scheduling. This a good idea if you hear annyoing noise in the
+## playback. However, this is a certain security issue.
+; high-priority = 0
+
+## Don't drop root rights on startup if called SUID root. 
+; stay-root = 0
+
+## Disallow module loading after startup
+; disallow-module-loading = 0
+
+## Terminate the daemon after the last client quit and this time
+## passed. Use a negative value to disable this feature.
+; exit-idle-time = -1
+
+## Unload autoloaded modules after being idle for this time 
+module-idle-time = 20
+
+## The path were to look for dynamic shared objects (DSOs aka plugins).
+## Specify an empty string for the default search path.
+; dl-search-path =
+
+## The default script file to load. Specify an empty string for not
+## loading a default script file
+; default-script-file = /etc/polyp/default.pa 
+
+## The default log target. Use either "stderr", "syslog" or
+## "auto". The latter is equivalent to "sylog" in case daemonize is
+## true, otherwise to "stderr".
+; log-target = auto

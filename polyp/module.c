@@ -38,7 +38,7 @@
 #define PA_SYMBOL_INIT "pa__init"
 #define PA_SYMBOL_DONE "pa__done"
 
-#define UNLOAD_POLL_TIME 10
+#define UNLOAD_POLL_TIME 2
 
 static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
     struct pa_core *c = userdata;
@@ -193,7 +193,7 @@ static int unused_callback(void *p, uint32_t index, int *del, void *userdata) {
     time_t *now = userdata;
     assert(p && del && now);
     
-    if (m->n_used == 0 && m->auto_unload && m->last_used_time+m->core->auto_unload_time <= *now) {
+    if (m->n_used == 0 && m->auto_unload && m->last_used_time+m->core->module_idle_time <= *now) {
         pa_module_free(m);
         *del = 1;
     }

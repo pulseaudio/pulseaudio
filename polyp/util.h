@@ -50,10 +50,13 @@ char *pa_path_get_filename(const char *p);
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b);
 int pa_timeval_cmp(const struct timeval *a, const struct timeval *b);
 pa_usec_t pa_age(const struct timeval *tv);
+void pa_timeval_add(struct timeval *tv, pa_usec_t v);
 
 void pa_raise_priority(void);
 void pa_reset_priority(void);
 
 int pa_fd_set_cloexec(int fd, int b);
+
+int pa_parse_boolean(const char *s);
 
 #endif

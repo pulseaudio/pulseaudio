@@ -45,6 +45,8 @@
 #include "xmalloc.h"
 #include "cpulimit.h"
 #include "log.h"
+#include "conf.h"
+#include "dumpmodules.h"
 
 static struct pa_mainloop *mainloop;
 
@@ -99,40 +101,69 @@ static void close_pipe(int p[2]) {
 
 int main(int argc, char *argv[]) {
     struct pa_core *c;
-    struct pa_cmdline *cmdline = NULL;
     struct pa_strbuf *buf = NULL;
+    struct pa_conf *conf;
     char *s;
-    int r, retval = 1;
+    int r, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
 
+    r = lt_dlinit();
+    assert(r == 0);
+    
     pa_log_set_ident("polypaudio");
 
-    if (!(cmdline = pa_cmdline_parse(argc, argv))) {
+    conf = pa_conf_new();
+
+    if (pa_conf_load(conf, NULL) < 0)
+        goto finish;
+
+    if (pa_cmdline_parse(conf, argc, argv, &d) < 0) {
         pa_log(__FILE__": failed to parse command line.\n");
         goto finish;
     }
 
-    pa_log_set_target(cmdline->auto_log_target ? PA_LOG_STDERR : cmdline->log_target, NULL);
+    pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target, NULL);
 
-    if (cmdline->help) {
+    if (conf->dl_search_path)
+        lt_dlsetsearchpath(conf->dl_search_path);
+#ifdef DLSEARCHPATH
+    else
+        lt_dlsetsearchpath(DLSEARCHPATH);
+#endif
+
+    if (conf->dump_modules) {
+        pa_dump_modules(conf, argc-d, argv+d);
+        retval = 0;
+        goto finish;
+    }
+    
+    if (conf->dump_conf) {
+        char *s = pa_conf_dump(conf);
+        fputs(s, stdout);
+        pa_xfree(s);
+        retval = 0;
+        goto finish;
+    }
+
+    if (conf->help) {
         pa_cmdline_help(argv[0]);
         retval = 0;
         goto finish;
     }
 
-    if (cmdline->version) {
+    if (conf->version) {
         printf(PACKAGE_NAME" "PACKAGE_VERSION"\n");
         retval = 0;
         goto finish;
     }
 
-    if (cmdline->high_priority)
+    if (conf->high_priority)
         pa_raise_priority();
     
-    if (!cmdline->stay_root)
+    if (!conf->stay_root)
         drop_root();
 
-    if (cmdline->daemonize) {
+    if (conf->daemonize) {
         pid_t child;
 
         if (pa_stdio_acquire() < 0) {
@@ -168,7 +199,7 @@ int main(int argc, char *argv[]) {
         daemon_pipe[0] = -1;
         
 
-        if (cmdline->auto_log_target)
+        if (conf->auto_log_target)
             pa_log_set_target(PA_LOG_SYSLOG, NULL);
 
         setsid();
@@ -178,15 +209,6 @@ int main(int argc, char *argv[]) {
         close(1);
     }
     
-    r = lt_dlinit();
-    assert(r == 0);
-
-    if (cmdline->dl_search_path)
-        lt_dlsetsearchpath(cmdline->dl_search_path);
-#ifdef DLSEARCHPATH
-    else
-        lt_dlsetsearchpath(DLSEARCHPATH);
-#endif
 
     pa_log(__FILE__": sizeof(pa_usec_t) = %u\n", sizeof(pa_usec_t));
     
@@ -210,25 +232,28 @@ int main(int argc, char *argv[]) {
     
     buf = pa_strbuf_new();
     assert(buf);
-    r = pa_cli_command_execute(c, cmdline->cli_commands, buf, &cmdline->fail, &cmdline->verbose);
+    if (conf->default_script_file)
+        pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail, &conf->verbose);
+    r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail, &conf->verbose);
     pa_log(s = pa_strbuf_tostring_free(buf));
     pa_xfree(s);
     
-    if (r < 0 && cmdline->fail) {
+    if (r < 0 && conf->fail) {
         pa_log(__FILE__": failed to initialize daemon.\n");
-        if (cmdline->daemonize)
+        if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
     } else if (!c->modules || pa_idxset_ncontents(c->modules) == 0) {
         pa_log(__FILE__": daemon startup without any loaded modules, refusing to work.\n");
-        if (cmdline->daemonize)
+        if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
     } else {
         retval = 0;
-        if (cmdline->daemonize)
+        if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
 
-        c->disallow_module_loading = cmdline->disallow_module_loading;
-        c->quit_after_last_client_time = cmdline->quit_after_last_client_time;
+        c->disallow_module_loading = conf->disallow_module_loading;
+        c->exit_idle_time = conf->exit_idle_time;
+        c->module_idle_time = conf->module_idle_time;
         
         pa_log(__FILE__": Daemon startup complete.\n");
         if (pa_mainloop_run(mainloop, &retval) < 0)
@@ -242,16 +267,16 @@ int main(int argc, char *argv[]) {
     pa_signal_done();
     pa_mainloop_free(mainloop);
     
-    lt_dlexit();
-
     pa_log(__FILE__": Daemon terminated.\n");
     
 finish:
 
-    if (cmdline)
-        pa_cmdline_free(cmdline);
+    if (conf)
+        pa_conf_free(conf);
 
     close_pipe(daemon_pipe);
 
+    lt_dlexit();
+    
     return retval;
 }

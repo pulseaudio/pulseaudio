@@ -268,6 +268,22 @@ pa_usec_t pa_age(const struct timeval *tv) {
     return pa_timeval_diff(&now, tv);
 }
 
+void pa_timeval_add(struct timeval *tv, pa_usec_t v) {
+    unsigned long secs;
+    assert(tv);
+    
+    secs = (v/1000000);
+    tv->tv_sec += (unsigned long) secs;
+    v -= secs*1000000;
+
+    tv->tv_usec += v;
+
+    while (tv->tv_usec >= 1000000) {
+        tv->tv_sec++;
+        tv->tv_usec -= 1000000;
+    }
+}
+
 #define NICE_LEVEL (-15)
 
 void pa_raise_priority(void) {
@@ -346,4 +362,14 @@ char *pa_path_get_filename(const char *p) {
         return fn+1;
 
     return (char*) p;
+}
+
+int pa_parse_boolean(const char *v) {
+    
+    if (!strcmp(v, "1") || !strcasecmp(v, "yes") || !strcasecmp(v, "y") || !strcasecmp(v, "on"))
+        return 1;
+    else if (!strcmp(v, "0") || !strcasecmp(v, "no") || !strcasecmp(v, "n") || !strcasecmp(v, "off"))
+        return 0;
+
+    return -1;
 }

@@ -38,7 +38,6 @@ struct pa_core {
     char *default_source_name, *default_sink_name;
 
     struct pa_sample_spec default_sample_spec;
-    int auto_unload_time;
     struct pa_time_event *auto_unload_event;
 
     struct pa_defer_event *subscription_defer_event;
@@ -48,7 +47,7 @@ struct pa_core {
     struct pa_memblock_stat *memblock_stat;
 
     int disallow_module_loading;
-    int quit_after_last_client_time;
+    int exit_idle_time, module_idle_time;
 
     struct pa_time_event *quit_event;
 };

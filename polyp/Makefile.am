@@ -24,23 +24,24 @@ modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
 
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
 AM_CFLAGS+=-DDLSEARCHPATH=\"$(modlibdir)\"
-AM_CFLAGS+=-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/polypaudio.pa\"
+AM_CFLAGS+=-DDEFAULT_SCRIPT_FILE=\"$(polypconfdir)/default.pa\"
+AM_CFLAGS+=-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/config\"
 AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 
 AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
-EXTRA_DIST = polypaudio.pa depmod.py esdcompat.sh.in
-bin_PROGRAMS = polypaudio pacat pactl pamodinfo
+EXTRA_DIST = default.pa config depmod.py esdcompat.sh.in
+bin_PROGRAMS = polypaudio pacat pactl
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = \
 		mainloop-test \
 		pacat-simple \
 		parec-simple \
 		cpulimit-test \
-		cpulimit-test2 
+		cpulimit-test2
 
-polypconf_DATA=polypaudio.pa 
+polypconf_DATA=default.pa config
 
 BUILT_SOURCES=polyplib-version.h
 
@@ -153,18 +154,14 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		cpulimit.c cpulimit.h \
 		log.c log.h \
 		gcc-printf.h \
-		modinfo.c modinfo.h 
+		modinfo.c modinfo.h \
+		conf.c conf.h \
+		dumpmodules.c dumpmodules.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
-polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS)
+polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(LEXLIB)
 polypaudio_LDFLAGS=-export-dynamic
-
-pamodinfo_SOURCES = log.c log.h pamodinfo.c pamodinfo.h modinfo.c modinfo.h util.c util.h xmalloc.c xmalloc.h
-pamodinfo_CFLAGS = $(AM_CFLAGS)
-pamodinfo_INCLUDES = $(INCLTDL)
-pamodinfo_LDADD = $(AM_LDADD) $(LIBLTDL)
-pamodinfo_LDFLAGS=-export-dynamic
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version
@@ -535,3 +532,7 @@ esdcompat.sh: esdcompat.sh.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
 		-e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
+
+install-exec-hook:
+	chown root:root $(DESTDIR)$(bindir)/polypaudio
+	chmod u+s $(DESTDIR)$(bindir)/polypaudio

@@ -286,7 +286,10 @@ static void stream_get_latency_callback(struct pa_stream *s, const struct pa_lat
         return;
     }
 
-    fprintf(stderr, "Current latency is %f usecs.\n", (float) (i->buffer_usec+i->sink_usec+i->transport_usec));
+    fprintf(stderr, "Latency: buffer: %0.0f usec; sink: %0.0f usec; transport: %0.0f usec; total: %0.0f usec; synchronized clocks: %s.\n",
+            (float) i->buffer_usec, (float) i->sink_usec, (float) i->transport_usec,
+            (float) (i->buffer_usec+i->sink_usec+i->transport_usec),
+            i->synchronized_clocks ? "yes" : "no");
 }
 
 /* Someone requested that the latency is shown */

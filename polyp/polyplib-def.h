@@ -144,7 +144,16 @@ struct pa_latency_info {
     pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink.  */
     pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to the daemon. \since 0.5 */
     int playing;              /**< Non-zero when the stream is currently playing */
-    uint32_t queue_length;    /**< Queue size in bytes. */  
+    uint32_t queue_length;    /**< Queue size in bytes. */
+    int synchronized_clocks;  /**< Non-zero if the local and the
+                               * remote machine have synchronized
+                               * clocks. If synchronized clocks are
+                               * detected transport_usec becomes much
+                               * more reliable. However, the code that
+                               * detects synchronized clocks is very
+                               * limited und unreliable itself. \since
+                               * 0.5 */
+    struct timeval timestamp; /**< The time when this latency info was current */
 };
 
 PA_C_DECL_END

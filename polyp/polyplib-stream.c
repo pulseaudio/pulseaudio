@@ -347,12 +347,18 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
 
     gettimeofday(&now, NULL);
 
-    if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now))
+    if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now)) {
         /* local and remote seem to have synchronized clocks */
         i.transport_usec = pa_timeval_diff(&remote, &local);
-    else
+        i.synchronized_clocks = 1;
+        i.timestamp = remote;
+    } else {
         /* clocks are not synchronized, let's estimate latency then */
         i.transport_usec = pa_timeval_diff(&now, &local)/2;
+        i.synchronized_clocks = 0;
+        i.timestamp = local;
+        pa_timeval_add(&i.timestamp, i.transport_usec);
+    }
 
     if (o->callback) {
         void (*cb)(struct pa_stream *s, const struct pa_latency_info *i, void *userdata) = o->callback;

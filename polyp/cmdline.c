@@ -35,29 +35,48 @@
 #include "strbuf.h"
 #include "xmalloc.h"
 
-#define ENV_CONFIG_FILE "POLYP_CONFIG"
+enum {
+    ARG_HELP = 256,
+    ARG_VERSION,
+    ARG_DUMP_CONF,
+    ARG_DUMP_MODULES,
+    ARG_DAEMONIZE,
+    ARG_FAIL,
+    ARG_VERBOSE,
+    ARG_HIGH_PRIORITY,
+    ARG_STAY_ROOT,
+    ARG_DISALLOW_MODULE_LOADING,
+    ARG_EXIT_IDLE_TIME,
+    ARG_MODULE_IDLE_TIME,
+    ARG_LOG_TARGET,
+    ARG_LOAD,
+    ARG_FILE,
+    ARG_DL_SEARCH_PATH,
+};
 
-char* config_file(void) {
-    char *p, *h;
+static struct option long_options[] = {
+    {"help",                        0, 0, ARG_HELP},
+    {"version",                     0, 0, ARG_VERSION},
+    {"dump-conf",                   0, 0, ARG_DUMP_CONF},
+    {"dump-modules",                0, 0, ARG_DUMP_MODULES},
+    {"daemonize",                   2, 0, ARG_DAEMONIZE},
+    {"fail",                        2, 0, ARG_FAIL},
+    {"verbose",                     2, 0, ARG_VERBOSE},
+    {"high-priority",               2, 0, ARG_HIGH_PRIORITY},
+    {"stay-root",                   2, 0, ARG_STAY_ROOT},
+    {"disallow-module-loading",     2, 0, ARG_DISALLOW_MODULE_LOADING},
+    {"exit-idle-time",              2, 0, ARG_EXIT_IDLE_TIME},
+    {"module-idle-time",            2, 0, ARG_MODULE_IDLE_TIME},
+    {"log-target",                  1, 0, ARG_LOG_TARGET},
+    {"load",                        1, 0, ARG_LOAD},
+    {"file",                        1, 0, ARG_FILE},
+    {"dl-search-path",              1, 0, ARG_DL_SEARCH_PATH},
+    {NULL, 0, 0, 0}
+};
 
-    if ((p = getenv(ENV_CONFIG_FILE)))
-        return pa_xstrdup(p);
-
-    if ((h = getenv("HOME"))) {
-        struct stat st;
-        p = pa_sprintf_malloc("%s/.polypaudio", h);
-        if (stat(p, &st) >= 0)
-            return p;
-        
-        pa_xfree(p);
-    }
-
-    return pa_xstrdup(DEFAULT_CONFIG_FILE);
-}
 
 void pa_cmdline_help(const char *argv0) {
     const char *e;
-    char *cfg = config_file();
 
     if ((e = strrchr(argv0, '/')))
         e++;
@@ -65,133 +84,170 @@ void pa_cmdline_help(const char *argv0) {
         e = argv0;
     
     printf("%s [options]\n"
-           "  -r         Try to set high process priority (only available as root)\n"
-           "  -R         Don't drop root if SETUID root\n"
-           "  -L MODULE  Load the specified plugin module with the specified argument\n"
-           "  -F FILE    Run the specified script\n"
-           "  -C         Open a command line on the running TTY\n"
-           "  -n         Don't load configuration file (%s)\n"
-           "  -D         Daemonize after loading the modules\n"
-           "  -d         Disallow module loading after startup\n"
-           "  -f         Dont quit when the startup fails\n"
-           "  -v         Verbose startup\n"
-           "  -X SECS    Terminate the daemon after the last client quit and this time passed\n"
-           "  -h         Show this help\n"
-           "  -l TARGET  Specify the log target (syslog, stderr, auto)\n"
-           "  -p DIR     Append a directory to the search path for dynamic modules\n"
-           "  -V         Show version\n", e, cfg);
+           "  -h, --help                            Show this help\n"
+           "      --version                         Show version\n"
+           "      --dump-conf                       Dump default configuration\n"
+           "      --dump-modules                    Dump list of available modules\n\n"
 
-    pa_xfree(cfg);
+           "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+           "      --fail[=BOOL]                     Quit when startup fails\n"
+           "      --verbose[=BOOL]                  Be slightly more verbose\n"
+           "      --high-priority[=BOOL]            Try to set high process priority (only available as root)\n"
+           "      --stay-root[=BOOL]                Don't drop root if SETUID root\n"
+           "      --disallow-module-loading[=BOOL]  Disallow module loading after startup\n"
+           "      --exit-idle-time=SECS             Terminate the daemon when idle and this time passed\n"
+           "      --module-idle-time=SECS           Unload autoloaded modules when idle and this time passed\n"
+           "      --log-target={auto,syslog,stderr} Specify the log target\n"
+           "  -p, --dl-search-path=PATH             Set the search path for dynamic shared objects (plugins)\n\n"     
+           
+           "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with the specified argument\n"
+           "  -F, --file=FILENAME                   Run the specified script\n"
+           "  -C                                    Open a command line on the running TTY after startup\n\n"
+           
+           "  -n                                    Don't load default script file\n", e);
 }
 
-struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
-    char c, *cfg;
-    struct pa_cmdline *cmdline = NULL;
+int pa_cmdline_parse(struct pa_conf *conf, int argc, char *const argv [], int *d) {
     struct pa_strbuf *buf = NULL;
-    int no_default_config_file = 0;
-    assert(argc && argv);
-
-    cmdline = pa_xmalloc(sizeof(struct pa_cmdline));
-    cmdline->daemonize =
-        cmdline->help =
-        cmdline->verbose =
-        cmdline->high_priority =
-        cmdline->stay_root =
-        cmdline->version =
-        cmdline->disallow_module_loading = 0;
-    cmdline->fail = cmdline->auto_log_target = 1;
-    cmdline->quit_after_last_client_time = -1;
-    cmdline->log_target = -1;
-    cmdline->dl_search_path = NULL;
+    int c;
+    assert(conf && argc && argv);
 
     buf = pa_strbuf_new();
     assert(buf);
+
+    if (conf->script_commands)
+        pa_strbuf_puts(buf, conf->script_commands);
     
-    while ((c = getopt(argc, argv, "L:F:CDhfvrRVndX:l:p:")) != -1) {
+    while ((c = getopt_long(argc, argv, "L:F:ChDnp:", long_options, NULL)) != -1) {
         switch (c) {
+            case ARG_HELP:
+            case 'h':
+                conf->help = 1;
+                break;
+
+            case ARG_VERSION:
+                conf->version = 1;
+                break;
+
+            case ARG_DUMP_CONF:
+                conf->dump_conf = 1;
+                break;
+
+            case ARG_DUMP_MODULES:
+                conf->dump_modules = 1;
+                break;
+                
+            case ARG_LOAD:
             case 'L':
                 pa_strbuf_printf(buf, "load %s\n", optarg);
                 break;
+                
+            case ARG_FILE:
             case 'F':
                 pa_strbuf_printf(buf, ".include %s\n", optarg);
                 break;
+                
             case 'C':
                 pa_strbuf_puts(buf, "load module-cli\n");
                 break;
+                
+            case ARG_DAEMONIZE:
             case 'D':
-                cmdline->daemonize = 1;
+                if ((conf->daemonize = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(__FILE__": --daemonize expects boolean argument\n");
+                    goto fail;
+                }
                 break;
-            case 'h':
-                cmdline->help = 1;
+
+            case ARG_FAIL:
+                if ((conf->fail = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(__FILE__": --fail expects boolean argument\n");
+                    goto fail;
+                }
                 break;
-            case 'f':
-                cmdline->fail = 0;
+
+            case ARG_VERBOSE:
+                if ((conf->verbose = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(__FILE__": --verbose expects boolean argument\n");
+                    goto fail;
+                }
                 break;
-            case 'v':
-                cmdline->verbose = 1;
+
+            case ARG_HIGH_PRIORITY:
+                if ((conf->high_priority = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(__FILE__": --high-priority expects boolean argument\n");
+                    goto fail;
+                }
                 break;
-            case 'r':
-                cmdline->high_priority = 1;
+
+            case ARG_STAY_ROOT:
+                if ((conf->stay_root = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(__FILE__": --stay-root expects boolean argument\n");
+                    goto fail;
+                }
                 break;
-            case 'R':
-                cmdline->stay_root = 1;
+
+            case ARG_DISALLOW_MODULE_LOADING:
+                if ((conf->disallow_module_loading = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(__FILE__": --disallow-module-loading expects boolean argument\n");
+                    goto fail;
+                }
                 break;
-            case 'V':
-                cmdline->version = 1;
-                break;
-            case 'n':
-                no_default_config_file = 1;
-                break;
-            case 'd':
-                cmdline->disallow_module_loading = 1;
-                break;
-            case 'X':
-                cmdline->quit_after_last_client_time = atoi(optarg);
-                break;
+
             case 'p':
-                if (cmdline->dl_search_path)
-                    pa_xfree(cmdline->dl_search_path);
-                cmdline->dl_search_path = pa_xstrdup(optarg);
+            case ARG_DL_SEARCH_PATH:
+                pa_xfree(conf->dl_search_path);
+                conf->dl_search_path = *optarg ? pa_xstrdup(optarg) : NULL;
                 break;
-            case 'l':
+                
+            case 'n':
+                pa_xfree(conf->default_script_file);
+                conf->default_script_file = NULL;
+                break;
+
+            case ARG_LOG_TARGET:
                 if (!strcmp(optarg, "syslog")) {
-                    cmdline->auto_log_target = 0;
-                    cmdline->log_target = PA_LOG_SYSLOG;
+                    conf->auto_log_target = 0;
+                    conf->log_target = PA_LOG_SYSLOG;
                 } else if (!strcmp(optarg, "stderr")) {
-                    cmdline->auto_log_target = 0;
-                    cmdline->log_target = PA_LOG_STDERR;
+                    conf->auto_log_target = 0;
+                    conf->log_target = PA_LOG_STDERR;
                 } else if (!strcmp(optarg, "auto"))
-                    cmdline->auto_log_target = 1;
+                    conf->auto_log_target = 1;
                 else {
                     pa_log(__FILE__": Invalid log target: use either 'syslog', 'stderr' or 'auto'.\n");
                     goto fail;
                 }
                 break;
+
+            case ARG_EXIT_IDLE_TIME:
+                conf->exit_idle_time = atoi(optarg);
+                break;
+
+            case ARG_MODULE_IDLE_TIME:
+                conf->module_idle_time = atoi(optarg);
+                break;
+                
             default:
                 goto fail;
         }
     }
 
-    if (!no_default_config_file) {
-        cfg = config_file();
-        pa_strbuf_printf(buf, ".include %s\n", cfg);
-        pa_xfree(cfg);
+    pa_xfree(conf->script_commands);
+    conf->script_commands = pa_strbuf_tostring_free(buf);
+
+    if (!conf->script_commands) {
+        pa_xfree(conf->script_commands);
+        conf->script_commands = NULL;
     }
 
-    cmdline->cli_commands = pa_strbuf_tostring_free(buf);
-    return cmdline;
+    *d = optind;
+    
+    return 0;
     
 fail:
-    if (cmdline)
-        pa_cmdline_free(cmdline);
     if (buf)
         pa_strbuf_free(buf);
-    return NULL;
-}
-
-void pa_cmdline_free(struct pa_cmdline *cmd) {
-    assert(cmd);
-    pa_xfree(cmd->cli_commands);
-    pa_xfree(cmd->dl_search_path);
-    pa_xfree(cmd);
+    
+    return -1;
 }

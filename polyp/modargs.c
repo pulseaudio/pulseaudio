@@ -36,6 +36,7 @@
 #include "sink.h"
 #include "source.h"
 #include "xmalloc.h"
+#include "util.h"
 
 struct pa_modargs;
 
@@ -229,6 +230,7 @@ int pa_modargs_get_value_s32(struct pa_modargs *ma, const char *key, int32_t *va
 
 int pa_modargs_get_value_boolean(struct pa_modargs *ma, const char *key, int *value) {
     const char *v;
+    int r;
     assert(ma && key && value);
 
     if (!(v = pa_modargs_get_value(ma, key, NULL)))
@@ -237,13 +239,10 @@ int pa_modargs_get_value_boolean(struct pa_modargs *ma, const char *key, int *va
     if (!*v)
         return -1;
 
-    if (!strcmp(v, "1") || !strcasecmp(v, "yes") || !strcasecmp(v, "y") || !strcasecmp(v, "on"))
-        *value = 1;
-    else if (!strcmp(v, "0") || !strcasecmp(v, "no") || !strcasecmp(v, "n") || !strcasecmp(v, "off"))
-        *value = 0;
-    else
+    if ((r = pa_parse_boolean(v)) < 0)
         return -1;
 
+    *value = r;
     return 0;
 }
 

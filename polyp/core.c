@@ -61,7 +61,6 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->default_sample_spec.rate = 44100;
     c->default_sample_spec.channels = 2;
 
-    c->auto_unload_time = 20;
     c->auto_unload_event = NULL;
 
     c->subscription_defer_event = NULL;
@@ -73,7 +72,9 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->disallow_module_loading = 0;
 
     c->quit_event = NULL;
-    c->quit_after_last_client_time = -1;
+
+    c->exit_idle_time = -1;
+    c->module_idle_time = 20;
     
     pa_check_for_sigpipe();
     
@@ -129,10 +130,10 @@ static void quit_callback(struct pa_mainloop_api*m, struct pa_time_event *e, con
 void pa_core_check_quit(struct pa_core *c) {
     assert(c);
 
-    if (!c->quit_event && c->quit_after_last_client_time >= 0 && pa_idxset_ncontents(c->clients) == 0) {
+    if (!c->quit_event && c->exit_idle_time >= 0 && pa_idxset_ncontents(c->clients) == 0) {
         struct timeval tv;
         gettimeofday(&tv, NULL);
-        tv.tv_sec+= c->quit_after_last_client_time;
+        tv.tv_sec+= c->exit_idle_time;
         c->quit_event = c->mainloop->time_new(c->mainloop, &tv, quit_callback, c);
     } else if (c->quit_event && pa_idxset_ncontents(c->clients) > 0) {
         c->mainloop->time_free(c->quit_event);

@@ -29,11 +29,10 @@
 #include <stdio.h>
 #include <ltdl.h>
 
+#include "dumpmodules.h"
 #include "modinfo.h"
 
 #define PREFIX "module-"
-
-static int verbose = 0;
 
 static void short_info(const char *name, const char *path, struct pa_modinfo *i) {
     assert(name && i);
@@ -79,6 +78,7 @@ static void show_info(const char *name, const char *path, void (*info)(const cha
 
 static int callback(const char *path, lt_ptr data) {
     const char *e;
+    struct pa_conf *c = (data);
 
     if ((e = (const char*) strrchr(path, '/')))
         e++;
@@ -86,41 +86,16 @@ static int callback(const char *path, lt_ptr data) {
         e = path;
 
     if (strlen(e) > sizeof(PREFIX)-1 && !strncmp(e, PREFIX, sizeof(PREFIX)-1))
-        show_info(e, path, verbose ? long_info : short_info);
+        show_info(e, path, c->verbose ? long_info : short_info);
     
     return 0;
 }
 
-int main(int argc, char *argv[]) {
-    int r = lt_dlinit();
-    char *path  = NULL;
-    int c;
-    assert(r == 0);
-
-    while ((c = getopt(argc, argv, "p:v")) != -1) {
-        switch (c) {
-            case 'p':
-                path = optarg;
-                break;
-            case 'v':
-                verbose = 1;
-                break;
-            default:
-                return 1;
-        }
-    }
-
-    if (path)
-        lt_dlsetsearchpath(path);
-#ifdef DLSEARCHPATH
-    else
-        lt_dlsetsearchpath(DLSEARCHPATH);
-#endif
-
-    if (argc > optind)
-        show_info(argv[optind], NULL, long_info);
-    else
-        lt_dlforeachfile(NULL, callback, NULL);
-
-    lt_dlexit();
+void pa_dump_modules(struct pa_conf *c, int argc, char * const argv[]) {
+    if (argc > 0) {
+        int i;
+        for (i = 0; i < argc; i++)
+            show_info(argv[i], NULL, long_info);
+    } else
+        lt_dlforeachfile(NULL, callback, c);
 }

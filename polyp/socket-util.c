@@ -101,15 +101,15 @@ int pa_socket_low_delay(int fd) {
 }
 
 int pa_socket_tcp_low_delay(int fd) {
-    int ret, tos;
+    int ret, tos, on;
 
     assert(fd >= 0);
 
     ret = pa_socket_low_delay(fd);
     
-/*     on = 1; */
-/*     if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) */
-/*         ret = -1; */
+    on = 1;
+    if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+        ret = -1;
 
     tos = IPTOS_LOWDELAY;
     if (setsockopt(fd, SOL_IP, IP_TOS, &tos, sizeof(tos)) < 0)
@@ -122,10 +122,10 @@ int pa_socket_tcp_low_delay(int fd) {
 int pa_socket_set_rcvbuf(int fd, size_t l) {
     assert(fd >= 0);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &l, sizeof(l)) < 0) {
-        pa_log(__FILE__": SO_RCVBUF: %s\n", strerror(errno));
-        return -1;
-    }
+/*     if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &l, sizeof(l)) < 0) { */
+/*         pa_log(__FILE__": SO_RCVBUF: %s\n", strerror(errno)); */
+/*         return -1; */
+/*     } */
 
     return 0;
 }
@@ -133,10 +133,10 @@ int pa_socket_set_rcvbuf(int fd, size_t l) {
 int pa_socket_set_sndbuf(int fd, size_t l) {
     assert(fd >= 0);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &l, sizeof(l)) < 0) {
-        pa_log(__FILE__": SO_SNDBUF: %s\n", strerror(errno));
-        return -1;
-    }
+/*     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &l, sizeof(l)) < 0) { */
+/*         pa_log(__FILE__": SO_SNDBUF: %s\n", strerror(errno)); */
+/*         return -1; */
+/*     } */
 
     return 0;
 }
