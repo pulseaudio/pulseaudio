@@ -325,8 +325,12 @@ static void latency_complete(struct pa_stream *s, const struct pa_latency_info *
 
     if (!l)
         p->dead = 1;
-    else
-        p->latency = l->buffer_usec + l->sink_usec + l->transport_usec;
+    else {
+        int negative = 0;
+        p->latency = pa_stream_get_latency(s, l, &negative);
+        if (negative)
+            p->latency = 0;
+    }
 }
 
 pa_usec_t pa_simple_get_playback_latency(struct pa_simple *p, int *perror) {

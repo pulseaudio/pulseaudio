@@ -732,3 +732,44 @@ char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength) {
     s[j < slength ? j : slength] = 0;
     return s;
 }
+
+/* Convert a hexadecimal digit to a number or -1 if invalid */
+static int hexc(char c) {
+    if (c >= '0' && c <= '9')
+        return c - '0';
+
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+
+    return -1;
+}
+
+/* Parse a hexadecimal string as created by pa_hexstr() to a BLOB */
+size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
+    size_t j = 0;
+    assert(p && d);
+
+    while (j < dlength && *p) {
+        int b;
+
+        if ((b = hexc(*(p++))) < 0)
+            return (size_t) -1;
+        
+        d[j] = (uint8_t) (b << 4);
+
+        if (!*p)
+            return (size_t) -1;
+
+        if ((b = hexc(*(p++))) < 0)
+            return (size_t) -1;
+
+        d[j] |= (uint8_t) b;
+
+        j++;
+    }
+
+    return j;
+}

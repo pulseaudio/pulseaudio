@@ -102,7 +102,7 @@ int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
         goto finish;
     }
     
-    r = pa_config_parse(fn, f, table, NULL);
+    r = f ? pa_config_parse(fn, f, table, NULL) : 0;
 
 finish:
     pa_xfree(fn);

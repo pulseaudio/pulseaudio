@@ -182,12 +182,12 @@ int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename) {
         fopen(c->config_file = pa_xstrdup(filename), "r") :
         pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file);
 
-    if (!f && errno != EINTR) {
+    if (!f && errno != ENOENT) {
         pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s\n", filename, strerror(errno));
         goto finish;
     }
 
-    r = pa_config_parse(c->config_file, f, table, NULL);
+    r = f ? pa_config_parse(c->config_file, f, table, NULL) : 0;
     
 finish:
     if (f)

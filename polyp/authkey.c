@@ -68,7 +68,7 @@ static int generate(int fd, void *data, size_t length) {
     lseek(fd, 0, SEEK_SET);
 
     if ((r = pa_loop_write(fd, data, length)) < 0 || (size_t) r != length) {
-        pa_log(__FILE__": failed to write cookie file\n");
+        pa_log(__FILE__": failed to write cookie file: %s\n", strerror(errno));
         goto finish;
     }
 
@@ -91,7 +91,7 @@ static int load(const char *fn, void *data, size_t length) {
 
     if ((fd = open(fn, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
         if (errno != EACCES || (fd = open(fn, O_RDONLY)) < 0) {
-            pa_log(__FILE__": failed to open cookie file '%s'\n", fn);
+            pa_log(__FILE__": failed to open cookie file '%s': %s\n", fn, strerror(errno));
             goto finish;
         } else
             writable = 0;
@@ -100,7 +100,7 @@ static int load(const char *fn, void *data, size_t length) {
     unlock = pa_lock_fd(fd, 1) >= 0;
 
     if ((r = pa_loop_read(fd, data, length)) < 0) {
-        pa_log(__FILE__": failed to read cookie file '%s'\n", fn);
+        pa_log(__FILE__": failed to read cookie file '%s': %s\n", fn, strerror(errno));
         goto finish;
     }
 
@@ -144,21 +144,28 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
     return ret;
 }
 
-int pa_authkey_load_from_home(const char *fn, void *data, size_t length) {
-    char path[PATH_MAX];
-    const char *p;
-
-    assert(fn && data && length);
+static const char *normalize_path(const char *fn, char *s, size_t l) {
+    assert(fn && s && l > 0);
 
     if (fn[0] != '/') {
         char homedir[PATH_MAX];
         if (!pa_get_home_dir(homedir, sizeof(homedir)))
-            return -2;
+            return NULL;
         
-        snprintf(path, sizeof(path), "%s/%s", homedir, fn);
-        p = path;
-    } else
-        p = fn;
+        snprintf(s, l, "%s/%s", homedir, fn);
+        return s;
+    }
+
+    return fn;
+}
+
+int pa_authkey_load_from_home(const char *fn, void *data, size_t length) {
+    char path[PATH_MAX];
+    const char *p;
+    assert(fn && data && length);
+
+    if (!(p = normalize_path(fn, path, sizeof(path))))
+        return -2;
         
     return pa_authkey_load(p, data, length);
 }
@@ -170,4 +177,42 @@ int pa_authkey_load_auto(const char *fn, void *data, size_t length) {
         return pa_authkey_load(fn, data, length);
     else
         return pa_authkey_load_from_home(fn, data, length);
+}
+
+int pa_authkey_save(const char *fn, const void *data, size_t length) {
+    int fd = -1;
+    int unlock = 0, ret = -1;
+    ssize_t r;
+    char path[PATH_MAX];
+    const char *p;
+    assert(fn && data && length);
+
+    if (!(p = normalize_path(fn, path, sizeof(path))))
+        return -2;
+
+    if ((fd = open(p, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
+        pa_log(__FILE__": failed to open cookie file '%s': %s\n", fn, strerror(errno));
+        goto finish;
+    }
+
+    unlock = pa_lock_fd(fd, 1) >= 0;
+
+    if ((r = pa_loop_write(fd, data, length)) < 0 || (size_t) r != length) {
+        pa_log(__FILE__": failed to read cookie file '%s': %s\n", fn, strerror(errno));
+        goto finish;
+    }
+
+    ret = 0;
+    
+finish:
+
+    if (fd >= 0) {
+        
+        if (unlock)
+            pa_lock_fd(fd, 0);
+        
+        close(fd);
+    }
+
+    return ret;
 }

@@ -126,7 +126,23 @@ connect to a running polypaudio daemon try using the following commands:</p>
 <pre>killall -USR2 polypaudio
 bidilink unix-client:/tmp/polypaudio/cli</pre>
 
-<p><i>BTW: Someone should package that great tool for Debian!</i></p>
+<p><i>BTW: Someone should package that great tool for Debian!</i></p></li>
+
+
+
+<li><p><b>How do the polypaudio libraries decide where to connect to?</b></p>
+<p>The following rule applies:</p>
+<ol>
+  <li>If the the application using the library specifies a server to connect to it is used. If the connection fails, the library fails too.</li>
+  <li>If the environment variable <tt>POLYP_SERVER</tt> is defined the library connects to that server. If the connection fails, the library fails too.</li>
+  <li>If <tt>$DISPLAY</tt> is set, the library tries to connect to that server and looks for the root window property <tt>POYLP_SERVER</tt> for the host to connect to. If <tt>POLYP_COOKIE</tt> is set it is used as authentication cookie.</li>
+  <li>If the client configuration file (<tt>~/.polypaudio/client.conf</tt> or <tt>/etc/polypaudio/client.conf</tt>) sets the server address, the library connects to that server. If the connection fails, the library fails too.</li>
+  <li>The library tries to connect to the default local UNIX socket for polypaudio servers. If the connection fails, it proceeds with the next item.</li>
+  <li>The library tries to connect to the default local TCP socket for polypaudio servers. If the connection fails, it proceeds with the next item.</li>
+  <li>If <tt>$DISPLAY</tt> is set, the library tries to connect to the default TCP port of that host. If the connection fails, it proceeds with the next item.</li>
+  <li>The connection fails.</li>
+</ol>
+<p></p>
 
 </li>
 
