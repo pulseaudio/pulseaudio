@@ -20,7 +20,7 @@ struct input_stream* input_stream_new(struct sink *s, struct sample_spec *spec, 
     i->notify = NULL;
     i->notify_userdata = NULL;
 
-    i->memblockq = memblockq_new(bytes_per_second(spec)*5, sample_size(spec), (size_t) -1);
+    i->memblockq = memblockq_new(bytes_per_second(spec)/2, sample_size(spec), (size_t) -1);
     assert(i->memblockq);
     
     assert(s->core);
