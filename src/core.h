@@ -2,7 +2,7 @@
 #define foocorehfoo
 
 #include "idxset.h"
-#include "hashset.h"
+#include "hashmap.h"
 #include "mainloop-api.h"
 
 struct pa_core {
@@ -10,7 +10,7 @@ struct pa_core {
 
     struct pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules;
 
-    struct pa_hashset *namereg;
+    struct pa_hashmap *namereg;
     
     uint32_t default_source_index, default_sink_index;
 };

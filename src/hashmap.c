@@ -2,33 +2,33 @@
 #include <assert.h>
 #include <string.h>
 
-#include "hashset.h"
+#include "hashmap.h"
 #include "idxset.h"
 
-struct hashset_entry {
-    struct hashset_entry *next, *previous, *bucket_next, *bucket_previous;
+struct hashmap_entry {
+    struct hashmap_entry *next, *previous, *bucket_next, *bucket_previous;
     unsigned hash;
     const void *key;
     void *value;
 };
 
-struct pa_hashset {
+struct pa_hashmap {
     unsigned size;
-    struct hashset_entry **data;
-    struct hashset_entry *first_entry;
+    struct hashmap_entry **data;
+    struct hashmap_entry *first_entry;
     
     unsigned n_entries;
     unsigned (*hash_func) (const void *p);
     int (*compare_func) (const void*a, const void*b);
 };
 
-struct pa_hashset *pa_hashset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
-    struct pa_hashset *h;
-    h = malloc(sizeof(struct pa_hashset));
+struct pa_hashmap *pa_hashmap_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
+    struct pa_hashmap *h;
+    h = malloc(sizeof(struct pa_hashmap));
     assert(h);
-    h->data = malloc(sizeof(struct hashset_entry*)*(h->size = 1023));
+    h->data = malloc(sizeof(struct hashmap_entry*)*(h->size = 1023));
     assert(h->data);
-    memset(h->data, 0, sizeof(struct hashset_entry*)*(h->size = 1023));
+    memset(h->data, 0, sizeof(struct hashmap_entry*)*(h->size = 1023));
     h->first_entry = NULL;
     h->n_entries = 0;
     h->hash_func = hash_func ? hash_func : pa_idxset_trivial_hash_func;
@@ -36,7 +36,7 @@ struct pa_hashset *pa_hashset_new(unsigned (*hash_func) (const void *p), int (*c
     return h;
 }
 
-static void remove(struct pa_hashset *h, struct hashset_entry *e) {
+static void remove(struct pa_hashmap *h, struct hashmap_entry *e) {
     assert(e);
 
     if (e->next)
@@ -57,7 +57,7 @@ static void remove(struct pa_hashset *h, struct hashset_entry *e) {
     h->n_entries--;
 }
 
-void pa_hashset_free(struct pa_hashset*h, void (*free_func)(void *p, void *userdata), void *userdata) {
+void pa_hashmap_free(struct pa_hashmap*h, void (*free_func)(void *p, void *userdata), void *userdata) {
     assert(h);
 
     while (h->first_entry) {
@@ -70,8 +70,8 @@ void pa_hashset_free(struct pa_hashset*h, void (*free_func)(void *p, void *userd
     free(h);
 }
 
-static struct hashset_entry *get(struct pa_hashset *h, unsigned hash, const void *key) {
-    struct hashset_entry *e;
+static struct hashmap_entry *get(struct pa_hashmap *h, unsigned hash, const void *key) {
+    struct hashmap_entry *e;
 
     for (e = h->data[hash]; e; e = e->bucket_next)
         if (h->compare_func(e->key, key) == 0)
@@ -80,8 +80,8 @@ static struct hashset_entry *get(struct pa_hashset *h, unsigned hash, const void
     return NULL;
 }
 
-int pa_hashset_put(struct pa_hashset *h, const void *key, void *value) {
-    struct hashset_entry *e;
+int pa_hashmap_put(struct pa_hashmap *h, const void *key, void *value) {
+    struct hashmap_entry *e;
     unsigned hash;
     assert(h && key);
 
@@ -90,7 +90,7 @@ int pa_hashset_put(struct pa_hashset *h, const void *key, void *value) {
     if ((e = get(h, hash, key)))
         return -1;
     
-    e = malloc(sizeof(struct hashset_entry));
+    e = malloc(sizeof(struct hashmap_entry));
     assert(e);
     
     e->hash = hash;
@@ -113,9 +113,9 @@ int pa_hashset_put(struct pa_hashset *h, const void *key, void *value) {
     return 0;
 }
 
-void* pa_hashset_get(struct pa_hashset *h, const void *key) {
+void* pa_hashmap_get(struct pa_hashmap *h, const void *key) {
     unsigned hash;
-    struct hashset_entry *e;
+    struct hashmap_entry *e;
     assert(h && key);
 
     hash = h->hash_func(key) % h->size;
@@ -126,8 +126,8 @@ void* pa_hashset_get(struct pa_hashset *h, const void *key) {
     return e->value;
 }
 
-int pa_hashset_remove(struct pa_hashset *h, const void *key) {
-    struct hashset_entry *e;
+int pa_hashmap_remove(struct pa_hashmap *h, const void *key) {
+    struct hashmap_entry *e;
     unsigned hash;
     assert(h && key);
 
@@ -140,6 +140,6 @@ int pa_hashset_remove(struct pa_hashset *h, const void *key) {
     return 0;
 }
 
-unsigned pa_hashset_ncontents(struct pa_hashset *h) {
+unsigned pa_hashmap_ncontents(struct pa_hashmap *h) {
     return h->n_entries;
 }

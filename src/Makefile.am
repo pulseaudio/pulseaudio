@@ -75,7 +75,7 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		mainloop-signal.c mainloop-signal.h \
 		mainloop-api.c mainloop-api.h \
 		util.c util.h \
-		hashset.c hashset.h \
+		hashmap.c hashmap.h \
 		namereg.c namereg.h \
 		sconv.c sconv.h \
 		resampler.c resampler.h \
@@ -83,7 +83,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		memchunk.c memchunk.h \
 		sconv-s16le.c sconv-s16le.h \
 		sconv-s16be.c sconv-s16be.h \
-		sioman.c sioman.h
+		sioman.c sioman.h \
+		modargs.c modargs.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)

@@ -17,8 +17,8 @@ void pa_namereg_free(struct pa_core *c) {
     assert(c);
     if (!c->namereg)
         return;
-    assert(pa_hashset_ncontents(c->namereg) == 0);
-    pa_hashset_free(c->namereg, NULL, NULL);
+    assert(pa_hashmap_ncontents(c->namereg) == 0);
+    pa_hashmap_free(c->namereg, NULL, NULL);
 }
 
 const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_namereg_type type, void *data, int fail) {
@@ -29,11 +29,11 @@ const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_nam
     assert(c && name && data);
 
     if (!c->namereg) {
-        c->namereg = pa_hashset_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+        c->namereg = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
         assert(c->namereg);
     }
 
-    if ((e = pa_hashset_get(c->namereg, name)) && fail)
+    if ((e = pa_hashmap_get(c->namereg, name)) && fail)
         return NULL;
 
     if (!e)
@@ -47,7 +47,7 @@ const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_nam
         for (i = 1; i <= 99; i++) {
             snprintf(n, l+2, "%s%u", name, i);
 
-            if (!(e = pa_hashset_get(c->namereg, n)))
+            if (!(e = pa_hashmap_get(c->namereg, n)))
                 break;
         }
 
@@ -64,7 +64,7 @@ const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_nam
     e->name = n;
     e->data = data;
 
-    r = pa_hashset_put(c->namereg, e->name, e);
+    r = pa_hashmap_put(c->namereg, e->name, e);
     assert (r >= 0);
 
     return e->name;
@@ -76,10 +76,10 @@ void pa_namereg_unregister(struct pa_core *c, const char *name) {
     int r;
     assert(c && name);
 
-    e = pa_hashset_get(c->namereg, name);
+    e = pa_hashmap_get(c->namereg, name);
     assert(e);
 
-    r = pa_hashset_remove(c->namereg, name);
+    r = pa_hashmap_remove(c->namereg, name);
     assert(r >= 0);
 
     free(e->name);
@@ -93,7 +93,7 @@ void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type t
     void *d = NULL;
     assert(c && name);
 
-    if ((e = pa_hashset_get(c->namereg, name)))
+    if ((e = pa_hashmap_get(c->namereg, name)))
         if (e->type == e->type)
             return e->data;
 

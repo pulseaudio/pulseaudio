@@ -1,7 +1,9 @@
 - native library/protocol:
        more functions (esp. latency)
 
-- config parser/cmdline
+- make all modules use modargs.c
+- cmdline
+- daemonizing
 
 - move more stuff from module-oss[-dma] to liboss-util
 
@@ -12,6 +14,8 @@
 - rename files
 - svn-id and license in every file
 - documentation
+
+- eliminate global variables
 
 -- post 0.1
 - future cancellation

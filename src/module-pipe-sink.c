@@ -12,24 +12,37 @@
 #include "sink.h"
 #include "module.h"
 #include "util.h"
+#include "modargs.h"
+
+#define DEFAULT_FIFO_NAME "/tmp/musicfifo"
+#define DEFAULT_SINK_NAME "fifo_output"
 
 struct userdata {
+    struct pa_core *core;
+
     char *filename;
     
     struct pa_sink *sink;
     struct pa_iochannel *io;
-    struct pa_core *core;
     void *mainloop_source;
-    struct pa_mainloop_api *mainloop;
 
     struct pa_memchunk memchunk;
+};
+
+static const char* const valid_modargs[] = {
+    "file",
+    "rate",
+    "channels",
+    "format",
+    "sink",
+    NULL
 };
 
 static void do_write(struct userdata *u) {
     ssize_t r;
     assert(u);
 
-    u->mainloop->enable_fixed(u->mainloop, u->mainloop_source, 0);
+    u->core->mainloop->enable_fixed(u->core->mainloop, u->mainloop_source, 0);
         
     if (!pa_iochannel_is_writable(u->io))
         return;
@@ -59,7 +72,7 @@ static void notify_cb(struct pa_sink*s) {
     assert(s && u);
 
     if (pa_iochannel_is_writable(u->io))
-        u->mainloop->enable_fixed(u->mainloop, u->mainloop_source, 1);
+        u->core->mainloop->enable_fixed(u->core->mainloop, u->mainloop_source, 1);
 }
 
 static void fixed_callback(struct pa_mainloop_api *m, void *id, void *userdata) {
@@ -77,41 +90,51 @@ static void io_callback(struct pa_iochannel *io, void*userdata) {
 int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u = NULL;
     struct stat st;
-    char *p;
+    const char *p;
     int fd = -1;
-    static const struct pa_sample_spec ss = {
-        .format = PA_SAMPLE_S16NE,
-        .rate = 44100,
-        .channels = 2,
-    };
+    struct pa_sample_spec ss;
+    struct pa_modargs *ma = NULL;
     assert(c && m);
+    
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        fprintf(stderr, __FILE__": failed to parse module arguments\n");
+        goto fail;
+    }
 
-    mkfifo((p = m->argument ? m->argument : "/tmp/musicfifo"), 0777);
+    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
+        fprintf(stderr, __FILE__": invalid sample format specification\n");
+        goto fail;
+    }
+    
+    mkfifo(p = pa_modargs_get_value(ma, "file", DEFAULT_FIFO_NAME), 0777);
 
     if ((fd = open(p, O_RDWR)) < 0) {
-        fprintf(stderr, "open('%s'): %s\n", p, strerror(errno));
+        fprintf(stderr, __FILE__": open('%s'): %s\n", p, strerror(errno));
         goto fail;
     }
 
     if (fstat(fd, &st) < 0) {
-        fprintf(stderr, "fstat('%s'): %s\n", p, strerror(errno));
+        fprintf(stderr, __FILE__": fstat('%s'): %s\n", p, strerror(errno));
         goto fail;
     }
 
     if (!S_ISFIFO(st.st_mode)) {
-        fprintf(stderr, "'%s' is not a FIFO\n", p);
+        fprintf(stderr, __FILE__": '%s' is not a FIFO.\n", p);
         goto fail;
     }
 
-    
     u = malloc(sizeof(struct userdata));
     assert(u);
+    memset(u, 0, sizeof(struct userdata));
 
     u->filename = strdup(p);
     assert(u->filename);
     u->core = c;
-    u->sink = pa_sink_new(c, "fifo", 0, &ss);
-    assert(u->sink);
+    
+    if (!(u->sink = pa_sink_new(c, pa_modargs_get_value(ma, "sink", DEFAULT_SINK_NAME), 0, &ss))) {
+        fprintf(stderr, __FILE__": failed to create sink.\n");
+        goto fail;
+    }
     u->sink->notify = notify_cb;
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
@@ -125,18 +148,24 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
 
-    u->mainloop = c->mainloop;
-    u->mainloop_source = u->mainloop->source_fixed(u->mainloop, fixed_callback, u);
+    u->mainloop_source = c->mainloop->source_fixed(c->mainloop, fixed_callback, u);
     assert(u->mainloop_source);
-    u->mainloop->enable_fixed(u->mainloop, u->mainloop_source, 0);
+    c->mainloop->enable_fixed(c->mainloop, u->mainloop_source, 0);
         
     m->userdata = u;
 
+    pa_modargs_free(ma);
+    
     return 0;
 
 fail:
+    if (ma)
+        pa_modargs_free(ma);
+        
     if (fd >= 0)
         close(fd);
+
+    pa_module_done(c, m);
 
     return -1;
 }
@@ -145,15 +174,15 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     assert(c && m);
 
-    u = m->userdata;
-    assert(u);
+    if (!(u = m->userdata))
+        return;
     
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
         
     pa_sink_free(u->sink);
     pa_iochannel_free(u->io);
-    u->mainloop->cancel_fixed(u->mainloop, u->mainloop_source);
+    u->core->mainloop->cancel_fixed(u->core->mainloop, u->mainloop_source);
 
     assert(u->filename);
     unlink(u->filename);
