@@ -26,7 +26,7 @@ fail() {
     exit 1
 }
 
-ARGS=""
+ARGS=" --log-target=syslog"
 
 for N in $(seq $#) ; do
 
