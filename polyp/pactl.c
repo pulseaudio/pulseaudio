@@ -181,7 +181,7 @@ static void get_sink_info_callback(struct pa_context *c, const struct pa_sink_in
            "Latency: %0.0f usec\n",
            i->index,
            i->name,
-           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
+           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
            i->description,
            s,
            i->owner_module,
@@ -224,7 +224,7 @@ static void get_source_info_callback(struct pa_context *c, const struct pa_sourc
            "Monitor of Sink: %s\n"
            "Latency: %0.0f usec\n",
            i->index,
-           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
+           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
            i->name,
            i->description,
            s,
@@ -296,7 +296,7 @@ static void get_client_info_callback(struct pa_context *c, const struct pa_clien
            "Owner Module: %s\n",
            i->index,
            i->name,
-           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
+           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
            i->owner_module != PA_INVALID_INDEX ? t : "n/a");
 }
 
@@ -337,7 +337,7 @@ static void get_sink_input_info_callback(struct pa_context *c, const struct pa_s
            "Resample method: %s\n",
            i->index,
            i->name,
-           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
+           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
            i->owner_module != PA_INVALID_INDEX ? t : "n/a",
            i->client != PA_INVALID_INDEX ? k : "n/a",
            i->sink,
@@ -385,7 +385,7 @@ static void get_source_output_info_callback(struct pa_context *c, const struct p
            "Resample method: %s\n",
            i->index,
            i->name,
-           pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
+           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
            i->owner_module != PA_INVALID_INDEX ? t : "n/a",
            i->client != PA_INVALID_INDEX ? k : "n/a",
            i->source,

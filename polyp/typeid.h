@@ -25,6 +25,10 @@
 #include <inttypes.h>
 #include <sys/types.h>
 
+#include <polyp/cdecl.h>
+
+PA_C_DECL_BEGIN
+
 typedef uint32_t pa_typeid_t;
 
 #define PA_TYPEID_UNKNOWN ((pa_typeid_t) -1)
@@ -36,5 +40,7 @@ char *pa_typeid_to_string(pa_typeid_t id, char *ret_s, size_t length);
     (((pa_typeid_t) b & 0xFF) << 16) | \
     (((pa_typeid_t) c & 0xFF) << 8) | \
     (((pa_typeid_t) d & 0xFF)))
+
+PA_C_DECL_END
 
 #endif

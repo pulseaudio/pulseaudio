@@ -16,11 +16,10 @@ Fixes:
 Features:
 - add radio module
 - xmlrpc/http
-- dbus
-- rendezvous
+- dbus/hal
+- rendezvous autotunnel module
 - polish for starting polypaudio as root/system-wide instance
 - export connection fd
-- lirc plugin
 - /dev/input/event plugin
 
 Long term:

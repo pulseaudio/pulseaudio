@@ -171,7 +171,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->lirc_fd = -1;
     u->mute_toggle_save = 0;
 
-    if ((u->lirc_fd = lirc_init(pa_modargs_get_value(ma, "appname", "polypaudio"), 1)) < 0) {
+    if ((u->lirc_fd = lirc_init((char*) pa_modargs_get_value(ma, "appname", "polypaudio"), 1)) < 0) {
         pa_log(__FILE__": lirc_init() failed.\n");
         goto fail;
     }
