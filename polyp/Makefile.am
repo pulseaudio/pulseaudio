@@ -33,7 +33,7 @@ AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
 EXTRA_DIST = default.pa.in daemon.conf.in client.conf.in depmod.py esdcompat.sh.in
-bin_PROGRAMS = polypaudio pacat pactl
+bin_PROGRAMS = polypaudio pacat pactl paplay
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = \
 		mainloop-test \
@@ -372,9 +372,13 @@ pacat_SOURCES = pacat.c
 pacat_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 pacat_CFLAGS = $(AM_CFLAGS) 
 
+paplay_SOURCES = paplay.c
+paplay_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
+paplay_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
+
 pactl_SOURCES = pactl.c
 pactl_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
-pactl_CFLAGS = $(AM_CFLAGS) $(LIBSDNFILE_CFLAGS)
+pactl_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 
 pacat_simple_SOURCES = pacat-simple.c
 pacat_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
@@ -460,7 +464,7 @@ lib_LTLIBRARIES+= \
 
 noinst_PROGRAMS+= \
 		mainloop-test-glib12
-		
+
 libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_SOURCES = glib-mainloop.h glib12-mainloop.c
 libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
 libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop-@PA_MAJORMINOR@.la $(GLIB12_LIBS)

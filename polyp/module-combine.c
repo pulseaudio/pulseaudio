@@ -115,8 +115,8 @@ static void adjust_rates(struct userdata *u) {
     base_rate = u->sink->sample_spec.rate;
 
     for (o = u->outputs; o; o = o->next) {
-        uint32_t r = base_rate;
-
+        uint32_t r = base_rate; 
+        
         if (o->total_latency < target_latency)
             r -= (uint32_t) (((((double) target_latency - o->total_latency))/u->adjust_time)*r/ 1000000);
         else if (o->total_latency > target_latency)

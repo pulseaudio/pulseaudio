@@ -484,7 +484,7 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
         s->drain_request = 0;
     }
 
-    /*pa_log(__FILE__": after_drop: %u\n", pa_memblockq_get_length(s->memblockq));*/
+/*     pa_log(__FILE__": after_drop: %u\n", pa_memblockq_get_length(s->memblockq)); */
 }
 
 static void sink_input_kill_cb(struct pa_sink_input *i) {
@@ -828,8 +828,10 @@ static void command_drain_playback_stream(struct pa_pdispatch *pd, uint32_t comm
     pa_memblockq_prebuf_disable(s->memblockq);
     
     if (!pa_memblockq_is_readable(s->memblockq)) {
+/*         pa_log("immediate drain: %u\n", pa_memblockq_get_length(s->memblockq)); */
         pa_pstream_send_simple_ack(c->pstream, tag);
     } else {
+/*         pa_log("slow drain triggered\n"); */
         s->drain_request = 1;
         s->drain_tag = tag;
 
@@ -1854,7 +1856,7 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
     struct connection *c = userdata;
     struct output_stream *stream;
     assert(p && chunk && userdata);
-
+    
     if (!(stream = pa_idxset_get_by_index(c->output_streams, channel))) {
         pa_log(__FILE__": client sent block for invalid stream.\n");
         connection_free(c);
@@ -1870,10 +1872,10 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
         
         pa_memblockq_push_align(p->memblockq, chunk, delta);
         assert(p->sink_input);
-        /*pa_log(__FILE__": after_recv: %u\n", pa_memblockq_get_length(p->memblockq));*/
+/*         pa_log(__FILE__": after_recv: %u\n", pa_memblockq_get_length(p->memblockq)); */
 
         pa_sink_notify(p->sink_input->sink);
-/*         pa_log(__FILE__": Recieved %u bytes.\n", chunk->length); */
+/*          pa_log(__FILE__": Recieved %u bytes.\n", chunk->length);  */
 
     } else {
         struct upload_stream *u = (struct upload_stream*) stream;

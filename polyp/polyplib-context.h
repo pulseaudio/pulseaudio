@@ -45,6 +45,9 @@
 /** \example pacat.c
  * A playback and recording tool using the asynchronous API */
 
+/** \example paplay.c
+ * A sound file playback tool using the asynchronous API, based on libsndfile */
+
 PA_C_DECL_BEGIN
 
 /** \struct pa_context
