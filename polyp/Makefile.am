@@ -105,7 +105,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		cli-command.c cli-command.h \
 		clitext.c clitext.h \
 		tokenizer.c tokenizer.h \
-		dynarray.c dynarray.h
+		dynarray.c dynarray.h \
+		scache.c scache.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)

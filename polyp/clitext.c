@@ -24,6 +24,7 @@
 #endif
 
 #include <assert.h>
+#include <string.h>
 
 #include "clitext.h"
 #include "module.h"
@@ -34,6 +35,7 @@
 #include "source-output.h"
 #include "strbuf.h"
 #include "sample-util.h"
+#include "scache.h"
 
 char *pa_module_list_to_string(struct pa_core *c) {
     struct pa_strbuf *s;
@@ -199,5 +201,38 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
             pa_strbuf_printf(s, "\tclient: <%u>\n", i->client->index);
     }
     
+    return pa_strbuf_tostring_free(s);
+}
+
+char *pa_scache_list_to_string(struct pa_core *c) {
+    struct pa_scache_entry *e;
+    void *state = NULL;
+    struct pa_strbuf *s;
+    assert(c);
+
+    s = pa_strbuf_new();
+    assert(s);
+
+    pa_strbuf_printf(s, "%u cache entries available.\n", c->scache_hashmap ? pa_hashmap_ncontents(c->scache_hashmap) : 0);
+
+    if (c->scache_hashmap) {
+
+        while ((e = pa_hashmap_iterate(c->scache_hashmap, &state))) {
+            double l;
+            char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
+            pa_sample_snprint(ss, sizeof(ss), &e->sample_spec);
+            
+            l = (double) e->memchunk.length / pa_bytes_per_second(&e->sample_spec);
+            
+            pa_strbuf_printf(
+                s, "    name: <%s>\n\tindex: <%i>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n",
+                e->name,
+                e->index,
+                ss,
+                e->memchunk.length,
+                l);
+        }
+    }
+
     return pa_strbuf_tostring_free(s);
 }

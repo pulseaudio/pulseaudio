@@ -34,4 +34,9 @@ int pa_hashmap_remove(struct pa_hashmap *h, const void *key);
 
 unsigned pa_hashmap_ncontents(struct pa_hashmap *h);
 
+/* Maybe used to iterate through the hashmap. Initial state should
+   point to a NULL pointer. The hashmap may not be modified during
+   iteration */
+void *pa_hashmap_iterate(struct pa_hashmap *h, void **state);
+
 #endif

@@ -168,3 +168,17 @@ int pa_hashmap_remove(struct pa_hashmap *h, const void *key) {
 unsigned pa_hashmap_ncontents(struct pa_hashmap *h) {
     return h->n_entries;
 }
+
+void *pa_hashmap_iterate(struct pa_hashmap *h, void **state) {
+    assert(h && state);
+
+    if (!*state) {
+        *state = h->first_entry;
+    } else
+        *state = ((struct hashmap_entry*) *state)->next;
+
+    if (!*state)
+        return NULL;
+    
+    return ((struct hashmap_entry*) *state)->value;
+}

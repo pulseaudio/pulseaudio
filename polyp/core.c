@@ -33,6 +33,7 @@
 #include "source.h"
 #include "namereg.h"
 #include "util.h"
+#include "scache.h"
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     struct pa_core* c;
@@ -50,6 +51,8 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
 
     c->modules = NULL;
     c->namereg = NULL;
+    c->scache_idxset = NULL;
+    c->scache_hashmap = NULL;
 
     c->default_sample_spec.format = PA_SAMPLE_S16NE;
     c->default_sample_spec.rate = 44100;
@@ -82,6 +85,7 @@ void pa_core_free(struct pa_core *c) {
     pa_idxset_free(c->sink_inputs, NULL, NULL);
 
     pa_namereg_free(c);
+    pa_scache_free(c);
     
     free(c);    
 };

@@ -36,6 +36,8 @@
 #include "sink.h"
 #include "source.h"
 
+#include "debug.h"
+
 struct pa_modargs;
 
 struct entry {
@@ -213,6 +215,8 @@ int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *rss
     struct pa_sample_spec ss;
     assert(ma && rss);
 
+/*    DEBUG_TRAP;*/
+    
     ss = *rss;
     if ((pa_modargs_get_value_u32(ma, "rate", &ss.rate)) < 0)
         return -1;

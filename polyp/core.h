@@ -30,9 +30,9 @@
 struct pa_core {
     struct pa_mainloop_api *mainloop;
 
-    struct pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules;
+    struct pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache_idxset;
 
-    struct pa_hashmap *namereg;
+    struct pa_hashmap *namereg, *scache_hashmap;
     
     uint32_t default_source_index, default_sink_index;
 

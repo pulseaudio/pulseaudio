@@ -40,6 +40,8 @@
 #include "strbuf.h"
 #include "namereg.h"
 #include "clitext.h"
+#include "scache.h"
+#include "sample-util.h"
 
 struct command {
     const char *name;
@@ -67,6 +69,9 @@ static int pa_cli_command_source_default(struct pa_core *c, struct pa_tokenizer 
 static int pa_cli_command_kill_client(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_kill_sink_input(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_kill_source_output(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 
 static const struct command commands[] = {
     { "exit",                    pa_cli_command_exit,               "Terminate the daemon",         1 },
@@ -90,6 +95,9 @@ static const struct command commands[] = {
     { "kill_client",             pa_cli_command_kill_client,        "Kill a client (args: index)", 2},
     { "kill_sink_input",         pa_cli_command_kill_sink_input,    "Kill a sink input (args: index)", 2},
     { "kill_source_output",      pa_cli_command_kill_source_output, "Kill a source output (args: index)", 2},
+    { "scache_list",             pa_cli_command_scache_list,        "List all entries in the sample cache", 2},
+    { "scache_play",             pa_cli_command_scache_play,        "Play a sample from the sample cache (args: name, sink|index)", 3},
+    { "scache_remove",           pa_cli_command_scache_remove,      "Remove a sample from the sample cache (args: name)", 2},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -199,6 +207,7 @@ static int pa_cli_command_info(struct pa_core *c, struct pa_tokenizer *t, struct
     pa_cli_command_clients(c, t, buf, fail, verbose);
     pa_cli_command_sink_inputs(c, t, buf, fail, verbose);
     pa_cli_command_source_outputs(c, t, buf, fail, verbose);
+    pa_cli_command_scache_list(c, t, buf, fail, verbose);
     return 0;
 }
 
@@ -426,6 +435,56 @@ static int pa_cli_command_kill_source_output(struct pa_core *c, struct pa_tokeni
     }
 
     pa_source_output_kill(source_output);
+    return 0;
+}
+
+static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    char *s;
+    assert(c && t);
+    s = pa_scache_list_to_string(c);
+    assert(s);
+    pa_strbuf_puts(buf, s);
+    free(s);
+    return 0;
+}
+
+static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    const char *n, *sink_name;
+    struct pa_sink *sink;
+    assert(c && t && buf && fail && verbose);
+
+    if (!(n = pa_tokenizer_get(t, 1)) || !(sink_name = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a sample name and a sink name.\n");
+        return -1;
+    }
+
+    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK))) {
+        pa_strbuf_puts(buf, "No sink by that name.\n");
+        return -1;
+    }
+
+    if (pa_scache_play_item(c, n, sink, PA_VOLUME_NORM) < 0) {
+        pa_strbuf_puts(buf, "Failed to play sample.\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    const char *n;
+    assert(c && t && buf && fail && verbose);
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a sample name.\n");
+        return -1;
+    }
+
+    if (pa_scache_remove_item(c, n) < 0) {
+        pa_strbuf_puts(buf, "Failed to remove sample.\n");
+        return -1;
+    }
+
     return 0;
 }
 

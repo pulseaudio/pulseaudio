@@ -154,7 +154,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     unsigned periods, fragsize;
     snd_pcm_uframes_t buffer_size;
     size_t frame_size;
-    
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         fprintf(stderr, __FILE__": failed to parse module arguments\n");
         goto fail;

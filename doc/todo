@@ -1,11 +1,18 @@
 *** $Id$ ***
 
 *** 0.2 ***
+
+- scache memory leak
+- scache remove()
+- scache in native protocol
+- scache/debug.h copyright
+
 - future cancellation
-- clip cache
 - autoloading/autounloading
 - doxygen
 - make mcalign merge chunks
+- autoscan
+- rename clitext.[ch] to cli-text.[ch]
 
 *** 0.3 ***
 - client-ui
