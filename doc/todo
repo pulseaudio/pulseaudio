@@ -3,10 +3,10 @@
 Architectural changes:
 - per-channel volume
 - channel mapping ("left", "right", "rear", "subwoofer")
+- hardware volume support
 - add API for synchronizing multiple sinks/sources to a common clock
 - absolutely indexed write()s from client
 - remove "polyplib-" prefix
-- hardware volume support
 
 Fixes:
 - improve module-oss-mmap latency measurement
