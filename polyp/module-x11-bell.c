@@ -154,6 +154,7 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     }
 
     pa_xfree(u->scache_item);
+    pa_xfree(u->sink_name);
     
     if (u->display)
         XCloseDisplay(u->display);

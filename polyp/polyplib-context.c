@@ -92,11 +92,13 @@ static void context_free(struct pa_context *c) {
         pa_stream_set_state(c->streams, PA_STREAM_TERMINATED);
     
     if (c->client)
-        pa_socket_client_free(c->client);
+        pa_socket_client_unref(c->client);
     if (c->pdispatch)
-        pa_pdispatch_free(c->pdispatch);
-    if (c->pstream)
-        pa_pstream_free(c->pstream);
+        pa_pdispatch_unref(c->pdispatch);
+    if (c->pstream) {
+        pa_pstream_close(c->pstream);
+        pa_pstream_unref(c->pstream);
+    }
     
     if (c->record_streams)
         pa_dynarray_free(c->record_streams, NULL, NULL);
@@ -140,15 +142,17 @@ void pa_context_set_state(struct pa_context *c, enum pa_context_state st) {
         }
 
         if (c->pdispatch)
-            pa_pdispatch_free(c->pdispatch);
+            pa_pdispatch_unref(c->pdispatch);
         c->pdispatch = NULL;
     
-        if (c->pstream)
-            pa_pstream_free(c->pstream);
+        if (c->pstream) {
+            pa_pstream_close(c->pstream);
+            pa_pstream_unref(c->pstream);
+        }
         c->pstream = NULL;
     
         if (c->client)
-            pa_socket_client_free(c->client);
+            pa_socket_client_unref(c->client);
         c->client = NULL;
     }
 
@@ -267,7 +271,7 @@ static void on_connection(struct pa_socket_client *client, struct pa_iochannel*i
 
     pa_context_ref(c);
     
-    pa_socket_client_free(client);
+    pa_socket_client_unref(client);
     c->client = NULL;
 
     if (!io) {

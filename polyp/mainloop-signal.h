@@ -23,6 +23,9 @@
 ***/
 
 #include "mainloop-api.h"
+#include "cdecl.h"
+
+PA_C_DECL_BEGIN
 
 int pa_signal_init(struct pa_mainloop_api *api);
 void pa_signal_done(void);
@@ -33,5 +36,7 @@ struct pa_signal_event* pa_signal_new(int signal, void (*callback) (struct pa_ma
 void pa_signal_free(struct pa_signal_event *e);
 
 void pa_signal_set_destroy(struct pa_signal_event *e, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, void *userdata));
+
+PA_C_DECL_END
 
 #endif

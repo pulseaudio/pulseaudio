@@ -24,6 +24,7 @@
 #endif
 
 #include <assert.h>
+#include <stdio.h>
 
 #include "polyplib-subscribe.h"
 #include "polyplib-internal.h"
@@ -65,10 +66,15 @@ struct pa_operation* pa_context_subscribe(struct pa_context *c, enum pa_subscrip
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE);
     pa_tagstruct_putu32(t, tag = c->ctag++);
-    pa_tagstruct_putu32(t, cb ? m : 0);
+    pa_tagstruct_putu32(t, m);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
 
     return pa_operation_ref(o);
 }
 
+void pa_context_set_subscribe_callback(struct pa_context *c, void (*cb)(struct pa_context *c, enum pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata) {
+    assert(c);
+    c->subscribe_callback = cb;
+    c->subscribe_userdata = userdata;
+}

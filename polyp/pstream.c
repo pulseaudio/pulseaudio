@@ -57,13 +57,13 @@ struct item_info {
 };
 
 struct pa_pstream {
+    int ref;
+    
     struct pa_mainloop_api *mainloop;
     struct pa_defer_event *defer_event;
     struct pa_iochannel *io;
     struct pa_queue *send_queue;
 
-    int in_use, shall_free;
-    
     int dead;
     void (*die_callback) (struct pa_pstream *p, void *userdata);
     void *die_callback_userdata;
@@ -97,40 +97,24 @@ static void do_write(struct pa_pstream *p);
 static void do_read(struct pa_pstream *p);
 
 static void do_something(struct pa_pstream *p) {
-    assert(p && !p->shall_free);
+    assert(p);
     p->mainloop->defer_enable(p->defer_event, 0);
 
-    if (p->dead)
-        return;
-
-    if (pa_iochannel_is_hungup(p->io)) {
+    pa_pstream_ref(p);
+    
+    if (!p->dead && pa_iochannel_is_hungup(p->io)) {
         p->dead = 1;
         if (p->die_callback)
             p->die_callback(p, p->die_callback_userdata);
-
-        return;
     }
 
-    if (pa_iochannel_is_writable(p->io)) {
-        p->in_use = 1;
+    if (!p->dead && pa_iochannel_is_writable(p->io))
         do_write(p);
-        p->in_use = 0;
 
-        if (p->shall_free) {
-            pa_pstream_free(p);
-            return;
-        }
-    }
-
-    if (pa_iochannel_is_readable(p->io)) {
-        p->in_use = 1;
+    if (!p->dead && pa_iochannel_is_readable(p->io))
         do_read(p);
-        p->in_use = 0;
-        if (p->shall_free) {
-            pa_pstream_free(p);
-            return;
-        }
-    }
+
+    pa_pstream_unref(p);
 }
 
 static void io_callback(struct pa_iochannel*io, void *userdata) {
@@ -150,7 +134,7 @@ struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel
     assert(io);
 
     p = pa_xmalloc(sizeof(struct pa_pstream));
-
+    p->ref = 1;
     p->io = io;
     pa_iochannel_set_callback(io, io_callback, p);
 
@@ -181,8 +165,6 @@ struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel
     p->drain_callback = NULL;
     p->drain_userdata = NULL;
 
-    p->in_use = p->shall_free = 0;
-
     return p;
 }
 
@@ -202,16 +184,11 @@ static void item_free(void *item, void *p) {
     pa_xfree(i);
 }
 
-void pa_pstream_free(struct pa_pstream *p) {
+static void pstream_free(struct pa_pstream *p) {
     assert(p);
 
-    if (p->in_use) {
-        /* If this pstream object is used by someone else on the call stack, we have to postpone the freeing */
-        p->dead = p->shall_free = 1;
-        return;
-    }
-
-    pa_iochannel_free(p->io);
+    pa_pstream_close(p);
+    
     pa_queue_free(p->send_queue, item_free, NULL);
 
     if (p->write.current)
@@ -223,7 +200,6 @@ void pa_pstream_free(struct pa_pstream *p) {
     if (p->read.packet)
         pa_packet_unref(p->read.packet);
 
-    p->mainloop->defer_free(p->defer_event);
     pa_xfree(p);
 }
 
@@ -456,3 +432,36 @@ void pa_pstream_set_drain_callback(struct pa_pstream *p, void (*cb)(struct pa_ps
     p->drain_userdata = userdata;
 }
 
+void pa_pstream_unref(struct pa_pstream*p) {
+    assert(p && p->ref >= 1);
+
+    if (!(--(p->ref)))
+        pstream_free(p);
+}
+
+struct pa_pstream* pa_pstream_ref(struct pa_pstream*p) {
+    assert(p && p->ref >= 1);
+    p->ref++;
+    return p;
+}
+
+void pa_pstream_close(struct pa_pstream *p) {
+    assert(p);
+
+    p->dead = 1;
+
+    if (p->io) {
+        pa_iochannel_free(p->io);
+        p->io = NULL;
+    }
+
+    if (p->defer_event) {
+        p->mainloop->defer_free(p->defer_event);
+        p->defer_event = NULL;
+    }
+
+    p->die_callback = NULL;
+    p->drain_callback = NULL;
+    p->recieve_packet_callback = NULL;
+    p->recieve_memblock_callback = NULL;
+}

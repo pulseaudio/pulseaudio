@@ -39,6 +39,7 @@
 #include "xmalloc.h"
 
 struct pa_socket_client {
+    int ref;
     struct pa_mainloop_api *mainloop;
     int fd;
     struct pa_io_event *io_event;
@@ -52,6 +53,7 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
     assert(m);
 
     c = pa_xmalloc(sizeof(struct pa_socket_client));
+    c->ref = 1;
     c->mainloop = m;
     c->fd = -1;
     c->io_event = NULL;
@@ -62,38 +64,40 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
 }
 
 static void do_call(struct pa_socket_client *c) {
-    struct pa_iochannel *io;
+    struct pa_iochannel *io = NULL;
     int error, lerror;
     assert(c && c->callback);
 
+    pa_socket_client_ref(c);
+    
     lerror = sizeof(error);
     if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, &error, &lerror) < 0) {
         fprintf(stderr, "getsockopt(): %s\n", strerror(errno));
-        goto failed;
+        goto finish;
     }
 
     if (lerror != sizeof(error)) {
         fprintf(stderr, "getsocktop() returned invalid size.\n");
-        goto failed;
+        goto finish;
     }
 
     if (error != 0) {
         fprintf(stderr, "connect(): %s\n", strerror(error));
-        goto failed;
+        goto finish;
     }
         
     io = pa_iochannel_new(c->mainloop, c->fd, c->fd);
     assert(io);
-    c->fd = -1;
-    c->callback(c, io, c->userdata);
-
-    return;
     
-failed:
-    close(c->fd);
+finish:
+    if (!io)
+        close(c->fd);
     c->fd = -1;
-    c->callback(c, NULL, c->userdata);
-    return;
+    
+    assert(c->callback);
+    c->callback(c, io, c->userdata);
+    
+    pa_socket_client_unref(c);
 }
 
 static void connect_fixed_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
@@ -159,7 +163,7 @@ struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, ui
     return c;
 
 fail:
-    pa_socket_client_free(c);
+    pa_socket_client_unref(c);
     return NULL;
 }
 
@@ -188,7 +192,7 @@ struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, co
     return c;
 
 fail:
-    pa_socket_client_free(c);
+    pa_socket_client_unref(c);
     return NULL;
 }
 
@@ -214,12 +218,12 @@ struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m
     return c;
 
 fail:
-    pa_socket_client_free(c);
+    pa_socket_client_unref(c);
     return NULL;
     
 }
 
-void pa_socket_client_free(struct pa_socket_client *c) {
+void socket_client_free(struct pa_socket_client *c) {
     assert(c && c->mainloop);
     if (c->io_event)
         c->mainloop->io_free(c->io_event);
@@ -228,6 +232,19 @@ void pa_socket_client_free(struct pa_socket_client *c) {
     if (c->fd >= 0)
         close(c->fd);
     pa_xfree(c);
+}
+
+void pa_socket_client_unref(struct pa_socket_client *c) {
+    assert(c && c->ref >= 1);
+
+    if (!(--(c->ref)))
+        socket_client_free(c);
+}
+
+struct pa_socket_client* pa_socket_client_ref(struct pa_socket_client *c) {
+    assert(c && c->ref >= 1);
+    c->ref++;
+    return c;
 }
 
 void pa_socket_client_set_callback(struct pa_socket_client *c, void (*on_connection)(struct pa_socket_client *c, struct pa_iochannel*io, void *userdata), void *userdata) {

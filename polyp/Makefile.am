@@ -124,7 +124,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		play-memchunk.c play-memchunk.h \
 		autoload.c autoload.h \
 		xmalloc.c xmalloc.h \
-		subscribe.h subscribe.c
+		subscribe.h subscribe.c \
+		debug.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
@@ -296,7 +297,8 @@ libpolyp_la_SOURCES = polyplib.h \
 		polyplib-introspect.c polyplib-introspect.h \
 		polyplib-scache.c polyplib-scache.h \
 		polyplib-subscribe.c polyplib-subscribe.h \
-		cdecl.h
+		cdecl.h \
+		llist.h
 libpolyp_la_CFLAGS = $(AM_CFLAGS)
 
 libpolyp_mainloop_la_SOURCES = mainloop-api.h mainloop-api.c \

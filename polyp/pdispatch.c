@@ -30,6 +30,7 @@
 #include "pdispatch.h"
 #include "native-common.h"
 #include "xmalloc.h"
+#include "llist.h"
 
 /*#define DEBUG_OPCODES*/
 
@@ -65,37 +66,30 @@ static const char *command_names[PA_COMMAND_MAX] = {
 
 struct reply_info {
     struct pa_pdispatch *pdispatch;
-    struct reply_info *next, *previous;
+    PA_LLIST_FIELDS(struct reply_info);
     void (*callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
     void *userdata;
     uint32_t tag;
     struct pa_time_event *time_event;
-    int callback_is_running;
 };
 
 struct pa_pdispatch {
+    int ref;
     struct pa_mainloop_api *mainloop;
     const struct pa_pdispatch_command *command_table;
     unsigned n_commands;
-    struct reply_info *replies;
+    PA_LLIST_HEAD(struct reply_info, replies);
     void (*drain_callback)(struct pa_pdispatch *pd, void *userdata);
     void *drain_userdata;
-    int in_use, shall_free;
 };
 
 static void reply_info_free(struct reply_info *r) {
     assert(r && r->pdispatch && r->pdispatch->mainloop);
 
-    if (r->pdispatch)
+    if (r->time_event)
         r->pdispatch->mainloop->time_free(r->time_event);
-
-    if (r->previous)
-        r->previous->next = r->next;
-    else
-        r->pdispatch->replies = r->next;
-
-    if (r->next)
-        r->next->previous = r->previous;
+    
+    PA_LLIST_REMOVE(struct reply_info, r->pdispatch->replies, r);
     
     pa_xfree(r);
 }
@@ -107,37 +101,56 @@ struct pa_pdispatch* pa_pdispatch_new(struct pa_mainloop_api *mainloop, const st
     assert((entries && table) || (!entries && !table));
     
     pd = pa_xmalloc(sizeof(struct pa_pdispatch));
+    pd->ref = 1;
     pd->mainloop = mainloop;
     pd->command_table = table;
     pd->n_commands = entries;
-    pd->replies = NULL;
+    PA_LLIST_HEAD_INIT(struct pa_reply_info, pd->replies);
     pd->drain_callback = NULL;
     pd->drain_userdata = NULL;
-
-    pd->in_use = pd->shall_free = 0;
 
     return pd;
 }
 
-void pa_pdispatch_free(struct pa_pdispatch *pd) {
+void pdispatch_free(struct pa_pdispatch *pd) {
     assert(pd);
 
-    if (pd->in_use) {
-        pd->shall_free = 1;
-        return;
-    }
-    
     while (pd->replies)
         reply_info_free(pd->replies);
+    
     pa_xfree(pd);
+}
+
+static void run_action(struct pa_pdispatch *pd, struct reply_info *r, uint32_t command, struct pa_tagstruct *ts) {
+    void (*callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+    void *userdata;
+    uint32_t tag;
+    assert(r);
+
+    pa_pdispatch_ref(pd);
+    
+    callback = r->callback;
+    userdata = r->userdata;
+    tag = r->tag;
+    
+    reply_info_free(r);
+    
+    callback(pd, command, tag, ts, userdata);
+
+    if (pd->drain_callback && !pa_pdispatch_is_pending(pd))
+        pd->drain_callback(pd, pd->drain_userdata);
+
+    pa_pdispatch_unref(pd);
 }
 
 int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *userdata) {
     uint32_t tag, command;
     struct pa_tagstruct *ts = NULL;
     int ret = -1;
-    assert(pd && packet && packet->data && !pd->in_use);
+    assert(pd && packet && packet->data);
 
+    pa_pdispatch_ref(pd);
+    
     if (packet->length <= 8)
         goto finish;
 
@@ -159,20 +172,8 @@ int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *use
             if (r->tag == tag)
                 break;
 
-        if (r) {
-            pd->in_use = r->callback_is_running = 1;
-            assert(r->callback);
-            r->callback(r->pdispatch, command, tag, ts, r->userdata);
-            pd->in_use = r->callback_is_running = 0;
-            reply_info_free(r);
-            
-            if (pd->shall_free)
-                pa_pdispatch_free(pd);
-            else {
-                if (pd->drain_callback && !pa_pdispatch_is_pending(pd))
-                    pd->drain_callback(pd, pd->drain_userdata);
-            }
-        }
+        if (r)
+            run_action(pd, r, command, ts);
 
     } else if (pd->command_table && command < pd->n_commands) {
         const struct pa_pdispatch_command *c = pd->command_table+command;
@@ -186,33 +187,30 @@ int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *use
         
 finish:
     if (ts)
-        pa_tagstruct_free(ts);    
+        pa_tagstruct_free(ts);
+
+    pa_pdispatch_unref(pd);
 
     return ret;
 }
 
 static void timeout_callback(struct pa_mainloop_api*m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
     struct reply_info*r = userdata;
-    assert (r && r->time_event == e && r->pdispatch && r->pdispatch->mainloop == m && r->callback);
+    assert(r && r->time_event == e && r->pdispatch && r->pdispatch->mainloop == m && r->callback);
 
-    r->callback(r->pdispatch, PA_COMMAND_TIMEOUT, r->tag, NULL, r->userdata);
-    reply_info_free(r);
-
-    if (r->pdispatch->drain_callback && !pa_pdispatch_is_pending(r->pdispatch))
-        r->pdispatch->drain_callback(r->pdispatch, r->pdispatch->drain_userdata);
+    run_action(r->pdispatch, r, PA_COMMAND_TIMEOUT, NULL);
 }
 
 void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int timeout, void (*cb)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata), void *userdata) {
     struct reply_info *r;
     struct timeval tv;
-    assert(pd && cb);
+    assert(pd && pd->ref >= 1 && cb);
 
     r = pa_xmalloc(sizeof(struct reply_info));
     r->pdispatch = pd;
     r->callback = cb;
     r->userdata = userdata;
     r->tag = tag;
-    r->callback_is_running = 0;
     
     gettimeofday(&tv, NULL);
     tv.tv_sec += timeout;
@@ -220,11 +218,7 @@ void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int time
     r->time_event = pd->mainloop->time_new(pd->mainloop, &tv, timeout_callback, r);
     assert(r->time_event);
 
-    r->previous = NULL;
-    r->next = pd->replies;
-    if (r->next)
-        r->next->previous = r;
-    pd->replies = r;
+    PA_LLIST_PREPEND(struct reply_info, pd->replies, r);
 }
 
 int pa_pdispatch_is_pending(struct pa_pdispatch *pd) {
@@ -248,7 +242,20 @@ void pa_pdispatch_unregister_reply(struct pa_pdispatch *pd, void *userdata) {
     for (r = pd->replies; r; r = n) {
         n = r->next;
 
-        if (!r->callback_is_running && r->userdata == userdata) /* when this item's callback is currently running it is destroyed anyway in the very near future */
+        if (r->userdata == userdata) 
             reply_info_free(r);
     }
+}
+
+void pa_pdispatch_unref(struct pa_pdispatch *pd) {
+    assert(pd && pd->ref >= 1);
+
+    if (!(--(pd->ref)))
+        pdispatch_free(pd);
+}
+
+struct pa_pdispatch* pa_pdispatch_ref(struct pa_pdispatch *pd) {
+    assert(pd && pd->ref >= 1);
+    pd->ref++;
+    return pd;
 }

@@ -79,4 +79,6 @@ void pa_client_rename(struct pa_client *c, const char *name) {
     assert(c);
     pa_xfree(c->name);
     c->name = pa_xstrdup(name);
+
+    pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
 }

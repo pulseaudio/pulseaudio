@@ -80,6 +80,6 @@ void pa_protocol_cli_free(struct pa_protocol_cli *p) {
     assert(p);
 
     pa_idxset_free(p->connections, free_connection, NULL);
-    pa_socket_server_free(p->server);
+    pa_socket_server_unref(p->server);
     pa_xfree(p);
 }

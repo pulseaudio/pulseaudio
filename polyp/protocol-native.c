@@ -306,8 +306,9 @@ static void connection_free(struct connection *c) {
             upload_stream_free((struct upload_stream*) o);
     pa_idxset_free(c->output_streams, NULL, NULL);
 
-    pa_pdispatch_free(c->pdispatch);
-    pa_pstream_free(c->pstream);
+    pa_pdispatch_unref(c->pdispatch);
+    pa_pstream_close(c->pstream);
+    pa_pstream_unref(c->pstream);
     pa_client_free(c->client);
 
     if (c->subscription)
@@ -1330,6 +1331,6 @@ void pa_protocol_native_free(struct pa_protocol_native *p) {
     while ((c = pa_idxset_first(p->connections, NULL)))
         connection_free(c);
     pa_idxset_free(p->connections, NULL, NULL);
-    pa_socket_server_free(p->server);
+    pa_socket_server_unref(p->server);
     pa_xfree(p);
 }

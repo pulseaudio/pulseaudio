@@ -27,6 +27,20 @@
 
 #include "cdecl.h"
 
+/** \file
+ * 
+ * Main loop abstraction layer. Both the polypaudio core and the
+ * polypaudio client library use a main loop abstraction layer. Due to
+ * this it is possible to embed polypaudio into other
+ * applications easily. Two main loop implemenations are
+ * currently available:
+ * \li A minimal implementation based on the C library's poll() function (See \ref mainloop.h)
+ * \li A wrapper around the GLIB main loop. Use this to embed polypaudio into your GLIB/GTK+/GNOME programs (See \ref glib-mainloop.h)
+ *
+ * The structure pa_mainloop_api is used as vtable for the main loop abstraction.
+ * */
+
+
 PA_C_DECL_BEGIN
 
 /** A bitmask for IO events */
@@ -55,16 +69,28 @@ struct pa_mainloop_api {
     /** A pointer to some private, arbitrary data of the main loop implementation */
     void *userdata;
 
-    /* IO sources */
+    /** Create a new IO event source object */
     struct pa_io_event* (*io_new)(struct pa_mainloop_api*a, int fd, enum pa_io_event_flags events, void (*callback) (struct pa_mainloop_api*a, struct pa_io_event* e, int fd, enum pa_io_event_flags events, void *userdata), void *userdata);
+
+    /** Enable or disable IO events on this object */
     void (*io_enable)(struct pa_io_event* e, enum pa_io_event_flags events);
+
+    /** Free a IO event source object */
     void (*io_free)(struct pa_io_event* e);
+
+    /** Set a function that is called when the IO event source is destroyed. Use this to free the userdata argument if required */
     void (*io_set_destroy)(struct pa_io_event *e, void (*callback) (struct pa_mainloop_api*a, struct pa_io_event *e, void *userdata));
 
-    /* Time sources */
+    /** Create a new timer event source object for the specified Unix time */
     struct pa_time_event* (*time_new)(struct pa_mainloop_api*a, const struct timeval *tv, void (*callback) (struct pa_mainloop_api*a, struct pa_time_event* e, const struct timeval *tv, void *userdata), void *userdata);
+
+    /** Restart a running or expired timer event source with a new Unix time */
     void (*time_restart)(struct pa_time_event* e, const struct timeval *tv);
+
+    /** Free a deferred timer event source object */
     void (*time_free)(struct pa_time_event* e);
+
+    /** Set a function that is called when the timer event source is destroyed. Use this to free the userdata argument if required */
     void (*time_set_destroy)(struct pa_time_event *e, void (*callback) (struct pa_mainloop_api*a, struct pa_time_event *e, void *userdata));
 
     /** Create a new deferred event source object */

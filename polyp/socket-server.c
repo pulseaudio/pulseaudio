@@ -40,6 +40,7 @@
 #include "xmalloc.h"
 
 struct pa_socket_server {
+    int ref;
     int fd;
     char *filename;
 
@@ -57,14 +58,16 @@ static void callback(struct pa_mainloop_api *mainloop, struct pa_io_event *e, in
     int nfd;
     assert(s && s->mainloop == mainloop && s->io_event == e && e && fd >= 0 && fd == s->fd);
 
+    pa_socket_server_ref(s);
+    
     if ((nfd = accept(fd, NULL, NULL)) < 0) {
         fprintf(stderr, "accept(): %s\n", strerror(errno));
-        return;
+        goto finish;
     }
 
     if (!s->on_connection) {
         close(nfd);
-        return;
+        goto finish;
     }
 
     /* There should be a check for socket type here */
@@ -76,6 +79,9 @@ static void callback(struct pa_mainloop_api *mainloop, struct pa_io_event *e, in
     io = pa_iochannel_new(s->mainloop, nfd, nfd);
     assert(io);
     s->on_connection(s, io, s->userdata);
+
+finish:
+    pa_socket_server_unref(s);
 }
 
 struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd) {
@@ -83,6 +89,7 @@ struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd)
     assert(m && fd >= 0);
     
     s = pa_xmalloc(sizeof(struct pa_socket_server));
+    s->ref = 1;
     s->fd = fd;
     s->filename = NULL;
     s->on_connection = NULL;
@@ -94,6 +101,12 @@ struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd)
 
     s->type = SOCKET_SERVER_GENERIC;
     
+    return s;
+}
+
+struct pa_socket_server* pa_socket_server_ref(struct pa_socket_server *s) {
+    assert(s && s->ref >= 1);
+    s->ref++;
     return s;
 }
 
@@ -184,7 +197,7 @@ fail:
     return NULL;
 }
 
-void pa_socket_server_free(struct pa_socket_server*s) {
+static void socket_server_free(struct pa_socket_server*s) {
     assert(s);
     close(s->fd);
 
@@ -197,8 +210,15 @@ void pa_socket_server_free(struct pa_socket_server*s) {
     pa_xfree(s);
 }
 
+void pa_socket_server_unref(struct pa_socket_server *s) {
+    assert(s && s->ref >= 1);
+
+    if (!(--(s->ref)))
+        socket_server_free(s);
+}
+
 void pa_socket_server_set_callback(struct pa_socket_server*s, void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata), void *userdata) {
-    assert(s);
+    assert(s && s->ref >= 1);
 
     s->on_connection = on_connection;
     s->userdata = userdata;

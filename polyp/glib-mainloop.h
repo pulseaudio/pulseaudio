@@ -24,6 +24,6 @@ void pa_glib_mainloop_free(struct pa_glib_mainloop* g);
 /** Return the abstract main loop API vtable for the GLIB main loop object */
 struct pa_mainloop_api* pa_glib_mainloop_get_api(struct pa_glib_mainloop *g);
 
-PA_C_DECL_BEGIN
+PA_C_DECL_END
 
 #endif

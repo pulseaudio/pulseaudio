@@ -22,6 +22,10 @@
   USA.
 ***/
 
+#include "cdecl.h"
+
+PA_C_DECL_BEGIN
+
 enum {
     PA_COMMAND_ERROR,
     PA_COMMAND_TIMEOUT, /* pseudo command */
@@ -120,5 +124,7 @@ enum pa_subscription_event_type {
 };
 
 #define pa_subscription_match_flags(m, t) (!!((m) & (1 << ((t) & PA_SUBSCRIPTION_EVENT_FACILITY_MASK))))
+
+PA_C_DECL_END
 
 #endif

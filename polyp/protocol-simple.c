@@ -426,7 +426,7 @@ void pa_protocol_simple_free(struct pa_protocol_simple *p) {
     }
 
     if (p->server)
-        pa_socket_server_free(p->server);
+        pa_socket_server_unref(p->server);
     pa_xfree(p);
 }
 

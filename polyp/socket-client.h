@@ -36,7 +36,8 @@ struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, ui
 struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename);
 struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m, const struct sockaddr *sa, size_t salen);
 
-void pa_socket_client_free(struct pa_socket_client *c);
+void pa_socket_client_unref(struct pa_socket_client *c);
+struct pa_socket_client* pa_socket_client_ref(struct pa_socket_client *c);
 
 void pa_socket_client_set_callback(struct pa_socket_client *c, void (*on_connection)(struct pa_socket_client *c, struct pa_iochannel*io, void *userdata), void *userdata);
 

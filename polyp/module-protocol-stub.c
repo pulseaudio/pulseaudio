@@ -145,7 +145,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto finish;
 
     if (!(m->userdata = protocol_new(c, s, m, ma))) {
-        pa_socket_server_free(s);
+        pa_socket_server_unref(s);
         goto finish;
     }
 

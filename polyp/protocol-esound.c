@@ -1024,6 +1024,6 @@ void pa_protocol_esound_free(struct pa_protocol_esound *p) {
         connection_free(c);
 
     pa_idxset_free(p->connections, NULL, NULL);
-    pa_socket_server_free(p->server);
+    pa_socket_server_unref(p->server);
     pa_xfree(p);
 }
