@@ -378,12 +378,14 @@ static void send_memblock(struct connection *c) {
             return;
 
         if (pa_memblockq_peek(r->memblockq,  &chunk) >= 0) {
-            if (chunk.length > r->fragment_size)
-                chunk.length = r->fragment_size;
+            struct pa_memchunk schunk = chunk;
+            
+            if (schunk.length > r->fragment_size)
+                schunk.length = r->fragment_size;
 
-            pa_pstream_send_memblock(c->pstream, r->index, 0, &chunk);
-            pa_memblockq_drop(r->memblockq, &chunk, chunk.length);
-            pa_memblock_unref(chunk.memblock);
+            pa_pstream_send_memblock(c->pstream, r->index, 0, &schunk);
+            pa_memblockq_drop(r->memblockq, &chunk, schunk.length);
+            pa_memblock_unref(schunk.memblock);
             
             return;
         }

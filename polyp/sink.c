@@ -158,7 +158,7 @@ int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result) 
     unsigned n;
     size_t l;
     assert(s && length && result);
-    
+
     n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
 
     if (n <= 0)

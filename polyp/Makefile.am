@@ -398,11 +398,11 @@ mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
 mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12.la
 
-cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c
+cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c
 cpulimit_test_CFLAGS = $(AM_CFLAGS)
 cpulimit_test_LDADD = $(AM_LDADD) libpolyp-mainloop.la
 
-cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c
+cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c log.c
 cpulimit_test2_CFLAGS = $(AM_CFLAGS) -DTEST2
 cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop.la
 
