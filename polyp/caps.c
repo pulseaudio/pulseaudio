@@ -43,8 +43,9 @@ void pa_drop_root(void) {
     
     pa_log(__FILE__": dropping root rights.\n");
     
-    setuid(uid);
-    seteuid(uid);
+    setreuid(uid, uid);
+/*    setuid(uid);
+    seteuid(uid);*/
 }
 
 #ifdef HAVE_SYS_CAPABILITY_H

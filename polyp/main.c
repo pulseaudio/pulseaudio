@@ -259,6 +259,7 @@ int main(int argc, char *argv[]) {
         close(1);
     }
     
+    chdir("/");
 
     pa_log(__FILE__": sizeof(pa_usec_t) = %u\n", sizeof(pa_usec_t));
     
