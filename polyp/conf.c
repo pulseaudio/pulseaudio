@@ -43,6 +43,7 @@ static const struct pa_conf default_conf = {
     .disallow_module_loading = 0,
     .exit_idle_time = -1,
     .module_idle_time = 20,
+    .scache_idle_time = 20,
     .auto_log_target = 1,
     .script_commands = NULL,
     .dl_search_path = NULL,
@@ -143,6 +144,7 @@ static int next_assignment(struct pa_conf *c, char *lvalue, char *rvalue, unsign
 
     PARSE_INTEGER("exit-idle-time", exit_idle_time);
     PARSE_INTEGER("module-idle-time", module_idle_time);
+    PARSE_INTEGER("scache-idle-time", scache_idle_time);
     
     PARSE_STRING("dl-search-path", dl_search_path);
     PARSE_STRING("default-script-file", default_script_file);
@@ -258,7 +260,7 @@ char *pa_conf_dump(struct pa_conf *c) {
     char *d;
 
     d = default_file(ENV_CONFIG_FILE, DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_LOCAL);
-    pa_strbuf_printf(s, "### Default configuration file: %s ###\n\n", d);
+    pa_strbuf_printf(s, "### Default configuration file: %s ###\n", d);
     
     pa_strbuf_printf(s, "verbose = %i\n", !!c->verbose);
     pa_strbuf_printf(s, "daemonize = %i\n", !!c->daemonize);
@@ -267,11 +269,10 @@ char *pa_conf_dump(struct pa_conf *c) {
     pa_strbuf_printf(s, "disallow-module-loading = %i\n", !!c->disallow_module_loading);
     pa_strbuf_printf(s, "exit-idle-time = %i\n", c->exit_idle_time);
     pa_strbuf_printf(s, "module-idle-time = %i\n", c->module_idle_time);
+    pa_strbuf_printf(s, "scache-idle-time = %i\n", c->scache_idle_time);
     pa_strbuf_printf(s, "dl-search-path = %s\n", c->dl_search_path ? c->dl_search_path : "");
     pa_strbuf_printf(s, "default-script-file = %s\n", c->default_script_file);
     pa_strbuf_printf(s, "log-target = %s\n", c->auto_log_target ? "auto" : (c->log_target == PA_LOG_SYSLOG ? "syslog" : "stderr"));
-
-    pa_strbuf_printf(s, "\n### EOF ###\n");
     
     pa_xfree(d);
     

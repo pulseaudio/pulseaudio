@@ -234,8 +234,10 @@ int main(int argc, char *argv[]) {
     buf = pa_strbuf_new();
     assert(buf);
     if (conf->default_script_file)
-        pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail, &conf->verbose);
-    r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail, &conf->verbose);
+        r = pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail, &conf->verbose);
+
+    if (r >= 0)
+        r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail, &conf->verbose);
     pa_log(s = pa_strbuf_tostring_free(buf));
     pa_xfree(s);
     

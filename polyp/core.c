@@ -61,8 +61,9 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->default_sample_spec.rate = 44100;
     c->default_sample_spec.channels = 2;
 
-    c->auto_unload_event = NULL;
-    c->defer_unload_event = NULL;
+    c->module_auto_unload_event = NULL;
+    c->module_defer_unload_event = NULL;
+    c->scache_auto_unload_event = NULL;
 
     c->subscription_defer_event = NULL;
     c->subscription_event_queue = NULL;
@@ -76,6 +77,7 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
 
     c->exit_idle_time = -1;
     c->module_idle_time = 20;
+    c->scache_idle_time = 20;
     
     pa_check_for_sigpipe();
     
@@ -108,11 +110,9 @@ void pa_core_free(struct pa_core *c) {
     pa_autoload_free(c);
     pa_subscription_free_all(c);
 
-    if (c->quit_event) {
+    if (c->quit_event)
         c->mainloop->time_free(c->quit_event);
-        c->quit_event = NULL;
-    }
-    
+
     pa_xfree(c->default_source_name);
     pa_xfree(c->default_sink_name);
 

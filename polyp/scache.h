@@ -33,9 +33,12 @@ struct pa_scache_entry {
     uint32_t volume;
     struct pa_sample_spec sample_spec;
     struct pa_memchunk memchunk;
+
+    int auto_unload;
+    time_t last_used_time;
 };
 
-int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index);
+int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index, int auto_unload);
 
 int pa_scache_remove_item(struct pa_core *c, const char *name);
 int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume);
@@ -45,5 +48,7 @@ const char *pa_scache_get_name_by_id(struct pa_core *c, uint32_t id);
 uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name);
 
 uint32_t pa_scache_total_size(struct pa_core *c);
+
+void pa_scache_unload_unused(struct pa_core *c);
 
 #endif

@@ -921,7 +921,7 @@ static void command_finish_upload_stream(struct pa_pdispatch *pd, uint32_t comma
         return;
     }
 
-    pa_scache_add_item(c->protocol->core, s->name, &s->sample_spec, &s->memchunk, &index);
+    pa_scache_add_item(c->protocol->core, s->name, &s->sample_spec, &s->memchunk, &index, 0);
     pa_pstream_send_simple_ack(c->pstream, tag);
     upload_stream_free(s);
 }
@@ -1514,7 +1514,8 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     assert(io && p);
 
     c = pa_xmalloc(sizeof(struct connection));
-    c->authorized = p->public;
+
+    c->authorized =!! p->public;
     c->protocol = p;
     assert(p->core);
     c->client = pa_client_new(p->core, "NATIVE", "Client");
@@ -1548,7 +1549,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
 static struct pa_protocol_native* protocol_new_internal(struct pa_core *c, struct pa_module *m, struct pa_modargs *ma) {
     struct pa_protocol_native *p;
-    int public;
+    int public = 0;
     assert(c && ma);
 
     if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {

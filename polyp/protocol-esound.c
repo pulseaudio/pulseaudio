@@ -590,7 +590,7 @@ static int esd_proto_sample_cache(struct connection *c, esd_proto_t request, con
 
     c->state = ESD_CACHING_SAMPLE;
 
-    pa_scache_add_item(c->protocol->core, c->scache_name, NULL, NULL, &index);
+    pa_scache_add_item(c->protocol->core, c->scache_name, NULL, NULL, &index, 0);
 
     ok = connection_write(c, sizeof(int));
     assert(ok);
@@ -748,7 +748,7 @@ static int do_read(struct connection *c) {
             int *ok;
             
             c->scache_memchunk.index = 0;
-            pa_scache_add_item(c->protocol->core, c->scache_name, &c->scache_sample_spec, &c->scache_memchunk, &index);
+            pa_scache_add_item(c->protocol->core, c->scache_name, &c->scache_sample_spec, &c->scache_memchunk, &index, 0);
 
             pa_memblock_unref(c->scache_memchunk.memblock);
             c->scache_memchunk.memblock = NULL;

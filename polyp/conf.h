@@ -41,6 +41,7 @@ struct pa_conf {
         disallow_module_loading,
         exit_idle_time,
         module_idle_time,
+        scache_idle_time,
         auto_log_target;
     char *script_commands, *dl_search_path, *default_script_file;
     enum pa_log_target log_target;

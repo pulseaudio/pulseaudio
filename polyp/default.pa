@@ -20,43 +20,43 @@
 
 # Load audio drivers statically
 
-#load module-alsa-sink
-load module-alsa-source device=plughw:1,0
-load module-oss device="/dev/dsp" sink_name=output source_name=input record=0
-#load module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
-#load module-pipe-sink
+#load-module module-alsa-sink
+load-module module-alsa-source device=plughw:1,0
+load-module module-oss device="/dev/dsp" sink_name=output source_name=input record=0
+#load-module module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+#load-module module-pipe-sink
 
 # Load audio drivers automatically on access
 
-#autoload_sink_add output module-oss device="/dev/dsp" sink_name=output source_name=input
-#autoload_source_add input module-oss device="/dev/dsp" sink_name=output source_name=input
-#autoload_sink_add output module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
-#autoload_source_add input module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
-#autoload_sink_add output module-alsa-sink sink_name=output
-#autoload_source_add input module-alsa-source source_name=input
+#add-autoload_sink output module-oss device="/dev/dsp" sink_name=output source_name=input
+#add-autoload_source input module-oss device="/dev/dsp" sink_name=output source_name=input
+#add-autoload_sink output module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+#add-autoload_source input module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+#add-autoload_sink output module-alsa-sink sink_name=output
+#add-autoload_source input module-alsa-source source_name=input
 
 # Load several protocols
-load module-esound-protocol-tcp
-#load module-simple-protocol-tcp
-load module-native-protocol-unix
-#load module-cli-protocol-unix
-#load module-esound-protocol-unix
+load-module module-esound-protocol-tcp
+#load-module module-simple-protocol-tcp
+load-module module-native-protocol-unix
+#load-module module-cli-protocol-unix
+#load-module module-esound-protocol-unix
 
 # Load the CLI module
-load module-cli
+load-module module-cli
 
 # Make some devices default
-sink_default output
-source_default input
+set-default-sink output
+set-default-source input
 
 .nofail
 
 # Load something to the sample cache
-scache_load /usr/share/sounds/KDE_Notify.wav x11-bell
+load-sample /usr/share/sounds/KDE_Notify.wav x11-bell
 
 # Load X11 bell module
-load module-x11-bell sample=x11-bell sink=output
+load-module module-x11-bell sample=x11-bell sink=output
 
-#load module-pipe-source
-#load module-pipe-sink
+#load-module module-pipe-source
+#load-module module-pipe-sink
 

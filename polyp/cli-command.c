@@ -87,35 +87,37 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
 static const struct command commands[] = {
     { "exit",                    pa_cli_command_exit,               "Terminate the daemon",         1 },
     { "help",                    pa_cli_command_help,               "Show this help",               1 },
-    { "modules",                 pa_cli_command_modules,            "List loaded modules",          1 },
-    { "sinks",                   pa_cli_command_sinks,              "List loaded sinks",            1 },
-    { "sources",                 pa_cli_command_sources,            "List loaded sources",          1 },
-    { "clients",                 pa_cli_command_clients,            "List loaded clients",          1 },
-    { "sink_inputs",             pa_cli_command_sink_inputs,        "List sink inputs",             1 },
-    { "source_outputs",          pa_cli_command_source_outputs,     "List source outputs",          1 },
+    { "list-modules",            pa_cli_command_modules,            "List loaded modules",          1 },
+    { "list-sinks",              pa_cli_command_sinks,              "List loaded sinks",            1 },
+    { "list-sources",            pa_cli_command_sources,            "List loaded sources",          1 },
+    { "list-clients",            pa_cli_command_clients,            "List loaded clients",          1 },
+    { "list-sink-inputs",        pa_cli_command_sink_inputs,        "List sink inputs",             1 },
+    { "list-source-outputs",     pa_cli_command_source_outputs,     "List source outputs",          1 },
     { "stat",                    pa_cli_command_stat,               "Show memory block statistics", 1 },
     { "info",                    pa_cli_command_info,               "Show comprehensive status",    1 },
     { "ls",                      pa_cli_command_info,               NULL,                           1 },
     { "list",                    pa_cli_command_info,               NULL,                           1 },
-    { "load",                    pa_cli_command_load,               "Load a module (args: name, arguments)",                     3},
-    { "unload",                  pa_cli_command_unload,             "Unload a module (args: index)",                             2},
-    { "sink_volume",             pa_cli_command_sink_volume,        "Set the volume of a sink (args: index|name, volume)",             3},
-    { "sink_input_volume",       pa_cli_command_sink_input_volume,  "Set the volume of a sink input (args: index|name, volume)", 3},
-    { "sink_default",            pa_cli_command_sink_default,       "Set the default sink (args: index|name)", 2},
-    { "source_default",          pa_cli_command_source_default,     "Set the default source (args: index|name)", 2},
-    { "kill_client",             pa_cli_command_kill_client,        "Kill a client (args: index)", 2},
-    { "kill_sink_input",         pa_cli_command_kill_sink_input,    "Kill a sink input (args: index)", 2},
-    { "kill_source_output",      pa_cli_command_kill_source_output, "Kill a source output (args: index)", 2},
-    { "scache_list",             pa_cli_command_scache_list,        "List all entries in the sample cache", 1},
-    { "scache_play",             pa_cli_command_scache_play,        "Play a sample from the sample cache (args: name, sink|index)", 3},
-    { "scache_remove",           pa_cli_command_scache_remove,      "Remove a sample from the sample cache (args: name)", 2},
-    { "scache_load",             pa_cli_command_scache_load,        "Load a sound file into the sample cache (args: filename,name)", 3},
-    { "play_file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
-    { "autoload_list",           pa_cli_command_autoload_list,      "List autoload entries", 1},
-    { "autoload_sink_add",       pa_cli_command_autoload_add,       "Add autoload entry for a sink (args: sink, name, arguments)", 4},
-    { "autoload_source_add",     pa_cli_command_autoload_add,       "Add autoload entry for a source (args: source, name, arguments)", 4},
-    { "autoload_sink_remove",    pa_cli_command_autoload_remove,    "Remove autoload entry for a sink (args: sink)", 2},
-    { "autoload_source_remove",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: source)", 2},
+    { "load-module",             pa_cli_command_load,               "Load a module (args: name, arguments)",                     3},
+    { "unload-module",           pa_cli_command_unload,             "Unload a module (args: index)",                             2},
+    { "set-sink-volume",         pa_cli_command_sink_volume,        "Set the volume of a sink (args: index|name, volume)",             3},
+    { "set-sink-input-volume",   pa_cli_command_sink_input_volume,  "Set the volume of a sink input (args: index|name, volume)", 3},
+    { "set-default-sink",        pa_cli_command_sink_default,       "Set the default sink (args: index|name)", 2},
+    { "set-default-source",      pa_cli_command_source_default,     "Set the default source (args: index|name)", 2},
+    { "kill-client",             pa_cli_command_kill_client,        "Kill a client (args: index)", 2},
+    { "kill-sink-input",         pa_cli_command_kill_sink_input,    "Kill a sink input (args: index)", 2},
+    { "kill-source-output",      pa_cli_command_kill_source_output, "Kill a source output (args: index)", 2},
+    { "list-samples",            pa_cli_command_scache_list,        "List all entries in the sample cache", 1},
+    { "play-sample",             pa_cli_command_scache_play,        "Play a sample from the sample cache (args: name, sink|index)", 3},
+    { "remove-sample",           pa_cli_command_scache_remove,      "Remove a sample from the sample cache (args: name)", 2},
+    { "load-sample",             pa_cli_command_scache_load,        "Load a sound file into the sample cache (args: name, filename)", 3},
+    { "play-file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
+    { "list-autoload",           pa_cli_command_autoload_list,      "List autoload entries", 1},
+    { "add-autoload-sink",       pa_cli_command_autoload_add,       "Add autoload entry for a sink (args: sink, module name, arguments)", 4},
+    { "add-autoload-source",     pa_cli_command_autoload_add,       "Add autoload entry for a source (args: source, module name, arguments)", 4},
+    { "add-autoload-sample",     pa_cli_command_autoload_add,       "Add autoload entry for a smple (args: name, filename)", 3},
+    { "remove-autoload-sink",    pa_cli_command_autoload_remove,    "Remove autoload entry for a sink (args: name)", 2},
+    { "remove-autoload-source",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: name)", 2},
+    { "remove-autoload-sample",  pa_cli_command_autoload_remove,    "Remove autoload entry for a sample (args: name)", 2},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
     { NULL, NULL, NULL, 0 }
 };
@@ -147,7 +149,7 @@ static int pa_cli_command_help(struct pa_core *c, struct pa_tokenizer *t, struct
     
     for (command = commands; command->name; command++)
         if (command->help)
-            pa_strbuf_printf(buf, "    %-20s %s\n", command->name, command->help);
+            pa_strbuf_printf(buf, "    %-25s %s\n", command->name, command->help);
     return 0;
 }
 
@@ -524,7 +526,7 @@ static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t,
     struct pa_sample_spec ss;
     assert(c && t && buf && fail && verbose);
 
-    if (!(fname = pa_tokenizer_get(t, 1)) || !(n = pa_tokenizer_get(t, 2))) {
+    if (!(fname = pa_tokenizer_get(t, 2)) || !(n = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a file name and a sample name.\n");
         return -1;
     }
@@ -534,7 +536,7 @@ static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t,
         return -1;
     }
 
-    pa_scache_add_item(c, n, &ss, &chunk, NULL);
+    pa_scache_add_item(c, n, &ss, &chunk, NULL, 0);
     pa_memblock_unref(chunk.memblock);
     return 0;
 }
@@ -559,28 +561,33 @@ static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, s
 }
 
 static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
-    const char *devname, *module;
+    const char *a, *b;
     assert(c && t && buf && fail && verbose);
 
-    if (!(devname = pa_tokenizer_get(t, 1)) || !(module = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a device name, a module name and optionally module arguments\n");
+    if (!(a = pa_tokenizer_get(t, 1)) || !(b = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a device name, a filename or a module name and optionally module arguments\n");
         return -1;
     }
+
+    if (strstr(pa_tokenizer_get(t, 0), "sample")) 
+        pa_autoload_add_sample(c, a, PA_NAMEREG_SAMPLE, b);
+    else
+        pa_autoload_add_module(c, a, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, b, pa_tokenizer_get(t, 3));
     
-    pa_autoload_add(c, devname, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, module, pa_tokenizer_get(t, 3));
     return 0;
 }
 
 static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
-    const char *devname;
+    const char *name;
     assert(c && t && buf && fail && verbose);
-
-    if (!(devname = pa_tokenizer_get(t, 1))) {
+    
+    if (!(name = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a device name\n");
         return -1;
     }
 
-    if (pa_autoload_remove(c, devname, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE) < 0) {
+    if (pa_autoload_remove(c, name, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK :
+                           (strstr(pa_tokenizer_get(t, 0), "source") ? PA_NAMEREG_SOURCE : PA_NAMEREG_SAMPLE)) < 0) {
         pa_strbuf_puts(buf, "Failed to remove autload entry\n");
         return -1;
     }
@@ -620,7 +627,7 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
         if (m->auto_unload)
             continue;
 
-        pa_strbuf_printf(buf, "load %s", m->name);
+        pa_strbuf_printf(buf, "load-module %s", m->name);
 
         if (m->argument)
             pa_strbuf_printf(buf, " %s", m->argument);
@@ -642,7 +649,7 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
             nl = 1;
         }
         
-        pa_strbuf_printf(buf, "sink_volume %s 0x%03x\n", s->name, s->volume);
+        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", s->name, s->volume);
     }
 
 
@@ -651,13 +658,13 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
         
         i = NULL;
         while ((a = pa_hashmap_iterate(c->autoload_hashmap, &i))) {
-            
+
             if (!nl) {
                 pa_strbuf_puts(buf, "\n");
                 nl = 1;
             }
             
-            pa_strbuf_printf(buf, "autoload_%s_add %s %s", a->type == PA_NAMEREG_SINK ? "sink" : "source", a->name, a->module);
+            pa_strbuf_printf(buf, "add-autoload-%s %s %s", a->type == PA_NAMEREG_SINK ? "sink" : (a->type == PA_NAMEREG_SOURCE ? "source" : "sample"), a->name, a->type == PA_NAMEREG_SAMPLE ? a->filename : a->module);
             
             if (a->argument)
                 pa_strbuf_printf(buf, " %s", a->argument);
@@ -673,7 +680,7 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
             pa_strbuf_puts(buf, "\n");
             nl = 1;
         }
-        pa_strbuf_printf(buf, "sink_default %s\n", p);
+        pa_strbuf_printf(buf, "set-default-sink %s\n", p);
     }
 
     if ((p = pa_namereg_get_default_source_name(c))) {
@@ -681,7 +688,7 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
             pa_strbuf_puts(buf, "\n");
             nl = 1;
         }
-        pa_strbuf_printf(buf, "source_default %s\n", p);
+        pa_strbuf_printf(buf, "set-default-source %s\n", p);
     }
 
     pa_strbuf_puts(buf, "\n### EOF\n");

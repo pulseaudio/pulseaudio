@@ -43,7 +43,7 @@
 static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
     struct pa_core *c = userdata;
     struct timeval ntv;
-    assert(c && c->mainloop == m && c->auto_unload_event == e);
+    assert(c && c->mainloop == m && c->module_auto_unload_event == e);
 
     pa_module_unload_unused(c);
 
@@ -96,13 +96,13 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     if (!c->modules)
         c->modules = pa_idxset_new(NULL, NULL);
 
-    if (!c->auto_unload_event) {
+    if (!c->module_auto_unload_event) {
         struct timeval ntv;
         gettimeofday(&ntv, NULL);
         ntv.tv_sec += UNLOAD_POLL_TIME;
-        c->auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
+        c->module_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
     }
-    assert(c->auto_unload_event);
+    assert(c->module_auto_unload_event);
     
     assert(c->modules);
     r = pa_idxset_put(c->modules, m, &m->index);
@@ -184,14 +184,14 @@ void pa_module_unload_all(struct pa_core *c) {
     pa_idxset_free(c->modules, free_callback, NULL);
     c->modules = NULL;
 
-    if (c->auto_unload_event) {
-        c->mainloop->time_free(c->auto_unload_event);
-        c->auto_unload_event = NULL;
+    if (c->module_auto_unload_event) {
+        c->mainloop->time_free(c->module_auto_unload_event);
+        c->module_auto_unload_event = NULL;
     }
 
-    if (c->defer_unload_event) {
-        c->mainloop->defer_free(c->defer_unload_event);
-        c->defer_unload_event = NULL;
+    if (c->module_defer_unload_event) {
+        c->mainloop->defer_free(c->module_defer_unload_event);
+        c->module_defer_unload_event = NULL;
     }
 }
 
@@ -247,10 +247,10 @@ void pa_module_unload_request(struct pa_module *m) {
 
     m->unload_requested = 1;
 
-    if (!m->core->defer_unload_event)
-        m->core->defer_unload_event = m->core->mainloop->defer_new(m->core->mainloop, defer_cb, m->core);
+    if (!m->core->module_defer_unload_event)
+        m->core->module_defer_unload_event = m->core->mainloop->defer_new(m->core->mainloop, defer_cb, m->core);
 
-    m->core->mainloop->defer_enable(m->core->defer_unload_event, 1);
+    m->core->mainloop->defer_enable(m->core->module_defer_unload_event, 1);
 }
 
 void pa_module_set_used(struct pa_module*m, int used) {

@@ -47,6 +47,7 @@ enum {
     ARG_DISALLOW_MODULE_LOADING,
     ARG_EXIT_IDLE_TIME,
     ARG_MODULE_IDLE_TIME,
+    ARG_SCACHE_IDLE_TIME,
     ARG_LOG_TARGET,
     ARG_LOAD,
     ARG_FILE,
@@ -65,6 +66,7 @@ static struct option long_options[] = {
     {"disallow-module-loading",     2, 0, ARG_DISALLOW_MODULE_LOADING},
     {"exit-idle-time",              2, 0, ARG_EXIT_IDLE_TIME},
     {"module-idle-time",            2, 0, ARG_MODULE_IDLE_TIME},
+    {"scache-idle-time",            2, 0, ARG_SCACHE_IDLE_TIME},
     {"log-target",                  1, 0, ARG_LOG_TARGET},
     {"load",                        1, 0, ARG_LOAD},
     {"file",                        1, 0, ARG_FILE},
@@ -94,6 +96,7 @@ void pa_cmdline_help(const char *argv0) {
            "      --disallow-module-loading[=BOOL]  Disallow module loading after startup\n"
            "      --exit-idle-time=SECS             Terminate the daemon when idle and this time passed\n"
            "      --module-idle-time=SECS           Unload autoloaded modules when idle and this time passed\n"
+           "      --scache-idle-time=SECS           Unload autoloaded samples when idle and this time passed\n"
            "      --log-target={auto,syslog,stderr} Specify the log target\n"
            "  -p, --dl-search-path=PATH             Set the search path for dynamic shared objects (plugins)\n\n"     
            
@@ -135,7 +138,7 @@ int pa_cmdline_parse(struct pa_conf *conf, int argc, char *const argv [], int *d
                 
             case ARG_LOAD:
             case 'L':
-                pa_strbuf_printf(buf, "load %s\n", optarg);
+                pa_strbuf_printf(buf, "load-module %s\n", optarg);
                 break;
                 
             case ARG_FILE:
@@ -144,7 +147,7 @@ int pa_cmdline_parse(struct pa_conf *conf, int argc, char *const argv [], int *d
                 break;
                 
             case 'C':
-                pa_strbuf_puts(buf, "load module-cli\n");
+                pa_strbuf_puts(buf, "load-module module-cli\n");
                 break;
                 
             case ARG_DAEMONIZE:
@@ -215,6 +218,10 @@ int pa_cmdline_parse(struct pa_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_MODULE_IDLE_TIME:
                 conf->module_idle_time = atoi(optarg);
+                break;
+
+            case ARG_SCACHE_IDLE_TIME:
+                conf->scache_idle_time = atoi(optarg);
                 break;
                 
             default:

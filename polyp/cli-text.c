@@ -228,13 +228,14 @@ char *pa_scache_list_to_string(struct pa_core *c) {
             l = (double) e->memchunk.length / pa_bytes_per_second(&e->sample_spec);
             
             pa_strbuf_printf(
-                s, "    name: <%s>\n\tindex: <%i>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n\tvolume: <0x%04x>\n",
+                s, "    name: <%s>\n\tindex: <%i>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n\tvolume: <0x%04x>\n\tauto unload: %s\n",
                 e->name,
                 e->index,
                 ss,
                 e->memchunk.length,
                 l,
-                e->volume);
+                e->volume,
+                e->auto_unload ? "yes" : "no");
         }
     }
 
@@ -256,11 +257,19 @@ char *pa_autoload_list_to_string(struct pa_core *c) {
 
         while ((e = pa_hashmap_iterate(c->autoload_hashmap, &state))) {
             pa_strbuf_printf(
-                s, "    name: <%s>\n\ttype: <%s>\n\tmodule_name: <%s>\n\targuments: <%s>\n",
+                s, "    name: <%s>\n\ttype: <%s>\n",
                 e->name,
-                e->type == PA_NAMEREG_SOURCE ? "source" : "sink",
-                e->module,
-                e->argument);
+                e->type == PA_NAMEREG_SOURCE ? "source" : (e->type == PA_NAMEREG_SINK ? "sink" : "sample"));
+            
+            if (e->type != PA_NAMEREG_SAMPLE)
+                pa_strbuf_printf(
+                    s, "\tmodule_name: <%s>\n\targuments: <%s>\n",
+                    e->module,
+                    e->argument);
+            else
+                pa_strbuf_printf(
+                    s, "\tfilename: <%s>\n",
+                    e->filename);
         }
     }
 

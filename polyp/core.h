@@ -38,8 +38,8 @@ struct pa_core {
     char *default_source_name, *default_sink_name;
 
     struct pa_sample_spec default_sample_spec;
-    struct pa_time_event *auto_unload_event;
-    struct pa_defer_event *defer_unload_event;
+    struct pa_time_event *module_auto_unload_event;
+    struct pa_defer_event *module_defer_unload_event;
 
     struct pa_defer_event *subscription_defer_event;
     struct pa_queue *subscription_event_queue;
@@ -48,9 +48,11 @@ struct pa_core {
     struct pa_memblock_stat *memblock_stat;
 
     int disallow_module_loading;
-    int exit_idle_time, module_idle_time;
+    int exit_idle_time, module_idle_time, scache_idle_time;
 
     struct pa_time_event *quit_event;
+
+    struct pa_time_event *scache_auto_unload_event;
 };
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m);

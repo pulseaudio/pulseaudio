@@ -42,7 +42,7 @@ PA_MODULE_DESCRIPTION("Combine multiple sinks to one")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slave=<slave sinks>")
 
-#define DEFAULT_SINK_NAME "combine"
+#define DEFAULT_SINK_NAME "combined"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
 #define RENDER_SIZE (1024*10)
 
@@ -77,6 +77,13 @@ struct userdata {
 
 static void output_free(struct output *o);
 static void clear_up(struct userdata *u);
+
+static void update_usage(struct userdata *u) {
+    pa_module_set_used(u->module,
+                       (u->sink ? pa_idxset_ncontents(u->sink->inputs) : 0) +
+                       (u->sink ? pa_idxset_ncontents(u->sink->monitor_source->outputs) : 0));
+}
+
 
 static void adjust_rates(struct userdata *u) {
     struct output *o;
@@ -120,6 +127,8 @@ static void request_memblock(struct userdata *u) {
     struct output *o;
     assert(u && u->sink);
 
+    update_usage(u);
+    
     if (pa_sink_render(u->sink, RENDER_SIZE, &chunk) < 0)
         return;
 

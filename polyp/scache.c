@@ -37,6 +37,20 @@
 #include "subscribe.h"
 #include "namereg.h"
 
+#define UNLOAD_POLL_TIME 2
+
+static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
+    struct pa_core *c = userdata;
+    struct timeval ntv;
+    assert(c && c->mainloop == m && c->scache_auto_unload_event == e);
+
+    pa_scache_unload_unused(c);
+
+    gettimeofday(&ntv, NULL);
+    ntv.tv_sec += UNLOAD_POLL_TIME;
+    m->time_restart(e, &ntv);
+}
+
 static void free_entry(struct pa_scache_entry *e) {
     assert(e);
     pa_namereg_unregister(e->core, e->name);
@@ -47,7 +61,7 @@ static void free_entry(struct pa_scache_entry *e) {
     pa_xfree(e);
 }
 
-int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index) {
+int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index, int auto_unload) {
     struct pa_scache_entry *e;
     int put;
     assert(c && name);
@@ -72,6 +86,8 @@ int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spe
     }
 
     e->volume = PA_VOLUME_NORM;
+    e->auto_unload = auto_unload;
+    e->last_used_time = 0;
 
     if (ss)
         e->sample_spec = *ss;
@@ -101,6 +117,13 @@ int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spe
     if (index)
         *index = e->index;
 
+    if (!c->scache_auto_unload_event) {
+        struct timeval ntv;
+        gettimeofday(&ntv, NULL);
+        ntv.tv_sec += UNLOAD_POLL_TIME;
+        c->scache_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
+    }
+                                                            
     return 0;
 }
 
@@ -131,13 +154,16 @@ void pa_scache_free(struct pa_core *c) {
         pa_idxset_free(c->scache, free_cb, NULL);
         c->scache = NULL;
     }
+
+    if (c->scache_auto_unload_event)
+        c->mainloop->time_free(c->scache_auto_unload_event);
 }
 
 int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume) {
     struct pa_scache_entry *e;
     assert(c && name && sink);
 
-    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0)))
+    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 1)))
         return -1;
 
     if (!e->memchunk.memblock)
@@ -145,6 +171,9 @@ int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sin
 
     if (pa_play_memchunk(sink, name, &e->sample_spec, &e->memchunk, pa_volume_multiply(volume, e->volume)) < 0)
         return -1;
+
+    if (e->auto_unload)
+        time(&e->last_used_time);
     
     return 0;
 }
@@ -163,7 +192,7 @@ uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name) {
     struct pa_scache_entry *e;
     assert(c && name);
 
-    if (!c->scache || !(e = pa_idxset_get_by_data(c->scache, name, NULL)))
+    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 1)))
         return PA_IDXSET_INVALID;
 
     return e->index;
@@ -180,6 +209,33 @@ uint32_t pa_scache_total_size(struct pa_core *c) {
     for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index))
         sum += e->memchunk.length;
 
-
     return sum;
+}
+
+static int unload_func(void *p, uint32_t index, int *del, void *userdata) {
+    struct pa_scache_entry *e = p;
+    time_t *now = userdata;
+    assert(e);
+
+    if (!e->auto_unload)
+        return 0;
+
+    if (e->last_used_time + e->core->scache_idle_time > *now)
+        return 0;
+
+    free_entry(e);
+    *del = 1;
+    return 0;
+}
+
+void pa_scache_unload_unused(struct pa_core *c) {
+    time_t now;
+    assert(c);
+
+    if (!c->scache)
+        return;
+    
+    time(&now);
+
+    pa_idxset_foreach(c->scache, unload_func, &now);
 }
