@@ -231,8 +231,12 @@ int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *rss
             ss.format = PA_SAMPLE_S16NE;
         else if (strcmp(format, "u8") == 0 || strcmp(format, "8") == 0)
             ss.format = PA_SAMPLE_U8;
-        else if (strcmp(format, "float32") == 0)
+        else if (strcmp(format, "float32") == 0 || strcmp(format, "float32ne") == 0)
             ss.format = PA_SAMPLE_FLOAT32;
+        else if (strcmp(format, "float32le") == 0)
+            ss.format = PA_SAMPLE_FLOAT32LE;
+        else if (strcmp(format, "float32be") == 0)
+            ss.format = PA_SAMPLE_FLOAT32BE;
         else if (strcmp(format, "ulaw") == 0)
             ss.format = PA_SAMPLE_ULAW;
         else if (strcmp(format, "alaw") == 0)

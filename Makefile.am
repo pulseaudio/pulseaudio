@@ -17,11 +17,28 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-EXTRA_DIST = bootstrap.sh
-SUBDIRS=src
+EXTRA_DIST = bootstrap.sh README LICENSE
+SUBDIRS=src doc
+
+MAINTAINERCLEANFILES=README
+noinst_DATA = README
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = polyplib.pc polyplib-simple.pc polyplib-error.pc polyplib-mainloop.pc
 
+README:
+	rm -f README
+	$(MAKE) -C doc README
+	cd $(srcdir) && ln -s doc/README README
+
+homepage: all dist
+	test -d $$HOME/homepage/private
+	mkdir -p $$HOME/homepage/private/projects/polypaudio
+	cp *.tar.gz $$HOME/homepage/private/projects/polypaudio
+	cp doc/README.html doc/cli.html doc/daemon.html doc/modules.html doc/style.css doc/NEWS $$HOME/homepage/private/projects/polypaudio
+	cp $$HOME/homepage/private/projects/polypaudio/README.html $$HOME/homepage/private/projects/polypaudio/index.html
+
 distcleancheck:
 	@:
+
+.PHONY: homepage distcleancheck

@@ -355,7 +355,6 @@ libpolypcore_la_SOURCES = idxset.c idxset.h \
 		sconv-s16be.c sconv-s16be.h \
 		sioman.c sioman.h \
 		modargs.c modargs.h \
-		cmdline.c cmdline.h \
 		cli-command.c cli-command.h \
 		clitext.c clitext.h \
 		tokenizer.c tokenizer.h \
