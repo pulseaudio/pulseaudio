@@ -18,6 +18,8 @@
 # USA.
 
 AM_CFLAGS=-ansi -D_GNU_SOURCE -DDLSEARCHDIR=\"$(pkglibdir)\" -I$(srcdir)/..
+AM_LDADD=-L.
+AM_LIBADD=-L.
 
 EXTRA_DIST = polypaudio.pa depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
@@ -107,36 +109,36 @@ polypaudio_SOURCES = idxset.c idxset.h \
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
-polypaudio_LDADD = $(LIBLTDL) $(LIBSAMPLERATE_LIBS)
+polypaudio_LDADD = $(AM_LDADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS)
 polypaudio_LDFLAGS=-export-dynamic
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version
-libprotocol_simple_la_LIBADD = libsocket-server.la libiochannel.la
+libprotocol_simple_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la
 
 libsocket_server_la_SOURCES = socket-server.c socket-server.h
 libsocket_server_la_LDFLAGS = -avoid-version
-libsocket_server_la_LIBADD = libiochannel.la libsocket-util.la
+libsocket_server_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la
 
 libsocket_client_la_SOURCES = socket-client.c socket-client.h
 libsocket_client_la_LDFLAGS = -avoid-version
-libsocket_client_la_LIBADD = libiochannel.la libsocket-util.la
+libsocket_client_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la
 
 libpstream_la_SOURCES = pstream.c pstream.h
 libpstream_la_LDFLAGS = -avoid-version
-libpstream_la_LIBADD = libpacket.la libiochannel.la
+libpstream_la_LIBADD = $(AM_LIBADD) libpacket.la libiochannel.la
 
 libpstream_util_la_SOURCES = pstream-util.c pstream-util.h
 libpstream_util_la_LDFLAGS = -avoid-version
-libpstream_util_la_LIBADD = libpacket.la libpstream.la libtagstruct.la
+libpstream_util_la_LIBADD = $(AM_LIBADD) libpacket.la libpstream.la libtagstruct.la
 
 libpdispatch_la_SOURCES = pdispatch.c pdispatch.h
 libpdispatch_la_LDFLAGS = -avoid-version
-libpdispatch_la_LIBADD = libtagstruct.la
+libpdispatch_la_LIBADD = $(AM_LIBADD) libtagstruct.la
 
 libiochannel_la_SOURCES = iochannel.c iochannel.h
 libiochannel_la_LDFLAGS = -avoid-version
-libiochannel_la_LIBADD = libsocket-util.la
+libiochannel_la_LIBADD = $(AM_LIBADD) libsocket-util.la
 
 libpacket_la_SOURCES = packet.c packet.h
 libpacket_la_LDFLAGS = -avoid-version
@@ -146,31 +148,31 @@ liboss_util_la_LDFLAGS = -avoid-version
 
 libalsa_util_la_SOURCES = alsa-util.c alsa-util.h
 libalsa_util_la_LDFLAGS = -avoid-version
-libalsa_util_la_LIBADD = $(ASOUNDLIB_LIBS)
+libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS)
 libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 libioline_la_SOURCES = ioline.c ioline.h
 libioline_la_LDFLAGS = -avoid-version
-libioline_la_LIBADD = libiochannel.la
+libioline_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
 libcli_la_SOURCES = cli.c cli.h
 libcli_la_LDFLAGS = -avoid-version
-libcli_la_LIBADD = libiochannel.la libioline.la
+libcli_la_LIBADD = $(AM_LIBADD) libiochannel.la libioline.la
 
 libprotocol_cli_la_SOURCES = protocol-cli.c protocol-cli.h
 libprotocol_cli_la_LDFLAGS = -avoid-version
-libprotocol_cli_la_LIBADD = libsocket-server.la libiochannel.la libcli.la
+libprotocol_cli_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la libcli.la
 
 libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h native-common.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
+libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
 
 libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
 
 libprotocol_esound_la_SOURCES = protocol-esound.c protocol-esound.h esound.h
 libprotocol_esound_la_LDFLAGS = -avoid-version
-libprotocol_esound_la_LIBADD = libsocket-server.la libiochannel.la libauthkey.la
+libprotocol_esound_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la libauthkey.la
 
 libauthkey_la_SOURCES = authkey.c authkey.h
 libauthkey_la_LDFLAGS = -avoid-version
@@ -181,68 +183,68 @@ libsocket_util_la_LDFLAGS = -avoid-version
 module_simple_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_simple_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
 module_simple_protocol_tcp_la_LDFLAGS = -module -avoid-version
-module_simple_protocol_tcp_la_LIBADD = libprotocol-simple.la libsocket-server.la
+module_simple_protocol_tcp_la_LIBADD = $(AM_LIBADD) libprotocol-simple.la libsocket-server.la
 
 module_simple_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_simple_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
 module_simple_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_simple_protocol_unix_la_LIBADD = libprotocol-simple.la libsocket-server.la libsocket-util.la
+module_simple_protocol_unix_la_LIBADD = $(AM_LIBADD) libprotocol-simple.la libsocket-server.la libsocket-util.la
 
 module_cli_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_cli_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
 module_cli_protocol_tcp_la_LDFLAGS = -module -avoid-version
-module_cli_protocol_tcp_la_LIBADD = libprotocol-cli.la libsocket-server.la
+module_cli_protocol_tcp_la_LIBADD = $(AM_LIBADD) libprotocol-cli.la libsocket-server.la
 
 module_cli_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_cli_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
 module_cli_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_cli_protocol_unix_la_LIBADD = libprotocol-cli.la libsocket-server.la libsocket-util.la
+module_cli_protocol_unix_la_LIBADD = $(AM_LIBADD) libprotocol-cli.la libsocket-server.la libsocket-util.la
 
 module_native_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
 module_native_protocol_tcp_la_LDFLAGS = -module -avoid-version
-module_native_protocol_tcp_la_LIBADD = libprotocol-native.la libsocket-server.la
+module_native_protocol_tcp_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libsocket-server.la
 
 module_native_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
 module_native_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_native_protocol_unix_la_LIBADD = libprotocol-native.la libsocket-server.la libsocket-util.la
+module_native_protocol_unix_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libsocket-server.la libsocket-util.la
 
 module_esound_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
 module_esound_protocol_tcp_la_LDFLAGS = -module -avoid-version
-module_esound_protocol_tcp_la_LIBADD = libprotocol-esound.la libsocket-server.la
+module_esound_protocol_tcp_la_LIBADD = $(AM_LIBADD) libprotocol-esound.la libsocket-server.la
 
 module_esound_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_esound_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
 module_esound_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_esound_protocol_unix_la_LIBADD = libprotocol-esound.la libsocket-server.la libsocket-util.la
+module_esound_protocol_unix_la_LIBADD = $(AM_LIBADD) libprotocol-esound.la libsocket-server.la libsocket-util.la
 
 module_pipe_sink_la_SOURCES = module-pipe-sink.c
 module_pipe_sink_la_LDFLAGS = -module -avoid-version
-module_pipe_sink_la_LIBADD = libiochannel.la
+module_pipe_sink_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
 module_alsa_sink_la_SOURCES = module-alsa-sink.c
 module_alsa_sink_la_LDFLAGS = -module -avoid-version
-module_alsa_sink_la_LIBADD = $(ASOUNDLIB_LIBS) libalsa-util.la
+module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
 module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 module_alsa_source_la_SOURCES = module-alsa-source.c
 module_alsa_source_la_LDFLAGS = -module -avoid-version
-module_alsa_source_la_LIBADD = $(ASOUNDLIB_LIBS) libalsa-util.la
+module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
 module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 module_oss_la_SOURCES = module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version
-module_oss_la_LIBADD = libiochannel.la liboss-util.la
+module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
 
 module_oss_mmap_la_SOURCES = module-oss-mmap.c
 module_oss_mmap_la_LDFLAGS = -module -avoid-version
-module_oss_mmap_la_LIBADD = liboss-util.la
+module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la
 
 module_cli_la_SOURCES = module-cli.c
 module_cli_la_LDFLAGS = -module -avoid-version
-module_cli_la_LIBADD = libcli.la libiochannel.la
+module_cli_la_LIBADD = $(AM_LIBADD) libcli.la libiochannel.la
 
 libpolyp_la_SOURCES = polyplib.c polyplib.h \
 		polyplib-def.h \
@@ -275,22 +277,22 @@ libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
 
 libpolyp_simple_la_SOURCES = polyplib-simple.c polyplib-simple.h 
 libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
-libpolyp_simple_la_LIBADD = libpolyp.la libpolyp-mainloop.la
+libpolyp_simple_la_LIBADD = $(AM_LIBADD) libpolyp.la libpolyp-mainloop.la
 
 pacat_SOURCES = pacat.c
-pacat_LDADD = libpolyp.la libpolyp-error.la libpolyp-mainloop.la
+pacat_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la
 pacat_CFLAGS = $(AM_CFLAGS) 
 
 pactl_SOURCES = pactl.c
-pactl_LDADD = libpolyp.la libpolyp-error.la libpolyp-mainloop.la
+pactl_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la
 pactl_CFLAGS = $(AM_CFLAGS) 
 
 pacat_simple_SOURCES = pacat-simple.c
-pacat_simple_LDADD = libpolyp-simple.la libpolyp-error.la
+pacat_simple_LDADD = $(AM_LDADD) libpolyp-simple.la libpolyp-error.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
 
 parec_simple_SOURCES = parec-simple.c
-parec_simple_LDADD = libpolyp-simple.la libpolyp-error.la
+parec_simple_LDADD = $(AM_LDADD) libpolyp-simple.la libpolyp-error.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
 
 if BUILD_LIBPOLYPCORE
