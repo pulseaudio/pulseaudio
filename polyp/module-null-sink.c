@@ -90,13 +90,13 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments\n");
+        pa_log(__FILE__": failed to parse module arguments.\n");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": invalid sample format specification\n");
+        pa_log(__FILE__": invalid sample format specification.\n");
         goto fail;
     }
     
