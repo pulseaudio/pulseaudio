@@ -17,9 +17,9 @@
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
 noinst_DATA = README.html cli.html modules.html daemon.html README
-EXTRA_DIST = $(noinst_DATA) style.css README.html.in cli.html.in modules.html.in daemon.html.in todo
+EXTRA_DIST = $(noinst_DATA) style.css README.html.in cli.html.in modules.html.in daemon.html.in todo FAQ.html.in
 
-MAINTAINERCLEANFILES = README README.html cli.html modules.html daemon.html
+MAINTAINERCLEANFILES = README README.html cli.html modules.html daemon.html FAQ.html
 CLEANFILES =
 
 if USE_LYNX
@@ -34,6 +34,7 @@ tidy: README.html cli.html modules.html daemon.html
 	tidy -e < cli.html
 	tidy -e < daemon.html
 	tidy -e < modules.html
+	tidy -e < FAQ.html
 
 .PHONY: tidy
 

@@ -249,7 +249,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
 
     nfrags = 12;
     frag_size = 1024;
-    if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || nfrags < 2 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0 || frag_size < 1) {
+    if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
         pa_log(__FILE__": failed to parse fragments arguments\n");
         goto fail;
     }
@@ -269,9 +269,10 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     }
 
     pa_log(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
-    
-    if (pa_oss_set_fragments(u->fd, nfrags, frag_size) < 0)
-        goto fail;
+
+    if (nfrags >= 2 && frag_size >= 1)
+        if (pa_oss_set_fragments(u->fd, nfrags, frag_size) < 0)
+            goto fail;
     
     if (pa_oss_auto_format(u->fd, &u->sample_spec) < 0)
         goto fail;

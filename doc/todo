@@ -1,7 +1,5 @@
 *** $Id$ ***
 
-- add FAQ
-
 *** 0.5 ***
 - make mcalign merge chunks
 - use ref counting in more objects (i.e. sink, source, sink_input, source_output)
@@ -13,6 +11,7 @@
 - more complete pactl
 - add sample directory
 - config file for command line arguments
+- option to use default fragment size on alsa drivers
 
 ** later ***
 - xmlrpc/http

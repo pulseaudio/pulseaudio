@@ -30,7 +30,18 @@ special file in the file system. The sink name defaults to <tt>pipe_output</tt>.
 <p>The following option is supported:</p>
 
 <table>
-  <tr><td><tt>file=</tt></td><td>The name of the FIFO special file to use</td></tr>
+  <tr><td><tt>file=</tt></td><td>The name of the FIFO special file to use. (defaults to: <tt>/tmp/music.output</tt>)</td></tr>
+</table>
+
+<h3>module-pipe-source</h3>
+
+<p>Provides a simple test source that reads the audio data from a FIFO
+special file in the file system. The source name defaults to <tt>pipe_input</tt>.</p>
+
+<p>The following option is supported:</p>
+
+<table>
+  <tr><td><tt>file=</tt></td><td>The name of the FIFO special file to use. (defaults to: <tt>/tmp/music.input</tt>)</td></tr>
 </table>
 
 <a name="module-alsa-sink"/>
@@ -184,6 +195,12 @@ about the two possible suffixes of this module.</p>
   <tr><td><tt>cookie=</tt></td><td>Name of the cookie file for authentication purposes</td></tr>
 </table>
 
+<h3>module-native-protocol-fd</h3>
+
+<p>This is used internally when auto spawning a new daemon.</p>
+
+<h2>Miscellaneous</h2>
+
 <h3>module-x11-bell</h3>
 
 <p>Intercepts X11 bell events and plays a sample from the sample cache on each occurence.</p>
@@ -194,7 +211,16 @@ about the two possible suffixes of this module.</p>
   <tr><td><tt>sink=</tt></td><td>Name of the sink to play the sample on. If ommited defaults to the default sink.</td></tr>
 </table>
 
+<h3>module-sine</h3>
+
+<p>Creates a sink input and generates a sine waveform stream.</p>
+
+<table>
+  <tr><td><tt>sink=</tt></td><td>The sink to connect to. If ommited defaults to the default sink.</td></tr>
+  <tr><td><tt>frequency=</tt></td><td>The frequency to generate in Hertz. Defaults to 440.</td></tr>
+</table>
+
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, August 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, September 2004</address>
 <div class="grey"><i>$Id$</i></div>
 </body> </html>

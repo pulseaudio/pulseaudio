@@ -44,9 +44,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
 
+<div class="news-date">Wed Sep 8 2004: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.4.tar.gz">Version 0.4</a> released;
+changes include: daemon auto spawning, support for <tt>SCHED_FIFO</tt> scheduling, three new modules, proper logging, CPU load watchdog, many fixes.</p>
+
 <div class="news-date">Fri Aug 27 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.3.tar.gz">Version 0.3</a> released;
-changes include: support for both glib 2.0 and glib 1.2, future cancellation, API updates, many fixes; relicense client library to LGPL.</p>
+changes include: support for both glib 2.0 and glib 1.2, future cancellation, API updates, many fixes, relicense client library to LGPL.</p>
 
 <div class="news-date">Fri Aug 20 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.2.tar.gz">Version 0.2</a> released;
@@ -90,7 +94,10 @@ attempt to write a sound server <a
 href="http://asd.sf.net/">asd</a>.</p>
 
 <p>A GTK GUI manager application for polypaudio is the <a
-href="http://0pointer.de/lennart/projects/paman/">Polypaudio Manager</a>. There are output plugins for <a href="http://0pointer.de/lennart/projects/xmms-polyp/">XMMS</a> and <a href="http://0pointer.de/lennart/projects/libao-polyp/">libao</a>.</p>
+href="http://0pointer.de/lennart/projects/paman/">Polypaudio
+Manager</a>. Another GTK GUI tool for Polypaudio is the <a href="http://0pointer.de/lennart/projects/pavumeter">Polypaudio Volume Meter</a>. There are output plugins for <a
+href="http://0pointer.de/lennart/projects/xmms-polyp/">XMMS</a> and <a
+href="http://0pointer.de/lennart/projects/libao-polyp/">libao</a>.</p>
 
 <h2><a name="status">Status</a></h2>
 
@@ -105,7 +112,7 @@ release to release. The client API's library version number is currently fixed t
 <p>There is some preliminary documentation available: <a
 href="modules.html"><tt>modules.html</tt></a>, <a
 href="cli.html"><tt>cli.html</tt></a>, <a
-href="daemon.html"><tt>daemon.html</tt></a>.</p>
+href="daemon.html"><tt>daemon.html</tt></a>, <a href="FAQ.html"><tt>FAQ.html</tt></a>, .</p>
 
 <h3>First Steps</h3>
 

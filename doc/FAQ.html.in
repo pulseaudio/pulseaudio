@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="iso-8859-1"?> <!-- -*-html-helper-*- -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>polypaudio: FAQ</title>
+<link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+
+<body>
+
+
+<h1>Frequently Asked Questions</h1>
+
+<ol>
+  <li><p><b>How does Polypaudio compare with ESOUND/aRts/NAS?</b></p>
+
+  <p>Polypaudio is sound daemon similar to ESOUND and NAS, but much more
+  powerful. aRts is a realtime-synthesizer-cum-sound-server, i.e. it
+  does much more than Polypaudio. However, I believe that Polypaudio
+  does what it does much better than any other free sound server.</p>
+  </li>
+
+  <li><p><b>What about ESOUND compatibility?</b></p>
+  <p>Polypaudio is a drop in replacement for ESOUND. That means: you can
+  load a esound compatibility module which implements an ESOUND
+  compatible protocol which allows you to use most of the classic ESOUND
+  compatible programs (including the command line programs like
+  <tt>esdcat</tt>).</p>
+  </li>
+
+  <li><p><b>Is Polypaudio a GNOME program?</b></p>
+  <p>No, Polypaudio has no dependency on GNOME/GTK/GLIB. All it requires
+  is a UNIX-like operating system and very few dependency
+  libraries. However, the accompanying GUI tools are writen with
+  gtkmm, i.e. require both GLIB and GTK.</p></li>
+
+  <li><p><b>Can I integrate Polypaudio in my GLIB/GTK/GNOME application?</b></p>
+  <p>Yes! Polypaudio comes with a GLIB main loop adapter. You can embed
+  both the client library and the daemon (!) into your GLIB based
+  application.</p></li>
+
+  <li><p><b>Can I integrate Polypaudio in my Qt/KDE application?</b></p>
+  <p>Yes! Polypaudio uses a main loop abstraction layer that allows you
+  to integrate Polypaudio in any program that supports main
+  loops. Unfortunately there is no adapter for Qt publicly available yet.</p></li>
+
+  <li><p><b>I want to write a new driver for Polypaudio, are there any docs?</b></p>
+  <p>Currently, only the client API is documented with doxygen. Read
+  the source and base your work on a simple module like
+  <tt>module-pipe-sink</tt>.</p></li>
+
+  <li><p><b>What about compatibility with NAS?</b></p>
+  <p>Is not available (yet?). It is doable, but noone has implemented it yet.</p></li>
+
+  <li><p><b>What about compatibility with aRts?</b></p>
+  <p>Is not available. Since aRts is as synthesizer application you'd have to
+  reimplement very much code for Polypaudio. It should be easy to
+  implement limited support for <tt>libartsc</tt> based
+  applications. Noone has done this yet. It is probably a better idea to
+  run <tt>arts</tt> on top of Polypaudio (through a polypaudio driver
+  for aRts, which nobody has written yet). Another solution would be to
+  embed Polypaudio in the aRts process.</p></li>
+
+  <li><p><b>I often hear noises when playing back with Polypaudio, what can I do?</b></p>
+  <p>There are to possible solutions: either make the polypaudio
+  binary SUID root (<tt>chmod u+s /usr/bin/polypaudio</tt>) and run it
+  with argument <tt>-r</tt> or increase the fragment sizes of the audio
+  drivers. The former will allow Polypaudio to activate
+  <tt>SCHED_FIFO</tt> high priority scheduling (root rights are dropped
+  immediately after this).</p></li>
+
+</ol>
+
+<hr/>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, September 2004</address>
+<div class="grey"><i>$Id$</i></div>
+</body> </html>

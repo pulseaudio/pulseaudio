@@ -20,7 +20,7 @@
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
 AC_PREREQ(2.57)
-AC_INIT([polypaudio],[0.3],[mzcbylcnhqvb (at) 0pointer (dot) de])
+AC_INIT([polypaudio],[0.4],[mzcbylcnhqvb (at) 0pointer (dot) de])
 AC_CONFIG_SRCDIR([polyp/main.c])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall])
@@ -118,5 +118,5 @@ AM_CONDITIONAL([USE_LYNX], [test "x$lynx" = xyes])
 
 AM_CONDITIONAL(BUILD_LIBPOLYPCORE, false)
 
-AC_CONFIG_FILES([Makefile polyp/Makefile polyplib.pc polyplib-simple.pc polyplib-mainloop.pc polyplib-error.pc polyplib-glib-mainloop.pc polyplib-glib12-mainloop.pc doc/Makefile doc/README.html doc/cli.html doc/daemon.html doc/modules.html doxygen/Makefile doxygen/doxygen.conf polyp/polyplib-version.h])
+AC_CONFIG_FILES([Makefile polyp/Makefile polyplib.pc polyplib-simple.pc polyplib-mainloop.pc polyplib-error.pc polyplib-glib-mainloop.pc polyplib-glib12-mainloop.pc doc/Makefile doc/README.html doc/cli.html doc/daemon.html doc/modules.html doxygen/Makefile doxygen/doxygen.conf polyp/polyplib-version.h doc/FAQ.html])
 AC_OUTPUT

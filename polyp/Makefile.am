@@ -21,7 +21,7 @@ polypincludedir=$(includedir)/polyp
 polypconfdir=$(sysconfdir)/polyp
 
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
-#AM_CFLAGS+= -DDLSEARCHDIR=\"$(pkglibdir)\" 
+AM_CFLAGS+= -DDLSEARCHDIR=\"$(pkglibdir)\" 
 AM_CFLAGS+="-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/polypaudio.pa\""
 AM_CFLAGS+="-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\""
 
