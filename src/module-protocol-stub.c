@@ -37,7 +37,7 @@
     #else
       #ifdef USE_PROTOCOL_ESOUND
         #include "protocol-esound.h"
-        #include "esound-spec.h"
+        #include "esound.h"
         #define protocol_new pa_protocol_esound_new
         #define protocol_free pa_protocol_esound_free
         #define IPV4_PORT ESD_DEFAULT_PORT

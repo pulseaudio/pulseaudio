@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "polyp.h"
-#include "polyp-error.h"
+#include "polyplib.h"
+#include "polyplib-error.h"
 #include "mainloop.h"
 #include "mainloop-signal.h"
 

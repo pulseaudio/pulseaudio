@@ -5,8 +5,8 @@
 #include <errno.h>
 #include <string.h>
 
-#include "sinkinput.h"
-#include "sourceoutput.h"
+#include "sink-input.h"
+#include "source-output.h"
 #include "protocol-simple.h"
 #include "client.h"
 #include "sample-util.h"

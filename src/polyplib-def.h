@@ -1,5 +1,5 @@
-#ifndef foopolypdefhfoo
-#define foopolypdefhfoo
+#ifndef foopolyplibdefhfoo
+#define foopolyplibdefhfoo
 
 #include <inttypes.h>
 
@@ -15,6 +15,5 @@ struct pa_buffer_attr {
     uint32_t minreq;
     uint32_t fragsize;
 };
-
 
 #endif

@@ -18,7 +18,10 @@
 
 AM_CFLAGS=-ansi -D_GNU_SOURCE
 
-bin_PROGRAMS = polypaudio pacat pactl pacat-simple parec-simple
+EXTRA_DIST = polypaudio.run
+bin_PROGRAMS = polypaudio pacat pactl
+noinst_PROGRAMS = pacat-simple parec-simple
+noinst_SCRIPTS = depmod.py
 
 pkglib_LTLIBRARIES=libiochannel.la \
 		libsocket-server.la \
@@ -54,7 +57,8 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-native-protocol-unix.la \
 		libpolyp.la \
 		libpolyp-simple.la \
-		libpolyp-error.la
+		libpolyp-error.la \
+		libpolyp-mainloop.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
@@ -67,8 +71,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		memblockq.c memblockq.h \
 		client.c client.h \
 		core.c core.h \
-		sourceoutput.c sourceoutput.h \
-		sinkinput.c sinkinput.h \
+		source-output.c source-output.h \
+		sink-input.c sink-input.h \
 		source.c source.h \
 		sink.c sink.h \
 		module.c module.h \
@@ -147,14 +151,14 @@ libprotocol_cli_la_SOURCES = protocol-cli.c protocol-cli.h
 libprotocol_cli_la_LDFLAGS = -avoid-version
 libprotocol_cli_la_LIBADD = libsocket-server.la libiochannel.la libcli.la
 
-libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h
+libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h native-common.h
 libprotocol_native_la_LDFLAGS = -avoid-version
 libprotocol_native_la_LIBADD = libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la
 
 libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
 
-libprotocol_esound_la_SOURCES = protocol-esound.c protocol-esound.h esound-spec.h
+libprotocol_esound_la_SOURCES = protocol-esound.c protocol-esound.h esound.h
 libprotocol_esound_la_LDFLAGS = -avoid-version
 libprotocol_esound_la_LIBADD = libsocket-server.la libiochannel.la libauthkey.la
 
@@ -230,8 +234,8 @@ module_cli_la_SOURCES = module-cli.c
 module_cli_la_LDFLAGS = -module -avoid-version
 module_cli_la_LIBADD = libcli.la libiochannel.la
 
-libpolyp_la_SOURCES = polyp.c polyp.h \
-		polypdef.h \
+libpolyp_la_SOURCES = polyplib.c polyplib.h \
+		polyplib-def.h \
 		tagstruct.c tagstruct.h \
 		iochannel.c iochannel.h \
 		pstream.c pstream.h \
@@ -239,8 +243,6 @@ libpolyp_la_SOURCES = polyp.c polyp.h \
 		pdispatch.c pdispatch.h \
 		protocol-native-spec.h \
 		mainloop-api.c mainloop-api.h \
-		mainloop.c mainloop.h \
-		mainloop-signal.c mainloop-signal.h \
 		idxset.c idxset.h \
 		util.c util.h \
 		memblock.c memblock.h \
@@ -250,22 +252,28 @@ libpolyp_la_SOURCES = polyp.c polyp.h \
 		dynarray.c dynarray.h \
 		memchunk.c memchunk.h \
 		authkey.c authkey.h \
-		socket-util.c socket-util.h
+		socket-util.c socket-util.h \
+		native-common.h
 libpolyp_la_CFLAGS = $(AM_CFLAGS)
 
-libpolyp_error_la_SOURCES = polyp-error.c polyp-error.h
+libpolyp_mainloop_la_SOURCES = mainloop-api.h mainloop-api.c \
+		mainloop.c mainloop.h \
+		mainloop-signal.c mainloop-signal.h
+libpolyp_mainloop_la_CFLAGS = $(AM_CFLAGS)
+
+libpolyp_error_la_SOURCES = polyplib-error.c polyplib-error.h
 libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
 
-libpolyp_simple_la_SOURCES = simple.c simple.h 
+libpolyp_simple_la_SOURCES = polyplib-simple.c polyplib-simple.h 
 libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
-libpolyp_simple_la_LIBADD = libpolyp.la
+libpolyp_simple_la_LIBADD = libpolyp.la libpolyp-mainloop.la
 
 pacat_SOURCES = pacat.c #$(libpolyp_la_SOURCES) $(libpolyp_error_la_SOURCES)
-pacat_LDADD = libpolyp.la libpolyp-error.la
+pacat_LDADD = libpolyp.la libpolyp-error.la libpolyp-mainloop.la
 pacat_CFLAGS = $(AM_CFLAGS) 
 
 pactl_SOURCES = pactl.c #$(libpolyp_la_SOURCES) $(libpolyp_error_la_SOURCES)
-pactl_LDADD = libpolyp.la libpolyp-error.la
+pactl_LDADD = libpolyp.la libpolyp-error.la libpolyp-mainloop.la
 pactl_CFLAGS = $(AM_CFLAGS) 
 
 pacat_simple_SOURCES = pacat-simple.c #$(libpolyp_la_SOURCES) $(libpolyp_simple_la_SOURCES) $(libpolyp_error_la_SOURCES)

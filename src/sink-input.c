@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "sinkinput.h"
+#include "sink-input.h"
 #include "sample-util.h"
 
 #define CONVERT_BUFFER_LENGTH 4096

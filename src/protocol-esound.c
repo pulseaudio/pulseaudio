@@ -6,12 +6,12 @@
 #include <limits.h>
 
 #include "protocol-esound.h"
-#include "esound-spec.h"
+#include "esound.h"
 #include "memblock.h"
 #include "client.h"
-#include "sinkinput.h"
+#include "sink-input.h"
 #include "sink.h"
-#include "sourceoutput.h"
+#include "source-output.h"
 #include "source.h"
 #include "sample.h"
 

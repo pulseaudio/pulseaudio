@@ -1,10 +1,10 @@
-#ifndef foosimplehfoo
-#define foosimplehfoo
+#ifndef foopolyplibsimplehfoo
+#define foopolyplibsimplehfoo
 
 #include <sys/types.h>
 
 #include "sample.h"
-#include "polypdef.h"
+#include "polyplib-def.h"
 
 struct pa_simple;
 

@@ -1,10 +1,10 @@
-#ifndef foopolyphfoo
-#define foopolyphfoo
+#ifndef foopolyplibhfoo
+#define foopolyplibhfoo
 
 #include <sys/types.h>
 
 #include "sample.h"
-#include "polypdef.h"
+#include "polyplib-def.h"
 #include "mainloop-api.h"
 
 struct pa_context;

@@ -4,11 +4,11 @@
 #include <stdlib.h>
 
 #include "protocol-native.h"
-#include "protocol-native-spec.h"
+#include "native-common.h"
 #include "packet.h"
 #include "client.h"
-#include "sourceoutput.h"
-#include "sinkinput.h"
+#include "source-output.h"
+#include "sink-input.h"
 #include "pstream.h"
 #include "tagstruct.h"
 #include "pdispatch.h"

@@ -1,5 +1,5 @@
-#ifndef fooprotocolnativespech
-#define fooprotocolnativespech
+#ifndef foonativecommonhfoo
+#define foonativecommonhfoo
 
 enum {
     PA_COMMAND_ERROR,

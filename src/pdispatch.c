@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
 #include "pdispatch.h"
-#include "protocol-native-spec.h"
+#include "native-common.h"
 
 #ifdef DEBUG_OPCODES
 

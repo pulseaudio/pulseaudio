@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "sink.h"
-#include "sinkinput.h"
+#include "sink-input.h"
 #include "namereg.h"
 #include "util.h"
 #include "sample-util.h"

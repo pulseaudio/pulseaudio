@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "source.h"
-#include "sourceoutput.h"
+#include "source-output.h"
 #include "namereg.h"
 
 struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail, const struct pa_sample_spec *spec) {

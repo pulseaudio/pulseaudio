@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include "protocol-native-spec.h"
+#include "native-common.h"
 #include "pstream-util.h"
 
 void pa_pstream_send_tagstruct(struct pa_pstream *p, struct pa_tagstruct *t) {

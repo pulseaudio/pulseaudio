@@ -3,10 +3,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "simple.h"
-#include "polyp.h"
+#include "polyplib-simple.h"
+#include "polyplib.h"
 #include "mainloop.h"
-#include "polyp-error.h"
+#include "native-common.h"
+/*#include "polyp-error.h"*/
 
 struct pa_simple {
     struct pa_mainloop *mainloop;

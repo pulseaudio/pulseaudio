@@ -6,8 +6,8 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#include "polyp.h"
-#include "protocol-native-spec.h"
+#include "polyplib.h"
+#include "native-common.h"
 #include "pdispatch.h"
 #include "pstream.h"
 #include "dynarray.h"

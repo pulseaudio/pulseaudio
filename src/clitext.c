@@ -5,8 +5,8 @@
 #include "client.h"
 #include "sink.h"
 #include "source.h"
-#include "sinkinput.h"
-#include "sourceoutput.h"
+#include "sink-input.h"
+#include "source-output.h"
 #include "strbuf.h"
 #include "sample-util.h"
 
