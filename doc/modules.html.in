@@ -44,6 +44,13 @@ special file in the file system. The source name defaults to <tt>pipe_input</tt>
   <tr><td><tt>file=</tt></td><td>The name of the FIFO special file to use. (defaults to: <tt>/tmp/music.input</tt>)</td></tr>
 </table>
 
+
+<h3>module-null-sink</h3>
+
+<p>Provides a simple null sink. All data written to this sink is silently dropped. This sink is clocked using the system time.</p>
+
+<p>This module doesn't support any special parameters</p>
+
 <a name="module-alsa-sink"/>
 
 <h3>module-alsa-sink</h3>
@@ -115,6 +122,21 @@ information. Use one of <tt>sinc-best-quality</tt>,
 be to slow on your machine try using <tt>zero-order-hold</tt>. This
 will decrease output quality however. (defaults to
 <tt>sinc-fastest</tt>)</td></tr> </table>
+
+<h3>module-tunnel-{sink,source}</h3>
+
+<p>Tunnel a remote sink/source to a local "ghost"
+sink/source. Requires a running polypaudio daemon on the remote server
+with <tt>module-native-protocol-tcp</tt> loaded. It's probably a
+better idea to connect to the remote sink/source directly since some
+buffer control is lost through this tunneling.</p>
+
+<table>
+  <tr><td><tt>server=</tt></td><td>The server to connect to</td></tr>
+  <tr><td><tt>source=</tt></td><td>The source on the remote server. Only available for <tt>module-tunnel-source</tt>.</td></tr>
+  <tr><td><tt>sink=</tt></td><td>The sink on the remote server. Only available for <tt>module-tunnel-sink</tt>.</td></tr>
+  <tr><td><tt>cookie=</tt></td><td>The authentication cookie file to use.</td></tr>
+</table>
 
 <h2>Protocols</h2>
 
@@ -250,6 +272,22 @@ about the two possible suffixes of this module.</p>
 <h3>module-esound-compat-spawnpid</h3>
 
 <p>This is a compatibility module for <tt>libesd</tt> based autospawning of polypaudio. Don't use it directly.</p>
+
+<h3>module-match</h3>
+
+<p>Adjust the volume of a playback stream automatically based on its name.</p>
+
+<table>
+  <tr><td><tt>table=</tt></td><td>The regular expression matching table file to use</td></tr>
+</table>
+
+<p>The table file should contain a regexp and volume on each line, seperated by spaces. An example:</p>
+
+<pre>
+^sample: 25
+</pre>
+
+<p>The volumes of all streams with titles starting with <tt>sample:</tt> are automatically set to 25. (FYI: All sample cache streams start with <tt>sample:</tt>)</p>
 
 <hr/>
 <address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, September 2004</address>

@@ -44,6 +44,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
 
+<div class="news-date">Thu Oct 28 2004: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.6.tar.gz">Version 0.6</a> released;
+changes include: TCP wrappers support; don't load the complete sound
+file into memory when playing back using <tt>pa_play_file()</tt>;
+autoload API change; don't load all sound files as FLOAT32; shorten
+default buffers; client-side latency interpolation; add new user
+volume metrics; add <tt>module-tunnel</tt>, <tt>module-null-sink</tt>,
+<tt>module-match</tt> and new tool <tt>paplay</tt>; new API version
+macros; many client API improvements; correctly lock cookie file
+generation; correctly lock daemon autospawning; print daemon layout to
+STDERR on SIGHUP; new options for <tt>pacat</tt>: allow sample type specification.</p>
+
 <div class="news-date">Mon Sep 24 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.5.1.tar.gz">Version 0.5.1</a> released;
 changes include: improve esound protocol compatibility; fix
@@ -96,6 +108,7 @@ Daemon</a> (ESOUND). In addition to the features ESOUND provides
   <li>Module autoloading</li>
   <li>Very accurate latency measurement for playback and recordin.</li>
   <li>May be used to combine multiple sound cards to one (with sample rate adjustment)</li>
+  <li>Client side latency interpolation</li>
 </ul>
 
 <p>Both the core and the client API are completely asynchronous making
@@ -120,7 +133,10 @@ available. A simple main loop implementation is available as well.</p>
   <li><tt>module-native-protocol-tcp</tt>, <tt>module-native-protocol-unix</tt>: Native polypaudio protocol (for TCP/IP resp. UNIX domain sockets)</li>
   <li><tt>module-simple-protocol-tcp</tt>, <tt>module-simple-protocol-unix</tt>: Simplistic protocol for playback/capture for usage with tools like <tt>netcat</tt> (for TCP/IP resp. UNIX domain sockets)</li>
   <li><tt>module-cli-protocol-tcp</tt>, <tt>module-cli-protocol-unix</tt>, <tt>module-cli</tt>: Expose polypaudio's internals whith a simple command line interface. (for TCP/IP resp. UNIX domain sockets resp. STDIN/STDOUT)</li>
-  </ul>
+  <li><tt>module-tunnel-sink</tt>, <tt>module-tunnel-source</tt>: make sinks/sources from other hosts available locally.</li>
+  <li><tt>module-match</tt>: adjust volume automatically for newly created playback streams based on a regular expression matching table.</li>
+  <li><tt>module-null-sink</tt>: a clocked sink similar to <tt>/dev/null</tt>.</li>
+</ul>
 
 <p><tt>polypaudio</tt> is the successor of my previous, ill-fated
 attempt to write a sound server, <a
@@ -131,10 +147,9 @@ href="http://0pointer.de/lennart/projects/paman/">Polypaudio
 Manager</a>. Another GTK GUI tool for Polypaudio is the <a
 href="http://0pointer.de/lennart/projects/pavumeter">Polypaudio Volume
 Meter</a>. There are output plugins for <a
-href="http://0pointer.de/lennart/projects/xmms-polyp/">XMMS</a> and <a
-href="http://0pointer.de/lennart/projects/libao-polyp/">libao</a>. Drivers
-for <a href="http://gstreamer.net">gstreamer</a> and <a
-href="http://mplayerhq.hu">MPlayer</a> will be released shortly.</p>
+href="http://0pointer.de/lennart/projects/xmms-polyp/">XMMS</a>, <a
+href="http://0pointer.de/lennart/projects/libao-polyp/">libao</a> and <a href="http://0pointer.de/lennart/projects/gst-polyp/">gstreamer</a>. Drivers
+for <a href="http://mplayerhq.hu">MPlayer</a> and <a href="http://www.portaudio.com/">PortAudio</a> will be released shortly.</p>
 
 <h2><a name="status">Status</a></h2>
 
@@ -173,6 +188,10 @@ command line :</p>
 
 <p>The best idea is to configure your daemon in <tt>/etc/polypaudio/daemon.conf</tt> and <tt>/etc/polypaudio/default.pa</tt> and to run polypaudio without any arguments.</p>
 
+<p><b>Beware!</b> Unless you pass the option <tt>--sysconfdir=/etc</tt> to
+<tt>configure</tt>, the directory <tt>/etc/polypaudio/</tt> is really
+<tt>/usr/local/etc/polypaudio/</tt>.</p>
+
 <h3>Developing polypaudio Clients</h3>
 
 <p>You may browse the <a href="http://www.doxygen.org/">Doxygen</a> generated <a
@@ -206,10 +225,13 @@ distributions (and maybe Unix versions) since it uses GNU autoconf and
 GNU libtool for source code configuration and shared library
 management.</p>
 
-<p><tt>polypaudio</tt> needs <a
+<p><tt>polypaudio</tt> needs <tt>libwrap</tt>, <a
 href="http://www.mega-nerd.com/SRC/">Secret Rabbit Code (aka
-<tt>libsamplerate</tt>)</a>, <a href="http://www.mega-nerd.com/libsndfile"><tt>libsndfile</tt></a>, <a
-href="http://www.alsa-project.org/">alsa-lib</a> and <a href="http://www.gtk.org/">GLIB</a>. (The latter is required for building the GLIB main loop integration module only.)</p>
+<tt>libsamplerate</tt>)</a>, <a
+href="http://www.mega-nerd.com/libsndfile"><tt>libsndfile</tt></a>, <a
+href="http://www.alsa-project.org/">alsa-lib</a> and <a
+href="http://www.gtk.org/">GLIB</a>. (The latter is required for
+building the GLIB main loop integration module only.)</p>
  
 <h2><a name="installation">Installation</a></h2>
 
@@ -229,7 +251,7 @@ compilation and <tt>make install</tt> (as root) for installation of
 
 <p>The current release is <a href="@PACKAGE_URL@polypaudio-@PACKAGE_VERSION@.tar.gz">@PACKAGE_VERSION@</a></p>
 
-<p>Get <tt>polypaudio</tt>'s development sources from the <a href="http://subversion.tigris.org/">Subversion</a> <a href="svn://seth.intheinter.net/polypaudio/">repository</a> (<a href="http://0pointer.de/cgi-bin/viewcvs.cgi/?root=polypaudio">viewcvs</a>): </p>
+<p>Get <tt>polypaudio</tt>'s development sources from the <a href="http://subversion.tigris.org/">Subversion</a> <a href="svn://seth.intheinter.net/polypaudio">repository</a> (<a href="http://0pointer.de/cgi-bin/viewcvs.cgi/?root=polypaudio">viewcvs</a>): </p>
 
 <pre>svn checkout svn://seth.intheinter.net/polypaudio/trunk polypaudio</pre>
 
@@ -237,8 +259,10 @@ compilation and <tt>make install</tt> (as root) for installation of
 
 <p><b>New!</b> There is a general discussion <a href="https://seth.intheinter.net/mailman/listinfo/polypaudio-discuss">mailing list for polypaudio</a> available.</p>
 
+<p><b>New!</b> There is now a <a href="http://0pointer.de/trac/polypaudio/">Polypaudio wiki</a> (based on <a href="http://www.edgewall.com/products/trac/">trac</a>) available.</p>
+
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, September 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, October 2004</address>
 <div class="grey"><i>$Id$</i></div>
 
 </body>
