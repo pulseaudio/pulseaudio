@@ -10,7 +10,7 @@ struct sample_spec default_sample_spec = {
 };
 
 struct memblock *silence(struct memblock* b, struct sample_spec *spec) {
-    char c;
+    char c = 0;
     assert(b && spec);
     memblock_assert_exclusive(b);
 
@@ -53,7 +53,7 @@ void add_clip(struct memchunk *target, struct memchunk *chunk, struct sample_spe
 
 size_t sample_size(struct sample_spec *spec) {
     assert(spec);
-    size_t b;
+    size_t b = 1;
 
     switch (spec->format) {
         case SAMPLE_U8:
