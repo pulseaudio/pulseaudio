@@ -107,7 +107,7 @@ void pa_cmdline_help(const char *argv0) {
            "  -n                                    Don't load default script file\n", e);
 }
 
-int pa_cmdline_parse(struct pa_conf *conf, int argc, char *const argv [], int *d) {
+int pa_cmdline_parse(struct pa_daemon_conf *conf, int argc, char *const argv [], int *d) {
     struct pa_strbuf *buf = NULL;
     int c;
     assert(conf && argc && argv);

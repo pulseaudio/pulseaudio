@@ -23,7 +23,7 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include "config-client.h"
+#include "client-conf.h"
 #include "xmalloc.h"
 #include "log.h"
 #include "confparser.h"

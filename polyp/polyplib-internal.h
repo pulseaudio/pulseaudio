@@ -33,7 +33,7 @@
 #include "polyplib-operation.h"
 #include "llist.h"
 #include "native-common.h"
-#include "config-client.h"
+#include "client-conf.h"
 
 #define DEFAULT_TLENGTH (10240*8)
 #define DEFAULT_MAXLENGTH ((DEFAULT_TLENGTH*3)/2)

@@ -1,5 +1,5 @@
-#ifndef fooconfhfoo
-#define fooconfhfoo
+#ifndef foodaemonconfhfoo
+#define foodaemonconfhfoo
 
 /* $Id$ */
 
@@ -24,7 +24,7 @@
 
 #include "log.h"
 
-enum pa_conf_cmd {
+enum pa_daemon_conf_cmd {
 	PA_CMD_DAEMON,
 	PA_CMD_HELP,
         PA_CMD_VERSION,
@@ -32,8 +32,8 @@ enum pa_conf_cmd {
 	PA_CMD_DUMP_MODULES
 };
 
-struct pa_conf {
-    enum pa_conf_cmd cmd;
+struct pa_daemon_conf {
+    enum pa_daemon_conf_cmd cmd;
     int daemonize,
         fail,
         verbose,
@@ -48,10 +48,11 @@ struct pa_conf {
     int resample_method;
 };
 
-struct pa_conf* pa_conf_new(void);
-void pa_conf_free(struct pa_conf*c);
+struct pa_daemon_conf* pa_daemon_conf_new(void);
+void pa_daemon_conf_free(struct pa_daemon_conf*c);
 
-int pa_conf_load(struct pa_conf *c, const char *filename);
-char *pa_conf_dump(struct pa_conf *c);
+int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename);
+char *pa_daemon_conf_dump(struct pa_daemon_conf *c);
+int pa_daemon_conf_env(struct pa_daemon_conf *c);
 
 #endif

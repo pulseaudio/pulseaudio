@@ -30,7 +30,7 @@
 #include <unistd.h>
 #include <samplerate.h>
 
-#include "conf.h"
+#include "daemon-conf.h"
 #include "util.h"
 #include "xmalloc.h"
 #include "strbuf.h"
@@ -56,7 +56,7 @@
 #define ENV_CONFIG_FILE "POLYP_CONFIG"
 #define ENV_DL_SEARCH_PATH "POLYP_DLPATH"
 
-static const struct pa_conf default_conf = {
+static const struct pa_daemon_conf default_conf = {
     .cmd = PA_CMD_DAEMON,
     .daemonize = 0,
     .fail = 1,
@@ -93,8 +93,8 @@ char* default_file(const char *envvar, const char *global, const char *local) {
     return pa_xstrdup(global);
 }
 
-struct pa_conf* pa_conf_new(void) {
-    struct pa_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
+struct pa_daemon_conf* pa_daemon_conf_new(void) {
+    struct pa_daemon_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
     c->default_script_file = default_file(ENV_SCRIPT_FILE, DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER);
 #ifdef DLSEARCHPATH
     c->dl_search_path = pa_xstrdup(DLSEARCHPATH);
@@ -102,7 +102,7 @@ struct pa_conf* pa_conf_new(void) {
     return c;
 }
 
-void pa_conf_free(struct pa_conf *c) {
+void pa_daemon_conf_free(struct pa_daemon_conf *c) {
     assert(c);
     pa_xfree(c->script_commands);
     pa_xfree(c->dl_search_path);
@@ -111,7 +111,7 @@ void pa_conf_free(struct pa_conf *c) {
 }
 
 int parse_log_target(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    struct pa_conf *c = data;
+    struct pa_daemon_conf *c = data;
     assert(filename && lvalue && rvalue && data);
     
     if (!strcmp(rvalue, "auto"))
@@ -131,7 +131,7 @@ int parse_log_target(const char *filename, unsigned line, const char *lvalue, co
 }
 
 int parse_resample_method(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    struct pa_conf *c = data;
+    struct pa_daemon_conf *c = data;
     assert(filename && lvalue && rvalue && data);
 
     if (!strcmp(rvalue, "sinc-best-quality"))
@@ -152,7 +152,7 @@ int parse_resample_method(const char *filename, unsigned line, const char *lvalu
     return 0;
 }
 
-int pa_conf_load(struct pa_conf *c, const char *filename) {
+int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename) {
     char *def = NULL;
     int r;
     
@@ -180,7 +180,7 @@ int pa_conf_load(struct pa_conf *c, const char *filename) {
     return r;
 }
 
-int pa_conf_env(struct pa_conf *c) {
+int pa_daemon_conf_env(struct pa_daemon_conf *c) {
     char *e;
 
     if ((e = getenv(ENV_DL_SEARCH_PATH))) {
@@ -195,7 +195,7 @@ int pa_conf_env(struct pa_conf *c) {
     return 0;
 }
 
-char *pa_conf_dump(struct pa_conf *c) {
+char *pa_daemon_conf_dump(struct pa_daemon_conf *c) {
     struct pa_strbuf *s = pa_strbuf_new();
     char *d;
 

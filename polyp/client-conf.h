@@ -1,5 +1,5 @@
-#ifndef fooconfigclienthfoo
-#define fooconfigclienthfoo
+#ifndef fooclientconfhfoo
+#define fooclientconfhfoo
 
 /* $Id$ */
 

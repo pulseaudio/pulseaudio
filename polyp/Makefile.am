@@ -157,7 +157,7 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		log.c log.h \
 		gcc-printf.h \
 		modinfo.c modinfo.h \
-		conf.c conf.h \
+		daemon-conf.c daemon-conf.h \
 		dumpmodules.c dumpmodules.h \
 		conparser.h confparser.c 
 
@@ -334,7 +334,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		llist.h \
 		log.c log.h \
 		gcc-printf.h \
-        config-client.c config-client.h \
+        client-conf.c client-conf.h \
 		confparser.c confparser.h
 
 libpolyp_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)

@@ -78,7 +78,7 @@ static void show_info(const char *name, const char *path, void (*info)(const cha
 
 static int callback(const char *path, lt_ptr data) {
     const char *e;
-    struct pa_conf *c = (data);
+    struct pa_daemon_conf *c = (data);
 
     if ((e = (const char*) strrchr(path, '/')))
         e++;
@@ -91,7 +91,7 @@ static int callback(const char *path, lt_ptr data) {
     return 0;
 }
 
-void pa_dump_modules(struct pa_conf *c, int argc, char * const argv[]) {
+void pa_dump_modules(struct pa_daemon_conf *c, int argc, char * const argv[]) {
     if (argc > 0) {
         int i;
         for (i = 0; i < argc; i++)

@@ -45,7 +45,7 @@
 #include "xmalloc.h"
 #include "cpulimit.h"
 #include "log.h"
-#include "conf.h"
+#include "daemon-conf.h"
 #include "dumpmodules.h"
 
 static struct pa_mainloop *mainloop;
@@ -90,7 +90,7 @@ static void close_pipe(int p[2]) {
 int main(int argc, char *argv[]) {
     struct pa_core *c;
     struct pa_strbuf *buf = NULL;
-    struct pa_conf *conf;
+    struct pa_daemon_conf *conf;
     char *s;
     int r, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
@@ -100,11 +100,14 @@ int main(int argc, char *argv[]) {
     
     pa_log_set_ident("polypaudio");
 
-    conf = pa_conf_new();
+    conf = pa_daemon_conf_new();
 
-    if (pa_conf_load(conf, NULL) < 0)
+    if (pa_daemon_conf_load(conf, NULL) < 0)
         goto finish;
 
+    if (pa_daemon_conf_env(conf) < 0)
+        goto finish;
+    
     if (pa_cmdline_parse(conf, argc, argv, &d) < 0) {
         pa_log(__FILE__": failed to parse command line.\n");
         goto finish;
@@ -127,7 +130,7 @@ int main(int argc, char *argv[]) {
             goto finish;
 
         case PA_CMD_DUMP_CONF: {
-            char *s = pa_conf_dump(conf);
+            char *s = pa_daemon_conf_dump(conf);
             fputs(s, stdout);
             pa_xfree(s);
             retval = 0;
@@ -261,7 +264,7 @@ int main(int argc, char *argv[]) {
 finish:
 
     if (conf)
-        pa_conf_free(conf);
+        pa_daemon_conf_free(conf);
 
     close_pipe(daemon_pipe);
 

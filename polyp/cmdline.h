@@ -22,9 +22,9 @@
   USA.
 ***/
 
-#include "conf.h"
+#include "daemon-conf.h"
 
-int pa_cmdline_parse(struct pa_conf*c, int argc, char *const argv [], int *d);
+int pa_cmdline_parse(struct pa_daemon_conf*c, int argc, char *const argv [], int *d);
 
 void pa_cmdline_help(const char *argv0);
 

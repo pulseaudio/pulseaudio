@@ -47,7 +47,7 @@
 #include "util.h"
 #include "xmalloc.h"
 #include "log.h"
-#include "config-client.h"
+#include "client-conf.h"
 
 #define DEFAULT_SERVER "/tmp/polypaudio/native"
 

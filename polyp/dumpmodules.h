@@ -22,8 +22,8 @@
   USA.
 ***/
 
-#include "conf.h"
+#include "daemon-conf.h"
 
-void pa_dump_modules(struct pa_conf *c, int argc, char * const argv[]);
+void pa_dump_modules(struct pa_daemon_conf *c, int argc, char * const argv[]);
 
 #endif
