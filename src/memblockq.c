@@ -18,6 +18,7 @@ struct memblockq {
     size_t prebuf;
 };
 
+
 struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
     struct memblockq* bq;
     assert(maxlength && base);
@@ -35,6 +36,7 @@ struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
         bq->prebuf = bq->maxlength;
     
     assert(bq->maxlength >= base);
+
     return bq;
 }
 

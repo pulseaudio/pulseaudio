@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,6 +25,8 @@ struct source* source_new(struct core *core, const char *name, const struct samp
     s->link_change_callback = NULL;
     s->userdata = NULL;
 
+    fprintf(stderr, "source: created %u \"%s\"\n", s->index, s->name);
+    
     return s;
 }
 
@@ -39,6 +42,8 @@ void source_free(struct source *s) {
     idxset_free(s->output_streams, NULL, NULL);
     
     idxset_remove_by_data(s->core->sources, s, NULL);
+
+    fprintf(stderr, "source: freed %u \"%s\"\n", s->index, s->name);
 
     free(s->name);
     free(s);

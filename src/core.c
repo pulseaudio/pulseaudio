@@ -60,7 +60,7 @@ struct sink* core_get_default_sink(struct core *c) {
     if (!(sink = idxset_first(c->sinks, &c->default_sink_index)))
         return NULL;
 
-    fprintf(stderr, "Default sink vanished, setting to %u\n", sink->index);
+    fprintf(stderr, "core: default sink vanished, setting to %u.\n", sink->index);
     return sink;
 }
 
@@ -74,6 +74,6 @@ struct source* core_get_default_source(struct core *c) {
     if (!(source = idxset_first(c->sources, &c->default_source_index)))
         return NULL;
 
-    fprintf(stderr, "Default source vanished, setting to %u\n", source->index);
+    fprintf(stderr, "core: default source vanished, setting to %u.\n", source->index);
     return source;
 }

@@ -33,24 +33,6 @@ struct memblock *silence(struct memblock* b, struct sample_spec *spec) {
     return b;
 }
 
-void add_clip(struct memchunk *target, struct memchunk *chunk, struct sample_spec *spec) {
-    int16_t *p, *d;
-    size_t i;
-    assert(target && target->memblock && chunk && chunk->memblock && spec);
-    assert(spec->format == SAMPLE_S16NE);
-    assert((target->length & 1) == 0);
-    
-    d = target->memblock->data + target->index;
-    p = chunk->memblock->data + chunk->index;
-
-    for (i = 0; i < target->length && i < chunk->length; i++) {
-        int32_t r = (int32_t) *d + (int32_t) *p;
-        if (r < -0x8000) r = 0x8000;
-        if (r > 0x7FFF) r = 0x7FFF;
-        *d = (int16_t) r;
-    }
-}
-
 size_t sample_size(struct sample_spec *spec) {
     assert(spec);
     size_t b = 1;
@@ -78,3 +60,38 @@ size_t bytes_per_second(struct sample_spec *spec) {
     return spec->rate*sample_size(spec);
 }
 
+size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct sample_spec *spec) {
+    unsigned c, d;
+    assert(chunks && target && spec);
+    assert(spec->format == SAMPLE_S16NE);
+
+    for (d = 0;; d += sizeof(int16_t)) {
+        int32_t sum = 0;
+
+        if (d >= length)
+            return d;
+        
+        for (c = 0; c < nchannels; c++) {
+            int32_t v;
+            uint8_t volume = channels[c].volume;
+            
+            if (d >= channels[c].chunk.length)
+                return d;
+
+            if (volume == 0)
+                v = 0;
+            else {
+                v = *((int16_t*) (channels[c].chunk->memblock->data + channels[c].chunk->index + d));
+
+                if (volume != 0xFF)
+                    v = v*volume/0xFF;
+            }
+
+            sum += v;
+        }
+
+        if (sum < -0x8000) sum = -0x8000;
+        if (sum > 0x7FFF) sum = 0x7FFF;
+        *(data++) = sum;
+    }
+}

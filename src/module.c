@@ -40,6 +40,9 @@ struct module* module_load(struct core *c, const char *name, const char *argumen
     assert(c->modules);
     r = idxset_put(c->modules, m, &m->index);
     assert(r >= 0 && m->index != IDXSET_INVALID);
+
+    fprintf(stderr, "module: loaded %u \"%s\" with argument \"%s\".\n", m->index, m->name, m->argument);
+    
     return m;
     
 fail:
@@ -61,6 +64,9 @@ static void module_free(struct module *m) {
     m->done(m->core, m);
 
     lt_dlclose(m->dl);
+    
+    fprintf(stderr, "module: unloaded %u \"%s\".\n", m->index, m->name);
+
     free(m->name);
     free(m->argument);
     free(m);

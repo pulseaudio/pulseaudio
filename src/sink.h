@@ -10,13 +10,24 @@ struct sink;
 #include "idxset.h"
 #include "source.h"
 
+
+struct sink_input {
+    int (*peek) (struct sink_input *i, struct memchunk *chunk, uint8_t *volume);
+    void (*drop) (struct sink_input *i, size_t length);
+    void (*kill) (struct sink_input *i);
+
+    void *userdata;
+    int index;
+    struct sink *sink;
+};
+
 struct sink {
     char *name;
     uint32_t index;
     
     struct core *core;
     struct sample_spec sample_spec;
-    struct idxset *input_streams;
+    struct idxset *inputs;
 
     struct source *monitor_source;
 

@@ -21,7 +21,7 @@ struct sink* sink_new(struct core *core, const char *name, const struct sample_s
 
     s->core = core;
     s->sample_spec = *spec;
-    s->input_streams = idxset_new(NULL, NULL);
+    s->inputs = idxset_new(NULL, NULL);
 
     if (name) {
         n = malloc(strlen(name)+9);
@@ -36,184 +36,30 @@ struct sink* sink_new(struct core *core, const char *name, const struct sample_s
     s->notify = NULL;
     s->notify_userdata = NULL;
 
+    fprintf(stderr, "sink: created %u \"%s\".\n", s->index, s->name);
+    
     return s;
 }
 
 void sink_free(struct sink *s) {
-    struct input_stream *i, *j = NULL;
+    struct sink_input *i, *j = NULL;
     assert(s);
 
-    while ((i = idxset_first(s->input_streams, NULL))) {
-        assert(i != j);
-        input_stream_kill(i);
+    while ((i = idxset_first(s->inputs, NULL))) {
+        assert(i != j && i->kill);
+        i->kill(i);
         j = i;
     }
-    idxset_free(s->input_streams, NULL, NULL);
+
+    idxset_free(s->inputs, NULL, NULL);
         
     idxset_remove_by_data(s->core->sinks, s, NULL);
     source_free(s->monitor_source);
 
+    fprintf(stderr, "sink: freed %u \"%s\"\n", s->index, s->name);
+    
     free(s->name);
     free(s);
-}
-
-struct pass1_info {
-    size_t maxlength;
-    unsigned count;
-    struct input_stream *last_input_stream;
-};
-
-static int get_max_length(void *p, uint32_t index, int *del, void*userdata) {
-    struct memchunk chunk;
-    struct pass1_info *info = userdata;
-    struct input_stream*i = p;
-    assert(info && i);
-
-    if (memblockq_peek(i->memblockq, &chunk) != 0)
-        return 0;
-
-    assert(chunk.length);
-    
-    if (info->maxlength > chunk.length)
-        info->maxlength = chunk.length;
-
-    info->count++;
-    info->last_input_stream = i;
-
-    memblock_unref(chunk.memblock);
-
-    return 0;
-}
-
-struct pass2_info {
-    struct memchunk *chunk;
-    struct sample_spec *spec;
-};
-
-static int do_mix(void *p, uint32_t index, int *del, void*userdata) {
-    struct memchunk chunk;
-    struct pass2_info *info = userdata;
-    struct input_stream*i = p;
-    assert(info && info->chunk && info->chunk->memblock && i && info->spec);
-    
-    if (memblockq_peek(i->memblockq, &chunk) != 0)
-        return 0;
-
-    memblock_assert_exclusive(info->chunk->memblock);
-    assert(chunk.length && chunk.length <= info->chunk->memblock->length - info->chunk->index);
-
-    add_clip(info->chunk, &chunk, info->spec);
-    memblock_unref(chunk.memblock);
-    memblockq_drop(i->memblockq, info->chunk->length);
-
-    input_stream_notify(i);
-    return 0;
-}
-
-int sink_render_into(struct sink*s, struct memblock *target, struct memchunk *result) {
-    struct pass1_info pass1_info;
-    struct pass2_info pass2_info;
-    assert(s && target && result);
-    memblock_assert_exclusive(target);
-
-    /* Calculate how many bytes to mix */
-    pass1_info.maxlength = target->length;
-    pass1_info.count = 0;
-    
-    idxset_foreach(s->input_streams, get_max_length, &pass1_info);
-    assert(pass1_info.maxlength);
-
-    /* No data to mix */
-    if (pass1_info.count == 0)
-        return -1;
-    
-    /* A shortcut if only a single input stream is connected */
-    if (pass1_info.count == 1) {
-        struct input_stream *i = pass1_info.last_input_stream;
-        struct memchunk chunk;
-        size_t l;
-
-        assert(i);
-        
-        if (memblockq_peek(i->memblockq, &chunk) != 0)
-            return -1;
-
-        l = target->length < chunk.length ? target->length : chunk.length;
-        memcpy(target->data, result->memblock+result->index, l);
-        target->length = l;
-        memblock_unref(chunk.memblock);
-        memblockq_drop(i->memblockq, l);
-
-        input_stream_notify(i);
-        
-        result->memblock = target;
-        result->length = l;
-        result->index = 0;
-        return 0;
-    }
-
-    /* Do the real mixing */
-    result->memblock = silence(target, &s->sample_spec);
-    result->index = 0;
-    result->length = pass1_info.maxlength;
-    pass2_info.chunk = result;
-    pass2_info.spec = &s->sample_spec;
-    idxset_foreach(s->input_streams, do_mix, &pass2_info);
-
-    assert(s->monitor_source);
-    source_post(s->monitor_source, result);
-    
-    return 0;
-}
-
-int sink_render(struct sink*s, size_t length, struct memchunk *result) {
-    struct pass1_info pass1_info;
-    struct pass2_info pass2_info;
-    assert(s && result);
-
-    if (!length)
-        length = (size_t) -1;
-    
-    /* Calculate how many bytes to mix */
-    pass1_info.maxlength = length;
-    pass1_info.count = 0;
-    
-    idxset_foreach(s->input_streams, get_max_length, &pass1_info);
-    assert(pass1_info.maxlength);
-
-    /* No data to mix */
-    if (pass1_info.count == 0)
-        return -1;
-
-    if (pass1_info.count == 1) {
-        struct input_stream *i = pass1_info.last_input_stream;
-        size_t l;
-
-        assert(i);
-
-        if (memblockq_peek(i->memblockq, result) != 0)
-            return -1;
-
-        l = length < result->length ? length : result->length;
-        result->length = l;
-        memblockq_drop(i->memblockq, l);
-        input_stream_notify(i);
-        
-        return 0;
-    }
-
-    /* Do the mixing */
-    result->memblock = silence(memblock_new(result->length), &s->sample_spec);
-    result->index = 0;
-    result->length = pass1_info.maxlength;
-    pass2_info.chunk = result;
-    pass2_info.spec = &s->sample_spec;
-    idxset_foreach(s->input_streams, do_mix, &pass2_info);
-
-    assert(s->monitor_source);
-
-    source_post(s->monitor_source, result);
-    return 0;
 }
 
 void sink_notify(struct sink*s) {
@@ -230,4 +76,113 @@ void sink_set_notify_callback(struct sink *s, void (*notify_callback)(struct sin
     s->notify_userdata = userdata;
 }
 
+static unsigned fill_mix_info(struct sink *s, struct mix_info *info, unsigned maxinfo) {
+    uint32_t index = IDXSET_ANY;
+    struct sink_input *i;
+    unsigned n;
+    
+    assert(s && info);
 
+    while (maxinfo > 0 && i = idxset_rrobin(s->inputs, &index)) {
+        assert(i->peek);
+        if (i->peek(i, &info->chunk, &info->volume) < 0)
+            continue;
+
+        assert(info->chunk.memblock && info->chunk.memblock->data && info->chunk.length);
+        info->userdata = i;
+        
+        info++;
+        maxinfo--;
+        n++;
+    }
+
+    return n;
+}
+
+static void inputs_drop(struct sink *s, struct mix_info *info, unsigned maxinfo, size_t length) {
+    assert(s && info);
+    
+    for (; maxinfo > 0; maxinfo--, info++) {
+        struct sink_input *i = info->userdata;
+        assert(i && info->chunk.memblock);
+        
+        memblock_unref(info->chunk.memblock);
+        assert(i->drop);
+        i->drop(i, length);
+    }
+}
+
+int sink_render(struct sink*s, size_t length, struct memchunk *result) {
+    struct mix_info info[MAX_MIX_CHANNELS];
+    unsigned n;
+    size_t l;
+    assert(s && length && result);
+    
+    n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
+
+    if (n <= 0)
+        return -1;
+
+    if (n == 1) {
+        struct sink_info *i = info[0].userdata;
+        assert(i && b);
+        *result = info[0].chunk;
+        memblock_ref(result->memblock);
+
+        if (result->length > length)
+            result->length = length;
+
+        l = result->length;
+    } else {
+        result->memblock = memblock_new(length);
+        assert(result->memblock);
+
+        result->length = l = mix_chunks(info, n, result->memblock->data, length, &s->sample_spec);
+        result->index = 0;
+        
+        assert(l);
+    }
+
+    inputs_drop(s, info, n, l);
+    return 0;
+}
+
+int sink_render_into(struct sink*s, struct memblock *target, struct memchunk *result) {
+    struct mix_info info[MAX_MIX_CHANNELS];
+    unsigned n;
+    size_t l;
+    assert(s && target && target->length && target->data && result);
+    
+    n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
+
+    if (n <= 0)
+        return -1;
+
+    if (n == 1) {
+        struct sink_info *i = info[0].userdata;
+        assert(i && b);
+
+        l = target->length;
+        if (l > info[0].chunk.length)
+            l = info[0].chunk.length;
+        
+        result->memblock = target;
+        memcpy(target->data, info[0].chunk.memblock->data + info[0].chunk.index, l);
+        result->length = target->length = l;
+        result->index = 0;
+
+        if (result->length > length)
+            result->length = length;
+
+        l = result->length;
+    } else {
+
+        result->memblock = target;
+        result->length = l = mix_chunks(info, n, target->data, target->length, &s->sample_spec);
+        result->index = 0;
+        assert(l);
+    }
+
+    inputs_drop(s, info, n, l);
+    return 0;
+}

@@ -78,13 +78,15 @@ static int do_read(struct connection *c) {
     
     chunk.memblock = memblock_new(BUFSIZE);
     assert(chunk.memblock);
+
+    memblock_stamp(chunk.memblock);
     
     if ((r = iochannel_read(c->io, chunk.memblock->data, BUFSIZE)) <= 0) {
         fprintf(stderr, "read(): %s\n", r == 0 ? "EOF" : strerror(errno));
         memblock_unref(chunk.memblock);
         return -1;
     }
-    
+
     chunk.memblock->length = r;
     chunk.length = r;
     chunk.index = 0;

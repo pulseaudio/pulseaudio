@@ -31,7 +31,7 @@ static void do_write(struct userdata *u) {
     ssize_t r;
     assert(u);
 
-    if (!iochannel_is_writable(u->io))
+    if (!u->sink || !iochannel_is_writable(u->io))
         return;
 
     if (!u->memchunk.length) {
@@ -66,7 +66,7 @@ static void do_read(struct userdata *u) {
     ssize_t r;
     assert(u);
     
-    if (!iochannel_is_readable(u->io))
+    if (!u->source || !iochannel_is_readable(u->io))
         return;
 
     memchunk.memblock = memblock_new(u->in_fragment_size);
@@ -103,7 +103,7 @@ int module_init(struct core *c, struct module*m) {
     assert(c && m);
 
     p = m->argument ? m->argument : "/dev/dsp";
-    if ((fd = open(p, mode = O_RDWR)) >= 0) {
+    if ((fd = open(p, (mode = O_RDWR)|O_NDELAY)) >= 0) {
         int caps;
 
         ioctl(fd, SNDCTL_DSP_SETDUPLEX, 0);
@@ -120,15 +120,17 @@ int module_init(struct core *c, struct module*m) {
     }
 
     if (fd < 0) {
-        if ((fd = open(p, mode = O_WRONLY)) < 0) {
-            if ((fd = open(p, mode = O_RDONLY)) < 0) {
+        if ((fd = open(p, (mode = O_WRONLY)|O_NDELAY)) < 0) {
+            if ((fd = open(p, (mode = O_RDONLY)|O_NDELAY)) < 0) {
                 fprintf(stderr, "open('%s'): %s\n", p, strerror(errno));
                 goto fail;
             }
         }
     }
+
+    fprintf(stderr, "module-oss: device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
     
-    frag_size = ((int) 0x7ffff << 4) | 10; /* nfrags = 4; frag_size = 2^10 */
+    frag_size = ((int) 4 << 16) | 10; /* nfrags = 4; frag_size = 2^10 */
     if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag_size) < 0) {
         fprintf(stderr, "SNDCTL_DSP_SETFRAGMENT: %s\n", strerror(errno));
         goto fail;
@@ -174,12 +176,12 @@ int module_init(struct core *c, struct module*m) {
     in_frag_size = out_frag_size = frag_size;
 
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
-        fprintf(stderr, "INPUT: %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        fprintf(stderr, "module-oss: input -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         in_frag_size = info.fragsize;
     }
 
     if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
-        fprintf(stderr, "OUTUT: %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        fprintf(stderr, "module-oss: output -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         out_frag_size = info.fragsize;
     }
 
@@ -239,9 +241,11 @@ void module_done(struct core *c, struct module*m) {
         memblock_unref(u->memchunk.memblock);
     if (u->silence.memblock)
         memblock_unref(u->silence.memblock);
-        
-    sink_free(u->sink);
-    source_free(u->source);
+
+    if (u->sink)
+        sink_free(u->sink);
+    if (u->source)
+        source_free(u->source);
     iochannel_free(u->io);
     free(u);
 }

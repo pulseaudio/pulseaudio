@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +20,8 @@ struct client *client_new(struct core *core, const char *protocol_name, char *na
 
     r = idxset_put(core->clients, c, &c->index);
     assert(c->index != IDXSET_INVALID && r >= 0);
+
+    fprintf(stderr, "client: created %u \"%s\"\n", c->index, c->name);
     
     return c;
 }
@@ -27,6 +30,7 @@ void client_free(struct client *c) {
     assert(c && c->core);
 
     idxset_remove_by_data(c->core->clients, c, NULL);
+    fprintf(stderr, "client: freed %u \"%s\"\n", c->index, c->name);
     free(c->name);
     free(c);
 }

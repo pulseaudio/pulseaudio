@@ -27,7 +27,15 @@ struct sample_spec {
 extern struct sample_spec default_sample_spec;
 
 struct memblock *silence(struct memblock* b, struct sample_spec *spec);
-void add_clip(struct memchunk *target, struct memchunk *chunk, struct sample_spec *spec);
+
+
+struct mix_info {
+    struct memchunk chunk;
+    uint8_t volume;
+    void *userdata;
+};
+
+size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct sample_spec *spec) {
 
 size_t bytes_per_second(struct sample_spec *spec);
 size_t sample_size(struct sample_spec *spec);
