@@ -44,7 +44,7 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
         return NULL;
     }
 
-    if (resample_method < 0)
+    if (resample_method == PA_RESAMPLER_INVALID)
         resample_method = s->core->resample_method;
 
     if (!pa_sample_spec_equal(&s->sample_spec, spec))
@@ -174,4 +174,13 @@ void pa_source_output_cork(struct pa_source_output *o, int b) {
         return;
     
     o->state = b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
+}
+
+enum pa_resample_method pa_source_output_get_resample_method(struct pa_source_output *o) {
+    assert(o && o->ref >= 1);
+
+    if (!o->resampler)
+        return PA_RESAMPLER_INVALID;
+
+    return pa_resampler_get_method(o->resampler);
 }

@@ -530,23 +530,6 @@ const char *pa_strsignal(int sig) {
     }
 }
 
-/* Parse a libsamplrate compatible resampling implementation */
-int pa_parse_resample_method(const char *string) {
-    assert(string);
-
-    if (!strcmp(string, "sinc-best-quality"))
-        return SRC_SINC_BEST_QUALITY;
-    else if (!strcmp(string, "sinc-medium-quality"))
-        return SRC_SINC_MEDIUM_QUALITY;
-    else if (!strcmp(string, "sinc-fastest"))
-        return SRC_SINC_FASTEST;
-    else if (!strcmp(string, "zero-order-hold"))
-        return SRC_ZERO_ORDER_HOLD;
-    else if (!strcmp(string, "linear"))
-        return SRC_LINEAR;
-    else
-        return -1;
-}
 
 /* Check whether the specified GID and the group name match */
 static int is_group(gid_t gid, const char *name) {

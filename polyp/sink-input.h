@@ -87,4 +87,6 @@ void pa_sink_input_set_rate(struct pa_sink_input *i, uint32_t rate);
 
 void pa_sink_input_set_name(struct pa_sink_input *i, const char *name);
 
+enum pa_resample_method pa_sink_input_get_resample_method(struct pa_sink_input *i);
+
 #endif

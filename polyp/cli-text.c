@@ -162,15 +162,21 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
 
     for (o = pa_idxset_first(c->source_outputs, &index); o; o = pa_idxset_next(c->source_outputs, &index)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
+        const char *rm;
         pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec);
         assert(o->source);
+
+        if (!(rm = pa_resample_method_to_string(pa_source_output_get_resample_method(o))))
+            rm = "invalid";
+        
         pa_strbuf_printf(
-            s, "  index: %u\n\tname: '%s'\n\tstate: %s\n\tsource: <%u> '%s'\n\tsample_spec: <%s>\n",
+            s, "  index: %u\n\tname: '%s'\n\tstate: %s\n\tsource: <%u> '%s'\n\tsample_spec: <%s>\n\tresample method: %s\n",
             o->index,
             o->name,
             state_table[o->state],
             o->source->index, o->source->name,
-            ss);
+            ss,
+            rm);
         if (o->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", o->owner->index);
         if (o->client)
@@ -198,10 +204,15 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
 
     for (i = pa_idxset_first(c->sink_inputs, &index); i; i = pa_idxset_next(c->sink_inputs, &index)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
+        const char *rm;
+
+        if (!(rm = pa_resample_method_to_string(pa_sink_input_get_resample_method(i))))
+            rm = "invalid";
+
         pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
         assert(i->sink);
         pa_strbuf_printf(
-            s, "    index: %u\n\tname: <%s>\n\tstate: %s\n\tsink: <%u> '%s'\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
+            s, "    index: %u\n\tname: <%s>\n\tstate: %s\n\tsink: <%u> '%s'\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n\tresample method: %s\n",
             i->index,
             i->name,
             state_table[i->state],
@@ -209,7 +220,8 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
             (unsigned) i->volume,
             pa_volume_to_dB(i->volume),
             (float) pa_sink_input_get_latency(i),
-            ss);
+            ss,
+            rm);
 
         if (i->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", i->owner->index);

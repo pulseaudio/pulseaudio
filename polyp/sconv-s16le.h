@@ -22,7 +22,7 @@
   USA.
 ***/
 
-void pa_sconv_s16le_to_float32(unsigned n, const void *a, unsigned an, float *b);
-void pa_sconv_s16le_from_float32(unsigned n, const float *a, void *b, unsigned bn);
+void pa_sconv_s16le_to_float32ne(unsigned n, const void *a, unsigned an, float *b);
+void pa_sconv_s16le_from_float32ne(unsigned n, const float *a, void *b, unsigned bn);
 
 #endif

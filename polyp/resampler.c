@@ -24,6 +24,7 @@
 #endif
 
 #include <assert.h>
+#include <string.h>
 
 #include <samplerate.h>
 
@@ -34,55 +35,74 @@
 
 struct pa_resampler {
     struct pa_sample_spec i_ss, o_ss;
-    float* i_buf, *o_buf;
-    unsigned i_alloc, o_alloc;
-    size_t i_sz, o_sz;
-
-    int channels;
-
-    pa_convert_to_float32_func_t to_float32_func;
-    pa_convert_from_float32_func_t from_float32_func;
-    SRC_STATE *src_state;
-
+    size_t i_fz, o_fz;
     struct pa_memblock_stat *memblock_stat;
+    void *impl_data;
+    int channels;
+    enum pa_resample_method resample_method;
+
+    void (*impl_free)(struct pa_resampler *r);
+    void (*impl_set_input_rate)(struct pa_resampler *r, uint32_t rate);
+    void (*impl_run)(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out);
 };
 
-struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b, struct pa_memblock_stat *s, int resample_method) {
+struct impl_libsamplerate {
+    float* i_buf, *o_buf;
+    unsigned i_alloc, o_alloc;
+    pa_convert_to_float32ne_func_t to_float32ne_func;
+    pa_convert_from_float32ne_func_t from_float32ne_func;
+    SRC_STATE *src_state;
+};
+
+struct impl_trivial {
+    unsigned o_counter;
+    unsigned i_counter;
+};
+
+static int libsamplerate_init(struct pa_resampler*r);
+static int trivial_init(struct pa_resampler*r);
+
+struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b, struct pa_memblock_stat *s, enum pa_resample_method resample_method) {
     struct pa_resampler *r = NULL;
-    int err;
-    assert(a && b && pa_sample_spec_valid(a) && pa_sample_spec_valid(b));
+    assert(a && b && pa_sample_spec_valid(a) && pa_sample_spec_valid(b) && resample_method != PA_RESAMPLER_INVALID);
 
     if (a->channels != b->channels && a->channels != 1 && b->channels != 1)
         goto fail;
 
-    if (a->format == PA_SAMPLE_ALAW || a->format == PA_SAMPLE_ULAW || b->format == PA_SAMPLE_ALAW || b->format == PA_SAMPLE_ULAW)
-        goto fail;
-
     r = pa_xmalloc(sizeof(struct pa_resampler));
+    r->impl_data = NULL;
+    r->memblock_stat = s;
+    r->resample_method = resample_method;
+
+    r->impl_free = NULL;
+    r->impl_set_input_rate = NULL;
+    r->impl_run = NULL;
+
+    /* Fill sample specs */
+    r->i_ss = *a;
+    r->o_ss = *b;
+
+    r->i_fz = pa_frame_size(a);
+    r->o_fz = pa_frame_size(b);
 
     r->channels = a->channels;
     if (b->channels < r->channels)
         r->channels = b->channels;
     
-    r->i_buf = r->o_buf = NULL;
-    r->i_alloc = r->o_alloc = 0;
+    /* Choose implementation */
+    if (a->channels != b->channels || a->format != b->format || resample_method != PA_RESAMPLER_TRIVIAL) {
+        /* Use the libsamplerate based resampler for the complicated cases */
+        if (resample_method == PA_RESAMPLER_TRIVIAL)
+            r->resample_method = PA_RESAMPLER_SRC_ZERO_ORDER_HOLD;
 
-    r->src_state = src_new(resample_method, r->channels, &err);
-    if (err != 0 || !r->src_state)
-        goto fail;
-
-    r->i_ss = *a;
-    r->o_ss = *b;
-
-    r->i_sz = pa_frame_size(a);
-    r->o_sz = pa_frame_size(b);
-
-    r->to_float32_func = pa_get_convert_to_float32_function(a->format);
-    r->from_float32_func = pa_get_convert_from_float32_function(b->format);
-
-    assert(r->to_float32_func && r->from_float32_func);
-
-    r->memblock_stat = s;
+        if (libsamplerate_init(r) < 0)
+            goto fail;
+        
+    } else {
+        /* Use our own simple non-fp resampler for the trivial cases and when the user selects it */
+        if (trivial_init(r) < 0)
+            goto fail;
+    }
     
     return r;
     
@@ -95,32 +115,86 @@ fail:
 
 void pa_resampler_free(struct pa_resampler *r) {
     assert(r);
-    if (r->src_state)
-        src_delete(r->src_state);
-    pa_xfree(r->i_buf);
-    pa_xfree(r->o_buf);
+
+    if (r->impl_free)
+        r->impl_free(r);
+    
     pa_xfree(r);
 }
 
-size_t pa_resampler_request(struct pa_resampler *r, size_t out_length) {
-    assert(r && (out_length % r->o_sz) == 0);
-    
-    return (((out_length / r->o_sz)*r->i_ss.rate)/r->o_ss.rate) * r->i_sz;
+void pa_resampler_set_input_rate(struct pa_resampler *r, uint32_t rate) {
+    assert(r && rate);
+
+    r->i_ss.rate = rate;
+    if (r->impl_set_input_rate)
+        r->impl_set_input_rate(r, rate);
 }
 
-
 void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out) {
+    assert(r && in && out && r->impl_run);
+
+    r->impl_run(r, in, out);
+}
+
+size_t pa_resampler_request(struct pa_resampler *r, size_t out_length) {
+    assert(r && (out_length % r->o_fz) == 0);
+    return (((out_length / r->o_fz)*r->i_ss.rate)/r->o_ss.rate) * r->i_fz;
+}
+
+enum pa_resample_method pa_resampler_get_method(struct pa_resampler *r) {
+    assert(r);
+    return r->resample_method;
+}
+
+/* Parse a libsamplrate compatible resampling implementation */
+enum pa_resample_method pa_parse_resample_method(const char *string) {
+    assert(string);
+
+    if (!strcmp(string, "src-sinc-best-quality"))
+        return PA_RESAMPLER_SRC_SINC_BEST_QUALITY;
+    else if (!strcmp(string, "src-sinc-medium-quality"))
+        return PA_RESAMPLER_SRC_SINC_MEDIUM_QUALITY;
+    else if (!strcmp(string, "src-sinc-fastest"))
+        return PA_RESAMPLER_SRC_SINC_FASTEST;
+    else if (!strcmp(string, "src-zero-order-hold"))
+        return PA_RESAMPLER_SRC_ZERO_ORDER_HOLD;
+    else if (!strcmp(string, "src-linear"))
+        return PA_RESAMPLER_SRC_LINEAR;
+    else if (!strcmp(string, "trivial"))
+        return PA_RESAMPLER_TRIVIAL;
+    else
+        return PA_RESAMPLER_INVALID;
+}
+
+/*** libsamplerate based implementation ***/
+
+static void libsamplerate_free(struct pa_resampler *r) {
+    struct impl_libsamplerate *i;
+    assert(r && r->impl_data);
+    i = r->impl_data;
+    
+    if (i->src_state)
+        src_delete(i->src_state);
+
+    pa_xfree(i->i_buf);
+    pa_xfree(i->o_buf);
+    pa_xfree(i);
+}
+
+static void libsamplerate_run(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out) {
     unsigned i_nchannels, o_nchannels, ins, ons, eff_ins, eff_ons;
     float *cbuf;
-    assert(r && in && out && in->length && in->memblock && (in->length % r->i_sz) == 0);
+    struct impl_libsamplerate *i;
+    assert(r && in && out && in->length && in->memblock && (in->length % r->i_fz) == 0 && r->impl_data);
+    i = r->impl_data;
 
     /* How many input samples? */
-    ins = in->length/r->i_sz;
+    ins = in->length/r->i_fz;
 
-/*     pa_log("%u / %u = %u\n", in->length, r->i_sz, ins); */
+/*     pa_log("%u / %u = %u\n", in->length, r->i_fz, ins); */
 
     /* How much space for output samples? */
-    if (r->src_state)
+    if (i->src_state)
         ons = (ins*r->o_ss.rate/r->i_ss.rate)+1024;
     else
         ons = ins;
@@ -140,40 +214,40 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
 /*     pa_log("eff_ins = %u \n", eff_ins); */
     
     
-    out->memblock = pa_memblock_new(out->length = (ons*r->o_sz), r->memblock_stat);
+    out->memblock = pa_memblock_new(out->length = (ons*r->o_fz), r->memblock_stat);
     out->index = 0;
     assert(out->memblock);
 
-    if (r->i_alloc < eff_ins)
-        r->i_buf = pa_xrealloc(r->i_buf, sizeof(float) * (r->i_alloc = eff_ins));
-    assert(r->i_buf);
+    if (i->i_alloc < eff_ins)
+        i->i_buf = pa_xrealloc(i->i_buf, sizeof(float) * (i->i_alloc = eff_ins));
+    assert(i->i_buf);
 
 /*     pa_log("eff_ins = %u \n", eff_ins); */
 
-    r->to_float32_func(eff_ins, (uint8_t*) in->memblock->data+in->index, i_nchannels, r->i_buf);
+    i->to_float32ne_func(eff_ins, (uint8_t*) in->memblock->data+in->index, i_nchannels, i->i_buf);
 
-    if (r->src_state) {
+    if (i->src_state) {
         int ret;
         SRC_DATA data;
 
-        if (r->o_alloc < eff_ons)
-            r->o_buf = pa_xrealloc(r->o_buf, sizeof(float) * (r->o_alloc = eff_ons));
-        assert(r->o_buf);
+        if (i->o_alloc < eff_ons)
+            i->o_buf = pa_xrealloc(i->o_buf, sizeof(float) * (i->o_alloc = eff_ons));
+        assert(i->o_buf);
 
-        data.data_in = r->i_buf;
+        data.data_in = i->i_buf;
         data.input_frames = ins;
 
-        data.data_out = r->o_buf;
+        data.data_out = i->o_buf;
         data.output_frames = ons;
         
         data.src_ratio = (double) r->o_ss.rate / r->i_ss.rate;
         data.end_of_input = 0;
         
-        ret = src_process(r->src_state, &data);
+        ret = src_process(i->src_state, &data);
         assert(ret == 0);
         assert((unsigned) data.input_frames_used == ins);
         
-        cbuf = r->o_buf;
+        cbuf = i->o_buf;
         ons = data.output_frames_gen;
 
         if (r->i_ss.channels == r->o_ss.channels) 
@@ -181,12 +255,11 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
         else
             eff_ons = ons;
     } else
-        cbuf = r->i_buf;
+        cbuf = i->i_buf;
 
     if (eff_ons)
-        r->from_float32_func(eff_ons, cbuf, (uint8_t*)out->memblock->data+out->index, o_nchannels);
-    out->length = ons*r->o_sz;
-
+        i->from_float32ne_func(eff_ons, cbuf, (uint8_t*)out->memblock->data+out->index, o_nchannels);
+    out->length = ons*r->o_fz;
 
     if (!out->length) {
         pa_memblock_unref(out->memblock);
@@ -194,11 +267,147 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
     }
 }
 
-void pa_resampler_set_input_rate(struct pa_resampler *r, uint32_t rate) {
+static void libsamplerate_set_input_rate(struct pa_resampler *r, uint32_t rate) {
     int ret;
-    assert(r);
+    struct impl_libsamplerate *i;
+    assert(r && rate > 0 && r->impl_data);
+    i = r->impl_data;
 
-    r->i_ss.rate = rate;
-    ret = src_set_ratio(r->src_state, (double) r->o_ss.rate / r->i_ss.rate);
+    ret = src_set_ratio(i->src_state, (double) r->o_ss.rate / r->i_ss.rate);
     assert(ret == 0);
+}
+
+static int libsamplerate_init(struct pa_resampler *r) {
+    struct impl_libsamplerate *i = NULL;
+    int err;
+
+    r->impl_data = i = pa_xmalloc(sizeof(struct impl_libsamplerate));
+    
+    i->to_float32ne_func = pa_get_convert_to_float32ne_function(r->i_ss.format);
+    i->from_float32ne_func = pa_get_convert_from_float32ne_function(r->o_ss.format);
+
+    if (!i->to_float32ne_func || !i->from_float32ne_func)
+        goto fail;
+    
+    if (!(i->src_state = src_new(r->resample_method, r->channels, &err)) || !i->src_state)
+        goto fail;
+
+    i->i_buf = i->o_buf = NULL;
+    i->i_alloc = i->o_alloc = 0;
+
+    r->impl_free = libsamplerate_free;
+    r->impl_set_input_rate = libsamplerate_set_input_rate;
+    r->impl_run = libsamplerate_run;
+    
+    return 0;
+
+fail:
+    pa_xfree(i);
+    return -1;
+}
+
+/* Trivial implementation */
+
+static void trivial_run(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out) {
+    size_t fz;
+    unsigned  nsamples;
+    struct impl_trivial *i;
+    assert(r && in && out && r->impl_data);
+    i = r->impl_data;
+
+    fz = r->i_fz;
+    assert(fz == r->o_fz);
+
+    nsamples = in->length/fz;
+
+    if (r->i_ss.rate == r->o_ss.rate) {
+
+        /* In case there's no diefference in sample types, do nothing */
+        *out = *in;
+        pa_memblock_ref(in->memblock);
+
+        i->o_counter += nsamples;
+    } else {
+        /* Do real resampling */
+        size_t l;
+        unsigned o_index;
+        
+        /* The length of the new memory block rounded up */
+        l = ((nsamples * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * fz;
+        
+        out->index = 0;
+        out->memblock = pa_memblock_new(l, r->memblock_stat);
+        
+        for (o_index = 0;; o_index++, i->o_counter++) {
+            unsigned j;
+            
+            j = (i->o_counter * r->i_ss.rate / r->o_ss.rate);
+            assert(j >= i->i_counter);
+            j = j - i->i_counter;
+            
+            if (j >= nsamples)
+                break;
+            
+            assert(o_index*fz < out->memblock->length);
+            
+            memcpy((uint8_t*) out->memblock->data + fz*o_index,
+                   (uint8_t*) in->memblock->data + fz*j, fz);
+            
+        }
+            
+        out->length = o_index*fz;
+    }
+        
+    /* Normalize the output counter */
+    while (i->o_counter >= r->o_ss.rate)
+        i->o_counter -= r->o_ss.rate;
+
+    i->i_counter += nsamples;
+    
+    while (i->i_counter >= r->i_ss.rate)
+        i->i_counter -= r->i_ss.rate;
+}
+
+static void trivial_free(struct pa_resampler *r) {
+    assert(r);
+    pa_xfree(r->impl_data);
+}
+
+static void trivial_set_input_rate(struct pa_resampler *r, uint32_t rate) {
+    struct impl_trivial *i;
+    assert(r && rate > 0 && r->impl_data);
+    i = r->impl_data;
+
+    i->i_counter = 0;
+    i->o_counter = 0;
+}
+
+static int trivial_init(struct pa_resampler*r) {
+    struct impl_trivial *i;
+    assert(r && r->i_ss.format == r->o_ss.format && r->i_ss.channels == r->o_ss.channels);
+
+    r->impl_data = i = pa_xmalloc(sizeof(struct impl_trivial));
+    i->o_counter = i->i_counter = 0;
+
+    r->impl_run = trivial_run;
+    r->impl_free = trivial_free;
+    r->impl_set_input_rate = trivial_set_input_rate;
+                                  
+    return 0;
+}
+
+const char *pa_resample_method_to_string(enum pa_resample_method m) {
+    static const char const* resample_methods[] = {
+        "src-sinc-best-quality",
+        "src-sinc-medium-quality",
+        "src-sinc-fastest",
+        "src-zero-order-hold",
+        "src-linear",
+        "trivial"
+    };
+
+    if (m < 0 || m >= PA_RESAMPLER_MAX)
+        return NULL;
+
+    return resample_methods[m];
 }

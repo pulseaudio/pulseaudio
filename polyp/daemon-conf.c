@@ -28,13 +28,13 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
-#include <samplerate.h>
 
 #include "daemon-conf.h"
 #include "util.h"
 #include "xmalloc.h"
 #include "strbuf.h"
 #include "conf-parser.h"
+#include "resampler.h"
 
 #ifndef DEFAULT_CONFIG_DIR
 #define DEFAULT_CONFIG_DIR "/etc/polypaudio"
@@ -64,7 +64,7 @@ static const struct pa_daemon_conf default_conf = {
     .dl_search_path = NULL,
     .default_script_file = NULL,
     .log_target = PA_LOG_SYSLOG,
-    .resample_method = SRC_SINC_FASTEST,
+    .resample_method = PA_RESAMPLER_SRC_SINC_FASTEST,
     .config_file = NULL,
 };
 
@@ -214,14 +214,6 @@ int pa_daemon_conf_env(struct pa_daemon_conf *c) {
 char *pa_daemon_conf_dump(struct pa_daemon_conf *c) {
     struct pa_strbuf *s = pa_strbuf_new();
 
-    static const char const* resample_methods[] = {
-        "sinc-best-quality",
-        "sinc-medium-quality",
-        "sinc-fastest",
-        "zero-order-hold",
-        "linear"
-    };
-
     if (c->config_file)
         pa_strbuf_printf(s, "### Read from configuration file: %s ###\n", c->config_file);
     
@@ -238,7 +230,7 @@ char *pa_daemon_conf_dump(struct pa_daemon_conf *c) {
     pa_strbuf_printf(s, "log-target = %s\n", c->auto_log_target ? "auto" : (c->log_target == PA_LOG_SYSLOG ? "syslog" : "stderr"));
 
     assert(c->resample_method <= 4 && c->resample_method >= 0);
-    pa_strbuf_printf(s, "resample-method = %s\n", resample_methods[c->resample_method]);
+    pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
     
     return pa_strbuf_tostring_free(s);
 }

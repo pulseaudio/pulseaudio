@@ -27,6 +27,7 @@
 #include "mainloop-api.h"
 #include "sample.h"
 #include "memblock.h"
+#include "resampler.h"
 
 struct pa_core {
     struct pa_mainloop_api *mainloop;
@@ -54,7 +55,7 @@ struct pa_core {
 
     struct pa_time_event *scache_auto_unload_event;
 
-    int resample_method;
+    enum pa_resample_method resample_method;
 };
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m);

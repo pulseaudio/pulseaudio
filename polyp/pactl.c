@@ -324,7 +324,8 @@ static void get_sink_input_info_callback(struct pa_context *c, const struct pa_s
            "Sample Specification: %s\n"
            "Volume: 0x%03x (%0.2f dB)\n"
            "Buffer Latency: %0.0f usec\n"
-           "Sink Latency: %0.0f usec\n",
+           "Sink Latency: %0.0f usec\n"
+           "Resample method: %s\n",
            i->index,
            i->name,
            i->owner_module != PA_INVALID_INDEX ? t : "n/a",
@@ -333,7 +334,8 @@ static void get_sink_input_info_callback(struct pa_context *c, const struct pa_s
            s,
            i->volume, pa_volume_to_dB(i->volume),
            (double) i->buffer_usec,
-           (double) i->sink_usec);
+           (double) i->sink_usec,
+           i->resample_method ? i->resample_method : "n/a");
 }
 
 static void get_source_output_info_callback(struct pa_context *c, const struct pa_source_output_info *i, int is_last, void *userdata) {
@@ -367,7 +369,8 @@ static void get_source_output_info_callback(struct pa_context *c, const struct p
            "Source: %u\n"
            "Sample Specification: %s\n"
            "Buffer Latency: %0.0f usec\n"
-           "Source Latency: %0.0f usec\n",
+           "Source Latency: %0.0f usec\n"
+           "Resample method: %s\n",
            i->index,
            i->name,
            i->owner_module != PA_INVALID_INDEX ? t : "n/a",
@@ -375,7 +378,8 @@ static void get_source_output_info_callback(struct pa_context *c, const struct p
            i->source,
            s,
            (double) i->buffer_usec,
-           (double) i->source_usec);
+           (double) i->source_usec,
+           i->resample_method ? i->resample_method : "n/a");
 }
 
 static void get_sample_info_callback(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata) {

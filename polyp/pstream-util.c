@@ -32,7 +32,8 @@ void pa_pstream_send_tagstruct(struct pa_pstream *p, struct pa_tagstruct *t) {
     size_t length;
     uint8_t *data;
     struct pa_packet *packet;
-    assert(p && t);
+    assert(p);
+    assert(t);
 
     data = pa_tagstruct_free_data(t, &length);
     assert(data && length);

@@ -210,7 +210,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		conf-parser.h conf-parser.c \
 		caps.h caps.c \
 		props.h props.c \
-		mcalign.c mcalign.h
+		mcalign.c mcalign.h \
+		g711.c g711.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)

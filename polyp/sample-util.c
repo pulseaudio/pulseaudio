@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "sample-util.h"
 
@@ -41,12 +42,12 @@ void pa_silence_memchunk(struct pa_memchunk *c, const struct pa_sample_spec *spe
 }
 
 void pa_silence_memory(void *p, size_t length, const struct pa_sample_spec *spec) {
-    char c = 0;
+    uint8_t c = 0;
     assert(p && length && spec);
 
     switch (spec->format) {
         case PA_SAMPLE_U8:
-            c = 127;
+            c = 0x80;
             break;
         case PA_SAMPLE_S16LE:
         case PA_SAMPLE_S16BE:
@@ -65,54 +66,145 @@ void pa_silence_memory(void *p, size_t length, const struct pa_sample_spec *spec
 }
 
 size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, size_t length, const struct pa_sample_spec *spec, pa_volume_t volume) {
-    unsigned c, d;
     assert(channels && data && length && spec);
-    assert(spec->format == PA_SAMPLE_S16NE);
-
-    for (d = 0;; d += sizeof(int16_t)) {
-        int32_t sum = 0;
-
-        if (d >= length)
-            return d;
+    
+    if (spec->format == PA_SAMPLE_S16NE) {
+        size_t d;
         
-        for (c = 0; c < nchannels; c++) {
-            int32_t v;
-            uint32_t volume = channels[c].volume;
+        for (d = 0;; d += sizeof(int16_t)) {
+            unsigned c;
+            int32_t sum = 0;
             
-            if (d >= channels[c].chunk.length)
+            if (d >= length)
                 return d;
-
-            if (volume == PA_VOLUME_MUTED)
-                v = 0;
-            else {
-                v = *((int16_t*) ((uint8_t*) channels[c].chunk.memblock->data + channels[c].chunk.index + d));
-
-                if (volume != PA_VOLUME_NORM)
-                    v = (int32_t) ((float)v*volume/PA_VOLUME_NORM);
+            
+            for (c = 0; c < nchannels; c++) {
+                int32_t v;
+                pa_volume_t cvolume = channels[c].volume;
+                
+                if (d >= channels[c].chunk.length)
+                    return d;
+                
+                if (cvolume == PA_VOLUME_MUTED)
+                    v = 0;
+                else {
+                    v = *((int16_t*) ((uint8_t*) channels[c].chunk.memblock->data + channels[c].chunk.index + d));
+                    
+                    if (cvolume != PA_VOLUME_NORM) {
+                        v *= cvolume;
+                        v /= PA_VOLUME_NORM;
+                    }
+                }
+                
+                sum += v;
             }
-
-            sum += v;
+            
+            if (volume == PA_VOLUME_MUTED)
+                sum = 0;
+            else if (volume != PA_VOLUME_NORM) {
+                sum *= volume;
+                sum /= PA_VOLUME_NORM;
+            }
+            
+            if (sum < -0x8000) sum = -0x8000;
+            if (sum > 0x7FFF) sum = 0x7FFF;
+            
+            *((int16_t*) data) = sum;
+            data = (uint8_t*) data + sizeof(int16_t);
         }
-
-        if (volume == PA_VOLUME_MUTED)
-            sum = 0;
-        else if (volume != PA_VOLUME_NORM)
-            sum = (int32_t) ((float) sum*volume/PA_VOLUME_NORM);
+    } else if (spec->format == PA_SAMPLE_U8) {
+        size_t d;
         
-        if (sum < -0x8000) sum = -0x8000;
-        if (sum > 0x7FFF) sum = 0x7FFF;
+        for (d = 0;; d ++) {
+            int32_t sum = 0;
+            unsigned c;
+            
+            if (d >= length)
+                return d;
+            
+            for (c = 0; c < nchannels; c++) {
+                int32_t v;
+                pa_volume_t cvolume = channels[c].volume;
+                
+                if (d >= channels[c].chunk.length)
+                    return d;
+                
+                if (cvolume == PA_VOLUME_MUTED)
+                    v = 0;
+                else {
+                    v = (int32_t) *((uint8_t*) channels[c].chunk.memblock->data + channels[c].chunk.index + d) - 0x80;
+                    
+                    if (cvolume != PA_VOLUME_NORM) {
+                        v *= cvolume;
+                        v /= PA_VOLUME_NORM;
+                    }
+                }
+                
+                sum += v;
+            }
+            
+            if (volume == PA_VOLUME_MUTED)
+                sum = 0;
+            else if (volume != PA_VOLUME_NORM) {
+                sum *= volume;
+                sum /= PA_VOLUME_NORM;
+            }
+            
+            if (sum < -0x80) sum = -0x80;
+            if (sum > 0x7F) sum = 0x7F;
+            
+            *((uint8_t*) data) = (uint8_t) (sum + 0x80);
+            data = (uint8_t*) data + 1;
+        }
         
-        *((int16_t*) data) = sum;
-        data = (uint8_t*) data + sizeof(int16_t);
+    } else if (spec->format == PA_SAMPLE_FLOAT32NE) {
+        size_t d;
+        
+        for (d = 0;; d += sizeof(float)) {
+            float_t sum = 0;
+            unsigned c;
+            
+            if (d >= length)
+                return d;
+            
+            for (c = 0; c < nchannels; c++) {
+                float v;
+                pa_volume_t cvolume = channels[c].volume;
+                
+                if (d >= channels[c].chunk.length)
+                    return d;
+                
+                if (cvolume == PA_VOLUME_MUTED)
+                    v = 0;
+                else {
+                    v = *((float*) ((uint8_t*) channels[c].chunk.memblock->data + channels[c].chunk.index + d));
+                    
+                    if (cvolume != PA_VOLUME_NORM)
+                        v = v*cvolume/PA_VOLUME_NORM;
+                }
+                
+                sum += v;
+            }
+            
+            if (volume == PA_VOLUME_MUTED)
+                sum = 0;
+            else if (volume != PA_VOLUME_NORM)
+                sum = sum*volume/PA_VOLUME_NORM;
+            
+            if (sum < -1) sum = -1;
+            if (sum > 1) sum = 1;
+            
+            *((float*) data) = sum;
+            data = (uint8_t*) data + sizeof(float);
+        }
+    } else {
+        abort();
     }
 }
 
 
 void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec, pa_volume_t volume) {
-    int16_t *d;
-    size_t n;
     assert(c && spec && (c->length % pa_frame_size(spec) == 0));
-    assert(spec->format == PA_SAMPLE_S16NE);
 
     if (volume == PA_VOLUME_NORM)
         return;
@@ -122,16 +214,55 @@ void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec,
         return;
     }
 
-    for (d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
-        int32_t t = (int32_t)(*d);
-
-        t *= volume;
-        t /= PA_VOLUME_NORM;
-
-        if (t < -0x8000) t = -0x8000;
-        if (t > 0x7FFF) t = 0x7FFF;
+    if (spec->format == PA_SAMPLE_S16NE) {
+        int16_t *d;
+        size_t n;
         
-        *d = (int16_t) t;
+        for (d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+            int32_t t = (int32_t)(*d);
+            
+            t *= volume;
+            t /= PA_VOLUME_NORM;
+            
+            if (t < -0x8000) t = -0x8000;
+            if (t > 0x7FFF) t = 0x7FFF;
+            
+            *d = (int16_t) t;
+        }
+    } else if (spec->format == PA_SAMPLE_U8) {
+        uint8_t *d;
+        size_t n;
+
+        for (d = (uint8_t*) c->memblock->data + c->index, n = c->length; n > 0; d++, n--) {
+            int32_t t = (int32_t) *d - 0x80;
+
+            t *= volume;
+            t /= PA_VOLUME_NORM;
+
+            if (t < -0x80) t = -0x80;
+            if (t > 0x7F) t = 0x7F;
+
+            *d = (uint8_t) (t + 0x80);
+            
+        }
+    } else if (spec->format == PA_SAMPLE_FLOAT32NE) {
+        float *d;
+        size_t n;
+
+        for (d = (float*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(float); n > 0; d++, n--) {
+            float t = *d;
+
+            t *= volume;
+            t /= PA_VOLUME_NORM;
+
+            if (t < -1) t = -1;
+            if (t > 1) t = 1;
+
+            *d = t;
+        }
+        
+    } else {
+        abort();
     }
 }
 

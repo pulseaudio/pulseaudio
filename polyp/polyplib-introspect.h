@@ -143,6 +143,7 @@ struct pa_sink_input_info {
     pa_volume_t volume;                  /**< The volume of this sink input */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in sink input, see pa_latency_info for details */
     pa_usec_t sink_usec;                 /**< Latency of the sink device, see pa_latency_info for details */
+    const char *resample_method;         /**< Thre resampling method used by this sink input. \since 0.7 */
 };
 
 /** Get some information about a sink input by its index */
@@ -161,6 +162,7 @@ struct pa_source_output_info {
     struct pa_sample_spec sample_spec;   /**< The sample specification of the source output */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in the source output, see pa_latency_info for details. \since 0.5 */
     pa_usec_t source_usec;               /**< Latency of the source device, see pa_latency_info for details. \since 0.5 */
+    const char *resample_method;         /**< Thre resampling method used by this source output. \since 0.7 */
 };
 
 /** Get information about a source output by its index */

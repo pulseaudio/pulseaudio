@@ -38,7 +38,7 @@
 #define INT16_TO INT16_TO_LE
 #endif
 
-void pa_sconv_s16le_to_float32(unsigned n, const void *a, unsigned an, float *b) {
+void pa_sconv_s16le_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
     const int16_t *ca = a;
     assert(n && a && an && b);
 
@@ -60,7 +60,7 @@ void pa_sconv_s16le_to_float32(unsigned n, const void *a, unsigned an, float *b)
     }
 }
 
-void pa_sconv_s16le_from_float32(unsigned n, const float *a, void *b, unsigned bn) {
+void pa_sconv_s16le_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
     int16_t *cb = b;
 
 /*     pa_log("%u %p %p %u\n", n, a, b, bn); */

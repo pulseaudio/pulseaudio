@@ -48,7 +48,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
         return NULL;
     }
 
-    if (resample_method < 0)
+    if (resample_method == PA_RESAMPLER_INVALID)
         resample_method = s->core->resample_method;
     
     if (variable_rate || !pa_sample_spec_equal(spec, &s->sample_spec))
@@ -271,4 +271,13 @@ void pa_sink_input_set_name(struct pa_sink_input *i, const char *name) {
     i->name = pa_xstrdup(name);
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+}
+
+enum pa_resample_method pa_sink_input_get_resample_method(struct pa_sink_input *i) {
+    assert(i && i->ref >= 1);
+
+    if (!i->resampler)
+        return PA_RESAMPLER_INVALID;
+
+    return pa_resampler_get_method(i->resampler);
 }

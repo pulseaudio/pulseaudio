@@ -28,11 +28,12 @@
 #include <assert.h>
 #include "endianmacros.h"
 #include "sconv.h"
+#include "g711.h"
 
 #include "sconv-s16le.h"
 #include "sconv-s16be.h"
 
-static void u8_to_float32(unsigned n, const void *a, unsigned an, float *b) {
+static void u8_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
     unsigned i;
     const uint8_t *ca = a;
     assert(n && a && an && b);
@@ -42,7 +43,7 @@ static void u8_to_float32(unsigned n, const void *a, unsigned an, float *b) {
 
         for (i = 0; i < an; i++) {
             uint8_t v = *(ca++);
-            sum += (((float) v)-127)/127;
+            sum += (((float) v)-128)/127;
         }
 
         if (sum > 1)
@@ -54,7 +55,7 @@ static void u8_to_float32(unsigned n, const void *a, unsigned an, float *b) {
     }
 }    
 
-static void u8_from_float32(unsigned n, const float *a, void *b, unsigned bn) {
+static void u8_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
     unsigned i;
     uint8_t *cb = b;
 
@@ -69,14 +70,14 @@ static void u8_from_float32(unsigned n, const float *a, void *b, unsigned bn) {
         if (v < -1)
             v = -1;
 
-        u = (uint8_t) (v*127+127);
+        u = (uint8_t) (v*127+128);
         
         for (i = 0; i < bn; i++)
             *(cb++) = u;
     }
 }
 
-static void float32_to_float32(unsigned n, const void *a, unsigned an, float *b) {
+static void float32ne_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
     unsigned i;
     const float *ca = a;
     assert(n && a && an && b);
@@ -95,7 +96,7 @@ static void float32_to_float32(unsigned n, const void *a, unsigned an, float *b)
     }
 }
 
-static void float32_from_float32(unsigned n, const float *a, void *b, unsigned bn) {
+static void float32ne_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
     unsigned i;
     float *cb = b;
     assert(n && a && b && bn);
@@ -106,31 +107,122 @@ static void float32_from_float32(unsigned n, const float *a, void *b, unsigned b
     }
 }
 
-pa_convert_to_float32_func_t pa_get_convert_to_float32_function(enum pa_sample_format f) {
+static void ulaw_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
+    unsigned i;
+    const uint8_t *ca = a;
+    assert(n && a && an && b);
+    for (; n > 0; n--) {
+        float sum = 0;
+
+        for (i = 0; i < an; i++)
+            sum += (float) st_ulaw2linear16(*ca++) / 0x7FFF;
+
+        if (sum > 1)
+            sum = 1;
+        if (sum < -1)
+            sum = -1;
+
+        *(b++) = sum;
+    }
+}
+
+static void ulaw_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
+    unsigned i;
+    uint8_t *cb = b;
+
+    assert(n && a && b && bn);
+    for (; n > 0; n--) {
+        float v = *(a++);
+        uint8_t u;
+
+        if (v > 1)
+            v = 1;
+
+        if (v < -1)
+            v = -1;
+
+        u = st_14linear2ulaw((int16_t) (v * 0x1FFF));
+        
+        for (i = 0; i < bn; i++)
+            *(cb++) = u;
+    }
+}
+
+static void alaw_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
+    unsigned i;
+    const uint8_t *ca = a;
+    assert(n && a && an && b);
+    for (; n > 0; n--) {
+        float sum = 0;
+
+        for (i = 0; i < an; i++)
+            sum += (float) st_alaw2linear16(*ca++) / 0x7FFF;
+
+        if (sum > 1)
+            sum = 1;
+        if (sum < -1)
+            sum = -1;
+
+        *(b++) = sum;
+    }
+}
+
+static void alaw_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
+    unsigned i;
+    uint8_t *cb = b;
+
+    assert(n && a && b && bn);
+    for (; n > 0; n--) {
+        float v = *(a++);
+        uint8_t u;
+
+        if (v > 1)
+            v = 1;
+
+        if (v < -1)
+            v = -1;
+
+        u = st_13linear2alaw((int16_t) (v * 0xFFF));
+        
+        for (i = 0; i < bn; i++)
+            *(cb++) = u;
+    }
+}
+
+
+pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(enum pa_sample_format f) {
     switch(f) {
         case PA_SAMPLE_U8:
-            return u8_to_float32;
+            return u8_to_float32ne;
         case PA_SAMPLE_S16LE:
-            return pa_sconv_s16le_to_float32;
+            return pa_sconv_s16le_to_float32ne;
         case PA_SAMPLE_S16BE:
-            return pa_sconv_s16be_to_float32;
-        case PA_SAMPLE_FLOAT32:
-            return float32_to_float32;
+            return pa_sconv_s16be_to_float32ne;
+        case PA_SAMPLE_FLOAT32NE:
+            return float32ne_to_float32ne;
+        case PA_SAMPLE_ALAW:
+            return alaw_to_float32ne;
+        case PA_SAMPLE_ULAW:
+            return ulaw_to_float32ne;
         default:
             return NULL;
     }
 }
 
-pa_convert_from_float32_func_t pa_get_convert_from_float32_function(enum pa_sample_format f) {
+pa_convert_from_float32ne_func_t pa_get_convert_from_float32ne_function(enum pa_sample_format f) {
     switch(f) {
         case PA_SAMPLE_U8:
-            return u8_from_float32;
+            return u8_from_float32ne;
         case PA_SAMPLE_S16LE:
-            return pa_sconv_s16le_from_float32;
+            return pa_sconv_s16le_from_float32ne;
         case PA_SAMPLE_S16BE:
-            return pa_sconv_s16be_from_float32;
-        case PA_SAMPLE_FLOAT32:
-            return float32_from_float32;
+            return pa_sconv_s16be_from_float32ne;
+        case PA_SAMPLE_FLOAT32NE:
+            return float32ne_from_float32ne;
+        case PA_SAMPLE_ALAW:
+            return alaw_from_float32ne;
+        case PA_SAMPLE_ULAW:
+            return ulaw_from_float32ne;
         default:
             return NULL;
     }

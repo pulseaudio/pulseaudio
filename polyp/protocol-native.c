@@ -1160,6 +1160,7 @@ static void sink_input_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink_inp
     pa_tagstruct_putu32(t, s->volume);
     pa_tagstruct_put_usec(t, pa_sink_input_get_latency(s));
     pa_tagstruct_put_usec(t, pa_sink_get_latency(s->sink));
+    pa_tagstruct_puts(t, pa_resample_method_to_string(pa_sink_input_get_resample_method(s)));
 }
 
 static void source_output_fill_tagstruct(struct pa_tagstruct *t, struct pa_source_output *s) {
@@ -1172,6 +1173,7 @@ static void source_output_fill_tagstruct(struct pa_tagstruct *t, struct pa_sourc
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_put_usec(t, pa_source_output_get_latency(s));
     pa_tagstruct_put_usec(t, pa_source_get_latency(s->source));
+    pa_tagstruct_puts(t, pa_resample_method_to_string(pa_source_output_get_resample_method(s)));
 }
 
 static void scache_fill_tagstruct(struct pa_tagstruct *t, struct pa_scache_entry *e) {

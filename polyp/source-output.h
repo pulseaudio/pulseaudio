@@ -76,5 +76,6 @@ pa_usec_t pa_source_output_get_latency(struct pa_source_output *i);
 
 void pa_source_output_cork(struct pa_source_output *i, int b);
 
+enum pa_resample_method pa_source_output_get_resample_method(struct pa_source_output *o);
 
 #endif
