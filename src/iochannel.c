@@ -116,7 +116,7 @@ void iochannel_free(struct iochannel*io) {
 
     if (io->input_source)
         io->mainloop->cancel_io(io->mainloop, io->input_source);
-    if (io->output_source && io->output_source != io->input_source)
+    if (io->output_source && (io->output_source != io->input_source))
         io->mainloop->cancel_io(io->mainloop, io->output_source);
     
     free(io);

@@ -267,7 +267,7 @@ static int command_request(struct pdispatch *pd, uint32_t command, uint32_t tag,
         return -1;
     }
 
-    fprintf(stderr, "Requested %u bytes\n", bytes);
+    /*fprintf(stderr, "Requested %u bytes\n", bytes);*/
     
     s->requested_bytes += bytes;
     
@@ -426,7 +426,7 @@ void pa_stream_write(struct pa_stream *s, const void *data, size_t length) {
     pstream_send_memblock(s->context->pstream, s->channel, 0, &chunk);
     memblock_unref(chunk.memblock);
 
-    fprintf(stderr, "Sent %u bytes\n", length);
+    /*fprintf(stderr, "Sent %u bytes\n", length);*/
     
     if (length < s->requested_bytes)
         s->requested_bytes -= length;

@@ -98,7 +98,7 @@ void ioline_set_callback(struct ioline*l, void (*callback)(struct ioline*io, con
 static int do_read(struct ioline *l) {
     ssize_t r;
     size_t m, len;
-    char *p, *e;
+    char *e;
     assert(l);
 
     if (!iochannel_is_readable(l->io))
@@ -135,21 +135,26 @@ static int do_read(struct ioline *l) {
     e = memchr(l->rbuf+l->rbuf_index+l->rbuf_valid_length, '\n', r);
     l->rbuf_valid_length += r;
 
-    if (!e && l->rbuf_valid_length >= BUFFER_LIMIT)
+    if (!e &&l->rbuf_valid_length >= BUFFER_LIMIT)
         e = l->rbuf+BUFFER_LIMIT-1;
+
+    if (e) {
+        char *p;
         
-    *e = 0;
-    p = l->rbuf+l->rbuf_index;
-    m = strlen(p);
+        *e = 0;
+    
+        p = l->rbuf+l->rbuf_index;
+        m = strlen(p);
 
-    if (l->callback)
-        l->callback(l, p, l->userdata);
+        if (l->callback)
+            l->callback(l, p, l->userdata);
 
-    l->rbuf_index += m+1;
-    l->rbuf_valid_length -= m+1;
+        l->rbuf_index += m+1;
+        l->rbuf_valid_length -= m+1;
 
-    if (l->rbuf_valid_length == 0)
-        l->rbuf_index = 0;
+        if (l->rbuf_valid_length == 0)
+            l->rbuf_index = 0;
+    }
 
     return 0;
 }
@@ -184,7 +189,7 @@ static void io_callback(struct iochannel*io, void *userdata) {
     return;
 
 fail:
+    l->dead = 1;
     if (l->callback)
         l->callback(l, NULL, l->userdata);
-    l->dead = 1;
 }

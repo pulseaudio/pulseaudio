@@ -157,7 +157,7 @@ static void request_bytes(struct playback_stream *s) {
     tagstruct_putu32(t, l);
     pstream_send_tagstruct(s->connection->pstream, t);
 
-    fprintf(stderr, "Requesting %u bytes\n", l);
+/*    fprintf(stderr, "Requesting %u bytes\n", l);*/
 }
 
 /*** sinkinput callbacks ***/
@@ -327,7 +327,7 @@ static int memblock_callback(struct pstream *p, uint32_t channel, int32_t delta,
     assert(stream->sink_input);
     sink_notify(stream->sink_input->sink);
 
-    fprintf(stderr, "Recieved %u bytes.\n", chunk->length);
+    /*fprintf(stderr, "Recieved %u bytes.\n", chunk->length);*/
 
     return 0;
 }
