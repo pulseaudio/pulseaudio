@@ -1,5 +1,5 @@
-#ifndef fooclientconfhfoo
-#define fooclientconfhfoo
+#ifndef foox11prophfoo
+#define foox11prophfoo
 
 /* $Id$ */
 
@@ -22,21 +22,12 @@
   USA.
 ***/
 
-#include "native-common.h"
+#include <sys/types.h>
 
-struct pa_client_conf {
-    char *daemon_binary, *extra_arguments, *default_sink, *default_source, *default_server, *cookie_file;
-    int autospawn;
-    uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
-    int cookie_valid;
-};
+#include <X11/Xlib.h>
 
-struct pa_client_conf *pa_client_conf_new(void);
-void pa_client_conf_free(struct pa_client_conf *c);
-
-int pa_client_conf_load(struct pa_client_conf *c, const char *filename);
-int pa_client_conf_env(struct pa_client_conf *c);
-
-int pa_client_conf_load_cookie(struct pa_client_conf* c);
+void pa_x11_set_prop(Display *d, const char *name, const char *data);
+void pa_x11_del_prop(Display *d, const char *name);
+char* pa_x11_get_prop(Display *d, const char *name, char *p, size_t l);
 
 #endif

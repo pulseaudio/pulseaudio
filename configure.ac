@@ -54,6 +54,7 @@ HAVE_X11=0
 test "x$no_x" != "xyes" && HAVE_X11=1
 AC_SUBST(HAVE_X11)
 AM_CONDITIONAL(HAVE_X11, test "x$no_x" != "xyes")
+AC_DEFINE([HAVE_X11], [], [Have X11])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

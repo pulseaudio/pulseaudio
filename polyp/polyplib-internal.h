@@ -61,8 +61,6 @@ struct pa_context {
     uint32_t error;
     enum pa_context_state state;
     
-    uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
-    
     void (*state_callback)(struct pa_context*c, void *userdata);
     void *state_userdata;
 
@@ -109,7 +107,6 @@ struct pa_stream {
 
     void (*write_callback)(struct pa_stream *p, size_t length, void *userdata);
     void *write_userdata;
-
 };
 
 struct pa_operation {

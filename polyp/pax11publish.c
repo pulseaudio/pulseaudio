@@ -36,44 +36,7 @@
 #include "authkey.h"
 #include "native-common.h"
 #include "client-conf.h"
-
-static void set_x11_prop(Display *d, const char *name, const char *data) {
-    Atom a = XInternAtom(d, name, False);
-    XChangeProperty(d, RootWindow(d, 0), a, XA_STRING, 8, PropModeReplace, (unsigned char*) data, strlen(data)+1);
-}
-
-static void del_x11_prop(Display *d, const char *name) {
-    Atom a = XInternAtom(d, name, False);
-    XDeleteProperty(d, RootWindow(d, 0), a);
-}
-
-static char* get_x11_prop(Display *d, const char *name, char *p, size_t l) {
-    Atom actual_type;
-    int actual_format;
-    unsigned long nitems;
-    unsigned long nbytes_after;
-    unsigned char *prop = NULL;
-    char *ret = NULL;
-    
-    Atom a = XInternAtom(d, name, False);
-    if (XGetWindowProperty(d, RootWindow(d, 0), a, 0, (l+2)/4, False, XA_STRING, &actual_type, &actual_format, &nitems, &nbytes_after, &prop) != Success)
-        goto finish;
-
-    if (actual_type != XA_STRING)
-        goto finish;
-
-    memcpy(p, prop, nitems);
-    p[nitems] = 0;
-
-    ret = p;
-
-finish:
-
-    if (prop)
-        XFree(prop);
-    
-    return ret;
-}
+#include "x11prop.h"
 
 int main(int argc, char *argv[]) {
     const char *dname = NULL, *sink = NULL, *source = NULL, *server = NULL, *cookie_file = PA_NATIVE_COOKIE_FILE;
@@ -133,15 +96,15 @@ int main(int argc, char *argv[]) {
     switch (mode) {
         case DUMP: {
             char t[1024];
-            if (!get_x11_prop(d, "POLYP_SERVER", t, sizeof(t))) 
+            if (!pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) 
                 goto finish;
 
             printf("Server: %s\n", t);
-            if (get_x11_prop(d, "POLYP_SOURCE", t, sizeof(t)))
+            if (pa_x11_get_prop(d, "POLYP_SOURCE", t, sizeof(t)))
                 printf("Source: %s\n", t);
-            if (get_x11_prop(d, "POLYP_SINK", t, sizeof(t)))
+            if (pa_x11_get_prop(d, "POLYP_SINK", t, sizeof(t)))
                 printf("Sink: %s\n", t);
-            if (get_x11_prop(d, "POLYP_COOKIE", t, sizeof(t)))
+            if (pa_x11_get_prop(d, "POLYP_COOKIE", t, sizeof(t)))
                 printf("Cookie: %s\n", t);
 
             break;
@@ -149,20 +112,20 @@ int main(int argc, char *argv[]) {
             
         case IMPORT: {
             char t[1024];
-            if (!get_x11_prop(d, "POLYP_SERVER", t, sizeof(t))) 
+            if (!pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) 
                 goto finish;
 
             printf("POLYP_SERVER='%s'\nexport POLYP_SERVER\n", t);
             
-            if (get_x11_prop(d, "POLYP_SOURCE", t, sizeof(t)))
+            if (pa_x11_get_prop(d, "POLYP_SOURCE", t, sizeof(t)))
                 printf("POLYP_SOURCE='%s'\nexport POLYP_SOURCE\n", t);
-            if (get_x11_prop(d, "POLYP_SINK", t, sizeof(t)))
+            if (pa_x11_get_prop(d, "POLYP_SINK", t, sizeof(t)))
                 printf("POLYP_SINK='%s'\nexport POLYP_SINK\n", t);
 
-            if (get_x11_prop(d, "POLYP_COOKIE", t, sizeof(t))) {
+            if (pa_x11_get_prop(d, "POLYP_COOKIE", t, sizeof(t))) {
                 uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
                 size_t l;
-                if ((l = pa_parsehex(t, cookie, sizeof(cookie))) == (size_t) -1) {
+                if ((l = pa_parsehex(t, cookie, sizeof(cookie))) != sizeof(cookie)) {
                     fprintf(stderr, "Failed to parse cookie data\n");
                     goto finish;
                 }
@@ -192,12 +155,12 @@ int main(int argc, char *argv[]) {
                 goto finish;
             }
 
-            del_x11_prop(d, "POLYP_ID");
+            pa_x11_del_prop(d, "POLYP_ID");
 
             if (server)
-                set_x11_prop(d, "POLYP_SERVER", c->default_server);
+                pa_x11_set_prop(d, "POLYP_SERVER", c->default_server);
             else if (c->default_server)
-                set_x11_prop(d, "POLYP_SERVER", c->default_server);
+                pa_x11_set_prop(d, "POLYP_SERVER", c->default_server);
             else {
                 char hn[256];
                 if (!pa_get_fqdn(hn, sizeof(hn))) {
@@ -205,18 +168,18 @@ int main(int argc, char *argv[]) {
                     goto finish;
                 }
                     
-                set_x11_prop(d, "POLYP_SERVER", hn);
+                pa_x11_set_prop(d, "POLYP_SERVER", hn);
             }
 
             if (sink)
-                set_x11_prop(d, "POLYP_SINK", sink);
+                pa_x11_set_prop(d, "POLYP_SINK", sink);
             else if (c->default_sink)
-                set_x11_prop(d, "POLYP_SINK", c->default_sink);
+                pa_x11_set_prop(d, "POLYP_SINK", c->default_sink);
 
             if (source)
-                set_x11_prop(d, "POLYP_SOURCE", source);
+                pa_x11_set_prop(d, "POLYP_SOURCE", source);
             if (c->default_source)
-                set_x11_prop(d, "POLYP_SOURCE", c->default_source);
+                pa_x11_set_prop(d, "POLYP_SOURCE", c->default_source);
 
             pa_client_conf_free(c);
             
@@ -225,16 +188,16 @@ int main(int argc, char *argv[]) {
                 goto finish;
             }
 
-            set_x11_prop(d, "POLYP_COOKIE", pa_hexstr(cookie, sizeof(cookie), hx, sizeof(hx)));
+            pa_x11_set_prop(d, "POLYP_COOKIE", pa_hexstr(cookie, sizeof(cookie), hx, sizeof(hx)));
             break;
         }
 
         case REMOVE:
-            del_x11_prop(d, "POLYP_SERVER");
-            del_x11_prop(d, "POLYP_SINK");
-            del_x11_prop(d, "POLYP_SOURCE");
-            del_x11_prop(d, "POLYP_ID");
-            del_x11_prop(d, "POLYP_COOKIE");
+            pa_x11_del_prop(d, "POLYP_SERVER");
+            pa_x11_del_prop(d, "POLYP_SINK");
+            pa_x11_del_prop(d, "POLYP_SOURCE");
+            pa_x11_del_prop(d, "POLYP_ID");
+            pa_x11_del_prop(d, "POLYP_COOKIE");
             break;
             
         default:

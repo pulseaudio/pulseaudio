@@ -44,14 +44,16 @@
 #include "dynarray.h"
 #include "socket-client.h"
 #include "pstream-util.h"
-#include "authkey.h"
 #include "util.h"
 #include "xmalloc.h"
 #include "log.h"
 #include "client-conf.h"
 #include "socket-util.h"
 
-#define DEFAULT_SERVER "/tmp/polypaudio/native"
+#ifdef HAVE_X11
+#include "client-conf-x11.h"
+#endif
+
 #define AUTOSPAWN_LOCK "/tmp/polypaudio/autospawn.lock"
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
@@ -96,6 +98,9 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
 
     c->conf = pa_client_conf_new();
     pa_client_conf_load(c->conf, NULL);
+#ifdef HAVE_X11
+    pa_client_conf_from_x11(c->conf, NULL);
+#endif
     pa_client_conf_env(c->conf);
     
     return c;
@@ -312,7 +317,7 @@ static void setup_context(struct pa_context *c, struct pa_iochannel *io) {
     c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
     assert(c->pdispatch);
 
-    if (pa_authkey_load_from_home(PA_NATIVE_COOKIE_FILE, c->auth_cookie, sizeof(c->auth_cookie)) < 0) {
+    if (!c->conf->cookie_valid) {
         pa_context_fail(c, PA_ERROR_AUTHKEY);
         goto finish;
     }
@@ -321,7 +326,7 @@ static void setup_context(struct pa_context *c, struct pa_iochannel *io) {
     assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
     pa_tagstruct_putu32(t, tag = c->ctag++);
-    pa_tagstruct_put_arbitrary(t, c->auth_cookie, sizeof(c->auth_cookie));
+    pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c);
 
@@ -355,10 +360,10 @@ finish:
 static int default_server_is_running(void) {
     struct stat st;
     
-    if (DEFAULT_SERVER[0] != '/')
+    if (PA_NATIVE_DEFAULT_SERVER_UNIX[0] != '/')
         return 1;
 
-    if (stat(DEFAULT_SERVER, &st) < 0)
+    if (stat(PA_NATIVE_DEFAULT_SERVER_UNIX, &st) < 0)
         return 0;
 
     return 1;
@@ -488,7 +493,7 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
     }
     
     if (!server)
-        server = DEFAULT_SERVER;
+        server = PA_NATIVE_DEFAULT_SERVER_UNIX;
 
     pa_context_ref(c);
 

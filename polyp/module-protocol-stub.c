@@ -83,7 +83,7 @@
   #define protocol_free pa_protocol_native_free
   #define TCPWRAP_SERVICE "polypaudio-native"
   #define IPV4_PORT PA_NATIVE_DEFAULT_PORT
-  #define UNIX_SOCKET "/tmp/polypaudio/native"
+  #define UNIX_SOCKET PA_NATIVE_DEFAULT_SERVER_UNIX
   #define MODULE_ARGUMENTS "public", "cookie",
   #ifdef USE_TCP_SOCKETS
     #include "module-native-protocol-tcp-symdef.h"

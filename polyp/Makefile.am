@@ -27,8 +27,8 @@ AM_CFLAGS+=-DDLSEARCHPATH=\"$(modlibdir)\"
 AM_CFLAGS+=-DDEFAULT_CONFIG_DIR=\"$(polypconfdir)\"
 AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 
-AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
+AM_LDADD=$(PTHREAD_LIBS) -lm
 
 EXTRA_DIST = default.pa.in daemon.conf.in client.conf.in depmod.py esdcompat.sh.in module-defs.h.m4
 bin_PROGRAMS = polypaudio pacat pactl paplay
@@ -462,6 +462,7 @@ cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
 if HAVE_X11
 modlib_LTLIBRARIES+= \
 		libx11wrap.la \
+		libx11prop.la \
 		module-x11-bell.la \
 		module-x11-publish.la
 SYMDEF_FILES += \
@@ -471,24 +472,33 @@ SYMDEF_FILES += \
 libx11wrap_la_SOURCES = x11wrap.c x11wrap.h
 libx11wrap_la_LDFLAGS = -avoid-version
 libx11wrap_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
-libx11wrap_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
+libx11wrap_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+
+libx11prop_la_SOURCES = x11prop.c x11prop.h
+libx11prop_la_LDFLAGS = -avoid-version
+libx11prop_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+libx11prop_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
 
 module_x11_bell_la_SOURCES = module-x11-bell.c
 module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_bell_la_LDFLAGS = -module -avoid-version
-module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB) libx11wrap.la
+module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la
 
 module_x11_publish_la_SOURCES = module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
-module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB) libx11wrap.la libauthkey.la libauthkey-prop.la
+module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauthkey-prop.la libx11prop.la
 
 bin_PROGRAMS+= \
 		pax11publish
 
-pax11publish_SOURCES = pax11publish.c util.c xmalloc.c log.c authkey.c client-conf.c conf-parser.c
+pax11publish_SOURCES = pax11publish.c util.c xmalloc.c log.c authkey.c client-conf.c conf-parser.c x11prop.c
 pax11publish_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
-pax11publish_LDADD = $(AM_LDADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
+pax11publish_LDADD = $(AM_LDADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+
+libpolyp_@PA_MAJORMINOR@_la_CFLAGS += $(X_CFLAGS)
+libpolyp_@PA_MAJORMINOR@_la_LDFLAGS += $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+libpolyp_@PA_MAJORMINOR@_la_SOURCES += x11prop.c client-conf-x11.c
 
 endif
 

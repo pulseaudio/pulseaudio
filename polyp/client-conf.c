@@ -30,6 +30,7 @@
 #include "log.h"
 #include "conf-parser.h"
 #include "util.h"
+#include "authkey.h"
 
 #ifndef DEFAULT_CONFIG_DIR
 #define DEFAULT_CONFIG_DIR "/etc/polypaudio"
@@ -43,6 +44,7 @@
 #define ENV_DEFAULT_SOURCE "POLYP_SOURCE"
 #define ENV_DEFAULT_SERVER "POLYP_SERVER"
 #define ENV_DAEMON_BINARY "POLYP_BINARY"
+#define ENV_COOKIE_FILE "POLYP_COOKIE"
 
 static const struct pa_client_conf default_conf = {
     .daemon_binary = NULL,
@@ -50,14 +52,20 @@ static const struct pa_client_conf default_conf = {
     .default_sink = NULL,
     .default_source = NULL,
     .default_server = NULL,
-    .autospawn = 0
+    .autospawn = 0,
+    .cookie_file = NULL,
+    .cookie_valid = 0
 };
 
 struct pa_client_conf *pa_client_conf_new(void) {
     struct pa_client_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
 
+
+    
     c->daemon_binary = pa_xstrdup(POLYPAUDIO_BINARY);
     c->extra_arguments = pa_xstrdup("--log-target=syslog --exit-idle-time=5");
+
+    c->cookie_file = pa_xstrdup(PA_NATIVE_COOKIE_FILE);
     
     return c;
 }
@@ -69,6 +77,7 @@ void pa_client_conf_free(struct pa_client_conf *c) {
     pa_xfree(c->default_sink);
     pa_xfree(c->default_source);
     pa_xfree(c->default_server);
+    pa_xfree(c->cookie_file);
     pa_xfree(c);
 }
 int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
@@ -83,6 +92,7 @@ int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
         { "default-source",         pa_config_parse_string,  NULL },
         { "default-server",         pa_config_parse_string,  NULL },
         { "autospawn",              pa_config_parse_bool,    NULL },
+        { "cookie-file",            pa_config_parse_string,  NULL },
         { NULL,                     NULL,                    NULL },
     };
 
@@ -92,6 +102,7 @@ int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
     table[3].data = &c->default_source;
     table[4].data = &c->default_server;
     table[5].data = &c->autospawn;
+    table[6].data = &c->cookie_file;
 
     f = filename ?
         fopen((fn = pa_xstrdup(filename)), "r") :
@@ -103,6 +114,10 @@ int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
     }
     
     r = f ? pa_config_parse(fn, f, table, NULL) : 0;
+
+    if (!r)
+        r = pa_client_conf_load_cookie(c);
+    
 
 finish:
     pa_xfree(fn);
@@ -136,5 +151,28 @@ int pa_client_conf_env(struct pa_client_conf *c) {
         c->daemon_binary = pa_xstrdup(e);
     }
 
+    if ((e = getenv(ENV_COOKIE_FILE))) {
+        pa_xfree(c->cookie_file);
+        c->cookie_file = pa_xstrdup(e);
+
+        return pa_client_conf_load_cookie(c);
+    }
+    
     return 0;
 }
+
+int pa_client_conf_load_cookie(struct pa_client_conf* c) {
+    assert(c);
+
+    c->cookie_valid = 0;
+
+    if (!c->cookie_file)
+        return -1;
+
+    if (pa_authkey_load_auto(c->cookie_file, c->cookie, sizeof(c->cookie)) < 0)
+        return -1;
+
+    c->cookie_valid = 1;
+    return 0;
+}
+
