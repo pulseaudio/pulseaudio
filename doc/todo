@@ -15,7 +15,6 @@
 - pass meta info for hearing impaired
 - limit all resources
 - check getaddrinfo results
-- add LGPL blurb to all concerning files
 - non-fp mixing
 - non-fp resampling
 - make module-tunnel use pa_socket_client_new_string()
