@@ -94,7 +94,7 @@ char *pa_sink_list_to_string(struct pa_core *c) {
         pa_strbuf_printf(
             s,
             "  %c index: %u\n\tname: <%s>\n\tvolume: <0x%04x>\n\tlatency: <%u usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
-            !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
+            c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index, sink->name,
             (unsigned) sink->volume,
             pa_sink_get_latency(sink),
@@ -125,7 +125,7 @@ char *pa_source_list_to_string(struct pa_core *c) {
         char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
         pa_sample_snprint(ss, sizeof(ss), &source->sample_spec);
         pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tsample_spec: <%s>\n",
-                         !strcmp(source->name, c->default_source_name) ? '*' : ' ',
+                         c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
                          source->index,
                          source->name,
                          ss);

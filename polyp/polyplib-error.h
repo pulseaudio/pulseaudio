@@ -24,6 +24,14 @@
 
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 const char* pa_strerror(uint32_t error);
 
+#ifdef __cplusplus
+}
+#endif
+    
 #endif

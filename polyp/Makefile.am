@@ -18,8 +18,8 @@
 # USA.
 
 AM_CFLAGS=-ansi -D_GNU_SOURCE -DDLSEARCHDIR=\"$(pkglibdir)\" -I$(srcdir)/..
-AM_LDADD=-L.
-AM_LIBADD=-L.
+AM_LDADD=-L. -lpthread
+AM_LIBADD=-L. -lpthread
 
 polypincludedir=$(includedir)/polyp
 

@@ -213,7 +213,7 @@ static gboolean time_cb(gpointer data) {
 
 static void glib_time_restart(struct pa_time_event*e, const struct timeval *tv) {
     struct timeval now;
-    assert(e && e->mainloop);
+    assert(e && e->mainloop && !e->dead);
 
     gettimeofday(&now, NULL);
     if (e->source) {
@@ -233,7 +233,7 @@ static void glib_time_restart(struct pa_time_event*e, const struct timeval *tv) 
  }
 
 static void glib_time_free(struct pa_time_event *e) {
-    assert(e && e->mainloop);
+    assert(e && e->mainloop && !e->dead);
 
     if (e->source) {
         g_source_destroy(e->source);
@@ -317,8 +317,8 @@ static void glib_defer_enable(struct pa_defer_event *e, int b) {
 }
 
 static void glib_defer_free(struct pa_defer_event *e) {
-    assert(e && e->mainloop);
-    
+    assert(e && e->mainloop && !e->dead);
+
     if (e->source) {
         g_source_destroy(e->source);
         g_source_unref(e->source);
@@ -485,6 +485,10 @@ static gboolean free_dead_events(gpointer p) {
     free_io_events(g->dead_io_events);
     free_defer_events(g->dead_defer_events);
     free_time_events(g->dead_time_events);
+
+    g->dead_io_events = NULL;
+    g->dead_defer_events = NULL;
+    g->dead_time_events = NULL;
 
     g_source_destroy(g->cleanup_source);
     g_source_unref(g->cleanup_source);

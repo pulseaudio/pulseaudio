@@ -64,6 +64,7 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     assert(s->monitor_source);
     pa_xfree(n);
     s->monitor_source->monitor_of = s;
+    s->monitor_source->description = pa_sprintf_malloc("Monitor source of sink '%s'", s->name);
     
     s->volume = PA_VOLUME_NORM;
 

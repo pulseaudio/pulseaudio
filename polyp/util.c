@@ -33,6 +33,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <pwd.h>
+#include <signal.h>
+#include <pthread.h>
 
 #include "util.h"
 #include "xmalloc.h"
@@ -109,14 +112,27 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size) {
 
 void pa_check_for_sigpipe(void) {
     struct sigaction sa;
+    sigset_t set;
 
+    if (pthread_sigmask(SIG_SETMASK, NULL, &set) < 0) {
+        if (sigprocmask(SIG_SETMASK, NULL, &set) < 0) {
+            fprintf(stderr, __FILE__": sigprocmask() failed: %s\n", strerror(errno));
+            return;
+        }
+    }
+
+    if (sigismember(&set, SIGPIPE))
+        return;
+    
     if (sigaction(SIGPIPE, NULL, &sa) < 0) {
         fprintf(stderr, __FILE__": sigaction() failed: %s\n", strerror(errno));
         return;
     }
         
-    if (sa.sa_handler == SIG_DFL)
-        fprintf(stderr, "polypaudio: WARNING: SIGPIPE is not trapped. This might cause malfunction!\n");
+    if (sa.sa_handler != SIG_DFL)
+        return;
+    
+    fprintf(stderr, "polypaudio: WARNING: SIGPIPE is not trapped. This might cause malfunction!\n");
 }
 
 /* The following is based on an example from the GNU libc documentation */
@@ -144,4 +160,31 @@ char *pa_sprintf_malloc(const char *format, ...) {
         else           /* glibc 2.0 */
             size *= 2;
     }
+}
+
+char *pa_get_user_name(char *s, size_t l) {
+    struct passwd pw, *r;
+    char buf[1024];
+    char *p;
+
+    if (!(p = getenv("USER")))
+        if (!(p = getenv("LOGNAME")))
+            if (!(p = getenv("USERNAME"))) {
+                
+                if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
+                    snprintf(s, l, "%lu", (unsigned long) getuid());
+                    return s;
+                }
+                
+                p = r->pw_name;
+            }
+    
+    snprintf(s, l, "%s", p);
+    return s;
+}
+
+char *pa_get_host_name(char *s, size_t l) {
+    gethostname(s, l);
+    s[l-1] = 0;
+    return s;
 }

@@ -105,7 +105,7 @@ struct pa_sink_info {
     const char *name;
     uint32_t index;
     const char *description;
-    struct pa_sample_spec *sample_spec;
+    struct pa_sample_spec sample_spec;
     uint32_t owner_module;
     uint32_t volume;
     uint32_t monitor_source;
@@ -113,24 +113,34 @@ struct pa_sink_info {
     uint32_t latency;
 };
 
-void pa_context_get_sink_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, void *userdata), void *userdata);
-void pa_context_get_sink_info_by_id(struct pa_context *c, uint32_t id, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, void *userdata), void *userdata);
-void pa_context_get_sink_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, void *userdata), void *userdata);
+void pa_context_get_sink_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata), void *userdata);
+void pa_context_get_sink_info_by_id(struct pa_context *c, uint32_t id, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata), void *userdata);
+void pa_context_get_sink_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata), void *userdata);
 
 struct pa_source_info {
     const char *name;
     uint32_t index;
     const char *description;
-    struct pa_sample_spec *sample_spec;
+    struct pa_sample_spec sample_spec;
     uint32_t owner_module;
     uint32_t monitor_of_sink;
     const char *monitor_of_sink_name;
 };
 
-void pa_context_get_source_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_source_info *i, void *userdata), void *userdata);
-void pa_context_get_source_info_by_id(struct pa_context *c, uint32_t id, void (*cb)(struct pa_context *c, const struct pa_source_info *i, void *userdata), void *userdata);
-void pa_context_get_source_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_source_info *i, void *userdata), void *userdata);
+void pa_context_get_source_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata), void *userdata);
+void pa_context_get_source_info_by_id(struct pa_context *c, uint32_t id, void (*cb)(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata), void *userdata);
+void pa_context_get_source_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata), void *userdata);
 
+struct pa_server_info {
+    const char *user_name;
+    const char *host_name;
+    const char *server_version;
+    const char *server_name;
+    struct pa_sample_spec sample_spec;
+};
+
+void pa_context_get_server_info(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_server_info*i, void *userdata), void *userdata);
+    
 #ifdef __cplusplus
 }
 #endif

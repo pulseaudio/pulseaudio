@@ -83,10 +83,10 @@ uint8_t* pa_tagstruct_free_data(struct pa_tagstruct*t, size_t *l) {
 static void extend(struct pa_tagstruct*t, size_t l) {
     assert(t && t->dynamic);
 
-    if (l <= t->allocated)
+    if (t->length+l <= t->allocated)
         return;
 
-    t->data = pa_xrealloc(t->data, t->allocated = l+100);
+    t->data = pa_xrealloc(t->data, t->allocated = t->length+l+100);
 }
 
 void pa_tagstruct_puts(struct pa_tagstruct*t, const char *s) {

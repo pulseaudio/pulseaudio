@@ -23,14 +23,15 @@
 #load module-alsa-sink
 #load module-alsa-source device=plughw:1,0
 #load module-oss device="/dev/dsp" sink_name=output source_name=input
-#load module-oss-mmap device="/dev/dsp"
+load module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+load module-pipe-sink
 
 # Load audio drivers automatically on access
 
 #autoload_sink_add output module-oss device="/dev/dsp" sink_name=output source_name=input
 #autoload_source_add input module-oss device="/dev/dsp" sink_name=output source_name=input
-autoload_sink_add output module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
-autoload_source_add input module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+#autoload_sink_add output module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
+#autoload_source_add input module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
 #autoload_sink_add output module-alsa-sink sink_name=output
 #autoload_source_add input module-alsa-source source_name=input
 

@@ -35,4 +35,7 @@ void pa_check_for_sigpipe(void);
 
 char *pa_sprintf_malloc(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 
+char *pa_get_user_name(char *s, size_t l);
+char *pa_get_host_name(char *s, size_t l);
+
 #endif
