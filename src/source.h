@@ -10,14 +10,14 @@ struct source;
 #include "memblock.h"
 
 struct source {
-    char *name;
     uint32_t index;
     
+    char *name;
     struct core *core;
     struct sample_spec sample_spec;
-    struct idxset *output_streams;
+    struct idxset *outputs;
 
-    void (*link_change_callback)(struct source*source, void *userdata);
+    void (*notify)(struct source*source);
     void *userdata;
 };
 
@@ -26,5 +26,7 @@ void source_free(struct source *s);
 
 /* Pass a new memory block to all output streams */
 void source_post(struct source*s, struct memchunk *b);
+
+void source_notify(struct source *s);
 
 #endif

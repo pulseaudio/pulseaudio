@@ -291,9 +291,7 @@ void* idxset_rrobin(struct idxset *s, uint32_t *index) {
     if (!e)
         return NULL;
     
-    if (index)
-        *index = e->index;
-
+    *index = e->index;
     return e->data;
 }
 
@@ -306,6 +304,22 @@ void* idxset_first(struct idxset *s, uint32_t *index) {
     if (index)
         *index = s->iterate_list_head->index;
     return s->iterate_list_head->data;
+}
+
+void *idxset_next(struct idxset *s, uint32_t *index) {
+    struct idxset_entry **a, *e = NULL;
+    assert(s && index);
+
+    if ((a = array_index(s, *index)) && *a)
+        e = (*a)->iterate_next;
+    
+    if (e) {
+        *index = e->index;
+        return e->data;
+    } else {
+        *index = IDXSET_INVALID;
+        return NULL;
+    }
 }
 
 
@@ -341,3 +355,4 @@ int idxset_isempty(struct idxset *s) {
     assert(s);
     return s->n_entries == 0;
 }
+

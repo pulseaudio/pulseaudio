@@ -60,9 +60,9 @@ size_t bytes_per_second(struct sample_spec *spec) {
     return spec->rate*sample_size(spec);
 }
 
-size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct sample_spec *spec) {
+size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct sample_spec *spec, uint8_t volume) {
     unsigned c, d;
-    assert(chunks && target && spec);
+    assert(channels && data && length && spec);
     assert(spec->format == SAMPLE_S16NE);
 
     for (d = 0;; d += sizeof(int16_t)) {
@@ -81,7 +81,7 @@ size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, si
             if (volume == 0)
                 v = 0;
             else {
-                v = *((int16_t*) (channels[c].chunk->memblock->data + channels[c].chunk->index + d));
+                v = *((int16_t*) (channels[c].chunk.memblock->data + channels[c].chunk.index + d));
 
                 if (volume != 0xFF)
                     v = v*volume/0xFF;
@@ -90,8 +90,15 @@ size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, si
             sum += v;
         }
 
+        if (volume == 0)
+            sum = 0;
+        else if (volume != 0xFF)
+            sum = sum*volume/0xFF;
+        
         if (sum < -0x8000) sum = -0x8000;
         if (sum > 0x7FFF) sum = 0x7FFF;
-        *(data++) = sum;
+        
+        *((int16_t*) data) = sum;
+        data += sizeof(int16_t);
     }
 }

@@ -4,7 +4,9 @@
 #include <stdio.h>
 
 #include "sink.h"
-#include "inputstream.h"
+#include "sinkinput.h"
+
+#define MAX_MIX_CHANNELS 32
 
 struct sink* sink_new(struct core *core, const char *name, const struct sample_spec *spec) {
     struct sink *s;
@@ -16,9 +18,6 @@ struct sink* sink_new(struct core *core, const char *name, const struct sample_s
     assert(s);
     
     s->name = name ? strdup(name) : NULL;
-    r = idxset_put(core->sinks, s, &s->index);
-    assert(s->index != IDXSET_INVALID && r >= 0);
-
     s->core = core;
     s->sample_spec = *spec;
     s->inputs = idxset_new(NULL, NULL);
@@ -34,8 +33,11 @@ struct sink* sink_new(struct core *core, const char *name, const struct sample_s
     s->volume = 0xFF;
 
     s->notify = NULL;
-    s->notify_userdata = NULL;
+    s->userdata = NULL;
 
+    r = idxset_put(core->sinks, s, &s->index);
+    assert(s->index != IDXSET_INVALID && r >= 0);
+    
     fprintf(stderr, "sink: created %u \"%s\".\n", s->index, s->name);
     
     return s;
@@ -46,15 +48,14 @@ void sink_free(struct sink *s) {
     assert(s);
 
     while ((i = idxset_first(s->inputs, NULL))) {
-        assert(i != j && i->kill);
-        i->kill(i);
+        assert(i != j);
+        sink_input_kill(i);
         j = i;
     }
-
     idxset_free(s->inputs, NULL, NULL);
-        
-    idxset_remove_by_data(s->core->sinks, s, NULL);
+
     source_free(s->monitor_source);
+    idxset_remove_by_data(s->core->sinks, s, NULL);
 
     fprintf(stderr, "sink: freed %u \"%s\"\n", s->index, s->name);
     
@@ -66,24 +67,17 @@ void sink_notify(struct sink*s) {
     assert(s);
 
     if (s->notify)
-        s->notify(s, s->notify_userdata);
-}
-
-void sink_set_notify_callback(struct sink *s, void (*notify_callback)(struct sink*sink, void *userdata), void *userdata) {
-    assert(s && notify_callback);
-
-    s->notify = notify_callback;
-    s->notify_userdata = userdata;
+        s->notify(s);
 }
 
 static unsigned fill_mix_info(struct sink *s, struct mix_info *info, unsigned maxinfo) {
-    uint32_t index = IDXSET_ANY;
+    uint32_t index = IDXSET_INVALID;
     struct sink_input *i;
-    unsigned n;
+    unsigned n = 0;
     
     assert(s && info);
 
-    while (maxinfo > 0 && i = idxset_rrobin(s->inputs, &index)) {
+    for (i = idxset_first(s->inputs, &index); maxinfo > 0 && i; i = idxset_next(s->inputs, &index)) {
         assert(i->peek);
         if (i->peek(i, &info->chunk, &info->volume) < 0)
             continue;
@@ -125,7 +119,7 @@ int sink_render(struct sink*s, size_t length, struct memchunk *result) {
 
     if (n == 1) {
         struct sink_info *i = info[0].userdata;
-        assert(i && b);
+        assert(i);
         *result = info[0].chunk;
         memblock_ref(result->memblock);
 
@@ -137,7 +131,7 @@ int sink_render(struct sink*s, size_t length, struct memchunk *result) {
         result->memblock = memblock_new(length);
         assert(result->memblock);
 
-        result->length = l = mix_chunks(info, n, result->memblock->data, length, &s->sample_spec);
+        result->length = l = mix_chunks(info, n, result->memblock->data, length, &s->sample_spec, s->volume);
         result->index = 0;
         
         assert(l);
@@ -160,7 +154,7 @@ int sink_render_into(struct sink*s, struct memblock *target, struct memchunk *re
 
     if (n == 1) {
         struct sink_info *i = info[0].userdata;
-        assert(i && b);
+        assert(i);
 
         l = target->length;
         if (l > info[0].chunk.length)
@@ -170,15 +164,10 @@ int sink_render_into(struct sink*s, struct memblock *target, struct memchunk *re
         memcpy(target->data, info[0].chunk.memblock->data + info[0].chunk.index, l);
         result->length = target->length = l;
         result->index = 0;
-
-        if (result->length > length)
-            result->length = length;
-
-        l = result->length;
     } else {
 
         result->memblock = target;
-        result->length = l = mix_chunks(info, n, target->data, target->length, &s->sample_spec);
+        result->length = l = mix_chunks(info, n, target->data, target->length, &s->sample_spec, s->volume);
         result->index = 0;
         assert(l);
     }

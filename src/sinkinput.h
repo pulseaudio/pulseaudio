@@ -1,5 +1,5 @@
-#ifndef fooinputstreamhfoo
-#define fooinputstreamhfoo
+#ifndef foosinkinputhfoo
+#define foosinkinputhfoo
 
 #include <inttypes.h>
 
@@ -7,44 +7,26 @@
 #include "sample.h"
 #include "memblockq.h"
 
-struct input_stream {
-    char *name;
+struct sink_input {
     uint32_t index;
 
+    char *name;
     struct sink *sink;
     struct sample_spec spec;
     
-    struct memblockq *memblockq;
+    int (*peek) (struct sink_input *i, struct memchunk *chunk, uint8_t *volume);
+    void (*drop) (struct sink_input *i, size_t length);
+    void (*kill) (struct sink_input *i);
 
-    void (*kill)(struct input_stream* i, void *userdata);
-    void *kill_userdata;
-
-    void (*notify)(struct input_stream*i, void *userdata);
-    void *notify_userdata;
+    void *userdata;
 };
 
-struct input_stream* input_stream_new(struct sink *s, struct sample_spec *spec, const char *name);
-void input_stream_free(struct input_stream* i);
-
-/* This function notifies the attached sink that new data is available
- * in the memblockq */
-void input_stream_notify_sink(struct input_stream *i);
-
-
-/* The registrant of the input stream should call this function to set a
- * callback function which is called when destruction of the input stream is
- * requested */
-void input_stream_set_kill_callback(struct input_stream *i, void (*kill)(struct input_stream*i, void *userdata), void *userdata);
+struct sink_input* sink_input_new(struct sink *s, struct sample_spec *spec, const char *name);
+void sink_input_free(struct sink_input* i);
 
 /* Code that didn't create the input stream should call this function to
  * request destruction of it */
-void input_stream_kill(struct input_stream *i);
-
-/* Notify the code that created this input stream that some data has
- * been removed from the memblockq */
-void input_stream_set_notify_callback(struct input_stream *i, void (*notify)(struct input_stream*i, void *userdata), void *userdata);
-
-void input_stream_notify(struct input_stream *i);
+void sink_input_kill(struct sink_input *i);
 
 
 #endif

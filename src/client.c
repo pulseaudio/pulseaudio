@@ -12,11 +12,12 @@ struct client *client_new(struct core *core, const char *protocol_name, char *na
 
     c = malloc(sizeof(struct client));
     assert(c);
-    c->protocol_name = protocol_name;
     c->name = name ? strdup(name) : NULL;
-    c->kill = NULL;
-    c->kill_userdata = NULL;
     c->core = core;
+    c->protocol_name = protocol_name;
+
+    c->kill = NULL;
+    c->userdata = NULL;
 
     r = idxset_put(core->clients, c, &c->index);
     assert(c->index != IDXSET_INVALID && r >= 0);
@@ -35,14 +36,9 @@ void client_free(struct client *c) {
     free(c);
 }
 
-void client_set_kill_callback(struct client *c, void (*kill)(struct client *c, void *userdata), void *userdata) {
-    assert(c && kill);
-    c->kill = kill;
-    c->kill_userdata = userdata;
-}
-
 void client_kill(struct client *c) {
     assert(c);
-    c->kill(c, c->kill_userdata);
+    if (c->kill)
+        c->kill(c);
 }
 

@@ -1,27 +1,28 @@
-#ifndef foooutputstreamhfoo
-#define foooutputstreamhfoo
+#ifndef foosourceoutputhfoo
+#define foosourceoutputhfoo
 
 #include <inttypes.h>
+
 #include "source.h"
 #include "sample.h"
 #include "memblockq.h"
 
-struct output_stream {
-    char *name;
+struct source_output {
     uint32_t index;
 
+    char *name;
     struct source *source;
     struct sample_spec spec;
     
-    struct memblockq *memblockq;
-    void (*kill)(struct output_stream* i, void *userdata);
-    void *kill_userdata;
+    void (*push)(struct source_output *o, struct memchunk *chunk);
+    void (*kill)(struct source_output* o);
+
+    void *userdata;
 };
 
-struct output_stream* output_stream_new(struct source *s, struct sample_spec *spec, const char *name);
-void output_stream_free(struct output_stream* o);
+struct source_output* source_output_new(struct source *s, struct sample_spec *spec, const char *name);
+void source_output_free(struct source_output* o);
 
-void output_stream_set_kill_callback(struct output_stream *i, void (*kill)(struct output_stream*i, void *userdata), void *userdata);
-void output_stream_kill(struct output_stream*i);
+void source_output_kill(struct source_output*o);
 
 #endif

@@ -16,8 +16,8 @@ struct core* core_new(struct mainloop *m) {
     c->clients = idxset_new(NULL, NULL);
     c->sinks = idxset_new(NULL, NULL);
     c->sources = idxset_new(NULL, NULL);
-    c->output_streams = idxset_new(NULL, NULL);
-    c->input_streams = idxset_new(NULL, NULL);
+    c->source_outputs = idxset_new(NULL, NULL);
+    c->sink_inputs = idxset_new(NULL, NULL);
 
     c->default_source_index = c->default_sink_index = IDXSET_INVALID;
 
@@ -41,11 +41,11 @@ void core_free(struct core *c) {
     assert(idxset_isempty(c->sources));
     idxset_free(c->sources, NULL, NULL);
     
-    assert(idxset_isempty(c->output_streams));
-    idxset_free(c->output_streams, NULL, NULL);
+    assert(idxset_isempty(c->source_outputs));
+    idxset_free(c->source_outputs, NULL, NULL);
     
-    assert(idxset_isempty(c->input_streams));
-    idxset_free(c->input_streams, NULL, NULL);
+    assert(idxset_isempty(c->sink_inputs));
+    idxset_free(c->sink_inputs, NULL, NULL);
 
     free(c);    
 };

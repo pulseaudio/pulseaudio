@@ -35,7 +35,7 @@ struct mix_info {
     void *userdata;
 };
 
-size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct sample_spec *spec) {
+size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct sample_spec *spec, uint8_t volume);
 
 size_t bytes_per_second(struct sample_spec *spec);
 size_t sample_size(struct sample_spec *spec);

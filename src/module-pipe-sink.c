@@ -52,9 +52,9 @@ static void do_write(struct userdata *u) {
     }
 }
 
-static void notify_callback(struct sink*s, void *userdata) {
-    struct userdata *u = userdata;
-    assert(u);
+static void notify_cb(struct sink*s) {
+    struct userdata *u = s->userdata;
+    assert(s && u);
 
     if (iochannel_is_writable(u->io))
         mainloop_source_enable(u->mainloop_source, 1);
@@ -77,7 +77,7 @@ int module_init(struct core *c, struct module*m) {
     struct stat st;
     char *p;
     int fd = -1;
-    const static struct sample_spec ss = {
+    static const struct sample_spec ss = {
         .format = SAMPLE_S16NE,
         .rate = 44100,
         .channels = 2,
@@ -110,7 +110,8 @@ int module_init(struct core *c, struct module*m) {
     u->core = c;
     u->sink = sink_new(c, "fifo", &ss);
     assert(u->sink);
-    sink_set_notify_callback(u->sink, notify_callback, u);
+    u->sink->notify = notify_cb;
+    u->sink->userdata = u;
 
     u->io = iochannel_new(c->mainloop, -1, fd);
     assert(u->io);

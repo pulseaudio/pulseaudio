@@ -26,10 +26,12 @@ void* idxset_rrobin(struct idxset *s, uint32_t *index);
 
 /* Return the oldest entry in the idxset */
 void* idxset_first(struct idxset *s, uint32_t *index);
+void *idxset_next(struct idxset *s, uint32_t *index);
 
 int idxset_foreach(struct idxset*s, int (*func)(void *p, uint32_t index, int *del, void*userdata), void *userdata);
 
 unsigned idxset_ncontents(struct idxset*s);
 int idxset_isempty(struct idxset *s);
+
 
 #endif

@@ -7,7 +7,7 @@
 struct core {
     struct mainloop *mainloop;
 
-    struct idxset *clients, *sinks, *sources, *output_streams, *input_streams, *modules;
+    struct idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules;
 
     uint32_t default_source_index, default_sink_index;
 };

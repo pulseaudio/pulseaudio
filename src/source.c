@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "source.h"
-#include "outputstream.h"
+#include "sourceoutput.h"
 
 struct source* source_new(struct core *core, const char *name, const struct sample_spec *spec) {
     struct source *s;
@@ -15,15 +15,15 @@ struct source* source_new(struct core *core, const char *name, const struct samp
     assert(s);
 
     s->name = name ? strdup(name) : NULL;
-    r = idxset_put(core->sources, s, &s->index);
-    assert(s->index != IDXSET_INVALID && r >= 0);
-
     s->core = core;
     s->sample_spec = *spec;
-    s->output_streams = idxset_new(NULL, NULL);
+    s->outputs = idxset_new(NULL, NULL);
 
-    s->link_change_callback = NULL;
+    s->notify = NULL;
     s->userdata = NULL;
+
+    r = idxset_put(core->sources, s, &s->index);
+    assert(s->index != IDXSET_INVALID && r >= 0);
 
     fprintf(stderr, "source: created %u \"%s\"\n", s->index, s->name);
     
@@ -31,15 +31,15 @@ struct source* source_new(struct core *core, const char *name, const struct samp
 }
 
 void source_free(struct source *s) {
-    struct output_stream *o, *j = NULL;
+    struct source_output *o, *j = NULL;
     assert(s);
 
-    while ((o = idxset_first(s->output_streams, NULL))) {
+    while ((o = idxset_first(s->outputs, NULL))) {
         assert(o != j);
-        output_stream_free(o);
+        source_output_kill(o);
         j = o;
     }
-    idxset_free(s->output_streams, NULL, NULL);
+    idxset_free(s->outputs, NULL, NULL);
     
     idxset_remove_by_data(s->core->sources, s, NULL);
 
@@ -49,17 +49,24 @@ void source_free(struct source *s) {
     free(s);
 }
 
+void source_notify(struct source*s) {
+    assert(s);
+
+    if (s->notify)
+        s->notify(s);
+}
+
 static int do_post(void *p, uint32_t index, int *del, void*userdata) {
     struct memchunk *chunk = userdata;
-    struct output_stream *o = p;
-    assert(o && o->memblockq && index && del && chunk);
+    struct source_output *o = p;
+    assert(o && o->push && index && del && chunk);
 
-    memblockq_push(o->memblockq, chunk, 0);
+    o->push(o, chunk);
     return 0;
 }
 
 void source_post(struct source*s, struct memchunk *chunk) {
     assert(s && chunk);
 
-    idxset_foreach(s->output_streams, do_post, chunk);
+    idxset_foreach(s->outputs, do_post, chunk);
 }

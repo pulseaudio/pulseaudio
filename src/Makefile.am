@@ -26,7 +26,7 @@ pkglib_LTLIBRARIES=libprotocol-simple.la module-simple-protocol-tcp.la \
 
 polypaudio_SOURCES = idxset.c queue.c strbuf.c mainloop.c  \
 		memblock.c sample.c memblockq.c client.c \
-		core.c main.c outputstream.c inputstream.c source.c sink.c \
+		core.c main.c sourceoutput.c sinkinput.c source.c sink.c \
 		module.c
 polypaudio_INCLUDES = $(INCLTDL)
 polypaudio_LDADD = $(LIBLTDL) 
