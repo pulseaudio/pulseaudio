@@ -85,7 +85,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     assert(r == 0);
 
     pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"\n", i->index, i->name, s->index, st);
+    pa_log_info(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"\n", i->index, i->name, s->index, st);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
     
@@ -115,6 +115,8 @@ static void sink_input_free(struct pa_sink_input* i) {
     if (i->state != PA_SINK_INPUT_DISCONNECTED)
         pa_sink_input_disconnect(i);
 
+    pa_log_info(__FILE__": freed %u \"%s\"\n", i->index, i->name); 
+    
     if (i->resampled_chunk.memblock)
         pa_memblock_unref(i->resampled_chunk.memblock);
     if (i->resampler)

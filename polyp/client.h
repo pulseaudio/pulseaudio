@@ -35,7 +35,7 @@ struct pa_client {
     struct pa_module *owner;
     char *name;
     struct pa_core *core;
-    const char *protocol_name;
+    char *protocol_name;
 
     void (*kill)(struct pa_client *c);
     void *userdata;

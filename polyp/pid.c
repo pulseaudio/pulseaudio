@@ -43,8 +43,8 @@
  * pid could be read, return 0, on failure (pid_t) -1 */
 static pid_t read_pid(const char *fn, int fd) {
     ssize_t r;
-    char t[20], *e = NULL;
-    long int pid;
+    char t[20], *e;
+    uint32_t pid;
 
     assert(fn && fd >= 0);
 
@@ -57,8 +57,10 @@ static pid_t read_pid(const char *fn, int fd) {
         return (pid_t) 0;
     
     t[r] = 0;
+    if ((e = strchr(t, '\n')))
+        *e = 0;
 
-    if (!t[0] || (pid = strtol(t, &e, 0)) == 0 || (*e != 0 && *e != '\n')) {
+    if (pa_atou(t, &pid) < 0) {
         pa_log(__FILE__": WARNING: failed to parse PID file '%s'\n", fn);
         return (pid_t) -1;
     }

@@ -89,7 +89,7 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
 
     assert(m->init);
     if (m->init(c, m) < 0) {
-        pa_log(__FILE__": Failed to load  module \"%s\" (argument: \"%s\"): initialization failed.\n", name, argument ? argument : "");
+        pa_log_error(__FILE__": Failed to load  module \"%s\" (argument: \"%s\"): initialization failed.\n", name, argument ? argument : "");
         goto fail;
     }
 
@@ -108,7 +108,7 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     r = pa_idxset_put(c->modules, m, &m->index);
     assert(r >= 0 && m->index != PA_IDXSET_INVALID);
 
-    pa_log(__FILE__": Loaded \"%s\" (index: #%u; argument: \"%s\").\n", m->name, m->index, m->argument ? m->argument : "");
+    pa_log_info(__FILE__": Loaded \"%s\" (index: #%u; argument: \"%s\").\n", m->name, m->index, m->argument ? m->argument : ""); 
 
     pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_NEW, m->index);
     
@@ -135,13 +135,13 @@ static void pa_module_free(struct pa_module *m) {
     if (m->core->disallow_module_loading)
         return;
 
-    pa_log(__FILE__": Unloading \"%s\" (index: #%u).\n", m->name, m->index);
+    pa_log_info(__FILE__": Unloading \"%s\" (index: #%u).\n", m->name, m->index); 
 
     m->done(m->core, m);
 
     lt_dlclose(m->dl);
     
-    pa_log(__FILE__": Unloaded \"%s\" (index: #%u).\n", m->name, m->index);
+    pa_log_info(__FILE__": Unloaded \"%s\" (index: #%u).\n", m->name, m->index); 
 
     pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_REMOVE, m->index);
     

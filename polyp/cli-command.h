@@ -27,15 +27,14 @@
 
 /* Execute a single CLI command. Write the results to the string
  * buffer *buf. If *fail is non-zero the function will return -1 when
- * one or more of the executed commands failed. If *verbose is
- * non-zero the command is executed verbosely. Both *verbose and *fail
+ * one or more of the executed commands failed. *fail
  * may be modified by the function call. */
-int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail, int *verbose);
+int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail);
 
 /* Execute a whole file of CLI commands */
-int pa_cli_command_execute_file(struct pa_core *c, const char *fn, struct pa_strbuf *buf, int *fail, int *verbose);
+int pa_cli_command_execute_file(struct pa_core *c, const char *fn, struct pa_strbuf *buf, int *fail);
 
 /* Split the specified string into lines and run pa_cli_command_execute_line() for each. */
-int pa_cli_command_execute(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail, int *verbose);
+int pa_cli_command_execute(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail);
 
 #endif

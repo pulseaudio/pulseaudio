@@ -190,41 +190,27 @@ const char *pa_modargs_get_value(struct pa_modargs *ma, const char *key, const c
 
 int pa_modargs_get_value_u32(struct pa_modargs *ma, const char *key, uint32_t *value) {
     const char *v;
-    char *e;
-    unsigned long l;
     assert(ma && key && value);
 
     if (!(v = pa_modargs_get_value(ma, key, NULL)))
         return 0;
 
-    if (!*v)
-        return -1;
-    
-    l = strtoul(v, &e, 0);
-    if (*e)
+    if (pa_atou(v, value) < 0)
         return -1;
 
-    *value = (uint32_t) l;
     return 0;
 }
 
 int pa_modargs_get_value_s32(struct pa_modargs *ma, const char *key, int32_t *value) {
     const char *v;
-    char *e;
-    signed long l;
     assert(ma && key && value);
 
     if (!(v = pa_modargs_get_value(ma, key, NULL)))
         return 0;
 
-    if (!*v)
+    if (pa_atoi(v, value) < 0)
         return -1;
-    
-    l = strtol(v, &e, 0);
-    if (*e)
-        return -1;
-
-    *value = (int32_t) l;
+            
     return 0;
 }
 

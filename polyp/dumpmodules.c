@@ -86,7 +86,7 @@ static int callback(const char *path, lt_ptr data) {
         e = path;
 
     if (strlen(e) > sizeof(PREFIX)-1 && !strncmp(e, PREFIX, sizeof(PREFIX)-1))
-        show_info(e, path, c->verbose ? long_info : short_info);
+        show_info(e, path, c->log_level >= PA_LOG_INFO ? long_info : short_info);
     
     return 0;
 }

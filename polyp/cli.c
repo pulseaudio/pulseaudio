@@ -55,7 +55,7 @@ struct pa_cli {
 
     struct pa_client *client;
 
-    int fail, verbose, kill_requested, defer_kill;
+    int fail, kill_requested, defer_kill;
 };
 
 static void line_callback(struct pa_ioline *line, const char *s, void *userdata);
@@ -85,7 +85,6 @@ struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io, struct 
     pa_ioline_puts(c->line, "Welcome to polypaudio! Use \"help\" for usage information.\n"PROMPT);
 
     c->fail = c->kill_requested = c->defer_kill = 0;
-    c->verbose = 1;
     
     return c;
 }
@@ -129,7 +128,7 @@ static void line_callback(struct pa_ioline *line, const char *s, void *userdata)
     buf = pa_strbuf_new();
     assert(buf);
     c->defer_kill++;
-    pa_cli_command_execute_line(c->core, s, buf, &c->fail, &c->verbose);
+    pa_cli_command_execute_line(c->core, s, buf, &c->fail);
     c->defer_kill--;
     pa_ioline_puts(line, p = pa_strbuf_tostring_free(buf));
     pa_xfree(p);

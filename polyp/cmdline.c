@@ -43,7 +43,7 @@ enum {
     ARG_DUMP_MODULES,
     ARG_DAEMONIZE,
     ARG_FAIL,
-    ARG_VERBOSE,
+    ARG_LOG_LEVEL,
     ARG_HIGH_PRIORITY,
     ARG_DISALLOW_MODULE_LOADING,
     ARG_EXIT_IDLE_TIME,
@@ -67,7 +67,8 @@ static struct option long_options[] = {
     {"dump-modules",                0, 0, ARG_DUMP_MODULES},
     {"daemonize",                   2, 0, ARG_DAEMONIZE},
     {"fail",                        2, 0, ARG_FAIL},
-    {"verbose",                     2, 0, ARG_VERBOSE},
+    {"verbose",                     2, 0, ARG_LOG_LEVEL},
+    {"log-level",                   2, 0, ARG_LOG_LEVEL},
     {"high-priority",               2, 0, ARG_HIGH_PRIORITY},
     {"disallow-module-loading",     2, 0, ARG_DISALLOW_MODULE_LOADING},
     {"exit-idle-time",              2, 0, ARG_EXIT_IDLE_TIME},
@@ -104,7 +105,6 @@ void pa_cmdline_help(const char *argv0) {
            "OPTIONS:\n"
            "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
            "      --fail[=BOOL]                     Quit when startup fails\n"
-           "      --verbose[=BOOL]                  Be slightly more verbose\n"
            "      --high-priority[=BOOL]            Try to set high process priority\n"
            "                                        (only available as root)\n"
            "      --disallow-module-loading[=BOOL]  Disallow module loading after startup\n"
@@ -114,6 +114,8 @@ void pa_cmdline_help(const char *argv0) {
            "                                        this time passed\n"
            "      --scache-idle-time=SECS           Unload autoloaded samples when idle and\n"
            "                                        this time passed\n"
+           "      --log-level[=LEVEL]               Increase or set verbosity level\n"
+           "  -v                                    Increase the verbosity level\n" 
            "      --log-target={auto,syslog,stderr} Specify the log target\n"
            "  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
            "                                        objects (plugins)\n"
@@ -143,7 +145,7 @@ int pa_cmdline_parse(struct pa_daemon_conf *conf, int argc, char *const argv [],
     if (conf->script_commands)
         pa_strbuf_puts(buf, conf->script_commands);
     
-    while ((c = getopt_long(argc, argv, "L:F:ChDnp:k", long_options, NULL)) != -1) {
+    while ((c = getopt_long(argc, argv, "L:F:ChDnp:kv", long_options, NULL)) != -1) {
         switch (c) {
             case ARG_HELP:
             case 'h':
@@ -200,11 +202,19 @@ int pa_cmdline_parse(struct pa_daemon_conf *conf, int argc, char *const argv [],
                 }
                 break;
 
-            case ARG_VERBOSE:
-                if ((conf->verbose = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
-                    pa_log(__FILE__": --verbose expects boolean argument\n");
-                    goto fail;
+            case 'v':
+            case ARG_LOG_LEVEL:
+
+                if (optarg) {
+                    if (pa_daemon_conf_set_log_level(conf, optarg) < 0) {
+                        pa_log(__FILE__": --log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error).\n");
+                        goto fail;
+                    }
+                } else {
+                    if (conf->log_level < PA_LOG_LEVEL_MAX-1)
+                        conf->log_level++;
                 }
+                
                 break;
 
             case ARG_HIGH_PRIORITY:

@@ -68,7 +68,7 @@ struct pa_source* pa_source_new(struct pa_core *core, const char *name, int fail
     assert(s->index != PA_IDXSET_INVALID && r >= 0);
 
     pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log(__FILE__": created %u \"%s\" with sample spec \"%s\"\n", s->index, s->name, st);
+    pa_log_info(__FILE__": created %u \"%s\" with sample spec \"%s\"\n", s->index, s->name, st); 
 
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     
@@ -101,7 +101,7 @@ static void source_free(struct pa_source *s) {
     if (s->state != PA_SOURCE_DISCONNECTED)
         pa_source_disconnect(s);
     
-    pa_log(__FILE__": freed %u \"%s\"\n", s->index, s->name);
+    pa_log_info(__FILE__": freed %u \"%s\"\n", s->index, s->name); 
 
     pa_idxset_free(s->outputs, NULL, NULL);
 

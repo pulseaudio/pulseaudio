@@ -22,6 +22,7 @@
   USA.
 ***/
 
+#include <stdarg.h>
 #include "gcc-printf.h"
 
 /* A simple logging subsystem */
@@ -34,13 +35,35 @@ enum pa_log_target {
     PA_LOG_NULL     /* to /dev/null */
 };
 
+enum pa_log_level {
+    PA_LOG_ERROR  = 0,    /* Error messages */
+    PA_LOG_WARN   = 1,    /* Warning messages */
+    PA_LOG_NOTICE = 2,    /* Notice messages */
+    PA_LOG_INFO   = 3,    /* Info messages */
+    PA_LOG_DEBUG  = 4,    /* debug message */
+    PA_LOG_LEVEL_MAX
+};
+
 /* Set an identifcation for the current daemon. Used when logging to syslog. */
 void pa_log_set_ident(const char *p);
 
 /* Set another log target. If t is PA_LOG_USER you may specify a function that is called every log string */
-void pa_log_set_target(enum pa_log_target t, void (*func)(const char*s));
+void pa_log_set_target(enum pa_log_target t, void (*func)(enum pa_log_level, const char*s));
+
+/* Minimal log level */
+void pa_log_set_maximal_level(enum pa_log_level l);
 
 /* Do a log line */
-void pa_log(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
+void pa_log_debug(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
+void pa_log_info(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
+void pa_log_notice(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
+void pa_log_warn(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
+void pa_log_error(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
+
+void pa_log_level(enum pa_log_level level, const char *format, ...) PA_GCC_PRINTF_ATTR(2,3);
+
+void pa_log_levelv(enum pa_log_level level, const char *format, va_list ap);
+
+#define pa_log pa_log_error
 
 #endif

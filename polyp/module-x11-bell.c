@@ -69,7 +69,7 @@ static int ring_bell(struct userdata *u, int percent) {
     assert(u);
 
     if (!(s = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
-        pa_log(__FILE__": Invalid sink\n");
+        pa_log(__FILE__": Invalid sink: %s\n", u->sink_name);
         return -1;
     }
 
@@ -88,7 +88,7 @@ static int x11_event_callback(struct pa_x11_wrapper *w, XEvent *e, void *userdat
     bne = (XkbBellNotifyEvent*) e;
 
     if (ring_bell(u, bne->percent) < 0) {
-        pa_log(__FILE__": Ringing bell failed, reverting to X11 device bell.\n");
+        pa_log_info(__FILE__": Ringing bell failed, reverting to X11 device bell.\n");
         XkbForceDeviceBell(pa_x11_wrapper_get_display(w), bne->device, bne->bell_class, bne->bell_id, bne->percent);
     }
 

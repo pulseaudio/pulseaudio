@@ -40,7 +40,6 @@ struct pa_daemon_conf {
     enum pa_daemon_conf_cmd cmd;
     int daemonize,
         fail,
-        verbose,
         high_priority,
         disallow_module_loading,
         exit_idle_time,
@@ -50,6 +49,7 @@ struct pa_daemon_conf {
         use_pid_file;
     char *script_commands, *dl_search_path, *default_script_file;
     enum pa_log_target log_target;
+    enum pa_log_level log_level;
     int resample_method;
     char *config_file;
 };
@@ -74,6 +74,7 @@ int pa_daemon_conf_env(struct pa_daemon_conf *c);
 
 /* Set these configuration variables in the structure by passing a string */
 int pa_daemon_conf_set_log_target(struct pa_daemon_conf *c, const char *string);
+int pa_daemon_conf_set_log_level(struct pa_daemon_conf *c, const char *string);
 int pa_daemon_conf_set_resample_method(struct pa_daemon_conf *c, const char *string);
 
 #endif

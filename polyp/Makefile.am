@@ -156,7 +156,8 @@ SYMDEF_FILES= \
 		module-tunnel-sink-symdef.h \
 		module-tunnel-source-symdef.h \
 		module-null-sink-symdef.h \
-		module-esound-sink-symdef.h
+		module-esound-sink-symdef.h \
+		module-zeroconf-publish-symdef.h
 
 EXTRA_DIST+=$(SYMDEF_FILES)
 BUILT_SOURCES+=$(SYMDEF_FILES)
@@ -594,6 +595,24 @@ module_alsa_source_la_SOURCES = module-alsa-source.c
 module_alsa_source_la_LDFLAGS = -module -avoid-version
 module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
 module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+endif
+
+### HOWL modules
+if HAVE_HOWL
+modlib_LTLIBRARIES+= \
+		libhowl-wrap.la \
+		module-zeroconf-publish.la
+
+libhowl_wrap_la_SOURCES = howl-wrap.c howl-wrap.h
+libhowl_wrap_la_LDFLAGS = -avoid-version
+libhowl_wrap_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS)
+libhowl_wrap_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
+
+module_zeroconf_publish_la_SOURCES = module-zeroconf-publish.c
+module_zeroconf_publish_la_LDFLAGS = -module -avoid-version
+module_zeroconf_publish_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS) libhowl-wrap.la
+module_zeroconf_publish_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
+
 endif
 
 ### GLIB 2.0 support

@@ -35,6 +35,7 @@
 #include "sink.h"
 #include "xmalloc.h"
 #include "subscribe.h"
+#include "util.h"
 
 struct namereg_entry {
     enum pa_namereg_type type;
@@ -112,8 +113,6 @@ void pa_namereg_unregister(struct pa_core *c, const char *name) {
 void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type type, int autoload) {
     struct namereg_entry *e;
     uint32_t index;
-    char *x = NULL;
-    void *d = NULL;
     assert(c);
     
     if (!name) {
@@ -130,9 +129,7 @@ void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type t
         if (e->type == e->type)
             return e->data;
 
-    index = (uint32_t) strtol(name, &x, 0);
-
-    if (!x || *x != 0) {
+    if (pa_atou(name, &index) < 0) {
 
         if (autoload) {
             pa_autoload_request(c, name, type);
@@ -146,13 +143,13 @@ void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type t
     }
 
     if (type == PA_NAMEREG_SINK)
-        d = pa_idxset_get_by_index(c->sinks, index);
+        return pa_idxset_get_by_index(c->sinks, index);
     else if (type == PA_NAMEREG_SOURCE)
-        d = pa_idxset_get_by_index(c->sources, index);
+        return pa_idxset_get_by_index(c->sources, index);
     else if (type == PA_NAMEREG_SAMPLE && c->scache)
-        d = pa_idxset_get_by_index(c->scache, index);
-    
-    return d;
+        return pa_idxset_get_by_index(c->scache, index);
+
+    return NULL;
 }
 
 void pa_namereg_set_default(struct pa_core*c, const char *name, enum pa_namereg_type type) {

@@ -111,7 +111,7 @@ static void adjust_rates(struct userdata *u) {
 
     target_latency = max_sink_latency > min_total_latency ? max_sink_latency : min_total_latency;
     
-    pa_log(__FILE__": [%s] target latency is %0.0f usec.\n", u->sink->name, (float) target_latency);
+    pa_log_info(__FILE__": [%s] target latency is %0.0f usec.\n", u->sink->name, (float) target_latency);
 
     base_rate = u->sink->sample_spec.rate;
 
@@ -124,9 +124,9 @@ static void adjust_rates(struct userdata *u) {
             r += (uint32_t) (((((double) o->total_latency - target_latency))/u->adjust_time)*r/ 1000000);
 
         if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1))
-            pa_log(__FILE__": [%s] sample rates too different, not adjusting (%u vs. %u).\n", o->sink_input->name, base_rate, r);
+            pa_log_warn(__FILE__": [%s] sample rates too different, not adjusting (%u vs. %u).\n", o->sink_input->name, base_rate, r);
         else {
-            pa_log(__FILE__": [%s] new rate is %u Hz; ratio is %0.3f; latency is %0.0f usec.\n", o->sink_input->name, r, (double) r / base_rate, (float) o->total_latency);
+            pa_log_info(__FILE__": [%s] new rate is %u Hz; ratio is %0.3f; latency is %0.0f usec.\n", o->sink_input->name, r, (double) r / base_rate, (float) o->total_latency);
             pa_sink_input_set_rate(o->sink_input, r);
         }
     }
@@ -358,7 +358,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     }
            
     if (u->n_outputs <= 1)
-        pa_log(__FILE__": WARNING: no slave sinks specified.\n");
+        pa_log_warn(__FILE__": WARNING: no slave sinks specified.\n");
 
     if (u->adjust_time > 0) {
         gettimeofday(&tv, NULL);

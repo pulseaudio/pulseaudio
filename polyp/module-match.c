@@ -88,8 +88,9 @@ static int load_rules(struct userdata *u, const char *filename) {
     }
 
     while (!feof(f)) {
-        char *d, *v, *e = NULL;
+        char *d, *v;
         pa_volume_t volume;
+        uint32_t k;
         regex_t regex;
         char ln[256];
         struct rule *rule;
@@ -114,14 +115,14 @@ static int load_rules(struct userdata *u, const char *filename) {
         }
 
         *d = 0;
-        
-        volume = (pa_volume_t) strtol(v, &e, 0);
-
-        if (!e || *e) {
+        if (pa_atou(v, &k) < 0) {
             pa_log(__FILE__": [%s:%u] failed to parse volume\n", filename, n);
             goto finish;
         }
 
+        volume = (pa_volume_t) k;
+
+        
         if (regcomp(&regex, ln, REG_EXTENDED|REG_NOSUB) != 0) {
             pa_log(__FILE__": [%s:%u] invalid regular expression\n", filename, n);
             goto finish;
@@ -162,10 +163,8 @@ static void callback(struct pa_core *c, enum pa_subscription_event_type t, uint3
     if (t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW))
         return;
 
-    if (!(si = pa_idxset_get_by_index(c->sink_inputs, index))) {
-        pa_log(__FILE__": WARNING: failed to get sink input\n");
+    if (!(si = pa_idxset_get_by_index(c->sink_inputs, index)))
         return;
-    }
 
     if (!si->name)
         return;

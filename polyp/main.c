@@ -64,7 +64,7 @@ int deny_severity = LOG_WARNING;
 #endif
 
 static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
-    pa_log(__FILE__": Got signal %s.\n", pa_strsignal(sig));
+    pa_log_info(__FILE__": Got signal %s.\n", pa_strsignal(sig));
 
     switch (sig) {
         case SIGUSR1:
@@ -108,7 +108,7 @@ static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e,
                     default:
                         return;
                 }
-                pa_log(c);
+                pa_log_notice(c);
                 pa_xfree(c);
             }
 
@@ -118,7 +118,7 @@ static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e,
         case SIGINT:
         case SIGTERM:
         default:
-            pa_log(__FILE__": Exiting.\n");
+            pa_log_info(__FILE__": Exiting.\n");
             m->quit(m, 1);
             return;
     }
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
     suid_root = getuid() != 0 && geteuid() == 0;
     
     if (suid_root && (pa_uid_in_group("realtime", &gid) <= 0 || gid >= 1000)) {
-        pa_log(__FILE__": WARNING: called SUID root, but not in group 'realtime'.\n");
+        pa_log_warn(__FILE__": WARNING: called SUID root, but not in group 'realtime'.\n");
         pa_drop_root();
     }
     
@@ -165,15 +165,16 @@ int main(int argc, char *argv[]) {
     
     if (pa_daemon_conf_load(conf, NULL) < 0)
         goto finish;
-    
+
     if (pa_daemon_conf_env(conf) < 0)
         goto finish;
-    
+
     if (pa_cmdline_parse(conf, argc, argv, &d) < 0) {
         pa_log(__FILE__": failed to parse command line.\n");
         goto finish;
     }
-    
+
+    pa_log_set_maximal_level(conf->log_level);
     pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target, NULL);
 
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
@@ -215,11 +216,9 @@ int main(int argc, char *argv[]) {
             pid_t pid;
 
             if (pa_pid_file_check_running(&pid) < 0) {
-                if (conf->verbose)
-                    pa_log(__FILE__": daemon not running\n");
+                pa_log_info(__FILE__": daemon not running\n");
             } else {
-                if (conf->verbose)
-                    pa_log(__FILE__": daemon running as PID %u\n", pid);
+                pa_log_info(__FILE__": daemon running as PID %u\n", pid);
                 retval = 0;
             }
 
@@ -268,8 +267,10 @@ int main(int argc, char *argv[]) {
                 retval = 1;
             }
 
-            if (conf->verbose)
-                pa_log(__FILE__": daemon startup %s.\n", retval ? "failed" : "succeeded");
+            if (retval)
+                pa_log(__FILE__": daemon startup failed .\n");
+            else
+                pa_log_info(__FILE__": daemon startup successful.\n");
             
             goto finish;
         }
@@ -318,10 +319,10 @@ int main(int argc, char *argv[]) {
     buf = pa_strbuf_new();
     assert(buf);
     if (conf->default_script_file)
-        r = pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail, &conf->verbose);
+        r = pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail);
 
     if (r >= 0)
-        r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail, &conf->verbose);
+        r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail);
     pa_log(s = pa_strbuf_tostring_free(buf));
     pa_xfree(s);
     
@@ -345,10 +346,10 @@ int main(int argc, char *argv[]) {
         c->scache_idle_time = conf->scache_idle_time;
         c->resample_method = conf->resample_method;
         
-        pa_log(__FILE__": Daemon startup complete.\n");
+        pa_log_info(__FILE__": Daemon startup complete.\n");
         if (pa_mainloop_run(mainloop, &retval) < 0)
             retval = 1;
-        pa_log(__FILE__": Daemon shutdown initiated.\n");
+        pa_log_info(__FILE__": Daemon shutdown initiated.\n");
     }
         
     pa_core_free(c);
@@ -357,7 +358,7 @@ int main(int argc, char *argv[]) {
     pa_signal_done();
     pa_mainloop_free(mainloop);
     
-    pa_log(__FILE__": Daemon terminated.\n");
+    pa_log_info(__FILE__": Daemon terminated.\n");
     
 finish:
 

@@ -45,7 +45,7 @@ void pa_drop_root(void) {
     if (uid == 0 || geteuid() != 0)
         return;
 
-    /*     pa_log(__FILE__": dropping root rights.\n"); */
+    pa_log_info(__FILE__": dropping root rights.\n");
 
 #if defined(HAVE_SETRESUID)
     setresuid(uid, uid, uid);
@@ -76,7 +76,7 @@ int pa_limit_caps(void) {
     if (cap_set_proc(caps) < 0)
         goto fail;
 
-/*     pa_log(__FILE__": dropped capabilities successfully.\n"); */
+    pa_log_info(__FILE__": dropped capabilities successfully.\n"); 
     
     r = 0;
 

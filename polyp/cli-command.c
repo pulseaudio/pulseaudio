@@ -48,45 +48,50 @@
 #include "xmalloc.h"
 #include "sound-file-stream.h"
 #include "props.h"
+#include "util.h"
 
 struct command {
     const char *name;
-    int (*proc) (struct pa_core *c, struct pa_tokenizer*t, struct pa_strbuf *buf, int *fail, int *verbose);
+    int (*proc) (struct pa_core *c, struct pa_tokenizer*t, struct pa_strbuf *buf, int *fail);
     const char *help;
     unsigned args;
 };
 
+#define INCLUDE_META ".include"
+#define FAIL_META ".fail"
+#define NOFAIL_META ".nofail"
+
 /* Prototypes for all available commands */
-static int pa_cli_command_exit(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_help(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_modules(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_clients(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_sinks(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_sources(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_sink_inputs(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_source_outputs(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_stat(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_info(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_unload(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_sink_volume(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_sink_input_volume(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_sink_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_source_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_kill_client(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_kill_sink_input(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_kill_source_output(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_scache_load_dir(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
-static int pa_cli_command_list_props(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_exit(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_help(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_modules(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_clients(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_sinks(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_sources(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_sink_inputs(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_source_outputs(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_stat(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_info(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_unload(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_sink_volume(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_sink_input_volume(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_sink_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_source_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_kill_client(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_kill_sink_input(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_kill_source_output(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_scache_load_dir(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
+static int pa_cli_command_list_props(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail);
 
 
 /* A method table for all available commands */
@@ -134,22 +139,21 @@ static const char whitespace[] = " \t\n\r";
 static const char linebreak[] = "\n\r";
 
 static uint32_t parse_index(const char *n) {
-    long index;
-    char *x;
-    index = strtol(n, &x, 0);
-    if (!x || *x != 0 || index < 0)
+    uint32_t index;
+
+    if (pa_atou(n, &index) < 0)
         return (uint32_t) PA_IDXSET_INVALID;
 
-    return (uint32_t) index;
+    return index;
 }
 
-static int pa_cli_command_exit(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_exit(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     assert(c && c->mainloop && t);
     c->mainloop->quit(c->mainloop, 0);
     return 0;
 }
 
-static int pa_cli_command_help(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_help(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const struct command*command;
     assert(c && t && buf);
 
@@ -161,7 +165,7 @@ static int pa_cli_command_help(struct pa_core *c, struct pa_tokenizer *t, struct
     return 0;
 }
 
-static int pa_cli_command_modules(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_modules(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     char *s;
     assert(c && t);
     s = pa_module_list_to_string(c);
@@ -171,7 +175,7 @@ static int pa_cli_command_modules(struct pa_core *c, struct pa_tokenizer *t, str
     return 0;
 }
 
-static int pa_cli_command_clients(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_clients(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     char *s;
     assert(c && t);
     s = pa_client_list_to_string(c);
@@ -181,7 +185,7 @@ static int pa_cli_command_clients(struct pa_core *c, struct pa_tokenizer *t, str
     return 0;
 }
 
-static int pa_cli_command_sinks(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_sinks(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     char *s;
     assert(c && t);
     s = pa_sink_list_to_string(c);
@@ -191,7 +195,7 @@ static int pa_cli_command_sinks(struct pa_core *c, struct pa_tokenizer *t, struc
     return 0;
 }
 
-static int pa_cli_command_sources(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_sources(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     char *s;
     assert(c && t);
     s = pa_source_list_to_string(c);
@@ -201,7 +205,7 @@ static int pa_cli_command_sources(struct pa_core *c, struct pa_tokenizer *t, str
     return 0;
 }
 
-static int pa_cli_command_sink_inputs(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_sink_inputs(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     char *s;
     assert(c && t);
     s = pa_sink_input_list_to_string(c);
@@ -211,7 +215,7 @@ static int pa_cli_command_sink_inputs(struct pa_core *c, struct pa_tokenizer *t,
     return 0;
 }
 
-static int pa_cli_command_source_outputs(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_source_outputs(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     char *s;
     assert(c && t);
     s = pa_source_output_list_to_string(c);
@@ -221,7 +225,7 @@ static int pa_cli_command_source_outputs(struct pa_core *c, struct pa_tokenizer 
     return 0;
 }
 
-static int pa_cli_command_stat(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_stat(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     char s[256];
     assert(c && t);
 
@@ -249,24 +253,23 @@ static int pa_cli_command_stat(struct pa_core *c, struct pa_tokenizer *t, struct
     return 0;
 }
 
-static int pa_cli_command_info(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_info(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     assert(c && t);
-    pa_cli_command_stat(c, t, buf, fail, verbose);
-    pa_cli_command_modules(c, t, buf, fail, verbose);
-    pa_cli_command_sinks(c, t, buf, fail, verbose);
-    pa_cli_command_sources(c, t, buf, fail, verbose);
-    pa_cli_command_clients(c, t, buf, fail, verbose);
-    pa_cli_command_sink_inputs(c, t, buf, fail, verbose);
-    pa_cli_command_source_outputs(c, t, buf, fail, verbose);
-    pa_cli_command_scache_list(c, t, buf, fail, verbose);
-    pa_cli_command_autoload_list(c, t, buf, fail, verbose);
+    pa_cli_command_stat(c, t, buf, fail);
+    pa_cli_command_modules(c, t, buf, fail);
+    pa_cli_command_sinks(c, t, buf, fail);
+    pa_cli_command_sources(c, t, buf, fail);
+    pa_cli_command_clients(c, t, buf, fail);
+    pa_cli_command_sink_inputs(c, t, buf, fail);
+    pa_cli_command_source_outputs(c, t, buf, fail);
+    pa_cli_command_scache_list(c, t, buf, fail);
+    pa_cli_command_autoload_list(c, t, buf, fail);
     return 0;
 }
 
-static int pa_cli_command_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     struct pa_module *m;
     const char *name;
-    char txt[256];
     assert(c && t);
 
     if (!(name = pa_tokenizer_get(t, 1))) {
@@ -279,14 +282,10 @@ static int pa_cli_command_load(struct pa_core *c, struct pa_tokenizer *t, struct
         return -1;
     }
 
-    if (*verbose) {
-        snprintf(txt, sizeof(txt), "Module successfully loaded, index: %u.\n", m->index);
-        pa_strbuf_puts(buf, txt);
-    }
     return 0;
 }
 
-static int pa_cli_command_unload(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_unload(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     struct pa_module *m;
     uint32_t index;
     const char *i;
@@ -308,11 +307,10 @@ static int pa_cli_command_unload(struct pa_core *c, struct pa_tokenizer *t, stru
     return 0;
 }
 
-static int pa_cli_command_sink_volume(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_sink_volume(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *n, *v;
-    char *x = NULL;
     struct pa_sink *sink;
-    long volume;
+    uint32_t volume;
 
     if (!(n = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a sink either by its name or its index.\n");
@@ -324,8 +322,7 @@ static int pa_cli_command_sink_volume(struct pa_core *c, struct pa_tokenizer *t,
         return -1;
     }
 
-    volume = strtol(v, &x, 0);
-    if (!x || *x != 0 || volume < 0) {
+    if (pa_atou(v, &volume) < 0) {
         pa_strbuf_puts(buf, "Failed to parse volume.\n");
         return -1;
     }
@@ -339,12 +336,11 @@ static int pa_cli_command_sink_volume(struct pa_core *c, struct pa_tokenizer *t,
     return 0;
 }
 
-static int pa_cli_command_sink_input_volume(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_sink_input_volume(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *n, *v;
     struct pa_sink_input *si;
-    long volume;
+    uint32_t volume;
     uint32_t index;
-    char *x;
 
     if (!(n = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a sink input by its index.\n");
@@ -361,9 +357,7 @@ static int pa_cli_command_sink_input_volume(struct pa_core *c, struct pa_tokeniz
         return -1;
     }
 
-    x = NULL;
-    volume = strtol(v, &x, 0);
-    if (!x || *x != 0 || volume < 0) {
+    if (pa_atou(v, &volume) < 0) {
         pa_strbuf_puts(buf, "Failed to parse volume.\n");
         return -1;
     }
@@ -377,7 +371,7 @@ static int pa_cli_command_sink_input_volume(struct pa_core *c, struct pa_tokeniz
     return 0;
 }
 
-static int pa_cli_command_sink_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_sink_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *n;
     assert(c && t);
 
@@ -390,7 +384,7 @@ static int pa_cli_command_sink_default(struct pa_core *c, struct pa_tokenizer *t
     return 0;
 }
 
-static int pa_cli_command_source_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_source_default(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *n;
     assert(c && t);
 
@@ -403,7 +397,7 @@ static int pa_cli_command_source_default(struct pa_core *c, struct pa_tokenizer 
     return 0;
 }
 
-static int pa_cli_command_kill_client(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_kill_client(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *n;
     struct pa_client *client;
     uint32_t index;
@@ -428,7 +422,7 @@ static int pa_cli_command_kill_client(struct pa_core *c, struct pa_tokenizer *t,
     return 0;
 }
 
-static int pa_cli_command_kill_sink_input(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_kill_sink_input(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *n;
     struct pa_sink_input *sink_input;
     uint32_t index;
@@ -453,7 +447,7 @@ static int pa_cli_command_kill_sink_input(struct pa_core *c, struct pa_tokenizer
     return 0;
 }
 
-static int pa_cli_command_kill_source_output(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_kill_source_output(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *n;
     struct pa_source_output *source_output;
     uint32_t index;
@@ -478,7 +472,7 @@ static int pa_cli_command_kill_source_output(struct pa_core *c, struct pa_tokeni
     return 0;
 }
 
-static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     char *s;
     assert(c && t);
     s = pa_scache_list_to_string(c);
@@ -488,10 +482,10 @@ static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t,
     return 0;
 }
 
-static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *n, *sink_name;
     struct pa_sink *sink;
-    assert(c && t && buf && fail && verbose);
+    assert(c && t && buf && fail);
 
     if (!(n = pa_tokenizer_get(t, 1)) || !(sink_name = pa_tokenizer_get(t, 2))) {
         pa_strbuf_puts(buf, "You need to specify a sample name and a sink name.\n");
@@ -511,9 +505,9 @@ static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t,
     return 0;
 }
 
-static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *n;
-    assert(c && t && buf && fail && verbose);
+    assert(c && t && buf && fail);
 
     if (!(n = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a sample name.\n");
@@ -528,10 +522,10 @@ static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *
     return 0;
 }
 
-static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *fname, *n;
     int r;
-    assert(c && t && buf && fail && verbose);
+    assert(c && t && buf && fail);
 
     if (!(fname = pa_tokenizer_get(t, 2)) || !(n = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a file name and a sample name.\n");
@@ -549,9 +543,9 @@ static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t,
     return 0;
 }
 
-static int pa_cli_command_scache_load_dir(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_scache_load_dir(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *pname;
-    assert(c && t && buf && fail && verbose);
+    assert(c && t && buf && fail);
 
     if (!(pname = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a path name.\n");
@@ -566,10 +560,10 @@ static int pa_cli_command_scache_load_dir(struct pa_core *c, struct pa_tokenizer
     return 0;
 }
 
-static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *fname, *sink_name;
     struct pa_sink *sink;
-    assert(c && t && buf && fail && verbose);
+    assert(c && t && buf && fail);
 
     if (!(fname = pa_tokenizer_get(t, 1)) || !(sink_name = pa_tokenizer_get(t, 2))) {
         pa_strbuf_puts(buf, "You need to specify a file name and a sink name.\n");
@@ -585,9 +579,9 @@ static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, s
     return pa_play_file(sink, fname, PA_VOLUME_NORM);
 }
 
-static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *a, *b;
-    assert(c && t && buf && fail && verbose);
+    assert(c && t && buf && fail);
 
     if (!(a = pa_tokenizer_get(t, 1)) || !(b = pa_tokenizer_get(t, 2))) {
         pa_strbuf_puts(buf, "You need to specify a device name, a filename or a module name and optionally module arguments\n");
@@ -599,9 +593,9 @@ static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t
     return 0;
 }
 
-static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     const char *name;
-    assert(c && t && buf && fail && verbose);
+    assert(c && t && buf && fail);
     
     if (!(name = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a device name\n");
@@ -616,7 +610,7 @@ static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer
     return 0;        
 }
 
-static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     char *s;
     assert(c && t);
     s = pa_autoload_list_to_string(c);
@@ -626,13 +620,13 @@ static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *
     return 0;
 }
 
-static int pa_cli_command_list_props(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_list_props(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     assert(c && t);
     pa_property_dump(c, buf);
     return 0;
 }
 
-static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail) {
     struct pa_module *m;
     struct pa_sink *s;
     int nl;
@@ -724,7 +718,7 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
 }
 
 
-int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail, int *verbose) {
+int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail) {
     const char *cs;
     
     cs = s+strspn(s, whitespace);
@@ -732,28 +726,18 @@ int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strb
     if (*cs == '#' || !*cs)
         return 0;
     else if (*cs == '.') {
-        static const char fail_meta[] = ".fail";
-        static const char nofail_meta[] = ".nofail";
-        static const char verbose_meta[] = ".verbose";
-        static const char noverbose_meta[] = ".noverbose";
-
-        if (!strcmp(cs, verbose_meta))
-            *verbose = 1;
-        else if (!strcmp(cs, noverbose_meta))
-            *verbose = 0;
-        else if (!strcmp(cs, fail_meta))
+        if (!strcmp(cs, FAIL_META))
             *fail = 1;
-        else if (!strcmp(cs, nofail_meta))
+        else if (!strcmp(cs, NOFAIL_META))
             *fail = 0;
         else {
             size_t l;
-            static const char include_meta[] = ".include";
             l = strcspn(cs, whitespace);
 
-            if (l == sizeof(include_meta)-1 && !strncmp(cs, include_meta, l)) {
+            if (l == sizeof(INCLUDE_META)-1 && !strncmp(cs, INCLUDE_META, l)) {
                 const char *filename = cs+l+strspn(cs+l, whitespace);
 
-                if (pa_cli_command_execute_file(c, filename, buf, fail, verbose) < 0)
+                if (pa_cli_command_execute_file(c, filename, buf, fail) < 0)
                     if (*fail) return -1;
             } else {
                 pa_strbuf_printf(buf, "Invalid meta command: %s\n", cs);
@@ -772,7 +756,7 @@ int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strb
                 int ret;
                 struct pa_tokenizer *t = pa_tokenizer_new(cs, command->args);
                 assert(t);
-                ret = command->proc(c, t, buf, fail, verbose);
+                ret = command->proc(c, t, buf, fail);
                 pa_tokenizer_free(t);
                 unknown = 0;
 
@@ -792,7 +776,7 @@ int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strb
     return 0;
 }
 
-int pa_cli_command_execute_file(struct pa_core *c, const char *fn, struct pa_strbuf *buf, int *fail, int *verbose) {
+int pa_cli_command_execute_file(struct pa_core *c, const char *fn, struct pa_strbuf *buf, int *fail) {
     char line[256];
     FILE *f = NULL;
     int ret = -1;
@@ -805,19 +789,13 @@ int pa_cli_command_execute_file(struct pa_core *c, const char *fn, struct pa_str
         goto fail;
     }
 
-    if (*verbose)
-        pa_strbuf_printf(buf, "Executing file: '%s'\n", fn);
-
     while (fgets(line, sizeof(line), f)) {
         char *e = line + strcspn(line, linebreak);
         *e = 0;
 
-        if (pa_cli_command_execute_line(c, line, buf, fail, verbose) < 0 && *fail)
+        if (pa_cli_command_execute_line(c, line, buf, fail) < 0 && *fail)
             goto fail;
     }
-
-    if (*verbose)
-        pa_strbuf_printf(buf, "Executed file: '%s'\n", fn);
 
     ret = 0;
 
@@ -828,16 +806,16 @@ fail:
     return ret;
 }
 
-int pa_cli_command_execute(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail, int *verbose) {
+int pa_cli_command_execute(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail) {
     const char *p;
-    assert(c && s && buf && fail && verbose);
+    assert(c && s && buf && fail);
 
     p = s;
     while (*p) {
         size_t l = strcspn(p, linebreak);
         char *line = pa_xstrndup(p, l);
         
-        if (pa_cli_command_execute_line(c, line, buf, fail, verbose) < 0&& *fail) {
+        if (pa_cli_command_execute_line(c, line, buf, fail) < 0&& *fail) {
             pa_xfree(line);
             return -1;
         }

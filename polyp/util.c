@@ -381,9 +381,9 @@ supported.*/
 void pa_raise_priority(void) {
 
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
-        pa_log(__FILE__": setpriority() failed: %s\n", strerror(errno));
-/*     else */
-/*         pa_log(__FILE__": Successfully gained nice level %i.\n", NICE_LEVEL); */
+        pa_log_warn(__FILE__": setpriority() failed: %s\n", strerror(errno));
+    else 
+        pa_log_info(__FILE__": Successfully gained nice level %i.\n", NICE_LEVEL); 
     
 #ifdef _POSIX_PRIORITY_SCHEDULING
     {
@@ -396,11 +396,11 @@ void pa_raise_priority(void) {
         
         sp.sched_priority = 1;
         if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0) {
-            pa_log(__FILE__": sched_setscheduler() failed: %s\n", strerror(errno));
+            pa_log_warn(__FILE__": sched_setscheduler() failed: %s\n", strerror(errno));
             return;
         }
 
-/*         pa_log(__FILE__": Successfully enabled SCHED_FIFO scheduling.\n"); */
+        pa_log_info(__FILE__": Successfully enabled SCHED_FIFO scheduling.\n"); 
     }
 #endif
 }
@@ -698,17 +698,17 @@ int pa_unlock_lockfile(const char *fn, int fd) {
     assert(fn && fd >= 0);
 
     if (unlink(fn) < 0) {
-        pa_log(__FILE__": WARNING: unable to remove lock file '%s': %s\n", fn, strerror(errno));
+        pa_log_warn(__FILE__": WARNING: unable to remove lock file '%s': %s\n", fn, strerror(errno));
         r = -1;
     }
     
     if (pa_lock_fd(fd, 0) < 0) {
-        pa_log(__FILE__": WARNING: failed to unlock file '%s'.\n", fn);
+        pa_log_warn(__FILE__": WARNING: failed to unlock file '%s'.\n", fn);
         r = -1;
     }
 
     if (close(fd) < 0) {
-        pa_log(__FILE__": WARNING: failed to close lock file '%s': %s\n", fn, strerror(errno));
+        pa_log_warn(__FILE__": WARNING: failed to close lock file '%s': %s\n", fn, strerror(errno));
         r = -1;
     }
 
@@ -862,6 +862,7 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
     return s;
 }
 
+/* Wait t milliseconds */
 int pa_msleep(unsigned long t) {
     struct timespec ts;
 
@@ -869,4 +870,36 @@ int pa_msleep(unsigned long t) {
     ts.tv_nsec = (t % 1000) * 1000000;
 
     return nanosleep(&ts, NULL);
+}
+
+/* Convert the string s to a signed integer in *ret_i */
+int pa_atoi(const char *s, int32_t *ret_i) {
+    char *x = NULL;
+    long l;
+    assert(s && ret_i);
+
+    l = strtol(s, &x, 0);
+
+    if (x || *x)
+        return -1;
+
+    *ret_i = (int32_t) l;
+    
+    return 0;
+}
+
+/* Convert the string s to an unsigned integer in *ret_u */
+int pa_atou(const char *s, uint32_t *ret_u) {
+    char *x = NULL;
+    unsigned long l;
+    assert(s && ret_u);
+
+    l = strtoul(s, &x, 0);
+
+    if (!x || *x)
+        return -1;
+
+    *ret_u = (uint32_t) l;
+    
+    return 0;
 }

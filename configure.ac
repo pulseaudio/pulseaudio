@@ -20,7 +20,7 @@
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
 AC_PREREQ(2.57)
-AC_INIT([polypaudio],[0.7],[mzcbylcnhqvb (at) 0pointer (dot) de])
+AC_INIT([polypaudio],[0.7.1],[mzcbylcnhqvb (at) 0pointer (dot) de])
 AC_CONFIG_SRCDIR([polyp/main.c])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall])
@@ -124,6 +124,12 @@ AC_SUBST(GLIB12_CFLAGS)
 AC_SUBST(GLIB12_LIBS)
 AC_SUBST(HAVE_GLIB12)
 AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
+
+PKG_CHECK_MODULES(HOWL, [ howl >= 0.9.8 ], HAVE_HOWL=1, HAVE_HOWL=0)
+AC_SUBST(HOWL_CFLAGS)
+AC_SUBST(HOWL_LIBS)
+AC_SUBST(HAVE_HOWL)
+AM_CONDITIONAL([HAVE_HOWL], [test "x$HAVE_HOWL" = x1])
 
 AC_PATH_PROG([M4], [m4 gm4], [no])
 if test "x$M4" = xno ; then

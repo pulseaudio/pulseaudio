@@ -84,7 +84,7 @@ int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_s
     return (a->format == b->format) && (a->rate == b->rate) && (a->channels == b->channels);
 }
 
-void pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec) {
+const char *pa_sample_format_to_string(enum pa_sample_format f) {
     static const char* const table[]= {
         [PA_SAMPLE_U8] = "U8",
         [PA_SAMPLE_ALAW] = "ALAW",
@@ -95,12 +95,21 @@ void pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec
         [PA_SAMPLE_FLOAT32BE] = "FLOAT32BE",
     };
 
+    if (f >= PA_SAMPLE_MAX)
+        return NULL;
+
+    return table[f];
+}
+
+void pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec) {
+    assert(s && l && spec);
+    
     if (!pa_sample_spec_valid(spec)) {
         snprintf(s, l, "Invalid");
         return;
     }
     
-    snprintf(s, l, "%s %uch %uHz", table[spec->format], spec->channels, spec->rate);
+    snprintf(s, l, "%s %uch %uHz", pa_sample_format_to_string(spec->format), spec->channels, spec->rate);
 }
 
 pa_volume_t pa_volume_multiply(pa_volume_t a, pa_volume_t b) {

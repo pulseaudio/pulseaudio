@@ -2003,7 +2003,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     assert(io && p);
 
     if (pa_idxset_ncontents(p->connections)+1 > MAX_CONNECTIONS) {
-        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
+        pa_log_warn(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
     }
@@ -2057,7 +2057,7 @@ static int load_key(struct pa_protocol_native*p, const char*fn) {
     p->auth_cookie_in_property = 0;
     
     if (!fn && pa_authkey_prop_get(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0) {
-        pa_log(__FILE__": using already loaded auth cookie.\n");
+        pa_log_info(__FILE__": using already loaded auth cookie.\n");
         pa_authkey_prop_ref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
         p->auth_cookie_in_property = 1;
         return 0;
@@ -2069,7 +2069,7 @@ static int load_key(struct pa_protocol_native*p, const char*fn) {
     if (pa_authkey_load_auto(fn, p->auth_cookie, sizeof(p->auth_cookie)) < 0)
         return -1;
 
-    pa_log(__FILE__": loading cookie from disk.\n");
+    pa_log_info(__FILE__": loading cookie from disk.\n");
 
     if (pa_authkey_prop_put(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0)
         p->auth_cookie_in_property = 1;

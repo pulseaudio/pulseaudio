@@ -135,17 +135,16 @@ finish:
 }
 
 int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    int *i = data, k;
-    char *x = NULL;
+    int *i = data;
+    int32_t k;
     assert(filename && lvalue && rvalue && data);
-    
-    k = strtol(rvalue, &x, 0); 
-    if (!*rvalue || !x || *x) {
+
+    if (pa_atoi(rvalue, &k) < 0) {
         pa_log(__FILE__": [%s:%u] Failed to parse numeric value: %s\n", filename, line, rvalue);
         return -1;
     }
     
-    *i = k;
+    *i = (int) k;
     return 0; 
 }
 

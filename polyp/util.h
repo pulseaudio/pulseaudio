@@ -90,4 +90,7 @@ char *pa_runtime_path(const char *fn, char *s, size_t l);
 
 int pa_msleep(unsigned long t);
 
+int pa_atoi(const char *s, int32_t *ret_i);
+int pa_atou(const char *s, uint32_t *ret_u);
+
 #endif

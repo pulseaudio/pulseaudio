@@ -1,12 +1,15 @@
 dnl $Id$
 changecom(`/*', `*/')dnl
-define(`module', patsubst(patsubst(fname, `-symdef.h$'), `[^0-9a-zA-Z]', `_'))dnl
-define(`c_symbol', patsubst(module, `[^0-9a-zA-Z]', `_'))dnl
-define(`c_macro', patsubst(module, `[^0-9a-zA-Z]', `'))dnl
+define(`module_name', patsubst(patsubst(fname, `-symdef.h$'), `[^0-9a-zA-Z]', `_'))dnl
+define(`c_symbol', patsubst(module_name, `[^0-9a-zA-Z]', `_'))dnl
+define(`c_macro', patsubst(module_name, `[^0-9a-zA-Z]', `'))dnl
 define(`incmacro', `foo'c_macro`symdeffoo')dnl
-define(`gen_symbol', `#define $1 'module`_LTX_$1')dnl
+define(`gen_symbol', `#define $1 'module_name`_LTX_$1')dnl
 #ifndef incmacro
 #define incmacro
+
+#include "core.h"
+#include "module.h"
 
 gen_symbol(pa__init)
 gen_symbol(pa__done)

@@ -214,7 +214,7 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
     assert(s && u && u->sink);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
-        pa_log(__FILE__": device doesn't support SNDCTL_DSP_GETODELAY.\n");
+        pa_log_info(__FILE__": device doesn't support SNDCTL_DSP_GETODELAY.\n");
         s->get_latency = NULL;
         return 0;
     }
@@ -230,7 +230,7 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
 static pa_usec_t source_get_latency_cb(struct pa_source *s) {
     struct userdata *u = s->userdata;
     audio_buf_info info;
-    assert(s && u && u->sink);
+    assert(s && u && u->source);
 
     if (!u->use_getispace)
         return 0;
@@ -291,7 +291,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     if ((fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, NULL)) < 0)
         goto fail;
 
-    pa_log(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
+    pa_log_info(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
 
     if (nfrags >= 2 && frag_size >= 1)
@@ -313,13 +313,13 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->use_getospace = u->use_getispace = 0;
     
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
-        pa_log(__FILE__": input -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        pa_log_info(__FILE__": input -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         in_frag_size = info.fragsize;
         u->use_getispace = 1;
     }
 
     if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
-        pa_log(__FILE__": output -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        pa_log_info(__FILE__": output -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         out_frag_size = info.fragsize;
         u->use_getospace = 1;
     }

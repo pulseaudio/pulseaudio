@@ -86,6 +86,9 @@ int pa_sample_spec_valid(const struct pa_sample_spec *spec);
 /** Return non-zero when the two sample type specifications match */
 int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b);
 
+/* Return a descriptive string for the specified sample format. \since 0.7.1 */
+const char *pa_sample_format_to_string(enum pa_sample_format f);
+
 /** Maximum required string length for pa_sample_spec_snprint() */
 #define PA_SAMPLE_SPEC_SNPRINT_MAX 32
 
@@ -126,7 +129,7 @@ pa_volume_t pa_volume_from_user(double v);
 /** Pretty print a byte size value. (i.e. "2.5 MB") */
 void pa_bytes_snprint(char *s, size_t l, unsigned v);
 
-/** Parse a sample format text */
+/** Parse a sample format text. Inverse of pa_sample_format_to_string() */
 enum pa_sample_format pa_parse_sample_format(const char *format);
 
 PA_C_DECL_END

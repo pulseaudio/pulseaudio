@@ -289,7 +289,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
             goto fail;
         }
 
-        pa_log(__FILE__": input -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        pa_log_info(__FILE__": input -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         u->in_mmap_length = (u->in_fragment_size = info.fragsize) * (u->in_fragments = info.fragstotal);
 
         if ((u->in_mmap = mmap(NULL, u->in_mmap_length, PROT_READ, MAP_SHARED, u->fd, 0)) == MAP_FAILED) {
@@ -320,7 +320,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
             goto fail;
         }
         
-        pa_log(__FILE__": output -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        pa_log_info(__FILE__": output -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
         u->out_mmap_length = (u->out_fragment_size = info.fragsize) * (u->out_fragments = info.fragstotal);
 
         if ((u->out_mmap = mmap(NULL, u->out_mmap_length, PROT_WRITE, MAP_SHARED, u->fd, 0))  == MAP_FAILED) {
