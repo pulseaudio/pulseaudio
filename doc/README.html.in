@@ -73,7 +73,9 @@ integration with asynchronous applications using the
 available through <tt>polyplib</tt> is quite difficult to use there is
 a simplified synchronous API wrapper <tt>polyplib-simple</tt>
 available. A simple main loop implementation is available as well.</p>
-  
+
+<p><tt>polypaudio</tt> is the successor of my previous, ill-fated attempt to write a sound server <a href="http://asd.sf.net/">asd</a>.</p>
+
 <h2><a name="status">Status</a></h2>
 
 <p>Version @PACKAGE_VERSION@ is quite usable. <tt>polypaudio</tt> does
@@ -98,7 +100,7 @@ API</a> and for the <a
 href="http://0pointer.de/cgi-bin/viewcvs.cgi/trunk/polyp/pacat-simple.c?view=markup">simple,
 synchronous API</a>.</p>
 
-<h3>First Steps</h1>
+<h3>First Steps</h3>
 
 <p>Simply start the polypaudio daemon with the argument <tt>-C</tt></p>
 

@@ -32,8 +32,8 @@ endif
 tidy: README.html cli.html modules.html daemon.html
 	tidy -e < README.html
 	tidy -e < cli.html
-	tidy -e < modules.html
 	tidy -e < daemon.html
+	tidy -e < modules.html
 
 .PHONY: tidy
 
