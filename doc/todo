@@ -1,6 +1,8 @@
 *** $Id$ ***
 
-*** 0.4 ***
+- add FAQ
+
+*** 0.5 ***
 - make mcalign merge chunks
 - use ref counting in more objects (i.e. sink, source, sink_input, source_output)
 - unix socket directories include user name
@@ -11,11 +13,6 @@
 - more complete pactl
 - add sample directory
 - config file for command line arguments
-
-- add FAQ
-- pa_context_connect_spawn(): change function to fork+exec+waitpid-like function
-- on delete event in paman
-- add feature to dump config file
 
 ** later ***
 - xmlrpc/http

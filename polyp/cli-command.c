@@ -82,6 +82,7 @@ static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, s
 static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 
 static const struct command commands[] = {
     { "exit",                    pa_cli_command_exit,               "Terminate the daemon",         1 },
@@ -115,6 +116,7 @@ static const struct command commands[] = {
     { "autoload_source_add",     pa_cli_command_autoload_add,       "Add autoload entry for a source (args: source, name, arguments)", 4},
     { "autoload_sink_remove",    pa_cli_command_autoload_remove,    "Remove autoload entry for a sink (args: sink)", 2},
     { "autoload_source_remove",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: source)", 2},
+    { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -595,6 +597,98 @@ static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *
     pa_xfree(s);
     return 0;
 }
+
+static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    struct pa_module *m;
+    struct pa_sink *s;
+    int nl;
+    const char *p;
+    uint32_t index;
+    char txt[256];
+    time_t now;
+    void *i;
+    struct pa_autoload_entry *a;
+    
+    assert(c && t);
+
+    time(&now);
+
+    pa_strbuf_printf(buf, "### Configuration dump generated at %s\n", ctime_r(&now, txt));
+
+    
+    for (m = pa_idxset_first(c->modules, &index); m; m = pa_idxset_next(c->modules, &index)) {
+        if (m->auto_unload)
+            continue;
+
+        pa_strbuf_printf(buf, "load %s", m->name);
+
+        if (m->argument)
+            pa_strbuf_printf(buf, " %s", m->argument);
+
+        pa_strbuf_puts(buf, "\n");
+    }
+
+    nl = 0;
+
+    for (s = pa_idxset_first(c->sinks, &index); s; s = pa_idxset_next(c->sinks, &index)) {
+        if (s->volume == PA_VOLUME_NORM)
+            continue;
+        
+        if (s->owner && s->owner->auto_unload)
+            continue;
+
+        if (!nl) {
+            pa_strbuf_puts(buf, "\n");
+            nl = 1;
+        }
+        
+        pa_strbuf_printf(buf, "sink_volume %s 0x%03x\n", s->name, s->volume);
+    }
+
+
+    if (c->autoload_hashmap) {
+        nl = 0;
+        
+        i = NULL;
+        while ((a = pa_hashmap_iterate(c->autoload_hashmap, &i))) {
+            
+            if (!nl) {
+                pa_strbuf_puts(buf, "\n");
+                nl = 1;
+            }
+            
+            pa_strbuf_printf(buf, "autoload_%s_add %s %s", a->type == PA_NAMEREG_SINK ? "sink" : "source", a->name, a->module);
+            
+            if (a->argument)
+                pa_strbuf_printf(buf, " %s", a->argument);
+            
+            pa_strbuf_puts(buf, "\n");
+        }
+    }
+
+    nl = 0;
+    
+    if ((p = pa_namereg_get_default_sink_name(c))) {
+        if (!nl) {
+            pa_strbuf_puts(buf, "\n");
+            nl = 1;
+        }
+        pa_strbuf_printf(buf, "sink_default %s\n", p);
+    }
+
+    if ((p = pa_namereg_get_default_source_name(c))) {
+        if (!nl) {
+            pa_strbuf_puts(buf, "\n");
+            nl = 1;
+        }
+        pa_strbuf_printf(buf, "source_default %s\n", p);
+    }
+
+    pa_strbuf_puts(buf, "\n### EOF\n");
+
+    return 0;
+}
+
 
 int pa_cli_command_execute_line(struct pa_core *c, const char *s, struct pa_strbuf *buf, int *fail, int *verbose) {
     const char *cs;

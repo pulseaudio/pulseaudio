@@ -571,9 +571,9 @@ static int is_running(void) {
     return 1;
 }
 
-int pa_context_connect_spawn(struct pa_context *c, void (*atfork)(void)) {
+int pa_context_connect_spawn(struct pa_context *c, void (*atfork)(void), void (*prefork)(void), void (*postfork)(void)) {
     pid_t pid;
-    int status;
+    int status, r;
     int fds[2] = { -1, -1} ;
     struct pa_iochannel *io;
     
@@ -586,9 +586,16 @@ int pa_context_connect_spawn(struct pa_context *c, void (*atfork)(void)) {
         goto fail;
     }
 
+    if (prefork)
+        prefork();
+
     if ((pid = fork()) < 0) {
         pa_log(__FILE__": fork() failed: %s\n", strerror(errno));
         pa_context_fail(c, PA_ERROR_INTERNAL);
+
+        if (postfork)
+            postfork();
+        
         goto fail;
     } else if (!pid) {
         char t[64];
@@ -610,7 +617,13 @@ int pa_context_connect_spawn(struct pa_context *c, void (*atfork)(void)) {
     } 
 
     /* Parent */
-    if (waitpid(pid, &status, 0) < 0) {
+
+    r = waitpid(pid, &status, 0);
+
+    if (postfork)
+        postfork();
+        
+    if (r < 0) {
         pa_log(__FILE__": waitpid() failed: %s\n", strerror(errno));
         pa_context_fail(c, PA_ERROR_INTERNAL);
         goto fail;
