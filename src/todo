@@ -1,7 +1,7 @@
 - native library/protocol:
        more functions (esp. latency)
 
-- cmdline & daemonizing
+- daemonizing
 
 - prefix modules/libraries with pa_
 

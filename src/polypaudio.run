@@ -9,5 +9,3 @@ load module-native-protocol-unix
 load module-cli-protocol-unix
 
 load module-oss-mmap device="/dev/dsp"
-
-load module-cli
