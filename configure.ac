@@ -40,6 +40,33 @@ AC_SUBST(LIBLTDL)
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h malloc.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h])
+
+ACX_PTHREAD
+AC_PATH_XTRA
+AM_CONDITIONAL(X_DISPLAY_MISSING, test "x$X_DISPLAY_MISSING" != "x")
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+
+# Checks for library functions.
+AC_FUNC_FORK
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_LSTAT
+AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+AC_FUNC_MALLOC
+AC_FUNC_MEMCMP
+AC_FUNC_MMAP
+AC_FUNC_REALLOC
+AC_FUNC_SETPGRP
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS([gethostname gettimeofday memchr memmove memset mkdir mkfifo munmap rmdir socket strcspn strerror strrchr strspn strstr strtol strtoul])
+
 AC_C_BIGENDIAN
 
 PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ])

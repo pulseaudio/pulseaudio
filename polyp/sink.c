@@ -76,7 +76,7 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
     r = pa_idxset_put(core->sinks, s, &s->index);
     assert(s->index != PA_IDXSET_INVALID && r >= 0);
     
-    pa_sample_snprint(st, sizeof(st), spec);
+    pa_sample_spec_snprint(st, sizeof(st), spec);
     fprintf(stderr, "sink: created %u \"%s\" with sample spec \"%s\"\n", s->index, s->name, st);
 
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);

@@ -71,7 +71,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
     r = pa_idxset_put(s->inputs, i, NULL);
     assert(r == 0);
 
-    pa_sample_snprint(st, sizeof(st), spec);
+    pa_sample_spec_snprint(st, sizeof(st), spec);
     fprintf(stderr, "sink-input: created %u \"%s\" on %u with sample spec \"%s\"\n", i->index, i->name, s->index, st);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);

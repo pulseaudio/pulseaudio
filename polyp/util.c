@@ -114,12 +114,16 @@ void pa_check_for_sigpipe(void) {
     struct sigaction sa;
     sigset_t set;
 
+#ifdef HAVE_PTHREAD    
     if (pthread_sigmask(SIG_SETMASK, NULL, &set) < 0) {
+#endif
         if (sigprocmask(SIG_SETMASK, NULL, &set) < 0) {
             fprintf(stderr, __FILE__": sigprocmask() failed: %s\n", strerror(errno));
             return;
         }
+#ifdef HAVE_PTHREAD
     }
+#endif
 
     if (sigismember(&set, SIGPIPE))
         return;

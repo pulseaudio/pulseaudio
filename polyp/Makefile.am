@@ -17,9 +17,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-AM_CFLAGS=-ansi -D_GNU_SOURCE -DDLSEARCHDIR=\"$(pkglibdir)\" -I$(srcdir)/..
-AM_LDADD=-L. -lpthread
-AM_LIBADD=-L. -lpthread
+AM_CFLAGS=-ansi -D_GNU_SOURCE -DDLSEARCHDIR=\"$(pkglibdir)\" -I$(srcdir)/.. $(PTHREAD_CFLAGS)
+AM_LDADD=$(PTHREAD_LIBS)
+AM_LIBADD=$(PTHREAD_LIBS)
 
 polypincludedir=$(includedir)/polyp
 
@@ -75,8 +75,11 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-esound-protocol-tcp.la \
 		module-esound-protocol-unix.la \
 		module-native-protocol-tcp.la \
-		module-native-protocol-unix.la \
-		module-x11-bell.la
+		module-native-protocol-unix.la
+
+if !X_DISPLAY_MISSING
+pkglib_LTLIBRARIES+=module-x11-bell.la
+endif
 
 lib_LTLIBRARIES=libpolyp.la \
 		libpolyp-error.la \
@@ -265,9 +268,12 @@ module_cli_la_SOURCES = module-cli.c
 module_cli_la_LDFLAGS = -module -avoid-version
 module_cli_la_LIBADD = $(AM_LIBADD) libcli.la libiochannel.la
 
+if !X_DISPLAY_MISSING
 module_x11_bell_la_SOURCES = module-x11-bell.c
+module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_bell_la_LDFLAGS = -module -avoid-version
-module_x11_bell_la_LIBADD = $(AM_LIBADD) -lX11 -L/usr/X11R6/lib
+module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIB)
+endif
 
 libpolyp_la_SOURCES = polyplib.h \
 		polyplib-def.h \
@@ -299,20 +305,29 @@ libpolyp_la_SOURCES = polyplib.h \
 		cdecl.h \
 		llist.h
 libpolyp_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_la_LDFLAGS = -version-info 0:0:0
 
 libpolyp_mainloop_la_SOURCES = mainloop-api.h mainloop-api.c \
 		mainloop.c mainloop.h \
 		mainloop-signal.c mainloop-signal.h
 libpolyp_mainloop_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_mainloop_la_LIBADD = $(AM_LIBADD) libpolyp.la
+libpolyp_mainloop_la_LDFLAGS = -version-info 0:0:0
 
 libpolyp_error_la_SOURCES = polyplib-error.c polyplib-error.h
 libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_error_la_LIBADD = $(AM_LIBADD) libpolyp.la
+libpolyp_error_la_LDFLAGS = -version-info 0:0:0
 
 libpolyp_simple_la_SOURCES = polyplib-simple.c polyplib-simple.h 
 libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_simple_la_LIBADD = $(AM_LIBADD) libpolyp.la libpolyp-mainloop.la
+libpolyp_simple_la_LDFLAGS = -version-info 0:0:0
+
+libpolyp_mainloop_glib_la_SOURCES = glib-mainloop.h glib-mainloop.c
+libpolyp_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
+libpolyp_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB20_LIBS)
+libpolyp_mainloop_glib_la_LDFLAGS = -version-info 0:0:0
 
 pacat_SOURCES = pacat.c
 pacat_LDADD = $(AM_LDADD) libpolyp.la libpolyp-error.la libpolyp-mainloop.la
@@ -329,10 +344,6 @@ pacat_simple_CFLAGS = $(AM_CFLAGS)
 parec_simple_SOURCES = parec-simple.c
 parec_simple_LDADD = $(AM_LDADD) libpolyp.la libpolyp-simple.la libpolyp-error.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
-
-libpolyp_mainloop_glib_la_SOURCES = glib-mainloop.h glib-mainloop.c
-libpolyp_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
-libpolyp_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB20_LIBS)
 
 mainloop_test_SOURCES = mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)

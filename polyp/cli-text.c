@@ -89,7 +89,7 @@ char *pa_sink_list_to_string(struct pa_core *c) {
 
     for (sink = pa_idxset_first(c->sinks, &index); sink; sink = pa_idxset_next(c->sinks, &index)) {
         char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-        pa_sample_snprint(ss, sizeof(ss), &sink->sample_spec);
+        pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec);
         assert(sink->monitor_source);
         pa_strbuf_printf(
             s,
@@ -123,7 +123,7 @@ char *pa_source_list_to_string(struct pa_core *c) {
 
     for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
         char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-        pa_sample_snprint(ss, sizeof(ss), &source->sample_spec);
+        pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec);
         pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\tsample_spec: <%s>\n",
                          c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
                          source->index,
@@ -155,7 +155,7 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
 
     for (o = pa_idxset_first(c->source_outputs, &index); o; o = pa_idxset_next(c->source_outputs, &index)) {
         char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-        pa_sample_snprint(ss, sizeof(ss), &o->sample_spec);
+        pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec);
         assert(o->source);
         pa_strbuf_printf(
             s, "  index: %u\n\tname: <%s>\n\tsource: <%u>\n\tsample_spec: <%s>\n",
@@ -185,7 +185,7 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
 
     for (i = pa_idxset_first(c->sink_inputs, &index); i; i = pa_idxset_next(c->sink_inputs, &index)) {
         char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-        pa_sample_snprint(ss, sizeof(ss), &i->sample_spec);
+        pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
         assert(i->sink);
         pa_strbuf_printf(
             s, "    index: %u\n\tname: <%s>\n\tsink: <%u>\n\tvolume: <0x%04x>\n\tlatency: <%u usec>\n\tsample_spec: <%s>\n",
@@ -221,7 +221,7 @@ char *pa_scache_list_to_string(struct pa_core *c) {
         while ((e = pa_hashmap_iterate(c->scache_hashmap, &state))) {
             double l;
             char ss[PA_SAMPLE_SNPRINT_MAX_LENGTH];
-            pa_sample_snprint(ss, sizeof(ss), &e->sample_spec);
+            pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
             
             l = (double) e->memchunk.length / pa_bytes_per_second(&e->sample_spec);
             
