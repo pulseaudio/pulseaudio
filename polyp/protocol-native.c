@@ -269,7 +269,7 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     struct pa_sink_input *sink_input;
     assert(c && sink && ss && name && maxlength);
 
-    if (!(sink_input = pa_sink_input_new(sink, name, ss)))
+    if (!(sink_input = pa_sink_input_new(sink, name, ss, 0)))
         return NULL;
     
     s = pa_xmalloc(sizeof(struct playback_stream));

@@ -44,7 +44,6 @@ enum {
     ARG_FAIL,
     ARG_VERBOSE,
     ARG_HIGH_PRIORITY,
-    ARG_STAY_ROOT,
     ARG_DISALLOW_MODULE_LOADING,
     ARG_EXIT_IDLE_TIME,
     ARG_MODULE_IDLE_TIME,
@@ -63,7 +62,6 @@ static struct option long_options[] = {
     {"fail",                        2, 0, ARG_FAIL},
     {"verbose",                     2, 0, ARG_VERBOSE},
     {"high-priority",               2, 0, ARG_HIGH_PRIORITY},
-    {"stay-root",                   2, 0, ARG_STAY_ROOT},
     {"disallow-module-loading",     2, 0, ARG_DISALLOW_MODULE_LOADING},
     {"exit-idle-time",              2, 0, ARG_EXIT_IDLE_TIME},
     {"module-idle-time",            2, 0, ARG_MODULE_IDLE_TIME},
@@ -93,7 +91,6 @@ void pa_cmdline_help(const char *argv0) {
            "      --fail[=BOOL]                     Quit when startup fails\n"
            "      --verbose[=BOOL]                  Be slightly more verbose\n"
            "      --high-priority[=BOOL]            Try to set high process priority (only available as root)\n"
-           "      --stay-root[=BOOL]                Don't drop root if SETUID root\n"
            "      --disallow-module-loading[=BOOL]  Disallow module loading after startup\n"
            "      --exit-idle-time=SECS             Terminate the daemon when idle and this time passed\n"
            "      --module-idle-time=SECS           Unload autoloaded modules when idle and this time passed\n"
@@ -113,7 +110,6 @@ int pa_cmdline_parse(struct pa_conf *conf, int argc, char *const argv [], int *d
     assert(conf && argc && argv);
 
     buf = pa_strbuf_new();
-    assert(buf);
 
     if (conf->script_commands)
         pa_strbuf_puts(buf, conf->script_commands);
@@ -122,19 +118,19 @@ int pa_cmdline_parse(struct pa_conf *conf, int argc, char *const argv [], int *d
         switch (c) {
             case ARG_HELP:
             case 'h':
-                conf->help = 1;
+                conf->cmd = PA_CMD_HELP;
                 break;
 
             case ARG_VERSION:
-                conf->version = 1;
+                conf->cmd = PA_CMD_VERSION;
                 break;
 
             case ARG_DUMP_CONF:
-                conf->dump_conf = 1;
+                conf->cmd = PA_CMD_DUMP_CONF;
                 break;
 
             case ARG_DUMP_MODULES:
-                conf->dump_modules = 1;
+                conf->cmd = PA_CMD_DUMP_MODULES;
                 break;
                 
             case ARG_LOAD:
@@ -176,13 +172,6 @@ int pa_cmdline_parse(struct pa_conf *conf, int argc, char *const argv [], int *d
             case ARG_HIGH_PRIORITY:
                 if ((conf->high_priority = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
                     pa_log(__FILE__": --high-priority expects boolean argument\n");
-                    goto fail;
-                }
-                break;
-
-            case ARG_STAY_ROOT:
-                if ((conf->stay_root = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
-                    pa_log(__FILE__": --stay-root expects boolean argument\n");
                     goto fail;
                 }
                 break;

@@ -35,15 +35,11 @@
 #include "strbuf.h"
 
 static const struct pa_conf default_conf = {
-    .help = 0,
+    .cmd = PA_CMD_DAEMON,
     .daemonize = 0,
-    .dump_conf = 0,
-    .dump_modules = 0,
     .fail = 1,
     .verbose = 0,
     .high_priority = 0,
-    .stay_root = 0,
-    .version = 0,
     .disallow_module_loading = 0,
     .exit_idle_time = -1,
     .module_idle_time = 20,
@@ -143,7 +139,6 @@ static int next_assignment(struct pa_conf *c, char *lvalue, char *rvalue, unsign
     PARSE_BOOLEAN("fail", fail);
     PARSE_BOOLEAN("verbose", verbose);
     PARSE_BOOLEAN("high-priority", high_priority);
-    PARSE_BOOLEAN("stay-root", stay_root);
     PARSE_BOOLEAN("disallow-module-loading", disallow_module_loading);
 
     PARSE_INTEGER("exit-idle-time", exit_idle_time);
@@ -269,7 +264,6 @@ char *pa_conf_dump(struct pa_conf *c) {
     pa_strbuf_printf(s, "daemonize = %i\n", !!c->daemonize);
     pa_strbuf_printf(s, "fail = %i\n", !!c->fail);
     pa_strbuf_printf(s, "high-priority = %i\n", !!c->high_priority);
-    pa_strbuf_printf(s, "stay-root = %i\n", !!c->stay_root);
     pa_strbuf_printf(s, "disallow-module-loading = %i\n", !!c->disallow_module_loading);
     pa_strbuf_printf(s, "exit-idle-time = %i\n", c->exit_idle_time);
     pa_strbuf_printf(s, "module-idle-time = %i\n", c->module_idle_time);

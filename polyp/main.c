@@ -124,6 +124,11 @@ int main(int argc, char *argv[]) {
 
     pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target, NULL);
 
+    if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
+        pa_raise_priority();
+    
+    drop_root();
+    
     if (conf->dl_search_path)
         lt_dlsetsearchpath(conf->dl_search_path);
 #ifdef DLSEARCHPATH
@@ -131,37 +136,33 @@ int main(int argc, char *argv[]) {
         lt_dlsetsearchpath(DLSEARCHPATH);
 #endif
 
-    if (conf->dump_modules) {
-        pa_dump_modules(conf, argc-d, argv+d);
-        retval = 0;
-        goto finish;
-    }
-    
-    if (conf->dump_conf) {
-        char *s = pa_conf_dump(conf);
-        fputs(s, stdout);
-        pa_xfree(s);
-        retval = 0;
-        goto finish;
-    }
+    switch (conf->cmd) {
+        case PA_CMD_DUMP_MODULES:
+            pa_dump_modules(conf, argc-d, argv+d);
+            retval = 0;
+            goto finish;
 
-    if (conf->help) {
-        pa_cmdline_help(argv[0]);
-        retval = 0;
-        goto finish;
-    }
+        case PA_CMD_DUMP_CONF: {
+            char *s = pa_conf_dump(conf);
+            fputs(s, stdout);
+            pa_xfree(s);
+            retval = 0;
+            goto finish;
+        }
 
-    if (conf->version) {
-        printf(PACKAGE_NAME" "PACKAGE_VERSION"\n");
-        retval = 0;
-        goto finish;
-    }
+        case PA_CMD_HELP :
+            pa_cmdline_help(argv[0]);
+            retval = 0;
+            goto finish;
 
-    if (conf->high_priority)
-        pa_raise_priority();
-    
-    if (!conf->stay_root)
-        drop_root();
+        case PA_CMD_VERSION :
+            printf(PACKAGE_NAME" "PACKAGE_VERSION"\n");
+            retval = 0;
+            goto finish;
+
+        default:
+            assert(conf->cmd == PA_CMD_DAEMON);
+    }
 
     if (conf->daemonize) {
         pid_t child;

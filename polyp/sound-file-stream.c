@@ -142,7 +142,7 @@ int pa_play_file(struct pa_sink *sink, const char *fname, pa_volume_t volume) {
         goto fail;
     }
     
-    if (!(u->sink_input = pa_sink_input_new(sink, fname, &ss)))
+    if (!(u->sink_input = pa_sink_input_new(sink, fname, &ss, 0)))
         goto fail;
 
     u->sink_input->volume = volume;

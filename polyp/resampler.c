@@ -67,12 +67,9 @@ struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const stru
     r->i_buf = r->o_buf = NULL;
     r->i_alloc = r->o_alloc = 0;
 
-    if (a->rate != b->rate) {
-        r->src_state = src_new(SRC_SINC_FASTEST, r->channels, &err);
-        if (err != 0 || !r->src_state)
-            goto fail;
-    } else
-        r->src_state = NULL;
+    r->src_state = src_new(SRC_SINC_FASTEST, r->channels, &err);
+    if (err != 0 || !r->src_state)
+        goto fail;
 
     r->i_ss = *a;
     r->o_ss = *b;
@@ -195,4 +192,13 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
         pa_memblock_unref(out->memblock);
         out->memblock = NULL;
     }
+}
+
+void pa_resampler_set_input_rate(struct pa_resampler *r, uint32_t rate) {
+    int ret;
+    assert(r);
+
+    r->i_ss.rate = rate;
+    ret = src_set_ratio(r->src_state, (double) r->o_ss.rate / r->i_ss.rate);
+    assert(ret == 0);
 }

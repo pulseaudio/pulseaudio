@@ -304,7 +304,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
             goto fail;
         }
 
-        if (!(c->sink_input = pa_sink_input_new(sink, c->client->name, &p->sample_spec))) {
+        if (!(c->sink_input = pa_sink_input_new(sink, c->client->name, &p->sample_spec, 0))) {
             pa_log(__FILE__": Failed to create sink input.\n");
             goto fail;
         }

@@ -31,11 +31,10 @@
 
 ## Renice the daemon to level -15 and try to get SCHED_FIFO
 ## scheduling. This a good idea if you hear annyoing noise in the
-## playback. However, this is a certain security issue.
-; high-priority = 0
-
-## Don't drop root rights on startup if called SUID root. 
-; stay-root = 0
+## playback. However, this is a certain security issue, since it works 
+## when called SUID root only. root is dropped immediately after gaining
+## the nice level and SCHED_FIFO scheduling on startup.
+high-priority = 0
 
 ## Disallow module loading after startup
 ; disallow-module-loading = 0
@@ -48,7 +47,8 @@
 module-idle-time = 20
 
 ## The path were to look for dynamic shared objects (DSOs aka plugins).
-## Specify an empty string for the default search path.
+## Specify an empty string for the default search path. You may specify 
+## more than one path seperated by colons.
 ; dl-search-path =
 
 ## The default script file to load. Specify an empty string for not

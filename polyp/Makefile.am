@@ -101,7 +101,8 @@ modlib_LTLIBRARIES= \
 		module-native-protocol-tcp.la \
 		module-native-protocol-unix.la \
 		module-native-protocol-fd.la \
-		module-sine.la
+		module-sine.la \
+		module-combine.la
 
 lib_LTLIBRARIES= \
 		libpolyp-@PA_MAJORMINOR@.la \
@@ -294,6 +295,10 @@ module_cli_la_LIBADD = $(AM_LIBADD) libcli.la libiochannel.la
 module_sine_la_SOURCES = module-sine.c
 module_sine_la_LDFLAGS = -module -avoid-version
 module_sine_la_LIBADD = $(AM_LIBADD)
+
+module_combine_la_SOURCES = module-combine.c
+module_combine_la_LDFLAGS = -module -avoid-version
+module_combine_la_LIBADD = $(AM_LIBADD)
 
 libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		polyplib-def.h \

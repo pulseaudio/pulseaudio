@@ -24,16 +24,20 @@
 
 #include "log.h"
 
+enum pa_conf_cmd {
+	PA_CMD_DAEMON,
+	PA_CMD_HELP,
+        PA_CMD_VERSION,
+	PA_CMD_DUMP_CONF,
+	PA_CMD_DUMP_MODULES
+};
+
 struct pa_conf {
-    int help,
-        version,
-        dump_conf,
-        dump_modules,
-        daemonize,
+    enum pa_conf_cmd cmd;
+    int daemonize,
         fail,
         verbose,
         high_priority,
-        stay_root,
         disallow_module_loading,
         exit_idle_time,
         module_idle_time,

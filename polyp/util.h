@@ -59,4 +59,6 @@ int pa_fd_set_cloexec(int fd, int b);
 
 int pa_parse_boolean(const char *s);
 
+char *pa_split(const char *c, const char*delimiters, const char **state);
+
 #endif

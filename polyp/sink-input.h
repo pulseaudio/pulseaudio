@@ -54,7 +54,7 @@ struct pa_sink_input {
     struct pa_resampler *resampler;
 };
 
-struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec);
+struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec, int variable_rate);
 void pa_sink_input_free(struct pa_sink_input* i);
 
 /* Code that didn't create the input stream should call this function to
@@ -69,5 +69,7 @@ void pa_sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *chunk
 void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume);
 
 void pa_sink_input_cork(struct pa_sink_input *i, int b);
+
+void pa_sink_input_set_rate(struct pa_sink_input *i, uint32_t rate);
 
 #endif

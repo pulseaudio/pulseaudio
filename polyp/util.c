@@ -373,3 +373,19 @@ int pa_parse_boolean(const char *v) {
 
     return -1;
 }
+
+char *pa_split(const char *c, const char *delimiter, const char**state) {
+    const char *current = *state ? *state : c;
+    size_t l;
+
+    if (!*current)
+        return NULL;
+    
+    l = strcspn(current, delimiter);
+    *state = current+l;
+
+    if (**state)
+        *state++;
+
+    return pa_xstrndup(current, l);
+}

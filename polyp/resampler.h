@@ -34,4 +34,6 @@ void pa_resampler_free(struct pa_resampler *r);
 size_t pa_resampler_request(struct pa_resampler *r, size_t out_length);
 void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out);
 
+void pa_resampler_set_input_rate(struct pa_resampler *r, uint32_t rate);
+
 #endif

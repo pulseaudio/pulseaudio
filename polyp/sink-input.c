@@ -36,7 +36,7 @@
 
 #define CONVERT_BUFFER_LENGTH 4096
 
-struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec) {
+struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec, int variable_rate) {
     struct pa_sink_input *i;
     struct pa_resampler *resampler = NULL;
     int r;
@@ -48,7 +48,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
         return NULL;
     }
     
-    if (!pa_sample_spec_equal(spec, &s->sample_spec))
+    if (variable_rate || !pa_sample_spec_equal(spec, &s->sample_spec))
         if (!(resampler = pa_resampler_new(spec, &s->sample_spec, s->core->memblock_stat)))
             return NULL;
     
@@ -198,4 +198,14 @@ void pa_sink_input_cork(struct pa_sink_input *i, int b) {
 
     if (n)
         pa_sink_notify(i->sink);
+}
+
+void pa_sink_input_set_rate(struct pa_sink_input *i, uint32_t rate) {
+    assert(i && i->resampler);
+
+    if (i->sample_spec.rate == rate)
+        return;
+
+    i->sample_spec.rate = rate;
+    pa_resampler_set_input_rate(i->resampler, rate);
 }

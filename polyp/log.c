@@ -41,6 +41,7 @@ void pa_log(const char *format, ...) {
             char *t = pa_vsprintf_malloc(format, ap);
             assert(user_log_func);
             user_log_func(t);
+	    pa_xfree(t);
         }
     }
 

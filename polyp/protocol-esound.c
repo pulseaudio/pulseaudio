@@ -298,7 +298,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     c->playback.fragment_size = l/10;
     
     assert(!c->sink_input);
-    c->sink_input = pa_sink_input_new(sink, name, &ss);
+    c->sink_input = pa_sink_input_new(sink, name, &ss, 0);
     assert(c->sink_input);
 
     c->sink_input->owner = c->protocol->module;
