@@ -25,6 +25,7 @@
 #include "namereg.h"
 
 struct pa_autoload_entry {
+    struct pa_core *core;
     char *name;
     enum pa_namereg_type type;
     int in_action;

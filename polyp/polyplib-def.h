@@ -108,7 +108,8 @@ enum pa_subscription_mask {
     PA_SUBSCRIPTION_MASK_MODULE = 16,            /**< Module events */
     PA_SUBSCRIPTION_MASK_CLIENT = 32,            /**< Client events */
     PA_SUBSCRIPTION_MASK_SAMPLE_CACHE = 64,      /**< Sample cache events */
-    PA_SUBSCRIPTION_MASK_SERVER = 128            /**< Other global server changes. \since 0.4 */
+    PA_SUBSCRIPTION_MASK_SERVER = 128,           /**< Other global server changes. \since 0.4 */
+    PA_SUBSCRIPTION_MASK_AUTOLOAD = 256          /**< Autoload table events. \since 0.5 */
 };
 
 /** Subscription event types, as used by pa_context_subscribe() */
@@ -121,7 +122,8 @@ enum pa_subscription_event_type {
     PA_SUBSCRIPTION_EVENT_CLIENT = 5,         /**< Event type: Client */
     PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE = 6,   /**< Event type: Sample cache item */
     PA_SUBSCRIPTION_EVENT_SERVER = 7,         /**< Event type: Global server change, only occuring with PA_SUBSCRIPTION_EVENT_CHANGE. \since 0.4  */
-    PA_SUBSCRIPTION_EVENT_FACILITY_MASK = 7,  /**< A mask to extract the event type from an event value */
+    PA_SUBSCRIPTION_EVENT_AUTOLOAD = 8,       /**< Event type: Autoload table changes. \since 0.5 */
+    PA_SUBSCRIPTION_EVENT_FACILITY_MASK = 15, /**< A mask to extract the event type from an event value */
 
     PA_SUBSCRIPTION_EVENT_NEW = 0,            /**< A new object was created */
     PA_SUBSCRIPTION_EVENT_CHANGE = 16,        /**< A property of the object was modified */

@@ -1,9 +1,8 @@
 *** $Id$ ***
 
 *** 0.5 ***
-- more complete pactl
-- fix tcp/native
-- paman: add support for killing sink inputs, source outputs, clients
+- more complete pactl/parec
+- fix tcp/native in regard to latencies
 - add client config file
 - remove autospawn stuff in conf.c
 

@@ -101,6 +101,10 @@ static void do_read(struct pa_pstream *p);
 
 static void do_something(struct pa_pstream *p) {
     assert(p);
+
+    if (p->dead)
+        return;
+    
     p->mainloop->defer_enable(p->defer_event, 0);
 
     pa_pstream_ref(p);
@@ -213,8 +217,11 @@ static void pstream_free(struct pa_pstream *p) {
 
 void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
     struct item_info *i;
-    assert(p && packet);
+    assert(p && packet && p->ref >= 1);
 
+    if (p->dead)
+        return;
+    
 /*     pa_log(__FILE__": push-packet %p\n", packet); */
     
     i = pa_xmalloc(sizeof(struct item_info));
@@ -227,8 +234,11 @@ void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
 
 void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk) {
     struct item_info *i;
-    assert(p && channel != (uint32_t) -1 && chunk);
+    assert(p && channel != (uint32_t) -1 && chunk && p->ref >= 1);
 
+    if (p->dead)
+        return;
+    
 /*     pa_log(__FILE__": push-memblock %p\n", chunk); */
     
     i = pa_xmalloc(sizeof(struct item_info));

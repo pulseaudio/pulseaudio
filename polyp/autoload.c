@@ -34,9 +34,11 @@
 #include "sound-file.h"
 #include "log.h"
 #include "scache.h"
+#include "subscribe.h"
 
 static void entry_free(struct pa_autoload_entry *e) {
     assert(e);
+    pa_subscription_post(e->core, PA_SUBSCRIPTION_EVENT_AUTOLOAD|PA_SUBSCRIPTION_EVENT_REMOVE, PA_INVALID_INDEX);
     pa_xfree(e->name);
     pa_xfree(e->module);
     pa_xfree(e->argument);
@@ -51,6 +53,7 @@ static struct pa_autoload_entry* entry_new(struct pa_core *c, const char *name) 
         return NULL;
     
     e = pa_xmalloc(sizeof(struct pa_autoload_entry));
+    e->core = c;
     e->name = pa_xstrdup(name);
     e->module = e->argument = NULL;
     e->in_action = 0;
@@ -61,6 +64,8 @@ static struct pa_autoload_entry* entry_new(struct pa_core *c, const char *name) 
     
     pa_hashmap_put(c->autoload_hashmap, e->name, e);
 
+    pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_AUTOLOAD|PA_SUBSCRIPTION_EVENT_NEW, PA_INVALID_INDEX);
+    
     return e;
 }
 

@@ -40,7 +40,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Combine multiple sinks to one")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slave=<slave sinks> adjust_time")
+PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slave=<slave sinks> adjust_time=<seconds>")
 
 #define DEFAULT_SINK_NAME "combined"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
@@ -61,7 +61,7 @@ struct output {
     struct pa_sink_input *sink_input;
     size_t counter;
     struct pa_memblockq *memblockq;
-    pa_usec_t sink_latency;
+    pa_usec_t total_latency;
     PA_LLIST_FIELDS(struct output);
 };
 
@@ -89,38 +89,44 @@ static void update_usage(struct userdata *u) {
 
 static void adjust_rates(struct userdata *u) {
     struct output *o;
-    pa_usec_t max  = 0;
+    pa_usec_t max_sink_latency = 0, min_total_latency = (pa_usec_t) -1, target_latency;
     uint32_t base_rate;
     assert(u && u->sink);
 
     for (o = u->outputs; o; o = o->next) {
-        o->sink_latency = o->sink_input->sink ? pa_sink_get_latency(o->sink_input->sink) : 0;
+        uint32_t sink_latency = o->sink_input->sink ? pa_sink_get_latency(o->sink_input->sink) : 0;
+        
+        o->total_latency = sink_latency + pa_sink_input_get_latency(o->sink_input);
+        
+        if (sink_latency > max_sink_latency)
+            max_sink_latency = sink_latency;
 
-        if (o->sink_latency > max)
-            max = o->sink_latency;
+        if (o->total_latency < min_total_latency)
+            min_total_latency = o->total_latency;
     }
 
-    pa_log(__FILE__": [%s] maximum latency is %0.0f usec.\n", u->sink->name, (float) max);
+    assert(max_sink_latency > 0 && min_total_latency != (pa_usec_t) -1);
+
+    target_latency = max_sink_latency > min_total_latency ? max_sink_latency : min_total_latency;
+    
+    pa_log(__FILE__": [%s] target latency is %0.0f usec.\n", u->sink->name, (float) target_latency);
 
     base_rate = u->sink->sample_spec.rate;
 
     for (o = u->outputs; o; o = o->next) {
-        pa_usec_t l;
         uint32_t r = base_rate;
 
-        l = o->sink_latency + pa_sink_input_get_latency(o->sink_input);
-
-        if (l < max)
-            r -= (uint32_t) (((((double) max-l))/u->adjust_time)*r/ 1000000);
-        else if (l > max)
-            r += (uint32_t) (((((double) l-max))/u->adjust_time)*r/ 1000000);
+        if (o->total_latency < target_latency)
+            r -= (uint32_t) (((((double) target_latency - o->total_latency))/u->adjust_time)*r/ 1000000);
+        else if (o->total_latency > target_latency)
+            r += (uint32_t) (((((double) o->total_latency - target_latency))/u->adjust_time)*r/ 1000000);
 
         if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1))
             pa_log(__FILE__": [%s] sample rates too different, not adjusting (%u vs. %u).\n", o->sink_input->name, base_rate, r);
-        else
-            pa_log(__FILE__": [%s] new rate is %u Hz; ratio is %0.3f; latency is %0.0f usec.\n", o->sink_input->name, r, (double) r / base_rate, (float) l);
-        
-        pa_sink_input_set_rate(o->sink_input, r);
+        else {
+            pa_log(__FILE__": [%s] new rate is %u Hz; ratio is %0.3f; latency is %0.0f usec.\n", o->sink_input->name, r, (double) r / base_rate, (float) o->total_latency);
+            pa_sink_input_set_rate(o->sink_input, r);
+        }
     }
 }
 
