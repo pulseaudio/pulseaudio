@@ -2,6 +2,8 @@
 
 *** 0.2 ***
 
+- enable searchdir
+
 - scache memory leak
 - scache remove()
 - scache in native protocol
