@@ -20,7 +20,7 @@
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
 AC_PREREQ(2.57)
-AC_INIT([polypaudio],[0.6],[mzcbylcnhqvb (at) 0pointer (dot) de])
+AC_INIT([polypaudio],[0.7],[mzcbylcnhqvb (at) 0pointer (dot) de])
 AC_CONFIG_SRCDIR([polyp/main.c])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall])
@@ -28,7 +28,7 @@ AM_INIT_AUTOMAKE([foreign -Wall])
 AC_SUBST(PA_MAJORMINOR, "$PACKAGE_VERSION")
 AC_SUBST(PACKAGE_URL, [http://0pointer.de/lennart/projects/polypaudio/])
 
-AC_SUBST(PA_API_VERSION, 6)
+AC_SUBST(PA_API_VERSION, 7)
 
 if type -p stow > /dev/null && test -d /usr/local/stow ; then
    AC_MSG_NOTICE([*** Found /usr/local/stow: default install prefix set to /usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION} ***])
