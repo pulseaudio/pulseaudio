@@ -1,6 +1,7 @@
 *** $Id$ ***
 
 *** 0.6 ****
+- latency interpolation
 - per-channel volume
 - unix socket directories include user name
 - add sample directory
@@ -22,7 +23,7 @@
 
 backends for:
 - portaudio  (semi-done)
+- gstreamer (semi-done)
 - alsa-lib
 - sdl
-- gstreamer (semi-done)
 - OSS (esddsp style)

@@ -125,6 +125,22 @@ double pa_volume_to_dB(pa_volume_t v) {
     return 20*log10((double) v/PA_VOLUME_NORM);
 }
 
+#define USER_DECIBEL_RANGE 30
+
+double pa_volume_to_user(pa_volume_t v) {
+    double dB = pa_volume_to_dB(v);
+
+    return dB < -USER_DECIBEL_RANGE ? 0 : dB/USER_DECIBEL_RANGE+1;
+}
+
+pa_volume_t pa_volume_from_user(double v) {
+
+    if (v <= 0)
+        return PA_VOLUME_MUTED;
+    
+    return pa_volume_from_dB((v-1)*USER_DECIBEL_RANGE);
+}
+
 void pa_bytes_snprint(char *s, size_t l, unsigned v) {
     if (v >= ((unsigned) 1024)*1024*1024)
         snprintf(s, l, "%0.1f GB", ((double) v)/1024/1024/1024);

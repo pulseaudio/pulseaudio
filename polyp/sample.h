@@ -110,6 +110,12 @@ pa_volume_t pa_volume_from_dB(double f);
 /** Convert volume from linear level to decibel.  \since 0.4 */
 double pa_volume_to_dB(pa_volume_t v);
 
+/** Convert volume to scaled value understandable by the user (between 0 and 1). \since 0.6 */
+double pa_volume_to_user(pa_volume_t v);
+
+/** Convert user volume to polypaudio volume. \since 0.6 */
+pa_volume_t pa_volume_from_user(double v);
+
 #ifdef INFINITY
 #define PA_DECIBEL_MININFTY (-INFINITY)
 #else

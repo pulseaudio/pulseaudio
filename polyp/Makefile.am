@@ -33,7 +33,7 @@ AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
 EXTRA_DIST = default.pa.in daemon.conf.in client.conf.in depmod.py esdcompat.sh.in
-bin_PROGRAMS = polypaudio pacat pactl paplay
+bin_PROGRAMS = polypaudio pacat pactl paplay voltest
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = \
 		mainloop-test \
@@ -407,6 +407,10 @@ parec_simple_CFLAGS = $(AM_CFLAGS)
 mainloop_test_SOURCES = mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
 mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la libpolyp-@PA_MAJORMINOR@.la
+
+voltest_SOURCES = voltest.c sample.c
+voltest_CFLAGS = $(AM_CFLAGS)
+voltest_LDADD = $(AM_LDADD)
 
 cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c
 cpulimit_test_CFLAGS = $(AM_CFLAGS)
