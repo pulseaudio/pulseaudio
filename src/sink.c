@@ -174,7 +174,6 @@ int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target) {
     unsigned n;
     size_t l;
     assert(s && target && target->length && target->memblock && target->memblock->data);
-    pa_memblock_assert_exclusive(target->memblock);
     
     n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
 

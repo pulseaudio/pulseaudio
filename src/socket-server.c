@@ -43,9 +43,9 @@ static void callback(struct pa_mainloop_api *mainloop, void *id, int fd, enum pa
 
     /* There should be a check for socket type here */
     if (s->type == SOCKET_SERVER_IPV4) 
-        pa_make_tcp_socket_low_delay(fd);
+        pa_socket_tcp_low_delay(fd);
     else
-        pa_make_socket_low_delay(fd);
+        pa_socket_low_delay(fd);
     
     io = pa_iochannel_new(s->mainloop, nfd, nfd);
     assert(io);
@@ -88,7 +88,7 @@ struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, co
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
-    pa_make_socket_low_delay(fd);
+    pa_socket_low_delay(fd);
     
     if (bind(fd, (struct sockaddr*) &sa, SUN_LEN(&sa)) < 0) {
         fprintf(stderr, "bind(): %s\n", strerror(errno));
@@ -133,7 +133,7 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
         fprintf(stderr, "setsockopt(): %s\n", strerror(errno));
 
-    pa_make_tcp_socket_low_delay(fd);
+    pa_socket_tcp_low_delay(fd);
     
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);

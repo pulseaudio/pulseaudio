@@ -12,14 +12,12 @@ struct pa_sample_spec pa_default_sample_spec = {
 
 struct pa_memblock *pa_silence_memblock(struct pa_memblock* b, const struct pa_sample_spec *spec) {
     assert(b && b->data && spec);
-    pa_memblock_assert_exclusive(b);
     pa_silence_memory(b->data, b->length, spec);
     return b;
 }
 
 void pa_silence_memchunk(struct pa_memchunk *c, const struct pa_sample_spec *spec) {
     assert(c && c->memblock && c->memblock->data && spec && c->length);
-    pa_memblock_assert_exclusive(c->memblock);
     pa_silence_memory(c->memblock->data+c->index, c->length, spec);
 }
 
@@ -96,7 +94,6 @@ void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec,
     size_t n;
     assert(c && spec && (c->length % pa_sample_size(spec) == 0));
     assert(spec->format == PA_SAMPLE_S16NE);
-    pa_memblock_assert_exclusive(c->memblock);
 
     if (volume == PA_VOLUME_NORM)
         return;

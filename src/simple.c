@@ -14,24 +14,37 @@ struct pa_simple {
     int dead, drained;
 };
 
+static int check_error(struct pa_simple *p, int *perror) {
+    assert(p);
+    
+    if (pa_context_is_dead(p->context) || (p->stream && pa_stream_is_dead(p->stream))) {
+        if (perror)
+            *perror = pa_context_errno(p->context);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int iterate(struct pa_simple *p, int block, int *perror) {
     assert(p && p->context && p->mainloop);
 
+    if (check_error(p, perror) < 0)
+        return -1;
+    
     if (!block && !pa_context_is_pending(p->context))
         return 0;
-    
+
     do {
-        if (pa_context_is_dead(p->context) || (p->stream && pa_stream_is_dead(p->stream))) {
-            if (perror)
-                *perror = pa_context_errno(p->context);
-            return -1;
-        }
-        
         if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0) {
             if (perror)
                 *perror = PA_ERROR_INTERNAL;
             return -1;
         }
+
+        if (check_error(p, perror) < 0)
+            return -1;
+        
     } while (pa_context_is_pending(p->context));
 
     return 0;

@@ -68,10 +68,10 @@ static void out_fill_memblocks(struct userdata *u, unsigned n) {
         
         if (!u->out_memblocks[u->out_current]) {
 
-            u->out_memblocks[u->out_current] = chunk.memblock = pa_memblock_new_fixed(u->out_mmap+u->out_fragment_size*u->out_current,  u->out_fragment_size);
+            chunk.memblock = u->out_memblocks[u->out_current] = pa_memblock_new_fixed(u->out_mmap+u->out_fragment_size*u->out_current, u->out_fragment_size);
             chunk.length = chunk.memblock->length;
             chunk.index = 0;
-            
+
             pa_sink_render_into_full(u->sink, &chunk);
         }
             

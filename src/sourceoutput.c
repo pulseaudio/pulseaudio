@@ -72,11 +72,10 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
         pa_sample_snprint(ss, sizeof(ss), &o->sample_spec);
         assert(o->source);
         pa_strbuf_printf(
-            s, "  %c index: %u\n\tname: <%s>\n\tsource: <%u>\n\tsample_spec: <%u>\n",
+            s, "  index: %u\n\tname: <%s>\n\tsource: <%u>\n\tsample_spec: <%s>\n",
             o->index,
             o->name,
             o->source->index,
-            ss,
             ss);
     }
     

@@ -22,8 +22,6 @@ struct pa_memblock* pa_memblock_ref(struct pa_memblock*b);
 
 void pa_memblock_unref_fixed(struct pa_memblock*b);
 
-#define pa_memblock_assert_exclusive(b) assert((b)->ref == 1)
-
 extern unsigned pa_memblock_count, pa_memblock_total;
 
 #endif

@@ -87,36 +87,27 @@ fail:
     return -1;
 }
 
-int pa_make_socket_low_delay(int fd) {
-    int ret = 0, buf_size, priority;
-
+int pa_socket_low_delay(int fd) {
+    int priority;
     assert(fd >= 0);
-
-    buf_size = 1024;
-    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buf_size, sizeof(buf_size)) < 0)
-        ret = -1;
-
-    buf_size = 1024;
-    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &buf_size, sizeof(buf_size)) < 0)
-        ret = -1;
 
     priority = 7;
     if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority)) < 0)
-        ret = -1;
+        return -1;
 
-    return ret;
+    return 0;
 }
 
-int pa_make_tcp_socket_low_delay(int fd) {
-    int ret, tos, on;
-    
+int pa_socket_tcp_low_delay(int fd) {
+    int ret, tos;
+
     assert(fd >= 0);
 
-    ret = pa_make_socket_low_delay(fd);
+    ret = pa_socket_low_delay(fd);
     
-    on = 1;
-    if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
-        ret = -1;
+/*     on = 1; */
+/*     if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) */
+/*         ret = -1; */
 
     tos = IPTOS_LOWDELAY;
     if (setsockopt(fd, SOL_IP, IP_TOS, &tos, sizeof(tos)) < 0)
@@ -124,6 +115,24 @@ int pa_make_tcp_socket_low_delay(int fd) {
 
     return ret;
 
+}
+
+int pa_socket_set_rcvbuf(int fd, size_t l) {
+    assert(fd >= 0);
+
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &l, sizeof(l)) < 0)
+        return -1;
+
+    return 0;
+}
+
+int pa_socket_set_sndbuf(int fd, size_t l) {
+    assert(fd >= 0);
+
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &l, sizeof(l)) < 0)
+        return -1;
+
+    return 0;
 }
 
 ssize_t pa_loop_read(int fd, void*data, size_t size) {

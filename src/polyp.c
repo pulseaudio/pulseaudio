@@ -541,7 +541,8 @@ struct pa_stream* pa_stream_new(
 void pa_stream_free(struct pa_stream *s) {
     assert(s && s->context);
 
-    pa_pdispatch_unregister_reply(s->context->pdispatch, s);
+    if (s->context->pdispatch) 
+        pa_pdispatch_unregister_reply(s->context->pdispatch, s);
     
     free(s->name);
 

@@ -42,7 +42,8 @@ int main(int argc, char *argv[]) {
     c = pa_core_new(pa_mainloop_get_api(mainloop));
     assert(c);
     
-    pa_module_load(c, "module-oss", "/dev/dsp");
+    pa_module_load(c, "module-oss-mmap", "/dev/dsp");
+/*    pa_module_load(c, "module-oss-mmap", "/dev/dsp1");*/
 /*    pa_module_load(c, "module-pipe-sink", NULL);*/
     pa_module_load(c, "module-simple-protocol-tcp", NULL);
 /*    pa_module_load(c, "module-simple-protocol-unix", NULL);

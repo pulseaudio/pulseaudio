@@ -120,7 +120,7 @@ struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, ui
         goto fail;
     }
 
-    pa_make_tcp_socket_low_delay(c->fd);
+    pa_socket_tcp_low_delay(c->fd);
 
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
@@ -149,7 +149,7 @@ struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, co
         goto fail;
     }
 
-    pa_make_socket_low_delay(c->fd);
+    pa_socket_low_delay(c->fd);
 
     sa.sun_family = AF_LOCAL;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);

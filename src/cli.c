@@ -97,7 +97,7 @@ struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io) {
     c->userdata = NULL;
     c->eof_callback = NULL;
 
-    pa_iochannel_peer_to_string(io, cname, sizeof(cname));
+    pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
     c->client = pa_client_new(core, "CLI", cname);
     assert(c->client);
     c->client->kill = client_kill;

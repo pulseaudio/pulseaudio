@@ -132,7 +132,7 @@ static void stream_drain_complete(struct pa_stream*s, void *userdata) {
 static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
     size_t l, w = 0;
     ssize_t r;
-    assert(a == mainloop_api && id && fd == STDIN_FILENO && events == PA_MAINLOOP_API_IO_EVENT_INPUT && stdin_source == id);
+    assert(a == mainloop_api && id && fd == STDIN_FILENO && stdin_source == id);
 
     if (buffer) {
         mainloop_api->enable_io(mainloop_api, stdin_source, PA_MAINLOOP_API_IO_EVENT_NULL);
@@ -169,6 +169,7 @@ static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_m
 static void exit_signal_callback(void *id, int sig, void *userdata) {
     fprintf(stderr, "Got SIGINT, exiting.\n");
     quit(0);
+    
 }
 
 int main(int argc, char *argv[]) {

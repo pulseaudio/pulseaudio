@@ -1,20 +1,28 @@
-- recording (general, simple, esound, native)
+- recording (esound, native)
 - native library/protocol:
        more functions (esp. latency)
-- simple library
 
 - config parser/cmdline
+
+- description field for all entities
+- client field for sinkinput/sourceoutput
+- module field for all entities
 
 - move more stuff from module-oss[-dma] to liboss-util
 - in module-oss: create source first, than sink
 
-- client field for sinkinput/sourceoutput
+- merge memchunks in memblockq
+
+- create libstatustext, libsocketutil
+- prefix modules/libraries with pa_
 
 - xmms+esound latency testing
 
 - rename files
 - svn-id and license in every file
 - documentation
+
+
 
 -- post 0.1
 - future cancellation

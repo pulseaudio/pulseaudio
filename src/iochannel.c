@@ -15,6 +15,7 @@ struct pa_iochannel {
     
     int readable;
     int writable;
+    int hungup;
     
     int no_close;
 
@@ -47,6 +48,11 @@ static void callback(struct pa_mainloop_api* m, void *id, int fd, enum pa_mainlo
     int changed = 0;
     assert(m && fd >= 0 && events && userdata);
 
+    if ((events & PA_MAINLOOP_API_IO_EVENT_HUP) && !io->hungup) {
+        io->hungup = 1;
+        changed = 1;
+    }
+    
     if ((events & PA_MAINLOOP_API_IO_EVENT_INPUT) && !io->readable) {
         io->readable = 1;
         changed = 1;
@@ -80,6 +86,7 @@ struct pa_iochannel* pa_iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd
     io->callback = NULL;
     io->readable = 0;
     io->writable = 0;
+    io->hungup = 0;
     io->no_close = 0;
 
     if (ifd == ofd) {
@@ -132,6 +139,11 @@ int pa_iochannel_is_writable(struct pa_iochannel*io) {
     return io->writable;
 }
 
+int pa_iochannel_is_hungup(struct pa_iochannel*io) {
+    assert(io);
+    return io->hungup;
+}
+
 ssize_t pa_iochannel_write(struct pa_iochannel*io, const void*data, size_t l) {
     ssize_t r;
     assert(io && data && l && io->ofd >= 0);
@@ -168,7 +180,17 @@ void pa_iochannel_set_noclose(struct pa_iochannel*io, int b) {
     io->no_close = b;
 }
 
-void pa_iochannel_peer_to_string(struct pa_iochannel*io, char*s, size_t l) {
+void pa_iochannel_socket_peer_to_string(struct pa_iochannel*io, char*s, size_t l) {
     assert(io && s && l);
     pa_peer_to_string(s, l, io->ifd);
+}
+
+int pa_iochannel_socket_set_rcvbuf(struct pa_iochannel *io, size_t l) {
+    assert(io);
+    return pa_socket_set_rcvbuf(io->ifd, l);
+}
+
+int pa_iochannel_socket_set_sndbuf(struct pa_iochannel *io, size_t l) {
+    assert(io);
+    return pa_socket_set_sndbuf(io->ofd, l);
 }

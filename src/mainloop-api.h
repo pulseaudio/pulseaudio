@@ -8,7 +8,8 @@ enum pa_mainloop_api_io_events {
     PA_MAINLOOP_API_IO_EVENT_NULL = 0,
     PA_MAINLOOP_API_IO_EVENT_INPUT = 1,
     PA_MAINLOOP_API_IO_EVENT_OUTPUT = 2,
-    PA_MAINLOOP_API_IO_EVENT_BOTH = 3
+    PA_MAINLOOP_API_IO_EVENT_BOTH = 3,
+    PA_MAINLOOP_API_IO_EVENT_HUP = 4
 };
 
 struct pa_mainloop_api {

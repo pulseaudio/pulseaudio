@@ -167,7 +167,8 @@ static void dispatch_pollfds(struct pa_mainloop *m) {
         
         assert(s->pollfd->fd == s->fd && s->callback);
         s->callback(&m->api, s, s->fd,
-                    ((s->pollfd->revents & (POLLIN|POLLHUP|POLLERR)) ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) |
+                    ((s->pollfd->revents & POLLHUP) ? PA_MAINLOOP_API_IO_EVENT_HUP : 0) |
+                    ((s->pollfd->revents & POLLIN) ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) |
                     ((s->pollfd->revents & POLLOUT) ? PA_MAINLOOP_API_IO_EVENT_OUTPUT : 0), s->userdata);
         s->pollfd->revents = 0;
     }

@@ -16,11 +16,14 @@ ssize_t pa_iochannel_read(struct pa_iochannel*io, void*data, size_t l);
 
 int pa_iochannel_is_readable(struct pa_iochannel*io);
 int pa_iochannel_is_writable(struct pa_iochannel*io);
+int pa_iochannel_is_hungup(struct pa_iochannel*io);
 
 void pa_iochannel_set_noclose(struct pa_iochannel*io, int b);
 
 void pa_iochannel_set_callback(struct pa_iochannel*io, void (*callback)(struct pa_iochannel*io, void *userdata), void *userdata);
 
-void pa_iochannel_peer_to_string(struct pa_iochannel*io, char*s, size_t l);
+void pa_iochannel_socket_peer_to_string(struct pa_iochannel*io, char*s, size_t l);
+int pa_iochannel_socket_set_rcvbuf(struct pa_iochannel*io, size_t l);
+int pa_iochannel_socket_set_sndbuf(struct pa_iochannel*io, size_t l);
 
 #endif
