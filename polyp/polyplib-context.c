@@ -592,6 +592,7 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
             char lf[PATH_MAX];
 
             pa_runtime_path(AUTOSPAWN_LOCK, lf, sizeof(lf));
+            pa_make_secure_parent_dir(lf);
             assert(c->autospawn_lock_fd <= 0);
             c->autospawn_lock_fd = pa_lock_lockfile(lf);
 
