@@ -166,22 +166,35 @@ int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename) {
     char *def = NULL;
     int r;
     
-    const struct pa_config_item table[] = {
-        { "verbose",                 pa_config_parse_bool,    &c->verbose },
-        { "daemonize",               pa_config_parse_bool,    &c->daemonize },
-        { "fail",                    pa_config_parse_bool,    &c->fail },
-        { "high-priority",           pa_config_parse_bool,    &c->high_priority },
-        { "disallow-module-loading", pa_config_parse_bool,    &c->disallow_module_loading },
-        { "exit-idle-time",          pa_config_parse_int,     &c->exit_idle_time },
-        { "module-idle-time",        pa_config_parse_int,     &c->module_idle_time },
-        { "scache-idle-time",        pa_config_parse_int,     &c->scache_idle_time },
-        { "dl-search-path",          pa_config_parse_string,  &c->dl_search_path },
-        { "default-script-file",     pa_config_parse_string,  &c->default_script_file },
-        { "log-target",              parse_log_target,        c },
-        { "resample-method",         parse_resample_method,   c },
+    struct pa_config_item table[] = {
+        { "verbose",                 pa_config_parse_bool,    NULL },
+        { "daemonize",               pa_config_parse_bool,    NULL },
+        { "fail",                    pa_config_parse_bool,    NULL },
+        { "high-priority",           pa_config_parse_bool,    NULL },
+        { "disallow-module-loading", pa_config_parse_bool,    NULL },
+        { "exit-idle-time",          pa_config_parse_int,     NULL },
+        { "module-idle-time",        pa_config_parse_int,     NULL },
+        { "scache-idle-time",        pa_config_parse_int,     NULL },
+        { "dl-search-path",          pa_config_parse_string,  NULL },
+        { "default-script-file",     pa_config_parse_string,  NULL },
+        { "log-target",              parse_log_target,        NULL },
+        { "resample-method",         parse_resample_method,   NULL },
         { NULL,                      NULL,                    NULL },
     };
-
+    
+    table[0].data = &c->verbose;
+    table[1].data = &c->daemonize;
+    table[2].data = &c->fail;
+    table[3].data = &c->high_priority;
+    table[4].data = &c->disallow_module_loading;
+    table[5].data = &c->exit_idle_time;
+    table[6].data = &c->module_idle_time;
+    table[7].data = &c->scache_idle_time;
+    table[8].data = &c->dl_search_path;
+    table[9].data = &c->default_script_file;
+    table[10].data = c;
+    table[11].data = c;
+    
     if (!filename)
         filename = def = default_file(ENV_CONFIG_FILE, DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER);
     
