@@ -34,6 +34,7 @@
 #include "llist.h"
 #include "native-common.h"
 #include "client-conf.h"
+#include "strlist.h"
 
 #define DEFAULT_TLENGTH (44100*2*2/2)  //(10240*8)
 #define DEFAULT_MAXLENGTH ((DEFAULT_TLENGTH*3)/2)
@@ -70,6 +71,11 @@ struct pa_context {
     struct pa_memblock_stat *memblock_stat;
 
     int local;
+    int do_autospawn;
+    int autospawn_lock_fd;
+    struct pa_spawn_api spawn_api;
+    
+    struct pa_strlist *server_list;
 
     struct pa_client_conf *conf;
 };

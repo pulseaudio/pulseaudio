@@ -110,3 +110,10 @@ void pa_property_dump(struct pa_core *c, struct pa_strbuf *s) {
     while ((p = pa_hashmap_iterate(c->properties, &state, NULL)))
         pa_strbuf_printf(s, "[%s] -> [%p]\n", p->name, p->data);
 }
+
+int pa_property_replace(struct pa_core *c, const char *name, void *data) {
+    assert(c && name);
+
+    pa_property_remove(c, name);
+    return pa_property_set(c, name, data);
+}

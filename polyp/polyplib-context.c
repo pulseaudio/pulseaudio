@@ -54,7 +54,9 @@
 #include "client-conf-x11.h"
 #endif
 
-#define AUTOSPAWN_LOCK "/tmp/polypaudio/autospawn.lock"
+#define AUTOSPAWN_LOCK "autospawn.lock"
+
+
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = { pa_command_request },
@@ -62,6 +64,16 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_RECORD_STREAM_KILLED] = { pa_command_stream_killed },
     [PA_COMMAND_SUBSCRIBE_EVENT] = { pa_command_subscribe_event },
 };
+
+static void unlock_autospawn_lock_file(struct pa_context *c) {
+    assert(c);
+    
+    if (c->autospawn_lock_fd >= 0) {
+        pa_unlock_lockfile(c->autospawn_lock_fd);
+        c->autospawn_lock_fd = -1;
+    }
+    
+}
 
 struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *name) {
     struct pa_context *c;
@@ -93,6 +105,10 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
 
     c->memblock_stat = pa_memblock_stat_new();
     c->local = -1;
+    c->server_list = NULL;
+    c->autospawn_lock_fd = -1;
+    memset(&c->spawn_api, 0, sizeof(c->spawn_api));
+    c->do_autospawn = 0;
     
     pa_check_signal_is_blocked(SIGPIPE);
 
@@ -108,6 +124,8 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
 
 static void context_free(struct pa_context *c) {
     assert(c);
+
+    unlock_autospawn_lock_file(c);
 
     while (c->operations)
         pa_operation_cancel(c->operations);
@@ -133,6 +151,8 @@ static void context_free(struct pa_context *c) {
 
     if (c->conf)
         pa_client_conf_free(c->conf);
+
+    pa_strlist_free(c->server_list);
     
     pa_xfree(c->name);
     pa_xfree(c);
@@ -337,38 +357,9 @@ finish:
     pa_context_unref(c);
 }
 
-static void on_connection(struct pa_socket_client *client, struct pa_iochannel*io, void *userdata) {
-    struct pa_context *c = userdata;
-    assert(client && c && c->state == PA_CONTEXT_CONNECTING);
+static void on_connection(struct pa_socket_client *client, struct pa_iochannel*io, void *userdata);
 
-    pa_context_ref(c);
-    
-    pa_socket_client_unref(client);
-    c->client = NULL;
-
-    if (!io) {
-        pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
-        goto finish;
-    }
-
-    setup_context(c, io);
-
-finish:
-    pa_context_unref(c);
-}
-
-static int default_server_is_running(void) {
-    struct stat st;
-    
-    if (PA_NATIVE_DEFAULT_SERVER_UNIX[0] != '/')
-        return 1;
-
-    if (stat(PA_NATIVE_DEFAULT_SERVER_UNIX, &st) < 0)
-        return 0;
-
-    return 1;
-}
-static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api *api) {
+static int context_connect_spawn(struct pa_context *c) {
     pid_t pid;
     int status, r;
     int fds[2] = { -1, -1} ;
@@ -382,15 +373,20 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
         goto fail;
     }
 
-    if (api && api->prefork)
-        api->prefork();
+    pa_fd_set_cloexec(fds[0], 1);
+    
+    pa_socket_low_delay(fds[0]);
+    pa_socket_low_delay(fds[1]);
+
+    if (c->spawn_api.prefork)
+        c->spawn_api.prefork();
 
     if ((pid = fork()) < 0) {
         pa_log(__FILE__": fork() failed: %s\n", strerror(errno));
         pa_context_fail(c, PA_ERROR_INTERNAL);
 
-        if (api && api->postfork)
-            api->postfork();
+        if (c->spawn_api.postfork)
+            c->spawn_api.postfork();
         
         goto fail;
     } else if (!pid) {
@@ -402,10 +398,11 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
         char *argv[MAX_ARGS+1];
         int n;
 
+        /* Not required, since fds[0] has CLOEXEC enabled anyway */
         close(fds[0]);
         
-        if (api && api->atfork)
-            api->atfork();
+        if (c->spawn_api.atfork)
+            c->spawn_api.atfork();
 
         /* Setup argv */
 
@@ -430,14 +427,15 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
 
         execv(argv[0], argv);
         _exit(1);
+#undef MAX_ARGS
     } 
 
     /* Parent */
 
     r = waitpid(pid, &status, 0);
 
-    if (api && api->postfork)
-        api->postfork();
+    if (c->spawn_api.postfork)
+        c->spawn_api.postfork();
         
     if (r < 0) {
         pa_log(__FILE__": waitpid() failed: %s\n", strerror(errno));
@@ -453,7 +451,9 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
     c->local = 1;
     
     io = pa_iochannel_new(c->mainloop, fds[0], fds[0]);
+
     setup_context(c, io);
+    unlock_autospawn_lock_file(c);
 
     pa_context_unref(c);
 
@@ -465,9 +465,82 @@ fail:
     if (fds[1] != -1)
         close(fds[1]);
 
+    unlock_autospawn_lock_file(c);
+
     pa_context_unref(c);
 
     return -1;
+}
+
+static int try_next_connection(struct pa_context *c) {
+    char *u = NULL;
+    int r = -1;
+    assert(c && !c->client);
+
+    for (;;) {
+        if (u)
+            pa_xfree(u);
+        u = NULL;
+        
+        c->server_list = pa_strlist_pop(c->server_list, &u);
+        
+        if (!u) {
+
+            if (c->do_autospawn) {
+                r = context_connect_spawn(c);
+                goto finish;
+            }
+            
+            pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
+            goto finish;
+        }
+        
+/*          pa_log(__FILE__": Trying to connect to %s...\n", u);  */
+        
+        if (!(c->client = pa_socket_client_new_string(c->mainloop, u, PA_NATIVE_DEFAULT_PORT)))
+            continue;
+        
+        c->local = pa_socket_client_is_local(c->client);
+        pa_socket_client_set_callback(c->client, on_connection, c);
+        break;
+    }
+
+    r = 0;
+
+finish:
+    if (u)
+        pa_xfree(u);
+    
+    return r;
+}
+
+static void on_connection(struct pa_socket_client *client, struct pa_iochannel*io, void *userdata) {
+    struct pa_context *c = userdata;
+    assert(client && c && c->state == PA_CONTEXT_CONNECTING);
+
+    pa_context_ref(c);
+    
+    pa_socket_client_unref(client);
+    c->client = NULL;
+
+    if (!io) {
+        pa_log("failure: %s\n", strerror(errno));
+        
+        /* Try the item in the list */
+        if (errno == ECONNREFUSED || errno == ETIMEDOUT || errno == EHOSTUNREACH) {
+            try_next_connection(c);
+            goto finish;
+        }
+
+        pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
+        goto finish;
+    }
+
+    unlock_autospawn_lock_file(c);
+    setup_context(c, io);
+
+finish:
+    pa_context_unref(c);
 }
 
 int pa_context_connect(struct pa_context *c, const char *server, int spawn, const struct pa_spawn_api *api) {
@@ -477,59 +550,46 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
     if (!server)
         server = c->conf->default_server;
 
-    if (!server && spawn && c->conf->autospawn) {
-        int lock_fd = pa_lock_lockfile(AUTOSPAWN_LOCK);
-        
-        if (!default_server_is_running()) {
-            int r = context_connect_spawn(c, api);
-
-            if (lock_fd >= 0)
-                pa_unlock_lockfile(lock_fd);
-            return r;
-        }
-
-        if (lock_fd >= 0)
-            pa_unlock_lockfile(lock_fd);
-    }
-    
-    if (!server)
-        server = PA_NATIVE_DEFAULT_SERVER_UNIX;
 
     pa_context_ref(c);
 
-    assert(!c->client);
+    assert(!c->server_list);
     
-    if (*server == '/') {
-        if (!(c->client = pa_socket_client_new_unix(c->mainloop, server))) {
-            pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
-            goto finish;
-        }
-
-        c->local = 1;
-    } else {
-        struct sockaddr* sa;
-        size_t sa_len;
-
-        if (!(sa = pa_resolve_server(server, &sa_len, PA_NATIVE_DEFAULT_PORT))) {
+    if (server) {
+        if (!(c->server_list = pa_strlist_parse(server))) {
             pa_context_fail(c, PA_ERROR_INVALIDSERVER);
             goto finish;
         }
+    } else {
+        char *d;
+        char ufn[PATH_MAX];
 
-        c->client = pa_socket_client_new_sockaddr(c->mainloop, sa, sa_len);
-        pa_xfree(sa);
+        /* Prepend in reverse order */
+        
+        if ((d = getenv("DISPLAY")))
+            c->server_list = pa_strlist_prepend(c->server_list, d);
+        
+        c->server_list = pa_strlist_prepend(c->server_list, "tcp6:localhost");
+        c->server_list = pa_strlist_prepend(c->server_list, "localhost");
+        c->server_list = pa_strlist_prepend(c->server_list, pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET, ufn, sizeof(ufn)));
 
-        if (!c->client) {
-            pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
-            goto finish;
+        /* Wrap the connection attempts in a single transaction for sane autospwan locking */
+        if (spawn && c->conf->autospawn) {
+            char lf[PATH_MAX];
+
+            pa_runtime_path(AUTOSPAWN_LOCK, lf, sizeof(lf));
+            assert(c->autospawn_lock_fd <= 0);
+            c->autospawn_lock_fd = pa_lock_lockfile(lf);
+
+            if (api)
+                c->spawn_api = *api;
+            c->do_autospawn = 1;
         }
 
-        c->local = 0;
     }
 
-    pa_socket_client_set_callback(c->client, on_connection, c);
     pa_context_set_state(c, PA_CONTEXT_CONNECTING);
-
-    r = 0;
+    r = try_next_connection(c);
     
 finish:
     pa_context_unref(c);

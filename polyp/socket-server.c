@@ -56,7 +56,7 @@ struct pa_socket_server {
 
     struct pa_io_event *io_event;
     struct pa_mainloop_api *mainloop;
-    enum { SOCKET_SERVER_GENERIC, SOCKET_SERVER_IPV4, SOCKET_SERVER_UNIX } type;
+    enum { SOCKET_SERVER_GENERIC, SOCKET_SERVER_IPV4, SOCKET_SERVER_UNIX, SOCKET_SERVER_IPV6 } type;
 };
 
 static void callback(struct pa_mainloop_api *mainloop, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
@@ -202,6 +202,7 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
 
     pa_socket_tcp_low_delay(fd);
     
+    memset(&sa, sizeof(sa), 0);
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
     sa.sin_addr.s_addr = htonl(address);
@@ -220,6 +221,53 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
         ss->type = SOCKET_SERVER_IPV4;
         ss->tcpwrap_service = pa_xstrdup(tcpwrap_service);
     }
+
+    return ss;
+    
+fail:
+    if (fd >= 0)
+        close(fd);
+
+    return NULL;
+}
+
+struct pa_socket_server* pa_socket_server_new_ipv6(struct pa_mainloop_api *m, uint8_t address[16], uint16_t port) {
+    struct pa_socket_server *ss;
+    int fd = -1;
+    struct sockaddr_in6 sa;
+    int on = 1;
+
+    assert(m && port);
+
+    if ((fd = socket(PF_INET6, SOCK_STREAM, 0)) < 0) {
+        pa_log(__FILE__": socket(): %s\n", strerror(errno));
+        goto fail;
+    }
+
+    pa_fd_set_cloexec(fd, 1);
+
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+        pa_log(__FILE__": setsockopt(): %s\n", strerror(errno));
+
+    pa_socket_tcp_low_delay(fd);
+
+    memset(&sa, sizeof(sa), 0);
+    sa.sin6_family = AF_INET6;
+    sa.sin6_port = htons(port);
+    memcpy(sa.sin6_addr.s6_addr, address, 16);
+
+    if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
+        pa_log(__FILE__": bind(): %s\n", strerror(errno));
+        goto fail;
+    }
+
+    if (listen(fd, 5) < 0) {
+        pa_log(__FILE__": listen(): %s\n", strerror(errno));
+        goto fail;
+    }
+
+    if ((ss = pa_socket_server_new(m, fd)))
+        ss->type = SOCKET_SERVER_IPV6;
 
     return ss;
     
@@ -257,4 +305,99 @@ void pa_socket_server_set_callback(struct pa_socket_server*s, void (*on_connecti
 
     s->on_connection = on_connection;
     s->userdata = userdata;
+}
+
+
+char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l) {
+    assert(s && c && l > 0);
+    
+    switch (s->type) {
+        case SOCKET_SERVER_IPV6: {
+            struct sockaddr_in6 sa;
+            socklen_t l = sizeof(sa);
+
+            if (getsockname(s->fd, (struct sockaddr*) &sa, &l) < 0) {
+                pa_log(__FILE__": getsockname() failed: %s\n", strerror(errno));
+                return NULL;
+            }
+
+            if (memcmp(&in6addr_any, &sa.sin6_addr, sizeof(in6addr_any)) == 0) {
+                char fqdn[256];
+                if (!pa_get_fqdn(fqdn, sizeof(fqdn)))
+                    return NULL;
+                
+                snprintf(c, l, "tcp6:%s:%u", fqdn, (unsigned) ntohs(sa.sin6_port));
+                
+            } else if (memcmp(&in6addr_loopback, &sa.sin6_addr, sizeof(in6addr_loopback)) == 0) {
+                char hn[256];
+                if (!pa_get_host_name(hn, sizeof(hn)))
+                    return NULL;
+                
+                snprintf(c, l, "{%s}tcp6:localhost:%u", hn, (unsigned) ntohs(sa.sin6_port));
+            } else {
+                char ip[INET6_ADDRSTRLEN];
+                
+                if (!inet_ntop(AF_INET6, &sa.sin6_addr, ip, sizeof(ip))) {
+                    pa_log(__FILE__": inet_ntop() failed: %s\n", strerror(errno));
+                    return NULL;
+                }
+                
+                snprintf(c, l, "tcp6:[%s]:%u", ip, (unsigned) ntohs(sa.sin6_port));
+            }
+
+            return c;
+        }
+
+        case SOCKET_SERVER_IPV4: {
+            struct sockaddr_in sa;
+            socklen_t l = sizeof(sa);
+
+            if (getsockname(s->fd, &sa, &l) < 0) {
+                pa_log(__FILE__": getsockname() failed: %s\n", strerror(errno));
+                return NULL;
+            }
+
+            if (sa.sin_addr.s_addr == INADDR_ANY) {
+                char fqdn[256];
+                if (!pa_get_fqdn(fqdn, sizeof(fqdn)))
+                    return NULL;
+                
+                snprintf(c, l, "tcp:%s:%u", fqdn, (unsigned) ntohs(sa.sin_port));
+            } else if (sa.sin_addr.s_addr == INADDR_LOOPBACK) {
+                char hn[256];
+                if (!pa_get_host_name(hn, sizeof(hn)))
+                    return NULL;
+                
+                snprintf(c, l, "{%s}tcp:localhost:%u", hn, (unsigned) ntohs(sa.sin_port));
+            } else {
+                char ip[INET_ADDRSTRLEN];
+
+                if (!inet_ntop(AF_INET, &sa.sin_addr, ip, sizeof(ip))) {
+                    pa_log(__FILE__": inet_ntop() failed: %s\n", strerror(errno));
+                    return NULL;
+                }
+                
+                snprintf(c, l, "tcp:[%s]:%u", ip, (unsigned) ntohs(sa.sin_port));
+
+            }
+            
+            return c;
+        }
+
+        case SOCKET_SERVER_UNIX: {
+            char hn[256];
+
+            if (!s->filename)
+                return NULL;
+            
+            if (!pa_get_host_name(hn, sizeof(hn)))
+                return NULL;
+
+            snprintf(c, l, "{%s}unix:%s", hn, s->filename);
+            return c;
+        }
+
+        default:
+            return NULL;
+    }
 }

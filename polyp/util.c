@@ -51,6 +51,8 @@
 #include "xmalloc.h"
 #include "log.h"
 
+#define PA_RUNTIME_PATH_PREFIX "/tmp/polypaudio-"
+
 /** Make a file descriptor nonblock. Doesn't do any error checking */
 void pa_make_nonblock_fd(int fd) {
     int v;
@@ -82,6 +84,26 @@ fail:
     rmdir(dir);
     return -1;
 }
+
+/* Creates a the parent directory of the specified path securely */
+int pa_make_secure_parent_dir(const char *fn) {
+    int ret = -1;
+    char *slash, *dir = pa_xstrdup(fn);
+    
+    if (!(slash = strrchr(dir, '/')))
+        goto finish;
+    *slash = 0;
+    
+    if (pa_make_secure_dir(dir) < 0)
+        goto finish;
+
+    ret = 0;
+    
+finish:
+    pa_xfree(dir);
+    return ret;
+}
+
 
 /** Calls read() in a loop. Makes sure that as much as 'size' bytes,
  * unless EOF is reached or an error occured */
@@ -225,31 +247,32 @@ char *pa_get_user_name(char *s, size_t l) {
     char *p;
     assert(s && l > 0);
 
-    if (!(p = getenv("USER")))
-        if (!(p = getenv("LOGNAME")))
-            if (!(p = getenv("USERNAME"))) {
-                
+    if (!(p = getenv("USER")) && !(p = getenv("LOGNAME")) && !(p = getenv("USERNAME"))) {
+        
 #ifdef HAVE_GETPWUID_R
-                if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
+        if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
 #else
-		/* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
-		 * that do not support getpwuid_r. */
-		if ((r = getpwuid(getuid())) == NULL) {
+            /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
+             * that do not support getpwuid_r. */
+            if ((r = getpwuid(getuid())) == NULL) {
 #endif
-                    snprintf(s, l, "%lu", (unsigned long) getuid());
-                    return s;
-                }
-                
-                p = r->pw_name;
+                snprintf(s, l, "%lu", (unsigned long) getuid());
+                return s;
             }
+            
+            p = r->pw_name;
+        }
 
     return pa_strlcpy(s, p, l);
-}
+    }
 
 /* Return the current hostname in the specified buffer. */
 char *pa_get_host_name(char *s, size_t l) {
     assert(s && l > 0);
-    gethostname(s, l);
+    if (gethostname(s, l) < 0) {
+        pa_log(__FILE__": gethostname(): %s\n", strerror(errno));
+        return NULL;
+    }
     s[l-1] = 0;
     return s;
 }
@@ -264,8 +287,10 @@ char *pa_get_home_dir(char *s, size_t l) {
     if ((e = getenv("HOME")))
         return pa_strlcpy(s, e, l);
 
-    if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r)
+    if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
+        pa_log(__FILE__": getpwuid_r() failed\n");
         return NULL;
+    }
 
     return pa_strlcpy(s, r->pw_dir, l);
 }
@@ -479,7 +504,7 @@ char *pa_split_spaces(const char *c, const char **state) {
     const char *current = *state ? *state : c;
     size_t l;
 
-    if (!*current)
+    if (!*current || *c == 0)
         return NULL;
 
     current += strspn(current, WHITESPACE);
@@ -768,13 +793,13 @@ size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
             return (size_t) -1;
 
         d[j] |= (uint8_t) b;
-
         j++;
     }
 
     return j;
 }
 
+/* Return the fully qualified domain name in *s */
 char *pa_get_fqdn(char *s, size_t l) {
     char hn[256];
     struct addrinfo *a, hints;
@@ -791,5 +816,27 @@ char *pa_get_fqdn(char *s, size_t l) {
 
     pa_strlcpy(s, a->ai_canonname, l);
     freeaddrinfo(a);
+    return s;
+}
+
+/* Returns nonzero when *s starts with *pfx */
+int pa_startswith(const char *s, const char *pfx) {
+    size_t l;
+    assert(s && pfx);
+    l = strlen(pfx);
+
+    return strlen(s) >= l && strncmp(s, pfx, l) == 0;
+}
+
+/* if fn is null return the polypaudio run time path in s (/tmp/polypaudio)
+ * if fn is non-null and starts with / return fn in s
+ * otherwise append fn to the run time path and return it in s */
+char *pa_runtime_path(const char *fn, char *s, size_t l) {
+    char u[256];
+
+    if (fn && *fn == '/')
+        return pa_strlcpy(s, fn, l);
+    
+    snprintf(s, l, PA_RUNTIME_PATH_PREFIX"%s%s%s", pa_get_user_name(u, sizeof(u)), fn ? "/" : "", fn ? fn : "");
     return s;
 }

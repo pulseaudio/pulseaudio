@@ -28,17 +28,19 @@
 #include "mainloop-api.h"
 #include "iochannel.h"
 
-/* It is safe to destroy the calling socket_client object from the callback */
-
 struct pa_socket_client;
 
 struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port);
+struct pa_socket_client* pa_socket_client_new_ipv6(struct pa_mainloop_api *m, uint8_t address[16], uint16_t port);
 struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename);
 struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m, const struct sockaddr *sa, size_t salen);
+struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, const char *a, uint16_t default_port);
 
 void pa_socket_client_unref(struct pa_socket_client *c);
 struct pa_socket_client* pa_socket_client_ref(struct pa_socket_client *c);
 
 void pa_socket_client_set_callback(struct pa_socket_client *c, void (*on_connection)(struct pa_socket_client *c, struct pa_iochannel*io, void *userdata), void *userdata);
+
+int pa_socket_client_is_local(struct pa_socket_client *c);
 
 #endif

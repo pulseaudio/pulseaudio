@@ -2,7 +2,6 @@
 
 *** 0.7 ****
 - per-channel volume
-- unix socket directories include user name
 - add sample directory
 - make mcalign merge chunks
 - option to use default fragment size on alsa drivers
@@ -13,7 +12,6 @@
 - make most buffer sizes dependant on the sample type
 
 - X11: support for the X11 synchronization extension
-- X11: save auth info in root window
 - pass meta info for hearing impaired
 - limit all resources
 - check getaddrinfo results

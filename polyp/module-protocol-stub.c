@@ -38,9 +38,13 @@
 #include "modargs.h"
 #include "log.h"
 #include "native-common.h"
+#include "util.h"
 
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"
+#define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?>"
+#elif defined(USE_TCP6_SOCKETS)
+#define SOCKET_DESCRIPTION "(TCP/IPv6 sockets)"
 #define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?>"
 #else
 #define SOCKET_DESCRIPTION "(UNIX sockets)"
@@ -53,10 +57,12 @@
   #define protocol_free pa_protocol_simple_free
   #define TCPWRAP_SERVICE "polypaudio-simple"
   #define IPV4_PORT 4711
-  #define UNIX_SOCKET "/tmp/polypaudio/simple"
+  #define UNIX_SOCKET "simple"
   #define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
-  #ifdef USE_TCP_SOCKETS
+  #if defined(USE_TCP_SOCKETS)
     #include "module-simple-protocol-tcp-symdef.h"
+  #elif defined(USE_TCP6_SOCKETS)
+    #include "module-simple-protocol-tcp6-symdef.h"
   #else
     #include "module-simple-protocol-unix-symdef.h"
   #endif
@@ -68,10 +74,12 @@
   #define protocol_free pa_protocol_cli_free
   #define TCPWRAP_SERVICE "polypaudio-cli"
   #define IPV4_PORT 4712
-  #define UNIX_SOCKET "/tmp/polypaudio/cli"
+  #define UNIX_SOCKET "cli"
   #define MODULE_ARGUMENTS 
   #ifdef USE_TCP_SOCKETS
     #include "module-cli-protocol-tcp-symdef.h"
+  #elif defined(USE_TCP6_SOCKETS)
+    #include "module-cli-protocol-tcp6-symdef.h"
   #else
     #include "module-cli-protocol-unix-symdef.h"
   #endif
@@ -83,10 +91,12 @@
   #define protocol_free pa_protocol_native_free
   #define TCPWRAP_SERVICE "polypaudio-native"
   #define IPV4_PORT PA_NATIVE_DEFAULT_PORT
-  #define UNIX_SOCKET PA_NATIVE_DEFAULT_SERVER_UNIX
+  #define UNIX_SOCKET PA_NATIVE_DEFAULT_UNIX_SOCKET
   #define MODULE_ARGUMENTS "public", "cookie",
   #ifdef USE_TCP_SOCKETS
     #include "module-native-protocol-tcp-symdef.h"
+  #elif defined(USE_TCP6_SOCKETS)
+    #include "module-native-protocol-tcp6-symdef.h"
   #else
     #include "module-native-protocol-unix-symdef.h"
   #endif
@@ -103,6 +113,8 @@
   #define MODULE_ARGUMENTS "sink", "source", "public", "cookie",
   #ifdef USE_TCP_SOCKETS
     #include "module-esound-protocol-tcp-symdef.h"
+  #elif defined(USE_TCP6_SOCKETS)
+    #include "module-esound-protocol-tcp6-symdef.h"
   #else
     #include "module-esound-protocol-unix-symdef.h"
   #endif
@@ -117,7 +129,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 
 static const char* const valid_modargs[] = {
     MODULE_ARGUMENTS
-#ifdef USE_TCP_SOCKETS
+#if defined(USE_TCP_SOCKETS) || defined(USE_TCP6_SOCKETS)
     "port",
     "loopback",
 #else
@@ -128,7 +140,7 @@ static const char* const valid_modargs[] = {
 
 static struct pa_socket_server *create_socket_server(struct pa_core *c, struct pa_modargs *ma) {
     struct pa_socket_server *s;
-#ifdef USE_TCP_SOCKETS
+#if defined(USE_TCP_SOCKETS) || defined(USE_TCP6_SOCKETS)
     int loopback = 1;
     uint32_t port = IPV4_PORT;
 
@@ -141,30 +153,39 @@ static struct pa_socket_server *create_socket_server(struct pa_core *c, struct p
         pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.\n");
         return NULL;
     }
-    
-    if (!(s = pa_socket_server_new_ipv4(c->mainloop, loopback ? INADDR_LOOPBACK : INADDR_ANY, port, TCPWRAP_SERVICE)))
+
+#ifdef USE_TCP6_SOCKETS
+    if (!(s = pa_socket_server_new_ipv6(c->mainloop, loopback ? (uint8_t*) &in6addr_loopback : (uint8_t*) &in6addr_any, port)))
         return NULL;
 #else
+    if (!(s = pa_socket_server_new_ipv4(c->mainloop, loopback ? INADDR_LOOPBACK : INADDR_ANY, port, TCPWRAP_SERVICE)))
+        return NULL;
+#endif
+    
+#else
     int r;
-    const char *p;
+    const char *v;
+    char tmp[PATH_MAX];
 
-    p = pa_modargs_get_value(ma, "socket", UNIX_SOCKET);
-    assert(p);
+    v = pa_modargs_get_value(ma, "socket", UNIX_SOCKET);
+    assert(v);
 
-    if (pa_unix_socket_make_secure_dir(p) < 0) {
+    pa_runtime_path(v, tmp, sizeof(tmp));
+
+    if (pa_make_secure_parent_dir(tmp) < 0) {
         pa_log(__FILE__": Failed to create secure socket directory.\n");
         return NULL;
     }
 
-    if ((r = pa_unix_socket_remove_stale(p)) < 0) {
-        pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s\n", p, strerror(errno));
+    if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
+        pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s\n", tmp, strerror(errno));
         return NULL;
     }
     
     if (r)
-        pa_log(__FILE__": Removed stale UNIX socket '%s'.", p);
+        pa_log(__FILE__": Removed stale UNIX socket '%s'.", tmp);
     
-    if (!(s = pa_socket_server_new_unix(c->mainloop, p)))
+    if (!(s = pa_socket_server_new_unix(c->mainloop, tmp)))
         return NULL;
     
 #endif

@@ -43,6 +43,9 @@ int pa_property_set(struct pa_core *c, const char *name, void *data);
 /* Remove the specified property. Return non-zero on failure */
 int pa_property_remove(struct pa_core *c, const char *name);
 
+/* A combination of pa_property_remove() and pa_property_set() */
+int pa_property_replace(struct pa_core *c, const char *name, void *data);
+
 /* Free all memory used by the property system */
 void pa_property_cleanup(struct pa_core *c);
 

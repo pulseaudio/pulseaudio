@@ -32,6 +32,7 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 #include "socket-client.h"
 #include "socket-util.h"
@@ -47,6 +48,7 @@ struct pa_socket_client {
     struct pa_defer_event *defer_event;
     void (*callback)(struct pa_socket_client*c, struct pa_iochannel *io, void *userdata);
     void *userdata;
+    int local;
 };
 
 static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
@@ -61,6 +63,7 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
     c->defer_event = NULL;
     c->callback = NULL;
     c->userdata = NULL;
+    c->local = 0;
     return c;
 }
 
@@ -85,6 +88,7 @@ static void do_call(struct pa_socket_client *c) {
 
     if (error != 0) {
 /*         pa_log(__FILE__": connect(): %s\n", strerror(error)); */
+        errno = error;
         goto finish;
     }
         
@@ -141,63 +145,27 @@ static int do_connect(struct pa_socket_client *c, const struct sockaddr *sa, soc
 }
 
 struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port) {
-    struct pa_socket_client *c;
     struct sockaddr_in sa;
-    assert(m && address && port);
+    assert(m && port > 0);
 
-    c = pa_socket_client_new(m);
-    assert(c);
-
-    if ((c->fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s\n", strerror(errno));
-        goto fail;
-    }
-
-    pa_fd_set_cloexec(c->fd, 1);
-    pa_socket_tcp_low_delay(c->fd);
-
+    memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
     sa.sin_addr.s_addr = htonl(address);
 
-    if (do_connect(c, (struct sockaddr*) &sa, sizeof(sa)) < 0)
-        goto fail;
-    
-    return c;
-
-fail:
-    pa_socket_client_unref(c);
-    return NULL;
+    return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
 
 struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
-    struct pa_socket_client *c;
     struct sockaddr_un sa;
     assert(m && filename);
     
-    c = pa_socket_client_new(m);
-    assert(c);
-
-    if ((c->fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s\n", strerror(errno));
-        goto fail;
-    }
-
-    pa_fd_set_cloexec(c->fd, 1);
-    pa_socket_low_delay(c->fd);
-
+    memset(&sa, 0, sizeof(sa));
     sa.sun_family = AF_LOCAL;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
-    
-    if (do_connect(c, (struct sockaddr*) &sa, sizeof(sa)) < 0)
-        goto fail;
-    
-    return c;
 
-fail:
-    pa_socket_client_unref(c);
-    return NULL;
+    return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
 
 struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m, const struct sockaddr *sa, size_t salen) {
@@ -206,13 +174,30 @@ struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m
     c = pa_socket_client_new(m);
     assert(c);
 
+    switch (sa->sa_family) {
+        case AF_UNIX:
+            c->local = 1;
+            break;
+            
+        case AF_INET:
+            c->local = ((const struct sockaddr_in*) sa)->sin_addr.s_addr == INADDR_LOOPBACK;
+            break;
+            
+        case AF_INET6:
+            c->local = memcmp(&((const struct sockaddr_in6*) sa)->sin6_addr, &in6addr_loopback, sizeof(struct in6_addr)) == 0;
+            break;
+            
+        default:
+            c->local = 0;
+    }
+    
     if ((c->fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0) {
         pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto fail;
     }
 
     pa_fd_set_cloexec(c->fd, 1);
-    if (sa->sa_family == AF_INET)
+    if (sa->sa_family == AF_INET || sa->sa_family == AF_INET6)
         pa_socket_tcp_low_delay(c->fd);
     else
         pa_socket_low_delay(c->fd);
@@ -256,4 +241,126 @@ void pa_socket_client_set_callback(struct pa_socket_client *c, void (*on_connect
     assert(c);
     c->callback = on_connection;
     c->userdata = userdata;
+}
+
+struct pa_socket_client* pa_socket_client_new_ipv6(struct pa_mainloop_api *m, uint8_t address[16], uint16_t port) {
+    struct sockaddr_in6 sa;
+    
+    memset(&sa, 0, sizeof(sa));
+    sa.sin6_family = AF_INET6;
+    sa.sin6_port = htons(port);
+    memcpy(&sa.sin6_addr, address, sizeof(sa.sin6_addr));
+
+    return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
+}
+
+/* Parse addresses in one of the following forms:
+ *    HOSTNAME
+ *    HOSTNAME:PORT
+ *    [HOSTNAME]
+ *    [HOSTNAME]:PORT
+ *
+ *  Return a newly allocated string of the hostname and fill in *port if specified  */
+
+static char *parse_address(const char *s, uint16_t *port) {
+    assert(s && port);
+    if (*s == '[') {
+        char *e;
+        if (!(e = strchr(s+1, ']')))
+            return NULL;
+
+        if (e[1] == ':')
+            *port = atoi(e+2);
+        else if (e[1] != 0)
+            return NULL;
+        
+        return pa_xstrndup(s+1, e-s-1);
+    } else {
+        char *e;
+        
+        if (!(e = strrchr(s, ':')))
+            return pa_xstrdup(s);
+
+        *port = atoi(e+1);
+        return pa_xstrndup(s, e-s);
+    }
+}
+
+struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, const char*name, uint16_t default_port) {
+    const char *p;
+    struct pa_socket_client *c = NULL;
+    enum { KIND_UNIX, KIND_TCP_AUTO, KIND_TCP4, KIND_TCP6 } kind = KIND_TCP_AUTO;
+    assert(m && name);
+
+    if (*name == '{') {
+        char hn[256], *pfx;
+        /* The URL starts with a host specification for detecting local connections */
+        
+        if (!pa_get_host_name(hn, sizeof(hn)))
+            return NULL;
+                
+        pfx = pa_sprintf_malloc("{%s}", hn);
+        if (!pa_startswith(name, pfx))
+            /* Not local */
+            return NULL;
+        
+        p = name + strlen(pfx);
+    } else
+        p = name;
+    
+    if (*p == '/')
+        kind = KIND_UNIX;
+    else if (pa_startswith(p, "unix:")) {
+        kind = KIND_UNIX;
+        p += sizeof("unix:")-1;
+    } else if (pa_startswith(p, "tcp:") || pa_startswith(p, "tcp4:")) {
+        kind = KIND_TCP4;
+        p += sizeof("tcp:")-1;
+    } else if (pa_startswith(p, "tcp6:")) {
+        kind = KIND_TCP6;
+        p += sizeof("tcp6:")-1;
+    }
+
+    switch (kind) {
+        case KIND_UNIX:
+            return pa_socket_client_new_unix(m, p);
+
+        case KIND_TCP_AUTO:  /* Fallthrough */
+        case KIND_TCP4: 
+        case KIND_TCP6: {
+            uint16_t port = default_port;
+            char *h;
+            struct addrinfo hints, *res;
+
+            if (!(h = parse_address(p, &port)))
+                return NULL;
+
+            memset(&hints, 0, sizeof(hints));
+            hints.ai_family = kind == KIND_TCP4 ? AF_INET : (kind == KIND_TCP6 ? AF_INET6 : AF_UNSPEC);
+            
+            if (getaddrinfo(h, NULL, &hints, &res) < 0 || !res)
+                return NULL;
+
+            if (res->ai_addr->sa_family == AF_INET)
+                ((struct sockaddr_in*) res->ai_addr)->sin_port = htons(port);
+            else if (res->ai_addr->sa_family == AF_INET6)
+                ((struct sockaddr_in6*) res->ai_addr)->sin6_port = htons(port);
+            else
+                return NULL;
+            
+            c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen);
+            freeaddrinfo(res);
+            return c;
+        }
+    }
+
+    /* Should never be reached */
+    assert(0);
+    return NULL;
+    
+}
+
+int pa_socket_client_is_local(struct pa_socket_client *c) {
+    assert(c);
+    return c->local;
 }

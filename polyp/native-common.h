@@ -99,8 +99,9 @@ enum {
 #define PA_NATIVE_DEFAULT_PORT 4713
 
 #define PA_NATIVE_COOKIE_PROPERTY_NAME "protocol-native-cookie"
+#define PA_NATIVE_SERVER_PROPERTY_NAME "protocol-native-server"
 
-#define PA_NATIVE_DEFAULT_SERVER_UNIX "/tmp/polypaudio/native"
+#define PA_NATIVE_DEFAULT_UNIX_SOCKET "native"
 
 
 PA_C_DECL_END

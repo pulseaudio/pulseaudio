@@ -46,6 +46,8 @@
 #include "authkey-prop.h"
 #include "authkey.h"
 #include "x11prop.h"
+#include "strlist.h"
+#include "props.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("X11 Credential Publisher")
@@ -101,6 +103,8 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     char hn[256], un[128];
     char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
     const char *t;
+    char *s;
+    struct pa_strlist *l;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments\n");
@@ -120,15 +124,17 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
 
     u->display = pa_x11_wrapper_get_display(u->x11_wrapper);
 
-    if (!pa_get_fqdn(hn, sizeof(hn)))
+    if (!(l = pa_property_get(c, PA_NATIVE_SERVER_PROPERTY_NAME)))
         goto fail;
+
+    s = pa_strlist_tostring(l);
+    pa_x11_set_prop(u->display, "POLYP_SERVER", s);
+    pa_xfree(s);
     
-    if (!pa_get_user_name(un, sizeof(un)))
+    if (!pa_get_fqdn(hn, sizeof(hn)) || !pa_get_user_name(un, sizeof(un)))
         goto fail;
     
     u->id = pa_sprintf_malloc("%s@%s/%u", un, hn, (unsigned) getpid());
-
-    pa_x11_set_prop(u->display, "POLYP_SERVER", hn);
     pa_x11_set_prop(u->display, "POLYP_ID", u->id);
 
     if ((t = pa_modargs_get_value(ma, "source", NULL)))

@@ -47,6 +47,8 @@
 #include "log.h"
 #include "autoload.h"
 #include "authkey-prop.h"
+#include "strlist.h"
+#include "props.h"
 
 struct connection;
 struct pa_protocol_native;
@@ -2064,6 +2066,7 @@ static struct pa_protocol_native* protocol_new_internal(struct pa_core *c, struc
 }
 
 struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
+    char t[256];
     struct pa_protocol_native *p;
 
     if (!(p = protocol_new_internal(core, m, ma)))
@@ -2071,6 +2074,13 @@ struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct p
     
     p->server = server;
     pa_socket_server_set_callback(p->server, on_connection, p);
+
+    if (pa_socket_server_get_address(p->server, t, sizeof(t))) {
+        struct pa_strlist *l;
+        l = pa_property_get(core, PA_NATIVE_SERVER_PROPERTY_NAME);
+        l = pa_strlist_prepend(l, t);
+        pa_property_replace(core, PA_NATIVE_SERVER_PROPERTY_NAME, l);
+    }
     
     return p;
 }
@@ -2083,12 +2093,26 @@ void pa_protocol_native_free(struct pa_protocol_native *p) {
         connection_free(c);
     pa_idxset_free(p->connections, NULL, NULL);
 
-    if (p->server)
+    if (p->server) {
+        char t[256];
+        
+        if (pa_socket_server_get_address(p->server, t, sizeof(t))) {
+            struct pa_strlist *l;
+            l = pa_property_get(p->core, PA_NATIVE_SERVER_PROPERTY_NAME);
+            l = pa_strlist_remove(l, t);
+
+            if (l)
+                pa_property_replace(p->core, PA_NATIVE_SERVER_PROPERTY_NAME, l);
+            else
+                pa_property_remove(p->core, PA_NATIVE_SERVER_PROPERTY_NAME);
+        }
+        
         pa_socket_server_unref(p->server);
+    }
 
     if (p->auth_cookie_in_property)
         pa_authkey_prop_unref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
-        
+
     pa_xfree(p);
 }
 

@@ -33,6 +33,7 @@
 void pa_make_nonblock_fd(int fd);
 
 int pa_make_secure_dir(const char* dir);
+int pa_make_secure_parent_dir(const char *fn);
 
 ssize_t pa_loop_read(int fd, void*data, size_t size);
 ssize_t pa_loop_write(int fd, const void*data, size_t size);
@@ -84,5 +85,9 @@ FILE *pa_open_config_file(const char *env, const char *global, const char *local
 
 char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength);
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength);
+
+int pa_startswith(const char *s, const char *pfx);
+
+char *pa_runtime_path(const char *fn, char *s, size_t l);
 
 #endif

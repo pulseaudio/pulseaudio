@@ -39,7 +39,10 @@ int pa_client_conf_from_x11(struct pa_client_conf *c, const char *dname) {
     Display *d = NULL;
     int ret = -1;
     char t[1024];
-            
+
+    if (!dname && !getenv("DISPLAY"))
+        goto finish;
+    
     if (!(d = XOpenDisplay(dname))) {
         pa_log(__FILE__": XOpenDisplay() failed\n");
         goto finish;

@@ -39,7 +39,8 @@ noinst_PROGRAMS = \
 		parec-simple \
 		cpulimit-test \
 		cpulimit-test2 \
-		voltest
+		voltest \
+		strlist-test
 
 polypconf_DATA=default.pa daemon.conf client.conf
 
@@ -85,21 +86,26 @@ modlib_LTLIBRARIES= \
 		libpdispatch.la \
 		libauthkey.la \
 		libauthkey-prop.la \
+		libstrlist.la \
 		libprotocol-simple.la \
 		libprotocol-esound.la \
 		libprotocol-native.la \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
+		module-cli-protocol-tcp6.la \
 		module-cli-protocol-unix.la \
 		module-pipe-sink.la \
 		module-pipe-source.la \
 		module-oss.la \
 		module-oss-mmap.la \
 		module-simple-protocol-tcp.la \
+		module-simple-protocol-tcp6.la \
 		module-simple-protocol-unix.la \
 		module-esound-protocol-tcp.la \
+		module-esound-protocol-tcp6.la \
 		module-esound-protocol-unix.la \
 		module-native-protocol-tcp.la \
+		module-native-protocol-tcp6.la \
 		module-native-protocol-unix.la \
 		module-native-protocol-fd.la \
 		module-sine.la \
@@ -114,16 +120,20 @@ modlib_LTLIBRARIES= \
 SYMDEF_FILES= \
 		module-cli-symdef.h \
 		module-cli-protocol-tcp-symdef.h \
+		module-cli-protocol-tcp6-symdef.h \
 		module-cli-protocol-unix-symdef.h \
 		module-pipe-sink-symdef.h \
 		module-pipe-source-symdef.h \
 		module-oss-symdef.h \
 		module-oss-mmap-symdef.h \
 		module-simple-protocol-tcp-symdef.h \
+		module-simple-protocol-tcp6-symdef.h \
 		module-simple-protocol-unix-symdef.h \
 		module-esound-protocol-tcp-symdef.h \
+		module-esound-protocol-tcp6-symdef.h \
 		module-esound-protocol-unix-symdef.h \
 		module-native-protocol-tcp-symdef.h \
+		module-native-protocol-tcp6-symdef.h \
 		module-native-protocol-unix-symdef.h \
 		module-native-protocol-fd-symdef.h \
 		module-sine-symdef.h \
@@ -244,13 +254,17 @@ libcli_la_SOURCES = cli.c cli.h
 libcli_la_LDFLAGS = -avoid-version
 libcli_la_LIBADD = $(AM_LIBADD) libiochannel.la libioline.la
 
+libstrlist_la_SOURCES = strlist.c strlist.h
+libstrlist_la_LDFLAGS = -avoid-version
+libstrlist_la_LIBADD = $(AM_LIBADD)
+
 libprotocol_cli_la_SOURCES = protocol-cli.c protocol-cli.h
 libprotocol_cli_la_LDFLAGS = -avoid-version
 libprotocol_cli_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la libcli.la
 
 libprotocol_native_la_SOURCES = protocol-native.c protocol-native.h native-common.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la
+libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libstrlist.la
 
 libtagstruct_la_SOURCES = tagstruct.c tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
@@ -273,6 +287,11 @@ module_simple_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_SIMPLE $
 module_simple_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_simple_protocol_tcp_la_LIBADD = $(AM_LIBADD) libprotocol-simple.la libsocket-server.la
 
+module_simple_protocol_tcp6_la_SOURCES = module-protocol-stub.c
+module_simple_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
+module_simple_protocol_tcp6_la_LDFLAGS = -module -avoid-version
+module_simple_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libprotocol-simple.la libsocket-server.la
+
 module_simple_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_simple_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
 module_simple_protocol_unix_la_LDFLAGS = -module -avoid-version
@@ -283,6 +302,11 @@ module_cli_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CF
 module_cli_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_cli_protocol_tcp_la_LIBADD = $(AM_LIBADD) libprotocol-cli.la libsocket-server.la
 
+module_cli_protocol_tcp6_la_SOURCES = module-protocol-stub.c
+module_cli_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
+module_cli_protocol_tcp6_la_LDFLAGS = -module -avoid-version
+module_cli_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libprotocol-cli.la libsocket-server.la
+
 module_cli_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_cli_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
 module_cli_protocol_unix_la_LDFLAGS = -module -avoid-version
@@ -292,6 +316,11 @@ module_native_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
 module_native_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_native_protocol_tcp_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libsocket-server.la
+
+module_native_protocol_tcp6_la_SOURCES = module-protocol-stub.c
+module_native_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
+module_native_protocol_tcp6_la_LDFLAGS = -module -avoid-version
+module_native_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libsocket-server.la
 
 module_native_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
@@ -307,6 +336,11 @@ module_esound_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
 module_esound_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_esound_protocol_tcp_la_LIBADD = $(AM_LIBADD) libprotocol-esound.la libsocket-server.la
+
+module_esound_protocol_tcp6_la_SOURCES = module-protocol-stub.c
+module_esound_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
+module_esound_protocol_tcp6_la_LDFLAGS = -module -avoid-version
+module_esound_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libprotocol-esound.la libsocket-server.la
 
 module_esound_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_esound_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
@@ -399,7 +433,9 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		log.c log.h \
 		gcc-printf.h \
 		client-conf.c client-conf.h \
-		conf-parser.c conf-parser.h
+		conf-parser.c conf-parser.h \
+		strlist.c strlist.h \
+		strbuf.c strbuf.h
 
 libpolyp_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
@@ -449,11 +485,15 @@ voltest_SOURCES = voltest.c sample.c
 voltest_CFLAGS = $(AM_CFLAGS)
 voltest_LDADD = $(AM_LDADD)
 
-cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c
+strlist_test_SOURCES = strlist-test.c strlist.c strlist.h strbuf.c strbuf.h util.c util.h xmalloc.c xmalloc.h log.c log.h
+strlist_test_CFLAGS = $(AM_CFLAGS)
+strlist_test_LDADD = $(AM_LDADD)
+
+cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h
 cpulimit_test_CFLAGS = $(AM_CFLAGS)
 cpulimit_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
 
-cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c log.c
+cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h
 cpulimit_test2_CFLAGS = $(AM_CFLAGS) -DTEST2
 cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
 
@@ -487,7 +527,7 @@ module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA
 module_x11_publish_la_SOURCES = module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
-module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauthkey-prop.la libx11prop.la
+module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauthkey-prop.la libx11prop.la libstrlist.la
 
 bin_PROGRAMS+= \
 		pax11publish

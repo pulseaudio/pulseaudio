@@ -33,10 +33,13 @@ struct pa_socket_server;
 struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd);
 struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename);
 struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port, const char *tcpwrap_service);
+struct pa_socket_server* pa_socket_server_new_ipv6(struct pa_mainloop_api *m, uint8_t address[16], uint16_t port);
 
 void pa_socket_server_unref(struct pa_socket_server*s);
 struct pa_socket_server* pa_socket_server_ref(struct pa_socket_server *s);
 
 void pa_socket_server_set_callback(struct pa_socket_server*s, void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata), void *userdata);
+
+char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l);
 
 #endif

@@ -114,7 +114,7 @@ int pa_socket_tcp_low_delay(int fd) {
     ret = pa_socket_low_delay(fd);
     
     on = 1;
-/*
+
 #if defined(SOL_TCP) || defined(IPPROTO_TCP)
 #if defined(SOL_TCP)
     if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
@@ -123,7 +123,6 @@ int pa_socket_tcp_low_delay(int fd) {
 #endif
         ret = -1;
 #endif
-*/
 
 #if defined(IPTOS_LOWDELAY) && defined(IP_TOS) && (defined(SOL_IP) || \
 	defined(IPPROTO_IP))
@@ -202,42 +201,6 @@ int pa_unix_socket_remove_stale(const char *fn) {
         return -1;
 
     return 0;
-}
-
-int pa_unix_socket_make_secure_dir(const char *fn) {
-    int ret = -1;
-    char *slash, *dir = pa_xstrdup(fn);
-    
-    if (!(slash = strrchr(dir, '/')))
-        goto finish;
-    *slash = 0;
-    
-    if (pa_make_secure_dir(dir) < 0)
-        goto finish;
-
-    ret = 0;
-    
-finish:
-    pa_xfree(dir);
-    return ret;
-}
-
-int pa_unix_socket_remove_secure_dir(const char *fn) {
-    int ret = -1;
-    char *slash, *dir = pa_xstrdup(fn);
-    
-    if (!(slash = strrchr(dir, '/')))
-        goto finish;
-    *slash = 0;
-
-    if (rmdir(dir) < 0)
-        goto finish;
-    
-    ret = 0;
-    
-finish:
-    pa_xfree(dir);
-    return ret;
 }
 
 struct sockaddr *pa_resolve_server(const char *server, size_t *len, uint16_t nport) {
