@@ -273,7 +273,7 @@ int module_init(struct core *c, struct module*m) {
         }
     }
 
-    if (m != O_RDONLY) {
+    if (mode != O_RDONLY) {
         if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
             fprintf(stderr, "SNDCTL_DSP_GETOSPACE: %s\n", strerror(errno));
             goto fail;
