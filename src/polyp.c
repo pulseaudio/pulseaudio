@@ -14,7 +14,7 @@
 #define DEFAULT_QUEUE_LENGTH 10240
 #define DEFAULT_MAX_LENGTH 20480
 #define DEFAULT_PREBUF 4096
-#define DEFAULT_TIMEOUT 5
+#define DEFAULT_TIMEOUT (5*60)
 #define DEFAULT_SERVER "/tmp/polypaudio_native"
 
 struct pa_context {
@@ -39,6 +39,7 @@ struct pa_context {
 struct pa_stream {
     struct pa_context *context;
     struct pa_stream *next, *previous;
+    uint32_t device_index;
     uint32_t channel;
     int channel_valid;
     enum pa_stream_direction direction;
@@ -252,11 +253,11 @@ static int command_request(struct pdispatch *pd, uint32_t command, uint32_t tag,
     struct pa_stream *s;
     struct pa_context *c = userdata;
     uint32_t bytes, channel;
-    assert(pd && command == PA_COMMAND_REQUEST && t &&  s);
+    assert(pd && command == PA_COMMAND_REQUEST && t && c);
 
     if (tagstruct_getu32(t, &channel) < 0 ||
         tagstruct_getu32(t, &bytes) < 0 ||
-        tagstruct_eof(t)) {
+        !tagstruct_eof(t)) {
         c->errno = PA_ERROR_PROTOCOL;
         return -1;
     }
@@ -266,6 +267,8 @@ static int command_request(struct pdispatch *pd, uint32_t command, uint32_t tag,
         return -1;
     }
 
+    fprintf(stderr, "Requested %u bytes\n", bytes);
+    
     s->requested_bytes += bytes;
     
     if (s->requested_bytes && s->write_callback)
@@ -295,7 +298,8 @@ static int create_playback_callback(struct pdispatch *pd, uint32_t command, uint
     }
 
     if (tagstruct_getu32(t, &s->channel) < 0 ||
-        tagstruct_eof(t)) {
+        tagstruct_getu32(t, &s->device_index) < 0 ||
+        !tagstruct_eof(t)) {
         s->context->errno = PA_ERROR_PROTOCOL;
         ret = -1;
         goto fail;
@@ -349,6 +353,7 @@ int pa_stream_new(
     s->requested_bytes = 0;
     s->channel = 0;
     s->channel_valid = 0;
+    s->device_index = (uint32_t) -1;
     s->direction = dir;
 
     t = tagstruct_new(NULL, 0);
@@ -419,7 +424,10 @@ void pa_stream_write(struct pa_stream *s, const void *data, size_t length) {
     chunk.length = length;
 
     pstream_send_memblock(s->context->pstream, s->channel, 0, &chunk);
+    memblock_unref(chunk.memblock);
 
+    fprintf(stderr, "Sent %u bytes\n", length);
+    
     if (length < s->requested_bytes)
         s->requested_bytes -= length;
     else

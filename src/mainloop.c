@@ -162,11 +162,14 @@ static void dispatch_pollfds(struct pa_mainloop *m) {
     struct mainloop_source_io *s;
 
     for (s = idxset_first(m->io_sources, &index); s; s = idxset_next(m->io_sources, &index)) {
-        if (s->header.dead || !s->events || !s->pollfd || !s->pollfd->revents)
+        if (s->header.dead || !s->pollfd || !s->pollfd->revents)
             continue;
         
-        assert(s->pollfd->revents <= s->pollfd->events && s->pollfd->fd == s->fd && s->callback);
-        s->callback(&m->api, s, s->fd, ((s->pollfd->revents & POLLIN) ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) | ((s->pollfd->revents & POLLOUT) ? PA_MAINLOOP_API_IO_EVENT_OUTPUT : 0), s->userdata);
+        assert(s->pollfd->fd == s->fd && s->callback);
+        s->callback(&m->api, s, s->fd,
+                    ((s->pollfd->revents & (POLLIN|POLLHUP|POLLERR)) ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) |
+                    ((s->pollfd->revents & POLLOUT) ? PA_MAINLOOP_API_IO_EVENT_OUTPUT : 0), s->userdata);
+        s->pollfd->revents = 0;
     }
 }
 
@@ -212,7 +215,7 @@ static int calc_next_timeout(struct pa_mainloop *m) {
 
         if (tmp == 0)
             return 0;
-        else if (tmp < t)
+        else if (t == -1 || tmp < t)
             t = tmp;
     }
 
@@ -357,6 +360,7 @@ static void mainloop_cancel_io(struct pa_mainloop_api*a, void* id) {
 
     s->header.dead = 1;
     m->io_sources_scan_dead = 1;
+    m->rebuild_pollfds = 1;
 }
 
 /* Fixed sources */

@@ -113,7 +113,7 @@ int tagstruct_gets(struct tagstruct*t, const char **s) {
         return -1;
 
     error = 1;
-    for (n = 0, c = (char*) (t->data+t->rindex+1); n < t->length-t->rindex-1; c++)
+    for (n = 0, c = (char*) (t->data+t->rindex+1); t->rindex+1+n < t->length; n++, c++)
         if (!*c) {
             error = 0;
             break;
@@ -124,7 +124,7 @@ int tagstruct_gets(struct tagstruct*t, const char **s) {
 
     *s = (char*) (t->data+t->rindex+1);
 
-    t->rindex += n+1;
+    t->rindex += n+2;
     return 0;
 }
 

@@ -131,11 +131,11 @@ static void item_free(void *item, void *p) {
     struct item_info *i = item;
     assert(i);
 
-    if (i->type == PSTREAM_ITEM_PACKET) {
+    if (i->type == PSTREAM_ITEM_MEMBLOCK) {
         assert(i->chunk.memblock);
         memblock_unref(i->chunk.memblock);
     } else {
-        assert(i->type == PSTREAM_ITEM_MEMBLOCK);
+        assert(i->type == PSTREAM_ITEM_PACKET);
         assert(i->packet);
         packet_unref(i->packet);
     }
@@ -184,7 +184,7 @@ void pstream_send_packet(struct pstream*p, struct packet *packet) {
 
 void pstream_send_memblock(struct pstream*p, uint32_t channel, int32_t delta, struct memchunk *chunk) {
     struct item_info *i;
-    assert(p && channel && chunk);
+    assert(p && channel != (uint32_t) -1 && chunk);
     
     i = malloc(sizeof(struct item_info));
     assert(i);
@@ -258,7 +258,7 @@ static void do_write(struct pstream *p) {
         l = PSTREAM_DESCRIPTOR_SIZE - p->write.index;
     } else {
         d = (void*) p->write.data + p->write.index - PSTREAM_DESCRIPTOR_SIZE;
-        l = ntohl(p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH]) - p->write.index - PSTREAM_DESCRIPTOR_SIZE;
+        l = ntohl(p->write.descriptor[PSTREAM_DESCRIPTOR_LENGTH]) - (p->write.index - PSTREAM_DESCRIPTOR_SIZE);
     }
 
     if ((r = iochannel_write(p->io, d, l)) < 0) 
@@ -298,7 +298,7 @@ static void do_read(struct pstream *p) {
     } else {
         assert(p->read.data);
         d = (void*) p->read.data + p->read.index - PSTREAM_DESCRIPTOR_SIZE;
-        l = ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]) - p->read.index - PSTREAM_DESCRIPTOR_SIZE;
+        l = ntohl(p->read.descriptor[PSTREAM_DESCRIPTOR_LENGTH]) - (p->read.index - PSTREAM_DESCRIPTOR_SIZE);
     }
 
     if ((r = iochannel_read(p->io, d, l)) <= 0)

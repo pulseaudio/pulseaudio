@@ -29,22 +29,15 @@ static void stream_die_callback(struct pa_stream *s, void *userdata) {
     mainloop_api->quit(mainloop_api, 1);
 }
 
-static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
+static void do_write(size_t length) {
     size_t l;
-    assert(s && length);
-    
-    mainloop_api->enable_io(mainloop_api, stdin_source, PA_STREAM_PLAYBACK);
-
-    if (!buffer)
-        return;
-    
-    assert(buffer_length);
+    assert(buffer && buffer_length);
     
     l = length;
     if (l > buffer_length)
         l = buffer_length;
     
-    pa_stream_write(s, buffer+buffer_index, l);
+    pa_stream_write(stream, buffer+buffer_index, l);
     buffer_length -= l;
     buffer_index += l;
     
@@ -55,12 +48,24 @@ static void stream_write_callback(struct pa_stream *s, size_t length, void *user
     }
 }
 
+static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
+    assert(s && length);
+    
+    mainloop_api->enable_io(mainloop_api, stdin_source, PA_MAINLOOP_API_IO_EVENT_INPUT);
+
+    if (!buffer)
+        return;
+
+    do_write(length);
+}
+
 static void stream_complete_callback(struct pa_context*c, struct pa_stream *s, void *userdata) {
     assert(c);
 
     if (!s) {
         fprintf(stderr, "Stream creation failed.\n");
         mainloop_api->quit(mainloop_api, 1);
+        return;
     }
 
     stream = s;
@@ -94,7 +99,7 @@ fail:
 }
 
 static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
-    size_t l;
+    size_t l, w = 0;
     ssize_t r;
     assert(a == mainloop_api && id && fd == STDIN_FILENO && events == PA_MAINLOOP_API_IO_EVENT_INPUT);
 
@@ -103,7 +108,7 @@ static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_m
         return;
     }
 
-    if (!(l = pa_stream_writable_size(stream)))
+    if (!stream || !(l = w = pa_stream_writable_size(stream)))
         l = 4096;
     buffer = malloc(l);
     assert(buffer);
@@ -120,6 +125,9 @@ static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_m
 
     buffer_length = r;
     buffer_index = 0;
+
+    if (w)
+        do_write(w);
 }
 
 int main(int argc, char *argv[]) {

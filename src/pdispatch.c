@@ -22,7 +22,9 @@ struct pdispatch {
 
 static void reply_info_free(struct reply_info *r) {
     assert(r && r->pdispatch && r->pdispatch->mainloop);
-    r->pdispatch->mainloop->cancel_time(r->pdispatch->mainloop, r->mainloop_timeout);
+
+    if (r->pdispatch)
+        r->pdispatch->mainloop->cancel_time(r->pdispatch->mainloop, r->mainloop_timeout);
 
     if (r->previous)
         r->previous->next = r->next;
@@ -112,7 +114,6 @@ fail:
     if (ts)
         tagstruct_free(ts);    
 
-    fprintf(stderr, "protocol-native: invalid packet.\n");
     return -1;
 }
 
