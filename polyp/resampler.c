@@ -342,8 +342,8 @@ static void trivial_run(struct pa_resampler *r, const struct pa_memchunk *in, st
             unsigned j;
             
             j = (i->o_counter * r->i_ss.rate / r->o_ss.rate);
-            assert(j >= i->i_counter);
-            j = j - i->i_counter;
+            
+            j = j > i->i_counter ? j - i->i_counter : 0;
             
             if (j >= nframes)
                 break;

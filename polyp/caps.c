@@ -23,6 +23,9 @@
 #include <config.h>
 #endif
 
+/* setresuid() is only available on GNU */
+#define _GNU_SOURCE
+
 #include <assert.h>
 #include <unistd.h>
 #include <errno.h>
@@ -41,13 +44,17 @@ void pa_drop_root(void) {
     
     if (uid == 0 || geteuid() != 0)
         return;
-    
-/*     pa_log(__FILE__": dropping root rights.\n"); */
-    
-    setreuid(uid, uid);
 
-/*    setuid(uid);
-    seteuid(uid);*/
+    /*     pa_log(__FILE__": dropping root rights.\n"); */
+
+#if defined(HAVE_SETRESUID)
+    setresuid(uid, uid, uid);
+#elif defined(HAVE_SETREUID)
+    setreuid(uid, uid);
+#else
+    setuid(uid);
+    seteuid(uid);
+#endif
 }
 
 #ifdef HAVE_SYS_CAPABILITY_H
