@@ -237,7 +237,7 @@ uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name) {
     struct pa_scache_entry *e;
     assert(c && name);
 
-    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 1)))
+    if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0)))
         return PA_IDXSET_INVALID;
 
     return e->index;

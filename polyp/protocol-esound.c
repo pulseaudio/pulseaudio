@@ -122,7 +122,7 @@ static int esd_proto_stream_pan(struct connection *c, esd_proto_t request, const
 static int esd_proto_sample_cache(struct connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_sample_free_or_play(struct connection *c, esd_proto_t request, const void *data, size_t length);
 static int esd_proto_sample_get_id(struct connection *c, esd_proto_t request, const void *data, size_t length);
-static int esd_proto_noop(struct connection *c, esd_proto_t request, const void *data, size_t length);
+static int esd_proto_standby_or_resume(struct connection *c, esd_proto_t request, const void *data, size_t length);
 
 /* the big map of protocol handler info */
 static struct proto_handler proto_map[ESD_PROTO_MAX] = {
@@ -134,17 +134,17 @@ static struct proto_handler proto_map[ESD_PROTO_MAX] = {
     { ESD_NAME_MAX + 2 * sizeof(int), esd_proto_stream_record, "stream rec" },
     { ESD_NAME_MAX + 2 * sizeof(int), esd_proto_stream_record, "stream mon" },
 
-    { ESD_NAME_MAX + 3 * sizeof(int), esd_proto_sample_cache, "sample cache" },
+    { ESD_NAME_MAX + 3 * sizeof(int), esd_proto_sample_cache, "sample cache" },                      /* 6 */
     { sizeof(int),                    esd_proto_sample_free_or_play, "sample free" },
-    { sizeof(int),                    esd_proto_sample_free_or_play, "sample play" },
+    { sizeof(int),                    esd_proto_sample_free_or_play, "sample play" },                /* 8 */
     { sizeof(int),                    NULL, "sample loop" },
     { sizeof(int),                    NULL, "sample stop" },
     { -1,                             NULL, "TODO: sample kill" },
 
-    { ESD_KEY_LEN + sizeof(int),      esd_proto_noop, "standby" },  /* NOOP! */
-    { ESD_KEY_LEN + sizeof(int),      esd_proto_noop, "resume" },   /* NOOP! */
+    { ESD_KEY_LEN + sizeof(int),      esd_proto_standby_or_resume, "standby" },  /* NOOP! */
+    { ESD_KEY_LEN + sizeof(int),      esd_proto_standby_or_resume, "resume" },   /* NOOP! */         /* 13 */
 
-    { ESD_NAME_MAX,                   esd_proto_sample_get_id, "sample getid" },
+    { ESD_NAME_MAX,                   esd_proto_sample_get_id, "sample getid" },                     /* 14 */
     { ESD_NAME_MAX + 2 * sizeof(int), NULL, "stream filter" },
 
     { sizeof(int),                    esd_proto_server_info, "server info" },
@@ -655,11 +655,12 @@ static int esd_proto_sample_free_or_play(struct connection *c, esd_proto_t reque
     return 0;
 }
 
-static int esd_proto_noop(struct connection *c, esd_proto_t request, const void *data, size_t length) {
+static int esd_proto_standby_or_resume(struct connection *c, esd_proto_t request, const void *data, size_t length) {
     int *ok;
-    ok = connection_write(c, sizeof(int));
+    ok = connection_write(c, sizeof(int)*2);
     assert(ok);
-    *ok = 1;
+    ok[0] = 1;
+    ok[1] = 1;
     return 0;
 }
 
@@ -696,6 +697,8 @@ static int do_read(struct connection *c) {
             }
 
             handler = proto_map+c->request;
+
+            pa_log(__FILE__": executing request #%u\n", c->request);
 
             if (!handler->proc) {
                 pa_log(__FILE__": recieved unimplemented request #%u.\n", c->request);
