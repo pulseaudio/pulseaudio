@@ -30,6 +30,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <sys/wait.h>
 
 #include "polyplib-internal.h"
 #include "polyplib-context.h"
@@ -234,9 +238,11 @@ static void setup_complete_callback(struct pa_pdispatch *pd, uint32_t command, u
     pa_context_ref(c);
     
     if (command != PA_COMMAND_REPLY) {
+        
         if (pa_context_handle_error(c, command, t) < 0)
             pa_context_fail(c, PA_ERROR_PROTOCOL);
 
+        pa_context_fail(c, c->error);
         goto finish;
     }
 
@@ -267,22 +273,13 @@ finish:
     pa_context_unref(c);
 }
 
-static void on_connection(struct pa_socket_client *client, struct pa_iochannel*io, void *userdata) {
-    struct pa_context *c = userdata;
+static void setup_context(struct pa_context *c, struct pa_iochannel *io) {
     struct pa_tagstruct *t;
     uint32_t tag;
-    assert(client && c && c->state == PA_CONTEXT_CONNECTING);
+    assert(c && io);
 
     pa_context_ref(c);
     
-    pa_socket_client_unref(client);
-    c->client = NULL;
-
-    if (!io) {
-        pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
-        goto finish;
-    }
-
     assert(!c->pstream);
     c->pstream = pa_pstream_new(c->mainloop, io, c->memblock_stat);
     assert(c->pstream);
@@ -295,6 +292,11 @@ static void on_connection(struct pa_socket_client *client, struct pa_iochannel*i
     c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
     assert(c->pdispatch);
 
+    if (pa_authkey_load_from_home(PA_NATIVE_COOKIE_FILE, c->auth_cookie, sizeof(c->auth_cookie)) < 0) {
+        pa_context_fail(c, PA_ERROR_AUTHKEY);
+        goto finish;
+    }
+
     t = pa_tagstruct_new(NULL, 0);
     assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
@@ -304,6 +306,27 @@ static void on_connection(struct pa_socket_client *client, struct pa_iochannel*i
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c);
 
     pa_context_set_state(c, PA_CONTEXT_AUTHORIZING);
+
+finish:
+    
+    pa_context_unref(c);
+}
+
+static void on_connection(struct pa_socket_client *client, struct pa_iochannel*io, void *userdata) {
+    struct pa_context *c = userdata;
+    assert(client && c && c->state == PA_CONTEXT_CONNECTING);
+
+    pa_context_ref(c);
+    
+    pa_socket_client_unref(client);
+    c->client = NULL;
+
+    if (!io) {
+        pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
+        goto finish;
+    }
+
+    setup_context(c, io);
 
 finish:
     pa_context_unref(c);
@@ -343,11 +366,6 @@ int pa_context_connect(struct pa_context *c, const char *server) {
 
     pa_context_ref(c);
     
-    if (pa_authkey_load_from_home(PA_NATIVE_COOKIE_FILE, c->auth_cookie, sizeof(c->auth_cookie)) < 0) {
-        pa_context_fail(c, PA_ERROR_AUTHKEY);
-        goto finish;
-    }
-
     if (!server)
         if (!(server = getenv(ENV_DEFAULT_SERVER)))
             server = DEFAULT_SERVER;
@@ -538,4 +556,79 @@ struct pa_operation* pa_context_send_simple_command(struct pa_context *c, uint32
 
 const char* pa_get_library_version(void) {
     return PACKAGE_VERSION;
+}
+
+static int is_running(void) {
+    struct stat st;
+    
+    if (DEFAULT_SERVER[0] != '/')
+        return 1;
+
+    if (stat(DEFAULT_SERVER, &st) < 0)
+        return 0;
+
+    return 1;
+}
+
+int pa_context_connect_spawn(struct pa_context *c, void (*atfork)(void)) {
+    pid_t pid;
+    int status;
+    int fds[2] = { -1, -1} ;
+    struct pa_iochannel *io;
+    
+    if (getenv(ENV_DEFAULT_SERVER) || is_running())
+        return pa_context_connect(c, NULL);
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
+        fprintf(stderr, __FILE__": socketpair() failed: %s\n", strerror(errno));
+        pa_context_fail(c, PA_ERROR_INTERNAL);
+        goto fail;
+    }
+
+    if ((pid = fork()) < 0) {
+        fprintf(stderr, __FILE__": fork() failed: %s\n", strerror(errno));
+        pa_context_fail(c, PA_ERROR_INTERNAL);
+        goto fail;
+    } else if (!pid) {
+        char t[64];
+        char *p;
+        /* Child */
+
+        close(fds[0]);
+        
+        if (atfork)
+            atfork();
+
+        if (!(p = getenv(ENV_DEFAULT_BINARY)))
+            p = POLYPAUDIO_BINARY;
+        
+        snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
+        execl(p, p, "-r", "-D", t, NULL);
+        
+        exit(1);
+    } 
+
+    /* Parent */
+    if (waitpid(pid, &status, 0) < 0) {
+        fprintf(stderr, __FILE__": waitpid() failed: %s\n", strerror(errno));
+        pa_context_fail(c, PA_ERROR_INTERNAL);
+        goto fail;
+    } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+        pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
+        goto fail;
+    }
+
+    close(fds[1]);
+    
+    io = pa_iochannel_new(c->mainloop, fds[0], fds[0]);
+    setup_context(c, io);
+    return 0;
+
+fail:
+    if (fds[0] != -1)
+        close(fds[0]);
+    if (fds[1] != -1)
+        close(fds[1]);
+
+    return -1;
 }

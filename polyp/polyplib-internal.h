@@ -47,6 +47,7 @@
 #define ENV_DEFAULT_SINK "POLYP_SINK"
 #define ENV_DEFAULT_SOURCE "POLYP_SOURCE"
 #define ENV_DEFAULT_SERVER "POLYP_SERVER"
+#define ENV_DEFAULT_BINARY "POLYP_BINARY"
 
 struct pa_context {
     int ref;

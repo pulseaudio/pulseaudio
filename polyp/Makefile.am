@@ -21,14 +21,16 @@ polypincludedir=$(includedir)/polyp
 polypconfdir=$(sysconfdir)/polyp
 
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
-#AM_CFLAGS+= -DPA_DLSEARCHDIR=\"$(pkglibdir)\" 
-AM_CFLAGS+= -DPA_DEFAULT_CONFIG_FILE=\"$(polypconfdir)/polypaudio.pa\"
+#AM_CFLAGS+= -DDLSEARCHDIR=\"$(pkglibdir)\" 
+AM_CFLAGS+="-DDEFAULT_CONFIG_FILE=\"$(polypconfdir)/polypaudio.pa\""
+AM_CFLAGS+="-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\""
+
 AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
-
-EXTRA_DIST = polypaudio.pa depmod.py
+EXTRA_DIST = polypaudio.pa depmod.py esdcompat.sh.in
 bin_PROGRAMS = polypaudio pacat pactl
+bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = mainloop-test mainloop-test-glib mainloop-test-glib12 pacat-simple parec-simple 
 
 polypconf_DATA=polypaudio.pa 
@@ -85,6 +87,7 @@ pkglib_LTLIBRARIES=libiochannel.la \
 		module-esound-protocol-unix.la \
 		module-native-protocol-tcp.la \
 		module-native-protocol-unix.la \
+		module-native-protocol-fd.la \
 		module-sine.la
 
 if !X_DISPLAY_MISSING
@@ -243,6 +246,11 @@ module_native_protocol_unix_la_SOURCES = module-protocol-stub.c
 module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
 module_native_protocol_unix_la_LDFLAGS = -module -avoid-version
 module_native_protocol_unix_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libsocket-server.la libsocket-util.la
+
+module_native_protocol_fd_la_SOURCES = module-native-protocol-fd.c
+module_native_protocol_fd_la_CFLAGS = $(AM_CFLAGS)
+module_native_protocol_fd_la_LDFLAGS = -module -avoid-version
+module_native_protocol_fd_la_LIBADD = $(AM_LIBADD) libprotocol-native.la libsocket-server.la libsocket-util.la
 
 module_esound_protocol_tcp_la_SOURCES = module-protocol-stub.c
 module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
@@ -452,3 +460,8 @@ endif
 suid: polypaudio
 	chown root:root $<
 	chmod u+s $<
+
+esdcompat.sh: esdcompat.sh.in Makefile
+	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
+		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
+		-e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@

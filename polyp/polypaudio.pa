@@ -43,7 +43,7 @@ load module-native-protocol-unix
 load module-esound-protocol-unix
 
 # Load the CLI module
-load module-cli
+#load module-cli
 
 # Make some devices default
 sink_default output

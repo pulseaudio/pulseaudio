@@ -1,3 +1,4 @@
+
 #ifndef foopolyplibcontexthfoo
 #define foopolyplibcontexthfoo
 
@@ -77,6 +78,14 @@ connect to the default server. This routine may but will not always
 return synchronously on error. Use pa_context_set_state_callback() to
 be notified when the connection is established */
 int pa_context_connect(struct pa_context *c, const char *server);
+
+/** Connect the context to a server. If the default server is local
+ * but not accessible, spawn a new daemon. If atfork is not NULL it is
+ * run after the fork() in the child process. It may be used to close
+ * file descriptors or to do any other cleanups. Make sure that
+ * SIGCHLD is handled when calling this function. The function will
+ * waitpid() on the daemon's PID. \since 0.4 */
+int pa_context_connect_spawn(struct pa_context *c, void (*atfork)(void));
 
 /** Terminate the context connection immediately */
 void pa_context_disconnect(struct pa_context *c);

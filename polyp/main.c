@@ -141,12 +141,15 @@ int main(int argc, char *argv[]) {
         
         setsid();
         setpgrp();
+        
+        close(0);
+        close(1);
     }
     
     r = lt_dlinit();
     assert(r == 0);
-#ifdef PA_DLSEARCHDIR
-    lt_dladdsearchdir(PA_DLSEARCHDIR);
+#ifdef DLSEARCHDIR
+    lt_dladdsearchdir(DLSEARCHDIR);
 #endif
 
     mainloop = pa_mainloop_new();
@@ -155,6 +158,7 @@ int main(int argc, char *argv[]) {
     r = pa_signal_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);
     pa_signal_new(SIGINT, exit_signal_callback, NULL);
+    pa_signal_new(SIGTERM, exit_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
 
     c = pa_core_new(pa_mainloop_get_api(mainloop));

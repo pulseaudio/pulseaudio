@@ -1466,7 +1466,7 @@ static void client_kill_cb(struct pa_client *c) {
 static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata) {
     struct pa_protocol_native *p = userdata;
     struct connection *c;
-    assert(s && io && p);
+    assert(io && p);
 
     c = pa_xmalloc(sizeof(struct connection));
     c->authorized = p->public;
@@ -1501,10 +1501,10 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
 /*** module entry points ***/
 
-struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
+static struct pa_protocol_native* protocol_new_internal(struct pa_core *c, struct pa_module *m, struct pa_modargs *ma) {
     struct pa_protocol_native *p;
     uint32_t public;
-    assert(core && server && ma);
+    assert(c && ma);
 
     if (pa_modargs_get_value_u32(ma, "public", &public) < 0) {
         fprintf(stderr, __FILE__": public= expects numeric argument.\n");
@@ -1520,11 +1520,21 @@ struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct p
 
     p->module = m;
     p->public = public;
-    p->server = server;
-    p->core = core;
+    p->server = NULL;
+    p->core = c;
     p->connections = pa_idxset_new(NULL, NULL);
     assert(p->connections);
 
+    return p;
+}
+
+struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
+    struct pa_protocol_native *p;
+
+    if (!(p = protocol_new_internal(core, m, ma)))
+        return NULL;
+    
+    p->server = server;
     pa_socket_server_set_callback(p->server, on_connection, p);
     
     return p;
@@ -1537,6 +1547,20 @@ void pa_protocol_native_free(struct pa_protocol_native *p) {
     while ((c = pa_idxset_first(p->connections, NULL)))
         connection_free(c);
     pa_idxset_free(p->connections, NULL, NULL);
-    pa_socket_server_unref(p->server);
+
+    if (p->server)
+        pa_socket_server_unref(p->server);
+    
     pa_xfree(p);
+}
+
+struct pa_protocol_native* pa_protocol_native_new_iochannel(struct pa_core*core, struct pa_iochannel *io, struct pa_module *m, struct pa_modargs *ma) {
+    struct pa_protocol_native *p;
+
+    if (!(p = protocol_new_internal(core, m, ma)))
+        return NULL;
+
+    on_connection(NULL, io, p);
+    
+    return p;
 }
