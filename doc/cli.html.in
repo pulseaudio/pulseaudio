@@ -87,7 +87,45 @@ input list. The same volume rules apply as with <tt>sink_volume</tt>.</p>
 (resp. ssource) by its index in the sink (resp. source) list or by its
 name.</p>
 
-<h2>Killing clients/streams</h2>
+<h2>Sample Cache</h2>
+
+<h3><tt>scache_list</tt></h3>
+
+<p>Lists the contents of the sample cache.</p>
+
+<h3><tt>scache_play</tt></h3>
+
+<p>Play a sample cache entry to a sink. Expects the sample name and the sink name as arguments.</p>
+
+<h3><tt>sache_remove</tt></h3>
+
+<p>Remove an entry from the sample cache. Expects the sample name as argument.</p>
+
+<h3><tt>sache_load</tt></h3>
+
+<p>Load an audio file to the sample cache. Expects the file name to load and the desired sample name as arguments.</p>
+
+<h2>Module Autoloading</h2>
+
+<h3><tt>autoload_list</tt></h3>
+
+<p>Lists all currently defined autoloading entries.</p>
+
+<h3><tt>autoload_sink_add/autoload_source_add</tt></h3>
+
+<p>Adds an autoloading entry for a sink (resp. source). Expects the sink name (resp. source name), the module name and the module arguments as arguments.</p>
+
+<h3><tt>autoload_sink_remove/autoload_source_remove</tt></h3>
+
+<p>Remove an autoloading entry. Expects the sink name (resp. source name) as argument.</p>
+
+<h2>Miscellaneous Commands</h2>
+
+<h3><tt>play_file</tt></h3>
+
+<p>Play an audio file to a sink. Expects the file name and the sink name as argumens.</p>
+
+<h2>Killing Clients/Streams</h2>
 
 <h3><tt>kill_client</tt></h3>
 
@@ -120,12 +158,14 @@ on the interactive command line.</p>
 
 <h2>Example Configuration Script</h2>
 
+<p>Mark the following script as executable (<tt>chmod +x</tt>) and run it for a sensible polypaudio configuration.</p>
+
 <pre>
 #!/usr/bin/polaudio -F
 
-# Load audio drivers
-load module-alsa-sink device=plughw:0,0 rate=48000
-load module-alsa-source device=hw:1,0
+# Create autoload entries for the device drivers
+autoload_sink_add output module-alsa-sink device=plughw:0,0 rate=48000 sink_name=output
+autoload_source_add input load module-alsa-source device=hw:1,0 source_name=input
 
 # Load several protocols
 load module-esound-protocol-tcp
@@ -136,17 +176,22 @@ load module-cli-protocol-unix
 # Load the CLI module (This is similar to passing "-C" on the command line of polypaudio)
 load module-cli
 
+# Make some devices default
+sink_default output
+source_default input
+
+# Don't fail if the audio files referred to below don't exist
 .nofail
 
-# Make some devices default
-sink_default alsa_output
-source_default alsa_input
+# Load an audio to the sample cache for usage with module-x11-bell
+scache_load /usr/share/sounds/KDE_Notify.wav x11-bell
+load module-x11-bell
 
-# Use digital amplification
-sink_volume alsa_output 0x200
+# Play a welcome sound
+play_file /usr/share/sounds/startup3.wav output
 </pre>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, July 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, August 2004</address>
 <div class="grey"><i>$Id$</i></div>
 </body> </html>

@@ -97,10 +97,6 @@ href="modules.html"><tt>modules.html</tt></a>, <a
 href="cli.html"><tt>cli.html</tt></a>, <a
 href="daemon.html"><tt>daemon.html</tt></a>.</p>
 
-<p>You may browse the <a href="http://www.doxygen.org/">Doxygen</a> generated <a
-href="http://0pointer.de/lennart/projects/polypaudio/doxygen/">programing
-documentation</a> for the client API. (Run <tt>make doxygen</tt> to generate this documentation from the source tree)</p>
-
 <h3>First Steps</h3>
 
 <p>Simply start the polypaudio daemon with the argument <tt>-C</tt></p>
@@ -114,12 +110,35 @@ documentation</a> for the client API. (Run <tt>make doxygen</tt> to generate thi
 
 <p>Now you can issue CLI commands as described in <a
 href="cli.html"><tt>cli.html</tt></a>. Another way to start
-<tt>polypaudio</tt> is by specifying a configuration script on the
-command line like that one included in the distribution:</p>
+<tt>polypaudio</tt> is by specifying a configuration script like that one included in the distribution on the
+command line :</p>
 
 <pre>polypaudio -F polypaudio.pa</pre>
 
 <p>This will load some drivers and protocols automatically.</p>
+
+<h3>Developing polypaudio Clients</h3>
+
+<p>You may browse the <a href="http://www.doxygen.org/">Doxygen</a> generated <a
+href="http://0pointer.de/lennart/projects/polypaudio/doxygen/">programing
+documentation</a> for the client API. (Run <tt>make doxygen</tt> to generate this documentation from the source tree)</p>
+
+<h3>Developing polypaudio Modules</h3>
+
+<p>There are several reasons for writing loadable modules for polypaudio:</p>
+
+<ul>
+  <li>Device driver support in addition to ALSA/OSS</li>
+  <li>Protocol support beyond ESOUND's protocol and the native protocol. (such as NAS or a subset of aRts)</li>
+  <li>New programming interfaces such as XMLRPC or DBUS for controlling the daemon.</li>
+  <li>Hooking audio event sources directly into polypaudio (similar to <tt>module-x11-bell</tt>)</li>
+  <li>For low latency applications such as VOIP: load the VOIP core directly into polypaudio and have a slim GUI frontend to control it.</li> 
+</ul>
+
+<p>There is currently no documentation how to write loadable modules
+for polypaudio. <i>Read the source, Luke!</i> If you are interested in
+writing new modules feel free to contact the author in case you have any
+questions.</p>
 
 <h2><a name="requirements">Requirements</a></h2>
 

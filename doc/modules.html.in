@@ -184,8 +184,17 @@ about the two possible suffixes of this module.</p>
   <tr><td><tt>cookie=</tt></td><td>Name of the cookie file for authentication purposes</td></tr>
 </table>
 
+<h3>module-x11-bell</h3>
+
+<p>Intercepts X11 bell events and plays a sample from the sample cache on each occurence.</p>
+
+<table>
+  <tr><td><tt>display=</tt></td><td>X11 display to connect to. If ommited defaults to the value of <tt>$DISPLAY</tt></td></tr>
+  <tr><td><tt>sample=</tt></td><td>The sample to play. If ommited defaults to <tt>x11-bell</tt>.</td></tr>
+  <tr><td><tt>sink=</tt></td><td>Name of the sink to play the sample on. If ommited defaults to the default sink.</td></tr>
+</table>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, July 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, August 2004</address>
 <div class="grey"><i>$Id$</i></div>
 </body> </html>
