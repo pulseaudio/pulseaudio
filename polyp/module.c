@@ -117,6 +117,10 @@ fail:
 
 static void pa_module_free(struct pa_module *m) {
     assert(m && m->done && m->core);
+
+    if (m->core->disallow_module_loading)
+        return;
+
     m->done(m->core, m);
 
     lt_dlclose(m->dl);
@@ -129,7 +133,6 @@ static void pa_module_free(struct pa_module *m) {
     pa_xfree(m->argument);
     pa_xfree(m);
 }
-
 
 void pa_module_unload(struct pa_core *c, struct pa_module *m) {
     assert(c && m);

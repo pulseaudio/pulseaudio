@@ -140,7 +140,7 @@ struct pa_latency_info {
     pa_usec_t buffer_usec;    /**< Time in usecs the current buffer takes to play */
     pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink.  */
     int playing;              /**< Non-zero when the stream is currently playing */
-    int queue_length;         /**< Queue size in bytes. */  
+    uint32_t queue_length;    /**< Queue size in bytes. */  
 };
 
 PA_C_DECL_END

@@ -207,6 +207,46 @@ int pa_modargs_get_value_u32(struct pa_modargs *ma, const char *key, uint32_t *v
     return 0;
 }
 
+int pa_modargs_get_value_s32(struct pa_modargs *ma, const char *key, int32_t *value) {
+    const char *v;
+    char *e;
+    signed long l;
+    assert(ma && key && value);
+
+    if (!(v = pa_modargs_get_value(ma, key, NULL)))
+        return 0;
+
+    if (!*v)
+        return -1;
+    
+    l = strtol(v, &e, 0);
+    if (*e)
+        return -1;
+
+    *value = (int32_t) l;
+    return 0;
+}
+
+int pa_modargs_get_value_boolean(struct pa_modargs *ma, const char *key, int *value) {
+    const char *v;
+    assert(ma && key && value);
+
+    if (!(v = pa_modargs_get_value(ma, key, NULL)))
+        return 0;
+
+    if (!*v)
+        return -1;
+
+    if (!strcmp(v, "1") || !strcasecmp(v, "yes") || !strcasecmp(v, "y") || !strcasecmp(v, "on"))
+        *value = 1;
+    else if (!strcmp(v, "0") || !strcasecmp(v, "no") || !strcasecmp(v, "n") || !strcasecmp(v, "off"))
+        *value = 0;
+    else
+        return -1;
+
+    return 0;
+}
+
 int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *rss) {
     const char *format;
     uint32_t channels;

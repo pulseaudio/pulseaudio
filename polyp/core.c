@@ -71,6 +71,9 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->memblock_stat = pa_memblock_stat_new();
 
     c->disallow_module_loading = 0;
+
+    c->quit_event = NULL;
+    c->quit_after_last_client_time = -1;
     
     pa_check_for_sigpipe();
     
@@ -102,6 +105,11 @@ void pa_core_free(struct pa_core *c) {
     pa_namereg_free(c);
     pa_autoload_free(c);
     pa_subscription_free_all(c);
+
+    if (c->quit_event) {
+        c->mainloop->time_free(c->quit_event);
+        c->quit_event = NULL;
+    }
     
     pa_xfree(c->default_source_name);
     pa_xfree(c->default_sink_name);
@@ -111,3 +119,23 @@ void pa_core_free(struct pa_core *c) {
     pa_xfree(c);    
 }
 
+static void quit_callback(struct pa_mainloop_api*m, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
+    struct pa_core *c = userdata;
+    assert(c->quit_event = e);
+
+    m->quit(m, 0);
+}
+
+void pa_core_check_quit(struct pa_core *c) {
+    assert(c);
+
+    if (!c->quit_event && c->quit_after_last_client_time >= 0 && pa_idxset_ncontents(c->clients) == 0) {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        tv.tv_sec+= c->quit_after_last_client_time;
+        c->quit_event = c->mainloop->time_new(c->mainloop, &tv, quit_callback, c);
+    } else if (c->quit_event && pa_idxset_ncontents(c->clients) > 0) {
+        c->mainloop->time_free(c->quit_event);
+        c->quit_event = NULL;
+    }
+}

@@ -329,7 +329,7 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
 
     } else if (pa_tagstruct_getu32(t, &i.buffer_usec) < 0 ||
                pa_tagstruct_getu32(t, &i.sink_usec) < 0 ||
-               pa_tagstruct_getu32(t, &i.playing) < 0 ||
+               pa_tagstruct_get_boolean(t, &i.playing) < 0 ||
                pa_tagstruct_getu32(t, &i.queue_length) < 0 ||
                !pa_tagstruct_eof(t)) {
         pa_context_fail(o->context, PA_ERROR_PROTOCOL);

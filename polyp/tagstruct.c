@@ -40,7 +40,9 @@ enum tags {
     TAG_U8 = 'B',
     TAG_S8 = 'b',
     TAG_SAMPLE_SPEC = 'a',
-    TAG_ARBITRARY = 'x'
+    TAG_ARBITRARY = 'x',
+    TAG_BOOLEAN_TRUE = '1',
+    TAG_BOOLEAN_FALSE = '0',
 };
 
 struct pa_tagstruct {
@@ -125,7 +127,6 @@ void pa_tagstruct_put_sample_spec(struct pa_tagstruct *t, const struct pa_sample
     t->length += 7;
 }
 
-
 void pa_tagstruct_put_arbitrary(struct pa_tagstruct *t, const void *p, size_t length) {
     assert(t && p);
 
@@ -135,6 +136,13 @@ void pa_tagstruct_put_arbitrary(struct pa_tagstruct *t, const void *p, size_t le
     if (length)
         memcpy(t->data+t->length+5, p, length);
     t->length += 5+length;
+}
+
+void pa_tagstruct_put_boolean(struct pa_tagstruct*t, int b) {
+    assert(t);
+    extend(t, 1);
+    t->data[t->length] = b ? TAG_BOOLEAN_TRUE : TAG_BOOLEAN_FALSE;
+    t->length += 1;
 }
 
 int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s) {
@@ -237,4 +245,22 @@ const uint8_t* pa_tagstruct_data(struct pa_tagstruct*t, size_t *l) {
     *l = t->length;
     return t->data;
 }
+
+int pa_tagstruct_get_boolean(struct pa_tagstruct*t, int *b) {
+    assert(t && b);
+
+    if (t->rindex+1 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] == TAG_BOOLEAN_TRUE)
+        *b = 1;
+    else if (t->data[t->rindex] == TAG_BOOLEAN_FALSE)
+        *b = 0;
+    else
+        return -1;
+    
+    t->rindex +=1;
+    return 0;
+}
+
 

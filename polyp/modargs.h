@@ -33,6 +33,8 @@ void pa_modargs_free(struct pa_modargs*ma);
 
 const char *pa_modargs_get_value(struct pa_modargs *ma, const char *key, const char *def);
 int pa_modargs_get_value_u32(struct pa_modargs *ma, const char *key, uint32_t *value);
+int pa_modargs_get_value_s32(struct pa_modargs *ma, const char *key, int32_t *value);
+int pa_modargs_get_value_boolean(struct pa_modargs *ma, const char *key, int *value);
 
 int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *ss);
 

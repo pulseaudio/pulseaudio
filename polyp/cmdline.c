@@ -75,6 +75,7 @@ void pa_cmdline_help(const char *argv0) {
            "  -d         Disallow module loading after startup\n"
            "  -f         Dont quit when the startup fails\n"
            "  -v         Verbose startup\n"
+           "  -X SECS    Terminate the daemon after the last client quit and this time passed\n"
            "  -h         Show this help\n"
            "  -V         Show version\n", e, cfg);
 
@@ -97,11 +98,12 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
         cmdline->version =
         cmdline->disallow_module_loading = 0;
     cmdline->fail = 1;
+    cmdline->quit_after_last_client_time = -1;
 
     buf = pa_strbuf_new();
     assert(buf);
     
-    while ((c = getopt(argc, argv, "L:F:CDhfvrRVnd")) != -1) {
+    while ((c = getopt(argc, argv, "L:F:CDhfvrRVndX:")) != -1) {
         switch (c) {
             case 'L':
                 pa_strbuf_printf(buf, "load %s\n", optarg);
@@ -138,6 +140,9 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
                 break;
             case 'd':
                 cmdline->disallow_module_loading = 1;
+                break;
+            case 'X':
+                cmdline->quit_after_last_client_time = atoi(optarg);
                 break;
             default:
                 goto fail;

@@ -830,7 +830,7 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
     pa_tagstruct_putu32(reply, tag);
     pa_tagstruct_putu32(reply, pa_sink_input_get_latency(s->sink_input));
     pa_tagstruct_putu32(reply, pa_sink_get_latency(s->sink_input->sink));
-    pa_tagstruct_putu32(reply, pa_memblockq_is_readable(s->memblockq));
+    pa_tagstruct_put_boolean(reply, pa_memblockq_is_readable(s->memblockq));
     pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
@@ -1012,7 +1012,7 @@ static void module_fill_tagstruct(struct pa_tagstruct *t, struct pa_module *modu
     pa_tagstruct_puts(t, module->name);
     pa_tagstruct_puts(t, module->argument ? module->argument : "");
     pa_tagstruct_putu32(t, module->n_used);
-    pa_tagstruct_putu32(t, module->auto_unload);
+    pa_tagstruct_put_boolean(t, module->auto_unload);
 }
 
 static void sink_input_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink_input *s) {
@@ -1505,10 +1505,10 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
 static struct pa_protocol_native* protocol_new_internal(struct pa_core *c, struct pa_module *m, struct pa_modargs *ma) {
     struct pa_protocol_native *p;
-    uint32_t public;
+    int public;
     assert(c && ma);
 
-    if (pa_modargs_get_value_u32(ma, "public", &public) < 0) {
+    if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {
         fprintf(stderr, __FILE__": public= expects numeric argument.\n");
         return NULL;
     }

@@ -213,6 +213,7 @@ int main(int argc, char *argv[]) {
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
 
         c->disallow_module_loading = cmdline->disallow_module_loading;
+        c->quit_after_last_client_time = cmdline->quit_after_last_client_time;
         
         fprintf(stderr, __FILE__": mainloop entry.\n");
         if (pa_mainloop_run(mainloop, &retval) < 0)

@@ -234,20 +234,21 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
     
-    if (pa_modargs_get_value_u32(ma, "record", &record) < 0 || pa_modargs_get_value_u32(ma, "playback", &playback) < 0) {
+    if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
         fprintf(stderr, __FILE__": record= and playback= expect numeric arguments.\n");
         goto fail;
     }
 
-    mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
-    if (mode == 0) {
+    if (!playback && !record) {
         fprintf(stderr, __FILE__": neither playback nor record enabled for device.\n");
         goto fail;
     }
 
+    mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
+
     nfrags = 12;
     frag_size = 1024;
-    if (pa_modargs_get_value_u32(ma, "fragments", &nfrags) < 0 || nfrags < 2 || pa_modargs_get_value_u32(ma, "fragment_size", &frag_size) < 0 || frag_size < 1) {
+    if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || nfrags < 2 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0 || frag_size < 1) {
         fprintf(stderr, __FILE__": failed to parse fragments arguments\n");
         goto fail;
     }

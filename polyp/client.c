@@ -51,6 +51,8 @@ struct pa_client *pa_client_new(struct pa_core *core, const char *protocol_name,
 
     fprintf(stderr, "client: created %u \"%s\"\n", c->index, c->name);
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_NEW, c->index);
+
+    pa_core_check_quit(core);
     
     return c;
 }
@@ -59,10 +61,14 @@ void pa_client_free(struct pa_client *c) {
     assert(c && c->core);
 
     pa_idxset_remove_by_data(c->core->clients, c, NULL);
+
+    pa_core_check_quit(c->core);
+
     fprintf(stderr, "client: freed %u \"%s\"\n", c->index, c->name);
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
     pa_xfree(c->name);
     pa_xfree(c);
+
 }
 
 void pa_client_kill(struct pa_client *c) {

@@ -50,7 +50,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         goto finish;
     }
 
-    if (pa_modargs_get_value_u32(ma, "fd", &fd) < 0) {
+    if (pa_modargs_get_value_s32(ma, "fd", &fd) < 0) {
         fprintf(stderr, __FILE__": invalid file descriptor.\n");
         goto finish;
     }

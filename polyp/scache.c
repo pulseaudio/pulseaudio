@@ -172,7 +172,7 @@ uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name) {
 uint32_t pa_scache_total_size(struct pa_core *c) {
     struct pa_scache_entry *e;
     uint32_t index;
-    uint32_t sum;
+    uint32_t sum = 0;
 
     if (!c->scache)
         return 0;

@@ -106,8 +106,8 @@ struct pa_module_info {
     uint32_t index;                     /**< Index of the module */
     const char*name,                    /**< Name of the module */
         *argument;                      /**< Argument string of the module */
-    uint32_t n_used,                    /**< Usage counter or PA_INVALID_INDEX */
-        auto_unload;                    /**< Non-zero if this is an autoloaded module */
+    uint32_t n_used;                    /**< Usage counter or PA_INVALID_INDEX */
+    int auto_unload;                    /**< Non-zero if this is an autoloaded module */
 };
 
 /** Get some information about a module by its index */

@@ -9,17 +9,13 @@
    kill client/...
    autoload management
 - more complete pactl
-- cleanup tagstruct and modargs (add s32, pa_volume_t, pa_usec_t)
-- remove all gcc warnings
-- make fragments settings runtime configurable
 - logging
-- automatic termination of daemon if unused
 - add sample directory
-- paman: show scache and sample size
 - add timing parameter to write callback of stream in client API
 
 ** later ***
 - xmlrpc/http
+- dbus
 - slp/rendezvous
 - modinfo
 - make alsa modules use mmap

@@ -331,7 +331,7 @@ static void context_get_module_info_callback(struct pa_pdispatch *pd, uint32_t c
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_gets(t, &i.argument) < 0 ||
                 pa_tagstruct_getu32(t, &i.n_used) < 0 ||
-                pa_tagstruct_getu32(t, &i.auto_unload) < 0) {
+                pa_tagstruct_get_boolean(t, &i.auto_unload) < 0) {
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
             }

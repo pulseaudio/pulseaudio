@@ -38,12 +38,14 @@ void pa_tagstruct_putu32(struct pa_tagstruct*t, uint32_t i);
 void pa_tagstruct_putu8(struct pa_tagstruct*t, uint8_t c);
 void pa_tagstruct_put_sample_spec(struct pa_tagstruct *t, const struct pa_sample_spec *ss);
 void pa_tagstruct_put_arbitrary(struct pa_tagstruct*t, const void *p, size_t length);
+void pa_tagstruct_put_boolean(struct pa_tagstruct*t, int b);
 
 int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s);
 int pa_tagstruct_getu32(struct pa_tagstruct*t, uint32_t *i);
 int pa_tagstruct_getu8(struct pa_tagstruct*t, uint8_t *c);
 int pa_tagstruct_get_sample_spec(struct pa_tagstruct *t, struct pa_sample_spec *ss);
 int pa_tagstruct_get_arbitrary(struct pa_tagstruct *t, const void **p, size_t length);
+int pa_tagstruct_get_boolean(struct pa_tagstruct *t, int *b);
 
 int pa_tagstruct_eof(struct pa_tagstruct*t);
 const uint8_t* pa_tagstruct_data(struct pa_tagstruct*t, size_t *l);

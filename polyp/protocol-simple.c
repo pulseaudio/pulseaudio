@@ -366,7 +366,7 @@ fail:
 
 struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
     struct pa_protocol_simple* p = NULL;
-    uint32_t enable;
+    int enable;
     assert(core && server && ma);
 
     p = pa_xmalloc0(sizeof(struct pa_protocol_simple));
@@ -385,14 +385,14 @@ struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct p
     p->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     
     enable = 0;
-    if (pa_modargs_get_value_u32(ma, "record", &enable) < 0) {
+    if (pa_modargs_get_value_boolean(ma, "record", &enable) < 0) {
         fprintf(stderr, __FILE__": record= expects a numeric argument.\n");
         goto fail;
     }
     p->mode = enable ? RECORD : 0;
 
     enable = 1;
-    if (pa_modargs_get_value_u32(ma, "playback", &enable) < 0) {
+    if (pa_modargs_get_value_boolean(ma, "playback", &enable) < 0) {
         fprintf(stderr, __FILE__": playback= expects a numeric argument.\n");
         goto fail;
     }

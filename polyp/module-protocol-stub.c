@@ -83,15 +83,16 @@ static const char* const valid_modargs[] = {
 static struct pa_socket_server *create_socket_server(struct pa_core *c, struct pa_modargs *ma) {
     struct pa_socket_server *s;
 #ifdef USE_TCP_SOCKETS
-    uint32_t loopback = 1, port = IPV4_PORT;
+    int loopback = 1;
+    uint32_t port = IPV4_PORT;
 
-    if (pa_modargs_get_value_u32(ma, "loopback", &loopback) < 0) {
+    if (pa_modargs_get_value_boolean(ma, "loopback", &loopback) < 0) {
         fprintf(stderr, "loopback= expects a numerical argument.\n");
         return NULL;
     }
 
-    if (pa_modargs_get_value_u32(ma, "port", &port) < 0) {
-        fprintf(stderr, "port= expects a numerical argument.\n");
+    if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
+        fprintf(stderr, "port= expects a numerical argument between 1 and 65535.\n");
         return NULL;
     }
     
