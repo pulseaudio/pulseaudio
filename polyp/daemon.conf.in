@@ -34,7 +34,7 @@
 ## playback. However, this is a certain security issue, since it works 
 ## when called SUID root only. root is dropped immediately after gaining
 ## the nice level and SCHED_FIFO scheduling on startup.
-high-priority = 0
+; high-priority = 0
 
 ## Disallow module loading after startup
 ; disallow-module-loading = 0
@@ -44,7 +44,7 @@ high-priority = 0
 ; exit-idle-time = -1
 
 ## Unload autoloaded modules after being idle for this time 
-module-idle-time = 20
+; module-idle-time = 20
 
 ## The path were to look for dynamic shared objects (DSOs aka
 ## plugins).  You may specify more than one path seperated by

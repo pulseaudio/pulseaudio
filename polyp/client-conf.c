@@ -43,7 +43,6 @@
 #define ENV_DEFAULT_SERVER "POLYP_SERVER"
 #define ENV_DAEMON_BINARY "POLYP_BINARY"
 
-
 static const struct pa_client_conf default_conf = {
     .daemon_binary = NULL,
     .extra_arguments = NULL,

@@ -2,7 +2,6 @@
 
 *** 0.5 ***
 - more complete pactl/parec
-- fix tcp/native in regard to latencies (i.e. latency interpolation)
 
 *** 0.6 ****
 - per-channel volume
@@ -12,6 +11,7 @@
 - make mcalign merge chunks
 - option to use default fragment size on alsa drivers
 - improve module-oss-mmap latency measurement
+- new mainloop method: defer_pending()
 
 ** later ***
 - xmlrpc/http

@@ -500,7 +500,8 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
     if (!server && spawn && c->conf->autospawn && !default_server_is_running())
         return context_connect_spawn(c, api);
 
-    server = DEFAULT_SERVER;
+    if (!server)
+        server = DEFAULT_SERVER;
 
     pa_context_ref(c);
 
