@@ -432,16 +432,17 @@ static int context_connect_spawn(struct pa_context *c, const struct pa_spawn_api
         putenv(t);
 
         argv[n++] = c->conf->daemon_binary;
-
+        argv[n++] = "--daemonize=yes";
+        
         snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
-        argv[n++] = pa_xstrdup(t);
+        argv[n++] = t;
 
         while (n < MAX_ARGS) {
             char *a;
 
             if (!(a = pa_split_spaces(c->conf->extra_arguments, &state)))
                 break;
-
+            
             argv[n++] = a;
         }
 

@@ -52,6 +52,7 @@ enum {
     ARG_LOAD,
     ARG_FILE,
     ARG_DL_SEARCH_PATH,
+    ARG_RESAMPLE_METHOD
 };
 
 static struct option long_options[] = {
@@ -71,6 +72,7 @@ static struct option long_options[] = {
     {"load",                        1, 0, ARG_LOAD},
     {"file",                        1, 0, ARG_FILE},
     {"dl-search-path",              1, 0, ARG_DL_SEARCH_PATH},
+    {"resample-method",             1, 0, ARG_RESAMPLE_METHOD},
     {NULL, 0, 0, 0}
 };
 
@@ -98,7 +100,8 @@ void pa_cmdline_help(const char *argv0) {
            "      --module-idle-time=SECS           Unload autoloaded modules when idle and this time passed\n"
            "      --scache-idle-time=SECS           Unload autoloaded samples when idle and this time passed\n"
            "      --log-target={auto,syslog,stderr} Specify the log target\n"
-           "  -p, --dl-search-path=PATH             Set the search path for dynamic shared objects (plugins)\n\n"     
+           "  -p, --dl-search-path=PATH             Set the search path for dynamic shared objects (plugins)\n"
+           "      --resample-method=[METHOD]        Use the specified resampling method\n\n"
            
            "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with the specified argument\n"
            "  -F, --file=FILENAME                   Run the specified script\n"
@@ -198,15 +201,7 @@ int pa_cmdline_parse(struct pa_daemon_conf *conf, int argc, char *const argv [],
                 break;
 
             case ARG_LOG_TARGET:
-                if (!strcmp(optarg, "syslog")) {
-                    conf->auto_log_target = 0;
-                    conf->log_target = PA_LOG_SYSLOG;
-                } else if (!strcmp(optarg, "stderr")) {
-                    conf->auto_log_target = 0;
-                    conf->log_target = PA_LOG_STDERR;
-                } else if (!strcmp(optarg, "auto"))
-                    conf->auto_log_target = 1;
-                else {
+                if (pa_daemon_conf_set_log_target(conf, optarg) < 0) {
                     pa_log(__FILE__": Invalid log target: use either 'syslog', 'stderr' or 'auto'.\n");
                     goto fail;
                 }
@@ -222,6 +217,13 @@ int pa_cmdline_parse(struct pa_daemon_conf *conf, int argc, char *const argv [],
 
             case ARG_SCACHE_IDLE_TIME:
                 conf->scache_idle_time = atoi(optarg);
+                break;
+
+            case ARG_RESAMPLE_METHOD:
+                if (pa_daemon_conf_set_resample_method(conf, optarg) < 0) {
+                    pa_log(__FILE__": Invalid resample method '%s'.\n", optarg);
+                    goto fail;
+                }
                 break;
                 
             default:

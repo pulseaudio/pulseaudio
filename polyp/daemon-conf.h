@@ -55,4 +55,7 @@ int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename);
 char *pa_daemon_conf_dump(struct pa_daemon_conf *c);
 int pa_daemon_conf_env(struct pa_daemon_conf *c);
 
+int pa_daemon_conf_set_log_target(struct pa_daemon_conf *c, const char *string);
+int pa_daemon_conf_set_resample_method(struct pa_daemon_conf *c, const char *string);
+
 #endif

@@ -110,19 +110,48 @@ void pa_daemon_conf_free(struct pa_daemon_conf *c) {
     pa_xfree(c);
 }
 
+int pa_daemon_conf_set_log_target(struct pa_daemon_conf *c, const char *string) {
+    assert(c && string);
+
+    if (!strcmp(string, "auto"))
+        c->auto_log_target = 1;
+    else if (!strcmp(string, "syslog")) {
+        c->auto_log_target = 0;
+        c->log_target = PA_LOG_SYSLOG;
+    } else if (!strcmp(string, "stderr")) {
+        c->auto_log_target = 0;
+        c->log_target = PA_LOG_STDERR;
+    } else
+        return -1;
+
+    return 0;
+
+}
+
+int pa_daemon_conf_set_resample_method(struct pa_daemon_conf *c, const char *string) {
+    assert(c && string);
+
+    if (!strcmp(string, "sinc-best-quality"))
+        c->resample_method = SRC_SINC_BEST_QUALITY;
+    else if (!strcmp(string, "sinc-medium-quality"))
+        c->resample_method = SRC_SINC_MEDIUM_QUALITY;
+    else if (!strcmp(string, "sinc-fastest"))
+        c->resample_method = SRC_SINC_FASTEST;
+    else if (!strcmp(string, "zero-order-hold"))
+        c->resample_method = SRC_ZERO_ORDER_HOLD;
+    else if (!strcmp(string, "linear"))
+        c->resample_method = SRC_LINEAR;
+    else
+        return -1;
+
+    return 0;
+}
+
 int parse_log_target(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     struct pa_daemon_conf *c = data;
     assert(filename && lvalue && rvalue && data);
-    
-    if (!strcmp(rvalue, "auto"))
-        c->auto_log_target = 1;
-    else if (!strcmp(rvalue, "syslog")) {
-        c->auto_log_target = 0;
-        c->log_target = PA_LOG_SYSLOG;
-    } else if (!strcmp(rvalue, "stderr")) {
-        c->auto_log_target = 0;
-        c->log_target = PA_LOG_STDERR;
-    } else {
+
+    if (pa_daemon_conf_set_log_target(c, rvalue) < 0) {
         pa_log(__FILE__": [%s:%u] Invalid log target '%s'.\n", filename, line, rvalue);
         return -1;
     }
@@ -134,17 +163,7 @@ int parse_resample_method(const char *filename, unsigned line, const char *lvalu
     struct pa_daemon_conf *c = data;
     assert(filename && lvalue && rvalue && data);
 
-    if (!strcmp(rvalue, "sinc-best-quality"))
-        c->resample_method = SRC_SINC_BEST_QUALITY;
-    else if (!strcmp(rvalue, "sinc-medium-quality"))
-        c->resample_method = SRC_SINC_MEDIUM_QUALITY;
-    else if (!strcmp(rvalue, "sinc-fastest"))
-        c->resample_method = SRC_SINC_FASTEST;
-    else if (!strcmp(rvalue, "zero-order-hold"))
-        c->resample_method = SRC_ZERO_ORDER_HOLD;
-    else if (!strcmp(rvalue, "linear"))
-        c->resample_method = SRC_LINEAR;
-    else {
+    if (pa_daemon_conf_set_resample_method(c, rvalue) < 0) {
         pa_log(__FILE__": [%s:%u] Inavalid resample method '%s'.\n", filename, line, rvalue);
         return -1;
     }

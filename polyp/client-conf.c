@@ -57,7 +57,7 @@ struct pa_client_conf *pa_client_conf_new(void) {
     struct pa_client_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
 
     c->daemon_binary = pa_xstrdup(POLYPAUDIO_BINARY);
-    c->extra_arguments = pa_xstrdup("--daemonize=yes --log-target=syslog");
+    c->extra_arguments = pa_xstrdup("--log-target=syslog --exit-idle-time=5");
     
     return c;
 }

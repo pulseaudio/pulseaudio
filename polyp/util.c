@@ -396,7 +396,7 @@ char *pa_split_spaces(const char *c, const char **state) {
     const char *current = *state ? *state : c;
     size_t l;
 
-    if (*current)
+    if (!*current)
         return NULL;
 
     current += strspn(current, WHITESPACE);

@@ -21,19 +21,19 @@
 ## commented out.  Use either ; or # for commenting
 
 ## Path to the polypaudio daemon to run when autospawning.
-; daemon_binary = @POLYPAUDIO_BINARY@
+; daemon-binary = @POLYPAUDIO_BINARY@
 
 ## Extra arguments to pass to the polypaudio daemon
-; extra_arguments = --daemonize=yes --log-target=syslog
+; extra-arguments = --log-target=syslog --exit-idle-time=5
 
 ## The default sink to connect to
-; default_sink = 
+; default-sink = 
 
 ## The default source to connect to
-; default_source =
+; default-source =
 
 ## The default sever to connect to
-; default_server =
+; default-server =
 
 ## Autospawn daemons?
 ; autospawn = 0
