@@ -166,7 +166,7 @@ fi
 
 # LYNX documentation generation
 AC_ARG_ENABLE(lynx,
-        AS_HELP_STRING(--disable-lynx,Turn off lynx usage for documentation generation),
+        AC_HELP_STRING(--disable-lynx,Turn off lynx usage for documentation generation),
 [case "${enableval}" in
   yes) lynx=yes ;;
   no)  lynx=no ;;

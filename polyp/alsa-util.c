@@ -29,6 +29,7 @@
 #include "alsa-util.h"
 #include "sample.h"
 #include "xmalloc.h"
+#include "log.h"
 
 /* Set the hardware parameters of the given ALSA device. Returns the
  * selected fragment settings in *period and *period_size */
@@ -61,14 +62,12 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const struct pa_sample_spec *ss
     if (snd_pcm_prepare(pcm_handle) < 0)
         goto finish;
 
-    if (snd_pcm_hw_params_current(pcm_handle, hwparams) < 0)
-        goto finish;
-    
     if (snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size) < 0 ||
         snd_pcm_hw_params_get_period_size(hwparams, period_size, NULL) < 0)
         goto finish;
-
-    assert(buffer_size > 0 && *period_size > 0);
+    
+    assert(buffer_size > 0);
+    assert(*period_size > 0);
     *periods = buffer_size / *period_size;
     assert(*periods > 0);
     

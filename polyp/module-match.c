@@ -171,7 +171,7 @@ static void callback(struct pa_core *c, enum pa_subscription_event_type t, uint3
     
     for (r = u->rules; r; r = r->next) {
         if (!regexec(&r->regex, si->name, 0, NULL, 0)) {
-            pa_log(__FILE__": changing volume of sink input '%s' to 0x%03x\n", si->name, r->volume);
+            pa_log_debug(__FILE__": changing volume of sink input '%s' to 0x%03x\n", si->name, r->volume);
             pa_sink_input_set_volume(si, r->volume);
         }
     }
