@@ -22,6 +22,8 @@ struct sink_input* sink_input_new(struct sink *s, struct sample_spec *spec, cons
     i->get_latency = NULL;
     i->userdata = NULL;
 
+    i->volume = 0xFF;
+
     assert(s->core);
     r = idxset_put(s->core->sink_inputs, i, &i->index);
     assert(r == 0 && i->index != IDXSET_INVALID);

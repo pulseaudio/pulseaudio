@@ -30,6 +30,8 @@ struct mainloop_source* mainloop_source_new_fixed(struct mainloop*m, void (*call
 struct mainloop_source* mainloop_source_new_idle(struct mainloop*m, void (*callback)(struct mainloop_source *s, void*userdata), void*userdata);
 struct mainloop_source* mainloop_source_new_signal(struct mainloop*m, int sig, void (*callback)(struct mainloop_source *s, int sig, void*userdata), void*userdata);
 
+void mainloop_once(struct mainloop*m, void (*callback)(void *userdata), void *userdata);
+
 void mainloop_source_free(struct mainloop_source*s);
 void mainloop_source_enable(struct mainloop_source*s, int b);
 

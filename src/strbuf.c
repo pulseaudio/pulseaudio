@@ -7,6 +7,7 @@
 
 struct chunk {
     struct chunk *next;
+    size_t length;
     char text[];
 };
 
@@ -43,12 +44,13 @@ char *strbuf_tostring(struct strbuf *sb) {
     assert(t);
 
     e = t;
-    *e = 0;
     for (c = sb->head; c; c = c->next) {
-        strcpy(e, c->text);
-        e = strchr(e, 0);
+        memcpy(e, c->text, c->length);
+        e += c->length;
     }
 
+    *e = 0;
+    
     return t;
 }
 
@@ -70,7 +72,8 @@ void strbuf_puts(struct strbuf *sb, const char *t) {
     assert(c);
 
     c->next = NULL;
-    strcpy(c->text, t);
+    c->length = l;
+    memcpy(c->text, t, l);
 
     if (sb->tail) {
         assert(sb->head);
@@ -101,6 +104,7 @@ int strbuf_printf(struct strbuf *sb, const char *format, ...) {
         va_end(ap);
         
         if (r > -1 && r < size) {
+            c->length = r;
             c->next = NULL;
             
             if (sb->tail) {

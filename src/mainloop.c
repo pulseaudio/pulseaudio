@@ -242,8 +242,8 @@ int mainloop_iterate(struct mainloop *m, int block) {
     free_sources(&m->signal_sources, 0);
 
     for (s = m->fixed_sources.sources; s; s = s->next) {
-        assert(!s->dead && s->type == MAINLOOP_SOURCE_TYPE_FIXED);
-        if (s->enabled) {
+        assert(s->type == MAINLOOP_SOURCE_TYPE_FIXED);
+        if (!s->dead && s->enabled) {
             assert(s->fixed.callback);
             s->fixed.callback(s, s->userdata);
         }   
@@ -264,8 +264,8 @@ int mainloop_iterate(struct mainloop *m, int block) {
         dispatch_pollfds(m);
     else if (c == 0) {
         for (s = m->idle_sources.sources; s; s = s->next) {
-            assert(!s->dead && s->type == MAINLOOP_SOURCE_TYPE_IDLE);
-            if (s->enabled) {
+            assert(s->type == MAINLOOP_SOURCE_TYPE_IDLE);
+            if (!s->dead && s->enabled) {
                 assert(s->idle.callback);
                 s->idle.callback(s, s->userdata);
             }
@@ -447,4 +447,29 @@ struct mainloop *mainloop_source_get_mainloop(struct mainloop_source *s) {
     assert(s);
 
     return s->mainloop;
+}
+
+struct once_info {
+    void (*callback)(void *userdata);
+    void *userdata;
+};
+
+static void once_callback(struct mainloop_source *s, void *userdata) {
+    struct once_info *i = userdata;
+    assert(s && i && i->callback);
+    i->callback(i->userdata);
+    mainloop_source_free(s);
+    free(i);
+}
+
+void mainloop_once(struct mainloop*m, void (*callback)(void *userdata), void *userdata) {
+    struct once_info *i;
+    assert(m && callback);
+
+    i = malloc(sizeof(struct once_info));
+    assert(i);
+    i->callback = callback;
+    i->userdata = userdata;
+    
+    mainloop_source_new_fixed(m, once_callback, i);
 }

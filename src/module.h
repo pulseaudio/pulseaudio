@@ -27,4 +27,7 @@ void module_unload_all(struct core *c);
 
 char *module_list_to_string(struct core *c);
 
+void module_unload_request(struct core *c, struct module *m);
+
+
 #endif

@@ -1,4 +1,5 @@
-- simple control protocol
+- 
+- simple control protocol: kill client/input/output; set_volume
 - native protocol/library
 - resampling
 - esound protocol

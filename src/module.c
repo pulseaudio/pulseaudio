@@ -17,6 +17,9 @@ struct module* module_load(struct core *c, const char *name, const char *argumen
     m = malloc(sizeof(struct module));
     assert(m);
 
+    m->name = strdup(name);
+    m->argument = argument ? strdup(argument) : NULL;
+    
     if (!(m->dl = lt_dlopenext(name)))
         goto fail;
 
@@ -26,8 +29,6 @@ struct module* module_load(struct core *c, const char *name, const char *argumen
     if (!(m->done = lt_dlsym(m->dl, "module_done")))
         goto fail;
     
-    m->name = strdup(name);
-    m->argument = argument ? strdup(argument) : NULL;
     m->userdata = NULL;
     m->core = c;
 
@@ -126,4 +127,29 @@ char *module_list_to_string(struct core *c) {
         strbuf_printf(s, "    index: %u, name: <%s>, argument: <%s>\n", m->index, m->name, m->argument);
     
     return strbuf_tostring_free(s);
+}
+
+
+struct once_info {
+    struct core *core;
+    uint32_t index;
+};
+    
+
+void module_unload_once_callback(void *userdata) {
+    struct once_info *i = userdata;
+    assert(i);
+    module_unload_by_index(i->core, i->index);
+    free(i);
+}
+
+void module_unload_request(struct core *c, struct module *m) {
+    struct once_info *i;
+    assert(c && m);
+
+    i = malloc(sizeof(struct once_info));
+    assert(i);
+    i->core = c;
+    i->index = m->index;
+    mainloop_once(c->mainloop, module_unload_once_callback, i);
 }
