@@ -676,10 +676,6 @@ struct pa_operation* pa_context_send_simple_command(struct pa_context *c, uint32
     return pa_operation_ref(o);
 }
 
-const char* pa_get_library_version(void) {
-    return PACKAGE_VERSION;
-}
-
 struct pa_operation* pa_context_set_default_sink(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success, void *userdata), void *userdata) {
     struct pa_tagstruct *t;
     struct pa_operation *o;
@@ -744,3 +740,8 @@ struct pa_operation* pa_context_set_name(struct pa_context *c, const char *name,
 
     return pa_operation_ref(o);
 }
+
+const char* pa_get_library_version(void) {
+    return PACKAGE_VERSION;
+}
+

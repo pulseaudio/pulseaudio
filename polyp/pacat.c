@@ -36,8 +36,9 @@
 #include <polyp/polyplib-error.h>
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
+#include <polyp/polyplib-version.h>
 
-#if PA_API_VERSION != PA_API_VERSION_0_6
+#if PA_API_VERSION != 6
 #error Invalid Polypaudio API version
 #endif
 
@@ -107,7 +108,7 @@ static void stream_read_callback(struct pa_stream *s, const void*data, size_t le
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_OUTPUT);
 
     if (buffer) {
-        fprintf(stderr, "Buffer overrrun, dropping incoming data\n");
+        fprintf(stderr, "Buffer overrun, dropping incoming data\n");
         return;
     }
 
@@ -133,7 +134,7 @@ static void stream_state_callback(struct pa_stream *s, void *userdata) {
             
         case PA_STREAM_FAILED:
         default:
-            fprintf(stderr, "Stream errror: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
+            fprintf(stderr, "Stream error: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
             quit(1);
     }
 }

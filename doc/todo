@@ -9,7 +9,6 @@
 - improve module-oss-mmap latency measurement
 - pacat sample type args
 - filter capture data in client through alignment
-- add tunnel module for sources
 - add radio module
 - make autoload list use idxset
 - libwrap

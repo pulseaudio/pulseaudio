@@ -22,6 +22,8 @@
   USA.
 ***/
 
+/* WARNING: Make sure to edit the real source file polyplib-version.h.in! */
+
 /** \file
  * Define header version */
 
@@ -29,5 +31,13 @@
 a macro and not a function, so it is impossible to get the pointer of
 it. */
 #define pa_get_headers_version() ("@PACKAGE_VERSION@")
+
+/** Return the version of the library the current application is linked to. */
+const char* pa_get_library_version(void);
+
+/** The current API version. Version 6 relates to polypaudio
+ * 0.6. Prior versions (i.e. Polypaudio 0.5.1 and older) have
+ * PA_API_VERSION undefined.  */
+#define PA_API_VERSION @PA_API_VERSION@
 
 #endif
