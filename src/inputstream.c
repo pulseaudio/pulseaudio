@@ -14,6 +14,8 @@ struct input_stream* input_stream_new(struct sink *s, struct sample_spec *spec, 
     i->name = name ? strdup(name) : NULL;
     i->sink = s;
     i->spec = *spec;
+    i->kill = NULL;
+    i->kill_userdata = NULL;
 
     i->memblockq = memblockq_new(bytes_per_second(spec)*5, sample_size(spec));
     assert(i->memblockq);
@@ -40,11 +42,25 @@ void input_stream_free(struct input_stream* i) {
     free(i);
 }
 
-void input_stream_notify(struct input_stream *i) {
+void input_stream_notify_sink(struct input_stream *i) {
     assert(i);
 
     if (memblockq_is_empty(i->memblockq))
         return;
     
     sink_notify(i->sink);
+}
+
+void input_stream_set_kill_callback(struct input_stream *i, void (*kill)(struct input_stream*i, void *userdata), void *userdata) {
+    assert(i && kill);
+    i->kill = kill;
+    i->kill_userdata = userdata;
+}
+
+
+void input_stream_kill(struct input_stream*i) {
+    assert(i);
+
+    if (i->kill)
+        i->kill(i, i->kill_userdata);
 }

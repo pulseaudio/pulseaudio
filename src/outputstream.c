@@ -14,6 +14,8 @@ struct output_stream* output_stream_new(struct source *s, struct sample_spec *sp
     o->name = name ? strdup(name) : NULL;
     o->source = s;
     o->spec = *spec;
+    o->kill = NULL;
+    o->kill_userdata = NULL;
 
     o->memblockq = memblockq_new(bytes_per_second(spec)*5, sample_size(spec));
     assert(o->memblockq);
@@ -38,4 +40,18 @@ void output_stream_free(struct output_stream* o) {
     
     free(o->name);
     free(o);
+}
+
+void output_stream_set_kill_callback(struct output_stream *i, void (*kill)(struct output_stream*i, void *userdata), void *userdata) {
+    assert(i && kill);
+    i->kill = kill;
+    i->kill_userdata = userdata;
+}
+
+
+void output_stream_kill(struct output_stream*i) {
+    assert(i);
+
+    if (i->kill)
+        i->kill(i, i->kill_userdata);
 }

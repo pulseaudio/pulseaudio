@@ -28,11 +28,14 @@ struct source* source_new(struct core *core, const char *name, const struct samp
 }
 
 void source_free(struct source *s) {
-    struct output_stream *o;
+    struct output_stream *o, *j = NULL;
     assert(s);
 
-    while ((o = idxset_rrobin(s->output_streams, NULL)))
+    while ((o = idxset_first(s->output_streams, NULL))) {
+        assert(o != j);
         output_stream_free(o);
+        j = o;
+    }
     idxset_free(s->output_streams, NULL, NULL);
     
     idxset_remove_by_data(s->core->sources, s, NULL);

@@ -18,7 +18,14 @@ void* idxset_get_by_data(struct idxset*s, void *p, uint32_t *index);
 void* idxset_remove_by_index(struct idxset*s, uint32_t index);
 void* idxset_remove_by_data(struct idxset*s, void *p, uint32_t *index);
 
+/* This may be used to iterate through all entries. When called with
+   an invalid index value it returns the first entry, otherwise the
+   next following. The function is best called with *index =
+   IDXSET_VALID first. */
 void* idxset_rrobin(struct idxset *s, uint32_t *index);
+
+/* Return the oldest entry in the idxset */
+void* idxset_first(struct idxset *s, uint32_t *index);
 
 int idxset_foreach(struct idxset*s, int (*func)(void *p, uint32_t index, int *del, void*userdata), void *userdata);
 

@@ -42,6 +42,30 @@ static void free_connection(void *data, void *userdata) {
     free(c);
 }
 
+static void destroy_connection(struct connection *c) {
+    assert(c && c->protocol);
+    idxset_remove_by_data(c->protocol->connections, c, NULL);
+    free_connection(c, NULL);
+}
+
+static void istream_kill_cb(struct input_stream *i, void *userdata) {
+    struct connection *c = userdata;
+    assert(i && c);
+    destroy_connection(c);
+}
+
+static void ostream_kill_cb(struct output_stream *o, void *userdata) {
+    struct connection *c = userdata;
+    assert(o && c);
+    destroy_connection(c);
+}
+
+static void client_kill_cb(struct client *client, void*userdata) {
+    struct connection *c= userdata;
+    assert(client && c);
+    destroy_connection(c);
+}
+
 static void io_callback(struct iochannel*io, void *userdata) {
     struct connection *c = userdata;
     assert(io && c);
@@ -64,7 +88,7 @@ static void io_callback(struct iochannel*io, void *userdata) {
         chunk.index = 0;
         
         memblockq_push(c->istream->memblockq, &chunk, 0);
-        input_stream_notify(c->istream);
+        input_stream_notify_sink(c->istream);
         memblock_unref(chunk.memblock);
     }
 
@@ -88,8 +112,7 @@ static void io_callback(struct iochannel*io, void *userdata) {
     return;
     
 fail:
-    idxset_remove_by_data(c->protocol->connections, c, NULL);
-    free_connection(c, NULL);
+    destroy_connection(c);
 }
 
 static void on_connection(struct socket_server*s, struct iochannel *io, void *userdata) {
@@ -106,6 +129,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
 
     c->client = client_new(p->core, "SIMPLE", "Client");
     assert(c->client);
+    client_set_kill_callback(c->client, client_kill_cb, c);
 
     if (p->mode & PROTOCOL_SIMPLE_RECORD) {
         struct source *source;
@@ -117,6 +141,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
 
         c->ostream = output_stream_new(source, &DEFAULT_SAMPLE_SPEC, c->client->name);
         assert(c->ostream);
+        output_stream_set_kill_callback(c->ostream, ostream_kill_cb, c);
     }
 
     if (p->mode & PROTOCOL_SIMPLE_PLAYBACK) {
@@ -129,6 +154,7 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
 
         c->istream = input_stream_new(sink, &DEFAULT_SAMPLE_SPEC, c->client->name);
         assert(c->istream);
+        input_stream_set_kill_callback(c->istream, istream_kill_cb, c);
     }
 
 

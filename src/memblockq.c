@@ -119,6 +119,8 @@ void memblockq_drop(struct memblockq *bq, size_t length) {
             
             q = bq->blocks;
             bq->blocks = bq->blocks->next;
+            if (bq->blocks == NULL)
+                bq->blocks_tail = NULL;
             memblock_unref(q->chunk.memblock);
             free(q);
             

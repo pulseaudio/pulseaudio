@@ -40,11 +40,14 @@ struct sink* sink_new(struct core *core, const char *name, const struct sample_s
 }
 
 void sink_free(struct sink *s) {
-    struct input_stream *i;
+    struct input_stream *i, *j = NULL;
     assert(s);
 
-    while ((i = idxset_rrobin(s->input_streams, NULL)))
-        input_stream_free(i);
+    while ((i = idxset_first(s->input_streams, NULL))) {
+        assert(i != j);
+        input_stream_kill(i);
+        j = i;
+    }
     idxset_free(s->input_streams, NULL, NULL);
         
     idxset_remove_by_data(s->core->sinks, s, NULL);
