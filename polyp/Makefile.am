@@ -159,7 +159,8 @@ SYMDEF_FILES= \
 		module-tunnel-source-symdef.h \
 		module-null-sink-symdef.h \
 		module-esound-sink-symdef.h \
-		module-zeroconf-publish-symdef.h
+		module-zeroconf-publish-symdef.h \
+		module-lirc-symdef.h
 
 EXTRA_DIST+=$(SYMDEF_FILES)
 BUILT_SOURCES+=$(SYMDEF_FILES)
@@ -242,7 +243,8 @@ libsocket_server_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la $(LI
 
 libsocket_client_la_SOURCES = socket-client.c socket-client.h
 libsocket_client_la_LDFLAGS = -avoid-version
-libsocket_client_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la libparseaddr.la
+libsocket_client_la_LIBADD = $(AM_LIBADD) libiochannel.la libsocket-util.la libparseaddr.la $(LIBASYNCNS_LIBS)
+libsocket_client_la_CFLAGS = $(AM_CFLAGS) $(LIBASYNCNS_CFLAGS)
 
 libparseaddr_la_SOURCES = parseaddr.c parseaddr.h
 libparseaddr_la_LDFLAGS = -avoid-version
@@ -688,6 +690,20 @@ libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
 mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
+
+endif
+
+### LIRC support
+
+if HAVE_LIRC
+
+modlib_LTLIBRARIES+= \
+		module-lirc.la
+
+module_lirc_la_SOURCES = module-lirc.c
+module_lirc_la_LDFLAGS = -module -avoid-version
+module_lirc_la_LIBADD = $(AM_LIBADD) $(LIRC_LIBS) 
+module_lirc_la_CFLAGS = $(AM_CFLAGS) $(LIRC_CFLAGS)
 
 endif
 

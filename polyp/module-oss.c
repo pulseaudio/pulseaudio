@@ -295,7 +295,6 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
 
     pa_log_info(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
-
     if (nfrags >= 2 && frag_size >= 1)
         if (pa_oss_set_fragments(fd, nfrags, frag_size) < 0)   
             goto fail;   

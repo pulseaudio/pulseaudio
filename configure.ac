@@ -167,6 +167,13 @@ AC_MSG_RESULT(yes)],
 AC_SUBST(LIBWRAP_LIBS)
 LIBS="$saved_LIBS"
 
+HAVE_LIRC=1
+AC_CHECK_HEADER(lirc/lirc_client.h,[AC_CHECK_LIB(lirc_client,lirc_init,,HAVE_LIRC=0)],HAVE_LIRC=0)
+LIRC_LIBS=-llirc_client
+AC_SUBST(LIRC_CFLAGS)
+AC_SUBST(LIRC_LIBS)
+AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
+
 # If using GCC specify some additional parameters
 if test "x$GCC" = "xyes" ; then
    CFLAGS="$CFLAGS -pipe -W -Wall -pedantic"
