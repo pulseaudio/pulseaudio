@@ -67,7 +67,10 @@ static void unlock_autospawn_lock_file(struct pa_context *c) {
     assert(c);
     
     if (c->autospawn_lock_fd >= 0) {
-        pa_unlock_lockfile(c->autospawn_lock_fd);
+        char lf[PATH_MAX];
+        pa_runtime_path(AUTOSPAWN_LOCK, lf, sizeof(lf));
+        
+        pa_unlock_lockfile(lf, c->autospawn_lock_fd);
         c->autospawn_lock_fd = -1;
     }
 }

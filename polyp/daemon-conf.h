@@ -29,7 +29,9 @@ enum pa_daemon_conf_cmd {
 	PA_CMD_HELP,
         PA_CMD_VERSION,
 	PA_CMD_DUMP_CONF,
-	PA_CMD_DUMP_MODULES
+	PA_CMD_DUMP_MODULES,
+        PA_CMD_KILL,
+        PA_CMD_CHECK
 };
 
 struct pa_daemon_conf {
@@ -42,7 +44,8 @@ struct pa_daemon_conf {
         exit_idle_time,
         module_idle_time,
         scache_idle_time,
-        auto_log_target;
+        auto_log_target,
+        use_pid_file;
     char *script_commands, *dl_search_path, *default_script_file;
     enum pa_log_target log_target;
     int resample_method;

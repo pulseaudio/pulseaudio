@@ -612,20 +612,27 @@ finish:
 
 /* Lock or unlock a file entirely. (advisory) */
 int pa_lock_fd(int fd, int b) {
-
     struct flock flock;
 
+    /* Try a R/W lock first */
+    
     flock.l_type = b ? F_WRLCK : F_UNLCK;
     flock.l_whence = SEEK_SET;
     flock.l_start = 0;
     flock.l_len = 0;
 
-    if (fcntl(fd, F_SETLKW, &flock) < 0) {
-        pa_log(__FILE__": %slock failed: %s\n", !b ? "un" : "", strerror(errno));
-        return -1;
-    }
+    if (fcntl(fd, F_SETLKW, &flock) >= 0)
+        return 0;
 
-    return 0;
+    /* Perhaps the file descriptor qas opened for read only, than try again with a read lock. */
+    if (b && errno == EBADF) {
+        flock.l_type = F_RDLCK;
+        if (fcntl(fd, F_SETLKW, &flock) >= 0)
+            return 0;
+    }
+        
+    pa_log(__FILE__": %slock failed: %s\n", !b ? "un" : "", strerror(errno));
+    return -1;
 }
 
 /* Remove trailing newlines from a string */
@@ -642,35 +649,43 @@ int pa_lock_lockfile(const char *fn) {
     assert(fn);
 
     if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
-        pa_log(__FILE__": failed to create lock file '%s'\n", fn);
+        pa_log(__FILE__": failed to create lock file '%s': %s\n", fn, strerror(errno));
         goto fail;
     }
 
     if (pa_lock_fd(fd, 1) < 0)
+        pa_log(__FILE__": failed to lock file '%s'.\n", fn);
         goto fail;
 
     return fd;
 
 fail:
 
-    if (fd >= 0)
+    if (fd >= 0) {
+        unlink(fn);
         close(fd);
+    }
 
     return -1;
 }
 
 /* Unlock a temporary lcok file */
-int pa_unlock_lockfile(int fd) {
+int pa_unlock_lockfile(const char *fn, int fd) {
     int r = 0;
-    assert(fd >= 0);
+    assert(fn && fd >= 0);
 
+    if (unlink(fn) < 0) {
+        pa_log(__FILE__": WARNING: unable to remove lock file '%s': %s\n", fn, strerror(errno));
+        r = -1;
+    }
+    
     if (pa_lock_fd(fd, 0) < 0) {
-        pa_log(__FILE__": WARNING: failed to unlock file.\n");
+        pa_log(__FILE__": WARNING: failed to unlock file '%s'.\n", fn);
         r = -1;
     }
 
     if (close(fd) < 0) {
-        pa_log(__FILE__": WARNING: failed to close lock file.\n");
+        pa_log(__FILE__": WARNING: failed to close lock file '%s': %s\n", fn, strerror(errno));
         r = -1;
     }
 

@@ -52,7 +52,10 @@ enum {
     ARG_LOAD,
     ARG_FILE,
     ARG_DL_SEARCH_PATH,
-    ARG_RESAMPLE_METHOD
+    ARG_RESAMPLE_METHOD,
+    ARG_KILL,
+    ARG_USE_PID_FILE,
+    ARG_CHECK
 };
 
 static struct option long_options[] = {
@@ -73,6 +76,9 @@ static struct option long_options[] = {
     {"file",                        1, 0, ARG_FILE},
     {"dl-search-path",              1, 0, ARG_DL_SEARCH_PATH},
     {"resample-method",             1, 0, ARG_RESAMPLE_METHOD},
+    {"kill",                        0, 0, ARG_KILL},
+    {"use-pid-file",                2, 0, ARG_USE_PID_FILE},
+    {"check",                       0, 0, ARG_CHECK},
     {NULL, 0, 0, 0}
 };
 
@@ -88,7 +94,9 @@ void pa_cmdline_help(const char *argv0) {
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n"
            "      --dump-conf                       Dump default configuration\n"
-           "      --dump-modules                    Dump list of available modules\n\n"
+           "      --dump-modules                    Dump list of available modules\n"
+           "  -k  --kill                            Kill a running daemon\n"
+           "      --check                           Check for a running daemon\n\n"
 
            "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
            "      --fail[=BOOL]                     Quit when startup fails\n"
@@ -100,7 +108,8 @@ void pa_cmdline_help(const char *argv0) {
            "      --scache-idle-time=SECS           Unload autoloaded samples when idle and this time passed\n"
            "      --log-target={auto,syslog,stderr} Specify the log target\n"
            "  -p, --dl-search-path=PATH             Set the search path for dynamic shared objects (plugins)\n"
-           "      --resample-method=[METHOD]        Use the specified resampling method\n\n"
+           "      --resample-method=[METHOD]        Use the specified resampling method\n"
+           "      --use-pid-file[=BOOL]             Create a PID file\n\n"
            
            "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with the specified argument\n"
            "  -F, --file=FILENAME                   Run the specified script\n"
@@ -119,7 +128,7 @@ int pa_cmdline_parse(struct pa_daemon_conf *conf, int argc, char *const argv [],
     if (conf->script_commands)
         pa_strbuf_puts(buf, conf->script_commands);
     
-    while ((c = getopt_long(argc, argv, "L:F:ChDnp:", long_options, NULL)) != -1) {
+    while ((c = getopt_long(argc, argv, "L:F:ChDnp:k", long_options, NULL)) != -1) {
         switch (c) {
             case ARG_HELP:
             case 'h':
@@ -136,6 +145,15 @@ int pa_cmdline_parse(struct pa_daemon_conf *conf, int argc, char *const argv [],
 
             case ARG_DUMP_MODULES:
                 conf->cmd = PA_CMD_DUMP_MODULES;
+                break;
+
+            case 'k':
+            case ARG_KILL:
+                conf->cmd = PA_CMD_KILL;
+                break;
+
+            case ARG_CHECK:
+                conf->cmd = PA_CMD_CHECK;
                 break;
                 
             case ARG_LOAD:
@@ -188,6 +206,13 @@ int pa_cmdline_parse(struct pa_daemon_conf *conf, int argc, char *const argv [],
                 }
                 break;
 
+            case ARG_USE_PID_FILE:
+                if ((conf->use_pid_file = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(__FILE__": --use-pid-file expects boolean argument\n");
+                    goto fail;
+                }
+                break;
+                
             case 'p':
             case ARG_DL_SEARCH_PATH:
                 pa_xfree(conf->dl_search_path);

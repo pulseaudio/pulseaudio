@@ -77,7 +77,7 @@ int pa_uid_in_group(const char *name, gid_t *gid);
 int pa_lock_fd(int fd, int b);
 
 int pa_lock_lockfile(const char *fn);
-int pa_unlock_lockfile(int fd);
+int pa_unlock_lockfile(const char *fn, int fd);
 
 FILE *pa_open_config_file(const char *env, const char *global, const char *local, char **result);
 

@@ -33,6 +33,7 @@
 #include <assert.h>
 #include <ltdl.h>
 #include <memblock.h>
+#include <limits.h>
 
 #ifdef HAVE_LIBWRAP
 #include <syslog.h>
@@ -54,6 +55,7 @@
 #include "dumpmodules.h"
 #include "caps.h"
 #include "cli-text.h"
+#include "pid.h"
 
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
@@ -122,8 +124,7 @@ static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e,
     }
 }
 
-
-            static void close_pipe(int p[2]) {
+static void close_pipe(int p[2]) {
     if (p[0] != -1)
         close(p[0]);
     if (p[1] != -1)
@@ -142,6 +143,7 @@ int main(int argc, char *argv[]) {
     int daemon_pipe[2] = { -1, -1 };
     gid_t gid = (gid_t) -1;
     int suid_root;
+    int valid_pid_file = 0;
 
     pa_limit_caps();
 
@@ -209,6 +211,30 @@ int main(int argc, char *argv[]) {
             retval = 0;
             goto finish;
 
+        case PA_CMD_CHECK: {
+            pid_t pid;
+
+            if (pa_pid_file_check_running(&pid) < 0) {
+                if (conf->verbose)
+                    pa_log(__FILE__": daemon not running\n");
+            } else {
+                if (conf->verbose)
+                    pa_log(__FILE__": daemon running as PID %u\n", pid);
+                retval = 0;
+            }
+
+            goto finish;
+
+        }
+        case PA_CMD_KILL:
+
+            if (pa_pid_file_kill(SIGINT, NULL) < 0)
+                pa_log(__FILE__": failed to kill daemon.\n");
+            else
+                retval = 0;
+            
+            goto finish;
+            
         default:
             assert(conf->cmd == PA_CMD_DAEMON);
     }
@@ -260,11 +286,16 @@ int main(int argc, char *argv[]) {
         close(0);
         close(1);
     }
-    
-    chdir("/");
 
-    pa_log(__FILE__": sizeof(pa_usec_t) = %u\n", sizeof(pa_usec_t));
+    chdir("/");
     
+    if (conf->use_pid_file) {
+        if (pa_pid_file_create() < 0)
+            goto finish;
+
+        valid_pid_file = 1;
+    }
+
     mainloop = pa_mainloop_new();
     assert(mainloop);
 
@@ -303,6 +334,7 @@ int main(int argc, char *argv[]) {
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
     } else {
+
         retval = 0;
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
@@ -332,6 +364,9 @@ finish:
     if (conf)
         pa_daemon_conf_free(conf);
 
+    if (valid_pid_file)
+        pa_pid_file_remove();
+    
     close_pipe(daemon_pipe);
 
     lt_dlexit();

@@ -614,7 +614,7 @@ void pa_mainloop_dump(struct pa_mainloop *m) {
             if (e->dead)
                 continue;
             
-            pa_log(__FILE__": kind=io fd=%i events=%i callback=%p userdata=%p\n", e->fd, (int) e->events, e->callback, e->userdata);
+            pa_log(__FILE__": kind=io fd=%i events=%i callback=%p userdata=%p\n", e->fd, (int) e->events, (void*) e->callback, (void*) e->userdata);
         }
     }
     {
@@ -624,7 +624,7 @@ void pa_mainloop_dump(struct pa_mainloop *m) {
             if (e->dead)
                 continue;
             
-            pa_log(__FILE__": kind=defer enabled=%i callback=%p userdata=%p\n", e->enabled, e->callback, e->userdata);
+            pa_log(__FILE__": kind=defer enabled=%i callback=%p userdata=%p\n", e->enabled, (void*) e->callback, (void*) e->userdata);
         }
     }
     {
@@ -634,7 +634,7 @@ void pa_mainloop_dump(struct pa_mainloop *m) {
             if (e->dead)
                 continue;
             
-            pa_log(__FILE__": kind=time enabled=%i time=%u.%u callback=%p userdata=%p\n", e->enabled, e->timeval.tv_sec, e->timeval.tv_usec, e->callback, e->userdata);
+            pa_log(__FILE__": kind=time enabled=%i time=%lu.%lu callback=%p userdata=%p\n", e->enabled, (unsigned long) e->timeval.tv_sec, (unsigned long) e->timeval.tv_usec, (void*) e->callback, (void*) e->userdata);
         }
     }
 

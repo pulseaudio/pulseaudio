@@ -66,6 +66,7 @@ static const struct pa_daemon_conf default_conf = {
     .log_target = PA_LOG_SYSLOG,
     .resample_method = PA_RESAMPLER_SRC_SINC_FASTEST,
     .config_file = NULL,
+    .use_pid_file = 1
 };
 
 struct pa_daemon_conf* pa_daemon_conf_new(void) {
@@ -159,6 +160,7 @@ int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename) {
         { "default-script-file",     pa_config_parse_string,  NULL },
         { "log-target",              parse_log_target,        NULL },
         { "resample-method",         parse_resample_method,   NULL },
+        { "use-pid-file",            pa_config_parse_bool,    NULL },
         { NULL,                      NULL,                    NULL },
     };
     
@@ -174,6 +176,7 @@ int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename) {
     table[9].data = &c->default_script_file;
     table[10].data = c;
     table[11].data = c;
+    table[12].data = &c->use_pid_file;
     
     pa_xfree(c->config_file);
     c->config_file = NULL;
@@ -228,9 +231,8 @@ char *pa_daemon_conf_dump(struct pa_daemon_conf *c) {
     pa_strbuf_printf(s, "dl-search-path = %s\n", c->dl_search_path ? c->dl_search_path : "");
     pa_strbuf_printf(s, "default-script-file = %s\n", c->default_script_file);
     pa_strbuf_printf(s, "log-target = %s\n", c->auto_log_target ? "auto" : (c->log_target == PA_LOG_SYSLOG ? "syslog" : "stderr"));
-
-    assert(c->resample_method <= 4 && c->resample_method >= 0);
     pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
+    pa_strbuf_printf(s, "use-pid-file = %i\n", c->use_pid_file);
     
     return pa_strbuf_tostring_free(s);
 }
