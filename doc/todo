@@ -22,7 +22,6 @@
 
 backends for:
 - portaudio  (semi-done)
-- gstreamer (semi-done)
 - alsa-lib
 - sdl
 - OSS (esddsp style)
