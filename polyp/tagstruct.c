@@ -176,6 +176,15 @@ void pa_tagstruct_put_usec(struct pa_tagstruct*t, pa_usec_t u) {
     t->length += 9;
 }
 
+void pa_tagstruct_putu64(struct pa_tagstruct*t, uint64_t u) {
+    assert(t);
+    extend(t, 9);
+    t->data[t->length] = TAG_U64;
+    *((uint32_t*) (t->data+t->length+1)) = htonl((uint32_t) (u >> 32));
+    *((uint32_t*) (t->data+t->length+5)) = htonl((uint32_t) u);
+    t->length += 9;
+}
+
 int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s) {
     int error = 0;
     size_t n;
@@ -329,6 +338,21 @@ int pa_tagstruct_get_usec(struct pa_tagstruct*t, pa_usec_t *u) {
 
     *u = (pa_usec_t) ntohl(*((uint32_t*) (t->data+t->rindex+1))) << 32;
     *u |= (pa_usec_t) ntohl(*((uint32_t*) (t->data+t->rindex+5)));
+    t->rindex +=9;
+    return 0;
+}
+
+int pa_tagstruct_getu64(struct pa_tagstruct*t, uint64_t *u) {
+    assert(t && u);
+
+    if (t->rindex+9 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != TAG_U64)
+        return -1;
+
+    *u = (uint64_t) ntohl(*((uint32_t*) (t->data+t->rindex+1))) << 32;
+    *u |= (uint64_t) ntohl(*((uint32_t*) (t->data+t->rindex+5)));
     t->rindex +=9;
     return 0;
 }

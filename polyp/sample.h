@@ -68,10 +68,10 @@ struct pa_sample_spec {
     uint8_t channels;              /**< Audio channels. (1 for mono, 2 for stereo, ...) */
 };
 
-/** Type for usec specifications. May be either 32 or 64 bit, depending on the architecture */
+/** Type for usec specifications (unsigned). May be either 32 or 64 bit, depending on the architecture */
 typedef uint64_t pa_usec_t;
 
-/** Return the amount of bytes playback of a second of audio with the speicified sample type takes */
+/** Return the amount of bytes playback of a second of audio with the specified sample type takes */
 size_t pa_bytes_per_second(const struct pa_sample_spec *spec);
 
 /** Return the size of a frame with the specific sample type */

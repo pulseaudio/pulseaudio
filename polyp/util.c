@@ -266,7 +266,7 @@ int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) {
     return 0;
 }
 
-pa_usec_t pa_age(const struct timeval *tv) {
+pa_usec_t pa_timeval_age(const struct timeval *tv) {
     struct timeval now;
     assert(tv);
     gettimeofday(&now, NULL);

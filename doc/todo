@@ -1,7 +1,6 @@
 *** $Id$ ***
 
 *** 0.6 ****
-- latency interpolation
 - per-channel volume
 - unix socket directories include user name
 - add sample directory
@@ -11,7 +10,9 @@
 - filter capture data in client through alignment
 - add radio module
 - make autoload list use idxset
-- enlarge mqmblockq sizes
+- enlarge memblockq sizes
+- add null-sink
+- add sync API
 
 ** later ***
 - xmlrpc/http

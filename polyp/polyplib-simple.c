@@ -341,7 +341,7 @@ pa_usec_t pa_simple_get_playback_latency(struct pa_simple *p, int *perror) {
     }
 
     p->latency = 0;
-    o = pa_stream_get_latency(p->stream, latency_complete, p);
+    o = pa_stream_get_latency_info(p->stream, latency_complete, p);
     
     while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
 

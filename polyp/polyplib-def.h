@@ -74,7 +74,22 @@ enum pa_stream_direction {
 
 /** Some special flags for stream connections. \since 0.6 */
 enum pa_stream_flags {
-    PA_STREAM_START_CORKED = 1,   /**< Create the stream corked, requiring an explicit pa_stream_cork() call to uncork it. */
+    PA_STREAM_START_CORKED = 1,       /**< Create the stream corked, requiring an explicit pa_stream_cork() call to uncork it. */
+    PA_STREAM_INTERPOLATE_LATENCY = 2 /**< Interpolate the latency for
+                                       * this stream. When enabled,
+                                       * you can use
+                                       * pa_stream_interpolated_xxx()
+                                       * for synchronization. Using
+                                       * these functions instead of
+                                       * pa_stream_get_latency() has
+                                       * the advantage of not
+                                       * requiring a whole roundtrip
+                                       * for responses. Consider using
+                                       * this option when frequently
+                                       * requesting latency
+                                       * information. This is
+                                       * especially useful on long latency
+                                       * network connections. */
 };
 
 /** Playback and record buffer metrics */
@@ -171,6 +186,7 @@ struct pa_latency_info {
                                * limited und unreliable itself. \since
                                * 0.5 */
     struct timeval timestamp; /**< The time when this latency info was current */
+    uint64_t counter;         /**< The byte counter current when the latency info was requested. \since 0.6 */
 };
 
 /** A structure for the spawn api. This may be used to integrate auto

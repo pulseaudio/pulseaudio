@@ -102,7 +102,7 @@ size_t pa_stream_writable_size(struct pa_stream *p);
 struct pa_operation* pa_stream_drain(struct pa_stream *s, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata);
 
 /** Get the playback latency of a stream */
-struct pa_operation* pa_stream_get_latency(struct pa_stream *p, void (*cb)(struct pa_stream *p, const struct pa_latency_info *i, void *userdata), void *userdata);
+struct pa_operation* pa_stream_get_latency_info(struct pa_stream *p, void (*cb)(struct pa_stream *p, const struct pa_latency_info *i, void *userdata), void *userdata);
 
 /** Set the callback function that is called whenever the state of the stream changes */
 void pa_stream_set_state_callback(struct pa_stream *s, void (*cb)(struct pa_stream *s, void *userdata), void *userdata);
@@ -138,9 +138,6 @@ struct pa_operation* pa_stream_set_name(struct pa_stream *s, const char *name, v
  * this yourself using pa_stream_reset_counter(). \since 0.6 */
 uint64_t pa_stream_get_counter(struct pa_stream *s);
 
-/** Reset the total byte count to 0. \since 0.6 */
-void pa_stream_reset_counter(struct pa_stream *s);
-
 /** Return the current playback/recording time. This is based on the
  * counter accessible with pa_stream_get_counter(). This function
  * requires a pa_latency_info structure as argument, which should be
@@ -152,7 +149,18 @@ pa_usec_t pa_stream_get_time(struct pa_stream *s, const struct pa_latency_info *
  * using pa_stream_get_latency(). In case the stream is a monitoring
  * stream the result can be negative, i.e. the captured samples are
  * not yet played. In this case *negative is set to 1. \since 0.6 */
-pa_usec_t pa_stream_get_total_latency(struct pa_stream *s, const struct pa_latency_info *i, int *negative);
+pa_usec_t pa_stream_get_latency(struct pa_stream *s, const struct pa_latency_info *i, int *negative);
+
+/** Return the interpolated playback/recording time. Requires the
+ *  PA_STREAM_INTERPOLATE_LATENCY bit set when creating the stream. In
+ *  contrast to pa_stream_get_latency() this function doesn't require
+ *  a whole roundtrip for response. \since 0.6 */
+pa_usec_t pa_stream_get_interpolated_time(struct pa_stream *s);
+
+/** Return the interpolated playback/recording latency. Requires the
+ * PA_STREAM_INTERPOLATE_LATENCY bit set when creating the
+ * stream. \since 0.6 */
+pa_usec_t pa_stream_get_interpolated_latency(struct pa_stream *s, int *negative);
 
 /** Return a pointer to the streams sample specification. \since 0.6 */
 const struct pa_sample_spec* pa_stream_get_sample_spec(struct pa_stream *s);

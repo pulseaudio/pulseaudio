@@ -297,7 +297,8 @@ static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_even
 
 /* Show the current latency */
 static void stream_get_latency_callback(struct pa_stream *s, const struct pa_latency_info *i, void *userdata) {
-    double total;
+    pa_usec_t total;
+    int negative = 0;
     assert(s);
 
     if (!i) {
@@ -306,20 +307,17 @@ static void stream_get_latency_callback(struct pa_stream *s, const struct pa_lat
         return;
     }
 
-    if (mode == PLAYBACK)
-        total = (double) i->sink_usec + i->buffer_usec + i->transport_usec;
-    else
-        total = (double) i->source_usec + i->buffer_usec + i->transport_usec - i->sink_usec;
+    total = pa_stream_get_latency(s, i, &negative);
 
     fprintf(stderr, "Latency: buffer: %0.0f usec; sink: %0.0f usec; source: %0.0f usec; transport: %0.0f usec; total: %0.0f usec; synchronized clocks: %s.\n",
-            (float) i->buffer_usec, (float) i->sink_usec, (float) i->source_usec, (float) i->transport_usec, total,
+            (float) i->buffer_usec, (float) i->sink_usec, (float) i->source_usec, (float) i->transport_usec, (float) total * (negative?-1:1),
             i->synchronized_clocks ? "yes" : "no");
 }
 
 /* Someone requested that the latency is shown */
 static void sigusr1_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got SIGUSR1, requesting latency.\n");
-    pa_operation_unref(pa_stream_get_latency(stream, stream_get_latency_callback, NULL));
+    pa_operation_unref(pa_stream_get_latency_info(stream, stream_get_latency_callback, NULL));
 }
 
 

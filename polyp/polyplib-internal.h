@@ -81,6 +81,7 @@ struct pa_context {
 struct pa_stream {
     int ref;
     struct pa_context *context;
+    struct pa_mainloop_api *mainloop;
     PA_LLIST_FIELDS(struct pa_stream);
 
     char *name;
@@ -95,6 +96,13 @@ struct pa_stream {
     pa_usec_t previous_time;
     enum pa_stream_state state;
 
+    int interpolate;
+    int corked;
+
+    uint32_t ipol_usec;
+    struct timeval ipol_timestamp;
+    struct pa_time_event *ipol_event;
+    
     void (*state_callback)(struct pa_stream*c, void *userdata);
     void *state_userdata;
 
@@ -103,6 +111,7 @@ struct pa_stream {
 
     void (*write_callback)(struct pa_stream *p, size_t length, void *userdata);
     void *write_userdata;
+
 };
 
 struct pa_operation {
@@ -134,5 +143,8 @@ int pa_context_handle_error(struct pa_context *c, uint32_t command, struct pa_ta
 struct pa_operation* pa_context_send_simple_command(struct pa_context *c, uint32_t command, void (*internal_callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata), void (*cb)(), void *userdata);
 
 void pa_stream_set_state(struct pa_stream *s, enum pa_stream_state st);
+
+void pa_stream_trash_ipol(struct pa_stream *s);
+
 
 #endif

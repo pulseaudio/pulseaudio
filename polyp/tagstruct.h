@@ -36,8 +36,9 @@ void pa_tagstruct_free(struct pa_tagstruct*t);
 uint8_t* pa_tagstruct_free_data(struct pa_tagstruct*t, size_t *l);
 
 void pa_tagstruct_puts(struct pa_tagstruct*t, const char *s);
-void pa_tagstruct_putu32(struct pa_tagstruct*t, uint32_t i);
 void pa_tagstruct_putu8(struct pa_tagstruct*t, uint8_t c);
+void pa_tagstruct_putu32(struct pa_tagstruct*t, uint32_t i);
+void pa_tagstruct_putu64(struct pa_tagstruct*t, uint64_t i);
 void pa_tagstruct_put_sample_spec(struct pa_tagstruct *t, const struct pa_sample_spec *ss);
 void pa_tagstruct_put_arbitrary(struct pa_tagstruct*t, const void *p, size_t length);
 void pa_tagstruct_put_boolean(struct pa_tagstruct*t, int b);
@@ -45,8 +46,9 @@ void pa_tagstruct_put_timeval(struct pa_tagstruct*t, const struct timeval *tv);
 void pa_tagstruct_put_usec(struct pa_tagstruct*t, pa_usec_t u);
 
 int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s);
-int pa_tagstruct_getu32(struct pa_tagstruct*t, uint32_t *i);
 int pa_tagstruct_getu8(struct pa_tagstruct*t, uint8_t *c);
+int pa_tagstruct_getu32(struct pa_tagstruct*t, uint32_t *i);
+int pa_tagstruct_getu64(struct pa_tagstruct*t, uint64_t *i);
 int pa_tagstruct_get_sample_spec(struct pa_tagstruct *t, struct pa_sample_spec *ss);
 int pa_tagstruct_get_arbitrary(struct pa_tagstruct *t, const void **p, size_t length);
 int pa_tagstruct_get_boolean(struct pa_tagstruct *t, int *b);
