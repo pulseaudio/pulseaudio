@@ -31,7 +31,7 @@ AM_LDADD=$(PTHREAD_LIBS) -lm
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 
 EXTRA_DIST = default.pa.in daemon.conf.in client.conf.in depmod.py esdcompat.sh.in module-defs.h.m4
-bin_PROGRAMS = polypaudio pacat pactl paplay pax11publish
+bin_PROGRAMS = polypaudio pacat pactl paplay
 bin_SCRIPTS = esdcompat.sh
 noinst_PROGRAMS = \
 		mainloop-test \
@@ -441,10 +441,6 @@ parec_simple_SOURCES = parec-simple.c
 parec_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
 
-pax11publish_SOURCES = pax11publish.c util.c xmalloc.c log.c authkey.c client-conf.c conf-parser.c
-pax11publish_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
-pax11publish_LDADD = $(AM_LDADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
-
 mainloop_test_SOURCES = mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
 mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la libpolyp-@PA_MAJORMINOR@.la
@@ -486,6 +482,13 @@ module_x11_publish_la_SOURCES = module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
 module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB) libx11wrap.la libauthkey.la libauthkey-prop.la
+
+bin_PROGRAMS+= \
+		pax11publish
+
+pax11publish_SOURCES = pax11publish.c util.c xmalloc.c log.c authkey.c client-conf.c conf-parser.c
+pax11publish_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+pax11publish_LDADD = $(AM_LDADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
 
 endif
 
