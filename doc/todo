@@ -11,6 +11,7 @@
 - non-fp mixing
 - non-fp resampling
 - module-tunnel: use latency interpolation
+- polish for starting polypaudio as root/system-wide instance
 
 ** later ***
 - pass meta info for hearing impaired
