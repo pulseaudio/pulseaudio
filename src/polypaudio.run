@@ -8,4 +8,5 @@ load module-simple-protocol-tcp
 load module-native-protocol-unix
 load module-cli-protocol-unix
 
-load module-oss-mmap device="/dev/dsp"
+load module-alsa-sink
+#load module-oss-mmap device="/dev/dsp"

@@ -1,7 +1,10 @@
+- alsa source
+
 - prefix modules/libraries with pa_
 - rename files
 - svn-id and license in every file
 - documentation
+- pkgconfig
 
 -- post 0.1
 - future cancellation
@@ -20,6 +23,7 @@
    subscription
    module load/unload
    kill client/...
+- make alsa modules use mmap
 
 drivers:
 - libao
@@ -29,5 +33,4 @@ drivers:
 - python
 
 modules:
-- alsa?
 - http
