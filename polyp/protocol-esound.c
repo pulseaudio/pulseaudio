@@ -764,7 +764,8 @@ static int do_read(struct connection *c) {
         assert(c->read_data && c->read_data_length < handler->data_length);
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
-            pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
+            if (r != 0)
+                pa_log_warn(__FILE__": read() failed: %s\n", strerror(errno));
             return -1;
         }
 
@@ -784,7 +785,8 @@ static int do_read(struct connection *c) {
         assert(c->scache.memchunk.memblock && c->scache.name && c->scache.memchunk.index < c->scache.memchunk.length);
         
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache.memchunk.memblock->data+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index)) <= 0) {
-            pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
+            if (r!= 0)
+                pa_log_warn(__FILE__": read() failed: %s\n", strerror(errno));
             return -1;
         }
 
@@ -841,7 +843,8 @@ static int do_read(struct connection *c) {
         }
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
-            pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
+            if (r != 0)
+                pa_log(__FILE__": read() failed: %s\n", strerror(errno));
             return -1;
         }
         

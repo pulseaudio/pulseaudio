@@ -55,7 +55,6 @@ static void io_callback(struct pa_mainloop_api*a, struct pa_io_event*e, int fd, 
     }
 }
 
-
 static sw_result resolve_reply(
     sw_discovery discovery,
     sw_discovery_oid oid,
@@ -134,9 +133,16 @@ static sw_result resolve_reply(
                 i.user_name = c;
                 c = NULL;
             } else if (!strcmp(key, "fqdn")) {
+                size_t l;
+                
                 pa_xfree((char*) i.fqdn);
                 i.fqdn = c;
                 c = NULL;
+                
+                l = strlen(a);
+                assert(l+1 <= sizeof(a));
+                strncat(a, " ", sizeof(a)-l-1);
+                strncat(a, i.fqdn, sizeof(a)-l-2);
             } else if (!strcmp(key, "cookie")) {
 
                 if (pa_atou(c, &cookie) < 0)

@@ -46,11 +46,14 @@
 #include "log.h"
 #include "parseaddr.h"
 
+#define CONNECT_TIMEOUT 5
+
 struct pa_socket_client {
     int ref;
     struct pa_mainloop_api *mainloop;
     int fd;
     struct pa_io_event *io_event;
+    struct pa_time_event *timeout_event;
     struct pa_defer_event *defer_event;
     void (*callback)(struct pa_socket_client*c, struct pa_iochannel *io, void *userdata);
     void *userdata;
@@ -72,6 +75,7 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
     c->fd = -1;
     c->io_event = NULL;
     c->defer_event = NULL;
+    c->timeout_event = NULL;
     c->callback = NULL;
     c->userdata = NULL;
     c->local = 0;
@@ -83,6 +87,25 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
 #endif
 
     return c;
+}
+
+static void free_events(struct pa_socket_client *c) {
+    assert(c);
+    
+    if (c->io_event) {
+        c->mainloop->io_free(c->io_event);
+        c->io_event = NULL;
+    }
+    
+    if (c->defer_event) {
+        c->mainloop->defer_free(c->defer_event);
+        c->defer_event = NULL;
+    }
+    
+    if (c->timeout_event) {
+        c->mainloop->time_free(c->timeout_event);
+        c->timeout_event = NULL;
+    }
 }
 
 static void do_call(struct pa_socket_client *c) {
@@ -108,7 +131,7 @@ static void do_call(struct pa_socket_client *c) {
     }
 
     if (error != 0) {
-/*         pa_log(__FILE__": connect(): %s\n", strerror(error)); */
+        pa_log_debug(__FILE__": connect(): %s\n", strerror(error)); 
         errno = error;
         goto finish;
     }
@@ -120,6 +143,8 @@ finish:
     if (!io && c->fd >= 0)
         close(c->fd);
     c->fd = -1;
+
+    free_events(c);
     
     assert(c->callback);
     c->callback(c, io, c->userdata);
@@ -130,16 +155,12 @@ finish:
 static void connect_fixed_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
     struct pa_socket_client *c = userdata;
     assert(m && c && c->defer_event == e);
-    m->defer_free(c->defer_event);
-    c->defer_event = NULL;
     do_call(c);
 }
 
 static void connect_io_cb(struct pa_mainloop_api*m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     struct pa_socket_client *c = userdata;
     assert(m && c && c->io_event == e && fd >= 0);
-    m->io_free(c->io_event);
-    c->io_event = NULL;
     do_call(c);
 }
 
@@ -247,10 +268,10 @@ fail:
 
 void socket_client_free(struct pa_socket_client *c) {
     assert(c && c->mainloop);
-    if (c->io_event)
-        c->mainloop->io_free(c->io_event);
-    if (c->defer_event)
-        c->mainloop->defer_free(c->defer_event);
+
+
+    free_events(c);
+    
     if (c->fd >= 0)
         close(c->fd);
 
@@ -305,7 +326,7 @@ static void asyncns_cb(struct pa_mainloop_api*m, struct pa_io_event *e, int fd, 
     assert(m && c && c->asyncns_io_event == e && fd >= 0);
 
     if (asyncns_wait(c->asyncns, 0) < 0)
-        goto finish;
+        goto fail;
 
     if (!asyncns_isdone(c->asyncns, c->asyncns_query))
         return;
@@ -314,21 +335,52 @@ static void asyncns_cb(struct pa_mainloop_api*m, struct pa_io_event *e, int fd, 
     c->asyncns_query = NULL;
 
     if (ret != 0 || !res)
-        goto finish;
+        goto fail;
     
     if (res->ai_addr)
         sockaddr_prepare(c, res->ai_addr, res->ai_addrlen);
     
     asyncns_freeaddrinfo(res);
 
+    goto finish;
+
+fail:
+    errno == EHOSTUNREACH;
+    do_call(c);
+    
 finish:
     
     m->io_free(c->asyncns_io_event);
     c->asyncns_io_event = NULL;
-    do_call(c);
 }
 
 #endif
+
+static void timeout_cb(struct pa_mainloop_api *m, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
+    struct pa_socket_client *c = userdata;
+    assert(m);
+    assert(e);
+    assert(tv);
+    assert(c);
+
+    if (c->fd >= 0) {
+        close(c->fd);
+        c->fd = -1;
+    }
+
+    errno = ETIMEDOUT;
+    do_call(c);
+}
+
+static void start_timeout(struct pa_socket_client *c) {
+    struct timeval tv;
+    assert(c);
+    assert(!c->timeout_event);
+
+    gettimeofday(&tv, NULL);
+    pa_timeval_add(&tv, CONNECT_TIMEOUT * 1000000);
+    c->timeout_event = c->mainloop->time_new(c->mainloop, &tv, timeout_cb, c);
+}
 
 struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, const char*name, uint16_t default_port) {
     struct pa_socket_client *c = NULL;
@@ -344,6 +396,7 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
     switch (a.type) {
         case PA_PARSED_ADDRESS_UNIX:
             c = pa_socket_client_new_unix(m, a.path_or_host);
+            start_timeout(c);
             break;
 
         case PA_PARSED_ADDRESS_TCP4:  /* Fallthrough */
@@ -371,6 +424,7 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
                 c->asyncns_io_event = m->io_new(m, asyncns_fd(c->asyncns), PA_IO_EVENT_INPUT, asyncns_cb, c);
                 c->asyncns_query = asyncns_getaddrinfo(c->asyncns, a.path_or_host, port, &hints);
                 assert(c->asyncns_query);
+                start_timeout(c);
             }
 #else
             {
@@ -382,8 +436,10 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
                 if (ret < 0 || !res)
                     goto finish;
 
-                if (res->ai_addr)
+                if (res->ai_addr) {
                     c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen);
+                    start_timeout(c);
+                }
                 
                 freeaddrinfo(res);
             }

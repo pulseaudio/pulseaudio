@@ -32,6 +32,8 @@
 #include "xmalloc.h"
 #include "util.h"
 
+#define ENV_LOGLEVEL "POLYP_LOG"
+
 static char *log_ident = NULL;
 static enum pa_log_target log_target = PA_LOG_STDERR;
 static void (*user_log_func)(enum pa_log_level l, const char *s) = NULL;
@@ -64,11 +66,15 @@ void pa_log_set_target(enum pa_log_target t, void (*func)(enum pa_log_level l, c
 }
 
 void pa_log_levelv(enum pa_log_level level, const char *format, va_list ap) {
+    const char *e;
     assert(level < PA_LOG_LEVEL_MAX);
 
+    if ((e = getenv(ENV_LOGLEVEL)))
+        maximal_level = atoi(e);
+    
     if (level > maximal_level)
         return;
-    
+
     switch (log_target) {
         case PA_LOG_STDERR:
             vfprintf(stderr, format, ap);

@@ -508,7 +508,7 @@ static int try_next_connection(struct pa_context *c) {
             goto finish;
         }
         
-/*          pa_log(__FILE__": Trying to connect to %s...\n", u);  */
+        pa_log_debug(__FILE__": Trying to connect to %s...\n", u);  
 
         pa_xfree(c->server);
         c->server = pa_xstrdup(u);
@@ -535,7 +535,7 @@ static void on_connection(struct pa_socket_client *client, struct pa_iochannel*i
     assert(client && c && c->state == PA_CONTEXT_CONNECTING);
 
     pa_context_ref(c);
-    
+
     pa_socket_client_unref(client);
     c->client = NULL;
 
