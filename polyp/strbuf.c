@@ -33,6 +33,7 @@
 
 #include "strbuf.h"
 
+/* Some magic for zero-length arrays */
 #ifdef __STDC_VERSION__
 #if __STDC_VERSION__ >= 199901L
 #ifndef STDC99
@@ -41,6 +42,7 @@
 #endif
 #endif
 
+/* A chunk of the linked list that makes up the string */
 struct chunk {
     struct chunk *next;
     size_t length;
@@ -74,6 +76,8 @@ void pa_strbuf_free(struct pa_strbuf *sb) {
     pa_xfree(sb);
 }
 
+/* Make a C string from the string buffer. The caller has to free
+ * string with pa_xfree(). */
 char *pa_strbuf_tostring(struct pa_strbuf *sb) {
     char *t, *e;
     struct chunk *c;
@@ -83,15 +87,18 @@ char *pa_strbuf_tostring(struct pa_strbuf *sb) {
 
     e = t;
     for (c = sb->head; c; c = c->next) {
+        assert((size_t) (e-t) <= sb->length);
         memcpy(e, c->text, c->length);
         e += c->length;
     }
 
+    /* Trailing NUL */
     *e = 0;
     
     return t;
 }
 
+/* Combination of pa_strbuf_free() and pa_strbuf_tostring() */
 char *pa_strbuf_tostring_free(struct pa_strbuf *sb) {
     char *t;
     assert(sb);
@@ -100,23 +107,15 @@ char *pa_strbuf_tostring_free(struct pa_strbuf *sb) {
     return t;
 }
 
+/* Append a string to the string buffer */
 void pa_strbuf_puts(struct pa_strbuf *sb, const char *t) {
     assert(sb && t);
     pa_strbuf_putsn(sb, t, strlen(t));
-} 
+}
 
-void pa_strbuf_putsn(struct pa_strbuf *sb, const char *t, size_t l) {
-    struct chunk *c;
-    assert(sb && t);
-    
-    if (!l)
-       return;
-   
-    c = pa_xmalloc(sizeof(struct chunk)+l);
-
-    c->next = NULL;
-    c->length = l;
-    memcpy(c->text, t, l);
+/* Append a new chunk to the linked list */
+static void append(struct pa_strbuf *sb, struct chunk *c) {
+    assert(sb && c);
 
     if (sb->tail) {
         assert(sb->head);
@@ -127,19 +126,36 @@ void pa_strbuf_putsn(struct pa_strbuf *sb, const char *t, size_t l) {
     }
 
     sb->tail = c;
-    sb->length += l;
+    sb->length += c->length;
+    c->next = NULL;
 }
 
-/* The following is based on an example from the GNU libc documentation */
+/* Append up to l bytes of a string to the string buffer */
+void pa_strbuf_putsn(struct pa_strbuf *sb, const char *t, size_t l) {
+    struct chunk *c;
+    assert(sb && t);
+    
+    if (!l)
+       return;
+   
+    c = pa_xmalloc(sizeof(struct chunk)+l);
+    c->length = l;
+    memcpy(c->text, t, l);
 
+    append(sb, c);
+}
+
+/* Append a printf() style formatted string to the string buffer. */
+/* The following is based on an example from the GNU libc documentation */
 int pa_strbuf_printf(struct pa_strbuf *sb, const char *format, ...) {
-    int r, size = 100;
+    int size = 100;
     struct chunk *c = NULL;
 
     assert(sb);
     
     for(;;) {
         va_list ap;
+        int r;
 
         c = pa_xrealloc(c, sizeof(struct chunk)+size);
 
@@ -149,19 +165,7 @@ int pa_strbuf_printf(struct pa_strbuf *sb, const char *format, ...) {
         
         if (r > -1 && r < size) {
             c->length = r;
-            c->next = NULL;
-            
-            if (sb->tail) {
-                assert(sb->head);
-                sb->tail->next = c;
-            } else {
-                assert(!sb->head);
-                sb->head = c;
-            }
-            
-            sb->tail = c;
-            sb->length += r;
-            
+            append(sb, c);
             return r;
         }
 

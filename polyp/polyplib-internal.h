@@ -35,6 +35,7 @@
 #include "native-common.h"
 #include "client-conf.h"
 #include "strlist.h"
+#include "mcalign.h"
 
 #define DEFAULT_TLENGTH (44100*2*2/2)  //(10240*8)
 #define DEFAULT_MAXLENGTH ((DEFAULT_TLENGTH*3)/2)
@@ -77,6 +78,8 @@ struct pa_context {
     
     struct pa_strlist *server_list;
 
+    char *server;
+
     struct pa_client_conf *conf;
 };
 
@@ -97,6 +100,7 @@ struct pa_stream {
     uint64_t counter;
     pa_usec_t previous_time;
     enum pa_stream_state state;
+    struct pa_mcalign *mcalign;
 
     int interpolate;
     int corked;

@@ -225,7 +225,7 @@ int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result) 
             volume = pa_volume_multiply(s->volume, info[0].volume);
         
         if (volume != PA_VOLUME_NORM) {
-            pa_memchunk_make_writable(result, s->core->memblock_stat);
+            pa_memchunk_make_writable(result, s->core->memblock_stat, 0);
             pa_volume_memchunk(result, &s->sample_spec, volume);
         }
     } else {

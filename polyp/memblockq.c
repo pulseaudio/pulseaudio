@@ -33,6 +33,7 @@
 #include "memblockq.h"
 #include "xmalloc.h"
 #include "log.h"
+#include "mcalign.h"
 
 struct memblock_list {
     struct memblock_list *next, *prev;

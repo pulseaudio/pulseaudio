@@ -27,6 +27,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <limits.h>
+#include <glob.h>
 
 #include "scache.h"
 #include "sink-input.h"
@@ -38,6 +44,7 @@
 #include "namereg.h"
 #include "sound-file.h"
 #include "util.h"
+#include "log.h"
 
 #define UNLOAD_POLL_TIME 2
 
@@ -290,4 +297,59 @@ void pa_scache_unload_unused(struct pa_core *c) {
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
     }
+}
+
+static void add_file(struct pa_core *c, const char *pathname) {
+    struct stat st;
+    const char *e;
+
+    if (!(e = strrchr(pathname, '/')))
+        e = pathname;
+    else
+        e++;
+    
+    if (stat(pathname, &st) < 0) {
+        pa_log(__FILE__": stat('%s') failed: %s\n", pathname, strerror(errno));
+        return;
+    }
+
+    if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode))
+        pa_scache_add_file_lazy(c, e, pathname, NULL);
+}
+
+int pa_scache_add_directory_lazy(struct pa_core *c, const char *pathname) {
+    DIR *dir;
+    assert(c && pathname);
+
+    /* First try to open this as directory */
+    if (!(dir = opendir(pathname))) {
+        glob_t p;
+        unsigned int i;
+        /* If that fails, try to open it as shell glob */
+
+        if (glob(pathname, GLOB_ERR|GLOB_NOSORT, NULL, &p) < 0) {
+            pa_log(__FILE__": Failed to open directory: %s\n", strerror(errno));
+            return -1;
+        }
+
+        for (i = 0; i < p.gl_pathc; i++)
+            add_file(c, p.gl_pathv[i]);
+        
+        globfree(&p);
+    } else {
+        struct dirent *e;
+
+        while ((e = readdir(dir))) {
+            char p[PATH_MAX];
+
+            if (e->d_name[0] == '.')
+                continue;
+
+            snprintf(p, sizeof(p), "%s/%s", pathname, e->d_name);
+            add_file(c, p);
+        }
+    }
+
+    closedir(dir);
+    return 0;
 }

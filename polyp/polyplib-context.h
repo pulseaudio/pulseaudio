@@ -108,6 +108,9 @@ int pa_context_is_local(struct pa_context *c);
 /** Set a different application name for context on the server. \since 0.5 */
 struct pa_operation* pa_context_set_name(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success,  void *userdata), void *userdata);
 
+/** Return the server name this context is connected to. \since 0.7 */
+const char* pa_context_get_server(struct pa_context *c);
+
 PA_C_DECL_END
 
 #endif

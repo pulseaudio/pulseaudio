@@ -610,19 +610,9 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
         goto fail;
     }
 
-    if (u->server_name[0] == '/')
-        u->client = pa_socket_client_new_unix(c->mainloop, u->server_name);
-    else {
-        size_t len; 
-        struct sockaddr *sa;
-
-        if (!(sa = pa_resolve_server(u->server_name, &len, PA_NATIVE_DEFAULT_PORT))) {
-            pa_log(__FILE__": failed to resolve server '%s'\n", u->server_name);
-            goto fail;
-        }
-
-        u->client = pa_socket_client_new_sockaddr(c->mainloop, sa, len);
-        pa_xfree(sa);
+    if (!(u->client = pa_socket_client_new_string(c->mainloop, u->server_name, PA_NATIVE_DEFAULT_PORT))) {
+        pa_log(__FILE__": failed to connect to server '%s'\n", u->server_name);
+        goto fail;
     }
     
     if (!u->client)

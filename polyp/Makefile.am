@@ -27,6 +27,9 @@ AM_CFLAGS+=-DDLSEARCHPATH=\"$(modlibdir)\"
 AM_CFLAGS+=-DDEFAULT_CONFIG_DIR=\"$(polypconfdir)\"
 AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
 
+# This cool debug trap works on i386/gcc only
+AM_CFLAGS+='-DDEBUG_TRAP=__asm__("int $$3")'
+
 AM_LIBADD=$(PTHREAD_LIBS) -lm
 AM_LDADD=$(PTHREAD_LIBS) -lm
 
@@ -40,7 +43,8 @@ noinst_PROGRAMS = \
 		cpulimit-test \
 		cpulimit-test2 \
 		voltest \
-		strlist-test
+		strlist-test \
+		mcalign-test
 
 polypconf_DATA=default.pa daemon.conf client.conf
 
@@ -196,7 +200,6 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		autoload.c autoload.h \
 		xmalloc.c xmalloc.h \
 		subscribe.h subscribe.c \
-		debug.h \
 		sound-file-stream.c sound-file-stream.h \
 		cpulimit.c cpulimit.h \
 		log.c log.h \
@@ -206,7 +209,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		dumpmodules.c dumpmodules.h \
 		conf-parser.h conf-parser.c \
 		caps.h caps.c \
-		props.h props.c
+		props.h props.c \
+		mcalign.c mcalign.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
@@ -441,7 +445,8 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		client-conf.c client-conf.h \
 		conf-parser.c conf-parser.h \
 		strlist.c strlist.h \
-		strbuf.c strbuf.h
+		strbuf.c strbuf.h \
+		mcalign.c mcalign.h
 
 libpolyp_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
@@ -494,6 +499,10 @@ voltest_LDADD = $(AM_LDADD)
 strlist_test_SOURCES = strlist-test.c strlist.c strlist.h strbuf.c strbuf.h util.c util.h xmalloc.c xmalloc.h log.c log.h
 strlist_test_CFLAGS = $(AM_CFLAGS)
 strlist_test_LDADD = $(AM_LDADD)
+
+mcalign_test_SOURCES = mcalign-test.c util.c util.h xmalloc.c xmalloc.h log.c log.h mcalign.c mcalign.h memchunk.c memchunk.h memblock.c memblock.h
+mcalign_test_CFLAGS = $(AM_CFLAGS)
+mcalign_test_LDADD = $(AM_LDADD)
 
 cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h
 cpulimit_test_CFLAGS = $(AM_CFLAGS)

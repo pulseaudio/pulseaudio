@@ -35,6 +35,7 @@
 #include "log.h"
 #include "caps.h"
 
+/* Drop root rights when called SUID root */
 void pa_drop_root(void) {
     uid_t uid = getuid();
     
@@ -50,6 +51,7 @@ void pa_drop_root(void) {
 
 #ifdef HAVE_SYS_CAPABILITY_H
 
+/* Limit capabilities set to CAPSYS_NICE */
 int pa_limit_caps(void) {
     int r = -1;
     cap_t caps;
@@ -76,6 +78,7 @@ fail:
     return r;
 }
 
+/* Drop all capabilities, effectively becoming a normal user */
 int pa_drop_caps(void) {
     cap_t caps;
     int r = -1;
@@ -100,6 +103,7 @@ fail:
 
 #else
 
+/* NOOPs in case capabilities are not available. */
 int pa_limit_caps(void) {
     return 0;
 }

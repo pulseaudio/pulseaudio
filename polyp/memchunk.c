@@ -31,120 +31,28 @@
 #include "memchunk.h"
 #include "xmalloc.h"
 
-void pa_memchunk_make_writable(struct pa_memchunk *c, struct pa_memblock_stat *s) {
+void pa_memchunk_make_writable(struct pa_memchunk *c, struct pa_memblock_stat *s, size_t min) {
     struct pa_memblock *n;
+    size_t l;
     assert(c && c->memblock && c->memblock->ref >= 1);
 
-    if (c->memblock->ref == 1)
+    if (c->memblock->ref == 1 && !c->memblock->read_only && c->memblock->length >= c->index+min)
         return;
+
+    l = c->length;
+    if (l < min)
+        l = min;
     
-    n = pa_memblock_new(c->length, s);
-    assert(n);
-    memcpy(n->data, (uint8_t*) c->memblock->data+c->index, c->length);
+    n = pa_memblock_new(l, s);
+    memcpy(n->data, (uint8_t*) c->memblock->data + c->index, c->length);
     pa_memblock_unref(c->memblock);
     c->memblock = n;
     c->index = 0;
 }
 
+void pa_memchunk_reset(struct pa_memchunk *c) {
+    assert(c);
 
-struct pa_mcalign {
-    size_t base;
-    struct pa_memchunk chunk;
-    uint8_t *buffer;
-    size_t buffer_fill;
-    struct pa_memblock_stat *memblock_stat;
-};
-
-struct pa_mcalign *pa_mcalign_new(size_t base, struct pa_memblock_stat *s) {
-    struct pa_mcalign *m;
-    assert(base);
-
-    m = pa_xmalloc(sizeof(struct pa_mcalign));
-    m->base = base;
-    m->chunk.memblock = NULL;
-    m->chunk.length = m->chunk.index = 0;
-    m->buffer = NULL;
-    m->buffer_fill = 0;
-    m->memblock_stat = s;
-    return m;
-}
-
-void pa_mcalign_free(struct pa_mcalign *m) {
-    assert(m);
-
-    pa_xfree(m->buffer);
-    
-    if (m->chunk.memblock)
-        pa_memblock_unref(m->chunk.memblock);
-    
-    pa_xfree(m);
-}
-
-void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c) {
-    assert(m && c && !m->chunk.memblock && c->memblock && c->length);
-
-    m->chunk = *c;
-    pa_memblock_ref(m->chunk.memblock);
-}
-
-int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c) {
-    int ret;
-    assert(m && c && m->base > m->buffer_fill);
-
-    if (!m->chunk.memblock)
-        return -1;
-
-    if (m->buffer_fill) {
-        size_t l = m->base - m->buffer_fill;
-        if (l > m->chunk.length)
-            l = m->chunk.length;
-        assert(m->buffer && l);
-
-        memcpy((uint8_t*) m->buffer + m->buffer_fill, (uint8_t*) m->chunk.memblock->data + m->chunk.index, l);
-        m->buffer_fill += l;
-        m->chunk.index += l;
-        m->chunk.length -= l;
-
-        if (m->chunk.length == 0) {
-            m->chunk.length = m->chunk.index = 0;
-            pa_memblock_unref(m->chunk.memblock);
-            m->chunk.memblock = NULL;
-        }
-
-        assert(m->buffer_fill <= m->base);
-        if (m->buffer_fill == m->base) {
-            c->memblock = pa_memblock_new_dynamic(m->buffer, m->base, m->memblock_stat);
-            assert(c->memblock);
-            c->index = 0;
-            c->length = m->base;
-            m->buffer = NULL;
-            m->buffer_fill = 0;
-
-            return 0;
-        }
-
-        return -1;
-    }
-
-    m->buffer_fill = m->chunk.length % m->base;
-
-    if (m->buffer_fill) {
-        assert(!m->buffer);
-        m->buffer = pa_xmalloc(m->base);
-        m->chunk.length -= m->buffer_fill;
-        memcpy(m->buffer, (uint8_t*) m->chunk.memblock->data + m->chunk.index + m->chunk.length, m->buffer_fill);
-    }
-
-    if (m->chunk.length) {
-        *c = m->chunk;
-        pa_memblock_ref(c->memblock);
-        ret = 0;
-    } else
-        ret = -1;
-    
-    m->chunk.length = m->chunk.index = 0;
-    pa_memblock_unref(m->chunk.memblock);
-    m->chunk.memblock = NULL;
-
-    return ret;
+    c->memblock = NULL;
+    c->length = c->index = 0;
 }

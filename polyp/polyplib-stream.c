@@ -61,6 +61,8 @@ struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const st
     s->state = PA_STREAM_DISCONNECTED;
     memset(&s->buffer_attr, 0, sizeof(s->buffer_attr));
 
+    s->mcalign = pa_mcalign_new(pa_frame_size(ss), c->memblock_stat);
+
     s->counter = 0;
     s->previous_time = 0;
 
@@ -83,6 +85,8 @@ static void stream_free(struct pa_stream *s) {
         assert(s->mainloop);
         s->mainloop->time_free(s->ipol_event);
     }
+
+    pa_mcalign_free(s->mcalign);
     
     pa_xfree(s->name);
     pa_xfree(s);
@@ -203,11 +207,13 @@ static void ipol_callback(struct pa_mainloop_api *m, struct pa_time_event *e, co
     struct pa_stream *s = userdata;
 
     pa_stream_ref(s);
-    pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
 
+    if (s->state == PA_STREAM_READY)
+        pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
+    
     gettimeofday(&tv2, NULL);
     tv2.tv_usec += LATENCY_IPOL_INTERVAL_USEC;
-
+    
     m->time_restart(e, &tv2);
     
     pa_stream_unref(s);
@@ -329,7 +335,7 @@ void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void 
     assert(s && s->context && data && length && s->state == PA_STREAM_READY && s->ref >= 1);
 
     if (free_cb) {
-        chunk.memblock = pa_memblock_new_user((void*) data, length, free_cb, s->context->memblock_stat);
+        chunk.memblock = pa_memblock_new_user((void*) data, length, free_cb, 1, s->context->memblock_stat);
         assert(chunk.memblock && chunk.memblock->data);
     } else {
         chunk.memblock = pa_memblock_new(length, s->context->memblock_stat);

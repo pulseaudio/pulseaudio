@@ -34,6 +34,11 @@
 static void stat_add(struct pa_memblock*m, struct pa_memblock_stat *s) {
     assert(m);
 
+    if (!s) {
+        m->stat = NULL;
+        return;
+    }
+
     m->stat = pa_memblock_stat_ref(s);
     s->total++;
     s->allocated++;
@@ -61,17 +66,7 @@ struct pa_memblock *pa_memblock_new(size_t length, struct pa_memblock_stat*s) {
     b->length = length;
     b->data = b+1;
     b->free_cb = NULL;
-    stat_add(b, s);
-    return b;
-}
-
-struct pa_memblock *pa_memblock_new_fixed(void *d, size_t length, struct pa_memblock_stat*s) {
-    struct pa_memblock *b = pa_xmalloc(sizeof(struct pa_memblock));
-    b->type = PA_MEMBLOCK_FIXED;
-    b->ref = 1;
-    b->length = length;
-    b->data = d;
-    b->free_cb = NULL;
+    b->read_only = 0;
     stat_add(b, s);
     return b;
 }
@@ -83,11 +78,24 @@ struct pa_memblock *pa_memblock_new_dynamic(void *d, size_t length, struct pa_me
     b->length = length;
     b->data = d;
     b->free_cb = NULL;
+    b->read_only = 0;
     stat_add(b, s);
     return b;
 }
 
-struct pa_memblock *pa_memblock_new_user(void *d, size_t length, void (*free_cb)(void *p), struct pa_memblock_stat*s) {
+struct pa_memblock *pa_memblock_new_fixed(void *d, size_t length, int read_only, struct pa_memblock_stat*s) {
+    struct pa_memblock *b = pa_xmalloc(sizeof(struct pa_memblock));
+    b->type = PA_MEMBLOCK_FIXED;
+    b->ref = 1;
+    b->length = length;
+    b->data = d;
+    b->free_cb = NULL;
+    b->read_only = read_only;
+    stat_add(b, s);
+    return b;
+}
+
+struct pa_memblock *pa_memblock_new_user(void *d, size_t length, void (*free_cb)(void *p), int read_only, struct pa_memblock_stat*s) {
     struct pa_memblock *b;
     assert(d && length && free_cb);
     b = pa_xmalloc(sizeof(struct pa_memblock));
@@ -96,6 +104,7 @@ struct pa_memblock *pa_memblock_new_user(void *d, size_t length, void (*free_cb)
     b->length = length;
     b->data = d;
     b->free_cb = free_cb;
+    b->read_only = read_only;
     stat_add(b, s);
     return b;
 }

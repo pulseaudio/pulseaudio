@@ -338,16 +338,24 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
             memset(&hints, 0, sizeof(hints));
             hints.ai_family = kind == KIND_TCP4 ? AF_INET : (kind == KIND_TCP6 ? AF_INET6 : AF_UNSPEC);
             
-            if (getaddrinfo(h, NULL, &hints, &res) < 0 || !res)
+            if (getaddrinfo(h, NULL, &hints, &res) < 0 || !res || !res->ai_addr)
                 return NULL;
 
-            if (res->ai_addr->sa_family == AF_INET)
+            if (res->ai_family == AF_INET) {
+                if (res->ai_addrlen != sizeof(struct sockaddr_in))
+                    return NULL;
+                assert(res->ai_addr->sa_family == res->ai_family);
+                
                 ((struct sockaddr_in*) res->ai_addr)->sin_port = htons(port);
-            else if (res->ai_addr->sa_family == AF_INET6)
+            } else if (res->ai_family == AF_INET6) {
+                if (res->ai_addrlen != sizeof(struct sockaddr_in6))
+                    return NULL;
+                assert(res->ai_addr->sa_family == res->ai_family);
+                
                 ((struct sockaddr_in6*) res->ai_addr)->sin6_port = htons(port);
-            else
+            } else
                 return NULL;
-            
+
             c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen);
             freeaddrinfo(res);
             return c;
@@ -360,6 +368,9 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
     
 }
 
+/* Return non-zero when the target sockaddr is considered
+   local. "local" means UNIX socket or TCP socket on localhost. Other
+   local IP addresses are not considered local. */
 int pa_socket_client_is_local(struct pa_socket_client *c) {
     assert(c);
     return c->local;

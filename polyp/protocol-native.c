@@ -1343,7 +1343,7 @@ static void command_get_server_info(struct pa_pdispatch *pd, uint32_t command, u
     pa_tagstruct_puts(reply, PACKAGE_NAME);
     pa_tagstruct_puts(reply, PACKAGE_VERSION);
     pa_tagstruct_puts(reply, pa_get_user_name(txt, sizeof(txt)));
-    pa_tagstruct_puts(reply, pa_get_host_name(txt, sizeof(txt)));
+    pa_tagstruct_puts(reply, pa_get_fqdn(txt, sizeof(txt)));
     pa_tagstruct_put_sample_spec(reply, &c->protocol->core->default_sample_spec);
 
     n = pa_namereg_get_default_sink_name(c->protocol->core);

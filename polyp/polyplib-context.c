@@ -56,8 +56,6 @@
 
 #define AUTOSPAWN_LOCK "autospawn.lock"
 
-
-
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = { pa_command_request },
     [PA_COMMAND_PLAYBACK_STREAM_KILLED] = { pa_command_stream_killed },
@@ -72,7 +70,6 @@ static void unlock_autospawn_lock_file(struct pa_context *c) {
         pa_unlock_lockfile(c->autospawn_lock_fd);
         c->autospawn_lock_fd = -1;
     }
-    
 }
 
 struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *name) {
@@ -106,6 +103,7 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->memblock_stat = pa_memblock_stat_new();
     c->local = -1;
     c->server_list = NULL;
+    c->server = NULL;
     c->autospawn_lock_fd = -1;
     memset(&c->spawn_api, 0, sizeof(c->spawn_api));
     c->do_autospawn = 0;
@@ -155,6 +153,7 @@ static void context_free(struct pa_context *c) {
     pa_strlist_free(c->server_list);
     
     pa_xfree(c->name);
+    pa_xfree(c->server);
     pa_xfree(c);
 }
 
@@ -246,9 +245,20 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
     pa_context_ref(c);
     
     if ((s = pa_dynarray_get(c->record_streams, channel))) {
-        if (s->read_callback) {
-            s->read_callback(s, (uint8_t*) chunk->memblock->data + chunk->index, chunk->length, s->read_userdata);
-            s->counter += chunk->length;
+        pa_mcalign_push(s->mcalign, chunk);
+
+        for (;;) {
+            struct pa_memchunk t;
+
+            if (pa_mcalign_pop(s->mcalign, &t) < 0)
+                break;
+        
+            if (s->read_callback) {
+                s->read_callback(s, (uint8_t*) t.memblock->data + t.index, t.length, s->read_userdata);
+                s->counter += chunk->length;
+            }
+
+            pa_memblock_unref(t.memblock);
         }
     }
 
@@ -496,6 +506,9 @@ static int try_next_connection(struct pa_context *c) {
         }
         
 /*          pa_log(__FILE__": Trying to connect to %s...\n", u);  */
+
+        pa_xfree(c->server);
+        c->server = pa_xstrdup(u);
         
         if (!(c->client = pa_socket_client_new_string(c->mainloop, u, PA_NATIVE_DEFAULT_PORT)))
             continue;
@@ -811,3 +824,15 @@ const char* pa_get_library_version(void) {
     return PACKAGE_VERSION;
 }
 
+const char* pa_context_get_server(struct pa_context *c) {
+
+    if (!c->server)
+        return NULL;
+    
+    if (*c->server == '{') {
+        char *e = strchr(c->server+1, '}');
+        return e ? e+1 : c->server;
+    }
+    
+    return c->server;
+}

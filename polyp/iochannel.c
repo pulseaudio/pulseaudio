@@ -82,6 +82,9 @@ static void callback(struct pa_mainloop_api* m, struct pa_io_event *e, int fd, e
         if (e == io->input_event) {
             io->mainloop->io_free(io->input_event);
             io->input_event = NULL;
+
+            if (io->output_event == e)
+                io->output_event = NULL;
         }
 
         if (e == io->output_event) {

@@ -2,27 +2,22 @@
 
 *** 0.7 ****
 - per-channel volume
-- add sample directory
-- make mcalign merge chunks
 - option to use default fragment size on alsa drivers
 - improve module-oss-mmap latency measurement
-- filter capture data in client through alignment
 - add radio module
-- add sync API
 - make most buffer sizes dependant on the sample type
-
-- X11: support for the X11 synchronization extension
-- pass meta info for hearing impaired
 - limit all resources
-- check getaddrinfo results
+- commenting
 - non-fp mixing
 - non-fp resampling
-- make module-tunnel use pa_socket_client_new_string()
 
 ** later ***
+- pass meta info for hearing impaired
+- add sync API
+- X11: support for the X11 synchronization extension
 - xmlrpc/http
 - dbus
-- slp/rendezvous
+- rendezvous
 - make alsa modules use mmap
 
 ***********

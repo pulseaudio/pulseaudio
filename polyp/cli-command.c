@@ -79,6 +79,7 @@ static int pa_cli_command_scache_play(struct pa_core *c, struct pa_tokenizer *t,
 static int pa_cli_command_scache_remove(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_scache_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
+static int pa_cli_command_scache_load_dir(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_autoload_list(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
 static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose);
@@ -112,7 +113,8 @@ static const struct command commands[] = {
     { "play-sample",             pa_cli_command_scache_play,        "Play a sample from the sample cache (args: name, sink|index)", 3},
     { "remove-sample",           pa_cli_command_scache_remove,      "Remove a sample from the sample cache (args: name)", 2},
     { "load-sample",             pa_cli_command_scache_load,        "Load a sound file into the sample cache (args: name, filename)", 3},
-    { "load-sample-lazy",        pa_cli_command_scache_load,        "Lazy load a sound file into the sample cache (args: name, filename)", 3},
+    { "load-sample-lazy",        pa_cli_command_scache_load,        "Lazily load a sound file into the sample cache (args: name, filename)", 3},
+    { "load-sample-dir-lazy",    pa_cli_command_scache_load_dir,    "Lazily load all files in a directory into the sample cache (args: pathname)", 2},
     { "play-file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
     { "list-autoload",           pa_cli_command_autoload_list,      "List autoload entries", 1},
     { "add-autoload-sink",       pa_cli_command_autoload_add,       "Add autoload entry for a sink (args: sink, module name, arguments)", 4},
@@ -541,6 +543,23 @@ static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t,
 
     if (r < 0)
         pa_strbuf_puts(buf, "Failed to load sound file.\n");
+
+    return 0;
+}
+
+static int pa_cli_command_scache_load_dir(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
+    const char *pname;
+    assert(c && t && buf && fail && verbose);
+
+    if (!(pname = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a path name.\n");
+        return -1;
+    }
+
+    if (pa_scache_add_directory_lazy(c, pname) < 0) {
+        pa_strbuf_puts(buf, "Failed to load directory.\n");
+        return -1;
+    }
 
     return 0;
 }

@@ -24,18 +24,22 @@
 
 #include "memblock.h"
 
+/* A memchunk is a part of a memblock. In contrast to the memblock, a
+ * memchunk is not allocated dynamically or reference counted, instead
+ * it is usually stored on the stack and copied around */
+
 struct pa_memchunk {
     struct pa_memblock *memblock;
     size_t index, length;
 };
 
-void pa_memchunk_make_writable(struct pa_memchunk *c, struct pa_memblock_stat *s);
+/* Make a memchunk writable, i.e. make sure that the caller may have
+ * exclusive access to the memblock and it is not read_only. If needed
+ * the memblock in the structure is replaced by a copy. */
+void pa_memchunk_make_writable(struct pa_memchunk *c, struct pa_memblock_stat *s, size_t min);
 
-struct pa_mcalign;
-
-struct pa_mcalign *pa_mcalign_new(size_t base, struct pa_memblock_stat *s);
-void pa_mcalign_free(struct pa_mcalign *m);
-void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c);
-int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c);
+/* Invalidate a memchunk. This does not free the cotaining memblock,
+ * but sets all members to zero. */
+void pa_memchunk_reset(struct pa_memchunk *c);
 
 #endif

@@ -42,7 +42,6 @@
 #include "scache.h"
 #include "sample-util.h"
 #include "authkey.h"
-#include "debug.h"
 #include "namereg.h"
 #include "xmalloc.h"
 #include "log.h"

@@ -45,6 +45,8 @@ int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spe
 int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename, uint32_t *index);
 int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *filename, uint32_t *index);
 
+int pa_scache_add_directory_lazy(struct pa_core *c, const char *pathname);
+
 int pa_scache_remove_item(struct pa_core *c, const char *name);
 int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume);
 void pa_scache_free(struct pa_core *c);
