@@ -27,7 +27,7 @@ struct mainloop_source {
     
     struct  {
         void (*callback)(struct mainloop_source*s, void *userdata);
-    } prepare;
+    } fixed;
     
     struct  {
         void (*callback)(struct mainloop_source*s, void *userdata);
@@ -47,7 +47,7 @@ struct mainloop_source_list {
 };
 
 struct mainloop {
-    struct mainloop_source_list io_sources, prepare_sources, idle_sources, signal_sources;
+    struct mainloop_source_list io_sources, fixed_sources, idle_sources, signal_sources;
     
     struct pollfd *pollfds;
     int max_pollfds, n_pollfds;
@@ -133,7 +133,7 @@ static void free_sources(struct mainloop_source_list *l, int all) {
 void mainloop_free(struct mainloop* m) {
     assert(m);
     free_sources(&m->io_sources, 1);
-    free_sources(&m->prepare_sources, 1);
+    free_sources(&m->fixed_sources, 1);
     free_sources(&m->idle_sources, 1);
     free_sources(&m->signal_sources, 1);
 
@@ -237,14 +237,15 @@ int mainloop_iterate(struct mainloop *m, int block) {
         return m->quit;
 
     free_sources(&m->io_sources, 0);
-    free_sources(&m->prepare_sources, 0);
+    free_sources(&m->fixed_sources, 0);
     free_sources(&m->idle_sources, 0);
+    free_sources(&m->signal_sources, 0);
 
-    for (s = m->prepare_sources.sources; s; s = s->next) {
-        assert(!s->dead && s->type == MAINLOOP_SOURCE_TYPE_PREPARE);
+    for (s = m->fixed_sources.sources; s; s = s->next) {
+        assert(!s->dead && s->type == MAINLOOP_SOURCE_TYPE_FIXED);
         if (s->enabled) {
-            assert(s->prepare.callback);
-            s->prepare.callback(s, s->userdata);
+            assert(s->fixed.callback);
+            s->fixed.callback(s, s->userdata);
         }   
     }
 
@@ -293,8 +294,8 @@ static struct mainloop_source_list* get_source_list(struct mainloop *m, enum mai
         case MAINLOOP_SOURCE_TYPE_IO:
             l = &m->io_sources;
             break;
-        case MAINLOOP_SOURCE_TYPE_PREPARE:
-            l = &m->prepare_sources;
+        case MAINLOOP_SOURCE_TYPE_FIXED:
+            l = &m->fixed_sources;
             break;
         case MAINLOOP_SOURCE_TYPE_IDLE:
             l = &m->idle_sources;
@@ -351,13 +352,13 @@ struct mainloop_source* mainloop_source_new_io(struct mainloop*m, int fd, enum m
     return s;
 }
 
-struct mainloop_source* mainloop_source_new_prepare(struct mainloop*m, void (*callback)(struct mainloop_source *s, void*userdata), void*userdata) {
+struct mainloop_source* mainloop_source_new_fixed(struct mainloop*m, void (*callback)(struct mainloop_source *s, void*userdata), void*userdata) {
     struct mainloop_source* s;
     assert(m && callback);
 
-    s = source_new(m, MAINLOOP_SOURCE_TYPE_PREPARE);
+    s = source_new(m, MAINLOOP_SOURCE_TYPE_FIXED);
 
-    s->prepare.callback = callback;
+    s->fixed.callback = callback;
     s->userdata = userdata;
     s->enabled = 1;
     return s;

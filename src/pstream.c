@@ -91,7 +91,7 @@ struct pstream *pstream_new(struct mainloop *m, struct iochannel *io) {
     p->dead = 0;
 
     p->mainloop = m;
-    p->mainloop_source = mainloop_source_new_prepare(m, prepare_callback, p);
+    p->mainloop_source = mainloop_source_new_fixed(m, prepare_callback, p);
     mainloop_source_enable(p->mainloop_source, 0);
     
     p->send_queue = queue_new();

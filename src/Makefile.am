@@ -56,3 +56,7 @@ protocol_simple_tcp_la_LIBADD = libprotocol-simple.la libiochannel.la
 sink_pipe_la_SOURCES = sink-pipe.c
 sink_pipe_la_LDFLAGS = -module -avoid-version
 sink_pipe_la_LIBADD = libiochannel.la
+
+sink_oss_la_SOURCES = sink-pipe.c
+sink_oss_la_LDFLAGS = -module -avoid-version
+sink_oss_la_LIBADD = libiochannel.la

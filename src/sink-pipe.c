@@ -13,6 +13,8 @@
 #include "module.h"
 
 struct userdata {
+    char *filename;
+    
     struct sink *sink;
     struct iochannel *io;
     struct core *core;
@@ -73,7 +75,6 @@ static void io_callback(struct iochannel *io, void*userdata) {
 int module_init(struct core *c, struct module*m) {
     struct userdata *u = NULL;
     struct stat st;
-    struct sink *sink;
     char *p;
     int fd = -1;
     const static struct sample_spec ss = {
@@ -100,17 +101,16 @@ int module_init(struct core *c, struct module*m) {
         goto fail;
     }
 
-    if (!(sink = sink_new(c, "fifo", &ss))) {
-        fprintf(stderr, "Failed to allocate new sink!\n");
-        goto fail;
-    }
     
     u = malloc(sizeof(struct userdata));
     assert(u);
 
+    u->filename = strdup(p);
+    assert(u->filename);
     u->core = c;
-    u->sink = sink;
-    sink_set_notify_callback(sink, notify_callback, u);
+    u->sink = sink_new(c, "fifo", &ss);
+    assert(u->sink);
+    sink_set_notify_callback(u->sink, notify_callback, u);
 
     u->io = iochannel_new(c->mainloop, -1, fd);
     assert(u->io);
@@ -119,12 +119,11 @@ int module_init(struct core *c, struct module*m) {
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
 
-    u->mainloop_source = mainloop_source_new_prepare(c->mainloop, prepare_callback, u);
+    u->mainloop_source = mainloop_source_new_fixed(c->mainloop, prepare_callback, u);
     assert(u->mainloop_source);
     mainloop_source_enable(u->mainloop_source, 0);
     
     m->userdata = u;
-
 
     return 0;
 
@@ -132,9 +131,6 @@ fail:
     if (fd >= 0)
         close(fd);
 
-    if (u)
-        free(u);
-    
     return -1;
 }
 
@@ -151,5 +147,10 @@ void module_done(struct core *c, struct module*m) {
     sink_free(u->sink);
     iochannel_free(u->io);
     mainloop_source_free(u->mainloop_source);
+
+    assert(u->filename);
+    unlink(u->filename);
+    free(u->filename);
+    
     free(u);
 }
