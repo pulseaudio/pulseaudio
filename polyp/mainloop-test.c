@@ -3,8 +3,6 @@
 #include <sys/time.h>
 #include <assert.h>
 
-#define GLIB_MAIN_LOOP
-
 #ifdef GLIB_MAIN_LOOP
 #include <glib.h>
 #include "glib-mainloop.h"

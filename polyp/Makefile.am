@@ -25,7 +25,7 @@ polypincludedir=$(includedir)/polyp
 
 EXTRA_DIST = polypaudio.pa depmod.py
 bin_PROGRAMS = polypaudio pacat pactl
-noinst_PROGRAMS = pacat-simple parec-simple glib-test
+noinst_PROGRAMS = pacat-simple parec-simple mainloop-test mainloop-test-glib
 
 polypinclude_HEADERS=polyplib.h \
 		polyplib-def.h \
@@ -287,6 +287,7 @@ libpolyp_mainloop_la_SOURCES = mainloop-api.h mainloop-api.c \
 		mainloop.c mainloop.h \
 		mainloop-signal.c mainloop-signal.h
 libpolyp_mainloop_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_mainloop_la_LIBADD = $(AM_LIBADD) libpolyp.la
 
 libpolyp_error_la_SOURCES = polyplib-error.c polyplib-error.h
 libpolyp_error_la_CFLAGS = $(AM_CFLAGS)
@@ -315,9 +316,13 @@ libpolyp_mainloop_glib_la_SOURCES = glib-mainloop.h glib-mainloop.c
 libpolyp_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
 libpolyp_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB20_LIBS)
 
-glib_test_SOURCES = glib-test.c
-glib_test_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
-glib_test_LDADD = $(AM_LDADD) $(GLIB20_LIBS) libpolyp.la libpolyp-mainloop-glib.la
+mainloop_test_SOURCES = mainloop-test.c
+mainloop_test_CFLAGS = $(AM_CFLAGS)
+mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop.la
+
+mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
+mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
+mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainloop-glib.la
 
 if BUILD_LIBPOLYPCORE
 
