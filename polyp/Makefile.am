@@ -116,7 +116,7 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		modargs.c modargs.h \
 		cmdline.c cmdline.h \
 		cli-command.c cli-command.h \
-		clitext.c clitext.h \
+		cli-text.c cli-text.h \
 		tokenizer.c tokenizer.h \
 		dynarray.c dynarray.h \
 		scache.c scache.h \
@@ -406,7 +406,7 @@ libpolypcore_la_SOURCES = idxset.c idxset.h \
 		sioman.c sioman.h \
 		modargs.c modargs.h \
 		cli-command.c cli-command.h \
-		clitext.c clitext.h \
+		cli-text.c cli-text.h \
 		tokenizer.c tokenizer.h \
 		dynarray.c dynarray.h
 

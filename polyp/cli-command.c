@@ -39,7 +39,7 @@
 #include "tokenizer.h"
 #include "strbuf.h"
 #include "namereg.h"
-#include "clitext.h"
+#include "cli-text.h"
 #include "scache.h"
 #include "sample-util.h"
 #include "sound-file.h"

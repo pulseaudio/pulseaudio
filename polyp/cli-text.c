@@ -26,7 +26,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "clitext.h"
+#include "cli-text.h"
 #include "module.h"
 #include "client.h"
 #include "sink.h"
