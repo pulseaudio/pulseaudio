@@ -43,6 +43,7 @@
 #include <limits.h>
 #include <unistd.h>
 #include <grp.h>
+#include <netdb.h>
 
 #include <samplerate.h>
 
@@ -772,4 +773,23 @@ size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
     }
 
     return j;
+}
+
+char *pa_get_fqdn(char *s, size_t l) {
+    char hn[256];
+    struct addrinfo *a, hints;
+
+    if (!pa_get_host_name(hn, sizeof(hn)))
+        return NULL;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_flags = AI_CANONNAME;
+    
+    if (getaddrinfo(hn, NULL, &hints, &a) < 0 || !a || !a->ai_canonname || !*a->ai_canonname)
+        return pa_strlcpy(s, hn, l);
+
+    pa_strlcpy(s, a->ai_canonname, l);
+    freeaddrinfo(a);
+    return s;
 }

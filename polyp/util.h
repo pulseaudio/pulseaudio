@@ -46,6 +46,7 @@ char *pa_strlcpy(char *b, const char *s, size_t l);
 
 char *pa_get_user_name(char *s, size_t l);
 char *pa_get_host_name(char *s, size_t l);
+char *pa_get_fqdn(char *s, size_t l);
 char *pa_get_binary_name(char *s, size_t l);
 char *pa_get_home_dir(char *s, size_t l);
 

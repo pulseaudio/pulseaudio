@@ -87,7 +87,12 @@ int main(int argc, char *argv[]) {
                 dname = optarg;
                 break;
             case 'h':
-                printf("%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n", pa_path_get_filename(argv[0]));
+                printf("%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n\n"
+                       " -d    Show current Polypaudio data attached to X11 display (default)\n"
+                       " -e    Export local Polypaudio data to X11 display\n"
+                       " -i    Import Polypaudio data from X11 display to local environment variables and cookie file.\n"
+                       " -r    Remove Polypaudio data from X11 display\n",
+                       pa_path_get_filename(argv[0]));
                 ret = 0;
                 goto finish;
             case 'd':
@@ -195,7 +200,11 @@ int main(int argc, char *argv[]) {
                 set_x11_prop(d, "POLYP_SERVER", c->default_server);
             else {
                 char hn[256];
-                pa_get_host_name(hn, sizeof(hn));
+                if (!pa_get_fqdn(hn, sizeof(hn))) {
+                    fprintf(stderr, "Failed to get FQDN.\n");
+                    goto finish;
+                }
+                    
                 set_x11_prop(d, "POLYP_SERVER", hn);
             }
 
