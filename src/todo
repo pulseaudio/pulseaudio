@@ -1,4 +1,6 @@
 - mixing
+- latenzoptimierung
+- optimierung von rebuild_pollfds()
 - resampling
 - native protocol/library
 - oss/mmap

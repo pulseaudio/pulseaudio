@@ -130,7 +130,7 @@ int module_init(struct core *c, struct module*m) {
 
     fprintf(stderr, "module-oss: device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
     
-    frag_size = ((int) 4 << 16) | 10; /* nfrags = 4; frag_size = 2^10 */
+    frag_size = ((int) 12 << 16) | 10; /* nfrags = 12; frag_size = 2^10 */
     if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag_size) < 0) {
         fprintf(stderr, "SNDCTL_DSP_SETFRAGMENT: %s\n", strerror(errno));
         goto fail;
