@@ -11,7 +11,7 @@ Fixes:
 - improve module-oss-mmap latency measurement
 - module-tunnel: improve latency calculation
 - make alsa modules use mmap
-- event more commenting
+- even more commenting
 
 Features:
 - add radio module
@@ -20,6 +20,8 @@ Features:
 - rendezvous
 - polish for starting polypaudio as root/system-wide instance
 - export connection fd
+- lirc plugin
+- /dev/input/event plugin
 
 Long term:
 - pass meta info for hearing impaired
