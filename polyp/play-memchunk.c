@@ -76,7 +76,7 @@ static void sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk*ch
         pa_mainloop_api_once(i->sink->core->mainloop, si_kill, i);
 }
 
-int pa_play_memchunk(struct pa_sink *sink, const char *name, const struct pa_sample_spec *ss, const struct pa_memchunk *chunk, uint32_t volume) {
+int pa_play_memchunk(struct pa_sink *sink, const char *name, const struct pa_sample_spec *ss, const struct pa_memchunk *chunk, pa_volume_t volume) {
     struct pa_sink_input *si;
     struct pa_memchunk *nchunk;
 

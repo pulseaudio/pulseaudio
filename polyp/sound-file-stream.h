@@ -1,5 +1,5 @@
-#ifndef fooplaychunkhfoo
-#define fooplaychunkhfoo
+#ifndef foosoundfilestreamhfoo
+#define foosoundfilestreamhfoo
 
 /* $Id$ */
 
@@ -23,8 +23,7 @@
 ***/
 
 #include "sink.h"
-#include "memchunk.h"
 
-int pa_play_memchunk(struct pa_sink *sink, const char *name, const struct pa_sample_spec *ss, const struct pa_memchunk *chunk, pa_volume_t volume);
+int pa_play_file(struct pa_sink *sink, const char *fname, pa_volume_t volume);
 
 #endif

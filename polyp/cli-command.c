@@ -46,6 +46,7 @@
 #include "play-memchunk.h"
 #include "autoload.h"
 #include "xmalloc.h"
+#include "sound-file-stream.h"
 
 struct command {
     const char *name;
@@ -516,10 +517,7 @@ static int pa_cli_command_scache_load(struct pa_core *c, struct pa_tokenizer *t,
 
 static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {
     const char *fname, *sink_name;
-    struct pa_memchunk chunk;
-    struct pa_sample_spec ss;
     struct pa_sink *sink;
-    int ret;
     assert(c && t && buf && fail && verbose);
 
     if (!(fname = pa_tokenizer_get(t, 1)) || !(sink_name = pa_tokenizer_get(t, 2))) {
@@ -532,14 +530,8 @@ static int pa_cli_command_play_file(struct pa_core *c, struct pa_tokenizer *t, s
         return -1;
     }
 
-    if (pa_sound_file_load(fname, &ss, &chunk, c->memblock_stat) < 0) {
-        pa_strbuf_puts(buf, "Failed to load sound file.\n");
-        return -1;
-    }
 
-    ret = pa_play_memchunk(sink, fname, &ss, &chunk, PA_VOLUME_NORM);
-    pa_memblock_unref(chunk.memblock);
-    return ret;
+    return pa_play_file(sink, fname, PA_VOLUME_NORM);
 }
 
 static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t, struct pa_strbuf *buf, int *fail, int *verbose) {

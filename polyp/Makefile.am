@@ -133,7 +133,8 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		autoload.c autoload.h \
 		xmalloc.c xmalloc.h \
 		subscribe.h subscribe.c \
-		debug.h
+		debug.h \
+		sound-file-stream.c sound-file-stream.h
 
 polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
