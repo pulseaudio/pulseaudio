@@ -57,7 +57,7 @@ struct pa_source_output {
     void *userdata;
 };
 
-struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec);
+struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec, int resample_method);
 void pa_source_output_unref(struct pa_source_output* o);
 struct pa_source_output* pa_source_output_ref(struct pa_source_output *o);
 

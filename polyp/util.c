@@ -41,6 +41,8 @@
 #include <sys/resource.h>
 #include <limits.h>
 
+#include <samplerate.h>
+
 #include "util.h"
 #include "xmalloc.h"
 #include "log.h"
@@ -420,3 +422,19 @@ const char *pa_strsignal(int sig) {
     }
 }
 
+int pa_parse_resample_method(const char *string) {
+    assert(string);
+
+    if (!strcmp(string, "sinc-best-quality"))
+        return SRC_SINC_BEST_QUALITY;
+    else if (!strcmp(string, "sinc-medium-quality"))
+        return SRC_SINC_MEDIUM_QUALITY;
+    else if (!strcmp(string, "sinc-fastest"))
+        return SRC_SINC_FASTEST;
+    else if (!strcmp(string, "zero-order-hold"))
+        return SRC_ZERO_ORDER_HOLD;
+    else if (!strcmp(string, "linear"))
+        return SRC_LINEAR;
+    else
+        return -1;
+}

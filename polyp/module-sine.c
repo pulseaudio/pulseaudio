@@ -139,7 +139,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     calc_sine(u->memblock->data, u->memblock->length, frequency);
 
     snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
-    if (!(u->sink_input = pa_sink_input_new(sink, t, &ss, 0)))
+    if (!(u->sink_input = pa_sink_input_new(sink, t, &ss, 0, -1)))
         goto fail;
 
     u->sink_input->peek = sink_input_peek;

@@ -33,7 +33,7 @@
 #include "subscribe.h"
 #include "log.h"
 
-struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec) {
+struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *name, const struct pa_sample_spec *spec, int resample_method) {
     struct pa_source_output *o;
     struct pa_resampler *resampler = NULL;
     int r;
@@ -44,8 +44,11 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, const char *n
         return NULL;
     }
 
+    if (resample_method < 0)
+        resample_method = s->core->resample_method;
+
     if (!pa_sample_spec_equal(&s->sample_spec, spec))
-        if (!(resampler = pa_resampler_new(&s->sample_spec, spec, s->core->memblock_stat, s->core->resample_method)))
+        if (!(resampler = pa_resampler_new(&s->sample_spec, spec, s->core->memblock_stat, resample_method)))
             return NULL;
     
     o = pa_xmalloc(sizeof(struct pa_source_output));

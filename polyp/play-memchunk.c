@@ -88,7 +88,7 @@ int pa_play_memchunk(struct pa_sink *sink, const char *name, const struct pa_sam
     if (volume <= 0)
         return 0;
 
-    if (!(si = pa_sink_input_new(sink, name, ss, 0)))
+    if (!(si = pa_sink_input_new(sink, name, ss, 0, -1)))
         return -1;
 
     si->volume = volume;

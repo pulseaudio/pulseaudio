@@ -251,7 +251,7 @@ static struct record_stream* record_stream_new(struct connection *c, struct pa_s
     size_t base;
     assert(c && source && ss && name && maxlength);
 
-    if (!(source_output = pa_source_output_new(source, name, ss)))
+    if (!(source_output = pa_source_output_new(source, name, ss, -1)))
         return NULL;
 
     s = pa_xmalloc(sizeof(struct record_stream));
@@ -295,7 +295,7 @@ static struct playback_stream* playback_stream_new(struct connection *c, struct 
     struct pa_sink_input *sink_input;
     assert(c && sink && ss && name && maxlength);
 
-    if (!(sink_input = pa_sink_input_new(sink, name, ss, 0)))
+    if (!(sink_input = pa_sink_input_new(sink, name, ss, 0, -1)))
         return NULL;
     
     s = pa_xmalloc(sizeof(struct playback_stream));

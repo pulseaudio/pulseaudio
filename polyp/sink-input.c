@@ -36,7 +36,7 @@
 
 #define CONVERT_BUFFER_LENGTH 4096
 
-struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec, int variable_rate) {
+struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, const struct pa_sample_spec *spec, int variable_rate, int resample_method) {
     struct pa_sink_input *i;
     struct pa_resampler *resampler = NULL;
     int r;
@@ -47,9 +47,12 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, const char *name, con
         pa_log(__FILE__": Failed to create sink input: too many inputs per sink.\n");
         return NULL;
     }
+
+    if (resample_method < 0)
+        resample_method = s->core->resample_method;
     
     if (variable_rate || !pa_sample_spec_equal(spec, &s->sample_spec))
-        if (!(resampler = pa_resampler_new(spec, &s->sample_spec, s->core->memblock_stat, s->core->resample_method)))
+        if (!(resampler = pa_resampler_new(spec, &s->sample_spec, s->core->memblock_stat, resample_method)))
             return NULL;
     
     i = pa_xmalloc(sizeof(struct pa_sink_input));

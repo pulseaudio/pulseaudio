@@ -305,7 +305,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     c->playback.fragment_size = l/10;
     
     assert(!c->sink_input);
-    c->sink_input = pa_sink_input_new(sink, name, &ss, 0);
+    c->sink_input = pa_sink_input_new(sink, name, &ss, 0, -1);
     assert(c->sink_input);
 
     c->sink_input->owner = c->protocol->module;
@@ -368,7 +368,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     pa_iochannel_socket_set_sndbuf(c->io, l/RECORD_BUFFER_FRAGMENTS*2);
     
     assert(!c->source_output);
-    c->source_output = pa_source_output_new(source, name, &ss);
+    c->source_output = pa_source_output_new(source, name, &ss, -1);
     assert(c->source_output);
     
     c->source_output->owner = c->protocol->module;

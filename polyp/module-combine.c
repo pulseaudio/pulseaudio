@@ -40,7 +40,7 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Combine multiple sinks to one")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slave=<slave sinks> adjust_time=<seconds>")
+PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slave=<slave sinks> adjust_time=<seconds> resample_method=<method>")
 
 #define DEFAULT_SINK_NAME "combined"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
@@ -53,6 +53,7 @@ static const char* const valid_modargs[] = {
     "master",
     "slaves",
     "adjust_time",
+    "resample_method",
     NULL
 };
 
@@ -200,7 +201,7 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
     return pa_sink_input_get_latency(u->master->sink_input);
 }
 
-static struct output *output_new(struct userdata *u, struct pa_sink *sink) {
+static struct output *output_new(struct userdata *u, struct pa_sink *sink, int resample_method) {
     struct output *o = NULL;
     char t[256];
     assert(u && sink && u->sink);
@@ -212,7 +213,7 @@ static struct output *output_new(struct userdata *u, struct pa_sink *sink) {
     o->memblockq = pa_memblockq_new(MEMBLOCKQ_MAXLENGTH, MEMBLOCKQ_MAXLENGTH, pa_frame_size(&u->sink->sample_spec), 0, 0, sink->core->memblock_stat);
 
     snprintf(t, sizeof(t), "%s: output #%u", u->sink->name, u->n_outputs+1);
-    if (!(o->sink_input = pa_sink_input_new(sink, t, &u->sink->sample_spec, 1)))
+    if (!(o->sink_input = pa_sink_input_new(sink, t, &u->sink->sample_spec, 1, resample_method)))
         goto fail;
 
     o->sink_input->get_latency = sink_input_get_latency_cb;
@@ -277,16 +278,24 @@ static void clear_up(struct userdata *u) {
 int pa__init(struct pa_core *c, struct pa_module*m) {
     struct userdata *u;
     struct pa_modargs *ma = NULL;
-    const char *master_name, *slaves;
+    const char *master_name, *slaves, *rm;
     struct pa_sink *master_sink;
     char *n = NULL;
     const char*split_state;
     struct timeval tv;
+    int resample_method = -1;
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments\n");
         goto fail;
+    }
+
+    if ((rm = pa_modargs_get_value(ma, "resample_method", NULL))) {
+        if ((resample_method = pa_parse_resample_method(rm)) < 0) {
+            pa_log(__FILE__": invalid resample method '%s'\n", rm);
+            goto fail;
+        }
     }
     
     u = pa_xmalloc(sizeof(struct userdata));
@@ -325,7 +334,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     u->sink->get_latency = sink_get_latency_cb;
     u->sink->userdata = u;
     
-    if (!(u->master = output_new(u, master_sink))) {
+    if (!(u->master = output_new(u, master_sink, resample_method))) {
         pa_log(__FILE__": failed to create master sink input on sink '%s'.\n", u->sink->name);
         goto fail;
     }
@@ -341,7 +350,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
 
         pa_xfree(n);
 
-        if (!output_new(u, slave_sink)) {
+        if (!output_new(u, slave_sink, resample_method)) {
             pa_log(__FILE__": failed to create slave sink input on sink '%s'.\n", slave_sink->name);
             goto fail;
         }

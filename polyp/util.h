@@ -64,4 +64,6 @@ char *pa_split_spaces(const char *c, const char **state);
 
 const char *pa_strsignal(int sig);
 
+int pa_parse_resample_method(const char *string);
+
 #endif

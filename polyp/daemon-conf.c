@@ -125,25 +125,16 @@ int pa_daemon_conf_set_log_target(struct pa_daemon_conf *c, const char *string) 
         return -1;
 
     return 0;
-
 }
 
 int pa_daemon_conf_set_resample_method(struct pa_daemon_conf *c, const char *string) {
+    int m;
     assert(c && string);
 
-    if (!strcmp(string, "sinc-best-quality"))
-        c->resample_method = SRC_SINC_BEST_QUALITY;
-    else if (!strcmp(string, "sinc-medium-quality"))
-        c->resample_method = SRC_SINC_MEDIUM_QUALITY;
-    else if (!strcmp(string, "sinc-fastest"))
-        c->resample_method = SRC_SINC_FASTEST;
-    else if (!strcmp(string, "zero-order-hold"))
-        c->resample_method = SRC_ZERO_ORDER_HOLD;
-    else if (!strcmp(string, "linear"))
-        c->resample_method = SRC_LINEAR;
-    else
+    if ((m = pa_parse_resample_method(string)) < 0)
         return -1;
 
+    c->resample_method = m;
     return 0;
 }
 
