@@ -25,6 +25,11 @@ struct userdata {
 static const char* const valid_modargs[] = {
     "device",
     "sink_name",
+    "format",
+    "channels",
+    "rate",
+    "fragments",
+    "fragment_size",
     NULL
 };
 
@@ -124,14 +129,39 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     const char *dev;
     struct pollfd *pfds, *ppfd;
     struct pa_sample_spec ss;
-    unsigned i, periods;
+    unsigned i, periods, fragsize;
     snd_pcm_uframes_t buffer_size;
     void ** ios;
+    size_t frame_size;
+    static const snd_pcm_format_t format_trans[] = {
+        [PA_SAMPLE_U8] = SND_PCM_FORMAT_U8,
+        [PA_SAMPLE_ALAW] = SND_PCM_FORMAT_A_LAW,
+        [PA_SAMPLE_ULAW] = SND_PCM_FORMAT_MU_LAW,
+        [PA_SAMPLE_S16LE] = SND_PCM_FORMAT_S16_LE,
+        [PA_SAMPLE_S16BE] = SND_PCM_FORMAT_S16_BE,
+        [PA_SAMPLE_FLOAT32LE] = SND_PCM_FORMAT_FLOAT_LE,
+        [PA_SAMPLE_FLOAT32BE] = SND_PCM_FORMAT_FLOAT_BE,
+    };
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         fprintf(stderr, __FILE__": failed to parse module arguments\n");
         goto fail;
     }
+
+    ss = c->default_sample_spec;
+    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
+        fprintf(stderr, __FILE__": failed to parse sample specification\n");
+        goto fail;
+    }
+    frame_size = pa_sample_size(&ss);
+    
+    periods = 12;
+    fragsize = 1024;
+    if (pa_modargs_get_value_u32(ma, "fragments", &periods) < 0 || pa_modargs_get_value_u32(ma, "fragment_size", &fragsize) < 0) {
+        fprintf(stderr, __FILE__": failed to parse buffer metrics\n");
+        goto fail;
+    }
+    buffer_size = fragsize/frame_size*periods;
     
     u = malloc(sizeof(struct userdata));
     assert(u);
@@ -142,18 +172,11 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         fprintf(stderr, "Error opening PCM device %s\n", dev);
         goto fail;
     }
-    
-    ss.format = PA_SAMPLE_S16LE;
-    ss.rate = 44100;
-    ss.channels = 2;
-
-    periods = 12;
-    buffer_size = periods*256;
 
     snd_pcm_hw_params_alloca(&hwparams);
     if (snd_pcm_hw_params_any(u->pcm_handle, hwparams) < 0 ||
         snd_pcm_hw_params_set_access(u->pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED) < 0 ||
-        snd_pcm_hw_params_set_format(u->pcm_handle, hwparams, SND_PCM_FORMAT_S16_LE) < 0 ||
+        snd_pcm_hw_params_set_format(u->pcm_handle, hwparams, format_trans[ss.format]) < 0 ||
         snd_pcm_hw_params_set_rate_near(u->pcm_handle, hwparams, &ss.rate, NULL) < 0 ||
         snd_pcm_hw_params_set_channels(u->pcm_handle, hwparams, ss.channels) < 0 ||
         snd_pcm_hw_params_set_periods_near(u->pcm_handle, hwparams, &periods, NULL) < 0 || 
@@ -193,7 +216,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
 
     free(pfds);
 
-    u->frame_size = pa_sample_size(&ss);
+    u->frame_size = frame_size;
     u->fragment_size = buffer_size*u->frame_size/periods;
 
     fprintf(stderr, __FILE__": using %u fragments of size %u bytes.\n", periods, u->fragment_size);

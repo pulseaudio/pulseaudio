@@ -17,7 +17,8 @@ size_t pa_sample_size(const struct pa_sample_spec *spec) {
         case PA_SAMPLE_S16BE:
             b = 2;
             break;
-        case PA_SAMPLE_FLOAT32:
+        case PA_SAMPLE_FLOAT32LE:
+        case PA_SAMPLE_FLOAT32BE:
             b = 4;
             break;
         default:
@@ -64,7 +65,8 @@ void pa_sample_snprint(char *s, size_t l, const struct pa_sample_spec *spec) {
         [PA_SAMPLE_ULAW] = "ULAW",
         [PA_SAMPLE_S16LE] = "S16LE",
         [PA_SAMPLE_S16BE] = "S16BE",
-        [PA_SAMPLE_FLOAT32] = "FLOAT32",
+        [PA_SAMPLE_FLOAT32LE] = "FLOAT32LE",
+        [PA_SAMPLE_FLOAT32BE] = "FLOAT32BE",
     };
 
     assert(pa_sample_spec_valid(spec));
