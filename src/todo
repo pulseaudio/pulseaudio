@@ -4,20 +4,21 @@
        more functions
 - esound protocol:
        recording
-- split oss-dma?
+- move more stuff from module-oss[-dma] to liboss-util
 - simple library
 - simple control protocol: 
        kill client/input/output
+- kill() routines in all modules
 - resampling
 - config parser/cmdline
 - record testing
 - mixing/volume
-- kill() routines in all modules
 
 -- 0.1
 - future cancellation
 - client-ui
 - clip cache
+- autoloading/autounloading
 
 drivers:
 - libao

@@ -52,12 +52,13 @@ polypaudio_SOURCES = idxset.c idxset.h \
 		mainloop-api.c mainloop-api.h \
 		util.c util.h \
 		hashset.c hashset.h \
-		namereg.c namereg.h
-
-polypaudio_CFLAGS = $(AM_CFLAGS)
-
+		namereg.c namereg.h \
+		sconv.c sconv.h \
+		resampler.c resampler.h \
+		endianmacros.h
+polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBSAMPLERATE_CFLAGS)
 polypaudio_INCLUDES = $(INCLTDL)
-polypaudio_LDADD = $(LIBLTDL) 
+polypaudio_LDADD = $(LIBLTDL) $(LIBSAMPLERATE_LIBS)
 polypaudio_LDFLAGS=-export-dynamic
 
 libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h

@@ -88,3 +88,4 @@ uint32_t sink_input_get_latency(struct sink_input *i) {
 
     return l;
 }
+

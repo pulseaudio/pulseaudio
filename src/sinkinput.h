@@ -33,4 +33,7 @@ void sink_input_kill(struct sink_input *i);
 uint32_t sink_input_get_latency(struct sink_input *i);
 char *sink_input_list_to_string(struct core *c);
 
+
+
+
 #endif
