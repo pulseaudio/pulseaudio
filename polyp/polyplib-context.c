@@ -524,8 +524,6 @@ static void on_connection(struct pa_socket_client *client, struct pa_iochannel*i
     c->client = NULL;
 
     if (!io) {
-        pa_log("failure: %s\n", strerror(errno));
-        
         /* Try the item in the list */
         if (errno == ECONNREFUSED || errno == ETIMEDOUT || errno == EHOSTUNREACH) {
             try_next_connection(c);
