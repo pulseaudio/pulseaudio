@@ -310,7 +310,7 @@ fail:
 
 static void trivial_run(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out) {
     size_t fz;
-    unsigned  nsamples;
+    unsigned  nframes;
     struct impl_trivial *i;
     assert(r && in && out && r->impl_data);
     i = r->impl_data;
@@ -318,22 +318,22 @@ static void trivial_run(struct pa_resampler *r, const struct pa_memchunk *in, st
     fz = r->i_fz;
     assert(fz == r->o_fz);
 
-    nsamples = in->length/fz;
+    nframes = in->length/fz;
 
     if (r->i_ss.rate == r->o_ss.rate) {
 
         /* In case there's no diefference in sample types, do nothing */
         *out = *in;
-        pa_memblock_ref(in->memblock);
+        pa_memblock_ref(out->memblock);
 
-        i->o_counter += nsamples;
+        i->o_counter += nframes;
     } else {
         /* Do real resampling */
         size_t l;
         unsigned o_index;
         
         /* The length of the new memory block rounded up */
-        l = ((nsamples * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * fz;
+        l = ((nframes * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * fz;
         
         out->index = 0;
         out->memblock = pa_memblock_new(l, r->memblock_stat);
@@ -345,13 +345,13 @@ static void trivial_run(struct pa_resampler *r, const struct pa_memchunk *in, st
             assert(j >= i->i_counter);
             j = j - i->i_counter;
             
-            if (j >= nsamples)
+            if (j >= nframes)
                 break;
             
             assert(o_index*fz < out->memblock->length);
             
             memcpy((uint8_t*) out->memblock->data + fz*o_index,
-                   (uint8_t*) in->memblock->data + fz*j, fz);
+                   (uint8_t*) in->memblock->data + in->index + fz*j, fz);
             
         }
             
@@ -362,7 +362,7 @@ static void trivial_run(struct pa_resampler *r, const struct pa_memchunk *in, st
     while (i->o_counter >= r->o_ss.rate)
         i->o_counter -= r->o_ss.rate;
 
-    i->i_counter += nsamples;
+    i->i_counter += nframes;
     
     while (i->i_counter >= r->i_ss.rate)
         i->i_counter -= r->i_ss.rate;
