@@ -202,7 +202,7 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
 
     pa_socket_tcp_low_delay(fd);
     
-    memset(&sa, sizeof(sa), 0);
+    memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
     sa.sin_addr.s_addr = htonl(address);
@@ -251,7 +251,7 @@ struct pa_socket_server* pa_socket_server_new_ipv6(struct pa_mainloop_api *m, ui
 
     pa_socket_tcp_low_delay(fd);
 
-    memset(&sa, sizeof(sa), 0);
+    memset(&sa, 0, sizeof(sa));
     sa.sin6_family = AF_INET6;
     sa.sin6_port = htons(port);
     memcpy(sa.sin6_addr.s6_addr, address, 16);

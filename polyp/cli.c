@@ -44,6 +44,8 @@
 #include "xmalloc.h"
 #include "log.h"
 
+#define PROMPT ">>> "
+
 struct pa_cli {
     struct pa_core *core;
     struct pa_ioline *line;
@@ -57,9 +59,6 @@ struct pa_cli {
 };
 
 static void line_callback(struct pa_ioline *line, const char *s, void *userdata);
-
-static const char prompt[] = ">>> ";
-
 static void client_kill(struct pa_client *c);
 
 struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io, struct pa_module *m) {
@@ -83,8 +82,7 @@ struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io, struct 
     c->client->owner = m;
     
     pa_ioline_set_callback(c->line, line_callback, c);
-    pa_ioline_puts(c->line, "Welcome to polypaudio! Use \"help\" for usage information.\n");
-    pa_ioline_puts(c->line, prompt);
+    pa_ioline_puts(c->line, "Welcome to polypaudio! Use \"help\" for usage information.\n"PROMPT);
 
     c->fail = c->kill_requested = c->defer_kill = 0;
     c->verbose = 1;
@@ -139,11 +137,11 @@ static void line_callback(struct pa_ioline *line, const char *s, void *userdata)
         if (c->eof_callback)
             c->eof_callback(c, c->userdata);
     } else    
-        pa_ioline_puts(line, prompt);
+        pa_ioline_puts(line, PROMPT);
 }
 
 void pa_cli_set_eof_callback(struct pa_cli *c, void (*cb)(struct pa_cli*c, void *userdata), void *userdata) {
-    assert(c && cb);
+    assert(c);
     c->eof_callback = cb;
     c->userdata = userdata;
 }

@@ -92,8 +92,11 @@ void pa_ioline_puts(struct pa_ioline *l, const char *c) {
 
     if (!len)
         return;
-    
-    if (len > l->wbuf_length - l->wbuf_valid_length) {
+
+    assert(l->wbuf_length >= l->wbuf_valid_length);
+
+    /* In case the allocated buffer is too small, enlarge it. */
+    if (l->wbuf_valid_length + len > l->wbuf_length) {
         size_t n = l->wbuf_valid_length+len;
         char *new = pa_xmalloc(n);
         if (l->wbuf) {
@@ -103,27 +106,64 @@ void pa_ioline_puts(struct pa_ioline *l, const char *c) {
         l->wbuf = new;
         l->wbuf_length = n;
         l->wbuf_index = 0;
-    } else if (len > l->wbuf_length - l->wbuf_valid_length - l->wbuf_index) {
+    } else if (l->wbuf_index + l->wbuf_valid_length + len > l->wbuf_length) {
+
+        /* In case the allocated buffer fits, but the current index is too far from the start, move it to the front. */
         memmove(l->wbuf, l->wbuf+l->wbuf_index, l->wbuf_valid_length);
         l->wbuf_index = 0;
     }
 
-    memcpy(l->wbuf+l->wbuf_index+l->wbuf_valid_length, c, len);
+    assert(l->wbuf_index + l->wbuf_valid_length + len <= l->wbuf_length);
+
+    /* Append the new string */
+    memcpy(l->wbuf + l->wbuf_index + l->wbuf_valid_length, c, len);
     l->wbuf_valid_length += len;
 
     do_write(l);
 }
 
 void pa_ioline_set_callback(struct pa_ioline*l, void (*callback)(struct pa_ioline*io, const char *s, void *userdata), void *userdata) {
-    assert(l && callback);
+    assert(l);
     l->callback = callback;
     l->userdata = userdata;
 }
 
+static void scan_for_lines(struct pa_ioline *l, size_t skip) {
+    assert(l && skip < l->rbuf_valid_length);
+
+    while (!l->dead && l->rbuf_valid_length > skip) {
+        char *e, *p;
+        size_t m;
+        
+        if (!(e = memchr(l->rbuf + l->rbuf_index + skip, '\n', l->rbuf_valid_length - skip)))
+            break;
+
+        *e = 0;
+    
+        p = l->rbuf + l->rbuf_index;
+        m = strlen(p);
+
+        l->rbuf_index += m+1;
+        l->rbuf_valid_length -= m+1;
+
+        /* A shortcut for the next time */
+        if (l->rbuf_valid_length == 0)
+            l->rbuf_index = 0;
+
+        if (l->callback)
+            l->callback(l, p, l->userdata);
+
+        skip = 0;
+    }
+
+    /* If the buffer became too large and still no newline was found, drop it. */
+    if (l->rbuf_valid_length >= BUFFER_LIMIT)
+        l->rbuf_index = l->rbuf_valid_length = 0;
+}
+
 static int do_read(struct pa_ioline *l) {
     ssize_t r;
-    size_t m, len;
-    char *e;
+    size_t len;
     assert(l);
 
     if (!pa_iochannel_is_readable(l->io))
@@ -131,6 +171,7 @@ static int do_read(struct pa_ioline *l) {
 
     len = l->rbuf_length - l->rbuf_index - l->rbuf_valid_length;
 
+    /* Check if we have to enlarge the read buffer */
     if (len < READ_SIZE) {
         size_t n = l->rbuf_valid_length+READ_SIZE;
 
@@ -138,9 +179,11 @@ static int do_read(struct pa_ioline *l) {
             n = BUFFER_LIMIT;
         
         if (l->rbuf_length >= n) {
+            /* The current buffer is large enough, let's just move the data to the front */
             if (l->rbuf_valid_length)
                 memmove(l->rbuf, l->rbuf+l->rbuf_index, l->rbuf_valid_length);
         } else {
+            /* Enlarge the buffer */
             char *new = pa_xmalloc(n);
             if (l->rbuf_valid_length)
                 memcpy(new, l->rbuf+l->rbuf_index, l->rbuf_valid_length);
@@ -153,37 +196,22 @@ static int do_read(struct pa_ioline *l) {
     }
 
     len = l->rbuf_length - l->rbuf_index - l->rbuf_valid_length;
-    
+
+    assert(len >= READ_SIZE);
+
+    /* Read some data */
     if ((r = pa_iochannel_read(l->io, l->rbuf+l->rbuf_index+l->rbuf_valid_length, len)) <= 0)
         return -1;
 
-    e = memchr(l->rbuf+l->rbuf_index+l->rbuf_valid_length, '\n', r);
     l->rbuf_valid_length += r;
 
-    if (!e &&l->rbuf_valid_length >= BUFFER_LIMIT)
-        e = l->rbuf+BUFFER_LIMIT-1;
-
-    if (e) {
-        char *p;
-        
-        *e = 0;
-    
-        p = l->rbuf+l->rbuf_index;
-        m = strlen(p);
-
-        l->rbuf_index += m+1;
-        l->rbuf_valid_length -= m+1;
-
-        if (l->rbuf_valid_length == 0)
-            l->rbuf_index = 0;
-
-        if (l->callback)
-            l->callback(l, p, l->userdata);
-    }
+    /* Look if a line has been terminated in the newly read data */
+    scan_for_lines(l, l->rbuf_valid_length - r);
 
     return 0;
 }
 
+/* Try to flush the buffer */
 static int do_write(struct pa_ioline *l) {
     ssize_t r;
     assert(l);
@@ -194,27 +222,26 @@ static int do_write(struct pa_ioline *l) {
     if ((r = pa_iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) < 0)
         return -1;
 
+    l->wbuf_index += r;
     l->wbuf_valid_length -= r;
+
+    /* A shortcut for the next time */
     if (l->wbuf_valid_length == 0)
         l->wbuf_index = 0;
 
     return 0;
 }
 
+/* Try to flush read/write data */
 static void io_callback(struct pa_iochannel*io, void *userdata) {
     struct pa_ioline *l = userdata;
     assert(io && l);
     
-    if (!l->dead && do_write(l) < 0)
-        goto fail;
-    
-    if (!l->dead && do_read(l) < 0)
-        goto fail;
-    
-    return;
-
-fail:
-    l->dead = 1;
-    if (l->callback)
-        l->callback(l, NULL, l->userdata);
+    if ((!l->dead && do_write(l) < 0) ||
+        (!l->dead && do_read(l) < 0)) {
+        
+        l->dead = 1;
+        if (l->callback)
+            l->callback(l, NULL, l->userdata);
+    }
 }

@@ -33,25 +33,13 @@
 
 #include "strbuf.h"
 
-/* Some magic for zero-length arrays */
-#ifdef __STDC_VERSION__
-#if __STDC_VERSION__ >= 199901L
-#ifndef STDC99
-#define STDC99
-#endif
-#endif
-#endif
-
 /* A chunk of the linked list that makes up the string */
 struct chunk {
     struct chunk *next;
     size_t length;
-#ifdef STDC99
-    char text[];
-#else
-    char text[0];
-#endif
 };
+
+#define CHUNK_TO_TEXT(c) ((char*) (c) + sizeof(struct chunk))
 
 struct pa_strbuf {
     size_t length;
@@ -83,17 +71,18 @@ char *pa_strbuf_tostring(struct pa_strbuf *sb) {
     struct chunk *c;
     assert(sb);
 
-    t = pa_xmalloc(sb->length+1);
+    e = t = pa_xmalloc(sb->length+1);
 
-    e = t;
     for (c = sb->head; c; c = c->next) {
         assert((size_t) (e-t) <= sb->length);
-        memcpy(e, c->text, c->length);
+        memcpy(e, CHUNK_TO_TEXT(c), c->length);
         e += c->length;
     }
 
     /* Trailing NUL */
     *e = 0;
+
+    assert(e == t+sb->length);
     
     return t;
 }
@@ -140,7 +129,7 @@ void pa_strbuf_putsn(struct pa_strbuf *sb, const char *t, size_t l) {
    
     c = pa_xmalloc(sizeof(struct chunk)+l);
     c->length = l;
-    memcpy(c->text, t, l);
+    memcpy(CHUNK_TO_TEXT(c), t, l);
 
     append(sb, c);
 }
@@ -160,7 +149,7 @@ int pa_strbuf_printf(struct pa_strbuf *sb, const char *format, ...) {
         c = pa_xrealloc(c, sizeof(struct chunk)+size);
 
         va_start(ap, format);
-        r = vsnprintf(c->text, size, format, ap);
+        r = vsnprintf(CHUNK_TO_TEXT(c), size, format, ap);
         va_end(ap);
         
         if (r > -1 && r < size) {
