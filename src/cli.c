@@ -13,6 +13,7 @@
 #include "sourceoutput.h"
 #include "tokenizer.h"
 #include "strbuf.h"
+#include "namereg.h"
 
 struct cli {
     struct core *core;
@@ -45,20 +46,24 @@ static void cli_command_stat(struct cli *c, struct tokenizer *t);
 static void cli_command_info(struct cli *c, struct tokenizer *t);
 static void cli_command_load(struct cli *c, struct tokenizer *t);
 static void cli_command_unload(struct cli *c, struct tokenizer *t);
+static void cli_command_sink_volume(struct cli *c, struct tokenizer *t);
+static void cli_command_sink_input_volume(struct cli *c, struct tokenizer *t);
 
 static const struct command commands[] = {
-    { "exit",                    cli_command_exit,           "Terminate the daemon",         1 },
-    { "help",                    cli_command_help,           "Show this help",               1 },
-    { "modules",                 cli_command_modules,        "List loaded modules",          1 },
-    { "sinks",                   cli_command_sinks,          "List loaded sinks",            1 },
-    { "sources",                 cli_command_sources,        "List loaded sources",          1 },
-    { "clients",                 cli_command_clients,        "List loaded clients",          1 },
-    { "sink_inputs",             cli_command_sink_inputs,    "List sink inputs",             1 },
-    { "source_outputs",          cli_command_source_outputs, "List source outputs",          1 },
-    { "stat",                    cli_command_stat,           "Show memory block statistics", 1 },
-    { "info",                    cli_command_info,           "Show comprehensive status",    1 },
-    { "load",                    cli_command_load,           "Load a module (given by name and arguments)", 3 },
-    { "unload",                  cli_command_unload,         "Unload a module (specified by index)",        2 },
+    { "exit",                    cli_command_exit,              "Terminate the daemon",         1 },
+    { "help",                    cli_command_help,              "Show this help",               1 },
+    { "modules",                 cli_command_modules,           "List loaded modules",          1 },
+    { "sinks",                   cli_command_sinks,             "List loaded sinks",            1 },
+    { "sources",                 cli_command_sources,           "List loaded sources",          1 },
+    { "clients",                 cli_command_clients,           "List loaded clients",          1 },
+    { "sink_inputs",             cli_command_sink_inputs,       "List sink inputs",             1 },
+    { "source_outputs",          cli_command_source_outputs,    "List source outputs",          1 },
+    { "stat",                    cli_command_stat,              "Show memory block statistics", 1 },
+    { "info",                    cli_command_info,              "Show comprehensive status",    1 },
+    { "load",                    cli_command_load,              "Load a module (args: name, arguments)",                     3},
+    { "unload",                  cli_command_unload,            "Unload a module (args: index)",                             2},
+    { "sink_volume",             cli_command_sink_volume,       "Set the volume of a sink (args: sink, volume)",             3},
+    { "sink_input_volume",       cli_command_sink_input_volume, "Set the volume of a sink input (args: sink input, volume)", 3},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -275,5 +280,73 @@ static void cli_command_unload(struct cli *c, struct tokenizer *t) {
     }
 
     module_unload_request(c->core, m);
+}
+
+
+static void cli_command_sink_volume(struct cli *c, struct tokenizer *t) {
+    const char *n, *v;
+    char *x = NULL;
+    struct sink *sink;
+    long volume;
+
+    if (!(n = tokenizer_get(t, 1))) {
+        ioline_puts(c->line, "You need to specify a sink either by its name or its index.\n");
+        return;
+    }
+
+    if (!(v = tokenizer_get(t, 2))) {
+        ioline_puts(c->line, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        return;
+    }
+
+    volume = strtol(v, &x, 0);
+    if (!x || *x != 0 || volume < 0) {
+        ioline_puts(c->line, "Failed to parse volume.\n");
+        return;
+    }
+
+    if (!(sink = namereg_get(c->core, n, NAMEREG_SINK))) {
+        ioline_puts(c->line, "No sink found by this name or index.\n");
+        return;
+    }
+
+    sink->volume = (uint32_t) volume;
+}
+
+static void cli_command_sink_input_volume(struct cli *c, struct tokenizer *t) {
+    const char *n, *v;
+    char *x = NULL;
+    struct sink_input *si;
+    long index, volume;
+
+    if (!(n = tokenizer_get(t, 1))) {
+        ioline_puts(c->line, "You need to specify a sink input by its index.\n");
+        return;
+    }
+
+    index = strtol(n, &x, 0);
+    if (!x || *x != 0 || index < 0) {
+        ioline_puts(c->line, "Failed to parse index.\n");
+        return;
+    }
+
+    if (!(v = tokenizer_get(t, 2))) {
+        ioline_puts(c->line, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        return;
+    }
+
+    x = NULL;
+    volume = strtol(v, &x, 0);
+    if (!x || *x != 0 || volume < 0) {
+        ioline_puts(c->line, "Failed to parse volume.\n");
+        return;
+    }
+
+    if (!(si = idxset_get_by_index(c->core->sink_inputs, (uint32_t) index))) {
+        ioline_puts(c->line, "No sink input found with this index.\n");
+        return;
+    }
+
+    si->volume = (uint32_t) volume;
 }
 

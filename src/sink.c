@@ -39,7 +39,7 @@ struct sink* sink_new(struct core *core, const char *name, int fail, const struc
     assert(s->monitor_source);
     free(n);
     
-    s->volume = 0xFF;
+    s->volume = VOLUME_NORM;
 
     s->notify = NULL;
     s->get_latency = NULL;
@@ -132,6 +132,7 @@ int sink_render(struct sink*s, size_t length, struct memchunk *result) {
         return -1;
 
     if (n == 1) {
+        uint32_t volume = VOLUME_NORM;
         struct sink_info *i = info[0].userdata;
         assert(i);
         *result = info[0].chunk;
@@ -141,6 +142,14 @@ int sink_render(struct sink*s, size_t length, struct memchunk *result) {
             result->length = length;
 
         l = result->length;
+
+        if (s->volume != VOLUME_NORM || info[0].volume != VOLUME_NORM)
+            volume = volume_multiply(s->volume, info[0].volume);
+        
+        if (volume != VOLUME_NORM) {
+            memchunk_make_writable(result);
+            volume_memchunk(result, &s->sample_spec, volume);
+        }
     } else {
         result->memblock = memblock_new(length);
         assert(result->memblock);
@@ -164,6 +173,7 @@ int sink_render_into(struct sink*s, struct memchunk *target) {
     unsigned n;
     size_t l;
     assert(s && target && target->length && target->memblock && target->memblock->data);
+    memblock_assert_exclusive(target->memblock);
     
     n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
 
@@ -171,6 +181,7 @@ int sink_render_into(struct sink*s, struct memchunk *target) {
         return -1;
 
     if (n == 1) {
+        uint32_t volume = VOLUME_NORM;
         struct sink_info *i = info[0].userdata;
         assert(i);
 
@@ -180,6 +191,12 @@ int sink_render_into(struct sink*s, struct memchunk *target) {
         
         memcpy(target->memblock->data+target->index, info[0].chunk.memblock->data + info[0].chunk.index, l);
         target->length = l;
+
+        if (s->volume != VOLUME_NORM || info[0].volume != VOLUME_NORM)
+            volume = volume_multiply(s->volume, info[0].volume);
+
+        if (volume != VOLUME_NORM)
+            volume_memchunk(target, &s->sample_spec, volume);
     } else
         target->length = l = mix_chunks(info, n, target->memblock->data+target->index, target->length, &s->sample_spec, s->volume);
     
@@ -257,8 +274,9 @@ char *sink_list_to_string(struct core *c) {
     
     for (sink = idxset_first(c->sinks, &index); sink; sink = idxset_next(c->sinks, &index)) {
         assert(sink->monitor_source);
-        strbuf_printf(s, "  %c index: %u, name: <%s>, volume: <0x%02x>, latency: <%u usec>, monitor_source: <%u>\n", sink == default_sink ? '*' : ' ', sink->index, sink->name, (unsigned) sink->volume, sink_get_latency(sink), sink->monitor_source->index);
+        strbuf_printf(s, "  %c index: %u, name: <%s>, volume: <0x%04x>, latency: <%u usec>, monitor_source: <%u>\n", sink == default_sink ? '*' : ' ', sink->index, sink->name, (unsigned) sink->volume, sink_get_latency(sink), sink->monitor_source->index);
     }
     
     return strbuf_tostring_free(s);
 }
+

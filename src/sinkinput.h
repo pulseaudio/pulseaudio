@@ -13,7 +13,7 @@ struct sink_input {
     char *name;
     struct sink *sink;
     struct pa_sample_spec sample_spec;
-    uint8_t volume;
+    uint32_t volume;
     
     int (*peek) (struct sink_input *i, struct memchunk *chunk);
     void (*drop) (struct sink_input *i, size_t length);

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
@@ -46,7 +47,7 @@ void silence_memory(void *p, size_t length, struct pa_sample_spec *spec) {
     memset(p, c, length);
 }
 
-size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct pa_sample_spec *spec, uint8_t volume) {
+size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, size_t length, struct pa_sample_spec *spec, uint32_t volume) {
     unsigned c, d;
     assert(channels && data && length && spec);
     assert(spec->format == PA_SAMPLE_S16NE);
@@ -59,27 +60,27 @@ size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, si
         
         for (c = 0; c < nchannels; c++) {
             int32_t v;
-            uint8_t volume = channels[c].volume;
+            uint32_t volume = channels[c].volume;
             
             if (d >= channels[c].chunk.length)
                 return d;
 
-            if (volume == 0)
+            if (volume == VOLUME_MUTE)
                 v = 0;
             else {
                 v = *((int16_t*) (channels[c].chunk.memblock->data + channels[c].chunk.index + d));
 
-                if (volume != 0xFF)
-                    v = v*volume/0xFF;
+                if (volume != VOLUME_NORM)
+                    v = (int32_t) ((float)v*volume/VOLUME_NORM);
             }
 
             sum += v;
         }
 
-        if (volume == 0)
+        if (volume == VOLUME_MUTE)
             sum = 0;
-        else if (volume != 0xFF)
-            sum = sum*volume/0xFF;
+        else if (volume != VOLUME_NORM)
+            sum = (int32_t) ((float) sum*volume/VOLUME_NORM);
         
         if (sum < -0x8000) sum = -0x8000;
         if (sum > 0x7FFF) sum = 0x7FFF;
@@ -87,4 +88,41 @@ size_t mix_chunks(struct mix_info channels[], unsigned nchannels, void *data, si
         *((int16_t*) data) = sum;
         data += sizeof(int16_t);
     }
+}
+
+
+void volume_memchunk(struct memchunk*c, struct pa_sample_spec *spec, uint32_t volume) {
+    int16_t *d;
+    size_t n;
+    assert(c && spec && (c->length % pa_sample_size(spec) == 0));
+    assert(spec->format == PA_SAMPLE_S16NE);
+    memblock_assert_exclusive(c->memblock);
+
+    if (volume == VOLUME_NORM)
+        return;
+
+    if (volume == VOLUME_MUTE) {
+        silence_memchunk(c, spec);
+        return;
+    }
+
+    for (d = (c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+        int32_t t = (int32_t)(*d);
+
+        t *= volume;
+        t /= VOLUME_NORM;
+
+        if (t < -0x8000) t = -0x8000;
+        if (t > 0x7FFF) t = 0x7FFF;
+        
+        *d = (int16_t) t;
+    }
+}
+
+uint32_t volume_multiply(uint32_t a, uint32_t b) {
+    uint64_t p = a;
+    p *= b;
+    p /= VOLUME_NORM;
+
+    return (uint32_t) p;
 }

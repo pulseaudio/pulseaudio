@@ -20,7 +20,7 @@ struct sink {
 
     struct source *monitor_source;
 
-    uint8_t volume;
+    uint32_t volume;
 
     void (*notify)(struct sink*sink);
     uint32_t (*get_latency)(struct sink *s);

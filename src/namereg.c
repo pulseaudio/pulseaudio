@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <string.h>
@@ -87,11 +88,24 @@ void namereg_unregister(struct core *c, const char *name) {
 
 void* namereg_get(struct core *c, const char *name, enum namereg_type type) {
     struct namereg_entry *e;
+    uint32_t index;
+    char *x = NULL;
+    void *d = NULL;
     assert(c && name);
 
-    if (!(e = hashset_get(c->namereg, name)))
+    if ((e = hashset_get(c->namereg, name)))
         if (e->type == e->type)
             return e->data;
 
-    return NULL;
+    index = (uint32_t) strtol(name, &x, 0);
+
+    if (!x || *x != 0)
+        return NULL;
+
+    if (type == NAMEREG_SINK)
+        d = idxset_get_by_index(c->sinks, index);
+    else if (type == NAMEREG_SOURCE)
+        d = idxset_get_by_index(c->sources, index);
+
+    return d;
 }

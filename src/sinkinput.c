@@ -4,6 +4,7 @@
 
 #include "sinkinput.h"
 #include "strbuf.h"
+#include "sample-util.h"
 
 struct sink_input* sink_input_new(struct sink *s, struct pa_sample_spec *spec, const char *name) {
     struct sink_input *i;
@@ -22,7 +23,7 @@ struct sink_input* sink_input_new(struct sink *s, struct pa_sample_spec *spec, c
     i->get_latency = NULL;
     i->userdata = NULL;
 
-    i->volume = 0xFF;
+    i->volume = VOLUME_NORM;
 
     assert(s->core);
     r = idxset_put(s->core->sink_inputs, i, &i->index);
@@ -64,7 +65,7 @@ char *sink_input_list_to_string(struct core *c) {
 
     for (i = idxset_first(c->sink_inputs, &index); i; i = idxset_next(c->sink_inputs, &index)) {
         assert(i->sink);
-        strbuf_printf(s, "    index: %u, name: <%s>, sink: <%u>; volume: <0x%02x>, latency: <%u usec>\n",
+        strbuf_printf(s, "    index: %u, name: <%s>, sink: <%u>; volume: <0x%04x>, latency: <%u usec>\n",
                       i->index,
                       i->name,
                       i->sink->index,

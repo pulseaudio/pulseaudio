@@ -29,6 +29,8 @@ void memblock_unref_fixed(struct memblock*b);
 
 #define memblock_assert_exclusive(b) assert((b)->ref == 1)
 
+void memchunk_make_writable(struct memchunk *c);
+
 extern unsigned memblock_count, memblock_total;
 
 #endif
