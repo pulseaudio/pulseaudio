@@ -26,15 +26,20 @@
 
 struct pa_autoload_entry {
     struct pa_core *core;
+    uint32_t index;
     char *name;
     enum pa_namereg_type type;
     int in_action;
     char *module, *argument;   
 };
 
-int pa_autoload_add(struct pa_core *c, const char*name, enum pa_namereg_type type, const char*module, const char *argument);
+int pa_autoload_add(struct pa_core *c, const char*name, enum pa_namereg_type type, const char*module, const char *argument, uint32_t *index);
 void pa_autoload_free(struct pa_core *c);
-int pa_autoload_remove(struct pa_core *c, const char*name, enum pa_namereg_type type);
+int pa_autoload_remove_by_name(struct pa_core *c, const char*name, enum pa_namereg_type type);
+int pa_autoload_remove_by_index(struct pa_core *c, uint32_t index);
 void pa_autoload_request(struct pa_core *c, const char *name, enum pa_namereg_type type);
+
+const struct pa_autoload_entry* pa_autoload_get_by_name(struct pa_core *c, const char*name, enum pa_namereg_type type);
+const struct pa_autoload_entry* pa_autoload_get_by_index(struct pa_core *c, uint32_t index);
 
 #endif

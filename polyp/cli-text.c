@@ -243,7 +243,7 @@ char *pa_scache_list_to_string(struct pa_core *c) {
             }
             
             pa_strbuf_printf(
-                s, "    name: <%s>\n\tindex: <%i>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n\tvolume: <0x%04x>\n\tlazy: %s\n\tfilename: %s\n",
+                s, "    name: <%s>\n\tindex: <%u>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n\tvolume: <0x%04x>\n\tlazy: %s\n\tfilename: %s\n",
                 e->name,
                 e->index,
                 ss,
@@ -273,9 +273,10 @@ char *pa_autoload_list_to_string(struct pa_core *c) {
 
         while ((e = pa_hashmap_iterate(c->autoload_hashmap, &state))) {
             pa_strbuf_printf(
-                s, "    name: <%s>\n\ttype: <%s>\n\tmodule_name: <%s>\n\targuments: <%s>\n",
+                s, "    name: <%s>\n\ttype: <%s>\n\tindex: <%u>\n\tmodule_name: <%s>\n\targuments: <%s>\n",
                 e->name,
                 e->type == PA_NAMEREG_SOURCE ? "source" : "sink",
+                e->index,
                 e->module,
                 e->argument);
 

@@ -56,7 +56,7 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->modules = NULL;
     c->namereg = NULL;
     c->scache = NULL;
-
+    c->autoload_idxset = NULL;
     c->autoload_hashmap = NULL;
 
     c->default_sample_spec.format = PA_SAMPLE_S16NE;

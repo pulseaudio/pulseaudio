@@ -570,7 +570,7 @@ static int pa_cli_command_autoload_add(struct pa_core *c, struct pa_tokenizer *t
         return -1;
     }
 
-    pa_autoload_add(c, a, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, b, pa_tokenizer_get(t, 3));
+    pa_autoload_add(c, a, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, b, pa_tokenizer_get(t, 3), NULL);
     
     return 0;
 }
@@ -584,7 +584,7 @@ static int pa_cli_command_autoload_remove(struct pa_core *c, struct pa_tokenizer
         return -1;
     }
 
-    if (pa_autoload_remove(c, name, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE) < 0) {
+    if (pa_autoload_remove_by_name(c, name, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE) < 0) {
         pa_strbuf_puts(buf, "Failed to remove autload entry\n");
         return -1;
     }

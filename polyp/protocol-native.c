@@ -1729,6 +1729,8 @@ static void command_add_autoload(struct pa_pdispatch *pd, uint32_t command, uint
     struct connection *c = userdata;
     const char *name, *module, *argument;
     uint32_t type;
+    uint32_t index;
+    struct pa_tagstruct *reply;
     assert(c && t);
 
     if (pa_tagstruct_gets(t, &name) < 0 || !name ||
@@ -1745,22 +1747,30 @@ static void command_add_autoload(struct pa_pdispatch *pd, uint32_t command, uint
         return;
     }
 
-    if (pa_autoload_add(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, module, argument) < 0) {
+    if (pa_autoload_add(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, module, argument, &index) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_EXIST);
         return;
     }
 
-    pa_pstream_send_simple_ack(c->pstream, tag);
+    reply = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+    pa_tagstruct_putu32(reply, index);
+    pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
 static void command_remove_autoload(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
-    const char *name;
-    uint32_t type;
+    const char *name = NULL;
+    uint32_t type, index = PA_IDXSET_INVALID;
+    int r;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
-        pa_tagstruct_getu32(t, &type) < 0 || type > 1 ||
+    if ((pa_tagstruct_getu32(t, &index) < 0 &&
+        (pa_tagstruct_gets(t, &name) < 0 ||
+         pa_tagstruct_getu32(t, &type) < 0)) ||
+        (!name && index == PA_IDXSET_INVALID) ||
+        (name && type > 1) ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -1771,7 +1781,12 @@ static void command_remove_autoload(struct pa_pdispatch *pd, uint32_t command, u
         return;
     }
 
-    if (pa_autoload_remove(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE) < 0) {
+    if (name) 
+        r = pa_autoload_remove_by_name(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE);
+    else
+        r = pa_autoload_remove_by_index(c->protocol->core, index);
+
+    if (r < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
         return;
     }
@@ -1779,8 +1794,10 @@ static void command_remove_autoload(struct pa_pdispatch *pd, uint32_t command, u
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
-static void autoload_fill_tagstruct(struct pa_tagstruct *t, struct pa_autoload_entry *e) {
+static void autoload_fill_tagstruct(struct pa_tagstruct *t, const struct pa_autoload_entry *e) {
     assert(t && e);
+
+    pa_tagstruct_putu32(t, e->index);
     pa_tagstruct_puts(t, e->name);
     pa_tagstruct_putu32(t, e->type == PA_NAMEREG_SINK ? 0 : 1);
     pa_tagstruct_puts(t, e->module);
@@ -1789,14 +1806,17 @@ static void autoload_fill_tagstruct(struct pa_tagstruct *t, struct pa_autoload_e
 
 static void command_get_autoload_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
-    struct pa_autoload_entry *a = NULL;
-    uint32_t type;
+    const struct pa_autoload_entry *a = NULL;
+    uint32_t type, index;
     const char *name;
     struct pa_tagstruct *reply;
     assert(c && t);
-    
-    if (pa_tagstruct_gets(t, &name) < 0 || name ||
-        pa_tagstruct_getu32(t, &type) < 0 || type > 1 ||
+
+    if ((pa_tagstruct_getu32(t, &index) < 0 &&
+        (pa_tagstruct_gets(t, &name) < 0 ||
+         pa_tagstruct_getu32(t, &type) < 0)) ||
+        (!name && index == PA_IDXSET_INVALID) ||
+        (name && type > 1) ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -1807,7 +1827,13 @@ static void command_get_autoload_info(struct pa_pdispatch *pd, uint32_t command,
         return;
     }
 
-    if (!c->protocol->core->autoload_hashmap || !(a = pa_hashmap_get(c->protocol->core->autoload_hashmap, name)) || (a->type == PA_NAMEREG_SINK && type != 0) || (a->type == PA_NAMEREG_SOURCE && type != 1)) {
+
+    if (name)
+        a = pa_autoload_get_by_name(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE);
+    else
+        a = pa_autoload_get_by_index(c->protocol->core, index);
+
+    if (!a) {
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
         return;
     }

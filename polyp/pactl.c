@@ -437,11 +437,12 @@ static void get_autoload_info_callback(struct pa_context *c, const struct pa_aut
         printf("\n");
     nl = 1;
 
-    printf("*** Autoload Entry ***\n"
+    printf("*** Autoload Entry #%u ***\n"
            "Name: %s\n"
            "Type: %s\n"
            "Module: %s\n"
            "Argument: %s\n",
+           i->index,
            i->name,
            i->type == PA_AUTOLOAD_SINK ? "sink" : "source",
            i->module,

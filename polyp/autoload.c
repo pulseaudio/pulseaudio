@@ -45,6 +45,14 @@ static void entry_free(struct pa_autoload_entry *e) {
     pa_xfree(e);
 }
 
+static void entry_remove_and_free(struct pa_autoload_entry *e) {
+    assert(e && e->core);
+
+    pa_idxset_remove_by_data(e->core->autoload_idxset, e, NULL);
+    pa_hashmap_remove(e->core->autoload_hashmap, e->name);
+    entry_free(e);
+}
+
 static struct pa_autoload_entry* entry_new(struct pa_core *c, const char *name) {
     struct pa_autoload_entry *e = NULL;
     assert(c && name);
@@ -64,12 +72,16 @@ static struct pa_autoload_entry* entry_new(struct pa_core *c, const char *name) 
     
     pa_hashmap_put(c->autoload_hashmap, e->name, e);
 
-    pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_AUTOLOAD|PA_SUBSCRIPTION_EVENT_NEW, PA_INVALID_INDEX);
+    if (!c->autoload_idxset)
+        c->autoload_idxset = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    pa_idxset_put(c->autoload_idxset, e, &e->index);
+
+    pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_AUTOLOAD|PA_SUBSCRIPTION_EVENT_NEW, e->index);
     
     return e;
 }
 
-int pa_autoload_add(struct pa_core *c, const char*name, enum pa_namereg_type type, const char*module, const char *argument) {
+int pa_autoload_add(struct pa_core *c, const char*name, enum pa_namereg_type type, const char*module, const char *argument, uint32_t *index) {
     struct pa_autoload_entry *e = NULL;
     assert(c && name && module && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
     
@@ -79,18 +91,32 @@ int pa_autoload_add(struct pa_core *c, const char*name, enum pa_namereg_type typ
     e->module = pa_xstrdup(module);
     e->argument = pa_xstrdup(argument);
     e->type = type;
+
+    if (index)
+        *index = e->index;
+    
     return 0;
 }
 
-int pa_autoload_remove(struct pa_core *c, const char*name, enum pa_namereg_type type) {
+int pa_autoload_remove_by_name(struct pa_core *c, const char*name, enum pa_namereg_type type) {
     struct pa_autoload_entry *e;
     assert(c && name && type);
 
-    if (!c->autoload_hashmap || !(e = pa_hashmap_get(c->autoload_hashmap, name)))
+    if (!c->autoload_hashmap || !(e = pa_hashmap_get(c->autoload_hashmap, name)) || e->type != type)
         return -1;
 
-    pa_hashmap_remove(c->autoload_hashmap, e->name);
-    entry_free(e);
+    entry_remove_and_free(e);
+    return 0;
+}
+
+int pa_autoload_remove_by_index(struct pa_core *c, uint32_t index) {
+    struct pa_autoload_entry *e;
+    assert(c && index != PA_IDXSET_INVALID);
+
+    if (!c->autoload_idxset || !(e = pa_idxset_get_by_index(c->autoload_idxset, index)))
+        return -1;
+
+    entry_remove_and_free(e);
     return 0;
 }
 
@@ -117,12 +143,38 @@ void pa_autoload_request(struct pa_core *c, const char *name, enum pa_namereg_ty
 
 static void free_func(void *p, void *userdata) {
     struct pa_autoload_entry *e = p;
+    pa_idxset_remove_by_data(e->core->autoload_idxset, e, NULL);
     entry_free(e);
 }
 
 void pa_autoload_free(struct pa_core *c) {
-    if (!c->autoload_hashmap)
-        return;
+    if (c->autoload_hashmap) {
+        pa_hashmap_free(c->autoload_hashmap, free_func, NULL);
+        c->autoload_hashmap = NULL;
+    }
+    
+    if (c->autoload_idxset) {
+        pa_idxset_free(c->autoload_idxset, NULL, NULL);
+        c->autoload_idxset = NULL;
+    }
+}
 
-    pa_hashmap_free(c->autoload_hashmap, free_func, NULL);
+const struct pa_autoload_entry* pa_autoload_get_by_name(struct pa_core *c, const char*name, enum pa_namereg_type type) {
+    struct pa_autoload_entry *e;
+    assert(c && name);
+    
+    if (!c->autoload_hashmap || !(e = pa_hashmap_get(c->autoload_hashmap, name)) || e->type != type)
+        return NULL;
+
+    return e;
+}
+
+const struct pa_autoload_entry* pa_autoload_get_by_index(struct pa_core *c, uint32_t index) {
+    struct pa_autoload_entry *e;
+    assert(c && index != PA_IDXSET_INVALID);
+    
+    if (!c->autoload_idxset || !(e = pa_idxset_get_by_index(c->autoload_idxset, index)))
+        return NULL;
+
+    return e;
 }

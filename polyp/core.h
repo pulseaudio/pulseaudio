@@ -31,7 +31,7 @@
 struct pa_core {
     struct pa_mainloop_api *mainloop;
 
-    struct pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache;
+    struct pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache, *autoload_idxset;
 
     struct pa_hashmap *namereg, *autoload_hashmap;
 

@@ -1,6 +1,6 @@
 *** $Id$ ***
 
-*** 0.6 ****
+*** 0.7 ****
 - per-channel volume
 - unix socket directories include user name
 - add sample directory
@@ -9,7 +9,6 @@
 - improve module-oss-mmap latency measurement
 - filter capture data in client through alignment
 - add radio module
-- make autoload list use idxset
 - add sync API
 - make most buffer sizes dependant on the sample type
 

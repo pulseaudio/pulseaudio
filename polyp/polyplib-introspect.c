@@ -823,7 +823,8 @@ static void context_get_autoload_info_callback(struct pa_pdispatch *pd, uint32_t
         while (!pa_tagstruct_eof(t)) {
             struct pa_autoload_info i;
             
-            if (pa_tagstruct_gets(t, &i.name) < 0 ||
+            if (pa_tagstruct_getu32(t, &i.index) < 0 ||
+                pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.type) < 0 ||
                 pa_tagstruct_gets(t, &i.module) < 0 ||
                 pa_tagstruct_gets(t, &i.argument) < 0) {
@@ -848,7 +849,7 @@ finish:
     pa_operation_unref(o);
 }
 
-struct pa_operation* pa_context_get_autoload_info(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata) {
+struct pa_operation* pa_context_get_autoload_info_by_name(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata) {
     struct pa_tagstruct *t;
     struct pa_operation *o;
     uint32_t tag;
@@ -869,9 +870,57 @@ struct pa_operation* pa_context_get_autoload_info(struct pa_context *c, const ch
     return pa_operation_ref(o);
 }
 
+struct pa_operation* pa_context_get_autoload_info_by_index(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata) {
+    struct pa_tagstruct *t;
+    struct pa_operation *o;
+    uint32_t tag;
+    assert(c && cb && index != PA_INVALID_INDEX);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_AUTOLOAD_INFO);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_autoload_info_callback, o);
+
+    return pa_operation_ref(o);
+}
+
 struct pa_operation* pa_context_get_autoload_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata) {
     return pa_context_send_simple_command(c, PA_COMMAND_GET_AUTOLOAD_INFO_LIST, context_get_autoload_info_callback, cb, userdata);
 }
+
+static void context_add_autoload_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct pa_operation *o = userdata;
+    uint32_t index;
+    assert(pd && o && o->context && o->ref >= 1);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+        index = PA_INVALID_INDEX;
+    } else if (pa_tagstruct_getu32(t, &index) ||
+               !pa_tagstruct_eof(t)) {
+        pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+        goto finish;
+    }
+
+    if (o->callback) {
+        void (*cb)(struct pa_context *s, uint32_t index, void *userdata) = o->callback;
+        cb(o->context, index, o->userdata);
+    }
+
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
 
 struct pa_operation* pa_context_add_autoload(struct pa_context *c, const char *name, enum pa_autoload_type type, const char *module, const char*argument, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata) {
     struct pa_operation *o;
@@ -891,12 +940,12 @@ struct pa_operation* pa_context_add_autoload(struct pa_context *c, const char *n
     pa_tagstruct_puts(t, module);
     pa_tagstruct_puts(t, argument);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_add_autoload_callback, o);
 
     return pa_operation_ref(o);
 }
 
-struct pa_operation* pa_context_remove_autoload(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata) {
+struct pa_operation* pa_context_remove_autoload_by_name(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata) {
     struct pa_operation *o;
     struct pa_tagstruct *t;
     uint32_t tag;
@@ -911,6 +960,26 @@ struct pa_operation* pa_context_remove_autoload(struct pa_context *c, const char
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_puts(t, name);
     pa_tagstruct_putu32(t, type);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
+
+    return pa_operation_ref(o);
+}
+
+struct pa_operation* pa_context_remove_autoload_by_index(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata) {
+    struct pa_operation *o;
+    struct pa_tagstruct *t;
+    uint32_t tag;
+    assert(c && index != PA_INVALID_INDEX);
+
+    o = pa_operation_new(c, NULL);
+    o->callback = cb;
+    o->userdata = userdata;
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_REMOVE_AUTOLOAD);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_tagstruct_putu32(t, index);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
 

@@ -234,23 +234,31 @@ enum pa_autoload_type {
 
 /** Stores information about autoload entries. \since 0.5 */
 struct pa_autoload_info {
+    uint32_t index;               /**< Index of this autoload entry */
     const char *name;             /**< Name of the sink or source */
     enum pa_autoload_type type;   /**< Type of the autoload entry */
     const char *module;           /**< Module name to load */
     const char *argument;         /**< Argument string for module */
 };
 
-/** Get info about a specific autoload entry. \since 0.5 */
-struct pa_operation* pa_context_get_autoload_info(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata);
+/** Get info about a specific autoload entry. \since 0.6 */
+struct pa_operation* pa_context_get_autoload_info_by_name(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata);
+
+/** Get info about a specific autoload entry. \since 0.6 */
+struct pa_operation* pa_context_get_autoload_info_by_index(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata);
 
 /** Get the complete list of autoload entries. \since 0.5 */
 struct pa_operation* pa_context_get_autoload_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata), void *userdata);
 
 /** Add a new autoload entry. \since 0.5 */
-struct pa_operation* pa_context_add_autoload(struct pa_context *c, const char *name, enum pa_autoload_type type, const char *module, const char*argument, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata);
+struct pa_operation* pa_context_add_autoload(struct pa_context *c, const char *name, enum pa_autoload_type type, const char *module, const char*argument, void (*cb)(struct pa_context *c, int index, void *userdata), void* userdata);
 
-/** Remove an autoload entry. \since 0.5 */
-struct pa_operation* pa_context_remove_autoload(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata);
+/** Remove an autoload entry. \since 0.6 */
+struct pa_operation* pa_context_remove_autoload_by_name(struct pa_context *c, const char *name, enum pa_autoload_type type, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata);
+
+/** Remove an autoload entry. \since 0.6 */
+struct pa_operation* pa_context_remove_autoload_by_index(struct pa_context *c, uint32_t index, void (*cb)(struct pa_context *c, int success, void *userdata), void* userdata);
+
 
 PA_C_DECL_END
 
