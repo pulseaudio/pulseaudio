@@ -146,7 +146,7 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
         r->i_buf = pa_xrealloc(r->i_buf, sizeof(float) * (r->i_alloc = eff_ins));
     assert(r->i_buf);
     
-    r->to_float32_func(eff_ins, in->memblock->data+in->index, i_nchannels, r->i_buf);
+    r->to_float32_func(eff_ins, (uint8_t*) in->memblock->data+in->index, i_nchannels, r->i_buf);
 
     if (r->src_state) {
         int ret;
@@ -179,6 +179,6 @@ void pa_resampler_run(struct pa_resampler *r, const struct pa_memchunk *in, stru
     } else
         cbuf = r->i_buf;
 
-    r->from_float32_func(eff_ons, cbuf, out->memblock->data+out->index, o_nchannels);
+    r->from_float32_func(eff_ons, cbuf, (uint8_t*)out->memblock->data+out->index, o_nchannels);
     out->length = ons*r->o_sz;
 }

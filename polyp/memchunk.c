@@ -40,7 +40,7 @@ void pa_memchunk_make_writable(struct pa_memchunk *c, struct pa_memblock_stat *s
     
     n = pa_memblock_new(c->length, s);
     assert(n);
-    memcpy(n->data, c->memblock->data+c->index, c->length);
+    memcpy(n->data, (uint8_t*) c->memblock->data+c->index, c->length);
     pa_memblock_unref(c->memblock);
     c->memblock = n;
     c->index = 0;
@@ -100,7 +100,7 @@ int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c) {
             l = m->chunk.length;
         assert(m->buffer && l);
 
-        memcpy(m->buffer + m->buffer_fill, m->chunk.memblock->data + m->chunk.index, l);
+        memcpy((uint8_t*) m->buffer + m->buffer_fill, (uint8_t*) m->chunk.memblock->data + m->chunk.index, l);
         m->buffer_fill += l;
         m->chunk.index += l;
         m->chunk.length -= l;
@@ -132,7 +132,7 @@ int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c) {
         assert(!m->buffer);
         m->buffer = pa_xmalloc(m->base);
         m->chunk.length -= m->buffer_fill;
-        memcpy(m->buffer, m->chunk.memblock->data + m->chunk.index + m->chunk.length, m->buffer_fill);
+        memcpy(m->buffer, (uint8_t*) m->chunk.memblock->data + m->chunk.index + m->chunk.length, m->buffer_fill);
     }
 
     if (m->chunk.length) {

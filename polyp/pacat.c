@@ -65,7 +65,7 @@ static void do_stream_write(size_t length) {
     if (l > buffer_length)
         l = buffer_length;
     
-    pa_stream_write(stream, buffer+buffer_index, l, NULL, 0);
+    pa_stream_write(stream, (uint8_t*) buffer + buffer_index, l, NULL, 0);
     buffer_length -= l;
     buffer_index += l;
     
@@ -250,7 +250,7 @@ static void stdout_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int
 
     assert(buffer_length);
     
-    if ((r = write(fd, buffer+buffer_index, buffer_length)) <= 0) {
+    if ((r = write(fd, (uint8_t*) buffer+buffer_index, buffer_length)) <= 0) {
         fprintf(stderr, "write() failed: %s\n", strerror(errno));
         quit(1);
 

@@ -36,7 +36,7 @@
 struct chunk {
     struct chunk *next;
     size_t length;
-    char text[0];
+    char text[];
 };
 
 struct pa_strbuf {

@@ -47,7 +47,7 @@ static ssize_t loop_write(int fd, const void*data, size_t size) {
             break;
         
         ret += r;
-        data += r;
+        data = (uint8_t*) data + r;
         size -= r;
     }
 

@@ -10,12 +10,13 @@
    autoload management
 - more complete pactl
 - daemon autostart
-- cleanup tagstruct (add s32, pa_volume_t, pa_usec_t)
-- xmlrpc
+- cleanup tagstruct and modargs (add s32, pa_volume_t, pa_usec_t)
 - remove all gcc warnings
 - esd compatible startup script or personality
+- limit number of concurrent streams
 
 ** later ***
+- xmlrpc/http
 - slp/rendezvous
 - modinfo
 - make alsa modules use mmap
@@ -28,6 +29,3 @@ backends for:
 - gstreamer
 - portaudio
 - python
-
-modules:
-- http?

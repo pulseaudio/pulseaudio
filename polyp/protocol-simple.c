@@ -120,7 +120,7 @@ static int do_read(struct connection *c) {
         c->playback.memblock_index = 0;
     }
     
-    if ((r = pa_iochannel_read(c->io, c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
+    if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
         fprintf(stderr, __FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
         return -1;
     }
@@ -153,7 +153,7 @@ static int do_write(struct connection *c) {
     
     assert(chunk.memblock && chunk.length);
     
-    if ((r = pa_iochannel_write(c->io, chunk.memblock->data+chunk.index, chunk.length)) < 0) {
+    if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
         pa_memblock_unref(chunk.memblock);
         fprintf(stderr, "write(): %s\n", strerror(errno));
         return -1;

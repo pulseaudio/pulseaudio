@@ -65,7 +65,8 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
 
 static void do_call(struct pa_socket_client *c) {
     struct pa_iochannel *io = NULL;
-    int error, lerror;
+    int error;
+    socklen_t lerror;
     assert(c && c->callback);
 
     pa_socket_client_ref(c);

@@ -272,7 +272,7 @@ static void prepare_next_write_item(struct pa_pstream *p) {
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_DELTA] = 0;
     } else {
         assert(p->write.current->type == PA_PSTREAM_ITEM_MEMBLOCK && p->write.current->chunk.memblock);
-        p->write.data = p->write.current->chunk.memblock->data + p->write.current->chunk.index;
+        p->write.data = (uint8_t*) p->write.current->chunk.memblock->data + p->write.current->chunk.index;
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->chunk.length);
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL] = htonl(p->write.current->channel);
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_DELTA] = htonl(p->write.current->delta);
@@ -294,10 +294,10 @@ static void do_write(struct pa_pstream *p) {
     assert(p->write.data);
 
     if (p->write.index < PA_PSTREAM_DESCRIPTOR_SIZE) {
-        d = (void*) p->write.descriptor + p->write.index;
+        d = (uint8_t*) p->write.descriptor + p->write.index;
         l = PA_PSTREAM_DESCRIPTOR_SIZE - p->write.index;
     } else {
-        d = (void*) p->write.data + p->write.index - PA_PSTREAM_DESCRIPTOR_SIZE;
+        d = (uint8_t*) p->write.data + p->write.index - PA_PSTREAM_DESCRIPTOR_SIZE;
         l = ntohl(p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) - (p->write.index - PA_PSTREAM_DESCRIPTOR_SIZE);
     }
 
@@ -330,11 +330,11 @@ static void do_read(struct pa_pstream *p) {
     assert(p);
 
     if (p->read.index < PA_PSTREAM_DESCRIPTOR_SIZE) {
-        d = (void*) p->read.descriptor + p->read.index;
+        d = (uint8_t*) p->read.descriptor + p->read.index;
         l = PA_PSTREAM_DESCRIPTOR_SIZE - p->read.index;
     } else {
         assert(p->read.data);
-        d = (void*) p->read.data + p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE;
+        d = (uint8_t*) p->read.data + p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE;
         l = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) - (p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE);
     }
 

@@ -34,7 +34,7 @@
 #include "llist.h"
 #include "native-common.h"
 
-#define DEFAULT_TLENGTH (10240*4)
+#define DEFAULT_TLENGTH (10240*8)
 #define DEFAULT_MAXLENGTH ((DEFAULT_TLENGTH*3)/2)
 #define DEFAULT_PREBUF DEFAULT_TLENGTH
 #define DEFAULT_MINREQ 512

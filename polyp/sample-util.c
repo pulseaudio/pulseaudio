@@ -37,7 +37,7 @@ struct pa_memblock *pa_silence_memblock(struct pa_memblock* b, const struct pa_s
 
 void pa_silence_memchunk(struct pa_memchunk *c, const struct pa_sample_spec *spec) {
     assert(c && c->memblock && c->memblock->data && spec && c->length);
-    pa_silence_memory(c->memblock->data+c->index, c->length, spec);
+    pa_silence_memory((uint8_t*) c->memblock->data+c->index, c->length, spec);
 }
 
 void pa_silence_memory(void *p, size_t length, const struct pa_sample_spec *spec) {
@@ -85,7 +85,7 @@ size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, siz
             if (volume == PA_VOLUME_MUTED)
                 v = 0;
             else {
-                v = *((int16_t*) (channels[c].chunk.memblock->data + channels[c].chunk.index + d));
+                v = *((int16_t*) ((uint8_t*) channels[c].chunk.memblock->data + channels[c].chunk.index + d));
 
                 if (volume != PA_VOLUME_NORM)
                     v = (int32_t) ((float)v*volume/PA_VOLUME_NORM);
@@ -103,7 +103,7 @@ size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, siz
         if (sum > 0x7FFF) sum = 0x7FFF;
         
         *((int16_t*) data) = sum;
-        data += sizeof(int16_t);
+        data = (uint8_t*) data + sizeof(int16_t);
     }
 }
 
@@ -122,7 +122,7 @@ void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec,
         return;
     }
 
-    for (d = (c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+    for (d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
         int32_t t = (int32_t)(*d);
 
         t *= volume;

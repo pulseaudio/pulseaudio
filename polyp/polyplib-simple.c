@@ -188,7 +188,7 @@ int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *pe
             l = length;
 
         pa_stream_write(p->stream, data, l, NULL, 0);
-        data += l;
+        data = (uint8_t*) data + l;
         length -= l;
     }
 
@@ -222,9 +222,9 @@ int pa_simple_read(struct pa_simple *p, void*data, size_t length, int *perror) {
             if (p->read_length <= l)
                 l = p->read_length;
 
-            memcpy(data, p->read_data+p->read_index, l);
+            memcpy(data, (uint8_t*) p->read_data+p->read_index, l);
 
-            data += l;
+            data = (uint8_t*) data + l;
             length -= l;
             
             p->read_index += l;

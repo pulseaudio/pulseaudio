@@ -210,7 +210,7 @@ static void* connection_write(struct connection *c, size_t length) {
     i = c->write_data_length;
     c->write_data_length += length;
     
-    return c->write_data+i;
+    return (uint8_t*) c->write_data+i;
 }
 
 static void format_esd2native(int format, struct pa_sample_spec *ss) {
@@ -245,7 +245,7 @@ static int esd_proto_connect(struct connection *c, esd_proto_t request, const vo
         c->authorized = 1;
     }
     
-    ekey = *(uint32_t*)(data+ESD_KEY_LEN);
+    ekey = *(uint32_t*)((uint8_t*) data+ESD_KEY_LEN);
     if (ekey == ESD_ENDIAN_KEY)
         c->swap_byte_order = 0;
     else if (ekey == ESD_SWAP_ENDIAN_KEY)
@@ -283,7 +283,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
         return -1;
     }
     
-    strncpy(name, data + sizeof(int)*2, sizeof(name));
+    strncpy(name, (char*) data + sizeof(int)*2, sizeof(name));
     name[sizeof(name)-1] = 0;
 
     pa_client_rename(c->client, name);
@@ -347,7 +347,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
             return -1;
     }
     
-    strncpy(name, data + sizeof(int)*2, sizeof(name));
+    strncpy(name, (char*) data + sizeof(int)*2, sizeof(name));
     name[sizeof(name)-1] = 0;
 
     pa_client_rename(c->client, name);
@@ -415,7 +415,7 @@ static int esd_proto_server_info(struct connection *c, esd_proto_t request, cons
 }
 
 static int esd_proto_all_info(struct connection *c, esd_proto_t request, const void *data, size_t length) {
-    void *response;
+    uint8_t *response;
     size_t t, k, s;
     struct connection *conn;
     size_t index = PA_IDXSET_INVALID;
@@ -451,7 +451,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
 
         /* name */
         assert(conn->client);
-        strncpy(response, conn->client->name, ESD_NAME_MAX);
+        strncpy((char*) response, conn->client->name, ESD_NAME_MAX);
         response += ESD_NAME_MAX;
 
         /* rate */
@@ -491,9 +491,9 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             
             /* name */
             if (strncmp(ce->name, SCACHE_PREFIX, sizeof(SCACHE_PREFIX)-1) == 0)
-                strncpy(response, ce->name+sizeof(SCACHE_PREFIX)-1, ESD_NAME_MAX);
+                strncpy((char*) response, ce->name+sizeof(SCACHE_PREFIX)-1, ESD_NAME_MAX);
             else
-                snprintf(response, ESD_NAME_MAX, "native.%s", ce->name);
+                snprintf((char*) response, ESD_NAME_MAX, "native.%s", ce->name);
             response += ESD_NAME_MAX;
             
             /* rate */
@@ -570,7 +570,7 @@ static int esd_proto_sample_cache(struct connection *c, esd_proto_t request, con
         return -1;
 
     strcpy(name, SCACHE_PREFIX);
-    strncpy(name+sizeof(SCACHE_PREFIX)-1, data+3*sizeof(int), ESD_NAME_MAX);
+    strncpy(name+sizeof(SCACHE_PREFIX)-1, (char*) data+3*sizeof(int), ESD_NAME_MAX);
     name[sizeof(name)-1] = 0;
     
     assert(!c->scache_memchunk.memblock);
@@ -661,7 +661,7 @@ static int do_read(struct connection *c) {
         ssize_t r;
         assert(c->read_data_length < sizeof(c->request));
 
-        if ((r = pa_iochannel_read(c->io, ((void*) &c->request) + c->read_data_length, sizeof(c->request) - c->read_data_length)) <= 0) {
+        if ((r = pa_iochannel_read(c->io, ((uint8_t*) &c->request) + c->read_data_length, sizeof(c->request) - c->read_data_length)) <= 0) {
             fprintf(stderr, "protocol-esound.c: read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
@@ -708,7 +708,7 @@ static int do_read(struct connection *c) {
         
         assert(c->read_data && c->read_data_length < handler->data_length);
 
-        if ((r = pa_iochannel_read(c->io, c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
+        if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
             fprintf(stderr, "protocol-esound.c: read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
@@ -728,7 +728,7 @@ static int do_read(struct connection *c) {
 
         assert(c->scache_memchunk.memblock && c->scache_name && c->scache_memchunk.index < c->scache_memchunk.length);
         
-        if ((r = pa_iochannel_read(c->io, c->scache_memchunk.memblock->data+c->scache_memchunk.index, c->scache_memchunk.length-c->scache_memchunk.index)) <= 0) {
+        if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache_memchunk.memblock->data+c->scache_memchunk.index, c->scache_memchunk.length-c->scache_memchunk.index)) <= 0) {
             fprintf(stderr, __FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
@@ -783,7 +783,7 @@ static int do_read(struct connection *c) {
             c->playback.memblock_index = 0;
         }
 
-        if ((r = pa_iochannel_read(c->io, c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
+        if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
             fprintf(stderr, __FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
@@ -811,7 +811,7 @@ static int do_write(struct connection *c) {
         ssize_t r;
         
         assert(c->write_data_index < c->write_data_length);
-        if ((r = pa_iochannel_write(c->io, c->write_data+c->write_data_index, c->write_data_length-c->write_data_index)) < 0) {
+        if ((r = pa_iochannel_write(c->io, (uint8_t*) c->write_data+c->write_data_index, c->write_data_length-c->write_data_index)) < 0) {
             fprintf(stderr, __FILE__": write() failed: %s\n", strerror(errno));
             return -1;
         }
@@ -829,7 +829,7 @@ static int do_write(struct connection *c) {
         
         assert(chunk.memblock && chunk.length);
         
-        if ((r = pa_iochannel_write(c->io, chunk.memblock->data+chunk.index, chunk.length)) < 0) {
+        if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
             pa_memblock_unref(chunk.memblock);
             fprintf(stderr, __FILE__": write(): %s\n", strerror(errno));
             return -1;
