@@ -169,6 +169,9 @@ struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel
 
     p->memblock_stat = s;
 
+    pa_iochannel_socket_set_rcvbuf(io, 1024*8); 
+    pa_iochannel_socket_set_sndbuf(io, 1024*8); 
+
     return p;
 }
 

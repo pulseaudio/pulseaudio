@@ -24,7 +24,7 @@
 
 
 struct pa_cmdline {
-    int daemonize, help, fail, verbose;
+    int daemonize, help, fail, verbose, high_priority, stay_root, version;
     char *cli_commands;
 };
 

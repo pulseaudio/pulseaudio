@@ -173,8 +173,16 @@ int pa_iochannel_is_hungup(struct pa_iochannel*io) {
 
 ssize_t pa_iochannel_write(struct pa_iochannel*io, const void*data, size_t l) {
     ssize_t r;
+    assert(io);
+    assert(data);
+    assert(l);
+    assert(io->ofd >= 0);
+
+    
     assert(io && data && l && io->ofd >= 0);
 
+
+    
     if ((r = write(io->ofd, data, l)) >= 0) {
         io->writable = 0;
         enable_mainloop_sources(io);

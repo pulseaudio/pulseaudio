@@ -89,4 +89,7 @@ void pa_memblockq_seek(struct pa_memblockq *bq, size_t delta);
 /* Flush the queue */
 void pa_memblockq_flush(struct pa_memblockq *bq);
 
+/* Get Target length */
+uint32_t pa_memblockq_get_tlength(struct pa_memblockq *bq);
+
 #endif

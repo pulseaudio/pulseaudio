@@ -56,7 +56,7 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
 
     bq->current_length = 0;
 
-    fprintf(stderr, "memblockq requested: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", maxlength, tlength, base, prebuf, minreq);
+    /*fprintf(stderr, "memblockq requested: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", maxlength, tlength, base, prebuf, minreq);*/
     
     bq->base = base;
 
@@ -323,4 +323,9 @@ void pa_memblockq_flush(struct pa_memblockq *bq) {
     bq->blocks_tail = NULL;
     bq->n_blocks = 0;
     bq->current_length = 0;
+}
+
+uint32_t pa_memblockq_get_tlength(struct pa_memblockq *bq) {
+    assert(bq);
+    return bq->tlength;
 }

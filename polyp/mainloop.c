@@ -332,6 +332,7 @@ void pa_mainloop_free(struct pa_mainloop* m) {
 static void scan_dead(struct pa_mainloop *m) {
     int all = 0;
     assert(m);
+
     if (m->io_events_scan_dead)
         pa_idxset_foreach(m->io_events, io_foreach, &all);
     if (m->time_events_scan_dead)
@@ -402,7 +403,7 @@ static void dispatch_defer(struct pa_mainloop *m) {
     for (e = pa_idxset_first(m->defer_events, &index); e; e = pa_idxset_next(m->defer_events, &index)) {
         if (e->dead || !e->enabled)
             continue;
-
+ 
         assert(e->callback);
         e->callback(&m->api, e, e->userdata);
     }
@@ -413,17 +414,22 @@ static int calc_next_timeout(struct pa_mainloop *m) {
     struct pa_time_event *e;
     struct timeval now;
     int t = -1;
+    int got_time = 0;
 
     if (pa_idxset_isempty(m->time_events))
         return -1;
 
-    gettimeofday(&now, NULL);
-    
     for (e = pa_idxset_first(m->time_events, &index); e; e = pa_idxset_next(m->time_events, &index)) {
         int tmp;
         
         if (e->dead || !e->enabled)
             continue;
+
+        /* Let's save a system call */
+        if (!got_time) {
+            gettimeofday(&now, NULL);
+            got_time = 1;
+        }
 
         if (e->timeval.tv_sec < now.tv_sec || (e->timeval.tv_sec == now.tv_sec && e->timeval.tv_usec <= now.tv_usec)) 
             return 0;
@@ -448,17 +454,23 @@ static void dispatch_timeout(struct pa_mainloop *m) {
     uint32_t index;
     struct pa_time_event *e;
     struct timeval now;
+    int got_time = 0;
     assert(m);
 
     if (pa_idxset_isempty(m->time_events))
         return;
 
-    gettimeofday(&now, NULL);
     for (e = pa_idxset_first(m->time_events, &index); e; e = pa_idxset_next(m->time_events, &index)) {
         
         if (e->dead || !e->enabled)
             continue;
 
+        /* Let's save a system call */
+        if (!got_time) {
+            gettimeofday(&now, NULL);
+            got_time = 1;
+        }
+        
         if (e->timeval.tv_sec < now.tv_sec || (e->timeval.tv_sec == now.tv_sec && e->timeval.tv_usec <= now.tv_usec)) {
             assert(e->callback);
 

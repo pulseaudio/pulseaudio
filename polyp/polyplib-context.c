@@ -202,7 +202,7 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
     
     if ((s = pa_dynarray_get(c->record_streams, channel))) {
         if (s->read_callback)
-            s->read_callback(s, chunk->memblock->data + chunk->index, chunk->length, s->read_userdata);
+            s->read_callback(s, (uint8_t*) chunk->memblock->data + chunk->index, chunk->length, s->read_userdata);
     }
 
     pa_context_unref(c);
@@ -451,7 +451,7 @@ static void set_dispatch_callbacks(struct pa_operation *o) {
     else {
         if (o->callback) {
             void (*cb)(struct pa_context *c, void *userdata);
-            cb = (void*) o->callback;
+            cb = (void (*)(struct pa_context*, void*)) o->callback;
             cb(o->context, o->userdata);
         }
         

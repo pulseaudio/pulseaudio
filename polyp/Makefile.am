@@ -18,7 +18,7 @@
 # USA.
 
 AM_CFLAGS=-D_GNU_SOURCE -I$(top_srcdir) $(PTHREAD_CFLAGS)
-AM_CFLAGS+= -DDLSEARCHDIR=\"$(pkglibdir)\" 
+#AM_CFLAGS+= -DDLSEARCHDIR=\"$(pkglibdir)\" 
 AM_LDADD=$(PTHREAD_LIBS)
 AM_LIBADD=$(PTHREAD_LIBS)
 
@@ -437,3 +437,7 @@ libpolypcore_la_SOURCES = idxset.c idxset.h \
 
 endif
 
+
+suid: polypaudio
+	chown root:root $<
+	chmod u+s $<

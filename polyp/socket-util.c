@@ -121,8 +121,10 @@ int pa_socket_tcp_low_delay(int fd) {
 int pa_socket_set_rcvbuf(int fd, size_t l) {
     assert(fd >= 0);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &l, sizeof(l)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &l, sizeof(l)) < 0) {
+        fprintf(stderr, "SO_RCVBUF: %s\n", strerror(errno));
         return -1;
+    }
 
     return 0;
 }
@@ -130,8 +132,10 @@ int pa_socket_set_rcvbuf(int fd, size_t l) {
 int pa_socket_set_sndbuf(int fd, size_t l) {
     assert(fd >= 0);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &l, sizeof(l)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &l, sizeof(l)) < 0) {
+        fprintf(stderr, "SO_SNDBUF: %s\n", strerror(errno));
         return -1;
+    }
 
     return 0;
 }

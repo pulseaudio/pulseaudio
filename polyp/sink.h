@@ -53,9 +53,10 @@ struct pa_sink* pa_sink_new(struct pa_core *core, const char *name, int fail, co
 void pa_sink_free(struct pa_sink* s);
 
 int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result);
+void pa_sink_render_full(struct pa_sink *s, size_t length, struct pa_memchunk *result);
 int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target);
 void pa_sink_render_into_full(struct pa_sink *s, struct pa_memchunk *target);
-
+    
 pa_usec_t pa_sink_get_latency(struct pa_sink *s);
 
 void pa_sink_notify(struct pa_sink*s);

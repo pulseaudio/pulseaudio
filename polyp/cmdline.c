@@ -43,13 +43,16 @@ void pa_cmdline_help(const char *argv0) {
         e = argv0;
     
     printf("%s [options]\n"
+           "  -r         Try to set high process priority (only available as root)\n"
+           "  -R         Don't drop root if SETUID root\n"
            "  -L MODULE  Load the specified plugin module with the specified argument\n"
            "  -F FILE    Run the specified script\n"
            "  -C         Open a command line on the running TTY\n"
            "  -D         Daemonize after loading the modules\n"
            "  -f         Dont quit when the startup fails\n"
            "  -v         Verbose startup\n"
-           "  -h         Show this help\n", e);
+           "  -h         Show this help\n"
+           "  -V         Show version\n", e);
 }
 
 struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
@@ -59,13 +62,13 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
     assert(argc && argv);
 
     cmdline = pa_xmalloc(sizeof(struct pa_cmdline));
-    cmdline->daemonize = cmdline->help = cmdline->verbose = 0;
+    cmdline->daemonize = cmdline->help = cmdline->verbose = cmdline->high_priority = cmdline->stay_root = cmdline->version = 0;
     cmdline->fail = 1;
 
     buf = pa_strbuf_new();
     assert(buf);
     
-    while ((c = getopt(argc, argv, "L:F:CDhfv")) != -1) {
+    while ((c = getopt(argc, argv, "L:F:CDhfvrRV")) != -1) {
         switch (c) {
             case 'L':
                 pa_strbuf_printf(buf, "load %s\n", optarg);
@@ -86,8 +89,18 @@ struct pa_cmdline* pa_cmdline_parse(int argc, char * const argv []) {
                 cmdline->fail = 0;
                 break;
             case 'v':
-                cmdline->verbose = 0;
+                cmdline->verbose = 1;
                 break;
+            case 'r':
+                cmdline->high_priority = 1;
+                break;
+            case 'R':
+                cmdline->stay_root = 1;
+                break;
+            case 'V':
+                cmdline->version = 1;
+                break;
+                
             default:
                 goto fail;
         }

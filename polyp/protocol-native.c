@@ -421,6 +421,8 @@ static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk
     assert(i && i->userdata && chunk);
     s = i->userdata;
 
+    /*fprintf(stderr, "%3.0f      \r", (double) pa_memblockq_get_length(s->memblockq)/pa_memblockq_get_tlength(s->memblockq)*100);*/
+    
     if (pa_memblockq_peek(s->memblockq, chunk) < 0)
         return -1;
 
@@ -1360,6 +1362,7 @@ static void command_flush_or_trigger_playback_stream(struct pa_pdispatch *pd, ui
     else {
         assert(command == PA_COMMAND_FLUSH_PLAYBACK_STREAM);
         pa_memblockq_flush(s->memblockq);
+        /*fprintf(stderr, "flush: %u\n", pa_memblockq_get_length(s->memblockq));*/
     }
 
     pa_sink_notify(s->sink_input->sink);
@@ -1427,7 +1430,8 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
             l = chunk->length;
 
         if (l > 0) {
-            memcpy(u->memchunk.memblock->data + u->memchunk.index + u->memchunk.length, chunk->memblock->data+chunk->index, l);
+            memcpy((uint8_t*) u->memchunk.memblock->data + u->memchunk.index + u->memchunk.length,
+                   (uint8_t*) chunk->memblock->data+chunk->index, l);
             u->memchunk.length += l;
             u->length -= l;
         }
@@ -1439,7 +1443,7 @@ static void pstream_die_callback(struct pa_pstream *p, void *userdata) {
     assert(p && c);
     connection_free(c);
 
-    fprintf(stderr, "protocol-native: connection died.\n");
+/*    fprintf(stderr, "protocol-native: connection died.\n");*/
 }
 
 

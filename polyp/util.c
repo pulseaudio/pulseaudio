@@ -37,6 +37,8 @@
 #include <signal.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <sched.h>
+#include <sys/resource.h>
 
 #include "util.h"
 #include "xmalloc.h"
@@ -83,7 +85,7 @@ ssize_t pa_loop_read(int fd, void*data, size_t size) {
             break;
         
         ret += r;
-        data += r;
+        data = (uint8_t*) data + r;
         size -= r;
     }
 
@@ -104,7 +106,7 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size) {
             break;
         
         ret += r;
-        data += r;
+        data = (uint8_t*) data + r;
         size -= r;
     }
 
@@ -212,4 +214,38 @@ uint32_t pa_age(struct timeval *tv) {
         r -= tv->tv_usec - now.tv_usec;
 
     return r;
+}
+
+#define NICE_LEVEL (-15)
+
+void pa_raise_priority(void) {
+    if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
+        fprintf(stderr, __FILE__": setpriority() failed: %s\n", strerror(errno));
+    else
+        fprintf(stderr, __FILE__": Successfully gained nice level %i.\n", NICE_LEVEL);
+    
+#ifdef _POSIX_PRIORITY_SCHEDULING
+    {
+        struct sched_param sp;
+        sched_getparam(0, &sp);
+        sp.sched_priority = 1;
+        if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0)
+            fprintf(stderr, __FILE__": sched_setscheduler() failed: %s\n", strerror(errno));
+        else
+            fprintf(stderr, __FILE__": Successfully gained SCHED_FIFO scheduling.\n");
+    }
+#endif
+}
+
+void pa_reset_priority(void) {
+#ifdef _POSIX_PRIORITY_SCHEDULING
+    {
+        struct sched_param sp;
+        sched_getparam(0, &sp);
+        sp.sched_priority = 0;
+        sched_setscheduler(0, SCHED_OTHER, &sp);
+    }
+#endif
+
+    setpriority(PRIO_PROCESS, 0, 0);
 }

@@ -220,7 +220,7 @@ int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target) {
         if (l > info[0].chunk.length)
             l = info[0].chunk.length;
         
-        memcpy(target->memblock->data+target->index, info[0].chunk.memblock->data + info[0].chunk.index, l);
+        memcpy((uint8_t*) target->memblock->data+target->index, (uint8_t*) info[0].chunk.memblock->data + info[0].chunk.index, l);
         target->length = l;
 
         if (s->volume != PA_VOLUME_NORM || info[0].volume != PA_VOLUME_NORM)
@@ -229,7 +229,7 @@ int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target) {
         if (volume != PA_VOLUME_NORM)
             pa_volume_memchunk(target, &s->sample_spec, volume);
     } else
-        target->length = l = pa_mix(info, n, target->memblock->data+target->index, target->length, &s->sample_spec, s->volume);
+        target->length = l = pa_mix(info, n, (uint8_t*) target->memblock->data+target->index, target->length, &s->sample_spec, s->volume);
     
     assert(l);
     inputs_drop(s, info, n, l);
@@ -265,6 +265,17 @@ void pa_sink_render_into_full(struct pa_sink *s, struct pa_memchunk *target) {
         chunk.length -= d;
         pa_silence_memchunk(&chunk, &s->sample_spec);
     }
+}
+
+void pa_sink_render_full(struct pa_sink *s, size_t length, struct pa_memchunk *result) {
+    assert(s && length && result);
+
+    /*** This needs optimization ***/
+    
+    result->memblock = pa_memblock_new(result->length = length, s->core->memblock_stat);
+    result->index = 0;
+
+    pa_sink_render_into_full(s, result);
 }
 
 pa_usec_t pa_sink_get_latency(struct pa_sink *s) {

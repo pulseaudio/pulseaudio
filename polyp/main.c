@@ -46,6 +46,14 @@
 
 static struct pa_mainloop *mainloop;
 
+static void drop_root(void) {
+    if (getuid() != 0 && geteuid() == 0) {
+        fprintf(stderr, __FILE__": started SUID root, dropping root rights.\n");
+        setuid(getuid());
+        seteuid(getuid());
+    }
+}
+
 static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     m->quit(m, 1);
     fprintf(stderr, __FILE__": got signal.\n");
@@ -83,6 +91,18 @@ int main(int argc, char *argv[]) {
         retval = 0;
         goto finish;
     }
+
+    if (cmdline->version) {
+        printf(PACKAGE_NAME" "PACKAGE_VERSION"\n");
+        retval = 0;
+        goto finish;
+    }
+
+    if (cmdline->high_priority)
+        pa_raise_priority();
+    
+    if (!cmdline->stay_root)
+        drop_root();
 
     if (cmdline->daemonize) {
         pid_t child;

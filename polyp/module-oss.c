@@ -93,21 +93,22 @@ static void do_write(struct userdata *u) {
         return;
 
     update_usage(u);
-     
-    if (!u->memchunk.length) {
-        if (pa_sink_render(u->sink, u->out_fragment_size, &u->memchunk) < 0)
-            memchunk = &u->silence;
-        else
-            memchunk = &u->memchunk;
-    }
 
-    assert(memchunk->memblock && memchunk->length);
+    memchunk = &u->memchunk;
     
-    if ((r = pa_iochannel_write(u->io, memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
+    if (!memchunk->length)
+        if (pa_sink_render(u->sink, u->out_fragment_size, memchunk) < 0)
+            memchunk = &u->silence;
+    
+    assert(memchunk->memblock);
+    assert(memchunk->memblock->data);
+    assert(memchunk->length);
+    
+    if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
         fprintf(stderr, "write() failed: %s\n", strerror(errno));
         return;
     }
-
+        
     if (memchunk == &u->silence)
         assert(r % u->sample_size == 0);
     else {
@@ -215,8 +216,8 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
 
     fprintf(stderr, "module-oss: device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
-    if (pa_oss_set_fragments(fd, nfrags, frag_size) < 0)
-        goto fail;
+    if (pa_oss_set_fragments(fd, nfrags, frag_size) < 0)   
+        goto fail;   
 
     if (pa_oss_auto_format(fd, &ss) < 0)
         goto fail;

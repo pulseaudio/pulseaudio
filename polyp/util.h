@@ -41,4 +41,7 @@ char *pa_get_host_name(char *s, size_t l);
 
 uint32_t pa_age(struct timeval *tv);
 
+void pa_raise_priority(void);
+void pa_reset_priority(void);
+
 #endif

@@ -99,7 +99,7 @@ static void do_write(struct userdata *u) {
             
         assert(memchunk->memblock && memchunk->memblock->data && memchunk->length && memchunk->memblock->length && (memchunk->length % u->frame_size) == 0);
 
-        if ((frames = snd_pcm_writei(u->pcm_handle, memchunk->memblock->data + memchunk->index, memchunk->length / u->frame_size)) < 0) {
+        if ((frames = snd_pcm_writei(u->pcm_handle, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length / u->frame_size)) < 0) {
             if (frames == -EAGAIN)
                 return;
 

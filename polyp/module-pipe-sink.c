@@ -82,7 +82,7 @@ static void do_write(struct userdata *u) {
 
     assert(u->memchunk.memblock && u->memchunk.length);
     
-    if ((r = pa_iochannel_write(u->io, u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
+    if ((r = pa_iochannel_write(u->io, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
         fprintf(stderr, "write() failed: %s\n", strerror(errno));
         return;
     }
