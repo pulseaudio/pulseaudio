@@ -11,11 +11,11 @@
 - more complete pactl
 - cleanup tagstruct and modargs (add s32, pa_volume_t, pa_usec_t)
 - remove all gcc warnings
-- add total sample cache size to stat
 - make fragments settings runtime configurable
 - logging
 - automatic termination of daemon if unused
 - add sample directory
+- paman: show scache and sample size
 
 ** later ***
 - xmlrpc/http

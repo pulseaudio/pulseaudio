@@ -46,6 +46,7 @@ static void context_stat_callback(struct pa_pdispatch *pd, uint32_t command, uin
                pa_tagstruct_getu32(t, &i.memblock_total_size) < 0 ||
                pa_tagstruct_getu32(t, &i.memblock_allocated) < 0 ||
                pa_tagstruct_getu32(t, &i.memblock_allocated_size) < 0 ||
+               pa_tagstruct_getu32(t, &i.scache_size) < 0 ||
                !pa_tagstruct_eof(t)) {
         pa_context_fail(o->context, PA_ERROR_PROTOCOL);
         goto finish;
@@ -603,7 +604,8 @@ static void context_get_sample_info_callback(struct pa_pdispatch *pd, uint32_t c
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.volume) < 0 ||
                 pa_tagstruct_getu32(t, &i.duration) < 0 ||
-                pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0) {
+                pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
+                pa_tagstruct_getu32(t, &i.bytes) < 0) {
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
             }

@@ -168,3 +168,18 @@ uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name) {
 
     return e->index;
 }
+
+uint32_t pa_scache_total_size(struct pa_core *c) {
+    struct pa_scache_entry *e;
+    uint32_t index;
+    uint32_t sum;
+
+    if (!c->scache)
+        return 0;
+    
+    for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index))
+        sum += e->memchunk.length;
+
+
+    return sum;
+}

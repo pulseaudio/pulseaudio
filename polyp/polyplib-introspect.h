@@ -180,6 +180,7 @@ struct pa_stat_info {
     uint32_t memblock_total_size;      /**< Currentl total size of allocated memory blocks */
     uint32_t memblock_allocated;       /**< Allocated memory blocks during the whole lifetime of the daemon */
     uint32_t memblock_allocated_size;  /**< Total size of all memory blocks allocated during the whole lifetime of the daemon */
+    uint32_t scache_size;              /**< Total size of all sample cache entries. \since 0.4 */ 
 };
 
 /** Get daemon memory block statistics */
@@ -192,6 +193,7 @@ struct pa_sample_info {
     pa_volume_t volume;                   /**< Default volume of this entry */
     struct pa_sample_spec sample_spec;    /**< Sample specification of the sampel */
     pa_usec_t duration;                   /**< Duration of this entry */
+    uint32_t bytes;                       /**< Length of this sample in bytes. \since 0.4 */
 };
 
 /** Get information about a sample by its name */

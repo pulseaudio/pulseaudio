@@ -44,4 +44,6 @@ void pa_scache_free(struct pa_core *c);
 const char *pa_scache_get_name_by_id(struct pa_core *c, uint32_t id);
 uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name);
 
+uint32_t pa_scache_total_size(struct pa_core *c);
+
 #endif

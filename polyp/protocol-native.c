@@ -797,6 +797,7 @@ static void command_stat(struct pa_pdispatch *pd, uint32_t command, uint32_t tag
     pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->total_size);
     pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->allocated);
     pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->allocated_size);
+    pa_tagstruct_putu32(reply, pa_scache_total_size(c->protocol->core));
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1044,6 +1045,7 @@ static void scache_fill_tagstruct(struct pa_tagstruct *t, struct pa_scache_entry
     pa_tagstruct_putu32(t, e->volume);
     pa_tagstruct_putu32(t, pa_bytes_to_usec(e->memchunk.length, &e->sample_spec));
     pa_tagstruct_put_sample_spec(t, &e->sample_spec);
+    pa_tagstruct_putu32(t, e->memchunk.length);
 }
 
 static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
