@@ -38,8 +38,9 @@
  * \li A wrapper around the GLIB main loop. Use this to embed polypaudio into your GLIB/GTK+/GNOME programs (See \ref glib-mainloop.h)
  *
  * The structure pa_mainloop_api is used as vtable for the main loop abstraction.
+ *
+ * This mainloop abstraction layer has no direct support for UNIX signals. Generic, mainloop implementation agnostic support is available throught \ref mainloop-signal.h.
  * */
-
 
 PA_C_DECL_BEGIN
 

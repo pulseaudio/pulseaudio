@@ -27,14 +27,36 @@
 
 PA_C_DECL_BEGIN
 
+/** \file
+ * 
+ * A minimal main loop implementation based on the C library's poll()
+ * function. Using the routines defined herein you may create a simple
+ * main loop supporting the generic main loop abstraction layer as
+ * defined in \ref mainloop-api.h. This implementation is thread safe
+ * as long as you access the main loop object from a single thread only.*/
+
+/** \struct pa_mainloop
+ * A main loop object
+ */
 struct pa_mainloop;
 
+/** Allocate a new main loop object */
 struct pa_mainloop *pa_mainloop_new(void);
+
+/** Free a main loop object */
 void pa_mainloop_free(struct pa_mainloop* m);
 
+/** Run a single iteration of the main loop. Returns a negative value
+on error or exit request. If block is nonzero, block for events if
+none are queued. Optionally return the return value as specified with
+the main loop's quit() routine in the integer variable retval points
+to */
 int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval);
+
+/** Run unlimited iterations of the main loop object until the main loop's quit() routine is called. */
 int pa_mainloop_run(struct pa_mainloop *m, int *retval);
 
+/** Return the abstract main loop abstraction layer vtable for this main loop. This calls pa_mainloop_iterate() iteratively.*/
 struct pa_mainloop_api* pa_mainloop_get_api(struct pa_mainloop*m);
 
 PA_C_DECL_END
