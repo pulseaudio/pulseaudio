@@ -21,6 +21,7 @@
 - fix public=
 - fix POLYP_SERVER=foo:4711
 - fix tcp/native
+- suid
 
 ** later ***
 - xmlrpc/http

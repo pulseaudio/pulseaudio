@@ -674,14 +674,17 @@ static void command_auth(struct pa_pdispatch *pd, uint32_t command, uint32_t tag
         protocol_error(c);
         return;
     }
-        
-    if (memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) != 0) {
-        pa_log(__FILE__": Denied access to client with invalid authorization key.\n");
-        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
-        return;
-    }
 
-    c->authorized = 1;
+    if (!c->authorized) {
+        if (memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) != 0) {
+            pa_log(__FILE__": Denied access to client with invalid authorization key.\n");
+            pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+            return;
+        }
+        
+        c->authorized = 1;
+    }
+    
     pa_pstream_send_simple_ack(c->pstream, tag);
     return;
 }
@@ -1547,7 +1550,7 @@ static struct pa_protocol_native* protocol_new_internal(struct pa_core *c, struc
     assert(c && ma);
 
     if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {
-        pa_log(__FILE__": public= expects numeric argument.\n");
+        pa_log(__FILE__": public= expects a boolean argument.\n");
         return NULL;
     }
     

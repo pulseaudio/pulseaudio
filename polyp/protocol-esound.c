@@ -995,9 +995,15 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
 struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
     struct pa_protocol_esound *p;
+    int public;
     assert(core && server && ma);
 
     p = pa_xmalloc(sizeof(struct pa_protocol_esound));
+
+    if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {
+        pa_log(__FILE__": public= expects a boolean argument.\n");
+        return NULL;
+    }
 
     if (pa_authkey_load_auto(pa_modargs_get_value(ma, "cookie", DEFAULT_COOKIE_FILE), p->esd_key, sizeof(p->esd_key)) < 0) {
         pa_xfree(p);
@@ -1005,7 +1011,7 @@ struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa
     }
 
     p->module = m;
-    p->public = 0;
+    p->public = public;
     p->server = server;
     pa_socket_server_set_callback(p->server, on_connection, p);
     p->core = core;
