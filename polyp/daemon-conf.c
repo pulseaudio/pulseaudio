@@ -119,7 +119,7 @@ int pa_daemon_conf_set_resample_method(struct pa_daemon_conf *c, const char *str
     return 0;
 }
 
-int parse_log_target(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+static int parse_log_target(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     struct pa_daemon_conf *c = data;
     assert(filename && lvalue && rvalue && data);
 
@@ -131,7 +131,7 @@ int parse_log_target(const char *filename, unsigned line, const char *lvalue, co
     return 0;
 }
 
-int parse_resample_method(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+static int parse_resample_method(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
     struct pa_daemon_conf *c = data;
     assert(filename && lvalue && rvalue && data);
 

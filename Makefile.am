@@ -18,7 +18,7 @@
 # USA.
 
 EXTRA_DIST = bootstrap.sh README LICENSE doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in
-SUBDIRS=polyp doc
+SUBDIRS=polyp doc libltdl
 
 MAINTAINERCLEANFILES=README
 noinst_DATA = README

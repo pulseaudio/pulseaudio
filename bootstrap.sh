@@ -36,7 +36,7 @@ else
     rm -f config.cache
 
     run_versioned aclocal 1.7
-    libtoolize -c --force
+    libtoolize -c --force --ltdl
     autoheader
     run_versioned automake 1.7 -a -c --foreign
     autoconf -Wall

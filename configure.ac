@@ -37,11 +37,14 @@ fi
 
 # Checks for programs.
 AC_PROG_CC
+
+# libtool stuff
 AC_LIBLTDL_INSTALLABLE
-AC_SUBST(INCLTDL)
+AC_SUBST(LTDLINCL)
 AC_SUBST(LIBLTDL)
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
+AC_CONFIG_SUBDIRS(libltdl)
 
 # Checks for header files.
 AC_HEADER_STDC

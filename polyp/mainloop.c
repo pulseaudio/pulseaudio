@@ -130,7 +130,7 @@ static void mainloop_io_set_destroy(struct pa_io_event *e, void (*callback)(stru
 }
 
 /* Defer events */
-struct pa_defer_event* mainloop_defer_new(struct pa_mainloop_api*a, void (*callback) (struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata), void *userdata) {
+static struct pa_defer_event* mainloop_defer_new(struct pa_mainloop_api*a, void (*callback) (struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata), void *userdata) {
     struct pa_mainloop *m;
     struct pa_defer_event *e;
 
