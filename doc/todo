@@ -10,6 +10,7 @@
 - commenting
 - non-fp mixing
 - non-fp resampling
+- module-tunnel: use latency interpolation
 
 ** later ***
 - pass meta info for hearing impaired
