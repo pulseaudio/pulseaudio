@@ -18,7 +18,9 @@
 - fix or work around libtool bug
 - merge pa_context_connect_*
 - input latency
-- check if all mainloop stuff works still
+- fix public=
+- fix POLYP_SERVER=foo:4711
+- fix tcp/native
 
 ** later ***
 - xmlrpc/http

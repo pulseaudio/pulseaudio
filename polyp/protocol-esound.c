@@ -905,7 +905,7 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
     c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
 
-    assert(pa_memblockq_get_length(c->input_memblockq) > 2048);
+/*     assert(pa_memblockq_get_length(c->input_memblockq) > 2048); */
 }
 
 static void sink_input_kill_cb(struct pa_sink_input *i) {

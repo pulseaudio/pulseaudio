@@ -33,13 +33,19 @@ AM_LIBADD=$(PTHREAD_LIBS) -lm
 EXTRA_DIST = polypaudio.pa depmod.py esdcompat.sh.in
 bin_PROGRAMS = polypaudio pacat pactl pamodinfo
 bin_SCRIPTS = esdcompat.sh
-noinst_PROGRAMS = mainloop-test mainloop-test-glib mainloop-test-glib12 pacat-simple parec-simple cpulimit-test cpulimit-test2 
+noinst_PROGRAMS = \
+		mainloop-test \
+		pacat-simple \
+		parec-simple \
+		cpulimit-test \
+		cpulimit-test2 
 
 polypconf_DATA=polypaudio.pa 
 
 BUILT_SOURCES=polyplib-version.h
 
-polypinclude_HEADERS=polyplib.h \
+polypinclude_HEADERS= \
+		polyplib.h \
 		polyplib-def.h \
 		polyplib-simple.h \
 		polyplib-error.h \
@@ -57,13 +63,14 @@ polypinclude_HEADERS=polyplib.h \
 		sample.h \
 		glib-mainloop.h
 
-modlib_LTLIBRARIES=libiochannel.la \
+modlib_LTLIBRARIES= \
+		libsocket-util.la \
+		libiochannel.la \
 		libsocket-server.la \
 		libsocket-client.la \
-		libpstream.la \
 		libpacket.la \
+		libpstream.la \
 		liboss-util.la \
-		libalsa-util.la \
 		libioline.la \
 		libcli.la \
 		libprotocol-cli.la \
@@ -71,7 +78,6 @@ modlib_LTLIBRARIES=libiochannel.la \
 		libpstream-util.la \
 		libpdispatch.la \
 		libauthkey.la \
-		libsocket-util.la \
 		libprotocol-simple.la \
 		libprotocol-esound.la \
 		libprotocol-native.la \
@@ -80,8 +86,6 @@ modlib_LTLIBRARIES=libiochannel.la \
 		module-cli-protocol-unix.la \
 		module-pipe-sink.la \
 		module-pipe-source.la \
-		module-alsa-sink.la \
-		module-alsa-source.la \
 		module-oss.la \
 		module-oss-mmap.la \
 		module-simple-protocol-tcp.la \
@@ -93,15 +97,10 @@ modlib_LTLIBRARIES=libiochannel.la \
 		module-native-protocol-fd.la \
 		module-sine.la
 
-if !X_DISPLAY_MISSING
-modlib_LTLIBRARIES+=module-x11-bell.la
-endif
-
-lib_LTLIBRARIES=libpolyp-@PA_MAJORMINOR@.la \
+lib_LTLIBRARIES= \
+		libpolyp-@PA_MAJORMINOR@.la \
 		libpolyp-error-@PA_MAJORMINOR@.la \
 		libpolyp-mainloop-@PA_MAJORMINOR@.la \
-		libpolyp-mainloop-glib-@PA_MAJORMINOR@.la \
-		libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la \
 		libpolyp-simple-@PA_MAJORMINOR@.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
@@ -196,11 +195,6 @@ libpacket_la_LDFLAGS = -avoid-version
 liboss_util_la_SOURCES = oss-util.c oss-util.h
 liboss_util_la_LDFLAGS = -avoid-version
 
-libalsa_util_la_SOURCES = alsa-util.c alsa-util.h
-libalsa_util_la_LDFLAGS = -avoid-version
-libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS)
-libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
-
 libioline_la_SOURCES = ioline.c ioline.h
 libioline_la_LDFLAGS = -avoid-version
 libioline_la_LIBADD = $(AM_LIBADD) libiochannel.la
@@ -283,16 +277,6 @@ module_pipe_source_la_SOURCES = module-pipe-source.c
 module_pipe_source_la_LDFLAGS = -module -avoid-version
 module_pipe_source_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
-module_alsa_sink_la_SOURCES = module-alsa-sink.c
-module_alsa_sink_la_LDFLAGS = -module -avoid-version
-module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
-module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
-
-module_alsa_source_la_SOURCES = module-alsa-source.c
-module_alsa_source_la_LDFLAGS = -module -avoid-version
-module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
-module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
-
 module_oss_la_SOURCES = module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version
 module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
@@ -308,13 +292,6 @@ module_cli_la_LIBADD = $(AM_LIBADD) libcli.la libiochannel.la
 module_sine_la_SOURCES = module-sine.c
 module_sine_la_LDFLAGS = -module -avoid-version
 module_sine_la_LIBADD = $(AM_LIBADD)
-
-if !X_DISPLAY_MISSING
-module_x11_bell_la_SOURCES = module-x11-bell.c
-module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
-module_x11_bell_la_LDFLAGS = -module -avoid-version
-module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
-endif
 
 libpolyp_@PA_MAJORMINOR@_la_SOURCES = polyplib.h \
 		polyplib-def.h \
@@ -369,16 +346,6 @@ libpolyp_simple_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_simple_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 libpolyp_simple_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 
-libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_SOURCES = glib-mainloop.h glib-mainloop.c
-libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
-libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop-@PA_MAJORMINOR@.la $(GLIB20_LIBS)
-libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
-
-libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_SOURCES = glib-mainloop.h glib12-mainloop.c
-libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
-libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop-@PA_MAJORMINOR@.la $(GLIB12_LIBS)
-libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
-
 pacat_SOURCES = pacat.c
 pacat_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 pacat_CFLAGS = $(AM_CFLAGS) 
@@ -399,14 +366,6 @@ mainloop_test_SOURCES = mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
 mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la libpolyp-@PA_MAJORMINOR@.la
 
-mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
-mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
-mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainloop-glib-@PA_MAJORMINOR@.la
-
-mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
-mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
-mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
-
 cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c
 cpulimit_test_CFLAGS = $(AM_CFLAGS)
 cpulimit_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
@@ -415,6 +374,82 @@ cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c log.c
 cpulimit_test2_CFLAGS = $(AM_CFLAGS) -DTEST2
 cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
 
+### X11 stuff
+
+if HAVE_X11
+modlib_LTLIBRARIES+= \
+		module-x11-bell.la
+
+module_x11_bell_la_SOURCES = module-x11-bell.c
+module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+module_x11_bell_la_LDFLAGS = -module -avoid-version
+module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIB)
+endif
+
+### ALSA modules
+
+if HAVE_ALSA
+modlib_LTLIBRARIES+= \
+		libalsa-util.la \
+		module-alsa-sink.la \
+		module-alsa-source.la
+
+libalsa_util_la_SOURCES = alsa-util.c alsa-util.h
+libalsa_util_la_LDFLAGS = -avoid-version
+libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS)
+libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+
+module_alsa_sink_la_SOURCES = module-alsa-sink.c
+module_alsa_sink_la_LDFLAGS = -module -avoid-version
+module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
+module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+
+module_alsa_source_la_SOURCES = module-alsa-source.c
+module_alsa_source_la_LDFLAGS = -module -avoid-version
+module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
+module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+endif
+
+### GLIB 2.0 support
+
+if HAVE_GLIB20
+lib_LTLIBRARIES+= \
+		libpolyp-mainloop-glib-@PA_MAJORMINOR@.la
+
+noinst_PROGRAMS+= \
+		mainloop-test-glib12 
+
+libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_SOURCES = glib-mainloop.h glib-mainloop.c
+libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
+libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop-@PA_MAJORMINOR@.la $(GLIB20_LIBS)
+libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
+
+mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
+mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
+mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainloop-glib-@PA_MAJORMINOR@.la
+endif
+
+### GLIB 1.2 support
+
+if HAVE_GLIB12
+
+lib_LTLIBRARIES+= \
+		libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
+
+noinst_PROGRAMS+= \
+		mainloop-test-glib
+libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_SOURCES = glib-mainloop.h glib12-mainloop.c
+libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
+libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop-@PA_MAJORMINOR@.la $(GLIB12_LIBS)
+libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
+
+mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
+mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
+mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
+
+endif
+
+### libpolypcore (needs to be updated)
 
 if BUILD_LIBPOLYPCORE
 
@@ -485,6 +520,7 @@ libpolypcore_la_SOURCES = idxset.c idxset.h \
 
 endif
 
+### Some minor stuff
 
 suid: polypaudio
 	chown root:root $<
