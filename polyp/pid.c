@@ -65,9 +65,62 @@ static pid_t read_pid(const char *fn, int fd) {
     return (pid_t) pid;
 }
 
+static int open_pid_file(const char *fn, int mode) {
+    int fd = -1;
+    int lock = -1;
+    
+    for (;;) {
+        struct stat st;
+        
+        pa_make_secure_parent_dir(fn);
+        
+        if ((fd = open(fn, mode, S_IRUSR|S_IWUSR)) < 0) {
+            if (mode != O_RDONLY || errno != ENOENT)
+                pa_log(__FILE__": WARNING: failed to open PID file '%s': %s\n", fn, strerror(errno));
+            goto fail;
+        }
+
+        /* Try to lock the file. If that fails, go without */
+        if (pa_lock_fd(fd, 1) < 0)
+            goto fail;
+        
+        if (fstat(fd, &st) < 0) {
+            pa_log(__FILE__": Failed to fstat() PID file '%s': %s\n", fn, strerror(errno));
+            goto fail;
+        }
+
+        /* Does the file still exist in the file system? When ye, w're done, otherwise restart */
+        if (st.st_nlink >= 1)
+            break;
+
+        if (pa_lock_fd(fd, 0) < 0)
+            goto fail;
+
+        if (close(fd) < 0) {
+            pa_log(__FILE__": Failed to close file '%s': %s\n", fn, strerror(errno));
+            goto fail;
+        }
+
+        fd = -1;
+    }
+
+    return fd;
+
+fail:
+
+    if (fd < 0) {
+        if (lock >= 0)
+            pa_lock_fd(fd, 0);
+        
+        close(fd);
+    }
+
+    return -1;
+}
+
 /* Create a new PID file for the current process. */
 int pa_pid_file_create(void) {
-    int fd = -1, lock = -1;
+    int fd = -1;
     int ret = -1;
     char fn[PATH_MAX];
     char t[20];
@@ -75,13 +128,9 @@ int pa_pid_file_create(void) {
     size_t l;
 
     pa_runtime_path("pid", fn, sizeof(fn));
-    if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
-        pa_log(__FILE__": WARNING: failed to open PID file '%s': %s\n", fn, strerror(errno));
-        goto fail;
-    }
 
-    /* Try to lock the file. If that fails, go without */
-    lock = pa_lock_fd(fd, 1);
+    if ((fd = open_pid_file(fn, O_CREAT|O_RDWR)) < 0)
+        goto fail;
 
     if ((pid = read_pid(fn, fd)) == (pid_t) -1)
         pa_log(__FILE__": corrupt PID file, overwriting.\n");
@@ -112,9 +161,7 @@ int pa_pid_file_create(void) {
     
 fail:
     if (fd >= 0) {
-        if (lock >= 0)
-            pa_lock_fd(fd, 0);
-
+        pa_lock_fd(fd, 0);
         close(fd);
     }
     
@@ -123,18 +170,17 @@ fail:
 
 /* Remove the PID file, if it is ours */
 int pa_pid_file_remove(void) {
-    int fd = -1, lock = -1;
+    int fd = -1;
     char fn[PATH_MAX];
     int ret = -1;
     pid_t pid;
 
     pa_runtime_path("pid", fn, sizeof(fn));
-    if ((fd = open(fn, O_RDWR)) < 0) {
+
+    if ((fd = open_pid_file(fn, O_RDWR)) < 0) {
         pa_log(__FILE__": WARNING: failed to open PID file '%s': %s\n", fn, strerror(errno));
         goto fail;
     }
-
-    lock = pa_lock_fd(fd, 1);
 
     if ((pid = read_pid(fn, fd)) == (pid_t) -1)
         goto fail;
@@ -159,9 +205,7 @@ int pa_pid_file_remove(void) {
 fail:
 
     if (fd >= 0) {
-        if (lock >= 0)
-            pa_lock_fd(fd, 0);
-
+        pa_lock_fd(fd, 0);
         close(fd);
     }
 
@@ -180,31 +224,28 @@ int pa_pid_file_check_running(pid_t *pid) {
  * otherwise. If successful *pid contains the PID of the daemon
  * process. */
 int pa_pid_file_kill(int sig, pid_t *pid) {
-    int fd = -1, lock = -1;
+    int fd = -1;
     char fn[PATH_MAX];
     int ret = -1;
     pid_t _pid;
 
     if (!pid)
         pid = &_pid;
-
+    
     pa_runtime_path("pid", fn, sizeof(fn));
-    if ((fd = open(fn, O_RDONLY)) < 0)
+    
+    if ((fd = open_pid_file(fn, O_RDONLY)) < 0)
         goto fail;
-
-    lock = pa_lock_fd(fd, 1);
-
+    
     if ((*pid = read_pid(fn, fd)) == (pid_t) -1)
         goto fail;
-
+    
     ret = kill(*pid, sig);
     
 fail:
-
+    
     if (fd >= 0) {
-        if (lock >= 0)
-            pa_lock_fd(fd, 0);
-
+        pa_lock_fd(fd, 0);
         close(fd);
     }
 

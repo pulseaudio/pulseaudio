@@ -646,26 +646,50 @@ char* pa_strip_nl(char *s) {
 
 /* Create a temporary lock file and lock it. */
 int pa_lock_lockfile(const char *fn) {
-    int fd;
+    int fd = -1;
     assert(fn);
 
-    if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
-        pa_log(__FILE__": failed to create lock file '%s': %s\n", fn, strerror(errno));
-        goto fail;
+    for (;;) {
+        struct stat st;
+        
+        if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
+            pa_log(__FILE__": failed to create lock file '%s': %s\n", fn, strerror(errno));
+            goto fail;
+        }
+        
+        if (pa_lock_fd(fd, 1) < 0) {
+            pa_log(__FILE__": failed to lock file '%s'.\n", fn);
+            goto fail;
+        }
+        
+        if (fstat(fd, &st) < 0) {
+            pa_log(__FILE__": failed to fstat() file '%s'.\n", fn);
+            goto fail;
+        }
+
+        /* Check wheter the file has been removed meanwhile. When yes, restart this loop, otherwise, we're done */
+        if (st.st_nlink >= 1)
+            break;
+            
+        if (pa_lock_fd(fd, 0) < 0) {
+            pa_log(__FILE__": failed to unlock file '%s'.\n", fn);
+            goto fail;
+        }
+        
+        if (close(fd) < 0) {
+            pa_log(__FILE__": failed to close file '%s'.\n", fn);
+            goto fail;
+        }
+
+        fd = -1;
     }
-
-    if (pa_lock_fd(fd, 1) < 0)
-        pa_log(__FILE__": failed to lock file '%s'.\n", fn);
-        goto fail;
-
+        
     return fd;
 
 fail:
 
-    if (fd >= 0) {
-        unlink(fn);
+    if (fd >= 0)
         close(fd);
-    }
 
     return -1;
 }
