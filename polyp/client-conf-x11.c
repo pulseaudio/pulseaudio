@@ -15,7 +15,7 @@
 
   You should have received a copy of the GNU Lesser General Public License
   along with polypaudio; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-13071
   USA.
 ***/
 
@@ -48,11 +48,10 @@ int pa_client_conf_from_x11(struct pa_client_conf *c, const char *dname) {
         goto finish;
     }
 
-    if (!pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) 
-        goto finish;
-
-    pa_xfree(c->default_server);
-    c->default_server = pa_xstrdup(t);
+    if (pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) {
+        pa_xfree(c->default_server);
+        c->default_server = pa_xstrdup(t);
+    }
 
     if (pa_x11_get_prop(d, "POLYP_SINK", t, sizeof(t))) {
         pa_xfree(c->default_sink);

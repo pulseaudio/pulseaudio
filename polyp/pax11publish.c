@@ -96,10 +96,8 @@ int main(int argc, char *argv[]) {
     switch (mode) {
         case DUMP: {
             char t[1024];
-            if (!pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) 
-                goto finish;
-
-            printf("Server: %s\n", t);
+            if (pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) 
+                printf("Server: %s\n", t);
             if (pa_x11_get_prop(d, "POLYP_SOURCE", t, sizeof(t)))
                 printf("Source: %s\n", t);
             if (pa_x11_get_prop(d, "POLYP_SINK", t, sizeof(t)))
@@ -112,11 +110,8 @@ int main(int argc, char *argv[]) {
             
         case IMPORT: {
             char t[1024];
-            if (!pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) 
-                goto finish;
-
-            printf("POLYP_SERVER='%s'\nexport POLYP_SERVER\n", t);
-            
+            if (pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) 
+                printf("POLYP_SERVER='%s'\nexport POLYP_SERVER\n", t);
             if (pa_x11_get_prop(d, "POLYP_SOURCE", t, sizeof(t)))
                 printf("POLYP_SOURCE='%s'\nexport POLYP_SOURCE\n", t);
             if (pa_x11_get_prop(d, "POLYP_SINK", t, sizeof(t)))
@@ -155,10 +150,14 @@ int main(int argc, char *argv[]) {
                 goto finish;
             }
 
+            pa_x11_del_prop(d, "POLYP_SERVER");
+            pa_x11_del_prop(d, "POLYP_SINK");
+            pa_x11_del_prop(d, "POLYP_SOURCE");
             pa_x11_del_prop(d, "POLYP_ID");
-
+            pa_x11_del_prop(d, "POLYP_COOKIE");
+            
             if (server)
-                pa_x11_set_prop(d, "POLYP_SERVER", c->default_server);
+                pa_x11_set_prop(d, "POLYP_SERVER", server);
             else if (c->default_server)
                 pa_x11_set_prop(d, "POLYP_SERVER", c->default_server);
             else {

@@ -512,7 +512,7 @@ static int try_next_connection(struct pa_context *c) {
 
         pa_xfree(c->server);
         c->server = pa_xstrdup(u);
-        
+
         if (!(c->client = pa_socket_client_new_string(c->mainloop, u, PA_NATIVE_DEFAULT_PORT)))
             continue;
         
@@ -564,7 +564,6 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
     if (!server)
         server = c->conf->default_server;
 
-
     pa_context_ref(c);
 
     assert(!c->server_list);
@@ -580,14 +579,23 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
 
         /* Prepend in reverse order */
         
-        if ((d = getenv("DISPLAY")))
-            c->server_list = pa_strlist_prepend(c->server_list, d);
+        if ((d = getenv("DISPLAY"))) {
+            char *e;
+            d = pa_xstrdup(d);
+            if ((e = strchr(d, ':')))
+                *e = 0;
+
+            if (*d)
+                c->server_list = pa_strlist_prepend(c->server_list, d);
+
+            pa_xfree(d);
+        }
         
         c->server_list = pa_strlist_prepend(c->server_list, "tcp6:localhost");
         c->server_list = pa_strlist_prepend(c->server_list, "localhost");
         c->server_list = pa_strlist_prepend(c->server_list, pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET, ufn, sizeof(ufn)));
 
-        /* Wrap the connection attempts in a single transaction for sane autospwan locking */
+        /* Wrap the connection attempts in a single transaction for sane autospawn locking */
         if (spawn && c->conf->autospawn) {
             char lf[PATH_MAX];
 

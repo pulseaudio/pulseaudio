@@ -263,6 +263,9 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
     if (pa_parse_address(name, &a) < 0)
         return NULL;
 
+    if (!a.port)
+        a.port = default_port;
+    
     switch (a.type) {
         case PA_PARSED_ADDRESS_UNIX:
             c = pa_socket_client_new_unix(m, a.path_or_host);

@@ -714,7 +714,8 @@ static int do_read(struct connection *c) {
         assert(c->read_data_length < sizeof(c->request));
 
         if ((r = pa_iochannel_read(c->io, ((uint8_t*) &c->request) + c->read_data_length, sizeof(c->request) - c->read_data_length)) <= 0) {
-            pa_log(__FILE__": read() failed: %s\n", r == 0 ? "EOF" : strerror(errno));
+            if (r != 0)
+                pa_log_warn(__FILE__": read() failed: %s\n", strerror(errno));
             return -1;
         }
 
