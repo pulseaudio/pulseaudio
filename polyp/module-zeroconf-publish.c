@@ -121,12 +121,12 @@ static void txt_record_server_data(struct pa_core *c, sw_text_record t) {
 }
 
 static int publish_service(struct userdata *u, struct service *s) {
-    assert(u && s);
     char t[256];
     char hn[256];
     int r = -1;
     sw_text_record txt;
     int free_txt = 0;
+    assert(u && s);
        
     if ((s->published == 1 && s->loaded.valid) ||
         (s->published == 2 && s->autoload.valid && !s->loaded.valid))
