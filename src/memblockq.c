@@ -82,6 +82,18 @@ void pa_memblockq_push(struct pa_memblockq* bq, const struct pa_memchunk *chunk,
     struct memblock_list *q;
     assert(bq && chunk && chunk->memblock && chunk->length && (chunk->length % bq->base) == 0);
 
+    if (bq->blocks_tail && bq->blocks_tail->chunk.memblock == chunk->memblock) {
+        /* Try to merge memory chunks */
+
+        if (bq->blocks_tail->chunk.index+bq->blocks_tail->chunk.length == chunk->index) {
+            bq->blocks_tail->chunk.length += chunk->length;
+            bq->current_length += chunk->length;
+
+    /*        fprintf(stderr, __FILE__": merge succeeded: %u\n", chunk->length);*/
+            return;
+        }
+    }
+    
     q = malloc(sizeof(struct memblock_list));
     assert(q);
 

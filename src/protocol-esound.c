@@ -394,7 +394,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             continue;
 
         assert(t >= s+k+k);
-        
+
         if (conn->sink_input) {
             rate = conn->sink_input->sample_spec.rate;
             volume = (conn->sink_input->volume*0xFF)/0x100;

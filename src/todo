@@ -9,8 +9,6 @@
 
 - move more stuff from module-oss[-dma] to liboss-util
 
-- merge memchunks in memblockq
-
 - create libstatustext, libsocketutil
 - prefix modules/libraries with pa_
 
@@ -29,6 +27,7 @@
 - autoloading/autounloading
 - slp/rendezvous
 - doxygen
+- make mcalign merge chunks
 
 drivers:
 - libao
