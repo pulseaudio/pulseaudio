@@ -255,8 +255,9 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
     pa_usec_t buffer_usec, sink_usec, source_usec, transport_usec;
     int playing;
     uint32_t queue_length;
+    uint64_t counter;
     struct timeval local, remote, now;
-    assert(pd && u && t);
+    assert(pd && u);
 
     if (command != PA_COMMAND_REPLY) {
         if (command == PA_COMMAND_ERROR)
@@ -274,6 +275,7 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
         pa_tagstruct_getu32(t, &queue_length) < 0 ||
         pa_tagstruct_get_timeval(t, &local) < 0 ||
         pa_tagstruct_get_timeval(t, &remote) < 0 ||
+        pa_tagstruct_getu64(t, &counter) < 0 ||
         !pa_tagstruct_eof(t)) {
         pa_log(__FILE__": invalid reply.\n");
         die(u);
@@ -322,6 +324,7 @@ static void request_latency(struct userdata *u) {
 
     gettimeofday(&now, NULL);
     pa_tagstruct_put_timeval(t, &now);
+    pa_tagstruct_putu64(t, 0);
     
     pa_pstream_send_tagstruct(u->pstream, t);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, u);
