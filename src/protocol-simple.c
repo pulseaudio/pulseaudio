@@ -10,6 +10,7 @@
 #include "protocol-simple.h"
 #include "client.h"
 #include "sample-util.h"
+#include "namereg.h"
 
 struct connection {
     struct pa_protocol_simple *protocol;
@@ -31,8 +32,13 @@ struct pa_protocol_simple {
     struct pa_core *core;
     struct pa_socket_server*server;
     struct pa_idxset *connections;
-    enum pa_protocol_simple_mode mode;
+    enum {
+        RECORD = 1,
+        PLAYBACK = 2,
+        DUPLEX = 3
+    } mode;
     struct pa_sample_spec sample_spec;
+    uint32_t sink_index, source_index;
 };
 
 #define PLAYBACK_BUFFER_SECONDS (.5)
@@ -263,14 +269,15 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
 
-    if (p->mode & PA_PROTOCOL_SIMPLE_PLAYBACK) {
+    if (p->mode & PLAYBACK) {
         struct pa_sink *sink;
         size_t l;
 
-        if (!(sink = pa_sink_get_default(p->core))) {
-            fprintf(stderr, "Failed to get default sink.\n");
-            goto fail;
-        }
+        if (!(sink = pa_idxset_get_by_index(p->core->sinks, p->sink_index)))
+            if (!(sink = pa_sink_get_default(p->core))) {
+                fprintf(stderr, "Failed to get sink.\n");
+                goto fail;
+            }
 
         c->sink_input = pa_sink_input_new(sink, c->client->name, &p->sample_spec);
         if (!c->sink_input) {
@@ -293,15 +300,15 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
         c->playback.fragment_size = l/10;
     }
 
-
-    if (p->mode & PA_PROTOCOL_SIMPLE_RECORD) {
+    if (p->mode & RECORD) {
         struct pa_source *source;
         size_t l;
 
-        if (!(source = pa_source_get_default(p->core))) {
-            fprintf(stderr, "Failed to get default source.\n");
-            goto fail;
-        }
+        if (!(source = pa_idxset_get_by_index(p->core->sources, p->source_index)))
+            if (!(source = pa_source_get_default(p->core))) {
+                fprintf(stderr, "Failed to get source.\n");
+                goto fail;
+            }
 
         c->source_output = pa_source_output_new(source, c->client->name, &p->sample_spec);
         if (!c->source_output) {
@@ -334,22 +341,62 @@ fail:
         connection_free(c);
 }
 
-struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, enum pa_protocol_simple_mode mode) {
-    struct pa_protocol_simple* p;
-    assert(core && server && mode <= PA_PROTOCOL_SIMPLE_DUPLEX && mode > 0);
+struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
+    struct pa_protocol_simple* p = NULL;
+    uint32_t enable;
+    assert(core && server && ma);
 
     p = malloc(sizeof(struct pa_protocol_simple));
     assert(p);
+    memset(p, 0, sizeof(struct pa_protocol_simple));
+    
     p->module = m;
     p->core = core;
     p->server = server;
     p->connections = pa_idxset_new(NULL, NULL);
-    p->mode = mode;
-    p->sample_spec = PA_DEFAULT_SAMPLE_SPEC;
 
+    if (pa_modargs_get_sample_spec(ma, &p->sample_spec) < 0) {
+        fprintf(stderr, "Failed to parse sample type specification.\n");
+        goto fail;
+    }
+
+    if (pa_modargs_get_source_index(ma, core, &p->source_index) < 0) {
+        fprintf(stderr, __FILE__": source does not exist.\n");
+        goto fail;
+    }
+
+    if (pa_modargs_get_sink_index(ma, core, &p->sink_index) < 0) {
+        fprintf(stderr, __FILE__": sink does not exist.\n");
+        goto fail;
+    }
+    
+    enable = 0;
+    if (pa_modargs_get_value_u32(ma, "record", &enable) < 0) {
+        fprintf(stderr, __FILE__": record= expects a numeric argument.\n");
+        goto fail;
+    }
+    p->mode = enable ? RECORD : 0;
+
+    enable = 1;
+    if (pa_modargs_get_value_u32(ma, "playback", &enable) < 0) {
+        fprintf(stderr, __FILE__": playback= expects a numeric argument.\n");
+        goto fail;
+    }
+    p->mode |= enable ? PLAYBACK : 0;
+
+    if ((p->mode & (RECORD|PLAYBACK)) == 0) {
+        fprintf(stderr, __FILE__": neither playback nor recording enabled for protocol.\n");
+        goto fail;
+    }
+    
     pa_socket_server_set_callback(p->server, on_connection, p);
     
     return p;
+
+fail:
+    if (p)
+        pa_protocol_simple_free(p);
+    return NULL;
 }
 
 
@@ -357,12 +404,15 @@ void pa_protocol_simple_free(struct pa_protocol_simple *p) {
     struct connection *c;
     assert(p);
 
-    while((c = pa_idxset_first(p->connections, NULL)))
-        connection_free(c);
+    if (p->connections) {
+        while((c = pa_idxset_first(p->connections, NULL)))
+            connection_free(c);
+        
+        pa_idxset_free(p->connections, NULL, NULL);
+    }
 
-    pa_idxset_free(p->connections, NULL, NULL);
-    
-    pa_socket_server_free(p->server);
+    if (p->server)
+        pa_socket_server_free(p->server);
     free(p);
 }
 

@@ -736,20 +736,26 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
 /*** module entry points ***/
 
-struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m) {
+struct pa_protocol_native* pa_protocol_native_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
     struct pa_protocol_native *p;
-    assert(core && server);
+    uint32_t public;
+    assert(core && server && ma);
 
+    if (pa_modargs_get_value_u32(ma, "public", &public) < 0) {
+        fprintf(stderr, __FILE__": public= expects numeric argument.\n");
+        return NULL;
+    }
+    
     p = malloc(sizeof(struct pa_protocol_native));
     assert(p);
 
-    if (pa_authkey_load_from_home(PA_NATIVE_COOKIE_FILE, p->auth_cookie, sizeof(p->auth_cookie)) < 0) {
+    if (pa_authkey_load_from_home(pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), p->auth_cookie, sizeof(p->auth_cookie)) < 0) {
         free(p);
         return NULL;
     }
 
     p->module = m;
-    p->public = 1;
+    p->public = public;
     p->server = server;
     p->core = core;
     p->connections = pa_idxset_new(NULL, NULL);

@@ -1,7 +1,9 @@
 - native library/protocol:
        more functions (esp. latency)
 
-- make all modules use modargs.c
+- make all modules use modargs.c:
+   module-oss.c
+   module-oss-mmap.c
 - cmdline
 - daemonizing
 

@@ -17,7 +17,7 @@
 
 #include "authkey.h"
 
-#define COOKIE_FILE ".esd_auth"
+#define DEFAULT_COOKIE_FILE ".esd_auth"
 
 #define PLAYBACK_BUFFER_SECONDS (.5)
 #define PLAYBACK_BUFFER_FRAGMENTS (10)
@@ -774,14 +774,24 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
 /*** entry points ***/
 
-struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa_socket_server *server, struct pa_module *m) {
+struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
+    uint32_t source_index, sink_index;
     struct pa_protocol_esound *p;
-    assert(core && server);
+    assert(core && server && ma);
 
+    if (pa_modargs_get_source_index(ma, core, &source_index) < 0) {
+        fprintf(stderr, __FILE__": source does not exist.\n");
+        return NULL;
+    }
+
+    if (pa_modargs_get_sink_index(ma, core, &sink_index) < 0) {
+        fprintf(stderr, __FILE__": sink does not exist.\n");
+        return NULL;
+    }
     p = malloc(sizeof(struct pa_protocol_esound));
     assert(p);
 
-    if (pa_authkey_load_from_home(COOKIE_FILE, p->esd_key, sizeof(p->esd_key)) < 0) {
+    if (pa_authkey_load_auto(pa_modargs_get_value(ma, "cookie", DEFAULT_COOKIE_FILE), p->esd_key, sizeof(p->esd_key)) < 0) {
         free(p);
         return NULL;
     }
@@ -793,7 +803,8 @@ struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa
     p->core = core;
     p->connections = pa_idxset_new(NULL, NULL);
     assert(p->connections);
-    p->sink_index = p->source_index = PA_IDXSET_INVALID;
+    p->sink_index = sink_index;
+    p->source_index = source_index;
     p->n_player = 0;
 
     return p;

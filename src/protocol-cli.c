@@ -30,7 +30,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     pa_idxset_put(p->connections, c, NULL);
 }
 
-struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m) {
+struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
     struct pa_protocol_cli* p;
     assert(core && server);
 

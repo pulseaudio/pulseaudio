@@ -18,8 +18,13 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     struct pa_iochannel *io;
     assert(c && m);
 
+    if (m->argument) {
+        fprintf(stderr, __FILE__": module doesn't accept arguments.\n");
+        return -1;
+    }
+    
     if (pa_stdio_acquire() < 0) {
-        fprintf(stderr, "STDIN/STDUSE already used\n");
+        fprintf(stderr, __FILE__": STDIN/STDUSE already in use.\n");
         return -1;
     }
 

@@ -14,6 +14,7 @@
 #include <netinet/ip.h>
 
 #include "socket-util.h"
+#include "util.h"
 
 void pa_socket_peer_to_string(int fd, char *c, size_t l) {
     struct stat st;
@@ -149,4 +150,42 @@ int pa_unix_socket_remove_stale(const char *fn) {
         return -1;
 
     return 0;
+}
+
+int pa_unix_socket_make_secure_dir(const char *fn) {
+    int ret = -1;
+    char *slash, *dir = strdup(fn);
+    assert(dir);
+    
+    if (!(slash = strrchr(dir, '/')))
+        goto finish;
+    *slash = 0;
+    
+    if (pa_make_secure_dir(dir) < 0)
+        goto finish;
+
+    ret = 0;
+    
+finish:
+    free(dir);
+    return ret;
+}
+
+int pa_unix_socket_remove_secure_dir(const char *fn) {
+    int ret = -1;
+    char *slash, *dir = strdup(fn);
+    assert(dir);
+    
+    if (!(slash = strrchr(dir, '/')))
+        goto finish;
+    *slash = 0;
+
+    if (rmdir(dir) < 0)
+        goto finish;
+    
+    ret = 0;
+    
+finish:
+    free(dir);
+    return ret;
 }

@@ -7,6 +7,9 @@
 #include "modargs.h"
 #include "idxset.h"
 #include "sample-util.h"
+#include "namereg.h"
+#include "sink.h"
+#include "source.h"
 
 struct pa_modargs;
 
@@ -218,5 +221,39 @@ int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *rss
 
     *rss = ss;
     
+    return 0;
+}
+
+int pa_modargs_get_source_index(struct pa_modargs *ma, struct pa_core *c, uint32_t *index) {
+    const char *t;
+    assert(ma && index);
+    
+    if (!(t = pa_modargs_get_value(ma, "source", NULL)))
+        *index = PA_IDXSET_INVALID;
+    else {
+        struct pa_source *source;
+        if (!(source = pa_namereg_get(c, t, PA_NAMEREG_SOURCE)))
+            return -1;
+
+        *index = source->index;
+    }
+
+    return 0;
+}
+
+int pa_modargs_get_sink_index(struct pa_modargs *ma, struct pa_core *c, uint32_t *index) {
+    const char *t;
+    assert(ma && index);
+
+    if (!(t = pa_modargs_get_value(ma, "sink", NULL)))
+        *index = PA_IDXSET_INVALID;
+    else {
+        struct pa_sink *sink;
+        if (!(sink = pa_namereg_get(c, t, PA_NAMEREG_SINK)))
+            return -1;
+
+        *index = sink->index;
+    }
+
     return 0;
 }

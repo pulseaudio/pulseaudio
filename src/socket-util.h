@@ -14,4 +14,7 @@ int pa_socket_set_rcvbuf(int fd, size_t l);
 int pa_unix_socket_is_stale(const char *fn);
 int pa_unix_socket_remove_stale(const char *fn);
 
+int pa_unix_socket_make_secure_dir(const char *fn);
+int pa_unix_socket_remove_secure_dir(const char *fn);
+
 #endif
