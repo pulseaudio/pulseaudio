@@ -27,12 +27,6 @@ struct source* source_new(struct core *core, const char *name, const struct samp
     return s;
 }
 
-static void do_free(void *p, void *userdata) {
-    struct output_stream *o = p;
-    assert(o);
-    output_stream_free(o);
-};
-
 void source_free(struct source *s) {
     struct output_stream *o;
     assert(s);
@@ -42,7 +36,6 @@ void source_free(struct source *s) {
     idxset_free(s->output_streams, NULL, NULL);
     
     idxset_remove_by_data(s->core->sources, s, NULL);
-    idxset_free(s->output_streams, do_free, NULL);
 
     free(s->name);
     free(s);

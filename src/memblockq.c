@@ -46,7 +46,7 @@ void memblockq_free(struct memblockq* bq) {
 
 void memblockq_push(struct memblockq* bq, struct memchunk *chunk, size_t delta) {
     struct memblock_list *q;
-    assert(bq && chunk && chunk->memblock && chunk->index);
+    assert(bq && chunk && chunk->memblock && chunk->length);
 
     q = malloc(sizeof(struct memblock_list));
     assert(q);
@@ -152,5 +152,5 @@ void memblockq_empty(struct memblockq *bq) {
 int memblockq_is_empty(struct memblockq *bq) {
     assert(bq);
 
-    return bq->total_length >= bq->base;
+    return bq->total_length < bq->base;
 }

@@ -104,6 +104,7 @@ fail:
 struct socket_server* socket_server_new_ipv4(struct mainloop *m, uint32_t address, uint16_t port) {
     int fd = -1;
     struct sockaddr_in sa;
+    int on = 1;
 
     assert(m && port);
 
@@ -112,10 +113,13 @@ struct socket_server* socket_server_new_ipv4(struct mainloop *m, uint32_t addres
         goto fail;
     }
 
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+        fprintf(stderr, "setsockopt(): %s\n", strerror(errno));
+    
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
     sa.sin_addr.s_addr = htonl(address);
-    
+
     if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
         fprintf(stderr, "bind(): %s\n", strerror(errno));
         goto fail;

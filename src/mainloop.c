@@ -248,8 +248,10 @@ int mainloop_iterate(struct mainloop *m, int block) {
         }   
     }
 
-    if (m->rebuild_pollfds)
+    if (m->rebuild_pollfds) {
         rebuild_pollfds(m);
+        m->rebuild_pollfds = 0;
+    }
 
     m->running = 1;
 
@@ -431,7 +433,7 @@ void mainloop_source_enable(struct mainloop_source*s, int b) {
 void mainloop_source_io_set_events(struct mainloop_source*s, enum mainloop_io_event events) {
     assert(s && !s->dead && s->type == MAINLOOP_SOURCE_TYPE_IO);
 
-    if ((s->io.events && !events) || (!s->io.events && events)) {
+    if (s->io.events != events) {
         assert(s->mainloop);
         s->mainloop->rebuild_pollfds = 1;
     }

@@ -152,8 +152,8 @@ int idxset_put(struct idxset*s, void *p, uint32_t *index) {
     s->hash_table[h] = e;
 
     /* Insert into array */
-    extend_array(s, s->index);
-    a = array_index(s, s->index);
+    extend_array(s, e->index);
+    a = array_index(s, e->index);
     assert(a && !*a);
     *a = e;
 
@@ -183,6 +183,9 @@ void* idxset_get_by_index(struct idxset*s, uint32_t index) {
     assert(s);
     
     if (!(a = array_index(s, index)))
+        return NULL;
+
+    if (!*a)
         return NULL;
 
     return (*a)->data;

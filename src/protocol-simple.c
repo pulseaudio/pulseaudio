@@ -103,7 +103,10 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
     c->istream = NULL;
     c->ostream = NULL;
     c->protocol = p;
-    
+
+    c->client = client_new(p->core, "SIMPLE", "Client");
+    assert(c->client);
+
     if (p->mode & PROTOCOL_SIMPLE_RECORD) {
         struct source *source;
 
@@ -128,8 +131,6 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
         assert(c->istream);
     }
 
-    c->client = client_new(p->core, "SIMPLE", "Client");
-    assert(c->client);
 
     iochannel_set_callback(c->io, io_callback, c);
     idxset_put(p->connections, c, NULL);
@@ -137,6 +138,8 @@ static void on_connection(struct socket_server*s, struct iochannel *io, void *us
     
 fail:
     if (c) {
+        if (c->client)
+            client_free(c->client);
         if (c->istream)
             input_stream_free(c->istream);
         if (c->ostream)

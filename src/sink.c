@@ -77,6 +77,8 @@ static int get_max_length(void *p, uint32_t index, int *del, void*userdata) {
     info->count++;
     info->last_input_stream = i;
 
+    memblock_unref(chunk.memblock);
+
     return 0;
 }
 

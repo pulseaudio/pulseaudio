@@ -41,15 +41,15 @@ static void enable_mainloop_sources(struct iochannel *io) {
 
 static void callback(struct mainloop_source*s, int fd, enum mainloop_io_event events, void *userdata) {
     struct iochannel *io = userdata;
-    int changed;
+    int changed = 0;
     assert(s && fd >= 0 && userdata);
 
-    if (events & MAINLOOP_IO_EVENT_IN && !io->readable) {
+    if ((events & MAINLOOP_IO_EVENT_IN) && !io->readable) {
         io->readable = 1;
         changed = 1;
     }
     
-    if (events & MAINLOOP_IO_EVENT_OUT && !io->writable) {
+    if ((events & MAINLOOP_IO_EVENT_OUT) && !io->writable) {
         io->writable = 1;
         changed = 1;
     }
@@ -116,7 +116,7 @@ void iochannel_free(struct iochannel*io) {
 
     if (io->input_source)
         mainloop_source_free(io->input_source);
-    if (io->output_source)
+    if (io->output_source && io->output_source != io->input_source)
         mainloop_source_free(io->output_source);
     
     free(io);
