@@ -1,4 +1,5 @@
-#include <soundcard.h>
+#include <sys/soundcard.h>
+#include <sys/ioctl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -22,7 +23,7 @@ struct userdata {
 
     struct memchunk memchunk, silence;
 
-    uint32_t fragment_size;
+    uint32_t in_fragment_size, out_fragment_size, sample_size;
 };
 
 static void do_write(struct userdata *u) {
@@ -34,7 +35,7 @@ static void do_write(struct userdata *u) {
         return;
 
     if (!u->memchunk.length) {
-        if (sink_render(u->sink, fragment_size, &u->memchunk) < 0)
+        if (sink_render(u->sink, u->out_fragment_size, &u->memchunk) < 0)
             memchunk = &u->silence;
         else
             memchunk = &u->memchunk;
@@ -68,15 +69,15 @@ static void do_read(struct userdata *u) {
     if (!iochannel_is_readable(u->io))
         return;
 
-    memchunk.memblock = memblock_new(u->fragment_size);
+    memchunk.memblock = memblock_new(u->in_fragment_size);
     assert(memchunk.memblock);
-    if ((r = iochannel_read(u->io, memchunk.memblock->data, memchunk->memblock->length)) < 0) {
+    if ((r = iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
         memblock_unref(memchunk.memblock);
         fprintf(stderr, "read() failed: %s\n", strerror(errno));
         return;
     }
 
-    assert(r < memchunk->memblock->length);
+    assert(r <= memchunk.memblock->length);
     memchunk.length = memchunk.memblock->length = r;
     memchunk.index = 0;
 
@@ -92,17 +93,17 @@ static void io_callback(struct iochannel *io, void*userdata) {
 }
 
 int module_init(struct core *c, struct module*m) {
+    struct audio_buf_info info;
     struct userdata *u = NULL;
-    struct stat st;
     char *p;
     int fd = -1;
-    int format, channels, speed, frag_size;
-    int m;
-    const static struct sample_spec ss;
+    int format, channels, speed, frag_size, in_frag_size, out_frag_size;
+    int mode;
+    struct sample_spec ss;
     assert(c && m);
 
     p = m->argument ? m->argument : "/dev/dsp";
-    if ((fd = open(p, m = O_RDWR)) >= 0) {
+    if ((fd = open(p, mode = O_RDWR)) >= 0) {
         int caps;
 
         ioctl(fd, SNDCTL_DSP_SETDUPLEX, 0);
@@ -119,16 +120,16 @@ int module_init(struct core *c, struct module*m) {
     }
 
     if (fd < 0) {
-        if ((fd = open(p, m = O_WRONLY)) < 0) {
-            if ((fd = open(p, m = O_RDONLY)) < 0) {
+        if ((fd = open(p, mode = O_WRONLY)) < 0) {
+            if ((fd = open(p, mode = O_RDONLY)) < 0) {
                 fprintf(stderr, "open('%s'): %s\n", p, strerror(errno));
                 goto fail;
             }
         }
     }
-
-    frags = 0x7fff0000 | (10 << 16); /* 1024 bytes fragment size */
-    if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frags) < 0) {
+    
+    frag_size = ((int) 0x7ffff << 4) | 10; /* nfrags = 4; frag_size = 2^10 */
+    if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag_size) < 0) {
         fprintf(stderr, "SNDCTL_DSP_SETFRAGMENT: %s\n", strerror(errno));
         goto fail;
     }
@@ -165,25 +166,35 @@ int module_init(struct core *c, struct module*m) {
     assert(speed);
     ss.rate = speed;
 
-    if (ioctl(fd, SNCTL_DSP_GETBLKSIZE, &frag_size) < 0) {
+    if (ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &frag_size) < 0) {
         fprintf(stderr, "SNDCTL_DSP_GETBLKSIZE: %s\n", strerror(errno));
         goto fail;
     }
-
     assert(frag_size);
-    
+    in_frag_size = out_frag_size = frag_size;
+
+    if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
+        fprintf(stderr, "INPUT: %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        in_frag_size = info.fragsize;
+    }
+
+    if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
+        fprintf(stderr, "OUTUT: %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        out_frag_size = info.fragsize;
+    }
+
     u = malloc(sizeof(struct userdata));
     assert(u);
 
     u->core = c;
 
-    if (m != O_RDONLY) {
+    if (mode != O_RDONLY) {
         u->sink = sink_new(c, "dsp", &ss);
         assert(u->sink);
     } else
         u->sink = NULL;
 
-    if (m != O_WRONLY) {
+    if (mode != O_WRONLY) {
         u->source = source_new(c, "dsp", &ss);
         assert(u->source);
     } else
@@ -197,11 +208,13 @@ int module_init(struct core *c, struct module*m) {
 
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
+    u->sample_size = sample_size(&ss);
 
-    u->fragment_size = frag_size;
-    u->silence.memblock = memblock_new(u->fragment_size);
-    assert(u->silence);
-    u->silence.length = u->fragment_size;
+    u->out_fragment_size = out_frag_size;
+    u->in_fragment_size = in_frag_size;
+    u->silence.memblock = memblock_new(u->silence.length = u->out_fragment_size);
+    assert(u->silence.memblock);
+    silence(u->silence.memblock, &ss);
     u->silence.index = 0;
     
     m->userdata = u;

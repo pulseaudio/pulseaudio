@@ -22,8 +22,8 @@ struct sink {
 
     uint8_t volume;
 
-    void (*notify_callback)(struct sink*sink, void *userdata);
-    void *userdata;
+    void (*notify)(struct sink*sink, void *userdata);
+    void *notify_userdata;
 };
 
 struct sink* sink_new(struct core *core, const char *name, const struct sample_spec *spec);

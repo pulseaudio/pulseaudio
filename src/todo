@@ -1,0 +1,16 @@
+- mixing
+- resampling
+- native protocol/library
+- oss/mmap
+- esound prodocol
+- config-parser
+-- 0.1
+- future cancellation
+- client-ui
+
+drivers:
+- libao
+- xmms
+- portaudio
+- mplayer
+- python

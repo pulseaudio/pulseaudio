@@ -29,8 +29,9 @@ int main(int argc, char *argv[]) {
     mainloop_source_new_signal(m, SIGINT, signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
 
-    module_load(c, "sink-pipe", NULL);
-    module_load(c, "protocol-simple-tcp", NULL);
+    module_load(c, "module-oss", NULL);
+    module_load(c, "module-pipe-sink", NULL);
+    module_load(c, "module-simple-protocol-tcp", NULL);
     
     mainloop_run(m);
     

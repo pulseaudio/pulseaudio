@@ -20,8 +20,9 @@ AM_CFLAGS=-ansi -D_GNU_SOURCE
 
 bin_PROGRAMS = polypaudio 
 
-pkglib_LTLIBRARIES=libprotocol-simple.la protocol-simple-tcp.la \
-		libsocket-server.la sink-pipe.la libpstream.la libiochannel.la libpacket.la
+pkglib_LTLIBRARIES=libprotocol-simple.la module-simple-protocol-tcp.la \
+		libsocket-server.la module-pipe-sink.la libpstream.la libiochannel.la \
+		libpacket.la module-oss.la
 
 polypaudio_SOURCES = idxset.c queue.c strbuf.c mainloop.c  \
 		memblock.c sample.c memblockq.c client.c \
@@ -49,14 +50,14 @@ libiochannel_la_LDFLAGS = -avoid-version
 libpacket_la_SOURCES = packet.c
 libpacket_la_LDFLAGS = -avoid-version
 
-protocol_simple_tcp_la_SOURCES = protocol-simple-tcp.c
-protocol_simple_tcp_la_LDFLAGS = -module -avoid-version
-protocol_simple_tcp_la_LIBADD = libprotocol-simple.la libiochannel.la
+module_simple_protocol_tcp_la_SOURCES = module-simple-protocol-tcp.c
+module_simple_protocol_tcp_la_LDFLAGS = -module -avoid-version
+module_simple_protocol_tcp_la_LIBADD = libprotocol-simple.la libiochannel.la
 
-sink_pipe_la_SOURCES = sink-pipe.c
-sink_pipe_la_LDFLAGS = -module -avoid-version
-sink_pipe_la_LIBADD = libiochannel.la
+module_pipe_sink_la_SOURCES = module-pipe-sink.c
+module_pipe_sink_la_LDFLAGS = -module -avoid-version
+module_pipe_sink_la_LIBADD = libiochannel.la
 
-sink_oss_la_SOURCES = sink-pipe.c
-sink_oss_la_LDFLAGS = -module -avoid-version
-sink_oss_la_LIBADD = libiochannel.la
+module_oss_la_SOURCES = module-oss.c
+module_oss_la_LDFLAGS = -module -avoid-version
+module_oss_la_LIBADD = libiochannel.la

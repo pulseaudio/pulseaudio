@@ -17,7 +17,7 @@ struct output_stream* output_stream_new(struct source *s, struct sample_spec *sp
     o->kill = NULL;
     o->kill_userdata = NULL;
 
-    o->memblockq = memblockq_new(bytes_per_second(spec)*5, sample_size(spec));
+    o->memblockq = memblockq_new(bytes_per_second(spec)*5, sample_size(spec), (size_t) -1);
     assert(o->memblockq);
     
     assert(s->core);

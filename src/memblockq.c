@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -14,9 +15,10 @@ struct memblockq {
     size_t total_length;
     size_t maxlength;
     size_t base;
+    size_t prebuf;
 };
 
-struct memblockq* memblockq_new(size_t maxlength, size_t base) {
+struct memblockq* memblockq_new(size_t maxlength, size_t base, size_t prebuf) {
     struct memblockq* bq;
     assert(maxlength && base);
     
@@ -27,6 +29,11 @@ struct memblockq* memblockq_new(size_t maxlength, size_t base) {
     bq->total_length = 0;
     bq->base = base;
     bq->maxlength = ((maxlength+base-1)/base)*base;
+    bq->prebuf = prebuf == (size_t) -1 ? bq->maxlength/2 : prebuf;
+    
+    if (bq->prebuf > bq->maxlength)
+        bq->prebuf = bq->maxlength;
+    
     assert(bq->maxlength >= base);
     return bq;
 }
@@ -72,8 +79,10 @@ void memblockq_push(struct memblockq* bq, struct memchunk *chunk, size_t delta) 
 int memblockq_peek(struct memblockq* bq, struct memchunk *chunk) {
     assert(bq && chunk);
 
-    if (!bq->blocks)
+    if (!bq->blocks || bq->total_length < bq->prebuf)
         return -1;
+
+    bq->prebuf = 0;
 
     *chunk = bq->blocks->chunk;
     memblock_ref(chunk->memblock);
@@ -85,8 +94,10 @@ int memblockq_pop(struct memblockq* bq, struct memchunk *chunk) {
     
     assert(bq && chunk);
 
-    if (!bq->blocks)
+    if (!bq->blocks || bq->total_length < bq->prebuf)
         return -1;
+
+    bq->prebuf = 0;
 
     q = bq->blocks;
     bq->blocks = bq->blocks->next;
@@ -138,6 +149,8 @@ void memblockq_shorten(struct memblockq *bq, size_t length) {
     if (bq->total_length <= length)
         return;
 
+    fprintf(stderr, "Warning! memblockq_shorten()\n");
+    
     l = bq->total_length - length;
     l /= bq->base;
     l *= bq->base;
@@ -151,8 +164,15 @@ void memblockq_empty(struct memblockq *bq) {
     memblockq_shorten(bq, 0);
 }
 
-int memblockq_is_empty(struct memblockq *bq) {
+int memblockq_is_readable(struct memblockq *bq) {
     assert(bq);
 
-    return bq->total_length < bq->base;
+    return bq->total_length >= bq->prebuf;
+}
+
+int memblockq_is_writable(struct memblockq *bq, size_t length) {
+    assert(bq);
+
+    assert(length <= bq->maxlength);
+    return bq->total_length + length <= bq->maxlength;
 }

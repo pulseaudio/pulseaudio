@@ -33,8 +33,8 @@ struct sink* sink_new(struct core *core, const char *name, const struct sample_s
     
     s->volume = 0xFF;
 
-    s->notify_callback = NULL;
-    s->userdata = NULL;
+    s->notify = NULL;
+    s->notify_userdata = NULL;
 
     return s;
 }
@@ -103,6 +103,10 @@ static int do_mix(void *p, uint32_t index, int *del, void*userdata) {
     assert(chunk.length && chunk.length <= info->chunk->memblock->length - info->chunk->index);
 
     add_clip(info->chunk, &chunk, info->spec);
+    memblock_unref(chunk.memblock);
+    memblockq_drop(i->memblockq, info->chunk->length);
+
+    input_stream_notify(i);
     return 0;
 }
 
@@ -139,6 +143,8 @@ int sink_render_into(struct sink*s, struct memblock *target, struct memchunk *re
         target->length = l;
         memblock_unref(chunk.memblock);
         memblockq_drop(i->memblockq, l);
+
+        input_stream_notify(i);
         
         result->memblock = target;
         result->length = l;
@@ -191,6 +197,8 @@ int sink_render(struct sink*s, size_t length, struct memchunk *result) {
         l = length < result->length ? length : result->length;
         result->length = l;
         memblockq_drop(i->memblockq, l);
+        input_stream_notify(i);
+        
         return 0;
     }
 
@@ -211,15 +219,15 @@ int sink_render(struct sink*s, size_t length, struct memchunk *result) {
 void sink_notify(struct sink*s) {
     assert(s);
 
-    if (s->notify_callback)
-        s->notify_callback(s, s->userdata);
+    if (s->notify)
+        s->notify(s, s->notify_userdata);
 }
 
 void sink_set_notify_callback(struct sink *s, void (*notify_callback)(struct sink*sink, void *userdata), void *userdata) {
     assert(s && notify_callback);
 
-    s->notify_callback = notify_callback;
-    s->userdata = userdata;
+    s->notify = notify_callback;
+    s->notify_userdata = userdata;
 }
 
 
