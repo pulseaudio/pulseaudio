@@ -46,50 +46,50 @@ struct pa_iochannel {
     
     int no_close;
 
-    void* input_source, *output_source;
+    struct pa_io_event* input_event, *output_event;
 };
 
 static void enable_mainloop_sources(struct pa_iochannel *io) {
     assert(io);
 
-    if (io->input_source == io->output_source) {
-        enum pa_mainloop_api_io_events e = PA_MAINLOOP_API_IO_EVENT_NULL;
-        assert(io->input_source);
+    if (io->input_event == io->output_event) {
+        enum pa_io_event_flags f = PA_IO_EVENT_NULL;
+        assert(io->input_event);
         
         if (!io->readable)
-            e |= PA_MAINLOOP_API_IO_EVENT_INPUT;
+            f |= PA_IO_EVENT_INPUT;
         if (!io->writable)
-            e |= PA_MAINLOOP_API_IO_EVENT_OUTPUT;
+            f |= PA_IO_EVENT_OUTPUT;
 
-        io->mainloop->enable_io(io->mainloop, io->input_source, e);
+        io->mainloop->io_enable(io->input_event, f);
     } else {
-        if (io->input_source)
-            io->mainloop->enable_io(io->mainloop, io->input_source, io->readable ? PA_MAINLOOP_API_IO_EVENT_NULL : PA_MAINLOOP_API_IO_EVENT_INPUT);
-        if (io->output_source)
-            io->mainloop->enable_io(io->mainloop, io->output_source, io->writable ? PA_MAINLOOP_API_IO_EVENT_NULL : PA_MAINLOOP_API_IO_EVENT_OUTPUT);
+        if (io->input_event)
+            io->mainloop->io_enable(io->input_event, io->readable ? PA_IO_EVENT_NULL : PA_IO_EVENT_INPUT);
+        if (io->output_event)
+            io->mainloop->io_enable(io->output_event, io->writable ? PA_IO_EVENT_NULL : PA_IO_EVENT_OUTPUT);
     }
 }
 
-static void callback(struct pa_mainloop_api* m, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
+static void callback(struct pa_mainloop_api* m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     struct pa_iochannel *io = userdata;
     int changed = 0;
-    assert(m && fd >= 0 && events && userdata);
+    assert(m && e && fd >= 0 && userdata);
 
-    if ((events & PA_MAINLOOP_API_IO_EVENT_HUP) && !io->hungup) {
+    if ((f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) && !io->hungup) {
         io->hungup = 1;
         changed = 1;
     }
     
-    if ((events & PA_MAINLOOP_API_IO_EVENT_INPUT) && !io->readable) {
+    if ((f & PA_IO_EVENT_INPUT) && !io->readable) {
         io->readable = 1;
         changed = 1;
-        assert(id == io->input_source);
+        assert(e == io->input_event);
     }
     
-    if ((events & PA_MAINLOOP_API_IO_EVENT_OUTPUT) && !io->writable) {
+    if ((f & PA_IO_EVENT_OUTPUT) && !io->writable) {
         io->writable = 1;
         changed = 1;
-        assert(id == io->output_source);
+        assert(e == io->output_event);
     }
 
     if (changed) {
@@ -116,23 +116,23 @@ struct pa_iochannel* pa_iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd
     io->hungup = 0;
     io->no_close = 0;
 
+    io->input_event = io->output_event = NULL;
+
     if (ifd == ofd) {
         assert(ifd >= 0);
         pa_make_nonblock_fd(io->ifd);
-        io->input_source = io->output_source = m->source_io(m, ifd, PA_MAINLOOP_API_IO_EVENT_BOTH, callback, io);
+        io->input_event = io->output_event = m->io_new(m, ifd, PA_IO_EVENT_INPUT|PA_IO_EVENT_OUTPUT, callback, io);
     } else {
 
         if (ifd >= 0) {
             pa_make_nonblock_fd(io->ifd);
-            io->input_source = m->source_io(m, ifd, PA_MAINLOOP_API_IO_EVENT_INPUT, callback, io);
-        } else
-            io->input_source = NULL;
+            io->input_event = m->io_new(m, ifd, PA_IO_EVENT_INPUT, callback, io);
+        }
 
         if (ofd >= 0) {
             pa_make_nonblock_fd(io->ofd);
-            io->output_source = m->source_io(m, ofd, PA_MAINLOOP_API_IO_EVENT_OUTPUT, callback, io);
-        } else
-            io->output_source = NULL;
+            io->output_event = m->io_new(m, ofd, PA_IO_EVENT_OUTPUT, callback, io);
+        }
     }
 
     return io;
@@ -141,17 +141,17 @@ struct pa_iochannel* pa_iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd
 void pa_iochannel_free(struct pa_iochannel*io) {
     assert(io);
 
+    if (io->input_event)
+        io->mainloop->io_free(io->input_event);
+    if (io->output_event && (io->output_event != io->input_event))
+        io->mainloop->io_free(io->output_event);
+
     if (!io->no_close) {
         if (io->ifd >= 0)
             close(io->ifd);
         if (io->ofd >= 0 && io->ofd != io->ifd)
             close(io->ofd);
     }
-
-    if (io->input_source)
-        io->mainloop->cancel_io(io->mainloop, io->input_source);
-    if (io->output_source && (io->output_source != io->input_source))
-        io->mainloop->cancel_io(io->mainloop, io->output_source);
     
     pa_xfree(io);
 }

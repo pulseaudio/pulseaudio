@@ -46,16 +46,16 @@ struct pa_socket_server {
     void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata);
     void *userdata;
 
-    void *mainloop_source;
+    struct pa_io_event *io_event;
     struct pa_mainloop_api *mainloop;
     enum { SOCKET_SERVER_GENERIC, SOCKET_SERVER_IPV4, SOCKET_SERVER_UNIX } type;
 };
 
-static void callback(struct pa_mainloop_api *mainloop, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
+static void callback(struct pa_mainloop_api *mainloop, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     struct pa_socket_server *s = userdata;
     struct pa_iochannel *io;
     int nfd;
-    assert(s && s->mainloop == mainloop && s->mainloop_source == id && id && fd >= 0 && fd == s->fd && events == PA_MAINLOOP_API_IO_EVENT_INPUT);
+    assert(s && s->mainloop == mainloop && s->io_event == e && e && fd >= 0 && fd == s->fd);
 
     if ((nfd = accept(fd, NULL, NULL)) < 0) {
         fprintf(stderr, "accept(): %s\n", strerror(errno));
@@ -89,8 +89,8 @@ struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd)
     s->userdata = NULL;
 
     s->mainloop = m;
-    s->mainloop_source = m->source_io(m, fd, PA_MAINLOOP_API_IO_EVENT_INPUT, callback, s);
-    assert(s->mainloop_source);
+    s->io_event = m->io_new(m, fd, PA_IO_EVENT_INPUT, callback, s);
+    assert(s->io_event);
 
     s->type = SOCKET_SERVER_GENERIC;
     
@@ -193,7 +193,7 @@ void pa_socket_server_free(struct pa_socket_server*s) {
         pa_xfree(s->filename);
     }
 
-    s->mainloop->cancel_io(s->mainloop, s->mainloop_source);
+    s->mainloop->io_free(s->io_event);
     pa_xfree(s);
 }
 

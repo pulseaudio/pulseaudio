@@ -46,13 +46,12 @@
 
 static struct pa_mainloop *mainloop;
 
-static void exit_signal_callback(void *id, int sig, void *userdata) {
-    struct pa_mainloop_api* m = pa_mainloop_get_api(mainloop);
+static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     m->quit(m, 1);
     fprintf(stderr, __FILE__": got signal.\n");
 }
 
-static void aux_signal_callback(void *id, int sig, void *userdata) {
+static void aux_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     struct pa_core *c = userdata;
     assert(c);
     pa_module_load(c, sig == SIGUSR1 ? "module-cli" : "module-cli-protocol-unix", NULL);
@@ -135,14 +134,14 @@ int main(int argc, char *argv[]) {
 
     r = pa_signal_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);
-    pa_signal_register(SIGINT, exit_signal_callback, NULL);
+    pa_signal_new(SIGINT, exit_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
 
     c = pa_core_new(pa_mainloop_get_api(mainloop));
     assert(c);
     
-    pa_signal_register(SIGUSR1, aux_signal_callback, c);
-    pa_signal_register(SIGUSR2, aux_signal_callback, c);
+    pa_signal_new(SIGUSR1, aux_signal_callback, c);
+    pa_signal_new(SIGUSR2, aux_signal_callback, c);
 
     buf = pa_strbuf_new();
     assert(buf);

@@ -42,8 +42,8 @@
 struct userdata {
     snd_pcm_t *pcm_handle;
     struct pa_source *source;
-    void **io_sources;
-    unsigned n_io_sources;
+    struct pa_io_event **io_events;
+    unsigned n_io_events;
 
     size_t frame_size, fragment_size;
     struct pa_memchunk memchunk;
@@ -128,9 +128,9 @@ static void do_read(struct userdata *u) {
     }
 }
 
-static void io_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
+static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     struct userdata *u = userdata;
-    assert(u && a && id);
+    assert(u && a && e);
 
     if (snd_pcm_state(u->pcm_handle) == SND_PCM_STATE_XRUN)
         xrun_recovery(u);
@@ -189,7 +189,7 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     pa_source_set_owner(u->source, m);
     u->source->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s'", dev);
 
-    if (pa_create_io_sources(u->pcm_handle, c->mainloop, &u->io_sources, &u->n_io_sources, io_callback, u) < 0) {
+    if (pa_create_io_events(u->pcm_handle, c->mainloop, &u->io_events, &u->n_io_events, io_callback, u) < 0) {
         fprintf(stderr, __FILE__": failed to obtain file descriptors\n");
         goto fail;
     }
@@ -230,8 +230,8 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     if (u->source)
         pa_source_free(u->source);
     
-    if (u->io_sources)
-        pa_free_io_sources(c->mainloop, u->io_sources, u->n_io_sources);
+    if (u->io_events)
+        pa_free_io_events(c->mainloop, u->io_events, u->n_io_events);
     
     if (u->pcm_handle) {
         snd_pcm_drop(u->pcm_handle);

@@ -59,26 +59,26 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, struct pa_sample_spec *ss, uint
     return ret;
 }
 
-int pa_create_io_sources(snd_pcm_t *pcm_handle, struct pa_mainloop_api* m, void ***io_sources, unsigned *n_io_sources, void (*cb)(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata), void *userdata) {
+int pa_create_io_events(snd_pcm_t *pcm_handle, struct pa_mainloop_api* m, struct pa_io_event ***io_events, unsigned *n_io_events, void (*cb)(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags events, void *userdata), void *userdata) {
     unsigned i;
     struct pollfd *pfds, *ppfd;
-    void **ios;
-    assert(pcm_handle && m && io_sources && n_io_sources && cb);
+    struct pa_io_event **ios;
+    assert(pcm_handle && m && io_events && n_io_events && cb);
 
-    *n_io_sources = snd_pcm_poll_descriptors_count(pcm_handle);
+    *n_io_events = snd_pcm_poll_descriptors_count(pcm_handle);
 
-    pfds = pa_xmalloc(sizeof(struct pollfd) * *n_io_sources);
-    if (snd_pcm_poll_descriptors(pcm_handle, pfds, *n_io_sources) < 0) {
+    pfds = pa_xmalloc(sizeof(struct pollfd) * *n_io_events);
+    if (snd_pcm_poll_descriptors(pcm_handle, pfds, *n_io_events) < 0) {
         pa_xfree(pfds);
         return -1;
     }
     
-    *io_sources = pa_xmalloc(sizeof(void*) * *n_io_sources);
+    *io_events = pa_xmalloc(sizeof(void*) * *n_io_events);
 
-    for (i = 0, ios = *io_sources, ppfd = pfds; i < *n_io_sources; i++, ios++, ppfd++) {
-        *ios = m->source_io(m, ppfd->fd,
-                            ((ppfd->events & POLLIN) ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) |
-                            ((ppfd->events & POLLOUT) ? PA_MAINLOOP_API_IO_EVENT_OUTPUT : 0), cb, userdata);
+    for (i = 0, ios = *io_events, ppfd = pfds; i < *n_io_events; i++, ios++, ppfd++) {
+        *ios = m->io_new(m, ppfd->fd,
+                            ((ppfd->events & POLLIN) ? PA_IO_EVENT_INPUT : 0) |
+                            ((ppfd->events & POLLOUT) ? PA_IO_EVENT_OUTPUT : 0), cb, userdata);
         assert(*ios);
     }
 
@@ -86,12 +86,12 @@ int pa_create_io_sources(snd_pcm_t *pcm_handle, struct pa_mainloop_api* m, void 
     return 0;
 }
 
-void pa_free_io_sources(struct pa_mainloop_api* m, void **io_sources, unsigned n_io_sources) {
+void pa_free_io_events(struct pa_mainloop_api* m, struct pa_io_event **io_events, unsigned n_io_events) {
     unsigned i;
-    void **ios;
-    assert(m && io_sources);
+    struct pa_io_event **ios;
+    assert(m && io_events);
     
-    for (ios = io_sources, i = 0; i < n_io_sources; i++, ios++)
-        m->cancel_io(m, *ios);
-    pa_xfree(io_sources);
+    for (ios = io_events, i = 0; i < n_io_events; i++, ios++)
+        m->io_free(*ios);
+    pa_xfree(io_events);
 }

@@ -2,6 +2,7 @@
 #define foomemoryhfoo
 
 #include <sys/types.h>
+#include <stdlib.h>
 
 void* pa_xmalloc(size_t l);
 void *pa_xmalloc0(size_t l);

@@ -27,7 +27,11 @@
 int pa_signal_init(struct pa_mainloop_api *api);
 void pa_signal_done(void);
 
-void* pa_signal_register(int signal, void (*callback) (void *id, int signal, void *userdata), void *userdata);
-void pa_signal_unregister(void *id);
+struct pa_signal_event;
+
+struct pa_signal_event* pa_signal_new(int signal, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, int signal, void *userdata), void *userdata);
+void pa_signal_free(struct pa_signal_event *e);
+
+void pa_signal_set_destroy(struct pa_signal_event *e, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, void *userdata));
 
 #endif

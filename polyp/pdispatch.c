@@ -69,7 +69,7 @@ struct reply_info {
     void (*callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
     void *userdata;
     uint32_t tag;
-    void *mainloop_timeout;
+    struct pa_time_event *time_event;
     int callback_is_running;
 };
 
@@ -87,7 +87,7 @@ static void reply_info_free(struct reply_info *r) {
     assert(r && r->pdispatch && r->pdispatch->mainloop);
 
     if (r->pdispatch)
-        r->pdispatch->mainloop->cancel_time(r->pdispatch->mainloop, r->mainloop_timeout);
+        r->pdispatch->mainloop->time_free(r->time_event);
 
     if (r->previous)
         r->previous->next = r->next;
@@ -191,9 +191,9 @@ finish:
     return ret;
 }
 
-static void timeout_callback(struct pa_mainloop_api*m, void *id, const struct timeval *tv, void *userdata) {
+static void timeout_callback(struct pa_mainloop_api*m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
     struct reply_info*r = userdata;
-    assert (r && r->mainloop_timeout == id && r->pdispatch && r->pdispatch->mainloop == m && r->callback);
+    assert (r && r->time_event == e && r->pdispatch && r->pdispatch->mainloop == m && r->callback);
 
     r->callback(r->pdispatch, PA_COMMAND_TIMEOUT, r->tag, NULL, r->userdata);
     reply_info_free(r);
@@ -217,8 +217,8 @@ void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int time
     gettimeofday(&tv, NULL);
     tv.tv_sec += timeout;
 
-    r->mainloop_timeout = pd->mainloop->source_time(pd->mainloop, &tv, timeout_callback, r);
-    assert(r->mainloop_timeout);
+    r->time_event = pd->mainloop->time_new(pd->mainloop, &tv, timeout_callback, r);
+    assert(r->time_event);
 
     r->previous = NULL;
     r->next = pd->replies;

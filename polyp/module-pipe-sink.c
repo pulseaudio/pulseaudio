@@ -50,7 +50,7 @@ struct userdata {
     
     struct pa_sink *sink;
     struct pa_iochannel *io;
-    void *mainloop_source;
+    struct pa_defer_event *defer_event;
 
     struct pa_memchunk memchunk;
     struct pa_module *module;
@@ -69,7 +69,7 @@ static void do_write(struct userdata *u) {
     ssize_t r;
     assert(u);
 
-    u->core->mainloop->enable_fixed(u->core->mainloop, u->mainloop_source, 0);
+    u->core->mainloop->defer_enable(u->defer_event, 0);
         
     if (!pa_iochannel_is_writable(u->io))
         return;
@@ -101,10 +101,10 @@ static void notify_cb(struct pa_sink*s) {
     assert(s && u);
 
     if (pa_iochannel_is_writable(u->io))
-        u->core->mainloop->enable_fixed(u->core->mainloop, u->mainloop_source, 1);
+        u->core->mainloop->defer_enable(u->defer_event, 1);
 }
 
-static void fixed_callback(struct pa_mainloop_api *m, void *id, void *userdata) {
+static void defer_callback(struct pa_mainloop_api *m, struct pa_defer_event*e, void *userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_write(u);
@@ -175,9 +175,9 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
 
-    u->mainloop_source = c->mainloop->source_fixed(c->mainloop, fixed_callback, u);
-    assert(u->mainloop_source);
-    c->mainloop->enable_fixed(c->mainloop, u->mainloop_source, 0);
+    u->defer_event = c->mainloop->defer_new(c->mainloop, defer_callback, u);
+    assert(u->defer_event);
+    c->mainloop->defer_enable(u->defer_event, 0);
 
     u->module = m;
     m->userdata = u;
@@ -210,7 +210,7 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
         
     pa_sink_free(u->sink);
     pa_iochannel_free(u->io);
-    u->core->mainloop->cancel_fixed(u->core->mainloop, u->mainloop_source);
+    u->core->mainloop->defer_free(u->defer_event);
 
     assert(u->filename);
     unlink(u->filename);

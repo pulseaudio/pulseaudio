@@ -38,7 +38,7 @@ struct pa_core {
 
     struct pa_sample_spec default_sample_spec;
     int auto_unload_time;
-    void *auto_unload_mainloop_source;
+    struct pa_time_event *auto_unload_event;
 };
 
 struct pa_core* pa_core_new(struct pa_mainloop_api *m);

@@ -54,6 +54,10 @@ PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.0 ])
 AC_SUBST(ASOUNDLIB_CFLAGS)
 AC_SUBST(ASOUNDLIB_LIBS)
 
+PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.4.0 ])
+AC_SUBST(GLIB20_CFLAGS)
+AC_SUBST(GLIB20_LIBS)
+
 # If using GCC specifiy some additional parameters
 if test "x$GCC" = "xyes" ; then
    CFLAGS="$CFLAGS -pipe -Wall -W -Wno-unused-parameter"

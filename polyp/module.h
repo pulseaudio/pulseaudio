@@ -59,5 +59,4 @@ void pa_module_done(struct pa_core *c, struct pa_module*m);
 
 void pa_module_set_used(struct pa_module*m, int used);
 
-
 #endif

@@ -74,7 +74,7 @@ struct connection {
     struct pa_sink_input *sink_input;
     struct pa_source_output *source_output;
     struct pa_memblockq *input_memblockq, *output_memblockq;
-    void *fixed_source;
+    struct pa_defer_event *defer_event;
     struct {
         struct pa_memblock *current_memblock;
         size_t memblock_index, fragment_size;
@@ -183,8 +183,8 @@ static void connection_free(struct connection *c) {
     
     pa_iochannel_free(c->io);
     
-    if (c->fixed_source)
-        c->protocol->core->mainloop->cancel_fixed(c->protocol->core->mainloop, c->fixed_source);
+    if (c->defer_event)
+        c->protocol->core->mainloop->defer_free(c->defer_event);
 
     if (c->scache_memchunk.memblock)
         pa_memblock_unref(c->scache_memchunk.memblock);
@@ -197,8 +197,8 @@ static void* connection_write(struct connection *c, size_t length) {
     size_t t, i;
     assert(c);
 
-    assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->enable_fixed);
-    c->protocol->core->mainloop->enable_fixed(c->protocol->core->mainloop, c->fixed_source, 1);
+    assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
+    c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
 
     t = c->write_data_length+length;
     
@@ -381,7 +381,7 @@ static int esd_proto_get_latency(struct connection *c, esd_proto_t request, cons
     int latency, *lag;
     assert(c && !data && length == 0);
 
-    if (!(sink = pa_namereg(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1)))
+    if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1)))
         latency = 0;
     else {
         float usec = pa_sink_get_latency(sink);
@@ -845,8 +845,8 @@ static int do_write(struct connection *c) {
 static void do_work(struct connection *c) {
     assert(c);
 
-    assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->enable_fixed);
-    c->protocol->core->mainloop->enable_fixed(c->protocol->core->mainloop, c->fixed_source, 0);
+    assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
+    c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
 
     if (pa_iochannel_is_hungup(c->io))
         goto fail;
@@ -872,11 +872,11 @@ static void io_callback(struct pa_iochannel*io, void *userdata) {
     do_work(c);
 }
 
-/*** fixed callback ***/
+/*** defer callback ***/
 
-static void fixed_callback(struct pa_mainloop_api*a, void *id, void *userdata) {
+static void defer_callback(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata) {
     struct connection *c = userdata;
-    assert(a && c && c->fixed_source == id);
+    assert(a && c && c->defer_event == e);
 
     do_work(c);
 }
@@ -901,8 +901,8 @@ static void sink_input_drop_cb(struct pa_sink_input *i, size_t length) {
     pa_memblockq_drop(c->input_memblockq, length);
 
     /* do something */
-    assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->enable_fixed);
-    c->protocol->core->mainloop->enable_fixed(c->protocol->core->mainloop, c->fixed_source, 1);
+    assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
+    c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
 }
 
 static void sink_input_kill_cb(struct pa_sink_input *i) {
@@ -926,8 +926,8 @@ static void source_output_push_cb(struct pa_source_output *o, const struct pa_me
     pa_memblockq_push(c->output_memblockq, chunk, 0);
 
     /* do something */
-    assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->enable_fixed);
-    c->protocol->core->mainloop->enable_fixed(c->protocol->core->mainloop, c->fixed_source, 1);
+    assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
+    c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
 }
 
 static void source_output_kill_cb(struct pa_source_output *o) {
@@ -981,8 +981,9 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     c->scache_memchunk.memblock = NULL;
     c->scache_name = NULL;
     
-    c->fixed_source = c->protocol->core->mainloop->source_fixed(c->protocol->core->mainloop, fixed_callback, c);
-    c->protocol->core->mainloop->enable_fixed(c->protocol->core->mainloop, c->fixed_source, 0);
+    c->defer_event = c->protocol->core->mainloop->defer_new(c->protocol->core->mainloop, defer_callback, c);
+    assert(c->defer_event);
+    c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
 
     pa_idxset_put(c->protocol->connections, c, &c->index);
 }

@@ -59,7 +59,7 @@ struct userdata {
     void *in_mmap, *out_mmap;
     size_t in_mmap_length, out_mmap_length;
 
-    void *mainloop_source;
+    struct pa_io_event *io_event;
 
     struct pa_memblock **in_memblocks, **out_memblocks;
     unsigned out_current, in_current;
@@ -195,14 +195,13 @@ static void do_read(struct userdata *u) {
     in_clear_memblocks(u, u->in_fragments/2);
 };
 
-static void io_callback(struct pa_mainloop_api *m, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
+static void io_callback(struct pa_mainloop_api *m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     struct userdata *u = userdata;
+    assert (u && u->core->mainloop == m && u->io_event == e);
 
-    assert (u && u->core->mainloop == m && u->mainloop_source == id);
-
-    if (events & PA_MAINLOOP_API_IO_EVENT_INPUT)
+    if (f & PA_IO_EVENT_INPUT)
         do_read(u);
-    if (events & PA_MAINLOOP_API_IO_EVENT_OUTPUT)
+    if (f & PA_IO_EVENT_OUTPUT)
         do_write(u);
 }
 
@@ -352,8 +351,8 @@ int pa_module_init(struct pa_core *c, struct pa_module*m) {
         
     assert(u->source || u->sink);
 
-    u->mainloop_source = c->mainloop->source_io(c->mainloop, u->fd, (u->source ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) | (u->sink ? PA_MAINLOOP_API_IO_EVENT_OUTPUT : 0), io_callback, u);
-    assert(u->mainloop_source);
+    u->io_event = c->mainloop->io_new(c->mainloop, u->fd, (u->source ? PA_IO_EVENT_INPUT : 0) | (u->sink ? PA_IO_EVENT_OUTPUT : 0), io_callback, u);
+    assert(u->io_event);
 
     pa_modargs_free(ma);
     
@@ -403,8 +402,8 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     if (u->source)
         pa_source_free(u->source);
 
-    if (u->mainloop_source)
-        u->core->mainloop->cancel_io(u->core->mainloop, u->mainloop_source);
+    if (u->io_event)
+        u->core->mainloop->io_free(u->io_event);
 
     if (u->fd >= 0)
         close(u->fd);

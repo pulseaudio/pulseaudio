@@ -58,7 +58,7 @@ struct item_info {
 
 struct pa_pstream {
     struct pa_mainloop_api *mainloop;
-    struct mainloop_source *mainloop_source;
+    struct pa_defer_event *defer_event;
     struct pa_iochannel *io;
     struct pa_queue *send_queue;
 
@@ -98,7 +98,7 @@ static void do_read(struct pa_pstream *p);
 
 static void do_something(struct pa_pstream *p) {
     assert(p && !p->shall_free);
-    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 0);
+    p->mainloop->defer_enable(p->defer_event, 0);
 
     if (p->dead)
         return;
@@ -139,9 +139,9 @@ static void io_callback(struct pa_iochannel*io, void *userdata) {
     do_something(p);
 }
 
-static void fixed_callback(struct pa_mainloop_api *m, void *id, void*userdata) {
+static void defer_callback(struct pa_mainloop_api *m, struct pa_defer_event *e, void*userdata) {
     struct pa_pstream *p = userdata;
-    assert(p && p->mainloop_source == id && p->mainloop == m);
+    assert(p && p->defer_event == e && p->mainloop == m);
     do_something(p);
 }
 
@@ -159,8 +159,8 @@ struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel
     p->die_callback_userdata = NULL;
 
     p->mainloop = m;
-    p->mainloop_source = m->source_fixed(m, fixed_callback, p);
-    m->enable_fixed(m, p->mainloop_source, 0);
+    p->defer_event = m->defer_new(m, defer_callback, p);
+    m->defer_enable(p->defer_event, 0);
     
     p->send_queue = pa_queue_new();
     assert(p->send_queue);
@@ -223,7 +223,7 @@ void pa_pstream_free(struct pa_pstream *p) {
     if (p->read.packet)
         pa_packet_unref(p->read.packet);
 
-    p->mainloop->cancel_fixed(p->mainloop, p->mainloop_source);
+    p->mainloop->defer_free(p->defer_event);
     pa_xfree(p);
 }
 
@@ -236,7 +236,7 @@ void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
     i->packet = pa_packet_ref(packet);
 
     pa_queue_push(p->send_queue, i);
-    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 1);
+    p->mainloop->defer_enable(p->defer_event, 1);
 }
 
 void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, int32_t delta, const struct pa_memchunk *chunk) {
@@ -252,7 +252,7 @@ void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, int32_t del
     pa_memblock_ref(i->chunk.memblock);
 
     pa_queue_push(p->send_queue, i);
-    p->mainloop->enable_fixed(p->mainloop, p->mainloop_source, 1);
+    p->mainloop->defer_enable(p->defer_event, 1);
 }
 
 void pa_pstream_set_recieve_packet_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata), void *userdata) {

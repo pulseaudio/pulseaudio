@@ -62,6 +62,7 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->default_sample_spec.channels = 2;
 
     c->auto_unload_time = 20;
+    c->auto_unload_event = NULL;
     
     pa_check_for_sigpipe();
     

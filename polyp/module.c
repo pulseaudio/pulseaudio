@@ -35,16 +35,16 @@
 
 #define UNLOAD_POLL_TIME 10
 
-static void timeout_callback(struct pa_mainloop_api *m, void *id, const struct timeval *tv, void *userdata) {
+static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
     struct pa_core *c = userdata;
     struct timeval ntv;
-    assert(c && c->mainloop == m && c->auto_unload_mainloop_source == id);
+    assert(c && c->mainloop == m && c->auto_unload_event == e);
 
     pa_module_unload_unused(c);
 
     gettimeofday(&ntv, NULL);
     ntv.tv_sec += UNLOAD_POLL_TIME;
-    m->enable_time(m, id, &ntv);
+    m->time_restart(e, &ntv);
 }
 
 struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char *argument) {
@@ -79,13 +79,13 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     if (!c->modules)
         c->modules = pa_idxset_new(NULL, NULL);
 
-    if (!c->auto_unload_mainloop_source) {
+    if (!c->auto_unload_event) {
         struct timeval ntv;
         gettimeofday(&ntv, NULL);
         ntv.tv_sec += UNLOAD_POLL_TIME;
-        c->auto_unload_mainloop_source = c->mainloop->source_time(c->mainloop, &ntv, timeout_callback, c);
+        c->auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
     }
-    assert(c->auto_unload_mainloop_source);
+    assert(c->auto_unload_event);
     
     assert(c->modules);
     r = pa_idxset_put(c->modules, m, &m->index);
@@ -159,9 +159,9 @@ void pa_module_unload_all(struct pa_core *c) {
     pa_idxset_free(c->modules, free_callback, NULL);
     c->modules = NULL;
 
-    if (c->auto_unload_mainloop_source)
-        c->mainloop->cancel_time(c->mainloop, c->auto_unload_mainloop_source);
-    c->auto_unload_mainloop_source = NULL;
+    if (c->auto_unload_event)
+        c->mainloop->time_free(c->auto_unload_event);
+    c->auto_unload_event = NULL;
 }
 
 static int unused_callback(void *p, uint32_t index, int *del, void *userdata) {
@@ -193,7 +193,7 @@ struct once_info {
     uint32_t index;
 };
     
-static void module_unload_once_callback(void *userdata) {
+static void module_unload_once_callback(struct pa_mainloop_api *m, void *userdata) {
     struct once_info *i = userdata;
     assert(i);
     pa_module_unload_by_index(i->core, i->index);

@@ -14,7 +14,7 @@
 #include "namereg.h"
 
 struct x11_source {
-    void *io_source;
+    struct pa_io_event *io_event;
     struct x11_source *next;
 };
 
@@ -52,7 +52,7 @@ static int ring_bell(struct userdata *u, int percent) {
     return 0;
 }
 
-static void io_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
+static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     struct userdata *u = userdata;
     assert(u);
     
@@ -77,8 +77,8 @@ static void new_io_source(struct userdata *u, int fd) {
     struct x11_source *s;
 
     s = pa_xmalloc(sizeof(struct x11_source));
-    s->io_source = u->core->mainloop->source_io(u->core->mainloop, fd, PA_MAINLOOP_API_IO_EVENT_INPUT, io_callback, u);
-    assert(s->io_source);
+    s->io_event = u->core->mainloop->io_new(u->core->mainloop, fd, PA_IO_EVENT_INPUT, io_callback, u);
+    assert(s->io_event);
     s->next = u->x11_sources;
     u->x11_sources = s;
 }
@@ -149,7 +149,7 @@ void pa_module_done(struct pa_core *c, struct pa_module*m) {
     while (u->x11_sources) {
         struct x11_source *s = u->x11_sources;
         u->x11_sources = u->x11_sources->next;
-        c->mainloop->cancel_io(c->mainloop, s->io_source);
+        c->mainloop->io_free(s->io_event);
         pa_xfree(s);
     }
 

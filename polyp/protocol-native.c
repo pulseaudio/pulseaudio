@@ -127,6 +127,8 @@ static void command_create_upload_stream(struct pa_pdispatch *pd, uint32_t comma
 static void command_finish_upload_stream(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_play_sample(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 static void command_remove_sample(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_get_info_list(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = { NULL },
@@ -150,6 +152,10 @@ static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_FINISH_UPLOAD_STREAM] = { command_finish_upload_stream },
     [PA_COMMAND_PLAY_SAMPLE] = { command_play_sample },
     [PA_COMMAND_REMOVE_SAMPLE] = { command_remove_sample },
+    [PA_COMMAND_GET_SINK_INFO] = { command_get_info },
+    [PA_COMMAND_GET_SOURCE_INFO] = { command_get_info },
+    [PA_COMMAND_GET_SINK_INFO_LIST] = { command_get_info_list },
+    [PA_COMMAND_GET_SOURCE_INFO_LIST] = { command_get_info_list },
 };
 
 /* structure management */
@@ -921,6 +927,122 @@ static void command_remove_sample(struct pa_pdispatch *pd, uint32_t command, uin
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void sink_fill_tagstruct(struct pa_tagstruct *t, struct pa_sink *sink) {
+    assert(t && sink);
+    pa_tagstruct_putu32(t, sink->index);
+    pa_tagstruct_puts(t, sink->name);
+    pa_tagstruct_puts(t, sink->description);
+    pa_tagstruct_put_sample_spec(t, &sink->sample_spec);
+    pa_tagstruct_putu32(t, sink->owner ? sink->owner->index : (uint32_t) -1);
+    pa_tagstruct_putu32(t, sink->volume);
+    pa_tagstruct_putu32(t, sink->monitor_source->index);
+    pa_tagstruct_puts(t, sink->monitor_source->name);
+    pa_tagstruct_putu32(t, pa_sink_get_latency(sink));
+}
+
+static void source_fill_tagstruct(struct pa_tagstruct *t, struct pa_source *source) {
+    assert(t && source);
+    pa_tagstruct_putu32(t, source->index);
+    pa_tagstruct_puts(t, source->name);
+    pa_tagstruct_puts(t, source->description);
+    pa_tagstruct_put_sample_spec(t, &source->sample_spec);
+    pa_tagstruct_putu32(t, source->owner ? source->owner->index : (uint32_t) -1);
+    pa_tagstruct_putu32(t, source->monitor_of ? source->monitor_of->index : (uint32_t) -1);
+    pa_tagstruct_puts(t, source->monitor_of ? source->monitor_of->name : "");
+}
+
+static void command_get_info(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t index;
+    struct pa_sink *sink = NULL;
+    struct pa_source *source = NULL;
+    const char *name;
+    struct pa_tagstruct *reply;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &index) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    if (command == PA_COMMAND_GET_SINK_INFO) {
+        if (index != (uint32_t) -1)
+            sink = pa_idxset_get_by_index(c->protocol->core->sinks, index);
+        else
+            sink = pa_namereg_get(c->protocol->core, *name ? name : NULL, PA_NAMEREG_SINK, 1);
+    } else {
+        assert(command == PA_COMMAND_GET_SOURCE_INFO);
+        if (index != (uint32_t) -1)
+            source = pa_idxset_get_by_index(c->protocol->core->sources, index);
+        else
+            source = pa_namereg_get(c->protocol->core, *name ? name : NULL, PA_NAMEREG_SOURCE, 1);
+    }
+
+    if (!sink && !source) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
+        return;
+    }
+
+    reply = pa_tagstruct_new(NULL, 0);
+    assert(reply);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag); 
+    if (sink)
+        sink_fill_tagstruct(reply, sink);
+    else
+        source_fill_tagstruct(reply, source);
+    pa_pstream_send_tagstruct(c->pstream, reply);
+}
+
+static void command_get_info_list(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    struct pa_idxset *i;
+    uint32_t index;
+    void *p;
+    struct pa_tagstruct *reply;
+    assert(c && t);
+
+    if (!pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    if (!c->authorized) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERROR_ACCESS);
+        return;
+    }
+
+    reply = pa_tagstruct_new(NULL, 0);
+    assert(reply);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+
+    if (command == PA_COMMAND_GET_SINK_INFO_LIST)
+        i = c->protocol->core->sinks;
+    else {
+        assert(command == PA_COMMAND_GET_SOURCE_INFO_LIST);
+        i = c->protocol->core->sources;
+    }
+
+    for (p = pa_idxset_first(i, &index); p; p = pa_idxset_next(i, &index)) {
+        if (command == PA_COMMAND_GET_SINK_INFO_LIST)
+            sink_fill_tagstruct(reply, p);
+        else {
+            assert(command == PA_COMMAND_GET_SOURCE_INFO_LIST);
+            source_fill_tagstruct(reply, p);
+        }
+    } 
+    
+    pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
 /*** pstream callbacks ***/

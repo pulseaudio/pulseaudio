@@ -205,7 +205,7 @@ fail:
     quit(1);
 }
 
-static void exit_signal_callback(void *id, int sig, void *userdata) {
+static void exit_signal_callback(struct pa_mainloop_api *m, struct pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got SIGINT, exiting.\n");
     quit(0);
 }
@@ -284,7 +284,7 @@ int main(int argc, char *argv[]) {
 
     r = pa_signal_init(mainloop_api);
     assert(r == 0);
-    pa_signal_register(SIGINT, exit_signal_callback, NULL);
+    pa_signal_new(SIGINT, exit_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
     
     if (!(context = pa_context_new(mainloop_api, argv[0]))) {

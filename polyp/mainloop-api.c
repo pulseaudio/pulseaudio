@@ -30,32 +30,38 @@
 #include "xmalloc.h"
 
 struct once_info {
-    void (*callback)(void *userdata);
+    void (*callback)(struct pa_mainloop_api*m, void *userdata);
     void *userdata;
 };
 
-static void once_callback(struct pa_mainloop_api *api, void *id, void *userdata) {
+static void once_callback(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
     struct once_info *i = userdata;
-    assert(api && i && i->callback);
-    i->callback(i->userdata);
-    assert(api->cancel_fixed);
-    api->cancel_fixed(api, id);
+    assert(m && i && i->callback);
+
+    i->callback(m, i->userdata);
+
+    assert(m->defer_free);
+    m->defer_free(e);
+}
+
+static void free_callback(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
+    struct once_info *i = userdata;
+    assert(m && i);
     pa_xfree(i);
 }
 
-void pa_mainloop_api_once(struct pa_mainloop_api* api, void (*callback)(void *userdata), void *userdata) {
+void pa_mainloop_api_once(struct pa_mainloop_api* m, void (*callback)(struct pa_mainloop_api *m, void *userdata), void *userdata) {
     struct once_info *i;
-    void *id;
-    assert(api && callback);
+    struct pa_defer_event *e;
+    assert(m && callback);
 
     i = pa_xmalloc(sizeof(struct once_info));
     i->callback = callback;
     i->userdata = userdata;
 
-    assert(api->source_fixed);
-    id = api->source_fixed(api, once_callback, i);
-    assert(id);
-
-    /* Note: if the mainloop is destroyed before once_callback() was called, some memory is leaked. */
+    assert(m->defer_new);
+    e = m->defer_new(m, once_callback, i);
+    assert(e);
+    m->defer_set_destroy(e, free_callback);
 }
 

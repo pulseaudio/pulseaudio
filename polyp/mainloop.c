@@ -38,42 +38,42 @@
 #include "idxset.h"
 #include "xmalloc.h"
 
-struct mainloop_source_header {
+struct pa_base_event {
+};
+
+struct pa_io_event {
     struct pa_mainloop *mainloop;
     int dead;
-};
-    
-struct mainloop_source_io {
-    struct mainloop_source_header header;
-    
     int fd;
-    enum pa_mainloop_api_io_events events;
-    void (*callback) (struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata);
-    void *userdata;
-
+    enum pa_io_event_flags events;
+    void (*callback) (struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata);
     struct pollfd *pollfd;
-};
-
-struct mainloop_source_fixed_or_idle {
-    struct mainloop_source_header header;
-    int enabled;
-
-    void (*callback)(struct pa_mainloop_api*a, void *id, void *userdata);
     void *userdata;
+    void (*destroy_callback) (struct pa_mainloop_api*a, struct pa_io_event *e, void *userdata);
 };
 
-struct mainloop_source_time {
-    struct mainloop_source_header header;
+struct pa_time_event {
+    struct pa_mainloop *mainloop;
+    int dead;
     int enabled;
-    
     struct timeval timeval;
-    void (*callback)(struct pa_mainloop_api*a, void *id, const struct timeval*tv, void *userdata);
+    void (*callback)(struct pa_mainloop_api*a, struct pa_time_event *e, const struct timeval*tv, void *userdata);
     void *userdata;
+    void (*destroy_callback) (struct pa_mainloop_api*a, struct pa_time_event *e, void *userdata);
+};
+
+struct pa_defer_event {
+    struct pa_mainloop *mainloop;
+    int dead;
+    int enabled;
+    void (*callback)(struct pa_mainloop_api*a, struct pa_defer_event*e, void *userdata);
+    void *userdata;
+    void (*destroy_callback) (struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata);
 };
 
 struct pa_mainloop {
-    struct pa_idxset *io_sources, *fixed_sources, *idle_sources, *time_sources;
-    int io_sources_scan_dead, fixed_sources_scan_dead, idle_sources_scan_dead, time_sources_scan_dead;
+    struct pa_idxset *io_events, *time_events, *defer_events;
+    int io_events_scan_dead, defer_events_scan_dead, time_events_scan_dead;
 
     struct pollfd *pollfds;
     unsigned max_pollfds, n_pollfds;
@@ -83,57 +83,248 @@ struct pa_mainloop {
     struct pa_mainloop_api api;
 };
 
-static void setup_api(struct pa_mainloop *m);
+/* IO events */
+static struct pa_io_event* mainloop_io_new(struct pa_mainloop_api*a, int fd, enum pa_io_event_flags events, void (*callback) (struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags events, void *userdata), void *userdata) {
+    struct pa_mainloop *m;
+    struct pa_io_event *e;
+
+    assert(a && a->userdata && fd >= 0 && callback);
+    m = a->userdata;
+    assert(a == &m->api);
+
+    e = pa_xmalloc(sizeof(struct pa_io_event));
+    e->mainloop = m;
+    e->dead = 0;
+
+    e->fd = fd;
+    e->events = events;
+    e->callback = callback;
+    e->userdata = userdata;
+    e->destroy_callback = NULL;
+    e->pollfd = NULL;
+
+    pa_idxset_put(m->io_events, e, NULL);
+    m->rebuild_pollfds = 1;
+    return e;
+}
+
+static void mainloop_io_enable(struct pa_io_event *e, enum pa_io_event_flags events) {
+    assert(e && e->mainloop);
+
+    e->events = events;
+    if (e->pollfd)
+        e->pollfd->events =
+            (events & PA_IO_EVENT_INPUT ? POLLIN : 0) |
+            (events & PA_IO_EVENT_OUTPUT ? POLLOUT : 0) |
+            POLLHUP |
+            POLLERR;
+}
+
+static void mainloop_io_free(struct pa_io_event *e) {
+    assert(e && e->mainloop);
+    e->dead = e->mainloop->io_events_scan_dead = e->mainloop->rebuild_pollfds = 1;
+}
+
+static void mainloop_io_set_destroy(struct pa_io_event *e, void (*callback)(struct pa_mainloop_api*a, struct pa_io_event *e, void *userdata)) {
+    assert(e);
+    e->destroy_callback = callback;
+}
+
+/* Defer events */
+struct pa_defer_event* mainloop_defer_new(struct pa_mainloop_api*a, void (*callback) (struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata), void *userdata) {
+    struct pa_mainloop *m;
+    struct pa_defer_event *e;
+
+    assert(a && a->userdata && callback);
+    m = a->userdata;
+    assert(a == &m->api);
+
+    e = pa_xmalloc(sizeof(struct pa_defer_event));
+    e->mainloop = m;
+    e->dead = 0;
+
+    e->enabled = 1;
+    e->callback = callback;
+    e->userdata = userdata;
+    e->destroy_callback = NULL;
+
+    pa_idxset_put(m->defer_events, e, NULL);
+    return e;
+}
+
+static void mainloop_defer_enable(struct pa_defer_event *e, int b) {
+    assert(e);
+    e->enabled = b;
+}
+
+static void mainloop_defer_free(struct pa_defer_event *e) {
+    assert(e);
+    e->dead = e->mainloop->defer_events_scan_dead = 1;
+}
+
+static void mainloop_defer_set_destroy(struct pa_defer_event *e, void (*callback)(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata)) {
+    assert(e);
+    e->destroy_callback = callback;
+}
+
+/* Time events */
+static struct pa_time_event* mainloop_time_new(struct pa_mainloop_api*a, const struct timeval *tv, void (*callback) (struct pa_mainloop_api*a, struct pa_time_event*e, const struct timeval *tv, void *userdata), void *userdata) {
+    struct pa_mainloop *m;
+    struct pa_time_event *e;
+
+    assert(a && a->userdata && callback);
+    m = a->userdata;
+    assert(a == &m->api);
+
+    e = pa_xmalloc(sizeof(struct pa_time_event));
+    e->mainloop = m;
+    e->dead = 0;
+
+    e->enabled = !!tv;
+    if (tv)
+        e->timeval = *tv;
+
+    e->callback = callback;
+    e->userdata = userdata;
+    e->destroy_callback = NULL;
+
+    pa_idxset_put(m->time_events, e, NULL);
+    return e;
+}
+
+static void mainloop_time_restart(struct pa_time_event *e, const struct timeval *tv) {
+    assert(e);
+
+    if (tv) {
+        e->enabled = 1;
+        e->timeval = *tv;
+    } else
+        e->enabled = 0;
+}
+
+static void mainloop_time_free(struct pa_time_event *e) {
+    assert(e);
+    e->dead = e->mainloop->time_events_scan_dead = 1;
+}
+
+static void mainloop_time_set_destroy(struct pa_time_event *e, void (*callback)(struct pa_mainloop_api*a, struct pa_time_event *e, void *userdata)) {
+    assert(e);
+    e->destroy_callback = callback;
+}
+
+/* quit() */
+
+static void mainloop_quit(struct pa_mainloop_api*a, int retval) {
+    struct pa_mainloop *m;
+    assert(a && a->userdata);
+    m = a->userdata;
+    assert(a == &m->api);
+
+    m->quit = 1;
+    m->retval = retval;
+}
+    
+static const struct pa_mainloop_api vtable = {
+    userdata: NULL,
+
+    io_new: mainloop_io_new,
+    io_enable: mainloop_io_enable,
+    io_free: mainloop_io_free,
+    io_set_destroy: mainloop_io_set_destroy,
+
+    time_new : mainloop_time_new,
+    time_restart : mainloop_time_restart,
+    time_free : mainloop_time_free,
+    time_set_destroy : mainloop_time_set_destroy,
+    
+    defer_new : mainloop_defer_new,
+    defer_enable : mainloop_defer_enable,
+    defer_free : mainloop_defer_free,
+    defer_set_destroy : mainloop_defer_set_destroy,
+    
+    quit : mainloop_quit,
+};
 
 struct pa_mainloop *pa_mainloop_new(void) {
     struct pa_mainloop *m;
 
     m = pa_xmalloc(sizeof(struct pa_mainloop));
 
-    m->io_sources = pa_idxset_new(NULL, NULL);
-    m->fixed_sources = pa_idxset_new(NULL, NULL);
-    m->idle_sources = pa_idxset_new(NULL, NULL);
-    m->time_sources = pa_idxset_new(NULL, NULL);
+    m->io_events = pa_idxset_new(NULL, NULL);
+    m->defer_events = pa_idxset_new(NULL, NULL);
+    m->time_events = pa_idxset_new(NULL, NULL);
 
-    assert(m->io_sources && m->fixed_sources && m->idle_sources && m->time_sources);
+    assert(m->io_events && m->defer_events && m->time_events);
 
-    m->io_sources_scan_dead = m->fixed_sources_scan_dead = m->idle_sources_scan_dead = m->time_sources_scan_dead = 0;
+    m->io_events_scan_dead = m->defer_events_scan_dead = m->time_events_scan_dead = 0;
     
     m->pollfds = NULL;
     m->max_pollfds = m->n_pollfds = m->rebuild_pollfds = 0;
 
     m->quit = m->running = m->retval = 0;
 
-    setup_api(m);
+    m->api = vtable;
+    m->api.userdata = m;
     
     return m;
 }
 
-static int foreach(void *p, uint32_t index, int *del, void*userdata) {
-    struct mainloop_source_header *h = p;
+static int io_foreach(void *p, uint32_t index, int *del, void*userdata) {
+    struct pa_io_event *e = p;
     int *all = userdata;
-    assert(p && del && all);
+    assert(e && del && all);
 
-    if (*all || h->dead) {
-        pa_xfree(h);
-        *del = 1;
-    }
+    if (!*all || !e->dead)
+        return 0;
+    
+    if (e->destroy_callback)
+        e->destroy_callback(&e->mainloop->api, e, e->userdata);
+    pa_xfree(e);
+    *del = 1;
+    return 0;
+};
 
+static int time_foreach(void *p, uint32_t index, int *del, void*userdata) {
+    struct pa_time_event *e = p;
+    int *all = userdata;
+    assert(e && del && all);
+
+    if (!*all || !e->dead)
+        return 0;
+    
+    if (e->destroy_callback)
+        e->destroy_callback(&e->mainloop->api, e, e->userdata);
+    pa_xfree(e);
+    *del = 1;
+    return 0;
+};
+
+static int defer_foreach(void *p, uint32_t index, int *del, void*userdata) {
+    struct pa_defer_event *e = p;
+    int *all = userdata;
+    assert(e && del && all);
+
+    if (!*all || !e->dead)
+        return 0;
+    
+    if (e->destroy_callback)
+        e->destroy_callback(&e->mainloop->api, e, e->userdata);
+    pa_xfree(e);
+    *del = 1;
     return 0;
 };
 
 void pa_mainloop_free(struct pa_mainloop* m) {
     int all = 1;
     assert(m);
-    pa_idxset_foreach(m->io_sources, foreach, &all);
-    pa_idxset_foreach(m->fixed_sources, foreach, &all);
-    pa_idxset_foreach(m->idle_sources, foreach, &all);
-    pa_idxset_foreach(m->time_sources, foreach, &all);
 
-    pa_idxset_free(m->io_sources, NULL, NULL);
-    pa_idxset_free(m->fixed_sources, NULL, NULL);
-    pa_idxset_free(m->idle_sources, NULL, NULL);
-    pa_idxset_free(m->time_sources, NULL, NULL);
+    pa_idxset_foreach(m->io_events, io_foreach, &all);
+    pa_idxset_foreach(m->time_events, time_foreach, &all);
+    pa_idxset_foreach(m->defer_events, defer_foreach, &all);
+
+    pa_idxset_free(m->io_events, NULL, NULL);
+    pa_idxset_free(m->time_events, NULL, NULL);
+    pa_idxset_free(m->defer_events, NULL, NULL);
 
     pa_xfree(m->pollfds);
     pa_xfree(m);
@@ -142,23 +333,21 @@ void pa_mainloop_free(struct pa_mainloop* m) {
 static void scan_dead(struct pa_mainloop *m) {
     int all = 0;
     assert(m);
-    if (m->io_sources_scan_dead)
-        pa_idxset_foreach(m->io_sources, foreach, &all);
-    if (m->fixed_sources_scan_dead)
-        pa_idxset_foreach(m->fixed_sources, foreach, &all);
-    if (m->idle_sources_scan_dead)
-        pa_idxset_foreach(m->idle_sources, foreach, &all);
-    if (m->time_sources_scan_dead)
-        pa_idxset_foreach(m->time_sources, foreach, &all);
+    if (m->io_events_scan_dead)
+        pa_idxset_foreach(m->io_events, io_foreach, &all);
+    if (m->time_events_scan_dead)
+        pa_idxset_foreach(m->time_events, time_foreach, &all);
+    if (m->defer_events_scan_dead)
+        pa_idxset_foreach(m->defer_events, defer_foreach, &all);
 }
 
 static void rebuild_pollfds(struct pa_mainloop *m) {
-    struct mainloop_source_io*s;
+    struct pa_io_event*e;
     struct pollfd *p;
     uint32_t index = PA_IDXSET_INVALID;
     unsigned l;
 
-    l = pa_idxset_ncontents(m->io_sources);
+    l = pa_idxset_ncontents(m->io_events);
     if (m->max_pollfds < l) {
         m->pollfds = pa_xrealloc(m->pollfds, sizeof(struct pollfd)*l);
         m->max_pollfds = l;
@@ -166,15 +355,19 @@ static void rebuild_pollfds(struct pa_mainloop *m) {
 
     m->n_pollfds = 0;
     p = m->pollfds;
-    for (s = pa_idxset_first(m->io_sources, &index); s; s = pa_idxset_next(m->io_sources, &index)) {
-        if (s->header.dead) {
-            s->pollfd = NULL;
+    for (e = pa_idxset_first(m->io_events, &index); e; e = pa_idxset_next(m->io_events, &index)) {
+        if (e->dead) {
+            e->pollfd = NULL;
             continue;
         }
 
-        s->pollfd = p;
-        p->fd = s->fd;
-        p->events = ((s->events & PA_MAINLOOP_API_IO_EVENT_INPUT) ? POLLIN : 0) | ((s->events & PA_MAINLOOP_API_IO_EVENT_OUTPUT) ? POLLOUT : 0);
+        e->pollfd = p;
+        p->fd = e->fd;
+        p->events =
+            ((e->events & PA_IO_EVENT_INPUT) ? POLLIN : 0) |
+            ((e->events & PA_IO_EVENT_OUTPUT) ? POLLOUT : 0) |
+            POLLHUP |
+            POLLERR;
         p->revents = 0;
 
         p++;
@@ -184,60 +377,62 @@ static void rebuild_pollfds(struct pa_mainloop *m) {
 
 static void dispatch_pollfds(struct pa_mainloop *m) {
     uint32_t index = PA_IDXSET_INVALID;
-    struct mainloop_source_io *s;
+    struct pa_io_event *e;
 
-    for (s = pa_idxset_first(m->io_sources, &index); s; s = pa_idxset_next(m->io_sources, &index)) {
-        if (s->header.dead || !s->pollfd || !s->pollfd->revents)
+    for (e = pa_idxset_first(m->io_events, &index); e; e = pa_idxset_next(m->io_events, &index)) {
+        if (e->dead || !e->pollfd || !e->pollfd->revents)
             continue;
         
-        assert(s->pollfd->fd == s->fd && s->callback);
-        s->callback(&m->api, s, s->fd,
-                    ((s->pollfd->revents & POLLHUP) ? PA_MAINLOOP_API_IO_EVENT_HUP : 0) |
-                    ((s->pollfd->revents & POLLIN) ? PA_MAINLOOP_API_IO_EVENT_INPUT : 0) |
-                    ((s->pollfd->revents & POLLOUT) ? PA_MAINLOOP_API_IO_EVENT_OUTPUT : 0), s->userdata);
-        s->pollfd->revents = 0;
+        assert(e->pollfd->fd == e->fd && e->callback);
+        e->callback(&m->api, e, e->fd,
+                    (e->pollfd->revents & POLLHUP ? PA_IO_EVENT_HANGUP : 0) |
+                    (e->pollfd->revents & POLLIN ? PA_IO_EVENT_INPUT : 0) |
+                    (e->pollfd->revents & POLLOUT ? PA_IO_EVENT_OUTPUT : 0) |
+                    (e->pollfd->revents & POLLERR ? PA_IO_EVENT_ERROR : 0),
+                    e->userdata);
+        e->pollfd->revents = 0;
     }
 }
 
-static void run_fixed_or_idle(struct pa_mainloop *m, struct pa_idxset *i) {
-    uint32_t index = PA_IDXSET_INVALID;
-    struct mainloop_source_fixed_or_idle *s;
+static void dispatch_defer(struct pa_mainloop *m) {
+    uint32_t index;
+    struct pa_defer_event *e;
 
-    for (s = pa_idxset_first(i, &index); s; s = pa_idxset_next(i, &index)) {
-        if (s->header.dead || !s->enabled)
+    for (e = pa_idxset_first(m->defer_events, &index); e; e = pa_idxset_next(m->defer_events, &index)) {
+        if (e->dead || !e->enabled)
             continue;
 
-        assert(s->callback);
-        s->callback(&m->api, s, s->userdata);
+        assert(e->callback);
+        e->callback(&m->api, e, e->userdata);
     }
 }
 
 static int calc_next_timeout(struct pa_mainloop *m) {
-    uint32_t index = PA_IDXSET_INVALID;
-    struct mainloop_source_time *s;
+    uint32_t index;
+    struct pa_time_event *e;
     struct timeval now;
     int t = -1;
 
-    if (pa_idxset_isempty(m->time_sources))
+    if (pa_idxset_isempty(m->time_events))
         return -1;
 
     gettimeofday(&now, NULL);
     
-    for (s = pa_idxset_first(m->time_sources, &index); s; s = pa_idxset_next(m->time_sources, &index)) {
+    for (e = pa_idxset_first(m->time_events, &index); e; e = pa_idxset_next(m->time_events, &index)) {
         int tmp;
         
-        if (s->header.dead || !s->enabled)
+        if (e->dead || !e->enabled)
             continue;
 
-        if (s->timeval.tv_sec < now.tv_sec || (s->timeval.tv_sec == now.tv_sec && s->timeval.tv_usec <= now.tv_usec)) 
+        if (e->timeval.tv_sec < now.tv_sec || (e->timeval.tv_sec == now.tv_sec && e->timeval.tv_usec <= now.tv_usec)) 
             return 0;
 
-        tmp = (s->timeval.tv_sec - now.tv_sec)*1000;
+        tmp = (e->timeval.tv_sec - now.tv_sec)*1000;
             
-        if (s->timeval.tv_usec > now.tv_usec)
-            tmp += (s->timeval.tv_usec - now.tv_usec)/1000;
+        if (e->timeval.tv_usec > now.tv_usec)
+            tmp += (e->timeval.tv_usec - now.tv_usec)/1000;
         else
-            tmp -= (now.tv_usec - s->timeval.tv_usec)/1000;
+            tmp -= (now.tv_usec - e->timeval.tv_usec)/1000;
 
         if (tmp == 0)
             return 0;
@@ -249,43 +444,31 @@ static int calc_next_timeout(struct pa_mainloop *m) {
 }
 
 static void dispatch_timeout(struct pa_mainloop *m) {
-    uint32_t index = PA_IDXSET_INVALID;
-    struct mainloop_source_time *s;
+    uint32_t index;
+    struct pa_time_event *e;
     struct timeval now;
     assert(m);
 
-    if (pa_idxset_isempty(m->time_sources))
+    if (pa_idxset_isempty(m->time_events))
         return;
 
     gettimeofday(&now, NULL);
-    for (s = pa_idxset_first(m->time_sources, &index); s; s = pa_idxset_next(m->time_sources, &index)) {
+    for (e = pa_idxset_first(m->time_events, &index); e; e = pa_idxset_next(m->time_events, &index)) {
         
-        if (s->header.dead || !s->enabled)
+        if (e->dead || !e->enabled)
             continue;
 
-        if (s->timeval.tv_sec < now.tv_sec || (s->timeval.tv_sec == now.tv_sec && s->timeval.tv_usec <= now.tv_usec)) {
-            assert(s->callback);
+        if (e->timeval.tv_sec < now.tv_sec || (e->timeval.tv_sec == now.tv_sec && e->timeval.tv_usec <= now.tv_usec)) {
+            assert(e->callback);
 
-            s->enabled = 0;
-            s->callback(&m->api, s, &s->timeval, s->userdata);
+            e->enabled = 0;
+            e->callback(&m->api, e, &e->timeval, e->userdata);
         }
     }
 }
 
-static int any_idle_sources(struct pa_mainloop *m) {
-    struct mainloop_source_fixed_or_idle *s;
-    uint32_t index;
-    assert(m);
-    
-    for (s = pa_idxset_first(m->idle_sources, &index); s; s = pa_idxset_next(m->idle_sources, &index))
-        if (!s->header.dead && s->enabled)
-            return 1;
-
-    return 0;
-}
-
 int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
-    int r, idle;
+    int r;
     assert(m && !m->running);
     
     if(m->quit) {
@@ -297,23 +480,16 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
     m->running = 1;
 
     scan_dead(m);
-    run_fixed_or_idle(m, m->fixed_sources);
+    dispatch_defer(m);
 
     if (m->rebuild_pollfds) {
         rebuild_pollfds(m);
         m->rebuild_pollfds = 0;
     }
 
-    idle = any_idle_sources(m);
-
     do {
-        int t;
-
-        if (!block || idle)
-            t = 0;
-        else 
-            t = calc_next_timeout(m);
-            
+        int t = block ? calc_next_timeout(m) : 0;
+        /*fprintf(stderr, "%u\n", t);*/
         r = poll(m->pollfds, m->n_pollfds, t);
     } while (r < 0 && errno == EINTR);
 
@@ -321,8 +497,6 @@ int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
     
     if (r > 0)
         dispatch_pollfds(m);
-    else if (r == 0 && idle)
-        run_fixed_or_idle(m, m->idle_sources);
     else if (r < 0)
         fprintf(stderr, "select(): %s\n", strerror(errno));
     
@@ -341,209 +515,7 @@ void pa_mainloop_quit(struct pa_mainloop *m, int r) {
     m->quit = r;
 }
 
-/* IO sources */
-static void* mainloop_source_io(struct pa_mainloop_api*a, int fd, enum pa_mainloop_api_io_events events, void (*callback) (struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata), void *userdata) {
-    struct pa_mainloop *m;
-    struct mainloop_source_io *s;
-    assert(a && a->userdata && fd >= 0 && callback);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    s = pa_xmalloc(sizeof(struct mainloop_source_io));
-    s->header.mainloop = m;
-    s->header.dead = 0;
-
-    s->fd = fd;
-    s->events = events;
-    s->callback = callback;
-    s->userdata = userdata;
-    s->pollfd = NULL;
-
-    pa_idxset_put(m->io_sources, s, NULL);
-    m->rebuild_pollfds = 1;
-    return s;
-}
-
-static void mainloop_enable_io(struct pa_mainloop_api*a, void* id, enum pa_mainloop_api_io_events events) {
-    struct pa_mainloop *m;
-    struct mainloop_source_io *s = id;
-    assert(a && a->userdata && s && !s->header.dead);
-    m = a->userdata;
-    assert(a == &m->api && s->header.mainloop == m);
-
-    s->events = events;
-    if (s->pollfd)
-        s->pollfd->events = ((s->events & PA_MAINLOOP_API_IO_EVENT_INPUT) ? POLLIN : 0) | ((s->events & PA_MAINLOOP_API_IO_EVENT_OUTPUT) ? POLLOUT : 0);
-}
-
-static void mainloop_cancel_io(struct pa_mainloop_api*a, void* id) {
-    struct pa_mainloop *m;
-    struct mainloop_source_io *s = id;
-    assert(a && a->userdata && s && !s->header.dead);
-    m = a->userdata;
-    assert(a == &m->api && s->header.mainloop == m);
-
-    s->header.dead = 1;
-    m->io_sources_scan_dead = 1;
-    m->rebuild_pollfds = 1;
-}
-
-/* Fixed sources */
-static void* mainloop_source_fixed(struct pa_mainloop_api*a, void (*callback) (struct pa_mainloop_api*a, void *id, void *userdata), void *userdata) {
-    struct pa_mainloop *m;
-    struct mainloop_source_fixed_or_idle *s;
-    assert(a && a->userdata && callback);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    s = pa_xmalloc(sizeof(struct mainloop_source_fixed_or_idle));
-    s->header.mainloop = m;
-    s->header.dead = 0;
-
-    s->enabled = 1;
-    s->callback = callback;
-    s->userdata = userdata;
-
-    pa_idxset_put(m->fixed_sources, s, NULL);
-    return s;
-}
-
-static void mainloop_enable_fixed(struct pa_mainloop_api*a, void* id, int b) {
-    struct pa_mainloop *m;
-    struct mainloop_source_fixed_or_idle *s = id;
-    assert(a && a->userdata && s && !s->header.dead);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    s->enabled = b;
-}
-
-static void mainloop_cancel_fixed(struct pa_mainloop_api*a, void* id) {
-    struct pa_mainloop *m;
-    struct mainloop_source_fixed_or_idle *s = id;
-    assert(a && a->userdata && s && !s->header.dead);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    s->header.dead = 1;
-    m->fixed_sources_scan_dead = 1;
-}
-
-/* Idle sources */
-static void* mainloop_source_idle(struct pa_mainloop_api*a, void (*callback) (struct pa_mainloop_api*a, void *id, void *userdata), void *userdata) {
-    struct pa_mainloop *m;
-    struct mainloop_source_fixed_or_idle *s;
-    assert(a && a->userdata && callback);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    s = pa_xmalloc(sizeof(struct mainloop_source_fixed_or_idle));
-    s->header.mainloop = m;
-    s->header.dead = 0;
-
-    s->enabled = 1;
-    s->callback = callback;
-    s->userdata = userdata;
-
-    pa_idxset_put(m->idle_sources, s, NULL);
-    return s;
-}
-
-static void mainloop_cancel_idle(struct pa_mainloop_api*a, void* id) {
-    struct pa_mainloop *m;
-    struct mainloop_source_fixed_or_idle *s = id;
-    assert(a && a->userdata && s && !s->header.dead);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    s->header.dead = 1;
-    m->idle_sources_scan_dead = 1;
-}
-
-/* Time sources */
-static void* mainloop_source_time(struct pa_mainloop_api*a, const struct timeval *tv, void (*callback) (struct pa_mainloop_api*a, void *id, const struct timeval *tv, void *userdata), void *userdata) {
-    struct pa_mainloop *m;
-    struct mainloop_source_time *s;
-    assert(a && a->userdata && callback);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    s = pa_xmalloc(sizeof(struct mainloop_source_time));
-    s->header.mainloop = m;
-    s->header.dead = 0;
-
-    s->enabled = !!tv;
-    if (tv)
-        s->timeval = *tv;
-
-    s->callback = callback;
-    s->userdata = userdata;
-
-    pa_idxset_put(m->time_sources, s, NULL);
-    return s;
-}
-
-static void mainloop_enable_time(struct pa_mainloop_api*a, void *id, const struct timeval *tv) {
-    struct pa_mainloop *m;
-    struct mainloop_source_time *s = id;
-    assert(a && a->userdata && s && !s->header.dead);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    if (tv) {
-        s->enabled = 1;
-        s->timeval = *tv;
-    } else
-        s->enabled = 0;
-}
-
-static void mainloop_cancel_time(struct pa_mainloop_api*a, void* id) {
-    struct pa_mainloop *m;
-    struct mainloop_source_time *s = id;
-    assert(a && a->userdata && s && !s->header.dead);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    s->header.dead = 1;
-    m->time_sources_scan_dead = 1;
-
-}
-
-static void mainloop_quit(struct pa_mainloop_api*a, int retval) {
-    struct pa_mainloop *m;
-    assert(a && a->userdata);
-    m = a->userdata;
-    assert(a == &m->api);
-
-    m->quit = 1;
-    m->retval = retval;
-}
-    
-static void setup_api(struct pa_mainloop *m) {
-    assert(m);
-    
-    m->api.userdata = m;
-    m->api.source_io = mainloop_source_io;
-    m->api.enable_io = mainloop_enable_io;
-    m->api.cancel_io = mainloop_cancel_io;
-
-    m->api.source_fixed = mainloop_source_fixed;
-    m->api.enable_fixed = mainloop_enable_fixed;
-    m->api.cancel_fixed = mainloop_cancel_fixed;
-
-    m->api.source_idle = mainloop_source_idle;
-    m->api.enable_idle = mainloop_enable_fixed; /* (!) */
-    m->api.cancel_idle = mainloop_cancel_idle;
-    
-    m->api.source_time = mainloop_source_time;
-    m->api.enable_time = mainloop_enable_time;
-    m->api.cancel_time = mainloop_cancel_time;
-
-    m->api.quit = mainloop_quit;
-}
-
 struct pa_mainloop_api* pa_mainloop_get_api(struct pa_mainloop*m) {
     assert(m);
     return &m->api;
 }
-        

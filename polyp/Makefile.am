@@ -71,7 +71,8 @@ pkglib_LTLIBRARIES=libiochannel.la \
 lib_LTLIBRARIES=libpolyp.la \
 		libpolyp-simple.la \
 		libpolyp-error.la \
-		libpolyp-mainloop.la
+		libpolyp-mainloop.la \
+		libpolyp-mainloop-glib.la
 
 polypaudio_SOURCES = idxset.c idxset.h \
 		queue.c queue.h \
@@ -306,6 +307,10 @@ pacat_simple_CFLAGS = $(AM_CFLAGS)
 parec_simple_SOURCES = parec-simple.c
 parec_simple_LDADD = $(AM_LDADD) libpolyp-simple.la libpolyp-error.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
+
+libpolyp_mainloop_glib_la_SOURCES = glib-mainloop.h glib-mainloop.c
+libpolyp_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
+libpolyp_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpolyp-mainloop.la $(GLIB20_LIBS)
 
 if BUILD_LIBPOLYPCORE
 

@@ -35,30 +35,31 @@
 #include "util.h"
 #include "xmalloc.h"
 
-struct signal_info {
+struct pa_signal_event {
     int sig;
     struct sigaction saved_sigaction;
-    void (*callback) (void *id, int signal, void *userdata);
+    void (*callback) (struct pa_mainloop_api*a, struct pa_signal_event *e, int signal, void *userdata);
     void *userdata;
-    struct signal_info *previous, *next;
+    void (*destroy_callback) (struct pa_mainloop_api*a, struct pa_signal_event*e, void *userdata);
+    struct pa_signal_event *previous, *next;
 };
 
 static struct pa_mainloop_api *api = NULL;
 static int signal_pipe[2] = { -1, -1 };
-static void* mainloop_source = NULL;
-static struct signal_info *signals = NULL;
+static struct pa_io_event* io_event = NULL;
+static struct pa_signal_event *signals = NULL;
 
 static void signal_handler(int sig) {
     write(signal_pipe[1], &sig, sizeof(sig));
 }
 
-static void callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
-    assert(a && id && events == PA_MAINLOOP_API_IO_EVENT_INPUT && id == mainloop_source && fd == signal_pipe[0]);
+static void callback(struct pa_mainloop_api*a, struct pa_io_event*e, int fd, enum pa_io_event_flags f, void *userdata) {
+    assert(a && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == signal_pipe[0]);
 
     for (;;) {
         ssize_t r;
         int sig;
-        struct signal_info*s;
+        struct pa_signal_event*s;
         
         if ((r = read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
             if (errno == EAGAIN)
@@ -76,14 +77,15 @@ static void callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloo
         for (s = signals; s; s = s->next) 
             if (s->sig == sig) {
                 assert(s->callback);
-                s->callback(s, sig, s->userdata);
+                s->callback(a, s, sig, s->userdata);
                 break;
             }
     }
 }
 
 int pa_signal_init(struct pa_mainloop_api *a) {
-    assert(a);
+    assert(!api && a && signal_pipe[0] == -1 && signal_pipe[1] == -1 && !io_event);
+    
     if (pipe(signal_pipe) < 0) {
         fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
         return -1;
@@ -93,71 +95,80 @@ int pa_signal_init(struct pa_mainloop_api *a) {
     pa_make_nonblock_fd(signal_pipe[1]);
 
     api = a;
-    mainloop_source = api->source_io(api, signal_pipe[0], PA_MAINLOOP_API_IO_EVENT_INPUT, callback, NULL);
-    assert(mainloop_source);
+    io_event = api->io_new(api, signal_pipe[0], PA_IO_EVENT_INPUT, callback, NULL);
+    assert(io_event);
     return 0;
 }
 
 void pa_signal_done(void) {
-    assert(api && signal_pipe[0] >= 0 && signal_pipe[1] >= 0 && mainloop_source);
+    assert(api && signal_pipe[0] >= 0 && signal_pipe[1] >= 0 && io_event);
 
-    api->cancel_io(api, mainloop_source);
-    mainloop_source = NULL;
+    while (signals)
+        pa_signal_free(signals);
+
+    api->io_free(io_event);
+    io_event = NULL;
 
     close(signal_pipe[0]);
     close(signal_pipe[1]);
     signal_pipe[0] = signal_pipe[1] = -1;
 
-    while (signals)
-        pa_signal_unregister(signals);
-    
     api = NULL;
 }
 
-void* pa_signal_register(int sig, void (*callback) (void *id, int signal, void *userdata), void *userdata) {
-    struct signal_info *s = NULL;
+struct pa_signal_event* pa_signal_new(int sig, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, int sig, void *userdata), void *userdata) {
+    struct pa_signal_event *e = NULL;
     struct sigaction sa;
     assert(sig > 0 && callback);
-
-    for (s = signals; s; s = s->next)
-        if (s->sig == sig)
+    
+    for (e = signals; e; e = e->next)
+        if (e->sig == sig)
             goto fail;
     
-    s = pa_xmalloc(sizeof(struct signal_info));
-    s->sig = sig;
-    s->callback = callback;
-    s->userdata = userdata;
+    e = pa_xmalloc(sizeof(struct pa_signal_event));
+    e->sig = sig;
+    e->callback = callback;
+    e->userdata = userdata;
+    e->destroy_callback = NULL;
 
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = signal_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     
-    if (sigaction(sig, &sa, &s->saved_sigaction) < 0)
+    if (sigaction(sig, &sa, &e->saved_sigaction) < 0)
         goto fail;
 
-    s->previous = NULL;
-    s->next = signals;
-    signals = s;
+    e->previous = NULL;
+    e->next = signals;
+    signals = e;
 
-    return s;
+    return e;
 fail:
-    if (s)
-        pa_xfree(s);
+    if (e)
+        pa_xfree(e);
     return NULL;
 }
 
-void pa_signal_unregister(void *id) {
-    struct signal_info *s = id;
-    assert(s);
+void pa_signal_free(struct pa_signal_event *e) {
+    assert(e);
 
-    if (s->next)
-        s->next->previous = s->previous;
-    if (s->previous)
-        s->previous->next = s->next;
+    if (e->next)
+        e->next->previous = e->previous;
+    if (e->previous)
+        e->previous->next = e->next;
     else
-        signals = s->next;
+        signals = e->next;
 
-    sigaction(s->sig, &s->saved_sigaction, NULL);
-    pa_xfree(s);
+    sigaction(e->sig, &e->saved_sigaction, NULL);
+
+    if (e->destroy_callback)
+        e->destroy_callback(api, e, e->userdata);
+    
+    pa_xfree(e);
+}
+
+void pa_signal_set_destroy(struct pa_signal_event *e, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, void *userdata)) {
+    assert(e);
+    e->destroy_callback = callback;
 }

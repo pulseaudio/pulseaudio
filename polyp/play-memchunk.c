@@ -30,7 +30,7 @@ static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     return 0;
 }
 
-static void si_kill(void *i) {
+static void si_kill(struct pa_mainloop_api *m, void *i) {
     sink_input_kill(i);
 }
 

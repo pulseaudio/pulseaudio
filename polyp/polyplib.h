@@ -97,4 +97,34 @@ void pa_stream_finish_sample(struct pa_stream *p, void (*cb)(struct pa_stream*s,
 void pa_context_play_sample(struct pa_context *c, const char *name, const char *dev, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
 void pa_context_remove_sample(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
 
+struct pa_sink_info {
+    const char *name;
+    uint32_t index;
+    const char *description;
+    struct pa_sample_spec *sample_spec;
+    uint32_t owner_module;
+    uint32_t volume;
+    uint32_t monitor_source;
+    const char *monitor_source_name;
+    uint32_t latency;
+};
+
+void pa_context_get_sink_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, void *userdata), void *userdata);
+void pa_context_get_sink_info_by_id(struct pa_context *c, uint32_t id, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, void *userdata), void *userdata);
+void pa_context_get_sink_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_sink_info *i, void *userdata), void *userdata);
+
+struct pa_source_info {
+    const char *name;
+    uint32_t index;
+    const char *description;
+    struct pa_sample_spec *sample_spec;
+    uint32_t owner_module;
+    uint32_t monitor_of_sink;
+    const char *monitor_of_sink_name;
+};
+
+void pa_context_get_source_info_by_name(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, const struct pa_source_info *i, void *userdata), void *userdata);
+void pa_context_get_source_info_by_id(struct pa_context *c, uint32_t id, void (*cb)(struct pa_context *c, const struct pa_source_info *i, void *userdata), void *userdata);
+void pa_context_get_source_info_list(struct pa_context *c, void (*cb)(struct pa_context *c, const struct pa_source_info *i, void *userdata), void *userdata);
+
 #endif

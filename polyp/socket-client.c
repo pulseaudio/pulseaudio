@@ -41,8 +41,8 @@
 struct pa_socket_client {
     struct pa_mainloop_api *mainloop;
     int fd;
-
-    void *io_source, *fixed_source;
+    struct pa_io_event *io_event;
+    struct pa_defer_event *defer_event;
     void (*callback)(struct pa_socket_client*c, struct pa_iochannel *io, void *userdata);
     void *userdata;
 };
@@ -54,7 +54,8 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
     c = pa_xmalloc(sizeof(struct pa_socket_client));
     c->mainloop = m;
     c->fd = -1;
-    c->io_source = c->fixed_source = NULL;
+    c->io_event = NULL;
+    c->defer_event = NULL;
     c->callback = NULL;
     c->userdata = NULL;
     return c;
@@ -95,19 +96,19 @@ failed:
     return;
 }
 
-static void connect_fixed_cb(struct pa_mainloop_api *m, void *id, void *userdata) {
+static void connect_fixed_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
     struct pa_socket_client *c = userdata;
-    assert(m && c && c->fixed_source == id);
-    m->cancel_fixed(m, c->fixed_source);
-    c->fixed_source = NULL;
+    assert(m && c && c->defer_event == e);
+    m->defer_free(c->defer_event);
+    c->defer_event = NULL;
     do_call(c);
 }
 
-static void connect_io_cb(struct pa_mainloop_api*m, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
+static void connect_io_cb(struct pa_mainloop_api*m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     struct pa_socket_client *c = userdata;
-    assert(m && c && c->io_source == id && fd >= 0);
-    m->cancel_io(m, c->io_source);
-    c->io_source = NULL;
+    assert(m && c && c->io_event == e && fd >= 0);
+    m->io_free(c->io_event);
+    c->io_event = NULL;
     do_call(c);
 }
 
@@ -123,11 +124,11 @@ static int do_connect(struct pa_socket_client *c, const struct sockaddr *sa, soc
             return -1;
         }
 
-        c->io_source = c->mainloop->source_io(c->mainloop, c->fd, PA_MAINLOOP_API_IO_EVENT_OUTPUT, connect_io_cb, c);
-        assert(c->io_source);
+        c->io_event = c->mainloop->io_new(c->mainloop, c->fd, PA_IO_EVENT_OUTPUT, connect_io_cb, c);
+        assert(c->io_event);
     } else {
-        c->fixed_source = c->mainloop->source_fixed(c->mainloop, connect_fixed_cb, c);
-        assert(c->fixed_source);
+        c->defer_event = c->mainloop->defer_new(c->mainloop, connect_fixed_cb, c);
+        assert(c->defer_event);
     }
 
     return 0;
@@ -220,10 +221,10 @@ fail:
 
 void pa_socket_client_free(struct pa_socket_client *c) {
     assert(c && c->mainloop);
-    if (c->io_source)
-        c->mainloop->cancel_io(c->mainloop, c->io_source);
-    if (c->fixed_source)
-        c->mainloop->cancel_fixed(c->mainloop, c->fixed_source);
+    if (c->io_event)
+        c->mainloop->io_free(c->io_event);
+    if (c->defer_event)
+        c->mainloop->defer_free(c->defer_event);
     if (c->fd >= 0)
         close(c->fd);
     pa_xfree(c);

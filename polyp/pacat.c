@@ -45,7 +45,7 @@ static struct pa_mainloop_api *mainloop_api = NULL;
 static void *buffer = NULL;
 static size_t buffer_length = 0, buffer_index = 0;
 
-static void* stdio_source = NULL;
+static struct pa_io_event* stdio_event = NULL;
 
 static void quit(int ret) {
     assert(mainloop_api);
@@ -89,8 +89,8 @@ static void do_stream_write(size_t length) {
 static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
     assert(s && length);
 
-    if (stdio_source)
-        mainloop_api->enable_io(mainloop_api, stdio_source, PA_MAINLOOP_API_IO_EVENT_INPUT);
+    if (stdio_event)
+        mainloop_api->io_enable(stdio_event, PA_IO_EVENT_INPUT);
 
     if (!buffer)
         return;
@@ -101,8 +101,8 @@ static void stream_write_callback(struct pa_stream *s, size_t length, void *user
 static void stream_read_callback(struct pa_stream *s, const void*data, size_t length, void *userdata) {
     assert(s && data && length);
 
-    if (stdio_source)
-        mainloop_api->enable_io(mainloop_api, stdio_source, PA_MAINLOOP_API_IO_EVENT_OUTPUT);
+    if (stdio_event)
+        mainloop_api->io_enable(stdio_event, PA_IO_EVENT_OUTPUT);
 
     if (buffer) {
         fprintf(stderr, "Buffer overrrun, dropping incoming data\n");
@@ -174,13 +174,13 @@ static void stream_drain_complete(struct pa_stream*s, void *userdata) {
         fprintf(stderr, "Draining connection to server.\n");
 }
 
-static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
+static void stdin_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     size_t l, w = 0;
     ssize_t r;
-    assert(a == mainloop_api && id && stdio_source == id);
+    assert(a == mainloop_api && e && stdio_event == e);
 
     if (buffer) {
-        mainloop_api->enable_io(mainloop_api, stdio_source, PA_MAINLOOP_API_IO_EVENT_NULL);
+        mainloop_api->io_enable(stdio_event, PA_IO_EVENT_NULL);
         return;
     }
 
@@ -198,8 +198,8 @@ static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_m
             quit(1);
         }
 
-        mainloop_api->cancel_io(mainloop_api, stdio_source);
-        stdio_source = NULL;
+        mainloop_api->io_free(stdio_event);
+        stdio_event = NULL;
         return;
     }
 
@@ -210,12 +210,12 @@ static void stdin_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_m
         do_stream_write(w);
 }
 
-static void stdout_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_mainloop_api_io_events events, void *userdata) {
+static void stdout_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
     ssize_t r;
-    assert(a == mainloop_api && id && stdio_source == id);
+    assert(a == mainloop_api && e && stdio_event == e);
 
     if (!buffer) {
-        mainloop_api->enable_io(mainloop_api, stdio_source, PA_MAINLOOP_API_IO_EVENT_NULL);
+        mainloop_api->io_enable(stdio_event, PA_IO_EVENT_NULL);
         return;
     }
 
@@ -225,8 +225,8 @@ static void stdout_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_
         fprintf(stderr, "write() failed: %s\n", strerror(errno));
         quit(1);
 
-        mainloop_api->cancel_io(mainloop_api, stdio_source);
-        stdio_source = NULL;
+        mainloop_api->io_free(stdio_event);
+        stdio_event = NULL;
         return;
     }
 
@@ -240,7 +240,7 @@ static void stdout_callback(struct pa_mainloop_api*a, void *id, int fd, enum pa_
     }
 }
 
-static void exit_signal_callback(void *id, int sig, void *userdata) {
+static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got SIGINT, exiting.\n");
     quit(0);
     
@@ -258,7 +258,7 @@ static void stream_get_latency_callback(struct pa_stream *s, uint32_t latency, v
     fprintf(stderr, "Current latency is %u usecs.\n", latency);
 }
 
-static void sigusr1_signal_callback(void *id, int sig, void *userdata) {
+static void sigusr1_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     if (mode == PLAYBACK) {
         fprintf(stderr, "Got SIGUSR1, requesting latency.\n");
         pa_stream_get_latency(stream, stream_get_latency_callback, NULL);
@@ -289,14 +289,14 @@ int main(int argc, char *argv[]) {
 
     r = pa_signal_init(mainloop_api);
     assert(r == 0);
-    pa_signal_register(SIGINT, exit_signal_callback, NULL);
-    pa_signal_register(SIGUSR1, sigusr1_signal_callback, NULL);
+    pa_signal_new(SIGINT, exit_signal_callback, NULL);
+    pa_signal_new(SIGUSR1, sigusr1_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
     
-    if (!(stdio_source = mainloop_api->source_io(mainloop_api,
-                                                 mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO,
-                                                 mode == PLAYBACK ? PA_MAINLOOP_API_IO_EVENT_INPUT : PA_MAINLOOP_API_IO_EVENT_OUTPUT,
-                                                 mode == PLAYBACK ? stdin_callback : stdout_callback, NULL))) {
+    if (!(stdio_event = mainloop_api->io_new(mainloop_api,
+                                             mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO,
+                                             mode == PLAYBACK ? PA_IO_EVENT_INPUT : PA_IO_EVENT_OUTPUT,
+                                             mode == PLAYBACK ? stdin_callback : stdout_callback, NULL))) {
         fprintf(stderr, "source_io() failed.\n");
         goto quit;
     }
