@@ -164,7 +164,6 @@ static void callback(struct pa_core *c, enum pa_subscription_event_type t, uint3
 
 int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_modargs *ma = NULL;
-    int ret = -1;
     const char *table_file;
     struct userdata *u;
     assert(c && m);
@@ -172,25 +171,28 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     if (!(ma = pa_modargs_new(m->argument, valid_modargs)) ||
         !(table_file = pa_modargs_get_value(ma, "table", NULL))) {
         pa_log(__FILE__": Failed to parse module arguments\n");
-        goto finish;
+        goto fail;
     }
 
     u = pa_xmalloc(sizeof(struct userdata));
     u->rules = NULL;
     u->subscription = NULL;
+    m->userdata = u;
     
     if (load_rules(u, table_file) < 0)
-        goto finish;
+        goto fail;
 
     u->subscription = pa_subscription_new(c, PA_SUBSCRIPTION_MASK_SINK_INPUT, callback, u);
-    
-    ret = 0;
 
-finish:
+    pa_modargs_free(ma);
+    return 0;
+
+fail:
+    pa__done(c, m);
+
     if (ma)
         pa_modargs_free(ma);
-
-    return ret;
+    return  -1;
 }
 
 void pa__done(struct pa_core *c, struct pa_module*m) {

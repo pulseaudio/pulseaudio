@@ -97,7 +97,7 @@ static int load(const char *fn, void *data, size_t length) {
             writable = 0;
     }
 
-    unlock = pa_lock_file(fd, 1) >= 0;
+    unlock = pa_lock_fd(fd, 1) >= 0;
 
     if ((r = pa_loop_read(fd, data, length)) < 0) {
         pa_log(__FILE__": failed to read cookie file '%s'\n", fn);
@@ -122,7 +122,7 @@ finish:
     if (fd >= 0) {
         
         if (unlock)
-            pa_lock_file(fd, 0);
+            pa_lock_fd(fd, 0);
         
         close(fd);
     }
@@ -147,15 +147,19 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
 int pa_authkey_load_from_home(const char *fn, void *data, size_t length) {
     char *home;
     char path[PATH_MAX];
+    char *p;
 
     assert(fn && data && length);
-    
-    if (!(home = getenv("HOME")))
-        return -2;
-    
-    snprintf(path, sizeof(path), "%s/%s", home, fn);
 
-    return pa_authkey_load(path, data, length);
+    if (fn[0] != '/') {
+        if (!(home = getenv("HOME")))
+            return -2;
+        
+        snprintf(p = path, sizeof(path), "%s/%s", home, fn);
+    } else
+        p = fn;
+        
+    return pa_authkey_load(p, data, length);
 }
 
 int pa_authkey_load_auto(const char *fn, void *data, size_t length) {

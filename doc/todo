@@ -7,12 +7,12 @@
 - make mcalign merge chunks
 - option to use default fragment size on alsa drivers
 - improve module-oss-mmap latency measurement
-- proper locking around native protocol socket
 - pacat sample type args
 - filter capture data in client through alignment
 - add redirection module
 - add radio module
 - make autoload list use idxset
+- libwrap
 
 ** later ***
 - xmlrpc/http

@@ -502,7 +502,7 @@ finish:
     return r;
 }
 
-int pa_lock_file(int fd, int b) {
+int pa_lock_fd(int fd, int b) {
 
     struct flock flock;
 
@@ -525,3 +525,44 @@ char* pa_strip_nl(char *s) {
     s[strcspn(s, "\r\n")] = 0;
     return s;
 }
+
+int pa_lock_lockfile(const char *fn) {
+    int fd;
+    assert(fn);
+
+    if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
+        pa_log(__FILE__": failed to create lock file '%s'\n", fn);
+        goto fail;
+    }
+
+    if (pa_lock_fd(fd, 1) < 0)
+        goto fail;
+
+    return fd;
+
+fail:
+
+    if (fd >= 0)
+        close(fd);
+
+    return -1;
+}
+
+
+int pa_unlock_lockfile(int fd) {
+    int r = 0;
+    assert(fd >= 0);
+
+    if (pa_lock_fd(fd, 0) < 0) {
+        pa_log(__FILE__": WARNING: failed to unlock file.\n");
+        r = -1;
+    }
+
+    if (close(fd) < 0) {
+        pa_log(__FILE__": WARNING: failed to close lock file.\n");
+        r = -1;
+    }
+
+    return r;
+}
+

@@ -70,7 +70,9 @@ int pa_parse_resample_method(const char *string);
 
 int pa_uid_in_group(const char *name, gid_t *gid);
 
-int pa_lock_file(int fd, int b);
+int pa_lock_fd(int fd, int b);
 
+int pa_lock_lockfile(const char *fn);
+int pa_unlock_lockfile(int fd);
 
 #endif

@@ -96,6 +96,8 @@ enum {
 #define PA_NATIVE_COOKIE_LENGTH 256
 #define PA_NATIVE_COOKIE_FILE ".polypaudio-cookie"
 
+#define PA_NATIVE_DEFAULT_PORT 4713
+
 PA_C_DECL_END
 
 #endif

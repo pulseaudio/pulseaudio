@@ -38,4 +38,6 @@ int pa_unix_socket_remove_stale(const char *fn);
 int pa_unix_socket_make_secure_dir(const char *fn);
 int pa_unix_socket_remove_secure_dir(const char *fn);
 
+struct sockaddr *pa_resolve_server(const char *server, size_t *len, uint16_t port);
+
 #endif

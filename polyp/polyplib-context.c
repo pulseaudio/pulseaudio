@@ -48,8 +48,10 @@
 #include "xmalloc.h"
 #include "log.h"
 #include "client-conf.h"
+#include "socket-util.h"
 
 #define DEFAULT_SERVER "/tmp/polypaudio/native"
+#define AUTOSPAWN_LOCK "/tmp/polypaudio/autospawn.lock"
 
 static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = { pa_command_request },
@@ -347,38 +349,6 @@ finish:
     pa_context_unref(c);
 }
 
-static struct sockaddr *resolve_server(const char *server, size_t *len) {
-    struct sockaddr *sa;
-    struct addrinfo hints, *result = NULL;
-    char *port, host[256];
-    assert(server && len);
-
-    snprintf(host, sizeof(host), "%s", server);
-    host[strcspn(host, ":")] = 0;
-    
-    if ((port = strrchr(server, ':')))
-        port++;
-    
-    if (!port)
-        port = DEFAULT_PORT;
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = PF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = 0;
-
-    if (getaddrinfo(host, port, &hints, &result) != 0)
-        return NULL;
-    assert(result);
-    
-    sa = pa_xmalloc(*len = result->ai_addrlen);
-    memcpy(sa, result->ai_addr, *len);
-
-    freeaddrinfo(result);
-    
-    return sa;
-}
-
 static int default_server_is_running(void) {
     struct stat st;
     
@@ -499,9 +469,21 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
     if (!server)
         server = c->conf->default_server;
 
-    if (!server && spawn && c->conf->autospawn && !default_server_is_running())
-        return context_connect_spawn(c, api);
+    if (!server && spawn && c->conf->autospawn) {
+        int lock_fd = pa_lock_lockfile(AUTOSPAWN_LOCK);
+        
+        if (!default_server_is_running()) {
+            int r = context_connect_spawn(c, api);
 
+            if (lock_fd >= 0)
+                pa_unlock_lockfile(lock_fd);
+            return r;
+        }
+
+        if (lock_fd >= 0)
+            pa_unlock_lockfile(lock_fd);
+    }
+    
     if (!server)
         server = DEFAULT_SERVER;
 
@@ -520,7 +502,7 @@ int pa_context_connect(struct pa_context *c, const char *server, int spawn, cons
         struct sockaddr* sa;
         size_t sa_len;
 
-        if (!(sa = resolve_server(server, &sa_len))) {
+        if (!(sa = pa_resolve_server(server, &sa_len, PA_NATIVE_DEFAULT_PORT))) {
             pa_context_fail(c, PA_ERROR_INVALIDSERVER);
             goto finish;
         }

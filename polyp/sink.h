@@ -64,7 +64,6 @@ void pa_sink_disconnect(struct pa_sink* s);
 void pa_sink_unref(struct pa_sink*s);
 struct pa_sink* pa_sink_ref(struct pa_sink *s);
 
-
 int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result);
 void pa_sink_render_full(struct pa_sink *s, size_t length, struct pa_memchunk *result);
 int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target);

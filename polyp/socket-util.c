@@ -37,6 +37,7 @@
 #include <sys/types.h>
 #include <netinet/tcp.h>
 #include <netinet/ip.h>
+#include <netdb.h>
 
 #include "socket-util.h"
 #include "util.h"
@@ -217,5 +218,37 @@ int pa_unix_socket_remove_secure_dir(const char *fn) {
 finish:
     pa_xfree(dir);
     return ret;
+}
+
+struct sockaddr *pa_resolve_server(const char *server, size_t *len, uint16_t nport) {
+    struct sockaddr *sa;
+    struct addrinfo hints, *result = NULL;
+    char *port, host[256], tmp[16];
+    assert(server && len);
+
+    snprintf(host, sizeof(host), "%s", server);
+    host[strcspn(host, ":")] = 0;
+    
+    if ((port = strrchr(server, ':')))
+        port++;
+    
+    if (!port) 
+        snprintf(port = tmp, sizeof(tmp), "%u", nport);
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = PF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 0;
+
+    if (getaddrinfo(host, port, &hints, &result) != 0)
+        return NULL;
+    assert(result);
+    
+    sa = pa_xmalloc(*len = result->ai_addrlen);
+    memcpy(sa, result->ai_addr, *len);
+
+    freeaddrinfo(result);
+    
+    return sa;
 }
 

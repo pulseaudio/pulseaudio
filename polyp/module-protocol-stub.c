@@ -37,6 +37,7 @@
 #include "util.h"
 #include "modargs.h"
 #include "log.h"
+#include "native-common.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_VERSION(PACKAGE_VERSION)
@@ -72,7 +73,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
   #include "protocol-native.h"
   #define protocol_new pa_protocol_native_new
   #define protocol_free pa_protocol_native_free
-  #define IPV4_PORT 4713
+  #define IPV4_PORT PA_NATIVE_DEFAULT_PORT
   #define UNIX_SOCKET "/tmp/polypaudio/native"
   #define MODULE_ARGUMENTS "public", "cookie",
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION)
