@@ -22,7 +22,7 @@ polypconfdir=$(sysconfdir)/polypaudio
 
 modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
 
-AM_CFLAGS=-D_GNU_SOURCE  -I$(top_srcdir) $(PTHREAD_CFLAGS)
+AM_CFLAGS=-D_GNU_SOURCE  -I$(top_srcdir) $(PTHREAD_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 AM_CFLAGS+=-DDLSEARCHPATH=\"$(modlibdir)\"
 AM_CFLAGS+=-DDEFAULT_CONFIG_DIR=\"$(polypconfdir)\"
 AM_CFLAGS+=-DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio\"
