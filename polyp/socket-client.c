@@ -438,7 +438,8 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
 
                 if (res->ai_addr) {
                     if ((c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen)))
-                    	tart_timeout(c);
+                    	start_timeout(c);
+				}
                 
                 freeaddrinfo(res);
             }
