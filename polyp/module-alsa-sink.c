@@ -192,7 +192,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     }
     frame_size = pa_frame_size(&ss);
     
-    periods = 12;
+    periods = 8;
     fragsize = 1024;
     if (pa_modargs_get_value_u32(ma, "fragments", &periods) < 0 || pa_modargs_get_value_u32(ma, "fragment_size", &fragsize) < 0) {
         pa_log(__FILE__": failed to parse buffer metrics\n");
