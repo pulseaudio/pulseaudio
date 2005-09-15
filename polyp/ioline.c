@@ -262,8 +262,16 @@ static int do_read(struct pa_ioline *l) {
         assert(len >= READ_SIZE);
         
         /* Read some data */
-        if ((r = pa_iochannel_read(l->io, l->rbuf+l->rbuf_index+l->rbuf_valid_length, len)) <= 0) {
-            pa_log(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
+        r = pa_iochannel_read(l->io, l->rbuf+l->rbuf_index+l->rbuf_valid_length, len);
+        if (r == 0) {
+            /* Got an EOF, so fake an exit command. */
+            l->rbuf_index = 0;
+            snprintf (l->rbuf, l->rbuf_length, "exit\n");
+            r = 5;
+            pa_ioline_puts(l, "\nExiting.\n");
+            do_write(l);
+        } else if (r < 0) {
+            pa_log(__FILE__": read() failed: %s\n", strerror(errno));
             failure(l);
             return -1;
         }
