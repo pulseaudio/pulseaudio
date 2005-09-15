@@ -240,5 +240,12 @@ finish:
 void pa__done(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
+#if defined(USE_PROTOCOL_ESOUND)
+	if (remove (ESD_UNIX_SOCKET_NAME) != 0)
+		pa_log("%s: Failed to remove %s : %s.\n", __FILE__, ESD_UNIX_SOCKET_NAME, strerror (errno));
+	if (remove (ESD_UNIX_SOCKET_DIR) != 0)
+		pa_log("%s: Failed to remove %s : %s.\n", __FILE__, ESD_UNIX_SOCKET_DIR, strerror (errno));
+#endif
+
     protocol_free(m->userdata);
 }
