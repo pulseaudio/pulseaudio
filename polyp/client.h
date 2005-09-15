@@ -32,17 +32,16 @@
 
 struct pa_client {
     uint32_t index;
-    pa_typeid_t typeid;
 
     struct pa_module *owner;
-    char *name;
+    char *name, *driver;
     struct pa_core *core;
 
     void (*kill)(struct pa_client *c);
     void *userdata;
 };
 
-struct pa_client *pa_client_new(struct pa_core *c, pa_typeid_t typeid, const char *name);
+struct pa_client *pa_client_new(struct pa_core *c, const char *name, const char *driver);
 
 /* This function should be called only by the code that created the client */
 void pa_client_free(struct pa_client *c);

@@ -31,35 +31,42 @@ struct pa_source;
 #include "memblock.h"
 #include "memchunk.h"
 #include "sink.h"
-#include "typeid.h"
+#include "channelmap.h"
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 16
 
-enum pa_source_state {
+typedef enum {
     PA_SOURCE_RUNNING,
     PA_SOURCE_DISCONNECTED
-};
+} pa_source_state_t;
 
 struct pa_source {
     int ref;
-    enum pa_source_state state;
-    
     uint32_t index;
-    pa_typeid_t typeid;
-    
-    char *name, *description;
-    struct pa_module *owner;
     struct pa_core *core;
+    pa_source_state_t state;
+    
+    char *name, *description, *driver;
     struct pa_sample_spec sample_spec;
+    struct pa_channel_map channel_map;
     struct pa_idxset *outputs;
     struct pa_sink *monitor_of;
+    struct pa_module *owner;
 
     void (*notify)(struct pa_source*source);
     pa_usec_t (*get_latency)(struct pa_source *s);
+    
     void *userdata;
 };
 
-struct pa_source* pa_source_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec);
+struct pa_source* pa_source_new(
+    struct pa_core *core,
+    const char *name,
+    const char *driver,
+    int fail,
+    const struct pa_sample_spec *spec,
+    const struct pa_channel_map *map);
+
 void pa_source_disconnect(struct pa_source *s);
 void pa_source_unref(struct pa_source *s);
 struct pa_source* pa_source_ref(struct pa_source *c);

@@ -39,12 +39,23 @@
 
 #define MAX_MIX_CHANNELS 32
 
-struct pa_sink* pa_sink_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec) {
+struct pa_sink* pa_sink_new(
+    struct pa_core *core,
+    const char *name,
+    const char *driver,
+    int fail,
+    const struct pa_sample_spec *spec,
+    const struct pa_channel_map *map) {
+    
     struct pa_sink *s;
     char *n = NULL;
     char st[256];
     int r;
-    assert(core && name && *name && spec);
+
+    assert(core);
+    assert(name);
+    assert(*name);
+    assert(spec);
 
     s = pa_xmalloc(sizeof(struct pa_sink));
 
@@ -53,30 +64,40 @@ struct pa_sink* pa_sink_new(struct pa_core *core, pa_typeid_t typeid, const char
         return NULL;
     }
 
+    s->ref = 1;
+    s->core = core;
+
+    s->state = PA_SINK_RUNNING;
     s->name = pa_xstrdup(name);
     s->description = NULL;
-    s->typeid = typeid;
-
-    s->ref = 1;
-    s->state = PA_SINK_RUNNING;
-    
+    s->driver = pa_xstrdup(driver);
     s->owner = NULL;
-    s->core = core;
+
     s->sample_spec = *spec;
+    if (map)
+        s->channel_map = *map;
+    else
+        pa_channel_map_init_auto(&s->channel_map, spec->channels);
+    
     s->inputs = pa_idxset_new(NULL, NULL);
 
     n = pa_sprintf_malloc("%s_monitor", name);
-    s->monitor_source = pa_source_new(core, typeid, n, 0, spec);
+    s->monitor_source = pa_source_new(core, n, driver, 0, spec, map);
     assert(s->monitor_source);
     pa_xfree(n);
     s->monitor_source->monitor_of = s;
     s->monitor_source->description = pa_sprintf_malloc("Monitor source of sink '%s'", s->name);
-    
-    s->volume = PA_VOLUME_NORM;
+
+    pa_cvolume_reset(&s->sw_volume);
+    pa_cvolume_reset(&s->hw_volume);
 
     s->notify = NULL;
     s->get_latency = NULL;
+    s->set_volume = NULL;
+    s->get_volume = NULL;
     s->userdata = NULL;
+
+    s->flags = 0;
 
     r = pa_idxset_put(core->sinks, s, &s->index);
     assert(s->index != PA_IDXSET_INVALID && r >= 0);
@@ -127,6 +148,7 @@ static void sink_free(struct pa_sink *s) {
 
     pa_xfree(s->name);
     pa_xfree(s->description);
+    pa_xfree(s->driver);
     pa_xfree(s);
 }
 
@@ -360,11 +382,38 @@ void pa_sink_set_owner(struct pa_sink *s, struct pa_module *m) {
         pa_source_set_owner(s->monitor_source, m);
 }
 
-void pa_sink_set_volume(struct pa_sink *s, pa_volume_t volume) {
-    assert(s && s->ref >= 1);
-    
-    if (s->volume != volume) {
-        s->volume = volume;
-        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-    }
+void pa_sink_set_volume(struct pa_sink *s, pa_mixer_t m, const struct pa_cvolume *volume) {
+    struct pa_cvolume *v;
+    assert(s);
+    assert(s->ref >= 1);
+    assert(volume);
+
+    if ((m == PA_MIXER_HARDWARE || m == PA_MIXER_AUTO) && s->set_volume)
+        v = &s->hw_volume;
+    else
+        v = &s->sw_volume;
+
+    if (pa_cvolume_equal(v, volume))
+        return;
+
+    *v = volume;
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+
+    if (v == &s->hw_volume)
+        s->set_volume(s);
+}
+
+const struct pa_cvolume *pa_sink_get_volume(struct pa_sink *sink, pa_mixer_t m) {
+    struct pa_cvolume *v;
+    assert(s);
+    assert(s->ref >= 1);
+
+    if ((m == PA_MIXER_HARDWARE || m == PA_MIXER_AUTO) && s->set_volume) {
+
+        if (s->get_volume)
+            s->get_volume(s);
+        
+        return &s->hw_volume;
+    } else
+        return &s->sw_volume;
 }

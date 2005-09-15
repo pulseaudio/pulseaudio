@@ -69,10 +69,11 @@ pa_usec_t pa_bytes_to_usec(uint64_t length, const struct pa_sample_spec *spec) {
 int pa_sample_spec_valid(const struct pa_sample_spec *spec) {
     assert(spec);
 
-    if (spec->rate <= 0 || spec->channels <= 0)
-        return 0;
-
-    if (spec->format >= PA_SAMPLE_MAX || spec->format < 0)
+    if (spec->rate <= 0 ||
+        spec->channels <= 0 ||
+        spec->channels >= PA_CHANNELS_MAX ||
+        spec->format >= PA_SAMPLE_MAX ||
+        spec->format < 0)
         return 0;
 
     return 1;
@@ -86,13 +87,13 @@ int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_s
 
 const char *pa_sample_format_to_string(enum pa_sample_format f) {
     static const char* const table[]= {
-        [PA_SAMPLE_U8] = "U8",
-        [PA_SAMPLE_ALAW] = "ALAW",
-        [PA_SAMPLE_ULAW] = "ULAW",
-        [PA_SAMPLE_S16LE] = "S16LE",
-        [PA_SAMPLE_S16BE] = "S16BE",
-        [PA_SAMPLE_FLOAT32LE] = "FLOAT32LE",
-        [PA_SAMPLE_FLOAT32BE] = "FLOAT32BE",
+        [PA_SAMPLE_U8] = "u8",
+        [PA_SAMPLE_ALAW] = "aLaw",
+        [PA_SAMPLE_ULAW] = "uLaw",
+        [PA_SAMPLE_S16LE] = "s16le",
+        [PA_SAMPLE_S16BE] = "s16be",
+        [PA_SAMPLE_FLOAT32LE] = "float32le",
+        [PA_SAMPLE_FLOAT32BE] = "float32be",
     };
 
     if (f >= PA_SAMPLE_MAX)
@@ -112,43 +113,6 @@ char *pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spe
     return s;
 }
 
-pa_volume_t pa_volume_multiply(pa_volume_t a, pa_volume_t b) {
-    uint64_t p = a;
-    p *= b;
-    p /= PA_VOLUME_NORM;
-
-    return (pa_volume_t) p;
-}
-
-pa_volume_t pa_volume_from_dB(double f) {
-    if (f <= PA_DECIBEL_MININFTY)
-        return PA_VOLUME_MUTED;
-
-    return (pa_volume_t) (pow(10, f/20)*PA_VOLUME_NORM);
-}
-
-double pa_volume_to_dB(pa_volume_t v) {
-    if (v == PA_VOLUME_MUTED)
-        return PA_DECIBEL_MININFTY;
-
-    return 20*log10((double) v/PA_VOLUME_NORM);
-}
-
-#define USER_DECIBEL_RANGE 30
-
-double pa_volume_to_user(pa_volume_t v) {
-    double dB = pa_volume_to_dB(v);
-
-    return dB < -USER_DECIBEL_RANGE ? 0 : dB/USER_DECIBEL_RANGE+1;
-}
-
-pa_volume_t pa_volume_from_user(double v) {
-
-    if (v <= 0)
-        return PA_VOLUME_MUTED;
-    
-    return pa_volume_from_dB((v-1)*USER_DECIBEL_RANGE);
-}
 
 void pa_bytes_snprint(char *s, size_t l, unsigned v) {
     if (v >= ((unsigned) 1024)*1024*1024)

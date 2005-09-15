@@ -35,11 +35,12 @@
 
 struct pa_resampler {
     struct pa_sample_spec i_ss, o_ss;
+    struct pa_channel_map i_cm, o_cm;
     size_t i_fz, o_fz;
     struct pa_memblock_stat *memblock_stat;
     void *impl_data;
     int channels;
-    enum pa_resample_method resample_method;
+    pa_resample_method_t resample_method;
 
     void (*impl_free)(struct pa_resampler *r);
     void (*impl_set_input_rate)(struct pa_resampler *r, uint32_t rate);
@@ -62,7 +63,14 @@ struct impl_trivial {
 static int libsamplerate_init(struct pa_resampler*r);
 static int trivial_init(struct pa_resampler*r);
 
-struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const struct pa_sample_spec *b, struct pa_memblock_stat *s, enum pa_resample_method resample_method) {
+struct pa_resampler* pa_resampler_new(
+    const struct pa_sample_spec *a,
+    const struct pa_channel_map *am,
+    const struct pa_sample_spec *b,
+    const struct pa_channel_map *bm,
+    struct pa_memblock_stat *s,
+    pa_resample_method_t resample_method) {
+    
     struct pa_resampler *r = NULL;
     assert(a && b && pa_sample_spec_valid(a) && pa_sample_spec_valid(b) && resample_method != PA_RESAMPLER_INVALID);
 
@@ -82,6 +90,17 @@ struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const stru
     r->i_ss = *a;
     r->o_ss = *b;
 
+    if (am)
+        r->i_cm = *am;
+    else
+        pa_channel_map_init_auto(&r->i_cm, r->i_ss.channels);
+
+    if (bm)
+        r->o_cm = *bm;
+    else
+        pa_channel_map_init_auto(&r->o_cm, r->o_ss.channels);
+    
+
     r->i_fz = pa_frame_size(a);
     r->o_fz = pa_frame_size(b);
 
@@ -90,7 +109,7 @@ struct pa_resampler* pa_resampler_new(const struct pa_sample_spec *a, const stru
         r->channels = b->channels;
     
     /* Choose implementation */
-    if (a->channels != b->channels || a->format != b->format || resample_method != PA_RESAMPLER_TRIVIAL) {
+    if (a->channels != b->channels || a->format != b->format || resample_method != PA_RESAMPLER_TRIVIAL || !pa_channel_map_equal(&r->i_cm, &r->o_cm)) {
         /* Use the libsamplerate based resampler for the complicated cases */
         if (resample_method == PA_RESAMPLER_TRIVIAL)
             r->resample_method = PA_RESAMPLER_SRC_ZERO_ORDER_HOLD;
@@ -141,29 +160,9 @@ size_t pa_resampler_request(struct pa_resampler *r, size_t out_length) {
     return (((out_length / r->o_fz)*r->i_ss.rate)/r->o_ss.rate) * r->i_fz;
 }
 
-enum pa_resample_method pa_resampler_get_method(struct pa_resampler *r) {
+pa_resample_method_t pa_resampler_get_method(struct pa_resampler *r) {
     assert(r);
     return r->resample_method;
-}
-
-/* Parse a libsamplrate compatible resampling implementation */
-enum pa_resample_method pa_parse_resample_method(const char *string) {
-    assert(string);
-
-    if (!strcmp(string, "src-sinc-best-quality"))
-        return PA_RESAMPLER_SRC_SINC_BEST_QUALITY;
-    else if (!strcmp(string, "src-sinc-medium-quality"))
-        return PA_RESAMPLER_SRC_SINC_MEDIUM_QUALITY;
-    else if (!strcmp(string, "src-sinc-fastest"))
-        return PA_RESAMPLER_SRC_SINC_FASTEST;
-    else if (!strcmp(string, "src-zero-order-hold"))
-        return PA_RESAMPLER_SRC_ZERO_ORDER_HOLD;
-    else if (!strcmp(string, "src-linear"))
-        return PA_RESAMPLER_SRC_LINEAR;
-    else if (!strcmp(string, "trivial"))
-        return PA_RESAMPLER_TRIVIAL;
-    else
-        return PA_RESAMPLER_INVALID;
 }
 
 /*** libsamplerate based implementation ***/
@@ -181,6 +180,70 @@ static void libsamplerate_free(struct pa_resampler *r) {
     pa_xfree(i);
 }
 
+static void calc_map_table(struct pa_resampler *r) {
+    struct impl_libsamplerate *u;
+    unsigned oc;
+    assert(r);
+    assert(r->impl_data);
+
+    u = r->impl_data;
+
+    if ((u->map_required = (!pa_channel_map_equal(&r->i_cm, r->o_cm) || r->i_ss.channels != r->o_ss.channels))) {
+
+        memset(u->map_table, -1, sizeof(u->map_table));
+
+        for (oc = 0; oc < r->o_iss.channels; oc++) {
+            unsigned i = 0, ic;
+
+            for (ic = 0; ic < r->i_ss.channels; ic++) {
+                pa_channel_position_t a, b;
+                
+                a = r->i_cm.map[ic];
+                b = r->o_cm.map[oc];
+                
+                if (a == b ||
+                    (a == PA_CHANNEL_POSITION_MONO && b == PA_CHANNEL_POSITION_LEFT) ||
+                    (a == PA_CHANNEL_POSITION_MONO && b == PA_CHANNEL_POSITION_RIGHT) ||
+                    (a == PA_CHANNEL_POSITION_LEFT && b == PA_CHANNEL_POSITION_MONO) ||
+                    (a == PA_CHANNEL_POSITION_RIGHT && b == PA_CHANNEL_POSITION_MONO))
+                    
+                    u->map_table[oc][i++] = ic;
+            }
+        }
+    }
+}
+
+
+static float *remap_to_float(struct pa_resampler *r, const struct pa_memchunk *in) {
+    unsigned nsamples;
+    struct impl_libsamplerate *u;
+    assert(r);
+    assert(r->impl_data);
+
+    u = r->impl_data;
+
+    nsamples = in->length / u->i_fz;
+
+    if () {
+
+        if (u->i_buf_samples < nsamples)
+            u->i_buf = pa_xrealloc(i->i_buf, sizeof(float) * (i->i_buf_samples = nsamples));
+
+        i->to_float32ne_func(ff_ins, (uint8_t*) in->memblock->data+in->index, i_nchannels, i->i_buf);
+
+    }
+
+    
+}
+
+
+static void libsamplerate_run(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out) {
+
+    
+    
+}
+
+
 static void libsamplerate_run(struct pa_resampler *r, const struct pa_memchunk *in, struct pa_memchunk *out) {
     unsigned i_nchannels, o_nchannels, ins, ons, eff_ins, eff_ons;
     float *cbuf;
@@ -191,7 +254,8 @@ static void libsamplerate_run(struct pa_resampler *r, const struct pa_memchunk *
     /* How many input samples? */
     ins = in->length/r->i_fz;
 
-/*     pa_log("%u / %u = %u\n", in->length, r->i_fz, ins); */
+
+    /*     pa_log("%u / %u = %u\n", in->length, r->i_fz, ins); */
 
     /* How much space for output samples? */
     if (i->src_state)
@@ -395,7 +459,7 @@ static int trivial_init(struct pa_resampler*r) {
     return 0;
 }
 
-const char *pa_resample_method_to_string(enum pa_resample_method m) {
+const char *pa_resample_method_to_string(pa_resample_method_t m) {
     static const char * const resample_methods[] = {
         "src-sinc-best-quality",
         "src-sinc-medium-quality",
@@ -410,3 +474,23 @@ const char *pa_resample_method_to_string(enum pa_resample_method m) {
 
     return resample_methods[m];
 }
+
+pa_resample_method_t pa_parse_resample_method(const char *string) {
+    assert(string);
+
+    if (!strcmp(string, "src-sinc-best-quality"))
+        return PA_RESAMPLER_SRC_SINC_BEST_QUALITY;
+    else if (!strcmp(string, "src-sinc-medium-quality"))
+        return PA_RESAMPLER_SRC_SINC_MEDIUM_QUALITY;
+    else if (!strcmp(string, "src-sinc-fastest"))
+        return PA_RESAMPLER_SRC_SINC_FASTEST;
+    else if (!strcmp(string, "src-zero-order-hold"))
+        return PA_RESAMPLER_SRC_ZERO_ORDER_HOLD;
+    else if (!strcmp(string, "src-linear"))
+        return PA_RESAMPLER_SRC_LINEAR;
+    else if (!strcmp(string, "trivial"))
+        return PA_RESAMPLER_TRIVIAL;
+    else
+        return PA_RESAMPLER_INVALID;
+}
+

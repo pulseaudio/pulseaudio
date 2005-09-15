@@ -33,8 +33,11 @@
 
 PA_C_DECL_BEGIN
 
+/* Maximum allowed channels */
+#define PA_CHANNELS_MAX 16
+
 /** Sample format */
-enum pa_sample_format {
+typedef enum {
     PA_SAMPLE_U8,              /**< Unsigned 8 Bit PCM */
     PA_SAMPLE_ALAW,            /**< 8 Bit a-Law */
     PA_SAMPLE_ULAW,            /**< 8 Bit mu-Law */
@@ -44,7 +47,7 @@ enum pa_sample_format {
     PA_SAMPLE_FLOAT32BE,       /**< 32 Bit IEEE floating point, big endian, range -1..1 */
     PA_SAMPLE_MAX,             /**< Upper limit of valid sample types */
     PA_SAMPLE_INVALID = -1     /**< An invalid value */
-};
+} pa_sample_format_t;
 
 #ifdef WORDS_BIGENDIAN
 /** Signed 16 Bit PCM, native endian */
@@ -63,7 +66,7 @@ enum pa_sample_format {
 
 /** A sample format and attribute specification */
 struct pa_sample_spec {
-    enum pa_sample_format format;  /**< The sample format */
+    pa_sample_format_t format;     /**< The sample format */
     uint32_t rate;                 /**< The sample rate. (e.g. 44100) */
     uint8_t channels;              /**< Audio channels. (1 for mono, 2 for stereo, ...) */
 };
@@ -87,7 +90,10 @@ int pa_sample_spec_valid(const struct pa_sample_spec *spec);
 int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b);
 
 /* Return a descriptive string for the specified sample format. \since 0.8 */
-const char *pa_sample_format_to_string(enum pa_sample_format f);
+const char *pa_sample_format_to_string(pa_sample_format_t f);
+
+/** Parse a sample format text. Inverse of pa_sample_format_to_string() */
+pa_sample_format_t pa_parse_sample_format(const char *format);
 
 /** Maximum required string length for pa_sample_spec_snprint() */
 #define PA_SAMPLE_SPEC_SNPRINT_MAX 32
@@ -95,42 +101,8 @@ const char *pa_sample_format_to_string(enum pa_sample_format f);
 /** Pretty print a sample type specification to a string */
 char* pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
 
-/** Volume specification: 0: silence; < 256: diminished volume; 256: normal volume; > 256 amplified volume */
-typedef uint32_t pa_volume_t;
-
-/** Normal volume (100%) */
-#define PA_VOLUME_NORM (0x100)
-
-/** Muted volume (0%) */
-#define PA_VOLUME_MUTED (0)
-
-/** Multiply two volumes specifications, return the result. This uses PA_VOLUME_NORM as neutral element of multiplication. */
-pa_volume_t pa_volume_multiply(pa_volume_t a, pa_volume_t b);
-
-/** Convert volume from decibel to linear level. \since 0.4 */
-pa_volume_t pa_volume_from_dB(double f);
-
-/** Convert volume from linear level to decibel.  \since 0.4 */
-double pa_volume_to_dB(pa_volume_t v);
-
-/** Convert volume to scaled value understandable by the user (between 0 and 1). \since 0.6 */
-double pa_volume_to_user(pa_volume_t v);
-
-/** Convert user volume to polypaudio volume. \since 0.6 */
-pa_volume_t pa_volume_from_user(double v);
-
-#ifdef INFINITY
-#define PA_DECIBEL_MININFTY (-INFINITY)
-#else
-/** This value is used as minus infinity when using pa_volume_{to,from}_dB(). \since 0.4 */
-#define PA_DECIBEL_MININFTY (-200)
-#endif
-
 /** Pretty print a byte size value. (i.e. "2.5 MB") */
 void pa_bytes_snprint(char *s, size_t l, unsigned v);
-
-/** Parse a sample format text. Inverse of pa_sample_format_to_string() */
-enum pa_sample_format pa_parse_sample_format(const char *format);
 
 PA_C_DECL_END
 

@@ -35,11 +35,22 @@
 #include "subscribe.h"
 #include "log.h"
 
-struct pa_source* pa_source_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec) {
+struct pa_source* pa_source_new(
+    struct pa_core *core,
+    const char *name,
+    const char *driver,
+    int fail,
+    const struct pa_sample_spec *spec,
+    const struct pa_channel_map *map) {
+    
     struct pa_source *s;
     char st[256];
     int r;
-    assert(core && spec && name && *name);
+    
+    assert(core);
+    assert(name);
+    assert(*name);
+    assert(spec);
 
     s = pa_xmalloc(sizeof(struct pa_source));
 
@@ -53,11 +64,16 @@ struct pa_source* pa_source_new(struct pa_core *core, pa_typeid_t typeid, const 
     
     s->name = pa_xstrdup(name);
     s->description = NULL;
-    s->typeid = typeid; 
+    s->driver = pa_xstrdup(driver);
 
     s->owner = NULL;
     s->core = core;
     s->sample_spec = *spec;
+    if (map)
+        s->channel_map = *map;
+    else
+        pa_channel_map_init_auto(&s->channel_map, spec->channels);
+
     s->outputs = pa_idxset_new(NULL, NULL);
     s->monitor_of = NULL;
 
@@ -108,6 +124,7 @@ static void source_free(struct pa_source *s) {
 
     pa_xfree(s->name);
     pa_xfree(s->description);
+    pa_xfree(s->driver);
     pa_xfree(s);
 }
 

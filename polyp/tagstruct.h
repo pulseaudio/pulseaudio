@@ -44,6 +44,8 @@ void pa_tagstruct_put_arbitrary(struct pa_tagstruct*t, const void *p, size_t len
 void pa_tagstruct_put_boolean(struct pa_tagstruct*t, int b);
 void pa_tagstruct_put_timeval(struct pa_tagstruct*t, const struct timeval *tv);
 void pa_tagstruct_put_usec(struct pa_tagstruct*t, pa_usec_t u);
+void pa_tagstruct_put_channel_map(struct pa_tagstruct *t, const struct pa_channel_map *map);
+void pa_tagstruct_put_cvolume(struct pa_tagstruct *t, const struct pa_cvolume *cvolume);
 
 int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s);
 int pa_tagstruct_getu8(struct pa_tagstruct*t, uint8_t *c);
@@ -54,6 +56,8 @@ int pa_tagstruct_get_arbitrary(struct pa_tagstruct *t, const void **p, size_t le
 int pa_tagstruct_get_boolean(struct pa_tagstruct *t, int *b);
 int pa_tagstruct_get_timeval(struct pa_tagstruct*t, struct timeval *tv);
 int pa_tagstruct_get_usec(struct pa_tagstruct*t, pa_usec_t *u);
+int pa_tagstruct_get_channel_map(struct pa_tagstruct *t, struct pa_channel_map *map);
+int pa_tagstruct_get_cvolume(struct pa_tagstruct *t, struct pa_cvolume *v);
 
 int pa_tagstruct_eof(struct pa_tagstruct*t);
 const uint8_t* pa_tagstruct_data(struct pa_tagstruct*t, size_t *l);

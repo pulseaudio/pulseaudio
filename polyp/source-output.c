@@ -33,7 +33,14 @@
 #include "subscribe.h"
 #include "log.h"
 
-struct pa_source_output* pa_source_output_new(struct pa_source *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int resample_method) {
+struct pa_source_output* pa_source_output_new(
+    struct pa_source *s,
+    const char *name,
+    const char *driver,
+    const struct pa_sample_spec *spec,
+    const struct pa_channel_map *map,
+    int resample_method) {
+    
     struct pa_source_output *o;
     struct pa_resampler *resampler = NULL;
     int r;
@@ -49,19 +56,24 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, pa_typeid_t t
         resample_method = s->core->resample_method;
 
     if (!pa_sample_spec_equal(&s->sample_spec, spec))
-        if (!(resampler = pa_resampler_new(&s->sample_spec, spec, s->core->memblock_stat, resample_method)))
+        if (!(resampler = pa_resampler_new(&s->sample_spec, &s->channel_map, spec, map, s->core->memblock_stat, resample_method)))
             return NULL;
     
     o = pa_xmalloc(sizeof(struct pa_source_output));
     o->ref = 1;
     o->state = PA_SOURCE_OUTPUT_RUNNING;
     o->name = pa_xstrdup(name);
-    o->typeid = typeid;
+    o->driver = pa_xstrdup(driver);
     
     o->client = NULL;
     o->owner = NULL;
     o->source = s;
+    
     o->sample_spec = *spec;
+    if (map)
+        c->channel_map = *map;
+    else
+        pa_channel_map_init_auto(&c->channel_map, spec->channels);
 
     o->push = NULL;
     o->kill = NULL;
@@ -96,7 +108,6 @@ void pa_source_output_disconnect(struct pa_source_output*o) {
     o->push = NULL;
     o->kill = NULL;
     
-    
     o->state = PA_SOURCE_OUTPUT_DISCONNECTED;
 }
 
@@ -112,6 +123,7 @@ static void source_output_free(struct pa_source_output* o) {
         pa_resampler_free(o->resampler);
 
     pa_xfree(o->name);
+    pa_xfree(o->driver);
     pa_xfree(o);
 }
 

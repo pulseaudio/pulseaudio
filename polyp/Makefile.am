@@ -542,7 +542,7 @@ mainloop_test_SOURCES = mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
 mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la libpolyp-@PA_MAJORMINOR@.la
 
-voltest_SOURCES = voltest.c sample.c
+voltest_SOURCES = voltest.c volume.c
 voltest_CFLAGS = $(AM_CFLAGS)
 voltest_LDADD = $(AM_LDADD)
 

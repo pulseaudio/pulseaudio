@@ -31,25 +31,25 @@
 #include "module.h"
 #include "client.h"
 
-enum pa_sink_input_state {
+typedef enum {
     PA_SINK_INPUT_RUNNING,
     PA_SINK_INPUT_CORKED,
     PA_SINK_INPUT_DISCONNECTED
-};
+} pa_sink_input_state_t;
 
 struct pa_sink_input {
     int ref;
-    enum pa_sink_input_state state;
-    
     uint32_t index;
-    pa_typeid_t typeid;
-
-    char *name;
+    pa_sink_input_state_t state;
+    
+    char *name, *driver;
     struct pa_module *owner;
     struct pa_client *client;
     struct pa_sink *sink;
+    
     struct pa_sample_spec sample_spec;
-    uint32_t volume;
+    struct pa_channel_map channel_map;
+    struct pa_cvolume volume;
     
     int (*peek) (struct pa_sink_input *i, struct pa_memchunk *chunk);
     void (*drop) (struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
@@ -65,7 +65,15 @@ struct pa_sink_input {
     struct pa_resampler *resampler;
 };
 
-struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int variable_rate, int resample_method);
+struct pa_sink_input* pa_sink_input_new(
+    struct pa_sink *s,
+    const char *name,
+    const char *driver,
+    const struct pa_sample_spec *spec,
+    const struct pa_channel_map *map,
+    int variable_rate,
+    int resample_method);
+
 void pa_sink_input_unref(struct pa_sink_input* i);
 struct pa_sink_input* pa_sink_input_ref(struct pa_sink_input* i);
 
@@ -80,7 +88,8 @@ pa_usec_t pa_sink_input_get_latency(struct pa_sink_input *i);
 int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk);
 void pa_sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
 
-void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume);
+void pa_sink_input_set_volume(struct pa_sink_input *i, const struct pa_cvolume *volume);
+const struct pa_cvolume *volume pa_sink_input_get_volume(struct pa_sink_input *i);
 
 void pa_sink_input_cork(struct pa_sink_input *i, int b);
 

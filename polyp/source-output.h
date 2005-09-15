@@ -31,24 +31,24 @@
 #include "module.h"
 #include "client.h"
 
-enum pa_source_output_state {
+typedef enum {
     PA_SOURCE_OUTPUT_RUNNING,
     PA_SOURCE_OUTPUT_CORKED,
     PA_SOURCE_OUTPUT_DISCONNECTED
-};
+} pa_source_output_state_t;
 
 struct pa_source_output {
     int ref;
-    enum pa_source_output_state state;
-    
     uint32_t index;
-    pa_typeid_t typeid;
-
-    char *name;
+    pa_source_output_state_t state;
+    
+    char *name, *driver;
     struct pa_module *owner;
     struct pa_client *client;
     struct pa_source *source;
+
     struct pa_sample_spec sample_spec;
+    struct pa_channel_map channel_map;
     
     void (*push)(struct pa_source_output *o, const struct pa_memchunk *chunk);
     void (*kill)(struct pa_source_output* o);
@@ -59,7 +59,14 @@ struct pa_source_output {
     void *userdata;
 };
 
-struct pa_source_output* pa_source_output_new(struct pa_source *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int resample_method);
+struct pa_source_output* pa_source_output_new(
+    struct pa_source *s,
+    const char *name,
+    const char *driver,
+    const struct pa_sample_spec *spec,
+    const struct pa_channel_map *map;
+    int resample_method);
+
 void pa_source_output_unref(struct pa_source_output* o);
 struct pa_source_output* pa_source_output_ref(struct pa_source_output *o);
 

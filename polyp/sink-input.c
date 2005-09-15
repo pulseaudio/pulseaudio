@@ -36,12 +36,23 @@
 
 #define CONVERT_BUFFER_LENGTH 4096
 
-struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int variable_rate, int resample_method) {
+struct pa_sink_input* pa_sink_input_new(
+    struct pa_sink *s,
+    const char *name,
+    const char *driver,
+    const struct pa_sample_spec *spec,
+    const struct pa_channel_map *map,
+    int variable_rate,
+    int resample_method) {
+    
     struct pa_sink_input *i;
     struct pa_resampler *resampler = NULL;
     int r;
     char st[256];
-    assert(s && spec && s->state == PA_SINK_RUNNING);
+
+    assert(s);
+    assert(spec);
+    assert(s->state == PA_SINK_RUNNING);
 
     if (pa_idxset_ncontents(s->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log(__FILE__": Failed to create sink input: too many inputs per sink.\n");
@@ -52,18 +63,23 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, c
         resample_method = s->core->resample_method;
     
     if (variable_rate || !pa_sample_spec_equal(spec, &s->sample_spec))
-        if (!(resampler = pa_resampler_new(spec, &s->sample_spec, s->core->memblock_stat, resample_method)))
+        if (!(resampler = pa_resampler_new(spec, map, &s->sample_spec, &s->channel_map, s->core->memblock_stat, resample_method)))
             return NULL;
     
     i = pa_xmalloc(sizeof(struct pa_sink_input));
     i->ref = 1;
     i->state = PA_SINK_INPUT_RUNNING;
     i->name = pa_xstrdup(name);
-    i->typeid = typeid;
+    i->driver = pa_xstrdup(driver);
     i->client = NULL;
     i->owner = NULL;
     i->sink = s;
+
     i->sample_spec = *spec;
+    if (map)
+        i->channel_map = *map;
+    else
+        pa_channel_map_init_auto(&i->channel_map, spec->channels);
 
     i->peek = NULL;
     i->drop = NULL;
@@ -72,7 +88,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, c
     i->userdata = NULL;
     i->underrun = NULL;
 
-    i->volume = PA_VOLUME_NORM;
+    pa_cvolume_reset(&i->volume);
     i->playing = 0;
 
     i->resampled_chunk.memblock = NULL;
@@ -124,6 +140,7 @@ static void sink_input_free(struct pa_sink_input* i) {
         pa_resampler_free(i->resampler);
 
     pa_xfree(i->name);
+    pa_xfree(i->driver);
     pa_xfree(i);
 }
 
@@ -234,13 +251,20 @@ void pa_sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *chunk
     }
 }
 
-void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume) {
+void pa_sink_input_set_volume(struct pa_sink_input *i, const struct pa_cvolume *volume) {
     assert(i && i->sink && i->sink->core && i->ref >= 1);
 
-    if (i->volume != volume) {
-        i->volume = volume;
+    if (!pa_cvolume_equal(&i->volume, volume)) {
+        i->volume = *volume;
         pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     }
+}
+
+const struct pa_cvolume * pa_sink_input_get_volume(struct pa_sink_input *i) {
+    assert(i);
+    assert(i->ref >= 1);
+
+    return &i->volume;
 }
 
 void pa_sink_input_cork(struct pa_sink_input *i, int b) {
