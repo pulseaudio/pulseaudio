@@ -594,6 +594,7 @@ static void command_create_playback_stream(struct pa_pdispatch *pd, uint32_t com
         sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK, 1);
 
     if (!sink) {
+        pa_log("%s: Can't find a suitable sink.\n", __FILE__);
         pa_pstream_send_error(c->pstream, tag, PA_ERROR_NOENTITY);
         return;
     }
