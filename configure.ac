@@ -46,6 +46,14 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 AC_CONFIG_SUBDIRS(libltdl)
 
+if test "x$ac_cv_lib_ltdl_lt_dlinit" = "xno" ; then
+    AC_MSG_ERROR([[
+
+        *** Cannot find the libltdl development files.
+        *** Maybe you need to install the libltdl-dev package.
+        ]])
+fi
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h malloc.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h syslog.h])
