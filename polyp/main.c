@@ -58,6 +58,7 @@
 #include "caps.h"
 #include "cli-text.h"
 #include "pid.h"
+#include "namereg.h"
 
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
@@ -332,11 +333,16 @@ int main(int argc, char *argv[]) {
         c->module_idle_time = conf->module_idle_time;
         c->scache_idle_time = conf->scache_idle_time;
         c->resample_method = conf->resample_method;
-        
-        pa_log_info(__FILE__": Daemon startup complete.\n");
-        if (pa_mainloop_run(mainloop, &retval) < 0)
+
+        if (pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK, 1) == NULL) {
+            pa_log_error("%s : Fatal error. Default sink name (%s) does not exist in name register.\n", __FILE__, c->default_sink_name);
             retval = 1;
-        pa_log_info(__FILE__": Daemon shutdown initiated.\n");
+        } else {
+            pa_log_info(__FILE__": Daemon startup complete.\n");
+            if (pa_mainloop_run(mainloop, &retval) < 0)
+                retval = 1;
+            pa_log_info(__FILE__": Daemon shutdown initiated.\n");
+        }
     }
         
     pa_core_free(c);
