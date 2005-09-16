@@ -75,7 +75,7 @@ int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_m
     }
     
     if ((l = pa_frame_size(ss)*sfinfo.frames) > MAX_FILE_SIZE) {
-        pa_log(__FILE__": File to large\n");
+        pa_log(__FILE__": File too large\n");
         goto finish;
     }
 
@@ -101,4 +101,39 @@ finish:
     
     return ret;
     
+}
+
+int pa_sound_file_too_big_to_cache(const char *fname) {
+    SNDFILE*sf = NULL;
+    SF_INFO sfinfo;
+    struct pa_sample_spec ss;
+
+    if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
+        pa_log(__FILE__": Failed to open file %s\n", fname);
+        return 0;
+    }
+
+    sf_close(sf);
+
+    switch (sfinfo.format & SF_FORMAT_SUBMASK) {
+        case SF_FORMAT_FLOAT:
+        case SF_FORMAT_DOUBLE:
+            /* Only float and double need a special case. */
+            ss.format = PA_SAMPLE_FLOAT32NE;
+            break;
+        default:
+            /* Everything else is cleanly converted to signed 16 bit. */
+            ss.format = PA_SAMPLE_S16NE;
+            break;
+    }
+
+    ss.rate = sfinfo.samplerate;
+    ss.channels = sfinfo.channels;
+
+    if ((pa_frame_size(&ss) * sfinfo.frames) > MAX_FILE_SIZE) {
+        pa_log(__FILE__": File too large %s\n", fname);
+        return 1;
+    }
+
+    return 0;
 }
