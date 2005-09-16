@@ -59,6 +59,7 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     c->scache = NULL;
     c->autoload_idxset = NULL;
     c->autoload_hashmap = NULL;
+    c->running_as_daemon = 0;
 
     c->default_sample_spec.format = PA_SAMPLE_S16NE;
     c->default_sample_spec.rate = 44100;
