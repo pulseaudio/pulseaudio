@@ -50,6 +50,11 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_iochannel *io;
     assert(c && m);
 
+    if (c->running_as_daemon) {
+        pa_log_info(__FILE__": Running as daemon so won't load this module.\n");
+        return 0;
+    }
+
     if (m->argument) {
         pa_log(__FILE__": module doesn't accept arguments.\n");
         return -1;
@@ -75,6 +80,8 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
 void pa__done(struct pa_core *c, struct pa_module*m) {
     assert(c && m);
 
-    pa_cli_free(m->userdata);
-    pa_stdio_release();
+    if (c->running_as_daemon == 0) {
+        pa_cli_free(m->userdata);
+        pa_stdio_release();
+    }
 }

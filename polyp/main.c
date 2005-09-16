@@ -296,6 +296,8 @@ int main(int argc, char *argv[]) {
 
     c = pa_core_new(pa_mainloop_get_api(mainloop));
     assert(c);
+    if (conf->daemonize)
+        c->running_as_daemon = 1;
     
     pa_signal_new(SIGUSR1, signal_callback, c);
     pa_signal_new(SIGUSR2, signal_callback, c);

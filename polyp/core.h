@@ -59,7 +59,7 @@ struct pa_core {
 
     struct pa_memblock_stat *memblock_stat;
 
-    int disallow_module_loading;
+    int disallow_module_loading, running_as_daemon;
     int exit_idle_time, module_idle_time, scache_idle_time;
 
     struct pa_time_event *quit_event;
