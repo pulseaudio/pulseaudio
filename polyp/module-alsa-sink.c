@@ -71,7 +71,7 @@ static const char* const valid_modargs[] = {
 };
 
 #define DEFAULT_SINK_NAME "alsa_output"
-#define DEFAULT_DEVICE "plughw:0,0"
+#define DEFAULT_DEVICE "default"
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
