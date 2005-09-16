@@ -224,6 +224,8 @@ static void scan_for_lines(struct pa_ioline *l, size_t skip) {
         l->rbuf_index = l->rbuf_valid_length = 0;
 }
 
+static int do_write(struct pa_ioline *l);
+
 static int do_read(struct pa_ioline *l) {
     assert(l && l->ref >= 1);
 
