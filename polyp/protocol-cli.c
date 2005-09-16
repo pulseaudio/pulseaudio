@@ -32,7 +32,7 @@
 #include "log.h"
 
 /* Don't allow more than this many concurrent connections */
-#define MAX_CONNECTIONS 10
+#define MAX_CONNECTIONS 25
 
 struct pa_protocol_cli {
     struct pa_module *module;
