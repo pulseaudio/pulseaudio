@@ -195,6 +195,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     m->userdata = u;
     u->module = m;
     
+    snd_config_update_free_global();
     if (snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) < 0) {
         pa_log(__FILE__": Error opening PCM device %s\n", dev);
         goto fail;
