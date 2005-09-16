@@ -52,18 +52,17 @@ int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_m
         goto finish;
     }
 
-    switch (sfinfo.format & 0xFF) {
-        case SF_FORMAT_PCM_16:
-        case SF_FORMAT_PCM_U8:
-        case SF_FORMAT_ULAW:
-        case SF_FORMAT_ALAW:
-            ss->format = PA_SAMPLE_S16NE;
-            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
-            break;
+    switch (sfinfo.format & SF_FORMAT_SUBMASK) {
         case SF_FORMAT_FLOAT:
-        default:
+        case SF_FORMAT_DOUBLE:
+            /* Only float and double need a special case. */
             ss->format = PA_SAMPLE_FLOAT32NE;
             readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
+            break;
+        default:
+            /* Everything else is cleanly converted to signed 16 bit. */
+            ss->format = PA_SAMPLE_S16NE;
+            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
             break;
     }
 
