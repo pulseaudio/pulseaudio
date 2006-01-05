@@ -744,25 +744,13 @@ SYMDEF_FILES = \
 		module-mmkbd-evdev-symdef.h \
 		module-http-protocol-tcp-symdef.h \
 		module-http-protocol-tcp6-symdef.h \
-		module-http-protocol-unix-symdef.h
-
-if HAVE_X11
-SYMDEF_FILES += \
+		module-http-protocol-unix-symdef.h \
 		module-x11-bell-symdef.h \
-		module-x11-publish-symdef.h
-endif
-
-if !OS_IS_WIN32
-SYMDEF_FILES += \
+		module-x11-publish-symdef.h \
 		module-oss-symdef.h \
-		module-oss-mmap-symdef.h
-endif
-
-if HAVE_ALSA
-SYMDEF_FILES += \
+		module-oss-mmap-symdef.h \
 		module-alsa-sink-symdef.h \
 		module-alsa-source-symdef.h
-endif
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
