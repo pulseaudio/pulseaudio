@@ -28,6 +28,17 @@ polypconfdir=$(sysconfdir)/polypaudio
 modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
 
 ###################################
+#            Defines              #
+###################################
+
+POLYPAUDIO_BINARY=$(bindir)/polypaudio$(EXEEXT)
+if OS_IS_WIN32
+DEFAULT_CONFIG_DIR=%POLYP_ROOT%
+else
+DEFAULT_CONFIG_DIR=$(polypconfdir)
+endif
+
+###################################
 #     Compiler/linker flags       #
 ###################################
 
@@ -35,8 +46,8 @@ AM_CFLAGS  = -D_GNU_SOURCE  -I$(top_srcdir)
 AM_CFLAGS += $(PTHREAD_CFLAGS) $(LTDLINCL)
 AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 AM_CFLAGS += -DDLSEARCHPATH=\"$(modlibdir)\"
-AM_CFLAGS += -DDEFAULT_CONFIG_DIR=\"$(polypconfdir)\"
-AM_CFLAGS += -DPOLYPAUDIO_BINARY=\"$(bindir)/polypaudio$(EXEEXT)\"
+AM_CFLAGS += -DDEFAULT_CONFIG_DIR=\"$(DEFAULT_CONFIG_DIR)\"
+AM_CFLAGS += -DPOLYPAUDIO_BINARY=\"$(POLYPAUDIO_BINARY)\"
 
 # This cool debug trap works on i386/gcc only
 AM_CFLAGS += '-DDEBUG_TRAP=__asm__("int $$3")'
@@ -974,17 +985,17 @@ suid: polypaudio
 esdcompat.sh: esdcompat.sh.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
-		-e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
+		-e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
 
 client.conf: client.conf.in Makefile
-	sed -e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
+	sed -e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
 
 default.pa: default.pa.in Makefile
-	sed -e 's,@POLYPAUDIO_BINARY\@,$(bindir)/polypaudio,g' < $< > $@
+	sed -e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
 
 daemon.conf: daemon.conf.in Makefile
 	sed -e 's,@DLSEARCHPATH\@,$(modlibdir),g' \
-		-e 's,@DEFAULT_CONFIG_FILE\@,$(polypconfdir)/daemon.conf,g' < $< > $@
+		-e 's,@DEFAULT_CONFIG_FILE\@,$(DEFAULT_CONFIG_DIR),g' < $< > $@
 
 install-exec-hook:
 	chown root $(DESTDIR)$(bindir)/polypaudio ; true
