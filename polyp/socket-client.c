@@ -31,10 +31,14 @@
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
-#include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
+
 #ifdef HAVE_LIBASYNCNS
 #include <asyncns.h>
 #endif
@@ -198,6 +202,8 @@ struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, ui
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
 
+#ifdef HAVE_SYS_UN_H
+
 struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
     struct sockaddr_un sa;
     assert(m && filename);
@@ -209,6 +215,14 @@ struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, co
 
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
+
+#else /* HAVE_SYS_UN_H */
+
+struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
+    return NULL;
+}
+
+#endif /* HAVE_SYS_UN_H */
 
 static int sockaddr_prepare(struct pa_socket_client *c, const struct sockaddr *sa, size_t salen) {
     assert(c);

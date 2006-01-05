@@ -31,7 +31,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/un.h>
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -41,6 +40,10 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <netdb.h>
+
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
 
 #include "socket-util.h"
 #include "util.h"
@@ -161,6 +164,8 @@ int pa_socket_set_sndbuf(int fd, size_t l) {
     return 0;
 }
 
+#ifdef HAVE_SYS_UN_H
+
 int pa_unix_socket_is_stale(const char *fn) {
     struct sockaddr_un sa;
     int fd = -1, ret = -1;
@@ -202,3 +207,15 @@ int pa_unix_socket_remove_stale(const char *fn) {
 
     return 0;
 }
+
+#else /* HAVE_SYS_UN_H */
+
+int pa_unix_socket_is_stale(const char *fn) {
+    return -1;
+}
+
+int pa_unix_socket_remove_stale(const char *fn) {
+    return -1;
+}
+
+#endif /* HAVE_SYS_UN_H */

@@ -31,9 +31,12 @@
 #include <sys/socket.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
 
 #ifdef HAVE_LIBWRAP
 #include <tcpd.h>
@@ -137,6 +140,8 @@ struct pa_socket_server* pa_socket_server_ref(struct pa_socket_server *s) {
     return s;
 }
 
+#ifdef HAVE_SYS_UN_H
+
 struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename) {
     int fd = -1;
     struct sockaddr_un sa;
@@ -181,6 +186,14 @@ fail:
 
     return NULL;
 }
+
+#else /* HAVE_SYS_UN_H */
+
+struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename) {
+    return NULL;
+}
+
+#endif /* HAVE_SYS_UN_H */
 
 struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port, const char *tcpwrap_service) {
     struct pa_socket_server *ss;
