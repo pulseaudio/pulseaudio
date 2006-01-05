@@ -120,7 +120,7 @@ static void do_call(struct pa_socket_client *c) {
         goto finish;
     
     lerror = sizeof(error);
-    if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, &error, &lerror) < 0) {
+    if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void*)&error, &lerror) < 0) {
         pa_log(__FILE__": getsockopt(): %s\n", strerror(errno));
         goto finish;
     }

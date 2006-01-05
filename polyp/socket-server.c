@@ -197,7 +197,7 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
 
     pa_fd_set_cloexec(fd, 1);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on)) < 0)
         pa_log(__FILE__": setsockopt(): %s\n", strerror(errno));
 
     pa_socket_tcp_low_delay(fd);
@@ -246,7 +246,7 @@ struct pa_socket_server* pa_socket_server_new_ipv6(struct pa_mainloop_api *m, ui
 
     pa_fd_set_cloexec(fd, 1);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on)) < 0)
         pa_log(__FILE__": setsockopt(): %s\n", strerror(errno));
 
     pa_socket_tcp_low_delay(fd);

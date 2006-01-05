@@ -99,7 +99,7 @@ int pa_socket_low_delay(int fd) {
 
 #ifdef SO_PRIORITY
     priority = 7;
-    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, (void*)&priority, sizeof(priority)) < 0)
         return -1;
 #endif
 
@@ -117,9 +117,9 @@ int pa_socket_tcp_low_delay(int fd) {
 
 #if defined(SOL_TCP) || defined(IPPROTO_TCP)
 #if defined(SOL_TCP)
-    if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, SOL_TCP, TCP_NODELAY, (void*)&on, sizeof(on)) < 0)
 #else
-    if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (void*)&on, sizeof(on)) < 0)
 #endif
         ret = -1;
 #endif
@@ -128,9 +128,9 @@ int pa_socket_tcp_low_delay(int fd) {
 	defined(IPPROTO_IP))
     tos = IPTOS_LOWDELAY;
 #ifdef SOL_IP
-    if (setsockopt(fd, SOL_IP, IP_TOS, &tos, sizeof(tos)) < 0)
+    if (setsockopt(fd, SOL_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
 #else
-    if (setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos)) < 0)
+    if (setsockopt(fd, IPPROTO_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
 #endif
         ret = -1;
 #endif
@@ -142,7 +142,7 @@ int pa_socket_tcp_low_delay(int fd) {
 int pa_socket_set_rcvbuf(int fd, size_t l) {
     assert(fd >= 0);
 
-/*     if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &l, sizeof(l)) < 0) { */
+/*     if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&l, sizeof(l)) < 0) { */
 /*         pa_log(__FILE__": SO_RCVBUF: %s\n", strerror(errno)); */
 /*         return -1; */
 /*     } */
@@ -153,7 +153,7 @@ int pa_socket_set_rcvbuf(int fd, size_t l) {
 int pa_socket_set_sndbuf(int fd, size_t l) {
     assert(fd >= 0);
 
-/*     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &l, sizeof(l)) < 0) { */
+/*     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&l, sizeof(l)) < 0) { */
 /*         pa_log(__FILE__": SO_SNDBUF: %s\n", strerror(errno)); */
 /*         return -1; */
 /*     } */
