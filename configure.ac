@@ -297,6 +297,20 @@ AC_ARG_ENABLE(
         [STATIC_BINS=1], [STATIC_BINS=0])
 AM_CONDITIONAL([STATIC_BINS], [test "x$STATIC_BINS" = "x1"])
 
+AC_ARG_WITH(
+        [preopen-mods],
+        AC_HELP_STRING([--with-preopen-mods],[Modules to preopen in daemon (default: all).]),
+        [PREOPEN_MODS=$withval], [PREOPEN_MODS="all"])
+AM_CONDITIONAL([PREOPEN_MODS], [test "x$PREOPEN_MODS" != "xall"])
+if test "x$PREOPEN_MODS" != "xall" ; then
+    tmpLIBS=""
+    for mod in $PREOPEN_MODS; do
+        tmpLIBS="$tmpLIBS module-$mod.la"
+    done
+    PREOPEN_MODS="$tmpLIBS"
+    AC_SUBST(PREOPEN_MODS)
+fi
+
 AC_CONFIG_FILES([
 Makefile
 polyp/Makefile

@@ -93,8 +93,13 @@ polypaudio_CFLAGS = $(AM_CFLAGS)
 polypaudio_CPPFLAGS = $(AM_CPPFLAGS)
 polypaudio_LDADD = $(AM_LDADD) libpolypcore.la $(LIBLTDL) \
 		$(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
-polypaudio_LDFLAGS= $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force 
-#q-static $(foreach f,$(modlib_LTLIBRARIES),-dlpreopen $(f))
+polypaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
+
+if PREOPEN_MODS
+PREOPEN_LIBS = $(PREOPEN_MODS)
+else
+PREOPEN_LIBS = $(modlib_LTLIBRARIES)
+endif
 
 ###################################
 #       Utility programs          #
