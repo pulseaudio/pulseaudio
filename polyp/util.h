@@ -30,6 +30,8 @@
 #include "gcc-printf.h"
 #include "sample.h"
 
+struct timeval;
+
 void pa_make_nonblock_fd(int fd);
 
 int pa_make_secure_dir(const char* dir);
