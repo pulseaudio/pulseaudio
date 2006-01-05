@@ -97,10 +97,10 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
 }
 
 int pa_socket_low_delay(int fd) {
+#ifdef SO_PRIORITY
     int priority;
     assert(fd >= 0);
 
-#ifdef SO_PRIORITY
     priority = 7;
     if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, (void*)&priority, sizeof(priority)) < 0)
         return -1;
@@ -117,6 +117,7 @@ int pa_socket_tcp_low_delay(int fd) {
     ret = pa_socket_low_delay(fd);
     
     on = 1;
+    tos = 0;
 
 #if defined(SOL_TCP) || defined(IPPROTO_TCP)
 #if defined(SOL_TCP)
