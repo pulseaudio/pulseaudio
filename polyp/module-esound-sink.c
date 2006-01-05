@@ -144,7 +144,7 @@ static int do_write(struct userdata *u) {
         pa_module_set_used(u->module, pa_idxset_ncontents(u->sink->inputs) + pa_idxset_ncontents(u->sink->monitor_source->outputs));
         
         if (!u->memchunk.length)
-            if (pa_sink_render(u->sink, PIPE_BUF, &u->memchunk) < 0)
+            if (pa_sink_render(u->sink, 8192, &u->memchunk) < 0)
                 return 0;
 
         assert(u->memchunk.memblock && u->memchunk.length);
