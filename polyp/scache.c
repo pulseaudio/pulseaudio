@@ -32,7 +32,10 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <limits.h>
+
+#ifdef HAVE_GLOB_H
 #include <glob.h>
+#endif
 
 #include "scache.h"
 #include "sink-input.h"
@@ -320,6 +323,7 @@ int pa_scache_add_directory_lazy(struct pa_core *c, const char *pathname) {
 
     /* First try to open this as directory */
     if (!(dir = opendir(pathname))) {
+#ifdef HAVE_GLOB_H
         glob_t p;
         unsigned int i;
         /* If that fails, try to open it as shell glob */
@@ -333,6 +337,9 @@ int pa_scache_add_directory_lazy(struct pa_core *c, const char *pathname) {
             add_file(c, p.gl_pathv[i]);
         
         globfree(&p);
+#else
+        return -1;
+#endif
     } else {
         struct dirent *e;
 
