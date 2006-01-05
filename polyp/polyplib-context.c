@@ -367,12 +367,12 @@ static void setup_context(struct pa_context *c, struct pa_iochannel *io) {
     assert(!c->pdispatch);
     c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
     assert(c->pdispatch);
-/*
+
     if (!c->conf->cookie_valid) {
         pa_context_fail(c, PA_ERROR_AUTHKEY);
         goto finish;
     }
-*/
+
     t = pa_tagstruct_new(NULL, 0);
     assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
