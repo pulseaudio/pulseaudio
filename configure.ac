@@ -210,7 +210,15 @@ fi
 
 #### Capabilities (optional) ####
 
-AC_CHECK_LIB(cap, cap_init, [CAP_LIBS='-lcap'], [CAP_LIBS=''])
+CAP_LIBS=''
+
+AC_ARG_WITH(
+        [caps],
+        AC_HELP_STRING([--without-caps],[Omit support for POSIX capabilities.]))
+
+if test "x${with_caps}" != "xno"; then
+    AC_CHECK_LIB(cap, cap_init, [CAP_LIBS='-lcap'], [CAP_LIBS=''])
+fi
 AC_SUBST(CAP_LIBS)
 
 #### Sample rate conversion ####
