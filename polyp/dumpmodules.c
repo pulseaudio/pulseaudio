@@ -31,6 +31,7 @@
 
 #include "dumpmodules.h"
 #include "modinfo.h"
+#include "util.h"
 
 #define PREFIX "module-"
 
@@ -80,10 +81,7 @@ static int callback(const char *path, lt_ptr data) {
     const char *e;
     struct pa_daemon_conf *c = (data);
 
-    if ((e = (const char*) strrchr(path, '/')))
-        e++;
-    else
-        e = path;
+    e = pa_path_get_filename(path);
 
     if (strlen(e) > sizeof(PREFIX)-1 && !strncmp(e, PREFIX, sizeof(PREFIX)-1))
         show_info(e, path, c->log_level >= PA_LOG_INFO ? long_info : short_info);
