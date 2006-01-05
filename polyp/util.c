@@ -41,7 +41,10 @@
 #include <sys/resource.h>
 #include <limits.h>
 #include <unistd.h>
+
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
 
 #include <samplerate.h>
 

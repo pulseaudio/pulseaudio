@@ -27,8 +27,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <netinet/in.h>
 #include <assert.h>
+
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
 
 #include "tagstruct.h"
 #include "xmalloc.h"

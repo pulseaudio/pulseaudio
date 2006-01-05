@@ -27,9 +27,14 @@
 #include <errno.h>
 #include <stdio.h>
 #include <assert.h>
-#include <arpa/inet.h>
 #include <unistd.h>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
 
 #include "module.h"
 #include "socket-server.h"

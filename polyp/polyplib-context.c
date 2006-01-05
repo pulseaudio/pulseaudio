@@ -28,13 +28,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <sys/wait.h>
 #include <signal.h>
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
 
 #include "polyplib-internal.h"
 #include "polyplib-context.h"

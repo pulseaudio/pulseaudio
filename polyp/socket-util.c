@@ -31,18 +31,30 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <netinet/in.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <netinet/in_systm.h>
-#include <netinet/tcp.h>
-#include <netinet/ip.h>
-#include <sys/socket.h>
 #include <sys/stat.h>
-#include <netdb.h>
 
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_NETINET_IN_SYSTM_H
+#include <netinet/in_systm.h>
+#endif
+#ifdef HAVE_NETINET_IP_H
+#include <netinet/ip.h>
+#endif
+#ifdef HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
 #endif
 
 #include "socket-util.h"

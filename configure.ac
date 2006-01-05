@@ -119,9 +119,9 @@ AM_CONDITIONAL(OS_IS_WIN32, test "x$os_is_win32" = "x1")
 AC_HEADER_STDC
 
 # POSIX
-AC_CHECK_HEADERS([glob.h grp.h netdb.h netinet/in.h netinet/tcp.h pwd.h \
-    sched.h sys/capability.h sys/resource.h sys/select.h sys/socket.h \
-    syslog.h])
+AC_CHECK_HEADERS([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
+    netinet/in_systm.h netinet/ip.h netinet/tcp.h pwd.h sched.h \
+    sys/capability.h sys/resource.h sys/select.h sys/socket.h syslog.h])
 AC_CHECK_HEADERS([regex.h], [HAVE_REGEX=1], [HAVE_REGEX=0])
 AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
 
