@@ -26,12 +26,17 @@
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
-#include <sys/poll.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <fcntl.h>
 #include <errno.h>
+
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#else
+#include "poll.h"
+#endif
 
 #include "mainloop.h"
 #include "util.h"

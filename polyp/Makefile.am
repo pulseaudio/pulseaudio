@@ -327,7 +327,8 @@ libpolyp_error_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 libpolyp_mainloop_@PA_MAJORMINOR@_la_SOURCES = \
 		mainloop.c mainloop.h \
 		mainloop-api.h mainloop-api.c \
-		mainloop-signal.c mainloop-signal.h
+		mainloop-signal.c mainloop-signal.h \
+		poll.c poll.h
 libpolyp_mainloop_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_mainloop_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la $(WINSOCK_LIBS)
 libpolyp_mainloop_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
@@ -413,6 +414,7 @@ libpolypcore_la_SOURCES = \
 		module.c module.h \
 		namereg.c namereg.h \
 		play-memchunk.c play-memchunk.h \
+		poll.c poll.h \
 		props.c props.h \
 		queue.c queue.h \
 		random.c random.h \
