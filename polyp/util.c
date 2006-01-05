@@ -153,6 +153,7 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size) {
 /* Print a warning messages in case that the given signal is not
  * blocked or trapped */
 void pa_check_signal_is_blocked(int sig) {
+#ifdef HAVE_SIGACTION
     struct sigaction sa;
     sigset_t set;
 
@@ -185,6 +186,9 @@ void pa_check_signal_is_blocked(int sig) {
         return;
     
     pa_log(__FILE__": WARNING: %s is not trapped. This might cause malfunction!\n", pa_strsignal(sig));
+#else /* HAVE_SIGACTION */
+    pa_log(__FILE__": WARNING: %s might not be trapped. This might cause malfunction!\n", pa_strsignal(sig));
+#endif
 }
 
 /* The following function is based on an example from the GNU libc

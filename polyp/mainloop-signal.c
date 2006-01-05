@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "mainloop-signal.h"
 #include "util.h"
@@ -38,7 +39,11 @@
 
 struct pa_signal_event {
     int sig;
+#ifdef HAVE_SIGACTION
     struct sigaction saved_sigaction;
+#else
+    void (*saved_handler)(int sig);
+#endif
     void (*callback) (struct pa_mainloop_api*a, struct pa_signal_event *e, int signal, void *userdata);
     void *userdata;
     void (*destroy_callback) (struct pa_mainloop_api*a, struct pa_signal_event*e, void *userdata);
@@ -51,6 +56,9 @@ static struct pa_io_event* io_event = NULL;
 static struct pa_signal_event *signals = NULL;
 
 static void signal_handler(int sig) {
+#ifndef HAVE_SIGACTION
+    signal(sig, signal_handler);
+#endif
     write(signal_pipe[1], &sig, sizeof(sig));
 }
 
@@ -108,7 +116,7 @@ void pa_signal_done(void) {
         pa_signal_free(signals);
 
 
-        api->io_free(io_event);
+    api->io_free(io_event);
     io_event = NULL;
 
     close(signal_pipe[0]);
@@ -120,7 +128,11 @@ void pa_signal_done(void) {
 
 struct pa_signal_event* pa_signal_new(int sig, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, int sig, void *userdata), void *userdata) {
     struct pa_signal_event *e = NULL;
+
+#ifdef HAVE_SIGACTION
     struct sigaction sa;
+#endif
+
     assert(sig > 0 && callback);
     
     for (e = signals; e; e = e->next)
@@ -133,12 +145,16 @@ struct pa_signal_event* pa_signal_new(int sig, void (*callback) (struct pa_mainl
     e->userdata = userdata;
     e->destroy_callback = NULL;
 
+#ifdef HAVE_SIGACTION
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = signal_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     
     if (sigaction(sig, &sa, &e->saved_sigaction) < 0)
+#else
+    if ((e->saved_handler = signal(sig, signal_handler)) == SIG_ERR)
+#endif
         goto fail;
 
     e->previous = NULL;
@@ -162,7 +178,11 @@ void pa_signal_free(struct pa_signal_event *e) {
     else
         signals = e->next;
 
+#ifdef HAVE_SIGACTION
     sigaction(e->sig, &e->saved_sigaction, NULL);
+#else
+    signal(e->sig, e->saved_handler);
+#endif
 
     if (e->destroy_callback)
         e->destroy_callback(api, e, e->userdata);
