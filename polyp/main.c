@@ -311,6 +311,9 @@ int main(int argc, char *argv[]) {
     mainloop = pa_mainloop_new();
     assert(mainloop);
 
+    c = pa_core_new(pa_mainloop_get_api(mainloop));
+    assert(c);
+
     r = pa_signal_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);
     pa_signal_new(SIGINT, signal_callback, c);
@@ -319,8 +322,6 @@ int main(int argc, char *argv[]) {
     signal(SIGPIPE, SIG_IGN);
 #endif
 
-    c = pa_core_new(pa_mainloop_get_api(mainloop));
-    assert(c);
     if (conf->daemonize)
         c->running_as_daemon = 1;
     
