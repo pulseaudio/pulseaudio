@@ -264,22 +264,22 @@ char *pa_get_user_name(char *s, size_t l) {
 #ifdef HAVE_GETPWUID_R
         if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
 #else
-            /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
-             * that do not support getpwuid_r. */
-            if ((r = getpwuid(getuid())) == NULL) {
+        /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
+            * that do not support getpwuid_r. */
+        if ((r = getpwuid(getuid())) == NULL) {
 #endif
-                snprintf(s, l, "%lu", (unsigned long) getuid());
-                return s;
-            }
-            
-            p = r->pw_name;
-#else /* HAVE_PWD_H */
-            return NULL;
-#endif /* HAVE_PWD_H */
+            snprintf(s, l, "%lu", (unsigned long) getuid());
+            return s;
         }
+        
+        p = r->pw_name;
+#else /* HAVE_PWD_H */
+        return NULL;
+#endif /* HAVE_PWD_H */
+    }
 
     return pa_strlcpy(s, p, l);
-    }
+}
 
 /* Return the current hostname in the specified buffer. */
 char *pa_get_host_name(char *s, size_t l) {
