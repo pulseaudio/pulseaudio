@@ -65,6 +65,11 @@
 #include "util.h"
 #include "log.h"
 
+#ifdef OS_IS_WIN32
+static const struct in6_addr in6addr_any = {{ IN6ADDR_ANY_INIT }};
+static const struct in6_addr in6addr_loopback = {{ IN6ADDR_LOOPBACK_INIT }};
+#endif
+
 struct pa_socket_server {
     int ref;
     int fd;

@@ -62,6 +62,10 @@
 #elif defined(USE_TCP6_SOCKETS)
 #define SOCKET_DESCRIPTION "(TCP/IPv6 sockets)"
 #define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?>"
+#ifdef OS_IS_WIN32
+static const struct in6_addr in6addr_any = {{ IN6ADDR_ANY_INIT }};
+static const struct in6_addr in6addr_loopback = {{ IN6ADDR_LOOPBACK_INIT }};
+#endif
 #else
 #define SOCKET_DESCRIPTION "(UNIX sockets)"
 #define SOCKET_USAGE "socket=<path to UNIX socket>"

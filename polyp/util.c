@@ -773,7 +773,7 @@ finish:
 /* Check the current user is member of the specified group */
 int pa_uid_in_group(const char *name, gid_t *gid) {
     gid_t *gids, tgid;
-    long n = sysconf(_SC_NGROUPS_MAX);
+    GETGROUPS_T n = sysconf(_SC_NGROUPS_MAX);
     int r = -1, i;
 
     assert(n > 0);
