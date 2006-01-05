@@ -63,7 +63,7 @@ static int generate(int fd, void *ret_data, size_t length) {
 static int load(const char *fn, void *data, size_t length) {
     int fd = -1;
     int writable = 1;
-    int unlock = 0, ret;
+    int unlock = 0, ret = -1;
     ssize_t r;
     assert(fn && data && length);
 
