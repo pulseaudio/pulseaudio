@@ -35,6 +35,8 @@
 #include "log.h"
 #include "caps.h"
 
+#ifdef HAVE_GETUID
+
 /* Drop root rights when called SUID root */
 void pa_drop_root(void) {
     uid_t uid = getuid();
@@ -53,6 +55,13 @@ void pa_drop_root(void) {
     seteuid(uid);
 #endif
 }
+
+#else
+
+void pa_drop_root(void) {
+}
+
+#endif
 
 #ifdef HAVE_SYS_CAPABILITY_H
 

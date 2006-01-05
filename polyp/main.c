@@ -117,18 +117,25 @@ int main(int argc, char *argv[]) {
     char *s;
     int r, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
-    gid_t gid = (gid_t) -1;
     int suid_root;
     int valid_pid_file = 0;
 
+#ifdef HAVE_GETUID
+    gid_t gid = (gid_t) -1;
+#endif
+
     pa_limit_caps();
 
+#ifdef HAVE_GETUID
     suid_root = getuid() != 0 && geteuid() == 0;
     
     if (suid_root && (pa_uid_in_group("realtime", &gid) <= 0 || gid >= 1000)) {
         pa_log_warn(__FILE__": WARNING: called SUID root, but not in group 'realtime'.\n");
         pa_drop_root();
     }
+#else
+    suid_root = 0;
+#endif
     
     LTDL_SET_PRELOADED_SYMBOLS();
     
