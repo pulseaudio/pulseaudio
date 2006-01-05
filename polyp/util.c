@@ -527,12 +527,24 @@ const char *pa_strsignal(int sig) {
     switch(sig) {
         case SIGINT: return "SIGINT";
         case SIGTERM: return "SIGTERM";
+#ifdef SIGUSR1
         case SIGUSR1: return "SIGUSR1";
+#endif
+#ifdef SIGUSR2
         case SIGUSR2: return "SIGUSR2";
+#endif
+#ifdef SIGXCPU
         case SIGXCPU: return "SIGXCPU";
+#endif
+#ifdef SIGPIPE
         case SIGPIPE: return "SIGPIPE";
+#endif
+#ifdef SIGCHLD
         case SIGCHLD: return "SIGCHLD";
+#endif
+#ifdef SIGHUP
         case SIGHUP: return "SIGHUP";
+#endif
         default: return "UNKNOWN SIGNAL";
     }
 }

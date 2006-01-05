@@ -70,20 +70,26 @@ static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e,
     pa_log_info(__FILE__": Got signal %s.\n", pa_strsignal(sig));
 
     switch (sig) {
+#ifdef SIGUSR1
         case SIGUSR1:
             pa_module_load(userdata, "module-cli", NULL);
             break;
+#endif
             
+#ifdef SIGUSR2
         case SIGUSR2:
             pa_module_load(userdata, "module-cli-protocol-unix", NULL);
             break;
+#endif
 
+#ifdef SIGHUP
         case SIGHUP: {
             char *c = pa_full_status_string(userdata);
             pa_log_notice(c);
             pa_xfree(c);
             return;
         }
+#endif
 
         case SIGINT:
         case SIGTERM:
@@ -263,9 +269,15 @@ int main(int argc, char *argv[]) {
         open("/dev/null", O_WRONLY);
         open("/dev/null", O_WRONLY);
         
+#ifdef SIGTTOU
         signal(SIGTTOU, SIG_IGN);
+#endif
+#ifdef SIGTTIN
         signal(SIGTTIN, SIG_IGN);
+#endif
+#ifdef SIGTSTP
         signal(SIGTSTP, SIG_IGN);
+#endif
         
         if ((tty_fd = open("/dev/tty", O_RDWR)) >= 0) {
             ioctl(tty_fd, TIOCNOTTY, (char*) 0);
@@ -292,16 +304,24 @@ int main(int argc, char *argv[]) {
     assert(r == 0);
     pa_signal_new(SIGINT, signal_callback, c);
     pa_signal_new(SIGTERM, signal_callback, c);
+#ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN);
+#endif
 
     c = pa_core_new(pa_mainloop_get_api(mainloop));
     assert(c);
     if (conf->daemonize)
         c->running_as_daemon = 1;
     
+#ifdef SIGUSR1
     pa_signal_new(SIGUSR1, signal_callback, c);
+#endif
+#ifdef SIGUSR2
     pa_signal_new(SIGUSR2, signal_callback, c);
+#endif
+#ifdef SIGHUP
     pa_signal_new(SIGHUP, signal_callback, c);
+#endif
 
     r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);

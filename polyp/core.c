@@ -89,7 +89,9 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
 
     pa_random(&c->cookie, sizeof(c->cookie));
     
+#ifdef SIGPIPE
     pa_check_signal_is_blocked(SIGPIPE);
+#endif
     return c;
 }
 

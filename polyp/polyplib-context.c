@@ -110,8 +110,10 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->autospawn_lock_fd = -1;
     memset(&c->spawn_api, 0, sizeof(c->spawn_api));
     c->do_autospawn = 0;
-    
+
+#ifdef SIGPIPE    
     pa_check_signal_is_blocked(SIGPIPE);
+#endif
 
     c->conf = pa_client_conf_new();
     pa_client_conf_load(c->conf, NULL);

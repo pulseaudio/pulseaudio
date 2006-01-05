@@ -480,8 +480,12 @@ int main(int argc, char *argv[]) {
     assert(r == 0);
     pa_signal_new(SIGINT, exit_signal_callback, NULL);
     pa_signal_new(SIGTERM, exit_signal_callback, NULL);
+#ifdef SIGUSR1
     pa_signal_new(SIGUSR1, sigusr1_signal_callback, NULL);
+#endif
+#ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN);
+#endif
     
     if (!(stdio_event = mainloop_api->io_new(mainloop_api,
                                              mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO,
