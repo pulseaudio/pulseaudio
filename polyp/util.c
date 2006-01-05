@@ -34,7 +34,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
 #include <signal.h>
 #include <pthread.h>
 #include <sys/time.h>
@@ -42,10 +41,16 @@
 #include <sys/resource.h>
 #include <limits.h>
 #include <unistd.h>
-#include <grp.h>
 #include <netdb.h>
 
 #include <samplerate.h>
+
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
+#ifdef HAVE_GRP_H
+#include <grp.h>
+#endif
 
 #include "util.h"
 #include "xmalloc.h"
@@ -244,12 +249,17 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
 
 /* Return the current username in the specified string buffer. */
 char *pa_get_user_name(char *s, size_t l) {
-    struct passwd pw, *r;
-    char buf[1024];
     char *p;
+
+#ifdef HAVE_PWD_H
+    char buf[1024];
+    struct passwd pw, *r;
+#endif
+
     assert(s && l > 0);
 
     if (!(p = getenv("USER")) && !(p = getenv("LOGNAME")) && !(p = getenv("USERNAME"))) {
+#ifdef HAVE_PWD_H
         
 #ifdef HAVE_GETPWUID_R
         if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
@@ -263,6 +273,9 @@ char *pa_get_user_name(char *s, size_t l) {
             }
             
             p = r->pw_name;
+#else /* HAVE_PWD_H */
+            return NULL;
+#endif /* HAVE_PWD_H */
         }
 
     return pa_strlcpy(s, p, l);
@@ -282,19 +295,34 @@ char *pa_get_host_name(char *s, size_t l) {
 /* Return the home directory of the current user */
 char *pa_get_home_dir(char *s, size_t l) {
     char *e;
+
+#ifdef HAVE_PWD_H
     char buf[1024];
     struct passwd pw, *r;
+#endif
+
     assert(s && l);
 
     if ((e = getenv("HOME")))
         return pa_strlcpy(s, e, l);
 
+#ifdef HAVE_PWD_H
+#ifdef HAVE_GETPWUID_R
     if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
         pa_log(__FILE__": getpwuid_r() failed\n");
+#else
+    /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
+        * that do not support getpwuid_r. */
+    if ((r = getpwuid(getuid())) == NULL) {
+        pa_log(__FILE__": getpwuid_r() failed\n");
+#endif
         return NULL;
     }
 
     return pa_strlcpy(s, r->pw_dir, l);
+#else /* HAVE_PWD_H */
+    return NULL;
+#endif
 }
 
 /* Similar to OpenBSD's strlcpy() function */
@@ -553,6 +581,7 @@ const char *pa_strsignal(int sig) {
     }
 }
 
+#ifdef HAVE_GRP_H
 
 /* Check whether the specified GID and the group name match */
 static int is_group(gid_t gid, const char *name) {
@@ -632,6 +661,14 @@ finish:
     pa_xfree(gids);
     return r;
 }
+
+#else /* HAVE_GRP_H */
+
+int pa_uid_in_group(const char *name, gid_t *gid) {
+    return -1;
+}
+
+#endif
 
 /* Lock or unlock a file entirely. (advisory) */
 int pa_lock_fd(int fd, int b) {
