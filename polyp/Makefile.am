@@ -478,7 +478,7 @@ modlib_LTLIBRARIES += \
 		libx11prop.la
 endif
 
-if !OS_IS_WIN32
+if HAVE_OSS
 modlib_LTLIBRARIES += \
 		liboss-util.la
 endif
@@ -662,7 +662,7 @@ modlib_LTLIBRARIES += \
 		module-x11-publish.la
 endif
 
-if !OS_IS_WIN32
+if HAVE_OSS
 modlib_LTLIBRARIES += \
 		module-oss.la \
 		module-oss-mmap.la

@@ -223,6 +223,12 @@ PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.10 ])
 AC_SUBST(LIBSNDFILE_CFLAGS)
 AC_SUBST(LIBSNDFILE_LIBS)
 
+#### OSS support (optional) ####
+
+AC_CHECK_HEADERS([sys/soundcard.h], [HAVE_OSS=1], [HAVE_OSS=0])
+AC_SUBST(HAVE_OSS)
+AM_CONDITIONAL([HAVE_OSS], [test "x$HAVE_OSS" = x1])
+
 #### ALSA support (optional) ####
 
 PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.0 ], [HAVE_ALSA=1], [HAVE_ALSA=0])
