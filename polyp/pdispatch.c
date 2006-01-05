@@ -32,6 +32,7 @@
 #include "xmalloc.h"
 #include "llist.h"
 #include "log.h"
+#include "util.h"
 
 /*#define DEBUG_OPCODES */
 
