@@ -37,6 +37,10 @@
 #include <glob.h>
 #endif
 
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+
 #include "scache.h"
 #include "sink-input.h"
 #include "mainloop.h"
@@ -147,6 +151,13 @@ int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename
     struct pa_memchunk chunk;
     int r;
 
+#ifdef OS_IS_WIN32
+    char buf[MAX_PATH];
+
+    if (ExpandEnvironmentStrings(filename, buf, MAX_PATH))
+        filename = buf;
+#endif
+
     if (pa_sound_file_load(filename, &ss, &chunk, c->memblock_stat) < 0)
         return -1;
         
@@ -158,6 +169,14 @@ int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename
 
 int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *filename, uint32_t *index) {
     struct pa_scache_entry *e;
+
+#ifdef OS_IS_WIN32
+    char buf[MAX_PATH];
+
+    if (ExpandEnvironmentStrings(filename, buf, MAX_PATH))
+        filename = buf;
+#endif
+
     assert(c && name);
 
     if (!(e = scache_add_item(c, name)))
@@ -313,7 +332,9 @@ static void add_file(struct pa_core *c, const char *pathname) {
         return;
     }
 
+#if defined(S_ISREG) && defined(S_ISLNK)
     if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode))
+#endif
         pa_scache_add_file_lazy(c, e, pathname, NULL);
 }
 

@@ -35,6 +35,10 @@
 #include <limits.h>
 #include <signal.h>
 
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+
 #include "pid.h"
 #include "util.h"
 #include "log.h"
@@ -130,6 +134,10 @@ int pa_pid_file_create(void) {
     pid_t pid;
     size_t l;
 
+#ifdef OS_IS_WIN32
+    HANDLE process;
+#endif
+
     pa_runtime_path("pid", fn, sizeof(fn));
 
     if ((fd = open_pid_file(fn, O_CREAT|O_RDWR)) < 0)
@@ -138,7 +146,12 @@ int pa_pid_file_create(void) {
     if ((pid = read_pid(fn, fd)) == (pid_t) -1)
         pa_log(__FILE__": corrupt PID file, overwriting.\n");
     else if (pid > 0) {
+#ifdef OS_IS_WIN32
+        if ((process = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid)) != NULL) {
+            CloseHandle(process);
+#else
         if (kill(pid, 0) >= 0 || errno != ESRCH) {
+#endif
             pa_log(__FILE__": daemon already running.\n");
             goto fail;
         }
@@ -198,6 +211,12 @@ int pa_pid_file_remove(void) {
         goto fail;
     }
 
+#ifdef OS_IS_WIN32
+    pa_lock_fd(fd, 0);
+    close(fd);
+    fd = -1;
+#endif
+
     if (unlink(fn) < 0) {
         pa_log(__FILE__": failed to remove PID file '%s': %s\n", fn, strerror(errno));
         goto fail;
@@ -223,6 +242,8 @@ int pa_pid_file_check_running(pid_t *pid) {
     return pa_pid_file_kill(0, pid);
 }
 
+#ifndef OS_IS_WIN32
+
 /* Kill a current running daemon. Return non-zero on success, -1
  * otherwise. If successful *pid contains the PID of the daemon
  * process. */
@@ -242,7 +263,7 @@ int pa_pid_file_kill(int sig, pid_t *pid) {
     
     if ((*pid = read_pid(fn, fd)) == (pid_t) -1)
         goto fail;
-    
+
     ret = kill(*pid, sig);
     
 fail:
@@ -255,3 +276,11 @@ fail:
     return ret;
     
 }
+
+#else /* OS_IS_WIN32 */
+
+int pa_pid_file_kill(int sig, pid_t *pid) {
+    return -1;
+}
+
+#endif

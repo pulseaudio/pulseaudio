@@ -37,13 +37,23 @@
 #include "resampler.h"
 
 #ifndef DEFAULT_CONFIG_DIR
-#define DEFAULT_CONFIG_DIR "/etc/polypaudio"
+# ifndef OS_IS_WIN32
+#  define DEFAULT_CONFIG_DIR "/etc/polypaudio"
+# else
+#  define DEFAULT_CONFIG_DIR "%POLYP_ROOT%"
+# endif
 #endif
 
-#define DEFAULT_SCRIPT_FILE DEFAULT_CONFIG_DIR"/default.pa"
-#define DEFAULT_SCRIPT_FILE_USER ".polypaudio/default.pa"
-#define DEFAULT_CONFIG_FILE DEFAULT_CONFIG_DIR"/daemon.conf"
-#define DEFAULT_CONFIG_FILE_USER ".polypaudio/daemon.conf"
+#ifndef OS_IS_WIN32
+# define PATH_SEP "/"
+#else
+# define PATH_SEP "\\"
+#endif
+
+#define DEFAULT_SCRIPT_FILE DEFAULT_CONFIG_DIR PATH_SEP "default.pa"
+#define DEFAULT_SCRIPT_FILE_USER ".polypaudio" PATH_SEP "default.pa"
+#define DEFAULT_CONFIG_FILE DEFAULT_CONFIG_DIR PATH_SEP "daemon.conf"
+#define DEFAULT_CONFIG_FILE_USER ".polypaudio" PATH_SEP "daemon.conf"
 
 #define ENV_SCRIPT_FILE "POLYP_SCRIPT"
 #define ENV_CONFIG_FILE "POLYP_CONFIG"

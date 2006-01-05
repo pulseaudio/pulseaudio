@@ -19,6 +19,10 @@
   USA.
 ***/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -31,13 +35,16 @@
 #include "util.h"
 #include "log.h"
 
+#ifndef OS_IS_WIN32
 #define RANDOM_DEVICE "/dev/urandom"
+#endif
 
 void pa_random(void *ret_data, size_t length) {
     int fd;
     ssize_t r = 0;
     assert(ret_data && length);
-    
+
+#ifdef RANDOM_DEVICE
     if ((fd = open(RANDOM_DEVICE, O_RDONLY)) >= 0) {
 
         if ((r = pa_loop_read(fd, ret_data, length)) < 0 || (size_t) r != length)
@@ -45,17 +52,20 @@ void pa_random(void *ret_data, size_t length) {
 
         close(fd);
     }
+#endif
 
     if ((size_t) r != length) {
         uint8_t *p;
         size_t l;
-        
+
+#ifdef RANDOM_DEVICE        
         pa_log_warn(__FILE__": WARNING: Failed to open entropy device '"RANDOM_DEVICE"': %s"
                     ", falling back to unsecure pseudo RNG.\n", strerror(errno));
+#endif
 
-        srandom(time(NULL));
+        srand(time(NULL));
         
         for (p = ret_data, l = length; l > 0; p++, l--)
-            *p = (uint8_t) random();
+            *p = (uint8_t) rand();
     }
 }

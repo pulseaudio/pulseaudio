@@ -57,6 +57,11 @@
 #include <netdb.h>
 #endif
 
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#define ETIMEDOUT       WSAETIMEDOUT
+#endif
+
 #include "socket-util.h"
 #include "util.h"
 #include "xmalloc.h"
@@ -72,6 +77,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
         return;
     }
 
+#ifndef OS_IS_WIN32
     if (S_ISSOCK(st.st_mode)) {
         union {
             struct sockaddr sa;
@@ -104,6 +110,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
         snprintf(c, l, "STDIN/STDOUT client");
         return;
     }
+#endif /* OS_IS_WIN32 */
 
     snprintf(c, l, "Unknown client");
 }

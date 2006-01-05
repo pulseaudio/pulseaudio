@@ -44,6 +44,13 @@
 #include <netinet/in.h>
 #endif
 
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+
 #ifdef HAVE_LIBWRAP
 #include <tcpd.h>
 #endif

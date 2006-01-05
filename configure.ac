@@ -138,7 +138,7 @@ AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
 AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = "x1"])
 
 # Windows
-AC_CHECK_HEADERS([winsock2.h ws2tcpip.h])
+AC_CHECK_HEADERS([windows.h winsock2.h ws2tcpip.h])
 
 # Other
 AC_CHECK_HEADERS([sys/ioctl.h])

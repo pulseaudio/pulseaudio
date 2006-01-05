@@ -48,6 +48,15 @@
 #include <netdb.h>
 #endif
 
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#define EINPROGRESS     WSAEINPROGRESS
+#define ETIMEDOUT       WSAETIMEDOUT
+#endif
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+
 #ifdef HAVE_LIBASYNCNS
 #include <asyncns.h>
 #endif

@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <signal.h>
+#include <limits.h>
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -42,6 +43,13 @@
 #endif
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
+
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#define ETIMEDOUT       WSAETIMEDOUT
+#define ECONNREFUSED    WSAECONNREFUSED
+#define EHOSTUNREACH    WSAEHOSTUNREACH
 #endif
 
 #include "polyplib-internal.h"
@@ -382,6 +390,8 @@ finish:
 
 static void on_connection(struct pa_socket_client *client, struct pa_iochannel*io, void *userdata);
 
+#ifndef OS_IS_WIN32
+
 static int context_connect_spawn(struct pa_context *c) {
     pid_t pid;
     int status, r;
@@ -495,6 +505,8 @@ fail:
     return -1;
 }
 
+#endif /* OS_IS_WIN32 */
+
 static int try_next_connection(struct pa_context *c) {
     char *u = NULL;
     int r = -1;
@@ -509,10 +521,12 @@ static int try_next_connection(struct pa_context *c) {
         
         if (!u) {
 
+#ifndef OS_IS_WIN32
             if (c->do_autospawn) {
                 r = context_connect_spawn(c);
                 goto finish;
             }
+#endif
             
             pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
             goto finish;

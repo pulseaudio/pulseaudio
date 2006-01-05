@@ -36,6 +36,17 @@
 #include <sys/select.h>
 #endif
 
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+
+#define EBADF           WSAEBADF
+#define ESHUTDOWN       WSAESHUTDOWN
+#define ECONNRESET      WSAECONNRESET
+#define ECONNABORTED    WSAECONNABORTED
+#define ENETRESET       WSAENETRESET
+
+#endif /* HAVE_WINSOCK2_H */
+
 #ifndef HAVE_SYS_POLL_H
 
 #include "util.h"
@@ -59,7 +70,16 @@ int poll (struct pollfd *fds, unsigned long int nfds, int timeout) {
             return 0;
         }
 
+#ifdef OS_IS_WIN32
+        /*
+         * Windows does not support signals properly so waiting for them would
+         * mean a deadlock.
+         */
+        pa_msleep(100);
+        return 0;
+#else
         return select(0, NULL, NULL, NULL, NULL);
+#endif
     }
 
     for (f = fds; f < &fds[nfds]; ++f) {
@@ -137,6 +157,10 @@ int poll (struct pollfd *fds, unsigned long int nfds, int timeout) {
                             SELECT_TYPE_ARG5 (timeout == -1 ? NULL : &tv));
         }
     }
+
+#ifdef OS_IS_WIN32
+    errno = WSAGetLastError();
+#endif
 
     if (ready > 0) {
         ready = 0;
