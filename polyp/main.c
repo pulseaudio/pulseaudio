@@ -258,8 +258,12 @@ int main(int argc, char *argv[]) {
         if (conf->auto_log_target)
             pa_log_set_target(PA_LOG_SYSLOG, NULL);
 
+#ifdef HAVE_SETSID
         setsid();
+#endif
+#ifdef HAVE_SETPGID
         setpgid(0,0);
+#endif
         
         close(0);
         close(1);
