@@ -77,7 +77,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
                          ip & 0xFF,
                          ntohs(sa.in.sin_port));
                 return;
-            } else if (sa.sa.sa_family == AF_LOCAL) {
+            } else if (sa.sa.sa_family == AF_UNIX) {
                 snprintf(c, l, "UNIX socket client");
                 return;
             }
@@ -165,12 +165,12 @@ int pa_unix_socket_is_stale(const char *fn) {
     struct sockaddr_un sa;
     int fd = -1, ret = -1;
 
-    if ((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto finish;
     }
 
-    sa.sun_family = AF_LOCAL;
+    sa.sun_family = AF_UNIX;
     strncpy(sa.sun_path, fn, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 

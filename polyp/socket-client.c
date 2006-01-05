@@ -203,7 +203,7 @@ struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, co
     assert(m && filename);
     
     memset(&sa, 0, sizeof(sa));
-    sa.sun_family = AF_LOCAL;
+    sa.sun_family = AF_UNIX;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 

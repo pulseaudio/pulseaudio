@@ -144,14 +144,14 @@ struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, co
     
     assert(m && filename);
 
-    if ((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto fail;
     }
 
     pa_fd_set_cloexec(fd, 1);
 
-    sa.sun_family = AF_LOCAL;
+    sa.sun_family = AF_UNIX;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
