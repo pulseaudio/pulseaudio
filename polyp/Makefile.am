@@ -47,6 +47,10 @@ AM_LDADD = $(PTHREAD_LIBS)
 # Only required on some platforms but defined for all to avoid errors
 AM_LDFLAGS = -no-undefined
 
+if STATIC_BINS
+BINLDFLAGS = -static
+endif
+
 if OS_IS_WIN32
 AM_LDFLAGS+=-Wl,--export-all-symbols
 WINSOCK_LIBS=-lwsock32 -lws2_32 -lwininet
@@ -89,7 +93,7 @@ polypaudio_CFLAGS = $(AM_CFLAGS)
 polypaudio_CPPFLAGS = $(AM_CPPFLAGS)
 polypaudio_LDADD = $(AM_LDADD) libpolypcore.la $(LIBLTDL) \
 		$(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
-polypaudio_LDFLAGS= $(AM_LDFLAGS) -dlopen force 
+polypaudio_LDFLAGS= $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force 
 #q-static $(foreach f,$(modlib_LTLIBRARIES),-dlpreopen $(f))
 
 ###################################
@@ -118,26 +122,32 @@ bin_SCRIPTS = esdcompat.sh
 pacat_SOURCES = pacat.c
 pacat_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 pacat_CFLAGS = $(AM_CFLAGS) 
+pacat_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 paplay_SOURCES = paplay.c
 paplay_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
 paplay_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
+paplay_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pactl_SOURCES = pactl.c
 pactl_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
 pactl_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
+pactl_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pacmd_SOURCES = pacmd.c util.c util.h xmalloc.c xmalloc.h log.c log.h pid.c pid.h
 pacmd_CFLAGS = $(AM_CFLAGS)
 pacmd_LDADD = $(AM_LDADD)
+pacmd_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pax11publish_SOURCES = pax11publish.c util.c util.h xmalloc.c xmalloc.h log.c log.h authkey.c authkey.h client-conf.c client-conf.h conf-parser.c conf-parser.h x11prop.c x11prop.h random.c random.h
 pax11publish_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 pax11publish_LDADD = $(AM_LDADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+pax11publish_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pabrowse_SOURCES = pabrowse.c
 pabrowse_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la libpolyp-browse-@PA_MAJORMINOR@.la
 pabrowse_CFLAGS = $(AM_CFLAGS)
+pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #         Test programs           #
@@ -170,42 +180,52 @@ endif
 mainloop_test_SOURCES = mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
 mainloop_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la libpolyp-@PA_MAJORMINOR@.la
+mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = mcalign-test.c util.c util.h xmalloc.c xmalloc.h log.c log.h mcalign.c mcalign.h memchunk.c memchunk.h memblock.c memblock.h
 mcalign_test_CFLAGS = $(AM_CFLAGS)
 mcalign_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS)
+mcalign_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pacat_simple_SOURCES = pacat-simple.c
 pacat_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
+pacat_simple_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 parec_simple_SOURCES = parec-simple.c
 parec_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
+parec_simple_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 strlist_test_SOURCES = strlist-test.c strlist.c strlist.h strbuf.c strbuf.h util.c util.h xmalloc.c xmalloc.h log.c log.h
 strlist_test_CFLAGS = $(AM_CFLAGS)
 strlist_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS)
+strlist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 voltest_SOURCES = voltest.c sample.c
 voltest_CFLAGS = $(AM_CFLAGS)
 voltest_LDADD = $(AM_LDADD)
+voltest_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h
 cpulimit_test_CFLAGS = $(AM_CFLAGS)
 cpulimit_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
+cpulimit_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h
 cpulimit_test2_CFLAGS = $(AM_CFLAGS) -DTEST2
 cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
+cpulimit_test2_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
 mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainloop-glib-@PA_MAJORMINOR@.la
+mainloop_test_glib_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
 mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
+mainloop_test_glib12_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #         Client library          #

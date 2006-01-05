@@ -291,6 +291,12 @@ AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 #            Output               #
 ###################################
 
+AC_ARG_ENABLE(
+        [static-bins],
+        AC_HELP_STRING([--enable-static-bins],[Statically link executables.]),
+        [STATIC_BINS=1], [STATIC_BINS=0])
+AM_CONDITIONAL([STATIC_BINS], [test "x$STATIC_BINS" = "x1"])
+
 AC_CONFIG_FILES([
 Makefile
 polyp/Makefile
