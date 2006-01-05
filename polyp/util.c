@@ -831,11 +831,14 @@ size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
 /* Return the fully qualified domain name in *s */
 char *pa_get_fqdn(char *s, size_t l) {
     char hn[256];
+#ifdef HAVE_GETADDRINFO    
     struct addrinfo *a, hints;
+#endif
 
     if (!pa_get_host_name(hn, sizeof(hn)))
         return NULL;
 
+#ifdef HAVE_GETADDRINFO
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_flags = AI_CANONNAME;
@@ -846,6 +849,9 @@ char *pa_get_fqdn(char *s, size_t l) {
     pa_strlcpy(s, a->ai_canonname, l);
     freeaddrinfo(a);
     return s;
+#else
+    return pa_strlcpy(s, hn, l);
+#endif
 }
 
 /* Returns nonzero when *s starts with *pfx */

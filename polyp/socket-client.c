@@ -426,8 +426,9 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
                 assert(c->asyncns_query);
                 start_timeout(c);
             }
-#else
+#else /* HAVE_LIBASYNCNS */
             {
+#ifdef HAVE_GETADDRINFO
                 int ret;
                 struct addrinfo *res = NULL;
 
@@ -438,12 +439,37 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
 
                 if (res->ai_addr) {
                     if ((c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen)))
-                    	start_timeout(c);
+                        start_timeout(c);
 				}
                 
                 freeaddrinfo(res);
+#else /* HAVE_GETADDRINFO */
+                struct hostent *host = NULL;
+                struct sockaddr_in s;
+
+		/* FIXME: PF_INET6 support */
+                if (hints.ai_family != PF_INET)
+                    goto finish;
+
+                host = gethostbyname(a.path_or_host);
+                if (!host) {
+                    unsigned int addr = inet_addr(a.path_or_host);
+                    if (addr != INADDR_NONE)
+                        host = gethostbyaddr((char*)&addr, 4, AF_INET);
+                }
+
+                if (!host)
+                    goto finish;
+
+                s.sin_family = AF_INET;
+                memcpy(&s.sin_addr, host->h_addr, sizeof(struct in_addr));
+                s.sin_port = port;
+
+                if ((c = pa_socket_client_new_sockaddr(m, &s, sizeof(s))))
+                	start_timeout(c);
+#endif /* HAVE_GETADDRINFO */
             }
-#endif            
+#endif /* HAVE_LIBASYNCNS */
         }
     }
 
