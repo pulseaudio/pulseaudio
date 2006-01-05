@@ -18,7 +18,7 @@
 # USA.
 
 EXTRA_DIST = bootstrap.sh README LICENSE doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in libtool.m4 ltdl.m4
-SUBDIRS=polyp doc libltdl
+SUBDIRS=libltdl polyp doc
 
 MAINTAINERCLEANFILES=README
 noinst_DATA = README
@@ -49,8 +49,8 @@ homepage: all dist doxygen
 	cp -a doxygen/html/* $$HOME/homepage/private/projects/polypaudio/doxygen
 	cp $$HOME/homepage/private/projects/polypaudio/README.html $$HOME/homepage/private/projects/polypaudio/index.html
 
-distcleancheck:
-	@:
+#distcleancheck:
+#	@:
 
 doxygen:
 	$(MAKE) -C doxygen doxygen

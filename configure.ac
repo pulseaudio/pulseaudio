@@ -35,164 +35,27 @@ if type -p stow > /dev/null && test -d /usr/local/stow ; then
    ac_default_prefix="/usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION}"
 fi
 
-# Checks for programs.
+#### Checks for programs. ####
+
+# CC
+
 AC_PROG_CC
-
-# libtool stuff
-AC_LIBLTDL_INSTALLABLE
-AC_SUBST(LTDLINCL)
-AC_SUBST(LIBLTDL)
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
-AC_CONFIG_SUBDIRS(libltdl)
-
-if test "x$ac_cv_lib_ltdl_lt_dlinit" = "xno" ; then
-    AC_MSG_ERROR([[
-
-        *** Cannot find the libltdl development files.
-        *** Maybe you need to install the libltdl-dev package.
-        ]])
-fi
-
-# Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h malloc.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h syslog.h])
-
-ACX_PTHREAD
-AC_PATH_XTRA
-
-HAVE_X11=0
-test "x$no_x" != "xyes" && HAVE_X11=1
-AC_SUBST(HAVE_X11)
-AM_CONDITIONAL(HAVE_X11, test "x$no_x" != "xyes")
-if test "x$no_x" != "xyes" ; then
-   AC_DEFINE([HAVE_X11], 1, [Have X11])
-fi
-
-# Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_TYPE_PID_T
-AC_TYPE_SIZE_T
-AC_TYPE_OFF_T
-AC_HEADER_TIME
-
-# Checks for library functions.
-AC_FUNC_FORK
 AC_PROG_GCC_TRADITIONAL
-AC_FUNC_LSTAT
-AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
-AC_FUNC_MALLOC
-AC_FUNC_MEMCMP
-AC_FUNC_MMAP
-AC_FUNC_REALLOC
-AC_FUNC_SETPGRP
-AC_FUNC_VPRINTF
-AC_FUNC_CLOSEDIR_VOID
-AC_FUNC_SELECT_ARGTYPES
-AC_TYPE_SIGNAL
-AC_TYPE_UID_T
-AC_CHECK_FUNCS([gethostname gettimeofday memchr memmove memset mkdir mkfifo munmap rmdir socket strcspn strerror strrchr strspn strstr strtol strtoul strcasecmp putenv strchr strpbrk strdup getgrgid_r getpwuid_r regcomp ftruncate select])
-AC_CHECK_LIB(m, pow)
-AC_CHECK_FUNCS(pow)
-AC_FUNC_STAT
-AC_HEADER_SYS_WAIT
-AC_HEADER_DIRENT
-
-AC_C_BIGENDIAN
-AC_FUNC_GETGROUPS
-
-AC_CHECK_LIB(cap, cap_init, [CAP_LIBS='-lcap'], [CAP_LIBS=''])
-AC_SUBST(CAP_LIBS)
-
-AC_CHECK_HEADERS(sys/capability.h)
-
-AC_CHECK_FUNCS(setresuid)
-AC_CHECK_FUNCS(setreuid)
-
-PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ])
-AC_SUBST(LIBSAMPLERATE_CFLAGS)
-AC_SUBST(LIBSAMPLERATE_LIBS)
-
-PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.10 ])
-AC_SUBST(LIBSNDFILE_CFLAGS)
-AC_SUBST(LIBSNDFILE_LIBS)
-
-PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.0 ], [HAVE_ALSA=1], [HAVE_ALSA=0])
-AC_SUBST(ASOUNDLIB_CFLAGS)
-AC_SUBST(ASOUNDLIB_LIBS) 
-AC_SUBST(HAVE_ALSA)
-AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
-
-PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.4.0 ], HAVE_GLIB20=1, HAVE_GLIB20=0)
-AC_SUBST(GLIB20_CFLAGS)
-AC_SUBST(GLIB20_LIBS)
-AC_SUBST(HAVE_GLIB20)
-AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
-
-PKG_CHECK_MODULES(GLIB12, [ glib >= 1.2.0 ], HAVE_GLIB12=1, HAVE_GLIB12=0)
-AC_SUBST(GLIB12_CFLAGS)
-AC_SUBST(GLIB12_LIBS)
-AC_SUBST(HAVE_GLIB12)
-AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
-
-PKG_CHECK_MODULES(HOWL, [ howl >= 0.9.8 ], HAVE_HOWL=1, HAVE_HOWL=0)
-AC_SUBST(HOWL_CFLAGS)
-AC_SUBST(HOWL_LIBS)
-AC_SUBST(HAVE_HOWL)
-AM_CONDITIONAL([HAVE_HOWL], [test "x$HAVE_HOWL" = x1])
-
-PKG_CHECK_MODULES(LIBASYNCNS, [ libasyncns >= 0.1 ], HAVE_LIBASYNCNS=1, HAVE_LIBASYNCNS=0)
-AC_SUBST(LIBASYNCNS_CFLAGS)
-AC_SUBST(LIBASYNCNS_LIBS)
-AC_SUBST(HAVE_LIBASYNCNS)
-AM_CONDITIONAL([HAVE_LIBASYNCNS], [test "x$HAVE_LIBASYNCNS" = x1])
-
-if test "x$HAVE_LIBASYNCNS" != "x0" ; then
-   AC_DEFINE([HAVE_LIBASYNCNS], 1, [Have libasyncns?])
-fi
-
-AC_PATH_PROG([M4], [m4 gm4], [no])
-if test "x$M4" = xno ; then
-   AC_MSG_ERROR([m4 missing])
-fi
-
-AC_MSG_CHECKING([for tcpwrap library and headers])
-LIBWRAP_LIBS=
-saved_LIBS="$LIBS"
-LIBS="$LIBS -lwrap"
-AC_LINK_IFELSE(
-AC_LANG_PROGRAM(
-[#include <tcpd.h>
-#include <syslog.h>
-int allow_severity = LOG_INFO;
-int deny_severity = LOG_WARNING;],
-[struct request_info *req; 
-return hosts_access (req);]),
-[AC_DEFINE(HAVE_LIBWRAP, [], [Have tcpwrap?])
-LIBWRAP_LIBS="-lwrap"
-AC_MSG_RESULT(yes)],
-[AC_MSG_RESULT(no)])
-AC_SUBST(LIBWRAP_LIBS)
-LIBS="$saved_LIBS"
-
-LIRC_CFLAGS=
-LIRC_LIBS=
-AC_CHECK_HEADER(lirc/lirc_client.h,[AC_CHECK_LIB(lirc_client,lirc_init,[HAVE_LIRC=1
-LIRC_LIBS=-llirc_client],HAVE_LIRC=0)],HAVE_LIRC=0)
-AC_SUBST(LIRC_CFLAGS)
-AC_SUBST(LIRC_LIBS)
-AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
-
-AC_CHECK_HEADER(linux/input.h,HAVE_EVDEV=1,HAVE_EVDEV=0)
-AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = x1])
 
 # If using GCC specify some additional parameters
 if test "x$GCC" = "xyes" ; then
    CFLAGS="$CFLAGS -pipe -W -Wall -pedantic"
 
    AC_LANG_CONFTEST([int main() {}])
-   $CC -c conftest.c -std=c99 -Wno-unused-parameter $CFLAGS > /dev/null 2> /dev/null && CFLAGS="$CFLAGS -std=c99 -Wno-unused-parameter"
+   $CC -c conftest.c -std=gnu9x -Wno-unused-parameter $CFLAGS > /dev/null 2> /dev/null && CFLAGS="$CFLAGS -std=gnu9x -Wno-unused-parameter"
    rm -f conftest.o
+fi
+
+# M4
+
+AC_PATH_PROG([M4], [m4 gm4], [no])
+if test "x$M4" = xno ; then
+   AC_MSG_ERROR([m4 missing])
 fi
 
 # LYNX documentation generation
@@ -212,9 +75,234 @@ if test x$lynx = xyes ; then
    fi
 fi
 
-AM_CONDITIONAL([USE_LYNX], [test "x$lynx" = xyes])
+AM_CONDITIONAL([USE_LYNX], [test "x$have_lynx" = xyes])
+
+#### libtool stuff ####
+
+AC_LTDL_ENABLE_INSTALL
+AC_LIBLTDL_INSTALLABLE
+AC_SUBST(LTDLINCL)
+AC_SUBST(LIBLTDL)
+AC_LIBTOOL_DLOPEN
+AC_LIBTOOL_WIN32_DLL
+AC_PROG_LIBTOOL
+AC_CONFIG_SUBDIRS(libltdl)
+
+if test "x$enable_ltdl_install" = "xno" && test "x$ac_cv_lib_ltdl_lt_dlinit" = "xno" ; then
+    AC_MSG_ERROR([[
+
+        *** Cannot find the libltdl development files.
+        *** Maybe you need to install the libltdl-dev package.
+        ]])
+fi
+
+#### Determine build environment ####
+
+os_is_win32=0
+
+case "$host_os" in
+	mingw*)
+        AC_DEFINE([OS_IS_WIN32], 1, [Build target is Windows.])
+        os_is_win32=1
+		;;
+	esac
+
+AM_CONDITIONAL(OS_IS_WIN32, test "x$os_is_win32" = "x1")
+
+###################################
+#   Basic environment checks      #
+###################################
+
+#### Checks for header files. ####
+
+# ISO
+AC_HEADER_STDC
+
+# POSIX
+AC_CHECK_HEADERS([glob.h grp.h netdb.h netinet/in.h netinet/tcp.h pwd.h \
+    sched.h sys/capability.h sys/resource.h sys/select.h sys/socket.h \
+    syslog.h])
+AC_CHECK_HEADERS([regex.h], [HAVE_REGEX=1], [HAVE_REGEX=0])
+AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
+
+AM_CONDITIONAL(HAVE_REGEX, test "x$HAVE_REGEX" = "x1")
+AM_CONDITIONAL(HAVE_AF_UNIX, test "x$HAVE_AF_UNIX" = "x1")
+
+# XPG4-UNIX
+AC_CHECK_HEADERS([sys/poll.h])
+
+# Linux
+AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
+
+AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = "x1"])
+
+# Windows
+AC_CHECK_HEADERS([winsock2.h ws2tcpip.h])
+
+# Other
+AC_CHECK_HEADERS([sys/ioctl.h])
+
+#### Typdefs, structures, etc. ####
+
+AC_C_CONST
+AC_C_BIGENDIAN
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_CHECK_TYPES(ssize_t, , [AC_DEFINE([ssize_t], [signed long],
+    [Define ssize_t if it is not done by the standard libs.])])
+AC_TYPE_OFF_T
+AC_TYPE_SIGNAL
+AC_TYPE_UID_T
+
+AC_CHECK_DEFINE([SIGXCPU], [signal.h])
+AM_CONDITIONAL(HAVE_SIGXCPU, test "x$HAVE_SIGXCPU" = "x1")
+
+#### Check for functions ####
+
+# ISO
+AC_CHECK_LIB([m], [pow])
+
+# POSIX
+AC_FUNC_FORK
+AC_FUNC_GETGROUPS
+AC_FUNC_SELECT_ARGTYPES
+AC_CHECK_FUNCS([ftruncate getgrgid_r getpwuid_r gettimeofday getuid \
+    inet_ntop mkfifo nanosleep sigaction sleep])
+
+AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")
+
+# X/OPEN
+AC_CHECK_FUNCS([readlink])
+
+# SUSv2
+AC_CHECK_FUNCS([ctime_r usleep])
+
+# Non-standard
+
+AC_CHECK_FUNCS(setresuid)
+AC_CHECK_FUNCS(setreuid)
+
+#### POSIX threads ####
+
+ACX_PTHREAD
+
+###################################
+#      External libraries         #
+###################################
+
+#### X11 (optional) ####
+
+HAVE_X11=0
+
+# The macro tests the host, not the build target
+if test "x$os_is_win32" != "x1" ; then
+    AC_PATH_XTRA
+    test "x$no_x" != "xyes" && HAVE_X11=1
+fi
+
+AC_SUBST(HAVE_X11)
+AM_CONDITIONAL(HAVE_X11, test "x$HAVE_X11" = "x1")
+if test "x$HAVE_X11" = "x1" ; then
+    AC_DEFINE([HAVE_X11], 1, [Have X11])
+fi
+
+#### Capabilities (optional) ####
+
+AC_CHECK_LIB(cap, cap_init, [CAP_LIBS='-lcap'], [CAP_LIBS=''])
+AC_SUBST(CAP_LIBS)
+
+#### Sample rate conversion ####
+
+PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ])
+AC_SUBST(LIBSAMPLERATE_CFLAGS)
+AC_SUBST(LIBSAMPLERATE_LIBS)
+
+#### Sound file ####
+
+PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.10 ])
+AC_SUBST(LIBSNDFILE_CFLAGS)
+AC_SUBST(LIBSNDFILE_LIBS)
+
+#### ALSA support (optional) ####
+
+PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.0 ], [HAVE_ALSA=1], [HAVE_ALSA=0])
+AC_SUBST(ASOUNDLIB_CFLAGS)
+AC_SUBST(ASOUNDLIB_LIBS) 
+AC_SUBST(HAVE_ALSA)
+AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
+
+#### GLib 2 support (optional) ####
+
+PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.4.0 ], HAVE_GLIB20=1, HAVE_GLIB20=0)
+AC_SUBST(GLIB20_CFLAGS)
+AC_SUBST(GLIB20_LIBS)
+AC_SUBST(HAVE_GLIB20)
+AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
+
+#### GLib 1 support (optional) ####
+
+PKG_CHECK_MODULES(GLIB12, [ glib >= 1.2.0 ], HAVE_GLIB12=1, HAVE_GLIB12=0)
+AC_SUBST(GLIB12_CFLAGS)
+AC_SUBST(GLIB12_LIBS)
+AC_SUBST(HAVE_GLIB12)
+AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
+
+#### Howl support (optional) ####
+
+PKG_CHECK_MODULES(HOWL, [ howl >= 0.9.8 ], HAVE_HOWL=1, HAVE_HOWL=0)
+AC_SUBST(HOWL_CFLAGS)
+AC_SUBST(HOWL_LIBS)
+AC_SUBST(HAVE_HOWL)
+AM_CONDITIONAL([HAVE_HOWL], [test "x$HAVE_HOWL" = x1])
+
+#### Async DNS support (optional) ####
+
+PKG_CHECK_MODULES(LIBASYNCNS, [ libasyncns >= 0.1 ], HAVE_LIBASYNCNS=1, HAVE_LIBASYNCNS=0)
+AC_SUBST(LIBASYNCNS_CFLAGS)
+AC_SUBST(LIBASYNCNS_LIBS)
+AC_SUBST(HAVE_LIBASYNCNS)
+AM_CONDITIONAL([HAVE_LIBASYNCNS], [test "x$HAVE_LIBASYNCNS" = x1])
+
+if test "x$HAVE_LIBASYNCNS" != "x0" ; then
+   AC_DEFINE([HAVE_LIBASYNCNS], 1, [Have libasyncns?])
+fi
+
+#### TCP wrappers (optional) ####
+
+ACX_LIBWRAP
+AC_SUBST(LIBWRAP_LIBS)
+
+#### LIRC support (optional) ####
+
+ACX_LIRC
+AC_SUBST(LIRC_CFLAGS)
+AC_SUBST(LIRC_LIBS)
+AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
+
+###################################
+#            Output               #
+###################################
 
 AM_CONDITIONAL(BUILD_LIBPOLYPCORE, false)
 
-AC_CONFIG_FILES([Makefile polyp/Makefile polyplib.pc polyplib-simple.pc polyplib-mainloop.pc polyplib-browse.pc polyplib-error.pc polyplib-glib-mainloop.pc polyplib-glib12-mainloop.pc doc/Makefile doc/README.html doc/cli.html doc/daemon.html doc/modules.html doxygen/Makefile doxygen/doxygen.conf polyp/polyplib-version.h doc/FAQ.html])
+AC_CONFIG_FILES([
+Makefile
+polyp/Makefile
+polyplib.pc
+polyplib-simple.pc
+polyplib-mainloop.pc
+polyplib-browse.pc
+polyplib-error.pc
+polyplib-glib-mainloop.pc
+polyplib-glib12-mainloop.pc
+doc/Makefile
+doc/README.html
+doc/cli.html
+doc/daemon.html
+doc/modules.html
+doxygen/Makefile
+doxygen/doxygen.conf
+polyp/polyplib-version.h
+doc/FAQ.html
+])
 AC_OUTPUT
