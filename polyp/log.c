@@ -25,8 +25,11 @@
 
 #include <assert.h>
 #include <stdarg.h>
-#include <syslog.h>
 #include <stdio.h>
+
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
 
 #include "log.h"
 #include "xmalloc.h"
@@ -39,6 +42,7 @@ static enum pa_log_target log_target = PA_LOG_STDERR;
 static void (*user_log_func)(enum pa_log_level l, const char *s) = NULL;
 static enum pa_log_level maximal_level = PA_LOG_NOTICE;
 
+#ifdef HAVE_SYSLOG_H
 static const int level_to_syslog[] = {
     [PA_LOG_ERROR] = LOG_ERR,
     [PA_LOG_WARN] = LOG_WARNING,
@@ -46,6 +50,7 @@ static const int level_to_syslog[] = {
     [PA_LOG_INFO] = LOG_INFO,
     [PA_LOG_DEBUG] = LOG_DEBUG
 };
+#endif
 
 void pa_log_set_ident(const char *p) {
     if (log_ident)
@@ -79,13 +84,15 @@ void pa_log_levelv(enum pa_log_level level, const char *format, va_list ap) {
         case PA_LOG_STDERR:
             vfprintf(stderr, format, ap);
             break;
-            
+
+#ifdef HAVE_SYSLOG_H            
         case PA_LOG_SYSLOG:
             openlog(log_ident ? log_ident : "???", LOG_PID, LOG_USER);
             vsyslog(level_to_syslog[level], format, ap);
             closelog();
-            break;
-            
+            break;            
+#endif
+
         case PA_LOG_USER: {
             char *t = pa_vsprintf_malloc(format, ap);
             assert(user_log_func);
@@ -94,6 +101,7 @@ void pa_log_levelv(enum pa_log_level level, const char *format, va_list ap) {
         }
             
         case PA_LOG_NULL:
+        default:
             break;
     }
 
