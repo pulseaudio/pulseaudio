@@ -31,8 +31,11 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <sys/wait.h>
 #include <signal.h>
+
+#ifdef HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
