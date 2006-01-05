@@ -327,9 +327,9 @@ char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l
     switch (s->type) {
         case SOCKET_SERVER_IPV6: {
             struct sockaddr_in6 sa;
-            socklen_t l = sizeof(sa);
+            socklen_t sa_len = sizeof(sa);
 
-            if (getsockname(s->fd, (struct sockaddr*) &sa, &l) < 0) {
+            if (getsockname(s->fd, (struct sockaddr*) &sa, &sa_len) < 0) {
                 pa_log(__FILE__": getsockname() failed: %s\n", strerror(errno));
                 return NULL;
             }
@@ -375,9 +375,9 @@ char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l
 
         case SOCKET_SERVER_IPV4: {
             struct sockaddr_in sa;
-            socklen_t l = sizeof(sa);
+            socklen_t sa_len = sizeof(sa);
 
-            if (getsockname(s->fd, (struct sockaddr*) &sa, &l) < 0) {
+            if (getsockname(s->fd, (struct sockaddr*) &sa, &sa_len) < 0) {
                 pa_log(__FILE__": getsockname() failed: %s\n", strerror(errno));
                 return NULL;
             }
