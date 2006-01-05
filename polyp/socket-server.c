@@ -36,6 +36,10 @@
 #endif
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
+#ifndef SUN_LEN
+#define SUN_LEN(ptr) \
+    ((size_t)(((struct sockaddr_un *) 0)->sun_path) + strlen((ptr)->sun_path))
+#endif
 #endif
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>

@@ -158,6 +158,10 @@ AC_TYPE_UID_T
 AC_CHECK_DEFINE([SIGXCPU], [signal.h], [HAVE_SIGXCPU=1], [HAVE_SIGXCPU=0])
 AM_CONDITIONAL(HAVE_SIGXCPU, test "x$HAVE_SIGXCPU" = "x1")
 
+# Solaris lacks this
+AC_CHECK_DEFINE([INADDR_NONE], [netinet/in.h], [],
+    [AC_DEFINE([INADDR_NONE],  [0xffffffff], [Define INADDR_NONE if not found in <netinet/in.h>])])
+
 #### Check for functions ####
 
 # ISO
@@ -167,6 +171,7 @@ AC_CHECK_LIB([m], [pow])
 AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
+AC_CHECK_LIB([rt], [sched_setscheduler])
 AC_CHECK_FUNCS([getaddrinfo getgrgid_r getpwuid_r gettimeofday getuid \
     inet_ntop nanosleep setpgid setsid sigaction sleep])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
@@ -178,6 +183,9 @@ AC_CHECK_FUNCS([readlink])
 
 # SUSv2
 AC_CHECK_FUNCS([ctime_r usleep])
+
+# BSD
+AC_CHECK_LIB([socket], [connect])
 
 # Non-standard
 
@@ -246,6 +254,12 @@ AC_SUBST(ASOUNDLIB_CFLAGS)
 AC_SUBST(ASOUNDLIB_LIBS) 
 AC_SUBST(HAVE_ALSA)
 AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
+
+#### Solaris audio support (optional) ####
+
+AC_CHECK_HEADERS([sys/audio.h], [HAVE_SOLARIS=1], [HAVE_SOLARIS=0])
+AC_SUBST(HAVE_SOLARIS)
+AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
 
 #### GLib 2 support (optional) ####
 

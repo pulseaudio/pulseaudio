@@ -43,7 +43,8 @@ endif
 ###################################
 
 AM_CFLAGS  = -D_GNU_SOURCE  -I$(top_srcdir)
-AM_CFLAGS += $(PTHREAD_CFLAGS) $(LTDLINCL)
+AM_CFLAGS += $(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS
+AM_CFLAGS += $(LTDLINCL)
 AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 AM_CFLAGS += -DDLSEARCHPATH=\"$(modlibdir)\"
 AM_CFLAGS += -DDEFAULT_CONFIG_DIR=\"$(DEFAULT_CONFIG_DIR)\"
@@ -714,6 +715,11 @@ modlib_LTLIBRARIES += \
 		module-alsa-source.la
 endif
 
+if HAVE_SOLARIS
+modlib_LTLIBRARIES += \
+		module-solaris.la
+endif
+
 if HAVE_HOWL
 modlib_LTLIBRARIES += \
 		module-zeroconf-publish.la
@@ -774,6 +780,7 @@ SYMDEF_FILES = \
 		module-oss-mmap-symdef.h \
 		module-alsa-sink-symdef.h \
 		module-alsa-source-symdef.h \
+		module-solaris-symdef.h \
 		module-waveout-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
@@ -960,6 +967,12 @@ module_alsa_source_la_SOURCES = module-alsa-source.c
 module_alsa_source_la_LDFLAGS = -module -avoid-version
 module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
 module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+
+# Solaris
+
+module_solaris_la_SOURCES = module-solaris.c
+module_solaris_la_LDFLAGS = -module -avoid-version
+module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
 # HOWL
 
