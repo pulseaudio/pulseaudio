@@ -457,7 +457,7 @@ static int calc_next_timeout(struct pa_mainloop *m) {
 
         /* Let's save a system call */
         if (!got_time) {
-            gettimeofday(&now, NULL);
+            pa_gettimeofday(&now);
             got_time = 1;
         }
 
@@ -498,7 +498,7 @@ static int dispatch_timeout(struct pa_mainloop *m) {
 
         /* Let's save a system call */
         if (!got_time) {
-            gettimeofday(&now, NULL);
+            pa_gettimeofday(&now);
             got_time = 1;
         }
         

@@ -1099,7 +1099,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
     if (!c->authorized) {
         struct timeval tv;
-        gettimeofday(&tv, NULL);
+        pa_gettimeofday(&tv);
         tv.tv_sec += AUTH_TIMEOUT;
         c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
     } else

@@ -302,6 +302,14 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
     return b;
 }
 
+int pa_gettimeofday(struct timeval *tv) {
+#ifdef HAVE_GETTIMEOFDAY
+    return gettimeofday(tv, NULL);
+#else
+#error "Platform lacks gettimeofday() or equivalent function."
+#endif
+}
+
 /* Calculate the difference between the two specfified timeval
  * timestamsps. */
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
@@ -351,7 +359,7 @@ int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) {
 pa_usec_t pa_timeval_age(const struct timeval *tv) {
     struct timeval now;
     assert(tv);
-    gettimeofday(&now, NULL);
+    pa_gettimeofday(&now);
     return pa_timeval_diff(&now, tv);
 }
 

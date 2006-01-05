@@ -117,7 +117,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     pa_sink_set_owner(u->sink, m);
     u->sink->description = pa_sprintf_malloc("NULL sink");
 
-    gettimeofday(&tv, NULL);
+    pa_gettimeofday(&tv);
     u->time_event = c->mainloop->time_new(c->mainloop, &tv, time_callback, u);
 
     u->block_size = pa_bytes_per_second(&ss) / 10;

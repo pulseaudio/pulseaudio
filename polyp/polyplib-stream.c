@@ -217,7 +217,7 @@ static void ipol_callback(struct pa_mainloop_api *m, struct pa_time_event *e, co
         s->ipol_requested = 1;
     }
     
-    gettimeofday(&tv2, NULL);
+    pa_gettimeofday(&tv2);
     pa_timeval_add(&tv2, LATENCY_IPOL_INTERVAL_USEC);
     
     m->time_restart(e, &tv2);
@@ -256,7 +256,7 @@ void pa_create_stream_callback(struct pa_pdispatch *pd, uint32_t command, uint32
         struct timeval tv;
         pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
 
-        gettimeofday(&tv, NULL);
+        pa_gettimeofday(&tv);
         tv.tv_usec += LATENCY_IPOL_INTERVAL_USEC; /* every 100 ms */
 
         assert(!s->ipol_event);
@@ -412,7 +412,7 @@ static void stream_get_latency_info_callback(struct pa_pdispatch *pd, uint32_t c
         pa_context_fail(o->context, PA_ERROR_PROTOCOL);
         goto finish;
     } else {
-        gettimeofday(&now, NULL);
+        pa_gettimeofday(&now);
         
         if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now)) {
             /* local and remote seem to have synchronized clocks */
@@ -470,7 +470,7 @@ struct pa_operation* pa_stream_get_latency_info(struct pa_stream *s, void (*cb)(
     pa_tagstruct_putu32(t, tag = s->context->ctag++);
     pa_tagstruct_putu32(t, s->channel);
 
-    gettimeofday(&now, NULL);
+    pa_gettimeofday(&now);
     pa_tagstruct_put_timeval(t, &now);
     pa_tagstruct_putu64(t, s->counter);
     
@@ -581,7 +581,7 @@ struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (stru
             s->ipol_usec = pa_stream_get_interpolated_time(s);
         else if (s->corked && !b)
             /* Unpausing */
-            gettimeofday(&s->ipol_timestamp, NULL);
+            pa_gettimeofday(&s->ipol_timestamp);
     }
 
     s->corked = b;

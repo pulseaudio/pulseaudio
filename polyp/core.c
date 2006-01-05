@@ -144,7 +144,7 @@ void pa_core_check_quit(struct pa_core *c) {
 
     if (!c->quit_event && c->exit_idle_time >= 0 && pa_idxset_ncontents(c->clients) == 0) {
         struct timeval tv;
-        gettimeofday(&tv, NULL);
+        pa_gettimeofday(&tv);
         tv.tv_sec+= c->exit_idle_time;
         c->quit_event = c->mainloop->time_new(c->mainloop, &tv, quit_callback, c);
     } else if (c->quit_event && pa_idxset_ncontents(c->clients) > 0) {

@@ -55,7 +55,7 @@ static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, 
 
     pa_scache_unload_unused(c);
 
-    gettimeofday(&ntv, NULL);
+    pa_gettimeofday(&ntv);
     ntv.tv_sec += UNLOAD_POLL_TIME;
     m->time_restart(e, &ntv);
 }
@@ -165,7 +165,7 @@ int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *fil
     
     if (!c->scache_auto_unload_event) {
         struct timeval ntv;
-        gettimeofday(&ntv, NULL);
+        pa_gettimeofday(&ntv);
         ntv.tv_sec += UNLOAD_POLL_TIME;
         c->scache_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
     }

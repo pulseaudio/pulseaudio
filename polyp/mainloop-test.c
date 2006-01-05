@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
     de = a->defer_new(a, dcb, NULL);
     assert(de);
 
-    gettimeofday(&tv, NULL);
+    pa_gettimeofday(&tv);
     tv.tv_sec += 10;
     te = a->time_new(a, &tv, tcb, NULL);
 

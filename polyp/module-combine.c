@@ -157,7 +157,7 @@ static void time_callback(struct pa_mainloop_api*a, struct pa_time_event* e, con
 
     adjust_rates(u);
 
-    gettimeofday(&n, NULL);
+    pa_gettimeofday(&n);
     n.tv_sec += u->adjust_time;
     u->sink->core->mainloop->time_restart(e, &n);
 }
@@ -363,7 +363,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
         pa_log_warn(__FILE__": WARNING: no slave sinks specified.\n");
 
     if (u->adjust_time > 0) {
-        gettimeofday(&tv, NULL);
+        pa_gettimeofday(&tv);
         tv.tv_sec += u->adjust_time;
         u->time_event = c->mainloop->time_new(c->mainloop, &tv, time_callback, u);
     }

@@ -377,7 +377,7 @@ static void start_timeout(struct pa_socket_client *c) {
     assert(c);
     assert(!c->timeout_event);
 
-    gettimeofday(&tv, NULL);
+    pa_gettimeofday(&tv);
     pa_timeval_add(&tv, CONNECT_TIMEOUT * 1000000);
     c->timeout_event = c->mainloop->time_new(c->mainloop, &tv, timeout_cb, c);
 }

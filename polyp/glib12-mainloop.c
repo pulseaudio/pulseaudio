@@ -233,7 +233,7 @@ static void glib_time_restart(struct pa_time_event*e, const struct timeval *tv) 
     struct timeval now;
     assert(e && e->mainloop && !e->dead);
 
-    gettimeofday(&now, NULL);
+    pa_gettimeofday(&now);
     if (e->source != (guint) -1)
         g_source_remove(e->source);
 

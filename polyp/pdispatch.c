@@ -245,7 +245,7 @@ void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int time
     r->userdata = userdata;
     r->tag = tag;
     
-    gettimeofday(&tv, NULL);
+    pa_gettimeofday(&tv);
     tv.tv_sec += timeout;
 
     r->time_event = pd->mainloop->time_new(pd->mainloop, &tv, timeout_callback, r);
