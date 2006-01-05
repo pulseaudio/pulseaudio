@@ -166,8 +166,8 @@ AC_CHECK_LIB([m], [pow])
 AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([getaddrinfo ftruncate getgrgid_r getpwuid_r gettimeofday \
-    getuid inet_ntop mkfifo nanosleep sigaction sleep])
+AC_CHECK_FUNCS([getaddrinfo getgrgid_r getpwuid_r gettimeofday getuid \
+    inet_ntop mkfifo nanosleep sigaction sleep])
 
 AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")
 
