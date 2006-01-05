@@ -377,7 +377,7 @@ char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l
             struct sockaddr_in sa;
             socklen_t l = sizeof(sa);
 
-            if (getsockname(s->fd, &sa, &l) < 0) {
+            if (getsockname(s->fd, (struct sockaddr*) &sa, &l) < 0) {
                 pa_log(__FILE__": getsockname() failed: %s\n", strerror(errno));
                 return NULL;
             }
