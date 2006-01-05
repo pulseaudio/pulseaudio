@@ -426,7 +426,6 @@ static int esd_proto_get_latency(struct connection *c, esd_proto_t request, cons
         latency = 0;
     else {
         double usec = pa_sink_get_latency(sink);
-        usec += PLAYBACK_BUFFER_SECONDS*1000000;          /* A better estimation would be a good idea! */
         latency = (int) ((usec*44100)/1000000);
     }
     
