@@ -37,12 +37,15 @@
 #include <signal.h>
 #include <pthread.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 #include <limits.h>
 #include <unistd.h>
 
 #ifdef HAVE_SCHED_H
 #include <sched.h>
+#endif
+
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
 #endif
 
 #ifdef HAVE_NETDB_H

@@ -30,9 +30,12 @@
 #include <string.h>
 #include <assert.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 #include <unistd.h>
 #include <signal.h>
+
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
 
 #include "cpulimit.h"
 #include "util.h"
