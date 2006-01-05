@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 
         c.length = r;
         pa_mcalign_push(a, &c);
-        fprintf(stderr, "Read %u bytes\n", r);
+        fprintf(stderr, "Read %d bytes\n", r);
 
         c.index += r;
 
