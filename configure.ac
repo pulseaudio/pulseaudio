@@ -283,8 +283,6 @@ AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 #            Output               #
 ###################################
 
-AM_CONDITIONAL(BUILD_LIBPOLYPCORE, false)
-
 AC_CONFIG_FILES([
 Makefile
 polyp/Makefile
