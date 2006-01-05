@@ -303,10 +303,7 @@ static void add_file(struct pa_core *c, const char *pathname) {
     struct stat st;
     const char *e;
 
-    if (!(e = strrchr(pathname, '/')))
-        e = pathname;
-    else
-        e++;
+    e = pa_path_get_filename(pathname);
     
     if (stat(pathname, &st) < 0) {
         pa_log(__FILE__": stat('%s') failed: %s\n", pathname, strerror(errno));
