@@ -413,7 +413,7 @@ static void stream_get_latency_info_callback(struct pa_pdispatch *pd, uint32_t c
     } else {
         pa_gettimeofday(&now);
         
-        if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now)) {
+        if (pa_timeval_cmp(&local, &remote) <= 0 && pa_timeval_cmp(&remote, &now) <= 0) {
             /* local and remote seem to have synchronized clocks */
             
             if (o->stream->direction == PA_STREAM_PLAYBACK)
