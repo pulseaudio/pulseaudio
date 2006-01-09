@@ -51,11 +51,19 @@ enum pa_sample_format {
 #define PA_SAMPLE_S16NE PA_SAMPLE_S16BE
 /** 32 Bit IEEE floating point, native endian */
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32BE
+/** Signed 16 Bit PCM reverse endian */
+#define PA_SAMPLE_S16RE PA_SAMPLE_S16LE
+/** 32 Bit IEEE floating point, reverse endian */
+#define PA_SAMPLE_FLOAT32RE PA_SAMPLE_FLOAT32LE
 #else
 /** Signed 16 Bit PCM, native endian */
 #define PA_SAMPLE_S16NE PA_SAMPLE_S16LE
 /** 32 Bit IEEE floating point, native endian */
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32LE
+/** Signed 16 Bit PCM reverse endian */
+#define PA_SAMPLE_S16RE PA_SAMPLE_S16BE
+/** 32 Bit IEEE floating point, reverse endian */
+#define PA_SAMPLE_FLOAT32RE PA_SAMPLE_FLOAT32BE
 #endif
 
 /** A Shortcut for PA_SAMPLE_FLOAT32NE */
