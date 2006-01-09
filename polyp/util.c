@@ -810,7 +810,8 @@ int pa_uid_in_group(const char *name, gid_t *gid) {
 
 #endif
 
-/* Lock or unlock a file entirely. (advisory) */
+/* Lock or unlock a file entirely.
+  (advisory on UNIX, mandatory on Windows) */
 int pa_lock_fd(int fd, int b) {
 #ifdef F_SETLKW
     struct flock flock;
