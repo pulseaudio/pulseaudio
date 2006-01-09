@@ -52,6 +52,10 @@
 #include <tcpd.h>
 #endif
 
+#ifndef HAVE_INET_NTOP
+#include "inet_ntop.h"
+#endif
+
 #include "winsock.h"
 
 #include "socket-server.h"
@@ -362,22 +366,10 @@ char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l
             } else {
                 char ip[INET6_ADDRSTRLEN];
                 
-#ifdef HAVE_INET_NTOP
                 if (!inet_ntop(AF_INET6, &sa.sin6_addr, ip, sizeof(ip))) {
                     pa_log(__FILE__": inet_ntop() failed: %s\n", strerror(errno));
                     return NULL;
                 }
-#else
-                snprintf(ip, INET6_ADDRSTRLEN, "%x:%x:%x:%x:%x:%x:%x:%x",
-                    sa.sin6_addr.s6_addr[ 0] << 8 | sa.sin6_addr.s6_addr[ 1],
-                    sa.sin6_addr.s6_addr[ 2] << 8 | sa.sin6_addr.s6_addr[ 3],
-                    sa.sin6_addr.s6_addr[ 4] << 8 | sa.sin6_addr.s6_addr[ 5],
-                    sa.sin6_addr.s6_addr[ 6] << 8 | sa.sin6_addr.s6_addr[ 7],
-                    sa.sin6_addr.s6_addr[ 8] << 8 | sa.sin6_addr.s6_addr[ 9],
-                    sa.sin6_addr.s6_addr[10] << 8 | sa.sin6_addr.s6_addr[11],
-                    sa.sin6_addr.s6_addr[12] << 8 | sa.sin6_addr.s6_addr[13],
-                    sa.sin6_addr.s6_addr[14] << 8 | sa.sin6_addr.s6_addr[15]);
-#endif
                 
                 snprintf(c, l, "tcp6:[%s]:%u", ip, (unsigned) ntohs(sa.sin6_port));
             }
@@ -409,25 +401,10 @@ char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l
             } else {
                 char ip[INET_ADDRSTRLEN];
 
-#ifdef HAVE_INET_NTOP
                 if (!inet_ntop(AF_INET, &sa.sin_addr, ip, sizeof(ip))) {
                     pa_log(__FILE__": inet_ntop() failed: %s\n", strerror(errno));
                     return NULL;
                 }
-#else /* HAVE_INET_NTOP */
-                snprintf(ip, INET_ADDRSTRLEN, "%d.%d.%d.%d",
-#ifdef WORDS_BIGENDIAN
-                    (int)(sa.sin_addr.s_addr >> 24) & 0xff,
-                    (int)(sa.sin_addr.s_addr >> 16) & 0xff,
-                    (int)(sa.sin_addr.s_addr >>  8) & 0xff,
-                    (int)(sa.sin_addr.s_addr >>  0) & 0xff);
-#else
-                    (int)(sa.sin_addr.s_addr >>  0) & 0xff,
-                    (int)(sa.sin_addr.s_addr >>  8) & 0xff,
-                    (int)(sa.sin_addr.s_addr >> 16) & 0xff,
-                    (int)(sa.sin_addr.s_addr >> 24) & 0xff);
-#endif
-#endif /* HAVE_INET_NTOP */
                 
                 snprintf(c, l, "tcp:[%s]:%u", ip, (unsigned) ntohs(sa.sin_port));
 

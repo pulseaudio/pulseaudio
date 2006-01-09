@@ -540,7 +540,9 @@ libprotocol_simple_la_SOURCES = protocol-simple.c protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version
 libprotocol_simple_la_LIBADD = $(AM_LIBADD) libpolypcore.la libsocket-server.la libiochannel.la
 
-libsocket_server_la_SOURCES = socket-server.c socket-server.h
+libsocket_server_la_SOURCES = \
+		inet_ntop.c inet_ntop.h \
+		socket-server.c socket-server.h
 libsocket_server_la_LDFLAGS = -avoid-version
 libsocket_server_la_LIBADD = $(AM_LIBADD) libpolypcore.la libiochannel.la libsocket-util.la $(LIBWRAP_LIBS) $(WINSOCK_LIBS)
 
