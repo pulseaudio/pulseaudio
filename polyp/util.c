@@ -139,10 +139,10 @@ int pa_make_secure_dir(const char* dir) {
         if (errno != EEXIST)
             return -1;
 
-#ifdef OS_IS_WIN32
-    if (stat(dir, &st) < 0)
-#else
+#ifdef HAVE_LSTAT
     if (lstat(dir, &st) < 0)
+#else
+    if (stat(dir, &st) < 0)
 #endif
         goto fail;
 

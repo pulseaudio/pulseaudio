@@ -186,6 +186,7 @@ AC_CHECK_FUNCS([ctime_r usleep])
 
 # BSD
 AC_CHECK_LIB([socket], [connect])
+AC_CHECK_FUNCS([lstat])
 
 # Non-standard
 
