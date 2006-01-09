@@ -57,10 +57,7 @@
 #include <netdb.h>
 #endif
 
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#define ETIMEDOUT       WSAETIMEDOUT
-#endif
+#include "winsock.h"
 
 #include "socket-util.h"
 #include "util.h"

@@ -42,14 +42,12 @@
 #include <sys/ioctl.h>
 #endif
 
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#endif
-
 #ifdef HAVE_LIBWRAP
 #include <syslog.h>
 #include <tcpd.h>
 #endif
+
+#include "winsock.h"
 
 #include "core.h"
 #include "mainloop.h"

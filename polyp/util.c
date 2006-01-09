@@ -59,13 +59,6 @@
 #include <windows.h>
 #endif
 
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#endif
-#ifdef HAVE_WS2TCPIP_H
-#include <ws2tcpip.h>
-#endif
-
 #include <samplerate.h>
 
 #ifdef HAVE_PWD_H
@@ -74,6 +67,8 @@
 #ifdef HAVE_GRP_H
 #include <grp.h>
 #endif
+
+#include "winsock.h"
 
 #include "util.h"
 #include "xmalloc.h"

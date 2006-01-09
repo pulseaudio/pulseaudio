@@ -335,6 +335,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = \
 		tagstruct.c tagstruct.h \
 		typeid.c typeid.h \
 		util.c util.h \
+		winsock.h \
 		xmalloc.c xmalloc.h
 
 if HAVE_X11
@@ -476,6 +477,7 @@ libpolypcore_la_SOURCES = \
 		tokenizer.c tokenizer.h \
 		typeid.c typeid.h \
 		util.c util.h \
+		winsock.h \
 		xmalloc.c xmalloc.h
 
 libpolypcore_la_CPPFLAGS = $(AM_CPPFLAGS)

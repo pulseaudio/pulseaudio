@@ -28,9 +28,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#endif
+#include "winsock.h"
 
 #include "iochannel.h"
 #include "util.h"

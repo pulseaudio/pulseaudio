@@ -45,12 +45,7 @@
 #include <netdb.h>
 #endif
 
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#define ETIMEDOUT       WSAETIMEDOUT
-#define ECONNREFUSED    WSAECONNREFUSED
-#define EHOSTUNREACH    WSAEHOSTUNREACH
-#endif
+#include "winsock.h"
 
 #include "polyplib-internal.h"
 #include "polyplib-context.h"

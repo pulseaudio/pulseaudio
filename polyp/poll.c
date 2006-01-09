@@ -36,16 +36,7 @@
 #include <sys/select.h>
 #endif
 
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-
-#define EBADF           WSAEBADF
-#define ESHUTDOWN       WSAESHUTDOWN
-#define ECONNRESET      WSAECONNRESET
-#define ECONNABORTED    WSAECONNABORTED
-#define ENETRESET       WSAENETRESET
-
-#endif /* HAVE_WINSOCK2_H */
+#include "winsock.h"
 
 #ifndef HAVE_SYS_POLL_H
 
