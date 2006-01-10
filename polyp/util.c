@@ -321,9 +321,9 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
 /* Return the current username in the specified string buffer. */
 char *pa_get_user_name(char *s, size_t l) {
     char *p;
+    char buf[1024];
 
 #ifdef HAVE_PWD_H
-    char buf[1024];
     struct passwd pw, *r;
 #endif
 
