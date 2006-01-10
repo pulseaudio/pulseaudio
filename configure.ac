@@ -23,7 +23,7 @@ AC_PREREQ(2.57)
 AC_INIT([polypaudio],[0.8],[mzcbylcnhqvb (at) 0pointer (dot) de])
 AC_CONFIG_SRCDIR([polyp/main.c])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([foreign -Wall])
+AM_INIT_AUTOMAKE([foreign 1.9 -Wall])
 
 AC_SUBST(PA_MAJORMINOR, "$PACKAGE_VERSION")
 AC_SUBST(PACKAGE_URL, [http://0pointer.de/lennart/projects/polypaudio/])
@@ -41,6 +41,7 @@ fi
 
 AC_PROG_CC
 AC_PROG_GCC_TRADITIONAL
+AC_GNU_SOURCE
 
 # If using GCC specify some additional parameters
 if test "x$GCC" = "xyes" ; then
@@ -56,6 +57,54 @@ fi
 AC_PATH_PROG([M4], [m4 gm4], [no])
 if test "x$M4" = xno ; then
    AC_MSG_ERROR([m4 missing])
+fi
+
+# GCC flags
+
+test_gcc_flag() {
+    AC_LANG_CONFTEST([int main() {}])
+    $CC -c conftest.c $CFLAGS $@ > /dev/null 2> /dev/null
+    ret=$?
+    rm -f conftest.o
+    return $ret
+}
+
+# If using GCC specify some additional parameters
+if test "x$GCC" = "xyes" ; then
+
+    DESIRED_FLAGS="-Wall -W -Wextra -pedantic -pipe -Wformat -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Winline"
+
+    if test "x$HAVE_NETLINK" = "xyes" ; then
+        # Test whether rtnetlink.h can be included when compiled with -std=c99
+        # some distributions (e.g. archlinux) have broken headers that dont
+        # define __u64 with -std=c99
+        AC_MSG_CHECKING([checking whether rtnetlink.h can be included with -std=c99])
+        OLDCFLAGS="$CFLAGS"
+        CFLAGS="-std=c99"
+        AC_TRY_COMPILE([#include <linux/rtnetlink.h>], [],
+            use_stdc99=yes, use_stdc99=no)
+
+        if test x"$use_stdc99" = xyes; then
+            DESIRED_FLAGS="-std=c99 $DESIRED_FLAGS"
+            AC_MSG_RESULT([yes])
+        else
+            AC_MSG_RESULT([no])
+        fi
+
+        CFLAGS="$OLDCFLAGS"
+    else
+        DESIRED_FLAGS="-std=c99 $DESIRED_FLAGS"
+    fi
+
+    for flag in $DESIRED_FLAGS ; do
+        AC_MSG_CHECKING([whether $CC accepts $flag])
+        if test_gcc_flag $flag ; then 
+           CFLAGS="$CFLAGS $flag"
+           AC_MSG_RESULT([yes])
+        else
+           AC_MSG_RESULT([no])
+        fi
+    done 
 fi
 
 # LYNX documentation generation
@@ -242,6 +291,18 @@ if test "x${with_caps}" != "xno"; then
     AC_CHECK_HEADERS([sys/capability.h])
 fi
 AC_SUBST(CAP_LIBS)
+
+#### pkg-config ####
+
+# Check for pkg-config manually first, as if its not installed the
+# PKG_PROG_PKG_CONFIG macro won't be defined.
+AC_CHECK_PROG(have_pkg_config, pkg-config, yes, no)
+
+if test x"$have_pkg_config" = "xno"; then
+    AC_MSG_ERROR(pkg-config is required to install this program)
+fi
+
+PKG_PROG_PKG_CONFIG
 
 #### Sample rate conversion ####
 
