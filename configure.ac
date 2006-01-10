@@ -192,6 +192,7 @@ AC_CHECK_FUNCS([lstat])
 
 AC_CHECK_FUNCS(setresuid)
 AC_CHECK_FUNCS(setreuid)
+AC_CHECK_LIB([iberty], [getopt_long])
 
 #### POSIX threads ####
 
