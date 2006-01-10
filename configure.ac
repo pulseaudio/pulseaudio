@@ -162,16 +162,26 @@ AM_CONDITIONAL(HAVE_SIGXCPU, test "x$HAVE_SIGXCPU" = "x1")
 AC_CHECK_DEFINE([INADDR_NONE], [netinet/in.h], [],
     [AC_DEFINE([INADDR_NONE],  [0xffffffff], [Define INADDR_NONE if not found in <netinet/in.h>])])
 
-#### Check for functions ####
+#### Check for libs ####
 
 # ISO
 AC_CHECK_LIB([m], [pow])
 
 # POSIX
+AC_CHECK_LIB([rt], [sched_setscheduler])
+
+# BSD
+AC_CHECK_LIB([socket], [connect])
+
+# Non-standard
+AC_CHECK_LIB([iberty], [getopt_long])
+
+#### Check for functions ####
+
+# POSIX
 AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_LIB([rt], [sched_setscheduler])
 AC_CHECK_FUNCS([getaddrinfo getgrgid_r getpwuid_r gettimeofday getuid \
     inet_ntop nanosleep setpgid setsid sigaction sleep])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
@@ -185,14 +195,12 @@ AC_CHECK_FUNCS([readlink])
 AC_CHECK_FUNCS([ctime_r usleep])
 
 # BSD
-AC_CHECK_LIB([socket], [connect])
 AC_CHECK_FUNCS([lstat])
 
 # Non-standard
 
 AC_CHECK_FUNCS(setresuid)
 AC_CHECK_FUNCS(setreuid)
-AC_CHECK_LIB([iberty], [getopt_long])
 
 #### POSIX threads ####
 
