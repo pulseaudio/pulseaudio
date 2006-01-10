@@ -174,7 +174,10 @@ AC_CHECK_LIB([rt], [sched_setscheduler])
 AC_CHECK_LIB([socket], [connect])
 
 # Non-standard
-AC_CHECK_LIB([iberty], [getopt_long])
+
+# This magic is needed so we do not needlessly add static libs to the win32
+# build, disabling its ability to make dlls.
+AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 
 #### Check for functions ####
 
