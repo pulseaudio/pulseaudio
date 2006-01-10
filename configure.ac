@@ -121,7 +121,7 @@ AC_HEADER_STDC
 # POSIX
 AC_CHECK_HEADERS([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
     netinet/in_systm.h netinet/ip.h netinet/tcp.h pwd.h sched.h \
-    sys/capability.h sys/resource.h sys/select.h sys/socket.h sys/wait.h \
+    sys/resource.h sys/select.h sys/socket.h sys/wait.h \
     syslog.h])
 AC_CHECK_HEADERS([regex.h], [HAVE_REGEX=1], [HAVE_REGEX=0])
 AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
@@ -239,6 +239,7 @@ AC_ARG_WITH(
 
 if test "x${with_caps}" != "xno"; then
     AC_CHECK_LIB(cap, cap_init, [CAP_LIBS='-lcap'], [CAP_LIBS=''])
+    AC_CHECK_HEADERS([sys/capability.h])
 fi
 AC_SUBST(CAP_LIBS)
 
