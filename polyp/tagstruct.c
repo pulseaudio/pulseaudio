@@ -149,14 +149,15 @@ void pa_tagstruct_put_sample_spec(struct pa_tagstruct *t, const struct pa_sample
 }
 
 void pa_tagstruct_put_arbitrary(struct pa_tagstruct *t, const void *p, size_t length) {
+    uint32_t tmp;
     assert(t && p);
 
     extend(t, 5+length);
     t->data[t->length] = TAG_ARBITRARY;
+    tmp = htonl(length);
+    memcpy(t->data+t->length+1, &tmp, 4);
     if (length)
         memcpy(t->data+t->length+5, p, length);
-    length = htonl(length);
-    memcpy(t->data+t->length+1, &length, 4);
     t->length += 5+length;
 }
 
