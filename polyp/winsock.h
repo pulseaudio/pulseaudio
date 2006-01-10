@@ -4,7 +4,6 @@
 #ifdef HAVE_WINSOCK2_H
 #include <winsock2.h>
 
-#define EBADF           WSAEBADF
 #define ESHUTDOWN       WSAESHUTDOWN
 #define ECONNRESET      WSAECONNRESET
 #define ECONNABORTED    WSAECONNABORTED
