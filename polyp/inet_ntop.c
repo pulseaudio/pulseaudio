@@ -24,6 +24,8 @@
 #endif
 
 #include <stdio.h>
+#include <errno.h>
+#include <assert.h>
 
 #ifndef HAVE_INET_NTOP
 
