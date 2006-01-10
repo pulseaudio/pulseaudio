@@ -65,6 +65,8 @@ struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const st
     s->mcalign = pa_mcalign_new(pa_frame_size(ss), c->memblock_stat);
 
     s->counter = 0;
+    s->previous_time = 0;
+    s->previous_ipol_time = 0;
 
     s->corked = 0;
     s->interpolate = 0;
@@ -697,6 +699,11 @@ pa_usec_t pa_stream_get_time(struct pa_stream *s, const struct pa_latency_info *
         }
     }
 
+    if (usec < s->previous_time)
+        usec = s->previous_time;
+
+    s->previous_time = usec;
+
     return usec;
 }
 
@@ -756,6 +763,11 @@ pa_usec_t pa_stream_get_interpolated_time(struct pa_stream *s) {
             usec = s->ipol_usec + pa_timeval_age(&s->ipol_timestamp);
     }
     
+    if (usec < s->previous_ipol_time)
+        usec = s->previous_ipol_time;
+
+    s->previous_ipol_time = usec;
+
     return usec;
 }
 
