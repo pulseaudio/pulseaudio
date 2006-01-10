@@ -27,7 +27,12 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
+
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+
+#include "winsock.h"
 
 #include "pstream.h"
 #include "queue.h"

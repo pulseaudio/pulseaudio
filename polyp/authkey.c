@@ -63,7 +63,7 @@ static int generate(int fd, void *ret_data, size_t length) {
 static int load(const char *fn, void *data, size_t length) {
     int fd = -1;
     int writable = 1;
-    int unlock = 0, ret;
+    int unlock = 0, ret = -1;
     ssize_t r;
     assert(fn && data && length);
 
@@ -128,12 +128,20 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
 static const char *normalize_path(const char *fn, char *s, size_t l) {
     assert(fn && s && l > 0);
 
+#ifndef OS_IS_WIN32
     if (fn[0] != '/') {
+#else
+    if (strlen(fn) < 3 || !isalpha(fn[0]) || fn[1] != ':' || fn[2] != '\\') {
+#endif
         char homedir[PATH_MAX];
         if (!pa_get_home_dir(homedir, sizeof(homedir)))
             return NULL;
         
+#ifndef OS_IS_WIN32
         snprintf(s, l, "%s/%s", homedir, fn);
+#else
+        snprintf(s, l, "%s\\%s", homedir, fn);
+#endif
         return s;
     }
 

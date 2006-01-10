@@ -26,12 +26,19 @@
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
-#include <sys/poll.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <fcntl.h>
 #include <errno.h>
+
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#else
+#include "poll.h"
+#endif
+
+#include "winsock.h"
 
 #include "mainloop.h"
 #include "util.h"
@@ -102,6 +109,26 @@ static struct pa_io_event* mainloop_io_new(struct pa_mainloop_api*a, int fd, enu
     e->userdata = userdata;
     e->destroy_callback = NULL;
     e->pollfd = NULL;
+
+#ifdef OS_IS_WIN32
+    {
+        fd_set xset;
+        struct timeval tv;
+
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+
+        FD_ZERO (&xset);
+        FD_SET (fd, &xset);
+
+        if ((select((SELECT_TYPE_ARG1) fd, NULL, NULL, SELECT_TYPE_ARG234 &xset,
+                    SELECT_TYPE_ARG5 &tv) == -1) &&
+             (WSAGetLastError() == WSAENOTSOCK)) {
+            pa_log_warn(__FILE__": WARNING: cannot monitor non-socket file descriptors.\n");
+            e->dead = 1;
+        }
+    }
+#endif
 
     pa_idxset_put(m->io_events, e, NULL);
     m->rebuild_pollfds = 1;
@@ -457,7 +484,7 @@ static int calc_next_timeout(struct pa_mainloop *m) {
 
         /* Let's save a system call */
         if (!got_time) {
-            gettimeofday(&now, NULL);
+            pa_gettimeofday(&now);
             got_time = 1;
         }
 
@@ -498,7 +525,7 @@ static int dispatch_timeout(struct pa_mainloop *m) {
 
         /* Let's save a system call */
         if (!got_time) {
-            gettimeofday(&now, NULL);
+            pa_gettimeofday(&now);
             got_time = 1;
         }
         

@@ -19,6 +19,10 @@
   USA.
 ***/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
@@ -33,11 +37,21 @@
 #include "authkey.h"
 
 #ifndef DEFAULT_CONFIG_DIR
-#define DEFAULT_CONFIG_DIR "/etc/polypaudio"
+# ifndef OS_IS_WIN32
+#  define DEFAULT_CONFIG_DIR "/etc/polypaudio"
+# else
+#  define DEFAULT_CONFIG_DIR "%POLYP_ROOT%"
+# endif
 #endif
 
-#define DEFAULT_CLIENT_CONFIG_FILE DEFAULT_CONFIG_DIR"/client.conf"
-#define DEFAULT_CLIENT_CONFIG_FILE_USER ".polypaudio/client.conf"
+#ifndef OS_IS_WIN32
+# define PATH_SEP "/"
+#else
+# define PATH_SEP "\\"
+#endif
+
+#define DEFAULT_CLIENT_CONFIG_FILE DEFAULT_CONFIG_DIR PATH_SEP "client.conf"
+#define DEFAULT_CLIENT_CONFIG_FILE_USER ".polypaudio" PATH_SEP "client.conf"
 
 #define ENV_CLIENT_CONFIG_FILE "POLYP_CLIENTCONFIG"
 #define ENV_DEFAULT_SINK "POLYP_SINK"

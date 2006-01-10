@@ -739,7 +739,9 @@ int main(int argc, char *argv[]) {
     r = pa_signal_init(mainloop_api);
     assert(r == 0);
     pa_signal_new(SIGINT, exit_signal_callback, NULL);
+#ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN);
+#endif
     
     if (!(context = pa_context_new(mainloop_api, client_name))) {
         fprintf(stderr, "pa_context_new() failed.\n");

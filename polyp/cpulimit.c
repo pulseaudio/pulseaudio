@@ -23,14 +23,19 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_SIGXCPU
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 #include <unistd.h>
 #include <signal.h>
+
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
 
 #include "cpulimit.h"
 #include "util.h"
@@ -219,3 +224,16 @@ void pa_cpu_limit_done(void) {
         installed = 0;
     }
 }
+
+#else /* HAVE_SIGXCPU */
+
+struct pa_mainloop_api;
+
+int pa_cpu_limit_init(struct pa_mainloop_api *m) {
+    return 0;
+}
+
+void pa_cpu_limit_done(void) {
+}
+
+#endif

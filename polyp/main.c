@@ -35,12 +35,19 @@
 #include <memblock.h>
 #include <limits.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
 
 #ifdef HAVE_LIBWRAP
 #include <syslog.h>
 #include <tcpd.h>
 #endif
+
+#include "winsock.h"
 
 #include "core.h"
 #include "mainloop.h"
@@ -66,24 +73,47 @@ int allow_severity = LOG_INFO;
 int deny_severity = LOG_WARNING;
 #endif
 
+#ifdef OS_IS_WIN32
+
+static void message_cb(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata) {
+    MSG msg;
+
+    while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+        if (msg.message == WM_QUIT)
+            raise(SIGTERM);
+        else {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
+}
+
+#endif
+
 static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
     pa_log_info(__FILE__": Got signal %s.\n", pa_strsignal(sig));
 
     switch (sig) {
+#ifdef SIGUSR1
         case SIGUSR1:
             pa_module_load(userdata, "module-cli", NULL);
             break;
+#endif
             
+#ifdef SIGUSR2
         case SIGUSR2:
             pa_module_load(userdata, "module-cli-protocol-unix", NULL);
             break;
+#endif
 
+#ifdef SIGHUP
         case SIGHUP: {
             char *c = pa_full_status_string(userdata);
             pa_log_notice(c);
             pa_xfree(c);
             return;
         }
+#endif
 
         case SIGINT:
         case SIGTERM:
@@ -111,23 +141,41 @@ int main(int argc, char *argv[]) {
     char *s;
     int r, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
-    gid_t gid = (gid_t) -1;
     int suid_root;
     int valid_pid_file = 0;
 
+#ifdef HAVE_GETUID
+    gid_t gid = (gid_t) -1;
+#endif
+
+#ifdef OS_IS_WIN32
+    struct pa_defer_event *defer;
+#endif
+
     pa_limit_caps();
 
+#ifdef HAVE_GETUID
     suid_root = getuid() != 0 && geteuid() == 0;
     
     if (suid_root && (pa_uid_in_group("realtime", &gid) <= 0 || gid >= 1000)) {
         pa_log_warn(__FILE__": WARNING: called SUID root, but not in group 'realtime'.\n");
         pa_drop_root();
     }
+#else
+    suid_root = 0;
+#endif
     
     LTDL_SET_PRELOADED_SYMBOLS();
     
     r = lt_dlinit();
     assert(r == 0);
+
+#ifdef OS_IS_WIN32
+    {
+        WSADATA data;
+        WSAStartup(MAKEWORD(2, 0), &data);
+    }
+#endif
 
     pa_log_set_ident("polypaudio");
     
@@ -217,6 +265,7 @@ int main(int argc, char *argv[]) {
             goto finish;
         }
 
+#ifdef HAVE_FORK
         if (pipe(daemon_pipe) < 0) {
             pa_log(__FILE__": failed to create pipe.\n");
             goto finish;
@@ -248,13 +297,19 @@ int main(int argc, char *argv[]) {
 
         close(daemon_pipe[0]);
         daemon_pipe[0] = -1;
+#endif
 
         if (conf->auto_log_target)
             pa_log_set_target(PA_LOG_SYSLOG, NULL);
 
+#ifdef HAVE_SETSID
         setsid();
+#endif
+#ifdef HAVE_SETPGID
         setpgid(0,0);
-        
+#endif
+
+#ifndef OS_IS_WIN32
         close(0);
         close(1);
         close(2);
@@ -262,23 +317,37 @@ int main(int argc, char *argv[]) {
         open("/dev/null", O_RDONLY);
         open("/dev/null", O_WRONLY);
         open("/dev/null", O_WRONLY);
-        
+#else
+        FreeConsole();
+#endif
+
+#ifdef SIGTTOU
         signal(SIGTTOU, SIG_IGN);
+#endif
+#ifdef SIGTTIN
         signal(SIGTTIN, SIG_IGN);
+#endif
+#ifdef SIGTSTP
         signal(SIGTSTP, SIG_IGN);
+#endif
         
+#ifdef TIOCNOTTY
         if ((tty_fd = open("/dev/tty", O_RDWR)) >= 0) {
             ioctl(tty_fd, TIOCNOTTY, (char*) 0);
             close(tty_fd);
         }
+#endif
     }
 
     chdir("/");
     
     if (conf->use_pid_file) {
         if (pa_pid_file_create() < 0) {
+            pa_log(__FILE__": pa_pid_file_create() failed.\n");
+#ifdef HAVE_FORK
             if (conf->daemonize)
                 pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+#endif
             goto finish;
         }
 
@@ -288,20 +357,34 @@ int main(int argc, char *argv[]) {
     mainloop = pa_mainloop_new();
     assert(mainloop);
 
+    c = pa_core_new(pa_mainloop_get_api(mainloop));
+    assert(c);
+
     r = pa_signal_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);
     pa_signal_new(SIGINT, signal_callback, c);
     pa_signal_new(SIGTERM, signal_callback, c);
+#ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN);
+#endif
 
-    c = pa_core_new(pa_mainloop_get_api(mainloop));
-    assert(c);
+#ifdef OS_IS_WIN32
+    defer = pa_mainloop_get_api(mainloop)->defer_new(pa_mainloop_get_api(mainloop), message_cb, NULL);
+    assert(defer);
+#endif
+
     if (conf->daemonize)
         c->running_as_daemon = 1;
-    
+
+#ifdef SIGUSR1
     pa_signal_new(SIGUSR1, signal_callback, c);
+#endif
+#ifdef SIGUSR2
     pa_signal_new(SIGUSR2, signal_callback, c);
+#endif
+#ifdef SIGHUP
     pa_signal_new(SIGHUP, signal_callback, c);
+#endif
 
     r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);
@@ -318,17 +401,23 @@ int main(int argc, char *argv[]) {
     
     if (r < 0 && conf->fail) {
         pa_log(__FILE__": failed to initialize daemon.\n");
+#ifdef HAVE_FORK
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+#endif
     } else if (!c->modules || pa_idxset_ncontents(c->modules) == 0) {
         pa_log(__FILE__": daemon startup without any loaded modules, refusing to work.\n");
+#ifdef HAVE_FORK
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+#endif
     } else {
 
         retval = 0;
+#ifdef HAVE_FORK
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+#endif
 
         c->disallow_module_loading = conf->disallow_module_loading;
         c->exit_idle_time = conf->exit_idle_time;
@@ -346,7 +435,11 @@ int main(int argc, char *argv[]) {
             pa_log_info(__FILE__": Daemon shutdown initiated.\n");
         }
     }
-        
+
+#ifdef OS_IS_WIN32
+    pa_mainloop_get_api(mainloop)->defer_free(defer);
+#endif
+
     pa_core_free(c);
 
     pa_cpu_limit_done();
@@ -364,6 +457,10 @@ finish:
         pa_pid_file_remove();
     
     close_pipe(daemon_pipe);
+
+#ifdef OS_IS_WIN32
+    WSACleanup();
+#endif
 
     lt_dlexit();
     

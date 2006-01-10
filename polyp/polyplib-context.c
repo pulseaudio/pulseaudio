@@ -28,13 +28,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <sys/wait.h>
 #include <signal.h>
+#include <limits.h>
+
+#ifdef HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+
+#include "winsock.h"
 
 #include "polyplib-internal.h"
 #include "polyplib-context.h"
@@ -110,8 +121,10 @@ struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *
     c->autospawn_lock_fd = -1;
     memset(&c->spawn_api, 0, sizeof(c->spawn_api));
     c->do_autospawn = 0;
-    
+
+#ifdef SIGPIPE    
     pa_check_signal_is_blocked(SIGPIPE);
+#endif
 
     c->conf = pa_client_conf_new();
     pa_client_conf_load(c->conf, NULL);
@@ -372,6 +385,8 @@ finish:
 
 static void on_connection(struct pa_socket_client *client, struct pa_iochannel*io, void *userdata);
 
+#ifndef OS_IS_WIN32
+
 static int context_connect_spawn(struct pa_context *c) {
     pid_t pid;
     int status, r;
@@ -485,6 +500,8 @@ fail:
     return -1;
 }
 
+#endif /* OS_IS_WIN32 */
+
 static int try_next_connection(struct pa_context *c) {
     char *u = NULL;
     int r = -1;
@@ -499,10 +516,12 @@ static int try_next_connection(struct pa_context *c) {
         
         if (!u) {
 
+#ifndef OS_IS_WIN32
             if (c->do_autospawn) {
                 r = context_connect_spawn(c);
                 goto finish;
             }
+#endif
             
             pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
             goto finish;

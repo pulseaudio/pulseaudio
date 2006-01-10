@@ -641,7 +641,11 @@ static int pa_cli_command_dump(struct pa_core *c, struct pa_tokenizer *t, struct
 
     time(&now);
 
+#ifdef HAVE_CTIME_R
     pa_strbuf_printf(buf, "### Configuration dump generated at %s\n", ctime_r(&now, txt));
+#else
+    pa_strbuf_printf(buf, "### Configuration dump generated at %s\n", ctime(&now));
+#endif
 
     
     for (m = pa_idxset_first(c->modules, &index); m; m = pa_idxset_next(c->modules, &index)) {

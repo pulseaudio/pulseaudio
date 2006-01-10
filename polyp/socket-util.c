@@ -31,16 +31,33 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/un.h>
-#include <netinet/in.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <netinet/in_systm.h>
-#include <netinet/tcp.h>
-#include <netinet/ip.h>
-#include <sys/socket.h>
 #include <sys/stat.h>
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_NETINET_IN_SYSTM_H
+#include <netinet/in_systm.h>
+#endif
+#ifdef HAVE_NETINET_IP_H
+#include <netinet/ip.h>
+#endif
+#ifdef HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
+#endif
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
+
+#include "winsock.h"
 
 #include "socket-util.h"
 #include "util.h"
@@ -57,6 +74,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
         return;
     }
 
+#ifndef OS_IS_WIN32
     if (S_ISSOCK(st.st_mode)) {
         union {
             struct sockaddr sa;
@@ -77,7 +95,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
                          ip & 0xFF,
                          ntohs(sa.in.sin_port));
                 return;
-            } else if (sa.sa.sa_family == AF_LOCAL) {
+            } else if (sa.sa.sa_family == AF_UNIX) {
                 snprintf(c, l, "UNIX socket client");
                 return;
             }
@@ -89,17 +107,18 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
         snprintf(c, l, "STDIN/STDOUT client");
         return;
     }
+#endif /* OS_IS_WIN32 */
 
     snprintf(c, l, "Unknown client");
 }
 
 int pa_socket_low_delay(int fd) {
+#ifdef SO_PRIORITY
     int priority;
     assert(fd >= 0);
 
-#ifdef SO_PRIORITY
     priority = 7;
-    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, (void*)&priority, sizeof(priority)) < 0)
         return -1;
 #endif
 
@@ -114,12 +133,13 @@ int pa_socket_tcp_low_delay(int fd) {
     ret = pa_socket_low_delay(fd);
     
     on = 1;
+    tos = 0;
 
 #if defined(SOL_TCP) || defined(IPPROTO_TCP)
 #if defined(SOL_TCP)
-    if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, SOL_TCP, TCP_NODELAY, (void*)&on, sizeof(on)) < 0)
 #else
-    if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (void*)&on, sizeof(on)) < 0)
 #endif
         ret = -1;
 #endif
@@ -128,9 +148,9 @@ int pa_socket_tcp_low_delay(int fd) {
 	defined(IPPROTO_IP))
     tos = IPTOS_LOWDELAY;
 #ifdef SOL_IP
-    if (setsockopt(fd, SOL_IP, IP_TOS, &tos, sizeof(tos)) < 0)
+    if (setsockopt(fd, SOL_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
 #else
-    if (setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos)) < 0)
+    if (setsockopt(fd, IPPROTO_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
 #endif
         ret = -1;
 #endif
@@ -142,7 +162,7 @@ int pa_socket_tcp_low_delay(int fd) {
 int pa_socket_set_rcvbuf(int fd, size_t l) {
     assert(fd >= 0);
 
-/*     if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &l, sizeof(l)) < 0) { */
+/*     if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&l, sizeof(l)) < 0) { */
 /*         pa_log(__FILE__": SO_RCVBUF: %s\n", strerror(errno)); */
 /*         return -1; */
 /*     } */
@@ -153,7 +173,7 @@ int pa_socket_set_rcvbuf(int fd, size_t l) {
 int pa_socket_set_sndbuf(int fd, size_t l) {
     assert(fd >= 0);
 
-/*     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &l, sizeof(l)) < 0) { */
+/*     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&l, sizeof(l)) < 0) { */
 /*         pa_log(__FILE__": SO_SNDBUF: %s\n", strerror(errno)); */
 /*         return -1; */
 /*     } */
@@ -161,16 +181,18 @@ int pa_socket_set_sndbuf(int fd, size_t l) {
     return 0;
 }
 
+#ifdef HAVE_SYS_UN_H
+
 int pa_unix_socket_is_stale(const char *fn) {
     struct sockaddr_un sa;
     int fd = -1, ret = -1;
 
-    if ((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto finish;
     }
 
-    sa.sun_family = AF_LOCAL;
+    sa.sun_family = AF_UNIX;
     strncpy(sa.sun_path, fn, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
@@ -202,3 +224,15 @@ int pa_unix_socket_remove_stale(const char *fn) {
 
     return 0;
 }
+
+#else /* HAVE_SYS_UN_H */
+
+int pa_unix_socket_is_stale(const char *fn) {
+    return -1;
+}
+
+int pa_unix_socket_remove_stale(const char *fn) {
+    return -1;
+}
+
+#endif /* HAVE_SYS_UN_H */

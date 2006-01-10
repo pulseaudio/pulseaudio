@@ -27,8 +27,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <netinet/in.h>
 #include <assert.h>
+
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
+#include "winsock.h"
 
 #include "tagstruct.h"
 #include "xmalloc.h"
@@ -118,7 +123,8 @@ void pa_tagstruct_putu32(struct pa_tagstruct*t, uint32_t i) {
     assert(t);
     extend(t, 5);
     t->data[t->length] = TAG_U32;
-    *((uint32_t*) (t->data+t->length+1)) = htonl(i);
+    i = htonl(i);
+    memcpy(t->data+t->length+1, &i, 4);
     t->length += 5;
 }
 
@@ -131,21 +137,25 @@ void pa_tagstruct_putu8(struct pa_tagstruct*t, uint8_t c) {
 }
 
 void pa_tagstruct_put_sample_spec(struct pa_tagstruct *t, const struct pa_sample_spec *ss) {
+    uint32_t rate;
     assert(t && ss);
     extend(t, 7);
     t->data[t->length] = TAG_SAMPLE_SPEC;
     t->data[t->length+1] = (uint8_t) ss->format;
     t->data[t->length+2] = ss->channels;
-    *(uint32_t*) (t->data+t->length+3) = htonl(ss->rate);
+    rate = htonl(ss->rate);
+    memcpy(t->data+t->length+3, &rate, 4);
     t->length += 7;
 }
 
 void pa_tagstruct_put_arbitrary(struct pa_tagstruct *t, const void *p, size_t length) {
+    uint32_t tmp;
     assert(t && p);
 
     extend(t, 5+length);
     t->data[t->length] = TAG_ARBITRARY;
-    *((uint32_t*) (t->data+t->length+1)) = htonl(length);
+    tmp = htonl(length);
+    memcpy(t->data+t->length+1, &tmp, 4);
     if (length)
         memcpy(t->data+t->length+5, p, length);
     t->length += 5+length;
@@ -159,29 +169,38 @@ void pa_tagstruct_put_boolean(struct pa_tagstruct*t, int b) {
 }
 
 void pa_tagstruct_put_timeval(struct pa_tagstruct*t, const struct timeval *tv) {
+    uint32_t tmp;
     assert(t);
     extend(t, 9);
     t->data[t->length] = TAG_TIMEVAL;
-    *((uint32_t*) (t->data+t->length+1)) = htonl(tv->tv_sec);
-    *((uint32_t*) (t->data+t->length+5)) = htonl(tv->tv_usec);
+    tmp = htonl(tv->tv_sec);
+    memcpy(t->data+t->length+1, &tmp, 4);
+    tmp = htonl(tv->tv_usec);
+    memcpy(t->data+t->length+5, &tmp, 4);
     t->length += 9;
 }
 
 void pa_tagstruct_put_usec(struct pa_tagstruct*t, pa_usec_t u) {
+    uint32_t tmp;
     assert(t);
     extend(t, 9);
     t->data[t->length] = TAG_USEC;
-    *((uint32_t*) (t->data+t->length+1)) = htonl((uint32_t) (u >> 32));
-    *((uint32_t*) (t->data+t->length+5)) = htonl((uint32_t) u);
+    tmp = htonl((uint32_t) (u >> 32));
+    memcpy(t->data+t->length+1, &tmp, 4);
+    tmp = htonl((uint32_t) u);
+    memcpy(t->data+t->length+5, &tmp, 4);
     t->length += 9;
 }
 
 void pa_tagstruct_putu64(struct pa_tagstruct*t, uint64_t u) {
+    uint32_t tmp;
     assert(t);
     extend(t, 9);
     t->data[t->length] = TAG_U64;
-    *((uint32_t*) (t->data+t->length+1)) = htonl((uint32_t) (u >> 32));
-    *((uint32_t*) (t->data+t->length+5)) = htonl((uint32_t) u);
+    tmp = htonl((uint32_t) (u >> 32));
+    memcpy(t->data+t->length+1, &tmp, 4);
+    tmp = htonl((uint32_t) u);
+    memcpy(t->data+t->length+5, &tmp, 4);
     t->length += 9;
 }
 
@@ -230,8 +249,9 @@ int pa_tagstruct_getu32(struct pa_tagstruct*t, uint32_t *i) {
 
     if (t->data[t->rindex] != TAG_U32)
         return -1;
-    
-    *i = ntohl(*((uint32_t*) (t->data+t->rindex+1)));
+
+    memcpy(i, t->data+t->rindex+1, 4);
+    *i = ntohl(*i);
     t->rindex += 5;
     return 0;
 }
@@ -261,13 +281,15 @@ int pa_tagstruct_get_sample_spec(struct pa_tagstruct *t, struct pa_sample_spec *
     
     ss->format = t->data[t->rindex+1];
     ss->channels = t->data[t->rindex+2];
-    ss->rate = ntohl(*(uint32_t*) (t->data+t->rindex+3));
+    memcpy(&ss->rate, t->data+t->rindex+3, 4);
+    ss->rate = ntohl(ss->rate);
     
     t->rindex += 7;
     return 0;
 }
 
 int pa_tagstruct_get_arbitrary(struct pa_tagstruct *t, const void **p, size_t length) {
+    uint32_t len;
     assert(t && p);
     
     if (t->rindex+5+length > t->length)
@@ -276,7 +298,8 @@ int pa_tagstruct_get_arbitrary(struct pa_tagstruct *t, const void **p, size_t le
     if (t->data[t->rindex] != TAG_ARBITRARY)
         return -1;
 
-    if (ntohl(*((uint32_t*) (t->data+t->rindex+1))) != length)
+    memcpy(&len, t->data+t->rindex+1, 4);
+    if (ntohl(len) != length)
         return -1;
 
     *p = t->data+t->rindex+5;
@@ -319,15 +342,18 @@ int pa_tagstruct_get_timeval(struct pa_tagstruct*t, struct timeval *tv) {
 
     if (t->data[t->rindex] != TAG_TIMEVAL)
         return -1;
-    
-    tv->tv_sec = ntohl(*((uint32_t*) (t->data+t->rindex+1)));
-    tv->tv_usec = ntohl(*((uint32_t*) (t->data+t->rindex+5)));
+
+    memcpy(&tv->tv_sec, t->data+t->rindex+1, 4);
+    tv->tv_sec = ntohl(tv->tv_sec);
+    memcpy(&tv->tv_usec, t->data+t->rindex+5, 4);
+    tv->tv_usec = ntohl(tv->tv_usec);
     t->rindex += 9;
     return 0;
     
 }
 
 int pa_tagstruct_get_usec(struct pa_tagstruct*t, pa_usec_t *u) {
+    uint32_t tmp;
     assert(t && u);
 
     if (t->rindex+9 > t->length)
@@ -336,13 +362,16 @@ int pa_tagstruct_get_usec(struct pa_tagstruct*t, pa_usec_t *u) {
     if (t->data[t->rindex] != TAG_USEC)
         return -1;
 
-    *u = (pa_usec_t) ntohl(*((uint32_t*) (t->data+t->rindex+1))) << 32;
-    *u |= (pa_usec_t) ntohl(*((uint32_t*) (t->data+t->rindex+5)));
+    memcpy(&tmp, t->data+t->rindex+1, 4);
+    *u = (pa_usec_t) ntohl(tmp) << 32;
+    memcpy(&tmp, t->data+t->rindex+5, 4);
+    *u |= (pa_usec_t) ntohl(tmp);
     t->rindex +=9;
     return 0;
 }
 
 int pa_tagstruct_getu64(struct pa_tagstruct*t, uint64_t *u) {
+    uint32_t tmp;
     assert(t && u);
 
     if (t->rindex+9 > t->length)
@@ -351,8 +380,10 @@ int pa_tagstruct_getu64(struct pa_tagstruct*t, uint64_t *u) {
     if (t->data[t->rindex] != TAG_U64)
         return -1;
 
-    *u = (uint64_t) ntohl(*((uint32_t*) (t->data+t->rindex+1))) << 32;
-    *u |= (uint64_t) ntohl(*((uint32_t*) (t->data+t->rindex+5)));
+    memcpy(&tmp, t->data+t->rindex+1, 4);
+    *u = (pa_usec_t) ntohl(tmp) << 32;
+    memcpy(&tmp, t->data+t->rindex+5, 4);
+    *u |= (pa_usec_t) ntohl(tmp);
     t->rindex +=9;
     return 0;
 }

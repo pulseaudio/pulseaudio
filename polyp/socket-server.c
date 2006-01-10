@@ -28,16 +28,35 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <stdio.h>
 #include <unistd.h>
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
-#include <netinet/in.h>
+#ifndef SUN_LEN
+#define SUN_LEN(ptr) \
+    ((size_t)(((struct sockaddr_un *) 0)->sun_path) + strlen((ptr)->sun_path))
+#endif
+#endif
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
 
 #ifdef HAVE_LIBWRAP
 #include <tcpd.h>
 #endif
+
+#ifndef HAVE_INET_NTOP
+#include "inet_ntop.h"
+#endif
+
+#include "winsock.h"
 
 #include "socket-server.h"
 #include "socket-util.h"
@@ -137,6 +156,8 @@ struct pa_socket_server* pa_socket_server_ref(struct pa_socket_server *s) {
     return s;
 }
 
+#ifdef HAVE_SYS_UN_H
+
 struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename) {
     int fd = -1;
     struct sockaddr_un sa;
@@ -144,14 +165,14 @@ struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, co
     
     assert(m && filename);
 
-    if ((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log(__FILE__": socket(): %s\n", strerror(errno));
         goto fail;
     }
 
     pa_fd_set_cloexec(fd, 1);
 
-    sa.sun_family = AF_LOCAL;
+    sa.sun_family = AF_UNIX;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
@@ -182,6 +203,14 @@ fail:
     return NULL;
 }
 
+#else /* HAVE_SYS_UN_H */
+
+struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename) {
+    return NULL;
+}
+
+#endif /* HAVE_SYS_UN_H */
+
 struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port, const char *tcpwrap_service) {
     struct pa_socket_server *ss;
     int fd = -1;
@@ -197,7 +226,7 @@ struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, ui
 
     pa_fd_set_cloexec(fd, 1);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on)) < 0)
         pa_log(__FILE__": setsockopt(): %s\n", strerror(errno));
 
     pa_socket_tcp_low_delay(fd);
@@ -246,7 +275,7 @@ struct pa_socket_server* pa_socket_server_new_ipv6(struct pa_mainloop_api *m, ui
 
     pa_fd_set_cloexec(fd, 1);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on)) < 0)
         pa_log(__FILE__": setsockopt(): %s\n", strerror(errno));
 
     pa_socket_tcp_low_delay(fd);
@@ -314,9 +343,9 @@ char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l
     switch (s->type) {
         case SOCKET_SERVER_IPV6: {
             struct sockaddr_in6 sa;
-            socklen_t l = sizeof(sa);
+            socklen_t sa_len = sizeof(sa);
 
-            if (getsockname(s->fd, (struct sockaddr*) &sa, &l) < 0) {
+            if (getsockname(s->fd, (struct sockaddr*) &sa, &sa_len) < 0) {
                 pa_log(__FILE__": getsockname() failed: %s\n", strerror(errno));
                 return NULL;
             }
@@ -350,9 +379,9 @@ char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l
 
         case SOCKET_SERVER_IPV4: {
             struct sockaddr_in sa;
-            socklen_t l = sizeof(sa);
+            socklen_t sa_len = sizeof(sa);
 
-            if (getsockname(s->fd, &sa, &l) < 0) {
+            if (getsockname(s->fd, (struct sockaddr*) &sa, &sa_len) < 0) {
                 pa_log(__FILE__": getsockname() failed: %s\n", strerror(errno));
                 return NULL;
             }

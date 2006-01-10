@@ -45,7 +45,9 @@
 static void oom(void) {
     static const char e[] = "Not enough memory\n";
     pa_loop_write(STDERR_FILENO, e, sizeof(e)-1);
+#ifdef SIGQUIT
     raise(SIGQUIT);
+#endif
     _exit(1);
 }
 

@@ -161,7 +161,7 @@ size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, siz
         size_t d;
         
         for (d = 0;; d += sizeof(float)) {
-            float_t sum = 0;
+            pa_volume_t sum = 0;
             unsigned c;
             
             if (d >= length)

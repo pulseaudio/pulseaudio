@@ -239,11 +239,14 @@ static void* connection_write(struct connection *c, size_t length) {
     return (uint8_t*) c->write_data+i;
 }
 
-static void format_esd2native(int format, struct pa_sample_spec *ss) {
+static void format_esd2native(int format, int swap_bytes, struct pa_sample_spec *ss) {
     assert(ss);
 
     ss->channels = ((format & ESD_MASK_CHAN) == ESD_STEREO) ? 2 : 1;
-    ss->format = ((format & ESD_MASK_BITS) == ESD_BITS16) ? PA_SAMPLE_S16NE : PA_SAMPLE_U8;
+    if ((format & ESD_MASK_BITS) == ESD_BITS16)
+        ss->format = swap_bytes ? PA_SAMPLE_S16RE : PA_SAMPLE_S16NE;
+    else
+        ss->format = PA_SAMPLE_U8;
 }
 
 static int format_native2esd(struct pa_sample_spec *ss) {
@@ -303,7 +306,7 @@ static int esd_proto_stream_play(struct connection *c, esd_proto_t request, cons
     rate = maybe_swap_endian_32(c->swap_byte_order, *((int*)data + 1));
 
     ss.rate = rate;
-    format_esd2native(format, &ss);
+    format_esd2native(format, c->swap_byte_order, &ss);
 
     if (!pa_sample_spec_valid(&ss)) {
         pa_log(__FILE__": invalid sample specification\n");
@@ -359,7 +362,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     rate = maybe_swap_endian_32(c->swap_byte_order, *((int*)data + 1));
 
     ss.rate = rate;
-    format_esd2native(format, &ss);
+    format_esd2native(format, c->swap_byte_order, &ss);
 
     if (!pa_sample_spec_valid(&ss)) {
         pa_log(__FILE__": invalid sample specification.\n");
@@ -426,7 +429,6 @@ static int esd_proto_get_latency(struct connection *c, esd_proto_t request, cons
         latency = 0;
     else {
         double usec = pa_sink_get_latency(sink);
-        usec += PLAYBACK_BUFFER_SECONDS*1000000;          /* A better estimation would be a good idea! */
         latency = (int) ((usec*44100)/1000000);
     }
     
@@ -603,7 +605,7 @@ static int esd_proto_sample_cache(struct connection *c, esd_proto_t request, con
     rate = maybe_swap_endian_32(c->swap_byte_order, *((int*)data + 1));
     
     ss.rate = rate;
-    format_esd2native(format, &ss);
+    format_esd2native(format, c->swap_byte_order, &ss);
 
     sc_length = (size_t) maybe_swap_endian_32(c->swap_byte_order, (*((int*)data + 2)));
 
@@ -1099,7 +1101,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
     if (!c->authorized) {
         struct timeval tv;
-        gettimeofday(&tv, NULL);
+        pa_gettimeofday(&tv);
         tv.tv_sec += AUTH_TIMEOUT;
         c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
     } else

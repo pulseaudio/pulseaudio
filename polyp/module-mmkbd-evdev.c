@@ -49,6 +49,17 @@ PA_MODULE_USAGE("device=<evdev device> sink=<sink name>")
 
 #define DEFAULT_DEVICE "/dev/input/event0"
 
+/*
+ * This isn't defined in older kernel headers and there is no way of
+ * detecting it.
+ */
+struct _input_id {
+    __u16 bustype;
+    __u16 vendor;
+    __u16 product;
+    __u16 version;
+};
+
 static const char* const valid_modargs[] = {
     "device",
     "sink",
@@ -136,7 +147,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     struct pa_modargs *ma = NULL;
     struct userdata *u;
     int version;
-    struct input_id input_id;
+    struct _input_id input_id;
     char name[256];
     uint8_t evtype_bitmask[EV_MAX/8 + 1];
     assert(c && m);

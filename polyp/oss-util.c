@@ -92,7 +92,7 @@ fail:
 
 int pa_oss_auto_format(int fd, struct pa_sample_spec *ss) {
     int format, channels, speed, reqformat;
-    static const int format_trans[] = {
+    static const int format_trans[PA_SAMPLE_MAX] = {
         [PA_SAMPLE_U8] = AFMT_U8,
         [PA_SAMPLE_ALAW] = AFMT_A_LAW,
         [PA_SAMPLE_ULAW] = AFMT_MU_LAW,

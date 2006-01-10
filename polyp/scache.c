@@ -32,7 +32,14 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <limits.h>
+
+#ifdef HAVE_GLOB_H
 #include <glob.h>
+#endif
+
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 #include "scache.h"
 #include "sink-input.h"
@@ -55,7 +62,7 @@ static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, 
 
     pa_scache_unload_unused(c);
 
-    gettimeofday(&ntv, NULL);
+    pa_gettimeofday(&ntv);
     ntv.tv_sec += UNLOAD_POLL_TIME;
     m->time_restart(e, &ntv);
 }
@@ -144,6 +151,13 @@ int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename
     struct pa_memchunk chunk;
     int r;
 
+#ifdef OS_IS_WIN32
+    char buf[MAX_PATH];
+
+    if (ExpandEnvironmentStrings(filename, buf, MAX_PATH))
+        filename = buf;
+#endif
+
     if (pa_sound_file_load(filename, &ss, &chunk, c->memblock_stat) < 0)
         return -1;
         
@@ -155,6 +169,14 @@ int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename
 
 int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *filename, uint32_t *index) {
     struct pa_scache_entry *e;
+
+#ifdef OS_IS_WIN32
+    char buf[MAX_PATH];
+
+    if (ExpandEnvironmentStrings(filename, buf, MAX_PATH))
+        filename = buf;
+#endif
+
     assert(c && name);
 
     if (!(e = scache_add_item(c, name)))
@@ -165,7 +187,7 @@ int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *fil
     
     if (!c->scache_auto_unload_event) {
         struct timeval ntv;
-        gettimeofday(&ntv, NULL);
+        pa_gettimeofday(&ntv);
         ntv.tv_sec += UNLOAD_POLL_TIME;
         c->scache_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
     }
@@ -303,17 +325,16 @@ static void add_file(struct pa_core *c, const char *pathname) {
     struct stat st;
     const char *e;
 
-    if (!(e = strrchr(pathname, '/')))
-        e = pathname;
-    else
-        e++;
+    e = pa_path_get_filename(pathname);
     
     if (stat(pathname, &st) < 0) {
         pa_log(__FILE__": stat('%s') failed: %s\n", pathname, strerror(errno));
         return;
     }
 
+#if defined(S_ISREG) && defined(S_ISLNK)
     if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode))
+#endif
         pa_scache_add_file_lazy(c, e, pathname, NULL);
 }
 
@@ -323,6 +344,7 @@ int pa_scache_add_directory_lazy(struct pa_core *c, const char *pathname) {
 
     /* First try to open this as directory */
     if (!(dir = opendir(pathname))) {
+#ifdef HAVE_GLOB_H
         glob_t p;
         unsigned int i;
         /* If that fails, try to open it as shell glob */
@@ -336,6 +358,9 @@ int pa_scache_add_directory_lazy(struct pa_core *c, const char *pathname) {
             add_file(c, p.gl_pathv[i]);
         
         globfree(&p);
+#else
+        return -1;
+#endif
     } else {
         struct dirent *e;
 

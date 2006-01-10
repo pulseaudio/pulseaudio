@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -284,7 +283,7 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
         return;
     }
 
-    gettimeofday(&now, NULL);
+    pa_gettimeofday(&now);
 
     if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now)) {
         /* local and remote seem to have synchronized clocks */
@@ -324,7 +323,7 @@ static void request_latency(struct userdata *u) {
     pa_tagstruct_putu32(t, tag = u->ctag++);
     pa_tagstruct_putu32(t, u->channel);
 
-    gettimeofday(&now, NULL);
+    pa_gettimeofday(&now);
     pa_tagstruct_put_timeval(t, &now);
     pa_tagstruct_putu64(t, 0);
     
@@ -536,7 +535,7 @@ static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, 
 
     request_latency(u);
     
-    gettimeofday(&ntv, NULL);
+    pa_gettimeofday(&ntv);
     ntv.tv_sec += LATENCY_INTERVAL;
     m->time_restart(e, &ntv);
 }
@@ -650,7 +649,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     pa_source_set_owner(u->source, m);
 #endif
     
-    gettimeofday(&ntv, NULL);
+    pa_gettimeofday(&ntv);
     ntv.tv_sec += LATENCY_INTERVAL;
     u->time_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, u);
 

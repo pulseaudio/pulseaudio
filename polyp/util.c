@@ -32,35 +32,98 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <limits.h>
+#include <time.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
-#include <signal.h>
-#include <pthread.h>
 #include <sys/time.h>
+
+#ifdef HAVE_SCHED_H
 #include <sched.h>
+#endif
+
+#ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
-#include <limits.h>
-#include <unistd.h>
-#include <grp.h>
+#endif
+
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
+
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 #include <samplerate.h>
+
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
+#ifdef HAVE_GRP_H
+#include <grp.h>
+#endif
+
+#include "winsock.h"
 
 #include "util.h"
 #include "xmalloc.h"
 #include "log.h"
 
+#ifndef OS_IS_WIN32
 #define PA_RUNTIME_PATH_PREFIX "/tmp/polypaudio-"
+#define PATH_SEP '/'
+#else
+#define PA_RUNTIME_PATH_PREFIX "%TEMP%\\polypaudio-"
+#define PATH_SEP '\\'
+#endif
+
+#ifdef OS_IS_WIN32
+
+#define POLYP_ROOTENV "POLYP_ROOT"
+
+int pa_set_root(HANDLE handle) {
+    char library_path[MAX_PATH + sizeof(POLYP_ROOTENV) + 1], *sep;
+
+    strcpy(library_path, POLYP_ROOTENV "=");
+
+    if (!GetModuleFileName(handle, library_path + sizeof(POLYP_ROOTENV), MAX_PATH))
+        return 0;
+
+    sep = strrchr(library_path, '\\');
+    if (sep)
+        *sep = '\0';
+
+    if (_putenv(library_path) < 0)
+        return 0;
+
+    return 1;
+}
+
+#endif
 
 /** Make a file descriptor nonblock. Doesn't do any error checking */
 void pa_make_nonblock_fd(int fd) {
+#ifdef O_NONBLOCK
     int v;
     assert(fd >= 0);
 
     if ((v = fcntl(fd, F_GETFL)) >= 0)
         if (!(v & O_NONBLOCK))
             fcntl(fd, F_SETFL, v|O_NONBLOCK);
+#elif defined(OS_IS_WIN32)
+    u_long arg = 1;
+    if (ioctlsocket(fd, FIONBIO, &arg) < 0) {
+        if (WSAGetLastError() == WSAENOTSOCK)
+            pa_log_warn(__FILE__": WARNING: Only sockets can be made non-blocking!\n");
+    }
+#else
+    pa_log_warn(__FILE__": WARNING: Non-blocking I/O not supported.!\n");
+#endif
 }
 
 /** Creates a directory securely */
@@ -68,15 +131,27 @@ int pa_make_secure_dir(const char* dir) {
     struct stat st;
     assert(dir);
 
-    if (mkdir(dir, 0700) < 0) 
+#ifdef OS_IS_WIN32
+    if (mkdir(dir) < 0)
+#else
+    if (mkdir(dir, 0700) < 0)
+#endif
         if (errno != EEXIST)
             return -1;
-    
-    if (lstat(dir, &st) < 0) 
+
+#ifdef HAVE_LSTAT
+    if (lstat(dir, &st) < 0)
+#else
+    if (stat(dir, &st) < 0)
+#endif
         goto fail;
-    
+
+#ifndef OS_IS_WIN32
     if (!S_ISDIR(st.st_mode) || (st.st_uid != getuid()) || ((st.st_mode & 0777) != 0700))
         goto fail;
+#else
+    fprintf(stderr, "FIXME: pa_make_secure_dir()\n");
+#endif
     
     return 0;
     
@@ -89,10 +164,11 @@ fail:
 int pa_make_secure_parent_dir(const char *fn) {
     int ret = -1;
     char *slash, *dir = pa_xstrdup(fn);
-    
-    if (!(slash = strrchr(dir, '/')))
+
+    slash = pa_path_get_filename(dir);
+    if (slash == fn)
         goto finish;
-    *slash = 0;
+    *(slash-1) = 0;
     
     if (pa_make_secure_dir(dir) < 0)
         goto finish;
@@ -153,6 +229,7 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size) {
 /* Print a warning messages in case that the given signal is not
  * blocked or trapped */
 void pa_check_signal_is_blocked(int sig) {
+#ifdef HAVE_SIGACTION
     struct sigaction sa;
     sigset_t set;
 
@@ -185,6 +262,9 @@ void pa_check_signal_is_blocked(int sig) {
         return;
     
     pa_log(__FILE__": WARNING: %s is not trapped. This might cause malfunction!\n", pa_strsignal(sig));
+#else /* HAVE_SIGACTION */
+    pa_log(__FILE__": WARNING: %s might not be trapped. This might cause malfunction!\n", pa_strsignal(sig));
+#endif
 }
 
 /* The following function is based on an example from the GNU libc
@@ -240,29 +320,46 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
 
 /* Return the current username in the specified string buffer. */
 char *pa_get_user_name(char *s, size_t l) {
-    struct passwd pw, *r;
-    char buf[1024];
     char *p;
+    char buf[1024];
+
+#ifdef HAVE_PWD_H
+    struct passwd pw, *r;
+#endif
+
     assert(s && l > 0);
 
     if (!(p = getenv("USER")) && !(p = getenv("LOGNAME")) && !(p = getenv("USERNAME"))) {
+#ifdef HAVE_PWD_H
         
 #ifdef HAVE_GETPWUID_R
         if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
 #else
-            /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
-             * that do not support getpwuid_r. */
-            if ((r = getpwuid(getuid())) == NULL) {
+        /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
+            * that do not support getpwuid_r. */
+        if ((r = getpwuid(getuid())) == NULL) {
 #endif
-                snprintf(s, l, "%lu", (unsigned long) getuid());
-                return s;
-            }
-            
-            p = r->pw_name;
+            snprintf(s, l, "%lu", (unsigned long) getuid());
+            return s;
         }
+        
+        p = r->pw_name;
+
+#elif defined(OS_IS_WIN32) /* HAVE_PWD_H */
+        DWORD size = sizeof(buf);
+
+        if (!GetUserName(buf, &size))
+            return NULL;
+
+        p = buf;
+
+#else /* HAVE_PWD_H */
+        return NULL;
+#endif /* HAVE_PWD_H */
+    }
 
     return pa_strlcpy(s, p, l);
-    }
+}
 
 /* Return the current hostname in the specified buffer. */
 char *pa_get_host_name(char *s, size_t l) {
@@ -278,19 +375,37 @@ char *pa_get_host_name(char *s, size_t l) {
 /* Return the home directory of the current user */
 char *pa_get_home_dir(char *s, size_t l) {
     char *e;
+
+#ifdef HAVE_PWD_H
     char buf[1024];
     struct passwd pw, *r;
+#endif
+
     assert(s && l);
 
     if ((e = getenv("HOME")))
         return pa_strlcpy(s, e, l);
 
+    if ((e = getenv("USERPROFILE")))
+        return pa_strlcpy(s, e, l);
+
+#ifdef HAVE_PWD_H
+#ifdef HAVE_GETPWUID_R
     if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
         pa_log(__FILE__": getpwuid_r() failed\n");
+#else
+    /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
+        * that do not support getpwuid_r. */
+    if ((r = getpwuid(getuid())) == NULL) {
+        pa_log(__FILE__": getpwuid_r() failed\n");
+#endif
         return NULL;
     }
 
     return pa_strlcpy(s, r->pw_dir, l);
+#else /* HAVE_PWD_H */
+    return NULL;
+#endif
 }
 
 /* Similar to OpenBSD's strlcpy() function */
@@ -300,6 +415,42 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
     strncpy(b, s, l);
     b[l-1] = 0;
     return b;
+}
+
+int pa_gettimeofday(struct timeval *tv) {
+#ifdef HAVE_GETTIMEOFDAY
+    return gettimeofday(tv, NULL);
+#elif defined(OS_IS_WIN32)
+    /*
+     * Copied from implementation by Steven Edwards (LGPL).
+     * Found on wine mailing list.
+     */
+
+#if defined(_MSC_VER) || defined(__BORLANDC__)
+#define EPOCHFILETIME (116444736000000000i64)
+#else
+#define EPOCHFILETIME (116444736000000000LL)
+#endif
+
+    FILETIME        ft;
+    LARGE_INTEGER   li;
+    __int64         t;
+
+    if (tv) {
+        GetSystemTimeAsFileTime(&ft);
+        li.LowPart  = ft.dwLowDateTime;
+        li.HighPart = ft.dwHighDateTime;
+        t  = li.QuadPart;       /* In 100-nanosecond intervals */
+        t -= EPOCHFILETIME;     /* Offset to the Epoch time */
+        t /= 10;                /* In microseconds */
+        tv->tv_sec  = (long)(t / 1000000);
+        tv->tv_usec = (long)(t % 1000000);
+    }
+
+    return 0;
+#else
+#error "Platform lacks gettimeofday() or equivalent function."
+#endif
 }
 
 /* Calculate the difference between the two specfified timeval
@@ -351,7 +502,7 @@ int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) {
 pa_usec_t pa_timeval_age(const struct timeval *tv) {
     struct timeval now;
     assert(tv);
-    gettimeofday(&now, NULL);
+    pa_gettimeofday(&now);
     return pa_timeval_diff(&now, tv);
 }
 
@@ -380,10 +531,12 @@ sensible: set the nice level to -15 and enable realtime scheduling if
 supported.*/
 void pa_raise_priority(void) {
 
+#ifdef HAVE_SYS_RESOURCE_H
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
         pa_log_warn(__FILE__": setpriority() failed: %s\n", strerror(errno));
     else 
         pa_log_info(__FILE__": Successfully gained nice level %i.\n", NICE_LEVEL); 
+#endif
     
 #ifdef _POSIX_PRIORITY_SCHEDULING
     {
@@ -403,10 +556,21 @@ void pa_raise_priority(void) {
         pa_log_info(__FILE__": Successfully enabled SCHED_FIFO scheduling.\n"); 
     }
 #endif
+
+#ifdef OS_IS_WIN32
+    if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
+        pa_log_warn(__FILE__": SetPriorityClass() failed: 0x%08X\n", GetLastError());
+    else
+        pa_log_info(__FILE__": Successfully gained high priority class.\n"); 
+#endif
 }
 
 /* Reset the priority to normal, inverting the changes made by pa_raise_priority() */
 void pa_reset_priority(void) {
+#ifdef OS_IS_WIN32
+    SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+#endif
+
 #ifdef _POSIX_PRIORITY_SCHEDULING
     {
         struct sched_param sp;
@@ -416,11 +580,15 @@ void pa_reset_priority(void) {
     }
 #endif
 
+#ifdef HAVE_SYS_RESOURCE_H
     setpriority(PRIO_PROCESS, 0, 0);
+#endif
 }
 
 /* Set the FD_CLOEXEC flag for a fd */
 int pa_fd_set_cloexec(int fd, int b) {
+
+#ifdef FD_CLOEXEC
     int v;
     assert(fd >= 0);
 
@@ -431,7 +599,8 @@ int pa_fd_set_cloexec(int fd, int b) {
     
     if (fcntl(fd, F_SETFD, v) < 0)
         return -1;
-    
+#endif    
+
     return 0;
 }
 
@@ -439,6 +608,8 @@ int pa_fd_set_cloexec(int fd, int b) {
  * only. This shoul be used for eyecandy only, don't rely on return
  * non-NULL! */
 char *pa_get_binary_name(char *s, size_t l) {
+
+#ifdef HAVE_READLINK
     char path[PATH_MAX];
     int i;
     assert(s && l);
@@ -451,6 +622,15 @@ char *pa_get_binary_name(char *s, size_t l) {
 
     s[i] = 0;
     return s;
+#elif defined(OS_IS_WIN32)
+    char path[PATH_MAX];
+    if (!GetModuleFileName(NULL, path, PATH_MAX))
+        return NULL;
+    pa_strlcpy(s, pa_path_get_filename(path), l);
+    return s;
+#else
+    return NULL;
+#endif
 }
 
 /* Return a pointer to the filename inside a path (which is the last
@@ -458,7 +638,7 @@ char *pa_get_binary_name(char *s, size_t l) {
 char *pa_path_get_filename(const char *p) {
     char *fn;
 
-    if ((fn = strrchr(p, '/')))
+    if ((fn = strrchr(p, PATH_SEP)))
         return fn+1;
 
     return (char*) p;
@@ -519,16 +699,29 @@ const char *pa_strsignal(int sig) {
     switch(sig) {
         case SIGINT: return "SIGINT";
         case SIGTERM: return "SIGTERM";
+#ifdef SIGUSR1
         case SIGUSR1: return "SIGUSR1";
+#endif
+#ifdef SIGUSR2
         case SIGUSR2: return "SIGUSR2";
+#endif
+#ifdef SIGXCPU
         case SIGXCPU: return "SIGXCPU";
+#endif
+#ifdef SIGPIPE
         case SIGPIPE: return "SIGPIPE";
+#endif
+#ifdef SIGCHLD
         case SIGCHLD: return "SIGCHLD";
+#endif
+#ifdef SIGHUP
         case SIGHUP: return "SIGHUP";
+#endif
         default: return "UNKNOWN SIGNAL";
     }
 }
 
+#ifdef HAVE_GRP_H
 
 /* Check whether the specified GID and the group name match */
 static int is_group(gid_t gid, const char *name) {
@@ -575,7 +768,7 @@ finish:
 /* Check the current user is member of the specified group */
 int pa_uid_in_group(const char *name, gid_t *gid) {
     gid_t *gids, tgid;
-    long n = sysconf(_SC_NGROUPS_MAX);
+    GETGROUPS_T n = sysconf(_SC_NGROUPS_MAX);
     int r = -1, i;
 
     assert(n > 0);
@@ -609,8 +802,18 @@ finish:
     return r;
 }
 
-/* Lock or unlock a file entirely. (advisory) */
+#else /* HAVE_GRP_H */
+
+int pa_uid_in_group(const char *name, gid_t *gid) {
+    return -1;
+}
+
+#endif
+
+/* Lock or unlock a file entirely.
+  (advisory on UNIX, mandatory on Windows) */
 int pa_lock_fd(int fd, int b) {
+#ifdef F_SETLKW
     struct flock flock;
 
     /* Try a R/W lock first */
@@ -631,6 +834,19 @@ int pa_lock_fd(int fd, int b) {
     }
         
     pa_log(__FILE__": %slock failed: %s\n", !b ? "un" : "", strerror(errno));
+#endif
+
+#ifdef OS_IS_WIN32
+    HANDLE h = (HANDLE)_get_osfhandle(fd);
+
+    if (b && LockFile(h, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF))
+        return 0;
+    if (!b && UnlockFile(h, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF))
+        return 0;
+
+    pa_log(__FILE__": %slock failed: 0x%08X\n", !b ? "un" : "", GetLastError());
+#endif
+
     return -1;
 }
 
@@ -722,31 +938,51 @@ int pa_unlock_lockfile(const char *fn, int fd) {
  * allocated buffer containing the used configuration file is
  * stored there.*/
 FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result) {
-    const char *e;
+    const char *fn;
     char h[PATH_MAX];
 
-    if (env && (e = getenv(env))) {
+#ifdef OS_IS_WIN32
+    char buf[PATH_MAX];
+
+    if (!getenv(POLYP_ROOTENV))
+        pa_set_root(NULL);
+#endif
+
+    if (env && (fn = getenv(env))) {
+#ifdef OS_IS_WIN32
+        if (!ExpandEnvironmentStrings(fn, buf, PATH_MAX))
+            return NULL;
+        fn = buf;
+#endif
+
         if (result)
-            *result = pa_xstrdup(e);
-        return fopen(e, "r");
+            *result = pa_xstrdup(fn);
+
+        return fopen(fn, "r");
     }
 
     if (local && pa_get_home_dir(h, sizeof(h))) {
         FILE *f;
-        char *l;
+        char *lfn;
         
-        l = pa_sprintf_malloc("%s/%s", h, local);
-        f = fopen(l, "r");
+        lfn = pa_sprintf_malloc("%s/%s", h, local);
+
+#ifdef OS_IS_WIN32
+        if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX))
+            return NULL;
+        lfn = buf;
+#endif
+
+        f = fopen(lfn, "r");
 
         if (f || errno != ENOENT) {
             if (result)
-                *result = l;
-            else
-                pa_xfree(l);
+                *result = pa_xstrdup(lfn);
+            pa_xfree(lfn);
             return f;
         }
         
-        pa_xfree(l);
+        pa_xfree(lfn);
     }
 
     if (!global) {
@@ -755,6 +991,12 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         errno = ENOENT;
         return NULL;
     }
+
+#ifdef OS_IS_WIN32
+    if (!ExpandEnvironmentStrings(global, buf, PATH_MAX))
+        return NULL;
+    global = buf;
+#endif
 
     if (result)
         *result = pa_xstrdup(global);
@@ -823,11 +1065,14 @@ size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
 /* Return the fully qualified domain name in *s */
 char *pa_get_fqdn(char *s, size_t l) {
     char hn[256];
+#ifdef HAVE_GETADDRINFO    
     struct addrinfo *a, hints;
+#endif
 
     if (!pa_get_host_name(hn, sizeof(hn)))
         return NULL;
 
+#ifdef HAVE_GETADDRINFO
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_flags = AI_CANONNAME;
@@ -838,6 +1083,9 @@ char *pa_get_fqdn(char *s, size_t l) {
     pa_strlcpy(s, a->ai_canonname, l);
     freeaddrinfo(a);
     return s;
+#else
+    return pa_strlcpy(s, hn, l);
+#endif
 }
 
 /* Returns nonzero when *s starts with *pfx */
@@ -855,21 +1103,44 @@ int pa_startswith(const char *s, const char *pfx) {
 char *pa_runtime_path(const char *fn, char *s, size_t l) {
     char u[256];
 
+#ifndef OS_IS_WIN32
     if (fn && *fn == '/')
+#else
+    if (fn && strlen(fn) >= 3 && isalpha(fn[0]) && fn[1] == ':' && fn[2] == '\\')
+#endif
         return pa_strlcpy(s, fn, l);
-    
-    snprintf(s, l, PA_RUNTIME_PATH_PREFIX"%s%s%s", pa_get_user_name(u, sizeof(u)), fn ? "/" : "", fn ? fn : "");
+
+    if (fn)    
+        snprintf(s, l, "%s%s%c%s", PA_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PATH_SEP, fn);
+    else
+        snprintf(s, l, "%s%s", PA_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
+
+#ifdef OS_IS_WIN32
+    {
+        char buf[l];
+        strcpy(buf, s);
+        ExpandEnvironmentStrings(buf, s, l);
+    }
+#endif
+
     return s;
 }
 
 /* Wait t milliseconds */
 int pa_msleep(unsigned long t) {
+#ifdef OS_IS_WIN32
+    Sleep(t);
+    return 0;
+#elif defined(HAVE_NANOSLEEP)
     struct timespec ts;
 
     ts.tv_sec = t/1000;
     ts.tv_nsec = (t % 1000) * 1000000;
 
     return nanosleep(&ts, NULL);
+#else
+#error "Platform lacks a sleep function."
+#endif
 }
 
 /* Convert the string s to a signed integer in *ret_i */

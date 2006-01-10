@@ -30,6 +30,8 @@
 #include "gcc-printf.h"
 #include "sample.h"
 
+struct timeval;
+
 void pa_make_nonblock_fd(int fd);
 
 int pa_make_secure_dir(const char* dir);
@@ -53,6 +55,7 @@ char *pa_get_home_dir(char *s, size_t l);
 
 char *pa_path_get_filename(const char *p);
 
+int pa_gettimeofday(struct timeval *tv);
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b);
 int pa_timeval_cmp(const struct timeval *a, const struct timeval *b);
 pa_usec_t pa_timeval_age(const struct timeval *tv);

@@ -31,13 +31,28 @@
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
-#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
+
 #ifdef HAVE_LIBASYNCNS
 #include <asyncns.h>
 #endif
+
+#include "winsock.h"
 
 #include "socket-client.h"
 #include "socket-util.h"
@@ -120,7 +135,7 @@ static void do_call(struct pa_socket_client *c) {
         goto finish;
     
     lerror = sizeof(error);
-    if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, &error, &lerror) < 0) {
+    if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void*)&error, &lerror) < 0) {
         pa_log(__FILE__": getsockopt(): %s\n", strerror(errno));
         goto finish;
     }
@@ -198,17 +213,27 @@ struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, ui
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
 
+#ifdef HAVE_SYS_UN_H
+
 struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
     struct sockaddr_un sa;
     assert(m && filename);
     
     memset(&sa, 0, sizeof(sa));
-    sa.sun_family = AF_LOCAL;
+    sa.sun_family = AF_UNIX;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
+
+#else /* HAVE_SYS_UN_H */
+
+struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
+    return NULL;
+}
+
+#endif /* HAVE_SYS_UN_H */
 
 static int sockaddr_prepare(struct pa_socket_client *c, const struct sockaddr *sa, size_t salen) {
     assert(c);
@@ -377,7 +402,7 @@ static void start_timeout(struct pa_socket_client *c) {
     assert(c);
     assert(!c->timeout_event);
 
-    gettimeofday(&tv, NULL);
+    pa_gettimeofday(&tv);
     pa_timeval_add(&tv, CONNECT_TIMEOUT * 1000000);
     c->timeout_event = c->mainloop->time_new(c->mainloop, &tv, timeout_cb, c);
 }
@@ -426,8 +451,9 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
                 assert(c->asyncns_query);
                 start_timeout(c);
             }
-#else
+#else /* HAVE_LIBASYNCNS */
             {
+#ifdef HAVE_GETADDRINFO
                 int ret;
                 struct addrinfo *res = NULL;
 
@@ -438,12 +464,37 @@ struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, 
 
                 if (res->ai_addr) {
                     if ((c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen)))
-                    	start_timeout(c);
+                        start_timeout(c);
 				}
                 
                 freeaddrinfo(res);
+#else /* HAVE_GETADDRINFO */
+                struct hostent *host = NULL;
+                struct sockaddr_in s;
+
+		/* FIXME: PF_INET6 support */
+                if (hints.ai_family != PF_INET)
+                    goto finish;
+
+                host = gethostbyname(a.path_or_host);
+                if (!host) {
+                    unsigned int addr = inet_addr(a.path_or_host);
+                    if (addr != INADDR_NONE)
+                        host = gethostbyaddr((char*)&addr, 4, AF_INET);
+                }
+
+                if (!host)
+                    goto finish;
+
+                s.sin_family = AF_INET;
+                memcpy(&s.sin_addr, host->h_addr, sizeof(struct in_addr));
+                s.sin_port = port;
+
+                if ((c = pa_socket_client_new_sockaddr(m, &s, sizeof(s))))
+                	start_timeout(c);
+#endif /* HAVE_GETADDRINFO */
             }
-#endif            
+#endif /* HAVE_LIBASYNCNS */
         }
     }
 

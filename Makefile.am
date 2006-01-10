@@ -17,11 +17,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-EXTRA_DIST = bootstrap.sh README LICENSE doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in libtool.m4 ltdl.m4
-SUBDIRS=polyp doc libltdl
+EXTRA_DIST = bootstrap.sh LICENSE doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in libtool.m4 ltdl.m4
+SUBDIRS=libltdl polyp doc
 
-MAINTAINERCLEANFILES=README
-noinst_DATA = README
+MAINTAINERCLEANFILES =
+noinst_DATA =
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = polyplib.pc polyplib-simple.pc polyplib-error.pc polyplib-mainloop.pc polyplib-browse.pc
@@ -36,10 +36,16 @@ pkgconfig_DATA += \
 	polyplib-glib12-mainloop.pc
 endif
 
+if USE_LYNX
+EXTRA_DIST += README
+MAINTAINERCLEANFILES += README
+noinst_DATA += README
+
 README:
 	rm -f README
 	$(MAKE) -C doc README
 	cd $(srcdir) && ln -s doc/README README
+endif
 
 homepage: all dist doxygen
 	test -d $$HOME/homepage/private
@@ -49,8 +55,8 @@ homepage: all dist doxygen
 	cp -a doxygen/html/* $$HOME/homepage/private/projects/polypaudio/doxygen
 	cp $$HOME/homepage/private/projects/polypaudio/README.html $$HOME/homepage/private/projects/polypaudio/index.html
 
-distcleancheck:
-	@:
+#distcleancheck:
+#	@:
 
 doxygen:
 	$(MAKE) -C doxygen doxygen

@@ -928,7 +928,7 @@ static void command_get_playback_latency(struct pa_pdispatch *pd, uint32_t comma
     pa_tagstruct_put_boolean(reply, pa_memblockq_is_readable(s->memblockq));
     pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
     pa_tagstruct_put_timeval(reply, &tv);
-    gettimeofday(&now, NULL);
+    pa_gettimeofday(&now);
     pa_tagstruct_put_timeval(reply, &now);
     pa_tagstruct_putu64(reply, counter);
     pa_pstream_send_tagstruct(c->pstream, reply);
@@ -971,7 +971,7 @@ static void command_get_record_latency(struct pa_pdispatch *pd, uint32_t command
     pa_tagstruct_put_boolean(reply, 0);
     pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
     pa_tagstruct_put_timeval(reply, &tv);
-    gettimeofday(&now, NULL);
+    pa_gettimeofday(&now);
     pa_tagstruct_put_timeval(reply, &now);
     pa_tagstruct_putu64(reply, counter);
     pa_pstream_send_tagstruct(c->pstream, reply);
@@ -2024,7 +2024,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
 
     if (!c->authorized) {
         struct timeval tv;
-        gettimeofday(&tv, NULL);
+        pa_gettimeofday(&tv);
         tv.tv_sec += AUTH_TIMEOUT;
         c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
     } else
