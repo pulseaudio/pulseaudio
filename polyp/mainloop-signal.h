@@ -37,23 +37,23 @@ PA_C_DECL_BEGIN
  */
 
 /** Initialize the UNIX signal subsystem and bind it to the specified main loop */
-int pa_signal_init(struct pa_mainloop_api *api);
+int pa_signal_init(pa_mainloop_api *api);
 
 /** Cleanup the signal subsystem */
 void pa_signal_done(void);
 
-/** \struct pa_signal_event
+/** \pa_signal_event
  * An opaque UNIX signal event source object */
-struct pa_signal_event;
+typedef struct pa_signal_event pa_signal_event;
 
 /** Create a new UNIX signal event source object */
-struct pa_signal_event* pa_signal_new(int signal, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, int signal, void *userdata), void *userdata);
+pa_signal_event* pa_signal_new(int sig, void (*callback) (pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata), void *userdata);
 
 /** Free a UNIX signal event source object */
-void pa_signal_free(struct pa_signal_event *e);
+void pa_signal_free(pa_signal_event *e);
 
 /** Set a function that is called when the signal event source is destroyed. Use this to free the userdata argument if required */
-void pa_signal_set_destroy(struct pa_signal_event *e, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, void *userdata));
+void pa_signal_set_destroy(pa_signal_event *e, void (*callback) (pa_mainloop_api *api, pa_signal_event*e, void *userdata));
 
 PA_C_DECL_END
 

@@ -52,16 +52,16 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     int lirc_fd;
-    struct pa_io_event *io;
+    pa_io_event *io;
     struct lirc_config *config;
     char *sink_name;
-    struct pa_module *module;
+    pa_module *module;
     float mute_toggle_save;
 };
 
 static int lirc_in_use = 0;
 
-static void io_callback(struct pa_mainloop_api *io, struct pa_io_event *e, int fd, enum pa_io_event_flags events, void*userdata) {
+static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags events, void*userdata) {
     struct userdata *u = userdata;
     char *name = NULL, *code = NULL;
     assert(io);
@@ -104,7 +104,7 @@ static void io_callback(struct pa_mainloop_api *io, struct pa_io_event *e, int f
             if (volchange == INVALID)
                 pa_log_warn(__FILE__": recieved unknown IR code '%s'\n", name);
             else {
-                struct pa_sink *s;
+                pa_sink *s;
                 
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
                     pa_log(__FILE__": failed to get sink '%s'\n", u->sink_name);
@@ -147,8 +147,8 @@ fail:
     free(code);
 }
     
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_modargs *ma = NULL;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_modargs *ma = NULL;
     struct userdata *u;
     assert(c && m);
 
@@ -197,7 +197,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c);
     assert(m);

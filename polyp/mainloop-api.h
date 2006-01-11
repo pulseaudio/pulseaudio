@@ -45,73 +45,75 @@
 PA_C_DECL_BEGIN
 
 /** A bitmask for IO events */
-enum pa_io_event_flags {
+typedef enum pa_io_event_flags {
     PA_IO_EVENT_NULL = 0,     /**< No event */
     PA_IO_EVENT_INPUT = 1,    /**< Input event */
     PA_IO_EVENT_OUTPUT = 2,   /**< Output event */
     PA_IO_EVENT_HANGUP = 4,   /**< Hangup event */
     PA_IO_EVENT_ERROR = 8     /**< Error event */
-};
+} pa_io_event_flags;
 
-/** \struct pa_io_event
+/** \pa_io_event
  * An opaque IO event source object */
-struct pa_io_event;
+typedef struct pa_io_event pa_io_event;
 
-/** \struct pa_defer_event
+/** \pa_defer_event
  * An opaque deferred event source object. Events of this type are triggered once in every main loop iteration */
-struct pa_defer_event;
+typedef struct pa_defer_event pa_defer_event;
 
-/** \struct pa_time_event
+/** \pa_time_event
  * An opaque timer event source object */
-struct pa_time_event;
+typedef struct pa_time_event pa_time_event;
 
 /** An abstract mainloop API vtable */
-struct pa_mainloop_api {
+typedef struct pa_mainloop_api pa_mainloop_api;
+
+struct pa_mainloop_api  {
     /** A pointer to some private, arbitrary data of the main loop implementation */
     void *userdata;
 
     /** Create a new IO event source object */
-    struct pa_io_event* (*io_new)(struct pa_mainloop_api*a, int fd, enum pa_io_event_flags events, void (*callback) (struct pa_mainloop_api*a, struct pa_io_event* e, int fd, enum pa_io_event_flags events, void *userdata), void *userdata);
+    pa_io_event* (*io_new)(pa_mainloop_api*a, int fd, pa_io_event_flags events, void (*callback) (pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags events, void *userdata), void *userdata);
 
     /** Enable or disable IO events on this object */
-    void (*io_enable)(struct pa_io_event* e, enum pa_io_event_flags events);
+    void (*io_enable)(pa_io_event* e, pa_io_event_flags events);
 
     /** Free a IO event source object */
-    void (*io_free)(struct pa_io_event* e);
+    void (*io_free)(pa_io_event* e);
 
     /** Set a function that is called when the IO event source is destroyed. Use this to free the userdata argument if required */
-    void (*io_set_destroy)(struct pa_io_event *e, void (*callback) (struct pa_mainloop_api*a, struct pa_io_event *e, void *userdata));
+    void (*io_set_destroy)(pa_io_event *e, void (*callback) (pa_mainloop_api*a, pa_io_event *e, void *userdata));
 
     /** Create a new timer event source object for the specified Unix time */
-    struct pa_time_event* (*time_new)(struct pa_mainloop_api*a, const struct timeval *tv, void (*callback) (struct pa_mainloop_api*a, struct pa_time_event* e, const struct timeval *tv, void *userdata), void *userdata);
+    pa_time_event* (*time_new)(pa_mainloop_api*a, const struct timeval *tv, void (*callback) (pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata), void *userdata);
 
     /** Restart a running or expired timer event source with a new Unix time */
-    void (*time_restart)(struct pa_time_event* e, const struct timeval *tv);
+    void (*time_restart)(pa_time_event* e, const struct timeval *tv);
 
     /** Free a deferred timer event source object */
-    void (*time_free)(struct pa_time_event* e);
+    void (*time_free)(pa_time_event* e);
 
     /** Set a function that is called when the timer event source is destroyed. Use this to free the userdata argument if required */
-    void (*time_set_destroy)(struct pa_time_event *e, void (*callback) (struct pa_mainloop_api*a, struct pa_time_event *e, void *userdata));
+    void (*time_set_destroy)(pa_time_event *e, void (*callback) (pa_mainloop_api*a, pa_time_event *e, void *userdata));
 
     /** Create a new deferred event source object */
-    struct pa_defer_event* (*defer_new)(struct pa_mainloop_api*a, void (*callback) (struct pa_mainloop_api*a, struct pa_defer_event* e, void *userdata), void *userdata);
+    pa_defer_event* (*defer_new)(pa_mainloop_api*a, void (*callback) (pa_mainloop_api*a, pa_defer_event* e, void *userdata), void *userdata);
 
     /** Enable or disable a deferred event source temporarily */
-    void (*defer_enable)(struct pa_defer_event* e, int b);
+    void (*defer_enable)(pa_defer_event* e, int b);
 
     /** Free a deferred event source object */
-    void (*defer_free)(struct pa_defer_event* e);
+    void (*defer_free)(pa_defer_event* e);
 
     /** Set a function that is called when the deferred event source is destroyed. Use this to free the userdata argument if required */
-    void (*defer_set_destroy)(struct pa_defer_event *e, void (*callback) (struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata));
+    void (*defer_set_destroy)(pa_defer_event *e, void (*callback) (pa_mainloop_api*a, pa_defer_event *e, void *userdata));
 
     /** Exit the main loop and return the specfied retval*/
-    void (*quit)(struct pa_mainloop_api*a, int retval);
+    void (*quit)(pa_mainloop_api*a, int retval);
 };
 
 /** Run the specified callback function once from the main loop using an anonymous defer event. */
-void pa_mainloop_api_once(struct pa_mainloop_api*m, void (*callback)(struct pa_mainloop_api*m, void *userdata), void *userdata);
+void pa_mainloop_api_once(pa_mainloop_api*m, void (*callback)(pa_mainloop_api*m, void *userdata), void *userdata);
 
 PA_C_DECL_END
 

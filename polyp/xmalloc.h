@@ -24,6 +24,8 @@
 
 #include <sys/types.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <assert.h>
 
 void* pa_xmalloc(size_t l);
 void *pa_xmalloc0(size_t l);
@@ -34,5 +36,23 @@ char *pa_xstrdup(const char *s);
 char *pa_xstrndup(const char *s, size_t l);
 
 void* pa_xmemdup(const void *p, size_t l);
+
+/** Internal helper for pa_xnew() */
+static inline void* pa_xnew_internal(unsigned n, size_t k) {
+    assert(n < INT_MAX/k);
+    return pa_xmalloc(n*k);
+}
+
+/** Allocate n new structures of the specified type. */
+#define pa_xnew(type, n) ((type*) pa_xnew_internal((n), sizeof(type)))
+
+/** Internal helper for pa_xnew0() */
+static inline void* pa_xnew0_internal(unsigned n, size_t k) {
+    assert(n < INT_MAX/k);
+    return pa_xmalloc0(n*k);
+}
+
+/** Same as pa_xnew() but set the memory to zero */
+#define pa_xnew0(type, n) ((type*) pa_xnew0_internal((n), sizeof(type)))
 
 #endif

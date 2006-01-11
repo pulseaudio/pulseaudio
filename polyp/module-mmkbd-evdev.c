@@ -68,13 +68,13 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     int fd;
-    struct pa_io_event *io;
+    pa_io_event *io;
     char *sink_name;
-    struct pa_module *module;
+    pa_module *module;
     float mute_toggle_save;
 };
 
-static void io_callback(struct pa_mainloop_api *io, struct pa_io_event *e, int fd, enum pa_io_event_flags events, void*userdata) {
+static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags events, void*userdata) {
     struct userdata *u = userdata;
     assert(io);
     assert(u);
@@ -85,26 +85,26 @@ static void io_callback(struct pa_mainloop_api *io, struct pa_io_event *e, int f
     }
         
     if (events & PA_IO_EVENT_INPUT) {
-        struct input_event e;
+        struct input_event ev;
 
-        if (pa_loop_read(u->fd, &e, sizeof(e)) <= 0) {
+        if (pa_loop_read(u->fd, &ev, sizeof(ev)) <= 0) {
             pa_log(__FILE__": failed to read from event device: %s\n", strerror(errno));
             goto fail;
         }
 
-        if (e.type == EV_KEY && (e.value == 1 || e.value == 2)) {
+        if (ev.type == EV_KEY && (ev.value == 1 || ev.value == 2)) {
             enum { INVALID, UP, DOWN, MUTE_TOGGLE } volchange = INVALID;
 
-            pa_log_debug(__FILE__": key code=%u, value=%u\n", e.code, e.value);
+            pa_log_debug(__FILE__": key code=%u, value=%u\n", ev.code, ev.value);
 
-            switch (e.code) {
+            switch (ev.code) {
                 case KEY_VOLUMEDOWN:  volchange = DOWN; break;
                 case KEY_VOLUMEUP:    volchange = UP; break;
                 case KEY_MUTE:        volchange = MUTE_TOGGLE; break;
             }
 
             if (volchange != INVALID) {
-                struct pa_sink *s;
+                pa_sink *s;
                 
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
                     pa_log(__FILE__": failed to get sink '%s'\n", u->sink_name);
@@ -143,8 +143,8 @@ fail:
 
 #define test_bit(bit, array) (array[bit/8] & (1<<(bit%8)))
     
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_modargs *ma = NULL;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_modargs *ma = NULL;
     struct userdata *u;
     int version;
     struct _input_id input_id;
@@ -217,7 +217,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c);
     assert(m);

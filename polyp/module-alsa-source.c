@@ -55,13 +55,13 @@ PA_MODULE_USAGE("source_name=<name for the source> device=<ALSA device> format=<
 
 struct userdata {
     snd_pcm_t *pcm_handle;
-    struct pa_source *source;
-    struct pa_io_event **io_events;
+    pa_source *source;
+    pa_io_event **io_events;
     unsigned n_io_events;
 
     size_t frame_size, fragment_size;
-    struct pa_memchunk memchunk;
-    struct pa_module *module;
+    pa_memchunk memchunk;
+    pa_module *module;
 };
 
 static const char* const valid_modargs[] = {
@@ -80,7 +80,7 @@ static const char* const valid_modargs[] = {
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
-                      (u->source ? pa_idxset_ncontents(u->source->outputs) : 0));
+                      (u->source ? pa_idxset_size(u->source->outputs) : 0));
 }
 
 static void xrun_recovery(struct userdata *u) {
@@ -98,7 +98,7 @@ static void do_read(struct userdata *u) {
     update_usage(u);
     
     for (;;) {
-        struct pa_memchunk post_memchunk;
+        pa_memchunk post_memchunk;
         snd_pcm_sframes_t frames;
         size_t l;
         
@@ -142,7 +142,7 @@ static void do_read(struct userdata *u) {
     }
 }
 
-static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
+static void io_callback(pa_mainloop_api*a, pa_io_event *e, PA_GCC_UNUSED int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
     struct userdata *u = userdata;
     assert(u && a && e);
 
@@ -152,7 +152,7 @@ static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd,
     do_read(u);
 }
 
-static pa_usec_t source_get_latency_cb(struct pa_source *s) {
+static pa_usec_t source_get_latency_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     snd_pcm_sframes_t frames;
     assert(s && u && u->source);
@@ -166,12 +166,12 @@ static pa_usec_t source_get_latency_cb(struct pa_source *s) {
     return pa_bytes_to_usec(frames * u->frame_size, &s->sample_spec);
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_modargs *ma = NULL;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_modargs *ma = NULL;
     int ret = -1;
     struct userdata *u = NULL;
     const char *dev;
-    struct pa_sample_spec ss;
+    pa_sample_spec ss;
     unsigned periods, fragsize;
     snd_pcm_uframes_t period_size;
     size_t frame_size;
@@ -250,7 +250,7 @@ fail:
     goto finish;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

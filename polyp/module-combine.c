@@ -62,20 +62,20 @@ static const char* const valid_modargs[] = {
 
 struct output {
     struct userdata *userdata;
-    struct pa_sink_input *sink_input;
+    pa_sink_input *sink_input;
     size_t counter;
-    struct pa_memblockq *memblockq;
+    pa_memblockq *memblockq;
     pa_usec_t total_latency;
     PA_LLIST_FIELDS(struct output);
 };
 
 struct userdata {
-    struct pa_module *module;
-    struct pa_core *core;
-    struct pa_sink *sink;
+    pa_module *module;
+    pa_core *core;
+    pa_sink *sink;
     unsigned n_outputs;
     struct output *master;
-    struct pa_time_event *time_event;
+    pa_time_event *time_event;
     uint32_t adjust_time;
     
     PA_LLIST_HEAD(struct output, outputs);
@@ -86,8 +86,8 @@ static void clear_up(struct userdata *u);
 
 static void update_usage(struct userdata *u) {
     pa_module_set_used(u->module,
-                       (u->sink ? pa_idxset_ncontents(u->sink->inputs) : 0) +
-                       (u->sink ? pa_idxset_ncontents(u->sink->monitor_source->outputs) : 0));
+                       (u->sink ? pa_idxset_size(u->sink->inputs) : 0) +
+                       (u->sink ? pa_idxset_size(u->sink->monitor_source->outputs) : 0));
 }
 
 
@@ -135,7 +135,7 @@ static void adjust_rates(struct userdata *u) {
 }
 
 static void request_memblock(struct userdata *u) {
-    struct pa_memchunk chunk;
+    pa_memchunk chunk;
     struct output *o;
     assert(u && u->sink);
 
@@ -150,7 +150,7 @@ static void request_memblock(struct userdata *u) {
     pa_memblock_unref(chunk.memblock);
 }
 
-static void time_callback(struct pa_mainloop_api*a, struct pa_time_event* e, const struct timeval *tv, void *userdata) {
+static void time_callback(pa_mainloop_api*a, pa_time_event* e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     struct userdata *u = userdata;
     struct timeval n;
     assert(u && a && u->time_event == e);
@@ -162,7 +162,7 @@ static void time_callback(struct pa_mainloop_api*a, struct pa_time_event* e, con
     u->sink->core->mainloop->time_restart(e, &n);
 }
 
-static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     struct output *o = i->userdata;
     assert(i && o && o->sink_input && chunk);
 
@@ -175,7 +175,7 @@ static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk
     return pa_memblockq_peek(o->memblockq, chunk);
 }
 
-static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length) {
+static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
     struct output *o = i->userdata;
     assert(i && o && o->sink_input && chunk && length);
 
@@ -183,28 +183,28 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
     o->counter += length;
 }
 
-static void sink_input_kill_cb(struct pa_sink_input *i) {
+static void sink_input_kill_cb(pa_sink_input *i) {
     struct output *o = i->userdata;
     assert(i && o && o->sink_input);
     pa_module_unload_request(o->userdata->module);
     clear_up(o->userdata);
 }
 
-static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i) {
+static pa_usec_t sink_input_get_latency_cb(pa_sink_input *i) {
     struct output *o = i->userdata;
     assert(i && o && o->sink_input);
     
     return pa_bytes_to_usec(pa_memblockq_get_length(o->memblockq), &i->sample_spec);
 }
 
-static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
+static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     assert(s && u && u->sink && u->master);
 
     return pa_sink_input_get_latency(u->master->sink_input);
 }
 
-static struct output *output_new(struct userdata *u, struct pa_sink *sink, int resample_method) {
+static struct output *output_new(struct userdata *u, pa_sink *sink, int resample_method) {
     struct output *o = NULL;
     char t[256];
     assert(u && sink && u->sink);
@@ -278,11 +278,11 @@ static void clear_up(struct userdata *u) {
     }
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u;
-    struct pa_modargs *ma = NULL;
+    pa_modargs *ma = NULL;
     const char *master_name, *slaves, *rm;
-    struct pa_sink *master_sink;
+    pa_sink *master_sink;
     char *n = NULL;
     const char*split_state;
     struct timeval tv;
@@ -344,7 +344,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     
     split_state = NULL;
     while ((n = pa_split(slaves, ",", &split_state))) {
-        struct pa_sink *slave_sink;
+        pa_sink *slave_sink;
         
         if (!(slave_sink = pa_namereg_get(c, n, PA_NAMEREG_SINK, 1))) {
             pa_log(__FILE__": invalid slave sink '%s'\n", n);
@@ -381,7 +381,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

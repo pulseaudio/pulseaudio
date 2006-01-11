@@ -56,10 +56,10 @@ PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source>
 #define PA_TYPEID_OSS_MMAP PA_TYPEID_MAKE('O', 'S', 'S', 'M')
 
 struct userdata {
-    struct pa_sink *sink;
-    struct pa_source *source;
-    struct pa_core *core;
-    struct pa_sample_spec sample_spec;
+    pa_sink *sink;
+    pa_source *source;
+    pa_core *core;
+    pa_sample_spec sample_spec;
 
     size_t in_fragment_size, out_fragment_size, in_fragments, out_fragments, out_fill;
 
@@ -68,11 +68,11 @@ struct userdata {
     void *in_mmap, *out_mmap;
     size_t in_mmap_length, out_mmap_length;
 
-    struct pa_io_event *io_event;
+    pa_io_event *io_event;
 
-    struct pa_memblock **in_memblocks, **out_memblocks;
+    pa_memblock **in_memblocks, **out_memblocks;
     unsigned out_current, in_current;
-    struct pa_module *module;
+    pa_module *module;
 };
 
 static const char* const valid_modargs[] = {
@@ -95,16 +95,16 @@ static const char* const valid_modargs[] = {
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
-                      (u->sink ? pa_idxset_ncontents(u->sink->inputs) : 0) +
-                      (u->sink ? pa_idxset_ncontents(u->sink->monitor_source->outputs) : 0) +
-                      (u->source ? pa_idxset_ncontents(u->source->outputs) : 0));
+                      (u->sink ? pa_idxset_size(u->sink->inputs) : 0) +
+                      (u->sink ? pa_idxset_size(u->sink->monitor_source->outputs) : 0) +
+                      (u->source ? pa_idxset_size(u->source->outputs) : 0));
 }
 
 static void out_fill_memblocks(struct userdata *u, unsigned n) {
     assert(u && u->out_memblocks);
     
     while (n > 0) {
-        struct pa_memchunk chunk;
+        pa_memchunk chunk;
         
         if (u->out_memblocks[u->out_current])
             pa_memblock_unref_fixed(u->out_memblocks[u->out_current]);
@@ -147,7 +147,7 @@ static void in_post_memblocks(struct userdata *u, unsigned n) {
     assert(u && u->in_memblocks);
     
     while (n > 0) {
-        struct pa_memchunk chunk;
+        pa_memchunk chunk;
         
         if (!u->in_memblocks[u->in_current]) {
             chunk.memblock = u->in_memblocks[u->in_current] = pa_memblock_new_fixed((uint8_t*) u->in_mmap+u->in_fragment_size*u->in_current, u->in_fragment_size, 1, u->core->memblock_stat);
@@ -204,7 +204,7 @@ static void do_read(struct userdata *u) {
     in_clear_memblocks(u, u->in_fragments/2);
 }
 
-static void io_callback(struct pa_mainloop_api *m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
+static void io_callback(pa_mainloop_api *m, pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags f, void *userdata) {
     struct userdata *u = userdata;
     assert (u && u->core->mainloop == m && u->io_event == e);
 
@@ -214,7 +214,7 @@ static void io_callback(struct pa_mainloop_api *m, struct pa_io_event *e, int fd
         do_write(u);
 }
 
-static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
+static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     assert(s && u);
 
@@ -222,7 +222,7 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
     return pa_bytes_to_usec(u->out_fill, &s->sample_spec);
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct audio_buf_info info;
     struct userdata *u = NULL;
     const char *p;
@@ -230,7 +230,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     int mode, caps;
     int enable_bits = 0, zero = 0;
     int playback = 1, record = 1;
-    struct pa_modargs *ma = NULL;
+    pa_modargs *ma = NULL;
     assert(c && m);
 
     m->userdata = u = pa_xmalloc0(sizeof(struct userdata));
@@ -310,7 +310,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
             pa_source_set_owner(u->source, m);
             u->source->description = pa_sprintf_malloc("Open Sound System PCM/mmap() on '%s'", p);
             
-            u->in_memblocks = pa_xmalloc0(sizeof(struct pa_memblock *)*u->in_fragments);
+            u->in_memblocks = pa_xmalloc0(sizeof(pa_memblock *)*u->in_fragments);
             
             enable_bits |= PCM_ENABLE_INPUT;
         }
@@ -378,7 +378,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

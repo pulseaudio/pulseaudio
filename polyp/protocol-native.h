@@ -27,11 +27,11 @@
 #include "module.h"
 #include "modargs.h"
 
-struct pa_protocol_native;
+typedef struct pa_protocol_native pa_protocol_native;
 
-struct pa_protocol_native* pa_protocol_native_new(struct pa_core*core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma);
-void pa_protocol_native_free(struct pa_protocol_native *n);
+pa_protocol_native* pa_protocol_native_new(pa_core*core, pa_socket_server *server, pa_module *m, pa_modargs *ma);
+void pa_protocol_native_free(pa_protocol_native *n);
 
-struct pa_protocol_native* pa_protocol_native_new_iochannel(struct pa_core*core, struct pa_iochannel *io, struct pa_module *m, struct pa_modargs *ma);
+pa_protocol_native* pa_protocol_native_new_iochannel(pa_core*core, pa_iochannel *io, pa_module *m, pa_modargs *ma);
 
 #endif

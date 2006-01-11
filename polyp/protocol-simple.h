@@ -27,9 +27,9 @@
 #include "core.h"
 #include "modargs.h"
 
-struct pa_protocol_simple;
+typedef struct pa_protocol_simple pa_protocol_simple;
 
-struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma);
-void pa_protocol_simple_free(struct pa_protocol_simple *n);
+pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma);
+void pa_protocol_simple_free(pa_protocol_simple *n);
 
 #endif

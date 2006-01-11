@@ -135,17 +135,17 @@ int main(int argc, char *argv[]) {
         }
 
         case EXPORT: {
-            struct pa_client_conf *c = pa_client_conf_new();
+            pa_client_conf *conf = pa_client_conf_new();
             uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
             char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
-            assert(c);
+            assert(conf);
 
-            if (pa_client_conf_load(c, NULL) < 0) {
+            if (pa_client_conf_load(conf, NULL) < 0) {
                 fprintf(stderr, "Failed to load client configuration file.\n");
                 goto finish;
             }
 
-            if (pa_client_conf_env(c) < 0) {
+            if (pa_client_conf_env(conf) < 0) {
                 fprintf(stderr, "Failed to read environment configuration data.\n");
                 goto finish;
             }
@@ -158,8 +158,8 @@ int main(int argc, char *argv[]) {
             
             if (server)
                 pa_x11_set_prop(d, "POLYP_SERVER", server);
-            else if (c->default_server)
-                pa_x11_set_prop(d, "POLYP_SERVER", c->default_server);
+            else if (conf->default_server)
+                pa_x11_set_prop(d, "POLYP_SERVER", conf->default_server);
             else {
                 char hn[256];
                 if (!pa_get_fqdn(hn, sizeof(hn))) {
@@ -172,15 +172,15 @@ int main(int argc, char *argv[]) {
 
             if (sink)
                 pa_x11_set_prop(d, "POLYP_SINK", sink);
-            else if (c->default_sink)
-                pa_x11_set_prop(d, "POLYP_SINK", c->default_sink);
+            else if (conf->default_sink)
+                pa_x11_set_prop(d, "POLYP_SINK", conf->default_sink);
 
             if (source)
                 pa_x11_set_prop(d, "POLYP_SOURCE", source);
-            if (c->default_source)
-                pa_x11_set_prop(d, "POLYP_SOURCE", c->default_source);
+            if (conf->default_source)
+                pa_x11_set_prop(d, "POLYP_SOURCE", conf->default_source);
 
-            pa_client_conf_free(c);
+            pa_client_conf_free(conf);
             
             if (pa_authkey_load_auto(cookie_file, cookie, sizeof(cookie)) < 0) {
                 fprintf(stderr, "Failed to load cookie data\n");

@@ -33,7 +33,7 @@
 
 /* Set the hardware parameters of the given ALSA device. Returns the
  * selected fragment settings in *period and *period_size */
-int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const struct pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size) {
+int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size) {
     int ret = -1;
     snd_pcm_uframes_t buffer_size;
     snd_pcm_hw_params_t *hwparams = NULL;
@@ -85,10 +85,10 @@ finish:
  * *io_events. Store the length of that array in *n_io_events. Use the
  * specified callback function and userdata. The array has to be freed
  * with pa_free_io_events(). */
-int pa_create_io_events(snd_pcm_t *pcm_handle, struct pa_mainloop_api* m, struct pa_io_event ***io_events, unsigned *n_io_events, void (*cb)(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags events, void *userdata), void *userdata) {
+int pa_create_io_events(snd_pcm_t *pcm_handle, pa_mainloop_api* m, pa_io_event ***io_events, unsigned *n_io_events, void (*cb)(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags events, void *userdata), void *userdata) {
     unsigned i;
     struct pollfd *pfds, *ppfd;
-    struct pa_io_event **ios;
+    pa_io_event **ios;
     assert(pcm_handle && m && io_events && n_io_events && cb);
 
     *n_io_events = snd_pcm_poll_descriptors_count(pcm_handle);
@@ -113,9 +113,9 @@ int pa_create_io_events(snd_pcm_t *pcm_handle, struct pa_mainloop_api* m, struct
 }
 
 /* Free the memory allocated by pa_create_io_events() */
-void pa_free_io_events(struct pa_mainloop_api* m, struct pa_io_event **io_events, unsigned n_io_events) {
+void pa_free_io_events(pa_mainloop_api* m, pa_io_event **io_events, unsigned n_io_events) {
     unsigned i;
-    struct pa_io_event **ios;
+    pa_io_event **ios;
     assert(m && io_events);
     
     for (ios = io_events, i = 0; i < n_io_events; i++, ios++)

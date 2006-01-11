@@ -166,8 +166,8 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static struct pa_socket_server *create_socket_server(struct pa_core *c, struct pa_modargs *ma) {
-    struct pa_socket_server *s;
+static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
+    pa_socket_server *s;
 #if defined(USE_TCP_SOCKETS) || defined(USE_TCP6_SOCKETS)
     int loopback = 1;
     uint32_t port = IPV4_PORT;
@@ -183,7 +183,7 @@ static struct pa_socket_server *create_socket_server(struct pa_core *c, struct p
     }
 
 #ifdef USE_TCP6_SOCKETS
-    if (!(s = pa_socket_server_new_ipv6(c->mainloop, loopback ? (uint8_t*) &in6addr_loopback : (uint8_t*) &in6addr_any, port)))
+    if (!(s = pa_socket_server_new_ipv6(c->mainloop, loopback ? (const uint8_t*) &in6addr_loopback : (const uint8_t*) &in6addr_any, port)))
         return NULL;
 #else
     if (!(s = pa_socket_server_new_ipv4(c->mainloop, loopback ? INADDR_LOOPBACK : INADDR_ANY, port, TCPWRAP_SERVICE)))
@@ -220,9 +220,9 @@ static struct pa_socket_server *create_socket_server(struct pa_core *c, struct p
     return s;
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_socket_server *s;
-    struct pa_modargs *ma = NULL;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_socket_server *s;
+    pa_modargs *ma = NULL;
     int ret = -1;
     assert(c && m);
 
@@ -248,7 +248,7 @@ finish:
     return ret;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     assert(c && m);
 
 #if defined(USE_PROTOCOL_ESOUND)

@@ -1,5 +1,5 @@
-#ifndef foogccprintfhfoo
-#define foogccprintfhfoo
+#ifndef foogccmacrohfoo
+#define foogccmacrohfoo
 
 /* $Id$ */
 
@@ -22,12 +22,32 @@
   USA.
 ***/
 
-/* If we're in GNU C, use some magic for detecting invalid format strings */
-
 #ifdef __GNUC__
 #define PA_GCC_PRINTF_ATTR(a,b) __attribute__ ((format (printf, a, b)))
 #else
+/** If we're in GNU C, use some magic for detecting invalid format strings */
 #define PA_GCC_PRINTF_ATTR(a,b)
+#endif
+
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+#define PA_GCC_SENTINEL __attribute__ ((sentinel))
+#else
+/** Macro for usage of GCC's sentinel compilation warnings */
+#define PA_GCC_SENTINEL
+#endif
+
+#ifdef __GNUC__
+#define PA_GCC_NORETURN __attribute__((noreturn))
+#else
+/** Macro for no-return functions */
+#define PA_GCC_NORETURN
+#endif
+
+#ifdef __GNUC__
+#define PA_GCC_UNUSED __attribute__ ((unused))
+#else
+/** Macro for not used parameter */
+#define PA_GCC_UNUSED
 #endif
 
 #endif

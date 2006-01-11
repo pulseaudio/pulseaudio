@@ -28,6 +28,7 @@
 
 #include "endianmacros.h"
 #include "sconv.h"
+#include "sconv-s16le.h"
 #include "log.h"
 
 #ifndef INT16_FROM

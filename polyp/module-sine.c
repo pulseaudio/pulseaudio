@@ -43,10 +43,10 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 #define PA_TYPEID_SINE PA_TYPEID_MAKE('S', 'I', 'N', 'E')
 
 struct userdata {
-    struct pa_core *core;
-    struct pa_module *module;
-    struct pa_sink_input *sink_input;
-    struct pa_memblock *memblock;
+    pa_core *core;
+    pa_module *module;
+    pa_sink_input *sink_input;
+    pa_memblock *memblock;
     size_t peek_index;
 };
 
@@ -56,7 +56,7 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
+static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
     struct userdata *u;
     assert(i && chunk && i->userdata);
     u = i->userdata;
@@ -67,7 +67,7 @@ static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     return 0;
 }
 
-static void sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length) {
+static void sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
     struct userdata *u;
     assert(i && chunk && length && i->userdata);
     u = i->userdata;
@@ -80,7 +80,7 @@ static void sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *c
         u->peek_index = 0;
 }
 
-static void sink_input_kill(struct pa_sink_input *i) {
+static void sink_input_kill(pa_sink_input *i) {
     struct userdata *u;
     assert(i && i->userdata);
     u = i->userdata;
@@ -101,12 +101,12 @@ static void calc_sine(float *f, size_t l, float freq) {
         f[i] = (float) sin((double) i/l*M_PI*2*freq)/2;
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_modargs *ma = NULL;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_modargs *ma = NULL;
     struct userdata *u;
-    struct pa_sink *sink;
+    pa_sink *sink;
     const char *sink_name;
-    struct pa_sample_spec ss;
+    pa_sample_spec ss;
     uint32_t frequency;
     char t[256];
 
@@ -164,7 +164,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u = m->userdata;
     assert(c && m);
 

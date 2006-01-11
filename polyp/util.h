@@ -27,7 +27,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "gcc-printf.h"
+#include "gccmacro.h"
 #include "sample.h"
 
 struct timeval;

@@ -36,17 +36,18 @@
 #include "xmalloc.h"
 #include "subscribe.h"
 #include "log.h"
+#include "polyplib-introspect.h"
 
 #define MAX_MIX_CHANNELS 32
 
-struct pa_sink* pa_sink_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec) {
-    struct pa_sink *s;
+pa_sink* pa_sink_new(pa_core *core, pa_typeid_t typeid, const char *name, int fail, const pa_sample_spec *spec) {
+    pa_sink *s;
     char *n = NULL;
     char st[256];
     int r;
     assert(core && name && *name && spec);
 
-    s = pa_xmalloc(sizeof(struct pa_sink));
+    s = pa_xmalloc(sizeof(pa_sink));
 
     if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SINK, s, fail))) {
         pa_xfree(s);
@@ -89,8 +90,8 @@ struct pa_sink* pa_sink_new(struct pa_core *core, pa_typeid_t typeid, const char
     return s;
 }
 
-void pa_sink_disconnect(struct pa_sink* s) {
-    struct pa_sink_input *i, *j = NULL;
+void pa_sink_disconnect(pa_sink* s) {
+    pa_sink_input *i, *j = NULL;
     assert(s && s->state == PA_SINK_RUNNING);
 
     pa_namereg_unregister(s->core, s->name);
@@ -112,7 +113,7 @@ void pa_sink_disconnect(struct pa_sink* s) {
     s->state = PA_SINK_DISCONNECTED;
 }
 
-static void sink_free(struct pa_sink *s) {
+static void sink_free(pa_sink *s) {
     assert(s && s->ref == 0);
     
     if (s->state != PA_SINK_DISCONNECTED)
@@ -130,34 +131,34 @@ static void sink_free(struct pa_sink *s) {
     pa_xfree(s);
 }
 
-void pa_sink_unref(struct pa_sink*s) {
+void pa_sink_unref(pa_sink*s) {
     assert(s && s->ref >= 1);
 
     if (!(--s->ref))
         sink_free(s);
 }
 
-struct pa_sink* pa_sink_ref(struct pa_sink *s) {
+pa_sink* pa_sink_ref(pa_sink *s) {
     assert(s && s->ref >= 1);
     s->ref++;
     return s;
 }
 
-void pa_sink_notify(struct pa_sink*s) {
+void pa_sink_notify(pa_sink*s) {
     assert(s && s->ref >= 1);
 
     if (s->notify)
         s->notify(s);
 }
 
-static unsigned fill_mix_info(struct pa_sink *s, struct pa_mix_info *info, unsigned maxinfo) {
-    uint32_t index = PA_IDXSET_INVALID;
-    struct pa_sink_input *i;
+static unsigned fill_mix_info(pa_sink *s, pa_mix_info *info, unsigned maxinfo) {
+    uint32_t idx = PA_IDXSET_INVALID;
+    pa_sink_input *i;
     unsigned n = 0;
     
     assert(s && s->ref >= 1 && info);
 
-    for (i = pa_idxset_first(s->inputs, &index); maxinfo > 0 && i; i = pa_idxset_next(s->inputs, &index)) {
+    for (i = pa_idxset_first(s->inputs, &idx); maxinfo > 0 && i; i = pa_idxset_next(s->inputs, &idx)) {
         pa_sink_input_ref(i);
 
         if (pa_sink_input_peek(i, &info->chunk) < 0) {
@@ -178,11 +179,11 @@ static unsigned fill_mix_info(struct pa_sink *s, struct pa_mix_info *info, unsig
     return n;
 }
 
-static void inputs_drop(struct pa_sink *s, struct pa_mix_info *info, unsigned maxinfo, size_t length) {
+static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned maxinfo, size_t length) {
     assert(s && s->ref >= 1 && info);
 
     for (; maxinfo > 0; maxinfo--, info++) {
-        struct pa_sink_input *i = info->userdata;
+        pa_sink_input *i = info->userdata;
         assert(i && info->chunk.memblock);
         
         pa_sink_input_drop(i, &info->chunk, length);
@@ -193,8 +194,8 @@ static void inputs_drop(struct pa_sink *s, struct pa_mix_info *info, unsigned ma
     }
 }
         
-int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result) {
-    struct pa_mix_info info[MAX_MIX_CHANNELS];
+int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
+    pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
     size_t l;
     int r = -1;
@@ -212,7 +213,7 @@ int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result) 
 
     if (n == 1) {
         uint32_t volume = PA_VOLUME_NORM;
-        struct pa_sink_input *i = info[0].userdata;
+        pa_sink_input *i = info[0].userdata;
         assert(i);
         *result = info[0].chunk;
         pa_memblock_ref(result->memblock);
@@ -252,8 +253,8 @@ finish:
     return r;
 }
 
-int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target) {
-    struct pa_mix_info info[MAX_MIX_CHANNELS];
+int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
+    pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
     size_t l;
     int r = -1;
@@ -268,8 +269,6 @@ int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target) {
 
     if (n == 1) {
         uint32_t volume = PA_VOLUME_NORM;
-        struct pa_sink_info *i = info[0].userdata;
-        assert(i);
 
         l = target->length;
         if (l > info[0].chunk.length)
@@ -300,8 +299,8 @@ finish:
     return r;
 }
 
-void pa_sink_render_into_full(struct pa_sink *s, struct pa_memchunk *target) {
-    struct pa_memchunk chunk;
+void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
+    pa_memchunk chunk;
     size_t l, d;
     assert(s && s->ref >= 1 && target && target->memblock && target->length && target->memblock->data);
 
@@ -331,7 +330,7 @@ void pa_sink_render_into_full(struct pa_sink *s, struct pa_memchunk *target) {
     pa_sink_unref(s);
 }
 
-void pa_sink_render_full(struct pa_sink *s, size_t length, struct pa_memchunk *result) {
+void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     assert(s && s->ref >= 1 && length && result);
 
     /*** This needs optimization ***/
@@ -342,7 +341,7 @@ void pa_sink_render_full(struct pa_sink *s, size_t length, struct pa_memchunk *r
     pa_sink_render_into_full(s, result);
 }
 
-pa_usec_t pa_sink_get_latency(struct pa_sink *s) {
+pa_usec_t pa_sink_get_latency(pa_sink *s) {
     assert(s && s->ref >= 1);
 
     if (!s->get_latency)
@@ -351,7 +350,7 @@ pa_usec_t pa_sink_get_latency(struct pa_sink *s) {
     return s->get_latency(s);
 }
 
-void pa_sink_set_owner(struct pa_sink *s, struct pa_module *m) {
+void pa_sink_set_owner(pa_sink *s, pa_module *m) {
     assert(s && s->ref >= 1);
            
     s->owner = m;
@@ -360,7 +359,7 @@ void pa_sink_set_owner(struct pa_sink *s, struct pa_module *m) {
         pa_source_set_owner(s->monitor_source, m);
 }
 
-void pa_sink_set_volume(struct pa_sink *s, pa_volume_t volume) {
+void pa_sink_set_volume(pa_sink *s, pa_volume_t volume) {
     assert(s && s->ref >= 1);
     
     if (s->volume != volume) {

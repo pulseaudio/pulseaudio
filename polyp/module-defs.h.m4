@@ -21,4 +21,9 @@ gen_symbol(pa__get_version)
 int pa__init(struct pa_core *c, struct pa_module*m);
 void pa__done(struct pa_core *c, struct pa_module*m);
 
+const char* pa__get_author(void);
+const char* pa__get_description(void);
+const char* pa__get_usage(void);
+const char* pa__get_version(void);
+
 #endif

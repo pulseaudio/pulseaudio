@@ -28,18 +28,18 @@
 
 /* It is safe to destroy the calling socket_server object from the callback */
 
-struct pa_socket_server;
+typedef struct pa_socket_server pa_socket_server;
 
-struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd);
-struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename);
-struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port, const char *tcpwrap_service);
-struct pa_socket_server* pa_socket_server_new_ipv6(struct pa_mainloop_api *m, uint8_t address[16], uint16_t port);
+pa_socket_server* pa_socket_server_new(pa_mainloop_api *m, int fd);
+pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *filename);
+pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address, uint16_t port, const char *tcpwrap_service);
+pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t address[16], uint16_t port);
 
-void pa_socket_server_unref(struct pa_socket_server*s);
-struct pa_socket_server* pa_socket_server_ref(struct pa_socket_server *s);
+void pa_socket_server_unref(pa_socket_server*s);
+pa_socket_server* pa_socket_server_ref(pa_socket_server *s);
 
-void pa_socket_server_set_callback(struct pa_socket_server*s, void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata), void *userdata);
+void pa_socket_server_set_callback(pa_socket_server*s, void (*on_connection)(pa_socket_server*s, pa_iochannel *io, void *userdata), void *userdata);
 
-char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l);
+char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l);
 
 #endif

@@ -55,8 +55,8 @@
 
 #define UNLOAD_POLL_TIME 2
 
-static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
-    struct pa_core *c = userdata;
+static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+    pa_core *c = userdata;
     struct timeval ntv;
     assert(c && c->mainloop == m && c->scache_auto_unload_event == e);
 
@@ -67,7 +67,7 @@ static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, 
     m->time_restart(e, &ntv);
 }
 
-static void free_entry(struct pa_scache_entry *e) {
+static void free_entry(pa_scache_entry *e) {
     assert(e);
     pa_namereg_unregister(e->core, e->name);
     pa_subscription_post(e->core, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_REMOVE, e->index);
@@ -78,8 +78,8 @@ static void free_entry(struct pa_scache_entry *e) {
     pa_xfree(e);
 }
 
-static struct pa_scache_entry* scache_add_item(struct pa_core *c, const char *name) {
-    struct pa_scache_entry *e;
+static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
+    pa_scache_entry *e;
     assert(c && name);
 
     if ((e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0))) {
@@ -92,7 +92,7 @@ static struct pa_scache_entry* scache_add_item(struct pa_core *c, const char *na
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
     } else {
-        e = pa_xmalloc(sizeof(struct pa_scache_entry));
+        e = pa_xmalloc(sizeof(pa_scache_entry));
 
         if (!pa_namereg_register(c, name, PA_NAMEREG_SAMPLE, e, 1)) {
             pa_xfree(e);
@@ -120,13 +120,13 @@ static struct pa_scache_entry* scache_add_item(struct pa_core *c, const char *na
     e->lazy = 0;
     e->last_used_time = 0;
 
-    memset(&e->sample_spec, 0, sizeof(struct pa_sample_spec));
+    memset(&e->sample_spec, 0, sizeof(pa_sample_spec));
 
     return e;
 }
 
-int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index) {
-    struct pa_scache_entry *e;
+int pa_scache_add_item(pa_core *c, const char *name, pa_sample_spec *ss, pa_memchunk *chunk, uint32_t *idx) {
+    pa_scache_entry *e;
     assert(c && name);
 
     if (!(e = scache_add_item(c, name)))
@@ -140,15 +140,15 @@ int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spe
         pa_memblock_ref(e->memchunk.memblock);
     }
 
-    if (index)
-        *index = e->index;
+    if (idx)
+        *idx = e->index;
 
     return 0;
 }
 
-int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename, uint32_t *index) {
-    struct pa_sample_spec ss;
-    struct pa_memchunk chunk;
+int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint32_t *idx) {
+    pa_sample_spec ss;
+    pa_memchunk chunk;
     int r;
 
 #ifdef OS_IS_WIN32
@@ -161,14 +161,14 @@ int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename
     if (pa_sound_file_load(filename, &ss, &chunk, c->memblock_stat) < 0)
         return -1;
         
-    r = pa_scache_add_item(c, name, &ss, &chunk, index);
+    r = pa_scache_add_item(c, name, &ss, &chunk, idx);
     pa_memblock_unref(chunk.memblock);
 
     return r;
 }
 
-int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *filename, uint32_t *index) {
-    struct pa_scache_entry *e;
+int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, uint32_t *idx) {
+    pa_scache_entry *e;
 
 #ifdef OS_IS_WIN32
     char buf[MAX_PATH];
@@ -192,11 +192,14 @@ int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *fil
         c->scache_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
     }
 
+    if (idx)
+        *idx = e->index;
+
     return 0;
 }
 
-int pa_scache_remove_item(struct pa_core *c, const char *name) {
-    struct pa_scache_entry *e;
+int pa_scache_remove_item(pa_core *c, const char *name) {
+    pa_scache_entry *e;
     assert(c && name);
 
     if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0)))
@@ -209,13 +212,13 @@ int pa_scache_remove_item(struct pa_core *c, const char *name) {
     return 0;
 }
 
-static void free_cb(void *p, void *userdata) {
-    struct pa_scache_entry *e = p;
+static void free_cb(void *p, PA_GCC_UNUSED void *userdata) {
+    pa_scache_entry *e = p;
     assert(e);
     free_entry(e);
 }
 
-void pa_scache_free(struct pa_core *c) {
+void pa_scache_free(pa_core *c) {
     assert(c);
 
     if (c->scache) {
@@ -227,8 +230,8 @@ void pa_scache_free(struct pa_core *c) {
         c->mainloop->time_free(c->scache_auto_unload_event);
 }
 
-int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume) {
-    struct pa_scache_entry *e;
+int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, uint32_t volume) {
+    pa_scache_entry *e;
     char *t;
     assert(c && name && sink);
 
@@ -259,8 +262,8 @@ int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sin
     return 0;
 }
 
-const char * pa_scache_get_name_by_id(struct pa_core *c, uint32_t id) {
-    struct pa_scache_entry *e;
+const char * pa_scache_get_name_by_id(pa_core *c, uint32_t id) {
+    pa_scache_entry *e;
     assert(c && id != PA_IDXSET_INVALID);
 
     if (!c->scache || !(e = pa_idxset_get_by_index(c->scache, id)))
@@ -269,8 +272,8 @@ const char * pa_scache_get_name_by_id(struct pa_core *c, uint32_t id) {
     return e->name;
 }
 
-uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name) {
-    struct pa_scache_entry *e;
+uint32_t pa_scache_get_id_by_name(pa_core *c, const char *name) {
+    pa_scache_entry *e;
     assert(c && name);
 
     if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 0)))
@@ -279,33 +282,33 @@ uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name) {
     return e->index;
 }
 
-uint32_t pa_scache_total_size(struct pa_core *c) {
-    struct pa_scache_entry *e;
-    uint32_t index, sum = 0;
+uint32_t pa_scache_total_size(pa_core *c) {
+    pa_scache_entry *e;
+    uint32_t idx, sum = 0;
     assert(c);
 
-    if (!c->scache || !pa_idxset_ncontents(c->scache))
+    if (!c->scache || !pa_idxset_size(c->scache))
         return 0;
     
-    for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index))
+    for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx))
         if (e->memchunk.memblock)
             sum += e->memchunk.length;
 
     return sum;
 }
 
-void pa_scache_unload_unused(struct pa_core *c) {
-    struct pa_scache_entry *e;
+void pa_scache_unload_unused(pa_core *c) {
+    pa_scache_entry *e;
     time_t now;
-    uint32_t index;
+    uint32_t idx;
     assert(c);
 
-    if (!c->scache || !pa_idxset_ncontents(c->scache))
+    if (!c->scache || !pa_idxset_size(c->scache))
         return;
     
     time(&now);
 
-    for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index)) {
+    for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
 
         if (!e->lazy || !e->memchunk.memblock)
             continue;
@@ -321,7 +324,7 @@ void pa_scache_unload_unused(struct pa_core *c) {
     }
 }
 
-static void add_file(struct pa_core *c, const char *pathname) {
+static void add_file(pa_core *c, const char *pathname) {
     struct stat st;
     const char *e;
 
@@ -338,7 +341,7 @@ static void add_file(struct pa_core *c, const char *pathname) {
         pa_scache_add_file_lazy(c, e, pathname, NULL);
 }
 
-int pa_scache_add_directory_lazy(struct pa_core *c, const char *pathname) {
+int pa_scache_add_directory_lazy(pa_core *c, const char *pathname) {
     DIR *dir;
     assert(c && pathname);
 

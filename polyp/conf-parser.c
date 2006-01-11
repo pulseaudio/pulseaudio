@@ -37,7 +37,7 @@
 #define COMMENTS "#;\n"
 
 /* Run the user supplied parser for an assignment */
-static int next_assignment(const char *filename, unsigned line, const struct pa_config_item *t, const char *lvalue, const char *rvalue, void *userdata) {
+static int next_assignment(const char *filename, unsigned line, const pa_config_item *t, const char *lvalue, const char *rvalue, void *userdata) {
     assert(filename && t && lvalue && rvalue);
     
     for (; t->parse; t++)
@@ -77,7 +77,7 @@ static char *strip(char *s) {
 }
 
 /* Parse a variable assignment line */
-static int parse_line(const char *filename, unsigned line, const struct pa_config_item *t, char *l, void *userdata) {
+static int parse_line(const char *filename, unsigned line, const pa_config_item *t, char *l, void *userdata) {
     char *e, *c, *b = l+strspn(l, WHITESPACE);
 
     if ((c = strpbrk(b, COMMENTS)))
@@ -98,7 +98,7 @@ static int parse_line(const char *filename, unsigned line, const struct pa_confi
 }
 
 /* Go through the file and parse each line */
-int pa_config_parse(const char *filename, FILE *f, const struct pa_config_item *t, void *userdata) {
+int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void *userdata) {
     int r = -1;
     unsigned line = 0;
     int do_close = !f;
@@ -138,7 +138,7 @@ finish:
     return r;
 }
 
-int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
     int *i = data;
     int32_t k;
     assert(filename && lvalue && rvalue && data);
@@ -152,7 +152,7 @@ int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue,
     return 0; 
 }
 
-int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
     int *b = data, k;
     assert(filename && lvalue && rvalue && data);
     
@@ -166,7 +166,7 @@ int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue
     return 0;
 }
 
-int pa_config_parse_string(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
+int pa_config_parse_string(const char *filename, PA_GCC_UNUSED unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
     char **s = data;
     assert(filename && lvalue && rvalue && data);
 

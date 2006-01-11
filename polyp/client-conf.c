@@ -60,7 +60,7 @@
 #define ENV_DAEMON_BINARY "POLYP_BINARY"
 #define ENV_COOKIE_FILE "POLYP_COOKIE"
 
-static const struct pa_client_conf default_conf = {
+static const pa_client_conf default_conf = {
     .daemon_binary = NULL,
     .extra_arguments = NULL,
     .default_sink = NULL,
@@ -71,8 +71,8 @@ static const struct pa_client_conf default_conf = {
     .cookie_valid = 0
 };
 
-struct pa_client_conf *pa_client_conf_new(void) {
-    struct pa_client_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
+pa_client_conf *pa_client_conf_new(void) {
+    pa_client_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
     
     c->daemon_binary = pa_xstrdup(POLYPAUDIO_BINARY);
     c->extra_arguments = pa_xstrdup("--log-target=syslog --exit-idle-time=5");
@@ -81,7 +81,7 @@ struct pa_client_conf *pa_client_conf_new(void) {
     return c;
 }
 
-void pa_client_conf_free(struct pa_client_conf *c) {
+void pa_client_conf_free(pa_client_conf *c) {
     assert(c);
     pa_xfree(c->daemon_binary);
     pa_xfree(c->extra_arguments);
@@ -91,13 +91,13 @@ void pa_client_conf_free(struct pa_client_conf *c) {
     pa_xfree(c->cookie_file);
     pa_xfree(c);
 }
-int pa_client_conf_load(struct pa_client_conf *c, const char *filename) {
+int pa_client_conf_load(pa_client_conf *c, const char *filename) {
     FILE *f = NULL;
     char *fn = NULL;
     int r = -1;
 
     /* Prepare the configuration parse table */
-    struct pa_config_item table[] = {
+    pa_config_item table[] = {
         { "daemon-binary",          pa_config_parse_string,  NULL },
         { "extra-arguments",        pa_config_parse_string,  NULL },
         { "default-sink",           pa_config_parse_string,  NULL },
@@ -140,7 +140,7 @@ finish:
     return r;
 }
 
-int pa_client_conf_env(struct pa_client_conf *c) {
+int pa_client_conf_env(pa_client_conf *c) {
     char *e;
     
     if ((e = getenv(ENV_DEFAULT_SINK))) {
@@ -173,7 +173,7 @@ int pa_client_conf_env(struct pa_client_conf *c) {
     return 0;
 }
 
-int pa_client_conf_load_cookie(struct pa_client_conf* c) {
+int pa_client_conf_load_cookie(pa_client_conf* c) {
     assert(c);
 
     c->cookie_valid = 0;

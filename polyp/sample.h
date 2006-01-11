@@ -34,7 +34,7 @@
 PA_C_DECL_BEGIN
 
 /** Sample format */
-enum pa_sample_format {
+typedef enum pa_sample_format {
     PA_SAMPLE_U8,              /**< Unsigned 8 Bit PCM */
     PA_SAMPLE_ALAW,            /**< 8 Bit a-Law */
     PA_SAMPLE_ULAW,            /**< 8 Bit mu-Law */
@@ -44,7 +44,7 @@ enum pa_sample_format {
     PA_SAMPLE_FLOAT32BE,       /**< 32 Bit IEEE floating point, big endian, range -1..1 */
     PA_SAMPLE_MAX,             /**< Upper limit of valid sample types */
     PA_SAMPLE_INVALID = -1     /**< An invalid value */
-};
+} pa_sample_format;
 
 #ifdef WORDS_BIGENDIAN
 /** Signed 16 Bit PCM, native endian */
@@ -70,38 +70,38 @@ enum pa_sample_format {
 #define PA_SAMPLE_FLOAT32 PA_SAMPLE_FLOAT32NE
 
 /** A sample format and attribute specification */
-struct pa_sample_spec {
-    enum pa_sample_format format;  /**< The sample format */
+typedef struct pa_sample_spec {
+    pa_sample_format format;  /**< The sample format */
     uint32_t rate;                 /**< The sample rate. (e.g. 44100) */
     uint8_t channels;              /**< Audio channels. (1 for mono, 2 for stereo, ...) */
-};
+} pa_sample_spec;
 
 /** Type for usec specifications (unsigned). May be either 32 or 64 bit, depending on the architecture */
 typedef uint64_t pa_usec_t;
 
 /** Return the amount of bytes playback of a second of audio with the specified sample type takes */
-size_t pa_bytes_per_second(const struct pa_sample_spec *spec);
+size_t pa_bytes_per_second(const pa_sample_spec *spec);
 
 /** Return the size of a frame with the specific sample type */
-size_t pa_frame_size(const struct pa_sample_spec *spec);
+size_t pa_frame_size(const pa_sample_spec *spec);
 
 /** Calculate the time the specified bytes take to play with the specified sample type */
-pa_usec_t pa_bytes_to_usec(uint64_t length, const struct pa_sample_spec *spec);
+pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec);
 
 /** Return non-zero when the sample type specification is valid */
-int pa_sample_spec_valid(const struct pa_sample_spec *spec);
+int pa_sample_spec_valid(const pa_sample_spec *spec);
 
 /** Return non-zero when the two sample type specifications match */
-int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b);
+int pa_sample_spec_equal(const pa_sample_spec*a, const pa_sample_spec*b);
 
 /* Return a descriptive string for the specified sample format. \since 0.8 */
-const char *pa_sample_format_to_string(enum pa_sample_format f);
+const char *pa_sample_format_to_string(pa_sample_format f);
 
 /** Maximum required string length for pa_sample_spec_snprint() */
 #define PA_SAMPLE_SPEC_SNPRINT_MAX 32
 
 /** Pretty print a sample type specification to a string */
-char* pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec);
+char* pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec);
 
 /** Volume specification: 0: silence; < 256: diminished volume; 256: normal volume; > 256 amplified volume */
 typedef uint32_t pa_volume_t;
@@ -138,7 +138,7 @@ pa_volume_t pa_volume_from_user(double v);
 void pa_bytes_snprint(char *s, size_t l, unsigned v);
 
 /** Parse a sample format text. Inverse of pa_sample_format_to_string() */
-enum pa_sample_format pa_parse_sample_format(const char *format);
+pa_sample_format pa_parse_sample_format(const char *format);
 
 PA_C_DECL_END
 

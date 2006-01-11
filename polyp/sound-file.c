@@ -34,7 +34,7 @@
 
 #define MAX_FILE_SIZE (1024*1024)
 
-int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_memchunk *chunk, struct pa_memblock_stat *s) {
+int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_memchunk *chunk, pa_memblock_stat *s) {
     SNDFILE*sf = NULL;
     SF_INFO sfinfo;
     int ret = -1;
@@ -106,7 +106,7 @@ finish:
 int pa_sound_file_too_big_to_cache(const char *fname) {
     SNDFILE*sf = NULL;
     SF_INFO sfinfo;
-    struct pa_sample_spec ss;
+    pa_sample_spec ss;
 
     if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
         pa_log(__FILE__": Failed to open file %s\n", fname);

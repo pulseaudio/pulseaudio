@@ -75,7 +75,7 @@ int deny_severity = LOG_WARNING;
 
 #ifdef OS_IS_WIN32
 
-static void message_cb(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata) {
+static void message_cb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
     MSG msg;
 
     while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -90,7 +90,7 @@ static void message_cb(struct pa_mainloop_api*a, struct pa_defer_event *e, void 
 
 #endif
 
-static void signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
+static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e, int sig, void *userdata) {
     pa_log_info(__FILE__": Got signal %s.\n", pa_strsignal(sig));
 
     switch (sig) {
@@ -133,12 +133,12 @@ static void close_pipe(int p[2]) {
 }
 
 int main(int argc, char *argv[]) {
-    struct pa_core *c;
-    struct pa_strbuf *buf = NULL;
-    struct pa_daemon_conf *conf;
-    struct pa_mainloop *mainloop;
+    pa_core *c;
+    pa_strbuf *buf = NULL;
+    pa_daemon_conf *conf;
+    pa_mainloop *mainloop;
 
-    char *s;
+    char *s; 
     int r, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
     int suid_root;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef OS_IS_WIN32
-    struct pa_defer_event *defer;
+    pa_defer_event *defer;
 #endif
 
     pa_limit_caps();
@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
             goto finish;
 
         case PA_CMD_DUMP_CONF: {
-            char *s = pa_daemon_conf_dump(conf);
+            s = pa_daemon_conf_dump(conf);
             fputs(s, stdout);
             pa_xfree(s);
             retval = 0;
@@ -405,7 +405,7 @@ int main(int argc, char *argv[]) {
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
 #endif
-    } else if (!c->modules || pa_idxset_ncontents(c->modules) == 0) {
+    } else if (!c->modules || pa_idxset_size(c->modules) == 0) {
         pa_log(__FILE__": daemon startup without any loaded modules, refusing to work.\n");
 #ifdef HAVE_FORK
         if (conf->daemonize)

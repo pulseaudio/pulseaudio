@@ -33,15 +33,15 @@
 
 struct pa_mcalign {
     size_t base;
-    struct pa_memchunk leftover, current;
-    struct pa_memblock_stat *memblock_stat;
+    pa_memchunk leftover, current;
+    pa_memblock_stat *memblock_stat;
 };
 
-struct pa_mcalign *pa_mcalign_new(size_t base, struct pa_memblock_stat *s) {
-    struct pa_mcalign *m;
+pa_mcalign *pa_mcalign_new(size_t base, pa_memblock_stat *s) {
+    pa_mcalign *m;
     assert(base);
 
-    m = pa_xmalloc(sizeof(struct pa_mcalign));
+    m = pa_xnew(pa_mcalign, 1);
     m->base = base;
     pa_memchunk_reset(&m->leftover);
     pa_memchunk_reset(&m->current);
@@ -50,7 +50,7 @@ struct pa_mcalign *pa_mcalign_new(size_t base, struct pa_memblock_stat *s) {
     return m;
 }
 
-void pa_mcalign_free(struct pa_mcalign *m) {
+void pa_mcalign_free(pa_mcalign *m) {
     assert(m);
 
     if (m->leftover.memblock)
@@ -62,7 +62,7 @@ void pa_mcalign_free(struct pa_mcalign *m) {
     pa_xfree(m);
 }
 
-void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c) {
+void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
     assert(m && c && c->memblock && c->length);
     
     /* Append to the leftover memory block */
@@ -122,7 +122,7 @@ void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c) {
     }
 }
 
-int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c) {
+int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
     assert(m && c);
 
     /* First test if there's a leftover memory block available */

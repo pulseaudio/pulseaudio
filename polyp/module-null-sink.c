@@ -52,10 +52,10 @@ PA_MODULE_USAGE("format=<sample format> channels=<number of channels> rate=<samp
 #define PA_TYPEID_NULL PA_TYPEID_MAKE('N', 'U', 'L', 'L')
 
 struct userdata {
-    struct pa_core *core;
-    struct pa_module *module;
-    struct pa_sink *sink;
-    struct pa_time_event *time_event;
+    pa_core *core;
+    pa_module *module;
+    pa_sink *sink;
+    pa_time_event *time_event;
     size_t block_size;
 };
 
@@ -67,9 +67,9 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static void time_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
+static void time_callback(pa_mainloop_api *m, pa_time_event*e, const struct timeval *tv, void *userdata) {
     struct userdata *u = userdata;
-    struct pa_memchunk chunk;
+    pa_memchunk chunk;
     struct timeval ntv = *tv;
     size_t l;
 
@@ -85,10 +85,10 @@ static void time_callback(struct pa_mainloop_api *m, struct pa_time_event*e, con
     m->time_restart(e, &ntv);
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
-    struct pa_sample_spec ss;
-    struct pa_modargs *ma = NULL;
+    pa_sample_spec ss;
+    pa_modargs *ma = NULL;
     struct timeval tv;
     assert(c && m);
     
@@ -135,7 +135,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

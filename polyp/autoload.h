@@ -30,29 +30,29 @@
  * specified module is loaded. */
 
 /* An autoload entry, or "ghost" sink/source */
-struct pa_autoload_entry {
-    struct pa_core *core;
+typedef struct pa_autoload_entry {
+    pa_core *core;
     uint32_t index;
     char *name;
-    enum pa_namereg_type type; /* Type of the autoload entry */
+    pa_namereg_type type; /* Type of the autoload entry */
     int in_action; /* Currently loaded */
     char *module, *argument;   
-};
+} pa_autoload_entry;
 
 /* Add a new autoload entry of the given time, with the speicified
  * sink/source name, module name and argument. Return the entry's
  * index in *index */
-int pa_autoload_add(struct pa_core *c, const char*name, enum pa_namereg_type type, const char*module, const char *argument, uint32_t *index);
+int pa_autoload_add(pa_core *c, const char*name, pa_namereg_type type, const char*module, const char *argument, uint32_t *idx);
 
 /* Free all autoload entries */
-void pa_autoload_free(struct pa_core *c);
-int pa_autoload_remove_by_name(struct pa_core *c, const char*name, enum pa_namereg_type type);
-int pa_autoload_remove_by_index(struct pa_core *c, uint32_t index);
+void pa_autoload_free(pa_core *c);
+int pa_autoload_remove_by_name(pa_core *c, const char*name, pa_namereg_type type);
+int pa_autoload_remove_by_index(pa_core *c, uint32_t idx);
 
 /* Request an autoload entry by its name, effectively causing a module to be loaded */
-void pa_autoload_request(struct pa_core *c, const char *name, enum pa_namereg_type type);
+void pa_autoload_request(pa_core *c, const char *name, pa_namereg_type type);
 
-const struct pa_autoload_entry* pa_autoload_get_by_name(struct pa_core *c, const char*name, enum pa_namereg_type type);
-const struct pa_autoload_entry* pa_autoload_get_by_index(struct pa_core *c, uint32_t index);
+const pa_autoload_entry* pa_autoload_get_by_name(pa_core *c, const char*name, pa_namereg_type type);
+const pa_autoload_entry* pa_autoload_get_by_index(pa_core *c, uint32_t idx);
 
 #endif

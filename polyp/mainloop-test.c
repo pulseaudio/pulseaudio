@@ -28,10 +28,14 @@
 #include <sys/time.h>
 #include <assert.h>
 
+#include "util.h"
+#include "gccmacro.h"
+
 #ifdef GLIB_MAIN_LOOP
 
 #include <glib.h>
 #include "glib-mainloop.h"
+
 static GMainLoop* glib_main_loop = NULL;
 
 #if GLIB_MAJOR_VERSION >= 2
@@ -45,21 +49,21 @@ static GMainLoop* glib_main_loop = NULL;
 #include "mainloop.h"
 #endif /* GLIB_MAIN_LOOP */
 
-static struct pa_defer_event *de;
+static pa_defer_event *de;
 
-static void iocb(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
+static void iocb(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata) {
     unsigned char c;
     read(fd, &c, sizeof(c));
     fprintf(stderr, "IO EVENT: %c\n", c < 32 ? '.' : c);
     a->defer_enable(de, 1);
 }
 
-static void dcb(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata) {
+static void dcb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
     fprintf(stderr, "DEFER EVENT\n");
     a->defer_enable(e, 0);
 }
 
-static void tcb(struct pa_mainloop_api*a, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void tcb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, void *userdata) {
     fprintf(stderr, "TIME EVENT\n");
 
 #if defined(GLIB_MAIN_LOOP) && defined(GLIB20)
@@ -71,14 +75,14 @@ static void tcb(struct pa_mainloop_api*a, struct pa_time_event *e, const struct 
 #endif
 }
 
-int main(int argc, char *argv[]) {
-    struct pa_mainloop_api *a;
-    struct pa_io_event *ioe;
-    struct pa_time_event *te;
+int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
+    pa_mainloop_api *a;
+    pa_io_event *ioe;
+    pa_time_event *te;
     struct timeval tv;
 
 #ifdef GLIB_MAIN_LOOP
-    struct pa_glib_mainloop *g;
+    pa_glib_mainloop *g;
 
 #ifdef GLIB20 
     glib_main_loop = g_main_loop_new(NULL, FALSE);
@@ -96,7 +100,7 @@ int main(int argc, char *argv[]) {
     a = pa_glib_mainloop_get_api(g);
     assert(a);
 #else /* GLIB_MAIN_LOOP */
-    struct pa_mainloop *m;
+    pa_mainloop *m;
 
     m = pa_mainloop_new();
     assert(m);

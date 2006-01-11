@@ -28,15 +28,17 @@
 #include "core.h"
 #include "modinfo.h"
 
+typedef struct pa_module pa_module;
+
 struct pa_module {
-    struct pa_core *core;
+    pa_core *core;
     char *name, *argument;
     uint32_t index;
 
     lt_dlhandle dl;
     
-    int (*init)(struct pa_core *c, struct pa_module*m);
-    void (*done)(struct pa_core *c, struct pa_module*m);
+    int (*init)(pa_core *c, pa_module*m);
+    void (*done)(pa_core *c, pa_module*m);
 
     void *userdata;
 
@@ -47,22 +49,22 @@ struct pa_module {
     int unload_requested;
 };
 
-struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char*argument);
-/* void pa_module_unload(struct pa_core *c, struct pa_module *m); */
-/* void pa_module_unload_by_index(struct pa_core *c, uint32_t index); */
+pa_module* pa_module_load(pa_core *c, const char *name, const char*argument);
+void pa_module_unload(pa_core *c, pa_module *m);
+void pa_module_unload_by_index(pa_core *c, uint32_t idx);
 
-void pa_module_unload_all(struct pa_core *c);
-void pa_module_unload_unused(struct pa_core *c);
+void pa_module_unload_all(pa_core *c);
+void pa_module_unload_unused(pa_core *c);
 
-void pa_module_unload_request(struct pa_module *m);
+void pa_module_unload_request(pa_module *m);
 
-void pa_module_set_used(struct pa_module*m, int used);
+void pa_module_set_used(pa_module*m, int used);
 
 #define PA_MODULE_AUTHOR(s) const char * pa__get_author(void) { return s; }
 #define PA_MODULE_DESCRIPTION(s) const char * pa__get_description(void) { return s; }
 #define PA_MODULE_USAGE(s) const char * pa__get_usage(void) { return s; }
 #define PA_MODULE_VERSION(s) const char * pa__get_version(void) { return s; }
 
-struct pa_modinfo *pa_module_get_info(struct pa_module *m);
+pa_modinfo *pa_module_get_info(pa_module *m);
 
 #endif

@@ -64,23 +64,23 @@ struct service {
 
     struct {
         int valid;
-        enum pa_namereg_type type;
+        pa_namereg_type type;
         uint32_t index;
     } loaded;
 
     struct {
         int valid;
-        enum pa_namereg_type type;
+        pa_namereg_type type;
         uint32_t index;
     } autoload;
 };
 
 struct userdata {
-    struct pa_core *core;
-    struct pa_howl_wrapper *howl_wrapper;
-    struct pa_hashmap *services;
-    struct pa_dynarray *sink_dynarray, *source_dynarray, *autoload_dynarray;
-    struct pa_subscription *subscription;
+    pa_core *core;
+    pa_howl_wrapper *howl_wrapper;
+    pa_hashmap *services;
+    pa_dynarray *sink_dynarray, *source_dynarray, *autoload_dynarray;
+    pa_subscription *subscription;
 
     uint16_t port;
     sw_discovery_oid server_oid;
@@ -90,17 +90,17 @@ static sw_result publish_reply(sw_discovery discovery, sw_discovery_publish_stat
     return SW_OKAY;
 }
 
-static void get_service_data(struct userdata *u, struct service *s, struct pa_sample_spec *ret_ss, char **ret_description, pa_typeid_t *ret_typeid) {
+static void get_service_data(struct userdata *u, struct service *s, pa_sample_spec *ret_ss, char **ret_description, pa_typeid_t *ret_typeid) {
     assert(u && s && s->loaded.valid && ret_ss && ret_description && ret_typeid);
 
     if (s->loaded.type == PA_NAMEREG_SINK) {
-        struct pa_sink *sink = pa_idxset_get_by_index(u->core->sinks, s->loaded.index);
+        pa_sink *sink = pa_idxset_get_by_index(u->core->sinks, s->loaded.index);
         assert(sink);
         *ret_ss = sink->sample_spec;
         *ret_description = sink->description;
         *ret_typeid = sink->typeid;
     } else if (s->loaded.type == PA_NAMEREG_SOURCE) {
-        struct pa_source *source = pa_idxset_get_by_index(u->core->sources, s->loaded.index);
+        pa_source *source = pa_idxset_get_by_index(u->core->sources, s->loaded.index);
         assert(source);
         *ret_ss = source->sample_spec;
         *ret_description = source->description;
@@ -109,7 +109,7 @@ static void get_service_data(struct userdata *u, struct service *s, struct pa_sa
         assert(0);
 }
 
-static void txt_record_server_data(struct pa_core *c, sw_text_record t) {
+static void txt_record_server_data(pa_core *c, sw_text_record t) {
     char s[256];
     assert(c);
 
@@ -152,7 +152,7 @@ static int publish_service(struct userdata *u, struct service *s) {
     if (s->loaded.valid) {
         char z[64], *description;
         pa_typeid_t typeid;
-        struct pa_sample_spec ss;
+        pa_sample_spec ss;
 
         get_service_data(u, s, &ss, &description, &typeid);
             
@@ -223,7 +223,7 @@ struct service *get_service(struct userdata *u, const char *name) {
     return s;
 }
 
-static int publish_sink(struct userdata *u, struct pa_sink *s) {
+static int publish_sink(struct userdata *u, pa_sink *s) {
     struct service *svc;
     assert(u && s);
 
@@ -240,7 +240,7 @@ static int publish_sink(struct userdata *u, struct pa_sink *s) {
     return publish_service(u, svc);
 }
 
-static int publish_source(struct userdata *u, struct pa_source *s) {
+static int publish_source(struct userdata *u, pa_source *s) {
     struct service *svc;
     assert(u && s);
 
@@ -257,7 +257,7 @@ static int publish_source(struct userdata *u, struct pa_source *s) {
     return publish_service(u, svc);
 }
 
-static int publish_autoload(struct userdata *u, struct pa_autoload_entry *s) {
+static int publish_autoload(struct userdata *u, pa_autoload_entry *s) {
     struct service *svc;
     assert(u && s);
 
@@ -322,14 +322,14 @@ static int remove_autoload(struct userdata *u, uint32_t index) {
     return publish_service(u, svc);
 }
 
-static void subscribe_callback(struct pa_core *c, enum pa_subscription_event_type t, uint32_t index, void *userdata) {
+static void subscribe_callback(pa_core *c, pa_subscription_event_type t, uint32_t index, void *userdata) {
     struct userdata *u = userdata;
     assert(u && c);
 
     switch (t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK)
         case PA_SUBSCRIPTION_EVENT_SINK: {
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                struct pa_sink *sink;
+                pa_sink *sink;
 
                 if ((sink = pa_idxset_get_by_index(c->sinks, index))) {
                     if (publish_sink(u, sink) < 0)
@@ -345,7 +345,7 @@ static void subscribe_callback(struct pa_core *c, enum pa_subscription_event_typ
         case PA_SUBSCRIPTION_EVENT_SOURCE:
 
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                struct pa_source *source;
+                pa_source *source;
                 
                 if ((source = pa_idxset_get_by_index(c->sources, index))) {
                     if (publish_source(u, source) < 0)
@@ -360,7 +360,7 @@ static void subscribe_callback(struct pa_core *c, enum pa_subscription_event_typ
 
         case PA_SUBSCRIPTION_EVENT_AUTOLOAD:
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                struct pa_autoload_entry *autoload;
+                pa_autoload_entry *autoload;
                     
                 if ((autoload = pa_idxset_get_by_index(c->autoload_idxset, index))) {
                     if (publish_autoload(u, autoload) < 0)
@@ -383,13 +383,13 @@ fail:
     }
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u;
     uint32_t index, port = PA_NATIVE_DEFAULT_PORT;
-    struct pa_sink *sink;
-    struct pa_source *source;
-    struct pa_autoload_entry *autoload;
-    struct pa_modargs *ma = NULL;
+    pa_sink *sink;
+    pa_source *source;
+    pa_autoload_entry *autoload;
+    pa_modargs *ma = NULL;
     char t[256], hn[256];
     int free_txt = 0;
     sw_text_record txt;
@@ -478,7 +478,7 @@ static void service_free(void *p, void *userdata) {
     pa_xfree(s);
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata*u;
     assert(c && m);
 

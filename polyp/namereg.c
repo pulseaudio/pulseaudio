@@ -38,20 +38,20 @@
 #include "util.h"
 
 struct namereg_entry {
-    enum pa_namereg_type type;
+    pa_namereg_type type;
     char *name;
     void *data;
 };
 
-void pa_namereg_free(struct pa_core *c) {
+void pa_namereg_free(pa_core *c) {
     assert(c);
     if (!c->namereg)
         return;
-    assert(pa_hashmap_ncontents(c->namereg) == 0);
+    assert(pa_hashmap_size(c->namereg) == 0);
     pa_hashmap_free(c->namereg, NULL, NULL);
 }
 
-const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_namereg_type type, void *data, int fail) {
+const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type type, void *data, int fail) {
     struct namereg_entry *e;
     char *n = NULL;
     int r;
@@ -99,7 +99,7 @@ const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_nam
     
 }
 
-void pa_namereg_unregister(struct pa_core *c, const char *name) {
+void pa_namereg_unregister(pa_core *c, const char *name) {
     struct namereg_entry *e;
     assert(c && name);
 
@@ -110,9 +110,9 @@ void pa_namereg_unregister(struct pa_core *c, const char *name) {
     pa_xfree(e);
 }
 
-void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type type, int autoload) {
+void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type type, int autoload) {
     struct namereg_entry *e;
-    uint32_t index;
+    uint32_t idx;
     assert(c);
     
     if (!name) {
@@ -129,7 +129,7 @@ void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type t
         if (e->type == e->type)
             return e->data;
 
-    if (pa_atou(name, &index) < 0) {
+    if (pa_atou(name, &idx) < 0) {
 
         if (autoload) {
             pa_autoload_request(c, name, type);
@@ -143,16 +143,16 @@ void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type t
     }
 
     if (type == PA_NAMEREG_SINK)
-        return pa_idxset_get_by_index(c->sinks, index);
+        return pa_idxset_get_by_index(c->sinks, idx);
     else if (type == PA_NAMEREG_SOURCE)
-        return pa_idxset_get_by_index(c->sources, index);
+        return pa_idxset_get_by_index(c->sources, idx);
     else if (type == PA_NAMEREG_SAMPLE && c->scache)
-        return pa_idxset_get_by_index(c->scache, index);
+        return pa_idxset_get_by_index(c->scache, idx);
 
     return NULL;
 }
 
-void pa_namereg_set_default(struct pa_core*c, const char *name, enum pa_namereg_type type) {
+void pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type type) {
     char **s;
     assert(c && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
 
@@ -170,8 +170,8 @@ void pa_namereg_set_default(struct pa_core*c, const char *name, enum pa_namereg_
     pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
 }
 
-const char *pa_namereg_get_default_sink_name(struct pa_core *c) {
-    struct pa_sink *s;
+const char *pa_namereg_get_default_sink_name(pa_core *c) {
+    pa_sink *s;
     assert(c);
 
     if (c->default_sink_name)
@@ -186,16 +186,16 @@ const char *pa_namereg_get_default_sink_name(struct pa_core *c) {
     return NULL;
 }
 
-const char *pa_namereg_get_default_source_name(struct pa_core *c) {
-    struct pa_source *s;
-    uint32_t index;
+const char *pa_namereg_get_default_source_name(pa_core *c) {
+    pa_source *s;
+    uint32_t idx;
     
     assert(c);
 
     if (c->default_source_name)
         return c->default_source_name;
 
-    for (s = pa_idxset_first(c->sources, &index); s; s = pa_idxset_next(c->sources, &index))
+    for (s = pa_idxset_first(c->sources, &idx); s; s = pa_idxset_next(c->sources, &idx))
         if (!s->monitor_of) {
             pa_namereg_set_default(c, s->name, PA_NAMEREG_SOURCE);
             break;

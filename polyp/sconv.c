@@ -115,7 +115,7 @@ static void ulaw_to_float32ne(unsigned n, const void *a, unsigned an, float *b) 
         float sum = 0;
 
         for (i = 0; i < an; i++)
-            sum += (float) st_ulaw2linear16(*ca++) / 0x7FFF;
+            sum += st_ulaw2linear16(*ca++) * 1.0F / 0x7FFF;
 
         if (sum > 1)
             sum = 1;
@@ -156,7 +156,7 @@ static void alaw_to_float32ne(unsigned n, const void *a, unsigned an, float *b) 
         float sum = 0;
 
         for (i = 0; i < an; i++)
-            sum += (float) st_alaw2linear16(*ca++) / 0x7FFF;
+            sum += st_alaw2linear16(*ca++) * 1.0F / 0x7FFF;
 
         if (sum > 1)
             sum = 1;
@@ -190,7 +190,7 @@ static void alaw_from_float32ne(unsigned n, const float *a, void *b, unsigned bn
 }
 
 
-pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(enum pa_sample_format f) {
+pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(pa_sample_format f) {
     switch(f) {
         case PA_SAMPLE_U8:
             return u8_to_float32ne;
@@ -209,7 +209,7 @@ pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(enum pa_samp
     }
 }
 
-pa_convert_from_float32ne_func_t pa_get_convert_from_float32ne_function(enum pa_sample_format f) {
+pa_convert_from_float32ne_func_t pa_get_convert_from_float32ne_function(pa_sample_format f) {
     switch(f) {
         case PA_SAMPLE_U8:
             return u8_from_float32ne;

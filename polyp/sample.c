@@ -30,7 +30,7 @@
 
 #include "sample.h"
 
-size_t pa_frame_size(const struct pa_sample_spec *spec) {
+size_t pa_frame_size(const pa_sample_spec *spec) {
     size_t b = 1;
     assert(spec);
 
@@ -55,18 +55,18 @@ size_t pa_frame_size(const struct pa_sample_spec *spec) {
     return b * spec->channels;
 }
 
-size_t pa_bytes_per_second(const struct pa_sample_spec *spec) {
+size_t pa_bytes_per_second(const pa_sample_spec *spec) {
     assert(spec);
     return spec->rate*pa_frame_size(spec);
 }
 
-pa_usec_t pa_bytes_to_usec(uint64_t length, const struct pa_sample_spec *spec) {
+pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) {
     assert(spec);
 
     return (pa_usec_t) (((double) length/pa_frame_size(spec)*1000000)/spec->rate);
 }
 
-int pa_sample_spec_valid(const struct pa_sample_spec *spec) {
+int pa_sample_spec_valid(const pa_sample_spec *spec) {
     assert(spec);
 
     if (spec->rate <= 0 || spec->channels <= 0)
@@ -78,13 +78,13 @@ int pa_sample_spec_valid(const struct pa_sample_spec *spec) {
     return 1;
 }
 
-int pa_sample_spec_equal(const struct pa_sample_spec*a, const struct pa_sample_spec*b) {
+int pa_sample_spec_equal(const pa_sample_spec*a, const pa_sample_spec*b) {
     assert(a && b);
 
     return (a->format == b->format) && (a->rate == b->rate) && (a->channels == b->channels);
 }
 
-const char *pa_sample_format_to_string(enum pa_sample_format f) {
+const char *pa_sample_format_to_string(pa_sample_format f) {
     static const char* const table[]= {
         [PA_SAMPLE_U8] = "U8",
         [PA_SAMPLE_ALAW] = "ALAW",
@@ -101,7 +101,7 @@ const char *pa_sample_format_to_string(enum pa_sample_format f) {
     return table[f];
 }
 
-char *pa_sample_spec_snprint(char *s, size_t l, const struct pa_sample_spec *spec) {
+char *pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec) {
     assert(s && l && spec);
     
     if (!pa_sample_spec_valid(spec))
@@ -161,7 +161,7 @@ void pa_bytes_snprint(char *s, size_t l, unsigned v) {
         snprintf(s, l, "%u B", (unsigned) v);
 }
 
-enum pa_sample_format pa_parse_sample_format(const char *format) {
+pa_sample_format pa_parse_sample_format(const char *format) {
     
     if (strcasecmp(format, "s16le") == 0)
         return PA_SAMPLE_S16LE;

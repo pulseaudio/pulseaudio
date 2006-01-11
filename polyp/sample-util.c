@@ -30,18 +30,18 @@
 
 #include "sample-util.h"
 
-struct pa_memblock *pa_silence_memblock(struct pa_memblock* b, const struct pa_sample_spec *spec) {
+pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
     assert(b && b->data && spec);
     pa_silence_memory(b->data, b->length, spec);
     return b;
 }
 
-void pa_silence_memchunk(struct pa_memchunk *c, const struct pa_sample_spec *spec) {
+void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
     assert(c && c->memblock && c->memblock->data && spec && c->length);
     pa_silence_memory((uint8_t*) c->memblock->data+c->index, c->length, spec);
 }
 
-void pa_silence_memory(void *p, size_t length, const struct pa_sample_spec *spec) {
+void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
     uint8_t c = 0;
     assert(p && length && spec);
 
@@ -65,7 +65,7 @@ void pa_silence_memory(void *p, size_t length, const struct pa_sample_spec *spec
     memset(p, c, length);
 }
 
-size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, size_t length, const struct pa_sample_spec *spec, pa_volume_t volume) {
+size_t pa_mix(pa_mix_info channels[], unsigned nchannels, void *data, size_t length, const pa_sample_spec *spec, pa_volume_t volume) {
     assert(channels && data && length && spec);
     
     if (spec->format == PA_SAMPLE_S16NE) {
@@ -161,7 +161,7 @@ size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, siz
         size_t d;
         
         for (d = 0;; d += sizeof(float)) {
-            pa_volume_t sum = 0;
+            float sum = 0;
             unsigned c;
             
             if (d >= length)
@@ -203,7 +203,7 @@ size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, siz
 }
 
 
-void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec, pa_volume_t volume) {
+void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, pa_volume_t volume) {
     assert(c && spec && (c->length % pa_frame_size(spec) == 0));
 
     if (volume == PA_VOLUME_NORM)

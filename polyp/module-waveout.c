@@ -49,11 +49,11 @@ PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source>
 #define DEFAULT_SOURCE_NAME "wave_input"
 
 struct userdata {
-    struct pa_sink *sink;
-    struct pa_source *source;
-    struct pa_core *core;
-    struct pa_time_event *event;
-    struct pa_defer_event *defer;
+    pa_sink *sink;
+    pa_source *source;
+    pa_core *core;
+    pa_time_event *event;
+    pa_defer_event *defer;
     pa_usec_t poll_timeout;
 
     uint32_t fragments, fragment_size;
@@ -65,11 +65,11 @@ struct userdata {
     int cur_ohdr, cur_ihdr;
     unsigned int oremain;
     WAVEHDR *ohdrs, *ihdrs;
-    struct pa_memchunk silence;
+    pa_memchunk silence;
 
     HWAVEOUT hwo;
     HWAVEIN hwi;
-    struct pa_module *module;
+    pa_module *module;
 
     CRITICAL_SECTION crit;
 };
@@ -89,15 +89,15 @@ static const char* const valid_modargs[] = {
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
-                      (u->sink ? pa_idxset_ncontents(u->sink->inputs) : 0) +
-                      (u->sink ? pa_idxset_ncontents(u->sink->monitor_source->outputs) : 0) +
-                      (u->source ? pa_idxset_ncontents(u->source->outputs) : 0));
+                      (u->sink ? pa_idxset_size(u->sink->inputs) : 0) +
+                      (u->sink ? pa_idxset_size(u->sink->monitor_source->outputs) : 0) +
+                      (u->source ? pa_idxset_size(u->source->outputs) : 0));
 }
 
 static void do_write(struct userdata *u)
 {
     uint32_t free_frags, remain;
-    struct pa_memchunk memchunk, *cur_chunk;
+    pa_memchunk memchunk, *cur_chunk;
     WAVEHDR *hdr;
     MMRESULT res;
 
@@ -178,7 +178,7 @@ static void do_write(struct userdata *u)
 static void do_read(struct userdata *u)
 {
     uint32_t free_frags;
-    struct pa_memchunk memchunk;
+    pa_memchunk memchunk;
     WAVEHDR *hdr;
     MMRESULT res;
 
@@ -227,7 +227,7 @@ static void do_read(struct userdata *u)
     }
 }
 
-static void poll_cb(struct pa_mainloop_api*a, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void poll_cb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, void *userdata) {
     struct userdata *u = userdata;
     struct timeval ntv;
 
@@ -244,7 +244,7 @@ static void poll_cb(struct pa_mainloop_api*a, struct pa_time_event *e, const str
     a->time_restart(e, &ntv);
 }
 
-static void defer_cb(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata) {
+static void defer_cb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
     struct userdata *u = userdata;
 
     assert(u);
@@ -283,7 +283,7 @@ static void CALLBACK chunk_ready_cb(HWAVEIN hwi, UINT msg, DWORD_PTR inst, DWORD
     LeaveCriticalSection(&u->crit);
 }
 
-static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
+static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     uint32_t free_frags;
     MMTIME mmt;
@@ -305,7 +305,7 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
     }
 }
 
-static pa_usec_t source_get_latency_cb(struct pa_source *s) {
+static pa_usec_t source_get_latency_cb(pa_source *s) {
     pa_usec_t r = 0;
     struct userdata *u = s->userdata;
     uint32_t free_frags;
@@ -324,21 +324,21 @@ static pa_usec_t source_get_latency_cb(struct pa_source *s) {
     return r;
 }
 
-static void notify_sink_cb(struct pa_sink *s) {
+static void notify_sink_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     assert(u);
 
     u->core->mainloop->defer_enable(u->defer, 1);
 }
 
-static void notify_source_cb(struct pa_source *s) {
+static void notify_source_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     assert(u);
 
     u->core->mainloop->defer_enable(u->defer, 1);
 }
 
-static int ss_to_waveformat(struct pa_sample_spec *ss, LPWAVEFORMATEX wf) {
+static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     wf->wFormatTag = WAVE_FORMAT_PCM;
 
     if (ss->channels > 2) {
@@ -378,15 +378,15 @@ static int ss_to_waveformat(struct pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     return 0;
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     HWAVEOUT hwo = INVALID_HANDLE_VALUE;
     HWAVEIN hwi = INVALID_HANDLE_VALUE;
     WAVEFORMATEX wf;
     int nfrags, frag_size;
     int record = 1, playback = 1;
-    struct pa_sample_spec ss;
-    struct pa_modargs *ma = NULL;
+    pa_sample_spec ss;
+    pa_modargs *ma = NULL;
     unsigned int i;
     struct timeval tv;
 
@@ -534,7 +534,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     unsigned int i;
 

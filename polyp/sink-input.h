@@ -24,6 +24,8 @@
 
 #include <inttypes.h>
 
+typedef struct pa_sink_input pa_sink_input;
+
 #include "sink.h"
 #include "sample.h"
 #include "memblockq.h"
@@ -31,63 +33,63 @@
 #include "module.h"
 #include "client.h"
 
-enum pa_sink_input_state {
+typedef enum {
     PA_SINK_INPUT_RUNNING,
     PA_SINK_INPUT_CORKED,
     PA_SINK_INPUT_DISCONNECTED
-};
+} pa_sink_input_state ;
 
 struct pa_sink_input {
     int ref;
-    enum pa_sink_input_state state;
+    pa_sink_input_state state;
     
     uint32_t index;
     pa_typeid_t typeid;
 
     char *name;
-    struct pa_module *owner;
-    struct pa_client *client;
-    struct pa_sink *sink;
-    struct pa_sample_spec sample_spec;
+    pa_module *owner;
+    pa_client *client;
+    pa_sink *sink;
+    pa_sample_spec sample_spec;
     uint32_t volume;
     
-    int (*peek) (struct pa_sink_input *i, struct pa_memchunk *chunk);
-    void (*drop) (struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
-    void (*kill) (struct pa_sink_input *i);
-    pa_usec_t (*get_latency) (struct pa_sink_input *i);
-    void (*underrun) (struct pa_sink_input *i);
+    int (*peek) (pa_sink_input *i, pa_memchunk *chunk);
+    void (*drop) (pa_sink_input *i, const pa_memchunk *chunk, size_t length);
+    void (*kill) (pa_sink_input *i);
+    pa_usec_t (*get_latency) (pa_sink_input *i);
+    void (*underrun) (pa_sink_input *i);
 
     void *userdata;
 
     int playing;
 
-    struct pa_memchunk resampled_chunk;
-    struct pa_resampler *resampler;
+    pa_memchunk resampled_chunk;
+    pa_resampler *resampler;
 };
 
-struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int variable_rate, int resample_method);
-void pa_sink_input_unref(struct pa_sink_input* i);
-struct pa_sink_input* pa_sink_input_ref(struct pa_sink_input* i);
+pa_sink_input* pa_sink_input_new(pa_sink *s, pa_typeid_t typeid, const char *name, const pa_sample_spec *spec, int variable_rate, int resample_method);
+void pa_sink_input_unref(pa_sink_input* i);
+pa_sink_input* pa_sink_input_ref(pa_sink_input* i);
 
 /* To be called by the implementing module only */
-void pa_sink_input_disconnect(struct pa_sink_input* i);
+void pa_sink_input_disconnect(pa_sink_input* i);
 
 /* External code may request disconnection with this funcion */
-void pa_sink_input_kill(struct pa_sink_input*i);
+void pa_sink_input_kill(pa_sink_input*i);
 
-pa_usec_t pa_sink_input_get_latency(struct pa_sink_input *i);
+pa_usec_t pa_sink_input_get_latency(pa_sink_input *i);
 
-int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk);
-void pa_sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length);
+int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk);
+void pa_sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t length);
 
-void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume);
+void pa_sink_input_set_volume(pa_sink_input *i, pa_volume_t volume);
 
-void pa_sink_input_cork(struct pa_sink_input *i, int b);
+void pa_sink_input_cork(pa_sink_input *i, int b);
 
-void pa_sink_input_set_rate(struct pa_sink_input *i, uint32_t rate);
+void pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
 
-void pa_sink_input_set_name(struct pa_sink_input *i, const char *name);
+void pa_sink_input_set_name(pa_sink_input *i, const char *name);
 
-enum pa_resample_method pa_sink_input_get_resample_method(struct pa_sink_input *i);
+pa_resample_method pa_sink_input_get_resample_method(pa_sink_input *i);
 
 #endif

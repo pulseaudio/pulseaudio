@@ -28,63 +28,64 @@
 #include "glib-mainloop.h"
 #include "idxset.h"
 #include "xmalloc.h"
+#include "util.h"
 
 /* A mainloop implementation based on GLIB 1.2 */
 
 struct pa_io_event {
-    struct pa_glib_mainloop *mainloop;
+    pa_glib_mainloop *mainloop;
     int dead;
     GIOChannel *io_channel;
     guint source;
     GIOCondition io_condition;
     int fd;
-    void (*callback) (struct pa_mainloop_api*m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata);
+    void (*callback) (pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata);
     void *userdata;
-    void (*destroy_callback) (struct pa_mainloop_api *m, struct pa_io_event*e, void *userdata);
-    struct pa_io_event *next, *prev;
+    void (*destroy_callback) (pa_mainloop_api *m, pa_io_event*e, void *userdata);
+    pa_io_event *next, *prev;
 };
 
 struct pa_time_event {
-    struct pa_glib_mainloop *mainloop;
+    pa_glib_mainloop *mainloop;
     int dead;
     guint source;
     struct timeval timeval;
-    void (*callback) (struct pa_mainloop_api*m, struct pa_time_event *e, const struct timeval *tv, void *userdata);
+    void (*callback) (pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata);
     void *userdata;
-    void (*destroy_callback) (struct pa_mainloop_api *m, struct pa_time_event*e, void *userdata);
-    struct pa_time_event *next, *prev;
+    void (*destroy_callback) (pa_mainloop_api *m, pa_time_event*e, void *userdata);
+    pa_time_event *next, *prev;
 };
 
 struct pa_defer_event {
-    struct pa_glib_mainloop *mainloop;
+    pa_glib_mainloop *mainloop;
     int dead;
     guint source;
-    void (*callback) (struct pa_mainloop_api*m, struct pa_defer_event *e, void *userdata);
+    void (*callback) (pa_mainloop_api*m, pa_defer_event *e, void *userdata);
     void *userdata;
-    void (*destroy_callback) (struct pa_mainloop_api *m, struct pa_defer_event*e, void *userdata);
-    struct pa_defer_event *next, *prev;
+    void (*destroy_callback) (pa_mainloop_api *m, pa_defer_event*e, void *userdata);
+    pa_defer_event *next, *prev;
 };
 
 struct pa_glib_mainloop {
-    struct pa_mainloop_api api;
+    pa_mainloop_api api;
     guint cleanup_source;
-    struct pa_io_event *io_events, *dead_io_events;
-    struct pa_time_event *time_events, *dead_time_events;
-    struct pa_defer_event *defer_events, *dead_defer_events;
+    pa_io_event *io_events, *dead_io_events;
+    pa_time_event *time_events, *dead_time_events;
+    pa_defer_event *defer_events, *dead_defer_events;
 };
 
-static void schedule_free_dead_events(struct pa_glib_mainloop *g);
+static void schedule_free_dead_events(pa_glib_mainloop *g);
 
-static void glib_io_enable(struct pa_io_event*e, enum pa_io_event_flags f);
+static void glib_io_enable(pa_io_event*e, pa_io_event_flags f);
 
-static struct pa_io_event* glib_io_new(struct pa_mainloop_api*m, int fd, enum pa_io_event_flags f, void (*callback) (struct pa_mainloop_api*m, struct pa_io_event*e, int fd, enum pa_io_event_flags f, void *userdata), void *userdata) {
-    struct pa_io_event *e;
-    struct pa_glib_mainloop *g;
+static pa_io_event* glib_io_new(pa_mainloop_api*m, int fd, pa_io_event_flags f, void (*callback) (pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags f, void *userdata), void *userdata) {
+    pa_io_event *e;
+    pa_glib_mainloop *g;
 
     assert(m && m->userdata && fd >= 0 && callback);
     g = m->userdata;
 
-    e = pa_xmalloc(sizeof(struct pa_io_event));
+    e = pa_xmalloc(sizeof(pa_io_event));
     e->mainloop = m->userdata;
     e->dead = 0;
     e->fd = fd;
@@ -108,8 +109,8 @@ static struct pa_io_event* glib_io_new(struct pa_mainloop_api*m, int fd, enum pa
 }
 
 static gboolean io_cb(GIOChannel *source, GIOCondition condition, gpointer data) {
-    struct pa_io_event *e = data;
-    enum pa_io_event_flags f;
+    pa_io_event *e = data;
+    pa_io_event_flags f;
     assert(source && e && e->io_channel == source);
 
     f = (condition & G_IO_IN ? PA_IO_EVENT_INPUT : 0) |
@@ -121,7 +122,7 @@ static gboolean io_cb(GIOChannel *source, GIOCondition condition, gpointer data)
     return TRUE;
 }
 
-static void glib_io_enable(struct pa_io_event*e, enum pa_io_event_flags f) {
+static void glib_io_enable(pa_io_event*e, pa_io_event_flags f) {
     GIOCondition c;
     assert(e && !e->dead);
 
@@ -138,7 +139,7 @@ static void glib_io_enable(struct pa_io_event*e, enum pa_io_event_flags f) {
     e->io_condition = c;
 }
 
-static void glib_io_free(struct pa_io_event*e) {
+static void glib_io_free(pa_io_event*e) {
     assert(e && !e->dead);
 
     if (e->source != (guint) -1) {
@@ -164,23 +165,23 @@ static void glib_io_free(struct pa_io_event*e) {
     schedule_free_dead_events(e->mainloop);
 }
 
-static void glib_io_set_destroy(struct pa_io_event*e, void (*callback)(struct pa_mainloop_api*m, struct pa_io_event *e, void *userdata)) {
+static void glib_io_set_destroy(pa_io_event*e, void (*callback)(pa_mainloop_api*m, pa_io_event *e, void *userdata)) {
     assert(e);
     e->destroy_callback = callback;
 }
 
 /* Time sources */
 
-static void glib_time_restart(struct pa_time_event*e, const struct timeval *tv);
+static void glib_time_restart(pa_time_event*e, const struct timeval *tv);
 
-static struct pa_time_event* glib_time_new(struct pa_mainloop_api*m, const struct timeval *tv, void (*callback) (struct pa_mainloop_api*m, struct pa_time_event*e, const struct timeval *tv, void *userdata), void *userdata) {
-    struct pa_glib_mainloop *g;
-    struct pa_time_event *e;
+static pa_time_event* glib_time_new(pa_mainloop_api*m, const struct timeval *tv, void (*callback) (pa_mainloop_api*m, pa_time_event*e, const struct timeval *tv, void *userdata), void *userdata) {
+    pa_glib_mainloop *g;
+    pa_time_event *e;
     
     assert(m && m->userdata && tv && callback);
     g = m->userdata;
 
-    e = pa_xmalloc(sizeof(struct pa_time_event));
+    e = pa_xmalloc(sizeof(pa_time_event));
     e->mainloop = g;
     e->dead = 0;
     e->callback = callback;
@@ -219,7 +220,7 @@ static guint msec_diff(const struct timeval *a, const struct timeval *b) {
 }
 
 static gboolean time_cb(gpointer data) {
-    struct pa_time_event* e = data;
+    pa_time_event* e = data;
     assert(e && e->mainloop && e->source != (guint) -1);
 
     g_source_remove(e->source);
@@ -229,7 +230,7 @@ static gboolean time_cb(gpointer data) {
     return FALSE;
 }
 
-static void glib_time_restart(struct pa_time_event*e, const struct timeval *tv) {
+static void glib_time_restart(pa_time_event*e, const struct timeval *tv) {
     struct timeval now;
     assert(e && e->mainloop && !e->dead);
 
@@ -245,7 +246,7 @@ static void glib_time_restart(struct pa_time_event*e, const struct timeval *tv) 
         e->source = (guint) -1;
  }
 
-static void glib_time_free(struct pa_time_event *e) {
+static void glib_time_free(pa_time_event *e) {
     assert(e && e->mainloop && !e->dead);
 
     if (e->source != (guint) -1) {
@@ -271,23 +272,23 @@ static void glib_time_free(struct pa_time_event *e) {
     schedule_free_dead_events(e->mainloop);
 }
 
-static void glib_time_set_destroy(struct pa_time_event *e, void (*callback)(struct pa_mainloop_api*m, struct pa_time_event*e, void *userdata)) {
+static void glib_time_set_destroy(pa_time_event *e, void (*callback)(pa_mainloop_api*m, pa_time_event*e, void *userdata)) {
     assert(e);
     e->destroy_callback = callback;
 }
 
 /* Deferred sources */
 
-static void glib_defer_enable(struct pa_defer_event *e, int b);
+static void glib_defer_enable(pa_defer_event *e, int b);
 
-static struct pa_defer_event* glib_defer_new(struct pa_mainloop_api*m, void (*callback) (struct pa_mainloop_api*m, struct pa_defer_event *e, void *userdata), void *userdata) {
-    struct pa_defer_event *e;
-    struct pa_glib_mainloop *g;
+static pa_defer_event* glib_defer_new(pa_mainloop_api*m, void (*callback) (pa_mainloop_api*m, pa_defer_event *e, void *userdata), void *userdata) {
+    pa_defer_event *e;
+    pa_glib_mainloop *g;
 
     assert(m && m->userdata && callback);
     g = m->userdata;
     
-    e = pa_xmalloc(sizeof(struct pa_defer_event));
+    e = pa_xmalloc(sizeof(pa_defer_event));
     e->mainloop = g;
     e->dead = 0;
     e->callback = callback;
@@ -305,14 +306,14 @@ static struct pa_defer_event* glib_defer_new(struct pa_mainloop_api*m, void (*ca
 }
 
 static gboolean idle_cb(gpointer data) {
-    struct pa_defer_event* e = data;
+    pa_defer_event* e = data;
     assert(e && e->mainloop && e->source != (guint) -1);
 
     e->callback(&e->mainloop->api, e, e->userdata);
     return TRUE;
 }
 
-static void glib_defer_enable(struct pa_defer_event *e, int b) {
+static void glib_defer_enable(pa_defer_event *e, int b) {
     assert(e && e->mainloop);
 
     if (e->source != (guint) -1 && !b) {
@@ -324,7 +325,7 @@ static void glib_defer_enable(struct pa_defer_event *e, int b) {
     }
 }
 
-static void glib_defer_free(struct pa_defer_event *e) {
+static void glib_defer_free(pa_defer_event *e) {
     assert(e && e->mainloop && !e->dead);
 
     if (e->source != (guint) -1) {
@@ -350,22 +351,22 @@ static void glib_defer_free(struct pa_defer_event *e) {
     schedule_free_dead_events(e->mainloop);
 }
 
-static void glib_defer_set_destroy(struct pa_defer_event *e, void (*callback)(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata)) {
+static void glib_defer_set_destroy(pa_defer_event *e, void (*callback)(pa_mainloop_api *m, pa_defer_event *e, void *userdata)) {
     assert(e);
     e->destroy_callback = callback;
 }
 
 /* quit() */
 
-static void glib_quit(struct pa_mainloop_api*a, int retval) {
-    struct pa_glib_mainloop *g;
+static void glib_quit(pa_mainloop_api*a, PA_GCC_UNUSED int retval) {
+    pa_glib_mainloop *g;
     assert(a && a->userdata);
     g = a->userdata;
 
     /* NOOP */
 }
 
-static const struct pa_mainloop_api vtable = {
+static const pa_mainloop_api vtable = {
     .userdata = NULL,
 
     .io_new = glib_io_new,
@@ -386,10 +387,10 @@ static const struct pa_mainloop_api vtable = {
     .quit = glib_quit,
 };
 
-struct pa_glib_mainloop *pa_glib_mainloop_new(void) {
-    struct pa_glib_mainloop *g;
+pa_glib_mainloop *pa_glib_mainloop_new(void) {
+    pa_glib_mainloop *g;
     
-    g = pa_xmalloc(sizeof(struct pa_glib_mainloop));
+    g = pa_xmalloc(sizeof(pa_glib_mainloop));
     
     g->api = vtable;
     g->api.userdata = g;
@@ -402,9 +403,9 @@ struct pa_glib_mainloop *pa_glib_mainloop_new(void) {
     return g;
 }
 
-static void free_io_events(struct pa_io_event *e) {
+static void free_io_events(pa_io_event *e) {
     while (e) {
-        struct pa_io_event *r = e;
+        pa_io_event *r = e;
         e = r->next;
 
         if (r->source != (guint) -1)
@@ -420,9 +421,9 @@ static void free_io_events(struct pa_io_event *e) {
     }
 }
 
-static void free_time_events(struct pa_time_event *e) {
+static void free_time_events(pa_time_event *e) {
     while (e) {
-        struct pa_time_event *r = e;
+        pa_time_event *r = e;
         e = r->next;
 
         if (r->source != (guint) -1)
@@ -435,9 +436,9 @@ static void free_time_events(struct pa_time_event *e) {
     }
 }
 
-static void free_defer_events(struct pa_defer_event *e) {
+static void free_defer_events(pa_defer_event *e) {
     while (e) {
-        struct pa_defer_event *r = e;
+        pa_defer_event *r = e;
         e = r->next;
 
         if (r->source != (guint) -1)
@@ -450,7 +451,7 @@ static void free_defer_events(struct pa_defer_event *e) {
     }
 }
 
-void pa_glib_mainloop_free(struct pa_glib_mainloop* g) {
+void pa_glib_mainloop_free(pa_glib_mainloop* g) {
     assert(g);
 
     free_io_events(g->io_events);
@@ -466,13 +467,13 @@ void pa_glib_mainloop_free(struct pa_glib_mainloop* g) {
     pa_xfree(g);
 }
 
-struct pa_mainloop_api* pa_glib_mainloop_get_api(struct pa_glib_mainloop *g) {
+pa_mainloop_api* pa_glib_mainloop_get_api(pa_glib_mainloop *g) {
     assert(g);
     return &g->api;
 }
 
 static gboolean free_dead_events(gpointer p) {
-    struct pa_glib_mainloop *g = p;
+    pa_glib_mainloop *g = p;
     assert(g);
 
     free_io_events(g->dead_io_events);
@@ -489,7 +490,7 @@ static gboolean free_dead_events(gpointer p) {
     return FALSE;
 }
 
-static void schedule_free_dead_events(struct pa_glib_mainloop *g) {
+static void schedule_free_dead_events(pa_glib_mainloop *g) {
     assert(g);
 
     if (g->cleanup_source != (guint) -1)

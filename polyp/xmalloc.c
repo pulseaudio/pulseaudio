@@ -30,6 +30,8 @@
 
 #include "memory.h"
 #include "util.h"
+#include "xmalloc.h"
+#include "gccmacro.h"
 
 /* Make sure not to allocate more than this much memory. */
 #define MAX_ALLOC_SIZE (1024*1024*20) /* 20MB */
@@ -39,6 +41,8 @@
 /* #undef realloc */
 /* #undef strndup */
 /* #undef strdup */
+
+static void oom(void) PA_GCC_NORETURN;
 
 /** called in case of an OOM situation. Prints an error message and
  * exits */

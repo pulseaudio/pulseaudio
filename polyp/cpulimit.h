@@ -28,7 +28,7 @@
  * CPU time. This is build around setrlimit() and SIGXCPU. It is handy
  * in case of using SCHED_FIFO which may freeze the whole machine  */
 
-int pa_cpu_limit_init(struct pa_mainloop_api *m);
+int pa_cpu_limit_init(pa_mainloop_api *m);
 void pa_cpu_limit_done(void);
 
 #endif

@@ -35,7 +35,7 @@
 #include "xmalloc.h"
 #include "util.h"
 
-int pa_client_conf_from_x11(struct pa_client_conf *c, const char *dname) {
+int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     Display *d = NULL;
     int ret = -1;
     char t[1024];

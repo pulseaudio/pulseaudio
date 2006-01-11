@@ -35,7 +35,7 @@
 PA_C_DECL_BEGIN
 
 /** The state of a connection context */
-enum pa_context_state {
+typedef enum pa_context_state {
     PA_CONTEXT_UNCONNECTED,    /**< The context hasn't been connected yet */
     PA_CONTEXT_CONNECTING,     /**< A connection is being established */
     PA_CONTEXT_AUTHORIZING,    /**< The client is authorizing itself to the daemon */
@@ -43,37 +43,37 @@ enum pa_context_state {
     PA_CONTEXT_READY,          /**< The connection is established, the context is ready to execute operations */
     PA_CONTEXT_FAILED,         /**< The connection failed or was disconnected */
     PA_CONTEXT_TERMINATED      /**< The connection was terminated cleanly */
-};
+} pa_context_state;
 
 /** The state of a stream */
-enum pa_stream_state {
+typedef enum pa_stream_state {
     PA_STREAM_DISCONNECTED, /**< The stream is not yet connected to any sink or source */
     PA_STREAM_CREATING,     /**< The stream is being created */
     PA_STREAM_READY,        /**< The stream is established, you may pass audio data to it now */
     PA_STREAM_FAILED,       /**< An error occured that made the stream invalid */
     PA_STREAM_TERMINATED    /**< The stream has been terminated cleanly */
-};
+} pa_stream_state;
 
 /** The state of an operation */
-enum pa_operation_state {
+typedef enum pa_operation_state {
     PA_OPERATION_RUNNING,      /**< The operation is still running */
     PA_OPERATION_DONE,         /**< The operation has been completed */
     PA_OPERATION_CANCELED      /**< The operation has been canceled */
-};
+} pa_operation_state;
 
 /** An invalid index */
 #define PA_INVALID_INDEX ((uint32_t) -1)
 
 /** The direction of a pa_stream object */ 
-enum pa_stream_direction {
+typedef enum pa_stream_direction {
     PA_STREAM_NODIRECTION,   /**< Invalid direction */
     PA_STREAM_PLAYBACK,      /**< Playback stream */
     PA_STREAM_RECORD,        /**< Record stream */
     PA_STREAM_UPLOAD         /**< Sample upload stream */
-};
+} pa_stream_direction;
 
 /** Some special flags for stream connections. \since 0.6 */
-enum pa_stream_flags {
+typedef enum pa_stream_flags {
     PA_STREAM_START_CORKED = 1,       /**< Create the stream corked, requiring an explicit pa_stream_cork() call to uncork it. */
     PA_STREAM_INTERPOLATE_LATENCY = 2 /**< Interpolate the latency for
                                        * this stream. When enabled,
@@ -90,16 +90,16 @@ enum pa_stream_flags {
                                        * information. This is
                                        * especially useful on long latency
                                        * network connections. */
-};
+} pa_stream_flags;
 
 /** Playback and record buffer metrics */
-struct pa_buffer_attr{
+typedef struct pa_buffer_attr {
     uint32_t maxlength;      /**< Maximum length of the buffer */
     uint32_t tlength;        /**< Playback only: target length of the buffer. The server tries to assure that at least tlength bytes are always available in the buffer */
     uint32_t prebuf;         /**< Playback only: pre-buffering. The server does not start with playback before at least prebug bytes are available in the buffer */
     uint32_t minreq;         /**< Playback only: minimum request. The server does not request less than minreq bytes from the client, instead waints until the buffer is free enough to request more bytes at once */
     uint32_t fragsize;       /**< Recording only: fragment size. The server sends data in blocks of fragsize bytes size. Large values deminish interactivity with other operations on the connection context but decrease control overhead. */
-};
+} pa_buffer_attr;
 
 /** Error values as used by pa_context_errno(). Use pa_strerror() to convert these values to human readable strings */
 enum {
@@ -122,7 +122,7 @@ enum {
 };
 
 /** Subscription event mask, as used by pa_context_subscribe() */
-enum pa_subscription_mask {
+typedef enum pa_subscription_mask {
     PA_SUBSCRIPTION_MASK_NULL = 0,               /**< No events */
     PA_SUBSCRIPTION_MASK_SINK = 1,               /**< Sink events */
     PA_SUBSCRIPTION_MASK_SOURCE = 2,             /**< Source events */
@@ -133,10 +133,10 @@ enum pa_subscription_mask {
     PA_SUBSCRIPTION_MASK_SAMPLE_CACHE = 64,      /**< Sample cache events */
     PA_SUBSCRIPTION_MASK_SERVER = 128,           /**< Other global server changes. \since 0.4 */
     PA_SUBSCRIPTION_MASK_AUTOLOAD = 256          /**< Autoload table events. \since 0.5 */
-};
+} pa_subscription_mask;
 
 /** Subscription event types, as used by pa_context_subscribe() */
-enum pa_subscription_event_type {
+typedef enum pa_subscription_event_type {
     PA_SUBSCRIPTION_EVENT_SINK = 0,           /**< Event type: Sink */
     PA_SUBSCRIPTION_EVENT_SOURCE = 1,         /**< Event type: Source */
     PA_SUBSCRIPTION_EVENT_SINK_INPUT = 2,     /**< Event type: Sink input */
@@ -152,7 +152,7 @@ enum pa_subscription_event_type {
     PA_SUBSCRIPTION_EVENT_CHANGE = 16,        /**< A property of the object was modified */
     PA_SUBSCRIPTION_EVENT_REMOVE = 32,        /**< An object was removed */
     PA_SUBSCRIPTION_EVENT_TYPE_MASK = 16+32   /**< A mask to extract the event operation from an event value */
-};
+} pa_subscription_event_type;
 
 /** Return one if an event type t matches an event mask bitfield */
 #define pa_subscription_match_flags(m, t) (!!((m) & (1 << ((t) & PA_SUBSCRIPTION_EVENT_FACILITY_MASK))))
@@ -170,7 +170,7 @@ enum pa_subscription_event_type {
  * source_usec+buffer_usec+transport_usec-sink_usec. (Take care of
  * sign issues!) When connected to a monitor source sink_usec contains
  * the latency of the owning sink.*/
-struct pa_latency_info {
+typedef struct pa_latency_info {
     pa_usec_t buffer_usec;    /**< Time in usecs the current buffer takes to play. For both playback and record streams. */
     pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink. For playback streams and record streams connected to a monitor source. */
     pa_usec_t source_usec;    /**< Time in usecs a sample takes from being recorded to being delivered to the application. Only for record streams. \since 0.5*/
@@ -187,7 +187,7 @@ struct pa_latency_info {
                                * 0.5 */
     struct timeval timestamp; /**< The time when this latency info was current */
     uint64_t counter;         /**< The byte counter current when the latency info was requested. \since 0.6 */
-};
+} pa_latency_info;
 
 /** A structure for the spawn api. This may be used to integrate auto
  * spawned daemons into your application. For more information see
@@ -196,7 +196,7 @@ struct pa_latency_info {
  * block or ignore SIGCHLD signals, since this cannot be done in a
  * thread compatible way. You might have to do this in
  * prefork/postfork. \since 0.4 */
-struct pa_spawn_api {
+typedef struct pa_spawn_api {
     void (*prefork)(void);     /**< Is called just before the fork in the parent process. May be NULL. */
     void (*postfork)(void);    /**< Is called immediately after the fork in the parent process. May be NULL.*/
     void (*atfork)(void);      /**< Is called immediately after the
@@ -206,7 +206,7 @@ struct pa_spawn_api {
                                 * unconditionally, since a UNIX socket
                                 * (created using socketpair()) is
                                 * passed to the new process. */
-};
+} pa_spawn_api;
 
 PA_C_DECL_END
 

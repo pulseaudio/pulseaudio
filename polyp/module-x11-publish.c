@@ -63,8 +63,8 @@ static const char* const valid_modargs[] = {
 };
 
 struct userdata {
-    struct pa_core *core;
-    struct pa_x11_wrapper *x11_wrapper;
+    pa_core *core;
+    pa_x11_wrapper *x11_wrapper;
     Display *display;
     char *id;
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
@@ -97,14 +97,14 @@ static int load_key(struct userdata *u, const char*fn) {
     return 0;
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u;
-    struct pa_modargs *ma = NULL;
+    pa_modargs *ma = NULL;
     char hn[256], un[128];
     char hx[PA_NATIVE_COOKIE_LENGTH*2+1];
     const char *t;
     char *s;
-    struct pa_strlist *l;
+    pa_strlist *l;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments\n");
@@ -156,7 +156,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata*u;
     assert(c && m);
 

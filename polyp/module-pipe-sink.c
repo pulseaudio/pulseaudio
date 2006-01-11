@@ -53,16 +53,16 @@ PA_MODULE_USAGE("sink_name=<name for the sink> file=<path of the FIFO> format=<s
 #define PA_TYPEID_PIPE PA_TYPEID_MAKE('P', 'I', 'P', 'E')
 
 struct userdata {
-    struct pa_core *core;
+    pa_core *core;
 
     char *filename;
     
-    struct pa_sink *sink;
-    struct pa_iochannel *io;
-    struct pa_defer_event *defer_event;
+    pa_sink *sink;
+    pa_iochannel *io;
+    pa_defer_event *defer_event;
 
-    struct pa_memchunk memchunk;
-    struct pa_module *module;
+    pa_memchunk memchunk;
+    pa_module *module;
 };
 
 static const char* const valid_modargs[] = {
@@ -83,7 +83,7 @@ static void do_write(struct userdata *u) {
     if (!pa_iochannel_is_writable(u->io))
         return;
 
-    pa_module_set_used(u->module, pa_idxset_ncontents(u->sink->inputs) + pa_idxset_ncontents(u->sink->monitor_source->outputs));
+    pa_module_set_used(u->module, pa_idxset_size(u->sink->inputs) + pa_idxset_size(u->sink->monitor_source->outputs));
     
     if (!u->memchunk.length)
         if (pa_sink_render(u->sink, PIPE_BUF, &u->memchunk) < 0)
@@ -105,7 +105,7 @@ static void do_write(struct userdata *u) {
     }
 }
 
-static void notify_cb(struct pa_sink*s) {
+static void notify_cb(pa_sink*s) {
     struct userdata *u = s->userdata;
     assert(s && u);
 
@@ -113,32 +113,32 @@ static void notify_cb(struct pa_sink*s) {
         u->core->mainloop->defer_enable(u->defer_event, 1);
 }
 
-static pa_usec_t get_latency_cb(struct pa_sink *s) {
+static pa_usec_t get_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     assert(s && u);
 
     return u->memchunk.memblock ? pa_bytes_to_usec(u->memchunk.length, &s->sample_spec) : 0;
 }
 
-static void defer_callback(struct pa_mainloop_api *m, struct pa_defer_event*e, void *userdata) {
+static void defer_callback(PA_GCC_UNUSED pa_mainloop_api *m, PA_GCC_UNUSED pa_defer_event*e, void *userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_write(u);
 }
 
-static void io_callback(struct pa_iochannel *io, void*userdata) {
+static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_write(u);
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     struct stat st;
     const char *p;
     int fd = -1;
-    struct pa_sample_spec ss;
-    struct pa_modargs *ma = NULL;
+    pa_sample_spec ss;
+    pa_modargs *ma = NULL;
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -215,7 +215,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

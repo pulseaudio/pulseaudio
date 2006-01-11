@@ -22,17 +22,17 @@
   USA.
 ***/
 
-#include "gcc-printf.h"
+#include "gccmacro.h"
 
-struct pa_strbuf;
+typedef struct pa_strbuf pa_strbuf;
 
-struct pa_strbuf *pa_strbuf_new(void);
-void pa_strbuf_free(struct pa_strbuf *sb);
-char *pa_strbuf_tostring(struct pa_strbuf *sb);
-char *pa_strbuf_tostring_free(struct pa_strbuf *sb);
+pa_strbuf *pa_strbuf_new(void);
+void pa_strbuf_free(pa_strbuf *sb);
+char *pa_strbuf_tostring(pa_strbuf *sb);
+char *pa_strbuf_tostring_free(pa_strbuf *sb);
 
-int pa_strbuf_printf(struct pa_strbuf *sb, const char *format, ...)  PA_GCC_PRINTF_ATTR(2,3);
-void pa_strbuf_puts(struct pa_strbuf *sb, const char *t);
-void pa_strbuf_putsn(struct pa_strbuf *sb, const char *t, size_t m);
+int pa_strbuf_printf(pa_strbuf *sb, const char *format, ...)  PA_GCC_PRINTF_ATTR(2,3);
+void pa_strbuf_puts(pa_strbuf *sb, const char *t);
+void pa_strbuf_putsn(pa_strbuf *sb, const char *t, size_t m);
 
 #endif

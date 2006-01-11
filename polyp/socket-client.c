@@ -65,26 +65,26 @@
 
 struct pa_socket_client {
     int ref;
-    struct pa_mainloop_api *mainloop;
+    pa_mainloop_api *mainloop;
     int fd;
-    struct pa_io_event *io_event;
-    struct pa_time_event *timeout_event;
-    struct pa_defer_event *defer_event;
-    void (*callback)(struct pa_socket_client*c, struct pa_iochannel *io, void *userdata);
+    pa_io_event *io_event;
+    pa_time_event *timeout_event;
+    pa_defer_event *defer_event;
+    void (*callback)(pa_socket_client*c, pa_iochannel *io, void *userdata);
     void *userdata;
     int local;
 #ifdef HAVE_LIBASYNCNS
     asyncns_t *asyncns;
     asyncns_query_t * asyncns_query;
-    struct pa_io_event *asyncns_io_event;
+    pa_io_event *asyncns_io_event;
 #endif
 };
 
-static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
-    struct pa_socket_client *c;
+static pa_socket_client*pa_socket_client_new(pa_mainloop_api *m) {
+    pa_socket_client *c;
     assert(m);
 
-    c = pa_xmalloc(sizeof(struct pa_socket_client));
+    c = pa_xmalloc(sizeof(pa_socket_client));
     c->ref = 1;
     c->mainloop = m;
     c->fd = -1;
@@ -104,7 +104,7 @@ static struct pa_socket_client*pa_socket_client_new(struct pa_mainloop_api *m) {
     return c;
 }
 
-static void free_events(struct pa_socket_client *c) {
+static void free_events(pa_socket_client *c) {
     assert(c);
     
     if (c->io_event) {
@@ -123,8 +123,8 @@ static void free_events(struct pa_socket_client *c) {
     }
 }
 
-static void do_call(struct pa_socket_client *c) {
-    struct pa_iochannel *io = NULL;
+static void do_call(pa_socket_client *c) {
+    pa_iochannel *io = NULL;
     int error;
     socklen_t lerror;
     assert(c && c->callback);
@@ -167,19 +167,19 @@ finish:
     pa_socket_client_unref(c);
 }
 
-static void connect_fixed_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
-    struct pa_socket_client *c = userdata;
+static void connect_fixed_cb(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
+    pa_socket_client *c = userdata;
     assert(m && c && c->defer_event == e);
     do_call(c);
 }
 
-static void connect_io_cb(struct pa_mainloop_api*m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
-    struct pa_socket_client *c = userdata;
+static void connect_io_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+    pa_socket_client *c = userdata;
     assert(m && c && c->io_event == e && fd >= 0);
     do_call(c);
 }
 
-static int do_connect(struct pa_socket_client *c, const struct sockaddr *sa, socklen_t len) {
+static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t len) {
     int r;
     assert(c && sa && len);
     
@@ -201,7 +201,7 @@ static int do_connect(struct pa_socket_client *c, const struct sockaddr *sa, soc
     return 0;
 }
 
-struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port) {
+pa_socket_client* pa_socket_client_new_ipv4(pa_mainloop_api *m, uint32_t address, uint16_t port) {
     struct sockaddr_in sa;
     assert(m && port > 0);
 
@@ -215,7 +215,7 @@ struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, ui
 
 #ifdef HAVE_SYS_UN_H
 
-struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
+pa_socket_client* pa_socket_client_new_unix(pa_mainloop_api *m, const char *filename) {
     struct sockaddr_un sa;
     assert(m && filename);
     
@@ -229,13 +229,13 @@ struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, co
 
 #else /* HAVE_SYS_UN_H */
 
-struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename) {
+pa_socket_client* pa_socket_client_new_unix(pa_mainloop_api *m, const char *filename) {
     return NULL;
 }
 
 #endif /* HAVE_SYS_UN_H */
 
-static int sockaddr_prepare(struct pa_socket_client *c, const struct sockaddr *sa, size_t salen) {
+static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size_t salen) {
     assert(c);
     assert(sa);
     assert(salen);
@@ -274,8 +274,8 @@ static int sockaddr_prepare(struct pa_socket_client *c, const struct sockaddr *s
     return 0;
 }
 
-struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m, const struct sockaddr *sa, size_t salen) {
-    struct pa_socket_client *c;
+pa_socket_client* pa_socket_client_new_sockaddr(pa_mainloop_api *m, const struct sockaddr *sa, size_t salen) {
+    pa_socket_client *c;
     assert(m && sa);
     c = pa_socket_client_new(m);
     assert(c);
@@ -291,7 +291,7 @@ fail:
     
 }
 
-void socket_client_free(struct pa_socket_client *c) {
+static void socket_client_free(pa_socket_client *c) {
     assert(c && c->mainloop);
 
 
@@ -312,26 +312,26 @@ void socket_client_free(struct pa_socket_client *c) {
     pa_xfree(c);
 }
 
-void pa_socket_client_unref(struct pa_socket_client *c) {
+void pa_socket_client_unref(pa_socket_client *c) {
     assert(c && c->ref >= 1);
 
     if (!(--(c->ref)))
         socket_client_free(c);
 }
 
-struct pa_socket_client* pa_socket_client_ref(struct pa_socket_client *c) {
+pa_socket_client* pa_socket_client_ref(pa_socket_client *c) {
     assert(c && c->ref >= 1);
     c->ref++;
     return c;
 }
 
-void pa_socket_client_set_callback(struct pa_socket_client *c, void (*on_connection)(struct pa_socket_client *c, struct pa_iochannel*io, void *userdata), void *userdata) {
+void pa_socket_client_set_callback(pa_socket_client *c, void (*on_connection)(pa_socket_client *c, pa_iochannel*io, void *userdata), void *userdata) {
     assert(c);
     c->callback = on_connection;
     c->userdata = userdata;
 }
 
-struct pa_socket_client* pa_socket_client_new_ipv6(struct pa_mainloop_api *m, uint8_t address[16], uint16_t port) {
+pa_socket_client* pa_socket_client_new_ipv6(pa_mainloop_api *m, uint8_t address[16], uint16_t port) {
     struct sockaddr_in6 sa;
     
     memset(&sa, 0, sizeof(sa));
@@ -344,8 +344,8 @@ struct pa_socket_client* pa_socket_client_new_ipv6(struct pa_mainloop_api *m, ui
 
 #ifdef HAVE_LIBASYNCNS
 
-static void asyncns_cb(struct pa_mainloop_api*m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
-    struct pa_socket_client *c = userdata;
+static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+    pa_socket_client *c = userdata;
     struct addrinfo *res = NULL;
     int ret;
     assert(m && c && c->asyncns_io_event == e && fd >= 0);
@@ -381,8 +381,8 @@ finish:
 
 #endif
 
-static void timeout_cb(struct pa_mainloop_api *m, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
-    struct pa_socket_client *c = userdata;
+static void timeout_cb(pa_mainloop_api *m, pa_time_event *e, const struct timeval *tv, void *userdata) {
+    pa_socket_client *c = userdata;
     assert(m);
     assert(e);
     assert(tv);
@@ -397,7 +397,7 @@ static void timeout_cb(struct pa_mainloop_api *m, struct pa_time_event *e, const
     do_call(c);
 }
 
-static void start_timeout(struct pa_socket_client *c) {
+static void start_timeout(pa_socket_client *c) {
     struct timeval tv;
     assert(c);
     assert(!c->timeout_event);
@@ -407,9 +407,9 @@ static void start_timeout(struct pa_socket_client *c) {
     c->timeout_event = c->mainloop->time_new(c->mainloop, &tv, timeout_cb, c);
 }
 
-struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, const char*name, uint16_t default_port) {
-    struct pa_socket_client *c = NULL;
-    struct pa_parsed_address a;
+pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*name, uint16_t default_port) {
+    pa_socket_client *c = NULL;
+    pa_parsed_address a;
     assert(m && name);
 
     if (pa_parse_address(name, &a) < 0)
@@ -507,7 +507,7 @@ finish:
 /* Return non-zero when the target sockaddr is considered
    local. "local" means UNIX socket or TCP socket on localhost. Other
    local IP addresses are not considered local. */
-int pa_socket_client_is_local(struct pa_socket_client *c) {
+int pa_socket_client_is_local(pa_socket_client *c) {
     assert(c);
     return c->local;
 }

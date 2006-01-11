@@ -68,7 +68,7 @@ struct rule {
 
 struct userdata {
     struct rule *rules;
-    struct pa_subscription *subscription;
+    pa_subscription *subscription;
 };
 
 static int load_rules(struct userdata *u, const char *filename) {
@@ -154,16 +154,16 @@ finish:
     return ret;
 }
 
-static void callback(struct pa_core *c, enum pa_subscription_event_type t, uint32_t index, void *userdata) {
+static void callback(pa_core *c, pa_subscription_event_type t, uint32_t idx, void *userdata) {
     struct userdata *u =  userdata;
-    struct pa_sink_input *si;
+    pa_sink_input *si;
     struct rule *r;
     assert(c && u);
 
     if (t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW))
         return;
 
-    if (!(si = pa_idxset_get_by_index(c->sink_inputs, index)))
+    if (!(si = pa_idxset_get_by_index(c->sink_inputs, idx)))
         return;
 
     if (!si->name)
@@ -177,8 +177,8 @@ static void callback(struct pa_core *c, enum pa_subscription_event_type t, uint3
     }
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_modargs *ma = NULL;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_modargs *ma = NULL;
     struct userdata *u;
     assert(c && m);
 
@@ -208,7 +208,7 @@ fail:
     return  -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata* u;
     struct rule *r, *n;
     assert(c && m);

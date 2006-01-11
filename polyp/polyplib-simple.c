@@ -36,10 +36,10 @@
 #include "log.h"
 
 struct pa_simple {
-    struct pa_mainloop *mainloop;
-    struct pa_context *context;
-    struct pa_stream *stream;
-    enum pa_stream_direction direction;
+    pa_mainloop *mainloop;
+    pa_context *context;
+    pa_stream *stream;
+    pa_stream_direction direction;
 
     int dead;
 
@@ -48,11 +48,11 @@ struct pa_simple {
     pa_usec_t latency;
 };
 
-static void read_callback(struct pa_stream *s, const void*data, size_t length, void *userdata);
+static void read_callback(pa_stream *s, const void*data, size_t length, void *userdata);
 
-static int check_error(struct pa_simple *p, int *perror) {
-    enum pa_context_state cst;
-    enum pa_stream_state sst;
+static int check_error(pa_simple *p, int *rerror) {
+    pa_context_state cst;
+    pa_stream_state sst;
     assert(p);
     
     if ((cst = pa_context_get_state(p->context)) == PA_CONTEXT_FAILED)
@@ -70,18 +70,18 @@ static int check_error(struct pa_simple *p, int *perror) {
     return 0;
     
 fail:
-    if (perror)
-        *perror = pa_context_errno(p->context);
+    if (rerror)
+        *rerror = pa_context_errno(p->context);
 
     p->dead = 1;
     
     return -1;
 }
 
-static int iterate(struct pa_simple *p, int block, int *perror) {
+static int iterate(pa_simple *p, int block, int *rerror) {
     assert(p && p->context && p->mainloop);
 
-    if (check_error(p, perror) < 0)
+    if (check_error(p, rerror) < 0)
         return -1;
     
     if (!block && !pa_context_is_pending(p->context))
@@ -89,12 +89,12 @@ static int iterate(struct pa_simple *p, int block, int *perror) {
 
     do {
         if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0) {
-            if (perror)
-                *perror = PA_ERROR_INTERNAL;
+            if (rerror)
+                *rerror = PA_ERROR_INTERNAL;
             return -1;
         }
 
-        if (check_error(p, perror) < 0)
+        if (check_error(p, rerror) < 0)
             return -1;
         
     } while (pa_context_is_pending(p->context));
@@ -103,34 +103,34 @@ static int iterate(struct pa_simple *p, int block, int *perror) {
     while (pa_mainloop_deferred_pending(p->mainloop)) {
 
         if (pa_mainloop_iterate(p->mainloop, 0, NULL) < 0) {
-            if (perror)
-                *perror = PA_ERROR_INTERNAL;
+            if (rerror)
+                *rerror = PA_ERROR_INTERNAL;
             return -1;
         }
 
-        if (check_error(p, perror) < 0)
+        if (check_error(p, rerror) < 0)
             return -1;
     }
     
     return 0;
 }
 
-struct pa_simple* pa_simple_new(
+pa_simple* pa_simple_new(
     const char *server,
     const char *name,
-    enum pa_stream_direction dir,
+    pa_stream_direction dir,
     const char *dev,
     const char *stream_name,
-    const struct pa_sample_spec *ss,
-    const struct pa_buffer_attr *attr,
+    const pa_sample_spec *ss,
+    const pa_buffer_attr *attr,
     pa_volume_t volume, 
-    int *perror) {
+    int *rerror) {
     
-    struct pa_simple *p;
+    pa_simple *p;
     int error = PA_ERROR_INTERNAL;
     assert(ss && (dir == PA_STREAM_PLAYBACK || dir == PA_STREAM_RECORD));
 
-    p = pa_xmalloc(sizeof(struct pa_simple));
+    p = pa_xmalloc(sizeof(pa_simple));
     p->context = NULL;
     p->stream = NULL;
     p->mainloop = pa_mainloop_new();
@@ -171,13 +171,13 @@ struct pa_simple* pa_simple_new(
     return p;
     
 fail:
-    if (perror)
-        *perror = error;
+    if (rerror)
+        *rerror = error;
     pa_simple_free(p);
     return NULL;
 }
 
-void pa_simple_free(struct pa_simple *s) {
+void pa_simple_free(pa_simple *s) {
     assert(s);
 
     pa_xfree(s->read_data);
@@ -194,12 +194,12 @@ void pa_simple_free(struct pa_simple *s) {
     pa_xfree(s);
 }
 
-int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *perror) {
+int pa_simple_write(pa_simple *p, const void*data, size_t length, int *rerror) {
     assert(p && data && p->direction == PA_STREAM_PLAYBACK);
 
     if (p->dead) {
-        if (perror)
-            *perror = pa_context_errno(p->context);
+        if (rerror)
+            *rerror = pa_context_errno(p->context);
         
         return -1;
     }
@@ -208,26 +208,26 @@ int pa_simple_write(struct pa_simple *p, const void*data, size_t length, int *pe
         size_t l;
         
         while (!(l = pa_stream_writable_size(p->stream)))
-            if (iterate(p, 1, perror) < 0)
+            if (iterate(p, 1, rerror) < 0)
                 return -1;
 
         if (l > length)
             l = length;
 
         pa_stream_write(p->stream, data, l, NULL, 0);
-        data = (uint8_t*) data + l;
+        data = (const uint8_t*) data + l;
         length -= l;
     }
 
     /* Make sure that no data is pending for write */
-    if (iterate(p, 0, perror) < 0)
+    if (iterate(p, 0, rerror) < 0)
         return -1;
 
     return 0;
 }
 
-static void read_callback(struct pa_stream *s, const void*data, size_t length, void *userdata) {
-    struct pa_simple *p = userdata;
+static void read_callback(pa_stream *s, const void*data, size_t length, void *userdata) {
+    pa_simple *p = userdata;
     assert(s && data && length && p);
 
     if (p->read_data) {
@@ -239,12 +239,12 @@ static void read_callback(struct pa_stream *s, const void*data, size_t length, v
     p->read_index = 0;
 }
 
-int pa_simple_read(struct pa_simple *p, void*data, size_t length, int *perror) {
+int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
     assert(p && data && p->direction == PA_STREAM_RECORD);
 
     if (p->dead) {
-        if (perror)
-            *perror = pa_context_errno(p->context);
+        if (rerror)
+            *rerror = pa_context_errno(p->context);
         
         return -1;
     }
@@ -276,27 +276,27 @@ int pa_simple_read(struct pa_simple *p, void*data, size_t length, int *perror) {
             assert(!p->read_data);
         }
 
-        if (iterate(p, 1, perror) < 0)
+        if (iterate(p, 1, rerror) < 0)
             return -1;
     }
 
     return 0;
 }
 
-static void drain_or_flush_complete(struct pa_stream *s, int success, void *userdata) {
-    struct pa_simple *p = userdata;
+static void drain_or_flush_complete(pa_stream *s, int success, void *userdata) {
+    pa_simple *p = userdata;
     assert(s && p);
     if (!success)
         p->dead = 1;
 }
 
-int pa_simple_drain(struct pa_simple *p, int *perror) {
-    struct pa_operation *o;
+int pa_simple_drain(pa_simple *p, int *rerror) {
+    pa_operation *o;
     assert(p && p->direction == PA_STREAM_PLAYBACK);
 
     if (p->dead) {
-        if (perror)
-            *perror = pa_context_errno(p->context);
+        if (rerror)
+            *rerror = pa_context_errno(p->context);
         
         return -1;
     }
@@ -304,7 +304,7 @@ int pa_simple_drain(struct pa_simple *p, int *perror) {
     o = pa_stream_drain(p->stream, drain_or_flush_complete, p);
 
     while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
-        if (iterate(p, 1, perror) < 0) {
+        if (iterate(p, 1, rerror) < 0) {
             pa_operation_cancel(o);
             pa_operation_unref(o);
             return -1;
@@ -313,14 +313,14 @@ int pa_simple_drain(struct pa_simple *p, int *perror) {
 
     pa_operation_unref(o);
 
-    if (p->dead && perror)
-        *perror = pa_context_errno(p->context);
+    if (p->dead && rerror)
+        *rerror = pa_context_errno(p->context);
 
     return p->dead ? -1 : 0;
 }
 
-static void latency_complete(struct pa_stream *s, const struct pa_latency_info *l, void *userdata) {
-    struct pa_simple *p = userdata;
+static void latency_complete(pa_stream *s, const pa_latency_info *l, void *userdata) {
+    pa_simple *p = userdata;
     assert(s && p);
 
     if (!l)
@@ -333,13 +333,13 @@ static void latency_complete(struct pa_stream *s, const struct pa_latency_info *
     }
 }
 
-pa_usec_t pa_simple_get_playback_latency(struct pa_simple *p, int *perror) {
-    struct pa_operation *o;
+pa_usec_t pa_simple_get_playback_latency(pa_simple *p, int *rerror) {
+    pa_operation *o;
     assert(p && p->direction == PA_STREAM_PLAYBACK);
 
     if (p->dead) {
-        if (perror)
-            *perror = pa_context_errno(p->context);
+        if (rerror)
+            *rerror = pa_context_errno(p->context);
         
         return (pa_usec_t) -1;
     }
@@ -349,7 +349,7 @@ pa_usec_t pa_simple_get_playback_latency(struct pa_simple *p, int *perror) {
     
     while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
 
-        if (iterate(p, 1, perror) < 0) {
+        if (iterate(p, 1, rerror) < 0) {
             pa_operation_cancel(o);
             pa_operation_unref(o);
             return -1;
@@ -358,19 +358,19 @@ pa_usec_t pa_simple_get_playback_latency(struct pa_simple *p, int *perror) {
 
     pa_operation_unref(o);
     
-    if (p->dead && perror)
-        *perror = pa_context_errno(p->context);
+    if (p->dead && rerror)
+        *rerror = pa_context_errno(p->context);
 
     return p->dead ? (pa_usec_t) -1 : p->latency;
 }
 
-int pa_simple_flush(struct pa_simple *p, int *perror) {
-    struct pa_operation *o;
+int pa_simple_flush(pa_simple *p, int *rerror) {
+    pa_operation *o;
     assert(p && p->direction == PA_STREAM_PLAYBACK);
 
     if (p->dead) {
-        if (perror)
-            *perror = pa_context_errno(p->context);
+        if (rerror)
+            *rerror = pa_context_errno(p->context);
         
         return -1;
     }
@@ -378,7 +378,7 @@ int pa_simple_flush(struct pa_simple *p, int *perror) {
     o = pa_stream_flush(p->stream, drain_or_flush_complete, p);
 
     while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
-        if (iterate(p, 1, perror) < 0) {
+        if (iterate(p, 1, rerror) < 0) {
             pa_operation_cancel(o);
             pa_operation_unref(o);
             return -1;
@@ -387,8 +387,8 @@ int pa_simple_flush(struct pa_simple *p, int *perror) {
 
     pa_operation_unref(o);
 
-    if (p->dead && perror)
-        *perror = pa_context_errno(p->context);
+    if (p->dead && rerror)
+        *rerror = pa_context_errno(p->context);
 
     return p->dead ? -1 : 0;
 }

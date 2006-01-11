@@ -29,11 +29,11 @@
 #include "polyplib-internal.h"
 #include "polyplib-operation.h"
 
-struct pa_operation *pa_operation_new(struct pa_context *c, struct pa_stream *s) {
-    struct pa_operation *o;
+pa_operation *pa_operation_new(pa_context *c, pa_stream *s) {
+    pa_operation *o;
     assert(c);
 
-    o = pa_xmalloc(sizeof(struct pa_operation));
+    o = pa_xmalloc(sizeof(pa_operation));
     o->ref = 1;
     o->context = pa_context_ref(c);
     o->stream = s ? pa_stream_ref(s) : NULL;
@@ -42,17 +42,17 @@ struct pa_operation *pa_operation_new(struct pa_context *c, struct pa_stream *s)
     o->userdata = NULL;
     o->callback = NULL;
 
-    PA_LLIST_PREPEND(struct pa_operation, o->context->operations, o);
+    PA_LLIST_PREPEND(pa_operation, o->context->operations, o);
     return pa_operation_ref(o);
 }
 
-struct pa_operation *pa_operation_ref(struct pa_operation *o) {
+pa_operation *pa_operation_ref(pa_operation *o) {
     assert(o && o->ref >= 1);
     o->ref++;
     return o;
 }
 
-void pa_operation_unref(struct pa_operation *o) {
+void pa_operation_unref(pa_operation *o) {
     assert(o && o->ref >= 1);
 
     if ((--(o->ref)) == 0) {
@@ -62,7 +62,7 @@ void pa_operation_unref(struct pa_operation *o) {
     }
 }
 
-static void operation_set_state(struct pa_operation *o, enum pa_operation_state st) {
+static void operation_set_state(pa_operation *o, pa_operation_state st) {
     assert(o && o->ref >= 1);
 
     if (st == o->state)
@@ -74,7 +74,7 @@ static void operation_set_state(struct pa_operation *o, enum pa_operation_state 
     o->state = st;
 
     if ((o->state == PA_OPERATION_DONE) || (o->state == PA_OPERATION_CANCELED)) {
-        PA_LLIST_REMOVE(struct pa_operation, o->context->operations, o);
+        PA_LLIST_REMOVE(pa_operation, o->context->operations, o);
         pa_context_unref(o->context);
         if (o->stream)
             pa_stream_unref(o->stream);
@@ -87,17 +87,17 @@ static void operation_set_state(struct pa_operation *o, enum pa_operation_state 
     }
 }
 
-void pa_operation_cancel(struct pa_operation *o) {
+void pa_operation_cancel(pa_operation *o) {
     assert(o && o->ref >= 1);
     operation_set_state(o, PA_OPERATION_CANCELED);
 }
 
-void pa_operation_done(struct pa_operation *o) {
+void pa_operation_done(pa_operation *o) {
     assert(o && o->ref >= 1);
     operation_set_state(o, PA_OPERATION_DONE);
 }
 
-enum pa_operation_state pa_operation_get_state(struct pa_operation *o) {
+pa_operation_state pa_operation_get_state(pa_operation *o) {
     assert(o && o->ref >= 1);
     return o->state;
 }

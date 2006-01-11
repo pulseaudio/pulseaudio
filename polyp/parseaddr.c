@@ -63,10 +63,10 @@ static char *parse_host(const char *s, uint16_t *ret_port) {
     }
 }
 
-int pa_parse_address(const char *name, struct pa_parsed_address *ret_p) {
+int pa_parse_address(const char *name, pa_parsed_address *ret_p) {
     const char *p;
     assert(name && ret_p);
-    memset(ret_p, 0, sizeof(struct pa_parsed_address));
+    memset(ret_p, 0, sizeof(pa_parsed_address));
     ret_p->type = PA_PARSED_ADDRESS_TCP_AUTO;
 
     if (*name == '{') {

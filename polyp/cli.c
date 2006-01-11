@@ -48,26 +48,26 @@
 #define PA_TYPEID_CLI PA_TYPEID_MAKE('C', 'L', 'I', '_')
 
 struct pa_cli {
-    struct pa_core *core;
-    struct pa_ioline *line;
+    pa_core *core;
+    pa_ioline *line;
 
-    void (*eof_callback)(struct pa_cli *c, void *userdata);
+    void (*eof_callback)(pa_cli *c, void *userdata);
     void *userdata;
 
-    struct pa_client *client;
+    pa_client *client;
 
     int fail, kill_requested, defer_kill;
 };
 
-static void line_callback(struct pa_ioline *line, const char *s, void *userdata);
-static void client_kill(struct pa_client *c);
+static void line_callback(pa_ioline *line, const char *s, void *userdata);
+static void client_kill(pa_client *c);
 
-struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io, struct pa_module *m) {
+pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     char cname[256];
-    struct pa_cli *c;
+    pa_cli *c;
     assert(io);
 
-    c = pa_xmalloc(sizeof(struct pa_cli));
+    c = pa_xmalloc(sizeof(pa_cli));
     c->core = core;
     c->line = pa_ioline_new(io);
     assert(c->line);
@@ -90,7 +90,7 @@ struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io, struct 
     return c;
 }
 
-void pa_cli_free(struct pa_cli *c) {
+void pa_cli_free(pa_cli *c) {
     assert(c);
     pa_ioline_close(c->line);
     pa_ioline_unref(c->line);
@@ -98,8 +98,8 @@ void pa_cli_free(struct pa_cli *c) {
     pa_xfree(c);
 }
 
-static void client_kill(struct pa_client *client) {
-    struct pa_cli *c;
+static void client_kill(pa_client *client) {
+    pa_cli *c;
     assert(client && client->userdata);
     c = client->userdata;
     
@@ -112,9 +112,9 @@ static void client_kill(struct pa_client *client) {
     }
 }
 
-static void line_callback(struct pa_ioline *line, const char *s, void *userdata) {
-    struct pa_strbuf *buf;
-    struct pa_cli *c = userdata;
+static void line_callback(pa_ioline *line, const char *s, void *userdata) {
+    pa_strbuf *buf;
+    pa_cli *c = userdata;
     char *p;
     assert(line && c);
 
@@ -141,7 +141,7 @@ static void line_callback(struct pa_ioline *line, const char *s, void *userdata)
         pa_ioline_puts(line, PROMPT);
 }
 
-void pa_cli_set_eof_callback(struct pa_cli *c, void (*cb)(struct pa_cli*c, void *userdata), void *userdata) {
+void pa_cli_set_eof_callback(pa_cli *c, void (*cb)(pa_cli*c, void *userdata), void *userdata) {
     assert(c);
     c->eof_callback = cb;
     c->userdata = userdata;

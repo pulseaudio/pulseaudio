@@ -90,7 +90,7 @@ fail:
     return fd;
 }
 
-int pa_oss_auto_format(int fd, struct pa_sample_spec *ss) {
+int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
     int format, channels, speed, reqformat;
     static const int format_trans[PA_SAMPLE_MAX] = {
         [PA_SAMPLE_U8] = AFMT_U8,

@@ -37,9 +37,9 @@
 #define READ_SIZE (1024)
 
 struct pa_ioline {
-    struct pa_iochannel *io;
-    struct pa_defer_event *defer_event;
-    struct pa_mainloop_api *mainloop;
+    pa_iochannel *io;
+    pa_defer_event *defer_event;
+    pa_mainloop_api *mainloop;
     int ref;
     int dead;
 
@@ -49,20 +49,20 @@ struct pa_ioline {
     char *rbuf;
     size_t rbuf_length, rbuf_index, rbuf_valid_length;
 
-    void (*callback)(struct pa_ioline*io, const char *s, void *userdata);
+    void (*callback)(pa_ioline*io, const char *s, void *userdata);
     void *userdata;
 
     int defer_close;
 };
 
-static void io_callback(struct pa_iochannel*io, void *userdata);
-static void defer_callback(struct pa_mainloop_api*m, struct pa_defer_event*e, void *userdata);
+static void io_callback(pa_iochannel*io, void *userdata);
+static void defer_callback(pa_mainloop_api*m, pa_defer_event*e, void *userdata);
 
-struct pa_ioline* pa_ioline_new(struct pa_iochannel *io) {
-    struct pa_ioline *l;
+pa_ioline* pa_ioline_new(pa_iochannel *io) {
+    pa_ioline *l;
     assert(io);
     
-    l = pa_xmalloc(sizeof(struct pa_ioline));
+    l = pa_xmalloc(sizeof(pa_ioline));
     l->io = io;
     l->dead = 0;
 
@@ -88,7 +88,7 @@ struct pa_ioline* pa_ioline_new(struct pa_iochannel *io) {
     return l;
 }
 
-static void ioline_free(struct pa_ioline *l) {
+static void ioline_free(pa_ioline *l) {
     assert(l);
 
     if (l->io)
@@ -102,21 +102,21 @@ static void ioline_free(struct pa_ioline *l) {
     pa_xfree(l);
 }
 
-void pa_ioline_unref(struct pa_ioline *l) {
+void pa_ioline_unref(pa_ioline *l) {
     assert(l && l->ref >= 1);
 
     if ((--l->ref) <= 0)
         ioline_free(l);
 }
 
-struct pa_ioline* pa_ioline_ref(struct pa_ioline *l) {
+pa_ioline* pa_ioline_ref(pa_ioline *l) {
     assert(l && l->ref >= 1);
 
     l->ref++;
     return l;
 }
 
-void pa_ioline_close(struct pa_ioline *l) {
+void pa_ioline_close(pa_ioline *l) {
     assert(l && l->ref >= 1);
 
     l->dead = 1;
@@ -131,7 +131,7 @@ void pa_ioline_close(struct pa_ioline *l) {
     }
 }
 
-void pa_ioline_puts(struct pa_ioline *l, const char *c) {
+void pa_ioline_puts(pa_ioline *l, const char *c) {
     size_t len;
     assert(l && c && l->ref >= 1 && !l->dead);
 
@@ -174,13 +174,13 @@ void pa_ioline_puts(struct pa_ioline *l, const char *c) {
     pa_ioline_unref(l);
 }
 
-void pa_ioline_set_callback(struct pa_ioline*l, void (*callback)(struct pa_ioline*io, const char *s, void *userdata), void *userdata) {
+void pa_ioline_set_callback(pa_ioline*l, void (*callback)(pa_ioline*io, const char *s, void *userdata), void *userdata) {
     assert(l && l->ref >= 1);
     l->callback = callback;
     l->userdata = userdata;
 }
 
-static void failure(struct pa_ioline *l) {
+static void failure(pa_ioline *l) {
     assert(l && l->ref >= 1 && !l->dead);
 
     pa_ioline_close(l);
@@ -191,7 +191,7 @@ static void failure(struct pa_ioline *l) {
     }
 }
 
-static void scan_for_lines(struct pa_ioline *l, size_t skip) {
+static void scan_for_lines(pa_ioline *l, size_t skip) {
     assert(l && l->ref >= 1 && skip < l->rbuf_valid_length);
 
     while (!l->dead && l->rbuf_valid_length > skip) {
@@ -224,9 +224,9 @@ static void scan_for_lines(struct pa_ioline *l, size_t skip) {
         l->rbuf_index = l->rbuf_valid_length = 0;
 }
 
-static int do_write(struct pa_ioline *l);
+static int do_write(pa_ioline *l);
 
-static int do_read(struct pa_ioline *l) {
+static int do_read(pa_ioline *l) {
     assert(l && l->ref >= 1);
 
     while (!l->dead && pa_iochannel_is_readable(l->io)) {
@@ -288,7 +288,7 @@ static int do_read(struct pa_ioline *l) {
 }
 
 /* Try to flush the buffer */
-static int do_write(struct pa_ioline *l) {
+static int do_write(pa_ioline *l) {
     ssize_t r;
     assert(l && l->ref >= 1);
 
@@ -312,7 +312,7 @@ static int do_write(struct pa_ioline *l) {
 }
 
 /* Try to flush read/write data */
-static void do_work(struct pa_ioline *l) {
+static void do_work(pa_ioline *l) {
     assert(l && l->ref >= 1);
 
     pa_ioline_ref(l);
@@ -331,21 +331,21 @@ static void do_work(struct pa_ioline *l) {
     pa_ioline_unref(l);
 }
 
-static void io_callback(struct pa_iochannel*io, void *userdata) {
-    struct pa_ioline *l = userdata;
+static void io_callback(pa_iochannel*io, void *userdata) {
+    pa_ioline *l = userdata;
     assert(io && l && l->ref >= 1);
 
     do_work(l);
 }
 
-static void defer_callback(struct pa_mainloop_api*m, struct pa_defer_event*e, void *userdata) {
-    struct pa_ioline *l = userdata;
+static void defer_callback(pa_mainloop_api*m, pa_defer_event*e, void *userdata) {
+    pa_ioline *l = userdata;
     assert(l && l->ref >= 1 && l->mainloop == m && l->defer_event == e);
 
     do_work(l);
 }
 
-void pa_ioline_defer_close(struct pa_ioline *l) {
+void pa_ioline_defer_close(pa_ioline *l) {
     assert(l);
 
     l->defer_close = 1;
@@ -354,7 +354,7 @@ void pa_ioline_defer_close(struct pa_ioline *l) {
         l->mainloop->defer_enable(l->defer_event, 1);
 }
 
-void pa_ioline_printf(struct pa_ioline *s, const char *format, ...) {
+void pa_ioline_printf(pa_ioline *s, const char *format, ...) {
     char *t;
     va_list ap;
 

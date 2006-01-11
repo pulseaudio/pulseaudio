@@ -45,31 +45,31 @@
 #define PA_TYPEID_SIMPLE PA_TYPEID_MAKE('S', 'M', 'P', 'L')
 
 struct connection {
-    struct pa_protocol_simple *protocol;
-    struct pa_iochannel *io;
-    struct pa_sink_input *sink_input;
-    struct pa_source_output *source_output;
-    struct pa_client *client;
-    struct pa_memblockq *input_memblockq, *output_memblockq;
-    struct pa_defer_event *defer_event;
+    pa_protocol_simple *protocol;
+    pa_iochannel *io;
+    pa_sink_input *sink_input;
+    pa_source_output *source_output;
+    pa_client *client;
+    pa_memblockq *input_memblockq, *output_memblockq;
+    pa_defer_event *defer_event;
 
     struct {
-        struct pa_memblock *current_memblock;
+        pa_memblock *current_memblock;
         size_t memblock_index, fragment_size;
     } playback;
 };
 
 struct pa_protocol_simple {
-    struct pa_module *module;
-    struct pa_core *core;
-    struct pa_socket_server*server;
-    struct pa_idxset *connections;
+    pa_module *module;
+    pa_core *core;
+    pa_socket_server*server;
+    pa_idxset *connections;
     enum {
         RECORD = 1,
         PLAYBACK = 2,
         DUPLEX = 3
     } mode;
-    struct pa_sample_spec sample_spec;
+    pa_sample_spec sample_spec;
     char *source_name, *sink_name;
 };
 
@@ -107,7 +107,7 @@ static void connection_free(struct connection *c) {
 }
 
 static int do_read(struct connection *c) {
-    struct pa_memchunk chunk;
+    pa_memchunk chunk;
     ssize_t r;
     size_t l;
 
@@ -151,7 +151,7 @@ static int do_read(struct connection *c) {
 }
 
 static int do_write(struct connection *c) {
-    struct pa_memchunk chunk;
+    pa_memchunk chunk;
     ssize_t r;
 
     if (!c->source_output)
@@ -201,7 +201,7 @@ fail:
 
 /*** sink_input callbacks ***/
 
-static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     struct connection*c;
     assert(i && i->userdata && chunk);
     c = i->userdata;
@@ -212,7 +212,7 @@ static int sink_input_peek_cb(struct pa_sink_input *i, struct pa_memchunk *chunk
     return 0;
 }
 
-static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length) {
+static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
     struct connection*c = i->userdata;
     assert(i && c && length);
 
@@ -223,13 +223,13 @@ static void sink_input_drop_cb(struct pa_sink_input *i, const struct pa_memchunk
     c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
 }
 
-static void sink_input_kill_cb(struct pa_sink_input *i) {
+static void sink_input_kill_cb(pa_sink_input *i) {
     assert(i && i->userdata);
     connection_free((struct connection *) i->userdata);
 }
 
 
-static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i) {
+static pa_usec_t sink_input_get_latency_cb(pa_sink_input *i) {
     struct connection*c = i->userdata;
     assert(i && c);
     return pa_bytes_to_usec(pa_memblockq_get_length(c->input_memblockq), &c->sink_input->sample_spec);
@@ -237,7 +237,7 @@ static pa_usec_t sink_input_get_latency_cb(struct pa_sink_input *i) {
 
 /*** source_output callbacks ***/
 
-static void source_output_push_cb(struct pa_source_output *o, const struct pa_memchunk *chunk) {
+static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     struct connection *c = o->userdata;
     assert(o && c && chunk);
 
@@ -248,12 +248,12 @@ static void source_output_push_cb(struct pa_source_output *o, const struct pa_me
     c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
 }
 
-static void source_output_kill_cb(struct pa_source_output *o) {
+static void source_output_kill_cb(pa_source_output *o) {
     assert(o && o->userdata);
     connection_free((struct connection *) o->userdata);
 }
 
-static pa_usec_t source_output_get_latency_cb(struct pa_source_output *o) {
+static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
     struct connection*c = o->userdata;
     assert(o && c);
     return pa_bytes_to_usec(pa_memblockq_get_length(c->output_memblockq), &c->source_output->sample_spec);
@@ -261,14 +261,14 @@ static pa_usec_t source_output_get_latency_cb(struct pa_source_output *o) {
 
 /*** client callbacks ***/
 
-static void client_kill_cb(struct pa_client *c) {
+static void client_kill_cb(pa_client *c) {
     assert(c && c->userdata);
     connection_free((struct connection *) c->userdata);
 }
 
 /*** pa_iochannel callbacks ***/
 
-static void io_callback(struct pa_iochannel*io, void *userdata) {
+static void io_callback(pa_iochannel*io, void *userdata) {
     struct connection *c = userdata;
     assert(io && c && c->io == io);
 
@@ -277,7 +277,7 @@ static void io_callback(struct pa_iochannel*io, void *userdata) {
 
 /*** fixed callback ***/
 
-static void defer_callback(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata) {
+static void defer_callback(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
     struct connection *c = userdata;
     assert(a && c && c->defer_event == e);
 
@@ -286,13 +286,13 @@ static void defer_callback(struct pa_mainloop_api*a, struct pa_defer_event *e, v
 
 /*** socket_server callbacks ***/
 
-static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata) {
-    struct pa_protocol_simple *p = userdata;
+static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) {
+    pa_protocol_simple *p = userdata;
     struct connection *c = NULL;
     char cname[256];
     assert(s && io && p);
 
-    if (pa_idxset_ncontents(p->connections)+1 > MAX_CONNECTIONS) {
+    if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
         pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
@@ -317,7 +317,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     c->client->userdata = c;
 
     if (p->mode & PLAYBACK) {
-        struct pa_sink *sink;
+        pa_sink *sink;
         size_t l;
 
         if (!(sink = pa_namereg_get(p->core, p->sink_name, PA_NAMEREG_SINK, 1))) {
@@ -347,7 +347,7 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     }
 
     if (p->mode & RECORD) {
-        struct pa_source *source;
+        pa_source *source;
         size_t l;
 
         if (!(source = pa_namereg_get(p->core, p->source_name, PA_NAMEREG_SOURCE, 1))) {
@@ -387,12 +387,12 @@ fail:
         connection_free(c);
 }
 
-struct pa_protocol_simple* pa_protocol_simple_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
-    struct pa_protocol_simple* p = NULL;
+pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma) {
+    pa_protocol_simple* p = NULL;
     int enable;
     assert(core && server && ma);
 
-    p = pa_xmalloc0(sizeof(struct pa_protocol_simple));
+    p = pa_xmalloc0(sizeof(pa_protocol_simple));
     p->module = m;
     p->core = core;
     p->server = server;
@@ -437,7 +437,7 @@ fail:
 }
 
 
-void pa_protocol_simple_free(struct pa_protocol_simple *p) {
+void pa_protocol_simple_free(pa_protocol_simple *p) {
     struct connection *c;
     assert(p);
 

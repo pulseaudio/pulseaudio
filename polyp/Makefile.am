@@ -42,7 +42,7 @@ endif
 #     Compiler/linker flags       #
 ###################################
 
-AM_CFLAGS  = -D_GNU_SOURCE  -I$(top_srcdir)
+AM_CFLAGS = -I$(top_srcdir)
 AM_CFLAGS += $(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS
 AM_CFLAGS += $(LTDLINCL)
 AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
@@ -224,12 +224,12 @@ voltest_CFLAGS = $(AM_CFLAGS)
 voltest_LDADD = $(AM_LDADD)
 voltest_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h
+cpulimit_test_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h idxset.c idxset.h
 cpulimit_test_CFLAGS = $(AM_CFLAGS)
 cpulimit_test_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
 cpulimit_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h
+cpulimit_test2_SOURCES = cpulimit-test.c cpulimit.c util.c log.c cpulimit.h util.h log.h idxset.c idxset.h
 cpulimit_test2_CFLAGS = $(AM_CFLAGS) -DTEST2
 cpulimit_test2_LDADD = $(AM_LDADD) libpolyp-mainloop-@PA_MAJORMINOR@.la
 cpulimit_test2_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)

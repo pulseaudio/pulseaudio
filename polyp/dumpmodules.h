@@ -26,6 +26,6 @@
 
 /* Dump all available modules to STDOUT. If argc > 0 print information
  * about the modules specified in argv[] instead. */
-void pa_dump_modules(struct pa_daemon_conf *c, int argc, char * const argv[]);
+void pa_dump_modules(pa_daemon_conf *c, int argc, char * const argv[]);
 
 #endif

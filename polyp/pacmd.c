@@ -36,7 +36,7 @@
 #include "log.h"
 #include "pid.h"
 
-int main() {
+int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
     pid_t pid ;
     int fd = -1;
     int ret = 1, i;

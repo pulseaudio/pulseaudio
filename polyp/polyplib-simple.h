@@ -41,40 +41,40 @@
 
 PA_C_DECL_BEGIN
 
-/** \struct pa_simple
+/** \pa_simple
  * An opaque simple connection object */
-struct pa_simple;
+typedef struct pa_simple pa_simple;
 
 /** Create a new connection to the server */
-struct pa_simple* pa_simple_new(
+pa_simple* pa_simple_new(
     const char *server,                 /**< Server name, or NULL for default */
     const char *name,                   /**< A descriptive name for this client (application name, ...) */
-    enum pa_stream_direction dir,       /**< Open this stream for recording or playback? */
+    pa_stream_direction dir,       /**< Open this stream for recording or playback? */
     const char *dev,                    /**< Sink (resp. source) name, or NULL for default */
     const char *stream_name,            /**< A descriptive name for this client (application name, song title, ...) */
-    const struct pa_sample_spec *ss,    /**< The sample type to use */
-    const struct pa_buffer_attr *attr,  /**< Buffering attributes, or NULL for default */
+    const pa_sample_spec *ss,    /**< The sample type to use */
+    const pa_buffer_attr *attr,  /**< Buffering attributes, or NULL for default */
     pa_volume_t volume,                 /**< Initial volume. Only for playback streams. \since 0.5 */
     int *error                          /**< A pointer where the error code is stored when the routine returns NULL. It is OK to pass NULL here. */
     );
 
 /** Close and free the connection to the server. The connection objects becomes invalid when this is called. */
-void pa_simple_free(struct pa_simple *s);
+void pa_simple_free(pa_simple *s);
 
 /** Write some data to the server */
-int pa_simple_write(struct pa_simple *s, const void*data, size_t length, int *error);
+int pa_simple_write(pa_simple *s, const void*data, size_t length, int *error);
 
 /** Wait until all data already written is played by the daemon */
-int pa_simple_drain(struct pa_simple *s, int *error);
+int pa_simple_drain(pa_simple *s, int *error);
 
 /** Read some data from the server */
-int pa_simple_read(struct pa_simple *s, void*data, size_t length, int *error);
+int pa_simple_read(pa_simple *s, void*data, size_t length, int *error);
 
 /** Return the playback latency. \since 0.5 */
-pa_usec_t pa_simple_get_playback_latency(struct pa_simple *s, int *perror);
+pa_usec_t pa_simple_get_playback_latency(pa_simple *s, int *error);
 
 /** Flush the playback buffer. \since 0.5 */
-int pa_simple_flush(struct pa_simple *s, int *perror);
+int pa_simple_flush(pa_simple *s, int *error);
 
 PA_C_DECL_END
 

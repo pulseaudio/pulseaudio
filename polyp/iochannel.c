@@ -37,9 +37,9 @@
 
 struct pa_iochannel {
     int ifd, ofd;
-    struct pa_mainloop_api* mainloop;
+    pa_mainloop_api* mainloop;
 
-    void (*callback)(struct pa_iochannel*io, void *userdata);
+    pa_iochannel_callback_t callback;
     void*userdata;
     
     int readable;
@@ -48,14 +48,14 @@ struct pa_iochannel {
     
     int no_close;
 
-    struct pa_io_event* input_event, *output_event;
+    pa_io_event* input_event, *output_event;
 };
 
-static void enable_mainloop_sources(struct pa_iochannel *io) {
+static void enable_mainloop_sources(pa_iochannel *io) {
     assert(io);
 
     if (io->input_event == io->output_event && io->input_event) {
-        enum pa_io_event_flags f = PA_IO_EVENT_NULL;
+        pa_io_event_flags f = PA_IO_EVENT_NULL;
         assert(io->input_event);
         
         if (!io->readable)
@@ -72,10 +72,14 @@ static void enable_mainloop_sources(struct pa_iochannel *io) {
     }
 }
 
-static void callback(struct pa_mainloop_api* m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
-    struct pa_iochannel *io = userdata;
+static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata) {
+    pa_iochannel *io = userdata;
     int changed = 0;
-    assert(m && e && fd >= 0 && userdata);
+    
+    assert(m);
+    assert(e);
+    assert(fd >= 0);
+    assert(userdata);
 
     if ((f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) && !io->hungup) {
         io->hungup = 1;
@@ -87,9 +91,7 @@ static void callback(struct pa_mainloop_api* m, struct pa_io_event *e, int fd, e
 
             if (io->output_event == e)
                 io->output_event = NULL;
-        }
-
-        if (e == io->output_event) {
+        } else if (e == io->output_event) {
             io->mainloop->io_free(io->output_event);
             io->output_event = NULL;
         }
@@ -116,11 +118,13 @@ static void callback(struct pa_mainloop_api* m, struct pa_io_event *e, int fd, e
     }
 }
 
-struct pa_iochannel* pa_iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd) {
-    struct pa_iochannel *io;
-    assert(m && (ifd >= 0 || ofd >= 0));
+pa_iochannel* pa_iochannel_new(pa_mainloop_api*m, int ifd, int ofd) {
+    pa_iochannel *io;
+    
+    assert(m);
+    assert(ifd >= 0 || ofd >= 0);
 
-    io = pa_xmalloc(sizeof(struct pa_iochannel));
+    io = pa_xnew(pa_iochannel, 1);
     io->ifd = ifd;
     io->ofd = ofd;
     io->mainloop = m;
@@ -154,16 +158,18 @@ struct pa_iochannel* pa_iochannel_new(struct pa_mainloop_api*m, int ifd, int ofd
     return io;
 }
 
-void pa_iochannel_free(struct pa_iochannel*io) {
+void pa_iochannel_free(pa_iochannel*io) {
     assert(io);
 
     if (io->input_event)
         io->mainloop->io_free(io->input_event);
+    
     if (io->output_event && (io->output_event != io->input_event))
         io->mainloop->io_free(io->output_event);
 
     if (!io->no_close) {
         if (io->ifd >= 0)
+            
             close(io->ifd);
         if (io->ofd >= 0 && io->ofd != io->ifd)
             close(io->ofd);
@@ -172,24 +178,31 @@ void pa_iochannel_free(struct pa_iochannel*io) {
     pa_xfree(io);
 }
 
-int pa_iochannel_is_readable(struct pa_iochannel*io) {
+int pa_iochannel_is_readable(pa_iochannel*io) {
     assert(io);
+    
     return io->readable || io->hungup;
 }
 
-int pa_iochannel_is_writable(struct pa_iochannel*io) {
+int pa_iochannel_is_writable(pa_iochannel*io) {
     assert(io);
+    
     return io->writable && !io->hungup;
 }
 
-int pa_iochannel_is_hungup(struct pa_iochannel*io) {
+int pa_iochannel_is_hungup(pa_iochannel*io) {
     assert(io);
+    
     return io->hungup;
 }
 
-ssize_t pa_iochannel_write(struct pa_iochannel*io, const void*data, size_t l) {
+ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
     ssize_t r;
-    assert(io && data && l && io->ofd >= 0);
+    
+    assert(io);
+    assert(data);
+    assert(l);
+    assert(io->ofd >= 0);
 
 #ifdef OS_IS_WIN32
     r = send(io->ofd, data, l, 0);
@@ -211,9 +224,12 @@ ssize_t pa_iochannel_write(struct pa_iochannel*io, const void*data, size_t l) {
     return r;
 }
 
-ssize_t pa_iochannel_read(struct pa_iochannel*io, void*data, size_t l) {
+ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
     ssize_t r;
-    assert(io && data && io->ifd >= 0);
+    
+    assert(io);
+    assert(data);
+    assert(io->ifd >= 0);
     
 #ifdef OS_IS_WIN32
     r = recv(io->ifd, data, l, 0);
@@ -227,6 +243,7 @@ ssize_t pa_iochannel_read(struct pa_iochannel*io, void*data, size_t l) {
     if (r < 0)
 #endif
         r = read(io->ifd, data, l);
+    
     if (r >= 0) {
         io->readable = 0;
         enable_mainloop_sources(io);
@@ -235,34 +252,41 @@ ssize_t pa_iochannel_read(struct pa_iochannel*io, void*data, size_t l) {
     return r;
 }
 
-void pa_iochannel_set_callback(struct pa_iochannel*io, void (*callback)(struct pa_iochannel*io, void *userdata), void *userdata) {
+void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_callback_t _callback, void *userdata) {
     assert(io);
-    io->callback = callback;
+    
+    io->callback = _callback;
     io->userdata = userdata;
 }
 
-void pa_iochannel_set_noclose(struct pa_iochannel*io, int b) {
+void pa_iochannel_set_noclose(pa_iochannel*io, int b) {
     assert(io);
+    
     io->no_close = b;
 }
 
-void pa_iochannel_socket_peer_to_string(struct pa_iochannel*io, char*s, size_t l) {
-    assert(io && s && l);
+void pa_iochannel_socket_peer_to_string(pa_iochannel*io, char*s, size_t l) {
+    assert(io);
+    assert(s);
+    assert(l);
+    
     pa_socket_peer_to_string(io->ifd, s, l);
 }
 
-int pa_iochannel_socket_set_rcvbuf(struct pa_iochannel *io, size_t l) {
+int pa_iochannel_socket_set_rcvbuf(pa_iochannel *io, size_t l) {
     assert(io);
+    
     return pa_socket_set_rcvbuf(io->ifd, l);
 }
 
-int pa_iochannel_socket_set_sndbuf(struct pa_iochannel *io, size_t l) {
+int pa_iochannel_socket_set_sndbuf(pa_iochannel *io, size_t l) {
     assert(io);
+    
     return pa_socket_set_sndbuf(io->ofd, l);
 }
 
-
-struct pa_mainloop_api* pa_iochannel_get_mainloop_api(struct pa_iochannel *io) {
+pa_mainloop_api* pa_iochannel_get_mainloop_api(pa_iochannel *io) {
     assert(io);
+    
     return io->mainloop;
 }

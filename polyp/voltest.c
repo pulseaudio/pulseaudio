@@ -3,8 +3,9 @@
 #include <stdio.h>
 
 #include <polyp/sample.h>
+#include "gccmacro.h"
 
-int main() {
+int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
     int p;
     for (p = 0; p <= 200; p++) {
         pa_volume_t v = pa_volume_from_user((double) p/100);

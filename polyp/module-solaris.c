@@ -58,18 +58,18 @@ PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source>
 #define PA_TYPEID_SOLARIS PA_TYPEID_MAKE('S', 'L', 'R', 'S')
 
 struct userdata {
-    struct pa_sink *sink;
-    struct pa_source *source;
-    struct pa_iochannel *io;
-    struct pa_core *core;
+    pa_sink *sink;
+    pa_source *source;
+    pa_iochannel *io;
+    pa_core *core;
 
-    struct pa_memchunk memchunk, silence;
+    pa_memchunk memchunk, silence;
 
     uint32_t sample_size;
     unsigned int written_bytes, read_bytes;
 
     int fd;
-    struct pa_module *module;
+    pa_module *module;
 };
 
 static const char* const valid_modargs[] = {
@@ -93,13 +93,13 @@ static const char* const valid_modargs[] = {
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
-                      (u->sink ? pa_idxset_ncontents(u->sink->inputs) : 0) +
-                      (u->sink ? pa_idxset_ncontents(u->sink->monitor_source->outputs) : 0) +
-                      (u->source ? pa_idxset_ncontents(u->source->outputs) : 0));
+                      (u->sink ? pa_idxset_size(u->sink->inputs) : 0) +
+                      (u->sink ? pa_idxset_size(u->sink->monitor_source->outputs) : 0) +
+                      (u->source ? pa_idxset_size(u->source->outputs) : 0));
 }
 
 static void do_write(struct userdata *u) {
-    struct pa_memchunk *memchunk;
+    pa_memchunk *memchunk;
     ssize_t r;
     
     assert(u);
@@ -140,7 +140,7 @@ static void do_write(struct userdata *u) {
 }
 
 static void do_read(struct userdata *u) {
-    struct pa_memchunk memchunk;
+    pa_memchunk memchunk;
     int err, l;
     ssize_t r;
     assert(u);
@@ -172,14 +172,14 @@ static void do_read(struct userdata *u) {
     u->read_bytes += r;
 }
 
-static void io_callback(struct pa_iochannel *io, void*userdata) {
+static void io_callback(pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_write(u);
     do_read(u);
 }
 
-static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
+static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     pa_usec_t r = 0;
     audio_info_t info;
     int err;
@@ -198,7 +198,7 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
     return r;
 }
 
-static pa_usec_t source_get_latency_cb(struct pa_source *s) {
+static pa_usec_t source_get_latency_cb(pa_source *s) {
     pa_usec_t r = 0;
     struct userdata *u = s->userdata;
     audio_info_t info;
@@ -214,7 +214,7 @@ static pa_usec_t source_get_latency_cb(struct pa_source *s) {
     return r;
 }
 
-static int pa_solaris_auto_format(int fd, int mode, struct pa_sample_spec *ss) {
+static int pa_solaris_auto_format(int fd, int mode, pa_sample_spec *ss) {
     audio_info_t info;
 
     AUDIO_INITINFO(&info);
@@ -298,15 +298,15 @@ static int pa_solaris_set_buffer(int fd, int buffer_size) {
     return 0;
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     const char *p;
     int fd = -1;
     int buffer_size;
     int mode;
     int record = 1, playback = 1;
-    struct pa_sample_spec ss;
-    struct pa_modargs *ma = NULL;
+    pa_sample_spec ss;
+    pa_modargs *ma = NULL;
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -409,7 +409,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

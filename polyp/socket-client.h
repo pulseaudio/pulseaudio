@@ -29,19 +29,19 @@
 
 struct sockaddr;
 
-struct pa_socket_client;
+typedef struct pa_socket_client pa_socket_client;
 
-struct pa_socket_client* pa_socket_client_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port);
-struct pa_socket_client* pa_socket_client_new_ipv6(struct pa_mainloop_api *m, uint8_t address[16], uint16_t port);
-struct pa_socket_client* pa_socket_client_new_unix(struct pa_mainloop_api *m, const char *filename);
-struct pa_socket_client* pa_socket_client_new_sockaddr(struct pa_mainloop_api *m, const struct sockaddr *sa, size_t salen);
-struct pa_socket_client* pa_socket_client_new_string(struct pa_mainloop_api *m, const char *a, uint16_t default_port);
+pa_socket_client* pa_socket_client_new_ipv4(pa_mainloop_api *m, uint32_t address, uint16_t port);
+pa_socket_client* pa_socket_client_new_ipv6(pa_mainloop_api *m, uint8_t address[16], uint16_t port);
+pa_socket_client* pa_socket_client_new_unix(pa_mainloop_api *m, const char *filename);
+pa_socket_client* pa_socket_client_new_sockaddr(pa_mainloop_api *m, const struct sockaddr *sa, size_t salen);
+pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char *a, uint16_t default_port);
 
-void pa_socket_client_unref(struct pa_socket_client *c);
-struct pa_socket_client* pa_socket_client_ref(struct pa_socket_client *c);
+void pa_socket_client_unref(pa_socket_client *c);
+pa_socket_client* pa_socket_client_ref(pa_socket_client *c);
 
-void pa_socket_client_set_callback(struct pa_socket_client *c, void (*on_connection)(struct pa_socket_client *c, struct pa_iochannel*io, void *userdata), void *userdata);
+void pa_socket_client_set_callback(pa_socket_client *c, void (*on_connection)(pa_socket_client *c, pa_iochannel*io, void *userdata), void *userdata);
 
-int pa_socket_client_is_local(struct pa_socket_client *c);
+int pa_socket_client_is_local(pa_socket_client *c);
 
 #endif

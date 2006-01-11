@@ -47,14 +47,14 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink=<sink to connect to> sample=<sample name> display=<X11 display>")
 
 struct userdata {
-    struct pa_core *core;
+    pa_core *core;
     int xkb_event_base;
     char *sink_name;
     char *scache_item;
     Display *display;
 
-    struct pa_x11_wrapper *x11_wrapper;
-    struct pa_x11_client *x11_client;
+    pa_x11_wrapper *x11_wrapper;
+    pa_x11_client *x11_client;
 };
 
 static const char* const valid_modargs[] = {
@@ -65,7 +65,7 @@ static const char* const valid_modargs[] = {
 };
 
 static int ring_bell(struct userdata *u, int percent) {
-    struct pa_sink *s;
+    pa_sink *s;
     assert(u);
 
     if (!(s = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
@@ -77,7 +77,7 @@ static int ring_bell(struct userdata *u, int percent) {
     return 0;
 }
 
-static int x11_event_callback(struct pa_x11_wrapper *w, XEvent *e, void *userdata) {
+static int x11_event_callback(pa_x11_wrapper *w, XEvent *e, void *userdata) {
     XkbBellNotifyEvent *bne;
     struct userdata *u = userdata;
     assert(w && e && u && u->x11_wrapper == w);
@@ -95,9 +95,9 @@ static int x11_event_callback(struct pa_x11_wrapper *w, XEvent *e, void *userdat
     return 1;
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
-    struct pa_modargs *ma = NULL;
+    pa_modargs *ma = NULL;
     int major, minor;
     unsigned int auto_ctrls, auto_values;
     assert(c && m);
@@ -154,7 +154,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u = m->userdata;
     assert(c && m && u);
 

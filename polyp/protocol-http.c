@@ -45,17 +45,17 @@
 #define URL_STATUS "/status"
 
 struct connection {
-    struct pa_protocol_http *protocol;
-    struct pa_ioline *line;
+    pa_protocol_http *protocol;
+    pa_ioline *line;
     enum { REQUEST_LINE, MIME_HEADER, DATA } state;
     char *url;
 };
 
 struct pa_protocol_http {
-    struct pa_module *module;
-    struct pa_core *core;
-    struct pa_socket_server*server;
-    struct pa_idxset *connections;
+    pa_module *module;
+    pa_core *core;
+    pa_socket_server*server;
+    pa_idxset *connections;
 };
 
 static void http_response(struct connection *c, int code, const char *msg, const char *mime) {
@@ -109,7 +109,7 @@ static void connection_free(struct connection *c, int del) {
     pa_xfree(c);
 }
 
-static void line_callback(struct pa_ioline *line, const char *s, void *userdata) {
+static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     struct connection *c = userdata;
     assert(line);
     assert(c);
@@ -191,12 +191,12 @@ static void line_callback(struct pa_ioline *line, const char *s, void *userdata)
 
                 pa_ioline_defer_close(c->line);
             } else if (!strcmp(c->url, URL_STATUS)) {
-                char *s;
+                char *r;
 
                 http_response(c, 200, "OK", "text/plain");
-                s = pa_full_status_string(c->protocol->core);
-                pa_ioline_puts(c->line, s);
-                pa_xfree(s);
+                r = pa_full_status_string(c->protocol->core);
+                pa_ioline_puts(c->line, r);
+                pa_xfree(r);
 
                 pa_ioline_defer_close(c->line);
             } else
@@ -215,12 +215,12 @@ fail:
     internal_server_error(c);
 }
 
-static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata) {
-    struct pa_protocol_http *p = userdata;
+static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) {
+    pa_protocol_http *p = userdata;
     struct connection *c;
     assert(s && io && p);
 
-    if (pa_idxset_ncontents(p->connections)+1 > MAX_CONNECTIONS) {
+    if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
         pa_log_warn(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
@@ -236,11 +236,11 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     pa_idxset_put(p->connections, c, NULL);
 }
 
-struct pa_protocol_http* pa_protocol_http_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
-    struct pa_protocol_http* p;
+pa_protocol_http* pa_protocol_http_new(pa_core *core, pa_socket_server *server, pa_module *m, PA_GCC_UNUSED pa_modargs *ma) {
+    pa_protocol_http* p;
     assert(core && server);
 
-    p = pa_xmalloc(sizeof(struct pa_protocol_http));
+    p = pa_xmalloc(sizeof(pa_protocol_http));
     p->module = m;
     p->core = core;
     p->server = server;
@@ -251,12 +251,12 @@ struct pa_protocol_http* pa_protocol_http_new(struct pa_core *core, struct pa_so
     return p;
 }
 
-static void free_connection(void *p, void *userdata) {
+static void free_connection(void *p, PA_GCC_UNUSED void *userdata) {
     assert(p);
     connection_free(p, 0);
 }
 
-void pa_protocol_http_free(struct pa_protocol_http *p) {
+void pa_protocol_http_free(pa_protocol_http *p) {
     assert(p);
 
     pa_idxset_free(p->connections, free_connection, NULL);

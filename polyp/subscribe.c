@@ -39,28 +39,28 @@
  * called from within the stack frame the entity was created in. */
 
 struct pa_subscription {
-    struct pa_core *core;
+    pa_core *core;
     int dead;
-    void (*callback)(struct pa_core *c, enum pa_subscription_event_type t, uint32_t index, void *userdata);
+    void (*callback)(pa_core *c, pa_subscription_event_type t, uint32_t index, void *userdata);
     void *userdata;
-    enum pa_subscription_mask mask;
+    pa_subscription_mask mask;
 
-    struct pa_subscription *prev, *next;
+    pa_subscription *prev, *next;
 };
 
 struct pa_subscription_event {
-    enum pa_subscription_event_type type;
+    pa_subscription_event_type type;
     uint32_t index;
 };
 
-static void sched_event(struct pa_core *c);
+static void sched_event(pa_core *c);
 
 /* Allocate a new subscription object for the given subscription mask. Use the specified callback function and user data */
-struct pa_subscription* pa_subscription_new(struct pa_core *c, enum pa_subscription_mask m, void (*callback)(struct pa_core *c, enum pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata) {
-    struct pa_subscription *s;
+pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask m, void (*callback)(pa_core *c, pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata) {
+    pa_subscription *s;
     assert(c);
 
-    s = pa_xmalloc(sizeof(struct pa_subscription));
+    s = pa_xmalloc(sizeof(pa_subscription));
     s->core = c;
     s->dead = 0;
     s->callback = callback;
@@ -75,13 +75,13 @@ struct pa_subscription* pa_subscription_new(struct pa_core *c, enum pa_subscript
 }
 
 /* Free a subscription object, effectively marking it for deletion */
-void pa_subscription_free(struct pa_subscription*s) {
+void pa_subscription_free(pa_subscription*s) {
     assert(s && !s->dead);
     s->dead = 1;
     sched_event(s->core);
 }
 
-static void free_item(struct pa_subscription *s) {
+static void free_item(pa_subscription *s) {
     assert(s && s->core);
 
     if (s->prev)
@@ -96,8 +96,8 @@ static void free_item(struct pa_subscription *s) {
 }
 
 /* Free all subscription objects */
-void pa_subscription_free_all(struct pa_core *c) {
-    struct pa_subscription_event *e;
+void pa_subscription_free_all(pa_core *c) {
+    pa_subscription_event *e;
     assert(c);
     
     while (c->subscriptions)
@@ -117,7 +117,7 @@ void pa_subscription_free_all(struct pa_core *c) {
     }
 }
 
-/*static void dump_event(struct pa_subscription_event*e) {
+/*static void dump_event(pa_subscription_event*e) {
     switch (e->type & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
         case PA_SUBSCRIPTION_EVENT_SINK:
             pa_log(__FILE__": SINK_EVENT");
@@ -161,10 +161,10 @@ void pa_subscription_free_all(struct pa_core *c) {
 }*/
 
 /* Deferred callback for dispatching subscirption events */
-static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
-    struct pa_core *c = userdata;
-    struct pa_subscription *s;
-    assert(c && c->subscription_defer_event == e && c->mainloop == m);
+static void defer_cb(pa_mainloop_api *m, pa_defer_event *de, void *userdata) {
+    pa_core *c = userdata;
+    pa_subscription *s;
+    assert(c && c->subscription_defer_event == de && c->mainloop == m);
 
     c->mainloop->defer_enable(c->subscription_defer_event, 0);
 
@@ -172,10 +172,9 @@ static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *
     /* Dispatch queued events */
     
     if (c->subscription_event_queue) {
-        struct pa_subscription_event *e;
+        pa_subscription_event *e;
         
         while ((e = pa_queue_pop(c->subscription_event_queue))) {
-            struct pa_subscription *s;
 
             for (s = c->subscriptions; s; s = s->next) {
 
@@ -191,7 +190,7 @@ static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *
     
     s = c->subscriptions;
     while (s) {
-        struct pa_subscription *n = s->next;
+        pa_subscription *n = s->next;
         if (s->dead)
             free_item(s);
         s = n;
@@ -199,7 +198,7 @@ static void defer_cb(struct pa_mainloop_api *m, struct pa_defer_event *e, void *
 }
 
 /* Schedule an mainloop event so that a pending subscription event is dispatched */
-static void sched_event(struct pa_core *c) {
+static void sched_event(pa_core *c) {
     assert(c);
 
     if (!c->subscription_defer_event) {
@@ -211,11 +210,11 @@ static void sched_event(struct pa_core *c) {
 }
 
 /* Append a new subscription event to the subscription event queue and schedule a main loop event */
-void pa_subscription_post(struct pa_core *c, enum pa_subscription_event_type t, uint32_t index) {
-    struct pa_subscription_event *e;
+void pa_subscription_post(pa_core *c, pa_subscription_event_type t, uint32_t index) {
+    pa_subscription_event *e;
     assert(c);
 
-    e = pa_xmalloc(sizeof(struct pa_subscription_event));
+    e = pa_xmalloc(sizeof(pa_subscription_event));
     e->type = t;
     e->index = index;
 

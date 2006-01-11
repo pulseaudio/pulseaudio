@@ -32,7 +32,7 @@ struct authkey_data {
     size_t length;
 };
 
-int pa_authkey_prop_get(struct pa_core *c, const char *name, void *data, size_t len) {
+int pa_authkey_prop_get(pa_core *c, const char *name, void *data, size_t len) {
     struct authkey_data *a;
     assert(c && name && data && len > 0);
     
@@ -44,7 +44,7 @@ int pa_authkey_prop_get(struct pa_core *c, const char *name, void *data, size_t 
     return 0;
 }
 
-int pa_authkey_prop_put(struct pa_core *c, const char *name, const void *data, size_t len) {
+int pa_authkey_prop_put(pa_core *c, const char *name, const void *data, size_t len) {
     struct authkey_data *a;
     assert(c && name);
 
@@ -61,7 +61,7 @@ int pa_authkey_prop_put(struct pa_core *c, const char *name, const void *data, s
     return 0;
 }
 
-void pa_authkey_prop_ref(struct pa_core *c, const char *name) {
+void pa_authkey_prop_ref(pa_core *c, const char *name) {
     struct authkey_data *a;
     assert(c && name);
 
@@ -71,7 +71,7 @@ void pa_authkey_prop_ref(struct pa_core *c, const char *name) {
     a->ref++;
 }
 
-void pa_authkey_prop_unref(struct pa_core *c, const char *name) {
+void pa_authkey_prop_unref(pa_core *c, const char *name) {
     struct authkey_data *a;
     assert(c && name);
 

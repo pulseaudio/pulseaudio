@@ -29,10 +29,11 @@
 #include "polyplib-subscribe.h"
 #include "polyplib-internal.h"
 #include "pstream-util.h"
+#include "gccmacro.h"
 
-void pa_command_subscribe_event(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
-    struct pa_context *c = userdata;
-    enum pa_subscription_event_type e;
+void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    pa_subscription_event_type e;
     uint32_t index;
     assert(pd && command == PA_COMMAND_SUBSCRIBE_EVENT && t && c);
 
@@ -53,14 +54,14 @@ finish:
 }
 
 
-struct pa_operation* pa_context_subscribe(struct pa_context *c, enum pa_subscription_mask m, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
-    struct pa_operation *o;
-    struct pa_tagstruct *t;
+pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask m, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
     uint32_t tag;
     assert(c);
 
     o = pa_operation_new(c, NULL);
-    o->callback = cb;
+    o->callback = (pa_operation_callback) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -73,7 +74,7 @@ struct pa_operation* pa_context_subscribe(struct pa_context *c, enum pa_subscrip
     return pa_operation_ref(o);
 }
 
-void pa_context_set_subscribe_callback(struct pa_context *c, void (*cb)(struct pa_context *c, enum pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata) {
+void pa_context_set_subscribe_callback(pa_context *c, void (*cb)(pa_context *c, pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata) {
     assert(c);
     c->subscribe_callback = cb;
     c->subscribe_userdata = userdata;

@@ -40,8 +40,8 @@
 
 struct userdata {
     SNDFILE *sndfile;
-    struct pa_sink_input *sink_input;
-    struct pa_memchunk memchunk;
+    pa_sink_input *sink_input;
+    pa_memchunk memchunk;
     sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
 };
 
@@ -60,16 +60,16 @@ static void free_userdata(struct userdata *u) {
     pa_xfree(u);
 }
 
-static void sink_input_kill(struct pa_sink_input *i) {
+static void sink_input_kill(pa_sink_input *i) {
     assert(i && i->userdata);
     free_userdata(i->userdata);
 }
 
-static void si_kill(struct pa_mainloop_api *m, void *i) {
+static void si_kill(PA_GCC_UNUSED pa_mainloop_api *m, void *i) {
     sink_input_kill(i);
 }
 
-static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
+static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
     struct userdata *u;
     assert(i && chunk && i->userdata);
     u = i->userdata;
@@ -98,7 +98,7 @@ static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     return 0;
 }
 
-static void sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk*chunk, size_t length) {
+static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t length) {
     struct userdata *u;
     assert(i && chunk && length && i->userdata);
     u = i->userdata;
@@ -116,10 +116,10 @@ static void sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk*ch
     }
 }
 
-int pa_play_file(struct pa_sink *sink, const char *fname, pa_volume_t volume) {
+int pa_play_file(pa_sink *sink, const char *fname, pa_volume_t volume) {
     struct userdata *u = NULL;
     SF_INFO sfinfo;
-    struct pa_sample_spec ss;
+    pa_sample_spec ss;
     assert(sink && fname);
 
     if (volume <= 0)

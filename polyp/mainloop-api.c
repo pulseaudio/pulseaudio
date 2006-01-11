@@ -28,13 +28,14 @@
 
 #include "mainloop-api.h"
 #include "xmalloc.h"
+#include "gccmacro.h"
 
 struct once_info {
-    void (*callback)(struct pa_mainloop_api*m, void *userdata);
+    void (*callback)(pa_mainloop_api*m, void *userdata);
     void *userdata;
 };
 
-static void once_callback(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
+static void once_callback(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
     struct once_info *i = userdata;
     assert(m && i && i->callback);
 
@@ -44,18 +45,18 @@ static void once_callback(struct pa_mainloop_api *m, struct pa_defer_event *e, v
     m->defer_free(e);
 }
 
-static void free_callback(struct pa_mainloop_api *m, struct pa_defer_event *e, void *userdata) {
+static void free_callback(pa_mainloop_api *m, PA_GCC_UNUSED pa_defer_event *e, void *userdata) {
     struct once_info *i = userdata;
     assert(m && i);
     pa_xfree(i);
 }
 
-void pa_mainloop_api_once(struct pa_mainloop_api* m, void (*callback)(struct pa_mainloop_api *m, void *userdata), void *userdata) {
+void pa_mainloop_api_once(pa_mainloop_api* m, void (*callback)(pa_mainloop_api *m, void *userdata), void *userdata) {
     struct once_info *i;
-    struct pa_defer_event *e;
+    pa_defer_event *e;
     assert(m && callback);
 
-    i = pa_xmalloc(sizeof(struct once_info));
+    i = pa_xnew(struct once_info, 1);
     i->callback = callback;
     i->userdata = userdata;
 

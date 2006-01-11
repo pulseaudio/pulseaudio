@@ -44,9 +44,9 @@
 #error Invalid Polypaudio API version
 #endif
 
-static struct pa_context *context = NULL;
-static struct pa_stream *stream = NULL;
-static struct pa_mainloop_api *mainloop_api = NULL;
+static pa_context *context = NULL;
+static pa_stream *stream = NULL;
+static pa_mainloop_api *mainloop_api = NULL;
 
 static char *stream_name = NULL, *client_name = NULL, *device = NULL;
 
@@ -55,9 +55,9 @@ static pa_volume_t volume = PA_VOLUME_NORM;
 
 static SNDFILE* sndfile = NULL;
 
-static struct pa_sample_spec sample_spec = { 0, 0, 0 }; 
+static pa_sample_spec sample_spec = { 0, 0, 0 }; 
 
-static sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
+static sf_count_t (*readf_function)(SNDFILE *_sndfile, void *ptr, sf_count_t frames);
 
 /* A shortcut for terminating the application */
 static void quit(int ret) {
@@ -66,13 +66,13 @@ static void quit(int ret) {
 }
 
 /* Connection draining complete */
-static void context_drain_complete(struct pa_context*c, void *userdata) {
+static void context_drain_complete(pa_context*c, void *userdata) {
     pa_context_disconnect(c);
 }
 
 /* Stream draining complete */
-static void stream_drain_complete(struct pa_stream*s, int success, void *userdata) {
-    struct pa_operation *o;
+static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
+    pa_operation *o;
 
     if (!success) {
         fprintf(stderr, "Failed to drain stream: %s\n", pa_strerror(pa_context_errno(context)));
@@ -97,7 +97,7 @@ static void stream_drain_complete(struct pa_stream*s, int success, void *userdat
 }
 
 /* This is called whenever new data may be written to the stream */
-static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
+static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     size_t k;
     sf_count_t f, n;
     void *data;
@@ -125,7 +125,7 @@ static void stream_write_callback(struct pa_stream *s, size_t length, void *user
 }
 
 /* This routine is called whenever the stream state changes */
-static void stream_state_callback(struct pa_stream *s, void *userdata) {
+static void stream_state_callback(pa_stream *s, void *userdata) {
     assert(s);
 
     switch (pa_stream_get_state(s)) {
@@ -146,7 +146,7 @@ static void stream_state_callback(struct pa_stream *s, void *userdata) {
 }
 
 /* This is called whenever the context status changes */
-static void context_state_callback(struct pa_context *c, void *userdata) {
+static void context_state_callback(pa_context *c, void *userdata) {
     assert(c);
 
     switch (pa_context_get_state(c)) {
@@ -183,7 +183,7 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
 }
 
 /* UNIX signal to quit recieved */
-static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
+static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     if (verbose)
         fprintf(stderr, "Got SIGINT, exiting.\n");
     quit(0);
@@ -211,9 +211,10 @@ enum {
 };
 
 int main(int argc, char *argv[]) {
-    struct pa_mainloop* m = NULL;
+    pa_mainloop* m = NULL;
     int ret = 1, r, c;
-    char *bn, *server = NULL, *filename;
+    char *bn, *server = NULL;
+    const char *filename;
     SF_INFO sfinfo;
 
     static const struct option long_options[] = {
@@ -312,12 +313,12 @@ int main(int argc, char *argv[]) {
         case SF_FORMAT_ULAW:
         case SF_FORMAT_ALAW:
             sample_spec.format = PA_SAMPLE_S16NE;
-            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
+            readf_function = (sf_count_t (*)(SNDFILE *_sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
             break;
         case SF_FORMAT_FLOAT:
         default:
             sample_spec.format = PA_SAMPLE_FLOAT32NE;
-            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
+            readf_function = (sf_count_t (*)(SNDFILE *_sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
             break;
     }
 

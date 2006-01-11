@@ -70,17 +70,17 @@ struct pa_socket_server {
     char *filename;
     char *tcpwrap_service;
 
-    void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata);
+    void (*on_connection)(pa_socket_server*s, pa_iochannel *io, void *userdata);
     void *userdata;
 
-    struct pa_io_event *io_event;
-    struct pa_mainloop_api *mainloop;
+    pa_io_event *io_event;
+    pa_mainloop_api *mainloop;
     enum { SOCKET_SERVER_GENERIC, SOCKET_SERVER_IPV4, SOCKET_SERVER_UNIX, SOCKET_SERVER_IPV6 } type;
 };
 
-static void callback(struct pa_mainloop_api *mainloop, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
-    struct pa_socket_server *s = userdata;
-    struct pa_iochannel *io;
+static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+    pa_socket_server *s = userdata;
+    pa_iochannel *io;
     int nfd;
     assert(s && s->mainloop == mainloop && s->io_event == e && e && fd >= 0 && fd == s->fd);
 
@@ -129,11 +129,11 @@ finish:
     pa_socket_server_unref(s);
 }
 
-struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd) {
-    struct pa_socket_server *s;
+pa_socket_server* pa_socket_server_new(pa_mainloop_api *m, int fd) {
+    pa_socket_server *s;
     assert(m && fd >= 0);
     
-    s = pa_xmalloc(sizeof(struct pa_socket_server));
+    s = pa_xmalloc(sizeof(pa_socket_server));
     s->ref = 1;
     s->fd = fd;
     s->filename = NULL;
@@ -150,7 +150,7 @@ struct pa_socket_server* pa_socket_server_new(struct pa_mainloop_api *m, int fd)
     return s;
 }
 
-struct pa_socket_server* pa_socket_server_ref(struct pa_socket_server *s) {
+pa_socket_server* pa_socket_server_ref(pa_socket_server *s) {
     assert(s && s->ref >= 1);
     s->ref++;
     return s;
@@ -158,10 +158,10 @@ struct pa_socket_server* pa_socket_server_ref(struct pa_socket_server *s) {
 
 #ifdef HAVE_SYS_UN_H
 
-struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename) {
+pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *filename) {
     int fd = -1;
     struct sockaddr_un sa;
-    struct pa_socket_server *s;
+    pa_socket_server *s;
     
     assert(m && filename);
 
@@ -205,14 +205,14 @@ fail:
 
 #else /* HAVE_SYS_UN_H */
 
-struct pa_socket_server* pa_socket_server_new_unix(struct pa_mainloop_api *m, const char *filename) {
+pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *filename) {
     return NULL;
 }
 
 #endif /* HAVE_SYS_UN_H */
 
-struct pa_socket_server* pa_socket_server_new_ipv4(struct pa_mainloop_api *m, uint32_t address, uint16_t port, const char *tcpwrap_service) {
-    struct pa_socket_server *ss;
+pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address, uint16_t port, const char *tcpwrap_service) {
+    pa_socket_server *ss;
     int fd = -1;
     struct sockaddr_in sa;
     int on = 1;
@@ -260,8 +260,8 @@ fail:
     return NULL;
 }
 
-struct pa_socket_server* pa_socket_server_new_ipv6(struct pa_mainloop_api *m, uint8_t address[16], uint16_t port) {
-    struct pa_socket_server *ss;
+pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t address[16], uint16_t port) {
+    pa_socket_server *ss;
     int fd = -1;
     struct sockaddr_in6 sa;
     int on = 1;
@@ -307,7 +307,7 @@ fail:
     return NULL;
 }
 
-static void socket_server_free(struct pa_socket_server*s) {
+static void socket_server_free(pa_socket_server*s) {
     assert(s);
     close(s->fd);
 
@@ -322,14 +322,14 @@ static void socket_server_free(struct pa_socket_server*s) {
     pa_xfree(s);
 }
 
-void pa_socket_server_unref(struct pa_socket_server *s) {
+void pa_socket_server_unref(pa_socket_server *s) {
     assert(s && s->ref >= 1);
 
     if (!(--(s->ref)))
         socket_server_free(s);
 }
 
-void pa_socket_server_set_callback(struct pa_socket_server*s, void (*on_connection)(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata), void *userdata) {
+void pa_socket_server_set_callback(pa_socket_server*s, void (*on_connection)(pa_socket_server*s, pa_iochannel *io, void *userdata), void *userdata) {
     assert(s && s->ref >= 1);
 
     s->on_connection = on_connection;
@@ -337,7 +337,7 @@ void pa_socket_server_set_callback(struct pa_socket_server*s, void (*on_connecti
 }
 
 
-char *pa_socket_server_get_address(struct pa_socket_server *s, char *c, size_t l) {
+char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
     assert(s && c && l > 0);
     
     switch (s->type) {

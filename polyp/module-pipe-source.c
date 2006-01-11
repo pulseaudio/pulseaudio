@@ -53,14 +53,14 @@ PA_MODULE_USAGE("source_name=<name for the source> file=<path of the FIFO> forma
 #define PA_TYPEID_PIPE PA_TYPEID_MAKE('P', 'I', 'P', 'E')
 
 struct userdata {
-    struct pa_core *core;
+    pa_core *core;
 
     char *filename;
     
-    struct pa_source *source;
-    struct pa_iochannel *io;
-    struct pa_module *module;
-    struct pa_memchunk chunk;
+    pa_source *source;
+    pa_iochannel *io;
+    pa_module *module;
+    pa_memchunk chunk;
 };
 
 static const char* const valid_modargs[] = {
@@ -74,13 +74,13 @@ static const char* const valid_modargs[] = {
 
 static void do_read(struct userdata *u) {
     ssize_t r;
-    struct pa_memchunk chunk;
+    pa_memchunk chunk;
     assert(u);
 
     if (!pa_iochannel_is_readable(u->io))
         return;
 
-    pa_module_set_used(u->module, pa_idxset_ncontents(u->source->outputs));
+    pa_module_set_used(u->module, pa_idxset_size(u->source->outputs));
 
     if (!u->chunk.memblock) {
         u->chunk.memblock = pa_memblock_new(1024, u->core->memblock_stat);
@@ -104,19 +104,19 @@ static void do_read(struct userdata *u) {
     }
 }
 
-static void io_callback(struct pa_iochannel *io, void*userdata) {
+static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_read(u);
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     struct stat st;
     const char *p;
     int fd = -1;
-    struct pa_sample_spec ss;
-    struct pa_modargs *ma = NULL;
+    pa_sample_spec ss;
+    pa_modargs *ma = NULL;
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -189,7 +189,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

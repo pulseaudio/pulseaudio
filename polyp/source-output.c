@@ -33,14 +33,14 @@
 #include "subscribe.h"
 #include "log.h"
 
-struct pa_source_output* pa_source_output_new(struct pa_source *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int resample_method) {
-    struct pa_source_output *o;
-    struct pa_resampler *resampler = NULL;
+pa_source_output* pa_source_output_new(pa_source *s, pa_typeid_t typeid, const char *name, const pa_sample_spec *spec, int resample_method) {
+    pa_source_output *o;
+    pa_resampler *resampler = NULL;
     int r;
     char st[256];
     assert(s && spec);
 
-    if (pa_idxset_ncontents(s->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
+    if (pa_idxset_size(s->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
         pa_log(__FILE__": Failed to create source output: too many outputs per source.\n");
         return NULL;
     }
@@ -52,7 +52,7 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, pa_typeid_t t
         if (!(resampler = pa_resampler_new(&s->sample_spec, spec, s->core->memblock_stat, resample_method)))
             return NULL;
     
-    o = pa_xmalloc(sizeof(struct pa_source_output));
+    o = pa_xmalloc(sizeof(pa_source_output));
     o->ref = 1;
     o->state = PA_SOURCE_OUTPUT_RUNNING;
     o->name = pa_xstrdup(name);
@@ -84,7 +84,7 @@ struct pa_source_output* pa_source_output_new(struct pa_source *s, pa_typeid_t t
     return o;    
 }
 
-void pa_source_output_disconnect(struct pa_source_output*o) {
+void pa_source_output_disconnect(pa_source_output*o) {
     assert(o && o->state != PA_SOURCE_OUTPUT_DISCONNECTED && o->source && o->source->core);
     
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
@@ -100,7 +100,7 @@ void pa_source_output_disconnect(struct pa_source_output*o) {
     o->state = PA_SOURCE_OUTPUT_DISCONNECTED;
 }
 
-static void source_output_free(struct pa_source_output* o) {
+static void source_output_free(pa_source_output* o) {
     assert(o);
 
     if (o->state != PA_SOURCE_OUTPUT_DISCONNECTED)
@@ -116,29 +116,29 @@ static void source_output_free(struct pa_source_output* o) {
 }
 
 
-void pa_source_output_unref(struct pa_source_output* o) {
+void pa_source_output_unref(pa_source_output* o) {
     assert(o && o->ref >= 1);
 
     if (!(--o->ref))
         source_output_free(o);
 }
 
-struct pa_source_output* pa_source_output_ref(struct pa_source_output *o) {
+pa_source_output* pa_source_output_ref(pa_source_output *o) {
     assert(o && o->ref >= 1);
     o->ref++;
     return o;
 }
 
 
-void pa_source_output_kill(struct pa_source_output*o) {
+void pa_source_output_kill(pa_source_output*o) {
     assert(o && o->ref >= 1);
 
     if (o->kill)
         o->kill(o);
 }
 
-void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk *chunk) {
-    struct pa_memchunk rchunk;
+void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
+    pa_memchunk rchunk;
     assert(o && chunk && chunk->length && o->push);
 
     if (o->state == PA_SOURCE_OUTPUT_CORKED)
@@ -158,7 +158,7 @@ void pa_source_output_push(struct pa_source_output *o, const struct pa_memchunk 
     pa_memblock_unref(rchunk.memblock);
 }
 
-void pa_source_output_set_name(struct pa_source_output *o, const char *name) {
+void pa_source_output_set_name(pa_source_output *o, const char *name) {
     assert(o && o->ref >= 1);
     pa_xfree(o->name);
     o->name = pa_xstrdup(name);
@@ -166,7 +166,7 @@ void pa_source_output_set_name(struct pa_source_output *o, const char *name) {
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
 }
 
-pa_usec_t pa_source_output_get_latency(struct pa_source_output *o) {
+pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
     assert(o && o->ref >= 1);
     
     if (o->get_latency)
@@ -175,7 +175,7 @@ pa_usec_t pa_source_output_get_latency(struct pa_source_output *o) {
     return 0;
 }
 
-void pa_source_output_cork(struct pa_source_output *o, int b) {
+void pa_source_output_cork(pa_source_output *o, int b) {
     assert(o && o->ref >= 1);
 
     if (o->state == PA_SOURCE_OUTPUT_DISCONNECTED)
@@ -184,7 +184,7 @@ void pa_source_output_cork(struct pa_source_output *o, int b) {
     o->state = b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
 }
 
-enum pa_resample_method pa_source_output_get_resample_method(struct pa_source_output *o) {
+pa_resample_method pa_source_output_get_resample_method(pa_source_output *o) {
     assert(o && o->ref >= 1);
 
     if (!o->resampler)

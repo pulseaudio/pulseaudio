@@ -38,9 +38,9 @@
 #define ENV_LOGLEVEL "POLYP_LOG"
 
 static char *log_ident = NULL;
-static enum pa_log_target log_target = PA_LOG_STDERR;
-static void (*user_log_func)(enum pa_log_level l, const char *s) = NULL;
-static enum pa_log_level maximal_level = PA_LOG_NOTICE;
+static pa_log_target log_target = PA_LOG_STDERR;
+static void (*user_log_func)(pa_log_level l, const char *s) = NULL;
+static pa_log_level maximal_level = PA_LOG_NOTICE;
 
 #ifdef HAVE_SYSLOG_H
 static const int level_to_syslog[] = {
@@ -59,18 +59,18 @@ void pa_log_set_ident(const char *p) {
     log_ident = pa_xstrdup(p);
 }
 
-void pa_log_set_maximal_level(enum pa_log_level l) {
+void pa_log_set_maximal_level(pa_log_level l) {
     assert(l < PA_LOG_LEVEL_MAX);
     maximal_level = l;
 }
 
-void pa_log_set_target(enum pa_log_target t, void (*func)(enum pa_log_level l, const char*s)) {
+void pa_log_set_target(pa_log_target t, void (*func)(pa_log_level l, const char*s)) {
     assert(t == PA_LOG_USER || !func);
     log_target = t;
     user_log_func = func;
 }
 
-void pa_log_levelv(enum pa_log_level level, const char *format, va_list ap) {
+void pa_log_with_levelv(pa_log_level level, const char *format, va_list ap) {
     const char *e;
     assert(level < PA_LOG_LEVEL_MAX);
 
@@ -107,44 +107,44 @@ void pa_log_levelv(enum pa_log_level level, const char *format, va_list ap) {
 
 }
 
-void pa_log_level(enum pa_log_level level, const char *format, ...) {
+void pa_log_with_level(pa_log_level level, const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    pa_log_levelv(level, format, ap);
+    pa_log_with_levelv(level, format, ap);
     va_end(ap);
 }
 
 void pa_log_debug(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    pa_log_levelv(PA_LOG_DEBUG, format, ap);
+    pa_log_with_levelv(PA_LOG_DEBUG, format, ap);
     va_end(ap);
 }
 
 void pa_log_info(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    pa_log_levelv(PA_LOG_INFO, format, ap);
+    pa_log_with_levelv(PA_LOG_INFO, format, ap);
     va_end(ap);
 }
 
 void pa_log_notice(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    pa_log_levelv(PA_LOG_INFO, format, ap);
+    pa_log_with_levelv(PA_LOG_INFO, format, ap);
     va_end(ap);
 }
 
 void pa_log_warn(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    pa_log_levelv(PA_LOG_WARN, format, ap);
+    pa_log_with_levelv(PA_LOG_WARN, format, ap);
     va_end(ap);
 }
 
 void pa_log_error(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    pa_log_levelv(PA_LOG_ERROR, format, ap);
+    pa_log_with_levelv(PA_LOG_ERROR, format, ap);
     va_end(ap);
 }

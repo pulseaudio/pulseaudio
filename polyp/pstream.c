@@ -39,12 +39,12 @@
 #include "xmalloc.h"
 #include "log.h"
 
-enum pa_pstream_descriptor_index {
+typedef enum pa_pstream_descriptor_index {
     PA_PSTREAM_DESCRIPTOR_LENGTH,
     PA_PSTREAM_DESCRIPTOR_CHANNEL,
     PA_PSTREAM_DESCRIPTOR_DELTA,
     PA_PSTREAM_DESCRIPTOR_MAX
-};
+} pa_pstream_descriptor_index;
 
 typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 
@@ -55,24 +55,24 @@ struct item_info {
     enum { PA_PSTREAM_ITEM_PACKET, PA_PSTREAM_ITEM_MEMBLOCK } type;
 
     /* memblock info */
-    struct pa_memchunk chunk;
+    pa_memchunk chunk;
     uint32_t channel;
     uint32_t delta;
 
     /* packet info */
-    struct pa_packet *packet;
+    pa_packet *packet;
 };
 
 struct pa_pstream {
     int ref;
     
-    struct pa_mainloop_api *mainloop;
-    struct pa_defer_event *defer_event;
-    struct pa_iochannel *io;
-    struct pa_queue *send_queue;
+    pa_mainloop_api *mainloop;
+    pa_defer_event *defer_event;
+    pa_iochannel *io;
+    pa_queue *send_queue;
 
     int dead;
-    void (*die_callback) (struct pa_pstream *p, void *userdata);
+    void (*die_callback) (pa_pstream *p, void *userdata);
     void *die_callback_userdata;
 
     struct {
@@ -83,29 +83,29 @@ struct pa_pstream {
     } write;
 
     struct {
-        struct pa_memblock *memblock;
-        struct pa_packet *packet;
+        pa_memblock *memblock;
+        pa_packet *packet;
         pa_pstream_descriptor descriptor;
         void *data;
         size_t index;
     } read;
 
-    void (*recieve_packet_callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata);
+    void (*recieve_packet_callback) (pa_pstream *p, pa_packet *packet, void *userdata);
     void *recieve_packet_callback_userdata;
 
-    void (*recieve_memblock_callback) (struct pa_pstream *p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk, void *userdata);
+    void (*recieve_memblock_callback) (pa_pstream *p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk, void *userdata);
     void *recieve_memblock_callback_userdata;
 
-    void (*drain_callback)(struct pa_pstream *p, void *userdata);
+    void (*drain_callback)(pa_pstream *p, void *userdata);
     void *drain_userdata;
 
-    struct pa_memblock_stat *memblock_stat;
+    pa_memblock_stat *memblock_stat;
 };
 
-static void do_write(struct pa_pstream *p);
-static void do_read(struct pa_pstream *p);
+static void do_write(pa_pstream *p);
+static void do_read(pa_pstream *p);
 
-static void do_something(struct pa_pstream *p) {
+static void do_something(pa_pstream *p) {
     assert(p);
 
     p->mainloop->defer_enable(p->defer_event, 0);
@@ -127,23 +127,23 @@ static void do_something(struct pa_pstream *p) {
     pa_pstream_unref(p);
 }
 
-static void io_callback(struct pa_iochannel*io, void *userdata) {
-    struct pa_pstream *p = userdata;
+static void io_callback(pa_iochannel*io, void *userdata) {
+    pa_pstream *p = userdata;
     assert(p && p->io == io);
     do_something(p);
 }
 
-static void defer_callback(struct pa_mainloop_api *m, struct pa_defer_event *e, void*userdata) {
-    struct pa_pstream *p = userdata;
+static void defer_callback(pa_mainloop_api *m, pa_defer_event *e, void*userdata) {
+    pa_pstream *p = userdata;
     assert(p && p->defer_event == e && p->mainloop == m);
     do_something(p);
 }
 
-struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel *io, struct pa_memblock_stat *s) {
-    struct pa_pstream *p;
+pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_memblock_stat *s) {
+    pa_pstream *p;
     assert(io);
 
-    p = pa_xmalloc(sizeof(struct pa_pstream));
+    p = pa_xmalloc(sizeof(pa_pstream));
     p->ref = 1;
     p->io = io;
     pa_iochannel_set_callback(io, io_callback, p);
@@ -183,7 +183,7 @@ struct pa_pstream *pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel
     return p;
 }
 
-static void item_free(void *item, void *p) {
+static void item_free(void *item, PA_GCC_UNUSED void *p) {
     struct item_info *i = item;
     assert(i);
 
@@ -199,7 +199,7 @@ static void item_free(void *item, void *p) {
     pa_xfree(i);
 }
 
-static void pstream_free(struct pa_pstream *p) {
+static void pstream_free(pa_pstream *p) {
     assert(p);
 
     pa_pstream_close(p);
@@ -218,7 +218,7 @@ static void pstream_free(struct pa_pstream *p) {
     pa_xfree(p);
 }
 
-void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet) {
     struct item_info *i;
     assert(p && packet && p->ref >= 1);
 
@@ -235,7 +235,7 @@ void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet) {
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
-void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk) {
+void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk) {
     struct item_info *i;
     assert(p && channel != (uint32_t) -1 && chunk && p->ref >= 1);
 
@@ -256,21 +256,21 @@ void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, uint32_t de
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
-void pa_pstream_set_recieve_packet_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata), void *userdata) {
+void pa_pstream_set_recieve_packet_callback(pa_pstream *p, void (*callback) (pa_pstream *p, pa_packet *packet, void *userdata), void *userdata) {
     assert(p && callback);
 
     p->recieve_packet_callback = callback;
     p->recieve_packet_callback_userdata = userdata;
 }
 
-void pa_pstream_set_recieve_memblock_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk, void *userdata), void *userdata) {
+void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, void (*callback) (pa_pstream *p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk, void *userdata), void *userdata) {
     assert(p && callback);
 
     p->recieve_memblock_callback = callback;
     p->recieve_memblock_callback_userdata = userdata;
 }
 
-static void prepare_next_write_item(struct pa_pstream *p) {
+static void prepare_next_write_item(pa_pstream *p) {
     assert(p);
 
     if (!(p->write.current = pa_queue_pop(p->send_queue)))
@@ -295,7 +295,7 @@ static void prepare_next_write_item(struct pa_pstream *p) {
     }
 }
 
-static void do_write(struct pa_pstream *p) {
+static void do_write(pa_pstream *p) {
     void *d;
     size_t l;
     ssize_t r;
@@ -339,9 +339,9 @@ die:
         p->die_callback(p, p->die_callback_userdata);
 }
 
-static void do_read(struct pa_pstream *p) {
+static void do_read(pa_pstream *p) {
     void *d;
-    size_t l;
+    size_t l; 
     ssize_t r;
     assert(p);
 
@@ -386,12 +386,10 @@ static void do_read(struct pa_pstream *p) {
         /* Frame payload available */
         
         if (p->read.memblock && p->recieve_memblock_callback) { /* Is this memblock data? Than pass it to the user */
-            size_t l;
-
             l = (p->read.index - r) < PA_PSTREAM_DESCRIPTOR_SIZE ? p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE : (size_t) r;
                 
             if (l > 0) {
-                struct pa_memchunk chunk;
+                pa_memchunk chunk;
                 
                 chunk.memblock = p->read.memblock;
                 chunk.index = p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE - l;
@@ -437,13 +435,13 @@ die:
    
 }
 
-void pa_pstream_set_die_callback(struct pa_pstream *p, void (*callback)(struct pa_pstream *p, void *userdata), void *userdata) {
+void pa_pstream_set_die_callback(pa_pstream *p, void (*callback)(pa_pstream *p, void *userdata), void *userdata) {
     assert(p && callback);
     p->die_callback = callback;
     p->die_callback_userdata = userdata;
 }
 
-int pa_pstream_is_pending(struct pa_pstream *p) {
+int pa_pstream_is_pending(pa_pstream *p) {
     assert(p);
 
     if (p->dead)
@@ -452,27 +450,27 @@ int pa_pstream_is_pending(struct pa_pstream *p) {
     return p->write.current || !pa_queue_is_empty(p->send_queue);
 }
 
-void pa_pstream_set_drain_callback(struct pa_pstream *p, void (*cb)(struct pa_pstream *p, void *userdata), void *userdata) {
+void pa_pstream_set_drain_callback(pa_pstream *p, void (*cb)(pa_pstream *p, void *userdata), void *userdata) {
     assert(p);
 
     p->drain_callback = cb;
     p->drain_userdata = userdata;
 }
 
-void pa_pstream_unref(struct pa_pstream*p) {
+void pa_pstream_unref(pa_pstream*p) {
     assert(p && p->ref >= 1);
 
     if (!(--(p->ref)))
         pstream_free(p);
 }
 
-struct pa_pstream* pa_pstream_ref(struct pa_pstream*p) {
+pa_pstream* pa_pstream_ref(pa_pstream*p) {
     assert(p && p->ref >= 1);
     p->ref++;
     return p;
 }
 
-void pa_pstream_close(struct pa_pstream *p) {
+void pa_pstream_close(pa_pstream *p) {
     assert(p);
 
     p->dead = 1;

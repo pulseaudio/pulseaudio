@@ -49,31 +49,33 @@
 
 PA_C_DECL_BEGIN
 
-/** \struct pa_context
+/** \pa_context
  * An opaque connection context to a daemon */
-struct pa_context;
+typedef struct pa_context pa_context;
 
 /** Instantiate a new connection context with an abstract mainloop API
  * and an application name */
-struct pa_context *pa_context_new(struct pa_mainloop_api *mainloop, const char *name);
+pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name);
 
 /** Decrease the reference counter of the context by one */
-void pa_context_unref(struct pa_context *c);
+void pa_context_unref(pa_context *c);
 
 /** Increase the reference counter of the context by one */
-struct pa_context* pa_context_ref(struct pa_context *c);
+pa_context* pa_context_ref(pa_context *c);
+
+typedef void (*pa_context_state_callback)(pa_context *c, void *userdata);
 
 /** Set a callback function that is called whenever the context status changes */
-void pa_context_set_state_callback(struct pa_context *c, void (*cb)(struct pa_context *c, void *userdata), void *userdata);
+void pa_context_set_state_callback(pa_context *c, pa_context_state_callback callback, void *userdata);
 
 /** Return the error number of the last failed operation */
-int pa_context_errno(struct pa_context *c);
+int pa_context_errno(pa_context *c);
 
 /** Return non-zero if some data is pending to be written to the connection */
-int pa_context_is_pending(struct pa_context *c);
+int pa_context_is_pending(pa_context *c);
 
 /** Return the current context status */
-enum pa_context_state pa_context_get_state(struct pa_context *c);
+pa_context_state pa_context_get_state(pa_context *c);
 
 /** Connect the context to the specified server. If server is NULL,
 connect to the default server. This routine may but will not always
@@ -82,33 +84,33 @@ be notified when the connection is established. If spawn is non-zero
 and no specific server is specified or accessible a new daemon is
 spawned. If api is non-NULL, the functions specified in the structure
 are used when forking a new child process. */
-int pa_context_connect(struct pa_context *c, const char *server, int spawn, const struct pa_spawn_api *api);
+int pa_context_connect(pa_context *c, const char *server, int spawn, const pa_spawn_api *api);
 
 /** Terminate the context connection immediately */
-void pa_context_disconnect(struct pa_context *c);
+void pa_context_disconnect(pa_context *c);
 
 /** Drain the context. If there is nothing to drain, the function returns NULL */
-struct pa_operation* pa_context_drain(struct pa_context *c, void (*cb) (struct pa_context*c, void *userdata), void *userdata);
+pa_operation* pa_context_drain(pa_context *c, void (*cb) (pa_context*c, void *userdata), void *userdata);
 
 /** Tell the daemon to exit. No operation object is returned as the
  * connection is terminated when the daemon quits, thus this operation
  * would never complete. */
-void pa_context_exit_daemon(struct pa_context *c);
+void pa_context_exit_daemon(pa_context *c);
 
 /** Set the name of the default sink. \since 0.4 */
-struct pa_operation* pa_context_set_default_sink(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, void(*cb)(pa_context*c, int success, void *userdata), void *userdata);
 
 /** Set the name of the default source. \since 0.4 */
-struct pa_operation* pa_context_set_default_source(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success,  void *userdata), void *userdata);
+pa_operation* pa_context_set_default_source(pa_context *c, const char *name, void(*cb)(pa_context*c, int success,  void *userdata), void *userdata);
 
 /** Returns 1 when the connection is to a local daemon. Returns negative when no connection has been made yet. \since 0.5 */
-int pa_context_is_local(struct pa_context *c);
+int pa_context_is_local(pa_context *c);
 
 /** Set a different application name for context on the server. \since 0.5 */
-struct pa_operation* pa_context_set_name(struct pa_context *c, const char *name, void(*cb)(struct pa_context*c, int success,  void *userdata), void *userdata);
+pa_operation* pa_context_set_name(pa_context *c, const char *name, void(*cb)(pa_context*c, int success,  void *userdata), void *userdata);
 
 /** Return the server name this context is connected to. \since 0.7 */
-const char* pa_context_get_server(struct pa_context *c);
+const char* pa_context_get_server(pa_context *c);
 
 PA_C_DECL_END
 

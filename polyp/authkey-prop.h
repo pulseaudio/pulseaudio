@@ -29,15 +29,15 @@
  * several modules. */
 
 /* Return the data of the specified authorization key property. Doesn't alter the refernce count of the key */
-int pa_authkey_prop_get(struct pa_core *c, const char *name, void *data, size_t len);
+int pa_authkey_prop_get(pa_core *c, const char *name, void *data, size_t len);
 
 /* Store data in the specified authorization key property. The initial reference count is set to 1 */
-int pa_authkey_prop_put(struct pa_core *c, const char *name, const void *data, size_t len);
+int pa_authkey_prop_put(pa_core *c, const char *name, const void *data, size_t len);
 
 /* Increase the reference count of the specified authorization key */
-void pa_authkey_prop_ref(struct pa_core *c, const char *name);
+void pa_authkey_prop_ref(pa_core *c, const char *name);
 
 /* Decrease the reference count of the specified authorization key */
-void pa_authkey_prop_unref(struct pa_core *c, const char *name);
+void pa_authkey_prop_unref(pa_core *c, const char *name);
 
 #endif

@@ -91,21 +91,21 @@ static const char *command_names[PA_COMMAND_MAX] = {
 #endif
 
 struct reply_info {
-    struct pa_pdispatch *pdispatch;
+    pa_pdispatch *pdispatch;
     PA_LLIST_FIELDS(struct reply_info);
-    void (*callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+    pa_pdispatch_callback callback;
     void *userdata;
     uint32_t tag;
-    struct pa_time_event *time_event;
+    pa_time_event *time_event;
 };
 
 struct pa_pdispatch {
     int ref;
-    struct pa_mainloop_api *mainloop;
-    const struct pa_pdispatch_command *command_table;
+    pa_mainloop_api *mainloop;
+    const pa_pdispatch_callback *callback_table;
     unsigned n_commands;
     PA_LLIST_HEAD(struct reply_info, replies);
-    void (*drain_callback)(struct pa_pdispatch *pd, void *userdata);
+    pa_pdispatch_drain_callback drain_callback;
     void *drain_userdata;
 };
 
@@ -120,25 +120,25 @@ static void reply_info_free(struct reply_info *r) {
     pa_xfree(r);
 }
 
-struct pa_pdispatch* pa_pdispatch_new(struct pa_mainloop_api *mainloop, const struct pa_pdispatch_command*table, unsigned entries) {
-    struct pa_pdispatch *pd;
+pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_callback*table, unsigned entries) {
+    pa_pdispatch *pd;
     assert(mainloop);
 
     assert((entries && table) || (!entries && !table));
     
-    pd = pa_xmalloc(sizeof(struct pa_pdispatch));
+    pd = pa_xmalloc(sizeof(pa_pdispatch));
     pd->ref = 1;
     pd->mainloop = mainloop;
-    pd->command_table = table;
+    pd->callback_table = table;
     pd->n_commands = entries;
-    PA_LLIST_HEAD_INIT(struct pa_reply_info, pd->replies);
+    PA_LLIST_HEAD_INIT(pa_reply_info, pd->replies);
     pd->drain_callback = NULL;
     pd->drain_userdata = NULL;
 
     return pd;
 }
 
-void pdispatch_free(struct pa_pdispatch *pd) {
+static void pdispatch_free(pa_pdispatch *pd) {
     assert(pd);
 
     while (pd->replies)
@@ -147,8 +147,8 @@ void pdispatch_free(struct pa_pdispatch *pd) {
     pa_xfree(pd);
 }
 
-static void run_action(struct pa_pdispatch *pd, struct reply_info *r, uint32_t command, struct pa_tagstruct *ts) {
-    void (*callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void run_action(pa_pdispatch *pd, struct reply_info *r, uint32_t command, pa_tagstruct *ts) {
+    pa_pdispatch_callback callback;
     void *userdata;
     uint32_t tag;
     assert(r);
@@ -169,9 +169,9 @@ static void run_action(struct pa_pdispatch *pd, struct reply_info *r, uint32_t c
     pa_pdispatch_unref(pd);
 }
 
-int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *userdata) {
+int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, void *userdata) {
     uint32_t tag, command;
-    struct pa_tagstruct *ts = NULL;
+    pa_tagstruct *ts = NULL;
     int ret = -1;
     assert(pd && packet && packet->data);
 
@@ -208,10 +208,10 @@ int pa_pdispatch_run(struct pa_pdispatch *pd, struct pa_packet*packet, void *use
         if (r)
             run_action(pd, r, command, ts);
 
-    } else if (pd->command_table && (command < pd->n_commands) && pd->command_table[command].proc) {
-        const struct pa_pdispatch_command *c = pd->command_table+command;
+    } else if (pd->callback_table && (command < pd->n_commands) && pd->callback_table[command]) {
+        const pa_pdispatch_callback *c = pd->callback_table+command;
 
-        c->proc(pd, command, tag, ts, userdata);
+        (*c)(pd, command, tag, ts, userdata);
     } else {
         pa_log(__FILE__": Recieved unsupported command %u\n", command);
         goto finish;
@@ -228,14 +228,14 @@ finish:
     return ret;
 }
 
-static void timeout_callback(struct pa_mainloop_api*m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
+static void timeout_callback(pa_mainloop_api*m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     struct reply_info*r = userdata;
     assert(r && r->time_event == e && r->pdispatch && r->pdispatch->mainloop == m && r->callback);
 
     run_action(r->pdispatch, r, PA_COMMAND_TIMEOUT, NULL);
 }
 
-void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int timeout, void (*cb)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata), void *userdata) {
+void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_callback cb, void *userdata) {
     struct reply_info *r;
     struct timeval tv;
     assert(pd && pd->ref >= 1 && cb);
@@ -255,13 +255,13 @@ void pa_pdispatch_register_reply(struct pa_pdispatch *pd, uint32_t tag, int time
     PA_LLIST_PREPEND(struct reply_info, pd->replies, r);
 }
 
-int pa_pdispatch_is_pending(struct pa_pdispatch *pd) {
+int pa_pdispatch_is_pending(pa_pdispatch *pd) {
     assert(pd);
 
     return !!pd->replies;
 }
 
-void pa_pdispatch_set_drain_callback(struct pa_pdispatch *pd, void (*cb)(struct pa_pdispatch *pd, void *userdata), void *userdata) {
+void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, void (*cb)(pa_pdispatch *pd, void *userdata), void *userdata) {
     assert(pd);
     assert(!cb || pa_pdispatch_is_pending(pd));
 
@@ -269,7 +269,7 @@ void pa_pdispatch_set_drain_callback(struct pa_pdispatch *pd, void (*cb)(struct 
     pd->drain_userdata = userdata;
 }
 
-void pa_pdispatch_unregister_reply(struct pa_pdispatch *pd, void *userdata) {
+void pa_pdispatch_unregister_reply(pa_pdispatch *pd, void *userdata) {
     struct reply_info *r, *n;
     assert(pd);
 
@@ -281,14 +281,14 @@ void pa_pdispatch_unregister_reply(struct pa_pdispatch *pd, void *userdata) {
     }
 }
 
-void pa_pdispatch_unref(struct pa_pdispatch *pd) {
+void pa_pdispatch_unref(pa_pdispatch *pd) {
     assert(pd && pd->ref >= 1);
 
     if (!(--(pd->ref)))
         pdispatch_free(pd);
 }
 
-struct pa_pdispatch* pa_pdispatch_ref(struct pa_pdispatch *pd) {
+pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd) {
     assert(pd && pd->ref >= 1);
     pd->ref++;
     return pd;

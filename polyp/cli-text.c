@@ -39,36 +39,36 @@
 #include "autoload.h"
 #include "xmalloc.h"
 
-char *pa_module_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_module *m;
-    uint32_t index = PA_IDXSET_INVALID;
+char *pa_module_list_to_string(pa_core *c) {
+    pa_strbuf *s;
+    pa_module *m;
+    uint32_t idx = PA_IDXSET_INVALID;
     assert(c);
 
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_ncontents(c->modules));
+    pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_size(c->modules));
     
-    for (m = pa_idxset_first(c->modules, &index); m; m = pa_idxset_next(c->modules, &index))
+    for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx))
         pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\targument: <%s>\n\tused: %i\n\tauto unload: %s\n", m->index, m->name, m->argument, m->n_used, m->auto_unload ? "yes" : "no");
     
     return pa_strbuf_tostring_free(s);
 }
 
-char *pa_client_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_client *client;
-    uint32_t index = PA_IDXSET_INVALID;
+char *pa_client_list_to_string(pa_core *c) {
+    pa_strbuf *s;
+    pa_client *client;
+    uint32_t idx = PA_IDXSET_INVALID;
     char tid[5];
     assert(c);
 
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u client(s) logged in.\n", pa_idxset_ncontents(c->clients));
+    pa_strbuf_printf(s, "%u client(s) logged in.\n", pa_idxset_size(c->clients));
     
-    for (client = pa_idxset_first(c->clients, &index); client; client = pa_idxset_next(c->clients, &index)) {
+    for (client = pa_idxset_first(c->clients, &idx); client; client = pa_idxset_next(c->clients, &idx)) {
         pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\ttype: <%s>\n", client->index, client->name, pa_typeid_to_string(client->typeid, tid, sizeof(tid)));
 
         if (client->owner)
@@ -78,19 +78,19 @@ char *pa_client_list_to_string(struct pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-char *pa_sink_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_sink *sink;
-    uint32_t index = PA_IDXSET_INVALID;
+char *pa_sink_list_to_string(pa_core *c) {
+    pa_strbuf *s;
+    pa_sink *sink;
+    uint32_t idx = PA_IDXSET_INVALID;
     char tid[5];
     assert(c);
 
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_ncontents(c->sinks));
+    pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_size(c->sinks));
 
-    for (sink = pa_idxset_first(c->sinks, &index); sink; sink = pa_idxset_next(c->sinks, &index)) {
+    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec);
         assert(sink->monitor_source);
@@ -102,7 +102,7 @@ char *pa_sink_list_to_string(struct pa_core *c) {
             pa_typeid_to_string(sink->typeid, tid, sizeof(tid)),
             (unsigned) sink->volume,
             pa_volume_to_dB(sink->volume),
-            (float) pa_sink_get_latency(sink),
+            (double) pa_sink_get_latency(sink),
             sink->monitor_source->index,
             ss);
 
@@ -115,19 +115,19 @@ char *pa_sink_list_to_string(struct pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-char *pa_source_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_source *source;
-    uint32_t index = PA_IDXSET_INVALID;
+char *pa_source_list_to_string(pa_core *c) {
+    pa_strbuf *s;
+    pa_source *source;
+    uint32_t idx = PA_IDXSET_INVALID;
     char tid[5];
     assert(c);
 
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_ncontents(c->sources));
+    pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_size(c->sources));
 
-    for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index)) {
+    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec);
         pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\ttype: <%s>\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
@@ -135,7 +135,7 @@ char *pa_source_list_to_string(struct pa_core *c) {
                          source->index,
                          source->name,
                          pa_typeid_to_string(source->typeid, tid, sizeof(tid)),
-                         (float) pa_source_get_latency(source),
+                         (double) pa_source_get_latency(source),
                          ss);
 
         if (source->monitor_of) 
@@ -150,10 +150,10 @@ char *pa_source_list_to_string(struct pa_core *c) {
 }
 
 
-char *pa_source_output_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_source_output *o;
-    uint32_t index = PA_IDXSET_INVALID;
+char *pa_source_output_list_to_string(pa_core *c) {
+    pa_strbuf *s;
+    pa_source_output *o;
+    uint32_t idx = PA_IDXSET_INVALID;
     char tid[5];
     static const char* const state_table[] = {
         "RUNNING",
@@ -165,9 +165,9 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_ncontents(c->source_outputs));
+    pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_size(c->source_outputs));
 
-    for (o = pa_idxset_first(c->source_outputs, &index); o; o = pa_idxset_next(c->source_outputs, &index)) {
+    for (o = pa_idxset_first(c->source_outputs, &idx); o; o = pa_idxset_next(c->source_outputs, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
         const char *rm;
         pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec);
@@ -194,10 +194,10 @@ char *pa_source_output_list_to_string(struct pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-char *pa_sink_input_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
-    struct pa_sink_input *i;
-    uint32_t index = PA_IDXSET_INVALID;
+char *pa_sink_input_list_to_string(pa_core *c) {
+    pa_strbuf *s;
+    pa_sink_input *i;
+    uint32_t idx = PA_IDXSET_INVALID;
     char tid[5];
     static const char* const state_table[] = {
         "RUNNING",
@@ -209,9 +209,9 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_ncontents(c->sink_inputs));
+    pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_size(c->sink_inputs));
 
-    for (i = pa_idxset_first(c->sink_inputs, &index); i; i = pa_idxset_next(c->sink_inputs, &index)) {
+    for (i = pa_idxset_first(c->sink_inputs, &idx); i; i = pa_idxset_next(c->sink_inputs, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
         const char *rm;
 
@@ -229,7 +229,7 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
             i->sink->index, i->sink->name,
             (unsigned) i->volume,
             pa_volume_to_dB(i->volume),
-            (float) pa_sink_input_get_latency(i),
+            (double) pa_sink_input_get_latency(i),
             ss,
             rm);
 
@@ -242,20 +242,20 @@ char *pa_sink_input_list_to_string(struct pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-char *pa_scache_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
+char *pa_scache_list_to_string(pa_core *c) {
+    pa_strbuf *s;
     assert(c);
 
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u cache entries available.\n", c->scache ? pa_idxset_ncontents(c->scache) : 0);
+    pa_strbuf_printf(s, "%u cache entries available.\n", c->scache ? pa_idxset_size(c->scache) : 0);
 
     if (c->scache) {
-        struct pa_scache_entry *e;
-        uint32_t index = PA_IDXSET_INVALID;
+        pa_scache_entry *e;
+        uint32_t idx = PA_IDXSET_INVALID;
 
-        for (e = pa_idxset_first(c->scache, &index); e; e = pa_idxset_next(c->scache, &index)) {
+        for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
             double l = 0;
             char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a";
             
@@ -280,17 +280,17 @@ char *pa_scache_list_to_string(struct pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-char *pa_autoload_list_to_string(struct pa_core *c) {
-    struct pa_strbuf *s;
+char *pa_autoload_list_to_string(pa_core *c) {
+    pa_strbuf *s;
     assert(c);
 
     s = pa_strbuf_new();
     assert(s);
 
-    pa_strbuf_printf(s, "%u autoload entries available.\n", c->autoload_hashmap ? pa_hashmap_ncontents(c->autoload_hashmap) : 0);
+    pa_strbuf_printf(s, "%u autoload entries available.\n", c->autoload_hashmap ? pa_hashmap_size(c->autoload_hashmap) : 0);
 
     if (c->autoload_hashmap) {
-        struct pa_autoload_entry *e;
+        pa_autoload_entry *e;
         void *state = NULL;
 
         while ((e = pa_hashmap_iterate(c->autoload_hashmap, &state, NULL))) {
@@ -308,8 +308,8 @@ char *pa_autoload_list_to_string(struct pa_core *c) {
     return pa_strbuf_tostring_free(s);
 }
 
-char *pa_full_status_string(struct pa_core *c) {
-    struct pa_strbuf *s;
+char *pa_full_status_string(pa_core *c) {
+    pa_strbuf *s;
     int i;
 
     s = pa_strbuf_new();

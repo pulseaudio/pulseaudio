@@ -22,7 +22,7 @@
   USA.
 ***/
 
-struct pa_source;
+typedef struct pa_source pa_source;
 
 #include <inttypes.h>
 #include "core.h"
@@ -32,45 +32,46 @@ struct pa_source;
 #include "memchunk.h"
 #include "sink.h"
 #include "typeid.h"
+#include "module.h"
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 16
 
-enum pa_source_state {
+typedef enum pa_source_state {
     PA_SOURCE_RUNNING,
     PA_SOURCE_DISCONNECTED
-};
+} pa_source_state;
 
 struct pa_source {
     int ref;
-    enum pa_source_state state;
+    pa_source_state state;
     
     uint32_t index;
     pa_typeid_t typeid;
     
     char *name, *description;
-    struct pa_module *owner;
-    struct pa_core *core;
-    struct pa_sample_spec sample_spec;
-    struct pa_idxset *outputs;
-    struct pa_sink *monitor_of;
+    pa_module *owner;
+    pa_core *core;
+    pa_sample_spec sample_spec;
+    pa_idxset *outputs;
+    pa_sink *monitor_of;
 
-    void (*notify)(struct pa_source*source);
-    pa_usec_t (*get_latency)(struct pa_source *s);
+    void (*notify)(pa_source*source);
+    pa_usec_t (*get_latency)(pa_source *s);
     void *userdata;
 };
 
-struct pa_source* pa_source_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec);
-void pa_source_disconnect(struct pa_source *s);
-void pa_source_unref(struct pa_source *s);
-struct pa_source* pa_source_ref(struct pa_source *c);
+pa_source* pa_source_new(pa_core *core, pa_typeid_t typeid, const char *name, int fail, const pa_sample_spec *spec);
+void pa_source_disconnect(pa_source *s);
+void pa_source_unref(pa_source *s);
+pa_source* pa_source_ref(pa_source *c);
 
 /* Pass a new memory block to all output streams */
-void pa_source_post(struct pa_source*s, const struct pa_memchunk *b);
+void pa_source_post(pa_source*s, const pa_memchunk *b);
 
-void pa_source_notify(struct pa_source *s);
+void pa_source_notify(pa_source *s);
 
-void pa_source_set_owner(struct pa_source *s, struct pa_module *m);
+void pa_source_set_owner(pa_source *s, pa_module *m);
 
-pa_usec_t pa_source_get_latency(struct pa_source *s);
+pa_usec_t pa_source_get_latency(pa_source *s);
 
 #endif

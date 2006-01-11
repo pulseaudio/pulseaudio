@@ -39,14 +39,14 @@ struct pa_queue {
     unsigned length;
 };
 
-struct pa_queue* pa_queue_new(void) {
-    struct pa_queue *q = pa_xmalloc(sizeof(struct pa_queue));
+pa_queue* pa_queue_new(void) {
+    pa_queue *q = pa_xnew(pa_queue, 1);
     q->front = q->back = NULL;
     q->length = 0;
     return q;
 }
 
-void pa_queue_free(struct pa_queue* q, void (*destroy)(void *p, void *userdata), void *userdata) {
+void pa_queue_free(pa_queue* q, void (*destroy)(void *p, void *userdata), void *userdata) {
     struct queue_entry *e;
     assert(q);
 
@@ -64,10 +64,10 @@ void pa_queue_free(struct pa_queue* q, void (*destroy)(void *p, void *userdata),
     pa_xfree(q);
 }
 
-void pa_queue_push(struct pa_queue *q, void *p) {
+void pa_queue_push(pa_queue *q, void *p) {
     struct queue_entry *e;
 
-    e = pa_xmalloc(sizeof(struct queue_entry));
+    e = pa_xnew(struct queue_entry, 1);
     e->data = p;
     e->next = NULL;
 
@@ -82,7 +82,7 @@ void pa_queue_push(struct pa_queue *q, void *p) {
     q->length++;
 }
 
-void* pa_queue_pop(struct pa_queue *q) {
+void* pa_queue_pop(pa_queue *q) {
     void *p;
     struct queue_entry *e;
     assert(q);
@@ -102,7 +102,7 @@ void* pa_queue_pop(struct pa_queue *q) {
     return p;
 }
 
-int pa_queue_is_empty(struct pa_queue *q) {
+int pa_queue_is_empty(pa_queue *q) {
     assert(q);
     return q->length == 0;
 }

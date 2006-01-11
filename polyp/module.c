@@ -34,14 +34,15 @@
 #include "xmalloc.h"
 #include "subscribe.h"
 #include "log.h"
+#include "util.h"
 
 #define PA_SYMBOL_INIT "pa__init"
 #define PA_SYMBOL_DONE "pa__done"
 
 #define UNLOAD_POLL_TIME 2
 
-static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
-    struct pa_core *c = userdata;
+static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+    pa_core *c = userdata;
     struct timeval ntv;
     assert(c && c->mainloop == m && c->module_auto_unload_event == e);
 
@@ -52,8 +53,8 @@ static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, 
     m->time_restart(e, &ntv);
 }
 
-struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char *argument) {
-    struct pa_module *m = NULL;
+pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
+    pa_module *m = NULL;
     int r;
     
     assert(c && name);
@@ -61,7 +62,7 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
     if (c->disallow_module_loading)
         goto fail;
     
-    m = pa_xmalloc(sizeof(struct pa_module));
+    m = pa_xmalloc(sizeof(pa_module));
 
     m->name = pa_xstrdup(name);
     m->argument = pa_xstrdup(argument);
@@ -71,12 +72,12 @@ struct pa_module* pa_module_load(struct pa_core *c, const char *name, const char
         goto fail;
     }
 
-    if (!(m->init = (int (*)(struct pa_core *c, struct pa_module*m)) lt_dlsym(m->dl, PA_SYMBOL_INIT))) {
+    if (!(m->init = (int (*)(pa_core *_c, pa_module*_m)) lt_dlsym(m->dl, PA_SYMBOL_INIT))) {
         pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_INIT"\" not found.\n", name);
         goto fail;
     }
 
-    if (!(m->done = (void (*)(struct pa_core *c, struct pa_module*m)) lt_dlsym(m->dl, PA_SYMBOL_DONE))) {
+    if (!(m->done = (void (*)(pa_core *_c, pa_module*_m)) lt_dlsym(m->dl, PA_SYMBOL_DONE))) {
         pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_DONE"\" not found.\n", name);
         goto fail;
     }
@@ -129,7 +130,7 @@ fail:
     return NULL;
 }
 
-static void pa_module_free(struct pa_module *m) {
+static void pa_module_free(pa_module *m) {
     assert(m && m->done && m->core);
 
     if (m->core->disallow_module_loading)
@@ -150,7 +151,7 @@ static void pa_module_free(struct pa_module *m) {
     pa_xfree(m);
 }
 
-void pa_module_unload(struct pa_core *c, struct pa_module *m) {
+void pa_module_unload(pa_core *c, pa_module *m) {
     assert(c && m);
 
     assert(c->modules);
@@ -160,24 +161,24 @@ void pa_module_unload(struct pa_core *c, struct pa_module *m) {
     pa_module_free(m);
 }
 
-void pa_module_unload_by_index(struct pa_core *c, uint32_t index) {
-    struct pa_module *m;
-    assert(c && index != PA_IDXSET_INVALID);
+void pa_module_unload_by_index(pa_core *c, uint32_t idx) {
+    pa_module *m;
+    assert(c && idx != PA_IDXSET_INVALID);
 
     assert(c->modules);
-    if (!(m = pa_idxset_remove_by_index(c->modules, index)))
+    if (!(m = pa_idxset_remove_by_index(c->modules, idx)))
         return;
 
     pa_module_free(m);
 }
 
-static void free_callback(void *p, void *userdata) {
-    struct pa_module *m = p;
+static void free_callback(void *p, PA_GCC_UNUSED void *userdata) {
+    pa_module *m = p;
     assert(m);
     pa_module_free(m);
 }
 
-void pa_module_unload_all(struct pa_core *c) {
+void pa_module_unload_all(pa_core *c) {
     assert(c);
 
     if (!c->modules)
@@ -197,8 +198,8 @@ void pa_module_unload_all(struct pa_core *c) {
     }
 }
 
-static int unused_callback(void *p, uint32_t index, int *del, void *userdata) {
-    struct pa_module *m = p;
+static int unused_callback(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void *userdata) {
+    pa_module *m = p;
     time_t *now = userdata;
     assert(p && del && now);
     
@@ -210,7 +211,7 @@ static int unused_callback(void *p, uint32_t index, int *del, void *userdata) {
     return 0;
 }
 
-void pa_module_unload_unused(struct pa_core *c) {
+void pa_module_unload_unused(pa_core *c) {
     time_t now;
     assert(c);
 
@@ -221,8 +222,8 @@ void pa_module_unload_unused(struct pa_core *c) {
     pa_idxset_foreach(c->modules, unused_callback, &now);
 }
 
-static int unload_callback(void *p, uint32_t index, int *del, void *userdata) {
-    struct pa_module *m = p;
+static int unload_callback(void *p, PA_GCC_UNUSED uint32_t idx, int *del, PA_GCC_UNUSED void *userdata) {
+    pa_module *m = p;
     assert(m);
 
     if (m->unload_requested) {
@@ -233,8 +234,8 @@ static int unload_callback(void *p, uint32_t index, int *del, void *userdata) {
     return 0;
 }
 
-static void defer_cb(struct pa_mainloop_api*api, struct pa_defer_event *e, void *userdata) {
-    struct pa_core *core = userdata;
+static void defer_cb(pa_mainloop_api*api, pa_defer_event *e, void *userdata) {
+    pa_core *core = userdata;
     api->defer_enable(e, 0);
 
     if (!core->modules)
@@ -244,7 +245,7 @@ static void defer_cb(struct pa_mainloop_api*api, struct pa_defer_event *e, void 
 
 }
 
-void pa_module_unload_request(struct pa_module *m) {
+void pa_module_unload_request(pa_module *m) {
     assert(m);
 
     m->unload_requested = 1;
@@ -255,7 +256,7 @@ void pa_module_unload_request(struct pa_module *m) {
     m->core->mainloop->defer_enable(m->core->module_defer_unload_event, 1);
 }
 
-void pa_module_set_used(struct pa_module*m, int used) {
+void pa_module_set_used(pa_module*m, int used) {
     assert(m);
 
     if (m->n_used != used)
@@ -267,7 +268,7 @@ void pa_module_set_used(struct pa_module*m, int used) {
     m->n_used = used;
 }
 
-struct pa_modinfo *pa_module_get_info(struct pa_module *m) {
+pa_modinfo *pa_module_get_info(pa_module *m) {
     assert(m);
 
     return pa_modinfo_get_by_handle(m->dl);

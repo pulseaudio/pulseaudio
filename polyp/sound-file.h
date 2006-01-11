@@ -25,7 +25,7 @@
 #include "memchunk.h"
 #include "sample.h"
 
-int pa_sound_file_load(const char *fname, struct pa_sample_spec *ss, struct pa_memchunk *chunk, struct pa_memblock_stat *s);
+int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_memchunk *chunk, pa_memblock_stat *s);
 
 int pa_sound_file_too_big_to_cache(const char *fname);
 

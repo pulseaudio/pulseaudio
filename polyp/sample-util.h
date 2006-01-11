@@ -27,18 +27,18 @@
 #include "memchunk.h"
 
 
-struct pa_memblock *pa_silence_memblock(struct pa_memblock* b, const struct pa_sample_spec *spec);
-void pa_silence_memchunk(struct pa_memchunk *c, const struct pa_sample_spec *spec);
-void pa_silence_memory(void *p, size_t length, const struct pa_sample_spec *spec);
+pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec);
+void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec);
+void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec);
 
-struct pa_mix_info {
-    struct pa_memchunk chunk;
+typedef struct pa_mix_info {
+    pa_memchunk chunk;
     pa_volume_t volume;
     void *userdata;
-};
+} pa_mix_info ;
 
-size_t pa_mix(struct pa_mix_info channels[], unsigned nchannels, void *data, size_t length, const struct pa_sample_spec *spec, pa_volume_t volume);
+size_t pa_mix(pa_mix_info channels[], unsigned nchannels, void *data, size_t length, const pa_sample_spec *spec, pa_volume_t volume);
 
-void pa_volume_memchunk(struct pa_memchunk*c, const struct pa_sample_spec *spec, pa_volume_t volume);
+void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, pa_volume_t volume);
 
 #endif

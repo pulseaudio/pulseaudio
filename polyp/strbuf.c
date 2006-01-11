@@ -46,14 +46,14 @@ struct pa_strbuf {
     struct chunk *head, *tail;
 };
 
-struct pa_strbuf *pa_strbuf_new(void) {
-    struct pa_strbuf *sb = pa_xmalloc(sizeof(struct pa_strbuf));
+pa_strbuf *pa_strbuf_new(void) {
+    pa_strbuf *sb = pa_xmalloc(sizeof(pa_strbuf));
     sb->length = 0;
     sb->head = sb->tail = NULL;
     return sb;
 }
 
-void pa_strbuf_free(struct pa_strbuf *sb) {
+void pa_strbuf_free(pa_strbuf *sb) {
     assert(sb);
     while (sb->head) {
         struct chunk *c = sb->head;
@@ -66,7 +66,7 @@ void pa_strbuf_free(struct pa_strbuf *sb) {
 
 /* Make a C string from the string buffer. The caller has to free
  * string with pa_xfree(). */
-char *pa_strbuf_tostring(struct pa_strbuf *sb) {
+char *pa_strbuf_tostring(pa_strbuf *sb) {
     char *t, *e;
     struct chunk *c;
     assert(sb);
@@ -88,7 +88,7 @@ char *pa_strbuf_tostring(struct pa_strbuf *sb) {
 }
 
 /* Combination of pa_strbuf_free() and pa_strbuf_tostring() */
-char *pa_strbuf_tostring_free(struct pa_strbuf *sb) {
+char *pa_strbuf_tostring_free(pa_strbuf *sb) {
     char *t;
     assert(sb);
     t = pa_strbuf_tostring(sb);
@@ -97,13 +97,13 @@ char *pa_strbuf_tostring_free(struct pa_strbuf *sb) {
 }
 
 /* Append a string to the string buffer */
-void pa_strbuf_puts(struct pa_strbuf *sb, const char *t) {
+void pa_strbuf_puts(pa_strbuf *sb, const char *t) {
     assert(sb && t);
     pa_strbuf_putsn(sb, t, strlen(t));
 }
 
 /* Append a new chunk to the linked list */
-static void append(struct pa_strbuf *sb, struct chunk *c) {
+static void append(pa_strbuf *sb, struct chunk *c) {
     assert(sb && c);
 
     if (sb->tail) {
@@ -120,7 +120,7 @@ static void append(struct pa_strbuf *sb, struct chunk *c) {
 }
 
 /* Append up to l bytes of a string to the string buffer */
-void pa_strbuf_putsn(struct pa_strbuf *sb, const char *t, size_t l) {
+void pa_strbuf_putsn(pa_strbuf *sb, const char *t, size_t l) {
     struct chunk *c;
     assert(sb && t);
     
@@ -136,7 +136,7 @@ void pa_strbuf_putsn(struct pa_strbuf *sb, const char *t, size_t l) {
 
 /* Append a printf() style formatted string to the string buffer. */
 /* The following is based on an example from the GNU libc documentation */
-int pa_strbuf_printf(struct pa_strbuf *sb, const char *format, ...) {
+int pa_strbuf_printf(pa_strbuf *sb, const char *format, ...) {
     int size = 100;
     struct chunk *c = NULL;
 

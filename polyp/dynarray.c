@@ -38,16 +38,16 @@ struct pa_dynarray {
     unsigned n_allocated, n_entries;
 };
 
-struct pa_dynarray* pa_dynarray_new(void) {
-    struct pa_dynarray *a;
-    a = pa_xmalloc(sizeof(struct pa_dynarray));
+pa_dynarray* pa_dynarray_new(void) {
+    pa_dynarray *a;
+    a = pa_xnew(pa_dynarray, 1);
     a->data = NULL;
     a->n_entries = 0;
     a->n_allocated = 0;
     return a;
 }
 
-void pa_dynarray_free(struct pa_dynarray* a, void (*func)(void *p, void *userdata), void *userdata) {
+void pa_dynarray_free(pa_dynarray* a, void (*func)(void *p, void *userdata), void *userdata) {
     unsigned i;
     assert(a);
 
@@ -60,7 +60,7 @@ void pa_dynarray_free(struct pa_dynarray* a, void (*func)(void *p, void *userdat
     pa_xfree(a);
 }
 
-void pa_dynarray_put(struct pa_dynarray*a, unsigned i, void *p) {
+void pa_dynarray_put(pa_dynarray*a, unsigned i, void *p) {
     assert(a);
 
     if (i >= a->n_allocated) {
@@ -81,13 +81,13 @@ void pa_dynarray_put(struct pa_dynarray*a, unsigned i, void *p) {
         a->n_entries = i+1;
 }
 
-unsigned pa_dynarray_append(struct pa_dynarray*a, void *p) {
+unsigned pa_dynarray_append(pa_dynarray*a, void *p) {
     unsigned i = a->n_entries;
     pa_dynarray_put(a, i, p);
     return i;
 }
 
-void *pa_dynarray_get(struct pa_dynarray*a, unsigned i) {
+void *pa_dynarray_get(pa_dynarray*a, unsigned i) {
     assert(a);
     if (i >= a->n_allocated)
         return NULL;
@@ -96,7 +96,7 @@ void *pa_dynarray_get(struct pa_dynarray*a, unsigned i) {
     return a->data[i];
 }
 
-unsigned pa_dynarray_ncontents(struct pa_dynarray*a) {
+unsigned pa_dynarray_size(pa_dynarray*a) {
     assert(a);
     return a->n_entries;
 }

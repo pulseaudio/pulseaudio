@@ -33,12 +33,12 @@
 #include "subscribe.h"
 #include "log.h"
 
-struct pa_client *pa_client_new(struct pa_core *core, pa_typeid_t typeid, const char *name) {
-    struct pa_client *c;
+pa_client *pa_client_new(pa_core *core, pa_typeid_t typeid, const char *name) {
+    pa_client *c;
     int r;
     assert(core);
 
-    c = pa_xmalloc(sizeof(struct pa_client));
+    c = pa_xmalloc(sizeof(pa_client));
     c->name = pa_xstrdup(name);
     c->owner = NULL;
     c->core = core;
@@ -58,7 +58,7 @@ struct pa_client *pa_client_new(struct pa_core *core, pa_typeid_t typeid, const 
     return c;
 }
 
-void pa_client_free(struct pa_client *c) {
+void pa_client_free(pa_client *c) {
     assert(c && c->core);
 
     pa_idxset_remove_by_data(c->core->clients, c, NULL);
@@ -72,7 +72,7 @@ void pa_client_free(struct pa_client *c) {
 
 }
 
-void pa_client_kill(struct pa_client *c) {
+void pa_client_kill(pa_client *c) {
     assert(c);
     if (!c->kill) {
         pa_log_warn(__FILE__": kill() operation not implemented for client %u\n", c->index);
@@ -82,7 +82,7 @@ void pa_client_kill(struct pa_client *c) {
     c->kill(c);
 }
 
-void pa_client_set_name(struct pa_client *c, const char *name) {
+void pa_client_set_name(pa_client *c, const char *name) {
     assert(c);
     pa_xfree(c->name);
     c->name = pa_xstrdup(name);

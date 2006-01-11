@@ -27,9 +27,9 @@
 #include "module.h"
 #include "modargs.h"
 
-struct pa_protocol_cli;
+typedef struct pa_protocol_cli pa_protocol_cli;
 
-struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma);
-void pa_protocol_cli_free(struct pa_protocol_cli *n);
+pa_protocol_cli* pa_protocol_cli_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma);
+void pa_protocol_cli_free(pa_protocol_cli *n);
 
 #endif

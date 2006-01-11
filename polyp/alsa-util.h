@@ -27,9 +27,9 @@
 #include "sample.h"
 #include "mainloop-api.h"
 
-int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const struct pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size);
+int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size);
 
-int pa_create_io_events(snd_pcm_t *pcm_handle, struct pa_mainloop_api *m, struct pa_io_event ***io_events, unsigned *n_io_events, void (*cb)(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags events, void *userdata), void *userdata);
-void pa_free_io_events(struct pa_mainloop_api* m, struct pa_io_event **io_sources, unsigned n_io_sources);
+int pa_create_io_events(snd_pcm_t *pcm_handle, pa_mainloop_api *m, pa_io_event ***io_events, unsigned *n_io_events, void (*cb)(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags events, void *userdata), void *userdata);
+void pa_free_io_events(pa_mainloop_api* m, pa_io_event **io_sources, unsigned n_io_sources);
 
 #endif

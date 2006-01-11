@@ -55,13 +55,13 @@ PA_MODULE_USAGE("sink_name=<name for the sink> device=<ALSA device> format=<samp
 
 struct userdata {
     snd_pcm_t *pcm_handle;
-    struct pa_sink *sink;
-    struct pa_io_event **io_events;
+    pa_sink *sink;
+    pa_io_event **io_events;
     unsigned n_io_events;
 
     size_t frame_size, fragment_size;
-    struct pa_memchunk memchunk, silence;
-    struct pa_module *module;
+    pa_memchunk memchunk, silence;
+    pa_module *module;
 };
 
 static const char* const valid_modargs[] = {
@@ -80,8 +80,8 @@ static const char* const valid_modargs[] = {
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
-                      (u->sink ? pa_idxset_ncontents(u->sink->inputs) : 0) +
-                      (u->sink ? pa_idxset_ncontents(u->sink->monitor_source->outputs) : 0));
+                      (u->sink ? pa_idxset_size(u->sink->inputs) : 0) +
+                      (u->sink ? pa_idxset_size(u->sink->monitor_source->outputs) : 0));
 }
 
 static void xrun_recovery(struct userdata *u) {
@@ -99,7 +99,7 @@ static void do_write(struct userdata *u) {
     update_usage(u);
     
     for (;;) {
-        struct pa_memchunk *memchunk = NULL;
+        pa_memchunk *memchunk = NULL;
         snd_pcm_sframes_t frames;
         
         if (u->memchunk.memblock)
@@ -142,7 +142,7 @@ static void do_write(struct userdata *u) {
     }
 }
 
-static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
+static void io_callback(pa_mainloop_api*a, pa_io_event *e, PA_GCC_UNUSED int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
     struct userdata *u = userdata;
     assert(u && a && e);
 
@@ -152,7 +152,7 @@ static void io_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd,
     do_write(u);
 }
 
-static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
+static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     pa_usec_t r = 0;
     struct userdata *u = s->userdata;
     snd_pcm_sframes_t frames;
@@ -175,12 +175,12 @@ static pa_usec_t sink_get_latency_cb(struct pa_sink *s) {
     return r;
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_modargs *ma = NULL;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_modargs *ma = NULL;
     int ret = -1;
     struct userdata *u = NULL;
     const char *dev;
-    struct pa_sample_spec ss;
+    pa_sample_spec ss;
     uint32_t periods, fragsize;
     snd_pcm_uframes_t period_size;
     size_t frame_size;
@@ -262,7 +262,7 @@ fail:
     goto finish;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

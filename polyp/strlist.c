@@ -32,22 +32,22 @@
 #include "util.h"
 
 struct pa_strlist {
-    struct pa_strlist *next;
+    pa_strlist *next;
     char *str;
 };
 
-struct pa_strlist* pa_strlist_prepend(struct pa_strlist *l, const char *s) {
-    struct pa_strlist *n;
+pa_strlist* pa_strlist_prepend(pa_strlist *l, const char *s) {
+    pa_strlist *n;
     assert(s);
-    n = pa_xmalloc(sizeof(struct pa_strlist));
+    n = pa_xmalloc(sizeof(pa_strlist));
     n->str = pa_xstrdup(s);
     n->next = l;
     return  n;
 }
 
-char *pa_strlist_tostring(struct pa_strlist *l) {
+char *pa_strlist_tostring(pa_strlist *l) {
     int first = 1;
-    struct pa_strbuf *b;
+    pa_strbuf *b;
 
     b = pa_strbuf_new();
     for (; l; l = l->next) {
@@ -60,13 +60,13 @@ char *pa_strlist_tostring(struct pa_strlist *l) {
     return pa_strbuf_tostring_free(b);
 }
 
-struct pa_strlist* pa_strlist_remove(struct pa_strlist *l, const char *s) {
-    struct pa_strlist *ret = l, *prev = NULL;
+pa_strlist* pa_strlist_remove(pa_strlist *l, const char *s) {
+    pa_strlist *ret = l, *prev = NULL;
     assert(l && s);
 
     while (l) {
         if (!strcmp(l->str, s)) {
-            struct pa_strlist *n = l->next;
+            pa_strlist *n = l->next;
             
             if (!prev) {
                 assert(ret == l);
@@ -88,9 +88,9 @@ struct pa_strlist* pa_strlist_remove(struct pa_strlist *l, const char *s) {
     return ret;
 }
 
-void pa_strlist_free(struct pa_strlist *l) {
+void pa_strlist_free(pa_strlist *l) {
     while (l) {
-        struct pa_strlist *c = l;
+        pa_strlist *c = l;
         l = l->next;
 
         pa_xfree(c->str);
@@ -98,8 +98,8 @@ void pa_strlist_free(struct pa_strlist *l) {
     }
 }
 
-struct pa_strlist* pa_strlist_pop(struct pa_strlist *l, char **s) {
-    struct pa_strlist *r;
+pa_strlist* pa_strlist_pop(pa_strlist *l, char **s) {
+    pa_strlist *r;
     assert(s);
     
     if (!l) {
@@ -113,15 +113,15 @@ struct pa_strlist* pa_strlist_pop(struct pa_strlist *l, char **s) {
     return r;
 }
 
-struct pa_strlist* pa_strlist_parse(const char *s) {
-    struct pa_strlist *head = NULL, *p = NULL;
+pa_strlist* pa_strlist_parse(const char *s) {
+    pa_strlist *head = NULL, *p = NULL;
     const char *state = NULL;
     char *r;
 
     while ((r = pa_split_spaces(s, &state))) {
-        struct pa_strlist *n;
+        pa_strlist *n;
 
-        n = pa_xmalloc(sizeof(struct pa_strlist));
+        n = pa_xmalloc(sizeof(pa_strlist));
         n->str = r;
         n->next = NULL;
 

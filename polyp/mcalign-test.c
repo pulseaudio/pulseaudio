@@ -33,12 +33,13 @@
 
 #include "util.h"
 #include "mcalign.h"
+#include "gccmacro.h"
 
 /* A simple program for testing pa_mcalign */
 
-int main(int argc, char *argv[]) {
-    struct pa_mcalign *a = pa_mcalign_new(11, NULL);
-    struct pa_memchunk c;
+int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
+    pa_mcalign *a = pa_mcalign_new(11, NULL);
+    pa_memchunk c;
 
     pa_memchunk_reset(&c);
 
@@ -76,7 +77,7 @@ int main(int argc, char *argv[]) {
         }
 
         for (;;) {
-            struct pa_memchunk t;
+            pa_memchunk t;
 
             if (pa_mcalign_pop(a, &t) < 0)
                 break;

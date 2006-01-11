@@ -31,21 +31,21 @@
 #include "idxset.h"
 #include "xmalloc.h"
 
-struct idxset_entry {
+typedef struct idxset_entry {
     void *data;
     uint32_t index;
     unsigned hash_value;
 
     struct idxset_entry *hash_prev, *hash_next;
     struct idxset_entry* iterate_prev, *iterate_next;
-};
+} idxset_entry;
 
 struct pa_idxset {
     unsigned (*hash_func) (const void *p);
     int (*compare_func)(const void *a, const void *b);
     
     unsigned hash_table_size, n_entries;
-    struct idxset_entry **hash_table, **array, *iterate_list_head, *iterate_list_tail;
+    idxset_entry **hash_table, **array, *iterate_list_head, *iterate_list_tail;
     uint32_t index, start_index, array_size;
 };
 
@@ -71,14 +71,14 @@ int pa_idxset_trivial_compare_func(const void *a, const void *b) {
     return a != b;
 }
 
-struct pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
-    struct pa_idxset *s;
+pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
+    pa_idxset *s;
 
-    s = pa_xmalloc(sizeof(struct pa_idxset));
+    s = pa_xnew(pa_idxset, 1);
     s->hash_func = hash_func ? hash_func : pa_idxset_trivial_hash_func;
     s->compare_func = compare_func ? compare_func : pa_idxset_trivial_compare_func;
     s->hash_table_size = 1023;
-    s->hash_table = pa_xmalloc0(sizeof(struct idxset_entry*)*s->hash_table_size);
+    s->hash_table = pa_xmalloc0(sizeof(idxset_entry*)*s->hash_table_size);
     s->array = NULL;
     s->array_size = 0;
     s->index = 0;
@@ -90,11 +90,11 @@ struct pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*com
     return s;
 }
 
-void pa_idxset_free(struct pa_idxset *s, void (*free_func) (void *p, void *userdata), void *userdata) {
+void pa_idxset_free(pa_idxset *s, void (*free_func) (void *p, void *userdata), void *userdata) {
     assert(s);
 
     while (s->iterate_list_head) {
-        struct idxset_entry *e = s->iterate_list_head;
+        idxset_entry *e = s->iterate_list_head;
         s->iterate_list_head = s->iterate_list_head->iterate_next;
         
         if (free_func)
@@ -107,7 +107,7 @@ void pa_idxset_free(struct pa_idxset *s, void (*free_func) (void *p, void *userd
     pa_xfree(s);
 }
 
-static struct idxset_entry* hash_scan(struct pa_idxset *s, struct idxset_entry* e, const void *p) {
+static idxset_entry* hash_scan(pa_idxset *s, idxset_entry* e, const void *p) {
     assert(p);
 
     assert(s->compare_func);
@@ -118,20 +118,20 @@ static struct idxset_entry* hash_scan(struct pa_idxset *s, struct idxset_entry* 
     return NULL;
 }
 
-static void extend_array(struct pa_idxset *s, uint32_t index) {
+static void extend_array(pa_idxset *s, uint32_t idx) {
     uint32_t i, j, l;
-    struct idxset_entry** n;
-    assert(index >= s->start_index);
+    idxset_entry** n;
+    assert(idx >= s->start_index);
 
-    if (index < s->start_index + s->array_size)
+    if (idx < s->start_index + s->array_size)
         return;
 
     for (i = 0; i < s->array_size; i++)
         if (s->array[i])
             break;
 
-    l = index - s->start_index - i + 100;
-    n = pa_xmalloc0(sizeof(struct hash_table_entry*)*l);
+    l = idx - s->start_index - i + 100;
+    n = pa_xnew0(idxset_entry*, l);
     
     for (j = 0; j < s->array_size-i; j++)
         n[j] = s->array[i+j];
@@ -143,19 +143,19 @@ static void extend_array(struct pa_idxset *s, uint32_t index) {
     s->start_index += i;
 }
 
-static struct idxset_entry** array_index(struct pa_idxset*s, uint32_t index) {
-    if (index >= s->start_index + s->array_size)
+static idxset_entry** array_index(pa_idxset*s, uint32_t idx) {
+    if (idx >= s->start_index + s->array_size)
         return NULL;
     
-    if (index < s->start_index)
+    if (idx < s->start_index)
         return NULL;
     
-    return s->array + (index - s->start_index);
+    return s->array + (idx - s->start_index);
 }
 
-int pa_idxset_put(struct pa_idxset*s, void *p, uint32_t *index) {
+int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx) {
     unsigned h;
-    struct idxset_entry *e, **a;
+    idxset_entry *e, **a;
     assert(s && p);
 
     assert(s->hash_func);
@@ -163,13 +163,13 @@ int pa_idxset_put(struct pa_idxset*s, void *p, uint32_t *index) {
 
     assert(s->hash_table);
     if ((e = hash_scan(s, s->hash_table[h], p))) {
-        if (index)
-            *index = e->index;
+        if (idx)
+            *idx = e->index;
         
         return -1;
     }
 
-    e = pa_xmalloc(sizeof(struct idxset_entry));
+    e = pa_xmalloc(sizeof(idxset_entry));
     e->data = p;
     e->index = s->index++;
     e->hash_value = h;
@@ -202,17 +202,17 @@ int pa_idxset_put(struct pa_idxset*s, void *p, uint32_t *index) {
     s->n_entries++;
     assert(s->n_entries >= 1);
     
-    if (index)
-        *index = e->index;
+    if (idx)
+        *idx = e->index;
 
     return 0;
 }
 
-void* pa_idxset_get_by_index(struct pa_idxset*s, uint32_t index) {
-    struct idxset_entry **a;
+void* pa_idxset_get_by_index(pa_idxset*s, uint32_t idx) {
+    idxset_entry **a;
     assert(s);
     
-    if (!(a = array_index(s, index)))
+    if (!(a = array_index(s, idx)))
         return NULL;
 
     if (!*a)
@@ -221,9 +221,9 @@ void* pa_idxset_get_by_index(struct pa_idxset*s, uint32_t index) {
     return (*a)->data;
 }
 
-void* pa_idxset_get_by_data(struct pa_idxset*s, const void *p, uint32_t *index) {
+void* pa_idxset_get_by_data(pa_idxset*s, const void *p, uint32_t *idx) {
     unsigned h;
-    struct idxset_entry *e;
+    idxset_entry *e;
     assert(s && p);
     
     assert(s->hash_func);
@@ -233,14 +233,14 @@ void* pa_idxset_get_by_data(struct pa_idxset*s, const void *p, uint32_t *index) 
     if (!(e = hash_scan(s, s->hash_table[h], p)))
         return NULL;
 
-    if (index)
-        *index = e->index;
+    if (idx)
+        *idx = e->index;
 
     return e->data;
 }
 
-static void remove_entry(struct pa_idxset *s, struct idxset_entry *e) {
-    struct idxset_entry **a;
+static void remove_entry(pa_idxset *s, idxset_entry *e) {
+    idxset_entry **a;
     assert(s && e);
 
     /* Remove from array */
@@ -274,13 +274,13 @@ static void remove_entry(struct pa_idxset *s, struct idxset_entry *e) {
     s->n_entries--;
 }
 
-void* pa_idxset_remove_by_index(struct pa_idxset*s, uint32_t index) {
-    struct idxset_entry **a;
+void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx) {
+    idxset_entry **a;
     void *data;
     
     assert(s);
 
-    if (!(a = array_index(s, index)))
+    if (!(a = array_index(s, idx)))
         return NULL;
 
     data = (*a)->data;
@@ -289,8 +289,8 @@ void* pa_idxset_remove_by_index(struct pa_idxset*s, uint32_t index) {
     return data; 
 }
 
-void* pa_idxset_remove_by_data(struct pa_idxset*s, const void *data, uint32_t *index) {
-    struct idxset_entry *e;
+void* pa_idxset_remove_by_data(pa_idxset*s, const void *data, uint32_t *idx) {
+    idxset_entry *e;
     unsigned h;
     void *r;
     
@@ -302,19 +302,19 @@ void* pa_idxset_remove_by_data(struct pa_idxset*s, const void *data, uint32_t *i
         return NULL;
 
     r = e->data;
-    if (index)
-        *index = e->index;
+    if (idx)
+        *idx = e->index;
 
     remove_entry(s, e);
 
     return r;
 }
 
-void* pa_idxset_rrobin(struct pa_idxset *s, uint32_t *index) {
-    struct idxset_entry **a, *e = NULL;
-    assert(s && index);
+void* pa_idxset_rrobin(pa_idxset *s, uint32_t *idx) {
+    idxset_entry **a, *e = NULL;
+    assert(s && idx);
 
-    if ((a = array_index(s, *index)) && *a)
+    if ((a = array_index(s, *idx)) && *a)
         e = (*a)->iterate_next;
 
     if (!e)
@@ -323,46 +323,46 @@ void* pa_idxset_rrobin(struct pa_idxset *s, uint32_t *index) {
     if (!e)
         return NULL;
     
-    *index = e->index;
+    *idx = e->index;
     return e->data;
 }
 
-void* pa_idxset_first(struct pa_idxset *s, uint32_t *index) {
+void* pa_idxset_first(pa_idxset *s, uint32_t *idx) {
     assert(s);
 
     if (!s->iterate_list_head)
         return NULL;
 
-    if (index)
-        *index = s->iterate_list_head->index;
+    if (idx)
+        *idx = s->iterate_list_head->index;
     return s->iterate_list_head->data;
 }
 
-void *pa_idxset_next(struct pa_idxset *s, uint32_t *index) {
-    struct idxset_entry **a, *e = NULL;
-    assert(s && index);
+void *pa_idxset_next(pa_idxset *s, uint32_t *idx) {
+    idxset_entry **a, *e = NULL;
+    assert(s && idx);
 
-    if ((a = array_index(s, *index)) && *a)
+    if ((a = array_index(s, *idx)) && *a)
         e = (*a)->iterate_next;
     
     if (e) {
-        *index = e->index;
+        *idx = e->index;
         return e->data;
     } else {
-        *index = PA_IDXSET_INVALID;
+        *idx = PA_IDXSET_INVALID;
         return NULL;
     }
 }
 
 
-int pa_idxset_foreach(struct pa_idxset*s, int (*func)(void *p, uint32_t index, int *del, void*userdata), void *userdata) {
-    struct idxset_entry *e;
+int pa_idxset_foreach(pa_idxset*s, int (*func)(void *p, uint32_t idx, int *del, void*userdata), void *userdata) {
+    idxset_entry *e;
     assert(s && func);
 
     e = s->iterate_list_head;
     while (e) {
         int del = 0, r;
-        struct idxset_entry *n = e->iterate_next;
+        idxset_entry *n = e->iterate_next;
 
         r = func(e->data, e->index, &del, userdata);
 
@@ -378,12 +378,12 @@ int pa_idxset_foreach(struct pa_idxset*s, int (*func)(void *p, uint32_t index, i
     return 0;
 }
 
-unsigned pa_idxset_ncontents(struct pa_idxset*s) {
+unsigned pa_idxset_size(pa_idxset*s) {
     assert(s);
     return s->n_entries;
 }
 
-int pa_idxset_isempty(struct pa_idxset *s) {
+int pa_idxset_isempty(pa_idxset *s) {
     assert(s);
     return s->n_entries == 0;
 }

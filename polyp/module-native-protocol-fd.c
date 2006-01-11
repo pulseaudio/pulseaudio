@@ -45,9 +45,9 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_iochannel *io;
-    struct pa_modargs *ma;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_iochannel *io;
+    pa_modargs *ma;
     int fd, r = -1;
     assert(c && m);
 
@@ -77,7 +77,7 @@ finish:
     return r;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     assert(c && m);
 
     pa_protocol_native_free(m->userdata);

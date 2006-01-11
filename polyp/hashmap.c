@@ -51,9 +51,9 @@ struct pa_hashmap {
     int (*compare_func) (const void*a, const void*b);
 };
 
-struct pa_hashmap *pa_hashmap_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
-    struct pa_hashmap *h;
-    h = pa_xmalloc(sizeof(struct pa_hashmap));
+pa_hashmap *pa_hashmap_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
+    pa_hashmap *h;
+    h = pa_xmalloc(sizeof(pa_hashmap));
     h->data = pa_xmalloc0(sizeof(struct hashmap_entry*)*(h->size = BUCKETS));
     h->first_entry = NULL;
     h->n_entries = 0;
@@ -62,7 +62,7 @@ struct pa_hashmap *pa_hashmap_new(unsigned (*hash_func) (const void *p), int (*c
     return h;
 }
 
-static void remove(struct pa_hashmap *h, struct hashmap_entry *e) {
+static void remove(pa_hashmap *h, struct hashmap_entry *e) {
     assert(e);
 
     if (e->next)
@@ -85,7 +85,7 @@ static void remove(struct pa_hashmap *h, struct hashmap_entry *e) {
     h->n_entries--;
 }
 
-void pa_hashmap_free(struct pa_hashmap*h, void (*free_func)(void *p, void *userdata), void *userdata) {
+void pa_hashmap_free(pa_hashmap*h, void (*free_func)(void *p, void *userdata), void *userdata) {
     assert(h);
 
     while (h->first_entry) {
@@ -98,7 +98,7 @@ void pa_hashmap_free(struct pa_hashmap*h, void (*free_func)(void *p, void *userd
     pa_xfree(h);
 }
 
-static struct hashmap_entry *get(struct pa_hashmap *h, unsigned hash, const void *key) {
+static struct hashmap_entry *get(pa_hashmap *h, unsigned hash, const void *key) {
     struct hashmap_entry *e;
     assert(h && hash < h->size);
 
@@ -109,7 +109,7 @@ static struct hashmap_entry *get(struct pa_hashmap *h, unsigned hash, const void
     return NULL;
 }
 
-int pa_hashmap_put(struct pa_hashmap *h, const void *key, void *value) {
+int pa_hashmap_put(pa_hashmap *h, const void *key, void *value) {
     struct hashmap_entry *e;
     unsigned hash;
     assert(h);
@@ -140,7 +140,7 @@ int pa_hashmap_put(struct pa_hashmap *h, const void *key, void *value) {
     return 0;
 }
 
-void* pa_hashmap_get(struct pa_hashmap *h, const void *key) {
+void* pa_hashmap_get(pa_hashmap *h, const void *key) {
     unsigned hash;
     struct hashmap_entry *e;
     assert(h && key);
@@ -153,7 +153,7 @@ void* pa_hashmap_get(struct pa_hashmap *h, const void *key) {
     return e->value;
 }
 
-void* pa_hashmap_remove(struct pa_hashmap *h, const void *key) {
+void* pa_hashmap_remove(pa_hashmap *h, const void *key) {
     struct hashmap_entry *e;
     unsigned hash;
     void *data;
@@ -169,11 +169,11 @@ void* pa_hashmap_remove(struct pa_hashmap *h, const void *key) {
     return data;
 }
 
-unsigned pa_hashmap_ncontents(struct pa_hashmap *h) {
+unsigned pa_hashmap_size(pa_hashmap *h) {
     return h->n_entries;
 }
 
-void *pa_hashmap_iterate(struct pa_hashmap *h, void **state, const void **key) {
+void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void **key) {
     assert(h && state);
 
     if (!*state) 

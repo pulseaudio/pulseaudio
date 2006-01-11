@@ -22,16 +22,16 @@
   USA.
 ***/
 
+typedef struct pa_subscription pa_subscription;
+typedef struct pa_subscription_event pa_subscription_event;
+
 #include "core.h"
 #include "native-common.h"
 
-struct pa_subscription;
-struct pa_subscription_event;
+pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask m,  void (*callback)(pa_core *c, pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata);
+void pa_subscription_free(pa_subscription*s);
+void pa_subscription_free_all(pa_core *c);
 
-struct pa_subscription* pa_subscription_new(struct pa_core *c, enum pa_subscription_mask m,  void (*callback)(struct pa_core *c, enum pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata);
-void pa_subscription_free(struct pa_subscription*s);
-void pa_subscription_free_all(struct pa_core *c);
-
-void pa_subscription_post(struct pa_core *c, enum pa_subscription_event_type t, uint32_t index);
+void pa_subscription_post(pa_core *c, pa_subscription_event_type t, uint32_t idx);
 
 #endif

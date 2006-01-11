@@ -22,12 +22,16 @@
   USA.
 ***/
 
+typedef struct pa_core pa_core;
+
 #include "idxset.h"
 #include "hashmap.h"
 #include "mainloop-api.h"
 #include "sample.h"
 #include "memblock.h"
 #include "resampler.h"
+#include "queue.h"
+#include "subscribe.h"
 
 /* The core structure of polypaudio. Every polypaudio daemon contains
  * exactly one of these. It is used for storing kind of global
@@ -38,41 +42,41 @@ struct pa_core {
      * polypaudio. Not cryptographically secure in any way. */
     uint32_t cookie;
     
-    struct pa_mainloop_api *mainloop;
+    pa_mainloop_api *mainloop;
 
     /* idxset of all kinds of entities */
-    struct pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache, *autoload_idxset;
+    pa_idxset *clients, *sinks, *sources, *sink_inputs, *source_outputs, *modules, *scache, *autoload_idxset;
 
     /* Some hashmaps for all sorts of entities */
-    struct pa_hashmap *namereg, *autoload_hashmap, *properties;
+    pa_hashmap *namereg, *autoload_hashmap, *properties;
 
     /* The name of the default sink/source */
     char *default_source_name, *default_sink_name;
 
-    struct pa_sample_spec default_sample_spec;
-    struct pa_time_event *module_auto_unload_event;
-    struct pa_defer_event *module_defer_unload_event;
+    pa_sample_spec default_sample_spec;
+    pa_time_event *module_auto_unload_event;
+    pa_defer_event *module_defer_unload_event;
 
-    struct pa_defer_event *subscription_defer_event;
-    struct pa_queue *subscription_event_queue;
-    struct pa_subscription *subscriptions;
+    pa_defer_event *subscription_defer_event;
+    pa_queue *subscription_event_queue;
+    pa_subscription *subscriptions;
 
-    struct pa_memblock_stat *memblock_stat;
+    pa_memblock_stat *memblock_stat;
 
     int disallow_module_loading, running_as_daemon;
     int exit_idle_time, module_idle_time, scache_idle_time;
 
-    struct pa_time_event *quit_event;
+    pa_time_event *quit_event;
 
-    struct pa_time_event *scache_auto_unload_event;
+    pa_time_event *scache_auto_unload_event;
 
-    enum pa_resample_method resample_method;
+    pa_resample_method resample_method;
 };
 
-struct pa_core* pa_core_new(struct pa_mainloop_api *m);
-void pa_core_free(struct pa_core*c);
+pa_core* pa_core_new(pa_mainloop_api *m);
+void pa_core_free(pa_core*c);
 
 /* Check whether noone is connected to this core */
-void pa_core_check_quit(struct pa_core *c);
+void pa_core_check_quit(pa_core *c);
 
 #endif

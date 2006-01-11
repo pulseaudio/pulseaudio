@@ -36,11 +36,11 @@
 
 #define LATENCY_IPOL_INTERVAL_USEC (10000L)
 
-struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const struct pa_sample_spec *ss) {
-    struct pa_stream *s;
+pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss) {
+    pa_stream *s;
     assert(c && ss);
 
-    s = pa_xmalloc(sizeof(struct pa_stream));
+    s = pa_xmalloc(sizeof(pa_stream));
     s->ref = 1;
     s->context = c;
     s->mainloop = c->mainloop;
@@ -76,12 +76,12 @@ struct pa_stream *pa_stream_new(struct pa_context *c, const char *name, const st
     s->ipol_event = NULL;
     s->ipol_requested = 0;
 
-    PA_LLIST_PREPEND(struct pa_stream, c->streams, s);
+    PA_LLIST_PREPEND(pa_stream, c->streams, s);
 
     return pa_stream_ref(s);
 }
 
-static void stream_free(struct pa_stream *s) {
+static void stream_free(pa_stream *s) {
     assert(s);
 
     if (s->ipol_event) {
@@ -95,35 +95,35 @@ static void stream_free(struct pa_stream *s) {
     pa_xfree(s);
 }
 
-void pa_stream_unref(struct pa_stream *s) {
+void pa_stream_unref(pa_stream *s) {
     assert(s && s->ref >= 1);
 
     if (--(s->ref) == 0)
         stream_free(s);
 }
 
-struct pa_stream* pa_stream_ref(struct pa_stream *s) {
+pa_stream* pa_stream_ref(pa_stream *s) {
     assert(s && s->ref >= 1);
     s->ref++;
     return s;
 }
 
-enum pa_stream_state pa_stream_get_state(struct pa_stream *s) {
+pa_stream_state pa_stream_get_state(pa_stream *s) {
     assert(s && s->ref >= 1);
     return s->state;
 }
 
-struct pa_context* pa_stream_get_context(struct pa_stream *s) {
+pa_context* pa_stream_get_context(pa_stream *s) {
     assert(s && s->ref >= 1);
     return s->context;
 }
 
-uint32_t pa_stream_get_index(struct pa_stream *s) {
+uint32_t pa_stream_get_index(pa_stream *s) {
     assert(s && s->ref >= 1);
     return s->device_index;
 }
     
-void pa_stream_set_state(struct pa_stream *s, enum pa_stream_state st) {
+void pa_stream_set_state(pa_stream *s, pa_stream_state st) {
     assert(s && s->ref >= 1);
 
     if (s->state == st)
@@ -137,7 +137,7 @@ void pa_stream_set_state(struct pa_stream *s, enum pa_stream_state st) {
         if (s->channel_valid)
             pa_dynarray_put((s->direction == PA_STREAM_PLAYBACK) ? s->context->playback_streams : s->context->record_streams, s->channel, NULL);
 
-        PA_LLIST_REMOVE(struct pa_stream, s->context->streams, s);
+        PA_LLIST_REMOVE(pa_stream, s->context->streams, s);
         pa_stream_unref(s);
     }
 
@@ -147,9 +147,9 @@ void pa_stream_set_state(struct pa_stream *s, enum pa_stream_state st) {
     pa_stream_unref(s);
 }
 
-void pa_command_stream_killed(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
-    struct pa_context *c = userdata;
-    struct pa_stream *s;
+void pa_command_stream_killed(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    pa_stream *s;
     uint32_t channel;
     assert(pd && (command == PA_COMMAND_PLAYBACK_STREAM_KILLED || command == PA_COMMAND_RECORD_STREAM_KILLED) && t && c);
 
@@ -171,9 +171,9 @@ finish:
     pa_context_unref(c);
 }
 
-void pa_command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
-    struct pa_stream *s;
-    struct pa_context *c = userdata;
+void pa_command_request(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_stream *s;
+    pa_context *c = userdata;
     uint32_t bytes, channel;
     assert(pd && command == PA_COMMAND_REQUEST && t && c);
 
@@ -205,9 +205,9 @@ finish:
     pa_context_unref(c);
 }
 
-static void ipol_callback(struct pa_mainloop_api *m, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
+static void ipol_callback(pa_mainloop_api *m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     struct timeval tv2;
-    struct pa_stream *s = userdata;
+    pa_stream *s = userdata;
 
     pa_stream_ref(s);
 
@@ -227,8 +227,8 @@ static void ipol_callback(struct pa_mainloop_api *m, struct pa_time_event *e, co
 }
 
 
-void pa_create_stream_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
-    struct pa_stream *s = userdata;
+void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_stream *s = userdata;
     assert(pd && s && s->state == PA_STREAM_CREATING);
 
     pa_stream_ref(s);
@@ -271,8 +271,8 @@ finish:
     pa_stream_unref(s);
 }
 
-static void create_stream(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, enum pa_stream_flags flags, pa_volume_t volume) {
-    struct pa_tagstruct *t;
+static void create_stream(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags flags, pa_volume_t volume) {
+    pa_tagstruct *t;
     uint32_t tag;
     assert(s && s->ref >= 1 && s->state == PA_STREAM_DISCONNECTED);
 
@@ -326,20 +326,20 @@ static void create_stream(struct pa_stream *s, const char *dev, const struct pa_
     pa_stream_unref(s);
 }
 
-void pa_stream_connect_playback(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, enum pa_stream_flags flags, pa_volume_t volume) {
+void pa_stream_connect_playback(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags flags, pa_volume_t volume) {
     assert(s && s->context->state == PA_CONTEXT_READY && s->ref >= 1);
     s->direction = PA_STREAM_PLAYBACK;
     create_stream(s, dev, attr, flags, volume);
 }
 
-void pa_stream_connect_record(struct pa_stream *s, const char *dev, const struct pa_buffer_attr *attr, enum pa_stream_flags flags) {
+void pa_stream_connect_record(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags flags) {
     assert(s && s->context->state == PA_CONTEXT_READY && s->ref >= 1);
     s->direction = PA_STREAM_RECORD;
     create_stream(s, dev, attr, flags, 0);
 }
 
-void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void (*free_cb)(void *p), size_t delta) {
-    struct pa_memchunk chunk;
+void pa_stream_write(pa_stream *s, const void *data, size_t length, void (*free_cb)(void *p), size_t delta) {
+    pa_memchunk chunk;
     assert(s && s->context && data && length && s->state == PA_STREAM_READY && s->ref >= 1);
 
     if (free_cb) {
@@ -364,20 +364,20 @@ void pa_stream_write(struct pa_stream *s, const void *data, size_t length, void 
     s->counter += length;
 }
 
-size_t pa_stream_writable_size(struct pa_stream *s) {
+size_t pa_stream_writable_size(pa_stream *s) {
     assert(s && s->ref >= 1);
     return s->state == PA_STREAM_READY ? s->requested_bytes : 0;
 }
 
-struct pa_operation * pa_stream_drain(struct pa_stream *s, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata) {
-    struct pa_operation *o;
-    struct pa_tagstruct *t;
+pa_operation * pa_stream_drain(pa_stream *s, void (*cb) (pa_stream*s, int success, void *userdata), void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
     uint32_t tag;
     assert(s && s->ref >= 1 && s->state == PA_STREAM_READY);
 
     o = pa_operation_new(s->context, s);
     assert(o);
-    o->callback = cb;
+    o->callback = (pa_operation_callback) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -391,9 +391,9 @@ struct pa_operation * pa_stream_drain(struct pa_stream *s, void (*cb) (struct pa
     return pa_operation_ref(o);
 }
 
-static void stream_get_latency_info_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
-    struct pa_operation *o = userdata;
-    struct pa_latency_info i, *p = NULL;
+static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_operation *o = userdata;
+    pa_latency_info i, *p = NULL;
     struct timeval local, remote, now;
     assert(pd && o && o->stream && o->context);
 
@@ -444,7 +444,7 @@ static void stream_get_latency_info_callback(struct pa_pdispatch *pd, uint32_t c
     }
     
     if (o->callback) {
-        void (*cb)(struct pa_stream *s, const struct pa_latency_info *i, void *userdata) = o->callback;
+        void (*cb)(pa_stream *s, const pa_latency_info *_i, void *_userdata) = (void (*)(pa_stream *s, const pa_latency_info *_i, void *_userdata)) o->callback;
         cb(o->stream, p, o->userdata);
     }
 
@@ -453,16 +453,16 @@ finish:
     pa_operation_unref(o);
 }
 
-struct pa_operation* pa_stream_get_latency_info(struct pa_stream *s, void (*cb)(struct pa_stream *p, const struct pa_latency_info*i, void *userdata), void *userdata) {
+pa_operation* pa_stream_get_latency_info(pa_stream *s, void (*cb)(pa_stream *p, const pa_latency_info*i, void *userdata), void *userdata) {
     uint32_t tag;
-    struct pa_operation *o;
-    struct pa_tagstruct *t;
+    pa_operation *o;
+    pa_tagstruct *t;
     struct timeval now;
     assert(s && s->direction != PA_STREAM_UPLOAD);
 
     o = pa_operation_new(s->context, s);
     assert(o);
-    o->callback = cb;
+    o->callback = (pa_operation_callback) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -481,8 +481,8 @@ struct pa_operation* pa_stream_get_latency_info(struct pa_stream *s, void (*cb)(
     return pa_operation_ref(o);
 }
 
-void pa_stream_disconnect_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
-    struct pa_stream *s = userdata;
+void pa_stream_disconnect_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_stream *s = userdata;
     assert(pd && s && s->ref >= 1);
 
     pa_stream_ref(s);
@@ -504,8 +504,8 @@ finish:
     pa_stream_unref(s);
 }
 
-void pa_stream_disconnect(struct pa_stream *s) {
-    struct pa_tagstruct *t;
+void pa_stream_disconnect(pa_stream *s) {
+    pa_tagstruct *t;
     uint32_t tag;
     assert(s && s->ref >= 1);
     
@@ -527,26 +527,26 @@ void pa_stream_disconnect(struct pa_stream *s) {
     pa_stream_unref(s);
 }
 
-void pa_stream_set_read_callback(struct pa_stream *s, void (*cb)(struct pa_stream *p, const void*data, size_t length, void *userdata), void *userdata) {
+void pa_stream_set_read_callback(pa_stream *s, void (*cb)(pa_stream *p, const void*data, size_t length, void *userdata), void *userdata) {
     assert(s && s->ref >= 1);
     s->read_callback = cb;
     s->read_userdata = userdata;
 }
 
-void pa_stream_set_write_callback(struct pa_stream *s, void (*cb)(struct pa_stream *p, size_t length, void *userdata), void *userdata) {
+void pa_stream_set_write_callback(pa_stream *s, void (*cb)(pa_stream *p, size_t length, void *userdata), void *userdata) {
     assert(s && s->ref >= 1);
     s->write_callback = cb;
     s->write_userdata = userdata;
 }
 
-void pa_stream_set_state_callback(struct pa_stream *s, void (*cb)(struct pa_stream *s, void *userdata), void *userdata) {
+void pa_stream_set_state_callback(pa_stream *s, void (*cb)(pa_stream *s, void *userdata), void *userdata) {
     assert(s && s->ref >= 1);
     s->state_callback = cb;
     s->state_userdata = userdata;
 }
 
-void pa_stream_simple_ack_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
-    struct pa_operation *o = userdata;
+void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_operation *o = userdata;
     int success = 1;
     assert(pd && o && o->context && o->ref >= 1);
 
@@ -561,7 +561,7 @@ void pa_stream_simple_ack_callback(struct pa_pdispatch *pd, uint32_t command, ui
     }
 
     if (o->callback) {
-        void (*cb)(struct pa_stream *s, int success, void *userdata) = o->callback;
+        void (*cb)(pa_stream *s, int _success, void *_userdata) = (void (*)(pa_stream *s, int _success, void *_userdata)) o->callback;
         cb(o->stream, success, o->userdata);
     }
 
@@ -570,9 +570,9 @@ finish:
     pa_operation_unref(o);
 }
 
-struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (struct pa_stream*s, int success, void *userdata), void *userdata) {
-    struct pa_operation *o;
-    struct pa_tagstruct *t;
+pa_operation* pa_stream_cork(pa_stream *s, int b, void (*cb) (pa_stream*s, int success, void *userdata), void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
     uint32_t tag;
     assert(s && s->ref >= 1 && s->state == PA_STREAM_READY);
 
@@ -589,7 +589,7 @@ struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (stru
     
     o = pa_operation_new(s->context, s);
     assert(o);
-    o->callback = cb;
+    o->callback = (pa_operation_callback) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -606,14 +606,14 @@ struct pa_operation* pa_stream_cork(struct pa_stream *s, int b, void (*cb) (stru
     return pa_operation_ref(o);
 }
 
-struct pa_operation* pa_stream_send_simple_command(struct pa_stream *s, uint32_t command, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata) {
-    struct pa_tagstruct *t;
-    struct pa_operation *o;
+static pa_operation* stream_send_simple_command(pa_stream *s, uint32_t command, void (*cb)(pa_stream *s, int success, void *userdata), void *userdata) {
+    pa_tagstruct *t;
+    pa_operation *o;
     uint32_t tag;
     assert(s && s->ref >= 1 && s->state == PA_STREAM_READY);
     
     o = pa_operation_new(s->context, s);
-    o->callback = cb;
+    o->callback = (pa_operation_callback) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -626,36 +626,36 @@ struct pa_operation* pa_stream_send_simple_command(struct pa_stream *s, uint32_t
     return pa_operation_ref(o);
 }
 
-struct pa_operation* pa_stream_flush(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata) {
-    struct pa_operation *o;
-    o = pa_stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata);
+pa_operation* pa_stream_flush(pa_stream *s, void (*cb)(pa_stream *s, int success, void *userdata), void *userdata) {
+    pa_operation *o;
+    o = stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata);
     pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
     return o;
 }
 
-struct pa_operation* pa_stream_prebuf(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata) {
-    struct pa_operation *o;
-    o = pa_stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata);
+pa_operation* pa_stream_prebuf(pa_stream *s, void (*cb)(pa_stream *s, int success, void *userdata), void *userdata) {
+    pa_operation *o;
+    o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata);
     pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
     return o;
 }
 
-struct pa_operation* pa_stream_trigger(struct pa_stream *s, void (*cb)(struct pa_stream *s, int success, void *userdata), void *userdata) {
-    struct pa_operation *o;
-    o = pa_stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata);
+pa_operation* pa_stream_trigger(pa_stream *s, void (*cb)(pa_stream *s, int success, void *userdata), void *userdata) {
+    pa_operation *o;
+    o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata);
     pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
     return o;
 }
 
-struct pa_operation* pa_stream_set_name(struct pa_stream *s, const char *name, void(*cb)(struct pa_stream*c, int success,  void *userdata), void *userdata) {
-    struct pa_operation *o;
-    struct pa_tagstruct *t;
+pa_operation* pa_stream_set_name(pa_stream *s, const char *name, void(*cb)(pa_stream*c, int success,  void *userdata), void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
     uint32_t tag;
     assert(s && s->ref >= 1 && s->state == PA_STREAM_READY && name && s->direction != PA_STREAM_UPLOAD);
 
     o = pa_operation_new(s->context, s);
     assert(o);
-    o->callback = cb;
+    o->callback = (pa_operation_callback) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -670,12 +670,12 @@ struct pa_operation* pa_stream_set_name(struct pa_stream *s, const char *name, v
     return pa_operation_ref(o);
 }
 
-uint64_t pa_stream_get_counter(struct pa_stream *s) {
+uint64_t pa_stream_get_counter(pa_stream *s) {
     assert(s);
     return s->counter;
 }
 
-pa_usec_t pa_stream_get_time(struct pa_stream *s, const struct pa_latency_info *i) {
+pa_usec_t pa_stream_get_time(pa_stream *s, const pa_latency_info *i) {
     pa_usec_t usec;
     assert(s);
     
@@ -707,7 +707,7 @@ pa_usec_t pa_stream_get_time(struct pa_stream *s, const struct pa_latency_info *
     return usec;
 }
 
-static pa_usec_t time_counter_diff(struct pa_stream *s, pa_usec_t t, pa_usec_t c, int *negative) {
+static pa_usec_t time_counter_diff(pa_stream *s, pa_usec_t t, pa_usec_t c, int *negative) {
     assert(s);
     
     if (negative)
@@ -725,7 +725,7 @@ static pa_usec_t time_counter_diff(struct pa_stream *s, pa_usec_t t, pa_usec_t c
         return c-t;
 }
 
-pa_usec_t pa_stream_get_latency(struct pa_stream *s, const struct pa_latency_info *i, int *negative) {
+pa_usec_t pa_stream_get_latency(pa_stream *s, const pa_latency_info *i, int *negative) {
     pa_usec_t t, c;
     assert(s && i);
 
@@ -735,12 +735,12 @@ pa_usec_t pa_stream_get_latency(struct pa_stream *s, const struct pa_latency_inf
     return time_counter_diff(s, t, c, negative);
 }
 
-const struct pa_sample_spec* pa_stream_get_sample_spec(struct pa_stream *s) {
+const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s) {
     assert(s);
     return &s->sample_spec;
 }
 
-void pa_stream_trash_ipol(struct pa_stream *s) {
+void pa_stream_trash_ipol(pa_stream *s) {
     assert(s);
 
     if (!s->interpolate)
@@ -750,7 +750,7 @@ void pa_stream_trash_ipol(struct pa_stream *s) {
     s->ipol_usec = 0;
 }
 
-pa_usec_t pa_stream_get_interpolated_time(struct pa_stream *s) {
+pa_usec_t pa_stream_get_interpolated_time(pa_stream *s) {
     pa_usec_t usec;
     assert(s && s->interpolate);
 
@@ -771,7 +771,7 @@ pa_usec_t pa_stream_get_interpolated_time(struct pa_stream *s) {
     return usec;
 }
 
-pa_usec_t pa_stream_get_interpolated_latency(struct pa_stream *s, int *negative) {
+pa_usec_t pa_stream_get_interpolated_latency(pa_stream *s, int *negative) {
     pa_usec_t t, c;
     assert(s && s->interpolate);
 

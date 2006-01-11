@@ -35,32 +35,35 @@ PA_C_DECL_BEGIN
  * defined in \ref mainloop-api.h. This implementation is thread safe
  * as long as you access the main loop object from a single thread only.*/
 
-/** \struct pa_mainloop
+/** \pa_mainloop
  * An opaque main loop object
  */
-struct pa_mainloop;
+typedef struct pa_mainloop pa_mainloop;
 
 /** Allocate a new main loop object */
-struct pa_mainloop *pa_mainloop_new(void);
+pa_mainloop *pa_mainloop_new(void);
 
 /** Free a main loop object */
-void pa_mainloop_free(struct pa_mainloop* m);
+void pa_mainloop_free(pa_mainloop* m);
 
 /** Run a single iteration of the main loop. Returns a negative value
 on error or exit request. If block is nonzero, block for events if
 none are queued. Optionally return the return value as specified with
 the main loop's quit() routine in the integer variable retval points
 to. On success returns the number of source dispatched in this iteration. */
-int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval);
+int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval);
 
 /** Run unlimited iterations of the main loop object until the main loop's quit() routine is called. */
-int pa_mainloop_run(struct pa_mainloop *m, int *retval);
+int pa_mainloop_run(pa_mainloop *m, int *retval);
 
 /** Return the abstract main loop abstraction layer vtable for this main loop. This calls pa_mainloop_iterate() iteratively.*/
-struct pa_mainloop_api* pa_mainloop_get_api(struct pa_mainloop*m);
+pa_mainloop_api* pa_mainloop_get_api(pa_mainloop*m);
 
 /** Return non-zero when there are any deferred events pending. \since 0.5 */
-int pa_mainloop_deferred_pending(struct pa_mainloop *m);
+int pa_mainloop_deferred_pending(pa_mainloop *m);
+
+/** Shutdown the main loop */
+void pa_mainloop_quit(pa_mainloop *m, int r);
 
 PA_C_DECL_END
 

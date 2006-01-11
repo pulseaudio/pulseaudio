@@ -22,19 +22,19 @@
   USA.
 ***/
 
-struct pa_queue;
+typedef struct pa_queue pa_queue;
 
 /* A simple implementation of the abstract data type queue. Stores
  * pointers as members. The memory has to be managed by the caller. */
 
-struct pa_queue* pa_queue_new(void);
+pa_queue* pa_queue_new(void);
 
 /* Free the queue and run the specified callback function for every remaining entry. The callback function may be NULL. */
-void pa_queue_free(struct pa_queue* q, void (*destroy)(void *p, void *userdata), void *userdata);
+void pa_queue_free(pa_queue* q, void (*destroy)(void *p, void *userdata), void *userdata);
 
-void pa_queue_push(struct pa_queue *q, void *p);
-void* pa_queue_pop(struct pa_queue *q);
+void pa_queue_push(pa_queue *q, void *p);
+void* pa_queue_pop(pa_queue *q);
 
-int pa_queue_is_empty(struct pa_queue *q);
+int pa_queue_is_empty(pa_queue *q);
 
 #endif

@@ -219,7 +219,7 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size) {
             break;
         
         ret += r;
-        data = (uint8_t*) data + r;
+        data = (const uint8_t*) data + r;
         size -= r;
     }
 
@@ -767,13 +767,13 @@ finish:
 
 /* Check the current user is member of the specified group */
 int pa_uid_in_group(const char *name, gid_t *gid) {
-    gid_t *gids, tgid;
-    GETGROUPS_T n = sysconf(_SC_NGROUPS_MAX);
+    GETGROUPS_T *gids, tgid;
+    int n = sysconf(_SC_NGROUPS_MAX);
     int r = -1, i;
 
     assert(n > 0);
     
-    gids = pa_xmalloc(sizeof(gid_t)*n);
+    gids = pa_xmalloc(sizeof(GETGROUPS_T)*n);
     
     if ((n = getgroups(n, gids)) < 0) {
         pa_log(__FILE__": getgroups() failed: %s\n", strerror(errno));

@@ -31,6 +31,7 @@
 
 #include "cpulimit.h"
 #include "mainloop.h"
+#include "gccmacro.h"
 
 #ifdef TEST2
 #include "mainloop-signal.h"
@@ -42,7 +43,7 @@ static time_t start;
 
 #ifdef TEST2
 
-static void func(struct pa_mainloop_api *m, struct pa_signal_event *e, int sig, void *userdata) {
+static void func(pa_mainloop_api *m, PA_GCC_UNUSED pa_signal_event *e, PA_GCC_UNUSED int sig, PA_GCC_UNUSED void *userdata) {
     time_t now;
     time(&now);
     
@@ -55,8 +56,8 @@ static void func(struct pa_mainloop_api *m, struct pa_signal_event *e, int sig, 
 
 #endif
 
-int main() {
-    struct pa_mainloop *m;
+int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
+    pa_mainloop *m;
     
     m = pa_mainloop_new();
     assert(m);

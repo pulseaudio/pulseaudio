@@ -30,23 +30,23 @@
 #include "mainloop-api.h"
 #include "memchunk.h"
 
-struct pa_pstream;
+typedef struct pa_pstream pa_pstream;
 
-struct pa_pstream* pa_pstream_new(struct pa_mainloop_api *m, struct pa_iochannel *io, struct pa_memblock_stat *s);
-void pa_pstream_unref(struct pa_pstream*p);
-struct pa_pstream* pa_pstream_ref(struct pa_pstream*p);
+pa_pstream* pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_memblock_stat *s);
+void pa_pstream_unref(pa_pstream*p);
+pa_pstream* pa_pstream_ref(pa_pstream*p);
 
-void pa_pstream_send_packet(struct pa_pstream*p, struct pa_packet *packet);
-void pa_pstream_send_memblock(struct pa_pstream*p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk);
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet);
+void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk);
 
-void pa_pstream_set_recieve_packet_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, struct pa_packet *packet, void *userdata), void *userdata);
-void pa_pstream_set_recieve_memblock_callback(struct pa_pstream *p, void (*callback) (struct pa_pstream *p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk, void *userdata), void *userdata);
-void pa_pstream_set_drain_callback(struct pa_pstream *p, void (*cb)(struct pa_pstream *p, void *userdata), void *userdata);
+void pa_pstream_set_recieve_packet_callback(pa_pstream *p, void (*callback) (pa_pstream *p, pa_packet *packet, void *userdata), void *userdata);
+void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, void (*callback) (pa_pstream *p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk, void *userdata), void *userdata);
+void pa_pstream_set_drain_callback(pa_pstream *p, void (*cb)(pa_pstream *p, void *userdata), void *userdata);
 
-void pa_pstream_set_die_callback(struct pa_pstream *p, void (*callback)(struct pa_pstream *p, void *userdata), void *userdata);
+void pa_pstream_set_die_callback(pa_pstream *p, void (*callback)(pa_pstream *p, void *userdata), void *userdata);
 
-int pa_pstream_is_pending(struct pa_pstream *p);
+int pa_pstream_is_pending(pa_pstream *p);
 
-void pa_pstream_close(struct pa_pstream *p);
+void pa_pstream_close(pa_pstream *p);
 
 #endif

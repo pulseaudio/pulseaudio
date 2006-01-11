@@ -35,13 +35,13 @@
 #include "subscribe.h"
 #include "log.h"
 
-struct pa_source* pa_source_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec) {
-    struct pa_source *s;
+pa_source* pa_source_new(pa_core *core, pa_typeid_t typeid, const char *name, int fail, const pa_sample_spec *spec) {
+    pa_source *s;
     char st[256];
     int r;
     assert(core && spec && name && *name);
 
-    s = pa_xmalloc(sizeof(struct pa_source));
+    s = pa_xmalloc(sizeof(pa_source));
 
     if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SOURCE, s, fail))) {
         pa_xfree(s);
@@ -76,8 +76,8 @@ struct pa_source* pa_source_new(struct pa_core *core, pa_typeid_t typeid, const 
     return s;
 }
 
-void pa_source_disconnect(struct pa_source *s) {
-    struct pa_source_output *o, *j = NULL;
+void pa_source_disconnect(pa_source *s) {
+    pa_source_output *o, *j = NULL;
     assert(s && s->state == PA_SOURCE_RUNNING);
 
     pa_namereg_unregister(s->core, s->name);
@@ -96,7 +96,7 @@ void pa_source_disconnect(struct pa_source *s) {
     s->state = PA_SOURCE_DISCONNECTED;
 }
 
-static void source_free(struct pa_source *s) {
+static void source_free(pa_source *s) {
     assert(s && !s->ref);
     
     if (s->state != PA_SOURCE_DISCONNECTED)
@@ -111,36 +111,36 @@ static void source_free(struct pa_source *s) {
     pa_xfree(s);
 }
 
-void pa_source_unref(struct pa_source *s) {
+void pa_source_unref(pa_source *s) {
     assert(s && s->ref >= 1);
 
     if (!(--s->ref))
         source_free(s);
 }
 
-struct pa_source* pa_source_ref(struct pa_source *s) {
+pa_source* pa_source_ref(pa_source *s) {
     assert(s && s->ref >= 1);
     s->ref++;
     return s;
 }
 
-void pa_source_notify(struct pa_source*s) {
+void pa_source_notify(pa_source*s) {
     assert(s && s->ref >= 1);
 
     if (s->notify)
         s->notify(s);
 }
 
-static int do_post(void *p, uint32_t index, int *del, void*userdata) {
-    const struct pa_memchunk *chunk = userdata;
-    struct pa_source_output *o = p;
+static int do_post(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void*userdata) {
+    const pa_memchunk *chunk = userdata;
+    pa_source_output *o = p;
     assert(o && o->push && del && chunk);
 
     pa_source_output_push(o, chunk);
     return 0;
 }
 
-void pa_source_post(struct pa_source*s, const struct pa_memchunk *chunk) {
+void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
     assert(s && s->ref >= 1 && chunk);
 
     pa_source_ref(s);
@@ -148,12 +148,12 @@ void pa_source_post(struct pa_source*s, const struct pa_memchunk *chunk) {
     pa_source_unref(s);
 }
 
-void pa_source_set_owner(struct pa_source *s, struct pa_module *m) {
+void pa_source_set_owner(pa_source *s, pa_module *m) {
     assert(s);
     s->owner = m;
 }
 
-pa_usec_t pa_source_get_latency(struct pa_source *s) {
+pa_usec_t pa_source_get_latency(pa_source *s) {
     assert(s && s->ref >= 1);
 
     if (!s->get_latency)

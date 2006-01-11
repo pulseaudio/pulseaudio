@@ -32,8 +32,8 @@
 #include "polyplib-internal.h"
 #include "pstream-util.h"
 
-void pa_stream_connect_upload(struct pa_stream *s, size_t length) {
-    struct pa_tagstruct *t;
+void pa_stream_connect_upload(pa_stream *s, size_t length) {
+    pa_tagstruct *t;
     uint32_t tag;
     
     assert(s && length);
@@ -55,8 +55,8 @@ void pa_stream_connect_upload(struct pa_stream *s, size_t length) {
     pa_stream_unref(s);
 }
 
-void pa_stream_finish_upload(struct pa_stream *s) {
-    struct pa_tagstruct *t;
+void pa_stream_finish_upload(pa_stream *s) {
+    pa_tagstruct *t;
     uint32_t tag;
     assert(s);
 
@@ -77,14 +77,14 @@ void pa_stream_finish_upload(struct pa_stream *s) {
     pa_stream_unref(s);
 }
 
-struct pa_operation * pa_context_play_sample(struct pa_context *c, const char *name, const char *dev, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
-    struct pa_operation *o;
-    struct pa_tagstruct *t;
+pa_operation * pa_context_play_sample(pa_context *c, const char *name, const char *dev, uint32_t volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
     uint32_t tag;
     assert(c && name && *name && (!dev || *dev));
 
     o = pa_operation_new(c, NULL);
-    o->callback = cb;
+    o->callback = (pa_operation_callback) cb;
     o->userdata = userdata;
 
     if (!dev)
@@ -104,14 +104,14 @@ struct pa_operation * pa_context_play_sample(struct pa_context *c, const char *n
     return pa_operation_ref(o);
 }
 
-struct pa_operation* pa_context_remove_sample(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata) {
-    struct pa_operation *o;
-    struct pa_tagstruct *t;
+pa_operation* pa_context_remove_sample(pa_context *c, const char *name, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
     uint32_t tag;
     assert(c && name);
 
     o = pa_operation_new(c, NULL);
-    o->callback = cb;
+    o->callback = (pa_operation_callback) cb;
     o->userdata = userdata;
     
     t = pa_tagstruct_new(NULL, 0);

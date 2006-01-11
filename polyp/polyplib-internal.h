@@ -43,109 +43,111 @@ struct pa_context {
     int ref;
     
     char *name;
-    struct pa_mainloop_api* mainloop;
+    pa_mainloop_api* mainloop;
 
-    struct pa_socket_client *client;
-    struct pa_pstream *pstream;
-    struct pa_pdispatch *pdispatch;
+    pa_socket_client *client;
+    pa_pstream *pstream;
+    pa_pdispatch *pdispatch;
 
-    struct pa_dynarray *record_streams, *playback_streams;
-    PA_LLIST_HEAD(struct pa_stream, streams);
-    PA_LLIST_HEAD(struct pa_operation, operations);
+    pa_dynarray *record_streams, *playback_streams;
+    PA_LLIST_HEAD(pa_stream, streams);
+    PA_LLIST_HEAD(pa_operation, operations);
     
     uint32_t ctag;
     uint32_t error;
-    enum pa_context_state state;
+    pa_context_state state;
     
-    void (*state_callback)(struct pa_context*c, void *userdata);
+    void (*state_callback)(pa_context*c, void *userdata);
     void *state_userdata;
 
-    void (*subscribe_callback)(struct pa_context *c, enum pa_subscription_event_type t, uint32_t index, void *userdata);
+    void (*subscribe_callback)(pa_context *c, pa_subscription_event_type t, uint32_t idx, void *userdata);
     void *subscribe_userdata;
 
-    struct pa_memblock_stat *memblock_stat;
+    pa_memblock_stat *memblock_stat;
 
     int local;
     int do_autospawn;
     int autospawn_lock_fd;
-    struct pa_spawn_api spawn_api;
+    pa_spawn_api spawn_api;
     
-    struct pa_strlist *server_list;
+    pa_strlist *server_list;
 
     char *server;
 
-    struct pa_client_conf *conf;
+    pa_client_conf *conf;
 };
 
 struct pa_stream {
     int ref;
-    struct pa_context *context;
-    struct pa_mainloop_api *mainloop;
-    PA_LLIST_FIELDS(struct pa_stream);
+    pa_context *context;
+    pa_mainloop_api *mainloop;
+    PA_LLIST_FIELDS(pa_stream);
 
     char *name;
-    struct pa_buffer_attr buffer_attr;
-    struct pa_sample_spec sample_spec;
+    pa_buffer_attr buffer_attr;
+    pa_sample_spec sample_spec;
     uint32_t channel;
     int channel_valid;
     uint32_t device_index;
-    enum pa_stream_direction direction;
+    pa_stream_direction direction;
     uint32_t requested_bytes;
     uint64_t counter;
     pa_usec_t previous_time;
     pa_usec_t previous_ipol_time;
-    enum pa_stream_state state;
-    struct pa_mcalign *mcalign;
+    pa_stream_state state;
+    pa_mcalign *mcalign;
 
     int interpolate;
     int corked;
 
     uint32_t ipol_usec;
     struct timeval ipol_timestamp;
-    struct pa_time_event *ipol_event;
+    pa_time_event *ipol_event;
     int ipol_requested;
     
-    void (*state_callback)(struct pa_stream*c, void *userdata);
+    void (*state_callback)(pa_stream*c, void *userdata);
     void *state_userdata;
 
-    void (*read_callback)(struct pa_stream *p, const void*data, size_t length, void *userdata);
+    void (*read_callback)(pa_stream *p, const void*data, size_t length, void *userdata);
     void *read_userdata;
 
-    void (*write_callback)(struct pa_stream *p, size_t length, void *userdata);
+    void (*write_callback)(pa_stream *p, size_t length, void *userdata);
     void *write_userdata;
 };
 
+typedef void (*pa_operation_callback)(void);
+
 struct pa_operation {
     int ref;
-    struct pa_context *context;
-    struct pa_stream *stream;
-    PA_LLIST_FIELDS(struct pa_operation);
+    pa_context *context;
+    pa_stream *stream;
+    PA_LLIST_FIELDS(pa_operation);
 
-    enum pa_operation_state state;
+    pa_operation_state state;
     void *userdata;
-    void (*callback)();
+    pa_operation_callback callback;
 };
 
-void pa_command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-void pa_command_stream_killed(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-void pa_command_subscribe_event(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
-struct pa_operation *pa_operation_new(struct pa_context *c, struct pa_stream *s);
-void pa_operation_done(struct pa_operation *o);
+pa_operation *pa_operation_new(pa_context *c, pa_stream *s);
+void pa_operation_done(pa_operation *o);
 
-void pa_create_stream_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-void pa_stream_disconnect_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-void pa_context_simple_ack_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
-void pa_stream_simple_ack_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_stream_disconnect_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
-void pa_context_fail(struct pa_context *c, int error);
-void pa_context_set_state(struct pa_context *c, enum pa_context_state st);
-int pa_context_handle_error(struct pa_context *c, uint32_t command, struct pa_tagstruct *t);
-struct pa_operation* pa_context_send_simple_command(struct pa_context *c, uint32_t command, void (*internal_callback)(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata), void (*cb)(), void *userdata);
+void pa_context_fail(pa_context *c, int error);
+void pa_context_set_state(pa_context *c, pa_context_state st);
+int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t);
+pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, void (*internal_callback)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata), void (*cb)(void), void *userdata);
 
-void pa_stream_set_state(struct pa_stream *s, enum pa_stream_state st);
+void pa_stream_set_state(pa_stream *s, pa_stream_state st);
 
-void pa_stream_trash_ipol(struct pa_stream *s);
+void pa_stream_trash_ipol(pa_stream *s);
 
 
 #endif

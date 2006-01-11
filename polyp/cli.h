@@ -26,13 +26,13 @@
 #include "core.h"
 #include "module.h"
 
-struct pa_cli;
+typedef struct pa_cli pa_cli;
 
 /* Create a new command line session on the specified io channel owned by the specified module */
-struct pa_cli* pa_cli_new(struct pa_core *core, struct pa_iochannel *io, struct pa_module *m);
-void pa_cli_free(struct pa_cli *cli);
+pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m);
+void pa_cli_free(pa_cli *cli);
 
 /* Set a callback function that is called whenever the command line session is terminated */
-void pa_cli_set_eof_callback(struct pa_cli *cli, void (*cb)(struct pa_cli*c, void *userdata), void *userdata);
+void pa_cli_set_eof_callback(pa_cli *cli, void (*cb)(pa_cli*c, void *userdata), void *userdata);
 
 #endif

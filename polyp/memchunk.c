@@ -31,8 +31,8 @@
 #include "memchunk.h"
 #include "xmalloc.h"
 
-void pa_memchunk_make_writable(struct pa_memchunk *c, struct pa_memblock_stat *s, size_t min) {
-    struct pa_memblock *n;
+void pa_memchunk_make_writable(pa_memchunk *c, pa_memblock_stat *s, size_t min) {
+    pa_memblock *n;
     size_t l;
     assert(c && c->memblock && c->memblock->ref >= 1);
 
@@ -50,7 +50,7 @@ void pa_memchunk_make_writable(struct pa_memchunk *c, struct pa_memblock_stat *s
     c->index = 0;
 }
 
-void pa_memchunk_reset(struct pa_memchunk *c) {
+void pa_memchunk_reset(pa_memchunk *c) {
     assert(c);
 
     c->memblock = NULL;

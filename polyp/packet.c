@@ -29,10 +29,10 @@
 #include "packet.h"
 #include "xmalloc.h"
 
-struct pa_packet* pa_packet_new(size_t length) {
-    struct pa_packet *p;
+pa_packet* pa_packet_new(size_t length) {
+    pa_packet *p;
     assert(length);
-    p = pa_xmalloc(sizeof(struct pa_packet)+length);
+    p = pa_xmalloc(sizeof(pa_packet)+length);
     p->ref = 1;
     p->length = length;
     p->data = (uint8_t*) (p+1);
@@ -40,10 +40,10 @@ struct pa_packet* pa_packet_new(size_t length) {
     return p;
 }
 
-struct pa_packet* pa_packet_new_dynamic(uint8_t* data, size_t length) {
-    struct pa_packet *p;
+pa_packet* pa_packet_new_dynamic(uint8_t* data, size_t length) {
+    pa_packet *p;
     assert(data && length);
-    p = pa_xmalloc(sizeof(struct pa_packet));
+    p = pa_xmalloc(sizeof(pa_packet));
     p->ref = 1;
     p->length = length;
     p->data = data;
@@ -51,13 +51,13 @@ struct pa_packet* pa_packet_new_dynamic(uint8_t* data, size_t length) {
     return p;
 }
 
-struct pa_packet* pa_packet_ref(struct pa_packet *p) {
+pa_packet* pa_packet_ref(pa_packet *p) {
     assert(p && p->ref >= 1);
     p->ref++;
     return p;
 }
 
-void pa_packet_unref(struct pa_packet *p) {
+void pa_packet_unref(pa_packet *p) {
     assert(p && p->ref >= 1);
     p->ref--;
 

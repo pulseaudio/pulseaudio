@@ -36,14 +36,14 @@
 
 #define CONVERT_BUFFER_LENGTH 4096
 
-struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, const char *name, const struct pa_sample_spec *spec, int variable_rate, int resample_method) {
-    struct pa_sink_input *i;
-    struct pa_resampler *resampler = NULL;
+pa_sink_input* pa_sink_input_new(pa_sink *s, pa_typeid_t typeid, const char *name, const pa_sample_spec *spec, int variable_rate, int resample_method) {
+    pa_sink_input *i;
+    pa_resampler *resampler = NULL;
     int r;
     char st[256];
     assert(s && spec && s->state == PA_SINK_RUNNING);
 
-    if (pa_idxset_ncontents(s->inputs) >= PA_MAX_INPUTS_PER_SINK) {
+    if (pa_idxset_size(s->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log(__FILE__": Failed to create sink input: too many inputs per sink.\n");
         return NULL;
     }
@@ -55,7 +55,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, c
         if (!(resampler = pa_resampler_new(spec, &s->sample_spec, s->core->memblock_stat, resample_method)))
             return NULL;
     
-    i = pa_xmalloc(sizeof(struct pa_sink_input));
+    i = pa_xmalloc(sizeof(pa_sink_input));
     i->ref = 1;
     i->state = PA_SINK_INPUT_RUNNING;
     i->name = pa_xstrdup(name);
@@ -93,7 +93,7 @@ struct pa_sink_input* pa_sink_input_new(struct pa_sink *s, pa_typeid_t typeid, c
     return i;    
 }
 
-void pa_sink_input_disconnect(struct pa_sink_input *i) {
+void pa_sink_input_disconnect(pa_sink_input *i) {
     assert(i && i->state != PA_SINK_INPUT_DISCONNECTED && i->sink && i->sink->core);
 
     pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
@@ -110,7 +110,7 @@ void pa_sink_input_disconnect(struct pa_sink_input *i) {
     i->state = PA_SINK_INPUT_DISCONNECTED;
 }
 
-static void sink_input_free(struct pa_sink_input* i) {
+static void sink_input_free(pa_sink_input* i) {
     assert(i);
 
     if (i->state != PA_SINK_INPUT_DISCONNECTED)
@@ -127,27 +127,27 @@ static void sink_input_free(struct pa_sink_input* i) {
     pa_xfree(i);
 }
 
-void pa_sink_input_unref(struct pa_sink_input *i) {
+void pa_sink_input_unref(pa_sink_input *i) {
     assert(i && i->ref >= 1);
 
     if (!(--i->ref))
         sink_input_free(i);
 }
 
-struct pa_sink_input* pa_sink_input_ref(struct pa_sink_input *i) {
+pa_sink_input* pa_sink_input_ref(pa_sink_input *i) {
     assert(i && i->ref >= 1);
     i->ref++;
     return i;
 }
 
-void pa_sink_input_kill(struct pa_sink_input*i) {
+void pa_sink_input_kill(pa_sink_input*i) {
     assert(i && i->ref >= 1);
 
     if (i->kill)
         i->kill(i);
 }
 
-pa_usec_t pa_sink_input_get_latency(struct pa_sink_input *i) {
+pa_usec_t pa_sink_input_get_latency(pa_sink_input *i) {
     pa_usec_t r = 0;
     assert(i && i->ref >= 1);
     
@@ -160,7 +160,7 @@ pa_usec_t pa_sink_input_get_latency(struct pa_sink_input *i) {
     return r;
 }
 
-int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
+int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
     int ret = -1;
     assert(i && chunk && i->ref >= 1);
 
@@ -175,7 +175,7 @@ int pa_sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     }
 
     while (!i->resampled_chunk.memblock) {
-        struct pa_memchunk tchunk;
+        pa_memchunk tchunk;
         size_t l;
         
         if ((ret = i->peek(i, &tchunk)) < 0)
@@ -213,7 +213,7 @@ finish:
     return ret;
 }
 
-void pa_sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *chunk, size_t length) {
+void pa_sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
     assert(i && length && i->ref >= 1);
 
     if (!i->resampler) {
@@ -234,7 +234,7 @@ void pa_sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk *chunk
     }
 }
 
-void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume) {
+void pa_sink_input_set_volume(pa_sink_input *i, pa_volume_t volume) {
     assert(i && i->sink && i->sink->core && i->ref >= 1);
 
     if (i->volume != volume) {
@@ -243,7 +243,7 @@ void pa_sink_input_set_volume(struct pa_sink_input *i, pa_volume_t volume) {
     }
 }
 
-void pa_sink_input_cork(struct pa_sink_input *i, int b) {
+void pa_sink_input_cork(pa_sink_input *i, int b) {
     int n;
     assert(i && i->ref >= 1);
 
@@ -257,7 +257,7 @@ void pa_sink_input_cork(struct pa_sink_input *i, int b) {
         pa_sink_notify(i->sink);
 }
 
-void pa_sink_input_set_rate(struct pa_sink_input *i, uint32_t rate) {
+void pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
     assert(i && i->resampler && i->ref >= 1);
 
     if (i->sample_spec.rate == rate)
@@ -267,7 +267,7 @@ void pa_sink_input_set_rate(struct pa_sink_input *i, uint32_t rate) {
     pa_resampler_set_input_rate(i->resampler, rate);
 }
 
-void pa_sink_input_set_name(struct pa_sink_input *i, const char *name) {
+void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
     assert(i && i->ref >= 1);
 
     pa_xfree(i->name);
@@ -276,7 +276,7 @@ void pa_sink_input_set_name(struct pa_sink_input *i, const char *name) {
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
 
-enum pa_resample_method pa_sink_input_get_resample_method(struct pa_sink_input *i) {
+pa_resample_method pa_sink_input_get_resample_method(pa_sink_input *i) {
     assert(i && i->ref >= 1);
 
     if (!i->resampler)

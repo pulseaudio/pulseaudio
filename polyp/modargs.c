@@ -38,13 +38,11 @@
 #include "xmalloc.h"
 #include "util.h"
 
-struct pa_modargs;
-
 struct entry {
     char *key, *value;
 };
 
-static int add_key_value(struct pa_hashmap *map, char *key, char *value, const char* const valid_keys[]) {
+static int add_key_value(pa_hashmap *map, char *key, char *value, const char* const valid_keys[]) {
     struct entry *e;
     assert(map && key && value);
 
@@ -68,8 +66,8 @@ static int add_key_value(struct pa_hashmap *map, char *key, char *value, const c
     return 0;
 }
 
-struct pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
-    struct pa_hashmap *map = NULL;
+pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
+    pa_hashmap *map = NULL;
 
     map = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     assert(map);
@@ -154,18 +152,18 @@ struct pa_modargs *pa_modargs_new(const char *args, const char* const* valid_key
             goto fail;
     }
 
-    return (struct pa_modargs*) map;
+    return (pa_modargs*) map;
 
 fail:
 
     if (map)
-        pa_modargs_free((struct pa_modargs*) map);
+        pa_modargs_free((pa_modargs*) map);
                       
     return NULL;
 }
 
 
-static void free_func(void *p, void*userdata) {
+static void free_func(void *p, PA_GCC_UNUSED void*userdata) {
     struct entry *e = p;
     assert(e);
     pa_xfree(e->key);
@@ -173,13 +171,13 @@ static void free_func(void *p, void*userdata) {
     pa_xfree(e);
 }
 
-void pa_modargs_free(struct pa_modargs*ma) {
-    struct pa_hashmap *map = (struct pa_hashmap*) ma;
+void pa_modargs_free(pa_modargs*ma) {
+    pa_hashmap *map = (pa_hashmap*) ma;
     pa_hashmap_free(map, free_func, NULL);
 }
 
-const char *pa_modargs_get_value(struct pa_modargs *ma, const char *key, const char *def) {
-    struct pa_hashmap *map = (struct pa_hashmap*) ma;
+const char *pa_modargs_get_value(pa_modargs *ma, const char *key, const char *def) {
+    pa_hashmap *map = (pa_hashmap*) ma;
     struct entry*e;
 
     if (!(e = pa_hashmap_get(map, key)))
@@ -188,7 +186,7 @@ const char *pa_modargs_get_value(struct pa_modargs *ma, const char *key, const c
     return e->value;
 }
 
-int pa_modargs_get_value_u32(struct pa_modargs *ma, const char *key, uint32_t *value) {
+int pa_modargs_get_value_u32(pa_modargs *ma, const char *key, uint32_t *value) {
     const char *v;
     assert(ma && key && value);
 
@@ -201,7 +199,7 @@ int pa_modargs_get_value_u32(struct pa_modargs *ma, const char *key, uint32_t *v
     return 0;
 }
 
-int pa_modargs_get_value_s32(struct pa_modargs *ma, const char *key, int32_t *value) {
+int pa_modargs_get_value_s32(pa_modargs *ma, const char *key, int32_t *value) {
     const char *v;
     assert(ma && key && value);
 
@@ -214,7 +212,7 @@ int pa_modargs_get_value_s32(struct pa_modargs *ma, const char *key, int32_t *va
     return 0;
 }
 
-int pa_modargs_get_value_boolean(struct pa_modargs *ma, const char *key, int *value) {
+int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, int *value) {
     const char *v;
     int r;
     assert(ma && key && value);
@@ -232,10 +230,10 @@ int pa_modargs_get_value_boolean(struct pa_modargs *ma, const char *key, int *va
     return 0;
 }
 
-int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *rss) {
+int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     const char *format;
     uint32_t channels;
-    struct pa_sample_spec ss;
+    pa_sample_spec ss;
     assert(ma && rss);
 
 /*    DEBUG_TRAP;*/

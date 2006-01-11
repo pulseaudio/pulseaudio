@@ -36,12 +36,12 @@
 #define PA_SYMBOL_USAGE "pa__get_usage"
 #define PA_SYMBOL_VERSION "pa__get_version"
 
-struct pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl) {
-    struct pa_modinfo *i;
+pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl) {
+    pa_modinfo *i;
     const char* (*func)(void);
     assert(dl);
 
-    i = pa_xmalloc0(sizeof(struct pa_modinfo));
+    i = pa_xmalloc0(sizeof(pa_modinfo));
 
     if ((func = (const char* (*)(void)) lt_dlsym(dl, PA_SYMBOL_AUTHOR)))
         i->author = pa_xstrdup(func());
@@ -58,9 +58,9 @@ struct pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl) {
     return i;
 }
 
-struct pa_modinfo *pa_modinfo_get_by_name(const char *name) {
+pa_modinfo *pa_modinfo_get_by_name(const char *name) {
     lt_dlhandle dl;
-    struct pa_modinfo *i;
+    pa_modinfo *i;
     assert(name);
 
     if (!(dl = lt_dlopenext(name))) {
@@ -74,7 +74,7 @@ struct pa_modinfo *pa_modinfo_get_by_name(const char *name) {
     return i;
 }
 
-void pa_modinfo_free(struct pa_modinfo *i) {
+void pa_modinfo_free(pa_modinfo *i) {
     assert(i);
     pa_xfree(i->author);
     pa_xfree(i->description);

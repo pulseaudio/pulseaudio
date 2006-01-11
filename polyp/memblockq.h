@@ -33,7 +33,7 @@
  * type doesn't need to copy any data around, it just maintains
  * references to reference counted memory blocks. */
 
-struct pa_memblockq;
+typedef struct pa_memblockq pa_memblockq;
 
 /* Parameters:
    - maxlength: maximum length of queue. If more data is pushed into the queue, data from the front is dropped
@@ -42,63 +42,63 @@ struct pa_memblockq;
    - prebuf:    before passing the first byte out, make sure that enough bytes are in the queue
    - minreq:    pa_memblockq_missing() will only return values greater than this value
 */
-struct pa_memblockq* pa_memblockq_new(size_t maxlength,
+pa_memblockq* pa_memblockq_new(size_t maxlength,
                                       size_t tlength,
                                       size_t base,
                                       size_t prebuf,
                                       size_t minreq,
-                                      struct pa_memblock_stat *s);
-void pa_memblockq_free(struct pa_memblockq*bq);
+                                      pa_memblock_stat *s);
+void pa_memblockq_free(pa_memblockq*bq);
 
 /* Push a new memory chunk into the queue. Optionally specify a value for future cancellation. */
-void pa_memblockq_push(struct pa_memblockq* bq, const struct pa_memchunk *chunk, size_t delta);
+void pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *chunk, size_t delta);
 
 /* Same as pa_memblockq_push(), however chunks are filtered through a mcalign object, and thus aligned to multiples of base */
-void pa_memblockq_push_align(struct pa_memblockq* bq, const struct pa_memchunk *chunk, size_t delta);
+void pa_memblockq_push_align(pa_memblockq* bq, const pa_memchunk *chunk, size_t delta);
 
 /* Return a copy of the next memory chunk in the queue. It is not removed from the queue */
-int pa_memblockq_peek(struct pa_memblockq* bq, struct pa_memchunk *chunk);
+int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk);
 
 /* Drop the specified bytes from the queue, only valid aufter pa_memblockq_peek() */
-void pa_memblockq_drop(struct pa_memblockq *bq, const struct pa_memchunk *chunk, size_t length);
+void pa_memblockq_drop(pa_memblockq *bq, const pa_memchunk *chunk, size_t length);
 
 /* Drop the specified bytes from the queue */
-void pa_memblockq_skip(struct pa_memblockq *bq, size_t length);
+void pa_memblockq_skip(pa_memblockq *bq, size_t length);
 
 /* Shorten the pa_memblockq to the specified length by dropping data at the end of the queue */
-void pa_memblockq_shorten(struct pa_memblockq *bq, size_t length);
+void pa_memblockq_shorten(pa_memblockq *bq, size_t length);
 
 /* Empty the pa_memblockq */
-void pa_memblockq_empty(struct pa_memblockq *bq);
+void pa_memblockq_empty(pa_memblockq *bq);
 
 /* Test if the pa_memblockq is currently readable, that is, more data than base */
-int pa_memblockq_is_readable(struct pa_memblockq *bq);
+int pa_memblockq_is_readable(pa_memblockq *bq);
 
 /* Test if the pa_memblockq is currently writable for the specified amount of bytes */
-int pa_memblockq_is_writable(struct pa_memblockq *bq, size_t length);
+int pa_memblockq_is_writable(pa_memblockq *bq, size_t length);
 
 /* Return the length of the queue in bytes */
-uint32_t pa_memblockq_get_length(struct pa_memblockq *bq);
+uint32_t pa_memblockq_get_length(pa_memblockq *bq);
 
 /* Return how many bytes are missing in queue to the specified fill amount */
-uint32_t pa_memblockq_missing(struct pa_memblockq *bq);
+uint32_t pa_memblockq_missing(pa_memblockq *bq);
 
 /* Returns the minimal request value */
-uint32_t pa_memblockq_get_minreq(struct pa_memblockq *bq);
+uint32_t pa_memblockq_get_minreq(pa_memblockq *bq);
 
 /* Force disabling of pre-buf even when the pre-buffer is not yet filled */
-void pa_memblockq_prebuf_disable(struct pa_memblockq *bq);
+void pa_memblockq_prebuf_disable(pa_memblockq *bq);
 
 /* Reenable pre-buf to the initial level */
-void pa_memblockq_prebuf_reenable(struct pa_memblockq *bq);
+void pa_memblockq_prebuf_reenable(pa_memblockq *bq);
 
 /* Manipulate the write pointer */
-void pa_memblockq_seek(struct pa_memblockq *bq, size_t delta);
+void pa_memblockq_seek(pa_memblockq *bq, size_t delta);
 
 /* Flush the queue */
-void pa_memblockq_flush(struct pa_memblockq *bq);
+void pa_memblockq_flush(pa_memblockq *bq);
 
 /* Get Target length */
-uint32_t pa_memblockq_get_tlength(struct pa_memblockq *bq);
+uint32_t pa_memblockq_get_tlength(pa_memblockq *bq);
 
 #endif

@@ -25,7 +25,7 @@
 #include "log.h"
 
 /* The actual command to execute */
-enum pa_daemon_conf_cmd {
+typedef enum pa_daemon_conf_cmd {
     PA_CMD_DAEMON,  /* the default */
     PA_CMD_HELP,
     PA_CMD_VERSION,
@@ -33,11 +33,11 @@ enum pa_daemon_conf_cmd {
     PA_CMD_DUMP_MODULES,
     PA_CMD_KILL,
     PA_CMD_CHECK
-};
+} pa_daemon_conf_cmd;
 
 /* A structure containing configuration data for the Polypaudio server . */
-struct pa_daemon_conf {
-    enum pa_daemon_conf_cmd cmd;
+typedef struct pa_daemon_conf {
+    pa_daemon_conf_cmd cmd;
     int daemonize,
         fail,
         high_priority,
@@ -48,33 +48,33 @@ struct pa_daemon_conf {
         auto_log_target,
         use_pid_file;
     char *script_commands, *dl_search_path, *default_script_file;
-    enum pa_log_target log_target;
-    enum pa_log_level log_level;
+    pa_log_target log_target;
+    pa_log_level log_level;
     int resample_method;
     char *config_file;
-};
+} pa_daemon_conf;
 
 /* Allocate a new structure and fill it with sane defaults */
-struct pa_daemon_conf* pa_daemon_conf_new(void);
-void pa_daemon_conf_free(struct pa_daemon_conf*c);
+pa_daemon_conf* pa_daemon_conf_new(void);
+void pa_daemon_conf_free(pa_daemon_conf*c);
 
 /* Load configuration data from the specified file overwriting the
  * current settings in *c. If filename is NULL load the default daemon
  * configuration file */
-int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename);
+int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename);
 
 /* Pretty print the current configuration data of the daemon. The
  * returned string has to be freed manually. The output of this
  * function may be parsed with pa_daemon_conf_load(). */
-char *pa_daemon_conf_dump(struct pa_daemon_conf *c);
+char *pa_daemon_conf_dump(pa_daemon_conf *c);
 
 /* Load the configuration data from the process' environment
  * overwriting the current settings in *c. */
-int pa_daemon_conf_env(struct pa_daemon_conf *c);
+int pa_daemon_conf_env(pa_daemon_conf *c);
 
 /* Set these configuration variables in the structure by passing a string */
-int pa_daemon_conf_set_log_target(struct pa_daemon_conf *c, const char *string);
-int pa_daemon_conf_set_log_level(struct pa_daemon_conf *c, const char *string);
-int pa_daemon_conf_set_resample_method(struct pa_daemon_conf *c, const char *string);
+int pa_daemon_conf_set_log_target(pa_daemon_conf *c, const char *string);
+int pa_daemon_conf_set_log_level(pa_daemon_conf *c, const char *string);
+int pa_daemon_conf_set_resample_method(pa_daemon_conf *c, const char *string);
 
 #endif

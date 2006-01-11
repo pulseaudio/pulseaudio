@@ -26,36 +26,36 @@
 #include "memchunk.h"
 #include "sink.h"
 
-struct pa_scache_entry {
-    struct pa_core *core;
+typedef struct pa_scache_entry {
+    pa_core *core;
     uint32_t index;
     char *name;
     
     uint32_t volume;
-    struct pa_sample_spec sample_spec;
-    struct pa_memchunk memchunk;
+    pa_sample_spec sample_spec;
+    pa_memchunk memchunk;
 
     char *filename;
     
     int lazy;
     time_t last_used_time;
-};
+} pa_scache_entry;
 
-int pa_scache_add_item(struct pa_core *c, const char *name, struct pa_sample_spec *ss, struct pa_memchunk *chunk, uint32_t *index);
-int pa_scache_add_file(struct pa_core *c, const char *name, const char *filename, uint32_t *index);
-int pa_scache_add_file_lazy(struct pa_core *c, const char *name, const char *filename, uint32_t *index);
+int pa_scache_add_item(pa_core *c, const char *name, pa_sample_spec *ss, pa_memchunk *chunk, uint32_t *idx);
+int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint32_t *idx);
+int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, uint32_t *idx);
 
-int pa_scache_add_directory_lazy(struct pa_core *c, const char *pathname);
+int pa_scache_add_directory_lazy(pa_core *c, const char *pathname);
 
-int pa_scache_remove_item(struct pa_core *c, const char *name);
-int pa_scache_play_item(struct pa_core *c, const char *name, struct pa_sink *sink, uint32_t volume);
-void pa_scache_free(struct pa_core *c);
+int pa_scache_remove_item(pa_core *c, const char *name);
+int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, uint32_t volume);
+void pa_scache_free(pa_core *c);
 
-const char *pa_scache_get_name_by_id(struct pa_core *c, uint32_t id);
-uint32_t pa_scache_get_id_by_name(struct pa_core *c, const char *name);
+const char *pa_scache_get_name_by_id(pa_core *c, uint32_t id);
+uint32_t pa_scache_get_id_by_name(pa_core *c, const char *name);
 
-uint32_t pa_scache_total_size(struct pa_core *c);
+uint32_t pa_scache_total_size(pa_core *c);
 
-void pa_scache_unload_unused(struct pa_core *c);
+void pa_scache_unload_unused(pa_core *c);
 
 #endif

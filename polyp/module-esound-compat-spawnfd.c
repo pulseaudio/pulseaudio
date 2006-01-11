@@ -44,8 +44,8 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_modargs *ma = NULL;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_modargs *ma = NULL;
     int ret = -1, fd = -1;
     char x = 1;
     assert(c && m);
@@ -73,7 +73,7 @@ finish:
     return ret;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     assert(c && m);
 }
 

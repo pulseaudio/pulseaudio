@@ -47,37 +47,37 @@
 #include "log.h"
 
 struct pa_io_event {
-    struct pa_mainloop *mainloop;
+    pa_mainloop *mainloop;
     int dead;
     int fd;
-    enum pa_io_event_flags events;
-    void (*callback) (struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata);
+    pa_io_event_flags events;
+    void (*callback) (pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata);
     struct pollfd *pollfd;
     void *userdata;
-    void (*destroy_callback) (struct pa_mainloop_api*a, struct pa_io_event *e, void *userdata);
+    void (*destroy_callback) (pa_mainloop_api*a, pa_io_event *e, void *userdata);
 };
 
 struct pa_time_event {
-    struct pa_mainloop *mainloop;
+    pa_mainloop *mainloop;
     int dead;
     int enabled;
     struct timeval timeval;
-    void (*callback)(struct pa_mainloop_api*a, struct pa_time_event *e, const struct timeval*tv, void *userdata);
+    void (*callback)(pa_mainloop_api*a, pa_time_event *e, const struct timeval*tv, void *userdata);
     void *userdata;
-    void (*destroy_callback) (struct pa_mainloop_api*a, struct pa_time_event *e, void *userdata);
+    void (*destroy_callback) (pa_mainloop_api*a, pa_time_event *e, void *userdata);
 };
 
 struct pa_defer_event {
-    struct pa_mainloop *mainloop;
+    pa_mainloop *mainloop;
     int dead;
     int enabled;
-    void (*callback)(struct pa_mainloop_api*a, struct pa_defer_event*e, void *userdata);
+    void (*callback)(pa_mainloop_api*a, pa_defer_event*e, void *userdata);
     void *userdata;
-    void (*destroy_callback) (struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata);
+    void (*destroy_callback) (pa_mainloop_api*a, pa_defer_event *e, void *userdata);
 };
 
 struct pa_mainloop {
-    struct pa_idxset *io_events, *time_events, *defer_events;
+    pa_idxset *io_events, *time_events, *defer_events;
     int io_events_scan_dead, defer_events_scan_dead, time_events_scan_dead;
 
     struct pollfd *pollfds;
@@ -85,21 +85,21 @@ struct pa_mainloop {
     int rebuild_pollfds;
 
     int quit, running, retval;
-    struct pa_mainloop_api api;
+    pa_mainloop_api api;
 
     int deferred_pending;
 };
 
 /* IO events */
-static struct pa_io_event* mainloop_io_new(struct pa_mainloop_api*a, int fd, enum pa_io_event_flags events, void (*callback) (struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags events, void *userdata), void *userdata) {
-    struct pa_mainloop *m;
-    struct pa_io_event *e;
+static pa_io_event* mainloop_io_new(pa_mainloop_api*a, int fd, pa_io_event_flags events, void (*callback) (pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags events, void *userdata), void *userdata) {
+    pa_mainloop *m;
+    pa_io_event *e;
 
     assert(a && a->userdata && fd >= 0 && callback);
     m = a->userdata;
     assert(a == &m->api);
 
-    e = pa_xmalloc(sizeof(struct pa_io_event));
+    e = pa_xmalloc(sizeof(pa_io_event));
     e->mainloop = m;
     e->dead = 0;
 
@@ -135,7 +135,7 @@ static struct pa_io_event* mainloop_io_new(struct pa_mainloop_api*a, int fd, enu
     return e;
 }
 
-static void mainloop_io_enable(struct pa_io_event *e, enum pa_io_event_flags events) {
+static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags events) {
     assert(e && e->mainloop);
 
     e->events = events;
@@ -146,26 +146,26 @@ static void mainloop_io_enable(struct pa_io_event *e, enum pa_io_event_flags eve
             POLLERR | POLLHUP;
 }
 
-static void mainloop_io_free(struct pa_io_event *e) {
+static void mainloop_io_free(pa_io_event *e) {
     assert(e && e->mainloop);
     e->dead = e->mainloop->io_events_scan_dead = e->mainloop->rebuild_pollfds = 1;
 }
 
-static void mainloop_io_set_destroy(struct pa_io_event *e, void (*callback)(struct pa_mainloop_api*a, struct pa_io_event *e, void *userdata)) {
+static void mainloop_io_set_destroy(pa_io_event *e, void (*callback)(pa_mainloop_api*a, pa_io_event *e, void *userdata)) {
     assert(e);
     e->destroy_callback = callback;
 }
 
 /* Defer events */
-static struct pa_defer_event* mainloop_defer_new(struct pa_mainloop_api*a, void (*callback) (struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata), void *userdata) {
-    struct pa_mainloop *m;
-    struct pa_defer_event *e;
+static pa_defer_event* mainloop_defer_new(pa_mainloop_api*a, void (*callback) (pa_mainloop_api*a, pa_defer_event *e, void *userdata), void *userdata) {
+    pa_mainloop *m;
+    pa_defer_event *e;
 
     assert(a && a->userdata && callback);
     m = a->userdata;
     assert(a == &m->api);
 
-    e = pa_xmalloc(sizeof(struct pa_defer_event));
+    e = pa_xmalloc(sizeof(pa_defer_event));
     e->mainloop = m;
     e->dead = 0;
 
@@ -180,7 +180,7 @@ static struct pa_defer_event* mainloop_defer_new(struct pa_mainloop_api*a, void 
     return e;
 }
 
-static void mainloop_defer_enable(struct pa_defer_event *e, int b) {
+static void mainloop_defer_enable(pa_defer_event *e, int b) {
     assert(e);
 
     if (e->enabled && !b) {
@@ -192,7 +192,7 @@ static void mainloop_defer_enable(struct pa_defer_event *e, int b) {
     e->enabled = b;
 }
 
-static void mainloop_defer_free(struct pa_defer_event *e) {
+static void mainloop_defer_free(pa_defer_event *e) {
     assert(e);
     e->dead = e->mainloop->defer_events_scan_dead = 1;
 
@@ -203,21 +203,21 @@ static void mainloop_defer_free(struct pa_defer_event *e) {
     }
 }
 
-static void mainloop_defer_set_destroy(struct pa_defer_event *e, void (*callback)(struct pa_mainloop_api*a, struct pa_defer_event *e, void *userdata)) {
+static void mainloop_defer_set_destroy(pa_defer_event *e, void (*callback)(pa_mainloop_api*a, pa_defer_event *e, void *userdata)) {
     assert(e);
     e->destroy_callback = callback;
 }
 
 /* Time events */
-static struct pa_time_event* mainloop_time_new(struct pa_mainloop_api*a, const struct timeval *tv, void (*callback) (struct pa_mainloop_api*a, struct pa_time_event*e, const struct timeval *tv, void *userdata), void *userdata) {
-    struct pa_mainloop *m;
-    struct pa_time_event *e;
+static pa_time_event* mainloop_time_new(pa_mainloop_api*a, const struct timeval *tv, void (*callback) (pa_mainloop_api*a, pa_time_event*e, const struct timeval *tv, void *userdata), void *userdata) {
+    pa_mainloop *m;
+    pa_time_event *e;
 
     assert(a && a->userdata && callback);
     m = a->userdata;
     assert(a == &m->api);
 
-    e = pa_xmalloc(sizeof(struct pa_time_event));
+    e = pa_xmalloc(sizeof(pa_time_event));
     e->mainloop = m;
     e->dead = 0;
 
@@ -234,7 +234,7 @@ static struct pa_time_event* mainloop_time_new(struct pa_mainloop_api*a, const s
     return e;
 }
 
-static void mainloop_time_restart(struct pa_time_event *e, const struct timeval *tv) {
+static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
     assert(e);
 
     if (tv) {
@@ -244,21 +244,21 @@ static void mainloop_time_restart(struct pa_time_event *e, const struct timeval 
         e->enabled = 0;
 }
 
-static void mainloop_time_free(struct pa_time_event *e) {
+static void mainloop_time_free(pa_time_event *e) {
     assert(e);
 
     e->dead = e->mainloop->time_events_scan_dead = 1;
 }
 
-static void mainloop_time_set_destroy(struct pa_time_event *e, void (*callback)(struct pa_mainloop_api*a, struct pa_time_event *e, void *userdata)) {
+static void mainloop_time_set_destroy(pa_time_event *e, void (*callback)(pa_mainloop_api*a, pa_time_event *e, void *userdata)) {
     assert(e);
     e->destroy_callback = callback;
 }
 
 /* quit() */
 
-static void mainloop_quit(struct pa_mainloop_api*a, int retval) {
-    struct pa_mainloop *m;
+static void mainloop_quit(pa_mainloop_api*a, int retval) {
+    pa_mainloop *m;
     assert(a && a->userdata);
     m = a->userdata;
     assert(a == &m->api);
@@ -267,7 +267,7 @@ static void mainloop_quit(struct pa_mainloop_api*a, int retval) {
     m->retval = retval;
 }
     
-static const struct pa_mainloop_api vtable = {
+static const pa_mainloop_api vtable = {
     .userdata = NULL,
 
     .io_new= mainloop_io_new,
@@ -288,10 +288,10 @@ static const struct pa_mainloop_api vtable = {
     .quit = mainloop_quit,
 };
 
-struct pa_mainloop *pa_mainloop_new(void) {
-    struct pa_mainloop *m;
+pa_mainloop *pa_mainloop_new(void) {
+    pa_mainloop *m;
 
-    m = pa_xmalloc(sizeof(struct pa_mainloop));
+    m = pa_xmalloc(sizeof(pa_mainloop));
 
     m->io_events = pa_idxset_new(NULL, NULL);
     m->defer_events = pa_idxset_new(NULL, NULL);
@@ -314,8 +314,8 @@ struct pa_mainloop *pa_mainloop_new(void) {
     return m;
 }
 
-static int io_foreach(void *p, uint32_t index, int *del, void*userdata) {
-    struct pa_io_event *e = p;
+static int io_foreach(void *p, uint32_t PA_GCC_UNUSED idx, int *del, void*userdata) {
+    pa_io_event *e = p;
     int *all = userdata;
     assert(e && del && all);
 
@@ -329,8 +329,8 @@ static int io_foreach(void *p, uint32_t index, int *del, void*userdata) {
     return 0;
 }
 
-static int time_foreach(void *p, uint32_t index, int *del, void*userdata) {
-    struct pa_time_event *e = p;
+static int time_foreach(void *p, uint32_t PA_GCC_UNUSED idx, int *del, void*userdata) {
+    pa_time_event *e = p;
     int *all = userdata;
     assert(e && del && all);
 
@@ -344,8 +344,8 @@ static int time_foreach(void *p, uint32_t index, int *del, void*userdata) {
     return 0;
 }
 
-static int defer_foreach(void *p, uint32_t index, int *del, void*userdata) {
-    struct pa_defer_event *e = p;
+static int defer_foreach(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void*userdata) {
+    pa_defer_event *e = p;
     int *all = userdata;
     assert(e && del && all);
 
@@ -359,7 +359,7 @@ static int defer_foreach(void *p, uint32_t index, int *del, void*userdata) {
     return 0;
 }
 
-void pa_mainloop_free(struct pa_mainloop* m) {
+void pa_mainloop_free(pa_mainloop* m) {
     int all = 1;
     assert(m);
 
@@ -375,7 +375,7 @@ void pa_mainloop_free(struct pa_mainloop* m) {
     pa_xfree(m);
 }
 
-static void scan_dead(struct pa_mainloop *m) {
+static void scan_dead(pa_mainloop *m) {
     int all = 0;
     assert(m);
 
@@ -389,13 +389,13 @@ static void scan_dead(struct pa_mainloop *m) {
     m->io_events_scan_dead = m->time_events_scan_dead = m->defer_events_scan_dead = 0;
 }
 
-static void rebuild_pollfds(struct pa_mainloop *m) {
-    struct pa_io_event*e;
+static void rebuild_pollfds(pa_mainloop *m) {
+    pa_io_event*e;
     struct pollfd *p;
-    uint32_t index = PA_IDXSET_INVALID;
+    uint32_t idx = PA_IDXSET_INVALID;
     unsigned l;
 
-    l = pa_idxset_ncontents(m->io_events);
+    l = pa_idxset_size(m->io_events);
     if (m->max_pollfds < l) {
         m->pollfds = pa_xrealloc(m->pollfds, sizeof(struct pollfd)*l);
         m->max_pollfds = l;
@@ -403,7 +403,7 @@ static void rebuild_pollfds(struct pa_mainloop *m) {
 
     m->n_pollfds = 0;
     p = m->pollfds;
-    for (e = pa_idxset_first(m->io_events, &index); e; e = pa_idxset_next(m->io_events, &index)) {
+    for (e = pa_idxset_first(m->io_events, &idx); e; e = pa_idxset_next(m->io_events, &idx)) {
         if (e->dead) {
             e->pollfd = NULL;
             continue;
@@ -423,12 +423,12 @@ static void rebuild_pollfds(struct pa_mainloop *m) {
     }
 }
 
-static int dispatch_pollfds(struct pa_mainloop *m) {
-    uint32_t index = PA_IDXSET_INVALID;
-    struct pa_io_event *e;
+static int dispatch_pollfds(pa_mainloop *m) {
+    uint32_t idx = PA_IDXSET_INVALID;
+    pa_io_event *e;
     int r = 0;
 
-    for (e = pa_idxset_first(m->io_events, &index); e && !m->quit; e = pa_idxset_next(m->io_events, &index)) {
+    for (e = pa_idxset_first(m->io_events, &idx); e && !m->quit; e = pa_idxset_next(m->io_events, &idx)) {
         if (e->dead || !e->pollfd || !e->pollfd->revents)
             continue;
         
@@ -446,15 +446,15 @@ static int dispatch_pollfds(struct pa_mainloop *m) {
     return r;
 }
 
-static int dispatch_defer(struct pa_mainloop *m) {
-    uint32_t index;
-    struct pa_defer_event *e;
+static int dispatch_defer(pa_mainloop *m) {
+    uint32_t idx;
+    pa_defer_event *e;
     int r = 0;
 
     if (!m->deferred_pending)
         return 0;
 
-    for (e = pa_idxset_first(m->defer_events, &index); e && !m->quit; e = pa_idxset_next(m->defer_events, &index)) {
+    for (e = pa_idxset_first(m->defer_events, &idx); e && !m->quit; e = pa_idxset_next(m->defer_events, &idx)) {
         if (e->dead || !e->enabled)
             continue;
  
@@ -466,9 +466,9 @@ static int dispatch_defer(struct pa_mainloop *m) {
     return r;
 }
 
-static int calc_next_timeout(struct pa_mainloop *m) {
-    uint32_t index;
-    struct pa_time_event *e;
+static int calc_next_timeout(pa_mainloop *m) {
+    uint32_t idx;
+    pa_time_event *e;
     struct timeval now;
     int t = -1;
     int got_time = 0;
@@ -476,7 +476,7 @@ static int calc_next_timeout(struct pa_mainloop *m) {
     if (pa_idxset_isempty(m->time_events))
         return -1;
 
-    for (e = pa_idxset_first(m->time_events, &index); e; e = pa_idxset_next(m->time_events, &index)) {
+    for (e = pa_idxset_first(m->time_events, &idx); e; e = pa_idxset_next(m->time_events, &idx)) {
         int tmp;
         
         if (e->dead || !e->enabled)
@@ -507,9 +507,9 @@ static int calc_next_timeout(struct pa_mainloop *m) {
     return t;
 }
 
-static int dispatch_timeout(struct pa_mainloop *m) {
-    uint32_t index;
-    struct pa_time_event *e;
+static int dispatch_timeout(pa_mainloop *m) {
+    uint32_t idx;
+    pa_time_event *e;
     struct timeval now;
     int got_time = 0;
     int r = 0;
@@ -518,7 +518,7 @@ static int dispatch_timeout(struct pa_mainloop *m) {
     if (pa_idxset_isempty(m->time_events))
         return 0;
 
-    for (e = pa_idxset_first(m->time_events, &index); e && !m->quit; e = pa_idxset_next(m->time_events, &index)) {
+    for (e = pa_idxset_first(m->time_events, &idx); e && !m->quit; e = pa_idxset_next(m->time_events, &idx)) {
         
         if (e->dead || !e->enabled)
             continue;
@@ -542,7 +542,7 @@ static int dispatch_timeout(struct pa_mainloop *m) {
     return r;
 }
 
-int pa_mainloop_iterate(struct pa_mainloop *m, int block, int *retval) {
+int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval) {
     int r, t, dispatched = 0;
     assert(m && !m->running);
 
@@ -601,7 +601,7 @@ quit:
     return -2;
 }
 
-int pa_mainloop_run(struct pa_mainloop *m, int *retval) {
+int pa_mainloop_run(pa_mainloop *m, int *retval) {
     int r;
     while ((r = pa_mainloop_iterate(m, 1, retval)) >= 0);
 
@@ -613,31 +613,32 @@ int pa_mainloop_run(struct pa_mainloop *m, int *retval) {
         return 0;
 }
 
-void pa_mainloop_quit(struct pa_mainloop *m, int r) {
+void pa_mainloop_quit(pa_mainloop *m, int r) {
     assert(m);
     m->quit = r;
 }
 
-struct pa_mainloop_api* pa_mainloop_get_api(struct pa_mainloop*m) {
+pa_mainloop_api* pa_mainloop_get_api(pa_mainloop*m) {
     assert(m);
     return &m->api;
 }
 
-int pa_mainloop_deferred_pending(struct pa_mainloop *m) {
+int pa_mainloop_deferred_pending(pa_mainloop *m) {
     assert(m);
     return m->deferred_pending > 0;
 }
 
 
-void pa_mainloop_dump(struct pa_mainloop *m) {
+#if 0
+void pa_mainloop_dump(pa_mainloop *m) {
     assert(m);
 
     pa_log(__FILE__": Dumping mainloop sources START\n");
     
     {
-        uint32_t index = PA_IDXSET_INVALID;
-        struct pa_io_event *e;
-        for (e = pa_idxset_first(m->io_events, &index); e; e = pa_idxset_next(m->io_events, &index)) {
+        uint32_t idx = PA_IDXSET_INVALID;
+        pa_io_event *e;
+        for (e = pa_idxset_first(m->io_events, &idx); e; e = pa_idxset_next(m->io_events, &idx)) {
             if (e->dead)
                 continue;
             
@@ -645,9 +646,9 @@ void pa_mainloop_dump(struct pa_mainloop *m) {
         }
     }
     {
-        uint32_t index = PA_IDXSET_INVALID;
-        struct pa_defer_event *e;
-        for (e = pa_idxset_first(m->defer_events, &index); e; e = pa_idxset_next(m->defer_events, &index)) {
+        uint32_t idx = PA_IDXSET_INVALID;
+        pa_defer_event *e;
+        for (e = pa_idxset_first(m->defer_events, &idx); e; e = pa_idxset_next(m->defer_events, &idx)) {
             if (e->dead)
                 continue;
             
@@ -655,9 +656,9 @@ void pa_mainloop_dump(struct pa_mainloop *m) {
         }
     }
     {
-        uint32_t index = PA_IDXSET_INVALID;
-        struct pa_time_event *e;
-        for (e = pa_idxset_first(m->time_events, &index); e; e = pa_idxset_next(m->time_events, &index)) {
+        uint32_t idx = PA_IDXSET_INVALID;
+        pa_time_event *e;
+        for (e = pa_idxset_first(m->time_events, &idx); e; e = pa_idxset_next(m->time_events, &idx)) {
             if (e->dead)
                 continue;
             
@@ -668,3 +669,4 @@ void pa_mainloop_dump(struct pa_mainloop *m) {
     pa_log(__FILE__": Dumping mainloop sources STOP\n");
 
 }
+#endif 

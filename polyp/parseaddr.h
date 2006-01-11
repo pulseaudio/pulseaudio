@@ -24,19 +24,19 @@
 
 #include <inttypes.h>
 
-enum pa_parsed_address_type {
+typedef enum pa_parsed_address_type {
     PA_PARSED_ADDRESS_UNIX,
     PA_PARSED_ADDRESS_TCP4,
     PA_PARSED_ADDRESS_TCP6,
     PA_PARSED_ADDRESS_TCP_AUTO
-};
+} pa_parsed_address_type;
 
-struct pa_parsed_address {
-    enum pa_parsed_address_type type;
+typedef struct pa_parsed_address {
+    pa_parsed_address_type type;
     char *path_or_host;
     uint16_t port;
-};
+} pa_parsed_address;
 
-int pa_parse_address(const char *a, struct pa_parsed_address *ret_p);
+int pa_parse_address(const char *a, pa_parsed_address *ret_p);
 
 #endif

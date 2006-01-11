@@ -59,7 +59,7 @@
 #define ENV_CONFIG_FILE "POLYP_CONFIG"
 #define ENV_DL_SEARCH_PATH "POLYP_DLPATH"
 
-static const struct pa_daemon_conf default_conf = {
+static const pa_daemon_conf default_conf = {
     .cmd = PA_CMD_DAEMON,
     .daemonize = 0,
     .fail = 1,
@@ -79,9 +79,9 @@ static const struct pa_daemon_conf default_conf = {
     .use_pid_file = 1
 };
 
-struct pa_daemon_conf* pa_daemon_conf_new(void) {
+pa_daemon_conf* pa_daemon_conf_new(void) {
     FILE *f;
-    struct pa_daemon_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
+    pa_daemon_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
 
     if ((f = pa_open_config_file(DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER, ENV_SCRIPT_FILE, &c->default_script_file)))
         fclose(f);
@@ -92,7 +92,7 @@ struct pa_daemon_conf* pa_daemon_conf_new(void) {
     return c;
 }
 
-void pa_daemon_conf_free(struct pa_daemon_conf *c) {
+void pa_daemon_conf_free(pa_daemon_conf *c) {
     assert(c);
     pa_xfree(c->script_commands);
     pa_xfree(c->dl_search_path);
@@ -101,7 +101,7 @@ void pa_daemon_conf_free(struct pa_daemon_conf *c) {
     pa_xfree(c);
 }
 
-int pa_daemon_conf_set_log_target(struct pa_daemon_conf *c, const char *string) {
+int pa_daemon_conf_set_log_target(pa_daemon_conf *c, const char *string) {
     assert(c && string);
 
     if (!strcmp(string, "auto"))
@@ -118,7 +118,7 @@ int pa_daemon_conf_set_log_target(struct pa_daemon_conf *c, const char *string) 
     return 0;
 }
 
-int pa_daemon_conf_set_log_level(struct pa_daemon_conf *c, const char *string) {
+int pa_daemon_conf_set_log_level(pa_daemon_conf *c, const char *string) {
     uint32_t u;
     assert(c && string);
 
@@ -126,7 +126,7 @@ int pa_daemon_conf_set_log_level(struct pa_daemon_conf *c, const char *string) {
         if (u >= PA_LOG_LEVEL_MAX)
             return -1;
 
-        c->log_level = (enum pa_log_level) u;
+        c->log_level = (pa_log_level) u;
     } else if (pa_startswith(string, "debug"))
         c->log_level = PA_LOG_DEBUG;
     else if (pa_startswith(string, "info"))
@@ -143,7 +143,7 @@ int pa_daemon_conf_set_log_level(struct pa_daemon_conf *c, const char *string) {
     return 0;
 }
 
-int pa_daemon_conf_set_resample_method(struct pa_daemon_conf *c, const char *string) {
+int pa_daemon_conf_set_resample_method(pa_daemon_conf *c, const char *string) {
     int m;
     assert(c && string);
 
@@ -154,8 +154,8 @@ int pa_daemon_conf_set_resample_method(struct pa_daemon_conf *c, const char *str
     return 0;
 }
 
-static int parse_log_target(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    struct pa_daemon_conf *c = data;
+static int parse_log_target(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+    pa_daemon_conf *c = data;
     assert(filename && lvalue && rvalue && data);
 
     if (pa_daemon_conf_set_log_target(c, rvalue) < 0) {
@@ -166,8 +166,8 @@ static int parse_log_target(const char *filename, unsigned line, const char *lva
     return 0;
 }
 
-static int parse_log_level(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    struct pa_daemon_conf *c = data;
+static int parse_log_level(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+    pa_daemon_conf *c = data;
     assert(filename && lvalue && rvalue && data);
 
     if (pa_daemon_conf_set_log_level(c, rvalue) < 0) {
@@ -178,8 +178,8 @@ static int parse_log_level(const char *filename, unsigned line, const char *lval
     return 0;
 }
 
-static int parse_resample_method(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, void *userdata) {
-    struct pa_daemon_conf *c = data;
+static int parse_resample_method(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+    pa_daemon_conf *c = data;
     assert(filename && lvalue && rvalue && data);
 
     if (pa_daemon_conf_set_resample_method(c, rvalue) < 0) {
@@ -190,11 +190,11 @@ static int parse_resample_method(const char *filename, unsigned line, const char
     return 0;
 }
 
-int pa_daemon_conf_load(struct pa_daemon_conf *c, const char *filename) {
+int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     int r = -1;
     FILE *f = NULL;
     
-    struct pa_config_item table[] = {
+    pa_config_item table[] = {
         { "daemonize",               pa_config_parse_bool,    NULL },
         { "fail",                    pa_config_parse_bool,    NULL },
         { "high-priority",           pa_config_parse_bool,    NULL },
@@ -248,7 +248,7 @@ finish:
     return r;
 }
 
-int pa_daemon_conf_env(struct pa_daemon_conf *c) {
+int pa_daemon_conf_env(pa_daemon_conf *c) {
     char *e;
 
     if ((e = getenv(ENV_DL_SEARCH_PATH))) {
@@ -271,8 +271,8 @@ static const char* const log_level_to_string[] = {
     [PA_LOG_ERROR] = "error"
 };
 
-char *pa_daemon_conf_dump(struct pa_daemon_conf *c) {
-    struct pa_strbuf *s = pa_strbuf_new();
+char *pa_daemon_conf_dump(pa_daemon_conf *c) {
+    pa_strbuf *s = pa_strbuf_new();
 
     if (c->config_file)
         pa_strbuf_printf(s, "### Read from configuration file: %s ###\n", c->config_file);

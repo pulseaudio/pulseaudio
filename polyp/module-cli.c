@@ -39,15 +39,15 @@ PA_MODULE_DESCRIPTION("Command line interface")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("No arguments")
 
-static void eof_cb(struct pa_cli*c, void *userdata) {
-    struct pa_module *m = userdata;
+static void eof_cb(pa_cli*c, void *userdata) {
+    pa_module *m = userdata;
     assert(c && m);
 
     pa_module_unload_request(m);
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_iochannel *io;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_iochannel *io;
     assert(c && m);
 
     if (c->running_as_daemon) {
@@ -77,7 +77,7 @@ int pa__init(struct pa_core *c, struct pa_module*m) {
     return 0;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (c->running_as_daemon == 0) {

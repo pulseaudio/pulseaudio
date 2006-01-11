@@ -32,12 +32,12 @@
 #include <polyp/polyplib-browser.h>
 #include <polyp/typeid.h>
 
-static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
+static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got signal, exiting\n");
     m->quit(m, 0);
 }
 
-static void dump_server(const struct pa_browse_info *i) {
+static void dump_server(const pa_browse_info *i) {
     char t[16];
 
     if (i->cookie)
@@ -55,7 +55,7 @@ static void dump_server(const struct pa_browse_info *i) {
            i->cookie ? t : "n/a");
 }
 
-static void dump_device(const struct pa_browse_info *i) {
+static void dump_device(const pa_browse_info *i) {
     char t[16], ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
     if (i->sample_spec)
@@ -75,7 +75,7 @@ static void dump_device(const struct pa_browse_info *i) {
            
 }
 
-static void browser_callback(struct pa_browser *b, enum pa_browse_opcode c, const struct pa_browse_info *i, void *userdata) {
+static void browser_callback(pa_browser *b, pa_browse_opcode c, const pa_browse_info *i, void *userdata) {
     assert(b && i);
 
     switch (c) {
@@ -108,8 +108,8 @@ static void browser_callback(struct pa_browser *b, enum pa_browse_opcode c, cons
 
 
 int main(int argc, char *argv[]) {
-    struct pa_mainloop *mainloop = NULL;
-    struct pa_browser *browser = NULL;
+    pa_mainloop *mainloop = NULL;
+    pa_browser *browser = NULL;
     int ret = 1, r;
 
     if (!(mainloop = pa_mainloop_new()))

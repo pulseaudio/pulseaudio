@@ -35,12 +35,12 @@
 
 #define PREFIX "module-"
 
-static void short_info(const char *name, const char *path, struct pa_modinfo *i) {
+static void short_info(const char *name, PA_GCC_UNUSED const char *path, pa_modinfo *i) {
     assert(name && i);
     printf("%-40s%s\n", name, i->description ? i->description : "n/a");
 }
 
-static void long_info(const char *name, const char *path, struct pa_modinfo *i) {
+static void long_info(const char *name, const char *path, pa_modinfo *i) {
     static int nl = 0;
     assert(name && i);
     
@@ -68,8 +68,8 @@ static void long_info(const char *name, const char *path, struct pa_modinfo *i) 
         printf("Path: %s\n", path);
 }
 
-static void show_info(const char *name, const char *path, void (*info)(const char *name, const char *path, struct pa_modinfo*i)) {
-    struct pa_modinfo *i;
+static void show_info(const char *name, const char *path, void (*info)(const char *name, const char *path, pa_modinfo*i)) {
+    pa_modinfo *i;
     
     if ((i = pa_modinfo_get_by_name(path ? path : name))) {
         info(name, path, i);
@@ -79,7 +79,7 @@ static void show_info(const char *name, const char *path, void (*info)(const cha
 
 static int callback(const char *path, lt_ptr data) {
     const char *e;
-    struct pa_daemon_conf *c = (data);
+    pa_daemon_conf *c = (data);
 
     e = pa_path_get_filename(path);
 
@@ -89,7 +89,7 @@ static int callback(const char *path, lt_ptr data) {
     return 0;
 }
 
-void pa_dump_modules(struct pa_daemon_conf *c, int argc, char * const argv[]) {
+void pa_dump_modules(pa_daemon_conf *c, int argc, char * const argv[]) {
     if (argc > 0) {
         int i;
         for (i = 0; i < argc; i++)

@@ -28,17 +28,17 @@
 
 #define HOWL_PROPERTY "howl"
 
-struct pa_howl_wrapper {
-    struct pa_core *core;
+pa_howl_wrapper {
+    pa_core *core;
     int ref;
 
-    struct pa_io_event *io_event;
+    pa_io_event *io_event;
     sw_discovery discovery;
 
 };
 
-static void howl_io_event(struct pa_mainloop_api*m, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
-    struct pa_howl_wrapper *w = userdata;
+static void howl_io_event(pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata) {
+    pa_howl_wrapper *w = userdata;
     assert(m && e && fd >= 0 && w && w->ref >= 1);
 
     if (f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR))
@@ -55,8 +55,8 @@ fail:
     w->io_event = NULL;
 }
 
-static struct pa_howl_wrapper* howl_wrapper_new(struct pa_core *c) {
-    struct pa_howl_wrapper *h;
+static pa_howl_wrapper* howl_wrapper_new(pa_core *c) {
+    pa_howl_wrapper *h;
     sw_discovery session;
     assert(c);
 
@@ -65,7 +65,7 @@ static struct pa_howl_wrapper* howl_wrapper_new(struct pa_core *c) {
         return NULL;
     }
 
-    h = pa_xmalloc(sizeof(struct pa_howl_wrapper));
+    h = pa_xmalloc(sizeof(pa_howl_wrapper));
     h->core = c;
     h->ref = 1;
     h->discovery = session;
@@ -75,7 +75,7 @@ static struct pa_howl_wrapper* howl_wrapper_new(struct pa_core *c) {
     return h;
 }
 
-static void howl_wrapper_free(struct pa_howl_wrapper *h) {
+static void howl_wrapper_free(pa_howl_wrapper *h) {
     assert(h);
 
     sw_discovery_fina(h->discovery);
@@ -86,8 +86,8 @@ static void howl_wrapper_free(struct pa_howl_wrapper *h) {
     pa_xfree(h);
 }
 
-struct pa_howl_wrapper* pa_howl_wrapper_get(struct pa_core *c) {
-    struct pa_howl_wrapper *h;
+pa_howl_wrapper* pa_howl_wrapper_get(pa_core *c) {
+    pa_howl_wrapper *h;
     assert(c);
     
     if ((h = pa_property_get(c, HOWL_PROPERTY)))
@@ -96,19 +96,19 @@ struct pa_howl_wrapper* pa_howl_wrapper_get(struct pa_core *c) {
     return howl_wrapper_new(c);
 }
 
-struct pa_howl_wrapper* pa_howl_wrapper_ref(struct pa_howl_wrapper *h) {
+pa_howl_wrapper* pa_howl_wrapper_ref(pa_howl_wrapper *h) {
     assert(h && h->ref >= 1);
     h->ref++;
     return h;
 }
 
-void pa_howl_wrapper_unref(struct pa_howl_wrapper *h) {
+void pa_howl_wrapper_unref(pa_howl_wrapper *h) {
     assert(h && h->ref >= 1);
     if (!(--h->ref))
         howl_wrapper_free(h);
 }
 
-sw_discovery pa_howl_wrapper_get_discovery(struct pa_howl_wrapper *h) {
+sw_discovery pa_howl_wrapper_get_discovery(pa_howl_wrapper *h) {
     assert(h && h->ref >= 1);
 
     return h->discovery;

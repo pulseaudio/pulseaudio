@@ -65,12 +65,12 @@ struct pa_tagstruct {
     int dynamic;
 };
 
-struct pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length) {
-    struct pa_tagstruct*t;
+pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length) {
+    pa_tagstruct*t;
 
     assert(!data || (data && length));
     
-    t = pa_xmalloc(sizeof(struct pa_tagstruct));
+    t = pa_xmalloc(sizeof(pa_tagstruct));
     t->data = (uint8_t*) data;
     t->allocated = t->length = data ? length : 0;
     t->rindex = 0;
@@ -78,14 +78,14 @@ struct pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length) {
     return t;
 }
     
-void pa_tagstruct_free(struct pa_tagstruct*t) {
+void pa_tagstruct_free(pa_tagstruct*t) {
     assert(t);
     if (t->dynamic)
         pa_xfree(t->data);
     pa_xfree(t);
 }
 
-uint8_t* pa_tagstruct_free_data(struct pa_tagstruct*t, size_t *l) {
+uint8_t* pa_tagstruct_free_data(pa_tagstruct*t, size_t *l) {
     uint8_t *p;
     assert(t && t->dynamic && l);
     p = t->data;
@@ -94,7 +94,7 @@ uint8_t* pa_tagstruct_free_data(struct pa_tagstruct*t, size_t *l) {
     return p;
 }
 
-static void extend(struct pa_tagstruct*t, size_t l) {
+static void extend(pa_tagstruct*t, size_t l) {
     assert(t && t->dynamic);
 
     if (t->length+l <= t->allocated)
@@ -103,7 +103,7 @@ static void extend(struct pa_tagstruct*t, size_t l) {
     t->data = pa_xrealloc(t->data, t->allocated = t->length+l+100);
 }
 
-void pa_tagstruct_puts(struct pa_tagstruct*t, const char *s) {
+void pa_tagstruct_puts(pa_tagstruct*t, const char *s) {
     size_t l;
     assert(t);
     if (s) {
@@ -119,7 +119,7 @@ void pa_tagstruct_puts(struct pa_tagstruct*t, const char *s) {
     }
 }
 
-void pa_tagstruct_putu32(struct pa_tagstruct*t, uint32_t i) {
+void pa_tagstruct_putu32(pa_tagstruct*t, uint32_t i) {
     assert(t);
     extend(t, 5);
     t->data[t->length] = TAG_U32;
@@ -128,7 +128,7 @@ void pa_tagstruct_putu32(struct pa_tagstruct*t, uint32_t i) {
     t->length += 5;
 }
 
-void pa_tagstruct_putu8(struct pa_tagstruct*t, uint8_t c) {
+void pa_tagstruct_putu8(pa_tagstruct*t, uint8_t c) {
     assert(t);
     extend(t, 2);
     t->data[t->length] = TAG_U8;
@@ -136,7 +136,7 @@ void pa_tagstruct_putu8(struct pa_tagstruct*t, uint8_t c) {
     t->length += 2;
 }
 
-void pa_tagstruct_put_sample_spec(struct pa_tagstruct *t, const struct pa_sample_spec *ss) {
+void pa_tagstruct_put_sample_spec(pa_tagstruct *t, const pa_sample_spec *ss) {
     uint32_t rate;
     assert(t && ss);
     extend(t, 7);
@@ -148,7 +148,7 @@ void pa_tagstruct_put_sample_spec(struct pa_tagstruct *t, const struct pa_sample
     t->length += 7;
 }
 
-void pa_tagstruct_put_arbitrary(struct pa_tagstruct *t, const void *p, size_t length) {
+void pa_tagstruct_put_arbitrary(pa_tagstruct *t, const void *p, size_t length) {
     uint32_t tmp;
     assert(t && p);
 
@@ -161,14 +161,14 @@ void pa_tagstruct_put_arbitrary(struct pa_tagstruct *t, const void *p, size_t le
     t->length += 5+length;
 }
 
-void pa_tagstruct_put_boolean(struct pa_tagstruct*t, int b) {
+void pa_tagstruct_put_boolean(pa_tagstruct*t, int b) {
     assert(t);
     extend(t, 1);
     t->data[t->length] = b ? TAG_BOOLEAN_TRUE : TAG_BOOLEAN_FALSE;
     t->length += 1;
 }
 
-void pa_tagstruct_put_timeval(struct pa_tagstruct*t, const struct timeval *tv) {
+void pa_tagstruct_put_timeval(pa_tagstruct*t, const struct timeval *tv) {
     uint32_t tmp;
     assert(t);
     extend(t, 9);
@@ -180,7 +180,7 @@ void pa_tagstruct_put_timeval(struct pa_tagstruct*t, const struct timeval *tv) {
     t->length += 9;
 }
 
-void pa_tagstruct_put_usec(struct pa_tagstruct*t, pa_usec_t u) {
+void pa_tagstruct_put_usec(pa_tagstruct*t, pa_usec_t u) {
     uint32_t tmp;
     assert(t);
     extend(t, 9);
@@ -192,7 +192,7 @@ void pa_tagstruct_put_usec(struct pa_tagstruct*t, pa_usec_t u) {
     t->length += 9;
 }
 
-void pa_tagstruct_putu64(struct pa_tagstruct*t, uint64_t u) {
+void pa_tagstruct_putu64(pa_tagstruct*t, uint64_t u) {
     uint32_t tmp;
     assert(t);
     extend(t, 9);
@@ -204,7 +204,7 @@ void pa_tagstruct_putu64(struct pa_tagstruct*t, uint64_t u) {
     t->length += 9;
 }
 
-int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s) {
+int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
     int error = 0;
     size_t n;
     char *c;
@@ -241,7 +241,7 @@ int pa_tagstruct_gets(struct pa_tagstruct*t, const char **s) {
     return 0;
 }
 
-int pa_tagstruct_getu32(struct pa_tagstruct*t, uint32_t *i) {
+int pa_tagstruct_getu32(pa_tagstruct*t, uint32_t *i) {
     assert(t && i);
 
     if (t->rindex+5 > t->length)
@@ -256,7 +256,7 @@ int pa_tagstruct_getu32(struct pa_tagstruct*t, uint32_t *i) {
     return 0;
 }
 
-int pa_tagstruct_getu8(struct pa_tagstruct*t, uint8_t *c) {
+int pa_tagstruct_getu8(pa_tagstruct*t, uint8_t *c) {
     assert(t && c);
 
     if (t->rindex+2 > t->length)
@@ -270,7 +270,7 @@ int pa_tagstruct_getu8(struct pa_tagstruct*t, uint8_t *c) {
     return 0;
 }
 
-int pa_tagstruct_get_sample_spec(struct pa_tagstruct *t, struct pa_sample_spec *ss) {
+int pa_tagstruct_get_sample_spec(pa_tagstruct *t, pa_sample_spec *ss) {
     assert(t && ss);
 
     if (t->rindex+7 > t->length)
@@ -288,7 +288,7 @@ int pa_tagstruct_get_sample_spec(struct pa_tagstruct *t, struct pa_sample_spec *
     return 0;
 }
 
-int pa_tagstruct_get_arbitrary(struct pa_tagstruct *t, const void **p, size_t length) {
+int pa_tagstruct_get_arbitrary(pa_tagstruct *t, const void **p, size_t length) {
     uint32_t len;
     assert(t && p);
     
@@ -307,18 +307,18 @@ int pa_tagstruct_get_arbitrary(struct pa_tagstruct *t, const void **p, size_t le
     return 0;
 }
 
-int pa_tagstruct_eof(struct pa_tagstruct*t) {
+int pa_tagstruct_eof(pa_tagstruct*t) {
     assert(t);
     return t->rindex >= t->length;
 }
 
-const uint8_t* pa_tagstruct_data(struct pa_tagstruct*t, size_t *l) {
+const uint8_t* pa_tagstruct_data(pa_tagstruct*t, size_t *l) {
     assert(t && t->dynamic && l);
     *l = t->length;
     return t->data;
 }
 
-int pa_tagstruct_get_boolean(struct pa_tagstruct*t, int *b) {
+int pa_tagstruct_get_boolean(pa_tagstruct*t, int *b) {
     assert(t && b);
 
     if (t->rindex+1 > t->length)
@@ -335,7 +335,7 @@ int pa_tagstruct_get_boolean(struct pa_tagstruct*t, int *b) {
     return 0;
 }
 
-int pa_tagstruct_get_timeval(struct pa_tagstruct*t, struct timeval *tv) {
+int pa_tagstruct_get_timeval(pa_tagstruct*t, struct timeval *tv) {
 
     if (t->rindex+9 > t->length)
         return -1;
@@ -352,7 +352,7 @@ int pa_tagstruct_get_timeval(struct pa_tagstruct*t, struct timeval *tv) {
     
 }
 
-int pa_tagstruct_get_usec(struct pa_tagstruct*t, pa_usec_t *u) {
+int pa_tagstruct_get_usec(pa_tagstruct*t, pa_usec_t *u) {
     uint32_t tmp;
     assert(t && u);
 
@@ -370,7 +370,7 @@ int pa_tagstruct_get_usec(struct pa_tagstruct*t, pa_usec_t *u) {
     return 0;
 }
 
-int pa_tagstruct_getu64(struct pa_tagstruct*t, uint64_t *u) {
+int pa_tagstruct_getu64(pa_tagstruct*t, uint64_t *u) {
     uint32_t tmp;
     assert(t && u);
 

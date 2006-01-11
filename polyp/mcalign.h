@@ -36,10 +36,10 @@
  * 0, the memchunk *c is valid and aligned to the granularity. Some
  * pseudocode illustrating this:
  *
- * struct pa_mcalign *a = pa_mcalign_new(4, NULL);
+ * pa_mcalign *a = pa_mcalign_new(4, NULL);
  *
  * for (;;) {
- *   struct pa_memchunk input;
+ *   pa_memchunk input;
  *
  *   ... fill input ... 
  *
@@ -47,7 +47,7 @@
  *   pa_memblock_unref(input.memblock);
  * 
  *   for (;;) {
- *     struct pa_memchunk output;
+ *     pa_memchunk output;
  *
  *     if (pa_mcalign_pop(m, &output) < 0)
  *       break;
@@ -61,17 +61,17 @@
  * pa_memchunk_free(a);
  * */
 
-struct pa_mcalign;
+typedef struct pa_mcalign pa_mcalign;
 
-struct pa_mcalign *pa_mcalign_new(size_t base, struct pa_memblock_stat *s);
-void pa_mcalign_free(struct pa_mcalign *m);
+pa_mcalign *pa_mcalign_new(size_t base, pa_memblock_stat *s);
+void pa_mcalign_free(pa_mcalign *m);
 
 /* Push a new memchunk into the aligner. The caller of this routine
  * has to free the memchunk by himself. */
-void pa_mcalign_push(struct pa_mcalign *m, const struct pa_memchunk *c);
+void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c);
 
 /* Pop a new memchunk from the aligner. Returns 0 when sucessful,
  * nonzero otherwise. */
-int pa_mcalign_pop(struct pa_mcalign *m, struct pa_memchunk *c);
+int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c);
 
 #endif

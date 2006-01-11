@@ -35,25 +35,25 @@
 #define MAX_CONNECTIONS 25
 
 struct pa_protocol_cli {
-    struct pa_module *module;
-    struct pa_core *core;
-    struct pa_socket_server*server;
-    struct pa_idxset *connections;
+    pa_module *module;
+    pa_core *core;
+    pa_socket_server*server;
+    pa_idxset *connections;
 };
 
-static void cli_eof_cb(struct pa_cli*c, void*userdata) {
-    struct pa_protocol_cli *p = userdata;
+static void cli_eof_cb(pa_cli*c, void*userdata) {
+    pa_protocol_cli *p = userdata;
     assert(p);
     pa_idxset_remove_by_data(p->connections, c, NULL);
     pa_cli_free(c);
 }
 
-static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, void *userdata) {
-    struct pa_protocol_cli *p = userdata;
-    struct pa_cli *c;
+static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) {
+    pa_protocol_cli *p = userdata;
+    pa_cli *c;
     assert(s && io && p);
 
-    if (pa_idxset_ncontents(p->connections)+1 > MAX_CONNECTIONS) {
+    if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
         pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
@@ -66,11 +66,11 @@ static void on_connection(struct pa_socket_server*s, struct pa_iochannel *io, vo
     pa_idxset_put(p->connections, c, NULL);
 }
 
-struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma) {
-    struct pa_protocol_cli* p;
+pa_protocol_cli* pa_protocol_cli_new(pa_core *core, pa_socket_server *server, pa_module *m, PA_GCC_UNUSED pa_modargs *ma) {
+    pa_protocol_cli* p;
     assert(core && server);
 
-    p = pa_xmalloc(sizeof(struct pa_protocol_cli));
+    p = pa_xmalloc(sizeof(pa_protocol_cli));
     p->module = m;
     p->core = core;
     p->server = server;
@@ -81,12 +81,12 @@ struct pa_protocol_cli* pa_protocol_cli_new(struct pa_core *core, struct pa_sock
     return p;
 }
 
-static void free_connection(void *p, void *userdata) {
+static void free_connection(void *p, PA_GCC_UNUSED void *userdata) {
     assert(p);
     pa_cli_free(p);
 }
 
-void pa_protocol_cli_free(struct pa_protocol_cli *p) {
+void pa_protocol_cli_free(pa_protocol_cli *p) {
     assert(p);
 
     pa_idxset_free(p->connections, free_connection, NULL);

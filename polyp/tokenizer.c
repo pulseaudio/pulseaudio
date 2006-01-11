@@ -30,16 +30,17 @@
 #include "tokenizer.h"
 #include "dynarray.h"
 #include "xmalloc.h"
+#include "gccmacro.h"
 
 struct pa_tokenizer {
-    struct pa_dynarray *dynarray;
+    pa_dynarray *dynarray;
 };
 
-static void token_free(void *p, void *userdata) {
+static void token_free(void *p, PA_GCC_UNUSED void *userdata) {
     pa_xfree(p);
 }
 
-static void parse(struct pa_dynarray*a, const char *s, unsigned args) {
+static void parse(pa_dynarray*a, const char *s, unsigned args) {
     int infty = 0;
     const char delimiter[] = " \t\n\r";
     const char *p;
@@ -64,10 +65,10 @@ static void parse(struct pa_dynarray*a, const char *s, unsigned args) {
     }
 }
 
-struct pa_tokenizer* pa_tokenizer_new(const char *s, unsigned args) {
-    struct pa_tokenizer *t;
+pa_tokenizer* pa_tokenizer_new(const char *s, unsigned args) {
+    pa_tokenizer *t;
     
-    t = pa_xmalloc(sizeof(struct pa_tokenizer));
+    t = pa_xmalloc(sizeof(pa_tokenizer));
     t->dynarray = pa_dynarray_new();
     assert(t->dynarray);
 
@@ -75,13 +76,13 @@ struct pa_tokenizer* pa_tokenizer_new(const char *s, unsigned args) {
     return t;
 }
 
-void pa_tokenizer_free(struct pa_tokenizer *t) {
+void pa_tokenizer_free(pa_tokenizer *t) {
     assert(t);
     pa_dynarray_free(t->dynarray, token_free, NULL);
     pa_xfree(t);
 }
 
-const char *pa_tokenizer_get(struct pa_tokenizer *t, unsigned i) {
+const char *pa_tokenizer_get(pa_tokenizer *t, unsigned i) {
     assert(t);
     return pa_dynarray_get(t->dynarray, i);
 }

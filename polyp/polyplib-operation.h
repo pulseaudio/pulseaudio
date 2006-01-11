@@ -30,21 +30,21 @@
 
 PA_C_DECL_BEGIN
 
-/** \struct pa_operation
+/** \pa_operation
  * An asynchronous operation object */
-struct pa_operation;
+typedef struct pa_operation pa_operation;
 
 /** Increase the reference count by one */
-struct pa_operation *pa_operation_ref(struct pa_operation *o);
+pa_operation *pa_operation_ref(pa_operation *o);
 
 /** Decrease the reference count by one */
-void pa_operation_unref(struct pa_operation *o);
+void pa_operation_unref(pa_operation *o);
 
 /** Cancel the operation. Beware! This will not necessarily cancel the execution of the operation on the server side. */
-void pa_operation_cancel(struct pa_operation *o);
+void pa_operation_cancel(pa_operation *o);
 
 /** Return the current status of the operation */
-enum pa_operation_state pa_operation_get_state(struct pa_operation *o);
+pa_operation_state pa_operation_get_state(pa_operation *o);
 
 PA_C_DECL_END
 

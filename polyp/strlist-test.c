@@ -2,10 +2,11 @@
 
 #include "strlist.h"
 #include "xmalloc.h"
+#include "gccmacro.h"
 
-int main(int argc, char* argv[]) {
+int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char* argv[]) {
     char *t, *u;
-    struct pa_strlist *l = NULL;
+    pa_strlist *l = NULL;
 
     l = pa_strlist_prepend(l, "e");
     l = pa_strlist_prepend(l, "d");

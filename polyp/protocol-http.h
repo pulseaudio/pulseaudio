@@ -27,9 +27,9 @@
 #include "module.h"
 #include "modargs.h"
 
-struct pa_protocol_http;
+typedef struct pa_protocol_http pa_protocol_http;
 
-struct pa_protocol_http* pa_protocol_http_new(struct pa_core *core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma);
-void pa_protocol_http_free(struct pa_protocol_http *n);
+pa_protocol_http* pa_protocol_http_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma);
+void pa_protocol_http_free(pa_protocol_http *n);
 
 #endif

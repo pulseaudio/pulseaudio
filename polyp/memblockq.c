@@ -37,22 +37,22 @@
 
 struct memblock_list {
     struct memblock_list *next, *prev;
-    struct pa_memchunk chunk;
+    pa_memchunk chunk;
 };
 
 struct pa_memblockq {
     struct memblock_list *blocks, *blocks_tail;
     unsigned n_blocks;
     size_t current_length, maxlength, tlength, base, prebuf, orig_prebuf, minreq;
-    struct pa_mcalign *mcalign;
-    struct pa_memblock_stat *memblock_stat;
+    pa_mcalign *mcalign;
+    pa_memblock_stat *memblock_stat;
 };
 
-struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t base, size_t prebuf, size_t minreq, struct pa_memblock_stat *s) {
-    struct pa_memblockq* bq;
+pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t base, size_t prebuf, size_t minreq, pa_memblock_stat *s) {
+    pa_memblockq* bq;
     assert(maxlength && base && maxlength);
     
-    bq = pa_xmalloc(sizeof(struct pa_memblockq));
+    bq = pa_xmalloc(sizeof(pa_memblockq));
     bq->blocks = bq->blocks_tail = 0;
     bq->n_blocks = 0;
 
@@ -92,7 +92,7 @@ struct pa_memblockq* pa_memblockq_new(size_t maxlength, size_t tlength, size_t b
     return bq;
 }
 
-void pa_memblockq_free(struct pa_memblockq* bq) {
+void pa_memblockq_free(pa_memblockq* bq) {
     assert(bq);
 
     pa_memblockq_flush(bq);
@@ -103,7 +103,7 @@ void pa_memblockq_free(struct pa_memblockq* bq) {
     pa_xfree(bq);
 }
 
-void pa_memblockq_push(struct pa_memblockq* bq, const struct pa_memchunk *chunk, size_t delta) {
+void pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *chunk, size_t delta) {
     struct memblock_list *q;
     assert(bq && chunk && chunk->memblock && chunk->length && (chunk->length % bq->base) == 0);
 
@@ -138,7 +138,7 @@ void pa_memblockq_push(struct pa_memblockq* bq, const struct pa_memchunk *chunk,
     pa_memblockq_shorten(bq, bq->maxlength);
 }
 
-int pa_memblockq_peek(struct pa_memblockq* bq, struct pa_memchunk *chunk) {
+int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
     assert(bq && chunk);
 
     if (!bq->blocks || bq->current_length < bq->prebuf)
@@ -152,17 +152,17 @@ int pa_memblockq_peek(struct pa_memblockq* bq, struct pa_memchunk *chunk) {
     return 0;
 }
 
-void pa_memblockq_drop(struct pa_memblockq *bq, const struct pa_memchunk *chunk, size_t length) {
+void pa_memblockq_drop(pa_memblockq *bq, const pa_memchunk *chunk, size_t length) {
     assert(bq && chunk && length);
 
-    if (!bq->blocks || memcmp(&bq->blocks->chunk, chunk, sizeof(struct pa_memchunk))) 
+    if (!bq->blocks || memcmp(&bq->blocks->chunk, chunk, sizeof(pa_memchunk))) 
         return;
     
     assert(length <= bq->blocks->chunk.length);
     pa_memblockq_skip(bq, length);
 }
 
-static void remove_block(struct pa_memblockq *bq, struct memblock_list *q) {
+static void remove_block(pa_memblockq *bq, struct memblock_list *q) {
     assert(bq && q);
 
     if (q->prev)
@@ -185,7 +185,7 @@ static void remove_block(struct pa_memblockq *bq, struct memblock_list *q) {
     bq->n_blocks--;
 }
 
-void pa_memblockq_skip(struct pa_memblockq *bq, size_t length) {
+void pa_memblockq_skip(pa_memblockq *bq, size_t length) {
     assert(bq && length && (length % bq->base) == 0);
 
     while (length > 0) {
@@ -206,7 +206,7 @@ void pa_memblockq_skip(struct pa_memblockq *bq, size_t length) {
     }
 }
 
-void pa_memblockq_shorten(struct pa_memblockq *bq, size_t length) {
+void pa_memblockq_shorten(pa_memblockq *bq, size_t length) {
     size_t l;
     assert(bq);
 
@@ -223,29 +223,29 @@ void pa_memblockq_shorten(struct pa_memblockq *bq, size_t length) {
 }
 
 
-void pa_memblockq_empty(struct pa_memblockq *bq) {
+void pa_memblockq_empty(pa_memblockq *bq) {
     assert(bq);
     pa_memblockq_shorten(bq, 0);
 }
 
-int pa_memblockq_is_readable(struct pa_memblockq *bq) {
+int pa_memblockq_is_readable(pa_memblockq *bq) {
     assert(bq);
 
     return bq->current_length && (bq->current_length >= bq->prebuf);
 }
 
-int pa_memblockq_is_writable(struct pa_memblockq *bq, size_t length) {
+int pa_memblockq_is_writable(pa_memblockq *bq, size_t length) {
     assert(bq);
 
     return bq->current_length + length <= bq->tlength;
 }
 
-uint32_t pa_memblockq_get_length(struct pa_memblockq *bq) {
+uint32_t pa_memblockq_get_length(pa_memblockq *bq) {
     assert(bq);
     return bq->current_length;
 }
 
-uint32_t pa_memblockq_missing(struct pa_memblockq *bq) {
+uint32_t pa_memblockq_missing(pa_memblockq *bq) {
     size_t l;
     assert(bq);
 
@@ -258,8 +258,8 @@ uint32_t pa_memblockq_missing(struct pa_memblockq *bq) {
     return (l >= bq->minreq) ? l : 0;
 }
 
-void pa_memblockq_push_align(struct pa_memblockq* bq, const struct pa_memchunk *chunk, size_t delta) {
-    struct pa_memchunk rchunk;
+void pa_memblockq_push_align(pa_memblockq* bq, const pa_memchunk *chunk, size_t delta) {
+    pa_memchunk rchunk;
     assert(bq && chunk && bq->base);
 
     if (bq->base == 1) {
@@ -281,22 +281,22 @@ void pa_memblockq_push_align(struct pa_memblockq* bq, const struct pa_memchunk *
     }
 }
 
-uint32_t pa_memblockq_get_minreq(struct pa_memblockq *bq) {
+uint32_t pa_memblockq_get_minreq(pa_memblockq *bq) {
     assert(bq);
     return bq->minreq;
 }
 
-void pa_memblockq_prebuf_disable(struct pa_memblockq *bq) {
+void pa_memblockq_prebuf_disable(pa_memblockq *bq) {
     assert(bq);
     bq->prebuf = 0;
 }
 
-void pa_memblockq_prebuf_reenable(struct pa_memblockq *bq) {
+void pa_memblockq_prebuf_reenable(pa_memblockq *bq) {
     assert(bq);
     bq->prebuf = bq->orig_prebuf;
 }
 
-void pa_memblockq_seek(struct pa_memblockq *bq, size_t length) {
+void pa_memblockq_seek(pa_memblockq *bq, size_t length) {
     assert(bq);
 
     if (!length)
@@ -322,7 +322,7 @@ void pa_memblockq_seek(struct pa_memblockq *bq, size_t length) {
     }
 }
 
-void pa_memblockq_flush(struct pa_memblockq *bq) {
+void pa_memblockq_flush(pa_memblockq *bq) {
     struct memblock_list *l;
     assert(bq);
     
@@ -337,7 +337,7 @@ void pa_memblockq_flush(struct pa_memblockq *bq) {
     bq->current_length = 0;
 }
 
-uint32_t pa_memblockq_get_tlength(struct pa_memblockq *bq) {
+uint32_t pa_memblockq_get_tlength(pa_memblockq *bq) {
     assert(bq);
     return bq->tlength;
 }

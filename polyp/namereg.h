@@ -24,20 +24,20 @@
 
 #include "core.h"
 
-enum pa_namereg_type {
+typedef enum pa_namereg_type {
     PA_NAMEREG_SINK,
     PA_NAMEREG_SOURCE,
     PA_NAMEREG_SAMPLE
-};
+} pa_namereg_type ;
 
-void pa_namereg_free(struct pa_core *c);
+void pa_namereg_free(pa_core *c);
 
-const char *pa_namereg_register(struct pa_core *c, const char *name, enum pa_namereg_type type, void *data, int fail);
-void pa_namereg_unregister(struct pa_core *c, const char *name);
-void* pa_namereg_get(struct pa_core *c, const char *name, enum pa_namereg_type type, int autoload);
-void pa_namereg_set_default(struct pa_core*c, const char *name, enum pa_namereg_type type);
+const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type type, void *data, int fail);
+void pa_namereg_unregister(pa_core *c, const char *name);
+void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type type, int autoload);
+void pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type type);
 
-const char *pa_namereg_get_default_sink_name(struct pa_core *c);
-const char *pa_namereg_get_default_source_name(struct pa_core *c);
+const char *pa_namereg_get_default_sink_name(pa_core *c);
+const char *pa_namereg_get_default_source_name(pa_core *c);
 
 #endif

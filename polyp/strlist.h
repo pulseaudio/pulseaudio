@@ -22,26 +22,26 @@
   USA.
 ***/
 
-struct pa_strlist;
+typedef struct pa_strlist pa_strlist;
 
 /* Add the specified server string to the list, return the new linked list head */
-struct pa_strlist* pa_strlist_prepend(struct pa_strlist *l, const char *s);
+pa_strlist* pa_strlist_prepend(pa_strlist *l, const char *s);
 
 /* Remove the specified string from the list, return the new linked list head */
-struct pa_strlist* pa_strlist_remove(struct pa_strlist *l, const char *s);
+pa_strlist* pa_strlist_remove(pa_strlist *l, const char *s);
 
 /* Make a whitespace separated string of all server stringes. Returned memory has to be freed with pa_xfree() */
-char *pa_strlist_tostring(struct pa_strlist *l);
+char *pa_strlist_tostring(pa_strlist *l);
 
 /* Free the entire list */
-void pa_strlist_free(struct pa_strlist *l);
+void pa_strlist_free(pa_strlist *l);
 
 /* Return the next entry in the list in *string and remove it from
  * the list. Returns the new list head. The memory *string points to
  * has to be freed with pa_xfree() */
-struct pa_strlist* pa_strlist_pop(struct pa_strlist *l, char **s);
+pa_strlist* pa_strlist_pop(pa_strlist *l, char **s);
 
 /* Parse a whitespace separated server list */
-struct pa_strlist* pa_strlist_parse(const char *s);
+pa_strlist* pa_strlist_parse(const char *s);
 
 #endif

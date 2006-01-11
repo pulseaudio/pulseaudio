@@ -55,16 +55,16 @@ PA_MODULE_USAGE("sink_name=<name for the sink> server=<address> cookie=<filename
 #define PA_TYPEID_ESOUND_SINK PA_TYPEID_MAKE('E', 'S', 'D', 'S')
 
 struct userdata {
-    struct pa_core *core;
+    pa_core *core;
 
-    struct pa_sink *sink;
-    struct pa_iochannel *io;
-    struct pa_socket_client *client;
+    pa_sink *sink;
+    pa_iochannel *io;
+    pa_socket_client *client;
 
-    struct pa_defer_event *defer_event;
+    pa_defer_event *defer_event;
 
-    struct pa_memchunk memchunk;
-    struct pa_module *module;
+    pa_memchunk memchunk;
+    pa_module *module;
 
     void *write_data;
     size_t write_length, write_index;
@@ -141,7 +141,7 @@ static int do_write(struct userdata *u) {
             u->write_index = u->write_length = 0;
         }
     } else if (u->state == STATE_RUNNING) {
-        pa_module_set_used(u->module, pa_idxset_ncontents(u->sink->inputs) + pa_idxset_ncontents(u->sink->monitor_source->outputs));
+        pa_module_set_used(u->module, pa_idxset_size(u->sink->inputs) + pa_idxset_size(u->sink->monitor_source->outputs));
         
         if (!u->memchunk.length)
             if (pa_sink_render(u->sink, 8192, &u->memchunk) < 0)
@@ -269,7 +269,7 @@ static void do_work(struct userdata *u) {
         cancel(u);
 }
 
-static void notify_cb(struct pa_sink*s) {
+static void notify_cb(pa_sink*s) {
     struct userdata *u = s->userdata;
     assert(s && u);
 
@@ -277,7 +277,7 @@ static void notify_cb(struct pa_sink*s) {
         u->core->mainloop->defer_enable(u->defer_event, 1);
 }
 
-static pa_usec_t get_latency_cb(struct pa_sink *s) {
+static pa_usec_t get_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     assert(s && u);
 
@@ -286,19 +286,19 @@ static pa_usec_t get_latency_cb(struct pa_sink *s) {
         (u->memchunk.memblock ? pa_bytes_to_usec(u->memchunk.length, &s->sample_spec) : 0);
 }
 
-static void defer_callback(struct pa_mainloop_api *m, struct pa_defer_event*e, void *userdata) {
+static void defer_callback(PA_GCC_UNUSED pa_mainloop_api *m, PA_GCC_UNUSED pa_defer_event*e, void *userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_work(u);
 }
 
-static void io_callback(struct pa_iochannel *io, void*userdata) {
+static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_work(u);
 }
 
-static void on_connection(struct pa_socket_client *c, struct pa_iochannel*io, void *userdata) {
+static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, void *userdata) {
     struct userdata *u = userdata;
 
     pa_socket_client_unref(u->client);
@@ -314,11 +314,11 @@ static void on_connection(struct pa_socket_client *c, struct pa_iochannel*io, vo
     pa_iochannel_set_callback(u->io, io_callback, u);
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
+int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     const char *p;
-    struct pa_sample_spec ss;
-    struct pa_modargs *ma = NULL;
+    pa_sample_spec ss;
+    pa_modargs *ma = NULL;
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -402,7 +402,7 @@ fail:
     return -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
     assert(c && m);
 

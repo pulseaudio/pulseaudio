@@ -40,6 +40,7 @@
 #include "util.h"
 #include "xmalloc.h"
 #include "log.h"
+#include "gccmacro.h"
 
 struct pa_signal_event {
     int sig;
@@ -48,17 +49,17 @@ struct pa_signal_event {
 #else
     void (*saved_handler)(int sig);
 #endif
-    void (*callback) (struct pa_mainloop_api*a, struct pa_signal_event *e, int signal, void *userdata);
+    void (*callback) (pa_mainloop_api*a, pa_signal_event *e, int sig, void *userdata);
     void *userdata;
-    void (*destroy_callback) (struct pa_mainloop_api*a, struct pa_signal_event*e, void *userdata);
-    struct pa_signal_event *previous, *next;
+    void (*destroy_callback) (pa_mainloop_api*a, pa_signal_event*e, void *userdata);
+    pa_signal_event *previous, *next;
 };
 
-static struct pa_mainloop_api *api = NULL;
+static pa_mainloop_api *api = NULL;
 static int signal_pipe[2] = { -1, -1 };
-static struct pa_io_event* io_event = NULL;
-static struct pa_defer_event *defer_event = NULL;
-static struct pa_signal_event *signals = NULL;
+static pa_io_event* io_event = NULL;
+static pa_defer_event *defer_event = NULL;
+static pa_signal_event *signals = NULL;
 
 #ifdef OS_IS_WIN32
 static unsigned int waiting_signals = 0;
@@ -78,8 +79,8 @@ static void signal_handler(int sig) {
 #endif
 }
 
-static void dispatch(struct pa_mainloop_api*a, int sig) {
-    struct pa_signal_event*s;
+static void dispatch(pa_mainloop_api*a, int sig) {
+    pa_signal_event*s;
 
     for (s = signals; s; s = s->next) 
         if (s->sig == sig) {
@@ -89,7 +90,7 @@ static void dispatch(struct pa_mainloop_api*a, int sig) {
         }
 }
 
-static void defer(struct pa_mainloop_api*a, struct pa_defer_event*e, void *userdata) {
+static void defer(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event*e, PA_GCC_UNUSED void *userdata) {
     ssize_t r;
     int sig;
     unsigned int sigs;
@@ -118,7 +119,7 @@ static void defer(struct pa_mainloop_api*a, struct pa_defer_event*e, void *userd
     }
 }
 
-static void callback(struct pa_mainloop_api*a, struct pa_io_event*e, int fd, enum pa_io_event_flags f, void *userdata) {
+static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags f, PA_GCC_UNUSED void *userdata) {
     ssize_t r;
     int sig;
     assert(a && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == signal_pipe[0]);
@@ -140,7 +141,7 @@ static void callback(struct pa_mainloop_api*a, struct pa_io_event*e, int fd, enu
     dispatch(a, sig);
 }
 
-int pa_signal_init(struct pa_mainloop_api *a) {
+int pa_signal_init(pa_mainloop_api *a) {
     assert(!api && a && signal_pipe[0] == -1 && signal_pipe[1] == -1 && !io_event && !defer_event);
 
 #ifdef OS_IS_WIN32
@@ -196,22 +197,22 @@ void pa_signal_done(void) {
     api = NULL;
 }
 
-struct pa_signal_event* pa_signal_new(int sig, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, int sig, void *userdata), void *userdata) {
-    struct pa_signal_event *e = NULL;
+pa_signal_event* pa_signal_new(int sig, void (*_callback) (pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata), void *userdata) {
+    pa_signal_event *e = NULL;
 
 #ifdef HAVE_SIGACTION
     struct sigaction sa;
 #endif
 
-    assert(sig > 0 && callback);
+    assert(sig > 0 && _callback);
     
     for (e = signals; e; e = e->next)
         if (e->sig == sig)
             goto fail;
     
-    e = pa_xmalloc(sizeof(struct pa_signal_event));
+    e = pa_xmalloc(sizeof(pa_signal_event));
     e->sig = sig;
-    e->callback = callback;
+    e->callback = _callback;
     e->userdata = userdata;
     e->destroy_callback = NULL;
 
@@ -238,7 +239,7 @@ fail:
     return NULL;
 }
 
-void pa_signal_free(struct pa_signal_event *e) {
+void pa_signal_free(pa_signal_event *e) {
     assert(e);
 
     if (e->next)
@@ -260,7 +261,7 @@ void pa_signal_free(struct pa_signal_event *e) {
     pa_xfree(e);
 }
 
-void pa_signal_set_destroy(struct pa_signal_event *e, void (*callback) (struct pa_mainloop_api *api, struct pa_signal_event*e, void *userdata)) {
+void pa_signal_set_destroy(pa_signal_event *e, void (*_callback) (pa_mainloop_api *api, pa_signal_event*e, void *userdata)) {
     assert(e);
-    e->destroy_callback = callback;
+    e->destroy_callback = _callback;
 }

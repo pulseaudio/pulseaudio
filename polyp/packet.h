@@ -25,17 +25,17 @@
 #include <sys/types.h>
 #include <inttypes.h>
 
-struct pa_packet {
+typedef struct pa_packet {
     enum { PA_PACKET_APPENDED, PA_PACKET_DYNAMIC } type;
     unsigned ref;
     size_t length;
     uint8_t *data;
-};
+} pa_packet;
 
-struct pa_packet* pa_packet_new(size_t length);
-struct pa_packet* pa_packet_new_dynamic(uint8_t* data, size_t length);
+pa_packet* pa_packet_new(size_t length);
+pa_packet* pa_packet_new_dynamic(uint8_t* data, size_t length);
 
-struct pa_packet* pa_packet_ref(struct pa_packet *p);
-void pa_packet_unref(struct pa_packet *p);
+pa_packet* pa_packet_ref(pa_packet *p);
+void pa_packet_unref(pa_packet *p);
 
 #endif

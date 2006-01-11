@@ -27,9 +27,9 @@
 #include "module.h"
 #include "modargs.h"
 
-struct pa_protocol_esound;
+typedef struct pa_protocol_esound pa_protocol_esound;
 
-struct pa_protocol_esound* pa_protocol_esound_new(struct pa_core*core, struct pa_socket_server *server, struct pa_module *m, struct pa_modargs *ma);
-void pa_protocol_esound_free(struct pa_protocol_esound *p);
+pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *server, pa_module *m, pa_modargs *ma);
+void pa_protocol_esound_free(pa_protocol_esound *p);
 
 #endif

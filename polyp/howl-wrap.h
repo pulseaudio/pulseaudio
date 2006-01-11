@@ -26,12 +26,12 @@
 
 #include "core.h"
 
-struct pa_howl_wrapper;
+pa_howl_wrapper;
 
-struct pa_howl_wrapper* pa_howl_wrapper_get(struct pa_core *c);
-struct pa_howl_wrapper* pa_howl_wrapper_ref(struct pa_howl_wrapper *h);
-void pa_howl_wrapper_unref(struct pa_howl_wrapper *h);
+pa_howl_wrapper* pa_howl_wrapper_get(pa_core *c);
+pa_howl_wrapper* pa_howl_wrapper_ref(pa_howl_wrapper *h);
+void pa_howl_wrapper_unref(pa_howl_wrapper *h);
 
-sw_discovery pa_howl_wrapper_get_discovery(struct pa_howl_wrapper *h);
+sw_discovery pa_howl_wrapper_get_discovery(pa_howl_wrapper *h);
 
 #endif

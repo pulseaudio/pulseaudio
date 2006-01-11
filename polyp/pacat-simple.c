@@ -30,19 +30,20 @@
 
 #include <polyp/polyplib-simple.h>
 #include <polyp/polyplib-error.h>
+#include "gccmacro.h"
 
 #define BUFSIZE 1024
 
-int main(int argc, char*argv[]) {
+int main(PA_GCC_UNUSED int argc, char*argv[]) {
 
     /* The Sample format to use */
-    static const struct pa_sample_spec ss = {
+    static const pa_sample_spec ss = {
         .format = PA_SAMPLE_S16LE,
         .rate = 44100,
         .channels = 2
     };
     
-    struct pa_simple *s = NULL;
+    pa_simple *s = NULL;
     int ret = 1;
     int error;
 

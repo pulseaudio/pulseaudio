@@ -26,27 +26,27 @@
 
 #include "core.h"
 
-struct pa_x11_wrapper;
+typedef struct pa_x11_wrapper pa_x11_wrapper;
 
 /* Return the X11 wrapper for this core. In case no wrapper was
     existant before, allocate a new one */
-struct pa_x11_wrapper* pa_x11_wrapper_get(struct pa_core *c, const char *name);
+pa_x11_wrapper* pa_x11_wrapper_get(pa_core *c, const char *name);
 
 /* Increase the wrapper's reference count by one */
-struct pa_x11_wrapper* pa_x11_wrapper_ref(struct pa_x11_wrapper *w);
+pa_x11_wrapper* pa_x11_wrapper_ref(pa_x11_wrapper *w);
 
 /* Decrease the reference counter of an X11 wrapper object */
-void pa_x11_wrapper_unref(struct pa_x11_wrapper* w);
+void pa_x11_wrapper_unref(pa_x11_wrapper* w);
 
 /* Return the X11 display object for this connection */
-Display *pa_x11_wrapper_get_display(struct pa_x11_wrapper *w);
+Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w);
 
-struct pa_x11_client;
+typedef struct pa_x11_client pa_x11_client;
 
 /* Register an X11 client, that is called for each X11 event */
-struct pa_x11_client* pa_x11_client_new(struct pa_x11_wrapper *w, int (*cb)(struct pa_x11_wrapper *w, XEvent *e, void *userdata), void *userdata);
+pa_x11_client* pa_x11_client_new(pa_x11_wrapper *w, int (*cb)(pa_x11_wrapper *w, XEvent *e, void *userdata), void *userdata);
 
 /* Free an X11 client object */
-void pa_x11_client_free(struct pa_x11_client *c);
+void pa_x11_client_free(pa_x11_client *c);
 
 #endif

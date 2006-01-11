@@ -41,9 +41,9 @@
 #include "props.h"
 #include "random.h"
 
-struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
-    struct pa_core* c;
-    c = pa_xmalloc(sizeof(struct pa_core));
+pa_core* pa_core_new(pa_mainloop_api *m) {
+    pa_core* c;
+    c = pa_xmalloc(sizeof(pa_core));
 
     c->mainloop = m;
     c->clients = pa_idxset_new(NULL, NULL);
@@ -95,7 +95,7 @@ struct pa_core* pa_core_new(struct pa_mainloop_api *m) {
     return c;
 }
 
-void pa_core_free(struct pa_core *c) {
+void pa_core_free(pa_core *c) {
     assert(c);
 
     pa_module_unload_all(c);
@@ -134,22 +134,22 @@ void pa_core_free(struct pa_core *c) {
     pa_xfree(c);    
 }
 
-static void quit_callback(struct pa_mainloop_api*m, struct pa_time_event *e, const struct timeval *tv, void *userdata) {
-    struct pa_core *c = userdata;
+static void quit_callback(pa_mainloop_api*m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+    pa_core *c = userdata;
     assert(c->quit_event = e);
 
     m->quit(m, 0);
 }
 
-void pa_core_check_quit(struct pa_core *c) {
+void pa_core_check_quit(pa_core *c) {
     assert(c);
 
-    if (!c->quit_event && c->exit_idle_time >= 0 && pa_idxset_ncontents(c->clients) == 0) {
+    if (!c->quit_event && c->exit_idle_time >= 0 && pa_idxset_size(c->clients) == 0) {
         struct timeval tv;
         pa_gettimeofday(&tv);
         tv.tv_sec+= c->exit_idle_time;
         c->quit_event = c->mainloop->time_new(c->mainloop, &tv, quit_callback, c);
-    } else if (c->quit_event && pa_idxset_ncontents(c->clients) > 0) {
+    } else if (c->quit_event && pa_idxset_size(c->clients) > 0) {
         c->mainloop->time_free(c->quit_event);
         c->quit_event = NULL;
     }

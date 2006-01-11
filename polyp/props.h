@@ -33,26 +33,26 @@
  * reference counting themselves. */
 
 /* Return a pointer to the value of the specified property. */
-void* pa_property_get(struct pa_core *c, const char *name);
+void* pa_property_get(pa_core *c, const char *name);
 
 /* Set the property 'name' to 'data'. This function fails in case a
  * property by this name already exists. The property data is not
  * copied or reference counted. This is the caller's job. */
-int pa_property_set(struct pa_core *c, const char *name, void *data);
+int pa_property_set(pa_core *c, const char *name, void *data);
 
 /* Remove the specified property. Return non-zero on failure */
-int pa_property_remove(struct pa_core *c, const char *name);
+int pa_property_remove(pa_core *c, const char *name);
 
 /* A combination of pa_property_remove() and pa_property_set() */
-int pa_property_replace(struct pa_core *c, const char *name, void *data);
+int pa_property_replace(pa_core *c, const char *name, void *data);
 
 /* Free all memory used by the property system */
-void pa_property_cleanup(struct pa_core *c);
+void pa_property_cleanup(pa_core *c);
 
 /* Initialize the properties subsystem */
-void pa_property_init(struct pa_core *c);
+void pa_property_init(pa_core *c);
 
 /* Dump the current set of properties */
-void pa_property_dump(struct pa_core *c, struct pa_strbuf *s);
+void pa_property_dump(pa_core *c, pa_strbuf *s);
 
 #endif

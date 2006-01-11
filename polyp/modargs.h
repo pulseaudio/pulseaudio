@@ -26,24 +26,24 @@
 #include "sample.h"
 #include "core.h"
 
-struct pa_modargs;
+typedef struct pa_modargs pa_modargs;
 
 /* A generic parser for module arguments */
 
 /* Parse the string args. The NULL-terminated array keys contains all valid arguments. */
-struct pa_modargs *pa_modargs_new(const char *args, const char* const keys[]);
-void pa_modargs_free(struct pa_modargs*ma);
+pa_modargs *pa_modargs_new(const char *args, const char* const keys[]);
+void pa_modargs_free(pa_modargs*ma);
 
 /* Return the module argument for the specified name as a string. If
  * the argument was not specified, return def instead.*/
-const char *pa_modargs_get_value(struct pa_modargs *ma, const char *key, const char *def);
+const char *pa_modargs_get_value(pa_modargs *ma, const char *key, const char *def);
 
 /* Return a module argument as unsigned 32bit value in *value */
-int pa_modargs_get_value_u32(struct pa_modargs *ma, const char *key, uint32_t *value);
-int pa_modargs_get_value_s32(struct pa_modargs *ma, const char *key, int32_t *value);
-int pa_modargs_get_value_boolean(struct pa_modargs *ma, const char *key, int *value);
+int pa_modargs_get_value_u32(pa_modargs *ma, const char *key, uint32_t *value);
+int pa_modargs_get_value_s32(pa_modargs *ma, const char *key, int32_t *value);
+int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, int *value);
 
 /* Return sample spec data from the three arguments "rate", "format" and "channels" */
-int pa_modargs_get_sample_spec(struct pa_modargs *ma, struct pa_sample_spec *ss);
+int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *ss);
 
 #endif

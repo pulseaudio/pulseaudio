@@ -29,20 +29,20 @@
 
 PA_C_DECL_BEGIN
 
-struct pa_browser;
+pa_browser;
 
-enum pa_browse_opcode {
+pa_browse_opcode {
     PA_BROWSE_NEW_SERVER,
     PA_BROWSE_NEW_SINK,
     PA_BROWSE_NEW_SOURCE,
     PA_BROWSE_REMOVE
 };
 
-struct pa_browser *pa_browser_new(struct pa_mainloop_api *mainloop);
-struct pa_browser *pa_browser_ref(struct pa_browser *z);
-void pa_browser_unref(struct pa_browser *z);
+pa_browser *pa_browser_new(pa_mainloop_api *mainloop);
+pa_browser *pa_browser_ref(pa_browser *z);
+void pa_browser_unref(pa_browser *z);
 
-struct pa_browse_info {
+pa_browse_info {
     /* Unique service name */
     const char *name;  /* always available */
 
@@ -55,10 +55,10 @@ struct pa_browse_info {
     const char *device; /* always available when this information is of a sink/source */
     const char *description;  /* optional */
     const pa_typeid_t *typeid;  /* optional */
-    const struct pa_sample_spec *sample_spec;  /* optional */
+    const pa_sample_spec *sample_spec;  /* optional */
 };
 
-void pa_browser_set_callback(struct pa_browser *z, void (*cb)(struct pa_browser *z, enum pa_browse_opcode c, const struct pa_browse_info *i, void *userdata), void *userdata);
+void pa_browser_set_callback(pa_browser *z, void (*cb)(pa_browser *z, pa_browse_opcode c, const pa_browse_info *i, void *userdata), void *userdata);
 
 PA_C_DECL_END
 

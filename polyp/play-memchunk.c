@@ -31,11 +31,12 @@
 #include "play-memchunk.h"
 #include "sink-input.h"
 #include "xmalloc.h"
+#include "gccmacro.h"
 
 #define PA_TYPEID_MEMCHUNK PA_TYPEID_MAKE('M', 'C', 'N', 'K')
 
-static void sink_input_kill(struct pa_sink_input *i) {
-    struct pa_memchunk *c;
+static void sink_input_kill(pa_sink_input *i) {
+    pa_memchunk *c;
     assert(i && i->userdata);
     c = i->userdata;
 
@@ -47,8 +48,8 @@ static void sink_input_kill(struct pa_sink_input *i) {
     
 }
 
-static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
-    struct pa_memchunk *c;
+static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
+    pa_memchunk *c;
     assert(i && chunk && i->userdata);
     c = i->userdata;
 
@@ -62,12 +63,12 @@ static int sink_input_peek(struct pa_sink_input *i, struct pa_memchunk *chunk) {
     return 0;
 }
 
-static void si_kill(struct pa_mainloop_api *m, void *i) {
+static void si_kill(PA_GCC_UNUSED pa_mainloop_api *m, void *i) {
     sink_input_kill(i);
 }
 
-static void sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk*chunk, size_t length) {
-    struct pa_memchunk *c;
+static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t length) {
+    pa_memchunk *c;
     assert(i && length && i->userdata);
     c = i->userdata;
 
@@ -81,9 +82,9 @@ static void sink_input_drop(struct pa_sink_input *i, const struct pa_memchunk*ch
         pa_mainloop_api_once(i->sink->core->mainloop, si_kill, i);
 }
 
-int pa_play_memchunk(struct pa_sink *sink, const char *name, const struct pa_sample_spec *ss, const struct pa_memchunk *chunk, pa_volume_t volume) {
-    struct pa_sink_input *si;
-    struct pa_memchunk *nchunk;
+int pa_play_memchunk(pa_sink *sink, const char *name, const pa_sample_spec *ss, const pa_memchunk *chunk, pa_volume_t volume) {
+    pa_sink_input *si;
+    pa_memchunk *nchunk;
 
     assert(sink && chunk);
 
@@ -98,7 +99,7 @@ int pa_play_memchunk(struct pa_sink *sink, const char *name, const struct pa_sam
     si->drop = sink_input_drop;
     si->kill = sink_input_kill;
     
-    si->userdata = nchunk = pa_xmalloc(sizeof(struct pa_memchunk));
+    si->userdata = nchunk = pa_xmalloc(sizeof(pa_memchunk));
     *nchunk = *chunk;
     
     pa_memblock_ref(chunk->memblock);

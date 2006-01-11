@@ -90,37 +90,37 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-static void command_stream_killed(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 #ifdef TUNNEL_SINK
-static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata);
+static void command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 #endif
 
-static const struct pa_pdispatch_command command_table[PA_COMMAND_MAX] = {
+static const pa_pdispatch_callback command_table[PA_COMMAND_MAX] = {
 #ifdef TUNNEL_SINK
-    [PA_COMMAND_REQUEST] = { command_request },
+    [PA_COMMAND_REQUEST] = command_request,
 #endif    
-    [PA_COMMAND_PLAYBACK_STREAM_KILLED] = { command_stream_killed },
-    [PA_COMMAND_RECORD_STREAM_KILLED] = { command_stream_killed },
+    [PA_COMMAND_PLAYBACK_STREAM_KILLED] = command_stream_killed,
+    [PA_COMMAND_RECORD_STREAM_KILLED] = command_stream_killed
 };
 
 struct userdata {
-    struct pa_socket_client *client;
-    struct pa_pstream *pstream;
-    struct pa_pdispatch *pdispatch;
+    pa_socket_client *client;
+    pa_pstream *pstream;
+    pa_pdispatch *pdispatch;
 
     char *server_name;
 #ifdef TUNNEL_SINK
     char *sink_name;
-    struct pa_sink *sink;
+    pa_sink *sink;
     uint32_t requested_bytes;
 #else
     char *source_name;
-    struct pa_source *source;
+    pa_source *source;
 #endif
     
-    struct pa_module *module;
-    struct pa_core *core;
+    pa_module *module;
+    pa_core *core;
 
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
 
@@ -130,7 +130,7 @@ struct userdata {
     
     pa_usec_t host_latency;
 
-    struct pa_time_event *time_event;
+    pa_time_event *time_event;
 
     int auth_cookie_in_property;
 };
@@ -180,7 +180,7 @@ static void die(struct userdata *u) {
     pa_module_unload_request(u->module);
 }
 
-static void command_stream_killed(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void command_stream_killed(pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
     assert(pd && t && u && u->pdispatch == pd);
 
@@ -190,7 +190,7 @@ static void command_stream_killed(struct pa_pdispatch *pd, uint32_t command, uin
 
 #ifdef TUNNEL_SINK
 static void send_prebuf_request(struct userdata *u) {
-    struct pa_tagstruct *t;
+    pa_tagstruct *t;
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_PREBUF_PLAYBACK_STREAM);
@@ -206,7 +206,7 @@ static void send_bytes(struct userdata *u) {
         return;
 
     while (u->requested_bytes > 0) {
-        struct pa_memchunk chunk;
+        pa_memchunk chunk;
         if (pa_sink_render(u->sink, u->requested_bytes, &chunk) < 0) {
 
             
@@ -226,7 +226,7 @@ static void send_bytes(struct userdata *u) {
     }
 }
 
-static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void command_request(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
     uint32_t bytes, channel;
     assert(pd && command == PA_COMMAND_REQUEST && t && u && u->pdispatch == pd);
@@ -251,7 +251,7 @@ static void command_request(struct pa_pdispatch *pd, uint32_t command, uint32_t 
 
 #endif
 
-static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
     pa_usec_t buffer_usec, sink_usec, source_usec, transport_usec;
     int playing;
@@ -309,7 +309,7 @@ static void stream_get_latency_callback(struct pa_pdispatch *pd, uint32_t comman
 }
 
 static void request_latency(struct userdata *u) {
-    struct pa_tagstruct *t;
+    pa_tagstruct *t;
     struct timeval now;
     uint32_t tag;
     assert(u);
@@ -331,7 +331,7 @@ static void request_latency(struct userdata *u) {
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, u);
 }
 
-static void create_stream_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
     assert(pd && u && u->pdispatch == pd);
 
@@ -361,9 +361,9 @@ static void create_stream_callback(struct pa_pdispatch *pd, uint32_t command, ui
 #endif
 }
 
-static void setup_complete_callback(struct pa_pdispatch *pd, uint32_t command, uint32_t tag, struct pa_tagstruct *t, void *userdata) {
+static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
-    struct pa_tagstruct *reply;
+    pa_tagstruct *reply;
     char name[256], un[128], hn[128];
     assert(pd && u && u->pdispatch == pd);
 
@@ -424,7 +424,7 @@ static void setup_complete_callback(struct pa_pdispatch *pd, uint32_t command, u
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, u);
 }
 
-static void pstream_die_callback(struct pa_pstream *p, void *userdata) {
+static void pstream_die_callback(pa_pstream *p, void *userdata) {
     struct userdata *u = userdata;
     assert(p && u);
 
@@ -433,7 +433,7 @@ static void pstream_die_callback(struct pa_pstream *p, void *userdata) {
 }
 
 
-static void pstream_packet_callback(struct pa_pstream *p, struct pa_packet *packet, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *userdata) {
     struct userdata *u = userdata;
     assert(p && packet && u);
 
@@ -444,7 +444,7 @@ static void pstream_packet_callback(struct pa_pstream *p, struct pa_packet *pack
 }
 
 #ifndef TUNNEL_SINK
-static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, uint32_t delta, const struct pa_memchunk *chunk, void *userdata) {
+static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk, void *userdata) {
     struct userdata *u = userdata;
     assert(p && chunk && u);
 
@@ -458,9 +458,9 @@ static void pstream_memblock_callback(struct pa_pstream *p, uint32_t channel, ui
 }
 #endif
 
-static void on_connection(struct pa_socket_client *sc, struct pa_iochannel *io, void *userdata) {
+static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata) {
     struct userdata *u = userdata;
-    struct pa_tagstruct *t;
+    pa_tagstruct *t;
     uint32_t tag;
     assert(sc && u && u->client == sc);
 
@@ -492,7 +492,7 @@ static void on_connection(struct pa_socket_client *sc, struct pa_iochannel *io, 
 }
 
 #ifdef TUNNEL_SINK
-static void sink_notify(struct pa_sink*sink) {
+static void sink_notify(pa_sink*sink) {
     struct userdata *u;
     assert(sink && sink->userdata);
     u = sink->userdata;
@@ -500,7 +500,7 @@ static void sink_notify(struct pa_sink*sink) {
     send_bytes(u);
 }
 
-static pa_usec_t sink_get_latency(struct pa_sink *sink) {
+static pa_usec_t sink_get_latency(pa_sink *sink) {
     struct userdata *u;
     uint32_t l;
     pa_usec_t usec = 0;
@@ -519,7 +519,7 @@ static pa_usec_t sink_get_latency(struct pa_sink *sink) {
     return usec;
 }
 #else
-static pa_usec_t source_get_latency(struct pa_source *source) {
+static pa_usec_t source_get_latency(pa_source *source) {
     struct userdata *u;
     assert(source && source->userdata);
     u = source->userdata;
@@ -528,7 +528,7 @@ static pa_usec_t source_get_latency(struct pa_source *source) {
 }
 #endif
 
-static void timeout_callback(struct pa_mainloop_api *m, struct pa_time_event*e, const struct timeval *tv, void *userdata) {
+static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     struct userdata *u = userdata;
     struct timeval ntv;
     assert(m && e && u);
@@ -566,10 +566,10 @@ static int load_key(struct userdata *u, const char*fn) {
     return 0;
 }
 
-int pa__init(struct pa_core *c, struct pa_module*m) {
-    struct pa_modargs *ma = NULL;
+int pa__init(pa_core *c, pa_module*m) {
+    pa_modargs *ma = NULL;
     struct userdata *u = NULL;
-    struct pa_sample_spec ss;
+    pa_sample_spec ss;
     struct timeval ntv;
     assert(c && m);
 
@@ -665,7 +665,7 @@ fail:
     return  -1;
 }
 
-void pa__done(struct pa_core *c, struct pa_module*m) {
+void pa__done(pa_core *c, pa_module*m) {
     struct userdata* u;
     assert(c && m);
 

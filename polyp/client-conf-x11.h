@@ -26,6 +26,6 @@
 
 /* Load client configuration data from the specified X11 display,
  * overwriting the current settings in *c */
-int pa_client_conf_from_x11(struct pa_client_conf *c, const char *display);
+int pa_client_conf_from_x11(pa_client_conf *c, const char *display);
 
 #endif

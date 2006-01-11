@@ -41,53 +41,54 @@ int pa_idxset_trivial_compare_func(const void *a, const void *b);
 unsigned pa_idxset_string_hash_func(const void *p);
 int pa_idxset_string_compare_func(const void *a, const void *b);
 
-struct pa_idxset;
+typedef struct pa_idxset pa_idxset;
 
 /* Instantiate a new idxset with the specified hash and comparison functions */
-struct pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b));
+pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b));
 
 /* Free the idxset. When the idxset is not empty the specified function is called for every entry contained */
-void pa_idxset_free(struct pa_idxset *s, void (*free_func) (void *p, void *userdata), void *userdata);
+void pa_idxset_free(pa_idxset *s, void (*free_func) (void *p, void *userdata), void *userdata);
 
-/* Store a new item in the idxset. The index of the item is returned in *index */
-int pa_idxset_put(struct pa_idxset*s, void *p, uint32_t *index);
+/* Store a new item in the idxset. The index of the item is returned in *idx */
+int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx);
 
-/* Get the entry by its index */
-void* pa_idxset_get_by_index(struct pa_idxset*s, uint32_t index);
+/* Get the entry by its idx */
+void* pa_idxset_get_by_index(pa_idxset*s, uint32_t idx);
 
-/* Get the entry by its data. The index is returned in *index */
-void* pa_idxset_get_by_data(struct pa_idxset*s, const void *p, uint32_t *index);
+/* Get the entry by its data. The idx is returned in *index */
+void* pa_idxset_get_by_data(pa_idxset*s, const void *p, uint32_t *idx);
 
 /* Similar to pa_idxset_get_by_index(), but removes the entry from the idxset. */
-void* pa_idxset_remove_by_index(struct pa_idxset*s, uint32_t index);
+void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx);
 
 /* Similar to pa_idxset_get_by_data(), but removes the entry from the idxset */
-void* pa_idxset_remove_by_data(struct pa_idxset*s, const void *p, uint32_t *index);
+void* pa_idxset_remove_by_data(pa_idxset*s, const void *p, uint32_t *idx);
 
 /* This may be used to iterate through all entries. When called with
    an invalid index value it returns the first entry, otherwise the
-   next following. The function is best called with *index =
+   next following. The function is best called with *idx =
    PA_IDXSET_VALID first. It is safe to manipulate the idxset between
    the calls. It is not guaranteed that all entries have already been
    returned before the an entry is returned the second time.*/
-void* pa_idxset_rrobin(struct pa_idxset *s, uint32_t *index);
+void* pa_idxset_rrobin(pa_idxset *s, uint32_t *idx);
 
-/* Return the oldest entry in the idxset. Fill in its index in *index. */
-void* pa_idxset_first(struct pa_idxset *s, uint32_t *index);
+/* Return the oldest entry in the idxset. Fill in its index in *idx. */
+void* pa_idxset_first(pa_idxset *s, uint32_t *idx);
 
-/* Return the entry following the entry indexed by *index.  After the
+/* Return the entry following the entry indexed by *idx.  After the
  * call *index contains the index of the returned
  * object. pa_idxset_first() and pa_idxset_next() may be used to
  * iterate through the set.*/
-void *pa_idxset_next(struct pa_idxset *s, uint32_t *index);
+void *pa_idxset_next(pa_idxset *s, uint32_t *idx);
 
 /* Call a function for every item in the set. If the callback function
    returns -1, the loop is terminated. If *del is set to non-zero that
    specific item is removed. It is not safe to call any other
    functions on the idxset while pa_idxset_foreach is executed. */
-int pa_idxset_foreach(struct pa_idxset*s, int (*func)(void *p, uint32_t index, int *del, void*userdata), void *userdata);
+int pa_idxset_foreach(pa_idxset*s, int (*func)(void *p, uint32_t idx, int *del, void*userdata), void *userdata);
 
-unsigned pa_idxset_ncontents(struct pa_idxset*s);
-int pa_idxset_isempty(struct pa_idxset *s);
+unsigned pa_idxset_size(pa_idxset*s);
+
+int pa_idxset_isempty(pa_idxset *s);
 
 #endif

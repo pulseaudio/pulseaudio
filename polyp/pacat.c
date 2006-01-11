@@ -44,21 +44,21 @@
 
 static enum { RECORD, PLAYBACK } mode = PLAYBACK;
 
-static struct pa_context *context = NULL;
-static struct pa_stream *stream = NULL;
-static struct pa_mainloop_api *mainloop_api = NULL;
+static pa_context *context = NULL;
+static pa_stream *stream = NULL;
+static pa_mainloop_api *mainloop_api = NULL;
 
 static void *buffer = NULL;
 static size_t buffer_length = 0, buffer_index = 0;
 
-static struct pa_io_event* stdio_event = NULL;
+static pa_io_event* stdio_event = NULL;
 
 static char *stream_name = NULL, *client_name = NULL, *device = NULL;
 
 static int verbose = 0;
 static pa_volume_t volume = PA_VOLUME_NORM;
 
-static struct pa_sample_spec sample_spec = {
+static pa_sample_spec sample_spec = {
     .format = PA_SAMPLE_S16LE,
     .rate = 44100,
     .channels = 2
@@ -94,7 +94,7 @@ static void do_stream_write(size_t length) {
 }
 
 /* This is called whenever new data may be written to the stream */
-static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
+static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     assert(s && length);
 
     if (stdio_event)
@@ -107,7 +107,7 @@ static void stream_write_callback(struct pa_stream *s, size_t length, void *user
 }
 
 /* This is called whenever new data may is available */
-static void stream_read_callback(struct pa_stream *s, const void*data, size_t length, void *userdata) {
+static void stream_read_callback(pa_stream *s, const void*data, size_t length, void *userdata) {
     assert(s && data && length);
 
     if (stdio_event)
@@ -125,7 +125,7 @@ static void stream_read_callback(struct pa_stream *s, const void*data, size_t le
 }
 
 /* This routine is called whenever the stream state changes */
-static void stream_state_callback(struct pa_stream *s, void *userdata) {
+static void stream_state_callback(pa_stream *s, void *userdata) {
     assert(s);
 
     switch (pa_stream_get_state(s)) {
@@ -146,7 +146,7 @@ static void stream_state_callback(struct pa_stream *s, void *userdata) {
 }
 
 /* This is called whenever the context status changes */
-static void context_state_callback(struct pa_context *c, void *userdata) {
+static void context_state_callback(pa_context *c, void *userdata) {
     assert(c);
 
     switch (pa_context_get_state(c)) {
@@ -188,13 +188,13 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
 }
 
 /* Connection draining complete */
-static void context_drain_complete(struct pa_context*c, void *userdata) {
+static void context_drain_complete(pa_context*c, void *userdata) {
     pa_context_disconnect(c);
 }
 
 /* Stream draining complete */
-static void stream_drain_complete(struct pa_stream*s, int success, void *userdata) {
-    struct pa_operation *o;
+static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
+    pa_operation *o;
 
     if (!success) {
         fprintf(stderr, "Failed to drain stream: %s\n", pa_strerror(pa_context_errno(context)));
@@ -219,7 +219,7 @@ static void stream_drain_complete(struct pa_stream*s, int success, void *userdat
 }
 
 /* New data on STDIN **/
-static void stdin_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
+static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata) {
     size_t l, w = 0;
     ssize_t r;
     assert(a == mainloop_api && e && stdio_event == e);
@@ -257,7 +257,7 @@ static void stdin_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int 
 }
 
 /* Some data may be written to STDOUT */
-static void stdout_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int fd, enum pa_io_event_flags f, void *userdata) {
+static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata) {
     ssize_t r;
     assert(a == mainloop_api && e && stdio_event == e);
 
@@ -288,7 +288,7 @@ static void stdout_callback(struct pa_mainloop_api*a, struct pa_io_event *e, int
 }
 
 /* UNIX signal to quit recieved */
-static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
+static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     if (verbose)
         fprintf(stderr, "Got signal, exiting.\n");
     quit(0);
@@ -296,7 +296,7 @@ static void exit_signal_callback(struct pa_mainloop_api*m, struct pa_signal_even
 }
 
 /* Show the current latency */
-static void stream_get_latency_callback(struct pa_stream *s, const struct pa_latency_info *i, void *userdata) {
+static void stream_get_latency_callback(pa_stream *s, const pa_latency_info *i, void *userdata) {
     pa_usec_t total;
     int negative = 0;
     assert(s);
@@ -315,7 +315,7 @@ static void stream_get_latency_callback(struct pa_stream *s, const struct pa_lat
 }
 
 /* Someone requested that the latency is shown */
-static void sigusr1_signal_callback(struct pa_mainloop_api*m, struct pa_signal_event *e, int sig, void *userdata) {
+static void sigusr1_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got SIGUSR1, requesting latency.\n");
     pa_operation_unref(pa_stream_get_latency_info(stream, stream_get_latency_callback, NULL));
 }
@@ -352,7 +352,7 @@ enum {
 };
 
 int main(int argc, char *argv[]) {
-    struct pa_mainloop* m = NULL;
+    pa_mainloop* m = NULL;
     int ret = 1, r, c;
     char *bn, *server = NULL;
 

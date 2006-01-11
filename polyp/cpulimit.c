@@ -23,6 +23,10 @@
 #include <config.h>
 #endif
 
+#include "cpulimit.h"
+#include "util.h"
+#include "log.h"
+
 #ifdef HAVE_SIGXCPU
 
 #include <errno.h>
@@ -36,11 +40,6 @@
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
-
-#include "cpulimit.h"
-#include "util.h"
-#include "log.h"
-
 
 /* This module implements a watchdog that makes sure that the current
  * process doesn't consume more than 70% CPU time for 10 seconds. This
@@ -70,8 +69,8 @@ static time_t last_time = 0;
 static int the_pipe[2] = {-1, -1};
 
 /* Main event loop and IO event for the FIFO */
-static struct pa_mainloop_api *api = NULL;
-static struct pa_io_event *io_event = NULL;
+static pa_mainloop_api *api = NULL;
+static pa_io_event *io_event = NULL;
 
 /* Saved sigaction struct for SIGXCPU */
 static struct sigaction sigaction_prev;
@@ -153,7 +152,7 @@ static void signal_handler(int sig) {
 }
 
 /* Callback for IO events on the FIFO */
-static void callback(struct pa_mainloop_api*m, struct pa_io_event*e, int fd, enum pa_io_event_flags f, void *userdata) {
+static void callback(pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags f, void *userdata) {
     char c;
     assert(m && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == the_pipe[0]);
     read(the_pipe[0], &c, sizeof(c));
@@ -161,7 +160,7 @@ static void callback(struct pa_mainloop_api*m, struct pa_io_event*e, int fd, enu
 }
 
 /* Initializes CPU load limiter */
-int pa_cpu_limit_init(struct pa_mainloop_api *m) {
+int pa_cpu_limit_init(pa_mainloop_api *m) {
     struct sigaction sa;
     assert(m && !api && !io_event && the_pipe[0] == -1 && the_pipe[1] == -1 && !installed);
     
@@ -227,9 +226,7 @@ void pa_cpu_limit_done(void) {
 
 #else /* HAVE_SIGXCPU */
 
-struct pa_mainloop_api;
-
-int pa_cpu_limit_init(struct pa_mainloop_api *m) {
+int pa_cpu_limit_init(PA_GCC_UNUSED pa_mainloop_api *m) {
     return 0;
 }
 

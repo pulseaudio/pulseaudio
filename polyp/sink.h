@@ -22,61 +22,62 @@
   USA.
 ***/
 
-struct pa_sink;
-
 #include <inttypes.h>
+
+typedef struct pa_sink pa_sink;
 
 #include "core.h"
 #include "sample.h"
 #include "idxset.h"
 #include "source.h"
 #include "typeid.h"
+#include "module.h"
 
 #define PA_MAX_INPUTS_PER_SINK 6
 
-enum pa_sink_state {
+typedef enum pa_sink_state {
     PA_SINK_RUNNING,
     PA_SINK_DISCONNECTED
-};
+} pa_sink_state;
 
 struct pa_sink {
     int ref;
-    enum pa_sink_state state;
+    pa_sink_state state;
     
     uint32_t index;
     pa_typeid_t typeid;
 
     char *name, *description;
-    struct pa_module *owner;
-    struct pa_core *core;
-    struct pa_sample_spec sample_spec;
-    struct pa_idxset *inputs;
+    pa_module *owner;
+    pa_core *core;
+    pa_sample_spec sample_spec;
+    pa_idxset *inputs;
 
-    struct pa_source *monitor_source;
+    pa_source *monitor_source;
 
     pa_volume_t volume;
 
-    void (*notify)(struct pa_sink*sink);
-    pa_usec_t (*get_latency)(struct pa_sink *s);
+    void (*notify)(pa_sink*sink);
+    pa_usec_t (*get_latency)(pa_sink *s);
     void *userdata;
 };
 
-struct pa_sink* pa_sink_new(struct pa_core *core, pa_typeid_t typeid, const char *name, int fail, const struct pa_sample_spec *spec);
-void pa_sink_disconnect(struct pa_sink* s);
-void pa_sink_unref(struct pa_sink*s);
-struct pa_sink* pa_sink_ref(struct pa_sink *s);
+pa_sink* pa_sink_new(pa_core *core, pa_typeid_t typeid, const char *name, int fail, const pa_sample_spec *spec);
+void pa_sink_disconnect(pa_sink* s);
+void pa_sink_unref(pa_sink*s);
+pa_sink* pa_sink_ref(pa_sink *s);
 
-int pa_sink_render(struct pa_sink*s, size_t length, struct pa_memchunk *result);
-void pa_sink_render_full(struct pa_sink *s, size_t length, struct pa_memchunk *result);
-int pa_sink_render_into(struct pa_sink*s, struct pa_memchunk *target);
-void pa_sink_render_into_full(struct pa_sink *s, struct pa_memchunk *target);
+int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result);
+void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result);
+int pa_sink_render_into(pa_sink*s, pa_memchunk *target);
+void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
     
-pa_usec_t pa_sink_get_latency(struct pa_sink *s);
+pa_usec_t pa_sink_get_latency(pa_sink *s);
 
-void pa_sink_notify(struct pa_sink*s);
+void pa_sink_notify(pa_sink*s);
 
-void pa_sink_set_owner(struct pa_sink *sink, struct pa_module *m);
+void pa_sink_set_owner(pa_sink *sink, pa_module *m);
 
-void pa_sink_set_volume(struct pa_sink *sink, pa_volume_t volume);
+void pa_sink_set_volume(pa_sink *sink, pa_volume_t volume);
 
 #endif

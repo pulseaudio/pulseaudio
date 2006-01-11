@@ -34,16 +34,16 @@
 PA_C_DECL_BEGIN
 
 /** Make this stream a sample upload stream */
-void pa_stream_connect_upload(struct pa_stream *s, size_t length);
+void pa_stream_connect_upload(pa_stream *s, size_t length);
 
 /** Finish the sample upload, the stream name will become the sample name. You cancel a sample upload by issuing pa_stream_disconnect() */
-void pa_stream_finish_upload(struct pa_stream *s);
+void pa_stream_finish_upload(pa_stream *s);
 
 /** Play a sample from the sample cache to the specified device. If the latter is NULL use the default sink. Returns an operation object */
-struct pa_operation* pa_context_play_sample(struct pa_context *c, const char *name, const char *dev, uint32_t volume, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_play_sample(pa_context *c, const char *name, const char *dev, uint32_t volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
 
 /** Remove a sample from the sample cache. Returns an operation object which may be used to cancel the operation while it is running */
-struct pa_operation* pa_context_remove_sample(struct pa_context *c, const char *name, void (*cb)(struct pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_remove_sample(pa_context *c, const char *name, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
 
 PA_C_DECL_END
 

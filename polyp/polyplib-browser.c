@@ -31,20 +31,20 @@
 #define SERVICE_NAME_SOURCE "_polypaudio-source._tcp."
 #define SERVICE_NAME_SERVER "_polypaudio-server._tcp."
 
-struct pa_browser {
+pa_browser {
     int ref;
-    struct pa_mainloop_api *mainloop;
+    pa_mainloop_api *mainloop;
 
-    void (*callback)(struct pa_browser *z, enum pa_browse_opcode c, const struct pa_browse_info *i, void *userdata);
+    void (*callback)(pa_browser *z, pa_browse_opcode c, const pa_browse_info *i, void *userdata);
     void *callback_userdata;
     
     sw_discovery discovery;
-    struct pa_io_event *io_event;
+    pa_io_event *io_event;
 };
 
 
-static void io_callback(struct pa_mainloop_api*a, struct pa_io_event*e, int fd, enum pa_io_event_flags events, void *userdata) {
-    struct pa_browser *b = userdata;
+static void io_callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags events, void *userdata) {
+    pa_browser *b = userdata;
     assert(a && b && b->mainloop == a);
 
     if (events != PA_IO_EVENT_INPUT || sw_discovery_read_socket(b->discovery) != SW_OKAY) {
@@ -68,14 +68,14 @@ static sw_result resolve_reply(
     sw_ulong text_record_len,
     sw_opaque extra) {
     
-    struct pa_browser *b = extra;
-    struct pa_browse_info i;
+    pa_browser *b = extra;
+    pa_browse_info i;
     char ip[256], a[256];
-    enum pa_browse_opcode opcode;
+    pa_browse_opcode opcode;
     int device_found = 0;
     uint32_t cookie;
     pa_typeid_t typeid;
-    struct pa_sample_spec ss;
+    pa_sample_spec ss;
     int ss_valid = 0;
     sw_text_record_iterator iterator;
     int free_iterator = 0;
@@ -221,7 +221,7 @@ static sw_result browse_reply(
     sw_const_string domain,
     sw_opaque extra) {
     
-    struct pa_browser *b = extra;
+    pa_browser *b = extra;
     assert(b);
 
     switch (status) {
@@ -236,7 +236,7 @@ static sw_result browse_reply(
             
         case SW_DISCOVERY_BROWSE_REMOVE_SERVICE:
             if (b->callback) {
-                struct pa_browse_info i;
+                pa_browse_info i;
                 memset(&i, 0, sizeof(i));
                 i.name = name;
                 b->callback(b, PA_BROWSE_REMOVE, &i, b->callback_userdata);
@@ -250,11 +250,11 @@ static sw_result browse_reply(
     return SW_OKAY;
 }
 
-struct pa_browser *pa_browser_new(struct pa_mainloop_api *mainloop) {
-    struct pa_browser *b;
+pa_browser *pa_browser_new(pa_mainloop_api *mainloop) {
+    pa_browser *b;
     sw_discovery_oid oid;
 
-    b = pa_xmalloc(sizeof(struct pa_browser));
+    b = pa_xmalloc(sizeof(pa_browser));
     b->mainloop = mainloop;
     b->ref = 1;
     b->callback = NULL;
@@ -281,7 +281,7 @@ struct pa_browser *pa_browser_new(struct pa_mainloop_api *mainloop) {
     return b;
 }
 
-static void browser_free(struct pa_browser *b) {
+static void browser_free(pa_browser *b) {
     assert(b && b->mainloop);
 
     if (b->io_event)
@@ -291,20 +291,20 @@ static void browser_free(struct pa_browser *b) {
     pa_xfree(b);
 }
 
-struct pa_browser *pa_browser_ref(struct pa_browser *b) {
+pa_browser *pa_browser_ref(pa_browser *b) {
     assert(b && b->ref >= 1);
     b->ref++;
     return b;
 }
 
-void pa_browser_unref(struct pa_browser *b) {
+void pa_browser_unref(pa_browser *b) {
     assert(b && b->ref >= 1);
 
     if ((-- (b->ref)) <= 0)
         browser_free(b);
 }
 
-void pa_browser_set_callback(struct pa_browser *b, void (*cb)(struct pa_browser *z, enum pa_browse_opcode c, const struct pa_browse_info *i, void* userdata), void *userdata) {
+void pa_browser_set_callback(pa_browser *b, void (*cb)(pa_browser *z, pa_browse_opcode c, const pa_browse_info *i, void* userdata), void *userdata) {
     assert(b);
 
     b->callback = cb;

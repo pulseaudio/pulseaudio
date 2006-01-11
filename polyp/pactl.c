@@ -47,14 +47,14 @@
 
 #define BUFSIZE 1024
 
-static struct pa_context *context = NULL;
-static struct pa_mainloop_api *mainloop_api = NULL;
+static pa_context *context = NULL;
+static pa_mainloop_api *mainloop_api = NULL;
 
 static char *device = NULL, *sample_name = NULL;
 
 static SNDFILE *sndfile = NULL;
-static struct pa_stream *sample_stream = NULL;
-static struct pa_sample_spec sample_spec;
+static pa_stream *sample_stream = NULL;
+static pa_sample_spec sample_spec;
 static size_t sample_length = 0;
 
 static int actions = 1;
@@ -77,12 +77,12 @@ static void quit(int ret) {
 }
 
 
-static void context_drain_complete(struct pa_context *c, void *userdata) {
+static void context_drain_complete(pa_context *c, void *userdata) {
     pa_context_disconnect(c);
 }
 
 static void drain(void) {
-    struct pa_operation *o;
+    pa_operation *o;
     if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
         pa_context_disconnect(context);
     else
@@ -97,7 +97,7 @@ static void complete_action(void) {
         drain();
 }
 
-static void stat_callback(struct pa_context *c, const struct pa_stat_info *i, void *userdata) {
+static void stat_callback(pa_context *c, const pa_stat_info *i, void *userdata) {
     char s[128];
     if (!i) {
         fprintf(stderr, "Failed to get statistics: %s\n", pa_strerror(pa_context_errno(c)));
@@ -117,7 +117,7 @@ static void stat_callback(struct pa_context *c, const struct pa_stat_info *i, vo
     complete_action();
 }
 
-static void get_server_info_callback(struct pa_context *c, const struct pa_server_info *i, void *useerdata) {
+static void get_server_info_callback(pa_context *c, const pa_server_info *i, void *useerdata) {
     char s[PA_SAMPLE_SPEC_SNPRINT_MAX];
     
     if (!i) {
@@ -148,7 +148,7 @@ static void get_server_info_callback(struct pa_context *c, const struct pa_serve
     complete_action();
 }
 
-static void get_sink_info_callback(struct pa_context *c, const struct pa_sink_info *i, int is_last, void *userdata) {
+static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
     char s[PA_SAMPLE_SPEC_SNPRINT_MAX], tid[5];
 
     if (is_last < 0) {
@@ -191,7 +191,7 @@ static void get_sink_info_callback(struct pa_context *c, const struct pa_sink_in
 
 }
 
-static void get_source_info_callback(struct pa_context *c, const struct pa_source_info *i, int is_last, void *userdata) {
+static void get_source_info_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
     char s[PA_SAMPLE_SPEC_SNPRINT_MAX], t[32], tid[5];
 
     if (is_last < 0) {
@@ -234,7 +234,7 @@ static void get_source_info_callback(struct pa_context *c, const struct pa_sourc
     
 }
 
-static void get_module_info_callback(struct pa_context *c, const struct pa_module_info *i, int is_last, void *userdata) {
+static void get_module_info_callback(pa_context *c, const pa_module_info *i, int is_last, void *userdata) {
     char t[32];
 
     if (is_last < 0) {
@@ -268,7 +268,7 @@ static void get_module_info_callback(struct pa_context *c, const struct pa_modul
            i->auto_unload ? "yes" : "no");
 }
 
-static void get_client_info_callback(struct pa_context *c, const struct pa_client_info *i, int is_last, void *userdata) {
+static void get_client_info_callback(pa_context *c, const pa_client_info *i, int is_last, void *userdata) {
     char t[32], tid[5];
 
     if (is_last < 0) {
@@ -300,7 +300,7 @@ static void get_client_info_callback(struct pa_context *c, const struct pa_clien
            i->owner_module != PA_INVALID_INDEX ? t : "n/a");
 }
 
-static void get_sink_input_info_callback(struct pa_context *c, const struct pa_sink_input_info *i, int is_last, void *userdata) {
+static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
     char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], tid[5];
 
     if (is_last < 0) {
@@ -349,7 +349,7 @@ static void get_sink_input_info_callback(struct pa_context *c, const struct pa_s
 }
 
 
-static void get_source_output_info_callback(struct pa_context *c, const struct pa_source_output_info *i, int is_last, void *userdata) {
+static void get_source_output_info_callback(pa_context *c, const pa_source_output_info *i, int is_last, void *userdata) {
     char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], tid[5];
 
     if (is_last < 0) {
@@ -395,7 +395,7 @@ static void get_source_output_info_callback(struct pa_context *c, const struct p
            i->resample_method ? i->resample_method : "n/a");
 }
 
-static void get_sample_info_callback(struct pa_context *c, const struct pa_sample_info *i, int is_last, void *userdata) {
+static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int is_last, void *userdata) {
     char t[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
     if (is_last < 0) {
@@ -436,7 +436,7 @@ static void get_sample_info_callback(struct pa_context *c, const struct pa_sampl
            i->filename ? i->filename : "n/a");
 }
 
-static void get_autoload_info_callback(struct pa_context *c, const struct pa_autoload_info *i, int is_last, void *userdata) {
+static void get_autoload_info_callback(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata) {
     if (is_last < 0) {
         fprintf(stderr, "Failed to get autoload information: %s\n", pa_strerror(pa_context_errno(c)));
         quit(1);
@@ -466,7 +466,7 @@ static void get_autoload_info_callback(struct pa_context *c, const struct pa_aut
            i->argument);
 }
 
-static void simple_callback(struct pa_context *c, int success, void *userdata) {
+static void simple_callback(pa_context *c, int success, void *userdata) {
     if (!success) {
         fprintf(stderr, "Failure: %s\n", pa_strerror(pa_context_errno(c)));
         quit(1);
@@ -476,7 +476,7 @@ static void simple_callback(struct pa_context *c, int success, void *userdata) {
     complete_action();
 }
 
-static void stream_state_callback(struct pa_stream *s, void *userdata) {
+static void stream_state_callback(pa_stream *s, void *userdata) {
     assert(s);
 
     switch (pa_stream_get_state(s)) {
@@ -495,7 +495,7 @@ static void stream_state_callback(struct pa_stream *s, void *userdata) {
     }
 }
 
-static void stream_write_callback(struct pa_stream *s, size_t length, void *userdata) {
+static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     sf_count_t l;
     float *d;
     assert(s && length && sndfile);
@@ -522,7 +522,7 @@ static void stream_write_callback(struct pa_stream *s, size_t length, void *user
     }
 }
 
-static void context_state_callback(struct pa_context *c, void *userdata) {
+static void context_state_callback(pa_context *c, void *userdata) {
     assert(c);
     switch (pa_context_get_state(c)) {
         case PA_CONTEXT_CONNECTING:
@@ -587,7 +587,7 @@ static void context_state_callback(struct pa_context *c, void *userdata) {
     }
 }
 
-static void exit_signal_callback(struct pa_mainloop_api *m, struct pa_signal_event *e, int sig, void *userdata) {
+static void exit_signal_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got SIGINT, exiting.\n");
     quit(0);
 }
@@ -610,7 +610,7 @@ static void help(const char *argv0) {
 enum { ARG_VERSION = 256 };
 
 int main(int argc, char *argv[]) {
-    struct pa_mainloop* m = NULL;
+    pa_mainloop* m = NULL;
     char tmp[PATH_MAX];
     int ret = 1, r, c;
     char *server = NULL, *client_name = NULL, *bn;

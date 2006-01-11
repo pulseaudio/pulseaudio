@@ -24,20 +24,20 @@
 
 /* Some functions for reading module meta data from Polypaudio modules */
 
-struct pa_modinfo {
+typedef struct pa_modinfo {
     char *author;
     char *description;
     char *usage;
     char *version;
-};
+} pa_modinfo;
 
 /* Read meta data from an libtool handle */
-struct pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl);
+pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl);
 
 /* Read meta data from a module file */
-struct pa_modinfo *pa_modinfo_get_by_name(const char *name);
+pa_modinfo *pa_modinfo_get_by_name(const char *name);
 
 /* Free meta data */
-void pa_modinfo_free(struct pa_modinfo *i);
+void pa_modinfo_free(pa_modinfo *i);
 
 #endif
