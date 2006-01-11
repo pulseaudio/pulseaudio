@@ -63,29 +63,9 @@ test_gcc_flag() {
 # If using GCC specify some additional parameters
 if test "x$GCC" = "xyes" ; then
 
-    DESIRED_FLAGS="-Wall -W -Wextra -pedantic -pipe -Wformat -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Winline -Wno-unused-parameter"
-
-    if test "x$HAVE_NETLINK" = "xyes" ; then
-        # Test whether rtnetlink.h can be included when compiled with -std=c99
-        # some distributions (e.g. archlinux) have broken headers that dont
-        # define __u64 with -std=c99
-        AC_MSG_CHECKING([checking whether rtnetlink.h can be included with -std=c99])
-        OLDCFLAGS="$CFLAGS"
-        CFLAGS="-std=c99"
-        AC_TRY_COMPILE([#include <linux/rtnetlink.h>], [],
-            use_stdc99=yes, use_stdc99=no)
-
-        if test x"$use_stdc99" = xyes; then
-            DESIRED_FLAGS="-std=c99 $DESIRED_FLAGS"
-            AC_MSG_RESULT([yes])
-        else
-            AC_MSG_RESULT([no])
-        fi
-
-        CFLAGS="$OLDCFLAGS"
-    else
-        DESIRED_FLAGS="-std=c99 $DESIRED_FLAGS"
-    fi
+    # We use gnu99 instead of c99 because many have interpreted the standard
+    # in a way that int64_t isn't defined on non-64 bit platforms.
+    DESIRED_FLAGS="-std=gnu99 -Wall -W -Wextra -pedantic -pipe -Wformat -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Winline -Wno-unused-parameter"
 
     for flag in $DESIRED_FLAGS ; do
         AC_MSG_CHECKING([whether $CC accepts $flag])
