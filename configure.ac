@@ -43,15 +43,6 @@ AC_PROG_CC
 AC_PROG_GCC_TRADITIONAL
 AC_GNU_SOURCE
 
-# If using GCC specify some additional parameters
-if test "x$GCC" = "xyes" ; then
-   CFLAGS="$CFLAGS -pipe -W -Wall -pedantic"
-
-   AC_LANG_CONFTEST([int main() {}])
-   $CC -c conftest.c -std=gnu9x -Wno-unused-parameter $CFLAGS > /dev/null 2> /dev/null && CFLAGS="$CFLAGS -std=gnu9x -Wno-unused-parameter"
-   rm -f conftest.o
-fi
-
 # M4
 
 AC_PATH_PROG([M4], [m4 gm4], [no])
@@ -72,7 +63,7 @@ test_gcc_flag() {
 # If using GCC specify some additional parameters
 if test "x$GCC" = "xyes" ; then
 
-    DESIRED_FLAGS="-Wall -W -Wextra -pedantic -pipe -Wformat -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Winline"
+    DESIRED_FLAGS="-Wall -W -Wextra -pedantic -pipe -Wformat -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Winline -Wno-unused-parameter"
 
     if test "x$HAVE_NETLINK" = "xyes" ; then
         # Test whether rtnetlink.h can be included when compiled with -std=c99
