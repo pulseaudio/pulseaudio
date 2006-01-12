@@ -368,6 +368,15 @@ int pa__init(pa_core *c, pa_module*m) {
 
     pa_modargs_free(ma);
 
+    /*
+     * Some crappy drivers do not start the recording until we read something.
+     * Without this snippet, poll will never register the fd as ready.
+     */
+    if (u->source) {
+        char buf[u->sample_size];
+        read(u->fd, buf, u->sample_size);
+    }
+
     return 0;
 
 fail:
