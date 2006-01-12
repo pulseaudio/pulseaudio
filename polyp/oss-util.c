@@ -57,7 +57,7 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
             if (*tcaps & DSP_CAP_DUPLEX)
                 return fd;
 
-            close(fd);
+            goto fail;
         }
         
         if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY)) < 0) {
@@ -87,7 +87,7 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
 fail:
     if (fd >= 0)
         close(fd);
-    return fd;
+    return -1;
 }
 
 int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
