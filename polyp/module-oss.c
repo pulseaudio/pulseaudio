@@ -347,7 +347,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     assert(u->source || u->sink);
 
-    u->io = pa_iochannel_new(c->mainloop, u->source ? fd : -1, u->sink ? fd : 0);
+    u->io = pa_iochannel_new(c->mainloop, u->source ? fd : -1, u->sink ? fd : -1);
     assert(u->io);
     pa_iochannel_set_callback(u->io, io_callback, u);
     u->fd = fd;
