@@ -965,19 +965,19 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         FILE *f;
         char *lfn;
         
-        lfn = pa_sprintf_malloc("%s/%s", h, local);
+        fn = lfn = pa_sprintf_malloc("%s/%s", h, local);
 
 #ifdef OS_IS_WIN32
         if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX))
             return NULL;
-        lfn = buf;
+        fn = buf;
 #endif
 
-        f = fopen(lfn, "r");
+        f = fopen(fn, "r");
 
         if (f || errno != ENOENT) {
             if (result)
-                *result = pa_xstrdup(lfn);
+                *result = pa_xstrdup(fn);
             pa_xfree(lfn);
             return f;
         }
