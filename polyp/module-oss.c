@@ -161,7 +161,7 @@ static void do_read(struct userdata *u) {
     int loop = 0;
     assert(u);
     
-    if (!u->source || !pa_iochannel_is_readable(u->io))
+    if (!u->source || !pa_iochannel_is_readable(u->io) || !pa_idxset_size(u->source->outputs))
         return;
 
     update_usage(u);
@@ -206,6 +206,12 @@ static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_write(u);
+    do_read(u);
+}
+
+static void source_notify_cb(pa_source *s) {
+    struct userdata *u = s->userdata;
+    assert(u);
     do_read(u);
 }
 
@@ -329,6 +335,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source = pa_source_new(c, PA_TYPEID_OSS, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss);
         assert(u->source);
         u->source->userdata = u;
+        u->source->notify = source_notify_cb;
         u->source->get_latency = source_get_latency_cb;
         pa_source_set_owner(u->source, m);
         u->source->description = pa_sprintf_malloc("Open Sound System PCM on '%s'", p);
