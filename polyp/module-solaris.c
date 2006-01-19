@@ -382,7 +382,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
     
-    if ((fd = open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), mode)) < 0)
+    if ((fd = open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), mode | O_NONBLOCK)) < 0)
         goto fail;
 
     pa_log_info(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
