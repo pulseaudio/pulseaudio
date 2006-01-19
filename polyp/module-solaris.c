@@ -35,6 +35,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <signal.h>
 #include <stropts.h>
 #include <sys/conf.h>
 #include <sys/audio.h>
@@ -48,6 +49,7 @@
 #include "modargs.h"
 #include "xmalloc.h"
 #include "log.h"
+#include "mainloop-signal.h"
 #include "module-solaris-symdef.h"
 
 PA_MODULE_AUTHOR("Pierre Ossman")
@@ -62,10 +64,12 @@ struct userdata {
     pa_source *source;
     pa_iochannel *io;
     pa_core *core;
+    pa_signal_event *sig;
 
     pa_memchunk memchunk, silence;
 
     uint32_t sample_size;
+    uint32_t buffer_size;
     unsigned int written_bytes, read_bytes;
 
     int fd;
@@ -99,7 +103,10 @@ static void update_usage(struct userdata *u) {
 }
 
 static void do_write(struct userdata *u) {
+    audio_info_t info;
+    int err;
     pa_memchunk *memchunk;
+    size_t len;
     ssize_t r;
     
     assert(u);
@@ -109,17 +116,40 @@ static void do_write(struct userdata *u) {
 
     update_usage(u);
 
+    err = ioctl(u->fd, AUDIO_GETINFO, &info);
+    assert(err >= 0);
+
+    /*
+     * Since we cannot modify the size of the output buffer we fake it
+     * by not filling it more than u->buffer_size.
+     */
+    len = u->buffer_size;
+    len -= u->written_bytes - (info.play.samples * u->sample_size);
+
+    /*
+     * Do not fill more than half the buffer in one chunk since we only
+     * get notifications upon completion of entire chunks.
+     */
+    if (len > (u->buffer_size / 2))
+        len = u->buffer_size / 2;
+
+    if (len < u->sample_size)
+        return;
+
     memchunk = &u->memchunk;
     
     if (!memchunk->length)
-        if (pa_sink_render(u->sink, CHUNK_SIZE, memchunk) < 0)
+        if (pa_sink_render(u->sink, len, memchunk) < 0)
             memchunk = &u->silence;
     
     assert(memchunk->memblock);
     assert(memchunk->memblock->data);
     assert(memchunk->length);
+
+    if (memchunk->length < len)
+        len = memchunk->length;
     
-    if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
+    if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, len)) < 0) {
         pa_log(__FILE__": write() failed: %s\n", strerror(errno));
         return;
     }
@@ -137,6 +167,14 @@ static void do_write(struct userdata *u) {
     }
 
     u->written_bytes += r;
+
+    /*
+     * Write 0 bytes which will generate a SIGPOLL when "played".
+     */
+    if (write(u->fd, NULL, 0) < 0) {
+        pa_log(__FILE__": write() failed: %s\n", strerror(errno));
+        return;
+    }
 }
 
 static void do_read(struct userdata *u) {
@@ -177,6 +215,12 @@ static void io_callback(pa_iochannel *io, void*userdata) {
     assert(u);
     do_write(u);
     do_read(u);
+}
+
+void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata) {
+    struct userdata *u = userdata;
+    assert(u);
+    do_write(u);
 }
 
 static pa_usec_t sink_get_latency_cb(pa_sink *s) {
@@ -326,7 +370,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
 
-    buffer_size = -1;    
+    buffer_size = 16384;    
     if (pa_modargs_get_value_s32(ma, "buffer_size", &buffer_size) < 0) {
         pa_log(__FILE__": failed to parse buffer size argument\n");
         goto fail;
@@ -383,6 +427,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
     u->sample_size = pa_frame_size(&ss);
+    u->buffer_size = buffer_size;
 
     u->silence.memblock = pa_memblock_new(u->silence.length = CHUNK_SIZE, u->core->memblock_stat);
     assert(u->silence.memblock);
@@ -394,6 +439,10 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->module = m;
     m->userdata = u;
+
+    u->sig = pa_signal_new(SIGPOLL, sig_callback, u);
+    assert(u->sig);
+    ioctl(u->fd, I_SETSIG, S_MSG);
 
     pa_modargs_free(ma);
 
@@ -415,6 +464,9 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+    ioctl(u->fd, I_SETSIG, 0);
+    pa_signal_free(u->sig);
     
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
