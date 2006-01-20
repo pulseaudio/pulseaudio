@@ -69,17 +69,22 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
 
     assert(c && l && fd >= 0);
     
+#ifndef OS_IS_WIN32
     if (fstat(fd, &st) < 0) {
         snprintf(c, l, "Invalid client fd");
         return;
     }
+#endif
 
 #ifndef OS_IS_WIN32
     if (S_ISSOCK(st.st_mode)) {
+#endif    
         union {
             struct sockaddr sa;
             struct sockaddr_in in;
+#ifdef HAVE_SYS_UN_H
             struct sockaddr_un un;
+#endif
         } sa;
         socklen_t sa_len = sizeof(sa);
         
@@ -95,12 +100,15 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
                          ip & 0xFF,
                          ntohs(sa.in.sin_port));
                 return;
+#ifdef HAVE_SYS_UN_H
             } else if (sa.sa.sa_family == AF_UNIX) {
                 snprintf(c, l, "UNIX socket client");
                 return;
+#endif
             }
 
         }
+#ifndef OS_IS_WIN32
         snprintf(c, l, "Unknown network client");
         return;
     } else if (S_ISCHR(st.st_mode) && (fd == 0 || fd == 1)) {
