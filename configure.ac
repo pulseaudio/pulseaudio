@@ -258,10 +258,9 @@ AC_ARG_WITH(
         AC_HELP_STRING([--without-caps],[Omit support for POSIX capabilities.]))
 
 if test "x${with_caps}" != "xno"; then
-    AC_SEARCH_LIBS([cap_init], [cap], [CAP_LIBS='-lcap'], [CAP_LIBS=''])
+    AC_SEARCH_LIBS([cap_init], [cap])
     AC_CHECK_HEADERS([sys/capability.h])
 fi
-AC_SUBST(CAP_LIBS)
 
 #### pkg-config ####
 

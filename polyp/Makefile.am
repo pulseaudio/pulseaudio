@@ -104,7 +104,7 @@ polypaudio_SOURCES = \
 polypaudio_CFLAGS = $(AM_CFLAGS)
 polypaudio_CPPFLAGS = $(AM_CPPFLAGS)
 polypaudio_LDADD = $(AM_LDADD) libpolypcore.la $(LIBLTDL) \
-		$(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS)
+		$(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS)
 polypaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
 
 if PREOPEN_MODS
