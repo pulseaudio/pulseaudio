@@ -185,13 +185,13 @@ AC_CHECK_DEFINE([INADDR_NONE], [netinet/in.h], [],
 #### Check for libs ####
 
 # ISO
-AC_CHECK_LIB([m], [pow])
+AC_SEARCH_LIBS([pow], [m])
 
 # POSIX
-AC_CHECK_LIB([rt], [sched_setscheduler])
+AC_SEARCH_LIBS([sched_setscheduler], [rt])
 
 # BSD
-AC_CHECK_LIB([socket], [connect])
+AC_SEARCH_LIBS([connect], [socket])
 
 # Non-standard
 
@@ -258,7 +258,7 @@ AC_ARG_WITH(
         AC_HELP_STRING([--without-caps],[Omit support for POSIX capabilities.]))
 
 if test "x${with_caps}" != "xno"; then
-    AC_CHECK_LIB(cap, cap_init, [CAP_LIBS='-lcap'], [CAP_LIBS=''])
+    AC_SEARCH_LIBS([cap_init], [cap], [CAP_LIBS='-lcap'], [CAP_LIBS=''])
     AC_CHECK_HEADERS([sys/capability.h])
 fi
 AC_SUBST(CAP_LIBS)
