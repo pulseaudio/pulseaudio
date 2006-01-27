@@ -38,6 +38,7 @@
 #include "scache.h"
 #include "autoload.h"
 #include "xmalloc.h"
+#include "volume.h"
 
 char *pa_module_list_to_string(pa_core *c) {
     pa_strbuf *s;
@@ -60,7 +61,6 @@ char *pa_client_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_client *client;
     uint32_t idx = PA_IDXSET_INVALID;
-    char tid[5];
     assert(c);
 
     s = pa_strbuf_new();
@@ -69,7 +69,7 @@ char *pa_client_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u client(s) logged in.\n", pa_idxset_size(c->clients));
     
     for (client = pa_idxset_first(c->clients, &idx); client; client = pa_idxset_next(c->clients, &idx)) {
-        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\ttype: <%s>\n", client->index, client->name, pa_typeid_to_string(client->typeid, tid, sizeof(tid)));
+        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\tdriver: <%s>\n", client->index, client->name, client->driver);
 
         if (client->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", client->owner->index);
@@ -82,7 +82,6 @@ char *pa_sink_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_sink *sink;
     uint32_t idx = PA_IDXSET_INVALID;
-    char tid[5];
     assert(c);
 
     s = pa_strbuf_new();
@@ -91,20 +90,26 @@ char *pa_sink_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_size(c->sinks));
 
     for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
-        pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec);
-        assert(sink->monitor_source);
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+        
         pa_strbuf_printf(
             s,
-            "  %c index: %u\n\tname: <%s>\n\ttype: <%s>\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tmonitor_source: <%u>\n\tsample_spec: <%s>\n",
+            "  %c index: %u\n"
+            "\tname: <%s>\n"
+            "\tdriver: <%s>\n"
+            "\tvolume: <%s>\n"
+            "\tlatency: <%0.0f usec>\n"
+            "\tmonitor_source: <%u>\n"
+            "\tsample spec: <%s>\n"
+            "\tchannel map: <%s>\n",
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index, sink->name,
-            pa_typeid_to_string(sink->typeid, tid, sizeof(tid)),
-            (unsigned) sink->volume,
-            pa_volume_to_dB(sink->volume),
+            sink->driver,
+            pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, PA_MIXER_HARDWARE)),
             (double) pa_sink_get_latency(sink),
             sink->monitor_source->index,
-            ss);
+            pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
+            pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map));
 
         if (sink->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", sink->owner->index);
@@ -119,7 +124,6 @@ char *pa_source_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_source *source;
     uint32_t idx = PA_IDXSET_INVALID;
-    char tid[5];
     assert(c);
 
     s = pa_strbuf_new();
@@ -128,15 +132,24 @@ char *pa_source_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_size(c->sources));
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
-        pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec);
-        pa_strbuf_printf(s, "  %c index: %u\n\tname: <%s>\n\ttype: <%s>\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n",
-                         c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
-                         source->index,
-                         source->name,
-                         pa_typeid_to_string(source->typeid, tid, sizeof(tid)),
-                         (double) pa_source_get_latency(source),
-                         ss);
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+        
+        
+        pa_strbuf_printf(
+            s,
+            "  %c index: %u\n"
+            "\tname: <%s>\n"
+            "\tdriver: <%s>\n"
+            "\tlatency: <%0.0f usec>\n"
+            "\tsample spec: <%s>\n"
+            "\tchannel map: <%s>\n",
+            c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
+            source->index,
+            source->name,
+            source->driver,
+            (double) pa_source_get_latency(source),
+            pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
+            pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map));
 
         if (source->monitor_of) 
             pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);
@@ -154,7 +167,6 @@ char *pa_source_output_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_source_output *o;
     uint32_t idx = PA_IDXSET_INVALID;
-    char tid[5];
     static const char* const state_table[] = {
         "RUNNING",
         "CORKED",
@@ -168,23 +180,28 @@ char *pa_source_output_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_size(c->source_outputs));
 
     for (o = pa_idxset_first(c->source_outputs, &idx); o; o = pa_idxset_next(c->source_outputs, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
-        const char *rm;
-        pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec);
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+        
         assert(o->source);
-
-        if (!(rm = pa_resample_method_to_string(pa_source_output_get_resample_method(o))))
-            rm = "invalid";
         
         pa_strbuf_printf(
-            s, "  index: %u\n\tname: '%s'\n\ttype: <%s>\n\tstate: %s\n\tsource: <%u> '%s'\n\tsample_spec: <%s>\n\tresample method: %s\n",
+            s,
+            "    index: %u\n"
+            "\tname: '%s'\n"
+            "\tdriver: <%s>\n"
+            "\tstate: %s\n"
+            "\tsource: <%u> '%s'\n"
+            "\tsample spec: <%s>\n"
+            "\tchannel map: <%s>\n"
+            "\tresample method: %s\n",
             o->index,
             o->name,
-            pa_typeid_to_string(o->typeid, tid, sizeof(tid)),
+            o->driver,
             state_table[o->state],
             o->source->index, o->source->name,
-            ss,
-            rm);
+            pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec),
+            pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map),
+            pa_resample_method_to_string(pa_source_output_get_resample_method(o)));
         if (o->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", o->owner->index);
         if (o->client)
@@ -198,7 +215,6 @@ char *pa_sink_input_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_sink_input *i;
     uint32_t idx = PA_IDXSET_INVALID;
-    char tid[5];
     static const char* const state_table[] = {
         "RUNNING",
         "CORKED",
@@ -212,26 +228,32 @@ char *pa_sink_input_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_size(c->sink_inputs));
 
     for (i = pa_idxset_first(c->sink_inputs, &idx); i; i = pa_idxset_next(c->sink_inputs, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
-        const char *rm;
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
-        if (!(rm = pa_resample_method_to_string(pa_sink_input_get_resample_method(i))))
-            rm = "invalid";
-
-        pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec);
         assert(i->sink);
+        
         pa_strbuf_printf(
-            s, "    index: %u\n\tname: <%s>\n\ttype: <%s>\n\tstate: %s\n\tsink: <%u> '%s'\n\tvolume: <0x%04x> (%0.2fdB)\n\tlatency: <%0.0f usec>\n\tsample_spec: <%s>\n\tresample method: %s\n",
+            s,
+            "    index: %u\n"
+            "\tname: <%s>\n"
+            "\tdriver: <%s>\n"
+            "\tstate: %s\n"
+            "\tsink: <%u> '%s'\n"
+            "\tvolume: <%s>\n"
+            "\tlatency: <%0.0f usec>\n"
+            "\tsample spec: <%s>\n"
+            "\tchannel map: <%s>\n"
+            "\tresample method: %s\n",
             i->index,
             i->name,
-            pa_typeid_to_string(i->typeid, tid, sizeof(tid)),
+            i->driver,
             state_table[i->state],
             i->sink->index, i->sink->name,
-            (unsigned) i->volume,
-            pa_volume_to_dB(i->volume),
+            pa_cvolume_snprint(cv, sizeof(cv), pa_sink_input_get_volume(i)),
             (double) pa_sink_input_get_latency(i),
-            ss,
-            rm);
+            pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec),
+            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
+            pa_resample_method_to_string(pa_sink_input_get_resample_method(i)));
 
         if (i->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", i->owner->index);
@@ -257,21 +279,32 @@ char *pa_scache_list_to_string(pa_core *c) {
 
         for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
             double l = 0;
-            char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a";
+            char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
             
             if (e->memchunk.memblock) {
                 pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
+                pa_channel_map_snprint(cm, sizeof(cm), &e->channel_map);
                 l = (double) e->memchunk.length / pa_bytes_per_second(&e->sample_spec);
             }
             
             pa_strbuf_printf(
-                s, "    name: <%s>\n\tindex: <%u>\n\tsample_spec: <%s>\n\tlength: <%u>\n\tduration: <%0.1fs>\n\tvolume: <0x%04x>\n\tlazy: %s\n\tfilename: %s\n",
+                s,
+                "    name: <%s>\n"
+                "\tindex: <%u>\n"
+                "\tsample spec: <%s>\n"
+                "\tchannel map: <%s>\n"
+                "\tlength: <%u>\n"
+                "\tduration: <%0.1fs>\n"
+                "\tvolume: <%s>\n"
+                "\tlazy: %s\n"
+                "\tfilename: %s\n",
                 e->name,
                 e->index,
                 ss,
+                cm,
                 e->memchunk.memblock ? e->memchunk.length : 0,
                 l,
-                e->volume,
+                pa_cvolume_snprint(cv, sizeof(cv), &e->volume),
                 e->lazy ? "yes" : "no",
                 e->filename ? e->filename : "n/a");
         }

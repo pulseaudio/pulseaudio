@@ -37,6 +37,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <liboil/liboil.h>
 
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
@@ -386,6 +387,8 @@ int main(int argc, char *argv[]) {
     pa_signal_new(SIGHUP, signal_callback, c);
 #endif
 
+    oil_init();
+    
     r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);
     

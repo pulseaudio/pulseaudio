@@ -76,7 +76,7 @@ static void work(pa_x11_wrapper *w) {
 }
 
 /* IO notification event for the X11 display connection */
-static void display_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+static void display_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
     pa_x11_wrapper *w = userdata;
     assert(m && e && fd >= 0 && w && w->ref >= 1);
     work(w);
@@ -90,7 +90,7 @@ static void defer_event(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
 }
 
 /* IO notification event for X11 internal connections */
-static void internal_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+static void internal_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
     pa_x11_wrapper *w = userdata;
     assert(m && e && fd >= 0 && w && w->ref >= 1);
 

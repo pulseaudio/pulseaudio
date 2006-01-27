@@ -42,8 +42,6 @@
 /* Don't allow more than this many concurrent connections */
 #define MAX_CONNECTIONS 10
 
-#define PA_TYPEID_SIMPLE PA_TYPEID_MAKE('S', 'M', 'P', 'L')
-
 struct connection {
     pa_protocol_simple *protocol;
     pa_iochannel *io;
@@ -310,7 +308,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->playback.fragment_size = 0;
     
     pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
-    c->client = pa_client_new(p->core, PA_TYPEID_SIMPLE, cname);
+    c->client = pa_client_new(p->core, __FILE__, cname);
     assert(c->client);
     c->client->owner = p->module;
     c->client->kill = client_kill_cb;
@@ -325,7 +323,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
             goto fail;
         }
 
-        if (!(c->sink_input = pa_sink_input_new(sink, PA_TYPEID_SIMPLE, c->client->name, &p->sample_spec, 0, -1))) {
+        if (!(c->sink_input = pa_sink_input_new(sink, __FILE__, c->client->name, &p->sample_spec, NULL, 0, -1))) {
             pa_log(__FILE__": Failed to create sink input.\n");
             goto fail;
         }
@@ -355,7 +353,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
             goto fail;
         }
 
-        c->source_output = pa_source_output_new(source, PA_TYPEID_SIMPLE, c->client->name, &p->sample_spec, -1);
+        c->source_output = pa_source_output_new(source, __FILE__, c->client->name, &p->sample_spec, NULL, -1);
         if (!c->source_output) {
             pa_log(__FILE__": Failed to create source output.\n");
             goto fail;

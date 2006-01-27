@@ -25,6 +25,8 @@
 #include <sys/types.h>
 
 #include <polyp/sample.h>
+#include <polyp/channelmap.h>
+#include <polyp/volume.h>
 #include <polyp/polyplib-def.h>
 #include <polyp/cdecl.h>
 #include <polyp/polyplib-operation.h>
@@ -39,7 +41,7 @@ PA_C_DECL_BEGIN
 typedef struct pa_stream pa_stream;
 
 /** Create a new, unconnected stream with the specified name and sample type */
-pa_stream* pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss);
+pa_stream* pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map);
 
 /** Decrease the reference counter by one */
 void pa_stream_unref(pa_stream *s);
@@ -48,7 +50,7 @@ void pa_stream_unref(pa_stream *s);
 pa_stream *pa_stream_ref(pa_stream *s);
 
 /** Return the current state of the stream */
-pa_stream_state pa_stream_get_state(pa_stream *p);
+pa_stream_state_t pa_stream_get_state(pa_stream *p);
 
 /** Return the context this stream is attached to */
 pa_context* pa_stream_get_context(pa_stream *p);
@@ -57,10 +59,19 @@ pa_context* pa_stream_get_context(pa_stream *p);
 uint32_t pa_stream_get_index(pa_stream *s);
 
 /** Connect the stream to a sink */
-void pa_stream_connect_playback(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags flags, pa_volume_t volume);
+void pa_stream_connect_playback(
+    pa_stream *s,
+    const char *dev,
+    const pa_buffer_attr *attr,
+    pa_stream_flags_t flags,
+    pa_cvolume *volume);
 
 /** Connect the stream to a source */
-void pa_stream_connect_record(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags flags);
+void pa_stream_connect_record(
+    pa_stream *s,
+    const char *dev,
+    const pa_buffer_attr *attr,
+    pa_stream_flags_t flags);
 
 /** Disconnect a stream from a source/sink */
 void pa_stream_disconnect(pa_stream *s);

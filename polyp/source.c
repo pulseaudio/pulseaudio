@@ -35,13 +35,24 @@
 #include "subscribe.h"
 #include "log.h"
 
-pa_source* pa_source_new(pa_core *core, pa_typeid_t typeid, const char *name, int fail, const pa_sample_spec *spec) {
+pa_source* pa_source_new(
+    pa_core *core,
+    const char *driver,
+    const char *name,
+    int fail,
+    const pa_sample_spec *spec,
+    const pa_channel_map *map) {
+    
     pa_source *s;
     char st[256];
     int r;
-    assert(core && spec && name && *name);
+    
+    assert(core);
+    assert(name);
+    assert(*name);
+    assert(spec);
 
-    s = pa_xmalloc(sizeof(pa_source));
+    s = pa_xnew(pa_source, 1);
 
     if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SOURCE, s, fail))) {
         pa_xfree(s);
@@ -49,15 +60,19 @@ pa_source* pa_source_new(pa_core *core, pa_typeid_t typeid, const char *name, in
     }
 
     s->ref = 1;
+    s->core = core;
     s->state = PA_SOURCE_RUNNING;
-    
     s->name = pa_xstrdup(name);
     s->description = NULL;
-    s->typeid = typeid; 
-
+    s->driver = pa_xstrdup(driver);
     s->owner = NULL;
-    s->core = core;
+    
     s->sample_spec = *spec;
+    if (map)
+        s->channel_map = *map;
+    else
+        pa_channel_map_init_auto(&s->channel_map, spec->channels);
+
     s->outputs = pa_idxset_new(NULL, NULL);
     s->monitor_of = NULL;
 
@@ -78,7 +93,9 @@ pa_source* pa_source_new(pa_core *core, pa_typeid_t typeid, const char *name, in
 
 void pa_source_disconnect(pa_source *s) {
     pa_source_output *o, *j = NULL;
-    assert(s && s->state == PA_SOURCE_RUNNING);
+    
+    assert(s);
+    assert(s->state == PA_SOURCE_RUNNING);
 
     pa_namereg_unregister(s->core, s->name);
     
@@ -89,15 +106,17 @@ void pa_source_disconnect(pa_source *s) {
     }
 
     pa_idxset_remove_by_data(s->core->sources, s, NULL);
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
 
+    s->get_latency = NULL;
     s->notify = NULL;
     
     s->state = PA_SOURCE_DISCONNECTED;
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
 }
 
 static void source_free(pa_source *s) {
-    assert(s && !s->ref);
+    assert(s);
+    assert(!s->ref);
     
     if (s->state != PA_SOURCE_DISCONNECTED)
         pa_source_disconnect(s);
@@ -108,40 +127,49 @@ static void source_free(pa_source *s) {
 
     pa_xfree(s->name);
     pa_xfree(s->description);
+    pa_xfree(s->driver);
     pa_xfree(s);
 }
 
 void pa_source_unref(pa_source *s) {
-    assert(s && s->ref >= 1);
+    assert(s);
+    assert(s->ref >= 1);
 
     if (!(--s->ref))
         source_free(s);
 }
 
 pa_source* pa_source_ref(pa_source *s) {
-    assert(s && s->ref >= 1);
+    assert(s);
+    assert(s->ref >= 1);
+    
     s->ref++;
     return s;
 }
 
 void pa_source_notify(pa_source*s) {
-    assert(s && s->ref >= 1);
+    assert(s);
+    assert(s->ref >= 1);
 
     if (s->notify)
         s->notify(s);
 }
 
 static int do_post(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void*userdata) {
-    const pa_memchunk *chunk = userdata;
     pa_source_output *o = p;
-    assert(o && o->push && del && chunk);
+    const pa_memchunk *chunk = userdata;
+    
+    assert(o);
+    assert(chunk);
 
     pa_source_output_push(o, chunk);
     return 0;
 }
 
 void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
-    assert(s && s->ref >= 1 && chunk);
+    assert(s);
+    assert(s->ref >= 1);
+    assert(chunk);
 
     pa_source_ref(s);
     pa_idxset_foreach(s->outputs, do_post, (void*) chunk);
@@ -150,11 +178,14 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 
 void pa_source_set_owner(pa_source *s, pa_module *m) {
     assert(s);
+    assert(s->ref >= 1);
+    
     s->owner = m;
 }
 
 pa_usec_t pa_source_get_latency(pa_source *s) {
-    assert(s && s->ref >= 1);
+    assert(s);
+    assert(s->ref >= 1);
 
     if (!s->get_latency)
         return 0;

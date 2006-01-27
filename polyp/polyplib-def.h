@@ -43,7 +43,7 @@ typedef enum pa_context_state {
     PA_CONTEXT_READY,          /**< The connection is established, the context is ready to execute operations */
     PA_CONTEXT_FAILED,         /**< The connection failed or was disconnected */
     PA_CONTEXT_TERMINATED      /**< The connection was terminated cleanly */
-} pa_context_state;
+} pa_context_state_t;
 
 /** The state of a stream */
 typedef enum pa_stream_state {
@@ -52,14 +52,14 @@ typedef enum pa_stream_state {
     PA_STREAM_READY,        /**< The stream is established, you may pass audio data to it now */
     PA_STREAM_FAILED,       /**< An error occured that made the stream invalid */
     PA_STREAM_TERMINATED    /**< The stream has been terminated cleanly */
-} pa_stream_state;
+} pa_stream_state_t;
 
 /** The state of an operation */
 typedef enum pa_operation_state {
     PA_OPERATION_RUNNING,      /**< The operation is still running */
     PA_OPERATION_DONE,         /**< The operation has been completed */
     PA_OPERATION_CANCELED      /**< The operation has been canceled */
-} pa_operation_state;
+} pa_operation_state_t;
 
 /** An invalid index */
 #define PA_INVALID_INDEX ((uint32_t) -1)
@@ -70,7 +70,7 @@ typedef enum pa_stream_direction {
     PA_STREAM_PLAYBACK,      /**< Playback stream */
     PA_STREAM_RECORD,        /**< Record stream */
     PA_STREAM_UPLOAD         /**< Sample upload stream */
-} pa_stream_direction;
+} pa_stream_direction_t;
 
 /** Some special flags for stream connections. \since 0.6 */
 typedef enum pa_stream_flags {
@@ -90,7 +90,7 @@ typedef enum pa_stream_flags {
                                        * information. This is
                                        * especially useful on long latency
                                        * network connections. */
-} pa_stream_flags;
+} pa_stream_flags_t;
 
 /** Playback and record buffer metrics */
 typedef struct pa_buffer_attr {
@@ -133,7 +133,7 @@ typedef enum pa_subscription_mask {
     PA_SUBSCRIPTION_MASK_SAMPLE_CACHE = 64,      /**< Sample cache events */
     PA_SUBSCRIPTION_MASK_SERVER = 128,           /**< Other global server changes. \since 0.4 */
     PA_SUBSCRIPTION_MASK_AUTOLOAD = 256          /**< Autoload table events. \since 0.5 */
-} pa_subscription_mask;
+} pa_subscription_mask_t;
 
 /** Subscription event types, as used by pa_context_subscribe() */
 typedef enum pa_subscription_event_type {
@@ -152,7 +152,7 @@ typedef enum pa_subscription_event_type {
     PA_SUBSCRIPTION_EVENT_CHANGE = 16,        /**< A property of the object was modified */
     PA_SUBSCRIPTION_EVENT_REMOVE = 32,        /**< An object was removed */
     PA_SUBSCRIPTION_EVENT_TYPE_MASK = 16+32   /**< A mask to extract the event operation from an event value */
-} pa_subscription_event_type;
+} pa_subscription_event_type_t;
 
 /** Return one if an event type t matches an event mask bitfield */
 #define pa_subscription_match_flags(m, t) (!!((m) & (1 << ((t) & PA_SUBSCRIPTION_EVENT_FACILITY_MASK))))

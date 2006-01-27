@@ -27,7 +27,8 @@
 #include <polyp/polyplib-operation.h>
 #include <polyp/polyplib-context.h>
 #include <polyp/cdecl.h>
-#include <polyp/typeid.h>
+#include <polyp/channelmap.h>
+#include <polyp/volume.h>
 
 /** \file
  *
@@ -52,13 +53,14 @@ typedef struct pa_sink_info {
     const char *name;                  /**< Name of the sink */
     uint32_t index;                    /**< Index of the sink */ 
     const char *description;           /**< Description of this sink */
-    pa_sample_spec sample_spec; /**< Sample spec of this sink */
+    pa_sample_spec sample_spec;        /**< Sample spec of this sink */
+    pa_channel_map channel_map;        /**< Channel map \since 0.9 */
     uint32_t owner_module;             /**< Index of the owning module of this sink, or PA_INVALID_INDEX */
-    pa_volume_t volume;                /**< Volume of the sink */
+    pa_cvolume volume;                 /**< Volume of the sink */
     uint32_t monitor_source;           /**< Index of the monitor source connected to this sink */
     const char *monitor_source_name;   /**< The name of the monitor source */
     pa_usec_t latency;                 /**< Length of filled playback buffer of this sink */
-    pa_typeid_t _typeid;                /**< Implementation type. \since 0.8 */
+    const char *driver;                /**< Driver name. \since 0.9 */
 } pa_sink_info;
 
 /** Get information about a sink by its name */
@@ -75,12 +77,13 @@ typedef struct pa_source_info {
     const char *name ;                  /**< Name of the source */
     uint32_t index;                     /**< Index of the source */
     const char *description;            /**< Description of this source */
-    pa_sample_spec sample_spec;  /**< Sample spec of this source */
+    pa_sample_spec sample_spec;         /**< Sample spec of this source */
+    pa_channel_map channel_map;         /**< Channel map \since 0.9 */
     uint32_t owner_module;              /**< Owning module index, or PA_INVALID_INDEX */
     uint32_t monitor_of_sink;           /**< If this is a monitor source the index of the owning sink, otherwise PA_INVALID_INDEX */
     const char *monitor_of_sink_name;   /**< Name of the owning sink, or PA_INVALID_INDEX */
     pa_usec_t latency;                  /**< Length of filled record buffer of this source. \since 0.5 */
-    pa_typeid_t _typeid;                /**< Implementation type. \since 0.8 */
+    const char *driver;                 /**< Driver name \since 0.9 */
 } pa_source_info;
 
 /** Get information about a source by its name */
@@ -98,7 +101,7 @@ typedef struct pa_server_info {
     const char *host_name;              /**< Host name the daemon is running on */
     const char *server_version;         /**< Version string of the daemon */
     const char *server_name;            /**< Server package name (usually "polypaudio") */
-    pa_sample_spec sample_spec;  /**< Default sample specification */
+    pa_sample_spec sample_spec;         /**< Default sample specification */
     const char *default_sink_name;      /**< Name of default sink. \since 0.4 */
     const char *default_source_name;    /**< Name of default sink. \since 0.4*/
     uint32_t cookie;                    /**< A random cookie for identifying this instance of polypaudio. \since 0.8 */
@@ -127,7 +130,7 @@ typedef struct pa_client_info {
     uint32_t index;                      /**< Index of this client */
     const char *name;                    /**< Name of this client */
     uint32_t owner_module;               /**< Index of the owning module, or PA_INVALID_INDEX */
-    pa_typeid_t _typeid;                  /**< Implementation type. \since 0.8 */
+    const char *driver;                  /**< Driver name \since 0.9 */
 } pa_client_info;
 
 /** Get information about a client by its index */
@@ -143,12 +146,13 @@ typedef struct pa_sink_input_info {
     uint32_t owner_module;               /**< Index of the module this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any module */
     uint32_t client;                     /**< Index of the client this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any client */
     uint32_t sink;                       /**< Index of the connected sink */
-    pa_sample_spec sample_spec;   /**< The sample specification of the sink input */
-    pa_volume_t volume;                  /**< The volume of this sink input */
+    pa_sample_spec sample_spec;          /**< The sample specification of the sink input */
+    pa_channel_map channel_map;          /**< Channel map */
+    pa_cvolume volume;                   /**< The volume of this sink input */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in sink input, see pa_latency_info for details */
     pa_usec_t sink_usec;                 /**< Latency of the sink device, see pa_latency_info for details */
     const char *resample_method;         /**< Thre resampling method used by this sink input. \since 0.7 */
-    pa_typeid_t _typeid;                 /**< Implementation type. \since 0.8 */
+    const char *driver;                  /**< Driver name \since 0.9 */
 } pa_sink_input_info;
 
 /** Get some information about a sink input by its index */
@@ -164,11 +168,12 @@ typedef struct pa_source_output_info {
     uint32_t owner_module;               /**< Index of the module this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any module */ 
     uint32_t client;                     /**< Index of the client this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any client */  
     uint32_t source;                     /**< Index of the connected source */ 
-    pa_sample_spec sample_spec;   /**< The sample specification of the source output */
+    pa_sample_spec sample_spec;          /**< The sample specification of the source output */
+    pa_channel_map channel_map;          /**< Channel map */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in the source output, see pa_latency_info for details. \since 0.5 */
     pa_usec_t source_usec;               /**< Latency of the source device, see pa_latency_info for details. \since 0.5 */
     const char *resample_method;         /**< Thre resampling method used by this source output. \since 0.7 */
-    pa_typeid_t _typeid;                  /**< Implementation type. \since 0.8 */
+    const char *driver;                  /**< Driver name \since 0.9 */
 } pa_source_output_info;
 
 /** Get information about a source output by its index */
@@ -202,8 +207,9 @@ pa_operation* pa_context_stat(pa_context *c, void (*cb)(pa_context *c, const pa_
 typedef struct pa_sample_info {
     uint32_t index;                       /**< Index of this entry */
     const char *name;                     /**< Name of this entry */
-    pa_volume_t volume;                   /**< Default volume of this entry */
-    pa_sample_spec sample_spec;    /**< Sample specification of the sampel */
+    pa_cvolume volume;                    /**< Default volume of this entry */
+    pa_sample_spec sample_spec;           /**< Sample specification of the sample */
+    pa_channel_map channel_map;           /**< The channel map */
     pa_usec_t duration;                   /**< Duration of this entry */
     uint32_t bytes;                       /**< Length of this sample in bytes. \since 0.4 */
     int lazy;                             /**< Non-zero when this is a lazy cache entry. \since 0.5 */
@@ -238,19 +244,19 @@ pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, void (*cb)(p
 typedef enum pa_autoload_type {
     PA_AUTOLOAD_SINK = 0,
     PA_AUTOLOAD_SOURCE = 1
-} pa_autoload_type;
+} pa_autoload_type_t;
 
 /** Stores information about autoload entries. \since 0.5 */
 typedef struct pa_autoload_info {
     uint32_t index;               /**< Index of this autoload entry */
     const char *name;             /**< Name of the sink or source */
-    pa_autoload_type type;   /**< Type of the autoload entry */
+    pa_autoload_type_t type;   /**< Type of the autoload entry */
     const char *module;           /**< Module name to load */
     const char *argument;         /**< Argument string for module */
 } pa_autoload_info;
 
 /** Get info about a specific autoload entry. \since 0.6 */
-pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type type, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type_t type, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata);
 
 /** Get info about a specific autoload entry. \since 0.6 */
 pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata);
@@ -259,10 +265,10 @@ pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx,
 pa_operation* pa_context_get_autoload_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata);
 
 /** Add a new autoload entry. \since 0.5 */
-pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type type, const char *module, const char*argument, void (*cb)(pa_context *c, int idx, void *userdata), void* userdata);
+pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type_t type, const char *module, const char*argument, void (*cb)(pa_context *c, int idx, void *userdata), void* userdata);
 
 /** Remove an autoload entry. \since 0.6 */
-pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type type, void (*cb)(pa_context *c, int success, void *userdata), void* userdata);
+pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type_t type, void (*cb)(pa_context *c, int success, void *userdata), void* userdata);
 
 /** Remove an autoload entry. \since 0.6 */
 pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, int success, void *userdata), void* userdata);

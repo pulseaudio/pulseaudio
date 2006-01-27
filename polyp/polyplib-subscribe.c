@@ -33,7 +33,7 @@
 
 void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
-    pa_subscription_event_type e;
+    pa_subscription_event_type_t e;
     uint32_t index;
     assert(pd && command == PA_COMMAND_SUBSCRIBE_EVENT && t && c);
 
@@ -54,7 +54,7 @@ finish:
 }
 
 
-pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask m, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
@@ -74,7 +74,7 @@ pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask m, void (
     return pa_operation_ref(o);
 }
 
-void pa_context_set_subscribe_callback(pa_context *c, void (*cb)(pa_context *c, pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata) {
+void pa_context_set_subscribe_callback(pa_context *c, void (*cb)(pa_context *c, pa_subscription_event_type_t t, uint32_t index, void *userdata), void *userdata) {
     assert(c);
     c->subscribe_callback = cb;
     c->subscribe_userdata = userdata;

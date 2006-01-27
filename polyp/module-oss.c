@@ -52,8 +52,6 @@ PA_MODULE_DESCRIPTION("OSS Sink/Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source> device=<OSS device> record=<enable source?> playback=<enable sink?> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
 
-#define PA_TYPEID_OSS PA_TYPEID_MAKE('O', 'S', 'S', '_')
-
 struct userdata {
     pa_sink *sink;
     pa_source *source;
@@ -222,7 +220,7 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     assert(s && u && u->sink);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
-        pa_log_info(__FILE__": device doesn't support SNDCTL_DSP_GETODELAY.\n");
+        pa_log_info(__FILE__": device doesn't support SNDCTL_DSP_GETODELAY: %s\n", strerror(errno));
         s->get_latency = NULL;
         return 0;
     }
@@ -252,6 +250,46 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
         return 0;
 
     return pa_bytes_to_usec(info.bytes, &s->sample_spec);
+}
+
+static int sink_get_hw_volume(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    char cv[PA_CVOLUME_SNPRINT_MAX];
+    unsigned vol;
+
+    if (ioctl(u->fd, SOUND_MIXER_READ_PCM, &vol) < 0) {
+        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s\n", strerror(errno));
+        s->get_hw_volume = NULL;
+        return -1;
+    }
+
+    s->hw_volume.values[0] = ((vol & 0xFF) * PA_VOLUME_NORM) / 100;
+
+    if ((s->hw_volume.channels = s->sample_spec.channels) >= 2)
+        s->hw_volume.values[1] = (((vol >> 8) & 0xFF) * PA_VOLUME_NORM) / 100;
+
+    pa_log_info(__FILE__": Read mixer settings: %s\n", pa_cvolume_snprint(cv, sizeof(cv), &s->hw_volume));
+    return 0;
+}
+
+static int sink_set_hw_volume(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    char cv[PA_CVOLUME_SNPRINT_MAX];
+    unsigned vol;
+
+    vol = (s->hw_volume.values[0]*100)/PA_VOLUME_NORM;
+
+    if (s->sample_spec.channels >= 2)
+        vol |= ((s->hw_volume.values[1]*100)/PA_VOLUME_NORM) << 8;
+    
+    if (ioctl(u->fd, SOUND_MIXER_WRITE_PCM, &vol) < 0) {
+        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s\n", strerror(errno));
+        s->set_hw_volume = NULL;
+        return -1;
+    }
+
+    pa_log_info(__FILE__": Wrote mixer settings: %s\n", pa_cvolume_snprint(cv, sizeof(cv), &s->hw_volume));
+    return 0;
 }
 
 int pa__init(pa_core *c, pa_module*m) {
@@ -332,7 +370,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (mode != O_WRONLY) {
-        u->source = pa_source_new(c, PA_TYPEID_OSS, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss);
+        u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL);
         assert(u->source);
         u->source->userdata = u;
         u->source->notify = source_notify_cb;
@@ -343,9 +381,11 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source = NULL;
 
     if (mode != O_RDONLY) {
-        u->sink = pa_sink_new(c, PA_TYPEID_OSS, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss);
+        u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL);
         assert(u->sink);
         u->sink->get_latency = sink_get_latency_cb;
+        u->sink->get_hw_volume = sink_get_hw_volume;
+        u->sink->set_hw_volume = sink_set_hw_volume;
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
         u->sink->description = pa_sprintf_malloc("Open Sound System PCM on '%s'", p);
@@ -383,6 +423,10 @@ int pa__init(pa_core *c, pa_module*m) {
         char buf[u->sample_size];
         read(u->fd, buf, u->sample_size);
     }
+
+    /* Read mixer settings */
+    if (u->sink)
+        sink_get_hw_volume(u->sink);
 
     return 0;
 

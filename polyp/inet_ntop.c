@@ -1,4 +1,4 @@
-/* $Id: inet_ntop.c 428 2006-01-09 16:50:39Z ossman $ */
+/* $Id$ */
 
 /***
   This file is part of polypaudio.

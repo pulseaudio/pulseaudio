@@ -149,8 +149,8 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
 }
 
 static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
-    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], tid[5];
-
+    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    
     if (is_last < 0) {
         fprintf(stderr, "Failed to get sink information: %s\n", pa_strerror(pa_context_errno(c)));
         quit(1);
@@ -168,31 +168,31 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
         printf("\n");
     nl = 1;
 
-    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
-    
     printf("*** Sink #%u ***\n"
            "Name: %s\n"
-           "Type: %s\n"
+           "Driver: %s\n"
            "Description: %s\n"
            "Sample Specification: %s\n"
+           "Channel Map: %s\n"
            "Owner Module: %u\n"
-           "Volume: 0x%03x (%0.2f dB)\n"
+           "Volume: %s\n"
            "Monitor Source: %u\n"
            "Latency: %0.0f usec\n",
            i->index,
            i->name,
-           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
+           i->driver,
            i->description,
-           s,
+           pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
+           pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
-           i->volume, pa_volume_to_dB(i->volume),
+           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
            i->monitor_source,
            (double) i->latency);
 
 }
 
 static void get_source_info_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
-    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], t[32], tid[5];
+    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], t[32], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get source information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -213,21 +213,21 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
 
     snprintf(t, sizeof(t), "%u", i->monitor_of_sink);
     
-    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
-    
     printf("*** Source #%u ***\n"
            "Name: %s\n"
-           "Type: %s\n"
+           "Driver: %s\n"
            "Description: %s\n"
            "Sample Specification: %s\n"
+           "Channel Map: %s\n"
            "Owner Module: %u\n"
            "Monitor of Sink: %s\n"
            "Latency: %0.0f usec\n",
            i->index,
-           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
+           i->driver,
            i->name,
            i->description,
-           s,
+           pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
+           pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
            i->monitor_of_sink != PA_INVALID_INDEX ? t : "no",
            (double) i->latency);
@@ -269,7 +269,7 @@ static void get_module_info_callback(pa_context *c, const pa_module_info *i, int
 }
 
 static void get_client_info_callback(pa_context *c, const pa_client_info *i, int is_last, void *userdata) {
-    char t[32], tid[5];
+    char t[32];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get client information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -292,16 +292,16 @@ static void get_client_info_callback(pa_context *c, const pa_client_info *i, int
     
     printf("*** Client #%u ***\n"
            "Name: %s\n"
-           "Type: %s\n"
+           "Driver: %s\n"
            "Owner Module: %s\n",
            i->index,
            i->name,
-           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
+           i->driver,
            i->owner_module != PA_INVALID_INDEX ? t : "n/a");
 }
 
 static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
-    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], tid[5];
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get sink input information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -320,29 +320,30 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
         printf("\n");
     nl = 1;
 
-    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
     snprintf(t, sizeof(t), "%u", i->owner_module);
     snprintf(k, sizeof(k), "%u", i->client);
     
     printf("*** Sink Input #%u ***\n"
            "Name: %s\n"
-           "Type: %s\n"
+           "Driver: %s\n"
            "Owner Module: %s\n"
            "Client: %s\n"
            "Sink: %u\n"
            "Sample Specification: %s\n"
-           "Volume: 0x%03x (%0.2f dB)\n"
+           "Channel Map: %s\n"
+           "Volume: %s\n"
            "Buffer Latency: %0.0f usec\n"
            "Sink Latency: %0.0f usec\n"
            "Resample method: %s\n",
            i->index,
            i->name,
-           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
+           i->driver,
            i->owner_module != PA_INVALID_INDEX ? t : "n/a",
            i->client != PA_INVALID_INDEX ? k : "n/a",
            i->sink,
-           s,
-           i->volume, pa_volume_to_dB(i->volume),
+           pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
+           pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
+           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
            (double) i->buffer_usec,
            (double) i->sink_usec,
            i->resample_method ? i->resample_method : "n/a");
@@ -350,7 +351,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
 
 
 static void get_source_output_info_callback(pa_context *c, const pa_source_output_info *i, int is_last, void *userdata) {
-    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], tid[5];
+    char t[32], k[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get source output information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -369,34 +370,36 @@ static void get_source_output_info_callback(pa_context *c, const pa_source_outpu
         printf("\n");
     nl = 1;
 
-    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
+    
     snprintf(t, sizeof(t), "%u", i->owner_module);
     snprintf(k, sizeof(k), "%u", i->client);
     
     printf("*** Source Output #%u ***\n"
            "Name: %s\n"
-           "Type: %s\n"
+           "Driver: %s\n"
            "Owner Module: %s\n"
            "Client: %s\n"
            "Source: %u\n"
            "Sample Specification: %s\n"
+           "Channel Map: %s\n"
            "Buffer Latency: %0.0f usec\n"
            "Source Latency: %0.0f usec\n"
            "Resample method: %s\n",
            i->index,
            i->name,
-           pa_typeid_to_string(i->_typeid, tid, sizeof(tid)),
+           i->driver,
            i->owner_module != PA_INVALID_INDEX ? t : "n/a",
            i->client != PA_INVALID_INDEX ? k : "n/a",
            i->source,
-           s,
+           pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
+           pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            (double) i->buffer_usec,
            (double) i->source_usec,
            i->resample_method ? i->resample_method : "n/a");
 }
 
 static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int is_last, void *userdata) {
-    char t[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char t[32], s[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get sample information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -415,21 +418,23 @@ static void get_sample_info_callback(pa_context *c, const pa_sample_info *i, int
         printf("\n");
     nl = 1;
 
-    pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec);
+    
     pa_bytes_snprint(t, sizeof(t), i->bytes);
     
     printf("*** Sample #%u ***\n"
            "Name: %s\n"
-           "Volume: 0x%03x (%0.2f dB)\n"
+           "Volume: %s\n"
            "Sample Specification: %s\n"
+           "Channel Map: %s\n"
            "Duration: %0.1fs\n"
            "Size: %s\n"
            "Lazy: %s\n"
            "Filename: %s\n",
            i->index,
            i->name,
-           i->volume, pa_volume_to_dB(i->volume),
-           pa_sample_spec_valid(&i->sample_spec) ? s : "n/a",
+           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           pa_sample_spec_valid(&i->sample_spec) ? pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec) : "n/a",
+           pa_sample_spec_valid(&i->sample_spec) ? pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map) : "n/a",
            (double) i->duration/1000000,
            t,
            i->lazy ? "yes" : "no",
@@ -547,7 +552,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     break;
 
                 case UPLOAD_SAMPLE:
-                    sample_stream = pa_stream_new(c, sample_name, &sample_spec);
+                    sample_stream = pa_stream_new(c, sample_name, &sample_spec, NULL);
                     assert(sample_stream);
                     
                     pa_stream_set_state_callback(sample_stream, stream_state_callback, NULL);

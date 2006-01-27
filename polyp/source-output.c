@@ -33,13 +33,24 @@
 #include "subscribe.h"
 #include "log.h"
 
-pa_source_output* pa_source_output_new(pa_source *s, pa_typeid_t typeid, const char *name, const pa_sample_spec *spec, int resample_method) {
+pa_source_output* pa_source_output_new(
+    pa_source *s,
+    const char *driver,
+    const char *name,
+    const pa_sample_spec *spec,
+    const pa_channel_map *map,
+    int resample_method) {
+    
     pa_source_output *o;
     pa_resampler *resampler = NULL;
     int r;
     char st[256];
-    assert(s && spec);
+    pa_channel_map tmap;
 
+    assert(s);
+    assert(spec);
+    assert(s->state == PA_SOURCE_RUNNING);
+    
     if (pa_idxset_size(s->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
         pa_log(__FILE__": Failed to create source output: too many outputs per source.\n");
         return NULL;
@@ -48,25 +59,31 @@ pa_source_output* pa_source_output_new(pa_source *s, pa_typeid_t typeid, const c
     if (resample_method == PA_RESAMPLER_INVALID)
         resample_method = s->core->resample_method;
 
-    if (!pa_sample_spec_equal(&s->sample_spec, spec))
-        if (!(resampler = pa_resampler_new(&s->sample_spec, spec, s->core->memblock_stat, resample_method)))
+    if (!map) {
+        pa_channel_map_init_auto(&tmap, spec->channels);
+        map = &tmap;
+    }
+    
+    if (!pa_sample_spec_equal(&s->sample_spec, spec) || !pa_channel_map_equal(&s->channel_map, map))
+        if (!(resampler = pa_resampler_new(&s->sample_spec, &s->channel_map, spec, map, s->core->memblock_stat, resample_method)))
             return NULL;
     
     o = pa_xmalloc(sizeof(pa_source_output));
     o->ref = 1;
     o->state = PA_SOURCE_OUTPUT_RUNNING;
     o->name = pa_xstrdup(name);
-    o->typeid = typeid;
-    
-    o->client = NULL;
+    o->driver = pa_xstrdup(driver);
     o->owner = NULL;
     o->source = s;
+    o->client = NULL;
+    
     o->sample_spec = *spec;
+    o->channel_map = *map;
 
     o->push = NULL;
     o->kill = NULL;
-    o->userdata = NULL;
     o->get_latency = NULL;
+    o->userdata = NULL;
     
     o->resampler = resampler;
     
@@ -85,7 +102,10 @@ pa_source_output* pa_source_output_new(pa_source *s, pa_typeid_t typeid, const c
 }
 
 void pa_source_output_disconnect(pa_source_output*o) {
-    assert(o && o->state != PA_SOURCE_OUTPUT_DISCONNECTED && o->source && o->source->core);
+    assert(o);
+    assert(o->state != PA_SOURCE_OUTPUT_DISCONNECTED);
+    assert(o->source);
+    assert(o->source->core);
     
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     pa_idxset_remove_by_data(o->source->outputs, o, NULL);
@@ -95,7 +115,7 @@ void pa_source_output_disconnect(pa_source_output*o) {
 
     o->push = NULL;
     o->kill = NULL;
-    
+    o->get_latency = NULL;
     
     o->state = PA_SOURCE_OUTPUT_DISCONNECTED;
 }
@@ -112,26 +132,31 @@ static void source_output_free(pa_source_output* o) {
         pa_resampler_free(o->resampler);
 
     pa_xfree(o->name);
+    pa_xfree(o->driver);
     pa_xfree(o);
 }
 
 
 void pa_source_output_unref(pa_source_output* o) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
 
     if (!(--o->ref))
         source_output_free(o);
 }
 
 pa_source_output* pa_source_output_ref(pa_source_output *o) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
+    
     o->ref++;
     return o;
 }
 
 
 void pa_source_output_kill(pa_source_output*o) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
 
     if (o->kill)
         o->kill(o);
@@ -139,7 +164,11 @@ void pa_source_output_kill(pa_source_output*o) {
 
 void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     pa_memchunk rchunk;
-    assert(o && chunk && chunk->length && o->push);
+    
+    assert(o);
+    assert(chunk);
+    assert(chunk->length);
+    assert(o->push);
 
     if (o->state == PA_SOURCE_OUTPUT_CORKED)
         return;
@@ -159,7 +188,9 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 }
 
 void pa_source_output_set_name(pa_source_output *o, const char *name) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
+    
     pa_xfree(o->name);
     o->name = pa_xstrdup(name);
 
@@ -167,7 +198,8 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
 }
 
 pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
     
     if (o->get_latency)
         return o->get_latency(o);
@@ -176,7 +208,8 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
 }
 
 void pa_source_output_cork(pa_source_output *o, int b) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
 
     if (o->state == PA_SOURCE_OUTPUT_DISCONNECTED)
         return;
@@ -184,9 +217,10 @@ void pa_source_output_cork(pa_source_output *o, int b) {
     o->state = b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
 }
 
-pa_resample_method pa_source_output_get_resample_method(pa_source_output *o) {
-    assert(o && o->ref >= 1);
-
+pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
+    assert(o);
+    assert(o->ref >= 1);
+    
     if (!o->resampler)
         return PA_RESAMPLER_INVALID;
 

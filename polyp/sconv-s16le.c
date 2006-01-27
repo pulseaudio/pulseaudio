@@ -26,6 +26,8 @@
 #include <assert.h>
 #include <inttypes.h>
 
+#include <liboil/liboilfuncs.h>
+
 #include "endianmacros.h"
 #include "sconv.h"
 #include "sconv-s16le.h"
@@ -39,49 +41,61 @@
 #define INT16_TO INT16_TO_LE
 #endif
 
-void pa_sconv_s16le_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
+#ifndef SWAP_WORDS
+#ifdef WORDS_BIGENDIAN
+#define SWAP_WORDS 1
+#else
+#define SWAP_WORDS 0
+#endif
+#endif
+
+void pa_sconv_s16le_to_float32ne(unsigned n, const void *a, float *b) {
     const int16_t *ca = a;
-    assert(n && a && an && b);
 
+    assert(a);
+    assert(b);
+
+#if SWAP_WORDS == 1
+    
     for (; n > 0; n--) {
-        unsigned i;
-        float sum = 0;
-        
-        for (i = 0; i < an; i++) {
-            int16_t s = *(ca++);
-            sum += ((float) INT16_FROM(s))/0x7FFF;
-        }
-
-        if (sum > 1)
-            sum = 1;
-        if (sum < -1)
-            sum = -1;
-        
-        *(b++) = sum;
+        int16_t s = *(ca++);
+        *(b++) = ((float) INT16_FROM(s))/0x7FFF;
     }
+
+#else
+{
+    static const double add = 0, factor = 1.0/0x7FFF;
+    oil_scaleconv_f32_s16(b, ca, n, &add, &factor);
+}
+#endif
 }
 
-void pa_sconv_s16le_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
+void pa_sconv_s16le_from_float32ne(unsigned n, const float *a, void *b) {
     int16_t *cb = b;
-
-/*     pa_log("%u %p %p %u\n", n, a, b, bn); */
     
-    assert(n && a && b && bn);
+    assert(a);
+    assert(b);
+
+#if SWAP_WORDS == 1
     
     for (; n > 0; n--) {
-        unsigned i;
         int16_t s;
         float v = *(a++);
 
         if (v > 1)
             v = 1;
+        
         if (v < -1)
             v = -1;
 
         s = (int16_t) (v * 0x7FFF);
-        s = INT16_TO(s);
-
-        for (i = 0; i < bn; i++)
-            *(cb++) = s;
+        *(cb++) = INT16_TO(s);
     }
+
+#else
+{
+    static const double add = 0, factor = 0x7FFF;
+    oil_scaleconv_s16_f32(cb, a, n, &add, &factor);
+}
+#endif
 }

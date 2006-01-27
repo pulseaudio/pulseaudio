@@ -47,6 +47,7 @@ AM_CFLAGS += $(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS
 AM_CFLAGS += $(LTDLINCL)
 AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 AM_CFLAGS += -DDLSEARCHPATH=\"$(modlibdir)\"
+#AM_CFLAGS += -DDLSEARCHPATH=\"$(shell pwd)\"
 AM_CFLAGS += -DDEFAULT_CONFIG_DIR=\"$(DEFAULT_CONFIG_DIR)\"
 AM_CFLAGS += -DPOLYPAUDIO_BINARY=\"$(POLYPAUDIO_BINARY)\"
 
@@ -101,10 +102,10 @@ polypaudio_SOURCES = \
 		main.c \
 		pid.c pid.h
 
-polypaudio_CFLAGS = $(AM_CFLAGS)
-polypaudio_CPPFLAGS = $(AM_CPPFLAGS)
+polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+polypaudio_CPPFLAGS = $(AM_CPPFLAGS) 
 polypaudio_LDADD = $(AM_LDADD) libpolypcore.la $(LIBLTDL) \
-		$(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS)
+		$(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS) $(LIBOIL_LIBS)
 polypaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
 
 if PREOPEN_MODS
@@ -219,7 +220,7 @@ strlist_test_CFLAGS = $(AM_CFLAGS)
 strlist_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS)
 strlist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-voltest_SOURCES = voltest.c sample.c
+voltest_SOURCES = voltest.c sample.c volume.c volume.h sample.h
 voltest_CFLAGS = $(AM_CFLAGS)
 voltest_LDADD = $(AM_LDADD)
 voltest_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
@@ -265,8 +266,7 @@ polypinclude_HEADERS = \
 		polyplib-stream.h \
 		polyplib-subscribe.h \
 		polyplib-version.h \
-		sample.h \
-		typeid.h
+		sample.h
 
 if HAVE_HOWL
 polypinclude_HEADERS += \
@@ -333,10 +333,11 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = \
 		strbuf.c strbuf.h \
 		strlist.c strlist.h \
 		tagstruct.c tagstruct.h \
-		typeid.c typeid.h \
 		util.c util.h \
 		winsock.h \
-		xmalloc.c xmalloc.h
+		xmalloc.c xmalloc.h \
+		channelmap.c channelmap.h \
+		volume.c volume.h
 
 if HAVE_X11
 libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
@@ -475,14 +476,15 @@ libpolypcore_la_SOURCES = \
 		strbuf.c strbuf.h \
 		subscribe.c subscripe.h \
 		tokenizer.c tokenizer.h \
-		typeid.c typeid.h \
 		util.c util.h \
 		winsock.h \
-		xmalloc.c xmalloc.h
+		xmalloc.c xmalloc.h \
+		volume.c volume.h \
+		channelmap.c channelmap.h
 
-libpolypcore_la_CPPFLAGS = $(AM_CPPFLAGS)
+libpolypcore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
 libpolypcore_la_LDFLAGS = -avoid-version
-libpolypcore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS)
+libpolypcore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS)
 
 ###################################
 #   Plug-in support libraries     #

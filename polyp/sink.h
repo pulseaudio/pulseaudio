@@ -30,39 +30,55 @@ typedef struct pa_sink pa_sink;
 #include "sample.h"
 #include "idxset.h"
 #include "source.h"
-#include "typeid.h"
+#include "channelmap.h"
 #include "module.h"
+#include "volume.h"
 
 #define PA_MAX_INPUTS_PER_SINK 6
 
 typedef enum pa_sink_state {
     PA_SINK_RUNNING,
     PA_SINK_DISCONNECTED
-} pa_sink_state;
+} pa_sink_state_t;
+
+typedef enum pa_mixer {
+    PA_MIXER_SOFTWARE,
+    PA_MIXER_HARDWARE
+} pa_mixer_t;
 
 struct pa_sink {
     int ref;
-    pa_sink_state state;
-    
     uint32_t index;
-    pa_typeid_t typeid;
-
-    char *name, *description;
-    pa_module *owner;
     pa_core *core;
+    pa_sink_state_t state;
+
+    char *name, *description, *driver;
+    pa_module *owner;
+
     pa_sample_spec sample_spec;
+    pa_channel_map channel_map;
+
     pa_idxset *inputs;
-
     pa_source *monitor_source;
-
-    pa_volume_t volume;
+    
+    pa_cvolume hw_volume, sw_volume;
 
     void (*notify)(pa_sink*sink);
     pa_usec_t (*get_latency)(pa_sink *s);
+    int (*set_hw_volume)(pa_sink *s);
+    int (*get_hw_volume)(pa_sink *s);
+    
     void *userdata;
 };
 
-pa_sink* pa_sink_new(pa_core *core, pa_typeid_t typeid, const char *name, int fail, const pa_sample_spec *spec);
+pa_sink* pa_sink_new(
+    pa_core *core,
+    const char *driver,
+    const char *name,
+    int namereg_fail,
+    const pa_sample_spec *spec,
+    const pa_channel_map *map);
+
 void pa_sink_disconnect(pa_sink* s);
 void pa_sink_unref(pa_sink*s);
 pa_sink* pa_sink_ref(pa_sink *s);
@@ -78,6 +94,7 @@ void pa_sink_notify(pa_sink*s);
 
 void pa_sink_set_owner(pa_sink *sink, pa_module *m);
 
-void pa_sink_set_volume(pa_sink *sink, pa_volume_t volume);
+void pa_sink_set_volume(pa_sink *sink, pa_mixer_t m, const pa_cvolume *volume);
+const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_mixer_t m);
 
 #endif

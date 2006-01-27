@@ -33,11 +33,11 @@ typedef enum pa_daemon_conf_cmd {
     PA_CMD_DUMP_MODULES,
     PA_CMD_KILL,
     PA_CMD_CHECK
-} pa_daemon_conf_cmd;
+} pa_daemon_conf_cmd_t;
 
 /* A structure containing configuration data for the Polypaudio server . */
 typedef struct pa_daemon_conf {
-    pa_daemon_conf_cmd cmd;
+    pa_daemon_conf_cmd_t cmd;
     int daemonize,
         fail,
         high_priority,
@@ -48,8 +48,8 @@ typedef struct pa_daemon_conf {
         auto_log_target,
         use_pid_file;
     char *script_commands, *dl_search_path, *default_script_file;
-    pa_log_target log_target;
-    pa_log_level log_level;
+    pa_log_target_t log_target;
+    pa_log_level_t log_level;
     int resample_method;
     char *config_file;
 } pa_daemon_conf;

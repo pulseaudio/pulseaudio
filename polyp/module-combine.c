@@ -43,8 +43,6 @@ PA_MODULE_DESCRIPTION("Combine multiple sinks to one")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slaves=<slave sinks> adjust_time=<seconds> resample_method=<method>")
 
-#define PA_TYPEID_COMBINE PA_TYPEID_MAKE('C', 'M', 'B', 'N')
-
 #define DEFAULT_SINK_NAME "combined"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
 #define RENDER_SIZE (1024*10)
@@ -216,7 +214,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
     o->memblockq = pa_memblockq_new(MEMBLOCKQ_MAXLENGTH, MEMBLOCKQ_MAXLENGTH, pa_frame_size(&u->sink->sample_spec), 0, 0, sink->core->memblock_stat);
 
     snprintf(t, sizeof(t), "%s: output #%u", u->sink->name, u->n_outputs+1);
-    if (!(o->sink_input = pa_sink_input_new(sink, PA_TYPEID_COMBINE, t, &u->sink->sample_spec, 1, resample_method)))
+    if (!(o->sink_input = pa_sink_input_new(sink, __FILE__, t, &u->sink->sample_spec, &u->sink->channel_map, 1, resample_method)))
         goto fail;
 
     o->sink_input->get_latency = sink_input_get_latency_cb;
@@ -327,7 +325,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    if (!(u->sink = pa_sink_new(c, PA_TYPEID_COMBINE, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &master_sink->sample_spec))) {
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &master_sink->sample_spec, &master_sink->channel_map))) {
         pa_log(__FILE__": failed to create sink\n");
         goto fail;
     }

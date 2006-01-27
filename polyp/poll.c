@@ -1,4 +1,4 @@
-/* $Id: mainloop.c 302 2004-11-21 17:02:25Z lennart $ */
+/* $Id$ */
 
 /***
    Copyright (C) 1994, 1996, 1997 Free Software Foundation, Inc.

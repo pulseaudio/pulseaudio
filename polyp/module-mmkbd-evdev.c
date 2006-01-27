@@ -74,7 +74,7 @@ struct userdata {
     float mute_toggle_save;
 };
 
-static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags events, void*userdata) {
+static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void*userdata) {
     struct userdata *u = userdata;
     assert(io);
     assert(u);
@@ -109,16 +109,28 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
                     pa_log(__FILE__": failed to get sink '%s'\n", u->sink_name);
                 else {
-                    double v = pa_volume_to_user(s->volume);
+                    pa_volume_t v = pa_cvolume_avg(pa_sink_get_volume(s, PA_MIXER_HARDWARE));
+                    pa_cvolume cv;
+#define DELTA (PA_VOLUME_NORM/20)
                     
                     switch (volchange) {
-                        case UP:       v += .05; break;
-                        case DOWN:     v -= .05; break;
+                        case UP:
+                            v += DELTA;
+                            break;
+                            
+                        case DOWN:
+                            if (v > DELTA)
+                                v -= DELTA;
+                            else
+                                v = PA_VOLUME_MUTED;
+                            
+                            break;
+                            
                         case MUTE_TOGGLE: {
 
                             if (v > 0) {
                                 u->mute_toggle_save = v;
-                                v = 0;
+                                v = PA_VOLUME_MUTED;
                             } else
                                 v = u->mute_toggle_save;
                         }
@@ -126,7 +138,8 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                             ;
                     }
                     
-                    pa_sink_set_volume(s, pa_volume_from_user(v));
+                    pa_cvolume_set(&cv, PA_CHANNELS_MAX, v);
+                    pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
                 }
             }
         }

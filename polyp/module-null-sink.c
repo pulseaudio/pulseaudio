@@ -49,8 +49,6 @@ PA_MODULE_USAGE("format=<sample format> channels=<number of channels> rate=<samp
 
 #define DEFAULT_SINK_NAME "null"
 
-#define PA_TYPEID_NULL PA_TYPEID_MAKE('N', 'U', 'L', 'L')
-
 struct userdata {
     pa_core *core;
     pa_module *module;
@@ -108,7 +106,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->module = m;
     m->userdata = u;
     
-    if (!(u->sink = pa_sink_new(c, PA_TYPEID_NULL, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
         pa_log(__FILE__": failed to create sink.\n");
         goto fail;
     }

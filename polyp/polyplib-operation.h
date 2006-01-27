@@ -44,7 +44,7 @@ void pa_operation_unref(pa_operation *o);
 void pa_operation_cancel(pa_operation *o);
 
 /** Return the current status of the operation */
-pa_operation_state pa_operation_get_state(pa_operation *o);
+pa_operation_state_t pa_operation_get_state(pa_operation *o);
 
 PA_C_DECL_END
 

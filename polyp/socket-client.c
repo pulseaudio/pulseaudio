@@ -173,7 +173,7 @@ static void connect_fixed_cb(pa_mainloop_api *m, pa_defer_event *e, void *userda
     do_call(c);
 }
 
-static void connect_io_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+static void connect_io_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
     pa_socket_client *c = userdata;
     assert(m && c && c->io_event == e && fd >= 0);
     do_call(c);
@@ -344,7 +344,7 @@ pa_socket_client* pa_socket_client_new_ipv6(pa_mainloop_api *m, uint8_t address[
 
 #ifdef HAVE_LIBASYNCNS
 
-static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
     pa_socket_client *c = userdata;
     struct addrinfo *res = NULL;
     int ret;

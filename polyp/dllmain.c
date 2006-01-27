@@ -1,4 +1,4 @@
-/* $Id: dllmain.c 317 2004-12-11 00:10:41Z lennart $ */
+/* $Id$ */
 
 /***
   This file is part of polypaudio.

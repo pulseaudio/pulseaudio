@@ -25,6 +25,12 @@
 #include "sink.h"
 #include "memchunk.h"
 
-int pa_play_memchunk(pa_sink *sink, const char *name, const pa_sample_spec *ss, const pa_memchunk *chunk, pa_volume_t volume);
+int pa_play_memchunk(
+    pa_sink *sink,
+    const char *name,
+    const pa_sample_spec *ss,
+    const pa_channel_map *map,
+    const pa_memchunk *chunk,
+    pa_cvolume *cvolume);
 
 #endif

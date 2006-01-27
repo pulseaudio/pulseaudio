@@ -26,6 +26,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#include <liboil/liboilfuncs.h>
+#include <liboil/liboil.h>
+
 #include "endianmacros.h"
 #include "sconv.h"
 #include "g711.h"
@@ -33,107 +37,58 @@
 #include "sconv-s16le.h"
 #include "sconv-s16be.h"
 
-static void u8_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
-    unsigned i;
+static void u8_to_float32ne(unsigned n, const void *a, float *b) {
     const uint8_t *ca = a;
-    assert(n && a && an && b);
+    static const double add = -128.0/127.0, factor = 1.0/127.0;
+    
+    assert(a);
+    assert(b);
 
-    for (; n > 0; n--) {
-        float sum = 0;
-
-        for (i = 0; i < an; i++) {
-            uint8_t v = *(ca++);
-            sum += (((float) v)-128)/127;
-        }
-
-        if (sum > 1)
-            sum = 1;
-        if (sum < -1)
-            sum = -1;
-
-        *(b++) = sum;
-    }
+    oil_scaleconv_f32_u8(b, ca, n, &add, &factor);
 }    
 
-static void u8_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
-    unsigned i;
+static void u8_from_float32ne(unsigned n, const float *a, void *b) {
     uint8_t *cb = b;
+    static const double add = 128.0, factor = 127.0;
 
-    assert(n && a && b && bn);
-    for (; n > 0; n--) {
-        float v = *(a++);
-        uint8_t u;
+    assert(a);
+    assert(b);
 
-        if (v > 1)
-            v = 1;
-
-        if (v < -1)
-            v = -1;
-
-        u = (uint8_t) (v*127+128);
-        
-        for (i = 0; i < bn; i++)
-            *(cb++) = u;
-    }
+    oil_scaleconv_u8_f32(cb, a, n, &add, &factor);
 }
 
-static void float32ne_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
-    unsigned i;
-    const float *ca = a;
-    assert(n && a && an && b);
-    for (; n > 0; n--) {
-        float sum = 0;
+static void float32ne_to_float32ne(unsigned n, const void *a, float *b) {
+    assert(a);
+    assert(b);
 
-        for (i = 0; i < an; i++)
-            sum += *(ca++);
-
-        if (sum > 1)
-            sum = 1;
-        if (sum < -1)
-            sum = -1;
-
-        *(b++) = sum;
-    }
+    oil_memcpy(b, a, sizeof(float) * n);
 }
 
-static void float32ne_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
-    unsigned i;
-    float *cb = b;
-    assert(n && a && b && bn);
-    for (; n > 0; n--) {
-        float v = *(a++);
-        for (i = 0; i < bn; i++)
-            *(cb++) = v;
-    }
+static void float32ne_from_float32ne(unsigned n, const float *a, void *b) {
+    assert(a);
+    assert(b);
+
+    oil_memcpy(b, a, sizeof(float) * n);
 }
 
-static void ulaw_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
-    unsigned i;
+static void ulaw_to_float32ne(unsigned n, const void *a, float *b) {
     const uint8_t *ca = a;
-    assert(n && a && an && b);
-    for (; n > 0; n--) {
-        float sum = 0;
 
-        for (i = 0; i < an; i++)
-            sum += st_ulaw2linear16(*ca++) * 1.0F / 0x7FFF;
-
-        if (sum > 1)
-            sum = 1;
-        if (sum < -1)
-            sum = -1;
-
-        *(b++) = sum;
-    }
+    assert(a);
+    assert(b);
+    
+    for (; n > 0; n--)
+        *(b++) = st_ulaw2linear16(*(ca++)) * 1.0F / 0x7FFF;
 }
 
-static void ulaw_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
-    unsigned i;
+static void ulaw_from_float32ne(unsigned n, const float *a, void *b) {
     uint8_t *cb = b;
 
-    assert(n && a && b && bn);
+    assert(a);
+    assert(b);
+    
     for (; n > 0; n--) {
         float v = *(a++);
-        uint8_t u;
 
         if (v > 1)
             v = 1;
@@ -141,40 +96,28 @@ static void ulaw_from_float32ne(unsigned n, const float *a, void *b, unsigned bn
         if (v < -1)
             v = -1;
 
-        u = st_14linear2ulaw((int16_t) (v * 0x1FFF));
-        
-        for (i = 0; i < bn; i++)
-            *(cb++) = u;
+        *(cb++) = st_14linear2ulaw((int16_t) (v * 0x1FFF));
     }
 }
 
-static void alaw_to_float32ne(unsigned n, const void *a, unsigned an, float *b) {
-    unsigned i;
+static void alaw_to_float32ne(unsigned n, const void *a, float *b) {
     const uint8_t *ca = a;
-    assert(n && a && an && b);
-    for (; n > 0; n--) {
-        float sum = 0;
 
-        for (i = 0; i < an; i++)
-            sum += st_alaw2linear16(*ca++) * 1.0F / 0x7FFF;
+    assert(a);
+    assert(b);
 
-        if (sum > 1)
-            sum = 1;
-        if (sum < -1)
-            sum = -1;
-
-        *(b++) = sum;
-    }
+    for (; n > 0; n--)
+        *(b++) = st_alaw2linear16(*(ca++)) * 1.0F / 0x7FFF;
 }
 
-static void alaw_from_float32ne(unsigned n, const float *a, void *b, unsigned bn) {
-    unsigned i;
+static void alaw_from_float32ne(unsigned n, const float *a, void *b) {
     uint8_t *cb = b;
 
-    assert(n && a && b && bn);
+    assert(a);
+    assert(b);
+    
     for (; n > 0; n--) {
         float v = *(a++);
-        uint8_t u;
 
         if (v > 1)
             v = 1;
@@ -182,15 +125,11 @@ static void alaw_from_float32ne(unsigned n, const float *a, void *b, unsigned bn
         if (v < -1)
             v = -1;
 
-        u = st_13linear2alaw((int16_t) (v * 0xFFF));
-        
-        for (i = 0; i < bn; i++)
-            *(cb++) = u;
+        *(cb++) = st_13linear2alaw((int16_t) (v * 0xFFF));
     }
 }
 
-
-pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(pa_sample_format f) {
+pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(pa_sample_format_t f) {
     switch(f) {
         case PA_SAMPLE_U8:
             return u8_to_float32ne;
@@ -209,7 +148,7 @@ pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(pa_sample_fo
     }
 }
 
-pa_convert_from_float32ne_func_t pa_get_convert_from_float32ne_function(pa_sample_format f) {
+pa_convert_from_float32ne_func_t pa_get_convert_from_float32ne_function(pa_sample_format_t f) {
     switch(f) {
         case PA_SAMPLE_U8:
             return u8_from_float32ne;

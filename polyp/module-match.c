@@ -154,7 +154,7 @@ finish:
     return ret;
 }
 
-static void callback(pa_core *c, pa_subscription_event_type t, uint32_t idx, void *userdata) {
+static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u =  userdata;
     pa_sink_input *si;
     struct rule *r;
@@ -171,8 +171,10 @@ static void callback(pa_core *c, pa_subscription_event_type t, uint32_t idx, voi
     
     for (r = u->rules; r; r = r->next) {
         if (!regexec(&r->regex, si->name, 0, NULL, 0)) {
+            pa_cvolume cv;
             pa_log_debug(__FILE__": changing volume of sink input '%s' to 0x%03x\n", si->name, r->volume);
-            pa_sink_input_set_volume(si, r->volume);
+            pa_cvolume_set(&cv, r->volume, si->sample_spec.channels);
+            pa_sink_input_set_volume(si, &cv);
         }
     }
 }

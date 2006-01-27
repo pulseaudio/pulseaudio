@@ -28,6 +28,8 @@
 #include <time.h>
 
 #include "sample.h"
+#include "channelmap.h"
+#include "volume.h"
 
 typedef struct pa_tagstruct pa_tagstruct;
 
@@ -44,6 +46,8 @@ void pa_tagstruct_put_arbitrary(pa_tagstruct*t, const void *p, size_t length);
 void pa_tagstruct_put_boolean(pa_tagstruct*t, int b);
 void pa_tagstruct_put_timeval(pa_tagstruct*t, const struct timeval *tv);
 void pa_tagstruct_put_usec(pa_tagstruct*t, pa_usec_t u);
+void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map);
+void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume);
 
 int pa_tagstruct_gets(pa_tagstruct*t, const char **s);
 int pa_tagstruct_getu8(pa_tagstruct*t, uint8_t *c);
@@ -54,6 +58,8 @@ int pa_tagstruct_get_arbitrary(pa_tagstruct *t, const void **p, size_t length);
 int pa_tagstruct_get_boolean(pa_tagstruct *t, int *b);
 int pa_tagstruct_get_timeval(pa_tagstruct*t, struct timeval *tv);
 int pa_tagstruct_get_usec(pa_tagstruct*t, pa_usec_t *u);
+int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map);
+int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *v);
 
 int pa_tagstruct_eof(pa_tagstruct*t);
 const uint8_t* pa_tagstruct_data(pa_tagstruct*t, size_t *l);

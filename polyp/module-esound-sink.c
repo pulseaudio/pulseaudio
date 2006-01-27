@@ -46,13 +46,11 @@
 #include "authkey.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Esound ")
+PA_MODULE_DESCRIPTION("ESOUND Sink")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> server=<address> cookie=<filename>  format=<sample format> channels=<number of channels> rate=<sample rate>")
 
 #define DEFAULT_SINK_NAME "esound_output"
-
-#define PA_TYPEID_ESOUND_SINK PA_TYPEID_MAKE('E', 'S', 'D', 'S')
 
 struct userdata {
     pa_core *core;
@@ -354,7 +352,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->state = STATE_AUTH;
     u->latency = 0;
 
-    if (!(u->sink = pa_sink_new(c, PA_TYPEID_ESOUND_SINK, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
         pa_log(__FILE__": failed to create sink.\n");
         goto fail;
     }

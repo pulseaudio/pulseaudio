@@ -36,7 +36,6 @@
 #include "log.h"
 
 #define BUF_SIZE (1024*10)
-#define PA_TYPEID_SOUND_FILE PA_TYPEID_MAKE('S', 'N', 'D', 'F')
 
 struct userdata {
     SNDFILE *sndfile;
@@ -116,14 +115,11 @@ static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t le
     }
 }
 
-int pa_play_file(pa_sink *sink, const char *fname, pa_volume_t volume) {
+int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume) {
     struct userdata *u = NULL;
     SF_INFO sfinfo;
     pa_sample_spec ss;
     assert(sink && fname);
-
-    if (volume <= 0)
-        goto fail;
 
     u = pa_xmalloc(sizeof(struct userdata));
     u->sink_input = NULL;
@@ -161,10 +157,11 @@ int pa_play_file(pa_sink *sink, const char *fname, pa_volume_t volume) {
         goto fail;
     }
     
-    if (!(u->sink_input = pa_sink_input_new(sink, PA_TYPEID_SOUND_FILE, fname, &ss, 0, -1)))
+    if (!(u->sink_input = pa_sink_input_new(sink, __FILE__, fname, &ss, NULL, 0, -1)))
         goto fail;
 
-    u->sink_input->volume = volume;
+    if (volume)
+        u->sink_input->volume = *volume;
     u->sink_input->peek = sink_input_peek;
     u->sink_input->drop = sink_input_drop;
     u->sink_input->kill = sink_input_kill;

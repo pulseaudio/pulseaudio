@@ -126,7 +126,7 @@ int pa_daemon_conf_set_log_level(pa_daemon_conf *c, const char *string) {
         if (u >= PA_LOG_LEVEL_MAX)
             return -1;
 
-        c->log_level = (pa_log_level) u;
+        c->log_level = (pa_log_level_t) u;
     } else if (pa_startswith(string, "debug"))
         c->log_level = PA_LOG_DEBUG;
     else if (pa_startswith(string, "info"))

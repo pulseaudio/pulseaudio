@@ -38,7 +38,7 @@
 #include "util.h"
 
 struct namereg_entry {
-    pa_namereg_type type;
+    pa_namereg_type_t type;
     char *name;
     void *data;
 };
@@ -51,7 +51,7 @@ void pa_namereg_free(pa_core *c) {
     pa_hashmap_free(c->namereg, NULL, NULL);
 }
 
-const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type type, void *data, int fail) {
+const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, int fail) {
     struct namereg_entry *e;
     char *n = NULL;
     int r;
@@ -110,7 +110,7 @@ void pa_namereg_unregister(pa_core *c, const char *name) {
     pa_xfree(e);
 }
 
-void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type type, int autoload) {
+void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, int autoload) {
     struct namereg_entry *e;
     uint32_t idx;
     assert(c);
@@ -152,7 +152,7 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type type, int aut
     return NULL;
 }
 
-void pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type type) {
+void pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type_t type) {
     char **s;
     assert(c && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
 

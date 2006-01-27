@@ -53,8 +53,6 @@ PA_MODULE_DESCRIPTION("OSS Sink/Source (mmap)")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source> device=<OSS device> record=<enable source?> playback=<enable sink?> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
 
-#define PA_TYPEID_OSS_MMAP PA_TYPEID_MAKE('O', 'S', 'S', 'M')
-
 struct userdata {
     pa_sink *sink;
     pa_source *source;
@@ -204,7 +202,7 @@ static void do_read(struct userdata *u) {
     in_clear_memblocks(u, u->in_fragments/2);
 }
 
-static void io_callback(pa_mainloop_api *m, pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags f, void *userdata) {
+static void io_callback(pa_mainloop_api *m, pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags_t f, void *userdata) {
     struct userdata *u = userdata;
     assert (u && u->core->mainloop == m && u->io_event == e);
 
@@ -304,7 +302,7 @@ int pa__init(pa_core *c, pa_module*m) {
             }
         } else {
         
-            u->source = pa_source_new(c, PA_TYPEID_OSS_MMAP, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &u->sample_spec);
+            u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &u->sample_spec, NULL);
             assert(u->source);
             u->source->userdata = u;
             pa_source_set_owner(u->source, m);
@@ -336,7 +334,7 @@ int pa__init(pa_core *c, pa_module*m) {
         } else {
             pa_silence_memory(u->out_mmap, u->out_mmap_length, &u->sample_spec);
             
-            u->sink = pa_sink_new(c, PA_TYPEID_OSS_MMAP, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &u->sample_spec);
+            u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &u->sample_spec, NULL);
             assert(u->sink);
             u->sink->get_latency = sink_get_latency_cb;
             u->sink->userdata = u;

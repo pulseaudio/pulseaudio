@@ -52,6 +52,8 @@
 #include "sound-file.h"
 #include "util.h"
 #include "log.h"
+#include "channelmap.h"
+#include "volume.h"
 
 #define UNLOAD_POLL_TIME 2
 
@@ -112,7 +114,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_NEW, e->index);
     }
 
-    e->volume = PA_VOLUME_NORM;
+    pa_cvolume_reset(&e->volume, PA_CHANNELS_MAX);
     e->last_used_time = 0;
     e->memchunk.memblock = NULL;
     e->memchunk.index = e->memchunk.length = 0;
@@ -125,15 +127,20 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     return e;
 }
 
-int pa_scache_add_item(pa_core *c, const char *name, pa_sample_spec *ss, pa_memchunk *chunk, uint32_t *idx) {
+int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map, const pa_memchunk *chunk, uint32_t *idx) {
     pa_scache_entry *e;
     assert(c && name);
 
     if (!(e = scache_add_item(c, name)))
         return -1;
 
-    if (ss)
+    if (ss) {
         e->sample_spec = *ss;
+        pa_channel_map_init_auto(&e->channel_map, ss->channels);
+    }
+
+    if (map)
+        e->channel_map = *map;
 
     if (chunk) {
         e->memchunk = *chunk;
@@ -161,7 +168,7 @@ int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint3
     if (pa_sound_file_load(filename, &ss, &chunk, c->memblock_stat) < 0)
         return -1;
         
-    r = pa_scache_add_item(c, name, &ss, &chunk, idx);
+    r = pa_scache_add_item(c, name, &ss, NULL, &chunk, idx);
     pa_memblock_unref(chunk.memblock);
 
     return r;
@@ -230,9 +237,10 @@ void pa_scache_free(pa_core *c) {
         c->mainloop->time_free(c->scache_auto_unload_event);
 }
 
-int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, uint32_t volume) {
+int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, const pa_cvolume *volume) {
     pa_scache_entry *e;
     char *t;
+    pa_cvolume r;
     assert(c && name && sink);
 
     if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 1)))
@@ -249,7 +257,8 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, uint32_t vo
         return -1;
 
     t = pa_sprintf_malloc("sample:%s", name);
-    if (pa_play_memchunk(sink, t, &e->sample_spec, &e->memchunk, pa_volume_multiply(volume, e->volume)) < 0) {
+    
+    if (pa_play_memchunk(sink, t, &e->sample_spec, &e->channel_map, &e->memchunk, pa_sw_cvolume_multiply(&r, volume, &e->volume)) < 0) {
         free(t);
         return -1;
     }

@@ -31,12 +31,12 @@
  * memory blocks. */
 
 /* The type of memory this block points to */
-typedef enum {
+typedef enum pa_memblock_type {
     PA_MEMBLOCK_FIXED,     /* data is a pointer to fixed memory that needs not to be freed */
     PA_MEMBLOCK_APPENDED,  /* The most common kind: the data is appended to the memory block */ 
     PA_MEMBLOCK_DYNAMIC,   /* data is a pointer to some memory allocated with pa_xmalloc() */
     PA_MEMBLOCK_USER       /* User supplied memory, to be freed with free_cb */
-} pa_memblock_type ;
+} pa_memblock_type_t;
 
 /* A structure of keeping memory block statistics */
 /* Maintains statistics about memory blocks */
@@ -49,7 +49,7 @@ typedef struct pa_memblock_stat {
 } pa_memblock_stat;
 
 typedef struct pa_memblock {
-    pa_memblock_type type;
+    pa_memblock_type_t type;
     unsigned ref;  /* the reference counter */
     int read_only; /* boolean */
     size_t length;

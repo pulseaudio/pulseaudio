@@ -31,8 +31,9 @@ typedef struct pa_scache_entry {
     uint32_t index;
     char *name;
     
-    uint32_t volume;
+    pa_cvolume volume;
     pa_sample_spec sample_spec;
+    pa_channel_map channel_map;
     pa_memchunk memchunk;
 
     char *filename;
@@ -41,14 +42,14 @@ typedef struct pa_scache_entry {
     time_t last_used_time;
 } pa_scache_entry;
 
-int pa_scache_add_item(pa_core *c, const char *name, pa_sample_spec *ss, pa_memchunk *chunk, uint32_t *idx);
+int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map, const pa_memchunk *chunk, uint32_t *idx);
 int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint32_t *idx);
 int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, uint32_t *idx);
 
 int pa_scache_add_directory_lazy(pa_core *c, const char *pathname);
 
 int pa_scache_remove_item(pa_core *c, const char *name);
-int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, uint32_t volume);
+int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, const pa_cvolume *cvolume);
 void pa_scache_free(pa_core *c);
 
 const char *pa_scache_get_name_by_id(pa_core *c, uint32_t id);

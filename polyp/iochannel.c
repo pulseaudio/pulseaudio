@@ -55,7 +55,7 @@ static void enable_mainloop_sources(pa_iochannel *io) {
     assert(io);
 
     if (io->input_event == io->output_event && io->input_event) {
-        pa_io_event_flags f = PA_IO_EVENT_NULL;
+        pa_io_event_flags_t f = PA_IO_EVENT_NULL;
         assert(io->input_event);
         
         if (!io->readable)
@@ -72,7 +72,7 @@ static void enable_mainloop_sources(pa_iochannel *io) {
     }
 }
 
-static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata) {
+static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     pa_iochannel *io = userdata;
     int changed = 0;
     

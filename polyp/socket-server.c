@@ -78,7 +78,7 @@ struct pa_socket_server {
     enum { SOCKET_SERVER_GENERIC, SOCKET_SERVER_IPV4, SOCKET_SERVER_UNIX, SOCKET_SERVER_IPV6 } type;
 };
 
-static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
     pa_socket_server *s = userdata;
     pa_iochannel *io;
     int nfd;

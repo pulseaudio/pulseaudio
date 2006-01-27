@@ -50,8 +50,8 @@ struct pa_io_event {
     pa_mainloop *mainloop;
     int dead;
     int fd;
-    pa_io_event_flags events;
-    void (*callback) (pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata);
+    pa_io_event_flags_t events;
+    void (*callback) (pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata);
     struct pollfd *pollfd;
     void *userdata;
     void (*destroy_callback) (pa_mainloop_api*a, pa_io_event *e, void *userdata);
@@ -91,7 +91,13 @@ struct pa_mainloop {
 };
 
 /* IO events */
-static pa_io_event* mainloop_io_new(pa_mainloop_api*a, int fd, pa_io_event_flags events, void (*callback) (pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags events, void *userdata), void *userdata) {
+static pa_io_event* mainloop_io_new(
+    pa_mainloop_api*a,
+    int fd,
+    pa_io_event_flags_t events,
+    void (*callback) (pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata),
+    void *userdata) {
+    
     pa_mainloop *m;
     pa_io_event *e;
 
@@ -135,7 +141,7 @@ static pa_io_event* mainloop_io_new(pa_mainloop_api*a, int fd, pa_io_event_flags
     return e;
 }
 
-static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags events) {
+static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags_t events) {
     assert(e && e->mainloop);
 
     e->events = events;

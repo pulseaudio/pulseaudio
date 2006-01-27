@@ -64,8 +64,6 @@
 
 #define SCACHE_PREFIX "esound."
 
-#define PA_TYPEID_ESOUND PA_TYPEID_MAKE('E', 'S', 'D', 'P')
-
 /* This is heavily based on esound's code */
 
 struct connection {
@@ -326,7 +324,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
 
     assert(!c->sink_input && !c->input_memblockq);
 
-    if (!(c->sink_input = pa_sink_input_new(sink, PA_TYPEID_ESOUND, name, &ss, 0, -1))) {
+    if (!(c->sink_input = pa_sink_input_new(sink, __FILE__, name, &ss, NULL, 0, -1))) {
         pa_log(__FILE__": failed to create sink input.\n");
         return -1;
     }
@@ -398,7 +396,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
 
     assert(!c->output_memblockq && !c->source_output);
 
-    if (!(c->source_output = pa_source_output_new(source, PA_TYPEID_ESOUND, name, &ss, -1))) {
+    if (!(c->source_output = pa_source_output_new(source, __FILE__, name, &ss, NULL, -1))) {
         pa_log(__FILE__": failed to create source output\n");
         return -1;
     }
@@ -476,7 +474,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
     assert(k);
 
     for (conn = pa_idxset_first(c->protocol->connections, &idx); conn; conn = pa_idxset_next(c->protocol->connections, &idx)) {
-        int format = ESD_BITS16 | ESD_STEREO, rate = 44100, volume = 0xFF;
+        int format = ESD_BITS16 | ESD_STEREO, rate = 44100, lvolume = 0xFF, rvolume = 0xFF;
 
         if (conn->state != ESD_STREAMING_DATA)
             continue;
@@ -485,7 +483,8 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         
         if (conn->sink_input) {
             rate = conn->sink_input->sample_spec.rate;
-            volume = (conn->sink_input->volume*0xFF)/0x100;
+            lvolume = (conn->sink_input->volume.values[0]*0xFF)/0x100;
+            rvolume = (conn->sink_input->volume.values[1]*0xFF)/0x100;
             format = format_native2esd(&conn->sink_input->sample_spec);
         }
         
@@ -503,11 +502,11 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         response += sizeof(int);
 
         /* left */
-        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order,  volume);
+        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order,  lvolume);
         response += sizeof(int);
 
         /*right*/
-        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order,  volume);
+        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order,  rvolume);
         response += sizeof(int);
 
         /*format*/
@@ -545,11 +544,11 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             response += sizeof(int);
             
             /* left */
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume*0xFF)/0x100);
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume.values[0]*0xFF)/0x100);
             response += sizeof(int);
             
             /*right*/
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume*0xFF)/0x100);
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume.values[0]*0xFF)/0x100);
             response += sizeof(int);
             
             /*format*/
@@ -572,20 +571,25 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
 
 static int esd_proto_stream_pan(struct connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
     int *ok;
-    uint32_t idx, volume;
+    uint32_t idx;
+    pa_volume_t lvolume, rvolume;
     struct connection *conn;
     assert(c && data && length == sizeof(int)*3);
     
     idx = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *(const int*)data)-1;
-    volume = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 1));
-    volume = (volume*0x100)/0xFF;
+    lvolume = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 1));
+    lvolume = (lvolume*0x100)/0xFF;
+    rvolume = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 2));
+    rvolume = (rvolume*0x100)/0xFF;
 
     ok = connection_write(c, sizeof(int));
     assert(ok);
 
     if ((conn = pa_idxset_get_by_index(c->protocol->connections, idx))) {
         assert(conn->sink_input);
-        conn->sink_input->volume = volume;
+        conn->sink_input->volume.values[0] = lvolume;
+        conn->sink_input->volume.values[1] = rvolume;
+        conn->sink_input->volume.channels = 2;
         *ok = 1;
     } else
         *ok = 0;
@@ -627,7 +631,7 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
 
     c->state = ESD_CACHING_SAMPLE;
 
-    pa_scache_add_item(c->protocol->core, c->scache.name, NULL, NULL, &idx);
+    pa_scache_add_item(c->protocol->core, c->scache.name, NULL, NULL, NULL, &idx);
 
     ok = connection_write(c, sizeof(int));
     assert(ok);
@@ -676,7 +680,7 @@ static int esd_proto_sample_free_or_play(struct connection *c, esd_proto_t reque
             pa_sink *sink;
         
             if ((sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1)))
-                if (pa_scache_play_item(c->protocol->core, name, sink, PA_VOLUME_NORM) >= 0)
+                if (pa_scache_play_item(c->protocol->core, name, sink, NULL) >= 0)
                     *ok = (int) idx+1;
         } else {
             assert(request == ESD_PROTO_SAMPLE_FREE);
@@ -801,7 +805,7 @@ static int do_read(struct connection *c) {
             int *ok;
             
             c->scache.memchunk.index = 0;
-            pa_scache_add_item(c->protocol->core, c->scache.name, &c->scache.sample_spec, &c->scache.memchunk, &idx);
+            pa_scache_add_item(c->protocol->core, c->scache.name, &c->scache.sample_spec, NULL, &c->scache.memchunk, &idx);
 
             pa_memblock_unref(c->scache.memchunk.memblock);
             c->scache.memchunk.memblock = NULL;
@@ -1067,7 +1071,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
     pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
     assert(p->core);
-    c->client = pa_client_new(p->core, PA_TYPEID_ESOUND, cname);
+    c->client = pa_client_new(p->core, __FILE__, cname);
     assert(c->client);
     c->client->owner = p->module;
     c->client->kill = client_kill_cb;

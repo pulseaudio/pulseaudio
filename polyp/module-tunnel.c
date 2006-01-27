@@ -59,8 +59,6 @@ PA_MODULE_USAGE("server=<address> source=<remote source name> cookie=<filename> 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 
-#define PA_TYPEID_TUNNEL PA_TYPEID_MAKE('T', 'U', 'N', 'L')
-
 #define DEFAULT_SINK_NAME "tunnel"
 #define DEFAULT_SOURCE_NAME "tunnel"
 
@@ -625,7 +623,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_socket_client_set_callback(u->client, on_connection, u);
 
 #ifdef TUNNEL_SINK
-    if (!(u->sink = pa_sink_new(c, PA_TYPEID_TUNNEL, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
         pa_log(__FILE__": failed to create sink.\n");
         goto fail;
     }
@@ -637,7 +635,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     pa_sink_set_owner(u->sink, m);
 #else
-    if (!(u->source = pa_source_new(c, PA_TYPEID_TUNNEL, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss))) {
+    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL))) {
         pa_log(__FILE__": failed to create source.\n");
         goto fail;
     }

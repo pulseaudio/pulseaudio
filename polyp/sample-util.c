@@ -28,6 +28,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <liboil/liboilfuncs.h>
+
 #include "sample-util.h"
 
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
@@ -38,6 +40,7 @@ pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
 
 void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
     assert(c && c->memblock && c->memblock->data && spec && c->length);
+
     pa_silence_memory((uint8_t*) c->memblock->data+c->index, c->length, spec);
 }
 
@@ -65,204 +68,255 @@ void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
     memset(p, c, length);
 }
 
-size_t pa_mix(pa_mix_info channels[], unsigned nchannels, void *data, size_t length, const pa_sample_spec *spec, pa_volume_t volume) {
-    assert(channels && data && length && spec);
+size_t pa_mix(
+    const pa_mix_info streams[],
+    unsigned nstreams,
+    void *data,
+    size_t length,
+    const pa_sample_spec *spec,
+    const pa_cvolume *volume) {
     
-    if (spec->format == PA_SAMPLE_S16NE) {
-        size_t d;
-        
-        for (d = 0;; d += sizeof(int16_t)) {
-            unsigned c;
-            int32_t sum = 0;
+    assert(streams && data && length && spec);
+
+    switch (spec->format) {
+        case PA_SAMPLE_S16NE:{
+            size_t d;
+            unsigned channel = 0;
             
-            if (d >= length)
-                return d;
-            
-            for (c = 0; c < nchannels; c++) {
-                int32_t v;
-                pa_volume_t cvolume = channels[c].volume;
+            for (d = 0;; d += sizeof(int16_t)) {
+                int32_t sum = 0;
                 
-                if (d >= channels[c].chunk.length)
+                if (d >= length)
+                    return d;
+
+                if (volume->values[channel] != PA_VOLUME_MUTED) {
+                    unsigned i;
+                    
+                    for (i = 0; i < nstreams; i++) {
+                        int32_t v;
+                        pa_volume_t cvolume = streams[i].volume.values[channel];
+                        
+                        if (d >= streams[i].chunk.length)
+                            return d;
+                        
+                        if (cvolume == PA_VOLUME_MUTED)
+                            v = 0;
+                        else {
+                            v = *((int16_t*) ((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d));
+                            
+                            if (cvolume != PA_VOLUME_NORM) {
+                                v *= cvolume;
+                                v /= PA_VOLUME_NORM;
+                            }
+                        }
+                        
+                        sum += v;
+                    }
+                
+                    if (volume->values[channel] != PA_VOLUME_NORM) {
+                        sum *= volume->values[channel];
+                        sum /= PA_VOLUME_NORM;
+                    }
+
+                    if (sum < -0x8000) sum = -0x8000;
+                    if (sum > 0x7FFF) sum = 0x7FFF;
+
+                }
+                
+                *((int16_t*) data) = sum;
+                data = (uint8_t*) data + sizeof(int16_t);
+                
+                if (++channel >= spec->channels)
+                    channel = 0;
+            }
+        }
+            
+        case PA_SAMPLE_U8: {
+            size_t d;
+            unsigned channel = 0;
+            
+            for (d = 0;; d ++) {
+                int32_t sum = 0;
+                
+                if (d >= length)
+                    return d;
+
+                if (volume->values[channel] != PA_VOLUME_MUTED) {
+                    unsigned i;
+                    
+                    for (i = 0; i < nstreams; i++) {
+                        int32_t v;
+                        pa_volume_t cvolume = streams[i].volume.values[channel];
+                        
+                        if (d >= streams[i].chunk.length)
+                            return d;
+                        
+                        if (cvolume == PA_VOLUME_MUTED)
+                            v = 0;
+                        else {
+                            v = (int32_t) *((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d) - 0x80;
+                            
+                            if (cvolume != PA_VOLUME_NORM) {
+                                v *= cvolume;
+                                v /= PA_VOLUME_NORM;
+                            }
+                        }
+
+                        sum += v;
+                    }
+
+                    if (volume->values[channel] != PA_VOLUME_NORM) {
+                        sum *= volume->values[channel];
+                        sum /= PA_VOLUME_NORM;
+                    }
+
+                    if (sum < -0x80) sum = -0x80;
+                    if (sum > 0x7F) sum = 0x7F;
+
+                }
+                
+                *((uint8_t*) data) = (uint8_t) (sum + 0x80);
+                data = (uint8_t*) data + 1;
+                
+                if (++channel >= spec->channels)
+                    channel = 0;
+            }
+        }
+            
+        case PA_SAMPLE_FLOAT32NE: {
+            size_t d;
+            unsigned channel = 0;
+            
+            for (d = 0;; d += sizeof(float)) {
+                float sum = 0;
+                
+                if (d >= length)
                     return d;
                 
-                if (cvolume == PA_VOLUME_MUTED)
-                    v = 0;
-                else {
-                    v = *((int16_t*) ((uint8_t*) channels[c].chunk.memblock->data + channels[c].chunk.index + d));
+                if (volume->values[channel] != PA_VOLUME_MUTED) {
+                    unsigned i;
                     
-                    if (cvolume != PA_VOLUME_NORM) {
-                        v *= cvolume;
-                        v /= PA_VOLUME_NORM;
+                    for (i = 0; i < nstreams; i++) {
+                        float v;
+                        pa_volume_t cvolume = streams[i].volume.values[channel];
+                        
+                        if (d >= streams[i].chunk.length)
+                            return d;
+                        
+                        if (cvolume == PA_VOLUME_MUTED)
+                            v = 0;
+                        else {
+                            v = *((float*) ((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d));
+                            
+                            if (cvolume != PA_VOLUME_NORM) {
+                                v *= cvolume;
+                                v /= PA_VOLUME_NORM;
+                            }
+                        }
+                        
+                        sum += v;
+                    }
+            
+                    if (volume->values[channel] != PA_VOLUME_NORM) {
+                        sum *= volume->values[channel];
+                        sum /= PA_VOLUME_NORM;
                     }
                 }
-                
-                sum += v;
+            
+                *((float*) data) = sum;
+                data = (uint8_t*) data + sizeof(float);
+
+                if (++channel >= spec->channels)
+                    channel = 0;
             }
-            
-            if (volume == PA_VOLUME_MUTED)
-                sum = 0;
-            else if (volume != PA_VOLUME_NORM) {
-                sum *= volume;
-                sum /= PA_VOLUME_NORM;
-            }
-            
-            if (sum < -0x8000) sum = -0x8000;
-            if (sum > 0x7FFF) sum = 0x7FFF;
-            
-            *((int16_t*) data) = sum;
-            data = (uint8_t*) data + sizeof(int16_t);
         }
-    } else if (spec->format == PA_SAMPLE_U8) {
-        size_t d;
-        
-        for (d = 0;; d ++) {
-            int32_t sum = 0;
-            unsigned c;
             
-            if (d >= length)
-                return d;
-            
-            for (c = 0; c < nchannels; c++) {
-                int32_t v;
-                pa_volume_t cvolume = channels[c].volume;
-                
-                if (d >= channels[c].chunk.length)
-                    return d;
-                
-                if (cvolume == PA_VOLUME_MUTED)
-                    v = 0;
-                else {
-                    v = (int32_t) *((uint8_t*) channels[c].chunk.memblock->data + channels[c].chunk.index + d) - 0x80;
-                    
-                    if (cvolume != PA_VOLUME_NORM) {
-                        v *= cvolume;
-                        v /= PA_VOLUME_NORM;
-                    }
-                }
-                
-                sum += v;
-            }
-            
-            if (volume == PA_VOLUME_MUTED)
-                sum = 0;
-            else if (volume != PA_VOLUME_NORM) {
-                sum *= volume;
-                sum /= PA_VOLUME_NORM;
-            }
-            
-            if (sum < -0x80) sum = -0x80;
-            if (sum > 0x7F) sum = 0x7F;
-            
-            *((uint8_t*) data) = (uint8_t) (sum + 0x80);
-            data = (uint8_t*) data + 1;
-        }
-        
-    } else if (spec->format == PA_SAMPLE_FLOAT32NE) {
-        size_t d;
-        
-        for (d = 0;; d += sizeof(float)) {
-            float sum = 0;
-            unsigned c;
-            
-            if (d >= length)
-                return d;
-            
-            for (c = 0; c < nchannels; c++) {
-                float v;
-                pa_volume_t cvolume = channels[c].volume;
-                
-                if (d >= channels[c].chunk.length)
-                    return d;
-                
-                if (cvolume == PA_VOLUME_MUTED)
-                    v = 0;
-                else {
-                    v = *((float*) ((uint8_t*) channels[c].chunk.memblock->data + channels[c].chunk.index + d));
-                    
-                    if (cvolume != PA_VOLUME_NORM)
-                        v = v*cvolume/PA_VOLUME_NORM;
-                }
-                
-                sum += v;
-            }
-            
-            if (volume == PA_VOLUME_MUTED)
-                sum = 0;
-            else if (volume != PA_VOLUME_NORM)
-                sum = sum*volume/PA_VOLUME_NORM;
-            
-            if (sum < -1) sum = -1;
-            if (sum > 1) sum = 1;
-            
-            *((float*) data) = sum;
-            data = (uint8_t*) data + sizeof(float);
-        }
-    } else {
-        abort();
+        default:
+            abort();
     }
 }
 
 
-void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, pa_volume_t volume) {
+void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvolume *volume) {
     assert(c && spec && (c->length % pa_frame_size(spec) == 0));
+    assert(volume);
 
-    if (volume == PA_VOLUME_NORM)
+    if (pa_cvolume_channels_equal_to(volume, PA_VOLUME_NORM))
         return;
 
-    if (volume == PA_VOLUME_MUTED) {
+    if (pa_cvolume_channels_equal_to(volume, PA_VOLUME_MUTED)) {
         pa_silence_memchunk(c, spec);
         return;
     }
 
-    if (spec->format == PA_SAMPLE_S16NE) {
-        int16_t *d;
-        size_t n;
+    switch (spec->format) {
+        case PA_SAMPLE_S16NE: {
+            int16_t *d;
+            size_t n;
+            unsigned channel = 0;
+            
+            for (d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+                int32_t t = (int32_t)(*d);
+                
+                t *= volume->values[channel];
+                t /= PA_VOLUME_NORM;
+                
+                if (t < -0x8000) t = -0x8000;
+                if (t > 0x7FFF) t = 0x7FFF;
+                
+                *d = (int16_t) t;
+                
+                if (++channel >= spec->channels)
+                    channel = 0;
+            }
+        }
+            
+        case PA_SAMPLE_U8: {
+            uint8_t *d;
+            size_t n;
+            unsigned channel = 0;
+            
+            for (d = (uint8_t*) c->memblock->data + c->index, n = c->length; n > 0; d++, n--) {
+                int32_t t = (int32_t) *d - 0x80;
+                
+                t *= volume->values[channel];
+                t /= PA_VOLUME_NORM;
+                
+                if (t < -0x80) t = -0x80;
+                if (t > 0x7F) t = 0x7F;
+                
+                *d = (uint8_t) (t + 0x80);
+                
+                if (++channel >= spec->channels)
+                    channel = 0;
+            }
+        }
+            
+        case PA_SAMPLE_FLOAT32NE: {
+            float *d;
+            int skip;
+            unsigned n;
+            unsigned channel;
         
-        for (d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
-            int32_t t = (int32_t)(*d);
+            d = (float*) ((uint8_t*) c->memblock->data + c->index);
+            skip = spec->channels * sizeof(float);
+            n = c->length/sizeof(float)/spec->channels;
             
-            t *= volume;
-            t /= PA_VOLUME_NORM;
-            
-            if (t < -0x8000) t = -0x8000;
-            if (t > 0x7FFF) t = 0x7FFF;
-            
-            *d = (int16_t) t;
+            for (channel = 0; channel < spec->channels ; channel ++) {
+                float v, *t;
+                
+                if (volume->values[channel] == PA_VOLUME_NORM)
+                    continue;
+                
+                v = (float) volume->values[channel] / PA_VOLUME_NORM;
+                
+                t = d + channel;
+                oil_scalarmult_f32(t, skip, t, skip, &v, n);
+            }
         }
-    } else if (spec->format == PA_SAMPLE_U8) {
-        uint8_t *d;
-        size_t n;
 
-        for (d = (uint8_t*) c->memblock->data + c->index, n = c->length; n > 0; d++, n--) {
-            int32_t t = (int32_t) *d - 0x80;
-
-            t *= volume;
-            t /= PA_VOLUME_NORM;
-
-            if (t < -0x80) t = -0x80;
-            if (t > 0x7F) t = 0x7F;
-
-            *d = (uint8_t) (t + 0x80);
-            
-        }
-    } else if (spec->format == PA_SAMPLE_FLOAT32NE) {
-        float *d;
-        size_t n;
-
-        for (d = (float*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(float); n > 0; d++, n--) {
-            float t = *d;
-
-            t *= volume;
-            t /= PA_VOLUME_NORM;
-
-            if (t < -1) t = -1;
-            if (t > 1) t = 1;
-
-            *d = t;
-        }
-        
-    } else {
-        abort();
+        default:
+            abort();
     }
 }
 

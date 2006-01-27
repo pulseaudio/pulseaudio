@@ -49,12 +49,11 @@ typedef struct pa_simple pa_simple;
 pa_simple* pa_simple_new(
     const char *server,                 /**< Server name, or NULL for default */
     const char *name,                   /**< A descriptive name for this client (application name, ...) */
-    pa_stream_direction dir,       /**< Open this stream for recording or playback? */
+    pa_stream_direction_t dir,       /**< Open this stream for recording or playback? */
     const char *dev,                    /**< Sink (resp. source) name, or NULL for default */
     const char *stream_name,            /**< A descriptive name for this client (application name, song title, ...) */
     const pa_sample_spec *ss,    /**< The sample type to use */
     const pa_buffer_attr *attr,  /**< Buffering attributes, or NULL for default */
-    pa_volume_t volume,                 /**< Initial volume. Only for playback streams. \since 0.5 */
     int *error                          /**< A pointer where the error code is stored when the routine returns NULL. It is OK to pass NULL here. */
     );
 

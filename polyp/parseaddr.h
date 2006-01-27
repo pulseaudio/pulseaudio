@@ -29,10 +29,10 @@ typedef enum pa_parsed_address_type {
     PA_PARSED_ADDRESS_TCP4,
     PA_PARSED_ADDRESS_TCP6,
     PA_PARSED_ADDRESS_TCP_AUTO
-} pa_parsed_address_type;
+} pa_parsed_address_type_t;
 
 typedef struct pa_parsed_address {
-    pa_parsed_address_type type;
+    pa_parsed_address_type_t type;
     char *path_or_host;
     uint16_t port;
 } pa_parsed_address;

@@ -1,4 +1,4 @@
-/* $Id: module-waveout.c 333 2005-01-08 21:36:53Z lennart $ */
+/* $Id$ */
 
 /***
   This file is part of polypaudio.

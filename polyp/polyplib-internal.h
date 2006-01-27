@@ -55,12 +55,12 @@ struct pa_context {
     
     uint32_t ctag;
     uint32_t error;
-    pa_context_state state;
+    pa_context_state_t state;
     
     void (*state_callback)(pa_context*c, void *userdata);
     void *state_userdata;
 
-    void (*subscribe_callback)(pa_context *c, pa_subscription_event_type t, uint32_t idx, void *userdata);
+    void (*subscribe_callback)(pa_context *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata);
     void *subscribe_userdata;
 
     pa_memblock_stat *memblock_stat;
@@ -86,15 +86,16 @@ struct pa_stream {
     char *name;
     pa_buffer_attr buffer_attr;
     pa_sample_spec sample_spec;
+    pa_channel_map channel_map;
     uint32_t channel;
     int channel_valid;
     uint32_t device_index;
-    pa_stream_direction direction;
+    pa_stream_direction_t direction;
     uint32_t requested_bytes;
     uint64_t counter;
     pa_usec_t previous_time;
     pa_usec_t previous_ipol_time;
-    pa_stream_state state;
+    pa_stream_state_t state;
     pa_mcalign *mcalign;
 
     int interpolate;
@@ -123,7 +124,7 @@ struct pa_operation {
     pa_stream *stream;
     PA_LLIST_FIELDS(pa_operation);
 
-    pa_operation_state state;
+    pa_operation_state_t state;
     void *userdata;
     pa_operation_callback callback;
 };
@@ -141,11 +142,11 @@ void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 void pa_context_fail(pa_context *c, int error);
-void pa_context_set_state(pa_context *c, pa_context_state st);
+void pa_context_set_state(pa_context *c, pa_context_state_t st);
 int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t);
 pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, void (*internal_callback)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata), void (*cb)(void), void *userdata);
 
-void pa_stream_set_state(pa_stream *s, pa_stream_state st);
+void pa_stream_set_state(pa_stream *s, pa_stream_state_t st);
 
 void pa_stream_trash_ipol(pa_stream *s);
 

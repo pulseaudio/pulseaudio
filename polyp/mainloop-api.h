@@ -51,7 +51,7 @@ typedef enum pa_io_event_flags {
     PA_IO_EVENT_OUTPUT = 2,   /**< Output event */
     PA_IO_EVENT_HANGUP = 4,   /**< Hangup event */
     PA_IO_EVENT_ERROR = 8     /**< Error event */
-} pa_io_event_flags;
+} pa_io_event_flags_t;
 
 /** \pa_io_event
  * An opaque IO event source object */
@@ -73,10 +73,10 @@ struct pa_mainloop_api  {
     void *userdata;
 
     /** Create a new IO event source object */
-    pa_io_event* (*io_new)(pa_mainloop_api*a, int fd, pa_io_event_flags events, void (*callback) (pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags events, void *userdata), void *userdata);
+    pa_io_event* (*io_new)(pa_mainloop_api*a, int fd, pa_io_event_flags_t events, void (*callback) (pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata), void *userdata);
 
     /** Enable or disable IO events on this object */
-    void (*io_enable)(pa_io_event* e, pa_io_event_flags events);
+    void (*io_enable)(pa_io_event* e, pa_io_event_flags_t events);
 
     /** Free a IO event source object */
     void (*io_free)(pa_io_event* e);

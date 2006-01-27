@@ -155,21 +155,23 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_SETTING_NAME:
             break;
         
-        case PA_CONTEXT_READY:
+        case PA_CONTEXT_READY: {
+            pa_cvolume cv;
             
             assert(c && !stream);
 
             if (verbose)
                 fprintf(stderr, "Connection established.\n");
 
-            stream = pa_stream_new(c, stream_name, &sample_spec);
+            stream = pa_stream_new(c, stream_name, &sample_spec, NULL);
             assert(stream);
 
             pa_stream_set_state_callback(stream, stream_state_callback, NULL);
             pa_stream_set_write_callback(stream, stream_write_callback, NULL);
-            pa_stream_connect_playback(stream, device, NULL, 0, volume);
+            pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, PA_CHANNELS_MAX, volume));
                 
             break;
+        }
             
         case PA_CONTEXT_TERMINATED:
             quit(0);

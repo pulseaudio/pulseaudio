@@ -85,7 +85,7 @@ finish:
  * *io_events. Store the length of that array in *n_io_events. Use the
  * specified callback function and userdata. The array has to be freed
  * with pa_free_io_events(). */
-int pa_create_io_events(snd_pcm_t *pcm_handle, pa_mainloop_api* m, pa_io_event ***io_events, unsigned *n_io_events, void (*cb)(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags events, void *userdata), void *userdata) {
+int pa_create_io_events(snd_pcm_t *pcm_handle, pa_mainloop_api* m, pa_io_event ***io_events, unsigned *n_io_events, void (*cb)(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata), void *userdata) {
     unsigned i;
     struct pollfd *pfds, *ppfd;
     pa_io_event **ios;

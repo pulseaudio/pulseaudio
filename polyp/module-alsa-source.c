@@ -51,8 +51,6 @@ PA_MODULE_DESCRIPTION("ALSA Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("source_name=<name for the source> device=<ALSA device> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
 
-#define PA_TYPEID_ALSA PA_TYPEID_MAKE('A', 'L', 'S', 'A')
-
 struct userdata {
     snd_pcm_t *pcm_handle;
     pa_source *source;
@@ -142,7 +140,7 @@ static void do_read(struct userdata *u) {
     }
 }
 
-static void io_callback(pa_mainloop_api*a, pa_io_event *e, PA_GCC_UNUSED int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+static void io_callback(pa_mainloop_api*a, pa_io_event *e, PA_GCC_UNUSED int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
     struct userdata *u = userdata;
     assert(u && a && e);
 
@@ -211,7 +209,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    u->source = pa_source_new(c, PA_TYPEID_ALSA, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss);
+    u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL);
     assert(u->source);
 
     u->source->userdata = u;

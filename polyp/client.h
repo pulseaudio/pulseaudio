@@ -24,7 +24,6 @@
 
 #include "core.h"
 #include "module.h"
-#include "typeid.h"
 
 /* Every connection to the server should have a pa_client
  * attached. That way the user may generate a listing of all connected
@@ -34,17 +33,16 @@ typedef struct pa_client pa_client;
 
 struct pa_client {
     uint32_t index;
-    pa_typeid_t typeid;
 
     pa_module *owner;
-    char *name;
+    char *name, *driver;
     pa_core *core;
 
     void (*kill)(pa_client *c);
     void *userdata;
 };
 
-pa_client *pa_client_new(pa_core *c, pa_typeid_t typeid, const char *name);
+pa_client *pa_client_new(pa_core *c, const char *name, const char *driver);
 
 /* This function should be called only by the code that created the client */
 void pa_client_free(pa_client *c);

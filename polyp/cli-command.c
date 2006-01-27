@@ -311,6 +311,7 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     const char *n, *v;
     pa_sink *sink;
     uint32_t volume;
+    pa_cvolume cvolume;
 
     if (!(n = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a sink either by its name or its index.\n");
@@ -332,14 +333,16 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    pa_sink_set_volume(sink, (uint32_t) volume);
+    pa_cvolume_set(&cvolume, sink->sample_spec.channels, volume);
+    pa_sink_set_volume(sink, PA_MIXER_HARDWARE, &cvolume);
     return 0;
 }
 
 static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
     const char *n, *v;
     pa_sink_input *si;
-    uint32_t volume;
+    pa_volume_t volume;
+    pa_cvolume cvolume;
     uint32_t idx;
 
     if (!(n = pa_tokenizer_get(t, 1))) {
@@ -367,7 +370,8 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
         return -1;
     }
 
-    pa_sink_input_set_volume(si, (uint32_t) volume);
+    pa_cvolume_set(&cvolume, si->sample_spec.channels, volume);
+    pa_sink_input_set_volume(si, &cvolume);
     return 0;
 }
 
@@ -497,7 +501,7 @@ static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    if (pa_scache_play_item(c, n, sink, PA_VOLUME_NORM) < 0) {
+    if (pa_scache_play_item(c, n, sink, NULL) < 0) {
         pa_strbuf_puts(buf, "Failed to play sample.\n");
         return -1;
     }
@@ -576,7 +580,7 @@ static int pa_cli_command_play_file(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
     }
 
 
-    return pa_play_file(sink, fname, PA_VOLUME_NORM);
+    return pa_play_file(sink, fname, NULL);
 }
 
 static int pa_cli_command_autoload_add(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail) {
@@ -663,9 +667,6 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
     nl = 0;
 
     for (s = pa_idxset_first(c->sinks, &idx); s; s = pa_idxset_next(c->sinks, &idx)) {
-        if (s->volume == PA_VOLUME_NORM)
-            continue;
-        
         if (s->owner && s->owner->auto_unload)
             continue;
 
@@ -673,8 +674,8 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
             pa_strbuf_puts(buf, "\n");
             nl = 1;
         }
-        
-        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", s->name, s->volume);
+
+        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", s->name, pa_cvolume_avg(pa_sink_get_volume(s, PA_MIXER_HARDWARE)));
     }
 
 

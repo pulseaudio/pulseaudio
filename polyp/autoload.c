@@ -81,7 +81,7 @@ static pa_autoload_entry* entry_new(pa_core *c, const char *name) {
     return e;
 }
 
-int pa_autoload_add(pa_core *c, const char*name, pa_namereg_type type, const char*module, const char *argument, uint32_t *idx) {
+int pa_autoload_add(pa_core *c, const char*name, pa_namereg_type_t type, const char*module, const char *argument, uint32_t *idx) {
     pa_autoload_entry *e = NULL;
     assert(c && name && module && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
     
@@ -98,7 +98,7 @@ int pa_autoload_add(pa_core *c, const char*name, pa_namereg_type type, const cha
     return 0;
 }
 
-int pa_autoload_remove_by_name(pa_core *c, const char*name, pa_namereg_type type) {
+int pa_autoload_remove_by_name(pa_core *c, const char*name, pa_namereg_type_t type) {
     pa_autoload_entry *e;
     assert(c && name && type);
 
@@ -120,7 +120,7 @@ int pa_autoload_remove_by_index(pa_core *c, uint32_t idx) {
     return 0;
 }
 
-void pa_autoload_request(pa_core *c, const char *name, pa_namereg_type type) {
+void pa_autoload_request(pa_core *c, const char *name, pa_namereg_type_t type) {
     pa_autoload_entry *e;
     pa_module *m;
     assert(c && name);
@@ -159,7 +159,7 @@ void pa_autoload_free(pa_core *c) {
     }
 }
 
-const pa_autoload_entry* pa_autoload_get_by_name(pa_core *c, const char*name, pa_namereg_type type) {
+const pa_autoload_entry* pa_autoload_get_by_name(pa_core *c, const char*name, pa_namereg_type_t type) {
     pa_autoload_entry *e;
     assert(c && name);
     

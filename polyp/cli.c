@@ -45,7 +45,6 @@
 #include "log.h"
 
 #define PROMPT ">>> "
-#define PA_TYPEID_CLI PA_TYPEID_MAKE('C', 'L', 'I', '_')
 
 struct pa_cli {
     pa_core *core;
@@ -76,7 +75,7 @@ pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     c->eof_callback = NULL;
 
     pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
-    c->client = pa_client_new(core, PA_TYPEID_CLI, cname);
+    c->client = pa_client_new(core, __FILE__, cname);
     assert(c->client);
     c->client->kill = client_kill;
     c->client->userdata = c;

@@ -37,10 +37,10 @@
 PA_C_DECL_BEGIN
 
 /** Enable event notification */
-pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask m, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
 
 /** Set the context specific call back function that is called whenever the state of the daemon changes */
-void pa_context_set_subscribe_callback(pa_context *c, void (*cb)(pa_context *c, pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata);
+void pa_context_set_subscribe_callback(pa_context *c, void (*cb)(pa_context *c, pa_subscription_event_type_t t, uint32_t index, void *userdata), void *userdata);
 
 PA_C_DECL_END
 

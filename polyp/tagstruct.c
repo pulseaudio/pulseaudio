@@ -54,7 +54,9 @@ enum tags {
     TAG_BOOLEAN_TRUE = '1',
     TAG_BOOLEAN_FALSE = '0',
     TAG_TIMEVAL = 'T',
-    TAG_USEC = 'U'  /* 64bit unsigned */
+    TAG_USEC = 'U'  /* 64bit unsigned */,
+    TAG_CHANNEL_MAP = 'm',
+    TAG_CVOLUME = 'v'
 };
 
 struct pa_tagstruct {
@@ -204,6 +206,34 @@ void pa_tagstruct_putu64(pa_tagstruct*t, uint64_t u) {
     t->length += 9;
 }
 
+void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map) {
+    unsigned i;
+    
+    assert(t);
+    extend(t, 2 + map->channels);
+
+    t->data[t->length++] = TAG_CHANNEL_MAP;
+    t->data[t->length++] = map->channels;
+    
+    for (i = 0; i < map->channels; i ++)
+        t->data[t->length++] = (uint8_t) map->map[i];
+}
+
+void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume) {
+    unsigned i;
+    
+    assert(t);
+    extend(t, 2 + cvolume->channels * sizeof(pa_volume_t));
+
+    t->data[t->length++] = TAG_CVOLUME;
+    t->data[t->length++] = cvolume->channels;
+    
+    for (i = 0; i < cvolume->channels; i ++) {
+        *(pa_volume_t*) (t->data + t->length) = htonl(cvolume->values[i]);
+        t->length += sizeof(pa_volume_t);
+    }
+}
+
 int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
     int error = 0;
     size_t n;
@@ -283,6 +313,9 @@ int pa_tagstruct_get_sample_spec(pa_tagstruct *t, pa_sample_spec *ss) {
     ss->channels = t->data[t->rindex+2];
     memcpy(&ss->rate, t->data+t->rindex+3, 4);
     ss->rate = ntohl(ss->rate);
+
+    if (!pa_sample_spec_valid(ss))
+        return -1;
     
     t->rindex += 7;
     return 0;
@@ -385,5 +418,61 @@ int pa_tagstruct_getu64(pa_tagstruct*t, uint64_t *u) {
     memcpy(&tmp, t->data+t->rindex+5, 4);
     *u |= (pa_usec_t) ntohl(tmp);
     t->rindex +=9;
+    return 0;
+}
+
+int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map) {
+    unsigned i;
+    
+    assert(t);
+    assert(map);
+
+    if (t->rindex+2 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != TAG_CHANNEL_MAP)
+        return -1;
+
+    if ((map->channels = t->data[t->rindex+1]) > PA_CHANNELS_MAX)
+        return -1;
+
+    if (t->rindex+2+map->channels > t->length)
+        return -1;
+    
+    for (i = 0; i < map->channels; i ++)
+        map->map[i] = (int8_t) t->data[t->rindex + 2 + i];
+
+    if (!pa_channel_map_valid(map))
+        return -1;
+    
+    t->rindex += 2 + map->channels;
+    return 0;
+}
+
+int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *cvolume) {
+    unsigned i;
+    
+    assert(t);
+    assert(cvolume);
+
+    if (t->rindex+2 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != TAG_CVOLUME)
+        return -1;
+
+    if ((cvolume->channels = t->data[t->rindex+1]) > PA_CHANNELS_MAX)
+        return -1;
+
+    if (t->rindex+2+cvolume->channels*sizeof(pa_volume_t) > t->length)
+        return -1;
+    
+    for (i = 0; i < cvolume->channels; i ++)
+        cvolume->values[i] = (pa_volume_t) ntohl(*((pa_volume_t*) (t->data + t->rindex + 2)+i));
+
+    if (!pa_cvolume_valid(cvolume))
+        return -1;
+    
+    t->rindex += 2 + cvolume->channels * sizeof(pa_volume_t);
     return 0;
 }

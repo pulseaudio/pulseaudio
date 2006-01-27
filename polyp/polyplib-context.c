@@ -187,7 +187,7 @@ void pa_context_unref(pa_context *c) {
         context_free(c);
 }
 
-void pa_context_set_state(pa_context *c, pa_context_state st) {
+void pa_context_set_state(pa_context *c, pa_context_state_t st) {
     assert(c);
     
     if (c->state == st)
@@ -644,7 +644,7 @@ void pa_context_disconnect(pa_context *c) {
     pa_context_set_state(c, PA_CONTEXT_TERMINATED);
 }
 
-pa_context_state pa_context_get_state(pa_context *c) {
+pa_context_state_t pa_context_get_state(pa_context *c) {
     assert(c && c->ref >= 1);
     return c->state;
 }

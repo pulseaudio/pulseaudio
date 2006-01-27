@@ -36,11 +36,18 @@
 
 #define LATENCY_IPOL_INTERVAL_USEC (10000L)
 
-pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss) {
+pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map) {
     pa_stream *s;
-    assert(c && ss);
+    assert(c);
+    assert(ss);
 
-    s = pa_xmalloc(sizeof(pa_stream));
+    if (!pa_sample_spec_valid(ss))
+        return NULL;
+
+    if (map && !pa_channel_map_valid(map))
+        return NULL;
+
+    s = pa_xnew(pa_stream, 1);
     s->ref = 1;
     s->context = c;
     s->mainloop = c->mainloop;
@@ -55,6 +62,12 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     s->direction = PA_STREAM_NODIRECTION;
     s->name = pa_xstrdup(name);
     s->sample_spec = *ss;
+
+    if (map)
+        s->channel_map = *map;
+    else
+        pa_channel_map_init_auto(&s->channel_map, ss->channels);
+    
     s->channel = 0;
     s->channel_valid = 0;
     s->device_index = PA_INVALID_INDEX;
@@ -108,7 +121,7 @@ pa_stream* pa_stream_ref(pa_stream *s) {
     return s;
 }
 
-pa_stream_state pa_stream_get_state(pa_stream *s) {
+pa_stream_state_t pa_stream_get_state(pa_stream *s) {
     assert(s && s->ref >= 1);
     return s->state;
 }
@@ -123,7 +136,7 @@ uint32_t pa_stream_get_index(pa_stream *s) {
     return s->device_index;
 }
     
-void pa_stream_set_state(pa_stream *s, pa_stream_state st) {
+void pa_stream_set_state(pa_stream *s, pa_stream_state_t st) {
     assert(s && s->ref >= 1);
 
     if (s->state == st)
@@ -271,7 +284,7 @@ finish:
     pa_stream_unref(s);
 }
 
-static void create_stream(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags flags, pa_volume_t volume) {
+static void create_stream(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags_t flags, const pa_cvolume *volume) {
     pa_tagstruct *t;
     uint32_t tag;
     assert(s && s->ref >= 1 && s->state == PA_STREAM_DISCONNECTED);
@@ -308,15 +321,23 @@ static void create_stream(pa_stream *s, const char *dev, const pa_buffer_attr *a
     pa_tagstruct_putu32(t, tag = s->context->ctag++);
     pa_tagstruct_puts(t, s->name);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
+    pa_tagstruct_put_channel_map(t, &s->channel_map);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, dev);
     pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
     pa_tagstruct_put_boolean(t, !!(flags & PA_STREAM_START_CORKED));
     if (s->direction == PA_STREAM_PLAYBACK) {
+        pa_cvolume cv;
         pa_tagstruct_putu32(t, s->buffer_attr.tlength);
         pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
         pa_tagstruct_putu32(t, s->buffer_attr.minreq);
-        pa_tagstruct_putu32(t, volume);
+
+        if (!volume) {
+            pa_cvolume_reset(&cv, s->sample_spec.channels);
+            volume = &cv;
+        }
+        
+        pa_tagstruct_put_cvolume(t, volume);
     } else
         pa_tagstruct_putu32(t, s->buffer_attr.fragsize);
 
@@ -326,13 +347,13 @@ static void create_stream(pa_stream *s, const char *dev, const pa_buffer_attr *a
     pa_stream_unref(s);
 }
 
-void pa_stream_connect_playback(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags flags, pa_volume_t volume) {
+void pa_stream_connect_playback(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags_t flags, pa_cvolume *volume) {
     assert(s && s->context->state == PA_CONTEXT_READY && s->ref >= 1);
     s->direction = PA_STREAM_PLAYBACK;
     create_stream(s, dev, attr, flags, volume);
 }
 
-void pa_stream_connect_record(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags flags) {
+void pa_stream_connect_record(pa_stream *s, const char *dev, const pa_buffer_attr *attr, pa_stream_flags_t flags) {
     assert(s && s->context->state == PA_CONTEXT_READY && s->ref >= 1);
     s->direction = PA_STREAM_RECORD;
     create_stream(s, dev, attr, flags, 0);

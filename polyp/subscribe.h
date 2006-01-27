@@ -28,10 +28,10 @@ typedef struct pa_subscription_event pa_subscription_event;
 #include "core.h"
 #include "native-common.h"
 
-pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask m,  void (*callback)(pa_core *c, pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata);
+pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m,  void (*callback)(pa_core *c, pa_subscription_event_type_t t, uint32_t index, void *userdata), void *userdata);
 void pa_subscription_free(pa_subscription*s);
 void pa_subscription_free_all(pa_core *c);
 
-void pa_subscription_post(pa_core *c, pa_subscription_event_type t, uint32_t idx);
+void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t idx);
 
 #endif

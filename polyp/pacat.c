@@ -162,16 +162,17 @@ static void context_state_callback(pa_context *c, void *userdata) {
             if (verbose)
                 fprintf(stderr, "Connection established.\n");
 
-            stream = pa_stream_new(c, stream_name, &sample_spec);
+            stream = pa_stream_new(c, stream_name, &sample_spec, NULL);
             assert(stream);
 
             pa_stream_set_state_callback(stream, stream_state_callback, NULL);
             pa_stream_set_write_callback(stream, stream_write_callback, NULL);
             pa_stream_set_read_callback(stream, stream_read_callback, NULL);
 
-            if (mode == PLAYBACK)
-                pa_stream_connect_playback(stream, device, NULL, 0, volume);
-            else
+            if (mode == PLAYBACK) {
+                pa_cvolume cv;
+                pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, PA_CHANNELS_MAX, volume));
+            } else
                 pa_stream_connect_record(stream, device, NULL, 0);
                 
             break;
@@ -219,7 +220,7 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
 }
 
 /* New data on STDIN **/
-static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata) {
+static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     size_t l, w = 0;
     ssize_t r;
     assert(a == mainloop_api && e && stdio_event == e);
@@ -257,7 +258,7 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
 }
 
 /* Some data may be written to STDOUT */
-static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata) {
+static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     ssize_t r;
     assert(a == mainloop_api && e && stdio_event == e);
 

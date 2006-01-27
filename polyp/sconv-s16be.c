@@ -23,11 +23,19 @@
 #include <config.h>
 #endif
 
+#include "endianmacros.h"
+
 #define INT16_FROM INT16_FROM_BE
 #define INT16_TO INT16_TO_BE
 
 #define pa_sconv_s16le_to_float32ne pa_sconv_s16be_to_float32ne
 #define pa_sconv_s16le_from_float32ne pa_sconv_s16be_from_float32ne
+
+#ifdef WORDS_BIGENDIAN
+#define SWAP_WORDS 0
+#else
+#define SWAP_WORDS 1
+#endif
 
 #include "sconv-s16le.h"
 #include "sconv-s16le.c"

@@ -62,7 +62,7 @@ void pa_operation_unref(pa_operation *o) {
     }
 }
 
-static void operation_set_state(pa_operation *o, pa_operation_state st) {
+static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
     assert(o && o->ref >= 1);
 
     if (st == o->state)
@@ -97,7 +97,7 @@ void pa_operation_done(pa_operation *o) {
     operation_set_state(o, PA_OPERATION_DONE);
 }
 
-pa_operation_state pa_operation_get_state(pa_operation *o) {
+pa_operation_state_t pa_operation_get_state(pa_operation *o) {
     assert(o && o->ref >= 1);
     return o->state;
 }

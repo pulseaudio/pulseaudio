@@ -39,7 +39,7 @@ struct pa_io_event {
     guint source;
     GIOCondition io_condition;
     int fd;
-    void (*callback) (pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata);
+    void (*callback) (pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata);
     void *userdata;
     void (*destroy_callback) (pa_mainloop_api *m, pa_io_event*e, void *userdata);
     pa_io_event *next, *prev;
@@ -76,9 +76,9 @@ struct pa_glib_mainloop {
 
 static void schedule_free_dead_events(pa_glib_mainloop *g);
 
-static void glib_io_enable(pa_io_event*e, pa_io_event_flags f);
+static void glib_io_enable(pa_io_event*e, pa_io_event_flags_t f);
 
-static pa_io_event* glib_io_new(pa_mainloop_api*m, int fd, pa_io_event_flags f, void (*callback) (pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags f, void *userdata), void *userdata) {
+static pa_io_event* glib_io_new(pa_mainloop_api*m, int fd, pa_io_event_flags_t f, void (*callback) (pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags_t f, void *userdata), void *userdata) {
     pa_io_event *e;
     pa_glib_mainloop *g;
 
@@ -110,7 +110,7 @@ static pa_io_event* glib_io_new(pa_mainloop_api*m, int fd, pa_io_event_flags f, 
 
 static gboolean io_cb(GIOChannel *source, GIOCondition condition, gpointer data) {
     pa_io_event *e = data;
-    pa_io_event_flags f;
+    pa_io_event_flags_t f;
     assert(source && e && e->io_channel == source);
 
     f = (condition & G_IO_IN ? PA_IO_EVENT_INPUT : 0) |
@@ -122,7 +122,7 @@ static gboolean io_cb(GIOChannel *source, GIOCondition condition, gpointer data)
     return TRUE;
 }
 
-static void glib_io_enable(pa_io_event*e, pa_io_event_flags f) {
+static void glib_io_enable(pa_io_event*e, pa_io_event_flags_t f) {
     GIOCondition c;
     assert(e && !e->dead);
 

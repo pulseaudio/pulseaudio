@@ -128,12 +128,13 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_gets(t, &i.description) < 0 ||
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
+                pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
-                pa_tagstruct_getu32(t, &i.volume) < 0 ||
+                pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
                 pa_tagstruct_getu32(t, &i.monitor_source) < 0 ||
                 pa_tagstruct_gets(t, &i.monitor_source_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
-                pa_tagstruct_getu32(t, &i._typeid) < 0) {
+                pa_tagstruct_gets(t, &i.driver) < 0) {
                 
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
@@ -223,11 +224,12 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_gets(t, &i.description) < 0 ||
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
+                pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
                 pa_tagstruct_getu32(t, &i.monitor_of_sink) < 0 ||
                 pa_tagstruct_gets(t, &i.monitor_of_sink_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
-                pa_tagstruct_getu32(t, &i._typeid) < 0) {
+                pa_tagstruct_gets(t, &i.driver) < 0) {
                 
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
@@ -316,7 +318,7 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
-                pa_tagstruct_getu32(t, &i._typeid) < 0 ) {
+                pa_tagstruct_gets(t, &i.driver) < 0 ) {
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
             }
@@ -452,11 +454,12 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
                 pa_tagstruct_getu32(t, &i.client) < 0 ||
                 pa_tagstruct_getu32(t, &i.sink) < 0 ||
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
-                pa_tagstruct_getu32(t, &i.volume) < 0 ||
+                pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
+                pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
                 pa_tagstruct_get_usec(t, &i.buffer_usec) < 0 ||
                 pa_tagstruct_get_usec(t, &i.sink_usec) < 0 ||
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
-                pa_tagstruct_getu32(t, &i._typeid) < 0) {
+                pa_tagstruct_gets(t, &i.driver) < 0) {
                 
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
@@ -526,10 +529,11 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
                 pa_tagstruct_getu32(t, &i.client) < 0 ||
                 pa_tagstruct_getu32(t, &i.source) < 0 ||
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
+                pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_get_usec(t, &i.buffer_usec) < 0 ||
                 pa_tagstruct_get_usec(t, &i.source_usec) < 0 ||
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
-                pa_tagstruct_getu32(t, &i._typeid) < 0) {
+                pa_tagstruct_gets(t, &i.driver) < 0) {
                 
                 pa_context_fail(o->context, PA_ERROR_PROTOCOL);
                 goto finish;
@@ -662,9 +666,10 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
             
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
-                pa_tagstruct_getu32(t, &i.volume) < 0 ||
+                pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
                 pa_tagstruct_get_usec(t, &i.duration) < 0 ||
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
+                pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_getu32(t, &i.bytes) < 0 ||
                 pa_tagstruct_get_boolean(t, &i.lazy) < 0 ||
                 pa_tagstruct_gets(t, &i.filename) < 0) {
@@ -861,7 +866,7 @@ finish:
     pa_operation_unref(o);
 }
 
-pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type type, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata) {
+pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type_t type, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata) {
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
@@ -933,8 +938,7 @@ finish:
     pa_operation_unref(o);
 }
 
-
-pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type type, const char *module, const char*argument, void (*cb)(pa_context *c, int success, void *userdata), void* userdata) {
+pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type_t type, const char *module, const char*argument, void (*cb)(pa_context *c, int success, void *userdata), void* userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
@@ -957,7 +961,7 @@ pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autolo
     return pa_operation_ref(o);
 }
 
-pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type type, void (*cb)(pa_context *c, int success, void *userdata), void* userdata) {
+pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type_t type, void (*cb)(pa_context *c, int success, void *userdata), void* userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;

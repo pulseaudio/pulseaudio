@@ -24,6 +24,6 @@
 
 #include "sink.h"
 
-int pa_play_file(pa_sink *sink, const char *fname, pa_volume_t volume);
+int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume);
 
 #endif

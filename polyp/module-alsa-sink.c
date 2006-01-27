@@ -51,8 +51,6 @@ PA_MODULE_DESCRIPTION("ALSA Sink")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> device=<ALSA device> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
 
-#define PA_TYPEID_ALSA PA_TYPEID_MAKE('A', 'L', 'S', 'A')
-
 struct userdata {
     snd_pcm_t *pcm_handle;
     pa_sink *sink;
@@ -142,7 +140,7 @@ static void do_write(struct userdata *u) {
     }
 }
 
-static void io_callback(pa_mainloop_api*a, pa_io_event *e, PA_GCC_UNUSED int fd, PA_GCC_UNUSED pa_io_event_flags f, void *userdata) {
+static void io_callback(pa_mainloop_api*a, pa_io_event *e, PA_GCC_UNUSED int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
     struct userdata *u = userdata;
     assert(u && a && e);
 
@@ -220,7 +218,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    u->sink = pa_sink_new(c, PA_TYPEID_ALSA, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss);
+    u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL);
     assert(u->sink);
 
     u->sink->get_latency = sink_get_latency_cb;
@@ -236,7 +234,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->frame_size = frame_size;
     u->fragment_size = period_size;
 
-    pa_log(__FILE__": using %u fragments of size %u bytes.\n", periods, u->fragment_size);
+    pa_log_info(__FILE__": using %u fragments of size %u bytes.\n", periods, u->fragment_size);
 
     u->silence.memblock = pa_memblock_new(u->silence.length = u->fragment_size, c->memblock_stat);
     assert(u->silence.memblock);

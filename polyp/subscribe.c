@@ -41,22 +41,22 @@
 struct pa_subscription {
     pa_core *core;
     int dead;
-    void (*callback)(pa_core *c, pa_subscription_event_type t, uint32_t index, void *userdata);
+    void (*callback)(pa_core *c, pa_subscription_event_type_t t, uint32_t index, void *userdata);
     void *userdata;
-    pa_subscription_mask mask;
+    pa_subscription_mask_t mask;
 
     pa_subscription *prev, *next;
 };
 
 struct pa_subscription_event {
-    pa_subscription_event_type type;
+    pa_subscription_event_type_t type;
     uint32_t index;
 };
 
 static void sched_event(pa_core *c);
 
 /* Allocate a new subscription object for the given subscription mask. Use the specified callback function and user data */
-pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask m, void (*callback)(pa_core *c, pa_subscription_event_type t, uint32_t index, void *userdata), void *userdata) {
+pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m, void (*callback)(pa_core *c, pa_subscription_event_type_t t, uint32_t index, void *userdata), void *userdata) {
     pa_subscription *s;
     assert(c);
 
@@ -210,7 +210,7 @@ static void sched_event(pa_core *c) {
 }
 
 /* Append a new subscription event to the subscription event queue and schedule a main loop event */
-void pa_subscription_post(pa_core *c, pa_subscription_event_type t, uint32_t index) {
+void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t index) {
     pa_subscription_event *e;
     assert(c);
 

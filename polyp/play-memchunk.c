@@ -33,8 +33,6 @@
 #include "xmalloc.h"
 #include "gccmacro.h"
 
-#define PA_TYPEID_MEMCHUNK PA_TYPEID_MAKE('M', 'C', 'N', 'K')
-
 static void sink_input_kill(pa_sink_input *i) {
     pa_memchunk *c;
     assert(i && i->userdata);
@@ -45,7 +43,6 @@ static void sink_input_kill(pa_sink_input *i) {
 
     pa_memblock_unref(c->memblock);
     pa_xfree(c);
-    
 }
 
 static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
@@ -82,24 +79,35 @@ static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t le
         pa_mainloop_api_once(i->sink->core->mainloop, si_kill, i);
 }
 
-int pa_play_memchunk(pa_sink *sink, const char *name, const pa_sample_spec *ss, const pa_memchunk *chunk, pa_volume_t volume) {
+int pa_play_memchunk(
+    pa_sink *sink,
+    const char *name,
+    const pa_sample_spec *ss,
+    const pa_channel_map *map,
+    const pa_memchunk *chunk,
+    pa_cvolume *cvolume) {
+    
     pa_sink_input *si;
     pa_memchunk *nchunk;
 
-    assert(sink && chunk);
+    assert(sink);
+    assert(ss);
+    assert(chunk);
 
-    if (volume <= 0)
+    if (cvolume && pa_cvolume_is_muted(cvolume))
         return 0;
 
-    if (!(si = pa_sink_input_new(sink, PA_TYPEID_MEMCHUNK, name, ss, 0, -1)))
+    if (!(si = pa_sink_input_new(sink, name, __FILE__, ss, map, 0, PA_RESAMPLER_INVALID)))
         return -1;
 
-    si->volume = volume;
+    if (cvolume)
+        si->volume = *cvolume;
+    
     si->peek = sink_input_peek;
     si->drop = sink_input_drop;
     si->kill = sink_input_kill;
     
-    si->userdata = nchunk = pa_xmalloc(sizeof(pa_memchunk));
+    si->userdata = nchunk = pa_xnew(pa_memchunk, 1);
     *nchunk = *chunk;
     
     pa_memblock_ref(chunk->memblock);

@@ -146,7 +146,7 @@
   #else
     #include "module-esound-protocol-unix-symdef.h"
   #endif
-  PA_MODULE_DESCRIPTION("EsounD protocol "SOCKET_DESCRIPTION)
+  PA_MODULE_DESCRIPTION("ESOUND protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE("sink=<sink to connect to> source=<source to connect to> public=<don't check for cookies?> cookie=<path to cookie file> "SOCKET_USAGE)
 #else
   #error "Broken build system" 

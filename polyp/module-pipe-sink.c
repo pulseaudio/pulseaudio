@@ -50,8 +50,6 @@ PA_MODULE_USAGE("sink_name=<name for the sink> file=<path of the FIFO> format=<s
 #define DEFAULT_FIFO_NAME "/tmp/music.output"
 #define DEFAULT_SINK_NAME "fifo_output"
 
-#define PA_TYPEID_PIPE PA_TYPEID_MAKE('P', 'I', 'P', 'E')
-
 struct userdata {
     pa_core *core;
 
@@ -177,7 +175,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->module = m;
     m->userdata = u;
     
-    if (!(u->sink = pa_sink_new(c, PA_TYPEID_PIPE, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss))) {
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
         pa_log(__FILE__": failed to create sink.\n");
         goto fail;
     }

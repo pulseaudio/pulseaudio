@@ -39,7 +39,7 @@ struct pa_simple {
     pa_mainloop *mainloop;
     pa_context *context;
     pa_stream *stream;
-    pa_stream_direction direction;
+    pa_stream_direction_t direction;
 
     int dead;
 
@@ -51,8 +51,8 @@ struct pa_simple {
 static void read_callback(pa_stream *s, const void*data, size_t length, void *userdata);
 
 static int check_error(pa_simple *p, int *rerror) {
-    pa_context_state cst;
-    pa_stream_state sst;
+    pa_context_state_t cst;
+    pa_stream_state_t sst;
     assert(p);
     
     if ((cst = pa_context_get_state(p->context)) == PA_CONTEXT_FAILED)
@@ -118,12 +118,11 @@ static int iterate(pa_simple *p, int block, int *rerror) {
 pa_simple* pa_simple_new(
     const char *server,
     const char *name,
-    pa_stream_direction dir,
+    pa_stream_direction_t dir,
     const char *dev,
     const char *stream_name,
     const pa_sample_spec *ss,
     const pa_buffer_attr *attr,
-    pa_volume_t volume, 
     int *rerror) {
     
     pa_simple *p;
@@ -152,11 +151,11 @@ pa_simple* pa_simple_new(
             goto fail;
     }
 
-    if (!(p->stream = pa_stream_new(p->context, stream_name, ss)))
+    if (!(p->stream = pa_stream_new(p->context, stream_name, ss, NULL)))
         goto fail;
 
     if (dir == PA_STREAM_PLAYBACK)
-        pa_stream_connect_playback(p->stream, dev, attr, 0, volume);
+        pa_stream_connect_playback(p->stream, dev, attr, 0, NULL);
     else
         pa_stream_connect_record(p->stream, dev, attr, 0);
 
