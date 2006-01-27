@@ -25,7 +25,7 @@
 polypincludedir=$(includedir)/polyp
 polypconfdir=$(sysconfdir)/polypaudio
 
-modlibdir=$(libdir)/polypaudio-@PA_MAJORMINOR@
+modlibdir=$(libdir)/polypaudio
 
 ###################################
 #            Defines              #
