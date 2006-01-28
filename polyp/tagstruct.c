@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -38,26 +39,6 @@
 #include "tagstruct.h"
 #include "xmalloc.h"
 
-enum tags {
-    TAG_STRING = 't',
-    TAG_NULL_STRING = 'N',
-    TAG_U32 = 'L',
-    TAG_S32 = 'l',
-    TAG_U16 = 'S',
-    TAG_S16 = 's',
-    TAG_U8 = 'B',
-    TAG_S8 = 'b',
-    TAG_U64 = 'R',
-    TAG_S64 = 'r',
-    TAG_SAMPLE_SPEC = 'a',
-    TAG_ARBITRARY = 'x',
-    TAG_BOOLEAN_TRUE = '1',
-    TAG_BOOLEAN_FALSE = '0',
-    TAG_TIMEVAL = 'T',
-    TAG_USEC = 'U'  /* 64bit unsigned */,
-    TAG_CHANNEL_MAP = 'm',
-    TAG_CVOLUME = 'v'
-};
 
 struct pa_tagstruct {
     uint8_t *data;
@@ -105,18 +86,19 @@ static void extend(pa_tagstruct*t, size_t l) {
     t->data = pa_xrealloc(t->data, t->allocated = t->length+l+100);
 }
 
+
 void pa_tagstruct_puts(pa_tagstruct*t, const char *s) {
     size_t l;
     assert(t);
     if (s) {
         l = strlen(s)+2;
         extend(t, l);
-        t->data[t->length] = TAG_STRING;
+        t->data[t->length] = PA_TAG_STRING;
         strcpy((char*) (t->data+t->length+1), s);
         t->length += l;
     } else {
         extend(t, 1);
-        t->data[t->length] = TAG_NULL_STRING;
+        t->data[t->length] = PA_TAG_STRING_NULL;
         t->length += 1;
     }
 }
@@ -124,7 +106,7 @@ void pa_tagstruct_puts(pa_tagstruct*t, const char *s) {
 void pa_tagstruct_putu32(pa_tagstruct*t, uint32_t i) {
     assert(t);
     extend(t, 5);
-    t->data[t->length] = TAG_U32;
+    t->data[t->length] = PA_TAG_U32;
     i = htonl(i);
     memcpy(t->data+t->length+1, &i, 4);
     t->length += 5;
@@ -133,7 +115,7 @@ void pa_tagstruct_putu32(pa_tagstruct*t, uint32_t i) {
 void pa_tagstruct_putu8(pa_tagstruct*t, uint8_t c) {
     assert(t);
     extend(t, 2);
-    t->data[t->length] = TAG_U8;
+    t->data[t->length] = PA_TAG_U8;
     *(t->data+t->length+1) = c;
     t->length += 2;
 }
@@ -142,7 +124,7 @@ void pa_tagstruct_put_sample_spec(pa_tagstruct *t, const pa_sample_spec *ss) {
     uint32_t rate;
     assert(t && ss);
     extend(t, 7);
-    t->data[t->length] = TAG_SAMPLE_SPEC;
+    t->data[t->length] = PA_TAG_SAMPLE_SPEC;
     t->data[t->length+1] = (uint8_t) ss->format;
     t->data[t->length+2] = ss->channels;
     rate = htonl(ss->rate);
@@ -155,7 +137,7 @@ void pa_tagstruct_put_arbitrary(pa_tagstruct *t, const void *p, size_t length) {
     assert(t && p);
 
     extend(t, 5+length);
-    t->data[t->length] = TAG_ARBITRARY;
+    t->data[t->length] = PA_TAG_ARBITRARY;
     tmp = htonl(length);
     memcpy(t->data+t->length+1, &tmp, 4);
     if (length)
@@ -166,7 +148,7 @@ void pa_tagstruct_put_arbitrary(pa_tagstruct *t, const void *p, size_t length) {
 void pa_tagstruct_put_boolean(pa_tagstruct*t, int b) {
     assert(t);
     extend(t, 1);
-    t->data[t->length] = b ? TAG_BOOLEAN_TRUE : TAG_BOOLEAN_FALSE;
+    t->data[t->length] = b ? PA_TAG_BOOLEAN_TRUE : PA_TAG_BOOLEAN_FALSE;
     t->length += 1;
 }
 
@@ -174,7 +156,7 @@ void pa_tagstruct_put_timeval(pa_tagstruct*t, const struct timeval *tv) {
     uint32_t tmp;
     assert(t);
     extend(t, 9);
-    t->data[t->length] = TAG_TIMEVAL;
+    t->data[t->length] = PA_TAG_TIMEVAL;
     tmp = htonl(tv->tv_sec);
     memcpy(t->data+t->length+1, &tmp, 4);
     tmp = htonl(tv->tv_usec);
@@ -186,7 +168,7 @@ void pa_tagstruct_put_usec(pa_tagstruct*t, pa_usec_t u) {
     uint32_t tmp;
     assert(t);
     extend(t, 9);
-    t->data[t->length] = TAG_USEC;
+    t->data[t->length] = PA_TAG_USEC;
     tmp = htonl((uint32_t) (u >> 32));
     memcpy(t->data+t->length+1, &tmp, 4);
     tmp = htonl((uint32_t) u);
@@ -198,7 +180,7 @@ void pa_tagstruct_putu64(pa_tagstruct*t, uint64_t u) {
     uint32_t tmp;
     assert(t);
     extend(t, 9);
-    t->data[t->length] = TAG_U64;
+    t->data[t->length] = PA_TAG_U64;
     tmp = htonl((uint32_t) (u >> 32));
     memcpy(t->data+t->length+1, &tmp, 4);
     tmp = htonl((uint32_t) u);
@@ -212,7 +194,7 @@ void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map) {
     assert(t);
     extend(t, 2 + map->channels);
 
-    t->data[t->length++] = TAG_CHANNEL_MAP;
+    t->data[t->length++] = PA_TAG_CHANNEL_MAP;
     t->data[t->length++] = map->channels;
     
     for (i = 0; i < map->channels; i ++)
@@ -225,7 +207,7 @@ void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume) {
     assert(t);
     extend(t, 2 + cvolume->channels * sizeof(pa_volume_t));
 
-    t->data[t->length++] = TAG_CVOLUME;
+    t->data[t->length++] = PA_TAG_CVOLUME;
     t->data[t->length++] = cvolume->channels;
     
     for (i = 0; i < cvolume->channels; i ++) {
@@ -243,7 +225,7 @@ int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
     if (t->rindex+1 > t->length)
         return -1;
 
-    if (t->data[t->rindex] == TAG_NULL_STRING) {
+    if (t->data[t->rindex] == PA_TAG_STRING_NULL) {
         t->rindex++;
         *s = NULL;
         return 0;
@@ -252,7 +234,7 @@ int pa_tagstruct_gets(pa_tagstruct*t, const char **s) {
     if (t->rindex+2 > t->length)
         return -1;
     
-    if (t->data[t->rindex] != TAG_STRING)
+    if (t->data[t->rindex] != PA_TAG_STRING)
         return -1;
 
     error = 1;
@@ -277,7 +259,7 @@ int pa_tagstruct_getu32(pa_tagstruct*t, uint32_t *i) {
     if (t->rindex+5 > t->length)
         return -1;
 
-    if (t->data[t->rindex] != TAG_U32)
+    if (t->data[t->rindex] != PA_TAG_U32)
         return -1;
 
     memcpy(i, t->data+t->rindex+1, 4);
@@ -292,7 +274,7 @@ int pa_tagstruct_getu8(pa_tagstruct*t, uint8_t *c) {
     if (t->rindex+2 > t->length)
         return -1;
 
-    if (t->data[t->rindex] != TAG_U8)
+    if (t->data[t->rindex] != PA_TAG_U8)
         return -1;
 
     *c = t->data[t->rindex+1];
@@ -306,7 +288,7 @@ int pa_tagstruct_get_sample_spec(pa_tagstruct *t, pa_sample_spec *ss) {
     if (t->rindex+7 > t->length)
         return -1;
 
-    if (t->data[t->rindex] != TAG_SAMPLE_SPEC)
+    if (t->data[t->rindex] != PA_TAG_SAMPLE_SPEC)
         return -1;
     
     ss->format = t->data[t->rindex+1];
@@ -328,7 +310,7 @@ int pa_tagstruct_get_arbitrary(pa_tagstruct *t, const void **p, size_t length) {
     if (t->rindex+5+length > t->length)
         return -1;
 
-    if (t->data[t->rindex] != TAG_ARBITRARY)
+    if (t->data[t->rindex] != PA_TAG_ARBITRARY)
         return -1;
 
     memcpy(&len, t->data+t->rindex+1, 4);
@@ -357,9 +339,9 @@ int pa_tagstruct_get_boolean(pa_tagstruct*t, int *b) {
     if (t->rindex+1 > t->length)
         return -1;
 
-    if (t->data[t->rindex] == TAG_BOOLEAN_TRUE)
+    if (t->data[t->rindex] == PA_TAG_BOOLEAN_TRUE)
         *b = 1;
-    else if (t->data[t->rindex] == TAG_BOOLEAN_FALSE)
+    else if (t->data[t->rindex] == PA_TAG_BOOLEAN_FALSE)
         *b = 0;
     else
         return -1;
@@ -373,7 +355,7 @@ int pa_tagstruct_get_timeval(pa_tagstruct*t, struct timeval *tv) {
     if (t->rindex+9 > t->length)
         return -1;
 
-    if (t->data[t->rindex] != TAG_TIMEVAL)
+    if (t->data[t->rindex] != PA_TAG_TIMEVAL)
         return -1;
 
     memcpy(&tv->tv_sec, t->data+t->rindex+1, 4);
@@ -392,7 +374,7 @@ int pa_tagstruct_get_usec(pa_tagstruct*t, pa_usec_t *u) {
     if (t->rindex+9 > t->length)
         return -1;
 
-    if (t->data[t->rindex] != TAG_USEC)
+    if (t->data[t->rindex] != PA_TAG_USEC)
         return -1;
 
     memcpy(&tmp, t->data+t->rindex+1, 4);
@@ -410,7 +392,7 @@ int pa_tagstruct_getu64(pa_tagstruct*t, uint64_t *u) {
     if (t->rindex+9 > t->length)
         return -1;
 
-    if (t->data[t->rindex] != TAG_U64)
+    if (t->data[t->rindex] != PA_TAG_U64)
         return -1;
 
     memcpy(&tmp, t->data+t->rindex+1, 4);
@@ -430,7 +412,7 @@ int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map) {
     if (t->rindex+2 > t->length)
         return -1;
 
-    if (t->data[t->rindex] != TAG_CHANNEL_MAP)
+    if (t->data[t->rindex] != PA_TAG_CHANNEL_MAP)
         return -1;
 
     if ((map->channels = t->data[t->rindex+1]) > PA_CHANNELS_MAX)
@@ -458,7 +440,7 @@ int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *cvolume) {
     if (t->rindex+2 > t->length)
         return -1;
 
-    if (t->data[t->rindex] != TAG_CVOLUME)
+    if (t->data[t->rindex] != PA_TAG_CVOLUME)
         return -1;
 
     if ((cvolume->channels = t->data[t->rindex+1]) > PA_CHANNELS_MAX)
@@ -475,4 +457,148 @@ int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *cvolume) {
     
     t->rindex += 2 + cvolume->channels * sizeof(pa_volume_t);
     return 0;
+}
+
+void pa_tagstruct_put(pa_tagstruct *t, ...) {
+    va_list va;
+    assert(t);
+    
+    va_start(va, t);
+
+    for (;;) {
+        int tag = va_arg(va, int);
+
+        if (tag == PA_TAG_INVALID)
+            break;
+
+        switch (tag) {
+            case PA_TAG_STRING:
+            case PA_TAG_STRING_NULL:
+                pa_tagstruct_puts(t, va_arg(va, char*));
+                break;
+
+            case PA_TAG_U32:
+                pa_tagstruct_putu32(t, va_arg(va, uint32_t));
+                break;
+
+            case PA_TAG_U8:
+                pa_tagstruct_putu8(t, (uint8_t) va_arg(va, int));
+                break;
+
+            case PA_TAG_U64:
+                pa_tagstruct_putu64(t, va_arg(va, uint64_t));
+                break;
+
+            case PA_TAG_SAMPLE_SPEC:
+                pa_tagstruct_put_sample_spec(t, va_arg(va, pa_sample_spec*));
+                break;
+
+            case PA_TAG_ARBITRARY: {
+                void *p = va_arg(va, void*);
+                size_t size = va_arg(va, size_t);
+                pa_tagstruct_put_arbitrary(t, p, size);
+                break;
+            }
+
+            case PA_TAG_BOOLEAN_TRUE:
+            case PA_TAG_BOOLEAN_FALSE:
+                pa_tagstruct_put_boolean(t, va_arg(va, int));
+                break;
+
+            case PA_TAG_TIMEVAL:
+                pa_tagstruct_put_timeval(t, va_arg(va, struct timeval*));
+                break;
+
+            case PA_TAG_USEC:
+                pa_tagstruct_put_usec(t, va_arg(va, pa_usec_t));
+                break;
+
+            case PA_TAG_CHANNEL_MAP:
+                pa_tagstruct_put_channel_map(t, va_arg(va, pa_channel_map *));
+                break;
+
+            case PA_TAG_CVOLUME:
+                pa_tagstruct_put_cvolume(t, va_arg(va, pa_cvolume *));
+                break;
+
+            default:
+                abort();
+        }
+    }
+    
+    va_end(va);
+}
+
+int pa_tagstruct_get(pa_tagstruct *t, ...) {
+    va_list va;
+    int ret = 0;
+    
+    assert(t);
+    
+    va_start(va, t);
+    while (ret == 0) {
+        int tag = va_arg(va, int);
+
+        if (tag == PA_TAG_INVALID)
+            break;
+
+        switch (tag) {
+            case PA_TAG_STRING:
+            case PA_TAG_STRING_NULL:
+                ret = pa_tagstruct_gets(t, va_arg(va, const char**));
+                break;
+
+            case PA_TAG_U32:
+                ret = pa_tagstruct_getu32(t, va_arg(va, uint32_t*));
+                break;
+
+            case PA_TAG_U8:
+                ret = pa_tagstruct_getu8(t, va_arg(va, uint8_t*));
+                break;
+
+            case PA_TAG_U64:
+                ret = pa_tagstruct_getu64(t, va_arg(va, uint64_t*));
+                break;
+
+            case PA_TAG_SAMPLE_SPEC:
+                ret = pa_tagstruct_get_sample_spec(t, va_arg(va, pa_sample_spec*));
+                break;
+
+            case PA_TAG_ARBITRARY: {
+                const void **p = va_arg(va, const void**);
+                size_t size = va_arg(va, size_t);
+                ret = pa_tagstruct_get_arbitrary(t, p, size);
+                break;
+            }
+
+            case PA_TAG_BOOLEAN_TRUE:
+            case PA_TAG_BOOLEAN_FALSE:
+                ret = pa_tagstruct_get_boolean(t, va_arg(va, int*));
+                break;
+
+            case PA_TAG_TIMEVAL:
+                ret = pa_tagstruct_get_timeval(t, va_arg(va, struct timeval*));
+                break;
+
+            case PA_TAG_USEC:
+                ret = pa_tagstruct_get_usec(t, va_arg(va, pa_usec_t*));
+                break;
+
+            case PA_TAG_CHANNEL_MAP:
+                ret = pa_tagstruct_get_channel_map(t, va_arg(va, pa_channel_map *));
+                break;
+
+            case PA_TAG_CVOLUME:
+                ret = pa_tagstruct_get_cvolume(t, va_arg(va, pa_cvolume *));
+                break;
+
+            
+            default:
+                abort();
+        }
+        
+    }
+
+    va_end(va);
+    return ret;
 }

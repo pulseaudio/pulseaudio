@@ -588,18 +588,22 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     
     assert(c && t && c->protocol && c->protocol->core);
     
-    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
-        pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
-        pa_tagstruct_get_channel_map(t, &map) < 0 ||
-        pa_tagstruct_getu32(t, &sink_index) < 0 ||
-        pa_tagstruct_gets(t, &sink_name) < 0 ||
-        pa_tagstruct_getu32(t, &maxlength) < 0 ||
-        pa_tagstruct_get_boolean(t, &corked) < 0 ||
-        pa_tagstruct_getu32(t, &tlength) < 0 ||
-        pa_tagstruct_getu32(t, &prebuf) < 0 ||
-        pa_tagstruct_getu32(t, &minreq) < 0 ||
-        pa_tagstruct_get_cvolume(t, &volume) < 0 ||
-        !pa_tagstruct_eof(t)) {
+    if (pa_tagstruct_get(
+            t,
+            PA_TAG_STRING, &name,
+            PA_TAG_SAMPLE_SPEC, &ss,
+            PA_TAG_CHANNEL_MAP, &map,
+            PA_TAG_U32, &sink_index,
+            PA_TAG_STRING, &sink_name,
+            PA_TAG_U32, &maxlength,
+            PA_TAG_BOOLEAN, &corked,
+            PA_TAG_U32, &tlength,
+            PA_TAG_U32, &prebuf,
+            PA_TAG_U32, &minreq,
+            PA_TAG_CVOLUME, &volume,
+            PA_TAG_INVALID) < 0 ||
+        !pa_tagstruct_eof(t) ||
+        !name) {
         protocol_error(c);
         return;
     }
@@ -1138,17 +1142,20 @@ static void command_remove_sample(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED 
 
 static void sink_fill_tagstruct(pa_tagstruct *t, pa_sink *sink) {
     assert(t && sink);
-    pa_tagstruct_putu32(t, sink->index);
-    pa_tagstruct_puts(t, sink->name);
-    pa_tagstruct_puts(t, sink->description);
-    pa_tagstruct_put_sample_spec(t, &sink->sample_spec);
-    pa_tagstruct_put_channel_map(t, &sink->channel_map);
-    pa_tagstruct_putu32(t, sink->owner ? sink->owner->index : (uint32_t) -1);
-    pa_tagstruct_put_cvolume(t, pa_sink_get_volume(sink, PA_MIXER_HARDWARE));
-    pa_tagstruct_putu32(t, sink->monitor_source->index);
-    pa_tagstruct_puts(t, sink->monitor_source->name);
-    pa_tagstruct_put_usec(t, pa_sink_get_latency(sink));
-    pa_tagstruct_puts(t, sink->driver);
+    pa_tagstruct_put(
+        t,
+        PA_TAG_U32, sink->index,
+        PA_TAG_STRING, sink->name,
+        PA_TAG_STRING, sink->description,
+        PA_TAG_SAMPLE_SPEC, &sink->sample_spec,
+        PA_TAG_CHANNEL_MAP, &sink->channel_map,
+        PA_TAG_U32, sink->owner ? sink->owner->index : PA_INVALID_INDEX,
+        PA_TAG_CVOLUME, pa_sink_get_volume(sink, PA_MIXER_HARDWARE),
+        PA_TAG_U32, sink->monitor_source->index,
+        PA_TAG_STRING, sink->monitor_source->name,
+        PA_TAG_USEC, pa_sink_get_latency(sink),
+        PA_TAG_STRING, sink->driver,
+        PA_TAG_INVALID);
 }
 
 static void source_fill_tagstruct(pa_tagstruct *t, pa_source *source) {

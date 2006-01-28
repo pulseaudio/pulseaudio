@@ -317,20 +317,25 @@ static void create_stream(pa_stream *s, const char *dev, const pa_buffer_attr *a
             dev = s->context->conf->default_source;
     }
     
-    pa_tagstruct_putu32(t, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM);
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
-    pa_tagstruct_puts(t, s->name);
-    pa_tagstruct_put_sample_spec(t, &s->sample_spec);
-    pa_tagstruct_put_channel_map(t, &s->channel_map);
-    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
-    pa_tagstruct_puts(t, dev);
-    pa_tagstruct_putu32(t, s->buffer_attr.maxlength);
-    pa_tagstruct_put_boolean(t, !!(flags & PA_STREAM_START_CORKED));
+    pa_tagstruct_put(t,
+        PA_TAG_U32, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM,
+        PA_TAG_U32, tag = s->context->ctag++,
+        PA_TAG_STRING, s->name,
+        PA_TAG_SAMPLE_SPEC, &s->sample_spec,
+        PA_TAG_CHANNEL_MAP, &s->channel_map,
+        PA_TAG_U32, PA_INVALID_INDEX,
+        PA_TAG_STRING, dev,
+        PA_TAG_U32, s->buffer_attr.maxlength,
+        PA_TAG_BOOLEAN, !!(flags & PA_STREAM_START_CORKED),
+        PA_TAG_INVALID);
+    
     if (s->direction == PA_STREAM_PLAYBACK) {
         pa_cvolume cv;
-        pa_tagstruct_putu32(t, s->buffer_attr.tlength);
-        pa_tagstruct_putu32(t, s->buffer_attr.prebuf);
-        pa_tagstruct_putu32(t, s->buffer_attr.minreq);
+        pa_tagstruct_put(t,
+            PA_TAG_U32, s->buffer_attr.tlength,
+            PA_TAG_U32, s->buffer_attr.prebuf,
+            PA_TAG_U32, s->buffer_attr.minreq,
+            PA_TAG_INVALID);
 
         if (!volume) {
             pa_cvolume_reset(&cv, s->sample_spec.channels);
