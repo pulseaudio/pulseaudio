@@ -43,8 +43,6 @@ PA_MODULE_DESCRIPTION("Windows waveOut Sink/Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source> record=<enable source?> playback=<enable sink?> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
 
-#define PA_TYPEID_WAVEOUT PA_TYPEID_MAKE('W', 'A', 'V', 'E')
-
 #define DEFAULT_SINK_NAME "wave_output"
 #define DEFAULT_SOURCE_NAME "wave_input"
 
@@ -442,7 +440,7 @@ int pa__init(pa_core *c, pa_module*m) {
     InitializeCriticalSection(&u->crit);
 
     if (hwi != INVALID_HANDLE_VALUE) {
-        u->source = pa_source_new(c, PA_TYPEID_WAVEOUT, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss);
+        u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL);
         assert(u->source);
         u->source->userdata = u;
         u->source->notify = notify_source_cb;
@@ -453,7 +451,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source = NULL;
 
     if (hwo != INVALID_HANDLE_VALUE) {
-        u->sink = pa_sink_new(c, PA_TYPEID_WAVEOUT, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss);
+        u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL);
         assert(u->sink);
         u->sink->notify = notify_sink_cb;
         u->sink->get_latency = sink_get_latency_cb;
