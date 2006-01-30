@@ -270,6 +270,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
                 if (++channel >= spec->channels)
                     channel = 0;
             }
+            break;
         }
             
         case PA_SAMPLE_U8: {
@@ -291,6 +292,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
                 if (++channel >= spec->channels)
                     channel = 0;
             }
+            break;
         }
             
         case PA_SAMPLE_FLOAT32NE: {
@@ -314,6 +316,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
                 t = d + channel;
                 oil_scalarmult_f32(t, skip, t, skip, &v, n);
             }
+            break;
         }
 
         default:
