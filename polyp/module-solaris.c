@@ -57,8 +57,6 @@ PA_MODULE_DESCRIPTION("Solaris Sink/Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source> device=<OSS device> record=<enable source?> playback=<enable sink?> format=<sample format> channels=<number of channels> rate=<sample rate> buffer_size=<record buffer size>")
 
-#define PA_TYPEID_SOLARIS PA_TYPEID_MAKE('S', 'L', 'R', 'S')
-
 struct userdata {
     pa_sink *sink;
     pa_source *source;
@@ -398,7 +396,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->core = c;
 
     if (mode != O_WRONLY) {
-        u->source = pa_source_new(c, PA_TYPEID_SOLARIS, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss);
+        u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL);
         assert(u->source);
         u->source->userdata = u;
         u->source->get_latency = source_get_latency_cb;
@@ -408,7 +406,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source = NULL;
 
     if (mode != O_RDONLY) {
-        u->sink = pa_sink_new(c, PA_TYPEID_SOLARIS, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss);
+        u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL);
         assert(u->sink);
         u->sink->get_latency = sink_get_latency_cb;
         u->sink->userdata = u;
