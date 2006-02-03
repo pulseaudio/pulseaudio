@@ -474,7 +474,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
     assert(k);
 
     for (conn = pa_idxset_first(c->protocol->connections, &idx); conn; conn = pa_idxset_next(c->protocol->connections, &idx)) {
-        int format = ESD_BITS16 | ESD_STEREO, rate = 44100, lvolume = 0xFF, rvolume = 0xFF;
+        int format = ESD_BITS16 | ESD_STEREO, rate = 44100, lvolume = ESD_VOLUME_BASE, rvolume = ESD_VOLUME_BASE;
 
         if (conn->state != ESD_STREAMING_DATA)
             continue;
@@ -483,8 +483,8 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         
         if (conn->sink_input) {
             rate = conn->sink_input->sample_spec.rate;
-            lvolume = (conn->sink_input->volume.values[0]*0xFF)/0x100;
-            rvolume = (conn->sink_input->volume.values[1]*0xFF)/0x100;
+            lvolume = (conn->sink_input->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM;
+            rvolume = (conn->sink_input->volume.values[1]*ESD_VOLUME_BASE)/PA_VOLUME_NORM;
             format = format_native2esd(&conn->sink_input->sample_spec);
         }
         
@@ -544,11 +544,11 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             response += sizeof(int);
             
             /* left */
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume.values[0]*0xFF)/0x100);
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             response += sizeof(int);
             
             /*right*/
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume.values[0]*0xFF)/0x100);
+            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             response += sizeof(int);
             
             /*format*/
@@ -578,9 +578,9 @@ static int esd_proto_stream_pan(struct connection *c, PA_GCC_UNUSED esd_proto_t 
     
     idx = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *(const int*)data)-1;
     lvolume = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 1));
-    lvolume = (lvolume*0x100)/0xFF;
+    lvolume = (lvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
     rvolume = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 2));
-    rvolume = (rvolume*0x100)/0xFF;
+    rvolume = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
 
     ok = connection_write(c, sizeof(int));
     assert(ok);
