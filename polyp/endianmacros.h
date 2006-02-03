@@ -33,6 +33,9 @@
 #define INT32_SWAP(x) ( (int32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
 #define UINT32_SWAP(x) ( (uint32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
 
+#define MAYBE_INT32_SWAP(c,x) ((c) ? INT32_SWAP(x) : x)
+#define MAYBE_UINT32_SWAP(c,x) ((c) ? UINT32_SWAP(x) : x)
+
 #ifdef WORDS_BIGENDIAN
  #define INT16_FROM_LE(x) INT16_SWAP(x)
  #define INT16_FROM_BE(x) ((int16_t)(x))

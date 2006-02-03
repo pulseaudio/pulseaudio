@@ -46,6 +46,7 @@
 #include "xmalloc.h"
 #include "log.h"
 #include "util.h"
+#include "endianmacros.h"
 
 /* Don't accept more connection than this */
 #define MAX_CONNECTIONS 10
@@ -301,8 +302,8 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     size_t l;
     assert(c && length == (sizeof(int)*2+ESD_NAME_MAX));
     
-    format = maybe_swap_endian_32(c->swap_byte_order, *(const int*)data);
-    rate = maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 1));
+    format = MAYBE_INT32_SWAP(c->swap_byte_order, *(const int*)data);
+    rate = MAYBE_INT32_SWAP(c->swap_byte_order, *((const int*)data + 1));
 
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
@@ -357,8 +358,8 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     size_t l;
     assert(c && length == (sizeof(int)*2+ESD_NAME_MAX));
     
-    format = maybe_swap_endian_32(c->swap_byte_order, *(const int*)data);
-    rate = maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 1));
+    format = MAYBE_INT32_SWAP(c->swap_byte_order, *(const int*)data);
+    rate = MAYBE_INT32_SWAP(c->swap_byte_order, *((const int*)data + 1));
 
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
@@ -433,7 +434,7 @@ static int esd_proto_get_latency(struct connection *c, PA_GCC_UNUSED esd_proto_t
     
     lag = connection_write(c, sizeof(int));
     assert(lag);
-    *lag = c->swap_byte_order ? swap_endian_32(latency) : latency;
+    *lag = MAYBE_INT32_SWAP(c->swap_byte_order, latency);
     return 0;
 }
 
@@ -451,8 +452,8 @@ static int esd_proto_server_info(struct connection *c, PA_GCC_UNUSED esd_proto_t
     response = connection_write(c, sizeof(int)*3);
     assert(response);
     *(response++) = 0;
-    *(response++) = maybe_swap_endian_32(c->swap_byte_order, rate);
-    *(response++) = maybe_swap_endian_32(c->swap_byte_order, format);
+    *(response++) = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
+    *(response++) = MAYBE_INT32_SWAP(c->swap_byte_order, format);
     return 0;
 }
 
@@ -489,7 +490,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         }
         
         /* id */
-        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (int) (conn->index+1));
+        *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, (int) (conn->index+1));
         response += sizeof(int);
 
         /* name */
@@ -498,19 +499,19 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         response += ESD_NAME_MAX;
 
         /* rate */
-        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order,  rate);
+        *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order,  rate);
         response += sizeof(int);
 
         /* left */
-        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order,  lvolume);
+        *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order,  lvolume);
         response += sizeof(int);
 
         /*right*/
-        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order,  rvolume);
+        *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order,  rvolume);
         response += sizeof(int);
 
         /*format*/
-        *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, format);
+        *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, format);
         response += sizeof(int);
 
         t-= k;
@@ -529,7 +530,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             assert(t >= s*2);
             
             /* id */
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (int) (ce->index+1));
+            *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, (int) (ce->index+1));
             response += sizeof(int);
             
             /* name */
@@ -540,23 +541,23 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             response += ESD_NAME_MAX;
             
             /* rate */
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, ce->sample_spec.rate);
+            *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, ce->sample_spec.rate);
             response += sizeof(int);
             
             /* left */
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
+            *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             response += sizeof(int);
             
             /*right*/
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
+            *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             response += sizeof(int);
             
             /*format*/
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, format_native2esd(&ce->sample_spec));
+            *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, format_native2esd(&ce->sample_spec));
             response += sizeof(int);
 
             /*length*/
-            *((int*) response) = maybe_swap_endian_32(c->swap_byte_order, (int) ce->memchunk.length);
+            *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, (int) ce->memchunk.length);
             response += sizeof(int);
 
             t -= s;
@@ -576,10 +577,10 @@ static int esd_proto_stream_pan(struct connection *c, PA_GCC_UNUSED esd_proto_t 
     struct connection *conn;
     assert(c && data && length == sizeof(int)*3);
     
-    idx = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *(const int*)data)-1;
-    lvolume = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 1));
+    idx = MAYBE_UINT32_SWAP(c->swap_byte_order, *(const int*)data)-1;
+    lvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, *((const int*)data + 1));
     lvolume = (lvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
-    rvolume = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 2));
+    rvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, *((const int*)data + 2));
     rvolume = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
 
     ok = connection_write(c, sizeof(int));
@@ -606,13 +607,13 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     char name[ESD_NAME_MAX+sizeof(SCACHE_PREFIX)-1];
     assert(c && data && length == (ESD_NAME_MAX+3*sizeof(int)));
 
-    format = maybe_swap_endian_32(c->swap_byte_order, *(const int*)data);
-    rate = maybe_swap_endian_32(c->swap_byte_order, *((const int*)data + 1));
+    format = MAYBE_INT32_SWAP(c->swap_byte_order, *(const int*)data);
+    rate = MAYBE_INT32_SWAP(c->swap_byte_order, *((const int*)data + 1));
     
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
 
-    sc_length = (size_t) maybe_swap_endian_32(c->swap_byte_order, (*((const int*)data + 2)));
+    sc_length = (size_t) MAYBE_INT32_SWAP(c->swap_byte_order, (*((const int*)data + 2)));
 
     if (sc_length >= MAX_CACHE_SAMPLE_SIZE)
         return -1;
@@ -668,7 +669,7 @@ static int esd_proto_sample_free_or_play(struct connection *c, esd_proto_t reque
     uint32_t idx;
     assert(c && data && length == sizeof(int));
 
-    idx = (uint32_t) maybe_swap_endian_32(c->swap_byte_order, *(const int*)data)-1;
+    idx = (uint32_t) MAYBE_INT32_SWAP(c->swap_byte_order, *(const int*)data)-1;
 
     ok = connection_write(c, sizeof(int));
     assert(ok);
@@ -729,8 +730,7 @@ static int do_read(struct connection *c) {
         if ((c->read_data_length+= r) >= sizeof(c->request)) {
             struct proto_handler *handler;
             
-            if (c->swap_byte_order)
-                c->request = swap_endian_32(c->request);
+            c->request = MAYBE_INT32_SWAP(c->swap_byte_order, c->request);
 
             if (c->request < ESD_PROTO_CONNECT || c->request > ESD_PROTO_MAX) {
                 pa_log(__FILE__": recieved invalid request.\n");
