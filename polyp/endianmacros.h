@@ -28,10 +28,10 @@
 #include <config.h>
 #endif
 
-#define INT16_SWAP(x) ((int16_t)(((uint16_t) x >> 8) | ((uint16_t) x << 8)))
-#define UINT16_SWAP(x) ((uint16_t)(((uint16_t) x >> 8) | ((uint16_t) x << 8)))
-#define INT32_SWAP(x) ((int32_t)(((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 16) | (((uint32_t) x) >> 16) & 0xFF00))
-#define UINT32_SWAP(x) ((uint32_t)(((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 16) | ((((uint32_t) x) >> 16) & 0xFF00)))
+#define INT16_SWAP(x) ( (int16_t) ( ((uint16_t) x >> 8) | ((uint16_t) x << 8) ) )
+#define UINT16_SWAP(x) ( (uint16_t) ( ((uint16_t) x >> 8) | ((uint16_t) x << 8) ) )
+#define INT32_SWAP(x) ( (int32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
+#define UINT32_SWAP(x) ( (uint32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
 
 #ifdef WORDS_BIGENDIAN
  #define INT16_FROM_LE(x) INT16_SWAP(x)
