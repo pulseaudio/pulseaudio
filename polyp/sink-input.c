@@ -222,12 +222,6 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
             goto finish;
 
         assert(tchunk.length);
-
-        /* It might be necessary to adjust the volume here */
-        if (do_volume_adj_here) {
-            pa_memchunk_make_writable(&tchunk, i->sink->core->memblock_stat, 0);
-            pa_volume_memchunk(&tchunk, &i->sample_spec, &i->volume);
-        }
         
         l = pa_resampler_request(i->resampler, CONVERT_BUFFER_LENGTH);
 
@@ -236,6 +230,12 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
         i->drop(i, &tchunk, l);
         tchunk.length = l;
+
+        /* It might be necessary to adjust the volume here */
+        if (do_volume_adj_here) {
+            pa_memchunk_make_writable(&tchunk, i->sink->core->memblock_stat, 0);
+            pa_volume_memchunk(&tchunk, &i->sample_spec, &i->volume);
+        }
 
         pa_resampler_run(i->resampler, &tchunk, &i->resampled_chunk);
         pa_memblock_unref(tchunk.memblock);
