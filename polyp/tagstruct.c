@@ -203,6 +203,7 @@ void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map) {
 
 void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume) {
     unsigned i;
+    pa_volume_t vol;
     
     assert(t);
     extend(t, 2 + cvolume->channels * sizeof(pa_volume_t));
@@ -211,7 +212,8 @@ void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume) {
     t->data[t->length++] = cvolume->channels;
     
     for (i = 0; i < cvolume->channels; i ++) {
-        *(pa_volume_t*) (t->data + t->length) = htonl(cvolume->values[i]);
+        vol = htonl(cvolume->values[i]);
+        memcpy(t->data + t->length, &vol, sizeof(pa_volume_t));
         t->length += sizeof(pa_volume_t);
     }
 }
@@ -433,6 +435,7 @@ int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map) {
 
 int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *cvolume) {
     unsigned i;
+    pa_volume_t vol;
     
     assert(t);
     assert(cvolume);
@@ -449,8 +452,10 @@ int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *cvolume) {
     if (t->rindex+2+cvolume->channels*sizeof(pa_volume_t) > t->length)
         return -1;
     
-    for (i = 0; i < cvolume->channels; i ++)
-        cvolume->values[i] = (pa_volume_t) ntohl(*((pa_volume_t*) (t->data + t->rindex + 2)+i));
+    for (i = 0; i < cvolume->channels; i ++) {
+        memcpy(&vol, t->data + t->rindex + 2 + i * sizeof(pa_volume_t), sizeof(pa_volume_t));
+        cvolume->values[i] = (pa_volume_t) ntohl(vol);
+    }
 
     if (!pa_cvolume_valid(cvolume))
         return -1;
