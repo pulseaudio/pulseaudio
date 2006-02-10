@@ -250,6 +250,7 @@ mainloop_test_glib12_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 polypinclude_HEADERS = \
 		cdecl.h \
+		channelmap.h \
 		glib-mainloop.h \
 		mainloop.h \
 		mainloop-api.h \
@@ -265,7 +266,8 @@ polypinclude_HEADERS = \
 		polyplib-stream.h \
 		polyplib-subscribe.h \
 		polyplib-version.h \
-		sample.h
+		sample.h \
+		volume.h
 
 if HAVE_HOWL
 polypinclude_HEADERS += \
