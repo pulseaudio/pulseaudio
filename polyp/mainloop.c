@@ -84,10 +84,20 @@ struct pa_mainloop {
     unsigned max_pollfds, n_pollfds;
     int rebuild_pollfds;
 
-    int quit, running, retval;
+    int prepared_timeout;
+
+    int quit, retval;
     pa_mainloop_api api;
 
     int deferred_pending;
+
+    enum {
+        STATE_PASSIVE,
+        STATE_PREPARED,
+        STATE_POLLING,
+        STATE_POLLED,
+        STATE_QUIT
+    } state;
 };
 
 /* IO events */
@@ -145,11 +155,7 @@ static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags_t events) {
     assert(e && e->mainloop);
 
     e->events = events;
-    if (e->pollfd)
-        e->pollfd->events =
-            (events & PA_IO_EVENT_INPUT ? POLLIN : 0) |
-            (events & PA_IO_EVENT_OUTPUT ? POLLOUT : 0) |
-            POLLERR | POLLHUP;
+    e->mainloop->rebuild_pollfds = 1;
 }
 
 static void mainloop_io_free(pa_io_event *e) {
@@ -310,12 +316,14 @@ pa_mainloop *pa_mainloop_new(void) {
     m->pollfds = NULL;
     m->max_pollfds = m->n_pollfds = m->rebuild_pollfds = 0;
 
-    m->quit = m->running = m->retval = 0;
+    m->quit = m->retval = 0;
 
     m->api = vtable;
     m->api.userdata = m;
 
     m->deferred_pending = 0;
+
+    m->state = STATE_PASSIVE;
     
     return m;
 }
@@ -367,7 +375,7 @@ static int defer_foreach(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void*use
 
 void pa_mainloop_free(pa_mainloop* m) {
     int all = 1;
-    assert(m);
+    assert(m && (m->state != STATE_POLLING));
 
     pa_idxset_foreach(m->io_events, io_foreach, &all);
     pa_idxset_foreach(m->time_events, time_foreach, &all);
@@ -427,6 +435,8 @@ static void rebuild_pollfds(pa_mainloop *m) {
         p++;
         m->n_pollfds++;
     }
+
+    m->rebuild_pollfds = 0;
 }
 
 static int dispatch_pollfds(pa_mainloop *m) {
@@ -548,63 +558,120 @@ static int dispatch_timeout(pa_mainloop *m) {
     return r;
 }
 
-int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval) {
-    int r, t, dispatched = 0;
-    assert(m && !m->running);
+int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
+    int dispatched = 0;
 
-    m->running ++;
+    assert(m && (m->state == STATE_PASSIVE));
+
+    scan_dead(m);
 
     if (m->quit)
         goto quit;
 
-    scan_dead(m);
     dispatched += dispatch_defer(m);
 
-    if(m->quit)
+    if (m->quit)
         goto quit;
-    
-    if (m->rebuild_pollfds) {
+
+    if (m->rebuild_pollfds)
         rebuild_pollfds(m);
-        m->rebuild_pollfds = 0;
-    }
 
-    t = block ? calc_next_timeout(m) : 0;
+    m->prepared_timeout = calc_next_timeout(m);
+    if ((timeout >= 0) && (m->prepared_timeout > timeout))
+        m->prepared_timeout = timeout;
 
-    r = poll(m->pollfds, m->n_pollfds, t);
+    m->state = STATE_PREPARED;
 
-    if (r < 0) {
-        if (errno == EINTR)
-            r = 0;
-        else
-            pa_log(__FILE__": select(): %s\n", strerror(errno));
-    } else {
-        dispatched += dispatch_timeout(m);
-
-        if(m->quit)
-            goto quit;
-        
-        if (r > 0) {
-            dispatched += dispatch_pollfds(m);
-
-            if(m->quit)
-                goto quit;
-        }
-    }
-    
-    m->running--;
-    
-/*     pa_log("dispatched: %i\n", dispatched); */
-    
-    return r < 0 ? -1 : dispatched;
+    return dispatched;
 
 quit:
-    
-    m->running--;
-    
-    if (retval) 
-        *retval = m->retval;
+
+    m->state = STATE_QUIT;
     
     return -2;
+}
+
+int pa_mainloop_poll(pa_mainloop *m) {
+    int r;
+
+    assert(m && (m->state == STATE_PREPARED));
+
+    m->state = STATE_POLLING;
+
+    r = poll(m->pollfds, m->n_pollfds, m->prepared_timeout);
+
+    if ((r < 0) && (errno == EINTR))
+            r = 0;
+
+    if (r < 0)
+        m->state = STATE_PASSIVE;
+    else
+        m->state = STATE_POLLED;
+
+    return r;
+}
+
+int pa_mainloop_dispatch(pa_mainloop *m) {
+    int dispatched = 0;
+
+    assert(m && (m->state == STATE_POLLED));
+
+    dispatched += dispatch_timeout(m);
+
+    if (m->quit)
+        goto quit;
+    
+    dispatched += dispatch_pollfds(m);
+
+    if (m->quit)
+        goto quit;
+
+    m->state = STATE_PASSIVE;
+
+    return dispatched;
+
+quit:
+
+    m->state = STATE_QUIT;
+    
+    return -2;
+}
+
+int pa_mainloop_get_retval(pa_mainloop *m) {
+    assert(m);
+    return m->retval;
+}
+
+int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval) {
+    int r, dispatched = 0;
+
+    assert(m);
+
+    r = pa_mainloop_prepare(m, block ? -1 : 0);
+    if (r < 0) {
+        if ((r == -2) && retval)
+            *retval = pa_mainloop_get_retval(m);
+        return r;
+    }
+
+    dispatched += r;
+
+    r = pa_mainloop_poll(m);
+    if (r < 0) {
+        pa_log(__FILE__": poll(): %s\n", strerror(errno));
+        return r;
+    }
+
+    r = pa_mainloop_dispatch(m);
+    if (r < 0) {
+        if ((r == -2) && retval)
+            *retval = pa_mainloop_get_retval(m);
+        return r;
+    }
+
+    dispatched += r;
+
+    return dispatched;
 }
 
 int pa_mainloop_run(pa_mainloop *m, int *retval) {

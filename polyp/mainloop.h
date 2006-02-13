@@ -46,10 +46,27 @@ pa_mainloop *pa_mainloop_new(void);
 /** Free a main loop object */
 void pa_mainloop_free(pa_mainloop* m);
 
-/** Run a single iteration of the main loop. Returns a negative value
-on error or exit request. If block is nonzero, block for events if
-none are queued. Optionally return the return value as specified with
-the main loop's quit() routine in the integer variable retval points
+
+/** Prepare for a single iteration of the main loop. Returns a negative value
+on error or exit request. timeout specifies a maximum timeout for the subsequent
+poll, or -1 for blocking behaviour. Defer events are also dispatched when this
+function is called. On success returns the number of source dispatched in this
+iteration.*/
+int pa_mainloop_prepare(pa_mainloop *m, int timeout);
+/** Execute the previously prepared poll. Returns a negative value on error.*/
+int pa_mainloop_poll(pa_mainloop *m);
+/** Dispatch timeout and io events from the previously executed poll. Returns
+a negative value on error. On success returns the number of source dispatched. */
+int pa_mainloop_dispatch(pa_mainloop *m);
+
+/** Return the return value as specified with the main loop's quit() routine. */
+int pa_mainloop_get_retval(pa_mainloop *m);
+
+/** Run a single iteration of the main loop. This is a convenience function
+for pa_mainloop_prepare(), pa_mainloop_poll() and pa_mainloop_dispatch().
+Returns a negative value on error or exit request. If block is nonzero,
+block for events if none are queued. Optionally return the return value as
+specified with the main loop's quit() routine in the integer variable retval points
 to. On success returns the number of source dispatched in this iteration. */
 int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval);
 
