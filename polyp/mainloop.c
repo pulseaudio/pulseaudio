@@ -91,6 +91,8 @@ struct pa_mainloop {
 
     int deferred_pending;
 
+    int wakeup_pipe[2];
+
     enum {
         STATE_PASSIVE,
         STATE_PREPARED,
@@ -114,6 +116,8 @@ static pa_io_event* mainloop_io_new(
     assert(a && a->userdata && fd >= 0 && callback);
     m = a->userdata;
     assert(a == &m->api);
+
+    pa_mainloop_wakeup(m);
 
     e = pa_xmalloc(sizeof(pa_io_event));
     e->mainloop = m;
@@ -154,12 +158,17 @@ static pa_io_event* mainloop_io_new(
 static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags_t events) {
     assert(e && e->mainloop);
 
+    pa_mainloop_wakeup(e->mainloop);
+
     e->events = events;
     e->mainloop->rebuild_pollfds = 1;
 }
 
 static void mainloop_io_free(pa_io_event *e) {
     assert(e && e->mainloop);
+
+    pa_mainloop_wakeup(e->mainloop);
+
     e->dead = e->mainloop->io_events_scan_dead = e->mainloop->rebuild_pollfds = 1;
 }
 
@@ -229,6 +238,8 @@ static pa_time_event* mainloop_time_new(pa_mainloop_api*a, const struct timeval 
     m = a->userdata;
     assert(a == &m->api);
 
+    pa_mainloop_wakeup(m);
+
     e = pa_xmalloc(sizeof(pa_time_event));
     e->mainloop = m;
     e->dead = 0;
@@ -249,6 +260,8 @@ static pa_time_event* mainloop_time_new(pa_mainloop_api*a, const struct timeval 
 static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
     assert(e);
 
+    pa_mainloop_wakeup(e->mainloop);
+
     if (tv) {
         e->enabled = 1;
         e->timeval = *tv;
@@ -258,6 +271,8 @@ static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
 
 static void mainloop_time_free(pa_time_event *e) {
     assert(e);
+
+    pa_mainloop_wakeup(e->mainloop);
 
     e->dead = e->mainloop->time_events_scan_dead = 1;
 }
@@ -274,6 +289,8 @@ static void mainloop_quit(pa_mainloop_api*a, int retval) {
     assert(a && a->userdata);
     m = a->userdata;
     assert(a == &m->api);
+
+    pa_mainloop_wakeup(m);
 
     m->quit = 1;
     m->retval = retval;
@@ -304,6 +321,19 @@ pa_mainloop *pa_mainloop_new(void) {
     pa_mainloop *m;
 
     m = pa_xmalloc(sizeof(pa_mainloop));
+
+#ifndef OS_ISWIN32
+    if (pipe(m->wakeup_pipe) < 0) {
+        pa_xfree(m);
+        return NULL;
+    }
+
+    pa_make_nonblock_fd(m->wakeup_pipe[0]);
+    pa_make_nonblock_fd(m->wakeup_pipe[1]);
+#else
+    m->wakeup_pipe[0] = -1;
+    m->wakeup_pipe[1] = -1;
+#endif
 
     m->io_events = pa_idxset_new(NULL, NULL);
     m->defer_events = pa_idxset_new(NULL, NULL);
@@ -386,6 +416,12 @@ void pa_mainloop_free(pa_mainloop* m) {
     pa_idxset_free(m->defer_events, NULL, NULL);
 
     pa_xfree(m->pollfds);
+
+    if (m->wakeup_pipe[0] >= 0)
+        close(m->wakeup_pipe[0]);
+    if (m->wakeup_pipe[1] >= 0)
+        close(m->wakeup_pipe[1]);
+
     pa_xfree(m);
 }
 
@@ -409,7 +445,7 @@ static void rebuild_pollfds(pa_mainloop *m) {
     uint32_t idx = PA_IDXSET_INVALID;
     unsigned l;
 
-    l = pa_idxset_size(m->io_events);
+    l = pa_idxset_size(m->io_events) + 1;
     if (m->max_pollfds < l) {
         m->pollfds = pa_xrealloc(m->pollfds, sizeof(struct pollfd)*l);
         m->max_pollfds = l;
@@ -417,6 +453,15 @@ static void rebuild_pollfds(pa_mainloop *m) {
 
     m->n_pollfds = 0;
     p = m->pollfds;
+
+    if (m->wakeup_pipe[0] >= 0) {
+        m->pollfds[0].fd = m->wakeup_pipe[0];
+        m->pollfds[0].events = POLLIN;
+        m->pollfds[0].revents = 0;
+        p++;
+        m->n_pollfds++;
+    }
+
     for (e = pa_idxset_first(m->io_events, &idx); e; e = pa_idxset_next(m->io_events, &idx)) {
         if (e->dead) {
             e->pollfd = NULL;
@@ -558,10 +603,31 @@ static int dispatch_timeout(pa_mainloop *m) {
     return r;
 }
 
+void pa_mainloop_wakeup(pa_mainloop *m) {
+    char c = 'W';
+    assert(m);
+
+    if (m->wakeup_pipe[1] >= 0)
+        write(m->wakeup_pipe[1], &c, sizeof(c));
+}
+
+static void clear_wakeup(pa_mainloop *m) {
+    char c[10];
+
+    assert(m);
+
+    if (m->wakeup_pipe[0] < 0)
+        return;
+
+    while (read(m->wakeup_pipe[0], &c, sizeof(c)) == sizeof(c));
+}
+
 int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
     int dispatched = 0;
 
     assert(m && (m->state == STATE_PASSIVE));
+
+    clear_wakeup(m);
 
     scan_dead(m);
 
@@ -688,6 +754,7 @@ int pa_mainloop_run(pa_mainloop *m, int *retval) {
 
 void pa_mainloop_quit(pa_mainloop *m, int r) {
     assert(m);
+    pa_mainloop_wakeup(m);
     m->quit = r;
 }
 

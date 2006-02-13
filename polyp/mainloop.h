@@ -82,6 +82,9 @@ int pa_mainloop_deferred_pending(pa_mainloop *m);
 /** Shutdown the main loop */
 void pa_mainloop_quit(pa_mainloop *m, int r);
 
+/** Interrupt a running poll (for threaded systems) */
+void pa_mainloop_wakeup(pa_mainloop *m);
+
 PA_C_DECL_END
 
 #endif
