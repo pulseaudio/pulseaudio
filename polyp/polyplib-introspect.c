@@ -582,7 +582,7 @@ pa_operation* pa_context_get_source_output_info_list(pa_context *c, void (*cb)(p
 
 /*** Volume manipulation ***/
 
-pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, pa_volume_t volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
@@ -597,14 +597,14 @@ pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, p
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
-    pa_tagstruct_putu32(t, volume);
+    pa_tagstruct_put_cvolume(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
 
     return pa_operation_ref(o);
 }
 
-pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, pa_volume_t volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
@@ -619,14 +619,14 @@ pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
-    pa_tagstruct_putu32(t, volume);
+    pa_tagstruct_put_cvolume(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
 
     return pa_operation_ref(o);
 }
 
-pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, pa_volume_t volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
@@ -640,7 +640,7 @@ pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, pa_v
     pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_VOLUME);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_putu32(t, idx);
-    pa_tagstruct_putu32(t, volume);
+    pa_tagstruct_put_cvolume(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
 

@@ -183,13 +183,13 @@ pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, voi
 pa_operation* pa_context_get_source_output_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_source_output_info*i, int is_last, void *userdata), void *userdata);
 
 /** Set the volume of a sink device specified by its index */
-pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, pa_volume_t volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
 
 /** Set the volume of a sink device specified by its name */
-pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, pa_volume_t volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
 
 /** Set the volume of a sink input stream */
-pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, pa_volume_t volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
 
 /** Memory block statistics */
 typedef struct pa_stat_info {
