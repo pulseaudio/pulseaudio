@@ -1,9 +1,6 @@
 *** $Id$ ***
 
 Architectural changes:
-- per-channel volume
-- channel mapping ("left", "right", "rear", "subwoofer")
-- hardware volume support
 - add API for synchronizing multiple sinks/sources to a common clock
 - absolutely indexed write()s from client
 - remove "polyplib-" prefix
@@ -28,6 +25,14 @@ Long term:
 
 Backends for:
 - portaudio  (semi-done)
-- alsa-lib
 - sdl
 - OSS (esddsp style)
+
+------------------
+
+Done:
+- per-channel volume
+- channel mapping ("left", "right", "rear", "subwoofer")
+- hardware volume support
+- alsa-lib
+
