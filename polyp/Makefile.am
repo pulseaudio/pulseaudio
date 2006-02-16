@@ -47,6 +47,7 @@ AM_CFLAGS += $(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS
 AM_CFLAGS += $(LTDLINCL)
 AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 AM_CFLAGS += -DDLSEARCHPATH=\"$(modlibdir)\"
+#AM_CFLAGS += -DDLSEARCHPATH=\"$(shell pwd)\"
 AM_CFLAGS += -DDEFAULT_CONFIG_DIR=\"$(DEFAULT_CONFIG_DIR)\"
 AM_CFLAGS += -DPOLYPAUDIO_BINARY=\"$(POLYPAUDIO_BINARY)\"
 
@@ -676,7 +677,8 @@ modlib_LTLIBRARIES += \
 		module-null-sink.la \
 		module-esound-sink.la \
 		module-http-protocol-tcp.la \
-		module-http-protocol-tcp6.la
+		module-http-protocol-tcp6.la \
+		module-detect.la
 
 if HAVE_AF_UNIX
 modlib_LTLIBRARIES += \
@@ -788,7 +790,8 @@ SYMDEF_FILES = \
 		module-alsa-sink-symdef.h \
 		module-alsa-source-symdef.h \
 		module-solaris-symdef.h \
-		module-waveout-symdef.h
+		module-waveout-symdef.h \
+		module-detect-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1008,6 +1011,12 @@ module_waveout_la_SOURCES = module-waveout.c
 module_waveout_la_LDFLAGS = -module -avoid-version
 module_waveout_la_LIBADD = $(AM_LIBADD) libpolypcore.la -lwinmm
 module_waveout_la_CFLAGS = $(AM_CFLAGS)
+
+# Hardware autodetection module
+module_detect_la_SOURCES = module-detect.c
+module_detect_la_LDFLAGS = -module -avoid-version
+module_detect_la_LIBADD = $(AM_LIBADD)
+module_detect_la_CFLAGS = $(AM_CFLAGS)
 
 ###################################
 #        Some minor stuff         #
