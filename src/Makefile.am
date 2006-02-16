@@ -138,7 +138,7 @@ if HAVE_HOWL
 bin_PROGRAMS += pabrowse
 endif
 
-bin_SCRIPTS = daemon/esdcompat.sh
+bin_SCRIPTS = esdcompat.sh
 
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
@@ -651,19 +651,19 @@ libx11prop_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS
 
 # OSS
 
-liboss_util_la_SOURCES = polypcore/oss-util.c polypcore/oss-util.h
+liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
 liboss_util_la_LDFLAGS = -avoid-version
 
 # ALSA
 
-libalsa_util_la_SOURCES = polypcore/alsa-util.c polypcore/alsa-util.h
+libalsa_util_la_SOURCES = modules/alsa-util.c modules/alsa-util.h
 libalsa_util_la_LDFLAGS = -avoid-version
 libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS)
 libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 # HOWL
 
-libhowl_wrap_la_SOURCES = polypcore/howl-wrap.c polypcore/howl-wrap.h
+libhowl_wrap_la_SOURCES = modules/howl-wrap.c modules/howl-wrap.h
 libhowl_wrap_la_LDFLAGS = -avoid-version
 libhowl_wrap_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS)
 libhowl_wrap_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)

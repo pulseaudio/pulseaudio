@@ -26,10 +26,11 @@
 #include <sys/types.h>
 #include <asoundlib.h>
 
-#include "alsa-util.h"
 #include <polyp/sample.h>
-#include "xmalloc.h"
-#include "log.h"
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
+#include "alsa-util.h"
 
 /* Set the hardware parameters of the given ALSA device. Returns the
  * selected fragment settings in *period and *period_size */

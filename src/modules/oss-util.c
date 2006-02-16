@@ -34,9 +34,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <polypcore/util.h>
+#include <polypcore/log.h>
+
 #include "oss-util.h"
-#include "util.h"
-#include "log.h"
 
 int pa_oss_open(const char *device, int *mode, int* pcaps) {
     int fd = -1;

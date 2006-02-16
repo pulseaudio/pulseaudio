@@ -39,7 +39,6 @@
 #include <polypcore/sink.h>
 #include <polypcore/source.h>
 #include <polypcore/module.h>
-#include <polypcore/oss-util.h>
 #include <polypcore/sample-util.h>
 #include <polypcore/util.h>
 #include <polypcore/modargs.h>
@@ -47,6 +46,7 @@
 #include <polypcore/log.h>
 
 #include "module-oss-symdef.h"
+#include "oss-util.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("OSS Sink/Source")
