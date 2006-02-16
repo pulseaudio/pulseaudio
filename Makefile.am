@@ -18,7 +18,7 @@
 # USA.
 
 EXTRA_DIST = bootstrap.sh LICENSE doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in libtool.m4 ltdl.m4
-SUBDIRS=libltdl polyp doc
+SUBDIRS=libltdl src doc
 
 MAINTAINERCLEANFILES =
 noinst_DATA =
