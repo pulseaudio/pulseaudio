@@ -1,5 +1,5 @@
-#ifndef foosubscribehfoo
-#define foosubscribehfoo
+#ifndef foocoresubscribehfoo
+#define foocoresubscribehfoo
 
 /* $Id$ */
 

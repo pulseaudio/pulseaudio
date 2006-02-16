@@ -30,7 +30,7 @@
 
 #include "source-output.h"
 #include "xmalloc.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "log.h"
 
 pa_source_output* pa_source_output_new(

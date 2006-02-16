@@ -31,7 +31,7 @@
 #include "sink-input.h"
 #include "sample-util.h"
 #include "xmalloc.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "log.h"
 
 #define CONVERT_BUFFER_LENGTH 4096

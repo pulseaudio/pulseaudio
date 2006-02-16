@@ -41,13 +41,13 @@
 #include <windows.h>
 #endif
 
-#include "scache.h"
+#include "core-scache.h"
 #include "sink-input.h"
 #include <polyp/mainloop.h>
 #include "sample-util.h"
 #include "play-memchunk.h"
 #include "xmalloc.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "namereg.h"
 #include "sound-file.h"
 #include "util.h"

@@ -34,10 +34,10 @@
 #include "source.h"
 #include "namereg.h"
 #include "util.h"
-#include "scache.h"
+#include "core-scache.h"
 #include "autoload.h"
 #include "xmalloc.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "props.h"
 #include "random.h"
 

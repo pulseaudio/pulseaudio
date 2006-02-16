@@ -33,7 +33,7 @@
 
 #include <polypcore/iochannel.h>
 #include <polypcore/sink.h>
-#include <polypcore/scache.h>
+#include <polypcore/core-scache.h>
 #include <polypcore/modargs.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/namereg.h>

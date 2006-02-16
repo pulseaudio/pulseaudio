@@ -31,7 +31,7 @@ typedef struct pa_core pa_core;
 #include "memblock.h"
 #include "resampler.h"
 #include "queue.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 
 /* The core structure of polypaudio. Every polypaudio daemon contains
  * exactly one of these. It is used for storing kind of global

@@ -35,7 +35,7 @@
 #include "source-output.h"
 #include "strbuf.h"
 #include "sample-util.h"
-#include "scache.h"
+#include "core-scache.h"
 #include "autoload.h"
 #include "xmalloc.h"
 #include <polyp/volume.h>

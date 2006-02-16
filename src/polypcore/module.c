@@ -32,7 +32,7 @@
 
 #include "module.h"
 #include "xmalloc.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "log.h"
 #include "util.h"
 

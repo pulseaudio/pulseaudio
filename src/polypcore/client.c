@@ -30,7 +30,7 @@
 
 #include "client.h"
 #include "xmalloc.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "log.h"
 
 pa_client *pa_client_new(pa_core *core, const char *name, const char *driver) {

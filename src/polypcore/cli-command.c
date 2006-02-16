@@ -40,7 +40,7 @@
 #include "strbuf.h"
 #include "namereg.h"
 #include "cli-text.h"
-#include "scache.h"
+#include "core-scache.h"
 #include "sample-util.h"
 #include "sound-file.h"
 #include "play-memchunk.h"

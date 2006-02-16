@@ -479,7 +479,7 @@ libpolypcore_la_SOURCES += \
 		polypcore/random.c polypcore/random.h \
 		polypcore/resampler.c polypcore/resampler.h \
 		polypcore/sample-util.c polypcore/sample-util.h \
-		polypcore/scache.c polypcore/scache.h \
+		polypcore/core-scache.c polypcore/core-scache.h \
 		polypcore/sconv.c polypcore/sconv.h \
 		polypcore/sconv-s16be.c polypcore/sconv-s16be.h \
 		polypcore/sconv-s16le.c polypcore/sconv-s16le.h \
@@ -491,7 +491,7 @@ libpolypcore_la_SOURCES += \
 		polypcore/source.c polypcore/source.h \
 		polypcore/source-output.c polypcore/source-output.h \
 		polypcore/strbuf.c polypcore/strbuf.h \
-		polypcore/subscribe.c polypcore/subscribe.h \
+		polypcore/core-subscribe.c polypcore/core-subscribe.h \
 		polypcore/tokenizer.c polypcore/tokenizer.h \
 		polypcore/util.c polypcore/util.h \
 		polypcore/winsock.h \

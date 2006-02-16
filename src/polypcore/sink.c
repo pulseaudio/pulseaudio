@@ -34,7 +34,7 @@
 #include "util.h"
 #include "sample-util.h"
 #include "xmalloc.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "log.h"
 #include <polyp/introspect.h>
 

@@ -35,7 +35,7 @@
 #include <polypcore/util.h>
 #include <polypcore/modargs.h>
 #include <polypcore/log.h>
-#include <polypcore/subscribe.h>
+#include <polypcore/core-subscribe.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/sink-input.h>
 #include <polypcore/pdispatch.h>

@@ -34,7 +34,7 @@
 #include "source.h"
 #include "sink.h"
 #include "xmalloc.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "util.h"
 
 struct namereg_entry {

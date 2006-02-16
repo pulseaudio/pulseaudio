@@ -33,8 +33,8 @@
 #include "memchunk.h"
 #include "sound-file.h"
 #include "log.h"
-#include "scache.h"
-#include "subscribe.h"
+#include "core-scache.h"
+#include "core-subscribe.h"
 
 static void entry_free(pa_autoload_entry *e) {
     assert(e);

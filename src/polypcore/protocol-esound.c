@@ -39,7 +39,7 @@
 #include "source-output.h"
 #include "source.h"
 #include <polyp/sample.h>
-#include "scache.h"
+#include "core-scache.h"
 #include "sample-util.h"
 #include "authkey.h"
 #include "namereg.h"

@@ -27,7 +27,7 @@
 #include <assert.h>
 
 #include "queue.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "xmalloc.h"
 #include "log.h"
 

@@ -32,7 +32,7 @@
 #include "source-output.h"
 #include "namereg.h"
 #include "xmalloc.h"
-#include "subscribe.h"
+#include "core-subscribe.h"
 #include "log.h"
 
 pa_source* pa_source_new(
