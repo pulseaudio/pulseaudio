@@ -173,7 +173,7 @@ static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
     uint32_t port = IPV4_PORT;
 
     if (pa_modargs_get_value_boolean(ma, "loopback", &loopback) < 0) {
-        pa_log(__FILE__": loopback= expects a numerical argument.\n");
+        pa_log(__FILE__": loopback= expects a boolean argument.\n");
         return NULL;
     }
 
