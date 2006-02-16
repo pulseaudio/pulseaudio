@@ -27,9 +27,9 @@
 #include <polyp/sample.h>
 #include <polyp/channelmap.h>
 #include <polyp/volume.h>
-#include <polyp/polyplib-def.h>
+#include <polyp/def.h>
 #include <polyp/cdecl.h>
-#include <polyp/polyplib-operation.h>
+#include <polyp/operation.h>
 
 /** \file
  * Audio streams for input, output and sample upload */

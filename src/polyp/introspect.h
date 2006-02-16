@@ -24,8 +24,8 @@
 
 #include <inttypes.h>
 
-#include <polyp/polyplib-operation.h>
-#include <polyp/polyplib-context.h>
+#include <polyp/operation.h>
+#include <polyp/context.h>
 #include <polyp/cdecl.h>
 #include <polyp/channelmap.h>
 #include <polyp/volume.h>

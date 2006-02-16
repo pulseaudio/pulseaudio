@@ -28,7 +28,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "polyplib-simple.h"
+#include "simple.h"
 #include "polyplib.h"
 #include "mainloop.h"
 #include <polypcore/native-common.h>

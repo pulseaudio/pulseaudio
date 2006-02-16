@@ -28,8 +28,8 @@
 #include <string.h>
 #include <errno.h>
 
-#include <polyp/polyplib-simple.h>
-#include <polyp/polyplib-error.h>
+#include <polyp/simple.h>
+#include <polyp/error.h>
 #include <polypcore/gccmacro.h>
 
 #define BUFSIZE 1024

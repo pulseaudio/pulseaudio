@@ -23,10 +23,10 @@
 ***/
 
 #include <polyp/sample.h>
-#include <polyp/polyplib-def.h>
+#include <polyp/def.h>
 #include <polyp/mainloop-api.h>
 #include <polyp/cdecl.h>
-#include <polyp/polyplib-operation.h>
+#include <polyp/operation.h>
 
 /** \file
  * Connection contexts for asynchrononous communication with a

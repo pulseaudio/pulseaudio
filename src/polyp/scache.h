@@ -24,8 +24,8 @@
 
 #include <sys/types.h>
 
-#include <polyp/polyplib-context.h>
-#include <polyp/polyplib-stream.h>
+#include <polyp/context.h>
+#include <polyp/stream.h>
 #include <polyp/cdecl.h>
 
 /** \file

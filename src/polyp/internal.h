@@ -28,9 +28,9 @@
 #include <polypcore/pdispatch.h>
 #include <polypcore/dynarray.h>
 
-#include "polyplib-context.h"
-#include "polyplib-stream.h"
-#include "polyplib-operation.h"
+#include "context.h"
+#include "stream.h"
+#include "operation.h"
 #include <polypcore/llist.h>
 #include <polypcore/native-common.h>
 #include <polyp/client-conf.h>

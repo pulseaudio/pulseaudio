@@ -35,10 +35,10 @@
 #include <sndfile.h>
 
 #include <polyp/polyplib.h>
-#include <polyp/polyplib-error.h>
+#include <polyp/error.h>
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
-#include <polyp/polyplib-version.h>
+#include <polyp/version.h>
 
 #if PA_API_VERSION != 8
 #error Invalid Polypaudio API version

@@ -26,8 +26,8 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "polyplib-subscribe.h"
-#include "polyplib-internal.h"
+#include "subscribe.h"
+#include "internal.h"
 #include <polypcore/pstream-util.h>
 #include <polypcore/gccmacro.h>
 

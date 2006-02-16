@@ -88,7 +88,7 @@ polypconf_DATA = \
 		client.conf
 
 BUILT_SOURCES = \
-		polyp/polyplib-version.h
+		polyp/version.h
 
 ###################################
 #          Main daemon            #
@@ -259,23 +259,23 @@ polypinclude_HEADERS = \
 		polyp/mainloop.h \
 		polyp/mainloop-api.h \
 		polyp/mainloop-signal.h \
-		polyp/polyplib.h \
-		polyp/polyplib-context.h \
-		polyp/polyplib-def.h \
-		polyp/polyplib-error.h \
-		polyp/polyplib-introspect.h \
-		polyp/polyplib-operation.h \
-		polyp/polyplib-scache.h \
-		polyp/polyplib-simple.h \
-		polyp/polyplib-stream.h \
-		polyp/polyplib-subscribe.h \
-		polyp/polyplib-version.h \
+		polyp/polypaudio.h \
+		polyp/context.h \
+		polyp/def.h \
+		polyp/error.h \
+		polyp/introspect.h \
+		polyp/operation.h \
+		polyp/scache.h \
+		polyp/simple.h \
+		polyp/stream.h \
+		polyp/subscribe.h \
+		polyp/version.h \
 		polyp/sample.h \
 		polyp/volume.h
 
 if HAVE_HOWL
 polypinclude_HEADERS += \
-		polyp/polyplib-browser.h
+		polyp/browser.h
 endif
 
 lib_LTLIBRARIES = \
@@ -306,15 +306,15 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = \
 		polyp/client-conf.c polyp/client-conf.h \
 		polyp/llist.h \
 		polyp/mainloop-api.c polyp/mainloop-api.h \
-		polyp/polyplib.h \
-		polyp/polyplib-context.c polyp/polyplib-context.h \
-		polyp/polyplib-def.h \
-		polyp/polyplib-internal.h \
-		polyp/polyplib-introspect.c polyp/polyplib-introspect.h \
-		polyp/polyplib-operation.c polyp/polyplib-operation.h \
-		polyp/polyplib-scache.c polyp/polyplib-scache.h \
-		polyp/polyplib-stream.c polyp/polyplib-stream.h \
-		polyp/polyplib-subscribe.c polyp/polyplib-subscribe.h \
+		polyp/polypaudio.h \
+		polyp/context.c polyp/context.h \
+		polyp/def.h \
+		polyp/internal.h \
+		polyp/introspect.c polyp/introspect.h \
+		polyp/operation.c polyp/operation.h \
+		polyp/scache.c polyp/scache.h \
+		polyp/stream.c polyp/stream.h \
+		polyp/subscribe.c polyp/subscribe.h \
 		polyp/sample.c polyp/sample.h \
 		polyp/volume.c polyp/volume.h
 
@@ -368,7 +368,7 @@ libpolyp_@PA_MAJORMINOR@_la_CFLAGS += $(LIBASYNCNS_CFLAGS)
 libpolyp_@PA_MAJORMINOR@_la_LIBADD += $(LIBASYNCNS_LIBS)
 endif
 
-libpolyp_error_@PA_MAJORMINOR@_la_SOURCES = polyp/polyplib-error.c polyp/polyplib-error.h
+libpolyp_error_@PA_MAJORMINOR@_la_SOURCES = polyp/error.c polyp/error.h
 libpolyp_error_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_error_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la
 libpolyp_error_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
@@ -381,12 +381,12 @@ libpolyp_mainloop_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_mainloop_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la $(WINSOCK_LIBS)
 libpolyp_mainloop_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 
-libpolyp_simple_@PA_MAJORMINOR@_la_SOURCES = polyp/polyplib-simple.c polyp/polyplib-simple.h 
+libpolyp_simple_@PA_MAJORMINOR@_la_SOURCES = polyp/simple.c polyp/simple.h 
 libpolyp_simple_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_simple_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
 libpolyp_simple_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 
-libpolyp_browse_@PA_MAJORMINOR@_la_SOURCES = polyp/polyplib-browser.c polyp/polyplib-browser.h 
+libpolyp_browse_@PA_MAJORMINOR@_la_SOURCES = polyp/browser.c polyp/browser.h 
 libpolyp_browse_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
 libpolyp_browse_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la $(HOWL_LIBS)
 libpolyp_browse_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0 

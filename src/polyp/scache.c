@@ -28,8 +28,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "polyplib-scache.h"
-#include "polyplib-internal.h"
+#include "scache.h"
+#include "internal.h"
 #include <polypcore/pstream-util.h>
 
 void pa_stream_connect_upload(pa_stream *s, size_t length) {

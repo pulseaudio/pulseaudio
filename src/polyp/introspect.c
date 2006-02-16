@@ -25,9 +25,9 @@
 
 #include <assert.h>
 
-#include "polyplib-introspect.h"
-#include "polyplib-context.h"
-#include "polyplib-internal.h"
+#include "introspect.h"
+#include "context.h"
+#include "internal.h"
 #include <polypcore/pstream-util.h>
 #include <polypcore/gccmacro.h>
 

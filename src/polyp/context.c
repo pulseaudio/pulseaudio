@@ -47,9 +47,9 @@
 
 #include <polypcore/winsock.h>
 
-#include "polyplib-internal.h"
-#include "polyplib-context.h"
-#include "polyplib-version.h"
+#include "internal.h"
+#include "context.h"
+#include "version.h"
 #include <polypcore/native-common.h>
 #include <polypcore/pdispatch.h>
 #include <polypcore/pstream.h>

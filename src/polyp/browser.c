@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <howl.h>
 
-#include "polyplib-browser.h"
+#include "browser.h"
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 #include <polypcore/util.h>

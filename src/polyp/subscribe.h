@@ -24,8 +24,8 @@
 
 #include <inttypes.h>
 
-#include <polyp/polyplib-def.h>
-#include <polyp/polyplib-context.h>
+#include <polyp/def.h>
+#include <polyp/context.h>
 #include <polyp/cdecl.h>
 
 /** \file

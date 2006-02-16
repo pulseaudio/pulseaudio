@@ -23,7 +23,7 @@
 ***/
 
 #include <polyp/cdecl.h>
-#include <polyp/polyplib-def.h>
+#include <polyp/def.h>
 
 PA_C_DECL_BEGIN
 

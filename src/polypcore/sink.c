@@ -36,7 +36,7 @@
 #include "xmalloc.h"
 #include "subscribe.h"
 #include "log.h"
-#include <polyp/polyplib-introspect.h>
+#include <polyp/introspect.h>
 
 #define MAX_MIX_CHANNELS 32
 

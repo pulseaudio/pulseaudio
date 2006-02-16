@@ -22,7 +22,7 @@
   USA.
 ***/
 
-/* WARNING: Make sure to edit the real source file polyplib-version.h.in! */
+/* WARNING: Make sure to edit the real source file version.h.in! */
 
 /** \file
  * Define header version */

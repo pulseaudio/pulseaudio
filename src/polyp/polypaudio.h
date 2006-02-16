@@ -25,18 +25,18 @@
 #include <polyp/cdecl.h>
 #include <polyp/mainloop-api.h>
 #include <polyp/sample.h>
-#include <polyp/polyplib-def.h>
-#include <polyp/polyplib-context.h>
-#include <polyp/polyplib-stream.h>
-#include <polyp/polyplib-introspect.h>
-#include <polyp/polyplib-subscribe.h>
-#include <polyp/polyplib-scache.h>
-#include <polyp/polyplib-version.h>
+#include <polyp/def.h>
+#include <polyp/context.h>
+#include <polyp/stream.h>
+#include <polyp/introspect.h>
+#include <polyp/subscribe.h>
+#include <polyp/scache.h>
+#include <polyp/version.h>
 
 /** \file
  * Include all polyplib header file at once. The following files are included: \ref mainloop-api.h, \ref sample.h,
- * \ref polyplib-def.h, \ref polyplib-context.h, \ref polyplib-stream.h,
- * \ref polyplib-introspect.h, \ref polyplib-subscribe.h and \ref polyplib-scache.h \ref polyplib-version.h
+ * \ref def.h, \ref context.h, \ref stream.h,
+ * \ref introspect.h, \ref subscribe.h and \ref scache.h \ref version.h
  * at once */
 
 /** \mainpage
@@ -57,13 +57,13 @@
  *
  * Use this if you develop your program in synchronous style and just
  * need a way to play or record data on the sound server. See
- * \ref polyplib-simple.h for more details.
+ * \ref simple.h for more details.
  *
  * \section async_api Asynchronous API
  *
  * Use this if you develop your programs in asynchronous, main loop
  * based style or want to use advanced features of the polypaudio
- * API. A good starting point is \ref polyplib-context.h
+ * API. A good starting point is \ref context.h
  *
  * The asynchronous API relies on an abstract main loop API that is
  * described in \ref mainloop-api.h. Two distinct implementations are
@@ -79,8 +79,8 @@
  *
  * The polypaudio libraries provide pkg-config snippets for the different modules. To use the
  * asynchronous API use "polyplib" as pkg-config file. GLIB main loop
- * support is available as "polyplib-glib-mainloop". The simple
- * synchronous API is available as "polyplib-simple".
+ * support is available as "glib-mainloop". The simple
+ * synchronous API is available as "simple".
  */
 
 #endif

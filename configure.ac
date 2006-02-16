@@ -407,7 +407,7 @@ doc/daemon.html
 doc/modules.html
 doxygen/Makefile
 doxygen/doxygen.conf
-src/polyp/polyplib-version.h
+src/polyp/version.h
 doc/FAQ.html
 ])
 AC_OUTPUT

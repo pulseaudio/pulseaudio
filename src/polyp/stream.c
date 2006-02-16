@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "polyplib-internal.h"
+#include "internal.h"
 #include <polypcore/xmalloc.h>
 #include <polypcore/pstream-util.h>
 #include <polypcore/util.h>

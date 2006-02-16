@@ -25,7 +25,7 @@
 #include <sys/types.h>
 
 #include "sample.h"
-#include "polyplib-def.h"
+#include "def.h"
 #include <polyp/cdecl.h>
 
 /** \file
