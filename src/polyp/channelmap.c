@@ -71,33 +71,45 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels) {
     pa_channel_map_init(m);
 
     m->channels = channels;
+
+    /* This is somewhat compatible with RFC3551 */
     
     switch (channels) {
         case 1:
             m->map[0] = PA_CHANNEL_POSITION_MONO;
             return m;
 
-        case 8:
-            m->map[6] = PA_CHANNEL_POSITION_SIDE_LEFT;
-            m->map[7] = PA_CHANNEL_POSITION_SIDE_RIGHT;
-            /* Fall through */
-            
         case 6:
+            m->map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
+            m->map[1] = PA_CHANNEL_POSITION_SIDE_LEFT;
+            m->map[2] = PA_CHANNEL_POSITION_FRONT_CENTER;
+            m->map[3] = PA_CHANNEL_POSITION_FRONT_RIGHT;
+            m->map[4] = PA_CHANNEL_POSITION_SIDE_RIGHT;
             m->map[5] = PA_CHANNEL_POSITION_LFE;
-            /* Fall through */
+            return m;
             
         case 5:
-            m->map[4] = PA_CHANNEL_POSITION_FRONT_CENTER;
-            /* Fall through */
-            
-        case 4:
-            m->map[2] = PA_CHANNEL_POSITION_REAR_LEFT;
-            m->map[3] = PA_CHANNEL_POSITION_REAR_RIGHT;
+            m->map[2] = PA_CHANNEL_POSITION_FRONT_CENTER;
+            m->map[3] = PA_CHANNEL_POSITION_REAR_LEFT;
+            m->map[4] = PA_CHANNEL_POSITION_REAR_RIGHT;
             /* Fall through */
             
         case 2:
             m->map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
             m->map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
+            return m;
+
+        case 3:
+            m->map[0] = PA_CHANNEL_POSITION_LEFT;
+            m->map[1] = PA_CHANNEL_POSITION_RIGHT;
+            m->map[2] = PA_CHANNEL_POSITION_CENTER;
+            return m;
+
+        case 4:
+            m->map[0] = PA_CHANNEL_POSITION_LEFT;
+            m->map[1] = PA_CHANNEL_POSITION_CENTER;
+            m->map[2] = PA_CHANNEL_POSITION_RIGHT;
+            m->map[3] = PA_CHANNEL_POSITION_LFE;
             return m;
             
         default:
