@@ -1,5 +1,5 @@
-#ifndef foopolyplibcontexthfoo
-#define foopolyplibcontexthfoo
+#ifndef foocontexthfoo
+#define foocontexthfoo
 
 /* $Id$ */
 

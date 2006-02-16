@@ -1,5 +1,5 @@
-#ifndef foopolyplibsubscribehfoo
-#define foopolyplibsubscribehfoo
+#ifndef foosubscribehfoo
+#define foosubscribehfoo
 
 /* $Id$ */
 

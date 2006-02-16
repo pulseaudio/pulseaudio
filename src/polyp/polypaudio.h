@@ -1,5 +1,5 @@
-#ifndef foopolyplibhfoo
-#define foopolyplibhfoo
+#ifndef foopolypaudiohfoo
+#define foopolypaudiohfoo
 
 /* $Id$ */
 
@@ -32,11 +32,12 @@
 #include <polyp/subscribe.h>
 #include <polyp/scache.h>
 #include <polyp/version.h>
+#include <polyp/error.h>
 
 /** \file
  * Include all polyplib header file at once. The following files are included: \ref mainloop-api.h, \ref sample.h,
  * \ref def.h, \ref context.h, \ref stream.h,
- * \ref introspect.h, \ref subscribe.h and \ref scache.h \ref version.h
+ * \ref introspect.h, \ref subscribe.h, \ref scache.h, \ref version.h \ref error.h
  * at once */
 
 /** \mainpage

@@ -1,5 +1,5 @@
-#ifndef foopolyplibversionhfoo /*-*-C-*-*/
-#define foopolyplibversionhfoo
+#ifndef fooversionhfoo /*-*-C-*-*/
+#define fooversionhfoo
 
 /* $Id$ */
 

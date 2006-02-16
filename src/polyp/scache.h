@@ -1,5 +1,5 @@
-#ifndef foopolyplibscachehfoo
-#define foopolyplibscachehfoo
+#ifndef fooscachehfoo
+#define fooscachehfoo
 
 /* $Id$ */
 

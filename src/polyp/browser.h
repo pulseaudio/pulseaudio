@@ -1,5 +1,5 @@
-#ifndef foopolyplibbrowserhfoo
-#define foopolyplibbrowserhfoo
+#ifndef foobrowserhfoo
+#define foobrowserhfoo
 
 /* $Id$ */
 

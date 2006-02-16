@@ -1,5 +1,5 @@
-#ifndef foopolyplibstreamhfoo
-#define foopolyplibstreamhfoo
+#ifndef foostreamhfoo
+#define foostreamhfoo
 
 /* $Id$ */
 
