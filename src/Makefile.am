@@ -75,16 +75,20 @@ endif
 ###################################
 
 EXTRA_DIST = \
-		client.conf.in \
-		daemon.conf.in \
-		default.pa.in \
+		polyp/client.conf.in \
+		daemon/daemon.conf.in \
+		daemon/default.pa.in \
 		depmod.py \
-		utils/esdcompat.sh.in \
+		daemon/esdcompat.sh.in \
 		modules/module-defs.h.m4
 
-polypconf_DATA = default.pa daemon.conf client.conf
+polypconf_DATA = \
+		default.pa \
+		daemon.conf \
+		client.conf
 
-BUILT_SOURCES = polyp/polyplib-version.h
+BUILT_SOURCES = \
+		polyp/polyplib-version.h
 
 ###################################
 #          Main daemon            #
@@ -131,10 +135,10 @@ bin_PROGRAMS += pax11publish
 endif
 
 if HAVE_HOWL
-bin_PROGRAMS += 	pabrowse
+bin_PROGRAMS += pabrowse
 endif
 
-bin_SCRIPTS = utils/esdcompat.sh
+bin_SCRIPTS = daemon/esdcompat.sh
 
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-error-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
@@ -1035,23 +1039,23 @@ suid: polypaudio
 	chown root $<
 	chmod u+s $<
 
-utils/esdcompat.sh: utils/esdcompat.sh.in Makefile
+esdcompat.sh: daemon/esdcompat.sh.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
 		-e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
 
-client.conf: client.conf.in Makefile
+client.conf: polyp/client.conf.in Makefile
 	sed -e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
 
 if OS_IS_WIN32    
-default.pa: default.pa.win32
+default.pa: daemon/default.pa.win32
 	cp $< $@
 else
-default.pa: default.pa.in Makefile
+default.pa: daemon/default.pa.in Makefile
 	sed -e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
 endif
 
-daemon.conf: daemon.conf.in Makefile
+daemon.conf: daemon/daemon.conf.in Makefile
 	sed -e 's,@DLSEARCHPATH\@,$(modlibdir),g' \
 		-e 's,@DEFAULT_CONFIG_FILE\@,$(DEFAULT_CONFIG_DIR),g' < $< > $@
 
