@@ -32,11 +32,9 @@
 #include <stdlib.h>
 #include <getopt.h>
 
-#include <polyp/polyplib.h>
-#include <polyp/error.h>
+#include <polyp/polypaudio.h>
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
-#include <polyp/version.h>
 
 #if PA_API_VERSION != 8
 #error Invalid Polypaudio API version

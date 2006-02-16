@@ -30,7 +30,6 @@
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
 #include <polyp/browser.h>
-#include <polyp/typeid.h>
 
 static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got signal, exiting\n");
