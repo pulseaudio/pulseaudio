@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 #include "simple.h"
-#include "polyplib.h"
+#include "polypaudio.h"
 #include "mainloop.h"
 #include <polypcore/native-common.h>
 #include <polypcore/xmalloc.h>
