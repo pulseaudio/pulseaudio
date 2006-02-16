@@ -173,6 +173,7 @@ int pa__init(pa_core *c, pa_module*m) {
     unsigned periods, fragsize;
     snd_pcm_uframes_t period_size;
     size_t frame_size;
+    int err;
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments\n");
@@ -199,13 +200,13 @@ int pa__init(pa_core *c, pa_module*m) {
     u->module = m;
     
     snd_config_update_free_global();
-    if (snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) < 0) {
-        pa_log(__FILE__": Error opening PCM device %s\n", dev);
+    if ((err = snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK)) < 0) {
+        pa_log(__FILE__": Error opening PCM device %s: %s\n", dev, snd_strerror(err));
         goto fail;
     }
 
-    if (pa_alsa_set_hw_params(u->pcm_handle, &ss, &periods, &period_size) < 0) {
-        pa_log(__FILE__": Failed to set hardware parameters\n");
+    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &periods, &period_size)) < 0) {
+        pa_log(__FILE__": Failed to set hardware parameters: %s\n", snd_strerror(err));
         goto fail;
     }
 
