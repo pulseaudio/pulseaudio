@@ -35,7 +35,7 @@
 #ifdef HAVE_SYS_POLL_H
 #include <sys/poll.h>
 #else
-#include "poll.h"
+#include "../polypcore/poll.h"
 #endif
 
 #include "../polypcore/winsock.h"
