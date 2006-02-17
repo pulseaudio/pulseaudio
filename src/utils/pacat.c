@@ -105,14 +105,19 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
 }
 
 /* This is called whenever new data may is available */
-static void stream_read_callback(pa_stream *s, const void*data, size_t length, void *userdata) {
-    assert(s && data && length);
+static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
+    assert(s && length);
+    void *data;
 
     if (stdio_event)
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_OUTPUT);
 
+    pa_stream_peek(s, &data, &length);
+    assert(data && length);
+
     if (buffer) {
         fprintf(stderr, "Buffer overrun, dropping incoming data\n");
+        pa_stream_drop(s);
         return;
     }
 
@@ -120,6 +125,7 @@ static void stream_read_callback(pa_stream *s, const void*data, size_t length, v
     assert(buffer);
     memcpy(buffer, data, length);
     buffer_index = 0;
+    pa_stream_drop(s);
 }
 
 /* This routine is called whenever the stream state changes */

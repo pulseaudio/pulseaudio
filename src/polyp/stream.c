@@ -103,6 +103,12 @@ static void stream_free(pa_stream *s) {
         s->mainloop->time_free(s->ipol_event);
     }
 
+    if (s->peek_memchunk.memblock)
+        pa_memblock_unref(s->peek_memchunk.memblock);
+
+    if (s->record_memblockq)
+        pa_memblockq_free(s->record_memblockq);
+
     pa_mcalign_free(s->mcalign);
     
     pa_xfree(s->name);
@@ -263,6 +269,13 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
         goto finish;
     }
 
+    if (s->direction == PA_STREAM_RECORD) {
+        assert(!s->record_memblockq);
+        s->record_memblockq = pa_memblockq_new(s->buffer_attr.maxlength, 0,
+            pa_frame_size(&s->sample_spec), 0, 0, s->context->memblock_stat);
+        assert(s->record_memblockq);
+    }
+
     s->channel_valid = 1;
     pa_dynarray_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, s->channel, s);
     pa_stream_set_state(s, PA_STREAM_READY);
@@ -391,9 +404,55 @@ void pa_stream_write(pa_stream *s, const void *data, size_t length, void (*free_
     s->counter += length;
 }
 
+void pa_stream_peek(pa_stream *s, void **data, size_t *length) {
+    assert(s && s->record_memblockq && data && length && s->state == PA_STREAM_READY && s->ref >= 1);
+
+    if (!s->peek_memchunk.memblock) {
+        *data = NULL;
+        *length = 0;
+
+        if (pa_memblockq_peek(s->record_memblockq, &s->peek_memchunk) < 0)
+            return;
+
+        pa_memblockq_drop(s->record_memblockq, &s->peek_memchunk, s->peek_memchunk.length);
+    }
+
+    *data = (char*)s->peek_memchunk.memblock->data + s->peek_memchunk.index;
+    *length = s->peek_memchunk.length;
+}
+
+void pa_stream_drop(pa_stream *s) {
+    assert(s && s->peek_memchunk.memblock && s->state == PA_STREAM_READY && s->ref >= 1);
+
+    s->counter += s->peek_memchunk.length;
+
+    pa_memblock_unref(s->peek_memchunk.memblock);
+
+    s->peek_memchunk.length = 0;
+    s->peek_memchunk.memblock = NULL;
+}
+
 size_t pa_stream_writable_size(pa_stream *s) {
     assert(s && s->ref >= 1);
     return s->state == PA_STREAM_READY ? s->requested_bytes : 0;
+}
+
+size_t pa_stream_readable_size(pa_stream *s) {
+    size_t sz;
+
+    assert(s && s->ref >= 1);
+
+    if (s->state != PA_STREAM_READY)
+        return 0;
+
+    assert(s->record_memblockq);
+
+    sz = (size_t)pa_memblockq_get_length(s->record_memblockq);
+
+    if (s->peek_memchunk.memblock)
+        sz += s->peek_memchunk.length;
+
+    return sz;
 }
 
 pa_operation * pa_stream_drain(pa_stream *s, void (*cb) (pa_stream*s, int success, void *userdata), void *userdata) {
@@ -554,7 +613,7 @@ void pa_stream_disconnect(pa_stream *s) {
     pa_stream_unref(s);
 }
 
-void pa_stream_set_read_callback(pa_stream *s, void (*cb)(pa_stream *p, const void*data, size_t length, void *userdata), void *userdata) {
+void pa_stream_set_read_callback(pa_stream *s, void (*cb)(pa_stream *p, size_t length, void *userdata), void *userdata) {
     assert(s && s->ref >= 1);
     s->read_callback = cb;
     s->read_userdata = userdata;

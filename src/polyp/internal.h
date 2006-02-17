@@ -35,6 +35,7 @@
 #include <polypcore/native-common.h>
 #include <polypcore/strlist.h>
 #include <polypcore/mcalign.h>
+#include <polypcore/memblockq.h>
 
 #include "client-conf.h"
 
@@ -98,6 +99,8 @@ struct pa_stream {
     pa_usec_t previous_ipol_time;
     pa_stream_state_t state;
     pa_mcalign *mcalign;
+    pa_memchunk peek_memchunk;
+    pa_memblockq *record_memblockq;
 
     int interpolate;
     int corked;
@@ -110,7 +113,7 @@ struct pa_stream {
     void (*state_callback)(pa_stream*c, void *userdata);
     void *state_userdata;
 
-    void (*read_callback)(pa_stream *p, const void*data, size_t length, void *userdata);
+    void (*read_callback)(pa_stream *p, size_t length, void *userdata);
     void *read_userdata;
 
     void (*write_callback)(pa_stream *p, size_t length, void *userdata);

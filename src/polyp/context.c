@@ -273,11 +273,11 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, PA_GCC_UN
 
             if (pa_mcalign_pop(s->mcalign, &t) < 0)
                 break;
-        
-            if (s->read_callback) {
-                s->read_callback(s, (uint8_t*) t.memblock->data + t.index, t.length, s->read_userdata);
-                s->counter += chunk->length;
-            }
+
+            assert(s->record_memblockq);
+            pa_memblockq_push(s->record_memblockq, &t, t.length);
+            if (s->read_callback)
+                s->read_callback(s, pa_stream_readable_size(s), s->read_userdata);
 
             pa_memblock_unref(t.memblock);
         }

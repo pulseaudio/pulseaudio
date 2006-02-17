@@ -330,6 +330,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
 		polypcore/log.c polypcore/log.h \
 		polypcore/mcalign.c polypcore/mcalign.h \
 		polypcore/memblock.c polypcore/memblock.h \
+		polypcore/memblockq.c polypcore/memblockq.h \
 		polypcore/memchunk.c polypcore/memchunk.h \
 		polypcore/native-common.h \
 		polypcore/packet.c polypcore/packet.h \

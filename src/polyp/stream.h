@@ -106,8 +106,24 @@ void pa_stream_write(pa_stream *p      /**< The stream to use */,
                                                  value is ignored on
                                                  upload streams. */);
 
+/** Read the next fragment from the buffer (for capture sources).
+ * data will point to the actual data and length will contain the size
+ * of the data in bytes (which can be less than a complete framgnet).
+ * Use pa_stream_drop() to actually remove the data from the buffer.
+ * \since 0.8 */ 
+void pa_stream_peek(pa_stream *p                 /**< The stream to use */,
+                     void **data                 /**< Pointer to pointer that will point to data */,
+                     size_t *length              /**< The length of the data read */);
+
+/** Remove the current fragment. It is invalid to do this without first
+ * calling pa_stream_peek(). \since 0.8 */
+void pa_stream_drop(pa_stream *p);
+
 /** Return the amount of bytes that may be written using pa_stream_write() */
 size_t pa_stream_writable_size(pa_stream *p);
+
+/** Return the ammount of bytes that may be read using pa_stream_read() \since 0.8 */
+size_t pa_stream_readable_size(pa_stream *p);
 
 /** Drain a playback stream */
 pa_operation* pa_stream_drain(pa_stream *s, void (*cb) (pa_stream*s, int success, void *userdata), void *userdata);
@@ -122,8 +138,10 @@ void pa_stream_set_state_callback(pa_stream *s, void (*cb)(pa_stream *s, void *u
  * written to the stream. */
 void pa_stream_set_write_callback(pa_stream *p, void (*cb)(pa_stream *p, size_t length, void *userdata), void *userdata);
 
-/** Set the callback function that is called when new data is available from the stream */
-void pa_stream_set_read_callback(pa_stream *p, void (*cb)(pa_stream *p, const void*data, size_t length, void *userdata), void *userdata);
+/** Set the callback function that is called when new data is available from the stream.
+ * Return the number of bytes read. \since 0.8
+ */
+void pa_stream_set_read_callback(pa_stream *p, void (*cb)(pa_stream *p, size_t length, void *userdata), void *userdata);
 
 /** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. \since 0.3 */
 pa_operation* pa_stream_cork(pa_stream *s, int b, void (*cb) (pa_stream*s, int success, void *userdata), void *userdata);
