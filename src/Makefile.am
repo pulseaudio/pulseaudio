@@ -538,21 +538,6 @@ modlib_LTLIBRARIES += \
 		libx11prop.la
 endif
 
-if HAVE_OSS
-modlib_LTLIBRARIES += \
-		liboss-util.la
-endif
-
-if HAVE_ALSA
-modlib_LTLIBRARIES += \
-		libalsa-util.la
-endif
-
-if HAVE_HOWL
-modlib_LTLIBRARIES += \
-		libhowl-wrap.la
-endif
-
 libprotocol_simple_la_SOURCES = polypcore/protocol-simple.c polypcore/protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version
 libprotocol_simple_la_LIBADD = $(AM_LIBADD) libpolypcore.la libsocket-server.la libiochannel.la
@@ -649,25 +634,6 @@ libx11prop_la_LDFLAGS = -avoid-version
 libx11prop_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 libx11prop_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
 
-# OSS
-
-liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
-liboss_util_la_LDFLAGS = -avoid-version
-
-# ALSA
-
-libalsa_util_la_SOURCES = modules/alsa-util.c modules/alsa-util.h
-libalsa_util_la_LDFLAGS = -avoid-version
-libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS)
-libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
-
-# HOWL
-
-libhowl_wrap_la_SOURCES = modules/howl-wrap.c modules/howl-wrap.h
-libhowl_wrap_la_LDFLAGS = -avoid-version
-libhowl_wrap_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS)
-libhowl_wrap_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
-
 ###################################
 #        Plug-in libraries        #
 ###################################
@@ -727,12 +693,14 @@ endif
 
 if HAVE_OSS
 modlib_LTLIBRARIES += \
+		liboss-util.la \
 		module-oss.la \
 		module-oss-mmap.la
 endif
 
 if HAVE_ALSA
 modlib_LTLIBRARIES += \
+		libalsa-util.la \
 		module-alsa-sink.la \
 		module-alsa-source.la
 endif
@@ -744,6 +712,7 @@ endif
 
 if HAVE_HOWL
 modlib_LTLIBRARIES += \
+		libhowl-wrap.la \
 		module-zeroconf-publish.la
 endif
 
@@ -971,6 +940,9 @@ module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EX
 
 # OSS
 
+liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
+liboss_util_la_LDFLAGS = -avoid-version
+
 module_oss_la_SOURCES = modules/module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version
 module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
@@ -980,6 +952,11 @@ module_oss_mmap_la_LDFLAGS = -module -avoid-version
 module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la
 
 # ALSA
+
+libalsa_util_la_SOURCES = modules/alsa-util.c modules/alsa-util.h
+libalsa_util_la_LDFLAGS = -avoid-version
+libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS)
+libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 module_alsa_sink_la_SOURCES = modules/module-alsa-sink.c
 module_alsa_sink_la_LDFLAGS = -module -avoid-version
@@ -998,6 +975,11 @@ module_solaris_la_LDFLAGS = -module -avoid-version
 module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
 # HOWL
+
+libhowl_wrap_la_SOURCES = modules/howl-wrap.c modules/howl-wrap.h
+libhowl_wrap_la_LDFLAGS = -avoid-version
+libhowl_wrap_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS)
+libhowl_wrap_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
 
 module_zeroconf_publish_la_SOURCES = modules/module-zeroconf-publish.c
 module_zeroconf_publish_la_LDFLAGS = -module -avoid-version
