@@ -406,36 +406,46 @@ libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
 ###################################
 
 polypcoreinclude_HEADERS = \
+		polypcore/autoload.h \
 		polypcore/cli-command.h \
+		polypcore/cli-text.h \
 		polypcore/client.h \
 		polypcore/core.h \
+		polypcore/core-scache.h \
+		polypcore/core-subscribe.h \
+		polypcore/conf-parser.h \
 		polypcore/dynarray.h \
-		polypcore/endianmacros.h \
+		polypcore/g711.h \
 		polypcore/hashmap.h \
 		polypcore/idxset.h \
-		polypcore/iochannel.h \
 		polypcore/log.h \
+		polypcore/mcalign.h \
 		polypcore/memblock.h \
 		polypcore/memblockq.h \
 		polypcore/memchunk.h \
 		polypcore/modargs.h \
+		polypcore/modinfo.h \
 		polypcore/module.h \
 		polypcore/namereg.h \
+		polypcore/pid.h \
+		polypcore/play-memchunk.h \
+		polypcore/props.h \
 		polypcore/queue.h \
+		polypcore/random.h \
 		polypcore/resampler.h \
 		polypcore/sample-util.h \
+		polypcore/sconv.h \
 		polypcore/sink.h \
 		polypcore/sink-input.h \
 		polypcore/sioman.h \
-		polypcore/socket-server.h \
-		polypcore/socket-client.h \
-		polypcore/socket-util.h \
+		polypcore/sound-file.h \
+		polypcore/sound-file-stream.h \
 		polypcore/source.h \
 		polypcore/source-output.h \
 		polypcore/strbuf.h \
 		polypcore/tokenizer.h \
-		polypcore/tagstruct.h \
-		polypcore/util.h
+		polypcore/util.h \
+		polypcore/xmalloc.h
 
 lib_LTLIBRARIES += libpolypcore.la
 
@@ -456,6 +466,8 @@ libpolypcore_la_SOURCES += \
 		polypcore/client.c polypcore/client.h \
 		polypcore/conf-parser.c polypcore/conf-parser.h \
 		polypcore/core.c polypcore/core.h \
+		polypcore/core-scache.c polypcore/core-scache.h \
+		polypcore/core-subscribe.c polypcore/core-subscribe.h \
 		polypcore/dllmain.c \
 		polypcore/dynarray.c polypcore/dynarray.h \
 		polypcore/endianmacros.h \
@@ -479,7 +491,6 @@ libpolypcore_la_SOURCES += \
 		polypcore/random.c polypcore/random.h \
 		polypcore/resampler.c polypcore/resampler.h \
 		polypcore/sample-util.c polypcore/sample-util.h \
-		polypcore/core-scache.c polypcore/core-scache.h \
 		polypcore/sconv.c polypcore/sconv.h \
 		polypcore/sconv-s16be.c polypcore/sconv-s16be.h \
 		polypcore/sconv-s16le.c polypcore/sconv-s16le.h \
@@ -491,7 +502,6 @@ libpolypcore_la_SOURCES += \
 		polypcore/source.c polypcore/source.h \
 		polypcore/source-output.c polypcore/source-output.h \
 		polypcore/strbuf.c polypcore/strbuf.h \
-		polypcore/core-subscribe.c polypcore/core-subscribe.h \
 		polypcore/tokenizer.c polypcore/tokenizer.h \
 		polypcore/util.c polypcore/util.h \
 		polypcore/winsock.h \
@@ -504,6 +514,30 @@ libpolypcore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDF
 ###################################
 #   Plug-in support libraries     #
 ###################################
+
+polypcoreinclude_HEADERS += \
+		polypcore/socket-util.h \
+		polypcore/iochannel.h \
+		polypcore/socket-server.h \
+		polypcore/socket-client.h \
+		polypcore/parseaddr.h \
+		polypcore/packet.h \
+		polypcore/pstream.h \
+		polypcore/ioline.h \
+		polypcore/cli.h \
+		polypcore/protocol-cli.h \
+		polypcore/tagstruct.h \
+		polypcore/pstream-util.h \
+		polypcore/pdispatch.h \
+		polypcore/authkey.h \
+		polypcore/authkey-prop.h \
+		polypcore/strlist.h \
+		polypcore/protocol-simple.h \
+		polypcore/esound.h \
+		polypcore/protocol-esound.h \
+		polypcore/native-common.h \
+		polypcore/protocol-native.h \
+		polypcore/protocol-http.h
 
 ### Warning! Due to an obscure bug in libtool/automake it is required
 ### that the libraries in modlib_LTLIBRARIES are specified in-order,
@@ -533,6 +567,10 @@ modlib_LTLIBRARIES = \
 		libprotocol-http.la
 
 if HAVE_X11
+polypcoreinclude_HEADERS += \
+		polypcore/x11wrap.h \
+		polypcore/x11prop.h
+
 modlib_LTLIBRARIES += \
 		libx11wrap.la \
 		libx11prop.la
