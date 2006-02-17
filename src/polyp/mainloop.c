@@ -323,7 +323,7 @@ pa_mainloop *pa_mainloop_new(void) {
 
     m = pa_xmalloc(sizeof(pa_mainloop));
 
-#ifndef OS_ISWIN32
+#ifndef OS_IS_WIN32
     if (pipe(m->wakeup_pipe) < 0) {
         pa_xfree(m);
         return NULL;
