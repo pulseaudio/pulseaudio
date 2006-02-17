@@ -28,10 +28,11 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <polypcore/log.h>
+#include <polypcore/util.h>
+#include <polypcore/xmalloc.h>
+
 #include "conf-parser.h"
-#include "log.h"
-#include "util.h"
-#include "xmalloc.h"
 
 #define WHITESPACE " \t\n"
 #define COMMENTS "#;\n"

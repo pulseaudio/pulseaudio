@@ -29,13 +29,14 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <polypcore/autoload.h>
+#include <polypcore/source.h>
+#include <polypcore/sink.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/core-subscribe.h>
+#include <polypcore/util.h>
+
 #include "namereg.h"
-#include "autoload.h"
-#include "source.h"
-#include "sink.h"
-#include "xmalloc.h"
-#include "core-subscribe.h"
-#include "util.h"
 
 struct namereg_entry {
     pa_namereg_type_t type;

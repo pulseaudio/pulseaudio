@@ -24,7 +24,7 @@
 
 #include <inttypes.h>
 #include <polyp/mainloop-api.h>
-#include "iochannel.h"
+#include <polypcore/iochannel.h>
 
 /* It is safe to destroy the calling socket_server object from the callback */
 

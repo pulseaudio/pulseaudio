@@ -26,13 +26,13 @@
 
 typedef struct pa_sink pa_sink;
 
-#include "core.h"
 #include <polyp/sample.h>
-#include "idxset.h"
-#include "source.h"
 #include <polyp/channelmap.h>
-#include "module.h"
 #include <polyp/volume.h>
+#include <polypcore/core.h>
+#include <polypcore/idxset.h>
+#include <polypcore/source.h>
+#include <polypcore/module.h>
 
 #define PA_MAX_INPUTS_PER_SINK 6
 

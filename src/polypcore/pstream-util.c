@@ -25,7 +25,8 @@
 
 #include <assert.h>
 
-#include "native-common.h"
+#include <polypcore/native-common.h>
+
 #include "pstream-util.h"
 
 void pa_pstream_send_tagstruct(pa_pstream *p, pa_tagstruct *t) {

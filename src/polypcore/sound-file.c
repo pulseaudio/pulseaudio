@@ -28,9 +28,10 @@
 
 #include <sndfile.h>
 
-#include "sound-file.h"
 #include <polyp/sample.h>
-#include "log.h"
+#include <polypcore/log.h>
+
+#include "sound-file.h"
 
 #define MAX_FILE_SIZE (1024*1024)
 

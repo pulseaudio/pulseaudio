@@ -25,10 +25,11 @@
 
 #include <assert.h>
 
-#include <polyp/glib-mainloop.h>
 #include <polypcore/idxset.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/util.h>
+
+#include "glib-mainloop.h"
 
 /* A mainloop implementation based on GLIB 1.2 */
 

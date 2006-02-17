@@ -24,6 +24,8 @@
 
 /* WARNING: Make sure to edit the real source file version.h.in! */
 
+#include <polyp/cdecl.h>
+
 /** \file
  * Define header version */
 

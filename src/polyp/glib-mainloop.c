@@ -25,11 +25,12 @@
 
 #include <assert.h>
 
-#include <polyp/glib-mainloop.h>
 #include <polypcore/idxset.h>
 #include <polypcore/xmalloc.h>
-#include "glib.h"
 #include <polypcore/util.h>
+
+#include "glib.h"
+#include "glib-mainloop.h"
 
 struct pa_io_event  {
     pa_glib_mainloop *mainloop;

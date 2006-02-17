@@ -22,9 +22,9 @@
   USA.
 ***/
 
-#include "core.h"
-#include "memchunk.h"
-#include "sink.h"
+#include <polypcore/core.h>
+#include <polypcore/memchunk.h>
+#include <polypcore/sink.h>
 
 typedef struct pa_scache_entry {
     pa_core *core;

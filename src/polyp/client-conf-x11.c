@@ -29,11 +29,12 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
-#include "client-conf-x11.h"
 #include <polypcore/x11prop.h>
 #include <polypcore/log.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/util.h>
+
+#include "client-conf-x11.h"
 
 int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     Display *d = NULL;

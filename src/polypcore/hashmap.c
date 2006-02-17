@@ -27,10 +27,11 @@
 #include <assert.h>
 #include <string.h>
 
+#include <polypcore/idxset.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "hashmap.h"
-#include "idxset.h"
-#include "xmalloc.h"
-#include "log.h"
 
 #define BUCKETS 1023
 

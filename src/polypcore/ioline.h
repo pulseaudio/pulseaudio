@@ -22,8 +22,8 @@
   USA.
 ***/
 
-#include "iochannel.h"
-#include "util.h"
+#include <polypcore/iochannel.h>
+#include <polypcore/util.h>
 
 /* An ioline wraps an iochannel for line based communication. A
  * callback function is called whenever a new line has been recieved

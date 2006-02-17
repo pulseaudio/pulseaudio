@@ -70,9 +70,10 @@
 
 #include "winsock.h"
 
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "util.h"
-#include "xmalloc.h"
-#include "log.h"
 
 #ifndef OS_IS_WIN32
 #define PA_RUNTIME_PATH_PREFIX "/tmp/polypaudio-"

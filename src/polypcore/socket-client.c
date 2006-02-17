@@ -54,12 +54,13 @@
 
 #include "winsock.h"
 
+#include <polypcore/socket-util.h>
+#include <polypcore/util.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+#include <polypcore/parseaddr.h>
+
 #include "socket-client.h"
-#include "socket-util.h"
-#include "util.h"
-#include "xmalloc.h"
-#include "log.h"
-#include "parseaddr.h"
 
 #define CONNECT_TIMEOUT 5
 

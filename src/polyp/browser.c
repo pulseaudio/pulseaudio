@@ -22,10 +22,11 @@
 #include <assert.h>
 #include <howl.h>
 
-#include "browser.h"
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 #include <polypcore/util.h>
+
+#include "browser.h"
 
 #define SERVICE_NAME_SINK "_polypaudio-sink._tcp."
 #define SERVICE_NAME_SOURCE "_polypaudio-source._tcp."

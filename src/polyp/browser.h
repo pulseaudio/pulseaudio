@@ -25,7 +25,6 @@
 #include <polyp/mainloop-api.h>
 #include <polyp/sample.h>
 #include <polyp/cdecl.h>
-#include <polyp/typeid.h>
 
 PA_C_DECL_BEGIN
 

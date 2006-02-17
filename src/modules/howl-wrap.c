@@ -21,10 +21,11 @@
 
 #include <assert.h>
 
+#include <polypcore/log.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/props.h>
+
 #include "howl-wrap.h"
-#include "log.h"
-#include "xmalloc.h"
-#include "props.h"
 
 #define HOWL_PROPERTY "howl"
 

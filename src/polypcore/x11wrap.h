@@ -24,7 +24,7 @@
 
 #include <X11/Xlib.h>
 
-#include "core.h"
+#include <polypcore/core.h>
 
 typedef struct pa_x11_wrapper pa_x11_wrapper;
 

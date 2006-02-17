@@ -23,8 +23,8 @@
 ***/
 
 #include <inttypes.h>
-#include "pstream.h"
-#include "tagstruct.h"
+#include <polypcore/pstream.h>
+#include <polypcore/tagstruct.h>
 
 /* The tagstruct is freed!*/
 void pa_pstream_send_tagstruct(pa_pstream *p, pa_tagstruct *t);

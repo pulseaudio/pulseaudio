@@ -39,9 +39,10 @@
 #include <windows.h>
 #endif
 
+#include <polypcore/util.h>
+#include <polypcore/log.h>
+
 #include "pid.h"
-#include "util.h"
-#include "log.h"
 
 /* Read the PID data from the file descriptor fd, and return it. If no
  * pid could be read, return 0, on failure (pid_t) -1 */

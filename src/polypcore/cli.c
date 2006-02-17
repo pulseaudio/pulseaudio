@@ -28,21 +28,22 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "ioline.h"
+#include <polypcore/ioline.h>
+#include <polypcore/module.h>
+#include <polypcore/sink.h>
+#include <polypcore/source.h>
+#include <polypcore/client.h>
+#include <polypcore/sink-input.h>
+#include <polypcore/source-output.h>
+#include <polypcore/tokenizer.h>
+#include <polypcore/strbuf.h>
+#include <polypcore/namereg.h>
+#include <polypcore/cli-text.h>
+#include <polypcore/cli-command.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "cli.h"
-#include "module.h"
-#include "sink.h"
-#include "source.h"
-#include "client.h"
-#include "sink-input.h"
-#include "source-output.h"
-#include "tokenizer.h"
-#include "strbuf.h"
-#include "namereg.h"
-#include "cli-text.h"
-#include "cli-command.h"
-#include "xmalloc.h"
-#include "log.h"
 
 #define PROMPT ">>> "
 

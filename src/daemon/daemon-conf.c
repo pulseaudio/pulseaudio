@@ -29,12 +29,13 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include "daemon-conf.h"
 #include <polypcore/util.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/strbuf.h>
 #include <polypcore/conf-parser.h>
 #include <polypcore/resampler.h>
+
+#include "daemon-conf.h"
 
 #ifndef DEFAULT_CONFIG_DIR
 # ifndef OS_IS_WIN32

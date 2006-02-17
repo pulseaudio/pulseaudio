@@ -30,23 +30,25 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "protocol-esound.h"
-#include "esound.h"
-#include "memblock.h"
-#include "client.h"
-#include "sink-input.h"
-#include "sink.h"
-#include "source-output.h"
-#include "source.h"
 #include <polyp/sample.h>
-#include "core-scache.h"
-#include "sample-util.h"
-#include "authkey.h"
-#include "namereg.h"
-#include "xmalloc.h"
-#include "log.h"
-#include "util.h"
+#include <polypcore/esound.h>
+#include <polypcore/memblock.h>
+#include <polypcore/client.h>
+#include <polypcore/sink-input.h>
+#include <polypcore/sink.h>
+#include <polypcore/source-output.h>
+#include <polypcore/source.h>
+#include <polypcore/core-scache.h>
+#include <polypcore/sample-util.h>
+#include <polypcore/authkey.h>
+#include <polypcore/namereg.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+#include <polypcore/util.h>
+
 #include "endianmacros.h"
+
+#include "protocol-esound.h"
 
 /* Don't accept more connection than this */
 #define MAX_CONNECTIONS 10

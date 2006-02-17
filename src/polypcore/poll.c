@@ -42,7 +42,8 @@
 
 #ifndef HAVE_SYS_POLL_H
 
-#include "util.h"
+#include <polypcore/util.h>
+
 #include "poll.h"
 
 int poll (struct pollfd *fds, unsigned long int nfds, int timeout) {

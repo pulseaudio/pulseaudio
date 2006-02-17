@@ -29,9 +29,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "ioline.h"
-#include "xmalloc.h"
-#include "log.h"
 
 #define BUFFER_LIMIT (64*1024)
 #define READ_SIZE (1024)

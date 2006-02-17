@@ -22,8 +22,8 @@
   USA.
 ***/
 
-#include "core.h"
-#include "strbuf.h"
+#include <polypcore/core.h>
+#include <polypcore/strbuf.h>
 
 /* The property subsystem is to be used to share data between
  * modules. Consider them to be kind of "global" variables for a

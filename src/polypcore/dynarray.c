@@ -27,8 +27,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <polypcore/xmalloc.h>
+
 #include "dynarray.h"
-#include "xmalloc.h"
 
 /* If the array becomes to small, increase its size by 100 entries */
 #define INCREASE_BY 100

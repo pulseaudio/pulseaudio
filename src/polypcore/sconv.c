@@ -30,12 +30,13 @@
 #include <liboil/liboilfuncs.h>
 #include <liboil/liboil.h>
 
-#include "endianmacros.h"
-#include "sconv.h"
-#include "g711.h"
+#include <polypcore/g711.h>
 
+#include "endianmacros.h"
 #include "sconv-s16le.h"
 #include "sconv-s16be.h"
+
+#include "sconv.h"
 
 static void u8_to_float32ne(unsigned n, const void *a, float *b) {
     const uint8_t *ca = a;

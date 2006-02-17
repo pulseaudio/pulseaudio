@@ -25,9 +25,9 @@
 #include <samplerate.h>
 
 #include <polyp/sample.h>
-#include "memblock.h"
-#include "memchunk.h"
 #include <polyp/channelmap.h>
+#include <polypcore/memblock.h>
+#include <polypcore/memchunk.h>
 
 typedef struct pa_resampler pa_resampler;
 

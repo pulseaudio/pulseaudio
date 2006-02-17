@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include "namereg.h"
+#include <polypcore/namereg.h>
 
 /* Using the autoloading facility, modules by be loaded on-demand and
  * synchronously. The user may register a "ghost sink" or "ghost

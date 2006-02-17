@@ -26,12 +26,12 @@
 
 typedef struct pa_source_output pa_source_output;
 
-#include "source.h"
 #include <polyp/sample.h>
-#include "memblockq.h"
-#include "resampler.h"
-#include "module.h"
-#include "client.h"
+#include <polypcore/source.h>
+#include <polypcore/memblockq.h>
+#include <polypcore/resampler.h>
+#include <polypcore/module.h>
+#include <polypcore/client.h>
 
 typedef enum {
     PA_SOURCE_OUTPUT_RUNNING,

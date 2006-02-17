@@ -28,12 +28,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <polypcore/ioline.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+#include <polypcore/namereg.h>
+#include <polypcore/cli-text.h>
+
 #include "protocol-http.h"
-#include "ioline.h"
-#include "xmalloc.h"
-#include "log.h"
-#include "namereg.h"
-#include "cli-text.h"
 
 /* Don't allow more than this many concurrent connections */
 #define MAX_CONNECTIONS 10

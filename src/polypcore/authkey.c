@@ -35,10 +35,11 @@
 #include <limits.h>
 #include <sys/stat.h>
 
+#include <polypcore/util.h>
+#include <polypcore/log.h>
+#include <polypcore/random.h>
+
 #include "authkey.h"
-#include "util.h"
-#include "log.h"
-#include "random.h"
 
 /* Generate a new authorization key, store it in file fd and return it in *data  */
 static int generate(int fd, void *ret_data, size_t length) {

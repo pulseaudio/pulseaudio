@@ -28,8 +28,9 @@
 #include <assert.h>
 #include <string.h>
 
+#include <polypcore/xmalloc.h>
+
 #include "memblock.h"
-#include "xmalloc.h"
 
 static void stat_add(pa_memblock*m, pa_memblock_stat *s) {
     assert(m);

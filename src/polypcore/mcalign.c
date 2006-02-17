@@ -28,8 +28,9 @@
 #include <assert.h>
 #include <string.h>
 
+#include <polypcore/xmalloc.h>
+
 #include "mcalign.h"
-#include "xmalloc.h"
 
 struct pa_mcalign {
     size_t base;

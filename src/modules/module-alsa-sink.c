@@ -44,8 +44,8 @@
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
-#include "module-alsa-sink-symdef.h"
 #include "alsa-util.h"
+#include "module-alsa-sink-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("ALSA Sink")

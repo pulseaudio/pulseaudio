@@ -22,8 +22,8 @@
   USA.
 ***/
 
-#include "core.h"
-#include "module.h"
+#include <polypcore/core.h>
+#include <polypcore/module.h>
 
 /* Every connection to the server should have a pa_client
  * attached. That way the user may generate a listing of all connected

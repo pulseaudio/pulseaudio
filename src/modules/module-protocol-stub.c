@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #endif
 
-#include <polypcore/winsock.h>
+#include "../polypcore/winsock.h"
 
 #include <polypcore/module.h>
 #include <polypcore/socket-server.h>

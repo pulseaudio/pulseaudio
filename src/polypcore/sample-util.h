@@ -23,9 +23,9 @@
 ***/
 
 #include <polyp/sample.h>
-#include "memblock.h"
-#include "memchunk.h"
 #include <polyp/volume.h>
+#include <polypcore/memblock.h>
+#include <polypcore/memchunk.h>
 
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec);
 void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec);

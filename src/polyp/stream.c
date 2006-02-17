@@ -28,11 +28,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "internal.h"
 #include <polypcore/xmalloc.h>
 #include <polypcore/pstream-util.h>
 #include <polypcore/util.h>
 #include <polypcore/log.h>
+
+#include "internal.h"
 
 #define LATENCY_IPOL_INTERVAL_USEC (10000L)
 

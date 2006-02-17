@@ -36,7 +36,8 @@
 #include <polypcore/authkey.h>
 #include <polypcore/native-common.h>
 #include <polypcore/x11prop.h>
-#include <polyp/client-conf.h>
+
+#include "../polyp/client-conf.h"
 
 int main(int argc, char *argv[]) {
     const char *dname = NULL, *sink = NULL, *source = NULL, *server = NULL, *cookie_file = PA_NATIVE_COOKIE_FILE;

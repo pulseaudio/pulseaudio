@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include "core.h"
+#include <polypcore/core.h>
 
 /* Some functions to generate pretty formatted listings of
  * entities. The returned strings have to be freed manually. */

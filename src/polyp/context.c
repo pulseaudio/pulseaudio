@@ -45,11 +45,10 @@
 #include <netdb.h>
 #endif
 
-#include <polypcore/winsock.h>
+#include "../polypcore/winsock.h"
 
-#include "internal.h"
-#include "context.h"
-#include "version.h"
+#include <polyp/version.h>
+
 #include <polypcore/native-common.h>
 #include <polypcore/pdispatch.h>
 #include <polypcore/pstream.h>
@@ -59,12 +58,17 @@
 #include <polypcore/util.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
-#include <polyp/client-conf.h>
 #include <polypcore/socket-util.h>
+
+#include "internal.h"
+
+#include "client-conf.h"
 
 #ifdef HAVE_X11
 #include "client-conf-x11.h"
 #endif
+
+#include "context.h"
 
 #define AUTOSPAWN_LOCK "autospawn.lock"
 

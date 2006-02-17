@@ -38,13 +38,14 @@
 #include "poll.h"
 #endif
 
-#include <polypcore/winsock.h>
+#include "../polypcore/winsock.h"
 
-#include "mainloop.h"
 #include <polypcore/util.h>
 #include <polypcore/idxset.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
+
+#include "mainloop.h"
 
 struct pa_io_event {
     pa_mainloop *mainloop;

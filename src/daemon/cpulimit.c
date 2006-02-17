@@ -23,9 +23,10 @@
 #include <config.h>
 #endif
 
-#include "cpulimit.h"
 #include <polypcore/util.h>
 #include <polypcore/log.h>
+
+#include "cpulimit.h"
 
 #ifdef HAVE_SIGXCPU
 

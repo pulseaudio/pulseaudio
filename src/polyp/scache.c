@@ -28,9 +28,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "scache.h"
-#include "internal.h"
 #include <polypcore/pstream-util.h>
+
+#include "internal.h"
+
+#include "scache.h"
 
 void pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_tagstruct *t;

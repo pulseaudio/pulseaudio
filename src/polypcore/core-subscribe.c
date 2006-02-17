@@ -26,10 +26,11 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "queue.h"
+#include <polypcore/queue.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "core-subscribe.h"
-#include "xmalloc.h"
-#include "log.h"
 
 /* The subscription subsystem may be used to be notified whenever an
  * entity (sink, source, ...) is created or deleted. Modules may

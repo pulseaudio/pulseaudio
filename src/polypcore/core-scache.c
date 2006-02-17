@@ -41,19 +41,20 @@
 #include <windows.h>
 #endif
 
-#include "core-scache.h"
-#include "sink-input.h"
 #include <polyp/mainloop.h>
-#include "sample-util.h"
-#include "play-memchunk.h"
-#include "xmalloc.h"
-#include "core-subscribe.h"
-#include "namereg.h"
-#include "sound-file.h"
-#include "util.h"
-#include "log.h"
 #include <polyp/channelmap.h>
 #include <polyp/volume.h>
+#include <polypcore/sink-input.h>
+#include <polypcore/sample-util.h>
+#include <polypcore/play-memchunk.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/core-subscribe.h>
+#include <polypcore/namereg.h>
+#include <polypcore/sound-file.h>
+#include <polypcore/util.h>
+#include <polypcore/log.h>
+
+#include "core-scache.h"
 
 #define UNLOAD_POLL_TIME 2
 

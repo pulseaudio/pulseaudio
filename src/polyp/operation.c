@@ -26,7 +26,9 @@
 #include <assert.h>
 
 #include <polypcore/xmalloc.h>
+
 #include "internal.h"
+
 #include "operation.h"
 
 pa_operation *pa_operation_new(pa_context *c, pa_stream *s) {

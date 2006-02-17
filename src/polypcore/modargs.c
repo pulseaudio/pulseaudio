@@ -28,15 +28,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hashmap.h"
+#include <polypcore/hashmap.h>
+#include <polypcore/idxset.h>
+#include <polypcore/sample-util.h>
+#include <polypcore/namereg.h>
+#include <polypcore/sink.h>
+#include <polypcore/source.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/util.h>
+
 #include "modargs.h"
-#include "idxset.h"
-#include "sample-util.h"
-#include "namereg.h"
-#include "sink.h"
-#include "source.h"
-#include "xmalloc.h"
-#include "util.h"
 
 struct entry {
     char *key, *value;

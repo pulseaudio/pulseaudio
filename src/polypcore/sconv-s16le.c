@@ -28,10 +28,12 @@
 
 #include <liboil/liboilfuncs.h>
 
+#include <polypcore/sconv.h>
+#include <polypcore/log.h>
+
 #include "endianmacros.h"
-#include "sconv.h"
+
 #include "sconv-s16le.h"
-#include "log.h"
 
 #ifndef INT16_FROM
 #define INT16_FROM INT16_FROM_LE

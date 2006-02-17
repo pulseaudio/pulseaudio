@@ -23,9 +23,9 @@
 ***/
 
 #include <inttypes.h>
-#include "tagstruct.h"
-#include "packet.h"
 #include <polyp/mainloop-api.h>
+#include <polypcore/tagstruct.h>
+#include <polypcore/packet.h>
 
 typedef struct pa_pdispatch pa_pdispatch;
 

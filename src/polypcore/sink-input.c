@@ -28,11 +28,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polypcore/sample-util.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/core-subscribe.h>
+#include <polypcore/log.h>
+
 #include "sink-input.h"
-#include "sample-util.h"
-#include "xmalloc.h"
-#include "core-subscribe.h"
-#include "log.h"
 
 #define CONVERT_BUFFER_LENGTH 4096
 

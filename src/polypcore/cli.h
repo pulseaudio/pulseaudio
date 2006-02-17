@@ -22,9 +22,9 @@
   USA.
 ***/
 
-#include "iochannel.h"
-#include "core.h"
-#include "module.h"
+#include <polypcore/iochannel.h>
+#include <polypcore/core.h>
+#include <polypcore/module.h>
 
 typedef struct pa_cli pa_cli;
 

@@ -26,10 +26,11 @@
 #include <ltdl.h>
 #include <assert.h>
 
-#include "xmalloc.h"
-#include "util.h"
+#include <polypcore/xmalloc.h>
+#include <polypcore/util.h>
+#include <polypcore/log.h>
+
 #include "modinfo.h"
-#include "log.h"
 
 #define PA_SYMBOL_AUTHOR "pa__get_author"
 #define PA_SYMBOL_DESCRIPTION "pa__get_description"

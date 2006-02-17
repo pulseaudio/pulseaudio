@@ -30,11 +30,12 @@
 #include <string.h>
 #include <errno.h>
 
+#include <polypcore/xmalloc.h>
+#include <polypcore/core-subscribe.h>
+#include <polypcore/log.h>
+#include <polypcore/util.h>
+
 #include "module.h"
-#include "xmalloc.h"
-#include "core-subscribe.h"
-#include "log.h"
-#include "util.h"
 
 #define PA_SYMBOL_INIT "pa__init"
 #define PA_SYMBOL_DONE "pa__done"

@@ -29,26 +29,27 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <polypcore/module.h>
+#include <polypcore/sink.h>
+#include <polypcore/source.h>
+#include <polypcore/client.h>
+#include <polypcore/sink-input.h>
+#include <polypcore/source-output.h>
+#include <polypcore/tokenizer.h>
+#include <polypcore/strbuf.h>
+#include <polypcore/namereg.h>
+#include <polypcore/cli-text.h>
+#include <polypcore/core-scache.h>
+#include <polypcore/sample-util.h>
+#include <polypcore/sound-file.h>
+#include <polypcore/play-memchunk.h>
+#include <polypcore/autoload.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/sound-file-stream.h>
+#include <polypcore/props.h>
+#include <polypcore/util.h>
+
 #include "cli-command.h"
-#include "module.h"
-#include "sink.h"
-#include "source.h"
-#include "client.h"
-#include "sink-input.h"
-#include "source-output.h"
-#include "tokenizer.h"
-#include "strbuf.h"
-#include "namereg.h"
-#include "cli-text.h"
-#include "core-scache.h"
-#include "sample-util.h"
-#include "sound-file.h"
-#include "play-memchunk.h"
-#include "autoload.h"
-#include "xmalloc.h"
-#include "sound-file-stream.h"
-#include "props.h"
-#include "util.h"
 
 struct command {
     const char *name;

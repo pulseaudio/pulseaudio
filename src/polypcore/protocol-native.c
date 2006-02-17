@@ -28,27 +28,28 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <polypcore/native-common.h>
+#include <polypcore/packet.h>
+#include <polypcore/client.h>
+#include <polypcore/source-output.h>
+#include <polypcore/sink-input.h>
+#include <polypcore/pstream.h>
+#include <polypcore/tagstruct.h>
+#include <polypcore/pdispatch.h>
+#include <polypcore/pstream-util.h>
+#include <polypcore/authkey.h>
+#include <polypcore/namereg.h>
+#include <polypcore/core-scache.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/util.h>
+#include <polypcore/core-subscribe.h>
+#include <polypcore/log.h>
+#include <polypcore/autoload.h>
+#include <polypcore/authkey-prop.h>
+#include <polypcore/strlist.h>
+#include <polypcore/props.h>
+
 #include "protocol-native.h"
-#include "native-common.h"
-#include "packet.h"
-#include "client.h"
-#include "source-output.h"
-#include "sink-input.h"
-#include "pstream.h"
-#include "tagstruct.h"
-#include "pdispatch.h"
-#include "pstream-util.h"
-#include "authkey.h"
-#include "namereg.h"
-#include "core-scache.h"
-#include "xmalloc.h"
-#include "util.h"
-#include "core-subscribe.h"
-#include "log.h"
-#include "autoload.h"
-#include "authkey-prop.h"
-#include "strlist.h"
-#include "props.h"
 
 /* Kick a client if it doesn't authenticate within this time */
 #define AUTH_TIMEOUT 5

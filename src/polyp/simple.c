@@ -28,12 +28,14 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "simple.h"
-#include "polypaudio.h"
-#include "mainloop.h"
+#include <polyp/polypaudio.h>
+#include <polyp/mainloop.h>
+
 #include <polypcore/native-common.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
+
+#include "simple.h"
 
 struct pa_simple {
     pa_mainloop *mainloop;

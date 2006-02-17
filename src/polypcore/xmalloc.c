@@ -27,11 +27,12 @@
 #include <signal.h>
 #include <assert.h>
 #include <unistd.h>
+#include <string.h>
 
-#include "memory.h"
-#include "util.h"
+#include <polypcore/util.h>
+#include <polypcore/gccmacro.h>
+
 #include "xmalloc.h"
-#include "gccmacro.h"
 
 /* Make sure not to allocate more than this much memory. */
 #define MAX_ALLOC_SIZE (1024*1024*20) /* 20MB */

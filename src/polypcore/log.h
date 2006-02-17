@@ -23,7 +23,7 @@
 ***/
 
 #include <stdarg.h>
-#include "gccmacro.h"
+#include <polypcore/gccmacro.h>
 
 /* A simple logging subsystem */
 

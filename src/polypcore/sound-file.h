@@ -22,8 +22,8 @@
   USA.
 ***/
 
-#include "memchunk.h"
 #include <polyp/sample.h>
+#include <polypcore/memchunk.h>
 
 int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_memchunk *chunk, pa_memblock_stat *s);
 

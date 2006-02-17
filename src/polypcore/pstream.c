@@ -34,10 +34,11 @@
 
 #include "winsock.h"
 
+#include <polypcore/queue.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "pstream.h"
-#include "queue.h"
-#include "xmalloc.h"
-#include "log.h"
 
 typedef enum pa_pstream_descriptor_index {
     PA_PSTREAM_DESCRIPTOR_LENGTH,

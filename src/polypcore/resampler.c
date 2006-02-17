@@ -30,10 +30,11 @@
 #include <liboil/liboilfuncs.h>
 #include <liboil/liboil.h>
 
+#include <polypcore/sconv.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "resampler.h"
-#include "sconv.h"
-#include "xmalloc.h"
-#include "log.h"
 
 struct pa_resampler {
     pa_resample_method_t resample_method;

@@ -33,6 +33,7 @@
 #endif
 
 #include <polypcore/log.h>
+
 #include "caps.h"
 
 #ifdef HAVE_GETUID

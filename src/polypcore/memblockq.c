@@ -30,10 +30,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+#include <polypcore/mcalign.h>
+
 #include "memblockq.h"
-#include "xmalloc.h"
-#include "log.h"
-#include "mcalign.h"
 
 struct memblock_list {
     struct memblock_list *next, *prev;

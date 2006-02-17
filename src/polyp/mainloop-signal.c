@@ -36,11 +36,12 @@
 #include <windows.h>
 #endif
 
-#include <polyp/mainloop-signal.h>
 #include <polypcore/util.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 #include <polypcore/gccmacro.h>
+
+#include "mainloop-signal.h"
 
 struct pa_signal_event {
     int sig;

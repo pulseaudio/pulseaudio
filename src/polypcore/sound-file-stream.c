@@ -30,10 +30,11 @@
 
 #include <sndfile.h>
 
+#include <polypcore/sink-input.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "sound-file-stream.h"
-#include "sink-input.h"
-#include "xmalloc.h"
-#include "log.h"
 
 #define BUF_SIZE (1024*10)
 

@@ -36,8 +36,9 @@
 
 #include "winsock.h"
 
+#include <polypcore/xmalloc.h>
+
 #include "tagstruct.h"
-#include "xmalloc.h"
 
 
 struct pa_tagstruct {

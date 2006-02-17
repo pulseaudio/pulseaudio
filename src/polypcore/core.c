@@ -28,18 +28,19 @@
 #include <stdio.h>
 #include <signal.h>
 
+#include <polypcore/module.h>
+#include <polypcore/sink.h>
+#include <polypcore/source.h>
+#include <polypcore/namereg.h>
+#include <polypcore/util.h>
+#include <polypcore/core-scache.h>
+#include <polypcore/autoload.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/core-subscribe.h>
+#include <polypcore/props.h>
+#include <polypcore/random.h>
+
 #include "core.h"
-#include "module.h"
-#include "sink.h"
-#include "source.h"
-#include "namereg.h"
-#include "util.h"
-#include "core-scache.h"
-#include "autoload.h"
-#include "xmalloc.h"
-#include "core-subscribe.h"
-#include "props.h"
-#include "random.h"
 
 pa_core* pa_core_new(pa_mainloop_api *m) {
     pa_core* c;

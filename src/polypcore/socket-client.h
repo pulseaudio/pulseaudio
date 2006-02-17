@@ -25,7 +25,7 @@
 #include <inttypes.h>
 
 #include <polyp/mainloop-api.h>
-#include "iochannel.h"
+#include <polypcore/iochannel.h>
 
 struct sockaddr;
 

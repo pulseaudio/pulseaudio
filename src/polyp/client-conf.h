@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include "../polypcore/native-common.h"
+#include <polypcore/native-common.h>
 
 /* A structure containing configuration data for polypaudio clients. */
 

@@ -26,12 +26,12 @@
 
 typedef struct pa_sink_input pa_sink_input;
 
-#include "sink.h"
 #include <polyp/sample.h>
-#include "memblockq.h"
-#include "resampler.h"
-#include "module.h"
-#include "client.h"
+#include <polypcore/sink.h>
+#include <polypcore/memblockq.h>
+#include <polypcore/resampler.h>
+#include <polypcore/module.h>
+#include <polypcore/client.h>
 
 typedef enum pa_sink_input_state {
     PA_SINK_INPUT_RUNNING,

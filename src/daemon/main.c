@@ -47,26 +47,28 @@
 #include <tcpd.h>
 #endif
 
-#include <polypcore/winsock.h>
+#include "../polypcore/winsock.h"
+
+#include <polyp/mainloop.h>
+#include <polyp/mainloop-signal.h>
 
 #include <polypcore/core.h>
 #include <polypcore/memblock.h>
-#include <polyp/mainloop.h>
 #include <polypcore/module.h>
-#include <polyp/mainloop-signal.h>
-#include "cmdline.h"
 #include <polypcore/cli-command.h>
+#include <polypcore/log.h>
 #include <polypcore/util.h>
 #include <polypcore/sioman.h>
 #include <polypcore/xmalloc.h>
-#include "cpulimit.h"
-#include <polypcore/log.h>
-#include "daemon-conf.h"
-#include "dumpmodules.h"
-#include "caps.h"
 #include <polypcore/cli-text.h>
 #include <polypcore/pid.h>
 #include <polypcore/namereg.h>
+
+#include "cmdline.h"
+#include "cpulimit.h"
+#include "daemon-conf.h"
+#include "dumpmodules.h"
+#include "caps.h"
 
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */

@@ -22,8 +22,8 @@
   USA.
 ***/
 
-#include "memblock.h"
-#include "memchunk.h"
+#include <polypcore/memblock.h>
+#include <polypcore/memchunk.h>
 
 /* An alignment object, used for aligning memchunks to multiples of
  * the frame size. */

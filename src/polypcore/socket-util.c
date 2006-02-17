@@ -59,10 +59,11 @@
 
 #include "winsock.h"
 
+#include <polypcore/util.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "socket-util.h"
-#include "util.h"
-#include "xmalloc.h"
-#include "log.h"
 
 void pa_socket_peer_to_string(int fd, char *c, size_t l) {
     struct stat st;

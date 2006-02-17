@@ -25,8 +25,8 @@
 #include <inttypes.h>
 #include <ltdl.h>
 
-#include "core.h"
-#include "modinfo.h"
+#include <polypcore/core.h>
+#include <polypcore/modinfo.h>
 
 typedef struct pa_module pa_module;
 

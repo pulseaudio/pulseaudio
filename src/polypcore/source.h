@@ -25,14 +25,15 @@
 typedef struct pa_source pa_source;
 
 #include <inttypes.h>
-#include "core.h"
+
 #include <polyp/sample.h>
-#include "idxset.h"
-#include "memblock.h"
-#include "memchunk.h"
-#include "sink.h"
 #include <polyp/channelmap.h>
-#include "module.h"
+#include <polypcore/core.h>
+#include <polypcore/idxset.h>
+#include <polypcore/memblock.h>
+#include <polypcore/memchunk.h>
+#include <polypcore/sink.h>
+#include <polypcore/module.h>
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 16
 

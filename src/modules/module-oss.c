@@ -45,8 +45,8 @@
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
-#include "module-oss-symdef.h"
 #include "oss-util.h"
+#include "module-oss-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("OSS Sink/Source")

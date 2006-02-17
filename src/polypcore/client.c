@@ -28,10 +28,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polypcore/xmalloc.h>
+#include <polypcore/core-subscribe.h>
+#include <polypcore/log.h>
+
 #include "client.h"
-#include "xmalloc.h"
-#include "core-subscribe.h"
-#include "log.h"
 
 pa_client *pa_client_new(pa_core *core, const char *name, const char *driver) {
     pa_client *c;

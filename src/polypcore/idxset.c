@@ -28,8 +28,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polypcore/xmalloc.h>
+
 #include "idxset.h"
-#include "xmalloc.h"
 
 typedef struct idxset_entry {
     void *data;

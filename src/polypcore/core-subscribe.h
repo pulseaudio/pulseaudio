@@ -25,8 +25,8 @@
 typedef struct pa_subscription pa_subscription;
 typedef struct pa_subscription_event pa_subscription_event;
 
-#include "core.h"
-#include "native-common.h"
+#include <polypcore/core.h>
+#include <polypcore/native-common.h>
 
 pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m,  void (*callback)(pa_core *c, pa_subscription_event_type_t t, uint32_t index, void *userdata), void *userdata);
 void pa_subscription_free(pa_subscription*s);

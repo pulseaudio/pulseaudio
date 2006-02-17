@@ -26,9 +26,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "mainloop-api.h"
-#include <polypcore/xmalloc.h>
 #include <polypcore/gccmacro.h>
+#include <polypcore/xmalloc.h>
+
+#include "mainloop-api.h"
 
 struct once_info {
     void (*callback)(pa_mainloop_api*m, void *userdata);

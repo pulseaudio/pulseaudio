@@ -30,10 +30,11 @@
 
 #include "winsock.h"
 
+#include <polypcore/util.h>
+#include <polypcore/socket-util.h>
+#include <polypcore/xmalloc.h>
+
 #include "iochannel.h"
-#include "util.h"
-#include "socket-util.h"
-#include "xmalloc.h"
 
 struct pa_iochannel {
     int ifd, ofd;

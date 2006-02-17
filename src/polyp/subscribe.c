@@ -26,10 +26,12 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "subscribe.h"
-#include "internal.h"
-#include <polypcore/pstream-util.h>
 #include <polypcore/gccmacro.h>
+#include <polypcore/pstream-util.h>
+
+#include "internal.h"
+
+#include "subscribe.h"
 
 void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;

@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include "gccmacro.h"
+#include <polypcore/gccmacro.h>
 
 typedef struct pa_strbuf pa_strbuf;
 

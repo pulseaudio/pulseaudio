@@ -24,7 +24,7 @@
 
 #include <inttypes.h>
 #include <polyp/sample.h>
-#include "core.h"
+#include <polypcore/core.h>
 
 typedef struct pa_modargs pa_modargs;
 

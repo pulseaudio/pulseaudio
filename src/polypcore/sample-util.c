@@ -30,7 +30,8 @@
 
 #include <liboil/liboilfuncs.h>
 
-#include "log.h"
+#include <polypcore/log.h>
+
 #include "sample-util.h"
 
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {

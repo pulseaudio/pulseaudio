@@ -58,11 +58,12 @@
 
 #include "winsock.h"
 
+#include <polypcore/socket-util.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/util.h>
+#include <polypcore/log.h>
+
 #include "socket-server.h"
-#include "socket-util.h"
-#include "xmalloc.h"
-#include "util.h"
-#include "log.h"
 
 struct pa_socket_server {
     int ref;

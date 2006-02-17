@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include <polyp/client-conf.h>
+#include "client-conf.h"
 
 /* Load client configuration data from the specified X11 display,
  * overwriting the current settings in *c */

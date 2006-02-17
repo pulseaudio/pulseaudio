@@ -22,11 +22,12 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "llist.h"
+#include <polypcore/llist.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+#include <polypcore/props.h>
+
 #include "x11wrap.h"
-#include "xmalloc.h"
-#include "log.h"
-#include "props.h"
 
 typedef struct pa_x11_internal pa_x11_internal;
 

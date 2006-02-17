@@ -21,9 +21,10 @@
 
 #include <assert.h>
 
-#include "xmalloc.h"
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "props.h"
-#include "log.h"
 
 typedef struct pa_property {
     char *name;  /* Points to memory allocated by the property subsystem */

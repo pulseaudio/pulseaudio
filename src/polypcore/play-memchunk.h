@@ -22,8 +22,8 @@
   USA.
 ***/
 
-#include "sink.h"
-#include "memchunk.h"
+#include <polypcore/sink.h>
+#include <polypcore/memchunk.h>
 
 int pa_play_memchunk(
     pa_sink *sink,

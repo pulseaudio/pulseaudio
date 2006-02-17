@@ -31,9 +31,10 @@
 #include <syslog.h>
 #endif
 
+#include <polypcore/xmalloc.h>
+#include <polypcore/util.h>
+
 #include "log.h"
-#include "xmalloc.h"
-#include "util.h"
 
 #define ENV_LOGLEVEL "POLYP_LOG"
 

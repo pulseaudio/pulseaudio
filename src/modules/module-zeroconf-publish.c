@@ -29,7 +29,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <polypcore/howl-wrap.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/autoload.h>
 #include <polypcore/sink.h>
@@ -37,10 +36,13 @@
 #include <polypcore/native-common.h>
 #include <polypcore/util.h>
 #include <polypcore/log.h>
-#include <polypcore/subscribe.h>
+#include <polypcore/core-subscribe.h>
 #include <polypcore/dynarray.h>
-#include <polypcore/endianmacros.h>
 #include <polypcore/modargs.h>
+
+#include "../polypcore/endianmacros.h"
+
+#include "howl-wrap.h"
 
 #include "module-zeroconf-publish-symdef.h"
 

@@ -29,9 +29,10 @@
 #include <stdio.h>
 #include <ltdl.h>
 
-#include "dumpmodules.h"
 #include <polypcore/modinfo.h>
 #include <polypcore/util.h>
+
+#include "dumpmodules.h"
 
 #define PREFIX "module-"
 

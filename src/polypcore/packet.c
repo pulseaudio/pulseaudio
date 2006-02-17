@@ -26,8 +26,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <polypcore/xmalloc.h>
+
 #include "packet.h"
-#include "xmalloc.h"
 
 pa_packet* pa_packet_new(size_t length) {
     pa_packet *p;

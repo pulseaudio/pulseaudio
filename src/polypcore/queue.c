@@ -26,8 +26,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <polypcore/xmalloc.h>
+
 #include "queue.h"
-#include "xmalloc.h"
 
 struct queue_entry {
     struct queue_entry *next;

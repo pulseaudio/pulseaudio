@@ -29,13 +29,14 @@
 #include <stdio.h>
 #include <signal.h>
 
-#include "../daemon/cpulimit.h"
 #include <polyp/mainloop.h>
 #include <polypcore/gccmacro.h>
 
 #ifdef TEST2
 #include <polyp/mainloop-signal.h>
 #endif
+
+#include "../daemon/cpulimit.h"
 
 /* A simple example for testing the cpulimit subsystem */
 

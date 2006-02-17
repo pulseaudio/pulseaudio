@@ -26,19 +26,20 @@
 #include <assert.h>
 #include <string.h>
 
-#include "cli-text.h"
-#include "module.h"
-#include "client.h"
-#include "sink.h"
-#include "source.h"
-#include "sink-input.h"
-#include "source-output.h"
-#include "strbuf.h"
-#include "sample-util.h"
-#include "core-scache.h"
-#include "autoload.h"
-#include "xmalloc.h"
 #include <polyp/volume.h>
+#include <polypcore/module.h>
+#include <polypcore/client.h>
+#include <polypcore/sink.h>
+#include <polypcore/source.h>
+#include <polypcore/sink-input.h>
+#include <polypcore/source-output.h>
+#include <polypcore/strbuf.h>
+#include <polypcore/sample-util.h>
+#include <polypcore/core-scache.h>
+#include <polypcore/autoload.h>
+#include <polypcore/xmalloc.h>
+
+#include "cli-text.h"
 
 char *pa_module_list_to_string(pa_core *c) {
     pa_strbuf *s;

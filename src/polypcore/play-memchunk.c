@@ -28,10 +28,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <polypcore/sink-input.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/gccmacro.h>
+
 #include "play-memchunk.h"
-#include "sink-input.h"
-#include "xmalloc.h"
-#include "gccmacro.h"
 
 static void sink_input_kill(pa_sink_input *i) {
     pa_memchunk *c;

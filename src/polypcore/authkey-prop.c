@@ -22,10 +22,11 @@
 #include <assert.h>
 #include <string.h>
 
-#include "xmalloc.h"
+#include <polypcore/xmalloc.h>
+#include <polypcore/props.h>
+#include <polypcore/log.h>
+
 #include "authkey-prop.h"
-#include "props.h"
-#include "log.h"
 
 struct authkey_data {
     int ref;

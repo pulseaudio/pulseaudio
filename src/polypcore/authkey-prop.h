@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include "core.h"
+#include <polypcore/core.h>
 
 /* The authkey-prop uses a central property to store a previously
  * loaded cookie in memory. Useful for sharing the same cookie between

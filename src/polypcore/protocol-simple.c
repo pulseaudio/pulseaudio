@@ -30,14 +30,15 @@
 #include <errno.h>
 #include <string.h>
 
-#include "sink-input.h"
-#include "source-output.h"
+#include <polypcore/sink-input.h>
+#include <polypcore/source-output.h>
+#include <polypcore/client.h>
+#include <polypcore/sample-util.h>
+#include <polypcore/namereg.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "protocol-simple.h"
-#include "client.h"
-#include "sample-util.h"
-#include "namereg.h"
-#include "xmalloc.h"
-#include "log.h"
 
 /* Don't allow more than this many concurrent connections */
 #define MAX_CONNECTIONS 10

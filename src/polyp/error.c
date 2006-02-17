@@ -26,8 +26,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "error.h"
 #include <polypcore/native-common.h>
+
+#include "error.h"
 
 static const char* const errortab[PA_ERROR_MAX] = {
     [PA_ERROR_OK] = "OK",

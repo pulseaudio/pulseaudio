@@ -25,11 +25,14 @@
 
 #include <assert.h>
 
-#include "introspect.h"
-#include "context.h"
-#include "internal.h"
-#include <polypcore/pstream-util.h>
+#include <polyp/context.h>
+
 #include <polypcore/gccmacro.h>
+#include <polypcore/pstream-util.h>
+
+#include "internal.h"
+
+#include "introspect.h"
 
 /*** Statistics ***/
 

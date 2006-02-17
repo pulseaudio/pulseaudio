@@ -26,10 +26,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <polypcore/cli.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/log.h>
+
 #include "protocol-cli.h"
-#include "cli.h"
-#include "xmalloc.h"
-#include "log.h"
 
 /* Don't allow more than this many concurrent connections */
 #define MAX_CONNECTIONS 25

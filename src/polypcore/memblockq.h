@@ -24,8 +24,8 @@
 
 #include <sys/types.h>
 
-#include "memblock.h"
-#include "memchunk.h"
+#include <polypcore/memblock.h>
+#include <polypcore/memchunk.h>
 
 /* A memblockq is a queue of pa_memchunks (yepp, the name is not
  * perfect). It is similar to the ring buffers used by most other

@@ -27,10 +27,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <polypcore/dynarray.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/gccmacro.h>
+
 #include "tokenizer.h"
-#include "dynarray.h"
-#include "xmalloc.h"
-#include "gccmacro.h"
 
 struct pa_tokenizer {
     pa_dynarray *dynarray;

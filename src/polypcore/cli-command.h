@@ -22,8 +22,8 @@
   USA.
 ***/
 
-#include "strbuf.h"
-#include "core.h"
+#include <polypcore/strbuf.h>
+#include <polypcore/core.h>
 
 /* Execute a single CLI command. Write the results to the string
  * buffer *buf. If *fail is non-zero the function will return -1 when

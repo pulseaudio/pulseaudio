@@ -28,8 +28,9 @@
 #include <assert.h>
 #include <string.h>
 
+#include <polypcore/xmalloc.h>
+
 #include "memchunk.h"
-#include "xmalloc.h"
 
 void pa_memchunk_make_writable(pa_memchunk *c, pa_memblock_stat *s, size_t min) {
     pa_memblock *n;

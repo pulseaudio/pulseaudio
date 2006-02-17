@@ -27,14 +27,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polypcore/module.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/memchunk.h>
+#include <polypcore/sound-file.h>
+#include <polypcore/log.h>
+#include <polypcore/core-scache.h>
+#include <polypcore/core-subscribe.h>
+
 #include "autoload.h"
-#include "module.h"
-#include "xmalloc.h"
-#include "memchunk.h"
-#include "sound-file.h"
-#include "log.h"
-#include "core-scache.h"
-#include "core-subscribe.h"
 
 static void entry_free(pa_autoload_entry *e) {
     assert(e);

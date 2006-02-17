@@ -22,10 +22,10 @@
   USA.
 ***/
 
-#include "core.h"
-#include "socket-server.h"
-#include "module.h"
-#include "modargs.h"
+#include <polypcore/core.h>
+#include <polypcore/socket-server.h>
+#include <polypcore/module.h>
+#include <polypcore/modargs.h>
 
 typedef struct pa_protocol_esound pa_protocol_esound;
 

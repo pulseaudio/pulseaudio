@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include "memblock.h"
+#include <polypcore/memblock.h>
 
 /* A memchunk describes a part of a memblock. In contrast to the memblock, a
  * memchunk is not allocated dynamically or reference counted, instead

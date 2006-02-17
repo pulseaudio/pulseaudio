@@ -24,7 +24,7 @@
 
 #include <howl.h>
 
-#include "core.h"
+#include <polypcore/core.h>
 
 pa_howl_wrapper;
 

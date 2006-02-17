@@ -24,14 +24,14 @@
 
 typedef struct pa_core pa_core;
 
-#include "idxset.h"
-#include "hashmap.h"
+#include <polypcore/idxset.h>
+#include <polypcore/hashmap.h>
 #include <polyp/mainloop-api.h>
 #include <polyp/sample.h>
-#include "memblock.h"
-#include "resampler.h"
-#include "queue.h"
-#include "core-subscribe.h"
+#include <polypcore/memblock.h>
+#include <polypcore/resampler.h>
+#include <polypcore/queue.h>
+#include <polypcore/core-subscribe.h>
 
 /* The core structure of polypaudio. Every polypaudio daemon contains
  * exactly one of these. It is used for storing kind of global

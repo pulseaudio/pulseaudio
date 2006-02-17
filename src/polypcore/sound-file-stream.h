@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include "sink.h"
+#include <polypcore/sink.h>
 
 int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume);
 

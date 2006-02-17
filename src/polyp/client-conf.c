@@ -35,7 +35,7 @@
 #include <polypcore/util.h>
 #include <polypcore/authkey.h>
 
-#include <polyp/client-conf.h>
+#include "client-conf.h"
 
 #ifndef DEFAULT_CONFIG_DIR
 # ifndef OS_IS_WIN32

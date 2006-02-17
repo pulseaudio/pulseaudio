@@ -31,9 +31,10 @@
 #include <assert.h>
 #include <time.h>
 
+#include <polypcore/util.h>
+#include <polypcore/log.h>
+
 #include "random.h"
-#include "util.h"
-#include "log.h"
 
 #ifndef OS_IS_WIN32
 #define RANDOM_DEVICE "/dev/urandom"

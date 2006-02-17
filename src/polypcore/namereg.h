@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include "core.h"
+#include <polypcore/core.h>
 
 typedef enum pa_namereg_type {
     PA_NAMEREG_SINK,

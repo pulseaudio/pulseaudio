@@ -23,19 +23,20 @@
 ***/
 
 #include <polyp/mainloop-api.h>
+#include <polyp/context.h>
+#include <polyp/stream.h>
+#include <polyp/operation.h>
+
 #include <polypcore/socket-client.h>
 #include <polypcore/pstream.h>
 #include <polypcore/pdispatch.h>
 #include <polypcore/dynarray.h>
-
-#include "context.h"
-#include "stream.h"
-#include "operation.h"
 #include <polypcore/llist.h>
 #include <polypcore/native-common.h>
-#include <polyp/client-conf.h>
 #include <polypcore/strlist.h>
 #include <polypcore/mcalign.h>
+
+#include "client-conf.h"
 
 #define DEFAULT_TIMEOUT (10)
 

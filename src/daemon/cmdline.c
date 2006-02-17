@@ -30,10 +30,11 @@
 #include <getopt.h>
 #include <sys/stat.h>
 
-#include "cmdline.h"
 #include <polypcore/util.h>
 #include <polypcore/strbuf.h>
 #include <polypcore/xmalloc.h>
+
+#include "cmdline.h"
 
 /* Argument codes for getopt_long() */
 enum {

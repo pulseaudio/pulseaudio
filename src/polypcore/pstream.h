@@ -24,11 +24,11 @@
 
 #include <inttypes.h>
 
-#include "packet.h"
-#include "memblock.h"
-#include "iochannel.h"
 #include <polyp/mainloop-api.h>
-#include "memchunk.h"
+#include <polypcore/packet.h>
+#include <polypcore/memblock.h>
+#include <polypcore/iochannel.h>
+#include <polypcore/memchunk.h>
 
 typedef struct pa_pstream pa_pstream;
 

@@ -24,6 +24,7 @@
 #endif
 
 #include <assert.h>
+
 #include "sioman.h"
 
 static int stdio_inuse = 0;

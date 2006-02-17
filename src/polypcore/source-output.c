@@ -28,10 +28,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polypcore/xmalloc.h>
+#include <polypcore/core-subscribe.h>
+#include <polypcore/log.h>
+
 #include "source-output.h"
-#include "xmalloc.h"
-#include "core-subscribe.h"
-#include "log.h"
 
 pa_source_output* pa_source_output_new(
     pa_source *s,

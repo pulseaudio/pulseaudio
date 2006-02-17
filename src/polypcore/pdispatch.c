@@ -27,12 +27,13 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <polypcore/native-common.h>
+#include <polypcore/xmalloc.h>
+#include <polypcore/llist.h>
+#include <polypcore/log.h>
+#include <polypcore/util.h>
+
 #include "pdispatch.h"
-#include "native-common.h"
-#include "xmalloc.h"
-#include "llist.h"
-#include "log.h"
-#include "util.h"
 
 /*#define DEBUG_OPCODES */
 

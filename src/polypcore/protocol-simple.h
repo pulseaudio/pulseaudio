@@ -22,10 +22,10 @@
   USA.
 ***/
 
-#include "socket-server.h"
-#include "module.h"
-#include "core.h"
-#include "modargs.h"
+#include <polypcore/socket-server.h>
+#include <polypcore/module.h>
+#include <polypcore/core.h>
+#include <polypcore/modargs.h>
 
 typedef struct pa_protocol_simple pa_protocol_simple;
 

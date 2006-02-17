@@ -26,10 +26,11 @@
 #include <string.h>
 #include <assert.h>
 
+#include <polypcore/xmalloc.h>
+#include <polypcore/strbuf.h>
+#include <polypcore/util.h>
+
 #include "strlist.h"
-#include "xmalloc.h"
-#include "strbuf.h"
-#include "util.h"
 
 struct pa_strlist {
     pa_strlist *next;
