@@ -78,6 +78,11 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
 
     s->mcalign = pa_mcalign_new(pa_frame_size(ss), c->memblock_stat);
 
+    s->peek_memchunk.length = 0;
+    s->peek_memchunk.memblock = NULL;
+
+    s->record_memblockq = NULL;
+
     s->counter = 0;
     s->previous_time = 0;
     s->previous_ipol_time = 0;
