@@ -275,7 +275,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, PA_GCC_UN
                 break;
 
             assert(s->record_memblockq);
-            pa_memblockq_push(s->record_memblockq, &t, t.length);
+            pa_memblockq_push(s->record_memblockq, &t, 0);
             if (s->read_callback)
                 s->read_callback(s, pa_stream_readable_size(s), s->read_userdata);
 
