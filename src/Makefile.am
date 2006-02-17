@@ -1043,7 +1043,7 @@ module_waveout_la_CFLAGS = $(AM_CFLAGS)
 # Hardware autodetection module
 module_detect_la_SOURCES = modules/module-detect.c
 module_detect_la_LDFLAGS = -module -avoid-version
-module_detect_la_LIBADD = $(AM_LIBADD)
+module_detect_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 module_detect_la_CFLAGS = $(AM_CFLAGS)
 
 ###################################
