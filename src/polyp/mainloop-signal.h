@@ -42,7 +42,7 @@ int pa_signal_init(pa_mainloop_api *api);
 /** Cleanup the signal subsystem */
 void pa_signal_done(void);
 
-/** \pa_signal_event
+/** \struct pa_signal_event
  * An opaque UNIX signal event source object */
 typedef struct pa_signal_event pa_signal_event;
 

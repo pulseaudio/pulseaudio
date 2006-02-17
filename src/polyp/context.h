@@ -49,7 +49,7 @@
 
 PA_C_DECL_BEGIN
 
-/** \pa_context
+/** \struct pa_context
  * An opaque connection context to a daemon */
 typedef struct pa_context pa_context;
 

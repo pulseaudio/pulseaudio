@@ -32,7 +32,7 @@
 
 PA_C_DECL_BEGIN
 
-/** \pa_glib_mainloop
+/** \struct pa_glib_mainloop
  * An opaque GLIB main loop object */
 typedef struct pa_glib_mainloop pa_glib_mainloop;
 

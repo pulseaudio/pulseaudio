@@ -30,7 +30,7 @@
 
 PA_C_DECL_BEGIN
 
-/** \pa_operation
+/** \struct pa_operation
  * An asynchronous operation object */
 typedef struct pa_operation pa_operation;
 

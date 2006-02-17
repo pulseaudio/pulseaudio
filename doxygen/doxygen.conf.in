@@ -170,7 +170,7 @@ DISTRIBUTE_GROUP_DOC   = NO
 # The TAB_SIZE tag can be used to set the number of spaces in a tab. 
 # Doxygen uses this value to replace tabs by spaces in code fragments.
 
-TAB_SIZE               = 8
+TAB_SIZE               = 4
 
 # This tag can be used to specify a number of aliases that acts 
 # as commands in the documentation. An alias has the form "name=value". 
@@ -417,7 +417,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../polyp/polyplib-context.h ../polyp/polyplib-stream.h ../polyp/polyplib.h ../polyp/sample.h ../polyp/polyplib-def.h ../polyp/polyplib-subscribe.h ../polyp/polyplib-introspect.h ../polyp/polyplib-scache.h ../polyp/mainloop-api.h ../polyp/cdecl.h ../polyp/glib-mainloop.h ../polyp/mainloop.h ../polyp/mainloop-signal.h ../polyp/polyplib-error.h ../polyp/polyplib-operation.h ../polyp/polyplib-simple.h ../polyp/polyplib-version.h
+INPUT                  = ../src/polyp/context.h ../src/polyp/stream.h ../src/polyp/polypaudio.h ../src/polyp/sample.h ../src/polyp/def.h ../src/polyp/subscribe.h ../src/polyp/introspect.h ../src/polyp/scache.h ../src/polyp/mainloop-api.h ../src/polyp/cdecl.h ../src/polyp/glib-mainloop.h ../src/polyp/mainloop.h ../src/polyp/mainloop-signal.h ../src/polyp/error.h ../src/polyp/operation.h ../src/polyp/simple.h ../src/polyp/version.h ../src/polyp/volume.h ../src/polyp/channelmap.h
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -455,7 +455,7 @@ EXCLUDE_PATTERNS       =
 # directories that contain example code fragments that are included (see 
 # the \include command).
 
-EXAMPLE_PATH           = ../polyp/
+EXAMPLE_PATH           = ../src/utils ../src/tests
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -550,7 +550,7 @@ VERBATIM_HEADERS       = YES
 # of all compounds will be generated. Enable this if the project 
 # contains a lot of classes, structs, unions or interfaces.
 
-ALPHABETICAL_INDEX     = NO
+ALPHABETICAL_INDEX     = YES
 
 # If the alphabetical index is enabled (see ALPHABETICAL_INDEX) then 
 # the COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns 
@@ -563,7 +563,7 @@ COLS_IN_ALPHA_INDEX    = 5
 # The IGNORE_PREFIX tag can be used to specify one or more prefixes that 
 # should be ignored while generating the index headers.
 
-IGNORE_PREFIX          = 
+IGNORE_PREFIX          = pa_ PA_
 
 #---------------------------------------------------------------------------
 # configuration options related to the HTML output
@@ -660,7 +660,7 @@ DISABLE_INDEX          = NO
 # This tag can be used to set the number of enum values (range [1..20]) 
 # that doxygen will group on one line in the generated HTML documentation.
 
-ENUM_VALUES_PER_LINE   = 4
+ENUM_VALUES_PER_LINE   = 1
 
 # If the GENERATE_TREEVIEW tag is set to YES, a side panel will be
 # generated containing a tree-like index structure (just like the one that 

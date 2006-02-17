@@ -53,15 +53,15 @@ typedef enum pa_io_event_flags {
     PA_IO_EVENT_ERROR = 8     /**< Error event */
 } pa_io_event_flags_t;
 
-/** \pa_io_event
+/** \struct pa_io_event
  * An opaque IO event source object */
 typedef struct pa_io_event pa_io_event;
 
-/** \pa_defer_event
+/** \struct pa_defer_event
  * An opaque deferred event source object. Events of this type are triggered once in every main loop iteration */
 typedef struct pa_defer_event pa_defer_event;
 
-/** \pa_time_event
+/** \struct pa_time_event
  * An opaque timer event source object */
 typedef struct pa_time_event pa_time_event;
 

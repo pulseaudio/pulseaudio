@@ -70,8 +70,8 @@
  * described in \ref mainloop-api.h. Two distinct implementations are
  * available:
  * 
- * \li \ref mainloop.h: a minimal but fast implementation based on poll()
- * \li \ref glib-mainloop.h: a wrapper around GLIB's main loop
+ * \li \ref mainloop.h : a minimal but fast implementation based on poll()
+ * \li \ref glib-mainloop.h : a wrapper around GLIB's main loop
  *
  * UNIX signals may be hooked to a main loop using the functions from
  * \ref mainloop-signal.h

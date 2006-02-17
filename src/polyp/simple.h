@@ -41,7 +41,7 @@
 
 PA_C_DECL_BEGIN
 
-/** \pa_simple
+/** \struct pa_simple
  * An opaque simple connection object */
 typedef struct pa_simple pa_simple;
 

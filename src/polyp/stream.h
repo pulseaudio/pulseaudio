@@ -36,7 +36,7 @@
 
 PA_C_DECL_BEGIN
 
-/** \pa_stream
+/** \struct pa_stream
  * An opaque stream for playback or recording */
 typedef struct pa_stream pa_stream;
 

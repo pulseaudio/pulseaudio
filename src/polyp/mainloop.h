@@ -35,7 +35,7 @@ PA_C_DECL_BEGIN
  * defined in \ref mainloop-api.h. This implementation is thread safe
  * as long as you access the main loop object from a single thread only.*/
 
-/** \pa_mainloop
+/** \struct pa_mainloop
  * An opaque main loop object
  */
 typedef struct pa_mainloop pa_mainloop;
@@ -45,7 +45,6 @@ pa_mainloop *pa_mainloop_new(void);
 
 /** Free a main loop object */
 void pa_mainloop_free(pa_mainloop* m);
-
 
 /** Prepare for a single iteration of the main loop. Returns a negative value
 on error or exit request. timeout specifies a maximum timeout for the subsequent
