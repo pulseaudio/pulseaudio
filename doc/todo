@@ -3,7 +3,6 @@
 Architectural changes:
 - add API for synchronizing multiple sinks/sources to a common clock
 - absolutely indexed write()s from client
-- remove "polyplib-" prefix
 
 Fixes:
 - improve module-oss-mmap latency measurement
@@ -13,11 +12,10 @@ Fixes:
 
 Features:
 - add radio module
-- xmlrpc
 - dbus/hal
-- rendezvous autotunnel module
 - polish for starting polypaudio as root/system-wide instance
-- export connection fd
+- add threading API
+- add support for auth using SCM_CREDENTIALS
 
 Long term:
 - pass meta info for hearing impaired
@@ -35,4 +33,5 @@ Done:
 - channel mapping ("left", "right", "rear", "subwoofer")
 - hardware volume support
 - alsa-lib
+- remove "polyplib-" prefix
 
