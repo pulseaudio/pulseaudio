@@ -38,28 +38,28 @@ int main(int argc, char *argv[]) {
 
     pa_log_set_maximal_level(PA_LOG_DEBUG);
     
-    silence = pa_memblock_new_fixed("__", 2, 1, NULL);
+    silence = pa_memblock_new_fixed((char*)  "__", 2, 1, NULL);
     assert(silence);
 
     bq = pa_memblockq_new(0, 40, 10, 2, 4, 4, silence, NULL);
     assert(bq);
 
-    chunk1.memblock = pa_memblock_new_fixed("AA", 2, 1, NULL);
+    chunk1.memblock = pa_memblock_new_fixed((char*) "AA", 2, 1, NULL);
     chunk1.index = 0;
     chunk1.length = 2;
     assert(chunk1.memblock);
     
-    chunk2.memblock = pa_memblock_new_fixed("TTBB", 4, 1, NULL);
+    chunk2.memblock = pa_memblock_new_fixed((char*) "TTBB", 4, 1, NULL);
     chunk2.index = 2;
     chunk2.length = 2;
     assert(chunk2.memblock);
 
-    chunk3.memblock = pa_memblock_new_fixed("ZZZZ", 4, 1, NULL);
+    chunk3.memblock = pa_memblock_new_fixed((char*) "ZZZZ", 4, 1, NULL);
     chunk3.index = 0;
     chunk3.length = 4;
     assert(chunk3.memblock);
 
-    chunk4.memblock = pa_memblock_new_fixed("KKKKKKKK", 8, 1, NULL);
+    chunk4.memblock = pa_memblock_new_fixed((char*) "KKKKKKKK", 8, 1, NULL);
     chunk4.index = 0;
     chunk4.length = 8;
     assert(chunk4.memblock);
