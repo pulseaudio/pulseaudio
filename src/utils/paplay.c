@@ -113,7 +113,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     f = readf_function(sndfile, data, n);
 
     if (f > 0)
-        pa_stream_write(s, data, f*k, free, 0);
+        pa_stream_write(s, data, f*k, free, 0, PA_SEEK_RELATIVE);
 
     if (f < n) {
         sf_close(sndfile);
@@ -166,7 +166,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
             pa_stream_set_state_callback(stream, stream_state_callback, NULL);
             pa_stream_set_write_callback(stream, stream_write_callback, NULL);
-            pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, PA_CHANNELS_MAX, volume));
+            pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL);
                 
             break;
         }

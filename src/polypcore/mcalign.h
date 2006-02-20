@@ -74,4 +74,7 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c);
  * nonzero otherwise. */
 int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c);
 
+/* If we pass l bytes in now, how many bytes would we get out? */
+size_t pa_mcalign_csize(pa_mcalign *m, size_t l);
+
 #endif

@@ -80,7 +80,7 @@ static void do_stream_write(size_t length) {
     if (l > buffer_length)
         l = buffer_length;
     
-    pa_stream_write(stream, (uint8_t*) buffer + buffer_index, l, NULL, 0);
+    pa_stream_write(stream, (uint8_t*) buffer + buffer_index, l, NULL, 0, PA_SEEK_RELATIVE);
     buffer_length -= l;
     buffer_index += l;
     
@@ -106,8 +106,8 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
 
 /* This is called whenever new data may is available */
 static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
+    const void *data;
     assert(s && length);
-    void *data;
 
     if (stdio_event)
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_OUTPUT);
@@ -175,7 +175,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
             if (mode == PLAYBACK) {
                 pa_cvolume cv;
-                pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, PA_CHANNELS_MAX, volume));
+                pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, PA_CHANNELS_MAX, volume), NULL);
             } else
                 pa_stream_connect_record(stream, device, NULL, 0);
                 

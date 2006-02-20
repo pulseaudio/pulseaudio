@@ -33,7 +33,7 @@ typedef struct pa_packet {
 } pa_packet;
 
 pa_packet* pa_packet_new(size_t length);
-pa_packet* pa_packet_new_dynamic(uint8_t* data, size_t length);
+pa_packet* pa_packet_new_dynamic(void* data, size_t length);
 
 pa_packet* pa_packet_ref(pa_packet *p);
 void pa_packet_unref(pa_packet *p);

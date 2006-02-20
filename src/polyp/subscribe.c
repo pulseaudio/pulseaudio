@@ -44,7 +44,7 @@ void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSE
     if (pa_tagstruct_getu32(t, &e) < 0 ||
         pa_tagstruct_getu32(t, &index) < 0 ||
         !pa_tagstruct_eof(t)) {
-        pa_context_fail(c, PA_ERROR_PROTOCOL);
+        pa_context_fail(c, PA_ERR_PROTOCOL);
         goto finish;
     }
 

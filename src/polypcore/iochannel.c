@@ -59,17 +59,17 @@ static void enable_mainloop_sources(pa_iochannel *io) {
         pa_io_event_flags_t f = PA_IO_EVENT_NULL;
         assert(io->input_event);
         
-        if (!io->readable)
+        if (!pa_iochannel_is_readable(io))
             f |= PA_IO_EVENT_INPUT;
-        if (!io->writable)
+        if (!pa_iochannel_is_writable(io))
             f |= PA_IO_EVENT_OUTPUT;
 
         io->mainloop->io_enable(io->input_event, f);
     } else {
         if (io->input_event)
-            io->mainloop->io_enable(io->input_event, io->readable ? PA_IO_EVENT_NULL : PA_IO_EVENT_INPUT);
+            io->mainloop->io_enable(io->input_event, pa_iochannel_is_readable(io) ? PA_IO_EVENT_NULL : PA_IO_EVENT_INPUT);
         if (io->output_event)
-            io->mainloop->io_enable(io->output_event, io->writable ? PA_IO_EVENT_NULL : PA_IO_EVENT_OUTPUT);
+            io->mainloop->io_enable(io->output_event, pa_iochannel_is_writable(io) ? PA_IO_EVENT_NULL : PA_IO_EVENT_OUTPUT);
     }
 }
 
@@ -82,33 +82,21 @@ static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_fla
     assert(fd >= 0);
     assert(userdata);
 
-    if ((f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) && !io->hungup) {
+    if ((f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) & !io->hungup) {
         io->hungup = 1;
         changed = 1;
+    }
 
-        if (e == io->input_event) {
-            io->mainloop->io_free(io->input_event);
-            io->input_event = NULL;
-
-            if (io->output_event == e)
-                io->output_event = NULL;
-        } else if (e == io->output_event) {
-            io->mainloop->io_free(io->output_event);
-            io->output_event = NULL;
-        }
-    } else {
-
-        if ((f & PA_IO_EVENT_INPUT) && !io->readable) {
-            io->readable = 1;
-            changed = 1;
-            assert(e == io->input_event);
-        }
-        
-        if ((f & PA_IO_EVENT_OUTPUT) && !io->writable) {
-            io->writable = 1;
-            changed = 1;
-            assert(e == io->output_event);
-        }
+    if ((f & PA_IO_EVENT_INPUT) && !io->readable) {
+        io->readable = 1;
+        changed = 1;
+        assert(e == io->input_event);
+    }
+    
+    if ((f & PA_IO_EVENT_OUTPUT) && !io->writable) {
+        io->writable = 1;
+        changed = 1;
+        assert(e == io->output_event);
     }
 
     if (changed) {
@@ -217,6 +205,7 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
     if (r < 0)
 #endif
         r = write(io->ofd, data, l);
+
     if (r >= 0) {
         io->writable = 0;
         enable_mainloop_sources(io);

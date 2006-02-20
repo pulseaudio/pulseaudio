@@ -34,6 +34,15 @@
 
 #include "sample-util.h"
 
+pa_memblock *pa_silence_memblock_new(const pa_sample_spec *spec, size_t length, pa_memblock_stat*s) {
+    assert(spec);
+
+    if (length == 0)
+        length = pa_bytes_per_second(spec)/10; /* 100 ms */
+
+    return pa_silence_memblock(pa_memblock_new(length, s), spec);
+}
+
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
     assert(b && b->data && spec);
     pa_silence_memory(b->data, b->length, spec);

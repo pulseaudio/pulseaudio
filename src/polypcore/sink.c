@@ -270,6 +270,8 @@ int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         result->memblock = pa_memblock_new(length, s->core->memblock_stat);
         assert(result->memblock);
 
+/*          pa_log("mixing %i\n", n);  */
+
         result->length = pa_mix(info, n, result->memblock->data, length, &s->sample_spec, &s->sw_volume);
         result->index = 0;
     }

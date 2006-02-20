@@ -32,37 +32,46 @@
 
 pa_packet* pa_packet_new(size_t length) {
     pa_packet *p;
+
     assert(length);
+
     p = pa_xmalloc(sizeof(pa_packet)+length);
     p->ref = 1;
     p->length = length;
     p->data = (uint8_t*) (p+1);
     p->type = PA_PACKET_APPENDED;
+    
     return p;
 }
 
-pa_packet* pa_packet_new_dynamic(uint8_t* data, size_t length) {
+pa_packet* pa_packet_new_dynamic(void* data, size_t length) {
     pa_packet *p;
-    assert(data && length);
-    p = pa_xmalloc(sizeof(pa_packet));
+
+    assert(data);
+    assert(length);
+
+    p = pa_xnew(pa_packet, 1);
     p->ref = 1;
     p->length = length;
     p->data = data;
     p->type = PA_PACKET_DYNAMIC;
+    
     return p;
 }
 
 pa_packet* pa_packet_ref(pa_packet *p) {
-    assert(p && p->ref >= 1);
+    assert(p);
+    assert(p->ref >= 1);
+    
     p->ref++;
     return p;
 }
 
 void pa_packet_unref(pa_packet *p) {
-    assert(p && p->ref >= 1);
-    p->ref--;
-
-    if (p->ref == 0) {
+    assert(p);
+    assert(p->ref >= 1);
+    
+    if (--p->ref == 0) {
         if (p->type == PA_PACKET_DYNAMIC)
             pa_xfree(p->data);
         pa_xfree(p);

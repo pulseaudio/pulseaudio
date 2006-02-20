@@ -111,13 +111,16 @@ pa_memblock *pa_memblock_new_user(void *d, size_t length, void (*free_cb)(void *
 }
 
 pa_memblock* pa_memblock_ref(pa_memblock*b) {
-    assert(b && b->ref >= 1);
+    assert(b);
+    assert(b->ref >= 1);
+    
     b->ref++;
     return b;
 }
 
 void pa_memblock_unref(pa_memblock*b) {
-    assert(b && b->ref >= 1);
+    assert(b);
+    assert(b->ref >= 1);
 
     if ((--(b->ref)) == 0) {
         stat_remove(b);

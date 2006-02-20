@@ -40,8 +40,27 @@ PA_C_DECL_BEGIN
  * An opaque stream for playback or recording */
 typedef struct pa_stream pa_stream;
 
+/** A generic callback for operation completion */
+typedef void (*pa_stream_success_cb_t) (pa_stream*s, int success, void *userdata);
+
+/** A generic free callback */
+typedef void (*pa_free_cb_t)(void *p);
+
+/** A generic request callback */
+typedef void (*pa_stream_request_cb_t)(pa_stream *p, size_t length, void *userdata);
+
+/** A generic notification callback */
+typedef void (*pa_stream_notify_cb_t)(pa_stream *p, void *userdata);
+
+/** Callback prototype for pa_stream_get_latency_info() */
+typedef void (*pa_stream_get_latency_info_cb_t)(pa_stream *p, const pa_latency_info *i, void *userdata);
+
 /** Create a new, unconnected stream with the specified name and sample type */
-pa_stream* pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map);
+pa_stream* pa_stream_new(
+        pa_context *c,
+        const char *name,
+        const pa_sample_spec *ss,
+        const pa_channel_map *map);
 
 /** Decrease the reference counter by one */
 void pa_stream_unref(pa_stream *s);
@@ -59,108 +78,101 @@ pa_context* pa_stream_get_context(pa_stream *p);
 uint32_t pa_stream_get_index(pa_stream *s);
 
 /** Connect the stream to a sink */
-void pa_stream_connect_playback(
-    pa_stream *s,
-    const char *dev,
-    const pa_buffer_attr *attr,
-    pa_stream_flags_t flags,
-    pa_cvolume *volume);
+int pa_stream_connect_playback(
+        pa_stream *s                  /**< The stream to connect to a sink */,
+        const char *dev               /**< Name of the sink to connect to, or NULL for default */ ,
+        const pa_buffer_attr *attr    /**< Buffering attributes, or NULL for default */,
+        pa_stream_flags_t flags       /**< Additional flags, or 0 for default */,
+        pa_cvolume *volume            /**< Initial volume, or NULL for default */,
+        pa_stream *sync_stream        /**< Synchronize this stream with the specified one, or NULL for a standalone stream*/);
 
 /** Connect the stream to a source */
-void pa_stream_connect_record(
-    pa_stream *s,
-    const char *dev,
-    const pa_buffer_attr *attr,
-    pa_stream_flags_t flags);
+int pa_stream_connect_record(
+        pa_stream *s,
+        const char *dev,
+        const pa_buffer_attr *attr,
+        pa_stream_flags_t flags);
 
 /** Disconnect a stream from a source/sink */
-void pa_stream_disconnect(pa_stream *s);
+int pa_stream_disconnect(pa_stream *s);
 
 /** Write some data to the server (for playback sinks), if free_cb is
  * non-NULL this routine is called when all data has been written out
  * and an internal reference to the specified data is kept, the data
  * is not copied. If NULL, the data is copied into an internal
- * buffer. */ 
-void pa_stream_write(pa_stream *p      /**< The stream to use */,
-                     const void *data         /**< The data to write */,
-                     size_t length            /**< The length of the data to write */,
-                     void (*free_cb)(void *p) /**< A cleanup routine for the data or NULL to request an internal copy */,
-                     size_t delta             /**< Drop this many
-                                                 bytes in the playback
-                                                 buffer before writing
-                                                 this data. Use
-                                                 (size_t) -1 for
-                                                 clearing the whole
-                                                 playback
-                                                 buffer. Normally you
-                                                 will specify 0 here,
-                                                 i.e. append to the
-                                                 playback buffer. If
-                                                 the value given here
-                                                 is greater than the
-                                                 buffered data length
-                                                 the buffer is cleared
-                                                 and the data is
-                                                 written to the
-                                                 buffer's start. This
-                                                 value is ignored on
-                                                 upload streams. */);
+ * buffer. The client my freely seek around in the output buffer. For
+ * most applications passing 0 and PA_SEEK_RELATIVE as arguments for
+ * offset and seek should be useful.*/ 
+int pa_stream_write(
+        pa_stream *p             /**< The stream to use */,
+        const void *data         /**< The data to write */,
+        size_t length            /**< The length of the data to write */,
+        pa_free_cb_t free_cb     /**< A cleanup routine for the data or NULL to request an internal copy */,
+        int64_t offset,          /**< Offset for seeking, must be 0 for upload streams */
+        pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
 
-/** Read the next fragment from the buffer (for capture sources).
+/** Read the next fragment from the buffer (for recording).
  * data will point to the actual data and length will contain the size
  * of the data in bytes (which can be less than a complete framgnet).
- * Use pa_stream_drop() to actually remove the data from the buffer.
- * \since 0.8 */ 
-void pa_stream_peek(pa_stream *p                 /**< The stream to use */,
-                     void **data                 /**< Pointer to pointer that will point to data */,
-                     size_t *length              /**< The length of the data read */);
+ * Use pa_stream_drop() to actually remove the data from the
+ * buffer. If no data is available will return a NULL pointer  \since 0.8 */ 
+int pa_stream_peek(
+        pa_stream *p                 /**< The stream to use */,
+        const void **data            /**< Pointer to pointer that will point to data */,
+        size_t *length              /**< The length of the data read */);
 
 /** Remove the current fragment. It is invalid to do this without first
  * calling pa_stream_peek(). \since 0.8 */
-void pa_stream_drop(pa_stream *p);
+int pa_stream_drop(pa_stream *p);
 
-/** Return the amount of bytes that may be written using pa_stream_write() */
+/** Return the nember of bytes that may be written using pa_stream_write() */
 size_t pa_stream_writable_size(pa_stream *p);
 
-/** Return the ammount of bytes that may be read using pa_stream_read() \since 0.8 */
+/** Return the number of bytes that may be read using pa_stream_read() \since 0.8 */
 size_t pa_stream_readable_size(pa_stream *p);
 
-/** Drain a playback stream */
-pa_operation* pa_stream_drain(pa_stream *s, void (*cb) (pa_stream*s, int success, void *userdata), void *userdata);
+/** Drain a playback stream. Use this for notification when the buffer is empty */
+pa_operation* pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
 /** Get the playback latency of a stream */
-pa_operation* pa_stream_get_latency_info(pa_stream *p, void (*cb)(pa_stream *p, const pa_latency_info *i, void *userdata), void *userdata);
+pa_operation* pa_stream_get_latency_info(pa_stream *p, pa_stream_get_latency_info_cb_t cby, void *userdata);
 
 /** Set the callback function that is called whenever the state of the stream changes */
-void pa_stream_set_state_callback(pa_stream *s, void (*cb)(pa_stream *s, void *userdata), void *userdata);
+void pa_stream_set_state_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata);
 
 /** Set the callback function that is called when new data may be
  * written to the stream. */
-void pa_stream_set_write_callback(pa_stream *p, void (*cb)(pa_stream *p, size_t length, void *userdata), void *userdata);
+void pa_stream_set_write_callback(pa_stream *p, pa_stream_request_cb_t cb, void *userdata);
 
 /** Set the callback function that is called when new data is available from the stream.
- * Return the number of bytes read. \since 0.8
- */
-void pa_stream_set_read_callback(pa_stream *p, void (*cb)(pa_stream *p, size_t length, void *userdata), void *userdata);
+ * Return the number of bytes read. \since 0.8 */
+void pa_stream_set_read_callback(pa_stream *p, pa_stream_request_cb_t cb, void *userdata);
+
+/** Set the callback function that is called when a buffer overflow happens. (Only for playback streams) \since 0.8 */
+void pa_stream_set_overflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
+
+/** Set the callback function that is called when a buffer underflow happens. (Only for playback streams) \since 0.8 */
+void pa_stream_set_underflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
 /** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. \since 0.3 */
-pa_operation* pa_stream_cork(pa_stream *s, int b, void (*cb) (pa_stream*s, int success, void *userdata), void *userdata);
+pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata);
 
 /** Flush the playback buffer of this stream. Most of the time you're
  * better off using the parameter delta of pa_stream_write() instead of this
  * function. Available on both playback and recording streams. \since 0.3 */
-pa_operation* pa_stream_flush(pa_stream *s, void (*cb)(pa_stream *s, int success, void *userdata), void *userdata);
+pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
-/** Reenable prebuffering. Available for playback streams only. \since 0.6 */
-pa_operation* pa_stream_prebuf(pa_stream *s, void (*cb)(pa_stream *s, int success, void *userdata), void *userdata);
+/** Reenable prebuffering as specified in the pa_buffer_attr
+ * structure. Available for playback streams only. \since 0.6 */
+pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
 /** Request immediate start of playback on this stream. This disables
- * prebuffering as specified in the pa_buffer_attr structure. Available for playback streams only. \since
- * 0.3 */
-pa_operation* pa_stream_trigger(pa_stream *s, void (*cb)(pa_stream *s, int success, void *userdata), void *userdata);
+ * prebuffering as specified in the pa_buffer_attr
+ * structure, temporarily. Available for playback streams only. \since 0.3 */
+pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
 /** Rename the stream. \since 0.5 */
-pa_operation* pa_stream_set_name(pa_stream *s, const char *name, void(*cb)(pa_stream*c, int success,  void *userdata), void *userdata);
+pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_success_cb_t cb, void *userdata);
 
 /** Return the total number of bytes written to/read from the
  * stream. This counter is not reset on pa_stream_flush(), you may do

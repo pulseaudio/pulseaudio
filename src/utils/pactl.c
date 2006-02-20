@@ -515,7 +515,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
         quit(1);
     }
     
-    pa_stream_write(s, d, length, free, 0);
+    pa_stream_write(s, d, length, free, 0, PA_SEEK_RELATIVE);
 
     sample_length -= length;
 

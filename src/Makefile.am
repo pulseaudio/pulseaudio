@@ -180,7 +180,9 @@ noinst_PROGRAMS = \
 		pacat-simple \
 		parec-simple \
 		strlist-test \
-		voltest
+		voltest \
+		memblockq-test \
+		sync-playback
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -247,6 +249,24 @@ mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
 mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
 mainloop_test_glib12_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+memblockq_test_SOURCES = \
+	tests/memblockq-test.c \
+	polypcore/memblockq.c \
+	polypcore/log.c \
+	polypcore/memblock.c \
+	polypcore/xmalloc.c \
+	polypcore/util.c \
+	polypcore/mcalign.c \
+	polypcore/memchunk.c
+memblockq_test_CFLAGS = $(AM_CFLAGS)
+memblockq_test_LDADD = $(AM_LDADD)
+memblockq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+sync_playback_SOURCES = tests/sync-playback.c
+sync_playback_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-mainloop-@PA_MAJORMINOR@.la
+sync_playback_CFLAGS = $(AM_CFLAGS) 
+sync_playback_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #         Client library          #

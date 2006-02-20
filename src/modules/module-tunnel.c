@@ -214,7 +214,7 @@ static void send_bytes(struct userdata *u) {
             return;
         }
 
-        pa_pstream_send_memblock(u->pstream, u->channel, 0, &chunk);
+        pa_pstream_send_memblock(u->pstream, u->channel, 0, PA_SEEK_RELATIVE, &chunk);
         pa_memblock_unref(chunk.memblock);
 
         if (chunk.length > u->requested_bytes)
@@ -442,7 +442,7 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *user
 }
 
 #ifndef TUNNEL_SINK
-static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk, void *userdata) {
+static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata) {
     struct userdata *u = userdata;
     assert(p && chunk && u);
 

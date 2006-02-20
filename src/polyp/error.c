@@ -30,25 +30,28 @@
 
 #include "error.h"
 
-static const char* const errortab[PA_ERROR_MAX] = {
-    [PA_ERROR_OK] = "OK",
-    [PA_ERROR_ACCESS] = "Access denied",
-    [PA_ERROR_COMMAND] = "Unknown command",
-    [PA_ERROR_INVALID] = "Invalid argument",
-    [PA_ERROR_EXIST] = "Entity exists",
-    [PA_ERROR_NOENTITY] = "No such entity",
-    [PA_ERROR_CONNECTIONREFUSED] = "Connection refused",
-    [PA_ERROR_PROTOCOL] = "Protocol error",
-    [PA_ERROR_TIMEOUT] = "Timeout",
-    [PA_ERROR_AUTHKEY] = "No authorization key",
-    [PA_ERROR_INTERNAL] = "Internal error",
-    [PA_ERROR_CONNECTIONTERMINATED] = "Connection terminated",
-    [PA_ERROR_KILLED] = "Entity killed",
-    [PA_ERROR_INVALIDSERVER] = "Invalid server",
+static const char* const errortab[PA_ERR_MAX] = {
+    [PA_OK] = "OK",
+    [PA_ERR_ACCESS] = "Access denied",
+    [PA_ERR_COMMAND] = "Unknown command",
+    [PA_ERR_INVALID] = "Invalid argument",
+    [PA_ERR_EXIST] = "Entity exists",
+    [PA_ERR_NOENTITY] = "No such entity",
+    [PA_ERR_CONNECTIONREFUSED] = "Connection refused",
+    [PA_ERR_PROTOCOL] = "Protocol error",
+    [PA_ERR_TIMEOUT] = "Timeout",
+    [PA_ERR_AUTHKEY] = "No authorization key",
+    [PA_ERR_INTERNAL] = "Internal error",
+    [PA_ERR_CONNECTIONTERMINATED] = "Connection terminated",
+    [PA_ERR_KILLED] = "Entity killed",
+    [PA_ERR_INVALIDSERVER] = "Invalid server",
+    [PA_ERR_MODINITFAILED] = "Module initalization failed",
+    [PA_ERR_BADSTATE] = "Bad state",
+    [PA_ERR_NODATA] = "No data",
 };
 
-const char*pa_strerror(uint32_t error) {
-    if (error >= PA_ERROR_MAX)
+const char*pa_strerror(int error) {
+    if (error < 0 || error >= PA_ERR_MAX)
         return NULL;
 
     return errortab[error];

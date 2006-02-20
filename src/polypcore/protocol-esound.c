@@ -186,6 +186,7 @@ static void connection_free(struct connection *c) {
 
     if (c->sink_input) {
         pa_sink_input_disconnect(c->sink_input);
+        pa_log("disconnect\n");
         pa_sink_input_unref(c->sink_input);
     }
     
@@ -333,7 +334,15 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     }
 
     l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS); 
-    c->input_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), l/2, l/PLAYBACK_BUFFER_FRAGMENTS, c->protocol->core->memblock_stat);
+    c->input_memblockq = pa_memblockq_new(
+            0,
+            l,
+            0,
+            pa_frame_size(&ss),
+            (size_t) -1,
+            l/PLAYBACK_BUFFER_FRAGMENTS,
+            NULL,
+            c->protocol->core->memblock_stat);
     pa_iochannel_socket_set_rcvbuf(c->io, l/PLAYBACK_BUFFER_FRAGMENTS*2);
     c->playback.fragment_size = l/10;
 
@@ -405,7 +414,15 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     }
 
     l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS); 
-    c->output_memblockq = pa_memblockq_new(l, 0, pa_frame_size(&ss), 0, 0, c->protocol->core->memblock_stat);
+    c->output_memblockq = pa_memblockq_new(
+            0,
+            l,
+            0,
+            pa_frame_size(&ss),
+            1,
+            0,
+            NULL,
+            c->protocol->core->memblock_stat);
     pa_iochannel_socket_set_sndbuf(c->io, l/RECORD_BUFFER_FRAGMENTS*2);
     
     c->source_output->owner = c->protocol->module;
@@ -724,8 +741,7 @@ static int do_read(struct connection *c) {
         assert(c->read_data_length < sizeof(c->request));
 
         if ((r = pa_iochannel_read(c->io, ((uint8_t*) &c->request) + c->read_data_length, sizeof(c->request) - c->read_data_length)) <= 0) {
-            if (r != 0)
-                pa_log_warn(__FILE__": read() failed: %s\n", strerror(errno));
+            pa_log_debug(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
             return -1;
         }
 
@@ -773,8 +789,7 @@ static int do_read(struct connection *c) {
         assert(c->read_data && c->read_data_length < handler->data_length);
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
-            if (r != 0)
-                pa_log_warn(__FILE__": read() failed: %s\n", strerror(errno));
+            pa_log_debug(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
             return -1;
         }
 
@@ -794,8 +809,7 @@ static int do_read(struct connection *c) {
         assert(c->scache.memchunk.memblock && c->scache.name && c->scache.memchunk.index < c->scache.memchunk.length);
         
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache.memchunk.memblock->data+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index)) <= 0) {
-            if (r!= 0)
-                pa_log_warn(__FILE__": read() failed: %s\n", strerror(errno));
+            pa_log_debug(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
             return -1;
         }
 
@@ -852,12 +866,9 @@ static int do_read(struct connection *c) {
         }
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
-            if (r != 0)
-                pa_log(__FILE__": read() failed: %s\n", strerror(errno));
+            pa_log_debug(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
             return -1;
         }
-        
-/*         pa_log(__FILE__": read %u\n", r);  */
         
         chunk.memblock = c->playback.current_memblock;
         chunk.index = c->playback.memblock_index;
@@ -867,7 +878,7 @@ static int do_read(struct connection *c) {
         c->playback.memblock_index += r;
         
         assert(c->input_memblockq);
-        pa_memblockq_push_align(c->input_memblockq, &chunk, 0);
+        pa_memblockq_push_align(c->input_memblockq, &chunk);
         assert(c->sink_input);
         pa_sink_notify(c->sink_input->sink);
     }
@@ -910,6 +921,8 @@ static int do_write(struct connection *c) {
 
         pa_memblockq_drop(c->output_memblockq, &chunk, r);
         pa_memblock_unref(chunk.memblock);
+
+        pa_source_notify(c->source_output->source);
     }
     
     return 0;
@@ -921,21 +934,18 @@ static void do_work(struct connection *c) {
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);
     c->protocol->core->mainloop->defer_enable(c->defer_event, 0);
 
-/*     pa_log("DOWORK %i\n", pa_iochannel_is_hungup(c->io));   */
+    if (c->dead)
+        return;
 
-    if (!c->dead && pa_iochannel_is_readable(c->io))
+    if (pa_iochannel_is_readable(c->io)) {
         if (do_read(c) < 0)
             goto fail;
+    } else if (pa_iochannel_is_hungup(c->io))
+        goto fail;
 
-    if (!c->dead && pa_iochannel_is_writable(c->io))
+    if (pa_iochannel_is_writable(c->io))
         if (do_write(c) < 0)
             goto fail;
-
-    /* In case the line was hungup, make sure to rerun this function
-       as soon as possible, until all data has been read. */
-
-    if (!c->dead && pa_iochannel_is_hungup(c->io))
-        c->protocol->core->mainloop->defer_enable(c->defer_event, 1);
     
     return;
 
@@ -943,14 +953,16 @@ fail:
 
     if (c->state == ESD_STREAMING_DATA && c->sink_input) {
         c->dead = 1;
-        pa_memblockq_prebuf_disable(c->input_memblockq);
 
         pa_iochannel_free(c->io);
         c->io = NULL;
-        
+
+        pa_memblockq_prebuf_disable(c->input_memblockq);
+        pa_sink_notify(c->sink_input->sink);
     } else
         connection_free(c);
 }
+
 
 static void io_callback(pa_iochannel*io, void *userdata) {
     struct connection *c = userdata;
@@ -1024,7 +1036,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     struct connection *c = o->userdata;
     assert(o && c && chunk);
 
-    pa_memblockq_push(c->output_memblockq, chunk, 0);
+    pa_memblockq_push(c->output_memblockq, chunk);
 
     /* do something */
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop && c->protocol->core->mainloop->defer_enable);

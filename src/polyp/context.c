@@ -74,6 +74,8 @@
 
 static const pa_pdispatch_callback command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = pa_command_request,
+    [PA_COMMAND_OVERFLOW] = pa_command_overflow_or_underflow,
+    [PA_COMMAND_UNDERFLOW] = pa_command_overflow_or_underflow,
     [PA_COMMAND_PLAYBACK_STREAM_KILLED] = pa_command_stream_killed,
     [PA_COMMAND_RECORD_STREAM_KILLED] = pa_command_stream_killed,
     [PA_COMMAND_SUBSCRIBE_EVENT] = pa_command_subscribe_event
@@ -109,9 +111,10 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     PA_LLIST_HEAD_INIT(pa_stream, c->streams);
     PA_LLIST_HEAD_INIT(pa_operation, c->operations);
     
-    c->error = PA_ERROR_OK;
+    c->error = PA_OK;
     c->state = PA_CONTEXT_UNCONNECTED;
     c->ctag = 0;
+    c->csyncid = 0;
 
     c->state_callback = NULL;
     c->state_userdata = NULL;
@@ -234,14 +237,24 @@ void pa_context_set_state(pa_context *c, pa_context_state_t st) {
 
 void pa_context_fail(pa_context *c, int error) {
     assert(c);
-    c->error = error;
+
+    pa_context_set_error(c, error);
     pa_context_set_state(c, PA_CONTEXT_FAILED);
+}
+
+int pa_context_set_error(pa_context *c, int error) {
+    assert(error >= 0 && error < PA_ERR_MAX);
+
+    if (c)
+        c->error = error;
+
+    return error;
 }
 
 static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_context *c = userdata;
     assert(p && c);
-    pa_context_fail(c, PA_ERROR_CONNECTIONTERMINATED);
+    pa_context_fail(c, PA_ERR_CONNECTIONTERMINATED);
 }
 
 static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *userdata) {
@@ -252,34 +265,34 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *user
     
     if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
         pa_log(__FILE__": invalid packet.\n");
-        pa_context_fail(c, PA_ERROR_PROTOCOL);
+        pa_context_fail(c, PA_ERR_PROTOCOL);
     }
 
     pa_context_unref(c);
 }
 
-static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, PA_GCC_UNUSED uint32_t delta, const pa_memchunk *chunk, void *userdata) {
+static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata) {
     pa_context *c = userdata;
     pa_stream *s;
-    assert(p && chunk && c && chunk->memblock && chunk->memblock->data);
+    
+    assert(p);
+    assert(chunk);
+    assert(chunk->memblock);
+    assert(chunk->length);
+    assert(c);
 
     pa_context_ref(c);
     
     if ((s = pa_dynarray_get(c->record_streams, channel))) {
-        pa_mcalign_push(s->mcalign, chunk);
 
-        for (;;) {
-            pa_memchunk t;
+        pa_memblockq_seek(s->record_memblockq, offset, seek);
+        pa_memblockq_push_align(s->record_memblockq, chunk);
 
-            if (pa_mcalign_pop(s->mcalign, &t) < 0)
-                break;
+        if (s->read_callback) {
+            size_t l;
 
-            assert(s->record_memblockq);
-            pa_memblockq_push(s->record_memblockq, &t, 0);
-            if (s->read_callback)
-                s->read_callback(s, pa_stream_readable_size(s), s->read_userdata);
-
-            pa_memblock_unref(t.memblock);
+            if ((l = pa_memblockq_get_length(s->record_memblockq)) > 0)
+                s->read_callback(s, l, s->read_userdata);
         }
     }
 
@@ -293,14 +306,14 @@ int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t) {
         assert(t);
         
         if (pa_tagstruct_getu32(t, &c->error) < 0) {
-            pa_context_fail(c, PA_ERROR_PROTOCOL);
+            pa_context_fail(c, PA_ERR_PROTOCOL);
             return -1;
                 
         }
     } else if (command == PA_COMMAND_TIMEOUT)
-        c->error = PA_ERROR_TIMEOUT;
+        c->error = PA_ERR_TIMEOUT;
     else {
-        pa_context_fail(c, PA_ERROR_PROTOCOL);
+        pa_context_fail(c, PA_ERR_PROTOCOL);
         return -1;
     }
 
@@ -316,7 +329,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     if (command != PA_COMMAND_REPLY) {
         
         if (pa_context_handle_error(c, command, t) < 0)
-            pa_context_fail(c, PA_ERROR_PROTOCOL);
+            pa_context_fail(c, PA_ERR_PROTOCOL);
 
         pa_context_fail(c, c->error);
         goto finish;
@@ -368,7 +381,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     assert(c->pdispatch);
 
     if (!c->conf->cookie_valid) {
-        pa_context_fail(c, PA_ERROR_AUTHKEY);
+        pa_context_fail(c, PA_ERR_AUTHKEY);
         goto finish;
     }
 
@@ -401,7 +414,7 @@ static int context_connect_spawn(pa_context *c) {
     
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
         pa_log(__FILE__": socketpair() failed: %s\n", strerror(errno));
-        pa_context_fail(c, PA_ERROR_INTERNAL);
+        pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     }
 
@@ -415,7 +428,7 @@ static int context_connect_spawn(pa_context *c) {
 
     if ((pid = fork()) < 0) {
         pa_log(__FILE__": fork() failed: %s\n", strerror(errno));
-        pa_context_fail(c, PA_ERROR_INTERNAL);
+        pa_context_fail(c, PA_ERR_INTERNAL);
 
         if (c->spawn_api.postfork)
             c->spawn_api.postfork();
@@ -471,10 +484,10 @@ static int context_connect_spawn(pa_context *c) {
         
     if (r < 0) {
         pa_log(__FILE__": waitpid() failed: %s\n", strerror(errno));
-        pa_context_fail(c, PA_ERROR_INTERNAL);
+        pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-        pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
+        pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
         goto fail;
     }
 
@@ -527,7 +540,7 @@ static int try_next_connection(pa_context *c) {
             }
 #endif
             
-            pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
+            pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
             goto finish;
         }
         
@@ -569,7 +582,7 @@ static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userd
             goto finish;
         }
 
-        pa_context_fail(c, PA_ERROR_CONNECTIONREFUSED);
+        pa_context_fail(c, PA_ERR_CONNECTIONREFUSED);
         goto finish;
     }
 
@@ -593,7 +606,7 @@ int pa_context_connect(pa_context *c, const char *server, int spawn, const pa_sp
     
     if (server) {
         if (!(c->server_list = pa_strlist_parse(server))) {
-            pa_context_fail(c, PA_ERROR_INVALIDSERVER);
+            pa_context_fail(c, PA_ERR_INVALIDSERVER);
             goto finish;
         }
     } else {
@@ -759,7 +772,7 @@ void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_U
 
         success = 0;
     } else if (!pa_tagstruct_eof(t)) {
-        pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+        pa_context_fail(o->context, PA_ERR_PROTOCOL);
         goto finish;
     }
 

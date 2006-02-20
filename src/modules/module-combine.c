@@ -144,7 +144,7 @@ static void request_memblock(struct userdata *u) {
         return;
 
     for (o = u->outputs; o; o = o->next)
-        pa_memblockq_push_align(o->memblockq, &chunk, 0);
+        pa_memblockq_push_align(o->memblockq, &chunk);
 
     pa_memblock_unref(chunk.memblock);
 }
@@ -212,7 +212,15 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
     o->userdata = u;
     
     o->counter = 0;
-    o->memblockq = pa_memblockq_new(MEMBLOCKQ_MAXLENGTH, MEMBLOCKQ_MAXLENGTH, pa_frame_size(&u->sink->sample_spec), 0, 0, sink->core->memblock_stat);
+    o->memblockq = pa_memblockq_new(
+            0,
+            MEMBLOCKQ_MAXLENGTH,
+            MEMBLOCKQ_MAXLENGTH,
+            pa_frame_size(&u->sink->sample_spec),
+            1,
+            0,
+            NULL,
+            sink->core->memblock_stat);
 
     snprintf(t, sizeof(t), "%s: output #%u", u->sink->name, u->n_outputs+1);
     if (!(o->sink_input = pa_sink_input_new(sink, __FILE__, t, &u->sink->sample_spec, &u->sink->channel_map, 1, resample_method)))

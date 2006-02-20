@@ -43,6 +43,7 @@ pa_mcalign *pa_mcalign_new(size_t base, pa_memblock_stat *s) {
     assert(base);
 
     m = pa_xnew(pa_mcalign, 1);
+    
     m->base = base;
     pa_memchunk_reset(&m->leftover);
     pa_memchunk_reset(&m->current);
@@ -64,11 +65,16 @@ void pa_mcalign_free(pa_mcalign *m) {
 }
 
 void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
-    assert(m && c && c->memblock && c->length);
+    assert(m);
+    assert(c);
+    
+    assert(c->memblock);
+    assert(c->length > 0);
+
+    assert(!m->current.memblock);
     
     /* Append to the leftover memory block */
     if (m->leftover.memblock) {
-        assert(!m->current.memblock);
         
         /* Try to merge */
         if (m->leftover.memblock == c->memblock &&
@@ -110,8 +116,6 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
             }
         }
     } else {
-        assert(!m->leftover.memblock && !m->current.memblock);
-
         /* Nothing to merge or copy, just store it */
         
         if (c->length >= m->base)
@@ -124,7 +128,8 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
 }
 
 int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
-    assert(m && c);
+    assert(m);
+    assert(c);
 
     /* First test if there's a leftover memory block available */
     if (m->leftover.memblock) {
@@ -186,4 +191,16 @@ int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
     /* There's simply nothing */
     return -1;
     
+}
+
+size_t pa_mcalign_csize(pa_mcalign *m, size_t l) {
+    assert(m);
+    assert(l > 0);
+
+    assert(!m->current.memblock);
+           
+    if (m->leftover.memblock)
+        l += m->leftover.length;
+    
+    return (l/m->base)*m->base;
 }

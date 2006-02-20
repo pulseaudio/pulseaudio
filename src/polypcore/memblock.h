@@ -79,7 +79,6 @@ references to the memory. This causes the memory to be copied and
 converted into a PA_MEMBLOCK_DYNAMIC type memory block */
 void pa_memblock_unref_fixed(pa_memblock*b);
 
-
 pa_memblock_stat* pa_memblock_stat_new(void);
 void pa_memblock_stat_unref(pa_memblock_stat *s);
 pa_memblock_stat * pa_memblock_stat_ref(pa_memblock_stat *s);

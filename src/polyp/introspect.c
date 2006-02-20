@@ -52,7 +52,7 @@ static void context_stat_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNU
                pa_tagstruct_getu32(t, &i.memblock_allocated_size) < 0 ||
                pa_tagstruct_getu32(t, &i.scache_size) < 0 ||
                !pa_tagstruct_eof(t)) {
-        pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+        pa_context_fail(o->context, PA_ERR_PROTOCOL);
         goto finish;
     }
 
@@ -92,7 +92,7 @@ static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command,
                pa_tagstruct_getu32(t, &i.cookie) < 0 ||
                !pa_tagstruct_eof(t)) {
 
-        pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+        pa_context_fail(o->context, PA_ERR_PROTOCOL);
         goto finish;
     }
     
@@ -139,7 +139,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0) {
                 
-                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
 
@@ -234,7 +234,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0) {
                 
-                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
 
@@ -322,7 +322,7 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ) {
-                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
 
@@ -389,7 +389,7 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_gets(t, &i.argument) < 0 ||
                 pa_tagstruct_getu32(t, &i.n_used) < 0 ||
                 pa_tagstruct_get_boolean(t, &i.auto_unload) < 0) {
-                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
 
@@ -464,7 +464,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0) {
                 
-                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
 
@@ -538,7 +538,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0) {
                 
-                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
 
@@ -677,7 +677,7 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_get_boolean(t, &i.lazy) < 0 ||
                 pa_tagstruct_gets(t, &i.filename) < 0) {
                 
-                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
 
@@ -787,7 +787,7 @@ static void load_module_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUS
 
     } else if (pa_tagstruct_getu32(t, &idx) < 0 ||
                !pa_tagstruct_eof(t)) {
-        pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+        pa_context_fail(o->context, PA_ERR_PROTOCOL);
         goto finish;
     }
     
@@ -848,7 +848,7 @@ static void context_get_autoload_info_callback(pa_pdispatch *pd, uint32_t comman
                 pa_tagstruct_getu32(t, &i.type) < 0 ||
                 pa_tagstruct_gets(t, &i.module) < 0 ||
                 pa_tagstruct_gets(t, &i.argument) < 0) {
-                pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
 
@@ -926,7 +926,7 @@ static void context_add_autoload_callback(pa_pdispatch *pd, uint32_t command, PA
         idx = PA_INVALID_INDEX;
     } else if (pa_tagstruct_getu32(t, &idx) ||
                !pa_tagstruct_eof(t)) {
-        pa_context_fail(o->context, PA_ERROR_PROTOCOL);
+        pa_context_fail(o->context, PA_ERR_PROTOCOL);
         goto finish;
     }
 

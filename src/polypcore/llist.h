@@ -66,4 +66,14 @@
                                     _item->next = _item->prev = NULL; \
                                     } while(0)
 
+#define PA_LLIST_FIND_HEAD(t,item,head) \
+do { \
+    t **_head = (head), *_item = (item); \
+    *_head = _item; \
+    assert(_head); \
+    while ((*_head)->prev) \
+        *_head = (*_head)->prev; \
+} while (0) \
+
+
 #endif

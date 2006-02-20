@@ -47,7 +47,7 @@ typedef enum pa_context_state {
 
 /** The state of a stream */
 typedef enum pa_stream_state {
-    PA_STREAM_DISCONNECTED, /**< The stream is not yet connected to any sink or source */
+    PA_STREAM_UNCONNECTED, /**< The stream is not yet connected to any sink or source */
     PA_STREAM_CREATING,     /**< The stream is being created */
     PA_STREAM_READY,        /**< The stream is established, you may pass audio data to it now */
     PA_STREAM_FAILED,       /**< An error occured that made the stream invalid */
@@ -103,22 +103,24 @@ typedef struct pa_buffer_attr {
 
 /** Error values as used by pa_context_errno(). Use pa_strerror() to convert these values to human readable strings */
 enum {
-    PA_ERROR_OK,                     /**< No error */
-    PA_ERROR_ACCESS,                 /**< Access failure */
-    PA_ERROR_COMMAND,                /**< Unknown command */
-    PA_ERROR_INVALID,                /**< Invalid argument */
-    PA_ERROR_EXIST,                  /**< Entity exists */
-    PA_ERROR_NOENTITY,               /**< No such entity */
-    PA_ERROR_CONNECTIONREFUSED,      /**< Connection refused */
-    PA_ERROR_PROTOCOL,               /**< Protocol error */ 
-    PA_ERROR_TIMEOUT,                /**< Timeout */
-    PA_ERROR_AUTHKEY,                /**< No authorization key */
-    PA_ERROR_INTERNAL,               /**< Internal error */
-    PA_ERROR_CONNECTIONTERMINATED,   /**< Connection terminated */
-    PA_ERROR_KILLED,                 /**< Entity killed */
-    PA_ERROR_INVALIDSERVER,          /**< Invalid server */
-    PA_ERROR_INITFAILED,             /**< Module initialization failed */
-    PA_ERROR_MAX                     /**< Not really an error but the first invalid error code */
+    PA_OK = 0,                     /**< No error */
+    PA_ERR_ACCESS,                 /**< Access failure */
+    PA_ERR_COMMAND,                /**< Unknown command */
+    PA_ERR_INVALID,                /**< Invalid argument */
+    PA_ERR_EXIST,                  /**< Entity exists */
+    PA_ERR_NOENTITY,               /**< No such entity */
+    PA_ERR_CONNECTIONREFUSED,      /**< Connection refused */
+    PA_ERR_PROTOCOL,               /**< Protocol error */ 
+    PA_ERR_TIMEOUT,                /**< Timeout */
+    PA_ERR_AUTHKEY,                /**< No authorization key */
+    PA_ERR_INTERNAL,               /**< Internal error */
+    PA_ERR_CONNECTIONTERMINATED,   /**< Connection terminated */
+    PA_ERR_KILLED,                 /**< Entity killed */
+    PA_ERR_INVALIDSERVER,          /**< Invalid server */
+    PA_ERR_MODINITFAILED,          /**< Module initialization failed */
+    PA_ERR_BADSTATE,               /**< Bad state */
+    PA_ERR_NODATA,                 /**< No data */ 
+    PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 
 /** Subscription event mask, as used by pa_context_subscribe() */
@@ -207,6 +209,15 @@ typedef struct pa_spawn_api {
                                 * (created using socketpair()) is
                                 * passed to the new process. */
 } pa_spawn_api;
+
+/** Seek type \since 0.8*/
+typedef enum pa_seek_mode {
+    PA_SEEK_RELATIVE = 0,           /**< Seek relatively to the write index */
+    PA_SEEK_ABSOLUTE = 1,           /**< Seek relatively to the start of the buffer queue */  
+    PA_SEEK_RELATIVE_ON_READ = 2,   /**< Seek relatively to the read index */
+    PA_SEEK_RELATIVE_END = 3,       /**< Seek relatively to the current end of the buffer queue */
+} pa_seek_mode_t;
+
 
 PA_C_DECL_END
 

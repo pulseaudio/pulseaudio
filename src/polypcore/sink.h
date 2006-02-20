@@ -34,7 +34,7 @@ typedef struct pa_sink pa_sink;
 #include <polypcore/source.h>
 #include <polypcore/module.h>
 
-#define PA_MAX_INPUTS_PER_SINK 6
+#define PA_MAX_INPUTS_PER_SINK 32
 
 typedef enum pa_sink_state {
     PA_SINK_RUNNING,

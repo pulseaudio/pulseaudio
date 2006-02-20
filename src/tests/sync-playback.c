@@ -1,0 +1,192 @@
+/* $Id$ */
+
+/***
+  This file is part of polypaudio.
+ 
+  polypaudio is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published
+  by the Free Software Foundation; either version 2 of the License,
+  or (at your option) any later version.
+ 
+  polypaudio is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+ 
+  You should have received a copy of the GNU Lesser General Public License
+  along with polypaudio; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+***/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <signal.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <math.h>
+
+#include <polyp/polypaudio.h>
+#include <polyp/mainloop.h>
+
+#define NSTREAMS 4
+#define SINE_HZ 440
+#define SAMPLE_HZ 8000
+
+static pa_context *context = NULL;
+static pa_stream *streams[NSTREAMS];
+static pa_mainloop_api *mainloop_api = NULL;
+
+static float data[SAMPLE_HZ]; /* one second space */
+
+static int n_streams_ready = 0;
+
+static const pa_sample_spec sample_spec = {
+    .format = PA_SAMPLE_FLOAT32,
+    .rate = SAMPLE_HZ,
+    .channels = 1
+};
+
+static const pa_buffer_attr buffer_attr = {
+    .maxlength = SAMPLE_HZ*sizeof(float)*NSTREAMS, /* exactly space for the entire play time */
+    .tlength = 0,
+    .prebuf = 0, /* Setting prebuf to 0 guarantees us the the streams will run synchronously, no matter what */
+    .minreq = 0
+};
+
+static void nop_free_cb(void *p) {}
+
+static void underflow_cb(struct pa_stream *s, void *userdata) {
+    int i = (int) userdata;
+
+    fprintf(stderr, "Stream %i finished\n", i);
+    
+    if (++n_streams_ready >= 2*NSTREAMS) {
+        fprintf(stderr, "We're done\n");
+        mainloop_api->quit(mainloop_api, 0);
+    }
+}
+
+/* This routine is called whenever the stream state changes */
+static void stream_state_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    switch (pa_stream_get_state(s)) {
+        case PA_STREAM_UNCONNECTED:
+        case PA_STREAM_CREATING:
+        case PA_STREAM_TERMINATED:
+            break;
+
+        case PA_STREAM_READY: {
+
+            int r, i = (int) userdata;
+
+            fprintf(stderr, "Writing data to stream %i.\n", i);
+            
+            r = pa_stream_write(s, data, sizeof(data), nop_free_cb, sizeof(data) * i, PA_SEEK_ABSOLUTE);
+            assert(r == 0);
+
+            /* Be notified when this stream is drained */
+            pa_stream_set_underflow_callback(s, underflow_cb, userdata);
+            
+            /* All streams have been set up, let's go! */
+            if (++n_streams_ready >= NSTREAMS) {
+                fprintf(stderr, "Uncorking\n");
+                pa_operation_unref(pa_stream_cork(s, 0, NULL, NULL));
+            }
+           
+            break;
+        }
+
+        default:
+        case PA_STREAM_FAILED:
+            fprintf(stderr, "Stream error: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
+            abort();
+    }
+}
+
+/* This is called whenever the context status changes */
+static void context_state_callback(pa_context *c, void *userdata) {
+    assert(c);
+
+    switch (pa_context_get_state(c)) {
+        case PA_CONTEXT_CONNECTING:
+        case PA_CONTEXT_AUTHORIZING:
+        case PA_CONTEXT_SETTING_NAME:
+            break;
+        
+        case PA_CONTEXT_READY: {
+
+            int i;
+            fprintf(stderr, "Connection established.\n");
+
+            for (i = 0; i < NSTREAMS; i++) {
+                char name[64];
+
+                fprintf(stderr, "Creating stream %i\n", i);
+                
+                snprintf(name, sizeof(name), "stream #%i", i);
+            
+                streams[i] = pa_stream_new(c, name, &sample_spec, NULL);
+                assert(streams[i]);
+                pa_stream_set_state_callback(streams[i], stream_state_callback, (void*) i);
+                pa_stream_connect_playback(streams[i], NULL, &buffer_attr, PA_STREAM_START_CORKED, NULL, i == 0 ? NULL : streams[0]);
+            }
+                
+            break;
+        }
+            
+        case PA_CONTEXT_TERMINATED:
+            mainloop_api->quit(mainloop_api, 0);
+            break;
+
+        case PA_CONTEXT_FAILED:
+        default:
+            fprintf(stderr, "Context error: %s\n", pa_strerror(pa_context_errno(c)));
+            abort();
+    }
+}
+
+int main(int argc, char *argv[]) {
+    pa_mainloop* m = NULL;
+    int i, ret = 0;
+
+    for (i = 0; i < SAMPLE_HZ; i++)
+        data[i] = (float) sin(((double) i/SAMPLE_HZ)*2*M_PI*SINE_HZ)/2;
+
+    for (i = 0; i < NSTREAMS; i++)
+        streams[i] = NULL;
+    
+    /* Set up a new main loop */
+    m = pa_mainloop_new();
+    assert(m);
+
+    mainloop_api = pa_mainloop_get_api(m);
+
+    context = pa_context_new(mainloop_api, argv[0]);
+    assert(context);
+
+    pa_context_set_state_callback(context, context_state_callback, NULL);
+
+    pa_context_connect(context, NULL, 1, NULL);
+
+    if (pa_mainloop_run(m, &ret) < 0)
+        fprintf(stderr, "pa_mainloop_run() failed.\n");
+
+    pa_context_unref(context);
+
+    for (i = 0; i < NSTREAMS; i++)
+        if (streams[i])
+            pa_stream_unref(streams[i]);
+
+    pa_mainloop_free(m);
+    
+    return ret;
+}

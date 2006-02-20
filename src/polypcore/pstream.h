@@ -25,6 +25,7 @@
 #include <inttypes.h>
 
 #include <polyp/mainloop-api.h>
+#include <polyp/def.h>
 #include <polypcore/packet.h>
 #include <polypcore/memblock.h>
 #include <polypcore/iochannel.h>
@@ -37,10 +38,10 @@ void pa_pstream_unref(pa_pstream*p);
 pa_pstream* pa_pstream_ref(pa_pstream*p);
 
 void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet);
-void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk);
+void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk);
 
 void pa_pstream_set_recieve_packet_callback(pa_pstream *p, void (*callback) (pa_pstream *p, pa_packet *packet, void *userdata), void *userdata);
-void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, void (*callback) (pa_pstream *p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk, void *userdata), void *userdata);
+void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, void (*callback) (pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata), void *userdata);
 void pa_pstream_set_drain_callback(pa_pstream *p, void (*cb)(pa_pstream *p, void *userdata), void *userdata);
 
 void pa_pstream_set_die_callback(pa_pstream *p, void (*callback)(pa_pstream *p, void *userdata), void *userdata);

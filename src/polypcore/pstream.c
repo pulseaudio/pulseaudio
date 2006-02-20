@@ -40,12 +40,14 @@
 
 #include "pstream.h"
 
-typedef enum pa_pstream_descriptor_index {
+enum {
     PA_PSTREAM_DESCRIPTOR_LENGTH,
     PA_PSTREAM_DESCRIPTOR_CHANNEL,
-    PA_PSTREAM_DESCRIPTOR_DELTA,
+    PA_PSTREAM_DESCRIPTOR_OFFSET_HI,
+    PA_PSTREAM_DESCRIPTOR_OFFSET_LO,
+    PA_PSTREAM_DESCRIPTOR_SEEK,
     PA_PSTREAM_DESCRIPTOR_MAX
-} pa_pstream_descriptor_index;
+};
 
 typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 
@@ -58,7 +60,8 @@ struct item_info {
     /* memblock info */
     pa_memchunk chunk;
     uint32_t channel;
-    uint32_t delta;
+    int64_t offset;
+    pa_seek_mode_t seek_mode;
 
     /* packet info */
     pa_packet *packet;
@@ -94,7 +97,7 @@ struct pa_pstream {
     void (*recieve_packet_callback) (pa_pstream *p, pa_packet *packet, void *userdata);
     void *recieve_packet_callback_userdata;
 
-    void (*recieve_memblock_callback) (pa_pstream *p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk, void *userdata);
+    void (*recieve_memblock_callback) (pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata);
     void *recieve_memblock_callback_userdata;
 
     void (*drain_callback)(pa_pstream *p, void *userdata);
@@ -103,8 +106,8 @@ struct pa_pstream {
     pa_memblock_stat *memblock_stat;
 };
 
-static void do_write(pa_pstream *p);
-static void do_read(pa_pstream *p);
+static int do_write(pa_pstream *p);
+static int do_read(pa_pstream *p);
 
 static void do_something(pa_pstream *p) {
     assert(p);
@@ -112,31 +115,47 @@ static void do_something(pa_pstream *p) {
     p->mainloop->defer_enable(p->defer_event, 0);
 
     pa_pstream_ref(p);
-    
-    if (!p->dead && pa_iochannel_is_readable(p->io))
-        do_read(p);
 
-    if (!p->dead && pa_iochannel_is_writable(p->io))
-        do_write(p);
+    if (!p->dead && pa_iochannel_is_readable(p->io)) {
+        if (do_read(p) < 0)
+            goto fail;
+    } else if (!p->dead && pa_iochannel_is_hungup(p->io))
+        goto fail;
 
-    /* In case the line was hungup, make sure to rerun this function
-       as soon as possible, until all data has been read. */
+    if (!p->dead && pa_iochannel_is_writable(p->io)) {
+        if (do_write(p) < 0)
+            goto fail;
+    }
+
+    pa_pstream_unref(p);
+    return;
+
+fail:
+
+    p->dead = 1;
     
-    if (!p->dead && pa_iochannel_is_hungup(p->io))
-        p->mainloop->defer_enable(p->defer_event, 1);
+    if (p->die_callback)
+        p->die_callback(p, p->die_callback_userdata);
     
     pa_pstream_unref(p);
 }
 
 static void io_callback(pa_iochannel*io, void *userdata) {
     pa_pstream *p = userdata;
-    assert(p && p->io == io);
+    
+    assert(p);
+    assert(p->io == io);
+    
     do_something(p);
 }
 
 static void defer_callback(pa_mainloop_api *m, pa_defer_event *e, void*userdata) {
     pa_pstream *p = userdata;
-    assert(p && p->defer_event == e && p->mainloop == m);
+
+    assert(p);
+    assert(p->defer_event == e);
+    assert(p->mainloop == m);
+    
     do_something(p);
 }
 
@@ -144,7 +163,8 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_memblock_sta
     pa_pstream *p;
     assert(io);
 
-    p = pa_xmalloc(sizeof(pa_pstream));
+    p = pa_xnew(pa_pstream, 1);
+    
     p->ref = 1;
     p->io = io;
     pa_iochannel_set_callback(io, io_callback, p);
@@ -228,7 +248,7 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet) {
     
 /*     pa_log(__FILE__": push-packet %p\n", packet); */
     
-    i = pa_xmalloc(sizeof(struct item_info));
+    i = pa_xnew(struct item_info, 1);
     i->type = PA_PSTREAM_ITEM_PACKET;
     i->packet = pa_packet_ref(packet);
 
@@ -236,7 +256,7 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet) {
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
-void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk) {
+void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek_mode, const pa_memchunk *chunk) {
     struct item_info *i;
     assert(p && channel != (uint32_t) -1 && chunk && p->ref >= 1);
 
@@ -245,11 +265,12 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, uint32_t delta, co
     
 /*     pa_log(__FILE__": push-memblock %p\n", chunk); */
     
-    i = pa_xmalloc(sizeof(struct item_info));
+    i = pa_xnew(struct item_info, 1);
     i->type = PA_PSTREAM_ITEM_MEMBLOCK;
     i->chunk = *chunk;
     i->channel = channel;
-    i->delta = delta;
+    i->offset = offset;
+    i->seek_mode = seek_mode;
 
     pa_memblock_ref(i->chunk.memblock);
 
@@ -264,7 +285,7 @@ void pa_pstream_set_recieve_packet_callback(pa_pstream *p, void (*callback) (pa_
     p->recieve_packet_callback_userdata = userdata;
 }
 
-void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, void (*callback) (pa_pstream *p, uint32_t channel, uint32_t delta, const pa_memchunk *chunk, void *userdata), void *userdata) {
+void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, void (*callback) (pa_pstream *p, uint32_t channel, int64_t delta, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata), void *userdata) {
     assert(p && callback);
 
     p->recieve_memblock_callback = callback;
@@ -286,17 +307,21 @@ static void prepare_next_write_item(pa_pstream *p) {
         p->write.data = p->write.current->packet->data;
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->packet->length);
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL] = htonl((uint32_t) -1);
-        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_DELTA] = 0;
+        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI] = 0;
+        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO] = 0;
+        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK] = 0;
     } else {
         assert(p->write.current->type == PA_PSTREAM_ITEM_MEMBLOCK && p->write.current->chunk.memblock);
         p->write.data = (uint8_t*) p->write.current->chunk.memblock->data + p->write.current->chunk.index;
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->chunk.length);
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL] = htonl(p->write.current->channel);
-        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_DELTA] = htonl(p->write.current->delta);
+        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI] = htonl((uint32_t) (((uint64_t) p->write.current->offset) >> 32));
+        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO] = htonl((uint32_t) ((uint64_t) p->write.current->offset));
+        p->write.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK] = htonl(p->write.current->seek_mode);
     }
 }
 
-static void do_write(pa_pstream *p) {
+static int do_write(pa_pstream *p) {
     void *d;
     size_t l;
     ssize_t r;
@@ -306,7 +331,7 @@ static void do_write(pa_pstream *p) {
         prepare_next_write_item(p);
 
     if (!p->write.current)
-        return;
+        return 0;
 
     assert(p->write.data);
 
@@ -319,7 +344,7 @@ static void do_write(pa_pstream *p) {
     }
 
     if ((r = pa_iochannel_write(p->io, d, l)) < 0)
-        goto die;
+        return -1;
 
     p->write.index += r;
 
@@ -332,15 +357,10 @@ static void do_write(pa_pstream *p) {
             p->drain_callback(p, p->drain_userdata);
     }
 
-    return;
-    
-die:
-    p->dead = 1;
-    if (p->die_callback)
-        p->die_callback(p, p->die_callback_userdata);
+    return 0;
 }
 
-static void do_read(pa_pstream *p) {
+static int do_read(pa_pstream *p) {
     void *d;
     size_t l; 
     ssize_t r;
@@ -356,7 +376,7 @@ static void do_read(pa_pstream *p) {
     }
 
     if ((r = pa_iochannel_read(p->io, d, l)) <= 0)
-        goto die;
+        return -1;
     
     p->read.index += r;
 
@@ -365,8 +385,8 @@ static void do_read(pa_pstream *p) {
 
         /* Frame size too large */
         if (ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) > FRAME_SIZE_MAX) {
-            pa_log(__FILE__": Frame size too large\n");
-            goto die;
+            pa_log_warn(__FILE__": Frame size too large\n");
+            return -1;
         }
         
         assert(!p->read.packet && !p->read.memblock);
@@ -374,13 +394,16 @@ static void do_read(pa_pstream *p) {
         if (ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL]) == (uint32_t) -1) {
             /* Frame is a packet frame */
             p->read.packet = pa_packet_new(ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]));
-            assert(p->read.packet);
             p->read.data = p->read.packet->data;
         } else {
             /* Frame is a memblock frame */
             p->read.memblock = pa_memblock_new(ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]), p->memblock_stat);
-            assert(p->read.memblock);
             p->read.data = p->read.memblock->data;
+
+            if (ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK]) > PA_SEEK_RELATIVE_END) {
+                pa_log_warn(__FILE__": Invalid seek mode\n");
+                return -1;
+            }
         }
             
     } else if (p->read.index > PA_PSTREAM_DESCRIPTOR_SIZE) {
@@ -396,13 +419,26 @@ static void do_read(pa_pstream *p) {
                 chunk.index = p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE - l;
                 chunk.length = l;
 
-                if (p->recieve_memblock_callback)
+                if (p->recieve_memblock_callback) {
+                    int64_t offset;
+
+                    offset = (int64_t) (
+                            (((uint64_t) ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])) << 32) |
+                            (((uint64_t) ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO]))));
+                    
                     p->recieve_memblock_callback(
                         p,
                         ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL]),
-                        ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_DELTA]),
+                        offset,
+                        ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK]),
                         &chunk,
                         p->recieve_memblock_callback_userdata);
+                }
+
+                /* Drop seek info for following callbacks */
+                p->read.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK] =
+                    p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI] =
+                    p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO] = 0;
             }
         }
 
@@ -427,13 +463,7 @@ static void do_read(pa_pstream *p) {
         }
     }
 
-    return;
-
-die:
-    p->dead = 1;
-    if (p->die_callback)
-        p->die_callback(p, p->die_callback_userdata);
-   
+    return 0;   
 }
 
 void pa_pstream_set_die_callback(pa_pstream *p, void (*callback)(pa_pstream *p, void *userdata), void *userdata) {
@@ -453,20 +483,24 @@ int pa_pstream_is_pending(pa_pstream *p) {
 
 void pa_pstream_set_drain_callback(pa_pstream *p, void (*cb)(pa_pstream *p, void *userdata), void *userdata) {
     assert(p);
+    assert(p->ref >= 1);
 
     p->drain_callback = cb;
     p->drain_userdata = userdata;
 }
 
 void pa_pstream_unref(pa_pstream*p) {
-    assert(p && p->ref >= 1);
+    assert(p);
+    assert(p->ref >= 1);
 
-    if (!(--(p->ref)))
+    if (--p->ref == 0)
         pstream_free(p);
 }
 
 pa_pstream* pa_pstream_ref(pa_pstream*p) {
-    assert(p && p->ref >= 1);
+    assert(p);
+    assert(p->ref >= 1);
+    
     p->ref++;
     return p;
 }

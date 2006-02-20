@@ -45,12 +45,10 @@ struct pa_simple {
 
     int dead;
 
-    void *read_data;
+    const void *read_data;
     size_t read_index, read_length;
     pa_usec_t latency;
 };
-
-static void read_callback(pa_stream *s, const void*data, size_t length, void *userdata);
 
 static int check_error(pa_simple *p, int *rerror) {
     pa_context_state_t cst;
@@ -92,7 +90,7 @@ static int iterate(pa_simple *p, int block, int *rerror) {
     do {
         if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0) {
             if (rerror)
-                *rerror = PA_ERROR_INTERNAL;
+                *rerror = PA_ERR_INTERNAL;
             return -1;
         }
 
@@ -106,7 +104,7 @@ static int iterate(pa_simple *p, int block, int *rerror) {
 
         if (pa_mainloop_iterate(p->mainloop, 0, NULL) < 0) {
             if (rerror)
-                *rerror = PA_ERROR_INTERNAL;
+                *rerror = PA_ERR_INTERNAL;
             return -1;
         }
 
@@ -128,7 +126,7 @@ pa_simple* pa_simple_new(
     int *rerror) {
     
     pa_simple *p;
-    int error = PA_ERROR_INTERNAL;
+    int error = PA_ERR_INTERNAL;
     assert(ss && (dir == PA_STREAM_PLAYBACK || dir == PA_STREAM_RECORD));
 
     p = pa_xmalloc(sizeof(pa_simple));
@@ -157,7 +155,7 @@ pa_simple* pa_simple_new(
         goto fail;
 
     if (dir == PA_STREAM_PLAYBACK)
-        pa_stream_connect_playback(p->stream, dev, attr, 0, NULL);
+        pa_stream_connect_playback(p->stream, dev, attr, 0, NULL, NULL);
     else
         pa_stream_connect_record(p->stream, dev, attr, 0);
 
@@ -167,8 +165,6 @@ pa_simple* pa_simple_new(
             goto fail;
     }
 
-    pa_stream_set_read_callback(p->stream, read_callback, p);
-    
     return p;
     
 fail:
@@ -180,8 +176,6 @@ fail:
 
 void pa_simple_free(pa_simple *s) {
     assert(s);
-
-    pa_xfree(s->read_data);
 
     if (s->stream)
         pa_stream_unref(s->stream);
@@ -215,7 +209,7 @@ int pa_simple_write(pa_simple *p, const void*data, size_t length, int *rerror) {
         if (l > length)
             l = length;
 
-        pa_stream_write(p->stream, data, l, NULL, 0);
+        pa_stream_write(p->stream, data, l, NULL, 0, PA_SEEK_RELATIVE);
         data = (const uint8_t*) data + l;
         length -= l;
     }
@@ -225,19 +219,6 @@ int pa_simple_write(pa_simple *p, const void*data, size_t length, int *rerror) {
         return -1;
 
     return 0;
-}
-
-static void read_callback(pa_stream *s, const void*data, size_t length, void *userdata) {
-    pa_simple *p = userdata;
-    assert(s && data && length && p);
-
-    if (p->read_data) {
-        pa_log(__FILE__": Buffer overflow, dropping incoming memory blocks.\n");
-        pa_xfree(p->read_data);
-    }
-
-    p->read_data = pa_xmemdup(data, p->read_length = length);
-    p->read_index = 0;
 }
 
 int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
@@ -251,13 +232,18 @@ int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
     }
     
     while (length > 0) {
+
+        if (!p->read_data) 
+            if (pa_stream_peek(p->stream, &p->read_data, &p->read_length) >= 0)
+                p->read_index = 0;
+        
         if (p->read_data) {
             size_t l = length;
 
             if (p->read_length <= l)
                 l = p->read_length;
 
-            memcpy(data, (uint8_t*) p->read_data+p->read_index, l);
+            memcpy(data, (const uint8_t*) p->read_data+p->read_index, l);
 
             data = (uint8_t*) data + l;
             length -= l;
@@ -266,8 +252,9 @@ int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
             p->read_length -= l;
 
             if (!p->read_length) {
-                pa_xfree(p->read_data);
+                pa_stream_drop(p->stream);
                 p->read_data = NULL;
+                p->read_length = 0;
                 p->read_index = 0;
             }
             

@@ -31,7 +31,7 @@
 PA_C_DECL_BEGIN
 
 /** Return a human readable error message for the specified numeric error code */
-const char* pa_strerror(uint32_t error);
+const char* pa_strerror(int error);
 
 PA_C_DECL_END
 

@@ -23,9 +23,11 @@
 ***/
 
 #include <sys/types.h>
+#include <inttypes.h>
 
 #include <polypcore/memblock.h>
 #include <polypcore/memchunk.h>
+#include <polyp/def.h>
 
 /* A memblockq is a queue of pa_memchunks (yepp, the name is not
  * perfect). It is similar to the ring buffers used by most other
@@ -35,41 +37,58 @@
 
 typedef struct pa_memblockq pa_memblockq;
 
+
 /* Parameters:
-   - maxlength: maximum length of queue. If more data is pushed into the queue, data from the front is dropped
-   - length:    the target length of the queue.
-   - base:      a base value for all metrics. Only multiples of this value are popped from the queue
-   - prebuf:    before passing the first byte out, make sure that enough bytes are in the queue
-   - minreq:    pa_memblockq_missing() will only return values greater than this value
+   
+   - idx:       start value for both read and write index
+
+   - maxlength: maximum length of queue. If more data is pushed into
+                the queue, the operation will fail. Must not be 0.
+   
+   - tlength:   the target length of the queue. Pass 0 for the default.
+   
+   - base:      a base value for all metrics. Only multiples of this value
+                are popped from the queue or should be pushed into
+                it. Must not be 0.
+   
+   - prebuf:    If the queue runs empty wait until this many bytes are in
+                queue again before passing the first byte out. If set
+                to 0 pa_memblockq_pop() will return a silence memblock
+                if no data is in the queue and will never fail. Pass
+                (size_t) -1 for the default.
+                
+   - minreq:    pa_memblockq_missing() will only return values greater
+                than this value. Pass 0 for the default.
+   
+   - silence:   return this memblock whzen reading unitialized data
 */
-pa_memblockq* pa_memblockq_new(size_t maxlength,
-                                      size_t tlength,
-                                      size_t base,
-                                      size_t prebuf,
-                                      size_t minreq,
-                                      pa_memblock_stat *s);
+pa_memblockq* pa_memblockq_new(
+        int64_t idx,
+        size_t maxlength,
+        size_t tlength,
+        size_t base,
+        size_t prebuf, 
+        size_t minreq,
+        pa_memblock *silence,
+        pa_memblock_stat *s);
+
 void pa_memblockq_free(pa_memblockq*bq);
 
-/* Push a new memory chunk into the queue. Optionally specify a value for future cancellation. */
-void pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *chunk, size_t delta);
+/* Push a new memory chunk into the queue.  */
+int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *chunk);
 
-/* Same as pa_memblockq_push(), however chunks are filtered through a mcalign object, and thus aligned to multiples of base */
-void pa_memblockq_push_align(pa_memblockq* bq, const pa_memchunk *chunk, size_t delta);
+/* Push a new memory chunk into the queue, but filter it through a
+ * pa_mcalign object. Don't mix this with pa_memblockq_seek() unless
+ * you know what you do. */
+int pa_memblockq_push_align(pa_memblockq* bq, const pa_memchunk *chunk);
 
 /* Return a copy of the next memory chunk in the queue. It is not removed from the queue */
 int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk);
 
-/* Drop the specified bytes from the queue, only valid aufter pa_memblockq_peek() */
+/* Drop the specified bytes from the queue, but only if the first
+ * chunk in the queue matches the one passed here. If NULL is passed,
+ * this check isn't done. */
 void pa_memblockq_drop(pa_memblockq *bq, const pa_memchunk *chunk, size_t length);
-
-/* Drop the specified bytes from the queue */
-void pa_memblockq_skip(pa_memblockq *bq, size_t length);
-
-/* Shorten the pa_memblockq to the specified length by dropping data at the end of the queue */
-void pa_memblockq_shorten(pa_memblockq *bq, size_t length);
-
-/* Empty the pa_memblockq */
-void pa_memblockq_empty(pa_memblockq *bq);
 
 /* Test if the pa_memblockq is currently readable, that is, more data than base */
 int pa_memblockq_is_readable(pa_memblockq *bq);
@@ -78,27 +97,38 @@ int pa_memblockq_is_readable(pa_memblockq *bq);
 int pa_memblockq_is_writable(pa_memblockq *bq, size_t length);
 
 /* Return the length of the queue in bytes */
-uint32_t pa_memblockq_get_length(pa_memblockq *bq);
+size_t pa_memblockq_get_length(pa_memblockq *bq);
 
 /* Return how many bytes are missing in queue to the specified fill amount */
-uint32_t pa_memblockq_missing(pa_memblockq *bq);
+size_t pa_memblockq_missing(pa_memblockq *bq);
 
 /* Returns the minimal request value */
-uint32_t pa_memblockq_get_minreq(pa_memblockq *bq);
-
-/* Force disabling of pre-buf even when the pre-buffer is not yet filled */
-void pa_memblockq_prebuf_disable(pa_memblockq *bq);
-
-/* Reenable pre-buf to the initial level */
-void pa_memblockq_prebuf_reenable(pa_memblockq *bq);
+size_t pa_memblockq_get_minreq(pa_memblockq *bq);
 
 /* Manipulate the write pointer */
-void pa_memblockq_seek(pa_memblockq *bq, size_t delta);
+void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek);
 
-/* Flush the queue */
+/* Set the queue to silence, set write index to read index */
 void pa_memblockq_flush(pa_memblockq *bq);
 
 /* Get Target length */
 uint32_t pa_memblockq_get_tlength(pa_memblockq *bq);
+
+/* Return the current read index */
+int64_t pa_memblockq_get_read_index(pa_memblockq *bq);
+
+/* Return the current write index */
+int64_t pa_memblockq_get_write_index(pa_memblockq *bq);
+
+/* Shorten the pa_memblockq to the specified length by dropping data
+ * at the read end of the queue. The read index is increased until the
+ * queue has the specified length */
+void pa_memblockq_shorten(pa_memblockq *bq, size_t length);
+
+/* Ignore prebuf for now */
+void pa_memblockq_prebuf_disable(pa_memblockq *bq);
+
+/* Force prebuf */
+void pa_memblockq_prebuf_force(pa_memblockq *bq);
 
 #endif

@@ -54,8 +54,9 @@ struct pa_context {
     pa_dynarray *record_streams, *playback_streams;
     PA_LLIST_HEAD(pa_stream, streams);
     PA_LLIST_HEAD(pa_operation, operations);
-    
+
     uint32_t ctag;
+    uint32_t csyncid;
     uint32_t error;
     pa_context_state_t state;
     
@@ -90,6 +91,7 @@ struct pa_stream {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     uint32_t channel;
+    uint32_t syncid;
     int channel_valid;
     uint32_t device_index;
     pa_stream_direction_t direction;
@@ -98,7 +100,6 @@ struct pa_stream {
     pa_usec_t previous_time;
     pa_usec_t previous_ipol_time;
     pa_stream_state_t state;
-    pa_mcalign *mcalign;
     pa_memchunk peek_memchunk;
     pa_memblockq *record_memblockq;
 
@@ -110,14 +111,20 @@ struct pa_stream {
     pa_time_event *ipol_event;
     int ipol_requested;
     
-    void (*state_callback)(pa_stream*c, void *userdata);
+    pa_stream_notify_cb_t state_callback;
     void *state_userdata;
 
-    void (*read_callback)(pa_stream *p, size_t length, void *userdata);
+    pa_stream_request_cb_t read_callback;
     void *read_userdata;
 
-    void (*write_callback)(pa_stream *p, size_t length, void *userdata);
+    pa_stream_request_cb_t write_callback;
     void *write_userdata;
+
+    pa_stream_notify_cb_t overflow_callback;
+    void *overflow_userdata;
+
+    pa_stream_notify_cb_t underflow_callback;
+    void *underflow_userdata;
 };
 
 typedef void (*pa_operation_callback)(void);
@@ -136,6 +143,7 @@ struct pa_operation {
 void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 pa_operation *pa_operation_new(pa_context *c, pa_stream *s);
 void pa_operation_done(pa_operation *o);
@@ -146,6 +154,7 @@ void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 void pa_context_fail(pa_context *c, int error);
+int pa_context_set_error(pa_context *c, int error);
 void pa_context_set_state(pa_context *c, pa_context_state_t st);
 int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t);
 pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, void (*internal_callback)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata), void (*cb)(void), void *userdata);
@@ -154,5 +163,23 @@ void pa_stream_set_state(pa_stream *s, pa_stream_state_t st);
 
 void pa_stream_trash_ipol(pa_stream *s);
 
+#define PA_CHECK_VALIDITY(context, expression, error) do { \
+        if (!(expression)) \
+            return -pa_context_set_error((context), (error)); \
+} while(0)
+
+#define PA_CHECK_VALIDITY_RETURN_NULL(context, expression, error) do { \
+        if (!(expression)) { \
+            pa_context_set_error((context), (error)); \
+            return NULL; \
+        } \
+} while(0)
+
+#define PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, value) do { \
+        if (!(expression)) { \
+            pa_context_set_error((context), (error)); \
+            return value; \
+        } \
+} while(0)
 
 #endif
