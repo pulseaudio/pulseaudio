@@ -417,7 +417,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../src/polyp/context.h ../src/polyp/stream.h ../src/polyp/polypaudio.h ../src/polyp/sample.h ../src/polyp/def.h ../src/polyp/subscribe.h ../src/polyp/introspect.h ../src/polyp/scache.h ../src/polyp/mainloop-api.h ../src/polyp/cdecl.h ../src/polyp/glib-mainloop.h ../src/polyp/mainloop.h ../src/polyp/mainloop-signal.h ../src/polyp/error.h ../src/polyp/operation.h ../src/polyp/simple.h ../src/polyp/version.h ../src/polyp/volume.h ../src/polyp/channelmap.h
+INPUT                  = ../src/polyp/context.h ../src/polyp/stream.h ../src/polyp/polypaudio.h ../src/polyp/sample.h ../src/polyp/def.h ../src/polyp/subscribe.h ../src/polyp/introspect.h ../src/polyp/scache.h ../src/polyp/mainloop-api.h ../src/polyp/glib-mainloop.h ../src/polyp/mainloop.h ../src/polyp/mainloop-signal.h ../src/polyp/error.h ../src/polyp/operation.h ../src/polyp/simple.h ../src/polyp/version.h ../src/polyp/volume.h ../src/polyp/channelmap.h
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
