@@ -342,7 +342,6 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = \
 libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
 		polypcore/authkey.c polypcore/authkey.h \
 		polypcore/conf-parser.c polypcore/conf-parser.h \
-		polypcore/dllmain.c \
 		polypcore/dynarray.c polypcore/dynarray.h \
 		polypcore/gccmacro.h \
 		polypcore/idxset.c polypcore/idxset.h \
@@ -368,6 +367,11 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
 		polypcore/util.c polypcore/util.h \
 		polypcore/winsock.h \
 		polypcore/xmalloc.c polypcore/xmalloc.h
+
+if OS_IS_WIN32
+libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
+		polypcore/dllmain.c 
+endif
 
 if HAVE_X11
 libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
@@ -484,7 +488,6 @@ libpolypcore_la_SOURCES += \
 		polypcore/core.c polypcore/core.h \
 		polypcore/core-scache.c polypcore/core-scache.h \
 		polypcore/core-subscribe.c polypcore/core-subscribe.h \
-		polypcore/dllmain.c \
 		polypcore/dynarray.c polypcore/dynarray.h \
 		polypcore/endianmacros.h \
 		polypcore/g711.c polypcore/g711.h \
@@ -522,6 +525,11 @@ libpolypcore_la_SOURCES += \
 		polypcore/util.c polypcore/util.h \
 		polypcore/winsock.h \
 		polypcore/xmalloc.c polypcore/xmalloc.h
+
+if OS_IS_WIN32
+libpolypcore_la_SOURCES += \
+		polypcore/dllmain.c 
+endif
 
 libpolypcore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
 libpolypcore_la_LDFLAGS = -avoid-version
