@@ -585,7 +585,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     }
     
     if (pa_memblockq_peek(s->memblockq, chunk) < 0) {
-        pa_log(__FILE__": peek: failure\n");   
+/*         pa_log(__FILE__": peek: failure\n");    */
         return -1;
     }
 
