@@ -11,6 +11,7 @@ Fixes:
 - better validity checking in libpolyp and protocol-{native,esound}
 - don't build ipv4 and ipv6 modules seperately
 - change pa_log to not require \n
+- proper use of memcpy in procotol-esound.c so we don't get alignment problems
 
 Features:
 - add radio module
