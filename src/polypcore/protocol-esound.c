@@ -560,15 +560,15 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             response += ESD_NAME_MAX;
             
             /* rate */
-            *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, ce->sample_spec.rate);
+            *((uint32_t*) response) = MAYBE_UINT32_SWAP(c->swap_byte_order, ce->sample_spec.rate);
             response += sizeof(int);
             
             /* left */
-            *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
+            *((uint32_t*) response) = MAYBE_UINT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             response += sizeof(int);
             
             /*right*/
-            *((int*) response) = MAYBE_INT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
+            *((uint32_t*) response) = MAYBE_UINT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             response += sizeof(int);
             
             /*format*/
@@ -596,10 +596,10 @@ static int esd_proto_stream_pan(struct connection *c, PA_GCC_UNUSED esd_proto_t 
     struct connection *conn;
     assert(c && data && length == sizeof(int)*3);
     
-    idx = MAYBE_UINT32_SWAP(c->swap_byte_order, *(const int*)data)-1;
-    lvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, *((const int*)data + 1));
+    idx = MAYBE_UINT32_SWAP(c->swap_byte_order, *(const uint32_t*)data)-1;
+    lvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, *((const uint32_t*)data + 1));
     lvolume = (lvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
-    rvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, *((const int*)data + 2));
+    rvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, *((const uint32_t*)data + 2));
     rvolume = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
 
     ok = connection_write(c, sizeof(int));
