@@ -592,7 +592,7 @@ pa_operation * pa_stream_drain(pa_stream *s, void (*cb) (pa_stream*s, int succes
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
 
     o = pa_operation_new(s->context, s);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -680,7 +680,7 @@ pa_operation* pa_stream_get_latency_info(pa_stream *s, void (*cb)(pa_stream *p, 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
     
     o = pa_operation_new(s->context, s);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -830,7 +830,7 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, void (*cb) (pa_stream*s, int s
     
     o = pa_operation_new(s->context, s);
     assert(o);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -854,7 +854,7 @@ static pa_operation* stream_send_simple_command(pa_stream *s, uint32_t command, 
     assert(s && s->ref >= 1 && s->state == PA_STREAM_READY);
     
     o = pa_operation_new(s->context, s);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -896,7 +896,7 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, void(*cb)(pa_st
 
     o = pa_operation_new(s->context, s);
     assert(o);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -978,7 +978,14 @@ pa_usec_t pa_stream_get_latency(pa_stream *s, const pa_latency_info *i, int *neg
 
 const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s) {
     assert(s);
+    
     return &s->sample_spec;
+}
+
+const pa_channel_map* pa_stream_get_channel_map(pa_stream *s) {
+    assert(s);
+
+    return &s->channel_map;
 }
 
 void pa_stream_trash_ipol(pa_stream *s) {

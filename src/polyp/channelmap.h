@@ -105,7 +105,7 @@ const char* pa_channel_position_to_string(pa_channel_position_t pos);
 /** Make a humand readable string from the specified channel map */
 char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map);
 
-/** Compare two channel maps. Return 0 if both match. */
+/** Compare two channel maps. Return 1 if both match. */
 int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b);
 
 /** Return non-zero of the specified channel map is considered valid */

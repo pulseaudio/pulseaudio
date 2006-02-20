@@ -26,6 +26,7 @@
 #include <polyp/context.h>
 #include <polyp/stream.h>
 #include <polyp/operation.h>
+#include <polyp/subscribe.h>
 
 #include <polypcore/socket-client.h>
 #include <polypcore/pstream.h>
@@ -63,7 +64,7 @@ struct pa_context {
     pa_context_notify_cb_t state_callback;
     void *state_userdata;
 
-    void (*subscribe_callback)(pa_context *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata);
+    pa_context_subscribe_cb_t subscribe_callback;
     void *subscribe_userdata;
 
     pa_memblock_stat *memblock_stat;
@@ -127,7 +128,7 @@ struct pa_stream {
     void *underflow_userdata;
 };
 
-typedef void (*pa_operation_callback)(void);
+typedef void (*pa_operation_callback_t)(void);
 
 struct pa_operation {
     int ref;
@@ -137,7 +138,7 @@ struct pa_operation {
 
     pa_operation_state_t state;
     void *userdata;
-    pa_operation_callback callback;
+    pa_operation_callback_t callback;
 };
 
 void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);

@@ -53,21 +53,19 @@ typedef enum pa_io_event_flags {
     PA_IO_EVENT_ERROR = 8     /**< Error event */
 } pa_io_event_flags_t;
 
-/** \struct pa_io_event
- * An opaque IO event source object */
+/** An opaque IO event source object */
 typedef struct pa_io_event pa_io_event;
 
-/** \struct pa_defer_event
- * An opaque deferred event source object. Events of this type are triggered once in every main loop iteration */
+/** An opaque deferred event source object. Events of this type are triggered once in every main loop iteration */
 typedef struct pa_defer_event pa_defer_event;
 
-/** \struct pa_time_event
- * An opaque timer event source object */
+/** An opaque timer event source object */
 typedef struct pa_time_event pa_time_event;
 
 /** An abstract mainloop API vtable */
 typedef struct pa_mainloop_api pa_mainloop_api;
 
+/** An abstract mainloop API vtable */
 struct pa_mainloop_api  {
     /** A pointer to some private, arbitrary data of the main loop implementation */
     void *userdata;

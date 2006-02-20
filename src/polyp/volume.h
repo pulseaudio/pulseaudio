@@ -46,8 +46,8 @@ typedef uint32_t pa_volume_t;
 
 /** A structure encapsulating a per-channel volume */
 typedef struct pa_cvolume {
-    uint8_t channels;
-    pa_volume_t values[PA_CHANNELS_MAX];
+    uint8_t channels;                     /**< Number of channels */
+    pa_volume_t values[PA_CHANNELS_MAX];  /**< Per-channel volume  */
 } pa_cvolume;
 
 /** Return non-zero when *a == *b */
@@ -62,8 +62,10 @@ int pa_cvolume_equal(const pa_cvolume *a, const pa_cvolume *b);
 /** Set the volume of all channels to the specified parameter */
 pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v);
 
-/** Pretty print a volume structure */
+/** Maximum length of the strings returned by pa_cvolume_snprint() */
 #define PA_CVOLUME_SNPRINT_MAX 64
+
+/** Pretty print a volume structure */
 char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c);
 
 /** Return the average volume of all channels */
@@ -75,24 +77,28 @@ int pa_cvolume_valid(const pa_cvolume *v);
 /** Return non-zero if the volume of all channels is equal to the specified value */
 int pa_cvolume_channels_equal_to(const pa_cvolume *a, pa_volume_t v);
 
+/** Return 1 if the specified volume has all channels muted */
 #define pa_cvolume_is_muted(a) pa_cvolume_channels_equal_to((a), PA_VOLUME_MUTED)
+
+/** Return 1 if the specified volume has all channels on normal level */
 #define pa_cvolume_is_norm(a) pa_cvolume_channels_equal_to((a), PA_VOLUME_NORM)
 
-/** Multiply two volumes specifications, return the result. This uses PA_VOLUME_NORM as neutral element of multiplication. */
+/** Multiply two volumes specifications, return the result. This uses PA_VOLUME_NORM as neutral element of multiplication. This is only valid for software volumes! */
 pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b);
 
+/** Multiply to per-channel volumes and return the result in *dest. This is only valid for software volumes! */
 pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
 
-/** Convert a decibel value to a volume. \since 0.4 */
+/** Convert a decibel value to a volume. This is only valid for software volumes! \since 0.4 */
 pa_volume_t pa_sw_volume_from_dB(double f);
 
-/** Convert a volume to a decibel value.  \since 0.4 */
+/** Convert a volume to a decibel value. This is only valid for software volumes! \since 0.4 */
 double pa_sw_volume_to_dB(pa_volume_t v);
 
-/** Convert a linear factor to a volume. \since 0.8 */
+/** Convert a linear factor to a volume. This is only valid for software volumes! \since 0.8 */
 pa_volume_t pa_sw_volume_from_linear(double v);
 
-/** Convert a volume to a linear factor. \since 0.8 */
+/** Convert a volume to a linear factor. This is only valid for software volumes! \since 0.8 */
 double pa_sw_volume_to_linear(pa_volume_t v);
 
 #ifdef INFINITY

@@ -79,14 +79,14 @@ void pa_stream_finish_upload(pa_stream *s) {
     pa_stream_unref(s);
 }
 
-pa_operation * pa_context_play_sample(pa_context *c, const char *name, const char *dev, uint32_t volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+pa_operation * pa_context_play_sample(pa_context *c, const char *name, const char *dev, uint32_t volume, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
     assert(c && name && *name && (!dev || *dev));
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     if (!dev)
@@ -106,14 +106,14 @@ pa_operation * pa_context_play_sample(pa_context *c, const char *name, const cha
     return pa_operation_ref(o);
 }
 
-pa_operation* pa_context_remove_sample(pa_context *c, const char *name, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
     assert(c && name);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
     
     t = pa_tagstruct_new(NULL, 0);

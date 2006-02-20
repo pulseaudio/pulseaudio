@@ -33,7 +33,7 @@
 
 PA_C_DECL_BEGIN
 
-/* Maximum allowed channels */
+/** Maximum allowed channels */
 #define PA_CHANNELS_MAX 16
 
 /** Sample format */
@@ -43,8 +43,8 @@ typedef enum pa_sample_format {
     PA_SAMPLE_ULAW,            /**< 8 Bit mu-Law */
     PA_SAMPLE_S16LE,           /**< Signed 16 Bit PCM, little endian (PC) */
     PA_SAMPLE_S16BE,           /**< Signed 16 Bit PCM, big endian */
-    PA_SAMPLE_FLOAT32LE,       /**< 32 Bit IEEE floating point, little endian, range -1..1 */
-    PA_SAMPLE_FLOAT32BE,       /**< 32 Bit IEEE floating point, big endian, range -1..1 */
+    PA_SAMPLE_FLOAT32LE,       /**< 32 Bit IEEE floating point, little endian, range -1 to 1 */
+    PA_SAMPLE_FLOAT32BE,       /**< 32 Bit IEEE floating point, big endian, range -1 to 1 */
     PA_SAMPLE_MAX,             /**< Upper limit of valid sample types */
     PA_SAMPLE_INVALID = -1     /**< An invalid value */
 } pa_sample_format_t;
@@ -100,7 +100,7 @@ int pa_sample_spec_valid(const pa_sample_spec *spec);
 /** Return non-zero when the two sample type specifications match */
 int pa_sample_spec_equal(const pa_sample_spec*a, const pa_sample_spec*b);
 
-/* Return a descriptive string for the specified sample format. \since 0.8 */
+/** Return a descriptive string for the specified sample format. \since 0.8 */
 const char *pa_sample_format_to_string(pa_sample_format_t f);
 
 /** Parse a sample format text. Inverse of pa_sample_format_to_string() */

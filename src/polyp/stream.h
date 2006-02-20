@@ -36,8 +36,7 @@
 
 PA_C_DECL_BEGIN
 
-/** \struct pa_stream
- * An opaque stream for playback or recording */
+/** An opaque stream for playback or recording */
 typedef struct pa_stream pa_stream;
 
 /** A generic callback for operation completion */
@@ -57,10 +56,10 @@ typedef void (*pa_stream_get_latency_info_cb_t)(pa_stream *p, const pa_latency_i
 
 /** Create a new, unconnected stream with the specified name and sample type */
 pa_stream* pa_stream_new(
-        pa_context *c,
-        const char *name,
-        const pa_sample_spec *ss,
-        const pa_channel_map *map);
+        pa_context *c                     /**< The context to create this stream in */,             
+        const char *name                  /**< A name for this stream */,
+        const pa_sample_spec *ss          /**< The desired sample format */,
+        const pa_channel_map *map         /**< The desired channel map, or NULL for default */);
 
 /** Decrease the reference counter by one */
 void pa_stream_unref(pa_stream *s);
@@ -88,10 +87,10 @@ int pa_stream_connect_playback(
 
 /** Connect the stream to a source */
 int pa_stream_connect_record(
-        pa_stream *s,
-        const char *dev,
-        const pa_buffer_attr *attr,
-        pa_stream_flags_t flags);
+        pa_stream *s                  /**< The stream to connect to a source */ ,
+        const char *dev               /**< Name of the source to connect to, or NULL for default */,
+        const pa_buffer_attr *attr    /**< Buffer attributes, or NULL for default */,
+        pa_stream_flags_t flags       /**< Additional flags, or 0 for default */);
 
 /** Disconnect a stream from a source/sink */
 int pa_stream_disconnect(pa_stream *s);
@@ -203,8 +202,11 @@ pa_usec_t pa_stream_get_interpolated_time(pa_stream *s);
  * stream. \since 0.6 */
 pa_usec_t pa_stream_get_interpolated_latency(pa_stream *s, int *negative);
 
-/** Return a pointer to the streams sample specification. \since 0.6 */
+/** Return a pointer to the stream's sample specification. \since 0.6 */
 const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s);
+
+/** Return a pointer to the stream's channel map. \since 0.8 */
+const pa_channel_map* pa_stream_get_channel_map(pa_stream *s);
 
 PA_C_DECL_END
 

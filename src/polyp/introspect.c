@@ -67,7 +67,7 @@ finish:
 }
 
 pa_operation* pa_context_stat(pa_context *c, void (*cb)(pa_context *c, const pa_stat_info*i, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_STAT, context_stat_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_STAT, context_stat_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 /*** Server Info ***/
@@ -107,7 +107,7 @@ finish:
 }
 
 pa_operation* pa_context_get_server_info(pa_context *c, void (*cb)(pa_context *c, const pa_server_info*i, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_SERVER_INFO, context_get_server_info_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_SERVER_INFO, context_get_server_info_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 /*** Sink Info ***/
@@ -161,7 +161,7 @@ finish:
 }
 
 pa_operation* pa_context_get_sink_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_sink_info *i, int is_last, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_SINK_INFO_LIST, context_get_sink_info_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_SINK_INFO_LIST, context_get_sink_info_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, const pa_sink_info *i, int is_last, void *userdata), void *userdata) {
@@ -171,7 +171,7 @@ pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t idx, voi
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -192,7 +192,7 @@ pa_operation* pa_context_get_sink_info_by_name(pa_context *c, const char *name, 
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -256,7 +256,7 @@ finish:
 }
 
 pa_operation* pa_context_get_source_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_source_info *i, int is_last, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_SOURCE_INFO_LIST, context_get_source_info_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_SOURCE_INFO_LIST, context_get_source_info_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, const pa_source_info *i, int is_last, void *userdata), void *userdata) {
@@ -266,7 +266,7 @@ pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t idx, v
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -287,7 +287,7 @@ pa_operation* pa_context_get_source_info_by_name(pa_context *c, const char *name
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -350,7 +350,7 @@ pa_operation* pa_context_get_client_info(pa_context *c, uint32_t idx, void (*cb)
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -364,7 +364,7 @@ pa_operation* pa_context_get_client_info(pa_context *c, uint32_t idx, void (*cb)
 }
 
 pa_operation* pa_context_get_client_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_client_info*i, int is_last, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_CLIENT_INFO_LIST, context_get_client_info_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_CLIENT_INFO_LIST, context_get_client_info_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 /*** Module info ***/
@@ -417,7 +417,7 @@ pa_operation* pa_context_get_module_info(pa_context *c, uint32_t idx, void (*cb)
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -431,7 +431,7 @@ pa_operation* pa_context_get_module_info(pa_context *c, uint32_t idx, void (*cb)
 }
 
 pa_operation* pa_context_get_module_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_module_info*i, int is_last, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_MODULE_INFO_LIST, context_get_module_info_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_MODULE_INFO_LIST, context_get_module_info_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 /*** Sink input info ***/
@@ -492,7 +492,7 @@ pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, void (
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -506,7 +506,7 @@ pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, void (
 }
 
 pa_operation* pa_context_get_sink_input_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_sink_input_info*i, int is_last, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_SINK_INPUT_INFO_LIST, context_get_sink_input_info_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_SINK_INPUT_INFO_LIST, context_get_sink_input_info_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 /*** Source output info ***/
@@ -566,7 +566,7 @@ pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, voi
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -580,7 +580,7 @@ pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, voi
 }
 
 pa_operation* pa_context_get_source_output_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_source_output_info*i, int is_last, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST, context_get_source_output_info_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST, context_get_source_output_info_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 /*** Volume manipulation ***/
@@ -592,7 +592,7 @@ pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, c
     assert(c && idx != PA_INVALID_INDEX);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -614,7 +614,7 @@ pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name
     assert(c && name);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -636,7 +636,7 @@ pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, cons
     assert(c && idx != PA_INVALID_INDEX);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -705,7 +705,7 @@ pa_operation* pa_context_get_sample_info_by_name(pa_context *c, const char *name
     assert(c && cb && name);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -726,7 +726,7 @@ pa_operation* pa_context_get_sample_info_by_index(pa_context *c, uint32_t idx, v
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -741,7 +741,7 @@ pa_operation* pa_context_get_sample_info_by_index(pa_context *c, uint32_t idx, v
 }
 
 pa_operation* pa_context_get_sample_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_sample_info *i, int is_last, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_SAMPLE_INFO_LIST, context_get_sample_info_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_SAMPLE_INFO_LIST, context_get_sample_info_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 static pa_operation* command_kill(pa_context *c, uint32_t command, uint32_t idx, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
@@ -751,7 +751,7 @@ static pa_operation* command_kill(pa_context *c, uint32_t command, uint32_t idx,
     assert(c && idx != PA_INVALID_INDEX);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -808,7 +808,7 @@ pa_operation* pa_context_load_module(pa_context *c, const char*name, const char 
     assert(c && name && argument);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -876,7 +876,7 @@ pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *na
     assert(c && cb && name);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -897,7 +897,7 @@ pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx,
     assert(c && cb && idx != PA_INVALID_INDEX);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -911,7 +911,7 @@ pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx,
 }
 
 pa_operation* pa_context_get_autoload_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata) {
-    return pa_context_send_simple_command(c, PA_COMMAND_GET_AUTOLOAD_INFO_LIST, context_get_autoload_info_callback, (pa_operation_callback) cb, userdata);
+    return pa_context_send_simple_command(c, PA_COMMAND_GET_AUTOLOAD_INFO_LIST, context_get_autoload_info_callback, (pa_operation_callback_t) cb, userdata);
 }
 
 static void context_add_autoload_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -948,7 +948,7 @@ pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autolo
     assert(c && name && module && argument);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -971,7 +971,7 @@ pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name
     assert(c && name);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -992,7 +992,7 @@ pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, v
     assert(c && idx != PA_INVALID_INDEX);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);

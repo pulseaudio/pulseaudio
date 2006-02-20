@@ -22,7 +22,6 @@
   USA.
 ***/
 
-#include <polyp/cdecl.h>
 #include <polyp/mainloop-api.h>
 #include <polyp/sample.h>
 #include <polyp/def.h>
@@ -33,12 +32,16 @@
 #include <polyp/scache.h>
 #include <polyp/version.h>
 #include <polyp/error.h>
+#include <polyp/operation.h>
+#include <polyp/channelmap.h>
+#include <polyp/volume.h>
 
 /** \file
- * Include all polyplib header file at once. The following files are included: \ref mainloop-api.h, \ref sample.h,
- * \ref def.h, \ref context.h, \ref stream.h,
- * \ref introspect.h, \ref subscribe.h, \ref scache.h, \ref version.h \ref error.h
- * at once */
+ * Include all polyplib header file at once. The following
+ * files are included: \ref mainloop-api.h, \ref sample.h, \ref def.h,
+ * \ref context.h, \ref stream.h, \ref introspect.h, \ref subscribe.h,
+ * \ref scache.h, \ref version.h, \ref error.h, \ref channelmap.h,
+ * \ref operation.h and \ref volume.h at once */
 
 /** \mainpage
  *

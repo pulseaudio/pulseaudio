@@ -56,14 +56,14 @@ finish:
 }
 
 
-pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, void (*cb)(pa_context *c, int success, void *userdata), void *userdata) {
+pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
     assert(c);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -76,7 +76,7 @@ pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, void
     return pa_operation_ref(o);
 }
 
-void pa_context_set_subscribe_callback(pa_context *c, void (*cb)(pa_context *c, pa_subscription_event_type_t t, uint32_t index, void *userdata), void *userdata) {
+void pa_context_set_subscribe_callback(pa_context *c, pa_context_subscribe_cb_t cb, void *userdata) {
     assert(c);
     c->subscribe_callback = cb;
     c->subscribe_userdata = userdata;

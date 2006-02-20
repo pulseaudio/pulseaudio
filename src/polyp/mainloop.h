@@ -35,9 +35,7 @@ PA_C_DECL_BEGIN
  * defined in \ref mainloop-api.h. This implementation is thread safe
  * as long as you access the main loop object from a single thread only.*/
 
-/** \struct pa_mainloop
- * An opaque main loop object
- */
+/** An opaque main loop object */
 typedef struct pa_mainloop pa_mainloop;
 
 /** Allocate a new main loop object */
@@ -52,8 +50,10 @@ poll, or -1 for blocking behaviour. Defer events are also dispatched when this
 function is called. On success returns the number of source dispatched in this
 iteration.*/
 int pa_mainloop_prepare(pa_mainloop *m, int timeout);
+
 /** Execute the previously prepared poll. Returns a negative value on error.*/
 int pa_mainloop_poll(pa_mainloop *m);
+
 /** Dispatch timeout and io events from the previously executed poll. Returns
 a negative value on error. On success returns the number of source dispatched. */
 int pa_mainloop_dispatch(pa_mainloop *m);

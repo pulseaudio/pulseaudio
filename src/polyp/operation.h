@@ -30,8 +30,7 @@
 
 PA_C_DECL_BEGIN
 
-/** \struct pa_operation
- * An asynchronous operation object */
+/** An asynchronous operation object */
 typedef struct pa_operation pa_operation;
 
 /** Increase the reference count by one */

@@ -742,7 +742,7 @@ pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *u
 
     o = pa_operation_new(c, NULL);
     assert(o);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     set_dispatch_callbacks(pa_operation_ref(o));
@@ -812,7 +812,7 @@ pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_co
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -832,7 +832,7 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
     assert(c && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -857,7 +857,7 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
     assert(c && name && cb);
 
     o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback) cb;
+    o->callback = (pa_operation_callback_t) cb;
     o->userdata = userdata;
 
     t = pa_tagstruct_new(NULL, 0);
