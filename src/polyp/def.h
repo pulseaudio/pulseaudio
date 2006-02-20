@@ -64,7 +64,7 @@ typedef enum pa_operation_state {
 /** An invalid index */
 #define PA_INVALID_INDEX ((uint32_t) -1)
 
-/** Some special flags for contexts. \ since 0.8 */
+/** Some special flags for contexts. \since 0.8 */
 typedef enum pa_context_flags {
     PA_CONTEXT_NOAUTOSPAWN = 1 /**< Disabled autospawning of the polypaudio daemon if required */
 } pa_context_flags_t;

@@ -49,8 +49,7 @@
 
 PA_C_DECL_BEGIN
 
-/** \struct pa_context
- * An opaque connection context to a daemon */
+/** An opaque connection context to a daemon */
 typedef struct pa_context pa_context;
 
 /** Generic notification callback prototype */
