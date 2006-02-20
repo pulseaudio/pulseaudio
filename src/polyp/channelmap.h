@@ -30,7 +30,8 @@
 
 PA_C_DECL_BEGIN
 
-typedef enum {
+/** A list of channel labels */
+typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_INVALID = -1,
     PA_CHANNEL_POSITION_MONO = 0,
 
@@ -75,23 +76,39 @@ typedef enum {
     PA_CHANNEL_POSITION_MAX
 } pa_channel_position_t;
 
+/** A channel map which can be used to attach labels to specific
+ * channels of a stream. These values are relevant for conversion and
+ * mixing of streams */
 typedef struct pa_channel_map {
-    uint8_t channels;
-    pa_channel_position_t map[PA_CHANNELS_MAX];
+    uint8_t channels; /**< Number of channels */
+    pa_channel_position_t map[PA_CHANNELS_MAX]; /**< Channel labels */
 } pa_channel_map;
 
+/** Initialize the specified channel map and return a pointer to it */
 pa_channel_map* pa_channel_map_init(pa_channel_map *m);
+
+/** Initialize the specified channel map for monoaural audio and return a pointer to it */
 pa_channel_map* pa_channel_map_init_mono(pa_channel_map *m);
+
+/** Initialize the specified channel map for stereophonic audio and return a pointer to it */
 pa_channel_map* pa_channel_map_init_stereo(pa_channel_map *m);
+
+/** Initialize the specified channel map for the specified number of channels using default labels and return a pointer to it */
 pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels);
 
+/** Return a text label for the specified channel position */
 const char* pa_channel_position_to_string(pa_channel_position_t pos);
 
+/** The maximum length of strings returned by pa_channel_map_snprint() */
 #define PA_CHANNEL_MAP_SNPRINT_MAX 64
+
+/** Make a humand readable string from the specified channel map */
 char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map);
 
+/** Compare two channel maps. Return 0 if both match. */
 int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b);
 
+/** Return non-zero of the specified channel map is considered valid */
 int pa_channel_map_valid(const pa_channel_map *map);
 
 PA_C_DECL_END
