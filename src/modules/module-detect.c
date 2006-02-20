@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <polypcore/module.h>
 #include <polypcore/modargs.h>
@@ -187,7 +189,7 @@ static int detect_solaris(pa_core *c, int just_one) {
         return -1;
     }
 
-    if (!S_ISCHR(s))
+    if (!S_ISCHR(s.st_mode))
         return 0;
 
     snprintf(args, sizeof(args), "device=%s", dev);
