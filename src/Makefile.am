@@ -260,7 +260,7 @@ memblockq_test_SOURCES = \
 	polypcore/mcalign.c \
 	polypcore/memchunk.c
 memblockq_test_CFLAGS = $(AM_CFLAGS)
-memblockq_test_LDADD = $(AM_LDADD)
+memblockq_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS)
 memblockq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 sync_playback_SOURCES = tests/sync-playback.c
