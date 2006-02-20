@@ -1,14 +1,16 @@
 *** $Id$ ***
 
-Architectural changes:
-- add API for synchronizing multiple sinks/sources to a common clock
-- absolutely indexed write()s from client
+Test:
+- module-combine
+- latency foo
 
 Fixes:
 - improve module-oss-mmap latency measurement
 - module-tunnel: improve latency calculation
 - make alsa modules use mmap
-- even more commenting
+- better validity checking in libpolyp and protocol-{native,esound}
+- don't build ipv4 and ipv6 modules seperately
+- change pa_log to not require \n
 
 Features:
 - add radio module
@@ -16,6 +18,12 @@ Features:
 - polish for starting polypaudio as root/system-wide instance
 - add threading API
 - add support for auth using SCM_CREDENTIALS
+- include hw description in sink/source info
+- use scatter/gather io for sockets
+- hw volume support for alsa, oss-mmap, windows, solaris
+- notifcation on hw volume change
+- source volume control
+- deal with underflows reported by OSS/ALSA properly
 
 Long term:
 - pass meta info for hearing impaired
@@ -34,4 +42,5 @@ Done:
 - hardware volume support
 - alsa-lib
 - remove "polyplib-" prefix
-
+- add API for synchronizing multiple sinks/sources to a common clock
+- absolutely indexed write()s from client
