@@ -624,6 +624,7 @@ int pa_context_connect(
 
     PA_CHECK_VALIDITY(c, c->state == PA_CONTEXT_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(c, !(flags & ~PA_CONTEXT_NOAUTOSPAWN), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(c, !server || *server, PA_ERR_INVALID);
 
     if (!server)
         server = c->conf->default_server;
