@@ -51,8 +51,6 @@ enum {
     PA_TAG_CVOLUME = 'v'
 };
 
-
-
 pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length);
 void pa_tagstruct_free(pa_tagstruct*t);
 uint8_t* pa_tagstruct_free_data(pa_tagstruct*t, size_t *l);

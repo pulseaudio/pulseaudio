@@ -34,15 +34,17 @@
 
 #include "scache.h"
 
-void pa_stream_connect_upload(pa_stream *s, size_t length) {
+int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_tagstruct *t;
     uint32_t tag;
     
-    assert(s && length);
+    assert(s);
 
+    PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, length <= 0, PA_ERR_INVALID);
+    
     pa_stream_ref(s);
     
-    s->state = PA_STREAM_CREATING;
     s->direction = PA_STREAM_UPLOAD;
 
     t = pa_tagstruct_new(NULL, 0);
@@ -54,22 +56,23 @@ void pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_create_stream_callback, s);
 
+    pa_stream_set_state(s, PA_STREAM_CREATING);
+    
     pa_stream_unref(s);
+    return 0;
 }
 
-void pa_stream_finish_upload(pa_stream *s) {
+int pa_stream_finish_upload(pa_stream *s) {
     pa_tagstruct *t;
     uint32_t tag;
     assert(s);
 
-    if (!s->channel_valid || !s->context->state == PA_CONTEXT_READY)
-        return;
+    PA_CHECK_VALIDITY(s->context, s->channel_valid, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, s->context->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
     pa_stream_ref(s);
 
     t = pa_tagstruct_new(NULL, 0);
-    assert(t);
-    
     pa_tagstruct_putu32(t, PA_COMMAND_FINISH_UPLOAD_STREAM);
     pa_tagstruct_putu32(t, tag = s->context->ctag++);
     pa_tagstruct_putu32(t, s->channel);
@@ -77,53 +80,59 @@ void pa_stream_finish_upload(pa_stream *s) {
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_disconnect_callback, s);
 
     pa_stream_unref(s);
+    return 0;
 }
 
-pa_operation * pa_context_play_sample(pa_context *c, const char *name, const char *dev, uint32_t volume, pa_context_success_cb_t cb, void *userdata) {
+pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char *dev, pa_volume_t volume, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
-    assert(c && name && *name && (!dev || *dev));
 
-    o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback_t) cb;
-    o->userdata = userdata;
+    assert(c);
+    assert(c->ref >= 1);
+    
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !dev || *dev, PA_ERR_INVALID);
+    
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     if (!dev)
         dev = c->conf->default_sink;
     
     t = pa_tagstruct_new(NULL, 0);
-    assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_PLAY_SAMPLE);
     pa_tagstruct_putu32(t, tag = c->ctag++);
-    pa_tagstruct_putu32(t, (uint32_t) -1);
+    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, dev);
     pa_tagstruct_putu32(t, volume);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
 
-    return pa_operation_ref(o);
+    return o;
 }
 
 pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
-    assert(c && name);
 
-    o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback_t) cb;
-    o->userdata = userdata;
+    assert(c);
+    assert(c->ref >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
+    
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
     
     t = pa_tagstruct_new(NULL, 0);
-    assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_REMOVE_SAMPLE);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, o);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
 
-    return pa_operation_ref(o);
+    return o;
 }
 

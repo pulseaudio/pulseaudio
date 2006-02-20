@@ -40,7 +40,7 @@ struct pa_iochannel {
     int ifd, ofd;
     pa_mainloop_api* mainloop;
 
-    pa_iochannel_callback_t callback;
+    pa_iochannel_cb_t callback;
     void*userdata;
     
     int readable;
@@ -242,7 +242,7 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
     return r;
 }
 
-void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_callback_t _callback, void *userdata) {
+void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_cb_t _callback, void *userdata) {
     assert(io);
     
     io->callback = _callback;

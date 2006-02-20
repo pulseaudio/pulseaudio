@@ -72,7 +72,7 @@
 
 #define AUTOSPAWN_LOCK "autospawn.lock"
 
-static const pa_pdispatch_callback_t command_table[PA_COMMAND_MAX] = {
+static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = pa_command_request,
     [PA_COMMAND_OVERFLOW] = pa_command_overflow_or_underflow,
     [PA_COMMAND_UNDERFLOW] = pa_command_overflow_or_underflow,
@@ -95,9 +95,11 @@ static void unlock_autospawn_lock_file(pa_context *c) {
 
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     pa_context *c;
-    assert(mainloop && name);
     
-    c = pa_xmalloc(sizeof(pa_context));
+    assert(mainloop);
+    assert(name);
+    
+    c = pa_xnew(pa_context, 1);
     c->ref = 1;
     c->name = pa_xstrdup(name);
     c->mainloop = mainloop;
@@ -106,7 +108,6 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     c->pdispatch = NULL;
     c->playback_streams = pa_dynarray_new();
     c->record_streams = pa_dynarray_new();
-    assert(c->playback_streams && c->record_streams);
 
     PA_LLIST_HEAD_INIT(pa_stream, c->streams);
     PA_LLIST_HEAD_INIT(pa_operation, c->operations);
@@ -182,20 +183,24 @@ static void context_free(pa_context *c) {
 }
 
 pa_context* pa_context_ref(pa_context *c) {
-    assert(c && c->ref >= 1);
+    assert(c);
+    assert(c->ref >= 1);
+    
     c->ref++;
     return c;
 }
 
 void pa_context_unref(pa_context *c) {
-    assert(c && c->ref >= 1);
+    assert(c);
+    assert(c->ref >= 1);
 
-    if ((--(c->ref)) == 0)
+    if (--c->ref <= 0)
         context_free(c);
 }
 
 void pa_context_set_state(pa_context *c, pa_context_state_t st) {
     assert(c);
+    assert(c->ref >= 1);
     
     if (c->state == st)
         return;
@@ -237,13 +242,15 @@ void pa_context_set_state(pa_context *c, pa_context_state_t st) {
 
 void pa_context_fail(pa_context *c, int error) {
     assert(c);
-
+    assert(c->ref >= 1);
+    
     pa_context_set_error(c, error);
     pa_context_set_state(c, PA_CONTEXT_FAILED);
 }
 
 int pa_context_set_error(pa_context *c, int error) {
-    assert(error >= 0 && error < PA_ERR_MAX);
+    assert(error >= 0);
+    assert(error < PA_ERR_MAX);
 
     if (c)
         c->error = error;
@@ -253,20 +260,24 @@ int pa_context_set_error(pa_context *c, int error) {
 
 static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_context *c = userdata;
-    assert(p && c);
+
+    assert(p);
+    assert(c);
+    
     pa_context_fail(c, PA_ERR_CONNECTIONTERMINATED);
 }
 
 static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *userdata) {
     pa_context *c = userdata;
-    assert(p && packet && c);
+    
+    assert(p);
+    assert(packet);
+    assert(c);
 
     pa_context_ref(c);
     
-    if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
-        pa_log(__FILE__": invalid packet.\n");
+    if (pa_pdispatch_run(c->pdispatch, packet, c) < 0)
         pa_context_fail(c, PA_ERR_PROTOCOL);
-    }
 
     pa_context_unref(c);
 }
@@ -280,6 +291,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     assert(chunk->memblock);
     assert(chunk->length);
     assert(c);
+    assert(c->ref >= 1);
 
     pa_context_ref(c);
     
@@ -301,6 +313,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
 int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t) {
     assert(c);
+    assert(c->ref >= 1);
 
     if (command == PA_COMMAND_ERROR) {
         assert(t);
@@ -322,7 +335,10 @@ int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t) {
 
 static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
-    assert(pd && c && (c->state == PA_CONTEXT_AUTHORIZING || c->state == PA_CONTEXT_SETTING_NAME));
+    
+    assert(pd);
+    assert(c);
+    assert(c->state == PA_CONTEXT_AUTHORIZING || c->state == PA_CONTEXT_SETTING_NAME);
 
     pa_context_ref(c);
     
@@ -364,13 +380,14 @@ finish:
 static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_tagstruct *t;
     uint32_t tag;
-    assert(c && io);
+    
+    assert(c);
+    assert(io);
 
     pa_context_ref(c);
     
     assert(!c->pstream);
     c->pstream = pa_pstream_new(c->mainloop, io, c->memblock_stat);
-    assert(c->pstream);
     
     pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
@@ -378,7 +395,6 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
 
     assert(!c->pdispatch);
     c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
-    assert(c->pdispatch);
 
     if (!c->conf->cookie_valid) {
         pa_context_fail(c, PA_ERR_AUTHKEY);
@@ -386,7 +402,6 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     }
 
     t = pa_tagstruct_new(NULL, 0);
-    assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
@@ -522,11 +537,12 @@ fail:
 static int try_next_connection(pa_context *c) {
     char *u = NULL;
     int r = -1;
-    assert(c && !c->client);
+    
+    assert(c);
+    assert(!c->client);
 
     for (;;) {
-        if (u)
-            pa_xfree(u);
+        pa_xfree(u);
         u = NULL;
         
         c->server_list = pa_strlist_pop(c->server_list, &u);
@@ -560,15 +576,17 @@ static int try_next_connection(pa_context *c) {
     r = 0;
 
 finish:
-    if (u)
-        pa_xfree(u);
+    pa_xfree(u);
     
     return r;
 }
 
 static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userdata) {
     pa_context *c = userdata;
-    assert(client && c && c->state == PA_CONTEXT_CONNECTING);
+    
+    assert(client);
+    assert(c);
+    assert(c->state == PA_CONTEXT_CONNECTING);
 
     pa_context_ref(c);
 
@@ -593,9 +611,19 @@ finish:
     pa_context_unref(c);
 }
 
-int pa_context_connect(pa_context *c, const char *server, pa_context_flags_t flags, const pa_spawn_api *api) {
+int pa_context_connect(
+        pa_context *c,
+        const char *server,
+        pa_context_flags_t flags,
+        const pa_spawn_api *api) {
+    
     int r = -1;
-    assert(c && c->ref >= 1 && c->state == PA_CONTEXT_UNCONNECTED);
+    
+    assert(c);
+    assert(c->ref >= 1);
+
+    PA_CHECK_VALIDITY(c, c->state == PA_CONTEXT_UNCONNECTED, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(c, !(flags & ~PA_CONTEXT_NOAUTOSPAWN), PA_ERR_INVALID);
 
     if (!server)
         server = c->conf->default_server;
@@ -658,27 +686,36 @@ finish:
 
 void pa_context_disconnect(pa_context *c) {
     assert(c);
+    assert(c->ref >= 1);
+    
     pa_context_set_state(c, PA_CONTEXT_TERMINATED);
 }
 
 pa_context_state_t pa_context_get_state(pa_context *c) {
-    assert(c && c->ref >= 1);
+    assert(c);
+    assert(c->ref >= 1);
+    
     return c->state;
 }
 
 int pa_context_errno(pa_context *c) {
-    assert(c && c->ref >= 1);
+    assert(c);
+    assert(c->ref >= 1);
+    
     return c->error;
 }
 
 void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, void *userdata) {
-    assert(c && c->ref >= 1);
+    assert(c);
+    assert(c->ref >= 1);
+    
     c->state_callback = cb;
     c->state_userdata = userdata;
 }
 
 int pa_context_is_pending(pa_context *c) {
-    assert(c && c->ref >= 1);
+    assert(c);
+    assert(c->ref >= 1);
 
 /*     pa_log("pstream: %i\n", pa_pstream_is_pending(c->pstream)); */
 /*     pa_log("pdispatch: %i\n", pa_pdispatch_is_pending(c->pdispatch)); */
@@ -700,7 +737,12 @@ static void pstream_drain_callback(PA_GCC_UNUSED pa_pstream *s, void *userdata) 
 
 static void set_dispatch_callbacks(pa_operation *o) {
     int done = 1;
-    assert(o && o->context && o->context->ref >= 1 && o->ref >= 1 && o->context->state == PA_CONTEXT_READY);
+    
+    assert(o);
+    assert(o->ref >= 1);
+    assert(o->context);
+    assert(o->context->ref >= 1);
+    assert(o->context->state == PA_CONTEXT_READY);
 
     pa_pstream_set_drain_callback(o->context->pstream, NULL, NULL);
     pa_pdispatch_set_drain_callback(o->context->pdispatch, NULL, NULL);
@@ -719,8 +761,7 @@ static void set_dispatch_callbacks(pa_operation *o) {
         pa_operation_ref(o);
     else {
         if (o->callback) {
-            void (*cb)(pa_context *c, void *userdata);
-            cb = (void (*)(pa_context*, void*)) o->callback;
+            pa_context_notify_cb_t cb = (pa_context_notify_cb_t) o->callback;
             cb(o->context, o->userdata);
         }
         
@@ -732,39 +773,27 @@ static void set_dispatch_callbacks(pa_operation *o) {
 
 pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *userdata) {
     pa_operation *o;
-    assert(c && c->ref >= 1);
+    
+    assert(c);
+    assert(c->ref >= 1);
 
-    if (c->state != PA_CONTEXT_READY)
-        return NULL;
-
-    if (!pa_context_is_pending(c))
-        return NULL;
-
-    o = pa_operation_new(c, NULL);
-    assert(o);
-    o->callback = (pa_operation_callback_t) cb;
-    o->userdata = userdata;
-
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, pa_context_is_pending(c), PA_ERR_BADSTATE);
+    
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
     set_dispatch_callbacks(pa_operation_ref(o));
 
     return o;
 }
 
-void pa_context_exit_daemon(pa_context *c) {
-    pa_tagstruct *t;
-    assert(c && c->ref >= 1);
-    
-    t = pa_tagstruct_new(NULL, 0);
-    assert(t);
-    pa_tagstruct_putu32(t, PA_COMMAND_EXIT);
-    pa_tagstruct_putu32(t, c->ctag++);
-    pa_pstream_send_tagstruct(c->pstream, t);
-}
-
 void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int success = 1;
-    assert(pd && o && o->context && o->ref >= 1);
+    
+    assert(pd);
+    assert(o);
+    assert(o->ref >= 1);
+    assert(o->context);
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -786,67 +815,95 @@ finish:
     pa_operation_unref(o);
 }
 
-pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, void (*internal_callback)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata), void (*cb)(void), void *userdata) {
+pa_operation* pa_context_exit_daemon(pa_context *c, pa_context_success_cb_t cb, void *userdata) {
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
-    assert(c && cb);
 
-    o = pa_operation_new(c, NULL);
-    o->callback = cb;
-    o->userdata = userdata;
+    assert(c);
+    assert(c->ref >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+    
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_EXIT);
+    pa_tagstruct_putu32(t, tag = c->ctag++);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+
+    return o;
+}
+
+pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, pa_pdispatch_cb_t internal_cb, pa_operation_cb_t cb, void *userdata) {
+    pa_tagstruct *t;
+    pa_operation *o;
+    uint32_t tag;
+    
+    assert(c);
+    assert(c->ref >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    
+    o = pa_operation_new(c, NULL, cb, o->userdata);
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, command);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, internal_callback, o);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, internal_cb, pa_operation_ref(o));
 
-    return pa_operation_ref(o);
+    return o;
 }
 
 pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata) {
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
-    assert(c && cb);
+    
+    assert(c);
+    assert(c->ref >= 1);
 
-    o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback_t) cb;
-    o->userdata = userdata;
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SET_DEFAULT_SINK);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, o);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o));
 
-    return pa_operation_ref(o);
+    return o;
 }
 
 pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata) {
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
-    assert(c && cb);
 
-    o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback_t) cb;
-    o->userdata = userdata;
+    assert(c);
+    assert(c->ref >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SET_DEFAULT_SOURCE);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, o);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o));
 
-    return pa_operation_ref(o);
+    return o;
 }
 
 int pa_context_is_local(pa_context *c) {
     assert(c);
+    
     return c->local;
 }
 
@@ -854,20 +911,23 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
-    assert(c && name && cb);
 
-    o = pa_operation_new(c, NULL);
-    o->callback = (pa_operation_callback_t) cb;
-    o->userdata = userdata;
+    assert(c);
+    assert(c->ref >= 1);
+    assert(name);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SET_CLIENT_NAME);
     pa_tagstruct_putu32(t, tag = c->ctag++);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, o);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o));
 
-    return pa_operation_ref(o);
+    return o;
 }
 
 const char* pa_get_library_version(void) {
@@ -875,6 +935,8 @@ const char* pa_get_library_version(void) {
 }
 
 const char* pa_context_get_server(pa_context *c) {
+    assert(c);
+    assert(c->ref >= 1);
 
     if (!c->server)
         return NULL;

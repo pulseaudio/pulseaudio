@@ -34,11 +34,11 @@
 PA_C_DECL_BEGIN
 
 /** Make this stream a sample upload stream */
-void pa_stream_connect_upload(pa_stream *s, size_t length);
+int pa_stream_connect_upload(pa_stream *s, size_t length);
 
 /** Finish the sample upload, the stream name will become the sample name. You cancel a samp
  * le upload by issuing pa_stream_disconnect() */
-void pa_stream_finish_upload(pa_stream *s);
+int pa_stream_finish_upload(pa_stream *s);
 
 /** Play a sample from the sample cache to the specified device. If the latter is NULL use the default sink. Returns an operation object */
 pa_operation* pa_context_play_sample(

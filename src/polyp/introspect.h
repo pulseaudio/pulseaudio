@@ -36,11 +36,12 @@
  * of a certain kind, use the pa_context_xxx_list() functions. The
  * specified callback function is called once for each entry. The
  * enumeration is finished by a call to the callback function with
- * is_last=1 and i=NULL. Strings referenced in pa_xxx_info structures
- * and the structures themselves point to internal memory that may not
- * be modified. That memory is only valid during the call to the
- * callback function. A deep copy is required if you need this data
- * outside the callback functions. An error is signalled by a call to * the callback function with i=NULL and is_last=0.
+ * eol=1 and i=NULL. Strings referenced in pa_xxx_info structures and
+ * the structures themselves point to internal memory that may not be
+ * modified. That memory is only valid during the call to the callback
+ * function. A deep copy is required if you need this data outside the
+ * callback functions. An error is signalled by a call to the callback
+ * function with i=NULL and eol=0.
  *
  * When using the routines that ask fo a single entry only, a callback
  * with the same signature is used. However, no finishing call to the
@@ -63,14 +64,17 @@ typedef struct pa_sink_info {
     const char *driver;                /**< Driver name. \since 0.9 */
 } pa_sink_info;
 
+/** Callback prototype for pa_context_get_sink_info_by_name() and friends */
+typedef void (*pa_sink_info_cb_t)(pa_context *c, const pa_sink_info *i, int eol, void *userdata);
+
 /** Get information about a sink by its name */
-pa_operation* pa_context_get_sink_info_by_name(pa_context *c, const char *name, void (*cb)(pa_context *c, const pa_sink_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_sink_info_by_name(pa_context *c, const char *name, pa_sink_info_cb_t cb, void *userdata);
 
 /** Get information about a sink by its index */
-pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t id, void (*cb)(pa_context *c, const pa_sink_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t id, pa_sink_info_cb_t cb, void *userdata);
 
 /** Get the complete sink list */
-pa_operation* pa_context_get_sink_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_sink_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_sink_info_list(pa_context *c, pa_sink_info_cb_t cb, void *userdata);
 
 /** Stores information about sources */
 typedef struct pa_source_info { 
@@ -86,14 +90,17 @@ typedef struct pa_source_info {
     const char *driver;                 /**< Driver name \since 0.9 */
 } pa_source_info;
 
+/** Callback prototype for pa_context_get_source_info_by_name() and friends */
+typedef void (*pa_source_info_cb_t)(pa_context *c, const pa_source_info *i, int eol, void *userdata);
+
 /** Get information about a source by its name */
-pa_operation* pa_context_get_source_info_by_name(pa_context *c, const char *name, void (*cb)(pa_context *c, const pa_source_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_source_info_by_name(pa_context *c, const char *name, pa_source_info_cb_t cb, void *userdata);
 
 /** Get information about a source by its index */
-pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t id, void (*cb)(pa_context *c, const pa_source_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t id, pa_source_info_cb_t cb, void *userdata);
 
 /** Get the complete source list */
-pa_operation* pa_context_get_source_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_source_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_source_info_list(pa_context *c, pa_source_info_cb_t cb, void *userdata);
 
 /** Server information */
 typedef struct pa_server_info {
@@ -107,8 +114,11 @@ typedef struct pa_server_info {
     uint32_t cookie;                    /**< A random cookie for identifying this instance of polypaudio. \since 0.8 */
 } pa_server_info;
 
+/** Callback prototype for pa_context_get_server_info() */
+typedef void (*pa_server_info_cb_t) (pa_context *c, const pa_server_info*i, void *userdata);
+
 /** Get some information about the server */
-pa_operation* pa_context_get_server_info(pa_context *c, void (*cb)(pa_context *c, const pa_server_info*i, void *userdata), void *userdata);
+pa_operation* pa_context_get_server_info(pa_context *c, pa_server_info_cb_t cb, void *userdata);
 
 /** Stores information about modules */
 typedef struct pa_module_info {
@@ -119,11 +129,14 @@ typedef struct pa_module_info {
     int auto_unload;                    /**< Non-zero if this is an autoloaded module */
 } pa_module_info;
 
+/** Callback prototype for pa_context_get_module_info() and firends*/
+typedef void (*pa_module_info_cb_t) (pa_context *c, const pa_module_info*i, int eol, void *userdata);
+
 /** Get some information about a module by its index */
-pa_operation* pa_context_get_module_info(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, const pa_module_info*i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_module_info(pa_context *c, uint32_t idx, pa_module_info_cb_t cb, void *userdata);
 
 /** Get the complete list of currently loaded modules */
-pa_operation* pa_context_get_module_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_module_info*i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_module_info_list(pa_context *c, pa_module_info_cb_t cb, void *userdata);
 
 /** Stores information about clients */
 typedef struct pa_client_info {
@@ -133,11 +146,14 @@ typedef struct pa_client_info {
     const char *driver;                  /**< Driver name \since 0.9 */
 } pa_client_info;
 
+/** Callback prototype for pa_context_get_client_info() and firends*/
+typedef void (*pa_client_info_cb_t) (pa_context *c, const pa_client_info*i, int eol, void *userdata);
+
 /** Get information about a client by its index */
-pa_operation* pa_context_get_client_info(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, const pa_client_info*i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_client_info(pa_context *c, uint32_t idx, pa_client_info_cb_t cb, void *userdata);
 
 /** Get the complete client list */
-pa_operation* pa_context_get_client_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_client_info*i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_client_info_list(pa_context *c, pa_client_info_cb_t cb, void *userdata);
 
 /** Stores information about sink inputs */
 typedef struct pa_sink_input_info {
@@ -155,11 +171,14 @@ typedef struct pa_sink_input_info {
     const char *driver;                  /**< Driver name \since 0.9 */
 } pa_sink_input_info;
 
+/** Callback prototype for pa_context_get_sink_input_info() and firends*/
+typedef void (*pa_sink_input_info_cb_t) (pa_context *c, const pa_sink_input_info *i, int eol, void *userdata);
+
 /** Get some information about a sink input by its index */
-pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, const pa_sink_input_info*i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, pa_sink_input_info_cb_t cb, void *userdata);
 
 /** Get the complete sink input list */
-pa_operation* pa_context_get_sink_input_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_sink_input_info*i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_sink_input_info_list(pa_context *c, pa_sink_input_info_cb_t cb, void *userdata);
 
 /** Stores information about source outputs */
 typedef struct pa_source_output_info {
@@ -176,20 +195,23 @@ typedef struct pa_source_output_info {
     const char *driver;                  /**< Driver name \since 0.9 */
 } pa_source_output_info;
 
+/** Callback prototype for pa_context_get_source_output_info() and firends*/
+typedef void (*pa_source_output_info_cb_t) (pa_context *c, const pa_source_output_info *i, int eol, void *userdata);
+
 /** Get information about a source output by its index */
-pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, const pa_source_output_info*i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, pa_source_output_info_cb_t cb, void *userdata);
 
 /** Get the complete list of source outputs */
-pa_operation* pa_context_get_source_output_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_source_output_info*i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_source_output_info_list(pa_context *c, pa_source_output_info_cb_t cb, void *userdata);
 
 /** Set the volume of a sink device specified by its index */
-pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
 
 /** Set the volume of a sink device specified by its name */
-pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
 
 /** Set the volume of a sink input stream */
-pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
 
 /** Memory block statistics */
 typedef struct pa_stat_info {
@@ -200,8 +222,11 @@ typedef struct pa_stat_info {
     uint32_t scache_size;              /**< Total size of all sample cache entries. \since 0.4 */ 
 } pa_stat_info;
 
+/** Callback prototype for pa_context_stat() */
+typedef void (*pa_stat_info_cb_t) (pa_context *c, const pa_stat_info *i, void *userdata);
+
 /** Get daemon memory block statistics */
-pa_operation* pa_context_stat(pa_context *c, void (*cb)(pa_context *c, const pa_stat_info *i, void *userdata), void *userdata);
+pa_operation* pa_context_stat(pa_context *c, pa_stat_info_cb_t cb, void *userdata);
 
 /** Stores information about sample cache entries */
 typedef struct pa_sample_info {
@@ -216,29 +241,35 @@ typedef struct pa_sample_info {
     const char *filename;                 /**< In case this is a lazy cache entry, the filename for the sound file to be loaded on demand. \since 0.5 */
 } pa_sample_info;
 
+/** Callback prototype for pa_context_get_sample_info_by_name() and firends */
+typedef void (*pa_sample_info_cb_t)(pa_context *c, const pa_sample_info *i, int eol, void *userdata);
+
 /** Get information about a sample by its name */
-pa_operation* pa_context_get_sample_info_by_name(pa_context *c, const char *name, void (*cb)(pa_context *c, const pa_sample_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_sample_info_by_name(pa_context *c, const char *name, pa_sample_info_cb_t cb, void *userdata);
 
 /** Get information about a sample by its index */
-pa_operation* pa_context_get_sample_info_by_index(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, const pa_sample_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_sample_info_by_index(pa_context *c, uint32_t idx, pa_sample_info_cb_t cb, void *userdata);
 
 /** Get the complete list of samples stored in the daemon. */
-pa_operation* pa_context_get_sample_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_sample_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_sample_info_list(pa_context *c, pa_sample_info_cb_t cb, void *userdata);
 
 /** Kill a client. \since 0.5 */
-pa_operation* pa_context_kill_client(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_kill_client(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
                                             
 /** Kill a sink input. \since 0.5 */
-pa_operation* pa_context_kill_sink_input(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_kill_sink_input(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
 
 /** Kill a source output. \since 0.5 */
-pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
+
+/** Callback prototype for pa_context_load_module() and pa_context_add_autoload() */
+typedef void (*pa_context_index_cb_t)(pa_context *c, uint32_t idx, void *userdata);
 
 /** Load a module. \since 0.5 */
-pa_operation* pa_context_load_module(pa_context *c, const char*name, const char *argument, void (*cb)(pa_context *c, uint32_t idx, void *userdata), void *userdata);
+pa_operation* pa_context_load_module(pa_context *c, const char*name, const char *argument, pa_context_index_cb_t cb, void *userdata);
 
 /** Unload a module. \since 0.5 */
-pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, int success, void *userdata), void *userdata);
+pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
 
 /** Type of an autoload entry. \since 0.5 */
 typedef enum pa_autoload_type {
@@ -255,23 +286,26 @@ typedef struct pa_autoload_info {
     const char *argument;         /**< Argument string for module */
 } pa_autoload_info;
 
-/** Get info about a specific autoload entry. \since 0.6 */
-pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type_t type, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata);
+/** Callback prototype for pa_context_get_autoload_info_by_name() and firends */
+typedef void (*pa_autoload_info_cb_t)(pa_context *c, const pa_autoload_info *i, int eol, void *userdata);
 
 /** Get info about a specific autoload entry. \since 0.6 */
-pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_autoload_info_cb_t cb, void *userdata);
+
+/** Get info about a specific autoload entry. \since 0.6 */
+pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx, pa_autoload_info_cb_t cb, void *userdata);
 
 /** Get the complete list of autoload entries. \since 0.5 */
-pa_operation* pa_context_get_autoload_info_list(pa_context *c, void (*cb)(pa_context *c, const pa_autoload_info *i, int is_last, void *userdata), void *userdata);
+pa_operation* pa_context_get_autoload_info_list(pa_context *c, pa_autoload_info_cb_t cb, void *userdata);
 
 /** Add a new autoload entry. \since 0.5 */
-pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type_t type, const char *module, const char*argument, void (*cb)(pa_context *c, int idx, void *userdata), void* userdata);
+pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type_t type, const char *module, const char*argument, pa_context_index_cb_t, void* userdata);
 
 /** Remove an autoload entry. \since 0.6 */
-pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type_t type, void (*cb)(pa_context *c, int success, void *userdata), void* userdata);
+pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_context_success_cb_t cb, void* userdata);
 
 /** Remove an autoload entry. \since 0.6 */
-pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, void (*cb)(pa_context *c, int success, void *userdata), void* userdata);
+pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void* userdata);
 
 
 PA_C_DECL_END

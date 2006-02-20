@@ -95,10 +95,10 @@ void pa_context_disconnect(pa_context *c);
 /** Drain the context. If there is nothing to drain, the function returns NULL */
 pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *userdata);
 
-/** Tell the daemon to exit. No operation object is returned as the
- * connection is terminated when the daemon quits, thus this operation
- * would never complete. */
-void pa_context_exit_daemon(pa_context *c);
+/** Tell the daemon to exit. The returned operation is unlikely to
+ * complete succesfully, since the daemon probably died before
+ * returning a success notification */
+pa_operation* pa_context_exit_daemon(pa_context *c, pa_context_success_cb_t cb, void *userdata);
 
 /** Set the name of the default sink. \since 0.4 */
 pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata);

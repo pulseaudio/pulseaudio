@@ -128,7 +128,7 @@ struct pa_stream {
     void *underflow_userdata;
 };
 
-typedef void (*pa_operation_callback_t)(void);
+typedef void (*pa_operation_cb_t)(void);
 
 struct pa_operation {
     int ref;
@@ -138,7 +138,7 @@ struct pa_operation {
 
     pa_operation_state_t state;
     void *userdata;
-    pa_operation_callback_t callback;
+    pa_operation_cb_t callback;
 };
 
 void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
@@ -146,7 +146,7 @@ void pa_command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
 void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
-pa_operation *pa_operation_new(pa_context *c, pa_stream *s);
+pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t callback, void *userdata);
 void pa_operation_done(pa_operation *o);
 
 void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
@@ -169,12 +169,6 @@ void pa_stream_trash_ipol(pa_stream *s);
             return -pa_context_set_error((context), (error)); \
 } while(0)
 
-#define PA_CHECK_VALIDITY_RETURN_NULL(context, expression, error) do { \
-        if (!(expression)) { \
-            pa_context_set_error((context), (error)); \
-            return NULL; \
-        } \
-} while(0)
 
 #define PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, value) do { \
         if (!(expression)) { \
@@ -182,5 +176,8 @@ void pa_stream_trash_ipol(pa_stream *s);
             return value; \
         } \
 } while(0)
+
+#define PA_CHECK_VALIDITY_RETURN_NULL(context, expression, error) PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, NULL)
+
 
 #endif

@@ -559,7 +559,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     break;
                     
                 case EXIT:
-                    pa_context_exit_daemon(c);
+                    pa_operation_unref(pa_context_exit_daemon(c, NULL, NULL));
                     drain();
 
                 case LIST:

@@ -31,7 +31,7 @@
 
 #include "operation.h"
 
-pa_operation *pa_operation_new(pa_context *c, pa_stream *s) {
+pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t cb, void *userdata) {
     pa_operation *o;
     assert(c);
 
@@ -41,8 +41,8 @@ pa_operation *pa_operation_new(pa_context *c, pa_stream *s) {
     o->stream = s ? pa_stream_ref(s) : NULL;
 
     o->state = PA_OPERATION_RUNNING;
-    o->userdata = NULL;
-    o->callback = NULL;
+    o->callback = cb;
+    o->userdata = userdata;
 
     PA_LLIST_PREPEND(pa_operation, o->context->operations, o);
     return pa_operation_ref(o);

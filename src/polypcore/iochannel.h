@@ -57,8 +57,8 @@ int pa_iochannel_is_hungup(pa_iochannel*io);
 void pa_iochannel_set_noclose(pa_iochannel*io, int b);
 
 /* Set the callback function that is called whenever data becomes available for read or write */
-typedef void (*pa_iochannel_callback_t)(pa_iochannel*io, void *userdata);
-void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_callback_t callback, void *userdata);
+typedef void (*pa_iochannel_cb_t)(pa_iochannel*io, void *userdata);
+void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_cb_t callback, void *userdata);
 
 /* In case the file descriptor is a socket, return a pretty-printed string in *s which describes the peer connected */
 void pa_iochannel_socket_peer_to_string(pa_iochannel*io, char*s, size_t l);

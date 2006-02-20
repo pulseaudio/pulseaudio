@@ -174,7 +174,7 @@ static void command_get_autoload_info_list(pa_pdispatch *pd, uint32_t command, u
 static void command_cork_record_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_flush_record_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
-static const pa_pdispatch_callback_t command_table[PA_COMMAND_MAX] = {
+static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = NULL,
     [PA_COMMAND_TIMEOUT] = NULL,
     [PA_COMMAND_REPLY] = NULL,

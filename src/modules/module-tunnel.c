@@ -94,7 +94,7 @@ static void command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t t
 static void command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 #endif
 
-static const pa_pdispatch_callback_t command_table[PA_COMMAND_MAX] = {
+static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
 #ifdef TUNNEL_SINK
     [PA_COMMAND_REQUEST] = command_request,
 #endif    
