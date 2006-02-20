@@ -171,6 +171,34 @@ static int detect_oss(pa_core *c, int just_one) {
 }
 #endif
 
+#ifdef HAVE_SOLARIS
+static int detect_solaris(pa_core *c, int just_one) {
+    struct stat s;
+    const char *dev;
+    char args[64];
+
+    dev = getenv("AUDIODEV");
+    if (!dev)
+        dev = "/dev/audio";
+
+    if (stat(dev, &s) < 0) {
+        if (errno != ENOENT)
+            pa_log_error(__FILE__": failed to open device %s: %s\n", dev, strerror(errno));
+        return -1;
+    }
+
+    if (!S_ISCHR(s))
+        return 0;
+
+    snprintf(args, sizeof(args), "device=%s", dev);
+
+    if (!pa_module_load(c, "module-solaris", args))
+        return 0;
+
+    return 1;
+}
+#endif
+
 int pa__init(pa_core *c, pa_module*m) {
     int just_one = 0, n = 0;
     pa_modargs *ma;
@@ -198,6 +226,9 @@ int pa__init(pa_core *c, pa_module*m) {
 #endif
 #if HAVE_OSS
     if ((n = detect_oss(c, just_one)) <= 0)
+#endif
+#if HAVE_SOLARIS
+    if ((n = detect_solaris(c, just_one)) <= 0)
 #endif
     {
         pa_log_warn(__FILE__": failed to detect any sound hardware.\n");

@@ -309,7 +309,10 @@ AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 
 #### Solaris audio support (optional) ####
 
-AC_CHECK_HEADERS([sys/audio.h], [HAVE_SOLARIS=1], [HAVE_SOLARIS=0])
+AC_CHECK_HEADERS([sys/audio.h], [
+HAVE_SOLARIS=1
+AC_DEFINE([HAVE_SOLARIS], 1, [Have Solaris audio?])
+], [HAVE_SOLARIS=0])
 AC_SUBST(HAVE_SOLARIS)
 AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
 
