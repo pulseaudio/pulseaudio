@@ -94,7 +94,7 @@ static const char *command_names[PA_COMMAND_MAX] = {
 struct reply_info {
     pa_pdispatch *pdispatch;
     PA_LLIST_FIELDS(struct reply_info);
-    pa_pdispatch_callback callback;
+    pa_pdispatch_callback_t callback;
     void *userdata;
     uint32_t tag;
     pa_time_event *time_event;
@@ -103,7 +103,7 @@ struct reply_info {
 struct pa_pdispatch {
     int ref;
     pa_mainloop_api *mainloop;
-    const pa_pdispatch_callback *callback_table;
+    const pa_pdispatch_callback_t *callback_table;
     unsigned n_commands;
     PA_LLIST_HEAD(struct reply_info, replies);
     pa_pdispatch_drain_callback drain_callback;
@@ -121,7 +121,7 @@ static void reply_info_free(struct reply_info *r) {
     pa_xfree(r);
 }
 
-pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_callback*table, unsigned entries) {
+pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_callback_t*table, unsigned entries) {
     pa_pdispatch *pd;
     assert(mainloop);
 
@@ -149,7 +149,7 @@ static void pdispatch_free(pa_pdispatch *pd) {
 }
 
 static void run_action(pa_pdispatch *pd, struct reply_info *r, uint32_t command, pa_tagstruct *ts) {
-    pa_pdispatch_callback callback;
+    pa_pdispatch_callback_t callback;
     void *userdata;
     uint32_t tag;
     assert(r);
@@ -210,7 +210,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, void *userdata) {
             run_action(pd, r, command, ts);
 
     } else if (pd->callback_table && (command < pd->n_commands) && pd->callback_table[command]) {
-        const pa_pdispatch_callback *c = pd->callback_table+command;
+        const pa_pdispatch_callback_t *c = pd->callback_table+command;
 
         (*c)(pd, command, tag, ts, userdata);
     } else {
@@ -236,7 +236,7 @@ static void timeout_callback(pa_mainloop_api*m, pa_time_event*e, PA_GCC_UNUSED c
     run_action(r->pdispatch, r, PA_COMMAND_TIMEOUT, NULL);
 }
 
-void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_callback cb, void *userdata) {
+void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_callback_t cb, void *userdata) {
     struct reply_info *r;
     struct timeval tv;
     assert(pd && pd->ref >= 1 && cb);

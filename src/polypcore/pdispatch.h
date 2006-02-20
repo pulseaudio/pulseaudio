@@ -29,15 +29,15 @@
 
 typedef struct pa_pdispatch pa_pdispatch;
 
-typedef void (*pa_pdispatch_callback)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+typedef void (*pa_pdispatch_callback_t)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
-pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *m, const pa_pdispatch_callback*table, unsigned entries);
+pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *m, const pa_pdispatch_callback_t*table, unsigned entries);
 void pa_pdispatch_unref(pa_pdispatch *pd);
 pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd);
 
 int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*p, void *userdata);
 
-void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_callback callback, void *userdata);
+void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_callback_t callback, void *userdata);
 
 int pa_pdispatch_is_pending(pa_pdispatch *pd);
 

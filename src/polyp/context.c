@@ -72,7 +72,7 @@
 
 #define AUTOSPAWN_LOCK "autospawn.lock"
 
-static const pa_pdispatch_callback command_table[PA_COMMAND_MAX] = {
+static const pa_pdispatch_callback_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REQUEST] = pa_command_request,
     [PA_COMMAND_OVERFLOW] = pa_command_overflow_or_underflow,
     [PA_COMMAND_UNDERFLOW] = pa_command_overflow_or_underflow,
@@ -671,7 +671,7 @@ int pa_context_errno(pa_context *c) {
     return c->error;
 }
 
-void pa_context_set_state_callback(pa_context *c, void (*cb)(pa_context *c, void *userdata), void *userdata) {
+void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, void *userdata) {
     assert(c && c->ref >= 1);
     c->state_callback = cb;
     c->state_userdata = userdata;
@@ -730,7 +730,7 @@ static void set_dispatch_callbacks(pa_operation *o) {
     pa_operation_unref(o);
 }
 
-pa_operation* pa_context_drain(pa_context *c, void (*cb) (pa_context*c, void *userdata), void *userdata) {
+pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *userdata) {
     pa_operation *o;
     assert(c && c->ref >= 1);
 
@@ -777,7 +777,7 @@ void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_U
     }
 
     if (o->callback) {
-        void (*cb)(pa_context *c, int _success, void *_userdata) = (void (*)(pa_context *c, int _success, void *_userdata)) o->callback;
+        pa_context_success_cb_t cb = (pa_context_success_cb_t) o->callback;
         cb(o->context, success, o->userdata);
     }
 
@@ -805,7 +805,7 @@ pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, vo
     return pa_operation_ref(o);
 }
 
-pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, void(*cb)(pa_context*c, int success, void *userdata), void *userdata) {
+pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata) {
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
@@ -825,7 +825,7 @@ pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, void(
     return pa_operation_ref(o);
 }
 
-pa_operation* pa_context_set_default_source(pa_context *c, const char *name, void(*cb)(pa_context*c, int success,  void *userdata), void *userdata) {
+pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata) {
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
@@ -850,7 +850,7 @@ int pa_context_is_local(pa_context *c) {
     return c->local;
 }
 
-pa_operation* pa_context_set_name(pa_context *c, const char *name, void(*cb)(pa_context*c, int success,  void *userdata), void *userdata) {
+pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata) {
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
