@@ -319,8 +319,6 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
 
     r += pa_bytes_to_usec((free_frags + 1) * u->fragment_size, &s->sample_spec);
 
-    fprintf(stderr, "Latency: %d us\n", (int)r);
-
     return r;
 }
 
