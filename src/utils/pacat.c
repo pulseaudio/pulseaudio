@@ -509,7 +509,7 @@ int main(int argc, char *argv[]) {
     pa_context_set_state_callback(context, context_state_callback, NULL);
 
     /* Connect the context */
-    pa_context_connect(context, server, 1, NULL);
+    pa_context_connect(context, server, 0, NULL);
 
     /* Run the main loop */
     if (pa_mainloop_run(m, &ret) < 0) {
