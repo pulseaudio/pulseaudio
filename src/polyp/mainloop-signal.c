@@ -91,17 +91,16 @@ static void dispatch(pa_mainloop_api*a, int sig) {
         }
 }
 
+#ifdef OS_IS_WIN32
 static void defer(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event*e, PA_GCC_UNUSED void *userdata) {
     ssize_t r;
     int sig;
     unsigned int sigs;
 
-#ifdef OS_IS_WIN32
     EnterCriticalSection(&crit);
     sigs = waiting_signals;
     waiting_signals = 0;
     LeaveCriticalSection(&crit);
-#endif
 
     while (sigs) {
         if ((r = read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
@@ -119,6 +118,7 @@ static void defer(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event*e, PA_GCC_UNUS
         sigs--;
     }
 }
+#endif
 
 static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags_t f, PA_GCC_UNUSED void *userdata) {
     ssize_t r;
@@ -179,8 +179,7 @@ void pa_signal_done(void) {
 
     while (signals)
         pa_signal_free(signals);
-
-
+    
 #ifndef OS_IS_WIN32
     api->io_free(io_event);
     io_event = NULL;
