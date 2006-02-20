@@ -199,6 +199,19 @@ static int detect_solaris(pa_core *c, int just_one) {
 }
 #endif
 
+#ifdef OS_IS_WIN32
+static int detect_waveout(pa_core *c, int just_one) {
+    /*
+     * FIXME: No point in enumerating devices until the plugin supports
+     * selecting anything but the first.
+     */
+    if (!pa_module_load(c, "module-waveout", ""))
+        return 0;
+
+    return 1;
+}
+#endif
+
 int pa__init(pa_core *c, pa_module*m) {
     int just_one = 0, n = 0;
     pa_modargs *ma;
@@ -229,6 +242,9 @@ int pa__init(pa_core *c, pa_module*m) {
 #endif
 #if HAVE_SOLARIS
     if ((n = detect_solaris(c, just_one)) <= 0)
+#endif
+#if OS_IS_WIN32
+    if ((n = detect_waveout(c, just_one)) <= 0)
 #endif
     {
         pa_log_warn(__FILE__": failed to detect any sound hardware.\n");
