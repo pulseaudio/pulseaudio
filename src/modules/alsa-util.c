@@ -38,6 +38,8 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint3
     int ret = -1;
     snd_pcm_uframes_t buffer_size;
     snd_pcm_hw_params_t *hwparams = NULL;
+    unsigned int r = ss->rate;
+    
     static const snd_pcm_format_t format_trans[] = {
         [PA_SAMPLE_U8] = SND_PCM_FORMAT_U8,
         [PA_SAMPLE_ALAW] = SND_PCM_FORMAT_A_LAW,
@@ -53,12 +55,15 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint3
         snd_pcm_hw_params_any(pcm_handle, hwparams) < 0 ||
         snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED) < 0 ||
         snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[ss->format]) < 0 ||
-        snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &ss->rate, NULL) < 0 ||
+        snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &r, NULL) < 0 ||
         snd_pcm_hw_params_set_channels(pcm_handle, hwparams, ss->channels) < 0 ||
         (*periods > 0 && snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, periods, NULL) < 0) || 
         (*period_size > 0 && snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, period_size, NULL) < 0) || 
         snd_pcm_hw_params(pcm_handle, hwparams) < 0)
         goto finish;
+
+    if (ss->rate != r) 
+        pa_log_info(__FILE__": device doesn't support %u Hz, changed to %u Hz.\n", ss->rate, r);
     
     if (snd_pcm_prepare(pcm_handle) < 0)
         goto finish;
