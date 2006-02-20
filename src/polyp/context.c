@@ -593,7 +593,7 @@ finish:
     pa_context_unref(c);
 }
 
-int pa_context_connect(pa_context *c, const char *server, int spawn, const pa_spawn_api *api) {
+int pa_context_connect(pa_context *c, const char *server, pa_context_flags_t flags, const pa_spawn_api *api) {
     int r = -1;
     assert(c && c->ref >= 1 && c->state == PA_CONTEXT_UNCONNECTED);
 
@@ -632,7 +632,7 @@ int pa_context_connect(pa_context *c, const char *server, int spawn, const pa_sp
         c->server_list = pa_strlist_prepend(c->server_list, pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET, ufn, sizeof(ufn)));
 
         /* Wrap the connection attempts in a single transaction for sane autospawn locking */
-        if (spawn && c->conf->autospawn) {
+        if (!(flags & PA_CONTEXT_NOAUTOSPAWN) && c->conf->autospawn) {
             char lf[PATH_MAX];
 
             pa_runtime_path(AUTOSPAWN_LOCK, lf, sizeof(lf));

@@ -84,11 +84,11 @@ pa_context_state_t pa_context_get_state(pa_context *c);
 /** Connect the context to the specified server. If server is NULL,
 connect to the default server. This routine may but will not always
 return synchronously on error. Use pa_context_set_state_callback() to
-be notified when the connection is established. If spawn is non-zero
-and no specific server is specified or accessible a new daemon is
-spawned. If api is non-NULL, the functions specified in the structure
-are used when forking a new child process. */
-int pa_context_connect(pa_context *c, const char *server, int spawn, const pa_spawn_api *api);
+be notified when the connection is established. If flags doesn't have
+PA_NOAUTOSPAWN set and no specific server is specified or accessible a
+new daemon is spawned. If api is non-NULL, the functions specified in
+the structure are used when forking a new child process. */
+int pa_context_connect(pa_context *c, const char *server, pa_context_flags_t flags, const pa_spawn_api *api);
 
 /** Terminate the context connection immediately */
 void pa_context_disconnect(pa_context *c);
