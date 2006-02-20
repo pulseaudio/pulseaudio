@@ -357,6 +357,10 @@ int main(int argc, char *argv[]) {
         valid_pid_file = 1;
     }
 
+#ifdef SIGPIPE
+    signal(SIGPIPE, SIG_IGN);
+#endif
+    
     mainloop = pa_mainloop_new();
     assert(mainloop);
 
@@ -367,17 +371,6 @@ int main(int argc, char *argv[]) {
     assert(r == 0);
     pa_signal_new(SIGINT, signal_callback, c);
     pa_signal_new(SIGTERM, signal_callback, c);
-#ifdef SIGPIPE
-    signal(SIGPIPE, SIG_IGN);
-#endif
-
-#ifdef OS_IS_WIN32
-    defer = pa_mainloop_get_api(mainloop)->defer_new(pa_mainloop_get_api(mainloop), message_cb, NULL);
-    assert(defer);
-#endif
-
-    if (conf->daemonize)
-        c->running_as_daemon = 1;
 
 #ifdef SIGUSR1
     pa_signal_new(SIGUSR1, signal_callback, c);
@@ -388,6 +381,14 @@ int main(int argc, char *argv[]) {
 #ifdef SIGHUP
     pa_signal_new(SIGHUP, signal_callback, c);
 #endif
+    
+#ifdef OS_IS_WIN32
+    defer = pa_mainloop_get_api(mainloop)->defer_new(pa_mainloop_get_api(mainloop), message_cb, NULL);
+    assert(defer);
+#endif
+
+    if (conf->daemonize)
+        c->running_as_daemon = 1;
 
     oil_init();
     
