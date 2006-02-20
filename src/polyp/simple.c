@@ -37,6 +37,14 @@
 
 #include "simple.h"
 
+#define CHECK_VALIDITY_RETURN_ANY(rerror, expression, error, ret) do { \
+if (!(expression)) { \
+    if (rerror) \
+        *(rerror) = error; \
+    return ret; \
+    }  \
+} while(0);
+
 struct pa_simple {
     pa_mainloop *mainloop;
     pa_context *context;
@@ -126,10 +134,14 @@ pa_simple* pa_simple_new(
     int *rerror) {
     
     pa_simple *p;
-    int error = PA_ERR_INTERNAL;
-    assert(ss && (dir == PA_STREAM_PLAYBACK || dir == PA_STREAM_RECORD));
+    int error = PA_ERR_INTERNAL, r;
 
-    p = pa_xmalloc(sizeof(pa_simple));
+    CHECK_VALIDITY_RETURN_ANY(rerror, !server || *server, PA_ERR_INVALID, NULL);
+    CHECK_VALIDITY_RETURN_ANY(rerror, dir == PA_STREAM_PLAYBACK || dir == PA_STREAM_RECORD, PA_ERR_INVALID, NULL);
+    CHECK_VALIDITY_RETURN_ANY(rerror, !dev || *dev, PA_ERR_INVALID, NULL);
+    CHECK_VALIDITY_RETURN_ANY(rerror, ss && pa_sample_spec_valid(ss), PA_ERR_INVALID, NULL);
+
+    p = pa_xnew(pa_simple, 1);
     p->context = NULL;
     p->stream = NULL;
     p->mainloop = pa_mainloop_new();
@@ -143,21 +155,31 @@ pa_simple* pa_simple_new(
     if (!(p->context = pa_context_new(pa_mainloop_get_api(p->mainloop), name)))
         goto fail;
     
-    pa_context_connect(p->context, server, 1, NULL);
-
+    if (pa_context_connect(p->context, server, 0, NULL) < 0) {
+        error = pa_context_errno(p->context);
+        goto fail;
+    }
+    
     /* Wait until the context is ready */
     while (pa_context_get_state(p->context) != PA_CONTEXT_READY) {
         if (iterate(p, 1, &error) < 0)
             goto fail;
     }
 
-    if (!(p->stream = pa_stream_new(p->context, stream_name, ss, NULL)))
+    if (!(p->stream = pa_stream_new(p->context, stream_name, ss, NULL))) {
+        error = pa_context_errno(p->context);
         goto fail;
+    }
 
     if (dir == PA_STREAM_PLAYBACK)
-        pa_stream_connect_playback(p->stream, dev, attr, 0, NULL, NULL);
+        r = pa_stream_connect_playback(p->stream, dev, attr, 0, NULL, NULL);
     else
-        pa_stream_connect_record(p->stream, dev, attr, 0);
+        r = pa_stream_connect_record(p->stream, dev, attr, 0);
+
+    if (r < 0) {
+        error = pa_context_errno(p->context);
+        goto fail;
+    }
 
     /* Wait until the stream is ready */
     while (pa_stream_get_state(p->stream) != PA_STREAM_READY) {
@@ -190,7 +212,10 @@ void pa_simple_free(pa_simple *s) {
 }
 
 int pa_simple_write(pa_simple *p, const void*data, size_t length, int *rerror) {
-    assert(p && data && p->direction == PA_STREAM_PLAYBACK);
+    assert(p);
+    assert(data);
+
+    CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
 
     if (p->dead) {
         if (rerror)
@@ -222,8 +247,11 @@ int pa_simple_write(pa_simple *p, const void*data, size_t length, int *rerror) {
 }
 
 int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
-    assert(p && data && p->direction == PA_STREAM_RECORD);
+    assert(p);
+    assert(data);
 
+    CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_RECORD, PA_ERR_BADSTATE, -1);
+    
     if (p->dead) {
         if (rerror)
             *rerror = pa_context_errno(p->context);
@@ -273,14 +301,20 @@ int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
 
 static void drain_or_flush_complete(pa_stream *s, int success, void *userdata) {
     pa_simple *p = userdata;
-    assert(s && p);
+
+    assert(s);
+    assert(p);
+    
     if (!success)
         p->dead = 1;
 }
 
 int pa_simple_drain(pa_simple *p, int *rerror) {
     pa_operation *o;
-    assert(p && p->direction == PA_STREAM_PLAYBACK);
+    
+    assert(p);
+
+    CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
 
     if (p->dead) {
         if (rerror)
@@ -289,7 +323,11 @@ int pa_simple_drain(pa_simple *p, int *rerror) {
         return -1;
     }
 
-    o = pa_stream_drain(p->stream, drain_or_flush_complete, p);
+    if (!(o = pa_stream_drain(p->stream, drain_or_flush_complete, p))) {
+        if (rerror)
+            *rerror = pa_context_errno(p->context);
+        return -1;
+    }
 
     while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
         if (iterate(p, 1, rerror) < 0) {
@@ -309,7 +347,9 @@ int pa_simple_drain(pa_simple *p, int *rerror) {
 
 static void latency_complete(pa_stream *s, const pa_latency_info *l, void *userdata) {
     pa_simple *p = userdata;
-    assert(s && p);
+
+    assert(s);
+    assert(p);
 
     if (!l)
         p->dead = 1;
@@ -323,7 +363,10 @@ static void latency_complete(pa_stream *s, const pa_latency_info *l, void *userd
 
 pa_usec_t pa_simple_get_playback_latency(pa_simple *p, int *rerror) {
     pa_operation *o;
-    assert(p && p->direction == PA_STREAM_PLAYBACK);
+    
+    assert(p);
+    
+    CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
 
     if (p->dead) {
         if (rerror)
@@ -333,7 +376,11 @@ pa_usec_t pa_simple_get_playback_latency(pa_simple *p, int *rerror) {
     }
 
     p->latency = 0;
-    o = pa_stream_get_latency_info(p->stream, latency_complete, p);
+    if (!(o = pa_stream_get_latency_info(p->stream, latency_complete, p))) {
+        if (rerror)
+            *rerror = pa_context_errno(p->context);
+        return (pa_usec_t) -1;
+    }
     
     while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
 
@@ -354,7 +401,10 @@ pa_usec_t pa_simple_get_playback_latency(pa_simple *p, int *rerror) {
 
 int pa_simple_flush(pa_simple *p, int *rerror) {
     pa_operation *o;
-    assert(p && p->direction == PA_STREAM_PLAYBACK);
+    
+    assert(p);
+
+    CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
 
     if (p->dead) {
         if (rerror)
@@ -363,7 +413,11 @@ int pa_simple_flush(pa_simple *p, int *rerror) {
         return -1;
     }
 
-    o = pa_stream_flush(p->stream, drain_or_flush_complete, p);
+    if (!(o = pa_stream_flush(p->stream, drain_or_flush_complete, p))) {
+        if (rerror)
+            *rerror = pa_context_errno(p->context);
+        return -1;
+    }
 
     while (pa_operation_get_state(o) == PA_OPERATION_RUNNING) {
         if (iterate(p, 1, rerror) < 0) {
