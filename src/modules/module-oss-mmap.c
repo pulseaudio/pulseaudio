@@ -254,7 +254,10 @@ int pa__init(pa_core *c, pa_module*m) {
     int enable_bits = 0, zero = 0;
     int playback = 1, record = 1;
     pa_modargs *ma = NULL;
-    assert(c && m);
+    char hwdesc[64];
+    
+    assert(c);
+    assert(m);
 
     m->userdata = u = pa_xmalloc0(sizeof(struct userdata));
     u->module = m;
@@ -294,6 +297,11 @@ int pa__init(pa_core *c, pa_module*m) {
     if ((u->fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, &caps)) < 0)
         goto fail;
 
+    if (pa_oss_get_hw_description(p, hwdesc, sizeof(hwdesc)) >= 0)
+        pa_log_info(__FILE__": hardware name is '%s'.\n", hwdesc);
+    else
+        hwdesc[0] = 0;
+
     if (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_REALTIME) || !(caps & DSP_CAP_TRIGGER)) {
         pa_log(__FILE__": OSS device not mmap capable.\n");
         goto fail;
@@ -331,7 +339,11 @@ int pa__init(pa_core *c, pa_module*m) {
             assert(u->source);
             u->source->userdata = u;
             pa_source_set_owner(u->source, m);
-            u->source->description = pa_sprintf_malloc("Open Sound System PCM/mmap() on '%s'", p);
+            u->source->description = pa_sprintf_malloc("Open Sound System PCM/mmap() on '%s'%s%s%s",
+                                                       p,
+                                                       hwdesc[0] ? " (" : "",
+                                                       hwdesc[0] ? hwdesc : "",
+                                                       hwdesc[0] ? ")" : "");
             
             u->in_memblocks = pa_xmalloc0(sizeof(pa_memblock *)*u->in_fragments);
             
@@ -366,7 +378,11 @@ int pa__init(pa_core *c, pa_module*m) {
             u->sink->set_hw_volume = sink_set_hw_volume;
             u->sink->userdata = u;
             pa_sink_set_owner(u->sink, m);
-            u->sink->description = pa_sprintf_malloc("Open Sound System PCM/mmap() on '%s'", p);
+            u->sink->description = pa_sprintf_malloc("Open Sound System PCM/mmap() on '%s'%s%s%s",
+                                                     p,
+                                                     hwdesc[0] ? " (" : "",
+                                                     hwdesc[0] ? hwdesc : "",
+                                                     hwdesc[0] ? ")" : "");
             
             u->out_memblocks = pa_xmalloc0(sizeof(struct memblock *)*u->out_fragments);
             
