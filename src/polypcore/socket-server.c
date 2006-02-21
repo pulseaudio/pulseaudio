@@ -101,18 +101,18 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_U
 
 #ifdef HAVE_LIBWRAP
 
-    if (s->type == SOCKET_SERVER_IPV4 && s->tcpwrap_service) {
+    if (s->tcpwrap_service) {
         struct request_info req;
 
         request_init(&req, RQ_DAEMON, s->tcpwrap_service, RQ_FILE, nfd, NULL);
         fromhost(&req);
         if (!hosts_access(&req)) {
-            pa_log(__FILE__": TCP connection refused by tcpwrap.\n");
+            pa_log_warn(__FILE__": TCP connection refused by tcpwrap.\n");
             close(nfd);
             goto finish;
         }
 
-        pa_log(__FILE__": TCP connection accepted by tcpwrap.\n");
+        pa_log_info(__FILE__": TCP connection accepted by tcpwrap.\n");
     }
 #endif
     
@@ -221,7 +221,7 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
     assert(m && port);
 
     if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(PF_INET): %s\n", strerror(errno));
         goto fail;
     }
 
@@ -261,7 +261,7 @@ fail:
     return NULL;
 }
 
-pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t address[16], uint16_t port) {
+pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t address[16], uint16_t port, const char *tcpwrap_service) {
     pa_socket_server *ss;
     int fd = -1;
     struct sockaddr_in6 sa;
@@ -270,7 +270,7 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
     assert(m && port);
 
     if ((fd = socket(PF_INET6, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(PF_INET6): %s\n", strerror(errno));
         goto fail;
     }
 
@@ -296,9 +296,11 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
         goto fail;
     }
 
-    if ((ss = pa_socket_server_new(m, fd)))
+    if ((ss = pa_socket_server_new(m, fd))) {
         ss->type = SOCKET_SERVER_IPV6;
-
+        ss->tcpwrap_service = pa_xstrdup(tcpwrap_service);
+    }
+    
     return ss;
     
 fail:
@@ -307,6 +309,31 @@ fail:
 
     return NULL;
 }
+
+pa_socket_server* pa_socket_server_new_ip_loopback(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
+    pa_socket_server *s;
+    
+    assert(m);
+    assert(port > 0);
+    
+    if (!(s = pa_socket_server_new_ipv6(m, in6addr_loopback.s6_addr, port, tcpwrap_service)))
+        s = pa_socket_server_new_ipv4(m, INADDR_LOOPBACK, port, tcpwrap_service);
+
+    return s;
+}
+
+pa_socket_server* pa_socket_server_new_ip_any(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
+    pa_socket_server *s;
+    
+    assert(m);
+    assert(port > 0);
+    
+    if (!(s = pa_socket_server_new_ipv6(m, in6addr_any.s6_addr, port, tcpwrap_service)))
+        s = pa_socket_server_new_ipv4(m, INADDR_ANY, port, tcpwrap_service);
+
+    return s;
+}
+
 
 static void socket_server_free(pa_socket_server*s) {
     assert(s);

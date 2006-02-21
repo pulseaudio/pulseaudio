@@ -697,13 +697,9 @@ libx11prop_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS
 modlib_LTLIBRARIES += \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
-		module-cli-protocol-tcp6.la \
 		module-simple-protocol-tcp.la \
-		module-simple-protocol-tcp6.la \
 		module-esound-protocol-tcp.la \
-		module-esound-protocol-tcp6.la \
 		module-native-protocol-tcp.la \
-		module-native-protocol-tcp6.la \
 		module-native-protocol-fd.la \
 		module-sine.la \
 		module-combine.la \
@@ -712,7 +708,6 @@ modlib_LTLIBRARIES += \
 		module-null-sink.la \
 		module-esound-sink.la \
 		module-http-protocol-tcp.la \
-		module-http-protocol-tcp6.la \
 		module-detect.la
 
 if HAVE_AF_UNIX
@@ -792,18 +787,14 @@ endif
 SYMDEF_FILES = \
 		modules/module-cli-symdef.h \
 		modules/module-cli-protocol-tcp-symdef.h \
-		modules/module-cli-protocol-tcp6-symdef.h \
 		modules/module-cli-protocol-unix-symdef.h \
 		modules/module-pipe-sink-symdef.h \
 		modules/module-pipe-source-symdef.h \
 		modules/module-simple-protocol-tcp-symdef.h \
-		modules/module-simple-protocol-tcp6-symdef.h \
 		modules/module-simple-protocol-unix-symdef.h \
 		modules/module-esound-protocol-tcp-symdef.h \
-		modules/module-esound-protocol-tcp6-symdef.h \
 		modules/module-esound-protocol-unix-symdef.h \
 		modules/module-native-protocol-tcp-symdef.h \
-		modules/module-native-protocol-tcp6-symdef.h \
 		modules/module-native-protocol-unix-symdef.h \
 		modules/module-native-protocol-fd-symdef.h \
 		modules/module-sine-symdef.h \
@@ -819,7 +810,6 @@ SYMDEF_FILES = \
 		modules/module-lirc-symdef.h \
 		modules/module-mmkbd-evdev-symdef.h \
 		modules/module-http-protocol-tcp-symdef.h \
-		modules/module-http-protocol-tcp6-symdef.h \
 		modules/module-http-protocol-unix-symdef.h \
 		modules/module-x11-bell-symdef.h \
 		modules/module-x11-publish-symdef.h \
@@ -844,11 +834,6 @@ module_simple_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_SIMPLE $
 module_simple_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_simple_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-simple.la libsocket-server.la
 
-module_simple_protocol_tcp6_la_SOURCES = modules/module-protocol-stub.c
-module_simple_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
-module_simple_protocol_tcp6_la_LDFLAGS = -module -avoid-version
-module_simple_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-simple.la libsocket-server.la
-
 module_simple_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
 module_simple_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_SIMPLE $(AM_CFLAGS)
 module_simple_protocol_unix_la_LDFLAGS = -module -avoid-version
@@ -865,11 +850,6 @@ module_cli_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CF
 module_cli_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_cli_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-cli.la libsocket-server.la
 
-module_cli_protocol_tcp6_la_SOURCES = modules/module-protocol-stub.c
-module_cli_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
-module_cli_protocol_tcp6_la_LDFLAGS = -module -avoid-version
-module_cli_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-cli.la libsocket-server.la
-
 module_cli_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
 module_cli_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_CLI $(AM_CFLAGS)
 module_cli_protocol_unix_la_LDFLAGS = -module -avoid-version
@@ -882,11 +862,6 @@ module_http_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_HTTP $(AM_
 module_http_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_http_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-http.la libsocket-server.la
 
-module_http_protocol_tcp6_la_SOURCES = modules/module-protocol-stub.c
-module_http_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_HTTP $(AM_CFLAGS)
-module_http_protocol_tcp6_la_LDFLAGS = -module -avoid-version
-module_http_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-http.la libsocket-server.la
-
 module_http_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
 module_http_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_HTTP $(AM_CFLAGS)
 module_http_protocol_unix_la_LDFLAGS = -module -avoid-version
@@ -898,11 +873,6 @@ module_native_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
 module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
 module_native_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_native_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-native.la libsocket-server.la
-
-module_native_protocol_tcp6_la_SOURCES = modules/module-protocol-stub.c
-module_native_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
-module_native_protocol_tcp6_la_LDFLAGS = -module -avoid-version
-module_native_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-native.la libsocket-server.la
 
 module_native_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
 module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
@@ -920,11 +890,6 @@ module_esound_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
 module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
 module_esound_protocol_tcp_la_LDFLAGS = -module -avoid-version
 module_esound_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-esound.la libsocket-server.la
-
-module_esound_protocol_tcp6_la_SOURCES = modules/module-protocol-stub.c
-module_esound_protocol_tcp6_la_CFLAGS = -DUSE_TCP6_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
-module_esound_protocol_tcp6_la_LDFLAGS = -module -avoid-version
-module_esound_protocol_tcp6_la_LIBADD = $(AM_LIBADD) libpolypcore.la libprotocol-esound.la libsocket-server.la
 
 module_esound_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
 module_esound_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)

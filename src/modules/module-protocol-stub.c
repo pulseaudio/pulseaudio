@@ -53,9 +53,6 @@
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"
 #define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?>"
-#elif defined(USE_TCP6_SOCKETS)
-#define SOCKET_DESCRIPTION "(TCP/IPv6 sockets)"
-#define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?>"
 #else
 #define SOCKET_DESCRIPTION "(UNIX sockets)"
 #define SOCKET_USAGE "socket=<path to UNIX socket>"
@@ -71,8 +68,6 @@
   #define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
   #if defined(USE_TCP_SOCKETS)
     #include "module-simple-protocol-tcp-symdef.h"
-  #elif defined(USE_TCP6_SOCKETS)
-    #include "module-simple-protocol-tcp6-symdef.h"
   #else
     #include "module-simple-protocol-unix-symdef.h"
   #endif
@@ -88,8 +83,6 @@
   #define MODULE_ARGUMENTS 
   #ifdef USE_TCP_SOCKETS
     #include "module-cli-protocol-tcp-symdef.h"
-  #elif defined(USE_TCP6_SOCKETS)
-    #include "module-cli-protocol-tcp6-symdef.h"
   #else
     #include "module-cli-protocol-unix-symdef.h"
   #endif
@@ -105,8 +98,6 @@
   #define MODULE_ARGUMENTS 
   #ifdef USE_TCP_SOCKETS
     #include "module-http-protocol-tcp-symdef.h"
-  #elif defined(USE_TCP6_SOCKETS)
-    #include "module-http-protocol-tcp6-symdef.h"
   #else
     #include "module-http-protocol-unix-symdef.h"
   #endif
@@ -122,8 +113,6 @@
   #define MODULE_ARGUMENTS "public", "cookie",
   #ifdef USE_TCP_SOCKETS
     #include "module-native-protocol-tcp-symdef.h"
-  #elif defined(USE_TCP6_SOCKETS)
-    #include "module-native-protocol-tcp6-symdef.h"
   #else
     #include "module-native-protocol-unix-symdef.h"
   #endif
@@ -140,8 +129,6 @@
   #define MODULE_ARGUMENTS "sink", "source", "public", "cookie",
   #ifdef USE_TCP_SOCKETS
     #include "module-esound-protocol-tcp-symdef.h"
-  #elif defined(USE_TCP6_SOCKETS)
-    #include "module-esound-protocol-tcp6-symdef.h"
   #else
     #include "module-esound-protocol-unix-symdef.h"
   #endif
@@ -156,7 +143,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 
 static const char* const valid_modargs[] = {
     MODULE_ARGUMENTS
-#if defined(USE_TCP_SOCKETS) || defined(USE_TCP6_SOCKETS)
+#if defined(USE_TCP_SOCKETS)
     "port",
     "loopback",
 #else
@@ -167,7 +154,7 @@ static const char* const valid_modargs[] = {
 
 static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
     pa_socket_server *s;
-#if defined(USE_TCP_SOCKETS) || defined(USE_TCP6_SOCKETS)
+#if defined(USE_TCP_SOCKETS)
     int loopback = 1;
     uint32_t port = IPV4_PORT;
 
@@ -181,13 +168,14 @@ static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
         return NULL;
     }
 
-#ifdef USE_TCP6_SOCKETS
-    if (!(s = pa_socket_server_new_ipv6(c->mainloop, loopback ? (const uint8_t*) &in6addr_loopback : (const uint8_t*) &in6addr_any, port)))
-        return NULL;
-#else
-    if (!(s = pa_socket_server_new_ipv4(c->mainloop, loopback ? INADDR_LOOPBACK : INADDR_ANY, port, TCPWRAP_SERVICE)))
-        return NULL;
-#endif
+
+    if (loopback) {
+        if (!(s = pa_socket_server_new_ip_loopback(c->mainloop, port, TCPWRAP_SERVICE)))
+            return NULL;
+    } else {
+        if (!(s = pa_socket_server_new_ip_any(c->mainloop, port, TCPWRAP_SERVICE)))
+            return NULL;
+    }
     
 #else
     int r;
@@ -250,10 +238,10 @@ finish:
 void pa__done(pa_core *c, pa_module*m) {
     assert(c && m);
 
-#if defined(USE_PROTOCOL_ESOUND)
-	if (remove (ESD_UNIX_SOCKET_NAME) != 0)
+#if defined(USE_PROTOCOL_ESOUND) && !defined(USE_TCP_SOCKETS)
+	if (remove(ESD_UNIX_SOCKET_NAME) != 0)
 		pa_log("%s: Failed to remove %s : %s.\n", __FILE__, ESD_UNIX_SOCKET_NAME, strerror (errno));
-	if (remove (ESD_UNIX_SOCKET_DIR) != 0)
+	if (remove(ESD_UNIX_SOCKET_DIR) != 0)
 		pa_log("%s: Failed to remove %s : %s.\n", __FILE__, ESD_UNIX_SOCKET_DIR, strerror (errno));
 #endif
 
