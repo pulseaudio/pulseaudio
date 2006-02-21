@@ -10,7 +10,6 @@ Fixes:
 - module-tunnel: improve latency calculation
 - make alsa modules use mmap
 - better validity checking in protocol-{native,esound}
-- don't build ipv4 and ipv6 modules seperately
 - change pa_log to not require \n
 - proper use of memcpy in procotol-esound.c so we don't get alignment problems
 
