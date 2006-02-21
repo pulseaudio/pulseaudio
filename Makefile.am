@@ -24,7 +24,7 @@ MAINTAINERCLEANFILES =
 noinst_DATA =
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = polyplib.pc polyplib-simple.pc polyplib-error.pc polyplib-mainloop.pc polyplib-browse.pc
+pkgconfig_DATA = polyplib.pc polyplib-simple.pc polyplib-browse.pc
 
 if HAVE_GLIB20
 pkgconfig_DATA += \

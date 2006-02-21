@@ -398,9 +398,7 @@ Makefile
 src/Makefile
 polyplib.pc
 polyplib-simple.pc
-polyplib-mainloop.pc
 polyplib-browse.pc
-polyplib-error.pc
 polyplib-glib-mainloop.pc
 polyplib-glib12-mainloop.pc
 doc/Makefile
