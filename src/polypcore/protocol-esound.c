@@ -186,7 +186,6 @@ static void connection_free(struct connection *c) {
 
     if (c->sink_input) {
         pa_sink_input_disconnect(c->sink_input);
-        pa_log("disconnect\n");
         pa_sink_input_unref(c->sink_input);
     }
     
