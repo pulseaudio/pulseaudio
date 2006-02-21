@@ -80,7 +80,12 @@ static void do_stream_write(size_t length) {
     if (l > buffer_length)
         l = buffer_length;
     
-    pa_stream_write(stream, (uint8_t*) buffer + buffer_index, l, NULL, 0, PA_SEEK_RELATIVE);
+    if (pa_stream_write(stream, (uint8_t*) buffer + buffer_index, l, NULL, 0, PA_SEEK_RELATIVE) < 0) {
+        fprintf(stderr, "pa_stream_write() failed: %s\n", pa_strerror(pa_context_errno(context)));
+        quit(1);
+        return;
+    }
+    
     buffer_length -= l;
     buffer_index += l;
     
@@ -112,12 +117,20 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
     if (stdio_event)
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_OUTPUT);
 
-    pa_stream_peek(s, &data, &length);
+    if (pa_stream_peek(s, &data, &length) < 0) {
+        fprintf(stderr, "pa_stream_peek() failed: %s\n", pa_strerror(pa_context_errno(context)));
+        quit(1);
+        return;
+    }
+    
     assert(data && length);
 
     if (buffer) {
         fprintf(stderr, "Buffer overrun, dropping incoming data\n");
-        pa_stream_drop(s);
+        if (pa_stream_drop(s) < 0) {
+            fprintf(stderr, "pa_stream_drop() failed: %s\n", pa_strerror(pa_context_errno(context)));
+            quit(1);
+        }
         return;
     }
 
@@ -159,15 +172,18 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_SETTING_NAME:
             break;
         
-        case PA_CONTEXT_READY:
+        case PA_CONTEXT_READY: {
+            int r;
             
             assert(c && !stream);
 
             if (verbose)
                 fprintf(stderr, "Connection established.\n");
 
-            stream = pa_stream_new(c, stream_name, &sample_spec, NULL);
-            assert(stream);
+            if (!(stream = pa_stream_new(c, stream_name, &sample_spec, NULL))) {
+                fprintf(stderr, "pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(c)));
+                goto fail;
+            }
 
             pa_stream_set_state_callback(stream, stream_state_callback, NULL);
             pa_stream_set_write_callback(stream, stream_write_callback, NULL);
@@ -175,11 +191,20 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
             if (mode == PLAYBACK) {
                 pa_cvolume cv;
-                pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, PA_CHANNELS_MAX, volume), NULL);
-            } else
-                pa_stream_connect_record(stream, device, NULL, 0);
+                if ((r = pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL)) < 0) {
+                    fprintf(stderr, "pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(c)));
+                    goto fail;
+                }
+                    
+            } else {
+                if ((r = pa_stream_connect_record(stream, device, NULL, 0)) < 0) {
+                    fprintf(stderr, "pa_stream_connect_record() failed: %s\n", pa_strerror(pa_context_errno(c)));
+                    goto fail;
+                }
+            }
                 
             break;
+        }
             
         case PA_CONTEXT_TERMINATED:
             quit(0);
@@ -188,8 +213,14 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_FAILED:
         default:
             fprintf(stderr, "Connection failure: %s\n", pa_strerror(pa_context_errno(c)));
-            quit(1);
+            goto fail;
     }
+
+    return;
+    
+fail:
+    quit(1);
+    
 }
 
 /* Connection draining complete */
@@ -216,8 +247,6 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
     if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
         pa_context_disconnect(context);
     else {
-        pa_operation_unref(o);
-
         if (verbose)
             fprintf(stderr, "Draining connection to server.\n");
     }
@@ -241,9 +270,18 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
     assert(buffer);
     if ((r = read(fd, buffer, l)) <= 0) {
         if (r == 0) {
+            pa_operation *o;
+            
             if (verbose)
                 fprintf(stderr, "Got EOF.\n");
-            pa_operation_unref(pa_stream_drain(stream, stream_drain_complete, NULL));
+            
+            if (!(o = pa_stream_drain(stream, stream_drain_complete, NULL))) {
+                fprintf(stderr, "pa_stream_drain(): %s\n", pa_strerror(pa_context_errno(context)));
+                quit(1);
+                return;
+            }
+
+            pa_operation_unref(o);
         } else {
             fprintf(stderr, "read() failed: %s\n", strerror(errno));
             quit(1);
