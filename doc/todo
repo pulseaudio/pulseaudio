@@ -26,6 +26,7 @@ Features:
 - source volume control
 - deal with underflows reported by OSS/ALSA properly
 - mute switch support (like ALSA does it)
+- add listen-on paramater to protocol modules
 
 Long term:
 - pass meta info for hearing impaired
