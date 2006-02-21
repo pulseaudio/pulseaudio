@@ -21,7 +21,7 @@ Features:
 - add support for auth using SCM_CREDENTIALS
 - include hw description in sink/source info
 - use scatter/gather io for sockets
-- hw volume support for alsa, windows
+- hw volume support for alsa
 - notifcation on hw volume change
 - source volume control
 - deal with underflows reported by OSS/ALSA properly
