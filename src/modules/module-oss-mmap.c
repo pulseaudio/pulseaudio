@@ -221,6 +221,30 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     return pa_bytes_to_usec(u->out_fill, &s->sample_spec);
 }
 
+static int sink_get_hw_volume(pa_sink *s) {
+    struct userdata *u = s->userdata;
+
+    if (pa_oss_get_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
+        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s\n", strerror(errno));
+        s->get_hw_volume = NULL;
+        return -1;
+    }
+
+    return 0;
+}
+
+static int sink_set_hw_volume(pa_sink *s) {
+    struct userdata *u = s->userdata;
+
+    if (pa_oss_set_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
+        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s\n", strerror(errno));
+        s->set_hw_volume = NULL;
+        return -1;
+    }
+
+    return 0;
+}
+
 int pa__init(pa_core *c, pa_module*m) {
     struct audio_buf_info info;
     struct userdata *u = NULL;
@@ -275,7 +299,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    pa_log(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
+    pa_log_info(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
     if (nfrags >= 2 && frag_size >= 1)
         if (pa_oss_set_fragments(u->fd, nfrags, frag_size) < 0)
@@ -338,6 +362,8 @@ int pa__init(pa_core *c, pa_module*m) {
             u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &u->sample_spec, NULL);
             assert(u->sink);
             u->sink->get_latency = sink_get_latency_cb;
+            u->sink->get_hw_volume = sink_get_hw_volume;
+            u->sink->set_hw_volume = sink_set_hw_volume;
             u->sink->userdata = u;
             pa_sink_set_owner(u->sink, m);
             u->sink->description = pa_sprintf_malloc("Open Sound System PCM/mmap() on '%s'", p);
@@ -365,6 +391,10 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(u->io_event);
 
     pa_modargs_free(ma);
+
+    /* Read mixer settings */
+    if (u->sink)
+        sink_get_hw_volume(u->sink);
     
     return 0;
 

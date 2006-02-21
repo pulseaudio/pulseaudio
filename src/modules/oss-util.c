@@ -166,3 +166,39 @@ int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
 
     return 0;
 }
+
+int pa_oss_get_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
+    char cv[PA_CVOLUME_SNPRINT_MAX];
+    unsigned vol;
+
+    assert(fd >= 0);
+    assert(ss);
+    assert(volume);
+    
+    if (ioctl(fd, SOUND_MIXER_READ_PCM, &vol) < 0)
+        return -1;
+
+    volume->values[0] = ((vol & 0xFF) * PA_VOLUME_NORM) / 100;
+
+    if ((volume->channels = ss->channels) >= 2)
+        volume->values[1] = (((vol >> 8) & 0xFF) * PA_VOLUME_NORM) / 100;
+
+    pa_log_debug(__FILE__": Read mixer settings: %s\n", pa_cvolume_snprint(cv, sizeof(cv), volume));
+    return 0;
+}
+
+int pa_oss_set_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume) {
+    char cv[PA_CVOLUME_SNPRINT_MAX];
+    unsigned vol;
+
+    vol = (volume->values[0]*100)/PA_VOLUME_NORM;
+
+    if (ss->channels >= 2)
+        vol |= ((volume->values[1]*100)/PA_VOLUME_NORM) << 8;
+    
+    if (ioctl(fd, SOUND_MIXER_WRITE_PCM, &vol) < 0)
+        return -1;
+
+    pa_log_debug(__FILE__": Wrote mixer settings: %s\n", pa_cvolume_snprint(cv, sizeof(cv), volume));
+    return 0;
+}

@@ -255,41 +255,25 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
 
 static int sink_get_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
-    char cv[PA_CVOLUME_SNPRINT_MAX];
-    unsigned vol;
 
-    if (ioctl(u->fd, SOUND_MIXER_READ_PCM, &vol) < 0) {
+    if (pa_oss_get_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
         pa_log_info(__FILE__": device doesn't support reading mixer settings: %s\n", strerror(errno));
         s->get_hw_volume = NULL;
         return -1;
     }
 
-    s->hw_volume.values[0] = ((vol & 0xFF) * PA_VOLUME_NORM) / 100;
-
-    if ((s->hw_volume.channels = s->sample_spec.channels) >= 2)
-        s->hw_volume.values[1] = (((vol >> 8) & 0xFF) * PA_VOLUME_NORM) / 100;
-
-    pa_log_info(__FILE__": Read mixer settings: %s\n", pa_cvolume_snprint(cv, sizeof(cv), &s->hw_volume));
     return 0;
 }
 
 static int sink_set_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
-    char cv[PA_CVOLUME_SNPRINT_MAX];
-    unsigned vol;
 
-    vol = (s->hw_volume.values[0]*100)/PA_VOLUME_NORM;
-
-    if (s->sample_spec.channels >= 2)
-        vol |= ((s->hw_volume.values[1]*100)/PA_VOLUME_NORM) << 8;
-    
-    if (ioctl(u->fd, SOUND_MIXER_WRITE_PCM, &vol) < 0) {
+    if (pa_oss_set_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
         pa_log_info(__FILE__": device doesn't support writing mixer settings: %s\n", strerror(errno));
         s->set_hw_volume = NULL;
         return -1;
     }
 
-    pa_log_info(__FILE__": Wrote mixer settings: %s\n", pa_cvolume_snprint(cv, sizeof(cv), &s->hw_volume));
     return 0;
 }
 
