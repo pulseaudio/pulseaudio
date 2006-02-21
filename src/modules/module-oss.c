@@ -287,7 +287,10 @@ int pa__init(pa_core *c, pa_module*m) {
     int record = 1, playback = 1;
     pa_sample_spec ss;
     pa_modargs *ma = NULL;
-    assert(c && m);
+    char hwdesc[64];
+    
+    assert(c);
+    assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments.\n");
@@ -322,6 +325,11 @@ int pa__init(pa_core *c, pa_module*m) {
     if ((fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, NULL)) < 0)
         goto fail;
 
+    if (pa_oss_get_hw_description(p, hwdesc, sizeof(hwdesc)) >= 0)
+        pa_log_info(__FILE__": hardware name is '%s'.\n", hwdesc);
+    else
+        hwdesc[0] = 0;
+    
     pa_log_info(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
     if (nfrags >= 2 && frag_size >= 1)
@@ -361,7 +369,11 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source->notify = source_notify_cb;
         u->source->get_latency = source_get_latency_cb;
         pa_source_set_owner(u->source, m);
-        u->source->description = pa_sprintf_malloc("Open Sound System PCM on '%s'", p);
+        u->source->description = pa_sprintf_malloc("Open Sound System PCM on '%s'%s%s%s",
+                                                   p,
+                                                   hwdesc[0] ? " (" : "",
+                                                   hwdesc[0] ? hwdesc : "",
+                                                   hwdesc[0] ? ")" : "");
     } else
         u->source = NULL;
 
@@ -373,7 +385,11 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->set_hw_volume = sink_set_hw_volume;
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
-        u->sink->description = pa_sprintf_malloc("Open Sound System PCM on '%s'", p);
+        u->sink->description = pa_sprintf_malloc("Open Sound System PCM on '%s'%s%s%s",
+                                                 p,
+                                                 hwdesc[0] ? " (" : "",
+                                                 hwdesc[0] ? hwdesc : "",
+                                                 hwdesc[0] ? ")" : "");
     } else
         u->sink = NULL;
 

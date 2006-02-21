@@ -202,3 +202,72 @@ int pa_oss_set_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume
     pa_log_debug(__FILE__": Wrote mixer settings: %s\n", pa_cvolume_snprint(cv, sizeof(cv), volume));
     return 0;
 }
+
+int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
+    FILE *f;
+    const char *e = NULL;
+    int n, r = -1;
+    int b = 0;
+
+    if (strncmp(dev, "/dev/dsp", 8) == 0)
+        e = dev+8;
+    else if (strncmp(dev, "/dev/adsp", 9) == 0)
+        e = dev+9;
+    else
+        return -1;
+
+    if (*e == 0)
+        n = 0;
+    else if (*e >= '0' && *e <= '9' && *(e+1) == 0)
+        n = *e - '0';
+    else
+        return -1;
+    
+    if (!(f = fopen("/dev/sndstat", "r")) &&
+        !(f = fopen("/proc/sndstat", "r")) &&
+        !(f = fopen("/proc/asound/oss/sndstat", "r"))) {
+
+        if (errno != ENOENT)
+            pa_log_warn(__FILE__": failed to open OSS sndstat device: %s\n", strerror(errno));
+
+        return -1;
+    }
+
+    while (!feof(f)) {
+        char line[64];
+        int device;
+    
+        if (!fgets(line, sizeof(line), f))
+            break;
+
+        line[strcspn(line, "\r\n")] = 0;
+
+        if (!b) {
+            b = strcmp(line, "Audio devices:") == 0;
+            continue;
+        }
+
+        if (line[0] == 0)
+            break;
+        
+        if (sscanf(line, "%i: ", &device) != 1)
+            continue;
+
+        if (device == n) {
+            char *k = strchr(line, ':');
+            assert(k);
+            k++;
+            k += strspn(k, " ");
+
+            if (pa_endswith(k, " (DUPLEX)"))
+                k[strlen(k)-9] = 0;
+            
+            pa_strlcpy(name, k, l);
+            r = 0;
+            break;
+        }
+    }
+
+    fclose(f);
+    return r;
+}
