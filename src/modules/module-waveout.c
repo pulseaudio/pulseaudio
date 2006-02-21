@@ -48,6 +48,8 @@ PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source>
 #define DEFAULT_SINK_NAME "wave_output"
 #define DEFAULT_SOURCE_NAME "wave_input"
 
+#define WAVEOUT_MAX_VOLUME 0xFFFF
+
 struct userdata {
     pa_sink *sink;
     pa_source *source;
@@ -336,6 +338,42 @@ static void notify_source_cb(pa_source *s) {
     u->core->mainloop->defer_enable(u->defer, 1);
 }
 
+static int sink_get_hw_volume_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    DWORD vol;
+    pa_volume_t left, right;
+
+    if (waveOutGetVolume(u->hwo, &vol) != MMSYSERR_NOERROR)
+        return -1;
+
+    left = (vol & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME;
+    right = ((vol >> 16) & 0xFFFF) * PA_VOLUME_NORM / WAVEOUT_MAX_VOLUME;
+
+    /* Windows supports > 2 channels, except for volume control */
+    if (s->hw_volume.channels > 2)
+        pa_cvolume_set(&s->hw_volume, s->hw_volume.channels, (left + right)/2);
+
+    s->hw_volume.values[0] = left;
+    if (s->hw_volume.channels > 1)
+        s->hw_volume.values[1] = right;
+
+    return 0;
+}
+
+static int sink_set_hw_volume_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    DWORD vol;
+
+    vol = s->hw_volume.values[0] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM;
+    if (s->hw_volume.channels > 1)
+        vol |= (s->hw_volume.values[0] * WAVEOUT_MAX_VOLUME / PA_VOLUME_NORM) << 16;
+
+    if (waveOutSetVolume(u->hwo, vol) != MMSYSERR_NOERROR)
+        return -1;
+
+    return 0;
+}
+
 static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     wf->wFormatTag = WAVE_FORMAT_PCM;
 
@@ -455,6 +493,8 @@ int pa__init(pa_core *c, pa_module*m) {
         assert(u->sink);
         u->sink->notify = notify_sink_cb;
         u->sink->get_latency = sink_get_latency_cb;
+        u->sink->get_hw_volume = sink_get_hw_volume_cb;
+        u->sink->set_hw_volume = sink_set_hw_volume_cb;
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
         u->sink->description = pa_sprintf_malloc("Windows waveOut PCM");
