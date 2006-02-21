@@ -88,6 +88,7 @@ char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength);
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength);
 
 int pa_startswith(const char *s, const char *pfx);
+int pa_endswith(const char *s, const char *sfx);
 
 char *pa_runtime_path(const char *fn, char *s, size_t l);
 

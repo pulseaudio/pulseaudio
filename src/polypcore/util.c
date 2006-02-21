@@ -1092,10 +1092,26 @@ char *pa_get_fqdn(char *s, size_t l) {
 /* Returns nonzero when *s starts with *pfx */
 int pa_startswith(const char *s, const char *pfx) {
     size_t l;
-    assert(s && pfx);
+    
+    assert(s);
+    assert(pfx);
+    
     l = strlen(pfx);
 
     return strlen(s) >= l && strncmp(s, pfx, l) == 0;
+}
+
+/* Returns nonzero when *s ends with *sfx */
+int pa_endswith(const char *s, const char *sfx) {
+    size_t l1, l2;
+    
+    assert(s);
+    assert(sfx);
+    
+    l1 = strlen(s);
+    l2 = strlen(sfx);
+
+    return l1 >= l2 && strcmp(s+l1-l2, sfx) == 0;
 }
 
 /* if fn is null return the polypaudio run time path in s (/tmp/polypaudio)
