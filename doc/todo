@@ -3,7 +3,6 @@
 Test:
 - module-combine
 - module-tunnel
-- howl
 
 Fixes:
 - better validity checking in protocol-esound
