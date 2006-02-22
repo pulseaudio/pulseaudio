@@ -6,7 +6,7 @@ Test:
 - howl
 
 Fixes:
-- better validity checking in protocol-{native,esound}
+- better validity checking in protocol-esound
 - change pa_log to not require \n
 - proper use of memcpy in procotol-esound.c so we don't get alignment problems
 - latency api for native protocol
