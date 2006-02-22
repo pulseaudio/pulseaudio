@@ -14,7 +14,6 @@ Fixes:
 - notification on hw volume change
 - source volume control
 - mute switch support (like ALSA does it)
-- add listen-on paramater to protocol modules
 - module-oss-* love:
   - deal with underflows propely
   - improve latency measurement for mmap
