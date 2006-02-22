@@ -8,4 +8,4 @@ Description: Polypaudio network browsing API
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lpolyp-browse-@PA_MAJORMINOR@
 Cflags: -D_REENTRANT -I${includedir}
-Requires: polyplib-mainloop
+Requires: polyplib

@@ -8,4 +8,4 @@ Description: Simplified synchronous client interface to polypaudio
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lpolyp-simple-@PA_MAJORMINOR@
 Cflags: -D_REENTRANT -I${includedir}
-Requires: polyplib polyplib-mainloop polyplib-error
+Requires: polyplib
