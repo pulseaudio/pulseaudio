@@ -8,4 +8,4 @@ Description: Client interface to polypaudio
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lpolyp-@PA_MAJORMINOR@
 Cflags: -D_REENTRANT -I${includedir}
-Requires: polyplib-error polyplib-mainloop
+Requires:
