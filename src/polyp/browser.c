@@ -32,19 +32,18 @@
 #define SERVICE_NAME_SOURCE "_polypaudio-source._tcp."
 #define SERVICE_NAME_SERVER "_polypaudio-server._tcp."
 
-pa_browser {
+struct pa_browser {
     int ref;
     pa_mainloop_api *mainloop;
 
-    void (*callback)(pa_browser *z, pa_browse_opcode c, const pa_browse_info *i, void *userdata);
-    void *callback_userdata;
+    pa_browse_cb_t callback;
+    void *userdata;
     
     sw_discovery discovery;
     pa_io_event *io_event;
 };
 
-
-static void io_callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags events, void *userdata) {
+static void io_callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags_t events, void *userdata) {
     pa_browser *b = userdata;
     assert(a && b && b->mainloop == a);
 
@@ -56,26 +55,54 @@ static void io_callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_fl
     }
 }
 
+static int type_equal(const char *a, const char *b) {
+    size_t la, lb;
+    
+    if (strcasecmp(a, b) == 0)
+        return 1;
+
+    la = strlen(a);
+    lb = strlen(b);
+
+    if (la > 0 && a[la-1] == '.' && la == lb+1 && strncasecmp(a, b, la-1) == 0)
+        return 1;
+                                            
+    if (lb > 0 && b[lb-1] == '.' && lb == la+1 && strncasecmp(a, b, lb-1) == 0)
+        return 1;
+
+    return 0;
+}
+
+static int map_to_opcode(const char *type, int new) {
+    if (type_equal(type, SERVICE_NAME_SINK))
+        return new ? PA_BROWSE_NEW_SINK : PA_BROWSE_REMOVE_SINK;
+    else if (type_equal(type, SERVICE_NAME_SOURCE))
+        return new ? PA_BROWSE_NEW_SOURCE : PA_BROWSE_REMOVE_SOURCE;
+    else if (type_equal(type, SERVICE_NAME_SERVER))
+        return new ? PA_BROWSE_NEW_SERVER : PA_BROWSE_REMOVE_SERVER;
+
+    return -1;
+}
+
 static sw_result resolve_reply(
-    sw_discovery discovery,
-    sw_discovery_oid oid,
-    sw_uint32 interface_index,
-    sw_const_string name,
-    sw_const_string type,
-    sw_const_string domain,
-    sw_ipv4_address address,
-    sw_port port,
-    sw_octets text_record,
-    sw_ulong text_record_len,
-    sw_opaque extra) {
+        sw_discovery discovery,
+        sw_discovery_oid oid,
+        sw_uint32 interface_index,
+        sw_const_string name,
+        sw_const_string type,
+        sw_const_string domain,
+        sw_ipv4_address address,
+        sw_port port,
+        sw_octets text_record,
+        sw_ulong text_record_len,
+        sw_opaque extra) {
     
     pa_browser *b = extra;
     pa_browse_info i;
     char ip[256], a[256];
-    pa_browse_opcode opcode;
+    int opcode;
     int device_found = 0;
     uint32_t cookie;
-    pa_typeid_t typeid;
     pa_sample_spec ss;
     int ss_valid = 0;
     sw_text_record_iterator iterator;
@@ -91,17 +118,10 @@ static sw_result resolve_reply(
         
     if (!b->callback)
         goto fail;
-    
-    if (!strcmp(type, SERVICE_NAME_SINK))
-        opcode = PA_BROWSE_NEW_SINK;
-    else if (!strcmp(type, SERVICE_NAME_SOURCE))
-        opcode = PA_BROWSE_NEW_SOURCE;
-    else if (!strcmp(type, SERVICE_NAME_SERVER))
-        opcode = PA_BROWSE_NEW_SERVER;
-    else
-        goto fail;
-    
 
+    opcode = map_to_opcode(type, 1);
+    assert(opcode >= 0);
+    
     snprintf(a, sizeof(a), "tcp:%s:%u", sw_ipv4_address_name(address, ip, sizeof(ip)), port);
     i.server = a;
     
@@ -154,12 +174,6 @@ static sw_result resolve_reply(
                 pa_xfree((char*) i.description);
                 i.description = c;
                 c = NULL;
-            } else if (!strcmp(key, "typeid")) {
-
-                if (pa_atou(c, &typeid) < 0)
-                    goto fail;
-
-                i.typeid = &typeid;
             } else if (!strcmp(key, "channels")) {
                 uint32_t ch;
                 
@@ -195,7 +209,7 @@ static sw_result resolve_reply(
         i.sample_spec = &ss;
     
 
-    b->callback(b, opcode, &i, b->callback_userdata);
+    b->callback(b, opcode, &i, b->userdata);
 
 fail:
     pa_xfree((void*) i.device);
@@ -213,14 +227,14 @@ fail:
 }
 
 static sw_result browse_reply(
-    sw_discovery discovery,
-    sw_discovery_oid id,
-    sw_discovery_browse_status status,
-    sw_uint32 interface_index,
-    sw_const_string name,
-    sw_const_string type,
-    sw_const_string domain,
-    sw_opaque extra) {
+        sw_discovery discovery,
+        sw_discovery_oid id,
+        sw_discovery_browse_status status,
+        sw_uint32 interface_index,
+        sw_const_string name,
+        sw_const_string type,
+        sw_const_string domain,
+        sw_opaque extra) {
     
     pa_browser *b = extra;
     assert(b);
@@ -238,9 +252,15 @@ static sw_result browse_reply(
         case SW_DISCOVERY_BROWSE_REMOVE_SERVICE:
             if (b->callback) {
                 pa_browse_info i;
+                int opcode;
+                
                 memset(&i, 0, sizeof(i));
                 i.name = name;
-                b->callback(b, PA_BROWSE_REMOVE, &i, b->callback_userdata);
+
+                opcode = map_to_opcode(type, 0);
+                assert(opcode >= 0);
+                
+                b->callback(b, opcode, &i, b->userdata);
             }
             break;
 
@@ -255,11 +275,11 @@ pa_browser *pa_browser_new(pa_mainloop_api *mainloop) {
     pa_browser *b;
     sw_discovery_oid oid;
 
-    b = pa_xmalloc(sizeof(pa_browser));
+    b = pa_xnew(pa_browser, 1);
     b->mainloop = mainloop;
     b->ref = 1;
     b->callback = NULL;
-    b->callback_userdata = NULL;
+    b->userdata = NULL;
 
     if (sw_discovery_init(&b->discovery) != SW_OKAY) {
         pa_log("sw_discovery_init() failed.\n");
@@ -305,9 +325,9 @@ void pa_browser_unref(pa_browser *b) {
         browser_free(b);
 }
 
-void pa_browser_set_callback(pa_browser *b, void (*cb)(pa_browser *z, pa_browse_opcode c, const pa_browse_info *i, void* userdata), void *userdata) {
+void pa_browser_set_callback(pa_browser *b, pa_browse_cb_t cb, void *userdata) {
     assert(b);
 
     b->callback = cb;
-    b->callback_userdata = userdata;
+    b->userdata = userdata;
 }

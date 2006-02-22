@@ -67,13 +67,13 @@ struct service {
 
     struct {
         int valid;
-        pa_namereg_type type;
+        pa_namereg_type_t type;
         uint32_t index;
     } loaded;
 
     struct {
         int valid;
-        pa_namereg_type type;
+        pa_namereg_type_t type;
         uint32_t index;
     } autoload;
 };
@@ -93,21 +93,19 @@ static sw_result publish_reply(sw_discovery discovery, sw_discovery_publish_stat
     return SW_OKAY;
 }
 
-static void get_service_data(struct userdata *u, struct service *s, pa_sample_spec *ret_ss, char **ret_description, pa_typeid_t *ret_typeid) {
-    assert(u && s && s->loaded.valid && ret_ss && ret_description && ret_typeid);
+static void get_service_data(struct userdata *u, struct service *s, pa_sample_spec *ret_ss, char **ret_description) {
+    assert(u && s && s->loaded.valid && ret_ss && ret_description);
 
     if (s->loaded.type == PA_NAMEREG_SINK) {
         pa_sink *sink = pa_idxset_get_by_index(u->core->sinks, s->loaded.index);
         assert(sink);
         *ret_ss = sink->sample_spec;
         *ret_description = sink->description;
-        *ret_typeid = sink->typeid;
     } else if (s->loaded.type == PA_NAMEREG_SOURCE) {
         pa_source *source = pa_idxset_get_by_index(u->core->sources, s->loaded.index);
         assert(source);
         *ret_ss = source->sample_spec;
         *ret_description = source->description;
-        *ret_typeid = source->typeid;
     } else
         assert(0);
 }
@@ -154,10 +152,9 @@ static int publish_service(struct userdata *u, struct service *s) {
     
     if (s->loaded.valid) {
         char z[64], *description;
-        pa_typeid_t typeid;
         pa_sample_spec ss;
 
-        get_service_data(u, s, &ss, &description, &typeid);
+        get_service_data(u, s, &ss, &description);
             
         snprintf(z, sizeof(z), "%u", ss.rate);
         sw_text_record_add_key_and_string_value(txt, "rate", z);
@@ -167,10 +164,6 @@ static int publish_service(struct userdata *u, struct service *s) {
 
         sw_text_record_add_key_and_string_value(txt, "description", description);
 
-        snprintf(z, sizeof(z), "0x%8x", typeid);
-        sw_text_record_add_key_and_string_value(txt, "typeid", z);
-        
-        
         if (sw_discovery_publish(pa_howl_wrapper_get_discovery(u->howl_wrapper), 0, t,
                                  s->loaded.type == PA_NAMEREG_SINK ? SERVICE_NAME_SINK : SERVICE_NAME_SOURCE,
                                  NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
@@ -210,7 +203,7 @@ finish:
     return r;
 }
 
-struct service *get_service(struct userdata *u, const char *name) {
+static struct service *get_service(struct userdata *u, const char *name) {
     struct service *s;
     
     if ((s = pa_hashmap_get(u->services, name)))
@@ -277,55 +270,55 @@ static int publish_autoload(struct userdata *u, pa_autoload_entry *s) {
     return publish_service(u, svc);
 }
 
-static int remove_sink(struct userdata *u, uint32_t index) {
+static int remove_sink(struct userdata *u, uint32_t idx) {
     struct service *svc;
-    assert(u && index != PA_INVALID_INDEX);
+    assert(u && idx != PA_INVALID_INDEX);
 
-    if (!(svc = pa_dynarray_get(u->sink_dynarray, index)))
+    if (!(svc = pa_dynarray_get(u->sink_dynarray, idx)))
         return 0;
 
     if (!svc->loaded.valid || svc->loaded.type != PA_NAMEREG_SINK)
         return 0;
 
     svc->loaded.valid = 0;
-    pa_dynarray_put(u->sink_dynarray, index, NULL);
+    pa_dynarray_put(u->sink_dynarray, idx, NULL);
     
     return publish_service(u, svc);
 }
 
-static int remove_source(struct userdata *u, uint32_t index) {
+static int remove_source(struct userdata *u, uint32_t idx) {
     struct service *svc;
-    assert(u && index != PA_INVALID_INDEX);
+    assert(u && idx != PA_INVALID_INDEX);
     
-    if (!(svc = pa_dynarray_get(u->source_dynarray, index)))
+    if (!(svc = pa_dynarray_get(u->source_dynarray, idx)))
         return 0;
 
     if (!svc->loaded.valid || svc->loaded.type != PA_NAMEREG_SOURCE)
         return 0;
 
     svc->loaded.valid = 0;
-    pa_dynarray_put(u->source_dynarray, index, NULL);
+    pa_dynarray_put(u->source_dynarray, idx, NULL);
 
     return publish_service(u, svc);
 }
 
-static int remove_autoload(struct userdata *u, uint32_t index) {
+static int remove_autoload(struct userdata *u, uint32_t idx) {
     struct service *svc;
-    assert(u && index != PA_INVALID_INDEX);
+    assert(u && idx != PA_INVALID_INDEX);
     
-    if (!(svc = pa_dynarray_get(u->autoload_dynarray, index)))
+    if (!(svc = pa_dynarray_get(u->autoload_dynarray, idx)))
         return 0;
 
     if (!svc->autoload.valid)
         return 0;
 
     svc->autoload.valid = 0;
-    pa_dynarray_put(u->autoload_dynarray, index, NULL);
+    pa_dynarray_put(u->autoload_dynarray, idx, NULL);
 
     return publish_service(u, svc);
 }
 
-static void subscribe_callback(pa_core *c, pa_subscription_event_type t, uint32_t index, void *userdata) {
+static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
     assert(u && c);
 
@@ -334,12 +327,12 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type t, uint32_
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
                 pa_sink *sink;
 
-                if ((sink = pa_idxset_get_by_index(c->sinks, index))) {
+                if ((sink = pa_idxset_get_by_index(c->sinks, idx))) {
                     if (publish_sink(u, sink) < 0)
                         goto fail;
                 }
             } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-                if (remove_sink(u, index) < 0)
+                if (remove_sink(u, idx) < 0)
                     goto fail;
             }
         
@@ -350,12 +343,12 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type t, uint32_
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
                 pa_source *source;
                 
-                if ((source = pa_idxset_get_by_index(c->sources, index))) {
+                if ((source = pa_idxset_get_by_index(c->sources, idx))) {
                     if (publish_source(u, source) < 0)
                         goto fail;
                 }
             } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-                if (remove_source(u, index) < 0)
+                if (remove_source(u, idx) < 0)
                     goto fail;
             }
             
@@ -365,12 +358,12 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type t, uint32_
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
                 pa_autoload_entry *autoload;
                     
-                if ((autoload = pa_idxset_get_by_index(c->autoload_idxset, index))) {
+                if ((autoload = pa_idxset_get_by_index(c->autoload_idxset, idx))) {
                     if (publish_autoload(u, autoload) < 0)
                         goto fail;
                 }
             } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-                if (remove_autoload(u, index) < 0)
+                if (remove_autoload(u, idx) < 0)
                         goto fail;
             }
             
@@ -388,7 +381,7 @@ fail:
 
 int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u;
-    uint32_t index, port = PA_NATIVE_DEFAULT_PORT;
+    uint32_t idx, port = PA_NATIVE_DEFAULT_PORT;
     pa_sink *sink;
     pa_source *source;
     pa_autoload_entry *autoload;
@@ -424,16 +417,16 @@ int pa__init(pa_core *c, pa_module*m) {
                                           PA_SUBSCRIPTION_MASK_SOURCE|
                                           PA_SUBSCRIPTION_MASK_AUTOLOAD, subscribe_callback, u);
 
-    for (sink = pa_idxset_first(c->sinks, &index); sink; sink = pa_idxset_next(c->sinks, &index))
+    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx))
         if (publish_sink(u, sink) < 0)
             goto fail;
 
-    for (source = pa_idxset_first(c->sources, &index); source; source = pa_idxset_next(c->sources, &index))
+    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx))
         if (publish_source(u, source) < 0)
             goto fail;
 
     if (c->autoload_idxset)
-        for (autoload = pa_idxset_first(c->autoload_idxset, &index); autoload; autoload = pa_idxset_next(c->autoload_idxset, &index))
+        for (autoload = pa_idxset_first(c->autoload_idxset, &idx); autoload; autoload = pa_idxset_next(c->autoload_idxset, &idx))
             if (publish_autoload(u, autoload) < 0)
                 goto fail;
 

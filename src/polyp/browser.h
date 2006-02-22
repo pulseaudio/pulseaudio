@@ -24,24 +24,27 @@
 
 #include <polyp/mainloop-api.h>
 #include <polyp/sample.h>
+#include <polyp/channelmap.h>
 #include <polyp/cdecl.h>
 
 PA_C_DECL_BEGIN
 
-pa_browser;
+typedef struct pa_browser pa_browser;
 
-pa_browse_opcode {
-    PA_BROWSE_NEW_SERVER,
+typedef enum pa_browse_opcode {
+    PA_BROWSE_NEW_SERVER = 0,
     PA_BROWSE_NEW_SINK,
     PA_BROWSE_NEW_SOURCE,
-    PA_BROWSE_REMOVE
-};
+    PA_BROWSE_REMOVE_SERVER,
+    PA_BROWSE_REMOVE_SINK,
+    PA_BROWSE_REMOVE_SOURCE
+} pa_browse_opcode_t;
 
 pa_browser *pa_browser_new(pa_mainloop_api *mainloop);
 pa_browser *pa_browser_ref(pa_browser *z);
 void pa_browser_unref(pa_browser *z);
 
-pa_browse_info {
+typedef struct pa_browse_info {
     /* Unique service name */
     const char *name;  /* always available */
 
@@ -53,11 +56,12 @@ pa_browse_info {
     /* Device info */
     const char *device; /* always available when this information is of a sink/source */
     const char *description;  /* optional */
-    const pa_typeid_t *typeid;  /* optional */
     const pa_sample_spec *sample_spec;  /* optional */
-};
+} pa_browse_info;
 
-void pa_browser_set_callback(pa_browser *z, void (*cb)(pa_browser *z, pa_browse_opcode c, const pa_browse_info *i, void *userdata), void *userdata);
+typedef void (*pa_browse_cb_t)(pa_browser *z, pa_browse_opcode_t c, const pa_browse_info *i, void *userdata);
+
+void pa_browser_set_callback(pa_browser *z, pa_browse_cb_t cb, void *userdata);
 
 PA_C_DECL_END
 

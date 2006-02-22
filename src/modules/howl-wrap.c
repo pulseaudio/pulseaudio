@@ -29,7 +29,7 @@
 
 #define HOWL_PROPERTY "howl"
 
-pa_howl_wrapper {
+struct pa_howl_wrapper {
     pa_core *core;
     int ref;
 
@@ -38,7 +38,7 @@ pa_howl_wrapper {
 
 };
 
-static void howl_io_event(pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_flags f, void *userdata) {
+static void howl_io_event(pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     pa_howl_wrapper *w = userdata;
     assert(m && e && fd >= 0 && w && w->ref >= 1);
 

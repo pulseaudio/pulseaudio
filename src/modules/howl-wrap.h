@@ -26,7 +26,7 @@
 
 #include <polypcore/core.h>
 
-pa_howl_wrapper;
+typedef struct pa_howl_wrapper pa_howl_wrapper;
 
 pa_howl_wrapper* pa_howl_wrapper_get(pa_core *c);
 pa_howl_wrapper* pa_howl_wrapper_ref(pa_howl_wrapper *h);

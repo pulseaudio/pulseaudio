@@ -55,26 +55,21 @@ static void dump_server(const pa_browse_info *i) {
 }
 
 static void dump_device(const pa_browse_info *i) {
-    char t[16], ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char ss[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
     if (i->sample_spec)
         pa_sample_spec_snprint(ss, sizeof(ss), i->sample_spec);
 
-    if (i->typeid)
-        pa_typeid_to_string(*i->typeid, t, sizeof(t));
-    
     printf("device: %s\n"
            "description: %s\n"
-           "type: %s\n"
            "sample spec: %s\n",
            i->device,
            i->description ? i->description : "n/a",
-           i->typeid ? t : "n/a",
            i->sample_spec ? ss : "n/a");
            
 }
 
-static void browser_callback(pa_browser *b, pa_browse_opcode c, const pa_browse_info *i, void *userdata) {
+static void browser_callback(pa_browser *b, pa_browse_opcode_t c, const pa_browse_info *i, void *userdata) {
     assert(b && i);
 
     switch (c) {
@@ -96,10 +91,18 @@ static void browser_callback(pa_browser *b, pa_browse_opcode c, const pa_browse_
             dump_device(i);
             break;
             
-        case PA_BROWSE_REMOVE:
-            printf("\n=> removed service <%s>\n", i->name);
+        case PA_BROWSE_REMOVE_SERVER:
+            printf("\n=> removed server <%s>\n", i->name);
             break;
-            
+
+        case PA_BROWSE_REMOVE_SINK:
+            printf("\n=> removed sink <%s>\n", i->name);
+            break;
+
+        case PA_BROWSE_REMOVE_SOURCE:
+            printf("\n=> removed source <%s>\n", i->name);
+            break;
+
         default:
             ;
     }
