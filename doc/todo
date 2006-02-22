@@ -23,6 +23,7 @@ Fixes:
   - volume control
   - add hw driver name to sink/source description
   - deal with underflows properly
+- multiline configuration statements
 
 Post 0.8:
 - alsa mmap driver
@@ -32,6 +33,7 @@ Post 0.8:
 - chroot()
 - add threading API
 - module-tunnel: improve latency calculation
+- port from howl to avahi
 
 Long term:
 - pass meta info for hearing impaired
