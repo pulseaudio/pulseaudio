@@ -77,6 +77,7 @@ static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int 
 static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
+static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_kill_client(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
@@ -114,6 +115,7 @@ static const struct command commands[] = {
     { "unload-module",           pa_cli_command_unload,             "Unload a module (args: index)",                             2},
     { "set-sink-volume",         pa_cli_command_sink_volume,        "Set the volume of a sink (args: index|name, volume)",             3},
     { "set-sink-input-volume",   pa_cli_command_sink_input_volume,  "Set the volume of a sink input (args: index|name, volume)", 3},
+    { "set-source-volume",       pa_cli_command_source_volume,      "Set the volume of a source (args: index|name, volume)", 3},
     { "set-default-sink",        pa_cli_command_sink_default,       "Set the default sink (args: index|name)", 2},
     { "set-default-source",      pa_cli_command_source_default,     "Set the default source (args: index|name)", 2},
     { "kill-client",             pa_cli_command_kill_client,        "Kill a client (args: index)", 2},
@@ -376,6 +378,37 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
     return 0;
 }
 
+static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
+    const char *n, *v;
+    pa_source *source;
+    uint32_t volume;
+    pa_cvolume cvolume;
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a source either by its name or its index.\n");
+        return -1;
+    }
+
+    if (!(v = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        return -1;
+    }
+
+    if (pa_atou(v, &volume) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse volume.\n");
+        return -1;
+    }
+
+    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE, 1))) {
+        pa_strbuf_puts(buf, "No source found by this name or index.\n");
+        return -1;
+    }
+
+    pa_cvolume_set(&cvolume, source->sample_spec.channels, volume);
+    pa_source_set_volume(source, PA_MIXER_HARDWARE, &cvolume);
+    return 0;
+}
+
 static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
     const char *n;
     assert(c && t);
@@ -633,7 +666,8 @@ static int pa_cli_command_list_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf
 
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
     pa_module *m;
-    pa_sink *s;
+    pa_sink *sink;
+    pa_source *source;
     int nl;
     const char *p;
     uint32_t idx;
@@ -667,8 +701,8 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
 
     nl = 0;
 
-    for (s = pa_idxset_first(c->sinks, &idx); s; s = pa_idxset_next(c->sinks, &idx)) {
-        if (s->owner && s->owner->auto_unload)
+    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
+        if (sink->owner && sink->owner->auto_unload)
             continue;
 
         if (!nl) {
@@ -676,7 +710,19 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
             nl = 1;
         }
 
-        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", s->name, pa_cvolume_avg(pa_sink_get_volume(s, PA_MIXER_HARDWARE)));
+        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_avg(pa_sink_get_volume(sink, PA_MIXER_HARDWARE)));
+    }
+
+    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
+        if (source->owner && source->owner->auto_unload)
+            continue;
+
+        if (!nl) {
+            pa_strbuf_puts(buf, "\n");
+            nl = 1;
+        }
+
+        pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_avg(pa_source_get_volume(source, PA_MIXER_HARDWARE)));
     }
 
 

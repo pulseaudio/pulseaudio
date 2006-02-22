@@ -425,6 +425,7 @@ polypcoreinclude_HEADERS = \
 		polypcore/cli-text.h \
 		polypcore/client.h \
 		polypcore/core.h \
+		polypcore/core-def.h \
 		polypcore/core-scache.h \
 		polypcore/core-subscribe.h \
 		polypcore/conf-parser.h \

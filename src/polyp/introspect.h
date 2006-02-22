@@ -84,6 +84,7 @@ typedef struct pa_source_info {
     pa_sample_spec sample_spec;         /**< Sample spec of this source */
     pa_channel_map channel_map;         /**< Channel map \since 0.9 */
     uint32_t owner_module;              /**< Owning module index, or PA_INVALID_INDEX */
+    pa_cvolume volume;                  /**< Volume of the source \since 0.8 */
     uint32_t monitor_of_sink;           /**< If this is a monitor source the index of the owning sink, otherwise PA_INVALID_INDEX */
     const char *monitor_of_sink_name;   /**< Name of the owning sink, or PA_INVALID_INDEX */
     pa_usec_t latency;                  /**< Length of filled record buffer of this source. \since 0.5 */
@@ -212,6 +213,12 @@ pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name
 
 /** Set the volume of a sink input stream */
 pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the volume of a source device specified by its index \since 0.8 */
+pa_operation* pa_context_set_source_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the volume of a source device specified by its name \since 0.8 */
+pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
 
 /** Memory block statistics */
 typedef struct pa_stat_info {

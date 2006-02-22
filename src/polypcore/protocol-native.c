@@ -216,6 +216,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
 
     [PA_COMMAND_SET_SINK_VOLUME] = command_set_volume,
     [PA_COMMAND_SET_SINK_INPUT_VOLUME] = command_set_volume,
+    [PA_COMMAND_SET_SOURCE_VOLUME] = command_set_volume,
     
     [PA_COMMAND_CORK_PLAYBACK_STREAM] = command_cork_playback_stream,
     [PA_COMMAND_FLUSH_PLAYBACK_STREAM] = command_flush_playback_stream,
@@ -1254,16 +1255,20 @@ static void sink_fill_tagstruct(pa_tagstruct *t, pa_sink *sink) {
 
 static void source_fill_tagstruct(pa_tagstruct *t, pa_source *source) {
     assert(t && source);
-    pa_tagstruct_putu32(t, source->index);
-    pa_tagstruct_puts(t, source->name);
-    pa_tagstruct_puts(t, source->description);
-    pa_tagstruct_put_sample_spec(t, &source->sample_spec);
-    pa_tagstruct_put_channel_map(t, &source->channel_map);
-    pa_tagstruct_putu32(t, source->owner ? source->owner->index : (uint32_t) -1);
-    pa_tagstruct_putu32(t, source->monitor_of ? source->monitor_of->index : (uint32_t) -1);
-    pa_tagstruct_puts(t, source->monitor_of ? source->monitor_of->name : NULL);
-    pa_tagstruct_put_usec(t, pa_source_get_latency(source));
-    pa_tagstruct_puts(t, source->driver);
+    pa_tagstruct_put(
+        t,
+        PA_TAG_U32, source->index,
+        PA_TAG_STRING, source->name,
+        PA_TAG_STRING, source->description,
+        PA_TAG_SAMPLE_SPEC, &source->sample_spec,
+        PA_TAG_CHANNEL_MAP, &source->channel_map,
+        PA_TAG_U32, source->owner ? source->owner->index : PA_INVALID_INDEX,
+        PA_TAG_CVOLUME, pa_source_get_volume(source, PA_MIXER_HARDWARE),
+        PA_TAG_U32, source->monitor_of ? source->monitor_of->index : PA_INVALID_INDEX,
+        PA_TAG_STRING, source->monitor_of ? source->monitor_of->name : NULL,
+        PA_TAG_USEC, pa_source_get_latency(source),
+        PA_TAG_STRING, source->driver,
+        PA_TAG_INVALID);
 }
 
 static void client_fill_tagstruct(pa_tagstruct *t, pa_client *client) {
@@ -1558,12 +1563,14 @@ static void command_set_volume(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command,
     uint32_t idx;
     pa_cvolume volume;
     pa_sink *sink = NULL;
+    pa_source *source = NULL;
     pa_sink_input *si = NULL;
     const char *name = NULL;
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
         (command == PA_COMMAND_SET_SINK_VOLUME && pa_tagstruct_gets(t, &name) < 0) ||
+        (command == PA_COMMAND_SET_SOURCE_VOLUME && pa_tagstruct_gets(t, &name) < 0) ||
         pa_tagstruct_get_cvolume(t, &volume) ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
@@ -1580,18 +1587,25 @@ static void command_set_volume(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command,
             sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
         else
             sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
+    } else if (command == PA_COMMAND_SET_SOURCE_VOLUME) {
+        if (idx != (uint32_t) -1)
+            source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
+        else
+            source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
     }  else {
         assert(command == PA_COMMAND_SET_SINK_INPUT_VOLUME);
         si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
     }
 
-    if (!si && !sink) {
+    if (!si && !sink && !source) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
         return;
     }
 
     if (sink)
         pa_sink_set_volume(sink, PA_MIXER_HARDWARE, &volume);
+    else if (source)
+        pa_source_set_volume(source, PA_MIXER_HARDWARE, &volume);
     else if (si)
         pa_sink_input_set_volume(si, &volume);
 

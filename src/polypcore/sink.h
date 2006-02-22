@@ -29,6 +29,7 @@ typedef struct pa_sink pa_sink;
 #include <polyp/sample.h>
 #include <polyp/channelmap.h>
 #include <polyp/volume.h>
+#include <polypcore/core-def.h>
 #include <polypcore/core.h>
 #include <polypcore/idxset.h>
 #include <polypcore/source.h>
@@ -40,11 +41,6 @@ typedef enum pa_sink_state {
     PA_SINK_RUNNING,
     PA_SINK_DISCONNECTED
 } pa_sink_state_t;
-
-typedef enum pa_mixer {
-    PA_MIXER_SOFTWARE,
-    PA_MIXER_HARDWARE
-} pa_mixer_t;
 
 struct pa_sink {
     int ref;

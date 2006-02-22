@@ -28,6 +28,8 @@ typedef struct pa_source pa_source;
 
 #include <polyp/sample.h>
 #include <polyp/channelmap.h>
+#include <polyp/volume.h>
+#include <polypcore/core-def.h>
 #include <polypcore/core.h>
 #include <polypcore/idxset.h>
 #include <polypcore/memblock.h>
@@ -56,9 +58,13 @@ struct pa_source {
 
     pa_idxset *outputs;
     pa_sink *monitor_of;
+
+    pa_cvolume hw_volume, sw_volume;
     
     void (*notify)(pa_source*source);
     pa_usec_t (*get_latency)(pa_source *s);
+    int (*set_hw_volume)(pa_source *s);
+    int (*get_hw_volume)(pa_source *s);
     
     void *userdata;
 };
@@ -83,5 +89,8 @@ void pa_source_notify(pa_source *s);
 void pa_source_set_owner(pa_source *s, pa_module *m);
 
 pa_usec_t pa_source_get_latency(pa_source *s);
+
+void pa_source_set_volume(pa_source *source, pa_mixer_t m, const pa_cvolume *volume);
+const pa_cvolume *pa_source_get_volume(pa_source *source, pa_mixer_t m);
 
 #endif
