@@ -139,7 +139,8 @@ typedef enum pa_subscription_mask {
     PA_SUBSCRIPTION_MASK_CLIENT = 32,            /**< Client events */
     PA_SUBSCRIPTION_MASK_SAMPLE_CACHE = 64,      /**< Sample cache events */
     PA_SUBSCRIPTION_MASK_SERVER = 128,           /**< Other global server changes. \since 0.4 */
-    PA_SUBSCRIPTION_MASK_AUTOLOAD = 256          /**< Autoload table events. \since 0.5 */
+    PA_SUBSCRIPTION_MASK_AUTOLOAD = 256,         /**< Autoload table events. \since 0.5 */
+    PA_SUBSCRIPTION_MASK_ALL = 511               /**< Catch all events \since 0.8 */
 } pa_subscription_mask_t;
 
 /** Subscription event types, as used by pa_context_subscribe() */

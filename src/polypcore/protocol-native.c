@@ -545,7 +545,6 @@ static void send_playback_stream_killed(struct playback_stream *p) {
     assert(p);
 
     t = pa_tagstruct_new(NULL, 0);
-    assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_KILLED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, p->index);
@@ -557,7 +556,6 @@ static void send_record_stream_killed(struct record_stream *r) {
     assert(r);
 
     t = pa_tagstruct_new(NULL, 0);
-    assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_KILLED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
     pa_tagstruct_putu32(t, r->index);
@@ -667,6 +665,22 @@ static void protocol_error(struct connection *c) {
     connection_free(c);
 }
 
+#define CHECK_VALIDITY(pstream, expression, tag, error) do { \
+if (!(expression)) { \
+    pa_pstream_send_error((pstream), (tag), (error)); \
+    return; \
+} \
+} while(0);
+
+static pa_tagstruct *reply_new(uint32_t tag) {
+    pa_tagstruct *reply;
+    
+    reply = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
+    pa_tagstruct_putu32(reply, tag);
+    return reply;
+}
+
 static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     struct playback_stream *s;
@@ -703,33 +717,24 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, sink_index != PA_INVALID_INDEX || !sink_name || *sink_name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID);
 
     if (sink_index != PA_INVALID_INDEX)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
     else
         sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK, 1);
 
-    if (!sink) {
-        pa_log_warn(__FILE__": Can't find a suitable sink.\n");
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
-    
-    if (!(s = playback_stream_new(c, sink, &ss, &map, name, maxlength, tlength, prebuf, minreq, &volume, syncid))) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
+
+    s = playback_stream_new(c, sink, &ss, &map, name, maxlength, tlength, prebuf, minreq, &volume, syncid);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
 
     pa_sink_input_cork(s->sink_input, corked);
     
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     pa_tagstruct_putu32(reply, s->index);
     assert(s->sink_input);
     pa_tagstruct_putu32(reply, s->sink_input->index);
@@ -749,10 +754,7 @@ static void command_delete_stream(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t comma
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
 
     if (command == PA_COMMAND_DELETE_PLAYBACK_STREAM) {
         struct playback_stream *s;
@@ -797,7 +799,7 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     int corked;
     assert(c && t && c->protocol && c->protocol->core);
     
-    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
+    if (pa_tagstruct_gets(t, &name) < 0 ||
         pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
         pa_tagstruct_get_channel_map(t, &map) < 0 ||
         pa_tagstruct_getu32(t, &source_index) < 0 ||
@@ -810,32 +812,24 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, source_index != PA_INVALID_INDEX || !source_name || *source_name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, map.channels == ss.channels, tag, PA_ERR_INVALID);
 
-    if (source_index != (uint32_t) -1)
+    if (source_index != PA_INVALID_INDEX)
         source = pa_idxset_get_by_index(c->protocol->core->sources, source_index);
     else
         source = pa_namereg_get(c->protocol->core, source_name, PA_NAMEREG_SOURCE, 1);
 
-    if (!source) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
     
-    if (!(s = record_stream_new(c, source, &ss, &map, name, maxlength, fragment_size))) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
-        return;
-    }
-
+    s = record_stream_new(c, source, &ss, &map, name, maxlength, fragment_size);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
+    
     pa_source_output_cork(s->source_output, corked);
     
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     pa_tagstruct_putu32(reply, s->index);
     assert(s->source_output);
     pa_tagstruct_putu32(reply, s->source_output->index);
@@ -851,15 +845,11 @@ static void command_exit(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
     
     assert(c->protocol && c->protocol->core && c->protocol->core->mainloop);
     c->protocol->core->mainloop->quit(c->protocol->core->mainloop, 0);
     pa_pstream_send_simple_ack(c->pstream, tag); /* nonsense */
-    return;
 }
 
 static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -888,7 +878,6 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
     }
     
     pa_pstream_send_simple_ack(c->pstream, tag);
-    return;
 }
 
 static void command_set_client_name(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -896,15 +885,16 @@ static void command_set_client_name(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSE
     const char *name;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
+    if (pa_tagstruct_gets(t, &name) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
 
+    CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_INVALID);
+    
     pa_client_set_name(c->client, name);
     pa_pstream_send_simple_ack(c->pstream, tag);
-    return;
 }
 
 static void command_lookup(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -913,16 +903,14 @@ static void command_lookup(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uin
     uint32_t idx = PA_IDXSET_INVALID;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
+    if (pa_tagstruct_gets(t, &name) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_LOOKUP_SINK) {
         pa_sink *sink;
@@ -939,10 +927,7 @@ static void command_lookup(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uin
         pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
     else {
         pa_tagstruct *reply;
-        reply = pa_tagstruct_new(NULL, 0);
-        assert(reply);
-        pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-        pa_tagstruct_putu32(reply, tag);
+        reply = reply_new(tag);
         pa_tagstruct_putu32(reply, idx);
         pa_pstream_send_tagstruct(c->pstream, reply);
     }
@@ -960,16 +945,11 @@ static void command_drain_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
-
-    if (!(s = pa_idxset_get_by_index(c->output_streams, idx)) || s->type != PLAYBACK_STREAM) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
-
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    s = pa_idxset_get_by_index(c->output_streams, idx);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
+    CHECK_VALIDITY(c->pstream, s->type == PLAYBACK_STREAM, tag, PA_ERR_NOENTITY);
+    
     s->drain_request = 0;
 
     pa_memblockq_prebuf_disable(s->memblockq);
@@ -996,15 +976,9 @@ static void command_stat(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
 
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->total);
     pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->total_size);
     pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->allocated);
@@ -1030,20 +1004,12 @@ static void command_get_playback_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    s = pa_idxset_get_by_index(c->output_streams, idx);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
+    CHECK_VALIDITY(c->pstream, s->type == PLAYBACK_STREAM, tag, PA_ERR_NOENTITY);
 
-    if (!(s = pa_idxset_get_by_index(c->output_streams, idx)) || s->type != PLAYBACK_STREAM) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
-
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     pa_tagstruct_put_usec(reply, pa_sink_input_get_latency(s->sink_input));
     pa_tagstruct_put_usec(reply, pa_sink_get_latency(s->sink_input->sink));
     pa_tagstruct_put_usec(reply, 0);
@@ -1073,20 +1039,11 @@ static void command_get_record_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    s = pa_idxset_get_by_index(c->record_streams, idx);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
-    if (!(s = pa_idxset_get_by_index(c->record_streams, idx))) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
-
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     pa_tagstruct_put_usec(reply, pa_source_output_get_latency(s->source_output));
     pa_tagstruct_put_usec(reply, s->source_output->source->monitor_of ? pa_sink_get_latency(s->source_output->source->monitor_of) : 0);
     pa_tagstruct_put_usec(reply, pa_source_get_latency(s->source_output->source));
@@ -1099,7 +1056,6 @@ static void command_get_record_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
-
 static void command_create_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     struct upload_stream *s;
@@ -1110,7 +1066,7 @@ static void command_create_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_tagstruct *reply;
     assert(c && t && c->protocol && c->protocol->core);
     
-    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
+    if (pa_tagstruct_gets(t, &name) < 0 || 
         pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
         pa_tagstruct_get_channel_map(t, &map) < 0 ||
         pa_tagstruct_getu32(t, &length) < 0 ||
@@ -1119,25 +1075,14 @@ static void command_create_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
-
-    if ((length % pa_frame_size(&ss)) != 0 || length <= 0 || !*name) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, (length % pa_frame_size(&ss)) == 0 && length > 0, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
     
-    if (!(s = upload_stream_new(c, &ss, &map, name, length))) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
-        return;
-    }
+    s = upload_stream_new(c, &ss, &map, name, length);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
     
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     pa_tagstruct_putu32(reply, s->index);
     pa_tagstruct_putu32(reply, length);
     pa_pstream_send_tagstruct(c->pstream, reply);
@@ -1156,15 +1101,11 @@ static void command_finish_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
 
-    if (!(s = pa_idxset_get_by_index(c->output_streams, channel)) || (s->type != UPLOAD_STREAM)) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_EXIST);
-        return;
-    }
+    s = pa_idxset_get_by_index(c->output_streams, channel);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
+    CHECK_VALIDITY(c->pstream, s->type == UPLOAD_STREAM, tag, PA_ERR_NOENTITY);
 
     pa_scache_add_item(c->protocol->core, s->name, &s->sample_spec, &s->channel_map, &s->memchunk, &idx);
     pa_pstream_send_simple_ack(c->pstream, tag);
@@ -1182,26 +1123,22 @@ static void command_play_sample(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED ui
     if (pa_tagstruct_getu32(t, &sink_index) < 0 ||
         pa_tagstruct_gets(t, &sink_name) < 0 ||
         pa_tagstruct_get_cvolume(t, &volume) < 0 ||
-        pa_tagstruct_gets(t, &name) < 0 || !name || 
+        pa_tagstruct_gets(t, &name) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
     
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, sink_index != PA_INVALID_INDEX || !sink_name || *sink_name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
 
-    if (sink_index != (uint32_t) -1)
+    if (sink_index != PA_INVALID_INDEX)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
     else
         sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK, 1);
 
-    if (!sink) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
 
     if (pa_scache_play_item(c->protocol->core, name, sink, &volume) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
@@ -1216,16 +1153,14 @@ static void command_remove_sample(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED 
     const char *name;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 || !name || 
+    if (pa_tagstruct_gets(t, &name) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
 
     if (pa_scache_remove_item(c->protocol->core, name) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
@@ -1275,7 +1210,7 @@ static void client_fill_tagstruct(pa_tagstruct *t, pa_client *client) {
     assert(t && client);
     pa_tagstruct_putu32(t, client->index);
     pa_tagstruct_puts(t, client->name);
-    pa_tagstruct_putu32(t, client->owner ? client->owner->index : (uint32_t) -1);
+    pa_tagstruct_putu32(t, client->owner ? client->owner->index : PA_INVALID_INDEX);
     pa_tagstruct_puts(t, client->driver);
 }
 
@@ -1292,8 +1227,8 @@ static void sink_input_fill_tagstruct(pa_tagstruct *t, pa_sink_input *s) {
     assert(t && s);
     pa_tagstruct_putu32(t, s->index);
     pa_tagstruct_puts(t, s->name);
-    pa_tagstruct_putu32(t, s->owner ? s->owner->index : (uint32_t) -1);
-    pa_tagstruct_putu32(t, s->client ? s->client->index : (uint32_t) -1);
+    pa_tagstruct_putu32(t, s->owner ? s->owner->index : PA_INVALID_INDEX);
+    pa_tagstruct_putu32(t, s->client ? s->client->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->sink->index);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
@@ -1308,8 +1243,8 @@ static void source_output_fill_tagstruct(pa_tagstruct *t, pa_source_output *s) {
     assert(t && s);
     pa_tagstruct_putu32(t, s->index);
     pa_tagstruct_puts(t, s->name);
-    pa_tagstruct_putu32(t, s->owner ? s->owner->index : (uint32_t) -1);
-    pa_tagstruct_putu32(t, s->client ? s->client->index : (uint32_t) -1);
+    pa_tagstruct_putu32(t, s->owner ? s->owner->index : PA_INVALID_INDEX);
+    pa_tagstruct_putu32(t, s->client ? s->client->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->source->index);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
@@ -1357,19 +1292,16 @@ static void command_get_info(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, u
         protocol_error(c);
         return;
     }
-    
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
 
     if (command == PA_COMMAND_GET_SINK_INFO) {
-        if (idx != (uint32_t) -1)
+        if (idx != PA_INVALID_INDEX)
             sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
         else
             sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
     } else if (command == PA_COMMAND_GET_SOURCE_INFO) {
-        if (idx != (uint32_t) -1)
+        if (idx != PA_INVALID_INDEX)
             source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
         else
             source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
@@ -1383,7 +1315,7 @@ static void command_get_info(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, u
         so = pa_idxset_get_by_index(c->protocol->core->source_outputs, idx);
     else {
         assert(command == PA_COMMAND_GET_SAMPLE_INFO);
-        if (idx != (uint32_t) -1)
+        if (idx != PA_INVALID_INDEX)
             sce = pa_idxset_get_by_index(c->protocol->core->scache, idx);
         else
             sce = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SAMPLE, 0);
@@ -1394,10 +1326,7 @@ static void command_get_info(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, u
         return;
     }
 
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag); 
+    reply = reply_new(tag);
     if (sink)
         sink_fill_tagstruct(reply, sink);
     else if (source)
@@ -1427,16 +1356,10 @@ static void command_get_info_list(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t comma
         protocol_error(c);
         return;
     }
-    
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
 
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+
+    reply = reply_new(tag);
 
     if (command == PA_COMMAND_GET_SINK_INFO_LIST)
         i = c->protocol->core->sinks;
@@ -1491,15 +1414,9 @@ static void command_get_server_info(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSE
         return;
     }
     
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
 
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     pa_tagstruct_puts(reply, PACKAGE_NAME);
     pa_tagstruct_puts(reply, PACKAGE_VERSION);
     pa_tagstruct_puts(reply, pa_get_user_name(txt, sizeof(txt)));
@@ -1522,7 +1439,6 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t e, uint3
     assert(c && core);
 
     t = pa_tagstruct_new(NULL, 0);
-    assert(t);
     pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE_EVENT);
     pa_tagstruct_putu32(t, (uint32_t) -1);
     pa_tagstruct_putu32(t, e);
@@ -1540,12 +1456,10 @@ static void command_subscribe(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint
         protocol_error(c);
         return;
     }
-    
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
 
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, (m & ~PA_SUBSCRIPTION_MASK_ALL) == 0, tag, PA_ERR_INVALID);
+    
     if (c->subscription)
         pa_subscription_free(c->subscription);
 
@@ -1558,7 +1472,13 @@ static void command_subscribe(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
-static void command_set_volume(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void command_set_volume(
+        PA_GCC_UNUSED pa_pdispatch *pd,
+        uint32_t command,
+        uint32_t tag,
+        pa_tagstruct *t,
+        void *userdata) {
+    
     struct connection *c = userdata;
     uint32_t idx;
     pa_cvolume volume;
@@ -1577,13 +1497,11 @@ static void command_set_volume(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command,
         return;
     }
     
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || !name || *name, tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_SET_SINK_VOLUME) {
-        if (idx != (uint32_t) -1)
+        if (idx != PA_INVALID_INDEX)
             sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
         else
             sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
@@ -1597,10 +1515,7 @@ static void command_set_volume(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command,
         si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
     }
 
-    if (!si && !sink && !source) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, si || sink || source, tag, PA_ERR_NOENTITY);
 
     if (sink)
         pa_sink_set_volume(sink, PA_MIXER_HARDWARE, &volume);
@@ -1626,17 +1541,11 @@ static void command_cork_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
-
-    if (!(s = pa_idxset_get_by_index(c->output_streams, idx)) || s->type != PLAYBACK_STREAM) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
-
-    fprintf(stderr, "Corking %i\n", b);
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
+    s = pa_idxset_get_by_index(c->output_streams, idx);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
+    CHECK_VALIDITY(c->pstream, s->type == PLAYBACK_STREAM, tag, PA_ERR_NOENTITY);
 
     pa_sink_input_cork(s->sink_input, b);
     pa_memblockq_prebuf_force(s->memblockq);
@@ -1667,15 +1576,11 @@ static void command_flush_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
-
-    if (!(s = pa_idxset_get_by_index(c->output_streams, idx)) || s->type != PLAYBACK_STREAM) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
+    s = pa_idxset_get_by_index(c->output_streams, idx);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
+    CHECK_VALIDITY(c->pstream, s->type == PLAYBACK_STREAM, tag, PA_ERR_NOENTITY);
 
     pa_memblockq_flush(s->memblockq);
     s->underrun = 0;
@@ -1714,15 +1619,11 @@ static void command_trigger_or_prebuf_playback_stream(PA_GCC_UNUSED pa_pdispatch
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
-
-    if (!(s = pa_idxset_get_by_index(c->output_streams, idx)) || s->type != PLAYBACK_STREAM) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
+    s = pa_idxset_get_by_index(c->output_streams, idx);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
+    CHECK_VALIDITY(c->pstream, s->type == PLAYBACK_STREAM, tag, PA_ERR_NOENTITY);
 
     switch (command) {
         case PA_COMMAND_PREBUF_PLAYBACK_STREAM:
@@ -1756,15 +1657,9 @@ static void command_cork_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
-
-    if (!(s = pa_idxset_get_by_index(c->record_streams, idx))) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    s = pa_idxset_get_by_index(c->record_streams, idx);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
     pa_source_output_cork(s->source_output, b);
     pa_memblockq_prebuf_force(s->memblockq);
@@ -1783,15 +1678,9 @@ static void command_flush_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_U
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
-
-    if (!(s = pa_idxset_get_by_index(c->record_streams, idx))) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    s = pa_idxset_get_by_index(c->record_streams, idx);
+    CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
     pa_memblockq_flush(s->memblockq);
     pa_pstream_send_simple_ack(c->pstream, tag);
@@ -1799,21 +1688,17 @@ static void command_flush_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_U
 
 static void command_set_default_sink_or_source(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
-    uint32_t idx;
     const char *s;
     assert(c && t);
 
-    if (pa_tagstruct_getu32(t, &idx) < 0 ||
-        pa_tagstruct_gets(t, &s) < 0 || !s ||
+    if (pa_tagstruct_gets(t, &s) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, !s || *s, tag, PA_ERR_INVALID);
 
     pa_namereg_set_default(c->protocol->core, s, command == PA_COMMAND_SET_DEFAULT_SOURCE ? PA_NAMEREG_SOURCE : PA_NAMEREG_SINK);
     pa_pstream_send_simple_ack(c->pstream, tag);
@@ -1826,34 +1711,29 @@ static void command_set_stream_name(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t com
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
-        pa_tagstruct_gets(t, &name) < 0 || !name || 
+        pa_tagstruct_gets(t, &name) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
     
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_SET_PLAYBACK_STREAM_NAME) {
         struct playback_stream *s;
         
-        if (!(s = pa_idxset_get_by_index(c->output_streams, idx)) || s->type != PLAYBACK_STREAM) {
-            pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-            return;
-        }
+        s = pa_idxset_get_by_index(c->output_streams, idx);
+        CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
+        CHECK_VALIDITY(c->pstream, s->type == PLAYBACK_STREAM, tag, PA_ERR_NOENTITY);
 
         pa_sink_input_set_name(s->sink_input, name);
         
     } else {
         struct record_stream *s;
         
-        if (!(s = pa_idxset_get_by_index(c->record_streams, idx))) {
-            pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-            return;
-        }
+        s = pa_idxset_get_by_index(c->record_streams, idx);
+        CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
         pa_source_output_set_name(s->source_output, name);
     }
@@ -1871,28 +1751,21 @@ static void command_kill(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uint3
         protocol_error(c);
         return;
     }
-    
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
 
     if (command == PA_COMMAND_KILL_CLIENT) {
         pa_client *client;
         
-        if (!(client = pa_idxset_get_by_index(c->protocol->core->clients, idx))) {
-            pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-            return;
-        }
-
+        client = pa_idxset_get_by_index(c->protocol->core->clients, idx);
+        CHECK_VALIDITY(c->pstream, client, tag, PA_ERR_NOENTITY);
         pa_client_kill(client);
+        
     } else if (command == PA_COMMAND_KILL_SINK_INPUT) {
         pa_sink_input *s;
         
-        if (!(s = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx))) {
-            pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-            return;
-        }
+        s = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
+        CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
         pa_sink_input_kill(s);
     } else {
@@ -1900,10 +1773,8 @@ static void command_kill(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uint3
 
         assert(command == PA_COMMAND_KILL_SOURCE_OUTPUT);
         
-        if (!(s = pa_idxset_get_by_index(c->protocol->core->source_outputs, idx))) {
-            pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-            return;
-        }
+        s = pa_idxset_get_by_index(c->protocol->core->source_outputs, idx);
+        CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
         pa_source_output_kill(s);
     }
@@ -1918,26 +1789,22 @@ static void command_load_module(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED ui
     pa_tagstruct *reply;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
+    if (pa_tagstruct_gets(t, &name) < 0 ||
         pa_tagstruct_gets(t, &argument) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
-    
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
 
     if (!(m = pa_module_load(c->protocol->core, name, argument))) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_MODINITFAILED);
         return;
     }
 
-    reply = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     pa_tagstruct_putu32(reply, m->index);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
@@ -1954,15 +1821,9 @@ static void command_unload_module(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED 
         return;
     }
     
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
-
-    if (!(m = pa_idxset_get_by_index(c->protocol->core->modules, idx))) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    m = pa_idxset_get_by_index(c->protocol->core->modules, idx);
+    CHECK_VALIDITY(c->pstream, m, tag, PA_ERR_NOENTITY);
 
     pa_module_unload_request(m);
     pa_pstream_send_simple_ack(c->pstream, tag);
@@ -1976,28 +1837,26 @@ static void command_add_autoload(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED u
     pa_tagstruct *reply;
     assert(c && t);
 
-    if (pa_tagstruct_gets(t, &name) < 0 || !name ||
-        pa_tagstruct_getu32(t, &type) < 0 || type > 1 ||
-        pa_tagstruct_gets(t, &module) < 0 || !module ||
+    if (pa_tagstruct_gets(t, &name) < 0 || 
+        pa_tagstruct_getu32(t, &type) < 0 || 
+        pa_tagstruct_gets(t, &module) < 0 || 
         pa_tagstruct_gets(t, &argument) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
     
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, type == 0 || type == 1, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, module && *module, tag, PA_ERR_INVALID);
 
     if (pa_autoload_add(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, module, argument, &idx) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_EXIST);
         return;
     }
 
-    reply = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     pa_tagstruct_putu32(reply, idx);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
@@ -2012,27 +1871,21 @@ static void command_remove_autoload(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSE
     if ((pa_tagstruct_getu32(t, &idx) < 0 &&
         (pa_tagstruct_gets(t, &name) < 0 ||
          pa_tagstruct_getu32(t, &type) < 0)) ||
-        (!name && idx == PA_IDXSET_INVALID) ||
-        (name && type > 1) ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
     
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, name || idx != PA_IDXSET_INVALID, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || (*name && (type == 0 || type == 1)), tag, PA_ERR_INVALID);
 
     if (name) 
         r = pa_autoload_remove_by_name(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE);
     else
         r = pa_autoload_remove_by_index(c->protocol->core, idx);
 
-    if (r < 0) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, r >= 0, tag, PA_ERR_NOENTITY);
 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
@@ -2058,33 +1911,23 @@ static void command_get_autoload_info(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNU
     if ((pa_tagstruct_getu32(t, &idx) < 0 &&
         (pa_tagstruct_gets(t, &name) < 0 ||
          pa_tagstruct_getu32(t, &type) < 0)) ||
-        (!name && idx == PA_IDXSET_INVALID) ||
-        (name && type > 1) ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
     }
 
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
-
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, name || idx != PA_IDXSET_INVALID, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || (*name && (type == 0 || type == 1)), tag, PA_ERR_INVALID);
 
     if (name)
         a = pa_autoload_get_by_name(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE);
     else
         a = pa_autoload_get_by_index(c->protocol->core, idx);
 
-    if (!a) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, a, tag, PA_ERR_NOENTITY);
 
-    reply = pa_tagstruct_new(NULL, 0);
-    assert(reply);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
     autoload_fill_tagstruct(reply, a);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
@@ -2099,14 +1942,9 @@ static void command_get_autoload_info_list(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
         return;
     }
     
-    if (!c->authorized) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
-        return;
-    }
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
 
-    reply = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(reply, PA_COMMAND_REPLY);
-    pa_tagstruct_putu32(reply, tag);
+    reply = reply_new(tag);
 
     if (c->protocol->core->autoload_hashmap) {
         pa_autoload_entry *a;
@@ -2327,7 +2165,7 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
         return NULL;
     }
     
-    p = pa_xmalloc(sizeof(pa_protocol_native));
+    p = pa_xnew(pa_protocol_native, 1);
     p->core = c;
     p->module = m;
     p->public = public;
