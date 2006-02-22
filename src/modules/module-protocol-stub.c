@@ -52,7 +52,7 @@
 
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"
-#define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?>"
+#define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?> listen=<address to listen on>"
 #else
 #define SOCKET_DESCRIPTION "(UNIX sockets)"
 #define SOCKET_USAGE "socket=<path to UNIX socket>"
@@ -146,6 +146,7 @@ static const char* const valid_modargs[] = {
 #if defined(USE_TCP_SOCKETS)
     "port",
     "loopback",
+    "listen",
 #else
     "socket",
 #endif
@@ -157,6 +158,7 @@ static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
 #if defined(USE_TCP_SOCKETS)
     int loopback = 1;
     uint32_t port = IPV4_PORT;
+    const char *listen_on;
 
     if (pa_modargs_get_value_boolean(ma, "loopback", &loopback) < 0) {
         pa_log(__FILE__": loopback= expects a boolean argument.\n");
@@ -168,8 +170,12 @@ static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
         return NULL;
     }
 
+    listen_on = pa_modargs_get_value(ma, "listen", NULL);
 
-    if (loopback) {
+    if (listen_on) {
+        if (!(s = pa_socket_server_new_ip_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE)))
+            return NULL;
+    } else if (loopback) {
         if (!(s = pa_socket_server_new_ip_loopback(c->mainloop, port, TCPWRAP_SERVICE)))
             return NULL;
     } else {

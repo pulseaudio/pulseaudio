@@ -36,6 +36,7 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
 pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t address[16], uint16_t port, const char *tcpwrap_service);
 pa_socket_server* pa_socket_server_new_ip_loopback(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service);
 pa_socket_server* pa_socket_server_new_ip_any(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service);
+pa_socket_server* pa_socket_server_new_ip_string(pa_mainloop_api *m, const char *name, uint16_t port, const char *tcpwrap_service);
 
 void pa_socket_server_unref(pa_socket_server*s);
 pa_socket_server* pa_socket_server_ref(pa_socket_server *s);
