@@ -847,7 +847,7 @@ pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, pa
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     
-    o = pa_operation_new(c, NULL, cb, o->userdata);
+    o = pa_operation_new(c, NULL, cb, userdata);
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, command);
