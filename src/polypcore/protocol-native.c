@@ -59,6 +59,8 @@
 /* Don't accept more connection than this */
 #define MAX_CONNECTIONS 10
 
+#define MAX_MEMBLOCKQ_LENGTH (4*1024*1024) /* 4MB */
+
 struct connection;
 struct pa_protocol_native;
 
@@ -238,8 +240,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_AUTOLOAD_INFO] = command_get_autoload_info,
     [PA_COMMAND_GET_AUTOLOAD_INFO_LIST] = command_get_autoload_info_list,
     [PA_COMMAND_ADD_AUTOLOAD] = command_add_autoload,
-    [PA_COMMAND_REMOVE_AUTOLOAD] = command_remove_autoload,
-
+    [PA_COMMAND_REMOVE_AUTOLOAD] = command_remove_autoload
 };
 
 /* structure management */
@@ -721,6 +722,7 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_ACCESS);
     CHECK_VALIDITY(c->pstream, sink_index != PA_INVALID_INDEX || !sink_name || *sink_name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
 
     if (sink_index != PA_INVALID_INDEX)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
@@ -816,6 +818,7 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, source_index != PA_INVALID_INDEX || !source_name || *source_name, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
 
     if (source_index != PA_INVALID_INDEX)
         source = pa_idxset_get_by_index(c->protocol->core->sources, source_index);
