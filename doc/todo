@@ -2,31 +2,36 @@
 
 Test:
 - module-combine
-- latency foo
+- module-tunnel
 - howl
 
 Fixes:
-- improve module-oss-mmap latency measurement
-- module-tunnel: improve latency calculation
-- make alsa modules use mmap
 - better validity checking in protocol-{native,esound}
 - change pa_log to not require \n
 - proper use of memcpy in procotol-esound.c so we don't get alignment problems
+- latency api for native protocol
+- add support for auth using SCM_CREDENTIALS
+- use scatter/gather io for sockets
+- notification on hw volume change
+- source volume control
+- mute switch support (like ALSA does it)
+- add listen-on paramater to protocol modules
+- module-oss-* love:
+  - deal with underflows propely
+  - improve latency measurement for mmap
+- module-alsa-* love: 
+  - volume control
+  - add hw driver name to sink/source description
+  - deal with underflows properly
 
-Features:
+Post 0.8:
+- alsa mmap driver
 - add radio module
 - dbus/hal
 - polish for starting polypaudio as root/system-wide instance
+- chroot()
 - add threading API
-- add support for auth using SCM_CREDENTIALS
-- include hw description in sink/source info
-- use scatter/gather io for sockets
-- hw volume support for alsa
-- notifcation on hw volume change
-- source volume control
-- deal with underflows reported by OSS/ALSA properly
-- mute switch support (like ALSA does it)
-- add listen-on paramater to protocol modules
+- module-tunnel: improve latency calculation
 
 Long term:
 - pass meta info for hearing impaired
@@ -36,14 +41,3 @@ Backends for:
 - portaudio  (semi-done)
 - sdl
 - OSS (esddsp style)
-
-------------------
-
-Done:
-- per-channel volume
-- channel mapping ("left", "right", "rear", "subwoofer")
-- hardware volume support
-- alsa-lib
-- remove "polyplib-" prefix
-- add API for synchronizing multiple sinks/sources to a common clock
-- absolutely indexed write()s from client
