@@ -601,6 +601,7 @@ libprotocol_simple_la_LIBADD = $(AM_LIBADD) libpolypcore.la libsocket-server.la 
 
 libsocket_server_la_SOURCES = \
 		polypcore/inet_ntop.c polypcore/inet_ntop.h \
+		polypcore/inet_pton.c polypcore/inet_pton.h \
 		polypcore/socket-server.c polypcore/socket-server.h
 libsocket_server_la_LDFLAGS = -avoid-version
 libsocket_server_la_LIBADD = $(AM_LIBADD) libpolypcore.la libiochannel.la libsocket-util.la $(LIBWRAP_LIBS) $(WINSOCK_LIBS)

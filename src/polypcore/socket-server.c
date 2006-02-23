@@ -56,6 +56,10 @@
 #include "inet_ntop.h"
 #endif
 
+#ifndef HAVE_INET_PTON
+#include "inet_pton.h"
+#endif
+
 #include "winsock.h"
 
 #include <polypcore/socket-util.h>
