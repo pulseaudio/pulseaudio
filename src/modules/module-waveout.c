@@ -554,6 +554,10 @@ int pa__init(pa_core *c, pa_module*m) {
 
     pa_modargs_free(ma);
 
+    /* Read mixer settings */
+    if (u->sink)
+        sink_get_hw_volume_cb(u->sink);
+
     return 0;
 
 fail:
