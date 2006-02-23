@@ -55,14 +55,14 @@ typedef struct pa_sink_info {
     uint32_t index;                    /**< Index of the sink */ 
     const char *description;           /**< Description of this sink */
     pa_sample_spec sample_spec;        /**< Sample spec of this sink */
-    pa_channel_map channel_map;        /**< Channel map \since 0.9 */
+    pa_channel_map channel_map;        /**< Channel map \since 0.8 */
     uint32_t owner_module;             /**< Index of the owning module of this sink, or PA_INVALID_INDEX */
     pa_cvolume volume;                 /**< Volume of the sink */
     int mute;                          /**< Mute switch of the sink \since 0.8 */
     uint32_t monitor_source;           /**< Index of the monitor source connected to this sink */
     const char *monitor_source_name;   /**< The name of the monitor source */
     pa_usec_t latency;                 /**< Length of filled playback buffer of this sink */
-    const char *driver;                /**< Driver name. \since 0.9 */
+    const char *driver;                /**< Driver name. \since 0.8 */
 } pa_sink_info;
 
 /** Callback prototype for pa_context_get_sink_info_by_name() and friends */
@@ -83,14 +83,14 @@ typedef struct pa_source_info {
     uint32_t index;                     /**< Index of the source */
     const char *description;            /**< Description of this source */
     pa_sample_spec sample_spec;         /**< Sample spec of this source */
-    pa_channel_map channel_map;         /**< Channel map \since 0.9 */
+    pa_channel_map channel_map;         /**< Channel map \since 0.8 */
     uint32_t owner_module;              /**< Owning module index, or PA_INVALID_INDEX */
     pa_cvolume volume;                  /**< Volume of the source \since 0.8 */
     int mute;                           /**< Mute switch of the sink \since 0.8 */
     uint32_t monitor_of_sink;           /**< If this is a monitor source the index of the owning sink, otherwise PA_INVALID_INDEX */
     const char *monitor_of_sink_name;   /**< Name of the owning sink, or PA_INVALID_INDEX */
     pa_usec_t latency;                  /**< Length of filled record buffer of this source. \since 0.5 */
-    const char *driver;                 /**< Driver name \since 0.9 */
+    const char *driver;                 /**< Driver name \since 0.8 */
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */
@@ -146,7 +146,7 @@ typedef struct pa_client_info {
     uint32_t index;                      /**< Index of this client */
     const char *name;                    /**< Name of this client */
     uint32_t owner_module;               /**< Index of the owning module, or PA_INVALID_INDEX */
-    const char *driver;                  /**< Driver name \since 0.9 */
+    const char *driver;                  /**< Driver name \since 0.8 */
 } pa_client_info;
 
 /** Callback prototype for pa_context_get_client_info() and firends*/
@@ -171,7 +171,7 @@ typedef struct pa_sink_input_info {
     pa_usec_t buffer_usec;               /**< Latency due to buffering in sink input, see pa_latency_info for details */
     pa_usec_t sink_usec;                 /**< Latency of the sink device, see pa_latency_info for details */
     const char *resample_method;         /**< Thre resampling method used by this sink input. \since 0.7 */
-    const char *driver;                  /**< Driver name \since 0.9 */
+    const char *driver;                  /**< Driver name \since 0.8 */
 } pa_sink_input_info;
 
 /** Callback prototype for pa_context_get_sink_input_info() and firends*/
@@ -195,7 +195,7 @@ typedef struct pa_source_output_info {
     pa_usec_t buffer_usec;               /**< Latency due to buffering in the source output, see pa_latency_info for details. \since 0.5 */
     pa_usec_t source_usec;               /**< Latency of the source device, see pa_latency_info for details. \since 0.5 */
     const char *resample_method;         /**< Thre resampling method used by this source output. \since 0.7 */
-    const char *driver;                  /**< Driver name \since 0.9 */
+    const char *driver;                  /**< Driver name \since 0.8 */
 } pa_source_output_info;
 
 /** Callback prototype for pa_context_get_source_output_info() and firends*/
