@@ -84,7 +84,7 @@ static int load_rules(struct userdata *u, const char *filename) {
         pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn);
 
     if (!f) {
-        pa_log(__FILE__": failed to open file '%s': %s\n", fn, strerror(errno));
+        pa_log(__FILE__": failed to open file '%s': %s", fn, strerror(errno));
         goto finish;
     }
 
@@ -111,13 +111,13 @@ static int load_rules(struct userdata *u, const char *filename) {
 
         
         if (!*v) {
-            pa_log(__FILE__ ": [%s:%u] failed to parse line - too few words\n", filename, n);
+            pa_log(__FILE__ ": [%s:%u] failed to parse line - too few words", filename, n);
             goto finish;
         }
 
         *d = 0;
         if (pa_atou(v, &k) < 0) {
-            pa_log(__FILE__": [%s:%u] failed to parse volume\n", filename, n);
+            pa_log(__FILE__": [%s:%u] failed to parse volume", filename, n);
             goto finish;
         }
 
@@ -125,7 +125,7 @@ static int load_rules(struct userdata *u, const char *filename) {
 
         
         if (regcomp(&regex, ln, REG_EXTENDED|REG_NOSUB) != 0) {
-            pa_log(__FILE__": [%s:%u] invalid regular expression\n", filename, n);
+            pa_log(__FILE__": [%s:%u] invalid regular expression", filename, n);
             goto finish;
         }
 
@@ -173,7 +173,7 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
     for (r = u->rules; r; r = r->next) {
         if (!regexec(&r->regex, si->name, 0, NULL, 0)) {
             pa_cvolume cv;
-            pa_log_debug(__FILE__": changing volume of sink input '%s' to 0x%03x\n", si->name, r->volume);
+            pa_log_debug(__FILE__": changing volume of sink input '%s' to 0x%03x", si->name, r->volume);
             pa_cvolume_set(&cv, r->volume, si->sample_spec.channels);
             pa_sink_input_set_volume(si, &cv);
         }
@@ -186,7 +186,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments\n");
+        pa_log(__FILE__": Failed to parse module arguments");
         goto fail;
     }
 

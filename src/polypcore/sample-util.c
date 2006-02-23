@@ -330,7 +330,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
         }
 
         default:
-            pa_log_error(__FILE__": ERROR: Unable to change volume of format %s.\n",
+            pa_log_error(__FILE__": ERROR: Unable to change volume of format %s.",
                 pa_sample_format_to_string(spec->format));
             abort();
     }

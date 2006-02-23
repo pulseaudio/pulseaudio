@@ -53,7 +53,7 @@ pa_source_output* pa_source_output_new(
     assert(s->state == PA_SOURCE_RUNNING);
     
     if (pa_idxset_size(s->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
-        pa_log(__FILE__": Failed to create source output: too many outputs per source.\n");
+        pa_log(__FILE__": Failed to create source output: too many outputs per source.");
         return NULL;
     }
 
@@ -95,7 +95,7 @@ pa_source_output* pa_source_output_new(
     assert(r == 0);
 
     pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log_info(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"\n", o->index, o->name, s->index, st);
+    pa_log_info(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"", o->index, o->name, s->index, st);
     
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
     
@@ -127,7 +127,7 @@ static void source_output_free(pa_source_output* o) {
     if (o->state != PA_SOURCE_OUTPUT_DISCONNECTED)
         pa_source_output_disconnect(o);
 
-    pa_log_info(__FILE__": freed %u \"%s\"\n", o->index, o->name); 
+    pa_log_info(__FILE__": freed %u \"%s\"", o->index, o->name); 
     
     if (o->resampler)
         pa_resampler_free(o->resampler);

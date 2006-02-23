@@ -78,7 +78,7 @@ static int load_key(struct userdata *u, const char*fn) {
     u->auth_cookie_in_property = 0;
     
     if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
-        pa_log_debug(__FILE__": using already loaded auth cookie.\n");
+        pa_log_debug(__FILE__": using already loaded auth cookie.");
         pa_authkey_prop_ref(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
         u->auth_cookie_in_property = 1;
         return 0;
@@ -90,7 +90,7 @@ static int load_key(struct userdata *u, const char*fn) {
     if (pa_authkey_load_auto(fn, u->auth_cookie, sizeof(u->auth_cookie)) < 0)
         return -1;
 
-    pa_log_debug(__FILE__": loading cookie from disk.\n");
+    pa_log_debug(__FILE__": loading cookie from disk.");
     
     if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
         u->auth_cookie_in_property = 1;
@@ -108,7 +108,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_strlist *l;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments\n");
+        pa_log(__FILE__": failed to parse module arguments");
         goto fail;
     }
 
@@ -169,7 +169,7 @@ void pa__done(pa_core *c, pa_module*m) {
 
         /* Yes, here is a race condition */
         if (!pa_x11_get_prop(u->display, "POLYP_ID", t, sizeof(t)) || strcmp(t, u->id))
-            pa_log("WARNING: Polypaudio information vanished from X11!\n");
+            pa_log_warn(__FILE__": Polypaudio information vanished from X11!");
         else {
             pa_x11_del_prop(u->display, "POLYP_ID");
             pa_x11_del_prop(u->display, "POLYP_SERVER");

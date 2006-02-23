@@ -131,7 +131,7 @@ int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume) {
     memset(&sfinfo, 0, sizeof(sfinfo));
 
     if (!(u->sndfile = sf_open(fname, SFM_READ, &sfinfo))) {
-        pa_log(__FILE__": Failed to open file %s\n", fname);
+        pa_log(__FILE__": Failed to open file %s", fname);
         goto fail;
     }
 
@@ -154,7 +154,7 @@ int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume) {
     ss.channels = sfinfo.channels;
 
     if (!pa_sample_spec_valid(&ss)) {
-        pa_log(__FILE__": Unsupported sample format in file %s\n", fname);
+        pa_log(__FILE__": Unsupported sample format in file %s", fname);
         goto fail;
     }
     

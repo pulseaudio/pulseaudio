@@ -92,13 +92,13 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.\n");
+        pa_log(__FILE__": failed to parse module arguments.");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": invalid sample format specification.\n");
+        pa_log(__FILE__": invalid sample format specification.");
         goto fail;
     }
     
@@ -108,7 +108,7 @@ int pa__init(pa_core *c, pa_module*m) {
     m->userdata = u;
     
     if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
-        pa_log(__FILE__": failed to create sink.\n");
+        pa_log(__FILE__": failed to create sink.");
         goto fail;
     }
     

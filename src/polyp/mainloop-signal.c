@@ -104,12 +104,12 @@ static void defer(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event*e, PA_GCC_UNUS
 
     while (sigs) {
         if ((r = read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
-            pa_log(__FILE__": read(): %s\n", strerror(errno));
+            pa_log(__FILE__": read(): %s", strerror(errno));
             return;
         }
         
         if (r != sizeof(sig)) {
-            pa_log(__FILE__": short read()\n");
+            pa_log(__FILE__": short read()");
             return;
         }
 
@@ -130,12 +130,12 @@ static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags
         if (errno == EAGAIN)
             return;
 
-        pa_log(__FILE__": read(): %s\n", strerror(errno));
+        pa_log(__FILE__": read(): %s", strerror(errno));
         return;
     }
     
     if (r != sizeof(sig)) {
-        pa_log(__FILE__": short read()\n");
+        pa_log(__FILE__": short read()");
         return;
     }
 
@@ -150,7 +150,7 @@ int pa_signal_init(pa_mainloop_api *a) {
 #else
     if (pipe(signal_pipe) < 0) {
 #endif
-        pa_log(__FILE__": pipe() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": pipe() failed: %s", strerror(errno));
         return -1;
     }
 

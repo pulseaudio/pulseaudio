@@ -141,7 +141,7 @@ static int publish_service(struct userdata *u, struct service *s) {
     snprintf(t, sizeof(t), "Networked Audio Device %s on %s", s->name, pa_get_host_name(hn, sizeof(hn)));
 
     if (sw_text_record_init(&txt) != SW_OKAY) {
-        pa_log(__FILE__": sw_text_record_init() failed\n");
+        pa_log(__FILE__": sw_text_record_init() failed");
         goto finish;
     }
     free_txt = 1;
@@ -168,7 +168,7 @@ static int publish_service(struct userdata *u, struct service *s) {
                                  s->loaded.type == PA_NAMEREG_SINK ? SERVICE_NAME_SINK : SERVICE_NAME_SOURCE,
                                  NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
                                  publish_reply, s, &s->oid) != SW_OKAY) {
-            pa_log(__FILE__": failed to register sink on zeroconf.\n");
+            pa_log(__FILE__": failed to register sink on zeroconf.");
             goto finish;
         }
 
@@ -179,7 +179,7 @@ static int publish_service(struct userdata *u, struct service *s) {
                                  s->autoload.type == PA_NAMEREG_SINK ? SERVICE_NAME_SINK : SERVICE_NAME_SOURCE,
                                  NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
                                  publish_reply, s, &s->oid) != SW_OKAY) {
-            pa_log(__FILE__": failed to register sink on zeroconf.\n");
+            pa_log(__FILE__": failed to register sink on zeroconf.");
             goto finish;
         }
 
@@ -391,12 +391,12 @@ int pa__init(pa_core *c, pa_module*m) {
     sw_text_record txt;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.\n");
+        pa_log(__FILE__": failed to parse module arguments.");
         goto fail;
     }
 
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port == 0 || port >= 0xFFFF) {
-        pa_log(__FILE__": invalid port specified.\n");
+        pa_log(__FILE__": invalid port specified.");
         goto fail;
     }
 
@@ -433,7 +433,7 @@ int pa__init(pa_core *c, pa_module*m) {
     snprintf(t, sizeof(t), "Networked Audio Server on %s", pa_get_host_name(hn, sizeof(hn)));   
 
     if (sw_text_record_init(&txt) != SW_OKAY) {
-        pa_log(__FILE__": sw_text_record_init() failed\n");
+        pa_log(__FILE__": sw_text_record_init() failed");
         goto fail;
     }
     free_txt = 1;
@@ -444,7 +444,7 @@ int pa__init(pa_core *c, pa_module*m) {
                              SERVICE_NAME_SERVER,
                              NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
                              publish_reply, u, &u->server_oid) != SW_OKAY) {
-        pa_log(__FILE__": failed to register server on zeroconf.\n");
+        pa_log(__FILE__": failed to register server on zeroconf.");
         goto fail;
     }
     

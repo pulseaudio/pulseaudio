@@ -35,7 +35,6 @@ struct pa_howl_wrapper {
 
     pa_io_event *io_event;
     sw_discovery discovery;
-
 };
 
 static void howl_io_event(pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
@@ -51,7 +50,7 @@ static void howl_io_event(pa_mainloop_api*m, pa_io_event *e, int fd, pa_io_event
     return;
 
 fail:
-    pa_log(__FILE__": howl connection died.\n");
+    pa_log_error(__FILE__": howl connection died.");
     w->core->mainloop->io_free(w->io_event);
     w->io_event = NULL;
 }
@@ -62,7 +61,7 @@ static pa_howl_wrapper* howl_wrapper_new(pa_core *c) {
     assert(c);
 
     if (sw_discovery_init(&session) != SW_OKAY) {
-        pa_log("sw_discovery_init() failed.\n");
+        pa_log_error(__FILE__": sw_discovery_init() failed.");
         return NULL;
     }
 

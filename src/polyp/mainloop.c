@@ -145,7 +145,7 @@ static pa_io_event* mainloop_io_new(
         if ((select((SELECT_TYPE_ARG1) fd, NULL, NULL, SELECT_TYPE_ARG234 &xset,
                     SELECT_TYPE_ARG5 &tv) == -1) &&
              (WSAGetLastError() == WSAENOTSOCK)) {
-            pa_log_warn(__FILE__": WARNING: cannot monitor non-socket file descriptors.\n");
+            pa_log_warn(__FILE__": WARNING: cannot monitor non-socket file descriptors.");
             e->dead = 1;
         }
     }
@@ -725,7 +725,7 @@ int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval) {
 
     r = pa_mainloop_poll(m);
     if (r < 0) {
-        pa_log(__FILE__": poll(): %s\n", strerror(errno));
+        pa_log(__FILE__": poll(): %s", strerror(errno));
         return r;
     }
 
@@ -774,7 +774,7 @@ int pa_mainloop_deferred_pending(pa_mainloop *m) {
 void pa_mainloop_dump(pa_mainloop *m) {
     assert(m);
 
-    pa_log(__FILE__": Dumping mainloop sources START\n");
+    pa_log(__FILE__": Dumping mainloop sources START");
     
     {
         uint32_t idx = PA_IDXSET_INVALID;
@@ -783,7 +783,7 @@ void pa_mainloop_dump(pa_mainloop *m) {
             if (e->dead)
                 continue;
             
-            pa_log(__FILE__": kind=io fd=%i events=%i callback=%p userdata=%p\n", e->fd, (int) e->events, (void*) e->callback, (void*) e->userdata);
+            pa_log(__FILE__": kind=io fd=%i events=%i callback=%p userdata=%p", e->fd, (int) e->events, (void*) e->callback, (void*) e->userdata);
         }
     }
     {
@@ -793,7 +793,7 @@ void pa_mainloop_dump(pa_mainloop *m) {
             if (e->dead)
                 continue;
             
-            pa_log(__FILE__": kind=defer enabled=%i callback=%p userdata=%p\n", e->enabled, (void*) e->callback, (void*) e->userdata);
+            pa_log(__FILE__": kind=defer enabled=%i callback=%p userdata=%p", e->enabled, (void*) e->callback, (void*) e->userdata);
         }
     }
     {
@@ -803,11 +803,11 @@ void pa_mainloop_dump(pa_mainloop *m) {
             if (e->dead)
                 continue;
             
-            pa_log(__FILE__": kind=time enabled=%i time=%lu.%lu callback=%p userdata=%p\n", e->enabled, (unsigned long) e->timeval.tv_sec, (unsigned long) e->timeval.tv_usec, (void*) e->callback, (void*) e->userdata);
+            pa_log(__FILE__": kind=time enabled=%i time=%lu.%lu callback=%p userdata=%p", e->enabled, (unsigned long) e->timeval.tv_sec, (unsigned long) e->timeval.tv_usec, (void*) e->callback, (void*) e->userdata);
         }
     }
 
-    pa_log(__FILE__": Dumping mainloop sources STOP\n");
+    pa_log(__FILE__": Dumping mainloop sources STOP");
 
 }
 #endif 

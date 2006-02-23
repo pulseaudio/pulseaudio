@@ -507,7 +507,7 @@ static void request_bytes(struct playback_stream *s) {
     pa_tagstruct_putu32(t, l);
     pa_pstream_send_tagstruct(s->connection->pstream, t);
 
-/*     pa_log(__FILE__": Requesting %u bytes\n", l);  */
+/*     pa_log(__FILE__": Requesting %u bytes", l);  */
 }
 
 static void send_memblock(struct connection *c) {
@@ -585,11 +585,11 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     }
     
     if (pa_memblockq_peek(s->memblockq, chunk) < 0) {
-/*         pa_log(__FILE__": peek: failure\n");    */
+/*         pa_log(__FILE__": peek: failure");    */
         return -1;
     }
 
-/*     pa_log(__FILE__": peek: %u\n", chunk->length);    */
+/*     pa_log(__FILE__": peek: %u", chunk->length);    */
     
     return 0;
 }
@@ -608,7 +608,7 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
         s->drain_request = 0;
     }
 
-/*     pa_log(__FILE__": after_drop: %u %u\n", pa_memblockq_get_length(s->memblockq), pa_memblockq_is_readable(s->memblockq));   */
+/*     pa_log(__FILE__": after_drop: %u %u", pa_memblockq_get_length(s->memblockq), pa_memblockq_is_readable(s->memblockq));   */
 }
 
 static void sink_input_kill_cb(pa_sink_input *i) {
@@ -622,7 +622,7 @@ static pa_usec_t sink_input_get_latency_cb(pa_sink_input *i) {
     assert(i && i->userdata);
     s = i->userdata;
 
-    /*pa_log(__FILE__": get_latency: %u\n", pa_memblockq_get_length(s->memblockq));*/
+    /*pa_log(__FILE__": get_latency: %u", pa_memblockq_get_length(s->memblockq));*/
     
     return pa_bytes_to_usec(pa_memblockq_get_length(s->memblockq), &s->sink_input->sample_spec);
 }
@@ -635,7 +635,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     s = o->userdata;
     
     if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
-        pa_log_warn(__FILE__": Failed to push data into output queue.\n");
+        pa_log_warn(__FILE__": Failed to push data into output queue.");
         return;
     } 
         
@@ -654,7 +654,7 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
     assert(o && o->userdata);
     s = o->userdata;
 
-    /*pa_log(__FILE__": get_latency: %u\n", pa_memblockq_get_length(s->memblockq));*/
+    /*pa_log(__FILE__": get_latency: %u", pa_memblockq_get_length(s->memblockq));*/
     
     return pa_bytes_to_usec(pa_memblockq_get_length(s->memblockq), &o->sample_spec);
 }
@@ -662,7 +662,7 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
 /*** pdispatch callbacks ***/
 
 static void protocol_error(struct connection *c) {
-    pa_log(__FILE__": protocol error, kicking client\n");
+    pa_log(__FILE__": protocol error, kicking client");
     connection_free(c);
 }
 
@@ -868,7 +868,7 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
 
     if (!c->authorized) {
         if (memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) != 0) {
-            pa_log(__FILE__": Denied access to client with invalid authorization key.\n");
+            pa_log(__FILE__": Denied access to client with invalid authorization key.");
             pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
             return;
         }
@@ -958,10 +958,10 @@ static void command_drain_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC
     pa_memblockq_prebuf_disable(s->memblockq);
     
     if (!pa_memblockq_is_readable(s->memblockq)) {
-/*         pa_log("immediate drain: %u\n", pa_memblockq_get_length(s->memblockq));  */
+/*         pa_log("immediate drain: %u", pa_memblockq_get_length(s->memblockq));  */
         pa_pstream_send_simple_ack(c->pstream, tag);
     } else {
-/*         pa_log("slow drain triggered\n");  */
+/*         pa_log("slow drain triggered");  */
         s->drain_request = 1;
         s->drain_tag = tag;
 
@@ -1967,7 +1967,7 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *user
     assert(p && packet && packet->data && c);
 
     if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
-        pa_log(__FILE__": invalid packet.\n");
+        pa_log(__FILE__": invalid packet.");
         connection_free(c);
     }
 }
@@ -1978,7 +1978,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     assert(p && chunk && userdata);
     
     if (!(stream = pa_idxset_get_by_index(c->output_streams, channel))) {
-        pa_log(__FILE__": client sent block for invalid stream.\n");
+        pa_log(__FILE__": client sent block for invalid stream.");
         connection_free(c);
         return;
     }
@@ -1995,7 +1995,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
         if (pa_memblockq_push_align(ps->memblockq, chunk) < 0) {
             pa_tagstruct *t;
             
-            pa_log_warn(__FILE__": failed to push data into queue\n");
+            pa_log_warn(__FILE__": failed to push data into queue");
 
             /* Pushing this block into the queue failed, so we simulate
              * it by skipping ahead */
@@ -2050,7 +2050,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     assert(p && c);
     connection_free(c);
 
-/*    pa_log(__FILE__": connection died.\n");*/
+/*    pa_log(__FILE__": connection died.");*/
 }
 
 
@@ -2084,7 +2084,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     assert(io && p);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
-        pa_log_warn(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
+        pa_log_warn(__FILE__": Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
     }
@@ -2138,7 +2138,7 @@ static int load_key(pa_protocol_native*p, const char*fn) {
     p->auth_cookie_in_property = 0;
     
     if (!fn && pa_authkey_prop_get(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0) {
-        pa_log_info(__FILE__": using already loaded auth cookie.\n");
+        pa_log_info(__FILE__": using already loaded auth cookie.");
         pa_authkey_prop_ref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
         p->auth_cookie_in_property = 1;
         return 0;
@@ -2150,7 +2150,7 @@ static int load_key(pa_protocol_native*p, const char*fn) {
     if (pa_authkey_load_auto(fn, p->auth_cookie, sizeof(p->auth_cookie)) < 0)
         return -1;
 
-    pa_log_info(__FILE__": loading cookie from disk.\n");
+    pa_log_info(__FILE__": loading cookie from disk.");
 
     if (pa_authkey_prop_put(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0)
         p->auth_cookie_in_property = 1;
@@ -2164,7 +2164,7 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
     assert(c && ma);
 
     if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {
-        pa_log(__FILE__": public= expects a boolean argument.\n");
+        pa_log(__FILE__": public= expects a boolean argument.");
         return NULL;
     }
     

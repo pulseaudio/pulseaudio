@@ -52,17 +52,17 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (c->running_as_daemon) {
-        pa_log_info(__FILE__": Running as daemon so won't load this module.\n");
+        pa_log_info(__FILE__": Running as daemon so won't load this module.");
         return 0;
     }
 
     if (m->argument) {
-        pa_log(__FILE__": module doesn't accept arguments.\n");
+        pa_log(__FILE__": module doesn't accept arguments.");
         return -1;
     }
     
     if (pa_stdio_acquire() < 0) {
-        pa_log(__FILE__": STDIN/STDUSE already in use.\n");
+        pa_log(__FILE__": STDIN/STDUSE already in use.");
         return -1;
     }
 

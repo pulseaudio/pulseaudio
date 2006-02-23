@@ -246,7 +246,7 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet) {
     if (p->dead)
         return;
     
-/*     pa_log(__FILE__": push-packet %p\n", packet); */
+/*     pa_log(__FILE__": push-packet %p", packet); */
     
     i = pa_xnew(struct item_info, 1);
     i->type = PA_PSTREAM_ITEM_PACKET;
@@ -263,7 +263,7 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     if (p->dead)
         return;
     
-/*     pa_log(__FILE__": push-memblock %p\n", chunk); */
+/*     pa_log(__FILE__": push-memblock %p", chunk); */
     
     i = pa_xnew(struct item_info, 1);
     i->type = PA_PSTREAM_ITEM_MEMBLOCK;
@@ -301,7 +301,7 @@ static void prepare_next_write_item(pa_pstream *p) {
     p->write.index = 0;
     
     if (p->write.current->type == PA_PSTREAM_ITEM_PACKET) {
-        /*pa_log(__FILE__": pop-packet %p\n", p->write.current->packet);*/
+        /*pa_log(__FILE__": pop-packet %p", p->write.current->packet);*/
         
         assert(p->write.current->packet);
         p->write.data = p->write.current->packet->data;
@@ -385,7 +385,7 @@ static int do_read(pa_pstream *p) {
 
         /* Frame size too large */
         if (ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) > FRAME_SIZE_MAX) {
-            pa_log_warn(__FILE__": Frame size too large\n");
+            pa_log_warn(__FILE__": Frame size too large");
             return -1;
         }
         
@@ -401,7 +401,7 @@ static int do_read(pa_pstream *p) {
             p->read.data = p->read.memblock->data;
 
             if (ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK]) > PA_SEEK_RELATIVE_END) {
-                pa_log_warn(__FILE__": Invalid seek mode\n");
+                pa_log_warn(__FILE__": Invalid seek mode");
                 return -1;
             }
         }

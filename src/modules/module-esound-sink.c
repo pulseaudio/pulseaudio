@@ -127,7 +127,7 @@ static int do_write(struct userdata *u) {
         assert(u->write_index < u->write_length);
 
         if ((r = pa_iochannel_write(u->io, (uint8_t*) u->write_data + u->write_index, u->write_length - u->write_index)) <= 0) {
-            pa_log(__FILE__": write() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": write() failed: %s", strerror(errno));
             return -1;
         }
 
@@ -149,7 +149,7 @@ static int do_write(struct userdata *u) {
         assert(u->memchunk.memblock && u->memchunk.length);
         
         if ((r = pa_iochannel_write(u->io, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
-            pa_log(__FILE__": write() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": write() failed: %s", strerror(errno));
             return -1;
         }
 
@@ -174,7 +174,7 @@ static int handle_response(struct userdata *u) {
 
             /* Process auth data */
             if (!*(int32_t*) u->read_data) {
-                pa_log(__FILE__": Authentication failed: %s\n", strerror(errno));
+                pa_log(__FILE__": Authentication failed: %s", strerror(errno));
                 return -1;
             }
 
@@ -199,7 +199,7 @@ static int handle_response(struct userdata *u) {
             /* Process latency info */
             u->latency = (pa_usec_t) ((double) (*(int32_t*) u->read_data) * 1000000 / 44100);
             if (u->latency > 10000000) {
-                pa_log(__FILE__": WARNING! Invalid latency information received from server\n");
+                pa_log(__FILE__": WARNING! Invalid latency information received from server");
                 u->latency = 0;
             }
 
@@ -244,7 +244,7 @@ static int do_read(struct userdata *u) {
         assert(u->read_index < u->read_length);
         
         if ((r = pa_iochannel_read(u->io, (uint8_t*) u->read_data + u->read_index, u->read_length - u->read_index)) <= 0) {
-            pa_log(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
+            pa_log(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
             cancel(u);
             return -1;
         }
@@ -304,7 +304,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, vo
     u->client = NULL;
     
     if (!io) {
-        pa_log(__FILE__": connection failed: %s\n", strerror(errno));
+        pa_log(__FILE__": connection failed: %s", strerror(errno));
         cancel(u);
         return;
     }
@@ -321,19 +321,19 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments\n");
+        pa_log(__FILE__": failed to parse module arguments");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": invalid sample format specification\n");
+        pa_log(__FILE__": invalid sample format specification");
         goto fail;
     }
 
     if ((ss.format != PA_SAMPLE_U8 && ss.format != PA_SAMPLE_S16NE) ||
         (ss.channels > 2)) {
-        pa_log(__FILE__": esound sample type support is limited to mono/stereo and U8 or S16NE sample data\n");
+        pa_log(__FILE__": esound sample type support is limited to mono/stereo and U8 or S16NE sample data");
         goto fail;
     }
         
@@ -354,12 +354,12 @@ int pa__init(pa_core *c, pa_module*m) {
     u->latency = 0;
 
     if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
-        pa_log(__FILE__": failed to create sink.\n");
+        pa_log(__FILE__": failed to create sink.");
         goto fail;
     }
 
     if (!(u->client = pa_socket_client_new_string(u->core->mainloop, p = pa_modargs_get_value(ma, "server", ESD_UNIX_SOCKET_NAME), ESD_DEFAULT_PORT))) {
-        pa_log(__FILE__": failed to connect to server.\n");
+        pa_log(__FILE__": failed to connect to server.");
         goto fail;
     }
     pa_socket_client_set_callback(u->client, on_connection, u);
@@ -367,7 +367,7 @@ int pa__init(pa_core *c, pa_module*m) {
     /* Prepare the initial request */
     u->write_data = pa_xmalloc(u->write_length = ESD_KEY_LEN + sizeof(int32_t));
     if (pa_authkey_load_auto(pa_modargs_get_value(ma, "cookie", ".esd_auth"), u->write_data, ESD_KEY_LEN) < 0) {
-        pa_log(__FILE__": failed to load cookie\n");
+        pa_log(__FILE__": failed to load cookie");
         goto fail;
     }
     *(int32_t*) ((uint8_t*) u->write_data + ESD_KEY_LEN) = ESD_ENDIAN_KEY;

@@ -269,7 +269,7 @@ static int esd_proto_connect(struct connection *c, PA_GCC_UNUSED esd_proto_t req
 
     if (!c->authorized) {
         if (memcmp(data, c->protocol->esd_key, ESD_KEY_LEN) != 0) {
-            pa_log(__FILE__": kicked client with invalid authorization key.\n");
+            pa_log(__FILE__": kicked client with invalid authorization key.");
             return -1;
         }
 
@@ -286,7 +286,7 @@ static int esd_proto_connect(struct connection *c, PA_GCC_UNUSED esd_proto_t req
     else if (ekey == ESD_SWAP_ENDIAN_KEY)
         c->swap_byte_order = 1;
     else {
-        pa_log(__FILE__": client sent invalid endian key\n");
+        pa_log(__FILE__": client sent invalid endian key");
         return -1;
     }
 
@@ -311,12 +311,12 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     format_esd2native(format, c->swap_byte_order, &ss);
 
     if (!pa_sample_spec_valid(&ss)) {
-        pa_log(__FILE__": invalid sample specification\n");
+        pa_log(__FILE__": invalid sample specification");
         return -1;
     }
 
     if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1))) {
-        pa_log(__FILE__": no such sink\n");
+        pa_log(__FILE__": no such sink");
         return -1;
     }
     
@@ -328,7 +328,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     assert(!c->sink_input && !c->input_memblockq);
 
     if (!(c->sink_input = pa_sink_input_new(sink, __FILE__, name, &ss, NULL, 0, -1))) {
-        pa_log(__FILE__": failed to create sink input.\n");
+        pa_log(__FILE__": failed to create sink input.");
         return -1;
     }
 
@@ -375,7 +375,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     format_esd2native(format, c->swap_byte_order, &ss);
 
     if (!pa_sample_spec_valid(&ss)) {
-        pa_log(__FILE__": invalid sample specification.\n");
+        pa_log(__FILE__": invalid sample specification.");
         return -1;
     }
 
@@ -383,19 +383,19 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
         pa_sink* sink;
 
         if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1))) {
-            pa_log(__FILE__": no such sink.\n");
+            pa_log(__FILE__": no such sink.");
             return -1;
         }
 
         if (!(source = sink->monitor_source)) {
-            pa_log(__FILE__": no such monitor source.\n");
+            pa_log(__FILE__": no such monitor source.");
             return -1;
         }
     } else {
         assert(request == ESD_PROTO_STREAM_REC);
         
         if (!(source = pa_namereg_get(c->protocol->core, c->protocol->source_name, PA_NAMEREG_SOURCE, 1))) {
-            pa_log(__FILE__": no such source.\n");
+            pa_log(__FILE__": no such source.");
             return -1;
         }
     }
@@ -408,7 +408,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     assert(!c->output_memblockq && !c->source_output);
 
     if (!(c->source_output = pa_source_output_new(source, __FILE__, name, &ss, NULL, -1))) {
-        pa_log(__FILE__": failed to create source output\n");
+        pa_log(__FILE__": failed to create source output");
         return -1;
     }
 
@@ -733,14 +733,14 @@ static void client_kill_cb(pa_client *c) {
 static int do_read(struct connection *c) {
     assert(c && c->io);
 
-/*      pa_log("READ\n");  */
+/*      pa_log("READ");  */
     
     if (c->state == ESD_NEXT_REQUEST) {
         ssize_t r;
         assert(c->read_data_length < sizeof(c->request));
 
         if ((r = pa_iochannel_read(c->io, ((uint8_t*) &c->request) + c->read_data_length, sizeof(c->request) - c->read_data_length)) <= 0) {
-            pa_log_debug(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
+            pa_log_debug(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
             return -1;
         }
 
@@ -750,16 +750,16 @@ static int do_read(struct connection *c) {
             c->request = MAYBE_INT32_SWAP(c->swap_byte_order, c->request);
 
             if (c->request < ESD_PROTO_CONNECT || c->request > ESD_PROTO_MAX) {
-                pa_log(__FILE__": recieved invalid request.\n");
+                pa_log(__FILE__": recieved invalid request.");
                 return -1;
             }
 
             handler = proto_map+c->request;
 
-/*             pa_log(__FILE__": executing request #%u\n", c->request); */
+/*             pa_log(__FILE__": executing request #%u", c->request); */
 
             if (!handler->proc) {
-                pa_log(__FILE__": recieved unimplemented request #%u.\n", c->request);
+                pa_log(__FILE__": recieved unimplemented request #%u.", c->request);
                 return -1;
             }
             
@@ -788,7 +788,7 @@ static int do_read(struct connection *c) {
         assert(c->read_data && c->read_data_length < handler->data_length);
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
-            pa_log_debug(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
+            pa_log_debug(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
             return -1;
         }
 
@@ -808,7 +808,7 @@ static int do_read(struct connection *c) {
         assert(c->scache.memchunk.memblock && c->scache.name && c->scache.memchunk.index < c->scache.memchunk.length);
         
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache.memchunk.memblock->data+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index)) <= 0) {
-            pa_log_debug(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
+            pa_log_debug(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
             return -1;
         }
 
@@ -843,7 +843,7 @@ static int do_read(struct connection *c) {
 
         assert(c->input_memblockq);
 
-/*         pa_log("STREAMING_DATA\n"); */
+/*         pa_log("STREAMING_DATA"); */
 
         if (!(l = pa_memblockq_missing(c->input_memblockq)))
             return 0;
@@ -865,7 +865,7 @@ static int do_read(struct connection *c) {
         }
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
-            pa_log_debug(__FILE__": read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
+            pa_log_debug(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
             return -1;
         }
         
@@ -888,14 +888,14 @@ static int do_read(struct connection *c) {
 static int do_write(struct connection *c) {
     assert(c && c->io);
 
-/*     pa_log("WRITE\n"); */
+/*     pa_log("WRITE"); */
     
     if (c->write_data_length) {
         ssize_t r;
         
         assert(c->write_data_index < c->write_data_length);
         if ((r = pa_iochannel_write(c->io, (uint8_t*) c->write_data+c->write_data_index, c->write_data_length-c->write_data_index)) < 0) {
-            pa_log(__FILE__": write() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": write() failed: %s", strerror(errno));
             return -1;
         }
         
@@ -914,7 +914,7 @@ static int do_write(struct connection *c) {
         
         if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
             pa_memblock_unref(chunk.memblock);
-            pa_log(__FILE__": write(): %s\n", strerror(errno));
+            pa_log(__FILE__": write(): %s", strerror(errno));
             return -1;
         }
 
@@ -967,7 +967,7 @@ static void io_callback(pa_iochannel*io, void *userdata) {
     struct connection *c = userdata;
     assert(io && c && c->io == io);
 
-/*     pa_log("IO\n");  */
+/*     pa_log("IO");  */
     
     do_work(c);
 }
@@ -978,7 +978,7 @@ static void defer_callback(pa_mainloop_api*a, pa_defer_event *e, void *userdata)
     struct connection *c = userdata;
     assert(a && c && c->defer_event == e);
 
-/*     pa_log("DEFER\n"); */
+/*     pa_log("DEFER"); */
     
     do_work(c);
 }
@@ -1005,7 +1005,7 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
     struct connection*c = i->userdata;
     assert(i && c && length);
 
-/*     pa_log("DROP\n"); */
+/*     pa_log("DROP"); */
     
     pa_memblockq_drop(c->input_memblockq, chunk, length);
 
@@ -1072,7 +1072,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     assert(s && io && p);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
-        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.\n", MAX_CONNECTIONS);
+        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
     }
@@ -1142,7 +1142,7 @@ pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *serve
     p = pa_xmalloc(sizeof(pa_protocol_esound));
 
     if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {
-        pa_log(__FILE__": public= expects a boolean argument.\n");
+        pa_log(__FILE__": public= expects a boolean argument.");
         return NULL;
     }
 

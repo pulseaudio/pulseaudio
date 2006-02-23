@@ -95,7 +95,7 @@ pa_sink* pa_sink_new(
     assert(s->index != PA_IDXSET_INVALID && r >= 0);
     
     pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log_info(__FILE__": created %u \"%s\" with sample spec \"%s\"\n", s->index, s->name, st);
+    pa_log_info(__FILE__": created %u \"%s\" with sample spec \"%s\"", s->index, s->name, st);
 
     n = pa_sprintf_malloc("%s_monitor", name);
     s->monitor_source = pa_source_new(core, driver, n, 0, spec, map);
@@ -143,7 +143,7 @@ static void sink_free(pa_sink *s) {
     if (s->state != PA_SINK_DISCONNECTED)
         pa_sink_disconnect(s);
 
-    pa_log_info(__FILE__": freed %u \"%s\"\n", s->index, s->name); 
+    pa_log_info(__FILE__": freed %u \"%s\"", s->index, s->name); 
 
     pa_source_unref(s->monitor_source);
     s->monitor_source = NULL;
@@ -270,7 +270,7 @@ int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         result->memblock = pa_memblock_new(length, s->core->memblock_stat);
         assert(result->memblock);
 
-/*          pa_log("mixing %i\n", n);  */
+/*          pa_log("mixing %i", n);  */
 
         result->length = pa_mix(info, n, result->memblock->data, length, &s->sample_spec, &s->sw_volume);
         result->index = 0;

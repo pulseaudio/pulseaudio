@@ -69,17 +69,17 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     m->argument = pa_xstrdup(argument);
     
     if (!(m->dl = lt_dlopenext(name))) {
-        pa_log(__FILE__": Failed to open module \"%s\": %s\n", name, lt_dlerror());
+        pa_log(__FILE__": Failed to open module \"%s\": %s", name, lt_dlerror());
         goto fail;
     }
 
     if (!(m->init = (int (*)(pa_core *_c, pa_module*_m)) lt_dlsym(m->dl, PA_SYMBOL_INIT))) {
-        pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_INIT"\" not found.\n", name);
+        pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_INIT"\" not found.", name);
         goto fail;
     }
 
     if (!(m->done = (void (*)(pa_core *_c, pa_module*_m)) lt_dlsym(m->dl, PA_SYMBOL_DONE))) {
-        pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_DONE"\" not found.\n", name);
+        pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_DONE"\" not found.", name);
         goto fail;
     }
     
@@ -91,7 +91,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 
     assert(m->init);
     if (m->init(c, m) < 0) {
-        pa_log_error(__FILE__": Failed to load  module \"%s\" (argument: \"%s\"): initialization failed.\n", name, argument ? argument : "");
+        pa_log_error(__FILE__": Failed to load  module \"%s\" (argument: \"%s\"): initialization failed.", name, argument ? argument : "");
         goto fail;
     }
 
@@ -110,7 +110,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     r = pa_idxset_put(c->modules, m, &m->index);
     assert(r >= 0 && m->index != PA_IDXSET_INVALID);
 
-    pa_log_info(__FILE__": Loaded \"%s\" (index: #%u; argument: \"%s\").\n", m->name, m->index, m->argument ? m->argument : ""); 
+    pa_log_info(__FILE__": Loaded \"%s\" (index: #%u; argument: \"%s\").", m->name, m->index, m->argument ? m->argument : ""); 
 
     pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_NEW, m->index);
     
@@ -137,13 +137,13 @@ static void pa_module_free(pa_module *m) {
     if (m->core->disallow_module_loading)
         return;
 
-    pa_log_info(__FILE__": Unloading \"%s\" (index: #%u).\n", m->name, m->index); 
+    pa_log_info(__FILE__": Unloading \"%s\" (index: #%u).", m->name, m->index); 
 
     m->done(m->core, m);
 
     lt_dlclose(m->dl);
     
-    pa_log_info(__FILE__": Unloaded \"%s\" (index: #%u).\n", m->name, m->index); 
+    pa_log_info(__FILE__": Unloaded \"%s\" (index: #%u).", m->name, m->index); 
 
     pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_REMOVE, m->index);
     

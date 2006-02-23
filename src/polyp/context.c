@@ -424,7 +424,7 @@ static int context_connect_spawn(pa_context *c) {
     pa_context_ref(c);
     
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
-        pa_log(__FILE__": socketpair() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": socketpair() failed: %s", strerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     }
@@ -438,7 +438,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.prefork();
 
     if ((pid = fork()) < 0) {
-        pa_log(__FILE__": fork() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": fork() failed: %s", strerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
 
         if (c->spawn_api.postfork)
@@ -494,7 +494,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.postfork();
         
     if (r < 0) {
-        pa_log(__FILE__": waitpid() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": waitpid() failed: %s", strerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
@@ -556,7 +556,7 @@ static int try_next_connection(pa_context *c) {
             goto finish;
         }
         
-        pa_log_debug(__FILE__": Trying to connect to %s...\n", u);  
+        pa_log_debug(__FILE__": Trying to connect to %s...", u);  
 
         pa_xfree(c->server);
         c->server = pa_xstrdup(u);
@@ -714,8 +714,8 @@ int pa_context_is_pending(pa_context *c) {
     assert(c);
     assert(c->ref >= 1);
 
-/*     pa_log("pstream: %i\n", pa_pstream_is_pending(c->pstream)); */
-/*     pa_log("pdispatch: %i\n", pa_pdispatch_is_pending(c->pdispatch)); */
+/*     pa_log("pstream: %i", pa_pstream_is_pending(c->pstream)); */
+/*     pa_log("pdispatch: %i", pa_pdispatch_is_pending(c->pdispatch)); */
     
     return (c->pstream && pa_pstream_is_pending(c->pstream)) ||
         (c->pdispatch && pa_pdispatch_is_pending(c->pdispatch)) ||

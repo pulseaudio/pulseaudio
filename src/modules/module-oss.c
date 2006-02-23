@@ -133,7 +133,7 @@ static void do_write(struct userdata *u) {
         assert(memchunk->length);
         
         if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
-            pa_log(__FILE__": write() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": write() failed: %s", strerror(errno));
             break;
         }
         
@@ -186,7 +186,7 @@ static void do_read(struct userdata *u) {
         if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
             pa_memblock_unref(memchunk.memblock);
             if (errno != EAGAIN)
-                pa_log(__FILE__": read() failed: %s\n", strerror(errno));
+                pa_log(__FILE__": read() failed: %s", strerror(errno));
             break;
         }
         
@@ -221,7 +221,7 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     assert(s && u && u->sink);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
-        pa_log_info(__FILE__": device doesn't support SNDCTL_DSP_GETODELAY: %s\n", strerror(errno));
+        pa_log_info(__FILE__": device doesn't support SNDCTL_DSP_GETODELAY: %s", strerror(errno));
         s->get_latency = NULL;
         return 0;
     }
@@ -257,7 +257,7 @@ static int sink_get_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_get_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s\n", strerror(errno));
+        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", strerror(errno));
         s->get_hw_volume = NULL;
         return -1;
     }
@@ -269,7 +269,7 @@ static int sink_set_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_set_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s\n", strerror(errno));
+        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", strerror(errno));
         s->set_hw_volume = NULL;
         return -1;
     }
@@ -293,17 +293,17 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.\n");
+        pa_log(__FILE__": failed to parse module arguments.");
         goto fail;
     }
     
     if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
-        pa_log(__FILE__": record= and playback= expect numeric argument.\n");
+        pa_log(__FILE__": record= and playback= expect numeric argument.");
         goto fail;
     }
 
     if (!playback && !record) {
-        pa_log(__FILE__": neither playback nor record enabled for device.\n");
+        pa_log(__FILE__": neither playback nor record enabled for device.");
         goto fail;
     }
 
@@ -312,13 +312,13 @@ int pa__init(pa_core *c, pa_module*m) {
     nfrags = 12;
     frag_size = 1024;
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
-        pa_log(__FILE__": failed to parse fragments arguments\n");
+        pa_log(__FILE__": failed to parse fragments arguments");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": failed to parse sample specification\n");
+        pa_log(__FILE__": failed to parse sample specification");
         goto fail;
     }
     
@@ -326,11 +326,11 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
 
     if (pa_oss_get_hw_description(p, hwdesc, sizeof(hwdesc)) >= 0)
-        pa_log_info(__FILE__": hardware name is '%s'.\n", hwdesc);
+        pa_log_info(__FILE__": hardware name is '%s'.", hwdesc);
     else
         hwdesc[0] = 0;
     
-    pa_log_info(__FILE__": device opened in %s mode.\n", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
+    pa_log_info(__FILE__": device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
     if (nfrags >= 2 && frag_size >= 1)
         if (pa_oss_set_fragments(fd, nfrags, frag_size) < 0)   
@@ -340,7 +340,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
 
     if (ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &frag_size) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETBLKSIZE: %s\n", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_GETBLKSIZE: %s", strerror(errno));
         goto fail;
     }
     assert(frag_size);
@@ -351,13 +351,13 @@ int pa__init(pa_core *c, pa_module*m) {
     u->use_getospace = u->use_getispace = 0;
     
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
-        pa_log_info(__FILE__": input -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        pa_log_info(__FILE__": input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         in_frag_size = info.fragsize;
         u->use_getispace = 1;
     }
 
     if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
-        pa_log_info(__FILE__": output -- %u fragments of size %u.\n", info.fragstotal, info.fragsize);
+        pa_log_info(__FILE__": output -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         out_frag_size = info.fragsize;
         u->use_getospace = 1;
     }

@@ -158,7 +158,7 @@ void pa_subscription_free_all(pa_core *c) {
             break;
     }
 
-    pa_log(__FILE__":  %u\n", e->index);
+    pa_log(__FILE__":  %u", e->index);
 }*/
 
 /* Deferred callback for dispatching subscirption events */

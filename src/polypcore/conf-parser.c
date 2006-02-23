@@ -45,7 +45,7 @@ static int next_assignment(const char *filename, unsigned line, const pa_config_
         if (!strcmp(lvalue, t->lvalue))
             return t->parse(filename, line, lvalue, rvalue, t->data, userdata);
 
-    pa_log(__FILE__": [%s:%u] Unknown lvalue '%s'.\n", filename, line, lvalue);
+    pa_log(__FILE__": [%s:%u] Unknown lvalue '%s'.", filename, line, lvalue);
     
     return -1;
 }
@@ -88,7 +88,7 @@ static int parse_line(const char *filename, unsigned line, const pa_config_item 
         return 0;
 
     if (!(e = strchr(b, '='))) {
-        pa_log(__FILE__": [%s:%u] Missing '='.\n", filename, line);
+        pa_log(__FILE__": [%s:%u] Missing '='.", filename, line);
         return -1;
     }
 
@@ -111,7 +111,7 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
             goto finish;
         }
         
-        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s\n", filename, strerror(errno));
+        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s", filename, strerror(errno));
         goto finish;
     }
 
@@ -121,7 +121,7 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
             if (feof(f))
                 break;
             
-            pa_log(__FILE__": WARNING: failed to read configuration file '%s': %s\n", filename, strerror(errno));
+            pa_log(__FILE__": WARNING: failed to read configuration file '%s': %s", filename, strerror(errno));
             goto finish;
         }
             
@@ -145,7 +145,7 @@ int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue,
     assert(filename && lvalue && rvalue && data);
 
     if (pa_atoi(rvalue, &k) < 0) {
-        pa_log(__FILE__": [%s:%u] Failed to parse numeric value: %s\n", filename, line, rvalue);
+        pa_log(__FILE__": [%s:%u] Failed to parse numeric value: %s", filename, line, rvalue);
         return -1;
     }
     
@@ -158,7 +158,7 @@ int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue
     assert(filename && lvalue && rvalue && data);
     
     if ((k = pa_parse_boolean(rvalue)) < 0) {
-        pa_log(__FILE__": [%s:%u] Failed to parse boolean value: %s\n", filename, line, rvalue);
+        pa_log(__FILE__": [%s:%u] Failed to parse boolean value: %s", filename, line, rvalue);
         return -1;
     }
     

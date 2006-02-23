@@ -274,7 +274,7 @@ static int do_read(pa_ioline *l) {
             pa_ioline_puts(l, "\nExiting.\n");
             do_write(l);
         } else if (r < 0) {
-            pa_log(__FILE__": read() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": read() failed: %s", strerror(errno));
             failure(l);
             return -1;
         }
@@ -296,7 +296,7 @@ static int do_write(pa_ioline *l) {
     while (!l->dead && pa_iochannel_is_writable(l->io) && l->wbuf_valid_length) {
         
         if ((r = pa_iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) < 0) {
-            pa_log(__FILE__": write() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
+            pa_log(__FILE__": write() failed: %s", r < 0 ? strerror(errno) : "EOF");
             failure(l);
             return -1;
         }

@@ -48,7 +48,7 @@ static void io_callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_fl
     assert(a && b && b->mainloop == a);
 
     if (events != PA_IO_EVENT_INPUT || sw_discovery_read_socket(b->discovery) != SW_OKAY) {
-        pa_log(__FILE__": connection to HOWL daemon failed.\n");
+        pa_log(__FILE__": connection to HOWL daemon failed.");
         b->mainloop->io_free(b->io_event);
         b->io_event = NULL;
         return;
@@ -131,7 +131,7 @@ static sw_result resolve_reply(
         uint32_t val_len;
   
         if (sw_text_record_iterator_init(&iterator, text_record, text_record_len) != SW_OKAY) {
-            pa_log("sw_text_record_string_iterator_init() failed.\n");
+            pa_log_error(__FILE__": sw_text_record_string_iterator_init() failed.");
             goto fail;
         }
 
@@ -244,7 +244,7 @@ static sw_result browse_reply(
             sw_discovery_oid oid;
 
             if (sw_discovery_resolve(b->discovery, 0, name, type, domain, resolve_reply, b, &oid) != SW_OKAY)
-                pa_log("sw_discovery_resolve() failed\n");
+                pa_log_error(__FILE__": sw_discovery_resolve() failed");
 
             break;
         }
@@ -282,7 +282,7 @@ pa_browser *pa_browser_new(pa_mainloop_api *mainloop) {
     b->userdata = NULL;
 
     if (sw_discovery_init(&b->discovery) != SW_OKAY) {
-        pa_log("sw_discovery_init() failed.\n");
+        pa_log_error(__FILE__": sw_discovery_init() failed.");
         pa_xfree(b);
         return NULL;
     }
@@ -291,7 +291,7 @@ pa_browser *pa_browser_new(pa_mainloop_api *mainloop) {
         sw_discovery_browse(b->discovery, 0, SERVICE_NAME_SINK, NULL, browse_reply, b, &oid) != SW_OKAY ||
         sw_discovery_browse(b->discovery, 0, SERVICE_NAME_SOURCE, NULL, browse_reply, b, &oid) != SW_OKAY) {
 
-        pa_log("sw_discovery_browse() failed.\n");
+        pa_log_error(__FILE__": sw_discovery_browse() failed.");
         
         sw_discovery_fina(b->discovery);
         pa_xfree(b);

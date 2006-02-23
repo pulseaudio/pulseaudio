@@ -137,17 +137,17 @@ static void do_call(pa_socket_client *c) {
     
     lerror = sizeof(error);
     if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void*)&error, &lerror) < 0) {
-        pa_log(__FILE__": getsockopt(): %s\n", strerror(errno));
+        pa_log(__FILE__": getsockopt(): %s", strerror(errno));
         goto finish;
     }
 
     if (lerror != sizeof(error)) {
-        pa_log(__FILE__": getsockopt() returned invalid size.\n");
+        pa_log(__FILE__": getsockopt() returned invalid size.");
         goto finish;
     }
 
     if (error != 0) {
-        pa_log_debug(__FILE__": connect(): %s\n", strerror(error)); 
+        pa_log_debug(__FILE__": connect(): %s", strerror(error)); 
         errno = error;
         goto finish;
     }
@@ -188,7 +188,7 @@ static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t 
     
     if ((r = connect(c->fd, sa, len)) < 0) {
         if (errno != EINPROGRESS) {
-            /*pa_log(__FILE__": connect(): %s\n", strerror(errno));*/
+            /*pa_log(__FILE__": connect(): %s", strerror(errno));*/
             return -1;
         }
 
@@ -259,7 +259,7 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
     }
     
     if ((c->fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(): %s", strerror(errno));
         return -1;
     }
 

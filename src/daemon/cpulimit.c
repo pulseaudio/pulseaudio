@@ -169,7 +169,7 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
 
     /* Prepare the main loop pipe */
     if (pipe(the_pipe) < 0) {
-        pa_log(__FILE__": pipe() failed: %s\n", strerror(errno));
+        pa_log(__FILE__": pipe() failed: %s", strerror(errno));
         return -1;
     }
 

@@ -289,7 +289,7 @@ static void ipol_callback(pa_mainloop_api *m, pa_time_event *e, PA_GCC_UNUSED co
 
     pa_stream_ref(s);
 
-/*     pa_log("requesting new ipol data\n"); */
+/*     pa_log("requesting new ipol data"); */
     
     if (s->state == PA_STREAM_READY && !s->ipol_requested) {
         pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
@@ -655,7 +655,7 @@ static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command,
         }
         
         if (o->stream->interpolate) {
-/*              pa_log("new interpol data\n");  */
+/*              pa_log("new interpol data");  */
             o->stream->ipol_timestamp = i.timestamp;
             o->stream->ipol_usec = pa_stream_get_time(o->stream, &i);
             o->stream->ipol_requested = 0;

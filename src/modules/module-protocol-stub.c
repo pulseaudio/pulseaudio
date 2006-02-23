@@ -161,12 +161,12 @@ static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
     const char *listen_on;
 
     if (pa_modargs_get_value_boolean(ma, "loopback", &loopback) < 0) {
-        pa_log(__FILE__": loopback= expects a boolean argument.\n");
+        pa_log(__FILE__": loopback= expects a boolean argument.");
         return NULL;
     }
 
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
-        pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.\n");
+        pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.");
         return NULL;
     }
 
@@ -194,12 +194,12 @@ static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
     pa_runtime_path(v, tmp, sizeof(tmp));
 
     if (pa_make_secure_parent_dir(tmp) < 0) {
-        pa_log(__FILE__": Failed to create secure socket directory.\n");
+        pa_log(__FILE__": Failed to create secure socket directory.");
         return NULL;
     }
 
     if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
-        pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s\n", tmp, strerror(errno));
+        pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s", tmp, strerror(errno));
         return NULL;
     }
     
@@ -220,7 +220,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments\n");
+        pa_log(__FILE__": Failed to parse module arguments");
         goto finish;
     }
 
@@ -246,9 +246,9 @@ void pa__done(pa_core *c, pa_module*m) {
 
 #if defined(USE_PROTOCOL_ESOUND) && !defined(USE_TCP_SOCKETS)
 	if (remove(ESD_UNIX_SOCKET_NAME) != 0)
-		pa_log("%s: Failed to remove %s : %s.\n", __FILE__, ESD_UNIX_SOCKET_NAME, strerror (errno));
+		pa_log("%s: Failed to remove %s : %s.", __FILE__, ESD_UNIX_SOCKET_NAME, strerror (errno));
 	if (remove(ESD_UNIX_SOCKET_DIR) != 0)
-		pa_log("%s: Failed to remove %s : %s.\n", __FILE__, ESD_UNIX_SOCKET_DIR, strerror (errno));
+		pa_log("%s: Failed to remove %s : %s.", __FILE__, ESD_UNIX_SOCKET_DIR, strerror (errno));
 #endif
 
     protocol_free(m->userdata);

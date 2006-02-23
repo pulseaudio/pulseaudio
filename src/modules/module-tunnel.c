@@ -182,7 +182,7 @@ static void command_stream_killed(pa_pdispatch *pd, PA_GCC_UNUSED uint32_t comma
     struct userdata *u = userdata;
     assert(pd && t && u && u->pdispatch == pd);
 
-    pa_log(__FILE__": stream killed\n");
+    pa_log(__FILE__": stream killed");
     die(u);
 }
 
@@ -232,13 +232,13 @@ static void command_request(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED ui
     if (pa_tagstruct_getu32(t, &channel) < 0 ||
         pa_tagstruct_getu32(t, &bytes) < 0 ||
         !pa_tagstruct_eof(t)) {
-        pa_log(__FILE__": invalid protocol reply\n");
+        pa_log(__FILE__": invalid protocol reply");
         die(u);
         return;
     }
 
     if (channel != u->channel) {
-        pa_log(__FILE__": recieved data for invalid channel\n");
+        pa_log(__FILE__": recieved data for invalid channel");
         die(u);
         return;
     }
@@ -260,9 +260,9 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
 
     if (command != PA_COMMAND_REPLY) {
         if (command == PA_COMMAND_ERROR)
-            pa_log(__FILE__": failed to get latency.\n");
+            pa_log(__FILE__": failed to get latency.");
         else
-            pa_log(__FILE__": protocol error.\n");
+            pa_log(__FILE__": protocol error.");
         die(u);
         return;
     }
@@ -276,7 +276,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
         pa_tagstruct_get_timeval(t, &remote) < 0 ||
         pa_tagstruct_getu64(t, &counter) < 0 ||
         !pa_tagstruct_eof(t)) {
-        pa_log(__FILE__": invalid reply.\n");
+        pa_log(__FILE__": invalid reply.");
         die(u);
         return;
     }
@@ -303,7 +303,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
         u->host_latency = 0;
 #endif
 
-/*     pa_log(__FILE__": estimated host latency: %0.0f usec\n", (double) u->host_latency); */
+/*     pa_log(__FILE__": estimated host latency: %0.0f usec", (double) u->host_latency); */
 }
 
 static void request_latency(struct userdata *u) {
@@ -335,9 +335,9 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 
     if (command != PA_COMMAND_REPLY) {
         if (command == PA_COMMAND_ERROR)
-            pa_log(__FILE__": failed to create stream.\n");
+            pa_log(__FILE__": failed to create stream.");
         else
-            pa_log(__FILE__": protocol error.\n");
+            pa_log(__FILE__": protocol error.");
         die(u);
         return;
     }
@@ -348,7 +348,7 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
         pa_tagstruct_getu32(t, &u->requested_bytes) < 0 ||
 #endif        
         !pa_tagstruct_eof(t)) {
-        pa_log(__FILE__": invalid reply.\n");
+        pa_log(__FILE__": invalid reply.");
         die(u);
         return;
     }
@@ -367,9 +367,9 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 
     if (command != PA_COMMAND_REPLY || !pa_tagstruct_eof(t)) {
         if (command == PA_COMMAND_ERROR)
-            pa_log(__FILE__": failed to authenticate\n");
+            pa_log(__FILE__": failed to authenticate");
         else
-            pa_log(__FILE__": protocol error.\n");
+            pa_log(__FILE__": protocol error.");
         die(u);
         return;
     }
@@ -426,7 +426,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     struct userdata *u = userdata;
     assert(p && u);
 
-    pa_log(__FILE__": stream died.\n");
+    pa_log(__FILE__": stream died.");
     die(u);
 }
 
@@ -436,7 +436,7 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *user
     assert(p && packet && u);
 
     if (pa_pdispatch_run(u->pdispatch, packet, u) < 0) {
-        pa_log(__FILE__": invalid packet\n");
+        pa_log(__FILE__": invalid packet");
         die(u);
     }
 }
@@ -447,7 +447,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     assert(p && chunk && u);
 
     if (channel != u->channel) {
-        pa_log(__FILE__": recieved memory block on bad channel.\n");
+        pa_log(__FILE__": recieved memory block on bad channel.");
         die(u);
         return;
     }
@@ -466,7 +466,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     u->client = NULL;
     
     if (!io) {
-        pa_log(__FILE__": connection failed.\n");
+        pa_log(__FILE__": connection failed.");
         pa_module_unload_request(u->module);
         return;
     }
@@ -544,7 +544,7 @@ static int load_key(struct userdata *u, const char*fn) {
     u->auth_cookie_in_property = 0;
     
     if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
-        pa_log_debug(__FILE__": using already loaded auth cookie.\n");
+        pa_log_debug(__FILE__": using already loaded auth cookie.");
         pa_authkey_prop_ref(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
         u->auth_cookie_in_property = 1;
         return 0;
@@ -556,7 +556,7 @@ static int load_key(struct userdata *u, const char*fn) {
     if (pa_authkey_load_auto(fn, u->auth_cookie, sizeof(u->auth_cookie)) < 0)
         return -1;
 
-    pa_log_debug(__FILE__": loading cookie from disk.\n");
+    pa_log_debug(__FILE__": loading cookie from disk.");
     
     if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
         u->auth_cookie_in_property = 1;
@@ -572,7 +572,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments\n");
+        pa_log(__FILE__": failed to parse module arguments");
         goto fail;
     }
 
@@ -602,18 +602,18 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     
     if (!(u->server_name = pa_xstrdup(pa_modargs_get_value(ma, "server", NULL)))) {
-        pa_log(__FILE__": no server specified.\n");
+        pa_log(__FILE__": no server specified.");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": invalid sample format specification\n");
+        pa_log(__FILE__": invalid sample format specification");
         goto fail;
     }
 
     if (!(u->client = pa_socket_client_new_string(c->mainloop, u->server_name, PA_NATIVE_DEFAULT_PORT))) {
-        pa_log(__FILE__": failed to connect to server '%s'\n", u->server_name);
+        pa_log(__FILE__": failed to connect to server '%s'", u->server_name);
         goto fail;
     }
     
@@ -624,7 +624,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
 #ifdef TUNNEL_SINK
     if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
-        pa_log(__FILE__": failed to create sink.\n");
+        pa_log(__FILE__": failed to create sink.");
         goto fail;
     }
 
@@ -636,7 +636,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sink_set_owner(u->sink, m);
 #else
     if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL))) {
-        pa_log(__FILE__": failed to create source.\n");
+        pa_log(__FILE__": failed to create source.");
         goto fail;
     }
 

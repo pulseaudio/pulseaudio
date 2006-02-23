@@ -76,7 +76,7 @@ pa_memblockq* pa_memblockq_new(
     bq->read_index = bq->write_index = idx;
     bq->memblock_stat = s;
 
-    pa_log_debug(__FILE__": memblockq requested: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", maxlength, tlength, base, prebuf, minreq);
+    pa_log_debug(__FILE__": memblockq requested: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u", maxlength, tlength, base, prebuf, minreq);
 
     bq->maxlength = ((maxlength+base-1)/base)*base;
     assert(bq->maxlength >= base);
@@ -98,7 +98,7 @@ pa_memblockq* pa_memblockq_new(
     if (!bq->minreq)
         bq->minreq = 1;
     
-    pa_log_debug(__FILE__": memblockq sanitized: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u\n", bq->maxlength, bq->tlength, bq->base, bq->prebuf, bq->minreq);
+    pa_log_debug(__FILE__": memblockq sanitized: maxlength=%u, tlength=%u, base=%u, prebuf=%u, minreq=%u", bq->maxlength, bq->tlength, bq->base, bq->prebuf, bq->minreq);
 
     bq->state = bq->prebuf ? PREBUF : RUNNING;
     bq->silence = silence ? pa_memblock_ref(silence) : NULL;

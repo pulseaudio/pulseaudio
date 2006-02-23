@@ -57,7 +57,7 @@ pa_sink_input* pa_sink_input_new(
     assert(s->state == PA_SINK_RUNNING);
 
     if (pa_idxset_size(s->inputs) >= PA_MAX_INPUTS_PER_SINK) {
-        pa_log_warn(__FILE__": Failed to create sink input: too many inputs per sink.\n");
+        pa_log_warn(__FILE__": Failed to create sink input: too many inputs per sink.");
         return NULL;
     }
 
@@ -106,7 +106,7 @@ pa_sink_input* pa_sink_input_new(
     assert(r == 0);
 
     pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log_info(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"\n", i->index, i->name, s->index, st);
+    pa_log_info(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"", i->index, i->name, s->index, st);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
     
@@ -141,7 +141,7 @@ static void sink_input_free(pa_sink_input* i) {
     if (i->state != PA_SINK_INPUT_DISCONNECTED)
         pa_sink_input_disconnect(i);
 
-    pa_log_info(__FILE__": freed %u \"%s\"\n", i->index, i->name); 
+    pa_log_info(__FILE__": freed %u \"%s\"", i->index, i->name); 
     
     if (i->resampled_chunk.memblock)
         pa_memblock_unref(i->resampled_chunk.memblock);

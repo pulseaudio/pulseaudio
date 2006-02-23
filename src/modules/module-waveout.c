@@ -159,12 +159,12 @@ static void do_write(struct userdata *u)
 
         res = waveOutPrepareHeader(u->hwo, hdr, sizeof(WAVEHDR));
         if (res != MMSYSERR_NOERROR) {
-            pa_log_error(__FILE__ ": ERROR: Unable to prepare waveOut block: %d\n",
+            pa_log_error(__FILE__ ": ERROR: Unable to prepare waveOut block: %d",
                 res);
         }
         res = waveOutWrite(u->hwo, hdr, sizeof(WAVEHDR));
         if (res != MMSYSERR_NOERROR) {
-            pa_log_error(__FILE__ ": ERROR: Unable to write waveOut block: %d\n",
+            pa_log_error(__FILE__ ": ERROR: Unable to write waveOut block: %d",
                 res);
         }
         
@@ -214,12 +214,12 @@ static void do_read(struct userdata *u)
 
         res = waveInPrepareHeader(u->hwi, hdr, sizeof(WAVEHDR));
         if (res != MMSYSERR_NOERROR) {
-            pa_log_error(__FILE__ ": ERROR: Unable to prepare waveIn block: %d\n",
+            pa_log_error(__FILE__ ": ERROR: Unable to prepare waveIn block: %d",
                 res);
         }
         res = waveInAddBuffer(u->hwi, hdr, sizeof(WAVEHDR));
         if (res != MMSYSERR_NOERROR) {
-            pa_log_error(__FILE__ ": ERROR: Unable to add waveIn block: %d\n",
+            pa_log_error(__FILE__ ": ERROR: Unable to add waveIn block: %d",
                 res);
         }
         
@@ -378,7 +378,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     wf->wFormatTag = WAVE_FORMAT_PCM;
 
     if (ss->channels > 2) {
-        pa_log_error(__FILE__": ERROR: More than two channels not supported.\n");
+        pa_log_error(__FILE__": ERROR: More than two channels not supported.");
         return -1;
     }
 
@@ -391,7 +391,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     case 44100:
         break;
     default:
-        pa_log_error(__FILE__": ERROR: Unsupported sample rate.\n");
+        pa_log_error(__FILE__": ERROR: Unsupported sample rate.");
         return -1;
     }
 
@@ -402,7 +402,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     else if (ss->format == PA_SAMPLE_S16NE)
         wf->wBitsPerSample = 16;
     else {
-        pa_log_error(__FILE__": ERROR: Unsupported sample format.\n");
+        pa_log_error(__FILE__": ERROR: Unsupported sample format.");
         return -1;
     }
 
@@ -429,30 +429,30 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.\n");
+        pa_log(__FILE__": failed to parse module arguments.");
         goto fail;
     }
 
     if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
-        pa_log(__FILE__": record= and playback= expect boolean argument.\n");
+        pa_log(__FILE__": record= and playback= expect boolean argument.");
         goto fail;
     }
 
     if (!playback && !record) {
-        pa_log(__FILE__": neither playback nor record enabled for device.\n");
+        pa_log(__FILE__": neither playback nor record enabled for device.");
         goto fail;
     }
 
     nfrags = 20;
     frag_size = 1024;
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
-        pa_log(__FILE__": failed to parse fragments arguments\n");
+        pa_log(__FILE__": failed to parse fragments arguments");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": failed to parse sample specification\n");
+        pa_log(__FILE__": failed to parse sample specification");
         goto fail;
     }
 
@@ -466,13 +466,13 @@ int pa__init(pa_core *c, pa_module*m) {
             goto fail;
         if (waveInStart(hwi) != MMSYSERR_NOERROR)
             goto fail;
-        pa_log_debug(__FILE__": Opened waveIn subsystem.\n");
+        pa_log_debug(__FILE__": Opened waveIn subsystem.");
     }
 
     if (playback) {
         if (waveOutOpen(&hwo, WAVE_MAPPER, &wf, (DWORD_PTR)chunk_done_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
             goto fail;
-        pa_log_debug(__FILE__": Opened waveOut subsystem.\n");
+        pa_log_debug(__FILE__": Opened waveOut subsystem.");
     }
 
     InitializeCriticalSection(&u->crit);

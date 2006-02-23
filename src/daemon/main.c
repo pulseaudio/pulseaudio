@@ -94,7 +94,7 @@ static void message_cb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
 #endif
 
 static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e, int sig, void *userdata) {
-    pa_log_info(__FILE__": Got signal %s.\n", pa_strsignal(sig));
+    pa_log_info(__FILE__": Got signal %s.", pa_strsignal(sig));
 
     switch (sig) {
 #ifdef SIGUSR1
@@ -112,7 +112,7 @@ static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e,
 #ifdef SIGHUP
         case SIGHUP: {
             char *c = pa_full_status_string(userdata);
-            pa_log_notice(c);
+            pa_log_notice("%s", c);
             pa_xfree(c);
             return;
         }
@@ -121,7 +121,7 @@ static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e,
         case SIGINT:
         case SIGTERM:
         default:
-            pa_log_info(__FILE__": Exiting.\n");
+            pa_log_info(__FILE__": Exiting.");
             m->quit(m, 1);
             break;
     }
@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
     suid_root = getuid() != 0 && geteuid() == 0;
     
     if (suid_root && (pa_uid_in_group("realtime", &gid) <= 0 || gid >= 1000)) {
-        pa_log_warn(__FILE__": WARNING: called SUID root, but not in group 'realtime'.\n");
+        pa_log_warn(__FILE__": WARNING: called SUID root, but not in group 'realtime'.");
         pa_drop_root();
     }
 #else
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
         goto finish;
 
     if (pa_cmdline_parse(conf, argc, argv, &d) < 0) {
-        pa_log(__FILE__": failed to parse command line.\n");
+        pa_log(__FILE__": failed to parse command line.");
         goto finish;
     }
 
@@ -237,9 +237,9 @@ int main(int argc, char *argv[]) {
             pid_t pid;
 
             if (pa_pid_file_check_running(&pid) < 0) {
-                pa_log_info(__FILE__": daemon not running\n");
+                pa_log_info(__FILE__": daemon not running");
             } else {
-                pa_log_info(__FILE__": daemon running as PID %u\n", pid);
+                pa_log_info(__FILE__": daemon running as PID %u", pid);
                 retval = 0;
             }
 
@@ -249,7 +249,7 @@ int main(int argc, char *argv[]) {
         case PA_CMD_KILL:
 
             if (pa_pid_file_kill(SIGINT, NULL) < 0)
-                pa_log(__FILE__": failed to kill daemon.\n");
+                pa_log(__FILE__": failed to kill daemon.");
             else
                 retval = 0;
             
@@ -264,18 +264,18 @@ int main(int argc, char *argv[]) {
         int tty_fd;
 
         if (pa_stdio_acquire() < 0) {
-            pa_log(__FILE__": failed to acquire stdio.\n");
+            pa_log(__FILE__": failed to acquire stdio.");
             goto finish;
         }
 
 #ifdef HAVE_FORK
         if (pipe(daemon_pipe) < 0) {
-            pa_log(__FILE__": failed to create pipe.\n");
+            pa_log(__FILE__": failed to create pipe.");
             goto finish;
         }
         
         if ((child = fork()) < 0) {
-            pa_log(__FILE__": fork() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": fork() failed: %s", strerror(errno));
             goto finish;
         }
 
@@ -286,14 +286,14 @@ int main(int argc, char *argv[]) {
             daemon_pipe[1] = -1;
 
             if (pa_loop_read(daemon_pipe[0], &retval, sizeof(retval)) != sizeof(retval)) {
-                pa_log(__FILE__": read() failed: %s\n", strerror(errno));
+                pa_log(__FILE__": read() failed: %s", strerror(errno));
                 retval = 1;
             }
 
             if (retval)
-                pa_log(__FILE__": daemon startup failed.\n");
+                pa_log(__FILE__": daemon startup failed.");
             else
-                pa_log_info(__FILE__": daemon startup successful.\n");
+                pa_log_info(__FILE__": daemon startup successful.");
             
             goto finish;
         }
@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
     
     if (conf->use_pid_file) {
         if (pa_pid_file_create() < 0) {
-            pa_log(__FILE__": pa_pid_file_create() failed.\n");
+            pa_log(__FILE__": pa_pid_file_create() failed.");
 #ifdef HAVE_FORK
             if (conf->daemonize)
                 pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
@@ -396,23 +396,22 @@ int main(int argc, char *argv[]) {
     assert(r == 0);
     
     buf = pa_strbuf_new();
-    assert(buf);
     if (conf->default_script_file)
         r = pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail);
 
     if (r >= 0)
         r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail);
-    pa_log(s = pa_strbuf_tostring_free(buf));
+    pa_log_error("%s", s = pa_strbuf_tostring_free(buf));
     pa_xfree(s);
     
     if (r < 0 && conf->fail) {
-        pa_log(__FILE__": failed to initialize daemon.\n");
+        pa_log(__FILE__": failed to initialize daemon.");
 #ifdef HAVE_FORK
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
 #endif
     } else if (!c->modules || pa_idxset_size(c->modules) == 0) {
-        pa_log(__FILE__": daemon startup without any loaded modules, refusing to work.\n");
+        pa_log(__FILE__": daemon startup without any loaded modules, refusing to work.");
 #ifdef HAVE_FORK
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
@@ -433,13 +432,13 @@ int main(int argc, char *argv[]) {
 
         if (c->default_sink_name &&
             pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK, 1) == NULL) {
-            pa_log_error("%s : Fatal error. Default sink name (%s) does not exist in name register.\n", __FILE__, c->default_sink_name);
+            pa_log_error("%s : Fatal error. Default sink name (%s) does not exist in name register.", __FILE__, c->default_sink_name);
             retval = 1;
         } else {
-            pa_log_info(__FILE__": Daemon startup complete.\n");
+            pa_log_info(__FILE__": Daemon startup complete.");
             if (pa_mainloop_run(mainloop, &retval) < 0)
                 retval = 1;
-            pa_log_info(__FILE__": Daemon shutdown initiated.\n");
+            pa_log_info(__FILE__": Daemon shutdown initiated.");
         }
     }
 
@@ -453,7 +452,7 @@ int main(int argc, char *argv[]) {
     pa_signal_done();
     pa_mainloop_free(mainloop);
     
-    pa_log_info(__FILE__": Daemon terminated.\n");
+    pa_log_info(__FILE__": Daemon terminated.");
     
 finish:
 

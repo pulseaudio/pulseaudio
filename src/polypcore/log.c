@@ -26,6 +26,8 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
@@ -73,6 +75,8 @@ void pa_log_set_target(pa_log_target_t t, void (*func)(pa_log_level_t l, const c
 
 void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
     const char *e;
+    char *text, *t, *n;
+    
     assert(level < PA_LOG_LEVEL_MAX);
 
     if ((e = getenv(ENV_LOGLEVEL)))
@@ -81,30 +85,54 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
     if (level > maximal_level)
         return;
 
-    switch (log_target) {
-        case PA_LOG_STDERR:
-            vfprintf(stderr, format, ap);
-            break;
+    text = pa_vsprintf_malloc(format, ap);
 
-#ifdef HAVE_SYSLOG_H            
-        case PA_LOG_SYSLOG:
-            openlog(log_ident ? log_ident : "???", LOG_PID, LOG_USER);
-            vsyslog(level_to_syslog[level], format, ap);
-            closelog();
-            break;            
-#endif
-
-        case PA_LOG_USER: {
-            char *t = pa_vsprintf_malloc(format, ap);
-            assert(user_log_func);
-            user_log_func(level, t);
-	    pa_xfree(t);
+    for (t = text; t; t = n) {
+        if ((n = strchr(t, '\n'))) {
+            *n = 0;
+            n++;
         }
-            
-        case PA_LOG_NULL:
-        default:
-            break;
+
+        if (!*t)
+            continue;
+    
+        switch (log_target) {
+            case PA_LOG_STDERR: {
+                const char *prefix = "", *suffix = "";
+                
+                /* Yes indeed. Useless, but fun! */
+                if (isatty(STDERR_FILENO)) {
+                    if (level <= PA_LOG_ERROR) {
+                        prefix = "\x1B[1;31m";
+                        suffix = "\x1B[0m";
+                    } else if (level <= PA_LOG_WARN) {
+                        prefix = "\x1B[1m";
+                        suffix = "\x1B[0m";
+                    }
+                }
+                fprintf(stderr, "%s%s%s\n", prefix, t, suffix);
+                break;
+            }
+                
+#ifdef HAVE_SYSLOG_H            
+            case PA_LOG_SYSLOG:
+                openlog(log_ident ? log_ident : "???", LOG_PID, LOG_USER);
+                syslog(level_to_syslog[level], "%s", t);
+                closelog();
+                break;            
+#endif
+                
+            case PA_LOG_USER: 
+                user_log_func(level, t);
+                break;
+                
+            case PA_LOG_NULL:
+            default:
+                break;
+        }
     }
+
+    pa_xfree(text);
 
 }
 

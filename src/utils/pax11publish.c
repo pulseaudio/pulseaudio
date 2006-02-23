@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (!(d = XOpenDisplay(dname))) {
-        pa_log(__FILE__": XOpenDisplay() failed\n");
+        pa_log(__FILE__": XOpenDisplay() failed");
         goto finish;
     }
 

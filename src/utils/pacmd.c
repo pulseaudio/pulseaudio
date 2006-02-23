@@ -46,12 +46,12 @@ int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
     fd_set ifds, ofds;
 
     if (pa_pid_file_check_running(&pid) < 0) {
-        pa_log(__FILE__": no Polypaudio daemon running\n");
+        pa_log(__FILE__": no Polypaudio daemon running");
         goto fail;
     }
 
     if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(PF_UNIX, SOCK_STREAM, 0): %s\n", strerror(errno));
+        pa_log(__FILE__": socket(PF_UNIX, SOCK_STREAM, 0): %s", strerror(errno));
         goto fail;
     }
 
@@ -63,7 +63,7 @@ int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
         int r;
         
         if ((r = connect(fd, (struct sockaddr*) &sa, sizeof(sa))) < 0 && (errno != ECONNREFUSED && errno != ENOENT)) {
-            pa_log(__FILE__": connect() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": connect() failed: %s", strerror(errno));
             goto fail;
         }
             
@@ -71,7 +71,7 @@ int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
             break;
 
         if (pa_pid_file_kill(SIGUSR2, NULL) < 0) {
-            pa_log(__FILE__": failed to kill Polypaudio daemon.\n");
+            pa_log(__FILE__": failed to kill Polypaudio daemon.");
             goto fail;
         }
 
@@ -79,7 +79,7 @@ int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
     }
 
     if (i >= 5) {
-        pa_log(__FILE__": daemon not responding.\n");
+        pa_log(__FILE__": daemon not responding.");
         goto fail;
     }
 
@@ -94,7 +94,7 @@ int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
     
     for (;;) {
         if (select(FD_SETSIZE, &ifds, &ofds, NULL, NULL) < 0) {
-            pa_log(__FILE__": select() failed: %s\n", strerror(errno));
+            pa_log(__FILE__": select() failed: %s", strerror(errno));
             goto fail;
         }
 
@@ -106,7 +106,7 @@ int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
                 if (r == 0)
                     break;
                 
-                pa_log(__FILE__": read() failed: %s\n", strerror(errno));
+                pa_log(__FILE__": read() failed: %s", strerror(errno));
                 goto fail;
             }
             
@@ -122,7 +122,7 @@ int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
                 if (r == 0)
                     break;
                 
-                pa_log(__FILE__": read() failed: %s\n", strerror(errno));
+                pa_log(__FILE__": read() failed: %s", strerror(errno));
                 goto fail;
             }
 
@@ -135,7 +135,7 @@ int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
             assert(obuf_length);
             
             if ((r = write(1, obuf + obuf_index, obuf_length)) < 0) {
-                pa_log(__FILE__": write() failed: %s\n", strerror(errno));
+                pa_log(__FILE__": write() failed: %s", strerror(errno));
                 goto fail;
             }
             
@@ -149,7 +149,7 @@ int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
             assert(ibuf_length);
             
             if ((r = write(fd, ibuf + ibuf_index, ibuf_length)) < 0) {
-                pa_log(__FILE__": write() failed: %s\n", strerror(errno));
+                pa_log(__FILE__": write() failed: %s", strerror(errno));
                 goto fail;
             }
             

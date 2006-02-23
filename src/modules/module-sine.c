@@ -110,7 +110,7 @@ int pa__init(pa_core *c, pa_module*m) {
     char t[256];
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments\n");
+        pa_log(__FILE__": Failed to parse module arguments");
         goto fail;
     }
     
@@ -123,7 +123,7 @@ int pa__init(pa_core *c, pa_module*m) {
     sink_name = pa_modargs_get_value(ma, "sink", NULL);
 
     if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, 1))) {
-        pa_log(__FILE__": No such sink.\n");
+        pa_log(__FILE__": No such sink.");
         goto fail;
     }
 
@@ -133,7 +133,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     frequency = 440;
     if (pa_modargs_get_value_u32(ma, "frequency", &frequency) < 0 || frequency < 1 || frequency > ss.rate/2) {
-        pa_log(__FILE__": Invalid frequency specification\n");
+        pa_log(__FILE__": Invalid frequency specification");
         goto fail;
     }
     

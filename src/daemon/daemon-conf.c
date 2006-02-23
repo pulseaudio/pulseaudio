@@ -160,7 +160,7 @@ static int parse_log_target(const char *filename, unsigned line, const char *lva
     assert(filename && lvalue && rvalue && data);
 
     if (pa_daemon_conf_set_log_target(c, rvalue) < 0) {
-        pa_log(__FILE__": [%s:%u] Invalid log target '%s'.\n", filename, line, rvalue);
+        pa_log(__FILE__": [%s:%u] Invalid log target '%s'.", filename, line, rvalue);
         return -1;
     }
 
@@ -172,7 +172,7 @@ static int parse_log_level(const char *filename, unsigned line, const char *lval
     assert(filename && lvalue && rvalue && data);
 
     if (pa_daemon_conf_set_log_level(c, rvalue) < 0) {
-        pa_log(__FILE__": [%s:%u] Invalid log level '%s'.\n", filename, line, rvalue);
+        pa_log(__FILE__": [%s:%u] Invalid log level '%s'.", filename, line, rvalue);
         return -1;
     }
 
@@ -184,7 +184,7 @@ static int parse_resample_method(const char *filename, unsigned line, const char
     assert(filename && lvalue && rvalue && data);
 
     if (pa_daemon_conf_set_resample_method(c, rvalue) < 0) {
-        pa_log(__FILE__": [%s:%u] Inavalid resample method '%s'.\n", filename, line, rvalue);
+        pa_log(__FILE__": [%s:%u] Inavalid resample method '%s'.", filename, line, rvalue);
         return -1;
     }
 
@@ -236,7 +236,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file);
 
     if (!f && errno != ENOENT) {
-        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s\n", filename, strerror(errno));
+        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s", filename, strerror(errno));
         goto finish;
     }
 

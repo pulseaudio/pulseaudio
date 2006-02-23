@@ -49,7 +49,7 @@ void pa_random(void *ret_data, size_t length) {
     if ((fd = open(RANDOM_DEVICE, O_RDONLY)) >= 0) {
 
         if ((r = pa_loop_read(fd, ret_data, length)) < 0 || (size_t) r != length)
-            pa_log_error(__FILE__": failed to read entropy from '%s'\n", RANDOM_DEVICE);
+            pa_log_error(__FILE__": failed to read entropy from '%s'", RANDOM_DEVICE);
 
         close(fd);
     }

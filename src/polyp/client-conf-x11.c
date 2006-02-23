@@ -45,7 +45,7 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
         goto finish;
     
     if (!(d = XOpenDisplay(dname))) {
-        pa_log(__FILE__": XOpenDisplay() failed\n");
+        pa_log(__FILE__": XOpenDisplay() failed");
         goto finish;
     }
 
@@ -68,7 +68,7 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
         uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
 
         if (pa_parsehex(t, cookie, sizeof(cookie)) != sizeof(cookie)) {
-            pa_log(__FILE__": failed to parse cookie data\n");
+            pa_log(__FILE__": failed to parse cookie data");
             goto finish;
         }
 

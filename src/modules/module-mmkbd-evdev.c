@@ -81,7 +81,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
     assert(u);
 
     if (events & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) {
-        pa_log(__FILE__": lost connection to evdev device.\n");
+        pa_log(__FILE__": lost connection to evdev device.");
         goto fail;
     }
         
@@ -89,14 +89,14 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
         struct input_event ev;
 
         if (pa_loop_read(u->fd, &ev, sizeof(ev)) <= 0) {
-            pa_log(__FILE__": failed to read from event device: %s\n", strerror(errno));
+            pa_log(__FILE__": failed to read from event device: %s", strerror(errno));
             goto fail;
         }
 
         if (ev.type == EV_KEY && (ev.value == 1 || ev.value == 2)) {
             enum { INVALID, UP, DOWN, MUTE_TOGGLE } volchange = INVALID;
 
-            pa_log_debug(__FILE__": key code=%u, value=%u\n", ev.code, ev.value);
+            pa_log_debug(__FILE__": key code=%u, value=%u", ev.code, ev.value);
 
             switch (ev.code) {
                 case KEY_VOLUMEDOWN:  volchange = DOWN; break;
@@ -108,7 +108,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 pa_sink *s;
                 
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
-                    pa_log(__FILE__": failed to get sink '%s'\n", u->sink_name);
+                    pa_log(__FILE__": failed to get sink '%s'", u->sink_name);
                 else {
                     pa_volume_t v = pa_cvolume_avg(pa_sink_get_volume(s, PA_MIXER_HARDWARE));
                     pa_cvolume cv;
@@ -167,7 +167,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments\n");
+        pa_log(__FILE__": Failed to parse module arguments");
         goto fail;
     }
 
@@ -179,40 +179,40 @@ int pa__init(pa_core *c, pa_module*m) {
     u->mute_toggle_save = 0;
 
     if ((u->fd = open(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY)) < 0) {
-        pa_log(__FILE__": failed to open evdev device: %s\n", strerror(errno));
+        pa_log(__FILE__": failed to open evdev device: %s", strerror(errno));
         goto fail;
     }
 
     if (ioctl(u->fd, EVIOCGVERSION, &version) < 0) {
-        pa_log(__FILE__": EVIOCGVERSION failed: %s\n", strerror(errno));
+        pa_log(__FILE__": EVIOCGVERSION failed: %s", strerror(errno));
         goto fail;
     }
 
-    pa_log_info(__FILE__": evdev driver version %i.%i.%i\n", version >> 16, (version >> 8) & 0xff, version & 0xff);
+    pa_log_info(__FILE__": evdev driver version %i.%i.%i", version >> 16, (version >> 8) & 0xff, version & 0xff);
 
     if(ioctl(u->fd, EVIOCGID, &input_id)) {
-        pa_log(__FILE__": EVIOCGID failed: %s\n", strerror(errno));
+        pa_log(__FILE__": EVIOCGID failed: %s", strerror(errno));
         goto fail;
     }
 
-    pa_log_info(__FILE__": evdev vendor 0x%04hx product 0x%04hx version 0x%04hx bustype %u\n",
+    pa_log_info(__FILE__": evdev vendor 0x%04hx product 0x%04hx version 0x%04hx bustype %u",
                 input_id.vendor, input_id.product, input_id.version, input_id.bustype);
 
     if(ioctl(u->fd, EVIOCGNAME(sizeof(name)), name) < 0) {
-        pa_log(__FILE__": EVIOCGNAME failed: %s\n", strerror(errno));
+        pa_log(__FILE__": EVIOCGNAME failed: %s", strerror(errno));
         goto fail;
     }
 
-    pa_log_info(__FILE__": evdev device name: %s\n", name);
+    pa_log_info(__FILE__": evdev device name: %s", name);
 
     memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
     if (ioctl(u->fd, EVIOCGBIT(0, EV_MAX), evtype_bitmask) < 0) {
-        pa_log(__FILE__": EVIOCGBIT failed: %s\n", strerror(errno));
+        pa_log(__FILE__": EVIOCGBIT failed: %s", strerror(errno));
         goto fail;
     }
 
     if (!test_bit(EV_KEY, evtype_bitmask)) {
-        pa_log(__FILE__": device has no keys.\n");
+        pa_log(__FILE__": device has no keys.");
         goto fail;
     }
 

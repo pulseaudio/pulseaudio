@@ -63,7 +63,7 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint3
         goto finish;
 
     if (ss->rate != r) 
-        pa_log_info(__FILE__": device doesn't support %u Hz, changed to %u Hz.\n", ss->rate, r);
+        pa_log_info(__FILE__": device doesn't support %u Hz, changed to %u Hz.", ss->rate, r);
     
     if (snd_pcm_prepare(pcm_handle) < 0)
         goto finish;
