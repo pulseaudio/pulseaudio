@@ -256,7 +256,7 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
 static int sink_get_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
 
-    if (pa_oss_get_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
+    if (pa_oss_get_pcm_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
         pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", strerror(errno));
         s->get_hw_volume = NULL;
         return -1;
@@ -268,7 +268,31 @@ static int sink_get_hw_volume(pa_sink *s) {
 static int sink_set_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
 
-    if (pa_oss_set_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
+    if (pa_oss_set_pcm_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
+        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", strerror(errno));
+        s->set_hw_volume = NULL;
+        return -1;
+    }
+
+    return 0;
+}
+
+static int source_get_hw_volume(pa_source *s) {
+    struct userdata *u = s->userdata;
+
+    if (pa_oss_get_imix_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
+        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", strerror(errno));
+        s->get_hw_volume = NULL;
+        return -1;
+    }
+
+    return 0;
+}
+
+static int source_set_hw_volume(pa_source *s) {
+    struct userdata *u = s->userdata;
+
+    if (pa_oss_set_imix_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
         pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", strerror(errno));
         s->set_hw_volume = NULL;
         return -1;
@@ -368,6 +392,8 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source->userdata = u;
         u->source->notify = source_notify_cb;
         u->source->get_latency = source_get_latency_cb;
+        u->source->get_hw_volume = source_get_hw_volume;
+        u->source->set_hw_volume = source_set_hw_volume;
         pa_source_set_owner(u->source, m);
         u->source->description = pa_sprintf_malloc("Open Sound System PCM on '%s'%s%s%s",
                                                    p,
@@ -426,6 +452,8 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     /* Read mixer settings */
+    if (u->source)
+        source_get_hw_volume(u->source);
     if (u->sink)
         sink_get_hw_volume(u->sink);
 

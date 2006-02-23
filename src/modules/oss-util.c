@@ -167,7 +167,7 @@ int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
     return 0;
 }
 
-int pa_oss_get_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
+static int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
 
@@ -175,7 +175,7 @@ int pa_oss_get_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
     assert(ss);
     assert(volume);
     
-    if (ioctl(fd, SOUND_MIXER_READ_PCM, &vol) < 0)
+    if (ioctl(fd, mixer, &vol) < 0)
         return -1;
 
     volume->values[0] = ((vol & 0xFF) * PA_VOLUME_NORM) / 100;
@@ -187,7 +187,7 @@ int pa_oss_get_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
     return 0;
 }
 
-int pa_oss_set_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume) {
+static int pa_oss_set_volume(int fd, int mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
 
@@ -196,11 +196,27 @@ int pa_oss_set_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume
     if (ss->channels >= 2)
         vol |= ((volume->values[1]*100)/PA_VOLUME_NORM) << 8;
     
-    if (ioctl(fd, SOUND_MIXER_WRITE_PCM, &vol) < 0)
+    if (ioctl(fd, mixer, &vol) < 0)
         return -1;
 
     pa_log_debug(__FILE__": Wrote mixer settings: %s", pa_cvolume_snprint(cv, sizeof(cv), volume));
     return 0;
+}
+
+int pa_oss_get_pcm_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
+    return pa_oss_get_volume(fd, SOUND_MIXER_READ_PCM, ss, volume);
+}
+
+int pa_oss_set_pcm_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume) {
+    return pa_oss_set_volume(fd, SOUND_MIXER_WRITE_PCM, ss, volume);
+}
+
+int pa_oss_get_imix_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
+    return pa_oss_get_volume(fd, SOUND_MIXER_READ_IMIX, ss, volume);
+}
+
+int pa_oss_set_imix_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume) {
+    return pa_oss_set_volume(fd, SOUND_MIXER_WRITE_IMIX, ss, volume);
 }
 
 int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
