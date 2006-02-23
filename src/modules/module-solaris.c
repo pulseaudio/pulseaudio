@@ -484,7 +484,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     /* Read mixer settings */
     if (u->sink)
-        sink_get_hw_volume(u->sink);
+        sink_get_hw_volume_cb(u->sink);
 
     return 0;
 
