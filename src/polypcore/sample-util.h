@@ -44,7 +44,8 @@ size_t pa_mix(
     void *data,
     size_t length,
     const pa_sample_spec *spec,
-    const pa_cvolume *volume);
+    const pa_cvolume *volume,
+    int mute);
 
 void pa_volume_memchunk(
     pa_memchunk*c,

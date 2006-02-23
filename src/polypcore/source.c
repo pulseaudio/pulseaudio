@@ -80,11 +80,15 @@ pa_source* pa_source_new(
 
     pa_cvolume_reset(&s->sw_volume, spec->channels);
     pa_cvolume_reset(&s->hw_volume, spec->channels);
+    s->sw_muted = 0;
+    s->hw_muted = 0;
 
     s->get_latency = NULL;
     s->notify = NULL;
     s->set_hw_volume = NULL;
     s->get_hw_volume = NULL;
+    s->set_hw_mute = NULL;
+    s->get_hw_mute = NULL;
     s->userdata = NULL;
 
     r = pa_idxset_put(core->sources, s, &s->index);
@@ -118,6 +122,8 @@ void pa_source_disconnect(pa_source *s) {
     s->notify = NULL;
     s->get_hw_volume = NULL;
     s->set_hw_volume = NULL;
+    s->set_hw_mute = NULL;
+    s->get_hw_mute = NULL;
     
     s->state = PA_SOURCE_DISCONNECTED;
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
@@ -182,12 +188,15 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 
     pa_source_ref(s);
 
-    if (!pa_cvolume_is_norm(&s->sw_volume)) {
+    if (s->sw_muted || !pa_cvolume_is_norm(&s->sw_volume)) {
         pa_memchunk vchunk = *chunk;
         
         pa_memblock_ref(vchunk.memblock);
         pa_memchunk_make_writable(&vchunk, s->core->memblock_stat, 0);
-        pa_volume_memchunk(&vchunk, &s->sample_spec, &s->sw_volume);
+        if (s->sw_muted)
+            pa_silence_memchunk(&vchunk, &s->sample_spec);
+        else
+            pa_volume_memchunk(&vchunk, &s->sample_spec, &s->sw_volume);
         pa_idxset_foreach(s->outputs, do_post, &vchunk);
         pa_memblock_unref(vchunk.memblock);
     } else
@@ -249,4 +258,41 @@ const pa_cvolume *pa_source_get_volume(pa_source *s, pa_mixer_t m) {
         return &s->hw_volume;
     } else
         return &s->sw_volume;
+}
+
+void pa_source_set_mute(pa_source *s, pa_mixer_t m, int mute) {
+    int *t;
+    
+    assert(s);
+    assert(s->ref >= 1);
+
+    if (m == PA_MIXER_HARDWARE && s->set_hw_mute) 
+        t = &s->hw_muted;
+    else
+        t = &s->sw_muted;
+
+    if (!!*t == !!mute)
+        return;
+        
+    *t = !!mute;
+
+    if (t == &s->hw_muted)
+        if (s->set_hw_mute(s) < 0)
+            s->sw_muted = !!mute;
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+int pa_source_get_mute(pa_source *s, pa_mixer_t m) {
+    assert(s);
+    assert(s->ref >= 1);
+
+    if (m == PA_MIXER_HARDWARE && s->set_hw_mute) {
+
+        if (s->get_hw_mute)
+            s->get_hw_mute(s);
+        
+        return s->hw_muted;
+    } else
+        return s->sw_muted;
 }

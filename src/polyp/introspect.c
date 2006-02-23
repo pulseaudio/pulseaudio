@@ -146,6 +146,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
                 pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
+                pa_tagstruct_get_boolean(t, &i.mute) < 0 ||
                 pa_tagstruct_getu32(t, &i.monitor_source) < 0 ||
                 pa_tagstruct_gets(t, &i.monitor_source_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
@@ -249,6 +250,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
                 pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
+                pa_tagstruct_get_boolean(t, &i.mute) < 0 ||
                 pa_tagstruct_getu32(t, &i.monitor_of_sink) < 0 ||
                 pa_tagstruct_gets(t, &i.monitor_of_sink_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
@@ -682,6 +684,52 @@ pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name
     return o;
 }
 
+pa_operation* pa_context_set_sink_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    assert(c);
+    assert(c->ref >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SINK_MUTE, &tag);
+    pa_tagstruct_putu32(t, idx);
+    pa_tagstruct_puts(t, NULL);
+    pa_tagstruct_put_boolean(t, mute);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+
+    return o;
+}
+
+pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    assert(c);
+    assert(c->ref >= 1);
+    assert(name);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !name || *name, PA_ERR_INVALID);
+    
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SINK_MUTE, &tag);
+    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
+    pa_tagstruct_puts(t, name);
+    pa_tagstruct_put_boolean(t, mute);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+
+    return o;
+}
+
 pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
@@ -750,6 +798,52 @@ pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *na
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
     pa_tagstruct_put_cvolume(t, volume);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+
+    return o;
+}
+
+pa_operation* pa_context_set_source_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    assert(c);
+    assert(c->ref >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SOURCE_MUTE, &tag);
+    pa_tagstruct_putu32(t, idx);
+    pa_tagstruct_puts(t, NULL);
+    pa_tagstruct_put_boolean(t, mute);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+
+    return o;
+}
+
+pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    assert(c);
+    assert(c->ref >= 1);
+    assert(name);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !name || *name, PA_ERR_INVALID);
+    
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SOURCE_MUTE, &tag);
+    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
+    pa_tagstruct_puts(t, name);
+    pa_tagstruct_put_boolean(t, mute);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
 

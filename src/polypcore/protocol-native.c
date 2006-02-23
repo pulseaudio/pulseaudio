@@ -161,6 +161,7 @@ static void command_get_info_list(pa_pdispatch *pd, uint32_t command, uint32_t t
 static void command_get_server_info(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_subscribe(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_set_volume(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_set_mute(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_cork_playback_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_flush_playback_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_trigger_or_prebuf_playback_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
@@ -220,6 +221,9 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_SET_SINK_INPUT_VOLUME] = command_set_volume,
     [PA_COMMAND_SET_SOURCE_VOLUME] = command_set_volume,
     
+    [PA_COMMAND_SET_SINK_MUTE] = command_set_mute,
+    [PA_COMMAND_SET_SOURCE_MUTE] = command_set_mute,
+
     [PA_COMMAND_CORK_PLAYBACK_STREAM] = command_cork_playback_stream,
     [PA_COMMAND_FLUSH_PLAYBACK_STREAM] = command_flush_playback_stream,
     [PA_COMMAND_TRIGGER_PLAYBACK_STREAM] = command_trigger_or_prebuf_playback_stream,
@@ -1184,6 +1188,7 @@ static void sink_fill_tagstruct(pa_tagstruct *t, pa_sink *sink) {
         PA_TAG_CHANNEL_MAP, &sink->channel_map,
         PA_TAG_U32, sink->owner ? sink->owner->index : PA_INVALID_INDEX,
         PA_TAG_CVOLUME, pa_sink_get_volume(sink, PA_MIXER_HARDWARE),
+        PA_TAG_BOOLEAN, pa_sink_get_mute(sink, PA_MIXER_HARDWARE),
         PA_TAG_U32, sink->monitor_source->index,
         PA_TAG_STRING, sink->monitor_source->name,
         PA_TAG_USEC, pa_sink_get_latency(sink),
@@ -1202,6 +1207,7 @@ static void source_fill_tagstruct(pa_tagstruct *t, pa_source *source) {
         PA_TAG_CHANNEL_MAP, &source->channel_map,
         PA_TAG_U32, source->owner ? source->owner->index : PA_INVALID_INDEX,
         PA_TAG_CVOLUME, pa_source_get_volume(source, PA_MIXER_HARDWARE),
+        PA_TAG_BOOLEAN, pa_source_get_mute(source, PA_MIXER_HARDWARE),
         PA_TAG_U32, source->monitor_of ? source->monitor_of->index : PA_INVALID_INDEX,
         PA_TAG_STRING, source->monitor_of ? source->monitor_of->name : NULL,
         PA_TAG_USEC, pa_source_get_latency(source),
@@ -1526,6 +1532,55 @@ static void command_set_volume(
         pa_source_set_volume(source, PA_MIXER_HARDWARE, &volume);
     else if (si)
         pa_sink_input_set_volume(si, &volume);
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_set_mute(
+        PA_GCC_UNUSED pa_pdispatch *pd,
+        uint32_t command,
+        uint32_t tag,
+        pa_tagstruct *t,
+        void *userdata) {
+    
+    struct connection *c = userdata;
+    uint32_t idx;
+    int mute;
+    pa_sink *sink = NULL;
+    pa_source *source = NULL;
+    const char *name = NULL;
+    assert(c && t);
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_get_boolean(t, &mute) ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || !name || *name, tag, PA_ERR_INVALID);
+
+    if (command == PA_COMMAND_SET_SINK_MUTE) {
+        if (idx != PA_INVALID_INDEX)
+            sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
+        else
+            sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
+    } else {
+        assert(command == PA_COMMAND_SET_SOURCE_MUTE);
+        if (idx != (uint32_t) -1)
+            source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
+        else
+            source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
+    }
+
+    CHECK_VALIDITY(c->pstream, sink || source, tag, PA_ERR_NOENTITY);
+
+    if (sink)
+        pa_sink_set_mute(sink, PA_MIXER_HARDWARE, mute);
+    else if (source)
+        pa_source_set_mute(source, PA_MIXER_HARDWARE, mute);
 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }

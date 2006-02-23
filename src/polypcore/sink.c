@@ -84,11 +84,15 @@ pa_sink* pa_sink_new(
 
     pa_cvolume_reset(&s->sw_volume, spec->channels);
     pa_cvolume_reset(&s->hw_volume, spec->channels);
+    s->sw_muted = 0;
+    s->hw_muted = 0;
 
     s->get_latency = NULL;
     s->notify = NULL;
     s->set_hw_volume = NULL;
     s->get_hw_volume = NULL;
+    s->set_hw_mute = NULL;
+    s->get_hw_mute = NULL;
     s->userdata = NULL;
 
     r = pa_idxset_put(core->sinks, s, &s->index);
@@ -131,6 +135,8 @@ void pa_sink_disconnect(pa_sink* s) {
     s->notify = NULL;
     s->get_hw_volume = NULL;
     s->set_hw_volume = NULL;
+    s->set_hw_mute = NULL;
+    s->get_hw_mute = NULL;
     
     s->state = PA_SINK_DISCONNECTED;
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
@@ -262,9 +268,12 @@ int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
         pa_sw_cvolume_multiply(&volume, &s->sw_volume, &info[0].volume);
         
-        if (!pa_cvolume_is_norm(&volume)) {
+        if (s->sw_muted || !pa_cvolume_is_norm(&volume)) {
             pa_memchunk_make_writable(result, s->core->memblock_stat, 0);
-            pa_volume_memchunk(result, &s->sample_spec, &volume);
+            if (s->sw_muted)
+                pa_silence_memchunk(result, &s->sample_spec);
+            else
+                pa_volume_memchunk(result, &s->sample_spec, &volume);
         }
     } else {
         result->memblock = pa_memblock_new(length, s->core->memblock_stat);
@@ -272,7 +281,8 @@ int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
 /*          pa_log("mixing %i", n);  */
 
-        result->length = pa_mix(info, n, result->memblock->data, length, &s->sample_spec, &s->sw_volume);
+        result->length = pa_mix(info, n, result->memblock->data, length,
+            &s->sample_spec, &s->sw_volume, s->sw_muted);
         result->index = 0;
     }
 
@@ -317,15 +327,18 @@ int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
                target->length);
 
         pa_sw_cvolume_multiply(&volume, &s->sw_volume, &info[0].volume);
-        
-        if (!pa_cvolume_is_norm(&volume))
+
+        if (s->sw_muted)
+            pa_silence_memchunk(target, &s->sample_spec);        
+        else if (!pa_cvolume_is_norm(&volume))
             pa_volume_memchunk(target, &s->sample_spec, &volume);
     } else
         target->length = pa_mix(info, n,
                                 (uint8_t*) target->memblock->data + target->index,
                                 target->length,
                                 &s->sample_spec,
-                                &s->sw_volume);
+                                &s->sw_volume,
+                                s->sw_muted);
     
     inputs_drop(s, info, n, target->length);
     pa_source_post(s->monitor_source, target);
@@ -445,4 +458,41 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s, pa_mixer_t m) {
         return &s->hw_volume;
     } else
         return &s->sw_volume;
+}
+
+void pa_sink_set_mute(pa_sink *s, pa_mixer_t m, int mute) {
+    int *t;
+    
+    assert(s);
+    assert(s->ref >= 1);
+
+    if (m == PA_MIXER_HARDWARE && s->set_hw_mute) 
+        t = &s->hw_muted;
+    else
+        t = &s->sw_muted;
+
+    if (!!*t == !!mute)
+        return;
+        
+    *t = !!mute;
+
+    if (t == &s->hw_muted)
+        if (s->set_hw_mute(s) < 0)
+            s->sw_muted = !!mute;
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+int pa_sink_get_mute(pa_sink *s, pa_mixer_t m) {
+    assert(s);
+    assert(s->ref >= 1);
+
+    if (m == PA_MIXER_HARDWARE && s->set_hw_mute) {
+
+        if (s->get_hw_mute)
+            s->get_hw_mute(s);
+        
+        return s->hw_muted;
+    } else
+        return s->sw_muted;
 }

@@ -58,11 +58,14 @@ struct pa_sink {
     pa_source *monitor_source;
     
     pa_cvolume hw_volume, sw_volume;
+    int hw_muted, sw_muted;
 
     void (*notify)(pa_sink*sink);
     pa_usec_t (*get_latency)(pa_sink *s);
     int (*set_hw_volume)(pa_sink *s);
     int (*get_hw_volume)(pa_sink *s);
+    int (*set_hw_mute)(pa_sink *s);
+    int (*get_hw_mute)(pa_sink *s);
     
     void *userdata;
 };
@@ -92,5 +95,7 @@ void pa_sink_set_owner(pa_sink *sink, pa_module *m);
 
 void pa_sink_set_volume(pa_sink *sink, pa_mixer_t m, const pa_cvolume *volume);
 const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_mixer_t m);
+void pa_sink_set_mute(pa_sink *sink, pa_mixer_t m, int mute);
+int pa_sink_get_mute(pa_sink *sink, pa_mixer_t m);
 
 #endif

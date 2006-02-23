@@ -58,6 +58,7 @@ typedef struct pa_sink_info {
     pa_channel_map channel_map;        /**< Channel map \since 0.9 */
     uint32_t owner_module;             /**< Index of the owning module of this sink, or PA_INVALID_INDEX */
     pa_cvolume volume;                 /**< Volume of the sink */
+    int mute;                          /**< Mute switch of the sink \since 0.8 */
     uint32_t monitor_source;           /**< Index of the monitor source connected to this sink */
     const char *monitor_source_name;   /**< The name of the monitor source */
     pa_usec_t latency;                 /**< Length of filled playback buffer of this sink */
@@ -85,6 +86,7 @@ typedef struct pa_source_info {
     pa_channel_map channel_map;         /**< Channel map \since 0.9 */
     uint32_t owner_module;              /**< Owning module index, or PA_INVALID_INDEX */
     pa_cvolume volume;                  /**< Volume of the source \since 0.8 */
+    int mute;                           /**< Mute switch of the sink \since 0.8 */
     uint32_t monitor_of_sink;           /**< If this is a monitor source the index of the owning sink, otherwise PA_INVALID_INDEX */
     const char *monitor_of_sink_name;   /**< Name of the owning sink, or PA_INVALID_INDEX */
     pa_usec_t latency;                  /**< Length of filled record buffer of this source. \since 0.5 */
@@ -211,6 +213,12 @@ pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, c
 /** Set the volume of a sink device specified by its name */
 pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
 
+/** Set the mute switch of a sink device specified by its index \since 0.8 */
+pa_operation* pa_context_set_sink_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a sink device specified by its name \since 0.8 */
+pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
+
 /** Set the volume of a sink input stream */
 pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
 
@@ -219,6 +227,12 @@ pa_operation* pa_context_set_source_volume_by_index(pa_context *c, uint32_t idx,
 
 /** Set the volume of a source device specified by its name \since 0.8 */
 pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a source device specified by its index \since 0.8 */
+pa_operation* pa_context_set_source_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a source device specified by its name \since 0.8 */
+pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
 
 /** Memory block statistics */
 typedef struct pa_stat_info {

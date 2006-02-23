@@ -60,11 +60,14 @@ struct pa_source {
     pa_sink *monitor_of;
 
     pa_cvolume hw_volume, sw_volume;
+    int hw_muted, sw_muted;
     
     void (*notify)(pa_source*source);
     pa_usec_t (*get_latency)(pa_source *s);
     int (*set_hw_volume)(pa_source *s);
     int (*get_hw_volume)(pa_source *s);
+    int (*set_hw_mute)(pa_source *s);
+    int (*get_hw_mute)(pa_source *s);
     
     void *userdata;
 };
@@ -92,5 +95,7 @@ pa_usec_t pa_source_get_latency(pa_source *s);
 
 void pa_source_set_volume(pa_source *source, pa_mixer_t m, const pa_cvolume *volume);
 const pa_cvolume *pa_source_get_volume(pa_source *source, pa_mixer_t m);
+void pa_source_set_mute(pa_source *source, pa_mixer_t m, int mute);
+int pa_source_get_mute(pa_source *source, pa_mixer_t m);
 
 #endif

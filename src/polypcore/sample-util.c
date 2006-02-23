@@ -85,7 +85,8 @@ size_t pa_mix(
     void *data,
     size_t length,
     const pa_sample_spec *spec,
-    const pa_cvolume *volume) {
+    const pa_cvolume *volume,
+    int mute) {
     
     assert(streams && data && length && spec);
 
@@ -100,7 +101,7 @@ size_t pa_mix(
                 if (d >= length)
                     return d;
 
-                if (volume->values[channel] != PA_VOLUME_MUTED) {
+                if (!mute && volume->values[channel] != PA_VOLUME_MUTED) {
                     unsigned i;
                     
                     for (i = 0; i < nstreams; i++) {
@@ -152,7 +153,7 @@ size_t pa_mix(
                 if (d >= length)
                     return d;
 
-                if (volume->values[channel] != PA_VOLUME_MUTED) {
+                if (!mute && volume->values[channel] != PA_VOLUME_MUTED) {
                     unsigned i;
                     
                     for (i = 0; i < nstreams; i++) {
@@ -204,7 +205,7 @@ size_t pa_mix(
                 if (d >= length)
                     return d;
                 
-                if (volume->values[channel] != PA_VOLUME_MUTED) {
+                if (!mute && volume->values[channel] != PA_VOLUME_MUTED) {
                     unsigned i;
                     
                     for (i = 0; i < nstreams; i++) {
