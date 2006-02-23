@@ -20,6 +20,7 @@ Fixes:
   - add hw driver name to sink/source description
   - deal with underflows properly
 - multiline configuration statements
+- module-tunnel volume support (sink, source, notify)
 
 Post 0.8:
 - alsa mmap driver
