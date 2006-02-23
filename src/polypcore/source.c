@@ -33,6 +33,7 @@
 #include <polypcore/xmalloc.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>
+#include <polypcore/sample-util.h>
 
 #include "source.h"
 
@@ -182,11 +183,15 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
     pa_source_ref(s);
 
     if (!pa_cvolume_is_norm(&s->sw_volume)) {
-        pa_memchunk_make_writable(chunk, s->core->memblock_stat, 0);
-        pa_volume_memchunk(chunk, &s->sample_spec, &s->sw_volume);
-    }
-
-    pa_idxset_foreach(s->outputs, do_post, (void*) chunk);
+        pa_memchunk vchunk = *chunk;
+        
+        pa_memblock_ref(vchunk.memblock);
+        pa_memchunk_make_writable(&vchunk, s->core->memblock_stat, 0);
+        pa_volume_memchunk(&vchunk, &s->sample_spec, &s->sw_volume);
+        pa_idxset_foreach(s->outputs, do_post, &vchunk);
+        pa_memblock_unref(vchunk.memblock);
+    } else
+        pa_idxset_foreach(s->outputs, do_post, (void*) chunk);
 
     pa_source_unref(s);
 }
