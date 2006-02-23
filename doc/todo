@@ -6,9 +6,8 @@ Test:
 
 Fixes:
 - better validity checking in protocol-esound
-- change pa_log to not require \n
 - proper use of memcpy in procotol-esound.c so we don't get alignment problems
-- latency api for native protocol
+- latency api rework for native protocol
 - add support for auth using SCM_CREDENTIALS
 - use scatter/gather io for sockets
 - notification on hw volume change
