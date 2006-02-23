@@ -292,6 +292,40 @@ static int sink_set_hw_volume_cb(pa_sink *s) {
     return 0;
 }
 
+static int source_get_hw_volume_cb(pa_source *s) {
+    struct userdata *u = s->userdata;
+    audio_info_t info;
+    int err;
+
+    err = ioctl(u->fd, AUDIO_GETINFO, &info);
+    assert(err >= 0);
+
+    pa_cvolume_set(&s->hw_volume, s->hw_volume.channels,
+        info.record.gain * PA_VOLUME_NORM / AUDIO_MAX_GAIN);
+
+    return 0;
+}
+
+static int source_set_hw_volume_cb(pa_source *s) {
+    struct userdata *u = s->userdata;
+    audio_info_t info;
+
+    AUDIO_INITINFO(&info);
+
+    info.record.gain = pa_cvolume_avg(&s->hw_volume) * AUDIO_MAX_GAIN / PA_VOLUME_NORM;
+    assert(info.record.gain <= AUDIO_MAX_GAIN);
+
+    if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
+        if (errno == EINVAL)
+            pa_log(__FILE__": AUDIO_SETINFO: Unsupported volume.");
+        else
+            pa_log(__FILE__": AUDIO_SETINFO: %s", strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
 static int pa_solaris_auto_format(int fd, int mode, pa_sample_spec *ss) {
     audio_info_t info;
 
@@ -436,6 +470,8 @@ int pa__init(pa_core *c, pa_module*m) {
         assert(u->source);
         u->source->userdata = u;
         u->source->get_latency = source_get_latency_cb;
+        u->source->get_hw_volume = source_get_hw_volume_cb;
+        u->source->set_hw_volume = source_set_hw_volume_cb;
         pa_source_set_owner(u->source, m);
         u->source->description = pa_sprintf_malloc("Solaris PCM on '%s'", p);
     } else
@@ -483,6 +519,8 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_modargs_free(ma);
 
     /* Read mixer settings */
+    if (u->source)
+        sink_get_hw_volume_cb(u->source);
     if (u->sink)
         sink_get_hw_volume_cb(u->sink);
 
