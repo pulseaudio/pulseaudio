@@ -164,6 +164,8 @@ void pa_stream_set_state(pa_stream *s, pa_stream_state_t st);
 
 void pa_stream_trash_ipol(pa_stream *s);
 
+pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *tag);
+
 #define PA_CHECK_VALIDITY(context, expression, error) do { \
         if (!(expression)) \
             return -pa_context_set_error((context), (error)); \

@@ -189,9 +189,7 @@ pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t idx, pa_
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_SINK_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -214,9 +212,7 @@ pa_operation* pa_context_get_sink_info_by_name(pa_context *c, const char *name, 
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_SINK_INFO, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -296,9 +292,7 @@ pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t idx, p
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
     
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_SOURCE_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_SOURCE_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -321,9 +315,7 @@ pa_operation* pa_context_get_source_info_by_name(pa_context *c, const char *name
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_SOURCE_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_SOURCE_INFO, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -392,9 +384,7 @@ pa_operation* pa_context_get_client_info(pa_context *c, uint32_t idx, pa_client_
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_CLIENT_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_CLIENT_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_client_info_callback, pa_operation_ref(o));
@@ -467,9 +457,7 @@ pa_operation* pa_context_get_module_info(pa_context *c, uint32_t idx, pa_module_
     
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_MODULE_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_MODULE_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_module_info_callback, pa_operation_ref(o));
@@ -550,9 +538,7 @@ pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, pa_sin
     
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INPUT_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_SINK_INPUT_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_input_info_callback, pa_operation_ref(o));
@@ -632,9 +618,7 @@ pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, pa_
     
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_SOURCE_OUTPUT_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_SOURCE_OUTPUT_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_output_info_callback, pa_operation_ref(o));
@@ -662,9 +646,7 @@ pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, c
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_VOLUME);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SINK_VOLUME, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
     pa_tagstruct_put_cvolume(t, volume);
@@ -690,9 +672,7 @@ pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name
     
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_VOLUME);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SINK_VOLUME, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
     pa_tagstruct_put_cvolume(t, volume);
@@ -717,9 +697,7 @@ pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, cons
     
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_SET_SINK_INPUT_VOLUME);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SINK_INPUT_VOLUME, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_put_cvolume(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -742,9 +720,7 @@ pa_operation* pa_context_set_source_volume_by_index(pa_context *c, uint32_t idx,
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_SET_SOURCE_VOLUME);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SOURCE_VOLUME, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
     pa_tagstruct_put_cvolume(t, volume);
@@ -770,9 +746,7 @@ pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *na
     
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_SET_SOURCE_VOLUME);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_SOURCE_VOLUME, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
     pa_tagstruct_put_cvolume(t, volume);
@@ -848,9 +822,7 @@ pa_operation* pa_context_get_sample_info_by_name(pa_context *c, const char *name
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_SAMPLE_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_SAMPLE_INFO, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -873,9 +845,7 @@ pa_operation* pa_context_get_sample_info_by_index(pa_context *c, uint32_t idx, p
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_SAMPLE_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_SAMPLE_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -901,9 +871,7 @@ static pa_operation* command_kill(pa_context *c, uint32_t command, uint32_t idx,
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, command);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, command, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
@@ -967,9 +935,7 @@ pa_operation* pa_context_load_module(pa_context *c, const char*name, const char 
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_LOAD_MODULE);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_LOAD_MODULE, &tag);
     pa_tagstruct_puts(t, name);
     pa_tagstruct_puts(t, argument);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -1044,9 +1010,7 @@ pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *na
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_AUTOLOAD_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_AUTOLOAD_INFO, &tag);
     pa_tagstruct_puts(t, name);
     pa_tagstruct_putu32(t, type);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -1069,9 +1033,7 @@ pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx,
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_GET_AUTOLOAD_INFO);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_GET_AUTOLOAD_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_autoload_info_callback, pa_operation_ref(o));
@@ -1098,9 +1060,7 @@ pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autolo
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_ADD_AUTOLOAD);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_ADD_AUTOLOAD, &tag);
     pa_tagstruct_puts(t, name);
     pa_tagstruct_putu32(t, type);
     pa_tagstruct_puts(t, module);
@@ -1125,9 +1085,7 @@ pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_REMOVE_AUTOLOAD);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_AUTOLOAD, &tag);
     pa_tagstruct_puts(t, name);
     pa_tagstruct_putu32(t, type);
     pa_pstream_send_tagstruct(c->pstream, t);
@@ -1149,9 +1107,7 @@ pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, p
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_REMOVE_AUTOLOAD);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_AUTOLOAD, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));

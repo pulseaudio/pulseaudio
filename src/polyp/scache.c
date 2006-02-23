@@ -47,9 +47,7 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     
     s->direction = PA_STREAM_UPLOAD;
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_CREATE_UPLOAD_STREAM);
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    t = pa_tagstruct_command(s->context, PA_COMMAND_CREATE_UPLOAD_STREAM, &tag);
     pa_tagstruct_puts(t, s->name);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_putu32(t, length);
@@ -72,9 +70,7 @@ int pa_stream_finish_upload(pa_stream *s) {
 
     pa_stream_ref(s);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_FINISH_UPLOAD_STREAM);
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    t = pa_tagstruct_command(s->context, PA_COMMAND_FINISH_UPLOAD_STREAM, &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_disconnect_callback, s);
@@ -100,9 +96,7 @@ pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char
     if (!dev)
         dev = c->conf->default_sink;
     
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_PLAY_SAMPLE);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_PLAY_SAMPLE, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, dev);
     pa_tagstruct_putu32(t, volume);
@@ -126,9 +120,7 @@ pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_conte
     
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
     
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_REMOVE_SAMPLE);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_SAMPLE, &tag);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));

@@ -409,15 +409,16 @@ static int create_stream(
         s->buffer_attr.fragsize = s->buffer_attr.tlength/100;
     }
 
-    t = pa_tagstruct_new(NULL, 0);
-
     if (!dev)
         dev = s->direction == PA_STREAM_PLAYBACK ? s->context->conf->default_sink : s->context->conf->default_source;
+
+    t = pa_tagstruct_command(
+            s->context,
+            s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM,
+            &tag);
     
     pa_tagstruct_put(
             t,
-            PA_TAG_U32, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM,
-            PA_TAG_U32, tag = s->context->ctag++,
             PA_TAG_STRING, s->name,
             PA_TAG_SAMPLE_SPEC, &s->sample_spec,
             PA_TAG_CHANNEL_MAP, &s->channel_map,
@@ -599,9 +600,7 @@ pa_operation * pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *us
 
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_DRAIN_PLAYBACK_STREAM);
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    t = pa_tagstruct_command(s->context, PA_COMMAND_DRAIN_PLAYBACK_STREAM, &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, o);
@@ -689,9 +688,10 @@ pa_operation* pa_stream_get_latency_info(pa_stream *s, pa_stream_get_latency_inf
     
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_GET_PLAYBACK_LATENCY : PA_COMMAND_GET_RECORD_LATENCY);
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    t = pa_tagstruct_command(
+            s->context,
+            s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_GET_PLAYBACK_LATENCY : PA_COMMAND_GET_RECORD_LATENCY,
+            &tag);
     pa_tagstruct_putu32(t, s->channel);
 
     pa_gettimeofday(&now);
@@ -742,11 +742,11 @@ int pa_stream_disconnect(pa_stream *s) {
 
     pa_stream_ref(s);
 
-    t = pa_tagstruct_new(NULL, 0);
-    
-    pa_tagstruct_putu32(t, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_DELETE_PLAYBACK_STREAM :
-                        (s->direction == PA_STREAM_RECORD ? PA_COMMAND_DELETE_RECORD_STREAM : PA_COMMAND_DELETE_UPLOAD_STREAM));
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    t = pa_tagstruct_command(
+            s->context,
+            s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_DELETE_PLAYBACK_STREAM :
+            (s->direction == PA_STREAM_RECORD ? PA_COMMAND_DELETE_RECORD_STREAM : PA_COMMAND_DELETE_UPLOAD_STREAM),
+            &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_disconnect_callback, s);
@@ -848,9 +848,10 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CORK_PLAYBACK_STREAM : PA_COMMAND_CORK_RECORD_STREAM);
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    t = pa_tagstruct_command(
+            s->context,
+            s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CORK_PLAYBACK_STREAM : PA_COMMAND_CORK_RECORD_STREAM,
+            &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_tagstruct_put_boolean(t, !!b);
     pa_pstream_send_tagstruct(s->context->pstream, t);
@@ -873,9 +874,7 @@ static pa_operation* stream_send_simple_command(pa_stream *s, uint32_t command, 
     
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, command);
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    t = pa_tagstruct_command(s->context, command, &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, o);
@@ -930,9 +929,10 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
 
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, s->direction == PA_STREAM_RECORD ? PA_COMMAND_SET_RECORD_STREAM_NAME : PA_COMMAND_SET_PLAYBACK_STREAM_NAME);
-    pa_tagstruct_putu32(t, tag = s->context->ctag++);
+    t = pa_tagstruct_command(
+            s->context,
+            s->direction == PA_STREAM_RECORD ? PA_COMMAND_SET_RECORD_STREAM_NAME : PA_COMMAND_SET_PLAYBACK_STREAM_NAME,
+            &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(s->context->pstream, t);

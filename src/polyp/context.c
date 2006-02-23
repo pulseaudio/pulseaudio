@@ -354,9 +354,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     switch(c->state) {
         case PA_CONTEXT_AUTHORIZING: {
             pa_tagstruct *reply;
-            reply = pa_tagstruct_new(NULL, 0);
-            pa_tagstruct_putu32(reply, PA_COMMAND_SET_CLIENT_NAME);
-            pa_tagstruct_putu32(reply, tag = c->ctag++);
+            reply = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
             pa_tagstruct_puts(reply, c->name);
             pa_pstream_send_tagstruct(c->pstream, reply);
             pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c);
@@ -401,9 +399,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
         goto finish;
     }
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
     pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c);
@@ -827,10 +823,8 @@ pa_operation* pa_context_exit_daemon(pa_context *c, pa_context_success_cb_t cb, 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
-    
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_EXIT);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_EXIT, &tag);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
 
@@ -849,9 +843,7 @@ pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, pa
     
     o = pa_operation_new(c, NULL, cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, command);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, command, &tag);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, internal_cb, pa_operation_ref(o));
 
@@ -870,9 +862,7 @@ pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_co
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_SET_DEFAULT_SINK);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_DEFAULT_SINK, &tag);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o));
@@ -892,9 +882,7 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
     
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_SET_DEFAULT_SOURCE);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_DEFAULT_SOURCE, &tag);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o));
@@ -921,9 +909,7 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
     
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
-    t = pa_tagstruct_new(NULL, 0);
-    pa_tagstruct_putu32(t, PA_COMMAND_SET_CLIENT_NAME);
-    pa_tagstruct_putu32(t, tag = c->ctag++);
+    t = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o));
@@ -948,4 +934,17 @@ const char* pa_context_get_server(pa_context *c) {
     }
     
     return c->server;
+}
+
+pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *tag) {
+    pa_tagstruct *t;
+
+    assert(c);
+    assert(tag);
+    
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, command);
+    pa_tagstruct_putu32(t, *tag = c->ctag++);
+
+    return t;
 }
