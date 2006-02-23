@@ -339,18 +339,18 @@ pa_socket_server* pa_socket_server_new_ip_any(pa_mainloop_api *m, uint16_t port,
 }
 
 pa_socket_server* pa_socket_server_new_ip_string(pa_mainloop_api *m, const char *name, uint16_t port, const char *tcpwrap_service) {
-    uint8_t ipv6[16];
-    uint32_t ipv4;
+    struct in6_addr ipv6;
+    struct in_addr ipv4;
     
     assert(m);
     assert(name);
     assert(port > 0);
 
-    if (inet_pton(AF_INET6, name, ipv6) > 0)
-        return pa_socket_server_new_ipv6(m, ipv6, port, tcpwrap_service);
+    if (inet_pton(AF_INET6, name, &ipv6) > 0)
+        return pa_socket_server_new_ipv6(m, ipv6.s6_addr, port, tcpwrap_service);
 
     if (inet_pton(AF_INET, name, &ipv4) > 0)
-        return pa_socket_server_new_ipv4(m, ntohl(ipv4), port, tcpwrap_service);
+        return pa_socket_server_new_ipv4(m, ntohl(ipv4.s_addr), port, tcpwrap_service);
 
     pa_log_warn(__FILE__": failed to parse '%s'.", name);
 
