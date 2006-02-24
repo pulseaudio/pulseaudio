@@ -23,8 +23,6 @@
 ***/
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 
 #include <polyp/mainloop-api.h>
 
@@ -51,13 +49,13 @@ void pa_iochannel_free(pa_iochannel*io);
 ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l);
 ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l);
 
-#ifdef SCM_CREDENTIALS
 int pa_iochannel_creds_supported(pa_iochannel *io);
 int pa_iochannel_creds_enable(pa_iochannel *io);
 
+struct ucred;
+
 ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l);
 ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struct ucred *ucred, int *creds_valid);
-#endif
 
 int pa_iochannel_is_readable(pa_iochannel*io);
 int pa_iochannel_is_writable(pa_iochannel*io);

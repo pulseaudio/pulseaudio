@@ -29,6 +29,13 @@
 #include <unistd.h>
 #include <errno.h>
 
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
+
 #include "winsock.h"
 
 #include <polypcore/util.h>
@@ -370,7 +377,27 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struc
     
     return r;
 }
-#endif
+#else /* SCM_CREDENTIALS */
+
+int pa_iochannel_creds_supported(pa_iochannel *io) {
+    return 0;
+}
+
+int pa_iochannel_creds_enable(pa_iochannel *io) {
+    return -1;
+}
+
+ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l) {
+    pa_log_error("pa_iochannel_write_with_creds() not supported.");
+    return -1;
+}
+
+ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struct ucred *ucred, int *creds_valid) {
+    pa_log_error("pa_iochannel_read_with_creds() not supported.");
+    return -1;
+}
+
+#endif /* SCM_CREDENTIALS */
 
 void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_cb_t _callback, void *userdata) {
     assert(io);
