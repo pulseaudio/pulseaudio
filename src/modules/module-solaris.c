@@ -292,6 +292,35 @@ static int sink_set_hw_volume_cb(pa_sink *s) {
     return 0;
 }
 
+static int sink_get_hw_mute_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    audio_info_t info;
+    int err;
+
+    err = ioctl(u->fd, AUDIO_GETINFO, &info);
+    assert(err >= 0);
+
+    s->hw_muted = !!info.output_muted;
+
+    return 0;
+}
+
+static int sink_set_hw_mute_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    audio_info_t info;
+
+    AUDIO_INITINFO(&info);
+
+    info.output_muted = !!s->hw_muted;
+
+    if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
+        pa_log(__FILE__": AUDIO_SETINFO: %s", strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
 static int source_get_hw_volume_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     audio_info_t info;
@@ -483,6 +512,8 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->get_latency = sink_get_latency_cb;
         u->sink->get_hw_volume = sink_get_hw_volume_cb;
         u->sink->set_hw_volume = sink_set_hw_volume_cb;
+        u->sink->get_hw_mute = sink_get_hw_mute_cb;
+        u->sink->set_hw_mute = sink_set_hw_mute_cb;
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
         u->sink->description = pa_sprintf_malloc("Solaris PCM on '%s'", p);
@@ -521,8 +552,10 @@ int pa__init(pa_core *c, pa_module*m) {
     /* Read mixer settings */
     if (u->source)
         sink_get_hw_volume_cb(u->source);
-    if (u->sink)
+    if (u->sink) {
         sink_get_hw_volume_cb(u->sink);
+        sink_get_hw_mute_cb(u->sink);
+    }
 
     return 0;
 
