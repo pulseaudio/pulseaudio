@@ -260,6 +260,13 @@ static int format_native2esd(pa_sample_spec *ss) {
     return format;
 }
 
+#define CHECK_VALIDITY(expression, string) do { \
+    if (!(expression)) { \
+        pa_log_warn(__FILE__ ": " string); \
+        return -1; \
+    } \
+} while(0);
+
 /*** esound commands ***/
 
 static int esd_proto_connect(struct connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
@@ -310,16 +317,10 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
 
-    if (!pa_sample_spec_valid(&ss)) {
-        pa_log(__FILE__": invalid sample specification");
-        return -1;
-    }
+    CHECK_VALIDITY(pa_sample_spec_valid(&ss), "Invalid sample specification");
+    sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1);
+    CHECK_VALIDITY(sink, "No such sink");
 
-    if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1))) {
-        pa_log(__FILE__": no such sink");
-        return -1;
-    }
-    
     strncpy(name, (const char*) data + sizeof(int)*2, sizeof(name));
     name[sizeof(name)-1] = 0;
 
@@ -327,10 +328,9 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
 
     assert(!c->sink_input && !c->input_memblockq);
 
-    if (!(c->sink_input = pa_sink_input_new(sink, __FILE__, name, &ss, NULL, 0, -1))) {
-        pa_log(__FILE__": failed to create sink input.");
-        return -1;
-    }
+    c->sink_input = pa_sink_input_new(sink, __FILE__, name, &ss, NULL, 0, -1);
+
+    CHECK_VALIDITY(c->sink_input, "Failed to create sink input.");
 
     l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS); 
     c->input_memblockq = pa_memblockq_new(
@@ -374,10 +374,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
 
-    if (!pa_sample_spec_valid(&ss)) {
-        pa_log(__FILE__": invalid sample specification.");
-        return -1;
-    }
+    CHECK_VALIDITY(pa_sample_spec_valid(&ss), "Invalid sample specification.");
 
     if (request == ESD_PROTO_STREAM_MON) {
         pa_sink* sink;
@@ -631,10 +628,11 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
 
+    CHECK_VALIDITY(pa_sample_spec_valid(&ss), "Invalid sample specification.");
+    
     sc_length = (size_t) MAYBE_INT32_SWAP(c->swap_byte_order, (*((const int*)data + 2)));
 
-    if (sc_length >= MAX_CACHE_SAMPLE_SIZE)
-        return -1;
+    CHECK_VALIDITY(sc_length <= MAX_CACHE_SAMPLE_SIZE, "Sample too large.");
 
     strcpy(name, SCACHE_PREFIX);
     strncpy(name+sizeof(SCACHE_PREFIX)-1, (const char*) data+3*sizeof(int), ESD_NAME_MAX);
@@ -792,7 +790,7 @@ static int do_read(struct connection *c) {
             return -1;
         }
 
-        if ((c->read_data_length+= r) >= handler->data_length) {
+        if ((c->read_data_length += r) >= handler->data_length) {
             size_t l = c->read_data_length;
             assert(handler->proc);
 
@@ -1077,7 +1075,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
         return;
     }
     
-    c = pa_xmalloc(sizeof(struct connection));
+    c = pa_xnew(struct connection, 1);
     c->protocol = p;
     c->io = io;
     pa_iochannel_set_callback(c->io, io_callback, c);
@@ -1139,7 +1137,7 @@ pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *serve
     int public = 0;
     assert(core && server && ma);
 
-    p = pa_xmalloc(sizeof(pa_protocol_esound));
+    p = pa_xnew(pa_protocol_esound, 1);
 
     if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {
         pa_log(__FILE__": public= expects a boolean argument.");
