@@ -18,6 +18,8 @@
 
 #ifdef HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
+static const struct in6_addr in6addr_any = {{ IN6ADDR_ANY_INIT }};
+static const struct in6_addr in6addr_loopback = {{ IN6ADDR_LOOPBACK_INIT }};
 #endif
 
 #endif
