@@ -27,7 +27,9 @@
 #include <polypcore/tagstruct.h>
 
 /* The tagstruct is freed!*/
-void pa_pstream_send_tagstruct(pa_pstream *p, pa_tagstruct *t);
+void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, int creds);
+
+#define pa_pstream_send_tagstruct(p, t) pa_pstream_send_tagstruct_with_creds((p), (t), 0)
 
 void pa_pstream_send_error(pa_pstream *p, uint32_t tag, uint32_t error);
 void pa_pstream_send_simple_ack(pa_pstream *p, uint32_t tag);

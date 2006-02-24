@@ -36,7 +36,7 @@
 void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
     pa_subscription_event_type_t e;
-    uint32_t index;
+    uint32_t idx;
 
     assert(pd);
     assert(command == PA_COMMAND_SUBSCRIBE_EVENT);
@@ -46,14 +46,14 @@ void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSE
     pa_context_ref(c);
 
     if (pa_tagstruct_getu32(t, &e) < 0 ||
-        pa_tagstruct_getu32(t, &index) < 0 ||
+        pa_tagstruct_getu32(t, &idx) < 0 ||
         !pa_tagstruct_eof(t)) {
         pa_context_fail(c, PA_ERR_PROTOCOL);
         goto finish;
     }
 
     if (c->subscribe_callback)
-        c->subscribe_callback(c, e, index, c->subscribe_userdata);
+        c->subscribe_callback(c, e, idx, c->subscribe_userdata);
 
 finish:
     pa_context_unref(c);

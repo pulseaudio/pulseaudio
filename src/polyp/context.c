@@ -267,7 +267,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_context_fail(c, PA_ERR_CONNECTIONTERMINATED);
 }
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const void *creds, void *userdata) {
     pa_context *c = userdata;
     
     assert(p);
@@ -276,7 +276,7 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *user
 
     pa_context_ref(c);
     
-    if (pa_pdispatch_run(c->pdispatch, packet, c) < 0)
+    if (pa_pdispatch_run(c->pdispatch, packet, creds, c) < 0)
         pa_context_fail(c, PA_ERR_PROTOCOL);
 
     pa_context_unref(c);
@@ -401,7 +401,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
 
     t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
     pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
-    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pstream_send_tagstruct_with_creds(c->pstream, t, 1);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c);
 
     pa_context_set_state(c, PA_CONTEXT_AUTHORIZING);

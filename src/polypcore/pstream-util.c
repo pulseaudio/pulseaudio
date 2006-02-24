@@ -29,7 +29,7 @@
 
 #include "pstream-util.h"
 
-void pa_pstream_send_tagstruct(pa_pstream *p, pa_tagstruct *t) {
+void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, int creds) {
     size_t length;
     uint8_t *data;
     pa_packet *packet;
@@ -40,7 +40,7 @@ void pa_pstream_send_tagstruct(pa_pstream *p, pa_tagstruct *t) {
     assert(data && length);
     packet = pa_packet_new_dynamic(data, length);
     assert(packet);
-    pa_pstream_send_packet(p, packet);
+    pa_pstream_send_packet(p, packet, creds);
     pa_packet_unref(packet);
 }
 

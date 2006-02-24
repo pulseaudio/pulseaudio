@@ -65,6 +65,9 @@ struct item_info {
 
     /* packet info */
     pa_packet *packet;
+#ifdef SCM_CREDENTIALS
+    int with_creds;
+#endif
 };
 
 struct pa_pstream {
@@ -76,8 +79,6 @@ struct pa_pstream {
     pa_queue *send_queue;
 
     int dead;
-    void (*die_callback) (pa_pstream *p, void *userdata);
-    void *die_callback_userdata;
 
     struct {
         struct item_info* current;
@@ -94,16 +95,25 @@ struct pa_pstream {
         size_t index;
     } read;
 
-    void (*recieve_packet_callback) (pa_pstream *p, pa_packet *packet, void *userdata);
+    pa_pstream_packet_cb_t recieve_packet_callback;
     void *recieve_packet_callback_userdata;
 
-    void (*recieve_memblock_callback) (pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata);
+    pa_pstream_memblock_cb_t recieve_memblock_callback;
     void *recieve_memblock_callback_userdata;
 
-    void (*drain_callback)(pa_pstream *p, void *userdata);
-    void *drain_userdata;
+    pa_pstream_notify_cb_t drain_callback;
+    void *drain_callback_userdata;
+
+    pa_pstream_notify_cb_t die_callback;
+    void *die_callback_userdata;
 
     pa_memblock_stat *memblock_stat;
+
+#ifdef SCM_CREDENTIALS
+    int send_creds_now;
+    struct ucred ucred;
+    int creds_valid;
+#endif
 };
 
 static int do_write(pa_pstream *p);
@@ -170,8 +180,6 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_memblock_sta
     pa_iochannel_set_callback(io, io_callback, p);
 
     p->dead = 0;
-    p->die_callback = NULL;
-    p->die_callback_userdata = NULL;
 
     p->mainloop = m;
     p->defer_event = m->defer_new(m, defer_callback, p);
@@ -194,13 +202,20 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_memblock_sta
     p->recieve_memblock_callback_userdata = NULL;
 
     p->drain_callback = NULL;
-    p->drain_userdata = NULL;
+    p->drain_callback_userdata = NULL;
+
+    p->die_callback = NULL;
+    p->die_callback_userdata = NULL;
 
     p->memblock_stat = s;
 
     pa_iochannel_socket_set_rcvbuf(io, 1024*8); 
-    pa_iochannel_socket_set_sndbuf(io, 1024*8); 
+    pa_iochannel_socket_set_sndbuf(io, 1024*8);
 
+#ifdef SCM_CREDENTIALS
+    p->send_creds_now = 0;
+    p->creds_valid = 0;
+#endif
     return p;
 }
 
@@ -239,7 +254,7 @@ static void pstream_free(pa_pstream *p) {
     pa_xfree(p);
 }
 
-void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet) {
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, int with_creds) {
     struct item_info *i;
     assert(p && packet && p->ref >= 1);
 
@@ -251,6 +266,9 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet) {
     i = pa_xnew(struct item_info, 1);
     i->type = PA_PSTREAM_ITEM_PACKET;
     i->packet = pa_packet_ref(packet);
+#ifdef SCM_CREDENTIALS
+    i->with_creds = with_creds;
+#endif
 
     pa_queue_push(p->send_queue, i);
     p->mainloop->defer_enable(p->defer_event, 1);
@@ -278,20 +296,6 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
-void pa_pstream_set_recieve_packet_callback(pa_pstream *p, void (*callback) (pa_pstream *p, pa_packet *packet, void *userdata), void *userdata) {
-    assert(p && callback);
-
-    p->recieve_packet_callback = callback;
-    p->recieve_packet_callback_userdata = userdata;
-}
-
-void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, void (*callback) (pa_pstream *p, uint32_t channel, int64_t delta, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata), void *userdata) {
-    assert(p && callback);
-
-    p->recieve_memblock_callback = callback;
-    p->recieve_memblock_callback_userdata = userdata;
-}
-
 static void prepare_next_write_item(pa_pstream *p) {
     assert(p);
 
@@ -310,6 +314,11 @@ static void prepare_next_write_item(pa_pstream *p) {
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI] = 0;
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO] = 0;
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK] = 0;
+
+#ifdef SCM_CREDENTIALS
+        p->send_creds_now = 1;
+#endif
+        
     } else {
         assert(p->write.current->type == PA_PSTREAM_ITEM_MEMBLOCK && p->write.current->chunk.memblock);
         p->write.data = (uint8_t*) p->write.current->chunk.memblock->data + p->write.current->chunk.index;
@@ -318,6 +327,10 @@ static void prepare_next_write_item(pa_pstream *p) {
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI] = htonl((uint32_t) (((uint64_t) p->write.current->offset) >> 32));
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO] = htonl((uint32_t) ((uint64_t) p->write.current->offset));
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK] = htonl(p->write.current->seek_mode);
+
+#ifdef SCM_CREDENTIALS
+        p->send_creds_now = 1;
+#endif
     }
 }
 
@@ -343,6 +356,16 @@ static int do_write(pa_pstream *p) {
         l = ntohl(p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) - (p->write.index - PA_PSTREAM_DESCRIPTOR_SIZE);
     }
 
+#ifdef SCM_CREDENTIALS
+    if (p->send_creds_now) {
+
+        if ((r = pa_iochannel_write_with_creds(p->io, d, l)) < 0)
+            return -1;
+
+        p->send_creds_now = 0;
+    } else
+#endif
+
     if ((r = pa_iochannel_write(p->io, d, l)) < 0)
         return -1;
 
@@ -354,7 +377,7 @@ static int do_write(pa_pstream *p) {
         p->write.current = NULL;
 
         if (p->drain_callback && !pa_pstream_is_pending(p))
-            p->drain_callback(p, p->drain_userdata);
+            p->drain_callback(p, p->drain_callback_userdata);
     }
 
     return 0;
@@ -375,8 +398,19 @@ static int do_read(pa_pstream *p) {
         l = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) - (p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE);
     }
 
+#ifdef SCM_CREDENTIALS
+    {
+        int b;
+        
+        if ((r = pa_iochannel_read_with_creds(p->io, d, l, &p->ucred, &b)) <= 0)
+            return -1;
+
+        p->creds_valid = p->creds_valid || b;
+    }
+#else
     if ((r = pa_iochannel_read(p->io, d, l)) <= 0)
         return -1;
+#endif
     
     p->read.index += r;
 
@@ -453,23 +487,57 @@ static int do_read(pa_pstream *p) {
                 assert(p->read.packet);
                 
                 if (p->recieve_packet_callback)
-                    p->recieve_packet_callback(p, p->read.packet, p->recieve_packet_callback_userdata);
+#ifdef SCM_CREDENTIALS                    
+                    p->recieve_packet_callback(p, p->read.packet, p->creds_valid ? &p->ucred : NULL, p->recieve_packet_callback_userdata);
+#else
+                    p->recieve_packet_callback(p, p->read.packet, NULL, p->recieve_packet_callback_userdata);
+#endif
 
                 pa_packet_unref(p->read.packet);
                 p->read.packet = NULL;
             }
 
             p->read.index = 0;
+#ifdef SCM_CREDENTIALS
+            p->creds_valid = 0;
+#endif
         }
     }
 
     return 0;   
 }
 
-void pa_pstream_set_die_callback(pa_pstream *p, void (*callback)(pa_pstream *p, void *userdata), void *userdata) {
-    assert(p && callback);
-    p->die_callback = callback;
+void pa_pstream_set_die_callback(pa_pstream *p, pa_pstream_notify_cb_t cb, void *userdata) {
+    assert(p);
+    assert(p->ref >= 1);
+
+    p->die_callback = cb;
     p->die_callback_userdata = userdata;
+}
+
+
+void pa_pstream_set_drain_callback(pa_pstream *p, pa_pstream_notify_cb_t cb, void *userdata) {
+    assert(p);
+    assert(p->ref >= 1);
+
+    p->drain_callback = cb;
+    p->drain_callback_userdata = userdata;
+}
+
+void pa_pstream_set_recieve_packet_callback(pa_pstream *p, pa_pstream_packet_cb_t cb, void *userdata) {
+    assert(p);
+    assert(p->ref >= 1);
+
+    p->recieve_packet_callback = cb;
+    p->recieve_packet_callback_userdata = userdata;
+}
+
+void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, pa_pstream_memblock_cb_t cb, void *userdata) {
+    assert(p);
+    assert(p->ref >= 1);
+
+    p->recieve_memblock_callback = cb;
+    p->recieve_memblock_callback_userdata = userdata;
 }
 
 int pa_pstream_is_pending(pa_pstream *p) {
@@ -479,14 +547,6 @@ int pa_pstream_is_pending(pa_pstream *p) {
         return 0;
 
     return p->write.current || !pa_queue_is_empty(p->send_queue);
-}
-
-void pa_pstream_set_drain_callback(pa_pstream *p, void (*cb)(pa_pstream *p, void *userdata), void *userdata) {
-    assert(p);
-    assert(p->ref >= 1);
-
-    p->drain_callback = cb;
-    p->drain_userdata = userdata;
 }
 
 void pa_pstream_unref(pa_pstream*p) {

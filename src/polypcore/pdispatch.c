@@ -109,6 +109,7 @@ struct pa_pdispatch {
     PA_LLIST_HEAD(struct reply_info, replies);
     pa_pdispatch_drain_callback drain_callback;
     void *drain_userdata;
+    const void *creds;
 };
 
 static void reply_info_free(struct reply_info *r) {
@@ -136,7 +137,8 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_
     PA_LLIST_HEAD_INIT(pa_reply_info, pd->replies);
     pd->drain_callback = NULL;
     pd->drain_userdata = NULL;
-
+    pd->creds = NULL;
+    
     return pd;
 }
 
@@ -171,7 +173,7 @@ static void run_action(pa_pdispatch *pd, struct reply_info *r, uint32_t command,
     pa_pdispatch_unref(pd);
 }
 
-int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, void *userdata) {
+int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const void *creds, void *userdata) {
     uint32_t tag, command;
     pa_tagstruct *ts = NULL;
     int ret = -1;
@@ -188,17 +190,19 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, void *userdata) {
     if (pa_tagstruct_getu32(ts, &command) < 0 ||
         pa_tagstruct_getu32(ts, &tag) < 0)
         goto finish;
-
+    
 #ifdef DEBUG_OPCODES
 {
     char t[256];
     char const *p;
     if (!(p = command_names[command]))
         snprintf((char*) (p = t), sizeof(t), "%u", command);
-        
+    
     pa_log(__FILE__": Recieved opcode <%s>", p);
 }
 #endif
+
+    pd->creds = creds;
 
     if (command == PA_COMMAND_ERROR || command == PA_COMMAND_REPLY) {
         struct reply_info *r;
@@ -222,6 +226,8 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, void *userdata) {
     ret = 0;
         
 finish:
+    pd->creds = NULL;
+    
     if (ts)
         pa_tagstruct_free(ts);
 
@@ -294,4 +300,11 @@ pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd) {
     assert(pd && pd->ref >= 1);
     pd->ref++;
     return pd;
+}
+
+const void * pa_pdispatch_creds(pa_pdispatch *pd) {
+    assert(pd);
+    assert(pd->ref >= 1);
+    
+    return pd->creds;
 }

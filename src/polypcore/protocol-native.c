@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <polypcore/native-common.h>
 #include <polypcore/packet.h>
@@ -357,7 +358,7 @@ static struct playback_stream* playback_stream_new(
     pa_cvolume *volume,
     uint32_t syncid) {
     
-    struct playback_stream *s, *sync;
+    struct playback_stream *s, *ssync;
     pa_sink_input *sink_input;
     pa_memblock *silence;
     uint32_t idx;
@@ -366,17 +367,17 @@ static struct playback_stream* playback_stream_new(
     assert(c && sink && ss && name && maxlength);
 
     /* Find syncid group */
-    for (sync = pa_idxset_first(c->output_streams, &idx); sync; sync = pa_idxset_next(c->output_streams, &idx)) {
+    for (ssync = pa_idxset_first(c->output_streams, &idx); ssync; ssync = pa_idxset_next(c->output_streams, &idx)) {
         
-        if (sync->type != PLAYBACK_STREAM)
+        if (ssync->type != PLAYBACK_STREAM)
             continue;
 
-        if (sync->syncid == syncid)
+        if (ssync->syncid == syncid)
             break;
     }
 
     /* Synced streams must connect to the same sink */
-    if (sync && sync->sink_input->sink != sink)
+    if (ssync && ssync->sink_input->sink != sink)
         return NULL;
     
     if (!(sink_input = pa_sink_input_new(sink, __FILE__, name, ss, map, 0, -1)))
@@ -397,16 +398,16 @@ static struct playback_stream* playback_stream_new(
     s->sink_input->owner = c->protocol->module;
     s->sink_input->client = c->client;
 
-    if (sync) {
+    if (ssync) {
         /* Sync id found, now find head of list */
-        PA_LLIST_FIND_HEAD(struct playback_stream, sync, &sync);
+        PA_LLIST_FIND_HEAD(struct playback_stream, ssync, &ssync);
 
         /* Prepend ourselves */
-        PA_LLIST_PREPEND(struct playback_stream, sync, s);
+        PA_LLIST_PREPEND(struct playback_stream, ssync, s);
 
         /* Set our start index to the current read index of the other grozp member(s) */
-        assert(sync->next);
-        start_index = pa_memblockq_get_read_index(sync->next->memblockq);
+        assert(ssync->next);
+        start_index = pa_memblockq_get_read_index(ssync->next->memblockq);
     } else {
         /* This ia a new sync group */
         PA_LLIST_INIT(struct playback_stream, s);
@@ -871,8 +872,29 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
     }
 
     if (!c->authorized) {
-        if (memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) != 0) {
-            pa_log(__FILE__": Denied access to client with invalid authorization key.");
+        int success = 0;
+        
+#ifdef SCM_CREDENTIALS
+        const struct ucred *ucred = pa_pdispatch_creds(pd);
+
+        if (ucred) {
+            if (ucred->uid == getuid()) 
+                success = 1;
+                
+            pa_log_info(__FILE__": Got credentials: pid=%lu uid=%lu gid=%lu auth=%i",
+                        (unsigned long) ucred->pid,
+                        (unsigned long) ucred->uid,
+                        (unsigned long) ucred->gid,
+                        success);
+
+        }
+#endif
+
+        if (memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) == 0)
+            success = 1;
+
+        if (!success) {
+            pa_log_warn(__FILE__": Denied access to client with invalid authorization data.");
             pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
             return;
         }
@@ -1589,7 +1611,7 @@ static void command_cork_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     struct connection *c = userdata;
     uint32_t idx;
     int b;
-    struct playback_stream *s, *sync;
+    struct playback_stream *s, *ssync;
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
@@ -1609,14 +1631,14 @@ static void command_cork_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_memblockq_prebuf_force(s->memblockq);
 
     /* Do the same for all other members in the sync group */
-    for (sync = s->prev; sync; sync = sync->prev) {
-        pa_sink_input_cork(sync->sink_input, b);
-        pa_memblockq_prebuf_force(sync->memblockq);
+    for (ssync = s->prev; ssync; ssync = ssync->prev) {
+        pa_sink_input_cork(ssync->sink_input, b);
+        pa_memblockq_prebuf_force(ssync->memblockq);
     }
 
-    for (sync = s->next; sync; sync = sync->next) {
-        pa_sink_input_cork(sync->sink_input, b);
-        pa_memblockq_prebuf_force(sync->memblockq);
+    for (ssync = s->next; ssync; ssync = ssync->next) {
+        pa_sink_input_cork(ssync->sink_input, b);
+        pa_memblockq_prebuf_force(ssync->memblockq);
     }
     
     pa_pstream_send_simple_ack(c->pstream, tag);
@@ -1625,7 +1647,7 @@ static void command_cork_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
 static void command_flush_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     uint32_t idx;
-    struct playback_stream *s, *sync;
+    struct playback_stream *s, *ssync;
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
@@ -1644,25 +1666,25 @@ static void command_flush_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC
     s->underrun = 0;
     
     /* Do the same for all other members in the sync group */
-    for (sync = s->prev; sync; sync = sync->prev) {
-        pa_memblockq_flush(sync->memblockq);
-        sync->underrun = 0;
+    for (ssync = s->prev; ssync; ssync = ssync->prev) {
+        pa_memblockq_flush(ssync->memblockq);
+        ssync->underrun = 0;
     }
 
-    for (sync = s->next; sync; sync = sync->next) {
-        pa_memblockq_flush(sync->memblockq);
-        sync->underrun = 0;
+    for (ssync = s->next; ssync; ssync = ssync->next) {
+        pa_memblockq_flush(ssync->memblockq);
+        ssync->underrun = 0;
     }
     
     pa_pstream_send_simple_ack(c->pstream, tag);
     pa_sink_notify(s->sink_input->sink);
     request_bytes(s);
     
-    for (sync = s->prev; sync; sync = sync->prev)
-        request_bytes(sync);
+    for (ssync = s->prev; ssync; ssync = ssync->prev)
+        request_bytes(ssync);
 
-    for (sync = s->next; sync; sync = sync->next)
-        request_bytes(sync);
+    for (ssync = s->next; ssync; ssync = ssync->next)
+        request_bytes(ssync);
 }
 
 static void command_trigger_or_prebuf_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -2017,11 +2039,11 @@ static void command_get_autoload_info_list(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
 
 /*** pstream callbacks ***/
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const void *creds, void *userdata) {
     struct connection *c = userdata;
     assert(p && packet && packet->data && c);
 
-    if (pa_pdispatch_run(c->pdispatch, packet, c) < 0) {
+    if (pa_pdispatch_run(c->pdispatch, packet, creds, c) < 0) {
         pa_log(__FILE__": invalid packet.");
         connection_free(c);
     }
@@ -2183,6 +2205,13 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     c->subscription = NULL;
 
     pa_idxset_put(p->connections, c, NULL);
+
+
+#ifdef SCM_CREDENTIALS
+    if (pa_iochannel_creds_supported(io))
+        pa_iochannel_creds_enable(io);
+    
+#endif
 }
 
 /*** module entry points ***/

@@ -431,11 +431,11 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
 }
 
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const void*creds, void *userdata) {
     struct userdata *u = userdata;
     assert(p && packet && u);
 
-    if (pa_pdispatch_run(u->pdispatch, packet, u) < 0) {
+    if (pa_pdispatch_run(u->pdispatch, packet, creds, u) < 0) {
         pa_log(__FILE__": invalid packet");
         die(u);
     }
