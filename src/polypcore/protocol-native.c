@@ -129,6 +129,9 @@ struct pa_protocol_native {
     pa_idxset *connections;
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
     int auth_cookie_in_property;
+#ifdef SCM_CREDENTIALS
+    char *auth_group;
+#endif
 };
 
 static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk);
@@ -878,15 +881,22 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
         const struct ucred *ucred = pa_pdispatch_creds(pd);
 
         if (ucred) {
-            if (ucred->uid == getuid()) 
+            if (ucred->uid == getuid())
                 success = 1;
+            else if (c->protocol->auth_group) {
+                int r;
+                
+                if ((r = pa_uid_in_group(ucred->uid, c->protocol->auth_group)) < 0)
+                    pa_log_warn(__FILE__": failed to check group membership.");
+                else if (r > 0)
+                    success = 1;
+            }
                 
             pa_log_info(__FILE__": Got credentials: pid=%lu uid=%lu gid=%lu auth=%i",
                         (unsigned long) ucred->pid,
                         (unsigned long) ucred->uid,
                         (unsigned long) ucred->gid,
                         success);
-
         }
 #endif
 
@@ -2247,8 +2257,8 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
     int public = 0;
     assert(c && ma);
 
-    if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {
-        pa_log(__FILE__": public= expects a boolean argument.");
+    if (pa_modargs_get_value_boolean(ma, "auth-anonymous", &public) < 0) {
+        pa_log(__FILE__": auth-anonymous= expects a boolean argument.");
         return NULL;
     }
     
@@ -2258,6 +2268,10 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
     p->public = public;
     p->server = NULL;
 
+#ifdef SCM_CREDENTIALS
+    p->auth_group = pa_xstrdup(pa_modargs_get_value(ma, "auth-group", NULL));
+#endif
+    
     if (load_key(p, pa_modargs_get_value(ma, "cookie", NULL)) < 0) {
         pa_xfree(p);
         return NULL;
@@ -2317,6 +2331,9 @@ void pa_protocol_native_free(pa_protocol_native *p) {
     if (p->auth_cookie_in_property)
         pa_authkey_prop_unref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
 
+#ifdef SCM_CREDENTIALS
+    pa_xfree(p->auth_group);
+#endif
     pa_xfree(p);
 }
 

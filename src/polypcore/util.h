@@ -53,7 +53,7 @@ char *pa_get_fqdn(char *s, size_t l);
 char *pa_get_binary_name(char *s, size_t l);
 char *pa_get_home_dir(char *s, size_t l);
 
-char *pa_path_get_filename(const char *p);
+const char *pa_path_get_filename(const char *p);
 
 int pa_gettimeofday(struct timeval *tv);
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b);
@@ -75,7 +75,8 @@ char *pa_strip_nl(char *s);
 
 const char *pa_strsignal(int sig);
 
-int pa_uid_in_group(const char *name, gid_t *gid);
+int pa_own_uid_in_group(const char *name, gid_t *gid);
+int pa_uid_in_group(uid_t uid, const char *name);
 
 int pa_lock_fd(int fd, int b);
 

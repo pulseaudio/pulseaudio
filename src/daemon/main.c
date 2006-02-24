@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_GETUID
     suid_root = getuid() != 0 && geteuid() == 0;
     
-    if (suid_root && (pa_uid_in_group("realtime", &gid) <= 0 || gid >= 1000)) {
+    if (suid_root && (pa_own_uid_in_group("realtime", &gid) <= 0 || gid >= 1000)) {
         pa_log_warn(__FILE__": WARNING: called SUID root, but not in group 'realtime'.");
         pa_drop_root();
     }

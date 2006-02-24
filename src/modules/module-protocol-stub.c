@@ -110,14 +110,23 @@
   #define TCPWRAP_SERVICE "polypaudio-native"
   #define IPV4_PORT PA_NATIVE_DEFAULT_PORT
   #define UNIX_SOCKET PA_NATIVE_DEFAULT_UNIX_SOCKET
-  #define MODULE_ARGUMENTS "public", "cookie",
+  #define MODULE_ARGUMENTS_COMMON "cookie", "auth-anonymous",
   #ifdef USE_TCP_SOCKETS
     #include "module-native-protocol-tcp-symdef.h"
   #else
     #include "module-native-protocol-unix-symdef.h"
   #endif
+
+  #if defined(SCM_CREDENTIALS) && !defined(USE_TCP_SOCKETS)
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group",
+    #define AUTH_USAGE "auth-group=<local group to allow access>"
+  #else
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
+    #define AUTH_USAGE
+  #endif
+  
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION)
-  PA_MODULE_USAGE("public=<don't check for cookies?> cookie=<path to cookie file> "SOCKET_USAGE)
+  PA_MODULE_USAGE("auth-anonymous=<don't check for cookies?> cookie=<path to cookie file> "AUTH_USAGE SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_ESOUND)
   #include <polypcore/protocol-esound.h>
   #include <polypcore/esound.h>
@@ -126,14 +135,14 @@
   #define TCPWRAP_SERVICE "esound"
   #define IPV4_PORT ESD_DEFAULT_PORT
   #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
-  #define MODULE_ARGUMENTS "sink", "source", "public", "cookie",
+  #define MODULE_ARGUMENTS "sink", "source", "auth-anonymous", "cookie",
   #ifdef USE_TCP_SOCKETS
     #include "module-esound-protocol-tcp-symdef.h"
   #else
     #include "module-esound-protocol-unix-symdef.h"
   #endif
   PA_MODULE_DESCRIPTION("ESOUND protocol "SOCKET_DESCRIPTION)
-  PA_MODULE_USAGE("sink=<sink to connect to> source=<source to connect to> public=<don't check for cookies?> cookie=<path to cookie file> "SOCKET_USAGE)
+  PA_MODULE_USAGE("sink=<sink to connect to> source=<source to connect to> auth-anonymous=<don't check for cookies?> cookie=<path to cookie file> "SOCKET_USAGE)
 #else
   #error "Broken build system" 
 #endif

@@ -1139,8 +1139,8 @@ pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *serve
 
     p = pa_xnew(pa_protocol_esound, 1);
 
-    if (pa_modargs_get_value_boolean(ma, "public", &public) < 0) {
-        pa_log(__FILE__": public= expects a boolean argument.");
+    if (pa_modargs_get_value_boolean(ma, "auth-anonymous", &public) < 0) {
+        pa_log(__FILE__": auth-anonymous= expects a boolean argument.");
         return NULL;
     }
 

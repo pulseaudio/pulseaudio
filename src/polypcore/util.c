@@ -166,7 +166,7 @@ int pa_make_secure_parent_dir(const char *fn) {
     int ret = -1;
     char *slash, *dir = pa_xstrdup(fn);
 
-    slash = pa_path_get_filename(dir);
+    slash = (char*) pa_path_get_filename(dir);
     if (slash == fn)
         goto finish;
     *(slash-1) = 0;
@@ -636,13 +636,13 @@ char *pa_get_binary_name(char *s, size_t l) {
 
 /* Return a pointer to the filename inside a path (which is the last
  * component). */
-char *pa_path_get_filename(const char *p) {
+const char *pa_path_get_filename(const char *p) {
     char *fn;
 
     if ((fn = strrchr(p, PATH_SEP)))
         return fn+1;
 
-    return (char*) p;
+    return (const char*) p;
 }
 
 /* Try to parse a boolean string value.*/
@@ -745,7 +745,6 @@ static int is_group(gid_t gid, const char *name) {
         goto finish;
     }
 
-    
     r = strcmp(name, result->gr_name) == 0;
     
 finish:
@@ -767,7 +766,7 @@ finish:
 }
 
 /* Check the current user is member of the specified group */
-int pa_uid_in_group(const char *name, gid_t *gid) {
+int pa_own_uid_in_group(const char *name, gid_t *gid) {
     GETGROUPS_T *gids, tgid;
     int n = sysconf(_SC_NGROUPS_MAX);
     int r = -1, i;
@@ -803,9 +802,50 @@ finish:
     return r;
 }
 
+int pa_uid_in_group(uid_t uid, const char *name) {
+    char *g_buf, *p_buf;
+    long g_n, p_n;
+    struct group grbuf, *gr;
+    char **i;
+    int r = -1;
+    
+    g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
+    g_buf = pa_xmalloc(g_n);
+
+    p_n = sysconf(_SC_GETPW_R_SIZE_MAX);
+    p_buf = pa_xmalloc(p_n);
+    
+    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
+        goto finish;
+
+    r = 0;
+    for (i = gr->gr_mem; *i; i++) {
+        struct passwd pwbuf, *pw;
+        
+        if (getpwnam_r(*i, &pwbuf, p_buf, (size_t) p_n, &pw) != 0 || !pw)
+            continue;
+
+        if (pw->pw_uid == uid) {
+            r = 1;
+            break;
+        }
+    }
+
+finish:
+    pa_xfree(g_buf);
+    pa_xfree(p_buf);
+
+    return r;
+}
+
 #else /* HAVE_GRP_H */
 
-int pa_uid_in_group(const char *name, gid_t *gid) {
+int pa_own_uid_in_group(const char *name, gid_t *gid) {
+    return -1;
+    
+}
+
+int pa_uid_in_group(uid_t uid, const char *name) {
     return -1;
 }
 
