@@ -551,7 +551,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     /* Read mixer settings */
     if (u->source)
-        sink_get_hw_volume_cb(u->source);
+        source_get_hw_volume_cb(u->source);
     if (u->sink) {
         sink_get_hw_volume_cb(u->sink);
         sink_get_hw_mute_cb(u->sink);
