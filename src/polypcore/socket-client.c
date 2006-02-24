@@ -491,7 +491,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
                 memcpy(&s.sin_addr, host->h_addr, sizeof(struct in_addr));
                 s.sin_port = htons(a.port);
 
-                if ((c = pa_socket_client_new_sockaddr(m, &s, sizeof(s))))
+                if ((c = pa_socket_client_new_sockaddr(m, (struct sockaddr*)&s, sizeof(s))))
                 	start_timeout(c);
 #endif /* HAVE_GETADDRINFO */
             }
