@@ -7,7 +7,6 @@ Test:
 Fixes:
 - proper use of memcpy in procotol-esound.c so we don't get alignment problems
 - latency api rework for native protocol
-- add support for auth using SCM_CREDENTIALS
 - use scatter/gather io for sockets
 - notification on hw volume change
 - mute switch support (like ALSA does it)
