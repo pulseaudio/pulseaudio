@@ -217,7 +217,7 @@ static void io_callback(pa_iochannel *io, void*userdata) {
     do_read(u);
 }
 
-void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata) {
+static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata) {
     struct userdata *u = userdata;
     assert(u);
     do_write(u);
