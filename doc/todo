@@ -7,7 +7,6 @@ Test:
 Fixes:
 - proper use of memcpy in procotol-esound.c so we don't get alignment problems
 - latency api rework for native protocol
-- use scatter/gather io for sockets
 - notification on hw volume change
 - mute switch support (like ALSA does it)
 - module-oss-* love:
@@ -29,6 +28,7 @@ Post 0.8:
 - module-tunnel: improve latency calculation
 - port from howl to avahi
 - multiline configuration statements
+- use scatter/gather io for sockets
 
 Long term:
 - pass meta info for hearing impaired
