@@ -5,7 +5,6 @@ Test:
 - module-tunnel
 
 Fixes:
-- better validity checking in protocol-esound
 - proper use of memcpy in procotol-esound.c so we don't get alignment problems
 - latency api rework for native protocol
 - add support for auth using SCM_CREDENTIALS
