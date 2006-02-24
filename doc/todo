@@ -18,7 +18,6 @@ Fixes:
   - volume control
   - add hw driver name to sink/source description
   - deal with underflows properly
-- multiline configuration statements
 - module-tunnel volume support (sink, source, notify)
 
 Post 0.8:
@@ -30,6 +29,7 @@ Post 0.8:
 - add threading API
 - module-tunnel: improve latency calculation
 - port from howl to avahi
+- multiline configuration statements
 
 Long term:
 - pass meta info for hearing impaired
