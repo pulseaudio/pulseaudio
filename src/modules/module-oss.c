@@ -280,7 +280,7 @@ static int sink_set_hw_volume(pa_sink *s) {
 static int source_get_hw_volume(pa_source *s) {
     struct userdata *u = s->userdata;
 
-    if (pa_oss_get_imix_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
+    if (pa_oss_get_input_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
         pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", strerror(errno));
         s->get_hw_volume = NULL;
         return -1;
@@ -292,7 +292,7 @@ static int source_get_hw_volume(pa_source *s) {
 static int source_set_hw_volume(pa_source *s) {
     struct userdata *u = s->userdata;
 
-    if (pa_oss_set_imix_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
+    if (pa_oss_set_input_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
         pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", strerror(errno));
         s->set_hw_volume = NULL;
         return -1;
