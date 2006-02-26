@@ -128,3 +128,42 @@ void pa_free_io_events(pa_mainloop_api* m, pa_io_event **io_events, unsigned n_i
         m->io_free(*ios);
     pa_xfree(io_events);
 }
+
+int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
+    int err;
+
+    assert(mixer && dev);
+
+    if ((err = snd_mixer_attach(mixer, dev)) < 0) {
+        pa_log_warn(__FILE__": Unable to attach to mixer %s: %s", dev, snd_strerror(err));
+        return -1;
+    }
+
+    if ((err = snd_mixer_selem_register(mixer, NULL, NULL)) < 0) {
+        pa_log_warn(__FILE__": Unable to register mixer: %s", snd_strerror(err));
+        return -1;
+    }
+
+    if ((err = snd_mixer_load(mixer)) < 0) {
+        pa_log_warn(__FILE__": Unable to load mixer: %s", snd_strerror(err));
+        return -1;
+    }
+
+    return 0;
+}
+
+snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name) {
+    snd_mixer_elem_t *elem;
+    snd_mixer_selem_id_t *sid;
+    snd_mixer_selem_id_alloca(&sid);
+
+    assert(mixer && name);
+
+    snd_mixer_selem_id_set_name(sid, name);
+
+    elem = snd_mixer_find_selem(mixer, sid);
+    if (!elem)
+        pa_log_warn(__FILE__": Cannot find mixer control %s", snd_mixer_selem_id_get_name(sid));
+
+    return elem;
+}

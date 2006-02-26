@@ -54,9 +54,12 @@ PA_MODULE_USAGE("sink_name=<name for the sink> device=<ALSA device> format=<samp
 
 struct userdata {
     snd_pcm_t *pcm_handle;
+    snd_mixer_t *mixer_handle;
+    snd_mixer_elem_t *mixer_elem;
     pa_sink *sink;
     pa_io_event **io_events;
     unsigned n_io_events;
+    long hw_volume_max, hw_volume_min;
 
     size_t frame_size, fragment_size;
     pa_memchunk memchunk, silence;
@@ -174,6 +177,110 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     return r;
 }
 
+static int sink_get_hw_volume_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    long vol;
+    int err;
+
+    assert(u && u->mixer_elem);
+
+    if (snd_mixer_selem_has_playback_volume_joined(u->mixer_elem)) {
+        err = snd_mixer_selem_get_playback_volume(u->mixer_elem, 0, &vol);
+        if (err < 0)
+            goto fail;
+        pa_cvolume_set(&s->hw_volume, s->hw_volume.channels,
+            (vol - u->hw_volume_min) * PA_VOLUME_NORM / (u->hw_volume_max - u->hw_volume_min));
+    } else {
+        int i;
+
+        for (i = 0;i < s->hw_volume.channels;i++) {
+            err = snd_mixer_selem_get_playback_volume(u->mixer_elem, i, &vol);
+            if (err < 0)
+                goto fail;
+            s->hw_volume.values[i] =
+                (vol - u->hw_volume_min) * PA_VOLUME_NORM / (u->hw_volume_max - u->hw_volume_min);
+        }
+    }
+
+    return 0;
+
+fail:
+    pa_log_error(__FILE__": Unable to read volume: %s", snd_strerror(err));
+    s->get_hw_volume = NULL;
+    s->set_hw_volume = NULL;
+    return -1;
+}
+
+static int sink_set_hw_volume_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    int err;
+    pa_volume_t vol;
+
+    assert(u && u->mixer_elem);
+
+    if (snd_mixer_selem_has_playback_volume_joined(u->mixer_elem)) {
+        vol = pa_cvolume_avg(&s->hw_volume) * (u->hw_volume_max - u->hw_volume_min) /
+            PA_VOLUME_NORM + u->hw_volume_min;
+        err = snd_mixer_selem_set_playback_volume_all(u->mixer_elem, vol);
+        if (err < 0)
+            goto fail;
+    } else {
+        int i;
+
+        for (i = 0;i < s->hw_volume.channels;i++) {
+            vol = s->hw_volume.values[i] * (u->hw_volume_max - u->hw_volume_min) /
+                PA_VOLUME_NORM + u->hw_volume_min;
+            err = snd_mixer_selem_set_playback_volume(u->mixer_elem, i, vol);
+            if (err < 0)
+                goto fail;
+        }
+    }
+
+    return 0;
+
+fail:
+    pa_log_error(__FILE__": Unable to set volume: %s", snd_strerror(err));
+    s->get_hw_volume = NULL;
+    s->set_hw_volume = NULL;
+    return -1;
+}
+
+static int sink_get_hw_mute_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    int err, sw;
+
+    assert(u && u->mixer_elem);
+
+    err = snd_mixer_selem_get_playback_switch(u->mixer_elem, 0, &sw);
+    if (err) {
+        pa_log_error(__FILE__": Unable to get switch: %s", snd_strerror(err));
+        s->get_hw_mute = NULL;
+        s->set_hw_mute = NULL;
+        return -1;
+    }
+
+    s->hw_muted = !sw;
+
+    return 0;
+}
+
+static int sink_set_hw_mute_cb(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    int err;
+
+    assert(u && u->mixer_elem);
+
+    err = snd_mixer_selem_set_playback_switch_all(u->mixer_elem, !s->hw_muted);
+    if (err) {
+        pa_log_error(__FILE__": Unable to set switch: %s", snd_strerror(err));
+        s->get_hw_mute = NULL;
+        s->set_hw_mute = NULL;
+        return -1;
+    }
+
+    return 0;
+}
+
 int pa__init(pa_core *c, pa_module*m) {
     pa_modargs *ma = NULL;
     int ret = -1;
@@ -220,10 +327,34 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
+    if ((err = snd_mixer_open(&u->mixer_handle, 0)) < 0) {
+        pa_log(__FILE__": Error opening mixer: %s", snd_strerror(err));
+        goto fail;
+    }
+
+    if ((pa_alsa_prepare_mixer(u->mixer_handle, dev) < 0) ||
+        !(u->mixer_elem = pa_alsa_find_elem(u->mixer_handle, "PCM"))) {
+        snd_mixer_close(u->mixer_handle);
+        u->mixer_handle = NULL;
+    }
+
     u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL);
     assert(u->sink);
 
     u->sink->get_latency = sink_get_latency_cb;
+    if (u->mixer_handle) {
+        assert(u->mixer_elem);
+        if (snd_mixer_selem_has_playback_volume(u->mixer_elem)) {
+            u->sink->get_hw_volume = sink_get_hw_volume_cb;
+            u->sink->set_hw_volume = sink_set_hw_volume_cb;
+            snd_mixer_selem_get_playback_volume_range(
+                u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max);
+        }
+        if (snd_mixer_selem_has_playback_switch(u->mixer_elem)) {
+            u->sink->get_hw_mute = sink_get_hw_mute_cb;
+            u->sink->set_hw_mute = sink_set_hw_mute_cb;
+        }
+    }
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
     u->sink->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s'", dev);
@@ -251,6 +382,12 @@ int pa__init(pa_core *c, pa_module*m) {
 finish:
      if (ma)
          pa_modargs_free(ma);
+
+    /* Get initial mixer settings */
+    if (u->sink->get_hw_volume)
+        u->sink->get_hw_volume(u->sink);
+    if (u->sink->get_hw_mute)
+        u->sink->get_hw_mute(u->sink);
     
     return ret;
 
@@ -276,6 +413,9 @@ void pa__done(pa_core *c, pa_module*m) {
     
     if (u->io_events)
         pa_free_io_events(c->mainloop, u->io_events, u->n_io_events);
+    
+    if (u->mixer_handle)
+        snd_mixer_close(u->mixer_handle);
     
     if (u->pcm_handle) {
         snd_pcm_drop(u->pcm_handle);
