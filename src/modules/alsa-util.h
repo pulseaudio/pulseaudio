@@ -27,10 +27,14 @@
 #include <polyp/sample.h>
 #include <polyp/mainloop-api.h>
 
-int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size);
+struct pa_alsa_fdlist;
 
-int pa_create_io_events(snd_pcm_t *pcm_handle, pa_mainloop_api *m, pa_io_event ***io_events, unsigned *n_io_events, void (*cb)(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata), void *userdata);
-void pa_free_io_events(pa_mainloop_api* m, pa_io_event **io_sources, unsigned n_io_sources);
+struct pa_alsa_fdlist *pa_alsa_fdlist_new(void);
+void pa_alsa_fdlist_free(struct pa_alsa_fdlist *fdl);
+
+int pa_alsa_fdlist_init_pcm(struct pa_alsa_fdlist *fdl, snd_pcm_t *pcm_handle, pa_mainloop_api* m, void (*cb)(void *userdata), void *userdata);
+
+int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size);
 
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
 snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name);

@@ -57,8 +57,7 @@ struct userdata {
     snd_mixer_t *mixer_handle;
     snd_mixer_elem_t *mixer_elem;
     pa_sink *sink;
-    pa_io_event **io_events;
-    unsigned n_io_events;
+    struct pa_alsa_fdlist *fdl;
     long hw_volume_max, hw_volume_min;
 
     size_t frame_size, fragment_size;
@@ -144,9 +143,9 @@ static void do_write(struct userdata *u) {
     }
 }
 
-static void io_callback(pa_mainloop_api*a, pa_io_event *e, PA_GCC_UNUSED int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
+static void fdl_callback(void *userdata) {
     struct userdata *u = userdata;
-    assert(u && a && e);
+    assert(u);
 
     if (snd_pcm_state(u->pcm_handle) == SND_PCM_STATE_XRUN)
         xrun_recovery(u);
@@ -359,8 +358,10 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sink_set_owner(u->sink, m);
     u->sink->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s'", dev);
 
-    if (pa_create_io_events(u->pcm_handle, c->mainloop, &u->io_events, &u->n_io_events, io_callback, u) < 0) {
-        pa_log(__FILE__": failed to obtain file descriptors");
+    u->fdl = pa_alsa_fdlist_new();
+    assert(u->fdl);
+    if (pa_alsa_fdlist_init_pcm(u->fdl, u->pcm_handle, c->mainloop, fdl_callback, u) < 0) {
+        pa_log(__FILE__": failed to initialise file descriptor monitoring");
         goto fail;
     }
     
@@ -411,8 +412,8 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_sink_unref(u->sink);
     }
     
-    if (u->io_events)
-        pa_free_io_events(c->mainloop, u->io_events, u->n_io_events);
+    if (u->fdl)
+        pa_alsa_fdlist_free(u->fdl);
     
     if (u->mixer_handle)
         snd_mixer_close(u->mixer_handle);
