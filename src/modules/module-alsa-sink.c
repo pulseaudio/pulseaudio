@@ -57,7 +57,8 @@ struct userdata {
     snd_mixer_t *mixer_handle;
     snd_mixer_elem_t *mixer_elem;
     pa_sink *sink;
-    struct pa_alsa_fdlist *fdl;
+    struct pa_alsa_fdlist *pcm_fdl;
+    struct pa_alsa_fdlist *mixer_fdl;
     long hw_volume_max, hw_volume_min;
 
     size_t frame_size, fragment_size;
@@ -151,6 +152,24 @@ static void fdl_callback(void *userdata) {
         xrun_recovery(u);
 
     do_write(u);
+}
+
+static int mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
+    struct userdata *u = snd_mixer_elem_get_callback_private(elem);
+
+    assert(u && u->mixer_handle);
+
+    if (mask & SND_CTL_EVENT_MASK_VALUE) {
+        if (u->sink->get_hw_volume)
+            u->sink->get_hw_volume(u->sink);
+        if (u->sink->get_hw_mute)
+            u->sink->get_hw_mute(u->sink);
+        pa_subscription_post(u->sink->core,
+            PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE,
+            u->sink->index);
+    }
+
+    return 0;
 }
 
 static pa_usec_t sink_get_latency_cb(pa_sink *s) {
@@ -358,11 +377,22 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sink_set_owner(u->sink, m);
     u->sink->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s'", dev);
 
-    u->fdl = pa_alsa_fdlist_new();
-    assert(u->fdl);
-    if (pa_alsa_fdlist_init_pcm(u->fdl, u->pcm_handle, c->mainloop, fdl_callback, u) < 0) {
+    u->pcm_fdl = pa_alsa_fdlist_new();
+    assert(u->pcm_fdl);
+    if (pa_alsa_fdlist_init_pcm(u->pcm_fdl, u->pcm_handle, c->mainloop, fdl_callback, u) < 0) {
         pa_log(__FILE__": failed to initialise file descriptor monitoring");
         goto fail;
+    }
+
+    if (u->mixer_handle) {
+        u->mixer_fdl = pa_alsa_fdlist_new();
+        assert(u->mixer_fdl);
+        if (pa_alsa_fdlist_init_mixer(u->mixer_fdl, u->mixer_handle, c->mainloop) < 0) {
+            pa_log(__FILE__": failed to initialise file descriptor monitoring");
+            goto fail;
+        }
+        snd_mixer_elem_set_callback(u->mixer_elem, mixer_callback);
+        snd_mixer_elem_set_callback_private(u->mixer_elem, u);
     }
     
     u->frame_size = frame_size;
@@ -412,8 +442,10 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_sink_unref(u->sink);
     }
     
-    if (u->fdl)
-        pa_alsa_fdlist_free(u->fdl);
+    if (u->pcm_fdl)
+        pa_alsa_fdlist_free(u->pcm_fdl);
+    if (u->mixer_fdl)
+        pa_alsa_fdlist_free(u->mixer_fdl);
     
     if (u->mixer_handle)
         snd_mixer_close(u->mixer_handle);

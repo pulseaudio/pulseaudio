@@ -39,6 +39,7 @@ struct pa_alsa_fdlist {
     struct pollfd *work_fds;
 
     snd_pcm_t *pcm;
+    snd_mixer_t *mixer;
 
     pa_mainloop_api *m;
     pa_defer_event *defer;
@@ -55,7 +56,7 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
     int err, i;
     unsigned short revents;
 
-    assert(a && fdl && fdl->pcm);
+    assert(a && fdl && (fdl->pcm || fdl->mixer) && fdl->fds && fdl->work_fds);
 
     if (fdl->polled)
         return;
@@ -80,7 +81,11 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
 
     assert(i != fdl->num_fds);
 
-    err = snd_pcm_poll_descriptors_revents(fdl->pcm, fdl->work_fds, fdl->num_fds, &revents);
+    if (fdl->pcm)
+        err = snd_pcm_poll_descriptors_revents(fdl->pcm, fdl->work_fds, fdl->num_fds, &revents);
+    else
+        err = snd_mixer_poll_descriptors_revents(fdl->mixer, fdl->work_fds, fdl->num_fds, &revents);
+
     if (err < 0) {
         pa_log_error(__FILE__": Unable to get poll revent: %s",
             snd_strerror(err));
@@ -88,8 +93,12 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
         return;
     }
 
-    if (revents)
-        fdl->cb(fdl->userdata);
+    if (revents) {
+        if (fdl->pcm)
+            fdl->cb(fdl->userdata);
+        else
+            snd_mixer_handle_events(fdl->mixer);
+    }
 }
 
 static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
@@ -97,9 +106,12 @@ static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
     int num_fds, i, err;
     struct pollfd *temp;
 
-    assert(a && fdl && fdl->pcm);
+    assert(a && fdl && (fdl->pcm || fdl->mixer));
 
-    num_fds = snd_pcm_poll_descriptors_count(fdl->pcm);
+    if (fdl->pcm)
+        num_fds = snd_pcm_poll_descriptors_count(fdl->pcm);
+    else
+        num_fds = snd_mixer_poll_descriptors_count(fdl->mixer);
     assert(num_fds > 0);
 
     if (num_fds != fdl->num_fds) {
@@ -112,7 +124,12 @@ static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
     }
 
     memset(fdl->work_fds, 0, sizeof(struct pollfd) * num_fds);
-    err = snd_pcm_poll_descriptors(fdl->pcm, fdl->work_fds, num_fds);
+
+    if (fdl->pcm)
+        err = snd_pcm_poll_descriptors(fdl->pcm, fdl->work_fds, num_fds);
+    else
+        err = snd_mixer_poll_descriptors(fdl->mixer, fdl->work_fds, num_fds);
+
     if (err < 0) {
         pa_log_error(__FILE__": Unable to get poll descriptors: %s",
             snd_strerror(err));
@@ -165,6 +182,7 @@ struct pa_alsa_fdlist *pa_alsa_fdlist_new(void) {
     fdl->work_fds = NULL;
 
     fdl->pcm = NULL;
+    fdl->mixer = NULL;
 
     fdl->m = NULL;
     fdl->defer = NULL;
@@ -210,6 +228,18 @@ int pa_alsa_fdlist_init_pcm(struct pa_alsa_fdlist *fdl, snd_pcm_t *pcm_handle, p
 
     fdl->cb = cb;
     fdl->userdata = userdata;
+
+    return 0;
+}
+
+int pa_alsa_fdlist_init_mixer(struct pa_alsa_fdlist *fdl, snd_mixer_t *mixer_handle, pa_mainloop_api* m) {
+    assert(fdl && mixer_handle && m && !fdl->m);
+
+    fdl->mixer = mixer_handle;
+    fdl->m = m;
+
+    fdl->defer = m->defer_new(m, defer_cb, fdl);
+    assert(fdl->defer);
 
     return 0;
 }

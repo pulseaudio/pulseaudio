@@ -33,6 +33,7 @@ struct pa_alsa_fdlist *pa_alsa_fdlist_new(void);
 void pa_alsa_fdlist_free(struct pa_alsa_fdlist *fdl);
 
 int pa_alsa_fdlist_init_pcm(struct pa_alsa_fdlist *fdl, snd_pcm_t *pcm_handle, pa_mainloop_api* m, void (*cb)(void *userdata), void *userdata);
+int pa_alsa_fdlist_init_mixer(struct pa_alsa_fdlist *fdl, snd_mixer_t *mixer_handle, pa_mainloop_api* m);
 
 int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size);
 
