@@ -13,7 +13,6 @@ Fixes:
   - deal with underflows propely
   - improve latency measurement for mmap
 - module-alsa-* love: 
-  - volume control
   - add hw driver name to sink/source description
   - deal with underflows properly
 - module-tunnel volume support (sink, source, notify)
