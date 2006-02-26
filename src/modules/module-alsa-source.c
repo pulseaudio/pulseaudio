@@ -78,7 +78,7 @@ static const char* const valid_modargs[] = {
 };
 
 #define DEFAULT_SOURCE_NAME "alsa_input"
-#define DEFAULT_DEVICE "hw:0,0"
+#define DEFAULT_DEVICE "default"
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
