@@ -65,7 +65,7 @@ int pa_idxset_string_compare_func(const void *a, const void *b) {
 }
 
 unsigned pa_idxset_trivial_hash_func(const void *p) {
-    return (unsigned) p;
+    return (unsigned) (long) p;
 }
 
 int pa_idxset_trivial_compare_func(const void *a, const void *b) {

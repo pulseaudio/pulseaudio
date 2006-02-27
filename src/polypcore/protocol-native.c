@@ -799,7 +799,7 @@ static void command_delete_stream(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t comma
 static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     struct record_stream *s;
-    size_t maxlength, fragment_size;
+    uint32_t maxlength, fragment_size;
     uint32_t source_index;
     const char *name, *source_name;
     pa_sample_spec ss;
@@ -1098,7 +1098,7 @@ static void command_get_record_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
 static void command_create_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     struct upload_stream *s;
-    size_t length;
+    uint32_t length;
     const char *name;
     pa_sample_spec ss;
     pa_channel_map map;

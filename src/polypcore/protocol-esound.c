@@ -476,7 +476,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
     uint8_t *response;
     size_t t, k, s;
     struct connection *conn;
-    size_t idx = PA_IDXSET_INVALID;
+    uint32_t idx = PA_IDXSET_INVALID;
     unsigned nsamples;
     assert(c && data && length == sizeof(int));
     

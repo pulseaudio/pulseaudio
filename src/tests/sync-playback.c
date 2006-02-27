@@ -64,7 +64,7 @@ static const pa_buffer_attr buffer_attr = {
 static void nop_free_cb(void *p) {}
 
 static void underflow_cb(struct pa_stream *s, void *userdata) {
-    int i = (int) userdata;
+    int i = (int) (long) userdata;
 
     fprintf(stderr, "Stream %i finished\n", i);
     
@@ -86,7 +86,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
         case PA_STREAM_READY: {
 
-            int r, i = (int) userdata;
+            int r, i = (int) (long) userdata;
 
             fprintf(stderr, "Writing data to stream %i.\n", i);
             
@@ -136,7 +136,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             
                 streams[i] = pa_stream_new(c, name, &sample_spec, NULL);
                 assert(streams[i]);
-                pa_stream_set_state_callback(streams[i], stream_state_callback, (void*) i);
+                pa_stream_set_state_callback(streams[i], stream_state_callback, (void*) (long) i);
                 pa_stream_connect_playback(streams[i], NULL, &buffer_attr, PA_STREAM_START_CORKED, NULL, i == 0 ? NULL : streams[0]);
             }
                 
