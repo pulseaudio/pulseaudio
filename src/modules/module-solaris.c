@@ -221,17 +221,32 @@ static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void 
     struct userdata *u = userdata;
     pa_cvolume old_vol;
     
-    assert(u && u->sink && u->sink->get_hw_volume);
+    assert(u);
 
     do_write(u);
 
-    memcpy(&old_vol, &u->sink->hw_volume, sizeof(pa_cvolume));
-    if (u->sink->get_hw_volume(u->sink) < 0)
-        return;
-    if (memcmp(&old_vol, &u->sink->hw_volume, sizeof(pa_cvolume)) != 0) {
-        pa_subscription_post(u->sink->core,
-            PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE,
-            u->sink->index);
+    if (u->sink) {
+        assert(u->sink->get_hw_volume);
+        memcpy(&old_vol, &u->sink->hw_volume, sizeof(pa_cvolume));
+        if (u->sink->get_hw_volume(u->sink) < 0)
+            return;
+        if (memcmp(&old_vol, &u->sink->hw_volume, sizeof(pa_cvolume)) != 0) {
+            pa_subscription_post(u->sink->core,
+                PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE,
+                u->sink->index);
+        }
+    }
+
+    if (u->source) {
+        assert(u->source->get_hw_volume);
+        memcpy(&old_vol, &u->source->hw_volume, sizeof(pa_cvolume));
+        if (u->source->get_hw_volume(u->source) < 0)
+            return;
+        if (memcmp(&old_vol, &u->source->hw_volume, sizeof(pa_cvolume)) != 0) {
+            pa_subscription_post(u->source->core,
+                PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE,
+                u->source->index);
+        }
     }
 }
 
