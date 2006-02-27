@@ -112,7 +112,7 @@ void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek);
 void pa_memblockq_flush(pa_memblockq *bq);
 
 /* Get Target length */
-uint32_t pa_memblockq_get_tlength(pa_memblockq *bq);
+size_t pa_memblockq_get_tlength(pa_memblockq *bq);
 
 /* Return the current read index */
 int64_t pa_memblockq_get_read_index(pa_memblockq *bq);
