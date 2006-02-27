@@ -219,8 +219,20 @@ static void io_callback(pa_iochannel *io, void*userdata) {
 
 static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata) {
     struct userdata *u = userdata;
-    assert(u);
+    pa_cvolume old_vol;
+    
+    assert(u && u->sink && u->sink->get_hw_volume);
+
     do_write(u);
+
+    memcpy(&old_vol, &u->sink->hw_volume, sizeof(pa_cvolume));
+    if (u->sink->get_hw_volume(u->sink) < 0)
+        return;
+    if (memcmp(&old_vol, &u->sink->hw_volume, sizeof(pa_cvolume)) != 0) {
+        pa_subscription_post(u->sink->core,
+            PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE,
+            u->sink->index);
+    }
 }
 
 static pa_usec_t sink_get_latency_cb(pa_sink *s) {
