@@ -619,7 +619,7 @@ pa_operation * pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *us
     return pa_operation_ref(o);
 }
 
-static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     pa_latency_info i, *p = NULL;
     struct timeval local, remote, now;
