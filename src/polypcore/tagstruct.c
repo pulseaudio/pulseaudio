@@ -189,6 +189,18 @@ void pa_tagstruct_putu64(pa_tagstruct*t, uint64_t u) {
     t->length += 9;
 }
 
+void pa_tagstruct_puts64(pa_tagstruct*t, int64_t u) {
+    uint32_t tmp;
+    assert(t);
+    extend(t, 9);
+    t->data[t->length] = PA_TAG_S64;
+    tmp = htonl((uint32_t) ((uint64_t) u >> 32));
+    memcpy(t->data+t->length+1, &tmp, 4);
+    tmp = htonl((uint32_t) ((uint64_t) u));
+    memcpy(t->data+t->length+5, &tmp, 4);
+    t->length += 9;
+}
+
 void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map) {
     unsigned i;
     
@@ -399,9 +411,27 @@ int pa_tagstruct_getu64(pa_tagstruct*t, uint64_t *u) {
         return -1;
 
     memcpy(&tmp, t->data+t->rindex+1, 4);
-    *u = (pa_usec_t) ntohl(tmp) << 32;
+    *u = (uint64_t) ntohl(tmp) << 32;
     memcpy(&tmp, t->data+t->rindex+5, 4);
-    *u |= (pa_usec_t) ntohl(tmp);
+    *u |= (uin64_t) ntohl(tmp);
+    t->rindex +=9;
+    return 0;
+}
+
+int pa_tagstruct_gets64(pa_tagstruct*t, int64_t *u) {
+    uint32_t tmp;
+    assert(t && u);
+
+    if (t->rindex+9 > t->length)
+        return -1;
+
+    if (t->data[t->rindex] != PA_TAG_S64)
+        return -1;
+
+    memcpy(&tmp, t->data+t->rindex+1, 4);
+    *u = (int64_t) ((uint64_t) ntohl(tmp) << 32);
+    memcpy(&tmp, t->data+t->rindex+5, 4);
+    *u |= (int64_t) ntohl(tmp);
     t->rindex +=9;
     return 0;
 }

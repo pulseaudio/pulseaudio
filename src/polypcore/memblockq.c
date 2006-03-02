@@ -547,7 +547,6 @@ void pa_memblockq_flush(pa_memblockq *bq) {
         drop_block(bq, bq->blocks);
 
     assert(bq->n_blocks == 0);
-    bq->write_index = bq->read_index;
 
     pa_memblockq_prebuf_force(bq);
 }

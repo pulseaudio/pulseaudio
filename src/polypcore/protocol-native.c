@@ -1031,13 +1031,11 @@ static void command_get_playback_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_tagstruct *reply;
     struct playback_stream *s;
     struct timeval tv, now;
-    uint64_t counter;
     uint32_t idx;
     assert(c && t);
     
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
         pa_tagstruct_get_timeval(t, &tv) < 0 ||
-        pa_tagstruct_getu64(t, &counter) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -1057,7 +1055,8 @@ static void command_get_playback_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_tagstruct_put_timeval(reply, &tv);
     pa_gettimeofday(&now);
     pa_tagstruct_put_timeval(reply, &now);
-    pa_tagstruct_putu64(reply, counter);
+    pa_tagstruct_puts64(reply, pa_memblockq_get_write_index(s->memblockq));
+    pa_tagstruct_puts64(reply, pa_memblockq_get_read_index(s->memblockq));
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1066,13 +1065,11 @@ static void command_get_record_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
     pa_tagstruct *reply;
     struct record_stream *s;
     struct timeval tv, now;
-    uint64_t counter;
     uint32_t idx;
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
         pa_tagstruct_get_timeval(t, &tv) < 0 ||
-        pa_tagstruct_getu64(t, &counter) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
         return;
@@ -1091,7 +1088,8 @@ static void command_get_record_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
     pa_tagstruct_put_timeval(reply, &tv);
     pa_gettimeofday(&now);
     pa_tagstruct_put_timeval(reply, &now);
-    pa_tagstruct_putu64(reply, counter);
+    pa_tagstruct_puts64(reply, pa_memblockq_get_write_index(s->memblockq));
+    pa_tagstruct_puts64(reply, pa_memblockq_get_read_index(s->memblockq));
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 

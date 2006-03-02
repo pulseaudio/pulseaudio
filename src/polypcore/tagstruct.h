@@ -40,6 +40,7 @@ enum {
     PA_TAG_U32 = 'L',
     PA_TAG_U8 = 'B',
     PA_TAG_U64 = 'R',
+    PA_TAG_S64 = 'r',
     PA_TAG_SAMPLE_SPEC = 'a',
     PA_TAG_ARBITRARY = 'x',
     PA_TAG_BOOLEAN_TRUE = '1',
@@ -64,6 +65,7 @@ void pa_tagstruct_puts(pa_tagstruct*t, const char *s);
 void pa_tagstruct_putu8(pa_tagstruct*t, uint8_t c);
 void pa_tagstruct_putu32(pa_tagstruct*t, uint32_t i);
 void pa_tagstruct_putu64(pa_tagstruct*t, uint64_t i);
+void pa_tagstruct_puts64(pa_tagstruct*t, int64_t i);
 void pa_tagstruct_put_sample_spec(pa_tagstruct *t, const pa_sample_spec *ss);
 void pa_tagstruct_put_arbitrary(pa_tagstruct*t, const void *p, size_t length);
 void pa_tagstruct_put_boolean(pa_tagstruct*t, int b);
@@ -78,6 +80,7 @@ int pa_tagstruct_gets(pa_tagstruct*t, const char **s);
 int pa_tagstruct_getu8(pa_tagstruct*t, uint8_t *c);
 int pa_tagstruct_getu32(pa_tagstruct*t, uint32_t *i);
 int pa_tagstruct_getu64(pa_tagstruct*t, uint64_t *i);
+int pa_tagstruct_gets64(pa_tagstruct*t, int64_t *i);
 int pa_tagstruct_get_sample_spec(pa_tagstruct *t, pa_sample_spec *ss);
 int pa_tagstruct_get_arbitrary(pa_tagstruct *t, const void **p, size_t length);
 int pa_tagstruct_get_boolean(pa_tagstruct *t, int *b);
