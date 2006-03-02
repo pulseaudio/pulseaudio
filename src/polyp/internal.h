@@ -37,6 +37,7 @@
 #include <polypcore/strlist.h>
 #include <polypcore/mcalign.h>
 #include <polypcore/memblockq.h>
+#include <polypcore/hashmap.h>
 
 #include "client-conf.h"
 
@@ -103,6 +104,8 @@ struct pa_stream {
     pa_stream_state_t state;
     pa_memchunk peek_memchunk;
     pa_memblockq *record_memblockq;
+
+    pa_hashmap *counter_hashmap;
 
     int interpolate;
     int corked;

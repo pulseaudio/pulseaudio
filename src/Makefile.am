@@ -346,6 +346,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
 		polypcore/conf-parser.c polypcore/conf-parser.h \
 		polypcore/dynarray.c polypcore/dynarray.h \
 		polypcore/gccmacro.h \
+		polypcore/hashmap.c polypcore/hashmap.h \
 		polypcore/idxset.c polypcore/idxset.h \
 		polypcore/iochannel.c polypcore/iochannel.h \
 		polypcore/log.c polypcore/log.h \

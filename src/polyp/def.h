@@ -195,6 +195,8 @@ typedef struct pa_latency_info {
                                * 0.5 */
     struct timeval timestamp; /**< The time when this latency info was current */
     uint64_t counter;         /**< The byte counter current when the latency info was requested. \since 0.6 */
+    int64_t write_index;      /**< Current absolute write index in the buffer. \since 0.8 */
+    int64_t read_index;       /**< Current absolute read index in the buffer. \since 0.8 */
 } pa_latency_info;
 
 /** A structure for the spawn api. This may be used to integrate auto

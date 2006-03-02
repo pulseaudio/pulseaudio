@@ -33,10 +33,12 @@
 #include <polypcore/pstream-util.h>
 #include <polypcore/util.h>
 #include <polypcore/log.h>
+#include <polypcore/hashmap.h>
 
 #include "internal.h"
 
 #define LATENCY_IPOL_INTERVAL_USEC (10000L)
+#define COUNTER_HASHMAP_MAXSIZE (5)
 
 pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map) {
     pa_stream *s;
@@ -85,6 +87,8 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
 
     s->record_memblockq = NULL;
 
+    s->counter_hashmap = pa_hashmap_new(NULL, NULL);
+
     s->counter = 0;
     s->previous_time = 0;
     s->previous_ipol_time = 0;
@@ -102,6 +106,10 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     return pa_stream_ref(s);
 }
 
+static void hashmap_free_func(void *p, void *userdata) {
+    pa_xfree(p);
+}
+
 static void stream_free(pa_stream *s) {
     assert(s);
 
@@ -115,6 +123,9 @@ static void stream_free(pa_stream *s) {
 
     if (s->record_memblockq)
         pa_memblockq_free(s->record_memblockq);
+
+    if (s->counter_hashmap)
+        pa_hashmap_free(s->counter_hashmap, hashmap_free_func, NULL);
 
     pa_xfree(s->name);
     pa_xfree(s);
@@ -618,6 +629,9 @@ static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command,
     assert(o->stream);
     assert(o->context);
 
+    i.counter = *(uint64_t*)pa_hashmap_get(o->stream->counter_hashmap, (void*)tag);
+    pa_xfree(pa_hashmap_remove(o->stream->counter_hashmap, (void*)tag));
+
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
@@ -629,7 +643,8 @@ static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command,
                pa_tagstruct_getu32(t, &i.queue_length) < 0 ||
                pa_tagstruct_get_timeval(t, &local) < 0 ||
                pa_tagstruct_get_timeval(t, &remote) < 0 ||
-               pa_tagstruct_getu64(t, &i.counter) < 0 ||
+               pa_tagstruct_gets64(t, &i.write_index) < 0 ||
+               pa_tagstruct_gets64(t, &i.read_index) < 0 ||
                !pa_tagstruct_eof(t)) {
         pa_context_fail(o->context, PA_ERR_PROTOCOL);
         goto finish;
@@ -679,12 +694,14 @@ pa_operation* pa_stream_get_latency_info(pa_stream *s, pa_stream_get_latency_inf
     pa_operation *o;
     pa_tagstruct *t;
     struct timeval now;
+    uint64_t *counter;
     
     assert(s);
     assert(s->ref >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, pa_hashmap_size(s->counter_hashmap) < COUNTER_HASHMAP_MAXSIZE, PA_ERR_INTERNAL);
     
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
 
@@ -696,10 +713,13 @@ pa_operation* pa_stream_get_latency_info(pa_stream *s, pa_stream_get_latency_inf
 
     pa_gettimeofday(&now);
     pa_tagstruct_put_timeval(t, &now);
-    pa_tagstruct_putu64(t, s->counter);
     
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_info_callback, o);
+
+    counter = pa_xmalloc(sizeof(uint64_t));
+    *counter = s->counter;
+    pa_hashmap_put(s->counter_hashmap, (void*)tag, counter);
 
     return pa_operation_ref(o);
 }
