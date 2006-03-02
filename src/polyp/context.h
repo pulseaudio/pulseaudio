@@ -115,6 +115,12 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
 /** Return the server name this context is connected to. \since 0.7 */
 const char* pa_context_get_server(pa_context *c);
 
+/** Return the protocol version of the library. \since 0.8 */
+uint32_t pa_context_get_protocol_version(pa_context *c);
+
+/** Return the protocol version of the connected server. \since 0.8 */
+uint32_t pa_context_get_server_protocol_version(pa_context *c);
+
 PA_C_DECL_END
 
 #endif

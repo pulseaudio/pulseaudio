@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <polyp/version.h>
+
 #include <polypcore/native-common.h>
 #include <polypcore/packet.h>
 #include <polypcore/client.h>
@@ -111,6 +113,7 @@ enum {
 
 struct connection {
     int authorized;
+    uint32_t version;
     pa_protocol_native *protocol;
     pa_client *client;
     pa_pstream *pstream;
@@ -866,11 +869,19 @@ static void command_exit(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
 static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     const void*cookie;
+    pa_tagstruct *reply;
     assert(c && t);
 
-    if (pa_tagstruct_get_arbitrary(t, &cookie, PA_NATIVE_COOKIE_LENGTH) < 0 ||
+    if (pa_tagstruct_getu32(t, &c->version) < 0 ||
+        pa_tagstruct_get_arbitrary(t, &cookie, PA_NATIVE_COOKIE_LENGTH) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
+        return;
+    }
+
+    /* Minimum supported version */
+    if (c->version < 8) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERR_VERSION);
         return;
     }
 
@@ -915,8 +926,10 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
             c->auth_timeout_event = NULL;
         }
     }
-    
-    pa_pstream_send_simple_ack(c->pstream, tag);
+
+    reply = reply_new(tag);
+    pa_tagstruct_putu32(reply, PA_PROTOCOL_VERSION);
+    pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
 static void command_set_client_name(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {

@@ -125,6 +125,7 @@ enum {
     PA_ERR_MODINITFAILED,          /**< Module initialization failed */
     PA_ERR_BADSTATE,               /**< Bad state */
     PA_ERR_NODATA,                 /**< No data */ 
+    PA_ERR_VERSION,                /**< Incompatible protocol version \since 0.8 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 

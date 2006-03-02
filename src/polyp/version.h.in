@@ -44,6 +44,10 @@ const char* pa_get_library_version(void);
  * PA_API_VERSION undefined.  */
 #define PA_API_VERSION @PA_API_VERSION@
 
+/** The current protocol version. Version 8 relates to polypaudio 0.8.
+ * \since 0.8 */
+#define PA_PROTOCOL_VERSION @PA_PROTOCOL_VERSION@
+
 PA_C_DECL_END
 
 #endif

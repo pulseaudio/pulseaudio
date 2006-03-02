@@ -354,6 +354,19 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     switch(c->state) {
         case PA_CONTEXT_AUTHORIZING: {
             pa_tagstruct *reply;
+
+            if (pa_tagstruct_getu32(t, &c->version) < 0 ||
+                !pa_tagstruct_eof(t)) {
+                pa_context_fail(c, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+
+            /* Minimum supported version */
+            if (c->version < 8) {
+                pa_context_fail(c, PA_ERR_VERSION);
+                goto finish;
+            }
+
             reply = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
             pa_tagstruct_puts(reply, c->name);
             pa_pstream_send_tagstruct(c->pstream, reply);
@@ -400,6 +413,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     }
 
     t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
+    pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
     pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
     pa_pstream_send_tagstruct_with_creds(c->pstream, t, 1);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c);
@@ -934,6 +948,17 @@ const char* pa_context_get_server(pa_context *c) {
     }
     
     return c->server;
+}
+
+uint32_t pa_context_get_protocol_version(pa_context *c) {
+    return PA_PROTOCOL_VERSION;
+}
+
+uint32_t pa_context_get_server_protocol_version(pa_context *c) {
+    assert(c);
+    assert(c->ref >= 1);
+
+    return c->version;
 }
 
 pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *tag) {

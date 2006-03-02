@@ -48,6 +48,7 @@ static const char* const errortab[PA_ERR_MAX] = {
     [PA_ERR_MODINITFAILED] = "Module initalization failed",
     [PA_ERR_BADSTATE] = "Bad state",
     [PA_ERR_NODATA] = "No data",
+    [PA_ERR_VERSION] = "Incompatible protocol version",
 };
 
 const char*pa_strerror(int error) {

@@ -57,6 +57,7 @@ struct pa_context {
     PA_LLIST_HEAD(pa_stream, streams);
     PA_LLIST_HEAD(pa_operation, operations);
 
+    uint32_t version;
     uint32_t ctag;
     uint32_t csyncid;
     uint32_t error;
