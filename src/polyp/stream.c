@@ -629,8 +629,8 @@ static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command,
     assert(o->stream);
     assert(o->context);
 
-    i.counter = *(uint64_t*)pa_hashmap_get(o->stream->counter_hashmap, (void*)tag);
-    pa_xfree(pa_hashmap_remove(o->stream->counter_hashmap, (void*)tag));
+    i.counter = *(uint64_t*)pa_hashmap_get(o->stream->counter_hashmap, (void*)(unsigned long)tag);
+    pa_xfree(pa_hashmap_remove(o->stream->counter_hashmap, (void*)(unsigned long)tag));
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -719,7 +719,7 @@ pa_operation* pa_stream_get_latency_info(pa_stream *s, pa_stream_get_latency_inf
 
     counter = pa_xmalloc(sizeof(uint64_t));
     *counter = s->counter;
-    pa_hashmap_put(s->counter_hashmap, (void*)tag, counter);
+    pa_hashmap_put(s->counter_hashmap, (void*)(unsigned long)tag, counter);
 
     return pa_operation_ref(o);
 }
