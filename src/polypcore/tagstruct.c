@@ -413,7 +413,7 @@ int pa_tagstruct_getu64(pa_tagstruct*t, uint64_t *u) {
     memcpy(&tmp, t->data+t->rindex+1, 4);
     *u = (uint64_t) ntohl(tmp) << 32;
     memcpy(&tmp, t->data+t->rindex+5, 4);
-    *u |= (uin64_t) ntohl(tmp);
+    *u |= (uint64_t) ntohl(tmp);
     t->rindex +=9;
     return 0;
 }
