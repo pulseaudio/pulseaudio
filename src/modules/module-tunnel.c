@@ -31,6 +31,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <polyp/version.h>
+
 #include <polypcore/module.h>
 #include <polypcore/util.h>
 #include <polypcore/modargs.h>
@@ -122,6 +124,7 @@ struct userdata {
 
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
 
+    uint32_t version;
     uint32_t ctag;
     uint32_t device_index;
     uint32_t channel;
@@ -254,7 +257,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
     pa_usec_t buffer_usec, sink_usec, source_usec, transport_usec;
     int playing;
     uint32_t queue_length;
-    uint64_t counter;
+    int64_t write_index, read_index;
     struct timeval local, remote, now;
     assert(pd && u);
 
@@ -274,7 +277,8 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
         pa_tagstruct_getu32(t, &queue_length) < 0 ||
         pa_tagstruct_get_timeval(t, &local) < 0 ||
         pa_tagstruct_get_timeval(t, &remote) < 0 ||
-        pa_tagstruct_getu64(t, &counter) < 0 ||
+        pa_tagstruct_gets64(t, &write_index) < 0 ||
+        pa_tagstruct_gets64(t, &read_index) < 0 ||
         !pa_tagstruct_eof(t)) {
         pa_log(__FILE__": invalid reply.");
         die(u);
@@ -323,7 +327,6 @@ static void request_latency(struct userdata *u) {
 
     pa_gettimeofday(&now);
     pa_tagstruct_put_timeval(t, &now);
-    pa_tagstruct_putu64(t, 0);
     
     pa_pstream_send_tagstruct(u->pstream, t);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, u);
@@ -363,9 +366,14 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     struct userdata *u = userdata;
     pa_tagstruct *reply;
     char name[256], un[128], hn[128];
+#ifdef TUNNEL_SINK
+    pa_cvolume volume;
+#endif
     assert(pd && u && u->pdispatch == pd);
 
-    if (command != PA_COMMAND_REPLY || !pa_tagstruct_eof(t)) {
+    if (command != PA_COMMAND_REPLY ||
+        pa_tagstruct_getu32(t, &u->version) < 0 ||
+        !pa_tagstruct_eof(t)) {
         if (command == PA_COMMAND_ERROR)
             pa_log(__FILE__": failed to authenticate");
         else
@@ -373,6 +381,14 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         die(u);
         return;
     }
+
+    /* Minimum supported protocol version */
+    if (u->version < 8) {
+        pa_log(__FILE__": incompatible protocol version");
+        die(u);
+        return;
+    }
+
 #ifdef TUNNEL_SINK
     snprintf(name, sizeof(name), "Tunnel from host '%s', user '%s', sink '%s'",
              pa_get_host_name(hn, sizeof(hn)),
@@ -398,6 +414,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_putu32(reply, tag = u->ctag++);
     pa_tagstruct_puts(reply, name);
     pa_tagstruct_put_sample_spec(reply, &u->sink->sample_spec);
+    pa_tagstruct_put_channel_map(reply, &u->sink->channel_map);
     pa_tagstruct_putu32(reply, PA_INVALID_INDEX);
     pa_tagstruct_puts(reply, u->sink_name);
     pa_tagstruct_putu32(reply, DEFAULT_MAXLENGTH);
@@ -405,12 +422,15 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_putu32(reply, DEFAULT_TLENGTH);
     pa_tagstruct_putu32(reply, DEFAULT_PREBUF);
     pa_tagstruct_putu32(reply, DEFAULT_MINREQ);
-    pa_tagstruct_putu32(reply, PA_VOLUME_NORM);
+    pa_tagstruct_putu32(reply, 0);
+    pa_cvolume_reset(&volume, u->sink->sample_spec.channels);
+    pa_tagstruct_put_cvolume(reply, &volume);
 #else
     pa_tagstruct_putu32(reply, PA_COMMAND_CREATE_RECORD_STREAM);
     pa_tagstruct_putu32(reply, tag = u->ctag++);
     pa_tagstruct_puts(reply, name);
     pa_tagstruct_put_sample_spec(reply, &u->source->sample_spec);
+    pa_tagstruct_put_channel_map(reply, &u->source->channel_map);
     pa_tagstruct_putu32(reply, PA_INVALID_INDEX);
     pa_tagstruct_puts(reply, u->source_name);
     pa_tagstruct_putu32(reply, DEFAULT_MAXLENGTH);
@@ -483,6 +503,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
     pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
     pa_tagstruct_put_arbitrary(t, u->auth_cookie, sizeof(u->auth_cookie));
     pa_pstream_send_tagstruct(u->pstream, t);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, u);
