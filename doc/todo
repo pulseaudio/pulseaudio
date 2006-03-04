@@ -5,7 +5,6 @@ Test:
 - module-tunnel
 
 Fixes:
-- proper use of memcpy in procotol-esound.c so we don't get alignment problems
 - latency api rework for native protocol
 - module-oss-* love:
   - deal with underflows propely
