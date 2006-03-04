@@ -17,4 +17,6 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
                v, (v*100)/PA_VOLUME_NORM, dB, f, pa_sw_volume_from_dB(dB), pa_sw_volume_from_linear(f));
 
     }
+
+    return 0;
 }

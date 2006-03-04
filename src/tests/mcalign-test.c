@@ -93,4 +93,6 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
 
     if (c.memblock)
         pa_memblock_unref(c.memblock);
+
+    return 0;
 }
