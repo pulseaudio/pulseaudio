@@ -308,6 +308,7 @@ int pa__init(pa_core *c, pa_module*m) {
     uint32_t periods, fragsize;
     snd_pcm_uframes_t period_size;
     size_t frame_size;
+    snd_pcm_info_t *pcm_info = NULL;
     int err;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -337,6 +338,12 @@ int pa__init(pa_core *c, pa_module*m) {
     snd_config_update_free_global();
     if ((err = snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK)) < 0) {
         pa_log(__FILE__": Error opening PCM device %s: %s", dev, snd_strerror(err));
+        goto fail;
+    }
+
+    if ((err = snd_pcm_info_malloc(&pcm_info)) < 0 ||
+        (err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
+        pa_log(__FILE__": Error fetching PCM info: %s", snd_strerror(err));
         goto fail;
     }
 
@@ -375,7 +382,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s'", dev);
+    u->sink->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s' (%s)", dev, snd_pcm_info_get_name(pcm_info));
 
     u->pcm_fdl = pa_alsa_fdlist_new();
     assert(u->pcm_fdl);
@@ -419,6 +426,9 @@ int pa__init(pa_core *c, pa_module*m) {
 finish:
      if (ma)
          pa_modargs_free(ma);
+
+    if (pcm_info)
+        snd_pcm_info_free(pcm_info);
     
     return ret;
 
