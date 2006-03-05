@@ -10,7 +10,6 @@ Fixes:
   - deal with underflows propely
   - improve latency measurement for mmap
 - module-alsa-* love: 
-  - add hw driver name to sink/source description
   - deal with underflows properly
 
 Post 0.8:
