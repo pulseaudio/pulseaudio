@@ -398,15 +398,15 @@ int pa__init(pa_core *c, pa_module*m) {
     
     ret = 0;
 
-finish:
-     if (ma)
-         pa_modargs_free(ma);
-
     /* Get initial mixer settings */
     if (u->source->get_hw_volume)
         u->source->get_hw_volume(u->source);
     if (u->source->get_hw_mute)
         u->source->get_hw_mute(u->source);
+
+finish:
+     if (ma)
+         pa_modargs_free(ma);
     
     return ret;
 

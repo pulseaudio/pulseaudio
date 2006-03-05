@@ -409,16 +409,16 @@ int pa__init(pa_core *c, pa_module*m) {
     u->memchunk.index = u->memchunk.length = 0;
     
     ret = 0;
-     
-finish:
-     if (ma)
-         pa_modargs_free(ma);
 
     /* Get initial mixer settings */
     if (u->sink->get_hw_volume)
         u->sink->get_hw_volume(u->sink);
     if (u->sink->get_hw_mute)
         u->sink->get_hw_mute(u->sink);
+     
+finish:
+     if (ma)
+         pa_modargs_free(ma);
     
     return ret;
 
