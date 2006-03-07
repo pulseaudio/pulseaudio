@@ -103,6 +103,10 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
 
     PA_LLIST_PREPEND(pa_stream, c->streams, s);
 
+    /* The context and stream will point at each other. We cannot ref count
+       both though since that will create a loop. */
+    pa_context_ref(s->context);
+
     return s;
 }
 
@@ -111,7 +115,11 @@ static void hashmap_free_func(void *p, void *userdata) {
 }
 
 static void stream_free(pa_stream *s) {
-    assert(s);
+    assert(s && s->context && !s->channel_valid);
+
+    PA_LLIST_REMOVE(pa_stream, s->context->streams, s);
+
+    pa_context_unref(s->context);
 
     if (s->ipol_event) {
         assert(s->mainloop);
@@ -187,7 +195,10 @@ void pa_stream_set_state(pa_stream *s, pa_stream_state_t st) {
         if (s->channel_valid)
             pa_dynarray_put((s->direction == PA_STREAM_PLAYBACK) ? s->context->playback_streams : s->context->record_streams, s->channel, NULL);
 
-        PA_LLIST_REMOVE(pa_stream, s->context->streams, s);
+        s->channel = 0;
+        s->channel_valid = 0;
+
+        /* We keep a ref as long as we're connected */
         pa_stream_unref(s);
     }
 
@@ -357,6 +368,9 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
 
     s->channel_valid = 1;
     pa_dynarray_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, s->channel, s);
+
+    /* We add an extra ref as long as we're connected (i.e. in the dynarray) */
+    pa_stream_ref(s);
 
     if (s->interpolate) {
         struct timeval tv;
