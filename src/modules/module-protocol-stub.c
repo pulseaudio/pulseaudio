@@ -49,6 +49,7 @@
 #include <polypcore/modargs.h>
 #include <polypcore/log.h>
 #include <polypcore/native-common.h>
+#include <polypcore/xmalloc.h>
 
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"
@@ -162,41 +163,71 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
-    pa_socket_server *s;
+struct userdata {
 #if defined(USE_TCP_SOCKETS)
+    void *protocol_ipv4;
+    void *protocol_ipv6;
+#else
+    void *protocol_unix;
+#endif
+};
+
+int pa__init(pa_core *c, pa_module*m) {
+    pa_modargs *ma = NULL;
+    int ret = -1;
+
+    struct userdata *u = NULL;
+
+#if defined(USE_TCP_SOCKETS)
+    pa_socket_server *s_ipv4 = NULL;
+    pa_socket_server *s_ipv6 = NULL;
     int loopback = 1;
     uint32_t port = IPV4_PORT;
     const char *listen_on;
+#else
+    pa_socket_server *s;
+    int r;
+    const char *v;
+    char tmp[PATH_MAX];
+#endif
+
+    assert(c && m);
+
+#if defined(USE_TCP_SOCKETS)
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log(__FILE__": Failed to parse module arguments");
+        goto finish;
+    }
 
     if (pa_modargs_get_value_boolean(ma, "loopback", &loopback) < 0) {
         pa_log(__FILE__": loopback= expects a boolean argument.");
-        return NULL;
+        goto fail;
     }
 
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
         pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.");
-        return NULL;
+        goto fail;
     }
 
     listen_on = pa_modargs_get_value(ma, "listen", NULL);
 
     if (listen_on) {
-        if (!(s = pa_socket_server_new_ip_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE)))
-            return NULL;
+        s_ipv4 = pa_socket_server_new_ipv4_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE);
+        s_ipv6 = pa_socket_server_new_ipv6_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE);
+        if (!s_ipv4 && !s_ipv6)
+            goto fail;
     } else if (loopback) {
-        if (!(s = pa_socket_server_new_ip_loopback(c->mainloop, port, TCPWRAP_SERVICE)))
-            return NULL;
+        s_ipv4 = pa_socket_server_new_ipv4_loopback(c->mainloop, port, TCPWRAP_SERVICE);
+        s_ipv6 = pa_socket_server_new_ipv6_loopback(c->mainloop, port, TCPWRAP_SERVICE);
+        if (!s_ipv4 && !s_ipv6)
+            goto fail;
     } else {
-        if (!(s = pa_socket_server_new_ip_any(c->mainloop, port, TCPWRAP_SERVICE)))
-            return NULL;
+        s_ipv4 = pa_socket_server_new_ipv4_any(c->mainloop, port, TCPWRAP_SERVICE);
+        s_ipv6 = pa_socket_server_new_ipv6_any(c->mainloop, port, TCPWRAP_SERVICE);
+        if (!s_ipv4 && !s_ipv6)
+            goto fail;
     }
-    
 #else
-    int r;
-    const char *v;
-    char tmp[PATH_MAX];
-
     v = pa_modargs_get_value(ma, "socket", UNIX_SOCKET);
     assert(v);
 
@@ -204,42 +235,42 @@ static pa_socket_server *create_socket_server(pa_core *c, pa_modargs *ma) {
 
     if (pa_make_secure_parent_dir(tmp) < 0) {
         pa_log(__FILE__": Failed to create secure socket directory.");
-        return NULL;
+        goto fail;
     }
 
     if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
         pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s", tmp, strerror(errno));
-        return NULL;
+        goto fail;
     }
     
     if (r)
         pa_log(__FILE__": Removed stale UNIX socket '%s'.", tmp);
     
     if (!(s = pa_socket_server_new_unix(c->mainloop, tmp)))
-        return NULL;
-    
+        goto fail;
 #endif
-    return s;
-}
 
-int pa__init(pa_core *c, pa_module*m) {
-    pa_socket_server *s;
-    pa_modargs *ma = NULL;
-    int ret = -1;
-    assert(c && m);
+    u = pa_xmalloc0(sizeof(struct userdata));
 
-    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments");
-        goto finish;
+#if defined(USE_TCP_SOCKETS)
+    if (s_ipv4) {
+        u->protocol_ipv4 = protocol_new(c, s_ipv4, m, ma);
+        if (!u->protocol_ipv4)
+            pa_socket_server_unref(s_ipv4);
     }
 
-    if (!(s = create_socket_server(c, ma)))
-        goto finish;
-
-    if (!(m->userdata = protocol_new(c, s, m, ma))) {
-        pa_socket_server_unref(s);
-        goto finish;
+    if (s_ipv6) {
+        u->protocol_ipv6 = protocol_new(c, s_ipv4, m, ma);
+        if (!u->protocol_ipv6)
+            pa_socket_server_unref(s_ipv6);
     }
+
+    if (!u->protocol_ipv4 && !u->protocol_ipv6)
+        goto fail;
+#else
+    if (!(u->protocol_unix = protocol_new(c, s, m, ma)))
+        goto fail;
+#endif
 
     ret = 0;
 
@@ -248,9 +279,36 @@ finish:
         pa_modargs_free(ma);
 
     return ret;
+
+fail:
+    if (u) {
+#if defined(USE_TCP_SOCKETS)
+        if (u->protocol_ipv4)
+            protocol_free(u->protocol_ipv4);
+        if (u->protocol_ipv6)
+            protocol_free(u->protocol_ipv6);
+#else
+        if (u->protocol_unix)
+            protocol_free(u->protocol_unix);
+#endif
+        pa_xfree(u);
+    } else {
+#if defined(USE_TCP_SOCKETS)
+        if (s_ipv4)
+            pa_socket_server_unref(s_ipv4);
+        if (s_ipv6)
+            pa_socket_server_unref(s_ipv6);
+#else
+        if (s)
+            pa_socket_server_unref(s);
+#endif
+    }
+
+    goto finish;
 }
 
 void pa__done(pa_core *c, pa_module*m) {
+    struct userdata *u;
     assert(c && m);
 
 #if defined(USE_PROTOCOL_ESOUND) && !defined(USE_TCP_SOCKETS)
@@ -260,5 +318,18 @@ void pa__done(pa_core *c, pa_module*m) {
 		pa_log("%s: Failed to remove %s : %s.", __FILE__, ESD_UNIX_SOCKET_DIR, strerror (errno));
 #endif
 
-    protocol_free(m->userdata);
+    u = m->userdata;
+    assert(u);
+
+#if defined(USE_TCP_SOCKETS)
+    if (u->protocol_ipv4)
+        protocol_free(u->protocol_ipv4);
+    if (u->protocol_ipv6)
+        protocol_free(u->protocol_ipv6);
+#else
+    if (u->protocol_unix)
+        protocol_free(u->protocol_unix);
+#endif
+
+    pa_xfree(u);
 }
