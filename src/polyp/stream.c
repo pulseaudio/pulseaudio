@@ -103,7 +103,7 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
 
     PA_LLIST_PREPEND(pa_stream, c->streams, s);
 
-    return pa_stream_ref(s);
+    return s;
 }
 
 static void hashmap_free_func(void *p, void *userdata) {
