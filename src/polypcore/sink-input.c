@@ -262,11 +262,10 @@ finish:
          * ourselves, or if this can be done by the sink for us */
 
         if (do_volume_adj_here)
-            /* We've both the same channel map, so let's have the sink do the adjustment for us*/
-
-            pa_cvolume_reset(volume, i->sample_spec.channels);
-        else
             /* We had different channel maps, so we already did the adjustment */
+            pa_cvolume_reset(volume, i->sink->sample_spec.channels);
+        else
+            /* We've both the same channel map, so let's have the sink do the adjustment for us*/
             *volume = i->volume;
     }
     
