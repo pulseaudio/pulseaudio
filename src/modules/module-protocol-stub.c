@@ -272,6 +272,8 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
 #endif
 
+    m->userdata = u;
+
     ret = 0;
 
 finish:
