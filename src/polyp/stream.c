@@ -314,7 +314,10 @@ static void ipol_callback(pa_mainloop_api *m, pa_time_event *e, PA_GCC_UNUSED co
 /*     pa_log("requesting new ipol data"); */
     
     if (s->state == PA_STREAM_READY && !s->ipol_requested) {
-        pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
+        pa_operation *o;
+        o = pa_stream_get_latency_info(s, NULL, NULL);
+        if (o)
+            pa_operation_unref(o);
         s->ipol_requested = 1;
     }
     
@@ -374,7 +377,6 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
 
     if (s->interpolate) {
         struct timeval tv;
-        pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
 
         pa_gettimeofday(&tv);
         tv.tv_usec += LATENCY_IPOL_INTERVAL_USEC; /* every 100 ms */
@@ -860,6 +862,7 @@ finish:
 
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata) {
     pa_operation *o;
+    pa_operation *lo;
     pa_tagstruct *t;
     uint32_t tag;
     
@@ -891,7 +894,9 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, o);
 
-    pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
+    lo = pa_stream_get_latency_info(s, NULL, NULL);
+    if (lo)
+        pa_operation_unref(lo);
     
     return pa_operation_ref(o);
 }
@@ -921,8 +926,12 @@ pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *use
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
     
-    if ((o = stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata)))
-        pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
+    if ((o = stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata))) {
+        pa_operation *lo;
+        lo = pa_stream_get_latency_info(s, NULL, NULL);
+        if (lo)
+            pa_operation_unref(lo);
+    }
     
     return o;
 }
@@ -932,8 +941,12 @@ pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *us
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
 
-    if ((o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata)))
-        pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
+    if ((o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata))) {
+        pa_operation *lo;
+        lo = pa_stream_get_latency_info(s, NULL, NULL);
+        if (lo)
+            pa_operation_unref(lo);
+    }
     
     return o;
 }
@@ -943,8 +956,12 @@ pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *u
     
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
 
-    if ((o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata)))
-        pa_operation_unref(pa_stream_get_latency_info(s, NULL, NULL));
+    if ((o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata))) {
+        pa_operation *lo;
+        lo = pa_stream_get_latency_info(s, NULL, NULL);
+        if (lo)
+            pa_operation_unref(lo);
+    }
     
     return o;
 }
