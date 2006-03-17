@@ -23,6 +23,7 @@ Post 0.8:
 - port from howl to avahi
 - multiline configuration statements
 - use scatter/gather io for sockets
+- add a synchronous API (base it on xmms-polyp)
 
 Long term:
 - pass meta info for hearing impaired
@@ -32,3 +33,4 @@ Backends for:
 - portaudio  (semi-done)
 - sdl
 - OSS (esddsp style)
+- gstreamer (needs to be updated)
