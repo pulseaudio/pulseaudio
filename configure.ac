@@ -36,6 +36,10 @@ if type -p stow > /dev/null && test -d /usr/local/stow ; then
    ac_default_prefix="/usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION}"
 fi
 
+#### Large File-Support (LFS) ####
+
+AC_SYS_LARGEFILE
+
 #### Checks for programs. ####
 
 # CC
