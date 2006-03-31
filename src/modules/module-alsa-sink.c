@@ -405,7 +405,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->frame_size = frame_size;
     u->fragment_size = period_size;
 
-    pa_log_info(__FILE__": using %u fragments of size %u bytes.", periods, u->fragment_size);
+    pa_log_info(__FILE__": using %u fragments of size %lu bytes.", periods, (long unsigned)u->fragment_size);
 
     u->silence.memblock = pa_memblock_new(u->silence.length = u->fragment_size, c->memblock_stat);
     assert(u->silence.memblock);

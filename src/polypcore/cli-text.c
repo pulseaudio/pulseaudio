@@ -294,7 +294,7 @@ char *pa_scache_list_to_string(pa_core *c) {
                 "\tindex: <%u>\n"
                 "\tsample spec: <%s>\n"
                 "\tchannel map: <%s>\n"
-                "\tlength: <%u>\n"
+                "\tlength: <%lu>\n"
                 "\tduration: <%0.1fs>\n"
                 "\tvolume: <%s>\n"
                 "\tlazy: %s\n"
@@ -303,7 +303,7 @@ char *pa_scache_list_to_string(pa_core *c) {
                 e->index,
                 ss,
                 cm,
-                e->memchunk.memblock ? e->memchunk.length : 0,
+                (long unsigned)(e->memchunk.memblock ? e->memchunk.length : 0),
                 l,
                 pa_cvolume_snprint(cv, sizeof(cv), &e->volume),
                 e->lazy ? "yes" : "no",

@@ -396,7 +396,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->frame_size = frame_size;
     u->fragment_size = period_size;
 
-    pa_log(__FILE__": using %u fragments of size %u bytes.", periods, u->fragment_size);
+    pa_log(__FILE__": using %u fragments of size %lu bytes.", periods, (long unsigned)u->fragment_size);
 
     u->memchunk.memblock = NULL;
     u->memchunk.index = u->memchunk.length = 0;

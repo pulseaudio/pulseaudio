@@ -67,7 +67,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
 
         c.length = r;
         pa_mcalign_push(a, &c);
-        fprintf(stderr, "Read %d bytes\n", r);
+        fprintf(stderr, "Read %ld bytes\n", (long)r);
 
         c.index += r;
 
