@@ -297,7 +297,7 @@ static int esd_proto_connect(struct connection *c, PA_GCC_UNUSED esd_proto_t req
         }
     }
 
-    data = (char*)data + ESD_KEY_LEN;
+    data = (const char*)data + ESD_KEY_LEN;
 
     memcpy(&ekey, data, sizeof(uint32_t));
     if (ekey == ESD_ENDIAN_KEY)
@@ -325,11 +325,11 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     
     memcpy(&format, data, sizeof(int32_t));
     format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
-    data = (char*)data + sizeof(int32_t);
+    data = (const char*)data + sizeof(int32_t);
 
-    memcpy(&rate, (char*)data, sizeof(int32_t));
+    memcpy(&rate, data, sizeof(int32_t));
     rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
-    data = (char*)data + sizeof(int32_t);
+    data = (const char*)data + sizeof(int32_t);
 
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
@@ -388,11 +388,11 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     
     memcpy(&format, data, sizeof(int32_t));
     format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
-    data = (char*)data + sizeof(int32_t);
+    data = (const char*)data + sizeof(int32_t);
 
-    memcpy(&rate, (char*)data, sizeof(int32_t));
+    memcpy(&rate, data, sizeof(int32_t));
     rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
-    data = (char*)data + sizeof(int32_t);
+    data = (const char*)data + sizeof(int32_t);
 
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
@@ -633,15 +633,15 @@ static int esd_proto_stream_pan(struct connection *c, PA_GCC_UNUSED esd_proto_t 
     
     memcpy(&idx, data, sizeof(uint32_t));
     idx = MAYBE_UINT32_SWAP(c->swap_byte_order, idx) - 1;
-    data = (char*)data + sizeof(uint32_t);
+    data = (const char*)data + sizeof(uint32_t);
 
     memcpy(&lvolume, data, sizeof(uint32_t));
     lvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, lvolume);
-    data = (char*)data + sizeof(uint32_t);
+    data = (const char*)data + sizeof(uint32_t);
 
     memcpy(&rvolume, data, sizeof(uint32_t));
     rvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, rvolume);
-    data = (char*)data + sizeof(uint32_t);
+    data = (const char*)data + sizeof(uint32_t);
 
     if ((conn = pa_idxset_get_by_index(c->protocol->connections, idx))) {
         assert(conn->sink_input);
@@ -667,11 +667,11 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
 
     memcpy(&format, data, sizeof(int32_t));
     format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
-    data = (char*)data + sizeof(int32_t);
+    data = (const char*)data + sizeof(int32_t);
 
-    memcpy(&rate, (char*)data + sizeof(int32_t), sizeof(int32_t));
+    memcpy(&rate, (const char*)data + sizeof(int32_t), sizeof(int32_t));
     rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
-    data = (char*)data + sizeof(int32_t);
+    data = (const char*)data + sizeof(int32_t);
     
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
