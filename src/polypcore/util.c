@@ -418,9 +418,11 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
     return b;
 }
 
-int pa_gettimeofday(struct timeval *tv) {
+struct timeval *pa_gettimeofday(struct timeval *tv) {
 #ifdef HAVE_GETTIMEOFDAY
-    return gettimeofday(tv, NULL);
+    assert(tv);
+    
+    return gettimeofday(tv, NULL) < 0 ? NULL : tv;
 #elif defined(OS_IS_WIN32)
     /*
      * Copied from implementation by Steven Edwards (LGPL).
@@ -437,18 +439,18 @@ int pa_gettimeofday(struct timeval *tv) {
     LARGE_INTEGER   li;
     __int64         t;
 
-    if (tv) {
-        GetSystemTimeAsFileTime(&ft);
-        li.LowPart  = ft.dwLowDateTime;
-        li.HighPart = ft.dwHighDateTime;
-        t  = li.QuadPart;       /* In 100-nanosecond intervals */
-        t -= EPOCHFILETIME;     /* Offset to the Epoch time */
-        t /= 10;                /* In microseconds */
-        tv->tv_sec  = (long)(t / 1000000);
-        tv->tv_usec = (long)(t % 1000000);
-    }
+    assert(tv);
 
-    return 0;
+    GetSystemTimeAsFileTime(&ft);
+    li.LowPart  = ft.dwLowDateTime;
+    li.HighPart = ft.dwHighDateTime;
+    t  = li.QuadPart;       /* In 100-nanosecond intervals */
+    t -= EPOCHFILETIME;     /* Offset to the Epoch time */
+    t /= 10;                /* In microseconds */
+    tv->tv_sec  = (long)(t / 1000000);
+    tv->tv_usec = (long)(t % 1000000);
+
+    return tv;
 #else
 #error "Platform lacks gettimeofday() or equivalent function."
 #endif
@@ -503,8 +505,8 @@ int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) {
 pa_usec_t pa_timeval_age(const struct timeval *tv) {
     struct timeval now;
     assert(tv);
-    pa_gettimeofday(&now);
-    return pa_timeval_diff(&now, tv);
+    
+    return pa_timeval_diff(pa_gettimeofday(&now), tv);
 }
 
 /* Add the specified time inmicroseconds to the specified timeval structure */
