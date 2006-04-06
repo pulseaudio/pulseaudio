@@ -231,8 +231,10 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
 
     pa_fd_set_cloexec(fd, 1);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on)) < 0)
+#ifdef SO_REUSEADDR
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
         pa_log(__FILE__": setsockopt(): %s", strerror(errno));
+#endif
 
     pa_socket_tcp_low_delay(fd);
     
@@ -280,8 +282,15 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
 
     pa_fd_set_cloexec(fd, 1);
 
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on)) < 0)
-        pa_log(__FILE__": setsockopt(): %s", strerror(errno));
+#ifdef IPV6_V6ONLY
+    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0)
+        pa_log(__FILE__": setsockopt(IPPROTO_IPV6, IPV6_V6ONLY): %s", strerror(errno));
+#endif
+
+#ifdef SO_REUSEADDR
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+        pa_log(__FILE__": setsockopt(SOL_SOCKET, SO_REUSEADDR, 1): %s", strerror(errno));
+#endif
 
     pa_socket_tcp_low_delay(fd);
 
