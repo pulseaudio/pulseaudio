@@ -365,7 +365,7 @@ static void request_latency(struct userdata *u) {
 
 static void stream_get_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
-    uint32_t index, owner_module, monitor_source;
+    uint32_t idx, owner_module, monitor_source;
     pa_usec_t latency;
     const char *name, *description, *monitor_source_name, *driver;
     int mute;
@@ -383,7 +383,7 @@ static void stream_get_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_
         return;
     }
 
-    if (pa_tagstruct_getu32(t, &index) < 0 ||
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
         pa_tagstruct_gets(t, &name) < 0 ||
         pa_tagstruct_gets(t, &description) < 0 ||
         pa_tagstruct_get_sample_spec(t, &sample_spec) < 0 ||
