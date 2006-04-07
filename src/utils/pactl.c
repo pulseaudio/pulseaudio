@@ -175,7 +175,8 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            "Owner Module: %u\n"
            "Volume: %s\n"
            "Monitor Source: %u\n"
-           "Latency: %0.0f usec\n",
+           "Latency: %0.0f usec\n"
+           "Flags: %s%s\n",
            i->index,
            i->name,
            i->driver,
@@ -183,14 +184,16 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
-           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           i->mute ? "muted" : pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
            i->monitor_source,
-           (double) i->latency);
+           (double) i->latency,
+           i->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
+           i->flags & PA_SINK_LATENCY ? "LATENCY" : "");
 
 }
 
 static void get_source_info_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
-    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], t[32], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char s[PA_SAMPLE_SPEC_SNPRINT_MAX], t[32], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     if (is_last < 0) {
         fprintf(stderr, "Failed to get source information: %s\n", pa_strerror(pa_context_errno(c)));
@@ -218,8 +221,10 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            "Sample Specification: %s\n"
            "Channel Map: %s\n"
            "Owner Module: %u\n"
+           "Volume: %s\n"
            "Monitor of Sink: %s\n"
-           "Latency: %0.0f usec\n",
+           "Latency: %0.0f usec\n"
+           "Flags: %s%s\n",
            i->index,
            i->driver,
            i->name,
@@ -227,9 +232,12 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
            i->owner_module,
+           i->mute ? "muted" : pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
            i->monitor_of_sink != PA_INVALID_INDEX ? t : "no",
-           (double) i->latency);
-    
+           (double) i->latency,
+           i->flags & PA_SOURCE_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
+           i->flags & PA_SOURCE_LATENCY ? "LATENCY" : "");
+
 }
 
 static void get_module_info_callback(pa_context *c, const pa_module_info *i, int is_last, void *userdata) {
