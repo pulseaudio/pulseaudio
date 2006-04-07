@@ -8,8 +8,6 @@ Fixes:
 - module-oss-* love:
   - improve latency measurement for mmap
 
-- introspection API: flag reflecting if sink/source supports hw volume control
-
 Post 0.8:
 - alsa mmap driver
 - add radio module
