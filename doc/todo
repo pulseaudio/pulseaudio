@@ -6,7 +6,6 @@ Test:
 
 Fixes:
 - module-oss-* love:
-  - deal with underflows propely
   - improve latency measurement for mmap
 - module-alsa-* love: 
   - deal with underflows properly
