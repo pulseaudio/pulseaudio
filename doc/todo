@@ -7,8 +7,6 @@ Test:
 Fixes:
 - module-oss-* love:
   - improve latency measurement for mmap
-- module-alsa-* love: 
-  - deal with underflows properly
 
 - introspection API: flag reflecting if sink/source supports hw volume control
 
