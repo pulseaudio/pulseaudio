@@ -124,7 +124,7 @@ static void do_write(struct userdata *u) {
                 continue;
             }
 
-            pa_log(__FILE__": snd_pcm_writei() failed");
+            pa_log(__FILE__": snd_pcm_writei() failed: %s", snd_strerror(frames));
             return;
         }
 
@@ -176,17 +176,19 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     pa_usec_t r = 0;
     struct userdata *u = s->userdata;
     snd_pcm_sframes_t frames;
+    int err;
+    
     assert(s && u && u->sink);
 
-    if (snd_pcm_delay(u->pcm_handle, &frames) < 0) {
-        pa_log(__FILE__": failed to get delay");
+    if ((err = snd_pcm_delay(u->pcm_handle, &frames)) < 0) {
+        pa_log(__FILE__": failed to get delay: %s", snd_strerror(err));
         s->get_latency = NULL;
         return 0;
     }
 
     if (frames < 0)
         frames = 0;
-    
+
     r += pa_bytes_to_usec(frames * u->frame_size, &s->sample_spec);
 
     if (u->memchunk.memblock)
