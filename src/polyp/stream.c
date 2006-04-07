@@ -371,7 +371,8 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
     /* We add an extra ref as long as we're connected (i.e. in the dynarray) */
     pa_stream_ref(s);
 
-    if (s->flags & PA_STREAM_INTERPOLATE_TIMING) {
+    if (s->direction != PA_STREAM_UPLOAD &&
+        s->flags & PA_STREAM_INTERPOLATE_TIMING) {
         struct timeval tv;
 
         pa_gettimeofday(&tv);
@@ -542,31 +543,33 @@ int pa_stream_write(
     else
         s->requested_bytes = 0;
 
-    /* Update latency request correction */
-    if (s->latency_corrections[s->idx_latency_correction].valid) {
-
-        if (seek == PA_SEEK_ABSOLUTE) {
-            s->latency_corrections[s->idx_latency_correction].corrupt = 0;
-            s->latency_corrections[s->idx_latency_correction].absolute = 1;
-            s->latency_corrections[s->idx_latency_correction].value = offset + length;
-        } else if (seek == PA_SEEK_RELATIVE) {
-            if (!s->latency_corrections[s->idx_latency_correction].corrupt)
-                s->latency_corrections[s->idx_latency_correction].value += offset + length;
-        } else
-            s->latency_corrections[s->idx_latency_correction].corrupt = 1;
-    }
-
-    /* Update the write index in the already available latency data */
-    if (s->timing_info_valid) {
-
-        if (seek == PA_SEEK_ABSOLUTE) {
-            s->timing_info.write_index_corrupt = 0;
-            s->timing_info.write_index = offset + length;
-        } else if (seek == PA_SEEK_RELATIVE) {
-            if (!s->timing_info.write_index_corrupt)
-                s->timing_info.write_index += offset + length;
-        } else
-            s->timing_info.write_index_corrupt = 1;
+    if (s->direction == PA_STREAM_PLAYBACK) {
+        /* Update latency request correction */
+        if (s->latency_corrections[s->idx_latency_correction].valid) {
+            
+            if (seek == PA_SEEK_ABSOLUTE) {
+                s->latency_corrections[s->idx_latency_correction].corrupt = 0;
+                s->latency_corrections[s->idx_latency_correction].absolute = 1;
+                s->latency_corrections[s->idx_latency_correction].value = offset + length;
+            } else if (seek == PA_SEEK_RELATIVE) {
+                if (!s->latency_corrections[s->idx_latency_correction].corrupt)
+                    s->latency_corrections[s->idx_latency_correction].value += offset + length;
+            } else
+                s->latency_corrections[s->idx_latency_correction].corrupt = 1;
+        }
+        
+        /* Update the write index in the already available latency data */
+        if (s->timing_info_valid) {
+            
+            if (seek == PA_SEEK_ABSOLUTE) {
+                s->timing_info.write_index_corrupt = 0;
+                s->timing_info.write_index = offset + length;
+            } else if (seek == PA_SEEK_RELATIVE) {
+                if (!s->timing_info.write_index_corrupt)
+                    s->timing_info.write_index += offset + length;
+            } else
+                s->timing_info.write_index_corrupt = 1;
+        }
     }
     
     return 0;
@@ -759,7 +762,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 o->stream->latency_corrections[n].valid = 0;
         }
     }
-    
+
     if (o->callback) {
         pa_stream_success_cb_t cb = (pa_stream_success_cb_t) o->callback;
         cb(o->stream, o->stream->timing_info_valid, o->userdata);
@@ -784,11 +787,13 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
 
-    /* Find a place to store the write_index correction data for this entry */
-    cidx = (s->idx_latency_correction + 1) % PA_MAX_LATENCY_CORRECTIONS;
-
-    /* Check if we could allocate a correction slot. If not, there are too many outstanding queries */
-    PA_CHECK_VALIDITY_RETURN_NULL(s->context, !s->latency_corrections[cidx].valid, PA_ERR_INTERNAL);
+    if (s->direction == PA_STREAM_PLAYBACK) {
+        /* Find a place to store the write_index correction data for this entry */
+        cidx = (s->idx_latency_correction + 1) % PA_MAX_LATENCY_CORRECTIONS;
+        
+        /* Check if we could allocate a correction slot. If not, there are too many outstanding queries */
+        PA_CHECK_VALIDITY_RETURN_NULL(s->context, !s->latency_corrections[cidx].valid, PA_ERR_INTERNAL);
+    }
     
     o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
     
@@ -802,13 +807,15 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_timing_info_callback, o);
 
-    /* Fill in initial correction data */
-    o->stream->idx_latency_correction = cidx;
-    o->stream->latency_corrections[cidx].valid = 1;
-    o->stream->latency_corrections[cidx].tag = tag;
-    o->stream->latency_corrections[cidx].absolute = 0;
-    o->stream->latency_corrections[cidx].value = 0;
-    o->stream->latency_corrections[cidx].corrupt = 0;
+    if (s->direction == PA_STREAM_PLAYBACK) {
+        /* Fill in initial correction data */
+        o->stream->idx_latency_correction = cidx;
+        o->stream->latency_corrections[cidx].valid = 1;
+        o->stream->latency_corrections[cidx].tag = tag;
+        o->stream->latency_corrections[cidx].absolute = 0;
+        o->stream->latency_corrections[cidx].value = 0;
+        o->stream->latency_corrections[cidx].corrupt = 0;
+    }
     
     return pa_operation_ref(o);
 }
