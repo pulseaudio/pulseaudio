@@ -51,9 +51,6 @@ typedef void (*pa_stream_request_cb_t)(pa_stream *p, size_t length, void *userda
 /** A generic notification callback */
 typedef void (*pa_stream_notify_cb_t)(pa_stream *p, void *userdata);
 
-/** Callback prototype for pa_stream_get_latency_info() */
-typedef void (*pa_stream_get_latency_info_cb_t)(pa_stream *p, const pa_latency_info *i, void *userdata);
-
 /** Create a new, unconnected stream with the specified name and sample type */
 pa_stream* pa_stream_new(
         pa_context *c                     /**< The context to create this stream in */,             
@@ -133,8 +130,8 @@ size_t pa_stream_readable_size(pa_stream *p);
 /** Drain a playback stream. Use this for notification when the buffer is empty */
 pa_operation* pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
-/** Get the playback latency of a stream */
-pa_operation* pa_stream_get_latency_info(pa_stream *p, pa_stream_get_latency_info_cb_t cby, void *userdata);
+/** Update the latency info of a stream */
+pa_operation* pa_stream_update_latency_info(pa_stream *p, pa_stream_success_cb_t cb, void *userdata);
 
 /** Set the callback function that is called whenever the state of the stream changes */
 void pa_stream_set_state_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata);
@@ -173,34 +170,21 @@ pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *u
 /** Rename the stream. \since 0.5 */
 pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_success_cb_t cb, void *userdata);
 
-/** Return the total number of bytes written to/read from the
- * stream. This counter is not reset on pa_stream_flush(), you may do
- * this yourself using pa_stream_reset_counter(). \since 0.6 */
-uint64_t pa_stream_get_counter(pa_stream *s);
-
 /** Return the current playback/recording time. This is based on the
  * counter accessible with pa_stream_get_counter(). This function
  * requires a pa_latency_info structure as argument, which should be
  * acquired using pa_stream_get_latency(). \since 0.6 */
-pa_usec_t pa_stream_get_time(pa_stream *s, const pa_latency_info *i);
+int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
 /** Return the total stream latency. Thus function requires a
  * pa_latency_info structure as argument, which should be aquired
  * using pa_stream_get_latency(). In case the stream is a monitoring
  * stream the result can be negative, i.e. the captured samples are
  * not yet played. In this case *negative is set to 1. \since 0.6 */
-pa_usec_t pa_stream_get_latency(pa_stream *s, const pa_latency_info *i, int *negative);
+int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
 
-/** Return the interpolated playback/recording time. Requires the
- *  PA_STREAM_INTERPOLATE_LATENCY bit set when creating the stream. In
- *  contrast to pa_stream_get_latency() this function doesn't require
- *  a whole roundtrip for response. \since 0.6 */
-pa_usec_t pa_stream_get_interpolated_time(pa_stream *s);
-
-/** Return the interpolated playback/recording latency. Requires the
- * PA_STREAM_INTERPOLATE_LATENCY bit set when creating the
- * stream. \since 0.6 */
-pa_usec_t pa_stream_get_interpolated_latency(pa_stream *s, int *negative);
+/** Return the latest latency data. \since 0.8 */
+const pa_latency_info* pa_stream_get_latency_info(pa_stream *s);
 
 /** Return a pointer to the stream's sample specification. \since 0.6 */
 const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s);

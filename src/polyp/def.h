@@ -80,7 +80,7 @@ typedef enum pa_stream_direction {
 /** Some special flags for stream connections. \since 0.6 */
 typedef enum pa_stream_flags {
     PA_STREAM_START_CORKED = 1,       /**< Create the stream corked, requiring an explicit pa_stream_cork() call to uncork it. */
-    PA_STREAM_INTERPOLATE_LATENCY = 2 /**< Interpolate the latency for
+    PA_STREAM_INTERPOLATE_LATENCY = 2, /**< Interpolate the latency for
                                        * this stream. When enabled,
                                        * you can use
                                        * pa_stream_interpolated_xxx()
@@ -95,6 +95,7 @@ typedef enum pa_stream_flags {
                                        * information. This is
                                        * especially useful on long latency
                                        * network connections. */
+    PA_STREAM_NOT_MONOTONOUS = 4,    /**< Don't force the time to run monotonically */
 } pa_stream_flags_t;
 
 /** Playback and record buffer metrics */
@@ -124,7 +125,7 @@ enum {
     PA_ERR_INVALIDSERVER,          /**< Invalid server */
     PA_ERR_MODINITFAILED,          /**< Module initialization failed */
     PA_ERR_BADSTATE,               /**< Bad state */
-    PA_ERR_NODATA,                 /**< No data */ 
+    PA_ERR_NODATA,                 /**< No data */
     PA_ERR_VERSION,                /**< Incompatible protocol version \since 0.8 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
@@ -171,7 +172,7 @@ typedef enum pa_subscription_event_type {
  * pa_stream_write() takes to be played may be estimated by
  * sink_usec+buffer_usec+transport_usec. The output buffer to which
  * buffer_usec relates may be manipulated freely (with
- * pa_stream_write()'s delta argument, pa_stream_flush() and friends),
+ * pa_stream_write()'s seek argument, pa_stream_flush() and friends),
  * the buffers sink_usec/source_usec relates to is a first-in
  * first-out buffer which cannot be flushed or manipulated in any
  * way. The total input latency a sample that is recorded takes to be
@@ -180,12 +181,7 @@ typedef enum pa_subscription_event_type {
  * sign issues!) When connected to a monitor source sink_usec contains
  * the latency of the owning sink.*/
 typedef struct pa_latency_info {
-    pa_usec_t buffer_usec;    /**< Time in usecs the current buffer takes to play. For both playback and record streams. */
-    pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink. For playback streams and record streams connected to a monitor source. */
-    pa_usec_t source_usec;    /**< Time in usecs a sample takes from being recorded to being delivered to the application. Only for record streams. \since 0.5*/
-    pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to/from the daemon. For both playback and record streams. \since 0.5 */
-    int playing;              /**< Non-zero when the stream is currently playing. Only for playback streams. */
-    uint32_t queue_length;    /**< Queue size in bytes. For both playback and record streams. */
+    struct timeval timestamp; /**< The time when this latency info was current */
     int synchronized_clocks;  /**< Non-zero if the local and the
                                * remote machine have synchronized
                                * clocks. If synchronized clocks are
@@ -194,10 +190,31 @@ typedef struct pa_latency_info {
                                * detects synchronized clocks is very
                                * limited und unreliable itself. \since
                                * 0.5 */
-    struct timeval timestamp; /**< The time when this latency info was current */
-    uint64_t counter;         /**< The byte counter current when the latency info was requested. \since 0.6 */
-    int64_t write_index;      /**< Current absolute write index in the buffer. \since 0.8 */
-    int64_t read_index;       /**< Current absolute read index in the buffer. \since 0.8 */
+
+    pa_usec_t buffer_usec;    /**< Time in usecs the current buffer takes to play. For both playback and record streams. */
+    pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink. For playback streams and record streams connected to a monitor source. */
+    pa_usec_t source_usec;    /**< Time in usecs a sample takes from being recorded to being delivered to the application. Only for record streams. \since 0.5*/
+    pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to/from the daemon. For both playback and record streams. \since 0.5 */
+
+    int playing;              /**< Non-zero when the stream is currently playing. Only for playback streams. */
+
+    int write_index_corrupt;  /**< Non-Zero if the write_index is not up to date because a local write command corrupted it */
+    int64_t write_index;      /**< Current write index into the
+                               * playback buffer in bytes. Think twice before
+                               * using this for seeking purposes: it
+                               * might be out of date a the time you
+                               * want to use it. Consider using
+                               * PA_SEEK_RELATIVE instead. \since
+                               * 0.8 */ 
+    int64_t read_index;       /**< Current read index into the
+                               * playback buffer in bytes. Think twice before
+                               * using this for seeking purposes: it
+                               * might be out of date a the time you
+                               * want to use it. Consider using
+                               * PA_SEEK_RELATIVE_ON_READ
+                               * instead. \since 0.8 */
+
+    uint32_t buffer_length;   /* Current buffer length. This is usually identical to write_index-read_index. */
 } pa_latency_info;
 
 /** A structure for the spawn api. This may be used to integrate auto
@@ -226,7 +243,6 @@ typedef enum pa_seek_mode {
     PA_SEEK_RELATIVE_ON_READ = 2,   /**< Seek relatively to the read index */
     PA_SEEK_RELATIVE_END = 3,       /**< Seek relatively to the current end of the buffer queue */
 } pa_seek_mode_t;
-
 
 PA_C_DECL_END
 

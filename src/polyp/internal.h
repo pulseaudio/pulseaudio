@@ -83,6 +83,15 @@ struct pa_context {
     pa_client_conf *conf;
 };
 
+#define PA_MAX_LATENCY_CORRECTIONS 10
+
+typedef struct pa_latency_correction {
+    uint32_t tag;
+    int valid;
+    int64_t value;
+    int absolute, corrupt;
+} pa_latency_correction;
+
 struct pa_stream {
     int ref;
     pa_context *context;
@@ -93,41 +102,48 @@ struct pa_stream {
     pa_buffer_attr buffer_attr;
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+    pa_stream_flags_t flags;
     uint32_t channel;
     uint32_t syncid;
     int channel_valid;
     uint32_t device_index;
     pa_stream_direction_t direction;
-    uint32_t requested_bytes;
-    uint64_t counter;
-    pa_usec_t previous_time;
-    pa_usec_t previous_ipol_time;
     pa_stream_state_t state;
+    
+    uint32_t requested_bytes;
+
     pa_memchunk peek_memchunk;
     pa_memblockq *record_memblockq;
 
-    pa_hashmap *counter_hashmap;
-
-    int interpolate;
     int corked;
 
-    uint32_t ipol_usec;
-    struct timeval ipol_timestamp;
+    /* Store latest latency info */
+    pa_latency_info latency_info;
+    int latency_info_valid;
+    
+    /* Use to make sure that time advances monotonically */
+    pa_usec_t previous_time;
+    
+    /* Latency correction stuff */
+    pa_latency_correction latency_corrections[PA_MAX_LATENCY_CORRECTIONS];
+    int idx_latency_correction;
+
+    /* Latency interpolation stuff */
     pa_time_event *ipol_event;
     int ipol_requested;
-    
+    pa_usec_t ipol_usec;
+    int ipol_usec_valid;
+    struct timeval ipol_timestamp;
+
+    /* Callbacks */
     pa_stream_notify_cb_t state_callback;
     void *state_userdata;
-
     pa_stream_request_cb_t read_callback;
     void *read_userdata;
-
     pa_stream_request_cb_t write_callback;
     void *write_userdata;
-
     pa_stream_notify_cb_t overflow_callback;
     void *overflow_userdata;
-
     pa_stream_notify_cb_t underflow_callback;
     void *underflow_userdata;
 };
