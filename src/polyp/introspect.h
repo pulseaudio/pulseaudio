@@ -63,6 +63,7 @@ typedef struct pa_sink_info {
     const char *monitor_source_name;   /**< The name of the monitor source */
     pa_usec_t latency;                 /**< Length of filled playback buffer of this sink */
     const char *driver;                /**< Driver name. \since 0.8 */
+    pa_sink_flags_t flags;             /**< Flags \since 0.8 */
 } pa_sink_info;
 
 /** Callback prototype for pa_context_get_sink_info_by_name() and friends */
@@ -91,6 +92,7 @@ typedef struct pa_source_info {
     const char *monitor_of_sink_name;   /**< Name of the owning sink, or PA_INVALID_INDEX */
     pa_usec_t latency;                  /**< Length of filled record buffer of this source. \since 0.5 */
     const char *driver;                 /**< Driver name \since 0.8 */
+    pa_source_flags_t flags;            /**< Flags \since 0.8 */
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */

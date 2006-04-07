@@ -273,6 +273,18 @@ typedef enum pa_seek_mode {
     PA_SEEK_RELATIVE_END = 3,       /**< Seek relatively to the current end of the buffer queue. */
 } pa_seek_mode_t;
 
+/** Special sink flags. \since 0.8  */
+typedef enum pa_sink_flags {
+    PA_SINK_HW_VOLUME_CTRL = 1,   /**< Supports hardware volume control */
+    PA_SINK_LATENCY = 2           /**< Supports latency querying */
+} pa_sink_flags_t;
+
+/** Special source flags. \since 0.8  */
+typedef enum pa_source_flags {
+    PA_SOURCE_HW_VOLUME_CTRL = 1,  /**< Supports hardware volume control */
+    PA_SOURCE_LATENCY = 2          /**< Supports latency querying */
+} pa_source_flags_t;
+
 PA_C_DECL_END
 
 #endif

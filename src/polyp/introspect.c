@@ -135,6 +135,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
 
         eol = -1;
     } else {
+        uint32_t flags;
         
         while (!pa_tagstruct_eof(t)) {
             pa_sink_info i;
@@ -150,11 +151,14 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 pa_tagstruct_getu32(t, &i.monitor_source) < 0 ||
                 pa_tagstruct_gets(t, &i.monitor_source_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
-                pa_tagstruct_gets(t, &i.driver) < 0) {
+                pa_tagstruct_gets(t, &i.driver) < 0 ||
+                pa_tagstruct_getu32(t, &flags) < 0) {
                 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
+
+            i.flags = (pa_sink_flags_t) flags;
 
             if (o->callback) {
                 pa_sink_info_cb_t cb = (pa_sink_info_cb_t) o->callback;
@@ -242,6 +246,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
         
         while (!pa_tagstruct_eof(t)) {
             pa_source_info i;
+            uint32_t flags;
             
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -254,11 +259,14 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_getu32(t, &i.monitor_of_sink) < 0 ||
                 pa_tagstruct_gets(t, &i.monitor_of_sink_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
-                pa_tagstruct_gets(t, &i.driver) < 0) {
+                pa_tagstruct_gets(t, &i.driver) < 0 ||
+                pa_tagstruct_getu32(t, &flags) < 0) {
                 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
+
+            i.flags = (pa_source_flags_t) flags;
 
             if (o->callback) {
                 pa_source_info_cb_t cb = (pa_source_info_cb_t) o->callback;

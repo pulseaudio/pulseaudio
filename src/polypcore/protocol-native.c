@@ -1232,6 +1232,7 @@ static void sink_fill_tagstruct(pa_tagstruct *t, pa_sink *sink) {
         PA_TAG_STRING, sink->monitor_source->name,
         PA_TAG_USEC, pa_sink_get_latency(sink),
         PA_TAG_STRING, sink->driver,
+        PA_TAG_U32, (sink->get_hw_volume ? PA_SINK_HW_VOLUME_CTRL : 0) | (sink->get_latency ? PA_SINK_LATENCY : 0),
         PA_TAG_INVALID);
 }
 
@@ -1251,6 +1252,7 @@ static void source_fill_tagstruct(pa_tagstruct *t, pa_source *source) {
         PA_TAG_STRING, source->monitor_of ? source->monitor_of->name : NULL,
         PA_TAG_USEC, pa_source_get_latency(source),
         PA_TAG_STRING, source->driver,
+        PA_TAG_U32, (source->get_hw_volume ? PA_SOURCE_HW_VOLUME_CTRL : 0) | (source->get_latency ? PA_SOURCE_LATENCY : 0),
         PA_TAG_INVALID);
 }
 
