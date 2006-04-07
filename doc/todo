@@ -5,7 +5,6 @@ Test:
 - module-tunnel
 
 Fixes:
-- latency api rework for native protocol
 - module-oss-* love:
   - deal with underflows propely
   - improve latency measurement for mmap
