@@ -345,7 +345,7 @@ int pa_simple_drain(pa_simple *p, int *rerror) {
     return p->dead ? -1 : 0;
 }
 
-static void latency_complete(pa_stream *s, int success, void *userdata) {
+static void timing_complete(pa_stream *s, int success, void *userdata) {
     pa_simple *p = userdata;
 
     assert(s);
@@ -377,7 +377,7 @@ pa_usec_t pa_simple_get_playback_latency(pa_simple *p, int *rerror) {
     }
 
     p->latency = 0;
-    if (!(o = pa_stream_update_latency_info(p->stream, latency_complete, p))) {
+    if (!(o = pa_stream_update_timing_info(p->stream, timing_complete, p))) {
         if (rerror)
             *rerror = pa_context_errno(p->context);
         return (pa_usec_t) -1;

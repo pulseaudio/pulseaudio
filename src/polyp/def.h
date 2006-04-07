@@ -80,22 +80,44 @@ typedef enum pa_stream_direction {
 /** Some special flags for stream connections. \since 0.6 */
 typedef enum pa_stream_flags {
     PA_STREAM_START_CORKED = 1,       /**< Create the stream corked, requiring an explicit pa_stream_cork() call to uncork it. */
-    PA_STREAM_INTERPOLATE_LATENCY = 2, /**< Interpolate the latency for
+    PA_STREAM_INTERPOLATE_TIMING = 2, /**< Interpolate the latency for
                                        * this stream. When enabled,
-                                       * you can use
-                                       * pa_stream_interpolated_xxx()
-                                       * for synchronization. Using
-                                       * these functions instead of
-                                       * pa_stream_get_latency() has
-                                       * the advantage of not
-                                       * requiring a whole roundtrip
-                                       * for responses. Consider using
-                                       * this option when frequently
-                                       * requesting latency
-                                       * information. This is
-                                       * especially useful on long latency
-                                       * network connections. */
-    PA_STREAM_NOT_MONOTONOUS = 4,    /**< Don't force the time to run monotonically */
+                                       * pa_stream_get_latency() and pa_stream_get_time()
+                                       * will try to estimate the
+                                       * current record/playback time
+                                       * based on the local time that
+                                       * passed since the last timing
+                                       * info update. In addition
+                                       * timing update requests are
+                                       * issued periodically
+                                       * automatically. Using this
+                                       * option has the advantage of
+                                       * not requiring a whole
+                                       * roundtrip when the current
+                                       * playback/recording time is
+                                       * needed. Consider using this
+                                       * option when requesting
+                                       * latency information
+                                       * frequently. This is
+                                       * especially useful on long
+                                       * latency network
+                                       * connections. */
+    PA_STREAM_NOT_MONOTONOUS = 4,    /**< Don't force the time to
+                                      * increase monotonically. If
+                                      * this option is enabled,
+                                      * pa_stream_get_time() will not
+                                      * necessarily return always
+                                      * monotonically increasing time
+                                      * values on each call. This may
+                                      * confuse applications which
+                                      * cannot deal with time going
+                                      * 'backwards', but has the
+                                      * advantage that bad transport
+                                      * latency estimations that
+                                      * caused the time to to jump
+                                      * ahead can be corrected
+                                      * quickly, without the need to
+                                      * wait. */
 } pa_stream_flags_t;
 
 /** Playback and record buffer metrics */
@@ -167,21 +189,23 @@ typedef enum pa_subscription_event_type {
 /** Return one if an event type t matches an event mask bitfield */
 #define pa_subscription_match_flags(m, t) (!!((m) & (1 << ((t) & PA_SUBSCRIPTION_EVENT_FACILITY_MASK))))
 
-/** A structure for latency info. See pa_stream_get_latency(). The
+/** A structure for all kinds of timing information of a stream. See
+ * pa_stream_update_timing_info() and pa_stream_get_timing_info(). The
  * total output latency a sample that is written with
  * pa_stream_write() takes to be played may be estimated by
  * sink_usec+buffer_usec+transport_usec. The output buffer to which
  * buffer_usec relates may be manipulated freely (with
  * pa_stream_write()'s seek argument, pa_stream_flush() and friends),
- * the buffers sink_usec/source_usec relates to is a first-in
- * first-out buffer which cannot be flushed or manipulated in any
+ * the buffers sink_usec and source_usec relate to are first-in
+ * first-out (FIFO) buffers which cannot be flushed or manipulated in any
  * way. The total input latency a sample that is recorded takes to be
  * delivered to the application is:
  * source_usec+buffer_usec+transport_usec-sink_usec. (Take care of
  * sign issues!) When connected to a monitor source sink_usec contains
- * the latency of the owning sink.*/
-typedef struct pa_latency_info {
-    struct timeval timestamp; /**< The time when this latency info was current */
+ * the latency of the owning sink. The two latency estimations
+ * described here are implemented in pa_stream_get_latency().*/
+typedef struct pa_timing_info {
+    struct timeval timestamp; /**< The time when this timing info structure was current */
     int synchronized_clocks;  /**< Non-zero if the local and the
                                * remote machine have synchronized
                                * clocks. If synchronized clocks are
@@ -198,7 +222,14 @@ typedef struct pa_latency_info {
 
     int playing;              /**< Non-zero when the stream is currently playing. Only for playback streams. */
 
-    int write_index_corrupt;  /**< Non-Zero if the write_index is not up to date because a local write command corrupted it */
+    int write_index_corrupt;  /**< Non-zero if write_index is not
+                               * up-to-date because a local write
+                               * command that corrupted it has been
+                               * issued in the time since this latency
+                               * info was current . Only write
+                               * commands with SEEK_RELATIVE_ON_READ
+                               * and SEEK_RELATIVE_END can corrupt
+                               * write_index. */
     int64_t write_index;      /**< Current write index into the
                                * playback buffer in bytes. Think twice before
                                * using this for seeking purposes: it
@@ -213,9 +244,7 @@ typedef struct pa_latency_info {
                                * want to use it. Consider using
                                * PA_SEEK_RELATIVE_ON_READ
                                * instead. \since 0.8 */
-
-    uint32_t buffer_length;   /* Current buffer length. This is usually identical to write_index-read_index. */
-} pa_latency_info;
+} pa_timing_info;
 
 /** A structure for the spawn api. This may be used to integrate auto
  * spawned daemons into your application. For more information see
@@ -236,12 +265,12 @@ typedef struct pa_spawn_api {
                                 * passed to the new process. */
 } pa_spawn_api;
 
-/** Seek type \since 0.8*/
+/** Seek type for pa_stream_write(). \since 0.8*/
 typedef enum pa_seek_mode {
     PA_SEEK_RELATIVE = 0,           /**< Seek relatively to the write index */
     PA_SEEK_ABSOLUTE = 1,           /**< Seek relatively to the start of the buffer queue */  
-    PA_SEEK_RELATIVE_ON_READ = 2,   /**< Seek relatively to the read index */
-    PA_SEEK_RELATIVE_END = 3,       /**< Seek relatively to the current end of the buffer queue */
+    PA_SEEK_RELATIVE_ON_READ = 2,   /**< Seek relatively to the read index.  */
+    PA_SEEK_RELATIVE_END = 3,       /**< Seek relatively to the current end of the buffer queue. */
 } pa_seek_mode_t;
 
 PA_C_DECL_END

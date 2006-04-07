@@ -340,15 +340,15 @@ static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig,
 }
 
 /* Show the current latency */
-static void stream_update_latency_callback(pa_stream *s, int success, void *userdata) {
+static void stream_update_timing_callback(pa_stream *s, int success, void *userdata) {
     pa_usec_t total;
     int negative = 0;
-    const pa_latency_info *i;
+    const pa_timing_info *i;
     
     assert(s);
 
     if (!success ||
-        !(i = pa_stream_get_latency_info(s)) ||
+        !(i = pa_stream_get_timing_info(s)) ||
         pa_stream_get_latency(s, &total, &negative) < 0) {
         fprintf(stderr, "Failed to get latency: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
@@ -366,8 +366,7 @@ static void stream_update_latency_callback(pa_stream *s, int success, void *user
 
 /* Someone requested that the latency is shown */
 static void sigusr1_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
-    fprintf(stderr, "Got SIGUSR1, requesting latency.\n");
-    pa_operation_unref(pa_stream_update_latency_info(stream, stream_update_latency_callback, NULL));
+    pa_operation_unref(pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL));
 }
 
 

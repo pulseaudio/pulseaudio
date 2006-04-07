@@ -130,8 +130,11 @@ size_t pa_stream_readable_size(pa_stream *p);
 /** Drain a playback stream. Use this for notification when the buffer is empty */
 pa_operation* pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
-/** Update the latency info of a stream */
-pa_operation* pa_stream_update_latency_info(pa_stream *p, pa_stream_success_cb_t cb, void *userdata);
+/** Request a timing info structure update for a stream. Use
+ * pa_stream_get_timing_info() to get access to the raw timing data,
+ * or pa_stream_get_time() or pa_stream_get_latency() to get cleaned
+ * up values. */
+pa_operation* pa_stream_update_timing_info(pa_stream *p, pa_stream_success_cb_t cb, void *userdata);
 
 /** Set the callback function that is called whenever the state of the stream changes */
 void pa_stream_set_state_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata);
@@ -171,20 +174,39 @@ pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *u
 pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_success_cb_t cb, void *userdata);
 
 /** Return the current playback/recording time. This is based on the
- * counter accessible with pa_stream_get_counter(). This function
- * requires a pa_latency_info structure as argument, which should be
- * acquired using pa_stream_get_latency(). \since 0.6 */
+ * data in the timing info structure returned by
+ * pa_stream_get_timing_info(). This function will usually only return
+ * new data if a timing info update has been recieved. Only if timing
+ * interpolation has been requested (PA_STREAM_INTERPOLATE_TIMING)
+ * the data from the last timing update is used for an estimation of
+ * the current playback/recording time based on the local time that
+ * passed since the timing info structure has been acquired. The time
+ * value returned by this function is guaranteed to increase
+ * monotonically. (that means: the returned value is always greater or
+ * equal to the value returned on the last call) This behaviour can
+ * be disabled by using PA_STREAM_NOT_MONOTONOUS. This may be
+ * desirable to deal better with bad estimations of transport
+ * latencies, but may have strange effects if the application is not
+ * able to deal with time going 'backwards'. \since 0.6 */
 int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
-/** Return the total stream latency. Thus function requires a
- * pa_latency_info structure as argument, which should be aquired
- * using pa_stream_get_latency(). In case the stream is a monitoring
- * stream the result can be negative, i.e. the captured samples are
- * not yet played. In this case *negative is set to 1. \since 0.6 */
+/** Return the total stream latency. This function is based on
+ * pa_stream_get_time(). In case the stream is a monitoring stream the
+ * result can be negative, i.e. the captured samples are not yet
+ * played. In this case *negative is set to 1. \since 0.6 */
 int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
 
-/** Return the latest latency data. \since 0.8 */
-const pa_latency_info* pa_stream_get_latency_info(pa_stream *s);
+/** Return the latest raw timing data structure. The returned pointer
+ * points to an internal read-only instance of the timing
+ * structure. The user should make a copy of this structure if he
+ * wants to modify it. An in-place update to this data structure may
+ * be requested using pa_stream_update_timing_info(). If no
+ * pa_stream_update_timing_info() call was issued before, this
+ * function will fail with PA_ERR_NODATA. Please note that the
+ * write_index member field (and only this field) is updated on each
+ * pa_stream_write() call, not just when a timing update has been
+ * recieved. \since 0.8 */
+const pa_timing_info* pa_stream_get_timing_info(pa_stream *s);
 
 /** Return a pointer to the stream's sample specification. \since 0.6 */
 const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s);

@@ -89,7 +89,7 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     s->record_memblockq = NULL;
 
     s->previous_time = 0;
-    s->latency_info_valid = 0;
+    s->timing_info_valid = 0;
 
     s->corked = 0;
 
@@ -311,7 +311,7 @@ static void ipol_callback(pa_mainloop_api *m, pa_time_event *e, PA_GCC_UNUSED co
     if (s->state == PA_STREAM_READY && !s->ipol_requested) {
         pa_operation *o;
         
-        if ((o = pa_stream_update_latency_info(s, NULL, NULL))) {
+        if ((o = pa_stream_update_timing_info(s, NULL, NULL))) {
             pa_operation_unref(o);
             s->ipol_requested = 1;
         }
@@ -371,7 +371,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
     /* We add an extra ref as long as we're connected (i.e. in the dynarray) */
     pa_stream_ref(s);
 
-    if (s->flags & PA_STREAM_INTERPOLATE_LATENCY) {
+    if (s->flags & PA_STREAM_INTERPOLATE_TIMING) {
         struct timeval tv;
 
         pa_gettimeofday(&tv);
@@ -406,7 +406,7 @@ static int create_stream(
     assert(s->ref >= 1);
     
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY(s->context, !(flags & ~(PA_STREAM_START_CORKED|PA_STREAM_INTERPOLATE_LATENCY)), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, !(flags & ~(PA_STREAM_START_CORKED|PA_STREAM_INTERPOLATE_TIMING)), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, direction == PA_STREAM_PLAYBACK || flags == 0, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !volume || volume->channels == s->sample_spec.channels, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !sync_stream || (direction == PA_STREAM_PLAYBACK && sync_stream->direction == PA_STREAM_PLAYBACK), PA_ERR_INVALID);
@@ -557,16 +557,16 @@ int pa_stream_write(
     }
 
     /* Update the write index in the already available latency data */
-    if (s->latency_info_valid) {
+    if (s->timing_info_valid) {
 
         if (seek == PA_SEEK_ABSOLUTE) {
-            s->latency_info.write_index_corrupt = 0;
-            s->latency_info.write_index = offset + length;
+            s->timing_info.write_index_corrupt = 0;
+            s->timing_info.write_index = offset + length;
         } else if (seek == PA_SEEK_RELATIVE) {
-            if (!s->latency_info.write_index_corrupt)
-                s->latency_info.write_index += offset + length;
+            if (!s->timing_info.write_index_corrupt)
+                s->timing_info.write_index += offset + length;
         } else
-            s->latency_info.write_index_corrupt = 1;
+            s->timing_info.write_index_corrupt = 1;
     }
     
     return 0;
@@ -654,18 +654,18 @@ pa_operation * pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *us
     return pa_operation_ref(o);
 }
 
-static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     struct timeval local, remote, now;
-    pa_latency_info *i;
+    pa_timing_info *i;
     
     assert(pd);
     assert(o);
     assert(o->stream);
     assert(o->context);
 
-    i = &o->stream->latency_info;
-    o->stream->latency_info_valid = 0;
+    i = &o->stream->timing_info;
+    o->stream->timing_info_valid = 0;
     i->write_index_corrupt = 0;
 
     if (command != PA_COMMAND_REPLY) {
@@ -741,7 +741,7 @@ static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command,
             }
         }
         
-        o->stream->latency_info_valid = 1;
+        o->stream->timing_info_valid = 1;
         
         o->stream->ipol_timestamp = now;
         o->stream->ipol_usec_valid = 0;
@@ -762,7 +762,7 @@ static void stream_get_latency_info_callback(pa_pdispatch *pd, uint32_t command,
     
     if (o->callback) {
         pa_stream_success_cb_t cb = (pa_stream_success_cb_t) o->callback;
-        cb(o->stream, o->stream->latency_info_valid, o->userdata);
+        cb(o->stream, o->stream->timing_info_valid, o->userdata);
     }
     
 finish:
@@ -771,7 +771,7 @@ finish:
     pa_operation_unref(o);
 }
 
-pa_operation* pa_stream_update_latency_info(pa_stream *s, pa_stream_success_cb_t cb, void *userdata) {
+pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t cb, void *userdata) {
     uint32_t tag;
     pa_operation *o;
     pa_tagstruct *t;
@@ -800,7 +800,7 @@ pa_operation* pa_stream_update_latency_info(pa_stream *s, pa_stream_success_cb_t
     pa_tagstruct_put_timeval(t, pa_gettimeofday(&now));
     
     pa_pstream_send_tagstruct(s->context->pstream, t);
-    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_info_callback, o);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_timing_info_callback, o);
 
     /* Fill in initial correction data */
     o->stream->idx_latency_correction = cidx;
@@ -945,7 +945,7 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
 
-    if (s->flags & PA_STREAM_INTERPOLATE_LATENCY) {
+    if (s->flags & PA_STREAM_INTERPOLATE_TIMING) {
         if (!s->corked && b) {
             /* Refresh the interpolated data just befor pausing */
             pa_stream_get_time(s, NULL);
@@ -967,7 +967,7 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, o);
 
-    if ((lo = pa_stream_update_latency_info(s, NULL, NULL)))
+    if ((lo = pa_stream_update_timing_info(s, NULL, NULL)))
         pa_operation_unref(lo);
     
     return pa_operation_ref(o);
@@ -1001,7 +1001,7 @@ pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *use
     if ((o = stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata))) {
         pa_operation *lo;
 
-        if ((lo = pa_stream_update_latency_info(s, NULL, NULL)))
+        if ((lo = pa_stream_update_timing_info(s, NULL, NULL)))
             pa_operation_unref(lo);
     }
     
@@ -1016,7 +1016,7 @@ pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *us
     if ((o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata))) {
         pa_operation *lo;
 
-        if ((lo = pa_stream_update_latency_info(s, NULL, NULL)))
+        if ((lo = pa_stream_update_timing_info(s, NULL, NULL)))
             pa_operation_unref(lo);
     }
     
@@ -1031,7 +1031,7 @@ pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *u
     if ((o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata))) {
         pa_operation *lo;
 
-        if ((lo = pa_stream_update_latency_info(s, NULL, NULL)))
+        if ((lo = pa_stream_update_timing_info(s, NULL, NULL)))
             pa_operation_unref(lo);
     }
     
@@ -1072,56 +1072,56 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY(s->context, s->latency_info_valid, PA_ERR_NODATA);
+    PA_CHECK_VALIDITY(s->context, s->timing_info_valid, PA_ERR_NODATA);
 
-    if (s->flags & PA_STREAM_INTERPOLATE_LATENCY && s->ipol_usec_valid )
+    if (s->flags & PA_STREAM_INTERPOLATE_TIMING && s->ipol_usec_valid )
         usec = s->ipol_usec;
     else {
         if (s->direction == PA_STREAM_PLAYBACK) {
             /* The last byte that was written into the output device
              * had this time value associated */
-            usec = pa_bytes_to_usec(s->latency_info.read_index < 0 ? 0 : (uint64_t) s->latency_info.read_index, &s->sample_spec);
+            usec = pa_bytes_to_usec(s->timing_info.read_index < 0 ? 0 : (uint64_t) s->timing_info.read_index, &s->sample_spec);
             
             /* Because the latency info took a little time to come
              * to us, we assume that the real output time is actually
              * a little ahead */
-            usec += s->latency_info.transport_usec;
+            usec += s->timing_info.transport_usec;
             
             /* However, the output device usually maintains a buffer
                too, hence the real sample currently played is a little
                back  */
-            if (s->latency_info.sink_usec >= usec)
+            if (s->timing_info.sink_usec >= usec)
                 usec = 0;
             else
-                usec -= s->latency_info.sink_usec;
+                usec -= s->timing_info.sink_usec;
             
         } else if (s->direction == PA_STREAM_RECORD) {
             /* The last byte written into the server side queue had
              * this time value associated */
-            usec = pa_bytes_to_usec(s->latency_info.write_index < 0 ? 0 : (uint64_t) s->latency_info.write_index, &s->sample_spec);
+            usec = pa_bytes_to_usec(s->timing_info.write_index < 0 ? 0 : (uint64_t) s->timing_info.write_index, &s->sample_spec);
             
             /* Add transport latency */
-            usec += s->latency_info.transport_usec;
+            usec += s->timing_info.transport_usec;
             
             /* Add latency of data in device buffer */
-            usec += s->latency_info.source_usec;
+            usec += s->timing_info.source_usec;
             
             /* If this is a monitor source, we need to correct the
              * time by the playback device buffer */
-            if (s->latency_info.sink_usec >= usec)
+            if (s->timing_info.sink_usec >= usec)
                 usec = 0;
             else
-                usec -= s->latency_info.sink_usec;
+                usec -= s->timing_info.sink_usec;
         }
 
-        if (s->flags & PA_STREAM_INTERPOLATE_LATENCY) {
+        if (s->flags & PA_STREAM_INTERPOLATE_TIMING) {
             s->ipol_usec_valid = 1;
             s->ipol_usec = usec;
         }
     }
 
     /* Interpolate if requested */
-    if (s->flags & PA_STREAM_INTERPOLATE_LATENCY) {
+    if (s->flags & PA_STREAM_INTERPOLATE_TIMING) {
 
         /* We just add the time that passed since the latency info was
          * current */
@@ -1176,16 +1176,16 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative) {
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY(s->context, s->latency_info_valid, PA_ERR_NODATA);
-    PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_PLAYBACK || !s->latency_info.write_index_corrupt, PA_ERR_NODATA);
+    PA_CHECK_VALIDITY(s->context, s->timing_info_valid, PA_ERR_NODATA);
+    PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_PLAYBACK || !s->timing_info.write_index_corrupt, PA_ERR_NODATA);
     
     if ((r = pa_stream_get_time(s, &t)) < 0)
         return r;
 
     if (s->direction == PA_STREAM_PLAYBACK)
-        cindex = s->latency_info.write_index;
+        cindex = s->timing_info.write_index;
     else
-        cindex = s->latency_info.read_index;
+        cindex = s->timing_info.read_index;
 
     if (cindex < 0)
         cindex = 0;
@@ -1200,15 +1200,15 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative) {
     return 0;
 }
 
-const pa_latency_info* pa_stream_get_latency_info(pa_stream *s) {
+const pa_timing_info* pa_stream_get_timing_info(pa_stream *s) {
     assert(s);
     assert(s->ref >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->latency_info_valid, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->timing_info_valid, PA_ERR_BADSTATE);
 
-    return &s->latency_info;
+    return &s->timing_info;
 }
 
 const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s) {

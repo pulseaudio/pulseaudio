@@ -118,8 +118,8 @@ struct pa_stream {
     int corked;
 
     /* Store latest latency info */
-    pa_latency_info latency_info;
-    int latency_info_valid;
+    pa_timing_info timing_info;
+    int timing_info_valid;
     
     /* Use to make sure that time advances monotonically */
     pa_usec_t previous_time;
@@ -181,8 +181,6 @@ int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t);
 pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, void (*internal_callback)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata), void (*cb)(void), void *userdata);
 
 void pa_stream_set_state(pa_stream *s, pa_stream_state_t st);
-
-void pa_stream_trash_ipol(pa_stream *s);
 
 pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *tag);
 
