@@ -669,7 +669,7 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
     data = (const char*)data + sizeof(int32_t);
 
-    memcpy(&rate, (const char*)data + sizeof(int32_t), sizeof(int32_t));
+    memcpy(&rate, data, sizeof(int32_t));
     rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
     data = (const char*)data + sizeof(int32_t);
     
