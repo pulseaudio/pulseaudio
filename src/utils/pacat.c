@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <fcntl.h>
 
 #include <polyp/polypaudio.h>
 #include <polyp/mainloop.h>
@@ -339,28 +340,34 @@ static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig,
 }
 
 /* Show the current latency */
-static void stream_get_latency_callback(pa_stream *s, const pa_latency_info *i, void *userdata) {
+static void stream_update_latency_callback(pa_stream *s, int success, void *userdata) {
     pa_usec_t total;
     int negative = 0;
+    const pa_latency_info *i;
+    
     assert(s);
 
-    if (!i) {
+    if (!success ||
+        !(i = pa_stream_get_latency_info(s)) ||
+        pa_stream_get_latency(s, &total, &negative) < 0) {
         fprintf(stderr, "Failed to get latency: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
         return;
     }
 
-    total = pa_stream_get_latency(s, i, &negative);
-
     fprintf(stderr, "Latency: buffer: %0.0f usec; sink: %0.0f usec; source: %0.0f usec; transport: %0.0f usec; total: %0.0f usec; synchronized clocks: %s.\n",
-            (float) i->buffer_usec, (float) i->sink_usec, (float) i->source_usec, (float) i->transport_usec, (float) total * (negative?-1:1),
+            (float) i->buffer_usec,
+            (float) i->sink_usec,
+            (float) i->source_usec,
+            (float) i->transport_usec,
+            (float) total * (negative?-1:1),
             i->synchronized_clocks ? "yes" : "no");
 }
 
 /* Someone requested that the latency is shown */
 static void sigusr1_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
     fprintf(stderr, "Got SIGUSR1, requesting latency.\n");
-    pa_operation_unref(pa_stream_get_latency_info(stream, stream_get_latency_callback, NULL));
+    pa_operation_unref(pa_stream_update_latency_info(stream, stream_update_latency_callback, NULL));
 }
 
 
@@ -511,6 +518,27 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Opening a %s stream with sample specification '%s'.\n", mode == RECORD ? "recording" : "playback", t);
     }
 
+    if (optind+1 < argc) {
+        fprintf(stderr, "Too many arguments.\n");
+        goto quit;
+    }
+
+    if (optind+1 == argc) {
+        int fd;
+
+        if ((fd = open(argv[optind], O_RDONLY)) < 0) {
+            fprintf(stderr, "open(): %s\n", strerror(errno));
+            goto quit;
+        }
+
+        if (dup2(fd, 0) < 0) {
+            fprintf(stderr, "dup2(): %s\n", strerror(errno));
+            goto quit;
+        }
+
+        close(fd);
+    }
+    
     /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {
         fprintf(stderr, "pa_mainloop_new() failed.\n");
