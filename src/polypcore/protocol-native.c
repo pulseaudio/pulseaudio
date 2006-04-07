@@ -1064,10 +1064,8 @@ static void command_get_playback_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_tagstruct_put_usec(reply, pa_sink_get_latency(s->sink_input->sink));
     pa_tagstruct_put_usec(reply, 0);
     pa_tagstruct_put_boolean(reply, pa_memblockq_is_readable(s->memblockq));
-    pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
     pa_tagstruct_put_timeval(reply, &tv);
-    pa_gettimeofday(&now);
-    pa_tagstruct_put_timeval(reply, &now);
+    pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, pa_memblockq_get_write_index(s->memblockq));
     pa_tagstruct_puts64(reply, pa_memblockq_get_read_index(s->memblockq));
     pa_pstream_send_tagstruct(c->pstream, reply);
@@ -1097,10 +1095,8 @@ static void command_get_record_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
     pa_tagstruct_put_usec(reply, s->source_output->source->monitor_of ? pa_sink_get_latency(s->source_output->source->monitor_of) : 0);
     pa_tagstruct_put_usec(reply, pa_source_get_latency(s->source_output->source));
     pa_tagstruct_put_boolean(reply, 0);
-    pa_tagstruct_putu32(reply, pa_memblockq_get_length(s->memblockq));
     pa_tagstruct_put_timeval(reply, &tv);
-    pa_gettimeofday(&now);
-    pa_tagstruct_put_timeval(reply, &now);
+    pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, pa_memblockq_get_write_index(s->memblockq));
     pa_tagstruct_puts64(reply, pa_memblockq_get_read_index(s->memblockq));
     pa_pstream_send_tagstruct(c->pstream, reply);
