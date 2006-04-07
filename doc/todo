@@ -11,6 +11,8 @@ Fixes:
 - module-alsa-* love: 
   - deal with underflows properly
 
+- introspection API: flag reflecting if sink/source supports hw volume control
+
 Post 0.8:
 - alsa mmap driver
 - add radio module
