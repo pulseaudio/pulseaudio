@@ -228,7 +228,12 @@ static int source_set_hw_volume_cb(pa_source *s) {
     assert(u && u->mixer_elem);
 
     if (snd_mixer_selem_has_capture_volume_joined(u->mixer_elem)) {
-        vol = pa_cvolume_avg(&s->hw_volume) * (u->hw_volume_max - u->hw_volume_min) /
+        vol = pa_cvolume_avg(&s->hw_volume);
+
+        if (vol > PA_VOLUME_NORM)
+            vol = PA_VOLUME_NORM;
+
+        vol = vol * (u->hw_volume_max - u->hw_volume_min) /
             PA_VOLUME_NORM + u->hw_volume_min;
         err = snd_mixer_selem_set_capture_volume_all(u->mixer_elem, vol);
         if (err < 0)
@@ -237,7 +242,12 @@ static int source_set_hw_volume_cb(pa_source *s) {
         int i;
 
         for (i = 0;i < s->hw_volume.channels;i++) {
-            vol = s->hw_volume.values[i] * (u->hw_volume_max - u->hw_volume_min) /
+            vol = s->hw_volume.values[i];
+
+            if (vol > PA_VOLUME_NORM)
+                vol = PA_VOLUME_NORM;
+
+            vol = vol * (u->hw_volume_max - u->hw_volume_min) /
                 PA_VOLUME_NORM + u->hw_volume_min;
             err = snd_mixer_selem_set_capture_volume(u->mixer_elem, i, vol);
             if (err < 0)
