@@ -190,11 +190,16 @@ static int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvo
 static int pa_oss_set_volume(int fd, int mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
+    pa_volume_t l, r;
 
-    vol = (volume->values[0]*100)/PA_VOLUME_NORM;
+    l = volume->values[0] > PA_VOLUME_NORM ? PA_VOLUME_NORM : volume->values[0];
 
-    if (ss->channels >= 2)
-        vol |= ((volume->values[1]*100)/PA_VOLUME_NORM) << 8;
+    vol = (l*100)/PA_VOLUME_NORM;
+
+    if (ss->channels >= 2) {
+        r = volume->values[1] > PA_VOLUME_NORM ? PA_VOLUME_NORM : volume->values[1];
+        vol |= ((r*100)/PA_VOLUME_NORM) << 8;
+    }
     
     if (ioctl(fd, mixer, &vol) < 0)
         return -1;
