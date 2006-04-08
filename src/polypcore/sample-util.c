@@ -116,19 +116,15 @@ size_t pa_mix(
                         else {
                             v = *((int16_t*) ((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d));
                             
-                            if (cvolume != PA_VOLUME_NORM) {
-                                v *= cvolume;
-                                v /= PA_VOLUME_NORM;
-                            }
+                            if (cvolume != PA_VOLUME_NORM)
+                                v = (int32_t) (v * pa_sw_volume_to_linear(cvolume));
                         }
                         
                         sum += v;
                     }
                 
-                    if (volume->values[channel] != PA_VOLUME_NORM) {
-                        sum *= volume->values[channel];
-                        sum /= PA_VOLUME_NORM;
-                    }
+                    if (volume->values[channel] != PA_VOLUME_NORM)
+                        sum = (int32_t) (sum * pa_sw_volume_to_linear(volume->values[channel]));
 
                     if (sum < -0x8000) sum = -0x8000;
                     if (sum > 0x7FFF) sum = 0x7FFF;
@@ -168,19 +164,15 @@ size_t pa_mix(
                         else {
                             v = (int32_t) *((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d) - 0x80;
                             
-                            if (cvolume != PA_VOLUME_NORM) {
-                                v *= cvolume;
-                                v /= PA_VOLUME_NORM;
-                            }
+                            if (cvolume != PA_VOLUME_NORM)
+                                v = (int32_t) (v * pa_sw_volume_to_linear(cvolume));
                         }
 
                         sum += v;
                     }
 
-                    if (volume->values[channel] != PA_VOLUME_NORM) {
-                        sum *= volume->values[channel];
-                        sum /= PA_VOLUME_NORM;
-                    }
+                    if (volume->values[channel] != PA_VOLUME_NORM)
+                        sum = (int32_t) (sum * pa_sw_volume_to_linear(volume->values[channel]));
 
                     if (sum < -0x80) sum = -0x80;
                     if (sum > 0x7F) sum = 0x7F;
@@ -220,19 +212,15 @@ size_t pa_mix(
                         else {
                             v = *((float*) ((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d));
                             
-                            if (cvolume != PA_VOLUME_NORM) {
-                                v *= cvolume;
-                                v /= PA_VOLUME_NORM;
-                            }
+                            if (cvolume != PA_VOLUME_NORM)
+                                v *= pa_sw_volume_to_linear(cvolume);
                         }
                         
                         sum += v;
                     }
             
-                    if (volume->values[channel] != PA_VOLUME_NORM) {
-                        sum *= volume->values[channel];
-                        sum /= PA_VOLUME_NORM;
-                    }
+                    if (volume->values[channel] != PA_VOLUME_NORM)
+                        sum *= pa_sw_volume_to_linear(volume->values[channel]);
                 }
             
                 *((float*) data) = sum;
@@ -270,8 +258,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
             for (d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
                 int32_t t = (int32_t)(*d);
                 
-                t *= volume->values[channel];
-                t /= PA_VOLUME_NORM;
+                t = (int32_t) (t * pa_sw_volume_to_linear(volume->values[channel]));
                 
                 if (t < -0x8000) t = -0x8000;
                 if (t > 0x7FFF) t = 0x7FFF;
@@ -292,8 +279,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
             for (d = (uint8_t*) c->memblock->data + c->index, n = c->length; n > 0; d++, n--) {
                 int32_t t = (int32_t) *d - 0x80;
                 
-                t *= volume->values[channel];
-                t /= PA_VOLUME_NORM;
+                t = (int32_t) (t * pa_sw_volume_to_linear(volume->values[channel]));
                 
                 if (t < -0x80) t = -0x80;
                 if (t > 0x7F) t = 0x7F;
@@ -322,7 +308,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
                 if (volume->values[channel] == PA_VOLUME_NORM)
                     continue;
                 
-                v = (float) volume->values[channel] / PA_VOLUME_NORM;
+                v = (float) pa_sw_volume_to_linear(volume->values[channel]);
                 
                 t = d + channel;
                 oil_scalarmult_f32(t, skip, t, skip, &v, n);
