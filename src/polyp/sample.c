@@ -115,11 +115,11 @@ char *pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec) {
 
 void pa_bytes_snprint(char *s, size_t l, unsigned v) {
     if (v >= ((unsigned) 1024)*1024*1024)
-        snprintf(s, l, "%0.1f GB", ((double) v)/1024/1024/1024);
+        snprintf(s, l, "%0.1f GiB", ((double) v)/1024/1024/1024);
     else if (v >= ((unsigned) 1024)*1024)
-        snprintf(s, l, "%0.1f MB", ((double) v)/1024/1024);
+        snprintf(s, l, "%0.1f MiB", ((double) v)/1024/1024);
     else if (v >= (unsigned) 1024)
-        snprintf(s, l, "%0.1f KB", ((double) v)/1024);
+        snprintf(s, l, "%0.1f KiB", ((double) v)/1024);
     else
         snprintf(s, l, "%u B", (unsigned) v);
 }

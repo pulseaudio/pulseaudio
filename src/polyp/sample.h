@@ -91,7 +91,7 @@
  * \li pa_parse_sample_format() - Parse a text string into a sample format.
  * \li pa_sample_spec_snprint() - Create a textual description of a complete
  *                                 sample format specification.
- * \li pa_bytes_snprint() - Pretty print a byte value (e.g. 2.5 MB).
+ * \li pa_bytes_snprint() - Pretty print a byte value (e.g. 2.5 MiB).
  */
 
 /** \file
@@ -178,7 +178,7 @@ pa_sample_format_t pa_parse_sample_format(const char *format);
 /** Pretty print a sample type specification to a string */
 char* pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec);
 
-/** Pretty print a byte size value. (i.e. "2.5 MB") */
+/** Pretty print a byte size value. (i.e. "2.5 MiB") */
 void pa_bytes_snprint(char *s, size_t l, unsigned v);
 
 PA_C_DECL_END
