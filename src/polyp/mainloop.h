@@ -27,6 +27,41 @@
 
 PA_C_DECL_BEGIN
 
+/** \page mainloop Mainloop
+ *
+ * \section overv_sec Overview
+ *
+ * The built-in main loop implementation is based on the poll() system call.
+ * It supports the functions defined in the main loop abstraction and very
+ * little else.
+ *
+ * The main loop is created using pa_mainloop_new() and destroyed using
+ * pa_mainloop_free(). To get access to the main loop abstraction,
+ * pa_mainloop_get_api() is used.
+ *
+ * \section iter_sec Iteration
+ *
+ * The main loop is designed around the concept of iterations. Each iteration
+ * consists of three steps that repeat during the application's entire
+ * lifetime:
+ *
+ * -# Prepare - Dispatch deferred events, build a list of file descriptors
+ *               that need to be monitored and calculate the next timeout.
+ * -# Poll - Execute the actuall poll() system call.
+ * -# Dispatch - Dispatch any timeouts and file descriptors that have fired.
+ *
+ * When using the main loop, the application can either execute each
+ * iteration, one at a time, using pa_mainloop_iterate(), or let the library
+ * iterate automatically using pa_mainloop_run().
+ *
+ * \section thread_sec Threads
+ *
+ * The main loop functions are designed to be thread safe, but the objects
+ * are not. What this means is that multiple main loops can be used, but only
+ * one object per thread.
+ *
+ */
+
 /** \file
  * 
  * A minimal main loop implementation based on the C library's poll()

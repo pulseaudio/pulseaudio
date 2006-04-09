@@ -28,6 +28,72 @@
 
 #include <polyp/cdecl.h>
 
+/** \page sample Sample format specifications
+ *
+ * \section overv_sec Overview
+ *
+ * Polypaudio is capable of handling a multitude of sample formats, rates
+ * and channels, transparently converting and mixing them as needed.
+ *
+ * \section format_sec Sample format
+ *
+ * Polypaudio supports the following sample formats:
+ *
+ * \li PA_SAMPLE_U8 - Unsigned 8 bit PCM.
+ * \li PA_SAMPLE_S16LE - Signed 16 bit PCM, little endian.
+ * \li PA_SAMPLE_S16BE - Signed 16 bit PCM, big endian.
+ * \li PA_SAMPLE_FLOAT32LE - 32 bit IEEE floating point PCM, little endian.
+ * \li PA_SAMPLE_FLOAT32BE - 32 bit IEEE floating point PCM, big endian.
+ * \li PA_SAMPLE_ALAW - 8 bit a-Law.
+ * \li PA_SAMPLE_ULAW - 8 bit mu-Law.
+ *
+ * The floating point sample formats have the range from -1 to 1.
+ *
+ * The sample formats that are sensitive to endianness have convenience
+ * macros for native endian (NE), and reverse endian (RE).
+ *
+ * \section rate_sec Sample rates
+ *
+ * Polypaudio supports any sample rate between 1 Hz and 4 GHz. There is no
+ * point trying to exceed the sample rate of the output device though as the
+ * signal will only get downsampled, consuming CPU on the machine running the
+ * server.
+ *
+ * \section chan_sec Channels
+ *
+ * Polypaudio supports up to 16 individiual channels. The order of the
+ * channels is up to the application, but they must be continous. To map
+ * channels to speakers, see \ref channelmap.
+ *
+ * \section calc_sec Calculations
+ *
+ * The Polypaudio library contains a number of convenience functions to do
+ * calculations on sample formats:
+ *
+ * \li pa_bytes_per_second() - The number of bytes one second of audio will
+ *                             take given a sample format.
+ * \li pa_frame_size() - The size, in bytes, of one frame (i.e. one set of
+ *                       samples, one for each channel).
+ * \li pa_sample_size() - The size, in bytes, of one sample.
+ * \li pa_bytes_to_usec() - Calculate the time it would take to play a buffer
+ *                          of a certain size.
+ *
+ * \section util_sec Convenience functions
+ *
+ * The library also contains a couple of other convenience functions:
+ *
+ * \li pa_sample_spec_valid() - Tests if a sample format specification is
+ *                              valid.
+ * \li pa_sample_spec_equal() - Tests if the sample format specifications are
+ *                              identical.
+ * \li pa_sample_format_to_string() - Return a textual description of a
+ *                                    sample format.
+ * \li pa_parse_sample_format() - Parse a text string into a sample format.
+ * \li pa_sample_spec_snprint() - Create a textual description of a complete
+ *                                 sample format specification.
+ * \li pa_bytes_snprint() - Pretty print a byte value (e.g. 2.5 MB).
+ */
+
 /** \file
  * Constants and routines for sample type handling */
 

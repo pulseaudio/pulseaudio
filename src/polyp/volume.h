@@ -26,6 +26,59 @@
 #include <polyp/cdecl.h>
 #include <polyp/sample.h>
 
+/** \page volume Volume control
+ *
+ * \section overv_sec Overview
+ *
+ * Sinks, sources, sink inputs and samples can all have their own volumes.
+ * To deal with these, The Polypaudio libray contains a number of functions
+ * that ease handling.
+ *
+ * The basic volume type in Polypaudio is the \ref pa_volume_t type. Most of
+ * the time, applications will use the aggregated pa_cvolume structure that
+ * can store the volume of all channels at once.
+ *
+ * Volumes commonly span between muted (0%), and normal (100%). It is possible
+ * to set volumes to higher than 100%, but clipping might occur.
+ *
+ * \section calc_sec Calculations
+ *
+ * The volumes in Polypaudio are logarithmic in nature and applications
+ * shouldn't perform calculations with them directly. Instead, they should
+ * be converted to and from either dB or a linear scale:
+ *
+ * \li dB - pa_sw_volume_from_dB() / pa_sw_volume_to_dB()
+ * \li Linear - pa_sw_volume_from_linear() / pa_sw_volume_to_linear()
+ *
+ * For simple multiplication, pa_sw_volume_multiply() and
+ * pa_sw_cvolume_multiply() can be used.
+ *
+ * Calculations can only be reliably be performed on software volumes as
+ * it is commonly unknown what scale hardware volumes use.
+ *
+ * \section conv_sec Convenience functions
+ *
+ * To handle the pa_cvolume structure, the Polypaudio library provides a
+ * number of convenienc functions:
+ *
+ * \li pa_cvolume_valid() - Tests if a pa_cvolume structure is valid.
+ * \li pa_cvolume_equal() - Tests if two pa_cvolume structures are identical.
+ * \li pa_cvolume_channels_equal_to() - Tests if all channels of a pa_cvolume
+ *                             structure have a given volume.
+ * \li pa_cvolume_is_muted() - Tests if all channels of a pa_cvolume
+ *                             structure are muted.
+ * \li pa_cvolume_is_norm() - Tests if all channels of a pa_cvolume structure
+ *                            are at a normal volume.
+ * \li pa_cvolume_set() - Set all channels of a pa_cvolume structure to a
+ *                        certain volume.
+ * \li pa_cvolume_reset() - Set all channels of a pa_cvolume structure to a
+ *                          normal volume.
+ * \li pa_cvolume_mute() - Set all channels of a pa_cvolume structure to a
+ *                         muted volume.
+ * \li pa_cvolume_avg() - Return the average volume of all channels.
+ * \li pa_cvolume_snprint() - Pretty print a pa_cvolume structure.
+ */
+
 /** \file
  * Constants and routines for volume handling */
 

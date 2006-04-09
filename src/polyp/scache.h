@@ -28,6 +28,49 @@
 #include <polyp/stream.h>
 #include <polyp/cdecl.h>
 
+/** \page scache Sample cache
+ *
+ * \section overv_sec Overview
+ *
+ * The sample cache provides a simple way of overcoming high network latencies
+ * and reducing bandwidth. Instead of streaming a sound precisely when it
+ * should be played, it is stored on the server and only the command to start
+ * playing it needs to be sent.
+ *
+ * \section create_sec Creation
+ *
+ * To create a sample, the normal stream API is used (see \ref streams). The
+ * function pa_stream_connect_upload() will make sure the stream is stored as
+ * a sample on the server.
+ *
+ * To complete the upload, pa_stream_finish_upload() is called and the sample
+ * will receive the same name as the stream. If the upload should be aborted,
+ * simply call pa_stream_disconnect().
+ *
+ * \section play_sec Playing samples
+ *
+ * To play back a sample, simply call pa_context_play_sample():
+ *
+ * \code
+ * pa_operation *o;
+ *
+ * o = pa_context_play_sample(my_context,
+ *                            "sample2",       // Name of my sample
+ *                            NULL,            // Use default sink
+ *                            PA_VOLUME_NORM,  // Full volume
+ *                            NULL,            // Don't need a callback
+ *                            NULL
+ *                            );
+ * if (o)
+ *     pa_operation_unref(o);
+ * \endcode
+ *
+ * \section rem_sec Removing samples
+ *
+ * When a sample is no longer needed, it should be removed on the server to
+ * save resources. The sample is deleted using pa_context_remove_sample().
+ */
+
 /** \file
  * All sample cache related routines */
 

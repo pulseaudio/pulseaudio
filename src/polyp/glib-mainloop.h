@@ -27,6 +27,17 @@
 #include <polyp/mainloop-api.h>
 #include <polyp/cdecl.h>
 
+/** \page glib-mainloop GLIB main loop bindings
+ *
+ * \section overv_sec Overview
+ *
+ * The GLIB main loop bindings are extremely easy to use. All that is
+ * required is to create a pa_glib_mainloop object using
+ * pa_glib_mainloop_new(). When the main loop abstraction is needed, it is
+ * provided by pa_glib_mainloop_get_api().
+ *
+ */
+
 /** \file
  * GLIB main loop support */
 

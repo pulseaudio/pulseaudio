@@ -25,6 +25,40 @@
 #include <polyp/sample.h>
 #include <polyp/cdecl.h>
 
+/** \page channelmap Channel maps
+ *
+ * \section overv_sec Overview
+ *
+ * Channel maps provide a way to associate channels in a stream with a
+ * speaker. This relieves applications of having to make sure their channel
+ * order is identical to the final output.
+ *
+ * \section init_sec Initialisation
+ *
+ * A channel map consists of an array of \ref pa_channel_position values,
+ * one for each channel. This array is stored together with a channel count
+ * in a pa_channel_map structure.
+ *
+ * Before filling the structure, the application must initialise it using
+ * pa_channel_map_init(). There are also a number of convenience functions
+ * for standard channel mappings:
+ *
+ * \li pa_channel_map_init_mono() - Create a channel map with only mono audio.
+ * \li pa_channel_map_init_stereo() - Create a standard stereo mapping.
+ * \li pa_channel_map_init_auto() - Create a standard channel map for up to
+ *                                  six channels.
+ *
+ * \section conv_sec Convenience functions
+ *
+ * The library contains a number of convenience functions for dealing with
+ * channel maps:
+ *
+ * \li pa_channel_map_valid() - Tests if a channel map is valid.
+ * \li pa_channel_map_equal() - Tests if two channel maps are identical.
+ * \li pa_channel_map_snprint() - Creates a textual description of a channel
+ *                                map.
+ */
+
 /** \file
  * Constants and routines for channel mapping handling */
 

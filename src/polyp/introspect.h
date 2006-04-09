@@ -30,22 +30,176 @@
 #include <polyp/channelmap.h>
 #include <polyp/volume.h>
 
+/** \page introspect Server query and control
+ *
+ * \section overv_sec Overview
+ *
+ * Sometimes it is necessary to query and modify global settings in the
+ * server. For this, Polypaudio has the introspection API. It can list sinks,
+ * sources, samples and other aspects of the server. It can also modify the
+ * attributes of the server that will affect operations on a global level,
+ * and not just the application's context.
+ *
+ * \section query_sec Querying
+ *
+ * All querying is done through callbacks. This design is necessary to
+ * maintain an asynchronous design. The client will request the information
+ * and some time later, the server will respond with the desired data.
+ *
+ * Some objects can have multiple entries at the server. When requesting all
+ * of these at once, the callback will be called multiple times, once for
+ * each object. When the list has been exhausted, the callback will be called
+ * without an information structure and the eol parameter set to a non-zero
+ * value.
+ *
+ * Note that even if a single object is requested, and not the entire list,
+ * the terminating call will still be made.
+ *
+ * If an error occurs, the callback will be called without and information
+ * structure and eol set to zero.
+ *
+ * Data members in the information structures are only valid during the
+ * duration of the callback. If they are required after the callback is
+ * finished, a deep copy must be performed.
+ *
+ * \subsection server_subsec Server information
+ *
+ * The server can be queried about its name, the environment it's running on
+ * and the currently active global defaults. Calling
+ * pa_context_get_server_info() will get access to a pa_server_info structure
+ * containing all of these.
+ *
+ * \subsection memstat_subsec Memory usage
+ *
+ * Statistics about memory usage can be fetched using pa_context_stat(),
+ * giving a pa_stat_info structure.
+ *
+ * \subsection sinksrc_subsec Sinks and sources
+ *
+ * The server can have an arbitrary number of sinks and sources. Each sink
+ * and source have both an index and a name associated with it. As such
+ * there are three ways to get access to them:
+ *
+ * \li By index - pa_context_get_sink_info_by_index() /
+ *                pa_context_get_source_info_by_index()
+ * \li By name - pa_context_get_sink_info_by_name() /
+ *               pa_context_get_source_info_by_name()
+ * \li All - pa_context_get_sink_info_list() /
+ *           pa_context_get_source_info_list()
+ *
+ * All three method use the same callback and will provide a pa_sink_info or
+ * pa_source_info structure.
+ *
+ * \subsection siso_subsec Sink inputs and source outputs
+ *
+ * Sink inputs and source outputs are the representations of the client ends
+ * of streams inside the server. I.e. they connect a client stream to one of
+ * the global sinks or sources.
+ *
+ * Sink inputs and source outputs only have an index to identify them. As
+ * such, there are only two ways to get information about them:
+ *
+ * \li By index - pa_context_get_sink_input_info() /
+ *                pa_context_get_source_output_info()
+ * \li All - pa_context_get_sink_input_info_list() /
+ *           pa_context_get_source_output_info_list()
+ *
+ * The structure returned is the pa_sink_input_info or pa_source_output_info
+ * structure.
+ *
+ * \subsection samples_subsec Samples
+ *
+ * The list of cached samples can be retrieved from the server. Three methods
+ * exist for querying the sample cache list:
+ *
+ * \li By index - pa_context_get_sample_info_by_index()
+ * \li By name - pa_context_get_sample_info_by_name()
+ * \li All - pa_context_get_sample_info_list()
+ *
+ * Note that this only retrieves information about the sample, not the sample
+ * data itself.
+ *
+ * \subsection module_subsec Modules
+ *
+ * Polypaudio modules are identified by index and are retrieved using either
+ * pa_context_get_module_info() or pa_context_get_module_info_list(). The
+ * information structure is called pa_module_info.
+ *
+ * \subsection autoload_subsec Autoload entries
+ *
+ * Modules can be autoloaded as a result of a client requesting a certain
+ * sink or source. This mapping between sink/source names and modules can be
+ * queried from the server:
+ *
+ * \li By index - pa_context_get_autoload_info_by_index()
+ * \li By sink/source name - pa_context_get_autoload_info_by_name()
+ * \li All - pa_context_get_autoload_info_list()
+ *
+ * \subsection client_subsec Clients
+ *
+ * Polypaudio clients are also identified by index and are retrieved using
+ * either pa_context_get_client_info() or pa_context_get_client_info_list().
+ * The information structure is called pa_client_info.
+ *
+ * \section ctrl_sec Control
+ *
+ * Some parts of the server are only possible to read, but most can also be
+ * modified in different ways. Note that these changes will affect all
+ * connected clients and not just the one issuing the request.
+ *
+ * \subsection sinksrc_subsec Sinks and sources
+ *
+ * The most common change one would want to do to sinks and sources is to
+ * modify the volume of the audio. Identical to how sinks and sources can
+ * be queried, there are two ways of identifying them:
+ *
+ * \li By index - pa_context_set_sink_volume_by_index() /
+ *                pa_context_set_source_volume_by_index()
+ * \li By name - pa_context_set_sink_volume_by_name() /
+ *               pa_context_set_source_volume_by_name()
+ *
+ * It is also possible to mute a sink or source:
+ *
+ * \li By index - pa_context_set_sink_mute_by_index() /
+ *                pa_context_set_source_mute_by_index()
+ * \li By name - pa_context_set_sink_mute_by_name() /
+ *               pa_context_set_source_mute_by_name()
+ *
+ * \subsection siso_subsec Sink inputs and source outputs
+ *
+ * If an application desires to modify the volume of just a single stream
+ * (commonly one of its own streams), this can be done by setting the volume
+ * of its associated sink input, using pa_context_set_sink_input_volume().
+ *
+ * There is no support for modifying the volume of source outputs.
+ *
+ * It is also possible to remove sink inputs and source outputs, terminating
+ * the streams associated with them:
+ *
+ * \li Sink input - pa_context_kill_sink_input()
+ * \li Source output - pa_context_kill_source_output()
+ *
+ * \subsection module_subsec Modules
+ *
+ * Server modules can be remotely loaded and unloaded using
+ * pa_context_load_module() and pa_context_unload_module().
+ *
+ * \subsection autoload_subsec Autoload entries
+ *
+ * New module autoloading rules can be added, and existing can be removed
+ * using pa_context_add_autoload() and pa_context_remove_autoload_by_index()
+ * / pa_context_remove_autoload_by_name().
+ *
+ * \subsection client_subsec Clients
+ *
+ * The only operation supported on clients, is the possibility of kicking
+ * them off the server using pa_context_kill_client().
+ */
+
 /** \file
  *
- * Routines for daemon introspection. When enumerating all entitites
- * of a certain kind, use the pa_context_xxx_list() functions. The
- * specified callback function is called once for each entry. The
- * enumeration is finished by a call to the callback function with
- * eol=1 and i=NULL. Strings referenced in pa_xxx_info structures and
- * the structures themselves point to internal memory that may not be
- * modified. That memory is only valid during the call to the callback
- * function. A deep copy is required if you need this data outside the
- * callback functions. An error is signalled by a call to the callback
- * function with i=NULL and eol=0.
- *
- * When using the routines that ask fo a single entry only, a callback
- * with the same signature is used. However, no finishing call to the
- * routine is issued. */
+ * Routines for daemon introspection.
+ */
 
 PA_C_DECL_BEGIN
 
@@ -121,7 +275,7 @@ typedef struct pa_server_info {
 
 /** Callback prototype for pa_context_get_server_info() */
 typedef void (*pa_server_info_cb_t) (pa_context *c, const pa_server_info*i, void *userdata);
-
+context_
 /** Get some information about the server */
 pa_operation* pa_context_get_server_info(pa_context *c, pa_server_info_cb_t cb, void *userdata);
 

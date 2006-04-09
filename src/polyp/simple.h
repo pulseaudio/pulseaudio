@@ -28,9 +28,72 @@
 #include <polyp/def.h>
 #include <polyp/cdecl.h>
 
+/** \page simple Simple API
+ *
+ * \section overv_sec Overview
+ *
+ * The simple API is designed for applications with very basic sound
+ * playback or capture needs. It can only support a single stream per
+ * connection and has no handling of complex features like events, channel
+ * mappings and volume control. It is, however, very simple to use and
+ * quite sufficent for many programs.
+ *
+ * \section conn_sec Connecting
+ *
+ * The first step before using the sound system is to connect to the
+ * server. This is normally done this way:
+ *
+ * \code
+ * pa_simple *s;
+ * pa_sample_spec ss;
+ *
+ * ss.format = S16_NE;
+ * ss.channels = 2;
+ * ss.rate = 44100;
+ *
+ * s = pa_simple_new(NULL,               // Use the default server.
+ *                   "Fooapp",           // Our application's name.
+ *                   PA_STREAM_PLAYBACK,
+ *                   NULL,               // Use the default device.
+ *                   "Music",            // Description of our stream.
+ *                   &ss,                // Our sample format.
+ *                   NULL,               // Use default buffering attributes.
+ *                   NULL,               // Ignore error code.
+ *                   );
+ * \endcode
+ *
+ * At this point a connected object is returned, or NULL if there was a
+ * problem connecting.
+ *
+ * \section transfer_sec Transferring data
+ *
+ * Once the connection is established to the server, data can start flowing.
+ * Using the connection is very similar to the normal read() and write()
+ * system calls. The main difference is that they're call pa_simple_read()
+ * and pa_simple_write(). Note that these operation are always blocking.
+ *
+ * \section ctrl_sec Buffer control
+ *
+ * If a playback stream is used then a few other operations are available:
+ *
+ * \li pa_simple_drain() - Will wait for all sent data to finish playing.
+ * \li pa_simple_flush() - Will throw away all data currently in buffers.
+ * \li pa_simple_get_playback_latency() - Will return the total latency of
+ *                                        the playback pipeline.
+ *
+ * \section cleanup_sec Cleanup
+ *
+ * Once playback or capture is complete, the connection should be closed
+ * and resources freed. This is done through:
+ *
+ * \code
+ * pa_simple_free(s);
+ * \endcode
+ */
+
 /** \file
  * A simple but limited synchronous playback and recording
- * API. This is synchronouse, simplified wrapper around the standard
+ * API. This is a synchronous, simplified wrapper around the standard
  * asynchronous API. */
 
 /** \example pacat-simple.c

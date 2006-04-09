@@ -48,43 +48,49 @@
  * \section intro_sec Introduction
  * 
  * This document describes the client API for the polypaudio sound
- * server. The API comes in two flavours:
+ * server. The API comes in two flavours to accomodate different styles
+ * of applications and different needs in complexity:
  * 
  * \li The complete but somewhat complicated to use asynchronous API
- * \li And the simplified, easy to use, but limited synchronous API
+ * \li The simplified, easy to use, but limited synchronous API
  *
- * The polypaudio client libraries are thread safe as long as all
- * objects created by any library function are accessed from the thread
- * that created them only.
- * 
  * \section simple_sec Simple API
  *
  * Use this if you develop your program in synchronous style and just
  * need a way to play or record data on the sound server. See
- * \ref simple.h for more details.
+ * \subpage simple for more details.
  *
- * \section async_api Asynchronous API
+ * \section async_sec Asynchronous API
  *
- * Use this if you develop your programs in asynchronous, main loop
- * based style or want to use advanced features of the polypaudio
- * API. A good starting point is \ref context.h
+ * Use this if you develop your programs in asynchronous, event loop
+ * based style or if you want to use the advanced features of the
+ * polypaudio API. A guide can be found in \subpage async.
  *
- * The asynchronous API relies on an abstract main loop API that is
- * described in \ref mainloop-api.h. Two distinct implementations are
- * available:
- * 
- * \li \ref mainloop.h : a minimal but fast implementation based on poll()
- * \li \ref glib-mainloop.h : a wrapper around GLIB's main loop
+ * \section thread_sec Threads
  *
- * UNIX signals may be hooked to a main loop using the functions from
- * \ref mainloop-signal.h
+ * The polypaudio client libraries are not designed to be used in a
+ * heavily threaded environment. They are however designed to be reentrant
+ * safe.
+ *
+ * To use a the libraries in a threaded environment, you must assure that
+ * all objects are only used in the same thread they were created in.
+ * Normally, this means that all objects belonging to a single context
+ * must be accessed from the same thread.
+ *
+ * The included main loop implementation is also not thread safe. Take care
+ * to make sure event lists are not manipulated when any library code is
+ * using the main loop.
  *
  * \section pkgconfig pkg-config
  *
- * The polypaudio libraries provide pkg-config snippets for the different modules. To use the
- * asynchronous API use "polyplib" as pkg-config file. GLIB main loop
- * support is available as "glib-mainloop". The simple
- * synchronous API is available as "simple".
+ * The polypaudio libraries provide pkg-config snippets for the different
+ * modules:
+ *
+ * \li polyplib - The asynchronous API and the internal main loop
+ *                implementation.
+ * \li polyplib-glib12-mainloop - GLIB 1.2 main loop bindings.
+ * \li polyplib-glib-mainloop - GLIB 2.x main loop bindings.
+ * \li polyplib-simple - The simple polypaudio API.
  */
 
 #endif

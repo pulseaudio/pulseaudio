@@ -28,11 +28,22 @@
 #include <polyp/context.h>
 #include <polyp/cdecl.h>
 
+/** \page subscribe Event subscription
+ *
+ * \section overv_sec Overview
+ *
+ * The application can be notified, asynchronously, whenever the internal
+ * layout of the server changes. Possible notifications are desribed in the
+ * \ref pa_subscription_event_type and \ref pa_subscription_mask
+ * enumerations.
+ *
+ * The application sets the notification mask using pa_context_subscribe()
+ * and the function that will be called whenever a notification occurs using
+ * pa_context_set_subscribe_callback().
+ */
+
 /** \file
- * Daemon introspection event subscription subsystem. Use this
- * to be notified whenever the internal layout of daemon changes:
- * i.e. entities such as sinks or sources are create, removed or
- * modified. */
+ * Daemon introspection event subscription subsystem. */
 
 PA_C_DECL_BEGIN
 

@@ -28,18 +28,116 @@
 #include <polyp/cdecl.h>
 #include <polyp/operation.h>
 
+/** \page async Asynchronous API
+ *
+ * \section overv_sec Overview
+ *
+ * The asynchronous API is the native interface to the polypaudio library.
+ * It allows full access to all available functions. This also means that
+ * it is rather complex and can take some time to fully master.
+ *
+ * \section mainloop_sec Main loop abstraction
+ *
+ * The API is based around an asynchronous event loop, or main loop,
+ * abstraction. This abstraction contains three basic elements:
+ *
+ * \li Deferred events - Events that trigger each iteration of the main loop.
+ * \li I/O events - Events that trigger on file descriptor activities.
+ * \li Times events - Events that trigger after a fixed ammount of time.
+ *
+ * The abstraction is represented as a number of function pointers in the
+ * pa_mainloop_api structure.
+ *
+ * To actually be able to use these functions, an actual implementation
+ * be coupled to the abstraction. There are two of these shipped with
+ * polypaudio, but any other can be used with a minimal ammount of work,
+ * provided it supports the three basic events listed above.
+ *
+ * The implementations shipped with polypaudio are:
+ *
+ * \li \subpage mainloop - A minimal but fast implementation based on poll().
+ * \li \subpage glib-mainloop - A wrapper around GLIB's main loop. Available
+ *                              for both GLIB 1.2 and GLIB 2.x.
+ *
+ * UNIX signals may be hooked to a main loop using the functions from
+ * \ref mainloop-signal.h. These rely only on the main loop abstraction
+ * and can therefore be used with any of the implementations.
+ *
+ * \section refcnt_sec Reference counting
+ *
+ * Almost all objects in polypaudio are reference counted. What that means
+ * is that you rarely malloc() or free() any objects. Instead you increase
+ * and decrease their reference counts. Whenever an object's reference
+ * count reaches zero, that object gets destroy and any resources it uses
+ * get freed.
+ * 
+ * The benefit of this design is that an application need not worry about
+ * whether or not it needs to keep an object around in case the library is
+ * using it internally. If it is, then it has made sure it has its own
+ * reference to it.
+ *
+ * Whenever the library creates an object, it will have an initial
+ * reference count of one. Most of the time, this single reference will be
+ * sufficient for the application, so all required reference count
+ * interaction will be a single call to the objects unref function.
+ *
+ * \section context_sec Context
+ *
+ * A context is the basic object for a connection to a polypaudio server.
+ * It multiplexes commands, data streams and events through a single
+ * channel.
+ *
+ * There is no need for more than one context per application, unless
+ * connections to multiple servers is needed.
+ *
+ * \subsection ops_subsec Operations
+ *
+ * All operations on the context is performed asynchronously. I.e. the
+ * client will not wait for the server to complete the request. To keep
+ * track of all these in-flight operations, the application is given a
+ * pa_operation object for each asynchronous operation.
+ *
+ * There are only two actions (besides reference counting) that can be
+ * performed on a pa_operation: querying its state with
+ * pa_operation_get_state() and aborting it with pa_operation_cancel().
+ *
+ * A pa_operation object is reference counted, so an application must
+ * make sure to unreference it, even if it has no intention of using it.
+ *
+ * \subsection conn_subsec Connecting
+ *
+ * A context must be connected to a server before any operation can be
+ * issued. Calling pa_context_connect() will initiate the connection
+ * procedure. Unlike most asynchronous operations, connecting does not
+ * result in a pa_operation object. Instead, the application should
+ * register a callback using pa_context_set_state_callback().
+ *
+ * \subsection disc_subsec Disconnecting
+ *
+ * When the sound support is no longer needed, the connection needs to be
+ * closed using pa_context_disconnect(). This is an immediate function that
+ * works synchronously.
+ *
+ * Since the context object has references to other objects it must be
+ * disconnected after use or there is a high risk of memory leaks. If the
+ * connection has terminated by itself, then there is no need to explicitly
+ * disconnect the context using pa_context_disconnect().
+ *
+ * \section Functions
+ *
+ * The sound server's functionality can be divided into a number of
+ * subsections:
+ *
+ * \li \subpage streams
+ * \li \subpage scache
+ * \li \subpage introspect
+ * \li \subpage subscribe
+ */
+
 /** \file
  * Connection contexts for asynchrononous communication with a
  * server. A pa_context object wraps a connection to a polypaudio
- * server using its native protocol. A context may be used to issue
- * commands on the server or to create playback or recording
- * streams. Multiple playback streams may be piped through a single
- * connection context. Operations on the contect involving
- * communication with the server are executed asynchronously: i.e. the
- * client function do not implicitely wait for completion of the
- * operation on the server. Instead the caller specifies a call back
- * function that is called when the operation is completed. Currently
- * running operations may be canceled using pa_operation_cancel(). */
+ * server using its native protocol. */
 
 /** \example pacat.c
  * A playback and recording tool using the asynchronous API */

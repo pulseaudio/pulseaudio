@@ -31,6 +31,137 @@
 #include <polyp/cdecl.h>
 #include <polyp/operation.h>
 
+/** \page streams Audio streams
+ *
+ * \section overv_sec Overview
+ *
+ * Audio streams form the central functionality of the sound server. Data is
+ * routed, converted and mixed from several sources before it is passed along
+ * to a final output. Currently, there are three forms of audio streams:
+ *
+ * \li Playback streams - Data flows from the client to the server.
+ * \li Record streams - Data flows from the server to the client.
+ * \li Upload streams - Similar to playback streams, but the data is stored in
+ *                      the sample cache. See \ref scache for more information
+ *                      about controlling the sample cache.
+ *
+ * \section create_sec Creating
+ *
+ * To access a stream, a pa_stream object must be created using
+ * pa_stream_new(). At this point the audio sample format and mapping of
+ * channels must be specified. See \ref sample and \ref channelmap for more
+ * information about those structures.
+ *
+ * This first step will only create a client-side object, representing the
+ * stream. To use the stream, a server-side object must be created and
+ * associated with the local object. Depending on which type of stream is
+ * desired, a different function is needed:
+ *
+ * \li Playback stream - pa_stream_connect_playback()
+ * \li Record stream - pa_stream_connect_record()
+ * \li Upload stream - pa_stream_connect_upload() (see \ref scache)
+ *
+ * Similar to how connections are done in contexts, connecting a stream will
+ * not generate a pa_operation object. Also like contexts, the application
+ * should register a state change callback, using
+ * pa_stream_set_state_callback(), and wait for the stream to enter an active
+ * state.
+ *
+ * \subsection bufattr_subsec Buffer attributes
+ *
+ * Playback and record streams always have a buffer as part of the data flow.
+ * The size of this buffer strikes a compromise between low latency and
+ * sensitivity for buffer overflows/underruns.
+ *
+ * The buffer is described with a pa_buffer_attr structure which contains a
+ * number of field:
+ *
+ * \li maxlength - The absolute maximum number of bytes that can be stored in
+ *                 the buffer. If this value is exceeded then data will be
+ *                 lost.
+ * \li tlength - The target length of a playback buffer. The server will only
+ *               send requests for more data as long as the buffer has less
+ *               than this number of bytes of data.
+ * \li prebuf - Number of bytes that need to be in the buffer before playback
+ *              will commence. Start of playback can be forced using
+ *              pa_stream_trigger() even though the prebuffer size hasn't been
+ *              reached.
+ * \li minreq - Minimum free number of the bytes in the playback buffer before
+ *              the server will request more data.
+ * \li fragsize - Maximum number of bytes that the server will push in one
+ *                chunk for record streams.
+ *
+ * \section transfer_sec Transferring data
+ *
+ * Once the stream is up, data can start flowing between the client and the
+ * server. Two different access models can be used to transfer the data:
+ *
+ * \li Asynchronous - The application register a callback using
+ *                    pa_stream_set_write_callback() and
+ *                    pa_stream_set_read_callback() to receive notifications
+ *                    that data can either be written or read.
+ * \li Polled - Query the library for available data/space using
+ *              pa_stream_writable_size() and pa_stream_readable_size() and
+ *              transfer data as needed. The sizes are stored locally, in the
+ *              client end, so there is no delay when reading them.
+ *
+ * It is also possible to mix the two models freely.
+ *
+ * Once there is data/space available, it can be transferred using either
+ * pa_stream_write() for playback, or pa_stream_peek() / pa_stream_drop() for
+ * record. Make sure you do not overflow the playback buffers as data will be
+ * dropped.
+ *
+ * \section bufctl_sec Buffer control
+ *
+ * The transfer buffers can be controlled through a number of operations:
+ *
+ * \li pa_stream_cork() - Start or stop the playback or recording.
+ * \li pa_stream_trigger() - Start playback immediatly and do not wait for
+ *                           the buffer to fill up to the set trigger level.
+ * \li pa_stream_prebuf() - Reenable the playback trigger level.
+ * \li pa_stream_drain() - Wait for the playback buffer to go empty. Will
+ *                         return a pa_operation object that will indicate when
+ *                         the buffer is completely drained.
+ * \li pa_stream_flush() - Drop all data from the playback buffer and do not
+ *                         wait for it to finish playing.
+ *
+ * \section latency_sec Latency
+ *
+ * A major problem with networked audio is the increased latency caused by
+ * the network. To remedy this, Polypaudio supports an advanced system of
+ * monitoring the current latency.
+ *
+ * To get the raw data needed to calculate latencies, call
+ * pa_stream_get_timing_info(). This will give you a pa_timing_info structure
+ * that contains everything that is known about buffers, transport delays
+ * and the backend active in the server.
+ *
+ * If a more simplistic interface is prefered, you can call
+ * pa_stream_get_time() or pa_stream_get_latency(). These will do all the
+ * necessary calculations for you.
+ *
+ * The latency information is constantly updated from the server. Be aware
+ * that between updates, old data will be returned. If you specify the flag
+ * PA_STREAM_INTERPOLATE_TIMING when creating the stream, pa_stream_get_time()
+ * and pa_stream_get_latency() will calculate the latency between updates
+ * based on the time elapsed.
+ *
+ * \section flow_sec Overflow and underflow
+ *
+ * Even with the best precautions, buffers will sometime over- or underflow.
+ * To handle this gracefully, the application can be notified when this
+ * happens. Callbacks are registered using pa_stream_set_overflow_callback()
+ * and pa_stream_set_underflow_callback().
+ *
+ * \section disc_sec Disconnecting
+ *
+ * When a stream has served is purpose it must be disconnected with
+ * pa_stream_disconnect(). If you only unreference it, then it will live on
+ * and eat resources both locally and on the server until you disconnect the
+ * context.
+ */
+
 /** \file
  * Audio streams for input, output and sample upload */
 
