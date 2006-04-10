@@ -275,7 +275,7 @@ typedef struct pa_server_info {
 
 /** Callback prototype for pa_context_get_server_info() */
 typedef void (*pa_server_info_cb_t) (pa_context *c, const pa_server_info*i, void *userdata);
-context_
+
 /** Get some information about the server */
 pa_operation* pa_context_get_server_info(pa_context *c, pa_server_info_cb_t cb, void *userdata);
 
