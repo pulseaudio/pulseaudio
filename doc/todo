@@ -5,8 +5,6 @@ Test:
 - module-tunnel
 
 Fixes:
-- module-oss-* love:
-  - improve latency measurement for mmap
 - correct API docs regarding timing work
 
 Post 0.8:
