@@ -1235,5 +1235,3 @@ const pa_channel_map* pa_stream_get_channel_map(pa_stream *s) {
 
     return &s->channel_map;
 }
-
-
