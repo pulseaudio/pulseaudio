@@ -82,18 +82,16 @@ typedef enum pa_stream_flags {
     PA_STREAM_START_CORKED = 1,       /**< Create the stream corked, requiring an explicit pa_stream_cork() call to uncork it. */
     PA_STREAM_INTERPOLATE_TIMING = 2, /**< Interpolate the latency for
                                        * this stream. When enabled,
-                                       * pa_stream_get_latency() and pa_stream_get_time()
-                                       * will try to estimate the
-                                       * current record/playback time
-                                       * based on the local time that
-                                       * passed since the last timing
-                                       * info update. In addition
-                                       * timing update requests are
-                                       * issued periodically
-                                       * automatically. Using this
-                                       * option has the advantage of
-                                       * not requiring a whole
-                                       * roundtrip when the current
+                                       * pa_stream_get_latency() and
+                                       * pa_stream_get_time() will try
+                                       * to estimate the current
+                                       * record/playback time based on
+                                       * the local time that passed
+                                       * since the last timing info
+                                       * update.  Using this option
+                                       * has the advantage of not
+                                       * requiring a whole roundtrip
+                                       * when the current
                                        * playback/recording time is
                                        * needed. Consider using this
                                        * option when requesting
@@ -101,7 +99,10 @@ typedef enum pa_stream_flags {
                                        * frequently. This is
                                        * especially useful on long
                                        * latency network
-                                       * connections. */
+                                       * connections. It makes a lot
+                                       * of sense to combine this
+                                       * option with
+                                       * PA_STREAM_AUTO_TIMING_UPDATE. */
     PA_STREAM_NOT_MONOTONOUS = 4,    /**< Don't force the time to
                                       * increase monotonically. If
                                       * this option is enabled,
@@ -118,6 +119,16 @@ typedef enum pa_stream_flags {
                                       * ahead can be corrected
                                       * quickly, without the need to
                                       * wait. */
+    PA_STREAM_AUTO_TIMING_UPDATE = 8 /** If set timing update requests
+                                       * are issued periodically
+                                       * automatically. Combined with
+                                       * PA_STREAM_INTERPOLATE_TIMING
+                                       * you will be able to query the
+                                       * current time and latency with
+                                       * pa_stream_get_time() and
+                                       * pa_stream_get_latency() at
+                                       * all times without a packet
+                                       * round trip.*/
 } pa_stream_flags_t;
 
 /** Playback and record buffer metrics */
