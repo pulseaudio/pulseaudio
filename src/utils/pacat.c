@@ -517,25 +517,25 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Opening a %s stream with sample specification '%s'.\n", mode == RECORD ? "recording" : "playback", t);
     }
 
-    if (optind+1 < argc) {
-        fprintf(stderr, "Too many arguments.\n");
-        goto quit;
-    }
-
-    if (optind+1 == argc) {
-        int fd;
-
-        if ((fd = open(argv[optind], O_RDONLY)) < 0) {
-            fprintf(stderr, "open(): %s\n", strerror(errno));
+    if (!(optind >= argc)) {
+        if (optind+1 == argc) {
+            int fd;
+            
+            if ((fd = open(argv[optind], mode == PLAYBACK ? O_RDONLY : O_WRONLY|O_TRUNC|O_CREAT)) < 0) {
+                fprintf(stderr, "open(): %s\n", strerror(errno));
+                goto quit;
+            }
+            
+            if (dup2(fd, mode == PLAYBACK ? 0 : 1) < 0) {
+                fprintf(stderr, "dup2(): %s\n", strerror(errno));
+                goto quit;
+            }
+            
+            close(fd);
+        } else {
+            fprintf(stderr, "Too many arguments.\n");
             goto quit;
         }
-
-        if (dup2(fd, 0) < 0) {
-            fprintf(stderr, "dup2(): %s\n", strerror(errno));
-            goto quit;
-        }
-
-        close(fd);
     }
     
     /* Set up a new main loop */
