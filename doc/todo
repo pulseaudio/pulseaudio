@@ -7,6 +7,9 @@ Test:
 Fixes:
 - module-oss-* love:
   - improve latency measurement for mmap
+- add a client API for setting the "muted" status of devices
+- split PA_STREAM_INTERPOLATE_TIMING and PA_STREAM_AUTO_TIMING_UPDATE
+- correct API docs regarding timing work
 
 Post 0.8:
 - alsa mmap driver
