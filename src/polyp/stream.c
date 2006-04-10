@@ -372,7 +372,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
     pa_stream_ref(s);
 
     if (s->direction != PA_STREAM_UPLOAD &&
-        s->flags & PA_STREAM_INTERPOLATE_TIMING) {
+        s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
         struct timeval tv;
 
         pa_gettimeofday(&tv);
@@ -407,7 +407,11 @@ static int create_stream(
     assert(s->ref >= 1);
     
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY(s->context, !(flags & ~(PA_STREAM_START_CORKED|PA_STREAM_INTERPOLATE_TIMING)), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, !(flags & ~((direction != PA_STREAM_UPLOAD ?
+                                               PA_STREAM_START_CORKED|
+                                               PA_STREAM_INTERPOLATE_TIMING|
+                                               PA_STREAM_NOT_MONOTONOUS|
+                                               PA_STREAM_AUTO_TIMING_UPDATE : 0))), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, direction == PA_STREAM_PLAYBACK || flags == 0, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !volume || volume->channels == s->sample_spec.channels, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !sync_stream || (direction == PA_STREAM_PLAYBACK && sync_stream->direction == PA_STREAM_PLAYBACK), PA_ERR_INVALID);
@@ -621,7 +625,7 @@ size_t pa_stream_writable_size(pa_stream *s) {
     assert(s->ref >= 1);
 
     PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE, (size_t) -1);
-    PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, (size_t) -1);
+    PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->direction != PA_STREAM_RECORD, PA_ERR_BADSTATE, (size_t) -1);
     
     return s->requested_bytes;
 }
@@ -952,7 +956,7 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
 
-    if (s->flags & PA_STREAM_INTERPOLATE_TIMING) {
+    if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
         if (!s->corked && b) {
             /* Refresh the interpolated data just befor pausing */
             pa_stream_get_time(s, NULL);
