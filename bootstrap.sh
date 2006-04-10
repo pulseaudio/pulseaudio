@@ -52,7 +52,7 @@ else
 
     test "x$LIBTOOLIZE" = "x" && LIBTOOLIZE=libtoolize
 
-    "$LIBTOOLIZE" -c --force
+    "$LIBTOOLIZE" -c --force --ltdl
     run_versioned aclocal "$VERSION"
     run_versioned autoconf 2.59 -Wall
     run_versioned autoheader 2.59
