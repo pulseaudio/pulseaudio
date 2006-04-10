@@ -51,7 +51,17 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("OSS Sink/Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source> device=<OSS device> record=<enable source?> playback=<enable sink?> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
+PA_MODULE_USAGE(
+        "sink_name=<name for the sink> "
+        "source_name=<name for the source> "
+        "device=<OSS device> "
+        "record=<enable source?> "
+        "playback=<enable sink?> "
+        "format=<sample format> "
+        "channels=<number of channels> "
+        "rate=<sample rate> "
+        "fragments=<number of fragments> "
+        "fragment_size=<fragment size>")
 
 struct userdata {
     pa_sink *sink;
@@ -85,6 +95,8 @@ static const char* const valid_modargs[] = {
 #define DEFAULT_SINK_NAME "oss_output"
 #define DEFAULT_SOURCE_NAME "oss_input"
 #define DEFAULT_DEVICE "/dev/dsp"
+#define DEFAULT_NFRAGS 12
+#define DEFAULT_FRAGSIZE 1024
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
@@ -332,9 +344,9 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
-    
-    nfrags = 12;
-    frag_size = 1024;
+
+    nfrags = DEFAULT_NFRAGS;
+    frag_size = DEFAULT_FRAGSIZE;
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
         pa_log(__FILE__": failed to parse fragments arguments");
         goto fail;
@@ -387,8 +399,9 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (mode != O_WRONLY) {
-        u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL);
-        assert(u->source);
+        if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL)))
+            goto fail;
+
         u->source->userdata = u;
         u->source->notify = source_notify_cb;
         u->source->get_latency = source_get_latency_cb;
@@ -404,8 +417,9 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source = NULL;
 
     if (mode != O_RDONLY) {
-        u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL);
-        assert(u->sink);
+        if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL)))
+            goto fail;
+
         u->sink->get_latency = sink_get_latency_cb;
         u->sink->get_hw_volume = sink_get_hw_volume;
         u->sink->set_hw_volume = sink_set_hw_volume;
@@ -471,7 +485,9 @@ fail:
 
 void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
-    assert(c && m);
+    
+    assert(c);
+    assert(m);
 
     if (!(u = m->userdata))
         return;
