@@ -52,7 +52,17 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("OSS Sink/Source (mmap)")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source> device=<OSS device> record=<enable source?> playback=<enable sink?> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
+PA_MODULE_USAGE(
+        "sink_name=<name for the sink> "
+        "source_name=<name for the source> "
+        "device=<OSS device> "
+        "record=<enable source?> "
+        "playback=<enable sink?> "
+        "format=<sample format> "
+        "channels=<number of channels> "
+        "rate=<sample rate> "
+        "fragments=<number of fragments> "
+        "fragment_size=<fragment size>")
 
 struct userdata {
     pa_sink *sink;
@@ -60,7 +70,8 @@ struct userdata {
     pa_core *core;
     pa_sample_spec sample_spec;
 
-    size_t in_fragment_size, out_fragment_size, in_fragments, out_fragments, out_fill;
+    size_t in_fragment_size, out_fragment_size, in_fragments, out_fragments;
+    int out_blocks_saved, in_blocks_saved;
 
     int fd;
 
@@ -91,6 +102,8 @@ static const char* const valid_modargs[] = {
 #define DEFAULT_SINK_NAME "oss_output"
 #define DEFAULT_SOURCE_NAME "oss_input"
 #define DEFAULT_DEVICE "/dev/dsp"
+#define DEFAULT_NFRAGS 12
+#define DEFAULT_FRAGSIZE 1024
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
@@ -134,8 +147,9 @@ static void do_write(struct userdata *u) {
         return;
     }
 
-    u->out_fill = (u->out_fragment_size * u->out_fragments) - (info.ptr % u->out_fragment_size);
-
+    info.blocks += u->out_blocks_saved;
+    u->out_blocks_saved = 0;
+    
     if (!info.blocks)
         return;
     
@@ -196,6 +210,9 @@ static void do_read(struct userdata *u) {
         return;
     }
 
+    info.blocks += u->in_blocks_saved;
+    u->in_blocks_saved = 0;
+        
     if (!info.blocks)
         return;
     
@@ -215,10 +232,48 @@ static void io_callback(pa_mainloop_api *m, pa_io_event *e, PA_GCC_UNUSED int fd
 
 static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
+    struct count_info info;
+    size_t bpos, n;
     assert(s && u);
 
-    do_write(u);
-    return pa_bytes_to_usec(u->out_fill, &s->sample_spec);
+    if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
+        pa_log(__FILE__": SNDCTL_DSP_GETOPTR: %s", strerror(errno));
+        return 0;
+    }
+
+    u->out_blocks_saved += info.blocks;
+
+    bpos = ((u->out_current + u->out_blocks_saved) % u->out_fragments) * u->out_fragment_size;
+
+    if (bpos < (size_t) info.ptr)
+        n = (u->out_fragments * u->out_fragment_size) - (info.ptr - bpos);
+    else
+        n = bpos - info.ptr;
+    
+    return pa_bytes_to_usec(n, &s->sample_spec);
+}
+
+static pa_usec_t source_get_latency_cb(pa_source *s) {
+    struct userdata *u = s->userdata;
+    struct count_info info;
+    size_t bpos, n;
+    assert(s && u);
+
+    if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
+        pa_log(__FILE__": SNDCTL_DSP_GETIPTR: %s", strerror(errno));
+        return 0;
+    }
+
+    u->in_blocks_saved += info.blocks;
+
+    bpos = ((u->in_current + u->in_blocks_saved) % u->in_fragments) * u->in_fragment_size;
+
+    if (bpos < (size_t) info.ptr)
+        n = info.ptr - bpos;
+    else
+        n = (u->in_fragments * u->in_fragment_size) - bpos + info.ptr;
+    
+    return pa_bytes_to_usec(n, &s->sample_spec);
 }
 
 static int sink_get_hw_volume(pa_sink *s) {
@@ -283,7 +338,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c);
     assert(m);
 
-    m->userdata = u = pa_xmalloc0(sizeof(struct userdata));
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
     u->fd = -1;
     u->core = c;
@@ -305,8 +360,8 @@ int pa__init(pa_core *c, pa_module*m) {
 
     mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
 
-    nfrags = 12;
-    frag_size = 1024;
+    nfrags = DEFAULT_NFRAGS;
+    frag_size = DEFAULT_FRAGSIZE;
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
         pa_log(__FILE__": failed to parse fragments arguments");
         goto fail;
@@ -321,17 +376,17 @@ int pa__init(pa_core *c, pa_module*m) {
     if ((u->fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, &caps)) < 0)
         goto fail;
 
-    if (pa_oss_get_hw_description(p, hwdesc, sizeof(hwdesc)) >= 0)
-        pa_log_info(__FILE__": hardware name is '%s'.", hwdesc);
-    else
-        hwdesc[0] = 0;
-
     if (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_REALTIME) || !(caps & DSP_CAP_TRIGGER)) {
         pa_log(__FILE__": OSS device not mmap capable.");
         goto fail;
     }
 
     pa_log_info(__FILE__": device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
+
+    if (pa_oss_get_hw_description(p, hwdesc, sizeof(hwdesc)) >= 0)
+        pa_log_info(__FILE__": hardware name is '%s'.", hwdesc);
+    else
+        hwdesc[0] = 0;
 
     if (nfrags >= 2 && frag_size >= 1)
         if (pa_oss_set_fragments(u->fd, nfrags, frag_size) < 0)
@@ -359,11 +414,13 @@ int pa__init(pa_core *c, pa_module*m) {
             }
         } else {
         
-            u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &u->sample_spec, NULL);
-            assert(u->source);
+            if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &u->sample_spec, NULL)))
+                goto fail;
+            
+            u->source->userdata = u;
+            u->source->get_latency = source_get_latency_cb;
             u->source->get_hw_volume = source_get_hw_volume;
             u->source->set_hw_volume = source_set_hw_volume;
-            u->source->userdata = u;
             pa_source_set_owner(u->source, m);
             u->source->description = pa_sprintf_malloc("Open Sound System PCM/mmap() on '%s'%s%s%s",
                                                        p,
@@ -371,7 +428,7 @@ int pa__init(pa_core *c, pa_module*m) {
                                                        hwdesc[0] ? hwdesc : "",
                                                        hwdesc[0] ? ")" : "");
             
-            u->in_memblocks = pa_xmalloc0(sizeof(pa_memblock *)*u->in_fragments);
+            u->in_memblocks = pa_xnew0(pa_memblock*, u->in_fragments);
             
             enable_bits |= PCM_ENABLE_INPUT;
         }
@@ -397,8 +454,9 @@ int pa__init(pa_core *c, pa_module*m) {
         } else {
             pa_silence_memory(u->out_mmap, u->out_mmap_length, &u->sample_spec);
             
-            u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &u->sample_spec, NULL);
-            assert(u->sink);
+            if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &u->sample_spec, NULL)))
+                goto fail;
+
             u->sink->get_latency = sink_get_latency_cb;
             u->sink->get_hw_volume = sink_get_hw_volume;
             u->sink->set_hw_volume = sink_set_hw_volume;
@@ -453,7 +511,9 @@ fail:
 
 void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
-    assert(c && m);
+    
+    assert(c);
+    assert(m);
 
     if (!(u = m->userdata))
         return;
