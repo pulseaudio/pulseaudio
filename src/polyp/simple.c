@@ -91,30 +91,31 @@ static int iterate(pa_simple *p, int block, int *rerror) {
 
     if (check_error(p, rerror) < 0)
         return -1;
-    
-    if (!block && !pa_context_is_pending(p->context))
-        return 0;
 
-    do {
-        if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0) {
+    if (block || pa_context_is_pending(p->context)) {
+        do {
+            if (pa_mainloop_iterate(p->mainloop, 1, NULL) < 0) {
+                if (rerror)
+                    *rerror = PA_ERR_INTERNAL;
+                return -1;
+            }
+            
+            if (check_error(p, rerror) < 0)
+                return -1;
+        } while (pa_context_is_pending(p->context));
+    }
+
+    for (;;) {
+        int r;
+
+        if ((r = pa_mainloop_iterate(p->mainloop, 0, NULL)) < 0) {
             if (rerror)
                 *rerror = PA_ERR_INTERNAL;
             return -1;
         }
 
-        if (check_error(p, rerror) < 0)
-            return -1;
-        
-    } while (pa_context_is_pending(p->context));
-
-    
-    while (pa_mainloop_deferred_pending(p->mainloop)) {
-
-        if (pa_mainloop_iterate(p->mainloop, 0, NULL) < 0) {
-            if (rerror)
-                *rerror = PA_ERR_INTERNAL;
-            return -1;
-        }
+        if (r == 0)
+            break;
 
         if (check_error(p, rerror) < 0)
             return -1;

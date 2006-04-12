@@ -624,83 +624,95 @@ static void clear_wakeup(pa_mainloop *m) {
 }
 
 int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
-    int dispatched = 0;
-
-    assert(m && (m->state == STATE_PASSIVE));
+    assert(m);
+    assert(m->state == STATE_PASSIVE);
 
     clear_wakeup(m);
-
     scan_dead(m);
 
     if (m->quit)
         goto quit;
 
-    dispatched += dispatch_defer(m);
-
-    if (m->quit)
-        goto quit;
-
-    if (m->rebuild_pollfds)
-        rebuild_pollfds(m);
-
-    m->prepared_timeout = calc_next_timeout(m);
-    if ((timeout >= 0) && (m->prepared_timeout > timeout))
-        m->prepared_timeout = timeout;
+    if (!m->deferred_pending) {
+    
+        if (m->rebuild_pollfds)
+            rebuild_pollfds(m);
+        
+        m->prepared_timeout = calc_next_timeout(m);
+        if (timeout >= 0 && (timeout < m->prepared_timeout || m->prepared_timeout < 0))
+            m->prepared_timeout = timeout;
+    }
 
     m->state = STATE_PREPARED;
-
-    return dispatched;
+    return 0;
 
 quit:
-
     m->state = STATE_QUIT;
-    
     return -2;
 }
 
 int pa_mainloop_poll(pa_mainloop *m) {
     int r;
 
-    assert(m && (m->state == STATE_PREPARED));
+    assert(m);
+    assert(m->state == STATE_PREPARED);
+
+    if (m->quit)
+        goto quit;
 
     m->state = STATE_POLLING;
 
-    r = poll(m->pollfds, m->n_pollfds, m->prepared_timeout);
+    if (m->deferred_pending)
+        r = 0;
+    else {
+        r = poll(m->pollfds, m->n_pollfds, m->prepared_timeout);
 
-    if ((r < 0) && (errno == EINTR))
-            r = 0;
+        if (r < 0) {
+            if (errno == EINTR)
+                r = 0;
+            else
+                pa_log(__FILE__": poll(): %s", strerror(errno));
+        }
+    }
 
-    if (r < 0)
-        m->state = STATE_PASSIVE;
-    else
-        m->state = STATE_POLLED;
-
+    m->state = r < 0 ? STATE_PASSIVE : STATE_POLLED;
     return r;
+
+quit:
+    m->state = STATE_QUIT;
+    return -2;
 }
 
 int pa_mainloop_dispatch(pa_mainloop *m) {
     int dispatched = 0;
 
-    assert(m && (m->state == STATE_POLLED));
-
-    dispatched += dispatch_timeout(m);
+    assert(m);
+    assert(m->state == STATE_POLLED);
 
     if (m->quit)
         goto quit;
     
-    dispatched += dispatch_pollfds(m);
+    if (m->deferred_pending)
+        dispatched += dispatch_defer(m);
+    else {
+        dispatched += dispatch_timeout(m);
+        
+        if (m->quit)
+            goto quit;
+        
+        dispatched += dispatch_pollfds(m);
 
+    }
+    
     if (m->quit)
         goto quit;
-
+    
     m->state = STATE_PASSIVE;
 
     return dispatched;
 
 quit:
-
     m->state = STATE_QUIT;
-    
     return -2;
 }
 
@@ -710,39 +722,30 @@ int pa_mainloop_get_retval(pa_mainloop *m) {
 }
 
 int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval) {
-    int r, dispatched = 0;
-
+    int r;
     assert(m);
 
-    r = pa_mainloop_prepare(m, block ? -1 : 0);
-    if (r < 0) {
-        if ((r == -2) && retval)
-            *retval = pa_mainloop_get_retval(m);
-        return r;
-    }
+    if ((r = pa_mainloop_prepare(m, block ? -1 : 0)) < 0)
+        goto quit;
 
-    dispatched += r;
+    if ((r = pa_mainloop_poll(m)) < 0)
+        goto quit;
 
-    r = pa_mainloop_poll(m);
-    if (r < 0) {
-        pa_log(__FILE__": poll(): %s", strerror(errno));
-        return r;
-    }
+    if ((r = pa_mainloop_dispatch(m)) < 0)
+        goto quit;
 
-    r = pa_mainloop_dispatch(m);
-    if (r < 0) {
-        if ((r == -2) && retval)
-            *retval = pa_mainloop_get_retval(m);
-        return r;
-    }
+    return r;
 
-    dispatched += r;
-
-    return dispatched;
+quit:
+    
+    if ((r == -2) && retval)
+        *retval = pa_mainloop_get_retval(m);
+    return r;
 }
 
 int pa_mainloop_run(pa_mainloop *m, int *retval) {
     int r;
+    
     while ((r = pa_mainloop_iterate(m, 1, retval)) >= 0);
 
     if (r == -2)
@@ -763,12 +766,6 @@ pa_mainloop_api* pa_mainloop_get_api(pa_mainloop*m) {
     assert(m);
     return &m->api;
 }
-
-int pa_mainloop_deferred_pending(pa_mainloop *m) {
-    assert(m);
-    return m->deferred_pending > 0;
-}
-
 
 #if 0
 void pa_mainloop_dump(pa_mainloop *m) {

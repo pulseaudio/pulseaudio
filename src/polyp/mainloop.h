@@ -107,11 +107,8 @@ int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval);
 /** Run unlimited iterations of the main loop object until the main loop's quit() routine is called. */
 int pa_mainloop_run(pa_mainloop *m, int *retval);
 
-/** Return the abstract main loop abstraction layer vtable for this main loop. This calls pa_mainloop_iterate() iteratively.*/
+/** Return the abstract main loop abstraction layer vtable for this main loop. */
 pa_mainloop_api* pa_mainloop_get_api(pa_mainloop*m);
-
-/** Return non-zero when there are any deferred events pending. \since 0.5 */
-int pa_mainloop_deferred_pending(pa_mainloop *m);
 
 /** Shutdown the main loop */
 void pa_mainloop_quit(pa_mainloop *m, int r);
