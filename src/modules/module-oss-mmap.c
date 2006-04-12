@@ -70,8 +70,9 @@ struct userdata {
     pa_core *core;
     pa_sample_spec sample_spec;
 
-    size_t in_fragment_size, out_fragment_size, in_fragments, out_fragments;
-    int out_blocks_saved, in_blocks_saved;
+    size_t in_fragment_size, out_fragment_size;
+    unsigned in_fragments, out_fragments;
+    unsigned out_blocks_saved, in_blocks_saved;
 
     int fd;
 
@@ -121,7 +122,12 @@ static void out_fill_memblocks(struct userdata *u, unsigned n) {
         if (u->out_memblocks[u->out_current])
             pa_memblock_unref_fixed(u->out_memblocks[u->out_current]);
             
-        chunk.memblock = u->out_memblocks[u->out_current] = pa_memblock_new_fixed((uint8_t*)u->out_mmap+u->out_fragment_size*u->out_current, u->out_fragment_size, 1, u->core->memblock_stat);
+        chunk.memblock = u->out_memblocks[u->out_current] =
+            pa_memblock_new_fixed(
+                    (uint8_t*) u->out_mmap+u->out_fragment_size*u->out_current,
+                    u->out_fragment_size,
+                    1,
+                    u->core->memblock_stat);
         assert(chunk.memblock);
         chunk.length = chunk.memblock->length;
         chunk.index = 0;
@@ -233,7 +239,7 @@ static void io_callback(pa_mainloop_api *m, pa_io_event *e, PA_GCC_UNUSED int fd
 static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     struct count_info info;
-    size_t bpos, n;
+    size_t bpos, n, total;
     assert(s && u);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
@@ -243,12 +249,15 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
 
     u->out_blocks_saved += info.blocks;
 
-    bpos = ((u->out_current + u->out_blocks_saved) % u->out_fragments) * u->out_fragment_size;
+    total = u->out_fragments * u->out_fragment_size;
+    bpos = ((u->out_current + u->out_blocks_saved) * u->out_fragment_size) % total;
 
-    if (bpos < (size_t) info.ptr)
-        n = (u->out_fragments * u->out_fragment_size) - (info.ptr - bpos);
+    if (bpos <= (size_t) info.ptr)
+        n = total - (info.ptr - bpos);
     else
         n = bpos - info.ptr;
+
+/*     pa_log("n = %u, bpos = %u, ptr = %u, total=%u, fragsize = %u, n_frags = %u\n", n, bpos, (unsigned) info.ptr, total, u->out_fragment_size, u->out_fragments); */
     
     return pa_bytes_to_usec(n, &s->sample_spec);
 }
@@ -256,7 +265,7 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
 static pa_usec_t source_get_latency_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     struct count_info info;
-    size_t bpos, n;
+    size_t bpos, n, total;
     assert(s && u);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
@@ -266,12 +275,15 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
 
     u->in_blocks_saved += info.blocks;
 
-    bpos = ((u->in_current + u->in_blocks_saved) % u->in_fragments) * u->in_fragment_size;
+    total = u->in_fragments * u->in_fragment_size;
+    bpos = ((u->in_current + u->in_blocks_saved) * u->in_fragment_size) % total;
 
-    if (bpos < (size_t) info.ptr)
+    if (bpos <= (size_t) info.ptr)
         n = info.ptr - bpos;
     else
         n = (u->in_fragments * u->in_fragment_size) - bpos + info.ptr;
+
+/*     pa_log("n = %u, bpos = %u, ptr = %u, total=%u, fragsize = %u, n_frags = %u\n", n, bpos, (unsigned) info.ptr, total, u->in_fragment_size, u->in_fragments);  */
     
     return pa_bytes_to_usec(n, &s->sample_spec);
 }
