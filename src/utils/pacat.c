@@ -36,6 +36,9 @@
 #include <polyp/polypaudio.h>
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
+#include <polypcore/util.h>
+
+#define TIME_EVENT_USEC 50000
 
 #if PA_API_VERSION != 8
 #error Invalid Polypaudio API version
@@ -153,7 +156,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
         case PA_STREAM_READY:
             if (verbose)
-                fprintf(stderr, "Stream successfully created\n");
+                fprintf(stderr, "Stream successfully created.\n");
             break;
             
         case PA_STREAM_FAILED:
@@ -341,34 +344,46 @@ static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig,
 
 /* Show the current latency */
 static void stream_update_timing_callback(pa_stream *s, int success, void *userdata) {
-    pa_usec_t total;
+    pa_usec_t latency, usec;
     int negative = 0;
-    const pa_timing_info *i;
     
     assert(s);
 
     if (!success ||
-        !(i = pa_stream_get_timing_info(s)) ||
-        pa_stream_get_latency(s, &total, &negative) < 0) {
+        pa_stream_get_time(s, &usec) < 0 ||
+        pa_stream_get_latency(s, &latency, &negative) < 0) {
         fprintf(stderr, "Failed to get latency: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
         return;
     }
 
-    fprintf(stderr, "Latency: buffer: %0.0f usec; sink: %0.0f usec; source: %0.0f usec; transport: %0.0f usec; total: %0.0f usec; synchronized clocks: %s.\n",
-            (float) i->buffer_usec,
-            (float) i->sink_usec,
-            (float) i->source_usec,
-            (float) i->transport_usec,
-            (float) total * (negative?-1:1),
-            i->synchronized_clocks ? "yes" : "no");
+    fprintf(stderr, "Time: %0.3f sec; Latency: %0.0f usec.  \r",
+            (float) usec / 1000000,
+            (float) latency * (negative?-1:1));
 }
 
 /* Someone requested that the latency is shown */
 static void sigusr1_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
+
+    if (!stream)
+        return;
+    
     pa_operation_unref(pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL));
 }
 
+static void time_event_callback(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
+    struct timeval next;
+    
+    if (!stream)
+        return;
+    
+    pa_operation_unref(pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL));
+
+    pa_gettimeofday(&next);
+    pa_timeval_add(&next, TIME_EVENT_USEC);
+
+    m->time_restart(e, &next);
+}
 
 static void help(const char *argv0) {
 
@@ -404,6 +419,7 @@ int main(int argc, char *argv[]) {
     pa_mainloop* m = NULL;
     int ret = 1, r, c;
     char *bn, *server = NULL;
+    pa_time_event *time_event = NULL;
 
     static const struct option long_options[] = {
         {"record",      0, NULL, 'r'},
@@ -561,7 +577,7 @@ int main(int argc, char *argv[]) {
                                              mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO,
                                              mode == PLAYBACK ? PA_IO_EVENT_INPUT : PA_IO_EVENT_OUTPUT,
                                              mode == PLAYBACK ? stdin_callback : stdout_callback, NULL))) {
-        fprintf(stderr, "source_io() failed.\n");
+        fprintf(stderr, "io_new() failed.\n");
         goto quit;
     }
 
@@ -575,6 +591,18 @@ int main(int argc, char *argv[]) {
 
     /* Connect the context */
     pa_context_connect(context, server, 0, NULL);
+
+    if (verbose) {
+        struct timeval tv;
+
+        pa_gettimeofday(&tv);
+        pa_timeval_add(&tv, TIME_EVENT_USEC);
+        
+        if (!(time_event = mainloop_api->time_new(mainloop_api, &tv, time_event_callback, NULL))) {
+            fprintf(stderr, "time_new() failed.\n");
+            goto quit;
+        }
+    }
 
     /* Run the main loop */
     if (pa_mainloop_run(m, &ret) < 0) {
@@ -592,6 +620,11 @@ quit:
     if (stdio_event) {
         assert(mainloop_api);
         mainloop_api->io_free(stdio_event);
+    }
+
+    if (time_event) {
+        assert(mainloop_api);
+        mainloop_api->time_free(time_event);
     }
     
     if (m) {
