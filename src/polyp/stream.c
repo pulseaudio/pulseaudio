@@ -330,7 +330,7 @@ static void request_auto_timing_update(pa_stream *s, int force) {
 static void invalidate_indexes(pa_stream *s, int r, int w) {
     assert(s);
 
-    pa_log("invalidate r:%u w:%u tag:%u", r, w, s->context->ctag);
+/*     pa_log("invalidate r:%u w:%u tag:%u", r, w, s->context->ctag); */
     
     if (s->state != PA_STREAM_READY)
         return;
@@ -341,8 +341,7 @@ static void invalidate_indexes(pa_stream *s, int r, int w) {
         if (s->timing_info_valid)
             s->timing_info.write_index_corrupt = 1;
         
-        pa_log("write_index invalidated");
-        
+/*         pa_log("write_index invalidated"); */
     }
     
     if (r) {
@@ -351,7 +350,7 @@ static void invalidate_indexes(pa_stream *s, int r, int w) {
         if (s->timing_info_valid)
             s->timing_info.read_index_corrupt = 1;
         
-        pa_log("read_index invalidated");
+/*         pa_log("read_index invalidated"); */
     }
     
     if ((s->direction == PA_STREAM_PLAYBACK && r) ||
@@ -364,7 +363,7 @@ static void invalidate_indexes(pa_stream *s, int r, int w) {
 static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     pa_stream *s = userdata;
 
-    pa_log("time event");   
+/*     pa_log("time event");    */
 
     pa_stream_ref(s);
     request_auto_timing_update(s, 0);
@@ -725,13 +724,13 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
     i = &o->stream->timing_info;
 
-    pa_log("pre corrupt w:%u r:%u\n", !o->stream->timing_info_valid || i->write_index_corrupt,!o->stream->timing_info_valid || i->read_index_corrupt);
+/*     pa_log("pre corrupt w:%u r:%u\n", !o->stream->timing_info_valid || i->write_index_corrupt,!o->stream->timing_info_valid || i->read_index_corrupt); */
     
     o->stream->timing_info_valid = 0;
     i->write_index_corrupt = 0;
     i->read_index_corrupt = 0;
 
-    pa_log("timing update %u\n", tag);
+/*     pa_log("timing update %u\n", tag); */
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -820,7 +819,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
     }
 
     o->stream->auto_timing_update_requested = 0;
-    pa_log("post corrupt w:%u r:%u\n", i->write_index_corrupt || !o->stream->timing_info_valid, i->read_index_corrupt || !o->stream->timing_info_valid);
+/*     pa_log("post corrupt w:%u r:%u\n", i->write_index_corrupt || !o->stream->timing_info_valid, i->read_index_corrupt || !o->stream->timing_info_valid); */
     
     /* Clear old correction entries */
     if (o->stream->direction == PA_STREAM_PLAYBACK) {
@@ -888,7 +887,7 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
         o->stream->write_index_corrections[cidx].corrupt = 0;
     }
     
-    pa_log("requesting update %u\n", tag);
+/*     pa_log("requesting update %u\n", tag); */
     
     return pa_operation_ref(o);
 }
