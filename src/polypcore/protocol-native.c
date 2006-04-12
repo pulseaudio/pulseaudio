@@ -1060,7 +1060,6 @@ static void command_get_playback_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     CHECK_VALIDITY(c->pstream, s->type == PLAYBACK_STREAM, tag, PA_ERR_NOENTITY);
 
     reply = reply_new(tag);
-    pa_tagstruct_put_usec(reply, pa_sink_input_get_latency(s->sink_input));
     pa_tagstruct_put_usec(reply, pa_sink_get_latency(s->sink_input->sink));
     pa_tagstruct_put_usec(reply, 0);
     pa_tagstruct_put_boolean(reply, pa_memblockq_is_readable(s->memblockq));
@@ -1091,7 +1090,6 @@ static void command_get_record_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
     reply = reply_new(tag);
-    pa_tagstruct_put_usec(reply, pa_source_output_get_latency(s->source_output));
     pa_tagstruct_put_usec(reply, s->source_output->source->monitor_of ? pa_sink_get_latency(s->source_output->source->monitor_of) : 0);
     pa_tagstruct_put_usec(reply, pa_source_get_latency(s->source_output->source));
     pa_tagstruct_put_boolean(reply, 0);
