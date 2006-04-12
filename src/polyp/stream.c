@@ -662,6 +662,10 @@ int pa_stream_drop(pa_stream *s) {
     PA_CHECK_VALIDITY(s->context, s->peek_memchunk.memblock, PA_ERR_BADSTATE);
     
     pa_memblockq_drop(s->record_memblockq, &s->peek_memchunk, s->peek_memchunk.length);
+
+    /* Fix the simulated local read index */
+    if (s->timing_info_valid && !s->timing_info.read_index_corrupt)
+        s->timing_info.read_index += s->peek_memchunk.length;
     
     pa_memblock_unref(s->peek_memchunk.memblock);
     s->peek_memchunk.length = 0;
@@ -814,6 +818,13 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             }
         }
 
+        if (o->stream->direction == PA_STREAM_RECORD) {
+            /* Read index correction */
+
+            if (!i->read_index_corrupt)
+                i->read_index -= pa_memblockq_get_length(o->stream->record_memblockq);
+        }
+        
         o->stream->ipol_timestamp = now;
         o->stream->ipol_usec_valid = 0;
     }

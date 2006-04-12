@@ -294,12 +294,14 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     assert(c->ref >= 1);
 
     pa_context_ref(c);
-    
+
     if ((s = pa_dynarray_get(c->record_streams, channel))) {
+
+        assert(seek == PA_SEEK_RELATIVE && offset == 0);
 
         pa_memblockq_seek(s->record_memblockq, offset, seek);
         pa_memblockq_push_align(s->record_memblockq, chunk);
-
+        
         if (s->read_callback) {
             size_t l;
 
