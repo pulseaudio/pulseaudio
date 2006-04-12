@@ -374,7 +374,7 @@ static void sigusr1_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int s
 static void time_event_callback(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
     struct timeval next;
     
-    if (stream) {
+    if (stream && pa_stream_get_state(stream) == PA_STREAM_READY) {
         pa_operation *o;
         if (!(o = pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL)))
             fprintf(stderr, "pa_stream_update_timing_info() failed: %s\n", pa_strerror(pa_context_errno(context)));
