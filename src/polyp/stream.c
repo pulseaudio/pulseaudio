@@ -90,19 +90,22 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
 
     s->previous_time = 0;
     s->timing_info_valid = 0;
+    s->read_index_not_before = 0;
+    s->write_index_not_before = 0;
 
+    for (i = 0; i < PA_MAX_WRITE_INDEX_CORRECTIONS; i++)
+        s->write_index_corrections[i].valid = 0;
+    s->current_write_index_correction = 0;
+    
     s->corked = 0;
 
     s->ipol_usec_valid = 0;
     s->ipol_timestamp.tv_sec = 0;
     s->ipol_timestamp.tv_usec = 0;
-    s->ipol_event = NULL;
-    s->ipol_requested = 0;
-
-    for (i = 0; i < PA_MAX_LATENCY_CORRECTIONS; i++)
-        s->latency_corrections[i].valid = 0;
-    s->idx_latency_correction = 0;
     
+    s->auto_timing_update_event = NULL;
+    s->auto_timing_update_requested = 0;
+
     PA_LLIST_PREPEND(pa_stream, c->streams, s);
 
     /* The context and stream will point at each other. We cannot ref count
@@ -119,9 +122,9 @@ static void stream_free(pa_stream *s) {
 
     pa_context_unref(s->context);
 
-    if (s->ipol_event) {
+    if (s->auto_timing_update_event) {
         assert(s->mainloop);
-        s->mainloop->time_free(s->ipol_event);
+        s->mainloop->time_free(s->auto_timing_update_event);
     }
 
     if (s->peek_memchunk.memblock)
@@ -296,34 +299,77 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, PA_GCC
         }
     }
 
-finish:
+ finish:
     pa_context_unref(c);
 }
 
-static void ipol_callback(pa_mainloop_api *m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void request_auto_timing_update(pa_stream *s, int force) {
     struct timeval next;
-    pa_stream *s = userdata;
+    assert(s);
 
-    pa_stream_ref(s);
-
-/*     pa_log("requesting new ipol data"); */
+    if (!(s->flags & PA_STREAM_AUTO_TIMING_UPDATE))
+        return;
     
-    if (s->state == PA_STREAM_READY && !s->ipol_requested) {
+    if (s->state == PA_STREAM_READY &&
+        (force || !s->auto_timing_update_requested)) {
         pa_operation *o;
         
+/*         pa_log("automatically requesting new timing data");   */
+
         if ((o = pa_stream_update_timing_info(s, NULL, NULL))) {
             pa_operation_unref(o);
-            s->ipol_requested = 1;
+            s->auto_timing_update_requested = 1;
         }
     }
-    
+
     pa_gettimeofday(&next);
     pa_timeval_add(&next, LATENCY_IPOL_INTERVAL_USEC);
-    m->time_restart(e, &next);
-    
-    pa_stream_unref(s);
+    s->mainloop->time_restart(s->auto_timing_update_event, &next);
 }
 
+static void invalidate_indexes(pa_stream *s, int r, int w) {
+    assert(s);
+
+    pa_log("invalidate r:%u w:%u tag:%u", r, w, s->context->ctag);
+    
+    if (s->state != PA_STREAM_READY)
+        return;
+
+    if (w) {
+        s->write_index_not_before = s->context->ctag;
+        
+        if (s->timing_info_valid)
+            s->timing_info.write_index_corrupt = 1;
+        
+        pa_log("write_index invalidated");
+        
+    }
+    
+    if (r) {
+        s->read_index_not_before = s->context->ctag;
+        
+        if (s->timing_info_valid)
+            s->timing_info.read_index_corrupt = 1;
+        
+        pa_log("read_index invalidated");
+    }
+    
+    if ((s->direction == PA_STREAM_PLAYBACK && r) ||
+        (s->direction == PA_STREAM_RECORD && w))
+        s->ipol_usec_valid = 0;
+    
+    request_auto_timing_update(s, 1);
+}
+
+static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+    pa_stream *s = userdata;
+
+    pa_log("time event");   
+
+    pa_stream_ref(s);
+    request_auto_timing_update(s, 0);
+    pa_stream_unref(s);
+}
 
 void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_stream *s = userdata;
@@ -371,6 +417,8 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
     /* We add an extra ref as long as we're connected (i.e. in the dynarray) */
     pa_stream_ref(s);
 
+    pa_stream_set_state(s, PA_STREAM_READY);
+    
     if (s->direction != PA_STREAM_UPLOAD &&
         s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
         struct timeval tv;
@@ -378,12 +426,12 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
         pa_gettimeofday(&tv);
         tv.tv_usec += LATENCY_IPOL_INTERVAL_USEC; /* every 100 ms */
 
-        assert(!s->ipol_event);
-        s->ipol_event = s->mainloop->time_new(s->mainloop, &tv, &ipol_callback, s);
+        assert(!s->auto_timing_update_event);
+        s->auto_timing_update_event = s->mainloop->time_new(s->mainloop, &tv, &auto_timing_update_callback, s);
+
+        request_auto_timing_update(s, 1);
     }
 
-    pa_stream_set_state(s, PA_STREAM_READY);
-    
     if (s->requested_bytes > 0 && s->ref > 1 && s->write_callback)
         s->write_callback(s, s->requested_bytes, s->write_userdata);
 
@@ -548,18 +596,19 @@ int pa_stream_write(
         s->requested_bytes = 0;
 
     if (s->direction == PA_STREAM_PLAYBACK) {
+        
         /* Update latency request correction */
-        if (s->latency_corrections[s->idx_latency_correction].valid) {
+        if (s->write_index_corrections[s->current_write_index_correction].valid) {
             
             if (seek == PA_SEEK_ABSOLUTE) {
-                s->latency_corrections[s->idx_latency_correction].corrupt = 0;
-                s->latency_corrections[s->idx_latency_correction].absolute = 1;
-                s->latency_corrections[s->idx_latency_correction].value = offset + length;
+                s->write_index_corrections[s->current_write_index_correction].corrupt = 0;
+                s->write_index_corrections[s->current_write_index_correction].absolute = 1;
+                s->write_index_corrections[s->current_write_index_correction].value = offset + length;
             } else if (seek == PA_SEEK_RELATIVE) {
-                if (!s->latency_corrections[s->idx_latency_correction].corrupt)
-                    s->latency_corrections[s->idx_latency_correction].value += offset + length;
+                if (!s->write_index_corrections[s->current_write_index_correction].corrupt)
+                    s->write_index_corrections[s->current_write_index_correction].value += offset + length;
             } else
-                s->latency_corrections[s->idx_latency_correction].corrupt = 1;
+                s->write_index_corrections[s->current_write_index_correction].corrupt = 1;
         }
         
         /* Update the write index in the already available latency data */
@@ -574,6 +623,9 @@ int pa_stream_write(
             } else
                 s->timing_info.write_index_corrupt = 1;
         }
+
+        if (!s->timing_info_valid || s->timing_info.write_index_corrupt)
+            request_auto_timing_update(s, 1);
     }
     
     return 0;
@@ -672,15 +724,20 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
     assert(o->context);
 
     i = &o->stream->timing_info;
+
+    pa_log("pre corrupt w:%u r:%u\n", !o->stream->timing_info_valid || i->write_index_corrupt,!o->stream->timing_info_valid || i->read_index_corrupt);
+    
     o->stream->timing_info_valid = 0;
     i->write_index_corrupt = 0;
+    i->read_index_corrupt = 0;
+
+    pa_log("timing update %u\n", tag);
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
 
-    } else if (pa_tagstruct_get_usec(t, &i->buffer_usec) < 0 ||
-               pa_tagstruct_get_usec(t, &i->sink_usec) < 0 ||
+    } else if (pa_tagstruct_get_usec(t, &i->sink_usec) < 0 ||
                pa_tagstruct_get_usec(t, &i->source_usec) < 0 ||
                pa_tagstruct_get_boolean(t, &i->playing) < 0 ||
                pa_tagstruct_get_timeval(t, &local) < 0 ||
@@ -692,8 +749,11 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
         goto finish;
         
     } else {
+        o->stream->timing_info_valid = 1;
+
         pa_gettimeofday(&now);
         
+        /* Calculcate timestamps */
         if (pa_timeval_cmp(&local, &remote) <= 0 && pa_timeval_cmp(&remote, &now) <= 0) {
             /* local and remote seem to have synchronized clocks */
             
@@ -712,6 +772,13 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             pa_timeval_add(&i->timestamp, i->transport_usec);
         }
 
+        /* Invalidate read and write indexes if necessary */
+        if (tag < o->stream->read_index_not_before)
+            i->read_index_corrupt = 1;
+
+        if (tag < o->stream->write_index_not_before)
+            i->write_index_corrupt = 1;
+
         if (o->stream->direction == PA_STREAM_PLAYBACK) {
             /* Write index correction */
 
@@ -720,53 +787,54 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
             /* Go through the saved correction values and add up the total correction.*/
             
-            for (n = 0, j = o->stream->idx_latency_correction;
-                 n < PA_MAX_LATENCY_CORRECTIONS;
-                 n++, j = (j + 1) % PA_MAX_LATENCY_CORRECTIONS) {
+            for (n = 0, j = o->stream->current_write_index_correction+1;
+                 n < PA_MAX_WRITE_INDEX_CORRECTIONS;
+                 n++, j = (j + 1) % PA_MAX_WRITE_INDEX_CORRECTIONS) {
 
                 /* Step over invalid data or out-of-date data */
-                if (!o->stream->latency_corrections[j].valid ||
-                    o->stream->latency_corrections[j].tag < ctag)
+                if (!o->stream->write_index_corrections[j].valid ||
+                    o->stream->write_index_corrections[j].tag < ctag)
                     continue;
 
                 /* Make sure that everything is in order */
-                ctag = o->stream->latency_corrections[j].tag+1;
+                ctag = o->stream->write_index_corrections[j].tag+1;
 
                 /* Now fix the write index */
-                if (o->stream->latency_corrections[j].corrupt) {
+                if (o->stream->write_index_corrections[j].corrupt) {
                     /* A corrupting seek was made */
                     i->write_index = 0;
                     i->write_index_corrupt = 1;
-                } else if (o->stream->latency_corrections[j].absolute) {
+                } else if (o->stream->write_index_corrections[j].absolute) {
                     /* An absolute seek was made */
-                    i->write_index = o->stream->latency_corrections[j].value;
+                    i->write_index = o->stream->write_index_corrections[j].value;
                     i->write_index_corrupt = 0;
                 } else if (!i->write_index_corrupt) {
                     /* A relative seek was made */
-                    i->write_index += o->stream->latency_corrections[j].value;
+                    i->write_index += o->stream->write_index_corrections[j].value;
                 }
             }
         }
-        
-        o->stream->timing_info_valid = 1;
-        
+
         o->stream->ipol_timestamp = now;
         o->stream->ipol_usec_valid = 0;
     }
 
+    o->stream->auto_timing_update_requested = 0;
+    pa_log("post corrupt w:%u r:%u\n", i->write_index_corrupt || !o->stream->timing_info_valid, i->read_index_corrupt || !o->stream->timing_info_valid);
+    
     /* Clear old correction entries */
     if (o->stream->direction == PA_STREAM_PLAYBACK) {
         int n;
         
-        for (n = 0; n < PA_MAX_LATENCY_CORRECTIONS; n++) {
-            if (!o->stream->latency_corrections[n].valid)
+        for (n = 0; n < PA_MAX_WRITE_INDEX_CORRECTIONS; n++) {
+            if (!o->stream->write_index_corrections[n].valid)
                 continue;
             
-            if (o->stream->latency_corrections[n].tag <= tag)
-                o->stream->latency_corrections[n].valid = 0;
+            if (o->stream->write_index_corrections[n].tag <= tag)
+                o->stream->write_index_corrections[n].valid = 0;
         }
     }
-
+    
     if (o->callback) {
         pa_stream_success_cb_t cb = (pa_stream_success_cb_t) o->callback;
         cb(o->stream, o->stream->timing_info_valid, o->userdata);
@@ -790,16 +858,15 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
-
+    
     if (s->direction == PA_STREAM_PLAYBACK) {
         /* Find a place to store the write_index correction data for this entry */
-        cidx = (s->idx_latency_correction + 1) % PA_MAX_LATENCY_CORRECTIONS;
+        cidx = (s->current_write_index_correction + 1) % PA_MAX_WRITE_INDEX_CORRECTIONS;
         
         /* Check if we could allocate a correction slot. If not, there are too many outstanding queries */
-        PA_CHECK_VALIDITY_RETURN_NULL(s->context, !s->latency_corrections[cidx].valid, PA_ERR_INTERNAL);
+        PA_CHECK_VALIDITY_RETURN_NULL(s->context, !s->write_index_corrections[cidx].valid, PA_ERR_INTERNAL);
     }
-    
-    o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
+      o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
     
     t = pa_tagstruct_command(
             s->context,
@@ -813,13 +880,15 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
 
     if (s->direction == PA_STREAM_PLAYBACK) {
         /* Fill in initial correction data */
-        o->stream->idx_latency_correction = cidx;
-        o->stream->latency_corrections[cidx].valid = 1;
-        o->stream->latency_corrections[cidx].tag = tag;
-        o->stream->latency_corrections[cidx].absolute = 0;
-        o->stream->latency_corrections[cidx].value = 0;
-        o->stream->latency_corrections[cidx].corrupt = 0;
+        o->stream->current_write_index_correction = cidx;
+        o->stream->write_index_corrections[cidx].valid = 1;
+        o->stream->write_index_corrections[cidx].tag = tag;
+        o->stream->write_index_corrections[cidx].absolute = 0;
+        o->stream->write_index_corrections[cidx].value = 0;
+        o->stream->write_index_corrections[cidx].corrupt = 0;
     }
+    
+    pa_log("requesting update %u\n", tag);
     
     return pa_operation_ref(o);
 }
@@ -946,7 +1015,6 @@ finish:
 
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata) {
     pa_operation *o;
-    pa_operation *lo;
     pa_tagstruct *t;
     uint32_t tag;
     
@@ -955,15 +1023,6 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
-
-    if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
-        if (!s->corked && b) {
-            /* Refresh the interpolated data just befor pausing */
-            pa_stream_get_time(s, NULL);
-        } else if (s->corked && !b)
-            /* Unpausing */
-            pa_gettimeofday(&s->ipol_timestamp);
-    }
 
     s->corked = b;
     
@@ -978,9 +1037,9 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, o);
 
-    if ((lo = pa_stream_update_timing_info(s, NULL, NULL)))
-        pa_operation_unref(lo);
-    
+    if (s->direction == PA_STREAM_PLAYBACK)
+        invalidate_indexes(s, 1, 0);
+
     return pa_operation_ref(o);
 }
 
@@ -1006,14 +1065,24 @@ static pa_operation* stream_send_simple_command(pa_stream *s, uint32_t command, 
 
 pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *userdata) {
     pa_operation *o;
-
+    
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
     
     if ((o = stream_send_simple_command(s, s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_FLUSH_PLAYBACK_STREAM : PA_COMMAND_FLUSH_RECORD_STREAM, cb, userdata))) {
-        pa_operation *lo;
 
-        if ((lo = pa_stream_update_timing_info(s, NULL, NULL)))
-            pa_operation_unref(lo);
+        if (s->direction == PA_STREAM_PLAYBACK) {
+            if (s->write_index_corrections[s->current_write_index_correction].valid)
+                s->write_index_corrections[s->current_write_index_correction].corrupt = 1;
+        
+            if (s->timing_info_valid)
+                s->timing_info.write_index_corrupt = 1;
+
+            if (s->buffer_attr.prebuf > 0) 
+                invalidate_indexes(s, 1, 0);
+            else
+                request_auto_timing_update(s, 1);
+        } else
+            invalidate_indexes(s, 0, 1);
     }
     
     return o;
@@ -1023,14 +1092,11 @@ pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *us
     pa_operation *o;
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->buffer_attr.prebuf > 0, PA_ERR_BADSTATE);
 
-    if ((o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata))) {
-        pa_operation *lo;
+    if ((o = stream_send_simple_command(s, PA_COMMAND_PREBUF_PLAYBACK_STREAM, cb, userdata)))
+        invalidate_indexes(s, 1, 0);
 
-        if ((lo = pa_stream_update_timing_info(s, NULL, NULL)))
-            pa_operation_unref(lo);
-    }
-    
     return o;
 }
 
@@ -1038,13 +1104,10 @@ pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *u
     pa_operation *o;
     
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->buffer_attr.prebuf > 0, PA_ERR_BADSTATE);
 
-    if ((o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata))) {
-        pa_operation *lo;
-
-        if ((lo = pa_stream_update_timing_info(s, NULL, NULL)))
-            pa_operation_unref(lo);
-    }
+    if ((o = stream_send_simple_command(s, PA_COMMAND_TRIGGER_PLAYBACK_STREAM, cb, userdata)))
+        invalidate_indexes(s, 1, 0);
     
     return o;
 }
@@ -1084,50 +1147,56 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->timing_info_valid, PA_ERR_NODATA);
+    PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_PLAYBACK || !s->timing_info.read_index_corrupt, PA_ERR_NODATA);
+    PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_RECORD || !s->timing_info.write_index_corrupt, PA_ERR_NODATA);
 
-    if (s->flags & PA_STREAM_INTERPOLATE_TIMING && s->ipol_usec_valid )
+    if (s->flags & PA_STREAM_INTERPOLATE_TIMING && s->ipol_usec_valid)
         usec = s->ipol_usec;
     else {
         if (s->direction == PA_STREAM_PLAYBACK) {
             /* The last byte that was written into the output device
              * had this time value associated */
             usec = pa_bytes_to_usec(s->timing_info.read_index < 0 ? 0 : (uint64_t) s->timing_info.read_index, &s->sample_spec);
-            
-            /* Because the latency info took a little time to come
-             * to us, we assume that the real output time is actually
-             * a little ahead */
-            usec += s->timing_info.transport_usec;
-            
-            /* However, the output device usually maintains a buffer
-               too, hence the real sample currently played is a little
-               back  */
-            if (s->timing_info.sink_usec >= usec)
-                usec = 0;
-            else
-                usec -= s->timing_info.sink_usec;
+
+            if (!s->corked) {
+                /* Because the latency info took a little time to come
+                 * to us, we assume that the real output time is actually
+                 * a little ahead */
+                usec += s->timing_info.transport_usec;
+                
+                /* However, the output device usually maintains a buffer
+                   too, hence the real sample currently played is a little
+                   back  */
+                if (s->timing_info.sink_usec >= usec)
+                    usec = 0;
+                else
+                    usec -= s->timing_info.sink_usec;
+            }
             
         } else if (s->direction == PA_STREAM_RECORD) {
             /* The last byte written into the server side queue had
              * this time value associated */
             usec = pa_bytes_to_usec(s->timing_info.write_index < 0 ? 0 : (uint64_t) s->timing_info.write_index, &s->sample_spec);
-            
-            /* Add transport latency */
-            usec += s->timing_info.transport_usec;
-            
-            /* Add latency of data in device buffer */
-            usec += s->timing_info.source_usec;
-            
-            /* If this is a monitor source, we need to correct the
-             * time by the playback device buffer */
-            if (s->timing_info.sink_usec >= usec)
-                usec = 0;
-            else
-                usec -= s->timing_info.sink_usec;
+
+            if (!s->corked) {
+                /* Add transport latency */
+                usec += s->timing_info.transport_usec;
+                
+                /* Add latency of data in device buffer */
+                usec += s->timing_info.source_usec;
+                
+                /* If this is a monitor source, we need to correct the
+                 * time by the playback device buffer */
+                if (s->timing_info.sink_usec >= usec)
+                    usec = 0;
+                else
+                    usec -= s->timing_info.sink_usec;
+            }
         }
 
         if (s->flags & PA_STREAM_INTERPOLATE_TIMING) {
-            s->ipol_usec_valid = 1;
             s->ipol_usec = usec;
+            s->ipol_usec_valid = 1;
         }
     }
 
@@ -1189,6 +1258,7 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative) {
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->timing_info_valid, PA_ERR_NODATA);
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_PLAYBACK || !s->timing_info.write_index_corrupt, PA_ERR_NODATA);
+    PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_RECORD || !s->timing_info.read_index_corrupt, PA_ERR_NODATA);
     
     if ((r = pa_stream_get_time(s, &t)) < 0)
         return r;

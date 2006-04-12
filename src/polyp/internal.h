@@ -83,14 +83,14 @@ struct pa_context {
     pa_client_conf *conf;
 };
 
-#define PA_MAX_LATENCY_CORRECTIONS 10
+#define PA_MAX_WRITE_INDEX_CORRECTIONS 10
 
-typedef struct pa_latency_correction {
+typedef struct pa_index_correction {
     uint32_t tag;
     int valid;
     int64_t value;
     int absolute, corrupt;
-} pa_latency_correction;
+} pa_index_correction;
 
 struct pa_stream {
     int ref;
@@ -124,13 +124,18 @@ struct pa_stream {
     /* Use to make sure that time advances monotonically */
     pa_usec_t previous_time;
     
-    /* Latency correction stuff */
-    pa_latency_correction latency_corrections[PA_MAX_LATENCY_CORRECTIONS];
-    int idx_latency_correction;
+    /* time updates with tags older than these are invalid */
+    uint32_t write_index_not_before;
+    uint32_t read_index_not_before;
+
+    /* Data about individual timing update correctoins */
+    pa_index_correction write_index_corrections[PA_MAX_WRITE_INDEX_CORRECTIONS];
+    int current_write_index_correction;
 
     /* Latency interpolation stuff */
-    pa_time_event *ipol_event;
-    int ipol_requested;
+    pa_time_event *auto_timing_update_event;
+    int auto_timing_update_requested;
+    
     pa_usec_t ipol_usec;
     int ipol_usec_valid;
     struct timeval ipol_timestamp;

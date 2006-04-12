@@ -204,13 +204,14 @@ typedef enum pa_subscription_event_type {
  * pa_stream_update_timing_info() and pa_stream_get_timing_info(). The
  * total output latency a sample that is written with
  * pa_stream_write() takes to be played may be estimated by
- * sink_usec+buffer_usec+transport_usec. The output buffer to which
- * buffer_usec relates may be manipulated freely (with
+ * sink_usec+buffer_usec+transport_usec. (where buffer_usec is defined
+ * as pa_bytes_to_usec(write_index-read_index)) The output buffer 
+ * which buffer_usec relates to may be manipulated freely (with
  * pa_stream_write()'s seek argument, pa_stream_flush() and friends),
  * the buffers sink_usec and source_usec relate to are first-in
- * first-out (FIFO) buffers which cannot be flushed or manipulated in any
- * way. The total input latency a sample that is recorded takes to be
- * delivered to the application is:
+ * first-out (FIFO) buffers which cannot be flushed or manipulated in
+ * any way. The total input latency a sample that is recorded takes to
+ * be delivered to the application is:
  * source_usec+buffer_usec+transport_usec-sink_usec. (Take care of
  * sign issues!) When connected to a monitor source sink_usec contains
  * the latency of the owning sink. The two latency estimations
@@ -226,7 +227,6 @@ typedef struct pa_timing_info {
                                * limited und unreliable itself. \since
                                * 0.5 */
 
-    pa_usec_t buffer_usec;    /**< Time in usecs the current buffer takes to play. For both playback and record streams. */
     pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink. For playback streams and record streams connected to a monitor source. */
     pa_usec_t source_usec;    /**< Time in usecs a sample takes from being recorded to being delivered to the application. Only for record streams. \since 0.5*/
     pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to/from the daemon. For both playback and record streams. \since 0.5 */
@@ -240,14 +240,21 @@ typedef struct pa_timing_info {
                                * info was current . Only write
                                * commands with SEEK_RELATIVE_ON_READ
                                * and SEEK_RELATIVE_END can corrupt
-                               * write_index. */
+                               * write_index. \since 0.8 */
     int64_t write_index;      /**< Current write index into the
                                * playback buffer in bytes. Think twice before
                                * using this for seeking purposes: it
                                * might be out of date a the time you
                                * want to use it. Consider using
                                * PA_SEEK_RELATIVE instead. \since
-                               * 0.8 */ 
+                               * 0.8 */
+
+    int read_index_corrupt;   /**< Non-zero if read_index is not
+                               * up-to-date because a local pause or
+                               * flush request that corrupted it has
+                               * been issued in the time since this
+                               * latency info was current. \since 0.8  */
+    
     int64_t read_index;       /**< Current read index into the
                                * playback buffer in bytes. Think twice before
                                * using this for seeking purposes: it
