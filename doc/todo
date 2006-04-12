@@ -6,6 +6,7 @@ Test:
 
 Fixes:
 - correct API docs regarding timing work
+- incorporate client memblockq into latency calculations for recording streamings
 
 Post 0.8:
 - alsa mmap driver
