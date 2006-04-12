@@ -728,7 +728,11 @@ int pa_context_is_pending(pa_context *c) {
     assert(c);
     assert(c->ref >= 1);
 
-    PA_CHECK_VALIDITY(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(c,
+                      c->state == PA_CONTEXT_CONNECTING ||
+                      c->state == PA_CONTEXT_AUTHORIZING ||
+                      c->state == PA_CONTEXT_SETTING_NAME ||
+                      c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
     return (c->pstream && pa_pstream_is_pending(c->pstream)) ||
         (c->pdispatch && pa_pdispatch_is_pending(c->pdispatch)) ||
