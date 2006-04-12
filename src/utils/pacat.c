@@ -540,7 +540,7 @@ int main(int argc, char *argv[]) {
         if (optind+1 == argc) {
             int fd;
             
-            if ((fd = open(argv[optind], mode == PLAYBACK ? O_RDONLY : O_WRONLY|O_TRUNC|O_CREAT)) < 0) {
+            if ((fd = open(argv[optind], mode == PLAYBACK ? O_RDONLY : O_WRONLY|O_TRUNC|O_CREAT, 0666)) < 0) {
                 fprintf(stderr, "open(): %s\n", strerror(errno));
                 goto quit;
             }
