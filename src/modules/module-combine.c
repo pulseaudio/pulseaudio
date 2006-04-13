@@ -200,7 +200,9 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     assert(s && u && u->sink && u->master);
 
-    return pa_sink_input_get_latency(u->master->sink_input);
+    return
+        pa_sink_input_get_latency(u->master->sink_input) +
+        pa_sink_get_latency(u->master->sink_input->sink);
 }
 
 static struct output *output_new(struct userdata *u, pa_sink *sink, int resample_method) {
