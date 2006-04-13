@@ -100,6 +100,24 @@ compatible as <tt>module-oss</tt>.</p>
 
 <p>This module accepts exactly the same arguments as <a href="#module-oss"><tt>module-oss</tt></a>.</p>
 
+<h3>module-solaris</h3>
+
+<P>Provides a sink and source for the Solaris audio device.</p>
+
+<p>In addition to the general device driver options described above this module supports:</p>
+
+<table>
+  <tr><td><tt>record=</tt></td><td>Accepts a binary numerical value for enabling (resp. disabling) the recording on this device. (defaults: to 1)</td></tr>
+  <tr><td><tt>playback=</tt></td><td>Accepts a binary numerical value for enabling (resp. disabling) the playback on this device. (defaults: to 1)</td></tr>
+  <tr><td><tt>buffer_size=</tt></td><td>Record buffer size</td></tr>
+</table>
+
+<h3>module-waveout</h3>
+
+<P>Provides a sink and source for the Win32 audio device.</p>
+
+<p>This module supports all arguments thet <tt>module-oss</tt> supports except <tt>device=</tt>.</p>
+
 <h3>module-combine</h3>
 
 <p>This combines two or more sinks into one. A new virtual sink is
@@ -168,7 +186,7 @@ module see <a href="cli.html"><tt>cli.html</tt></a>.
 <a name="module-cli-protocol-tcp"/>
 <a name="module-cli-protocol"/>
 
-<h3>module-cli-protocol-{unix,tcp,tcp6}</h3>
+<h3>module-cli-protocol-{unix,tcp}</h3>
 
 <p>An implemenation of a simple command line based protocol for
 controlling the <tt>polypaudio</tt> daemon. If loaded, the user may
@@ -182,7 +200,7 @@ service.</p>
 <p>This module exists in two versions: with the suffix <tt>-unix</tt>
 the service will listen on an UNIX domain socket in the local file
 system. With the suffix <tt>-tcp</tt> it will listen on a network
-transparent TCP/IP socket.</p>
+transparent TCP/IP socket. (Both IPv6 and IPv4 - if available)</p>
 
 <p>This module supports the following options:</p>
 
@@ -191,10 +209,11 @@ transparent TCP/IP socket.</p>
   <tr><td><tt>loopback=</tt></td><td>(only for <tt>-tcp</tt>) Accepts
 a numerical binary value. If 1 the socket is bound to the loopback
 device, i.e. not publicly accessible. (defaults to 1)</td></tr>
+  <tr><td><tt>listen=</tt></td><td>(only for <tt>-tcp</tt>) The IP address to listen on. If specified, supersedes the value specified in <tt>loopback=</tt></td></tr>
   <tr><td><tt>socket=</tt></td><td>(only for <tt>-unix</tt>) The UNIX socket name (defaults to <tt>/tmp/polypaudio/cli</tt>)</td></tr>
 </table>
 
-<h3>module-simple-protocol-{unix,tcp,tcp6}</h3>
+<h3>module-simple-protocol-{unix,tcp}</h3>
 
 <p>An implementation of a simple protocol which allows playback by using
 simple tools like <tt>netcat</tt>. Just connect to the listening
@@ -231,13 +250,13 @@ about the two possible suffixes of this module.</p>
 
 <table>
   <tr><td><tt>sink=</tt>, <tt>source=</tt></td><td>Specify the sink/source this service connects to</td></tr>
-  <tr><td><tt>public=</tt></td><td>If set to 0 not authentication is required to connect to the service</td></tr>
+  <tr><td><tt>auth-anonymous=</tt></td><td>If set to 1 no authentication is required to connect to the service</td></tr>
   <tr><td><tt>cookie=</tt></td><td>Name of the cookie file for authentication purposes</td></tr>
 </table>
 
 <p>This implementation misses some features the original ESOUND has: e.g. there is no sample cache yet. However: XMMS works fine.</p>
 
-<h3>module-native-protocol-{unix,tcp,tcp6}</h3>
+<h3>module-native-protocol-{unix,tcp}</h3>
 
 <p>The native protocol of <tt>polypaudio</tt>.</p>
 
@@ -247,7 +266,8 @@ about the two possible suffixes of this module.</p>
 <p>In addition to the options supported by <a href="module-cli-protocol"><tt>module-cli-protocol-*</tt></a>, this module supports:</p>
 
 <table>
-  <tr><td><tt>public=</tt></td><td>If set to 0 not authentication is required to connect to the service</td></tr>
+  <tr><td><tt>auth-anonymous=</tt></td><td>If set to 1 no authentication is required to connect to the service</td></tr>
+  <tr><td><tt>auth-group=</tt></td><td>(only for <tt>-unix</tt>): members of the specified unix group may access the server without further auhentication.</td></tr>
   <tr><td><tt>cookie=</tt></td><td>Name of the cookie file for authentication purposes</td></tr>
 </table>
 
@@ -320,7 +340,38 @@ already loaded protocol module is used.</td></tr> </table>
 
 <p>The volumes of all streams with titles starting with <tt>sample:</tt> are automatically set to 25. (FYI: All sample cache streams start with <tt>sample:</tt>)</p>
 
+<h3>module-detect</h3>
+
+<p>Automatically detect the available sound hardware and load modules for it. Supports OSS, ALSA, Solaris and Win32 output drivers. 
+
+<table>
+  <tr><td><tt>just-one=</tt></td><td>If set to <tt>1</tt> the module will only try to load a single sink/source and than stop.</td></tr>
+</table>
+
+<h3>module-zeroconf-publish</h3>
+
+<p>Publish all local sinks/sources using mDNS Zeroconf.</p>
+
+<h3>module-mmkbd-evdev</h3>
+
+<p>Adjust the volume of a sink when the special multimedia buttons of modern keyboards are pressed.</p>
+
+<table>
+  <tr><td><tt>device=</tt></td><td>Linux input device ("<tt>evdev</tt>", defaults to <tt>/dev/input/event0</tt>)</td></tr>
+  <tr><td><tt>sink=</tt></td><td>The sink to control</td></tr>
+</table>
+
+<h3>module-lirc</h3>
+
+<p>Adjust the volume of a sink when the volume buttons of an infrared remote control are pressed (through LIRC).</p>
+
+<table>
+  <tr><td><tt>config=</tt></td><td>The LIRC configuration file</td></tr>
+  <tr><td><tt>appname=</tt></td><td>The application name to pass to LIRC (defaults to <tt>polypaudio</tt>)</td></tr>
+  <tr><td><tt>sink=</tt></td><td>The sink to control</td></tr>
+</table>
+
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, November 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, April 2006</address>
 <div class="grey"><i>$Id$</i></div>
 </body> </html>

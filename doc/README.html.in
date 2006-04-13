@@ -10,13 +10,13 @@
 <body>
 <h1><a name="top">polypaudio @PACKAGE_VERSION@</a></h1>
 
-<p><i>Copyright 2004 Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;</i></p>
+<p><i>Copyright 2004-2006 Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;</i> and Pierre Ossman</p>
 
 <ul class="toc">
     <li><a href="#license">License</a></li>
     <li><a href="#news">News</a></li>
     <li><a href="#overview">Overview</a></li>
-    <li><a href="#status">Status</a></li>
+    <li><a href="#status">Current Status</a></li>
     <li><a href="#documentation">Documentation</a></li>
     <li><a href="#requirements">Requirements</a></li>
     <li><a href="#installation">Installation</a></li>
@@ -41,6 +41,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
+
+<div class="news-date">Thu Apr 13 2006: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.8.tar.gz">Version 0.8</a> released;
+changes include: too many to count; many, many minor fixes.</p>
 
 <div class="news-date">Sun Nov 21 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.7.tar.gz">Version 0.7</a> released;
@@ -92,13 +96,12 @@ href="@PACKAGE_URL@polypaudio-0.1.tar.gz">Version 0.1</a> released</p>
 
 <h2><a name="overview">Overview</a></h2>
 
-<p><tt>polypaudio</tt> is a sound server for Linux and other Unix like
-operating systems. It is intended to be an improved drop-in
+<p><tt>polypaudio</tt> is a networked sound server for Linux and other
+Unix like operating systems. It is intended to be an improved drop-in
 replacement for the <a
 href="http://www.tux.org/~ricdude/apps.html">Enlightened Sound
-Daemon</a> (ESOUND). It is my ultimate ambition to get Polypaudio into
-<a href="http://www.gnome.org/">Gnome</a> as a replacement for ESOUND. In
-addition to the features ESOUND provides <tt>polypaudio</tt> has:</p>
+Daemon</a> (ESOUND). In addition to the features ESOUND provides
+<tt>polypaudio</tt> has:</p>
 
 <ul>
   <li>Extensible plugin architecture (by loading dynamic loadable modules with <tt>dlopen()</tt>)</li>
@@ -110,9 +113,10 @@ addition to the features ESOUND provides <tt>polypaudio</tt> has:</p>
   <li>Flexible, implicit sample type conversion and resampling</li>
   <li>"Zero-Copy" architecture</li>
   <li>Module autoloading</li>
-  <li>Very accurate latency measurement for playback and recordin.</li>
+  <li>Very accurate latency measurement for playback and recording.</li>
   <li>May be used to combine multiple sound cards to one (with sample rate adjustment)</li>
   <li>Client side latency interpolation</li>
+  <li>Ability to fully synchronize multiple playback streams</li>
 </ul>
 
 <p>Both the core and the client API are completely asynchronous making
@@ -129,19 +133,25 @@ available. A simple main loop implementation is available as well.</p>
   <li><tt>module-oss</tt>: driver for Open Sound System audio sinks and sources.</li>
   <li><tt>module-oss-mmap</tt>: same as above, but uses <tt>mmap()</tt> access to the audio buffer. Not as compatible</li>
   <li><tt>module-alsa-sink</tt>, <tt>module-alsa-source</tt>: drivers for ALSA sinks and sources</li>
+  <li><tt>module-solaris</tt>: drivers for Solaris audio sinks and sources</li>
+  <li><tt>module-waveout</tt>: drivers for Microsoft Windows audio sinks and sources</li>
   <li><tt>module-pipe-sink</tt>, <tt>module-pipe-source</tt>: demonstration module providing UNIX fifos backed sinks/sources</li>
   <li><tt>module-combine</tt>: combine multiple sinks into one.</li>
   <li><tt>module-sine</tt>: a sine generate sink input.</li>
   <li><tt>module-x11-bell</tt>: play a sample from the sample cache on every X11 bell event.</li>
   <li><tt>module-x11-publish</tt>: store Polypaudio credentials in the X11 root window.</li>
-  <li><tt>module-esound-protocol-tcp</tt>, <tt>module-esound-protocol-tcp6</tt>, <tt>module-esound-protocol-unix</tt>: ESOUND compatibility modules (for TCP/IPv6 resp. TCP/IPv6 resp. UNIX domain sockets)</li>
-  <li><tt>module-native-protocol-tcp</tt>, <tt>module-native-protocol-tcp6</tt>, <tt>module-native-protocol-unix</tt>: Native polypaudio protocol (for TCP/IPv4 resp. TCP/IPv6 resp. UNIX domain sockets)</li>
-  <li><tt>module-simple-protocol-tcp</tt>, <tt>module-simple-protocol-tcp6</tt>, <tt>module-simple-protocol-unix</tt>: Simplistic protocol for playback/capture for usage with tools like <tt>netcat</tt> (for TCP/IP resp. UNIX domain sockets)</li>
-  <li><tt>module-cli-protocol-tcp</tt>, <tt>module-cli-protocol-tcp6</tt>, <tt>module-cli-protocol-unix</tt>, <tt>module-cli</tt>: Expose polypaudio's internals whith a simple command line interface. (for TCP/IP resp. UNIX domain sockets resp. STDIN/STDOUT)</li>
+  <li><tt>module-esound-protocol-tcp</tt>, <tt>module-esound-protocol-unix</tt>: ESOUND compatibility modules (for TCP/IP resp. UNIX domain sockets)</li>
+  <li><tt>module-native-protocol-tcp</tt>, <tt>module-native-protocol-unix</tt>: Native polypaudio protocol (for TCP/IP resp. UNIX domain sockets)</li>
+  <li><tt>module-simple-protocol-tcp</tt>, <tt>module-simple-protocol-unix</tt>: Simplistic protocol for playback/capture for usage with tools like <tt>netcat</tt> (for TCP/IP resp. UNIX domain sockets)</li>
+  <li><tt>module-cli-protocol-tcp</tt>, <tt>module-cli-protocol-unix</tt>, <tt>module-cli</tt>: Expose polypaudio's internals whith a simple command line interface. (for TCP/IP resp. UNIX domain sockets resp. STDIN/STDOUT)</li>
   <li><tt>module-tunnel-sink</tt>, <tt>module-tunnel-source</tt>: make sinks/sources from other hosts available locally.</li>
   <li><tt>module-match</tt>: adjust volume automatically for newly created playback streams based on a regular expression matching table.</li>
   <li><tt>module-null-sink</tt>: a clocked sink similar to <tt>/dev/null</tt>.</li>
   <li><tt>module-esound-sink</tt>: a sink for forwarding audio data to an ESOUND server.</li>
+  <li><tt>module-detect</tt>: a module which automatically detects what sound hardware is available locally and which loads the required driver modules.</li>
+  <li><tt>module-lirc</tt>: a module to control the volume of a sink with infrared remote controls supported by LIRC.</li>
+  <li><tt>module-mmkbd-evdev</tt>: a module to control the volume of a sink with the special volume keys of a multimeda keyboard.</li>
+  <li><tt>module-zeroconf-publish</tt>: a module to publish local sources/sinks using mDNS zeroconf.</li>
 </ul>
 
 <p><tt>polypaudio</tt> is the successor of my previous, ill-fated
@@ -165,7 +175,7 @@ href="http://xine.sf.net/">Xine</a> (merged in Xine CVS). Drivers for
 <a href="http://www.portaudio.com/">PortAudio</a> will be released
 shortly.</p>
 
-<h2><a name="status">Status</a></h2>
+<h2><a name="status">Current Status</a></h2>
 
 <p>Version @PACKAGE_VERSION@ is quite usable. It matches and supersedes ESOUND's feature set in nearly all areas.</p>
 
@@ -178,7 +188,11 @@ release to release. The client API's library version number is currently fixed t
 <p>There is some preliminary documentation available: <a
 href="modules.html"><tt>modules.html</tt></a>, <a
 href="cli.html"><tt>cli.html</tt></a>, <a
-href="daemon.html"><tt>daemon.html</tt></a>, <a href="FAQ.html"><tt>FAQ.html</tt></a>, .</p>
+href="daemon.html"><tt>daemon.html</tt></a> and <a href="FAQ.html"><tt>FAQ.html</tt></a>.</p>
+
+<p>There is a <a href="http://www.edgewall.com/products/trac/">Trac</a> based <a href="http://0pointer.de/trac/polypaudio/">Wiki for Polypaudio</a> available.</p>
+
+<p></p>
 
 <h3>First Steps</h3>
 
@@ -231,7 +245,7 @@ questions.</p>
 
 <h2><a name="requirements">Requirements</a></h2>
 
-<p>Currently, <tt>polypaudio</tt> is tested on Linux and FreeBSD only. It requires an OSS or ALSA compatible soundcard.</p>
+<p>Currently, <tt>polypaudio</tt> is tested on Linux, FreeBSD, Solaris and Microsoft Windows. It requires an OSS, ALSA, Win32 or Solaris compatible soundcard.</p>
 
 <p><tt>polypaudio</tt> was developed and tested on Debian GNU/Linux
 "testing" from November 2004, it should work on most other Linux
@@ -239,11 +253,16 @@ distributions (and maybe Unix versions) since it uses GNU autoconf and
 GNU libtool for source code configuration and shared library
 management.</p>
 
-<p><tt>polypaudio</tt> needs <tt>libwrap</tt>, <a
+<p><tt>polypaudio</tt> needs <a
 href="http://www.mega-nerd.com/SRC/">Secret Rabbit Code (aka
 <tt>libsamplerate</tt>)</a>, <a
 href="http://www.mega-nerd.com/libsndfile"><tt>libsndfile</tt></a>, <a
-href="http://www.alsa-project.org/">alsa-lib</a> and <a
+href="http://liboil.freedesktop.org/wiki/"><tt>liboil</tt></a>.</p>
+
+<p>Optionally it can make use of <tt>libwrap</tt>, <a
+href="http://www.alsa-project.org/">alsa-lib</a>, <a
+href="http://0pointer.de/lennart/projects/libasyncns/">libasyncns</a>,
+<a href="http://www.lirc.org/">lirc</a>, <a href="http://www.porchdogsoft.com/products/howl/">HOWL</a> (or preferably the compatibility layer included in its superior replacement <a href="http://www.avahi.org/">Avahi</a>) and <a
 href="http://www.gtk.org/">GLIB</a>. (The latter is required for
 building the GLIB main loop integration module only.)</p>
  
@@ -271,18 +290,20 @@ compilation and <tt>make install</tt> (as root) for installation of
 
 <p>The current release is <a href="@PACKAGE_URL@polypaudio-@PACKAGE_VERSION@.tar.gz">@PACKAGE_VERSION@</a></p>
 
-<p>Get <tt>polypaudio</tt>'s development sources from the <a href="http://subversion.tigris.org/">Subversion</a> <a href="svn://seth.intheinter.net/polypaudio">repository</a> (<a href="http://0pointer.de/cgi-bin/viewcvs.cgi/?root=polypaudio">viewcvs</a>): </p>
+<p>Get <tt>polypaudio</tt>'s development sources from the <a href="http://subversion.tigris.org/">Subversion</a> <a href="svn://0pointer.de/polypaudio">repository</a> (<a href="http://0pointer.de/cgi-bin/viewcvs.cgi/?root=polypaudio">viewcvs</a>): </p>
 
-<pre>svn checkout svn://seth.intheinter.net/polypaudio/trunk polypaudio</pre>
+<pre>svn checkout svn://0pointer.de/polypaudio/trunk polypaudio</pre>
 
 <p>If you want to be notified whenever I release a new version of this software use the subscription feature of <a href="http://freshmeat.net/projects/polypaudio/">Freshmeat</a>.</p>
 
-<p><b>New!</b> There is a general discussion <a href="https://seth.intheinter.net/mailman/listinfo/polypaudio-discuss">mailing list for polypaudio</a> available.</p>
+<p>There is a general discussion <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-discuss">mailing list for polypaudio</a> available. In addition, you can subscribe to <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-commits">SVN changes</a> and <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-tickets">Trac Tickets</a>.</p>
 
-<p><b>New!</b> There is now a <a href="http://0pointer.de/trac/polypaudio/">Polypaudio wiki</a> (based on <a href="http://www.edgewall.com/products/trac/">trac</a>) available.</p>
+<p>There is a <a href="http://www.edgewall.com/products/trac/">Trac</a> based <a href="http://0pointer.de/trac/polypaudio/">Wiki for Polypaudio</a> available.</p>
+
+<p><b>Please report bugs to <a href="http://0pointer.de/trac/polypaudio/newticket">our Trac ticket system</a>.</b></p>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, November 2004</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, April 2006</address>
 <div class="grey"><i>$Id$</i></div>
 
 </body>

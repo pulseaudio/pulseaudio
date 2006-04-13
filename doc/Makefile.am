@@ -16,7 +16,7 @@
 # along with polypaudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
-noinst_DATA = README.html cli.html modules.html daemon.html
+noinst_DATA = README.html cli.html modules.html daemon.html FAQ.html
 EXTRA_DIST = $(noinst_DATA) style.css README.html.in cli.html.in modules.html.in daemon.html.in todo FAQ.html.in
 
 MAINTAINERCLEANFILES = README.html cli.html modules.html daemon.html FAQ.html
