@@ -1,7 +1,6 @@
 *** $Id$ ***
 
 Test:
-- module-combine
 - module-tunnel
 
 Post 0.8:
