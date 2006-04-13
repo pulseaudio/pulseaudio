@@ -1,8 +1,5 @@
 *** $Id$ ***
 
-Test:
-- module-tunnel
-
 Post 0.8:
 - alsa mmap driver
 - add radio module
