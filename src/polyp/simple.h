@@ -47,7 +47,7 @@
  * pa_simple *s;
  * pa_sample_spec ss;
  *
- * ss.format = S16_NE;
+ * ss.format = PA_SAMPLE_S16_NE;
  * ss.channels = 2;
  * ss.rate = 44100;
  *
@@ -70,7 +70,7 @@
  * Once the connection is established to the server, data can start flowing.
  * Using the connection is very similar to the normal read() and write()
  * system calls. The main difference is that they're call pa_simple_read()
- * and pa_simple_write(). Note that these operation are always blocking.
+ * and pa_simple_write(). Note that these operations always block.
  *
  * \section ctrl_sec Buffer control
  *

@@ -45,10 +45,10 @@ PA_C_DECL_BEGIN
  * consists of three steps that repeat during the application's entire
  * lifetime:
  *
- * -# Prepare - Dispatch deferred events, build a list of file descriptors
+ * -# Prepare - Build a list of file descriptors
  *               that need to be monitored and calculate the next timeout.
  * -# Poll - Execute the actuall poll() system call.
- * -# Dispatch - Dispatch any timeouts and file descriptors that have fired.
+ * -# Dispatch - Dispatch any events that have fired.
  *
  * When using the main loop, the application can either execute each
  * iteration, one at a time, using pa_mainloop_iterate(), or let the library

@@ -69,7 +69,7 @@
  *
  * \subsection bufattr_subsec Buffer attributes
  *
- * Playback and record streams always have a buffer as part of the data flow.
+ * Playback and record streams always have a server side buffer as part of the data flow.
  * The size of this buffer strikes a compromise between low latency and
  * sensitivity for buffer overflows/underruns.
  *
@@ -133,33 +133,82 @@
  * monitoring the current latency.
  *
  * To get the raw data needed to calculate latencies, call
- * pa_stream_get_timing_info(). This will give you a pa_timing_info structure
- * that contains everything that is known about buffers, transport delays
- * and the backend active in the server.
+ * pa_stream_get_timing_info(). This will give you a pa_timing_info
+ * structure that contains everything that is known about buffers,
+ * transport delays and the backend active in the server.
  *
- * If a more simplistic interface is prefered, you can call
- * pa_stream_get_time() or pa_stream_get_latency(). These will do all the
- * necessary calculations for you.
+ * This structure is updated every time a
+ * pa_stream_update_timing_info() operation is executed. (i.e. before
+ * the first call to this function the timing information structure is
+ * not available!) Since it is a lot of work to keep this structure
+ * up-to-date manually, Polypaudio can do that automatically for you:
+ * if PA_STREAM_AUTO_TIMING_UPDATE is passed when connecting the
+ * stream Polypaudio will automatically update the structure every
+ * 100ms and every time a function is called that might invalidate the
+ * previously known timing data (such as pa_stream_write() or
+ * pa_stream_flush()). Please note however, that there always is a
+ * short time window when the data in the timing information structure
+ * is out-of-date. Polypaudio tries to mark these situations by
+ * setting the write_index_corrupt and read_index_corrupt fields
+ * accordingly.
  *
- * The latency information is constantly updated from the server. Be aware
- * that between updates, old data will be returned. If you specify the flag
- * PA_STREAM_INTERPOLATE_TIMING when creating the stream, pa_stream_get_time()
- * and pa_stream_get_latency() will calculate the latency between updates
- * based on the time elapsed.
+ * The raw timing data in the pa_timing_info structure is usually hard
+ * to deal with. Therefore a more simplistic interface is available:
+ * you can call pa_stream_get_time() or pa_stream_get_latency(). The
+ * former will return the current playback time of the hardware since
+ * the stream has been started. The latter returns the time a sample
+ * that you write now takes to be played by the hardware.
  *
+ * Since updating the timing info structure usually requires a full
+ * round trip and some applications monitor the timing very often
+ * Polypaudio offers a timing interpolation system. If
+ * PA_STREAM_INTERPOLATE_TIMING is passed when connecting the stream,
+ * pa_stream_get_time() and pa_stream_get_latency() will try to
+ * interpolate the current playback time/latency by estimating the
+ * number of samples that have been played back by the hardware since
+ * the last regular timing update. It is espcially useful to combine
+ * this option with PA_STREAM_AUTO_TIMING_UPDATE, which will enable
+ * you to monitor the current playback time/latency very precisely
+ * without requiring a network round trip every time.
+ * 
  * \section flow_sec Overflow and underflow
  *
- * Even with the best precautions, buffers will sometime over- or underflow.
+ * Even with the best precautions, buffers will sometime over - or underflow.
  * To handle this gracefully, the application can be notified when this
  * happens. Callbacks are registered using pa_stream_set_overflow_callback()
  * and pa_stream_set_underflow_callback().
  *
+ * \section sync_streams Sychronizing Multiple Playback Streams.
+ *
+ * Polypaudio allows applications to fully synchronize multiple playback
+ * streams that are connected to the same output device. That means
+ * the streams will always be played back sample-by-sample
+ * synchronously. If stream operations like pa_stream_cork() are
+ * issued on one of the synchronized streams, they are simultaneously
+ * issued on the others.
+ *
+ * To synchronize a stream to another, just pass the "master" stream
+ * as last argument to pa_stream_connect_playack(). To make sure that
+ * the freshly created stream doesn't start playback right-away, make
+ * sure to pass PA_STREAM_START_CORKED and - after all streams have
+ * been created - uncork them all with a single call to
+ * pa_stream_cork() for the master stream.
+ *
+ * To make sure that a particular stream doesn't stop to play when a
+ * server side buffer underrun happens on it while the other
+ * synchronized streams continue playing and hence deviate you need to
+ * pass a "prebuf" pa_buffer_attr of 0 when connecting it.
+ *
+ * \section seek_modes Seeking in the Playback Buffer
+ *
+ * T.B.D
  * \section disc_sec Disconnecting
  *
  * When a stream has served is purpose it must be disconnected with
  * pa_stream_disconnect(). If you only unreference it, then it will live on
  * and eat resources both locally and on the server until you disconnect the
  * context.
+ *
  */
 
 /** \file

@@ -48,7 +48,7 @@
  * The abstraction is represented as a number of function pointers in the
  * pa_mainloop_api structure.
  *
- * To actually be able to use these functions, an actual implementation
+ * To actually be able to use these functions, an implementation needs to 
  * be coupled to the abstraction. There are two of these shipped with
  * polypaudio, but any other can be used with a minimal ammount of work,
  * provided it supports the three basic events listed above.
@@ -88,11 +88,11 @@
  * channel.
  *
  * There is no need for more than one context per application, unless
- * connections to multiple servers is needed.
+ * connections to multiple servers are needed.
  *
  * \subsection ops_subsec Operations
  *
- * All operations on the context is performed asynchronously. I.e. the
+ * All operations on the context are performed asynchronously. I.e. the
  * client will not wait for the server to complete the request. To keep
  * track of all these in-flight operations, the application is given a
  * pa_operation object for each asynchronous operation.

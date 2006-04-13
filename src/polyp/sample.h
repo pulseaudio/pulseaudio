@@ -99,7 +99,7 @@
 
 PA_C_DECL_BEGIN
 
-/** Maximum allowed channels */
+/** Maximum number of allowed channels */
 #define PA_CHANNELS_MAX 16
 
 /** Sample format */

@@ -53,8 +53,14 @@
  * For simple multiplication, pa_sw_volume_multiply() and
  * pa_sw_cvolume_multiply() can be used.
  *
- * Calculations can only be reliably be performed on software volumes as
- * it is commonly unknown what scale hardware volumes use.
+ * Calculations can only be reliably performed on software volumes
+ * as it is commonly unknown what scale hardware volumes relate to.
+ *
+ * The functions described above are only valid when used with
+ * software volumes. Hence it is usually a better idea to treat all
+ * volume values as opaque with a range from PA_VOLUME_MUTE (0%) to
+ * PA_VOLUME_NORM (100%) and to refrain from any calculations with
+ * them.
  *
  * \section conv_sec Convenience functions
  *

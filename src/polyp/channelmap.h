@@ -30,8 +30,8 @@
  * \section overv_sec Overview
  *
  * Channel maps provide a way to associate channels in a stream with a
- * speaker. This relieves applications of having to make sure their channel
- * order is identical to the final output.
+ * specific speaker position. This relieves applications of having to
+ * make sure their channel order is identical to the final output.
  *
  * \section init_sec Initialisation
  *
