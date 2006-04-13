@@ -78,15 +78,41 @@ static void show_info(const char *name, const char *path, void (*info)(const cha
     }
 }
 
+extern const lt_dlsymlist lt_preloaded_symbols[];
+
+static int is_preloaded(const char *name) {
+    const lt_dlsymlist *l;
+
+    for (l = lt_preloaded_symbols; l->name; l++) {
+        char buf[64], *e;
+            
+        if (l->address)
+            continue;
+        
+        snprintf(buf, sizeof(buf), "%s", l->name);
+        if ((e = strrchr(buf, '.')))
+            *e = 0;
+
+        if (!strcmp(name, buf))
+            return 1;
+    }
+
+    return 0;
+}
+
 static int callback(const char *path, lt_ptr data) {
     const char *e;
     pa_daemon_conf *c = (data);
 
     e = pa_path_get_filename(path);
 
-    if (strlen(e) > sizeof(PREFIX)-1 && !strncmp(e, PREFIX, sizeof(PREFIX)-1))
-        show_info(e, path, c->log_level >= PA_LOG_INFO ? long_info : short_info);
+    if (strlen(e) <= sizeof(PREFIX)-1 || strncmp(e, PREFIX, sizeof(PREFIX)-1))
+        return 0;
+
+    if (is_preloaded(e))
+        return 0;
     
+    show_info(e, path, c->log_level >= PA_LOG_INFO ? long_info : short_info);
     return 0;
 }
 
@@ -95,6 +121,25 @@ void pa_dump_modules(pa_daemon_conf *c, int argc, char * const argv[]) {
         int i;
         for (i = 0; i < argc; i++)
             show_info(argv[i], NULL, long_info);
-    } else
+    } else {
+        const lt_dlsymlist *l;
+
+        for (l = lt_preloaded_symbols; l->name; l++) {
+            char buf[64], *e;
+            
+            if (l->address)
+                continue;
+
+            if (strlen(l->name) <= sizeof(PREFIX)-1 || strncmp(l->name, PREFIX, sizeof(PREFIX)-1))
+                continue;
+            
+            snprintf(buf, sizeof(buf), "%s", l->name);
+            if ((e = strrchr(buf, '.')))
+                *e = 0;
+            
+            show_info(buf, NULL, c->log_level >= PA_LOG_INFO ? long_info : short_info);
+        }
+        
         lt_dlforeachfile(NULL, callback, c);
+    }
 }
