@@ -42,7 +42,7 @@ pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl) {
     const char* (*func)(void);
     assert(dl);
 
-    i = pa_xmalloc0(sizeof(pa_modinfo));
+    i = pa_xnew0(pa_modinfo, 1);
 
     if ((func = (const char* (*)(void)) lt_dlsym(dl, PA_SYMBOL_AUTHOR)))
         i->author = pa_xstrdup(func());
