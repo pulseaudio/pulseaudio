@@ -1045,6 +1045,7 @@ static void command_get_playback_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     struct playback_stream *s;
     struct timeval tv, now;
     uint32_t idx;
+    pa_usec_t latency;
     assert(c && t);
     
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
@@ -1060,7 +1061,12 @@ static void command_get_playback_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     CHECK_VALIDITY(c->pstream, s->type == PLAYBACK_STREAM, tag, PA_ERR_NOENTITY);
 
     reply = reply_new(tag);
-    pa_tagstruct_put_usec(reply, pa_sink_get_latency(s->sink_input->sink));
+
+    latency = pa_sink_get_latency(s->sink_input->sink);
+    if (s->sink_input->resampled_chunk.memblock)
+        latency += pa_bytes_to_usec(s->sink_input->resampled_chunk.length, &s->sink_input->sample_spec);
+    pa_tagstruct_put_usec(reply, latency);
+    
     pa_tagstruct_put_usec(reply, 0);
     pa_tagstruct_put_boolean(reply, pa_memblockq_is_readable(s->memblockq));
     pa_tagstruct_put_timeval(reply, &tv);
