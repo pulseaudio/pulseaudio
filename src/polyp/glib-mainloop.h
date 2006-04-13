@@ -27,7 +27,7 @@
 #include <polyp/mainloop-api.h>
 #include <polyp/cdecl.h>
 
-/** \page glib-mainloop GLIB main loop bindings
+/** \page glib-mainloop GLIB Main Loop Bindings
  *
  * \section overv_sec Overview
  *

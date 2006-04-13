@@ -28,7 +28,7 @@
 #include <polyp/stream.h>
 #include <polyp/cdecl.h>
 
-/** \page scache Sample cache
+/** \page scache Sample Cache
  *
  * \section overv_sec Overview
  *

@@ -26,7 +26,7 @@
 #include <polyp/cdecl.h>
 #include <polyp/sample.h>
 
-/** \page volume Volume control
+/** \page volume Volume Control
  *
  * \section overv_sec Overview
  *
@@ -62,7 +62,7 @@
  * PA_VOLUME_NORM (100%) and to refrain from any calculations with
  * them.
  *
- * \section conv_sec Convenience functions
+ * \section conv_sec Convenience Functions
  *
  * To handle the pa_cvolume structure, the Polypaudio library provides a
  * number of convenienc functions:

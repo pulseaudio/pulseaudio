@@ -31,7 +31,7 @@
 #include <polyp/cdecl.h>
 #include <polyp/operation.h>
 
-/** \page streams Audio streams
+/** \page streams Audio Streams
  *
  * \section overv_sec Overview
  *
@@ -67,14 +67,16 @@
  * pa_stream_set_state_callback(), and wait for the stream to enter an active
  * state.
  *
- * \subsection bufattr_subsec Buffer attributes
+ * \subsection bufattr_subsec Buffer Attributes
  *
- * Playback and record streams always have a server side buffer as part of the data flow.
- * The size of this buffer strikes a compromise between low latency and
- * sensitivity for buffer overflows/underruns.
+ * Playback and record streams always have a server side buffer as
+ * part of the data flow.  The size of this buffer strikes a
+ * compromise between low latency and sensitivity for buffer
+ * overflows/underruns.
  *
- * The buffer is described with a pa_buffer_attr structure which contains a
- * number of field:
+ * The buffer metrics may be controlled by the application. They are
+ * described with a pa_buffer_attr structure which contains a number
+ * of fields:
  *
  * \li maxlength - The absolute maximum number of bytes that can be stored in
  *                 the buffer. If this value is exceeded then data will be
@@ -82,16 +84,37 @@
  * \li tlength - The target length of a playback buffer. The server will only
  *               send requests for more data as long as the buffer has less
  *               than this number of bytes of data.
- * \li prebuf - Number of bytes that need to be in the buffer before playback
- *              will commence. Start of playback can be forced using
- *              pa_stream_trigger() even though the prebuffer size hasn't been
- *              reached.
+ * \li prebuf - Number of bytes that need to be in the buffer before
+ * playback will commence. Start of playback can be forced using
+ * pa_stream_trigger() even though the prebuffer size hasn't been
+ * reached. If a buffer underrun occurs, this prebuffering will be
+ * again enabled. If the playback shall never stop in case of a buffer
+ * underrun, this value should be set to 0. In that case the read
+ * index of the output buffer overtakes the write index, and hence the
+ * fill level of the buffer is negative.
  * \li minreq - Minimum free number of the bytes in the playback buffer before
  *              the server will request more data.
  * \li fragsize - Maximum number of bytes that the server will push in one
  *                chunk for record streams.
  *
- * \section transfer_sec Transferring data
+ * The server side playback buffers are indexed by a write and a read
+ * index. The application writes to the write index and the sound
+ * device reads from the read index. The read index is increased
+ * monotonically, while the write index may be freely controlled by
+ * the application. Substracting the read index from the write index
+ * will give you the current fill level of the buffer. The read/write
+ * indexes are 64bit values and measured in bytes, they will never
+ * wrap. The current read/write index may be queried using
+ * pa_stream_get_timing_info() (see below for more information). In
+ * case of a buffer underrun the read index is equal or larger than
+ * the write index. Unless the prebuf value is 0, Polypaudio will
+ * temporarily pause playback in such a case, and wait until the
+ * buffer is filled up to prebuf bytes again. If prebuf is 0, the
+ * read index may be larger than the write index, in which case
+ * silence is played. If the application writes data to indexes lower
+ * than the read index, the data is immediately lost.
+ *                
+ * \section transfer_sec Transferring Data
  *
  * Once the stream is up, data can start flowing between the client and the
  * server. Two different access models can be used to transfer the data:
@@ -112,7 +135,7 @@
  * record. Make sure you do not overflow the playback buffers as data will be
  * dropped.
  *
- * \section bufctl_sec Buffer control
+ * \section bufctl_sec Buffer Control
  *
  * The transfer buffers can be controlled through a number of operations:
  *
@@ -126,6 +149,23 @@
  * \li pa_stream_flush() - Drop all data from the playback buffer and do not
  *                         wait for it to finish playing.
  *
+ * \section seek_modes Seeking in the Playback Buffer
+ *
+ * A client application may freely seek in the playback buffer. To
+ * accomplish that the pa_stream_write() function takes a seek mode
+ * and an offset argument. The seek mode is one of:
+ *
+ * \li PA_SEEK_RELATIVE - seek relative to the current write index
+ * \li PA_SEEK_ABSOLUTE - seek relative to the beginning of the playback buffer, (i.e. the first that was ever played in the stream)
+ * \li PA_SEEK_RELATIVE_ON_READ - seek relative to the current read index. Use this to write data to the output buffer that should be played as soon as possible
+ * \li PA_SEEK_RELATIVE_END - seek relative to the last byte ever written.
+ * 
+ * If an application just wants to append some data to the output
+ * buffer, PA_SEEK_RELATIVE and an offset of 0 should be used.
+ *
+ * After a call to pa_stream_write() the write index will be left at
+ * the position right after the last byte of the written data.
+ *                         
  * \section latency_sec Latency
  *
  * A major problem with networked audio is the increased latency caused by
@@ -134,8 +174,10 @@
  *
  * To get the raw data needed to calculate latencies, call
  * pa_stream_get_timing_info(). This will give you a pa_timing_info
- * structure that contains everything that is known about buffers,
- * transport delays and the backend active in the server.
+ * structure that contains everything that is known about the server
+ * side buffer transport delays and the backend active in the
+ * server. (Besides other things it contains the write and read index
+ * values mentioned above.)
  *
  * This structure is updated every time a
  * pa_stream_update_timing_info() operation is executed. (i.e. before
@@ -157,32 +199,38 @@
  * you can call pa_stream_get_time() or pa_stream_get_latency(). The
  * former will return the current playback time of the hardware since
  * the stream has been started. The latter returns the time a sample
- * that you write now takes to be played by the hardware.
+ * that you write now takes to be played by the hardware. These two
+ * functions base their calculations on the same data that is returned
+ * by pa_stream_get_timing_info(). Hence the same rules for keeping
+ * the timing data up-to-date apply here. In case the write or read
+ * index is corrupted, these two functions will fail with
+ * PA_ERR_NODATA set.
  *
  * Since updating the timing info structure usually requires a full
- * round trip and some applications monitor the timing very often
- * Polypaudio offers a timing interpolation system. If
+ * network round trip and some applications monitor the timing very
+ * often Polypaudio offers a timing interpolation system. If
  * PA_STREAM_INTERPOLATE_TIMING is passed when connecting the stream,
  * pa_stream_get_time() and pa_stream_get_latency() will try to
  * interpolate the current playback time/latency by estimating the
  * number of samples that have been played back by the hardware since
  * the last regular timing update. It is espcially useful to combine
  * this option with PA_STREAM_AUTO_TIMING_UPDATE, which will enable
- * you to monitor the current playback time/latency very precisely
- * without requiring a network round trip every time.
+ * you to monitor the current playback time/latency very precisely and
+ * very frequently without requiring a network round trip every time.
  * 
  * \section flow_sec Overflow and underflow
  *
- * Even with the best precautions, buffers will sometime over - or underflow.
- * To handle this gracefully, the application can be notified when this
- * happens. Callbacks are registered using pa_stream_set_overflow_callback()
- * and pa_stream_set_underflow_callback().
+ * Even with the best precautions, buffers will sometime over - or
+ * underflow.  To handle this gracefully, the application can be
+ * notified when this happens. Callbacks are registered using
+ * pa_stream_set_overflow_callback() and
+ * pa_stream_set_underflow_callback().
  *
- * \section sync_streams Sychronizing Multiple Playback Streams.
+ * \section sync_streams Sychronizing Multiple Playback Streams
  *
- * Polypaudio allows applications to fully synchronize multiple playback
- * streams that are connected to the same output device. That means
- * the streams will always be played back sample-by-sample
+ * Polypaudio allows applications to fully synchronize multiple
+ * playback streams that are connected to the same output device. That
+ * means the streams will always be played back sample-by-sample
  * synchronously. If stream operations like pa_stream_cork() are
  * issued on one of the synchronized streams, they are simultaneously
  * issued on the others.
@@ -199,9 +247,6 @@
  * synchronized streams continue playing and hence deviate you need to
  * pass a "prebuf" pa_buffer_attr of 0 when connecting it.
  *
- * \section seek_modes Seeking in the Playback Buffer
- *
- * T.B.D
  * \section disc_sec Disconnecting
  *
  * When a stream has served is purpose it must be disconnected with
@@ -297,7 +342,7 @@ int pa_stream_peek(
         const void **data            /**< Pointer to pointer that will point to data */,
         size_t *length              /**< The length of the data read */);
 
-/** Remove the current fragment. It is invalid to do this without first
+/** Remove the current fragment on record streams. It is invalid to do this without first
  * calling pa_stream_peek(). \since 0.8 */
 int pa_stream_drop(pa_stream *p);
 

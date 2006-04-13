@@ -28,7 +28,7 @@
 #include <polyp/context.h>
 #include <polyp/cdecl.h>
 
-/** \page subscribe Event subscription
+/** \page subscribe Event Subscription
  *
  * \section overv_sec Overview
  *

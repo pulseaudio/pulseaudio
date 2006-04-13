@@ -28,14 +28,14 @@
 
 #include <polyp/cdecl.h>
 
-/** \page sample Sample format specifications
+/** \page sample Sample Format Specifications
  *
  * \section overv_sec Overview
  *
  * Polypaudio is capable of handling a multitude of sample formats, rates
  * and channels, transparently converting and mixing them as needed.
  *
- * \section format_sec Sample format
+ * \section format_sec Sample Format
  *
  * Polypaudio supports the following sample formats:
  *
@@ -52,7 +52,7 @@
  * The sample formats that are sensitive to endianness have convenience
  * macros for native endian (NE), and reverse endian (RE).
  *
- * \section rate_sec Sample rates
+ * \section rate_sec Sample Rates
  *
  * Polypaudio supports any sample rate between 1 Hz and 4 GHz. There is no
  * point trying to exceed the sample rate of the output device though as the
@@ -78,7 +78,7 @@
  * \li pa_bytes_to_usec() - Calculate the time it would take to play a buffer
  *                          of a certain size.
  *
- * \section util_sec Convenience functions
+ * \section util_sec Convenience Functions
  *
  * The library also contains a couple of other convenience functions:
  *

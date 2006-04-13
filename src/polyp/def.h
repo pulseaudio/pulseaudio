@@ -119,7 +119,7 @@ typedef enum pa_stream_flags {
                                       * ahead can be corrected
                                       * quickly, without the need to
                                       * wait. */
-    PA_STREAM_AUTO_TIMING_UPDATE = 8 /** If set timing update requests
+    PA_STREAM_AUTO_TIMING_UPDATE = 8 /**< If set timing update requests
                                        * are issued periodically
                                        * automatically. Combined with
                                        * PA_STREAM_INTERPOLATE_TIMING

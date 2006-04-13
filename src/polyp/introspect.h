@@ -30,7 +30,7 @@
 #include <polyp/channelmap.h>
 #include <polyp/volume.h>
 
-/** \page introspect Server query and control
+/** \page introspect Server Query and Control
  *
  * \section overv_sec Overview
  *
@@ -62,19 +62,19 @@
  * duration of the callback. If they are required after the callback is
  * finished, a deep copy must be performed.
  *
- * \subsection server_subsec Server information
+ * \subsection server_subsec Server Information
  *
  * The server can be queried about its name, the environment it's running on
  * and the currently active global defaults. Calling
  * pa_context_get_server_info() will get access to a pa_server_info structure
  * containing all of these.
  *
- * \subsection memstat_subsec Memory usage
+ * \subsection memstat_subsec Memory Usage
  *
  * Statistics about memory usage can be fetched using pa_context_stat(),
  * giving a pa_stat_info structure.
  *
- * \subsection sinksrc_subsec Sinks and sources
+ * \subsection sinksrc_subsec Sinks and Sources
  *
  * The server can have an arbitrary number of sinks and sources. Each sink
  * and source have both an index and a name associated with it. As such
@@ -90,7 +90,7 @@
  * All three method use the same callback and will provide a pa_sink_info or
  * pa_source_info structure.
  *
- * \subsection siso_subsec Sink inputs and source outputs
+ * \subsection siso_subsec Sink Inputs and Source Outputs
  *
  * Sink inputs and source outputs are the representations of the client ends
  * of streams inside the server. I.e. they connect a client stream to one of
@@ -119,13 +119,13 @@
  * Note that this only retrieves information about the sample, not the sample
  * data itself.
  *
- * \subsection module_subsec Modules
+ * \subsection module_subsec Driver Modules
  *
- * Polypaudio modules are identified by index and are retrieved using either
+ * Polypaudio driver modules are identified by index and are retrieved using either
  * pa_context_get_module_info() or pa_context_get_module_info_list(). The
  * information structure is called pa_module_info.
  *
- * \subsection autoload_subsec Autoload entries
+ * \subsection autoload_subsec Autoload Entries
  *
  * Modules can be autoloaded as a result of a client requesting a certain
  * sink or source. This mapping between sink/source names and modules can be
@@ -147,7 +147,7 @@
  * modified in different ways. Note that these changes will affect all
  * connected clients and not just the one issuing the request.
  *
- * \subsection sinksrc_subsec Sinks and sources
+ * \subsection sinksrc_subsec Sinks and Sources
  *
  * The most common change one would want to do to sinks and sources is to
  * modify the volume of the audio. Identical to how sinks and sources can
@@ -165,7 +165,7 @@
  * \li By name - pa_context_set_sink_mute_by_name() /
  *               pa_context_set_source_mute_by_name()
  *
- * \subsection siso_subsec Sink inputs and source outputs
+ * \subsection siso_subsec Sink Inputs and Source Outputs
  *
  * If an application desires to modify the volume of just a single stream
  * (commonly one of its own streams), this can be done by setting the volume
@@ -184,7 +184,7 @@
  * Server modules can be remotely loaded and unloaded using
  * pa_context_load_module() and pa_context_unload_module().
  *
- * \subsection autoload_subsec Autoload entries
+ * \subsection autoload_subsec Autoload Entries
  *
  * New module autoloading rules can be added, and existing can be removed
  * using pa_context_add_autoload() and pa_context_remove_autoload_by_index()

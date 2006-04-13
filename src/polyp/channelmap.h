@@ -25,7 +25,7 @@
 #include <polyp/sample.h>
 #include <polyp/cdecl.h>
 
-/** \page channelmap Channel maps
+/** \page channelmap Channel Maps
  *
  * \section overv_sec Overview
  *
@@ -48,7 +48,7 @@
  * \li pa_channel_map_init_auto() - Create a standard channel map for up to
  *                                  six channels.
  *
- * \section conv_sec Convenience functions
+ * \section conv_sec Convenience Functions
  *
  * The library contains a number of convenience functions for dealing with
  * channel maps:

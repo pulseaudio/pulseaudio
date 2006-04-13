@@ -36,7 +36,7 @@
  * It allows full access to all available functions. This also means that
  * it is rather complex and can take some time to fully master.
  *
- * \section mainloop_sec Main loop abstraction
+ * \section mainloop_sec Main Loop Abstraction
  *
  * The API is based around an asynchronous event loop, or main loop,
  * abstraction. This abstraction contains three basic elements:
@@ -63,7 +63,7 @@
  * \ref mainloop-signal.h. These rely only on the main loop abstraction
  * and can therefore be used with any of the implementations.
  *
- * \section refcnt_sec Reference counting
+ * \section refcnt_sec Reference Counting
  *
  * Almost all objects in polypaudio are reference counted. What that means
  * is that you rarely malloc() or free() any objects. Instead you increase
