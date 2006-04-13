@@ -240,7 +240,6 @@ static void send_bytes(struct userdata *u) {
     while (u->requested_bytes > 0) {
         pa_memchunk chunk;
         if (pa_sink_render(u->sink, u->requested_bytes, &chunk) < 0) {
-
             
             if (u->requested_bytes >= DEFAULT_TLENGTH-DEFAULT_PREBUF) 
                 send_prebuf_request(u);
@@ -285,9 +284,8 @@ static void command_request(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED ui
 
 static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
-    pa_usec_t buffer_usec, sink_usec, source_usec, transport_usec;
+    pa_usec_t sink_usec, source_usec, transport_usec;
     int playing;
-    uint32_t queue_length;
     int64_t write_index, read_index;
     struct timeval local, remote, now;
     assert(pd && u);
@@ -301,17 +299,15 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
         return;
     }
     
-    if (pa_tagstruct_get_usec(t, &buffer_usec) < 0 ||
-        pa_tagstruct_get_usec(t, &sink_usec) < 0 ||
+    if (pa_tagstruct_get_usec(t, &sink_usec) < 0 ||
         pa_tagstruct_get_usec(t, &source_usec) < 0 ||
         pa_tagstruct_get_boolean(t, &playing) < 0 ||
-        pa_tagstruct_getu32(t, &queue_length) < 0 ||
         pa_tagstruct_get_timeval(t, &local) < 0 ||
         pa_tagstruct_get_timeval(t, &remote) < 0 ||
         pa_tagstruct_gets64(t, &write_index) < 0 ||
         pa_tagstruct_gets64(t, &read_index) < 0 ||
         !pa_tagstruct_eof(t)) {
-        pa_log(__FILE__": invalid reply.");
+        pa_log(__FILE__": invalid reply. (latency)");
         die(u);
         return;
     }
@@ -369,6 +365,7 @@ static void stream_get_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_
     pa_usec_t latency;
     const char *name, *description, *monitor_source_name, *driver;
     int mute;
+    uint32_t flags;
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     pa_cvolume volume;
@@ -395,8 +392,9 @@ static void stream_get_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_
         pa_tagstruct_gets(t, &monitor_source_name) < 0 ||
         pa_tagstruct_get_usec(t, &latency) < 0 ||
         pa_tagstruct_gets(t, &driver) < 0 ||
+        pa_tagstruct_getu32(t, &flags) < 0 ||
         !pa_tagstruct_eof(t)) {
-        pa_log(__FILE__": invalid reply.");
+        pa_log(__FILE__": invalid reply. (get_info)");
         die(u);
         return;
     }
@@ -491,7 +489,7 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
         pa_tagstruct_getu32(t, &u->requested_bytes) < 0 ||
 #endif        
         !pa_tagstruct_eof(t)) {
-        pa_log(__FILE__": invalid reply.");
+        pa_log(__FILE__": invalid reply. (create stream)");
         die(u);
         return;
     }
