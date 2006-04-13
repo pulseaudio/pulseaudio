@@ -4,9 +4,6 @@ Test:
 - module-combine
 - module-tunnel
 
-Fixes:
-- correct API docs regarding timing work
-
 Post 0.8:
 - alsa mmap driver
 - add radio module
