@@ -97,7 +97,7 @@ href="@PACKAGE_URL@polypaudio-0.1.tar.gz">Version 0.1</a> released</p>
 <h2><a name="overview">Overview</a></h2>
 
 <p><tt>polypaudio</tt> is a networked sound server for Linux and other
-Unix like operating systems. It is intended to be an improved drop-in
+Unix like operating systems and Microsoft Windows. It is intended to be an improved drop-in
 replacement for the <a
 href="http://www.tux.org/~ricdude/apps.html">Enlightened Sound
 Daemon</a> (ESOUND). In addition to the features ESOUND provides
@@ -283,6 +283,8 @@ compilation and <tt>make install</tt> (as root) for installation of
 <p>Miguel Freitas for writing a Polypaudio driver for Xine</p>
 
 <p>Joe Marcus Clarke for porting Polypaudio to FreeBSD</p>
+
+<p><a href="http://www.cendio.com">Cendio AB</a> for paying for Pierre's work on Polypaudio</p>
 
 <h2><a name="download">Download</a></h2>
 
