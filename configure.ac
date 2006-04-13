@@ -398,6 +398,12 @@ if test "x$PREOPEN_MODS" != "xall" ; then
     AC_SUBST(PREOPEN_MODS)
 fi
 
+AC_ARG_ENABLE(
+        [force-preopen],
+        AC_HELP_STRING([--enable-force-preopen],[Preopen modules, even when dlopen() is supported.]),
+        [FORCE_PREOPEN=1], [FORCE_PREOPEN=0])
+AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "x1"])
+
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
