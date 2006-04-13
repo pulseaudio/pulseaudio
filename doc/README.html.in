@@ -192,8 +192,6 @@ href="daemon.html"><tt>daemon.html</tt></a> and <a href="FAQ.html"><tt>FAQ.html<
 
 <p>There is a <a href="http://www.edgewall.com/products/trac/">Trac</a> based <a href="http://0pointer.de/trac/polypaudio/">Wiki for Polypaudio</a> available.</p>
 
-<p></p>
-
 <h3>First Steps</h3>
 
 <p>Simply start the polypaudio daemon with the argument <tt>-nC</tt></p>

@@ -275,6 +275,14 @@ about the two possible suffixes of this module.</p>
 
 <p>This is used internally when auto spawning a new daemon. Don't use it directly.</p>
 
+<h3>module-http-protocol-tcp</h3>
+
+<p>A proof-of-concept HTTP module, which can be used to introspect
+the current status of the polypaudio daemon using HTTP. Just load this
+module and point your browser to <a
+href="http://localhost:4714/">http://localhost:4714/</a>. This module takes the same arguments
+as <tt>module-cli-protocol-tcp</tt>.</p>
+
 <h2>Miscellaneous</h2>
 
 <h3>module-x11-bell</h3>
