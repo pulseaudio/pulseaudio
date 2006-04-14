@@ -1,0 +1,193 @@
+/* $Id$ */
+
+/***
+  This file is part of polypaudio.
+ 
+  polypaudio is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published
+  by the Free Software Foundation; either version 2 of the License,
+  or (at your option) any later version.
+ 
+  polypaudio is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+ 
+  You should have received a copy of the GNU Lesser General Public License
+  along with polypaudio; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+***/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <assert.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include <polypcore/log.h>
+
+#include "rtp.h"
+
+pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssrc, uint8_t payload) {
+    assert(c);
+    assert(fd >= 0);
+
+    c->fd = fd;
+    c->sequence = (uint16_t) (rand()*rand());
+    c->timestamp = 0;
+    c->ssrc = ssrc ? ssrc : (uint32_t) (rand()*rand());
+    c->payload = payload & 127;
+
+    return c;
+}
+
+#define MAX_IOVECS 16
+
+int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
+    struct iovec iov[MAX_IOVECS];
+    pa_memblock* mb[MAX_IOVECS];
+    int iov_idx = 1;
+    size_t n = 0, skip = 0;
+    
+    assert(c);
+    assert(size > 0);
+    assert(q);
+
+    if (pa_memblockq_get_length(q) < size)
+        return 0;
+    
+    for (;;) {
+        int r;
+        pa_memchunk chunk;
+
+        if ((r = pa_memblockq_peek(q, &chunk)) >= 0) {
+
+            size_t k = n + chunk.length > size ? size - n : chunk.length;
+
+            if (chunk.memblock) {
+                iov[iov_idx].iov_base = (uint8_t*) chunk.memblock->data + chunk.index;
+                iov[iov_idx].iov_len = k;
+                mb[iov_idx] = chunk.memblock;
+                iov_idx ++;
+
+                n += k;
+            }
+
+            skip += k;
+            pa_memblockq_drop(q, &chunk, k);
+        }
+
+        if (r < 0 || !chunk.memblock || n >= size || iov_idx >= MAX_IOVECS) {
+            uint32_t header[3];
+            struct msghdr m;
+            int k, i;
+
+            if (n > 0) {
+                header[0] = htonl(((uint32_t) 2 << 30) | ((uint32_t) c->payload << 16) | ((uint32_t) c->sequence));
+                header[1] = htonl(c->timestamp);
+                header[2] = htonl(c->ssrc);
+
+                iov[0].iov_base = header;
+                iov[0].iov_len = sizeof(header);
+                
+                m.msg_name = NULL;
+                m.msg_namelen = 0;
+                m.msg_iov = iov;
+                m.msg_iovlen = iov_idx;
+                m.msg_control = NULL;
+                m.msg_controllen = 0;
+                m.msg_flags = 0;
+                
+                k = sendmsg(c->fd, &m, MSG_DONTWAIT);
+
+                for (i = 1; i < iov_idx; i++)
+                    pa_memblock_unref(mb[i]);
+
+                c->sequence++;
+            } else
+                k = 0;
+
+            c->timestamp += skip;
+            
+            if (k < 0) {
+                if (errno != EAGAIN) /* If the queue is full, just ignore it */
+                    pa_log(__FILE__": sendmsg() failed: %s", strerror(errno));
+                return -1;
+            }
+            
+            if (r < 0 || pa_memblockq_get_length(q) < size)
+                break;
+
+            n = 0;
+            skip = 0;
+            iov_idx = 1;
+        }
+    }
+
+    return 0;
+}
+
+pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd) {
+    assert(c);
+
+    c->fd = fd;
+    return c;
+}
+
+int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk) {
+    assert(c);
+    assert(chunk);
+
+    return 0;
+}
+
+uint8_t pa_rtp_payload_type(const pa_sample_spec *ss) {
+    assert(ss);
+
+    if (ss->format == PA_SAMPLE_ULAW && ss->rate == 8000 && ss->channels == 1)
+        return 0;
+    if (ss->format == PA_SAMPLE_ALAW && ss->rate == 8000 && ss->channels == 1)
+        return 0;
+    if (ss->format == PA_SAMPLE_S16BE && ss->rate == 44100 && ss->channels == 2)
+        return 10;
+    if (ss->format == PA_SAMPLE_S16BE && ss->rate == 44100 && ss->channels == 1)
+        return 11;
+    
+    return 127;
+}
+
+pa_sample_spec *pa_rtp_sample_spec_fixup(pa_sample_spec * ss) {
+    assert(ss);
+
+    if (!pa_rtp_sample_spec_valid(ss))
+        ss->format = PA_SAMPLE_S16BE;
+
+    assert(pa_rtp_sample_spec_valid(ss));
+    return ss;
+}
+
+int pa_rtp_sample_spec_valid(const pa_sample_spec *ss) {
+    assert(ss);
+
+    if (!pa_sample_spec_valid(ss))
+        return 0;
+
+    return
+        ss->format == PA_SAMPLE_U8 ||
+        ss->format == PA_SAMPLE_ALAW ||
+        ss->format == PA_SAMPLE_ULAW ||
+        ss->format == PA_SAMPLE_S16BE;
+}
+
+void pa_rtp_context_destroy(pa_rtp_context *c) {
+    assert(c);
+
+    close(c->fd);
+}

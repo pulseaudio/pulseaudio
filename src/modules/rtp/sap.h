@@ -1,0 +1,43 @@
+#ifndef foosaphfoo
+#define foosaphfoo
+
+/* $Id$ */
+
+/***
+  This file is part of polypaudio.
+ 
+  polypaudio is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published
+  by the Free Software Foundation; either version 2 of the License,
+  or (at your option) any later version.
+ 
+  polypaudio is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+ 
+  You should have received a copy of the GNU Lesser General Public License
+  along with polypaudio; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+***/
+
+#include <inttypes.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <polypcore/memblockq.h>
+#include <polypcore/memchunk.h>
+
+typedef struct pa_sap_context {
+    int fd;
+    char *sdp_data;
+
+    uint16_t msg_id_hash;
+} pa_sap_context;
+
+pa_sap_context* pa_sap_context_init_send(pa_sap_context *c, int fd, char *sdp_data);
+void pa_sap_context_destroy(pa_sap_context *c);
+
+int pa_sap_send(pa_sap_context *c, int goodbye);
+
+#endif
