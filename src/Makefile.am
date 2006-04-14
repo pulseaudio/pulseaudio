@@ -589,7 +589,8 @@ modlib_LTLIBRARIES = \
 		libprotocol-simple.la \
 		libprotocol-esound.la \
 		libprotocol-native.la \
-		libprotocol-http.la
+		libprotocol-http.la \
+		librtp.la
 
 if HAVE_X11
 polypcoreinclude_HEADERS += \
@@ -686,6 +687,10 @@ libsocket_util_la_SOURCES = polypcore/socket-util.c polypcore/socket-util.h
 libsocket_util_la_LDFLAGS = -avoid-version
 libsocket_util_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS)
 
+librtp_la_SOURCES = modules/rtp/rtp.c modules/rtp/rtp.h modules/rtp/sdp.c modules/rtp/sdp.h modules/rtp/sap.c modules/rtp/sap.h 
+librtp_la_LDFLAGS = -avoid-version
+librtp_la_LIBADD = $(AM_LIBADD) libpolypcore.la
+
 # X11
 
 libx11wrap_la_SOURCES = polypcore/x11wrap.c polypcore/x11wrap.h
@@ -716,7 +721,8 @@ modlib_LTLIBRARIES += \
 		module-null-sink.la \
 		module-esound-sink.la \
 		module-http-protocol-tcp.la \
-		module-detect.la
+		module-detect.la \
+		module-rtp-monitor.la
 
 if HAVE_AF_UNIX
 modlib_LTLIBRARIES += \
@@ -827,7 +833,8 @@ SYMDEF_FILES = \
 		modules/module-alsa-source-symdef.h \
 		modules/module-solaris-symdef.h \
 		modules/module-waveout-symdef.h \
-		modules/module-detect-symdef.h
+		modules/module-detect-symdef.h \
+		modules/rtp/module-rtp-monitor-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1041,6 +1048,12 @@ module_detect_la_SOURCES = modules/module-detect.c
 module_detect_la_LDFLAGS = -module -avoid-version
 module_detect_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 module_detect_la_CFLAGS = $(AM_CFLAGS)
+
+# Hardware autodetection module
+module_rtp_monitor_la_SOURCES = modules/rtp/module-rtp-monitor.c
+module_rtp_monitor_la_LDFLAGS = -module -avoid-version
+module_rtp_monitor_la_LIBADD = $(AM_LIBADD) libpolypcore.la
+module_rtp_monitor_la_CFLAGS = $(AM_CFLAGS)
 
 ###################################
 #        Some minor stuff         #
