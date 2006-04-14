@@ -55,7 +55,7 @@ struct pa_source_output {
     
     void (*push)(pa_source_output *o, const pa_memchunk *chunk);
     void (*kill)(pa_source_output* o);
-    pa_usec_t (*get_latency) (pa_source_output *i);
+    pa_usec_t (*get_latency) (pa_source_output *o);
 
     pa_resampler* resampler;
     
