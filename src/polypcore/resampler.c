@@ -262,7 +262,7 @@ static void calc_map_table(pa_resampler *r) {
     }
 }
 
-static float * convert_to_float(pa_resampler *r, float *input, unsigned n_frames) {
+static float * convert_to_float(pa_resampler *r, void *input, unsigned n_frames) {
     struct impl_libsamplerate *u;
     unsigned n_samples;
 
@@ -369,7 +369,7 @@ static float *resample(pa_resampler *r, float *input, unsigned *n_frames) {
     return u->buf3;
 }
 
-static float *convert_from_float(pa_resampler *r, float *input, unsigned n_frames) {
+static void *convert_from_float(pa_resampler *r, float *input, unsigned n_frames) {
     struct impl_libsamplerate *u;
     unsigned n_samples;
     
@@ -395,7 +395,8 @@ static float *convert_from_float(pa_resampler *r, float *input, unsigned n_frame
 
 static void libsamplerate_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) {
     struct impl_libsamplerate *u;
-    float *buf, *input;
+    float *buf;
+    void *input, *output;
     unsigned n_frames;
 
     assert(r);
@@ -408,18 +409,18 @@ static void libsamplerate_run(pa_resampler *r, const pa_memchunk *in, pa_memchun
     
     u = r->impl_data;
 
-    buf = input = (float*) ((uint8_t*) in->memblock->data + in->index);
+    input = ((uint8_t*) in->memblock->data + in->index);
     n_frames = in->length / r->i_fz;
     assert(n_frames > 0);
     
-    buf = convert_to_float(r, buf, n_frames);
+    buf = convert_to_float(r, input, n_frames);
     buf = remap_channels(r, buf, n_frames);
     buf = resample(r, buf, &n_frames);
 
     if (n_frames) {
-        buf = convert_from_float(r, buf, n_frames);
+        output = convert_from_float(r, buf, n_frames);
 
-        if (buf == input) {
+        if (output == input) {
             /* Mm, no adjustment has been necessary, so let's return the original block */
             out->memblock = pa_memblock_ref(in->memblock);
             out->index = in->index;
@@ -430,16 +431,16 @@ static void libsamplerate_run(pa_resampler *r, const pa_memchunk *in, pa_memchun
             out->length = n_frames * r->o_fz;
             out->index = 0;
 
-            if (buf == u->buf1) {
+            if (output == u->buf1) {
                 p = &u->buf1;
                 u->buf1_samples = 0;
-            } else if (buf == u->buf2) {
+            } else if (output == u->buf2) {
                 p = &u->buf2;
                 u->buf2_samples = 0;
-            } else if (buf == u->buf3) {
+            } else if (output == u->buf3) {
                 p = &u->buf3;
                 u->buf3_samples = 0;
-            } else if (buf == u->buf4) {
+            } else if (output == u->buf4) {
                 p = &u->buf4;
                 u->buf4_samples = 0;
             }
