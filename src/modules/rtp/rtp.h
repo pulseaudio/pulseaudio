@@ -34,9 +34,10 @@ typedef struct pa_rtp_context {
     uint32_t timestamp;
     uint32_t ssrc;
     uint8_t payload;
+    size_t frame_size;
 } pa_rtp_context;
 
-pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssrc, uint8_t payload);
+pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssrc, uint8_t payload, size_t frame_size);
 int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q);
 
 pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd);

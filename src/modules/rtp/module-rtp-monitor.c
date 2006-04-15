@@ -61,9 +61,9 @@ PA_MODULE_USAGE(
         "mtu=<maximum transfer unit> "
 )
 
-#define DEFAULT_PORT 5666
+#define DEFAULT_PORT 5004
 #define SAP_PORT 9875
-#define DEFAULT_DESTINATION "224.0.0.252"
+#define DEFAULT_DESTINATION "224.0.1.2"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
 #define DEFAULT_MTU 1024
 #define SAP_INTERVAL 5000000
@@ -136,7 +136,6 @@ static void sap_event(pa_mainloop_api *m, pa_time_event *t, const struct timeval
 
     pa_sap_send(&u->sap_context, 0);
 
-    pa_log("SAP update");
     pa_gettimeofday(&next);
     pa_timeval_add(&next, SAP_INTERVAL);
     m->time_restart(t, &next);
@@ -280,7 +279,7 @@ int pa__init(pa_core *c, pa_module*m) {
                      af == AF_INET ? (void*) &sa4.sin_addr : (void*) &sa6.sin6_addr,
                      "Polypaudio RTP Stream", port, payload, &ss);
     
-    pa_rtp_context_init_send(&u->rtp_context, fd, 0, payload);
+    pa_rtp_context_init_send(&u->rtp_context, fd, 0, payload, pa_frame_size(&ss));
     pa_sap_context_init_send(&u->sap_context, sap_fd, p);
 
     pa_log_info("RTP stream initialized with mtu %u on %s:%u, SSRC=0x%08x, payload=%u, initial sequence #%u", mtu, dest, port, u->rtp_context.ssrc, payload, u->rtp_context.sequence);

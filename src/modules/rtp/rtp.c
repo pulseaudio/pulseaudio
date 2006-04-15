@@ -35,7 +35,7 @@
 
 #include "rtp.h"
 
-pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssrc, uint8_t payload) {
+pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssrc, uint8_t payload, size_t frame_size) {
     assert(c);
     assert(fd >= 0);
 
@@ -44,7 +44,8 @@ pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssr
     c->timestamp = 0;
     c->ssrc = ssrc ? ssrc : (uint32_t) (rand()*rand());
     c->payload = payload & 127;
-
+    c->frame_size = frame_size;
+    
     return c;
 }
 
@@ -114,7 +115,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
             } else
                 k = 0;
 
-            c->timestamp += skip;
+            c->timestamp += skip/c->frame_size;
             
             if (k < 0) {
                 if (errno != EAGAIN) /* If the queue is full, just ignore it */
