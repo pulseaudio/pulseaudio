@@ -101,6 +101,9 @@ struct pa_mainloop {
         STATE_POLLED,
         STATE_QUIT
     } state;
+
+    pa_poll_func poll_func;
+    void *poll_func_userdata;
 };
 
 /* IO events */
@@ -355,6 +358,9 @@ pa_mainloop *pa_mainloop_new(void) {
     m->deferred_pending = 0;
 
     m->state = STATE_PASSIVE;
+
+    m->poll_func = NULL;
+    m->poll_func_userdata = NULL;
     
     return m;
 }
@@ -665,7 +671,10 @@ int pa_mainloop_poll(pa_mainloop *m) {
     if (m->deferred_pending)
         r = 0;
     else {
-        r = poll(m->pollfds, m->n_pollfds, m->prepared_timeout);
+        if (m->poll_func)
+            r = m->poll_func(m->pollfds, m->n_pollfds, m->prepared_timeout, m->poll_func_userdata);
+        else
+            r = poll(m->pollfds, m->n_pollfds, m->prepared_timeout);
 
         if (r < 0) {
             if (errno == EINTR)
@@ -766,6 +775,14 @@ pa_mainloop_api* pa_mainloop_get_api(pa_mainloop*m) {
     assert(m);
     return &m->api;
 }
+
+void pa_mainloop_set_poll_func(pa_mainloop *m, pa_poll_func poll_func, void *userdata) {
+    assert(m);
+
+    m->poll_func = poll_func;
+    m->poll_func_userdata = userdata;
+}
+
 
 #if 0
 void pa_mainloop_dump(pa_mainloop *m) {
