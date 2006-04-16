@@ -1,4 +1,4 @@
-/* $Id */
+/* $Id$ */
 
 /***
   This file is part of polypaudio.
@@ -43,7 +43,7 @@
 #include <polypcore/modargs.h>
 #include <polypcore/namereg.h>
 
-#include "module-rtp-monitor-symdef.h"
+#include "module-rtp-send-symdef.h"
 
 #include "rtp.h"
 #include "sdp.h"
