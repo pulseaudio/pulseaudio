@@ -455,6 +455,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->module = m;
     u->core = c;
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
+    u->n_sessions = 0;
 
     u->sap_event = c->mainloop->io_new(c->mainloop, fd, PA_IO_EVENT_INPUT, sap_event_cb, u);
 
