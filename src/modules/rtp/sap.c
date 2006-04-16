@@ -32,12 +32,16 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 
 #include <polypcore/util.h>
 #include <polypcore/log.h>
 #include <polypcore/xmalloc.h>
 
 #include "sap.h"
+#include "sdp.h"
+
+#define MIME_TYPE "application/sdp"
 
 pa_sap_context* pa_sap_context_init_send(pa_sap_context *c, int fd, char *sdp_data) {
     assert(c);
@@ -60,7 +64,6 @@ void pa_sap_context_destroy(pa_sap_context *c) {
 
 int pa_sap_send(pa_sap_context *c, int goodbye) {
     uint32_t header;
-    const char mime[] = "application/sdp";
     struct sockaddr_storage sa_buf;
     struct sockaddr *sa = (struct sockaddr*) &sa_buf;
     socklen_t salen = sizeof(sa_buf);
@@ -86,8 +89,8 @@ int pa_sap_send(pa_sap_context *c, int goodbye) {
     iov[1].iov_base = sa->sa_family == AF_INET ? (void*) &((struct sockaddr_in*) sa)->sin_addr : (void*) &((struct sockaddr_in6*) sa)->sin6_addr;
     iov[1].iov_len = sa->sa_family == AF_INET ? 4 : 16;
 
-    iov[2].iov_base = (char*) mime;
-    iov[2].iov_len = sizeof(mime);
+    iov[2].iov_base = (char*) MIME_TYPE;
+    iov[2].iov_len = sizeof(MIME_TYPE);
 
     iov[3].iov_base = c->sdp_data;
     iov[3].iov_len = strlen(c->sdp_data);
@@ -104,4 +107,111 @@ int pa_sap_send(pa_sap_context *c, int goodbye) {
         pa_log("sendmsg() failed: %s\n", strerror(errno));
 
     return k;
+}
+
+pa_sap_context* pa_sap_context_init_recv(pa_sap_context *c, int fd) {
+    assert(c);
+    assert(fd >= 0);
+
+    c->fd = fd;
+    c->sdp_data = NULL;
+    return c;
+}
+
+int pa_sap_recv(pa_sap_context *c, int *goodbye) {
+    struct msghdr m;
+    struct iovec iov;
+    int size, k;
+    char *buf = NULL, *e;
+    uint32_t header;
+    int six, ac;
+    ssize_t r;
+    
+    assert(c);
+    assert(goodbye);
+
+    if (ioctl(c->fd, FIONREAD, &size) < 0) {
+        pa_log(__FILE__": FIONREAD failed: %s", strerror(errno));
+        goto fail;
+    }
+
+    if (!size)
+        return 0;
+
+    buf = pa_xnew(char, size+1);
+    buf[size] = 0;
+    
+    iov.iov_base = buf;
+    iov.iov_len = size;
+
+    m.msg_name = NULL;
+    m.msg_namelen = 0;
+    m.msg_iov = &iov;
+    m.msg_iovlen = 1;
+    m.msg_control = NULL;
+    m.msg_controllen = 0;
+    m.msg_flags = 0;
+    
+    if ((r = recvmsg(c->fd, &m, 0)) != size) {
+        pa_log(__FILE__": recvmsg() failed: %s", r < 0 ? strerror(errno) : "size mismatch");
+        goto fail;
+    }
+
+    if (size < 4) {
+        pa_log(__FILE__": SAP packet too short.");
+        goto fail;
+    }
+
+    memcpy(&header, buf, sizeof(uint32_t));
+    header = ntohl(header);
+
+    if (header >> 29 != 1) {
+        pa_log(__FILE__": Unsupported SAP version.");
+        goto fail;
+    }
+
+    if ((header >> 25) & 1) {
+        pa_log(__FILE__": Encrypted SAP not supported.");
+        goto fail;
+    }
+
+    if ((header >> 24) & 1) {
+        pa_log(__FILE__": Compressed SAP not supported.");
+        goto fail;
+    }
+
+    six = (header >> 28) & 1;
+    ac = (header >> 16) & 0xFF;
+
+    k = 4 + (six ? 16 : 4) + ac*4;
+    if (size < k) {
+        pa_log(__FILE__": SAP packet too short (AD).");
+        goto fail;
+    }
+
+    e = buf + k;
+    size -= k;
+
+    if ((unsigned) size >= sizeof(MIME_TYPE) && !strcmp(e, MIME_TYPE)) {
+        e += sizeof(MIME_TYPE);
+        size -= sizeof(MIME_TYPE);
+    } else if ((unsigned) size < sizeof(PA_SDP_HEADER)-1 || strncmp(e, PA_SDP_HEADER, sizeof(PA_SDP_HEADER)-1)) {
+        pa_log(__FILE__": Invalid SDP header.");
+        goto fail;
+    }
+
+    if (c->sdp_data)
+        pa_xfree(c->sdp_data);
+    
+    c->sdp_data = pa_xstrndup(e, size);
+    pa_xfree(buf);
+    
+    *goodbye = !!((header >> 26) & 1);
+    
+    return 0;
+
+fail:
+    pa_xfree(buf);
+
+    return -1;
 }

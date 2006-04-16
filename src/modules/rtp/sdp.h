@@ -28,6 +28,23 @@
 
 #include <polyp/sample.h>
 
+#define PA_SDP_HEADER "v=0\n"
+
+typedef struct pa_sdp_info {
+    char *origin;
+    char *session_name;
+
+    struct sockaddr_storage sa;
+    socklen_t salen;
+
+    pa_sample_spec sample_spec;
+    uint8_t payload;
+} pa_sdp_info;
+
 char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, uint16_t port, uint8_t payload, const pa_sample_spec *ss);
+
+pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *info, int is_goodbye);
+
+void pa_sdp_info_destroy(pa_sdp_info *i);
 
 #endif

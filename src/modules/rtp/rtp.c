@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 
 #include <polypcore/log.h>
 
@@ -135,33 +136,155 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
     return 0;
 }
 
-pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd) {
+pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd, size_t frame_size) {
     assert(c);
 
     c->fd = fd;
+    c->frame_size = frame_size;
     return c;
 }
 
-int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk) {
+int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_memblock_stat *st) {
+    int size;
+    struct msghdr m;
+    struct iovec iov;
+    uint32_t header;
+    int cc;
+    ssize_t r;
+    
     assert(c);
     assert(chunk);
 
+    chunk->memblock = NULL;
+
+    if (ioctl(c->fd, FIONREAD, &size) < 0) {
+        pa_log(__FILE__": FIONREAD failed: %s", strerror(errno));
+        goto fail;
+    }
+
+    if (!size)
+        return 0;
+
+    chunk->memblock = pa_memblock_new(size, st);
+
+    iov.iov_base = chunk->memblock->data;
+    iov.iov_len = size;
+
+    m.msg_name = NULL;
+    m.msg_namelen = 0;
+    m.msg_iov = &iov;
+    m.msg_iovlen = 1;
+    m.msg_control = NULL;
+    m.msg_controllen = 0;
+    m.msg_flags = 0;
+    
+    if ((r = recvmsg(c->fd, &m, 0)) != size) {
+        pa_log(__FILE__": recvmsg() failed: %s", r < 0 ? strerror(errno) : "size mismatch");
+        goto fail;
+    }
+
+    if (size < 12) {
+        pa_log(__FILE__": RTP packet too short.");
+        goto fail;
+    }
+
+    memcpy(&header, chunk->memblock->data, sizeof(uint32_t));
+    memcpy(&c->timestamp, (uint8_t*) chunk->memblock->data + 4, sizeof(uint32_t));
+    memcpy(&c->ssrc, (uint8_t*) chunk->memblock->data + 8, sizeof(uint32_t));
+    
+    header = ntohl(header);
+    c->timestamp = ntohl(c->timestamp);
+    c->ssrc = ntohl(c->ssrc);
+
+    if ((header >> 30) != 2) {
+        pa_log(__FILE__": Unsupported RTP version.");
+        goto fail;
+    }
+
+    if ((header >> 29) & 1) {
+        pa_log(__FILE__": RTP padding not supported.");
+        goto fail;
+    }
+
+    if ((header >> 28) & 1) {
+        pa_log(__FILE__": RTP header extensions not supported.");
+        goto fail;
+    }
+
+    cc = (header >> 24) & 0xF;
+    c->payload = (header >> 16) & 127;
+    c->sequence = header & 0xFFFF;
+
+    if (12 + cc*4 > size) {
+        pa_log(__FILE__": RTP packet too short. (CSRC)");
+        goto fail;
+    }
+
+    chunk->index = 12 + cc*4;
+    chunk->length = size - chunk->index;
+
+    if (chunk->length % c->frame_size != 0) {
+        pa_log(__FILE__": Vad RTP packet size.");
+        goto fail;
+    }
+    
     return 0;
+
+fail:
+    if (chunk->memblock)
+        pa_memblock_unref(chunk->memblock);
+
+    return -1;
 }
 
-uint8_t pa_rtp_payload_type(const pa_sample_spec *ss) {
+uint8_t pa_rtp_payload_from_sample_spec(const pa_sample_spec *ss) {
     assert(ss);
 
     if (ss->format == PA_SAMPLE_ULAW && ss->rate == 8000 && ss->channels == 1)
         return 0;
     if (ss->format == PA_SAMPLE_ALAW && ss->rate == 8000 && ss->channels == 1)
-        return 0;
+        return 8;
     if (ss->format == PA_SAMPLE_S16BE && ss->rate == 44100 && ss->channels == 2)
         return 10;
     if (ss->format == PA_SAMPLE_S16BE && ss->rate == 44100 && ss->channels == 1)
         return 11;
     
     return 127;
+}
+
+pa_sample_spec *pa_rtp_sample_spec_from_payload(uint8_t payload, pa_sample_spec *ss) {
+    assert(ss);
+
+    switch (payload) {
+        case 0:
+            ss->channels = 1;
+            ss->format = PA_SAMPLE_ULAW;
+            ss->rate = 8000;
+            break;
+
+        case 8:
+            ss->channels = 1;
+            ss->format = PA_SAMPLE_ALAW;
+            ss->rate = 8000;
+            break;
+
+        case 10:
+            ss->channels = 2;
+            ss->format = PA_SAMPLE_S16BE;
+            ss->rate = 44100;
+            break;
+            
+        case 11:
+            ss->channels = 1;
+            ss->format = PA_SAMPLE_S16BE;
+            ss->rate = 44100;
+            break;
+
+        default:
+            return NULL;
+    }
+
+    return ss;
 }
 
 pa_sample_spec *pa_rtp_sample_spec_fixup(pa_sample_spec * ss) {
@@ -192,3 +315,34 @@ void pa_rtp_context_destroy(pa_rtp_context *c) {
 
     close(c->fd);
 }
+
+const char* pa_rtp_format_to_string(pa_sample_format_t f) {
+    switch (f) {
+        case PA_SAMPLE_S16BE:
+            return "L16";
+        case PA_SAMPLE_U8:
+            return "L8";
+        case PA_SAMPLE_ALAW:
+            return "PCMA";
+        case PA_SAMPLE_ULAW:
+            return "PCMU";
+        default:
+            return NULL;
+    }
+}
+
+pa_sample_format_t pa_rtp_string_to_format(const char *s) {
+    assert(s);
+    
+    if (!(strcmp(s, "L16")))
+        return PA_SAMPLE_S16BE;
+    else if (!strcmp(s, "L8"))
+        return PA_SAMPLE_U8;
+    else if (!strcmp(s, "PCMA"))
+        return PA_SAMPLE_ALAW;
+    else if (!strcmp(s, "PCMU"))
+        return PA_SAMPLE_ULAW;
+    else
+        return PA_SAMPLE_INVALID;
+}
+

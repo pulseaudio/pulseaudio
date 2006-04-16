@@ -1,3 +1,4 @@
+/* $Id */
 
 /***
   This file is part of polypaudio.
@@ -49,16 +50,17 @@
 #include "sap.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Read data from source and send it to the network via RTP")
+PA_MODULE_DESCRIPTION("Read data from source and send it to the network via RTP/SAP/SDP")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE(
-        "source=<name for the source> "
+        "source=<name of the source> "
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
         "destinaton=<destination IP address> "
         "port=<port number> "
         "mtu=<maximum transfer unit> "
+        "loop=<loopback to local host?>"
 )
 
 #define DEFAULT_PORT 5004
@@ -75,6 +77,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "destination",
     "port",
+    "loop",
     NULL
 };
 
@@ -125,7 +128,7 @@ static pa_usec_t source_output_get_latency (pa_source_output *o) {
     return pa_bytes_to_usec(pa_memblockq_get_length(u->memblockq), &o->sample_spec);
 }
 
-static void sap_event(pa_mainloop_api *m, pa_time_event *t, const struct timeval *tv, void *userdata) {
+static void sap_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *tv, void *userdata) {
     struct userdata *u = userdata;
     struct timeval next;
     
@@ -159,6 +162,8 @@ int pa__init(pa_core *c, pa_module*m) {
     int r;
     socklen_t k;
     struct timeval tv;
+    char hn[128], *n;
+    int loop = 0;
     
     assert(c);
     assert(m);
@@ -170,6 +175,11 @@ int pa__init(pa_core *c, pa_module*m) {
 
     if (!(s = pa_namereg_get(m->core, pa_modargs_get_value(ma, "source", NULL), PA_NAMEREG_SOURCE, 1))) {
         pa_log(__FILE__": source does not exist.");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "loop", &loop) < 0) {
+        pa_log(__FILE__": failed to parse \"loop\" parameter.");
         goto fail;
     }
 
@@ -189,7 +199,7 @@ int pa__init(pa_core *c, pa_module*m) {
     if (ss.channels != cm.channels)
         pa_channel_map_init_auto(&cm, ss.channels);
 
-    payload = pa_rtp_payload_type(&ss);
+    payload = pa_rtp_payload_from_sample_spec(&ss);
 
     mtu = (DEFAULT_MTU/pa_frame_size(&ss))*pa_frame_size(&ss);
     
@@ -203,21 +213,21 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    if ((dest = pa_modargs_get_value(ma, "destination", DEFAULT_DESTINATION))) {
-        if (inet_pton(AF_INET6, dest, &sa6.sin6_addr) > 0) {
-            sa6.sin6_family = af = AF_INET6;
-            sa6.sin6_port = htons(port);
-            sap_sa6 = sa6;
-            sap_sa6.sin6_port = htons(SAP_PORT);
-        } else if (inet_pton(AF_INET, dest, &sa4.sin_addr) > 0) {
-            sa4.sin_family = af = AF_INET;
-            sa4.sin_port = htons(port);
-            sap_sa4 = sa4;
-            sap_sa4.sin_port = htons(SAP_PORT);
-        } else {
-            pa_log(__FILE__": invalid destination '%s'", dest);
-            goto fail;
-        }
+    dest = pa_modargs_get_value(ma, "destination", DEFAULT_DESTINATION);
+
+    if (inet_pton(AF_INET6, dest, &sa6.sin6_addr) > 0) {
+        sa6.sin6_family = af = AF_INET6;
+        sa6.sin6_port = htons(port);
+        sap_sa6 = sa6;
+        sap_sa6.sin6_port = htons(SAP_PORT);
+    } else if (inet_pton(AF_INET, dest, &sa4.sin_addr) > 0) {
+        sa4.sin_family = af = AF_INET;
+        sa4.sin_port = htons(port);
+        sap_sa4 = sa4;
+        sap_sa4.sin_port = htons(SAP_PORT);
+    } else {
+        pa_log(__FILE__": invalid destination '%s'", dest);
+        goto fail;
     }
     
     if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
@@ -240,6 +250,12 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
+    if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0 ||
+        setsockopt(sap_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0) {
+        pa_log(__FILE__": IP_MULTICAST_LOOP failed: %s", strerror(errno));
+        goto fail;
+    }
+    
     if (!(o = pa_source_output_new(s, __FILE__, "RTP Monitor Stream", &ss, &cm, PA_RESAMPLER_INVALID))) {
         pa_log(__FILE__": failed to create source output.");
         goto fail;
@@ -273,23 +289,27 @@ int pa__init(pa_core *c, pa_module*m) {
     k = sizeof(sa_dst);
     r = getsockname(fd, (struct sockaddr*) &sa_dst, &k);
     assert(r >= 0);
+
+    n = pa_sprintf_malloc("Polypaudio RTP Stream on %s", pa_get_fqdn(hn, sizeof(hn)));
         
     p = pa_sdp_build(af,
                      af == AF_INET ? (void*) &((struct sockaddr_in*) &sa_dst)->sin_addr : (void*) &((struct sockaddr_in6*) &sa_dst)->sin6_addr,
                      af == AF_INET ? (void*) &sa4.sin_addr : (void*) &sa6.sin6_addr,
-                     "Polypaudio RTP Stream", port, payload, &ss);
+                     n, port, payload, &ss);
+
+    pa_xfree(n);
     
-    pa_rtp_context_init_send(&u->rtp_context, fd, 0, payload, pa_frame_size(&ss));
+    pa_rtp_context_init_send(&u->rtp_context, fd, c->cookie, payload, pa_frame_size(&ss));
     pa_sap_context_init_send(&u->sap_context, sap_fd, p);
 
-    pa_log_info("RTP stream initialized with mtu %u on %s:%u, SSRC=0x%08x, payload=%u, initial sequence #%u", mtu, dest, port, u->rtp_context.ssrc, payload, u->rtp_context.sequence);
-    pa_log_info("SDP-Data:\n%s\nEOF", p);
-    
+    pa_log_info(__FILE__": RTP stream initialized with mtu %u on %s:%u, SSRC=0x%08x, payload=%u, initial sequence #%u", mtu, dest, port, u->rtp_context.ssrc, payload, u->rtp_context.sequence);
+    pa_log_info(__FILE__": SDP-Data:\n%s\n"__FILE__": EOF", p);
+
     pa_sap_send(&u->sap_context, 0);
 
     pa_gettimeofday(&tv);
     pa_timeval_add(&tv, SAP_INTERVAL);
-    u->sap_event = c->mainloop->time_new(c->mainloop, &tv, sap_event, u);
+    u->sap_event = c->mainloop->time_new(c->mainloop, &tv, sap_event_cb, u);
 
     pa_modargs_free(ma);
 

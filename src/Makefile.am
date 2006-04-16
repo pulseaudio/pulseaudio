@@ -722,7 +722,8 @@ modlib_LTLIBRARIES += \
 		module-esound-sink.la \
 		module-http-protocol-tcp.la \
 		module-detect.la \
-		module-rtp-monitor.la
+		module-rtp-monitor.la \
+		module-rtp-recv.la
 
 if HAVE_AF_UNIX
 modlib_LTLIBRARIES += \
@@ -834,7 +835,8 @@ SYMDEF_FILES = \
 		modules/module-solaris-symdef.h \
 		modules/module-waveout-symdef.h \
 		modules/module-detect-symdef.h \
-		modules/rtp/module-rtp-monitor-symdef.h
+		modules/rtp/module-rtp-monitor-symdef.h \
+		modules/rtp/module-rtp-recv-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1049,11 +1051,16 @@ module_detect_la_LDFLAGS = -module -avoid-version
 module_detect_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 module_detect_la_CFLAGS = $(AM_CFLAGS)
 
-# Hardware autodetection module
+# RTP modules
 module_rtp_monitor_la_SOURCES = modules/rtp/module-rtp-monitor.c
 module_rtp_monitor_la_LDFLAGS = -module -avoid-version
 module_rtp_monitor_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 module_rtp_monitor_la_CFLAGS = $(AM_CFLAGS)
+
+module_rtp_recv_la_SOURCES = modules/rtp/module-rtp-recv.c
+module_rtp_recv_la_LDFLAGS = -module -avoid-version
+module_rtp_recv_la_LIBADD = $(AM_LIBADD) libpolypcore.la
+module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
 
 ###################################
 #        Some minor stuff         #

@@ -40,13 +40,18 @@ typedef struct pa_rtp_context {
 pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssrc, uint8_t payload, size_t frame_size);
 int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q);
 
-pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd);
-int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk);
+pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd, size_t frame_size);
+int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_memblock_stat *st);
 
-uint8_t pa_rtp_payload_type(const pa_sample_spec *ss);
+void pa_rtp_context_destroy(pa_rtp_context *c);
+
 pa_sample_spec* pa_rtp_sample_spec_fixup(pa_sample_spec *ss);
 int pa_rtp_sample_spec_valid(const pa_sample_spec *ss);
 
-void pa_rtp_context_destroy(pa_rtp_context *c);
+uint8_t pa_rtp_payload_from_sample_spec(const pa_sample_spec *ss);
+pa_sample_spec *pa_rtp_sample_spec_from_payload(uint8_t payload, pa_sample_spec *ss);
+
+const char* pa_rtp_format_to_string(pa_sample_format_t f);
+pa_sample_format_t pa_rtp_string_to_format(const char *s);
 
 #endif
