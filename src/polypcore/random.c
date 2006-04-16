@@ -36,10 +36,6 @@
 
 #include "random.h"
 
-#ifndef OS_IS_WIN32
-#define RANDOM_DEVICE "/dev/urandom"
-#endif
-
 void pa_random(void *ret_data, size_t length) {
     int fd;
     ssize_t r = 0;
@@ -64,8 +60,6 @@ void pa_random(void *ret_data, size_t length) {
                     ", falling back to unsecure pseudo RNG.\n", strerror(errno));
 #endif
 
-        srand(time(NULL));
-        
         for (p = ret_data, l = length; l > 0; p++, l--)
             *p = (uint8_t) rand();
     }
