@@ -63,11 +63,11 @@ PA_MODULE_USAGE(
         "loop=<loopback to local host?>"
 )
 
-#define DEFAULT_PORT 5004
+#define DEFAULT_PORT 46000
 #define SAP_PORT 9875
-#define DEFAULT_DESTINATION "224.0.1.2"
+#define DEFAULT_DESTINATION "224.0.1.3"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
-#define DEFAULT_MTU 1024
+#define DEFAULT_MTU 1280
 #define SAP_INTERVAL 5000000
 
 static const char* const valid_modargs[] = {
@@ -207,7 +207,8 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log(__FILE__": invalid mtu.");
         goto fail;
     }
-    
+
+    port = DEFAULT_PORT + (rand() % 512);
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
         pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.");
         goto fail;
