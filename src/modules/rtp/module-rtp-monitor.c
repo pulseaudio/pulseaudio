@@ -208,11 +208,14 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    port = DEFAULT_PORT + (rand() % 512);
+    port = DEFAULT_PORT + ((rand() % 512) << 1);
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
         pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.");
         goto fail;
     }
+
+    if (port & 1)
+        pa_log_warn(__FILE__": WARNING: port number not even as suggested in RFC3550!");
 
     dest = pa_modargs_get_value(ma, "destination", DEFAULT_DESTINATION);
 
