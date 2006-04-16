@@ -2,7 +2,6 @@
 
 Post 0.8:
 - alsa mmap driver
-- add radio module
 - dbus/hal
 - polish for starting polypaudio as root/system-wide instance
 - chroot()
