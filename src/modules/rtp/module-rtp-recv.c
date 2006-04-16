@@ -97,6 +97,8 @@ struct userdata {
     pa_hashmap *by_origin;
 
     char *sink_name;
+
+    int n_sessions;
 };
 
 static void session_free(struct session *s, int from_hash);
@@ -261,6 +263,11 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     int fd = -1;
     pa_memblock *silence;
 
+    if (u->n_sessions >= MAX_SESSIONS) {
+        pa_log(__FILE__": session limit reached.");
+        goto fail;
+    }
+    
     if (!(sink = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
         pa_log(__FILE__": sink does not exist.");
         goto fail;
@@ -323,6 +330,8 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     pa_rtp_context_init_recv(&s->rtp_context, fd, pa_frame_size(&s->sdp_info.sample_spec));
 
     pa_log_info(__FILE__": Found new session '%s'", s->sdp_info.session_name);
+
+    u->n_sessions++;
     
     return s;
 
@@ -354,6 +363,9 @@ static void session_free(struct session *s, int from_hash) {
     pa_memblockq_free(s->memblockq);
     pa_sdp_info_destroy(&s->sdp_info);
     pa_rtp_context_destroy(&s->rtp_context);
+
+    assert(s->userdata->n_sessions >= 1);
+    s->userdata->n_sessions--;
     
     pa_xfree(s);
 }
