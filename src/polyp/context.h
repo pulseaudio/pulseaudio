@@ -41,7 +41,9 @@
  * The API is based around an asynchronous event loop, or main loop,
  * abstraction. This abstraction contains three basic elements:
  *
- * \li Deferred events - Events that trigger each iteration of the main loop.
+ * \li Deferred events - Events that will trigger as soon as possible. Note
+ *                       that some implementations may block all other events
+ *                       when a deferred event is active.
  * \li I/O events - Events that trigger on file descriptor activities.
  * \li Times events - Events that trigger after a fixed ammount of time.
  *
