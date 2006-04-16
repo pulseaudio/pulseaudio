@@ -89,7 +89,6 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
     if (err < 0) {
         pa_log_error(__FILE__": Unable to get poll revent: %s",
             snd_strerror(err));
-        a->defer_enable(fdl->defer, 0);
         return;
     }
 
@@ -99,6 +98,8 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t
         else
             snd_mixer_handle_events(fdl->mixer);
     }
+
+    a->defer_enable(fdl->defer, 1);
 }
 
 static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
@@ -107,6 +108,8 @@ static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
     struct pollfd *temp;
 
     assert(a && fdl && (fdl->pcm || fdl->mixer));
+
+    a->defer_enable(fdl->defer, 0);
 
     if (fdl->pcm)
         num_fds = snd_pcm_poll_descriptors_count(fdl->pcm);
@@ -133,7 +136,6 @@ static void defer_cb(pa_mainloop_api*a, pa_defer_event* e, void *userdata) {
     if (err < 0) {
         pa_log_error(__FILE__": Unable to get poll descriptors: %s",
             snd_strerror(err));
-        a->defer_enable(fdl->defer, 0);
         return;
     }
 
