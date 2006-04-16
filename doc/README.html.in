@@ -44,7 +44,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <div class="news-date">Thu Apr 13 2006: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.8.tar.gz">Version 0.8</a> released;
-changes include: too many to count; many, many minor fixes.</p>
+changes include: too many to count - consider reading <a href="http://0pointer.de/blog/projects/polypaudio-0.8.html">this blog entry</a> for more information; many, many minor fixes.</p>
 
 <div class="news-date">Sun Nov 21 2004: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.7.tar.gz">Version 0.7</a> released;
@@ -152,6 +152,7 @@ available. A simple main loop implementation is available as well.</p>
   <li><tt>module-lirc</tt>: a module to control the volume of a sink with infrared remote controls supported by LIRC.</li>
   <li><tt>module-mmkbd-evdev</tt>: a module to control the volume of a sink with the special volume keys of a multimeda keyboard.</li>
   <li><tt>module-zeroconf-publish</tt>: a module to publish local sources/sinks using mDNS zeroconf.</li>
+  <li><tt>module-rtp-send</tt>, <tt>module-rtp-recv</tt>: a module to implement RTP/SAP/SDP based audio streaming.</li>
 </ul>
 
 <p><tt>polypaudio</tt> is the successor of my previous, ill-fated

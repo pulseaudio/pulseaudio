@@ -67,7 +67,7 @@
 <tt>realtime</tt>, or increase the fragment sizes of the audio
   drivers. The former will allow Polypaudio to activate
   <tt>SCHED_FIFO</tt> high priority scheduling (root rights are dropped
-  immediately after this) Keep in mind that this is a potential security hole!</p></li>
+  immediately after this). Keep in mind that this is a potential security hole!</p></li>
 
    <li><p><b>The <tt>polypaudio</tt>  executable is installed SUID root by default. Why this? Isn't this a potential security hole?</b></p>
 
@@ -103,7 +103,12 @@ in <tt>~/.polypaudio/</tt>.</p></li>
 
 <li><p><b>How do I use polypaudio over the network?</b></p>
 
-<p>Just set <tt>$POLYP_SERVER</tt> to the host name of the polypaudio server.</p>
+<p>Just set <tt>$POLYP_SERVER</tt> to the host name of the polypaudio
+server. For authentication you need the same auth cookies on all sides. For
+that copy <tt>~./polypaudio-cookie</tt> to all clients that shall
+be allowed to connect.</p>
+
+<p>Alternatively the authorization cookies can be stored in the X11 server.</p></li>
 
 <li><p><b>Is polypaudio capable of providing synchronized audio playback over the network for movie players like <tt>mplayer</tt>?</b></p>
 
@@ -126,7 +131,7 @@ connect to a running polypaudio daemon try using the following commands:</p>
 <pre>killall -USR2 polypaudio
 bidilink unix-client:/tmp/polypaudio/cli</pre>
 
-<p><i>BTW: Someone should package that great tool for Debian!</i></p>
+<p><i>BTW: Someone should package this great tool for Debian!</i></p>
 
 <p><b>New:</b> There's now a tool <tt>pacmd</tt> that automates sending SIGUSR2 to the daemon and running a bidilink like tool for you.</p>
 </li>
@@ -146,7 +151,91 @@ bidilink unix-client:/tmp/polypaudio/cli</pre>
 </li>
 
 <li><p><b>Why the heck does libpolyp link against libX11?</b></p>
-<p>The Polypaudio client libraries look for some X11 root window properties for the credentials of the Polypaudio server to access. You may compile Polypaudio without X11 for disabling this.</p></li>
+<p>The Polypaudio client libraries look for some X11 root window
+properties for the credentials of the Polypaudio server to access. You
+may compile Polypaudio without X11 for disabling this feature.</p></li>
+
+<li><p><b>How can I use Polypaudio as an RTP based N:N multicast
+conferencing solution for the LAN?</b></p> <p>After loading all the
+necessary audio drivers for recording and playback, just load the RTP
+reciever and sender modules with default parameters:</p>
+
+<pre>
+load-module module-rtp-send
+load-module module-rtp-recv
+</pre>
+
+<p>As long as the Polypaudio daemon runs, the microphone data will be
+streamed to the network and the data from other hosts is played back
+locally. Please note that this may cause quite a lot of traffic. Hence
+consider passing <tt>rate=8000 format=ulaw channels=1</tt> to the
+sender module to save bandwith while still maintaining good quality
+for speech transmission.</p></li>
+
+<li><p><b>What is this RTP/SDP/SAP thing all about?</b></p>
+
+<p>RTP is the <i>Realtime Transfer Protocol</i>. It is a well-known
+protocol for transferring audio and video data over IP. SDP is the <i>Session
+Description Protocol</i> and can be used to describe RTP sessions. SAP
+is the <i>Session Announcement Protocol</i> and can be used to
+announce RTP sessions that are described with SDP. (Modern SIP based VoIP phones use RTP/SDP for their sessions, too)</p>
+
+<p>All three protocols are defined in IETF RFCs (RFC3550, RFC3551,
+RFC2327, RFC2327). They can be used in both multicast and unicast
+fashions. Polypaudio exclusively uses multicast RTP/SDP/SAP containing audio data.</p>
+
+<p>For more information about using these technologies with Polypaudio have a look on the <a href="modules.html#rtp">respective module's documentation</a>.
+
+<li><p><b>How can I use Polypaudio to stream music from my main PC to my LAN with multiple PCs with speakers?</b></p>
+
+<p>On the sender side create an RTP sink:</p>
+
+<pre>
+load-module module-null-sink sink_name=rtp
+load-module module-rtp-send source=rtp_monitor
+set-default-sink rtp
+</pre>
+
+<p>This will make <tt>rtp</tt> the default sink, i.e. all applications will write to this virtual RTP device by default.</p>
+
+<p>On the client sides just load the reciever module:</p>
+<pre>
+load-module module-rtp-recv
+</pre>
+
+<p>Now you can play your favourite music on the sender side and all clients will output it simultaneously.</p>
+
+
+<p>BTW: You can have more than one sender machine set up like this. The audio data will be mixed on the client side.</p></li>
+
+<li><p><b>How can I use Polypaudio to share a single LINE-IN/MIC jack on the entire LAN?</b></p>
+
+<p>On the sender side simply load the RTP sender module:</p>
+
+<pre>
+load-module module-rtp-send
+</pre>
+
+<p>On the reciever sides, create an RTP source:</p>
+
+<pre>
+load-module module-null-sink sink_name=rtp
+load-module module-rtp-recv sink=rtp
+set-default-source rtp_monitor
+</pre>
+
+<p>Now the audio data will be available from the default source <tt>rtp_monitor</tt>.</p>
+
+<li><p><b>When sending multicast RTP traffic it is recieved on the entire LAN but not by the sender machine itself!</b></p>
+
+<p>Pass <tt>loop=1</tt> to the sender module!</p></li>
+
+<li><p><b>Can I have more than one multicast RTP group?</b></p>
+
+<p>Yes! Simply use a new multicast group address. Use
+the <tt>destination</tt>/<tt>sap_address</tt> arguments of the RTP
+modules to select them. Choose your group addresses from the range
+<tt>225.0.0.x</tt> to make sure the audio data never leaves the LAN.</p></li>
 
 </ol>
 

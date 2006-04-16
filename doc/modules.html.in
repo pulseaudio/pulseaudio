@@ -283,7 +283,7 @@ module and point your browser to <a
 href="http://localhost:4714/">http://localhost:4714/</a>. This module takes the same arguments
 as <tt>module-cli-protocol-tcp</tt>.</p>
 
-<h2>Miscellaneous</h2>
+<h2>X Window System</h2>
 
 <h3>module-x11-bell</h3>
 
@@ -314,6 +314,94 @@ and import credential data from/to the X11 display.</p>
   <tr><td><tt>cookie=</tt></td><td>Name of the cookie file of the
 cookie to store in the X11 display. If ommited the cookie of an
 already loaded protocol module is used.</td></tr> </table>
+
+<h2>Volume Control</h2>
+
+<h3>module-mmkbd-evdev</h3>
+
+<p>Adjust the volume of a sink when the special multimedia buttons of modern keyboards are pressed.</p>
+
+<table>
+  <tr><td><tt>device=</tt></td><td>Linux input device ("<tt>evdev</tt>", defaults to <tt>/dev/input/event0</tt>)</td></tr>
+  <tr><td><tt>sink=</tt></td><td>The sink to control</td></tr>
+</table>
+
+<h3>module-lirc</h3>
+
+<p>Adjust the volume of a sink when the volume buttons of an infrared remote control are pressed (through LIRC).</p>
+
+<table>
+  <tr><td><tt>config=</tt></td><td>The LIRC configuration file</td></tr>
+  <tr><td><tt>appname=</tt></td><td>The application name to pass to LIRC (defaults to <tt>polypaudio</tt>)</td></tr>
+  <tr><td><tt>sink=</tt></td><td>The sink to control</td></tr>
+</table>
+
+<a name="rtp"/>
+<h2>RTP/SDP/SAP Transport</h2>
+
+<p>Polypaudio can stream audio data to an IP multicast group via the
+standard protocols <a
+href="http://en.wikipedia.org/wiki/Real-time_Transport_Protocol">RTP</a>,
+<a
+href="http://en.wikipedia.org/wiki/Session_Announcement_Protocol">SAP</a>
+and <a
+href="http://en.wikipedia.org/wiki/Session_Description_Protocol">SDP</a>
+(RFC3550, RFC3551, RFC2327, RFC2327). This can be used for multiple
+different purposes: for sharing a single microphone on multiple
+computers on the local LAN, for streaming music from a single
+controlling PC to multiple PCs with speakers or to implement a simple
+"always-on" teleconferencing solution.</p>
+
+<p>The current implementation is designed to be used exlusively in
+local area networks, though Internet multicasting is theoretically
+supported. Only uncompressed audio is supported, hence you won't be
+able to multicast more than a few streams at the same time over a
+standard LAN.</p>
+
+<p>Polypaudio implements both a sender and a reciever for RTP
+traffic. The sender announces itself via SAP/SDP on the same multicast
+group as it sends the RTP data to. The reciever picks up the SAP/SDP
+announcements and creates a playback stream for each
+session. Alternatively you can use any RTP capable client to
+recieve and play back the RTP data (such as <tt>mplayer</tt>).</p>
+
+<h3>module-rtp-send</h3>
+
+<p>This is the sender side of the RTP/SDP/SAP implementation. It reads
+audio data from an existing source and forwards it to the network
+encapsulated in RTP. In addition it sends SAP packets with an SDP
+session description.</p>
+
+<p>In combination with the monitor source of <tt>module-null-sink</tt>
+you can use this module to create an RTP sink.</p>
+
+<table>
+  <tr><td><tt>source=</tt></td><td>The source to read the audio data from. If ommited defaults to the default source.</td></tr>
+  <tr><td><tt>format=, rate=, channels=</tt></td><td>Sample format to use, defaults to the source's.</td></tr>
+  <tr><td><tt>destination=</tt></td><td>Destination multicast group for both RTP and SAP packets, defaults to <tt>224.0.0.56</tt></td></tr>
+  <tr><td><tt>port=</tt></td><td>Destination port number of the RTP
+traffic. If ommited defaults to a randomly chosen even port
+number. Please keep in mind that the RFC suggests to use only even
+port numbers for RTP traffic.</td></tr>
+  <tr><td><tt>mtu=</tt></td><td>Maximum payload size for RTP packets. If ommited defaults to 1280</td></tr>
+  <tr><td><tt>loop=</tt></td><td>Takes a boolean value, specifying whether locally generated RTP traffic should be looped back to the local host. Disabled by default.</td></tr>
+</table>
+
+<h3>module-rtp-recv</h3>
+
+<p>This is the reciever side of the RTP/SDP/SAP implementation. It
+picks up SAP session announcements and creates an RTP playback stream
+for each.</p>
+
+<p>In combination with <tt>module-null-sink</tt> you can use this
+module to create an RTP source.</p>
+
+<table>
+  <tr><td><tt>sink=</tt></td><td>The sink to connect to. If ommited defaults to the default sink.</td></tr>
+  <tr><td><tt>sap_address=</tt></td><td>The multicast group to join for SAP announcements, defaults to <tt>224.0.0.56</tt>.</td></tr>
+</table>
+
+<h2>Miscellaneous</h2>
 
 <h3>module-sine</h3>
 
@@ -360,24 +448,6 @@ already loaded protocol module is used.</td></tr> </table>
 
 <p>Publish all local sinks/sources using mDNS Zeroconf.</p>
 
-<h3>module-mmkbd-evdev</h3>
-
-<p>Adjust the volume of a sink when the special multimedia buttons of modern keyboards are pressed.</p>
-
-<table>
-  <tr><td><tt>device=</tt></td><td>Linux input device ("<tt>evdev</tt>", defaults to <tt>/dev/input/event0</tt>)</td></tr>
-  <tr><td><tt>sink=</tt></td><td>The sink to control</td></tr>
-</table>
-
-<h3>module-lirc</h3>
-
-<p>Adjust the volume of a sink when the volume buttons of an infrared remote control are pressed (through LIRC).</p>
-
-<table>
-  <tr><td><tt>config=</tt></td><td>The LIRC configuration file</td></tr>
-  <tr><td><tt>appname=</tt></td><td>The application name to pass to LIRC (defaults to <tt>polypaudio</tt>)</td></tr>
-  <tr><td><tt>sink=</tt></td><td>The sink to control</td></tr>
-</table>
 
 <hr/>
 <address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, April 2006</address>
