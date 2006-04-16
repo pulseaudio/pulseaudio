@@ -41,6 +41,7 @@
 #include <polypcore/xmalloc.h>
 #include <polypcore/modargs.h>
 #include <polypcore/namereg.h>
+#include <polypcore/sample-util.h>
 
 #include "module-rtp-recv-symdef.h"
 
@@ -57,7 +58,7 @@ PA_MODULE_USAGE(
 )
 
 #define SAP_PORT 9875
-#define DEFAULT_SAP_ADDRESS "224.0.1.2"
+#define DEFAULT_SAP_ADDRESS "224.0.1.3"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
 #define MAX_SESSIONS 16
 #define DEATH_TIMEOUT 20000000
@@ -157,6 +158,9 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
 
         s->ssrc = s->rtp_context.ssrc;
         s->offset = s->rtp_context.timestamp;
+
+        if (s->ssrc == s->userdata->core->cookie)
+            pa_log_warn(__FILE__": WARNING! Detected RTP packet loop!");
     } else {
         if (s->ssrc != s->rtp_context.ssrc) {
             pa_memblock_unref(chunk.memblock);
@@ -174,7 +178,12 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
         delta = j;
     
     pa_memblockq_seek(s->memblockq, delta * s->rtp_context.frame_size, PA_SEEK_RELATIVE);
-    pa_memblockq_push(s->memblockq, &chunk);
+
+    if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
+        /* queue overflow, let's flush it and try again */
+        pa_memblockq_flush(s->memblockq);
+        pa_memblockq_push(s->memblockq, &chunk);
+    }
     
     /* The next timestamp we expect */
     s->offset = s->rtp_context.timestamp + (chunk.length / s->rtp_context.frame_size);
@@ -250,6 +259,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     char *c;
     pa_sink *sink;
     int fd = -1;
+    pa_memblock *silence;
 
     if (!(sink = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
         pa_log(__FILE__": sink does not exist.");
@@ -284,19 +294,26 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sink_input->drop = sink_input_drop;
     s->sink_input->kill = sink_input_kill;
     s->sink_input->get_latency = sink_input_get_latency;
+
+    silence = pa_silence_memblock_new(&s->sink_input->sample_spec,
+                                      (pa_bytes_per_second(&s->sink_input->sample_spec)/128/pa_frame_size(&s->sink_input->sample_spec))*
+                                      pa_frame_size(&s->sink_input->sample_spec),
+                                      s->userdata->core->memblock_stat);
     
     s->memblockq = pa_memblockq_new(
             0,
             MEMBLOCKQ_MAXLENGTH,
             MEMBLOCKQ_MAXLENGTH,
             pa_frame_size(&s->sink_input->sample_spec),
-            1,
+            pa_bytes_per_second(&s->sink_input->sample_spec)/10+1,
             0,
-            NULL,
+            silence,
             u->core->memblock_stat);
 
-    s->rtp_event = u->core->mainloop->io_new(u->core->mainloop, fd, PA_IO_EVENT_INPUT, rtp_event_cb, s);
+    pa_memblock_unref(silence);
 
+    s->rtp_event = u->core->mainloop->io_new(u->core->mainloop, fd, PA_IO_EVENT_INPUT, rtp_event_cb, s);
+    
     pa_gettimeofday(&tv);
     pa_timeval_add(&tv, DEATH_TIMEOUT);
     s->death_event = u->core->mainloop->time_new(u->core->mainloop, &tv, death_event_cb, s);
