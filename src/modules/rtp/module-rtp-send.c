@@ -57,7 +57,7 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
-        "destinaton=<destination IP address> "
+        "destination=<destination IP address> "
         "port=<port number> "
         "mtu=<maximum transfer unit> "
         "loop=<loopback to local host?>"
