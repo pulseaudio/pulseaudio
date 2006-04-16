@@ -121,8 +121,6 @@ static pa_io_event* mainloop_io_new(
     m = a->userdata;
     assert(a == &m->api);
 
-    pa_mainloop_wakeup(m);
-
     e = pa_xmalloc(sizeof(pa_io_event));
     e->mainloop = m;
     e->dead = 0;
@@ -156,24 +154,27 @@ static pa_io_event* mainloop_io_new(
 
     pa_idxset_put(m->io_events, e, NULL);
     m->rebuild_pollfds = 1;
+
+    pa_mainloop_wakeup(m);
+
     return e;
 }
 
 static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags_t events) {
     assert(e && e->mainloop);
 
-    pa_mainloop_wakeup(e->mainloop);
-
     e->events = events;
     e->mainloop->rebuild_pollfds = 1;
+
+    pa_mainloop_wakeup(e->mainloop);
 }
 
 static void mainloop_io_free(pa_io_event *e) {
     assert(e && e->mainloop);
 
-    pa_mainloop_wakeup(e->mainloop);
-
     e->dead = e->mainloop->io_events_scan_dead = e->mainloop->rebuild_pollfds = 1;
+
+    pa_mainloop_wakeup(e->mainloop);
 }
 
 static void mainloop_io_set_destroy(pa_io_event *e, void (*callback)(pa_mainloop_api*a, pa_io_event *e, void *userdata)) {
@@ -202,6 +203,9 @@ static pa_defer_event* mainloop_defer_new(pa_mainloop_api*a, void (*callback) (p
     pa_idxset_put(m->defer_events, e, NULL);
 
     m->deferred_pending++;
+
+    pa_mainloop_wakeup(e->mainloop);
+
     return e;
 }
 
@@ -211,8 +215,10 @@ static void mainloop_defer_enable(pa_defer_event *e, int b) {
     if (e->enabled && !b) {
         assert(e->mainloop->deferred_pending > 0);
         e->mainloop->deferred_pending--;
-    } else if (!e->enabled && b)
+    } else if (!e->enabled && b) {
         e->mainloop->deferred_pending++;
+        pa_mainloop_wakeup(e->mainloop);
+    }
     
     e->enabled = b;
 }
@@ -242,8 +248,6 @@ static pa_time_event* mainloop_time_new(pa_mainloop_api*a, const struct timeval 
     m = a->userdata;
     assert(a == &m->api);
 
-    pa_mainloop_wakeup(m);
-
     e = pa_xmalloc(sizeof(pa_time_event));
     e->mainloop = m;
     e->dead = 0;
@@ -257,6 +261,9 @@ static pa_time_event* mainloop_time_new(pa_mainloop_api*a, const struct timeval 
     e->destroy_callback = NULL;
 
     pa_idxset_put(m->time_events, e, NULL);
+
+    if (e->enabled)
+        pa_mainloop_wakeup(m);
     
     return e;
 }
@@ -264,11 +271,11 @@ static pa_time_event* mainloop_time_new(pa_mainloop_api*a, const struct timeval 
 static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
     assert(e);
 
-    pa_mainloop_wakeup(e->mainloop);
-
     if (tv) {
         e->enabled = 1;
         e->timeval = *tv;
+
+        pa_mainloop_wakeup(e->mainloop);
     } else
         e->enabled = 0;
 }
@@ -276,9 +283,9 @@ static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
 static void mainloop_time_free(pa_time_event *e) {
     assert(e);
 
-    pa_mainloop_wakeup(e->mainloop);
-
     e->dead = e->mainloop->time_events_scan_dead = 1;
+
+    /* no wakeup needed here. Think about it! */
 }
 
 static void mainloop_time_set_destroy(pa_time_event *e, void (*callback)(pa_mainloop_api*a, pa_time_event *e, void *userdata)) {
@@ -294,10 +301,10 @@ static void mainloop_quit(pa_mainloop_api*a, int retval) {
     m = a->userdata;
     assert(a == &m->api);
 
-    pa_mainloop_wakeup(m);
-
     m->quit = 1;
     m->retval = retval;
+
+    pa_mainloop_wakeup(m);
 }
     
 static const pa_mainloop_api vtable = {
