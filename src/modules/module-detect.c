@@ -37,6 +37,7 @@
 #include <polypcore/modargs.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
+#include <polypcore/util.h>
 
 #include "module-detect-symdef.h"
 
@@ -45,20 +46,8 @@ PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("just-one=<boolean>")
 
-static const char *endswith(const char *haystack, const char *needle) {
-    size_t l, m;
-    const char *p;
-    
-    if ((l = strlen(haystack)) < (m = strlen(needle)))
-        return NULL;
-
-    if (strcmp(p = haystack + l - m, needle))
-        return NULL;
-
-    return p;
-}
-
 #ifdef HAVE_ALSA
+
 static int detect_alsa(pa_core *c, int just_one) {
     FILE *f;
     int n = 0, n_sink = 0, n_source = 0;
@@ -81,9 +70,9 @@ static int detect_alsa(pa_core *c, int just_one) {
 
         line[strcspn(line, "\r\n")] = 0;
 
-        if (endswith(line, "digital audio playback"))
+        if (pa_endswith(line, "digital audio playback"))
             is_sink = 1;
-        else if (endswith(line, "digital audio capture"))
+        else if (pa_endswith(line, "digital audio capture"))
             is_sink = 0;
         else
             continue;
