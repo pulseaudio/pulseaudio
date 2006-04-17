@@ -792,6 +792,11 @@ modlib_LTLIBRARIES += \
 		module-mmkbd-evdev.la
 endif
 
+if HAVE_JACK
+modlib_LTLIBRARIES += \
+		module-jack-sink.la
+endif
+
 if OS_IS_WIN32
 modlib_LTLIBRARIES += \
 		module-waveout.la
@@ -836,7 +841,8 @@ SYMDEF_FILES = \
 		modules/module-waveout-symdef.h \
 		modules/module-detect-symdef.h \
 		modules/rtp/module-rtp-send-symdef.h \
-		modules/rtp/module-rtp-recv-symdef.h
+		modules/rtp/module-rtp-recv-symdef.h \
+		modules/module-jack-sink-symdef.h 
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1061,6 +1067,13 @@ module_rtp_recv_la_SOURCES = modules/rtp/module-rtp-recv.c
 module_rtp_recv_la_LDFLAGS = -module -avoid-version
 module_rtp_recv_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
+
+# JACK
+
+module_jack_sink_la_SOURCES = modules/module-jack-sink.c
+module_jack_sink_la_LDFLAGS = -module -avoid-version
+module_jack_sink_la_LIBADD = $(AM_LIBADD) libpolypcore.la $(JACK_LIBS)
+module_jack_sink_la_CFLAGS = $(AM_LIBADD) libpolypcore.la $(JACK_CFLAGS)
 
 ###################################
 #        Some minor stuff         #
