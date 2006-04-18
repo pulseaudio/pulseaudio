@@ -43,7 +43,7 @@ struct pa_browser {
     pa_io_event *io_event;
 };
 
-static void io_callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags_t events, void *userdata) {
+static void io_callback(pa_mainloop_api*a, PA_GCC_UNUSED pa_io_event*e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void *userdata) {
     pa_browser *b = userdata;
     assert(a && b && b->mainloop == a);
 

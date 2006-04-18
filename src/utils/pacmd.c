@@ -36,7 +36,7 @@
 #include <polypcore/log.h>
 #include <polypcore/pid.h>
 
-int main(PA_GCC_UNUSED int main, PA_GCC_UNUSED char*argv[]) {
+int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
     pid_t pid ;
     int fd = -1;
     int ret = 1, i;

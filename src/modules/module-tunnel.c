@@ -603,7 +603,7 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const void
 }
 
 #ifndef TUNNEL_SINK
-static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata) {
+static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, PA_GCC_UNUSED int64_t offset, PA_GCC_UNUSED pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata) {
     struct userdata *u = userdata;
     assert(p && chunk && u);
 

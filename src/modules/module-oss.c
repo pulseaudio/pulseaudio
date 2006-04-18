@@ -461,8 +461,9 @@ int pa__init(pa_core *c, pa_module*m) {
      * Without this snippet, poll will never register the fd as ready.
      */
     if (u->source) {
-        char buf[u->sample_size];
+        char *buf = pa_xnew(char, u->sample_size);
         read(u->fd, buf, u->sample_size);
+        pa_xfree(buf);
     }
 
     /* Read mixer settings */

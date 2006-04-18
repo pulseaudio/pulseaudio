@@ -477,7 +477,7 @@ fail:
     return -1;
 }
 
-static void free_func(void *p, void *userdata) {
+static void free_func(void *p, PA_GCC_UNUSED void *userdata) {
     session_free(p, 0);
 }
 

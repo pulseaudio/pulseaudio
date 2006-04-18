@@ -288,7 +288,7 @@ typedef enum pa_seek_mode {
     PA_SEEK_RELATIVE = 0,           /**< Seek relatively to the write index */
     PA_SEEK_ABSOLUTE = 1,           /**< Seek relatively to the start of the buffer queue */  
     PA_SEEK_RELATIVE_ON_READ = 2,   /**< Seek relatively to the read index.  */
-    PA_SEEK_RELATIVE_END = 3,       /**< Seek relatively to the current end of the buffer queue. */
+    PA_SEEK_RELATIVE_END = 3        /**< Seek relatively to the current end of the buffer queue. */
 } pa_seek_mode_t;
 
 /** Special sink flags. \since 0.8  */

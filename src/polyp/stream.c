@@ -360,7 +360,7 @@ static void invalidate_indexes(pa_stream *s, int r, int w) {
     request_auto_timing_update(s, 1);
 }
 
-static void auto_timing_update_callback(pa_mainloop_api *m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+static void auto_timing_update_callback(PA_GCC_UNUSED pa_mainloop_api *m, PA_GCC_UNUSED pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     pa_stream *s = userdata;
 
 /*     pa_log("time event");    */

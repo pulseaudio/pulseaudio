@@ -259,7 +259,7 @@ fail:
 }
 
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(PA_GCC_UNUSED pa_core *c, PA_GCC_UNUSED pa_module*m) {
     /* NOP */
 }
 

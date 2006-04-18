@@ -371,7 +371,7 @@ static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED 
     goto finish;
 
 fail:
-    errno == EHOSTUNREACH;
+    errno = EHOSTUNREACH;
     do_call(c);
     
 finish:

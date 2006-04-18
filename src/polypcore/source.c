@@ -170,7 +170,7 @@ void pa_source_notify(pa_source*s) {
         s->notify(s);
 }
 
-static int do_post(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void*userdata) {
+static int do_post(void *p, PA_GCC_UNUSED uint32_t idx, PA_GCC_UNUSED int *del, void*userdata) {
     pa_source_output *o = p;
     const pa_memchunk *chunk = userdata;
     

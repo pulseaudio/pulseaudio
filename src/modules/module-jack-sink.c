@@ -112,6 +112,7 @@ static void io_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event_
     char x;
     
     assert(m);
+    assert(e);
     assert(flags == PA_IO_EVENT_INPUT);
     assert(u);
     assert(u->pipe_fds[0] == fd);
