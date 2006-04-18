@@ -55,7 +55,7 @@ char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, u
         if (!(u = getenv("USERNAME")))
             u = "-";
     
-    ntp = time(NULL) + 2208988800;
+    ntp = time(NULL) + 2208988800U;
 
     a = inet_ntop(af, src, buf_src, sizeof(buf_src));
     assert(a);

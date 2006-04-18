@@ -172,7 +172,7 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
 
     /* Check wheter there was a timestamp overflow */
     k = (int64_t) s->rtp_context.timestamp - (int64_t) s->offset;
-    j = (int64_t) 0x100000000 - (int64_t) s->offset + (int64_t) s->rtp_context.timestamp;
+    j = (int64_t) 0x100000000LL - (int64_t) s->offset + (int64_t) s->rtp_context.timestamp;
 
     if ((k < 0 ? -k : k) < (j < 0 ? -j : j))
         delta = k;
