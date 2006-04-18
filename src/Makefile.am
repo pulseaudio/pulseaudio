@@ -804,7 +804,8 @@ endif
 
 if HAVE_JACK
 modlib_LTLIBRARIES += \
-		module-jack-sink.la
+		module-jack-sink.la \
+		module-jack-source.la
 endif
 
 if OS_IS_WIN32
@@ -852,7 +853,9 @@ SYMDEF_FILES = \
 		modules/module-detect-symdef.h \
 		modules/rtp/module-rtp-send-symdef.h \
 		modules/rtp/module-rtp-recv-symdef.h \
-		modules/module-jack-sink-symdef.h 
+		modules/module-jack-sink-symdef.h \
+		modules/module-jack-source-symdef.h 
+
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1084,6 +1087,11 @@ module_jack_sink_la_SOURCES = modules/module-jack-sink.c
 module_jack_sink_la_LDFLAGS = -module -avoid-version
 module_jack_sink_la_LIBADD = $(AM_LIBADD) libpolypcore.la $(JACK_LIBS)
 module_jack_sink_la_CFLAGS = $(AM_LIBADD) libpolypcore.la $(JACK_CFLAGS)
+
+module_jack_source_la_SOURCES = modules/module-jack-source.c
+module_jack_source_la_LDFLAGS = -module -avoid-version
+module_jack_source_la_LIBADD = $(AM_LIBADD) libpolypcore.la $(JACK_LIBS)
+module_jack_source_la_CFLAGS = $(AM_LIBADD) libpolypcore.la $(JACK_CFLAGS)
 
 ###################################
 #        Some minor stuff         #
