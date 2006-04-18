@@ -52,10 +52,10 @@ PA_MODULE_DESCRIPTION("Jack Sink")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE(
         "sink_name=<name of sink> "
-        "server_name=<server name> "
+        "server_name=<jack server name> "
+        "client_name=<jack client name> "
         "channels=<number of channels> "
         "connect=<connect ports?>"
-        "port_prefix=<port prefix>"
 )
 
 #define DEFAULT_SINK_NAME "jack_out"
@@ -82,15 +82,15 @@ struct userdata {
     pa_io_event *io_event;
 
     jack_nframes_t frames_in_buffer;
-    struct timeval timestamp;
+    jack_nframes_t timestamp;
 };
 
 static const char* const valid_modargs[] = {
     "sink_name",
     "server_name",
+    "client_name",
     "channels",
     "connect",
-    "port_prefix",
     NULL
 };
 
@@ -193,7 +193,7 @@ static int jack_process(jack_nframes_t nframes, void *arg) {
         pthread_cond_wait(&u->cond, &u->mutex);
 
         u->frames_in_buffer = nframes;
-        pa_gettimeofday(&u->timestamp);
+        u->timestamp = jack_get_current_transport_frame(u->client);
         
         pthread_mutex_unlock(&u->mutex);
     }
@@ -203,20 +203,26 @@ static int jack_process(jack_nframes_t nframes, void *arg) {
 
 static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     struct userdata *u;
-    pa_usec_t t, delta;
+    jack_nframes_t n, l, d;
+    
     assert(s);
     u = s->userdata;
     
     if (jack_transport_query(u->client, NULL) != JackTransportRolling)
         return 0;
 
-    delta = pa_timeval_age(&u->timestamp);
-    t = pa_bytes_to_usec(jack_port_get_total_latency(u->client, u->port[0]) * pa_frame_size(&s->sample_spec), &s->sample_spec);
+    n = jack_get_current_transport_frame(u->client);
 
-    if (t > delta)
-        return t - delta;
-    else
+    if (n < u->timestamp)
         return 0;
+
+    d = n - u->timestamp;
+    l = jack_port_get_total_latency(u->client, u->port[0]) + u->frames_in_buffer;
+
+    if (d >= l)
+        return 0;
+    
+    return pa_bytes_to_usec((l - d) * pa_frame_size(&s->sample_spec), &s->sample_spec);
 }
 
 static void jack_error_func(const char*t) {
@@ -226,13 +232,14 @@ static void jack_error_func(const char*t) {
 int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     pa_sample_spec ss;
+    pa_channel_map cm;
     pa_modargs *ma = NULL;
     jack_status_t status;
-    const char *server_name;
-    uint32_t channels;
+    const char *server_name, *client_name;
+    uint32_t channels = 0;
     int connect = 1;
-    const char *pfx;
     unsigned i;
+    const char **ports = NULL, **p;
     
     assert(c);
     assert(m);
@@ -244,18 +251,13 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    channels = c->default_sample_spec.channels;
-    if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 || channels <= 0 || channels >= PA_CHANNELS_MAX) {
-        pa_log(__FILE__": failed to parse channels= argument.");
-        goto fail;
-    }
-
     if (pa_modargs_get_value_boolean(ma, "connect", &connect) < 0) {
         pa_log(__FILE__": failed to parse connect= argument.");
         goto fail;
     }
         
     server_name = pa_modargs_get_value(ma, "server_name", NULL);
+    client_name = pa_modargs_get_value(ma, "client_name", "polypaudio");
 
     u = pa_xnew0(struct userdata, 1);
     m->userdata = u;
@@ -273,11 +275,25 @@ int pa__init(pa_core *c, pa_module*m) {
 
     pa_make_nonblock_fd(u->pipe_fds[1]);
     
-    if (!(u->client = jack_client_open("polypaudio", server_name ? JackServerName : JackNullOption, &status, server_name))) {
+    if (!(u->client = jack_client_open(client_name, server_name ? JackServerName : JackNullOption, &status, server_name))) {
         pa_log(__FILE__": jack_client_open() failed.");
         goto fail;
     }
 
+    ports = jack_get_ports(u->client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
+    
+    channels = 0;
+    for (p = ports; *p; p++)
+        channels++;
+
+    if (!channels)
+        channels = c->default_sample_spec.channels;
+    
+    if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 || channels <= 0 || channels >= PA_CHANNELS_MAX) {
+        pa_log(__FILE__": failed to parse channels= argument.");
+        goto fail;
+    }
+    
     pa_log_info(__FILE__": Successfully connected as '%s'", jack_get_client_name(u->client));
 
     ss.channels = u->channels = channels;
@@ -286,20 +302,16 @@ int pa__init(pa_core *c, pa_module*m) {
 
     assert(pa_sample_spec_valid(&ss));
 
-    pfx = pa_modargs_get_value(ma, "port_prefix", "channel");
+    pa_channel_map_init_auto(&cm, channels);
 
     for (i = 0; i < ss.channels; i++) {
-        char tmp[64];
-
-        snprintf(tmp, sizeof(tmp), "%s_%i", pfx, i+1);
-        
-        if (!(u->port[i] = jack_port_register(u->client, tmp, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput/*|JackPortIsTerminal*/, 0))) {
+        if (!(u->port[i] = jack_port_register(u->client, pa_channel_position_to_string(cm.map[i]), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput|JackPortIsTerminal, 0))) {
             pa_log(__FILE__": jack_port_register() failed.");
             goto fail;
         }
     }
 
-    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &cm))) {
         pa_log(__FILE__": failed to create sink.");
         goto fail;
     }
@@ -318,11 +330,9 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (connect) {
-        const char **p, **ports = jack_get_ports(u->client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
-
         for (i = 0, p = ports; i < ss.channels; i++, p++) {
 
-            if (!p) {
+            if (!*p) {
                 pa_log(__FILE__": not enough physical output ports, leaving unconnected.");
                 break;
             }
@@ -335,11 +345,11 @@ int pa__init(pa_core *c, pa_module*m) {
             }
         }
 
-        free(ports);
     }
 
     u->io_event = c->mainloop->io_new(c->mainloop, u->pipe_fds[0], PA_IO_EVENT_INPUT, io_event_cb, u);
     
+    free(ports);
     pa_modargs_free(ma);
     
     return 0;
@@ -347,6 +357,8 @@ int pa__init(pa_core *c, pa_module*m) {
 fail:
     if (ma)
         pa_modargs_free(ma);
+
+    free(ports);
         
     pa__done(c, m);
 
