@@ -40,7 +40,7 @@ static int has_whined = 0;
 
 static const char *devices[] = { "/dev/urandom", "/dev/random", NULL };
 
-static int pa_random_proper(void *ret_data, size_t length) {
+static int random_proper(void *ret_data, size_t length) {
     assert(ret_data && length);
 
 #ifdef OS_IS_WIN32
@@ -75,10 +75,10 @@ static int pa_random_proper(void *ret_data, size_t length) {
 #endif /* OS_IS_WIN32 */
 }
 
-void pa_random_seed() {
+void pa_random_seed(void) {
     unsigned int seed;
 
-    if (pa_random_proper(&seed, sizeof(unsigned int)) < 0) {
+    if (random_proper(&seed, sizeof(unsigned int)) < 0) {
         if (!has_whined)
             pa_log_warn(__FILE__": failed to get proper entropy. Falling back to seeding with current time.");
         has_whined = 1;
@@ -95,7 +95,7 @@ void pa_random(void *ret_data, size_t length) {
 
     assert(ret_data && length);
 
-    if (pa_random_proper(ret_data, length) >= 0)
+    if (random_proper(ret_data, length) >= 0)
         return;
 
     if (!has_whined)
