@@ -327,7 +327,6 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = \
 		polyp/cdecl.h \
 		polyp/channelmap.c polyp/channelmap.h \
 		polyp/client-conf.c polyp/client-conf.h \
-		polyp/llist.h \
 		polyp/mainloop-api.c polyp/mainloop-api.h \
 		polyp/polypaudio.h \
 		polyp/context.c polyp/context.h \
@@ -374,7 +373,8 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
 		polypcore/tagstruct.c polypcore/tagstruct.h \
 		polypcore/util.c polypcore/util.h \
 		polypcore/winsock.h \
-		polypcore/xmalloc.c polypcore/xmalloc.h
+		polypcore/xmalloc.c polypcore/xmalloc.h \
+		polypcore/llist.h
 
 if OS_IS_WIN32
 libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
@@ -1100,6 +1100,8 @@ module_jack_source_la_CFLAGS = $(AM_LIBADD) libpolypcore.la $(JACK_CFLAGS)
 suid: polypaudio
 	chown root $<
 	chmod u+s $<
+
+CLEANFILES=esdcompat.sh client.conf default.pa daemon.conf
 
 esdcompat.sh: daemon/esdcompat.sh.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
