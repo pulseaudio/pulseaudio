@@ -32,6 +32,10 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
+#ifdef HAVE_SYS_FILIO_H
+#include <sys/filio.h>
+#endif
+
 #include <polypcore/log.h>
 
 #include "rtp.h"
@@ -74,7 +78,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
             size_t k = n + chunk.length > size ? size - n : chunk.length;
 
             if (chunk.memblock) {
-                iov[iov_idx].iov_base = (uint8_t*) chunk.memblock->data + chunk.index;
+                iov[iov_idx].iov_base = (void*)((uint8_t*) chunk.memblock->data + chunk.index);
                 iov[iov_idx].iov_len = k;
                 mb[iov_idx] = chunk.memblock;
                 iov_idx ++;
@@ -96,7 +100,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
                 header[1] = htonl(c->timestamp);
                 header[2] = htonl(c->ssrc);
 
-                iov[0].iov_base = header;
+                iov[0].iov_base = (void*)header;
                 iov[0].iov_len = sizeof(header);
                 
                 m.msg_name = NULL;

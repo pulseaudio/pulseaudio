@@ -36,6 +36,16 @@ if type -p stow > /dev/null && test -d /usr/local/stow ; then
    ac_default_prefix="/usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION}"
 fi
 
+#### Platform hacks ####
+
+case $host in
+   *-*-solaris* )
+      AC_DEFINE(_XOPEN_SOURCE_EXTENDED, 1, Needed to get declarations for msg_control and msg_controllen on Solaris)
+      AC_DEFINE(_XOPEN_SOURCE,          2, Needed to get declarations for msg_control and msg_controllen on Solaris)
+      AC_DEFINE(__EXTENSIONS__,         1, Needed to get declarations for msg_control and msg_controllen on Solaris)
+      ;;
+esac
+
 #### Checks for programs. ####
 
 # CC
@@ -157,6 +167,9 @@ AC_CHECK_HEADERS([sys/poll.h])
 AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
 
 AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = "x1"])
+
+# Solaris
+AC_CHECK_HEADERS([sys/filio.h])
 
 # Windows
 AC_CHECK_HEADERS([windows.h winsock2.h ws2tcpip.h])
