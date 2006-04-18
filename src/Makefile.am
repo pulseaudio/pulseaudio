@@ -589,8 +589,13 @@ modlib_LTLIBRARIES = \
 		libprotocol-simple.la \
 		libprotocol-esound.la \
 		libprotocol-native.la \
-		libprotocol-http.la \
+		libprotocol-http.la
+
+# We need to emulate sendmsg/recvmsg to support this on Win32
+if !OS_IS_WIN32
+modlib_LTLIBRARIES += \
 		librtp.la
+endif
 
 if HAVE_X11
 polypcoreinclude_HEADERS += \
@@ -721,9 +726,14 @@ modlib_LTLIBRARIES += \
 		module-null-sink.la \
 		module-esound-sink.la \
 		module-http-protocol-tcp.la \
-		module-detect.la \
+		module-detect.la
+
+# See comment at librtp.la above
+if !OS_IS_WIN32
+modlib_LTLIBRARIES += \
 		module-rtp-send.la \
 		module-rtp-recv.la
+endif
 
 if HAVE_AF_UNIX
 modlib_LTLIBRARIES += \
