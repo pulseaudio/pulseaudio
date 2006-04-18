@@ -41,9 +41,8 @@ static int has_whined = 0;
 static const char *devices[] = { "/dev/urandom", "/dev/random", NULL };
 
 static int random_proper(void *ret_data, size_t length) {
-    assert(ret_data && length);
-
 #ifdef OS_IS_WIN32
+    assert(ret_data && length);
 
     return -1;
 
@@ -52,6 +51,8 @@ static int random_proper(void *ret_data, size_t length) {
     int fd, ret;
     ssize_t r = 0;
     const char **device;
+
+    assert(ret_data && length);
 
     device = devices;
 
