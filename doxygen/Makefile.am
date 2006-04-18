@@ -20,12 +20,6 @@
 doxygen: doxygen.conf
 	doxygen $<
 
-distclean-local:
-	-rm -f doxygen.conf Makefile
-
-maintainerc-cleanlocal:
-	-rm -f Makefile.in
-
 clean-local:
 	-rm -rf html
 
