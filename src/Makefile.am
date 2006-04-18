@@ -1086,12 +1086,12 @@ module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
 module_jack_sink_la_SOURCES = modules/module-jack-sink.c
 module_jack_sink_la_LDFLAGS = -module -avoid-version
 module_jack_sink_la_LIBADD = $(AM_LIBADD) libpolypcore.la $(JACK_LIBS)
-module_jack_sink_la_CFLAGS = $(AM_LIBADD) libpolypcore.la $(JACK_CFLAGS)
+module_jack_sink_la_CFLAGS = $(AM_LIBADD) $(JACK_CFLAGS)
 
 module_jack_source_la_SOURCES = modules/module-jack-source.c
 module_jack_source_la_LDFLAGS = -module -avoid-version
 module_jack_source_la_LIBADD = $(AM_LIBADD) libpolypcore.la $(JACK_LIBS)
-module_jack_source_la_CFLAGS = $(AM_LIBADD) libpolypcore.la $(JACK_CFLAGS)
+module_jack_source_la_CFLAGS = $(AM_LIBADD) $(JACK_CFLAGS)
 
 ###################################
 #        Some minor stuff         #
