@@ -72,7 +72,6 @@ struct userdata {
     pa_io_event *io;
     char *sink_name;
     pa_module *module;
-    float mute_toggle_save;
 };
 
 static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void*userdata) {
@@ -110,37 +109,42 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
                     pa_log(__FILE__": failed to get sink '%s'", u->sink_name);
                 else {
-                    pa_volume_t v = pa_cvolume_avg(pa_sink_get_volume(s, PA_MIXER_HARDWARE));
-                    pa_cvolume cv;
+                    int i;
+                    pa_cvolume cv = *pa_sink_get_volume(s, PA_MIXER_HARDWARE);
+                    
 #define DELTA (PA_VOLUME_NORM/20)
                     
                     switch (volchange) {
                         case UP:
-                            v += DELTA;
+                            for (i = 0; i < cv.channels; i++) {
+                                cv.values[i] += DELTA;
+
+                                if (cv.values[i] > PA_VOLUME_NORM)
+                                    cv.values[i] = PA_VOLUME_NORM;
+                            }
+
+                            pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
                             break;
                             
                         case DOWN:
-                            if (v > DELTA)
-                                v -= DELTA;
-                            else
-                                v = PA_VOLUME_MUTED;
+                            for (i = 0; i < cv.channels; i++) {
+                                if (cv.values[i] >= DELTA)
+                                    cv.values[i] -= DELTA;
+                                else
+                                    cv.values[i] = PA_VOLUME_MUTED;
+                            }
                             
+                            pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
                             break;
                             
-                        case MUTE_TOGGLE: {
+                        case MUTE_TOGGLE:
 
-                            if (v > 0) {
-                                u->mute_toggle_save = v;
-                                v = PA_VOLUME_MUTED;
-                            } else
-                                v = u->mute_toggle_save;
-                        }
-                        default:
+                            pa_sink_set_mute(s, PA_MIXER_HARDWARE, !pa_sink_get_mute(s, PA_MIXER_HARDWARE));
+                            break;
+
+                        case INVALID:
                             ;
                     }
-                    
-                    pa_cvolume_set(&cv, PA_CHANNELS_MAX, v);
-                    pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
                 }
             }
         }
@@ -176,7 +180,6 @@ int pa__init(pa_core *c, pa_module*m) {
     u->io = NULL;
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->fd = -1;
-    u->mute_toggle_save = 0;
 
     if ((u->fd = open(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY)) < 0) {
         pa_log(__FILE__": failed to open evdev device: %s", strerror(errno));
@@ -198,6 +201,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_log_info(__FILE__": evdev vendor 0x%04hx product 0x%04hx version 0x%04hx bustype %u",
                 input_id.vendor, input_id.product, input_id.version, input_id.bustype);
 
+    memset(name, 0, sizeof(name));
     if(ioctl(u->fd, EVIOCGNAME(sizeof(name)), name) < 0) {
         pa_log(__FILE__": EVIOCGNAME failed: %s", strerror(errno));
         goto fail;
