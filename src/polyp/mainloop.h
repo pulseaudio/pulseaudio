@@ -27,6 +27,8 @@
 
 PA_C_DECL_BEGIN
 
+struct pollfd;
+
 /** \page mainloop Main Loop
  *
  * \section overv_sec Overview
@@ -69,8 +71,6 @@ PA_C_DECL_BEGIN
  * main loop supporting the generic main loop abstraction layer as
  * defined in \ref mainloop-api.h. This implementation is thread safe
  * as long as you access the main loop object from a single thread only.*/
-
-#include <sys/poll.h>
 
 /** An opaque main loop object */
 typedef struct pa_mainloop pa_mainloop;
@@ -117,7 +117,7 @@ void pa_mainloop_quit(pa_mainloop *m, int r);
 void pa_mainloop_wakeup(pa_mainloop *m);
 
 /** Generic prototype of a poll() like function */
-typedef int (*pa_poll_func)(struct pollfd *ufds, nfds_t nfds, int timeout, void*userdata);
+typedef int (*pa_poll_func)(struct pollfd *ufds, unsigned long nfds, int timeout, void*userdata);
 
 /** Change the poll() implementation */
 void pa_mainloop_set_poll_func(pa_mainloop *m, pa_poll_func poll_func, void *userdata);
