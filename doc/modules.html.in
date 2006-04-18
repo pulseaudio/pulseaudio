@@ -158,7 +158,7 @@ buffer control is lost through this tunneling.</p>
 
 <h3>module-esound-sink</h3>
 
-<p>Create a playback sink using an ESOUND server as backend. Whenever you can, try to omit this
+<p>Create a playback sink using an <a href="http://www.tux.org/~ricdude/apps.html">ESOUND</a> server as backend. Whenever you can, try to omit this
 module since it has many disadvantages including bad latency
 and even worse latency measurement. </p>
 

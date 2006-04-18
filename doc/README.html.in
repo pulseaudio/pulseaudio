@@ -130,29 +130,32 @@ available. A simple main loop implementation is available as well.</p>
 <p>The following modules are currently available:</p>
 
 <ul>
-  <li><tt>module-oss</tt>: driver for Open Sound System audio sinks and sources.</li>
-  <li><tt>module-oss-mmap</tt>: same as above, but uses <tt>mmap()</tt> access to the audio buffer. Not as compatible</li>
-  <li><tt>module-alsa-sink</tt>, <tt>module-alsa-source</tt>: drivers for ALSA sinks and sources</li>
+  <li><tt>module-oss</tt>: driver for <a href="http://www.opensound.com">Open Sound System</a> (OSS) audio sinks and sources.</li>
+  <li><tt>module-oss-mmap</tt>: same as above, but uses <tt>mmap()</tt> access to the audio buffer. Not as compatible bot more accurate in latency calculations</li>
+  <li><tt>module-alsa-sink</tt>, <tt>module-alsa-source</tt>: drivers for <a href="http://www.alsa-project.org/">Advanced Linux
+Sound Architecture</a> (ALSA) sinks and sources</li>
   <li><tt>module-solaris</tt>: drivers for Solaris audio sinks and sources</li>
   <li><tt>module-waveout</tt>: drivers for Microsoft Windows audio sinks and sources</li>
-  <li><tt>module-pipe-sink</tt>, <tt>module-pipe-source</tt>: demonstration module providing UNIX fifos backed sinks/sources</li>
-  <li><tt>module-combine</tt>: combine multiple sinks into one.</li>
+  <li><tt>module-pipe-sink</tt>, <tt>module-pipe-source</tt>: demonstration module providing UNIX FIFOs backed sinks/sources</li>
+  <li><tt>module-combine</tt>: combine multiple sinks into one, adjusting the sample rate if the their clocks deviate.</li>
   <li><tt>module-sine</tt>: a sine generate sink input.</li>
   <li><tt>module-x11-bell</tt>: play a sample from the sample cache on every X11 bell event.</li>
   <li><tt>module-x11-publish</tt>: store Polypaudio credentials in the X11 root window.</li>
-  <li><tt>module-esound-protocol-tcp</tt>, <tt>module-esound-protocol-unix</tt>: ESOUND compatibility modules (for TCP/IP resp. UNIX domain sockets)</li>
+  <li><tt>module-esound-protocol-tcp</tt>, <tt>module-esound-protocol-unix</tt>: <a href="http://www.tux.org/~ricdude/apps.html">ESOUND</a> compatibility modules (for TCP/IP resp. UNIX domain sockets)</li>
   <li><tt>module-native-protocol-tcp</tt>, <tt>module-native-protocol-unix</tt>: Native polypaudio protocol (for TCP/IP resp. UNIX domain sockets)</li>
   <li><tt>module-simple-protocol-tcp</tt>, <tt>module-simple-protocol-unix</tt>: Simplistic protocol for playback/capture for usage with tools like <tt>netcat</tt> (for TCP/IP resp. UNIX domain sockets)</li>
   <li><tt>module-cli-protocol-tcp</tt>, <tt>module-cli-protocol-unix</tt>, <tt>module-cli</tt>: Expose polypaudio's internals whith a simple command line interface. (for TCP/IP resp. UNIX domain sockets resp. STDIN/STDOUT)</li>
+  <li><tt>module-http-protocol-tcp</tt>: Spawns a small HTTP server which can be used to introspect the Polypaudio server with a web browser.</li>
   <li><tt>module-tunnel-sink</tt>, <tt>module-tunnel-source</tt>: make sinks/sources from other hosts available locally.</li>
   <li><tt>module-match</tt>: adjust volume automatically for newly created playback streams based on a regular expression matching table.</li>
   <li><tt>module-null-sink</tt>: a clocked sink similar to <tt>/dev/null</tt>.</li>
-  <li><tt>module-esound-sink</tt>: a sink for forwarding audio data to an ESOUND server.</li>
+  <li><tt>module-esound-sink</tt>: a sink for forwarding audio data to an <a href="http://www.tux.org/~ricdude/apps.html">ESOUND</a> server.</li>
   <li><tt>module-detect</tt>: a module which automatically detects what sound hardware is available locally and which loads the required driver modules.</li>
   <li><tt>module-lirc</tt>: a module to control the volume of a sink with infrared remote controls supported by LIRC.</li>
   <li><tt>module-mmkbd-evdev</tt>: a module to control the volume of a sink with the special volume keys of a multimeda keyboard.</li>
   <li><tt>module-zeroconf-publish</tt>: a module to publish local sources/sinks using mDNS zeroconf.</li>
-  <li><tt>module-rtp-send</tt>, <tt>module-rtp-recv</tt>: a module to implement RTP/SAP/SDP based audio streaming.</li>
+  <li><tt>module-rtp-send</tt>, <tt>module-rtp-recv</tt>: modules to implement RTP/SAP/SDP based audio streaming.</li>
+  <li><tt>module-jack-sink</tt>, <tt>module-jack-source</tt>: connect to a <a href="http://jackit.sourceforge.net/">JACK Audio Connection Kit</a> server. (A sound server for professional audio production)</li>
 </ul>
 
 <p><tt>polypaudio</tt> is the successor of my previous, ill-fated
