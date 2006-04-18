@@ -338,7 +338,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
             pa_log_info(__FILE__": connecting %s to %s", jack_port_name(u->port[i]), *p);
             
-            if (jack_connect(u->client, jack_port_name(u->port[i]), *p)) {
+            if (jack_connect(u->client, *p, jack_port_name(u->port[i]))) {
                 pa_log(__FILE__": failed to connect %s to %s, leaving unconnected.", jack_port_name(u->port[i]), *p);
                 break;
             }
