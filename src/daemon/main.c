@@ -63,6 +63,7 @@
 #include <polypcore/cli-text.h>
 #include <polypcore/pid.h>
 #include <polypcore/namereg.h>
+#include <polypcore/random.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -135,29 +136,6 @@ static void close_pipe(int p[2]) {
     p[0] = p[1] = -1;
 }
 
-static void set_random_seed(void) {
-    unsigned int seed = 0;
-    
-#ifdef RANDOM_DEVICE
-    int fd;
-    
-    if ((fd = open(RANDOM_DEVICE, O_RDONLY)) >= 0) {
-        ssize_t r;
-
-        if ((r = pa_loop_read(fd, &seed, sizeof(seed))) < 0 || (size_t) r != sizeof(seed)) {
-            pa_log_error(__FILE__": failed to read entropy from '"RANDOM_DEVICE"'");
-            seed += (unsigned int) time(NULL);
-        }
-
-        close(fd);
-    }
-#else
-    seed = (unsigned int) time(NULL);
-#endif
-    
-    srand(seed);
-}
-
 int main(int argc, char *argv[]) {
     pa_core *c;
     pa_strbuf *buf = NULL;
@@ -203,7 +181,7 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
-    set_random_seed();
+    pa_random_seed();
     
     pa_log_set_ident("polypaudio");
     

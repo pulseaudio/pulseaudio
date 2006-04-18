@@ -396,26 +396,6 @@ AC_SUBST(LIRC_CFLAGS)
 AC_SUBST(LIRC_LIBS)
 AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 
-### /dev/random ###
-
-AC_MSG_CHECKING([whether a random device is available])
-
-rnd="no"
-
-if test -e /dev/urandom ; then
-   rnd=/dev/urandom
-else
-   if test -e /dev/random ; then
-      rnd=/dev/random
-   fi
-fi
-
-if test "x$rnd" != "no" ; then
-   AC_DEFINE_UNQUOTED([RANDOM_DEVICE], ["$rnd"], [Random device])
-fi
-
-AC_MSG_RESULT([$rnd])
-
 ###################################
 #            Output               #
 ###################################

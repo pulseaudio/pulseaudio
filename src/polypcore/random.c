@@ -36,31 +36,72 @@
 
 #include "random.h"
 
-void pa_random(void *ret_data, size_t length) {
-    int fd;
-    ssize_t r = 0;
+static int has_whined = 0;
+
+static const char *devices[] = { "/dev/urandom", "/dev/random", NULL };
+
+static int pa_random_proper(void *ret_data, size_t length) {
     assert(ret_data && length);
 
-#ifdef RANDOM_DEVICE
-    if ((fd = open(RANDOM_DEVICE, O_RDONLY)) >= 0) {
+#ifdef OS_IS_WIN32
 
-        if ((r = pa_loop_read(fd, ret_data, length)) < 0 || (size_t) r != length)
-            pa_log_error(__FILE__": failed to read entropy from '%s'", RANDOM_DEVICE);
+    return -1;
 
-        close(fd);
+#else /* OS_IS_WIN32 */
+
+    int fd, ret;
+    ssize_t r = 0;
+    const char **device;
+
+    device = devices;
+
+    while (*device) {
+        ret = 0;
+
+        if ((fd = open(*device, O_RDONLY)) >= 0) {
+
+            if ((r = pa_loop_read(fd, ret_data, length)) < 0 || (size_t) r != length)
+                ret = -1;
+
+            close(fd);
+        } else
+            ret = -1;
+
+        if (ret == 0)
+            break;
     }
-#endif
 
-    if ((size_t) r != length) {
-        uint8_t *p;
-        size_t l;
+    return ret;
+#endif /* OS_IS_WIN32 */
+}
 
-#ifdef RANDOM_DEVICE        
-        pa_log_warn(__FILE__": WARNING: Failed to open entropy device '"RANDOM_DEVICE"': %s"
-                    ", falling back to unsecure pseudo RNG.\n", strerror(errno));
-#endif
+void pa_random_seed() {
+    unsigned int seed;
 
-        for (p = ret_data, l = length; l > 0; p++, l--)
-            *p = (uint8_t) rand();
+    if (pa_random_proper(&seed, sizeof(unsigned int)) < 0) {
+        if (!has_whined)
+            pa_log_warn(__FILE__": failed to get proper entropy. Falling back to seeding with current time.");
+        has_whined = 1;
+
+        seed = (unsigned int) time(NULL);
     }
+
+    srand(seed);
+}
+
+void pa_random(void *ret_data, size_t length) {
+    uint8_t *p;
+    size_t l;
+
+    assert(ret_data && length);
+
+    if (pa_random_proper(ret_data, length) >= 0)
+        return;
+
+    if (!has_whined)
+        pa_log_warn(__FILE__": failed to get proper entropy. Falling back to unsecure pseudo RNG.");
+    has_whined = 1;
+
+    for (p = ret_data, l = length; l > 0; p++, l--)
+        *p = (uint8_t) rand();
 }

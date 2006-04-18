@@ -22,6 +22,7 @@
   USA.
 ***/
 
+void pa_random_seed();
 void pa_random(void *ret_data, size_t length);
     
 #endif
