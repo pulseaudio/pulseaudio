@@ -11,6 +11,7 @@ Post 0.8:
 - multiline configuration statements
 - use scatter/gather io for sockets
 - add a synchronous API (base it on xmms-polyp)
+- rtp module ported to Win32 (sendmsg/recvmsg emulation)
 
 Long term:
 - pass meta info for hearing impaired
