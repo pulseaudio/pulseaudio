@@ -401,6 +401,32 @@ module to create an RTP source.</p>
   <tr><td><tt>sap_address=</tt></td><td>The multicast group to join for SAP announcements, defaults to <tt>224.0.0.56</tt>.</td></tr>
 </table>
 
+<h2>JACK Connectivity</h2>
+
+<p>Polypaudio can be hooked up to a <a
+href="http://jackit.sourceforge.net/">JACK Audio Connection Kit</a> server which is a specialized sound server used for professional audio production on Unix/Linux. Both a
+Polypaudio sink and a source are available. For each channel a port is
+created in the JACK server.</p>
+
+<h3>module-jack-sink</h3>
+
+<p>This module implements a Polypaudio sink that connects to JACK and registers as many output ports as requested.</p>
+
+<table>
+  <tr><td><tt>sink_name=</tt></td><td>The name for the Polypaudio sink. If ommited defaults to <tt>jack_out</tt>.</td></tr>
+  <tr><td><tt>server_name=</tt></td><td>The JACK server to connect to. If ommited defaults to the default server.</td></tr>
+  <tr><td><tt>client_name=</tt></td><td>The client name to tell the JACK server. If ommited defaults to <tt>polypaudio</tt>.</td></tr>
+  <tr><td><tt>channels=</tt></td><td>Number of channels to register. If ommited defaults to the number of physical playback ports of the JACK server.</td></tr>
+  <tr><td><tt>connect=</tt></td><td>Takes a boolean value. If enabled (the default) Polypaudio will try to connect its ports to the physicial playback ports of the JACK server</td></tr>
+</table>
+
+<h3>module-jack-source</h3>
+
+<p>This module implements a Polypaudio source that connects to JACK
+and registers as many input ports as requested. Takes the same
+arguments as <tt>module-jack-sink</tt>, except for <tt>sink_name</tt>
+which is replaced by <tt>source_name</tt> (with a default of <tt>jack_in</tt>) for obvious reasons.</p>
+
 <h2>Miscellaneous</h2>
 
 <h3>module-sine</h3>
