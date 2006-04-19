@@ -70,7 +70,7 @@ struct userdata {
 
     pa_memchunk memchunk, silence;
 
-    uint32_t sample_size;
+    uint32_t frame_size;
     uint32_t buffer_size;
     unsigned int written_bytes, read_bytes;
 
@@ -127,12 +127,18 @@ static void do_write(struct userdata *u) {
      * by not filling it more than u->buffer_size.
      */
     len = u->buffer_size;
-    len -= u->written_bytes - (info.play.samples * u->sample_size);
+    len -= u->written_bytes - (info.play.samples * u->frame_size);
+
+    /* The sample counter can sometimes go backwards :( */
+    if (len > u->buffer_size)
+        len = 0;
 
     if (len == u->buffer_size)
         pa_log_debug(__FILE__": Solaris buffer underflow!");
 
-    if (len < u->sample_size)
+    len -= len % u->frame_size;
+
+    if (len == 0)
         return;
 
     memchunk = &u->memchunk;
@@ -145,17 +151,20 @@ static void do_write(struct userdata *u) {
     assert(memchunk->memblock->data);
     assert(memchunk->length);
 
-    if (memchunk->length < len)
+    if (memchunk->length < len) {
         len = memchunk->length;
-    
+        len -= len % u->frame_size;
+        assert(len);
+    }
+
     if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, len)) < 0) {
         pa_log(__FILE__": write() failed: %s", strerror(errno));
         return;
     }
+
+    assert(r % u->frame_size == 0);
     
-    if (memchunk == &u->silence)
-        assert(r % u->sample_size == 0);
-    else {
+    if (memchunk != &u->silence) {
         u->memchunk.index += r;
         u->memchunk.length -= r;
         
@@ -264,7 +273,7 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     assert(err >= 0);
 
     r += pa_bytes_to_usec(u->written_bytes, &s->sample_spec);
-    r -= pa_bytes_to_usec(info.play.samples * u->sample_size, &s->sample_spec);
+    r -= pa_bytes_to_usec(info.play.samples * u->frame_size, &s->sample_spec);
 
     if (u->memchunk.memblock)
         r += pa_bytes_to_usec(u->memchunk.length, &s->sample_spec);
@@ -282,7 +291,7 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
     err = ioctl(u->fd, AUDIO_GETINFO, &info);
     assert(err >= 0);
 
-    r += pa_bytes_to_usec(info.record.samples * u->sample_size, &s->sample_spec);
+    r += pa_bytes_to_usec(info.record.samples * u->frame_size, &s->sample_spec);
     r -= pa_bytes_to_usec(u->read_bytes, &s->sample_spec);
 
     return r;
@@ -560,7 +569,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
-    u->sample_size = pa_frame_size(&ss);
+    u->frame_size = pa_frame_size(&ss);
     u->buffer_size = buffer_size;
 
     u->silence.memblock = pa_memblock_new(u->silence.length = CHUNK_SIZE, u->core->memblock_stat);
