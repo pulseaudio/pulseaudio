@@ -113,6 +113,9 @@ static void do_write(struct userdata *u)
 
     LeaveCriticalSection(&u->crit);
 
+    if (free_frags == u->fragments)
+        pa_log_debug(__FILE__": WaveOut underflow!");
+
     while (free_frags) {
         hdr = &u->ohdrs[u->cur_ohdr];
         if (hdr->dwFlags & WHDR_PREPARED)
@@ -193,6 +196,9 @@ static void do_read(struct userdata *u)
     u->free_ifrags = 0;
 
     LeaveCriticalSection(&u->crit);
+
+    if (free_frags == u->fragments)
+        pa_log_debug(__FILE__": WaveIn overflow!");
 
     while (free_frags) {
         hdr = &u->ihdrs[u->cur_ihdr];
@@ -443,8 +449,8 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    nfrags = 20;
-    frag_size = 1024;
+    nfrags = 5;
+    frag_size = 8192;
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
         pa_log(__FILE__": failed to parse fragments arguments");
         goto fail;
@@ -516,7 +522,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->oremain = u->fragment_size;
 
-    u->poll_timeout = pa_bytes_to_usec(u->fragments * u->fragment_size / 3, &ss);
+    u->poll_timeout = pa_bytes_to_usec(u->fragments * u->fragment_size / 10, &ss);
 
     pa_gettimeofday(&tv);
     pa_timeval_add(&tv, u->poll_timeout);
