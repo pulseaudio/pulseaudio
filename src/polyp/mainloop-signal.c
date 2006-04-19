@@ -59,7 +59,7 @@ struct pa_signal_event {
 static pa_mainloop_api *api = NULL;
 static int signal_pipe[2] = { -1, -1 };
 static pa_io_event* io_event = NULL;
-static pa_defer_event *defer_event = NULL;
+static pa_time_event *time_event = NULL;
 static pa_signal_event *signals = NULL;
 
 #ifdef OS_IS_WIN32
@@ -92,10 +92,11 @@ static void dispatch(pa_mainloop_api*a, int sig) {
 }
 
 #ifdef OS_IS_WIN32
-static void defer(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event*e, PA_GCC_UNUSED void *userdata) {
+static void timer(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, PA_GCC_UNUSED void *userdata) {
     ssize_t r;
     int sig;
     unsigned int sigs;
+    struct timeval tvnext;
 
     EnterCriticalSection(&crit);
     sigs = waiting_signals;
@@ -117,6 +118,9 @@ static void defer(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event*e, PA_GCC_UNUS
 
         sigs--;
     }
+
+    pa_timeval_add(pa_gettimeofday(&tvnext), 100000);
+    a->time_restart(e, &tvnext);
 }
 #endif
 
@@ -143,7 +147,11 @@ static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags
 }
 
 int pa_signal_init(pa_mainloop_api *a) {
-    assert(!api && a && signal_pipe[0] == -1 && signal_pipe[1] == -1 && !io_event && !defer_event);
+#ifdef OS_IS_WIN32
+    struct timeval tv;
+#endif
+
+    assert(!api && a && signal_pipe[0] == -1 && signal_pipe[1] == -1 && !io_event && !time_event);
 
 #ifdef OS_IS_WIN32
     if (_pipe(signal_pipe, 200, _O_BINARY) < 0) {
@@ -165,8 +173,8 @@ int pa_signal_init(pa_mainloop_api *a) {
     io_event = api->io_new(api, signal_pipe[0], PA_IO_EVENT_INPUT, callback, NULL);
     assert(io_event);
 #else
-    defer_event = api->defer_new(api, defer, NULL);
-    assert(defer_event);
+    time_event = api->time_new(api, pa_gettimeofday(&tv), timer, NULL);
+    assert(time_event);
 
     InitializeCriticalSection(&crit);
 #endif
@@ -175,7 +183,7 @@ int pa_signal_init(pa_mainloop_api *a) {
 }
 
 void pa_signal_done(void) {
-    assert(api && signal_pipe[0] >= 0 && signal_pipe[1] >= 0 && (io_event || defer_event));
+    assert(api && signal_pipe[0] >= 0 && signal_pipe[1] >= 0 && (io_event || time_event));
 
     while (signals)
         pa_signal_free(signals);
@@ -184,8 +192,8 @@ void pa_signal_done(void) {
     api->io_free(io_event);
     io_event = NULL;
 #else
-    api->defer_free(defer_event);
-    defer_event = NULL;
+    api->time_free(time_event);
+    time_event = NULL;
 
     DeleteCriticalSection(&crit);
 #endif

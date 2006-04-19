@@ -79,8 +79,9 @@ int deny_severity = LOG_WARNING;
 
 #ifdef OS_IS_WIN32
 
-static void message_cb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
+static void message_cb(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     MSG msg;
+    struct timeval tvnext;
 
     while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
         if (msg.message == WM_QUIT)
@@ -90,6 +91,9 @@ static void message_cb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
             DispatchMessage(&msg);
         }
     }
+
+    pa_timeval_add(pa_gettimeofday(&tvnext), 100000);
+    a->time_restart(e, &tvnext);
 }
 
 #endif
@@ -153,7 +157,8 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef OS_IS_WIN32
-    pa_defer_event *defer;
+    pa_time_event *timer;
+    struct timeval tv;
 #endif
 
     pa_limit_caps();
@@ -386,8 +391,9 @@ int main(int argc, char *argv[]) {
 #endif
     
 #ifdef OS_IS_WIN32
-    defer = pa_mainloop_get_api(mainloop)->defer_new(pa_mainloop_get_api(mainloop), message_cb, NULL);
-    assert(defer);
+    timer = pa_mainloop_get_api(mainloop)->time_new(
+        pa_mainloop_get_api(mainloop), pa_gettimeofday(&tv), message_cb, NULL);
+    assert(timer);
 #endif
 
     if (conf->daemonize)
@@ -446,7 +452,7 @@ int main(int argc, char *argv[]) {
     }
 
 #ifdef OS_IS_WIN32
-    pa_mainloop_get_api(mainloop)->defer_free(defer);
+    pa_mainloop_get_api(mainloop)->time_free(timer);
 #endif
 
     pa_core_free(c);
