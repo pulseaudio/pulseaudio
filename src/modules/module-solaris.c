@@ -64,6 +64,8 @@ struct userdata {
     pa_source *source;
     pa_iochannel *io;
     pa_core *core;
+    pa_time_event *timer;
+    pa_usec_t poll_timeout;
     pa_signal_event *sig;
 
     pa_memchunk memchunk, silence;
@@ -111,7 +113,8 @@ static void do_write(struct userdata *u) {
     
     assert(u);
 
-    if (!u->sink || !pa_iochannel_is_writable(u->io))
+    /* We cannot check pa_iochannel_is_writable() because of our buffer hack */
+    if (!u->sink)
         return;
 
     update_usage(u);
@@ -126,12 +129,8 @@ static void do_write(struct userdata *u) {
     len = u->buffer_size;
     len -= u->written_bytes - (info.play.samples * u->sample_size);
 
-    /*
-     * Do not fill more than half the buffer in one chunk since we only
-     * get notifications upon completion of entire chunks.
-     */
-    if (len > (u->buffer_size / 2))
-        len = u->buffer_size / 2;
+    if (len == u->buffer_size)
+        pa_log_debug(__FILE__": Solaris buffer underflow!");
 
     if (len < u->sample_size)
         return;
@@ -167,14 +166,6 @@ static void do_write(struct userdata *u) {
     }
 
     u->written_bytes += r;
-
-    /*
-     * Write 0 bytes which will generate a SIGPOLL when "played".
-     */
-    if (write(u->fd, NULL, 0) < 0) {
-        pa_log(__FILE__": write() failed: %s", strerror(errno));
-        return;
-    }
 }
 
 static void do_read(struct userdata *u) {
@@ -217,13 +208,25 @@ static void io_callback(pa_iochannel *io, void*userdata) {
     do_read(u);
 }
 
+static void timer_cb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, void *userdata) {
+    struct userdata *u = userdata;
+    struct timeval ntv;
+
+    assert(u);
+
+    do_write(u);
+
+    pa_gettimeofday(&ntv);
+    pa_timeval_add(&ntv, u->poll_timeout);
+
+    a->time_restart(e, &ntv);
+}
+
 static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata) {
     struct userdata *u = userdata;
     pa_cvolume old_vol;
     
     assert(u);
-
-    do_write(u);
 
     if (u->sink) {
         assert(u->sink->get_hw_volume);
@@ -475,6 +478,7 @@ int pa__init(pa_core *c, pa_module*m) {
     int record = 1, playback = 1;
     pa_sample_spec ss;
     pa_modargs *ma = NULL;
+    struct timeval tv;
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -570,6 +574,14 @@ int pa__init(pa_core *c, pa_module*m) {
     u->module = m;
     m->userdata = u;
 
+    u->poll_timeout = pa_bytes_to_usec(u->buffer_size / 10, &ss);
+
+    pa_gettimeofday(&tv);
+    pa_timeval_add(&tv, u->poll_timeout);
+
+    u->timer = c->mainloop->time_new(c->mainloop, &tv, timer_cb, u);
+    assert(u->timer);
+
     u->sig = pa_signal_new(SIGPOLL, sig_callback, u);
     assert(u->sig);
     ioctl(u->fd, I_SETSIG, S_MSG);
@@ -603,6 +615,8 @@ void pa__done(pa_core *c, pa_module*m) {
     if (!(u = m->userdata))
         return;
 
+    if (u->timer)
+        c->mainloop->time_free(u->timer);
     ioctl(u->fd, I_SETSIG, 0);
     pa_signal_free(u->sig);
     
