@@ -211,14 +211,14 @@ int pa__init(pa_core *c, pa_module*m) {
     listen_on = pa_modargs_get_value(ma, "listen", NULL);
 
     if (listen_on) {
-        s_ipv4 = pa_socket_server_new_ipv4_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE);
         s_ipv6 = pa_socket_server_new_ipv6_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE);
+        s_ipv4 = pa_socket_server_new_ipv4_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE);
     } else if (loopback) {
-        s_ipv4 = pa_socket_server_new_ipv4_loopback(c->mainloop, port, TCPWRAP_SERVICE);
         s_ipv6 = pa_socket_server_new_ipv6_loopback(c->mainloop, port, TCPWRAP_SERVICE);
+        s_ipv4 = pa_socket_server_new_ipv4_loopback(c->mainloop, port, TCPWRAP_SERVICE);
     } else {
-        s_ipv4 = pa_socket_server_new_ipv4_any(c->mainloop, port, TCPWRAP_SERVICE);
         s_ipv6 = pa_socket_server_new_ipv6_any(c->mainloop, port, TCPWRAP_SERVICE);
+        s_ipv4 = pa_socket_server_new_ipv4_any(c->mainloop, port, TCPWRAP_SERVICE);
     }
 
     if (!s_ipv4 && !s_ipv6)
