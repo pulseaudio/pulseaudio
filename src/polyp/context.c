@@ -141,6 +141,13 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     pa_client_conf_from_x11(c->conf, NULL);
 #endif
     pa_client_conf_env(c->conf);
+
+#ifdef OS_IS_WIN32
+    {
+        WSADATA data;
+        WSAStartup(MAKEWORD(2, 0), &data);
+    }
+#endif
     
     return c;
 }
@@ -180,6 +187,10 @@ static void context_free(pa_context *c) {
     pa_xfree(c->name);
     pa_xfree(c->server);
     pa_xfree(c);
+
+#ifdef OS_IS_WIN32
+    WSACleanup();
+#endif
 }
 
 pa_context* pa_context_ref(pa_context *c) {
