@@ -151,7 +151,7 @@ static void do_call(pa_socket_client *c) {
         errno = error;
         goto finish;
     }
-        
+
     io = pa_iochannel_new(c->mainloop, c->fd, c->fd);
     assert(io);
     
@@ -187,8 +187,13 @@ static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t 
     pa_make_nonblock_fd(c->fd);
     
     if ((r = connect(c->fd, sa, len)) < 0) {
+#ifdef OS_IS_WIN32
+        if (WSAGetLastError() != EWOULDBLOCK) {
+            pa_log_debug(__FILE__": connect(): %d", WSAGetLastError());
+#else
         if (errno != EINPROGRESS) {
-            /*pa_log(__FILE__": connect(): %s", strerror(errno));*/
+            pa_log_debug(__FILE__": connect(): %s (%d)", strerror(errno), errno);
+#endif
             return -1;
         }
 
@@ -473,9 +478,11 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
                 struct hostent *host = NULL;
                 struct sockaddr_in s;
 
-		/* FIXME: PF_INET6 support */
-                if (hints.ai_family != PF_INET)
+                /* FIXME: PF_INET6 support */
+                if (hints.ai_family == PF_INET6) {
+                    pa_log_error(__FILE__": IPv6 is not supported on Windows");
                     goto finish;
+                }
 
                 host = gethostbyname(a.path_or_host);
                 if (!host) {
