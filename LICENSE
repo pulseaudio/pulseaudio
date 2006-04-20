@@ -1,11 +1,13 @@
-All Polypaudio sources are licensed under the GNU Lesser General Public
+All Polypaudio source files are licensed under the GNU Lesser General Public
 License. (see file LGPL for details)
 
 However, the server side links to the GPL-only library 'libsamplerate' which
-downgrades the license of the server part to GPL (see file GPL for details),
-exercising section 3 of the LGPL.
+practically downgrades the license of the server part to GPL (see file GPL for
+details), exercising section 3 of the LGPL.
 
 Hence you should treat the client library ('libpolyp') of Polypaudio as being
-LGPL licensed and the server part ('libpolypcore') as being GPL licensed.
+LGPL licensed and the server part ('libpolypcore') as being GPL licensed. Since
+the Polypaudio daemon and the modules link to 'libpolypcore' they are of course
+also GPL licensed.
 
 -- Lennart Poettering, April 20th, 2006.
