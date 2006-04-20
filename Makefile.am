@@ -53,7 +53,7 @@ homepage: all dist doxygen
 	cp polypaudio-@PACKAGE_VERSION@.tar.gz $$HOME/homepage/private/projects/polypaudio
 	cp doc/README.html doc/FAQ.html doc/cli.html doc/daemon.html doc/modules.html doc/style.css $$HOME/homepage/private/projects/polypaudio
 	cp -a doxygen/html/* $$HOME/homepage/private/projects/polypaudio/doxygen
-	cp $$HOME/homepage/private/projects/polypaudio/README.html $$HOME/homepage/private/projects/polypaudio/index.html
+	ln -sf $$HOME/homepage/private/projects/polypaudio/README.html $$HOME/homepage/private/projects/polypaudio/index.html
 
 #distcleancheck:
 #	@:
