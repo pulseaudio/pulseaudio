@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-EXTRA_DIST = bootstrap.sh LICENSE doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in libtool.m4 ltdl.m4
+EXTRA_DIST = bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in libtool.m4 ltdl.m4
 SUBDIRS=libltdl src doc doxygen
 
 MAINTAINERCLEANFILES =
