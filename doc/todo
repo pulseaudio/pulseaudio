@@ -12,6 +12,8 @@ Post 0.8:
 - use scatter/gather io for sockets
 - add a synchronous API (base it on xmms-polyp)
 - rtp module ported to Win32 (sendmsg/recvmsg emulation)
+- CODECs to reduce bandwidth usage (plug-in based)
+- Remove symdef files and use macros (like most other projects)
 
 Long term:
 - pass meta info for hearing impaired
