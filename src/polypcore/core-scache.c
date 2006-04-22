@@ -115,7 +115,6 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_NEW, e->index);
     }
 
-    pa_cvolume_reset(&e->volume, PA_CHANNELS_MAX);
     e->last_used_time = 0;
     e->memchunk.memblock = NULL;
     e->memchunk.index = e->memchunk.length = 0;
@@ -124,6 +123,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     e->last_used_time = 0;
 
     memset(&e->sample_spec, 0, sizeof(pa_sample_spec));
+    pa_cvolume_reset(&e->volume, PA_CHANNELS_MAX);
 
     return e;
 }
@@ -138,6 +138,7 @@ int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, c
     if (ss) {
         e->sample_spec = *ss;
         pa_channel_map_init_auto(&e->channel_map, ss->channels);
+        e->volume.channels = e->sample_spec.channels;
     }
 
     if (map)
@@ -242,7 +243,10 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, const pa_cv
     pa_scache_entry *e;
     char *t;
     pa_cvolume r;
-    assert(c && name && sink);
+    
+    assert(c);
+    assert(name);
+    assert(sink);
 
     if (!(e = pa_namereg_get(c, name, PA_NAMEREG_SAMPLE, 1)))
         return -1;
@@ -252,19 +256,27 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, const pa_cv
             return -1;
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
+        e->volume.channels = e->sample_spec.channels;
     }
     
     if (!e->memchunk.memblock)
         return -1;
 
     t = pa_sprintf_malloc("sample:%s", name);
-    
-    if (pa_play_memchunk(sink, t, &e->sample_spec, &e->channel_map, &e->memchunk, pa_sw_cvolume_multiply(&r, volume, &e->volume)) < 0) {
-        free(t);
+
+    if (volume) {
+        r = *volume;
+        r.channels = e->volume.channels;
+        pa_sw_cvolume_multiply(&r, &r, &e->volume);
+    } else
+        r = e->volume;
+
+    if (pa_play_memchunk(sink, t, &e->sample_spec, &e->channel_map, &e->memchunk, &r) < 0) {
+        pa_xfree(t);
         return -1;
     }
 
-    free(t);
+    pa_xfree(t);
 
     if (e->lazy)
         time(&e->last_used_time);
