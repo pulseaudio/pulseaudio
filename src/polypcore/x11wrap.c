@@ -87,6 +87,9 @@ static void display_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC_
 static void defer_event(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
     pa_x11_wrapper *w = userdata;
     assert(m && e && w && w->ref >= 1);
+
+    m->defer_enable(e, 0);
+    
     work(w);
 }
 
@@ -96,6 +99,8 @@ static void internal_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC
     assert(m && e && fd >= 0 && w && w->ref >= 1);
 
     XProcessInternalConnection(w->display, fd);
+
+    work(w);
 }
 
 /* Add a new IO source for the specified X11 internal connection */
@@ -211,6 +216,10 @@ void pa_x11_wrapper_unref(pa_x11_wrapper* w) {
 
 Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w) {
     assert(w && w->ref >= 1);
+
+    /* Somebody is using us, schedule a output buffer flush */
+    w->core->mainloop->defer_enable(w->defer_event, 1);
+    
     return w->display;
 }
 
