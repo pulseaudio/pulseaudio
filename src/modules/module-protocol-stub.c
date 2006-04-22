@@ -169,6 +169,7 @@ struct userdata {
     void *protocol_ipv6;
 #else
     void *protocol_unix;
+    char *socket_path;
 #endif
 };
 
@@ -197,6 +198,8 @@ int pa__init(pa_core *c, pa_module*m) {
         goto finish;
     }
 
+    u = pa_xnew0(struct userdata, 1);
+
 #if defined(USE_TCP_SOCKETS)
     if (pa_modargs_get_value_boolean(ma, "loopback", &loopback) < 0) {
         pa_log(__FILE__": loopback= expects a boolean argument.");
@@ -224,11 +227,21 @@ int pa__init(pa_core *c, pa_module*m) {
     if (!s_ipv4 && !s_ipv6)
         goto fail;
 
+    if (s_ipv4)
+        if (!(u->protocol_ipv4 = protocol_new(c, s_ipv4, m, ma)))
+            pa_socket_server_unref(s_ipv4);
+
+    if (s_ipv6)
+        if (!(u->protocol_ipv6 = protocol_new(c, s_ipv6, m, ma)))
+            pa_socket_server_unref(s_ipv6);
+
+    if (!u->protocol_ipv4 && !u->protocol_ipv6)
+        goto fail;
+
 #else
     v = pa_modargs_get_value(ma, "socket", UNIX_SOCKET);
-    assert(v);
-
     pa_runtime_path(v, tmp, sizeof(tmp));
+    u->socket_path = pa_xstrdup(tmp);
 
     if (pa_make_secure_parent_dir(tmp) < 0) {
         pa_log(__FILE__": Failed to create secure socket directory.");
@@ -245,24 +258,10 @@ int pa__init(pa_core *c, pa_module*m) {
     
     if (!(s = pa_socket_server_new_unix(c->mainloop, tmp)))
         goto fail;
-#endif
 
-    u = pa_xnew0(struct userdata, 1);
-
-#if defined(USE_TCP_SOCKETS)
-    if (s_ipv4)
-        if (!(u->protocol_ipv4 = protocol_new(c, s_ipv4, m, ma)))
-            pa_socket_server_unref(s_ipv4);
-
-    if (s_ipv6)
-        if (!(u->protocol_ipv6 = protocol_new(c, s_ipv6, m, ma)))
-            pa_socket_server_unref(s_ipv6);
-
-    if (!u->protocol_ipv4 && !u->protocol_ipv6)
-        goto fail;
-#else
     if (!(u->protocol_unix = protocol_new(c, s, m, ma)))
         goto fail;
+
 #endif
 
     m->userdata = u;
@@ -285,7 +284,11 @@ fail:
 #else
         if (u->protocol_unix)
             protocol_free(u->protocol_unix);
+
+        if (u->socket_path)
+            pa_xfree(u->socket_path);
 #endif
+
         pa_xfree(u);
     } else {
 #if defined(USE_TCP_SOCKETS)
@@ -304,17 +307,11 @@ fail:
 
 void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
-    assert(c && m);
-
-#if defined(USE_PROTOCOL_ESOUND) && !defined(USE_TCP_SOCKETS)
-    if (remove(ESD_UNIX_SOCKET_NAME) != 0)
-        pa_log("%s: Failed to remove %s : %s.", __FILE__, ESD_UNIX_SOCKET_NAME, strerror (errno));
-    if (remove(ESD_UNIX_SOCKET_DIR) != 0)
-        pa_log("%s: Failed to remove %s : %s.", __FILE__, ESD_UNIX_SOCKET_DIR, strerror (errno));
-#endif
+    
+    assert(c);
+    assert(m);
 
     u = m->userdata;
-    assert(u);
 
 #if defined(USE_TCP_SOCKETS)
     if (u->protocol_ipv4)
@@ -324,6 +321,19 @@ void pa__done(pa_core *c, pa_module*m) {
 #else
     if (u->protocol_unix)
         protocol_free(u->protocol_unix);
+
+    if (u->socket_path) {
+        char *p;
+        
+        if ((p = pa_parent_dir(u->socket_path))) {
+            if (rmdir(p) < 0 && errno != ENOENT && errno != ENOTEMPTY)
+                pa_log(__FILE__": Failed to remove %s: %s.", u->socket_path, strerror(errno));
+
+            pa_xfree(p);
+        }
+
+        pa_xfree(u->socket_path);
+    }
 #endif
 
     pa_xfree(u);
