@@ -52,7 +52,6 @@ struct userdata {
     int xkb_event_base;
     char *sink_name;
     char *scache_item;
-    Display *display;
 
     pa_x11_wrapper *x11_wrapper;
     pa_x11_client *x11_client;
@@ -75,7 +74,7 @@ static int ring_bell(struct userdata *u, int percent) {
         return -1;
     }
 
-    pa_scache_play_item(u->core, u->scache_item, s, pa_cvolume_set(&cv, PA_CHANNELS_MAX, percent*PA_VOLUME_NORM/100));
+    pa_scache_play_item(u->core, u->scache_item, s, pa_cvolume_set(&cv, PA_CHANNELS_MAX, (percent*PA_VOLUME_NORM)/100));
     return 0;
 }
 
@@ -118,8 +117,6 @@ int pa__init(pa_core *c, pa_module*m) {
     if (!(u->x11_wrapper = pa_x11_wrapper_get(c, pa_modargs_get_value(ma, "display", NULL)))) 
         goto fail;
 
-    u->display = pa_x11_wrapper_get_display(u->x11_wrapper);
-    
     major = XkbMajorVersion;
     minor = XkbMinorVersion;
     
@@ -132,15 +129,15 @@ int pa__init(pa_core *c, pa_module*m) {
     minor = XkbMinorVersion;
 
 
-    if (!XkbQueryExtension(u->display, NULL, &u->xkb_event_base, NULL, &major, &minor)) {
+    if (!XkbQueryExtension(pa_x11_wrapper_get_display(u->x11_wrapper), NULL, &u->xkb_event_base, NULL, &major, &minor)) {
         pa_log(__FILE__": XkbQueryExtension() failed");
         goto fail;
     }
 
-    XkbSelectEvents(u->display, XkbUseCoreKbd, XkbBellNotifyMask, XkbBellNotifyMask);
+    XkbSelectEvents(pa_x11_wrapper_get_display(u->x11_wrapper), XkbUseCoreKbd, XkbBellNotifyMask, XkbBellNotifyMask);
     auto_ctrls = auto_values = XkbAudibleBellMask;
-    XkbSetAutoResetControls(u->display, XkbAudibleBellMask, &auto_ctrls, &auto_values);
-    XkbChangeEnabledControls(u->display, XkbUseCoreKbd, XkbAudibleBellMask, 0);
+    XkbSetAutoResetControls(pa_x11_wrapper_get_display(u->x11_wrapper), XkbAudibleBellMask, &auto_ctrls, &auto_values);
+    XkbChangeEnabledControls(pa_x11_wrapper_get_display(u->x11_wrapper), XkbUseCoreKbd, XkbAudibleBellMask, 0);
 
     u->x11_client = pa_x11_client_new(u->x11_wrapper, x11_event_callback, u);
     
