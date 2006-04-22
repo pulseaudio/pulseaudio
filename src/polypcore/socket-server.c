@@ -379,12 +379,13 @@ pa_socket_server* pa_socket_server_new_ipv6_string(pa_mainloop_api *m, const cha
 
 static void socket_server_free(pa_socket_server*s) {
     assert(s);
-    close(s->fd);
 
     if (s->filename) {
         unlink(s->filename);
         pa_xfree(s->filename);
     }
+
+    close(s->fd);
 
     pa_xfree(s->tcpwrap_service);
 
@@ -405,7 +406,6 @@ void pa_socket_server_set_callback(pa_socket_server*s, void (*on_connection)(pa_
     s->on_connection = on_connection;
     s->userdata = userdata;
 }
-
 
 char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
     assert(s && c && l > 0);
