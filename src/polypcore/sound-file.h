@@ -23,9 +23,10 @@
 ***/
 
 #include <polyp/sample.h>
+#include <polyp/channelmap.h>
 #include <polypcore/memchunk.h>
 
-int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_memchunk *chunk, pa_memblock_stat *s);
+int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *map, pa_memchunk *chunk, pa_memblock_stat *s);
 
 int pa_sound_file_too_big_to_cache(const char *fname);
 

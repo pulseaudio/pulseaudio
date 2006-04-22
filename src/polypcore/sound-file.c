@@ -35,7 +35,7 @@
 
 #define MAX_FILE_SIZE (1024*1024)
 
-int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_memchunk *chunk, pa_memblock_stat *s) {
+int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *map, pa_memchunk *chunk, pa_memblock_stat *s) {
     SNDFILE*sf = NULL;
     SF_INFO sfinfo;
     int ret = -1;
@@ -74,6 +74,9 @@ int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_memchunk *chunk
         pa_log(__FILE__": Unsupported sample format in file %s", fname);
         goto finish;
     }
+
+    if (map)
+        pa_channel_map_init_auto(map, ss->channels);
     
     if ((l = pa_frame_size(ss)*sfinfo.frames) > MAX_FILE_SIZE) {
         pa_log(__FILE__": File too large");
