@@ -41,6 +41,7 @@
 
 #include <polypcore/util.h>
 #include <polypcore/log.h>
+#include <polypcore/xmalloc.h>
 
 #include "pid.h"
 
@@ -191,6 +192,7 @@ int pa_pid_file_remove(void) {
     char fn[PATH_MAX];
     int ret = -1;
     pid_t pid;
+    char *p;
 
     pa_runtime_path("pid", fn, sizeof(fn));
 
@@ -223,6 +225,11 @@ int pa_pid_file_remove(void) {
         goto fail;
     }
 
+    if ((p = pa_parent_dir(fn))) {
+        rmdir(p);
+        pa_xfree(p);
+    }
+    
     ret = 0;
     
 fail:
