@@ -140,13 +140,16 @@ int pa_make_secure_dir(const char* dir) {
         if (errno != EEXIST)
             return -1;
 
+    chown(dir, getuid(), getgid());
+    chmod(dir, 0700);
+    
 #ifdef HAVE_LSTAT
     if (lstat(dir, &st) < 0)
 #else
     if (stat(dir, &st) < 0)
 #endif
         goto fail;
-
+    
 #ifndef OS_IS_WIN32
     if (!S_ISDIR(st.st_mode) || (st.st_uid != getuid()) || ((st.st_mode & 0777) != 0700))
         goto fail;
