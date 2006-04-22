@@ -55,6 +55,8 @@ char *pa_get_home_dir(char *s, size_t l);
 
 const char *pa_path_get_filename(const char *p);
 
+char *pa_parent_dir(const char *fn);
+
 struct timeval *pa_gettimeofday(struct timeval *tv);
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b);
 int pa_timeval_cmp(const struct timeval *a, const struct timeval *b);

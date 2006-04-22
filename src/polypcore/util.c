@@ -164,15 +164,25 @@ fail:
     return -1;
 }
 
-/* Creates a the parent directory of the specified path securely */
-int pa_make_secure_parent_dir(const char *fn) {
-    int ret = -1;
+/* Return a newly allocated sting containing the parent directory of the specified file */
+char *pa_parent_dir(const char *fn) {
     char *slash, *dir = pa_xstrdup(fn);
 
     slash = (char*) pa_path_get_filename(dir);
     if (slash == fn)
-        goto finish;
+        return NULL;
+
     *(slash-1) = 0;
+    return dir;
+}
+
+/* Creates a the parent directory of the specified path securely */
+int pa_make_secure_parent_dir(const char *fn) {
+    int ret = -1;
+    char *dir;
+
+    if (!(dir = pa_parent_dir(fn)))
+        goto finish;
     
     if (pa_make_secure_dir(dir) < 0)
         goto finish;
@@ -183,7 +193,6 @@ finish:
     pa_xfree(dir);
     return ret;
 }
-
 
 /** Calls read() in a loop. Makes sure that as much as 'size' bytes,
  * unless EOF is reached or an error occured */
