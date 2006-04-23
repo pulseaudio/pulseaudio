@@ -784,18 +784,15 @@ static void set_dispatch_callbacks(pa_operation *o) {
         done = 0;
     }
 
-    if (!done)
-        pa_operation_ref(o);
-    else {
+    if (done) {
         if (o->callback) {
             pa_context_notify_cb_t cb = (pa_context_notify_cb_t) o->callback;
             cb(o->context, o->userdata);
         }
         
         pa_operation_done(o);
-    }   
-
-    pa_operation_unref(o);
+        pa_operation_unref(o);
+    }
 }
 
 pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *userdata) {
