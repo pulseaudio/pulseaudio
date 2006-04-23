@@ -311,9 +311,6 @@ int pa_tagstruct_get_sample_spec(pa_tagstruct *t, pa_sample_spec *ss) {
     memcpy(&ss->rate, t->data+t->rindex+3, 4);
     ss->rate = ntohl(ss->rate);
 
-    if (!pa_sample_spec_valid(ss))
-        return -1;
-    
     t->rindex += 7;
     return 0;
 }
@@ -379,7 +376,6 @@ int pa_tagstruct_get_timeval(pa_tagstruct*t, struct timeval *tv) {
     tv->tv_usec = ntohl(tv->tv_usec);
     t->rindex += 9;
     return 0;
-    
 }
 
 int pa_tagstruct_get_usec(pa_tagstruct*t, pa_usec_t *u) {
@@ -457,9 +453,6 @@ int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map) {
     for (i = 0; i < map->channels; i ++)
         map->map[i] = (int8_t) t->data[t->rindex + 2 + i];
 
-    if (!pa_channel_map_valid(map))
-        return -1;
-    
     t->rindex += 2 + map->channels;
     return 0;
 }
@@ -488,9 +481,6 @@ int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *cvolume) {
         cvolume->values[i] = (pa_volume_t) ntohl(vol);
     }
 
-    if (!pa_cvolume_valid(cvolume))
-        return -1;
-    
     t->rindex += 2 + cvolume->channels * sizeof(pa_volume_t);
     return 0;
 }
