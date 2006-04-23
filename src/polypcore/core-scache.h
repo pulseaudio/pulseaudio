@@ -26,6 +26,8 @@
 #include <polypcore/memchunk.h>
 #include <polypcore/sink.h>
 
+#define PA_SCACHE_ENTRY_SIZE_MAX (1024*1024*2)
+
 typedef struct pa_scache_entry {
     pa_core *core;
     uint32_t index;

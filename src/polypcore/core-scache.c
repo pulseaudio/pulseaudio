@@ -133,6 +133,9 @@ int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, c
     pa_scache_entry *e;
     assert(c && name);
 
+    if (chunk->length > PA_SCACHE_ENTRY_SIZE_MAX)
+        return -1;
+
     if (!(e = scache_add_item(c, name)))
         return -1;
 

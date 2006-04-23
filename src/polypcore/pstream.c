@@ -37,6 +37,7 @@
 #include <polypcore/queue.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
+#include <polypcore/core-scache.h>
 
 #include "pstream.h"
 
@@ -52,7 +53,7 @@ enum {
 typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 
 #define PA_PSTREAM_DESCRIPTOR_SIZE (PA_PSTREAM_DESCRIPTOR_MAX*sizeof(uint32_t))
-#define FRAME_SIZE_MAX (1024*500) /* half a megabyte */
+#define FRAME_SIZE_MAX PA_SCACHE_ENTRY_SIZE_MAX /* allow uploading a single sample in one frame at max */
 
 struct item_info {
     enum { PA_PSTREAM_ITEM_PACKET, PA_PSTREAM_ITEM_MEMBLOCK } type;
@@ -419,7 +420,7 @@ static int do_read(pa_pstream *p) {
 
         /* Frame size too large */
         if (ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) > FRAME_SIZE_MAX) {
-            pa_log_warn(__FILE__": Frame size too large");
+            pa_log_warn(__FILE__": Frame size too large: %lu > %lu", (unsigned long) ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]), (unsigned long) FRAME_SIZE_MAX);
             return -1;
         }
         

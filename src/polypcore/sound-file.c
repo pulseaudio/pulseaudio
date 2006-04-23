@@ -32,8 +32,7 @@
 #include <polypcore/log.h>
 
 #include "sound-file.h"
-
-#define MAX_FILE_SIZE (1024*1024)
+#include "core-scache.h"
 
 int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *map, pa_memchunk *chunk, pa_memblock_stat *s) {
     SNDFILE*sf = NULL;
@@ -78,7 +77,7 @@ int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *ma
     if (map)
         pa_channel_map_init_auto(map, ss->channels);
     
-    if ((l = pa_frame_size(ss)*sfinfo.frames) > MAX_FILE_SIZE) {
+    if ((l = pa_frame_size(ss)*sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log(__FILE__": File too large");
         goto finish;
     }
@@ -134,7 +133,7 @@ int pa_sound_file_too_big_to_cache(const char *fname) {
     ss.rate = sfinfo.samplerate;
     ss.channels = sfinfo.channels;
 
-    if ((pa_frame_size(&ss) * sfinfo.frames) > MAX_FILE_SIZE) {
+    if ((pa_frame_size(&ss) * sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log(__FILE__": File too large %s", fname);
         return 1;
     }
