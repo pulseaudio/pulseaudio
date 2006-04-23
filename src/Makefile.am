@@ -573,8 +573,8 @@ modlib_LTLIBRARIES = \
 		libsocket-util.la \
 		libiochannel.la \
 		libsocket-server.la \
-		libsocket-client.la \
 		libparseaddr.la \
+		libsocket-client.la \
 		libpacket.la \
 		libpstream.la \
 		libioline.la \
@@ -690,7 +690,7 @@ libauthkey_prop_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 
 libsocket_util_la_SOURCES = polypcore/socket-util.c polypcore/socket-util.h
 libsocket_util_la_LDFLAGS = -avoid-version
-libsocket_util_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS)
+libsocket_util_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) libpolypcore.la
 
 librtp_la_SOURCES = modules/rtp/rtp.c modules/rtp/rtp.h modules/rtp/sdp.c modules/rtp/sdp.h modules/rtp/sap.c modules/rtp/sap.h 
 librtp_la_LDFLAGS = -avoid-version
@@ -701,7 +701,7 @@ librtp_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 libx11wrap_la_SOURCES = polypcore/x11wrap.c polypcore/x11wrap.h
 libx11wrap_la_LDFLAGS = -avoid-version
 libx11wrap_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
-libx11wrap_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+libx11wrap_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libpolypcore.la
 
 libx11prop_la_SOURCES = polypcore/x11prop.c polypcore/x11prop.h
 libx11prop_la_LDFLAGS = -avoid-version
@@ -988,7 +988,7 @@ module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpolypcore.la libsocket-client.l
 module_x11_bell_la_SOURCES = modules/module-x11-bell.c
 module_x11_bell_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_bell_la_LDFLAGS = -module -avoid-version
-module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la
+module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libpolypcore.la
 
 module_x11_publish_la_SOURCES = modules/module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
@@ -999,6 +999,7 @@ module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EX
 
 liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
 liboss_util_la_LDFLAGS = -avoid-version
+liboss_util_la_LIBADD = libpolypcore.la
 
 module_oss_la_SOURCES = modules/module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version
@@ -1006,23 +1007,23 @@ module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
 
 module_oss_mmap_la_SOURCES = modules/module-oss-mmap.c
 module_oss_mmap_la_LDFLAGS = -module -avoid-version
-module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la
+module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la libpolypcore.la
 
 # ALSA
 
 libalsa_util_la_SOURCES = modules/alsa-util.c modules/alsa-util.h
 libalsa_util_la_LDFLAGS = -avoid-version
-libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS)
+libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libpolypcore.la
 libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 module_alsa_sink_la_SOURCES = modules/module-alsa-sink.c
 module_alsa_sink_la_LDFLAGS = -module -avoid-version
-module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
+module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpolypcore.la
 module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 module_alsa_source_la_SOURCES = modules/module-alsa-source.c
 module_alsa_source_la_LDFLAGS = -module -avoid-version
-module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la
+module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpolypcore.la
 module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 # Solaris
@@ -1047,14 +1048,14 @@ module_zeroconf_publish_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
 
 module_lirc_la_SOURCES = modules/module-lirc.c
 module_lirc_la_LDFLAGS = -module -avoid-version
-module_lirc_la_LIBADD = $(AM_LIBADD) $(LIRC_LIBS) 
+module_lirc_la_LIBADD = $(AM_LIBADD) $(LIRC_LIBS) libpolypcore.la
 module_lirc_la_CFLAGS = $(AM_CFLAGS) $(LIRC_CFLAGS)
 
 # Linux evdev
 
 module_mmkbd_evdev_la_SOURCES = modules/module-mmkbd-evdev.c
 module_mmkbd_evdev_la_LDFLAGS = -module -avoid-version
-module_mmkbd_evdev_la_LIBADD = $(AM_LIBADD)
+module_mmkbd_evdev_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 module_mmkbd_evdev_la_CFLAGS = $(AM_CFLAGS)
 
 # Windows waveout
@@ -1073,12 +1074,12 @@ module_detect_la_CFLAGS = $(AM_CFLAGS)
 # RTP modules
 module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
 module_rtp_send_la_LDFLAGS = -module -avoid-version
-module_rtp_send_la_LIBADD = $(AM_LIBADD) libpolypcore.la
+module_rtp_send_la_LIBADD = $(AM_LIBADD) libpolypcore.la librtp.la
 module_rtp_send_la_CFLAGS = $(AM_CFLAGS)
 
 module_rtp_recv_la_SOURCES = modules/rtp/module-rtp-recv.c
 module_rtp_recv_la_LDFLAGS = -module -avoid-version
-module_rtp_recv_la_LIBADD = $(AM_LIBADD) libpolypcore.la
+module_rtp_recv_la_LIBADD = $(AM_LIBADD) libpolypcore.la librtp.la
 module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
 
 # JACK
