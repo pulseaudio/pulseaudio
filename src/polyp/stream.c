@@ -195,9 +195,6 @@ void pa_stream_set_state(pa_stream *s, pa_stream_state_t st) {
 
         s->channel = 0;
         s->channel_valid = 0;
-
-        /* We keep a ref as long as we're connected */
-        pa_stream_unref(s);
     }
 
     if (s->state_callback)
@@ -374,7 +371,6 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
     pa_stream *s = userdata;
     
     assert(pd);
-    assert(t);
     assert(s);
     assert(s->state == PA_STREAM_CREATING);
         
@@ -412,9 +408,6 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
 
     s->channel_valid = 1;
     pa_dynarray_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, s->channel, s);
-
-    /* We add an extra ref as long as we're connected (i.e. in the dynarray) */
-    pa_stream_ref(s);
 
     pa_stream_set_state(s, PA_STREAM_READY);
     
