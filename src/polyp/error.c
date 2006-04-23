@@ -49,6 +49,7 @@ static const char* const errortab[PA_ERR_MAX] = {
     [PA_ERR_BADSTATE] = "Bad state",
     [PA_ERR_NODATA] = "No data",
     [PA_ERR_VERSION] = "Incompatible protocol version",
+    [PA_ERR_TOOLARGE] = "Too large"
 };
 
 const char*pa_strerror(int error) {
