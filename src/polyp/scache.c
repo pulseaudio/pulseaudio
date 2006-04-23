@@ -41,7 +41,7 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     assert(s);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY(s->context, length <= 0, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, length > 0, PA_ERR_INVALID);
     
     pa_stream_ref(s);
     
@@ -50,6 +50,7 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     t = pa_tagstruct_command(s->context, PA_COMMAND_CREATE_UPLOAD_STREAM, &tag);
     pa_tagstruct_puts(t, s->name);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
+    pa_tagstruct_put_channel_map(t, &s->channel_map);
     pa_tagstruct_putu32(t, length);
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_create_stream_callback, s);
