@@ -154,7 +154,7 @@ pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const 
     assert(a);
     assert(b);
 
-    for (i = 0; i < a->channels || i < b->channels || i < PA_CHANNELS_MAX; i++) {
+    for (i = 0; i < a->channels && i < b->channels && i < PA_CHANNELS_MAX; i++) {
 
         dest->values[i] = pa_sw_volume_multiply(
             i < a->channels ? a->values[i] : PA_VOLUME_NORM,
