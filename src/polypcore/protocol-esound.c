@@ -742,7 +742,7 @@ static int esd_proto_sample_free_or_play(struct connection *c, esd_proto_t reque
             pa_sink *sink;
         
             if ((sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1)))
-                if (pa_scache_play_item(c->protocol->core, name, sink, NULL) >= 0)
+                if (pa_scache_play_item(c->protocol->core, name, sink, PA_VOLUME_NORM) >= 0)
                     ok = idx + 1;
         } else {
             assert(request == ESD_PROTO_SAMPLE_FREE);

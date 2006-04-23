@@ -57,7 +57,7 @@
 #include "protocol-native.h"
 
 /* Kick a client if it doesn't authenticate within this time */
-#define AUTH_TIMEOUT 5
+#define AUTH_TIMEOUT 60
 
 /* Don't accept more connection than this */
 #define MAX_CONNECTIONS 10
@@ -1165,14 +1165,14 @@ static void command_finish_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
 static void command_play_sample(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     uint32_t sink_index;
-    pa_cvolume volume;
+    pa_volume_t volume;
     pa_sink *sink;
     const char *name, *sink_name;
     assert(c && t);
 
     if (pa_tagstruct_getu32(t, &sink_index) < 0 ||
         pa_tagstruct_gets(t, &sink_name) < 0 ||
-        pa_tagstruct_get_cvolume(t, &volume) < 0 ||
+        pa_tagstruct_getu32(t, &volume) < 0 ||
         pa_tagstruct_gets(t, &name) < 0 ||
         !pa_tagstruct_eof(t)) {
         protocol_error(c);
@@ -1190,7 +1190,7 @@ static void command_play_sample(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED ui
 
     CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
 
-    if (pa_scache_play_item(c->protocol->core, name, sink, &volume) < 0) {
+    if (pa_scache_play_item(c->protocol->core, name, sink, volume) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
         return;
     }

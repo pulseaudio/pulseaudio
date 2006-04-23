@@ -66,7 +66,6 @@ static const char* const valid_modargs[] = {
 
 static int ring_bell(struct userdata *u, int percent) {
     pa_sink *s;
-    pa_cvolume cv;
     assert(u);
 
     if (!(s = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
@@ -74,7 +73,7 @@ static int ring_bell(struct userdata *u, int percent) {
         return -1;
     }
 
-    pa_scache_play_item(u->core, u->scache_item, s, pa_cvolume_set(&cv, PA_CHANNELS_MAX, (percent*PA_VOLUME_NORM)/100));
+    pa_scache_play_item(u->core, u->scache_item, s, (percent*PA_VOLUME_NORM)/100);
     return 0;
 }
 

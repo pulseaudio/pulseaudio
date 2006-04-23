@@ -122,7 +122,8 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     e->lazy = 0;
     e->last_used_time = 0;
 
-    memset(&e->sample_spec, 0, sizeof(pa_sample_spec));
+    memset(&e->sample_spec, 0, sizeof(e->sample_spec));
+    pa_channel_map_init(&e->channel_map);
     pa_cvolume_reset(&e->volume, PA_CHANNELS_MAX);
 
     return e;
@@ -240,7 +241,7 @@ void pa_scache_free(pa_core *c) {
         c->mainloop->time_free(c->scache_auto_unload_event);
 }
 
-int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, const pa_cvolume *volume) {
+int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t volume) {
     pa_scache_entry *e;
     char *t;
     pa_cvolume r;
@@ -257,7 +258,9 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, const pa_cv
             return -1;
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
-        e->volume.channels = e->sample_spec.channels;
+
+        if (e->volume.channels > e->sample_spec.channels)
+            e->volume.channels = e->sample_spec.channels;
     }
     
     if (!e->memchunk.memblock)
@@ -265,12 +268,8 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, const pa_cv
 
     t = pa_sprintf_malloc("sample:%s", name);
 
-    if (volume) {
-        r = *volume;
-        r.channels = e->volume.channels;
-        pa_sw_cvolume_multiply(&r, &r, &e->volume);
-    } else
-        r = e->volume;
+    pa_cvolume_set(&r, e->volume.channels, volume);
+    pa_sw_cvolume_multiply(&r, &r, &e->volume);
 
     if (pa_play_memchunk(sink, t, &e->sample_spec, &e->channel_map, &e->memchunk, &r) < 0) {
         pa_xfree(t);
