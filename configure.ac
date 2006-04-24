@@ -219,8 +219,8 @@ AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([getaddrinfo getgrgid_r getpwuid_r gettimeofday getuid \
-    inet_ntop inet_pton nanosleep setpgid setsid sigaction sleep])
+AC_CHECK_FUNCS([chmod chown getaddrinfo getgrgid_r getpwuid_r gettimeofday \
+    getuid inet_ntop inet_pton nanosleep setpgid setsid sigaction sleep])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
 
 AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")

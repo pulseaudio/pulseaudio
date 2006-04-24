@@ -140,8 +140,12 @@ int pa_make_secure_dir(const char* dir) {
         if (errno != EEXIST)
             return -1;
 
+#ifdef HAVE_CHOWN
     chown(dir, getuid(), getgid());
+#endif
+#ifdef HAVE_CHMOD
     chmod(dir, 0700);
+#endif
     
 #ifdef HAVE_LSTAT
     if (lstat(dir, &st) < 0)
