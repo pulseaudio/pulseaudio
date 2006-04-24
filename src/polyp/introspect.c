@@ -43,7 +43,9 @@ static void context_stat_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNU
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
+
+    if (!o->context)
+        goto finish;
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -83,7 +85,9 @@ static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command,
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
+    
+    if (!o->context)
+        goto finish;
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -127,8 +131,10 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
 
+    if (!o->context)
+        goto finish;
+    
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
@@ -198,7 +204,7 @@ pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t idx, pa_
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -221,7 +227,7 @@ pa_operation* pa_context_get_sink_info_by_name(pa_context *c, const char *name, 
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -235,7 +241,9 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
+
+    if (!o->context)
+        goto finish;
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -306,7 +314,7 @@ pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t idx, p
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -329,9 +337,9 @@ pa_operation* pa_context_get_source_info_by_name(pa_context *c, const char *name
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_info_callback, o);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
-    return pa_operation_ref(o);
+    return o;
 }
 
 /*** Client info ***/
@@ -343,7 +351,9 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
+
+    if (!o->context)
+        goto finish;
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -397,7 +407,7 @@ pa_operation* pa_context_get_client_info(pa_context *c, uint32_t idx, pa_client_
     t = pa_tagstruct_command(c, PA_COMMAND_GET_CLIENT_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_client_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_client_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -415,7 +425,9 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
+
+    if (!o->context)
+        goto finish;
     
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -470,7 +482,7 @@ pa_operation* pa_context_get_module_info(pa_context *c, uint32_t idx, pa_module_
     t = pa_tagstruct_command(c, PA_COMMAND_GET_MODULE_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_module_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_module_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -488,8 +500,10 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
 
+    if (!o->context)
+        goto finish;
+    
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
@@ -551,7 +565,7 @@ pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, pa_sin
     t = pa_tagstruct_command(c, PA_COMMAND_GET_SINK_INPUT_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_input_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sink_input_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -569,7 +583,9 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
+
+    if (!o->context)
+        goto finish;
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -631,7 +647,7 @@ pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, pa_
     t = pa_tagstruct_command(c, PA_COMMAND_GET_SOURCE_OUTPUT_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_output_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_source_output_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -661,7 +677,7 @@ pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, c
     pa_tagstruct_puts(t, NULL);
     pa_tagstruct_put_cvolume(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -687,7 +703,7 @@ pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name
     pa_tagstruct_puts(t, name);
     pa_tagstruct_put_cvolume(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -709,7 +725,7 @@ pa_operation* pa_context_set_sink_mute_by_index(pa_context *c, uint32_t idx, int
     pa_tagstruct_puts(t, NULL);
     pa_tagstruct_put_boolean(t, mute);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -733,7 +749,7 @@ pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, 
     pa_tagstruct_puts(t, name);
     pa_tagstruct_put_boolean(t, mute);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -757,7 +773,7 @@ pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, cons
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_put_cvolume(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -781,7 +797,7 @@ pa_operation* pa_context_set_source_volume_by_index(pa_context *c, uint32_t idx,
     pa_tagstruct_puts(t, NULL);
     pa_tagstruct_put_cvolume(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -807,7 +823,7 @@ pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *na
     pa_tagstruct_puts(t, name);
     pa_tagstruct_put_cvolume(t, volume);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -829,7 +845,7 @@ pa_operation* pa_context_set_source_mute_by_index(pa_context *c, uint32_t idx, i
     pa_tagstruct_puts(t, NULL);
     pa_tagstruct_put_boolean(t, mute);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -853,7 +869,7 @@ pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name
     pa_tagstruct_puts(t, name);
     pa_tagstruct_put_boolean(t, mute);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -867,8 +883,10 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
 
+    if (!o->context)
+        goto finish;
+    
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
@@ -928,7 +946,7 @@ pa_operation* pa_context_get_sample_info_by_name(pa_context *c, const char *name
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sample_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sample_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -951,7 +969,7 @@ pa_operation* pa_context_get_sample_info_by_index(pa_context *c, uint32_t idx, p
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sample_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_sample_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -976,7 +994,7 @@ static pa_operation* command_kill(pa_context *c, uint32_t command, uint32_t idx,
     t = pa_tagstruct_command(c, command, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -1000,7 +1018,9 @@ static void context_index_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
+
+    if (!o->context)
+        goto finish;
     
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -1041,7 +1061,7 @@ pa_operation* pa_context_load_module(pa_context *c, const char*name, const char 
     pa_tagstruct_puts(t, name);
     pa_tagstruct_puts(t, argument);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_index_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_index_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -1059,7 +1079,9 @@ static void context_get_autoload_info_callback(pa_pdispatch *pd, uint32_t comman
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
+
+    if (!o->context)
+        goto finish;
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -1116,7 +1138,7 @@ pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *na
     pa_tagstruct_puts(t, name);
     pa_tagstruct_putu32(t, type);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_autoload_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_autoload_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -1138,7 +1160,7 @@ pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx,
     t = pa_tagstruct_command(c, PA_COMMAND_GET_AUTOLOAD_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_autoload_info_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_get_autoload_info_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -1168,7 +1190,7 @@ pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autolo
     pa_tagstruct_puts(t, module);
     pa_tagstruct_puts(t, argument);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_index_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, context_index_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -1191,7 +1213,7 @@ pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name
     pa_tagstruct_puts(t, name);
     pa_tagstruct_putu32(t, type);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -1212,7 +1234,7 @@ pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, p
     t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_AUTOLOAD, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }

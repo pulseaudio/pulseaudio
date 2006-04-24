@@ -267,9 +267,6 @@ typedef struct pa_stream pa_stream;
 /** A generic callback for operation completion */
 typedef void (*pa_stream_success_cb_t) (pa_stream*s, int success, void *userdata);
 
-/** A generic free callback */
-typedef void (*pa_free_cb_t)(void *p);
-
 /** A generic request callback */
 typedef void (*pa_stream_request_cb_t)(pa_stream *p, size_t length, void *userdata);
 

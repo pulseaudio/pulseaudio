@@ -28,78 +28,89 @@
 #include <polypcore/xmalloc.h>
 
 #include "internal.h"
-
 #include "operation.h"
 
 pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t cb, void *userdata) {
     pa_operation *o;
     assert(c);
 
-    o = pa_xmalloc(sizeof(pa_operation));
+    o = pa_xnew(pa_operation, 1);
     o->ref = 1;
-    o->context = pa_context_ref(c);
-    o->stream = s ? pa_stream_ref(s) : NULL;
+    o->context = c;
+    o->stream = s;
 
     o->state = PA_OPERATION_RUNNING;
     o->callback = cb;
     o->userdata = userdata;
 
-    PA_LLIST_PREPEND(pa_operation, o->context->operations, o);
-    return pa_operation_ref(o);
+    /* Refcounting is strictly one-way: from the "bigger" to the "smaller" object. */
+    PA_LLIST_PREPEND(pa_operation, c->operations, o);
+    pa_operation_ref(o);
+    
+    return o;
 }
 
 pa_operation *pa_operation_ref(pa_operation *o) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
+    
     o->ref++;
     return o;
 }
 
 void pa_operation_unref(pa_operation *o) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
 
     if ((--(o->ref)) == 0) {
         assert(!o->context);
         assert(!o->stream);
-        free(o);
+        pa_xfree(o);
     }
 }
 
 static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
 
     if (st == o->state)
-        return;
-
-    if (!o->context)
         return;
 
     o->state = st;
 
     if ((o->state == PA_OPERATION_DONE) || (o->state == PA_OPERATION_CANCELED)) {
-        PA_LLIST_REMOVE(pa_operation, o->context->operations, o);
-        pa_context_unref(o->context);
-        if (o->stream)
-            pa_stream_unref(o->stream);
+        
+        if (o->context) {
+            assert(o->ref >= 2);
+            
+            PA_LLIST_REMOVE(pa_operation, o->context->operations, o);
+            pa_operation_unref(o);
+        }
+        
         o->context = NULL;
         o->stream = NULL;
         o->callback = NULL;
         o->userdata = NULL;
-
-        pa_operation_unref(o);
     }
 }
 
 void pa_operation_cancel(pa_operation *o) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
+    
     operation_set_state(o, PA_OPERATION_CANCELED);
 }
 
 void pa_operation_done(pa_operation *o) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
+    
     operation_set_state(o, PA_OPERATION_DONE);
 }
 
 pa_operation_state_t pa_operation_get_state(pa_operation *o) {
-    assert(o && o->ref >= 1);
+    assert(o);
+    assert(o->ref >= 1);
+
     return o->state;
 }

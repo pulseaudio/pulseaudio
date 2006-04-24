@@ -356,7 +356,7 @@ static void request_latency(struct userdata *u) {
     pa_tagstruct_put_timeval(t, &now);
     
     pa_pstream_send_tagstruct(u->pstream, t);
-    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, u);
+    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, u, NULL);
 }
 
 static void stream_get_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -449,7 +449,7 @@ static void request_info(struct userdata *u) {
 #endif
 
     pa_pstream_send_tagstruct(u->pstream, t);
-    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_info_callback, u);
+    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_info_callback, u, NULL);
 }
 
 static void start_subscribe(struct userdata *u) {
@@ -580,7 +580,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
 #endif
     
     pa_pstream_send_tagstruct(u->pstream, reply);
-    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, u);
+    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, u, NULL);
 }
 
 static void pstream_die_callback(pa_pstream *p, void *userdata) {
@@ -647,7 +647,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
     pa_tagstruct_put_arbitrary(t, u->auth_cookie, sizeof(u->auth_cookie));
     pa_pstream_send_tagstruct(u->pstream, t);
-    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, u);
+    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, u, NULL);
     
 }
 

@@ -304,6 +304,9 @@ typedef enum pa_source_flags {
     PA_SOURCE_LATENCY = 2          /**< Supports latency querying */
 } pa_source_flags_t;
 
+/** A generic free() like callback prototype */
+typedef void (*pa_free_cb_t)(void *p);
+
 PA_C_DECL_END
 
 #endif

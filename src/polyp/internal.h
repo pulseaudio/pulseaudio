@@ -159,6 +159,7 @@ struct pa_operation {
     int ref;
     pa_context *context;
     pa_stream *stream;
+    
     PA_LLIST_FIELDS(pa_operation);
 
     pa_operation_state_t state;

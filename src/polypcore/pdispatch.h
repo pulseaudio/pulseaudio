@@ -24,6 +24,7 @@
 
 #include <inttypes.h>
 #include <polyp/mainloop-api.h>
+#include <polyp/def.h>
 #include <polypcore/tagstruct.h>
 #include <polypcore/packet.h>
 
@@ -38,7 +39,7 @@ pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd);
 
 int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*p, const void*creds, void *userdata);
 
-void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_cb_t callback, void *userdata);
+void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_cb_t callback, void *userdata, pa_free_cb_t free_cb);
 
 int pa_pdispatch_is_pending(pa_pdispatch *pd);
 

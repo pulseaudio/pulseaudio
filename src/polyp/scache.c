@@ -53,7 +53,7 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_tagstruct_put_channel_map(t, &s->channel_map);
     pa_tagstruct_putu32(t, length);
     pa_pstream_send_tagstruct(s->context->pstream, t);
-    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_create_stream_callback, s);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_create_stream_callback, s, NULL);
 
     pa_stream_set_state(s, PA_STREAM_CREATING);
     
@@ -74,7 +74,7 @@ int pa_stream_finish_upload(pa_stream *s) {
     t = pa_tagstruct_command(s->context, PA_COMMAND_FINISH_UPLOAD_STREAM, &tag);
     pa_tagstruct_putu32(t, s->channel);
     pa_pstream_send_tagstruct(s->context->pstream, t);
-    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_disconnect_callback, s);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_disconnect_callback, s, NULL);
 
     pa_stream_unref(s);
     return 0;
@@ -103,7 +103,7 @@ pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char
     pa_tagstruct_putu32(t, volume);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -124,7 +124,7 @@ pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_conte
     t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_SAMPLE, &tag);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }

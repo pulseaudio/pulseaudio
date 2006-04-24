@@ -97,6 +97,7 @@ struct reply_info {
     PA_LLIST_FIELDS(struct reply_info);
     pa_pdispatch_cb_t callback;
     void *userdata;
+    pa_free_cb_t free_cb;
     uint32_t tag;
     pa_time_event *time_event;
 };
@@ -145,8 +146,12 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_
 static void pdispatch_free(pa_pdispatch *pd) {
     assert(pd);
 
-    while (pd->replies)
+    while (pd->replies) {
+        if (pd->replies->free_cb)
+            pd->replies->free_cb(pd->replies->userdata);
+
         reply_info_free(pd->replies);
+    }
     
     pa_xfree(pd);
 }
@@ -243,7 +248,7 @@ static void timeout_callback(pa_mainloop_api*m, pa_time_event*e, PA_GCC_UNUSED c
     run_action(r->pdispatch, r, PA_COMMAND_TIMEOUT, NULL);
 }
 
-void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_cb_t cb, void *userdata) {
+void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_cb_t cb, void *userdata, pa_free_cb_t free_cb) {
     struct reply_info *r;
     struct timeval tv;
     assert(pd && pd->ref >= 1 && cb);
@@ -252,6 +257,7 @@ void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa
     r->pdispatch = pd;
     r->callback = cb;
     r->userdata = userdata;
+    r->free_cb = free_cb;
     r->tag = tag;
     
     pa_gettimeofday(&tv);

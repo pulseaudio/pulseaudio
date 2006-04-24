@@ -162,7 +162,7 @@ static void context_free(pa_context *c) {
 
     while (c->streams)
         pa_stream_set_state(c->streams, PA_STREAM_TERMINATED);
-    
+
     if (c->client)
         pa_socket_client_unref(c->client);
     if (c->pdispatch)
@@ -218,6 +218,10 @@ void pa_context_set_state(pa_context *c, pa_context_state_t st) {
 
     pa_context_ref(c);
 
+    c->state = st;
+    if (c->state_callback)
+        c->state_callback(c, c->state_userdata);
+
     if (st == PA_CONTEXT_FAILED || st == PA_CONTEXT_TERMINATED) {
         pa_stream *s;
         
@@ -243,10 +247,6 @@ void pa_context_set_state(pa_context *c, pa_context_state_t st) {
             pa_socket_client_unref(c->client);
         c->client = NULL;
     }
-
-    c->state = st;
-    if (c->state_callback)
-        c->state_callback(c, c->state_userdata);
 
     pa_context_unref(c);
 }
@@ -383,7 +383,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
             reply = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
             pa_tagstruct_puts(reply, c->name);
             pa_pstream_send_tagstruct(c->pstream, reply);
-            pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c);
+            pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c, NULL);
 
             pa_context_set_state(c, PA_CONTEXT_SETTING_NAME);
             break;
@@ -429,7 +429,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
     pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
     pa_pstream_send_tagstruct_with_creds(c->pstream, t, 1);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c, NULL);
 
     pa_context_set_state(c, PA_CONTEXT_AUTHORIZING);
 
@@ -817,7 +817,9 @@ void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_U
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    assert(o->context);
+
+    if (!o->context)
+        goto finish;
 
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
@@ -853,7 +855,7 @@ pa_operation* pa_context_exit_daemon(pa_context *c, pa_context_success_cb_t cb, 
 
     t = pa_tagstruct_command(c, PA_COMMAND_EXIT, &tag);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -872,7 +874,7 @@ pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, pa
 
     t = pa_tagstruct_command(c, command, &tag);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, internal_cb, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, internal_cb, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -892,7 +894,7 @@ pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_co
     t = pa_tagstruct_command(c, PA_COMMAND_SET_DEFAULT_SINK, &tag);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -912,7 +914,7 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
     t = pa_tagstruct_command(c, PA_COMMAND_SET_DEFAULT_SOURCE, &tag);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -939,7 +941,7 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
     t = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o));
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
