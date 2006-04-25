@@ -14,6 +14,8 @@ Post 0.8:
 - rtp module ported to Win32 (sendmsg/recvmsg emulation)
 - CODECs to reduce bandwidth usage (plug-in based)
 - Remove symdef files and use macros (like most other projects)
+- use software volume when hardware doesn't support all channels (alsa done)
+- double check channel maps for backends, including that mixer and pcm match
 
 Long term:
 - pass meta info for hearing impaired
