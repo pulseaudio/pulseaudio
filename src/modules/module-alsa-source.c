@@ -190,25 +190,18 @@ static int source_get_hw_volume_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     long vol;
     int err;
+    int i;
 
     assert(u && u->mixer_elem);
 
-    if (snd_mixer_selem_has_capture_volume_joined(u->mixer_elem)) {
-        err = snd_mixer_selem_get_capture_volume(u->mixer_elem, 0, &vol);
+    for (i = 0;i < s->hw_volume.channels;i++) {
+        assert(snd_mixer_selem_has_capture_channel(u->mixer_elem, i));
+
+        err = snd_mixer_selem_get_capture_volume(u->mixer_elem, i, &vol);
         if (err < 0)
             goto fail;
-        pa_cvolume_set(&s->hw_volume, s->hw_volume.channels,
-            (vol - u->hw_volume_min) * PA_VOLUME_NORM / (u->hw_volume_max - u->hw_volume_min));
-    } else {
-        int i;
-
-        for (i = 0;i < s->hw_volume.channels;i++) {
-            err = snd_mixer_selem_get_capture_volume(u->mixer_elem, i, &vol);
-            if (err < 0)
-                goto fail;
-            s->hw_volume.values[i] =
-                (vol - u->hw_volume_min) * PA_VOLUME_NORM / (u->hw_volume_max - u->hw_volume_min);
-        }
+        s->hw_volume.values[i] =
+            (vol - u->hw_volume_min) * PA_VOLUME_NORM / (u->hw_volume_max - u->hw_volume_min);
     }
 
     return 0;
@@ -224,35 +217,23 @@ static int source_set_hw_volume_cb(pa_source *s) {
     struct userdata *u = s->userdata;
     int err;
     pa_volume_t vol;
+    int i;
 
     assert(u && u->mixer_elem);
 
-    if (snd_mixer_selem_has_capture_volume_joined(u->mixer_elem)) {
-        vol = pa_cvolume_avg(&s->hw_volume);
+    for (i = 0;i < s->hw_volume.channels;i++) {
+        assert(snd_mixer_selem_has_capture_channel(u->mixer_elem, i));
+
+        vol = s->hw_volume.values[i];
 
         if (vol > PA_VOLUME_NORM)
             vol = PA_VOLUME_NORM;
 
         vol = vol * (u->hw_volume_max - u->hw_volume_min) /
             PA_VOLUME_NORM + u->hw_volume_min;
-        err = snd_mixer_selem_set_capture_volume_all(u->mixer_elem, vol);
+        err = snd_mixer_selem_set_capture_volume(u->mixer_elem, i, vol);
         if (err < 0)
             goto fail;
-    } else {
-        int i;
-
-        for (i = 0;i < s->hw_volume.channels;i++) {
-            vol = s->hw_volume.values[i];
-
-            if (vol > PA_VOLUME_NORM)
-                vol = PA_VOLUME_NORM;
-
-            vol = vol * (u->hw_volume_max - u->hw_volume_min) /
-                PA_VOLUME_NORM + u->hw_volume_min;
-            err = snd_mixer_selem_set_capture_volume(u->mixer_elem, i, vol);
-            if (err < 0)
-                goto fail;
-        }
     }
 
     return 0;
@@ -372,10 +353,19 @@ int pa__init(pa_core *c, pa_module*m) {
     if (u->mixer_handle) {
         assert(u->mixer_elem);
         if (snd_mixer_selem_has_capture_volume(u->mixer_elem)) {
-            u->source->get_hw_volume = source_get_hw_volume_cb;
-            u->source->set_hw_volume = source_set_hw_volume_cb;
-            snd_mixer_selem_get_capture_volume_range(
-                u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max);
+            int i;
+
+            for (i = 0;i < ss.channels;i++) {
+                if (!snd_mixer_selem_has_capture_channel(u->mixer_elem, i))
+                    break;
+            }
+
+            if (i == ss.channels) {
+                u->source->get_hw_volume = source_get_hw_volume_cb;
+                u->source->set_hw_volume = source_set_hw_volume_cb;
+                snd_mixer_selem_get_capture_volume_range(
+                    u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max);
+            }
         }
         if (snd_mixer_selem_has_capture_switch(u->mixer_elem)) {
             u->source->get_hw_mute = source_get_hw_mute_cb;
