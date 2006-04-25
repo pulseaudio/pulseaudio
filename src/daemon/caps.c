@@ -36,6 +36,12 @@
 
 #include "caps.h"
 
+/* Glibc <= 2.2 has broken unistd.h */
+#if defined(linux) && (__GLIBC__ <= 2 && __GLIBC_MINOR__ <= 2)
+int setresgid(gid_t r, gid_t e, gid_t s);
+int setresuid(uid_t r, uid_t e, uid_t s);
+#endif
+
 #ifdef HAVE_GETUID
 
 /* Drop root rights when called SUID root */
