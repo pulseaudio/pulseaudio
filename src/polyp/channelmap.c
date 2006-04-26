@@ -28,7 +28,56 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <polypcore/util.h>
+#include <polypcore/xmalloc.h>
 #include "channelmap.h"
+
+const char *const table[] = {
+    [PA_CHANNEL_POSITION_MONO] = "mono",
+    
+    [PA_CHANNEL_POSITION_FRONT_CENTER] = "front-center",
+    [PA_CHANNEL_POSITION_FRONT_LEFT] = "front-left",
+    [PA_CHANNEL_POSITION_FRONT_RIGHT] = "front-right",
+    
+    [PA_CHANNEL_POSITION_REAR_CENTER] = "rear-center",
+    [PA_CHANNEL_POSITION_REAR_LEFT] = "rear-left",
+    [PA_CHANNEL_POSITION_REAR_RIGHT] = "rear-right",
+    
+    [PA_CHANNEL_POSITION_LFE] = "lfe",
+    
+    [PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER] = "front-left-of-center",
+    [PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER] = "front-right-of-center",
+        
+    [PA_CHANNEL_POSITION_SIDE_LEFT] = "side-left",
+    [PA_CHANNEL_POSITION_SIDE_RIGHT] = "side-right",
+    
+    [PA_CHANNEL_POSITION_AUX0] = "aux0",
+    [PA_CHANNEL_POSITION_AUX1] = "aux1",
+    [PA_CHANNEL_POSITION_AUX2] = "aux2",
+    [PA_CHANNEL_POSITION_AUX3] = "aux3",
+    [PA_CHANNEL_POSITION_AUX4] = "aux4",
+    [PA_CHANNEL_POSITION_AUX5] = "aux5",
+    [PA_CHANNEL_POSITION_AUX6] = "aux6",
+    [PA_CHANNEL_POSITION_AUX7] = "aux7",
+    [PA_CHANNEL_POSITION_AUX8] = "aux8",
+    [PA_CHANNEL_POSITION_AUX9] = "aux9",
+    [PA_CHANNEL_POSITION_AUX10] = "aux10",
+    [PA_CHANNEL_POSITION_AUX11] = "aux11",
+    [PA_CHANNEL_POSITION_AUX12] = "aux12",
+    [PA_CHANNEL_POSITION_AUX13] = "aux13",
+    [PA_CHANNEL_POSITION_AUX14] = "aux14",
+    [PA_CHANNEL_POSITION_AUX15] = "aux15",
+
+    [PA_CHANNEL_POSITION_TOP_CENTER] = "top-center",
+    
+    [PA_CHANNEL_POSITION_TOP_FRONT_LEFT] = "top-front-left",
+    [PA_CHANNEL_POSITION_TOP_FRONT_RIGHT] = "top-front-right",
+    [PA_CHANNEL_POSITION_TOP_FRONT_CENTER] = "top-front-center",
+
+    [PA_CHANNEL_POSITION_TOP_REAR_LEFT] = "top-rear-left",
+    [PA_CHANNEL_POSITION_TOP_REAR_RIGHT] = "top-rear-right",
+    [PA_CHANNEL_POSITION_TOP_REAR_CENTER] = "top-rear-center"
+};
 
 pa_channel_map* pa_channel_map_init(pa_channel_map *m) {
     unsigned c;
@@ -117,40 +166,8 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels) {
     }
 }
 
+
 const char* pa_channel_position_to_string(pa_channel_position_t pos) {
-
-    const char *const table[] = {
-        [PA_CHANNEL_POSITION_MONO] = "mono",
-
-        [PA_CHANNEL_POSITION_FRONT_CENTER] = "front-center",
-        [PA_CHANNEL_POSITION_FRONT_LEFT] = "front-left",
-        [PA_CHANNEL_POSITION_FRONT_RIGHT] = "front-right",
-        
-        [PA_CHANNEL_POSITION_REAR_CENTER] = "rear-center",
-        [PA_CHANNEL_POSITION_REAR_LEFT] = "rear-left",
-        [PA_CHANNEL_POSITION_REAR_RIGHT] = "rear-right",
-
-        [PA_CHANNEL_POSITION_LFE] = "lfe",
-
-        [PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER] = "front-left-of-center",
-        [PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER] = "front-right-of-center",
-        
-        [PA_CHANNEL_POSITION_SIDE_LEFT] = "side-left",
-        [PA_CHANNEL_POSITION_SIDE_RIGHT] = "side-right",
-
-        [PA_CHANNEL_POSITION_AUX1] = "aux1",
-        [PA_CHANNEL_POSITION_AUX2] = "aux2",
-        [PA_CHANNEL_POSITION_AUX3] = "aux3",
-        [PA_CHANNEL_POSITION_AUX4] = "aux4",
-        [PA_CHANNEL_POSITION_AUX5] = "aux5",
-        [PA_CHANNEL_POSITION_AUX6] = "aux6",
-        [PA_CHANNEL_POSITION_AUX7] = "aux7",
-        [PA_CHANNEL_POSITION_AUX8] = "aux8",
-        [PA_CHANNEL_POSITION_AUX9] = "aux9",
-        [PA_CHANNEL_POSITION_AUX10] = "aux10",
-        [PA_CHANNEL_POSITION_AUX11] = "aux11",
-        [PA_CHANNEL_POSITION_AUX12] = "aux12"
-    };
 
     if (pos < 0 || pos >= PA_CHANNEL_POSITION_MAX)
         return NULL;
@@ -186,9 +203,8 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
     *(e = s) = 0;
 
     for (channel = 0; channel < map->channels && l > 1; channel++) {
-        l -= snprintf(e, l, "%s%u:%s",
-                      first ? "" : " ",
-                      channel,
+        l -= snprintf(e, l, "%s%s",
+                      first ? "" : ",",
                       pa_channel_position_to_string(map->map[channel]));
 
         e = strchr(e, 0);
@@ -197,6 +213,61 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
 
     return s;
 }
+
+pa_channel_map *pa_channel_map_parse(pa_channel_map *map, const char *s) {
+    const char *state;
+    char *p;
+    
+    assert(map);
+    assert(s);
+
+    memset(map, 0, sizeof(pa_channel_map));
+
+    if (strcmp(s, "stereo") == 0) {
+        map->channels = 2;
+        map->map[0] = PA_CHANNEL_POSITION_LEFT;
+        map->map[1] = PA_CHANNEL_POSITION_RIGHT;
+        return map;
+    }
+
+    state = NULL;
+    map->channels = 0;
+    
+    while ((p = pa_split(s, ",", &state))) {
+        
+        /* Some special aliases */
+        if (strcmp(p, "left") == 0)
+            map->map[map->channels++] = PA_CHANNEL_POSITION_LEFT;
+        else if (strcmp(p, "right") == 0)
+            map->map[map->channels++] = PA_CHANNEL_POSITION_RIGHT;
+        else if (strcmp(p, "center") == 0)
+            map->map[map->channels++] = PA_CHANNEL_POSITION_CENTER;
+        else if (strcmp(p, "subwoofer") == 0)
+            map->map[map->channels++] = PA_CHANNEL_POSITION_SUBWOOFER;
+        else {
+            pa_channel_position_t i;
+            
+            for (i = 0; i < PA_CHANNEL_POSITION_MAX; i++)
+                if (strcmp(p, table[i]) == 0) {
+                    map->map[map->channels++] = i;
+                    break;
+                }
+            
+            if (i >= PA_CHANNEL_POSITION_MAX) {
+                pa_xfree(p);
+                return NULL;
+            }
+        }
+
+        pa_xfree(p);
+    }
+
+    if (!map->channels)
+        return NULL;
+
+    return map;
+}
+
 
 int pa_channel_map_valid(const pa_channel_map *map) {
     unsigned c;
@@ -212,3 +283,4 @@ int pa_channel_map_valid(const pa_channel_map *map) {
 
     return 1;
 }
+

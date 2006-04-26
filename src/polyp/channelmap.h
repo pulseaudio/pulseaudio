@@ -107,6 +107,16 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_AUX14,
     PA_CHANNEL_POSITION_AUX15,
 
+    PA_CHANNEL_POSITION_TOP_CENTER,
+    
+    PA_CHANNEL_POSITION_TOP_FRONT_LEFT,
+    PA_CHANNEL_POSITION_TOP_FRONT_RIGHT,
+    PA_CHANNEL_POSITION_TOP_FRONT_CENTER,
+
+    PA_CHANNEL_POSITION_TOP_REAR_LEFT,
+    PA_CHANNEL_POSITION_TOP_REAR_RIGHT,
+    PA_CHANNEL_POSITION_TOP_REAR_CENTER,
+    
     PA_CHANNEL_POSITION_MAX
 } pa_channel_position_t;
 
@@ -134,10 +144,13 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels);
 const char* pa_channel_position_to_string(pa_channel_position_t pos);
 
 /** The maximum length of strings returned by pa_channel_map_snprint() */
-#define PA_CHANNEL_MAP_SNPRINT_MAX 64
+#define PA_CHANNEL_MAP_SNPRINT_MAX 336
 
 /** Make a humand readable string from the specified channel map */
 char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map);
+
+/** Parse a channel position list into a channel map structure. \since 0.8.1 */
+pa_channel_map *pa_channel_map_parse(pa_channel_map *map, const char *s);
 
 /** Compare two channel maps. Return 1 if both match. */
 int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b);
