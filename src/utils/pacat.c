@@ -403,7 +403,7 @@ static void help(const char *argv0) {
            "  -d, --device=DEVICE                   The name of the sink/source to connect to\n"
            "  -n, --client-name=NAME                How to call this client on the server\n"
            "      --stream-name=NAME                How to call this stream on the server\n"
-           "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...256\n"
+           "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...65536\n"
            "      --rate=SAMPLERATE                 The sample rate in Hz (defaults to 44100)\n"
            "      --format=SAMPLEFORMAT             The sample type, one of s16le, s16be, u8, float32le,\n"
            "                                        float32be, ulaw, alaw (defaults to s16ne)\n"
@@ -521,7 +521,6 @@ int main(int argc, char *argv[]) {
                 break;
 
             case ARG_CHANNELMAP:
-                
                 if (!pa_channel_map_parse(&channel_map, optarg)) {
                     fprintf(stderr, "Invalid channel map\n");
                     goto quit;
