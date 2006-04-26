@@ -367,6 +367,11 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log(__FILE__": invalid channel map.");
         goto fail;
     }
+
+    if (ss.channels != map.channels) {
+        pa_log(__FILE__": channel map and sample specification don't match.");
+        goto fail;
+    }
     
     if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
         pa_log(__FILE__": failed to create sink");
