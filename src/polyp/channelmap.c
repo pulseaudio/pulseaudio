@@ -286,16 +286,10 @@ int pa_channel_map_valid(const pa_channel_map *map) {
         return 0;
 
     for (c = 0; c < map->channels; c++) {
-        unsigned k;
         
         if (map->map[c] < 0 ||map->map[c] >= PA_CHANNEL_POSITION_MAX)
             return 0;
 
-        /* Don't allow positions to be specified twice */
-        for (k = 0; k < c; k++)
-            if (map->map[k] == map->map[c])
-                return 0;
-            
     }
 
     return 1;
