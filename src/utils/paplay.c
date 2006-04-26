@@ -53,7 +53,9 @@ static pa_volume_t volume = PA_VOLUME_NORM;
 
 static SNDFILE* sndfile = NULL;
 
-static pa_sample_spec sample_spec = { 0, 0, 0 }; 
+static pa_sample_spec sample_spec = { 0, 0, 0 };
+static pa_channel_map channel_map;
+static int channel_map_set = 0;
 
 static sf_count_t (*readf_function)(SNDFILE *_sndfile, void *ptr, sf_count_t frames);
 
@@ -161,7 +163,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             if (verbose)
                 fprintf(stderr, "Connection established.\n");
 
-            stream = pa_stream_new(c, stream_name, &sample_spec, NULL);
+            stream = pa_stream_new(c, stream_name, &sample_spec, channel_map_set ? &channel_map : NULL);
             assert(stream);
 
             pa_stream_set_state_callback(stream, stream_state_callback, NULL);
@@ -200,14 +202,16 @@ static void help(const char *argv0) {
            "  -d, --device=DEVICE                   The name of the sink/source to connect to\n"
            "  -n, --client-name=NAME                How to call this client on the server\n"
            "      --stream-name=NAME                How to call this stream on the server\n"
-           "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...256\n",
+           "      --volume=VOLUME                   Specify the initial (linear) volume in range 0...65536\n"
+           "      --channel-map=CHANNELMAP          Set the channel map to the use\n",
            argv0);
 }
 
 enum {
     ARG_VERSION = 256,
     ARG_STREAM_NAME,
-    ARG_VOLUME
+    ARG_VOLUME,
+    ARG_CHANNELMAP
 };
 
 int main(int argc, char *argv[]) {
@@ -226,6 +230,7 @@ int main(int argc, char *argv[]) {
         {"help",        0, NULL, 'h'},
         {"verbose",     0, NULL, 'v'},
         {"volume",      1, NULL, ARG_VOLUME},
+        {"channel-map", 1, NULL, ARG_CHANNELMAP},
         {NULL,          0, NULL, 0}
     };
 
@@ -277,6 +282,15 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
+            case ARG_CHANNELMAP:
+                if (!pa_channel_map_parse(&channel_map, optarg)) {
+                    fprintf(stderr, "Invalid channel map\n");
+                    goto quit;
+                }
+
+                channel_map_set = 1;
+                break;
+
             default:
                 goto quit;
         }
@@ -320,6 +334,13 @@ int main(int argc, char *argv[]) {
             sample_spec.format = PA_SAMPLE_FLOAT32NE;
             readf_function = (sf_count_t (*)(SNDFILE *_sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
             break;
+    }
+
+    assert(pa_sample_spec_valid(&sample_spec));
+
+    if (channel_map_set && channel_map.channels != sample_spec.channels) {
+        fprintf(stderr, "Channel map doesn't match file.\n");
+        goto quit;
     }
 
     if (verbose) {
