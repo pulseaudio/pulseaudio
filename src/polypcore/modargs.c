@@ -259,3 +259,50 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     
     return 0;
 }
+
+int pa_modargs_get_channel_map(pa_modargs *ma, pa_channel_map *rmap) {
+    pa_channel_map map;
+    const char *cm;
+    
+    assert(ma);
+    assert(rmap);
+
+    map = *rmap;
+
+    if ((cm = pa_modargs_get_value(ma, "channel_map", NULL)))
+        if (!pa_channel_map_parse(&map, cm))
+            return -1;
+
+    if (!pa_channel_map_valid(&map))
+        return -1;
+
+    *rmap = map;
+    return 0;
+}
+
+int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *rss, pa_channel_map *rmap) {
+    pa_sample_spec ss;
+    pa_channel_map map;
+    
+    assert(ma);
+    assert(rss);
+    assert(rmap);
+
+    ss = *rss;
+
+    if (pa_modargs_get_sample_spec(ma, &ss) < 0)
+        return -1;
+
+    pa_channel_map_init_auto(&map, ss.channels);
+
+    if (pa_modargs_get_channel_map(ma, &map) < 0)
+        return -1;
+
+    if (map.channels != ss.channels)
+        return -1;
+
+    *rmap = map;
+    *rss = ss;
+
+    return 0;
+}
