@@ -214,42 +214,48 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
     return s;
 }
 
-pa_channel_map *pa_channel_map_parse(pa_channel_map *map, const char *s) {
+pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
     const char *state;
+    pa_channel_map map;
     char *p;
     
-    assert(map);
+    assert(rmap);
     assert(s);
 
-    memset(map, 0, sizeof(pa_channel_map));
+    memset(&map, 0, sizeof(map));
 
     if (strcmp(s, "stereo") == 0) {
-        map->channels = 2;
-        map->map[0] = PA_CHANNEL_POSITION_LEFT;
-        map->map[1] = PA_CHANNEL_POSITION_RIGHT;
-        return map;
+        map.channels = 2;
+        map.map[0] = PA_CHANNEL_POSITION_LEFT;
+        map.map[1] = PA_CHANNEL_POSITION_RIGHT;
+        goto finish;
     }
 
     state = NULL;
-    map->channels = 0;
+    map.channels = 0;
     
     while ((p = pa_split(s, ",", &state))) {
+
+        if (map.channels >= PA_CHANNELS_MAX) {
+            pa_xfree(p);
+            return NULL;
+        }
         
         /* Some special aliases */
         if (strcmp(p, "left") == 0)
-            map->map[map->channels++] = PA_CHANNEL_POSITION_LEFT;
+            map.map[map.channels++] = PA_CHANNEL_POSITION_LEFT;
         else if (strcmp(p, "right") == 0)
-            map->map[map->channels++] = PA_CHANNEL_POSITION_RIGHT;
+            map.map[map.channels++] = PA_CHANNEL_POSITION_RIGHT;
         else if (strcmp(p, "center") == 0)
-            map->map[map->channels++] = PA_CHANNEL_POSITION_CENTER;
+            map.map[map.channels++] = PA_CHANNEL_POSITION_CENTER;
         else if (strcmp(p, "subwoofer") == 0)
-            map->map[map->channels++] = PA_CHANNEL_POSITION_SUBWOOFER;
+            map.map[map.channels++] = PA_CHANNEL_POSITION_SUBWOOFER;
         else {
             pa_channel_position_t i;
             
             for (i = 0; i < PA_CHANNEL_POSITION_MAX; i++)
                 if (strcmp(p, table[i]) == 0) {
-                    map->map[map->channels++] = i;
+                    map.map[map.channels++] = i;
                     break;
                 }
             
@@ -262,12 +268,14 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *map, const char *s) {
         pa_xfree(p);
     }
 
-    if (!map->channels)
+finish:
+    
+    if (!pa_channel_map_valid(&map))
         return NULL;
-
-    return map;
+    
+    *rmap = map;
+    return rmap;
 }
-
 
 int pa_channel_map_valid(const pa_channel_map *map) {
     unsigned c;
