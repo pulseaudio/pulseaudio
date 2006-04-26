@@ -66,6 +66,9 @@ static pa_sample_spec sample_spec = {
     .channels = 2
 };
 
+static pa_channel_map channel_map;
+static int channel_map_set = 0;
+
 /* A shortcut for terminating the application */
 static void quit(int ret) {
     assert(mainloop_api);
@@ -184,7 +187,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
             if (verbose)
                 fprintf(stderr, "Connection established.\n");
 
-            if (!(stream = pa_stream_new(c, stream_name, &sample_spec, NULL))) {
+            if (!(stream = pa_stream_new(c, stream_name, &sample_spec, channel_map_set ? &channel_map : NULL))) {
                 fprintf(stderr, "pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(c)));
                 goto fail;
             }
@@ -405,7 +408,8 @@ static void help(const char *argv0) {
            "      --format=SAMPLEFORMAT             The sample type, one of s16le, s16be, u8, float32le,\n"
            "                                        float32be, ulaw, alaw (defaults to s16ne)\n"
            "      --channels=CHANNELS               The number of channels, 1 for mono, 2 for stereo\n"
-           "                                        (defaults to 2)\n",
+           "                                        (defaults to 2)\n"
+           "      --channel-map=CHANNELMAP          Channel map to use instead of the default\n",
            argv0);
 }
 
@@ -415,7 +419,8 @@ enum {
     ARG_VOLUME,
     ARG_SAMPLERATE,
     ARG_SAMPLEFORMAT,
-    ARG_CHANNELS
+    ARG_CHANNELS,
+    ARG_CHANNELMAP,
 };
 
 int main(int argc, char *argv[]) {
@@ -438,6 +443,7 @@ int main(int argc, char *argv[]) {
         {"rate",        1, NULL, ARG_SAMPLERATE},
         {"format",      1, NULL, ARG_SAMPLEFORMAT},
         {"channels",    1, NULL, ARG_CHANNELS},
+        {"channel-map", 1, NULL, ARG_CHANNELMAP},
         {NULL,          0, NULL, 0}
     };
 
@@ -514,6 +520,16 @@ int main(int argc, char *argv[]) {
                 sample_spec.rate = atoi(optarg);
                 break;
 
+            case ARG_CHANNELMAP:
+                
+                if (!pa_channel_map_parse(&channel_map, optarg)) {
+                    fprintf(stderr, "Invalid channel map\n");
+                    goto quit;
+                }
+
+                channel_map_set = 1;
+                break;
+                
             default:
                 goto quit;
         }
@@ -527,6 +543,11 @@ int main(int argc, char *argv[]) {
 
     if (!pa_sample_spec_valid(&sample_spec)) {
         fprintf(stderr, "Invalid sample specification\n");
+        goto quit;
+    }
+
+    if (channel_map_set && channel_map.channels != sample_spec.channels) {
+        fprintf(stderr, "Channel map doesn't match sample specification\n");
         goto quit;
     }
     
