@@ -280,7 +280,7 @@ char *pa_scache_list_to_string(pa_core *c) {
 
         for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
             double l = 0;
-            char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+            char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX] = "n/a";
             
             if (e->memchunk.memblock) {
                 pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
