@@ -50,7 +50,15 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("ALSA Sink")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink_name=<name for the sink> device=<ALSA device> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
+PA_MODULE_USAGE(
+        "sink_name=<name for the sink> "
+        "device=<ALSA device> "
+        "format=<sample format> "
+        "channels=<number of channels> "
+        "rate=<sample rate> "
+        "fragments=<number of fragments> "
+        "fragment_size=<fragment size> "
+        "channel_map=<channel map>")
 
 struct userdata {
     snd_pcm_t *pcm_handle;
@@ -74,6 +82,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "fragments",
     "fragment_size",
+    "channel_map",
     NULL
 };
 
@@ -299,6 +308,7 @@ int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     const char *dev;
     pa_sample_spec ss;
+    pa_channel_map map;
     uint32_t periods, fragsize;
     snd_pcm_uframes_t period_size;
     size_t frame_size;
@@ -311,7 +321,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     ss = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map) < 0) {
         pa_log(__FILE__": failed to parse sample specification");
         goto fail;
     }
@@ -357,7 +367,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->mixer_handle = NULL;
     }
 
-    u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL);
+    u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map);
     assert(u->sink);
 
     u->sink->get_latency = sink_get_latency_cb;

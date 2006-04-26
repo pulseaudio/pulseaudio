@@ -42,7 +42,16 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Combine multiple sinks to one")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink_name=<name for the sink> master=<master sink> slaves=<slave sinks> adjust_time=<seconds> resample_method=<method>")
+PA_MODULE_USAGE(
+        "sink_name=<name for the sink> "
+        "master=<master sink> "
+        "slaves=<slave sinks> "
+        "adjust_time=<seconds> "
+        "resample_method=<method> "
+        "format=<sample format> "
+        "channels=<number of channels> "
+        "rate=<sample rate> "
+        "channel_map=<channel map> ")
 
 #define DEFAULT_SINK_NAME "combined"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
@@ -56,6 +65,10 @@ static const char* const valid_modargs[] = {
     "slaves",
     "adjust_time",
     "resample_method",
+    "format",
+    "channels",
+    "rate",
+    "channel_map",
     NULL
 };
 
@@ -296,6 +309,9 @@ int pa__init(pa_core *c, pa_module*m) {
     const char*split_state;
     struct timeval tv;
     int resample_method = -1;
+    pa_sample_spec ss;
+    pa_channel_map map;
+    
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -310,7 +326,7 @@ int pa__init(pa_core *c, pa_module*m) {
         }
     }
     
-    u = pa_xmalloc(sizeof(struct userdata));
+    u = pa_xnew(struct userdata, 1);
     m->userdata = u;
     u->sink = NULL;
     u->n_outputs = 0;
@@ -336,7 +352,23 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &master_sink->sample_spec, &master_sink->channel_map))) {
+    ss = master_sink->sample_spec;
+    if ((pa_modargs_get_sample_spec(ma, &ss) < 0)) {
+        pa_log(__FILE__": invalid sample specification.");
+        goto fail;
+    }
+
+    if (ss.channels == master_sink->sample_spec.channels)
+        map = master_sink->channel_map;
+    else
+        pa_channel_map_init_auto(&map, ss.channels);
+
+    if ((pa_modargs_get_channel_map(ma, &map) < 0)) {
+        pa_log(__FILE__": invalid channel map.");
+        goto fail;
+    }
+    
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
         pa_log(__FILE__": failed to create sink");
         goto fail;
     }

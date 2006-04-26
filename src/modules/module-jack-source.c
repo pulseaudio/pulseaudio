@@ -56,7 +56,7 @@ PA_MODULE_USAGE(
         "client_name=<jack client name> "
         "channels=<number of channels> "
         "connect=<connect ports?>"
-)
+        "channel_map=<channel map>")
 
 #define DEFAULT_SOURCE_NAME "jack_in"
 
@@ -91,6 +91,7 @@ static const char* const valid_modargs[] = {
     "client_name",
     "channels",
     "connect",
+    "channel_map",
     NULL
 };
 
@@ -231,7 +232,7 @@ static void jack_error_func(const char*t) {
 int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     pa_sample_spec ss;
-    pa_channel_map cm;
+    pa_channel_map map;
     pa_modargs *ma = NULL;
     jack_status_t status;
     const char *server_name, *client_name;
@@ -292,6 +293,12 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log(__FILE__": failed to parse channels= argument.");
         goto fail;
     }
+
+    pa_channel_map_init_auto(&map, channels);
+    if (pa_modargs_get_channel_map(ma, &map) < 0 || map.channels != channels) {
+        pa_log(__FILE__": failed to parse channel_map= argument.");
+        goto fail;
+    }
     
     pa_log_info(__FILE__": Successfully connected as '%s'", jack_get_client_name(u->client));
 
@@ -301,16 +308,14 @@ int pa__init(pa_core *c, pa_module*m) {
 
     assert(pa_sample_spec_valid(&ss));
 
-    pa_channel_map_init_auto(&cm, channels);
-
     for (i = 0; i < ss.channels; i++) {
-        if (!(u->port[i] = jack_port_register(u->client, pa_channel_position_to_string(cm.map[i]), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput|JackPortIsTerminal, 0))) {
+        if (!(u->port[i] = jack_port_register(u->client, pa_channel_position_to_string(map.map[i]), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput|JackPortIsTerminal, 0))) {
             pa_log(__FILE__": jack_port_register() failed.");
             goto fail;
         }
     }
 
-    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &cm))) {
+    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
         pa_log(__FILE__": failed to create source.");
         goto fail;
     }

@@ -46,7 +46,12 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Clocked NULL sink")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("format=<sample format> channels=<number of channels> rate=<sample rate> sink_name=<name of sink>")
+PA_MODULE_USAGE(
+        "format=<sample format> "
+        "channels=<number of channels> "
+        "rate=<sample rate> "
+        "sink_name=<name of sink>"
+        "channel_map=<channel map>")
 
 #define DEFAULT_SINK_NAME "null"
 
@@ -63,6 +68,7 @@ static const char* const valid_modargs[] = {
     "format",
     "channels",
     "sink_name",
+    "channel_map", 
     NULL
 };
 
@@ -87,6 +93,7 @@ static void time_callback(pa_mainloop_api *m, pa_time_event*e, const struct time
 int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     pa_sample_spec ss;
+    pa_channel_map map;
     pa_modargs *ma = NULL;
     struct timeval tv;
     assert(c && m);
@@ -97,8 +104,8 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     ss = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": invalid sample format specification.");
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map) < 0) {
+        pa_log(__FILE__": invalid sample format specification or channel map.");
         goto fail;
     }
     
@@ -107,7 +114,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->module = m;
     m->userdata = u;
     
-    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
         pa_log(__FILE__": failed to create sink.");
         goto fail;
     }

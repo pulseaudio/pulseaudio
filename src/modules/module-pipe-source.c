@@ -46,7 +46,13 @@
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("UNIX pipe source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("source_name=<name for the source> file=<path of the FIFO> format=<sample format> channels=<number of channels> rate=<sample rate>")
+PA_MODULE_USAGE(
+        "source_name=<name for the source> "
+        "file=<path of the FIFO> "
+        "format=<sample format> "
+        "channels=<number of channels> "
+        "rate=<sample rate> "
+        "channel_map=<channel map>")
 
 #define DEFAULT_FIFO_NAME "/tmp/music.input"
 #define DEFAULT_SOURCE_NAME "fifo_input"
@@ -68,6 +74,7 @@ static const char* const valid_modargs[] = {
     "channels",
     "format",
     "source_name",
+    "channel_map",
     NULL
 };
 
@@ -115,6 +122,7 @@ int pa__init(pa_core *c, pa_module*m) {
     const char *p;
     int fd = -1;
     pa_sample_spec ss;
+    pa_channel_map map;
     pa_modargs *ma = NULL;
     assert(c && m);
     
@@ -124,8 +132,8 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     ss = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": invalid sample format specification");
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map) < 0) {
+        pa_log(__FILE__": invalid sample format specification or channel map");
         goto fail;
     }
     
@@ -153,7 +161,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->filename = pa_xstrdup(p);
     u->core = c;
     
-    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL))) {
+    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
         pa_log(__FILE__": failed to create source.");
         goto fail;
     }

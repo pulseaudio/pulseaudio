@@ -62,7 +62,8 @@ PA_MODULE_USAGE(
         "channels=<number of channels> "
         "rate=<sample rate> "
         "fragments=<number of fragments> "
-        "fragment_size=<fragment size>")
+        "fragment_size=<fragment size> "
+        "channel_map=<channel map>")
 
 struct userdata {
     pa_sink *sink;
@@ -97,6 +98,7 @@ static const char* const valid_modargs[] = {
     "format",
     "rate",
     "channels",
+    "channel_map",
     NULL
 };
 
@@ -346,7 +348,8 @@ int pa__init(pa_core *c, pa_module*m) {
     int playback = 1, record = 1;
     pa_modargs *ma = NULL;
     char hwdesc[64];
-    
+    pa_channel_map map;
+
     assert(c);
     assert(m);
 
@@ -380,8 +383,8 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     u->sample_spec = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec(ma, &u->sample_spec) < 0) {
-        pa_log(__FILE__": failed to parse sample specification");
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &u->sample_spec, &map) < 0) {
+        pa_log(__FILE__": failed to parse sample specification or channel map");
         goto fail;
     }
 
@@ -426,7 +429,7 @@ int pa__init(pa_core *c, pa_module*m) {
             }
         } else {
         
-            if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &u->sample_spec, NULL)))
+            if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &u->sample_spec, &map)))
                 goto fail;
             
             u->source->userdata = u;
@@ -466,7 +469,7 @@ int pa__init(pa_core *c, pa_module*m) {
         } else {
             pa_silence_memory(u->out_mmap, u->out_mmap_length, &u->sample_spec);
             
-            if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &u->sample_spec, NULL)))
+            if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &u->sample_spec, &map)))
                 goto fail;
 
             u->sink->get_latency = sink_get_latency_cb;

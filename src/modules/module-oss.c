@@ -61,7 +61,8 @@ PA_MODULE_USAGE(
         "channels=<number of channels> "
         "rate=<sample rate> "
         "fragments=<number of fragments> "
-        "fragment_size=<fragment size>")
+        "fragment_size=<fragment size> "
+        "channel_map=<channel map>")
 
 struct userdata {
     pa_sink *sink;
@@ -89,6 +90,7 @@ static const char* const valid_modargs[] = {
     "format",
     "rate",
     "channels",
+    "channel_map",
     NULL
 };
 
@@ -322,6 +324,7 @@ int pa__init(pa_core *c, pa_module*m) {
     int mode;
     int record = 1, playback = 1;
     pa_sample_spec ss;
+    pa_channel_map map;
     pa_modargs *ma = NULL;
     char hwdesc[64];
     
@@ -353,8 +356,8 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     ss = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": failed to parse sample specification");
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map) < 0) {
+        pa_log(__FILE__": failed to parse sample specification or channel map");
         goto fail;
     }
     
@@ -399,7 +402,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (mode != O_WRONLY) {
-        if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL)))
+        if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map)))
             goto fail;
 
         u->source->userdata = u;
@@ -417,7 +420,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source = NULL;
 
     if (mode != O_RDONLY) {
-        if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL)))
+        if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map)))
             goto fail;
 
         u->sink->get_latency = sink_get_latency_cb;

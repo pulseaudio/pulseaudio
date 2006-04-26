@@ -51,11 +51,27 @@
 #ifdef TUNNEL_SINK
 #include "module-tunnel-sink-symdef.h"
 PA_MODULE_DESCRIPTION("Tunnel module for sinks")
-PA_MODULE_USAGE("server=<address> sink=<remote sink name> cookie=<filename> format=<sample format> channels=<number of channels> rate=<sample rate> sink_name=<name for the local sink>")
+PA_MODULE_USAGE(
+        "server=<address> "
+        "sink=<remote sink name> "
+        "cookie=<filename> "
+        "format=<sample format> "
+        "channels=<number of channels> "
+        "rate=<sample rate> "
+        "sink_name=<name for the local sink> "
+        "channel_map=<channel map>")
 #else
 #include "module-tunnel-source-symdef.h"
 PA_MODULE_DESCRIPTION("Tunnel module for sources")
-PA_MODULE_USAGE("server=<address> source=<remote source name> cookie=<filename> format=<sample format> channels=<number of channels> rate=<sample rate> source_name=<name for the local source>")
+PA_MODULE_USAGE(
+        "server=<address> "
+        "source=<remote source name> "
+        "cookie=<filename> "
+        "format=<sample format> "
+        "channels=<number of channels> "
+        "rate=<sample rate> "
+        "source_name=<name for the local source> "
+        "channel_map=<channel map>")
 #endif
 
 PA_MODULE_AUTHOR("Lennart Poettering")
@@ -87,6 +103,7 @@ static const char* const valid_modargs[] = {
     "source_name",
     "source",
 #endif
+    "channel_map",
     NULL,
 };
 
@@ -838,6 +855,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u = NULL;
     pa_sample_spec ss;
+    pa_channel_map map;
     struct timeval ntv;
     assert(c && m);
 
@@ -877,7 +895,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     ss = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map) < 0) {
         pa_log(__FILE__": invalid sample format specification");
         goto fail;
     }
@@ -893,7 +911,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_socket_client_set_callback(u->client, on_connection, u);
 
 #ifdef TUNNEL_SINK
-    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
         pa_log(__FILE__": failed to create sink.");
         goto fail;
     }
@@ -909,7 +927,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     pa_sink_set_owner(u->sink, m);
 #else
-    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL))) {
+    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
         pa_log(__FILE__": failed to create source.");
         goto fail;
     }
