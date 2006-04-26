@@ -224,7 +224,7 @@ load-module module-rtp-recv sink=rtp
 set-default-source rtp_monitor
 </pre>
 
-<p>Now the audio data will be available from the default source <tt>rtp_monitor</tt>.</p>
+<p>Now the audio data will be available from the default source <tt>rtp_monitor</tt>.</p></li>
 
 <li><p><b>When sending multicast RTP traffic it is recieved on the entire LAN but not by the sender machine itself!</b></p>
 
@@ -236,6 +236,52 @@ set-default-source rtp_monitor
 the <tt>destination</tt>/<tt>sap_address</tt> arguments of the RTP
 modules to select them. Choose your group addresses from the range
 <tt>225.0.0.x</tt> to make sure the audio data never leaves the LAN.</p></li>
+
+
+<li><p><b>Can I use Polypaudio to playback music on two sound cards simultaneously?</b></p>
+
+<p>Yes! Use <a href="modules.html#module-combine"><tt>module-combine</tt></a> for that.</p>
+
+<pre>
+load-module module-oss-mmap device="/dev/dsp" sink_name=output0
+load-module module-oss-mmap device="/dev/dsp1" sink_name=output1
+load-module module-combine sink_name=combined master=output0 slaves=output1
+set-sink-default combined
+</pre>
+
+<p>This will combine the two sinks <tt>output0</tt> and
+<tt>output1</tt> into a new sink <tt>combined</tt>. Every sample
+written to the latter will be forwarded to the former two. Polypaudio
+will make sure to adjust the sample rate of the slave device in case
+it deviates from the master device. You can have more than one slave
+sink attached to the combined sink, and hence combine even three and
+more sound cards.</p> </li>
+
+<li><p><b>Can I use Polypaudio to combine two stereo soundcards into a virtual surround sound card?</b></p>
+
+<p>Yes! You can use use <a href="modules.html#module-combine"><tt>module-combine</tt></a> for that.</p>
+
+<pre>
+load-module module-oss-mmap device="/dev/dsp" sink_name=output0 channel_map=left,right channels=2
+load-module module-oss-mmap device="/dev/dsp1" sink_name=output1 channel_map=rear-left,rear-right channels=2
+load-module module-combine sink_name=combined master=output0 slaves=output1 channel_map=left,right,rear-left,rear-right channels=4
+</pre>
+
+<p>This is mostly identical to the previous example. However, this
+time we manually specify the channel mappings for the sinks to make
+sure everything is routed correctly.</p>
+
+<p>Please keep in mind that Polypaudio will constantly adjust the
+sample rate to compensate for the deviating quartzes of the sound
+devices. This is not perfect, however. Deviations in a range of
+1/44100s (or 1/48000s depending on the sampling frequency) can not be
+compensated. The human ear will decode these deviations as minor
+movements (less than 1cm) of the positions of the sound sources
+you hear. </p>
+
+</li>
+
+
 
 </ol>
 

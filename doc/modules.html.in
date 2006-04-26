@@ -20,7 +20,19 @@
   <tr><td><tt>rate=</tt></td><td>The sample rate (defaults to 44100)</td></tr>
   <tr><td><tt>channels=</tt></td><td>Audio channels (defaults to 2)</td></tr>
   <tr><td><tt>sink_name=</tt>, <tt>source_name=</tt></td><td>Name for the sink (resp. source)</td></tr>
-</table>
+  <tr><td><tt>channel_map=</tt></td><td>Channel map. A list of
+comma-seperated channel names. The currently defined channel names
+are: <tt>left</tt>, <tt>right</tt>, <tt>mono</tt>, <tt>center</tt>,
+<tt>front-left</tt>, <tt>front-right</tt>, <tt>front-center</tt>,
+<tt>rear-center</tt>, <tt>rear-left</tt>, <tt>rear-right</tt>,
+<tt>lfe</tt>, <tt>subwoofer</tt>, <tt>front-left-of-center</tt>,
+<tt>front-right-of-center</tt>, <tt>side-left</tt>,
+<tt>side-right</tt>, <tt>aux0</tt>, <tt>aux1</tt> to <tt>aux15</tt>,
+<tt>top-center</tt>, <tt>top-front-left</tt>,
+<tt>top-front-right</tt>, <tt>top-front-center</tt>,
+<tt>top-rear-left</tt>, <tt>top-rear-right</tt>,
+<tt>top-rear-center</tt>, (Default depends on the number of channels
+and the driver)</td></tr> </table>
 
 <h3>module-pipe-sink</h3>
 
@@ -118,12 +130,13 @@ compatible as <tt>module-oss</tt>.</p>
 
 <p>This module supports all arguments thet <tt>module-oss</tt> supports except <tt>device=</tt>.</p>
 
+<a name="module-combine"/>
 <h3>module-combine</h3>
 
 <p>This combines two or more sinks into one. A new virtual sink is
 allocated. All data written to it is forwarded to all connected
 sinks. In aequidistant intervals the sample rates of the output sinks
-is recalculated: i.e. even when the sink's crystals deviate (which is
+is recalculated: i.e. even when the sinks' crystals deviate (which is
 normally the case) output appears synchronously to the human ear. The
 resampling required for this may be very CPU intensive.</p>
 

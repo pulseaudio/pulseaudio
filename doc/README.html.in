@@ -22,6 +22,7 @@
     <li><a href="#installation">Installation</a></li>
     <li><a href="#acks">Acknowledgements</a></li>
     <li><a href="#download">Download</a></li>
+    <li><a href="#community">Community</a></li>
 </ul>
 
 <h2><a name="license">License</a></h2>
@@ -41,6 +42,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
+
+<div class="news-date">Wed Apr 26 2006: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.8.1.tar.gz">Version 0.8.1</a>
+released; changes include: support for specifying the channel map on
+the command lines of <tt>paplay</tt> and <tt>pacat</tt> and as
+arguments to the driver modules; ALSA hardware mixer compatibility;
+fix linking; properly remove <tt>PF_UNIX</tt> sockets when unloading
+protocol modules; fix sample cache; many other fixes</p>
 
 <div class="news-date">Thu Apr 13 2006: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.8.tar.gz">Version 0.8</a> released;
@@ -288,6 +297,10 @@ compilation and <tt>make install</tt> (as root) for installation of
 
 <p><a href="http://www.cendio.com">Cendio AB</a> for paying for Pierre's work on Polypaudio</p>
 
+<p>Sebastien ESTIENNE for testing</p>
+
+<p>Igor Zubkov for some portability patches</p>
+
 <h2><a name="download">Download</a></h2>
 
 <p>The newest release is always available from <a href="@PACKAGE_URL@">@PACKAGE_URL@</a></p>
@@ -298,9 +311,15 @@ compilation and <tt>make install</tt> (as root) for installation of
 
 <pre>svn checkout svn://0pointer.de/polypaudio/trunk polypaudio</pre>
 
+<h2><a name="community">Community</a></h2>
+
 <p>If you want to be notified whenever I release a new version of this software use the subscription feature of <a href="http://freshmeat.net/projects/polypaudio/">Freshmeat</a>.</p>
 
 <p>There is a general discussion <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-discuss">mailing list for polypaudio</a> available. In addition, you can subscribe to <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-commits">SVN changes</a> and <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-tickets">Trac Tickets</a>.</p>
+
+<p>Polypaudio is being tracked at <a href="http://cia.navi.cx/stats/project/polypaudio">CIA</a>.</p>
+
+<p>There's a chance to meet the Polypaudio developers on our <a href="irc://irc.freenode.org/polypaudio">IRC channel #polypaudio on irc.freenode.org</a>.</p>
 
 <p>There is a <a href="http://www.edgewall.com/products/trac/">Trac</a> based <a href="http://0pointer.de/trac/polypaudio/">Wiki for Polypaudio</a> available.</p>
 
