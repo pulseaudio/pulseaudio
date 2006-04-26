@@ -16,6 +16,9 @@ Post 0.8:
 - Remove symdef files and use macros (like most other projects)
 - use software volume when hardware doesn't support all channels (alsa done)
 - double check channel maps for backends, including that mixer and pcm match
+- paplay needs to set a channel map. our default is only correct for AIFF.
+  (for maximum compatiblity, we should let old files, which don't have a
+  well defined channel map, use the ALSA channel map)
 
 Long term:
 - pass meta info for hearing impaired
