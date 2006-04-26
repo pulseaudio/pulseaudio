@@ -187,7 +187,8 @@ noinst_PROGRAMS = \
 		strlist-test \
 		voltest \
 		memblockq-test \
-		sync-playback
+		sync-playback \
+		channelmap-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -234,6 +235,11 @@ voltest_SOURCES = tests/voltest.c
 voltest_CFLAGS = $(AM_CFLAGS)
 voltest_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
 voltest_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+channelmap_test_SOURCES = tests/channelmap-test.c
+channelmap_test_CFLAGS = $(AM_CFLAGS)
+channelmap_test_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
+channelmap_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 cpulimit_test_SOURCES = tests/cpulimit-test.c daemon/cpulimit.c daemon/cpulimit.h
 cpulimit_test_CFLAGS = $(AM_CFLAGS)
