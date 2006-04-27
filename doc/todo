@@ -17,8 +17,7 @@ Post 0.8:
 - use software volume when hardware doesn't support all channels (alsa done)
 - double check channel maps for backends, including that mixer and pcm match
 - paplay needs to set a channel map. our default is only correct for AIFF.
-  (for maximum compatiblity, we should let old files, which don't have a
-  well defined channel map, use the ALSA channel map)
+  (we need help from libsndfile for this)
 
 Long term:
 - pass meta info for hearing impaired
@@ -29,3 +28,6 @@ Backends for:
 - sdl
 - OSS (esddsp style)
 - gstreamer (needs to be updated)
+- fix channel maps in all external backends. Take care when doing volume
+  changes if you're modifying a sink/source since those might have a different
+  map.
