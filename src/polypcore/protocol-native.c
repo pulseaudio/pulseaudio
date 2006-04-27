@@ -1347,7 +1347,6 @@ static void command_get_info(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, u
     pa_tagstruct *reply;
     assert(c && t);
 
-    
     if (pa_tagstruct_getu32(t, &idx) < 0 ||
         (command != PA_COMMAND_GET_CLIENT_INFO &&
          command != PA_COMMAND_GET_MODULE_INFO &&

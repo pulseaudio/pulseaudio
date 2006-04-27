@@ -127,7 +127,7 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, int a
         return NULL;
     
     if (c->namereg && (e = pa_hashmap_get(c->namereg, name)))
-        if (e->type == e->type)
+        if (e->type == type)
             return e->data;
 
     if (pa_atou(name, &idx) < 0) {
@@ -136,7 +136,7 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, int a
             pa_autoload_request(c, name, type);
             
             if (c->namereg && (e = pa_hashmap_get(c->namereg, name)))
-                if (e->type == e->type)
+                if (e->type == type)
                     return e->data;
         }
         
