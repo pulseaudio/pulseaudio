@@ -43,7 +43,17 @@
 PA_MODULE_AUTHOR("Pierre Ossman")
 PA_MODULE_DESCRIPTION("Windows waveOut Sink/Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink_name=<name for the sink> source_name=<name for the source> record=<enable source?> playback=<enable sink?> format=<sample format> channels=<number of channels> rate=<sample rate> fragments=<number of fragments> fragment_size=<fragment size>")
+PA_MODULE_USAGE(
+    "sink_name=<name for the sink> "
+    "source_name=<name for the source>"
+    "record=<enable source?> "
+    "playback=<enable sink?> "
+    "format=<sample format> "
+    "channels=<number of channels> "
+    "rate=<sample rate> "
+    "fragments=<number of fragments> "
+    "fragment_size=<fragment size> "
+    "channel_map=<channel map>")
 
 #define DEFAULT_SINK_NAME "wave_output"
 #define DEFAULT_SOURCE_NAME "wave_input"
@@ -86,6 +96,7 @@ static const char* const valid_modargs[] = {
     "format",
     "rate",
     "channels",
+    "channel_map",
     NULL
 };
 
@@ -428,6 +439,7 @@ int pa__init(pa_core *c, pa_module*m) {
     int nfrags, frag_size;
     int record = 1, playback = 1;
     pa_sample_spec ss;
+    pa_channel_map map;
     pa_modargs *ma = NULL;
     unsigned int i;
     struct timeval tv;
@@ -457,7 +469,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     ss = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map) < 0) {
         pa_log(__FILE__": failed to parse sample specification");
         goto fail;
     }
@@ -484,7 +496,7 @@ int pa__init(pa_core *c, pa_module*m) {
     InitializeCriticalSection(&u->crit);
 
     if (hwi != INVALID_HANDLE_VALUE) {
-        u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, NULL);
+        u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map);
         assert(u->source);
         u->source->userdata = u;
         u->source->notify = notify_source_cb;
@@ -495,7 +507,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source = NULL;
 
     if (hwo != INVALID_HANDLE_VALUE) {
-        u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL);
+        u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map);
         assert(u->sink);
         u->sink->notify = notify_sink_cb;
         u->sink->get_latency = sink_get_latency_cb;
