@@ -168,6 +168,9 @@ static int mixer_callback(snd_mixer_elem_t *elem, unsigned int mask) {
 
     assert(u && u->mixer_handle);
 
+    if (mask == SND_CTL_EVENT_MASK_REMOVE)
+        return 0;
+
     if (mask & SND_CTL_EVENT_MASK_VALUE) {
         if (u->source->get_hw_volume)
             u->source->get_hw_volume(u->source);
