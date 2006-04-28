@@ -122,7 +122,7 @@ static void defer_cb(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event* e, void *u
             pa_xfree(fdl->fds);
         if (fdl->work_fds)
             pa_xfree(fdl->work_fds);
-        fdl->fds = pa_xmalloc(sizeof(struct pollfd) * num_fds);
+        fdl->fds = pa_xmalloc0(sizeof(struct pollfd) * num_fds);
         fdl->work_fds = pa_xmalloc(sizeof(struct pollfd) * num_fds);
     }
 
