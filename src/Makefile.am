@@ -181,6 +181,7 @@ pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 noinst_PROGRAMS = \
 		mainloop-test \
+		thread-mainloop-test \
 		mcalign-test \
 		pacat-simple \
 		parec-simple \
@@ -210,6 +211,11 @@ mainloop_test_SOURCES = tests/mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
 mainloop_test_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
 mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+thread_mainloop_test_SOURCES = tests/thread-mainloop-test.c
+thread_mainloop_test_CFLAGS = $(AM_CFLAGS)
+thread_mainloop_test_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
+thread_mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
@@ -290,6 +296,7 @@ polypinclude_HEADERS = \
 		polyp/mainloop.h \
 		polyp/mainloop-api.h \
 		polyp/mainloop-signal.h \
+		polyp/thread-mainloop.h \
 		polyp/polypaudio.h \
 		polyp/context.h \
 		polyp/def.h \
@@ -348,6 +355,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = \
 		polyp/volume.c polyp/volume.h \
 		polyp/mainloop.c polyp/mainloop.h \
 		polyp/mainloop-signal.c polyp/mainloop-signal.h \
+		polyp/thread-mainloop.c polyp/thread-mainloop.h \
 		polypcore/poll.c polypcore/poll.h
 
 # Internal stuff that is shared with libpolypcore
