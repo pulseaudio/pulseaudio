@@ -301,10 +301,7 @@ static void mainloop_quit(pa_mainloop_api*a, int retval) {
     m = a->userdata;
     assert(a == &m->api);
 
-    m->quit = 1;
-    m->retval = retval;
-
-    pa_mainloop_wakeup(m);
+    pa_mainloop_quit(m, retval);
 }
     
 static const pa_mainloop_api vtable = {
@@ -355,7 +352,8 @@ pa_mainloop *pa_mainloop_new(void) {
     m->io_events_scan_dead = m->defer_events_scan_dead = m->time_events_scan_dead = 0;
     
     m->pollfds = NULL;
-    m->max_pollfds = m->n_pollfds = m->rebuild_pollfds = 0;
+    m->max_pollfds = m->n_pollfds = 0;
+    m->rebuild_pollfds = 1;
 
     m->quit = m->retval = 0;
 
@@ -368,6 +366,8 @@ pa_mainloop *pa_mainloop_new(void) {
 
     m->poll_func = NULL;
     m->poll_func_userdata = NULL;
+
+    m->retval = -1;
     
     return m;
 }
@@ -419,7 +419,7 @@ static int defer_foreach(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void*use
 
 void pa_mainloop_free(pa_mainloop* m) {
     int all = 1;
-    assert(m && (m->state != STATE_POLLING));
+    assert(m);
 
     pa_idxset_foreach(m->io_events, io_foreach, &all);
     pa_idxset_foreach(m->time_events, time_foreach, &all);
@@ -772,10 +772,12 @@ int pa_mainloop_run(pa_mainloop *m, int *retval) {
         return 0;
 }
 
-void pa_mainloop_quit(pa_mainloop *m, int r) {
+void pa_mainloop_quit(pa_mainloop *m, int retval) {
     assert(m);
+
+    m->quit = 1;
+    m->retval = retval;
     pa_mainloop_wakeup(m);
-    m->quit = r;
 }
 
 pa_mainloop_api* pa_mainloop_get_api(pa_mainloop*m) {
