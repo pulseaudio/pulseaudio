@@ -59,6 +59,10 @@ static int generate(int fd, void *ret_data, size_t length) {
     return 0;
 }
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 /* Load an euthorization cookie from file fn and store it in data. If
  * the cookie file doesn't exist, create it */
 static int load(const char *fn, void *data, size_t length) {
@@ -68,8 +72,8 @@ static int load(const char *fn, void *data, size_t length) {
     ssize_t r;
     assert(fn && data && length);
 
-    if ((fd = open(fn, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
-        if (errno != EACCES || (fd = open(fn, O_RDONLY)) < 0) {
+    if ((fd = open(fn, O_RDWR|O_CREAT|O_BINARY, S_IRUSR|S_IWUSR)) < 0) {
+        if (errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY)) < 0) {
             pa_log(__FILE__": failed to open cookie file '%s': %s", fn, strerror(errno));
             goto finish;
         } else
@@ -84,6 +88,7 @@ static int load(const char *fn, void *data, size_t length) {
     }
 
     if ((size_t) r != length) {
+        pa_log_debug(__FILE__": got %d bytes from cookie file '%s', expected %d", (int)r, fn, (int)length);
         
         if (!writable) {
             pa_log(__FILE__": unable to write cookie to read only file");
