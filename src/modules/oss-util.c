@@ -56,9 +56,11 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
             }
 
             if (*tcaps & DSP_CAP_DUPLEX)
-                return fd;
+                goto success;
 
-            goto fail;
+            pa_log_warn(__FILE__": '%s' doesn't support full duplex", device);
+
+            close(fd);
         }
         
         if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY)) < 0) {
@@ -73,6 +75,8 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
             goto fail;
         }
     } 
+
+success:
 
     if (pcaps) {
         if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
