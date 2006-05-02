@@ -181,7 +181,6 @@ pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 noinst_PROGRAMS = \
 		mainloop-test \
-		thread-mainloop-test \
 		mcalign-test \
 		pacat-simple \
 		parec-simple \
@@ -205,6 +204,12 @@ endif
 if HAVE_GLIB12
 noinst_PROGRAMS += \
 		mainloop-test-glib12
+endif
+
+# FIXME: We need to make thread-mainloop win32-compatible first
+if !OS_IS_WIN32
+noinst_PROGRAMS += \
+		thread-mainloop-test
 endif
 
 mainloop_test_SOURCES = tests/mainloop-test.c

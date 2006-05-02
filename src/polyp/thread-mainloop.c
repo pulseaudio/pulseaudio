@@ -23,16 +23,26 @@
 #include <config.h>
 #endif
 
-#include <pthread.h>
 #include <assert.h>
 #include <signal.h>
-#include <sys/poll.h>
 #include <stdio.h>
+
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#else
+#include "../polypcore/poll.h"
+#endif
+
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
 
 #include <polypcore/xmalloc.h>
 
 #include "mainloop.h"
 #include "thread-mainloop.h"
+
+#ifndef OS_IS_WIN32
 
 struct pa_threaded_mainloop {
     pa_mainloop *real_mainloop;
@@ -201,3 +211,8 @@ pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m) {
     return pa_mainloop_get_api(m->real_mainloop);
 }
 
+#else /* OS_IS_WIN32 */
+
+// FIXME: Use Win32 primitives
+
+#endif /* OS_IS_WIN32 */
