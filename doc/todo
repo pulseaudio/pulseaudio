@@ -18,6 +18,11 @@ Post 0.8:
 - double check channel maps for backends, including that mixer and pcm match
 - paplay needs to set a channel map. our default is only correct for AIFF.
   (we need help from libsndfile for this)
+- silence generation should be moved into the core to avoid races and code
+  duplication in the backends
+- examine if it is possible to mimic esd's handling of half duplex cards
+  (switch to capture when a recording client connects and drop playback during
+  that time)
 
 Long term:
 - pass meta info for hearing impaired
