@@ -184,9 +184,6 @@ void pa_threaded_mainloop_unlock(pa_threaded_mainloop *m) {
 void pa_threaded_mainloop_signal(pa_threaded_mainloop *m) {
     assert(m);
     
-    /* Make sure that this function is called from the helper thread */
-    assert(m->thread_running && pthread_equal(pthread_self(), m->thread_id));
-
     pthread_cond_broadcast(&m->cond);
 }
 
