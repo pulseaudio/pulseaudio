@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include <polyp/simple.h>
 #include <polyp/error.h>
@@ -47,6 +48,23 @@ int main(PA_GCC_UNUSED int argc, char*argv[]) {
     int ret = 1;
     int error;
 
+    /* replace STDIN with the specified file if needed */
+    if (argc > 1) {
+        int fd;
+
+        if ((fd = open(argv[1], O_RDONLY)) < 0) {
+            fprintf(stderr, __FILE__": open() failed: %s\n", strerror(errno));
+            goto finish;
+        }
+
+        if (dup2(fd, STDIN_FILENO) < 0) {
+            fprintf(stderr, __FILE__": dup2() failed: %s\n", strerror(errno));
+            goto finish;
+        }
+        
+        close(fd);
+    }
+    
     /* Create a new playback stream */
     if (!(s = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, &error))) {
         fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
