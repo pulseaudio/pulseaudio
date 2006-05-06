@@ -33,8 +33,9 @@
 #include <polyp/thread-mainloop.h>
 
 static void tcb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, void *userdata) {
-    fprintf(stderr, "TIME EVENT\n");
-    pa_threaded_mainloop_signal(userdata);
+    fprintf(stderr, "TIME EVENT START\n");
+    pa_threaded_mainloop_signal(userdata, 1);
+    fprintf(stderr, "TIME EVENT END\n");
 }
 
 int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {

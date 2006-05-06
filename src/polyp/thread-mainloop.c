@@ -48,7 +48,8 @@ struct pa_threaded_mainloop {
     pa_mainloop *real_mainloop;
     pthread_t thread_id;
     pthread_mutex_t mutex;
-    pthread_cond_t cond;
+    int n_waiting;
+    pthread_cond_t cond, release_cond;
     int thread_running;
 };
 
@@ -98,11 +99,13 @@ pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
 
     pthread_mutexattr_init(&a);
     pthread_mutexattr_settype(&a, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&m->mutex, NULL);
+    pthread_mutex_init(&m->mutex, &a);
     pthread_mutexattr_destroy(&a);
     
     pthread_cond_init(&m->cond, NULL);
+    pthread_cond_init(&m->release_cond, NULL);
     m->thread_running = 0;
+    m->n_waiting = 0;
 
     return m;
 }
@@ -121,6 +124,7 @@ void pa_threaded_mainloop_free(pa_threaded_mainloop* m) {
 
     pthread_mutex_destroy(&m->mutex);
     pthread_cond_destroy(&m->cond);
+    pthread_cond_destroy(&m->release_cond);
     
     pa_xfree(m);
 }
@@ -181,10 +185,13 @@ void pa_threaded_mainloop_unlock(pa_threaded_mainloop *m) {
     pthread_mutex_unlock(&m->mutex);
 }
 
-void pa_threaded_mainloop_signal(pa_threaded_mainloop *m) {
+void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_release) {
     assert(m);
     
     pthread_cond_broadcast(&m->cond);
+
+    if (wait_for_release && m->n_waiting > 0)
+        pthread_cond_wait(&m->release_cond, &m->mutex);
 }
 
 void pa_threaded_mainloop_wait(pa_threaded_mainloop *m) {
@@ -193,7 +200,11 @@ void pa_threaded_mainloop_wait(pa_threaded_mainloop *m) {
     /* Make sure that this function is not called from the helper thread */
     assert(!m->thread_running || !pthread_equal(pthread_self(), m->thread_id));
 
+    m->n_waiting ++;
     pthread_cond_wait(&m->cond, &m->mutex);
+    assert(m->n_waiting > 0);
+    m->n_waiting --;
+    pthread_cond_signal(&m->release_cond);
 }
 
 int pa_threaded_mainloop_get_retval(pa_threaded_mainloop *m) {
