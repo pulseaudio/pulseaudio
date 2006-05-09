@@ -63,7 +63,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
     pa_threaded_mainloop_unlock(m);
     
     fprintf(stderr, "waiting 5s (sleep)\n");
-    sleep(5);
+    pa_msleep(5000);
 
     fprintf(stderr, "shutting down\n");
 
