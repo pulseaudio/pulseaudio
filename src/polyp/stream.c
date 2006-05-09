@@ -727,9 +727,8 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
     
     assert(pd);
     assert(o);
-    assert(o->stream);
 
-    if (!o->context)
+    if (!o->context || !o->stream)
         goto finish;
 
     i = &o->stream->timing_info;
