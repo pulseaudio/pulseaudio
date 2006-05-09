@@ -188,7 +188,8 @@ noinst_PROGRAMS = \
 		voltest \
 		memblockq-test \
 		sync-playback \
-		channelmap-test
+		channelmap-test \
+		thread-mainloop-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -204,12 +205,6 @@ endif
 if HAVE_GLIB12
 noinst_PROGRAMS += \
 		mainloop-test-glib12
-endif
-
-# FIXME: We need to make thread-mainloop win32-compatible first
-if !OS_IS_WIN32
-noinst_PROGRAMS += \
-		thread-mainloop-test
 endif
 
 mainloop_test_SOURCES = tests/mainloop-test.c

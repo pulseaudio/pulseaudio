@@ -42,7 +42,8 @@
 #include "mainloop.h"
 #include "thread-mainloop.h"
 
-#ifndef OS_IS_WIN32
+/* FIXME: Add defined(OS_IS_WIN32) when support is added */
+#if defined(HAVE_PTHREAD)
 
 struct pa_threaded_mainloop {
     pa_mainloop *real_mainloop;
@@ -219,8 +220,49 @@ pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m) {
     return pa_mainloop_get_api(m->real_mainloop);
 }
 
-#else /* OS_IS_WIN32 */
+#else /* defined(OS_IS_WIN32) || defined(HAVE_PTHREAD) */
 
-// FIXME: Use Win32 primitives
+pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
+	pa_log_error(__FILE__": Threaded main loop not supported on this platform");
+	return NULL;
+}
 
-#endif /* OS_IS_WIN32 */
+void pa_threaded_mainloop_free(pa_threaded_mainloop* m) {
+	assert(0);
+}
+
+int pa_threaded_mainloop_start(pa_threaded_mainloop *m) {
+	assert(0);
+	return -1;
+}
+
+void pa_threaded_mainloop_stop(pa_threaded_mainloop *m) {
+	assert(0);
+}
+
+void pa_threaded_mainloop_lock(pa_threaded_mainloop *m) {
+	assert(0);
+}
+
+void pa_threaded_mainloop_unlock(pa_threaded_mainloop *m) {
+	assert(0);
+}
+
+void pa_threaded_mainloop_wait(pa_threaded_mainloop *m) {
+	assert(0);
+}
+
+void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_release) {
+	assert(0);
+}
+
+int pa_threaded_mainloop_get_retval(pa_threaded_mainloop *m) {
+	assert(0);
+}
+
+pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m) {
+	assert(0);
+	return NULL;
+}
+
+#endif /* defined(OS_IS_WIN32) || defined(HAVE_PTHREAD) */
