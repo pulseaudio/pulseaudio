@@ -23,6 +23,10 @@ Post 0.8:
 - examine if it is possible to mimic esd's handling of half duplex cards
   (switch to capture when a recording client connects and drop playback during
   that time)
+- fix channel maps in all external backends. Take care when doing volume
+  changes if you're modifying a sink/source since those might have a different
+  map.
+- don't install .a files of modules
 
 Long term:
 - pass meta info for hearing impaired
@@ -33,6 +37,3 @@ Backends for:
 - sdl
 - OSS (esddsp style)
 - gstreamer (needs to be updated)
-- fix channel maps in all external backends. Take care when doing volume
-  changes if you're modifying a sink/source since those might have a different
-  map.
