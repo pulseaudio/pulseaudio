@@ -29,27 +29,37 @@ PA_C_DECL_BEGIN
 
 /** \file
  * 
- * A thread based main loop implementation based on pa_mainloop.*/
+ * A thread based event loop implementation based on pa_mainloop. The
+ * event loop is run in a helper thread in the background. A few
+ * synchronization primitives are available to access the objects
+ * attached to the event loop safely. */
 
-/** An opaque main loop object */
+/** An opaque threaded main loop object */
 typedef struct pa_threaded_mainloop pa_threaded_mainloop;
 
-/** Allocate a new main loop object */
+/** Allocate a new threaded main loop object. You have to call
+ * pa_threaded_mainloop_start() before the event loop thread starts
+ * running. */
 pa_threaded_mainloop *pa_threaded_mainloop_new(void);
 
-/** Free a main loop object */
+/** Free a threaded main loop object. If the event loop thread is
+ * still running, it is terminated using pa_threaded_mainloop_stop()
+ * first. */
 void pa_threaded_mainloop_free(pa_threaded_mainloop* m);
 
 /** Start the event loop thread. */
 int pa_threaded_mainloop_start(pa_threaded_mainloop *m);
 
-/** Terminate the event loop thread cleanly */
+/** Terminate the event loop thread cleanly. Make sure to unlock the
+ * mainloop object before calling this function. */
 void pa_threaded_mainloop_stop(pa_threaded_mainloop *m);
 
 /** Lock the event loop object, effectively blocking the event loop
  * thread from processing events. You can use this to enforce
  * exclusive access to all objects attached to the event loop. This
- * function may not be called inside the event loop thread. */
+ * lock is recursive. This function may not be called inside the event
+ * loop thread. Events that are dispatched from the event loop thread
+ * are executed with this lock held. */
 void pa_threaded_mainloop_lock(pa_threaded_mainloop *m);
 
 /** Unlock the event loop object, inverse of pa_threaded_mainloop_lock() */
@@ -71,7 +81,10 @@ void pa_threaded_mainloop_wait(pa_threaded_mainloop *m);
  * the event loop object is unlocked. */
 void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_accept);
 
-/** Accept a signal from the event thread issued with pa_threaded_mainloop_signal() */
+/** Accept a signal from the event thread issued with
+ * pa_threaded_mainloop_signal(). This call should only be used in
+ * conjunction with pa_threaded_mainloop_signal() with a non-zero
+ * wait_for_accept value.  */
 void pa_threaded_mainloop_accept(pa_threaded_mainloop *m);
 
 /** Return the return value as specified with the main loop's quit() routine. */
