@@ -59,7 +59,9 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
     fprintf(stderr, "waiting 5s (signal)\n");
     pa_threaded_mainloop_wait(m);
     fprintf(stderr, "wait completed\n");
-
+    pa_threaded_mainloop_accept(m);
+    fprintf(stderr, "signal accepted\n");
+    
     pa_threaded_mainloop_unlock(m);
     
     fprintf(stderr, "waiting 5s (sleep)\n");

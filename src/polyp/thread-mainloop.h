@@ -67,9 +67,12 @@ void pa_threaded_mainloop_wait(pa_threaded_mainloop *m);
 /** Signal all threads waiting for a signalling event in
  * pa_threaded_mainloop_wait(). If wait_for_release is non-zero, do
  * not return before the signal was accepted by a
- * pa_threaded_mainloop_wait() call. While waiting for that condition
+ * pa_threaded_mainloop_accept() call. While waiting for that condition
  * the event loop object is unlocked. */
-void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_release);
+void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_accept);
+
+/** Accept a signal from the event thread issued with pa_threaded_mainloop_signal() */
+void pa_threaded_mainloop_accept(pa_threaded_mainloop *m);
 
 /** Return the return value as specified with the main loop's quit() routine. */
 int pa_threaded_mainloop_get_retval(pa_threaded_mainloop *m);
