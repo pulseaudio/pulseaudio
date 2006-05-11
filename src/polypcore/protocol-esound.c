@@ -58,7 +58,7 @@
 
 #define DEFAULT_COOKIE_FILE ".esd_auth"
 
-#define PLAYBACK_BUFFER_SECONDS (.5)
+#define PLAYBACK_BUFFER_SECONDS (.25)
 #define PLAYBACK_BUFFER_FRAGMENTS (10)
 #define RECORD_BUFFER_SECONDS (5)
 #define RECORD_BUFFER_FRAGMENTS (100)
@@ -985,7 +985,12 @@ static void do_work(struct connection *c) {
     if (pa_iochannel_is_readable(c->io)) {
         if (do_read(c) < 0)
             goto fail;
-    } else if (pa_iochannel_is_hungup(c->io))
+    }
+
+    if (c->state == ESD_STREAMING_DATA && c->source_output && pa_iochannel_is_hungup(c->io))
+        /* In case we are in capture mode we will never call read()
+         * on the socket, hence we need to detect the hangup manually
+         * here, instead of simply waiting for read() to return 0. */
         goto fail;
 
     if (pa_iochannel_is_writable(c->io))
@@ -1008,13 +1013,10 @@ fail:
         connection_free(c);
 }
 
-
 static void io_callback(pa_iochannel*io, void *userdata) {
     struct connection *c = userdata;
     assert(io && c && c->io == io);
 
-/*     pa_log("IO");  */
-    
     do_work(c);
 }
 
