@@ -99,7 +99,8 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
         switch (log_target) {
             case PA_LOG_STDERR: {
                 const char *prefix = "", *suffix = "";
-                
+
+#ifndef OS_IS_WIN32                
                 /* Yes indeed. Useless, but fun! */
                 if (isatty(STDERR_FILENO)) {
                     if (level <= PA_LOG_ERROR) {
@@ -110,6 +111,8 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
                         suffix = "\x1B[0m";
                     }
                 }
+#endif
+
                 fprintf(stderr, "%s%s%s\n", prefix, t, suffix);
                 break;
             }
