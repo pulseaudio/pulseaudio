@@ -37,6 +37,7 @@
 #include <pthread.h>
 #endif
 
+#include <polypcore/log.h>
 #include <polypcore/xmalloc.h>
 
 #include "mainloop.h"
