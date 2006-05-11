@@ -198,6 +198,47 @@ finish:
     return ret;
 }
 
+/** Platform independent read function. Necessary since not all systems
+ * treat all file descriptors equal. */
+ssize_t pa_read(int fd, void *buf, size_t count) {
+    ssize_t r;
+
+#ifdef OS_IS_WIN32
+    r = recv(fd, buf, count, 0);
+    if (r < 0) {
+        if (WSAGetLastError() != WSAENOTSOCK) {
+            errno = WSAGetLastError();
+            return r;
+        }
+    }
+
+    if (r < 0)
+#endif
+        r = read(fd, buf, count);
+
+    return r;
+}
+
+/** Similar to pa_read(), but handles writes */
+ssize_t pa_write(int fd, void *buf, size_t count) {
+    ssize_t r;
+
+#ifdef OS_IS_WIN32
+    r = send(fd, buf, count, 0);
+    if (r < 0) {
+        if (WSAGetLastError() != WSAENOTSOCK) {
+            errno = WSAGetLastError();
+            return r;
+        }
+    }
+
+    if (r < 0)
+#endif
+        r = write(fd, buf, count);
+
+    return r;
+}
+
 /** Calls read() in a loop. Makes sure that as much as 'size' bytes,
  * unless EOF is reached or an error occured */
 ssize_t pa_loop_read(int fd, void*data, size_t size) {
@@ -207,7 +248,7 @@ ssize_t pa_loop_read(int fd, void*data, size_t size) {
     while (size > 0) {
         ssize_t r;
 
-        if ((r = read(fd, data, size)) < 0)
+        if ((r = pa_read(fd, data, size)) < 0)
             return r;
 
         if (r == 0)
@@ -229,7 +270,7 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size) {
     while (size > 0) {
         ssize_t r;
 
-        if ((r = write(fd, data, size)) < 0)
+        if ((r = pa_write(fd, data, size)) < 0)
             return r;
 
         if (r == 0)

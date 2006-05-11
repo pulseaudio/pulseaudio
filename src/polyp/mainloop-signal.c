@@ -59,25 +59,17 @@ struct pa_signal_event {
 static pa_mainloop_api *api = NULL;
 static int signal_pipe[2] = { -1, -1 };
 static pa_io_event* io_event = NULL;
-static pa_time_event *time_event = NULL;
 static pa_signal_event *signals = NULL;
 
-#ifdef OS_IS_WIN32
-static unsigned int waiting_signals = 0;
-static CRITICAL_SECTION crit;
-#endif
-
 static void signal_handler(int sig) {
+    int result;
 #ifndef HAVE_SIGACTION
     signal(sig, signal_handler);
 #endif
-    write(signal_pipe[1], &sig, sizeof(sig));
-
-#ifdef OS_IS_WIN32
-    EnterCriticalSection(&crit);
-    waiting_signals++;
-    LeaveCriticalSection(&crit);
-#endif
+    pa_log(__FILE__": Got signal %d", sig);
+    result = pa_write(signal_pipe[1], &sig, sizeof(sig));
+    if (result != sizeof(sig))
+        pa_log(__FILE__": Bad write (%d, %d)", result, WSAGetLastError());
 }
 
 static void dispatch(pa_mainloop_api*a, int sig) {
@@ -91,46 +83,14 @@ static void dispatch(pa_mainloop_api*a, int sig) {
         }
 }
 
-#ifdef OS_IS_WIN32
-static void timer(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, PA_GCC_UNUSED void *userdata) {
-    ssize_t r;
-    int sig;
-    unsigned int sigs;
-    struct timeval tvnext;
-
-    EnterCriticalSection(&crit);
-    sigs = waiting_signals;
-    waiting_signals = 0;
-    LeaveCriticalSection(&crit);
-
-    while (sigs) {
-        if ((r = read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
-            pa_log(__FILE__": read(): %s", strerror(errno));
-            return;
-        }
-        
-        if (r != sizeof(sig)) {
-            pa_log(__FILE__": short read()");
-            return;
-        }
-
-        dispatch(a, sig);
-
-        sigs--;
-    }
-
-    pa_timeval_add(pa_gettimeofday(&tvnext), 100000);
-    a->time_restart(e, &tvnext);
-}
-#endif
-
 static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags_t f, PA_GCC_UNUSED void *userdata) {
     ssize_t r;
     int sig;
     assert(a && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == signal_pipe[0]);
 
-        
-    if ((r = read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
+    pa_log(__FILE__": Signal pipe callback");
+
+    if ((r = pa_read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
         if (errno == EAGAIN)
             return;
 
@@ -147,17 +107,10 @@ static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags
 }
 
 int pa_signal_init(pa_mainloop_api *a) {
-#ifdef OS_IS_WIN32
-    struct timeval tv;
-#endif
 
-    assert(!api && a && signal_pipe[0] == -1 && signal_pipe[1] == -1 && !io_event && !time_event);
+    assert(!api && a && signal_pipe[0] == -1 && signal_pipe[1] == -1 && !io_event);
 
-#ifdef OS_IS_WIN32
-    if (_pipe(signal_pipe, 200, _O_BINARY) < 0) {
-#else
     if (pipe(signal_pipe) < 0) {
-#endif
         pa_log(__FILE__": pipe() failed: %s", strerror(errno));
         return -1;
     }
@@ -169,34 +122,20 @@ int pa_signal_init(pa_mainloop_api *a) {
 
     api = a;
 
-#ifndef OS_IS_WIN32
     io_event = api->io_new(api, signal_pipe[0], PA_IO_EVENT_INPUT, callback, NULL);
     assert(io_event);
-#else
-    time_event = api->time_new(api, pa_gettimeofday(&tv), timer, NULL);
-    assert(time_event);
-
-    InitializeCriticalSection(&crit);
-#endif
 
     return 0;
 }
 
 void pa_signal_done(void) {
-    assert(api && signal_pipe[0] >= 0 && signal_pipe[1] >= 0 && (io_event || time_event));
+    assert(api && signal_pipe[0] >= 0 && signal_pipe[1] >= 0 && io_event);
 
     while (signals)
         pa_signal_free(signals);
     
-#ifndef OS_IS_WIN32
     api->io_free(io_event);
     io_event = NULL;
-#else
-    api->time_free(time_event);
-    time_event = NULL;
-
-    DeleteCriticalSection(&crit);
-#endif
 
     close(signal_pipe[0]);
     close(signal_pipe[1]);

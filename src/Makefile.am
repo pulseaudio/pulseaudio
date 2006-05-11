@@ -356,6 +356,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = \
 		polyp/mainloop.c polyp/mainloop.h \
 		polyp/mainloop-signal.c polyp/mainloop-signal.h \
 		polyp/thread-mainloop.c polyp/thread-mainloop.h \
+		polypcore/pipe.c polypcore/pipe.h \
 		polypcore/poll.c polypcore/poll.h
 
 # Internal stuff that is shared with libpolypcore
@@ -518,6 +519,7 @@ libpolypcore_la_SOURCES += \
 		polypcore/module.c polypcore/module.h \
 		polypcore/namereg.c polypcore/namereg.h \
 		polypcore/pid.c polypcore/pid.h \
+		polypcore/pipe.c polypcore/pipe.h \
 		polypcore/play-memchunk.c polypcore/play-memchunk.h \
 		polypcore/poll.c polypcore/poll.h \
 		polypcore/props.c polypcore/props.h \

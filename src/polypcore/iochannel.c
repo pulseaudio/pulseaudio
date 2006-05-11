@@ -202,19 +202,7 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
     assert(l);
     assert(io->ofd >= 0);
 
-#ifdef OS_IS_WIN32
-    r = send(io->ofd, data, l, 0);
-    if (r < 0) {
-        if (WSAGetLastError() != WSAENOTSOCK) {
-            errno = WSAGetLastError();
-            return r;
-        }
-    }
-
-    if (r < 0)
-#endif
-        r = write(io->ofd, data, l);
-
+    r = pa_write(io->ofd, data, l);
     if (r >= 0) {
         io->writable = 0;
         enable_mainloop_sources(io);
@@ -229,20 +217,8 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
     assert(io);
     assert(data);
     assert(io->ifd >= 0);
-    
-#ifdef OS_IS_WIN32
-    r = recv(io->ifd, data, l, 0);
-    if (r < 0) {
-        if (WSAGetLastError() != WSAENOTSOCK) {
-            errno = WSAGetLastError();
-            return r;
-        }
-    }
 
-    if (r < 0)
-#endif
-        r = read(io->ifd, data, l);
-    
+    r = pa_read(io->ifd, data, l);
     if (r >= 0) {
         io->readable = 0;
         enable_mainloop_sources(io);

@@ -40,6 +40,10 @@
 
 #include "../polypcore/winsock.h"
 
+#ifndef HAVE_PIPE
+#include "../polypcore/pipe.h"
+#endif
+
 #include <polypcore/util.h>
 #include <polypcore/idxset.h>
 #include <polypcore/xmalloc.h>
@@ -330,18 +334,14 @@ pa_mainloop *pa_mainloop_new(void) {
 
     m = pa_xmalloc(sizeof(pa_mainloop));
 
-#ifndef OS_IS_WIN32
     if (pipe(m->wakeup_pipe) < 0) {
+        pa_log_error(__FILE__": ERROR: cannot create wakeup pipe");
         pa_xfree(m);
         return NULL;
     }
 
     pa_make_nonblock_fd(m->wakeup_pipe[0]);
     pa_make_nonblock_fd(m->wakeup_pipe[1]);
-#else
-    m->wakeup_pipe[0] = -1;
-    m->wakeup_pipe[1] = -1;
-#endif
 
     m->io_events = pa_idxset_new(NULL, NULL);
     m->defer_events = pa_idxset_new(NULL, NULL);
@@ -622,7 +622,7 @@ void pa_mainloop_wakeup(pa_mainloop *m) {
     assert(m);
 
     if (m->wakeup_pipe[1] >= 0)
-        write(m->wakeup_pipe[1], &c, sizeof(c));
+        pa_write(m->wakeup_pipe[1], &c, sizeof(c));
 }
 
 static void clear_wakeup(pa_mainloop *m) {
@@ -633,7 +633,7 @@ static void clear_wakeup(pa_mainloop *m) {
     if (m->wakeup_pipe[0] < 0)
         return;
 
-    while (read(m->wakeup_pipe[0], &c, sizeof(c)) == sizeof(c));
+    while (pa_read(m->wakeup_pipe[0], &c, sizeof(c)) == sizeof(c));
 }
 
 int pa_mainloop_prepare(pa_mainloop *m, int timeout) {

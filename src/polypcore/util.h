@@ -37,6 +37,8 @@ void pa_make_nonblock_fd(int fd);
 int pa_make_secure_dir(const char* dir);
 int pa_make_secure_parent_dir(const char *fn);
 
+ssize_t pa_read(int fd, void *buf, size_t count);
+ssize_t pa_write(int fd, void *buf, size_t count);
 ssize_t pa_loop_read(int fd, void*data, size_t size);
 ssize_t pa_loop_write(int fd, const void*data, size_t size);
 
