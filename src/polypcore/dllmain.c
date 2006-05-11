@@ -34,12 +34,21 @@
 extern pa_set_root(HANDLE handle);
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
-    if (fdwReason != DLL_PROCESS_ATTACH)
-        return TRUE;
+    WSADATA data;
 
-    if (!pa_set_root(hinstDLL))
-        return FALSE;
+    switch (fdwReason) {
 
+    case DLL_PROCESS_ATTACH:
+        if (!pa_set_root(hinstDLL))
+            return FALSE;
+        WSAStartup(MAKEWORD(2, 0), &data);
+        break;
+
+    case DLL_PROCESS_DETACH:
+        WSACleanup();
+        break;
+
+    }
     return TRUE;
 }
 
