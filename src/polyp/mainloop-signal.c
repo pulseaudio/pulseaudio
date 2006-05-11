@@ -62,14 +62,10 @@ static pa_io_event* io_event = NULL;
 static pa_signal_event *signals = NULL;
 
 static void signal_handler(int sig) {
-    int result;
 #ifndef HAVE_SIGACTION
     signal(sig, signal_handler);
 #endif
-    pa_log(__FILE__": Got signal %d", sig);
-    result = pa_write(signal_pipe[1], &sig, sizeof(sig));
-    if (result != sizeof(sig))
-        pa_log(__FILE__": Bad write (%d, %d)", result, WSAGetLastError());
+    pa_write(signal_pipe[1], &sig, sizeof(sig));
 }
 
 static void dispatch(pa_mainloop_api*a, int sig) {
