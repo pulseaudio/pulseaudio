@@ -91,7 +91,7 @@ static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_fla
     assert(fd >= 0);
     assert(userdata);
 
-    if ((f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) & !io->hungup) {
+    if ((f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) && !io->hungup) {
         io->hungup = 1;
         changed = 1;
     }
