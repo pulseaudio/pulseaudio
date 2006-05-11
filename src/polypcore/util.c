@@ -220,7 +220,7 @@ ssize_t pa_read(int fd, void *buf, size_t count) {
 }
 
 /** Similar to pa_read(), but handles writes */
-ssize_t pa_write(int fd, void *buf, size_t count) {
+ssize_t pa_write(int fd, const void *buf, size_t count) {
     ssize_t r;
 
 #ifdef OS_IS_WIN32
