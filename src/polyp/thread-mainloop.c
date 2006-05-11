@@ -206,7 +206,6 @@ void pa_threaded_mainloop_wait(pa_threaded_mainloop *m) {
     pthread_cond_wait(&m->cond, &m->mutex);
     assert(m->n_waiting > 0);
     m->n_waiting --;
-    pthread_cond_signal(&m->accept_cond);
 }
 
 void pa_threaded_mainloop_accept(pa_threaded_mainloop *m) {
