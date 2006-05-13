@@ -273,8 +273,8 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint3
         (ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[ss->format])) < 0 ||
     	(ret = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &r, NULL)) < 0 ||
         (ret = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, ss->channels)) < 0 ||
-        (*periods > 0 && (ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0) ||
         (*period_size > 0 && (ret = snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, period_size, NULL)) < 0) ||
+        (*periods > 0 && (ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0) ||
         (ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0)
         goto finish;
 
