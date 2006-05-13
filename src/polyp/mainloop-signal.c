@@ -84,8 +84,6 @@ static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags
     int sig;
     assert(a && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == signal_pipe[0]);
 
-    pa_log(__FILE__": Signal pipe callback");
-
     if ((r = pa_read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
         if (errno == EAGAIN)
             return;
