@@ -168,7 +168,8 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
 }
 
 size_t pa_resampler_request(pa_resampler *r, size_t out_length) {
-    assert(r && (out_length % r->o_fz) == 0);
+    assert(r);
+    
     return (((out_length / r->o_fz)*r->i_ss.rate)/r->o_ss.rate) * r->i_fz;
 }
 
