@@ -324,10 +324,22 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     ss = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map) < 0) {
+    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
         pa_log(__FILE__": failed to parse sample specification");
         goto fail;
     }
+
+    pa_alsa_channel_map_init_auto(&map, ss.channels);
+    if ((pa_modargs_get_channel_map(ma, &map) < 0)) {
+        pa_log(__FILE__": invalid channel map.");
+        goto fail;
+    }
+
+    if (ss.channels != map.channels) {
+        pa_log(__FILE__": channel map and sample specification don't match.");
+        goto fail;
+    }
+
     frame_size = pa_frame_size(&ss);
     
     periods = 8;
