@@ -97,8 +97,6 @@ static const char* const valid_modargs[] = {
 #define DEFAULT_SINK_NAME "oss_output"
 #define DEFAULT_SOURCE_NAME "oss_input"
 #define DEFAULT_DEVICE "/dev/dsp"
-#define DEFAULT_NFRAGS 12
-#define DEFAULT_FRAGSIZE 1024
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
@@ -348,19 +346,21 @@ int pa__init(pa_core *c, pa_module*m) {
 
     mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
 
-    nfrags = DEFAULT_NFRAGS;
-    frag_size = DEFAULT_FRAGSIZE;
-    if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
-        pa_log(__FILE__": failed to parse fragments arguments");
-        goto fail;
-    }
-
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map) < 0) {
         pa_log(__FILE__": failed to parse sample specification or channel map");
         goto fail;
     }
     
+    /* Fix latency to 100ms */
+    nfrags = 12;
+    frag_size = pa_bytes_per_second(&ss)/128;
+    
+    if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
+        pa_log(__FILE__": failed to parse fragments arguments");
+        goto fail;
+    }
+
     if ((fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, NULL)) < 0)
         goto fail;
 

@@ -333,9 +333,11 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     frame_size = pa_frame_size(&ss);
-    
+
+    /* Fix latency to 100ms */
     periods = 12;
-    fragsize = frame_size*1024;
+    fragsize = pa_bytes_per_second(&ss)/128;
+    
     if (pa_modargs_get_value_u32(ma, "fragments", &periods) < 0 || pa_modargs_get_value_u32(ma, "fragment_size", &fragsize) < 0) {
         pa_log(__FILE__": failed to parse buffer metrics");
         goto fail;
@@ -425,7 +427,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->frame_size = frame_size;
     u->fragment_size = period_size * frame_size;
 
-    pa_log(__FILE__": using %u fragments of size %lu bytes.", periods, (long unsigned) u->fragment_size);
+    pa_log_info(__FILE__": using %u fragments of size %lu bytes.", periods, (long unsigned) u->fragment_size);
 
     u->memchunk.memblock = NULL;
     u->memchunk.index = u->memchunk.length = 0;
