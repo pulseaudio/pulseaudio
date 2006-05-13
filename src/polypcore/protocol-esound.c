@@ -680,6 +680,7 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
 
     memcpy(&sc_length, data, sizeof(int32_t));
     sc_length = MAYBE_INT32_SWAP(c->swap_byte_order, sc_length);
+    data = (const char*)data + sizeof(int32_t);
 
     CHECK_VALIDITY(sc_length <= MAX_CACHE_SAMPLE_SIZE, "Sample too large.");
 
@@ -694,7 +695,7 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     c->scache.sample_spec = ss;
     assert(!c->scache.name);
     c->scache.name = pa_xstrdup(name);
-
+    
     c->state = ESD_CACHING_SAMPLE;
 
     pa_scache_add_item(c->protocol->core, c->scache.name, NULL, NULL, NULL, &idx);
