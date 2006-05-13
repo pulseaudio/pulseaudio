@@ -118,7 +118,11 @@ static void do_read(struct userdata *u) {
             u->memchunk.index = 0;
         }
             
-        assert(u->memchunk.memblock && u->memchunk.memblock->data && u->memchunk.length && u->memchunk.memblock->length && (u->memchunk.length % u->frame_size) == 0);
+        assert(u->memchunk.memblock);
+        assert(u->memchunk.length);
+        assert(u->memchunk.memblock->data);
+        assert(u->memchunk.memblock->length);
+        assert(u->memchunk.length % u->frame_size == 0);
 
         if ((frames = snd_pcm_readi(u->pcm_handle, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length / u->frame_size)) < 0) {
             if (frames == -EAGAIN)
@@ -331,12 +335,12 @@ int pa__init(pa_core *c, pa_module*m) {
     frame_size = pa_frame_size(&ss);
     
     periods = 12;
-    fragsize = 1024;
+    fragsize = frame_size*1024;
     if (pa_modargs_get_value_u32(ma, "fragments", &periods) < 0 || pa_modargs_get_value_u32(ma, "fragment_size", &fragsize) < 0) {
         pa_log(__FILE__": failed to parse buffer metrics");
         goto fail;
     }
-    period_size = fragsize;
+    period_size = fragsize/frame_size;
     
     u = pa_xmalloc0(sizeof(struct userdata));
     m->userdata = u;
@@ -419,9 +423,9 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     u->frame_size = frame_size;
-    u->fragment_size = period_size;
+    u->fragment_size = period_size * frame_size;
 
-    pa_log(__FILE__": using %u fragments of size %lu bytes.", periods, (long unsigned)u->fragment_size);
+    pa_log(__FILE__": using %u fragments of size %lu bytes.", periods, (long unsigned) u->fragment_size);
 
     u->memchunk.memblock = NULL;
     u->memchunk.index = u->memchunk.length = 0;
