@@ -481,6 +481,7 @@ polypcoreinclude_HEADERS = \
 		polypcore/strbuf.h \
 		polypcore/tokenizer.h \
 		polypcore/util.h \
+		polypcore/utf8.h \
 		polypcore/xmalloc.h
 
 lib_LTLIBRARIES += libpolypcore.la
@@ -541,7 +542,8 @@ libpolypcore_la_SOURCES += \
 		polypcore/tokenizer.c polypcore/tokenizer.h \
 		polypcore/util.c polypcore/util.h \
 		polypcore/winsock.h \
-		polypcore/xmalloc.c polypcore/xmalloc.h
+		polypcore/xmalloc.c polypcore/xmalloc.h \
+		polypcore/utf8.c polypcore/utf8.h
 
 if OS_IS_WIN32
 libpolypcore_la_SOURCES += \
