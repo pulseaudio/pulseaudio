@@ -341,6 +341,8 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     strncpy(name, data, sizeof(name));
     name[sizeof(name)-1] = 0;
 
+    CHECK_VALIDITY(pa_utf8_valid(name), "Invalid UTF8 in stream name");
+    
     pa_client_set_name(c->client, name);
 
     assert(!c->sink_input && !c->input_memblockq);
@@ -422,6 +424,8 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     
     strncpy(name, data, sizeof(name));
     name[sizeof(name)-1] = 0;
+
+    CHECK_VALIDITY(pa_utf8_valid(name), "Invalid UTF8 in stream name.");
 
     pa_client_set_name(c->client, name);
 
@@ -689,6 +693,8 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     strcpy(name, SCACHE_PREFIX);
     strncpy(name+sizeof(SCACHE_PREFIX)-1, data, ESD_NAME_MAX);
     name[sizeof(name)-1] = 0;
+
+    CHECK_VALIDITY(pa_utf8_valid(name), "Invalid UTF8 in sample name.");
     
     assert(!c->scache.memchunk.memblock);
     c->scache.memchunk.memblock = pa_memblock_new(sc_length, c->protocol->core->memblock_stat);
@@ -718,6 +724,8 @@ static int esd_proto_sample_get_id(struct connection *c, PA_GCC_UNUSED esd_proto
     strcpy(name, SCACHE_PREFIX);
     strncpy(name+sizeof(SCACHE_PREFIX)-1, data, ESD_NAME_MAX);
     name[sizeof(name)-1] = 0;
+
+    CHECK_VALIDITY(pa_utf8_valid(name), "Invalid UTF8 in sample name.");
 
     ok = -1;
     if ((idx = pa_scache_get_id_by_name(c->protocol->core, name)) != PA_IDXSET_INVALID)
