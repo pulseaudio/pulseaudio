@@ -42,7 +42,7 @@ struct pa_client {
     void *userdata;
 };
 
-pa_client *pa_client_new(pa_core *c, const char *name, const char *driver);
+pa_client *pa_client_new(pa_core *c, const char *driver, const char *name);
 
 /* This function should be called only by the code that created the client */
 void pa_client_free(pa_client *c);

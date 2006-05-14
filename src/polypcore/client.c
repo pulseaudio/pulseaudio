@@ -34,7 +34,7 @@
 
 #include "client.h"
 
-pa_client *pa_client_new(pa_core *core, const char *name, const char *driver) {
+pa_client *pa_client_new(pa_core *core, const char *driver, const char *name) {
     pa_client *c;
     int r;
     assert(core);
