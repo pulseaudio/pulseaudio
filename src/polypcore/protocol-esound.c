@@ -345,7 +345,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
 
     assert(!c->sink_input && !c->input_memblockq);
 
-    c->sink_input = pa_sink_input_new(sink, __FILE__, name, &ss, NULL, 0, -1);
+    c->sink_input = pa_sink_input_new(sink, __FILE__, name, &ss, NULL, NULL, 0, -1);
 
     CHECK_VALIDITY(c->sink_input, "Failed to create sink input.");
 
@@ -532,9 +532,10 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         assert(t >= k*2+s);
         
         if (conn->sink_input) {
+            pa_cvolume volume = *pa_sink_input_get_volume(conn->sink_input);
             rate = conn->sink_input->sample_spec.rate;
-            lvolume = (conn->sink_input->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM;
-            rvolume = (conn->sink_input->volume.values[1]*ESD_VOLUME_BASE)/PA_VOLUME_NORM;
+            lvolume = (volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM;
+            rvolume = (volume.values[1]*ESD_VOLUME_BASE)/PA_VOLUME_NORM;
             format = format_native2esd(&conn->sink_input->sample_spec);
         }
         
@@ -643,11 +644,12 @@ static int esd_proto_stream_pan(struct connection *c, PA_GCC_UNUSED esd_proto_t 
     rvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, rvolume);
     data = (const char*)data + sizeof(uint32_t);
 
-    if ((conn = pa_idxset_get_by_index(c->protocol->connections, idx))) {
-        assert(conn->sink_input);
-        conn->sink_input->volume.values[0] = (lvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
-        conn->sink_input->volume.values[1] = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
-        conn->sink_input->volume.channels = 2;
+    if ((conn = pa_idxset_get_by_index(c->protocol->connections, idx)) && conn->sink_input) {
+        pa_cvolume volume;
+        volume.values[0] = (lvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
+        volume.values[1] = (rvolume*PA_VOLUME_NORM)/ESD_VOLUME_BASE;
+        volume.channels = 2;
+        pa_sink_input_set_volume(conn->sink_input, &volume);
         ok = 1;
     } else
         ok = 0;

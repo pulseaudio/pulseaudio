@@ -1037,7 +1037,7 @@ int pa_unlock_lockfile(const char *fn, int fd) {
  * file system. If "result" is non-NULL, a pointer to a newly
  * allocated buffer containing the used configuration file is
  * stored there.*/
-FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result) {
+FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result, const char *mode) {
     const char *fn;
     char h[PATH_MAX];
 
@@ -1058,7 +1058,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         if (result)
             *result = pa_xstrdup(fn);
 
-        return fopen(fn, "r");
+        return fopen(fn, mode);
     }
 
     if (local && pa_get_home_dir(h, sizeof(h))) {
@@ -1073,7 +1073,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         fn = buf;
 #endif
 
-        f = fopen(fn, "r");
+        f = fopen(fn, mode);
 
         if (f || errno != ENOENT) {
             if (result)
@@ -1101,7 +1101,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
     if (result)
         *result = pa_xstrdup(global);
     
-    return fopen(global, "r");
+    return fopen(global, mode);
 }
                  
 /* Format the specified data as a hexademical string */

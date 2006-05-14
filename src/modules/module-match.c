@@ -43,7 +43,7 @@
 #include "module-match-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Sink input matching module")
+PA_MODULE_DESCRIPTION("Playback stream expression matching module")
 PA_MODULE_USAGE("table=<filename>")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 
@@ -81,7 +81,7 @@ static int load_rules(struct userdata *u, const char *filename) {
 
     f = filename ?
         fopen(fn = pa_xstrdup(filename), "r") :
-        pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn);
+        pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn, "r");
 
     if (!f) {
         pa_log(__FILE__": failed to open file '%s': %s", fn, strerror(errno));

@@ -158,11 +158,9 @@ int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume) {
         goto fail;
     }
     
-    if (!(u->sink_input = pa_sink_input_new(sink, __FILE__, fname, &ss, NULL, 0, -1)))
+    if (!(u->sink_input = pa_sink_input_new(sink, __FILE__, fname, &ss, NULL, volume, 0, -1)))
         goto fail;
 
-    if (volume)
-        u->sink_input->volume = *volume;
     u->sink_input->peek = sink_input_peek;
     u->sink_input->drop = sink_input_drop;
     u->sink_input->kill = sink_input_kill;

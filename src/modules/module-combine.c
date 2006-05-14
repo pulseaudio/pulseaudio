@@ -238,7 +238,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
             sink->core->memblock_stat);
 
     snprintf(t, sizeof(t), "%s: output #%u", u->sink->name, u->n_outputs+1);
-    if (!(o->sink_input = pa_sink_input_new(sink, __FILE__, t, &u->sink->sample_spec, &u->sink->channel_map, 1, resample_method)))
+    if (!(o->sink_input = pa_sink_input_new(sink, __FILE__, t, &u->sink->sample_spec, &u->sink->channel_map, NULL, 1, resample_method)))
         goto fail;
 
     o->sink_input->get_latency = sink_input_get_latency_cb;

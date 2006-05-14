@@ -98,12 +98,9 @@ int pa_play_memchunk(
     if (cvolume && pa_cvolume_is_muted(cvolume))
         return 0;
 
-    if (!(si = pa_sink_input_new(sink, name, __FILE__, ss, map, 0, PA_RESAMPLER_INVALID)))
+    if (!(si = pa_sink_input_new(sink, name, __FILE__, ss, map, cvolume, 0, PA_RESAMPLER_INVALID)))
         return -1;
 
-    if (cvolume)
-        si->volume = *cvolume;
-    
     si->peek = sink_input_peek;
     si->drop = sink_input_drop;
     si->kill = sink_input_kill;

@@ -75,6 +75,7 @@ pa_sink_input* pa_sink_input_new(
     const char *name,
     const pa_sample_spec *spec,
     const pa_channel_map *map,
+    const pa_cvolume *volume,
     int variable_rate,
     int resample_method);
 

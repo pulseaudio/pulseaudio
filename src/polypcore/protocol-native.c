@@ -386,7 +386,7 @@ static struct playback_stream* playback_stream_new(
     if (ssync && ssync->sink_input->sink != sink)
         return NULL;
     
-    if (!(sink_input = pa_sink_input_new(sink, __FILE__, name, ss, map, 0, -1)))
+    if (!(sink_input = pa_sink_input_new(sink, __FILE__, name, ss, map, volume, 0, -1)))
         return NULL;
     
     s = pa_xnew(struct playback_stream, 1);
@@ -436,8 +436,6 @@ static struct playback_stream* playback_stream_new(
     
     s->requested_bytes = 0;
     s->drain_request = 0;
-
-    s->sink_input->volume = *volume;
     
     pa_idxset_put(c->output_streams, s, &s->index);
 

@@ -84,7 +84,7 @@ pa_daemon_conf* pa_daemon_conf_new(void) {
     FILE *f;
     pa_daemon_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
 
-    if ((f = pa_open_config_file(DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER, ENV_SCRIPT_FILE, &c->default_script_file)))
+    if ((f = pa_open_config_file(DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER, ENV_SCRIPT_FILE, &c->default_script_file, "r")))
         fclose(f);
 
 #ifdef DLSEARCHPATH
@@ -233,7 +233,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
 
     f = filename ?
         fopen(c->config_file = pa_xstrdup(filename), "r") :
-        pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file);
+        pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file, "r");
 
     if (!f && errno != ENOENT) {
         pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s", filename, strerror(errno));

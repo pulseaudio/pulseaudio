@@ -286,7 +286,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
                           sdp_info->session_name ? sdp_info->session_name : "", 
                           sdp_info->session_name ? ")" : "");
 
-    s->sink_input = pa_sink_input_new(sink, __FILE__, c, &sdp_info->sample_spec, NULL, 0, PA_RESAMPLER_INVALID);
+    s->sink_input = pa_sink_input_new(sink, __FILE__, c, &sdp_info->sample_spec, NULL, NULL, 0, PA_RESAMPLER_INVALID);
     pa_xfree(c);
         
     if (!s->sink_input) {

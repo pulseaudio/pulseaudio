@@ -43,6 +43,7 @@ pa_sink_input* pa_sink_input_new(
     const char *name,
     const pa_sample_spec *spec,
     const pa_channel_map *map,
+    const pa_cvolume *volume, 
     int variable_rate,
     int resample_method) {
     
@@ -56,6 +57,7 @@ pa_sink_input* pa_sink_input_new(
     assert(spec);
     assert(s->state == PA_SINK_RUNNING);
 
+
     if (pa_idxset_size(s->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log_warn(__FILE__": Failed to create sink input: too many inputs per sink.");
         return NULL;
@@ -64,8 +66,16 @@ pa_sink_input* pa_sink_input_new(
     if (resample_method == PA_RESAMPLER_INVALID)
         resample_method = s->core->resample_method;
     
+    if (map && spec->channels != map->channels)
+        return NULL;
+
+    if (volume && spec->channels != volume->channels)
+        return NULL;
+
     if (!map) {
-        pa_channel_map_init_auto(&tmap, spec->channels);
+        if (!(pa_channel_map_init_auto(&tmap, spec->channels)))
+            return NULL;
+        
         map = &tmap;
     }
 
@@ -85,7 +95,10 @@ pa_sink_input* pa_sink_input_new(
     i->sample_spec = *spec;
     i->channel_map = *map;
 
-    pa_cvolume_reset(&i->volume, spec->channels);
+    if (volume)
+        i->volume = *volume;
+    else
+        pa_cvolume_reset(&i->volume, spec->channels);
     
     i->peek = NULL;
     i->drop = NULL;

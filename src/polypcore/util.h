@@ -87,7 +87,7 @@ int pa_lock_fd(int fd, int b);
 int pa_lock_lockfile(const char *fn);
 int pa_unlock_lockfile(const char *fn, int fd);
 
-FILE *pa_open_config_file(const char *env, const char *global, const char *local, char **result);
+FILE *pa_open_config_file(const char *global, const char *local, const char *env, char **result, const char *mode);
 
 char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength);
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength);
