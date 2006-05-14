@@ -534,12 +534,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (!client_name)
-        client_name = strdup(bn);
-
-    if (!stream_name)
-        stream_name = strdup(client_name);
-
     if (!pa_sample_spec_valid(&sample_spec)) {
         fprintf(stderr, "Invalid sample specification\n");
         goto quit;
@@ -571,12 +565,22 @@ int main(int argc, char *argv[]) {
             }
             
             close(fd);
+
+            if (!stream_name)
+                stream_name = strdup(argv[optind]);
+            
         } else {
             fprintf(stderr, "Too many arguments.\n");
             goto quit;
         }
     }
-    
+
+    if (!client_name)
+        client_name = strdup(bn);
+
+    if (!stream_name)
+        stream_name = strdup(client_name);
+
     /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {
         fprintf(stderr, "pa_mainloop_new() failed.\n");
