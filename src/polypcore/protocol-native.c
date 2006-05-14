@@ -53,6 +53,7 @@
 #include <polypcore/props.h>
 #include <polypcore/sample-util.h>
 #include <polypcore/llist.h>
+#include <polypcore/utf8.h>
 
 #include "protocol-native.h"
 
@@ -728,8 +729,8 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, sink_index != PA_INVALID_INDEX || !sink_name || *sink_name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, sink_index != PA_INVALID_INDEX || !sink_name || (*sink_name && pa_utf8_valid(name)), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_cvolume_valid(&volume), tag, PA_ERR_INVALID);
@@ -827,10 +828,10 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, source_index != PA_INVALID_INDEX || !source_name || *source_name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, source_index != PA_INVALID_INDEX || !source_name || (*source_name && pa_utf8_valid(source_name)), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
 
@@ -946,7 +947,7 @@ static void command_set_client_name(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSE
         return;
     }
 
-    CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
     
     pa_client_set_name(c->client, name);
     pa_pstream_send_simple_ack(c->pstream, tag);
@@ -965,7 +966,7 @@ static void command_lookup(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uin
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_LOOKUP_SINK) {
         pa_sink *sink;
@@ -1134,7 +1135,7 @@ static void command_create_upload_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, (length % pa_frame_size(&ss)) == 0 && length > 0, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, length <= PA_SCACHE_ENTRY_SIZE_MAX, tag, PA_ERR_TOOLARGE);
-    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
     
     s = upload_stream_new(c, &ss, &map, name, length);
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
@@ -1190,8 +1191,8 @@ static void command_play_sample(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED ui
     }
     
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, sink_index != PA_INVALID_INDEX || !sink_name || *sink_name, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, sink_index != PA_INVALID_INDEX || !sink_name || (*sink_name && pa_utf8_valid(name)), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
 
     if (sink_index != PA_INVALID_INDEX)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
@@ -1220,7 +1221,7 @@ static void command_remove_sample(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED 
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
 
     if (pa_scache_remove_item(c->protocol->core, name) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
@@ -1357,6 +1358,7 @@ static void command_get_info(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, u
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || !name || (*name && pa_utf8_valid(name)), tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_GET_SINK_INFO) {
         if (idx != PA_INVALID_INDEX)
@@ -1561,7 +1563,7 @@ static void command_set_volume(
     }
     
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || !name || *name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || !name || (*name && pa_utf8_valid(name)), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_cvolume_valid(&volume), tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_SET_SINK_VOLUME) {
@@ -1615,7 +1617,7 @@ static void command_set_mute(
     }
     
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || !name || *name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || !name || (*name && pa_utf8_valid(name)), tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_SET_SINK_MUTE) {
         if (idx != PA_INVALID_INDEX)
@@ -1811,7 +1813,7 @@ static void command_set_default_sink_or_source(PA_GCC_UNUSED pa_pdispatch *pd, u
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !s || *s, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !s || (*s && pa_utf8_valid(s)), tag, PA_ERR_INVALID);
 
     pa_namereg_set_default(c->protocol->core, s, command == PA_COMMAND_SET_DEFAULT_SOURCE ? PA_NAMEREG_SOURCE : PA_NAMEREG_SINK);
     pa_pstream_send_simple_ack(c->pstream, tag);
@@ -1831,7 +1833,7 @@ static void command_set_stream_name(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t com
     }
     
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_SET_PLAYBACK_STREAM_NAME) {
         struct playback_stream *s;
@@ -1910,8 +1912,9 @@ static void command_load_module(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED ui
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
-
+    CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name) && !strchr(name, '/'), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !argument || pa_utf8_valid(argument), tag, PA_ERR_INVALID);
+    
     if (!(m = pa_module_load(c->protocol->core, name, argument))) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_MODINITFAILED);
         return;
@@ -1960,9 +1963,10 @@ static void command_add_autoload(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED u
     }
     
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, name && *name, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, name && *name && pa_utf8_valid(name), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, type == 0 || type == 1, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, module && *module, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, module && *module && pa_utf8_valid(module), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !argument || pa_utf8_valid(argument), tag, PA_ERR_INVALID);
 
     if (pa_autoload_add(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, module, argument, &idx) < 0) {
         pa_pstream_send_error(c->pstream, tag, PA_ERR_EXIST);
@@ -1991,7 +1995,7 @@ static void command_remove_autoload(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSE
     
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
     CHECK_VALIDITY(c->pstream, name || idx != PA_IDXSET_INVALID, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, !name || (*name && (type == 0 || type == 1)), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || (*name && pa_utf8_valid(name) && (type == 0 || type == 1)), tag, PA_ERR_INVALID);
 
     if (name) 
         r = pa_autoload_remove_by_name(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE);
@@ -2031,7 +2035,7 @@ static void command_get_autoload_info(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNU
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
     CHECK_VALIDITY(c->pstream, name || idx != PA_IDXSET_INVALID, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, !name || (*name && (type == 0 || type == 1)), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !name || (*name && (type == 0 || type == 1) && pa_utf8_valid(name)), tag, PA_ERR_INVALID);
 
     if (name)
         a = pa_autoload_get_by_name(c->protocol->core, name, type == 0 ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE);
