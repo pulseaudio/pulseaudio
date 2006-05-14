@@ -742,7 +742,8 @@ modlib_LTLIBRARIES += \
 		module-null-sink.la \
 		module-esound-sink.la \
 		module-http-protocol-tcp.la \
-		module-detect.la
+		module-detect.la \
+		module-volume-restore.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -870,7 +871,8 @@ SYMDEF_FILES = \
 		modules/rtp/module-rtp-send-symdef.h \
 		modules/rtp/module-rtp-recv-symdef.h \
 		modules/module-jack-sink-symdef.h \
-		modules/module-jack-source-symdef.h 
+		modules/module-jack-source-symdef.h \
+		modules/module-volume-restore-symdef.h
 
 
 EXTRA_DIST += $(SYMDEF_FILES)
@@ -1086,6 +1088,12 @@ module_detect_la_SOURCES = modules/module-detect.c
 module_detect_la_LDFLAGS = -module -avoid-version
 module_detect_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 module_detect_la_CFLAGS = $(AM_CFLAGS)
+
+# Volume restore module
+module_volume_restore_la_SOURCES = modules/module-volume-restore.c
+module_volume_restore_la_LDFLAGS = -module -avoid-version
+module_volume_restore_la_LIBADD = $(AM_LIBADD) libpolypcore.la
+module_volume_restore_la_CFLAGS = $(AM_CFLAGS)
 
 # RTP modules
 module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
