@@ -118,7 +118,8 @@ void pa_subscription_free_all(pa_core *c) {
     }
 }
 
-/*static void dump_event(pa_subscription_event*e) {
+#if 0
+static void dump_event(pa_subscription_event*e) {
     switch (e->type & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
         case PA_SUBSCRIPTION_EVENT_SINK:
             pa_log(__FILE__": SINK_EVENT");
@@ -159,7 +160,8 @@ void pa_subscription_free_all(pa_core *c) {
     }
 
     pa_log(__FILE__":  %u", e->index);
-}*/
+}
+#endif
 
 /* Deferred callback for dispatching subscirption events */
 static void defer_cb(pa_mainloop_api *m, pa_defer_event *de, void *userdata) {
@@ -168,7 +170,6 @@ static void defer_cb(pa_mainloop_api *m, pa_defer_event *de, void *userdata) {
     assert(c && c->subscription_defer_event == de && c->mainloop == m);
 
     c->mainloop->defer_enable(c->subscription_defer_event, 0);
-
 
     /* Dispatch queued events */
     

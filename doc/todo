@@ -27,6 +27,7 @@ Post 0.8:
   changes if you're modifying a sink/source since those might have a different
   map.
 - don't install .a files of modules
+- check utf8 validity of strings
 
 Long term:
 - pass meta info for hearing impaired
