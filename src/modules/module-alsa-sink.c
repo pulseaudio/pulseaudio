@@ -346,8 +346,6 @@ int pa__init(pa_core *c, pa_module*m) {
     periods = 8;
     fragsize = pa_bytes_per_second(&ss)/128;
 
-    pa_log("req: %i %i", periods, fragsize);
-
     if (pa_modargs_get_value_u32(ma, "fragments", &periods) < 0 || pa_modargs_get_value_u32(ma, "fragment_size", &fragsize) < 0) {
         pa_log(__FILE__": failed to parse buffer metrics");
         goto fail;
