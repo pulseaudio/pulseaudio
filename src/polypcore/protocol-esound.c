@@ -45,6 +45,7 @@
 #include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 #include <polypcore/util.h>
+#include <polypcore/utf8.h>
 
 #include "endianmacros.h"
 
