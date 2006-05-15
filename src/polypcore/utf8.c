@@ -28,10 +28,14 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <string.h>
 
 #include "utf8.h"
+
+#define FILTER_CHAR '_'
 
 static inline int is_unicode_valid(uint32_t ch) {
     if (ch >= 0x110000) /* End of unicode space */
@@ -56,30 +60,39 @@ static inline void merge_continuation_char(uint32_t *u_ch, uint8_t ch) {
     *u_ch |= ch & 0x3f;
 }
 
-const char* pa_utf8_valid (const char *str) {
+static const char* utf8_validate (const char *str, char *output) {
     uint32_t val = 0;
     uint32_t min = 0;
     const uint8_t *p, *last;
+    int size;
+    uint8_t *o;
 
-    for (p = (uint8_t*)str; *p; p++) {
-        if (*p < 128)
-            /* done */;
-        else {
+    o = output;
+    for (p = (uint8_t*)str; *p; p++, o++) {
+        if (*p < 128) {
+            if (o)
+                *output = *p;
+        } else {
             last = p;
 
             if ((*p & 0xe0) == 0xc0) { /* 110xxxxx two-char seq. */
+                size = 2;
                 min = 128;
                 val = *p & 0x1e;
                 goto ONE_REMAINING;
             } else if ((*p & 0xf0) == 0xe0) { /* 1110xxxx three-char seq.*/
+                size = 3;
                 min = (1 << 11);
                 val = *p & 0x0f;
                 goto TWO_REMAINING;
             } else if ((*p & 0xf8) == 0xf0) { /* 11110xxx four-char seq */
+                size = 4;
                 min = (1 << 16);
                 val = *p & 0x07;
-            } else
+            } else {
+                size = 1;
                 goto error;
+            }
 
             p++;
             if (!is_continuation_char(*p))
@@ -103,11 +116,43 @@ ONE_REMAINING:
 
             if (!is_unicode_valid(val))
                 goto error;
+
+            if (o) {
+                memcpy(o, last, size);
+                o += size - 1;
+            }
+
+            continue;
+
+error:
+            if (o) {
+                *o = FILTER_CHAR;
+                p = last + 1; /* We retry at the next character */
+            } else
+                goto failure;
         }
+    }
+
+    if (o) {
+        *o = '\0';
+        return output;
     }
 
     return str;
 
-error:
+failure:
     return NULL;
+}
+
+const char* pa_utf8_valid (const char *str) {
+    return utf8_validate(str, NULL);
+}
+
+const char* pa_utf8_filter (const char *str) {
+    char *new_str;
+
+    new_str = malloc(strlen(str) + 1);
+    assert(new_str);
+
+    return utf8_validate(str, new_str);
 }
