@@ -29,87 +29,85 @@
 #endif
 
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include "utf8.h"
 
-#define UNICODE_VALID(Char)                   \
-    ((Char) < 0x110000 &&                     \
-     (((Char) & 0xFFFFF800) != 0xD800) &&     \
-     ((Char) < 0xFDD0 || (Char) > 0xFDEF) &&  \
-     ((Char) & 0xFFFE) != 0xFFFE)
-   
-     
-#define CONTINUATION_CHAR                           \
- do {                                     \
-  if ((*(const unsigned char *)p & 0xc0) != 0x80) /* 10xxxxxx */ \
-    goto error;                                     \
-  val <<= 6;                                        \
-  val |= (*(const unsigned char *)p) & 0x3f;                     \
- } while(0)
+static inline int is_unicode_valid(uint32_t ch) {
+    if (ch >= 0x110000) /* End of unicode space */
+        return 0;
+    if ((ch & 0xFFFFF800) == 0xD800) /* Reserved area for UTF-16 */
+        return 0;
+    if ((ch >= 0xFDD0) && (ch <= 0xFDEF)) /* Reserved */
+        return 0;
+    if ((ch & 0xFFFE) == 0xFFFE) /* BOM (Byte Order Mark) */
+        return 0;
+    return 1;
+}
 
+static inline int is_continuation_char(uint8_t ch) {
+    if ((ch & 0xc0) != 0x80) /* 10xxxxxx */
+        return 0;
+    return 1;
+}
 
-const char *
-pa_utf8_valid (const char *str)
+static inline void merge_continuation_char(uint32_t *u_ch, uint8_t ch) {
+    *u_ch <<= 6;
+    *u_ch |= ch & 0x3f;
+}
 
-{
-  unsigned val = 0;
-  unsigned min = 0;
-  const char *p;
+const char* pa_utf8_valid (const char *str) {
+    uint32_t val = 0;
+    uint32_t min = 0;
+    const uint8_t *p, *last;
 
-  for (p = str; *p; p++)
-    {
-      if (*(const unsigned char *)p < 128)
-	/* done */;
-      else 
-	{
-	  const char *last;
-	  
-	  last = p;
-	  if ((*(const unsigned char *)p & 0xe0) == 0xc0) /* 110xxxxx */
-	    {
-	      if ( ((*(const unsigned char *)p & 0x1e) == 0))
-		goto error;
-	      p++;
-	      if ( ((*(const unsigned char *)p & 0xc0) != 0x80)) /* 10xxxxxx */
-		goto error;
-	    }
-	  else
-	    {
-	      if ((*(const unsigned char *)p & 0xf0) == 0xe0) /* 1110xxxx */
-		{
-		  min = (1 << 11);
-		  val = *(const unsigned char *)p & 0x0f;
-		  goto TWO_REMAINING;
-		}
-	      else if ((*(const unsigned char *)p & 0xf8) == 0xf0) /* 11110xxx */
-		{
-		  min = (1 << 16);
-		  val = *(const unsigned char *)p & 0x07;
-		}
-	      else
-		goto error;
-	      
-	      p++;
-	      CONTINUATION_CHAR;
-	    TWO_REMAINING:
-	      p++;
-	      CONTINUATION_CHAR;
-	      p++;
-	      CONTINUATION_CHAR;
-	      
-	      if ( (val < min))
-		goto error;
+    for (p = (uint8_t*)str; *p; p++) {
+        if (*p < 128)
+            /* done */;
+        else {
+            last = p;
 
-	      if ( (!UNICODE_VALID(val)))
-		goto error;
-	    } 
-	  
-	  continue;
-	  
-	error:
-	  return NULL;
-	}
+            if ((*p & 0xe0) == 0xc0) { /* 110xxxxx two-char seq. */
+                min = 128;
+                val = *p & 0x1e;
+                goto ONE_REMAINING;
+            } else if ((*p & 0xf0) == 0xe0) { /* 1110xxxx three-char seq.*/
+                min = (1 << 11);
+                val = *p & 0x0f;
+                goto TWO_REMAINING;
+            } else if ((*p & 0xf8) == 0xf0) { /* 11110xxx four-char seq */
+                min = (1 << 16);
+                val = *p & 0x07;
+            } else
+                goto error;
+
+            p++;
+            if (!is_continuation_char(*p))
+                goto error;
+            merge_continuation_char(&val, *p);
+
+TWO_REMAINING:
+            p++;
+            if (!is_continuation_char(*p))
+                goto error;
+            merge_continuation_char(&val, *p);
+
+ONE_REMAINING:
+            p++;
+            if (!is_continuation_char(*p))
+                goto error;
+            merge_continuation_char(&val, *p);
+
+            if (val < min)
+                goto error;
+
+            if (!is_unicode_valid(val))
+                goto error;
+        }
     }
 
-  return str;
+    return str;
+
+error:
+    return NULL;
 }
