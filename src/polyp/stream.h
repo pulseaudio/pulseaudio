@@ -375,6 +375,9 @@ void pa_stream_set_overflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, voi
 /** Set the callback function that is called when a buffer underflow happens. (Only for playback streams) \since 0.8 */
 void pa_stream_set_underflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
+/** Set the callback function that is called whenever a latency information update happens. Useful on PA_STREAM_AUTO_TIMING_UPDATE streams only. (Only for playback streams) \since 0.8.2 */
+void pa_stream_set_latency_update_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
+
 /** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. \since 0.3 */
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata);
 

@@ -151,6 +151,8 @@ struct pa_stream {
     void *overflow_userdata;
     pa_stream_notify_cb_t underflow_callback;
     void *underflow_userdata;
+    pa_stream_notify_cb_t latency_update_callback;
+    void *latency_update_userdata;
 };
 
 typedef void (*pa_operation_cb_t)(void);

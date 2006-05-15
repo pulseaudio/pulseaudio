@@ -63,6 +63,8 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     s->overflow_userdata = NULL;
     s->underflow_callback = NULL;
     s->underflow_userdata = NULL;
+    s->latency_update_callback = NULL;
+    s->latency_update_userdata = NULL;
 
     s->direction = PA_STREAM_NODIRECTION;
     s->name = pa_xstrdup(name);
@@ -849,8 +851,11 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 o->stream->write_index_corrections[n].valid = 0;
         }
     }
+
+    if (o->stream->latency_update_callback)
+        o->stream->latency_update_callback(o->stream, o->stream->latency_update_userdata);
     
-    if (o->callback) {
+    if (o->callback && o->stream && o->stream->state == PA_STREAM_READY) {
         pa_stream_success_cb_t cb = (pa_stream_success_cb_t) o->callback;
         cb(o->stream, o->stream->timing_info_valid, o->userdata);
     }
@@ -997,6 +1002,14 @@ void pa_stream_set_underflow_callback(pa_stream *s, pa_stream_notify_cb_t cb, vo
     
     s->underflow_callback = cb;
     s->underflow_userdata = userdata;
+}
+
+void pa_stream_set_latency_update_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata) {
+    assert(s);
+    assert(s->ref >= 1);
+    
+    s->latency_update_callback = cb;
+    s->latency_update_userdata = userdata;
 }
 
 void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
