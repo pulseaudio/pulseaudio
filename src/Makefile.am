@@ -744,8 +744,7 @@ modlib_LTLIBRARIES += \
 		module-null-sink.la \
 		module-esound-sink.la \
 		module-http-protocol-tcp.la \
-		module-detect.la \
-		module-volume-restore.la
+		module-detect.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -777,7 +776,8 @@ endif
 
 if HAVE_REGEX
 modlib_LTLIBRARIES += \
-		module-match.la
+		module-match.la \
+		module-volume-restore.la
 endif
 
 if HAVE_X11
