@@ -189,7 +189,8 @@ noinst_PROGRAMS = \
 		memblockq-test \
 		sync-playback \
 		channelmap-test \
-		thread-mainloop-test
+		thread-mainloop-test \
+		utf8-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -216,6 +217,11 @@ thread_mainloop_test_SOURCES = tests/thread-mainloop-test.c
 thread_mainloop_test_CFLAGS = $(AM_CFLAGS)
 thread_mainloop_test_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
 thread_mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+utf8_test_SOURCES = tests/utf8-test.c
+utf8_test_CFLAGS = $(AM_CFLAGS)
+utf8_test_LDADD = $(AM_LDADD) libpolypcore.la
+utf8_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
