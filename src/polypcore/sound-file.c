@@ -75,7 +75,7 @@ int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *ma
     }
 
     if (map)
-        pa_channel_map_init_auto(map, ss->channels);
+        pa_channel_map_init_auto(map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
     
     if ((l = pa_frame_size(ss)*sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log(__FILE__": File too large");

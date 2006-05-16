@@ -34,25 +34,42 @@
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>
 #include <polypcore/sample-util.h>
+#include <polypcore/utf8.h>
 
 #include "source.h"
 
+#define CHECK_VALIDITY_RETURN_NULL(condition) \
+do {\
+if (!(condition)) \
+    return NULL; \
+} while (0)
+
 pa_source* pa_source_new(
-    pa_core *core,
-    const char *driver,
-    const char *name,
-    int fail,
-    const pa_sample_spec *spec,
-    const pa_channel_map *map) {
+        pa_core *core,
+        const char *driver,
+        const char *name,
+        int fail,
+        const pa_sample_spec *spec,
+        const pa_channel_map *map) {
     
     pa_source *s;
     char st[256];
     int r;
+    pa_channel_map tmap;
     
     assert(core);
     assert(name);
-    assert(*name);
     assert(spec);
+
+    CHECK_VALIDITY_RETURN_NULL(pa_sample_spec_valid(spec));
+
+    if (!map)
+        map = pa_channel_map_init_auto(&tmap, spec->channels, PA_CHANNEL_MAP_DEFAULT);
+
+    CHECK_VALIDITY_RETURN_NULL(map && pa_channel_map_valid(map));
+    CHECK_VALIDITY_RETURN_NULL(map->channels == spec->channels);
+    CHECK_VALIDITY_RETURN_NULL(!driver || pa_utf8_valid(driver));
+    CHECK_VALIDITY_RETURN_NULL(pa_utf8_valid(name) && *name);
 
     s = pa_xnew(pa_source, 1);
 
@@ -70,10 +87,7 @@ pa_source* pa_source_new(
     s->owner = NULL;
     
     s->sample_spec = *spec;
-    if (map)
-        s->channel_map = *map;
-    else
-        pa_channel_map_init_auto(&s->channel_map, spec->channels);
+    s->channel_map = *map;
 
     s->outputs = pa_idxset_new(NULL, NULL);
     s->monitor_of = NULL;

@@ -141,7 +141,7 @@ int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, c
 
     if (ss) {
         e->sample_spec = *ss;
-        pa_channel_map_init_auto(&e->channel_map, ss->channels);
+        pa_channel_map_init_auto(&e->channel_map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
         e->volume.channels = e->sample_spec.channels;
     }
 

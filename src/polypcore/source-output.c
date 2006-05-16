@@ -31,16 +31,23 @@
 #include <polypcore/xmalloc.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>
+#include <polypcore/utf8.h>
 
 #include "source-output.h"
 
+#define CHECK_VALIDITY_RETURN_NULL(condition) \
+do {\
+if (!(condition)) \
+    return NULL; \
+} while (0)
+
 pa_source_output* pa_source_output_new(
-    pa_source *s,
-    const char *driver,
-    const char *name,
-    const pa_sample_spec *spec,
-    const pa_channel_map *map,
-    int resample_method) {
+        pa_source *s,
+        const char *driver,
+        const char *name,
+        const pa_sample_spec *spec,
+        const pa_channel_map *map,
+        int resample_method) {
     
     pa_source_output *o;
     pa_resampler *resampler = NULL;
@@ -51,7 +58,17 @@ pa_source_output* pa_source_output_new(
     assert(s);
     assert(spec);
     assert(s->state == PA_SOURCE_RUNNING);
+
+    CHECK_VALIDITY_RETURN_NULL(pa_sample_spec_valid(spec));
+
+    if (!map)
+        map = pa_channel_map_init_auto(&tmap, spec->channels, PA_CHANNEL_MAP_DEFAULT);
     
+    CHECK_VALIDITY_RETURN_NULL(map && pa_channel_map_valid(map));
+    CHECK_VALIDITY_RETURN_NULL(map->channels == spec->channels);
+    CHECK_VALIDITY_RETURN_NULL(!driver || pa_utf8_valid(driver));
+    CHECK_VALIDITY_RETURN_NULL(pa_utf8_valid(name));
+
     if (pa_idxset_size(s->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
         pa_log(__FILE__": Failed to create source output: too many outputs per source.");
         return NULL;
@@ -60,16 +77,11 @@ pa_source_output* pa_source_output_new(
     if (resample_method == PA_RESAMPLER_INVALID)
         resample_method = s->core->resample_method;
 
-    if (!map) {
-        pa_channel_map_init_auto(&tmap, spec->channels);
-        map = &tmap;
-    }
-    
     if (!pa_sample_spec_equal(&s->sample_spec, spec) || !pa_channel_map_equal(&s->channel_map, map))
         if (!(resampler = pa_resampler_new(&s->sample_spec, &s->channel_map, spec, map, s->core->memblock_stat, resample_method)))
             return NULL;
     
-    o = pa_xmalloc(sizeof(pa_source_output));
+    o = pa_xnew(pa_source_output, 1);
     o->ref = 1;
     o->state = PA_SOURCE_OUTPUT_RUNNING;
     o->name = pa_xstrdup(name);
@@ -136,7 +148,6 @@ static void source_output_free(pa_source_output* o) {
     pa_xfree(o->driver);
     pa_xfree(o);
 }
-
 
 void pa_source_output_unref(pa_source_output* o) {
     assert(o);

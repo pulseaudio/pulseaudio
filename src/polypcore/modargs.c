@@ -280,7 +280,7 @@ int pa_modargs_get_channel_map(pa_modargs *ma, pa_channel_map *rmap) {
     return 0;
 }
 
-int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *rss, pa_channel_map *rmap) {
+int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *rss, pa_channel_map *rmap, pa_channel_map_def_t def) {
     pa_sample_spec ss;
     pa_channel_map map;
     
@@ -293,7 +293,8 @@ int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *r
     if (pa_modargs_get_sample_spec(ma, &ss) < 0)
         return -1;
 
-    pa_channel_map_init_auto(&map, ss.channels);
+    if (!pa_channel_map_init_auto(&map, ss.channels, def))
+        map.channels = 0;
 
     if (pa_modargs_get_channel_map(ma, &map) < 0)
         return -1;

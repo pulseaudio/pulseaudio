@@ -120,6 +120,15 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_MAX
 } pa_channel_position_t;
 
+/** A list of channel mapping definitions for pa_channel_map_init_auto() */
+typedef enum pa_channel_map_def {
+    PA_CHANNEL_MAP_AIFF, /**< The mapping from RFC3551, which is based on AIFF-C */
+    PA_CHANNEL_MAP_ALSA, /**< The default mapping used by ALSA */
+    PA_CHANNEL_MAP_AUX,  /**< Only aux channels */
+    
+    PA_CHANNEL_MAP_DEFAULT = PA_CHANNEL_MAP_AIFF /**< The default channel map */
+} pa_channel_map_def_t;
+
 /** A channel map which can be used to attach labels to specific
  * channels of a stream. These values are relevant for conversion and
  * mixing of streams */
@@ -138,9 +147,8 @@ pa_channel_map* pa_channel_map_init_mono(pa_channel_map *m);
 pa_channel_map* pa_channel_map_init_stereo(pa_channel_map *m);
 
 /** Initialize the specified channel map for the specified number
- * of channels using default labels and return a pointer to it.
- * Uses the mapping from RFC3551, which is based on AIFF-C. */
-pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels);
+ * of channels using default labels and return a pointer to it. */
+pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, pa_channel_map_def_t def);
 
 /** Return a text label for the specified channel position */
 const char* pa_channel_position_to_string(pa_channel_position_t pos);

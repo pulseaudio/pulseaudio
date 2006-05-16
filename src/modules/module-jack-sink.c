@@ -296,7 +296,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    pa_channel_map_init_auto(&map, channels);
+    pa_channel_map_init_auto(&map, channels, PA_CHANNEL_MAP_ALSA);
     if (pa_modargs_get_channel_map(ma, &map) < 0 || map.channels != channels) {
         pa_log(__FILE__": failed to parse channel_map= argument.");
         goto fail;

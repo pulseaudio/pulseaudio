@@ -32,32 +32,53 @@
 #include <polypcore/xmalloc.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>
+#include <polypcore/utf8.h>
 
 #include "sink-input.h"
 
 #define CONVERT_BUFFER_LENGTH 4096
 
+#define CHECK_VALIDITY_RETURN_NULL(condition) \
+do {\
+if (!(condition)) \
+    return NULL; \
+} while (0)
+
 pa_sink_input* pa_sink_input_new(
-    pa_sink *s,
-    const char *driver,
-    const char *name,
-    const pa_sample_spec *spec,
-    const pa_channel_map *map,
-    const pa_cvolume *volume, 
-    int variable_rate,
-    int resample_method) {
+        pa_sink *s,
+        const char *driver,
+        const char *name,
+        const pa_sample_spec *spec,
+        const pa_channel_map *map,
+        const pa_cvolume *volume, 
+        int variable_rate,
+        int resample_method) {
     
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
     int r;
     char st[256];
     pa_channel_map tmap;
+    pa_cvolume tvol;
 
     assert(s);
     assert(spec);
     assert(s->state == PA_SINK_RUNNING);
 
+    CHECK_VALIDITY_RETURN_NULL(pa_sample_spec_valid(spec));
 
+    if (!map)
+        map = pa_channel_map_init_auto(&tmap, spec->channels, PA_CHANNEL_MAP_DEFAULT);
+    if (!volume)
+        volume = pa_cvolume_reset(&tvol, spec->channels);
+
+    CHECK_VALIDITY_RETURN_NULL(map && pa_channel_map_valid(map));
+    CHECK_VALIDITY_RETURN_NULL(volume && pa_cvolume_valid(volume));
+    CHECK_VALIDITY_RETURN_NULL(map->channels == spec->channels);
+    CHECK_VALIDITY_RETURN_NULL(volume->channels == spec->channels);
+    CHECK_VALIDITY_RETURN_NULL(!driver || pa_utf8_valid(driver));
+    CHECK_VALIDITY_RETURN_NULL(pa_utf8_valid(name));
+            
     if (pa_idxset_size(s->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log_warn(__FILE__": Failed to create sink input: too many inputs per sink.");
         return NULL;
@@ -66,19 +87,6 @@ pa_sink_input* pa_sink_input_new(
     if (resample_method == PA_RESAMPLER_INVALID)
         resample_method = s->core->resample_method;
     
-    if (map && spec->channels != map->channels)
-        return NULL;
-
-    if (volume && spec->channels != volume->channels)
-        return NULL;
-
-    if (!map) {
-        if (!(pa_channel_map_init_auto(&tmap, spec->channels)))
-            return NULL;
-        
-        map = &tmap;
-    }
-
     if (variable_rate || !pa_sample_spec_equal(spec, &s->sample_spec) || !pa_channel_map_equal(map, &s->channel_map))
         if (!(resampler = pa_resampler_new(spec, map, &s->sample_spec, &s->channel_map, s->core->memblock_stat, resample_method)))
             return NULL;
@@ -94,12 +102,8 @@ pa_sink_input* pa_sink_input_new(
 
     i->sample_spec = *spec;
     i->channel_map = *map;
-
-    if (volume)
-        i->volume = *volume;
-    else
-        pa_cvolume_reset(&i->volume, spec->channels);
-    
+    i->volume = *volume;
+        
     i->peek = NULL;
     i->drop = NULL;
     i->kill = NULL;

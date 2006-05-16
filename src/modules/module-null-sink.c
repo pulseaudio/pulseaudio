@@ -104,7 +104,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     ss = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map) < 0) {
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
         pa_log(__FILE__": invalid sample format specification or channel map.");
         goto fail;
     }

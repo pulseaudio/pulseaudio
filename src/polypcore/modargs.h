@@ -55,6 +55,6 @@ pa_modargs_get_channel_map(). Not always suitable, since this routine
 initializes the map parameter based on the channels field of the ss
 structure if no channel_map is found, using pa_channel_map_init_auto() */
 
-int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *ss, pa_channel_map *map);
+int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *ss, pa_channel_map *map, pa_channel_map_def_t def);
 
 #endif

@@ -112,7 +112,7 @@ pa_channel_map* pa_channel_map_init_stereo(pa_channel_map *m) {
     return m;
 }
 
-pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels) {
+pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, pa_channel_map_def_t def) {
     assert(m);
     assert(channels > 0);
     assert(channels <= PA_CHANNELS_MAX);
@@ -121,46 +121,99 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels) {
 
     m->channels = channels;
 
-    /* This is somewhat compatible with RFC3551 */
-    
-    switch (channels) {
-        case 1:
-            m->map[0] = PA_CHANNEL_POSITION_MONO;
-            return m;
-
-        case 6:
-            m->map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
-            m->map[1] = PA_CHANNEL_POSITION_SIDE_LEFT;
-            m->map[2] = PA_CHANNEL_POSITION_FRONT_CENTER;
-            m->map[3] = PA_CHANNEL_POSITION_FRONT_RIGHT;
-            m->map[4] = PA_CHANNEL_POSITION_SIDE_RIGHT;
-            m->map[5] = PA_CHANNEL_POSITION_LFE;
-            return m;
+    switch (def) {
+        case PA_CHANNEL_MAP_AIFF:
             
-        case 5:
-            m->map[2] = PA_CHANNEL_POSITION_FRONT_CENTER;
-            m->map[3] = PA_CHANNEL_POSITION_REAR_LEFT;
-            m->map[4] = PA_CHANNEL_POSITION_REAR_RIGHT;
-            /* Fall through */
+            /* This is somewhat compatible with RFC3551 */
             
-        case 2:
-            m->map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
-            m->map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
-            return m;
+            switch (channels) {
+                case 1:
+                    m->map[0] = PA_CHANNEL_POSITION_MONO;
+                    return m;
+                    
+                case 6:
+                    m->map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
+                    m->map[1] = PA_CHANNEL_POSITION_SIDE_LEFT;
+                    m->map[2] = PA_CHANNEL_POSITION_FRONT_CENTER;
+                    m->map[3] = PA_CHANNEL_POSITION_FRONT_RIGHT;
+                    m->map[4] = PA_CHANNEL_POSITION_SIDE_RIGHT;
+                    m->map[5] = PA_CHANNEL_POSITION_LFE;
+                    return m;
+                    
+                case 5:
+                    m->map[2] = PA_CHANNEL_POSITION_FRONT_CENTER;
+                    m->map[3] = PA_CHANNEL_POSITION_REAR_LEFT;
+                    m->map[4] = PA_CHANNEL_POSITION_REAR_RIGHT;
+                    /* Fall through */
+                    
+                case 2:
+                    m->map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
+                    m->map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
+                    return m;
+                    
+                case 3:
+                    m->map[0] = PA_CHANNEL_POSITION_LEFT;
+                    m->map[1] = PA_CHANNEL_POSITION_RIGHT;
+                    m->map[2] = PA_CHANNEL_POSITION_CENTER;
+                    return m;
+                    
+                case 4:
+                    m->map[0] = PA_CHANNEL_POSITION_LEFT;
+                    m->map[1] = PA_CHANNEL_POSITION_CENTER;
+                    m->map[2] = PA_CHANNEL_POSITION_RIGHT;
+                    m->map[3] = PA_CHANNEL_POSITION_LFE;
+                    return m;
+                    
+                default:
+                    return NULL;
+            }
 
-        case 3:
-            m->map[0] = PA_CHANNEL_POSITION_LEFT;
-            m->map[1] = PA_CHANNEL_POSITION_RIGHT;
-            m->map[2] = PA_CHANNEL_POSITION_CENTER;
-            return m;
+        case PA_CHANNEL_MAP_ALSA:
 
-        case 4:
-            m->map[0] = PA_CHANNEL_POSITION_LEFT;
-            m->map[1] = PA_CHANNEL_POSITION_CENTER;
-            m->map[2] = PA_CHANNEL_POSITION_RIGHT;
-            m->map[3] = PA_CHANNEL_POSITION_LFE;
-            return m;
+            switch (channels) {
+                case 1:
+                    m->map[0] = PA_CHANNEL_POSITION_MONO;
+                    return m;
+                    
+                case 8:
+                    m->map[6] = PA_CHANNEL_POSITION_SIDE_LEFT;
+                    m->map[7] = PA_CHANNEL_POSITION_SIDE_RIGHT;
+                    /* Fall through */
+                    
+                case 6:
+                    m->map[5] = PA_CHANNEL_POSITION_LFE;
+                    /* Fall through */
+                    
+                case 5:
+                    m->map[4] = PA_CHANNEL_POSITION_FRONT_CENTER;
+                    /* Fall through */
+                    
+                case 4:
+                    m->map[2] = PA_CHANNEL_POSITION_REAR_LEFT;
+                    m->map[3] = PA_CHANNEL_POSITION_REAR_RIGHT;
+                    /* Fall through */
+                    
+                case 2:
+                    m->map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
+                    m->map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
+                    return m;
+                    
+                default:
+                    return NULL;
+            }
+
+        case PA_CHANNEL_MAP_AUX: {
+            unsigned i;
             
+            if (channels >= PA_CHANNELS_MAX)
+                return NULL;
+
+            for (i = 0; i < channels; i++)
+                m->map[i] = PA_CHANNEL_POSITION_AUX0 + i;
+            
+            return m;
+        }
+
         default:
             return NULL;
     }

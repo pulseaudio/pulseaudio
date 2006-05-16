@@ -42,6 +42,4 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, const pa_sample_spec *ss, uint3
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
 snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name);
 
-pa_channel_map* pa_alsa_channel_map_init_auto(pa_channel_map *m, unsigned channels);
-
 #endif

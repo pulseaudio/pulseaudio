@@ -74,7 +74,7 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     if (map)
         s->channel_map = *map;
     else
-        pa_channel_map_init_auto(&s->channel_map, ss->channels);
+        pa_channel_map_init_auto(&s->channel_map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
     
     s->channel = 0;
     s->channel_valid = 0;

@@ -197,7 +197,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (ss.channels != cm.channels)
-        pa_channel_map_init_auto(&cm, ss.channels);
+        pa_channel_map_init_auto(&cm, ss.channels, PA_CHANNEL_MAP_AIFF);
 
     payload = pa_rtp_payload_from_sample_spec(&ss);
 
