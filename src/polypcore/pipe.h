@@ -1,3 +1,6 @@
+#ifndef foopipehfoo
+#define foopipehfoo
+
 /* $Id$ */
 
 /***
@@ -20,3 +23,5 @@
 ***/
 
 int pipe(int filedes[2]);
+
+#endif
