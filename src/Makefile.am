@@ -26,7 +26,7 @@ polypincludedir=$(includedir)/polyp
 polypcoreincludedir=$(includedir)/polypcore
 polypconfdir=$(sysconfdir)/polypaudio
 
-modlibdir=$(libdir)/polypaudio
+modlibexecdir=$(libdir)/polypaudio
 
 ###################################
 #            Defines              #
@@ -47,7 +47,7 @@ AM_CFLAGS = -I$(top_srcdir)/src
 AM_CFLAGS += $(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS
 AM_CFLAGS += $(LTDLINCL)
 AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
-AM_CFLAGS += -DDLSEARCHPATH=\"$(modlibdir)\"
+AM_CFLAGS += -DDLSEARCHPATH=\"$(modlibexecdir)\"
 #AM_CFLAGS += -DDLSEARCHPATH=\"$(shell pwd)\"
 AM_CFLAGS += -DDEFAULT_CONFIG_DIR=\"$(DEFAULT_CONFIG_DIR)\"
 AM_CFLAGS += -DPOLYPAUDIO_BINARY=\"$(POLYPAUDIO_BINARY)\"
@@ -113,7 +113,7 @@ polypaudio_LDADD = $(AM_LDADD) libpolypcore.la $(LIBLTDL) \
 if PREOPEN_MODS
 PREOPEN_LIBS = $(PREOPEN_MODS)
 else
-PREOPEN_LIBS = $(modlib_LTLIBRARIES)
+PREOPEN_LIBS = $(modlibexec_LTLIBRARIES)
 endif
 
 if FORCE_PREOPEN
@@ -589,11 +589,11 @@ polypcoreinclude_HEADERS += \
 		polypcore/protocol-http.h
 
 ### Warning! Due to an obscure bug in libtool/automake it is required
-### that the libraries in modlib_LTLIBRARIES are specified in-order,
+### that the libraries in modlibexec_LTLIBRARIES are specified in-order,
 ### i.e. libraries near the end of the list depend on libraries near
 ### the head, and not the other way!
 
-modlib_LTLIBRARIES = \
+modlibexec_LTLIBRARIES = \
 		libsocket-util.la \
 		libiochannel.la \
 		libsocket-server.la \
@@ -617,7 +617,7 @@ modlib_LTLIBRARIES = \
 
 # We need to emulate sendmsg/recvmsg to support this on Win32
 if !OS_IS_WIN32
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		librtp.la
 endif
 
@@ -626,7 +626,7 @@ polypcoreinclude_HEADERS += \
 		polypcore/x11wrap.h \
 		polypcore/x11prop.h
 
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		libx11wrap.la \
 		libx11prop.la
 endif
@@ -736,7 +736,7 @@ libx11prop_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS
 #        Plug-in libraries        #
 ###################################
 
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
 		module-simple-protocol-tcp.la \
@@ -755,13 +755,13 @@ modlib_LTLIBRARIES += \
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-rtp-send.la \
 		module-rtp-recv.la
 endif
 
 if HAVE_AF_UNIX
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-cli-protocol-unix.la \
 		module-simple-protocol-unix.la \
 		module-esound-protocol-unix.la \
@@ -770,71 +770,71 @@ modlib_LTLIBRARIES += \
 endif
 
 if HAVE_MKFIFO
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-pipe-sink.la \
 		module-pipe-source.la
 endif
 
 if !OS_IS_WIN32
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-esound-compat-spawnfd.la \
 		module-esound-compat-spawnpid.la
 endif
 
 if HAVE_REGEX
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-match.la
 endif
 
 if HAVE_X11
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-x11-bell.la \
 		module-x11-publish.la
 endif
 
 if HAVE_OSS
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		liboss-util.la \
 		module-oss.la \
 		module-oss-mmap.la
 endif
 
 if HAVE_ALSA
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		libalsa-util.la \
 		module-alsa-sink.la \
 		module-alsa-source.la
 endif
 
 if HAVE_SOLARIS
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-solaris.la
 endif
 
 if HAVE_HOWL
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		libhowl-wrap.la \
 		module-zeroconf-publish.la
 endif
 
 if HAVE_LIRC
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-lirc.la
 endif
 
 if HAVE_EVDEV
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-mmkbd-evdev.la
 endif
 
 if HAVE_JACK
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-jack-sink.la \
 		module-jack-source.la
 endif
 
 if OS_IS_WIN32
-modlib_LTLIBRARIES += \
+modlibexec_LTLIBRARIES += \
 		module-waveout.la
 endif
 
@@ -1153,10 +1153,11 @@ default.pa: daemon/default.pa.in Makefile
 endif
 
 daemon.conf: daemon/daemon.conf.in Makefile
-	sed -e 's,@DLSEARCHPATH\@,$(modlibdir),g' \
+	sed -e 's,@DLSEARCHPATH\@,$(modlibexecdir),g' \
 		-e 's,@DEFAULT_CONFIG_FILE\@,$(DEFAULT_CONFIG_DIR),g' < $< > $@
 
 install-exec-hook:
 	chown root $(DESTDIR)$(bindir)/polypaudio ; true
 	chmod u+s $(DESTDIR)$(bindir)/polypaudio
 	ln -sf pacat $(DESTDIR)$(bindir)/parec
+	rm -f $(DESTDIR)$(modlibexecdir)/*.a
