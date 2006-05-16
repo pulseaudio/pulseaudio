@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "utf8.h"
+#include "xmalloc.h"
 
 #define FILTER_CHAR '_'
 
@@ -67,11 +68,11 @@ static const char* utf8_validate (const char *str, char *output) {
     int size;
     uint8_t *o;
 
-    o = output;
-    for (p = (uint8_t*)str; *p; p++, o++) {
+    o = (uint8_t*) output;
+    for (p = (const uint8_t*) str; *p; p++) {
         if (*p < 128) {
             if (o)
-                *output = *p;
+                *o = *p;
         } else {
             last = p;
 
@@ -122,6 +123,9 @@ ONE_REMAINING:
                 o += size - 1;
             }
 
+            if (o)
+                o++;
+            
             continue;
 
 error:
@@ -131,6 +135,9 @@ error:
             } else
                 goto failure;
         }
+
+        if (o)
+            o++;
     }
 
     if (o) {
@@ -151,8 +158,7 @@ const char* pa_utf8_valid (const char *str) {
 const char* pa_utf8_filter (const char *str) {
     char *new_str;
 
-    new_str = malloc(strlen(str) + 1);
-    assert(new_str);
+    new_str = pa_xnew(char, strlen(str) + 1);
 
     return utf8_validate(str, new_str);
 }
