@@ -125,6 +125,14 @@ static void stream_request_cb(pa_stream *s, size_t length, void *userdata) {
     pa_threaded_mainloop_signal(p->mainloop, 0);
 }
 
+static void stream_latency_update_cb(pa_stream *s, void *userdata) {
+    pa_simple *p = userdata;
+
+    assert(p);
+
+    pa_threaded_mainloop_signal(p->mainloop, 0);
+}
+
 pa_simple* pa_simple_new(
     const char *server,
     const char *name,
@@ -184,6 +192,7 @@ pa_simple* pa_simple_new(
     pa_stream_set_state_callback(p->stream, stream_state_cb, p);
     pa_stream_set_read_callback(p->stream, stream_request_cb, p);
     pa_stream_set_write_callback(p->stream, stream_request_cb, p);
+    pa_stream_set_latency_update_callback(p->stream, stream_latency_update_cb, p);
 
     if (dir == PA_STREAM_PLAYBACK)
         r = pa_stream_connect_playback(p->stream, dev, attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL);
@@ -414,17 +423,25 @@ unlock_and_fail:
 
 pa_usec_t pa_simple_get_playback_latency(pa_simple *p, int *rerror) {
     pa_usec_t t;
-    int r, negative;
+    int negative;
     
     assert(p);
     
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, (pa_usec_t) -1);
 
     pa_threaded_mainloop_lock(p->mainloop);
-    CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
 
-    r = pa_stream_get_latency(p->stream, &t, &negative);
-    CHECK_SUCCESS_GOTO(p, rerror, r >= 0, unlock_and_fail);
+    for (;;) {
+        CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
+        
+        if (pa_stream_get_latency(p->stream, &t, &negative) >= 0)
+            break;
+
+        CHECK_SUCCESS_GOTO(p, rerror, pa_context_errno(p->context) == PA_ERR_NODATA, unlock_and_fail);
+
+        /* Wait until latency data is available again */
+        pa_threaded_mainloop_wait(p->mainloop);
+    }
     
     pa_threaded_mainloop_unlock(p->mainloop);
 
