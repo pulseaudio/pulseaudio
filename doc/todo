@@ -26,7 +26,6 @@ Post 0.8:
 - fix channel maps in all external backends. Take care when doing volume
   changes if you're modifying a sink/source since those might have a different
   map.
-- don't install .a files of modules
 - in avahi-simple: sleep until latency data is available again if NODATA has happened
 
 Long term:
