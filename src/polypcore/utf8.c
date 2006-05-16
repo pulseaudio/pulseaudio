@@ -61,7 +61,7 @@ static inline void merge_continuation_char(uint32_t *u_ch, uint8_t ch) {
     *u_ch |= ch & 0x3f;
 }
 
-static const char* utf8_validate (const char *str, char *output) {
+static char* utf8_validate(const char *str, char *output) {
     uint32_t val = 0;
     uint32_t min = 0;
     const uint8_t *p, *last;
@@ -131,7 +131,7 @@ ONE_REMAINING:
 error:
             if (o) {
                 *o = FILTER_CHAR;
-                p = last + 1; /* We retry at the next character */
+                p = last; /* We retry at the next character */
             } else
                 goto failure;
         }
@@ -145,7 +145,7 @@ error:
         return output;
     }
 
-    return str;
+    return (char*) str;
 
 failure:
     return NULL;
@@ -155,7 +155,7 @@ const char* pa_utf8_valid (const char *str) {
     return utf8_validate(str, NULL);
 }
 
-const char* pa_utf8_filter (const char *str) {
+char* pa_utf8_filter (const char *str) {
     char *new_str;
 
     new_str = pa_xnew(char, strlen(str) + 1);

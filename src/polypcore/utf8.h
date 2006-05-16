@@ -23,6 +23,6 @@
 ***/
 
 const char *pa_utf8_valid(const char *str);
-const char *pa_utf8_filter(const char *str);
+char *pa_utf8_filter(const char *str);
 
 #endif
