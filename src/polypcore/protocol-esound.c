@@ -87,6 +87,8 @@ struct connection {
     pa_source_output *source_output;
     pa_memblockq *input_memblockq, *output_memblockq;
     pa_defer_event *defer_event;
+
+    char *original_name;
     
     struct {
         pa_memblock *current_memblock;
@@ -175,7 +177,6 @@ static struct proto_handler proto_map[ESD_PROTO_MAX] = {
     { 0,                              esd_proto_get_latency, "get latency" }
 };
 
-
 static void connection_free(struct connection *c) {
     assert(c);
     pa_idxset_remove_by_data(c->protocol->connections, c, NULL);
@@ -218,7 +219,8 @@ static void connection_free(struct connection *c) {
 
     if (c->auth_timeout_event)
         c->protocol->core->mainloop->time_free(c->auth_timeout_event);
-    
+
+    pa_xfree(c->original_name);
     pa_xfree(c);
 }
 
@@ -316,7 +318,7 @@ static int esd_proto_connect(struct connection *c, PA_GCC_UNUSED esd_proto_t req
 }
 
 static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
-    char name[ESD_NAME_MAX];
+    char name[ESD_NAME_MAX], *utf8_name;
     int32_t format, rate;
     pa_sink *sink;
     pa_sample_spec ss;
@@ -341,14 +343,16 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
 
     strncpy(name, data, sizeof(name));
     name[sizeof(name)-1] = 0;
-
-    CHECK_VALIDITY(pa_utf8_valid(name), "Invalid UTF8 in stream name");
+    utf8_name = pa_utf8_filter(name);
     
-    pa_client_set_name(c->client, name);
+    pa_client_set_name(c->client, utf8_name);
+    c->original_name = pa_xstrdup(name);
 
     assert(!c->sink_input && !c->input_memblockq);
 
-    c->sink_input = pa_sink_input_new(sink, __FILE__, name, &ss, NULL, NULL, 0, -1);
+    c->sink_input = pa_sink_input_new(sink, __FILE__, utf8_name, &ss, NULL, NULL, 0, -1);
+
+    pa_xfree(utf8_name);
 
     CHECK_VALIDITY(c->sink_input, "Failed to create sink input.");
 
@@ -381,7 +385,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
 }
 
 static int esd_proto_stream_record(struct connection *c, esd_proto_t request, const void *data, size_t length) {
-    char name[ESD_NAME_MAX];
+    char name[ESD_NAME_MAX], *utf8_name;
     int32_t format, rate;
     pa_source *source;
     pa_sample_spec ss;
@@ -426,13 +430,15 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     strncpy(name, data, sizeof(name));
     name[sizeof(name)-1] = 0;
 
-    CHECK_VALIDITY(pa_utf8_valid(name), "Invalid UTF8 in stream name.");
-
-    pa_client_set_name(c->client, name);
+    utf8_name = pa_utf8_filter(name);
+    pa_client_set_name(c->client, utf8_name);
+    pa_xfree(utf8_name);
+    
+    c->original_name = pa_xstrdup(name);
 
     assert(!c->output_memblockq && !c->source_output);
 
-    if (!(c->source_output = pa_source_output_new(source, __FILE__, name, &ss, NULL, -1))) {
+    if (!(c->source_output = pa_source_output_new(source, __FILE__, c->client->name, &ss, NULL, -1))) {
         pa_log(__FILE__": failed to create source output");
         return -1;
     }
@@ -549,8 +555,11 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
         connection_write(c, &id, sizeof(int32_t));
 
         /* name */
-        assert(conn->client);
-        strncpy(name, conn->client->name, ESD_NAME_MAX);
+        memset(name, 0, ESD_NAME_MAX); /* don't leak old data */
+        if (conn->original_name)
+            strncpy(name, conn->original_name, ESD_NAME_MAX);
+        else if (conn->client && conn->client->name)
+            strncpy(name, conn->client->name, ESD_NAME_MAX);
         connection_write(c, name, ESD_NAME_MAX);
 
         /* rate */
@@ -593,6 +602,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             connection_write(c, &id, sizeof(int32_t));
             
             /* name */
+            memset(name, 0, ESD_NAME_MAX); /* don't leak old data */
             if (strncmp(ce->name, SCACHE_PREFIX, sizeof(SCACHE_PREFIX)-1) == 0)
                 strncpy(name, ce->name+sizeof(SCACHE_PREFIX)-1, ESD_NAME_MAX);
             else
@@ -1176,6 +1186,8 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->scache.memchunk.length = c->scache.memchunk.index = 0;
     c->scache.memchunk.memblock = NULL;
     c->scache.name = NULL;
+
+    c->original_name = NULL;
 
     if (!c->authorized) {
         struct timeval tv;
