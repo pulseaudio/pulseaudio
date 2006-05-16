@@ -31,6 +31,12 @@ AC_SUBST(PACKAGE_URL, [http://0pointer.de/lennart/projects/polypaudio/])
 AC_SUBST(PA_API_VERSION, 8)
 AC_SUBST(PA_PROTOCOL_VERSION, 8)
 
+AC_SUBST(LIBPOLYP_VERSION_INFO, [0:0:0])
+AC_SUBST(LIBPOLYPCORE_VERSION_INFO, [0:0:0])
+AC_SUBST(LIBPOLYP_SIMPLE_VERSION_INFO, [0:0:0])
+AC_SUBST(LIBPOLYP_BROWSE_VERSION_INFO, [0:0:0])
+AC_SUBST(LIBPOLYP_MAINLOOP_GLIB_VERSION_INFO, [0:0:0])
+
 if type -p stow > /dev/null && test -d /usr/local/stow ; then
    AC_MSG_NOTICE([*** Found /usr/local/stow: default install prefix set to /usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION} ***])
    ac_default_prefix="/usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION}"
@@ -419,6 +425,13 @@ if test "x$PREOPEN_MODS" != "xall" ; then
     PREOPEN_MODS="$tmpLIBS"
     AC_SUBST(PREOPEN_MODS)
 fi
+
+AC_ARG_WITH(
+        [module-dir],
+        AC_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/polypaudio-${PA_MAJORMINOR}]),
+        [modlibexecdir=$withval], [modlibexecdir="${libdir}/polypaudio-${PA_MAJORMINOR}"])
+
+AC_SUBST(modlibexecdir)
 
 AC_ARG_ENABLE(
         [force-preopen],

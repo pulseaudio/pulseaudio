@@ -26,8 +26,6 @@ polypincludedir=$(includedir)/polyp
 polypcoreincludedir=$(includedir)/polypcore
 polypconfdir=$(sysconfdir)/polypaudio
 
-modlibexecdir=$(libdir)/polypaudio
-
 ###################################
 #            Defines              #
 ###################################
@@ -146,32 +144,32 @@ endif
 bin_SCRIPTS = esdcompat.sh
 
 pacat_SOURCES = utils/pacat.c
-pacat_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la 
+pacat_LDADD = $(AM_LDADD) libpolyp.la 
 pacat_CFLAGS = $(AM_CFLAGS) 
 pacat_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 paplay_SOURCES = utils/paplay.c
-paplay_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
+paplay_LDADD = $(AM_LDADD) libpolyp.la $(LIBSNDFILE_LIBS)
 paplay_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 paplay_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pactl_SOURCES = utils/pactl.c
-pactl_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la $(LIBSNDFILE_LIBS)
+pactl_LDADD = $(AM_LDADD) libpolyp.la $(LIBSNDFILE_LIBS)
 pactl_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 pactl_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pacmd_SOURCES = utils/pacmd.c polypcore/pid.c polypcore/pid.h
 pacmd_CFLAGS = $(AM_CFLAGS)
-pacmd_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
+pacmd_LDADD = $(AM_LDADD) libpolyp.la
 pacmd_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pax11publish_SOURCES = utils/pax11publish.c
 pax11publish_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
-pax11publish_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+pax11publish_LDADD = $(AM_LDADD) libpolyp.la $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
 pax11publish_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pabrowse_SOURCES = utils/pabrowse.c
-pabrowse_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-browse-@PA_MAJORMINOR@.la
+pabrowse_LDADD = $(AM_LDADD) libpolyp.la libpolyp-browse.la
 pabrowse_CFLAGS = $(AM_CFLAGS)
 pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
@@ -210,12 +208,12 @@ endif
 
 mainloop_test_SOURCES = tests/mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
-mainloop_test_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
+mainloop_test_LDADD = $(AM_LDADD) libpolyp.la
 mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 thread_mainloop_test_SOURCES = tests/thread-mainloop-test.c
 thread_mainloop_test_CFLAGS = $(AM_CFLAGS)
-thread_mainloop_test_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
+thread_mainloop_test_LDADD = $(AM_LDADD) libpolyp.la
 thread_mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 utf8_test_SOURCES = tests/utf8-test.c
@@ -229,12 +227,12 @@ mcalign_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpolypcore.la
 mcalign_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pacat_simple_SOURCES = tests/pacat-simple.c
-pacat_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la
+pacat_simple_LDADD = $(AM_LDADD) libpolyp.la libpolyp-simple.la
 pacat_simple_CFLAGS = $(AM_CFLAGS)
 pacat_simple_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 parec_simple_SOURCES = tests/parec-simple.c
-parec_simple_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la libpolyp-simple-@PA_MAJORMINOR@.la
+parec_simple_LDADD = $(AM_LDADD) libpolyp.la libpolyp-simple.la
 parec_simple_CFLAGS = $(AM_CFLAGS)
 parec_simple_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
@@ -245,12 +243,12 @@ strlist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 voltest_SOURCES = tests/voltest.c
 voltest_CFLAGS = $(AM_CFLAGS)
-voltest_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
+voltest_LDADD = $(AM_LDADD) libpolyp.la
 voltest_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 channelmap_test_SOURCES = tests/channelmap-test.c
 channelmap_test_CFLAGS = $(AM_CFLAGS)
-channelmap_test_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
+channelmap_test_LDADD = $(AM_LDADD) libpolyp.la
 channelmap_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 cpulimit_test_SOURCES = tests/cpulimit-test.c daemon/cpulimit.c daemon/cpulimit.h
@@ -265,12 +263,12 @@ cpulimit_test2_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mainloop_test_glib_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN_LOOP
-mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainloop-glib-@PA_MAJORMINOR@.la
+mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpolyp-mainloop-glib.la
 mainloop_test_glib_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
 mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
-mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
+mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpolyp-mainloop-glib12.la
 mainloop_test_glib12_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 memblockq_test_SOURCES = \
@@ -287,7 +285,7 @@ memblockq_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS)
 memblockq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 sync_playback_SOURCES = tests/sync-playback.c
-sync_playback_LDADD = $(AM_LDADD) libpolyp-@PA_MAJORMINOR@.la
+sync_playback_LDADD = $(AM_LDADD) libpolyp.la
 sync_playback_CFLAGS = $(AM_CFLAGS) 
 sync_playback_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
@@ -323,26 +321,26 @@ polypinclude_HEADERS += \
 endif
 
 lib_LTLIBRARIES = \
-		libpolyp-@PA_MAJORMINOR@.la \
-		libpolyp-simple-@PA_MAJORMINOR@.la
+		libpolyp.la \
+		libpolyp-simple.la
 
 if HAVE_HOWL
 lib_LTLIBRARIES += \
-		libpolyp-browse-@PA_MAJORMINOR@.la
+		libpolyp-browse.la
 endif
 
 if HAVE_GLIB20
 lib_LTLIBRARIES += \
-		libpolyp-mainloop-glib-@PA_MAJORMINOR@.la
+		libpolyp-mainloop-glib.la
 endif
 
 if HAVE_GLIB12
 lib_LTLIBRARIES += \
-		libpolyp-mainloop-glib12-@PA_MAJORMINOR@.la
+		libpolyp-mainloop-glib12.la
 endif
 
 # Public interface
-libpolyp_@PA_MAJORMINOR@_la_SOURCES = \
+libpolyp_la_SOURCES = \
 		polyp/cdecl.h \
 		polyp/channelmap.c polyp/channelmap.h \
 		polyp/client-conf.c polyp/client-conf.h \
@@ -366,7 +364,7 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES = \
 		polypcore/poll.c polypcore/poll.h
 
 # Internal stuff that is shared with libpolypcore
-libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
+libpolyp_la_SOURCES += \
 		polypcore/authkey.c polypcore/authkey.h \
 		polypcore/conf-parser.c polypcore/conf-parser.h \
 		polypcore/dynarray.c polypcore/dynarray.h \
@@ -398,49 +396,49 @@ libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
 		polypcore/llist.h
 
 if OS_IS_WIN32
-libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
+libpolyp_la_SOURCES += \
 		polypcore/dllmain.c 
 endif
 
 if HAVE_X11
-libpolyp_@PA_MAJORMINOR@_la_SOURCES += \
+libpolyp_la_SOURCES += \
 		polyp/client-conf-x11.c polyp/client-conf-x11.h \
 		polypcore/x11prop.c polypcore/x11prop.h
 endif
 
-libpolyp_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
-libpolyp_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
-libpolyp_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS)
+libpolyp_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_la_LDFLAGS = -version-info $(LIBPOLYP_VERSION_INFO)
+libpolyp_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS)
 
 if HAVE_X11
-libpolyp_@PA_MAJORMINOR@_la_CFLAGS += $(X_CFLAGS)
-libpolyp_@PA_MAJORMINOR@_la_LDFLAGS += $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+libpolyp_la_CFLAGS += $(X_CFLAGS)
+libpolyp_la_LDFLAGS += $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
 endif
 
 if HAVE_LIBASYNCNS
-libpolyp_@PA_MAJORMINOR@_la_CFLAGS += $(LIBASYNCNS_CFLAGS)
-libpolyp_@PA_MAJORMINOR@_la_LIBADD += $(LIBASYNCNS_LIBS)
+libpolyp_la_CFLAGS += $(LIBASYNCNS_CFLAGS)
+libpolyp_la_LIBADD += $(LIBASYNCNS_LIBS)
 endif
 
-libpolyp_simple_@PA_MAJORMINOR@_la_SOURCES = polyp/simple.c polyp/simple.h 
-libpolyp_simple_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS)
-libpolyp_simple_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la
-libpolyp_simple_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
+libpolyp_simple_la_SOURCES = polyp/simple.c polyp/simple.h 
+libpolyp_simple_la_CFLAGS = $(AM_CFLAGS)
+libpolyp_simple_la_LIBADD = $(AM_LIBADD) libpolyp.la
+libpolyp_simple_la_LDFLAGS = -version-info $(LIBPOLYP_SIMPLE_VERSION_INFO)
 
-libpolyp_browse_@PA_MAJORMINOR@_la_SOURCES = polyp/browser.c polyp/browser.h 
-libpolyp_browse_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
-libpolyp_browse_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la $(HOWL_LIBS)
-libpolyp_browse_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0 
+libpolyp_browse_la_SOURCES = polyp/browser.c polyp/browser.h 
+libpolyp_browse_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
+libpolyp_browse_la_LIBADD = $(AM_LIBADD) libpolyp.la $(HOWL_LIBS)
+libpolyp_browse_la_LDFLAGS = -version-info $(LIBPOLYP_BROWSE_VERSION_INFO)
 
-libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_SOURCES = polyp/glib-mainloop.h polyp/glib-mainloop.c
-libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
-libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la $(GLIB20_LIBS)
-libpolyp_mainloop_glib_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
+libpolyp_mainloop_glib_la_SOURCES = polyp/glib-mainloop.h polyp/glib-mainloop.c
+libpolyp_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
+libpolyp_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpolyp.la $(GLIB20_LIBS)
+libpolyp_mainloop_glib_la_LDFLAGS = -version-info $(LIBPOLYP_MAINLOOP_GLIB_VERSION_INFO)
 
-libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_SOURCES = polyp/glib-mainloop.h polyp/glib12-mainloop.c
-libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
-libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LIBADD = $(AM_LIBADD) libpolyp-@PA_MAJORMINOR@.la $(GLIB12_LIBS)
-libpolyp_mainloop_glib12_@PA_MAJORMINOR@_la_LDFLAGS = -version-info 0:0:0
+libpolyp_mainloop_glib12_la_SOURCES = polyp/glib-mainloop.h polyp/glib12-mainloop.c
+libpolyp_mainloop_glib12_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
+libpolyp_mainloop_glib12_la_LIBADD = $(AM_LIBADD) libpolyp.la $(GLIB12_LIBS)
+libpolyp_mainloop_glib12_la_LDFLAGS = -version-info $(LIBPOLYP_MAINLOOP_GLIB_VERSION_INFO)
 
 ###################################
 #      Daemon core library        #
@@ -557,7 +555,7 @@ libpolypcore_la_SOURCES += \
 endif
 
 libpolypcore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
-libpolypcore_la_LDFLAGS = -avoid-version
+libpolypcore_la_LDFLAGS = -version-info $(LIBPOLYPCORE_VERSION_INFO)
 libpolypcore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS)
 
 ###################################

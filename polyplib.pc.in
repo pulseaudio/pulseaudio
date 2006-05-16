@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: polyplib
 Description: Client interface to polypaudio
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lpolyp-@PA_MAJORMINOR@
+Libs: -L${libdir} -lpolyp
 Cflags: -D_REENTRANT -I${includedir}
 Requires:

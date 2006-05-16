@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: polyplib-simple
 Description: Simplified synchronous client interface to polypaudio
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lpolyp-simple-@PA_MAJORMINOR@
+Libs: -L${libdir} -lpolyp-simple
 Cflags: -D_REENTRANT -I${includedir}
 Requires: polyplib
