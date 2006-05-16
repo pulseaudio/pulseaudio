@@ -119,7 +119,7 @@ static int load_rules(struct userdata *u) {
     
     if (!f) {
         if (errno == ENOENT) {
-            pa_log(__FILE__": starting with empty ruleset.");
+            pa_log_info(__FILE__": starting with empty ruleset.");
             ret = 0;
         } else
             pa_log(__FILE__": failed to open file '%s': %s", u->table_file, strerror(errno));
@@ -203,7 +203,6 @@ static int save_rules(struct userdata *u) {
         
         for (i = 0; i < rule->volume.channels; i++)
             fprintf(f, " %u", rule->volume.values[i]);
-
 
         fprintf(f, "\n");
     }
