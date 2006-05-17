@@ -18,17 +18,18 @@
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
 
-# Load audio drivers statically
-
+### Load audio drivers statically
 #load-module module-alsa-sink
-# load-module module-alsa-source device=plughw:1,0
-load-module module-oss device="/dev/dsp" sink_name=output source_name=input
+#load-module module-alsa-source device=plughw:1,0
+#load-module module-oss device="/dev/dsp" sink_name=output source_name=input
 #load-module module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
-load-module module-null-sink
+#load-module module-null-sink
 #load-module module-pipe-sink
 
-# Load audio drivers automatically on access
+### Automatically load driver modules depending on the hardware available
+load-module module-detect
 
+### Load audio drivers automatically on access
 #add-autoload-sink output module-oss device="/dev/dsp" sink_name=output source_name=input
 #add-autoload-source input module-oss device="/dev/dsp" sink_name=output source_name=input
 #add-autoload-sink output module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
@@ -36,31 +37,35 @@ load-module module-null-sink
 #add-autoload-sink output module-alsa-sink sink_name=output
 #add-autoload-source input module-alsa-source source_name=input
 
-# Load several protocols
+### Load several protocols
 load-module module-esound-protocol-unix
 #load-module module-esound-protocol-tcp
 load-module module-native-protocol-unix
-#load-module module-simple-protocol-tcp
-#load-module module-cli-protocol-unix
+#load-module module-native-protocol-tcp
 
-# Load the CLI module
-load-module module-cli
+### Load the RTP reciever module
+#load-module module-rtp-recv
 
-# Make some devices default
-set-default-sink output
-set-default-source input
+### Load the RTP sender module
+#load-module module-null-sink sink_name=rtp
+#load-module module-rtp-send source=rtp_monitor
+
+### Automatically restore the volume of playback streams
+load-module module-volume-restore
+
+### Make some devices default
+#set-default-sink output
+#set-default-source input
 
 .nofail
 
-# Load something to the sample cache
-load-sample x11-bell /usr/share/sounds/KDE_Notify.wav
-load-sample-dir-lazy /usr/share/sounds/*.wav
+### Load something to the sample cache
+load-sample x11-bell /usr/share/sounds/gtk-events/activate.wav
+#load-sample-dir-lazy /usr/share/sounds/*.wav
 
-# Load X11 bell module
-load-module module-x11-bell sample=x11-bell sink=output
+### Load X11 bell module
+load-module module-x11-bell sample=x11-bell
 
-# Publish connection data in the X11 root window
+### Publish connection data in the X11 root window
 load-module module-x11-publish
 
-#load-module module-pipe-source
-#load-module module-pipe-sink
