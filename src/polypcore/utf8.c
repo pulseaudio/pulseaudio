@@ -33,8 +33,9 @@
 #include <inttypes.h>
 #include <string.h>
 
+#include <polyp/xmalloc.h>
+
 #include "utf8.h"
-#include "xmalloc.h"
 
 #define FILTER_CHAR '_'
 

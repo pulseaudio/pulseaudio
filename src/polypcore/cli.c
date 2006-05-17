@@ -28,6 +28,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/ioline.h>
 #include <polypcore/module.h>
 #include <polypcore/sink.h>
@@ -40,7 +42,6 @@
 #include <polypcore/namereg.h>
 #include <polypcore/cli-text.h>
 #include <polypcore/cli-command.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "cli.h"

@@ -32,12 +32,13 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/module.h>
 #include <polypcore/util.h>
 #include <polypcore/modargs.h>
 #include <polypcore/log.h>
 #include <polypcore/core-subscribe.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/sink-input.h>
 #include <polypcore/util.h>
 #include <polyp/volume.h>

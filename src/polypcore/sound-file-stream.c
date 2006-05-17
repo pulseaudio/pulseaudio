@@ -30,8 +30,9 @@
 
 #include <sndfile.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/sink-input.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "sound-file-stream.h"

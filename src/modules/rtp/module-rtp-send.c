@@ -32,6 +32,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/module.h>
 #include <polypcore/llist.h>
 #include <polypcore/source.h>
@@ -39,7 +41,6 @@
 #include <polypcore/memblockq.h>
 #include <polypcore/log.h>
 #include <polypcore/util.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/modargs.h>
 #include <polypcore/namereg.h>
 

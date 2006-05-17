@@ -1,7 +1,7 @@
 #include <stdio.h>
 
+#include <polyp/xmalloc.h>
 #include <polypcore/strlist.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/gccmacro.h>
 
 int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char* argv[]) {

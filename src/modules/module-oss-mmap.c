@@ -36,6 +36,8 @@
 #include <limits.h>
 #include <sys/mman.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/iochannel.h>
 #include <polypcore/sink.h>
 #include <polypcore/source.h>
@@ -43,7 +45,6 @@
 #include <polypcore/sample-util.h>
 #include <polypcore/util.h>
 #include <polypcore/modargs.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "oss-util.h"

@@ -27,6 +27,8 @@
 #include <string.h>
 
 #include <polyp/volume.h>
+#include <polyp/xmalloc.h>
+
 #include <polypcore/module.h>
 #include <polypcore/client.h>
 #include <polypcore/sink.h>
@@ -37,7 +39,6 @@
 #include <polypcore/sample-util.h>
 #include <polypcore/core-scache.h>
 #include <polypcore/autoload.h>
-#include <polypcore/xmalloc.h>
 
 #include "cli-text.h"
 

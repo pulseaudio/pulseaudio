@@ -33,11 +33,12 @@
 
 #include <linux/input.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/module.h>
 #include <polypcore/log.h>
 #include <polypcore/namereg.h>
 #include <polypcore/sink.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/modargs.h>
 #include <polypcore/util.h>
 

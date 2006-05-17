@@ -32,11 +32,12 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/module.h>
 #include <polypcore/sink.h>
 #include <polypcore/core-scache.h>
 #include <polypcore/modargs.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/namereg.h>
 #include <polypcore/log.h>
 #include <polypcore/x11wrap.h>

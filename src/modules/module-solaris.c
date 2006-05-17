@@ -41,6 +41,7 @@
 #include <sys/audio.h>
 
 #include <polyp/mainloop-signal.h>
+#include <polyp/xmalloc.h>
 
 #include <polypcore/iochannel.h>
 #include <polypcore/sink.h>
@@ -49,7 +50,6 @@
 #include <polypcore/sample-util.h>
 #include <polypcore/util.h>
 #include <polypcore/modargs.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "module-solaris-symdef.h"

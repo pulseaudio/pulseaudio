@@ -27,7 +27,8 @@
 #include <asoundlib.h>
 
 #include <polyp/sample.h>
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
+
 #include <polypcore/log.h>
 
 #include "alsa-util.h"

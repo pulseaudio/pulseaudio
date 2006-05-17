@@ -29,10 +29,11 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/autoload.h>
 #include <polypcore/source.h>
 #include <polypcore/sink.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/util.h>
 

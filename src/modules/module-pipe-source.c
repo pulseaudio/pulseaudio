@@ -33,12 +33,13 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/iochannel.h>
 #include <polypcore/source.h>
 #include <polypcore/module.h>
 #include <polypcore/util.h>
 #include <polypcore/modargs.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "module-pipe-source-symdef.h"

@@ -41,8 +41,9 @@
 #include <windows.h>
 #endif
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/log.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/hashmap.h>
 
 #include "mainloop.h"

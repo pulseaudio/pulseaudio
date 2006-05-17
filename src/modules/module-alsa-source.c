@@ -34,6 +34,8 @@
 
 #include <asoundlib.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/core.h>
 #include <polypcore/module.h>
 #include <polypcore/memchunk.h>
@@ -41,7 +43,6 @@
 #include <polypcore/modargs.h>
 #include <polypcore/util.h>
 #include <polypcore/sample-util.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "alsa-util.h"

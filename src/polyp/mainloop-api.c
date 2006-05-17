@@ -26,8 +26,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/gccmacro.h>
-#include <polypcore/xmalloc.h>
 
 #include "mainloop-api.h"
 

@@ -48,6 +48,7 @@
 #include "../polypcore/winsock.h"
 
 #include <polyp/version.h>
+#include <polyp/xmalloc.h>
 
 #include <polypcore/native-common.h>
 #include <polypcore/pdispatch.h>
@@ -56,7 +57,6 @@
 #include <polypcore/socket-client.h>
 #include <polypcore/pstream-util.h>
 #include <polypcore/util.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 #include <polypcore/socket-util.h>
 

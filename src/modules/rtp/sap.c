@@ -38,9 +38,10 @@
 #include <sys/filio.h>
 #endif
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/util.h>
 #include <polypcore/log.h>
-#include <polypcore/xmalloc.h>
 
 #include "sap.h"
 #include "sdp.h"

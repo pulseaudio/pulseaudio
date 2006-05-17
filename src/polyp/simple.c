@@ -30,9 +30,9 @@
 
 #include <polyp/polypaudio.h>
 #include <polyp/thread-mainloop.h>
+#include <polyp/xmalloc.h>
 
 #include <polypcore/native-common.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "simple.h"

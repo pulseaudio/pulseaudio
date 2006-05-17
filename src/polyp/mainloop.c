@@ -44,9 +44,10 @@
 #include "../polypcore/pipe.h"
 #endif
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/util.h>
 #include <polypcore/idxset.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "mainloop.h"

@@ -27,7 +27,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
+
 #include <polypcore/util.h>
 
 #include "parseaddr.h"

@@ -30,12 +30,13 @@
 #include <errno.h>
 #include <string.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/sink-input.h>
 #include <polypcore/source-output.h>
 #include <polypcore/client.h>
 #include <polypcore/sample-util.h>
 #include <polypcore/namereg.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "protocol-simple.h"

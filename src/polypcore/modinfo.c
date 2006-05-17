@@ -26,7 +26,8 @@
 #include <ltdl.h>
 #include <assert.h>
 
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
+
 #include <polypcore/util.h>
 #include <polypcore/log.h>
 

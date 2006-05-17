@@ -25,8 +25,9 @@
 
 #include <assert.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/idxset.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/util.h>
 
 #include "glib.h"

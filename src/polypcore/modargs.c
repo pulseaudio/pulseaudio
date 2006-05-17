@@ -28,13 +28,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/hashmap.h>
 #include <polypcore/idxset.h>
 #include <polypcore/sample-util.h>
 #include <polypcore/namereg.h>
 #include <polypcore/sink.h>
 #include <polypcore/source.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/util.h>
 
 #include "modargs.h"

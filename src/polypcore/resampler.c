@@ -30,8 +30,9 @@
 #include <liboil/liboilfuncs.h>
 #include <liboil/liboil.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/sconv.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "resampler.h"

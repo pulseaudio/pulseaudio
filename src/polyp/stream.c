@@ -29,7 +29,8 @@
 #include <string.h>
 
 #include <polyp/def.h>
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
+
 #include <polypcore/pstream-util.h>
 #include <polypcore/util.h>
 #include <polypcore/log.h>

@@ -29,6 +29,8 @@
 
 #include <polyp/mainloop-api.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/sink.h>
 #include <polypcore/source.h>
 #include <polypcore/module.h>
@@ -36,7 +38,6 @@
 #include <polypcore/sample-util.h>
 #include <polypcore/util.h>
 #include <polypcore/log.h>
-#include <polypcore/xmalloc.h>
 
 #include "module-waveout-symdef.h"
 

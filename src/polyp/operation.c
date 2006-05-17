@@ -25,7 +25,7 @@
 
 #include <assert.h>
 
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
 
 #include "internal.h"
 #include "operation.h"

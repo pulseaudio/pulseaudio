@@ -22,8 +22,9 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/llist.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 #include <polypcore/props.h>
 

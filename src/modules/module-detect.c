@@ -33,9 +33,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/module.h>
 #include <polypcore/modargs.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 #include <polypcore/util.h>
 

@@ -28,8 +28,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/sink-input.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/gccmacro.h>
 
 #include "play-memchunk.h"

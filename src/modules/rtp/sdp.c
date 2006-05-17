@@ -31,9 +31,10 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/util.h>
 #include <polypcore/log.h>
-#include <polypcore/xmalloc.h>
 
 #include "sdp.h"
 #include "rtp.h"

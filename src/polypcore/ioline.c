@@ -29,7 +29,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
+
 #include <polypcore/log.h>
 
 #include "ioline.h"

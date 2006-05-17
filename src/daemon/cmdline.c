@@ -30,9 +30,10 @@
 #include <getopt.h>
 #include <sys/stat.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/util.h>
 #include <polypcore/strbuf.h>
-#include <polypcore/xmalloc.h>
 
 #include "cmdline.h"
 

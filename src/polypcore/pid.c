@@ -39,9 +39,10 @@
 #include <windows.h>
 #endif
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/util.h>
 #include <polypcore/log.h>
-#include <polypcore/xmalloc.h>
 
 #include "pid.h"
 

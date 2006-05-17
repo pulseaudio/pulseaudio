@@ -30,7 +30,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
 
 #include "strbuf.h"
 

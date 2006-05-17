@@ -273,10 +273,10 @@ mainloop_test_glib12_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 memblockq_test_SOURCES = \
 	tests/memblockq-test.c \
+	polyp/xmalloc.c \
 	polypcore/memblockq.c \
 	polypcore/log.c \
 	polypcore/memblock.c \
-	polypcore/xmalloc.c \
 	polypcore/util.c \
 	polypcore/mcalign.c \
 	polypcore/memchunk.c
@@ -313,7 +313,8 @@ polypinclude_HEADERS = \
 		polyp/subscribe.h \
 		polyp/version.h \
 		polyp/sample.h \
-		polyp/volume.h
+		polyp/volume.h \
+		polyp/xmalloc.h
 
 if HAVE_HOWL
 polypinclude_HEADERS += \
@@ -360,6 +361,7 @@ libpolyp_la_SOURCES = \
 		polyp/mainloop.c polyp/mainloop.h \
 		polyp/mainloop-signal.c polyp/mainloop-signal.h \
 		polyp/thread-mainloop.c polyp/thread-mainloop.h \
+		polyp/xmalloc.c polyp/xmalloc.h \
 		polypcore/pipe.c polypcore/pipe.h \
 		polypcore/poll.c polypcore/poll.h
 
@@ -392,7 +394,6 @@ libpolyp_la_SOURCES += \
 		polypcore/tagstruct.c polypcore/tagstruct.h \
 		polypcore/util.c polypcore/util.h \
 		polypcore/winsock.h \
-		polypcore/xmalloc.c polypcore/xmalloc.h \
 		polypcore/llist.h
 
 if OS_IS_WIN32
@@ -485,8 +486,7 @@ polypcoreinclude_HEADERS = \
 		polypcore/strbuf.h \
 		polypcore/tokenizer.h \
 		polypcore/util.h \
-		polypcore/utf8.h \
-		polypcore/xmalloc.h
+		polypcore/utf8.h
 
 lib_LTLIBRARIES += libpolypcore.la
 
@@ -497,7 +497,8 @@ libpolypcore_la_SOURCES = \
 		polyp/mainloop-api.c polyp/mainloop-api.h \
 		polyp/mainloop-signal.c polyp/mainloop-signal.h \
 		polyp/sample.c polyp/sample.h \
-		polyp/volume.c polyp/volume.h
+		polyp/volume.c polyp/volume.h \
+		polyp/xmalloc.c polyp/xmalloc.h
 
 # Pure core stuff (some are shared in libpolyp though).
 libpolypcore_la_SOURCES += \
@@ -546,7 +547,6 @@ libpolypcore_la_SOURCES += \
 		polypcore/tokenizer.c polypcore/tokenizer.h \
 		polypcore/util.c polypcore/util.h \
 		polypcore/winsock.h \
-		polypcore/xmalloc.c polypcore/xmalloc.h \
 		polypcore/utf8.c polypcore/utf8.h
 
 if OS_IS_WIN32

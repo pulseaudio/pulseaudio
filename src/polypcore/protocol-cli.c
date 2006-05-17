@@ -26,8 +26,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/cli.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "protocol-cli.h"

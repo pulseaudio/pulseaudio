@@ -30,7 +30,8 @@
 #include <string.h>
 #include <errno.h>
 
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
+
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>
 #include <polypcore/util.h>

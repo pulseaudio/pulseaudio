@@ -51,6 +51,7 @@
 
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
+#include <polyp/xmalloc.h>
 
 #include <polypcore/core.h>
 #include <polypcore/memblock.h>
@@ -59,7 +60,6 @@
 #include <polypcore/log.h>
 #include <polypcore/util.h>
 #include <polypcore/sioman.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/cli-text.h>
 #include <polypcore/pid.h>
 #include <polypcore/namereg.h>

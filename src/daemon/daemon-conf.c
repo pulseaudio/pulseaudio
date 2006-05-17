@@ -29,8 +29,9 @@
 #include <assert.h>
 #include <unistd.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/util.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/strbuf.h>
 #include <polypcore/conf-parser.h>
 #include <polypcore/resampler.h>

@@ -21,8 +21,9 @@
 
 #include <assert.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/log.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/props.h>
 
 #include "howl-wrap.h"

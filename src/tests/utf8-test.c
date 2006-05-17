@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include <polyp/xmalloc.h>
 #include <polypcore/utf8.h>
-#include <polypcore/xmalloc.h>
 
 int main(int argc, char *argv[]) {
     char *c;

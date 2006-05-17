@@ -28,8 +28,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/ioline.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 #include <polypcore/namereg.h>
 #include <polypcore/cli-text.h>

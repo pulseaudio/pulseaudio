@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include <polyp/version.h>
+#include <polyp/xmalloc.h>
 
 #include <polypcore/native-common.h>
 #include <polypcore/packet.h>
@@ -43,7 +44,6 @@
 #include <polypcore/authkey.h>
 #include <polypcore/namereg.h>
 #include <polypcore/core-scache.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/util.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>

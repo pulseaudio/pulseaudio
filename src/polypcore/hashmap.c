@@ -27,8 +27,9 @@
 #include <assert.h>
 #include <string.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/idxset.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 
 #include "hashmap.h"

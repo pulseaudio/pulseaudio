@@ -42,6 +42,8 @@
 
 #include "../polypcore/winsock.h"
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/module.h>
 #include <polypcore/socket-server.h>
 #include <polypcore/socket-util.h>
@@ -49,7 +51,6 @@
 #include <polypcore/modargs.h>
 #include <polypcore/log.h>
 #include <polypcore/native-common.h>
-#include <polypcore/xmalloc.h>
 
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"

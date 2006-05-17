@@ -34,8 +34,9 @@
 
 #include "winsock.h"
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/queue.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/log.h>
 #include <polypcore/core-scache.h>
 

@@ -27,8 +27,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/module.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/memchunk.h>
 #include <polypcore/sound-file.h>
 #include <polypcore/log.h>

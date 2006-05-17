@@ -33,7 +33,8 @@
 #include <syslog.h>
 #endif
 
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
+
 #include <polypcore/util.h>
 
 #include "log.h"

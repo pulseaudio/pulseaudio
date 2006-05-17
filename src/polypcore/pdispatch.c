@@ -27,8 +27,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/native-common.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/llist.h>
 #include <polypcore/log.h>
 #include <polypcore/util.h>

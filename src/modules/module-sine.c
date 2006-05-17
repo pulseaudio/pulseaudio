@@ -27,10 +27,11 @@
 #include <assert.h>
 #include <math.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/sink-input.h>
 #include <polypcore/module.h>
 #include <polypcore/modargs.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/namereg.h>
 #include <polypcore/log.h>
 

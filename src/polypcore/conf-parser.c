@@ -28,9 +28,10 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/log.h>
 #include <polypcore/util.h>
-#include <polypcore/xmalloc.h>
 
 #include "conf-parser.h"
 

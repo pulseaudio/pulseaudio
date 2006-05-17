@@ -62,8 +62,9 @@
 
 #include "winsock.h"
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/socket-util.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/util.h>
 #include <polypcore/log.h>
 

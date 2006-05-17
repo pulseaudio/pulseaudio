@@ -29,9 +29,10 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/x11prop.h>
 #include <polypcore/log.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/util.h>
 
 #include "client-conf-x11.h"

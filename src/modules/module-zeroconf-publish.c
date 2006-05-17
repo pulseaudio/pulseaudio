@@ -29,7 +29,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <polypcore/xmalloc.h>
+#include <polyp/xmalloc.h>
+
 #include <polypcore/autoload.h>
 #include <polypcore/sink.h>
 #include <polypcore/source.h>

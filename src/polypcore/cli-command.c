@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <polyp/xmalloc.h>
+
 #include <polypcore/module.h>
 #include <polypcore/sink.h>
 #include <polypcore/source.h>
@@ -44,7 +46,6 @@
 #include <polypcore/sound-file.h>
 #include <polypcore/play-memchunk.h>
 #include <polypcore/autoload.h>
-#include <polypcore/xmalloc.h>
 #include <polypcore/sound-file-stream.h>
 #include <polypcore/props.h>
 #include <polypcore/util.h>
