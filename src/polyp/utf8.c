@@ -1,4 +1,4 @@
-/* $Id */
+/* $Id$ */
 
 /* This file is based on the GLIB utf8 validation functions. The
  * original license text follows. */
