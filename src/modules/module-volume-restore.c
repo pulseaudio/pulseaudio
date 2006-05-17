@@ -39,6 +39,7 @@
 #include <polypcore/core-subscribe.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/sink-input.h>
+#include <polypcore/util.h>
 #include <polyp/volume.h>
 
 #include "module-volume-restore-symdef.h"
@@ -116,7 +117,7 @@ static int load_rules(struct userdata *u) {
     f = u->table_file ?
         fopen(u->table_file, "r") :
         pa_open_config_file(NULL, DEFAULT_VOLUME_TABLE_FILE, NULL, &u->table_file, "r");
-    
+
     if (!f) {
         if (errno == ENOENT) {
             pa_log_info(__FILE__": starting with empty ruleset.");
@@ -127,6 +128,8 @@ static int load_rules(struct userdata *u) {
         goto finish;
     }
 
+    pa_lock_fd(fileno(f), 1);
+    
     while (!feof(f)) {
         struct rule *rule;
         pa_cvolume v;
@@ -175,8 +178,10 @@ static int load_rules(struct userdata *u) {
     ret = 0;
     
 finish:
-    if (f)
+    if (f) {
+        pa_lock_fd(fileno(f), 0);
         fclose(f);
+    }
 
     return ret;
 }
@@ -196,6 +201,8 @@ static int save_rules(struct userdata *u) {
         goto finish;
     }
 
+    pa_lock_fd(fileno(f), 1);
+
     while ((rule = pa_hashmap_iterate(u->hashmap, &state, NULL))) {
         unsigned i;
         
@@ -210,8 +217,10 @@ static int save_rules(struct userdata *u) {
     ret = 0;
     
 finish:
-    if (f)
+    if (f) {
+        pa_lock_fd(fileno(f), 0);
         fclose(f);
+    }
 
     return ret;
 }
