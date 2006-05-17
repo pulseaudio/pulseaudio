@@ -39,7 +39,7 @@ int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *ma
     SF_INFO sfinfo;
     int ret = -1;
     size_t l;
-    sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
+    sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames) = NULL;
     assert(fname && ss && chunk);
 
     chunk->memblock = NULL;
@@ -53,16 +53,26 @@ int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *ma
     }
 
     switch (sfinfo.format & SF_FORMAT_SUBMASK) {
-        case SF_FORMAT_FLOAT:
-        case SF_FORMAT_DOUBLE:
-            /* Only float and double need a special case. */
-            ss->format = PA_SAMPLE_FLOAT32NE;
-            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
-            break;
-        default:
-            /* Everything else is cleanly converted to signed 16 bit. */
+        case SF_FORMAT_PCM_16:
+        case SF_FORMAT_PCM_U8:
+        case SF_FORMAT_PCM_S8:
             ss->format = PA_SAMPLE_S16NE;
             readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
+            break;
+
+        case SF_FORMAT_ULAW:
+            ss->format = PA_SAMPLE_ULAW;
+            break;
+            
+        case SF_FORMAT_ALAW:
+            ss->format = PA_SAMPLE_ALAW;
+            break;
+
+        case SF_FORMAT_FLOAT:
+        case SF_FORMAT_DOUBLE:
+        default:
+            ss->format = PA_SAMPLE_FLOAT32NE;
+            readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
             break;
     }
 
@@ -87,11 +97,12 @@ int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *ma
     chunk->index = 0;
     chunk->length = l;
 
-    if (readf_function(sf, chunk->memblock->data, sfinfo.frames) != sfinfo.frames) {
+    if ((readf_function && readf_function(sf, chunk->memblock->data, sfinfo.frames) != sfinfo.frames) ||
+        (!readf_function && sf_read_raw(sf, chunk->memblock->data, l) != l)) {
         pa_log(__FILE__": Premature file end");
         goto finish;
     }
-
+        
     ret = 0;
 
 finish:
@@ -119,14 +130,24 @@ int pa_sound_file_too_big_to_cache(const char *fname) {
     sf_close(sf);
 
     switch (sfinfo.format & SF_FORMAT_SUBMASK) {
-        case SF_FORMAT_FLOAT:
-        case SF_FORMAT_DOUBLE:
-            /* Only float and double need a special case. */
-            ss.format = PA_SAMPLE_FLOAT32NE;
-            break;
-        default:
-            /* Everything else is cleanly converted to signed 16 bit. */
+        case SF_FORMAT_PCM_16:
+        case SF_FORMAT_PCM_U8:
+        case SF_FORMAT_PCM_S8:
             ss.format = PA_SAMPLE_S16NE;
+            break;
+
+        case SF_FORMAT_ULAW:
+            ss.format = PA_SAMPLE_ULAW;
+            break;
+            
+        case SF_FORMAT_ALAW:
+            ss.format = PA_SAMPLE_ALAW;
+            break;
+
+        case SF_FORMAT_DOUBLE:
+        case SF_FORMAT_FLOAT:
+        default:
+            ss.format = PA_SAMPLE_FLOAT32NE;
             break;
     }
 
