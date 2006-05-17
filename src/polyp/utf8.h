@@ -22,14 +22,20 @@
   USA.
 ***/
 
+#include <polyp/cdecl.h>
+
 /** \file
  * UTF8 Validation functions
  */
+
+PA_C_DECL_BEGIN
 
 /** Test if the specified strings qualifies as valid UTF8. Return the string if so, otherwise NULL */
 const char *pa_utf8_valid(const char *str);
 
 /** Filter all invalid UTF8 characters from the specified string, returning a new fully UTF8 valid string. Don't forget to free the returned string with pa_xfree() */
 char *pa_utf8_filter(const char *str);
+
+PA_C_DECL_END
 
 #endif
