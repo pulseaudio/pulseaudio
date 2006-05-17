@@ -65,10 +65,6 @@ static void sink_input_kill(pa_sink_input *i) {
     free_userdata(i->userdata);
 }
 
-static void si_kill(PA_GCC_UNUSED pa_mainloop_api *m, void *i) {
-    sink_input_kill(i);
-}
-
 static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
     struct userdata *u;
     assert(i && chunk && i->userdata);
@@ -76,18 +72,25 @@ static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
 
     if (!u->memchunk.memblock) {
         uint32_t fs = pa_frame_size(&i->sample_spec);
-        sf_count_t samples = BUF_SIZE/fs;
+        sf_count_t n;
 
         u->memchunk.memblock = pa_memblock_new(BUF_SIZE, i->sink->core->memblock_stat);
         u->memchunk.index = 0;
-        samples = u->readf_function(u->sndfile, u->memchunk.memblock->data, samples);
-        u->memchunk.length = samples*fs;
+
+        if (u->readf_function) {
+            if ((n = u->readf_function(u->sndfile, u->memchunk.memblock->data, BUF_SIZE/fs)) <= 0)
+                n = 0;
+
+            u->memchunk.length = n * fs;
+        } else {
+            if ((n = sf_read_raw(u->sndfile, u->memchunk.memblock->data, BUF_SIZE)) <= 0)
+                n = 0;
+            
+            u->memchunk.length = n;
+        }
         
         if (!u->memchunk.length) {
-            pa_memblock_unref(u->memchunk.memblock);
-            u->memchunk.memblock = NULL;
-            u->memchunk.index = u->memchunk.length = 0;
-            pa_mainloop_api_once(i->sink->core->mainloop, si_kill, i);
+            free_userdata(u);
             return -1;
         }
     }
@@ -135,14 +138,24 @@ int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume) {
         goto fail;
     }
 
+    u->readf_function = NULL;
+    
     switch (sfinfo.format & 0xFF) {
         case SF_FORMAT_PCM_16:
         case SF_FORMAT_PCM_U8:
-        case SF_FORMAT_ULAW:
-        case SF_FORMAT_ALAW:
+        case SF_FORMAT_PCM_S8:
             ss.format = PA_SAMPLE_S16NE;
             u->readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
             break;
+
+        case SF_FORMAT_ULAW:
+            ss.format = PA_SAMPLE_ULAW;
+            break;
+            
+        case SF_FORMAT_ALAW:
+            ss.format = PA_SAMPLE_ALAW;
+            break;
+
         case SF_FORMAT_FLOAT:
         default:
             ss.format = PA_SAMPLE_FLOAT32NE;
