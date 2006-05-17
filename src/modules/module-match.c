@@ -39,6 +39,7 @@
 #include <polypcore/core-subscribe.h>
 #include <polypcore/xmalloc.h>
 #include <polypcore/sink-input.h>
+#include <polypcore/util.h>
 
 #include "module-match-symdef.h"
 
@@ -88,6 +89,8 @@ static int load_rules(struct userdata *u, const char *filename) {
         goto finish;
     }
 
+    pa_lock_fd(fileno(f), 1);
+    
     while (!feof(f)) {
         char *d, *v;
         pa_volume_t volume;
@@ -146,8 +149,10 @@ static int load_rules(struct userdata *u, const char *filename) {
     ret = 0;
     
 finish:
-    if (f)
+    if (f) {
+        pa_lock_fd(fileno(f), 0);
         fclose(f);
+    }
 
     if (fn)
         pa_xfree(fn);
