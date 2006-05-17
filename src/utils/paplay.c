@@ -57,7 +57,7 @@ static pa_sample_spec sample_spec = { 0, 0, 0 };
 static pa_channel_map channel_map;
 static int channel_map_set = 0;
 
-static sf_count_t (*readf_function)(SNDFILE *_sndfile, void *ptr, sf_count_t frames);
+static sf_count_t (*readf_function)(SNDFILE *_sndfile, void *ptr, sf_count_t frames) = NULL;
 
 /* A shortcut for terminating the application */
 static void quit(int ret) {
@@ -98,26 +98,30 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
 
 /* This is called whenever new data may be written to the stream */
 static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
-    size_t k;
-    sf_count_t f, n;
+    sf_count_t bytes;
     void *data;
     assert(s && length);
 
     if (!sndfile)
         return;
-    
-    k = pa_frame_size(&sample_spec);
 
     data = malloc(length);
 
-    n = length/k;
-    
-    f = readf_function(sndfile, data, n);
+    if (readf_function) {
+        size_t k = pa_frame_size(&sample_spec);
 
-    if (f > 0)
-        pa_stream_write(s, data, f*k, free, 0, PA_SEEK_RELATIVE);
+        if ((bytes = readf_function(sndfile, data, length/k)) > 0)
+            bytes *= k;
+        
+    } else
+        bytes = sf_read_raw(sndfile, data, length);
 
-    if (f < n) {
+    if (bytes > 0)
+        pa_stream_write(s, data, bytes, free, 0, PA_SEEK_RELATIVE);
+    else
+        free(data);
+
+    if (bytes < length) {
         sf_close(sndfile);
         sndfile = NULL;
         pa_operation_unref(pa_stream_drain(s, stream_drain_complete, NULL));
@@ -296,16 +300,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-
     filename = optind < argc ? argv[optind] : "STDIN";
     
-    
-    if (!client_name)
-        client_name = strdup(bn);
-
-    if (!stream_name)
-        stream_name = strdup(filename);
-
     memset(&sfinfo, 0, sizeof(sfinfo));
 
     if (optind < argc)
@@ -317,18 +313,27 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Failed to open file '%s'\n", filename);
         goto quit;
     }
-              
+
     sample_spec.rate = sfinfo.samplerate;
     sample_spec.channels = sfinfo.channels;
     
     switch (sfinfo.format & 0xFF) {
         case SF_FORMAT_PCM_16:
         case SF_FORMAT_PCM_U8:
-        case SF_FORMAT_ULAW:
-        case SF_FORMAT_ALAW:
             sample_spec.format = PA_SAMPLE_S16NE;
             readf_function = (sf_count_t (*)(SNDFILE *_sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
             break;
+            
+        case SF_FORMAT_ULAW:
+            sample_spec.format = PA_SAMPLE_ULAW;
+            readf_function = NULL;
+            break;
+            
+        case SF_FORMAT_ALAW:
+            sample_spec.format = PA_SAMPLE_ALAW;
+            readf_function = NULL;
+            break;
+
         case SF_FORMAT_FLOAT:
         default:
             sample_spec.format = PA_SAMPLE_FLOAT32NE;
@@ -343,6 +348,14 @@ int main(int argc, char *argv[]) {
         goto quit;
     }
 
+    if (!client_name)
+        client_name = strdup(bn);
+
+    if (!stream_name) {
+        const char *n = sf_get_string(sndfile, SF_STR_TITLE);
+        stream_name = strdup(n ? n : filename);
+    }
+    
     if (verbose) {
         char t[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(t, sizeof(t), &sample_spec);
