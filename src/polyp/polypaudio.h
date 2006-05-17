@@ -35,13 +35,19 @@
 #include <polyp/operation.h>
 #include <polyp/channelmap.h>
 #include <polyp/volume.h>
+#include <polyp/xmalloc.h>
+#include <polyp/utf8.h>
+#include <polyp/thread-mainloop.h>
+#include <polyp/mainloop.h>
+#include <polyp/mainloop-signal.h>
 
 /** \file
- * Include all polyplib header file at once. The following
+ * Include all polyplib header files at once. The following
  * files are included: \ref mainloop-api.h, \ref sample.h, \ref def.h,
  * \ref context.h, \ref stream.h, \ref introspect.h, \ref subscribe.h,
  * \ref scache.h, \ref version.h, \ref error.h, \ref channelmap.h,
- * \ref operation.h and \ref volume.h at once */
+ * \ref operation.h,\ref volume.h, \ref xmalloc.h, \ref utf8.h, \ref
+ * thread-mainloop.h, \ref mainloop.h and \ref mainloop-signal.h at once */
 
 /** \mainpage
  *
