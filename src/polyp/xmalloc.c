@@ -121,3 +121,9 @@ char *pa_xstrndup(const char *s, size_t l) {
     }
 }
 
+void pa_xfree(void *p) {
+    if (!p)
+        return;
+
+    free(p);
+}

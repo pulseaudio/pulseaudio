@@ -27,14 +27,29 @@
 #include <limits.h>
 #include <assert.h>
 
-void* pa_xmalloc(size_t l);
-void *pa_xmalloc0(size_t l);
-void *pa_xrealloc(void *ptr, size_t size);
-#define pa_xfree free
+/** \file
+ * Memory allocation functions.
+ */
 
+/** Allocate the specified number of bytes, just like malloc() does. However, in case of OOM, terminate */
+void* pa_xmalloc(size_t l);
+
+/** Same as pa_xmalloc(), but initialize allocated memory to 0 */
+void *pa_xmalloc0(size_t l);
+
+/**  The combination of pa_xmalloc() and realloc() */
+void *pa_xrealloc(void *ptr, size_t size);
+
+/** Free allocated memory */
+void pa_xfree(void *p);
+
+/** Duplicate the specified string, allocating memory with pa_xmalloc() */
 char *pa_xstrdup(const char *s);
+
+/** Duplicate the specified string, but truncate after l characters */
 char *pa_xstrndup(const char *s, size_t l);
 
+/** Duplicate the specified memory block */
 void* pa_xmemdup(const void *p, size_t l);
 
 /** Internal helper for pa_xnew() */
