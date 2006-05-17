@@ -140,6 +140,7 @@ pa_simple* pa_simple_new(
     const char *dev,
     const char *stream_name,
     const pa_sample_spec *ss,
+    const pa_channel_map *map,
     const pa_buffer_attr *attr,
     int *rerror) {
     
@@ -150,6 +151,7 @@ pa_simple* pa_simple_new(
     CHECK_VALIDITY_RETURN_ANY(rerror, dir == PA_STREAM_PLAYBACK || dir == PA_STREAM_RECORD, PA_ERR_INVALID, NULL);
     CHECK_VALIDITY_RETURN_ANY(rerror, !dev || *dev, PA_ERR_INVALID, NULL);
     CHECK_VALIDITY_RETURN_ANY(rerror, ss && pa_sample_spec_valid(ss), PA_ERR_INVALID, NULL);
+    CHECK_VALIDITY_RETURN_ANY(rerror, !map || (pa_channel_map_valid(map) && map->channels == ss->channels), PA_ERR_INVALID, NULL)
 
     p = pa_xnew(pa_simple, 1);
     p->context = NULL;
@@ -184,7 +186,7 @@ pa_simple* pa_simple_new(
         goto unlock_and_fail;
     }
 
-    if (!(p->stream = pa_stream_new(p->context, stream_name, ss, NULL))) {
+    if (!(p->stream = pa_stream_new(p->context, stream_name, ss, map))) {
         error = pa_context_errno(p->context);
         goto unlock_and_fail;
     }
