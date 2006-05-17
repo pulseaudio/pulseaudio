@@ -5,17 +5,14 @@ Post 0.8:
 - dbus/hal
 - polish for starting polypaudio as root/system-wide instance
 - chroot()
-- add threading API
 - module-tunnel: improve latency calculation
 - port from howl to avahi
 - multiline configuration statements
 - use scatter/gather io for sockets
-- add a synchronous API (base it on xmms-polyp)
 - rtp module ported to Win32 (sendmsg/recvmsg emulation)
 - CODECs to reduce bandwidth usage (plug-in based)
 - Remove symdef files and use macros (like most other projects)
 - use software volume when hardware doesn't support all channels (alsa done)
-- double check channel maps for backends, including that mixer and pcm match
 - paplay needs to set a channel map. our default is only correct for AIFF.
   (we need help from libsndfile for this)
 - silence generation should be moved into the core to avoid races and code
@@ -23,10 +20,12 @@ Post 0.8:
 - examine if it is possible to mimic esd's handling of half duplex cards
   (switch to capture when a recording client connects and drop playback during
   that time)
-- fix channel maps in all external backends. Take care when doing volume
-  changes if you're modifying a sink/source since those might have a different
-  map.
 - in avahi-simple: sleep until latency data is available again if NODATA has happened
+- Fix a way for the threading API to handle state and subscription callbacks
+  in a nice way.
+- iconv stuff sent from utils to server (UTF-8)
+- iconv stuff leaving the server (e.g. syslog). Sample loading probably needs
+  help as well.
 
 Long term:
 - pass meta info for hearing impaired
