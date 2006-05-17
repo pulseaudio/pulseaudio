@@ -52,7 +52,7 @@
 #include <polypcore/core-subscribe.h>
 #include <polypcore/namereg.h>
 #include <polypcore/sound-file.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/log.h>
 
 #include "core-scache.h"

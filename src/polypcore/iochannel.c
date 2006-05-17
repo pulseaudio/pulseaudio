@@ -40,7 +40,7 @@
 
 #include <polyp/xmalloc.h>
 
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/socket-util.h>
 #include <polypcore/log.h>
 

@@ -46,7 +46,7 @@
 #include <polypcore/authkey.h>
 #include <polypcore/namereg.h>
 #include <polypcore/log.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "endianmacros.h"
 

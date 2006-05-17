@@ -34,7 +34,7 @@
 
 #include <polypcore/sink-input.h>
 #include <polypcore/namereg.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/sample-util.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>

@@ -42,7 +42,7 @@
 
 #ifndef HAVE_SYS_POLL_H
 
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "poll.h"
 

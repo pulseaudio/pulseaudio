@@ -34,7 +34,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/log.h>
 
 #include "oss-util.h"

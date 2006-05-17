@@ -1,5 +1,5 @@
-#ifndef fooutilhfoo
-#define fooutilhfoo
+#ifndef foocoreutilhfoo
+#define foocoreutilhfoo
 
 /* $Id$ */
 
@@ -27,8 +27,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <polyp/sample.h>
 #include <polypcore/gccmacro.h>
+#include <polyp/util.h>
 
 struct timeval;
 
@@ -49,21 +49,7 @@ char *pa_vsprintf_malloc(const char *format, va_list ap);
 
 char *pa_strlcpy(char *b, const char *s, size_t l);
 
-char *pa_get_user_name(char *s, size_t l);
-char *pa_get_host_name(char *s, size_t l);
-char *pa_get_fqdn(char *s, size_t l);
-char *pa_get_binary_name(char *s, size_t l);
-char *pa_get_home_dir(char *s, size_t l);
-
-const char *pa_path_get_filename(const char *p);
-
 char *pa_parent_dir(const char *fn);
-
-struct timeval *pa_gettimeofday(struct timeval *tv);
-pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b);
-int pa_timeval_cmp(const struct timeval *a, const struct timeval *b);
-pa_usec_t pa_timeval_age(const struct timeval *tv);
-void pa_timeval_add(struct timeval *tv, pa_usec_t v);
 
 void pa_raise_priority(void);
 void pa_reset_priority(void);
@@ -96,8 +82,6 @@ int pa_startswith(const char *s, const char *pfx);
 int pa_endswith(const char *s, const char *sfx);
 
 char *pa_runtime_path(const char *fn, char *s, size_t l);
-
-int pa_msleep(unsigned long t);
 
 int pa_atoi(const char *s, int32_t *ret_i);
 int pa_atou(const char *s, uint32_t *ret_u);

@@ -40,7 +40,7 @@
 #include <polypcore/namereg.h>
 #include <polypcore/sink.h>
 #include <polypcore/modargs.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "module-mmkbd-evdev-symdef.h"
 

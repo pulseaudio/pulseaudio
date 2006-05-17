@@ -38,7 +38,7 @@
 #include <polypcore/module.h>
 #include <polypcore/modargs.h>
 #include <polypcore/log.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "module-detect-symdef.h"
 

@@ -45,7 +45,7 @@
 #include <polypcore/authkey.h>
 #include <polypcore/namereg.h>
 #include <polypcore/core-scache.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>
 #include <polypcore/autoload.h>

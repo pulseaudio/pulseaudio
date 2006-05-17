@@ -34,7 +34,7 @@
 
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "module.h"
 

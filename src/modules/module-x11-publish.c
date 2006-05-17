@@ -41,7 +41,7 @@
 #include <polypcore/namereg.h>
 #include <polypcore/log.h>
 #include <polypcore/x11wrap.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/native-common.h>
 #include <polypcore/authkey-prop.h>
 #include <polypcore/authkey.h>

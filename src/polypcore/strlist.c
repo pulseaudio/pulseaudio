@@ -29,7 +29,7 @@
 #include <polyp/xmalloc.h>
 
 #include <polypcore/strbuf.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "strlist.h"
 

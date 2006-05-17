@@ -35,7 +35,7 @@
 #include <polypcore/sink.h>
 #include <polypcore/source.h>
 #include <polypcore/native-common.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/log.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/dynarray.h>

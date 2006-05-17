@@ -48,7 +48,7 @@
 #include <polypcore/autoload.h>
 #include <polypcore/sound-file-stream.h>
 #include <polypcore/props.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "cli-command.h"
 

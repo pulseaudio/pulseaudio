@@ -42,7 +42,7 @@
 #include <polypcore/source.h>
 #include <polypcore/module.h>
 #include <polypcore/sample-util.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/modargs.h>
 #include <polypcore/log.h>
 

@@ -35,7 +35,7 @@
 #include <polypcore/source.h>
 #include <polypcore/sink.h>
 #include <polypcore/core-subscribe.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "namereg.h"
 

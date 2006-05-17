@@ -34,7 +34,7 @@
 #include <polypcore/sink.h>
 #include <polypcore/source.h>
 #include <polypcore/namereg.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/core-scache.h>
 #include <polypcore/autoload.h>
 #include <polypcore/core-subscribe.h>

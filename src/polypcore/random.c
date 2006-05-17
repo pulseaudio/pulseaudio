@@ -31,7 +31,7 @@
 #include <assert.h>
 #include <time.h>
 
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/log.h>
 
 #include "random.h"

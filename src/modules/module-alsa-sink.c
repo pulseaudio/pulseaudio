@@ -41,7 +41,7 @@
 #include <polypcore/memchunk.h>
 #include <polypcore/sink.h>
 #include <polypcore/modargs.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/sample-util.h>
 #include <polypcore/log.h>
 

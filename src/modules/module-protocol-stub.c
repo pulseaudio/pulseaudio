@@ -47,7 +47,7 @@
 #include <polypcore/module.h>
 #include <polypcore/socket-server.h>
 #include <polypcore/socket-util.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/modargs.h>
 #include <polypcore/log.h>
 #include <polypcore/native-common.h>

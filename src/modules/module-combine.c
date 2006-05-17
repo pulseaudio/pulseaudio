@@ -34,7 +34,7 @@
 #include <polypcore/sink-input.h>
 #include <polypcore/memblockq.h>
 #include <polypcore/log.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/modargs.h>
 #include <polypcore/namereg.h>
 
