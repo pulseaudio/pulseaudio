@@ -44,6 +44,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 <h2><a name="news">News</a></h2>
 
 <div class="news-date">Fri Apr 28 2006: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.9.0.tar.gz">Version 0.9.0</a>
+released; changes include: new module <tt>module-volume-restore</tt>;
+require valid UTF8 strings everywhere; properly support ALSA channel
+maps for surround sound; increase maximum number of channels per
+stream to 32; add new threaded main loop API for synchronous programs;
+introduce real shared object versioning; a few API additions; many,
+many bugfixes</p>
+
+<div class="news-date">Fri Apr 28 2006: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.8.1.tar.gz">Version 0.8.1</a>
 released; changes include: support for specifying the channel map on
 the command lines of <tt>paplay</tt> and <tt>pacat</tt> and as
@@ -157,6 +166,7 @@ Sound Architecture</a> (ALSA) sinks and sources</li>
   <li><tt>module-http-protocol-tcp</tt>: Spawns a small HTTP server which can be used to introspect the Polypaudio server with a web browser.</li>
   <li><tt>module-tunnel-sink</tt>, <tt>module-tunnel-source</tt>: make sinks/sources from other hosts available locally.</li>
   <li><tt>module-match</tt>: adjust volume automatically for newly created playback streams based on a regular expression matching table.</li>
+  <li><tt>module-volume-restore</tt>: much like <tt>module-match</tt>, but create rules fully automatically based on the client name.</li>
   <li><tt>module-null-sink</tt>: a clocked sink similar to <tt>/dev/null</tt>.</li>
   <li><tt>module-esound-sink</tt>: a sink for forwarding audio data to an <a href="http://www.tux.org/~ricdude/apps.html">ESOUND</a> server.</li>
   <li><tt>module-detect</tt>: a module which automatically detects what sound hardware is available locally and which loads the required driver modules.</li>
@@ -167,15 +177,13 @@ Sound Architecture</a> (ALSA) sinks and sources</li>
   <li><tt>module-jack-sink</tt>, <tt>module-jack-source</tt>: connect to a <a href="http://jackit.sourceforge.net/">JACK Audio Connection Kit</a> server. (A sound server for professional audio production)</li>
 </ul>
 
-<p><tt>polypaudio</tt> is the successor of my previous, ill-fated
-attempt to write a sound server, <a
-href="http://asd.sf.net/">asd</a>.</p>
-
 <p>A GTK GUI manager application for polypaudio is the <a
 href="http://0pointer.de/lennart/projects/paman/">Polypaudio
-Manager</a>. Another GTK GUI tool for Polypaudio is the <a
+Manager</a>. Other GTK GUI tool for Polypaudio are the <a
 href="http://0pointer.de/lennart/projects/pavumeter">Polypaudio Volume
-Meter</a>.</p>
+Meter</a>  and the <a
+href="http://0pointer.de/lennart/projects/pavucontrol">Polypaudio Volume
+Control</a> .</p>
 
 <p>There are output plugins for <a
 href="http://0pointer.de/lennart/projects/xmms-polyp/">XMMS</a>, <a
@@ -191,10 +199,6 @@ shortly.</p>
 <h2><a name="status">Current Status</a></h2>
 
 <p>Version @PACKAGE_VERSION@ is quite usable. It matches and supersedes ESOUND's feature set in nearly all areas.</p>
-
-<p><b>Warning:</b> polypaudio's client API and protocol are not stable
-yet. The client interface is still a moving target and changes from
-release to release. The client API's library version number is currently fixed to <tt>0.0.0</tt>.</p>
 
 <h2><a name="documentation">Documentation</a></h2>
 
@@ -242,7 +246,7 @@ documentation</a> for the client API. (Run <tt>make doxygen</tt> to generate thi
 <p>There are several reasons for writing loadable modules for polypaudio:</p>
 
 <ul>
-  <li>Device driver support in addition to ALSA/OSS</li>
+  <li>Extended device driver support</li>
   <li>Protocol support beyond ESOUND's protocol and the native protocol. (such as NAS or a subset of aRts)</li>
   <li>New programming interfaces such as XMLRPC or DBUS for controlling the daemon.</li>
   <li>Hooking audio event sources directly into polypaudio (similar to <tt>module-x11-bell</tt>)</li>
@@ -326,7 +330,7 @@ compilation and <tt>make install</tt> (as root) for installation of
 <p><b>Please report bugs to <a href="http://0pointer.de/trac/polypaudio/newticket">our Trac ticket system</a>.</b></p>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, April 2006</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, May 2006</address>
 <div class="grey"><i>$Id$</i></div>
 
 </body>
