@@ -36,8 +36,6 @@
 #include <sndfile.h>
 
 #include <polyp/polypaudio.h>
-#include <polyp/mainloop.h>
-#include <polyp/mainloop-signal.h>
 
 #if PA_API_VERSION != 9
 #error Invalid Polypaudio API version
@@ -511,19 +509,18 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     float *d;
     assert(s && length && sndfile);
 
-    d = malloc(length);
-    assert(d);
+    d = pa_xmalloc(length);
 
     assert(sample_length >= length);
     l = length/pa_frame_size(&sample_spec);
 
     if ((sf_readf_float(sndfile, d, l)) != l) {
-        free(d);
+        pa_xfree(d);
         fprintf(stderr, "Premature end of file\n");
         quit(1);
     }
     
-    pa_stream_write(s, d, length, free, 0, PA_SEEK_RELATIVE);
+    pa_stream_write(s, d, length, pa_xfree, 0, PA_SEEK_RELATIVE);
 
     sample_length -= length;
 
@@ -652,13 +649,13 @@ int main(int argc, char *argv[]) {
                 goto quit;
 
             case 's':
-                free(server);
-                server = strdup(optarg);
+                pa_xfree(server);
+                server = pa_xstrdup(optarg);
                 break;
 
             case 'n':
-                free(client_name);
-                client_name = strdup(optarg);
+                pa_xfree(client_name);
+                client_name = pa_xstrdup(optarg);
                 break;
 
             default:
@@ -667,7 +664,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (!client_name)
-        client_name = strdup(bn);
+        client_name = pa_xstrdup(bn);
     
     if (optind < argc) {
         if (!strcmp(argv[optind], "stat"))
@@ -686,7 +683,7 @@ int main(int argc, char *argv[]) {
             }
 
             if (optind+2 < argc)
-                sample_name = strdup(argv[optind+2]);
+                sample_name = pa_xstrdup(argv[optind+2]);
             else {
                 char *f = strrchr(argv[optind+1], '/');
                 size_t n;
@@ -698,7 +695,7 @@ int main(int argc, char *argv[]) {
                 n = strcspn(f, ".");
                 strncpy(tmp, f, n);
                 tmp[n] = 0;
-                sample_name = strdup(tmp);
+                sample_name = pa_xstrdup(tmp);
             }
             
             memset(&sfinfo, 0, sizeof(sfinfo));
@@ -719,10 +716,10 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            sample_name = strdup(argv[optind+1]);
+            sample_name = pa_xstrdup(argv[optind+1]);
 
             if (optind+2 < argc)
-                device = strdup(argv[optind+2]);
+                device = pa_xstrdup(argv[optind+2]);
             
         } else if (!strcmp(argv[optind], "remove-sample")) {
             action = REMOVE_SAMPLE;
@@ -731,7 +728,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            sample_name = strdup(argv[optind+1]);
+            sample_name = pa_xstrdup(argv[optind+1]);
         }
     }
 
@@ -782,9 +779,9 @@ quit:
     if (sndfile)
         sf_close(sndfile);
 
-    free(server);
-    free(device);
-    free(sample_name);
+    pa_xfree(server);
+    pa_xfree(device);
+    pa_xfree(sample_name);
 
     return ret;
 }

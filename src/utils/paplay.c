@@ -35,8 +35,6 @@
 #include <sndfile.h>
 
 #include <polyp/polypaudio.h>
-#include <polyp/mainloop.h>
-#include <polyp/mainloop-signal.h>
 
 #if PA_API_VERSION != 9
 #error Invalid Polypaudio API version
@@ -105,7 +103,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     if (!sndfile)
         return;
 
-    data = malloc(length);
+    data = pa_xmalloc(length);
 
     if (readf_function) {
         size_t k = pa_frame_size(&sample_spec);
@@ -117,9 +115,9 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
         bytes = sf_read_raw(sndfile, data, length);
 
     if (bytes > 0)
-        pa_stream_write(s, data, bytes, free, 0, PA_SEEK_RELATIVE);
+        pa_stream_write(s, data, bytes, pa_xfree, 0, PA_SEEK_RELATIVE);
     else
-        free(data);
+        pa_xfree(data);
 
     if (bytes < length) {
         sf_close(sndfile);
@@ -257,23 +255,23 @@ int main(int argc, char *argv[]) {
                 goto quit;
 
             case 'd':
-                free(device);
-                device = strdup(optarg);
+                pa_xfree(device);
+                device = pa_xstrdup(optarg);
                 break;
 
             case 's':
-                free(server);
-                server = strdup(optarg);
+                pa_xfree(server);
+                server = pa_xstrdup(optarg);
                 break;
 
             case 'n':
-                free(client_name);
-                client_name = strdup(optarg);
+                pa_xfree(client_name);
+                client_name = pa_xstrdup(optarg);
                 break;
 
             case ARG_STREAM_NAME:
-                free(stream_name);
-                stream_name = strdup(optarg);
+                pa_xfree(stream_name);
+                stream_name = pa_xstrdup(optarg);
                 break;
 
             case 'v':
@@ -351,11 +349,11 @@ int main(int argc, char *argv[]) {
     }
 
     if (!client_name)
-        client_name = strdup(bn);
+        client_name = pa_xstrdup(bn);
 
     if (!stream_name) {
         const char *n = sf_get_string(sndfile, SF_STR_TITLE);
-        stream_name = strdup(n ? n : filename);
+        stream_name = pa_xstrdup(n ? n : filename);
     }
     
     if (verbose) {
@@ -408,10 +406,10 @@ quit:
         pa_mainloop_free(m);
     }
 
-    free(server);
-    free(device);
-    free(client_name);
-    free(stream_name);
+    pa_xfree(server);
+    pa_xfree(device);
+    pa_xfree(client_name);
+    pa_xfree(stream_name);
 
     if (sndfile)
         sf_close(sndfile);

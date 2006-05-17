@@ -34,8 +34,6 @@
 #include <fcntl.h>
 
 #include <polyp/polypaudio.h>
-#include <polyp/mainloop.h>
-#include <polyp/mainloop-signal.h>
 #include <polypcore/util.h>
 
 #define TIME_EVENT_USEC 50000
@@ -97,7 +95,7 @@ static void do_stream_write(size_t length) {
     buffer_index += l;
     
     if (!buffer_length) {
-        free(buffer);
+        pa_xfree(buffer);
         buffer = NULL;
         buffer_index = buffer_length = 0;
     }
@@ -141,8 +139,7 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
         return;
     }
 
-    buffer = malloc(buffer_length = length);
-    assert(buffer);
+    buffer = pa_xmalloc(buffer_length = length);
     memcpy(buffer, data, length);
     buffer_index = 0;
     pa_stream_drop(s);
@@ -273,8 +270,8 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
     if (!stream || pa_stream_get_state(stream) != PA_STREAM_READY || !(l = w = pa_stream_writable_size(stream)))
         l = 4096;
     
-    buffer = malloc(l);
-    assert(buffer);
+    buffer = pa_xmalloc(l);
+
     if ((r = read(fd, buffer, l)) <= 0) {
         if (r == 0) {
             pa_operation *o;
@@ -331,7 +328,7 @@ static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_eve
     buffer_index += r;
 
     if (!buffer_length) {
-        free(buffer);
+        pa_xfree(buffer);
         buffer = NULL;
         buffer_length = buffer_index = 0;
     }
@@ -342,7 +339,6 @@ static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig,
     if (verbose)
         fprintf(stderr, "Got signal, exiting.\n");
     quit(0);
-    
 }
 
 /* Show the current latency */
@@ -479,23 +475,23 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'd':
-                free(device);
-                device = strdup(optarg);
+                pa_xfree(device);
+                device = pa_xstrdup(optarg);
                 break;
 
             case 's':
-                free(server);
-                server = strdup(optarg);
+                pa_xfree(server);
+                server = pa_xstrdup(optarg);
                 break;
 
             case 'n':
-                free(client_name);
-                client_name = strdup(optarg);
+                pa_xfree(client_name);
+                client_name = pa_xstrdup(optarg);
                 break;
 
             case ARG_STREAM_NAME:
-                free(stream_name);
-                stream_name = strdup(optarg);
+                pa_xfree(stream_name);
+                stream_name = pa_xstrdup(optarg);
                 break;
 
             case 'v':
@@ -567,7 +563,7 @@ int main(int argc, char *argv[]) {
             close(fd);
 
             if (!stream_name)
-                stream_name = strdup(argv[optind]);
+                stream_name = pa_xstrdup(argv[optind]);
             
         } else {
             fprintf(stderr, "Too many arguments.\n");
@@ -576,10 +572,10 @@ int main(int argc, char *argv[]) {
     }
 
     if (!client_name)
-        client_name = strdup(bn);
+        client_name = pa_xstrdup(bn);
 
     if (!stream_name)
-        stream_name = strdup(client_name);
+        stream_name = pa_xstrdup(client_name);
 
     /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {
@@ -659,12 +655,12 @@ quit:
         pa_mainloop_free(m);
     }
 
-    free(buffer);
+    pa_xfree(buffer);
 
-    free(server);
-    free(device);
-    free(client_name);
-    free(stream_name);
+    pa_xfree(server);
+    pa_xfree(device);
+    pa_xfree(client_name);
+    pa_xfree(stream_name);
     
     return ret;
 }
