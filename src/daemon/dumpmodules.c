@@ -30,7 +30,7 @@
 #include <ltdl.h>
 
 #include <polypcore/modinfo.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "dumpmodules.h"
 

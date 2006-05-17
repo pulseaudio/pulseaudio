@@ -31,7 +31,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/log.h>
 #include <polypcore/authkey.h>
 #include <polypcore/native-common.h>

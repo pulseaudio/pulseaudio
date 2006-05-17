@@ -33,7 +33,7 @@
 
 #include <polypcore/log.h>
 #include <polypcore/conf-parser.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/authkey.h>
 
 #include "client-conf.h"

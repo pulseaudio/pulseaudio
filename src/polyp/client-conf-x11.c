@@ -33,7 +33,7 @@
 
 #include <polypcore/x11prop.h>
 #include <polypcore/log.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "client-conf-x11.h"
 

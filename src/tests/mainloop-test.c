@@ -28,7 +28,7 @@
 #include <sys/time.h>
 #include <assert.h>
 
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/gccmacro.h>
 
 #ifdef GLIB_MAIN_LOOP

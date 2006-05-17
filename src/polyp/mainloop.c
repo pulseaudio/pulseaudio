@@ -46,7 +46,7 @@
 
 #include <polyp/xmalloc.h>
 
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/idxset.h>
 #include <polypcore/log.h>
 

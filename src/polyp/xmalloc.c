@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/gccmacro.h>
 
 #include "xmalloc.h"

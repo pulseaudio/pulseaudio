@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 #include <polypcore/gccmacro.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polyp/thread-mainloop.h>
 
 static void tcb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, void *userdata) {

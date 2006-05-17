@@ -34,7 +34,6 @@
 #include <fcntl.h>
 
 #include <polyp/polypaudio.h>
-#include <polypcore/util.h>
 
 #define TIME_EVENT_USEC 50000
 

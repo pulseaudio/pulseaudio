@@ -58,7 +58,7 @@
 #include <polypcore/module.h>
 #include <polypcore/cli-command.h>
 #include <polypcore/log.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/sioman.h>
 #include <polypcore/cli-text.h>
 #include <polypcore/pid.h>

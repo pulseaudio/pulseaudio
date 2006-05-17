@@ -28,7 +28,7 @@
 #include <polyp/xmalloc.h>
 
 #include <polypcore/idxset.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 
 #include "glib-mainloop.h"
 

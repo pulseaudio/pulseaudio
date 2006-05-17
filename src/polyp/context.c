@@ -56,7 +56,7 @@
 #include <polypcore/dynarray.h>
 #include <polypcore/socket-client.h>
 #include <polypcore/pstream-util.h>
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/log.h>
 #include <polypcore/socket-util.h>
 

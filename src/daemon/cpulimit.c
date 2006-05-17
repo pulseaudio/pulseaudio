@@ -23,7 +23,7 @@
 #include <config.h>
 #endif
 
-#include <polypcore/util.h>
+#include <polypcore/core-util.h>
 #include <polypcore/log.h>
 
 #include "cpulimit.h"
