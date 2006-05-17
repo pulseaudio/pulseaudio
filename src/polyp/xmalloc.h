@@ -26,10 +26,13 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <assert.h>
+#include <polyp/cdecl.h>
 
 /** \file
  * Memory allocation functions.
  */
+
+PA_C_DECL_BEGIN
 
 /** Allocate the specified number of bytes, just like malloc() does. However, in case of OOM, terminate */
 void* pa_xmalloc(size_t l);
@@ -69,5 +72,7 @@ static inline void* pa_xnew0_internal(unsigned n, size_t k) {
 
 /** Same as pa_xnew() but set the memory to zero */
 #define pa_xnew0(type, n) ((type*) pa_xnew0_internal((n), sizeof(type)))
+
+PA_C_DECL_END
 
 #endif
