@@ -317,24 +317,26 @@ int main(int argc, char *argv[]) {
     sample_spec.rate = sfinfo.samplerate;
     sample_spec.channels = sfinfo.channels;
     
+    readf_function = NULL;
+    
     switch (sfinfo.format & 0xFF) {
         case SF_FORMAT_PCM_16:
         case SF_FORMAT_PCM_U8:
+        case SF_FORMAT_PCM_S8:
             sample_spec.format = PA_SAMPLE_S16NE;
             readf_function = (sf_count_t (*)(SNDFILE *_sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
             break;
             
         case SF_FORMAT_ULAW:
             sample_spec.format = PA_SAMPLE_ULAW;
-            readf_function = NULL;
             break;
             
         case SF_FORMAT_ALAW:
             sample_spec.format = PA_SAMPLE_ALAW;
-            readf_function = NULL;
             break;
 
         case SF_FORMAT_FLOAT:
+        case SF_FORMAT_DOUBLE:
         default:
             sample_spec.format = PA_SAMPLE_FLOAT32NE;
             readf_function = (sf_count_t (*)(SNDFILE *_sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
