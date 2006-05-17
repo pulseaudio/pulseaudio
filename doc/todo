@@ -20,7 +20,6 @@ Post 0.8:
 - examine if it is possible to mimic esd's handling of half duplex cards
   (switch to capture when a recording client connects and drop playback during
   that time)
-- in avahi-simple: sleep until latency data is available again if NODATA has happened
 - Fix a way for the threading API to handle state and subscription callbacks
   in a nice way.
 - iconv stuff sent from utils to server (UTF-8)
