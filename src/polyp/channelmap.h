@@ -125,6 +125,7 @@ typedef enum pa_channel_map_def {
     PA_CHANNEL_MAP_AIFF, /**< The mapping from RFC3551, which is based on AIFF-C */
     PA_CHANNEL_MAP_ALSA, /**< The default mapping used by ALSA */
     PA_CHANNEL_MAP_AUX,  /**< Only aux channels */
+    PA_CHANNEL_MAP_WAVEEX, /**< Microsoft's WAVEFORMATEXTENSIBLE mapping */
     
     PA_CHANNEL_MAP_DEFAULT = PA_CHANNEL_MAP_AIFF /**< The default channel map */
 } pa_channel_map_def_t;
