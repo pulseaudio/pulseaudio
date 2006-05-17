@@ -100,7 +100,7 @@
 PA_C_DECL_BEGIN
 
 /** Maximum number of allowed channels */
-#define PA_CHANNELS_MAX 16
+#define PA_CHANNELS_MAX 32
 
 /** Sample format */
 typedef enum pa_sample_format {
