@@ -464,16 +464,30 @@ which is replaced by <tt>source_name</tt> (with a default of <tt>jack_in</tt>) f
 <p>Adjust the volume of a playback stream automatically based on its name.</p>
 
 <table>
-  <tr><td><tt>table=</tt></td><td>The regular expression matching table file to use</td></tr>
+  <tr><td><tt>table=</tt></td><td>The regular expression matching table file to use (defaults to <tt>~/.polypaudio/match.table</tt>)</td></tr>
 </table>
 
 <p>The table file should contain a regexp and volume on each line, seperated by spaces. An example:</p>
 
 <pre>
-^sample: 25
+^sample: 32000
 </pre>
 
-<p>The volumes of all streams with titles starting with <tt>sample:</tt> are automatically set to 25. (FYI: All sample cache streams start with <tt>sample:</tt>)</p>
+<p>The volumes of all streams with titles starting with <tt>sample:</tt> are automatically set to 32000. (FYI: All sample cache streams start with <tt>sample:</tt>)</p>
+
+<h3>module-volume-restore</h3>
+
+<p>Adjust the volume of a playback stream automatically based on its name.</p>
+
+<table>
+  <tr><td><tt>table=</tt></td><td>The table file to use (defaults to <tt>~/.polypaudio/volume.table</tt>)</td></tr>
+</table>
+
+<p>In contrast to <tt>module-match</tt> this module needs no explicit
+configuration. Instead the volumes are saved and restored in a fully
+automatical fashion depending on the client name to identify
+streams. The volume for a stream is automatically saved every time it is
+changed and than restored when a new stream is created.</p>
 
 <h3>module-detect</h3>
 
