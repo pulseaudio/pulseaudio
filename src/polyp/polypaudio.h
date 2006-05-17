@@ -40,6 +40,7 @@
 #include <polyp/thread-mainloop.h>
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
+#include <polyp/util.h>
 
 /** \file
  * Include all polyplib header files at once. The following
@@ -47,7 +48,7 @@
  * \ref context.h, \ref stream.h, \ref introspect.h, \ref subscribe.h,
  * \ref scache.h, \ref version.h, \ref error.h, \ref channelmap.h,
  * \ref operation.h,\ref volume.h, \ref xmalloc.h, \ref utf8.h, \ref
- * thread-mainloop.h, \ref mainloop.h and \ref mainloop-signal.h at once */
+ * thread-mainloop.h, \ref mainloop.h, \ref util.h and \ref mainloop-signal.h at once */
 
 /** \mainpage
  *
