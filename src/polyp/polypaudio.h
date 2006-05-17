@@ -66,6 +66,11 @@
  * based style or if you want to use the advanced features of the
  * polypaudio API. A guide can be found in \subpage async.
  *
+ * By using the built-in threaded main loop, it is possible to acheive a
+ * pseudo-synchronous API, which can be useful in synchronous applications
+ * where the simple API is insufficient. See the \ref async page for
+ * details.
+ *
  * \section thread_sec Threads
  *
  * The polypaudio client libraries are not designed to be used in a
@@ -73,12 +78,12 @@
  * safe.
  *
  * To use a the libraries in a threaded environment, you must assure that
- * all objects are only used in the same thread they were created in.
- * Normally, this means that all objects belonging to a single context
- * must be accessed from the same thread.
+ * all objects are only used in one thread at a time. Normally, this means
+ * that all objects belonging to a single context must be accessed from the
+ * same thread.
  *
  * The included main loop implementation is also not thread safe. Take care
- * to make sure event lists are not manipulated when any library code is
+ * to make sure event lists are not manipulated when any other code is
  * using the main loop.
  *
  * \section pkgconfig pkg-config

@@ -51,13 +51,17 @@
  * pa_mainloop_api structure.
  *
  * To actually be able to use these functions, an implementation needs to 
- * be coupled to the abstraction. There are two of these shipped with
+ * be coupled to the abstraction. There are three of these shipped with
  * polypaudio, but any other can be used with a minimal ammount of work,
  * provided it supports the three basic events listed above.
  *
  * The implementations shipped with polypaudio are:
  *
  * \li \subpage mainloop - A minimal but fast implementation based on poll().
+ * \li \subpage threaded_mainloop - A special version of the previous
+ *                                  implementation where all of Polypaudio's
+ *                                  internal handling runs in a separate
+ *                                  thread.
  * \li \subpage glib-mainloop - A wrapper around GLIB's main loop. Available
  *                              for both GLIB 1.2 and GLIB 2.x.
  *
