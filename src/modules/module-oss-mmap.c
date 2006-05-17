@@ -383,7 +383,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     u->sample_spec = c->default_sample_spec;
-    if (pa_modargs_get_sample_spec_and_channel_map(ma, &u->sample_spec, &map, PA_CHANNEL_MAP_ALSA) < 0) {
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &u->sample_spec, &map, PA_CHANNEL_MAP_OSS) < 0) {
         pa_log(__FILE__": failed to parse sample specification or channel map");
         goto fail;
     }
