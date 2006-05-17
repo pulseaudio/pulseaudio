@@ -34,4 +34,3 @@ Backends for:
 - portaudio  (semi-done)
 - sdl
 - OSS (esddsp style)
-- gstreamer (needs to be updated)
