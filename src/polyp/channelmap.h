@@ -122,10 +122,11 @@ typedef enum pa_channel_position {
 
 /** A list of channel mapping definitions for pa_channel_map_init_auto() */
 typedef enum pa_channel_map_def {
-    PA_CHANNEL_MAP_AIFF, /**< The mapping from RFC3551, which is based on AIFF-C */
-    PA_CHANNEL_MAP_ALSA, /**< The default mapping used by ALSA */
-    PA_CHANNEL_MAP_AUX,  /**< Only aux channels */
+    PA_CHANNEL_MAP_AIFF,   /**< The mapping from RFC3551, which is based on AIFF-C */
+    PA_CHANNEL_MAP_ALSA,   /**< The default mapping used by ALSA */
+    PA_CHANNEL_MAP_AUX,    /**< Only aux channels */
     PA_CHANNEL_MAP_WAVEEX, /**< Microsoft's WAVEFORMATEXTENSIBLE mapping */
+    PA_CHANNEL_MAP_OSS,    /**< The default channel mapping used by OSS as defined in the OSS 4.0 API specs */
     
     PA_CHANNEL_MAP_DEFAULT = PA_CHANNEL_MAP_AIFF /**< The default channel map */
 } pa_channel_map_def_t;
