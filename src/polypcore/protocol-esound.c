@@ -31,6 +31,7 @@
 #include <limits.h>
 
 #include <polyp/sample.h>
+#include <polyp/utf8.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/esound.h>
@@ -46,7 +47,6 @@
 #include <polypcore/namereg.h>
 #include <polypcore/log.h>
 #include <polypcore/util.h>
-#include <polypcore/utf8.h>
 
 #include "endianmacros.h"
 

@@ -313,6 +313,7 @@ polypinclude_HEADERS = \
 		polyp/subscribe.h \
 		polyp/version.h \
 		polyp/sample.h \
+		polyp/utf8.h \
 		polyp/volume.h \
 		polyp/xmalloc.h
 
@@ -358,6 +359,7 @@ libpolyp_la_SOURCES = \
 		polyp/subscribe.c polyp/subscribe.h \
 		polyp/sample.c polyp/sample.h \
 		polyp/volume.c polyp/volume.h \
+		polyp/utf8.c polyp/utf8.h \
 		polyp/mainloop.c polyp/mainloop.h \
 		polyp/mainloop-signal.c polyp/mainloop-signal.h \
 		polyp/thread-mainloop.c polyp/thread-mainloop.h \
@@ -485,8 +487,7 @@ polypcoreinclude_HEADERS = \
 		polypcore/source-output.h \
 		polypcore/strbuf.h \
 		polypcore/tokenizer.h \
-		polypcore/util.h \
-		polypcore/utf8.h
+		polypcore/util.h
 
 lib_LTLIBRARIES += libpolypcore.la
 
@@ -498,6 +499,7 @@ libpolypcore_la_SOURCES = \
 		polyp/mainloop-signal.c polyp/mainloop-signal.h \
 		polyp/sample.c polyp/sample.h \
 		polyp/volume.c polyp/volume.h \
+		polyp/utf8.c polyp/utf8.h \
 		polyp/xmalloc.c polyp/xmalloc.h
 
 # Pure core stuff (some are shared in libpolyp though).
@@ -546,8 +548,7 @@ libpolypcore_la_SOURCES += \
 		polypcore/strbuf.c polypcore/strbuf.h \
 		polypcore/tokenizer.c polypcore/tokenizer.h \
 		polypcore/util.c polypcore/util.h \
-		polypcore/winsock.h \
-		polypcore/utf8.c polypcore/utf8.h
+		polypcore/winsock.h
 
 if OS_IS_WIN32
 libpolypcore_la_SOURCES += \

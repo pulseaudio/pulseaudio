@@ -28,12 +28,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <polyp/utf8.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/sample-util.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>
-#include <polypcore/utf8.h>
 
 #include "sink-input.h"
 

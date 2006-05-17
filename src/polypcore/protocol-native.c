@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include <polyp/version.h>
+#include <polyp/utf8.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/native-common.h>
@@ -53,7 +54,6 @@
 #include <polypcore/props.h>
 #include <polypcore/sample-util.h>
 #include <polypcore/llist.h>
-#include <polypcore/utf8.h>
 
 #include "protocol-native.h"
 
