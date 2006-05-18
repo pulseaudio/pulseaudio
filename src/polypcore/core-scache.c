@@ -44,6 +44,7 @@
 #include <polyp/mainloop.h>
 #include <polyp/channelmap.h>
 #include <polyp/timeval.h>
+#include <polyp/util.h>
 #include <polyp/volume.h>
 #include <polyp/xmalloc.h>
 

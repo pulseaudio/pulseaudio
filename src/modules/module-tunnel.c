@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include <polyp/timeval.h>
+#include <polyp/util.h>
 #include <polyp/version.h>
 #include <polyp/xmalloc.h>
 

@@ -29,6 +29,7 @@
 
 #include <polyp/xmalloc.h>
 
+#include <polyp/util.h>
 #include <polypcore/core-util.h>
 
 #include "parseaddr.h"

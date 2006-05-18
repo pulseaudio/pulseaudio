@@ -29,8 +29,9 @@
 #include <stdio.h>
 #include <ltdl.h>
 
+#include <polyp/util.h>
+
 #include <polypcore/modinfo.h>
-#include <polypcore/core-util.h>
 
 #include "dumpmodules.h"
 

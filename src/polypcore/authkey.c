@@ -35,6 +35,7 @@
 #include <limits.h>
 #include <sys/stat.h>
 
+#include <polyp/util.h>
 #include <polypcore/core-util.h>
 #include <polypcore/log.h>
 #include <polypcore/random.h>

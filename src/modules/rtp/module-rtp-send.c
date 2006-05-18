@@ -33,6 +33,7 @@
 #include <unistd.h>
 
 #include <polyp/timeval.h>
+#include <polyp/util.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>

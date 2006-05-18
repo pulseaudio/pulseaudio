@@ -32,6 +32,7 @@
 #include <polyp/timeval.h>
 #include <polyp/version.h>
 #include <polyp/utf8.h>
+#include <polyp/util.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/native-common.h>
@@ -46,7 +47,6 @@
 #include <polypcore/authkey.h>
 #include <polypcore/namereg.h>
 #include <polypcore/core-scache.h>
-#include <polypcore/core-util.h>
 #include <polypcore/core-subscribe.h>
 #include <polypcore/log.h>
 #include <polypcore/autoload.h>

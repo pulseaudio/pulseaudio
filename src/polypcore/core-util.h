@@ -28,7 +28,6 @@
 #include <stdio.h>
 
 #include <polypcore/gccmacro.h>
-#include <polyp/util.h>
 
 struct timeval;
 
