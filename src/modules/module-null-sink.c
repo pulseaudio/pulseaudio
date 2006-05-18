@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/iochannel.h>

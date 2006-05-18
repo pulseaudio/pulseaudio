@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <signal.h>
 
+#include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>

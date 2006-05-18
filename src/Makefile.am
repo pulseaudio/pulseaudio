@@ -351,6 +351,7 @@ libpolyp_la_SOURCES = \
 		polyp/stream.c polyp/stream.h \
 		polyp/subscribe.c polyp/subscribe.h \
 		polyp/sample.c polyp/sample.h \
+		polyp/timeval.c polyp/timeval.h \
 		polyp/volume.c polyp/volume.h \
 		polyp/utf8.c polyp/utf8.h \
 		polyp/mainloop.c polyp/mainloop.h \
@@ -493,9 +494,10 @@ libpolypcore_la_SOURCES = \
 		polyp/mainloop-signal.c polyp/mainloop-signal.h \
 		polyp/sample.c polyp/sample.h \
 		polyp/volume.c polyp/volume.h \
+		polyp/timeval.c polyp/timeval.h \
 		polyp/utf8.c polyp/utf8.h \
-		polyp/xmalloc.c polyp/xmalloc.h \
-		polyp/util.c polyp/util.h
+		polyp/util.c polyp/util.h \
+		polyp/xmalloc.c polyp/xmalloc.h
 
 # Pure core stuff (some are shared in libpolyp though).
 libpolypcore_la_SOURCES += \

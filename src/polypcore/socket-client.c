@@ -54,6 +54,7 @@
 
 #include "winsock.h"
 
+#include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/socket-util.h>

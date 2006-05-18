@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <polyp/timeval.h>
 #include <polyp/version.h>
 #include <polyp/utf8.h>
 #include <polyp/xmalloc.h>

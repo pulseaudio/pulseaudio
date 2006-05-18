@@ -30,6 +30,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/core-subscribe.h>

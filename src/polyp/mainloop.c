@@ -44,6 +44,7 @@
 #include "../polypcore/pipe.h"
 #endif
 
+#include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/core-util.h>

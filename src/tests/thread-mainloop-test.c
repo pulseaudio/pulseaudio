@@ -28,6 +28,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include <polyp/timeval.h>
+
 #include <polypcore/gccmacro.h>
 #include <polypcore/core-util.h>
 #include <polyp/thread-mainloop.h>
