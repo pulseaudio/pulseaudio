@@ -35,6 +35,7 @@
 #include <limits.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <locale.h>
 #include <sys/types.h>
 #include <liboil/liboil.h>
 
@@ -160,6 +161,8 @@ int main(int argc, char *argv[]) {
     pa_time_event *timer;
     struct timeval tv;
 #endif
+
+    setlocale(LC_ALL, "");
 
     pa_limit_caps();
 

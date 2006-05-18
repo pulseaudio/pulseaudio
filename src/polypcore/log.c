@@ -33,6 +33,7 @@
 #include <syslog.h>
 #endif
 
+#include <polyp/utf8.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/core-util.h>
@@ -41,7 +42,7 @@
 
 #define ENV_LOGLEVEL "POLYP_LOG"
 
-static char *log_ident = NULL;
+static char *log_ident = NULL, *log_ident_local = NULL;
 static pa_log_target_t log_target = PA_LOG_STDERR;
 static void (*user_log_func)(pa_log_level_t l, const char *s) = NULL;
 static pa_log_level_t maximal_level = PA_LOG_NOTICE;
@@ -59,8 +60,13 @@ static const int level_to_syslog[] = {
 void pa_log_set_ident(const char *p) {
     if (log_ident)
         pa_xfree(log_ident);
+    if (log_ident_local)
+        pa_xfree(log_ident_local);
 
     log_ident = pa_xstrdup(p);
+    log_ident_local = pa_utf8_to_locale(log_ident);
+    if (!log_ident_local)
+        log_ident_local = pa_xstrdup(log_ident);
 }
 
 void pa_log_set_maximal_level(pa_log_level_t l) {
@@ -100,6 +106,7 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
         switch (log_target) {
             case PA_LOG_STDERR: {
                 const char *prefix = "", *suffix = "";
+                char *local_t;
 
 #ifndef OS_IS_WIN32                
                 /* Yes indeed. Useless, but fun! */
@@ -114,16 +121,34 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
                 }
 #endif
 
-                fprintf(stderr, "%s%s%s\n", prefix, t, suffix);
+                local_t = pa_utf8_to_locale(t);
+                if (!local_t)
+                    fprintf(stderr, "%s%s%s\n", prefix, t, suffix);
+                else {
+                    fprintf(stderr, "%s%s%s\n", prefix, local_t, suffix);
+                    pa_xfree(local_t);
+                }
+
                 break;
             }
                 
 #ifdef HAVE_SYSLOG_H            
-            case PA_LOG_SYSLOG:
-                openlog(log_ident ? log_ident : "???", LOG_PID, LOG_USER);
-                syslog(level_to_syslog[level], "%s", t);
+            case PA_LOG_SYSLOG: {
+                char *local_t;
+
+                openlog(log_ident_local ? log_ident_local : "???", LOG_PID, LOG_USER);
+
+                local_t = pa_utf8_to_locale(t);
+                if (!local_t)
+                    syslog(level_to_syslog[level], "%s", t);
+                else {
+                    syslog(level_to_syslog[level], "%s", local_t);
+                    pa_xfree(local_t);
+                }
+
                 closelog();
                 break;            
+            }
 #endif
                 
             case PA_LOG_USER: 
