@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <locale.h>
 
 #include <sndfile.h>
 
@@ -236,6 +237,8 @@ int main(int argc, char *argv[]) {
         {NULL,          0, NULL, 0}
     };
 
+    setlocale(LC_ALL, "");
+
     if (!(bn = strrchr(argv[0], '/')))
         bn = argv[0];
     else
@@ -348,12 +351,23 @@ int main(int argc, char *argv[]) {
         goto quit;
     }
 
-    if (!client_name)
-        client_name = pa_xstrdup(bn);
+    if (!client_name) {
+        client_name = pa_locale_to_utf8(bn);
+        if (!client_name)
+            client_name = pa_utf8_filter(bn);
+    }
 
     if (!stream_name) {
-        const char *n = sf_get_string(sndfile, SF_STR_TITLE);
-        stream_name = pa_xstrdup(n ? n : filename);
+        const char *n;
+
+        n = sf_get_string(sndfile, SF_STR_TITLE);
+
+        if (!n)
+            n = filename;
+
+        stream_name = pa_locale_to_utf8(n);
+        if (!stream_name)
+            stream_name = pa_utf8_filter(n);
     }
     
     if (verbose) {
