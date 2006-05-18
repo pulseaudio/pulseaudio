@@ -25,6 +25,7 @@ Post 0.8:
 - iconv stuff sent from utils to server (UTF-8)
 - iconv stuff leaving the server (e.g. syslog). Sample loading probably needs
   help as well.
+- Document utf8.h, timeval.h and util.h
 
 Long term:
 - pass meta info for hearing impaired
