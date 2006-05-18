@@ -36,6 +36,12 @@ const char *pa_utf8_valid(const char *str);
 /** Filter all invalid UTF8 characters from the specified string, returning a new fully UTF8 valid string. Don't forget to free the returned string with pa_xfree() */
 char *pa_utf8_filter(const char *str);
 
+/** Convert a UTF-8 string to the current locale. Free the string using pa_xfree(). */
+char* pa_utf8_to_locale (const char *str);
+
+/** Convert a string in the current locale to UTF-8. Free the string using pa_xfree(). */
+char* pa_locale_to_utf8 (const char *str);
+
 PA_C_DECL_END
 
 #endif

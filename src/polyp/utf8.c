@@ -29,9 +29,14 @@
 #endif
 
 #include <assert.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
+
+#ifdef HAVE_ICONV_H
+#include <iconv.h>
+#endif
 
 #include "utf8.h"
 #include "xmalloc.h"
@@ -162,3 +167,70 @@ char* pa_utf8_filter (const char *str) {
 
     return utf8_validate(str, new_str);
 }
+
+#ifdef HAVE_ICONV_H
+
+static char* iconv_simple(const char *str, const char *to, const char *from) {
+    char *new_str;
+    size_t len, inlen;
+
+    iconv_t cd;
+    char *inbuf, *outbuf;
+    size_t res, inbytes, outbytes;
+
+    cd = iconv_open(to, from);
+    if (cd == (iconv_t)-1)
+        return NULL;
+
+    inlen = len = strlen(str) + 1;
+    new_str = pa_xmalloc(len);
+    assert(new_str);
+
+    while (1) {
+        inbuf = (char*)str; /* Brain dead prototype for iconv() */
+        inbytes = inlen;
+        outbuf = new_str;
+        outbytes = len;
+
+        res = iconv(cd, &inbuf, &inbytes, &outbuf, &outbytes);
+
+        if (res != (size_t)-1)
+            break;
+
+        if (errno != E2BIG) {
+            pa_xfree(new_str);
+            new_str = NULL;
+            break;
+        }
+
+        assert(inbytes != 0);
+
+        len += inbytes;
+        new_str = pa_xrealloc(new_str, len);
+        assert(new_str);
+    }
+
+    iconv_close(cd);
+
+    return new_str;
+}
+
+char* pa_utf8_to_locale (const char *str) {
+    return iconv_simple(str, "", "UTF-8");
+}
+
+char* pa_locale_to_utf8 (const char *str) {
+    return iconv_simple(str, "UTF-8", "");
+}
+
+#else
+
+char* pa_utf8_to_locale (const char *str) {
+    return NULL;
+}
+
+char* pa_locale_to_utf8 (const char *str) {
+    return NULL;
+}
+
+#endif
