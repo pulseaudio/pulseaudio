@@ -291,7 +291,6 @@ polypinclude_HEADERS = \
 		polyp/context.h \
 		polyp/def.h \
 		polyp/error.h \
-		polyp/glib-mainloop.h \
 		polyp/introspect.h \
 		polyp/mainloop.h \
 		polyp/mainloop-api.h \
@@ -304,6 +303,7 @@ polypinclude_HEADERS = \
 		polyp/stream.h \
 		polyp/subscribe.h \
 		polyp/thread-mainloop.h \
+		polyp/timeval.h \
 		polyp/utf8.h \
 		polyp/util.h \
 		polyp/version.h \
@@ -313,6 +313,16 @@ polypinclude_HEADERS = \
 if HAVE_HOWL
 polypinclude_HEADERS += \
 		polyp/browser.h
+endif
+
+if HAVE_GLIB20
+polypinclude_HEADERS += \
+		polyp/glib-mainloop.h
+else
+if HAVE_GLIB12
+polypinclude_HEADERS += \
+		polyp/glib-mainloop.h
+endif
 endif
 
 lib_LTLIBRARIES = \
