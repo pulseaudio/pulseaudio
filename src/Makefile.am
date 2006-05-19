@@ -288,27 +288,27 @@ sync_playback_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 polypinclude_HEADERS = \
 		polyp/cdecl.h \
 		polyp/channelmap.h \
-		polyp/glib-mainloop.h \
-		polyp/mainloop.h \
-		polyp/mainloop-api.h \
-		polyp/mainloop-signal.h \
-		polyp/thread-mainloop.h \
-		polyp/polypaudio.h \
 		polyp/context.h \
 		polyp/def.h \
 		polyp/error.h \
+		polyp/glib-mainloop.h \
 		polyp/introspect.h \
+		polyp/mainloop.h \
+		polyp/mainloop-api.h \
+		polyp/mainloop-signal.h \
 		polyp/operation.h \
+		polyp/polypaudio.h \
+		polyp/sample.h \
 		polyp/scache.h \
 		polyp/simple.h \
 		polyp/stream.h \
 		polyp/subscribe.h \
-		polyp/version.h \
-		polyp/sample.h \
+		polyp/thread-mainloop.h \
 		polyp/utf8.h \
+		polyp/util.h \
+		polyp/version.h \
 		polyp/volume.h \
-		polyp/xmalloc.h \
-		polyp/util.h
+		polyp/xmalloc.h
 
 if HAVE_HOWL
 polypinclude_HEADERS += \
@@ -339,36 +339,38 @@ libpolyp_la_SOURCES = \
 		polyp/cdecl.h \
 		polyp/channelmap.c polyp/channelmap.h \
 		polyp/client-conf.c polyp/client-conf.h \
-		polyp/mainloop-api.c polyp/mainloop-api.h \
-		polyp/polypaudio.h \
 		polyp/context.c polyp/context.h \
 		polyp/def.h \
 		polyp/error.c polyp/error.h \
 		polyp/internal.h \
 		polyp/introspect.c polyp/introspect.h \
+		polyp/mainloop.c polyp/mainloop.h \
+		polyp/mainloop-api.c polyp/mainloop-api.h \
+		polyp/mainloop-signal.c polyp/mainloop-signal.h \
 		polyp/operation.c polyp/operation.h \
+		polyp/polypaudio.h \
+		polyp/sample.c polyp/sample.h \
 		polyp/scache.c polyp/scache.h \
 		polyp/stream.c polyp/stream.h \
 		polyp/subscribe.c polyp/subscribe.h \
-		polyp/sample.c polyp/sample.h \
-		polyp/timeval.c polyp/timeval.h \
-		polyp/volume.c polyp/volume.h \
-		polyp/utf8.c polyp/utf8.h \
-		polyp/mainloop.c polyp/mainloop.h \
-		polyp/mainloop-signal.c polyp/mainloop-signal.h \
 		polyp/thread-mainloop.c polyp/thread-mainloop.h \
-		polyp/xmalloc.c polyp/xmalloc.h \
-		polyp/util.c polyp/util.h 
+		polyp/timeval.c polyp/timeval.h \
+		polyp/utf8.c polyp/utf8.h \
+		polyp/util.c polyp/util.h \
+		polyp/volume.c polyp/volume.h \
+		polyp/xmalloc.c polyp/xmalloc.h
 
 # Internal stuff that is shared with libpolypcore
 libpolyp_la_SOURCES += \
 		polypcore/authkey.c polypcore/authkey.h \
 		polypcore/conf-parser.c polypcore/conf-parser.h \
+		polypcore/core-util.c polypcore/core-util.h \
 		polypcore/dynarray.c polypcore/dynarray.h \
 		polypcore/gccmacro.h \
 		polypcore/hashmap.c polypcore/hashmap.h \
 		polypcore/idxset.c polypcore/idxset.h \
 		polypcore/iochannel.c polypcore/iochannel.h \
+		polypcore/llist.h \
 		polypcore/log.c polypcore/log.h \
 		polypcore/mcalign.c polypcore/mcalign.h \
 		polypcore/memblock.c polypcore/memblock.h \
@@ -378,6 +380,8 @@ libpolyp_la_SOURCES += \
 		polypcore/packet.c polypcore/packet.h \
 		polypcore/parseaddr.c polypcore/parseaddr.h \
 		polypcore/pdispatch.c polypcore/pdispatch.h \
+		polypcore/pipe.c polypcore/pipe.h \
+		polypcore/poll.c polypcore/poll.h \
 		polypcore/pstream.c polypcore/pstream.h \
 		polypcore/pstream-util.c polypcore/pstream-util.h \
 		polypcore/queue.c polypcore/queue.h \
@@ -387,11 +391,7 @@ libpolyp_la_SOURCES += \
 		polypcore/strbuf.c polypcore/strbuf.h \
 		polypcore/strlist.c polypcore/strlist.h \
 		polypcore/tagstruct.c polypcore/tagstruct.h \
-		polypcore/core-util.c polypcore/core-util.h \
-		polypcore/winsock.h \
-		polypcore/llist.h \
-		polypcore/pipe.c polypcore/pipe.h \
-		polypcore/poll.c polypcore/poll.h
+		polypcore/winsock.h
 
 if OS_IS_WIN32
 libpolyp_la_SOURCES += \
@@ -452,6 +452,7 @@ polypcoreinclude_HEADERS = \
 		polypcore/core-scache.h \
 		polypcore/core-subscribe.h \
 		polypcore/conf-parser.h \
+		polypcore/core-util.h \
 		polypcore/dynarray.h \
 		polypcore/g711.h \
 		polypcore/hashmap.h \
@@ -481,8 +482,7 @@ polypcoreinclude_HEADERS = \
 		polypcore/source.h \
 		polypcore/source-output.h \
 		polypcore/strbuf.h \
-		polypcore/tokenizer.h \
-		polypcore/core-util.h
+		polypcore/tokenizer.h
 
 lib_LTLIBRARIES += libpolypcore.la
 
@@ -493,10 +493,10 @@ libpolypcore_la_SOURCES = \
 		polyp/mainloop-api.c polyp/mainloop-api.h \
 		polyp/mainloop-signal.c polyp/mainloop-signal.h \
 		polyp/sample.c polyp/sample.h \
-		polyp/volume.c polyp/volume.h \
 		polyp/timeval.c polyp/timeval.h \
 		polyp/utf8.c polyp/utf8.h \
 		polyp/util.c polyp/util.h \
+		polyp/volume.c polyp/volume.h \
 		polyp/xmalloc.c polyp/xmalloc.h
 
 # Pure core stuff (some are shared in libpolyp though).
@@ -509,6 +509,7 @@ libpolypcore_la_SOURCES += \
 		polypcore/core.c polypcore/core.h \
 		polypcore/core-scache.c polypcore/core-scache.h \
 		polypcore/core-subscribe.c polypcore/core-subscribe.h \
+		polypcore/core-util.c polypcore/core-util.h \
 		polypcore/dynarray.c polypcore/dynarray.h \
 		polypcore/endianmacros.h \
 		polypcore/g711.c polypcore/g711.h \
@@ -544,7 +545,6 @@ libpolypcore_la_SOURCES += \
 		polypcore/source-output.c polypcore/source-output.h \
 		polypcore/strbuf.c polypcore/strbuf.h \
 		polypcore/tokenizer.c polypcore/tokenizer.h \
-		polypcore/core-util.c polypcore/core-util.h \
 		polypcore/winsock.h
 
 if OS_IS_WIN32
