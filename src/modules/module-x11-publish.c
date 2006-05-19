@@ -32,6 +32,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+#include <polyp/util.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>

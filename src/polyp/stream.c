@@ -29,10 +29,10 @@
 #include <string.h>
 
 #include <polyp/def.h>
+#include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/pstream-util.h>
-#include <polypcore/core-util.h>
 #include <polypcore/log.h>
 #include <polypcore/hashmap.h>
 
