@@ -69,17 +69,17 @@ static void enable_mainloop_sources(pa_iochannel *io) {
         pa_io_event_flags_t f = PA_IO_EVENT_NULL;
         assert(io->input_event);
         
-        if (!pa_iochannel_is_readable(io))
+        if (!io->readable)
             f |= PA_IO_EVENT_INPUT;
-        if (!pa_iochannel_is_writable(io))
+        if (!io->writable)
             f |= PA_IO_EVENT_OUTPUT;
 
         io->mainloop->io_enable(io->input_event, f);
     } else {
         if (io->input_event)
-            io->mainloop->io_enable(io->input_event, pa_iochannel_is_readable(io) ? PA_IO_EVENT_NULL : PA_IO_EVENT_INPUT);
+            io->mainloop->io_enable(io->input_event, io->readable ? PA_IO_EVENT_NULL : PA_IO_EVENT_INPUT);
         if (io->output_event)
-            io->mainloop->io_enable(io->output_event, pa_iochannel_is_writable(io) ? PA_IO_EVENT_NULL : PA_IO_EVENT_OUTPUT);
+            io->mainloop->io_enable(io->output_event, io->writable ? PA_IO_EVENT_NULL : PA_IO_EVENT_OUTPUT);
     }
 }
 
