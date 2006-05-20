@@ -423,14 +423,12 @@ unlock_and_fail:
     return -1;
 }
 
-pa_usec_t pa_simple_get_playback_latency(pa_simple *p, int *rerror) {
+pa_usec_t pa_simple_get_latency(pa_simple *p, int *rerror) {
     pa_usec_t t;
     int negative;
     
     assert(p);
     
-    CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, (pa_usec_t) -1);
-
     pa_threaded_mainloop_lock(p->mainloop);
 
     for (;;) {

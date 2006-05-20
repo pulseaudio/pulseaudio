@@ -78,8 +78,8 @@ int main(PA_GCC_UNUSED int argc, char*argv[]) {
 #if 0
         pa_usec_t latency;
 
-        if ((latency = pa_simple_get_playback_latency(s, &error)) == (pa_usec_t) -1) {
-            fprintf(stderr, __FILE__": pa_simple_get_playback_latency() failed: %s\n", pa_strerror(error));
+        if ((latency = pa_simple_get_latency(s, &error)) == (pa_usec_t) -1) {
+            fprintf(stderr, __FILE__": pa_simple_get_latency() failed: %s\n", pa_strerror(error));
             goto finish;
         }
 
