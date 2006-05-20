@@ -28,6 +28,7 @@ Post 0.8:
 - Document utf8.h, timeval.h and util.h
 - strerror() needs to be wrapped as it returns stuff in the current locale
   and we tend to pass it to functions that require UTF-8.
+- fix clock of the NULL sink
 
 Long term:
 - pass meta info for hearing impaired
