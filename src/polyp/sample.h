@@ -160,6 +160,9 @@ size_t pa_sample_size(const pa_sample_spec *spec);
 /** Calculate the time the specified bytes take to play with the specified sample type */
 pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec);
 
+/** Calculates the number of bytes that are required for the specified time. \since 0.9 */
+size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec);
+
 /** Return non-zero when the sample type specification is valid */
 int pa_sample_spec_valid(const pa_sample_spec *spec);
 
