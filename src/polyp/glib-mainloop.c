@@ -26,6 +26,7 @@
 #include <assert.h>
 
 #include <polyp/xmalloc.h>
+#include <polyp/timeval.h>
 
 #include <polypcore/idxset.h>
 #include <polypcore/core-util.h>
