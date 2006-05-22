@@ -47,6 +47,7 @@
 
 #include "../polypcore/winsock.h"
 
+#include <polyp/error.h>
 #include <polyp/version.h>
 #include <polyp/xmalloc.h>
 
@@ -440,7 +441,7 @@ static int context_connect_spawn(pa_context *c) {
     pa_context_ref(c);
     
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
-        pa_log(__FILE__": socketpair() failed: %s", strerror(errno));
+        pa_log(__FILE__": socketpair(): %s", pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     }
@@ -454,7 +455,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.prefork();
 
     if ((pid = fork()) < 0) {
-        pa_log(__FILE__": fork() failed: %s", strerror(errno));
+        pa_log(__FILE__": fork(): %s", pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
 
         if (c->spawn_api.postfork)
@@ -510,7 +511,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.postfork();
         
     if (r < 0) {
-        pa_log(__FILE__": waitpid() failed: %s", strerror(errno));
+        pa_log(__FILE__": waitpid(): %s", pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {

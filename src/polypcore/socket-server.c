@@ -64,6 +64,7 @@
 
 #include <polyp/xmalloc.h>
 #include <polyp/util.h>
+#include <polyp/error.h>
 
 #include <polypcore/socket-util.h>
 #include <polypcore/core-util.h>
@@ -94,7 +95,7 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_U
     pa_socket_server_ref(s);
     
     if ((nfd = accept(fd, NULL, NULL)) < 0) {
-        pa_log(__FILE__": accept(): %s", strerror(errno));
+        pa_log(__FILE__": accept(): %s", pa_cstrerror(errno));
         goto finish;
     }
 
@@ -173,7 +174,7 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
     assert(m && filename);
 
     if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s", strerror(errno));
+        pa_log(__FILE__": socket(): %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -186,12 +187,12 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
     pa_socket_low_delay(fd);
     
     if (bind(fd, (struct sockaddr*) &sa, SUN_LEN(&sa)) < 0) {
-        pa_log(__FILE__": bind(): %s", strerror(errno));
+        pa_log(__FILE__": bind(): %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (listen(fd, 5) < 0) {
-        pa_log(__FILE__": listen(): %s", strerror(errno));
+        pa_log(__FILE__": listen(): %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -227,7 +228,7 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
     assert(m && port);
 
     if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(PF_INET): %s", strerror(errno));
+        pa_log(__FILE__": socket(PF_INET): %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -235,7 +236,7 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
 
 #ifdef SO_REUSEADDR
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
-        pa_log(__FILE__": setsockopt(): %s", strerror(errno));
+        pa_log(__FILE__": setsockopt(): %s", pa_cstrerror(errno));
 #endif
 
     pa_socket_tcp_low_delay(fd);
@@ -246,12 +247,12 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
     sa.sin_addr.s_addr = htonl(address);
 
     if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
-        pa_log(__FILE__": bind(): %s", strerror(errno));
+        pa_log(__FILE__": bind(): %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (listen(fd, 5) < 0) {
-        pa_log(__FILE__": listen(): %s", strerror(errno));
+        pa_log(__FILE__": listen(): %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -278,7 +279,7 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
     assert(m && port);
 
     if ((fd = socket(PF_INET6, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(PF_INET6): %s", strerror(errno));
+        pa_log(__FILE__": socket(PF_INET6): %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -286,12 +287,12 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
 
 #ifdef IPV6_V6ONLY
     if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0)
-        pa_log(__FILE__": setsockopt(IPPROTO_IPV6, IPV6_V6ONLY): %s", strerror(errno));
+        pa_log(__FILE__": setsockopt(IPPROTO_IPV6, IPV6_V6ONLY): %s", pa_cstrerror(errno));
 #endif
 
 #ifdef SO_REUSEADDR
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
-        pa_log(__FILE__": setsockopt(SOL_SOCKET, SO_REUSEADDR, 1): %s", strerror(errno));
+        pa_log(__FILE__": setsockopt(SOL_SOCKET, SO_REUSEADDR, 1): %s", pa_cstrerror(errno));
 #endif
 
     pa_socket_tcp_low_delay(fd);
@@ -302,12 +303,12 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
     memcpy(sa.sin6_addr.s6_addr, address, 16);
 
     if (bind(fd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
-        pa_log(__FILE__": bind(): %s", strerror(errno));
+        pa_log(__FILE__": bind(): %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (listen(fd, 5) < 0) {
-        pa_log(__FILE__": listen(): %s", strerror(errno));
+        pa_log(__FILE__": listen(): %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -418,7 +419,7 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
             socklen_t sa_len = sizeof(sa);
 
             if (getsockname(s->fd, (struct sockaddr*) &sa, &sa_len) < 0) {
-                pa_log(__FILE__": getsockname() failed: %s", strerror(errno));
+                pa_log(__FILE__": getsockname(): %s", pa_cstrerror(errno));
                 return NULL;
             }
 
@@ -439,7 +440,7 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
                 char ip[INET6_ADDRSTRLEN];
                 
                 if (!inet_ntop(AF_INET6, &sa.sin6_addr, ip, sizeof(ip))) {
-                    pa_log(__FILE__": inet_ntop() failed: %s", strerror(errno));
+                    pa_log(__FILE__": inet_ntop(): %s", pa_cstrerror(errno));
                     return NULL;
                 }
                 
@@ -454,7 +455,7 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
             socklen_t sa_len = sizeof(sa);
 
             if (getsockname(s->fd, (struct sockaddr*) &sa, &sa_len) < 0) {
-                pa_log(__FILE__": getsockname() failed: %s", strerror(errno));
+                pa_log(__FILE__": getsockname(): %s", pa_cstrerror(errno));
                 return NULL;
             }
 
@@ -474,7 +475,7 @@ char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
                 char ip[INET_ADDRSTRLEN];
 
                 if (!inet_ntop(AF_INET, &sa.sin_addr, ip, sizeof(ip))) {
-                    pa_log(__FILE__": inet_ntop() failed: %s", strerror(errno));
+                    pa_log(__FILE__": inet_ntop(): %s", pa_cstrerror(errno));
                     return NULL;
                 }
                 

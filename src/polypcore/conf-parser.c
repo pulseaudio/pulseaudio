@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/log.h>
@@ -112,7 +113,8 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
             goto finish;
         }
         
-        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s", filename, strerror(errno));
+        pa_log_warn(__FILE__": WARNING: failed to open configuration file '%s': %s",
+            filename, pa_cstrerror(errno));
         goto finish;
     }
 
@@ -122,7 +124,8 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
             if (feof(f))
                 break;
             
-            pa_log(__FILE__": WARNING: failed to read configuration file '%s': %s", filename, strerror(errno));
+            pa_log_warn(__FILE__": WARNING: failed to read configuration file '%s': %s",
+                filename, pa_cstrerror(errno));
             goto finish;
         }
             

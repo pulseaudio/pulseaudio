@@ -51,6 +51,8 @@
 
 #include "../polypcore/winsock.h"
 
+#include <polyp/error.h>
+
 #include <polypcore/log.h>
 #include <polypcore/core-util.h>
 
@@ -107,7 +109,7 @@ char *pa_get_user_name(char *s, size_t l) {
 char *pa_get_host_name(char *s, size_t l) {
     assert(s && l > 0);
     if (gethostname(s, l) < 0) {
-        pa_log(__FILE__": gethostname(): %s", strerror(errno));
+        pa_log(__FILE__": gethostname(): %s", pa_cstrerror(errno));
         return NULL;
     }
     s[l-1] = 0;

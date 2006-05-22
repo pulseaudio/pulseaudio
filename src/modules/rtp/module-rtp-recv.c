@@ -31,6 +31,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <polyp/error.h>
 #include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
@@ -216,13 +217,13 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
     
     af = sa->sa_family;
     if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
-        pa_log(__FILE__": Failed to create socket: %s", strerror(errno));
+        pa_log(__FILE__": Failed to create socket: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     one = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
-        pa_log(__FILE__": SO_REUSEADDR failed: %s", strerror(errno));
+        pa_log(__FILE__": SO_REUSEADDR failed: %s", pa_cstrerror(errno));
         goto fail;
     }
     
@@ -239,12 +240,12 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
     }
 
     if (r < 0) {
-        pa_log_info(__FILE__": Joining mcast group failed: %s", strerror(errno));
+        pa_log_info(__FILE__": Joining mcast group failed: %s", pa_cstrerror(errno));
         goto fail;
     }
     
     if (bind(fd, sa, salen) < 0) {
-        pa_log(__FILE__": bind() failed: %s", strerror(errno));
+        pa_log(__FILE__": bind() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 

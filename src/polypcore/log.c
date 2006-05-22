@@ -94,6 +94,9 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
 
     text = pa_vsprintf_malloc(format, ap);
 
+    if (!pa_utf8_valid(text))
+        pa_log_level(level, __FILE__": invalid UTF-8 string following below:");
+
     for (t = text; t; t = n) {
         if ((n = strchr(t, '\n'))) {
             *n = 0;

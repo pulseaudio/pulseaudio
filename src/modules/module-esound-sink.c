@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/iochannel.h>
@@ -128,7 +129,7 @@ static int do_write(struct userdata *u) {
         assert(u->write_index < u->write_length);
 
         if ((r = pa_iochannel_write(u->io, (uint8_t*) u->write_data + u->write_index, u->write_length - u->write_index)) <= 0) {
-            pa_log(__FILE__": write() failed: %s", strerror(errno));
+            pa_log(__FILE__": write() failed: %s", pa_cstrerror(errno));
             return -1;
         }
 
@@ -150,7 +151,7 @@ static int do_write(struct userdata *u) {
         assert(u->memchunk.memblock && u->memchunk.length);
         
         if ((r = pa_iochannel_write(u->io, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
-            pa_log(__FILE__": write() failed: %s", strerror(errno));
+            pa_log(__FILE__": write() failed: %s", pa_cstrerror(errno));
             return -1;
         }
 
@@ -175,7 +176,7 @@ static int handle_response(struct userdata *u) {
 
             /* Process auth data */
             if (!*(int32_t*) u->read_data) {
-                pa_log(__FILE__": Authentication failed: %s", strerror(errno));
+                pa_log(__FILE__": Authentication failed: %s", pa_cstrerror(errno));
                 return -1;
             }
 
@@ -245,7 +246,7 @@ static int do_read(struct userdata *u) {
         assert(u->read_index < u->read_length);
         
         if ((r = pa_iochannel_read(u->io, (uint8_t*) u->read_data + u->read_index, u->read_length - u->read_index)) <= 0) {
-            pa_log(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
+            pa_log(__FILE__": read() failed: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             cancel(u);
             return -1;
         }
@@ -305,7 +306,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, vo
     u->client = NULL;
     
     if (!io) {
-        pa_log(__FILE__": connection failed: %s", strerror(errno));
+        pa_log(__FILE__": connection failed: %s", pa_cstrerror(errno));
         cancel(u);
         return;
     }

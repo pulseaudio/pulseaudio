@@ -35,6 +35,7 @@
 #include <limits.h>
 #include <sys/stat.h>
 
+#include <polyp/error.h>
 #include <polyp/util.h>
 #include <polypcore/core-util.h>
 #include <polypcore/log.h>
@@ -53,7 +54,7 @@ static int generate(int fd, void *ret_data, size_t length) {
     ftruncate(fd, 0);
 
     if ((r = pa_loop_write(fd, ret_data, length)) < 0 || (size_t) r != length) {
-        pa_log(__FILE__": failed to write cookie file: %s", strerror(errno));
+        pa_log(__FILE__": failed to write cookie file: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -75,7 +76,7 @@ static int load(const char *fn, void *data, size_t length) {
 
     if ((fd = open(fn, O_RDWR|O_CREAT|O_BINARY, S_IRUSR|S_IWUSR)) < 0) {
         if (errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY)) < 0) {
-            pa_log(__FILE__": failed to open cookie file '%s': %s", fn, strerror(errno));
+            pa_log(__FILE__": failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
             goto finish;
         } else
             writable = 0;
@@ -84,7 +85,7 @@ static int load(const char *fn, void *data, size_t length) {
     unlock = pa_lock_fd(fd, 1) >= 0;
 
     if ((r = pa_loop_read(fd, data, length)) < 0) {
-        pa_log(__FILE__": failed to read cookie file '%s': %s", fn, strerror(errno));
+        pa_log(__FILE__": failed to read cookie file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 
@@ -125,7 +126,7 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
 
     if (ret < 0)
         pa_log(__FILE__": Failed to load authorization key '%s': %s", path,
-               (ret == -1) ? strerror(errno) : "file corrupt");
+               (ret == -1) ? pa_cstrerror(errno) : "file corrupt");
 
     return ret;
 }
@@ -181,14 +182,14 @@ int pa_authkey_save(const char *fn, const void *data, size_t length) {
         return -2;
 
     if ((fd = open(p, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
-        pa_log(__FILE__": failed to open cookie file '%s': %s", fn, strerror(errno));
+        pa_log(__FILE__": failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 
     unlock = pa_lock_fd(fd, 1) >= 0;
 
     if ((r = pa_loop_write(fd, data, length)) < 0 || (size_t) r != length) {
-        pa_log(__FILE__": failed to read cookie file '%s': %s", fn, strerror(errno));
+        pa_log(__FILE__": failed to read cookie file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 

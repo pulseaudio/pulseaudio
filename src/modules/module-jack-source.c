@@ -36,6 +36,7 @@
 
 #include <jack/jack.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/iochannel.h>
@@ -270,7 +271,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pthread_cond_init(&u->cond, NULL);
     
     if (pipe(u->pipe_fds) < 0) {
-        pa_log(__FILE__": pipe() failed: %s", strerror(errno));
+        pa_log(__FILE__": pipe() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 

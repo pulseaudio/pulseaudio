@@ -38,6 +38,7 @@
 
 #include "winsock.h"
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/core-util.h>
@@ -253,7 +254,7 @@ int pa_iochannel_creds_enable(pa_iochannel *io) {
     assert(io->ifd >= 0);
     
     if (setsockopt(io->ifd, SOL_SOCKET, SO_PASSCRED, &t, sizeof(t)) < 0) {
-        pa_log_error("setsockopt(SOL_SOCKET, SO_PASSCRED): %s", strerror(errno));
+        pa_log_error("setsockopt(SOL_SOCKET, SO_PASSCRED): %s", pa_cstrerror(errno));
         return -1;
     }
 

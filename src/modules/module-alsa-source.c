@@ -34,6 +34,7 @@
 
 #include <asoundlib.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/core.h>
@@ -134,7 +135,7 @@ static void do_read(struct userdata *u) {
                 continue;
             }
 
-            pa_log(__FILE__": snd_pcm_readi() failed: %s", strerror(-frames));
+            pa_log(__FILE__": snd_pcm_readi() failed: %s", pa_cstrerror(-frames));
             return;
         }
 

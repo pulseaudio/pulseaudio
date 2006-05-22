@@ -40,6 +40,7 @@
 #include <sys/conf.h>
 #include <sys/audio.h>
 
+#include <polyp/error.h>
 #include <polyp/mainloop-signal.h>
 #include <polyp/xmalloc.h>
 
@@ -168,7 +169,7 @@ static void do_write(struct userdata *u) {
     }
 
     if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, len)) < 0) {
-        pa_log(__FILE__": write() failed: %s", strerror(errno));
+        pa_log(__FILE__": write() failed: %s", pa_cstrerror(errno));
         return;
     }
 
@@ -206,7 +207,7 @@ static void do_read(struct userdata *u) {
     if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
         pa_memblock_unref(memchunk.memblock);
         if (errno != EAGAIN)
-            pa_log(__FILE__": read() failed: %s", strerror(errno));
+            pa_log(__FILE__": read() failed: %s", pa_cstrerror(errno));
         return;
     }
     
@@ -334,7 +335,7 @@ static int sink_set_hw_volume_cb(pa_sink *s) {
         if (errno == EINVAL)
             pa_log(__FILE__": AUDIO_SETINFO: Unsupported volume.");
         else
-            pa_log(__FILE__": AUDIO_SETINFO: %s", strerror(errno));
+            pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -363,7 +364,7 @@ static int sink_set_hw_mute_cb(pa_sink *s) {
     info.output_muted = !!s->hw_muted;
 
     if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
-        pa_log(__FILE__": AUDIO_SETINFO: %s", strerror(errno));
+        pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -397,7 +398,7 @@ static int source_set_hw_volume_cb(pa_source *s) {
         if (errno == EINVAL)
             pa_log(__FILE__": AUDIO_SETINFO: Unsupported volume.");
         else
-            pa_log(__FILE__": AUDIO_SETINFO: %s", strerror(errno));
+            pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -463,7 +464,7 @@ static int pa_solaris_auto_format(int fd, int mode, pa_sample_spec *ss) {
         if (errno == EINVAL)
             pa_log(__FILE__": AUDIO_SETINFO: Unsupported sample format.");
         else
-            pa_log(__FILE__": AUDIO_SETINFO: %s", strerror(errno));
+            pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -481,7 +482,7 @@ static int pa_solaris_set_buffer(int fd, int buffer_size) {
         if (errno == EINVAL)
             pa_log(__FILE__": AUDIO_SETINFO: Unsupported buffer size.");
         else
-            pa_log(__FILE__": AUDIO_SETINFO: %s", strerror(errno));
+            pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 

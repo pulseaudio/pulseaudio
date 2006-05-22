@@ -28,6 +28,8 @@
 #include <errno.h>
 #include <signal.h>
 
+#include <polyp/error.h>
+
 #include <polypcore/module.h>
 #include <polypcore/core-util.h>
 #include <polypcore/modargs.h>
@@ -59,7 +61,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (kill(pid, SIGUSR1) < 0)
-        pa_log(__FILE__": WARNING: kill(%u) failed: %s", pid, strerror(errno));
+        pa_log(__FILE__": WARNING: kill(%u) failed: %s", pid, pa_cstrerror(errno));
 
     pa_module_unload_request(m);
 

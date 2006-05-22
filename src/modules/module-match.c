@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>
@@ -86,7 +87,7 @@ static int load_rules(struct userdata *u, const char *filename) {
         pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn, "r");
 
     if (!f) {
-        pa_log(__FILE__": failed to open file '%s': %s", fn, strerror(errno));
+        pa_log(__FILE__": failed to open file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 

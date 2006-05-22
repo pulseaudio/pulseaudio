@@ -54,6 +54,7 @@
 
 #include "winsock.h"
 
+#include <polyp/error.h>
 #include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
@@ -139,7 +140,7 @@ static void do_call(pa_socket_client *c) {
     
     lerror = sizeof(error);
     if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void*)&error, &lerror) < 0) {
-        pa_log(__FILE__": getsockopt(): %s", strerror(errno));
+        pa_log(__FILE__": getsockopt(): %s", pa_cstrerror(errno));
         goto finish;
     }
 
@@ -149,7 +150,7 @@ static void do_call(pa_socket_client *c) {
     }
 
     if (error != 0) {
-        pa_log_debug(__FILE__": connect(): %s", strerror(error)); 
+        pa_log_debug(__FILE__": connect(): %s", pa_cstrerror(errno));
         errno = error;
         goto finish;
     }
@@ -194,7 +195,7 @@ static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t 
             pa_log_debug(__FILE__": connect(): %d", WSAGetLastError());
 #else
         if (errno != EINPROGRESS) {
-            pa_log_debug(__FILE__": connect(): %s (%d)", strerror(errno), errno);
+            pa_log_debug(__FILE__": connect(): %s (%d)", pa_cstrerror(errno), errno);
 #endif
             return -1;
         }
@@ -266,7 +267,7 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
     }
     
     if ((c->fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s", strerror(errno));
+        pa_log(__FILE__": socket(): %s", pa_cstrerror(errno));
         return -1;
     }
 

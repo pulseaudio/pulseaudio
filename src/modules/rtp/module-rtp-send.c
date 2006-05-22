@@ -32,6 +32,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <polyp/error.h>
 #include <polyp/timeval.h>
 #include <polyp/util.h>
 #include <polyp/xmalloc.h>
@@ -238,28 +239,28 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     
     if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
-        pa_log(__FILE__": socket() failed: %s", strerror(errno));
+        pa_log(__FILE__": socket() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (connect(fd, af == AF_INET ? (struct sockaddr*) &sa4 : (struct sockaddr*) &sa6, af == AF_INET ? sizeof(sa4) : sizeof(sa6)) < 0) {
-        pa_log(__FILE__": connect() failed: %s", strerror(errno));
+        pa_log(__FILE__": connect() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if ((sap_fd = socket(af, SOCK_DGRAM, 0)) < 0) {
-        pa_log(__FILE__": socket() failed: %s", strerror(errno));
+        pa_log(__FILE__": socket() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (connect(sap_fd, af == AF_INET ? (struct sockaddr*) &sap_sa4 : (struct sockaddr*) &sap_sa6, af == AF_INET ? sizeof(sap_sa4) : sizeof(sap_sa6)) < 0) {
-        pa_log(__FILE__": connect() failed: %s", strerror(errno));
+        pa_log(__FILE__": connect() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0 ||
         setsockopt(sap_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0) {
-        pa_log(__FILE__": IP_MULTICAST_LOOP failed: %s", strerror(errno));
+        pa_log(__FILE__": IP_MULTICAST_LOOP failed: %s", pa_cstrerror(errno));
         goto fail;
     }
     

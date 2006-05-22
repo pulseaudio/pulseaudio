@@ -33,6 +33,7 @@
 
 #include <linux/input.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>
@@ -89,7 +90,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
         struct input_event ev;
 
         if (pa_loop_read(u->fd, &ev, sizeof(ev)) <= 0) {
-            pa_log(__FILE__": failed to read from event device: %s", strerror(errno));
+            pa_log(__FILE__": failed to read from event device: %s", pa_cstrerror(errno));
             goto fail;
         }
 
@@ -183,19 +184,19 @@ int pa__init(pa_core *c, pa_module*m) {
     u->fd = -1;
 
     if ((u->fd = open(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY)) < 0) {
-        pa_log(__FILE__": failed to open evdev device: %s", strerror(errno));
+        pa_log(__FILE__": failed to open evdev device: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (ioctl(u->fd, EVIOCGVERSION, &version) < 0) {
-        pa_log(__FILE__": EVIOCGVERSION failed: %s", strerror(errno));
+        pa_log(__FILE__": EVIOCGVERSION failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     pa_log_info(__FILE__": evdev driver version %i.%i.%i", version >> 16, (version >> 8) & 0xff, version & 0xff);
 
     if(ioctl(u->fd, EVIOCGID, &input_id)) {
-        pa_log(__FILE__": EVIOCGID failed: %s", strerror(errno));
+        pa_log(__FILE__": EVIOCGID failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -204,7 +205,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     memset(name, 0, sizeof(name));
     if(ioctl(u->fd, EVIOCGNAME(sizeof(name)), name) < 0) {
-        pa_log(__FILE__": EVIOCGNAME failed: %s", strerror(errno));
+        pa_log(__FILE__": EVIOCGNAME failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -212,7 +213,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
     if (ioctl(u->fd, EVIOCGBIT(0, EV_MAX), evtype_bitmask) < 0) {
-        pa_log(__FILE__": EVIOCGBIT failed: %s", strerror(errno));
+        pa_log(__FILE__": EVIOCGBIT failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 

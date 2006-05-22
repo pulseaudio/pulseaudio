@@ -499,6 +499,7 @@ lib_LTLIBRARIES += libpolypcore.la
 # Some public stuff is used even in the core.
 libpolypcore_la_SOURCES = \
 		polyp/channelmap.c polyp/channelmap.h \
+		polyp/error.c polyp/error.h \
 		polyp/mainloop.c polyp/mainloop.h \
 		polyp/mainloop-api.c polyp/mainloop-api.h \
 		polyp/mainloop-signal.c polyp/mainloop-signal.h \

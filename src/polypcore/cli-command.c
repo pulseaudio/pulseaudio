@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>
@@ -900,7 +901,7 @@ int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, int 
     assert(c && fn && buf);
 
     if (!(f = fopen(fn, "r"))) {
-        pa_strbuf_printf(buf, "open('%s') failed: %s\n", fn, strerror(errno));
+        pa_strbuf_printf(buf, "open('%s') failed: %s\n", fn, pa_cstrerror(errno));
         if (!*fail)
             ret = 0;
         goto fail;

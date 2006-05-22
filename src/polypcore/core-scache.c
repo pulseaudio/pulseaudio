@@ -41,6 +41,7 @@
 #include <windows.h>
 #endif
 
+#include <polyp/error.h>
 #include <polyp/mainloop.h>
 #include <polyp/channelmap.h>
 #include <polyp/timeval.h>
@@ -359,7 +360,7 @@ static void add_file(pa_core *c, const char *pathname) {
     e = pa_path_get_filename(pathname);
     
     if (stat(pathname, &st) < 0) {
-        pa_log(__FILE__": stat('%s') failed: %s", pathname, strerror(errno));
+        pa_log(__FILE__": stat('%s'): %s", pathname, pa_cstrerror(errno));
         return;
     }
 
@@ -381,7 +382,7 @@ int pa_scache_add_directory_lazy(pa_core *c, const char *pathname) {
         /* If that fails, try to open it as shell glob */
 
         if (glob(pathname, GLOB_ERR|GLOB_NOSORT, NULL, &p) < 0) {
-            pa_log(__FILE__": Failed to open directory: %s", strerror(errno));
+            pa_log(__FILE__": failed to open directory '%s': %s", pathname, pa_cstrerror(errno));
             return -1;
         }
 

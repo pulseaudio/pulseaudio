@@ -32,6 +32,8 @@
 #include <sys/capability.h>
 #endif
 
+#include <polyp/error.h>
+
 #include <polypcore/log.h>
 
 #include "caps.h"
@@ -110,7 +112,7 @@ int pa_drop_caps(void) {
     cap_clear(caps);
 
     if (cap_set_proc(caps) < 0) {
-        pa_log(__FILE__": failed to drop capabilities: %s", strerror(errno));
+        pa_log(__FILE__": failed to drop capabilities: %s", pa_cstrerror(errno));
         goto fail;
     }
     

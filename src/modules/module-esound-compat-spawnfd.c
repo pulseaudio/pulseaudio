@@ -28,6 +28,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <polyp/error.h>
+
 #include <polypcore/module.h>
 #include <polypcore/modargs.h>
 #include <polypcore/core-util.h>
@@ -59,7 +61,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (pa_loop_write(fd, &x, sizeof(x)) != sizeof(x))
-        pa_log(__FILE__": WARNING: write(%u, 1, 1) failed: %s", fd, strerror(errno));
+        pa_log(__FILE__": WARNING: write(%u, 1, 1) failed: %s", fd, pa_cstrerror(errno));
 
     close(fd);
 

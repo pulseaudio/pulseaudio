@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <string.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/sink-input.h>
@@ -133,7 +134,7 @@ static int do_read(struct connection *c) {
     }
     
     if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
-        pa_log_debug(__FILE__": read() failed: %s", r == 0 ? "EOF" : strerror(errno));
+        pa_log_debug(__FILE__": read(): %s", r == 0 ? "EOF" : pa_cstrerror(errno));
         return -1;
     }
 
@@ -167,7 +168,7 @@ static int do_write(struct connection *c) {
     
     if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
         pa_memblock_unref(chunk.memblock);
-        pa_log(__FILE__": write(): %s", strerror(errno));
+        pa_log(__FILE__": write(): %s", pa_cstrerror(errno));
         return -1;
     }
     

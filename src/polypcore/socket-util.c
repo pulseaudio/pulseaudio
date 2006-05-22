@@ -59,6 +59,7 @@
 
 #include "winsock.h"
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/core-util.h>
@@ -198,7 +199,7 @@ int pa_unix_socket_is_stale(const char *fn) {
     int fd = -1, ret = -1;
 
     if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s", strerror(errno));
+        pa_log(__FILE__": socket(): %s", pa_cstrerror(errno));
         goto finish;
     }
 

@@ -242,6 +242,9 @@ AC_CHECK_FUNCS([readlink])
 # SUSv2
 AC_CHECK_FUNCS([ctime_r usleep])
 
+# SUSv3
+AC_CHECK_FUNCS([strerror_r])
+
 # BSD
 AC_CHECK_FUNCS([lstat])
 

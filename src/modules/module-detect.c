@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>
@@ -56,7 +57,7 @@ static int detect_alsa(pa_core *c, int just_one) {
     if (!(f = fopen("/proc/asound/devices", "r"))) {
 
         if (errno != ENOENT)
-            pa_log_error(__FILE__": open(\"/proc/asound/devices\") failed: %s", strerror(errno));
+            pa_log_error(__FILE__": open(\"/proc/asound/devices\") failed: %s", pa_cstrerror(errno));
         
         return -1;
     }
@@ -119,7 +120,7 @@ static int detect_oss(pa_core *c, int just_one) {
         !(f = fopen("/proc/asound/oss/sndstat", "r"))) {
 
         if (errno != ENOENT)
-            pa_log_error(__FILE__": failed to open OSS sndstat device: %s", strerror(errno));
+            pa_log_error(__FILE__": failed to open OSS sndstat device: %s", pa_cstrerror(errno));
 
         return -1;
     }
@@ -175,7 +176,7 @@ static int detect_solaris(pa_core *c, int just_one) {
 
     if (stat(dev, &s) < 0) {
         if (errno != ENOENT)
-            pa_log_error(__FILE__": failed to open device %s: %s", dev, strerror(errno));
+            pa_log_error(__FILE__": failed to open device %s: %s", dev, pa_cstrerror(errno));
         return -1;
     }
 

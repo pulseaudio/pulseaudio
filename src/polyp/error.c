@@ -23,9 +23,23 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+
+#include <polyp/utf8.h>
+#include <polyp/xmalloc.h>
+
+#include <polypcore/core-util.h>
 #include <polypcore/native-common.h>
 
 #include "error.h"
@@ -57,4 +71,80 @@ const char*pa_strerror(int error) {
         return NULL;
 
     return errortab[error];
+}
+
+#ifdef HAVE_PTHREAD
+
+static pthread_once_t cstrerror_once = PTHREAD_ONCE_INIT;
+static pthread_key_t tlsstr_key;
+
+static void inittls(void) {
+    int ret;
+
+    ret = pthread_key_create(&tlsstr_key, pa_xfree);
+    if (ret) {
+        fprintf(stderr, __FILE__ ": CRITICAL: Unable to allocate TLS key (%d)\n", errno);
+        exit(-1);
+    }
+}
+
+#elif HAVE_WINDOWS_H
+
+static __declspec(thread) char *tlsstr;
+
+#else
+
+/* Unsafe, but we have no choice */
+static char *tlsstr;
+
+#endif
+
+char* pa_cstrerror(int errnum) {
+    const char *origbuf;
+
+#ifdef HAVE_STRERROR_R
+    char errbuf[128];
+#endif
+
+#ifdef HAVE_PTHREAD
+    char *tlsstr;
+
+    pthread_once(&cstrerror_once, inittls);
+
+    tlsstr = pthread_getspecific(tlsstr_key);
+#endif
+
+    if (tlsstr)
+        pa_xfree(tlsstr);
+
+#ifdef HAVE_STRERROR_R
+
+#ifdef __GLIBC__
+    origbuf = strerror_r(errnum, errbuf, sizeof(errbuf));
+    if (origbuf == NULL)
+        origbuf = "";
+#else
+    if (strerror_r(errnum, errbuf, sizeof(errbuf)) == 0) {
+        origbuf = errbuf;
+        errbuf[sizeof(errbuf) - 1] = '\0';
+    } else
+        origbuf = "";
+#endif
+
+#else
+    /* This might not be thread safe, but we hope for the best */
+    origbuf = strerror(errnum);
+#endif
+
+    tlsstr = pa_locale_to_utf8(origbuf);
+    if (!tlsstr) {
+        fprintf(stderr, "Unable to convert, filtering\n");
+        tlsstr = pa_utf8_filter(origbuf);
+    }
+
+#ifdef HAVE_PTHREAD
+    pthread_setspecific(tlsstr_key, tlsstr);
+#endif
+
+    return tlsstr;
 }

@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>
@@ -124,7 +125,7 @@ static int load_rules(struct userdata *u) {
             pa_log_info(__FILE__": starting with empty ruleset.");
             ret = 0;
         } else
-            pa_log(__FILE__": failed to open file '%s': %s", u->table_file, strerror(errno));
+            pa_log(__FILE__": failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
         
         goto finish;
     }
@@ -198,7 +199,7 @@ static int save_rules(struct userdata *u) {
         pa_open_config_file(NULL, DEFAULT_VOLUME_TABLE_FILE, NULL, &u->table_file, "w");
 
     if (!f) {
-        pa_log(__FILE__": failed to open file '%s': %s", u->table_file, strerror(errno));
+        pa_log(__FILE__": failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
         goto finish;
     }
 

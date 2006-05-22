@@ -44,6 +44,7 @@
 #include "../polypcore/pipe.h"
 #endif
 
+#include <polyp/error.h>
 #include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
@@ -689,7 +690,7 @@ int pa_mainloop_poll(pa_mainloop *m) {
             if (errno == EINTR)
                 r = 0;
             else
-                pa_log(__FILE__": poll(): %s", strerror(errno));
+                pa_log(__FILE__": poll(): %s", pa_cstrerror(errno));
         }
     }
 

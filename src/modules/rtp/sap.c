@@ -38,6 +38,7 @@
 #include <sys/filio.h>
 #endif
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/core-util.h>
@@ -77,7 +78,7 @@ int pa_sap_send(pa_sap_context *c, int goodbye) {
     int k;
 
     if (getsockname(c->fd, sa, &salen) < 0) {
-        pa_log("getsockname() failed: %s\n", strerror(errno));
+        pa_log("getsockname() failed: %s\n", pa_cstrerror(errno));
         return -1;
     }
 
@@ -109,7 +110,7 @@ int pa_sap_send(pa_sap_context *c, int goodbye) {
     m.msg_flags = 0;
     
     if ((k = sendmsg(c->fd, &m, MSG_DONTWAIT)) < 0)
-        pa_log("sendmsg() failed: %s\n", strerror(errno));
+        pa_log("sendmsg() failed: %s\n", pa_cstrerror(errno));
 
     return k;
 }
@@ -136,7 +137,7 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
     assert(goodbye);
 
     if (ioctl(c->fd, FIONREAD, &size) < 0) {
-        pa_log(__FILE__": FIONREAD failed: %s", strerror(errno));
+        pa_log(__FILE__": FIONREAD failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -158,7 +159,7 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
     m.msg_flags = 0;
     
     if ((r = recvmsg(c->fd, &m, 0)) != size) {
-        pa_log(__FILE__": recvmsg() failed: %s", r < 0 ? strerror(errno) : "size mismatch");
+        pa_log(__FILE__": recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
         goto fail;
     }
 

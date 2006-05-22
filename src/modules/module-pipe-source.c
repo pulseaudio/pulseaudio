@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <limits.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/iochannel.h>
@@ -96,7 +97,7 @@ static void do_read(struct userdata *u) {
 
     assert(u->chunk.memblock && u->chunk.memblock->length > u->chunk.index);
     if ((r = pa_iochannel_read(u->io, (uint8_t*) u->chunk.memblock->data + u->chunk.index, u->chunk.memblock->length - u->chunk.index)) <= 0) {
-        pa_log(__FILE__": read() failed: %s", strerror(errno));
+        pa_log(__FILE__": read(): %s", pa_cstrerror(errno));
         return;
     }
 
@@ -141,14 +142,14 @@ int pa__init(pa_core *c, pa_module*m) {
     mkfifo(p = pa_modargs_get_value(ma, "file", DEFAULT_FIFO_NAME), 0777);
 
     if ((fd = open(p, O_RDWR)) < 0) {
-        pa_log(__FILE__": open('%s'): %s", p, strerror(errno));
+        pa_log(__FILE__": open('%s'): %s", p, pa_cstrerror(errno));
         goto fail;
     }
 
     pa_fd_set_cloexec(fd, 1);
     
     if (fstat(fd, &st) < 0) {
-        pa_log(__FILE__": fstat('%s'): %s", p, strerror(errno));
+        pa_log(__FILE__": fstat('%s'): %s", p, pa_cstrerror(errno));
         goto fail;
     }
 

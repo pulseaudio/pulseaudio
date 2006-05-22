@@ -50,6 +50,7 @@
 
 #include "../polypcore/winsock.h"
 
+#include <polyp/error.h>
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
 #include <polyp/xmalloc.h>
@@ -286,7 +287,7 @@ int main(int argc, char *argv[]) {
         }
         
         if ((child = fork()) < 0) {
-            pa_log(__FILE__": fork() failed: %s", strerror(errno));
+            pa_log(__FILE__": fork() failed: %s", pa_cstrerror(errno));
             goto finish;
         }
 
@@ -297,7 +298,7 @@ int main(int argc, char *argv[]) {
             daemon_pipe[1] = -1;
 
             if (pa_loop_read(daemon_pipe[0], &retval, sizeof(retval)) != sizeof(retval)) {
-                pa_log(__FILE__": read() failed: %s", strerror(errno));
+                pa_log(__FILE__": read() failed: %s", pa_cstrerror(errno));
                 retval = 1;
             }
 

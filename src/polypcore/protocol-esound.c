@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include <polyp/error.h>
 #include <polyp/sample.h>
 #include <polyp/timeval.h>
 #include <polyp/utf8.h>
@@ -812,7 +813,7 @@ static int do_read(struct connection *c) {
         assert(c->read_data_length < sizeof(c->request));
 
         if ((r = pa_iochannel_read(c->io, ((uint8_t*) &c->request) + c->read_data_length, sizeof(c->request) - c->read_data_length)) <= 0) {
-            pa_log_debug(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
+            pa_log_debug(__FILE__": read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
 
@@ -860,7 +861,7 @@ static int do_read(struct connection *c) {
         assert(c->read_data && c->read_data_length < handler->data_length);
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
-            pa_log_debug(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
+            pa_log_debug(__FILE__": read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
 
@@ -880,7 +881,7 @@ static int do_read(struct connection *c) {
         assert(c->scache.memchunk.memblock && c->scache.name && c->scache.memchunk.index < c->scache.memchunk.length);
         
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache.memchunk.memblock->data+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index)) <= 0) {
-            pa_log_debug(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
+            pa_log_debug(__FILE__": read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
 
@@ -935,7 +936,7 @@ static int do_read(struct connection *c) {
         }
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
-            pa_log_debug(__FILE__": read() failed: %s", r < 0 ? strerror(errno) : "EOF");
+            pa_log_debug(__FILE__": read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
         
@@ -965,7 +966,7 @@ static int do_write(struct connection *c) {
         
         assert(c->write_data_index < c->write_data_length);
         if ((r = pa_iochannel_write(c->io, (uint8_t*) c->write_data+c->write_data_index, c->write_data_length-c->write_data_index)) < 0) {
-            pa_log(__FILE__": write() failed: %s", strerror(errno));
+            pa_log(__FILE__": write(): %s", pa_cstrerror(errno));
             return -1;
         }
         
@@ -984,7 +985,7 @@ static int do_write(struct connection *c) {
         
         if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
             pa_memblock_unref(chunk.memblock);
-            pa_log(__FILE__": write(): %s", strerror(errno));
+            pa_log(__FILE__": write(): %s", pa_cstrerror(errno));
             return -1;
         }
 

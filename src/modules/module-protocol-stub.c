@@ -42,6 +42,7 @@
 
 #include "../polypcore/winsock.h"
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>
@@ -250,7 +251,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
-        pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s", tmp, strerror(errno));
+        pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s", tmp, pa_cstrerror(errno));
         goto fail;
     }
     
@@ -328,7 +329,7 @@ void pa__done(pa_core *c, pa_module*m) {
         
         if ((p = pa_parent_dir(u->socket_path))) {
             if (rmdir(p) < 0 && errno != ENOENT && errno != ENOTEMPTY)
-                pa_log(__FILE__": Failed to remove %s: %s.", u->socket_path, strerror(errno));
+                pa_log(__FILE__": Failed to remove %s: %s.", u->socket_path, pa_cstrerror(errno));
 
             pa_xfree(p);
         }

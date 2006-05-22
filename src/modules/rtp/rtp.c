@@ -36,6 +36,8 @@
 #include <sys/filio.h>
 #endif
 
+#include <polyp/error.h>
+
 #include <polypcore/log.h>
 
 #include "rtp.h"
@@ -124,7 +126,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
             
             if (k < 0) {
                 if (errno != EAGAIN) /* If the queue is full, just ignore it */
-                    pa_log(__FILE__": sendmsg() failed: %s", strerror(errno));
+                    pa_log(__FILE__": sendmsg() failed: %s", pa_cstrerror(errno));
                 return -1;
             }
             
@@ -162,7 +164,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_memblock_stat *st) {
     chunk->memblock = NULL;
 
     if (ioctl(c->fd, FIONREAD, &size) < 0) {
-        pa_log(__FILE__": FIONREAD failed: %s", strerror(errno));
+        pa_log(__FILE__": FIONREAD failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -183,7 +185,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_memblock_stat *st) {
     m.msg_flags = 0;
     
     if ((r = recvmsg(c->fd, &m, 0)) != size) {
-        pa_log(__FILE__": recvmsg() failed: %s", r < 0 ? strerror(errno) : "size mismatch");
+        pa_log(__FILE__": recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
         goto fail;
     }
 

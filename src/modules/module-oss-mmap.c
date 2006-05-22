@@ -36,6 +36,7 @@
 #include <limits.h>
 #include <sys/mman.h>
 
+#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/iochannel.h>
@@ -152,7 +153,7 @@ static void do_write(struct userdata *u) {
     update_usage(u);
     
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETOPTR: %s", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_GETOPTR: %s", pa_cstrerror(errno));
         return;
     }
 
@@ -215,7 +216,7 @@ static void do_read(struct userdata *u) {
     update_usage(u);
     
     if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETIPTR: %s", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_GETIPTR: %s", pa_cstrerror(errno));
         return;
     }
 
@@ -246,7 +247,7 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     assert(s && u);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETOPTR: %s", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_GETOPTR: %s", pa_cstrerror(errno));
         return 0;
     }
 
@@ -272,7 +273,7 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
     assert(s && u);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETIPTR: %s", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_GETIPTR: %s", pa_cstrerror(errno));
         return 0;
     }
 
@@ -295,7 +296,7 @@ static int sink_get_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_get_pcm_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", strerror(errno));
+        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
         s->get_hw_volume = NULL;
         return -1;
     }
@@ -307,7 +308,7 @@ static int sink_set_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_set_pcm_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", strerror(errno));
+        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
         s->set_hw_volume = NULL;
         return -1;
     }
@@ -319,7 +320,7 @@ static int source_get_hw_volume(pa_source *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_get_input_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", strerror(errno));
+        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
         s->get_hw_volume = NULL;
         return -1;
     }
@@ -331,7 +332,7 @@ static int source_set_hw_volume(pa_source *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_set_input_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", strerror(errno));
+        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
         s->set_hw_volume = NULL;
         return -1;
     }
@@ -413,7 +414,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     if (mode != O_WRONLY) {
         if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0) {
-            pa_log(__FILE__": SNDCTL_DSP_GETISPACE: %s", strerror(errno));
+            pa_log(__FILE__": SNDCTL_DSP_GETISPACE: %s", pa_cstrerror(errno));
             goto fail;
         }
 
@@ -425,7 +426,7 @@ int pa__init(pa_core *c, pa_module*m) {
                 pa_log(__FILE__": mmap failed for input. Changing to O_WRONLY mode.");
                 mode = O_WRONLY;
             } else {
-                pa_log(__FILE__": mmap(): %s", strerror(errno));
+                pa_log(__FILE__": mmap(): %s", pa_cstrerror(errno));
                 goto fail;
             }
         } else {
@@ -452,7 +453,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     if (mode != O_RDONLY) {
         if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
-            pa_log(__FILE__": SNDCTL_DSP_GETOSPACE: %s", strerror(errno));
+            pa_log(__FILE__": SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
             goto fail;
         }
         
@@ -464,7 +465,7 @@ int pa__init(pa_core *c, pa_module*m) {
                 pa_log(__FILE__": mmap filed for output. Changing to O_RDONLY mode.");
                 mode = O_RDONLY;
             } else {
-                pa_log(__FILE__": mmap(): %s", strerror(errno));
+                pa_log(__FILE__": mmap(): %s", pa_cstrerror(errno));
                 goto fail;
             }
         } else {
@@ -492,12 +493,12 @@ int pa__init(pa_core *c, pa_module*m) {
 
     zero = 0;
     if (ioctl(u->fd, SNDCTL_DSP_SETTRIGGER, &zero) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_SETTRIGGER: %s", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_SETTRIGGER: %s", pa_cstrerror(errno));
         goto fail;
     }
     
     if (ioctl(u->fd, SNDCTL_DSP_SETTRIGGER, &enable_bits) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_SETTRIGGER: %s", strerror(errno));
+        pa_log(__FILE__": SNDCTL_DSP_SETTRIGGER: %s", pa_cstrerror(errno));
         goto fail;
     }
         
