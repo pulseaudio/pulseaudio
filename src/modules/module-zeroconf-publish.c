@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include <polyp/xmalloc.h>
+#include <polyp/util.h>
 
 #include <polypcore/autoload.h>
 #include <polypcore/sink.h>
