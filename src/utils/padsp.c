@@ -417,7 +417,7 @@ static void fix_metrics(fd_info *i) {
             i->fragment_size = 1024;
 
     debug(__FILE__": sample spec: %s\n", pa_sample_spec_snprint(t, sizeof(t), &i->sample_spec));
-    debug(__FILE__": fixated metrics to %i fragments, %i bytes each.\n", i->n_fragments, i->fragment_size);
+    debug(__FILE__": fixated metrics to %i fragments, %li bytes each.\n", i->n_fragments, (long)i->fragment_size);
 }
 
 static void stream_request_cb(pa_stream *s, size_t length, void *userdata) {
