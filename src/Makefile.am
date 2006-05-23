@@ -78,6 +78,7 @@ EXTRA_DIST = \
 		daemon/default.pa.in \
 		depmod.py \
 		daemon/esdcompat.sh.in \
+		utils/padsp.in \
 		modules/module-defs.h.m4
 
 polypconf_DATA = \
@@ -172,6 +173,24 @@ pabrowse_SOURCES = utils/pabrowse.c
 pabrowse_LDADD = $(AM_LDADD) libpolyp.la libpolyp-browse.la
 pabrowse_CFLAGS = $(AM_CFLAGS)
 pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+lib_LTLIBRARIES =
+CLEANFILES=
+
+if HAVE_OSS
+lib_LTLIBRARIES += libpolypdsp.la
+libpolypdsp_la_SOURCES = utils/padsp.c
+libpolypdsp_la_CFLAGS = $(AM_CFLAGS)
+libpolypdsp_la_LIBADD = $(AM_LIBADD) libpolyp.la
+libpolypdsp_la_LDFLAGS = -avoid-version
+
+CLEANFILES+=padsp
+bin_SCRIPTS += padsp
+
+padsp: utils/padsp.in Makefile
+	sed -e 's,@LIBPOLYPDSP\@,$(libdir)/libpolypdsp.so,g' < $< > $@
+
+endif
 
 ###################################
 #         Test programs           #
@@ -325,7 +344,7 @@ polypinclude_HEADERS += \
 endif
 endif
 
-lib_LTLIBRARIES = \
+lib_LTLIBRARIES += \
 		libpolyp.la \
 		libpolyp-simple.la
 
@@ -1141,7 +1160,7 @@ suid: polypaudio
 	chown root $<
 	chmod u+s $<
 
-CLEANFILES=esdcompat.sh client.conf default.pa daemon.conf
+CLEANFILES+=esdcompat.sh client.conf default.pa daemon.conf
 
 esdcompat.sh: daemon/esdcompat.sh.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
