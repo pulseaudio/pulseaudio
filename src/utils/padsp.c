@@ -771,10 +771,82 @@ static int mixer_open(int flags, int *_errno) {
 
 }
 
+static int sndstat_open(int flags, int *_errno) {
+    static const char sndstat[] =
+        "Sound Driver:3.8.1a-980706 (Polypaudio Virtual OSS)\n"
+        "Kernel: POSIX\n"
+        "Config options: 0\n"
+        "\n"
+        "Installed drivers:\n"
+        "Type 255: Polypaudio Virtual OSS\n"
+        "\n"
+        "Card config:\n"
+        "Polypaudio Virtual OSS\n"
+        "\n"
+        "Audio devices:\n"
+        "0: Polypaudio Virtual OSS\n"
+        "\n"
+        "Synth devices: NOT ENABLED IN CONFIG\n"
+        "\n"
+        "Midi devices:\n"
+        "\n"
+        "Timers:\n"
+        "\n"
+        "\Mixers:\n"
+        "0: Polypaudio Virtual OSS\n";
+
+    char fn[] = "/tmp/padsp-sndstat-XXXXXX";
+    mode_t u;
+    int fd = -1;
+    int e;
+
+    debug(__FILE__": sndstat_open()\n");
+    
+    if (flags != O_RDONLY && flags != (O_RDONLY|O_LARGEFILE)) {
+        *_errno = EACCES;
+        debug(__FILE__": bad access!\n");
+        goto fail;
+    }
+
+    u = umask(0077);
+    fd = mkstemp(fn);
+    e = errno;
+    umask(u);
+
+    if (fd < 0) {
+        *_errno = e;
+        debug(__FILE__": mkstemp() failed: %s\n", strerror(errno));
+        goto fail;
+    }
+
+    unlink(fn);
+
+    if (write(fd, sndstat, sizeof(sndstat) -1) != sizeof(sndstat)-1) {
+        *_errno = errno;
+        debug(__FILE__": write() failed: %s\n", strerror(errno));
+        goto fail;
+    }
+
+    if (lseek(fd, SEEK_SET, 0) < 0) {
+        *_errno = errno;
+        debug(__FILE__": lseek() failed: %s\n", strerror(errno));
+        goto fail;
+    }
+
+    return fd;
+
+fail:
+    if (fd >= 0)
+        close(fd);
+    return -1;
+}
+
 int open(const char *filename, int flags, ...) {
     va_list args;
     mode_t mode = 0;
     int r, _errno = 0;
+
+    debug(__FILE__": open(%s)\n", filename);
 
     va_start(args, flags);
     if (flags & O_CREAT)
@@ -786,12 +858,12 @@ int open(const char *filename, int flags, ...) {
         return _open(filename, flags, mode);
     }
 
-    debug(__FILE__": open()\n");
-    
     if (strcmp(filename, "/dev/dsp") == 0 || strcmp(filename, "/dev/adsp") == 0) {
         r = dsp_open(flags, &_errno);
     } else if (strcmp(filename, "/dev/mixer") == 0) {
         r = mixer_open(flags, &_errno);
+    } else if (strcmp(filename, "/dev/sndstat") == 0) {
+        r = sndstat_open(flags, &_errno);
     } else {
         function_exit();
         LOAD_OPEN_FUNC();
@@ -1321,7 +1393,7 @@ int open64(const char *filename, int flags, ...) {
     va_list args;
     mode_t mode = 0;
 
-    debug(__FILE__": open64()\n");
+    debug(__FILE__": open64(%s)\n", filename);
     
     va_start(args, flags);
     if (flags & O_CREAT)
@@ -1330,6 +1402,7 @@ int open64(const char *filename, int flags, ...) {
 
     if (strcmp(filename, "/dev/dsp") != 0 &&
         strcmp(filename, "/dev/adsp") != 0 &&
+        strcmp(filename, "/dev/sndstat") != 0 &&
         strcmp(filename, "/dev/mixer") != 0) {
         LOAD_OPEN64_FUNC();
         return _open64(filename, flags, mode);
@@ -1341,25 +1414,38 @@ int open64(const char *filename, int flags, ...) {
 FILE* fopen(const char *filename, const char *mode) {
     FILE *f = NULL;
     int fd;
+    mode_t m;
+    
+    debug(__FILE__": fopen(%s)\n", filename);
 
-    debug(__FILE__": fopen()\n");
+    if (strcmp(filename, "/dev/dsp") == 0 ||
+        strcmp(filename, "/dev/adsp") == 0) {
 
-    if (strcmp(filename, "/dev/dsp") != 0 &&
-        strcmp(filename, "/dev/adsp") != 0 &&
-        strcmp(filename, "/dev/mixer") != 0) {
+        if (strcmp(mode, "wb") != 0) {
+            errno = EACCES;
+            return NULL;
+        }
+
+        m = O_WRONLY;
+    } else if (strcmp(filename, "/dev/sndstat") == 0) {
+
+        if (strcmp(mode, "r") != 0) {
+            errno = EACCES;
+            return NULL;
+        }
+
+        m = O_RDONLY;
+    } else if (strcmp(filename, "/dev/mixer") != 0)
+        m = O_RDWR;
+    else {
         LOAD_FOPEN_FUNC();
         return _fopen(filename, mode);
     }
 
-    if (strcmp(mode, "wb") != 0) {
-        errno = EACCES;
-        return NULL;
-    }
-
-    if ((fd = open(filename, O_WRONLY)) < 0)
+    if ((fd = open(filename, m)) < 0)
         return NULL;
 
-    if (!(f = fdopen(fd, "wb"))) {
+    if (!(f = fdopen(fd, mode))) {
         close(fd);
         return NULL;
     }
@@ -1369,10 +1455,11 @@ FILE* fopen(const char *filename, const char *mode) {
 
 FILE *fopen64(const char *filename, const char *mode) {
 
-    debug(__FILE__": fopen64()\n");
+    debug(__FILE__": fopen64(%s)\n", filename);
 
     if (strcmp(filename, "/dev/dsp") != 0 &&
         strcmp(filename, "/dev/adsp") != 0 &&
+        strcmp(filename, "/dev/sndstat") != 0 &&
         strcmp(filename, "/dev/mixer") != 0) {
         LOAD_FOPEN64_FUNC();
         return _fopen64(filename, mode);
