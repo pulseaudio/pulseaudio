@@ -564,7 +564,7 @@ static int is_group(gid_t gid, const char *name) {
     data = pa_xmalloc(n);
 
     if (getgrgid_r(gid, &group, data, n, &result) < 0 || !result) {
-        pa_log(__FILE__": getgrgid_r(%u): %s", gid, pa_cstrerror(errno));
+        pa_log(__FILE__": getgrgid_r(%u): %s", (unsigned)gid, pa_cstrerror(errno));
         goto finish;
     }
 

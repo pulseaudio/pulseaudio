@@ -46,6 +46,7 @@ size_t pa_sample_size(const pa_sample_spec *spec) {
             return 4;
         default:
             assert(0);
+            return 0;
     }
 }
 
