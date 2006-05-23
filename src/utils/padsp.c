@@ -60,6 +60,7 @@ typedef struct fd_info fd_info;
 struct fd_info {
     pthread_mutex_t mutex;
     int ref;
+    int unusable;
     
     fd_info_type_t type;
     int app_fd, thread_fd;
@@ -82,6 +83,7 @@ struct fd_info {
 };
 
 static int dsp_drain(fd_info *i);
+static void fd_info_remove_from_list(fd_info *i);
 
 static pthread_mutex_t fd_infos_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t func_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -289,14 +291,101 @@ static char *client_name(char *buf, size_t n) {
     return buf;
 }
 
+static void atfork_prepare(void) {
+    fd_info *i;
+
+    debug(__FILE__": atfork_prepare() enter\n");
+    
+    function_enter();
+
+    pthread_mutex_lock(&fd_infos_mutex);
+
+    for (i = fd_infos; i; i = i->next) {
+        pthread_mutex_lock(&i->mutex);
+        pa_threaded_mainloop_lock(i->mainloop);
+    }
+
+    pthread_mutex_lock(&func_mutex);
+
+    
+    debug(__FILE__": atfork_prepare() exit\n");
+}
+
+static void atfork_parent(void) {
+    fd_info *i;
+    
+    debug(__FILE__": atfork_parent() enter\n");
+
+    pthread_mutex_unlock(&func_mutex);
+
+    for (i = fd_infos; i; i = i->next) {
+        pa_threaded_mainloop_unlock(i->mainloop);
+        pthread_mutex_unlock(&i->mutex);
+    }
+
+    pthread_mutex_unlock(&fd_infos_mutex);
+
+    function_exit();
+    
+    debug(__FILE__": atfork_parent() exit\n");
+}
+
+static void atfork_child(void) {
+    fd_info *i;
+    
+    debug(__FILE__": atfork_child() enter\n");
+
+    /* We do only the bare minimum to get all fds closed */
+    pthread_mutex_init(&func_mutex, NULL);
+    pthread_mutex_init(&fd_infos_mutex, NULL);
+    
+    for (i = fd_infos; i; i = i->next) {
+        pthread_mutex_init(&i->mutex, NULL);
+
+        if (i->context) {
+            pa_context_disconnect(i->context);
+            pa_context_unref(i->context);
+            i->context = NULL;
+        }
+
+        if (i->stream) {
+            pa_stream_unref(i->stream);
+            i->stream = NULL;
+        }
+
+        if (i->app_fd >= 0) {
+            close(i->app_fd);
+            i->app_fd = -1;
+        }
+
+        if (i->thread_fd >= 0) {
+            close(i->thread_fd);
+            i->thread_fd = -1;
+        }
+
+        i->unusable = 1;
+    }
+
+    function_exit();
+
+    debug(__FILE__": atfork_child() exit\n");
+}
+
+static void install_atfork(void) {
+    pthread_atfork(atfork_prepare, atfork_parent, atfork_child);
+}
+
 static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     fd_info *i;
     int sfds[2] = { -1, -1 };
     char name[64];
+    static pthread_once_t install_atfork_once = PTHREAD_ONCE_INIT;
 
     debug(__FILE__": fd_info_new()\n");
 
     signal(SIGPIPE, SIG_IGN); /* Yes, ugly as hell */
+
+    pthread_once(&install_atfork_once, install_atfork);
     
     if (!(i = malloc(sizeof(fd_info)))) {
         *_errno = ENOMEM;
@@ -313,6 +402,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     pthread_mutex_init(&i->mutex, NULL);
     i->ref = 1;
     i->buf = NULL;
+    i->unusable = 0;
     PA_LLIST_INIT(fd_info, i);
 
     reset_params(i);
@@ -404,7 +494,7 @@ static fd_info* fd_info_find(int fd) {
     pthread_mutex_lock(&fd_infos_mutex);
     
     for (i = fd_infos; i; i = i->next)
-        if (i->app_fd == fd) {
+        if (i->app_fd == fd && !i->unusable) {
             fd_info_ref(i);
             break;
         }
@@ -546,7 +636,7 @@ static int create_stream(fd_info *i) {
 
     fix_metrics(i);
 
-    if (!(i->stream = pa_stream_new(i->context, "audio stream", &i->sample_spec, NULL))) {
+    if (!(i->stream = pa_stream_new(i->context, "Audio Stream", &i->sample_spec, NULL))) {
         debug(__FILE__": pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
@@ -784,6 +874,30 @@ static void success_cb(pa_stream *s, int success, void *userdata) {
     pa_threaded_mainloop_signal(i->mainloop, 0);
 }
 
+static int dsp_flush_socket(fd_info *i) {
+    int l;
+        
+    if (i->thread_fd < 0)
+        return -1;
+
+    if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
+        debug(__FILE__": SIOCINQ: %s\n", strerror(errno));
+        return -1;
+    }
+
+    while (l > 0) {
+        char buf[1024];
+        size_t k;
+
+        k = (size_t) l > sizeof(buf) ? sizeof(buf) : (size_t) l;
+        if (read(i->thread_fd, buf, k) < 0)
+            debug(__FILE__": read(): %s\n", strerror(errno));
+        l -= k;
+    }
+
+    return 0;
+}
+
 static int dsp_empty_socket(fd_info *i) {
     int ret = -1;
     
@@ -791,7 +905,7 @@ static int dsp_empty_socket(fd_info *i) {
     for (;;) {
         int l;
         
-        if (i->thread_fd < 0)
+        if (i->thread_fd < 0 || !i->stream)
             break;
         
         if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
@@ -861,8 +975,6 @@ static int dsp_trigger(fd_info *i) {
     pa_operation *o = NULL;
     int r = -1;
 
-    fd_info_copy_data(i, 1);
-
     if (!i->stream)
         return 0;
 
@@ -926,6 +1038,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         case SNDCTL_DSP_SPEED: {
             pa_sample_spec ss;
             int valid;
+            char t[256];
             
             debug(__FILE__": SNDCTL_DSP_SPEED: %i\n", *(int*) argp);
 
@@ -939,13 +1052,15 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
                 free_stream(i);
             }
             
+            debug(__FILE__": ss: %s\n", pa_sample_spec_snprint(t, sizeof(t), &i->sample_spec));
+
             pa_threaded_mainloop_unlock(i->mainloop);
 
             if (!valid) {
                 *_errno = EINVAL;
                 goto fail;
             }
-            
+
             break;
         }
             
@@ -1063,6 +1178,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             pa_threaded_mainloop_lock(i->mainloop);
 
             free_stream(i);
+            dsp_flush_socket(i);
             reset_params(i);
             
             pa_threaded_mainloop_unlock(i->mainloop);
