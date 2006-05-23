@@ -170,7 +170,7 @@ static char *tlsstr;
 
 #endif
 
-char* pa_cstrerror(int errnum) {
+const char* pa_cstrerror(int errnum) {
     const char *origbuf;
 
 #ifdef HAVE_STRERROR_R
