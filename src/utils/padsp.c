@@ -278,9 +278,21 @@ static void reset_params(fd_info *i) {
     i->n_fragments = 0;
 }
 
+static char *client_name(char *buf, size_t n) {
+    char p[PATH_MAX];
+    
+    if (pa_get_binary_name(p, sizeof(p)))
+        snprintf(buf, n, "oss[%s]", pa_path_get_filename(p));
+    else
+        snprintf(buf, n, "oss");
+
+    return buf;
+}
+
 static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     fd_info *i;
     int sfds[2] = { -1, -1 };
+    char name[64];
 
     debug(__FILE__": fd_info_new()\n");
 
@@ -320,7 +332,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
         goto fail;
     }
 
-    if (!(i->context = pa_context_new(pa_threaded_mainloop_get_api(i->mainloop), "oss"))) {
+    if (!(i->context = pa_context_new(pa_threaded_mainloop_get_api(i->mainloop), client_name(name, sizeof(name))))) {
         *_errno = EIO;
         debug(__FILE__": pa_context_new() failed\n");
         goto fail;
