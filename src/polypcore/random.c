@@ -48,7 +48,7 @@ static int random_proper(void *ret_data, size_t length) {
 
 #else /* OS_IS_WIN32 */
 
-    int fd, ret;
+    int fd, ret = -1;
     ssize_t r = 0;
     const char **device;
 

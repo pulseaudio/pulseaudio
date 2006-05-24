@@ -107,9 +107,10 @@ static void internal_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC
 /* Add a new IO source for the specified X11 internal connection */
 static pa_x11_internal* x11_internal_add(pa_x11_wrapper *w, int fd) {
     pa_x11_internal *i;
-    assert(i && fd >= 0);
+    assert(fd >= 0);
 
     i = pa_xmalloc(sizeof(pa_x11_internal));
+    assert(i);
     i->wrapper = w;
     i->io_event = w->core->mainloop->io_new(w->core->mainloop, fd, PA_IO_EVENT_INPUT, internal_io_event, w);
     i->fd = fd;

@@ -515,7 +515,6 @@ static int esd_proto_server_info(struct connection *c, PA_GCC_UNUSED esd_proto_t
 }
 
 static int esd_proto_all_info(struct connection *c, esd_proto_t request, const void *data, size_t length) {
-    uint8_t *response;
     size_t t, k, s;
     struct connection *conn;
     uint32_t idx = PA_IDXSET_INVALID;
@@ -585,7 +584,6 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
     }
 
     assert(t == s*(nsamples+1)+k);
-    response += k;
     t -= k;
 
     connection_write(c, terminator, k);

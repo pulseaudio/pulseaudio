@@ -44,6 +44,13 @@
 
 #define UNLOAD_POLL_TIME 2
 
+/* lt_dlsym() violates ISO C, so confide the breakage into this function to
+ * avoid warnings. */
+typedef void (*fnptr)(void);
+static inline fnptr lt_dlsym_fn(lt_dlhandle handle, const char *symbol) {
+    return (fnptr) (long) lt_dlsym(handle, symbol);
+}
+
 static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     pa_core *c = userdata;
     struct timeval ntv;
@@ -75,12 +82,12 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
         goto fail;
     }
 
-    if (!(m->init = (int (*)(pa_core *_c, pa_module*_m)) lt_dlsym(m->dl, PA_SYMBOL_INIT))) {
+    if (!(m->init = (int (*)(pa_core *_c, pa_module*_m)) lt_dlsym_fn(m->dl, PA_SYMBOL_INIT))) {
         pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_INIT"\" not found.", name);
         goto fail;
     }
 
-    if (!(m->done = (void (*)(pa_core *_c, pa_module*_m)) lt_dlsym(m->dl, PA_SYMBOL_DONE))) {
+    if (!(m->done = (void (*)(pa_core *_c, pa_module*_m)) lt_dlsym_fn(m->dl, PA_SYMBOL_DONE))) {
         pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_DONE"\" not found.", name);
         goto fail;
     }

@@ -102,11 +102,18 @@ static int (*_open64)(const char *, int, mode_t) = NULL;
 static FILE* (*_fopen64)(const char *path, const char *mode) = NULL;
 static int (*_fclose)(FILE *f) = NULL;
 
+/* dlsym() violates ISO C, so confide the breakage into this function to
+ * avoid warnings. */
+typedef void (*fnptr)(void);
+static inline fnptr dlsym_fn(void *handle, const char *symbol) {
+    return (fnptr) (long) dlsym(handle, symbol);
+}
+
 #define LOAD_IOCTL_FUNC() \
 do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_ioctl)  \
-        _ioctl = (int (*)(int, int, void*)) dlsym(RTLD_NEXT, "ioctl"); \
+        _ioctl = (int (*)(int, int, void*)) dlsym_fn(RTLD_NEXT, "ioctl"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
@@ -114,7 +121,7 @@ do { \
 do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_open) \
-        _open = (int (*)(const char *, int, mode_t)) dlsym(RTLD_NEXT, "open"); \
+        _open = (int (*)(const char *, int, mode_t)) dlsym_fn(RTLD_NEXT, "open"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
@@ -122,7 +129,7 @@ do { \
 do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_open64) \
-        _open64 = (int (*)(const char *, int, mode_t)) dlsym(RTLD_NEXT, "open64"); \
+        _open64 = (int (*)(const char *, int, mode_t)) dlsym_fn(RTLD_NEXT, "open64"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
@@ -130,7 +137,7 @@ do { \
 do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_close) \
-        _close = (int (*)(int)) dlsym(RTLD_NEXT, "close"); \
+        _close = (int (*)(int)) dlsym_fn(RTLD_NEXT, "close"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
@@ -138,7 +145,7 @@ do { \
 do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_fopen) \
-        _fopen = (FILE* (*)(const char *, const char*)) dlsym(RTLD_NEXT, "fopen"); \
+        _fopen = (FILE* (*)(const char *, const char*)) dlsym_fn(RTLD_NEXT, "fopen"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
@@ -146,7 +153,7 @@ do { \
 do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_fopen64) \
-        _fopen64 = (FILE* (*)(const char *, const char*)) dlsym(RTLD_NEXT, "fopen64"); \
+        _fopen64 = (FILE* (*)(const char *, const char*)) dlsym_fn(RTLD_NEXT, "fopen64"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
@@ -154,7 +161,7 @@ do { \
 do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_fclose) \
-        _fclose = (int (*)(FILE *)) dlsym(RTLD_NEXT, "fclose"); \
+        _fclose = (int (*)(FILE *)) dlsym_fn(RTLD_NEXT, "fclose"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 

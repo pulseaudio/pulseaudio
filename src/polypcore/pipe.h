@@ -22,6 +22,10 @@
    USA.
 ***/
 
+#ifndef HAVE_PIPE
+
 int pipe(int filedes[2]);
+
+#endif
 
 #endif

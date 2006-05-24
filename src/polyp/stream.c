@@ -872,7 +872,7 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
     pa_operation *o;
     pa_tagstruct *t;
     struct timeval now;
-    int cidx;
+    int cidx = 0;
     
     assert(s);
     assert(s->ref >= 1);

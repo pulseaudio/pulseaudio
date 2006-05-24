@@ -38,6 +38,13 @@
 #define PA_SYMBOL_USAGE "pa__get_usage"
 #define PA_SYMBOL_VERSION "pa__get_version"
 
+/* lt_dlsym() violates ISO C, so confide the breakage into this function to
+ * avoid warnings. */
+typedef void (*fnptr)(void);
+static inline fnptr lt_dlsym_fn(lt_dlhandle handle, const char *symbol) {
+    return (fnptr) (long) lt_dlsym(handle, symbol);
+}
+
 pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl) {
     pa_modinfo *i;
     const char* (*func)(void);
@@ -45,16 +52,16 @@ pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl) {
 
     i = pa_xnew0(pa_modinfo, 1);
 
-    if ((func = (const char* (*)(void)) lt_dlsym(dl, PA_SYMBOL_AUTHOR)))
+    if ((func = (const char* (*)(void)) lt_dlsym_fn(dl, PA_SYMBOL_AUTHOR)))
         i->author = pa_xstrdup(func());
 
-    if ((func = (const char* (*)(void)) lt_dlsym(dl, PA_SYMBOL_DESCRIPTION)))
+    if ((func = (const char* (*)(void)) lt_dlsym_fn(dl, PA_SYMBOL_DESCRIPTION)))
         i->description = pa_xstrdup(func());
 
-    if ((func = (const char* (*)(void)) lt_dlsym(dl, PA_SYMBOL_USAGE)))
+    if ((func = (const char* (*)(void)) lt_dlsym_fn(dl, PA_SYMBOL_USAGE)))
         i->usage = pa_xstrdup(func());
 
-    if ((func = (const char* (*)(void)) lt_dlsym(dl, PA_SYMBOL_VERSION)))
+    if ((func = (const char* (*)(void)) lt_dlsym_fn(dl, PA_SYMBOL_VERSION)))
         i->version = pa_xstrdup(func());
 
     return i;
