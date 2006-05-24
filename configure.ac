@@ -214,6 +214,7 @@ AC_SEARCH_LIBS([pow], [m])
 
 # POSIX
 AC_SEARCH_LIBS([sched_setscheduler], [rt])
+AC_SEARCH_LIBS([dlopen], [dl])
 
 # BSD
 AC_SEARCH_LIBS([connect], [socket])
