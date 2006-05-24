@@ -937,7 +937,7 @@ static int sndstat_open(int flags, int *_errno) {
         "\n"
         "Timers:\n"
         "\n"
-        "\Mixers:\n"
+        "Mixers:\n"
         "0: Polypaudio Virtual OSS\n";
 
     char fn[] = "/tmp/padsp-sndstat-XXXXXX";
