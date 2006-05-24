@@ -977,7 +977,7 @@ static int dsp_empty_socket(fd_info *i) {
     for (;;) {
         int l;
         
-        if (i->thread_fd < 0 || !i->stream)
+        if (i->thread_fd < 0)
             break;
         
         if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
@@ -985,8 +985,10 @@ static int dsp_empty_socket(fd_info *i) {
             break;
         }
 
-        if (!l)
+        if (!l) {
+            ret = 0;
             break;
+        }
         
         pa_threaded_mainloop_wait(i->mainloop);
     }
