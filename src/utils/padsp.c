@@ -79,6 +79,10 @@ struct fd_info {
 
     int operation_success;
 
+    pa_cvolume volume;
+    uint32_t sink_index;
+    int volume_modify_count;
+    
     PA_LLIST_FIELDS(fd_info);
 };
 
@@ -153,6 +157,21 @@ do { \
         _fclose = (int (*)(FILE *)) dlsym(RTLD_NEXT, "fclose"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
+
+#define CONTEXT_CHECK_DEAD_GOTO(i, label) do { \
+if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY) { \
+    debug(__FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
+    goto label; \
+} \
+} while(0);
+
+#define STREAM_CHECK_DEAD_GOTO(i, label) do { \
+if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
+    !(i)->stream || pa_stream_get_state((i)->stream) != PA_STREAM_READY) { \
+    debug(__FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
+    goto label; \
+} \
+} while(0);
 
 static void debug(const char *format, ...) PA_GCC_PRINTF_ATTR(1,2);
 
@@ -375,6 +394,26 @@ static void install_atfork(void) {
     pthread_atfork(atfork_prepare, atfork_parent, atfork_child);
 }
 
+static void stream_success_cb(pa_stream *s, int success, void *userdata) {
+    fd_info *i = userdata;
+
+    assert(s);
+    assert(i);
+
+    i->operation_success = success;
+    pa_threaded_mainloop_signal(i->mainloop, 0);
+}
+
+static void context_success_cb(pa_context *c, int success, void *userdata) {
+    fd_info *i = userdata;
+
+    assert(c);
+    assert(i);
+
+    i->operation_success = success;
+    pa_threaded_mainloop_signal(i->mainloop, 0);
+}
+
 static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     fd_info *i;
     int sfds[2] = { -1, -1 };
@@ -403,6 +442,9 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     i->ref = 1;
     i->buf = NULL;
     i->unusable = 0;
+    pa_cvolume_reset(&i->volume, 2);
+    i->volume_modify_count = 0;
+    i->sink_index = (uint32_t) -1;
     PA_LLIST_INIT(fd_info, i);
 
     reset_params(i);
@@ -760,15 +802,118 @@ fail:
     return -1;
 }
 
+static void sink_info_cb(pa_context *context, const pa_sink_info *si, int eol, void *userdata) {
+    fd_info *i = userdata;
+
+    if (!si && eol < 0) {
+        i->operation_success = 0;
+        pa_threaded_mainloop_signal(i->mainloop, 0);
+        return;
+    }
+
+    if (eol)
+        return;
+
+    if (!pa_cvolume_equal(&i->volume, &si->volume))
+        i->volume_modify_count++;
+    
+    i->volume = si->volume;
+    i->sink_index = si->index;
+
+    i->operation_success = 1;
+    pa_threaded_mainloop_signal(i->mainloop, 0);
+}
+
+static void subscribe_cb(pa_context *context, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
+    fd_info *i = userdata;
+    pa_operation *o = NULL;
+
+    if (i->sink_index != idx)
+        return;
+
+    if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_CHANGE)
+        return;
+
+    if (!(o = pa_context_get_sink_info_by_index(i->context, i->sink_index, sink_info_cb, i))) {
+        debug(__FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
+        return;
+    }
+
+    pa_operation_unref(o);
+}
+
 static int mixer_open(int flags, int *_errno) {
-/*     fd_info *i; */
+    fd_info *i;
+    pa_operation *o;
+    int ret;
 
-    *_errno = ENOSYS;
+    if (!(i = fd_info_new(FD_INFO_MIXER, _errno))) 
+        return -1;
+    
+    pa_threaded_mainloop_lock(i->mainloop);
+
+    pa_context_set_subscribe_callback(i->context, subscribe_cb, i);
+    
+    if (!(o = pa_context_subscribe(i->context, PA_SUBSCRIPTION_MASK_SINK, context_success_cb, i))) {
+        debug(__FILE__": Failed to subscribe to events: %s", pa_strerror(pa_context_errno(i->context)));
+        *_errno = EIO;
+        goto fail;
+    }
+
+    i->operation_success = 0;
+    while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
+        pa_threaded_mainloop_wait(i->mainloop);
+        CONTEXT_CHECK_DEAD_GOTO(i, fail);
+    }
+
+    if (!i->operation_success) {
+        debug(__FILE__":Failed to subscribe to events: %s", pa_strerror(pa_context_errno(i->context)));
+        *_errno = EIO;
+        goto fail;
+    }
+
+    /* Get sink info */
+
+    pa_operation_unref(o);
+    if (!(o = pa_context_get_sink_info_by_name(i->context, NULL, sink_info_cb, i))) {
+        debug(__FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
+        *_errno = EIO;
+        goto fail;
+    }
+
+    i->operation_success = 0;
+    while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
+        pa_threaded_mainloop_wait(i->mainloop);
+        CONTEXT_CHECK_DEAD_GOTO(i, fail);
+    }
+
+    if (!i->operation_success) {
+        debug(__FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
+        *_errno = EIO;
+        goto fail;
+    }
+
+    pa_threaded_mainloop_unlock(i->mainloop);
+
+    debug(__FILE__": mixer_open() succeeded, fd=%i\n", i->app_fd);
+
+    fd_info_add_to_list(i);
+    ret = i->app_fd;
+    fd_info_unref(i);
+    
+    return ret;
+
+fail:
+    pa_threaded_mainloop_unlock(i->mainloop);
+
+    if (i)
+        fd_info_unref(i);
+    
+    *_errno = EIO;
+
+    debug(__FILE__": mixer_open() failed\n");
+
     return -1;
-
-/*     if (!(i = fd_info_new(FD_INFO_MIXER))) */
-/*         return -1; */
-
 }
 
 static int sndstat_open(int flags, int *_errno) {
@@ -879,8 +1024,109 @@ int open(const char *filename, int flags, ...) {
 }
 
 static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) {
-    *_errno = ENOSYS;
-    return -1;
+    int ret = -1;
+    
+    switch (request) {
+        case SOUND_MIXER_READ_DEVMASK :
+            debug(__FILE__": SOUND_MIXER_READ_DEVMASK\n");
+
+            *(int*) argp = SOUND_MASK_PCM;
+            break;
+
+        case SOUND_MIXER_READ_RECMASK :
+            debug(__FILE__": SOUND_MIXER_READ_RECMASK\n");
+
+            *(int*) argp = 0;
+            break;
+            
+        case SOUND_MIXER_READ_STEREODEVS:
+            debug(__FILE__": SOUND_MIXER_READ_STEREODEVS\n");
+
+            pa_threaded_mainloop_lock(i->mainloop);
+            *(int*) argp = i->volume.channels > 1 ? SOUND_MASK_PCM : 0;
+            pa_threaded_mainloop_unlock(i->mainloop);
+            
+            break;
+
+        case SOUND_MIXER_READ_RECSRC:
+            debug(__FILE__": SOUND_MIXER_READ_RECSRC\n");
+
+            *(int*) argp = 0;
+            break;
+            
+        case SOUND_MIXER_CAPS:
+            debug(__FILE__": SOUND_MIXER_CAPS\n");
+
+            *(int*) argp = 0;
+            break;
+    
+        case SOUND_MIXER_READ_PCM:
+            
+            debug(__FILE__": SOUND_MIXER_READ_PCM\n");
+            
+            pa_threaded_mainloop_lock(i->mainloop);
+
+            *(int*) argp =
+                ((i->volume.values[0]*100/PA_VOLUME_NORM) << 8) |
+                ((i->volume.values[i->volume.channels > 1 ? 1 : 0]*100/PA_VOLUME_NORM));
+            
+            pa_threaded_mainloop_unlock(i->mainloop);
+            
+            break;
+
+        case SOUND_MIXER_WRITE_PCM: {
+            pa_cvolume v;
+            
+            debug(__FILE__": SOUND_MIXER_WRITE_PCM\n");
+            
+            pa_threaded_mainloop_lock(i->mainloop);
+
+            v = i->volume;
+            
+            i->volume.values[0] = ((*(int*) argp >> 8)*PA_VOLUME_NORM)/100;
+            i->volume.values[1] = ((*(int*) argp & 0xFF)*PA_VOLUME_NORM)/100;
+
+            if (!pa_cvolume_equal(&i->volume, &v)) {
+                pa_operation *o;
+                
+                if (!(o = pa_context_set_sink_volume_by_index(i->context, i->sink_index, &i->volume, NULL, NULL)))
+                    debug(__FILE__":Failed set volume: %s", pa_strerror(pa_context_errno(i->context)));
+                else
+                    pa_operation_unref(o);
+                
+                /* We don't wait for completion here */
+                i->volume_modify_count++;
+            }
+            
+            pa_threaded_mainloop_unlock(i->mainloop);
+            
+            break;
+        }
+
+        case SOUND_MIXER_INFO: {
+            mixer_info *mi = argp;
+
+            memset(mi, 0, sizeof(mixer_info));
+            strncpy(mi->id, "POLYPAUDIO", sizeof(mi->id));
+            strncpy(mi->name, "Polypaudio Virtual OSS", sizeof(mi->name));
+            pa_threaded_mainloop_lock(i->mainloop);
+            mi->modify_counter = i->volume_modify_count;
+            pa_threaded_mainloop_unlock(i->mainloop);
+            break;
+        }
+            
+        default:
+            debug(__FILE__": unknwon ioctl 0x%08lx\n", request);
+
+            *_errno = EINVAL;
+            goto fail;
+    }
+
+    ret = 0;
+    
+fail:
+    
+    return ret;
 }
 
 static int map_format(int *fmt, pa_sample_spec *ss) {
@@ -934,16 +1180,6 @@ static int map_format_back(pa_sample_format_t format) {
         default:
             abort();
     }
-}
-
-static void success_cb(pa_stream *s, int success, void *userdata) {
-    fd_info *i = userdata;
-
-    assert(s);
-    assert(i);
-
-    i->operation_success = success;
-    pa_threaded_mainloop_signal(i->mainloop, 0);
 }
 
 static int dsp_flush_socket(fd_info *i) {
@@ -1015,15 +1251,14 @@ static int dsp_drain(fd_info *i) {
 
     debug(__FILE__": Really draining.\n");
         
-    if (!(o = pa_stream_drain(i->stream, success_cb, i))) {
+    if (!(o = pa_stream_drain(i->stream, stream_success_cb, i))) {
         debug(__FILE__": pa_stream_drain(): %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
     i->operation_success = 0;
     while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
-        if (!i->stream || pa_stream_get_state(i->stream) != PA_STREAM_READY)
-            goto fail;
+        STREAM_CHECK_DEAD_GOTO(i, fail);
             
         pa_threaded_mainloop_wait(i->mainloop);
     }
@@ -1059,15 +1294,14 @@ static int dsp_trigger(fd_info *i) {
 
     debug(__FILE__": Triggering.\n");
         
-    if (!(o = pa_stream_trigger(i->stream, success_cb, i))) {
+    if (!(o = pa_stream_trigger(i->stream, stream_success_cb, i))) {
         debug(__FILE__": pa_stream_trigger(): %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
     i->operation_success = 0;
     while (!pa_operation_get_state(o) != PA_OPERATION_DONE) {
-        if (!i->stream || pa_stream_get_state(i->stream) != PA_STREAM_READY)
-            goto fail;
+        STREAM_CHECK_DEAD_GOTO(i, fail);
             
         pa_threaded_mainloop_wait(i->mainloop);
     }
@@ -1218,8 +1452,8 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             
             for (;;) {
                 pa_usec_t usec;
-                if (!i->stream || pa_stream_get_state(i->stream) != PA_STREAM_READY)
-                    break;
+
+                STREAM_CHECK_DEAD_GOTO(i, exit_loop);
 
                 if (pa_stream_get_latency(i->stream, &usec, NULL) >= 0) {
                     *(int*) argp = pa_usec_to_bytes(usec, &i->sample_spec);
@@ -1233,6 +1467,8 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
                 pa_threaded_mainloop_wait(i->mainloop);
             }
+            
+        exit_loop:
             
             if (ioctl(i->thread_fd, SIOCINQ, &l) < 0)
                 debug(__FILE__": SIOCINQ failed: %s\n", strerror(errno));
