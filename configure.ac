@@ -437,8 +437,8 @@ fi
 
 AC_ARG_WITH(
         [module-dir],
-        AC_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/polypaudio-${PA_MAJORMINOR}]),
-        [modlibexecdir=$withval], [modlibexecdir="${libdir}/polypaudio-${PA_MAJORMINOR}"])
+        AC_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/polypaudio-${PA_MAJORMINOR}/modules/]),
+        [modlibexecdir=$withval], [modlibexecdir="${libdir}/polypaudio-${PA_MAJORMINOR}/modules/"])
 
 AC_SUBST(modlibexecdir)
 
