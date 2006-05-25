@@ -201,7 +201,7 @@ static int padsp_disabled(void) {
      * The symbol must be an int containing a three bit bitmask: bit 1
      * -> disable /dev/dsp emulation, bit 2 -> disable /dev/sndstat
      * emulation, bit 3 -> disable /dev/mixer emulation. Hence a value
-     * 7 disables padsp entirely. */
+     * of 7 disables padsp entirely. */
     
     pthread_mutex_lock(&func_mutex);
     if (!sym_resolved) {
@@ -363,13 +363,26 @@ static void reset_params(fd_info *i) {
 
 static char *client_name(char *buf, size_t n) {
     char p[PATH_MAX];
+    const char *e;
+
+    if ((e = getenv("PADSP_CLIENT_NAME")))
+        return e;
     
     if (pa_get_binary_name(p, sizeof(p)))
-        snprintf(buf, n, "oss[%s]", pa_path_get_filename(p));
+        snprintf(buf, n, "OSS Emulation[%s]", pa_path_get_filename(p));
     else
-        snprintf(buf, n, "oss");
+        snprintf(buf, n, "OSS");
 
     return buf;
+}
+
+static char *stream_name(void) {
+    const char *e;
+
+    if ((e = getenv("PADSP_STREAM_NAME")))
+        return e;
+
+    return "Audio Stream";
 }
 
 static void atfork_prepare(void) {
@@ -740,7 +753,7 @@ static int create_stream(fd_info *i) {
 
     fix_metrics(i);
 
-    if (!(i->stream = pa_stream_new(i->context, "Audio Stream", &i->sample_spec, NULL))) {
+    if (!(i->stream = pa_stream_new(i->context, stream_name(), &i->sample_spec, NULL))) {
         debug(__FILE__": pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
