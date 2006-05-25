@@ -78,7 +78,7 @@ EXTRA_DIST = \
 		daemon/default.pa.in \
 		depmod.py \
 		daemon/esdcompat.sh.in \
-		utils/padsp.in \
+		utils/padsp \
 		modules/module-defs.h.m4
 
 polypconf_DATA = \
@@ -453,14 +453,11 @@ libpolyp_mainloop_glib12_la_LDFLAGS = -version-info $(LIBPOLYP_MAINLOOP_GLIB_VER
 #         OSS emulation           #
 ###################################
 
-CLEANFILES=
-
 if HAVE_OSS
 
 lib_LTLIBRARIES += libpolypdsp.la
 
-CLEANFILES += padsp
-bin_SCRIPTS += padsp
+bin_SCRIPTS += utils/padsp
 
 endif
 
@@ -468,9 +465,6 @@ libpolypdsp_la_SOURCES = utils/padsp.c
 libpolypdsp_la_CFLAGS = $(AM_CFLAGS)
 libpolypdsp_la_LIBADD = $(AM_LIBADD) libpolyp.la
 libpolypdsp_la_LDFLAGS = -avoid-version
-
-padsp: utils/padsp.in Makefile
-	sed -e 's,@LIBPOLYPDSP\@,$(libdir)/libpolypdsp.so,g' < $< > $@
 
 ###################################
 #      Daemon core library        #
@@ -1165,7 +1159,7 @@ suid: polypaudio
 	chown root $<
 	chmod u+s $<
 
-CLEANFILES+=esdcompat.sh client.conf default.pa daemon.conf
+CLEANFILES = esdcompat.sh client.conf default.pa daemon.conf
 
 esdcompat.sh: daemon/esdcompat.sh.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
