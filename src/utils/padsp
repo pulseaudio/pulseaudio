@@ -19,6 +19,57 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
+while getopts 'hs:n:m:MSDd' param ; do
+	case $param in
+		s)
+			POLYP_SERVER="$OPTARG"
+			export POLYP_SERVER
+			;;
+		n)
+			PA_CLIENT_NAME="$OPTARG"
+			export PA_CLIENT_NAME
+			;;
+		m)
+			PA_STREAM_NAME="$OPTARG"
+			export PA_STREAM_NAME
+			;;
+		M)
+			PA_NO_MIXER=1
+			export PA_NO_MIXER
+			;;
+		S)
+			PA_NO_SNDSTAT=1
+			export PA_NO_SNDSTAT
+			;;
+		D)
+			PA_NO_DSP=1
+			export PA_NO_DSP
+			;;
+		d)
+			PADSP_DEBUG=1
+			export PADSP_DEBUG
+			;;
+		*)
+			echo "$0 - redirect OSS audio devices to Polypaudio"
+			echo " "
+			echo "$0 [options] application [arguments]"
+			echo " "
+			echo "options:"
+			echo "	-h                  show brief help"
+			echo "	-s <host>[:<port>]  contact a specific Polypaudio server"
+			echo "	-n <name>           client name to report to the server"
+			echo "	-m <name>           stream name to report to the server"
+			echo "	-M                  disable /dev/mixer emulation"
+			echo "	-S                  disable /dev/sndstat emulation"
+			echo "	-D                  disable /dev/dsp emulation"
+			echo "	-d                  enable debug output"
+			exit 0
+			;;
+	esac
+done
+
+shift $(( $OPTIND - 1 ))
+
 if [ x"$LD_PRELOAD" = x ] ; then
    LD_PRELOAD="libpolypdsp.so"
 else
