@@ -64,11 +64,11 @@
 
 #include <polyp/xmalloc.h>
 #include <polyp/util.h>
-#include <polyp/error.h>
 
 #include <polypcore/socket-util.h>
 #include <polypcore/core-util.h>
 #include <polypcore/log.h>
+#include <polypcore/core-error.h>
 
 #include "socket-server.h"
 

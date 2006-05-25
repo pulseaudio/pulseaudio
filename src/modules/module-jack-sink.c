@@ -36,9 +36,9 @@
 
 #include <jack/jack.h>
 
-#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/iochannel.h>
 #include <polypcore/sink.h>
 #include <polypcore/module.h>

@@ -29,9 +29,9 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/core-util.h>
 #include <polypcore/strbuf.h>
 #include <polypcore/conf-parser.h>

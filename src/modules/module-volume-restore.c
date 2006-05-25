@@ -32,9 +32,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/module.h>
 #include <polypcore/core-util.h>
 #include <polypcore/modargs.h>

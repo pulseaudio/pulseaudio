@@ -30,7 +30,6 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include <polyp/error.h>
 #include <polyp/sample.h>
 #include <polyp/timeval.h>
 #include <polyp/utf8.h>
@@ -49,6 +48,7 @@
 #include <polypcore/namereg.h>
 #include <polypcore/log.h>
 #include <polypcore/core-util.h>
+#include <polypcore/core-error.h>
 
 #include "endianmacros.h"
 

@@ -42,9 +42,9 @@
 
 #include "../polypcore/winsock.h"
 
-#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/module.h>
 #include <polypcore/socket-server.h>
 #include <polypcore/socket-util.h>

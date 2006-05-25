@@ -50,11 +50,11 @@
 
 #include "../polypcore/winsock.h"
 
-#include <polyp/error.h>
 #include <polyp/mainloop.h>
 #include <polyp/mainloop-signal.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/core.h>
 #include <polypcore/memblock.h>
 #include <polypcore/module.h>

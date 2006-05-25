@@ -31,10 +31,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <polyp/error.h>
 #include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/module.h>
 #include <polypcore/llist.h>
 #include <polypcore/sink.h>

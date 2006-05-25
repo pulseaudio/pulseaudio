@@ -54,10 +54,10 @@
 
 #include "winsock.h"
 
-#include <polyp/error.h>
 #include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/socket-util.h>
 #include <polypcore/core-util.h>
 #include <polypcore/log.h>

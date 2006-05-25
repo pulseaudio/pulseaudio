@@ -28,9 +28,9 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/log.h>
 #include <polypcore/core-util.h>
 

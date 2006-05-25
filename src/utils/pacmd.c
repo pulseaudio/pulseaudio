@@ -54,7 +54,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
     }
 
     if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(PF_UNIX, SOCK_STREAM, 0): %s", pa_cstrerror(errno));
+        pa_log(__FILE__": socket(PF_UNIX, SOCK_STREAM, 0): %s", strerror(errno));
         goto fail;
     }
 
@@ -66,7 +66,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
         int r;
         
         if ((r = connect(fd, (struct sockaddr*) &sa, sizeof(sa))) < 0 && (errno != ECONNREFUSED && errno != ENOENT)) {
-            pa_log(__FILE__": connect(): %s", pa_cstrerror(errno));
+            pa_log(__FILE__": connect(): %s", strerror(errno));
             goto fail;
         }
             
@@ -97,7 +97,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
     
     for (;;) {
         if (select(FD_SETSIZE, &ifds, &ofds, NULL, NULL) < 0) {
-            pa_log(__FILE__": select(): %s", pa_cstrerror(errno));
+            pa_log(__FILE__": select(): %s", strerror(errno));
             goto fail;
         }
 
@@ -109,7 +109,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
                 if (r == 0)
                     break;
                 
-                pa_log(__FILE__": read(): %s", pa_cstrerror(errno));
+                pa_log(__FILE__": read(): %s", strerror(errno));
                 goto fail;
             }
             
@@ -125,7 +125,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
                 if (r == 0)
                     break;
                 
-                pa_log(__FILE__": read(): %s", pa_cstrerror(errno));
+                pa_log(__FILE__": read(): %s", strerror(errno));
                 goto fail;
             }
 
@@ -138,7 +138,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
             assert(obuf_length);
             
             if ((r = write(1, obuf + obuf_index, obuf_length)) < 0) {
-                pa_log(__FILE__": write(): %s", pa_cstrerror(errno));
+                pa_log(__FILE__": write(): %s", strerror(errno));
                 goto fail;
             }
             
@@ -152,7 +152,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
             assert(ibuf_length);
             
             if ((r = write(fd, ibuf + ibuf_index, ibuf_length)) < 0) {
-                pa_log(__FILE__": write(): %s", pa_cstrerror(errno));
+                pa_log(__FILE__": write(): %s", strerror(errno));
                 goto fail;
             }
             

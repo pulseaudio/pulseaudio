@@ -35,8 +35,8 @@
 #include <limits.h>
 #include <sys/stat.h>
 
-#include <polyp/error.h>
 #include <polyp/util.h>
+#include <polypcore/core-error.h>
 #include <polypcore/core-util.h>
 #include <polypcore/log.h>
 #include <polypcore/random.h>

@@ -39,9 +39,9 @@
 #include <windows.h>
 #endif
 
-#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/core-util.h>
 #include <polypcore/log.h>
 

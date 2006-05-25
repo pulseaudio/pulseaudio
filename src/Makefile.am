@@ -402,6 +402,7 @@ libpolyp_la_SOURCES += \
 		polypcore/strbuf.c polypcore/strbuf.h \
 		polypcore/strlist.c polypcore/strlist.h \
 		polypcore/tagstruct.c polypcore/tagstruct.h \
+		polypcore/core-error.c polypcore/core-error.h \
 		polypcore/winsock.h
 
 if OS_IS_WIN32
@@ -574,7 +575,8 @@ libpolypcore_la_SOURCES += \
 		polypcore/source-output.c polypcore/source-output.h \
 		polypcore/strbuf.c polypcore/strbuf.h \
 		polypcore/tokenizer.c polypcore/tokenizer.h \
-		polypcore/winsock.h
+		polypcore/winsock.h \
+		polypcore/core-error.c polypcore/core-error.h
 
 if OS_IS_WIN32
 libpolypcore_la_SOURCES += \
@@ -1186,3 +1188,5 @@ install-exec-hook:
 	chmod u+s $(DESTDIR)$(bindir)/polypaudio
 	ln -sf pacat $(DESTDIR)$(bindir)/parec
 	rm -f $(DESTDIR)$(modlibexecdir)/*.a
+
+.PHONY: utils/padsp

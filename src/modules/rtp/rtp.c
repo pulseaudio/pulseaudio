@@ -36,8 +36,7 @@
 #include <sys/filio.h>
 #endif
 
-#include <polyp/error.h>
-
+#include <polypcore/core-error.h>
 #include <polypcore/log.h>
 
 #include "rtp.h"

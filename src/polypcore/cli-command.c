@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/module.h>
@@ -50,6 +49,7 @@
 #include <polypcore/sound-file-stream.h>
 #include <polypcore/props.h>
 #include <polypcore/core-util.h>
+#include <polypcore/core-error.h>
 
 #include "cli-command.h"
 

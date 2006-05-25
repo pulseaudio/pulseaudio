@@ -41,7 +41,6 @@
 #include <windows.h>
 #endif
 
-#include <polyp/error.h>
 #include <polyp/mainloop.h>
 #include <polyp/channelmap.h>
 #include <polyp/timeval.h>
@@ -57,6 +56,7 @@
 #include <polypcore/sound-file.h>
 #include <polypcore/core-util.h>
 #include <polypcore/log.h>
+#include <polypcore/core-error.h>
 
 #include "core-scache.h"
 

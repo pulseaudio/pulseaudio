@@ -28,8 +28,7 @@
 #include <errno.h>
 #include <signal.h>
 
-#include <polyp/error.h>
-
+#include <polypcore/core-error.h>
 #include <polypcore/module.h>
 #include <polypcore/core-util.h>
 #include <polypcore/modargs.h>

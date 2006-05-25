@@ -1,5 +1,5 @@
-#ifndef fooerrorhfoo
-#define fooerrorhfoo
+#ifndef foocoreerrorhfoo
+#define foocoreerrorhfoo
 
 /* $Id$ */
 
@@ -30,8 +30,11 @@
 
 PA_C_DECL_BEGIN
 
-/** Return a human readable error message for the specified numeric error code */
-const char* pa_strerror(int error);
+/** A wrapper around the standard strerror() function that converts the
+ * string to UTF-8. The function is thread safe but the returned string is
+ * only guaranteed to exist until the thread exits or pa_cstrerror() is
+ * called again from the same thread. */
+const char* pa_cstrerror(int errnum);
 
 PA_C_DECL_END
 

@@ -34,8 +34,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <polyp/error.h>
-
+#include <polypcore/core-error.h>
 #include <polypcore/core-util.h>
 #include <polypcore/log.h>
 

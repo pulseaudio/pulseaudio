@@ -47,7 +47,7 @@
 
 #include "../polypcore/winsock.h"
 
-#include <polyp/error.h>
+#include <polypcore/core-error.h>
 #include <polyp/version.h>
 #include <polyp/xmalloc.h>
 

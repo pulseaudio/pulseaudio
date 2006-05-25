@@ -2,8 +2,6 @@
 
 Pre 0.9.0
 - add API to query the bufferattrs after stream creation
-- add proper padsp script that makes $PADSP_xxx env vars from the command line arguments, just like esddsp does
-- move pa_cstrerror() to polypcore/core-error.h
 
 Post 0.9.0:
 - alsa mmap driver

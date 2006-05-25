@@ -29,7 +29,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include <polyp/error.h>
+#include <polypcore/core-error.h>
 #include <polyp/xmalloc.h>
 
 #include <polypcore/log.h>

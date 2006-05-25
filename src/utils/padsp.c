@@ -361,7 +361,7 @@ static void reset_params(fd_info *i) {
     i->n_fragments = 0;
 }
 
-static char *client_name(char *buf, size_t n) {
+static const char *client_name(char *buf, size_t n) {
     char p[PATH_MAX];
     const char *e;
 
@@ -376,7 +376,7 @@ static char *client_name(char *buf, size_t n) {
     return buf;
 }
 
-static char *stream_name(void) {
+static const char *stream_name(void) {
     const char *e;
 
     if ((e = getenv("PADSP_STREAM_NAME")))

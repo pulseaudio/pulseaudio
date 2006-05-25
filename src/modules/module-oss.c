@@ -35,9 +35,9 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/iochannel.h>
 #include <polypcore/sink.h>
 #include <polypcore/source.h>

@@ -69,10 +69,10 @@
 
 #include <samplerate.h>
 
-#include <polyp/error.h>
 #include <polyp/xmalloc.h>
 #include <polyp/util.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/winsock.h>
 #include <polypcore/log.h>
 

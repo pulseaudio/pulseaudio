@@ -32,11 +32,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <polyp/error.h>
 #include <polyp/timeval.h>
 #include <polyp/util.h>
 #include <polyp/xmalloc.h>
 
+#include <polypcore/core-error.h>
 #include <polypcore/module.h>
 #include <polypcore/llist.h>
 #include <polypcore/source.h>
