@@ -1,8 +1,5 @@
 *** $Id$ ***
 
-Pre 0.9.0
-- add API to query the bufferattrs after stream creation
-
 Post 0.9.0:
 - alsa mmap driver
 - dbus/hal
