@@ -26,24 +26,24 @@ while getopts 'hs:n:m:MSDd' param ; do
 			export POLYP_SERVER
 			;;
 		n)
-			PA_CLIENT_NAME="$OPTARG"
-			export PA_CLIENT_NAME
+			PADSP_CLIENT_NAME="$OPTARG"
+			export PADSP_CLIENT_NAME
 			;;
 		m)
-			PA_STREAM_NAME="$OPTARG"
-			export PA_STREAM_NAME
+			PADSP_STREAM_NAME="$OPTARG"
+			export PADSP_STREAM_NAME
 			;;
 		M)
-			PA_NO_MIXER=1
-			export PA_NO_MIXER
+			PADSP_NO_MIXER=1
+			export PADSP_NO_MIXER
 			;;
 		S)
-			PA_NO_SNDSTAT=1
-			export PA_NO_SNDSTAT
+			PADSP_NO_SNDSTAT=1
+			export PADSP_NO_SNDSTAT
 			;;
 		D)
-			PA_NO_DSP=1
-			export PA_NO_DSP
+			PADSP_NO_DSP=1
+			export PADSP_NO_DSP
 			;;
 		d)
 			PADSP_DEBUG=1
