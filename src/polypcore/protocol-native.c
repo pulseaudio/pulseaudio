@@ -755,6 +755,16 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     assert(s->sink_input);
     pa_tagstruct_putu32(reply, s->sink_input->index);
     pa_tagstruct_putu32(reply, s->requested_bytes = pa_memblockq_missing(s->memblockq));
+
+    if (c->version >= 9) {
+        /* Since 0.9 we support sending the buffer metrics back to the client */
+
+        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_maxlength(s->memblockq));
+        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_tlength(s->memblockq));
+        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_prebuf(s->memblockq));
+        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_minreq(s->memblockq));
+    }
+    
     pa_pstream_send_tagstruct(c->pstream, reply);
     request_bytes(s);
 }
@@ -852,6 +862,14 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_tagstruct_putu32(reply, s->index);
     assert(s->source_output);
     pa_tagstruct_putu32(reply, s->source_output->index);
+
+    if (c->version >= 9) {
+        /* Since 0.9 we support sending the buffer metrics back to the client */
+
+        pa_tagstruct_putu32(reply, (uint32_t) pa_memblockq_get_maxlength(s->memblockq));
+        pa_tagstruct_putu32(reply, (uint32_t) s->fragment_size);
+    }
+    
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -2215,7 +2233,8 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
         c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
     } else
         c->auth_timeout_event = NULL;
-    
+
+    c->version = 8;
     c->protocol = p;
     assert(p->core);
     c->client = pa_client_new(p->core, __FILE__, "Client");

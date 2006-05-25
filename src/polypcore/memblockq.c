@@ -622,3 +622,15 @@ void pa_memblockq_prebuf_force(pa_memblockq *bq) {
     if (bq->state == RUNNING && bq->prebuf > 0)
         bq->state = PREBUF;
 }
+
+size_t pa_memblockq_get_maxlength(pa_memblockq *bq) {
+    assert(bq);
+
+    return bq->maxlength;
+}
+
+size_t pa_memblockq_get_prebuf(pa_memblockq *bq) {
+    assert(bq);
+
+    return bq->prebuf;
+}

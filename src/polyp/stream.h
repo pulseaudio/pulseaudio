@@ -439,6 +439,11 @@ const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s);
 /** Return a pointer to the stream's channel map. \since 0.8 */
 const pa_channel_map* pa_stream_get_channel_map(pa_stream *s);
 
+/** Return the buffer metrics of the stream. Only valid after the
+ * stream has been connected successfuly and if the server is at least
+ * Polypaudio 0.9. \since 0.9.0 */
+const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s);
+
 PA_C_DECL_END
 
 #endif

@@ -131,4 +131,10 @@ void pa_memblockq_prebuf_disable(pa_memblockq *bq);
 /* Force prebuf */
 void pa_memblockq_prebuf_force(pa_memblockq *bq);
 
+/* Return the maximum length of the queue in bytes */
+size_t pa_memblockq_get_maxlength(pa_memblockq *bq);
+
+/* Return the prebuffer length in bytes */
+size_t pa_memblockq_get_prebuf(pa_memblockq *bq);
+
 #endif

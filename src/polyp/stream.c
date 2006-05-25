@@ -84,6 +84,7 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     s->requested_bytes = 0;
     s->state = PA_STREAM_UNCONNECTED;
     memset(&s->buffer_attr, 0, sizeof(s->buffer_attr));
+    s->buffer_attr_from_server = 0;
 
     s->peek_memchunk.index = 0;
     s->peek_memchunk.length = 0;
@@ -401,10 +402,41 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
 
     if (pa_tagstruct_getu32(t, &s->channel) < 0 ||
         ((s->direction != PA_STREAM_UPLOAD) && pa_tagstruct_getu32(t, &s->device_index) < 0) ||
-        ((s->direction != PA_STREAM_RECORD) && pa_tagstruct_getu32(t, &s->requested_bytes) < 0) ||
-        !pa_tagstruct_eof(t)) {
+        ((s->direction != PA_STREAM_RECORD) && pa_tagstruct_getu32(t, &s->requested_bytes) < 0)) {
         pa_context_fail(s->context, PA_ERR_PROTOCOL);
         goto finish;
+    }
+
+    if (!pa_tagstruct_eof(t)) {
+        
+        if (s->direction == PA_STREAM_PLAYBACK) {
+
+            /* This is a server 0.9.0 or later */
+            if (pa_tagstruct_getu32(t, &s->buffer_attr.maxlength) < 0 ||
+                pa_tagstruct_getu32(t, &s->buffer_attr.tlength) < 0 ||
+                pa_tagstruct_getu32(t, &s->buffer_attr.prebuf) < 0 ||
+                pa_tagstruct_getu32(t, &s->buffer_attr.minreq) < 0 ||
+                !pa_tagstruct_eof(t)) {
+                pa_context_fail(s->context, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+
+            s->buffer_attr_from_server = 1;
+        } else if (s->direction == PA_STREAM_RECORD) {
+            
+            /* This is a server 0.9.0 or later */
+            if (pa_tagstruct_getu32(t, &s->buffer_attr.maxlength) < 0 ||
+                pa_tagstruct_getu32(t, &s->buffer_attr.fragsize) < 0 ||
+                !pa_tagstruct_eof(t)) {
+                pa_context_fail(s->context, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+
+            s->buffer_attr_from_server = 1;
+        } else {
+            pa_context_fail(s->context, PA_ERR_PROTOCOL);
+            goto finish;
+        }
     }
 
     if (s->direction == PA_STREAM_RECORD) {
@@ -1335,4 +1367,15 @@ const pa_channel_map* pa_stream_get_channel_map(pa_stream *s) {
     assert(s->ref >= 1);
 
     return &s->channel_map;
+}
+
+const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s) {
+    assert(s);
+    assert(s->ref >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->buffer_attr_from_server, PA_ERR_NODATA);
+
+    return &s->buffer_attr;
 }

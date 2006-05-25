@@ -154,8 +154,26 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
             break;
 
         case PA_STREAM_READY:
-            if (verbose)
+            if (verbose) {
+                pa_buffer_attr *a;
+                
                 fprintf(stderr, "Stream successfully created.\n");
+
+                if (!(a = pa_stream_get_buffer_attr(s)))
+                    fprintf(stderr, "pa_stream_get_buffer_attr() failed: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
+                else {
+
+                    if (mode == PLAYBACK)
+                        fprintf(stderr, "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u\n", a->maxlength, a->tlength, a->prebuf, a->minreq);
+                    else {
+                        assert(mode == RECORD);
+                        fprintf(stderr, "Buffer metrics: maxlength=%u, fragsize=%u\n", a->maxlength, a->fragsize);
+                    }
+                    
+                }
+
+            }
+            
             break;
             
         case PA_STREAM_FAILED:
