@@ -1693,7 +1693,7 @@ FILE* fopen(const char *filename, const char *mode) {
         }
 
         m = O_RDONLY;
-    } else if (strcmp(filename, "/dev/mixer") != 0)
+    } else if (strcmp(filename, "/dev/mixer") == 0)
         m = O_RDWR;
     else {
         LOAD_FOPEN_FUNC();
