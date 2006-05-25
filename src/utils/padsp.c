@@ -191,6 +191,61 @@ static void debug(const char *format, ...) {
     }
 }
 
+static int padsp_disabled(void) {
+    static int *sym;
+    static int sym_resolved = 0;
+
+    /* If the current process has a symbol __padsp_disabled__ we use
+     * it to detect whether we should enable our stuff or not. A
+     * program needs to be compiled with -rdynamic for this to work!
+     * The symbol must be an int containing a three bit bitmask: bit 1
+     * -> disable /dev/dsp emulation, bit 2 -> disable /dev/sndstat
+     * emulation, bit 3 -> disable /dev/mixer emulation. Hence a value
+     * 7 disables padsp entirely. */
+    
+    pthread_mutex_lock(&func_mutex);
+    if (!sym_resolved) {
+        sym = (int*) dlsym_fn(RTLD_DEFAULT, "__padsp_disabled__");
+        sym_resolved = 1;
+
+    }
+    pthread_mutex_unlock(&func_mutex);
+
+    if (!sym)
+        return 0;
+    
+    return *sym;
+}
+
+static int dsp_cloak_enable(void) {
+    if (padsp_disabled() & 1)
+        return 0;
+    
+    if (getenv("PADSP_NO_DSP"))
+        return 0;
+
+    return 1;
+}
+
+static int sndstat_cloak_enable(void) {
+    if (padsp_disabled() & 2)
+        return 0;
+
+    if (getenv("PADSP_NO_SNDSTAT"))
+        return 0;
+
+    return 1;
+}
+
+static int mixer_cloak_enable(void) {
+    if (padsp_disabled() & 4)
+        return 0;
+
+    if (getenv("PADSP_NO_MIXER"))
+        return 0;
+
+    return 1;
+}
 static pthread_key_t recursion_key;
 
 static void recursion_key_alloc(void) {
@@ -1010,11 +1065,11 @@ int open(const char *filename, int flags, ...) {
         return _open(filename, flags, mode);
     }
 
-    if (strcmp(filename, "/dev/dsp") == 0 || strcmp(filename, "/dev/adsp") == 0) {
+    if (dsp_cloak_enable() && (strcmp(filename, "/dev/dsp") == 0 || strcmp(filename, "/dev/adsp") == 0)) {
         r = dsp_open(flags, &_errno);
-    } else if (strcmp(filename, "/dev/mixer") == 0) {
+    } else if (mixer_cloak_enable() && strcmp(filename, "/dev/mixer") == 0) {
         r = mixer_open(flags, &_errno);
-    } else if (strcmp(filename, "/dev/sndstat") == 0) {
+    } else if (sndstat_cloak_enable() && strcmp(filename, "/dev/sndstat") == 0) {
         r = sndstat_open(flags, &_errno);
     } else {
         function_exit();
