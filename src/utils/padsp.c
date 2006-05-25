@@ -1074,8 +1074,8 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
             pa_threaded_mainloop_lock(i->mainloop);
 
             *(int*) argp =
-                ((i->volume.values[0]*100/PA_VOLUME_NORM) << 8) |
-                ((i->volume.values[i->volume.channels > 1 ? 1 : 0]*100/PA_VOLUME_NORM));
+                ((i->volume.values[0]*100/PA_VOLUME_NORM)) |
+                ((i->volume.values[i->volume.channels > 1 ? 1 : 0]*100/PA_VOLUME_NORM)  << 8);
             
             pa_threaded_mainloop_unlock(i->mainloop);
             
@@ -1090,16 +1090,29 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
 
             v = i->volume;
             
-            i->volume.values[0] = ((*(int*) argp >> 8)*PA_VOLUME_NORM)/100;
-            i->volume.values[1] = ((*(int*) argp & 0xFF)*PA_VOLUME_NORM)/100;
+            i->volume.values[0] = ((*(int*) argp & 0xFF)*PA_VOLUME_NORM)/100;
+            i->volume.values[1] = ((*(int*) argp >> 8)*PA_VOLUME_NORM)/100;
 
             if (!pa_cvolume_equal(&i->volume, &v)) {
                 pa_operation *o;
                 
                 if (!(o = pa_context_set_sink_volume_by_index(i->context, i->sink_index, &i->volume, NULL, NULL)))
                     debug(__FILE__":Failed set volume: %s", pa_strerror(pa_context_errno(i->context)));
-                else
+                else {
+
+                    i->operation_success = 0;
+                    while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
+                        CONTEXT_CHECK_DEAD_GOTO(i, exit_loop);
+                        
+                        pa_threaded_mainloop_wait(i->mainloop);
+                    }
+                exit_loop:
+                    
+                    if (!i->operation_success)
+                        debug(__FILE__": Failed to set volume: %s\n", pa_strerror(pa_context_errno(i->context)));
+
                     pa_operation_unref(o);
+                }
                 
                 /* We don't wait for completion here */
                 i->volume_modify_count++;
