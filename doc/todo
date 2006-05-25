@@ -30,6 +30,8 @@ Post 0.8:
   and we tend to pass it to functions that require UTF-8.
 - fix clock of the NULL sink
 - gettextify polypaudio
+- add API to query the bufferattrs after stream creation
+- move libpadsp.so to /usr/lib/polypaudio/ or something, and move the modules to /usr/lib/polypaudio/modules/0.9.0/
 
 Long term:
 - pass meta info for hearing impaired
