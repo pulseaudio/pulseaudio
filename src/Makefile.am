@@ -1188,5 +1188,7 @@ install-exec-hook:
 	chmod u+s $(DESTDIR)$(bindir)/polypaudio
 	ln -sf pacat $(DESTDIR)$(bindir)/parec
 	rm -f $(DESTDIR)$(modlibexecdir)/*.a
+	rm -f $(DESTDIR)$(libdir)/libpolypdsp.a
+	rm -f $(DESTDIR)$(libdir)/libpolypdsp.la
 
 .PHONY: utils/padsp
