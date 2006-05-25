@@ -205,7 +205,7 @@ static int padsp_disabled(void) {
     
     pthread_mutex_lock(&func_mutex);
     if (!sym_resolved) {
-        sym = (int*) dlsym_fn(RTLD_DEFAULT, "__padsp_disabled__");
+        sym = (int*) dlsym(RTLD_DEFAULT, "__padsp_disabled__");
         sym_resolved = 1;
 
     }
