@@ -155,7 +155,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
         case PA_STREAM_READY:
             if (verbose) {
-                pa_buffer_attr *a;
+                const pa_buffer_attr *a;
                 
                 fprintf(stderr, "Stream successfully created.\n");
 
