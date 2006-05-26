@@ -357,7 +357,7 @@ static void reset_params(fd_info *i) {
     i->sample_spec.format = PA_SAMPLE_ULAW;
     i->sample_spec.channels = 1;
     i->sample_spec.rate = 8000;
-    i->fragment_size = 1024;
+    i->fragment_size = 0;
     i->n_fragments = 0;
 }
 
@@ -627,13 +627,23 @@ static void fix_metrics(fd_info *i) {
 
     fs = pa_frame_size(&i->sample_spec);
     i->fragment_size = (i->fragment_size/fs)*fs;
-    
-    if (i->n_fragments < 2)
-        i->n_fragments = 12;
 
-    if (i->fragment_size <= 0)
-        if ((i->fragment_size = pa_bytes_per_second(&i->sample_spec) / 2 / i->n_fragments) <= 0)
+    /* Number of fragments set? */
+    if (i->n_fragments < 2) {
+        if (i->fragment_size > 0) {
+            i->n_fragments = pa_bytes_per_second(&i->sample_spec) / 2 / i->fragment_size;
+            if (i->n_fragments < 2)
+                i->n_fragments = 2;
+        } else
+            i->n_fragments = 12;
+    }
+
+    /* Fragment size set? */
+    if (i->fragment_size <= 0) {
+        i->fragment_size = pa_bytes_per_second(&i->sample_spec) / 2 / i->n_fragments;
+        if (i->fragment_size < 1024)
             i->fragment_size = 1024;
+    }
 
     debug(__FILE__": sample spec: %s\n", pa_sample_spec_snprint(t, sizeof(t), &i->sample_spec));
     debug(__FILE__": fixated metrics to %i fragments, %li bytes each.\n", i->n_fragments, (long)i->fragment_size);
