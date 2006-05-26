@@ -79,6 +79,13 @@ int allow_severity = LOG_INFO;
 int deny_severity = LOG_WARNING;
 #endif
 
+#ifdef HAVE_OSS
+/* padsp looks for this symbol in the running process and disables
+ * itself if it finds it and it is set to 7 (which is actually a bit
+ * mask). For details see padsp. */
+int __padsp_disabled__ = 7;
+#endif
+
 #ifdef OS_IS_WIN32
 
 static void message_cb(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
