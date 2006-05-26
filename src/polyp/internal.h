@@ -100,7 +100,6 @@ struct pa_stream {
 
     char *name;
     pa_buffer_attr buffer_attr;
-    int buffer_attr_from_server;
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     pa_stream_flags_t flags;
