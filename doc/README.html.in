@@ -43,14 +43,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
 
-<div class="news-date">Fri Apr 28 2006: </div> <p class="news-text"><a
+<div class="news-date">Fri May 26 2006: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.9.0.tar.gz">Version 0.9.0</a>
 released; changes include: new module <tt>module-volume-restore</tt>;
-require valid UTF8 strings everywhere; properly support ALSA channel
-maps for surround sound; increase maximum number of channels per
-stream to 32; add new threaded main loop API for synchronous programs;
-introduce real shared object versioning; a few API additions; many,
-many bugfixes</p>
+new OSS API emulation tool <tt>padsp</tt>; require valid UTF8 strings
+everywhere; properly support ALSA channel maps for surround sound;
+increase maximum number of channels per stream to 32; add new threaded
+main loop API for synchronous programs; introduce real shared object
+versioning; a few API additions; many, many bugfixes</p>
 
 <div class="news-date">Fri Apr 28 2006: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.8.1.tar.gz">Version 0.8.1</a>
