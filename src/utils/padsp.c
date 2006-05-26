@@ -1129,8 +1129,8 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
             *(int*) argp = 0;
             break;
             
-        case SOUND_MIXER_CAPS:
-            debug(__FILE__": SOUND_MIXER_CAPS\n");
+        case SOUND_MIXER_READ_CAPS:
+            debug(__FILE__": SOUND_MIXER_READ_CAPS\n");
 
             *(int*) argp = 0;
             break;
@@ -1204,7 +1204,7 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
         }
             
         default:
-            debug(__FILE__": unknwon ioctl 0x%08lx\n", request);
+            debug(__FILE__": unknown ioctl 0x%08lx\n", request);
 
             *_errno = EINVAL;
             goto fail;
