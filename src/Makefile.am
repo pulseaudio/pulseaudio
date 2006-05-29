@@ -1089,12 +1089,12 @@ module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
 libhowl_wrap_la_SOURCES = modules/howl-wrap.c modules/howl-wrap.h
 libhowl_wrap_la_LDFLAGS = -avoid-version
-libhowl_wrap_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS)
+libhowl_wrap_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS) libpolypcore.la
 libhowl_wrap_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
 
 module_zeroconf_publish_la_SOURCES = modules/module-zeroconf-publish.c
 module_zeroconf_publish_la_LDFLAGS = -module -avoid-version
-module_zeroconf_publish_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS) libhowl-wrap.la
+module_zeroconf_publish_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS) libhowl-wrap.la libpolypcore.la
 module_zeroconf_publish_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
 
 # LIRC
