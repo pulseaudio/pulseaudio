@@ -77,7 +77,7 @@ EXTRA_DIST = \
 		daemon/daemon.conf.in \
 		daemon/default.pa.in \
 		depmod.py \
-		daemon/esdcompat.sh.in \
+		daemon/esdcompat.in \
 		utils/padsp \
 		modules/module-defs.h.m4
 
@@ -142,7 +142,7 @@ if HAVE_HOWL
 bin_PROGRAMS += pabrowse
 endif
 
-bin_SCRIPTS = esdcompat.sh
+bin_SCRIPTS = esdcompat
 
 pacat_SOURCES = utils/pacat.c
 pacat_LDADD = $(AM_LDADD) libpolyp.la 
@@ -1161,9 +1161,9 @@ suid: polypaudio
 	chown root $<
 	chmod u+s $<
 
-CLEANFILES = esdcompat.sh client.conf default.pa daemon.conf
+CLEANFILES = esdcompat client.conf default.pa daemon.conf
 
-esdcompat.sh: daemon/esdcompat.sh.in Makefile
+esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
 		-e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
