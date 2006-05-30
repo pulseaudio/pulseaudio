@@ -359,7 +359,7 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
     }
 
     if (elem)
-        pa_log_warn(__FILE__": Using mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
+        pa_log_info(__FILE__": Using mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
 
     return elem;
 }
