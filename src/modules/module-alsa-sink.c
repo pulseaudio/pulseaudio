@@ -363,6 +363,10 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
+    if (ss.channels != map.channels)
+        /* Seems ALSA didn't like the channel number, so let's fix the channel map */
+        pa_channel_map_init_auto(&map, ss.channels, PA_CHANNEL_MAP_ALSA);
+    
     if ((err = snd_mixer_open(&u->mixer_handle, 0)) < 0) {
         pa_log(__FILE__": Error opening mixer: %s", snd_strerror(err));
         goto fail;
@@ -374,8 +378,10 @@ int pa__init(pa_core *c, pa_module*m) {
         u->mixer_handle = NULL;
     }
 
-    u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map);
-    assert(u->sink);
+    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
+        pa_log(__FILE__": Failed to create sink object");
+        goto fail;
+    }
 
     u->sink->get_latency = sink_get_latency_cb;
     if (u->mixer_handle) {
@@ -420,7 +426,8 @@ int pa__init(pa_core *c, pa_module*m) {
         }
         snd_mixer_elem_set_callback(u->mixer_elem, mixer_callback);
         snd_mixer_elem_set_callback_private(u->mixer_elem, u);
-    }
+    } else
+        u->mixer_fdl = NULL;
     
     u->frame_size = frame_size;
     u->fragment_size = period_size * frame_size;
