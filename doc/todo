@@ -27,6 +27,7 @@ Post 0.9.0:
 - Document utf8.h, timeval.h and util.h
 - fix clock of the NULL sink
 - gettextify polypaudio
+- use send() with MSG_NOSIGNAL instead of write() wherever possible, and than drop that SIGPIPE warning
 
 Long term:
 - pass meta info for hearing impaired
