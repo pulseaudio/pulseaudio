@@ -337,18 +337,29 @@ int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
     return 0;
 }
 
-snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name) {
+snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback) {
     snd_mixer_elem_t *elem;
-    snd_mixer_selem_id_t *sid;
+    snd_mixer_selem_id_t *sid = NULL;
     snd_mixer_selem_id_alloca(&sid);
 
-    assert(mixer && name);
+    assert(mixer);
+    assert(name);
 
     snd_mixer_selem_id_set_name(sid, name);
 
-    elem = snd_mixer_find_selem(mixer, sid);
-    if (!elem)
-        pa_log_warn(__FILE__": Cannot find mixer control %s", snd_mixer_selem_id_get_name(sid));
+    if (!(elem = snd_mixer_find_selem(mixer, sid))) {
+        pa_log_warn(__FILE__": Cannot find mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
+
+        if (fallback) {
+            snd_mixer_selem_id_set_name(sid, fallback);
+            
+            if (!(elem = snd_mixer_find_selem(mixer, sid)))
+                pa_log_warn(__FILE__": Cannot find fallback mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
+        }
+    }
+
+    if (elem)
+        pa_log_warn(__FILE__": Using mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
 
     return elem;
 }
