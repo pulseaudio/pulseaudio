@@ -92,7 +92,7 @@ static int detect_alsa(pa_core *c, int just_one) {
         if (subdevice != 0)
             continue;
 
-        snprintf(args, sizeof(args), "device=hw:%u,0", device);
+        snprintf(args, sizeof(args), "device=hw:%u", device);
         if (!pa_module_load(c, is_sink ? "module-alsa-sink" : "module-alsa-source", args))
             continue;
 
