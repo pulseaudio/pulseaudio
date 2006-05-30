@@ -696,8 +696,7 @@ static pa_tagstruct *reply_new(uint32_t tag) {
 static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     struct playback_stream *s;
-    size_t maxlength, tlength, prebuf, minreq;
-    uint32_t sink_index, syncid;
+    uint32_t maxlength, tlength, prebuf, minreq, sink_index, syncid;
     const char *name, *sink_name;
     pa_sample_spec ss;
     pa_channel_map map;
@@ -736,7 +735,7 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     CHECK_VALIDITY(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_cvolume_valid(&volume), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, maxlength > 0 && maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
 
     if (sink_index != PA_INVALID_INDEX)
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
