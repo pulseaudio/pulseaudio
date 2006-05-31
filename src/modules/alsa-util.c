@@ -284,7 +284,7 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         pa_log_info(__FILE__": device doesn't support %u Hz, changed to %u Hz.", ss->rate, r);
 
         /* If the sample rate deviates too much, we need to resample */
-        if (r < ss->rate*.9 || r > ss->rate*1.1)
+        if (r < ss->rate*.95 || r > ss->rate*1.05)
             ss->rate = r;
     }
 
