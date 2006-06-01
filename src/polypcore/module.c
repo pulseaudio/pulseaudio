@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include <polyp/timeval.h>
 #include <polyp/xmalloc.h>
@@ -63,6 +64,39 @@ static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED 
     m->time_restart(e, &ntv);
 }
 
+static inline fnptr load_sym(lt_dlhandle handle, const char *module, const char *symbol) {
+    char *buffer, *ch;
+    size_t buflen;
+    fnptr res;
+
+    res = lt_dlsym_fn(handle, symbol);
+    if (res)
+        return res;
+
+    /* As the .la files might have been cleansed from the system, we should
+     * try with the ltdl prefix as well. */
+
+    buflen = strlen(symbol) + strlen(module) + strlen("_LTX_") + 1;
+    buffer = pa_xmalloc(buflen);
+    assert(buffer);
+
+    strcpy(buffer, module);
+
+    for (ch = buffer;*ch != '\0';ch++) {
+        if (!isalnum(*ch))
+            *ch = '_';
+    }
+
+    strcat(buffer, "_LTX_");
+    strcat(buffer, symbol);
+
+    res = lt_dlsym_fn(handle, buffer);
+
+    pa_xfree(buffer);
+
+    return res;
+}
+
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
     int r;
@@ -82,12 +116,12 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
         goto fail;
     }
 
-    if (!(m->init = (int (*)(pa_core *_c, pa_module*_m)) lt_dlsym_fn(m->dl, PA_SYMBOL_INIT))) {
+    if (!(m->init = (int (*)(pa_core *_c, pa_module*_m)) load_sym(m->dl, name, PA_SYMBOL_INIT))) {
         pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_INIT"\" not found.", name);
         goto fail;
     }
 
-    if (!(m->done = (void (*)(pa_core *_c, pa_module*_m)) lt_dlsym_fn(m->dl, PA_SYMBOL_DONE))) {
+    if (!(m->done = (void (*)(pa_core *_c, pa_module*_m)) load_sym(m->dl, name, PA_SYMBOL_DONE))) {
         pa_log(__FILE__": Failed to load module \"%s\": symbol \""PA_SYMBOL_DONE"\" not found.", name);
         goto fail;
     }
