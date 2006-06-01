@@ -12,6 +12,8 @@ Post 0.9.0:
 - rtp module ported to Win32 (sendmsg/recvmsg emulation)
 - CODECs to reduce bandwidth usage (plug-in based)
 - Remove symdef files and use macros (like most other projects)
+- Use own name mangling scheme instead of ltdl's, which will eliminate the
+  need for .la files or extra trickery.
 - use software volume when hardware doesn't support all channels (alsa done)
 - paplay needs to set a channel map. our default is only correct for AIFF.
   (we need help from libsndfile for this)
