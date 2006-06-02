@@ -26,6 +26,7 @@
 #include <polyp/error.h>
 
 #include <polypcore/core-util.h>
+#include <polypcore/core-error.h>
 #include <polypcore/log.h>
 
 #include "cpulimit.h"
@@ -62,8 +63,8 @@
 /* Check every 10s */
 #define CPUTIME_INTERVAL_SOFT (10)
 
-/* Recheck after 2s */
-#define CPUTIME_INTERVAL_HARD (2)
+/* Recheck after 5s */
+#define CPUTIME_INTERVAL_HARD (5)
 
 /* Time of the last CPU load check */
 static time_t last_time = 0;
@@ -155,7 +156,7 @@ static void signal_handler(int sig) {
 }
 
 /* Callback for IO events on the FIFO */
-static void callback(pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags f, void *userdata) {
+static void callback(pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags_t f, void *userdata) {
     char c;
     assert(m && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == the_pipe[0]);
     read(the_pipe[0], &c, sizeof(c));
