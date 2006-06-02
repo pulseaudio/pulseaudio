@@ -376,16 +376,18 @@ static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED 
     
     asyncns_freeaddrinfo(res);
 
-    goto finish;
-
-fail:
-    errno = EHOSTUNREACH;
-    do_call(c);
-    
-finish:
-    
     m->io_free(c->asyncns_io_event);
     c->asyncns_io_event = NULL;
+    return;
+    
+fail:
+    m->io_free(c->asyncns_io_event);
+    c->asyncns_io_event = NULL;
+    
+    errno = EHOSTUNREACH;
+    do_call(c);
+    return;
+    
 }
 
 #endif
