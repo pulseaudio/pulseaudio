@@ -43,6 +43,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
 
+<div class="news-date">Fri Jun 2 2006: </div> <p class="news-text"><a
+href="@PACKAGE_URL@polypaudio-0.9.1.tar.gz">Version 0.9.1</a>
+released; changes include: load modules even when libtool <tt>.la</tt>
+files are missing; generate better ALSA device names from
+<tt>module-detect</tt>; if an ALSA device doesn't support the
+requested number of channels or the frequency, accept what ALSA
+suggests instead; amd64 portability; drop <tt>.sh</tt> suffix of
+<tt>esdcompat.sh</tt>; build system fixes; No API or ABI changes were made</p>
+
 <div class="news-date">Fri May 26 2006: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.9.0.tar.gz">Version 0.9.0</a>
 released; changes include: new module <tt>module-volume-restore</tt>;
@@ -330,7 +339,7 @@ compilation and <tt>make install</tt> (as root) for installation of
 <p><b>Please report bugs to <a href="http://0pointer.de/trac/polypaudio/newticket">our Trac ticket system</a>.</b></p>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, May 2006</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, June 2006</address>
 <div class="grey"><i>$Id$</i></div>
 
 </body>
