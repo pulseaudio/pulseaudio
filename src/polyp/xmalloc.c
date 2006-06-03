@@ -106,19 +106,18 @@ char *pa_xstrdup(const char *s) {
 }
 
 char *pa_xstrndup(const char *s, size_t l) {
+    char *e, *r;
+    
     if (!s)
         return NULL;
-    else {
-        char *r;
-        size_t t = strlen(s);
 
-        if (t > l)
-            t = l;
-        
-        r = pa_xmemdup(s, t+1);
-        r[t] = 0;
-        return r;
-    }
+    if ((e = memchr(s, 0, l)))
+        return pa_xmemdup(s, e-s+1);
+
+    r = pa_xmalloc(l+1);
+    memcpy(r, s, l);
+    r[l] = 0;
+    return r;
 }
 
 void pa_xfree(void *p) {
