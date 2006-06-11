@@ -108,6 +108,8 @@ polypaudio_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 polypaudio_CPPFLAGS = $(AM_CPPFLAGS) 
 polypaudio_LDADD = $(AM_LDADD) libpolypcore.la $(LIBLTDL) \
 		$(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS) $(LIBOIL_LIBS)
+# This is needed because automake doesn't properly expand the foreach below
+polypaudio_DEPENDENCIES = libpolypcore.la $(PREOPEN_LIBS)
 
 if PREOPEN_MODS
 PREOPEN_LIBS = $(PREOPEN_MODS)
