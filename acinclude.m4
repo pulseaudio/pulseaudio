@@ -199,8 +199,8 @@ AC_LANG_RESTORE
 ])dnl ACX_PTHREAD
 
 AC_DEFUN([AC_CHECK_DEFINE],[
-AS_VAR_PUSHDEF([ac_var],[ac_cv_defined_$1])dnl
-AC_CACHE_CHECK([for $1 defined], ac_var,
+AS_VAR_PUSHDEF([ac_var],[ac_cv_defined_$1_$2])dnl
+AC_CACHE_CHECK([for $1 in $2], ac_var,
 AC_TRY_COMPILE([#include <$2>],[
   #ifdef $1
   int ok;
