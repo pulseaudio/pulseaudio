@@ -212,7 +212,8 @@ AM_CONDITIONAL(HAVE_SIGXCPU, test "x$HAVE_SIGXCPU" = "x1")
 
 # Solaris lacks this
 AC_CHECK_DEFINE([INADDR_NONE], [netinet/in.h], [],
-    [AC_DEFINE([INADDR_NONE],  [0xffffffff], [Define INADDR_NONE if not found in <netinet/in.h>])])
+    [AC_CHECK_DEFINE([INADDR_NONE], [winsock2.h], [],
+        [AC_DEFINE([INADDR_NONE],  [0xffffffff], [Define INADDR_NONE if not found in <netinet/in.h>])])])
 
 #### Check for libs ####
 
