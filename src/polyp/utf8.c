@@ -34,7 +34,7 @@
 #include <inttypes.h>
 #include <string.h>
 
-#ifdef HAVE_ICONV_H
+#ifdef HAVE_ICONV
 #include <iconv.h>
 #endif
 
@@ -168,14 +168,15 @@ char* pa_utf8_filter (const char *str) {
     return utf8_validate(str, new_str);
 }
 
-#ifdef HAVE_ICONV_H
+#ifdef HAVE_ICONV
 
 static char* iconv_simple(const char *str, const char *to, const char *from) {
     char *new_str;
     size_t len, inlen;
 
     iconv_t cd;
-    char *inbuf, *outbuf;
+    ICONV_CONST char *inbuf;
+    char *outbuf;
     size_t res, inbytes, outbytes;
 
     cd = iconv_open(to, from);
@@ -187,7 +188,7 @@ static char* iconv_simple(const char *str, const char *to, const char *from) {
     assert(new_str);
 
     while (1) {
-        inbuf = (char*)str; /* Brain dead prototype for iconv() */
+        inbuf = (ICONV_CONST char*)str; /* Brain dead prototype for iconv() */
         inbytes = inlen;
         outbuf = new_str;
         outbytes = len;

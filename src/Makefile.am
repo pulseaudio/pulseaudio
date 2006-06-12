@@ -420,7 +420,7 @@ endif
 
 libpolyp_la_CFLAGS = $(AM_CFLAGS)
 libpolyp_la_LDFLAGS = -version-info $(LIBPOLYP_VERSION_INFO)
-libpolyp_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS)
+libpolyp_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LIBICONV)
 
 if HAVE_X11
 libpolyp_la_CFLAGS += $(X_CFLAGS)
@@ -587,7 +587,7 @@ endif
 
 libpolypcore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
 libpolypcore_la_LDFLAGS = -version-info $(LIBPOLYPCORE_VERSION_INFO)
-libpolypcore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS)
+libpolypcore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LIBICONV)
 
 ###################################
 #   Plug-in support libraries     #
