@@ -336,13 +336,31 @@ AC_SUBST(LIBSNDFILE_LIBS)
 
 AC_ARG_ENABLE([oss], 
     AC_HELP_STRING([--disable-oss], [Disable optional OSS support]), 
-    [case "${enableval}" in yes) oss=yes ;; no) oss=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-oss) ;; esac],[oss=auto])
+        [
+            case "${enableval}" in
+                yes) oss=yes ;;
+                no) oss=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-oss) ;;
+            esac
+        ],
+        [oss=auto])
+
 if test "x${oss}" != xno ; then
-    AC_CHECK_HEADERS([sys/soundcard.h], [
-    HAVE_OSS=1
-    AC_DEFINE([HAVE_OSS], 1, [Have OSS?])
-    ], [HAVE_OSS=0 ; if test "x$oss" = xyes ; then AC_MSG_ERROR([*** OSS support not found]) ; fi])
-else HAVE_OSS=0; fi
+    AC_CHECK_HEADERS([sys/soundcard.h],
+        [
+            HAVE_OSS=1
+            AC_DEFINE([HAVE_OSS], 1, [Have OSS?])
+        ],
+        [
+            HAVE_OSS=0
+            if test "x$oss" = xyes ; then
+                AC_MSG_ERROR([*** OSS support not found])
+            fi
+        ])
+else
+    HAVE_OSS=0
+fi
+
 AC_SUBST(HAVE_OSS)
 AM_CONDITIONAL([HAVE_OSS], [test "x$HAVE_OSS" = x1])
 
@@ -351,13 +369,31 @@ AM_CONDITIONAL([HAVE_OSS], [test "x$HAVE_OSS" = x1])
 
 AC_ARG_ENABLE([alsa], 
     AC_HELP_STRING([--disable-alsa], [Disable optional ALSA support]), 
-    [case "${enableval}" in yes) alsa=yes ;; no) alsa=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-alsa) ;; esac],[alsa=auto])
+        [
+            case "${enableval}" in
+                yes) alsa=yes ;;
+                no) alsa=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-alsa) ;;
+            esac
+        ],
+        [alsa=auto])
+
 if test "x${alsa}" != xno ; then
-    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.0 ], [
-    HAVE_ALSA=1
-    AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?])
-    ], [HAVE_ALSA=0 ; if test "x$alsa" = xyes ; then AC_MSG_ERROR([*** ALSA support not found]) ; fi])
-else HAVE_ALSA=0 ; fi
+    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.0 ],
+        [
+            HAVE_ALSA=1
+            AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?])
+        ],
+        [
+            HAVE_ALSA=0
+            if test "x$alsa" = xyes ; then
+                AC_MSG_ERROR([*** ALSA support not found])
+            fi
+        ])
+else
+    HAVE_ALSA=0
+fi
+
 AC_SUBST(ASOUNDLIB_CFLAGS)
 AC_SUBST(ASOUNDLIB_LIBS) 
 AC_SUBST(HAVE_ALSA)
@@ -367,13 +403,31 @@ AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 
 AC_ARG_ENABLE([solaris], 
     AC_HELP_STRING([--disable-solaris], [Disable optional Solaris audio support]), 
-    [case "${enableval}" in yes) solaris=yes ;; no) solaris=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-solaris) ;; esac],[solaris=auto])
+        [
+            case "${enableval}" in
+                yes) solaris=yes ;;
+                no) solaris=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-solaris) ;;
+            esac
+        ],
+        [solaris=auto])
+
 if test "x${solaris}" != xno ; then
-    AC_CHECK_HEADERS([sys/audio.h], [
-    HAVE_SOLARIS=1
-    AC_DEFINE([HAVE_SOLARIS], 1, [Have Solaris audio?])
-    ], [HAVE_SOLARIS=0 ; if test "x$solaris" = xyes ; then AC_MSG_ERROR([*** Solaris audio support not found]) ; fi])
-else HAVE_SOLARIS=0 ; fi
+    AC_CHECK_HEADERS([sys/audio.h],
+        [
+            HAVE_SOLARIS=1
+            AC_DEFINE([HAVE_SOLARIS], 1, [Have Solaris audio?])
+        ],
+        [
+            HAVE_SOLARIS=0
+            if test "x$solaris" = xyes ; then
+                AC_MSG_ERROR([*** Solaris audio support not found])
+            fi
+        ])
+else
+    HAVE_SOLARIS=0
+fi
+
 AC_SUBST(HAVE_SOLARIS)
 AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
 
@@ -381,10 +435,28 @@ AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
 
 AC_ARG_ENABLE([glib2], 
     AC_HELP_STRING([--disable-glib2], [Disable optional GLib 2 support]), 
-    [case "${enableval}" in yes) glib2=yes ;; no) glib2=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-glib2) ;; esac],[glib2=auto])
+        [
+            case "${enableval}" in
+                yes) glib2=yes ;;
+                no) glib2=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-glib2) ;;
+            esac
+        ],
+        [glib2=auto])
+
 if test "x${glib2}" != xno ; then
-    PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.4.0 ], HAVE_GLIB20=1, [HAVE_GLIB20=0 ; if test "x$glib2" = xyes ; then AC_MSG_ERROR([*** GLib 2 support not found]) ; fi])
-else HAVE_GLIB20=0 ; fi
+    PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.4.0 ],
+        HAVE_GLIB20=1,
+        [
+            HAVE_GLIB20=0
+            if test "x$glib2" = xyes ; then
+                AC_MSG_ERROR([*** GLib 2 support not found])
+            fi
+        ])
+else
+    HAVE_GLIB20=0
+fi
+
 AC_SUBST(GLIB20_CFLAGS)
 AC_SUBST(GLIB20_LIBS)
 AC_SUBST(HAVE_GLIB20)
@@ -394,10 +466,28 @@ AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 
 AC_ARG_ENABLE([glib1], 
     AC_HELP_STRING([--disable-glib1], [Disable optional GLib 1 support]), 
-    [case "${enableval}" in yes) glib1=yes ;; no) glib1=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-glib1) ;; esac],[glib1=auto])
+        [
+            case "${enableval}" in
+                yes) glib1=yes ;;
+                no) glib1=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-glib1) ;;
+            esac
+        ],
+        [glib1=auto])
+
 if test "x${glib1}" != xno ; then
-    PKG_CHECK_MODULES(GLIB12, [ glib >= 1.2.0 ], HAVE_GLIB12=1, [HAVE_GLIB12=0 ; if test "x$glib1" = xyes ; then AC_MSG_ERROR([*** GLib 1 support not found]) ; fi])
-else HAVE_GLIB12=0 ; fi
+    PKG_CHECK_MODULES(GLIB12, [ glib >= 1.2.0 ],
+        HAVE_GLIB12=1,
+        [
+            HAVE_GLIB12=0
+            if test "x$glib1" = xyes ; then
+                AC_MSG_ERROR([*** GLib 1 support not found])
+            fi
+        ])
+else
+    HAVE_GLIB12=0
+fi
+
 AC_SUBST(GLIB12_CFLAGS)
 AC_SUBST(GLIB12_LIBS)
 AC_SUBST(HAVE_GLIB12)
@@ -407,10 +497,32 @@ AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
 
 AC_ARG_ENABLE([howl], 
     AC_HELP_STRING([--disable-howl], [Disable optional Howl support]), 
-    [case "${enableval}" in yes) howl=yes ;; no) howl=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-howl) ;; esac],[howl=auto])
+        [
+            case "${enableval}" in
+                yes) howl=yes ;;
+                no) howl=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-howl) ;;
+            esac
+        ],
+        [howl=auto])
+
 if test "x${howl}" != xno ; then
-    PKG_CHECK_MODULES(HOWL, [ howl >= 0.9.8 ], HAVE_HOWL=1, PKG_CHECK_MODULES(HOWL, [ avahi-compat-howl >= 0.9.8 ], HAVE_HOWL=1, [HAVE_HOWL=0 ; if test "x$howl" = xyes ; then AC_MSG_ERROR([*** Howl support not found]) ; fi]))
-else HAVE_HOWL=0 ; fi
+    PKG_CHECK_MODULES(HOWL, [ howl >= 0.9.8 ],
+        HAVE_HOWL=1,
+        [
+            PKG_CHECK_MODULES(HOWL, [ avahi-compat-howl >= 0.9.8 ],
+                HAVE_HOWL=1,
+                [
+                    HAVE_HOWL=0
+                    if test "x$howl" = xyes ; then
+                        AC_MSG_ERROR([*** Howl support not found])
+                    fi
+                ])
+        ])
+else
+    HAVE_HOWL=0
+fi
+
 AC_SUBST(HOWL_CFLAGS)
 AC_SUBST(HOWL_LIBS)
 AC_SUBST(HAVE_HOWL)
@@ -426,10 +538,28 @@ AC_SUBST(LIBOIL_LIBS)
 
 AC_ARG_ENABLE([jack], 
     AC_HELP_STRING([--disable-jack], [Disable optional JACK support]), 
-    [case "${enableval}" in yes) jack=yes ;; no) jack=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-jack) ;; esac],[jack=auto])
+        [
+            case "${enableval}" in
+                yes) jack=yes ;;
+                no) jack=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-jack) ;;
+            esac
+        ],
+        [jack=auto])
+
 if test "x${jack}" != xno ; then
-    PKG_CHECK_MODULES(JACK, [ jack >= 0.100 ], HAVE_JACK=1, [HAVE_JACK=0 ; if test "x$jack" = xyes ; then AC_MSG_ERROR([*** JACK support not found]) ; fi])
-else HAVE_JACK=0 ; fi
+    PKG_CHECK_MODULES(JACK, [ jack >= 0.100 ],
+        HAVE_JACK=1,
+        [
+            HAVE_JACK=0
+            if test "x$jack" = xyes ; then
+                AC_MSG_ERROR([*** JACK support not found])
+            fi
+        ])
+else
+    HAVE_JACK=0
+fi
+
 AC_SUBST(JACK_CFLAGS)
 AC_SUBST(JACK_LIBS)
 AC_SUBST(HAVE_JACK)
@@ -439,10 +569,28 @@ AM_CONDITIONAL([HAVE_JACK], [test "x$HAVE_JACK" = x1])
 
 AC_ARG_ENABLE([asyncns], 
     AC_HELP_STRING([--disable-asyncns], [Disable optional Async DNS support]), 
-    [case "${enableval}" in yes) asyncns=yes ;; no) asyncns=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-asyncns) ;; esac],[asyncns=auto])
+        [
+            case "${enableval}" in
+                yes) asyncns=yes ;;
+                no) asyncns=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-asyncns) ;;
+            esac
+        ],
+        [asyncns=auto])
+
 if test "x${asyncns}" != xno ; then
-    PKG_CHECK_MODULES(LIBASYNCNS, [ libasyncns >= 0.1 ], HAVE_LIBASYNCNS=1, [HAVE_LIBASYNCNS=0 ; if test "x$asyncns" = xyes ; then AC_MSG_ERROR([*** Async DNS support not found]) ; fi])
-else HAVE_LIBASYNCNS=0 ; fi
+    PKG_CHECK_MODULES(LIBASYNCNS, [ libasyncns >= 0.1 ],
+        HAVE_LIBASYNCNS=1,
+        [
+            HAVE_LIBASYNCNS=0
+            if test "x$asyncns" = xyes ; then
+                AC_MSG_ERROR([*** Async DNS support not found])
+            fi
+        ])
+else
+    HAVE_LIBASYNCNS=0
+fi
+
 AC_SUBST(LIBASYNCNS_CFLAGS)
 AC_SUBST(LIBASYNCNS_LIBS)
 AC_SUBST(HAVE_LIBASYNCNS)
@@ -456,26 +604,48 @@ fi
 
 AC_ARG_ENABLE([tcpwrap], 
     AC_HELP_STRING([--disable-tcpwrap], [Disable optional TCP wrappers support]), 
-    [case "${enableval}" in yes) tcpwrap=yes ;; no) tcpwrap=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-tcpwrap) ;; esac],[tcpwrap=auto])
+        [
+            case "${enableval}" in
+                yes) tcpwrap=yes ;;
+                no) tcpwrap=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-tcpwrap) ;;
+            esac
+        ],
+        [tcpwrap=auto])
+
 if test "x${tcpwrap}" != xno ; then
     ACX_LIBWRAP
     if test "x${LIBWRAP_LIBS}" = x && test "x$tcpwrap" = xyes ; then
         AC_MSG_ERROR([*** TCP wrappers support not found])
     fi
-else LIBWRAP_LIBS= ; fi
+else
+    LIBWRAP_LIBS=
+fi
+
 AC_SUBST(LIBWRAP_LIBS)
 
 #### LIRC support (optional) ####
 
 AC_ARG_ENABLE([lirc], 
     AC_HELP_STRING([--disable-lirc], [Disable optional LIRC support]), 
-    [case "${enableval}" in yes) lirc=yes ;; no) lirc=no ;; *) AC_MSG_ERROR(bad value ${enableval} for --disable-lirc) ;; esac],[lirc=auto])
+        [
+            case "${enableval}" in
+                yes) lirc=yes ;;
+                no) lirc=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-lirc) ;;
+            esac
+        ],
+        [lirc=auto])
+
 if test "x${lirc}" != xno ; then
     ACX_LIRC
     if test "x${HAVE_LIRC}" = x0 && test "x$lirc" = xyes ; then
         AC_MSG_ERROR([*** LIRC support not found])
     fi
-else HAVE_LIRC=0 ; fi
+else
+    HAVE_LIRC=0
+fi
+
 AC_SUBST(LIRC_CFLAGS)
 AC_SUBST(LIRC_LIBS)
 AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
