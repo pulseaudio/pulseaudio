@@ -101,6 +101,7 @@ static FILE* (*_fopen)(const char *path, const char *mode) = NULL;
 static int (*_open64)(const char *, int, mode_t) = NULL;
 static FILE* (*_fopen64)(const char *path, const char *mode) = NULL;
 static int (*_fclose)(FILE *f) = NULL;
+static int (*_access)(const char *, int) = NULL;
 
 /* dlsym() violates ISO C, so confide the breakage into this function to
  * avoid warnings. */
@@ -138,6 +139,14 @@ do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_close) \
         _close = (int (*)(int)) dlsym_fn(RTLD_NEXT, "close"); \
+    pthread_mutex_unlock(&func_mutex); \
+} while(0)
+
+#define LOAD_ACCESS_FUNC() \
+do { \
+    pthread_mutex_lock(&func_mutex); \
+    if (!_access) \
+        _access = (int (*)(const char*, int)) dlsym_fn(RTLD_NEXT, "access"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
@@ -1721,6 +1730,25 @@ int close(int fd) {
     fd_info_unref(i);
     
     function_exit();
+
+    return 0;
+}
+
+int access(const char *pathname, int mode) {
+    debug(__FILE__": access()\n");
+
+    if (strcmp(pathname, "/dev/dsp") != 0 &&
+        strcmp(pathname, "/dev/adsp") != 0 &&
+        strcmp(pathname, "/dev/sndstat") != 0 &&
+        strcmp(pathname, "/dev/mixer") != 0) {
+        LOAD_ACCESS_FUNC();
+        return _access(pathname, mode);
+    }
+
+    if (mode & (W_OK | X_OK)) {
+        errno = EACCES;
+        return -1;
+    }
 
     return 0;
 }
