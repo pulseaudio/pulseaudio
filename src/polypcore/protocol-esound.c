@@ -1139,7 +1139,7 @@ static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timev
 static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) {
     struct connection *c;
     pa_protocol_esound *p = userdata;
-    char cname[256];
+    char cname[256], pname[128];
     assert(s && io && p);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
@@ -1153,7 +1153,8 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->io = io;
     pa_iochannel_set_callback(c->io, io_callback, c);
 
-    pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
+    pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
+    snprintf(cname, sizeof(cname), "EsounD client (%s)", pname);
     assert(p->core);
     c->client = pa_client_new(p->core, __FILE__, cname);
     assert(c->client);

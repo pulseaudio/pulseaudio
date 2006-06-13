@@ -86,6 +86,9 @@ void pa_client_kill(pa_client *c) {
 
 void pa_client_set_name(pa_client *c, const char *name) {
     assert(c);
+
+    pa_log_info(__FILE__": client %u changed name from \"%s\" to \"%s\"", c->index, c->name, name);
+
     pa_xfree(c->name);
     c->name = pa_xstrdup(name);
 
