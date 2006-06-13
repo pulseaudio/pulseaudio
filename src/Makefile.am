@@ -382,6 +382,7 @@ libpolyp_la_SOURCES += \
 		polypcore/gccmacro.h \
 		polypcore/hashmap.c polypcore/hashmap.h \
 		polypcore/idxset.c polypcore/idxset.h \
+		polypcore/inet_ntop.c polypcore/inet_ntop.h \
 		polypcore/iochannel.c polypcore/iochannel.h \
 		polypcore/llist.h \
 		polypcore/log.c polypcore/log.h \
@@ -741,7 +742,9 @@ libauthkey_prop_la_SOURCES = polypcore/authkey-prop.c polypcore/authkey-prop.h
 libauthkey_prop_la_LDFLAGS = -avoid-version
 libauthkey_prop_la_LIBADD = $(AM_LIBADD) libpolypcore.la
 
-libsocket_util_la_SOURCES = polypcore/socket-util.c polypcore/socket-util.h
+libsocket_util_la_SOURCES = \
+		polypcore/inet_ntop.c polypcor/inet_ntop.h \
+		polypcore/socket-util.c polypcore/socket-util.h
 libsocket_util_la_LDFLAGS = -avoid-version
 libsocket_util_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) libpolypcore.la
 
