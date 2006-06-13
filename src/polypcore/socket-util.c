@@ -56,6 +56,13 @@
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+
+#ifndef HAVE_INET_NTOP
+#include "inet_ntop.h"
+#endif
 
 #include "winsock.h"
 
@@ -85,6 +92,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
         union {
             struct sockaddr sa;
             struct sockaddr_in in;
+            struct sockaddr_in6 in6;
 #ifdef HAVE_SYS_UN_H
             struct sockaddr_un un;
 #endif
@@ -103,6 +111,15 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
                          ip & 0xFF,
                          ntohs(sa.in.sin_port));
                 return;
+            } else if (sa.sa.sa_family == AF_INET6) {
+                char buf[INET6_ADDRSTRLEN];
+                const char *res;
+
+                res = inet_ntop(AF_INET6, &sa.in6.sin6_addr, buf, sizeof(buf));
+                if (res) {
+                    snprintf(c, l, "TCP/IP client from [%s]:%u", buf, ntohs(sa.in6.sin6_port));
+                    return;
+                }
 #ifdef HAVE_SYS_UN_H
             } else if (sa.sa.sa_family == AF_UNIX) {
                 snprintf(c, l, "UNIX socket client");
