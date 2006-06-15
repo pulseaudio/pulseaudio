@@ -46,7 +46,11 @@ while getopts 'hs:n:m:MSDd' param ; do
 			export PADSP_NO_DSP
 			;;
 		d)
-			PADSP_DEBUG=1
+			if [ x"$PADSP_DEBUG" = x ]; then
+				PADSP_DEBUG=1
+			else
+				PADSP_DEBUG=$(( $PADSP_DEBUG + 1 ))
+			fi
 			export PADSP_DEBUG
 			;;
 		*)

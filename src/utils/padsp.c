@@ -176,7 +176,7 @@ do { \
 
 #define CONTEXT_CHECK_DEAD_GOTO(i, label) do { \
 if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY) { \
-    debug(__FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
     goto label; \
 } \
 } while(0);
@@ -184,20 +184,34 @@ if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY) { \
 #define STREAM_CHECK_DEAD_GOTO(i, label) do { \
 if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
     !(i)->stream || pa_stream_get_state((i)->stream) != PA_STREAM_READY) { \
-    debug(__FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
     goto label; \
 } \
 } while(0);
 
-static void debug(const char *format, ...) PA_GCC_PRINTF_ATTR(1,2);
+static void debug(int level, const char *format, ...) PA_GCC_PRINTF_ATTR(2,3);
 
-static void debug(const char *format, ...) {
+#define DEBUG_LEVEL_ALWAYS		0
+#define DEBUG_LEVEL_NORMAL		1
+#define DEBUG_LEVEL_VERBOSE		2
+
+static void debug(int level, const char *format, ...) {
     va_list ap;
-    if (getenv("PADSP_DEBUG")) {
-        va_start(ap, format);
-        vfprintf(stderr, format, ap);
-        va_end(ap);
-    }
+    const char *dlevel_s;
+    int dlevel;
+
+    dlevel_s = getenv("PADSP_DEBUG");
+    if (!dlevel_s)
+        return;
+
+    dlevel = atoi(dlevel_s);
+
+    if (dlevel < level)
+        return;
+
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
 }
 
 static int padsp_disabled(void) {
@@ -280,7 +294,7 @@ static void function_exit(void) {
 static void fd_info_free(fd_info *i) {
     assert(i);
 
-    debug(__FILE__": freeing fd info (fd=%i)\n", i->app_fd);
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": freeing fd info (fd=%i)\n", i->app_fd);
 
     dsp_drain(i);
     
@@ -323,7 +337,7 @@ static fd_info *fd_info_ref(fd_info *i) {
     assert(i->ref >= 1);
     i->ref++;
 
-/*     debug(__FILE__": ref++, now %i\n", i->ref); */
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": ref++, now %i\n", i->ref);
     pthread_mutex_unlock(&i->mutex);
 
     return i;
@@ -334,7 +348,7 @@ static void fd_info_unref(fd_info *i) {
     pthread_mutex_lock(&i->mutex);
     assert(i->ref >= 1);
     r = --i->ref;
-/*     debug(__FILE__": ref--, now %i\n", i->ref); */
+	debug(DEBUG_LEVEL_VERBOSE, __FILE__": ref--, now %i\n", i->ref);
     pthread_mutex_unlock(&i->mutex);
 
     if (r <= 0)
@@ -397,7 +411,7 @@ static const char *stream_name(void) {
 static void atfork_prepare(void) {
     fd_info *i;
 
-    debug(__FILE__": atfork_prepare() enter\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": atfork_prepare() enter\n");
     
     function_enter();
 
@@ -411,13 +425,13 @@ static void atfork_prepare(void) {
     pthread_mutex_lock(&func_mutex);
 
     
-    debug(__FILE__": atfork_prepare() exit\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": atfork_prepare() exit\n");
 }
 
 static void atfork_parent(void) {
     fd_info *i;
     
-    debug(__FILE__": atfork_parent() enter\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": atfork_parent() enter\n");
 
     pthread_mutex_unlock(&func_mutex);
 
@@ -430,13 +444,13 @@ static void atfork_parent(void) {
 
     function_exit();
     
-    debug(__FILE__": atfork_parent() exit\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": atfork_parent() exit\n");
 }
 
 static void atfork_child(void) {
     fd_info *i;
     
-    debug(__FILE__": atfork_child() enter\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": atfork_child() enter\n");
 
     /* We do only the bare minimum to get all fds closed */
     pthread_mutex_init(&func_mutex, NULL);
@@ -471,7 +485,7 @@ static void atfork_child(void) {
 
     function_exit();
 
-    debug(__FILE__": atfork_child() exit\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": atfork_child() exit\n");
 }
 
 static void install_atfork(void) {
@@ -504,7 +518,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     char name[64];
     static pthread_once_t install_atfork_once = PTHREAD_ONCE_INIT;
 
-    debug(__FILE__": fd_info_new()\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": fd_info_new()\n");
 
     signal(SIGPIPE, SIG_IGN); /* Yes, ugly as hell */
 
@@ -535,7 +549,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sfds) < 0) {
         *_errno = errno;
-        debug(__FILE__": socket() failed: %s\n", strerror(errno));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": socket() failed: %s\n", strerror(errno));
         goto fail;
     }
 
@@ -544,13 +558,13 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
 
     if (!(i->mainloop = pa_threaded_mainloop_new())) {
         *_errno = EIO;
-        debug(__FILE__": pa_threaded_mainloop_new() failed\n");
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_threaded_mainloop_new() failed\n");
         goto fail;
     }
 
     if (!(i->context = pa_context_new(pa_threaded_mainloop_get_api(i->mainloop), client_name(name, sizeof(name))))) {
         *_errno = EIO;
-        debug(__FILE__": pa_context_new() failed\n");
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_context_new() failed\n");
         goto fail;
     }
 
@@ -558,7 +572,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
 
     if (pa_context_connect(i->context, NULL, 0, NULL) < 0) {
         *_errno = ECONNREFUSED;
-        debug(__FILE__": pa_context_connect() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_context_connect() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
@@ -566,7 +580,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
 
     if (pa_threaded_mainloop_start(i->mainloop) < 0) {
         *_errno = EIO;
-        debug(__FILE__": pa_threaded_mainloop_start() failed\n");
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_threaded_mainloop_start() failed\n");
         goto unlock_and_fail;
     }
 
@@ -575,7 +589,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
 
     if (pa_context_get_state(i->context) != PA_CONTEXT_READY) {
         *_errno = ECONNREFUSED;
-        debug(__FILE__": pa_context_connect() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_context_connect() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto unlock_and_fail;
     }
 
@@ -654,8 +668,8 @@ static void fix_metrics(fd_info *i) {
             i->fragment_size = 1024;
     }
 
-    debug(__FILE__": sample spec: %s\n", pa_sample_spec_snprint(t, sizeof(t), &i->sample_spec));
-    debug(__FILE__": fixated metrics to %i fragments, %li bytes each.\n", i->n_fragments, (long)i->fragment_size);
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": sample spec: %s\n", pa_sample_spec_snprint(t, sizeof(t), &i->sample_spec));
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": fixated metrics to %i fragments, %li bytes each.\n", i->n_fragments, (long)i->fragment_size);
 }
 
 static void stream_request_cb(pa_stream *s, size_t length, void *userdata) {
@@ -699,7 +713,7 @@ static int fd_info_copy_data(fd_info *i, int force) {
         return -1;
 
     if ((n = pa_stream_writable_size(i->stream)) == (size_t) -1) {
-        debug(__FILE__": pa_stream_writable_size(): %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_writable_size(): %s\n", pa_strerror(pa_context_errno(i->context)));
         return -1;
     }
     
@@ -708,7 +722,7 @@ static int fd_info_copy_data(fd_info *i, int force) {
         
         if (!i->buf) {
             if (!(i->buf = malloc(i->fragment_size))) {
-                debug(__FILE__": malloc() failed.\n");
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": malloc() failed.\n");
                 return -1;
             }
         }
@@ -718,12 +732,12 @@ static int fd_info_copy_data(fd_info *i, int force) {
             if (errno == EAGAIN)
                 break;
             
-            debug(__FILE__": read(): %s\n", r == 0 ? "EOF" : strerror(errno));
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": read(): %s\n", r == 0 ? "EOF" : strerror(errno));
             return -1;
         }
     
         if (pa_stream_write(i->stream, i->buf, r, free, 0, PA_SEEK_RELATIVE) < 0) {
-            debug(__FILE__": pa_stream_write(): %s\n", pa_strerror(pa_context_errno(i->context)));
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_write(): %s\n", pa_strerror(pa_context_errno(i->context)));
             return -1;
         }
 
@@ -749,11 +763,11 @@ static void stream_state_cb(pa_stream *s, void * userdata) {
     switch (pa_stream_get_state(s)) {
 
         case PA_STREAM_READY:
-            debug(__FILE__": stream established.\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": stream established.\n");
             break;
             
         case PA_STREAM_FAILED:
-            debug(__FILE__": pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
             fd_info_shutdown(i);
             break;
 
@@ -773,7 +787,7 @@ static int create_stream(fd_info *i) {
     fix_metrics(i);
 
     if (!(i->stream = pa_stream_new(i->context, stream_name(), &i->sample_spec, NULL))) {
-        debug(__FILE__": pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
@@ -788,7 +802,7 @@ static int create_stream(fd_info *i) {
     attr.minreq = i->fragment_size;
     
     if (pa_stream_connect_playback(i->stream, NULL, &attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL) < 0) {
-        debug(__FILE__": pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
@@ -847,7 +861,10 @@ static int dsp_open(int flags, int *_errno) {
     int ret;
     int f;
 
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": dsp_open()\n");
+
     if ((flags != O_WRONLY) && (flags != (O_WRONLY|O_NONBLOCK))) {
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": bad access flags: %x\n", flags);
         *_errno = EACCES;
         return -1;
     }
@@ -875,7 +892,7 @@ static int dsp_open(int flags, int *_errno) {
     
     pa_threaded_mainloop_unlock(i->mainloop);
 
-    debug(__FILE__": dsp_open() succeeded, fd=%i\n", i->app_fd);
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": dsp_open() succeeded, fd=%i\n", i->app_fd);
 
     fd_info_add_to_list(i);
     ret = i->app_fd;
@@ -891,7 +908,7 @@ fail:
     
     *_errno = EIO;
 
-    debug(__FILE__": dsp_open() failed\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": dsp_open() failed\n");
 
     return -1;
 }
@@ -929,7 +946,7 @@ static void subscribe_cb(pa_context *context, pa_subscription_event_type_t t, ui
         return;
 
     if (!(o = pa_context_get_sink_info_by_index(i->context, i->sink_index, sink_info_cb, i))) {
-        debug(__FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
         return;
     }
 
@@ -941,6 +958,8 @@ static int mixer_open(int flags, int *_errno) {
     pa_operation *o;
     int ret;
 
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": mixer_open()\n");
+
     if (!(i = fd_info_new(FD_INFO_MIXER, _errno))) 
         return -1;
     
@@ -949,7 +968,7 @@ static int mixer_open(int flags, int *_errno) {
     pa_context_set_subscribe_callback(i->context, subscribe_cb, i);
     
     if (!(o = pa_context_subscribe(i->context, PA_SUBSCRIPTION_MASK_SINK, context_success_cb, i))) {
-        debug(__FILE__": Failed to subscribe to events: %s", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to subscribe to events: %s", pa_strerror(pa_context_errno(i->context)));
         *_errno = EIO;
         goto fail;
     }
@@ -961,7 +980,7 @@ static int mixer_open(int flags, int *_errno) {
     }
 
     if (!i->operation_success) {
-        debug(__FILE__":Failed to subscribe to events: %s", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__":Failed to subscribe to events: %s", pa_strerror(pa_context_errno(i->context)));
         *_errno = EIO;
         goto fail;
     }
@@ -970,7 +989,7 @@ static int mixer_open(int flags, int *_errno) {
 
     pa_operation_unref(o);
     if (!(o = pa_context_get_sink_info_by_name(i->context, NULL, sink_info_cb, i))) {
-        debug(__FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
         *_errno = EIO;
         goto fail;
     }
@@ -982,14 +1001,14 @@ static int mixer_open(int flags, int *_errno) {
     }
 
     if (!i->operation_success) {
-        debug(__FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
         *_errno = EIO;
         goto fail;
     }
 
     pa_threaded_mainloop_unlock(i->mainloop);
 
-    debug(__FILE__": mixer_open() succeeded, fd=%i\n", i->app_fd);
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": mixer_open() succeeded, fd=%i\n", i->app_fd);
 
     fd_info_add_to_list(i);
     ret = i->app_fd;
@@ -1005,7 +1024,7 @@ fail:
     
     *_errno = EIO;
 
-    debug(__FILE__": mixer_open() failed\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": mixer_open() failed\n");
 
     return -1;
 }
@@ -1039,11 +1058,11 @@ static int sndstat_open(int flags, int *_errno) {
     int fd = -1;
     int e;
 
-    debug(__FILE__": sndstat_open()\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": sndstat_open()\n");
     
     if (flags != O_RDONLY && flags != (O_RDONLY|O_LARGEFILE)) {
         *_errno = EACCES;
-        debug(__FILE__": bad access!\n");
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": bad access!\n");
         goto fail;
     }
 
@@ -1054,7 +1073,7 @@ static int sndstat_open(int flags, int *_errno) {
 
     if (fd < 0) {
         *_errno = e;
-        debug(__FILE__": mkstemp() failed: %s\n", strerror(errno));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": mkstemp() failed: %s\n", strerror(errno));
         goto fail;
     }
 
@@ -1062,13 +1081,13 @@ static int sndstat_open(int flags, int *_errno) {
 
     if (write(fd, sndstat, sizeof(sndstat) -1) != sizeof(sndstat)-1) {
         *_errno = errno;
-        debug(__FILE__": write() failed: %s\n", strerror(errno));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": write() failed: %s\n", strerror(errno));
         goto fail;
     }
 
     if (lseek(fd, SEEK_SET, 0) < 0) {
         *_errno = errno;
-        debug(__FILE__": lseek() failed: %s\n", strerror(errno));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": lseek() failed: %s\n", strerror(errno));
         goto fail;
     }
 
@@ -1085,7 +1104,7 @@ int open(const char *filename, int flags, ...) {
     mode_t mode = 0;
     int r, _errno = 0;
 
-    debug(__FILE__": open(%s)\n", filename);
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": open(%s)\n", filename);
 
     va_start(args, flags);
     if (flags & O_CREAT)
@@ -1122,19 +1141,19 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
     
     switch (request) {
         case SOUND_MIXER_READ_DEVMASK :
-            debug(__FILE__": SOUND_MIXER_READ_DEVMASK\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_DEVMASK\n");
 
             *(int*) argp = SOUND_MASK_PCM;
             break;
 
         case SOUND_MIXER_READ_RECMASK :
-            debug(__FILE__": SOUND_MIXER_READ_RECMASK\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_RECMASK\n");
 
             *(int*) argp = 0;
             break;
             
         case SOUND_MIXER_READ_STEREODEVS:
-            debug(__FILE__": SOUND_MIXER_READ_STEREODEVS\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_STEREODEVS\n");
 
             pa_threaded_mainloop_lock(i->mainloop);
             *(int*) argp = i->volume.channels > 1 ? SOUND_MASK_PCM : 0;
@@ -1143,20 +1162,20 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
             break;
 
         case SOUND_MIXER_READ_RECSRC:
-            debug(__FILE__": SOUND_MIXER_READ_RECSRC\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_RECSRC\n");
 
             *(int*) argp = 0;
             break;
             
         case SOUND_MIXER_READ_CAPS:
-            debug(__FILE__": SOUND_MIXER_READ_CAPS\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_CAPS\n");
 
             *(int*) argp = 0;
             break;
     
         case SOUND_MIXER_READ_PCM:
             
-            debug(__FILE__": SOUND_MIXER_READ_PCM\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_PCM\n");
             
             pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1171,7 +1190,7 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
         case SOUND_MIXER_WRITE_PCM: {
             pa_cvolume v;
             
-            debug(__FILE__": SOUND_MIXER_WRITE_PCM\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_WRITE_PCM\n");
             
             pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1184,7 +1203,7 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
                 pa_operation *o;
                 
                 if (!(o = pa_context_set_sink_volume_by_index(i->context, i->sink_index, &i->volume, NULL, NULL)))
-                    debug(__FILE__":Failed set volume: %s", pa_strerror(pa_context_errno(i->context)));
+                    debug(DEBUG_LEVEL_NORMAL, __FILE__":Failed set volume: %s", pa_strerror(pa_context_errno(i->context)));
                 else {
 
                     i->operation_success = 0;
@@ -1196,7 +1215,7 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
                 exit_loop:
                     
                     if (!i->operation_success)
-                        debug(__FILE__": Failed to set volume: %s\n", pa_strerror(pa_context_errno(i->context)));
+                        debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to set volume: %s\n", pa_strerror(pa_context_errno(i->context)));
 
                     pa_operation_unref(o);
                 }
@@ -1213,6 +1232,8 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
         case SOUND_MIXER_INFO: {
             mixer_info *mi = argp;
 
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_INFO\n");
+
             memset(mi, 0, sizeof(mixer_info));
             strncpy(mi->id, "POLYPAUDIO", sizeof(mi->id));
             strncpy(mi->name, "Polypaudio Virtual OSS", sizeof(mi->name));
@@ -1223,7 +1244,7 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
         }
             
         default:
-            debug(__FILE__": unknown ioctl 0x%08lx\n", request);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": unknown ioctl 0x%08lx\n", request);
 
             *_errno = EINVAL;
             goto fail;
@@ -1296,7 +1317,7 @@ static int dsp_flush_socket(fd_info *i) {
         return -1;
 
     if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
-        debug(__FILE__": SIOCINQ: %s\n", strerror(errno));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ: %s\n", strerror(errno));
         return -1;
     }
 
@@ -1306,7 +1327,7 @@ static int dsp_flush_socket(fd_info *i) {
 
         k = (size_t) l > sizeof(buf) ? sizeof(buf) : (size_t) l;
         if (read(i->thread_fd, buf, k) < 0)
-            debug(__FILE__": read(): %s\n", strerror(errno));
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": read(): %s\n", strerror(errno));
         l -= k;
     }
 
@@ -1324,7 +1345,7 @@ static int dsp_empty_socket(fd_info *i) {
             break;
         
         if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
-            debug(__FILE__": SIOCINQ: %s\n", strerror(errno));
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ: %s\n", strerror(errno));
             break;
         }
 
@@ -1346,7 +1367,7 @@ static int dsp_drain(fd_info *i) {
     if (!i->mainloop)
         return 0;
     
-    debug(__FILE__": Draining.\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": Draining.\n");
 
     pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1356,10 +1377,10 @@ static int dsp_drain(fd_info *i) {
     if (!i->stream)
         goto fail;
 
-    debug(__FILE__": Really draining.\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": Really draining.\n");
         
     if (!(o = pa_stream_drain(i->stream, stream_success_cb, i))) {
-        debug(__FILE__": pa_stream_drain(): %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_drain(): %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
@@ -1371,7 +1392,7 @@ static int dsp_drain(fd_info *i) {
     }
 
     if (!i->operation_success) {
-        debug(__FILE__": pa_stream_drain() 2: %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_drain() 2: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
@@ -1399,10 +1420,10 @@ static int dsp_trigger(fd_info *i) {
     if (dsp_empty_socket(i) < 0)
         goto fail;
 
-    debug(__FILE__": Triggering.\n");
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": Triggering.\n");
         
     if (!(o = pa_stream_trigger(i->stream, stream_success_cb, i))) {
-        debug(__FILE__": pa_stream_trigger(): %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_trigger(): %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
@@ -1414,7 +1435,7 @@ static int dsp_trigger(fd_info *i) {
     }
 
     if (!i->operation_success) {
-        debug(__FILE__": pa_stream_trigger(): %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_trigger(): %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
@@ -1435,7 +1456,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
     
     switch (request) {
         case SNDCTL_DSP_SETFMT: {
-            debug(__FILE__": SNDCTL_DSP_SETFMT: %i\n", *(int*) argp);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETFMT: %i\n", *(int*) argp);
             
             pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1455,7 +1476,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             int valid;
             char t[256];
             
-            debug(__FILE__": SNDCTL_DSP_SPEED: %i\n", *(int*) argp);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SPEED: %i\n", *(int*) argp);
 
             pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1467,7 +1488,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
                 free_stream(i);
             }
             
-            debug(__FILE__": ss: %s\n", pa_sample_spec_snprint(t, sizeof(t), &i->sample_spec));
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": ss: %s\n", pa_sample_spec_snprint(t, sizeof(t), &i->sample_spec));
 
             pa_threaded_mainloop_unlock(i->mainloop);
 
@@ -1480,7 +1501,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         }
             
         case SNDCTL_DSP_STEREO:
-            debug(__FILE__": SNDCTL_DSP_STEREO: %i\n", *(int*) argp);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_STEREO: %i\n", *(int*) argp);
             
             pa_threaded_mainloop_lock(i->mainloop);
             
@@ -1494,7 +1515,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             pa_sample_spec ss;
             int valid;
             
-            debug(__FILE__": SNDCTL_DSP_CHANNELS: %i\n", *(int*) argp);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_CHANNELS: %i\n", *(int*) argp);
             
             pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1517,7 +1538,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         }
 
         case SNDCTL_DSP_GETBLKSIZE:
-            debug(__FILE__": SNDCTL_DSP_GETBLKSIZE\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETBLKSIZE\n");
 
             pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1529,7 +1550,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             break;
 
         case SNDCTL_DSP_SETFRAGMENT:
-            debug(__FILE__": SNDCTL_DSP_SETFRAGMENT: 0x%8x\n", *(int*) argp);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETFRAGMENT: 0x%8x\n", *(int*) argp);
             
             pa_threaded_mainloop_lock(i->mainloop);
             
@@ -1543,7 +1564,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             break;
             
         case SNDCTL_DSP_GETCAPS:
-            debug(__FILE__": SNDCTL_DSP_CAPS\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_CAPS\n");
             
             *(int*)  argp = DSP_CAP_MULTI;
             break;
@@ -1551,7 +1572,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         case SNDCTL_DSP_GETODELAY: {
             int l;
             
-            debug(__FILE__": SNDCTL_DSP_GETODELAY\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETODELAY\n");
             
             pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1568,7 +1589,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
                 }
 
                 if (pa_context_errno(i->context) != PA_ERR_NODATA) {
-                    debug(__FILE__": pa_stream_get_latency(): %s\n", pa_strerror(pa_context_errno(i->context)));
+                    debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_get_latency(): %s\n", pa_strerror(pa_context_errno(i->context)));
                     break;
                 }
 
@@ -1578,19 +1599,19 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         exit_loop:
             
             if (ioctl(i->thread_fd, SIOCINQ, &l) < 0)
-                debug(__FILE__": SIOCINQ failed: %s\n", strerror(errno));
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ failed: %s\n", strerror(errno));
             else
                 *(int*) argp += l;
 
             pa_threaded_mainloop_unlock(i->mainloop);
 
-            debug(__FILE__": ODELAY: %i\n", *(int*) argp);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": ODELAY: %i\n", *(int*) argp);
 
             break;
         }
             
         case SNDCTL_DSP_RESET: {
-            debug(__FILE__": SNDCTL_DSP_RESET\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_RESET\n");
             
             pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1603,21 +1624,21 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         }
             
         case SNDCTL_DSP_GETFMTS: {
-            debug(__FILE__": SNDCTL_DSP_GETFMTS\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETFMTS\n");
             
             *(int*) argp = AFMT_MU_LAW|AFMT_A_LAW|AFMT_U8|AFMT_S16_LE|AFMT_S16_BE;
             break;
         }
 
         case SNDCTL_DSP_POST:
-            debug(__FILE__": SNDCTL_DSP_POST\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_POST\n");
             
             if (dsp_trigger(i) < 0) 
                 *_errno = EIO;
             break;
 
         case SNDCTL_DSP_SYNC: 
-            debug(__FILE__": SNDCTL_DSP_SYNC\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SYNC\n");
             
             if (dsp_drain(i) < 0) 
                 *_errno = EIO;
@@ -1629,7 +1650,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             int l;
             size_t k = 0;
 
-            debug(__FILE__": SNDCTL_DSP_GETOSPACE\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETOSPACE\n");
 
             pa_threaded_mainloop_lock(i->mainloop);
 
@@ -1637,12 +1658,12 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             
             if (i->stream) {
                 if ((k = pa_stream_writable_size(i->stream)) == (size_t) -1)
-                    debug(__FILE__": pa_stream_writable_size(): %s\n", pa_strerror(pa_context_errno(i->context)));
+                    debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_writable_size(): %s\n", pa_strerror(pa_context_errno(i->context)));
             } else
                 k = i->fragment_size * i->n_fragments;
             
             if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
-                debug(__FILE__": SIOCINQ failed: %s\n", strerror(errno));
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ failed: %s\n", strerror(errno));
                 l = 0;
             }
 
@@ -1653,13 +1674,13 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
             pa_threaded_mainloop_unlock(i->mainloop);
 
-            debug(__FILE__": fragsize=%i, fragstotal=%i, bytes=%i, fragments=%i\n", bi->fragsize, bi->fragstotal, bi->bytes, bi->fragments);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": fragsize=%i, fragstotal=%i, bytes=%i, fragments=%i\n", bi->fragsize, bi->fragstotal, bi->bytes, bi->fragments);
 
             break;
         }
             
         default:
-            debug(__FILE__": unknwon ioctl 0x%08lx\n", request);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": unknown ioctl 0x%08lx\n", request);
 
             *_errno = EINVAL;
             goto fail;
@@ -1678,7 +1699,7 @@ int ioctl(int fd, unsigned long request, ...) {
     void *argp;
     int r, _errno = 0;
 
-    debug(__FILE__": ioctl()\n");
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": ioctl()\n");
 
     va_start(args, request);
     argp = va_arg(args, void *);
@@ -1713,7 +1734,7 @@ int ioctl(int fd, unsigned long request, ...) {
 int close(int fd) {
     fd_info *i;
 
-    debug(__FILE__": close()\n");
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": close()\n");
 
     if (!function_enter()) {
         LOAD_CLOSE_FUNC();
@@ -1735,7 +1756,7 @@ int close(int fd) {
 }
 
 int access(const char *pathname, int mode) {
-    debug(__FILE__": access()\n");
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": access(%s)\n", pathname);
 
     if (strcmp(pathname, "/dev/dsp") != 0 &&
         strcmp(pathname, "/dev/adsp") != 0 &&
@@ -1746,9 +1767,12 @@ int access(const char *pathname, int mode) {
     }
 
     if (mode & (W_OK | X_OK)) {
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": access(%s, %x) = EACCESS\n", pathname, mode);
         errno = EACCES;
         return -1;
     }
+
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": access(%s, %x) = OK\n", pathname, mode);
 
     return 0;
 }
@@ -1757,7 +1781,7 @@ int open64(const char *filename, int flags, ...) {
     va_list args;
     mode_t mode = 0;
 
-    debug(__FILE__": open64(%s)\n", filename);
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": open64(%s)\n", filename);
     
     va_start(args, flags);
     if (flags & O_CREAT)
@@ -1780,31 +1804,31 @@ FILE* fopen(const char *filename, const char *mode) {
     int fd;
     mode_t m;
     
-    debug(__FILE__": fopen(%s)\n", filename);
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": fopen(%s)\n", filename);
 
-    if (strcmp(filename, "/dev/dsp") == 0 ||
-        strcmp(filename, "/dev/adsp") == 0) {
-
-        if (strcmp(mode, "wb") != 0) {
-            errno = EACCES;
-            return NULL;
-        }
-
-        m = O_WRONLY;
-    } else if (strcmp(filename, "/dev/sndstat") == 0) {
-
-        if (strcmp(mode, "r") != 0) {
-            errno = EACCES;
-            return NULL;
-        }
-
-        m = O_RDONLY;
-    } else if (strcmp(filename, "/dev/mixer") == 0)
-        m = O_RDWR;
-    else {
+    if (strcmp(filename, "/dev/dsp") != 0 &&
+        strcmp(filename, "/dev/adsp") != 0 &&
+        strcmp(filename, "/dev/sndstat") != 0 &&
+        strcmp(filename, "/dev/mixer") != 0) {
         LOAD_FOPEN_FUNC();
         return _fopen(filename, mode);
     }
+
+    switch (mode[0]) {
+    case 'r':
+        m = O_RDONLY;
+        break;
+    case 'w':
+    case 'a':
+        m = O_WRONLY;
+        break;
+    default:
+        errno = EINVAL;
+        return NULL;
+    }
+
+    if ((((mode[1] == 'b') || (mode[1] == 't')) && (mode[2] == '+')) || (mode[1] == '+'))
+        m = O_RDWR;
 
     if ((fd = open(filename, m)) < 0)
         return NULL;
@@ -1819,7 +1843,7 @@ FILE* fopen(const char *filename, const char *mode) {
 
 FILE *fopen64(const char *filename, const char *mode) {
 
-    debug(__FILE__": fopen64(%s)\n", filename);
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": fopen64(%s)\n", filename);
 
     if (strcmp(filename, "/dev/dsp") != 0 &&
         strcmp(filename, "/dev/adsp") != 0 &&
@@ -1835,7 +1859,7 @@ FILE *fopen64(const char *filename, const char *mode) {
 int fclose(FILE *f) {
     fd_info *i;
 
-    debug(__FILE__": fclose()\n");
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": fclose()\n");
 
     if (!function_enter()) {
         LOAD_FCLOSE_FUNC();
