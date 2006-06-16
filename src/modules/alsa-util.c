@@ -247,15 +247,8 @@ int pa_alsa_fdlist_init_mixer(struct pa_alsa_fdlist *fdl, snd_mixer_t *mixer_han
     return 0;
 }
 
-/* Set the hardware parameters of the given ALSA device. Returns the
- * selected fragment settings in *period and *period_size */
-int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size) {
-    int ret = -1;
-    snd_pcm_uframes_t buffer_size;
-    snd_pcm_hw_params_t *hwparams = NULL;
-    unsigned int r = ss->rate;
-    unsigned int c = ss->channels;
-    
+static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_sample_format_t *f) {
+
     static const snd_pcm_format_t format_trans[] = {
         [PA_SAMPLE_U8] = SND_PCM_FORMAT_U8,
         [PA_SAMPLE_ALAW] = SND_PCM_FORMAT_A_LAW,
@@ -265,15 +258,73 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         [PA_SAMPLE_FLOAT32LE] = SND_PCM_FORMAT_FLOAT_LE,
         [PA_SAMPLE_FLOAT32BE] = SND_PCM_FORMAT_FLOAT_BE,
     };
-    assert(pcm_handle && ss && periods && period_size);
+
+    static const pa_sample_format_t try_order[] = {
+        PA_SAMPLE_S16NE,
+        PA_SAMPLE_S16RE,
+        PA_SAMPLE_FLOAT32NE,
+        PA_SAMPLE_FLOAT32RE,
+        PA_SAMPLE_ULAW,
+        PA_SAMPLE_ALAW,
+        PA_SAMPLE_U8,
+        PA_SAMPLE_INVALID
+    };
+
+    int i, ret;
+    
+    assert(pcm_handle);
+    assert(f);
+
+    if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
+        return ret;
+
+    if (*f == PA_SAMPLE_FLOAT32BE)
+        *f = PA_SAMPLE_FLOAT32LE;
+    else if (*f == PA_SAMPLE_FLOAT32LE)
+        *f = PA_SAMPLE_FLOAT32BE;
+    else if (*f == PA_SAMPLE_S16BE)
+        *f = PA_SAMPLE_S16LE;
+    else if (*f == PA_SAMPLE_S16LE)
+        *f = PA_SAMPLE_S16BE;
+    else
+        goto try_auto;
+
+    if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
+        return ret;
+        
+try_auto:
+
+    for (i = 0; try_order[i] != PA_SAMPLE_INVALID; i++) {
+        *f = try_order[i];
+        
+        if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
+            return ret;
+    }
+
+    return -1;
+}
+
+/* Set the hardware parameters of the given ALSA device. Returns the
+ * selected fragment settings in *period and *period_size */
+int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size) {
+    int ret = -1;
+    snd_pcm_uframes_t buffer_size;
+    unsigned int r = ss->rate;
+    unsigned int c = ss->channels;
+    pa_sample_format_t f = ss->format;
+    snd_pcm_hw_params_t *hwparams;
+    
+    assert(pcm_handle);
+    assert(ss);
+    assert(periods);
+    assert(period_size);
 
     buffer_size = *periods * *period_size;
     
     if ((ret = snd_pcm_hw_params_malloc(&hwparams)) < 0 ||
         (ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0 ||
     	(ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0 ||
-        (ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[ss->format])) < 0 ||
-    	(ret = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &r, NULL)) < 0 ||
+        (ret = set_format(pcm_handle, hwparams, &f)) < 0 ||
         (ret = snd_pcm_hw_params_set_channels_near(pcm_handle, hwparams, &c)) < 0 || 
         (*period_size > 0 && (ret = snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, period_size, NULL)) < 0) ||
         (*periods > 0 && (ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0) ||
@@ -281,7 +332,7 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         goto finish;
 
     if (ss->rate != r) {
-        pa_log_info(__FILE__": device doesn't support %u Hz, changed to %u Hz.", ss->rate, r);
+        pa_log_warn(__FILE__": device doesn't support %u Hz, changed to %u Hz.", ss->rate, r);
 
         /* If the sample rate deviates too much, we need to resample */
         if (r < ss->rate*.95 || r > ss->rate*1.05)
@@ -289,8 +340,13 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     }
 
     if (ss->channels != c) {
-        pa_log_info(__FILE__": device doesn't support %u channels, changed to %u.", ss->channels, c);
+        pa_log_warn(__FILE__": device doesn't support %u channels, changed to %u.", ss->channels, c);
         ss->channels = c;
+    }
+
+    if (ss->format != f) {
+        pa_log_warn(__FILE__": device doesn't support sample format %s, changed to %s.", pa_sample_format_to_string(ss->format), pa_sample_format_to_string(f));
+        ss->format = f;
     }
     
     if ((ret = snd_pcm_prepare(pcm_handle)) < 0)
