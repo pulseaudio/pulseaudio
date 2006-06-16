@@ -767,7 +767,7 @@ static int fd_info_copy_data(fd_info *i, int force) {
 
     flags = 0;
 
-    if (i->play_stream) {
+    if ((i->play_stream) && (pa_stream_get_state(i->play_stream) == PA_STREAM_READY)) {
         n = pa_stream_writable_size(i->play_stream);
 
         if (n == (size_t)-1) {
@@ -810,7 +810,7 @@ static int fd_info_copy_data(fd_info *i, int force) {
             flags |= PA_IO_EVENT_INPUT;
     }
 
-    if (i->rec_stream) {
+    if ((i->rec_stream) && (pa_stream_get_state(i->rec_stream) == PA_STREAM_READY)) {
         n = pa_stream_readable_size(i->rec_stream);
 
         if (n == (size_t)-1) {
