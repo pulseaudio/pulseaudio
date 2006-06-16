@@ -52,7 +52,7 @@
 
 typedef enum {
     FD_INFO_MIXER,
-    FD_INFO_PLAYBACK
+    FD_INFO_STREAM,
 } fd_info_type_t;
 
 typedef struct fd_info fd_info;
@@ -71,16 +71,18 @@ struct fd_info {
 
     pa_threaded_mainloop *mainloop;
     pa_context *context;
-    pa_stream *stream;
+    pa_stream *play_stream;
+    pa_stream *rec_stream;
 
     pa_io_event *io_event;
 
     void *buf;
+    size_t rec_offset;
 
     int operation_success;
 
-    pa_cvolume volume;
-    uint32_t sink_index;
+    pa_cvolume sink_volume, source_volume;
+    uint32_t sink_index, source_index;
     int volume_modify_count;
     
     PA_LLIST_FIELDS(fd_info);
@@ -181,9 +183,17 @@ if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY) { \
 } \
 } while(0);
 
-#define STREAM_CHECK_DEAD_GOTO(i, label) do { \
+#define PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, label) do { \
 if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
-    !(i)->stream || pa_stream_get_state((i)->stream) != PA_STREAM_READY) { \
+    !(i)->play_stream || pa_stream_get_state((i)->play_stream) != PA_STREAM_READY) { \
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
+    goto label; \
+} \
+} while(0);
+
+#define RECORD_STREAM_CHECK_DEAD_GOTO(i, label) do { \
+if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
+    !(i)->rec_stream || pa_stream_get_state((i)->rec_stream) != PA_STREAM_READY) { \
     debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
     goto label; \
 } \
@@ -301,9 +311,14 @@ static void fd_info_free(fd_info *i) {
     if (i->mainloop)
         pa_threaded_mainloop_stop(i->mainloop);
     
-    if (i->stream) {
-        pa_stream_disconnect(i->stream);
-        pa_stream_unref(i->stream);
+    if (i->play_stream) {
+        pa_stream_disconnect(i->play_stream);
+        pa_stream_unref(i->play_stream);
+    }
+
+    if (i->rec_stream) {
+        pa_stream_disconnect(i->rec_stream);
+        pa_stream_unref(i->rec_stream);
     }
 
     if (i->context) {
@@ -465,9 +480,14 @@ static void atfork_child(void) {
             i->context = NULL;
         }
 
-        if (i->stream) {
-            pa_stream_unref(i->stream);
-            i->stream = NULL;
+        if (i->play_stream) {
+            pa_stream_unref(i->play_stream);
+            i->play_stream = NULL;
+        }
+
+        if (i->rec_stream) {
+            pa_stream_unref(i->rec_stream);
+            i->rec_stream = NULL;
         }
 
         if (i->app_fd >= 0) {
@@ -534,15 +554,19 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
 
     i->mainloop = NULL;
     i->context = NULL;
-    i->stream = NULL;
+    i->play_stream = NULL;
+    i->rec_stream = NULL;
     i->io_event = NULL;
     pthread_mutex_init(&i->mutex, NULL);
     i->ref = 1;
     i->buf = NULL;
+    i->rec_offset = 0;
     i->unusable = 0;
-    pa_cvolume_reset(&i->volume, 2);
+    pa_cvolume_reset(&i->sink_volume, 2);
+    pa_cvolume_reset(&i->source_volume, 2);
     i->volume_modify_count = 0;
     i->sink_index = (uint32_t) -1;
+    i->source_index = (uint32_t) -1;
     PA_LLIST_INIT(fd_info, i);
 
     reset_params(i);
@@ -678,8 +702,36 @@ static void stream_request_cb(pa_stream *s, size_t length, void *userdata) {
 
     if (i->io_event) {
         pa_mainloop_api *api;
+        pa_io_event_flags_t flags;
+        size_t n;
+
         api = pa_threaded_mainloop_get_api(i->mainloop);
-        api->io_enable(i->io_event, PA_IO_EVENT_INPUT);
+
+        flags = 0;
+
+        if (s == i->play_stream) {
+            n = pa_stream_writable_size(i->play_stream);
+            if (n == (size_t)-1) {
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_writable_size(): %s\n",
+                    pa_strerror(pa_context_errno(i->context)));
+            }
+
+            if (n >= i->fragment_size)
+                flags |= PA_IO_EVENT_INPUT;
+        }
+
+        if (s == i->rec_stream) {
+            n = pa_stream_readable_size(i->rec_stream);
+            if (n == (size_t)-1) {
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_readable_size(): %s\n",
+                    pa_strerror(pa_context_errno(i->context)));
+            }
+
+            if (n >= i->fragment_size)
+                flags |= PA_IO_EVENT_OUTPUT;
+        }
+
+        api->io_enable(i->io_event, flags);
     }
 }
 
@@ -708,49 +760,114 @@ static void fd_info_shutdown(fd_info *i) {
 
 static int fd_info_copy_data(fd_info *i, int force) {
     size_t n;
+    pa_io_event_flags_t flags;
 
-    if (!i->stream)
+    if (!i->play_stream && !i->rec_stream)
         return -1;
 
-    if ((n = pa_stream_writable_size(i->stream)) == (size_t) -1) {
-        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_writable_size(): %s\n", pa_strerror(pa_context_errno(i->context)));
-        return -1;
-    }
-    
-    while (n >= i->fragment_size || force) {
-        ssize_t r;
-        
-        if (!i->buf) {
-            if (!(i->buf = malloc(i->fragment_size))) {
-                debug(DEBUG_LEVEL_NORMAL, __FILE__": malloc() failed.\n");
+    flags = 0;
+
+    if (i->play_stream) {
+        n = pa_stream_writable_size(i->play_stream);
+
+        if (n == (size_t)-1) {
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_writable_size(): %s\n",
+                pa_strerror(pa_context_errno(i->context)));
+            return -1;
+        }
+
+        while (n >= i->fragment_size || force) {
+            ssize_t r;
+
+            if (!i->buf) {
+                if (!(i->buf = malloc(i->fragment_size))) {
+                    debug(DEBUG_LEVEL_NORMAL, __FILE__": malloc() failed.\n");
+                    return -1;
+                }
+            }
+
+            if ((r = read(i->thread_fd, i->buf, i->fragment_size)) <= 0) {
+
+                if (errno == EAGAIN)
+                    break;
+
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": read(): %s\n", r == 0 ? "EOF" : strerror(errno));
                 return -1;
             }
-        }
-    
-        if ((r = read(i->thread_fd, i->buf, i->fragment_size)) <= 0) {
 
-            if (errno == EAGAIN)
+            if (pa_stream_write(i->play_stream, i->buf, r, free, 0, PA_SEEK_RELATIVE) < 0) {
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_write(): %s\n", pa_strerror(pa_context_errno(i->context)));
+                return -1;
+            }
+
+            i->buf = NULL;
+
+            assert(n >= (size_t) r);
+            n -= r;
+        }
+
+        if (n >= i->fragment_size)
+            flags |= PA_IO_EVENT_INPUT;
+    }
+
+    if (i->rec_stream) {
+        n = pa_stream_readable_size(i->rec_stream);
+
+        if (n == (size_t)-1) {
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_readable_size(): %s\n",
+                pa_strerror(pa_context_errno(i->context)));
+            return -1;
+        }
+
+        while (n >= i->fragment_size || force) {
+            ssize_t r;
+            const void *data;
+            const char *buf;
+            size_t len;
+
+            if (pa_stream_peek(i->rec_stream, &data, &len) < 0) {
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_peek(): %s\n", pa_strerror(pa_context_errno(i->context)));
+                return -1;
+            }
+
+            if (!data)
                 break;
-            
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": read(): %s\n", r == 0 ? "EOF" : strerror(errno));
-            return -1;
-        }
-    
-        if (pa_stream_write(i->stream, i->buf, r, free, 0, PA_SEEK_RELATIVE) < 0) {
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_write(): %s\n", pa_strerror(pa_context_errno(i->context)));
-            return -1;
+
+            buf = (const char*)data + i->rec_offset;
+
+            if ((r = write(i->thread_fd, buf, len - i->rec_offset)) <= 0) {
+
+                if (errno == EAGAIN)
+                    break;
+
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": write(): %s\n", strerror(errno));
+                return -1;
+            }
+
+            assert((size_t)r <= len - i->rec_offset);
+            i->rec_offset += r;
+
+            if (i->rec_offset == len) {
+                if (pa_stream_drop(i->rec_stream) < 0) {
+                    debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_drop(): %s\n", pa_strerror(pa_context_errno(i->context)));
+                    return -1;
+                }
+                i->rec_offset = 0;
+            }
+
+            assert(n >= (size_t) r);
+            n -= r;
         }
 
-        i->buf = NULL;
-
-        assert(n >= (size_t) r);
-        n -= r;
+        if (n >= i->fragment_size)
+            flags |= PA_IO_EVENT_OUTPUT;
     }
 
     if (i->io_event) {
         pa_mainloop_api *api;
+
         api = pa_threaded_mainloop_get_api(i->mainloop);
-        api->io_enable(i->io_event, n >= i->fragment_size ? PA_IO_EVENT_INPUT : 0);
+        api->io_enable(i->io_event, flags);
     }
 
     return 0;
@@ -778,7 +895,7 @@ static void stream_state_cb(pa_stream *s, void * userdata) {
     }
 }
 
-static int create_stream(fd_info *i) {
+static int create_playback_stream(fd_info *i) {
     pa_buffer_attr attr;
     int n;
     
@@ -786,14 +903,14 @@ static int create_stream(fd_info *i) {
 
     fix_metrics(i);
 
-    if (!(i->stream = pa_stream_new(i->context, stream_name(), &i->sample_spec, NULL))) {
+    if (!(i->play_stream = pa_stream_new(i->context, stream_name(), &i->sample_spec, NULL))) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
-    pa_stream_set_state_callback(i->stream, stream_state_cb, i);
-    pa_stream_set_write_callback(i->stream, stream_request_cb, i);
-    pa_stream_set_latency_update_callback(i->stream, stream_latency_update_cb, i);
+    pa_stream_set_state_callback(i->play_stream, stream_state_cb, i);
+    pa_stream_set_write_callback(i->play_stream, stream_request_cb, i);
+    pa_stream_set_latency_update_callback(i->play_stream, stream_latency_update_cb, i);
 
     memset(&attr, 0, sizeof(attr));
     attr.maxlength = i->fragment_size * (i->n_fragments+1);
@@ -801,7 +918,7 @@ static int create_stream(fd_info *i) {
     attr.prebuf = i->fragment_size;
     attr.minreq = i->fragment_size;
     
-    if (pa_stream_connect_playback(i->stream, NULL, &attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL) < 0) {
+    if (pa_stream_connect_playback(i->play_stream, NULL, &attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL) < 0) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
@@ -817,13 +934,56 @@ fail:
     return -1;
 }
 
-static void free_stream(fd_info *i) {
+static int create_record_stream(fd_info *i) {
+    pa_buffer_attr attr;
+    int n;
+    
     assert(i);
 
-    if (i->stream) {
-        pa_stream_disconnect(i->stream);
-        pa_stream_unref(i->stream);
-        i->stream = NULL;
+    fix_metrics(i);
+
+    if (!(i->rec_stream = pa_stream_new(i->context, stream_name(), &i->sample_spec, NULL))) {
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_new() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
+        goto fail;
+    }
+
+    pa_stream_set_state_callback(i->rec_stream, stream_state_cb, i);
+    pa_stream_set_read_callback(i->rec_stream, stream_request_cb, i);
+    pa_stream_set_latency_update_callback(i->rec_stream, stream_latency_update_cb, i);
+
+    memset(&attr, 0, sizeof(attr));
+    attr.maxlength = i->fragment_size * (i->n_fragments+1);
+    attr.fragsize = i->fragment_size;
+    
+    if (pa_stream_connect_record(i->rec_stream, NULL, &attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE) < 0) {
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
+        goto fail;
+    }
+
+    n = i->fragment_size;
+    setsockopt(i->app_fd, SOL_SOCKET, SO_RCVBUF, &n, sizeof(n));
+    n = i->fragment_size;
+    setsockopt(i->thread_fd, SOL_SOCKET, SO_SNDBUF, &n, sizeof(n));
+    
+    return 0;
+
+fail:
+    return -1;
+}
+
+static void free_streams(fd_info *i) {
+    assert(i);
+
+    if (i->play_stream) {
+        pa_stream_disconnect(i->play_stream);
+        pa_stream_unref(i->play_stream);
+        i->play_stream = NULL;
+    }
+
+    if (i->rec_stream) {
+        pa_stream_disconnect(i->rec_stream);
+        pa_stream_unref(i->rec_stream);
+        i->rec_stream = NULL;
     }
 }
 
@@ -834,17 +994,24 @@ static void io_event_cb(pa_mainloop_api *api, pa_io_event *e, int fd, pa_io_even
     
     if (flags & PA_IO_EVENT_INPUT) {
 
-        if (!i->stream) {
-            api->io_enable(e, 0);
-
-            if (create_stream(i) < 0)
+        if (!i->play_stream) {
+            if (create_playback_stream(i) < 0)
                 goto fail;
-
         } else {
             if (fd_info_copy_data(i, 0) < 0)
                 goto fail;
         }
         
+    } else if (flags & PA_IO_EVENT_OUTPUT) {
+
+        if (!i->rec_stream) {
+            if (create_record_stream(i) < 0)
+                goto fail;
+        } else {
+            if (fd_info_copy_data(i, 0) < 0)
+                goto fail;
+        }
+
     } else if (flags & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR))
         goto fail;
 
@@ -860,20 +1027,12 @@ static int dsp_open(int flags, int *_errno) {
     pa_mainloop_api *api;
     int ret;
     int f;
+    pa_io_event_flags_t ioflags;
 
     debug(DEBUG_LEVEL_NORMAL, __FILE__": dsp_open()\n");
 
-    if ((flags != O_WRONLY) && (flags != (O_WRONLY|O_NONBLOCK))) {
-        debug(DEBUG_LEVEL_NORMAL, __FILE__": bad access flags: %x\n", flags);
-        *_errno = EACCES;
+    if (!(i = fd_info_new(FD_INFO_STREAM, _errno)))
         return -1;
-    }
-    
-    if (!(i = fd_info_new(FD_INFO_PLAYBACK, _errno)))
-        return -1;
-
-    shutdown(i->thread_fd, SHUT_WR);
-    shutdown(i->app_fd, SHUT_RD);
 
     if ((flags & O_NONBLOCK) == O_NONBLOCK) {
         if ((f = fcntl(i->app_fd, F_GETFL)) >= 0)
@@ -887,7 +1046,26 @@ static int dsp_open(int flags, int *_errno) {
 
     pa_threaded_mainloop_lock(i->mainloop);
     api = pa_threaded_mainloop_get_api(i->mainloop);
-    if (!(i->io_event = api->io_new(api, i->thread_fd, PA_IO_EVENT_INPUT, io_event_cb, i)))
+
+    switch (flags & O_ACCMODE) {
+    case O_RDONLY:
+        ioflags = PA_IO_EVENT_OUTPUT;
+        shutdown(i->thread_fd, SHUT_RD);
+        shutdown(i->app_fd, SHUT_WR);
+        break;
+    case O_WRONLY:
+        ioflags = PA_IO_EVENT_INPUT;
+        shutdown(i->thread_fd, SHUT_WR);
+        shutdown(i->app_fd, SHUT_RD);
+        break;
+    case O_RDWR:
+        ioflags = PA_IO_EVENT_INPUT | PA_IO_EVENT_OUTPUT;
+        break;
+    default:
+        return -1;
+    }
+
+    if (!(i->io_event = api->io_new(api, i->thread_fd, ioflags, io_event_cb, i)))
         goto fail;
     
     pa_threaded_mainloop_unlock(i->mainloop);
@@ -925,11 +1103,33 @@ static void sink_info_cb(pa_context *context, const pa_sink_info *si, int eol, v
     if (eol)
         return;
 
-    if (!pa_cvolume_equal(&i->volume, &si->volume))
+    if (!pa_cvolume_equal(&i->sink_volume, &si->volume))
         i->volume_modify_count++;
     
-    i->volume = si->volume;
+    i->sink_volume = si->volume;
     i->sink_index = si->index;
+
+    i->operation_success = 1;
+    pa_threaded_mainloop_signal(i->mainloop, 0);
+}
+
+static void source_info_cb(pa_context *context, const pa_source_info *si, int eol, void *userdata) {
+    fd_info *i = userdata;
+
+    if (!si && eol < 0) {
+        i->operation_success = 0;
+        pa_threaded_mainloop_signal(i->mainloop, 0);
+        return;
+    }
+
+    if (eol)
+        return;
+
+    if (!pa_cvolume_equal(&i->source_volume, &si->volume))
+        i->volume_modify_count++;
+    
+    i->source_volume = si->volume;
+    i->source_index = si->index;
 
     i->operation_success = 1;
     pa_threaded_mainloop_signal(i->mainloop, 0);
@@ -955,7 +1155,7 @@ static void subscribe_cb(pa_context *context, pa_subscription_event_type_t t, ui
 
 static int mixer_open(int flags, int *_errno) {
     fd_info *i;
-    pa_operation *o;
+    pa_operation *o = NULL;
     int ret;
 
     debug(DEBUG_LEVEL_NORMAL, __FILE__": mixer_open()\n");
@@ -967,7 +1167,7 @@ static int mixer_open(int flags, int *_errno) {
 
     pa_context_set_subscribe_callback(i->context, subscribe_cb, i);
     
-    if (!(o = pa_context_subscribe(i->context, PA_SUBSCRIPTION_MASK_SINK, context_success_cb, i))) {
+    if (!(o = pa_context_subscribe(i->context, PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SOURCE, context_success_cb, i))) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to subscribe to events: %s", pa_strerror(pa_context_errno(i->context)));
         *_errno = EIO;
         goto fail;
@@ -979,6 +1179,9 @@ static int mixer_open(int flags, int *_errno) {
         CONTEXT_CHECK_DEAD_GOTO(i, fail);
     }
 
+    pa_operation_unref(o);
+    o = NULL;
+
     if (!i->operation_success) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__":Failed to subscribe to events: %s", pa_strerror(pa_context_errno(i->context)));
         *_errno = EIO;
@@ -987,7 +1190,6 @@ static int mixer_open(int flags, int *_errno) {
 
     /* Get sink info */
 
-    pa_operation_unref(o);
     if (!(o = pa_context_get_sink_info_by_name(i->context, NULL, sink_info_cb, i))) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
         *_errno = EIO;
@@ -1000,8 +1202,34 @@ static int mixer_open(int flags, int *_errno) {
         CONTEXT_CHECK_DEAD_GOTO(i, fail);
     }
 
+    pa_operation_unref(o);
+    o = NULL;
+
     if (!i->operation_success) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to get sink info: %s", pa_strerror(pa_context_errno(i->context)));
+        *_errno = EIO;
+        goto fail;
+    }
+
+    /* Get source info */
+
+    if (!(o = pa_context_get_source_info_by_name(i->context, NULL, source_info_cb, i))) {
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to get source info: %s", pa_strerror(pa_context_errno(i->context)));
+        *_errno = EIO;
+        goto fail;
+    }
+
+    i->operation_success = 0;
+    while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
+        pa_threaded_mainloop_wait(i->mainloop);
+        CONTEXT_CHECK_DEAD_GOTO(i, fail);
+    }
+
+    pa_operation_unref(o);
+    o = NULL;
+
+    if (!i->operation_success) {
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": Failed to get source info: %s", pa_strerror(pa_context_errno(i->context)));
         *_errno = EIO;
         goto fail;
     }
@@ -1017,6 +1245,9 @@ static int mixer_open(int flags, int *_errno) {
     return ret;
 
 fail:
+    if (o)
+        pa_operation_unref(o);
+
     pa_threaded_mainloop_unlock(i->mainloop);
 
     if (i)
@@ -1143,20 +1374,24 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
         case SOUND_MIXER_READ_DEVMASK :
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_DEVMASK\n");
 
-            *(int*) argp = SOUND_MASK_PCM;
+            *(int*) argp = SOUND_MASK_PCM | SOUND_MASK_IGAIN;
             break;
 
         case SOUND_MIXER_READ_RECMASK :
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_RECMASK\n");
 
-            *(int*) argp = 0;
+            *(int*) argp = SOUND_MASK_IGAIN;
             break;
             
         case SOUND_MIXER_READ_STEREODEVS:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_STEREODEVS\n");
 
             pa_threaded_mainloop_lock(i->mainloop);
-            *(int*) argp = i->volume.channels > 1 ? SOUND_MASK_PCM : 0;
+            *(int*) argp = 0;
+            if (i->sink_volume.channels > 1)
+                *(int*) argp |= SOUND_MASK_PCM;
+            if (i->source_volume.channels > 1)
+                *(int*) argp |= SOUND_MASK_IGAIN;
             pa_threaded_mainloop_unlock(i->mainloop);
             
             break;
@@ -1164,9 +1399,13 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
         case SOUND_MIXER_READ_RECSRC:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_RECSRC\n");
 
-            *(int*) argp = 0;
+            *(int*) argp = SOUND_MASK_IGAIN;
             break;
-            
+
+        case SOUND_MIXER_WRITE_RECSRC:
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_WRITE_RECSRC\n");
+            break;
+
         case SOUND_MIXER_READ_CAPS:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_CAPS\n");
 
@@ -1174,35 +1413,61 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
             break;
     
         case SOUND_MIXER_READ_PCM:
-            
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_PCM\n");
-            
+        case SOUND_MIXER_READ_IGAIN: {
+            pa_cvolume *v;
+
+            if (request == SOUND_MIXER_READ_PCM)
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_PCM\n");
+            else
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_READ_IGAIN\n");
+
             pa_threaded_mainloop_lock(i->mainloop);
+
+            if (request == SOUND_MIXER_READ_PCM)
+                v = &i->sink_volume;
+            else
+                v = &i->source_volume;
 
             *(int*) argp =
-                ((i->volume.values[0]*100/PA_VOLUME_NORM)) |
-                ((i->volume.values[i->volume.channels > 1 ? 1 : 0]*100/PA_VOLUME_NORM)  << 8);
-            
-            pa_threaded_mainloop_unlock(i->mainloop);
-            
-            break;
+                ((v->values[0]*100/PA_VOLUME_NORM)) |
+                ((v->values[v->channels > 1 ? 1 : 0]*100/PA_VOLUME_NORM)  << 8);
 
-        case SOUND_MIXER_WRITE_PCM: {
-            pa_cvolume v;
-            
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_WRITE_PCM\n");
-            
+            pa_threaded_mainloop_unlock(i->mainloop);
+
+            break;
+        }
+
+        case SOUND_MIXER_WRITE_PCM:
+        case SOUND_MIXER_WRITE_IGAIN: {
+            pa_cvolume v, *pv;
+
+            if (request == SOUND_MIXER_READ_PCM)
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_WRITE_PCM\n");
+            else
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_WRITE_IGAIN\n");
+
             pa_threaded_mainloop_lock(i->mainloop);
 
-            v = i->volume;
-            
-            i->volume.values[0] = ((*(int*) argp & 0xFF)*PA_VOLUME_NORM)/100;
-            i->volume.values[1] = ((*(int*) argp >> 8)*PA_VOLUME_NORM)/100;
+            if (request == SOUND_MIXER_READ_PCM) {
+                v = i->sink_volume;
+                pv = &i->sink_volume;
+            } else {
+                v = i->source_volume;
+                pv = &i->source_volume;
+            }
 
-            if (!pa_cvolume_equal(&i->volume, &v)) {
+            pv->values[0] = ((*(int*) argp & 0xFF)*PA_VOLUME_NORM)/100;
+            pv->values[1] = ((*(int*) argp >> 8)*PA_VOLUME_NORM)/100;
+
+            if (!pa_cvolume_equal(pv, &v)) {
                 pa_operation *o;
-                
-                if (!(o = pa_context_set_sink_volume_by_index(i->context, i->sink_index, &i->volume, NULL, NULL)))
+
+                if (request == SOUND_MIXER_READ_PCM)
+                    o = pa_context_set_sink_volume_by_index(i->context, i->sink_index, pv, NULL, NULL);
+                else
+                    o = pa_context_set_source_volume_by_index(i->context, i->source_index, pv, NULL, NULL);
+
+                if (!o)
                     debug(DEBUG_LEVEL_NORMAL, __FILE__":Failed set volume: %s", pa_strerror(pa_context_errno(i->context)));
                 else {
 
@@ -1310,13 +1575,10 @@ static int map_format_back(pa_sample_format_t format) {
     }
 }
 
-static int dsp_flush_socket(fd_info *i) {
+static int dsp_flush_fd(int fd) {
     int l;
-        
-    if (i->thread_fd < 0)
-        return -1;
 
-    if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
+    if (ioctl(fd, SIOCINQ, &l) < 0) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ: %s\n", strerror(errno));
         return -1;
     }
@@ -1326,10 +1588,31 @@ static int dsp_flush_socket(fd_info *i) {
         size_t k;
 
         k = (size_t) l > sizeof(buf) ? sizeof(buf) : (size_t) l;
-        if (read(i->thread_fd, buf, k) < 0)
+        if (read(fd, buf, k) < 0)
             debug(DEBUG_LEVEL_NORMAL, __FILE__": read(): %s\n", strerror(errno));
         l -= k;
     }
+
+    return 0;
+}
+
+static int dsp_flush_socket(fd_info *i) {
+    int res = 0;
+
+    if ((i->thread_fd < 0) && (i->app_fd < 0))
+        return -1;
+
+    if (i->thread_fd >= 0)
+        res = dsp_flush_fd(i->thread_fd);
+
+    if (res < 0)
+        return res;
+
+    if (i->app_fd >= 0)
+        res = dsp_flush_fd(i->app_fd);
+
+    if (res < 0)
+        return res;
 
     return 0;
 }
@@ -1374,19 +1657,19 @@ static int dsp_drain(fd_info *i) {
     if (dsp_empty_socket(i) < 0)
         goto fail;
     
-    if (!i->stream)
+    if (!i->play_stream)
         goto fail;
 
     debug(DEBUG_LEVEL_NORMAL, __FILE__": Really draining.\n");
         
-    if (!(o = pa_stream_drain(i->stream, stream_success_cb, i))) {
+    if (!(o = pa_stream_drain(i->play_stream, stream_success_cb, i))) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_drain(): %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
     i->operation_success = 0;
     while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
-        STREAM_CHECK_DEAD_GOTO(i, fail);
+        PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, fail);
             
         pa_threaded_mainloop_wait(i->mainloop);
     }
@@ -1412,7 +1695,7 @@ static int dsp_trigger(fd_info *i) {
     pa_operation *o = NULL;
     int r = -1;
 
-    if (!i->stream)
+    if (!i->play_stream)
         return 0;
 
     pa_threaded_mainloop_lock(i->mainloop);
@@ -1422,14 +1705,14 @@ static int dsp_trigger(fd_info *i) {
 
     debug(DEBUG_LEVEL_NORMAL, __FILE__": Triggering.\n");
         
-    if (!(o = pa_stream_trigger(i->stream, stream_success_cb, i))) {
+    if (!(o = pa_stream_trigger(i->play_stream, stream_success_cb, i))) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_trigger(): %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
     i->operation_success = 0;
     while (!pa_operation_get_state(o) != PA_OPERATION_DONE) {
-        STREAM_CHECK_DEAD_GOTO(i, fail);
+        PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, fail);
             
         pa_threaded_mainloop_wait(i->mainloop);
     }
@@ -1464,7 +1747,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
                 *(int*) argp = map_format_back(i->sample_spec.format);
             else {
                 map_format((int*) argp, &i->sample_spec);
-                free_stream(i);
+                free_streams(i);
             }
 
             pa_threaded_mainloop_unlock(i->mainloop);
@@ -1485,7 +1768,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
             if ((valid = pa_sample_spec_valid(&ss))) {
                 i->sample_spec = ss;
-                free_stream(i);
+                free_streams(i);
             }
             
             debug(DEBUG_LEVEL_NORMAL, __FILE__": ss: %s\n", pa_sample_spec_snprint(t, sizeof(t), &i->sample_spec));
@@ -1506,7 +1789,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             pa_threaded_mainloop_lock(i->mainloop);
             
             i->sample_spec.channels = *(int*) argp ? 2 : 1;
-            free_stream(i);
+            free_streams(i);
             
             pa_threaded_mainloop_unlock(i->mainloop);
             return 0;
@@ -1524,7 +1807,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
             if ((valid = pa_sample_spec_valid(&ss))) {
                 i->sample_spec = ss;
-                free_stream(i);
+                free_streams(i);
             }
             
             pa_threaded_mainloop_unlock(i->mainloop);
@@ -1557,7 +1840,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             i->fragment_size = 1 << (*(int*) argp);
             i->n_fragments = (*(int*) argp) >> 16;
             
-            free_stream(i);
+            free_streams(i);
             
             pa_threaded_mainloop_unlock(i->mainloop);
             
@@ -1566,7 +1849,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         case SNDCTL_DSP_GETCAPS:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_CAPS\n");
             
-            *(int*)  argp = DSP_CAP_MULTI;
+            *(int*)  argp = DSP_CAP_DUPLEX | DSP_CAP_MULTI;
             break;
 
         case SNDCTL_DSP_GETODELAY: {
@@ -1581,9 +1864,9 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             for (;;) {
                 pa_usec_t usec;
 
-                STREAM_CHECK_DEAD_GOTO(i, exit_loop);
+                PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, exit_loop);
 
-                if (pa_stream_get_latency(i->stream, &usec, NULL) >= 0) {
+                if (pa_stream_get_latency(i->play_stream, &usec, NULL) >= 0) {
                     *(int*) argp = pa_usec_to_bytes(usec, &i->sample_spec);
                     break;
                 }
@@ -1615,7 +1898,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             
             pa_threaded_mainloop_lock(i->mainloop);
 
-            free_stream(i);
+            free_streams(i);
             dsp_flush_socket(i);
             reset_params(i);
             
@@ -1645,31 +1928,51 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
             break;
 
-        case SNDCTL_DSP_GETOSPACE: {
+        case SNDCTL_DSP_GETOSPACE:
+        case SNDCTL_DSP_GETISPACE: {
             audio_buf_info *bi = (audio_buf_info*) argp;
             int l;
             size_t k = 0;
 
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETOSPACE\n");
+            if (request == SNDCTL_DSP_GETOSPACE)
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETOSPACE\n");
+            else
+                debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETISPACE\n");
 
             pa_threaded_mainloop_lock(i->mainloop);
 
             fix_metrics(i);
-            
-            if (i->stream) {
-                if ((k = pa_stream_writable_size(i->stream)) == (size_t) -1)
-                    debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_writable_size(): %s\n", pa_strerror(pa_context_errno(i->context)));
-            } else
-                k = i->fragment_size * i->n_fragments;
-            
-            if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
-                debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ failed: %s\n", strerror(errno));
-                l = 0;
+
+            if (request == SNDCTL_DSP_GETOSPACE) {
+                if (i->play_stream) {
+                    if ((k = pa_stream_writable_size(i->play_stream)) == (size_t) -1)
+                        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_writable_size(): %s\n", pa_strerror(pa_context_errno(i->context)));
+                } else
+                    k = i->fragment_size * i->n_fragments;
+
+                if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
+                    debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ failed: %s\n", strerror(errno));
+                    l = 0;
+                }
+
+                bi->bytes = k > (size_t) l ? k - l : 0;
+            } else {
+                if (i->rec_stream) {
+                    if ((k = pa_stream_readable_size(i->rec_stream)) == (size_t) -1)
+                        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_readable_size(): %s\n", pa_strerror(pa_context_errno(i->context)));
+                } else
+                    k = 0;
+
+                if (ioctl(i->app_fd, SIOCINQ, &l) < 0) {
+                    debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ failed: %s\n", strerror(errno));
+                    l = 0;
+                }
+
+                bi->bytes = k + l;
             }
 
             bi->fragsize = i->fragment_size;
             bi->fragstotal = i->n_fragments;
-            bi->bytes = k > (size_t) l ? k - l : 0;
             bi->fragments = bi->bytes / bi->fragsize;
 
             pa_threaded_mainloop_unlock(i->mainloop);
