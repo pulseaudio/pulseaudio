@@ -392,7 +392,7 @@ static void context_state_cb(pa_context *c, void *userdata) {
 static void reset_params(fd_info *i) {
     assert(i);
     
-    i->sample_spec.format = PA_SAMPLE_ULAW;
+    i->sample_spec.format = PA_SAMPLE_U8;
     i->sample_spec.channels = 1;
     i->sample_spec.rate = 8000;
     i->fragment_size = 0;
