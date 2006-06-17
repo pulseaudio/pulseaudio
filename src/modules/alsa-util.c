@@ -323,12 +323,24 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     
     if ((ret = snd_pcm_hw_params_malloc(&hwparams)) < 0 ||
         (ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0 ||
-    	(ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0 ||
-        (ret = set_format(pcm_handle, hwparams, &f)) < 0 ||
-        (ret = snd_pcm_hw_params_set_channels_near(pcm_handle, hwparams, &c)) < 0 || 
-        (*period_size > 0 && (ret = snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, period_size, NULL)) < 0) ||
-        (*periods > 0 && (ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0) ||
-        (ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0)
+        (ret = snd_pcm_hw_params_set_rate_resample(pcm_handle, hwparams, 0)) < 0 ||
+    	(ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+        goto finish;
+
+    if ((ret = set_format(pcm_handle, hwparams, &f)) < 0)
+        goto finish;
+
+    if ((ret = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &r, NULL)) < 0)
+        goto finish;
+
+    if ((ret = snd_pcm_hw_params_set_channels_near(pcm_handle, hwparams, &c)) < 0)
+        goto finish;
+
+    if ((*period_size > 0 && (ret = snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, period_size, NULL)) < 0) ||
+        (*periods > 0 && (ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0))
+        goto finish;
+
+    if  ((ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0)
         goto finish;
 
     if (ss->rate != r) {
