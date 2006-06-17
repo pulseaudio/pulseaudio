@@ -33,6 +33,7 @@
 #include <polypcore/log.h>
 
 #include "sample-util.h"
+#include "endianmacros.h"
 
 pa_memblock *pa_silence_memblock_new(const pa_sample_spec *spec, size_t length, pa_memblock_stat*s) {
     assert(spec);
@@ -138,6 +139,54 @@ size_t pa_mix(
                     channel = 0;
             }
         }
+
+        case PA_SAMPLE_S16RE:{
+            size_t d;
+            unsigned channel = 0;
+            
+            for (d = 0;; d += sizeof(int16_t)) {
+                int32_t sum = 0;
+                
+                if (d >= length)
+                    return d;
+
+                if (!mute && volume->values[channel] != PA_VOLUME_MUTED) {
+                    unsigned i;
+                    
+                    for (i = 0; i < nstreams; i++) {
+                        int32_t v;
+                        pa_volume_t cvolume = streams[i].volume.values[channel];
+                        
+                        if (d >= streams[i].chunk.length)
+                            return d;
+                        
+                        if (cvolume == PA_VOLUME_MUTED)
+                            v = 0;
+                        else {
+                            v = INT16_SWAP(*((int16_t*) ((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d)));
+                            
+                            if (cvolume != PA_VOLUME_NORM)
+                                v = (int32_t) (v * pa_sw_volume_to_linear(cvolume));
+                        }
+                        
+                        sum += v;
+                    }
+                
+                    if (volume->values[channel] != PA_VOLUME_NORM)
+                        sum = (int32_t) (sum * pa_sw_volume_to_linear(volume->values[channel]));
+
+                    if (sum < -0x8000) sum = -0x8000;
+                    if (sum > 0x7FFF) sum = 0x7FFF;
+
+                }
+                
+                *((int16_t*) data) = INT16_SWAP(sum);
+                data = (uint8_t*) data + sizeof(int16_t);
+                
+                if (++channel >= spec->channels)
+                    channel = 0;
+            }
+        }
             
         case PA_SAMPLE_U8: {
             size_t d;
@@ -232,6 +281,7 @@ size_t pa_mix(
         }
             
         default:
+            pa_log_error(__FILE__": ERROR: Unable to mix audio data of format %s.", pa_sample_format_to_string(spec->format));
             abort();
     }
 }
@@ -253,12 +303,16 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
         case PA_SAMPLE_S16NE: {
             int16_t *d;
             size_t n;
-            unsigned channel = 0;
+            unsigned channel;
+            double linear[PA_CHANNELS_MAX];
+
+            for (channel = 0; channel < spec->channels; channel++)
+                linear[channel] = pa_sw_volume_to_linear(volume->values[channel]);
             
-            for (d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+            for (channel = 0, d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
                 int32_t t = (int32_t)(*d);
                 
-                t = (int32_t) (t * pa_sw_volume_to_linear(volume->values[channel]));
+                t = (int32_t) (t * linear[channel]);
                 
                 if (t < -0x8000) t = -0x8000;
                 if (t > 0x7FFF) t = 0x7FFF;
@@ -268,6 +322,32 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
                 if (++channel >= spec->channels)
                     channel = 0;
             }
+            break;
+        }
+
+        case PA_SAMPLE_S16RE: {
+            int16_t *d;
+            size_t n;
+            unsigned channel;
+            double linear[PA_CHANNELS_MAX];
+            
+            for (channel = 0; channel < spec->channels; channel++)
+                linear[channel] = pa_sw_volume_to_linear(volume->values[channel]);
+            
+            for (channel = 0, d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+                int32_t t = (int32_t)(INT16_SWAP(*d));
+                
+                t = (int32_t) (t * linear[channel]);
+                
+                if (t < -0x8000) t = -0x8000;
+                if (t > 0x7FFF) t = 0x7FFF;
+                
+                *d = INT16_SWAP((int16_t) t);
+                
+                if (++channel >= spec->channels)
+                    channel = 0;
+            }
+
             break;
         }
             
