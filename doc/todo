@@ -35,7 +35,6 @@ Post 0.9.0:
 - check if using prctl(PR_GET_NAME) makes sense in pa_get_binary_name()
 - gconf module + frontend
 - hooks for creating sink inputs
-- module-cli argument exit-on-eof
 
 Long term:
 - pass meta info for hearing impaired

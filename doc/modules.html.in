@@ -193,7 +193,9 @@ once.</p>
 <p>For an explanation of the simple command line language used by this
 module see <a href="cli.html"><tt>cli.html</tt></a>.
 
-<p>This module doesn't accept any arguments.</p>
+<table>
+  <tr><td><tt>exit_on_eof=</tt></td><td>Accepts a binary numerical argument specifying whether the daemon shuld exit after an EOF was recieved from STDIN (default: 0)</td></tr>
+</table>
 
 <a name="module-cli-protocol-unix"/>
 <a name="module-cli-protocol-tcp"/>

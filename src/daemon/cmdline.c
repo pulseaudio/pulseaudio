@@ -186,7 +186,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                 break;
                 
             case 'C':
-                pa_strbuf_puts(buf, "load-module module-cli\n");
+                pa_strbuf_puts(buf, "load-module module-cli exit_on_eof=1\n");
                 break;
                 
             case ARG_DAEMONIZE:
