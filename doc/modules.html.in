@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>pulseaudio: Loadable Modules</title>
+<title>PulseAudio: Loadable Modules</title>
 <link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 
@@ -10,7 +10,7 @@
 
 <h1>Loadable Modules</h1>
 
-<p>The following loadable modules are provided with the <tt>pulseaudio</tt> distribution:</p>
+<p>The following loadable modules are provided with the PulseAudio distribution:</p>
 
 <h2>Device Drivers</h2>
 
@@ -157,7 +157,7 @@ will decrease output quality however. (defaults to
 <h3>module-tunnel-{sink,source}</h3>
 
 <p>Tunnel a remote sink/source to a local "ghost"
-sink/source. Requires a running pulseaudio daemon on the remote server
+sink/source. Requires a running PulseAudio daemon on the remote server
 with <tt>module-native-protocol-tcp</tt> loaded. It's probably a
 better idea to connect to the remote sink/source directly since some
 buffer control is lost through this tunneling.</p>
@@ -204,7 +204,7 @@ module see <a href="cli.html"><tt>cli.html</tt></a>.
 <h3>module-cli-protocol-{unix,tcp}</h3>
 
 <p>An implemenation of a simple command line based protocol for
-controlling the <tt>pulseaudio</tt> daemon. If loaded, the user may
+controlling the PulseAudio daemon. If loaded, the user may
 connect with tools like <tt>netcat</tt>, <tt>telnet</tt> or
 <a href="http://0pointer.de/lennart/projects/bidilink/"><tt>bidilink</tt></a> to the listening sockets and execute commands the
 same way as with <tt>module-cli</tt>.</p>
@@ -225,7 +225,7 @@ transparent TCP/IP socket. (Both IPv6 and IPv4 - if available)</p>
 a numerical binary value. If 1 the socket is bound to the loopback
 device, i.e. not publicly accessible. (defaults to 1)</td></tr>
   <tr><td><tt>listen=</tt></td><td>(only for <tt>-tcp</tt>) The IP address to listen on. If specified, supersedes the value specified in <tt>loopback=</tt></td></tr>
-  <tr><td><tt>socket=</tt></td><td>(only for <tt>-unix</tt>) The UNIX socket name (defaults to <tt>/tmp/pulseaudio/cli</tt>)</td></tr>
+  <tr><td><tt>socket=</tt></td><td>(only for <tt>-unix</tt>) The UNIX socket name (defaults to <tt>/tmp/pulse/cli</tt>)</td></tr>
 </table>
 
 <h3>module-simple-protocol-{unix,tcp}</h3>
@@ -254,7 +254,7 @@ about the two possible suffixes of this module.</p>
 <p>An implemenation of a protocol compatible with the <a
 href="http://www.tux.org/~ricdude/EsounD.html">Enlightened Sound
 Daemon</a> (ESOUND, <tt>esd</tt>). When you load this module you may
-access the <tt>pulseaudio</tt> daemon with tools like <tt>esdcat</tt>,
+access the PulseAudio daemon with tools like <tt>esdcat</tt>,
 <tt>esdrec</tt> or even <tt>esdctl</tt>. Many applications, such as
 XMMS, include support for this protocol.</p>
 
@@ -273,7 +273,7 @@ about the two possible suffixes of this module.</p>
 
 <h3>module-native-protocol-{unix,tcp}</h3>
 
-<p>The native protocol of <tt>pulseaudio</tt>.</p>
+<p>The native protocol of PulseAudio.</p>
 
 <p>See <tt>module-cli-protocol-{unix,tcp}</tt> for more information
 about the two possible suffixes of this module.</p>
@@ -293,7 +293,7 @@ about the two possible suffixes of this module.</p>
 <h3>module-http-protocol-tcp</h3>
 
 <p>A proof-of-concept HTTP module, which can be used to introspect
-the current status of the pulseaudio daemon using HTTP. Just load this
+the current status of the PulseAudio daemon using HTTP. Just load this
 module and point your browser to <a
 href="http://localhost:4714/">http://localhost:4714/</a>. This module takes the same arguments
 as <tt>module-cli-protocol-tcp</tt>.</p>
@@ -430,7 +430,7 @@ created in the JACK server.</p>
 <table>
   <tr><td><tt>sink_name=</tt></td><td>The name for the Polypaudio sink. If ommited defaults to <tt>jack_out</tt>.</td></tr>
   <tr><td><tt>server_name=</tt></td><td>The JACK server to connect to. If ommited defaults to the default server.</td></tr>
-  <tr><td><tt>client_name=</tt></td><td>The client name to tell the JACK server. If ommited defaults to <tt>pulseaudio</tt>.</td></tr>
+  <tr><td><tt>client_name=</tt></td><td>The client name to tell the JACK server. If ommited defaults to <tt>PulseAudio</tt>.</td></tr>
   <tr><td><tt>channels=</tt></td><td>Number of channels to register. If ommited defaults to the number of physical playback ports of the JACK server.</td></tr>
   <tr><td><tt>connect=</tt></td><td>Takes a boolean value. If enabled (the default) Polypaudio will try to connect its ports to the physicial playback ports of the JACK server</td></tr>
 </table>
@@ -455,18 +455,18 @@ which is replaced by <tt>source_name</tt> (with a default of <tt>jack_in</tt>) f
 
 <h3>module-esound-compat-spawnfd</h3>
 
-<p>This is a compatibility module for <tt>libesd</tt> based autospawning of pulseaudio. Don't use it directly.</p>
+<p>This is a compatibility module for <tt>libesd</tt> based autospawning of PulseAudio. Don't use it directly.</p>
 
 <h3>module-esound-compat-spawnpid</h3>
 
-<p>This is a compatibility module for <tt>libesd</tt> based autospawning of pulseaudio. Don't use it directly.</p>
+<p>This is a compatibility module for <tt>libesd</tt> based autospawning of PulseAudio. Don't use it directly.</p>
 
 <h3>module-match</h3>
 
 <p>Adjust the volume of a playback stream automatically based on its name.</p>
 
 <table>
-  <tr><td><tt>table=</tt></td><td>The regular expression matching table file to use (defaults to <tt>~/.pulseaudio/match.table</tt>)</td></tr>
+  <tr><td><tt>table=</tt></td><td>The regular expression matching table file to use (defaults to <tt>~/.pulse/match.table</tt>)</td></tr>
 </table>
 
 <p>The table file should contain a regexp and volume on each line, seperated by spaces. An example:</p>
@@ -482,7 +482,7 @@ which is replaced by <tt>source_name</tt> (with a default of <tt>jack_in</tt>) f
 <p>Adjust the volume of a playback stream automatically based on its name.</p>
 
 <table>
-  <tr><td><tt>table=</tt></td><td>The table file to use (defaults to <tt>~/.pulseaudio/volume.table</tt>)</td></tr>
+  <tr><td><tt>table=</tt></td><td>The table file to use (defaults to <tt>~/.pulse/volume.table</tt>)</td></tr>
 </table>
 
 <p>In contrast to <tt>module-match</tt> this module needs no explicit
