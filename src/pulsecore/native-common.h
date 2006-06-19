@@ -112,7 +112,7 @@ enum {
 };
 
 #define PA_NATIVE_COOKIE_LENGTH 256
-#define PA_NATIVE_COOKIE_FILE ".pulseaudio-cookie"
+#define PA_NATIVE_COOKIE_FILE ".pulse-cookie"
 
 #define PA_NATIVE_DEFAULT_PORT 4713
 

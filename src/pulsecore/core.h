@@ -33,13 +33,13 @@ typedef struct pa_core pa_core;
 #include <pulsecore/queue.h>
 #include <pulsecore/core-subscribe.h>
 
-/* The core structure of pulseaudio. Every pulseaudio daemon contains
+/* The core structure of PulseAudio. Every PulseAudio daemon contains
  * exactly one of these. It is used for storing kind of global
  * variables for the daemon. */
 
 struct pa_core {
     /* A random value which may be used to identify this instance of
-     * pulseaudio. Not cryptographically secure in any way. */
+     * PulseAudio. Not cryptographically secure in any way. */
     uint32_t cookie;
     
     pa_mainloop_api *mainloop;

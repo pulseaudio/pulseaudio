@@ -84,7 +84,7 @@ pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     c->client->owner = m;
     
     pa_ioline_set_callback(c->line, line_callback, c);
-    pa_ioline_puts(c->line, "Welcome to pulseaudio! Use \"help\" for usage information.\n"PROMPT);
+    pa_ioline_puts(c->line, "Welcome to PulseAudio! Use \"help\" for usage information.\n"PROMPT);
 
     c->fail = c->kill_requested = c->defer_kill = 0;
     

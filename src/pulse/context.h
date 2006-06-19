@@ -32,7 +32,7 @@
  *
  * \section overv_sec Overview
  *
- * The asynchronous API is the native interface to the pulseaudio library.
+ * The asynchronous API is the native interface to the PulseAudio library.
  * It allows full access to all available functions. This also means that
  * it is rather complex and can take some time to fully master.
  *
@@ -52,10 +52,10 @@
  *
  * To actually be able to use these functions, an implementation needs to 
  * be coupled to the abstraction. There are three of these shipped with
- * pulseaudio, but any other can be used with a minimal ammount of work,
+ * PulseAudio, but any other can be used with a minimal ammount of work,
  * provided it supports the three basic events listed above.
  *
- * The implementations shipped with pulseaudio are:
+ * The implementations shipped with PulseAudio are:
  *
  * \li \subpage mainloop - A minimal but fast implementation based on poll().
  * \li \subpage threaded_mainloop - A special version of the previous
@@ -71,7 +71,7 @@
  *
  * \section refcnt_sec Reference Counting
  *
- * Almost all objects in pulseaudio are reference counted. What that means
+ * Almost all objects in PulseAudio are reference counted. What that means
  * is that you rarely malloc() or free() any objects. Instead you increase
  * and decrease their reference counts. Whenever an object's reference
  * count reaches zero, that object gets destroy and any resources it uses
@@ -89,7 +89,7 @@
  *
  * \section context_sec Context
  *
- * A context is the basic object for a connection to a pulseaudio server.
+ * A context is the basic object for a connection to a PulseAudio server.
  * It multiplexes commands, data streams and events through a single
  * channel.
  *
@@ -142,7 +142,7 @@
 
 /** \file
  * Connection contexts for asynchrononous communication with a
- * server. A pa_context object wraps a connection to a pulseaudio
+ * server. A pa_context object wraps a connection to a PulseAudio
  * server using its native protocol. */
 
 /** \example pacat.c

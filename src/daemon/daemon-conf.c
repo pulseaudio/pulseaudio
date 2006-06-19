@@ -41,7 +41,7 @@
 
 #ifndef DEFAULT_CONFIG_DIR
 # ifndef OS_IS_WIN32
-#  define DEFAULT_CONFIG_DIR "/etc/pulseaudio"
+#  define DEFAULT_CONFIG_DIR "/etc/pulse"
 # else
 #  define DEFAULT_CONFIG_DIR "%POLYP_ROOT%"
 # endif
@@ -54,9 +54,9 @@
 #endif
 
 #define DEFAULT_SCRIPT_FILE DEFAULT_CONFIG_DIR PATH_SEP "default.pa"
-#define DEFAULT_SCRIPT_FILE_USER ".pulseaudio" PATH_SEP "default.pa"
+#define DEFAULT_SCRIPT_FILE_USER ".pulse" PATH_SEP "default.pa"
 #define DEFAULT_CONFIG_FILE DEFAULT_CONFIG_DIR PATH_SEP "daemon.conf"
-#define DEFAULT_CONFIG_FILE_USER ".pulseaudio" PATH_SEP "daemon.conf"
+#define DEFAULT_CONFIG_FILE_USER ".pulse" PATH_SEP "daemon.conf"
 
 #define ENV_SCRIPT_FILE "POLYP_SCRIPT"
 #define ENV_CONFIG_FILE "POLYP_CONFIG"

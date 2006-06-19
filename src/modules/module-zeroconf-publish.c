@@ -53,9 +53,9 @@ PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("port=<IP port number>")
 
-#define SERVICE_NAME_SINK "_pulseaudio-sink._tcp"
-#define SERVICE_NAME_SOURCE "_pulseaudio-source._tcp"
-#define SERVICE_NAME_SERVER "_pulseaudio-server._tcp"
+#define SERVICE_NAME_SINK "_pulse-sink._tcp"
+#define SERVICE_NAME_SOURCE "_pulse-source._tcp"
+#define SERVICE_NAME_SERVER "_pulse-server._tcp"
 
 static const char* const valid_modargs[] = {
     "port",

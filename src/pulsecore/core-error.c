@@ -68,7 +68,7 @@ static void inittls(void) {
     HANDLE mutex;
     char name[64];
 
-    sprintf(name, "pulseaudio%d", (int)GetCurrentProcessId());
+    sprintf(name, "pulse%d", (int)GetCurrentProcessId());
 
     mutex = CreateMutex(NULL, FALSE, name);
     if (!mutex) {

@@ -41,7 +41,7 @@
 
 #ifndef DEFAULT_CONFIG_DIR
 # ifndef OS_IS_WIN32
-#  define DEFAULT_CONFIG_DIR "/etc/pulseaudio"
+#  define DEFAULT_CONFIG_DIR "/etc/pulse"
 # else
 #  define DEFAULT_CONFIG_DIR "%POLYP_ROOT%"
 # endif
@@ -54,7 +54,7 @@
 #endif
 
 #define DEFAULT_CLIENT_CONFIG_FILE DEFAULT_CONFIG_DIR PATH_SEP "client.conf"
-#define DEFAULT_CLIENT_CONFIG_FILE_USER ".pulseaudio" PATH_SEP "client.conf"
+#define DEFAULT_CLIENT_CONFIG_FILE_USER ".pulse" PATH_SEP "client.conf"
 
 #define ENV_CLIENT_CONFIG_FILE "POLYP_CLIENTCONFIG"
 #define ENV_DEFAULT_SINK "POLYP_SINK"

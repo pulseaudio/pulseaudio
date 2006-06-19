@@ -24,7 +24,7 @@
 
 #include <pulsecore/native-common.h>
 
-/* A structure containing configuration data for pulseaudio clients. */
+/* A structure containing configuration data for PulseAudio clients. */
 
 typedef struct pa_client_conf {
     char *daemon_binary, *extra_arguments, *default_sink, *default_source, *default_server, *cookie_file;

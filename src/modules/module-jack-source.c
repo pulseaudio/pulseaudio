@@ -259,7 +259,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
         
     server_name = pa_modargs_get_value(ma, "server_name", NULL);
-    client_name = pa_modargs_get_value(ma, "client_name", "pulseaudio");
+    client_name = pa_modargs_get_value(ma, "client_name", "PulseAudio");
 
     u = pa_xnew0(struct userdata, 1);
     m->userdata = u;

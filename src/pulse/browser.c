@@ -29,9 +29,9 @@
 
 #include "browser.h"
 
-#define SERVICE_NAME_SINK "_pulseaudio-sink._tcp."
-#define SERVICE_NAME_SOURCE "_pulseaudio-source._tcp."
-#define SERVICE_NAME_SERVER "_pulseaudio-server._tcp."
+#define SERVICE_NAME_SINK "_pulse-sink._tcp."
+#define SERVICE_NAME_SOURCE "_pulse-source._tcp."
+#define SERVICE_NAME_SERVER "_pulse-server._tcp."
 
 struct pa_browser {
     int ref;

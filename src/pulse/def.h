@@ -66,7 +66,7 @@ typedef enum pa_operation_state {
 
 /** Some special flags for contexts. \since 0.8 */
 typedef enum pa_context_flags {
-    PA_CONTEXT_NOAUTOSPAWN = 1 /**< Disabled autospawning of the pulseaudio daemon if required */
+    PA_CONTEXT_NOAUTOSPAWN = 1 /**< Disabled autospawning of the PulseAudio daemon if required */
 } pa_context_flags_t;
 
 /** The direction of a pa_stream object */ 

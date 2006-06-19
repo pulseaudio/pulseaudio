@@ -79,10 +79,10 @@
 #include "core-util.h"
 
 #ifndef OS_IS_WIN32
-#define PA_RUNTIME_PATH_PREFIX "/tmp/pulseaudio-"
+#define PA_RUNTIME_PATH_PREFIX "/tmp/pulse-"
 #define PATH_SEP '/'
 #else
-#define PA_RUNTIME_PATH_PREFIX "%TEMP%\\pulseaudio-"
+#define PA_RUNTIME_PATH_PREFIX "%TEMP%\\pulse-"
 #define PATH_SEP '\\'
 #endif
 
@@ -961,7 +961,7 @@ int pa_endswith(const char *s, const char *sfx) {
     return l1 >= l2 && strcmp(s+l1-l2, sfx) == 0;
 }
 
-/* if fn is null return the pulseaudio run time path in s (/tmp/pulseaudio)
+/* if fn is null return the PulseAudio run time path in s (/tmp/pulse)
  * if fn is non-null and starts with / return fn in s
  * otherwise append fn to the run time path and return it in s */
 char *pa_runtime_path(const char *fn, char *s, size_t l) {

@@ -29,13 +29,13 @@
 
 /** \file
  * 
- * Main loop abstraction layer. Both the pulseaudio core and the
- * pulseaudio client library use a main loop abstraction layer. Due to
- * this it is possible to embed pulseaudio into other
+ * Main loop abstraction layer. Both the PulseAudio core and the
+ * PulseAudio client library use a main loop abstraction layer. Due to
+ * this it is possible to embed PulseAudio into other
  * applications easily. Two main loop implemenations are
  * currently available:
  * \li A minimal implementation based on the C library's poll() function (See \ref mainloop.h)
- * \li A wrapper around the GLIB main loop. Use this to embed pulseaudio into your GLIB/GTK+/GNOME programs (See \ref glib-mainloop.h)
+ * \li A wrapper around the GLIB main loop. Use this to embed PulseAudio into your GLIB/GTK+/GNOME programs (See \ref glib-mainloop.h)
  *
  * The structure pa_mainloop_api is used as vtable for the main loop abstraction.
  *

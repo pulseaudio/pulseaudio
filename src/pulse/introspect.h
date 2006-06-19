@@ -270,7 +270,7 @@ typedef struct pa_server_info {
     pa_sample_spec sample_spec;         /**< Default sample specification */
     const char *default_sink_name;      /**< Name of default sink. \since 0.4 */
     const char *default_source_name;    /**< Name of default sink. \since 0.4*/
-    uint32_t cookie;                    /**< A random cookie for identifying this instance of pulseaudio. \since 0.8 */
+    uint32_t cookie;                    /**< A random cookie for identifying this instance of PulseAudio. \since 0.8 */
 } pa_server_info;
 
 /** Callback prototype for pa_context_get_server_info() */
