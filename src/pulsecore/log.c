@@ -40,7 +40,7 @@
 
 #include "log.h"
 
-#define ENV_LOGLEVEL "POLYP_LOG"
+#define ENV_LOGLEVEL "PULSE_LOG"
 
 static char *log_ident = NULL, *log_ident_local = NULL;
 static pa_log_target_t log_target = PA_LOG_STDERR;

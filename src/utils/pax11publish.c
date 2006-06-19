@@ -99,13 +99,13 @@ int main(int argc, char *argv[]) {
     switch (mode) {
         case DUMP: {
             char t[1024];
-            if (pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) 
+            if (pa_x11_get_prop(d, "PULSE_SERVER", t, sizeof(t))) 
                 printf("Server: %s\n", t);
-            if (pa_x11_get_prop(d, "POLYP_SOURCE", t, sizeof(t)))
+            if (pa_x11_get_prop(d, "PULSE_SOURCE", t, sizeof(t)))
                 printf("Source: %s\n", t);
-            if (pa_x11_get_prop(d, "POLYP_SINK", t, sizeof(t)))
+            if (pa_x11_get_prop(d, "PULSE_SINK", t, sizeof(t)))
                 printf("Sink: %s\n", t);
-            if (pa_x11_get_prop(d, "POLYP_COOKIE", t, sizeof(t)))
+            if (pa_x11_get_prop(d, "PULSE_COOKIE", t, sizeof(t)))
                 printf("Cookie: %s\n", t);
 
             break;
@@ -113,14 +113,14 @@ int main(int argc, char *argv[]) {
             
         case IMPORT: {
             char t[1024];
-            if (pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) 
-                printf("POLYP_SERVER='%s'\nexport POLYP_SERVER\n", t);
-            if (pa_x11_get_prop(d, "POLYP_SOURCE", t, sizeof(t)))
-                printf("POLYP_SOURCE='%s'\nexport POLYP_SOURCE\n", t);
-            if (pa_x11_get_prop(d, "POLYP_SINK", t, sizeof(t)))
-                printf("POLYP_SINK='%s'\nexport POLYP_SINK\n", t);
+            if (pa_x11_get_prop(d, "PULSE_SERVER", t, sizeof(t))) 
+                printf("PULSE_SERVER='%s'\nexport PULSE_SERVER\n", t);
+            if (pa_x11_get_prop(d, "PULSE_SOURCE", t, sizeof(t)))
+                printf("PULSE_SOURCE='%s'\nexport PULSE_SOURCE\n", t);
+            if (pa_x11_get_prop(d, "PULSE_SINK", t, sizeof(t)))
+                printf("PULSE_SINK='%s'\nexport PULSE_SINK\n", t);
 
-            if (pa_x11_get_prop(d, "POLYP_COOKIE", t, sizeof(t))) {
+            if (pa_x11_get_prop(d, "PULSE_COOKIE", t, sizeof(t))) {
                 uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
                 size_t l;
                 if ((l = pa_parsehex(t, cookie, sizeof(cookie))) != sizeof(cookie)) {
@@ -153,16 +153,16 @@ int main(int argc, char *argv[]) {
                 goto finish;
             }
 
-            pa_x11_del_prop(d, "POLYP_SERVER");
-            pa_x11_del_prop(d, "POLYP_SINK");
-            pa_x11_del_prop(d, "POLYP_SOURCE");
-            pa_x11_del_prop(d, "POLYP_ID");
-            pa_x11_del_prop(d, "POLYP_COOKIE");
+            pa_x11_del_prop(d, "PULSE_SERVER");
+            pa_x11_del_prop(d, "PULSE_SINK");
+            pa_x11_del_prop(d, "PULSE_SOURCE");
+            pa_x11_del_prop(d, "PULSE_ID");
+            pa_x11_del_prop(d, "PULSE_COOKIE");
             
             if (server)
-                pa_x11_set_prop(d, "POLYP_SERVER", server);
+                pa_x11_set_prop(d, "PULSE_SERVER", server);
             else if (conf->default_server)
-                pa_x11_set_prop(d, "POLYP_SERVER", conf->default_server);
+                pa_x11_set_prop(d, "PULSE_SERVER", conf->default_server);
             else {
                 char hn[256];
                 if (!pa_get_fqdn(hn, sizeof(hn))) {
@@ -170,18 +170,18 @@ int main(int argc, char *argv[]) {
                     goto finish;
                 }
                     
-                pa_x11_set_prop(d, "POLYP_SERVER", hn);
+                pa_x11_set_prop(d, "PULSE_SERVER", hn);
             }
 
             if (sink)
-                pa_x11_set_prop(d, "POLYP_SINK", sink);
+                pa_x11_set_prop(d, "PULSE_SINK", sink);
             else if (conf->default_sink)
-                pa_x11_set_prop(d, "POLYP_SINK", conf->default_sink);
+                pa_x11_set_prop(d, "PULSE_SINK", conf->default_sink);
 
             if (source)
-                pa_x11_set_prop(d, "POLYP_SOURCE", source);
+                pa_x11_set_prop(d, "PULSE_SOURCE", source);
             if (conf->default_source)
-                pa_x11_set_prop(d, "POLYP_SOURCE", conf->default_source);
+                pa_x11_set_prop(d, "PULSE_SOURCE", conf->default_source);
 
             pa_client_conf_free(conf);
             
@@ -190,16 +190,16 @@ int main(int argc, char *argv[]) {
                 goto finish;
             }
 
-            pa_x11_set_prop(d, "POLYP_COOKIE", pa_hexstr(cookie, sizeof(cookie), hx, sizeof(hx)));
+            pa_x11_set_prop(d, "PULSE_COOKIE", pa_hexstr(cookie, sizeof(cookie), hx, sizeof(hx)));
             break;
         }
 
         case REMOVE:
-            pa_x11_del_prop(d, "POLYP_SERVER");
-            pa_x11_del_prop(d, "POLYP_SINK");
-            pa_x11_del_prop(d, "POLYP_SOURCE");
-            pa_x11_del_prop(d, "POLYP_ID");
-            pa_x11_del_prop(d, "POLYP_COOKIE");
+            pa_x11_del_prop(d, "PULSE_SERVER");
+            pa_x11_del_prop(d, "PULSE_SINK");
+            pa_x11_del_prop(d, "PULSE_SOURCE");
+            pa_x11_del_prop(d, "PULSE_ID");
+            pa_x11_del_prop(d, "PULSE_COOKIE");
             break;
             
         default:

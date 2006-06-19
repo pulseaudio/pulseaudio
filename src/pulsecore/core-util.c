@@ -88,14 +88,14 @@
 
 #ifdef OS_IS_WIN32
 
-#define POLYP_ROOTENV "POLYP_ROOT"
+#define PULSE_ROOTENV "PULSE_ROOT"
 
 int pa_set_root(HANDLE handle) {
-    char library_path[MAX_PATH + sizeof(POLYP_ROOTENV) + 1], *sep;
+    char library_path[MAX_PATH + sizeof(PULSE_ROOTENV) + 1], *sep;
 
-    strcpy(library_path, POLYP_ROOTENV "=");
+    strcpy(library_path, PULSE_ROOTENV "=");
 
-    if (!GetModuleFileName(handle, library_path + sizeof(POLYP_ROOTENV), MAX_PATH))
+    if (!GetModuleFileName(handle, library_path + sizeof(PULSE_ROOTENV), MAX_PATH))
         return 0;
 
     sep = strrchr(library_path, '\\');
@@ -818,7 +818,7 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 #ifdef OS_IS_WIN32
     char buf[PATH_MAX];
 
-    if (!getenv(POLYP_ROOTENV))
+    if (!getenv(PULSE_ROOTENV))
         pa_set_root(NULL);
 #endif
 

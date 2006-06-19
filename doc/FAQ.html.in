@@ -103,7 +103,7 @@ in <tt>~/.pulse/</tt>.</p></li>
 
 <li><p><b>How do I use PulseAudio over the network?</b></p>
 
-<p>Just set <tt>$POLYP_SERVER</tt> to the host name of the PulseAudio
+<p>Just set <tt>$PULSE_SERVER</tt> to the host name of the PulseAudio
 server. For authentication you need the same auth cookies on all sides. For
 that copy <tt>~./pulse-cookie</tt> to all clients that shall
 be allowed to connect.</p>
@@ -116,9 +116,9 @@ be allowed to connect.</p>
 
    <li><p><b>What environment variables does PulseAudio care about?</b></p>
 
-<p>The client honors: <tt>POLYP_SINK</tt> (default sink to connect to), <tt>POLYP_SOURCE</tt> (default source to connect to), <tt>POLYP_SERVER</tt> (default server to connect to, like <tt>ESPEAKER</tt>), <tt>POLYP_BINARY</tt> (the binary to start when autospawning a daemon), <tt>POLYP_CLIENTCONFIG</tt> (path to the client configuration file).</p>
+<p>The client honors: <tt>PULSE_SINK</tt> (default sink to connect to), <tt>PULSE_SOURCE</tt> (default source to connect to), <tt>PULSE_SERVER</tt> (default server to connect to, like <tt>ESPEAKER</tt>), <tt>PULSE_BINARY</tt> (the binary to start when autospawning a daemon), <tt>PULSE_CLIENTCONFIG</tt> (path to the client configuration file).</p>
 
-<p>The daemon honors: <tt>POLYP_SCRIPT</tt> (default CLI script file run after startup), <tt>POLYP_CONFIG</tt> (default daemon configuration file), <tt>POLYP_DLPATH</tt> (colon separated list of paths where to look for modules)</p></li>
+<p>The daemon honors: <tt>PULSE_SCRIPT</tt> (default CLI script file run after startup), <tt>PULSE_CONFIG</tt> (default daemon configuration file), <tt>PULSE_DLPATH</tt> (colon separated list of paths where to look for modules)</p></li>
 
 
 <li><p><b>I saw that SIGUSR2 provokes loading of the module <tt>module-cli-protocol-unix</tt>. But how do I make use of that?</b></p>
@@ -140,8 +140,8 @@ bidilink unix-client:/tmp/pulse-$USER/cli</pre>
 <p>The following rule applies:</p>
 <ol>
   <li>If the the application using the library specifies a server to connect to it is used. If the connection fails, the library fails too.</li>
-  <li>If the environment variable <tt>POLYP_SERVER</tt> is defined the library connects to that server. If the connection fails, the library fails too.</li>
-  <li>If <tt>$DISPLAY</tt> is set, the library tries to connect to that server and looks for the root window property <tt>POYLP_SERVER</tt> for the host to connect to. If <tt>POLYP_COOKIE</tt> is set it is used as authentication cookie.</li>
+  <li>If the environment variable <tt>PULSE_SERVER</tt> is defined the library connects to that server. If the connection fails, the library fails too.</li>
+  <li>If <tt>$DISPLAY</tt> is set, the library tries to connect to that server and looks for the root window property <tt>POYLP_SERVER</tt> for the host to connect to. If <tt>PULSE_COOKIE</tt> is set it is used as authentication cookie.</li>
   <li>If the client configuration file (<tt>~/.pulse/client.conf</tt> or <tt>/etc/pulse/client.conf</tt>) sets the server address, the library connects to that server. If the connection fails, the library fails too.</li>
   <li>The library tries to connect to the default local UNIX socket for PulseAudio servers. If the connection fails, it proceeds with the next item.</li>
   <li>The library tries to connect to the default local TCP socket for PulseAudio servers. If the connection fails, it proceeds with the next item.</li>

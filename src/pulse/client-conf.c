@@ -43,7 +43,7 @@
 # ifndef OS_IS_WIN32
 #  define DEFAULT_CONFIG_DIR "/etc/pulse"
 # else
-#  define DEFAULT_CONFIG_DIR "%POLYP_ROOT%"
+#  define DEFAULT_CONFIG_DIR "%PULSE_ROOT%"
 # endif
 #endif
 
@@ -56,12 +56,12 @@
 #define DEFAULT_CLIENT_CONFIG_FILE DEFAULT_CONFIG_DIR PATH_SEP "client.conf"
 #define DEFAULT_CLIENT_CONFIG_FILE_USER ".pulse" PATH_SEP "client.conf"
 
-#define ENV_CLIENT_CONFIG_FILE "POLYP_CLIENTCONFIG"
-#define ENV_DEFAULT_SINK "POLYP_SINK"
-#define ENV_DEFAULT_SOURCE "POLYP_SOURCE"
-#define ENV_DEFAULT_SERVER "POLYP_SERVER"
-#define ENV_DAEMON_BINARY "POLYP_BINARY"
-#define ENV_COOKIE_FILE "POLYP_COOKIE"
+#define ENV_CLIENT_CONFIG_FILE "PULSE_CLIENTCONFIG"
+#define ENV_DEFAULT_SINK "PULSE_SINK"
+#define ENV_DEFAULT_SOURCE "PULSE_SOURCE"
+#define ENV_DEFAULT_SERVER "PULSE_SERVER"
+#define ENV_DAEMON_BINARY "PULSE_BINARY"
+#define ENV_COOKIE_FILE "PULSE_COOKIE"
 
 static const pa_client_conf default_conf = {
     .daemon_binary = NULL,
@@ -77,7 +77,7 @@ static const pa_client_conf default_conf = {
 pa_client_conf *pa_client_conf_new(void) {
     pa_client_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
     
-    c->daemon_binary = pa_xstrdup(POLYPAUDIO_BINARY);
+    c->daemon_binary = pa_xstrdup(PULSEAUDIO_BINARY);
     c->extra_arguments = pa_xstrdup("--log-target=syslog --exit-idle-time=5");
     c->cookie_file = pa_xstrdup(PA_NATIVE_COOKIE_FILE);
     

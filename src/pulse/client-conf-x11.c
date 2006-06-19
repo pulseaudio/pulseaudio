@@ -50,22 +50,22 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
         goto finish;
     }
 
-    if (pa_x11_get_prop(d, "POLYP_SERVER", t, sizeof(t))) {
+    if (pa_x11_get_prop(d, "PULSE_SERVER", t, sizeof(t))) {
         pa_xfree(c->default_server);
         c->default_server = pa_xstrdup(t);
     }
 
-    if (pa_x11_get_prop(d, "POLYP_SINK", t, sizeof(t))) {
+    if (pa_x11_get_prop(d, "PULSE_SINK", t, sizeof(t))) {
         pa_xfree(c->default_sink);
         c->default_sink = pa_xstrdup(t);
     }
 
-    if (pa_x11_get_prop(d, "POLYP_SOURCE", t, sizeof(t))) {
+    if (pa_x11_get_prop(d, "PULSE_SOURCE", t, sizeof(t))) {
         pa_xfree(c->default_source);
         c->default_source = pa_xstrdup(t);
     }
 
-    if (pa_x11_get_prop(d, "POLYP_COOKIE", t, sizeof(t))) {
+    if (pa_x11_get_prop(d, "PULSE_COOKIE", t, sizeof(t))) {
         uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
 
         if (pa_parsehex(t, cookie, sizeof(cookie)) != sizeof(cookie)) {

@@ -30,9 +30,9 @@ pulseconfdir=$(sysconfdir)/pulse
 #            Defines              #
 ###################################
 
-POLYPAUDIO_BINARY=$(bindir)/pulseaudio$(EXEEXT)
+PULSEAUDIO_BINARY=$(bindir)/pulseaudio$(EXEEXT)
 if OS_IS_WIN32
-DEFAULT_CONFIG_DIR=%POLYP_ROOT%
+DEFAULT_CONFIG_DIR=%PULSE_ROOT%
 else
 DEFAULT_CONFIG_DIR=$(pulseconfdir)
 endif
@@ -48,7 +48,7 @@ AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
 AM_CFLAGS += -DDLSEARCHPATH=\"$(modlibexecdir)\"
 #AM_CFLAGS += -DDLSEARCHPATH=\"$(shell pwd)\"
 AM_CFLAGS += -DDEFAULT_CONFIG_DIR=\"$(DEFAULT_CONFIG_DIR)\"
-AM_CFLAGS += -DPOLYPAUDIO_BINARY=\"$(POLYPAUDIO_BINARY)\"
+AM_CFLAGS += -DPULSEAUDIO_BINARY=\"$(PULSEAUDIO_BINARY)\"
 
 # This cool debug trap works on i386/gcc only
 AM_CFLAGS += '-DDEBUG_TRAP=__asm__("int $$3")'
@@ -426,7 +426,7 @@ libpulse_la_SOURCES += \
 endif
 
 libpulse_la_CFLAGS = $(AM_CFLAGS)
-libpulse_la_LDFLAGS = -version-info $(LIBPOLYP_VERSION_INFO)
+libpulse_la_LDFLAGS = -version-info $(LIBPULSE_VERSION_INFO)
 libpulse_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) $(LIBICONV)
 
 if HAVE_X11
@@ -442,22 +442,22 @@ endif
 libpulse_simple_la_SOURCES = pulse/simple.c pulse/simple.h 
 libpulse_simple_la_CFLAGS = $(AM_CFLAGS)
 libpulse_simple_la_LIBADD = $(AM_LIBADD) libpulse.la
-libpulse_simple_la_LDFLAGS = -version-info $(LIBPOLYP_SIMPLE_VERSION_INFO)
+libpulse_simple_la_LDFLAGS = -version-info $(LIBPULSE_SIMPLE_VERSION_INFO)
 
 libpulse_browse_la_SOURCES = pulse/browser.c pulse/browser.h 
 libpulse_browse_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
 libpulse_browse_la_LIBADD = $(AM_LIBADD) libpulse.la $(HOWL_LIBS)
-libpulse_browse_la_LDFLAGS = -version-info $(LIBPOLYP_BROWSE_VERSION_INFO)
+libpulse_browse_la_LDFLAGS = -version-info $(LIBPULSE_BROWSE_VERSION_INFO)
 
 libpulse_mainloop_glib_la_SOURCES = pulse/glib-mainloop.h pulse/glib-mainloop.c
 libpulse_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
 libpulse_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpulse.la $(GLIB20_LIBS)
-libpulse_mainloop_glib_la_LDFLAGS = -version-info $(LIBPOLYP_MAINLOOP_GLIB_VERSION_INFO)
+libpulse_mainloop_glib_la_LDFLAGS = -version-info $(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO)
 
 libpulse_mainloop_glib12_la_SOURCES = pulse/glib-mainloop.h pulse/glib12-mainloop.c
 libpulse_mainloop_glib12_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
 libpulse_mainloop_glib12_la_LIBADD = $(AM_LIBADD) libpulse.la $(GLIB12_LIBS)
-libpulse_mainloop_glib12_la_LDFLAGS = -version-info $(LIBPOLYP_MAINLOOP_GLIB_VERSION_INFO)
+libpulse_mainloop_glib12_la_LDFLAGS = -version-info $(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO)
 
 ###################################
 #         OSS emulation           #
@@ -593,7 +593,7 @@ libpulsecore_la_SOURCES += \
 endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
-libpulsecore_la_LDFLAGS = -version-info $(LIBPOLYPCORE_VERSION_INFO)
+libpulsecore_la_LDFLAGS = -version-info $(LIBPULSECORE_VERSION_INFO)
 libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LIBICONV)
 
 ###################################
@@ -1177,17 +1177,17 @@ CLEANFILES = esdcompat client.conf default.pa daemon.conf
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
-		-e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
+		-e 's,@PULSEAUDIO_BINARY\@,$(PULSEAUDIO_BINARY),g' < $< > $@
 
 client.conf: pulse/client.conf.in Makefile
-	sed -e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
+	sed -e 's,@PULSEAUDIO_BINARY\@,$(PULSEAUDIO_BINARY),g' < $< > $@
 
 if OS_IS_WIN32    
 default.pa: daemon/default.pa.win32
 	cp $< $@
 else
 default.pa: daemon/default.pa.in Makefile
-	sed -e 's,@POLYPAUDIO_BINARY\@,$(POLYPAUDIO_BINARY),g' < $< > $@
+	sed -e 's,@PULSEAUDIO_BINARY\@,$(PULSEAUDIO_BINARY),g' < $< > $@
 endif
 
 daemon.conf: daemon/daemon.conf.in Makefile

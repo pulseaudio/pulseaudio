@@ -1500,7 +1500,7 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_INFO\n");
 
             memset(mi, 0, sizeof(mixer_info));
-            strncpy(mi->id, "POLYPAUDIO", sizeof(mi->id));
+            strncpy(mi->id, "PULSEAUDIO", sizeof(mi->id));
             strncpy(mi->name, "PulseAudio Virtual OSS", sizeof(mi->name));
             pa_threaded_mainloop_lock(i->mainloop);
             mi->modify_counter = i->volume_modify_count;

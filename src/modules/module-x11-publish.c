@@ -128,22 +128,22 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
 
     s = pa_strlist_tostring(l);
-    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_SERVER", s);
+    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER", s);
     pa_xfree(s);
     
     if (!pa_get_fqdn(hn, sizeof(hn)) || !pa_get_user_name(un, sizeof(un)))
         goto fail;
     
     u->id = pa_sprintf_malloc("%s@%s/%u", un, hn, (unsigned) getpid());
-    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_ID", u->id);
+    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", u->id);
 
     if ((t = pa_modargs_get_value(ma, "source", NULL)))
-        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_SOURCE", t);
+        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SOURCE", t);
 
     if ((t = pa_modargs_get_value(ma, "sink", NULL)))
-        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_SINK", t);
+        pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SINK", t);
 
-    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_COOKIE", pa_hexstr(u->auth_cookie, sizeof(u->auth_cookie), hx, sizeof(hx)));
+    pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE", pa_hexstr(u->auth_cookie, sizeof(u->auth_cookie), hx, sizeof(hx)));
     
     pa_modargs_free(ma);
     return 0;
@@ -167,14 +167,14 @@ void pa__done(pa_core *c, pa_module*m) {
         char t[256];
 
         /* Yes, here is a race condition */
-        if (!pa_x11_get_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_ID", t, sizeof(t)) || strcmp(t, u->id))
+        if (!pa_x11_get_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", t, sizeof(t)) || strcmp(t, u->id))
             pa_log_warn(__FILE__": PulseAudio information vanished from X11!");
         else {
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_ID");
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_SERVER");
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_SINK");
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_SOURCE");
-            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_COOKIE");
+            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID");
+            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER");
+            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SINK");
+            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SOURCE");
+            pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE");
             XSync(pa_x11_wrapper_get_display(u->x11_wrapper), False);
         }
     }

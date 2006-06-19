@@ -43,7 +43,7 @@
 # ifndef OS_IS_WIN32
 #  define DEFAULT_CONFIG_DIR "/etc/pulse"
 # else
-#  define DEFAULT_CONFIG_DIR "%POLYP_ROOT%"
+#  define DEFAULT_CONFIG_DIR "%PULSE_ROOT%"
 # endif
 #endif
 
@@ -58,9 +58,9 @@
 #define DEFAULT_CONFIG_FILE DEFAULT_CONFIG_DIR PATH_SEP "daemon.conf"
 #define DEFAULT_CONFIG_FILE_USER ".pulse" PATH_SEP "daemon.conf"
 
-#define ENV_SCRIPT_FILE "POLYP_SCRIPT"
-#define ENV_CONFIG_FILE "POLYP_CONFIG"
-#define ENV_DL_SEARCH_PATH "POLYP_DLPATH"
+#define ENV_SCRIPT_FILE "PULSE_SCRIPT"
+#define ENV_CONFIG_FILE "PULSE_CONFIG"
+#define ENV_DL_SEARCH_PATH "PULSE_DLPATH"
 
 static const pa_daemon_conf default_conf = {
     .cmd = PA_CMD_DAEMON,

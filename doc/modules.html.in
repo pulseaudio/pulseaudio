@@ -314,8 +314,8 @@ as <tt>module-cli-protocol-tcp</tt>.</p>
 
 <p>Publishes the access credentials to the Polypaudio server in the
 X11 root window. The following properties are used:
-<tt>POLYP_SERVER</tt>, <tt>POYLP_SINK</tt>, <tt>POLYP_SOURCE</tt>,
-<tt>POLYP_COOKIE</tt>. This is very useful when using SSH or any other
+<tt>PULSE_SERVER</tt>, <tt>POYLP_SINK</tt>, <tt>PULSE_SOURCE</tt>,
+<tt>PULSE_COOKIE</tt>. This is very useful when using SSH or any other
 remote login tool for logging into other machines and getting audio
 playback to your local speakers. The Polypaudio client libraries make
 use of this data automatically. Instead of using this module you may
