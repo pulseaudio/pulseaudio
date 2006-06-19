@@ -63,7 +63,7 @@
  * \li The complete but somewhat complicated to use asynchronous API
  * \li The simplified, easy to use, but limited synchronous API
  *
- * All strings in Polypaudio are in the UTF-8 encoding, regardless of current
+ * All strings in PulseAudio are in the UTF-8 encoding, regardless of current
  * locale. Some functions will filter invalid sequences from the string, some
  * will simply fail. To ensure reliable behaviour, make sure everything you
  * pass to the API is already in UTF-8.

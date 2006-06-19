@@ -107,7 +107,7 @@
  * wrap. The current read/write index may be queried using
  * pa_stream_get_timing_info() (see below for more information). In
  * case of a buffer underrun the read index is equal or larger than
- * the write index. Unless the prebuf value is 0, Polypaudio will
+ * the write index. Unless the prebuf value is 0, PulseAudio will
  * temporarily pause playback in such a case, and wait until the
  * buffer is filled up to prebuf bytes again. If prebuf is 0, the
  * read index may be larger than the write index, in which case
@@ -169,7 +169,7 @@
  * \section latency_sec Latency
  *
  * A major problem with networked audio is the increased latency caused by
- * the network. To remedy this, Polypaudio supports an advanced system of
+ * the network. To remedy this, PulseAudio supports an advanced system of
  * monitoring the current latency.
  *
  * To get the raw data needed to calculate latencies, call
@@ -183,14 +183,14 @@
  * pa_stream_update_timing_info() operation is executed. (i.e. before
  * the first call to this function the timing information structure is
  * not available!) Since it is a lot of work to keep this structure
- * up-to-date manually, Polypaudio can do that automatically for you:
+ * up-to-date manually, PulseAudio can do that automatically for you:
  * if PA_STREAM_AUTO_TIMING_UPDATE is passed when connecting the
- * stream Polypaudio will automatically update the structure every
+ * stream PulseAudio will automatically update the structure every
  * 100ms and every time a function is called that might invalidate the
  * previously known timing data (such as pa_stream_write() or
  * pa_stream_flush()). Please note however, that there always is a
  * short time window when the data in the timing information structure
- * is out-of-date. Polypaudio tries to mark these situations by
+ * is out-of-date. PulseAudio tries to mark these situations by
  * setting the write_index_corrupt and read_index_corrupt fields
  * accordingly.
  *
@@ -208,7 +208,7 @@
  *
  * Since updating the timing info structure usually requires a full
  * network round trip and some applications monitor the timing very
- * often Polypaudio offers a timing interpolation system. If
+ * often PulseAudio offers a timing interpolation system. If
  * PA_STREAM_INTERPOLATE_TIMING is passed when connecting the stream,
  * pa_stream_get_time() and pa_stream_get_latency() will try to
  * interpolate the current playback time/latency by estimating the
@@ -228,7 +228,7 @@
  *
  * \section sync_streams Sychronizing Multiple Playback Streams
  *
- * Polypaudio allows applications to fully synchronize multiple
+ * PulseAudio allows applications to fully synchronize multiple
  * playback streams that are connected to the same output device. That
  * means the streams will always be played back sample-by-sample
  * synchronously. If stream operations like pa_stream_cork() are
@@ -441,7 +441,7 @@ const pa_channel_map* pa_stream_get_channel_map(pa_stream *s);
 
 /** Return the buffer metrics of the stream. Only valid after the
  * stream has been connected successfuly and if the server is at least
- * Polypaudio 0.9. \since 0.9.0 */
+ * PulseAudio 0.9. \since 0.9.0 */
 const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s);
 
 PA_C_DECL_END

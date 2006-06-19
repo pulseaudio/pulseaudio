@@ -38,7 +38,7 @@
 #include <pulse/pulseaudio.h>
 
 #if PA_API_VERSION != 9
-#error Invalid Polypaudio API version
+#error Invalid PulseAudio API version
 #endif
 
 #define BUFSIZE 1024

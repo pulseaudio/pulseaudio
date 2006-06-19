@@ -35,7 +35,7 @@ typedef enum pa_daemon_conf_cmd {
     PA_CMD_CHECK
 } pa_daemon_conf_cmd_t;
 
-/* A structure containing configuration data for the Polypaudio server . */
+/* A structure containing configuration data for the PulseAudio server . */
 typedef struct pa_daemon_conf {
     pa_daemon_conf_cmd_t cmd;
     int daemonize,

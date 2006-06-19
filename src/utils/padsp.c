@@ -1262,18 +1262,18 @@ fail:
 
 static int sndstat_open(int flags, int *_errno) {
     static const char sndstat[] =
-        "Sound Driver:3.8.1a-980706 (Polypaudio Virtual OSS)\n"
+        "Sound Driver:3.8.1a-980706 (PulseAudio Virtual OSS)\n"
         "Kernel: POSIX\n"
         "Config options: 0\n"
         "\n"
         "Installed drivers:\n"
-        "Type 255: Polypaudio Virtual OSS\n"
+        "Type 255: PulseAudio Virtual OSS\n"
         "\n"
         "Card config:\n"
-        "Polypaudio Virtual OSS\n"
+        "PulseAudio Virtual OSS\n"
         "\n"
         "Audio devices:\n"
-        "0: Polypaudio Virtual OSS\n"
+        "0: PulseAudio Virtual OSS\n"
         "\n"
         "Synth devices: NOT ENABLED IN CONFIG\n"
         "\n"
@@ -1282,7 +1282,7 @@ static int sndstat_open(int flags, int *_errno) {
         "Timers:\n"
         "\n"
         "Mixers:\n"
-        "0: Polypaudio Virtual OSS\n";
+        "0: PulseAudio Virtual OSS\n";
 
     char fn[] = "/tmp/padsp-sndstat-XXXXXX";
     mode_t u;
@@ -1501,7 +1501,7 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
 
             memset(mi, 0, sizeof(mixer_info));
             strncpy(mi->id, "POLYPAUDIO", sizeof(mi->id));
-            strncpy(mi->name, "Polypaudio Virtual OSS", sizeof(mi->name));
+            strncpy(mi->name, "PulseAudio Virtual OSS", sizeof(mi->name));
             pa_threaded_mainloop_lock(i->mainloop);
             mi->modify_counter = i->volume_modify_count;
             pa_threaded_mainloop_unlock(i->mainloop);

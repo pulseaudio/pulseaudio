@@ -37,7 +37,7 @@ PA_C_DECL_BEGIN
  *
  * The added feature in the threaded main loop is that it spawns a new thread
  * that runs the real main loop. This allows a synchronous application to use
- * the asynchronous API without risking to stall the Polypaudio library.
+ * the asynchronous API without risking to stall the PulseAudio library.
  *
  * \section creat_sec Creation
  *
@@ -48,7 +48,7 @@ PA_C_DECL_BEGIN
  *
  * \section destr_sec Destruction
  *
- * When the Polypaudio connection has been terminated, the thread must be
+ * When the PulseAudio connection has been terminated, the thread must be
  * stopped and the resources freed. Stopping the thread is done using
  * pa_threaded_mainloop_stop(), which must be called without the lock (see
  * below) held. When that function returns, the thread is stopped and the
@@ -56,7 +56,7 @@ PA_C_DECL_BEGIN
  *
  * \section lock_sec Locking
  *
- * Since the Polypaudio API doesn't allow concurrent accesses to objects,
+ * Since the PulseAudio API doesn't allow concurrent accesses to objects,
  * a locking scheme must be used to guarantee safe usage. The threaded main
  * loop API provides such a scheme through the functions
  * pa_threaded_mainloop_lock() and pa_threaded_mainloop_unlock().
@@ -65,7 +65,7 @@ PA_C_DECL_BEGIN
  * thread. Just make sure you call pa_threaded_mainloop_unlock() the same
  * number of times you called pa_threaded_mainloop_lock().
  *
- * The lock needs to be held whenever you call any Polypaudio function that
+ * The lock needs to be held whenever you call any PulseAudio function that
  * uses an object associated with this main loop. Make sure you do not hold
  * on to the lock more than necessary though, as the threaded main loop stops
  * while the lock is held.
@@ -91,12 +91,12 @@ PA_C_DECL_BEGIN
  *
  * \section cb_sec Callbacks
  *
- * Callbacks in Polypaudio are asynchronous, so they require extra care when
+ * Callbacks in PulseAudio are asynchronous, so they require extra care when
  * using them together with a threaded main loop.
  *
  * The easiest way to turn the callback based operations into synchronous
  * ones, is to simply wait for the callback to be called and continue from
- * there. This is the approach chosen in Polypaudio's threaded API.
+ * there. This is the approach chosen in PulseAudio's threaded API.
  *
  * \subsection basic_subsec Basic callbacks
  *
@@ -216,7 +216,7 @@ PA_C_DECL_BEGIN
  *
  * \subsection async_subsec Asynchronous callbacks
  *
- * Polypaudio also has callbacks that are completely asynchronous, meaning
+ * PulseAudio also has callbacks that are completely asynchronous, meaning
  * that they can be called at any time. The threading main loop API provides
  * the locking mechanism to handle concurrent accesses, but nothing else.
  * Applications will have to handle communication from the callback to the

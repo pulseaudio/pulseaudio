@@ -35,7 +35,7 @@
  * \section overv_sec Overview
  *
  * Sometimes it is necessary to query and modify global settings in the
- * server. For this, Polypaudio has the introspection API. It can list sinks,
+ * server. For this, PulseAudio has the introspection API. It can list sinks,
  * sources, samples and other aspects of the server. It can also modify the
  * attributes of the server that will affect operations on a global level,
  * and not just the application's context.
@@ -121,7 +121,7 @@
  *
  * \subsection module_subsec Driver Modules
  *
- * Polypaudio driver modules are identified by index and are retrieved using either
+ * PulseAudio driver modules are identified by index and are retrieved using either
  * pa_context_get_module_info() or pa_context_get_module_info_list(). The
  * information structure is called pa_module_info.
  *
@@ -137,7 +137,7 @@
  *
  * \subsection client_subsec Clients
  *
- * Polypaudio clients are also identified by index and are retrieved using
+ * PulseAudio clients are also identified by index and are retrieved using
  * either pa_context_get_client_info() or pa_context_get_client_info_list().
  * The information structure is called pa_client_info.
  *

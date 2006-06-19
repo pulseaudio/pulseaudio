@@ -49,7 +49,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
     fd_set ifds, ofds;
 
     if (pa_pid_file_check_running(&pid) < 0) {
-        pa_log(__FILE__": no Polypaudio daemon running");
+        pa_log(__FILE__": no PulseAudio daemon running");
         goto fail;
     }
 
@@ -74,7 +74,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
             break;
 
         if (pa_pid_file_kill(SIGUSR2, NULL) < 0) {
-            pa_log(__FILE__": failed to kill Polypaudio daemon.");
+            pa_log(__FILE__": failed to kill PulseAudio daemon.");
             goto fail;
         }
 

@@ -22,7 +22,7 @@
   USA.
 ***/
 
-/* Some functions for reading module meta data from Polypaudio modules */
+/* Some functions for reading module meta data from PulseAudio modules */
 
 typedef struct pa_modinfo {
     char *author;

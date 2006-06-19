@@ -59,7 +59,7 @@
  *
  * \li \subpage mainloop - A minimal but fast implementation based on poll().
  * \li \subpage threaded_mainloop - A special version of the previous
- *                                  implementation where all of Polypaudio's
+ *                                  implementation where all of PulseAudio's
  *                                  internal handling runs in a separate
  *                                  thread.
  * \li \subpage glib-mainloop - A wrapper around GLIB's main loop. Available

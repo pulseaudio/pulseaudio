@@ -25,7 +25,7 @@
 #include <sys/types.h>
 #include <inttypes.h>
 
-/* A pa_memblock is a reference counted memory block. Polypaudio
+/* A pa_memblock is a reference counted memory block. PulseAudio
  * passed references to pa_memblocks around instead of copying
  * data. See pa_memchunk for a structure that describes parts of
  * memory blocks. */

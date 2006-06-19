@@ -31,10 +31,10 @@
  * \section overv_sec Overview
  *
  * Sinks, sources, sink inputs and samples can all have their own volumes.
- * To deal with these, The Polypaudio libray contains a number of functions
+ * To deal with these, The PulseAudio libray contains a number of functions
  * that ease handling.
  *
- * The basic volume type in Polypaudio is the \ref pa_volume_t type. Most of
+ * The basic volume type in PulseAudio is the \ref pa_volume_t type. Most of
  * the time, applications will use the aggregated pa_cvolume structure that
  * can store the volume of all channels at once.
  *
@@ -43,7 +43,7 @@
  *
  * \section calc_sec Calculations
  *
- * The volumes in Polypaudio are logarithmic in nature and applications
+ * The volumes in PulseAudio are logarithmic in nature and applications
  * shouldn't perform calculations with them directly. Instead, they should
  * be converted to and from either dB or a linear scale:
  *
@@ -64,7 +64,7 @@
  *
  * \section conv_sec Convenience Functions
  *
- * To handle the pa_cvolume structure, the Polypaudio library provides a
+ * To handle the pa_cvolume structure, the PulseAudio library provides a
  * number of convenienc functions:
  *
  * \li pa_cvolume_valid() - Tests if a pa_cvolume structure is valid.

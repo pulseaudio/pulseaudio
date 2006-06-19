@@ -54,13 +54,13 @@ while getopts 'hs:n:m:MSDd' param ; do
 			export PADSP_DEBUG
 			;;
 		*)
-			echo "$0 - redirect OSS audio devices to Polypaudio"
+			echo "$0 - redirect OSS audio devices to PulseAudio"
 			echo " "
 			echo "$0 [options] application [arguments]"
 			echo " "
 			echo "options:"
 			echo "	-h                  show brief help"
-			echo "	-s <host>[:<port>]  contact a specific Polypaudio server"
+			echo "	-s <host>[:<port>]  contact a specific PulseAudio server"
 			echo "	-n <name>           client name to report to the server"
 			echo "	-m <name>           stream name to report to the server"
 			echo "	-M                  disable /dev/mixer emulation"

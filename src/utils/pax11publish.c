@@ -54,10 +54,10 @@ int main(int argc, char *argv[]) {
                 break;
             case 'h':
                 printf("%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n\n"
-                       " -d    Show current Polypaudio data attached to X11 display (default)\n"
-                       " -e    Export local Polypaudio data to X11 display\n"
-                       " -i    Import Polypaudio data from X11 display to local environment variables and cookie file.\n"
-                       " -r    Remove Polypaudio data from X11 display\n",
+                       " -d    Show current PulseAudio data attached to X11 display (default)\n"
+                       " -e    Export local PulseAudio data to X11 display\n"
+                       " -i    Import PulseAudio data from X11 display to local environment variables and cookie file.\n"
+                       " -r    Remove PulseAudio data from X11 display\n",
                        pa_path_get_filename(argv[0]));
                 ret = 0;
                 goto finish;

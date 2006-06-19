@@ -168,7 +168,7 @@ void pa__done(pa_core *c, pa_module*m) {
 
         /* Yes, here is a race condition */
         if (!pa_x11_get_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_ID", t, sizeof(t)) || strcmp(t, u->id))
-            pa_log_warn(__FILE__": Polypaudio information vanished from X11!");
+            pa_log_warn(__FILE__": PulseAudio information vanished from X11!");
         else {
             pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_ID");
             pa_x11_del_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "POLYP_SERVER");

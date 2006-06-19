@@ -211,7 +211,7 @@ static int handle_response(struct userdata *u) {
             *(p++) = ESD_PROTO_STREAM_PLAY;
             *(p++) = u->format;
             *(p++) = u->rate;
-            pa_strlcpy((char*) p, "Polypaudio Tunnel", ESD_NAME_MAX);
+            pa_strlcpy((char*) p, "PulseAudio Tunnel", ESD_NAME_MAX);
 
             u->write_index = 0;
             u->state = STATE_RUNNING;

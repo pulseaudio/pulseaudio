@@ -32,12 +32,12 @@
  *
  * \section overv_sec Overview
  *
- * Polypaudio is capable of handling a multitude of sample formats, rates
+ * PulseAudio is capable of handling a multitude of sample formats, rates
  * and channels, transparently converting and mixing them as needed.
  *
  * \section format_sec Sample Format
  *
- * Polypaudio supports the following sample formats:
+ * PulseAudio supports the following sample formats:
  *
  * \li PA_SAMPLE_U8 - Unsigned 8 bit PCM.
  * \li PA_SAMPLE_S16LE - Signed 16 bit PCM, little endian.
@@ -54,20 +54,20 @@
  *
  * \section rate_sec Sample Rates
  *
- * Polypaudio supports any sample rate between 1 Hz and 4 GHz. There is no
+ * PulseAudio supports any sample rate between 1 Hz and 4 GHz. There is no
  * point trying to exceed the sample rate of the output device though as the
  * signal will only get downsampled, consuming CPU on the machine running the
  * server.
  *
  * \section chan_sec Channels
  *
- * Polypaudio supports up to 16 individiual channels. The order of the
+ * PulseAudio supports up to 16 individiual channels. The order of the
  * channels is up to the application, but they must be continous. To map
  * channels to speakers, see \ref channelmap.
  *
  * \section calc_sec Calculations
  *
- * The Polypaudio library contains a number of convenience functions to do
+ * The PulseAudio library contains a number of convenience functions to do
  * calculations on sample formats:
  *
  * \li pa_bytes_per_second() - The number of bytes one second of audio will
