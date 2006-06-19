@@ -38,7 +38,7 @@
 
 #include "internal.h"
 
-#define LATENCY_IPOL_INTERVAL_USEC (10000L)
+#define LATENCY_IPOL_INTERVAL_USEC (100000L)
 
 pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map) {
     pa_stream *s;
@@ -102,9 +102,7 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     
     s->corked = 0;
 
-    s->ipol_usec_valid = 0;
-    s->ipol_timestamp.tv_sec = 0;
-    s->ipol_timestamp.tv_usec = 0;
+    s->cached_time_valid = 0;
     
     s->auto_timing_update_event = NULL;
     s->auto_timing_update_requested = 0;
@@ -367,7 +365,7 @@ static void invalidate_indexes(pa_stream *s, int r, int w) {
     
     if ((s->direction == PA_STREAM_PLAYBACK && r) ||
         (s->direction == PA_STREAM_RECORD && w))
-        s->ipol_usec_valid = 0;
+        s->cached_time_valid = 0;
     
     request_auto_timing_update(s, 1);
 }
@@ -855,8 +853,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 i->read_index -= pa_memblockq_get_length(o->stream->record_memblockq);
         }
         
-        o->stream->ipol_timestamp = now;
-        o->stream->ipol_usec_valid = 0;
+        o->stream->cached_time_valid = 0;
     }
 
     o->stream->auto_timing_update_requested = 0;
@@ -1203,8 +1200,9 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_PLAYBACK || !s->timing_info.read_index_corrupt, PA_ERR_NODATA);
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_RECORD || !s->timing_info.write_index_corrupt, PA_ERR_NODATA);
 
-    if (s->flags & PA_STREAM_INTERPOLATE_TIMING && s->ipol_usec_valid)
-        usec = s->ipol_usec;
+    if (s->cached_time_valid)
+        /* We alredy calculated the time value for this timing info, so let's reuse it */
+        usec = s->cached_time;
     else {
         if (s->direction == PA_STREAM_PLAYBACK) {
             /* The last byte that was written into the output device
@@ -1247,10 +1245,8 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
             }
         }
 
-        if (s->flags & PA_STREAM_INTERPOLATE_TIMING) {
-            s->ipol_usec = usec;
-            s->ipol_usec_valid = 1;
-        }
+        s->cached_time = usec;
+        s->cached_time_valid = 1;
     }
 
     /* Interpolate if requested */
@@ -1260,9 +1256,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
          * current */
         if (!s->corked) {
             struct timeval now;
-            
-            usec += pa_timeval_diff(pa_gettimeofday(&now), &s->ipol_timestamp);
-            s->ipol_timestamp = now;
+            usec += pa_timeval_diff(pa_gettimeofday(&now), &s->timing_info.timestamp);
         }
     }
 

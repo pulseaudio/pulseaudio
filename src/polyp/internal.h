@@ -136,9 +136,8 @@ struct pa_stream {
     pa_time_event *auto_timing_update_event;
     int auto_timing_update_requested;
     
-    pa_usec_t ipol_usec;
-    int ipol_usec_valid;
-    struct timeval ipol_timestamp;
+    pa_usec_t cached_time;
+    int cached_time_valid;
 
     /* Callbacks */
     pa_stream_notify_cb_t state_callback;
