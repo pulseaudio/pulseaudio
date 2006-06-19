@@ -189,6 +189,7 @@ noinst_PROGRAMS = \
 		voltest \
 		memblockq-test \
 		sync-playback \
+		interpol-test \
 		channelmap-test \
 		thread-mainloop-test \
 		utf8-test
@@ -283,6 +284,11 @@ sync_playback_SOURCES = tests/sync-playback.c
 sync_playback_LDADD = $(AM_LDADD) libpolyp.la
 sync_playback_CFLAGS = $(AM_CFLAGS) 
 sync_playback_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+interpol_test_SOURCES = tests/interpol-test.c
+interpol_test_LDADD = $(AM_LDADD) libpolyp.la
+interpol_test_CFLAGS = $(AM_CFLAGS) 
+interpol_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #         Client library          #
