@@ -3,9 +3,9 @@ exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
-Name: libpulse-glib12-mainloop
-Description: GLIB 1.2 Main Loop Wrapper for PulseAudio
+Name: libpulse-mainloop-glib
+Description: GLIB 2.0 Main Loop Wrapper for PulseAudio
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lpulse-mainloop-glib12
+Libs: -L${libdir} -lpulse-mainloop-glib
 Cflags: -D_REENTRANT -I${includedir}
-Requires: libpulse glib
+Requires: libpulse glib-2.0

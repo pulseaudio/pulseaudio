@@ -33,12 +33,12 @@ endif
 
 if HAVE_GLIB20
 pkgconfig_DATA += \
-	 libpulse-glib-mainloop.pc
+	 libpulse-mainloop-glib.pc
 endif
 
 if HAVE_GLIB12
 pkgconfig_DATA += \
-	libpulse-glib12-mainloop.pc
+	libpulse-mainloop-glib12.pc
 endif
 
 if USE_LYNX

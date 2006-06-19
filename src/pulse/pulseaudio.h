@@ -44,7 +44,7 @@
 #include <pulse/timeval.h>
 
 /** \file
- * Include all pulselib header files at once. The following
+ * Include all libpulse header files at once. The following
  * files are included: \ref mainloop-api.h, \ref sample.h, \ref def.h,
  * \ref context.h, \ref stream.h, \ref introspect.h, \ref subscribe.h,
  * \ref scache.h, \ref version.h, \ref error.h, \ref channelmap.h,
@@ -56,7 +56,7 @@
  *
  * \section intro_sec Introduction
  * 
- * This document describes the client API for the pulseaudio sound
+ * This document describes the client API for the PulseAudio sound
  * server. The API comes in two flavours to accomodate different styles
  * of applications and different needs in complexity:
  * 
@@ -78,7 +78,7 @@
  *
  * Use this if you develop your programs in asynchronous, event loop
  * based style or if you want to use the advanced features of the
- * pulseaudio API. A guide can be found in \subpage async.
+ * PulseAudio API. A guide can be found in \subpage async.
  *
  * By using the built-in threaded main loop, it is possible to acheive a
  * pseudo-synchronous API, which can be useful in synchronous applications
@@ -87,7 +87,7 @@
  *
  * \section thread_sec Threads
  *
- * The pulseaudio client libraries are not designed to be used in a
+ * The PulseAudio client libraries are not designed to be used in a
  * heavily threaded environment. They are however designed to be reentrant
  * safe.
  *
@@ -102,14 +102,13 @@
  *
  * \section pkgconfig pkg-config
  *
- * The pulseaudio libraries provide pkg-config snippets for the different
+ * The PulseAudio libraries provide pkg-config snippets for the different
  * modules:
  *
- * \li pulselib - The asynchronous API and the internal main loop
- *                implementation.
- * \li pulselib-glib12-mainloop - GLIB 1.2 main loop bindings.
- * \li pulselib-glib-mainloop - GLIB 2.x main loop bindings.
- * \li pulselib-simple - The simple pulseaudio API.
+ * \li pulselib - The asynchronous API and the internal main loop implementation.
+ * \li pulselib-mainloop-glib12 - GLIB 1.2 main loop bindings.
+ * \li pulselib-mainloop-glib - GLIB 2.x main loop bindings.
+ * \li pulselib-simple - The simple PulseAudio API.
  */
 
 #endif

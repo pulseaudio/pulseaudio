@@ -698,8 +698,8 @@ src/Makefile
 libpulse.pc
 libpulse-simple.pc
 libpulse-browse.pc
-libpulse-glib-mainloop.pc
-libpulse-glib12-mainloop.pc
+libpulse-mainloop-glib.pc
+libpulse-mainloop-glib12.pc
 doc/Makefile
 doc/README.html
 doc/cli.html
