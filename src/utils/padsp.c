@@ -1839,7 +1839,11 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             
             i->fragment_size = 1 << (*(int*) argp);
             i->n_fragments = (*(int*) argp) >> 16;
-            
+
+            /* 0x7FFF means that we can set whatever we like */
+            if (i->n_fragments == 0x7FFF)
+                i->n_fragments = 12;
+
             free_streams(i);
             
             pa_threaded_mainloop_unlock(i->mainloop);
