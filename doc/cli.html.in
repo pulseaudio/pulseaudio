@@ -2,14 +2,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>polypaudio: Simple Command Line Language</title>
+<title>pulseaudio: Simple Command Line Language</title>
 <link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 
 <body>
 <h1>Simple Command Line Language</h1>
 
-<p><tt>polypaudio</tt> provides a simple command line language used by
+<p><tt>pulseaudio</tt> provides a simple command line language used by
 configuration scripts as well as the modules <tt>module-cli</tt>
 and <tt>module-cli-protocol-{unix,tcp}</tt>. Empty lines and lines
 beginning with a hashmark (<tt>#</tt>) are silently ignored. Several
@@ -181,7 +181,7 @@ on the interactive command line.</p>
 
 <h2>Example Configuration Script</h2>
 
-<p>Mark the following script as executable (<tt>chmod +x</tt>) and run it for a sensible polypaudio configuration.</p>
+<p>Mark the following script as executable (<tt>chmod +x</tt>) and run it for a sensible pulseaudio configuration.</p>
 
 <pre>
 #!/usr/bin/polaudio -nF

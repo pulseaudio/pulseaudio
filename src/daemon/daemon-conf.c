@@ -1,20 +1,20 @@
 /* $Id$ */
 
 /***
-  This file is part of polypaudio.
+  This file is part of PulseAudio.
 
-  polypaudio is free software; you can redistribute it and/or modify
+  PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
 
-  polypaudio is distributed in the hope that it will be useful, but
+  PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public License
-  along with polypaudio; if not, write to the Free Software
+  along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
 ***/
@@ -29,19 +29,19 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include <polyp/xmalloc.h>
+#include <pulse/xmalloc.h>
 
-#include <polypcore/core-error.h>
-#include <polypcore/core-util.h>
-#include <polypcore/strbuf.h>
-#include <polypcore/conf-parser.h>
-#include <polypcore/resampler.h>
+#include <pulsecore/core-error.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/strbuf.h>
+#include <pulsecore/conf-parser.h>
+#include <pulsecore/resampler.h>
 
 #include "daemon-conf.h"
 
 #ifndef DEFAULT_CONFIG_DIR
 # ifndef OS_IS_WIN32
-#  define DEFAULT_CONFIG_DIR "/etc/polypaudio"
+#  define DEFAULT_CONFIG_DIR "/etc/pulseaudio"
 # else
 #  define DEFAULT_CONFIG_DIR "%POLYP_ROOT%"
 # endif
@@ -54,9 +54,9 @@
 #endif
 
 #define DEFAULT_SCRIPT_FILE DEFAULT_CONFIG_DIR PATH_SEP "default.pa"
-#define DEFAULT_SCRIPT_FILE_USER ".polypaudio" PATH_SEP "default.pa"
+#define DEFAULT_SCRIPT_FILE_USER ".pulseaudio" PATH_SEP "default.pa"
 #define DEFAULT_CONFIG_FILE DEFAULT_CONFIG_DIR PATH_SEP "daemon.conf"
-#define DEFAULT_CONFIG_FILE_USER ".polypaudio" PATH_SEP "daemon.conf"
+#define DEFAULT_CONFIG_FILE_USER ".pulseaudio" PATH_SEP "daemon.conf"
 
 #define ENV_SCRIPT_FILE "POLYP_SCRIPT"
 #define ENV_CONFIG_FILE "POLYP_CONFIG"

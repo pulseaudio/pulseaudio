@@ -1,20 +1,20 @@
 /* $Id$ */
 
 /***
-  This file is part of polypaudio.
+  This file is part of PulseAudio.
  
-  polypaudio is free software; you can redistribute it and/or modify
+  PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
  
-  polypaudio is distributed in the hope that it will be useful, but
+  PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
  
   You should have received a copy of the GNU Lesser General Public License
-  along with polypaudio; if not, write to the Free Software
+  along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
 ***/
@@ -30,13 +30,13 @@
 #include <lirc/lirc_client.h>
 #include <stdlib.h>
 
-#include <polyp/xmalloc.h>
+#include <pulse/xmalloc.h>
 
-#include <polypcore/module.h>
-#include <polypcore/log.h>
-#include <polypcore/namereg.h>
-#include <polypcore/sink.h>
-#include <polypcore/modargs.h>
+#include <pulsecore/module.h>
+#include <pulsecore/log.h>
+#include <pulsecore/namereg.h>
+#include <pulsecore/sink.h>
+#include <pulsecore/modargs.h>
 
 #include "module-lirc-symdef.h"
 
@@ -203,7 +203,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->lirc_fd = -1;
     u->mute_toggle_save = 0;
 
-    if ((u->lirc_fd = lirc_init((char*) pa_modargs_get_value(ma, "appname", "polypaudio"), 1)) < 0) {
+    if ((u->lirc_fd = lirc_init((char*) pa_modargs_get_value(ma, "appname", "pulseaudio"), 1)) < 0) {
         pa_log(__FILE__": lirc_init() failed.");
         goto fail;
     }

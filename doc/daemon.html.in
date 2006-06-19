@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>polypaudio: Daemon</title>
+<title>pulseaudio: Daemon</title>
 <link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 
@@ -11,7 +11,7 @@
 
 <h2>Command Line Arguments</h2>
 
-The <tt>polypaudio</tt> daemon accepts several command line arguments:
+The <tt>pulseaudio</tt> daemon accepts several command line arguments:
 
 <pre>
 COMMANDS:
@@ -58,9 +58,9 @@ STARTUP SCRIPT:
 
 <p>It is a good idea to run the daemon like this:</p>
 
-<pre>polypaudio -D</pre>
+<pre>pulseaudio -D</pre>
 
-<p>This will run <tt>/etc/polypaudio/default.pa</tt> after startup. This should be a script written in the CLI language described in <a href="cli.html">cli.html</a>. </p>
+<p>This will run <tt>/etc/pulseaudio/default.pa</tt> after startup. This should be a script written in the CLI language described in <a href="cli.html">cli.html</a>. </p>
 
 <h2>Signals</h2>
 

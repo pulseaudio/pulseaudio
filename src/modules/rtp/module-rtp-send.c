@@ -1,20 +1,20 @@
 /* $Id$ */
 
 /***
-  This file is part of polypaudio.
+  This file is part of PulseAudio.
  
-  polypaudio is free software; you can redistribute it and/or modify
+  PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
  
-  polypaudio is distributed in the hope that it will be useful, but
+  PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
  
   You should have received a copy of the GNU Lesser General Public License
-  along with polypaudio; if not, write to the Free Software
+  along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
 ***/
@@ -32,20 +32,20 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <polyp/timeval.h>
-#include <polyp/util.h>
-#include <polyp/xmalloc.h>
+#include <pulse/timeval.h>
+#include <pulse/util.h>
+#include <pulse/xmalloc.h>
 
-#include <polypcore/core-error.h>
-#include <polypcore/module.h>
-#include <polypcore/llist.h>
-#include <polypcore/source.h>
-#include <polypcore/source-output.h>
-#include <polypcore/memblockq.h>
-#include <polypcore/log.h>
-#include <polypcore/core-util.h>
-#include <polypcore/modargs.h>
-#include <polypcore/namereg.h>
+#include <pulsecore/core-error.h>
+#include <pulsecore/module.h>
+#include <pulsecore/llist.h>
+#include <pulsecore/source.h>
+#include <pulsecore/source-output.h>
+#include <pulsecore/memblockq.h>
+#include <pulsecore/log.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/modargs.h>
+#include <pulsecore/namereg.h>
 
 #include "module-rtp-send-symdef.h"
 

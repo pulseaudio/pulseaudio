@@ -1,20 +1,20 @@
 /* $Id$ */
 
 /***
-  This file is part of polypaudio.
+  This file is part of PulseAudio.
  
-  polypaudio is free software; you can redistribute it and/or modify
+  PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
  
-  polypaudio is distributed in the hope that it will be useful, but
+  PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
  
   You should have received a copy of the GNU Lesser General Public License
-  along with polypaudio; if not, write to the Free Software
+  along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
 ***/
@@ -40,18 +40,18 @@
 #include <netinet/in.h>
 #endif
 
-#include "../polypcore/winsock.h"
+#include "../pulsecore/winsock.h"
 
-#include <polyp/xmalloc.h>
+#include <pulse/xmalloc.h>
 
-#include <polypcore/core-error.h>
-#include <polypcore/module.h>
-#include <polypcore/socket-server.h>
-#include <polypcore/socket-util.h>
-#include <polypcore/core-util.h>
-#include <polypcore/modargs.h>
-#include <polypcore/log.h>
-#include <polypcore/native-common.h>
+#include <pulsecore/core-error.h>
+#include <pulsecore/module.h>
+#include <pulsecore/socket-server.h>
+#include <pulsecore/socket-util.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/modargs.h>
+#include <pulsecore/log.h>
+#include <pulsecore/native-common.h>
 
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"
@@ -62,10 +62,10 @@
 #endif
 
 #if defined(USE_PROTOCOL_SIMPLE)
-  #include <polypcore/protocol-simple.h>
+  #include <pulsecore/protocol-simple.h>
   #define protocol_new pa_protocol_simple_new
   #define protocol_free pa_protocol_simple_free
-  #define TCPWRAP_SERVICE "polypaudio-simple"
+  #define TCPWRAP_SERVICE "pulseaudio-simple"
   #define IPV4_PORT 4711
   #define UNIX_SOCKET "simple"
   #define MODULE_ARGUMENTS "rate", "format", "channels", "sink", "source", "playback", "record",
@@ -77,10 +77,10 @@
   PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE("rate=<sample rate> format=<sample format> channels=<number of channels> sink=<sink to connect to> source=<source to connect to> playback=<enable playback?> record=<enable record?> "SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_CLI)
-  #include <polypcore/protocol-cli.h> 
+  #include <pulsecore/protocol-cli.h> 
   #define protocol_new pa_protocol_cli_new
   #define protocol_free pa_protocol_cli_free
-  #define TCPWRAP_SERVICE "polypaudio-cli"
+  #define TCPWRAP_SERVICE "pulseaudio-cli"
   #define IPV4_PORT 4712
   #define UNIX_SOCKET "cli"
   #define MODULE_ARGUMENTS 
@@ -92,10 +92,10 @@
   PA_MODULE_DESCRIPTION("Command line interface protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE(SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_HTTP)
-  #include <polypcore/protocol-http.h>
+  #include <pulsecore/protocol-http.h>
   #define protocol_new pa_protocol_http_new
   #define protocol_free pa_protocol_http_free
-  #define TCPWRAP_SERVICE "polypaudio-http"
+  #define TCPWRAP_SERVICE "pulseaudio-http"
   #define IPV4_PORT 4714
   #define UNIX_SOCKET "http"
   #define MODULE_ARGUMENTS 
@@ -107,10 +107,10 @@
   PA_MODULE_DESCRIPTION("HTTP "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE(SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_NATIVE)
-  #include <polypcore/protocol-native.h>
+  #include <pulsecore/protocol-native.h>
   #define protocol_new pa_protocol_native_new
   #define protocol_free pa_protocol_native_free
-  #define TCPWRAP_SERVICE "polypaudio-native"
+  #define TCPWRAP_SERVICE "pulseaudio-native"
   #define IPV4_PORT PA_NATIVE_DEFAULT_PORT
   #define UNIX_SOCKET PA_NATIVE_DEFAULT_UNIX_SOCKET
   #define MODULE_ARGUMENTS_COMMON "cookie", "auth-anonymous",
@@ -131,8 +131,8 @@
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE("auth-anonymous=<don't check for cookies?> cookie=<path to cookie file> "AUTH_USAGE SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_ESOUND)
-  #include <polypcore/protocol-esound.h>
-  #include <polypcore/esound.h>
+  #include <pulsecore/protocol-esound.h>
+  #include <pulsecore/esound.h>
   #define protocol_new pa_protocol_esound_new
   #define protocol_free pa_protocol_esound_free
   #define TCPWRAP_SERVICE "esound"

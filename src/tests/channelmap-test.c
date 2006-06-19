@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include <polyp/channelmap.h>
-#include <polypcore/gccmacro.h>
+#include <pulse/channelmap.h>
+#include <pulsecore/gccmacro.h>
 
 int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];

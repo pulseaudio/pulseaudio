@@ -1,20 +1,20 @@
 /* $Id$ */
 
 /***
-  This file is part of polypaudio.
+  This file is part of PulseAudio.
  
-  polypaudio is free software; you can redistribute it and/or modify
+  PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
  
-  polypaudio is distributed in the hope that it will be useful, but
+  PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
  
   You should have received a copy of the GNU Lesser General Public License
-  along with polypaudio; if not, write to the Free Software
+  along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
 ***/
@@ -48,24 +48,24 @@
 #include <tcpd.h>
 #endif
 
-#include "../polypcore/winsock.h"
+#include "../pulsecore/winsock.h"
 
-#include <polyp/mainloop.h>
-#include <polyp/mainloop-signal.h>
-#include <polyp/xmalloc.h>
+#include <pulse/mainloop.h>
+#include <pulse/mainloop-signal.h>
+#include <pulse/xmalloc.h>
 
-#include <polypcore/core-error.h>
-#include <polypcore/core.h>
-#include <polypcore/memblock.h>
-#include <polypcore/module.h>
-#include <polypcore/cli-command.h>
-#include <polypcore/log.h>
-#include <polypcore/core-util.h>
-#include <polypcore/sioman.h>
-#include <polypcore/cli-text.h>
-#include <polypcore/pid.h>
-#include <polypcore/namereg.h>
-#include <polypcore/random.h>
+#include <pulsecore/core-error.h>
+#include <pulsecore/core.h>
+#include <pulsecore/memblock.h>
+#include <pulsecore/module.h>
+#include <pulsecore/cli-command.h>
+#include <pulsecore/log.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/sioman.h>
+#include <pulsecore/cli-text.h>
+#include <pulsecore/pid.h>
+#include <pulsecore/namereg.h>
+#include <pulsecore/random.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
 
     pa_random_seed();
     
-    pa_log_set_ident("polypaudio");
+    pa_log_set_ident("pulseaudio");
     
     conf = pa_daemon_conf_new();
     

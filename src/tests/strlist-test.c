@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-#include <polyp/xmalloc.h>
-#include <polypcore/strlist.h>
-#include <polypcore/gccmacro.h>
+#include <pulse/xmalloc.h>
+#include <pulsecore/strlist.h>
+#include <pulsecore/gccmacro.h>
 
 int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char* argv[]) {
     char *t, *u;

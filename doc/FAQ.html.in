@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>polypaudio: FAQ</title>
+<title>pulseaudio: FAQ</title>
 <link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 
@@ -57,64 +57,64 @@
   reimplement very much code for Polypaudio. It should be easy to
   implement limited support for <tt>libartsc</tt> based
   applications. Noone has done this yet. It is probably a better idea to
-  run <tt>arts</tt> on top of Polypaudio (through a polypaudio driver
+  run <tt>arts</tt> on top of Polypaudio (through a pulseaudio driver
   for aRts, which nobody has written yet). Another solution would be to
   embed Polypaudio in the aRts process.</p></li>
 
   <li><p><b>I often hear noises when playing back with Polypaudio, what can I do?</b></p>
-  <p>There are to possible solutions: run polypaudio with argument
+  <p>There are to possible solutions: run pulseaudio with argument
 <tt>--high-priority=1</tt> and make yourself member of the group
 <tt>realtime</tt>, or increase the fragment sizes of the audio
   drivers. The former will allow Polypaudio to activate
   <tt>SCHED_FIFO</tt> high priority scheduling (root rights are dropped
   immediately after this). Keep in mind that this is a potential security hole!</p></li>
 
-   <li><p><b>The <tt>polypaudio</tt>  executable is installed SUID root by default. Why this? Isn't this a potential security hole?</b></p>
+   <li><p><b>The <tt>pulseaudio</tt>  executable is installed SUID root by default. Why this? Isn't this a potential security hole?</b></p>
 
   <p>Polypaudio activates <tt>SCHED_FIFO</tt> scheduling if the user
 passes <tt>--high-priority=1</tt>. This will only succeed when
 executed as root, therefore the binary is marked SUID root by
-default. Yes, this is a potential security hole. However, polypaudio
+default. Yes, this is a potential security hole. However, pulseaudio
 tries its best to minimize the security threat: immediately after
-startup polypaudio drops all capabilities except
+startup pulseaudio drops all capabilities except
 <tt>CAP_SYS_NICE</tt> (At least on systems that support it, like Linux; see <tt>man 7
 capabilities</tt> for more information). If the calling user is not a
 member of the group <tt>realtime</tt> (which is required to have a GID
 < 1000), root rights are dropped immediately. This means, you can
-install polypaudio SUID root, but only a subset of your users (the
+install pulseaudio SUID root, but only a subset of your users (the
 members of the group <tt>realtime</tt>) may make use of realtime
 scheduling. Keep in mind that these users might load their own binary
-modules into the polypaudio daemon which may freeze the machine. The
+modules into the pulseaudio daemon which may freeze the machine. The
 daemon has a minimal protection against CPU hogging (the daemon is
 killed after hogging more than 70% CPU for 5 seconds), but this may
 be circumvented easily by evildoers.</p></li>
   
-  <li><p><b>I want to run polypaudio only when it is needed, how do I do this?</b></p>
+  <li><p><b>I want to run pulseaudio only when it is needed, how do I do this?</b></p>
 
   <p>Set <tt>autospawn = yes</tt> in <tt>client.conf</tt>. That
-configuration file may be found either in <tt>/etc/polypaudio/</tt> or
-in <tt>~/.polypaudio/</tt>.</p></li>
+configuration file may be found either in <tt>/etc/pulseaudio/</tt> or
+in <tt>~/.pulseaudio/</tt>.</p></li>
 
-  <li><p><b>How do I list all polypaudio modules installed?</b></p>
+  <li><p><b>How do I list all pulseaudio modules installed?</b></p>
 
-   <p><tt>polypaudio --dump-modules</tt></p>
+   <p><tt>pulseaudio --dump-modules</tt></p>
 
    <p>Add <tt>-v</tt> for terse usage instructions.</p>
 
-<li><p><b>How do I use polypaudio over the network?</b></p>
+<li><p><b>How do I use pulseaudio over the network?</b></p>
 
-<p>Just set <tt>$POLYP_SERVER</tt> to the host name of the polypaudio
+<p>Just set <tt>$POLYP_SERVER</tt> to the host name of the pulseaudio
 server. For authentication you need the same auth cookies on all sides. For
-that copy <tt>~./polypaudio-cookie</tt> to all clients that shall
+that copy <tt>~./pulseaudio-cookie</tt> to all clients that shall
 be allowed to connect.</p>
 
 <p>Alternatively the authorization cookies can be stored in the X11 server.</p></li>
 
-<li><p><b>Is polypaudio capable of providing synchronized audio playback over the network for movie players like <tt>mplayer</tt>?</b></p>
+<li><p><b>Is pulseaudio capable of providing synchronized audio playback over the network for movie players like <tt>mplayer</tt>?</b></p>
 
 <p>Yes! Unless your network is congested in some way (i.e. transfer latencies vary strongly) it works perfectly. Drop me an email for experimental patches for MPlayer.</p>
 
-   <li><p><b>What environment variables does polypaudio care about?</b></p>
+   <li><p><b>What environment variables does pulseaudio care about?</b></p>
 
 <p>The client honors: <tt>POLYP_SINK</tt> (default sink to connect to), <tt>POLYP_SOURCE</tt> (default source to connect to), <tt>POLYP_SERVER</tt> (default server to connect to, like <tt>ESPEAKER</tt>), <tt>POLYP_BINARY</tt> (the binary to start when autospawning a daemon), <tt>POLYP_CLIENTCONFIG</tt> (path to the client configuration file).</p>
 
@@ -126,31 +126,31 @@ be allowed to connect.</p>
 <p>A brilliant guy named Lennart Poettering once wrote a nifty tool
 for that purpose: <a
 href="http://0pointer.de/lennart/projects/bidilink/">bidilink</a>. To
-connect to a running polypaudio daemon try using the following commands:</p>
+connect to a running pulseaudio daemon try using the following commands:</p>
 
-<pre>killall -USR2 polypaudio
-bidilink unix-client:/tmp/polypaudio/cli</pre>
+<pre>killall -USR2 pulseaudio
+bidilink unix-client:/tmp/pulseaudio/cli</pre>
 
 <p><i>BTW: Someone should package this great tool for Debian!</i></p>
 
 <p><b>New:</b> There's now a tool <tt>pacmd</tt> that automates sending SIGUSR2 to the daemon and running a bidilink like tool for you.</p>
 </li>
 
-<li><p><b>How do the polypaudio libraries decide where to connect to?</b></p>
+<li><p><b>How do the pulseaudio libraries decide where to connect to?</b></p>
 <p>The following rule applies:</p>
 <ol>
   <li>If the the application using the library specifies a server to connect to it is used. If the connection fails, the library fails too.</li>
   <li>If the environment variable <tt>POLYP_SERVER</tt> is defined the library connects to that server. If the connection fails, the library fails too.</li>
   <li>If <tt>$DISPLAY</tt> is set, the library tries to connect to that server and looks for the root window property <tt>POYLP_SERVER</tt> for the host to connect to. If <tt>POLYP_COOKIE</tt> is set it is used as authentication cookie.</li>
-  <li>If the client configuration file (<tt>~/.polypaudio/client.conf</tt> or <tt>/etc/polypaudio/client.conf</tt>) sets the server address, the library connects to that server. If the connection fails, the library fails too.</li>
-  <li>The library tries to connect to the default local UNIX socket for polypaudio servers. If the connection fails, it proceeds with the next item.</li>
-  <li>The library tries to connect to the default local TCP socket for polypaudio servers. If the connection fails, it proceeds with the next item.</li>
+  <li>If the client configuration file (<tt>~/.pulseaudio/client.conf</tt> or <tt>/etc/pulseaudio/client.conf</tt>) sets the server address, the library connects to that server. If the connection fails, the library fails too.</li>
+  <li>The library tries to connect to the default local UNIX socket for pulseaudio servers. If the connection fails, it proceeds with the next item.</li>
+  <li>The library tries to connect to the default local TCP socket for pulseaudio servers. If the connection fails, it proceeds with the next item.</li>
   <li>If <tt>$DISPLAY</tt> is set, the library tries to connect to the default TCP port of that host. If the connection fails, it proceeds with the next item.</li>
   <li>The connection fails.</li>
 </ol>
 </li>
 
-<li><p><b>Why the heck does libpolyp link against libX11?</b></p>
+<li><p><b>Why the heck does libpulse link against libX11?</b></p>
 <p>The Polypaudio client libraries look for some X11 root window
 properties for the credentials of the Polypaudio server to access. You
 may compile Polypaudio without X11 for disabling this feature.</p></li>

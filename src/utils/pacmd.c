@@ -1,20 +1,20 @@
 /* $Id$ */
 
 /***
-  This file is part of polypaudio.
+  This file is part of PulseAudio.
  
-  polypaudio is free software; you can redistribute it and/or modify
+  PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
  
-  polypaudio is distributed in the hope that it will be useful, but
+  PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
  
   You should have received a copy of the GNU Lesser General Public License
-  along with polypaudio; if not, write to the Free Software
+  along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
 ***/
@@ -32,12 +32,12 @@
 #include <string.h>
 #include <sys/un.h>
 
-#include <polyp/error.h>
-#include <polyp/util.h>
+#include <pulse/error.h>
+#include <pulse/util.h>
 
-#include <polypcore/core-util.h>
-#include <polypcore/log.h>
-#include <polypcore/pid.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/log.h>
+#include <pulsecore/pid.h>
 
 int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
     pid_t pid ;

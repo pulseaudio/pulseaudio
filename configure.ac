@@ -3,20 +3,20 @@
 
 # $Id$
 
-# This file is part of polypaudio.
+# This file is part of PulseAudio.
 #
-# polypaudio is free software; you can redistribute it and/or modify it
+# PulseAudio is free software; you can redistribute it and/or modify it
 # under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
 #
-# polypaudio is distributed in the hope that it will be useful, but
+# PulseAudio is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with polypaudio; if not, write to the Free Software Foundation,
+# along with PulseAudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
 AC_PREREQ(2.57)
@@ -25,13 +25,13 @@ m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
 m4_define(PA_MICRO, [1])
 
-AC_INIT([polypaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzcbylcnhqvb (at) 0pointer (dot) de])
+AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzcbylcnhqvb (at) 0pointer (dot) de])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall])
 
 AC_SUBST(PA_MAJORMINOR, "PA_MAJOR.PA_MINOR")
-AC_SUBST(PACKAGE_URL, [http://0pointer.de/lennart/projects/polypaudio/])
+AC_SUBST(PACKAGE_URL, [http://0pointer.de/lennart/projects/pulseaudio/])
 
 AC_SUBST(PA_API_VERSION, 9)
 AC_SUBST(PA_PROTOCOL_VERSION, 9)
@@ -681,8 +681,8 @@ fi
 
 AC_ARG_WITH(
         [module-dir],
-        AC_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/polypaudio-${PA_MAJORMINOR}/modules/]),
-        [modlibexecdir=$withval], [modlibexecdir="${libdir}/polypaudio-${PA_MAJORMINOR}/modules/"])
+        AC_HELP_STRING([--with-module-dir],[Directory where to install the modules to (defaults to ${libdir}/pulse-${PA_MAJORMINOR}/modules/]),
+        [modlibexecdir=$withval], [modlibexecdir="${libdir}/pulse-${PA_MAJORMINOR}/modules/"])
 
 AC_SUBST(modlibexecdir)
 
@@ -695,11 +695,11 @@ AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "x1"])
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
-polyplib.pc
-polyplib-simple.pc
-polyplib-browse.pc
-polyplib-glib-mainloop.pc
-polyplib-glib12-mainloop.pc
+libpulse.pc
+libpulse-simple.pc
+libpulse-browse.pc
+libpulse-glib-mainloop.pc
+libpulse-glib12-mainloop.pc
 doc/Makefile
 doc/README.html
 doc/cli.html
@@ -707,7 +707,7 @@ doc/daemon.html
 doc/modules.html
 doxygen/Makefile
 doxygen/doxygen.conf
-src/polyp/version.h
+src/pulse/version.h
 doc/FAQ.html
 ])
 AC_OUTPUT

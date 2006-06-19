@@ -1,20 +1,20 @@
 /* $Id$ */
 
 /***
-  This file is part of polypaudio.
+  This file is part of PulseAudio.
  
-  polypaudio is free software; you can redistribute it and/or modify
+  PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
  
-  polypaudio is distributed in the hope that it will be useful, but
+  PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
  
   You should have received a copy of the GNU Lesser General Public License
-  along with polypaudio; if not, write to the Free Software
+  along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
 ***/
@@ -32,23 +32,23 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
-#include <polyp/util.h>
-#include <polyp/xmalloc.h>
+#include <pulse/util.h>
+#include <pulse/xmalloc.h>
 
-#include <polypcore/module.h>
-#include <polypcore/sink.h>
-#include <polypcore/core-scache.h>
-#include <polypcore/modargs.h>
-#include <polypcore/namereg.h>
-#include <polypcore/log.h>
-#include <polypcore/x11wrap.h>
-#include <polypcore/core-util.h>
-#include <polypcore/native-common.h>
-#include <polypcore/authkey-prop.h>
-#include <polypcore/authkey.h>
-#include <polypcore/x11prop.h>
-#include <polypcore/strlist.h>
-#include <polypcore/props.h>
+#include <pulsecore/module.h>
+#include <pulsecore/sink.h>
+#include <pulsecore/core-scache.h>
+#include <pulsecore/modargs.h>
+#include <pulsecore/namereg.h>
+#include <pulsecore/log.h>
+#include <pulsecore/x11wrap.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/native-common.h>
+#include <pulsecore/authkey-prop.h>
+#include <pulsecore/authkey.h>
+#include <pulsecore/x11prop.h>
+#include <pulsecore/strlist.h>
+#include <pulsecore/props.h>
 
 #include "module-x11-publish-symdef.h"
 

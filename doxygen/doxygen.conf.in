@@ -17,7 +17,7 @@
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded 
 # by quotes) that should identify the project.
 
-PROJECT_NAME           = @PACKAGE_NAME@
+PROJECT_NAME           = PulseAudio
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. 
 # This could be handy for archiving the generated documentation or 
@@ -417,7 +417,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../src/polyp/context.h ../src/polyp/stream.h ../src/polyp/polypaudio.h ../src/polyp/sample.h ../src/polyp/def.h ../src/polyp/subscribe.h ../src/polyp/introspect.h ../src/polyp/scache.h ../src/polyp/mainloop-api.h ../src/polyp/glib-mainloop.h ../src/polyp/mainloop.h ../src/polyp/mainloop-signal.h ../src/polyp/error.h ../src/polyp/operation.h ../src/polyp/simple.h ../src/polyp/version.h ../src/polyp/volume.h ../src/polyp/channelmap.h ../src/polyp/thread-mainloop.h ../src/polyp/xmalloc.h ../src/polyp/utf8.h ../src/polyp/util.h ../src/polyp/timeval.h
+INPUT                  = ../src/pulse/context.h ../src/pulse/stream.h ../src/pulse/pulseaudio.h ../src/pulse/sample.h ../src/pulse/def.h ../src/pulse/subscribe.h ../src/pulse/introspect.h ../src/pulse/scache.h ../src/pulse/mainloop-api.h ../src/pulse/glib-mainloop.h ../src/pulse/mainloop.h ../src/pulse/mainloop-signal.h ../src/pulse/error.h ../src/pulse/operation.h ../src/pulse/simple.h ../src/pulse/version.h ../src/pulse/volume.h ../src/pulse/channelmap.h ../src/pulse/thread-mainloop.h ../src/pulse/xmalloc.h ../src/pulse/utf8.h ../src/pulse/util.h ../src/pulse/timeval.h
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

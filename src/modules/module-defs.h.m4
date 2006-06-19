@@ -8,8 +8,8 @@ define(`gen_symbol', `#define $1 'module_name`_LTX_$1')dnl
 #ifndef incmacro
 #define incmacro
 
-#include <polypcore/core.h>
-#include <polypcore/module.h>
+#include <pulsecore/core.h>
+#include <pulsecore/module.h>
 
 gen_symbol(pa__init)
 gen_symbol(pa__done)

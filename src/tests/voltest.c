@@ -2,8 +2,8 @@
 
 #include <stdio.h>
 
-#include <polyp/volume.h>
-#include <polypcore/gccmacro.h>
+#include <pulse/volume.h>
+#include <pulsecore/gccmacro.h>
 
 int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
     pa_volume_t v;
