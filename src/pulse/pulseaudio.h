@@ -105,10 +105,10 @@
  * The PulseAudio libraries provide pkg-config snippets for the different
  * modules:
  *
- * \li pulselib - The asynchronous API and the internal main loop implementation.
- * \li pulselib-mainloop-glib12 - GLIB 1.2 main loop bindings.
- * \li pulselib-mainloop-glib - GLIB 2.x main loop bindings.
- * \li pulselib-simple - The simple PulseAudio API.
+ * \li libpulse - The asynchronous API and the internal main loop implementation.
+ * \li libpulse-mainloop-glib12 - GLIB 1.2 main loop bindings.
+ * \li libpulse-mainloop-glib - GLIB 2.x main loop bindings.
+ * \li libpulse-simple - The simple PulseAudio API.
  */
 
 #endif
