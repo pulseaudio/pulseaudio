@@ -136,12 +136,12 @@ int main(int argc, char *argv[]) {
             pa_gettimeofday(&now);
 
             rtc = pa_timeval_diff(&now, &start);
-            printf("%i\t%llu\t%llu\t%llu\t%llu\t%u\n", k, rtc, t, rtc-old_rtc, t-old_t, changed*2000000);
+            printf("%i\t%llu\t%llu\t%llu\t%llu\t%u\n", k, rtc, t, rtc-old_rtc, t-old_t, changed);
             old_t = t;
             old_rtc = rtc;
         }
 
-        /* Spin loop, eerks but normal usleep is just to badly grained */
+        /* Spin loop, ugly but normal usleep() is just too badly grained */
 
         tv = now;
         while (pa_timeval_diff(pa_gettimeofday(&now), &tv) < 1000)
