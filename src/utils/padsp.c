@@ -1992,10 +1992,19 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
             break;
         }
-            
+
+        case SNDCTL_DSP_GETIPTR:
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": invalid ioctl SNDCTL_DSP_GETIPTR\n");
+            goto inval;
+
+        case SNDCTL_DSP_GETOPTR:
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": invalid ioctl SNDCTL_DSP_GETOPTR\n");
+            goto inval;
+
         default:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": unknown ioctl 0x%08lx\n", request);
 
+inval:
             *_errno = EINVAL;
             goto fail;
     }
