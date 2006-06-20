@@ -335,7 +335,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     period_size = fragsize/frame_size;
     
-    u = pa_xnew(struct userdata, 1);
+    u = pa_xnew0(struct userdata, 1);
     m->userdata = u;
     u->module = m;
     
