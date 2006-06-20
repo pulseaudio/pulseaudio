@@ -32,7 +32,10 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <math.h>
+
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 
 #include <pulse/pulseaudio.h>
 #include <pulse/mainloop.h>
@@ -145,7 +148,13 @@ int main(int argc, char *argv[]) {
 
         tv = now;
         while (pa_timeval_diff(pa_gettimeofday(&now), &tv) < 1000)
+#ifdef HAVE_PTHREAD
             pthread_yield();
+#elif defined(OS_IS_WIN32)
+            Sleep(0);
+#else
+            ;
+#endif
     }
 
     if (m)
