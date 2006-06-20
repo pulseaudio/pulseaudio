@@ -22,8 +22,8 @@
 while getopts 'hs:n:m:MSDd' param ; do
 	case $param in
 		s)
-			POLYP_SERVER="$OPTARG"
-			export POLYP_SERVER
+			PULSE_SERVER="$OPTARG"
+			export PULSE_SERVER
 			;;
 		n)
 			PADSP_CLIENT_NAME="$OPTARG"

@@ -1,4 +1,4 @@
-#!@POLYPAUDIO_BINARY@ -nF 
+#!@PULSEAUDIO_BINARY@ -nF 
 
 #
 # This file is part of PulseAudio.

@@ -298,7 +298,7 @@ int pa__init(pa_core *c, pa_module*m) {
     r = getsockname(fd, (struct sockaddr*) &sa_dst, &k);
     assert(r >= 0);
 
-    n = pa_sprintf_malloc("Polypaudio RTP Stream on %s", pa_get_fqdn(hn, sizeof(hn)));
+    n = pa_sprintf_malloc("PulseAudio RTP Stream on %s", pa_get_fqdn(hn, sizeof(hn)));
         
     p = pa_sdp_build(af,
                      af == AF_INET ? (void*) &((struct sockaddr_in*) &sa_dst)->sin_addr : (void*) &((struct sockaddr_in6*) &sa_dst)->sin6_addr,

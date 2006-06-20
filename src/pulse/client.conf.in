@@ -21,7 +21,7 @@
 ## commented out.  Use either ; or # for commenting
 
 ## Path to the pulseaudio daemon to run when autospawning.
-; daemon-binary = @POLYPAUDIO_BINARY@
+; daemon-binary = @PULSEAUDIO_BINARY@
 
 ## Extra arguments to pass to the pulseaudio daemon
 ; extra-arguments = --log-target=syslog --exit-idle-time=5

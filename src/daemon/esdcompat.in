@@ -95,4 +95,4 @@ EOF
     shift
 done
 
-eval "exec '@POLYPAUDIO_BINARY@'$ARGS"
+eval "exec '@PULSEAUDIO_BINARY@'$ARGS"

@@ -312,12 +312,12 @@ as <tt>module-cli-protocol-tcp</tt>.</p>
 
 <h3>module-x11-publish</h3>
 
-<p>Publishes the access credentials to the Polypaudio server in the
+<p>Publishes the access credentials to the PulseAudio server in the
 X11 root window. The following properties are used:
 <tt>PULSE_SERVER</tt>, <tt>POYLP_SINK</tt>, <tt>PULSE_SOURCE</tt>,
 <tt>PULSE_COOKIE</tt>. This is very useful when using SSH or any other
 remote login tool for logging into other machines and getting audio
-playback to your local speakers. The Polypaudio client libraries make
+playback to your local speakers. The PulseAudio client libraries make
 use of this data automatically. Instead of using this module you may
 use the tool <tt>pax11publish</tt> which may be used to access, modify
 and import credential data from/to the X11 display.</p>
@@ -354,7 +354,7 @@ already loaded protocol module is used.</td></tr> </table>
 <a name="rtp"/>
 <h2>RTP/SDP/SAP Transport</h2>
 
-<p>Polypaudio can stream audio data to an IP multicast group via the
+<p>PulseAudio can stream audio data to an IP multicast group via the
 standard protocols <a
 href="http://en.wikipedia.org/wiki/Real-time_Transport_Protocol">RTP</a>,
 <a
@@ -373,7 +373,7 @@ supported. Only uncompressed audio is supported, hence you won't be
 able to multicast more than a few streams at the same time over a
 standard LAN.</p>
 
-<p>Polypaudio implements both a sender and a reciever for RTP
+<p>PulseAudio implements both a sender and a reciever for RTP
 traffic. The sender announces itself via SAP/SDP on the same multicast
 group as it sends the RTP data to. The reciever picks up the SAP/SDP
 announcements and creates a playback stream for each
@@ -418,26 +418,26 @@ module to create an RTP source.</p>
 
 <h2>JACK Connectivity</h2>
 
-<p>Polypaudio can be hooked up to a <a
+<p>PulseAudio can be hooked up to a <a
 href="http://jackit.sourceforge.net/">JACK Audio Connection Kit</a> server which is a specialized sound server used for professional audio production on Unix/Linux. Both a
-Polypaudio sink and a source are available. For each channel a port is
+PulseAudio sink and a source are available. For each channel a port is
 created in the JACK server.</p>
 
 <h3>module-jack-sink</h3>
 
-<p>This module implements a Polypaudio sink that connects to JACK and registers as many output ports as requested.</p>
+<p>This module implements a PulseAudio sink that connects to JACK and registers as many output ports as requested.</p>
 
 <table>
-  <tr><td><tt>sink_name=</tt></td><td>The name for the Polypaudio sink. If ommited defaults to <tt>jack_out</tt>.</td></tr>
+  <tr><td><tt>sink_name=</tt></td><td>The name for the PulseAudio sink. If ommited defaults to <tt>jack_out</tt>.</td></tr>
   <tr><td><tt>server_name=</tt></td><td>The JACK server to connect to. If ommited defaults to the default server.</td></tr>
   <tr><td><tt>client_name=</tt></td><td>The client name to tell the JACK server. If ommited defaults to <tt>PulseAudio</tt>.</td></tr>
   <tr><td><tt>channels=</tt></td><td>Number of channels to register. If ommited defaults to the number of physical playback ports of the JACK server.</td></tr>
-  <tr><td><tt>connect=</tt></td><td>Takes a boolean value. If enabled (the default) Polypaudio will try to connect its ports to the physicial playback ports of the JACK server</td></tr>
+  <tr><td><tt>connect=</tt></td><td>Takes a boolean value. If enabled (the default) PulseAudio will try to connect its ports to the physicial playback ports of the JACK server</td></tr>
 </table>
 
 <h3>module-jack-source</h3>
 
-<p>This module implements a Polypaudio source that connects to JACK
+<p>This module implements a PulseAudio source that connects to JACK
 and registers as many input ports as requested. Takes the same
 arguments as <tt>module-jack-sink</tt>, except for <tt>sink_name</tt>
 which is replaced by <tt>source_name</tt> (with a default of <tt>jack_in</tt>) for obvious reasons.</p>
