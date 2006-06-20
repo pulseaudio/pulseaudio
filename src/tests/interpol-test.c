@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 
         tv = now;
         while (pa_timeval_diff(pa_gettimeofday(&now), &tv) < 1000)
-#ifdef HAVE_PTHREAD
+#ifdef HAVE_PTHREAD_YIELD
             pthread_yield();
 #elif defined(OS_IS_WIN32)
             Sleep(0);
