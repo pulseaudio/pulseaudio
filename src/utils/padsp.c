@@ -75,6 +75,7 @@ struct fd_info {
     pa_stream *rec_stream;
 
     pa_io_event *io_event;
+    pa_io_event_flags_t io_flags;
 
     void *buf;
     size_t rec_offset;
@@ -557,6 +558,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     i->play_stream = NULL;
     i->rec_stream = NULL;
     i->io_event = NULL;
+    i->io_flags = 0;
     pthread_mutex_init(&i->mutex, NULL);
     i->ref = 1;
     i->buf = NULL;
@@ -709,12 +711,9 @@ static void stream_request_cb(pa_stream *s, size_t length, void *userdata) {
 
     if (i->io_event) {
         pa_mainloop_api *api;
-        pa_io_event_flags_t flags;
         size_t n;
 
         api = pa_threaded_mainloop_get_api(i->mainloop);
-
-        flags = 0;
 
         if (s == i->play_stream) {
             n = pa_stream_writable_size(i->play_stream);
@@ -724,7 +723,9 @@ static void stream_request_cb(pa_stream *s, size_t length, void *userdata) {
             }
 
             if (n >= i->fragment_size)
-                flags |= PA_IO_EVENT_INPUT;
+                i->io_flags |= PA_IO_EVENT_INPUT;
+            else
+                i->io_flags &= ~PA_IO_EVENT_INPUT;
         }
 
         if (s == i->rec_stream) {
@@ -735,10 +736,12 @@ static void stream_request_cb(pa_stream *s, size_t length, void *userdata) {
             }
 
             if (n >= i->fragment_size)
-                flags |= PA_IO_EVENT_OUTPUT;
+                i->io_flags |= PA_IO_EVENT_OUTPUT;
+            else
+                i->io_flags &= ~PA_IO_EVENT_OUTPUT;
         }
 
-        api->io_enable(i->io_event, flags);
+        api->io_enable(i->io_event, i->io_flags);
     }
 }
 
@@ -757,6 +760,7 @@ static void fd_info_shutdown(fd_info *i) {
         api = pa_threaded_mainloop_get_api(i->mainloop);
         api->io_free(i->io_event);
         i->io_event = NULL;
+        i->io_flags = 0;
     }
 
     if (i->thread_fd >= 0) {
@@ -767,12 +771,9 @@ static void fd_info_shutdown(fd_info *i) {
 
 static int fd_info_copy_data(fd_info *i, int force) {
     size_t n;
-    pa_io_event_flags_t flags;
 
     if (!i->play_stream && !i->rec_stream)
         return -1;
-
-    flags = 0;
 
     if ((i->play_stream) && (pa_stream_get_state(i->play_stream) == PA_STREAM_READY)) {
         n = pa_stream_writable_size(i->play_stream);
@@ -814,7 +815,9 @@ static int fd_info_copy_data(fd_info *i, int force) {
         }
 
         if (n >= i->fragment_size)
-            flags |= PA_IO_EVENT_INPUT;
+            i->io_flags |= PA_IO_EVENT_INPUT;
+        else
+            i->io_flags &= ~PA_IO_EVENT_INPUT;
     }
 
     if ((i->rec_stream) && (pa_stream_get_state(i->rec_stream) == PA_STREAM_READY)) {
@@ -867,14 +870,16 @@ static int fd_info_copy_data(fd_info *i, int force) {
         }
 
         if (n >= i->fragment_size)
-            flags |= PA_IO_EVENT_OUTPUT;
+            i->io_flags |= PA_IO_EVENT_OUTPUT;
+        else
+            i->io_flags &= ~PA_IO_EVENT_OUTPUT;
     }
 
     if (i->io_event) {
         pa_mainloop_api *api;
 
         api = pa_threaded_mainloop_get_api(i->mainloop);
-        api->io_enable(i->io_event, flags);
+        api->io_enable(i->io_event, i->io_flags);
     }
 
     return 0;
@@ -1034,7 +1039,6 @@ static int dsp_open(int flags, int *_errno) {
     pa_mainloop_api *api;
     int ret;
     int f;
-    pa_io_event_flags_t ioflags;
 
     debug(DEBUG_LEVEL_NORMAL, __FILE__": dsp_open()\n");
 
@@ -1056,23 +1060,23 @@ static int dsp_open(int flags, int *_errno) {
 
     switch (flags & O_ACCMODE) {
     case O_RDONLY:
-        ioflags = PA_IO_EVENT_OUTPUT;
+        i->io_flags = PA_IO_EVENT_OUTPUT;
         shutdown(i->thread_fd, SHUT_RD);
         shutdown(i->app_fd, SHUT_WR);
         break;
     case O_WRONLY:
-        ioflags = PA_IO_EVENT_INPUT;
+        i->io_flags = PA_IO_EVENT_INPUT;
         shutdown(i->thread_fd, SHUT_WR);
         shutdown(i->app_fd, SHUT_RD);
         break;
     case O_RDWR:
-        ioflags = PA_IO_EVENT_INPUT | PA_IO_EVENT_OUTPUT;
+        i->io_flags = PA_IO_EVENT_INPUT | PA_IO_EVENT_OUTPUT;
         break;
     default:
         return -1;
     }
 
-    if (!(i->io_event = api->io_new(api, i->thread_fd, ioflags, io_event_cb, i)))
+    if (!(i->io_event = api->io_new(api, i->thread_fd, i->io_flags, io_event_cb, i)))
         goto fail;
     
     pa_threaded_mainloop_unlock(i->mainloop);
