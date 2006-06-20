@@ -673,6 +673,13 @@ static void fix_metrics(fd_info *i) {
     char t[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
     fs = pa_frame_size(&i->sample_spec);
+
+    /* Don't fix things more than necessary */
+    if ((i->fragment_size % fs) == 0 &&
+        i->n_fragments >= 2 &&
+        i->fragment_size > 0)
+        return;
+
     i->fragment_size = (i->fragment_size/fs)*fs;
 
     /* Number of fragments set? */
