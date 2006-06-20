@@ -174,6 +174,17 @@ if test "x$acx_pthread_ok" = xyes; then
                 PTHREAD_CFLAGS="$flag $PTHREAD_CFLAGS"
         fi
 
+        AC_MSG_CHECKING([if pthread_yield is available])
+        flag=no
+        AC_TRY_LINK([#include <pthread.h>],
+                    [pthread_yield();],
+                    [flag=yes])
+        AC_MSG_RESULT(${flag})
+        if test "x$flag" != xno; then
+                AC_DEFINE(HAVE_PTHREAD_YIELD, 1,
+                          [Define to 1 if you have the 'pthread_yield' function.])
+        fi
+
         LIBS="$save_LIBS"
         CFLAGS="$save_CFLAGS"
 
