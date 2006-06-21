@@ -1254,7 +1254,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
 
         /* We just add the time that passed since the latency info was
          * current */
-        if (!s->corked) {
+        if (!s->corked && s->timing_info.playing) {
             struct timeval now;
             usec += pa_timeval_diff(pa_gettimeofday(&now), &s->timing_info.timestamp);
         }
