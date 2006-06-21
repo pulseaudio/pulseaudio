@@ -62,7 +62,7 @@
 #define AUTH_TIMEOUT 60
 
 /* Don't accept more connection than this */
-#define MAX_CONNECTIONS 10
+#define MAX_CONNECTIONS 64
 
 #define MAX_MEMBLOCKQ_LENGTH (4*1024*1024) /* 4MB */
 

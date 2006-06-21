@@ -55,7 +55,7 @@
 #include "protocol-esound.h"
 
 /* Don't accept more connection than this */
-#define MAX_CONNECTIONS 10
+#define MAX_CONNECTIONS 64
 
 /* Kick a client if it doesn't authenticate within this time */
 #define AUTH_TIMEOUT 5
