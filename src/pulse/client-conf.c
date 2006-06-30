@@ -124,7 +124,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         pa_open_config_file(DEFAULT_CLIENT_CONFIG_FILE, DEFAULT_CLIENT_CONFIG_FILE_USER, ENV_CLIENT_CONFIG_FILE, &fn, "r");
 
     if (!f && errno != EINTR) {
-        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s", filename, pa_cstrerror(errno));
+        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
     

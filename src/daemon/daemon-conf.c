@@ -238,7 +238,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file, "r");
 
     if (!f && errno != ENOENT) {
-        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s", filename, pa_cstrerror(errno));
+        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s", c->config_file, pa_cstrerror(errno));
         goto finish;
     }
 
