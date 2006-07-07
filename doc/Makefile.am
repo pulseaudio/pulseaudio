@@ -16,26 +16,5 @@
 # along with PulseAudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
-noinst_DATA = README.html cli.html modules.html daemon.html FAQ.html
-EXTRA_DIST = $(noinst_DATA) style.css README.html.in cli.html.in modules.html.in daemon.html.in todo FAQ.html.in
-
-MAINTAINERCLEANFILES = README.html cli.html modules.html daemon.html FAQ.html
-CLEANFILES =
-
-if USE_LYNX
-README: README.html
-	lynx --dump $^ | sed 's,file://localhost/.*/doc/README.html,README,' > $@
-
-noinst_DATA += README
-CLEANFILES += README
-endif
-
-tidy: README.html cli.html modules.html daemon.html
-	tidy -qe < README.html ; true
-	tidy -qe < cli.html ; true
-	tidy -qe < daemon.html ; true
-	tidy -qe < modules.html ; true
-	tidy -qe < FAQ.html ; true
-
-.PHONY: tidy
+EXTRA_DIST = todo
 

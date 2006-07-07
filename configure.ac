@@ -100,29 +100,6 @@ if test "x$GCC" = "xyes" ; then
     done 
 fi
 
-# LYNX documentation generation
-AC_ARG_ENABLE(lynx,
-        AC_HELP_STRING(--disable-lynx,Turn off lynx usage for documentation generation),
-[case "${enableval}" in
-  yes) lynx=yes ;;
-  no)  lynx=no ;;
-  *) AC_MSG_ERROR(bad value ${enableval} for --disable-lynx) ;;
-esac],[lynx=auto])
-
-if test x$lynx != xno ; then
-   AC_CHECK_PROG(have_lynx, lynx, yes, no)
-
-   if test x$have_lynx = xno ; then
-       if test x$lynx = xyes ; then
-           AC_MSG_ERROR([*** lynx not found])
-       else
-           AC_MSG_WARN([*** lynx not found, plain text README will not be built ***])
-       fi
-   fi
-fi
-
-AM_CONDITIONAL([USE_LYNX], [test "x$have_lynx" = xyes])
-
 #### libtool stuff ####
 
 AC_LTDL_ENABLE_INSTALL
@@ -701,13 +678,8 @@ libpulse-browse.pc
 libpulse-mainloop-glib.pc
 libpulse-mainloop-glib12.pc
 doc/Makefile
-doc/README.html
-doc/cli.html
-doc/daemon.html
-doc/modules.html
 doxygen/Makefile
 doxygen/doxygen.conf
 src/pulse/version.h
-doc/FAQ.html
 ])
 AC_OUTPUT

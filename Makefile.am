@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-EXTRA_DIST = bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in libtool.m4 ltdl.m4
+EXTRA_DIST = bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in libtool.m4 ltdl.m4 README
 SUBDIRS=libltdl src doc doxygen
 
 MAINTAINERCLEANFILES =
@@ -41,27 +41,11 @@ pkgconfig_DATA += \
 	libpulse-mainloop-glib12.pc
 endif
 
-if USE_LYNX
-EXTRA_DIST += README
-MAINTAINERCLEANFILES += README
-noinst_DATA += README
-
-README:
-	rm -f README
-	$(MAKE) -C doc README
-	cd $(srcdir) && ln -s doc/README README
-endif
-
 homepage: all dist doxygen
 	test -d $$HOME/homepage/private
 	mkdir -p $$HOME/homepage/private/projects/pulseaudio $$HOME/homepage/private/projects/pulseaudio/doxygen
 	cp pulseaudio-@PACKAGE_VERSION@.tar.gz $$HOME/homepage/private/projects/pulseaudio
-	cp doc/README.html doc/FAQ.html doc/cli.html doc/daemon.html doc/modules.html doc/style.css $$HOME/homepage/private/projects/pulseaudio
 	cp -a doxygen/html/* $$HOME/homepage/private/projects/pulseaudio/doxygen
-	ln -sf $$HOME/homepage/private/projects/pulseaudio/README.html $$HOME/homepage/private/projects/pulseaudio/index.html
-
-#distcleancheck:
-#	@:
 
 doxygen:
 	$(MAKE) -C doxygen doxygen
