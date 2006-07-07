@@ -338,7 +338,7 @@ PulseAudio.</p>
 
 <p>If you want to be notified whenever I release a new version of this software use the subscription feature of <a href="http://freshmeat.net/projects/pulseaudio/">Freshmeat</a>.</p>
 
-<p>There is a general discussion <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-discuss">mailing list for PulseAudio</a> available. In addition, you can subscribe to <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-commits">SVN changes</a> and <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-tickets">Trac Tickets</a>.</p>
+<p>There is a general discussion <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-discuss">mailing list for PulseAudio</a> available. In addition, you can subscribe to <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-commits">SVN changes</a> and <a href="https://tango.0pointer.de/mailman/listinfo/pulseaudio-tickets">Trac Tickets</a>.</p>
 
 <p>PulseAudio is being tracked at <a href="http://cia.navi.cx/stats/project/polypaudio">CIA</a>.</p>
 
