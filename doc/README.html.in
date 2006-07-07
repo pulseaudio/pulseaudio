@@ -344,9 +344,9 @@ PulseAudio.</p>
 
 <p>There's a chance to meet the PulseAudio developers on our <a href="irc://irc.freenode.org/pulseaudio">IRC channel #pulseaudio on irc.freenode.org</a>.</p>
 
-<p>The main project homepage is <a href="http://www.avahi.org/">http://avahi.org/</a>.</p>
+<p>The main project homepage is <a href="http://pulseaudio.org/">http://pulseaudio.org/</a>.</p>
 
-<p><b>Please report bugs to <a href="http://avahi.org/newticket">our Trac ticket system</a>.</b></p>
+<p><b>Please report bugs to <a href="http://pulseaudio.org/newticket">our Trac ticket system</a>.</b></p>
 
 <hr/>
 <address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, July 2006</address>
