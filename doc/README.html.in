@@ -43,6 +43,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</p>
 
 <h2><a name="news">News</a></h2>
 
+<div class="news-date">Fri Jul 7 2006: </div> <p class="news-text"><a
+href="@PACKAGE_URL@pulseaudio-0.9.2.tar.gz">Version 0.9.2</a>
+released; changes include: rename project to PulseAudio (see <a
+href="http://0pointer.de/blog/projects/pulse.html">this blog
+article</a> for an explanation); increase maximum number of concurrent
+connections; fix latency interpolation; add support for reverse endian
+sound cards; add support for recording in <tt>padsp</tt>; reenable CPU
+load limiter; other bugfixes</p>
+
 <div class="news-date">Fri Jun 2 2006: </div> <p class="news-text"><a
 href="@PACKAGE_URL@polypaudio-0.9.1.tar.gz">Version 0.9.1</a>
 released; changes include: load modules even when libtool <tt>.la</tt>
@@ -123,7 +132,7 @@ href="@PACKAGE_URL@polypaudio-0.1.tar.gz">Version 0.1</a> released</p>
 
 <h2><a name="overview">Overview</a></h2>
 
-<p>PulseAudio is a networked sound server for Linux and other
+<p><a href="http://pulseaudio.org/">PulseAudio</a> is a networked sound server for Linux and other
 Unix like operating systems and Microsoft Windows. It is intended to be an improved drop-in
 replacement for the <a
 href="http://www.tux.org/~ricdude/apps.html">Enlightened Sound
@@ -190,7 +199,8 @@ Sound Architecture</a> (ALSA) sinks and sources</li>
 href="http://0pointer.de/lennart/projects/paman/">PulseAudio
 Manager</a>. Other GTK GUI tool for PulseAudio are the <a
 href="http://0pointer.de/lennart/projects/pavumeter">PulseAudio Volume
-Meter</a>  and the <a
+Meter</a>, <a
+href="http://0pointer.de/lennart/projects/padevchooser">PulseAudio Device Chooser</a> and the <a
 href="http://0pointer.de/lennart/projects/pavucontrol">PulseAudio Volume
 Control</a> .</p>
 
@@ -199,11 +209,7 @@ href="http://0pointer.de/lennart/projects/xmms-pulse/">XMMS</a>, <a
 href="http://0pointer.de/lennart/projects/libao-pulse/">libao</a>
 (merged in <tt>libao</tt> SVN) and <a
 href="http://0pointer.de/lennart/projects/gst-pulse/">gstreamer</a>
-(merged in <tt>gstreamer-plugins</tt> CVS), <a
-href="http://mplayerhq.hu">MPlayer</a> (merged in MPlayer CVS) and <a
-href="http://xine.sf.net/">Xine</a> (merged in Xine CVS). Drivers for
-<a href="http://www.portaudio.com/">PortAudio</a> will be released
-shortly.</p>
+(merged in <tt>gstreamer-plugins</tt> CVS).</p>
 
 <p>PulseAudio was formerly known as Polypaudio.</p>
 
@@ -316,19 +322,21 @@ PulseAudio.</p>
 
 <p>Igor Zubkov for some portability patches</p>
 
+<p>Jan Schmidt for some latency interpolation love</p>
+
 <h2><a name="download">Download</a></h2>
 
 <p>The newest release is always available from <a href="@PACKAGE_URL@">@PACKAGE_URL@</a></p>
 
 <p>The current release is <a href="@PACKAGE_URL@pulseaudio-@PACKAGE_VERSION@.tar.gz">@PACKAGE_VERSION@</a></p>
 
-<p>Get PulseAudio's development sources from the <a href="http://subversion.tigris.org/">Subversion</a> <a href="svn://0pointer.de/pulseaudio">repository</a> (<a href="http://0pointer.de/cgi-bin/viewcvs.cgi/?root=pulseaudio">viewcvs</a>): </p>
+<p>Get PulseAudio's development sources from the <a href="http://subversion.tigris.org/">Subversion</a> <a href="svn://0pointer.de/pulseaudio">repository</a> (<a href="http://0pointer.de/cgi-bin/viewcvs.cgi/?root=pulseaudio">ViewCVS</a>, <a href="http://pulseaudio.org/browser/trunk">Trac</a>): </p>
 
 <pre>svn checkout svn://0pointer.de/pulseaudio/trunk pulseaudio</pre>
 
 <h2><a name="community">Community</a></h2>
 
-<p>If you want to be notified whenever I release a new version of this software use the subscription feature of <a href="http://freshmeat.net/projects/polypaudio/">Freshmeat</a>.</p>
+<p>If you want to be notified whenever I release a new version of this software use the subscription feature of <a href="http://freshmeat.net/projects/pulseaudio/">Freshmeat</a>.</p>
 
 <p>There is a general discussion <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-discuss">mailing list for PulseAudio</a> available. In addition, you can subscribe to <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-commits">SVN changes</a> and <a href="https://tango.0pointer.de/mailman/listinfo/polypaudio-tickets">Trac Tickets</a>.</p>
 
@@ -336,12 +344,12 @@ PulseAudio.</p>
 
 <p>There's a chance to meet the PulseAudio developers on our <a href="irc://irc.freenode.org/pulseaudio">IRC channel #pulseaudio on irc.freenode.org</a>.</p>
 
-<p>There is a <a href="http://www.edgewall.com/products/trac/">Trac</a> based <a href="http://0pointer.de/trac/pulseaudio/">Wiki for PulseAudio</a> available.</p>
+<p>The main project homepage is <a href="http://www.avahi.org/">http://avahi.org/</a>.</p>
 
-<p><b>Please report bugs to <a href="http://0pointer.de/trac/pulseaudio/newticket">our Trac ticket system</a>.</b></p>
+<p><b>Please report bugs to <a href="http://avahi.org/newticket">our Trac ticket system</a>.</b></p>
 
 <hr/>
-<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, June 2006</address>
+<address class="grey">Lennart Poettering &lt;@PACKAGE_BUGREPORT@&gt;, July 2006</address>
 <div class="grey"><i>$Id$</i></div>
 
 </body>
