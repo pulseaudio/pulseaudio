@@ -677,7 +677,6 @@ libpulse-simple.pc
 libpulse-browse.pc
 libpulse-mainloop-glib.pc
 libpulse-mainloop-glib12.pc
-doc/Makefile
 doxygen/Makefile
 doxygen/doxygen.conf
 src/pulse/version.h
