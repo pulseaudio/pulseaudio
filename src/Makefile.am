@@ -749,7 +749,7 @@ libauthkey_prop_la_LDFLAGS = -avoid-version
 libauthkey_prop_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 libsocket_util_la_SOURCES = \
-		pulsecore/inet_ntop.c pulsecor/inet_ntop.h \
+		pulsecore/inet_ntop.c pulsecore/inet_ntop.h \
 		pulsecore/socket-util.c pulsecore/socket-util.h
 libsocket_util_la_LDFLAGS = -avoid-version
 libsocket_util_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) libpulsecore.la
