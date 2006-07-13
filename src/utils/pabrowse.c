@@ -107,10 +107,18 @@ static void browser_callback(pa_browser *b, pa_browse_opcode_t c, const pa_brows
     }
 }
 
+static void error_callback(pa_browser *b, const char *s, void *userdata) {
+    pa_mainloop_api*m = userdata;
+    
+    fprintf(stderr, "Failure: %s\n", s);
+    m->quit(m, 1);
+}
+
 int main(int argc, char *argv[]) {
     pa_mainloop *mainloop = NULL;
     pa_browser *browser = NULL;
     int ret = 1, r;
+    const char *s;
 
     if (!(mainloop = pa_mainloop_new()))
         goto finish;
@@ -121,15 +129,22 @@ int main(int argc, char *argv[]) {
     pa_signal_new(SIGTERM, exit_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
     
-    if (!(browser = pa_browser_new(pa_mainloop_get_api(mainloop))))
+    if (!(browser = pa_browser_new_full(pa_mainloop_get_api(mainloop), PA_BROWSE_FOR_SERVERS|PA_BROWSE_FOR_SINKS|PA_BROWSE_FOR_SOURCES, &s))) {
+        fprintf(stderr, "pa_browse_new_full(): %s\n", s);
         goto finish;
+    }
 
     pa_browser_set_callback(browser, browser_callback, NULL);
+    pa_browser_set_error_callback(browser, error_callback, pa_mainloop_get_api(mainloop));
     
     ret = 0;
     pa_mainloop_run(mainloop, &ret);
 
 finish:
+
+    if (browser)
+        pa_browser_unref(browser);
+
     if (mainloop) {
         pa_signal_done();
         pa_mainloop_free(mainloop);
