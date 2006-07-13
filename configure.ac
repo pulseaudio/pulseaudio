@@ -475,41 +475,6 @@ AC_SUBST(GLIB12_LIBS)
 AC_SUBST(HAVE_GLIB12)
 AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
 
-#### Howl support (optional) ####
-
-AC_ARG_ENABLE([howl], 
-    AC_HELP_STRING([--disable-howl], [Disable optional Howl support]), 
-        [
-            case "${enableval}" in
-                yes) howl=yes ;;
-                no) howl=no ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --disable-howl) ;;
-            esac
-        ],
-        [howl=auto])
-
-if test "x${howl}" != xno ; then
-    PKG_CHECK_MODULES(HOWL, [ howl >= 0.9.8 ],
-        HAVE_HOWL=1,
-        [
-            PKG_CHECK_MODULES(HOWL, [ avahi-compat-howl >= 0.9.8 ],
-                HAVE_HOWL=1,
-                [
-                    HAVE_HOWL=0
-                    if test "x$howl" = xyes ; then
-                        AC_MSG_ERROR([*** Howl support not found])
-                    fi
-                ])
-        ])
-else
-    HAVE_HOWL=0
-fi
-
-AC_SUBST(HOWL_CFLAGS)
-AC_SUBST(HOWL_LIBS)
-AC_SUBST(HAVE_HOWL)
-AM_CONDITIONAL([HAVE_HOWL], [test "x$HAVE_HOWL" = x1])
-
 #### Avahi support (optional) ####
 
 AC_ARG_ENABLE([avahi], 

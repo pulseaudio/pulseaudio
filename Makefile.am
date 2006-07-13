@@ -26,7 +26,7 @@ noinst_DATA =
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libpulse.pc libpulse-simple.pc
 
-if HAVE_HOWL
+if HAVE_AVAHI
 pkgconfig_DATA += \
 	 libpulse-browse.pc
 endif
