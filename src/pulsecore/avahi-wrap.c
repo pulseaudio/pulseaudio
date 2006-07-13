@@ -139,7 +139,8 @@ static AvahiTimeout* timeout_new(const AvahiPoll *api, const struct timeval *tv,
     t->avahi_poll = p;
     t->callback = callback;
     t->userdata = userdata;
-    t->time_event = p->mainloop->time_new(p->mainloop, tv, timeout_callback, t);
+    
+    t->time_event = tv ? p->mainloop->time_new(p->mainloop, tv, timeout_callback, t) : NULL;
 
     return t;
 }
@@ -147,13 +148,21 @@ static AvahiTimeout* timeout_new(const AvahiPoll *api, const struct timeval *tv,
 static void timeout_update(AvahiTimeout *t, const struct timeval *tv) {
     assert(t);
 
-    t->avahi_poll->mainloop->time_restart(t->time_event, tv);
+    if (t->time_event && tv)
+        t->avahi_poll->mainloop->time_restart(t->time_event, tv);
+    else if (!t->time_event && tv)
+        t->time_event = t->avahi_poll->mainloop->time_new(t->avahi_poll->mainloop, tv, timeout_callback, t);
+    else if (t->time_event && !tv) {
+        t->avahi_poll->mainloop->time_free(t->time_event);
+        t->time_event = NULL;
+    }
 }
      
 static void timeout_free(AvahiTimeout *t) {
     assert(t);
 
-    t->avahi_poll->mainloop->time_free(t->time_event);
+    if (t->time_event)
+        t->avahi_poll->mainloop->time_free(t->time_event);
     pa_xfree(t);
 }
 
