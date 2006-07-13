@@ -667,6 +667,14 @@ modlibexec_LTLIBRARIES += \
 		libx11prop.la
 endif
 
+if HAVE_AVAHI
+pulsecoreinclude_HEADERS += \
+		pulsecore/avahi-wrap.h
+
+modlibexec_LTLIBRARIES += \
+		libavahi-wrap.la
+endif
+
 libprotocol_simple_la_SOURCES = pulsecore/protocol-simple.c pulsecore/protocol-simple.h
 libprotocol_simple_la_LDFLAGS = -avoid-version
 libprotocol_simple_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-server.la libiochannel.la
@@ -769,6 +777,13 @@ libx11prop_la_SOURCES = pulsecore/x11prop.c pulsecore/x11prop.h
 libx11prop_la_LDFLAGS = -avoid-version
 libx11prop_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 libx11prop_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+
+# Avahi
+
+libavahi_wrap_la_SOURCES = pulsecore/avahi-wrap.c pulsecore/avahi-wrap.h
+libavahi_wrap_la_LDFLAGS = -avoid-version
+libavahi_wrap_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
+libavahi_wrap_la_LIBADD = $(AM_LIBADD) $(AVAHI_CFLAGS) libpulsecore.la
 
 ###################################
 #        Plug-in libraries        #
@@ -1105,8 +1120,8 @@ libhowl_wrap_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
 
 module_zeroconf_publish_la_SOURCES = modules/module-zeroconf-publish.c
 module_zeroconf_publish_la_LDFLAGS = -module -avoid-version
-module_zeroconf_publish_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS) libhowl-wrap.la libpulsecore.la
-module_zeroconf_publish_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
+module_zeroconf_publish_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore.la
+module_zeroconf_publish_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 
 # LIRC
 

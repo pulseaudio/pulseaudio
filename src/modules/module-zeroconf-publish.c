@@ -29,6 +29,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <avahi-client/client.h>
+#include <avahi-client/publish.h>
+#include <avahi-common/alternative.h>
+#include <avahi-common/error.h>
+
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
@@ -41,10 +46,8 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/dynarray.h>
 #include <pulsecore/modargs.h>
-
-#include "../pulsecore/endianmacros.h"
-
-#include "howl-wrap.h"
+#include <pulsecore/avahi-wrap.h>
+#include <pulsecore/endianmacros.h>
 
 #include "module-zeroconf-publish-symdef.h"
 
@@ -53,9 +56,9 @@ PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("port=<IP port number>")
 
-#define SERVICE_NAME_SINK "_pulse-sink._tcp"
-#define SERVICE_NAME_SOURCE "_pulse-source._tcp"
-#define SERVICE_NAME_SERVER "_pulse-server._tcp"
+#define SERVICE_TYPE_SINK "_pulse-sink._tcp"
+#define SERVICE_TYPE_SOURCE "_pulse-source._tcp"
+#define SERVICE_TYPE_SERVER "_pulse-server._tcp"
 
 static const char* const valid_modargs[] = {
     "port",
@@ -63,9 +66,11 @@ static const char* const valid_modargs[] = {
 };
 
 struct service {
-    sw_discovery_oid oid;
+    struct userdata *userdata;
+    AvahiEntryGroup *entry_group;
+    char *service_name;
     char *name;
-    int published; /* 0 -> not yet registered, 1 -> registered with data from real device, 2 -> registered with data from autoload device */
+    enum  { UNPUBLISHED, PUBLISHED_REAL, PUBLISHED_AUTOLOAD } published ;
 
     struct {
         int valid;
@@ -82,18 +87,17 @@ struct service {
 
 struct userdata {
     pa_core *core;
-    pa_howl_wrapper *howl_wrapper;
+    AvahiPoll *avahi_poll;
+    AvahiClient *client;
     pa_hashmap *services;
     pa_dynarray *sink_dynarray, *source_dynarray, *autoload_dynarray;
     pa_subscription *subscription;
+    char *service_name;
+
+    AvahiEntryGroup *main_entry_group;
 
     uint16_t port;
-    sw_discovery_oid server_oid;
 };
-
-static sw_result publish_reply(sw_discovery discovery, sw_discovery_publish_status status, sw_discovery_oid oid, sw_opaque extra) {
-    return SW_OKAY;
-}
 
 static void get_service_data(struct userdata *u, struct service *s, pa_sample_spec *ret_ss, char **ret_description) {
     assert(u && s && s->loaded.valid && ret_ss && ret_description);
@@ -112,109 +116,144 @@ static void get_service_data(struct userdata *u, struct service *s, pa_sample_sp
         assert(0);
 }
 
-static void txt_record_server_data(pa_core *c, sw_text_record t) {
-    char s[256];
+static AvahiStringList* txt_record_server_data(pa_core *c, AvahiStringList *l) {
+    char s[128];
     assert(c);
 
-    sw_text_record_add_key_and_string_value(t, "server-version", PACKAGE_NAME" "PACKAGE_VERSION);
-    sw_text_record_add_key_and_string_value(t, "user-name", pa_get_user_name(s, sizeof(s)));
-    sw_text_record_add_key_and_string_value(t, "fqdn", pa_get_fqdn(s, sizeof(s)));
-    snprintf(s, sizeof(s), "0x%08x", c->cookie);
-    sw_text_record_add_key_and_string_value(t, "cookie", s);
+    l = avahi_string_list_add_pair(l, "server-version", PACKAGE_NAME" "PACKAGE_VERSION);
+    l = avahi_string_list_add_pair(l, "user-name", pa_get_user_name(s, sizeof(s)));
+    l = avahi_string_list_add_pair(l, "fqdn", pa_get_fqdn(s, sizeof(s)));
+    l = avahi_string_list_add_printf(l, "cookie=0x%08x", c->cookie);
+
+    return l;
+}
+
+static int publish_service(struct userdata *u, struct service *s);
+
+static void service_entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, void *userdata) {
+    struct service *s = userdata;
+
+    if (state == AVAHI_ENTRY_GROUP_COLLISION) {
+        char *t;
+
+        t = avahi_alternative_service_name(s->service_name);
+        pa_xfree(s->service_name);
+        s->service_name = t;
+
+        publish_service(s->userdata, s);
+    }
 }
 
 static int publish_service(struct userdata *u, struct service *s) {
-    char t[256];
-    char hn[256];
     int r = -1;
-    sw_text_record txt;
-    int free_txt = 0;
-    assert(u && s);
-       
-    if ((s->published == 1 && s->loaded.valid) ||
-        (s->published == 2 && s->autoload.valid && !s->loaded.valid))
+    AvahiStringList *txt = NULL;
+
+    assert(u);
+    assert(s);
+
+    if (!u->client || avahi_client_get_state(u->client) != AVAHI_CLIENT_S_RUNNING)
+        return 0;
+    
+    if ((s->published == PUBLISHED_REAL && s->loaded.valid) ||
+        (s->published == PUBLISHED_AUTOLOAD && s->autoload.valid && !s->loaded.valid))
         return 0;
 
-    if (s->published) {
-        sw_discovery_cancel(pa_howl_wrapper_get_discovery(u->howl_wrapper), s->oid);
-        s->published = 0;
-    }
-
-    snprintf(t, sizeof(t), "%s on %s", s->name, pa_get_host_name(hn, sizeof(hn)));
-
-    if (sw_text_record_init(&txt) != SW_OKAY) {
-        pa_log(__FILE__": sw_text_record_init() failed");
-        goto finish;
-    }
-    free_txt = 1;
-
-    sw_text_record_add_key_and_string_value(txt, "device", s->name);
-
-    txt_record_server_data(u->core, txt);
+    if (s->published != UNPUBLISHED) {
+        avahi_entry_group_reset(s->entry_group);
+        s->published = UNPUBLISHED;
+    } 
     
-    if (s->loaded.valid) {
-        char z[64], *description;
-        pa_sample_spec ss;
+    if (s->loaded.valid || s->autoload.valid) {
+        pa_namereg_type_t type;
 
-        get_service_data(u, s, &ss, &description);
+        if (!s->entry_group) {
+            if (!(s->entry_group = avahi_entry_group_new(u->client, service_entry_group_callback, s))) {
+                pa_log("avahi_entry_group_new(): %s", avahi_strerror(avahi_client_errno(u->client)));
+                goto finish;
+            }
+        }
+        
+        txt = avahi_string_list_add_pair(txt, "device", s->name);
+        txt = txt_record_server_data(u->core, txt);
+        
+        if (s->loaded.valid) {
+            char *description;
+            pa_sample_spec ss;
             
-        snprintf(z, sizeof(z), "%u", ss.rate);
-        sw_text_record_add_key_and_string_value(txt, "rate", z);
-        snprintf(z, sizeof(z), "%u", ss.channels);
-        sw_text_record_add_key_and_string_value(txt, "channels", z);
-        sw_text_record_add_key_and_string_value(txt, "format", pa_sample_format_to_string(ss.format));
-
-        sw_text_record_add_key_and_string_value(txt, "description", description);
-
-        if (sw_discovery_publish(pa_howl_wrapper_get_discovery(u->howl_wrapper), 0, t,
-                                 s->loaded.type == PA_NAMEREG_SINK ? SERVICE_NAME_SINK : SERVICE_NAME_SOURCE,
-                                 NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
-                                 publish_reply, s, &s->oid) != SW_OKAY) {
-            pa_log(__FILE__": failed to register sink on zeroconf.");
+            get_service_data(u, s, &ss, &description);
+            
+            txt = avahi_string_list_add_printf(txt, "rate=%u", ss.rate);
+            txt = avahi_string_list_add_printf(txt, "channels=%u", ss.channels);
+            txt = avahi_string_list_add_pair(txt, "format", pa_sample_format_to_string(ss.format));
+            txt = avahi_string_list_add_pair(txt, "description", description);
+            
+            type = s->loaded.type;
+        } else if (s->autoload.valid)
+            type = s->autoload.type;
+        
+        if (avahi_entry_group_add_service_strlst(
+                    s->entry_group,
+                    AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
+                    0,
+                    s->service_name,
+                    type == PA_NAMEREG_SINK ? SERVICE_TYPE_SINK : SERVICE_TYPE_SOURCE,
+                    NULL,
+                    NULL,
+                    u->port,
+                    txt) < 0) {
+            
+            pa_log(__FILE__": avahi_entry_group_add_service_strlst(): %s", avahi_strerror(avahi_client_errno(u->client)));
             goto finish;
         }
-
-        s->published = 1;
-    } else if (s->autoload.valid) {
-
-        if (sw_discovery_publish(pa_howl_wrapper_get_discovery(u->howl_wrapper), 0, t,
-                                 s->autoload.type == PA_NAMEREG_SINK ? SERVICE_NAME_SINK : SERVICE_NAME_SOURCE,
-                                 NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
-                                 publish_reply, s, &s->oid) != SW_OKAY) {
-            pa_log(__FILE__": failed to register sink on zeroconf.");
+        
+        if (avahi_entry_group_commit(s->entry_group) < 0) {
+            pa_log(__FILE__": avahi_entry_group_commit(): %s", avahi_strerror(avahi_client_errno(u->client)));
             goto finish;
         }
-
-        s->published = 2;
+        
+        if (s->loaded.valid)
+            s->published = PUBLISHED_REAL;
+        else if (s->autoload.valid)
+            s->published = PUBLISHED_AUTOLOAD;
     }
-
+        
     r = 0;
     
 finish:
 
-    if (!s->published) {
+    if (s->published == UNPUBLISHED) {
         /* Remove this service */
+
+        if (s->entry_group) {
+            avahi_entry_group_free(s->entry_group);
+        }
+        
         pa_hashmap_remove(u->services, s->name);
         pa_xfree(s->name);
+        pa_xfree(s->service_name);
         pa_xfree(s);
     }
 
-    if (free_txt)
-        sw_text_record_fina(txt);
+    if (txt)
+        avahi_string_list_free(txt);
     
     return r;
 }
 
 static struct service *get_service(struct userdata *u, const char *name) {
     struct service *s;
+    char hn[64];
     
     if ((s = pa_hashmap_get(u->services, name)))
         return s;
     
-    s = pa_xmalloc(sizeof(struct service));
-    s->published = 0;
+    s = pa_xnew(struct service, 1);
+    s->userdata = u;
+    s->entry_group = NULL;
+    s->published = UNPUBLISHED;
     s->name = pa_xstrdup(name);
     s->loaded.valid = s->autoload.valid = 0;
+    s->service_name = pa_sprintf_malloc("%s on %s", s->name, pa_get_host_name(hn, sizeof(hn)));
 
     pa_hashmap_put(u->services, s->name, s);
 
@@ -227,7 +266,7 @@ static int publish_sink(struct userdata *u, pa_sink *s) {
 
     svc = get_service(u, s->name);
     if (svc->loaded.valid)
-        return 0;
+        return publish_service(u, svc);
 
     svc->loaded.valid = 1;
     svc->loaded.type = PA_NAMEREG_SINK;
@@ -244,7 +283,7 @@ static int publish_source(struct userdata *u, pa_source *s) {
 
     svc = get_service(u, s->name);
     if (svc->loaded.valid)
-        return 0;
+        return publish_service(u, svc);
 
     svc->loaded.valid = 1;
     svc->loaded.type = PA_NAMEREG_SOURCE;
@@ -261,7 +300,7 @@ static int publish_autoload(struct userdata *u, pa_autoload_entry *s) {
 
     svc = get_service(u, s->name);
     if (svc->autoload.valid)
-        return 0;
+        return publish_service(u, svc);
 
     svc->autoload.valid = 1;
     svc->autoload.type = s->type;
@@ -381,16 +420,164 @@ fail:
     }
 }
 
-int pa__init(pa_core *c, pa_module*m) {
-    struct userdata *u;
-    uint32_t idx, port = PA_NATIVE_DEFAULT_PORT;
+static int publish_main_service(struct userdata *u);
+
+static void main_entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, void *userdata) {
+    struct userdata *u = userdata;
+    assert(u);
+
+    if (state == AVAHI_ENTRY_GROUP_COLLISION) {
+        char *t;
+
+        t = avahi_alternative_service_name(u->service_name);
+        pa_xfree(u->service_name);
+        u->service_name = t;
+
+        publish_main_service(u);
+    }
+}
+
+static int publish_main_service(struct userdata *u) {
+    AvahiStringList *txt = NULL;
+    int r = -1;
+    
+    if (!u->main_entry_group) {
+        if (!(u->main_entry_group = avahi_entry_group_new(u->client, main_entry_group_callback, u))) {
+            pa_log(__FILE__": avahi_entry_group_new() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
+            goto fail;
+        }
+    } else
+        avahi_entry_group_reset(u->main_entry_group);
+    
+    txt = txt_record_server_data(u->core, NULL);
+
+    if (avahi_entry_group_add_service_strlst(
+                u->main_entry_group,
+                AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
+                0,
+                u->service_name,
+                SERVICE_TYPE_SERVER,
+                NULL,
+                NULL,
+                u->port,
+                txt) < 0) {
+        
+        pa_log(__FILE__": avahi_entry_group_add_service_strlst() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
+        goto fail;
+    }
+            
+    if (avahi_entry_group_commit(u->main_entry_group) < 0) {
+        pa_log(__FILE__": avahi_entry_group_commit() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
+        goto fail;
+    }
+
+    r = 0;
+    
+fail:
+    avahi_string_list_free(txt);
+
+    return r;
+}
+
+static int publish_all_services(struct userdata *u) {
     pa_sink *sink;
     pa_source *source;
     pa_autoload_entry *autoload;
+    int r = -1;
+    uint32_t idx;
+    
+    assert(u);
+
+    pa_log_debug(__FILE__": Publishing services in Zeroconf");
+
+    for (sink = pa_idxset_first(u->core->sinks, &idx); sink; sink = pa_idxset_next(u->core->sinks, &idx))
+        if (publish_sink(u, sink) < 0)
+            goto fail;
+
+    for (source = pa_idxset_first(u->core->sources, &idx); source; source = pa_idxset_next(u->core->sources, &idx))
+        if (publish_source(u, source) < 0)
+            goto fail;
+
+    if (u->core->autoload_idxset)
+        for (autoload = pa_idxset_first(u->core->autoload_idxset, &idx); autoload; autoload = pa_idxset_next(u->core->autoload_idxset, &idx))
+            if (publish_autoload(u, autoload) < 0)
+                goto fail;
+
+    if (publish_main_service(u) < 0)
+        goto fail;
+    
+    r = 0;
+    
+fail:
+    return r;
+}
+
+static void unpublish_all_services(struct userdata *u, int rem) {
+    void *state = NULL;
+    struct service *s;
+    
+    assert(u);
+
+    pa_log_debug(__FILE__": Unpublishing services in Zeroconf");
+
+    while ((s = pa_hashmap_iterate(u->services, &state, NULL))) {
+        if (s->entry_group) {
+            if (rem) {
+                avahi_entry_group_free(s->entry_group);
+                s->entry_group = NULL;
+            } else 
+                avahi_entry_group_reset(s->entry_group);
+        }
+
+        s->published = UNPUBLISHED;
+    }
+
+    if (u->main_entry_group) {
+        if (rem) {
+            avahi_entry_group_free(u->main_entry_group);
+            u->main_entry_group = NULL;
+        } else
+            avahi_entry_group_reset(u->main_entry_group);
+    }
+}
+
+static void client_callback(AvahiClient *c, AvahiClientState state, void *userdata) {
+    struct userdata *u = userdata;
+    assert(c);
+
+    u->client = c;
+    
+    switch (state) {
+        case AVAHI_CLIENT_S_RUNNING:
+            publish_all_services(u);
+            break;
+            
+        case AVAHI_CLIENT_S_COLLISION:
+            unpublish_all_services(u, 0);
+            break;
+
+        case AVAHI_CLIENT_FAILURE:
+            if (avahi_client_errno(c) == AVAHI_ERR_DISCONNECTED) {
+                int error;
+                unpublish_all_services(u, 1);
+                avahi_client_free(u->client);
+
+                if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error)))
+                    pa_log(__FILE__": pa_avahi_client_new() failed: %s", avahi_strerror(error));
+            }
+            
+            break;
+
+        default: ;
+    }
+}
+
+int pa__init(pa_core *c, pa_module*m) {
+    struct userdata *u;
+    uint32_t port = PA_NATIVE_DEFAULT_PORT;
     pa_modargs *ma = NULL;
-    char t[256], hn[256];
-    int free_txt = 0;
-    sw_text_record txt;
+    char hn[256];
+    int error;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments.");
@@ -402,55 +589,31 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xmalloc(sizeof(struct userdata));
+    m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = c;
     u->port = (uint16_t) port;
 
-    if (!(u->howl_wrapper = pa_howl_wrapper_get(c)))
-        goto fail;
-
+    u->avahi_poll = pa_avahi_poll_new(c->mainloop);
+    
     u->services = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     u->sink_dynarray = pa_dynarray_new();
     u->source_dynarray = pa_dynarray_new();
     u->autoload_dynarray = pa_dynarray_new();
-    
+
     u->subscription = pa_subscription_new(c,
                                           PA_SUBSCRIPTION_MASK_SINK|
                                           PA_SUBSCRIPTION_MASK_SOURCE|
                                           PA_SUBSCRIPTION_MASK_AUTOLOAD, subscribe_callback, u);
 
-    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx))
-        if (publish_sink(u, sink) < 0)
-            goto fail;
+    u->main_entry_group = NULL;
 
-    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx))
-        if (publish_source(u, source) < 0)
-            goto fail;
+    u->service_name = pa_xstrdup(pa_get_host_name(hn, sizeof(hn)));
 
-    if (c->autoload_idxset)
-        for (autoload = pa_idxset_first(c->autoload_idxset, &idx); autoload; autoload = pa_idxset_next(c->autoload_idxset, &idx))
-            if (publish_autoload(u, autoload) < 0)
-                goto fail;
-
-    snprintf(t, sizeof(t), "%s", pa_get_host_name(hn, sizeof(hn)));   
-
-    if (sw_text_record_init(&txt) != SW_OKAY) {
-        pa_log(__FILE__": sw_text_record_init() failed");
+    if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
+        pa_log(__FILE__": pa_avahi_client_new() failed: %s", avahi_strerror(error));
         goto fail;
     }
-    free_txt = 1;
 
-    txt_record_server_data(u->core, txt);
-    
-    if (sw_discovery_publish(pa_howl_wrapper_get_discovery(u->howl_wrapper), 0, t,
-                             SERVICE_NAME_SERVER,
-                             NULL, NULL, u->port, sw_text_record_bytes(txt), sw_text_record_len(txt),
-                             publish_reply, u, &u->server_oid) != SW_OKAY) {
-        pa_log(__FILE__": failed to register server on zeroconf.");
-        goto fail;
-    }
-    
-    sw_text_record_fina(txt);
     pa_modargs_free(ma);
     
     return 0;
@@ -460,9 +623,6 @@ fail:
 
     if (ma)
         pa_modargs_free(ma);
-
-    if (free_txt)
-        sw_text_record_fina(txt);
     
     return -1;
 }
@@ -470,8 +630,14 @@ fail:
 static void service_free(void *p, void *userdata) {
     struct service *s = p;
     struct userdata *u = userdata;
-    assert(s && u);
-    sw_discovery_cancel(pa_howl_wrapper_get_discovery(u->howl_wrapper), s->oid);
+
+    assert(s);
+    assert(u);
+
+    if (s->entry_group)
+        avahi_entry_group_free(s->entry_group);
+    
+    pa_xfree(s->service_name);
     pa_xfree(s->name);
     pa_xfree(s);
 }
@@ -495,11 +661,17 @@ void pa__done(pa_core *c, pa_module*m) {
     
     if (u->subscription)
         pa_subscription_free(u->subscription);
-    
-    if (u->howl_wrapper)
-        pa_howl_wrapper_unref(u->howl_wrapper);
 
+    if (u->main_entry_group)
+        avahi_entry_group_free(u->main_entry_group);
     
+    if (u->client)
+        avahi_client_free(u->client);
+    
+    if (u->avahi_poll)
+        pa_avahi_poll_free(u->avahi_poll);
+
+    pa_xfree(u->service_name);
     pa_xfree(u);
 }
 
