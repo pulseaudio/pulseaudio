@@ -6,7 +6,6 @@ Post 0.9.0:
 - polish for starting polypaudio as root/system-wide instance
 - chroot()
 - module-tunnel: improve latency calculation
-- port from howl to avahi
 - multiline configuration statements
 - use scatter/gather io for sockets
 - rtp module ported to Win32 (sendmsg/recvmsg emulation)
