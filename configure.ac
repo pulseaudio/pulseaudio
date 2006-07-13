@@ -510,6 +510,37 @@ AC_SUBST(HOWL_LIBS)
 AC_SUBST(HAVE_HOWL)
 AM_CONDITIONAL([HAVE_HOWL], [test "x$HAVE_HOWL" = x1])
 
+#### Avahi support (optional) ####
+
+AC_ARG_ENABLE([avahi], 
+    AC_HELP_STRING([--disable-avahi], [Disable optional Avahi support]), 
+        [
+            case "${enableval}" in
+                yes) avahi=yes ;;
+                no) avahi=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-avahi) ;;
+            esac
+        ],
+        [avahi=auto])
+
+if test "x${avahi}" != xno ; then
+    PKG_CHECK_MODULES(AVAHI, [ avahi-client >= 0.6.0 ],
+        HAVE_AVAHI=1,
+        [
+                HAVE_AVAHI=0
+                if test "x$avahi" = xyes ; then
+                        AC_MSG_ERROR([*** Avahi support not found])
+                fi
+        ])
+else
+    HAVE_AVAHI=0
+fi
+
+AC_SUBST(AVAHI_CFLAGS)
+AC_SUBST(AVAHI_LIBS)
+AC_SUBST(HAVE_AVAHI)
+AM_CONDITIONAL([HAVE_AVAHI], [test "x$HAVE_AVAHI" = x1])
+
 ### LIBOIL ####
 
 PKG_CHECK_MODULES(LIBOIL, [ liboil-0.3 >= 0.3.0 ])
