@@ -140,7 +140,7 @@ if HAVE_X11
 bin_PROGRAMS += pax11publish
 endif
 
-if HAVE_HOWL
+if HAVE_AVAHI
 bin_PROGRAMS += pabrowse
 endif
 
@@ -319,7 +319,7 @@ pulseinclude_HEADERS = \
 		pulse/volume.h \
 		pulse/xmalloc.h
 
-if HAVE_HOWL
+if HAVE_AVAHI
 pulseinclude_HEADERS += \
 		pulse/browser.h
 endif
@@ -338,7 +338,7 @@ lib_LTLIBRARIES = \
 		libpulse.la \
 		libpulse-simple.la
 
-if HAVE_HOWL
+if HAVE_AVAHI
 lib_LTLIBRARIES += \
 		libpulse-browse.la
 endif
@@ -444,9 +444,9 @@ libpulse_simple_la_CFLAGS = $(AM_CFLAGS)
 libpulse_simple_la_LIBADD = $(AM_LIBADD) libpulse.la
 libpulse_simple_la_LDFLAGS = -version-info $(LIBPULSE_SIMPLE_VERSION_INFO)
 
-libpulse_browse_la_SOURCES = pulse/browser.c pulse/browser.h 
-libpulse_browse_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
-libpulse_browse_la_LIBADD = $(AM_LIBADD) libpulse.la $(HOWL_LIBS)
+libpulse_browse_la_SOURCES = pulse/browser.c pulse/browser.h pulsecore/avahi-wrap.c pulsecore/avahi-wrap.h
+libpulse_browse_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
+libpulse_browse_la_LIBADD = $(AM_LIBADD) libpulse.la $(AVAHI_LIBS)
 libpulse_browse_la_LDFLAGS = -version-info $(LIBPULSE_BROWSE_VERSION_INFO)
 
 libpulse_mainloop_glib_la_SOURCES = pulse/glib-mainloop.h pulse/glib-mainloop.c
@@ -864,9 +864,8 @@ modlibexec_LTLIBRARIES += \
 		module-solaris.la
 endif
 
-if HAVE_HOWL
+if HAVE_AVAHI
 modlibexec_LTLIBRARIES += \
-		libhowl-wrap.la \
 		module-zeroconf-publish.la
 endif
 
@@ -1111,12 +1110,7 @@ module_solaris_la_SOURCES = modules/module-solaris.c
 module_solaris_la_LDFLAGS = -module -avoid-version
 module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
-# HOWL
-
-libhowl_wrap_la_SOURCES = modules/howl-wrap.c modules/howl-wrap.h
-libhowl_wrap_la_LDFLAGS = -avoid-version
-libhowl_wrap_la_LIBADD = $(AM_LIBADD) $(HOWL_LIBS) libpulsecore.la
-libhowl_wrap_la_CFLAGS = $(AM_CFLAGS) $(HOWL_CFLAGS)
+# Avahi
 
 module_zeroconf_publish_la_SOURCES = modules/module-zeroconf-publish.c
 module_zeroconf_publish_la_LDFLAGS = -module -avoid-version

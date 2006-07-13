@@ -24,85 +24,68 @@
 #endif 
 
 #include <assert.h>
-#include <howl.h>
+#include <string.h>
+
+#include <avahi-client/lookup.h>
+#include <avahi-common/domain.h>
+#include <avahi-common/error.h>
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
 
+#include <pulsecore/avahi-wrap.h>
+
 #include "browser.h"
 
-#define SERVICE_NAME_SINK "_pulse-sink._tcp."
-#define SERVICE_NAME_SOURCE "_pulse-source._tcp."
-#define SERVICE_NAME_SERVER "_pulse-server._tcp."
+#define SERVICE_TYPE_SINK "_pulse-sink._tcp."
+#define SERVICE_TYPE_SOURCE "_pulse-source._tcp."
+#define SERVICE_TYPE_SERVER "_pulse-server._tcp."
 
 struct pa_browser {
     int ref;
     pa_mainloop_api *mainloop;
+    AvahiPoll* avahi_poll;
 
     pa_browse_cb_t callback;
     void *userdata;
+
+    pa_browser_error_cb_t error_callback;
+    void *error_userdata;
     
-    sw_discovery discovery;
-    pa_io_event *io_event;
+    AvahiClient *client;
+    AvahiServiceBrowser *server_browser, *sink_browser, *source_browser;
+    
 };
 
-static void io_callback(pa_mainloop_api*a, PA_GCC_UNUSED pa_io_event*e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void *userdata) {
-    pa_browser *b = userdata;
-    assert(a && b && b->mainloop == a);
-
-    if (events != PA_IO_EVENT_INPUT || sw_discovery_read_socket(b->discovery) != SW_OKAY) {
-        pa_log(__FILE__": connection to HOWL daemon failed.");
-        b->mainloop->io_free(b->io_event);
-        b->io_event = NULL;
-        return;
-    }
-}
-
-static int type_equal(const char *a, const char *b) {
-    size_t la, lb;
-    
-    if (strcasecmp(a, b) == 0)
-        return 1;
-
-    la = strlen(a);
-    lb = strlen(b);
-
-    if (la > 0 && a[la-1] == '.' && la == lb+1 && strncasecmp(a, b, la-1) == 0)
-        return 1;
-                                            
-    if (lb > 0 && b[lb-1] == '.' && lb == la+1 && strncasecmp(a, b, lb-1) == 0)
-        return 1;
-
-    return 0;
-}
-
 static int map_to_opcode(const char *type, int new) {
-    if (type_equal(type, SERVICE_NAME_SINK))
+    if (avahi_domain_equal(type, SERVICE_TYPE_SINK))
         return new ? PA_BROWSE_NEW_SINK : PA_BROWSE_REMOVE_SINK;
-    else if (type_equal(type, SERVICE_NAME_SOURCE))
+    else if (avahi_domain_equal(type, SERVICE_TYPE_SOURCE))
         return new ? PA_BROWSE_NEW_SOURCE : PA_BROWSE_REMOVE_SOURCE;
-    else if (type_equal(type, SERVICE_NAME_SERVER))
+    else if (avahi_domain_equal(type, SERVICE_TYPE_SERVER))
         return new ? PA_BROWSE_NEW_SERVER : PA_BROWSE_REMOVE_SERVER;
 
     return -1;
 }
 
-static sw_result resolve_reply(
-        sw_discovery discovery,
-        sw_discovery_oid oid,
-        sw_uint32 interface_index,
-        sw_const_string name,
-        sw_const_string type,
-        sw_const_string domain,
-        sw_ipv4_address address,
-        sw_port port,
-        sw_octets text_record,
-        sw_ulong text_record_len,
-        sw_opaque extra) {
+static void resolve_callback(
+        AvahiServiceResolver *r,
+        AvahiIfIndex interface,
+        AvahiProtocol protocol,
+        AvahiResolverEvent event,
+        const char *name,
+        const char *type,
+        const char *domain,
+        const char *host_name,
+        const AvahiAddress *aa,
+        uint16_t port,
+        AvahiStringList *txt,
+        AvahiLookupResultFlags flags,
+        void *userdata) {
     
-    pa_browser *b = extra;
+    pa_browser *b = userdata;
     pa_browse_info i;
     char ip[256], a[256];
     int opcode;
@@ -110,100 +93,96 @@ static sw_result resolve_reply(
     uint32_t cookie;
     pa_sample_spec ss;
     int ss_valid = 0;
-    sw_text_record_iterator iterator;
-    int free_iterator = 0;
-    char *c = NULL;
+    char *key = NULL, *value = NULL;
     
     assert(b);
 
-    sw_discovery_cancel(discovery, oid);
-
     memset(&i, 0, sizeof(i));
     i.name = name;
-        
+
+    if (event != AVAHI_RESOLVER_FOUND)
+        goto fail;
+    
     if (!b->callback)
         goto fail;
 
     opcode = map_to_opcode(type, 1);
     assert(opcode >= 0);
-    
-    snprintf(a, sizeof(a), "tcp:%s:%u", sw_ipv4_address_name(address, ip, sizeof(ip)), port);
+
+    if (aa->proto == AVAHI_PROTO_INET)
+        snprintf(a, sizeof(a), "tcp:%s:%u", avahi_address_snprint(ip, sizeof(ip), aa), port);
+    else {
+        assert(aa->proto == AVAHI_PROTO_INET6);
+        snprintf(a, sizeof(a), "tcp6:%s:%u", avahi_address_snprint(ip, sizeof(ip), aa), port);
+    }
     i.server = a;
-    
-    if (text_record && text_record_len) {
-        char key[SW_TEXT_RECORD_MAX_LEN];
-        uint8_t val[SW_TEXT_RECORD_MAX_LEN];
-        uint32_t val_len;
+
+
+    while (txt) {
+        
+        if (avahi_string_list_get_pair(txt, &key, &value, NULL) < 0)
+            break;
   
-        if (sw_text_record_iterator_init(&iterator, text_record, text_record_len) != SW_OKAY) {
-            pa_log_error(__FILE__": sw_text_record_string_iterator_init() failed.");
-            goto fail;
-        }
-
-        free_iterator = 1;
-        
-        while (sw_text_record_iterator_next(iterator, key, val, &val_len) == SW_OKAY) {
-            c = pa_xstrndup((char*) val, val_len);
+        if (!strcmp(key, "device")) {
+            device_found = 1;
+            pa_xfree((char*) i.device);
+            i.device = value;
+            value = NULL;
+        } else if (!strcmp(key, "server-version")) {
+            pa_xfree((char*) i.server_version);
+            i.server_version = value;
+            value = NULL;
+        } else if (!strcmp(key, "user-name")) {
+            pa_xfree((char*) i.user_name);
+            i.user_name = value;
+            value = NULL;
+        } else if (!strcmp(key, "fqdn")) {
+            size_t l;
             
-            if (!strcmp(key, "device")) {
-                device_found = 1;
-                pa_xfree((char*) i.device);
-                i.device = c;
-                c = NULL;
-            } else if (!strcmp(key, "server-version")) {
-                pa_xfree((char*) i.server_version);
-                i.server_version = c;
-                c = NULL;
-            } else if (!strcmp(key, "user-name")) {
-                pa_xfree((char*) i.user_name);
-                i.user_name = c;
-                c = NULL;
-            } else if (!strcmp(key, "fqdn")) {
-                size_t l;
+            pa_xfree((char*) i.fqdn);
+            i.fqdn = value;
+            value = NULL;
                 
-                pa_xfree((char*) i.fqdn);
-                i.fqdn = c;
-                c = NULL;
-                
-                l = strlen(a);
-                assert(l+1 <= sizeof(a));
-                strncat(a, " ", sizeof(a)-l-1);
-                strncat(a, i.fqdn, sizeof(a)-l-2);
-            } else if (!strcmp(key, "cookie")) {
+            l = strlen(a);
+            assert(l+1 <= sizeof(a));
+            strncat(a, " ", sizeof(a)-l-1);
+            strncat(a, i.fqdn, sizeof(a)-l-2);
+        } else if (!strcmp(key, "cookie")) {
 
-                if (pa_atou(c, &cookie) < 0)
-                    goto fail;
-                
-                i.cookie = &cookie;
-            } else if (!strcmp(key, "description")) {
-                pa_xfree((char*) i.description);
-                i.description = c;
-                c = NULL;
-            } else if (!strcmp(key, "channels")) {
-                uint32_t ch;
-                
-                if (pa_atou(c, &ch) < 0 || ch <= 0 || ch > 255)
-                    goto fail;
+            if (pa_atou(value, &cookie) < 0)
+                goto fail;
+            
+            i.cookie = &cookie;
+        } else if (!strcmp(key, "description")) {
+            pa_xfree((char*) i.description);
+            i.description = value;
+            value = NULL;
+        } else if (!strcmp(key, "channels")) {
+            uint32_t ch;
+            
+            if (pa_atou(value, &ch) < 0 || ch <= 0 || ch > 255)
+                goto fail;
+            
+            ss.channels = (uint8_t) ch;
+            ss_valid |= 1;
+            
+        } else if (!strcmp(key, "rate")) {
+            if (pa_atou(value, &ss.rate) < 0)
+                goto fail;
+            ss_valid |= 2;
+        } else if (!strcmp(key, "format")) {
 
-                ss.channels = (uint8_t) ch;
-                ss_valid |= 1;
-
-            } else if (!strcmp(key, "rate")) {
-                if (pa_atou(c, &ss.rate) < 0)
-                    goto fail;
-                ss_valid |= 2;
-            } else if (!strcmp(key, "format")) {
-
-                if ((ss.format = pa_parse_sample_format(c)) == PA_SAMPLE_INVALID)
-                    goto fail;
-                
-                ss_valid |= 4;
-            }
-
-            pa_xfree(c);
-            c = NULL;
+            if ((ss.format = pa_parse_sample_format(value)) == PA_SAMPLE_INVALID)
+                goto fail;
+            
+            ss_valid |= 4;
         }
-        
+
+        pa_xfree(key);
+        pa_xfree(value);
+        key = value = NULL;
+
+        txt = avahi_string_list_get_next(txt);
     }
 
     /* No device txt record was sent for a sink or source service */
@@ -212,7 +191,6 @@ static sw_result resolve_reply(
 
     if (ss_valid == 7)
         i.sample_spec = &ss;
-    
 
     b->callback(b, opcode, &i, b->userdata);
 
@@ -222,39 +200,72 @@ fail:
     pa_xfree((void*) i.server_version);
     pa_xfree((void*) i.user_name);
     pa_xfree((void*) i.description);
-    pa_xfree(c);
 
-    if (free_iterator)
-        sw_text_record_iterator_fina(iterator);
-
+    pa_xfree(key);
+    pa_xfree(value);
     
-    return SW_OKAY;
+    avahi_service_resolver_free(r);
 }
 
-static sw_result browse_reply(
-        sw_discovery discovery,
-        sw_discovery_oid id,
-        sw_discovery_browse_status status,
-        sw_uint32 interface_index,
-        sw_const_string name,
-        sw_const_string type,
-        sw_const_string domain,
-        sw_opaque extra) {
-    
-    pa_browser *b = extra;
+static void handle_failure(pa_browser *b) {
+    const char *e = NULL;
     assert(b);
 
-    switch (status) {
-        case SW_DISCOVERY_BROWSE_ADD_SERVICE: {
-            sw_discovery_oid oid;
+    if (b->sink_browser)
+        avahi_service_browser_free(b->sink_browser);
+    if (b->source_browser)
+        avahi_service_browser_free(b->source_browser);
+    if (b->server_browser)
+        avahi_service_browser_free(b->server_browser);
 
-            if (sw_discovery_resolve(b->discovery, 0, name, type, domain, resolve_reply, b, &oid) != SW_OKAY)
-                pa_log_error(__FILE__": sw_discovery_resolve() failed");
+    b->sink_browser = b->source_browser = b->server_browser = NULL;
+
+    if (b->client) {
+        e = avahi_strerror(avahi_client_errno(b->client));
+        avahi_client_free(b->client);
+    }
+
+    b->client = NULL;
+
+    if (b->error_callback)
+        b->error_callback(b, e, b->error_userdata);
+}
+
+static void browse_callback(
+        AvahiServiceBrowser *sb,
+        AvahiIfIndex interface,
+        AvahiProtocol protocol,
+        AvahiBrowserEvent event,
+        const char *name,
+        const char *type,
+        const char *domain,
+        AvahiLookupResultFlags flags,
+        void *userdata) {
+
+    pa_browser *b = userdata;
+    assert(b);
+
+    switch (event) {
+        case AVAHI_BROWSER_NEW: {
+
+            if (!avahi_service_resolver_new(
+                          b->client,
+                          interface,
+                          protocol,
+                          name,
+                          type,
+                          domain,
+                          AVAHI_PROTO_UNSPEC,
+                          0,
+                          resolve_callback,
+                          b))
+                handle_failure(b);
 
             break;
         }
             
-        case SW_DISCOVERY_BROWSE_REMOVE_SERVICE:
+        case AVAHI_BROWSER_REMOVE: {
+
             if (b->callback) {
                 pa_browse_info i;
                 int opcode;
@@ -268,63 +279,144 @@ static sw_result browse_reply(
                 b->callback(b, opcode, &i, b->userdata);
             }
             break;
+        }
 
+        case AVAHI_BROWSER_FAILURE: {
+            handle_failure(b);
+            break;
+        }
+            
         default:
             ;
     }
-
-    return SW_OKAY;
 }
 
-pa_browser *pa_browser_new(pa_mainloop_api *mainloop) {
-    pa_browser *b;
-    sw_discovery_oid oid;
+static void client_callback(AvahiClient *s, AvahiClientState state, void *userdata) {
+    pa_browser *b = userdata;
+    assert(s);
 
+    if (state == AVAHI_CLIENT_FAILURE)
+        handle_failure(b);
+}
+
+static void browser_free(pa_browser *b);
+
+pa_browser *pa_browser_new(pa_mainloop_api *mainloop) {
+    return pa_browser_new_full(mainloop, PA_BROWSE_FOR_SERVERS|PA_BROWSE_FOR_SINKS|PA_BROWSE_FOR_SOURCES, NULL);
+}
+
+pa_browser *pa_browser_new_full(pa_mainloop_api *mainloop, pa_browse_flags_t flags, const char **error_string) {
+    pa_browser *b;
+    int error;
+
+    assert(mainloop);
+
+    if (flags & ~(PA_BROWSE_FOR_SERVERS|PA_BROWSE_FOR_SINKS|PA_BROWSE_FOR_SOURCES) || flags == 0)
+        return NULL;
+    
     b = pa_xnew(pa_browser, 1);
     b->mainloop = mainloop;
     b->ref = 1;
     b->callback = NULL;
     b->userdata = NULL;
+    b->error_callback = NULL;
+    b->error_userdata = NULL;
+    b->sink_browser = b->source_browser = b->server_browser = NULL;
 
-    if (sw_discovery_init(&b->discovery) != SW_OKAY) {
-        pa_log_error(__FILE__": sw_discovery_init() failed.");
-        pa_xfree(b);
-        return NULL;
+    b->avahi_poll = pa_avahi_poll_new(mainloop);
+
+    if (!(b->client = avahi_client_new(b->avahi_poll, 0, client_callback, b, &error))) {
+        if (error_string)
+            *error_string = avahi_strerror(error);
+        goto fail;
+    }
+
+    if ((flags & PA_BROWSE_FOR_SERVERS) &&
+        !(b->server_browser = avahi_service_browser_new(
+                  b->client,
+                  AVAHI_IF_UNSPEC,
+                  AVAHI_PROTO_UNSPEC,
+                  SERVICE_TYPE_SERVER,
+                  NULL,
+                  0,
+                  browse_callback,
+                  b))) {
+
+        if (error_string)
+            *error_string = avahi_strerror(avahi_client_errno(b->client));
+        goto fail;
     }
     
-    if (sw_discovery_browse(b->discovery, 0, SERVICE_NAME_SERVER, NULL, browse_reply, b, &oid) != SW_OKAY ||
-        sw_discovery_browse(b->discovery, 0, SERVICE_NAME_SINK, NULL, browse_reply, b, &oid) != SW_OKAY ||
-        sw_discovery_browse(b->discovery, 0, SERVICE_NAME_SOURCE, NULL, browse_reply, b, &oid) != SW_OKAY) {
+    if ((flags & PA_BROWSE_FOR_SINKS) &&
+        !(b->sink_browser = avahi_service_browser_new(
+                  b->client,
+                  AVAHI_IF_UNSPEC,
+                  AVAHI_PROTO_UNSPEC,
+                  SERVICE_TYPE_SINK,
+                  NULL,
+                  0,
+                  browse_callback,
+                  b))) {
 
-        pa_log_error(__FILE__": sw_discovery_browse() failed.");
-        
-        sw_discovery_fina(b->discovery);
-        pa_xfree(b);
-        return NULL;
+        if (error_string)
+            *error_string = avahi_strerror(avahi_client_errno(b->client));
+        goto fail;
+    }
+
+    if ((flags & PA_BROWSE_FOR_SOURCES) &&
+        !(b->source_browser = avahi_service_browser_new(
+                  b->client,
+                  AVAHI_IF_UNSPEC,
+                  AVAHI_PROTO_UNSPEC,
+                  SERVICE_TYPE_SOURCE,
+                  NULL,
+                  0,
+                  browse_callback,
+                  b))) {
+
+        if (error_string)
+            *error_string = avahi_strerror(avahi_client_errno(b->client));
+        goto fail;
     }
     
-    b->io_event = mainloop->io_new(mainloop, sw_discovery_socket(b->discovery), PA_IO_EVENT_INPUT, io_callback, b);
     return b;
+
+fail:
+    if (b)
+        browser_free(b);
+    
+    return NULL;
 }
 
 static void browser_free(pa_browser *b) {
     assert(b && b->mainloop);
 
-    if (b->io_event)
-        b->mainloop->io_free(b->io_event);
+    if (b->sink_browser)
+        avahi_service_browser_free(b->sink_browser);
+    if (b->source_browser)
+        avahi_service_browser_free(b->source_browser);
+    if (b->server_browser)
+        avahi_service_browser_free(b->server_browser);
+
+    if (b->client)
+        avahi_client_free(b->client);
+
+    if (b->avahi_poll)
+        pa_avahi_poll_free(b->avahi_poll);
     
-    sw_discovery_fina(b->discovery);
     pa_xfree(b);
 }
 
 pa_browser *pa_browser_ref(pa_browser *b) {
-    assert(b && b->ref >= 1);
+    assert(b);
+    assert(b->ref >= 1);
     b->ref++;
     return b;
 }
 
 void pa_browser_unref(pa_browser *b) {
-    assert(b && b->ref >= 1);
+    assert(b);
+    assert(b->ref >= 1);
 
     if ((-- (b->ref)) <= 0)
         browser_free(b);
@@ -335,4 +427,11 @@ void pa_browser_set_callback(pa_browser *b, pa_browse_cb_t cb, void *userdata) {
 
     b->callback = cb;
     b->userdata = userdata;
+}
+
+void pa_browser_set_error_callback(pa_browser *b, pa_browser_error_cb_t cb, void *userdata) {
+    assert(b);
+
+    b->error_callback = cb;
+    b->error_userdata = userdata;
 }

@@ -29,5 +29,4 @@
 AvahiPoll* pa_avahi_poll_new(pa_mainloop_api *api);
 void pa_avahi_poll_free(AvahiPoll *p);
 
-
 #endif
