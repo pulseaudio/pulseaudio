@@ -49,6 +49,10 @@
 #include <windows.h>
 #endif
 
+#ifdef HAVE_SYS_PRCTL_H
+#include <sys/prctl.h>
+#endif
+
 #include "../pulsecore/winsock.h"
 
 #include <pulsecore/core-error.h>
@@ -152,28 +156,51 @@ char *pa_get_home_dir(char *s, size_t l) {
 
 char *pa_get_binary_name(char *s, size_t l) {
 
-#ifdef HAVE_READLINK
-    char path[PATH_MAX];
-    int i;
-    assert(s && l);
+    assert(s);
+    assert(l);
 
-    /* This works on Linux only */
-    
-    snprintf(path, sizeof(path), "/proc/%u/exe", (unsigned) getpid());
-    if ((i = readlink(path, s, l-1)) < 0)
-        return NULL;
-
-    s[i] = 0;
-    return s;
-#elif defined(OS_IS_WIN32)
-    char path[PATH_MAX];
-    if (!GetModuleFileName(NULL, path, PATH_MAX))
-        return NULL;
-    pa_strlcpy(s, pa_path_get_filename(path), l);
-    return s;
-#else
-    return NULL;
+#if defined(OS_IS_WIN32)
+    {
+        char path[PATH_MAX];
+        
+        if (GetModuleFileName(NULL, path, PATH_MAX))
+            return pa_strlcpy(s, pa_path_get_filename(path), l);
+    }
 #endif
+    
+#ifdef HAVE_READLINK
+    {
+        int i;
+        char path[PATH_MAX];
+        /* This works on Linux only */
+        
+        if ((i = readlink("/proc/self/exe", path, sizeof(path)-1)) >= 0) {
+            path[i] = 0;
+            return pa_strlcpy(s, pa_path_get_filename(path), l);
+        }
+    }
+    
+#endif
+    
+#if defined(HAVE_SYS_PRCTL_H) && defined(PR_GET_NAME)
+    {
+
+        #ifndef TASK_COMM_LEN
+        /* Actually defined in linux/sched.h */
+        #define TASK_COMM_LEN 16
+        #endif
+
+        char tcomm[TASK_COMM_LEN+1];
+        memset(tcomm, 0, sizeof(tcomm));
+        
+        /* This works on Linux only */
+        if (prctl(PR_GET_NAME, (unsigned long) tcomm, 0, 0, 0) == 0)
+            return pa_strlcpy(s, tcomm, l);
+        
+    }
+#endif
+    
+    return NULL;
 }
 
 const char *pa_path_get_filename(const char *p) {

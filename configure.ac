@@ -160,6 +160,8 @@ AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
 
 AM_CONDITIONAL([HAVE_EVDEV], [test "x$HAVE_EVDEV" = "x1"])
 
+AC_CHECK_HEADERS([sys/prctl.h])
+
 # Solaris
 AC_CHECK_HEADERS([sys/filio.h])
 
