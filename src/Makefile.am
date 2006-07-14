@@ -76,6 +76,7 @@ EXTRA_DIST = \
 		pulse/client.conf.in \
 		daemon/daemon.conf.in \
 		daemon/default.pa.in \
+		daemon/default.pa.win32 \
 		depmod.py \
 		daemon/esdcompat.in \
 		utils/padsp \
