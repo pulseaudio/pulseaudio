@@ -49,6 +49,7 @@
 
 struct pa_iochannel {
     int ifd, ofd;
+    int ifd_type, ofd_type;
     pa_mainloop_api* mainloop;
 
     pa_iochannel_cb_t callback;
@@ -127,6 +128,7 @@ pa_iochannel* pa_iochannel_new(pa_mainloop_api*m, int ifd, int ofd) {
     io = pa_xnew(pa_iochannel, 1);
     io->ifd = ifd;
     io->ofd = ofd;
+    io->ifd_type = io->ofd_type = 0;
     io->mainloop = m;
 
     io->userdata = NULL;
@@ -204,7 +206,7 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
     assert(l);
     assert(io->ofd >= 0);
 
-    r = pa_write(io->ofd, data, l);
+    r = pa_write(io->ofd, data, l, &io->ofd_type);
     if (r >= 0) {
         io->writable = 0;
         enable_mainloop_sources(io);
@@ -220,7 +222,7 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
     assert(data);
     assert(io->ifd >= 0);
 
-    r = pa_read(io->ifd, data, l);
+    r = pa_read(io->ifd, data, l, &io->ifd_type);
     if (r >= 0) {
         io->readable = 0;
         enable_mainloop_sources(io);

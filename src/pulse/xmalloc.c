@@ -49,7 +49,7 @@ static void oom(void) PA_GCC_NORETURN;
  * exits */
 static void oom(void) {
     static const char e[] = "Not enough memory\n";
-    pa_loop_write(STDERR_FILENO, e, sizeof(e)-1);
+    pa_loop_write(STDERR_FILENO, e, sizeof(e)-1, NULL);
 #ifdef SIGQUIT
     raise(SIGQUIT);
 #endif

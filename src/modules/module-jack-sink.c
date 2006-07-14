@@ -80,6 +80,7 @@ struct userdata {
     jack_nframes_t frames_requested;
     int quit_requested;
 
+    int pipe_fd_type;
     int pipe_fds[2];
     pa_io_event *io_event;
 
@@ -120,7 +121,7 @@ static void io_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event_
     assert(u);
     assert(u->pipe_fds[0] == fd);
 
-    read(fd, &x, 1);
+    pa_read(fd, &x, 1, &u->pipe_fd_type);
     
     if (u->quit_requested) {
         stop_sink(u);
@@ -165,7 +166,7 @@ static void request_render(struct userdata *u) {
     assert(u);
 
     assert(u->pipe_fds[1] >= 0);
-    write(u->pipe_fds[1], &c, 1);
+    pa_write(u->pipe_fds[1], &c, 1, &u->pipe_fd_type);
 }
 
 static void jack_shutdown(void *arg) {
@@ -268,6 +269,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->core = c;
     u->module = m;
     u->pipe_fds[0] = u->pipe_fds[1] = -1;
+    u->pipe_fd_type = 0;
 
     pthread_mutex_init(&u->mutex, NULL);
     pthread_cond_init(&u->cond, NULL);

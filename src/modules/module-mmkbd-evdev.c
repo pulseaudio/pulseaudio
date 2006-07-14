@@ -70,7 +70,7 @@ static const char* const valid_modargs[] = {
 };
 
 struct userdata {
-    int fd;
+    int fd, fd_type;
     pa_io_event *io;
     char *sink_name;
     pa_module *module;
@@ -89,7 +89,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
     if (events & PA_IO_EVENT_INPUT) {
         struct input_event ev;
 
-        if (pa_loop_read(u->fd, &ev, sizeof(ev)) <= 0) {
+        if (pa_loop_read(u->fd, &ev, sizeof(ev), &u->fd_type) <= 0) {
             pa_log(__FILE__": failed to read from event device: %s", pa_cstrerror(errno));
             goto fail;
         }
@@ -182,6 +182,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->io = NULL;
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->fd = -1;
+    u->fd_type = 0;
 
     if ((u->fd = open(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY)) < 0) {
         pa_log(__FILE__": failed to open evdev device: %s", pa_cstrerror(errno));

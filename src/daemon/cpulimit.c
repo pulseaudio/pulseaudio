@@ -111,7 +111,7 @@ static void reset_cpu_time(int t) {
 
 /* A simple, thread-safe puts() work-alike */
 static void write_err(const char *p) {
-    pa_loop_write(2, p, strlen(p));
+    pa_loop_write(2, p, strlen(p), NULL);
 }
 
 /* The signal handler, called on every SIGXCPU */
@@ -159,7 +159,7 @@ static void signal_handler(int sig) {
 static void callback(pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags_t f, void *userdata) {
     char c;
     assert(m && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == the_pipe[0]);
-    read(the_pipe[0], &c, sizeof(c));
+    pa_read(the_pipe[0], &c, sizeof(c), NULL);
     m->quit(m, 1); /* Quit the main loop */
 }
 

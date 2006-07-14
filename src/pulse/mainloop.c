@@ -100,6 +100,7 @@ struct pa_mainloop {
     int deferred_pending;
 
     int wakeup_pipe[2];
+    int wakeup_pipe_type;
 
     enum {
         STATE_PASSIVE,
@@ -337,6 +338,7 @@ pa_mainloop *pa_mainloop_new(void) {
 
     m = pa_xmalloc(sizeof(pa_mainloop));
 
+    m->wakeup_pipe_type = 0;
     if (pipe(m->wakeup_pipe) < 0) {
         pa_log_error(__FILE__": ERROR: cannot create wakeup pipe");
         pa_xfree(m);
@@ -625,7 +627,7 @@ void pa_mainloop_wakeup(pa_mainloop *m) {
     assert(m);
 
     if (m->wakeup_pipe[1] >= 0)
-        pa_write(m->wakeup_pipe[1], &c, sizeof(c));
+        pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type);
 }
 
 static void clear_wakeup(pa_mainloop *m) {
@@ -636,7 +638,7 @@ static void clear_wakeup(pa_mainloop *m) {
     if (m->wakeup_pipe[0] < 0)
         return;
 
-    while (pa_read(m->wakeup_pipe[0], &c, sizeof(c)) == sizeof(c));
+    while (pa_read(m->wakeup_pipe[0], &c, sizeof(c), &m->wakeup_pipe_type) == sizeof(c));
 }
 
 int pa_mainloop_prepare(pa_mainloop *m, int timeout) {

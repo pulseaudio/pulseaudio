@@ -61,7 +61,7 @@ static int random_proper(void *ret_data, size_t length) {
 
         if ((fd = open(*device, O_RDONLY)) >= 0) {
 
-            if ((r = pa_loop_read(fd, ret_data, length)) < 0 || (size_t) r != length)
+            if ((r = pa_loop_read(fd, ret_data, length, NULL)) < 0 || (size_t) r != length)
                 ret = -1;
 
             close(fd);

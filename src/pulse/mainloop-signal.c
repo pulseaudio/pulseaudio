@@ -67,7 +67,7 @@ static void signal_handler(int sig) {
 #ifndef HAVE_SIGACTION
     signal(sig, signal_handler);
 #endif
-    pa_write(signal_pipe[1], &sig, sizeof(sig));
+    pa_write(signal_pipe[1], &sig, sizeof(sig), NULL);
 }
 
 static void dispatch(pa_mainloop_api*a, int sig) {
@@ -86,7 +86,7 @@ static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags
     int sig;
     assert(a && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == signal_pipe[0]);
 
-    if ((r = pa_read(signal_pipe[0], &sig, sizeof(sig))) < 0) {
+    if ((r = pa_read(signal_pipe[0], &sig, sizeof(sig), NULL)) < 0) {
         if (errno == EAGAIN)
             return;
 

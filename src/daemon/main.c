@@ -304,7 +304,7 @@ int main(int argc, char *argv[]) {
             close(daemon_pipe[1]);
             daemon_pipe[1] = -1;
 
-            if (pa_loop_read(daemon_pipe[0], &retval, sizeof(retval)) != sizeof(retval)) {
+            if (pa_loop_read(daemon_pipe[0], &retval, sizeof(retval), NULL) != sizeof(retval)) {
                 pa_log(__FILE__": read() failed: %s", pa_cstrerror(errno));
                 retval = 1;
             }
@@ -368,7 +368,7 @@ int main(int argc, char *argv[]) {
             pa_log(__FILE__": pa_pid_file_create() failed.");
 #ifdef HAVE_FORK
             if (conf->daemonize)
-                pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+                pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
 #endif
             goto finish;
         }
@@ -428,20 +428,20 @@ int main(int argc, char *argv[]) {
         pa_log(__FILE__": failed to initialize daemon.");
 #ifdef HAVE_FORK
         if (conf->daemonize)
-            pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+            pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
 #endif
     } else if (!c->modules || pa_idxset_size(c->modules) == 0) {
         pa_log(__FILE__": daemon startup without any loaded modules, refusing to work.");
 #ifdef HAVE_FORK
         if (conf->daemonize)
-            pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+            pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
 #endif
     } else {
 
         retval = 0;
 #ifdef HAVE_FORK
         if (conf->daemonize)
-            pa_loop_write(daemon_pipe[1], &retval, sizeof(retval));
+            pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
 #endif
 
         c->disallow_module_loading = conf->disallow_module_loading;

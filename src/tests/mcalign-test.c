@@ -82,7 +82,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
             if (pa_mcalign_pop(a, &t) < 0)
                 break;
 
-            pa_loop_write(STDOUT_FILENO, (uint8_t*) t.memblock->data + t.index, t.length);
+            pa_loop_write(STDOUT_FILENO, (uint8_t*) t.memblock->data + t.index, t.length, NULL);
             fprintf(stderr, "Wrote %lu bytes.\n", (unsigned long) t.length);
 
             pa_memblock_unref(t.memblock);

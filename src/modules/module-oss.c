@@ -467,7 +467,7 @@ int pa__init(pa_core *c, pa_module*m) {
      */
     if (u->source) {
         char *buf = pa_xnew(char, u->sample_size);
-        read(u->fd, buf, u->sample_size);
+        pa_read(u->fd, buf, u->sample_size, NULL);
         pa_xfree(buf);
     }
 

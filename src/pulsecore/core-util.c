@@ -201,57 +201,81 @@ finish:
     return ret;
 }
 
-/** Platform independent read function. Necessary since not all systems
- * treat all file descriptors equal. */
-ssize_t pa_read(int fd, void *buf, size_t count) {
-    ssize_t r;
+/** Platform independent read function. Necessary since not all
+ * systems treat all file descriptors equal. If type is
+ * non-NULL it is used to cache the type of the fd. This is
+ * useful for making sure that only a single syscall is executed per
+ * function call. The variable pointed to should be initialized to 0
+ * by the caller. */
+ssize_t pa_read(int fd, void *buf, size_t count, int *type) {
 
 #ifdef OS_IS_WIN32
-    r = recv(fd, buf, count, 0);
-    if (r < 0) {
+
+    if (!type || *type == 0) {
+        ssize_t r;
+        
+        if ((r = recv(fd, buf, count, 0)) >= 0)
+            return r;
+
         if (WSAGetLastError() != WSAENOTSOCK) {
             errno = WSAGetLastError();
             return r;
         }
+
+        if (type)
+            *type = 1;
     }
 
-    if (r < 0)
 #endif
-        r = read(fd, buf, count);
-
-    return r;
+    
+    return read(fd, buf, count);
 }
 
 /** Similar to pa_read(), but handles writes */
-ssize_t pa_write(int fd, const void *buf, size_t count) {
-    ssize_t r;
+ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
 
+    if (!type || *type == 0) {
+        ssize_t r;
+
+        if ((r = send(fd, buf, count, MSG_NOSIGNAL)) >= 0)
+            return r;
+    
 #ifdef OS_IS_WIN32
-    r = send(fd, buf, count, 0);
-    if (r < 0) {
         if (WSAGetLastError() != WSAENOTSOCK) {
             errno = WSAGetLastError();
             return r;
         }
+#else
+        if (errno != ENOTSOCK)
+            return r;
+#endif
+
+        if (type)
+            *type = 1;
     }
 
-    if (r < 0)
-#endif
-        r = write(fd, buf, count);
-
-    return r;
+    return write(fd, buf, count);
 }
 
 /** Calls read() in a loop. Makes sure that as much as 'size' bytes,
  * unless EOF is reached or an error occured */
-ssize_t pa_loop_read(int fd, void*data, size_t size) {
+ssize_t pa_loop_read(int fd, void*data, size_t size, int *type) {
     ssize_t ret = 0;
-    assert(fd >= 0 && data && size);
+    int _type;
+    
+    assert(fd >= 0);
+    assert(data);
+    assert(size);
+
+    if (!type) {
+        _type = 0;
+        type = &_type;
+    }
 
     while (size > 0) {
         ssize_t r;
 
-        if ((r = pa_read(fd, data, size)) < 0)
+        if ((r = pa_read(fd, data, size, type)) < 0)
             return r;
 
         if (r == 0)
@@ -266,14 +290,23 @@ ssize_t pa_loop_read(int fd, void*data, size_t size) {
 }
 
 /** Similar to pa_loop_read(), but wraps write() */
-ssize_t pa_loop_write(int fd, const void*data, size_t size) {
+ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
     ssize_t ret = 0;
-    assert(fd >= 0 && data && size);
+    int _type;
+
+    assert(fd >= 0);
+    assert(data);
+    assert(size);
+
+    if (!type) {
+        _type = 0;
+        type = &_type;
+    }
 
     while (size > 0) {
         ssize_t r;
 
-        if ((r = pa_write(fd, data, size)) < 0)
+        if ((r = pa_write(fd, data, size, type)) < 0)
             return r;
 
         if (r == 0)

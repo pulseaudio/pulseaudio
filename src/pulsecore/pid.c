@@ -56,7 +56,7 @@ static pid_t read_pid(const char *fn, int fd) {
 
     assert(fn && fd >= 0);
 
-    if ((r = pa_loop_read(fd, t, sizeof(t)-1)) < 0) {
+    if ((r = pa_loop_read(fd, t, sizeof(t)-1, NULL)) < 0) {
         pa_log_warn(__FILE__": WARNING: failed to read PID file '%s': %s",
             fn, pa_cstrerror(errno));
         return (pid_t) -1;
@@ -177,7 +177,7 @@ int pa_pid_file_create(void) {
     snprintf(t, sizeof(t), "%lu\n", (unsigned long) getpid());
     l = strlen(t);
     
-    if (pa_loop_write(fd, t, l) != (ssize_t) l) {
+    if (pa_loop_write(fd, t, l, NULL) != (ssize_t) l) {
         pa_log(__FILE__": failed to write PID file.");
         goto fail;
     }
