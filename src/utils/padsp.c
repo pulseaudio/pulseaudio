@@ -408,7 +408,7 @@ static const char *client_name(char *buf, size_t n) {
         return e;
     
     if (pa_get_binary_name(p, sizeof(p)))
-        snprintf(buf, n, "OSS Emulation[%s]", pa_path_get_filename(p));
+        snprintf(buf, n, "OSS Emulation[%s]", p);
     else
         snprintf(buf, n, "OSS");
 
