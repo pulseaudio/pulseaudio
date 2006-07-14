@@ -192,7 +192,8 @@ noinst_PROGRAMS = \
 		interpol-test \
 		channelmap-test \
 		thread-mainloop-test \
-		utf8-test
+		utf8-test \
+		get-binary-name-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -224,6 +225,11 @@ utf8_test_SOURCES = tests/utf8-test.c
 utf8_test_CFLAGS = $(AM_CFLAGS)
 utf8_test_LDADD = $(AM_LDADD) libpulsecore.la
 utf8_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+get_binary_name_test_SOURCES = tests/get-binary-name-test.c 
+get_binary_name_test_CFLAGS = $(AM_CFLAGS)
+get_binary_name_test_LDADD = $(AM_LDADD) libpulse.la
+get_binary_name_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
