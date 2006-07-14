@@ -336,7 +336,7 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struc
     mh.msg_controllen = sizeof(cmsg_data);
     mh.msg_flags = 0;
 
-    if ((r = recvmsg(io->ifd, &mh, MSG_NOSIGNAL)) >= 0) {
+    if ((r = recvmsg(io->ifd, &mh, 0)) >= 0) {
         struct cmsghdr *cmsg;
 
         *creds_valid = 0;
