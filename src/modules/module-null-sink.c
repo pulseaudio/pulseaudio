@@ -63,6 +63,9 @@ struct userdata {
     pa_sink *sink;
     pa_time_event *time_event;
     size_t block_size;
+
+    uint64_t n_bytes;
+    struct timeval start_time;
 };
 
 static const char* const valid_modargs[] = {
@@ -90,6 +93,19 @@ static void time_callback(pa_mainloop_api *m, pa_time_event*e, const struct time
 
     pa_timeval_add(&ntv, pa_bytes_to_usec(l, &u->sink->sample_spec));
     m->time_restart(e, &ntv);
+
+    u->n_bytes += l;
+}
+
+static pa_usec_t get_latency(pa_sink *s) {
+    struct userdata *u = s->userdata;
+    pa_usec_t a, b;
+    struct timeval now;
+
+    a = pa_timeval_diff(pa_gettimeofday(&now), &u->start_time);
+    b = pa_bytes_to_usec(u->n_bytes, &s->sample_spec);
+
+    return b > a ? b - a : 0;
 }
 
 int pa__init(pa_core *c, pa_module*m) {
@@ -97,8 +113,9 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
-    struct timeval tv;
-    assert(c && m);
+    
+    assert(c);
+    assert(m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments.");
@@ -111,7 +128,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
     
-    u = pa_xmalloc0(sizeof(struct userdata));
+    u = pa_xnew0(struct userdata, 1);
     u->core = c;
     u->module = m;
     m->userdata = u;
@@ -120,13 +137,16 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log(__FILE__": failed to create sink.");
         goto fail;
     }
-    
+
+    u->sink->get_latency = get_latency;
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("NULL sink");
+    u->sink->description = pa_xstrdup("NULL sink");
 
-    pa_gettimeofday(&tv);
-    u->time_event = c->mainloop->time_new(c->mainloop, &tv, time_callback, u);
+    u->n_bytes = 0;
+    pa_gettimeofday(&u->start_time);
+    
+    u->time_event = c->mainloop->time_new(c->mainloop, &u->start_time, time_callback, u);
 
     u->block_size = pa_bytes_per_second(&ss) / 10;
     
