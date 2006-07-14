@@ -31,11 +31,9 @@ Post 0.9.0:
 - use send() with MSG_NOSIGNAL instead of write() wherever possible, and than drop that SIGPIPE warning
 - drop dependency of libpolyp on libX11, instead use an external mini binary
 - "hot" moving of streams between sinks
-- check if using prctl(PR_GET_NAME) makes sense in pa_get_binary_name()
 - gconf module + frontend
 - hooks for creating sink inputs
 - insert the low-level device name in the default sink/source name, to make them recognizable:q!
-
 
 Long term:
 - pass meta info for hearing impaired
