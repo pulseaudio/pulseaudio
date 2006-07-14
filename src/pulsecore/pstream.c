@@ -291,6 +291,7 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     i->channel = channel;
     i->offset = offset;
     i->seek_mode = seek_mode;
+    i->with_creds = 0;
 
     pa_memblock_ref(i->chunk.memblock);
 
@@ -317,9 +318,6 @@ static void prepare_next_write_item(pa_pstream *p) {
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO] = 0;
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK] = 0;
 
-#ifdef SCM_CREDENTIALS
-        p->send_creds_now = 1;
-#endif
         
     } else {
         assert(p->write.current->type == PA_PSTREAM_ITEM_MEMBLOCK && p->write.current->chunk.memblock);
@@ -329,11 +327,12 @@ static void prepare_next_write_item(pa_pstream *p) {
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI] = htonl((uint32_t) (((uint64_t) p->write.current->offset) >> 32));
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_LO] = htonl((uint32_t) ((uint64_t) p->write.current->offset));
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK] = htonl(p->write.current->seek_mode);
+    }
 
 #ifdef SCM_CREDENTIALS
-        p->send_creds_now = 1;
+    p->send_creds_now = p->write.current->with_creds;
 #endif
-    }
+
 }
 
 static int do_write(pa_pstream *p) {
