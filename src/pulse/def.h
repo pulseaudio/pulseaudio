@@ -295,13 +295,15 @@ typedef enum pa_seek_mode {
 /** Special sink flags. \since 0.8  */
 typedef enum pa_sink_flags {
     PA_SINK_HW_VOLUME_CTRL = 1,   /**< Supports hardware volume control */
-    PA_SINK_LATENCY = 2           /**< Supports latency querying */
+    PA_SINK_LATENCY = 2,          /**< Supports latency querying */
+    PA_SINK_HARDWARE = 4          /**< Is a hardware sink of some kind, in contrast to "virtual"/software sinks */
 } pa_sink_flags_t;
 
 /** Special source flags. \since 0.8  */
 typedef enum pa_source_flags {
     PA_SOURCE_HW_VOLUME_CTRL = 1,  /**< Supports hardware volume control */
-    PA_SOURCE_LATENCY = 2          /**< Supports latency querying */
+    PA_SOURCE_LATENCY = 2,         /**< Supports latency querying */
+    PA_SOURCE_HARDWARE = 4         /**< Is a hardware source of some kind, in contrast to "virtual"/software source */
 } pa_source_flags_t;
 
 /** A generic free() like callback prototype */
