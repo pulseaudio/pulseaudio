@@ -236,7 +236,7 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
         struct ipv6_mreq mr6;
         memset(&mr6, 0, sizeof(mr6));
         mr6.ipv6mr_multiaddr = ((const struct sockaddr_in6*) sa)->sin6_addr;
-        r = setsockopt(fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &mr6, sizeof(mr6));
+        r = setsockopt(fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mr6, sizeof(mr6));
     }
 
     if (r < 0) {

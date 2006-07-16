@@ -249,6 +249,9 @@ ACX_PTHREAD
 
 AC_SYS_LARGEFILE
 
+# Check for open64 to know if the current system does have open64() and similar functions
+AC_CHECK_FUNCS([open64])
+
 #### [lib]iconv ####
 
 AM_ICONV

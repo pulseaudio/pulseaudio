@@ -36,6 +36,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <dlfcn.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -44,7 +45,9 @@
 #include <stdio.h>
 #include <signal.h>
 
+#ifdef __linux__
 #include <linux/sockios.h>
+#endif
 
 #include <pulse/pulseaudio.h>
 #include <pulsecore/llist.h>
@@ -101,8 +104,10 @@ static int (*_ioctl)(int, int, void*) = NULL;
 static int (*_close)(int) = NULL;
 static int (*_open)(const char *, int, mode_t) = NULL;
 static FILE* (*_fopen)(const char *path, const char *mode) = NULL;
+#ifdef HAVE_OPEN64
 static int (*_open64)(const char *, int, mode_t) = NULL;
 static FILE* (*_fopen64)(const char *path, const char *mode) = NULL;
+#endif
 static int (*_fclose)(FILE *f) = NULL;
 static int (*_access)(const char *, int) = NULL;
 
@@ -1302,7 +1307,11 @@ static int sndstat_open(int flags, int *_errno) {
 
     debug(DEBUG_LEVEL_NORMAL, __FILE__": sndstat_open()\n");
     
-    if (flags != O_RDONLY && flags != (O_RDONLY|O_LARGEFILE)) {
+    if (flags != O_RDONLY
+#ifdef O_LARGEFILE
+	&& flags != (O_RDONLY|O_LARGEFILE)
+#endif
+       ) {
         *_errno = EACCES;
         debug(DEBUG_LEVEL_NORMAL, __FILE__": bad access!\n");
         goto fail;
@@ -1349,8 +1358,12 @@ int open(const char *filename, int flags, ...) {
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": open(%s)\n", filename);
 
     va_start(args, flags);
-    if (flags & O_CREAT)
+    if (flags & O_CREAT) {
+      if (sizeof(mode_t) < sizeof(int))
+	mode = va_arg(args, int);
+      else
         mode = va_arg(args, mode_t);
+    }
     va_end(args);
 
     if (!function_enter()) {
@@ -1587,6 +1600,7 @@ static int map_format_back(pa_sample_format_t format) {
 }
 
 static int dsp_flush_fd(int fd) {
+#ifdef SIOCINQ
     int l;
 
     if (ioctl(fd, SIOCINQ, &l) < 0) {
@@ -1605,6 +1619,10 @@ static int dsp_flush_fd(int fd) {
     }
 
     return 0;
+#else
+# warning "Your platform does not support SIOCINQ, something might not work as intended."
+    return 0;
+#endif
 }
 
 static int dsp_flush_socket(fd_info *i) {
@@ -1629,6 +1647,7 @@ static int dsp_flush_socket(fd_info *i) {
 }
 
 static int dsp_empty_socket(fd_info *i) {
+#ifdef SIOCINQ
     int ret = -1;
     
     /* Empty the socket */
@@ -1652,6 +1671,10 @@ static int dsp_empty_socket(fd_info *i) {
     }
 
     return ret;
+#else
+# warning "Your platform does not support SIOCINQ, something might not work as intended."
+    return 0;
+#endif
 }
 
 static int dsp_drain(fd_info *i) {
@@ -1864,7 +1887,11 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         case SNDCTL_DSP_GETCAPS:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_CAPS\n");
             
-            *(int*)  argp = DSP_CAP_DUPLEX | DSP_CAP_MULTI;
+            *(int*)  argp = DSP_CAP_DUPLEX
+#ifdef DSP_CAP_MULTI
+	      | DSP_CAP_MULTI
+#endif
+	      ;
             break;
 
         case SNDCTL_DSP_GETODELAY: {
@@ -1895,11 +1922,15 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             }
             
         exit_loop:
-            
+
+#ifdef SIOCINQ            
             if (ioctl(i->thread_fd, SIOCINQ, &l) < 0)
                 debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ failed: %s\n", strerror(errno));
             else
                 *(int*) argp += l;
+#else
+# warning "Your platform does not support SIOCINQ, something might not work as intended."
+#endif
 
             pa_threaded_mainloop_unlock(i->mainloop);
 
@@ -1946,7 +1977,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         case SNDCTL_DSP_GETOSPACE:
         case SNDCTL_DSP_GETISPACE: {
             audio_buf_info *bi = (audio_buf_info*) argp;
-            int l;
+            int l = 0;
             size_t k = 0;
 
             if (request == SNDCTL_DSP_GETOSPACE)
@@ -1965,10 +1996,14 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
                 } else
                     k = i->fragment_size * i->n_fragments;
 
+#ifdef SIOCINQ
                 if (ioctl(i->thread_fd, SIOCINQ, &l) < 0) {
                     debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ failed: %s\n", strerror(errno));
                     l = 0;
                 }
+#else
+# warning "Your platform does not dsp_flush_fd, something might not work as intended."
+#endif
 
                 bi->bytes = k > (size_t) l ? k - l : 0;
             } else {
@@ -1978,11 +2013,14 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
                 } else
                     k = 0;
 
+#ifdef SIOCINQ
                 if (ioctl(i->app_fd, SIOCINQ, &l) < 0) {
                     debug(DEBUG_LEVEL_NORMAL, __FILE__": SIOCINQ failed: %s\n", strerror(errno));
                     l = 0;
                 }
-
+#else
+# warning "Your platform does not dsp_flush_fd, something might not work as intended."
+#endif
                 bi->bytes = k + l;
             }
 
@@ -2104,6 +2142,8 @@ int access(const char *pathname, int mode) {
     return 0;
 }
 
+#ifdef HAVE_OPEN64
+
 int open64(const char *filename, int flags, ...) {
     va_list args;
     mode_t mode = 0;
@@ -2125,6 +2165,8 @@ int open64(const char *filename, int flags, ...) {
 
     return open(filename, flags, mode);
 }
+
+#endif
 
 FILE* fopen(const char *filename, const char *mode) {
     FILE *f = NULL;
@@ -2168,6 +2210,8 @@ FILE* fopen(const char *filename, const char *mode) {
     return f;
 }
 
+#ifdef HAVE_OPEN64
+
 FILE *fopen64(const char *filename, const char *mode) {
 
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": fopen64(%s)\n", filename);
@@ -2182,6 +2226,8 @@ FILE *fopen64(const char *filename, const char *mode) {
 
     return fopen(filename, mode);
 }
+
+#endif
 
 int fclose(FILE *f) {
     fd_info *i;
