@@ -680,3 +680,80 @@ doxygen/doxygen.conf
 src/pulse/version.h
 ])
 AC_OUTPUT
+
+# ==========================================================================
+ENABLE_X11=no
+if test "x$HAVE_X11" = "x1" ; then
+   ENABLE_X11=yes
+fi
+
+ENABLE_OSS=no
+if test "x$HAVE_OSS" = "x1" ; then
+   ENABLE_OSS=yes
+fi
+
+ENABLE_ALSA=no
+if test "x$HAVE_ALSA" = "x1" ; then
+   ENABLE_ALSA=yes
+fi
+
+ENABLE_SOLARIS=no
+if test "x$HAVE_SOLARIS" = "x1" ; then
+   ENABLE_SOLARIS=yes
+fi
+
+ENABLE_GLIB20=no
+if test "x$HAVE_GLIB20" = "x1" ; then
+   ENABLE_GLIB20=yes
+fi
+
+ENABLE_GLIB12=no
+if test "x$HAVE_GLIB12" = "x1" ; then
+   ENABLE_GLIB12=yes
+fi
+
+ENABLE_AVAHI=no
+if test "x$HAVE_AVAHI" = "x1" ; then
+   ENABLE_AVAHI=yes
+fi
+
+ENABLE_JACK=no
+if test "x$HAVE_JACK" = "x1" ; then
+   ENABLE_JACK=yes
+fi
+
+ENABLE_LIBASYNCNS=no
+if test "x$HAVE_LIBASYNCNS" = "x1" ; then
+   ENABLE_LIBASYNCNS=yes
+fi
+
+ENABLE_LIRC=no
+if test "x$HAVE_LIRC" = "x1" ; then
+   ENABLE_LIRC=yes
+fi
+
+ENABLE_TCPWRAP=no
+if test "x${LIBWRAP_LIBS}" != x ; then
+   ENABLE_TCPWRAP=yes
+fi
+
+echo "
+ ---{ $PACKAGE_NAME $VERSION }---
+
+    prefix:                 ${prefix}
+    sysconfdir:             ${sysconfdir}
+    localstatedir:          ${localstatedir}
+    compiler:               ${CC}
+    cflags:                 ${CFLAGS}
+    Have X11:		    ${ENABLE_X11}
+    Enable OSS:		    ${ENABLE_OSS}
+    Enable Alsa:	    ${ENABLE_ALSA}
+    Enable Solaris:	    ${ENABLE_SOLARIS}
+    Enable Glib 2.0:	    ${ENABLE_GLIB20}
+    Enable Glib 1.2:	    ${ENABLE_GLIB12}
+    Enable Avahi:	    ${ENABLE_AVAHI}
+    Enable Jack:	    ${ENABLE_JACK}
+    Enable Async DNS:	    ${ENABLE_LIBASYNCNS}
+    Enable LIRC:	    ${ENABLE_LIRC}
+    Enable TCP Wrappers:    ${ENABLE_TCPWRAP}
+"
