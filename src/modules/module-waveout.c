@@ -504,6 +504,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source->get_latency = source_get_latency_cb;
         pa_source_set_owner(u->source, m);
         u->source->description = pa_sprintf_malloc("Windows waveIn PCM");
+        u->source->is_hardware = 1;
     } else
         u->source = NULL;
 
@@ -517,6 +518,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
         u->sink->description = pa_sprintf_malloc("Windows waveOut PCM");
+        u->sink->is_hardware = 1;
     } else
         u->sink = NULL;
 

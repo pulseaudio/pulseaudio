@@ -376,6 +376,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
+    u->source->is_hardware = 1;
     u->source->userdata = u;
     u->source->get_latency = source_get_latency_cb;
     if (u->mixer_handle) {

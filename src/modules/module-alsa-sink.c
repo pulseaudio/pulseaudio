@@ -383,6 +383,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
+    u->sink->is_hardware = 1;
     u->sink->get_latency = sink_get_latency_cb;
     if (u->mixer_handle) {
         assert(u->mixer_elem);

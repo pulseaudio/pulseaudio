@@ -555,6 +555,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source->set_hw_volume = source_set_hw_volume_cb;
         pa_source_set_owner(u->source, m);
         u->source->description = pa_sprintf_malloc("Solaris PCM on '%s'", p);
+        u->source->is_hardware = 1;
     } else
         u->source = NULL;
 
@@ -569,6 +570,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
         u->sink->description = pa_sprintf_malloc("Solaris PCM on '%s'", p);
+        u->sink->is_hardware = 1;
     } else
         u->sink = NULL;
 

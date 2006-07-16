@@ -444,6 +444,7 @@ int pa__init(pa_core *c, pa_module*m) {
                                                        hwdesc[0] ? " (" : "",
                                                        hwdesc[0] ? hwdesc : "",
                                                        hwdesc[0] ? ")" : "");
+            u->source->is_hardware = 1;
             
             u->in_memblocks = pa_xnew0(pa_memblock*, u->in_fragments);
             
@@ -485,6 +486,7 @@ int pa__init(pa_core *c, pa_module*m) {
                                                      hwdesc[0] ? hwdesc : "",
                                                      hwdesc[0] ? ")" : "");
             
+            u->sink->is_hardware = 1;
             u->out_memblocks = pa_xmalloc0(sizeof(struct memblock *)*u->out_fragments);
             
             enable_bits |= PCM_ENABLE_OUTPUT;

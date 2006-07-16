@@ -418,6 +418,7 @@ int pa__init(pa_core *c, pa_module*m) {
                                                    hwdesc[0] ? " (" : "",
                                                    hwdesc[0] ? hwdesc : "",
                                                    hwdesc[0] ? ")" : "");
+        u->source->is_hardware = 1;
     } else
         u->source = NULL;
 
@@ -435,6 +436,7 @@ int pa__init(pa_core *c, pa_module*m) {
                                                  hwdesc[0] ? " (" : "",
                                                  hwdesc[0] ? hwdesc : "",
                                                  hwdesc[0] ? ")" : "");
+        u->sink->is_hardware = 1;
     } else
         u->sink = NULL;
 
