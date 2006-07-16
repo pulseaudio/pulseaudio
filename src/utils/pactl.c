@@ -174,7 +174,7 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            "Volume: %s\n"
            "Monitor Source: %u\n"
            "Latency: %0.0f usec\n"
-           "Flags: %s%s\n",
+           "Flags: %s%s%s\n",
            i->index,
            i->name,
            i->driver,
@@ -186,7 +186,8 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
            i->monitor_source,
            (double) i->latency,
            i->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
-           i->flags & PA_SINK_LATENCY ? "LATENCY" : "");
+           i->flags & PA_SINK_LATENCY ? "LATENCY " : "",
+           i->flags & PA_SINK_HARDWARE ? "HARDWARE" : "");
 
 }
 
@@ -222,7 +223,7 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            "Volume: %s\n"
            "Monitor of Sink: %s\n"
            "Latency: %0.0f usec\n"
-           "Flags: %s%s\n",
+           "Flags: %s%s%s\n",
            i->index,
            i->driver,
            i->name,
@@ -234,7 +235,8 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            i->monitor_of_sink != PA_INVALID_INDEX ? t : "no",
            (double) i->latency,
            i->flags & PA_SOURCE_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
-           i->flags & PA_SOURCE_LATENCY ? "LATENCY" : "");
+           i->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
+           i->flags & PA_SOURCE_HARDWARE ? "HARDWARE" : "");
 
 }
 
