@@ -98,6 +98,8 @@ pa_source* pa_source_new(
     s->sw_muted = 0;
     s->hw_muted = 0;
 
+    s->is_hardware = 0;
+
     s->get_latency = NULL;
     s->notify = NULL;
     s->set_hw_volume = NULL;

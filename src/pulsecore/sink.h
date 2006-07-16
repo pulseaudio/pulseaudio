@@ -60,6 +60,8 @@ struct pa_sink {
     pa_cvolume hw_volume, sw_volume;
     int hw_muted, sw_muted;
 
+    int is_hardware;
+
     void (*notify)(pa_sink*sink);
     pa_usec_t (*get_latency)(pa_sink *s);
     int (*set_hw_volume)(pa_sink *s);

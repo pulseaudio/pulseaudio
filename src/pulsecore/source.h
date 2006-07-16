@@ -61,6 +61,8 @@ struct pa_source {
 
     pa_cvolume hw_volume, sw_volume;
     int hw_muted, sw_muted;
+
+    int is_hardware;
     
     void (*notify)(pa_source*source);
     pa_usec_t (*get_latency)(pa_source *s);
