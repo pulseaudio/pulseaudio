@@ -32,7 +32,6 @@ Post 0.9.0:
 - gconf module + frontend
 - hooks for creating sink inputs
 - insert the low-level device name in the default sink/source name, to make them recognizable
-- add new flag for distuinguishing hw sinks/sources from virtual sink/sources
 
 Long term:
 - pass meta info for hearing impaired
