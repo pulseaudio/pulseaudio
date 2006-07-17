@@ -132,6 +132,12 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     memset(&c->spawn_api, 0, sizeof(c->spawn_api));
     c->do_autospawn = 0;
 
+#ifndef MSG_NOSIGNAL
+#ifdef SIGPIPE    
+    pa_check_signal_is_blocked(SIGPIPE);
+#endif
+#endif
+
     c->conf = pa_client_conf_new();
     pa_client_conf_load(c->conf, NULL);
 #ifdef HAVE_X11

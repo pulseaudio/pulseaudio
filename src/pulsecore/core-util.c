@@ -78,6 +78,11 @@
 
 #include "core-util.h"
 
+/* Not all platforms have this */
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
 #ifndef OS_IS_WIN32
 #define PA_RUNTIME_PATH_PREFIX "/tmp/pulse-"
 #define PATH_SEP '/'
