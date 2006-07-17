@@ -291,7 +291,9 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     i->channel = channel;
     i->offset = offset;
     i->seek_mode = seek_mode;
+#ifdef SCM_CREDENTIALS
     i->with_creds = 0;
+#endif
 
     pa_memblock_ref(i->chunk.memblock);
 
