@@ -40,13 +40,6 @@
 
 static GMainLoop* glib_main_loop = NULL;
 
-#if GLIB_MAJOR_VERSION >= 2
-#define GLIB20
-#else
-#undef GLIB20
-#endif 
-
-
 #else /* GLIB_MAIN_LOOP */
 #include <pulse/mainloop.h>
 #endif /* GLIB_MAIN_LOOP */
@@ -68,10 +61,8 @@ static void dcb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
 static void tcb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, void *userdata) {
     fprintf(stderr, "TIME EVENT\n");
 
-#if defined(GLIB_MAIN_LOOP) && defined(GLIB20)
+#if defined(GLIB_MAIN_LOOP)
     g_main_loop_quit(glib_main_loop);
-#elif defined(GLIB_MAIN_LOOP)
-    g_main_quit(glib_main_loop);
 #else
     a->quit(a, 0);
 #endif
@@ -86,17 +77,10 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
 #ifdef GLIB_MAIN_LOOP
     pa_glib_mainloop *g;
 
-#ifdef GLIB20 
     glib_main_loop = g_main_loop_new(NULL, FALSE);
     assert(glib_main_loop);
 
     g = pa_glib_mainloop_new(NULL);
-#else /* GLIB20 */
-    glib_main_loop = g_main_new(FALSE);
-    assert(glib_main_loop);
-    
-    g = pa_glib_mainloop_new();
-#endif /* GLIB20 */
     assert(g);
 
     a = pa_glib_mainloop_get_api(g);
@@ -121,10 +105,8 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
     tv.tv_sec += 10;
     te = a->time_new(a, &tv, tcb, NULL);
 
-#if defined(GLIB_MAIN_LOOP) && defined(GLIB20)
+#if defined(GLIB_MAIN_LOOP)
     g_main_loop_run(glib_main_loop);
-#elif defined(GLIB_MAIN_LOOP)
-    g_main_run(glib_main_loop);
 #else
     pa_mainloop_run(m, NULL);
 #endif
@@ -135,11 +117,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
 
 #ifdef GLIB_MAIN_LOOP
     pa_glib_mainloop_free(g);
-#ifdef GLIB20
     g_main_loop_unref(glib_main_loop);
-#else
-    g_main_destroy(glib_main_loop);
-#endif
 #else
     pa_mainloop_free(m);
 #endif

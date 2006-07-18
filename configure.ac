@@ -449,37 +449,6 @@ AC_SUBST(GLIB20_LIBS)
 AC_SUBST(HAVE_GLIB20)
 AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 
-#### GLib 1 support (optional) ####
-
-AC_ARG_ENABLE([glib1], 
-    AC_HELP_STRING([--disable-glib1], [Disable optional GLib 1 support]), 
-        [
-            case "${enableval}" in
-                yes) glib1=yes ;;
-                no) glib1=no ;;
-                *) AC_MSG_ERROR(bad value ${enableval} for --disable-glib1) ;;
-            esac
-        ],
-        [glib1=auto])
-
-if test "x${glib1}" != xno ; then
-    PKG_CHECK_MODULES(GLIB12, [ glib >= 1.2.0 ],
-        HAVE_GLIB12=1,
-        [
-            HAVE_GLIB12=0
-            if test "x$glib1" = xyes ; then
-                AC_MSG_ERROR([*** GLib 1 support not found])
-            fi
-        ])
-else
-    HAVE_GLIB12=0
-fi
-
-AC_SUBST(GLIB12_CFLAGS)
-AC_SUBST(GLIB12_LIBS)
-AC_SUBST(HAVE_GLIB12)
-AM_CONDITIONAL([HAVE_GLIB12], [test "x$HAVE_GLIB12" = x1])
-
 #### Avahi support (optional) ####
 
 AC_ARG_ENABLE([avahi], 
@@ -677,7 +646,6 @@ libpulse.pc
 libpulse-simple.pc
 libpulse-browse.pc
 libpulse-mainloop-glib.pc
-libpulse-mainloop-glib12.pc
 doxygen/Makefile
 doxygen/doxygen.conf
 src/pulse/version.h
@@ -708,11 +676,6 @@ fi
 ENABLE_GLIB20=no
 if test "x$HAVE_GLIB20" = "x1" ; then
    ENABLE_GLIB20=yes
-fi
-
-ENABLE_GLIB12=no
-if test "x$HAVE_GLIB12" = "x1" ; then
-   ENABLE_GLIB12=yes
 fi
 
 ENABLE_AVAHI=no
@@ -748,15 +711,14 @@ echo "
     localstatedir:          ${localstatedir}
     compiler:               ${CC}
     cflags:                 ${CFLAGS}
-    Have X11:		    ${ENABLE_X11}
-    Enable OSS:		    ${ENABLE_OSS}
-    Enable Alsa:	    ${ENABLE_ALSA}
-    Enable Solaris:	    ${ENABLE_SOLARIS}
-    Enable Glib 2.0:	    ${ENABLE_GLIB20}
-    Enable Glib 1.2:	    ${ENABLE_GLIB12}
-    Enable Avahi:	    ${ENABLE_AVAHI}
-    Enable Jack:	    ${ENABLE_JACK}
-    Enable Async DNS:	    ${ENABLE_LIBASYNCNS}
-    Enable LIRC:	    ${ENABLE_LIRC}
+    Have X11:               ${ENABLE_X11}
+    Enable OSS:             ${ENABLE_OSS}
+    Enable Alsa:            ${ENABLE_ALSA}
+    Enable Solaris:         ${ENABLE_SOLARIS}
+    Enable Glib 2.0:        ${ENABLE_GLIB20}
+    Enable Avahi:           ${ENABLE_AVAHI}
+    Enable Jack:            ${ENABLE_JACK}
+    Enable Async DNS:       ${ENABLE_LIBASYNCNS}
+    Enable LIRC:            ${ENABLE_LIRC}
     Enable TCP Wrappers:    ${ENABLE_TCPWRAP}
 "

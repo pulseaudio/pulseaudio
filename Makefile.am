@@ -36,11 +36,6 @@ pkgconfig_DATA += \
 	 libpulse-mainloop-glib.pc
 endif
 
-if HAVE_GLIB12
-pkgconfig_DATA += \
-	libpulse-mainloop-glib12.pc
-endif
-
 homepage: all dist doxygen
 	test -d $$HOME/homepage/private
 	mkdir -p $$HOME/homepage/private/projects/pulseaudio $$HOME/homepage/private/projects/pulseaudio/doxygen

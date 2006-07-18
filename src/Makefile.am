@@ -207,11 +207,6 @@ noinst_PROGRAMS += \
 		mainloop-test-glib
 endif
 
-if HAVE_GLIB12
-noinst_PROGRAMS += \
-		mainloop-test-glib12
-endif
-
 mainloop_test_SOURCES = tests/mainloop-test.c
 mainloop_test_CFLAGS = $(AM_CFLAGS)
 mainloop_test_LDADD = $(AM_LDADD) libpulse.la
@@ -277,11 +272,6 @@ mainloop_test_glib_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB20_CFLAGS) -DGLIB_MAIN
 mainloop_test_glib_LDADD = $(mainloop_test_LDADD) $(GLIB20_LIBS) libpulse-mainloop-glib.la
 mainloop_test_glib_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-mainloop_test_glib12_SOURCES = $(mainloop_test_SOURCES)
-mainloop_test_glib12_CFLAGS = $(mainloop_test_CFLAGS) $(GLIB12_CFLAGS) -DGLIB_MAIN_LOOP
-mainloop_test_glib12_LDADD = $(mainloop_test_LDADD) $(GLIB12_LIBS) libpulse-mainloop-glib12.la
-mainloop_test_glib12_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
-
 memblockq_test_SOURCES = tests/memblockq-test.c
 memblockq_test_CFLAGS = $(AM_CFLAGS)
 memblockq_test_LDADD = $(AM_LDADD) $(WINSOCK_LIBS) libpulsecore.la
@@ -334,11 +324,6 @@ endif
 if HAVE_GLIB20
 pulseinclude_HEADERS += \
 		pulse/glib-mainloop.h
-else
-if HAVE_GLIB12
-pulseinclude_HEADERS += \
-		pulse/glib-mainloop.h
-endif
 endif
 
 lib_LTLIBRARIES = \
@@ -353,11 +338,6 @@ endif
 if HAVE_GLIB20
 lib_LTLIBRARIES += \
 		libpulse-mainloop-glib.la
-endif
-
-if HAVE_GLIB12
-lib_LTLIBRARIES += \
-		libpulse-mainloop-glib12.la
 endif
 
 # Public interface
@@ -460,11 +440,6 @@ libpulse_mainloop_glib_la_SOURCES = pulse/glib-mainloop.h pulse/glib-mainloop.c
 libpulse_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
 libpulse_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpulse.la $(GLIB20_LIBS)
 libpulse_mainloop_glib_la_LDFLAGS = -version-info $(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO)
-
-libpulse_mainloop_glib12_la_SOURCES = pulse/glib-mainloop.h pulse/glib12-mainloop.c
-libpulse_mainloop_glib12_la_CFLAGS = $(AM_CFLAGS) $(GLIB12_CFLAGS)
-libpulse_mainloop_glib12_la_LIBADD = $(AM_LIBADD) libpulse.la $(GLIB12_LIBS)
-libpulse_mainloop_glib12_la_LDFLAGS = -version-info $(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO)
 
 ###################################
 #         OSS emulation           #
