@@ -1,4 +1,4 @@
-#!@PULSEAUDIO_BINARY@ -nF 
+#!@PA_BINARY@ -nF 
 
 #
 # This file is part of PulseAudio.

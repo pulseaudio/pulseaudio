@@ -430,7 +430,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     ucred.pid = getpid();
     ucred.uid = getuid();
                    
-    if ((ucred.gid = pa_get_gid_of_group(PA_ACCESS_GROUP)) == (gid_t) -1)
+    if ((ucred.gid = pa_get_gid_of_group(c->conf->access_group)) == (gid_t) -1)
         ucred.gid = getgid();
     
     pa_pstream_send_tagstruct_with_creds(c->pstream, t, &ucred);
