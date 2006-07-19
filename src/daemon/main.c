@@ -158,6 +158,10 @@ static int change_user(void) {
     struct passwd *pw;
     struct group * gr;
     int r;
+
+    /* This function is called only in system-wide mode. It creates a
+     * runtime dir in /var/run/ with proper UID/GID and drops privs
+     * afterwards. */
     
     if (!(pw = getpwnam(PA_SYSTEM_USER))) {
         pa_log(__FILE__": Failed to find user '%s'.", PA_SYSTEM_USER);
@@ -238,8 +242,12 @@ static int change_user(void) {
 
 static int create_runtime_dir(void) {
     char fn[PATH_MAX];
-    
+
     pa_runtime_path(NULL, fn, sizeof(fn));
+
+    /* This function is called only when the daemon is started in
+     * per-user mode. We create the runtime directory somewhere in
+     * /tmp/ with the current UID/GID */
     
     if (pa_make_secure_dir(fn, 0700, getuid(), getgid()) < 0) {
         pa_log(__FILE__": Failed to create '%s': %s", fn, pa_cstrerror(errno));
