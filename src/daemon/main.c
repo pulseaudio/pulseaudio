@@ -229,6 +229,7 @@ static int change_user(void) {
 
     /* Relevant for pa_runtime_path() */
     set_env("PULSE_RUNTIME_PATH", PA_SYSTEM_RUNTIME_PATH);
+    set_env("PULSE_CONFIG_PATH", PA_SYSTEM_RUNTIME_PATH);
 
     pa_log_info(__FILE__": Successfully dropped root privileges.");
 
@@ -245,8 +246,6 @@ static int create_runtime_dir(void) {
         return -1;
     }
 
-    /* Relevant for pa_runtime_path() later on */
-    set_env("PULSE_RUNTIME_PATH", fn);
     return 0;
 }
 

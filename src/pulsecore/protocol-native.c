@@ -55,6 +55,8 @@
 #include <pulsecore/props.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/llist.h>
+#include <pulsecore/creds.h>
+#include <pulsecore/core-util.h>
 
 #include "protocol-native.h"
 
@@ -134,7 +136,7 @@ struct pa_protocol_native {
     pa_idxset *connections;
     uint8_t auth_cookie[PA_NATIVE_COOKIE_LENGTH];
     int auth_cookie_in_property;
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     char *auth_group;
 #endif
 };
@@ -910,25 +912,32 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
     if (!c->authorized) {
         int success = 0;
         
-#ifdef SCM_CREDENTIALS
-        const struct ucred *ucred = pa_pdispatch_creds(pd);
+#ifdef HAVE_CREDS
+        const pa_creds *creds;
 
-        if (ucred) {
-            if (ucred->uid == getuid())
+        if ((creds = pa_pdispatch_creds(pd))) {
+            if (creds->uid == getuid())
                 success = 1;
             else if (c->protocol->auth_group) {
                 int r;
-                
-                if ((r = pa_uid_in_group(ucred->uid, c->protocol->auth_group)) < 0)
-                    pa_log_warn(__FILE__": failed to check group membership.");
-                else if (r > 0)
+                gid_t gid;
+
+                if ((gid = pa_get_gid_of_group(c->protocol->auth_group)) == (gid_t) -1)
+                    pa_log_warn(__FILE__": failed to get GID of group '%s'", c->protocol->auth_group);
+                else if (gid == creds->gid)
                     success = 1;
+                    
+                if (!success) {
+                    if ((r = pa_uid_in_group(creds->uid, c->protocol->auth_group)) < 0)
+                        pa_log_warn(__FILE__": failed to check group membership.");
+                    else if (r > 0)
+                        success = 1;
+                }
             }
                 
-            pa_log_info(__FILE__": Got credentials: pid=%lu uid=%lu gid=%lu auth=%i",
-                        (unsigned long) ucred->pid,
-                        (unsigned long) ucred->uid,
-                        (unsigned long) ucred->gid,
+            pa_log_info(__FILE__": Got credentials: uid=%lu gid=%lu success=%i",
+                        (unsigned long) creds->uid,
+                        (unsigned long) creds->gid,
                         success);
         }
 #endif
@@ -2100,7 +2109,7 @@ static void command_get_autoload_info_list(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
 
 /*** pstream callbacks ***/
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const struct ucred *creds, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_creds *creds, void *userdata) {
     struct connection *c = userdata;
     assert(p && packet && packet->data && c);
 
@@ -2272,7 +2281,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     pa_idxset_put(p->connections, c, NULL);
 
 
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     if (pa_iochannel_creds_supported(io))
         pa_iochannel_creds_enable(io);
     
@@ -2323,8 +2332,18 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
     p->public = public;
     p->server = NULL;
 
-#ifdef SCM_CREDENTIALS
-    p->auth_group = pa_xstrdup(pa_modargs_get_value(ma, "auth-group", NULL));
+#ifdef HAVE_CREDS
+    {
+        int a = 1;
+        if (pa_modargs_get_value_boolean(ma, "auth-group-enabled", &a) < 0) {
+            pa_log(__FILE__": auth-group-enabled= expects a boolean argument.");
+            return NULL;
+        }
+        p->auth_group = a ? pa_xstrdup(pa_modargs_get_value(ma, "auth-group", c->is_system_instance ? PA_ACCESS_GROUP : NULL)) : NULL;
+
+        if (p->auth_group)
+            pa_log_info(__FILE__": Allowing access to group '%s'.", p->auth_group);
+    }
 #endif
     
     if (load_key(p, pa_modargs_get_value(ma, "cookie", NULL)) < 0) {
@@ -2386,7 +2405,7 @@ void pa_protocol_native_free(pa_protocol_native *p) {
     if (p->auth_cookie_in_property)
         pa_authkey_prop_unref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
 
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     pa_xfree(p->auth_group);
 #endif
     pa_xfree(p);

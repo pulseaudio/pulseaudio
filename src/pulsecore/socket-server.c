@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -185,12 +186,18 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
     pa_socket_low_delay(fd);
-    
+
     if (bind(fd, (struct sockaddr*) &sa, SUN_LEN(&sa)) < 0) {
         pa_log(__FILE__": bind(): %s", pa_cstrerror(errno));
         goto fail;
     }
 
+    /* Allow access from all clients. Sockets like this one should
+     * always be put inside a directory with proper access rights,
+     * because not all OS check the access rights on the socket
+     * inodes. */
+    chmod(filename, 0777);
+    
     if (listen(fd, 5) < 0) {
         pa_log(__FILE__": listen(): %s", pa_cstrerror(errno));
         goto fail;

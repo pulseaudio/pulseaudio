@@ -41,6 +41,7 @@
 #include <pulsecore/queue.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-scache.h>
+#include <pulsecore/creds.h>
 
 #include "pstream.h"
 
@@ -69,9 +70,9 @@ struct item_info {
 
     /* packet info */
     pa_packet *packet;
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     int with_creds;
-    struct ucred creds;
+    pa_creds creds;
 #endif
 };
 
@@ -114,8 +115,8 @@ struct pa_pstream {
 
     pa_memblock_stat *memblock_stat;
 
-#ifdef SCM_CREDENTIALS
-    struct ucred read_creds, write_creds;
+#ifdef HAVE_CREDS
+    pa_creds read_creds, write_creds;
     int read_creds_valid, send_creds_now;
 #endif
 };
@@ -216,7 +217,7 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_memblock_sta
     pa_iochannel_socket_set_rcvbuf(io, 1024*8); 
     pa_iochannel_socket_set_sndbuf(io, 1024*8);
 
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     p->send_creds_now = 0;
     p->read_creds_valid = 0;
 #endif
@@ -258,7 +259,7 @@ static void pstream_free(pa_pstream *p) {
     pa_xfree(p);
 }
 
-void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const struct ucred *creds) {
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *creds) {
     struct item_info *i;
     assert(p && packet && p->ref >= 1);
 
@@ -270,7 +271,7 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const struct ucred 
     i = pa_xnew(struct item_info, 1);
     i->type = PA_PSTREAM_ITEM_PACKET;
     i->packet = pa_packet_ref(packet);
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     if ((i->with_creds = !!creds))
         i->creds = *creds;
 #endif
@@ -294,7 +295,7 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     i->channel = channel;
     i->offset = offset;
     i->seek_mode = seek_mode;
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     i->with_creds = 0;
 #endif
 
@@ -334,7 +335,7 @@ static void prepare_next_write_item(pa_pstream *p) {
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_SEEK] = htonl(p->write.current->seek_mode);
     }
 
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     if ((p->send_creds_now = p->write.current->with_creds))
         p->write_creds = p->write.current->creds;
     
@@ -364,7 +365,7 @@ static int do_write(pa_pstream *p) {
         l = ntohl(p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) - (p->write.index - PA_PSTREAM_DESCRIPTOR_SIZE);
     }
 
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     if (p->send_creds_now) {
 
         if ((r = pa_iochannel_write_with_creds(p->io, d, l, &p->write_creds)) < 0)
@@ -406,7 +407,7 @@ static int do_read(pa_pstream *p) {
         l = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) - (p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE);
     }
 
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
     {
         int b = 0;
         
@@ -495,7 +496,7 @@ static int do_read(pa_pstream *p) {
                 assert(p->read.packet);
                 
                 if (p->recieve_packet_callback)
-#ifdef SCM_CREDENTIALS                    
+#ifdef HAVE_CREDS
                     p->recieve_packet_callback(p, p->read.packet, p->read_creds_valid ? &p->read_creds : NULL, p->recieve_packet_callback_userdata);
 #else
                     p->recieve_packet_callback(p, p->read.packet, NULL, p->recieve_packet_callback_userdata);
@@ -506,7 +507,7 @@ static int do_read(pa_pstream *p) {
             }
 
             p->read.index = 0;
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
             p->read_creds_valid = 0;
 #endif
         }

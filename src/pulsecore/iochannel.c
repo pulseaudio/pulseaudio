@@ -231,7 +231,7 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
     return r;
 }
 
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
 
 int pa_iochannel_creds_supported(pa_iochannel *io) {
     struct sockaddr_un sa;
@@ -263,7 +263,7 @@ int pa_iochannel_creds_enable(pa_iochannel *io) {
     return 0;
 }
 
-ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l, const struct ucred *ucred) {
+ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l, const pa_creds *ucred) {
     ssize_t r;
     struct msghdr mh;
     struct iovec iov;
@@ -288,10 +288,11 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
 
     u = (struct ucred*) CMSG_DATA(cmsg);
 
-    if (ucred)
-        *u = *ucred;
-    else {
-        u->pid = getpid();
+    u->pid = getpid();
+    if (ucred) {
+        u->uid = ucred->uid;
+        u->gid = ucred->gid;
+    } else {
         u->uid = getuid();
         u->gid = getgid();
     }
@@ -313,7 +314,7 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     return r;
 }
 
-ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struct ucred *ucred, int *creds_valid) {
+ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *creds, int *creds_valid) {
     ssize_t r;
     struct msghdr mh;
     struct iovec iov;
@@ -323,7 +324,7 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struc
     assert(data);
     assert(l);
     assert(io->ifd >= 0);
-    assert(ucred);
+    assert(creds);
     assert(creds_valid);
 
     memset(&iov, 0, sizeof(iov));
@@ -349,8 +350,12 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struc
         for (cmsg = CMSG_FIRSTHDR(&mh); cmsg; cmsg = CMSG_NXTHDR(&mh, cmsg)) {
             
             if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_CREDENTIALS) {
+                struct ucred u;
                 assert(cmsg->cmsg_len == CMSG_LEN(sizeof(struct ucred)));
-                memcpy(ucred, CMSG_DATA(cmsg), sizeof(struct ucred));
+                memcpy(&u, CMSG_DATA(cmsg), sizeof(struct ucred));
+
+                creds->gid = u.gid;
+                creds->uid = u.uid;
                 *creds_valid = 1;
                 break;
             }
@@ -362,27 +367,8 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struc
     
     return r;
 }
-#else /* SCM_CREDENTIALS */
 
-int pa_iochannel_creds_supported(pa_iochannel *io) {
-    return 0;
-}
-
-int pa_iochannel_creds_enable(pa_iochannel *io) {
-    return -1;
-}
-
-ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l) {
-    pa_log_error("pa_iochannel_write_with_creds() not supported.");
-    return -1;
-}
-
-ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struct ucred *ucred, int *creds_valid) {
-    pa_log_error("pa_iochannel_read_with_creds() not supported.");
-    return -1;
-}
-
-#endif /* SCM_CREDENTIALS */
+#endif /* HAVE_CREDS */
 
 void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_cb_t _callback, void *userdata) {
     assert(io);

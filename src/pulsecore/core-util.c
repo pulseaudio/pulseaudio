@@ -741,6 +741,20 @@ finish:
     return ret;
 }
 
+int pa_check_in_group(gid_t g) {
+    gid_t gids[NGROUPS_MAX];
+    int r;
+
+    if ((r = getgroups(NGROUPS_MAX, gids)) < 0)
+        return -1;
+
+    for (; r > 0; r--)
+        if (gids[r-1] == g)
+            return 1;
+
+    return 0;
+}
+
 #else /* HAVE_GRP_H */
 
 int pa_own_uid_in_group(const char *name, gid_t *gid) {
@@ -749,6 +763,14 @@ int pa_own_uid_in_group(const char *name, gid_t *gid) {
 }
 
 int pa_uid_in_group(uid_t uid, const char *name) {
+    return -1;
+}
+
+gid_t pa_get_gid_of_group(const char *name) {
+    return (gid_t) -1;
+}
+
+int pa_check_in_group(gid_t g) {
     return -1;
 }
 
@@ -909,28 +931,33 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
         return fopen(fn, mode);
     }
 
-    if (local && pa_get_home_dir(h, sizeof(h))) {
-        FILE *f;
-        char *lfn;
-        
-        fn = lfn = pa_sprintf_malloc("%s/%s", h, local);
+    if (local) {
+        const char *e;
+        char *lfn = NULL;
 
+        if ((e = getenv("PULSE_CONFIG_PATH")))
+            fn = lfn = pa_sprintf_malloc("%s/%s", e, local);
+        else if (pa_get_home_dir(h, sizeof(h)))
+            fn = lfn = pa_sprintf_malloc("%s/.pulse/%s", h, local);
+
+        if (lfn) {
+            FILE *f;
+        
 #ifdef OS_IS_WIN32
-        if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX))
-            return NULL;
-        fn = buf;
+            if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX))
+                return NULL;
+            fn = buf;
 #endif
-
-        f = fopen(fn, mode);
-
-        if (f || errno != ENOENT) {
-            if (result)
-                *result = pa_xstrdup(fn);
-            pa_xfree(lfn);
-            return f;
-        }
+            
+            if ((f = fopen(fn, mode)) || errno != ENOENT) {
+                if (result)
+                    *result = pa_xstrdup(fn);
+                pa_xfree(lfn);
+                return f;
+            }
         
-        pa_xfree(lfn);
+            pa_xfree(lfn);
+        }
     }
 
     if (!global) {

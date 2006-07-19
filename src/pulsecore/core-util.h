@@ -67,6 +67,7 @@ const char *pa_strsignal(int sig);
 int pa_own_uid_in_group(const char *name, gid_t *gid);
 int pa_uid_in_group(uid_t uid, const char *name);
 gid_t pa_get_gid_of_group(const char *name);
+int pa_check_in_group(gid_t g);
 
 int pa_lock_fd(int fd, int b);
 

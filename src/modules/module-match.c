@@ -53,7 +53,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 #define WHITESPACE "\n\r \t"
 
 #define DEFAULT_MATCH_TABLE_FILE PA_DEFAULT_CONFIG_DIR"/match.table"
-#define DEFAULT_MATCH_TABLE_FILE_USER ".pulse/match.table"
+#define DEFAULT_MATCH_TABLE_FILE_USER "match.table"
 
 static const char* const valid_modargs[] = {
     "table",

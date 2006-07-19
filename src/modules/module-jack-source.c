@@ -240,7 +240,7 @@ int pa__init(pa_core *c, pa_module*m) {
     jack_status_t status;
     const char *server_name, *client_name;
     uint32_t channels = 0;
-    int connect = 1;
+    int do_connect = 1;
     unsigned i;
     const char **ports = NULL, **p;
     
@@ -254,7 +254,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    if (pa_modargs_get_value_boolean(ma, "connect", &connect) < 0) {
+    if (pa_modargs_get_value_boolean(ma, "connect", &do_connect) < 0) {
         pa_log(__FILE__": failed to parse connect= argument.");
         goto fail;
     }
@@ -337,7 +337,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    if (connect) {
+    if (do_connect) {
         for (i = 0, p = ports; i < ss.channels; i++, p++) {
 
             if (!*p) {

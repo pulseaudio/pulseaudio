@@ -1,5 +1,5 @@
-#ifndef foopstreamutilhfoo
-#define foopstreamutilhfoo
+#ifndef foocredshfoo
+#define foocredshfoo
 
 /* $Id$ */
 
@@ -22,17 +22,23 @@
   USA.
 ***/
 
-#include <inttypes.h>
-#include <pulsecore/pstream.h>
-#include <pulsecore/tagstruct.h>
-#include <pulsecore/creds.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
-/* The tagstruct is freed!*/
-void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds);
+typedef struct pa_creds pa_creds;
 
-#define pa_pstream_send_tagstruct(p, t) pa_pstream_send_tagstruct_with_creds((p), (t), 0)
+#if defined(SCM_CREDENTIALS)
 
-void pa_pstream_send_error(pa_pstream *p, uint32_t tag, uint32_t error);
-void pa_pstream_send_simple_ack(pa_pstream *p, uint32_t tag);
+#define HAVE_CREDS 1
+
+struct pa_creds {
+    gid_t gid;
+    uid_t uid;
+};
+
+#else
+#undef HAVE_CREDS
+#endif
 
 #endif

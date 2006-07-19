@@ -53,7 +53,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 
 #define WHITESPACE "\n\r \t"
 
-#define DEFAULT_VOLUME_TABLE_FILE ".pulse/volume.table"
+#define DEFAULT_VOLUME_TABLE_FILE "volume.table"
 
 static const char* const valid_modargs[] = {
     "table",

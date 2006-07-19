@@ -25,6 +25,7 @@
 #include <sys/types.h>
 
 #include <pulse/mainloop-api.h>
+#include <pulsecore/creds.h>
 
 /* A wrapper around UNIX file descriptors for attaching them to the a
    main event loop. Everytime new data may be read or be written to
@@ -49,13 +50,13 @@ void pa_iochannel_free(pa_iochannel*io);
 ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l);
 ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l);
 
+#ifdef HAVE_CREDS
 int pa_iochannel_creds_supported(pa_iochannel *io);
 int pa_iochannel_creds_enable(pa_iochannel *io);
 
-struct ucred;
-
-ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l, const struct ucred *ucred);
-ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, struct ucred *ucred, int *creds_valid);
+ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l, const pa_creds *ucred);
+ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *ucred, int *creds_valid);
+#endif
 
 int pa_iochannel_is_readable(pa_iochannel*io);
 int pa_iochannel_is_writable(pa_iochannel*io);

@@ -611,7 +611,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
 }
 
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const struct ucred *creds, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_creds *creds, void *userdata) {
     struct userdata *u = userdata;
     assert(p && packet && u);
 

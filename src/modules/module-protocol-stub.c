@@ -52,10 +52,11 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/native-common.h>
+#include <pulsecore/creds.h>
 
 #ifdef USE_TCP_SOCKETS
 #define SOCKET_DESCRIPTION "(TCP sockets)"
-#define SOCKET_USAGE "port=<TCP port number> loopback=<listen on loopback device only?> listen=<address to listen on>"
+#define SOCKET_USAGE "port=<TCP port number> listen=<address to listen on>"
 #else
 #define SOCKET_DESCRIPTION "(UNIX sockets)"
 #define SOCKET_USAGE "socket=<path to UNIX socket>"
@@ -127,9 +128,9 @@
     #include "module-native-protocol-unix-symdef.h"
   #endif
 
-  #if defined(SCM_CREDENTIALS) && !defined(USE_TCP_SOCKETS)
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group",
-    #define AUTH_USAGE "auth-group=<local group to allow access>"
+  #if defined(HAVE_CREDS) && !defined(USE_TCP_SOCKETS)
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group", "auth-group-enable="
+    #define AUTH_USAGE "auth-group=<system group to allow access> auth-group-enable=<enable auth by UNIX group?> "
   #else
     #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
     #define AUTH_USAGE
@@ -171,7 +172,6 @@ static const char* const valid_modargs[] = {
     MODULE_ARGUMENTS
 #if defined(USE_TCP_SOCKETS)
     "port",
-    "loopback",
     "listen",
 #else
     "socket",
@@ -197,7 +197,6 @@ int pa__init(pa_core *c, pa_module*m) {
 
 #if defined(USE_TCP_SOCKETS)
     pa_socket_server *s_ipv4 = NULL, *s_ipv6 = NULL;
-    int loopback = 1;
     uint32_t port = IPV4_PORT;
     const char *listen_on;
 #else
@@ -216,11 +215,6 @@ int pa__init(pa_core *c, pa_module*m) {
     u = pa_xnew0(struct userdata, 1);
 
 #if defined(USE_TCP_SOCKETS)
-    if (pa_modargs_get_value_boolean(ma, "loopback", &loopback) < 0) {
-        pa_log(__FILE__": loopback= expects a boolean argument.");
-        goto fail;
-    }
-
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
         pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.");
         goto fail;
@@ -231,9 +225,6 @@ int pa__init(pa_core *c, pa_module*m) {
     if (listen_on) {
         s_ipv6 = pa_socket_server_new_ipv6_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE);
         s_ipv4 = pa_socket_server_new_ipv4_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE);
-    } else if (loopback) {
-        s_ipv6 = pa_socket_server_new_ipv6_loopback(c->mainloop, port, TCPWRAP_SERVICE);
-        s_ipv4 = pa_socket_server_new_ipv4_loopback(c->mainloop, port, TCPWRAP_SERVICE);
     } else {
         s_ipv6 = pa_socket_server_new_ipv6_any(c->mainloop, port, TCPWRAP_SERVICE);
         s_ipv4 = pa_socket_server_new_ipv4_any(c->mainloop, port, TCPWRAP_SERVICE);

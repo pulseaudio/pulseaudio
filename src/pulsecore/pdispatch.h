@@ -23,12 +23,13 @@
 ***/
 
 #include <inttypes.h>
+
 #include <pulse/mainloop-api.h>
 #include <pulse/def.h>
+
 #include <pulsecore/tagstruct.h>
 #include <pulsecore/packet.h>
-
-struct ucred;
+#include <pulsecore/creds.h>
 
 typedef struct pa_pdispatch pa_pdispatch;
 
@@ -39,7 +40,7 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *m, const pa_pdispatch_cb_t*table
 void pa_pdispatch_unref(pa_pdispatch *pd);
 pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd);
 
-int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*p, const struct ucred*creds, void *userdata);
+int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*p, const pa_creds *creds, void *userdata);
 
 void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_cb_t callback, void *userdata, pa_free_cb_t free_cb);
 
@@ -50,6 +51,6 @@ void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, pa_pdispatch_drain_callba
 /* Remove all reply slots with the give userdata parameter */
 void pa_pdispatch_unregister_reply(pa_pdispatch *pd, void *userdata);
 
-const struct ucred * pa_pdispatch_creds(pa_pdispatch *pd);
+const pa_creds * pa_pdispatch_creds(pa_pdispatch *pd);
 
 #endif

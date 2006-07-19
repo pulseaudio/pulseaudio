@@ -62,6 +62,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/socket-util.h>
+#include <pulsecore/creds.h>
 
 #include "internal.h"
 
@@ -272,7 +273,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_context_fail(c, PA_ERR_CONNECTIONTERMINATED);
 }
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const struct ucred *creds, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_creds *creds, void *userdata) {
     pa_context *c = userdata;
     
     assert(p);
@@ -423,15 +424,17 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
     pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
 
-#ifdef SCM_CREDENTIALS
+#ifdef HAVE_CREDS
 {
-    struct ucred ucred;
+    pa_creds ucred;
+    gid_t g;
 
-    ucred.pid = getpid();
     ucred.uid = getuid();
+    ucred.gid = getgid();
                    
-    if ((ucred.gid = pa_get_gid_of_group(c->conf->access_group)) == (gid_t) -1)
-        ucred.gid = getgid();
+    if ((g = pa_get_gid_of_group(c->conf->access_group)) != (gid_t) -1) 
+        if (pa_check_in_group(g) > 0)
+            ucred.gid = g;
     
     pa_pstream_send_tagstruct_with_creds(c->pstream, t, &ucred);
 }
@@ -690,7 +693,12 @@ int pa_context_connect(
         }
         
         c->server_list = pa_strlist_prepend(c->server_list, "tcp6:localhost");
-        c->server_list = pa_strlist_prepend(c->server_list, "localhost");
+        c->server_list = pa_strlist_prepend(c->server_list, "tcp4:localhost");
+
+        /* The system wide instance */
+        c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH "/" PA_NATIVE_DEFAULT_UNIX_SOCKET);
+
+        /* The per-user instance */
         c->server_list = pa_strlist_prepend(c->server_list, pa_runtime_path(PA_NATIVE_DEFAULT_UNIX_SOCKET, ufn, sizeof(ufn)));
 
         /* Wrap the connection attempts in a single transaction for sane autospawn locking */

@@ -29,7 +29,7 @@
 
 #include "pstream-util.h"
 
-void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const struct ucred *creds) {
+void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds) {
     size_t length;
     uint8_t *data;
     pa_packet *packet;
