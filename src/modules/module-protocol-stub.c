@@ -75,7 +75,14 @@
     #include "module-simple-protocol-unix-symdef.h"
   #endif
   PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION)
-  PA_MODULE_USAGE("rate=<sample rate> format=<sample format> channels=<number of channels> sink=<sink to connect to> source=<source to connect to> playback=<enable playback?> record=<enable record?> "SOCKET_USAGE)
+  PA_MODULE_USAGE("rate=<sample rate> "
+                  "format=<sample format> "
+                  "channels=<number of channels> "
+                  "sink=<sink to connect to> "
+                  "source=<source to connect to> "
+                  "playback=<enable playback?> "
+                  "record=<enable record?> "
+                  SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_CLI)
   #include <pulsecore/protocol-cli.h> 
   #define protocol_new pa_protocol_cli_new
@@ -129,7 +136,10 @@
   #endif
   
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION)
-  PA_MODULE_USAGE("auth-anonymous=<don't check for cookies?> cookie=<path to cookie file> "AUTH_USAGE SOCKET_USAGE)
+  PA_MODULE_USAGE("auth-anonymous=<don't check for cookies?> "
+                  "cookie=<path to cookie file> "
+                  AUTH_USAGE
+                  SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_ESOUND)
   #include <pulsecore/protocol-esound.h>
   #include <pulsecore/esound.h>
@@ -145,7 +155,11 @@
     #include "module-esound-protocol-unix-symdef.h"
   #endif
   PA_MODULE_DESCRIPTION("ESOUND protocol "SOCKET_DESCRIPTION)
-  PA_MODULE_USAGE("sink=<sink to connect to> source=<source to connect to> auth-anonymous=<don't check for cookies?> cookie=<path to cookie file> "SOCKET_USAGE)
+  PA_MODULE_USAGE("sink=<sink to connect to> "
+                  "source=<source to connect to> "
+                  "auth-anonymous=<don't verify cookies?> "
+                  "cookie=<path to cookie file> "
+                  SOCKET_USAGE)
 #else
   #error "Broken build system" 
 #endif
@@ -189,7 +203,6 @@ int pa__init(pa_core *c, pa_module*m) {
 #else
     pa_socket_server *s;
     int r;
-    const char *v;
     char tmp[PATH_MAX];
 #endif
 
@@ -241,15 +254,21 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
 
 #else
-    v = pa_modargs_get_value(ma, "socket", UNIX_SOCKET);
-    pa_runtime_path(v, tmp, sizeof(tmp));
+
+    pa_runtime_path(pa_modargs_get_value(ma, "socket", UNIX_SOCKET), tmp, sizeof(tmp));
     u->socket_path = pa_xstrdup(tmp);
 
-    if (pa_make_secure_parent_dir(tmp) < 0) {
-        pa_log(__FILE__": Failed to create secure socket directory.");
+#if defined(USE_PROTOCOL_ESOUND)
+
+    /* This socket doesn't reside in our own runtime dir but in
+     * /tmp/.esd/, hence we have to create the dir first */
+    
+    if (pa_make_secure_parent_dir(u->socket_path, c->is_system_instance ? 0755 : 0700, getuid(), getgid()) < 0) {
+        pa_log(__FILE__": Failed to create socket directory: %s\n", pa_cstrerror(errno));
         goto fail;
     }
-
+#endif
+    
     if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
         pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s", tmp, pa_cstrerror(errno));
         goto fail;
@@ -324,18 +343,16 @@ void pa__done(pa_core *c, pa_module*m) {
     if (u->protocol_unix)
         protocol_free(u->protocol_unix);
 
+#if defined(USE_PROTOCOL_ESOUND)
     if (u->socket_path) {
-        char *p;
-        
-        if ((p = pa_parent_dir(u->socket_path))) {
-            if (rmdir(p) < 0 && errno != ENOENT && errno != ENOTEMPTY)
-                pa_log(__FILE__": Failed to remove %s: %s.", u->socket_path, pa_cstrerror(errno));
-
-            pa_xfree(p);
-        }
-
-        pa_xfree(u->socket_path);
+        char *p = pa_parent_dir(u->socket_path);
+        rmdir(p);
+        pa_xfree(p);
     }
+#endif
+    
+    
+    pa_xfree(u->socket_path);
 #endif
 
     pa_xfree(u);

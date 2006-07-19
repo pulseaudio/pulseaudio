@@ -2100,7 +2100,7 @@ static void command_get_autoload_info_list(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
 
 /*** pstream callbacks ***/
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const void *creds, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const struct ucred *creds, void *userdata) {
     struct connection *c = userdata;
     assert(p && packet && packet->data && c);
 

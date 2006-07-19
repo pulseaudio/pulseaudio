@@ -84,10 +84,10 @@
 #endif
 
 #ifndef OS_IS_WIN32
-#define PA_RUNTIME_PATH_PREFIX "/tmp/pulse-"
+#define PA_USER_RUNTIME_PATH_PREFIX "/tmp/pulse-"
 #define PATH_SEP '/'
 #else
-#define PA_RUNTIME_PATH_PREFIX "%TEMP%\\pulse-"
+#define PA_USER_RUNTIME_PATH_PREFIX "%TEMP%\\pulse-"
 #define PATH_SEP '\\'
 #endif
 
@@ -136,23 +136,32 @@ void pa_make_nonblock_fd(int fd) {
 }
 
 /** Creates a directory securely */
-int pa_make_secure_dir(const char* dir) {
+int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     struct stat st;
+    int r;
+    
     assert(dir);
 
 #ifdef OS_IS_WIN32
-    if (mkdir(dir) < 0)
+    r = mkdir(dir);
 #else
-    if (mkdir(dir, 0700) < 0)
+    {
+    mode_t u;
+    u = umask(~m);
+    r = mkdir(dir, m);
+    umask(u);
+    }
 #endif
-        if (errno != EEXIST)
-            return -1;
+    
+    if (r < 0 && errno != EEXIST)
+        return -1;
 
 #ifdef HAVE_CHOWN
-    chown(dir, getuid(), getgid());
+    chown(dir, uid, gid);
 #endif
+    
 #ifdef HAVE_CHMOD
-    chmod(dir, 0700);
+    chmod(dir, m);
 #endif
     
 #ifdef HAVE_LSTAT
@@ -163,8 +172,13 @@ int pa_make_secure_dir(const char* dir) {
         goto fail;
     
 #ifndef OS_IS_WIN32
-    if (!S_ISDIR(st.st_mode) || (st.st_uid != getuid()) || ((st.st_mode & 0777) != 0700))
+    if (!S_ISDIR(st.st_mode) ||
+        (st.st_uid != uid) ||
+        (st.st_gid != gid) ||
+        ((st.st_mode & 0777) != m)) {
+        errno = EACCES;
         goto fail;
+    }
 #else
     fprintf(stderr, "FIXME: pa_make_secure_dir()\n");
 #endif
@@ -180,23 +194,24 @@ fail:
 char *pa_parent_dir(const char *fn) {
     char *slash, *dir = pa_xstrdup(fn);
 
-    slash = (char*) pa_path_get_filename(dir);
-    if (slash == fn)
+    if ((slash = (char*) pa_path_get_filename(dir)) == dir) {
+        pa_xfree(dir);
         return NULL;
+    }
 
     *(slash-1) = 0;
     return dir;
 }
 
 /* Creates a the parent directory of the specified path securely */
-int pa_make_secure_parent_dir(const char *fn) {
+int pa_make_secure_parent_dir(const char *fn, mode_t m, uid_t uid, gid_t gid) {
     int ret = -1;
     char *dir;
 
     if (!(dir = pa_parent_dir(fn)))
         goto finish;
     
-    if (pa_make_secure_dir(dir) < 0)
+    if (pa_make_secure_dir(dir, m, uid, gid) < 0)
         goto finish;
 
     ret = 0;
@@ -669,6 +684,7 @@ finish:
     return r;
 }
 
+/* Check whether the specifc user id is a member of the specified group */
 int pa_uid_in_group(uid_t uid, const char *name) {
     char *g_buf, *p_buf;
     long g_n, p_n;
@@ -703,6 +719,26 @@ finish:
     pa_xfree(p_buf);
 
     return r;
+}
+
+/* Get the GID of a gfiven group, return (gid_t) -1 on failure. */
+gid_t pa_get_gid_of_group(const char *name) {
+    gid_t ret = (gid_t) -1;
+    char *g_buf;
+    long g_n;
+    struct group grbuf, *gr;
+
+    g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
+    g_buf = pa_xmalloc(g_n);
+
+    if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
+        goto finish;
+
+    ret = gr->gr_gid;
+
+finish:
+    pa_xfree(g_buf);
+    return ret;
 }
 
 #else /* HAVE_GRP_H */
@@ -1003,7 +1039,7 @@ int pa_endswith(const char *s, const char *sfx) {
  * if fn is non-null and starts with / return fn in s
  * otherwise append fn to the run time path and return it in s */
 char *pa_runtime_path(const char *fn, char *s, size_t l) {
-    char u[256];
+    const char *e;
 
 #ifndef OS_IS_WIN32
     if (fn && *fn == '/')
@@ -1012,10 +1048,22 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
 #endif
         return pa_strlcpy(s, fn, l);
 
-    if (fn)    
-        snprintf(s, l, "%s%s%c%s", PA_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PATH_SEP, fn);
-    else
-        snprintf(s, l, "%s%s", PA_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
+    if ((e = getenv("PULSE_RUNTIME_PATH"))) {
+
+        if (fn)    
+            snprintf(s, l, "%s%c%s", e, PATH_SEP, fn);
+        else
+            snprintf(s, l, "%s", e);
+        
+    } else {
+        char u[256];
+        
+        if (fn)    
+            snprintf(s, l, "%s%s%c%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PATH_SEP, fn);
+        else
+            snprintf(s, l, "%s%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
+    }
+    
 
 #ifdef OS_IS_WIN32
     {

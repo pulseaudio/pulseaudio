@@ -239,7 +239,11 @@ AC_CHECK_FUNCS([lstat])
 # Non-standard
 
 AC_CHECK_FUNCS(setresuid)
+AC_CHECK_FUNCS(setresgid)
 AC_CHECK_FUNCS(setreuid)
+AC_CHECK_FUNCS(setregid)
+AC_CHECK_FUNCS(seteuid)
+AC_CHECK_FUNCS(setegid)
 
 #### POSIX threads ####
 
@@ -602,6 +606,48 @@ AC_SUBST(LIRC_CFLAGS)
 AC_SUBST(LIRC_LIBS)
 AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 
+#### PulseAudio system group & user  #####
+
+AC_ARG_WITH(system_user, AS_HELP_STRING([--with-system-user=<user>],[User for running the PulseAudio daemon as a system-wide instance (pulse)]))
+if test -z "$with_system_user" ; then
+    PA_SYSTEM_USER=pulse
+else
+    PA_SYSTEM_USER=$with_system_user
+fi
+AC_SUBST(PA_SYSTEM_USER)
+AC_DEFINE_UNQUOTED(PA_SYSTEM_USER,"$PA_SYSTEM_USER", [User for running the PulseAudio system daemon])
+
+AC_ARG_WITH(system_group,AS_HELP_STRING([--with-system-group=<group>],[Group for running the PulseAudio daemon as a system-wide instance (pulse)]))
+if test -z "$with_system_group" ; then
+    PA_SYSTEM_GROUP=pulse
+else
+    PA_SYSTEM_GROUP=$with_system_group
+fi
+AC_SUBST(PA_SYSTEM_GROUP)
+AC_DEFINE_UNQUOTED(PA_SYSTEM_GROUP,"$PA_SYSTEM_GROUP", [Group for the PulseAudio system daemon])
+
+AC_ARG_WITH(realtime_group,AS_HELP_STRING([--with-realtime-group=<group>],[Group for users that are allowed to start the PulseAudio daemon with realtime scheduling (realtime)]))
+if test -z "$with_realtime_group" ; then
+    PA_REALTIME_GROUP=realtime
+else
+    PA_REALTIME_GROUP=$with_realtime_group
+fi
+AC_SUBST(PA_REALTIME_GROUP)
+AC_DEFINE_UNQUOTED(PA_REALTIME_GROUP,"$PA_REALTIME_GROUP", [Realtime group])
+
+AC_ARG_WITH(access_group,AS_HELP_STRING([--with-access-group=<group>],[Group which is allowed access to a system-wide PulseAudio daemon (pulse-access)]))
+if test -z "$with_access_group" ; then
+    PA_ACCESS_GROUP=pulse-access
+else
+    PA_ACCESS_GROUP=$with_access_group
+fi
+AC_SUBST(PA_ACCESS_GROUP)
+AC_DEFINE_UNQUOTED(PA_ACCESS_GROUP,"$PA_ACCESS_GROUP", [Access group])
+
+#### PulseAudio system runtime dir ####
+PA_SYSTEM_RUNTIME_PATH="${localstatedir}/run/pulse"
+AC_SUBST(PA_SYSTEM_RUNTIME_PATH)
+
 ###################################
 #            Output               #
 ###################################
@@ -709,8 +755,9 @@ echo "
     prefix:                 ${prefix}
     sysconfdir:             ${sysconfdir}
     localstatedir:          ${localstatedir}
-    compiler:               ${CC}
-    cflags:                 ${CFLAGS}
+    System Runtime Path:    ${PA_SYSTEM_RUNTIME_PATH}
+    Compiler:               ${CC}
+    CFLAGS:                 ${CFLAGS}
     Have X11:               ${ENABLE_X11}
     Enable OSS:             ${ENABLE_OSS}
     Enable Alsa:            ${ENABLE_ALSA}
@@ -721,4 +768,8 @@ echo "
     Enable Async DNS:       ${ENABLE_LIBASYNCNS}
     Enable LIRC:            ${ENABLE_LIRC}
     Enable TCP Wrappers:    ${ENABLE_TCPWRAP}
+    System User:            ${PA_SYSTEM_USER}
+    System Group:           ${PA_SYSTEM_GROUP}
+    Realtime Group:         ${PA_REALTIME_GROUP}
+    Access Group:           ${PA_ACCESS_GROUP}
 "

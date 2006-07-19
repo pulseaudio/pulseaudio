@@ -52,11 +52,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 
 #define WHITESPACE "\n\r \t"
 
-#ifndef DEFAULT_CONFIG_DIR
-#define DEFAULT_CONFIG_DIR "/etc/pulse"
-#endif
-
-#define DEFAULT_MATCH_TABLE_FILE DEFAULT_CONFIG_DIR"/match.table"
+#define DEFAULT_MATCH_TABLE_FILE PA_DEFAULT_CONFIG_DIR"/match.table"
 #define DEFAULT_MATCH_TABLE_FILE_USER ".pulse/match.table"
 
 static const char* const valid_modargs[] = {

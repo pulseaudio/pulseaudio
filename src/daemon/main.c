@@ -37,6 +37,9 @@
 #include <unistd.h>
 #include <locale.h>
 #include <sys/types.h>
+#include <pwd.h>
+#include <grp.h>
+
 #include <liboil/liboil.h>
 
 #ifdef HAVE_SYS_IOCTL_H
@@ -149,6 +152,104 @@ static void close_pipe(int p[2]) {
     p[0] = p[1] = -1;
 }
 
+#define set_env(key, value) putenv(pa_sprintf_malloc("%s=%s", (key), (value)))
+
+static int change_user(void) {
+    struct passwd *pw;
+    struct group * gr;
+    int r;
+    
+    if (!(pw = getpwnam(PA_SYSTEM_USER))) {
+        pa_log(__FILE__": Failed to find user '%s'.", PA_SYSTEM_USER);
+        return -1;
+    }
+
+    if (!(gr = getgrnam(PA_SYSTEM_GROUP))) {
+        pa_log(__FILE__": Failed to find group '%s'.", PA_SYSTEM_GROUP);
+        return -1;
+    }
+
+    pa_log_info(__FILE__": Found user '%s' (UID %lu) and group '%s' (GID %lu).",
+                PA_SYSTEM_USER, (unsigned long) pw->pw_uid,
+                PA_SYSTEM_GROUP, (unsigned long) gr->gr_gid);
+
+    if (pw->pw_gid != gr->gr_gid) {
+        pa_log(__FILE__": GID of user '%s' and of group '%s' don't match.", PA_SYSTEM_USER, PA_SYSTEM_GROUP);
+        return -1;
+    }
+
+    if (strcmp(pw->pw_dir, PA_SYSTEM_RUNTIME_PATH) != 0)
+        pa_log_warn(__FILE__": Warning: home directory of user '%s' is not '%s', ignoring.", PA_SYSTEM_USER, PA_SYSTEM_RUNTIME_PATH);
+
+    if (pa_make_secure_dir(PA_SYSTEM_RUNTIME_PATH, 0755, pw->pw_uid, gr->gr_gid) < 0) {
+        pa_log(__FILE__": Failed to create '%s': %s", PA_SYSTEM_RUNTIME_PATH, pa_cstrerror(errno));
+        return -1;
+    }
+    
+    if (initgroups(PA_SYSTEM_USER, gr->gr_gid) != 0) {
+        pa_log(__FILE__": Failed to change group list: %s", pa_cstrerror(errno));
+        return -1;
+    }
+
+#if defined(HAVE_SETRESGID)
+    r = setresgid(gr->gr_gid, gr->gr_gid, gr->gr_gid);
+#elif defined(HAVE_SETEGID)
+    if ((r = setgid(gr->gr_gid)) >= 0)
+        r = setegid(gr->gr_gid);
+#elif defined(HAVE_SETREGID)
+    r = setregid(gr->gr_gid, gr->gr_gid);
+#else
+#error "No API to drop priviliges"
+#endif
+
+    if (r < 0) {
+        pa_log(__FILE__": Failed to change GID: %s", pa_cstrerror(errno));
+        return -1;
+    }
+
+#if defined(HAVE_SETRESUID)
+    r = setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid);
+#elif defined(HAVE_SETEUID)
+    if ((r = setuid(pw->pw_uid)) >= 0)
+        r = seteuid(pw->pw_uid);
+#elif defined(HAVE_SETREUID)
+    r = setreuid(pw->pw_uid, pw->pw_uid);
+#else
+#error "No API to drop priviliges"
+#endif
+
+    if (r < 0) {
+        pa_log(__FILE__": Failed to change UID: %s", pa_cstrerror(errno));
+        return -1;
+    }
+
+    set_env("USER", PA_SYSTEM_USER);
+    set_env("LOGNAME", PA_SYSTEM_GROUP);
+    set_env("HOME", PA_SYSTEM_RUNTIME_PATH);
+
+    /* Relevant for pa_runtime_path() */
+    set_env("PULSE_RUNTIME_PATH", PA_SYSTEM_RUNTIME_PATH);
+
+    pa_log_info(__FILE__": Successfully dropped root privileges.");
+
+    return 0;
+}
+
+static int create_runtime_dir(void) {
+    char fn[PATH_MAX];
+    
+    pa_runtime_path(NULL, fn, sizeof(fn));
+    
+    if (pa_make_secure_dir(fn, 0700, getuid(), getgid()) < 0) {
+        pa_log(__FILE__": Failed to create '%s': %s", fn, pa_cstrerror(errno));
+        return -1;
+    }
+
+    /* Relevant for pa_runtime_path() later on */
+    set_env("PULSE_RUNTIME_PATH", fn);
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     pa_core *c;
     pa_strbuf *buf = NULL;
@@ -172,13 +273,14 @@ int main(int argc, char *argv[]) {
 
     setlocale(LC_ALL, "");
 
-    pa_limit_caps();
+    if (getuid() != 0)
+        pa_limit_caps();
 
 #ifdef HAVE_GETUID
     suid_root = getuid() != 0 && geteuid() == 0;
     
-    if (suid_root && (pa_own_uid_in_group("realtime", &gid) <= 0 || gid >= 1000)) {
-        pa_log_warn(__FILE__": WARNING: called SUID root, but not in group 'realtime'.");
+    if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0 || gid >= 1000)) {
+        pa_log_warn(__FILE__": WARNING: called SUID root, but not in group '"PA_REALTIME_GROUP"'.");
         pa_drop_root();
     }
 #else
@@ -220,7 +322,8 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority();
 
-    pa_drop_caps();
+    if (getuid() != 0)
+        pa_drop_caps();
 
     if (suid_root)
         pa_drop_root();
@@ -276,6 +379,14 @@ int main(int argc, char *argv[]) {
             
         default:
             assert(conf->cmd == PA_CMD_DAEMON);
+    }
+
+    if (getuid() == 0 && !conf->system_instance) {
+        pa_log(__FILE__": This program is not intended to be run as root (unless --system is specified).");
+        goto finish;
+    } else if (getuid() != 0 && conf->system_instance) {
+        pa_log(__FILE__": Root priviliges required.");
+        goto finish;
     }
 
     if (conf->daemonize) {
@@ -362,6 +473,13 @@ int main(int argc, char *argv[]) {
     }
 
     chdir("/");
+    umask(0022);
+    
+    if (conf->system_instance) {
+        if (change_user() < 0)
+            goto finish;
+    } else if (create_runtime_dir() < 0)
+        goto finish;
     
     if (conf->use_pid_file) {
         if (pa_pid_file_create() < 0) {
@@ -379,12 +497,13 @@ int main(int argc, char *argv[]) {
 #ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN);
 #endif
-    
+
     mainloop = pa_mainloop_new();
     assert(mainloop);
 
     c = pa_core_new(pa_mainloop_get_api(mainloop));
     assert(c);
+    c->is_system_instance = !!conf->system_instance;
 
     r = pa_signal_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);

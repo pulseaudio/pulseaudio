@@ -58,7 +58,8 @@ enum {
     ARG_RESAMPLE_METHOD,
     ARG_KILL,
     ARG_USE_PID_FILE,
-    ARG_CHECK
+    ARG_CHECK,
+    ARG_SYSTEM
 };
 
 /* Tabel for getopt_long() */
@@ -84,6 +85,7 @@ static struct option long_options[] = {
     {"kill",                        0, 0, ARG_KILL},
     {"use-pid-file",                2, 0, ARG_USE_PID_FILE},
     {"check",                       0, 0, ARG_CHECK},
+    {"system",                      2, 0, ARG_SYSTEM},
     {NULL, 0, 0, 0}
 };
 
@@ -105,6 +107,7 @@ void pa_cmdline_help(const char *argv0) {
            "      --check                           Check for a running daemon\n\n"
 
            "OPTIONS:\n"
+           "      --system[=BOOL]                   Run as system-wide instance\n"
            "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
            "      --fail[=BOOL]                     Quit when startup fails\n"
            "      --high-priority[=BOOL]            Try to set high process priority\n"
@@ -273,6 +276,13 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
             case ARG_RESAMPLE_METHOD:
                 if (pa_daemon_conf_set_resample_method(conf, optarg) < 0) {
                     pa_log(__FILE__": Invalid resample method '%s'.", optarg);
+                    goto fail;
+                }
+                break;
+
+            case ARG_SYSTEM:
+                if ((conf->system_instance = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(__FILE__": --system expects boolean argument");
                     goto fail;
                 }
                 break;

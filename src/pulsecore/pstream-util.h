@@ -26,8 +26,10 @@
 #include <pulsecore/pstream.h>
 #include <pulsecore/tagstruct.h>
 
+struct ucred;
+
 /* The tagstruct is freed!*/
-void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, int creds);
+void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const struct ucred *creds);
 
 #define pa_pstream_send_tagstruct(p, t) pa_pstream_send_tagstruct_with_creds((p), (t), 0)
 

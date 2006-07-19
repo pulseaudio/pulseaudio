@@ -46,7 +46,8 @@
 
 pa_core* pa_core_new(pa_mainloop_api *m) {
     pa_core* c;
-    c = pa_xmalloc(sizeof(pa_core));
+    
+    c = pa_xnew(pa_core, 1);
 
     c->mainloop = m;
     c->clients = pa_idxset_new(NULL, NULL);
@@ -87,6 +88,8 @@ pa_core* pa_core_new(pa_mainloop_api *m) {
     c->scache_idle_time = 20;
 
     c->resample_method = PA_RESAMPLER_SRC_SINC_FASTEST;
+
+    c->is_system_instance = 0;
 
     pa_property_init(c);
 

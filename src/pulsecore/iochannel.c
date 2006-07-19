@@ -263,12 +263,12 @@ int pa_iochannel_creds_enable(pa_iochannel *io) {
     return 0;
 }
 
-ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l) {
+ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l, const struct ucred *ucred) {
     ssize_t r;
     struct msghdr mh;
     struct iovec iov;
     uint8_t cmsg_data[CMSG_SPACE(sizeof(struct ucred))];
-    struct ucred *ucred;
+    struct ucred *u;
     struct cmsghdr *cmsg;
     
     assert(io);
@@ -286,10 +286,15 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     cmsg->cmsg_level = SOL_SOCKET;
     cmsg->cmsg_type = SCM_CREDENTIALS;
 
-    ucred = (struct ucred*) CMSG_DATA(cmsg);
-    ucred->pid = getpid();
-    ucred->uid = getuid();
-    ucred->gid = getgid();
+    u = (struct ucred*) CMSG_DATA(cmsg);
+
+    if (ucred)
+        *u = *ucred;
+    else {
+        u->pid = getpid();
+        u->uid = getuid();
+        u->gid = getgid();
+    }
     
     memset(&mh, 0, sizeof(mh));
     mh.msg_name = NULL;

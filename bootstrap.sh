@@ -57,7 +57,7 @@ else
     run_versioned automake "$VERSION" -a -c --foreign
 
     if test "x$NOCONFIGURE" = "x"; then
-        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --enable-force-preopen "$@" 
+        CFLAGS="-g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@" 
         make clean
     fi
 fi

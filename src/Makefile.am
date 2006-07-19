@@ -30,11 +30,11 @@ pulseconfdir=$(sysconfdir)/pulse
 #            Defines              #
 ###################################
 
-PULSEAUDIO_BINARY=$(bindir)/pulseaudio$(EXEEXT)
+PA_BINARY=$(bindir)/pulseaudio$(EXEEXT)
 if OS_IS_WIN32
-DEFAULT_CONFIG_DIR=%PULSE_ROOT%
+PA_DEFAULT_CONFIG_DIR=%PULSE_ROOT%
 else
-DEFAULT_CONFIG_DIR=$(pulseconfdir)
+PA_DEFAULT_CONFIG_DIR=$(pulseconfdir)
 endif
 
 ###################################
@@ -45,10 +45,10 @@ AM_CFLAGS = -I$(top_srcdir)/src
 AM_CFLAGS += $(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS
 AM_CFLAGS += $(LTDLINCL)
 AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
-AM_CFLAGS += -DDLSEARCHPATH=\"$(modlibexecdir)\"
-#AM_CFLAGS += -DDLSEARCHPATH=\"$(shell pwd)\"
-AM_CFLAGS += -DDEFAULT_CONFIG_DIR=\"$(DEFAULT_CONFIG_DIR)\"
-AM_CFLAGS += -DPULSEAUDIO_BINARY=\"$(PULSEAUDIO_BINARY)\"
+AM_CFLAGS += -DPA_DLSEARCHPATH=\"$(modlibexecdir)\"
+AM_CFLAGS += -DPA_DEFAULT_CONFIG_DIR=\"$(PA_DEFAULT_CONFIG_DIR)\"
+AM_CFLAGS += -DPA_BINARY=\"$(PA_BINARY)\"
+AM_CFLAGS += -DPA_SYSTEM_RUNTIME_PATH=\"$(PA_SYSTEM_RUNTIME_PATH)\"
 
 # This cool debug trap works on i386/gcc only
 AM_CFLAGS += '-DDEBUG_TRAP=__asm__("int $$3")'

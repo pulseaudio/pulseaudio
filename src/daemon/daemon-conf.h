@@ -46,7 +46,8 @@ typedef struct pa_daemon_conf {
         module_idle_time,
         scache_idle_time,
         auto_log_target,
-        use_pid_file;
+        use_pid_file,
+        system_instance;
     char *script_commands, *dl_search_path, *default_script_file;
     pa_log_target_t log_target;
     pa_log_level_t log_level;

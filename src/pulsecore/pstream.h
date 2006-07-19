@@ -31,9 +31,11 @@
 #include <pulsecore/iochannel.h>
 #include <pulsecore/memchunk.h>
 
+struct ucred;
+
 typedef struct pa_pstream pa_pstream;
 
-typedef void (*pa_pstream_packet_cb_t)(pa_pstream *p, pa_packet *packet, const void *creds, void *userdata);
+typedef void (*pa_pstream_packet_cb_t)(pa_pstream *p, pa_packet *packet, const struct ucred *creds, void *userdata);
 typedef void (*pa_pstream_memblock_cb_t)(pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata);
 typedef void (*pa_pstream_notify_cb_t)(pa_pstream *p, void *userdata);
 
@@ -41,7 +43,7 @@ pa_pstream* pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_memblock_sta
 void pa_pstream_unref(pa_pstream*p);
 pa_pstream* pa_pstream_ref(pa_pstream*p);
 
-void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, int with_creds);
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const struct ucred *creds);
 void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk);
 
 void pa_pstream_set_recieve_packet_callback(pa_pstream *p, pa_pstream_packet_cb_t cb, void *userdata);

@@ -39,21 +39,13 @@
 
 #include "client-conf.h"
 
-#ifndef DEFAULT_CONFIG_DIR
-# ifndef OS_IS_WIN32
-#  define DEFAULT_CONFIG_DIR "/etc/pulse"
-# else
-#  define DEFAULT_CONFIG_DIR "%PULSE_ROOT%"
-# endif
-#endif
-
 #ifndef OS_IS_WIN32
 # define PATH_SEP "/"
 #else
 # define PATH_SEP "\\"
 #endif
 
-#define DEFAULT_CLIENT_CONFIG_FILE DEFAULT_CONFIG_DIR PATH_SEP "client.conf"
+#define DEFAULT_CLIENT_CONFIG_FILE PA_DEFAULT_CONFIG_DIR PATH_SEP "client.conf"
 #define DEFAULT_CLIENT_CONFIG_FILE_USER ".pulse" PATH_SEP "client.conf"
 
 #define ENV_CLIENT_CONFIG_FILE "PULSE_CLIENTCONFIG"
@@ -71,15 +63,17 @@ static const pa_client_conf default_conf = {
     .default_server = NULL,
     .autospawn = 0,
     .cookie_file = NULL,
-    .cookie_valid = 0
+    .cookie_valid = 0,
+    .access_group = NULL
 };
 
 pa_client_conf *pa_client_conf_new(void) {
     pa_client_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
     
-    c->daemon_binary = pa_xstrdup(PULSEAUDIO_BINARY);
+    c->daemon_binary = pa_xstrdup(PA_BINARY);
     c->extra_arguments = pa_xstrdup("--log-target=syslog --exit-idle-time=5");
     c->cookie_file = pa_xstrdup(PA_NATIVE_COOKIE_FILE);
+    c->access_group = pa_xstrdup(PA_ACCESS_GROUP);
     
     return c;
 }
@@ -92,6 +86,7 @@ void pa_client_conf_free(pa_client_conf *c) {
     pa_xfree(c->default_source);
     pa_xfree(c->default_server);
     pa_xfree(c->cookie_file);
+    pa_xfree(c->access_group);
     pa_xfree(c);
 }
 int pa_client_conf_load(pa_client_conf *c, const char *filename) {
@@ -108,6 +103,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         { "default-server",         pa_config_parse_string,  NULL },
         { "autospawn",              pa_config_parse_bool,    NULL },
         { "cookie-file",            pa_config_parse_string,  NULL },
+        { "access-group",           pa_config_parse_string,  NULL },
         { NULL,                     NULL,                    NULL },
     };
 
@@ -118,6 +114,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
     table[4].data = &c->default_server;
     table[5].data = &c->autospawn;
     table[6].data = &c->cookie_file;
+    table[7].data = &c->access_group;
 
     f = filename ?
         fopen((fn = pa_xstrdup(filename)), "r") :

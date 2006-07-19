@@ -27,6 +27,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -69,6 +71,7 @@ struct item_info {
     pa_packet *packet;
 #ifdef SCM_CREDENTIALS
     int with_creds;
+    struct ucred creds;
 #endif
 };
 
@@ -112,9 +115,8 @@ struct pa_pstream {
     pa_memblock_stat *memblock_stat;
 
 #ifdef SCM_CREDENTIALS
-    int send_creds_now;
-    struct ucred ucred;
-    int creds_valid;
+    struct ucred read_creds, write_creds;
+    int read_creds_valid, send_creds_now;
 #endif
 };
 
@@ -216,7 +218,7 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_memblock_sta
 
 #ifdef SCM_CREDENTIALS
     p->send_creds_now = 0;
-    p->creds_valid = 0;
+    p->read_creds_valid = 0;
 #endif
     return p;
 }
@@ -256,7 +258,7 @@ static void pstream_free(pa_pstream *p) {
     pa_xfree(p);
 }
 
-void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, int with_creds) {
+void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const struct ucred *creds) {
     struct item_info *i;
     assert(p && packet && p->ref >= 1);
 
@@ -269,7 +271,8 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, int with_creds) {
     i->type = PA_PSTREAM_ITEM_PACKET;
     i->packet = pa_packet_ref(packet);
 #ifdef SCM_CREDENTIALS
-    i->with_creds = with_creds;
+    if ((i->with_creds = !!creds))
+        i->creds = *creds;
 #endif
 
     pa_queue_push(p->send_queue, i);
@@ -332,7 +335,9 @@ static void prepare_next_write_item(pa_pstream *p) {
     }
 
 #ifdef SCM_CREDENTIALS
-    p->send_creds_now = p->write.current->with_creds;
+    if ((p->send_creds_now = p->write.current->with_creds))
+        p->write_creds = p->write.current->creds;
+    
 #endif
 
 }
@@ -362,7 +367,7 @@ static int do_write(pa_pstream *p) {
 #ifdef SCM_CREDENTIALS
     if (p->send_creds_now) {
 
-        if ((r = pa_iochannel_write_with_creds(p->io, d, l)) < 0)
+        if ((r = pa_iochannel_write_with_creds(p->io, d, l, &p->write_creds)) < 0)
             return -1;
 
         p->send_creds_now = 0;
@@ -403,12 +408,12 @@ static int do_read(pa_pstream *p) {
 
 #ifdef SCM_CREDENTIALS
     {
-        int b;
+        int b = 0;
         
-        if ((r = pa_iochannel_read_with_creds(p->io, d, l, &p->ucred, &b)) <= 0)
+        if ((r = pa_iochannel_read_with_creds(p->io, d, l, &p->read_creds, &b)) <= 0)
             return -1;
 
-        p->creds_valid = p->creds_valid || b;
+        p->read_creds_valid = p->read_creds_valid || b;
     }
 #else
     if ((r = pa_iochannel_read(p->io, d, l)) <= 0)
@@ -491,7 +496,7 @@ static int do_read(pa_pstream *p) {
                 
                 if (p->recieve_packet_callback)
 #ifdef SCM_CREDENTIALS                    
-                    p->recieve_packet_callback(p, p->read.packet, p->creds_valid ? &p->ucred : NULL, p->recieve_packet_callback_userdata);
+                    p->recieve_packet_callback(p, p->read.packet, p->read_creds_valid ? &p->read_creds : NULL, p->recieve_packet_callback_userdata);
 #else
                     p->recieve_packet_callback(p, p->read.packet, NULL, p->recieve_packet_callback_userdata);
 #endif
@@ -502,7 +507,7 @@ static int do_read(pa_pstream *p) {
 
             p->read.index = 0;
 #ifdef SCM_CREDENTIALS
-            p->creds_valid = 0;
+            p->read_creds_valid = 0;
 #endif
         }
     }

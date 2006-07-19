@@ -28,6 +28,8 @@
 #include <pulsecore/tagstruct.h>
 #include <pulsecore/packet.h>
 
+struct ucred;
+
 typedef struct pa_pdispatch pa_pdispatch;
 
 typedef void (*pa_pdispatch_cb_t)(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
@@ -37,7 +39,7 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *m, const pa_pdispatch_cb_t*table
 void pa_pdispatch_unref(pa_pdispatch *pd);
 pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd);
 
-int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*p, const void*creds, void *userdata);
+int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*p, const struct ucred*creds, void *userdata);
 
 void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_cb_t callback, void *userdata, pa_free_cb_t free_cb);
 
@@ -48,6 +50,6 @@ void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, pa_pdispatch_drain_callba
 /* Remove all reply slots with the give userdata parameter */
 void pa_pdispatch_unregister_reply(pa_pdispatch *pd, void *userdata);
 
-const void * pa_pdispatch_creds(pa_pdispatch *pd);
+const struct ucred * pa_pdispatch_creds(pa_pdispatch *pd);
 
 #endif

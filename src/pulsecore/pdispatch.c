@@ -180,7 +180,7 @@ static void run_action(pa_pdispatch *pd, struct reply_info *r, uint32_t command,
     pa_pdispatch_unref(pd);
 }
 
-int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const void *creds, void *userdata) {
+int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const struct ucred *creds, void *userdata) {
     uint32_t tag, command;
     pa_tagstruct *ts = NULL;
     int ret = -1;
@@ -310,7 +310,7 @@ pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd) {
     return pd;
 }
 
-const void * pa_pdispatch_creds(pa_pdispatch *pd) {
+const struct ucred * pa_pdispatch_creds(pa_pdispatch *pd) {
     assert(pd);
     assert(pd->ref >= 1);
     

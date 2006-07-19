@@ -33,6 +33,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <limits.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -270,7 +272,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_context_fail(c, PA_ERR_CONNECTIONTERMINATED);
 }
 
-static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const void *creds, void *userdata) {
+static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const struct ucred *creds, void *userdata) {
     pa_context *c = userdata;
     
     assert(p);
@@ -420,7 +422,23 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
     pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
     pa_tagstruct_put_arbitrary(t, c->conf->cookie, sizeof(c->conf->cookie));
-    pa_pstream_send_tagstruct_with_creds(c->pstream, t, 1);
+
+#ifdef SCM_CREDENTIALS
+{
+    struct ucred ucred;
+
+    ucred.pid = getpid();
+    ucred.uid = getuid();
+                   
+    if ((ucred.gid = pa_get_gid_of_group(PA_ACCESS_GROUP)) == (gid_t) -1)
+        ucred.gid = getgid();
+    
+    pa_pstream_send_tagstruct_with_creds(c->pstream, t, &ucred);
+}
+#else
+    pa_pstream_send_tagstruct_with_creds(c->pstream, t, NULL);
+#endif
+    
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c, NULL);
 
     pa_context_set_state(c, PA_CONTEXT_AUTHORIZING);
@@ -680,7 +698,7 @@ int pa_context_connect(
             char lf[PATH_MAX];
 
             pa_runtime_path(AUTOSPAWN_LOCK, lf, sizeof(lf));
-            pa_make_secure_parent_dir(lf);
+            pa_make_secure_parent_dir(lf, 0700, getuid(), getgid());
             assert(c->autospawn_lock_fd <= 0);
             c->autospawn_lock_fd = pa_lock_lockfile(lf);
 

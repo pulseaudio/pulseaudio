@@ -71,6 +71,8 @@ struct pa_core {
     pa_time_event *scache_auto_unload_event;
 
     pa_resample_method_t resample_method;
+
+    int is_system_instance;
 };
 
 pa_core* pa_core_new(pa_mainloop_api *m);

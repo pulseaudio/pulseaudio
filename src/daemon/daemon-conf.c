@@ -39,23 +39,15 @@
 
 #include "daemon-conf.h"
 
-#ifndef DEFAULT_CONFIG_DIR
-# ifndef OS_IS_WIN32
-#  define DEFAULT_CONFIG_DIR "/etc/pulse"
-# else
-#  define DEFAULT_CONFIG_DIR "%PULSE_ROOT%"
-# endif
-#endif
-
 #ifndef OS_IS_WIN32
 # define PATH_SEP "/"
 #else
 # define PATH_SEP "\\"
 #endif
 
-#define DEFAULT_SCRIPT_FILE DEFAULT_CONFIG_DIR PATH_SEP "default.pa"
+#define DEFAULT_SCRIPT_FILE PA_DEFAULT_CONFIG_DIR PATH_SEP "default.pa"
 #define DEFAULT_SCRIPT_FILE_USER ".pulse" PATH_SEP "default.pa"
-#define DEFAULT_CONFIG_FILE DEFAULT_CONFIG_DIR PATH_SEP "daemon.conf"
+#define DEFAULT_CONFIG_FILE PA_DEFAULT_CONFIG_DIR PATH_SEP "daemon.conf"
 #define DEFAULT_CONFIG_FILE_USER ".pulse" PATH_SEP "daemon.conf"
 
 #define ENV_SCRIPT_FILE "PULSE_SCRIPT"
@@ -79,7 +71,8 @@ static const pa_daemon_conf default_conf = {
     .log_level = PA_LOG_NOTICE,
     .resample_method = PA_RESAMPLER_SRC_SINC_FASTEST,
     .config_file = NULL,
-    .use_pid_file = 1
+    .use_pid_file = 1,
+    .system_instance = 0
 };
 
 pa_daemon_conf* pa_daemon_conf_new(void) {
@@ -89,9 +82,7 @@ pa_daemon_conf* pa_daemon_conf_new(void) {
     if ((f = pa_open_config_file(DEFAULT_SCRIPT_FILE, DEFAULT_SCRIPT_FILE_USER, ENV_SCRIPT_FILE, &c->default_script_file, "r")))
         fclose(f);
 
-#ifdef DLSEARCHPATH
-    c->dl_search_path = pa_xstrdup(DLSEARCHPATH);
-#endif
+    c->dl_search_path = pa_xstrdup(PA_DLSEARCHPATH);
     return c;
 }
 
@@ -212,6 +203,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "verbose",                 parse_log_level,         NULL },
         { "resample-method",         parse_resample_method,   NULL },
         { "use-pid-file",            pa_config_parse_bool,    NULL },
+        { "system-instance",         pa_config_parse_bool,    NULL },
         { NULL,                      NULL,                    NULL },
     };
     
@@ -229,6 +221,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[11].data = c;
     table[12].data = c;
     table[13].data = &c->use_pid_file;
+    table[14].data = &c->system_instance;
     
     pa_xfree(c->config_file);
     c->config_file = NULL;
@@ -295,6 +288,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "log-level = %s\n", log_level_to_string[c->log_level]);
     pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
     pa_strbuf_printf(s, "use-pid-file = %i\n", c->use_pid_file);
+    pa_strbuf_printf(s, "system-instance = %i\n", !!c->system_instance);
     
     return pa_strbuf_tostring_free(s);
 }

@@ -46,6 +46,9 @@
 ## Unload autoloaded modules after being idle for this time 
 ; module-idle-time = 20
 
+## Unload autoloaded sample cache entries after being idle for this time 
+; scache-idle-time = 20
+
 ## The path were to look for dynamic shared objects (DSOs aka
 ## plugins).  You may specify more than one path seperated by
 ## colons. 
@@ -75,3 +78,6 @@
 ## process per user, you better disable this option since it
 ## effectively disables multiple instances.
 ; use-pid-file = 1
+
+## Run the daemon as system-wide instance, requires root priviliges
+; system-instance = 0
