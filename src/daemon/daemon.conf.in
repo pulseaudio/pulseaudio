@@ -52,11 +52,11 @@
 ## The path were to look for dynamic shared objects (DSOs aka
 ## plugins).  You may specify more than one path seperated by
 ## colons. 
-; dl-search-path = @DLSEARCHPATH@
+; dl-search-path = @PA_DLSEARCHPATH@
 
 ## The default script file to load. Specify an empty string for not
 ## loading a default script file. The 
-; default-script-file = @DEFAULT_CONFIG_FILE@
+; default-script-file = @PA_DEFAULT_CONFIG_FILE@
 
 ## The default log target. Use either "stderr", "syslog" or
 ## "auto". The latter is equivalent to "sylog" in case daemonize is
