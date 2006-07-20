@@ -81,3 +81,13 @@
 
 ## Run the daemon as system-wide instance, requires root priviliges
 ; system-instance = 0
+
+## Resource limits, see getrlimit(2) for more information
+; rlimit-as = -1
+; rlimit-core = -1
+; rlimit-data = -1
+; rlimit-fsize = -1
+; rlimit-nofile = 25
+; rlimit-stack = -1
+; rlimit-nproc = -1
+; rlimit-memlock = 25

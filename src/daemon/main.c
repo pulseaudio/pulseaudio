@@ -258,6 +258,37 @@ static int create_runtime_dir(void) {
     return 0;
 }
 
+#ifdef HAVE_SYS_RESOURCE_H
+
+static void set_one_rlimit(const pa_rlimit *r, int resource, const char *name) {
+    struct rlimit rl;
+    assert(r);
+
+    if (!r->is_set)
+        return;
+
+    rl.rlim_cur = rl.rlim_max = r->value;
+
+    if (setrlimit(resource, &rl) < 0)
+        pa_log_warn(__FILE__": setrlimit(%s, (%u, %u)) failed: %s", name, (unsigned) r->value, (unsigned) r->value, pa_cstrerror(errno));
+}
+
+static void set_all_rlimits(const pa_daemon_conf *conf) {
+    set_one_rlimit(&conf->rlimit_as, RLIMIT_AS, "RLIMIT_AS");
+    set_one_rlimit(&conf->rlimit_core, RLIMIT_CORE, "RLIMIT_CORE");
+    set_one_rlimit(&conf->rlimit_data, RLIMIT_DATA, "RLIMIT_DATA");
+    set_one_rlimit(&conf->rlimit_fsize, RLIMIT_FSIZE, "RLIMIT_FSIZE");
+    set_one_rlimit(&conf->rlimit_nofile, RLIMIT_NOFILE, "RLIMIT_NOFILE");
+    set_one_rlimit(&conf->rlimit_stack, RLIMIT_STACK, "RLIMIT_STACK");
+#ifdef RLIMIT_NPROC
+    set_one_rlimit(&conf->rlimit_nproc, RLIMIT_NPROC, "RLIMIT_NPROC");
+#endif
+#ifdef RLIMIT_MEMLOCK
+    set_one_rlimit(&conf->rlimit_memlock, RLIMIT_MEMLOCK, "RLIMIT_MEMLOCK");
+#endif
+}
+#endif
+
 int main(int argc, char *argv[]) {
     pa_core *c;
     pa_strbuf *buf = NULL;
@@ -335,7 +366,7 @@ int main(int argc, char *argv[]) {
 
     if (suid_root)
         pa_drop_root();
-    
+
     if (conf->dl_search_path)
         lt_dlsetsearchpath(conf->dl_search_path);
 
@@ -502,6 +533,10 @@ int main(int argc, char *argv[]) {
         valid_pid_file = 1;
     }
 
+#ifdef HAVE_SYS_RESOURCE_H
+    set_all_rlimits(conf);
+#endif
+    
 #ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN);
 #endif

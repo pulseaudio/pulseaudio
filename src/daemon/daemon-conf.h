@@ -24,6 +24,10 @@
 
 #include <pulsecore/log.h>
 
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+
 /* The actual command to execute */
 typedef enum pa_daemon_conf_cmd {
     PA_CMD_DAEMON,  /* the default */
@@ -34,6 +38,13 @@ typedef enum pa_daemon_conf_cmd {
     PA_CMD_KILL,
     PA_CMD_CHECK
 } pa_daemon_conf_cmd_t;
+
+#ifdef HAVE_SYS_RESOURCE_H
+typedef struct pa_rlimit {
+    rlim_t value;
+    int is_set;
+} pa_rlimit;
+#endif
 
 /* A structure containing configuration data for the PulseAudio server . */
 typedef struct pa_daemon_conf {
@@ -53,6 +64,17 @@ typedef struct pa_daemon_conf {
     pa_log_level_t log_level;
     int resample_method;
     char *config_file;
+    
+#ifdef HAVE_SYS_RESOURCE_H
+    pa_rlimit rlimit_as, rlimit_core, rlimit_data, rlimit_fsize, rlimit_nofile, rlimit_stack;
+#ifdef RLIMIT_NPROC
+    pa_rlimit rlimit_nproc;
+#endif
+#ifdef RLIMIT_MEMLOCK
+    pa_rlimit rlimit_memlock;
+#endif
+#endif
+    
 } pa_daemon_conf;
 
 /* Allocate a new structure and fill it with sane defaults */

@@ -73,6 +73,20 @@ static const pa_daemon_conf default_conf = {
     .config_file = NULL,
     .use_pid_file = 1,
     .system_instance = 0
+#ifdef HAVE_SYS_RESOURCE_H
+    , .rlimit_as = { .value = 0, .is_set = 0 },
+    .rlimit_core = { .value = 0, .is_set = 0 },
+    .rlimit_data = { .value = 0, .is_set = 0 },
+    .rlimit_fsize = { .value = 0, .is_set = 0 },
+    .rlimit_nofile = { .value = 25, .is_set = 1 },
+    .rlimit_stack = { .value = 0, .is_set = 0 }
+#ifdef RLIMIT_NPROC
+    , .rlimit_nproc = { .value = 0, .is_set = 0 }
+#endif
+#ifdef RLIMIT_MEMLOCK
+    , .rlimit_memlock = { .value = 0, .is_set = 1 }
+#endif
+#endif
 };
 
 pa_daemon_conf* pa_daemon_conf_new(void) {
@@ -184,6 +198,30 @@ static int parse_resample_method(const char *filename, unsigned line, const char
     return 0;
 }
 
+static int parse_rlimit(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+    pa_rlimit *r = data;
+    assert(filename);
+    assert(lvalue);
+    assert(rvalue);
+    assert(r);
+
+    if (rvalue[strspn(rvalue, "\t ")] == 0) {
+        /* Empty string */
+        r->is_set = 0;
+        r->value = 0;
+    } else {
+        int32_t k;
+        if (pa_atoi(rvalue, &k) < 0) {
+            pa_log(__FILE__": [%s:%u] Inavalid rlimit '%s'.", filename, line, rvalue);
+            return -1;
+        }
+        r->is_set = k >= 0;
+        r->value = k >= 0 ? (rlim_t) k : 0;
+    }
+
+    return 0;
+}
+
 int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     int r = -1;
     FILE *f = NULL;
@@ -204,6 +242,20 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "resample-method",         parse_resample_method,   NULL },
         { "use-pid-file",            pa_config_parse_bool,    NULL },
         { "system-instance",         pa_config_parse_bool,    NULL },
+#ifdef HAVE_SYS_RESOURCE_H
+        { "rlimit-as",               parse_rlimit,            NULL },
+        { "rlimit-core",             parse_rlimit,            NULL },
+        { "rlimit-data",             parse_rlimit,            NULL },
+        { "rlimit-fsize",            parse_rlimit,            NULL },
+        { "rlimit-nofile",           parse_rlimit,            NULL },
+        { "rlimit-stack",            parse_rlimit,            NULL },
+#ifdef RLIMIT_NPROC
+        { "rlimit-nproc",            parse_rlimit,            NULL },
+#endif
+#ifdef RLIMIT_MEMLOCK
+        { "rlimit-memlock",          parse_rlimit,            NULL },
+#endif
+#endif
         { NULL,                      NULL,                    NULL },
     };
     
@@ -222,6 +274,24 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[12].data = c;
     table[13].data = &c->use_pid_file;
     table[14].data = &c->system_instance;
+#ifdef HAVE_SYS_RESOURCE_H
+    table[15].data = &c->rlimit_as;
+    table[16].data = &c->rlimit_core;
+    table[17].data = &c->rlimit_data;
+    table[18].data = &c->rlimit_fsize;
+    table[19].data = &c->rlimit_nofile;
+    table[20].data = &c->rlimit_stack;
+#ifdef RLIMIT_NPROC
+    table[21].data = &c->rlimit_nproc;
+#endif
+#ifdef RLIMIT_MEMLOCK
+#ifndef RLIMIT_NPROC
+#error "Houston, we have a numbering problem!"
+#endif
+    table[22].data = &c->rlimit_memlock;
+#endif
+#endif
+    
     
     pa_xfree(c->config_file);
     c->config_file = NULL;
@@ -289,6 +359,20 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
     pa_strbuf_printf(s, "use-pid-file = %i\n", c->use_pid_file);
     pa_strbuf_printf(s, "system-instance = %i\n", !!c->system_instance);
+#ifdef HAVE_SYS_RESOURCE_H
+    pa_strbuf_printf(s, "rlimit-as = %li\n", c->rlimit_as.is_set ? (long int) c->rlimit_as.value : -1);
+    pa_strbuf_printf(s, "rlimit-core = %li\n", c->rlimit_core.is_set ? (long int) c->rlimit_core.value : -1);
+    pa_strbuf_printf(s, "rlimit-data = %li\n", c->rlimit_data.is_set ? (long int) c->rlimit_data.value : -1);
+    pa_strbuf_printf(s, "rlimit-fsize = %li\n", c->rlimit_fsize.is_set ? (long int) c->rlimit_fsize.value : -1);
+    pa_strbuf_printf(s, "rlimit-nofile = %li\n", c->rlimit_nofile.is_set ? (long int) c->rlimit_nofile.value : -1);
+    pa_strbuf_printf(s, "rlimit-stack = %li\n", c->rlimit_stack.is_set ? (long int) c->rlimit_stack.value : -1);
+#ifdef RLIMIT_NPROC
+    pa_strbuf_printf(s, "rlimit-nproc = %li\n", c->rlimit_nproc.is_set ? (long int) c->rlimit_nproc.value : -1);
+#endif
+#ifdef RLIMIT_MEMLOCK
+    pa_strbuf_printf(s, "rlimit-memlock = %li\n", c->rlimit_memlock.is_set ? (long int) c->rlimit_memlock.value : -1);
+#endif
+#endif
     
     return pa_strbuf_tostring_free(s);
 }
