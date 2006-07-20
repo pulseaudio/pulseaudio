@@ -513,7 +513,7 @@ pulsecoreinclude_HEADERS = \
 
 lib_LTLIBRARIES += libpulsecore.la
 
-# Some public stuff is used even in the core.
+# Some public stuff is used even in the core
 libpulsecore_la_SOURCES = \
 		pulse/channelmap.c pulse/channelmap.h \
 		pulse/error.c pulse/error.h \
@@ -733,7 +733,7 @@ libprotocol_http_la_LIBADD = $(AM_LIBADD) libsocket-server.la libioline.la libpu
 
 libprotocol_native_la_SOURCES = pulsecore/protocol-native.c pulsecore/protocol-native.h pulsecore/native-common.h
 libprotocol_native_la_LDFLAGS = -avoid-version
-libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libstrlist.la libpulsecore.la libiochannel.la
+libprotocol_native_la_LIBADD = $(AM_LIBADD) libsocket-server.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libstrlist.la libpulsecore.la libiochannel.la libipacl.la
 
 libtagstruct_la_SOURCES = pulsecore/tagstruct.c pulsecore/tagstruct.h
 libtagstruct_la_LDFLAGS = -avoid-version
@@ -741,7 +741,7 @@ libtagstruct_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(WINSOCK_LIBS)
 
 libprotocol_esound_la_SOURCES = pulsecore/protocol-esound.c pulsecore/protocol-esound.h pulsecore/esound.h
 libprotocol_esound_la_LDFLAGS = -avoid-version
-libprotocol_esound_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la libauthkey.la libpulsecore.la
+libprotocol_esound_la_LIBADD = $(AM_LIBADD) libsocket-server.la libiochannel.la libauthkey.la libpulsecore.la libipacl.la
 
 libauthkey_la_SOURCES = pulsecore/authkey.c pulsecore/authkey.h
 libauthkey_la_LDFLAGS = -avoid-version

@@ -57,6 +57,7 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/creds.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/ipacl.h>
 
 #include "protocol-native.h"
 
@@ -139,6 +140,7 @@ struct pa_protocol_native {
 #ifdef HAVE_CREDS
     char *auth_group;
 #endif
+    pa_ip_acl *auth_ip_acl;
 };
 
 static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk);
@@ -942,7 +944,7 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
         }
 #endif
 
-        if (memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) == 0)
+        if (!success && memcmp(c->protocol->auth_cookie, cookie, PA_NATIVE_COOKIE_LENGTH) == 0)
             success = 1;
 
         if (!success) {
@@ -2239,8 +2241,13 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
 
     c = pa_xmalloc(sizeof(struct connection));
 
-    c->authorized =!! p->public;
+    c->authorized = !!p->public;
 
+    if (!c->authorized && p->auth_ip_acl && pa_ip_acl_check(p->auth_ip_acl, pa_iochannel_get_recv_fd(io)) > 0) {
+        pa_log_info(__FILE__": Client authenticated by IP ACL.");
+        c->authorized = 1;
+    }
+    
     if (!c->authorized) {
         struct timeval tv;
         pa_gettimeofday(&tv);
@@ -2319,7 +2326,10 @@ static int load_key(pa_protocol_native*p, const char*fn) {
 static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_modargs *ma) {
     pa_protocol_native *p;
     int public = 0;
-    assert(c && ma);
+    const char *acl;
+    
+    assert(c);
+    assert(ma);
 
     if (pa_modargs_get_value_boolean(ma, "auth-anonymous", &public) < 0) {
         pa_log(__FILE__": auth-anonymous= expects a boolean argument.");
@@ -2331,7 +2341,8 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
     p->module = m;
     p->public = public;
     p->server = NULL;
-
+    p->auth_ip_acl = NULL;
+    
 #ifdef HAVE_CREDS
     {
         int a = 1;
@@ -2345,16 +2356,30 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
             pa_log_info(__FILE__": Allowing access to group '%s'.", p->auth_group);
     }
 #endif
-    
-    if (load_key(p, pa_modargs_get_value(ma, "cookie", NULL)) < 0) {
-        pa_xfree(p);
-        return NULL;
+
+
+    if ((acl = pa_modargs_get_value(ma, "auth-ip-acl", NULL))) {
+
+        if (!(p->auth_ip_acl = pa_ip_acl_new(acl))) {
+            pa_log(__FILE__": Failed to parse IP ACL '%s'", acl);
+            goto fail;
+        }
     }
+
+    if (load_key(p, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
+        goto fail;
 
     p->connections = pa_idxset_new(NULL, NULL);
     assert(p->connections);
 
     return p;
+
+fail:
+    pa_xfree(p->auth_group);
+    if (p->auth_ip_acl)
+        pa_ip_acl_free(p->auth_ip_acl);
+    pa_xfree(p);
+    return NULL;
 }
 
 pa_protocol_native* pa_protocol_native_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma) {
@@ -2405,6 +2430,9 @@ void pa_protocol_native_free(pa_protocol_native *p) {
     if (p->auth_cookie_in_property)
         pa_authkey_prop_unref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
 
+    if (p->auth_ip_acl)
+        pa_ip_acl_free(p->auth_ip_acl);
+    
 #ifdef HAVE_CREDS
     pa_xfree(p->auth_group);
 #endif

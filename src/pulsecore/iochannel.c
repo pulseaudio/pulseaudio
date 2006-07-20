@@ -408,3 +408,9 @@ pa_mainloop_api* pa_iochannel_get_mainloop_api(pa_iochannel *io) {
     
     return io->mainloop;
 }
+
+int pa_iochannel_get_recv_fd(pa_iochannel *io) {
+    assert(io);
+
+    return io->ifd;
+}

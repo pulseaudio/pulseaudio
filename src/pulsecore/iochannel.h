@@ -79,4 +79,6 @@ int pa_iochannel_socket_set_sndbuf(pa_iochannel*io, size_t l);
 
 pa_mainloop_api* pa_iochannel_get_mainloop_api(pa_iochannel *io);
 
+int pa_iochannel_get_recv_fd(pa_iochannel *io);
+
 #endif

@@ -129,8 +129,11 @@
   #endif
 
   #if defined(HAVE_CREDS) && !defined(USE_TCP_SOCKETS)
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group", "auth-group-enable="
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group", "auth-group-enable", 
     #define AUTH_USAGE "auth-group=<system group to allow access> auth-group-enable=<enable auth by UNIX group?> "
+  #elif defined(USE_TCP_SOCKETS)
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl", 
+    #define AUTH_USAGE "auth-ip-acl=<IP address ACL to allow access> "
   #else
     #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
     #define AUTH_USAGE
@@ -149,17 +152,27 @@
   #define TCPWRAP_SERVICE "esound"
   #define IPV4_PORT ESD_DEFAULT_PORT
   #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
-  #define MODULE_ARGUMENTS "sink", "source", "auth-anonymous", "cookie",
+  #define MODULE_ARGUMENTS_COMMON "sink", "source", "auth-anonymous", "cookie",
   #ifdef USE_TCP_SOCKETS
     #include "module-esound-protocol-tcp-symdef.h"
   #else
     #include "module-esound-protocol-unix-symdef.h"
   #endif
+
+  #if defined(USE_TCP_SOCKETS)
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl", 
+    #define AUTH_USAGE "auth-ip-acl=<IP address ACL to allow access> "
+  #else
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
+    #define AUTH_USAGE
+  #endif
+
   PA_MODULE_DESCRIPTION("ESOUND protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE("sink=<sink to connect to> "
                   "source=<source to connect to> "
                   "auth-anonymous=<don't verify cookies?> "
                   "cookie=<path to cookie file> "
+                  AUTH_USAGE
                   SOCKET_USAGE)
 #else
   #error "Broken build system" 

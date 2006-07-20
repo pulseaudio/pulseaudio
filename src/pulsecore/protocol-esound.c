@@ -49,6 +49,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/ipacl.h>
 
 #include "endianmacros.h"
 
@@ -116,6 +117,7 @@ struct pa_protocol_esound {
     char *sink_name, *source_name;
     unsigned n_player;
     uint8_t esd_key[ESD_KEY_LEN];
+    pa_ip_acl *auth_ip_acl;
 };
 
 typedef struct proto_handler {
@@ -1162,7 +1164,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
     
-    c->authorized = p->public;
+    c->authorized = !!p->public;
     c->swap_byte_order = 0;
     c->dead = 0;
 
@@ -1191,6 +1193,11 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
     c->original_name = NULL;
 
+    if (!c->authorized && p->auth_ip_acl && pa_ip_acl_check(p->auth_ip_acl, pa_iochannel_get_recv_fd(io)) > 0) {
+        pa_log_info(__FILE__": Client authenticated by IP ACL.");
+        c->authorized = 1;
+    }
+
     if (!c->authorized) {
         struct timeval tv;
         pa_gettimeofday(&tv);
@@ -1211,20 +1218,32 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *server, pa_module *m, pa_modargs *ma) {
     pa_protocol_esound *p;
     int public = 0;
-    assert(core && server && ma);
+    const char *acl;
+    
+    assert(core);
+    assert(server);
+    assert(m);
+    assert(ma);
 
     p = pa_xnew(pa_protocol_esound, 1);
 
     if (pa_modargs_get_value_boolean(ma, "auth-anonymous", &public) < 0) {
         pa_log(__FILE__": auth-anonymous= expects a boolean argument.");
-        return NULL;
+        goto fail;
     }
 
-    if (pa_authkey_load_auto(pa_modargs_get_value(ma, "cookie", DEFAULT_COOKIE_FILE), p->esd_key, sizeof(p->esd_key)) < 0) {
-        pa_xfree(p);
-        return NULL;
-    }
+    if (pa_authkey_load_auto(pa_modargs_get_value(ma, "cookie", DEFAULT_COOKIE_FILE), p->esd_key, sizeof(p->esd_key)) < 0)
+        goto fail;
 
+    if ((acl = pa_modargs_get_value(ma, "auth-ip-acl", NULL))) {
+
+        if (!(p->auth_ip_acl = pa_ip_acl_new(acl))) {
+            pa_log(__FILE__": Failed to parse IP ACL '%s'", acl);
+            goto fail;
+        }
+    } else
+        p->auth_ip_acl = NULL;
+    
     p->module = m;
     p->public = public;
     p->server = server;
@@ -1238,6 +1257,10 @@ pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *serve
     p->n_player = 0;
 
     return p;
+
+fail:
+    pa_xfree(p);
+    return NULL;
 }
 
 void pa_protocol_esound_free(pa_protocol_esound *p) {
@@ -1249,5 +1272,9 @@ void pa_protocol_esound_free(pa_protocol_esound *p) {
 
     pa_idxset_free(p->connections, NULL, NULL);
     pa_socket_server_unref(p->server);
+
+    if (p->auth_ip_acl)
+        pa_ip_acl_free(p->auth_ip_acl);
+
     pa_xfree(p);
 }
