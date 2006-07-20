@@ -405,7 +405,7 @@ libpulse_la_SOURCES += \
 		pulsecore/strlist.c pulsecore/strlist.h \
 		pulsecore/tagstruct.c pulsecore/tagstruct.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
-		pulsecore/winsock.h
+		pulsecore/winsock.h pulsecore/creds.h
 
 if OS_IS_WIN32
 libpulse_la_SOURCES += \
@@ -508,7 +508,8 @@ pulsecoreinclude_HEADERS = \
 		pulsecore/source.h \
 		pulsecore/source-output.h \
 		pulsecore/strbuf.h \
-		pulsecore/tokenizer.h
+		pulsecore/tokenizer.h \
+		pulsecore/creds.h
 
 lib_LTLIBRARIES += libpulsecore.la
 
