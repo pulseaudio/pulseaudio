@@ -37,13 +37,18 @@
 #include <unistd.h>
 #include <locale.h>
 #include <sys/types.h>
-#include <pwd.h>
-#include <grp.h>
 
 #include <liboil/liboil.h>
 
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
+
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
+#ifdef HAVE_GRP_H
+#include <grp.h>
 #endif
 
 #ifdef HAVE_LIBWRAP
@@ -155,6 +160,8 @@ static void close_pipe(int p[2]) {
 
 #define set_env(key, value) putenv(pa_sprintf_malloc("%s=%s", (key), (value)))
 
+#if defined(HAVE_PWD_H) && defined(HAVE_GRP_H)
+
 static int change_user(void) {
     struct passwd *pw;
     struct group * gr;
@@ -240,6 +247,15 @@ static int change_user(void) {
 
     return 0;
 }
+
+#else /* HAVE_PWD_H && HAVE_GRP_H */
+
+static int change_user(void) {
+    pa_log(__FILE__": System wide mode unsupported on this platform.");
+    return -1;
+}
+
+#endif /* HAVE_PWD_H && HAVE_GRP_H */
 
 static int create_runtime_dir(void) {
     char fn[PATH_MAX];
