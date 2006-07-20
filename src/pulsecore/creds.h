@@ -24,6 +24,16 @@
 
 #include <sys/types.h>
 
+/* config.h must be included before this file */
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
+
 typedef struct pa_creds pa_creds;
 
 #if defined(SCM_CREDENTIALS)
