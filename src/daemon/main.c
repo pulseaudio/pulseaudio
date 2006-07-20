@@ -437,8 +437,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (real_root && !conf->system_instance) {
-        pa_log(__FILE__": This program is not intended to be run as root (unless --system is specified).");
-        goto finish;
+        pa_log_warning(__FILE__": This program is not intended to be run as root (unless --system is specified).");
     } else if (!real_root && conf->system_instance) {
         pa_log(__FILE__": Root priviliges required.");
         goto finish;
