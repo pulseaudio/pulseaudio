@@ -194,7 +194,8 @@ noinst_PROGRAMS = \
 		channelmap-test \
 		thread-mainloop-test \
 		utf8-test \
-		get-binary-name-test
+		get-binary-name-test \
+		ipacl-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -226,6 +227,11 @@ get_binary_name_test_SOURCES = tests/get-binary-name-test.c
 get_binary_name_test_CFLAGS = $(AM_CFLAGS)
 get_binary_name_test_LDADD = $(AM_LDADD) libpulse.la
 get_binary_name_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+ipacl_test_SOURCES = tests/ipacl-test.c pulsecore/ipacl.c pulsecore/ipacl.h
+ipacl_test_CFLAGS = $(AM_CFLAGS)
+ipacl_test_LDADD = $(AM_LDADD) libpulsecore.la
+ipacl_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
@@ -586,6 +592,7 @@ pulsecoreinclude_HEADERS += \
 		pulsecore/socket-util.h \
 		pulsecore/iochannel.h \
 		pulsecore/socket-server.h \
+		pulsecore/ipacl.h \
 		pulsecore/socket-client.h \
 		pulsecore/parseaddr.h \
 		pulsecore/packet.h \
@@ -615,6 +622,7 @@ modlibexec_LTLIBRARIES = \
 		libsocket-util.la \
 		libiochannel.la \
 		libsocket-server.la \
+		libipacl.la \
 		libparseaddr.la \
 		libsocket-client.la \
 		libpacket.la \
@@ -667,6 +675,10 @@ libsocket_server_la_SOURCES = \
 		pulsecore/socket-server.c pulsecore/socket-server.h
 libsocket_server_la_LDFLAGS = -avoid-version
 libsocket_server_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-util.la $(LIBWRAP_LIBS) $(WINSOCK_LIBS)
+
+libipacl_la_SOURCES = pulsecore/ipacl.h pulsecore/ipacl.c
+libipacl_la_LDFLAGS = -avoid-version
+libipacl_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(WINSOCK_LIBS)
 
 libsocket_client_la_SOURCES = pulsecore/socket-client.c pulsecore/socket-client.h
 libsocket_client_la_LDFLAGS = -avoid-version
