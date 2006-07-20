@@ -1,15 +1,32 @@
 /* $Id$ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <assert.h>
 #include <string.h>
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_NETINET_IN_SYSTM_H
+#include <netinet/in_systm.h>
+#endif
+#ifdef HAVE_NETINET_IP_H
+#include <netinet/ip.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+
+#include "../pulsecore/winsock.h"
 
 #include <pulsecore/ipacl.h>
 

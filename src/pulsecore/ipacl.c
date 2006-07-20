@@ -24,18 +24,36 @@
 #endif
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
 #include <sys/types.h>
-#include <arpa/inet.h>
 #include <string.h>
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_NETINET_IN_SYSTM_H
+#include <netinet/in_systm.h>
+#endif
+#ifdef HAVE_NETINET_IP_H
+#include <netinet/ip.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+
+#include "winsock.h"
+
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
-#include <pulse/xmalloc.h>
+
+#ifndef HAVE_INET_PTON
+#include "inet_pton.h"
+#endif
 
 #include "ipacl.h"
 

@@ -228,7 +228,9 @@ get_binary_name_test_CFLAGS = $(AM_CFLAGS)
 get_binary_name_test_LDADD = $(AM_LDADD) libpulse.la
 get_binary_name_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-ipacl_test_SOURCES = tests/ipacl-test.c pulsecore/ipacl.c pulsecore/ipacl.h
+ipacl_test_SOURCES = tests/ipacl-test.c \
+		pulsecore/ipacl.c pulsecore/ipacl.h \
+		pulsecore/inet_pton.c pulsecore/inet_pton.h
 ipacl_test_CFLAGS = $(AM_CFLAGS)
 ipacl_test_LDADD = $(AM_LDADD) libpulsecore.la
 ipacl_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
@@ -677,7 +679,8 @@ libsocket_server_la_SOURCES = \
 libsocket_server_la_LDFLAGS = -avoid-version
 libsocket_server_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-util.la $(LIBWRAP_LIBS) $(WINSOCK_LIBS)
 
-libipacl_la_SOURCES = pulsecore/ipacl.h pulsecore/ipacl.c
+libipacl_la_SOURCES = pulsecore/ipacl.h pulsecore/ipacl.c \
+		pulsecore/inet_pton.c pulsecore/inet_pton.h
 libipacl_la_LDFLAGS = -avoid-version
 libipacl_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(WINSOCK_LIBS)
 
