@@ -220,7 +220,7 @@ static int parse_rlimit(const char *filename, unsigned line, const char *lvalue,
         r->value = k >= 0 ? (rlim_t) k : 0;
     }
 #else
-    pa_log_warning(__FILE__": [%s:%u] rlimit not supported on this platform.", filename, line);
+    pa_log_warn(__FILE__": [%s:%u] rlimit not supported on this platform.", filename, line);
 #endif
 
     return 0;
