@@ -2375,7 +2375,9 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
     return p;
 
 fail:
+#ifdef HAVE_CREDS
     pa_xfree(p->auth_group);
+#endif
     if (p->auth_ip_acl)
         pa_ip_acl_free(p->auth_ip_acl);
     pa_xfree(p);
