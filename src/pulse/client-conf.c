@@ -64,7 +64,6 @@ static const pa_client_conf default_conf = {
     .autospawn = 0,
     .cookie_file = NULL,
     .cookie_valid = 0,
-    .access_group = NULL
 };
 
 pa_client_conf *pa_client_conf_new(void) {
@@ -73,7 +72,6 @@ pa_client_conf *pa_client_conf_new(void) {
     c->daemon_binary = pa_xstrdup(PA_BINARY);
     c->extra_arguments = pa_xstrdup("--log-target=syslog --exit-idle-time=5");
     c->cookie_file = pa_xstrdup(PA_NATIVE_COOKIE_FILE);
-    c->access_group = pa_xstrdup(PA_ACCESS_GROUP);
     
     return c;
 }
@@ -86,7 +84,6 @@ void pa_client_conf_free(pa_client_conf *c) {
     pa_xfree(c->default_source);
     pa_xfree(c->default_server);
     pa_xfree(c->cookie_file);
-    pa_xfree(c->access_group);
     pa_xfree(c);
 }
 int pa_client_conf_load(pa_client_conf *c, const char *filename) {
@@ -103,7 +100,6 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         { "default-server",         pa_config_parse_string,  NULL },
         { "autospawn",              pa_config_parse_bool,    NULL },
         { "cookie-file",            pa_config_parse_string,  NULL },
-        { "access-group",           pa_config_parse_string,  NULL },
         { NULL,                     NULL,                    NULL },
     };
 
@@ -114,7 +110,6 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
     table[4].data = &c->default_server;
     table[5].data = &c->autospawn;
     table[6].data = &c->cookie_file;
-    table[7].data = &c->access_group;
 
     f = filename ?
         fopen((fn = pa_xstrdup(filename)), "r") :

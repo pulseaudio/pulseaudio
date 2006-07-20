@@ -27,7 +27,7 @@
 /* A structure containing configuration data for PulseAudio clients. */
 
 typedef struct pa_client_conf {
-    char *daemon_binary, *extra_arguments, *default_sink, *default_source, *default_server, *cookie_file, *access_group;
+    char *daemon_binary, *extra_arguments, *default_sink, *default_source, *default_server, *cookie_file;
     int autospawn;
     uint8_t cookie[PA_NATIVE_COOKIE_LENGTH];
     int cookie_valid; /* non-zero, when cookie is valid */

@@ -428,14 +428,9 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
 #ifdef HAVE_CREDS
 {
     pa_creds ucred;
-    gid_t g;
 
     ucred.uid = getuid();
     ucred.gid = getgid();
-                   
-    if ((g = pa_get_gid_of_group(c->conf->access_group)) != (gid_t) -1) 
-        if (pa_check_in_group(g) > 0)
-            ucred.gid = g;
     
     pa_pstream_send_tagstruct_with_creds(c->pstream, t, &ucred);
 }
