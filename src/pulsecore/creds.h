@@ -23,8 +23,6 @@
 ***/
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 
 typedef struct pa_creds pa_creds;
 
