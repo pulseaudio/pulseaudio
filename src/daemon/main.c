@@ -328,8 +328,7 @@ int main(int argc, char *argv[]) {
 
     setlocale(LC_ALL, "");
 
-    if (getuid() != 0)
-        pa_limit_caps();
+    pa_limit_caps();
 
 #ifdef HAVE_GETUID
     suid_root = getuid() != 0 && geteuid() == 0;
@@ -377,8 +376,7 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority();
 
-    if (getuid() != 0)
-        pa_drop_caps();
+    pa_drop_caps();
 
     if (suid_root)
         pa_drop_root();

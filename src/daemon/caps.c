@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/types.h>
 
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
@@ -80,6 +81,10 @@ int pa_limit_caps(void) {
     cap_t caps;
     cap_value_t nice_cap = CAP_SYS_NICE;
 
+    /* Only drop caps when called SUID */
+    if (getuid() != 0)
+        return 0;
+
     caps = cap_init();
     assert(caps);
 
@@ -105,6 +110,10 @@ fail:
 int pa_drop_caps(void) {
     cap_t caps;
     int r = -1;
+
+    /* Only drop caps when called SUID */
+    if (getuid() != 0)
+        return 0;
 
     caps = cap_init();
     assert(caps);
