@@ -707,7 +707,7 @@ int pa_context_connect(
             char lf[PATH_MAX];
 
             pa_runtime_path(AUTOSPAWN_LOCK, lf, sizeof(lf));
-            pa_make_secure_parent_dir(lf, 0700, getuid(), getgid());
+            pa_make_secure_parent_dir(lf, 0700, (uid_t)-1, (gid_t)-1);
             assert(c->autospawn_lock_fd <= 0);
             c->autospawn_lock_fd = pa_lock_lockfile(lf);
 

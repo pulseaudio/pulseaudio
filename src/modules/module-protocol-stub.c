@@ -254,7 +254,7 @@ int pa__init(pa_core *c, pa_module*m) {
     /* This socket doesn't reside in our own runtime dir but in
      * /tmp/.esd/, hence we have to create the dir first */
     
-    if (pa_make_secure_parent_dir(u->socket_path, c->is_system_instance ? 0755 : 0700, getuid(), getgid()) < 0) {
+    if (pa_make_secure_parent_dir(u->socket_path, c->is_system_instance ? 0755 : 0700, (uid_t)-1, (gid_t)-1) < 0) {
         pa_log(__FILE__": Failed to create socket directory: %s\n", pa_cstrerror(errno));
         goto fail;
     }

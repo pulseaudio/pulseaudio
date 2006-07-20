@@ -249,7 +249,7 @@ static int create_runtime_dir(void) {
      * per-user mode. We create the runtime directory somewhere in
      * /tmp/ with the current UID/GID */
     
-    if (pa_make_secure_dir(fn, 0700, getuid(), getgid()) < 0) {
+    if (pa_make_secure_dir(fn, 0700, (uid_t)-1, (gid_t)-1) < 0) {
         pa_log(__FILE__": Failed to create '%s': %s", fn, pa_cstrerror(errno));
         return -1;
     }
