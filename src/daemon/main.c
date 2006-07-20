@@ -55,6 +55,7 @@
 
 #include <pulse/mainloop.h>
 #include <pulse/mainloop-signal.h>
+#include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
