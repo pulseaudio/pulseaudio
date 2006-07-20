@@ -33,8 +33,6 @@
 #include <errno.h>
 #include <signal.h>
 #include <limits.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -42,6 +40,9 @@
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
 #endif
 #ifdef HAVE_NETDB_H
 #include <netdb.h>

@@ -27,9 +27,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
