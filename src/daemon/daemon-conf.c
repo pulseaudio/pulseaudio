@@ -199,7 +199,8 @@ static int parse_resample_method(const char *filename, unsigned line, const char
 }
 
 static int parse_rlimit(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
-    pa_rlimit *r = data;
+#ifdef HAVE_SYS_RESOURCE_H
+    struct pa_rlimit *r = data;
     assert(filename);
     assert(lvalue);
     assert(rvalue);
@@ -218,6 +219,9 @@ static int parse_rlimit(const char *filename, unsigned line, const char *lvalue,
         r->is_set = k >= 0;
         r->value = k >= 0 ? (rlim_t) k : 0;
     }
+#else
+    pa_log_warning(__FILE__": [%s:%u] rlimit not supported on this platform.", filename, line);
+#endif
 
     return 0;
 }
