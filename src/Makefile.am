@@ -1181,17 +1181,17 @@ CLEANFILES = esdcompat client.conf default.pa daemon.conf
 esdcompat: daemon/esdcompat.in Makefile
 	sed -e 's,@PACKAGE_VERSION\@,$(PACKAGE_VERSION),g' \
 		-e 's,@PACKAGE_NAME\@,$(PACKAGE_NAME),g' \
-		-e 's,@PA_BINARY\@,$(PULSEAUDIO_BINARY),g' < $< > $@
+		-e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
 
 client.conf: pulse/client.conf.in Makefile
-	sed -e 's,@PA_BINARY\@,$(PULSEAUDIO_BINARY),g' < $< > $@
+	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
 
 if OS_IS_WIN32    
 default.pa: daemon/default.pa.win32
 	cp $< $@
 else
 default.pa: daemon/default.pa.in Makefile
-	sed -e 's,@PA_BINARY\@,$(PULSEAUDIO_BINARY),g' < $< > $@
+	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
 endif
 
 daemon.conf: daemon/daemon.conf.in Makefile
