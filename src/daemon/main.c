@@ -314,7 +314,7 @@ int main(int argc, char *argv[]) {
     char *s; 
     int r, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
-    int suid_root;
+    int suid_root, real_root;
     int valid_pid_file = 0;
 
 #ifdef HAVE_GETUID
@@ -331,13 +331,15 @@ int main(int argc, char *argv[]) {
     pa_limit_caps();
 
 #ifdef HAVE_GETUID
-    suid_root = getuid() != 0 && geteuid() == 0;
+    real_root = getuid() == 0;
+    suid_root = !real_root && geteuid() == 0;
     
     if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0 || gid >= 1000)) {
         pa_log_warn(__FILE__": WARNING: called SUID root, but not in group '"PA_REALTIME_GROUP"'.");
         pa_drop_root();
     }
 #else
+    real_root = 0;
     suid_root = 0;
 #endif
     
@@ -434,10 +436,10 @@ int main(int argc, char *argv[]) {
             assert(conf->cmd == PA_CMD_DAEMON);
     }
 
-    if (getuid() == 0 && !conf->system_instance) {
+    if (real_root && !conf->system_instance) {
         pa_log(__FILE__": This program is not intended to be run as root (unless --system is specified).");
         goto finish;
-    } else if (getuid() != 0 && conf->system_instance) {
+    } else if (!real_root && conf->system_instance) {
         pa_log(__FILE__": Root priviliges required.");
         goto finish;
     }
