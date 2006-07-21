@@ -1,9 +1,9 @@
 prefix=@prefix@
 exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
+libdir=@libdir@
 includedir=${prefix}/include
 
-Name: libpuls-browse
+Name: libpulse-browse
 Description: PulseAudio Network Browsing API
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lpulse-browse
