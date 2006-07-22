@@ -312,7 +312,7 @@ static void glib_time_restart(pa_time_event*e, const struct timeval *tv) {
     assert(e);
     assert(!e->dead);
 
-    if (e->enabled && !!tv)
+    if (e->enabled && !tv)
         e->mainloop->n_enabled_time_events--;
     else if (!e->enabled && tv)
         e->mainloop->n_enabled_time_events++;
@@ -476,13 +476,11 @@ static gboolean prepare_func(GSource *source, gint *timeout) {
         tvnow.tv_sec = now.tv_sec;
         tvnow.tv_usec = now.tv_usec;
 
-        usec = pa_timeval_diff(&t->timeval, &tvnow);
-
-        if (usec <= 0) {
+        if (pa_timeval_cmp(&t->timeval, &tvnow) <= 0) {
             *timeout = 0;
             return TRUE;
-        }
-
+        } 
+        usec = pa_timeval_diff(&t->timeval, &tvnow);
         *timeout = (gint) (usec / 1000);
     } else
         *timeout = -1;
@@ -554,7 +552,7 @@ static gboolean dispatch_func(GSource *source, PA_GCC_UNUSED GSourceFunc callbac
         tvnow.tv_sec = now.tv_sec;
         tvnow.tv_usec = now.tv_usec;
 
-        if (pa_timeval_cmp(&t->timeval, &tvnow) < 0) {
+        if (pa_timeval_cmp(&t->timeval, &tvnow) <= 0) {
             t->callback(&g->api, t, &t->timeval, t->userdata);
             return TRUE;
         }
