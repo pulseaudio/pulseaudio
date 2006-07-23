@@ -1209,4 +1209,7 @@ install-exec-hook:
 	rm -f $(DESTDIR)$(libdir)/libpulsedsp.a
 	rm -f $(DESTDIR)$(libdir)/libpulsedsp.la
 
+massif: pulseaudio
+	libtool --mode=execute valgrind --tool=massif --depth=6  --alloc-fn=pa_xmalloc --alloc-fn=pa_xmalloc0 --alloc-fn=pa_xrealloc --alloc-fn=dbus_realloc --alloc-fn=pa_xnew0_internal --alloc-fn=pa_xnew_internal ./pulseaudio
+
 .PHONY: utils/padsp
