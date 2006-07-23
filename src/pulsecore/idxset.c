@@ -78,7 +78,7 @@ pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*compare_fu
     s = pa_xnew(pa_idxset, 1);
     s->hash_func = hash_func ? hash_func : pa_idxset_trivial_hash_func;
     s->compare_func = compare_func ? compare_func : pa_idxset_trivial_compare_func;
-    s->hash_table_size = 1023;
+    s->hash_table_size = 127;
     s->hash_table = pa_xmalloc0(sizeof(idxset_entry*)*s->hash_table_size);
     s->array = NULL;
     s->array_size = 0;

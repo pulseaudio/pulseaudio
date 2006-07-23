@@ -34,7 +34,7 @@
 
 #include "hashmap.h"
 
-#define BUCKETS 1023
+#define BUCKETS 127
 
 struct hashmap_entry {
     struct hashmap_entry *next, *previous, *bucket_next, *bucket_previous;
