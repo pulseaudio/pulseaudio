@@ -151,13 +151,15 @@ static idxset_entry** array_index(pa_idxset*s, uint32_t idx) {
     if (idx < s->start_index)
         return NULL;
     
-    return s->array + (idx - s->start_index);
+    return s->array + idx - s->start_index;
 }
 
 int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx) {
     unsigned h;
     idxset_entry *e, **a;
-    assert(s && p);
+    
+    assert(s);
+    assert(p);
 
     assert(s->hash_func);
     h = s->hash_func(p) % s->hash_table_size;
@@ -341,7 +343,8 @@ void* pa_idxset_first(pa_idxset *s, uint32_t *idx) {
 
 void *pa_idxset_next(pa_idxset *s, uint32_t *idx) {
     idxset_entry **a, *e = NULL;
-    assert(s && idx);
+    assert(s);
+    assert(idx);
 
     if ((a = array_index(s, *idx)) && *a)
         e = (*a)->iterate_next;
@@ -354,7 +357,6 @@ void *pa_idxset_next(pa_idxset *s, uint32_t *idx) {
         return NULL;
     }
 }
-
 
 int pa_idxset_foreach(pa_idxset*s, int (*func)(void *p, uint32_t idx, int *del, void*userdata), void *userdata) {
     idxset_entry *e;
