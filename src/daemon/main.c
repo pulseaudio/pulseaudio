@@ -588,10 +588,12 @@ int main(int argc, char *argv[]) {
         c->running_as_daemon = 1;
 
     oil_init();
-    
-    r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
-    assert(r == 0);
-    
+
+    if (!conf->no_cpu_limit) {
+        r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
+        assert(r == 0);
+    }
+        
     buf = pa_strbuf_new();
     if (conf->default_script_file)
         r = pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail);
@@ -645,7 +647,9 @@ int main(int argc, char *argv[]) {
 
     pa_core_free(c);
 
-    pa_cpu_limit_done();
+    if (!conf->no_cpu_limit)
+        pa_cpu_limit_done();
+    
     pa_signal_done();
     pa_mainloop_free(mainloop);
     

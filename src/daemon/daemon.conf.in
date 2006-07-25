@@ -79,6 +79,11 @@
 ## effectively disables multiple instances.
 ; use-pid-file = 1
 
+## Do not install the CPU load limit, even on platforms where it is
+## supported. This option is useful when debugging/profiling 
+## PulseAudio to disable disturbing SIGXCPU signals.
+; no-cpu-limit = 0
+
 ## Run the daemon as system-wide instance, requires root priviliges
 ; system-instance = 0
 

@@ -59,6 +59,7 @@ enum {
     ARG_KILL,
     ARG_USE_PID_FILE,
     ARG_CHECK,
+    ARG_NO_CPU_LIMIT,
     ARG_SYSTEM
 };
 
@@ -86,6 +87,7 @@ static struct option long_options[] = {
     {"use-pid-file",                2, 0, ARG_USE_PID_FILE},
     {"check",                       0, 0, ARG_CHECK},
     {"system",                      2, 0, ARG_SYSTEM},
+    {"no-cpu-limit",                2, 0, ARG_NO_CPU_LIMIT},
     {NULL, 0, 0, 0}
 };
 
@@ -128,7 +130,9 @@ void pa_cmdline_help(const char *argv0) {
            "                                        (one of src-sinc-medium-quality,\n"
            "                                        src-sinc-best-quality,src-sinc-fastest\n"
            "                                        src-zero-order-hold,src-linear,trivial)\n"
-           "      --use-pid-file[=BOOL]             Create a PID file\n\n"
+           "      --use-pid-file[=BOOL]             Create a PID file\n"
+           "      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+           "                                        platforms that support it.\n\n"
 
            "STARTUP SCRIPT:\n"
            "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with\n"
@@ -286,6 +290,14 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                     goto fail;
                 }
                 break;
+
+            case ARG_NO_CPU_LIMIT:
+                if ((conf->no_cpu_limit = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(__FILE__": --no-cpu-limit expects boolean argument");
+                    goto fail;
+                }
+                break;
+                
                 
             default:
                 goto fail;
