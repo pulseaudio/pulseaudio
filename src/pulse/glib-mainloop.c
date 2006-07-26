@@ -573,7 +573,10 @@ static gboolean dispatch_func(GSource *source, PA_GCC_UNUSED GSourceFunc callbac
         tvnow.tv_usec = now.tv_usec;
 
         if (pa_timeval_cmp(&t->timeval, &tvnow) <= 0) {
-            t->enabled = 0;
+
+            /* Disable time event */
+            glib_time_restart(t, NULL);
+            
             t->callback(&g->api, t, &t->timeval, t->userdata);
             return TRUE;
         }
@@ -634,6 +637,8 @@ pa_glib_mainloop *pa_glib_mainloop_new(GMainContext *c) {
 
     g->n_enabled_defer_events = g->n_enabled_time_events = 0;
     g->io_events_please_scan = g->time_events_please_scan = g->defer_events_please_scan = 0;
+
+    g->cached_next_time_event = NULL;
     
     g_source_attach(&g->source, g->context);
     g_source_set_can_recurse(&g->source, FALSE);
