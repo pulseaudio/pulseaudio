@@ -25,6 +25,7 @@
 pulseincludedir=$(includedir)/pulse
 pulsecoreincludedir=$(includedir)/pulsecore
 pulseconfdir=$(sysconfdir)/pulse
+pulselibexecdir=$(libexecdir)/pulse
 
 ###################################
 #            Defines              #
@@ -883,6 +884,14 @@ modlibexec_LTLIBRARIES += \
 		module-jack-source.la
 endif
 
+if HAVE_GCONF
+modlibexec_LTLIBRARIES += \
+		module-gconf.la
+
+pulselibexec_PROGRAMS = \
+		gconf-helper
+endif
+
 if OS_IS_WIN32
 modlibexec_LTLIBRARIES += \
 		module-waveout.la
@@ -930,8 +939,8 @@ SYMDEF_FILES = \
 		modules/rtp/module-rtp-recv-symdef.h \
 		modules/module-jack-sink-symdef.h \
 		modules/module-jack-source-symdef.h \
-		modules/module-volume-restore-symdef.h
-
+		modules/module-volume-restore-symdef.h \
+		modules/gconf/module-gconf-symdef.h
 
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
@@ -1170,6 +1179,17 @@ module_jack_source_la_SOURCES = modules/module-jack-source.c
 module_jack_source_la_LDFLAGS = -module -avoid-version
 module_jack_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
 module_jack_source_la_CFLAGS = $(AM_LIBADD) $(JACK_CFLAGS)
+
+# GConf support
+module_gconf_la_SOURCES = modules/gconf/module-gconf.c
+module_gconf_la_LDFLAGS = -module -avoid-version
+module_gconf_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_gconf_la_CFLAGS = $(AM_CFLAGS) -DPA_GCONF_HELPER=\"$(pulselibexecdir)/gconf-helper\"
+
+gconf_helper_SOURCES = modules/gconf/gconf-helper.c
+gconf_helper_LDADD = $(AM_LDADD) $(GCONF_LIBS)
+gconf_helper_CFLAGS = $(AM_CFLAGS) $(GCONF_CFLAGS)
+gconf_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #        Some minor stuff         #
