@@ -453,6 +453,37 @@ AC_SUBST(GLIB20_LIBS)
 AC_SUBST(HAVE_GLIB20)
 AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 
+#### GConf support (optional) ####
+
+AC_ARG_ENABLE([gconf], 
+    AC_HELP_STRING([--disable-gconf], [Disable optional GConf support]), 
+        [
+            case "${enableval}" in
+                yes) gconf=yes ;;
+                no) gconf=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-gconf) ;;
+            esac
+        ],
+        [glib=auto])
+
+if test "x${gconf}" != xno ; then
+    PKG_CHECK_MODULES(GCONF, [ gconf-2.0 >= 2.4.0 ],
+        HAVE_GCONF=1,
+        [
+            HAVE_GCONF=0
+            if test "x$gconf" = xyes ; then
+                AC_MSG_ERROR([*** GConf support not found])
+            fi
+        ])
+else
+    HAVE_GCONF=0
+fi
+
+AC_SUBST(GCONF_CFLAGS)
+AC_SUBST(GCONF_LIBS)
+AC_SUBST(HAVE_GCONF)
+AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
+
 #### Avahi support (optional) ####
 
 AC_ARG_ENABLE([avahi], 
@@ -724,6 +755,11 @@ if test "x$HAVE_GLIB20" = "x1" ; then
    ENABLE_GLIB20=yes
 fi
 
+ENABLE_GCONF=no
+if test "x$HAVE_GCONF" = "x1" ; then
+   ENABLE_GCONF=yes
+fi
+
 ENABLE_AVAHI=no
 if test "x$HAVE_AVAHI" = "x1" ; then
    ENABLE_AVAHI=yes
@@ -762,7 +798,8 @@ echo "
     Enable OSS:             ${ENABLE_OSS}
     Enable Alsa:            ${ENABLE_ALSA}
     Enable Solaris:         ${ENABLE_SOLARIS}
-    Enable Glib 2.0:        ${ENABLE_GLIB20}
+    Enable GLib 2.0:        ${ENABLE_GLIB20}
+    Enable GConf:           ${ENABLE_GCONF}
     Enable Avahi:           ${ENABLE_AVAHI}
     Enable Jack:            ${ENABLE_JACK}
     Enable Async DNS:       ${ENABLE_LIBASYNCNS}
