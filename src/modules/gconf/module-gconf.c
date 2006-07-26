@@ -31,6 +31,14 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <fcntl.h>
+
+#ifdef HAVE_SYS_PRCTL_H
+#include <sys/prctl.h>
+#endif
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
 
 #include <pulsecore/module.h>
 #include <pulsecore/core.h>
@@ -51,8 +59,8 @@ PA_MODULE_USAGE("")
 #define MAX_MODULES 10
 #define BUF_MAX 2048
 
-#undef PA_GCONF_HELPER
-#define PA_GCONF_HELPER "/home/lennart/projects/pulseaudio/src/gconf-helper"
+/* #undef PA_GCONF_HELPER */
+/* #define PA_GCONF_HELPER "/home/lennart/projects/pulseaudio/src/gconf-helper" */
 
 struct module_info {
     char *name;
@@ -271,7 +279,15 @@ static void io_event_cb(
 
     struct userdata *u = userdata;
 
-    handle_event(u);
+    if (handle_event(u) < 0) {
+        
+        if (u->io_event) {
+            u->core->mainloop->io_free(u->io_event);
+            u->io_event = NULL;
+        }
+            
+        pa_module_unload_request(u->module);
+    }
 }
 
 static int start_client(const char *n, pid_t *pid) {
@@ -296,7 +312,8 @@ static int start_client(const char *n, pid_t *pid) {
 
         return pipe_fds[0];
     } else {
-
+        int max_fd, i;
+        
         /* child */
 
         close(pipe_fds[0]);
@@ -304,6 +321,39 @@ static int start_client(const char *n, pid_t *pid) {
 
         if (pipe_fds[1] != 1)
             close(pipe_fds[1]);
+
+        close(0);
+        open("/dev/null", O_RDONLY);
+
+        close(2);
+        open("/dev/null", O_WRONLY);
+
+        max_fd = 1024;
+        
+#ifdef HAVE_SYS_RESOURCE_H
+        {
+            struct rlimit r;
+            if (getrlimit(RLIMIT_NOFILE, &r) == 0)
+                max_fd = r.rlim_max;
+        }
+#endif
+                
+        for (i = 3; i < max_fd; i++)
+            close(i);
+
+#ifdef PR_SET_PDEATHSIG
+        /* On Linux we can use PR_SET_PDEATHSIG to have the helper
+        process killed when the daemon dies abnormally. On non-Linux
+        machines the client will die as soon as it writes data to
+        stdout again (SIGPIPE) */
+
+        prctl(PR_SET_PDEATHSIG, SIGTERM, 0, 0, 0);
+#endif
+
+#ifdef SIGPIPE
+        /* Make sure that SIGPIPE kills the child process */
+        signal(SIGPIPE, SIG_DFL);
+#endif
 
         execl(n, n, NULL);
         _exit(1);
