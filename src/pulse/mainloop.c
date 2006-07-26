@@ -769,9 +769,6 @@ static int dispatch_timeout(pa_mainloop *m) {
             /* Disable time event */
             mainloop_time_restart(e, NULL);
 
-            if (m->cached_next_time_event == e)
-                m->cached_next_time_event = NULL;
-            
             e->callback(&m->api, e, &e->timeval, e->userdata);
 
             r++;
