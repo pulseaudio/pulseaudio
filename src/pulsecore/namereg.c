@@ -58,7 +58,13 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
     char *n = NULL;
     int r;
     
-    assert(c && name && data);
+    assert(c);
+    assert(name);
+    assert(data);
+
+    /* Don't allow registration of special names */
+    if (*name == '@')
+        return NULL;
 
     if (!c->namereg) {
         c->namereg = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
@@ -118,11 +124,29 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, int a
     assert(c);
     
     if (!name) {
+        
         if (type == PA_NAMEREG_SOURCE)
             name = pa_namereg_get_default_source_name(c);
         else if (type == PA_NAMEREG_SINK)
             name = pa_namereg_get_default_sink_name(c);
-    }
+        
+    } else if (strcmp(name, "@DEFAULT_SINK@") == 0) {
+        if (type == PA_NAMEREG_SINK)
+               name = pa_namereg_get_default_sink_name(c);
+        
+    } else if (strcmp(name, "@DEFAULT_SOURCE@") == 0) {
+        if (type == PA_NAMEREG_SOURCE)
+            name = pa_namereg_get_default_source_name(c);
+        
+    } else if (strcmp(name, "@DEFAULT_MONITOR@") == 0) {
+        if (type == PA_NAMEREG_SOURCE) {
+            pa_sink *k;
+            
+            if ((k = pa_namereg_get(c, NULL, PA_NAMEREG_SINK, autoload)))
+                return k->monitor_source;
+        }
+    } else if (*name == '@')
+        name = NULL;
 
     if (!name)
         return NULL;
