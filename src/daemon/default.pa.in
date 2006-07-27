@@ -39,9 +39,11 @@ load-module module-detect
 
 ### Load several protocols
 load-module module-esound-protocol-unix
-#load-module module-esound-protocol-tcp
 load-module module-native-protocol-unix
+
+#load-module module-esound-protocol-tcp
 #load-module module-native-protocol-tcp
+#load-module module-zeroconf-publish
 
 ### Load the RTP reciever module
 #load-module module-rtp-recv
@@ -69,3 +71,7 @@ load-module module-x11-bell sample=x11-bell
 ### Publish connection data in the X11 root window
 load-module module-x11-publish
 
+### Load additional modules from GConf settings. This can be configured with the paprefs tool.
+### Please keep in mind that the modules configured by paprefs might conflict with manually
+### loaded modules.
+load-module module-gconf
