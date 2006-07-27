@@ -35,12 +35,18 @@
 
 static void handle_module(GConfClient *client, const char *name) {
     gchar p[1024];
-    gboolean enabled;
+    gboolean enabled, locked;
     int i;
+
+    snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/locked", name);
+    locked = gconf_client_get_bool(client, p, FALSE);
+
+    if (locked)
+        return;
 
     snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/enabled", name);
     enabled = gconf_client_get_bool(client, p, FALSE);
-
+    
     printf("%c%s%c", enabled ? '+' : '-', name, 0);
 
     if (enabled) {
