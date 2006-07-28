@@ -94,7 +94,7 @@ pa_sink_input* pa_sink_input_new(
     
     i = pa_xnew(pa_sink_input, 1);
     i->ref = 1;
-    i->state = PA_SINK_INPUT_RUNNING;
+    i->state = PA_SINK_INPUT_DRAINED;
     i->name = pa_xstrdup(name);
     i->driver = pa_xstrdup(driver);
     i->owner = NULL;
@@ -111,8 +111,6 @@ pa_sink_input* pa_sink_input_new(
     i->get_latency = NULL;
     i->underrun = NULL;
     i->userdata = NULL;
-
-    i->playing = 0;
 
     pa_memchunk_reset(&i->resampled_chunk);
     i->resampler = resampler;
@@ -149,7 +147,6 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
     i->get_latency = NULL;
     i->underrun = NULL;
 
-    i->playing = 0;
     i->state = PA_SINK_INPUT_DISCONNECTED;
 }
 
@@ -225,6 +222,8 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
     if (!i->peek || !i->drop || i->state == PA_SINK_INPUT_CORKED)
         goto finish;
 
+    assert(i->state == PA_SINK_INPUT_RUNNING || i->state == PA_SINK_INPUT_DRAINED);
+    
     if (!i->resampler) {
         do_volume_adj_here = 0;
         ret = i->peek(i, chunk);
@@ -270,10 +269,13 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
 finish:
 
-    if (ret < 0 && i->playing && i->underrun)
+    if (ret < 0 && i->state == PA_SINK_INPUT_RUNNING && i->underrun)
         i->underrun(i);
 
-    i->playing = ret >= 0;
+    if (ret >= 0)
+        i->state = PA_SINK_INPUT_RUNNING;
+    else if (ret < 0 && i->state == PA_SINK_INPUT_RUNNING)
+        i->state = PA_SINK_INPUT_DRAINED;
 
     if (ret >= 0) {
         /* Let's see if we had to apply the volume adjustment
@@ -342,12 +344,14 @@ void pa_sink_input_cork(pa_sink_input *i, int b) {
     assert(i);
     assert(i->ref >= 1);
 
-    if (i->state == PA_SINK_INPUT_DISCONNECTED)
-        return;
+    assert(i->state != PA_SINK_INPUT_DISCONNECTED);
 
     n = i->state == PA_SINK_INPUT_CORKED && !b;
-    
-    i->state = b ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING;
+
+    if (b)
+        i->state = PA_SINK_INPUT_CORKED;
+    else if (i->state == PA_SINK_INPUT_CORKED)
+        i->state = PA_SINK_INPUT_DRAINED;
 
     if (n)
         pa_sink_notify(i->sink);

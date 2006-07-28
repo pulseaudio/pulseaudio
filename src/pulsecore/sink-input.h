@@ -34,9 +34,10 @@ typedef struct pa_sink_input pa_sink_input;
 #include <pulsecore/client.h>
 
 typedef enum pa_sink_input_state {
-    PA_SINK_INPUT_RUNNING,
-    PA_SINK_INPUT_CORKED,
-    PA_SINK_INPUT_DISCONNECTED
+    PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
+    PA_SINK_INPUT_DRAINED,      /*< The stream stopped playing because there was no data to play */
+    PA_SINK_INPUT_CORKED,       /*< The stream was corked on user request */
+    PA_SINK_INPUT_DISCONNECTED  /*< The stream is dead */
 } pa_sink_input_state_t;
 
 struct pa_sink_input {
@@ -62,8 +63,6 @@ struct pa_sink_input {
     void (*underrun) (pa_sink_input *i);
 
     void *userdata;
-
-    int playing;
 
     pa_memchunk resampled_chunk;
     pa_resampler *resampler;
