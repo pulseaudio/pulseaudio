@@ -497,6 +497,7 @@ pulsecoreinclude_HEADERS = \
 		pulsecore/namereg.h \
 		pulsecore/pid.h \
 		pulsecore/play-memchunk.h \
+		pulsecore/play-memblockq.h \
 		pulsecore/props.h \
 		pulsecore/queue.h \
 		pulsecore/random.h \
@@ -558,6 +559,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/pid.c pulsecore/pid.h \
 		pulsecore/pipe.c pulsecore/pipe.h \
 		pulsecore/play-memchunk.c pulsecore/play-memchunk.h \
+		pulsecore/play-memblockq.c pulsecore/play-memblockq.h \
 		pulsecore/poll.c pulsecore/poll.h \
 		pulsecore/props.c pulsecore/props.h \
 		pulsecore/queue.c pulsecore/queue.h \
