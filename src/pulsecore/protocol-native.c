@@ -1101,7 +1101,7 @@ static void command_get_playback_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_tagstruct_put_usec(reply, latency);
     
     pa_tagstruct_put_usec(reply, 0);
-    pa_tagstruct_put_boolean(reply, pa_memblockq_is_readable(s->memblockq));
+    pa_tagstruct_put_boolean(reply, s->sink_input->state == PA_SINK_INPUT_RUNNING);
     pa_tagstruct_put_timeval(reply, &tv);
     pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, pa_memblockq_get_write_index(s->memblockq));
