@@ -98,7 +98,7 @@ static int pa_cli_command_autoload_add(pa_core *c, pa_tokenizer *t, pa_strbuf *b
 static int pa_cli_command_autoload_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_list_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
-
+static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 
 /* A method table for all available commands */
 
@@ -141,6 +141,7 @@ static const struct command commands[] = {
     { "remove-autoload-source",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: name)", 2},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
     { "list-props",              pa_cli_command_list_props,         NULL, 1},
+    { "move-sink-input",         pa_cli_command_move_sink_input,    "Move Sink input to another sink (args: index, sink)", 3},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -728,6 +729,44 @@ static int pa_cli_command_list_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf
     return 0;
 }
 
+static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail) {
+    const char *n, *k;
+    pa_sink_input *si;
+    pa_sink *sink;
+    uint32_t idx;
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a sink input by its index.\n");
+        return -1;
+    }
+
+    if ((idx = parse_index(n)) == PA_IDXSET_INVALID) {
+        pa_strbuf_puts(buf, "Failed to parse index.\n");
+        return -1;
+    }
+
+    if (!(k = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a sink.\n");
+        return -1;
+    }
+
+    if (!(si = pa_idxset_get_by_index(c->sink_inputs, (uint32_t) idx))) {
+        pa_strbuf_puts(buf, "No sink input found with this index.\n");
+        return -1;
+    }
+
+    if (!(sink = pa_namereg_get(c, k, PA_NAMEREG_SINK, 1))) {
+        pa_strbuf_puts(buf, "No sink found by this name or index.\n");
+        return -1;
+    }
+
+    if (pa_sink_input_move_to(si, sink, 0) < 0) {
+        pa_strbuf_puts(buf, "Moved failed.\n");
+        return -1;
+    }
+    return 0;
+}
+
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
     pa_module *m;
     pa_sink *sink;
@@ -834,7 +873,6 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
 
     return 0;
 }
-
 
 int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *fail) {
     const char *cs;
