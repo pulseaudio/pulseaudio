@@ -70,7 +70,7 @@ pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) {
 size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) {
     assert(spec);
 
-    return ((double) t * spec->rate / 1000000)*pa_frame_size(spec); 
+    return (size_t) (((double) t * spec->rate / 1000000))*pa_frame_size(spec); 
 }
 
 int pa_sample_spec_valid(const pa_sample_spec *spec) {
