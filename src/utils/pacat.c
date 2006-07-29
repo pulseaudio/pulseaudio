@@ -291,18 +291,22 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
 
     if ((r = read(fd, buffer, l)) <= 0) {
         if (r == 0) {
-            pa_operation *o;
-            
             if (verbose)
                 fprintf(stderr, "Got EOF.\n");
-            
-            if (!(o = pa_stream_drain(stream, stream_drain_complete, NULL))) {
-                fprintf(stderr, "pa_stream_drain(): %s\n", pa_strerror(pa_context_errno(context)));
-                quit(1);
-                return;
-            }
 
-            pa_operation_unref(o);
+            if (stream) {
+                pa_operation *o;
+            
+                if (!(o = pa_stream_drain(stream, stream_drain_complete, NULL))) {
+                    fprintf(stderr, "pa_stream_drain(): %s\n", pa_strerror(pa_context_errno(context)));
+                    quit(1);
+                    return;
+                }
+                
+                pa_operation_unref(o);
+            } else
+                quit(0);
+            
         } else {
             fprintf(stderr, "read() failed: %s\n", strerror(errno));
             quit(1);
