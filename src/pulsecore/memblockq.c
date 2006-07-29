@@ -368,6 +368,12 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
                 
             chunk->length = length;
         } else {
+
+            /* If the memblockq is empty, return -1, otherwise return
+             * the time to sleep */
+            if (!bq->blocks)
+                return -1;
+            
             chunk->memblock = NULL;
             chunk->length = length;
         }
