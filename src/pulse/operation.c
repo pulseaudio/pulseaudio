@@ -76,6 +76,8 @@ static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
     if (st == o->state)
         return;
 
+    pa_operation_ref(o);
+
     o->state = st;
 
     if ((o->state == PA_OPERATION_DONE) || (o->state == PA_OPERATION_CANCELED)) {
@@ -92,6 +94,8 @@ static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
         o->callback = NULL;
         o->userdata = NULL;
     }
+
+    pa_operation_unref(o);
 }
 
 void pa_operation_cancel(pa_operation *o) {
