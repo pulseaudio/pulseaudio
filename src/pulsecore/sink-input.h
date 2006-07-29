@@ -55,6 +55,11 @@ struct pa_sink_input {
     pa_channel_map channel_map;
 
     pa_cvolume volume;
+
+    /* Some silence to play before the actual data. This is used to
+     * compensate for latency differences when moving a sink input
+     * "hot" between sinks. */
+    size_t move_silence;
     
     int (*peek) (pa_sink_input *i, pa_memchunk *chunk);
     void (*drop) (pa_sink_input *i, const pa_memchunk *chunk, size_t length);
@@ -66,6 +71,11 @@ struct pa_sink_input {
 
     pa_memchunk resampled_chunk;
     pa_resampler *resampler;
+
+    int variable_rate;
+    pa_resample_method_t resample_method;
+
+    pa_memblock *silence_memblock;
 };
 
 pa_sink_input* pa_sink_input_new(
@@ -76,7 +86,7 @@ pa_sink_input* pa_sink_input_new(
     const pa_channel_map *map,
     const pa_cvolume *volume,
     int variable_rate,
-    int resample_method);
+    pa_resample_method_t resample_method);
 
 void pa_sink_input_unref(pa_sink_input* i);
 pa_sink_input* pa_sink_input_ref(pa_sink_input* i);
@@ -102,5 +112,7 @@ void pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
 void pa_sink_input_set_name(pa_sink_input *i, const char *name);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
+
+int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately);
 
 #endif
