@@ -418,6 +418,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u = pa_xnew(struct userdata, 1);
     u->core = c;
     u->module = m;
+    m->userdata = u;
     u->module_infos = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     u->pid = (pid_t) -1;
     u->fd = -1;
