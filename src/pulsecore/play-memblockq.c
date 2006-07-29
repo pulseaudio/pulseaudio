@@ -92,11 +92,15 @@ int pa_play_memblockq(
     assert(ss);
     assert(q);
 
-    if (pa_memblockq_get_length(q) <= 0)
+    if (pa_memblockq_get_length(q) <= 0) {
+        pa_memblockq_free(q);
         return 0;
+    }
 
-    if (cvolume && pa_cvolume_is_muted(cvolume))
+    if (cvolume && pa_cvolume_is_muted(cvolume)) {
+        pa_memblockq_free(q);
         return 0;
+    }
 
     if (!(si = pa_sink_input_new(sink, name, __FILE__, ss, map, cvolume, 0, PA_RESAMPLER_INVALID)))
         return -1;
