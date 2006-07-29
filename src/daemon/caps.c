@@ -82,7 +82,7 @@ int pa_limit_caps(void) {
     cap_value_t nice_cap = CAP_SYS_NICE;
 
     /* Only drop caps when called SUID */
-    if (getuid() != 0)
+    if (getuid() == 0)
         return 0;
 
     caps = cap_init();
@@ -112,7 +112,7 @@ int pa_drop_caps(void) {
     int r = -1;
 
     /* Only drop caps when called SUID */
-    if (getuid() != 0)
+    if (getuid() == 0)
         return 0;
 
     caps = cap_init();
