@@ -484,6 +484,11 @@ pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name
 /** Remove an autoload entry. \since 0.6 */
 pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void* userdata);
 
+/** Move the specified sink input to a different sink. \since 0.9.5 */
+pa_operation* pa_context_move_sink_input_by_name(pa_context *c, uint32_t idx, char *sink_name, pa_context_success_cb_t cb, void* userdata);
+
+/** Move the specified sink input to a different sink. \since 0.9.5 */
+pa_operation* pa_context_move_sink_input_by_index(pa_context *c, uint32_t idx, uint32_t sink_idx, pa_context_success_cb_t cb, void* userdata);
 
 PA_C_DECL_END
 
