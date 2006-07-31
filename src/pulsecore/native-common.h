@@ -108,6 +108,10 @@ enum {
     PA_COMMAND_RECORD_STREAM_KILLED,
     PA_COMMAND_SUBSCRIBE_EVENT,
 
+    /* A few more client->server commands */
+    PA_COMMAND_MOVE_SINK_INPUT,
+    PA_COMMAND_MOVE_SOURCE_OUTPUT,
+
     PA_COMMAND_MAX
 };
 
