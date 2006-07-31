@@ -224,9 +224,13 @@ static void free_callback(void *p, PA_GCC_UNUSED void *userdata) {
 
 void pa_module_unload_all(pa_core *c) {
     assert(c);
+    pa_module *m;
 
     if (!c->modules)
         return;
+
+    while ((m = pa_idxset_first(c->modules, NULL)))
+        pa_module_unload(c, m);
 
     pa_idxset_free(c->modules, free_callback, NULL);
     c->modules = NULL;
