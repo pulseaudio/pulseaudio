@@ -286,6 +286,9 @@ void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx) {
     if (!(a = array_index(s, idx)))
         return NULL;
 
+    if (!*a)
+        return NULL;
+
     data = (*a)->data;
     remove_entry(s, *a);
     
