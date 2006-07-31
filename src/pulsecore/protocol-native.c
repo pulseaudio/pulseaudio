@@ -189,6 +189,7 @@ static void command_get_autoload_info(pa_pdispatch *pd, uint32_t command, uint32
 static void command_get_autoload_info_list(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_cork_record_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_flush_record_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = NULL,
@@ -257,7 +258,10 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_AUTOLOAD_INFO] = command_get_autoload_info,
     [PA_COMMAND_GET_AUTOLOAD_INFO_LIST] = command_get_autoload_info_list,
     [PA_COMMAND_ADD_AUTOLOAD] = command_add_autoload,
-    [PA_COMMAND_REMOVE_AUTOLOAD] = command_remove_autoload
+    [PA_COMMAND_REMOVE_AUTOLOAD] = command_remove_autoload,
+
+    [PA_COMMAND_MOVE_SINK_INPUT] = command_move_stream,
+    [PA_COMMAND_MOVE_SOURCE_OUTPUT] = command_move_stream
 };
 
 /* structure management */
@@ -2107,6 +2111,45 @@ static void command_get_autoload_info_list(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     }
     
     pa_pstream_send_tagstruct(c->pstream, reply);
+}
+
+static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    struct connection *c = userdata;
+    uint32_t idx = PA_INVALID_INDEX, idx_device = PA_INVALID_INDEX;
+    pa_sink_input *si = NULL;
+    pa_sink *sink = NULL;
+    const char *name = NULL;
+    
+    assert(c);
+    assert(t);
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_getu32(t, &idx_device) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+    
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, idx_device != PA_INVALID_INDEX || !name || (*name && pa_utf8_valid(name)), tag, PA_ERR_INVALID);
+
+    si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
+    
+    if (idx_device != PA_INVALID_INDEX)
+        sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx_device);
+    else
+        sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
+    
+    CHECK_VALIDITY(c->pstream, si && sink, tag, PA_ERR_NOENTITY);
+
+    if (pa_sink_input_move_to(si, sink, 0) < 0) {
+        pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
+        return;
+    }
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
 /*** pstream callbacks ***/
