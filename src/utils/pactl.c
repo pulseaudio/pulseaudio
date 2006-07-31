@@ -46,7 +46,8 @@
 static pa_context *context = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
-static char *device = NULL, *sample_name = NULL;
+static char *device = NULL, *sample_name = NULL, *sink_name = NULL;
+static uint32_t sink_input_idx = PA_INVALID_INDEX;
 
 static SNDFILE *sndfile = NULL;
 static pa_stream *sample_stream = NULL;
@@ -64,7 +65,8 @@ static enum {
     UPLOAD_SAMPLE,
     PLAY_SAMPLE,
     REMOVE_SAMPLE,
-    LIST
+    LIST,
+    MOVE_SINK_INPUT
 } action = NONE;
 
 static void quit(int ret) {
@@ -581,6 +583,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_get_autoload_info_list(c, get_autoload_info_callback, NULL));
                     break;
 
+                case MOVE_SINK_INPUT:
+                    pa_operation_unref(pa_context_move_sink_input_by_name(c, sink_input_idx, sink_name, simple_callback, NULL));
+                    break;
+
                 default:
                     assert(0);
             }
@@ -609,12 +615,13 @@ static void help(const char *argv0) {
            "%s [options] exit\n"
            "%s [options] upload-sample FILENAME [NAME]\n"
            "%s [options] play-sample NAME [SINK]\n"
+           "%s [options] move-sink-input NAME [SINK]\n"
            "%s [options] remove-sample NAME\n\n"
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n\n"
            "  -s, --server=SERVER                   The name of the server to connect to\n"
            "  -n, --client-name=NAME                How to call this client on the server\n",
-           argv0, argv0, argv0, argv0, argv0, argv0);
+           argv0, argv0, argv0, argv0, argv0, argv0, argv0);
 }
 
 enum { ARG_VERSION = 256 };
@@ -731,6 +738,15 @@ int main(int argc, char *argv[]) {
             }
 
             sample_name = pa_xstrdup(argv[optind+1]);
+        } else if (!strcmp(argv[optind], "move-sink-input")) {
+            action = MOVE_SINK_INPUT;
+            if (optind+2 >= argc) {
+                fprintf(stderr, "You have to specify a sink input index and a sink\n");
+                goto quit;
+            }
+
+            sink_input_idx = atoi(argv[optind+1]);
+            sink_name = pa_xstrdup(argv[optind+2]);
         }
     }
 
@@ -784,6 +800,7 @@ quit:
     pa_xfree(server);
     pa_xfree(device);
     pa_xfree(sample_name);
+    pa_xfree(sink_name);
 
     return ret;
 }
