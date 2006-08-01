@@ -37,7 +37,7 @@
 
 #define TIME_EVENT_USEC 50000
 
-#if PA_API_VERSION != 9
+#if PA_API_VERSION < 9
 #error Invalid PulseAudio API version
 #endif
 

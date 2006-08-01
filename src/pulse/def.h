@@ -161,6 +161,7 @@ enum {
     PA_ERR_NODATA,                 /**< No data */
     PA_ERR_VERSION,                /**< Incompatible protocol version \since 0.8 */
     PA_ERR_TOOLARGE,               /**< Data too large \since 0.8.1 */
+    PA_ERR_NOTSUPPORTED,           /**< Operation not supported \since 0.9.5 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
 

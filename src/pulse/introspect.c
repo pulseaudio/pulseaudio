@@ -1248,6 +1248,7 @@ pa_operation* pa_context_move_sink_input_by_name(pa_context *c, uint32_t idx, ch
     assert(c->ref >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 10, PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, sink_name && *sink_name, PA_ERR_INVALID);
 
@@ -1272,6 +1273,7 @@ pa_operation* pa_context_move_sink_input_by_index(pa_context *c, uint32_t idx, u
     assert(c->ref >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 10, PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, sink_idx != PA_INVALID_INDEX, PA_ERR_INVALID);
 
