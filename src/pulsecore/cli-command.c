@@ -99,6 +99,7 @@ static int pa_cli_command_autoload_remove(pa_core *c, pa_tokenizer *t, pa_strbuf
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_list_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
+static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 
 /* A method table for all available commands */
 
@@ -141,7 +142,8 @@ static const struct command commands[] = {
     { "remove-autoload-source",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: name)", 2},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
     { "list-props",              pa_cli_command_list_props,         NULL, 1},
-    { "move-sink-input",         pa_cli_command_move_sink_input,    "Move Sink input to another sink (args: index, sink)", 3},
+    { "move-sink-input",         pa_cli_command_move_sink_input,    "Move sink input to another sink (args: index, sink)", 3},
+    { "move-source-output",      pa_cli_command_move_source_output, "Move source output to another source (args: index, source)", 3},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -761,6 +763,44 @@ static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf
     }
 
     if (pa_sink_input_move_to(si, sink, 0) < 0) {
+        pa_strbuf_puts(buf, "Moved failed.\n");
+        return -1;
+    }
+    return 0;
+}
+
+static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail) {
+    const char *n, *k;
+    pa_source_output *so;
+    pa_source *source;
+    uint32_t idx;
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a source output by its index.\n");
+        return -1;
+    }
+
+    if ((idx = parse_index(n)) == PA_IDXSET_INVALID) {
+        pa_strbuf_puts(buf, "Failed to parse index.\n");
+        return -1;
+    }
+
+    if (!(k = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a source.\n");
+        return -1;
+    }
+
+    if (!(so = pa_idxset_get_by_index(c->source_outputs, (uint32_t) idx))) {
+        pa_strbuf_puts(buf, "No source output found with this index.\n");
+        return -1;
+    }
+
+    if (!(source = pa_namereg_get(c, k, PA_NAMEREG_SOURCE, 1))) {
+        pa_strbuf_puts(buf, "No source found by this name or index.\n");
+        return -1;
+    }
+
+    if (pa_source_output_move_to(so, source) < 0) {
         pa_strbuf_puts(buf, "Moved failed.\n");
         return -1;
     }
