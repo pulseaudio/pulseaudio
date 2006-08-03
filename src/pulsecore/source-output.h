@@ -58,6 +58,7 @@ struct pa_source_output {
     pa_usec_t (*get_latency) (pa_source_output *o);
 
     pa_resampler* resampler;
+    pa_resample_method_t resample_method;
     
     void *userdata;
 };
@@ -88,5 +89,7 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *i);
 void pa_source_output_cork(pa_source_output *i, int b);
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
+
+int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
 
 #endif

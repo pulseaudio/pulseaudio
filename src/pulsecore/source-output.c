@@ -79,8 +79,10 @@ pa_source_output* pa_source_output_new(
         resample_method = s->core->resample_method;
 
     if (!pa_sample_spec_equal(&s->sample_spec, spec) || !pa_channel_map_equal(&s->channel_map, map))
-        if (!(resampler = pa_resampler_new(&s->sample_spec, &s->channel_map, spec, map, s->core->memblock_stat, resample_method)))
+        if (!(resampler = pa_resampler_new(&s->sample_spec, &s->channel_map, spec, map, s->core->memblock_stat, resample_method))) {
+            pa_log_warn(__FILE__": Unsupported resampling operation.");
             return NULL;
+        }
     
     o = pa_xnew(pa_source_output, 1);
     o->ref = 1;
@@ -100,6 +102,7 @@ pa_source_output* pa_source_output_new(
     o->userdata = NULL;
     
     o->resampler = resampler;
+    o->resample_method = resample_method;
     
     assert(s->core);
     r = pa_idxset_put(s->core->source_outputs, o, &o->index);
@@ -111,6 +114,9 @@ pa_source_output* pa_source_output_new(
     pa_log_info(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"", o->index, o->name, s->index, st);
     
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
+
+    /* We do not call pa_source_notify() here, because the virtual
+     * functions have not yet been initialized */
     
     return o;    
 }
@@ -166,7 +172,6 @@ pa_source_output* pa_source_output_ref(pa_source_output *o) {
     return o;
 }
 
-
 void pa_source_output_kill(pa_source_output*o) {
     assert(o);
     assert(o->ref >= 1);
@@ -221,13 +226,20 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
 }
 
 void pa_source_output_cork(pa_source_output *o, int b) {
+    int n;
+    
     assert(o);
     assert(o->ref >= 1);
 
     if (o->state == PA_SOURCE_OUTPUT_DISCONNECTED)
         return;
+
+    n = o->state == PA_SOURCE_OUTPUT_CORKED && !b;
     
     o->state = b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
+    
+    if (n)
+        pa_source_notify(o->source);
 }
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
@@ -235,7 +247,66 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
     assert(o->ref >= 1);
     
     if (!o->resampler)
-        return PA_RESAMPLER_INVALID;
+        return o->resample_method;
 
     return pa_resampler_get_method(o->resampler);
+}
+
+int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
+    pa_source *origin;
+    pa_resampler *new_resampler;
+
+    assert(o);
+    assert(o->ref >= 1);
+    assert(dest);
+
+    origin = o->source;
+
+    if (dest == origin)
+        return 0;
+
+    if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
+        pa_log_warn(__FILE__": Failed to move source output: too many outputs per source.");
+        return -1;
+    }
+
+    if (o->resampler &&
+        pa_sample_spec_equal(&origin->sample_spec, &dest->sample_spec) &&
+        pa_channel_map_equal(&origin->channel_map, &dest->channel_map))
+
+        /* Try to reuse the old resampler if possible */
+        new_resampler = o->resampler;
+    
+    else if (!pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec) ||
+        !pa_channel_map_equal(&o->channel_map, &dest->channel_map)) {
+
+        /* Okey, we need a new resampler for the new sink */
+        
+        if (!(new_resampler = pa_resampler_new(
+                      &dest->sample_spec, &dest->channel_map,
+                      &o->sample_spec, &o->channel_map,
+                      dest->core->memblock_stat,
+                      o->resample_method))) {
+            pa_log_warn(__FILE__": Unsupported resampling operation.");
+            return -1;
+        }
+    }
+
+    /* Okey, let's move it */
+    pa_idxset_remove_by_data(origin->outputs, o, NULL);
+    pa_idxset_put(dest->outputs, o, NULL);
+    o->source = dest;
+
+    /* Replace resampler */
+    if (new_resampler != o->resampler) {
+        if (o->resampler)
+            pa_resampler_free(o->resampler);
+        o->resampler = new_resampler;
+    }
+
+    /* Notify everyone */
+    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    pa_source_notify(o->source);
+
+    return 0;
 }
