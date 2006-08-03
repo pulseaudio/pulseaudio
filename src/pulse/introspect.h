@@ -490,6 +490,12 @@ pa_operation* pa_context_move_sink_input_by_name(pa_context *c, uint32_t idx, ch
 /** Move the specified sink input to a different sink. \since 0.9.5 */
 pa_operation* pa_context_move_sink_input_by_index(pa_context *c, uint32_t idx, uint32_t sink_idx, pa_context_success_cb_t cb, void* userdata);
 
+/** Move the specified source output to a different source. \since 0.9.5 */
+pa_operation* pa_context_move_source_output_by_name(pa_context *c, uint32_t idx, char *source_name, pa_context_success_cb_t cb, void* userdata);
+
+/** Move the specified source output to a different source. \since 0.9.5 */
+pa_operation* pa_context_move_source_output_by_index(pa_context *c, uint32_t idx, uint32_t source_idx, pa_context_success_cb_t cb, void* userdata);
+
 PA_C_DECL_END
 
 #endif
