@@ -135,8 +135,10 @@ pa_sink_input* pa_sink_input_new(
     pa_log_info(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"", i->index, i->name, s->index, st);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
-    pa_sink_notify(i->sink);
 
+    /* We do not call pa_sink_notify() here, because the virtual
+     * functions have not yet been initialized */
+    
     return i;    
 }
 
@@ -446,7 +448,7 @@ pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {
     assert(i->ref >= 1);
 
     if (!i->resampler)
-        return PA_RESAMPLER_INVALID;
+        return i->resample_method;
 
     return pa_resampler_get_method(i->resampler);
 }
@@ -574,9 +576,9 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
     }
 
     /* Okey, let's move it */
-    pa_idxset_remove_by_data(i->sink->inputs, i, NULL);
+    pa_idxset_remove_by_data(origin->inputs, i, NULL);
+    pa_idxset_put(dest->inputs, i, NULL);
     i->sink = dest;
-    pa_idxset_put(i->sink->inputs, i, NULL);
 
     /* Replace resampler */
     if (new_resampler != i->resampler) {
