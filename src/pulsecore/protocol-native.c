@@ -2116,8 +2116,6 @@ static void command_get_autoload_info_list(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
 static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     uint32_t idx = PA_INVALID_INDEX, idx_device = PA_INVALID_INDEX;
-    pa_sink_input *si = NULL;
-    pa_sink *sink = NULL;
     const char *name = NULL;
     
     assert(c);
@@ -2135,21 +2133,44 @@ static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag
     CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, idx_device != PA_INVALID_INDEX || !name || (*name && pa_utf8_valid(name)), tag, PA_ERR_INVALID);
 
-    si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
-    
-    if (idx_device != PA_INVALID_INDEX)
-        sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx_device);
-    else
-        sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
-    
-    CHECK_VALIDITY(c->pstream, si && sink, tag, PA_ERR_NOENTITY);
+    if (command == PA_COMMAND_MOVE_SINK_INPUT) {
+        pa_sink_input *si = NULL;
+        pa_sink *sink = NULL;
 
-    if (pa_sink_input_move_to(si, sink, 0) < 0) {
-        pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
-        return;
+        si = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
+        
+        if (idx_device != PA_INVALID_INDEX)
+            sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx_device);
+        else
+            sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
+
+        CHECK_VALIDITY(c->pstream, si && sink, tag, PA_ERR_NOENTITY);
+
+        if (pa_sink_input_move_to(si, sink, 0) < 0) {
+            pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
+            return;
+        }
+    } else {
+        pa_source_output *so = NULL;
+        pa_source *source;
+
+        so = pa_idxset_get_by_index(c->protocol->core->source_outputs, idx);
+        
+        if (idx_device != PA_INVALID_INDEX)
+            source = pa_idxset_get_by_index(c->protocol->core->sources, idx_device);
+        else
+            source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
+
+        CHECK_VALIDITY(c->pstream, so && source, tag, PA_ERR_NOENTITY);
+
+        if (pa_source_output_move_to(so, source) < 0) {
+            pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
+            return;
+        }
     }
-
+        
     pa_pstream_send_simple_ack(c->pstream, tag);
+        
 }
 
 /*** pstream callbacks ***/
