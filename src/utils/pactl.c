@@ -46,8 +46,8 @@
 static pa_context *context = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
-static char *device = NULL, *sample_name = NULL, *sink_name = NULL;
-static uint32_t sink_input_idx = PA_INVALID_INDEX;
+static char *device = NULL, *sample_name = NULL, *sink_name = NULL, *source_name = NULL;
+static uint32_t sink_input_idx = PA_INVALID_INDEX, source_output_idx = PA_INVALID_INDEX;
 
 static SNDFILE *sndfile = NULL;
 static pa_stream *sample_stream = NULL;
@@ -66,7 +66,8 @@ static enum {
     PLAY_SAMPLE,
     REMOVE_SAMPLE,
     LIST,
-    MOVE_SINK_INPUT
+    MOVE_SINK_INPUT,
+    MOVE_SOURCE_OUTPUT
 } action = NONE;
 
 static void quit(int ret) {
@@ -587,6 +588,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_move_sink_input_by_name(c, sink_input_idx, sink_name, simple_callback, NULL));
                     break;
 
+                case MOVE_SOURCE_OUTPUT:
+                    pa_operation_unref(pa_context_move_source_output_by_name(c, source_output_idx, source_name, simple_callback, NULL));
+                    break;
+                    
                 default:
                     assert(0);
             }
@@ -615,7 +620,8 @@ static void help(const char *argv0) {
            "%s [options] exit\n"
            "%s [options] upload-sample FILENAME [NAME]\n"
            "%s [options] play-sample NAME [SINK]\n"
-           "%s [options] move-sink-input NAME [SINK]\n"
+           "%s [options] move-sink-input ID SINK\n"
+           "%s [options] move-source-output ID SOURCE\n"
            "%s [options] remove-sample NAME\n\n"
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n\n"
@@ -747,6 +753,15 @@ int main(int argc, char *argv[]) {
 
             sink_input_idx = atoi(argv[optind+1]);
             sink_name = pa_xstrdup(argv[optind+2]);
+        } else if (!strcmp(argv[optind], "move-source-output")) {
+            action = MOVE_SOURCE_OUTPUT;
+            if (optind+2 >= argc) {
+                fprintf(stderr, "You have to specify a source output index and a source\n");
+                goto quit;
+            }
+
+            source_output_idx = atoi(argv[optind+1]);
+            source_name = pa_xstrdup(argv[optind+2]);
         }
     }
 
@@ -801,6 +816,7 @@ quit:
     pa_xfree(device);
     pa_xfree(sample_name);
     pa_xfree(sink_name);
+    pa_xfree(source_name);
 
     return ret;
 }
