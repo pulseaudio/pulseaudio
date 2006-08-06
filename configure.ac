@@ -637,6 +637,37 @@ AC_SUBST(LIRC_CFLAGS)
 AC_SUBST(LIRC_LIBS)
 AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 
+#### HAL support (optional) ####
+
+AC_ARG_ENABLE([hal], 
+    AC_HELP_STRING([--disable-hal], [Disable optional HAL support]), 
+        [
+            case "${enableval}" in
+                yes) hal=yes ;;
+                no) hal=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-hal) ;;
+            esac
+        ],
+        [hal=auto])
+
+if test "x${hal}" != xno ; then
+    PKG_CHECK_MODULES(HAL, [ hal >= 0.5.7 ],
+        HAVE_HAL=1,
+        [
+            HAVE_HAL=0
+            if test "x$hal" = xyes ; then
+                AC_MSG_ERROR([*** HAL support not found])
+            fi
+        ])
+else
+    HAVE_HAL=0
+fi
+
+AC_SUBST(HAL_CFLAGS)
+AC_SUBST(HAL_LIBS)
+AC_SUBST(HAVE_HAL)
+AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
+
 #### PulseAudio system group & user  #####
 
 AC_ARG_WITH(system_user, AS_HELP_STRING([--with-system-user=<user>],[User for running the PulseAudio daemon as a system-wide instance (pulse)]))
@@ -780,6 +811,11 @@ if test "x$HAVE_LIRC" = "x1" ; then
    ENABLE_LIRC=yes
 fi
 
+ENABLE_HAL=no
+if test "x$HAVE_HAL" = "x1" ; then
+   ENABLE_HAL=yes
+fi
+
 ENABLE_TCPWRAP=no
 if test "x${LIBWRAP_LIBS}" != x ; then
    ENABLE_TCPWRAP=yes
@@ -804,6 +840,7 @@ echo "
     Enable Jack:            ${ENABLE_JACK}
     Enable Async DNS:       ${ENABLE_LIBASYNCNS}
     Enable LIRC:            ${ENABLE_LIRC}
+    Enable HAL:             ${ENABLE_HAL}
     Enable TCP Wrappers:    ${ENABLE_TCPWRAP}
     System User:            ${PA_SYSTEM_USER}
     System Group:           ${PA_SYSTEM_GROUP}
