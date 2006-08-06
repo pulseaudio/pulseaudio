@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /***
   This file is part of PulseAudio.
  
@@ -50,7 +52,7 @@ PA_MODULE_AUTHOR("Shahms King")
 PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 
-static const char* capabilities[] = { "alsa", "oss" };
+static const char*const capabilities[] = { "alsa", "oss" };
 
 typedef enum {
     CAP_ALSA,
