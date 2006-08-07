@@ -34,11 +34,11 @@
 #include <sys/stat.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
 #include <pulsecore/log.h>
-#include <pulsecore/core-subscribe.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/idxset.h>
 #include <pulsecore/core-util.h>
@@ -68,18 +68,16 @@ typedef enum {
 } alsa_type_t;
 
 struct device {
+    uint32_t index;
     char *udi;
-    pa_module *module;
 };
 
 struct userdata {
     pa_core *core;
-    pa_subscription *sub;
     LibHalContext *ctx;
     capability_t capability;
     pa_dbus_connection *conn;
-    pa_hashmap *by_udi;
-    pa_hashmap *by_module;
+    pa_hashmap *devices;
 };
 
 struct timerdata {
@@ -159,12 +157,11 @@ static dbus_bool_t hal_device_add_alsa(struct userdata *u, const char *udi,
     if (!(m = pa_module_load(u->core, module_name, args)))
         return FALSE;
 
-    d = pa_xmalloc(sizeof(struct device));
+    d = pa_xnew(struct device, 1);
     d->udi = pa_xstrdup(udi);
-    d->module = m;
+    d->index = m->index;
 
-    pa_hashmap_put(u->by_module, m, d);
-    pa_hashmap_put(u->by_udi, udi, d);
+    pa_hashmap_put(u->devices, udi, d);
 
     return TRUE;
 }
@@ -291,13 +288,13 @@ static void device_added_cb(LibHalContext *ctx, const char *udi)
     if (!has_cap)
         return;
 
-    /* actually add the device one second later */
-    t = pa_xmalloc(sizeof(struct timerdata));
+    /* actually add the device 1/2 second later */
+    t = pa_xnew(struct timerdata, 1);
     t->u = u;
     t->udi = pa_xstrdup(udi);
 
-    gettimeofday(&tv, NULL);
-    tv.tv_sec += 1;
+    pa_gettimeofday(&tv);
+    pa_timeval_add(&tv, 500000);
     u->core->mainloop->time_new(u->core->mainloop, &tv,
                                 device_added_time_cb, t);
 }
@@ -308,10 +305,8 @@ static void device_removed_cb(LibHalContext* ctx, const char *udi)
     struct userdata *u = (struct userdata*) libhal_ctx_get_user_data(ctx);
 
     pa_log_debug(__FILE__": Device removed: %s", udi);
-    if ((d = pa_hashmap_remove(u->by_udi, udi))) {
-        d = pa_hashmap_remove(u->by_module, d->module);
-        pa_log_debug(__FILE__": Unloading: %s <%s>", d->module->name, d->module->argument);
-        pa_module_unload_request(d->module);
+    if ((d = pa_hashmap_remove(u->devices, udi))) {
+        pa_module_unload_by_index(u->core, d->index);
         hal_device_free(d);
     }
 }
@@ -335,30 +330,6 @@ static void property_modified_cb(LibHalContext *ctx, const char *udi,
 }
 #endif
 
-static void subscribe_notify_cb(pa_core *c, pa_subscription_event_type_t type,
-                                uint32_t idx, void *userdata)
-{
-    pa_module *m;
-    struct device *d;
-    struct userdata *u = (struct userdata*) userdata;
-
-    /* only listen for module remove events */
-    if (type != (PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_REMOVE))
-        return;
-
-    if (!(m = pa_idxset_get_by_index(c->modules, idx)))
-        return;
-
-    /* we found the module, see if it's one we care about */
-    if ((d = pa_hashmap_remove(u->by_module, m))) {
-        pa_log_debug(__FILE__": Removing module #%u %s: %s",
-                     m->index, m->name, d->udi);
-        d = pa_hashmap_remove(u->by_udi, d->udi);
-        hal_device_free(d);
-    }
-}
-
-
 static void pa_hal_context_free(LibHalContext* hal_ctx)
 {
     DBusError error;
@@ -374,11 +345,8 @@ static void pa_hal_context_free(LibHalContext* hal_ctx)
 
 static void userdata_free(struct userdata *u) {
     pa_hal_context_free(u->ctx);
-    pa_subscription_free(u->sub);
-    /* free the hashmap */
-    pa_hashmap_free(u->by_module, NULL, NULL);
     /* free the devices with the hashmap */
-    pa_hashmap_free(u->by_udi, hal_device_free_cb, NULL);
+    pa_hashmap_free(u->devices, hal_device_free_cb, NULL);
     pa_dbus_connection_unref(u->conn);
     pa_xfree(u);
 }
@@ -441,15 +409,12 @@ int pa__init(pa_core *c, pa_module*m) {
         return -1;
     }
 
-    u = pa_xmalloc(sizeof(struct userdata));
+    u = pa_xnew(struct userdata, 1);
     u->core = c;
     u->ctx = hal_ctx;
     u->conn = conn;
-    u->by_module = pa_hashmap_new(NULL, NULL);
-    u->by_udi = pa_hashmap_new(pa_idxset_string_hash_func,
-                               pa_idxset_string_compare_func);
-    u->sub = pa_subscription_new(c, PA_SUBSCRIPTION_MASK_MODULE,
-                                 subscribe_notify_cb, (void*) u);
+    u->devices = pa_hashmap_new(pa_idxset_string_hash_func,
+                                pa_idxset_string_compare_func);
     m->userdata = (void*) u;
 
 #if HAVE_ALSA

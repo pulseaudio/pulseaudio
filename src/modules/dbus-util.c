@@ -27,6 +27,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/props.h>
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include "dbus-util.h"
 
@@ -82,14 +83,6 @@ get_watch_flags(DBusWatch *watch)
     return events;
 }
 
-static void timeval_next(struct timeval *tv, int millint)
-{
-    /* number of seconds in the milli-second interval */
-    tv->tv_sec += (millint / 1000);
-    /* milliseconds minus the seconds portion, converted to microseconds */
-    tv->tv_usec += (millint - tv->tv_sec * 1000) * 1000;
-}
-
 /* pa_io_event_cb_t IO event handler */
 static void handle_io_event(PA_GCC_UNUSED pa_mainloop_api *ea, pa_io_event *e,
                             int fd, pa_io_event_flags_t events, void *userdata)
@@ -128,7 +121,7 @@ static void handle_time_event(pa_mainloop_api *ea, pa_time_event* e,
         dbus_timeout_handle(timeout);
 
         /* restart it for the next scheduled time */
-        timeval_next(&next, dbus_timeout_get_interval(timeout));
+        pa_timeval_add(&next, dbus_timeout_get_interval(timeout) * 1000);
         ea->time_restart(e, &next);
     }
 }
@@ -182,10 +175,10 @@ static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data)
     if (!dbus_timeout_get_enabled(timeout))
         return FALSE;
 
-    if (gettimeofday(&tv, NULL) < 0)
+    if (pa_gettimeofday(&tv) < 0)
         return -1;
 
-    timeval_next(&tv, dbus_timeout_get_interval(timeout));
+    pa_timeval_add(&tv, dbus_timeout_get_interval(timeout) * 1000);
 
     ev = c->mainloop->time_new(c->mainloop, &tv, handle_time_event,
                                (void*) timeout);
@@ -216,14 +209,13 @@ static void toggle_timeout(DBusTimeout *timeout, void *data)
     pa_core *c = (pa_core*) data;
     pa_time_event *ev = (pa_time_event*) dbus_timeout_get_data(timeout);
 
-    gettimeofday(&tv, NULL);
     if (dbus_timeout_get_enabled(timeout)) {
-        timeval_next(&tv, dbus_timeout_get_interval(timeout));
+        pa_gettimeofday(&tv);
+        pa_timeval_add(&tv, dbus_timeout_get_interval(timeout) * 1000);
         c->mainloop->time_restart(ev, &tv);
     } else {
-        /* set it to expire one second ago */
-        tv.tv_sec -= 1;
-        c->mainloop->time_restart(ev, &tv);
+        /* disable the timeout */
+        c->mainloop->time_restart(ev, NULL);
     }
 }
 
@@ -251,7 +243,7 @@ wakeup_main(void *userdata)
 
 static pa_dbus_connection* pa_dbus_connection_new(pa_core* c, DBusConnection *conn, const char* name)
 {
-    pa_dbus_connection *pconn = pa_xmalloc(sizeof(pa_dbus_connection));
+    pa_dbus_connection *pconn = pa_xnew(pa_dbus_connection, 1);
 
     pconn->refcount = 1;
     pconn->core = c;
@@ -305,19 +297,16 @@ pa_dbus_connection* pa_dbus_bus_get(pa_core *c, DBusBusType type,
     const char* name;
     DBusConnection *conn;
     pa_dbus_connection *pconn;
-    static const char sysname[] = "dbus-connection-system";
-    static const char sessname[] = "dbus-connection-session";
-    static const char startname[] = "dbus-connection-starter";
 
     switch (type) {
         case DBUS_BUS_SYSTEM:
-            name = sysname;
+            name = "dbus-connection-system";
             break;
         case DBUS_BUS_SESSION:
-            name = sessname;
+            name = "dbus-connection-session";
             break;
         case DBUS_BUS_STARTER:
-            name = startname;
+            name = "dbus-connection-starter";
             break;
         default:
             assert(0); /* never reached */
