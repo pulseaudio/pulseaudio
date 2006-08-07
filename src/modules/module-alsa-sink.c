@@ -212,20 +212,25 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
 
 static int sink_get_hw_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
-    long vol;
     int err;
     int i;
 
-    assert(u && u->mixer_elem);
+    assert(u);
+    assert(u->mixer_elem);
 
-    for (i = 0;i < s->hw_volume.channels;i++) {
+    for (i = 0; i < s->hw_volume.channels; i++) {
+        long set_vol, vol;
+
         assert(snd_mixer_selem_has_playback_channel(u->mixer_elem, i));
 
-        err = snd_mixer_selem_get_playback_volume(u->mixer_elem, i, &vol);
-        if (err < 0)
+        if ((err = snd_mixer_selem_get_playback_volume(u->mixer_elem, i, &vol)) < 0)
             goto fail;
-        s->hw_volume.values[i] =
-            (vol - u->hw_volume_min) * PA_VOLUME_NORM / (u->hw_volume_max - u->hw_volume_min);
+
+        set_vol = (long) roundf(((float) s->hw_volume.values[i] * (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
+
+        /* Try to avoid superfluous volume changes */
+        if (set_vol != vol)
+            s->hw_volume.values[i] = (pa_volume_t) roundf(((float) (vol - u->hw_volume_min) * PA_VOLUME_NORM) / (u->hw_volume_max - u->hw_volume_min));
     }
 
     return 0;
@@ -243,9 +248,12 @@ static int sink_set_hw_volume_cb(pa_sink *s) {
     int i;
     pa_volume_t vol;
 
-    assert(u && u->mixer_elem);
+    assert(u);
+    assert(u->mixer_elem);
 
-    for (i = 0;i < s->hw_volume.channels;i++) {
+    for (i = 0; i < s->hw_volume.channels; i++) {
+        long alsa_vol;
+        
         assert(snd_mixer_selem_has_playback_channel(u->mixer_elem, i));
 
         vol = s->hw_volume.values[i];
@@ -253,11 +261,9 @@ static int sink_set_hw_volume_cb(pa_sink *s) {
         if (vol > PA_VOLUME_NORM)
             vol = PA_VOLUME_NORM;
         
-        vol = (vol * (u->hw_volume_max - u->hw_volume_min)) /
-            PA_VOLUME_NORM + u->hw_volume_min;
+        alsa_vol = (long) roundf(((float) vol * (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
 
-        err = snd_mixer_selem_set_playback_volume(u->mixer_elem, i, vol);
-        if (err < 0)
+        if ((err = snd_mixer_selem_set_playback_volume(u->mixer_elem, i, alsa_vol)) < 0)
             goto fail;
     }
 
