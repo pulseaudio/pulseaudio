@@ -85,6 +85,21 @@ struct timerdata {
     char *udi;
 };
 
+static const char* get_capability_name(capability_t cap) {
+    if (cap >= CAP_MAX)
+        return NULL;
+    return capabilities[cap];
+}
+
+static void hal_device_free(struct device* d) {
+    pa_xfree(d->udi);
+    pa_xfree(d);
+}
+
+static void hal_device_free_cb(void *d, PA_GCC_UNUSED void *data) {
+    hal_device_free((struct device*) d);
+}
+
 static alsa_type_t hal_device_get_alsa_type(LibHalContext *ctx, const char *udi,
                                             DBusError *error)
 {
@@ -119,42 +134,98 @@ static int hal_device_get_alsa_device(LibHalContext *ctx, const char *udi,
     return libhal_device_get_property_int(ctx, udi, "alsa.device", error);
 }
 
-static void hal_device_free(struct device* d) {
-    pa_xfree(d->udi);
-    pa_xfree(d);
-}
-
-static void hal_device_free_cb(void *d, PA_GCC_UNUSED void *data) {
-    hal_device_free((struct device*) d);
-}
-
-static dbus_bool_t hal_device_add_alsa(struct userdata *u, const char *udi,
+static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi,
                                        DBusError  *error)
 {
     char args[64];
     alsa_type_t type;
     int device, card;
-    pa_module *m;
-    struct device *d;
     const char *module_name;
 
     type = hal_device_get_alsa_type(u->ctx, udi, error);
-    if (dbus_error_is_set(error) || type == ALSA_TYPE_OTHER) {
-        return FALSE;
-    }
+    if (dbus_error_is_set(error) || type == ALSA_TYPE_OTHER)
+        return NULL;
 
     device = hal_device_get_alsa_device(u->ctx, udi, error);
     if (dbus_error_is_set(error) || device != 0)
-        return FALSE;
+        return NULL;
 
     card = hal_device_get_alsa_card(u->ctx, udi, error);
     if (dbus_error_is_set(error))
-        return FALSE;
+        return NULL;
 
     module_name = (type == ALSA_TYPE_SINK) ? "module-alsa-sink"
                                            : "module-alsa-source";
     snprintf(args, sizeof(args), "device=hw:%u", card);
-    if (!(m = pa_module_load(u->core, module_name, args)))
+    return pa_module_load(u->core, module_name, args);
+}
+
+static dbus_bool_t hal_device_is_oss_pcm(LibHalContext *ctx, const char *udi,
+                                         DBusError *error)
+{
+    dbus_bool_t rv = FALSE;
+    char* device;
+    char* type;
+
+    type = libhal_device_get_property_string(ctx, udi, "oss.type", error);
+    if (!type || dbus_error_is_set(error))
+        return FALSE;
+
+    if (!strcmp(type, "pcm")) {
+        device = libhal_device_get_property_string(ctx, udi, "oss.device_file",
+                                                   error);
+        if (!device || dbus_error_is_set(error))
+            goto exit;
+
+        /* hack to ignore /dev/audio style devices */
+        if ((device = strrchr(device, '/')))
+            rv = (pa_startswith(device + 1, "audio")) ? FALSE : TRUE;
+    }
+
+exit:
+    libhal_free_string(type);
+    return rv;
+}
+
+static pa_module* hal_device_load_oss(struct userdata *u, const char *udi,
+                                      DBusError  *error)
+{
+    char args[128];
+    char* device;
+
+    if (!hal_device_is_oss_pcm(u->ctx, udi, error) || dbus_error_is_set(error))
+        return NULL;
+
+    device = libhal_device_get_property_string(u->ctx, udi, "oss.device_file",
+                                               error);
+    if (!device || dbus_error_is_set(error))
+        return NULL;
+
+    snprintf(args, sizeof(args), "device=%s", device);
+    libhal_free_string(device);
+
+    return pa_module_load(u->core, "module-oss", args);
+}
+
+static dbus_bool_t hal_device_add(struct userdata *u, const char *udi,
+                                  DBusError *error)
+{
+    pa_module* m;
+    struct device *d;
+
+    switch(u->capability) {
+        case CAP_ALSA:
+            m = hal_device_load_alsa(u, udi, error);
+            break;
+        case CAP_OSS:
+            m = hal_device_load_oss(u, udi, error);
+            break;
+        default:
+            assert(FALSE); /* never reached */
+            break;
+    }
+
+    if (!m || dbus_error_is_set(error))
         return FALSE;
 
     d = pa_xnew(struct device, 1);
@@ -172,7 +243,7 @@ static int hal_device_add_all(struct userdata *u, capability_t capability)
     int i,n,count;
     dbus_bool_t r;
     char** udis;
-    const char* cap = capabilities[capability];
+    const char* cap = get_capability_name(capability);
 
     assert(capability < CAP_MAX);
 
@@ -186,20 +257,9 @@ static int hal_device_add_all(struct userdata *u, capability_t capability)
         return -1;
     }
     count = 0;
+    u->capability = capability;
     for (i = 0; i < n; ++i) {
-        switch(capability) {
-            case CAP_ALSA:
-                r = hal_device_add_alsa(u, udis[i], &error);
-                break;
-            case CAP_OSS:
-                /* r = hal_device_add_oss(u, udis[i], &error)
-                 * break; */
-            case CAP_MAX:
-            default:
-                assert(FALSE);
-                break;
-        }
-
+        r = hal_device_add(u, udis[i], &error);
         if (dbus_error_is_set(&error)) {
             pa_log_error(__FILE__": Error adding device: %s: %s", error.name,
                          error.message);
@@ -212,7 +272,6 @@ static int hal_device_add_all(struct userdata *u, capability_t capability)
     }
 
     libhal_free_string_array(udis);
-    u->capability = capability;
     return count;
 }
 
@@ -221,7 +280,7 @@ static dbus_bool_t device_has_capability(LibHalContext *ctx, const char *udi,
 {
     dbus_bool_t has_prop;
     has_prop = libhal_device_property_exists(ctx, udi, "info.capabilities",
-                                            error);
+                                             error);
     if (!has_prop || dbus_error_is_set(error))
         return FALSE;
 
@@ -235,24 +294,9 @@ static void device_added_time_cb(pa_mainloop_api *ea, pa_time_event *ev,
     struct timerdata *td = (struct timerdata*) userdata;
 
     dbus_error_init(&error);
-    if (!libhal_device_exists(td->u->ctx, td->udi, &error))
-        goto exit;
+    if (libhal_device_exists(td->u->ctx, td->udi, &error))
+        hal_device_add(td->u, td->udi, &error);
 
-    switch(td->u->capability) {
-        case CAP_ALSA:
-            hal_device_add_alsa(td->u, td->udi, &error);
-            break;
-        case CAP_OSS:
-            /* hal_device_add_oss(td->u, td->udi, &error);
-             * break; */
-        case CAP_MAX:
-        default:
-            /* not reached */
-            assert(FALSE);
-            break;
-    }
-
-exit:
     if (dbus_error_is_set(&error)) {
         pa_log_error(__FILE__": Error adding device: %s: %s", error.name,
                      error.message);
@@ -271,7 +315,7 @@ static void device_added_cb(LibHalContext *ctx, const char *udi)
     dbus_bool_t has_cap;
     struct timerdata *t;
     struct userdata *u = (struct userdata*) libhal_ctx_get_user_data(ctx);
-    const char* cap = capabilities[u->capability];
+    const char* cap = get_capability_name(u->capability);
 
     pa_log_debug(__FILE__": HAL Device added: %s", udi);
 
@@ -311,17 +355,31 @@ static void device_removed_cb(LibHalContext* ctx, const char *udi)
     }
 }
 
-#if 0
 static void new_capability_cb(LibHalContext *ctx, const char *udi,
-                                      const char* capability)
+                              const char* capability)
 {
+    struct userdata *u = (struct userdata*) libhal_ctx_get_user_data(ctx);
+    const char* capname = get_capability_name(u->capability);
+
+    if (capname && !strcmp(capname, capability)) {
+        /* capability we care about, pretend it's a new device */
+        device_added_cb(ctx, udi);
+    }
 }
 
 static void lost_capability_cb(LibHalContext *ctx, const char *udi,
                                const char* capability)
 {
+    struct userdata *u = (struct userdata*) libhal_ctx_get_user_data(ctx);
+    const char* capname = get_capability_name(u->capability);
+
+    if (capname && !strcmp(capname, capability)) {
+        /* capability we care about, pretend it was removed */
+        device_removed_cb(ctx, udi);
+    }
 }
 
+#if 0
 static void property_modified_cb(LibHalContext *ctx, const char *udi,
                                  const char* key,
                                  dbus_bool_t is_removed,
@@ -432,6 +490,9 @@ int pa__init(pa_core *c, pa_module*m) {
     libhal_ctx_set_user_data(hal_ctx, (void*) u);
     libhal_ctx_set_device_added(hal_ctx, device_added_cb);
     libhal_ctx_set_device_removed(hal_ctx, device_removed_cb);
+    libhal_ctx_set_device_new_capability(hal_ctx, new_capability_cb);
+    libhal_ctx_set_device_lost_capability(hal_ctx, lost_capability_cb);
+    /*libhal_ctx_set_device_property_modified(hal_ctx, property_modified_cb);*/
 
     dbus_error_init(&error);
     if (!libhal_device_property_watch_all(hal_ctx, &error)) {
@@ -441,12 +502,6 @@ int pa__init(pa_core *c, pa_module*m) {
         userdata_free(u);
         return -1;
     }
-
-    /*
-    libhal_ctx_set_device_new_capability(hal_ctx, new_capability_cb);
-    libhal_ctx_set_device_lost_capability(hal_ctx, lost_capability_cb);
-    libhal_ctx_set_device_property_modified(hal_ctx, property_modified_cb);
-    */
 
     pa_log_info(__FILE__": loaded %i modules.", n);
 
