@@ -178,7 +178,6 @@ struct pa_alsa_fdlist *pa_alsa_fdlist_new(void) {
     struct pa_alsa_fdlist *fdl;
 
     fdl = pa_xmalloc(sizeof(struct pa_alsa_fdlist));
-    assert(fdl);
 
     fdl->num_fds = 0;
     fdl->fds = NULL;
@@ -208,7 +207,7 @@ void pa_alsa_fdlist_free(struct pa_alsa_fdlist *fdl) {
         int i;
         assert(fdl->m);
         for (i = 0;i < fdl->num_fds;i++)
-            fdl->m->io_free(fdl->ios[0]);
+            fdl->m->io_free(fdl->ios[i]);
         pa_xfree(fdl->ios);
     }
 
