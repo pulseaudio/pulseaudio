@@ -232,7 +232,7 @@ static dbus_bool_t hal_device_add(struct userdata *u, const char *udi,
     d->udi = pa_xstrdup(udi);
     d->index = m->index;
 
-    pa_hashmap_put(u->devices, udi, d);
+    pa_hashmap_put(u->devices, d->udi, d);
 
     return TRUE;
 }
