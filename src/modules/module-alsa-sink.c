@@ -96,13 +96,49 @@ static void update_usage(struct userdata *u) {
                       (u->sink ? pa_idxset_size(u->sink->monitor_source->outputs) : 0));
 }
 
-static void xrun_recovery(struct userdata *u) {
+static void clear_up(struct userdata *u) {
+    assert(u);
+    
+    if (u->sink) {
+        pa_sink_disconnect(u->sink);
+        pa_sink_unref(u->sink);
+        u->sink = NULL;
+    }
+    
+    if (u->pcm_fdl)
+        pa_alsa_fdlist_free(u->pcm_fdl);
+    if (u->mixer_fdl)
+        pa_alsa_fdlist_free(u->mixer_fdl);
+
+    u->pcm_fdl = u->mixer_fdl = NULL;
+
+    if (u->mixer_handle) {
+        snd_mixer_close(u->mixer_handle);
+        u->mixer_handle = NULL;
+    }
+    
+    if (u->pcm_handle) {
+        snd_pcm_drop(u->pcm_handle);
+        snd_pcm_close(u->pcm_handle);
+        u->pcm_handle = NULL;
+    }
+}
+
+static int xrun_recovery(struct userdata *u) {
+    int ret;
     assert(u);
 
-    pa_log(__FILE__": *** ALSA-XRUN (playback) ***");
+    pa_log_info(__FILE__": *** ALSA-XRUN (playback) ***");
     
-    if (snd_pcm_prepare(u->pcm_handle) < 0)
-        pa_log(__FILE__": snd_pcm_prepare() failed");
+    if ((ret = snd_pcm_prepare(u->pcm_handle)) < 0) {
+        pa_log(__FILE__": snd_pcm_prepare() failed: %s", snd_strerror(-ret));
+
+        clear_up(u);
+        pa_module_unload_request(u->module);
+        return -1;
+    }
+
+    return ret;
 }
 
 static void do_write(struct userdata *u) {
@@ -130,11 +166,16 @@ static void do_write(struct userdata *u) {
                 return;
 
             if (frames == -EPIPE) {
-                xrun_recovery(u);
+                if (xrun_recovery(u) < 0)
+                    return;
+                
                 continue;
             }
 
-            pa_log(__FILE__": snd_pcm_writei() failed: %s", snd_strerror(frames));
+            pa_log(__FILE__": snd_pcm_writei() failed: %s", snd_strerror(-frames));
+
+            clear_up(u);
+            pa_module_unload_request(u->module);
             return;
         }
 
@@ -159,7 +200,8 @@ static void fdl_callback(void *userdata) {
     assert(u);
 
     if (snd_pcm_state(u->pcm_handle) == SND_PCM_STATE_XRUN)
-        xrun_recovery(u);
+        if (xrun_recovery(u) < 0)
+            return;
 
     do_write(u);
 }
@@ -480,25 +522,9 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (!(u = m->userdata))
         return;
-    
-    if (u->sink) {
-        pa_sink_disconnect(u->sink);
-        pa_sink_unref(u->sink);
-    }
-    
-    if (u->pcm_fdl)
-        pa_alsa_fdlist_free(u->pcm_fdl);
-    if (u->mixer_fdl)
-        pa_alsa_fdlist_free(u->mixer_fdl);
-    
-    if (u->mixer_handle)
-        snd_mixer_close(u->mixer_handle);
-    
-    if (u->pcm_handle) {
-        snd_pcm_drop(u->pcm_handle);
-        snd_pcm_close(u->pcm_handle);
-    }
-    
+
+    clear_up(u);
+
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
     if (u->silence.memblock)
