@@ -93,14 +93,14 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, PA_GCC_UNUSED int fd, pa_io
         return;
     }
 
+    a->defer_enable(fdl->defer, 1);
+
     if (revents) {
         if (fdl->pcm)
             fdl->cb(fdl->userdata);
         else
             snd_mixer_handle_events(fdl->mixer);
     }
-
-    a->defer_enable(fdl->defer, 1);
 }
 
 static void defer_cb(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event* e, void *userdata) {
