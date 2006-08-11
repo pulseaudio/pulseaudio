@@ -141,7 +141,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sink->get_latency = get_latency;
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_xstrdup("NULL sink");
+    pa_sink_set_description(u->sink, "NULL sink");
 
     u->n_bytes = 0;
     pa_gettimeofday(&u->start_time);

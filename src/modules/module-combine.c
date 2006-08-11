@@ -381,7 +381,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("Combined sink");
+    pa_sink_set_description(u->sink, "Combined sink");
     u->sink->get_latency = sink_get_latency_cb;
     u->sink->userdata = u;
     

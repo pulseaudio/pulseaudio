@@ -320,6 +320,8 @@ int pa__init(pa_core *c, pa_module*m) {
     const char *p;
     pa_sample_spec ss;
     pa_modargs *ma = NULL;
+    char *t;
+    
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -381,7 +383,8 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sink->get_latency = get_latency_cb;
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("Esound sink '%s'", p);
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Esound sink '%s'", p));
+    pa_xfree(t);
 
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;

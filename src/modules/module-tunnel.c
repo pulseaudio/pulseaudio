@@ -859,6 +859,8 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     struct timeval ntv;
+    char *t;
+    
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -925,7 +927,8 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sink->get_hw_mute = sink_get_hw_mute;
     u->sink->set_hw_mute = sink_set_hw_mute;
     u->sink->userdata = u;
-    u->sink->description = pa_sprintf_malloc("Tunnel to '%s%s%s'", u->sink_name ? u->sink_name : "", u->sink_name ? "@" : "", u->server_name);
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Tunnel to '%s%s%s'", u->sink_name ? u->sink_name : "", u->sink_name ? "@" : "", u->server_name));
+    pa_xfree(t);
 
     pa_sink_set_owner(u->sink, m);
 #else
@@ -940,7 +943,9 @@ int pa__init(pa_core *c, pa_module*m) {
     u->source->get_hw_mute = source_get_hw_mute;
     u->source->set_hw_mute = source_set_hw_mute;
     u->source->userdata = u;
-    u->source->description = pa_sprintf_malloc("Tunnel to '%s%s%s'", u->source_name ? u->source_name : "", u->source_name ? "@" : "", u->server_name);
+
+    pa_source_set_description(u->source, t = pa_sprintf_malloc("Tunnel to '%s%s%s'", u->source_name ? u->source_name : "", u->source_name ? "@" : "", u->server_name));
+    pa_xfree(t);
 
     pa_source_set_owner(u->source, m);
 #endif

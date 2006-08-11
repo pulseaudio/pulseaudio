@@ -500,6 +500,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_channel_map map;
     pa_modargs *ma = NULL;
     struct timeval tv;
+    char *t;
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -554,7 +555,8 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source->get_hw_volume = source_get_hw_volume_cb;
         u->source->set_hw_volume = source_set_hw_volume_cb;
         pa_source_set_owner(u->source, m);
-        u->source->description = pa_sprintf_malloc("Solaris PCM on '%s'", p);
+        pa_source_set_description(u->source, t = pa_sprintf_malloc("Solaris PCM on '%s'", p));
+        pa_xfree(t);
         u->source->is_hardware = 1;
     } else
         u->source = NULL;
@@ -569,7 +571,8 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->set_hw_mute = sink_set_hw_mute_cb;
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
-        u->sink->description = pa_sprintf_malloc("Solaris PCM on '%s'", p);
+        pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Solaris PCM on '%s'", p));
+        pa_xfree(t);
         u->sink->is_hardware = 1;
     } else
         u->sink = NULL;

@@ -366,7 +366,8 @@ int pa__init(pa_core *c, pa_module*m) {
     size_t frame_size;
     snd_pcm_info_t *pcm_info = NULL;
     int err;
-
+    char *t;
+    
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments");
         goto fail;
@@ -457,7 +458,8 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("ALSA PCM on %s (%s)", dev, snd_pcm_info_get_name(pcm_info));
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("ALSA PCM on %s (%s)", dev, snd_pcm_info_get_name(pcm_info)));
+    pa_xfree(t);
 
     u->pcm_fdl = pa_alsa_fdlist_new();
     assert(u->pcm_fdl);

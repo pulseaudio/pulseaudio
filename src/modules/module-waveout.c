@@ -503,7 +503,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source->notify = notify_source_cb;
         u->source->get_latency = source_get_latency_cb;
         pa_source_set_owner(u->source, m);
-        u->source->description = pa_sprintf_malloc("Windows waveIn PCM");
+        pa_source_set_description(u->source, "Windows waveIn PCM");
         u->source->is_hardware = 1;
     } else
         u->source = NULL;
@@ -517,7 +517,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->set_hw_volume = sink_set_hw_volume_cb;
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
-        u->sink->description = pa_sprintf_malloc("Windows waveOut PCM");
+        pa_sink_set_description(u->sink, "Windows waveOut PCM");
         u->sink->is_hardware = 1;
     } else
         u->sink = NULL;

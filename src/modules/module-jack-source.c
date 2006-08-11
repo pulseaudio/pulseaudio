@@ -243,6 +243,7 @@ int pa__init(pa_core *c, pa_module*m) {
     int do_connect = 1;
     unsigned i;
     const char **ports = NULL, **p;
+    char *t;
     
     assert(c);
     assert(m);
@@ -326,7 +327,8 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->source->userdata = u;
     pa_source_set_owner(u->source, m);
-    u->source->description = pa_sprintf_malloc("Jack source (%s)", jack_get_client_name(u->client));
+    pa_source_set_description(u->source, t = pa_sprintf_malloc("Jack source (%s)", jack_get_client_name(u->client)));
+    pa_xfree(t);
     u->source->get_latency = source_get_latency_cb;
 
     jack_set_process_callback(u->client, jack_process, u);

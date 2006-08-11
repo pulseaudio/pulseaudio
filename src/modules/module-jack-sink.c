@@ -245,6 +245,7 @@ int pa__init(pa_core *c, pa_module*m) {
     int do_connect = 1;
     unsigned i;
     const char **ports = NULL, **p;
+    char *t;
     
     assert(c);
     assert(m);
@@ -328,7 +329,8 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("Jack sink (%s)", jack_get_client_name(u->client));
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Jack sink (%s)", jack_get_client_name(u->client)));
+    pa_xfree(t);
     u->sink->get_latency = sink_get_latency_cb;
 
     jack_set_process_callback(u->client, jack_process, u);

@@ -126,6 +126,8 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
+    char *t;
+    
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -169,8 +171,8 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     u->source->userdata = u;
     pa_source_set_owner(u->source, m);
-    u->source->description = pa_sprintf_malloc("Unix FIFO source '%s'", p);
-    assert(u->source->description);
+    pa_source_set_description(u->source, t = pa_sprintf_malloc("Unix FIFO source '%s'", p));
+    pa_xfree(t);
 
     u->io = pa_iochannel_new(c->mainloop, fd, -1);
     assert(u->io);

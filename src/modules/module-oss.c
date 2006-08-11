@@ -326,7 +326,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
-    char hwdesc[64];
+    char hwdesc[64], *t;
     
     assert(c);
     assert(m);
@@ -413,11 +413,12 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source->get_hw_volume = source_get_hw_volume;
         u->source->set_hw_volume = source_set_hw_volume;
         pa_source_set_owner(u->source, m);
-        u->source->description = pa_sprintf_malloc("OSS PCM on %s%s%s%s",
-                                                   p,
-                                                   hwdesc[0] ? " (" : "",
-                                                   hwdesc[0] ? hwdesc : "",
-                                                   hwdesc[0] ? ")" : "");
+        pa_source_set_description(u->source, t = pa_sprintf_malloc("OSS PCM on %s%s%s%s",
+                                                                 p,
+                                                                 hwdesc[0] ? " (" : "",
+                                                                 hwdesc[0] ? hwdesc : "",
+                                                                 hwdesc[0] ? ")" : ""));
+        pa_xfree(t);
         u->source->is_hardware = 1;
     } else
         u->source = NULL;
@@ -431,11 +432,12 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->set_hw_volume = sink_set_hw_volume;
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
-        u->sink->description = pa_sprintf_malloc("OSS PCM on %s%s%s%s",
-                                                 p,
-                                                 hwdesc[0] ? " (" : "",
-                                                 hwdesc[0] ? hwdesc : "",
-                                                 hwdesc[0] ? ")" : "");
+        pa_sink_set_description(u->sink, pa_sprintf_malloc("OSS PCM on %s%s%s%s",
+                                                           p,
+                                                           hwdesc[0] ? " (" : "",
+                                                           hwdesc[0] ? hwdesc : "",
+                                                           hwdesc[0] ? ")" : ""));
+        pa_xfree(t);
         u->sink->is_hardware = 1;
     } else
         u->sink = NULL;

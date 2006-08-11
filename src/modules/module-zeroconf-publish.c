@@ -185,7 +185,8 @@ static int publish_service(struct userdata *u, struct service *s) {
             txt = avahi_string_list_add_printf(txt, "rate=%u", ss.rate);
             txt = avahi_string_list_add_printf(txt, "channels=%u", ss.channels);
             txt = avahi_string_list_add_pair(txt, "format", pa_sample_format_to_string(ss.format));
-            txt = avahi_string_list_add_pair(txt, "description", description);
+            if (description)
+                txt = avahi_string_list_add_pair(txt, "description", description);
             
             type = s->loaded.type;
         } else if (s->autoload.valid)

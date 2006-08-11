@@ -148,6 +148,8 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
+    char *t;
+    
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -194,8 +196,8 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sink->get_latency = get_latency_cb;
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("Unix FIFO sink '%s'", p);
-    assert(u->sink->description);
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Unix FIFO sink '%s'", p));
+    pa_xfree(t);
 
     u->io = pa_iochannel_new(c->mainloop, -1, fd);
     assert(u->io);
