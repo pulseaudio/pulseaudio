@@ -413,7 +413,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->source->get_hw_volume = source_get_hw_volume;
         u->source->set_hw_volume = source_set_hw_volume;
         pa_source_set_owner(u->source, m);
-        u->source->description = pa_sprintf_malloc("Open Sound System PCM on '%s'%s%s%s",
+        u->source->description = pa_sprintf_malloc("OSS PCM on %s%s%s%s",
                                                    p,
                                                    hwdesc[0] ? " (" : "",
                                                    hwdesc[0] ? hwdesc : "",
@@ -431,7 +431,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->set_hw_volume = sink_set_hw_volume;
         u->sink->userdata = u;
         pa_sink_set_owner(u->sink, m);
-        u->sink->description = pa_sprintf_malloc("Open Sound System PCM on '%s'%s%s%s",
+        u->sink->description = pa_sprintf_malloc("OSS PCM on %s%s%s%s",
                                                  p,
                                                  hwdesc[0] ? " (" : "",
                                                  hwdesc[0] ? hwdesc : "",

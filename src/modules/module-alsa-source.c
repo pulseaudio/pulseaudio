@@ -450,7 +450,7 @@ int pa__init(pa_core *c, pa_module*m) {
         }
     }
     pa_source_set_owner(u->source, m);
-    u->source->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s' (%s)", dev, snd_pcm_info_get_name(pcm_info));
+    u->source->description = pa_sprintf_malloc("ALSA PCM on %s (%s)", dev, snd_pcm_info_get_name(pcm_info));
 
     u->pcm_fdl = pa_alsa_fdlist_new();
     assert(u->pcm_fdl);

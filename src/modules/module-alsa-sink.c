@@ -457,7 +457,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
-    u->sink->description = pa_sprintf_malloc("Advanced Linux Sound Architecture PCM on '%s' (%s)", dev, snd_pcm_info_get_name(pcm_info));
+    u->sink->description = pa_sprintf_malloc("ALSA PCM on %s (%s)", dev, snd_pcm_info_get_name(pcm_info));
 
     u->pcm_fdl = pa_alsa_fdlist_new();
     assert(u->pcm_fdl);
