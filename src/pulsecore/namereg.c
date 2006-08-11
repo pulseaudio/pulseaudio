@@ -45,10 +45,54 @@ struct namereg_entry {
     void *data;
 };
 
+static int is_valid_char(char c) {
+    return
+        (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z') ||
+        (c >= '0' && c <= '9') ||
+        c == '.' ||
+        c == '_';
+}
+
+int pa_namereg_is_valid_name(const char *name) {
+    const char *c;
+
+    if (*name == 0)
+        return 0;
+    
+    for (c = name; *c && (c-name < PA_NAME_MAX); c++)
+        if (!is_valid_char(*c))
+            return 0;
+
+    if (*c)
+        return 0;
+    
+    return 1;
+}
+
+char* pa_namereg_cleanup_name(const char *name) {
+    const char *a;
+    char *b, *n;
+
+    if (*name == 0)
+        return NULL;
+
+    n = pa_xnew(char, strlen(name)+1);
+    
+    for (a = name, b = n; *a && (a-name < PA_NAME_MAX); a++, b++)
+        *b = is_valid_char(*a) ? *a : '_';
+
+    *b = 0;
+
+    return n;
+}
+
 void pa_namereg_free(pa_core *c) {
     assert(c);
+    
     if (!c->namereg)
         return;
+    
     assert(pa_hashmap_size(c->namereg) == 0);
     pa_hashmap_free(c->namereg, NULL, NULL);
 }
@@ -62,54 +106,71 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
     assert(name);
     assert(data);
 
-    /* Don't allow registration of special names */
-    if (*name == '@')
+    if (!*name)
         return NULL;
+    
+    if (!pa_namereg_is_valid_name(name)) {
+        
+        if (fail)
+            return NULL;
 
-    if (!c->namereg) {
-        c->namereg = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-        assert(c->namereg);
+        if (!(name = n = pa_namereg_cleanup_name(name)))
+            return NULL;
     }
 
-    if ((e = pa_hashmap_get(c->namereg, name)) && fail)
-        return NULL;
+    if (!c->namereg)
+        c->namereg = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (!e)
-        n = pa_xstrdup(name);
-    else {
+    if ((e = pa_hashmap_get(c->namereg, name)) && fail) {
+        pa_xfree(n);
+        return NULL;
+    }
+
+    if (e) {
         unsigned i;
         size_t l = strlen(name);
-        n = pa_xmalloc(l+3);
-        
-        for (i = 1; i <= 99; i++) {
-            snprintf(n, l+2, "%s%u", name, i);
+        char *k;
 
-            if (!(e = pa_hashmap_get(c->namereg, n)))
+        if (l+4 > PA_NAME_MAX) {
+            pa_xfree(n);
+            return NULL;
+        }
+        
+        k = pa_xnew(char, l+4);
+        
+        for (i = 2; i <= 99; i++) {
+            snprintf(k, l+4, "%s.%u", name, i);
+
+            if (!(e = pa_hashmap_get(c->namereg, k)))
                 break;
         }
 
         if (e) {
             pa_xfree(n);
+            pa_xfree(k);
             return NULL;
         }
+        
+        pa_xfree(n);
+        n = k;
     }
     
-    assert(n);
-    e = pa_xmalloc(sizeof(struct namereg_entry));
+    e = pa_xnew(struct namereg_entry, 1);
     e->type = type;
-    e->name = n;
+    e->name = n ? n : pa_xstrdup(name);
     e->data = data;
 
     r = pa_hashmap_put(c->namereg, e->name, e);
     assert (r >= 0);
 
     return e->name;
-    
 }
 
 void pa_namereg_unregister(pa_core *c, const char *name) {
     struct namereg_entry *e;
-    assert(c && name);
+    
+    assert(c);
+    assert(name);
 
     e = pa_hashmap_remove(c->namereg, name);
     assert(e);
@@ -178,26 +239,33 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, int a
     return NULL;
 }
 
-void pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type_t type) {
+int pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type_t type) {
     char **s;
-    assert(c && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
+    
+    assert(c);
+    assert(type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE);
 
     s = type == PA_NAMEREG_SINK ? &c->default_sink_name : &c->default_source_name;
-    assert(s);
 
     if (!name && !*s)
-        return;
-    
+        return 0;
+
     if (name && *s && !strcmp(name, *s))
-        return;
+        return 0;
+
+    if (!pa_namereg_is_valid_name(name))
+        return -1;
     
     pa_xfree(*s);
     *s = pa_xstrdup(name);
     pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
+
+    return 0;
 }
 
 const char *pa_namereg_get_default_sink_name(pa_core *c) {
     pa_sink *s;
+    
     assert(c);
 
     if (c->default_sink_name)
@@ -206,10 +274,7 @@ const char *pa_namereg_get_default_sink_name(pa_core *c) {
     if ((s = pa_idxset_first(c->sinks, NULL)))
         pa_namereg_set_default(c, s->name, PA_NAMEREG_SINK);
 
-    if (c->default_sink_name)
-        return c->default_sink_name;
-
-    return NULL;
+    return c->default_sink_name;
 }
 
 const char *pa_namereg_get_default_source_name(pa_core *c) {
@@ -231,8 +296,5 @@ const char *pa_namereg_get_default_source_name(pa_core *c) {
         if ((s = pa_idxset_first(c->sources, NULL)))
             pa_namereg_set_default(c, s->name, PA_NAMEREG_SOURCE);
 
-    if (c->default_source_name)
-        return c->default_source_name;
-
-    return NULL;
+    return c->default_source_name;
 }
