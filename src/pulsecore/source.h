@@ -100,4 +100,7 @@ const pa_cvolume *pa_source_get_volume(pa_source *source, pa_mixer_t m);
 void pa_source_set_mute(pa_source *source, pa_mixer_t m, int mute);
 int pa_source_get_mute(pa_source *source, pa_mixer_t m);
 
+void pa_source_set_description(pa_source *s, const char *description);
+
+
 #endif

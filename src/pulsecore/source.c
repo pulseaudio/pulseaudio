@@ -313,3 +313,19 @@ int pa_source_get_mute(pa_source *s, pa_mixer_t m) {
     } else
         return s->sw_muted;
 }
+
+void pa_source_set_description(pa_source *s, const char *description) {
+    assert(s);
+    assert(s->ref >= 1);
+
+    if (!description && !s->description)
+        return;
+
+    if (description && s->description && !strcmp(description, s->description))
+        return;
+    
+    pa_xfree(s->description);
+    s->description = pa_xstrdup(description);
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}

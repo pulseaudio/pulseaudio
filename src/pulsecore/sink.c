@@ -118,12 +118,19 @@ pa_sink* pa_sink_new(
     pa_sample_spec_snprint(st, sizeof(st), spec);
     pa_log_info(__FILE__": created %u \"%s\" with sample spec \"%s\"", s->index, s->name, st);
 
-    n = pa_sprintf_malloc("%s_monitor", name);
-    s->monitor_source = pa_source_new(core, driver, n, 0, spec, map);
-    assert(s->monitor_source);
+    n = pa_sprintf_malloc("%s.monitor", name);
+    
+    if (!(s->monitor_source = pa_source_new(core, driver, n, 0, spec, map)))
+        pa_log_warn(__FILE__": failed to create monitor source.");
+    else {
+        char *d;
+        s->monitor_source->monitor_of = s;
+        d = pa_sprintf_malloc("Monitor Source of %s", s->name);
+        pa_source_set_description(s->monitor_source, d);
+        pa_xfree(d);
+    }
+
     pa_xfree(n);
-    s->monitor_source->monitor_of = s;
-    s->monitor_source->description = pa_sprintf_malloc("Monitor source of sink '%s'", s->name);
     
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     
@@ -144,7 +151,8 @@ void pa_sink_disconnect(pa_sink* s) {
         j = i;
     }
 
-    pa_source_disconnect(s->monitor_source);
+    if (s->monitor_source)
+        pa_source_disconnect(s->monitor_source);
 
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
 
@@ -168,8 +176,10 @@ static void sink_free(pa_sink *s) {
 
     pa_log_info(__FILE__": freed %u \"%s\"", s->index, s->name); 
 
-    pa_source_unref(s->monitor_source);
-    s->monitor_source = NULL;
+    if (s->monitor_source) {
+        pa_source_unref(s->monitor_source);
+        s->monitor_source = NULL;
+    }
     
     pa_idxset_free(s->inputs, NULL, NULL);
 
@@ -304,7 +314,9 @@ int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     }
 
     inputs_drop(s, info, n, result->length);
-    pa_source_post(s->monitor_source, result);
+
+    if (s->monitor_source)
+        pa_source_post(s->monitor_source, result);
 
     r = 0;
 
@@ -358,7 +370,9 @@ int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
                                 s->sw_muted);
     
     inputs_drop(s, info, n, target->length);
-    pa_source_post(s->monitor_source, target);
+
+    if (s->monitor_source)
+        pa_source_post(s->monitor_source, target);
 
     r = 0;
 
@@ -512,4 +526,28 @@ int pa_sink_get_mute(pa_sink *s, pa_mixer_t m) {
         return s->hw_muted;
     } else
         return s->sw_muted;
+}
+
+void pa_sink_set_description(pa_sink *s, const char *description) {
+    assert(s);
+    assert(s->ref >= 1);
+
+    if (!description && !s->description)
+        return;
+
+    if (description && s->description && !strcmp(description, s->description))
+        return;
+    
+    pa_xfree(s->description);
+    s->description = pa_xstrdup(description);
+
+    if (s->monitor_source) {
+        char *n;
+    
+        n = pa_sprintf_malloc("Monitor Source of %s", s->description? s->description : s->name);
+        pa_source_set_description(s->monitor_source, n);
+        pa_xfree(n);
+    }
+        
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
