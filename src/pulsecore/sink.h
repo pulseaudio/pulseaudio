@@ -48,26 +48,27 @@ struct pa_sink {
     pa_core *core;
     pa_sink_state_t state;
 
-    char *name, *description, *driver;
-    pa_module *owner;
+    char *name;
+    char *description, *driver;            /* may be NULL */
+    int is_hardware;
+
+    pa_module *owner;                      /* may be NULL */
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
     pa_idxset *inputs;
-    pa_source *monitor_source;
+    pa_source *monitor_source;             /* may be NULL */
     
     pa_cvolume hw_volume, sw_volume;
     int hw_muted, sw_muted;
 
-    int is_hardware;
-
-    void (*notify)(pa_sink*sink);
-    pa_usec_t (*get_latency)(pa_sink *s);
-    int (*set_hw_volume)(pa_sink *s);
-    int (*get_hw_volume)(pa_sink *s);
-    int (*set_hw_mute)(pa_sink *s);
-    int (*get_hw_mute)(pa_sink *s);
+    void (*notify)(pa_sink*sink);          /* may be NULL */
+    pa_usec_t (*get_latency)(pa_sink *s);  /* dito */
+    int (*set_hw_volume)(pa_sink *s);      /* dito */
+    int (*get_hw_volume)(pa_sink *s);      /* dito */
+    int (*set_hw_mute)(pa_sink *s);        /* dito */
+    int (*get_hw_mute)(pa_sink *s);        /* dito */
     
     void *userdata;
 };

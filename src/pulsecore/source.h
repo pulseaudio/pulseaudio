@@ -50,26 +50,28 @@ struct pa_source {
     pa_core *core;
     pa_source_state_t state;
     
-    char *name, *description, *driver;
-    pa_module *owner;
+    char *name;
+    char *description, *driver;              /* may be NULL */
+    
+    pa_module *owner;                        /* may be NULL */
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
     pa_idxset *outputs;
-    pa_sink *monitor_of;
+    pa_sink *monitor_of;                     /* may be NULL */
 
     pa_cvolume hw_volume, sw_volume;
     int hw_muted, sw_muted;
 
     int is_hardware;
     
-    void (*notify)(pa_source*source);
-    pa_usec_t (*get_latency)(pa_source *s);
-    int (*set_hw_volume)(pa_source *s);
-    int (*get_hw_volume)(pa_source *s);
-    int (*set_hw_mute)(pa_source *s);
-    int (*get_hw_mute)(pa_source *s);
+    void (*notify)(pa_source*source);        /* may be NULL */
+    pa_usec_t (*get_latency)(pa_source *s);  /* dito */
+    int (*set_hw_volume)(pa_source *s);      /* dito */
+    int (*get_hw_volume)(pa_source *s);      /* dito */ 
+    int (*set_hw_mute)(pa_source *s);        /* dito */
+    int (*get_hw_mute)(pa_source *s);        /* dito */
     
     void *userdata;
 };

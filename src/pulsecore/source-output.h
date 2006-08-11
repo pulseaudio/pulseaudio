@@ -44,20 +44,20 @@ struct pa_source_output {
     uint32_t index;
     pa_source_output_state_t state;
     
-    char *name, *driver;
-    pa_module *owner;
+    char *name, *driver;                  /* may be NULL */
+    pa_module *owner;                     /* may be NULL */
 
     pa_source *source;
-    pa_client *client;
+    pa_client *client;                    /* may be NULL */
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     
     void (*push)(pa_source_output *o, const pa_memchunk *chunk);
-    void (*kill)(pa_source_output* o);
-    pa_usec_t (*get_latency) (pa_source_output *o);
+    void (*kill)(pa_source_output* o);              /* may be NULL */
+    pa_usec_t (*get_latency) (pa_source_output *o); /* may be NULL */
 
-    pa_resampler* resampler;
+    pa_resampler* resampler;              /* may be NULL */
     pa_resample_method_t resample_method;
     
     void *userdata;

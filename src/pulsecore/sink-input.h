@@ -45,11 +45,11 @@ struct pa_sink_input {
     uint32_t index;
     pa_sink_input_state_t state;
     
-    char *name, *driver;
-    pa_module *owner;
+    char *name, *driver;                /* may be NULL */
+    pa_module *owner;                   /* may be NULL */  
 
     pa_sink *sink;
-    pa_client *client;
+    pa_client *client;                  /* may be NULL */
     
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
@@ -63,19 +63,19 @@ struct pa_sink_input {
     
     int (*peek) (pa_sink_input *i, pa_memchunk *chunk);
     void (*drop) (pa_sink_input *i, const pa_memchunk *chunk, size_t length);
-    void (*kill) (pa_sink_input *i);
-    pa_usec_t (*get_latency) (pa_sink_input *i);
-    void (*underrun) (pa_sink_input *i);
+    void (*kill) (pa_sink_input *i);             /* may be NULL */
+    pa_usec_t (*get_latency) (pa_sink_input *i); /* may be NULL */
+    void (*underrun) (pa_sink_input *i);         /* may be NULL */
 
     void *userdata;
 
     pa_memchunk resampled_chunk;
-    pa_resampler *resampler;
+    pa_resampler *resampler;                     /* may be NULL */
 
     int variable_rate;
     pa_resample_method_t resample_method;
 
-    pa_memblock *silence_memblock;
+    pa_memblock *silence_memblock;               /* may be NULL */
 };
 
 pa_sink_input* pa_sink_input_new(
