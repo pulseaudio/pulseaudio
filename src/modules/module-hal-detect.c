@@ -104,6 +104,14 @@ static void hal_device_free_cb(void *d, PA_GCC_UNUSED void *data) {
     hal_device_free((struct device*) d);
 }
 
+static const char *strip_udi(const char *udi) {
+    const char *slash;
+    if ((slash = strrchr(udi, '/')))
+        return slash+1;
+
+    return udi;
+}
+
 #ifdef HAVE_ALSA
 typedef enum {
     ALSA_TYPE_SINK,
@@ -166,9 +174,14 @@ static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi,
     if (dbus_error_is_set(error))
         return NULL;
 
-    module_name = (type == ALSA_TYPE_SINK) ? "module-alsa-sink"
-                                           : "module-alsa-source";
-    snprintf(args, sizeof(args), "device=hw:%u", card);
+    if (type == ALSA_TYPE_SINK) {
+        module_name = "module-alsa-sink";
+        snprintf(args, sizeof(args), "device=hw:%u sink_name=alsa_output.%s", card, strip_udi(udi));
+    } else {
+        module_name = "module-alsa-source";
+        snprintf(args, sizeof(args), "device=hw:%u source_name=alsa_input.%s", card, strip_udi(udi));
+    }
+        
     return pa_module_load(u->core, module_name, args);
 }
 
@@ -216,7 +229,7 @@ static pa_module* hal_device_load_oss(struct userdata *u, const char *udi,
     if (!device || dbus_error_is_set(error))
         return NULL;
 
-    snprintf(args, sizeof(args), "device=%s", device);
+    snprintf(args, sizeof(args), "device=%s sink_name=oss_output.%s source_name=oss_input.%s", device, strip_udi(udi), strip_udi(udi));
     libhal_free_string(device);
 
     return pa_module_load(u->core, "module-oss", args);
