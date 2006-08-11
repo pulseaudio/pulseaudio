@@ -54,7 +54,7 @@ static int is_valid_char(char c) {
         c == '_';
 }
 
-int pa_namereg_is_valid_name(const char *name) {
+static int is_valid_name(const char *name) {
     const char *c;
 
     if (*name == 0)
@@ -70,7 +70,7 @@ int pa_namereg_is_valid_name(const char *name) {
     return 1;
 }
 
-char* pa_namereg_cleanup_name(const char *name) {
+static char* cleanup_name(const char *name) {
     const char *a;
     char *b, *n;
 
@@ -109,12 +109,13 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
     if (!*name)
         return NULL;
     
-    if (!pa_namereg_is_valid_name(name)) {
+    if ((type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE) &&
+        !is_valid_name(name) ) {
         
         if (fail)
             return NULL;
 
-        if (!(name = n = pa_namereg_cleanup_name(name)))
+        if (!(name = n = cleanup_name(name)))
             return NULL;
     }
 
@@ -253,7 +254,7 @@ int pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type_t type) 
     if (name && *s && !strcmp(name, *s))
         return 0;
 
-    if (!pa_namereg_is_valid_name(name))
+    if (!is_valid_name(name))
         return -1;
     
     pa_xfree(*s);

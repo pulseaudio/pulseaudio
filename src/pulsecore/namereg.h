@@ -34,10 +34,6 @@ typedef enum pa_namereg_type {
 
 void pa_namereg_free(pa_core *c);
 
-int pa_namereg_is_valid_name(const char *name);
-
-char* pa_namereg_cleanup_name(const char *name);
-
 const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, int fail);
 void pa_namereg_unregister(pa_core *c, const char *name);
 void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, int autoload);
