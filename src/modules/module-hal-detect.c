@@ -52,20 +52,24 @@ PA_MODULE_AUTHOR("Shahms King")
 PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 
-static const char*const capabilities[] = { "alsa", "oss" };
-
 typedef enum {
+#ifdef HAVE_ALSA
     CAP_ALSA,
+#endif
+#ifdef HAVE_OSS
     CAP_OSS,
+#endif    
     CAP_MAX
 } capability_t;
 
-typedef enum {
-    ALSA_TYPE_SINK,
-    ALSA_TYPE_SOURCE,
-    ALSA_TYPE_OTHER,
-    ALSA_TYPE_MAX
-} alsa_type_t;
+static const char* const capabilities[CAP_MAX] = {
+#ifdef HAVE_ALSA
+    [CAP_ALSA] = "alsa",
+#endif
+#ifdef HAVE_OSS
+    [CAP_OSS] = "oss",
+#endif
+};
 
 struct device {
     uint32_t index;
@@ -99,6 +103,14 @@ static void hal_device_free(struct device* d) {
 static void hal_device_free_cb(void *d, PA_GCC_UNUSED void *data) {
     hal_device_free((struct device*) d);
 }
+
+#ifdef HAVE_ALSA
+typedef enum {
+    ALSA_TYPE_SINK,
+    ALSA_TYPE_SOURCE,
+    ALSA_TYPE_OTHER,
+    ALSA_TYPE_MAX
+} alsa_type_t;
 
 static alsa_type_t hal_device_get_alsa_type(LibHalContext *ctx, const char *udi,
                                             DBusError *error)
@@ -160,6 +172,9 @@ static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi,
     return pa_module_load(u->core, module_name, args);
 }
 
+#endif
+
+#ifdef HAVE_OSS
 static dbus_bool_t hal_device_is_oss_pcm(LibHalContext *ctx, const char *udi,
                                          DBusError *error)
 {
@@ -206,6 +221,7 @@ static pa_module* hal_device_load_oss(struct userdata *u, const char *udi,
 
     return pa_module_load(u->core, "module-oss", args);
 }
+#endif
 
 static dbus_bool_t hal_device_add(struct userdata *u, const char *udi,
                                   DBusError *error)
@@ -214,12 +230,16 @@ static dbus_bool_t hal_device_add(struct userdata *u, const char *udi,
     struct device *d;
 
     switch(u->capability) {
+#ifdef HAVE_ALSA
         case CAP_ALSA:
             m = hal_device_load_alsa(u, udi, error);
             break;
+#endif
+#ifdef HAVE_OSS
         case CAP_OSS:
             m = hal_device_load_oss(u, udi, error);
             break;
+#endif
         default:
             assert(FALSE); /* never reached */
             break;
@@ -475,10 +495,10 @@ int pa__init(pa_core *c, pa_module*m) {
                                 pa_idxset_string_compare_func);
     m->userdata = (void*) u;
 
-#if HAVE_ALSA
+#ifdef HAVE_ALSA
     if ((n = hal_device_add_all(u, CAP_ALSA)) <= 0)
 #endif
-#if HAVE_OSS
+#ifdef HAVE_OSS
     if ((n = hal_device_add_all(u, CAP_OSS)) <= 0)
 #endif
     {
