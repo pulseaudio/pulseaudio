@@ -208,6 +208,12 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 void pa_source_output_set_name(pa_source_output *o, const char *name) {
     assert(o);
     assert(o->ref >= 1);
+
+    if (!o->name && !name)
+        return;
+
+    if (o->name && name && !strcmp(o->name, name))
+        return;
     
     pa_xfree(o->name);
     o->name = pa_xstrdup(name);

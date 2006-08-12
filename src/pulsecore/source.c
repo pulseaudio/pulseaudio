@@ -225,8 +225,12 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 void pa_source_set_owner(pa_source *s, pa_module *m) {
     assert(s);
     assert(s->ref >= 1);
+
+    if (m == s->owner)
+        return;
     
     s->owner = m;
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 pa_usec_t pa_source_get_latency(pa_source *s) {

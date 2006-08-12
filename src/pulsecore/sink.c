@@ -446,11 +446,16 @@ pa_usec_t pa_sink_get_latency(pa_sink *s) {
 void pa_sink_set_owner(pa_sink *s, pa_module *m) {
     assert(s);
     assert(s->ref >= 1);
-           
+
+    if (s->owner == m)
+        return;
+    
     s->owner = m;
 
     if (s->monitor_source)
         pa_source_set_owner(s->monitor_source, m);
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 void pa_sink_set_volume(pa_sink *s, pa_mixer_t m, const pa_cvolume *volume) {

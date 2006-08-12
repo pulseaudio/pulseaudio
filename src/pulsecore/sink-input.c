@@ -437,6 +437,12 @@ void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
     assert(i);
     assert(i->ref >= 1);
 
+    if (!i->name && !name)
+        return;
+
+    if (i->name && name && !strcmp(i->name, name))
+        return;
+    
     pa_xfree(i->name);
     i->name = pa_xstrdup(name);
 
