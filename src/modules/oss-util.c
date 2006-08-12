@@ -98,6 +98,8 @@ fail:
 
 int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
     int format, channels, speed, reqformat;
+    pa_sample_format_t orig_format;
+    
     static const int format_trans[PA_SAMPLE_MAX] = {
         [PA_SAMPLE_U8] = AFMT_U8,
         [PA_SAMPLE_ALAW] = AFMT_A_LAW,
@@ -110,6 +112,8 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
 
     assert(fd >= 0 && ss);
 
+    orig_format = ss->format;
+    
     reqformat = format = format_trans[ss->format];
     if (reqformat == AFMT_QUERY || ioctl(fd, SNDCTL_DSP_SETFMT, &format) < 0 || format != reqformat) {
         format = AFMT_S16_NE;
@@ -128,22 +132,38 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         } else
             ss->format = PA_SAMPLE_S16NE;
     }
-        
+
+    if (orig_format != ss->format)
+        pa_log_warn(__FILE__": device doesn't support sample format %s, changed to %s.",
+               pa_sample_format_to_string(orig_format),
+               pa_sample_format_to_string(ss->format));
+    
     channels = ss->channels;
     if (ioctl(fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {
         pa_log(__FILE__": SNDCTL_DSP_CHANNELS: %s", pa_cstrerror(errno));
         return -1;
     }
-    assert(channels);
-    ss->channels = channels;
+    assert(channels > 0);
+
+    if (ss->channels != channels) {
+        pa_log_warn(__FILE__": device doesn't support %i channels, using %i channels.", ss->channels, channels);
+        ss->channels = channels;
+    }
 
     speed = ss->rate;
     if (ioctl(fd, SNDCTL_DSP_SPEED, &speed) < 0) {
         pa_log(__FILE__": SNDCTL_DSP_SPEED: %s", pa_cstrerror(errno));
         return -1;
     }
-    assert(speed);
-    ss->rate = speed;
+    assert(speed > 0);
+
+    if (ss->rate != (unsigned) speed) {
+        pa_log_warn(__FILE__": device doesn't support %i Hz, changed to %i Hz.", ss->rate, speed);
+
+        /* If the sample rate deviates too much, we need to resample */
+        if (speed < ss->rate*.95 || speed > ss->rate*1.05)
+            ss->rate = speed;
+    }
 
     return 0;
 }
