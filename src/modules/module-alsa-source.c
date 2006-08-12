@@ -91,8 +91,7 @@ static const char* const valid_modargs[] = {
 #define DEFAULT_DEVICE "default"
 
 static void update_usage(struct userdata *u) {
-   pa_module_set_used(u->module,
-                      (u->source ? pa_idxset_size(u->source->outputs) : 0));
+   pa_module_set_used(u->module, u->source ? pa_source_used_by(u->source) : 0);
 }
 
 static void clear_up(struct userdata *u) {

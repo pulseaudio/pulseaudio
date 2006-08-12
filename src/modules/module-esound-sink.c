@@ -142,7 +142,7 @@ static int do_write(struct userdata *u) {
             u->write_index = u->write_length = 0;
         }
     } else if (u->state == STATE_RUNNING) {
-        pa_module_set_used(u->module, pa_idxset_size(u->sink->inputs) + pa_idxset_size(u->sink->monitor_source->outputs));
+        pa_module_set_used(u->module, pa_sink_used_by(u->sink));
         
         if (!u->memchunk.length)
             if (pa_sink_render(u->sink, 8192, &u->memchunk) < 0)

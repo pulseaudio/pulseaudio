@@ -91,7 +91,7 @@ static void do_write(struct userdata *u) {
     if (!pa_iochannel_is_writable(u->io))
         return;
 
-    pa_module_set_used(u->module, pa_idxset_size(u->sink->inputs) + pa_idxset_size(u->sink->monitor_source->outputs));
+    pa_module_set_used(u->module, pa_sink_used_by(u->sink));
     
     if (!u->memchunk.length)
         if (pa_sink_render(u->sink, PIPE_BUF, &u->memchunk) < 0)

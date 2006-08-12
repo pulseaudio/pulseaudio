@@ -103,9 +103,8 @@ static const char* const valid_modargs[] = {
 
 static void update_usage(struct userdata *u) {
    pa_module_set_used(u->module,
-                      (u->sink ? pa_idxset_size(u->sink->inputs) : 0) +
-                      (u->sink ? pa_idxset_size(u->sink->monitor_source->outputs) : 0) +
-                      (u->source ? pa_idxset_size(u->source->outputs) : 0));
+                      (u->sink ? pa_sink_used_by(u->sink) : 0) +
+                      (u->source ? pa_source_used_by(u->source) : 0));
 }
 
 static void do_write(struct userdata *u)
