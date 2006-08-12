@@ -28,7 +28,9 @@ typedef struct pa_subscription_event pa_subscription_event;
 #include <pulsecore/core.h>
 #include <pulsecore/native-common.h>
 
-pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m,  void (*callback)(pa_core *c, pa_subscription_event_type_t t, uint32_t index, void *userdata), void *userdata);
+typedef void (*pa_subscription_cb_t)(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata);
+
+pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m,  pa_subscription_cb_t cb, void *userdata);
 void pa_subscription_free(pa_subscription*s);
 void pa_subscription_free_all(pa_core *c);
 

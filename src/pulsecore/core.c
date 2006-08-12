@@ -74,8 +74,9 @@ pa_core* pa_core_new(pa_mainloop_api *m) {
     c->scache_auto_unload_event = NULL;
 
     c->subscription_defer_event = NULL;
-    c->subscription_event_queue = NULL;
-    c->subscriptions = NULL;
+    PA_LLIST_HEAD_INIT(pa_subscription, c->subscriptions);
+    PA_LLIST_HEAD_INIT(pa_subscription_event, c->subscription_event_queue);
+    c->subscription_event_last = NULL;
 
     c->memblock_stat = pa_memblock_stat_new();
 

@@ -24,14 +24,15 @@
 
 typedef struct pa_core pa_core;
 
-#include <pulsecore/idxset.h>
-#include <pulsecore/hashmap.h>
 #include <pulse/mainloop-api.h>
 #include <pulse/sample.h>
+#include <pulsecore/idxset.h>
+#include <pulsecore/hashmap.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/resampler.h>
 #include <pulsecore/queue.h>
 #include <pulsecore/core-subscribe.h>
+#include <pulsecore/llist.h>
 
 /* The core structure of PulseAudio. Every PulseAudio daemon contains
  * exactly one of these. It is used for storing kind of global
@@ -58,8 +59,9 @@ struct pa_core {
     pa_defer_event *module_defer_unload_event;
 
     pa_defer_event *subscription_defer_event;
-    pa_queue *subscription_event_queue;
-    pa_subscription *subscriptions;
+    PA_LLIST_HEAD(pa_subscription, subscriptions);
+    PA_LLIST_HEAD(pa_subscription_event, subscription_event_queue);
+    pa_subscription_event *subscription_event_last;
 
     pa_memblock_stat *memblock_stat;
 
