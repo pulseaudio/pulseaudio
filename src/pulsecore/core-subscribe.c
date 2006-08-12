@@ -209,6 +209,10 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
     pa_subscription_event *e;
     assert(c);
 
+    /* No need for queuing subscriptions of noone is listening */
+    if (!c->subscriptions)
+        return;
+    
     if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_NEW) {
         pa_subscription_event *i, *n;
         
