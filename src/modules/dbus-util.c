@@ -175,7 +175,7 @@ static dbus_bool_t add_timeout(DBusTimeout *timeout, void *data)
     if (!dbus_timeout_get_enabled(timeout))
         return FALSE;
 
-    if (pa_gettimeofday(&tv) < 0)
+    if (!pa_gettimeofday(&tv))
         return -1;
 
     pa_timeval_add(&tv, dbus_timeout_get_interval(timeout) * 1000);
