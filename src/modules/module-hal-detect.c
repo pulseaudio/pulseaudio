@@ -157,7 +157,7 @@ static int hal_device_get_alsa_device(LibHalContext *ctx, const char *udi,
 static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi,
                                        DBusError  *error)
 {
-    char args[64];
+    char args[128];
     alsa_type_t type;
     int device, card;
     const char *module_name;
@@ -218,7 +218,7 @@ exit:
 static pa_module* hal_device_load_oss(struct userdata *u, const char *udi,
                                       DBusError  *error)
 {
-    char args[128];
+    char args[256];
     char* device;
 
     if (!hal_device_is_oss_pcm(u->ctx, udi, error) || dbus_error_is_set(error))
