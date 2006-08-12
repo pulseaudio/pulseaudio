@@ -87,7 +87,6 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-#define DEFAULT_SINK_NAME "alsa_output"
 #define DEFAULT_DEVICE "default"
 
 static void update_usage(struct userdata *u) {
@@ -367,6 +366,9 @@ int pa__init(pa_core *c, pa_module*m) {
     snd_pcm_info_t *pcm_info = NULL;
     int err;
     char *t;
+    const char *name;
+    char *name_buf = NULL;
+    int namereg_fail;
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": failed to parse module arguments");
@@ -427,7 +429,14 @@ int pa__init(pa_core *c, pa_module*m) {
         u->mixer_handle = NULL;
     }
 
-    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
+    if ((name = pa_modargs_get_value(ma, "sink_name", NULL)))
+        namereg_fail = 1;
+    else {
+        name = name_buf = pa_sprintf_malloc("alsa_output.%s", dev);
+        namereg_fail = 0;
+    }
+
+    if (!(u->sink = pa_sink_new(c, __FILE__, name, namereg_fail, &ss, &map))) {
         pa_log(__FILE__": Failed to create sink object");
         goto fail;
     }
@@ -502,6 +511,9 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->get_hw_mute(u->sink);
      
 finish:
+
+    pa_xfree(name_buf);
+    
      if (ma)
          pa_modargs_free(ma);
 
