@@ -556,3 +556,17 @@ void pa_sink_set_description(pa_sink *s, const char *description) {
         
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
+
+unsigned pa_sink_used_by(pa_sink *s) {
+    unsigned ret;
+
+    assert(s);
+    assert(s->ref >= 1);
+
+    ret = pa_idxset_size(s->inputs);
+
+    if (s->monitor_source)
+        ret += pa_source_used_by(s->monitor_source);
+
+    return ret;
+}

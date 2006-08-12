@@ -104,5 +104,5 @@ int pa_source_get_mute(pa_source *source, pa_mixer_t m);
 
 void pa_source_set_description(pa_source *s, const char *description);
 
-
+unsigned pa_source_used_by(pa_source *s);
 #endif

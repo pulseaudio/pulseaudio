@@ -333,3 +333,10 @@ void pa_source_set_description(pa_source *s, const char *description) {
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
+
+unsigned pa_source_used_by(pa_source *s) {
+    assert(s);
+    assert(s->ref >= 1);
+
+    return pa_idxset_size(s->outputs);
+}

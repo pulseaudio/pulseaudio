@@ -103,4 +103,6 @@ int pa_sink_get_mute(pa_sink *sink, pa_mixer_t m);
 
 void pa_sink_set_description(pa_sink *s, const char *description);
 
+unsigned pa_sink_used_by(pa_sink *s);
+
 #endif
