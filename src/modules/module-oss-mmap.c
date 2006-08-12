@@ -117,6 +117,42 @@ static void update_usage(struct userdata *u) {
                       (u->source ? pa_idxset_size(u->source->outputs) : 0));
 }
 
+static void clear_up(struct userdata *u) {
+    assert(u);
+
+    if (u->sink) {
+        pa_sink_disconnect(u->sink);
+        pa_sink_unref(u->sink);
+        u->sink = NULL;
+    }
+    
+    if (u->source) {
+        pa_source_disconnect(u->source);
+        pa_source_unref(u->source);
+        u->source = NULL;
+    }
+
+    if (u->in_mmap && u->in_mmap != MAP_FAILED) {
+        munmap(u->in_mmap, u->in_mmap_length);
+        u->in_mmap = NULL;
+    }
+    
+    if (u->out_mmap && u->out_mmap != MAP_FAILED) {
+        munmap(u->out_mmap, u->out_mmap_length);
+        u->out_mmap = NULL;
+    }
+    
+    if (u->io_event) {
+        u->core->mainloop->io_free(u->io_event);
+        u->io_event = NULL;
+    }
+
+    if (u->fd >= 0) {
+        close(u->fd);
+        u->fd = -1;
+    }
+}
+
 static void out_fill_memblocks(struct userdata *u, unsigned n) {
     assert(u && u->out_memblocks);
     
@@ -154,6 +190,9 @@ static void do_write(struct userdata *u) {
     
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
         pa_log(__FILE__": SNDCTL_DSP_GETOPTR: %s", pa_cstrerror(errno));
+
+        clear_up(u);
+        pa_module_unload_request(u->module);
         return;
     }
 
@@ -217,6 +256,9 @@ static void do_read(struct userdata *u) {
     
     if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
         pa_log(__FILE__": SNDCTL_DSP_GETIPTR: %s", pa_cstrerror(errno));
+
+        clear_up(u);
+        pa_module_unload_request(u->module);
         return;
     }
 
@@ -233,6 +275,12 @@ static void do_read(struct userdata *u) {
 static void io_callback(pa_mainloop_api *m, pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags_t f, void *userdata) {
     struct userdata *u = userdata;
     assert (u && u->core->mainloop == m && u->io_event == e);
+
+    if (f & PA_IO_EVENT_ERROR) {
+        clear_up(u);
+        pa_module_unload_request(u->module);
+        return;
+    }
 
     if (f & PA_IO_EVENT_INPUT)
         do_read(u);
@@ -393,7 +441,7 @@ int pa__init(pa_core *c, pa_module*m) {
     if ((u->fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, &caps)) < 0)
         goto fail;
 
-    if (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_REALTIME) || !(caps & DSP_CAP_TRIGGER)) {
+    if (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_TRIGGER)) {
         pa_log(__FILE__": OSS device not mmap capable.");
         goto fail;
     }
@@ -539,6 +587,8 @@ void pa__done(pa_core *c, pa_module*m) {
     if (!(u = m->userdata))
         return;
 
+    clear_up(u);
+
     if (u->out_memblocks) {
         unsigned i;
         for (i = 0; i < u->out_fragments; i++)
@@ -555,27 +605,5 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_xfree(u->in_memblocks);
     }
     
-    if (u->in_mmap && u->in_mmap != MAP_FAILED)
-        munmap(u->in_mmap, u->in_mmap_length);
-    
-    if (u->out_mmap && u->out_mmap != MAP_FAILED)
-        munmap(u->out_mmap, u->out_mmap_length);
-    
-    if (u->sink) {
-        pa_sink_disconnect(u->sink);
-        pa_sink_unref(u->sink);
-    }
-
-    if (u->source) {
-        pa_source_disconnect(u->source);
-        pa_source_unref(u->source);
-    }
-
-    if (u->io_event)
-        u->core->mainloop->io_free(u->io_event);
-
-    if (u->fd >= 0)
-        close(u->fd);
-
     pa_xfree(u);
 }

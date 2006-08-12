@@ -107,6 +107,27 @@ static void update_usage(struct userdata *u) {
                       (u->source ? pa_idxset_size(u->source->outputs) : 0));
 }
 
+static void clear_up(struct userdata *u) {
+    assert(u);
+    
+    if (u->sink) {
+        pa_sink_disconnect(u->sink);
+        pa_sink_unref(u->sink);
+        u->sink = NULL;
+    }
+    
+    if (u->source) {
+        pa_source_disconnect(u->source);
+        pa_source_unref(u->source);
+        u->source = NULL;
+    }
+
+    if (u->io) {
+        pa_iochannel_free(u->io);
+        u->io = NULL;
+    }
+}
+
 static void do_write(struct userdata *u) {
     pa_memchunk *memchunk;
     ssize_t r;
@@ -148,6 +169,9 @@ static void do_write(struct userdata *u) {
         
         if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
             pa_log(__FILE__": write() failed: %s", pa_cstrerror(errno));
+
+            clear_up(u);
+            pa_module_unload_request(u->module);
             break;
         }
         
@@ -199,8 +223,11 @@ static void do_read(struct userdata *u) {
         assert(memchunk.memblock);
         if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
             pa_memblock_unref(memchunk.memblock);
-            if (errno != EAGAIN)
+            if (errno != EAGAIN) {
                 pa_log(__FILE__": read() failed: %s", pa_cstrerror(errno));
+                clear_up(u);
+                pa_module_unload_request(u->module);
+            }
             break;
         }
         
@@ -501,22 +528,13 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+    clear_up(u);
     
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
     if (u->silence.memblock)
         pa_memblock_unref(u->silence.memblock);
 
-    if (u->sink) {
-        pa_sink_disconnect(u->sink);
-        pa_sink_unref(u->sink);
-    }
-    
-    if (u->source) {
-        pa_source_disconnect(u->source);
-        pa_source_unref(u->source);
-    }
-    
-    pa_iochannel_free(u->io);
     pa_xfree(u);
 }
