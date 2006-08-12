@@ -24,7 +24,7 @@
 
 #include <pulsecore/core.h>
 
-#define PA_NAME_MAX 64
+#define PA_NAME_MAX 128
 
 typedef enum pa_namereg_type {
     PA_NAMEREG_SINK,
