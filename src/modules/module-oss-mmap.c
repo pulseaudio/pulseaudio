@@ -37,6 +37,7 @@
 #include <sys/mman.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/util.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/iochannel.h>
@@ -104,8 +105,6 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-#define DEFAULT_SINK_NAME "oss_output"
-#define DEFAULT_SOURCE_NAME "oss_input"
 #define DEFAULT_DEVICE "/dev/dsp"
 #define DEFAULT_NFRAGS 12
 #define DEFAULT_FRAGSIZE 1024
@@ -399,6 +398,9 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_modargs *ma = NULL;
     char hwdesc[64], *t;
     pa_channel_map map;
+    const char *name;
+    char *name_buf = NULL;
+    int namereg_fail;
 
     assert(c);
     assert(m);
@@ -478,8 +480,14 @@ int pa__init(pa_core *c, pa_module*m) {
                 goto fail;
             }
         } else {
-        
-            if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &u->sample_spec, &map)))
+            if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
+                namereg_fail = 1;
+            else {
+                name = name_buf = pa_sprintf_malloc("oss_input.%s", pa_path_get_filename(p));
+                namereg_fail = 0;
+            }
+
+            if (!(u->source = pa_source_new(c, __FILE__, name, namereg_fail, &u->sample_spec, &map)))
                 goto fail;
             
             u->source->userdata = u;
@@ -501,6 +509,9 @@ int pa__init(pa_core *c, pa_module*m) {
         }
     }
 
+    pa_xfree(name_buf);
+    name_buf = NULL;
+    
     if (mode != O_RDONLY) {
         if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
             pa_log(__FILE__": SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
@@ -520,8 +531,15 @@ int pa__init(pa_core *c, pa_module*m) {
             }
         } else {
             pa_silence_memory(u->out_mmap, u->out_mmap_length, &u->sample_spec);
+
+            if ((name = pa_modargs_get_value(ma, "sink_name", NULL)))
+                namereg_fail = 1;
+            else {
+                name = name_buf = pa_sprintf_malloc("oss_output.%s", pa_path_get_filename(p));
+                namereg_fail = 0;
+            }
             
-            if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &u->sample_spec, &map)))
+            if (!(u->sink = pa_sink_new(c, __FILE__, name, namereg_fail, &u->sample_spec, &map)))
                 goto fail;
 
             u->sink->get_latency = sink_get_latency_cb;
@@ -543,6 +561,9 @@ int pa__init(pa_core *c, pa_module*m) {
         }
     }
 
+    pa_xfree(name_buf);
+    name_buf = NULL;
+    
     zero = 0;
     if (ioctl(u->fd, SNDCTL_DSP_SETTRIGGER, &zero) < 0) {
         pa_log(__FILE__": SNDCTL_DSP_SETTRIGGER: %s", pa_cstrerror(errno));
@@ -574,6 +595,8 @@ fail:
 
     if (ma)
         pa_modargs_free(ma);
+
+    pa_xfree(name_buf);
     
     return -1;
 }
