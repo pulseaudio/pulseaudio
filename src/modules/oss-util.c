@@ -42,8 +42,13 @@
 
 int pa_oss_open(const char *device, int *mode, int* pcaps) {
     int fd = -1;
+    int caps;
+
     assert(device && mode && (*mode == O_RDWR || *mode == O_RDONLY || *mode == O_WRONLY));
 
+    if(!pcaps)
+        pcaps = &caps;
+    
     if (*mode == O_RDWR) {
         if ((fd = open(device, O_RDWR|O_NDELAY)) >= 0) {
             int dcaps, *tcaps;
@@ -79,12 +84,52 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
 
 success:
 
-    if (pcaps) {
-        if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
-            pa_log(__FILE__": SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
-            goto fail;
-        }
+    *pcaps = 0;
+    
+    if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
+        pa_log(__FILE__": SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
+        goto fail;
     }
+    
+    pa_log_debug(__FILE__": capabilities:%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+                 *pcaps & DSP_CAP_BATCH ? " BATCH" : "",
+                 *pcaps & DSP_CAP_BIND ? " BIND" : "",
+                 *pcaps & DSP_CAP_COPROC ? " COPROC" : "",
+                 *pcaps & DSP_CAP_DUPLEX ? " DUPLEX" : "",
+#ifdef DSP_CAP_FREERATE                     
+                 *pcaps & DSP_CAP_FREERATE ? " FREERATE" : "",
+#else
+                 "",
+#endif
+#ifdef DSP_CAP_INPUT
+                 *pcaps & DSP_CAP_INPUT ? " INPUT" : "",
+#else
+                 "",
+#endif
+                 *pcaps & DSP_CAP_MMAP ? " MMAP" : "",
+#ifdef DSP_CAP_MODEM
+                 *pcaps & DSP_CAP_MODEM ? " MODEM" : "",
+#else
+                 "",
+#endif
+                 *pcaps & DSP_CAP_MULTI ? " MULTI" : "",
+#ifdef DSP_CAP_OUTPUT
+                 *pcaps & DSP_CAP_OUTPUT ? " OUTPUT" : "",
+#else
+                 "",
+#endif
+                 *pcaps & DSP_CAP_REALTIME ? " REALTIME" : "",
+#ifdef DSP_CAP_SHADOW
+                 *pcaps & DSP_CAP_SHADOW ? " SHADOW" : "",
+#else
+                 "",
+#endif
+#ifdef DSP_CAP_VIRTUAL
+                 *pcaps & DSP_CAP_VIRTUAL ? " VIRTUAL" : "",
+#else
+                 "",
+#endif
+                 *pcaps & DSP_CAP_TRIGGER ? " TRIGGER" : "");
 
     pa_fd_set_cloexec(fd, 1);
     
