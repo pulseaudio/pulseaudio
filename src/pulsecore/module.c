@@ -223,8 +223,8 @@ static void free_callback(void *p, PA_GCC_UNUSED void *userdata) {
 }
 
 void pa_module_unload_all(pa_core *c) {
-    assert(c);
     pa_module *m;
+    assert(c);
 
     if (!c->modules)
         return;
