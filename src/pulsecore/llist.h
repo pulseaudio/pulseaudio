@@ -73,7 +73,24 @@ do { \
     assert(_head); \
     while ((*_head)->prev) \
         *_head = (*_head)->prev; \
-} while (0) \
+} while (0) 
 
+#define PA_LLIST_INSERT_AFTER(t,head,a,b) \
+do { \
+    t **_head = &(head), *_a = (a), *_b = (b); \
+    assert(_b); \
+    if (!_a) { \
+        if ((_b->next = *_head)) \
+            _b->next->prev = _b; \
+        _b->prev = NULL; \
+        *_head = _b; \
+    } else { \
+        if ((_b->next = _a->next)) \
+            _b->next->prev = _b; \
+        _b->prev = _a; \
+        _a->next = _b; \
+    } \
+} while (0) 
+    
 
 #endif
