@@ -22,6 +22,8 @@
   USA.
 ***/
 
+#include <assert.h>
+
 /* Some macros for maintaining doubly linked lists */
 
 /* The head of the linked list. Use this in the structure that shall

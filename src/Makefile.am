@@ -196,7 +196,8 @@ noinst_PROGRAMS = \
 		thread-mainloop-test \
 		utf8-test \
 		get-binary-name-test \
-		ipacl-test
+		ipacl-test \
+		hook-list-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -235,6 +236,11 @@ ipacl_test_SOURCES = tests/ipacl-test.c \
 ipacl_test_CFLAGS = $(AM_CFLAGS)
 ipacl_test_LDADD = $(AM_LDADD) libpulsecore.la
 ipacl_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+hook_list_test_SOURCES = tests/hook-list-test.c
+hook_list_test_CFLAGS = $(AM_CFLAGS)
+hook_list_test_LDADD = $(AM_LDADD) libpulsecore.la
+hook_list_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
