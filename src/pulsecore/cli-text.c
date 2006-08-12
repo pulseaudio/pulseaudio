@@ -109,7 +109,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->driver,
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, PA_MIXER_HARDWARE)),
             (double) pa_sink_get_latency(sink),
-            sink->monitor_source->index,
+            sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
             pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map));
 
