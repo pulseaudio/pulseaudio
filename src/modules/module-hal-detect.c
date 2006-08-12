@@ -192,26 +192,33 @@ static dbus_bool_t hal_device_is_oss_pcm(LibHalContext *ctx, const char *udi,
                                          DBusError *error)
 {
     dbus_bool_t rv = FALSE;
-    char* device;
-    char* type;
+    char* type, *device_file = NULL;
+    int device;
 
     type = libhal_device_get_property_string(ctx, udi, "oss.type", error);
     if (!type || dbus_error_is_set(error))
         return FALSE;
-
+    
     if (!strcmp(type, "pcm")) {
-        device = libhal_device_get_property_string(ctx, udi, "oss.device_file",
+        char *e;
+
+        device = libhal_device_get_property_int(ctx, udi, "oss.device", error);
+        if (dbus_error_is_set(error) || device != 0)
+            goto exit;
+
+        device_file = libhal_device_get_property_string(ctx, udi, "oss.device_file",
                                                    error);
-        if (!device || dbus_error_is_set(error))
+        if (!device_file || dbus_error_is_set(error))
             goto exit;
 
         /* hack to ignore /dev/audio style devices */
-        if ((device = strrchr(device, '/')))
-            rv = (pa_startswith(device + 1, "audio")) ? FALSE : TRUE;
+        if ((e = strrchr(device_file, '/')))
+            rv = !pa_startswith(e + 1, "audio");
     }
 
 exit:
     libhal_free_string(type);
+    libhal_free_string(device_file);
     return rv;
 }
 
