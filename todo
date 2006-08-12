@@ -34,7 +34,6 @@ Post 0.9.0:
 - key rings for auth
 - challenge response auth
 - sasl auth 
-- fix OSS hot-remove
 - make sure that everyone knows how to deal with sinks without a monitor source
 - allow passing data with shared memory between local clients and the server
 
