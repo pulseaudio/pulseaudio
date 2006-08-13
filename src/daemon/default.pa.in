@@ -55,6 +55,9 @@ load-module module-native-protocol-unix
 ### Automatically restore the volume of playback streams
 load-module module-volume-restore
 
+### Automatically move streams to the default sink if the sink they are connected to dies
+load-module module-rescue-streams
+
 ### Make some devices default
 #set-default-sink output
 #set-default-source input
