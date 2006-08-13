@@ -68,6 +68,7 @@ struct rule {
 struct userdata {
     pa_hashmap *hashmap;
     pa_subscription *subscription;
+    pa_hook_slot *hook_slot;
     int modified;
     char *table_file;
 };
@@ -255,7 +256,7 @@ static char* client_name(pa_client *c) {
     return t;
 }
 
-static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
+static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u =  userdata;
     pa_sink_input *si;
     struct rule *r;
@@ -277,15 +278,11 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
     if ((r = pa_hashmap_get(u->hashmap, name))) {
         pa_xfree(name);
 
-        if (((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) && si->sample_spec.channels == r->volume.channels) {
-            pa_log_info(__FILE__": Restoring volume for <%s>", r->name);
-            pa_sink_input_set_volume(si, &r->volume);
-        } else if (!pa_cvolume_equal(pa_sink_input_get_volume(si), &r->volume)) {
+        if (!pa_cvolume_equal(pa_sink_input_get_volume(si), &r->volume)) {
             pa_log_info(__FILE__": Saving volume for <%s>", r->name);
             r->volume = *pa_sink_input_get_volume(si);
             u->modified = 1;
         }
-        
     } else {
         pa_log_info(__FILE__": Creating new entry for <%s>", name);
 
@@ -296,6 +293,26 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
 
         u->modified = 1;
     }
+}
+
+static pa_hook_result_t hook_callback(pa_core *c, pa_sink_input_new_data *data, struct userdata *u) {
+    struct rule *r;
+    char *name;
+
+    assert(data);
+
+    if (!data->client || !(name = client_name(data->client)))
+        return PA_HOOK_OK;
+
+    if ((r = pa_hashmap_get(u->hashmap, name))) {
+
+        if (data->sample_spec_is_set && data->sample_spec.channels == r->volume.channels) {
+            pa_log_info(__FILE__": Restoring volume for <%s>", r->name);
+            pa_sink_input_new_data_set_volume(data, &r->volume);
+        }
+    }
+
+    return PA_HOOK_OK;
 }
 
 int pa__init(pa_core *c, pa_module*m) {
@@ -321,7 +338,8 @@ int pa__init(pa_core *c, pa_module*m) {
     if (load_rules(u) < 0)
         goto fail;
 
-    u->subscription = pa_subscription_new(c, PA_SUBSCRIPTION_MASK_SINK_INPUT, callback, u);
+    u->subscription = pa_subscription_new(c, PA_SUBSCRIPTION_MASK_SINK_INPUT, subscribe_callback, u);
+    u->hook_slot = pa_hook_connect(&c->hook_sink_input_new, (pa_hook_cb_t) hook_callback, u);
 
     pa_modargs_free(ma);
     return 0;
@@ -354,6 +372,9 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (u->subscription)
         pa_subscription_free(u->subscription);
+
+    if (u->hook_slot)
+        pa_hook_slot_free(u->hook_slot);
 
     if (u->hashmap) {
 
