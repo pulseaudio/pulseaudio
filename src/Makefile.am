@@ -812,7 +812,8 @@ modlibexec_LTLIBRARIES += \
 		module-esound-sink.la \
 		module-http-protocol-tcp.la \
 		module-detect.la \
-		module-volume-restore.la
+		module-volume-restore.la \
+		module-rescue-streams.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -955,6 +956,7 @@ SYMDEF_FILES = \
 		modules/module-jack-sink-symdef.h \
 		modules/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
+		modules/module-rescue-streams-symdef.h \
 		modules/module-hal-detect-symdef.h \
 		modules/gconf/module-gconf-symdef.h
 
@@ -1172,6 +1174,12 @@ module_volume_restore_la_SOURCES = modules/module-volume-restore.c
 module_volume_restore_la_LDFLAGS = -module -avoid-version
 module_volume_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_volume_restore_la_CFLAGS = $(AM_CFLAGS)
+
+# Rescue streams module
+module_rescue_streams_la_SOURCES = modules/module-rescue-streams.c
+module_rescue_streams_la_LDFLAGS = -module -avoid-version
+module_rescue_streams_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_rescue_streams_la_CFLAGS = $(AM_CFLAGS)
 
 # RTP modules
 module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
