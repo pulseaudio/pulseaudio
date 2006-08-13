@@ -627,7 +627,7 @@ static void help(const char *argv0) {
            "      --version                         Show version\n\n"
            "  -s, --server=SERVER                   The name of the server to connect to\n"
            "  -n, --client-name=NAME                How to call this client on the server\n",
-           argv0, argv0, argv0, argv0, argv0, argv0, argv0);
+           argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
 }
 
 enum { ARG_VERSION = 256 };
