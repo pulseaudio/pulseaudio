@@ -90,7 +90,7 @@ unsigned pa_dynarray_append(pa_dynarray*a, void *p) {
 
 void *pa_dynarray_get(pa_dynarray*a, unsigned i) {
     assert(a);
-    if (i >= a->n_allocated)
+    if (i >= a->n_entries)
         return NULL;
 
     assert(a->data);
