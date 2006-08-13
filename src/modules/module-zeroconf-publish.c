@@ -225,9 +225,8 @@ finish:
     if (s->published == UNPUBLISHED) {
         /* Remove this service */
 
-        if (s->entry_group) {
+        if (s->entry_group)
             avahi_entry_group_free(s->entry_group);
-        }
         
         pa_hashmap_remove(u->services, s->name);
         pa_xfree(s->name);
@@ -263,6 +262,7 @@ static struct service *get_service(struct userdata *u, const char *name) {
 
 static int publish_sink(struct userdata *u, pa_sink *s) {
     struct service *svc;
+    int ret;
     assert(u && s);
 
     svc = get_service(u, s->name);
@@ -273,13 +273,17 @@ static int publish_sink(struct userdata *u, pa_sink *s) {
     svc->loaded.type = PA_NAMEREG_SINK;
     svc->loaded.index = s->index;
 
-    pa_dynarray_put(u->sink_dynarray, s->index, svc);
+    if ((ret = publish_service(u, svc)) < 0)
+        return ret;
 
-    return publish_service(u, svc);
+    pa_dynarray_put(u->sink_dynarray, s->index, svc);
+    return ret;
 }
 
 static int publish_source(struct userdata *u, pa_source *s) {
     struct service *svc;
+    int ret;
+    
     assert(u && s);
 
     svc = get_service(u, s->name);
@@ -292,11 +296,17 @@ static int publish_source(struct userdata *u, pa_source *s) {
 
     pa_dynarray_put(u->source_dynarray, s->index, svc);
     
-    return publish_service(u, svc);
+    if ((ret = publish_service(u, svc)) < 0)
+        return ret;
+
+    pa_dynarray_put(u->sink_dynarray, s->index, svc);
+    return ret;
 }
 
 static int publish_autoload(struct userdata *u, pa_autoload_entry *s) {
     struct service *svc;
+    int ret;
+    
     assert(u && s);
 
     svc = get_service(u, s->name);
@@ -307,9 +317,11 @@ static int publish_autoload(struct userdata *u, pa_autoload_entry *s) {
     svc->autoload.type = s->type;
     svc->autoload.index = s->index;
 
-    pa_dynarray_put(u->autoload_dynarray, s->index, svc);
+    if ((ret = publish_service(u, svc)) < 0)
+        return ret;
     
-    return publish_service(u, svc);
+    pa_dynarray_put(u->autoload_dynarray, s->index, svc);
+    return ret;
 }
 
 static int remove_sink(struct userdata *u, uint32_t idx) {
@@ -653,6 +665,9 @@ void pa__done(pa_core *c, pa_module*m) {
     if (u->services)
         pa_hashmap_free(u->services, service_free, u);
 
+    if (u->subscription)
+        pa_subscription_free(u->subscription);
+
     if (u->sink_dynarray)
         pa_dynarray_free(u->sink_dynarray, NULL, NULL);
     if (u->source_dynarray)
@@ -660,8 +675,6 @@ void pa__done(pa_core *c, pa_module*m) {
     if (u->autoload_dynarray)
         pa_dynarray_free(u->autoload_dynarray, NULL, NULL);
     
-    if (u->subscription)
-        pa_subscription_free(u->subscription);
 
     if (u->main_entry_group)
         avahi_entry_group_free(u->main_entry_group);
