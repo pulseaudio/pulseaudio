@@ -585,7 +585,8 @@ libpulsecore_la_SOURCES += \
 		pulsecore/strbuf.c pulsecore/strbuf.h \
 		pulsecore/tokenizer.c pulsecore/tokenizer.h \
 		pulsecore/winsock.h \
-		pulsecore/core-error.c pulsecore/core-error.h
+		pulsecore/core-error.c pulsecore/core-error.h \
+		pulsecore/hook-list.c pulsecore/hook-list.h
 
 if OS_IS_WIN32
 libpulsecore_la_SOURCES += \

@@ -3,34 +3,30 @@
 #include <pulsecore/hook-list.h>
 #include <pulsecore/log.h>
 
-PA_HOOK_DECLARE(test, const char *, const char*);
-
-static pa_hook_result_t func1(const char*a, const char*b, void *userdata) {
-    pa_log("#1 a=%s b=%s userdata=%s", a, b, (char*) userdata);
+static pa_hook_result_t func1(const char*a, void *userdata) {
+    pa_log("#1 arg=%s userdata=%s", a, (char*) userdata);
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t func2(const char*a, const char*b, void *userdata) {
-    pa_log("#2 a=%s b=%s userdata=%s", a, b, (char*) userdata);
+static pa_hook_result_t func2(const char*a, void *userdata) {
+    pa_log("#2 arg=%s userdata=%s", a, (char*) userdata);
     return PA_HOOK_OK;
 }
 
 int main(int argc, char *argv[]) {
-    void *u;
+    pa_hook hook;
+    pa_hook_slot *slot;
+
+    pa_hook_init(&hook);
+
+    pa_hook_connect(&hook, (pa_hook_cb_t) func1, (void*) "1-1");
+    slot = pa_hook_connect(&hook, (pa_hook_cb_t) func2, (void*) "2-1");
+    pa_hook_connect(&hook, (pa_hook_cb_t) func1, (void*) "1-2");
     
-    PA_HOOK_HEAD(test, test);
+    pa_hook_fire(&hook, (void*) "arg2");
 
-    PA_HOOK_HEAD_INIT(test, test);
-
-    PA_HOOK_APPEND(test, test, func1, (void*) "1-1");
-    PA_HOOK_APPEND(test, test, func2, u = (void*) "2");
-    PA_HOOK_APPEND(test, test, func1, (void*) "1-2");
-
-    PA_HOOK_EXECUTE(test, test, "arg1", "arg2");
-
-    PA_HOOK_REMOVE(test, test, func2, u);
-
-    PA_HOOK_FREE(test, test);
+    pa_hook_slot_free(slot);
+    pa_hook_free(&hook);
     
     return 0;
 }

@@ -22,11 +22,12 @@
   USA.
 ***/
 
-/* Some macro voodoo to implement a type safe hook list */
-
 #include <pulsecore/llist.h>
 #include <pulse/xmalloc.h>
-#include <pulse/cdecl.h>
+#include <pulsecore/gccmacro.h>
+
+typedef struct pa_hook_slot pa_hook_slot;
+typedef struct pa_hook pa_hook;
 
 typedef enum pa_hook_result {
     PA_HOOK_OK = 0,
@@ -34,84 +35,28 @@ typedef enum pa_hook_result {
     PA_HOOK_CANCEL = -1
 } pa_hook_result_t;
 
-#define PA_HOOK_DECLARE(name, arg1, arg2) \
-typedef pa_hook_result_t (*pa_hook__##name##__func_t)(arg1 a, arg2 b, void *userdata); \
-\
-typedef struct pa_hook__##name##__func_info pa_hook__##name##__func_info; \
-struct pa_hook__##name##__func_info { \
-    int dead; \
-    pa_hook__##name##__func_t func; \
-    void *userdata; \
-    PA_LLIST_FIELDS(pa_hook__##name##__func_info); \
-}; \
-PA_GCC_UNUSED static void pa_hook__##name##__free_one( \
-        pa_hook__##name##__func_info **head, \
-        pa_hook__##name##__func_info *i) { \
-    PA_LLIST_REMOVE(pa_hook__##name##__func_info, *head, i); \
-    pa_xfree(i); \
-} \
-PA_GCC_UNUSED static void pa_hook__##name##__free_all( \
-        pa_hook__##name##__func_info **head) { \
-    while (*head) \
-        pa_hook__##name##__free_one(head, *head); \
-} \
-PA_GCC_UNUSED static void pa_hook__##name##__mark_dead( \
-        pa_hook__##name##__func_info *i, \
-        pa_hook__##name##__func_t func, \
-        void *userdata) { \
-    for (; i; i = i->next) { \
-        if (i->func != func || i->userdata != userdata) \
-            continue; \
-        i->dead = 1; \
-        break; \
-    } \
-} \
-PA_GCC_UNUSED static void pa_hook__##name##__append( \
-        pa_hook__##name##__func_info **head, \
-        pa_hook__##name##__func_t func, \
-        void *userdata) { \
-    pa_hook__##name##__func_info *i = pa_xnew(pa_hook__##name##__func_info, 1); \
-    i->dead = 0; \
-    i->func = func; \
-    i->userdata = userdata; \
-    PA_LLIST_PREPEND(pa_hook__##name##__func_info, *head, i); \
-} \
-PA_GCC_UNUSED static pa_hook_result_t pa_hook__##name##__execute ( \
-        pa_hook__##name##__func_info **head, \
-        arg1 a, \
-        arg2 b) { \
-    pa_hook__##name##__func_info *i, *n; \
-    pa_hook_result_t ret = PA_HOOK_OK; \
-    for (i = *head; i; i = i->next) { \
-        if ((ret = i->func(a, b, i->userdata)) != PA_HOOK_OK) \
-            break; \
-    } \
-    for (i = *head; i; i = n) { \
-        n = i->next; \
-        if (i->dead) \
-            pa_hook__##name##__free_one(head, i); \
-    } \
-    return ret; \
-}\
-void pa_hook__##name##__nowarn(void)
+typedef pa_hook_result_t (*pa_hook_cb_t)(void *data, void *userdata);
 
+struct pa_hook_slot {
+    int dead;
+    pa_hook *hook;
+    pa_hook_cb_t callback;
+    void *userdata;
+    PA_LLIST_FIELDS(pa_hook_slot);
+};
 
-#define PA_HOOK_HEAD(name, head) \
-pa_hook__##name##__func_info *head;
+struct pa_hook {
+    PA_LLIST_HEAD(pa_hook_slot, slots);
+    pa_hook_slot *last;
+    int firing, n_dead;
+};
 
-#define PA_HOOK_HEAD_INIT(name, head) \
-(head) = NULL
+void pa_hook_init(pa_hook *hook);
+void pa_hook_free(pa_hook *hook);
 
-#define PA_HOOK_EXECUTE(name, head, arg1, arg2) \
-pa_hook__##name##__execute(&(head), arg1, arg2)
+pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_cb_t, void *userdata);
+void pa_hook_slot_free(pa_hook_slot *slot);
 
-#define PA_HOOK_APPEND(name, head, func, userdata) \
-pa_hook__##name##__append(&(head), func, userdata)
-
-#define PA_HOOK_REMOVE(name, head, func, userdata) \
-pa_hook__##name##__mark_dead(head, func, userdata)
-
-#define PA_HOOK_FREE(name, head) \
-pa_hook__##name##__free_all(&(head))
+pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data);
 
 #endif
