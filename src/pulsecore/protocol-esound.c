@@ -349,9 +349,11 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
 
     strncpy(name, data, sizeof(name));
     name[sizeof(name)-1] = 0;
+
     utf8_name = pa_utf8_filter(name);
-    
     pa_client_set_name(c->client, utf8_name);
+    pa_xfree(utf8_name);
+    
     c->original_name = pa_xstrdup(name);
 
     assert(!c->sink_input && !c->input_memblockq);
@@ -359,15 +361,12 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     pa_sink_input_new_data_init(&sdata);
     sdata.sink = sink;
     sdata.driver = __FILE__;
-    sdata.name = utf8_name;
+    sdata.name = c->client->name;
     pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
     sdata.module = c->protocol->module;
     sdata.client = c->client;
     
     c->sink_input = pa_sink_input_new(c->protocol->core, &sdata, 0);
-
-    pa_xfree(utf8_name);
-
     CHECK_VALIDITY(c->sink_input, "Failed to create sink input.");
 
     l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS); 
@@ -402,6 +401,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     pa_source *source;
     pa_sample_spec ss;
     size_t l;
+    pa_source_output_new_data sdata;
 
     assert(c && length == (sizeof(int32_t)*2+ESD_NAME_MAX));
     
@@ -450,10 +450,16 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
 
     assert(!c->output_memblockq && !c->source_output);
 
-    if (!(c->source_output = pa_source_output_new(source, __FILE__, c->client->name, &ss, NULL, -1))) {
-        pa_log(__FILE__": failed to create source output");
-        return -1;
-    }
+    pa_source_output_new_data_init(&sdata);
+    sdata.source = source;
+    sdata.driver = __FILE__;
+    sdata.name = c->client->name;
+    pa_source_output_new_data_set_sample_spec(&sdata, &ss);
+    sdata.module = c->protocol->module;
+    sdata.client = c->client;
+    
+    c->source_output = pa_source_output_new(c->protocol->core, &sdata, 9);
+    CHECK_VALIDITY(c->sink_input, "Failed to create source_output.");
 
     l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS); 
     c->output_memblockq = pa_memblockq_new(
@@ -467,8 +473,6 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
             c->protocol->core->memblock_stat);
     pa_iochannel_socket_set_sndbuf(c->io, l/RECORD_BUFFER_FRAGMENTS*2);
     
-    c->source_output->owner = c->protocol->module;
-    c->source_output->client = c->client;
     c->source_output->push = source_output_push_cb;
     c->source_output->kill = source_output_kill_cb;
     c->source_output->get_latency = source_output_get_latency_cb;

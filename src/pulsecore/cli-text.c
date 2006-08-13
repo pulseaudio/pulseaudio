@@ -204,8 +204,8 @@ char *pa_source_output_list_to_string(pa_core *c) {
             pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map),
             pa_resample_method_to_string(pa_source_output_get_resample_method(o)));
-        if (o->owner)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", o->owner->index);
+        if (o->module)
+            pa_strbuf_printf(s, "\towner module: <%u>\n", o->module->index);
         if (o->client)
             pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", o->client->index, o->client->name);
     }

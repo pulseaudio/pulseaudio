@@ -317,9 +317,20 @@ static struct record_stream* record_stream_new(
     struct record_stream *s;
     pa_source_output *source_output;
     size_t base;
+    pa_source_output_new_data data;
+    
     assert(c && source && ss && name && maxlength);
 
-    if (!(source_output = pa_source_output_new(source, __FILE__, name, ss, map, -1)))
+    pa_source_output_new_data_init(&data);
+    data.source = source;
+    data.driver = __FILE__;
+    data.name = name;
+    pa_source_output_new_data_set_sample_spec(&data, ss);
+    pa_source_output_new_data_set_channel_map(&data, map);
+    data.module = c->protocol->module;
+    data.client = c->client;
+    
+    if (!(source_output = pa_source_output_new(source->core, &data, 0)))
         return NULL;
 
     s = pa_xnew(struct record_stream, 1);
@@ -329,8 +340,6 @@ static struct record_stream* record_stream_new(
     s->source_output->kill = source_output_kill_cb;
     s->source_output->get_latency = source_output_get_latency_cb;
     s->source_output->userdata = s;
-    s->source_output->owner = c->protocol->module;
-    s->source_output->client = c->client;
 
     s->memblockq = pa_memblockq_new(
             0,
@@ -1356,7 +1365,7 @@ static void source_output_fill_tagstruct(pa_tagstruct *t, pa_source_output *s) {
     assert(t && s);
     pa_tagstruct_putu32(t, s->index);
     pa_tagstruct_puts(t, s->name);
-    pa_tagstruct_putu32(t, s->owner ? s->owner->index : PA_INVALID_INDEX);
+    pa_tagstruct_putu32(t, s->module ? s->module->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->client ? s->client->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->source->index);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);

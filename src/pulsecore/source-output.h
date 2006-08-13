@@ -39,13 +39,17 @@ typedef enum {
     PA_SOURCE_OUTPUT_DISCONNECTED
 } pa_source_output_state_t;
 
+typedef enum pa_source_output_flags {
+    PA_SOURCE_OUTPUT_NO_HOOKS = 1
+} pa_source_output_flags_t;
+
 struct pa_source_output {
     int ref;
     uint32_t index;
     pa_source_output_state_t state;
     
     char *name, *driver;                  /* may be NULL */
-    pa_module *owner;                     /* may be NULL */
+    pa_module *module;                    /* may be NULL */
 
     pa_source *source;
     pa_client *client;                    /* may be NULL */
@@ -63,13 +67,30 @@ struct pa_source_output {
     void *userdata;
 };
 
+typedef struct pa_source_output_new_data {
+    const char *name, *driver;
+    pa_module *module;
+    pa_client *client;
+
+    pa_source *source;
+
+    pa_sample_spec sample_spec;
+    int sample_spec_is_set;
+    pa_channel_map channel_map;
+    int channel_map_is_set;
+
+    pa_resample_method_t resample_method;
+} pa_source_output_new_data;
+
+pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
+void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, const pa_sample_spec *spec);
+void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, const pa_channel_map *map);
+void pa_source_output_new_data_set_volume(pa_source_output_new_data *data, const pa_cvolume *volume);
+
 pa_source_output* pa_source_output_new(
-    pa_source *s,
-    const char *driver,
-    const char *name,
-    const pa_sample_spec *spec,
-    const pa_channel_map *map,
-    int resample_method);
+        pa_core *core,
+        pa_source_output_new_data *data,
+        pa_source_output_flags_t flags);
 
 void pa_source_output_unref(pa_source_output* o);
 pa_source_output* pa_source_output_ref(pa_source_output *o);

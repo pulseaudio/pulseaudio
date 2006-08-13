@@ -33,6 +33,7 @@
 
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
+#include <pulsecore/namereg.h>
 
 #include "source-output.h"
 
@@ -42,44 +43,82 @@ if (!(condition)) \
     return NULL; \
 } while (0)
 
+pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data) {
+    assert(data);
+    
+    memset(data, 0, sizeof(*data));
+    data->resample_method = PA_RESAMPLER_INVALID;
+    return data;
+}
+
+void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, const pa_channel_map *map) {
+    assert(data);
+
+    if ((data->channel_map_is_set = !!map))
+        data->channel_map = *map;
+}
+
+void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, const pa_sample_spec *spec) {
+    assert(data);
+
+    if ((data->sample_spec_is_set = !!spec))
+        data->sample_spec = *spec;
+}
+
 pa_source_output* pa_source_output_new(
-        pa_source *s,
-        const char *driver,
-        const char *name,
-        const pa_sample_spec *spec,
-        const pa_channel_map *map,
-        int resample_method) {
+        pa_core *core,
+        pa_source_output_new_data *data,
+        pa_source_output_flags_t flags) {
     
     pa_source_output *o;
     pa_resampler *resampler = NULL;
     int r;
-    char st[256];
-    pa_channel_map tmap;
+    char st[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
-    assert(s);
-    assert(spec);
-    assert(s->state == PA_SOURCE_RUNNING);
+    assert(core);
+    assert(data);
 
-    CHECK_VALIDITY_RETURN_NULL(pa_sample_spec_valid(spec));
+    if (!(flags & PA_SOURCE_OUTPUT_NO_HOOKS))
+        if (pa_hook_fire(&core->hook_source_output_new, data) < 0)
+            return NULL;
 
-    if (!map)
-        map = pa_channel_map_init_auto(&tmap, spec->channels, PA_CHANNEL_MAP_DEFAULT);
+    CHECK_VALIDITY_RETURN_NULL(!data->driver || pa_utf8_valid(data->driver));
+    CHECK_VALIDITY_RETURN_NULL(!data->name || pa_utf8_valid(data->name));
+
+    if (!data->source)
+        data->source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE, 1);
+
+    CHECK_VALIDITY_RETURN_NULL(data->source);
+    CHECK_VALIDITY_RETURN_NULL(data->source->state == PA_SOURCE_RUNNING);
     
-    CHECK_VALIDITY_RETURN_NULL(map && pa_channel_map_valid(map));
-    CHECK_VALIDITY_RETURN_NULL(map->channels == spec->channels);
-    CHECK_VALIDITY_RETURN_NULL(!driver || pa_utf8_valid(driver));
-    CHECK_VALIDITY_RETURN_NULL(pa_utf8_valid(name));
+    if (!data->sample_spec_is_set)
+        data->sample_spec = data->source->sample_spec;
+    
+    CHECK_VALIDITY_RETURN_NULL(pa_sample_spec_valid(&data->sample_spec));
 
-    if (pa_idxset_size(s->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
+    if (!data->channel_map_is_set)
+        pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
+    
+    CHECK_VALIDITY_RETURN_NULL(pa_channel_map_valid(&data->channel_map));
+    CHECK_VALIDITY_RETURN_NULL(data->channel_map.channels == data->sample_spec.channels);
+
+    if (data->resample_method == PA_RESAMPLER_INVALID)
+        data->resample_method = core->resample_method;
+
+    CHECK_VALIDITY_RETURN_NULL(data->resample_method < PA_RESAMPLER_MAX);
+    
+    if (pa_idxset_size(data->source->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
         pa_log(__FILE__": Failed to create source output: too many outputs per source.");
         return NULL;
     }
 
-    if (resample_method == PA_RESAMPLER_INVALID)
-        resample_method = s->core->resample_method;
-
-    if (!pa_sample_spec_equal(&s->sample_spec, spec) || !pa_channel_map_equal(&s->channel_map, map))
-        if (!(resampler = pa_resampler_new(&s->sample_spec, &s->channel_map, spec, map, s->core->memblock_stat, resample_method))) {
+    if (!pa_sample_spec_equal(&data->sample_spec, &data->source->sample_spec) ||
+        !pa_channel_map_equal(&data->channel_map, &data->source->channel_map))
+        if (!(resampler = pa_resampler_new(
+                      &data->source->sample_spec, &data->source->channel_map,
+                      &data->sample_spec, &data->channel_map,
+                      core->memblock_stat,
+                      data->resample_method))) {
             pa_log_warn(__FILE__": Unsupported resampling operation.");
             return NULL;
         }
@@ -87,14 +126,14 @@ pa_source_output* pa_source_output_new(
     o = pa_xnew(pa_source_output, 1);
     o->ref = 1;
     o->state = PA_SOURCE_OUTPUT_RUNNING;
-    o->name = pa_xstrdup(name);
-    o->driver = pa_xstrdup(driver);
-    o->owner = NULL;
-    o->source = s;
-    o->client = NULL;
+    o->name = pa_xstrdup(data->name);
+    o->driver = pa_xstrdup(data->driver);
+    o->module = data->module;
+    o->source = data->source;
+    o->client = data->client;
     
-    o->sample_spec = *spec;
-    o->channel_map = *map;
+    o->sample_spec = data->sample_spec;
+    o->channel_map = data->channel_map;
 
     o->push = NULL;
     o->kill = NULL;
@@ -102,18 +141,20 @@ pa_source_output* pa_source_output_new(
     o->userdata = NULL;
     
     o->resampler = resampler;
-    o->resample_method = resample_method;
+    o->resample_method = data->resample_method;
     
-    assert(s->core);
-    r = pa_idxset_put(s->core->source_outputs, o, &o->index);
-    assert(r == 0 && o->index != PA_IDXSET_INVALID);
-    r = pa_idxset_put(s->outputs, o, NULL);
+    r = pa_idxset_put(core->source_outputs, o, &o->index);
+    assert(r == 0);
+    r = pa_idxset_put(o->source->outputs, o, NULL);
     assert(r == 0);
 
-    pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log_info(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"", o->index, o->name, s->index, st);
+    pa_log_info(__FILE__": created %u \"%s\" on %s with sample spec %s",
+                o->index,
+                o->name,
+                o->source->name,
+                pa_sample_spec_snprint(st, sizeof(st), &o->sample_spec));
     
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
 
     /* We do not call pa_source_notify() here, because the virtual
      * functions have not yet been initialized */

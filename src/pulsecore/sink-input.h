@@ -106,7 +106,10 @@ void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const 
 void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map);
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
 
-pa_sink_input* pa_sink_input_new(pa_core *core, pa_sink_input_new_data *data, pa_sink_input_flags_t flags);
+pa_sink_input* pa_sink_input_new(
+        pa_core *core,
+        pa_sink_input_new_data *data,
+        pa_sink_input_flags_t flags);
 
 void pa_sink_input_unref(pa_sink_input* i);
 pa_sink_input* pa_sink_input_ref(pa_sink_input* i);

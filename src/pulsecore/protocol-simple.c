@@ -379,22 +379,20 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     }
 
     if (p->mode & RECORD) {
-        pa_source *source;
+        pa_source_output_new_data data;
         size_t l;
 
-        if (!(source = pa_namereg_get(p->core, p->source_name, PA_NAMEREG_SOURCE, 1))) {
-            pa_log(__FILE__": Failed to get source.");
-            goto fail;
-        }
+        pa_source_output_new_data_init(&data);
+        data.driver = __FILE__;
+        data.name = c->client->name;
+        pa_source_output_new_data_set_sample_spec(&data, &p->sample_spec);
+        data.module = p->module;
+        data.client = c->client;
 
-        c->source_output = pa_source_output_new(source, __FILE__, c->client->name, &p->sample_spec, NULL, -1);
-        if (!c->source_output) {
+        if (!(c->source_output = pa_source_output_new(p->core, &data, 0))) {
             pa_log(__FILE__": Failed to create source output.");
             goto fail;
         }
-        c->source_output->owner = p->module;
-        c->source_output->client = c->client;
-        
         c->source_output->push = source_output_push_cb;
         c->source_output->kill = source_output_kill_cb;
         c->source_output->get_latency = source_output_get_latency_cb;
@@ -411,6 +409,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
                 NULL,
                 p->core->memblock_stat);
         pa_iochannel_socket_set_sndbuf(io, l/RECORD_BUFFER_FRAGMENTS*2);
+        pa_source_notify(c->source_output->source);
     }
 
     pa_iochannel_set_callback(c->io, io_callback, c);

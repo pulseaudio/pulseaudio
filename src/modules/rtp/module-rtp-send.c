@@ -168,6 +168,7 @@ int pa__init(pa_core *c, pa_module*m) {
     struct timeval tv;
     char hn[128], *n;
     int loop = 0;
+    pa_source_output_new_data data;
     
     assert(c);
     assert(m);
@@ -263,8 +264,15 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log(__FILE__": IP_MULTICAST_LOOP failed: %s", pa_cstrerror(errno));
         goto fail;
     }
+
+    pa_source_output_new_data_init(&data);
+    data.name = "RTP Monitor Stream";
+    data.driver = __FILE__;
+    data.module = m;
+    pa_source_output_new_data_set_sample_spec(&data, &ss);
+    pa_source_output_new_data_set_channel_map(&data, &cm);
     
-    if (!(o = pa_source_output_new(s, __FILE__, "RTP Monitor Stream", &ss, &cm, PA_RESAMPLER_INVALID))) {
+    if (!(o = pa_source_output_new(c, &data, 0))) {
         pa_log(__FILE__": failed to create source output.");
         goto fail;
     }
@@ -272,7 +280,6 @@ int pa__init(pa_core *c, pa_module*m) {
     o->push = source_output_push;
     o->kill = source_output_kill;
     o->get_latency = source_output_get_latency;
-    o->owner = m;
     
     u = pa_xnew(struct userdata, 1);
     m->userdata = u;
