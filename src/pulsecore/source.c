@@ -125,7 +125,10 @@ void pa_source_disconnect(pa_source *s) {
     assert(s);
     assert(s->state == PA_SOURCE_RUNNING);
 
+    s->state = PA_SOURCE_DISCONNECTED;
     pa_namereg_unregister(s->core, s->name);
+
+    pa_hook_fire(&s->core->hook_source_disconnect, s);
     
     while ((o = pa_idxset_first(s->outputs, NULL))) {
         assert(o != j);
@@ -142,7 +145,6 @@ void pa_source_disconnect(pa_source *s) {
     s->set_hw_mute = NULL;
     s->get_hw_mute = NULL;
     
-    s->state = PA_SOURCE_DISCONNECTED;
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
 }
 
