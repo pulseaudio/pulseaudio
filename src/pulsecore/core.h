@@ -81,7 +81,8 @@ struct pa_core {
     int is_system_instance;
 
     /* hooks */
-    pa_hook hook_sink_input_new, hook_sink_input_disconnect;
+    pa_hook hook_sink_input_new,
+        hook_sink_disconnect;
 };
 
 pa_core* pa_core_new(pa_mainloop_api *m);

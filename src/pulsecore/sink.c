@@ -143,7 +143,10 @@ void pa_sink_disconnect(pa_sink* s) {
     assert(s);
     assert(s->state == PA_SINK_RUNNING);
 
+    s->state = PA_SINK_DISCONNECTED;
     pa_namereg_unregister(s->core, s->name);
+
+    pa_hook_fire(&s->core->hook_sink_disconnect, s);
     
     while ((i = pa_idxset_first(s->inputs, NULL))) {
         assert(i != j);
@@ -163,7 +166,6 @@ void pa_sink_disconnect(pa_sink* s) {
     s->set_hw_mute = NULL;
     s->get_hw_mute = NULL;
     
-    s->state = PA_SINK_DISCONNECTED;
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
 }
 
