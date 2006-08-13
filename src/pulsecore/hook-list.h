@@ -35,13 +35,16 @@ typedef enum pa_hook_result {
     PA_HOOK_CANCEL = -1
 } pa_hook_result_t;
 
-typedef pa_hook_result_t (*pa_hook_cb_t)(void *data, void *userdata);
+typedef pa_hook_result_t (*pa_hook_cb_t)(
+        void *hook_data,
+        void *call_data,
+        void *slot_data);
 
 struct pa_hook_slot {
     int dead;
     pa_hook *hook;
     pa_hook_cb_t callback;
-    void *userdata;
+    void *data;
     PA_LLIST_FIELDS(pa_hook_slot);
 };
 
@@ -49,12 +52,14 @@ struct pa_hook {
     PA_LLIST_HEAD(pa_hook_slot, slots);
     pa_hook_slot *last;
     int firing, n_dead;
+
+    void *data;
 };
 
-void pa_hook_init(pa_hook *hook);
+void pa_hook_init(pa_hook *hook, void *data);
 void pa_hook_free(pa_hook *hook);
 
-pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_cb_t, void *userdata);
+pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_cb_t, void *data);
 void pa_hook_slot_free(pa_hook_slot *slot);
 
 pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data);

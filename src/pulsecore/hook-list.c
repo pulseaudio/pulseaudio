@@ -21,12 +21,13 @@
 
 #include <pulsecore/hook-list.h>
 
-void pa_hook_init(pa_hook *hook) {
+void pa_hook_init(pa_hook *hook, void *data) {
     assert(hook);
 
     PA_LLIST_HEAD_INIT(pa_hook_slots, hook->slots);
     hook->last = NULL;
     hook->n_dead = hook->firing = 0;
+    hook->data = data;
 }
 
 static void slot_free(pa_hook *hook, pa_hook_slot *slot) {
@@ -48,10 +49,10 @@ void pa_hook_free(pa_hook *hook) {
     while (hook->slots)
         slot_free(hook, hook->slots);
     
-    pa_hook_init(hook);
+    pa_hook_init(hook, NULL);
 }
 
-pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_cb_t cb, void *userdata) {
+pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_cb_t cb, void *data) {
     pa_hook_slot *slot;
     
     assert(cb);
@@ -60,7 +61,7 @@ pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_cb_t cb, void *userdata) {
     slot->hook = hook;
     slot->dead = 0;
     slot->callback = cb;
-    slot->userdata = userdata;
+    slot->data = data;
     
     PA_LLIST_INSERT_AFTER(pa_hook_slot, hook->slots, hook->last, slot);
     hook->last = slot;
@@ -91,7 +92,7 @@ pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data) {
         if (slot->dead)
             continue;
         
-        if ((result = slot->callback(data, slot->userdata)) != PA_HOOK_OK)
+        if ((result = slot->callback(hook->data, data, slot->data)) != PA_HOOK_OK)
             break;
     }
     
