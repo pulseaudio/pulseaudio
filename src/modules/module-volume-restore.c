@@ -47,7 +47,7 @@
 #include "module-volume-restore-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Playback stream automatic volume restore module")
+PA_MODULE_DESCRIPTION("Automatically restore volume of playback streams")
 PA_MODULE_USAGE("table=<filename>")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 
