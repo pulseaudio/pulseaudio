@@ -94,6 +94,8 @@ pa_core* pa_core_new(pa_mainloop_api *m) {
 
     pa_hook_init(&c->hook_sink_input_new, c);
     pa_hook_init(&c->hook_sink_disconnect, c);
+    pa_hook_init(&c->hook_source_output_new, c);
+    pa_hook_init(&c->hook_source_disconnect, c);
 
     pa_property_init(c);
 
@@ -143,6 +145,8 @@ void pa_core_free(pa_core *c) {
 
     pa_hook_free(&c->hook_sink_input_new);
     pa_hook_free(&c->hook_sink_disconnect);
+    pa_hook_free(&c->hook_source_output_new);
+    pa_hook_free(&c->hook_source_disconnect);
     
     pa_xfree(c);    
 }
