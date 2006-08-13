@@ -532,7 +532,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
         /* Try to reuse the old resampler if possible */
         new_resampler = i->resampler;
     
-    else if (i->variable_rate ||
+    else if ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ||
         !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec) ||
         !pa_channel_map_equal(&i->channel_map, &dest->channel_map)) {
 

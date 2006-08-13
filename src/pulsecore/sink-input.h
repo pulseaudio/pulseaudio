@@ -79,7 +79,6 @@ struct pa_sink_input {
     pa_memchunk resampled_chunk;
     pa_resampler *resampler;                     /* may be NULL */
 
-    int variable_rate;
     pa_resample_method_t resample_method;
 
     pa_memblock *silence_memblock;               /* may be NULL */
