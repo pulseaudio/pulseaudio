@@ -2201,7 +2201,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     
     if (!(stream = pa_idxset_get_by_index(c->output_streams, channel))) {
         pa_log(__FILE__": client sent block for invalid stream.");
-        connection_free(c);
+        /* Ignoring */
         return;
     }
 
