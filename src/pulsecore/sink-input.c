@@ -101,7 +101,8 @@ pa_sink_input* pa_sink_input_new(
     if (!data->sink)
         data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK, 1);
     
-    CHECK_VALIDITY_RETURN_NULL(data->sink && data->sink->state == PA_SINK_RUNNING);
+    CHECK_VALIDITY_RETURN_NULL(data->sink);
+    CHECK_VALIDITY_RETURN_NULL(data->sink->state == PA_SINK_RUNNING);
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->sink->sample_spec;
