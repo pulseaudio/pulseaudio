@@ -109,6 +109,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     uint32_t frequency;
     char t[256];
+    pa_sink_input_new_data data;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log(__FILE__": Failed to parse module arguments");
@@ -142,14 +143,21 @@ int pa__init(pa_core *c, pa_module*m) {
     calc_sine(u->memblock->data, u->memblock->length, frequency);
 
     snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
-    if (!(u->sink_input = pa_sink_input_new(sink, __FILE__, t, &ss, NULL, NULL, 0, -1)))
+
+    pa_sink_input_new_data_init(&data);
+    data.sink = sink;
+    data.driver = __FILE__;
+    data.name = t;
+    pa_sink_input_new_data_set_sample_spec(&data, &ss);
+    data.module = m;
+
+    if (!(u->sink_input = pa_sink_input_new(c, &data, 0)))
         goto fail;
 
     u->sink_input->peek = sink_input_peek;
     u->sink_input->drop = sink_input_drop;
     u->sink_input->kill = sink_input_kill;
     u->sink_input->userdata = u;
-    u->sink_input->owner = m;
 
     u->peek_index = 0;
     

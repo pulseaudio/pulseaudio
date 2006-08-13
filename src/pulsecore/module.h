@@ -25,10 +25,10 @@
 #include <inttypes.h>
 #include <ltdl.h>
 
+typedef struct pa_module pa_module;
+
 #include <pulsecore/core.h>
 #include <pulsecore/modinfo.h>
-
-typedef struct pa_module pa_module;
 
 struct pa_module {
     pa_core *core;

@@ -79,14 +79,15 @@ static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t le
 }
 
 int pa_play_memblockq(
-    pa_sink *sink,
-    const char *name,
-    const pa_sample_spec *ss,
-    const pa_channel_map *map,
-    pa_memblockq *q,
-    pa_cvolume *cvolume) {
+        pa_sink *sink,
+        const char *name,
+        const pa_sample_spec *ss,
+        const pa_channel_map *map,
+        pa_memblockq *q,
+        pa_cvolume *volume) {
     
     pa_sink_input *si;
+    pa_sink_input_new_data data;
 
     assert(sink);
     assert(ss);
@@ -97,12 +98,20 @@ int pa_play_memblockq(
         return 0;
     }
 
-    if (cvolume && pa_cvolume_is_muted(cvolume)) {
+    if (volume && pa_cvolume_is_muted(volume)) {
         pa_memblockq_free(q);
         return 0;
     }
 
-    if (!(si = pa_sink_input_new(sink, name, __FILE__, ss, map, cvolume, 0, PA_RESAMPLER_INVALID)))
+    pa_sink_input_new_data_init(&data);
+    data.sink = sink;
+    data.name = name;
+    data.driver = __FILE__;
+    pa_sink_input_new_data_set_channel_map(&data, map);
+    pa_sink_input_new_data_set_sample_spec(&data, ss);
+    pa_sink_input_new_data_set_volume(&data, volume);
+    
+    if (!(si = pa_sink_input_new(sink->core, &data, 0)))
         return -1;
 
     si->peek = sink_input_peek;
@@ -111,7 +120,7 @@ int pa_play_memblockq(
     
     si->userdata = q;
 
-    pa_sink_notify(sink);
+    pa_sink_notify(si->sink);
     
     return 0;
 }

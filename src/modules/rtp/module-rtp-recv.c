@@ -265,6 +265,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     pa_sink *sink;
     int fd = -1;
     pa_memblock *silence;
+    pa_sink_input_new_data data;
 
     if (u->n_sessions >= MAX_SESSIONS) {
         pa_log(__FILE__": session limit reached.");
@@ -289,7 +290,14 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
                           sdp_info->session_name ? sdp_info->session_name : "", 
                           sdp_info->session_name ? ")" : "");
 
-    s->sink_input = pa_sink_input_new(sink, __FILE__, c, &sdp_info->sample_spec, NULL, NULL, 0, PA_RESAMPLER_INVALID);
+    pa_sink_input_new_data_init(&data);
+    data.sink = sink;
+    data.driver = __FILE__;
+    data.name = c;
+    data.module = u->module;
+    pa_sink_input_new_data_set_sample_spec(&data, &sdp_info->sample_spec);
+    
+    s->sink_input = pa_sink_input_new(u->core, &data, 0);
     pa_xfree(c);
         
     if (!s->sink_input) {
@@ -298,7 +306,6 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     }
 
     s->sink_input->userdata = s;
-    s->sink_input->owner = u->module;
 
     s->sink_input->peek = sink_input_peek;
     s->sink_input->drop = sink_input_drop;

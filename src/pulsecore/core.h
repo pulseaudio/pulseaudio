@@ -22,17 +22,21 @@
   USA.
 ***/
 
-typedef struct pa_core pa_core;
-
 #include <pulse/mainloop-api.h>
 #include <pulse/sample.h>
+
 #include <pulsecore/idxset.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/memblock.h>
 #include <pulsecore/resampler.h>
 #include <pulsecore/queue.h>
-#include <pulsecore/core-subscribe.h>
 #include <pulsecore/llist.h>
+#include <pulsecore/hook-list.h>
+
+typedef struct pa_core pa_core;
+
+#include <pulsecore/core-subscribe.h>
+#include <pulsecore/sink-input.h>
 
 /* The core structure of PulseAudio. Every PulseAudio daemon contains
  * exactly one of these. It is used for storing kind of global
@@ -75,6 +79,9 @@ struct pa_core {
     pa_resample_method_t resample_method;
 
     int is_system_instance;
+
+    /* hooks */
+    pa_hook hook_sink_input_new, hook_sink_input_disconnect;
 };
 
 pa_core* pa_core_new(pa_mainloop_api *m);

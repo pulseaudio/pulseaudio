@@ -1,5 +1,5 @@
-#ifndef fooclienthfoo
-#define fooclienthfoo
+#ifndef foopulseclienthfoo
+#define foopulseclienthfoo
 
 /* $Id$ */
 
@@ -22,14 +22,16 @@
   USA.
 ***/
 
+#include <inttypes.h>
+
+typedef struct pa_client pa_client;
+
 #include <pulsecore/core.h>
 #include <pulsecore/module.h>
 
 /* Every connection to the server should have a pa_client
  * attached. That way the user may generate a listing of all connected
  * clients easily and kill them if he wants.*/
-
-typedef struct pa_client pa_client;
 
 struct pa_client {
     uint32_t index;

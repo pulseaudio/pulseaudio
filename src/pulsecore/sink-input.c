@@ -35,6 +35,7 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
 #include <pulsecore/play-memblockq.h>
+#include <pulsecore/namereg.h>
 
 #include "sink-input.h"
 
@@ -48,51 +49,96 @@ if (!(condition)) \
     return NULL; \
 } while (0)
 
+pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data) {
+    assert(data);
+    
+    memset(data, 0, sizeof(*data));
+    data->resample_method = PA_RESAMPLER_INVALID;
+    return data;
+}
+
+void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map) {
+    assert(data);
+
+    if ((data->channel_map_is_set = !!map))
+        data->channel_map = *map;
+}
+
+void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume) {
+    assert(data);
+
+    if ((data->volume_is_set = !!volume))
+        data->volume = *volume;
+}
+
+void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const pa_sample_spec *spec) {
+    assert(data);
+
+    if ((data->sample_spec_is_set = !!spec))
+        data->sample_spec = *spec;
+}
+
 pa_sink_input* pa_sink_input_new(
-        pa_sink *s,
-        const char *driver,
-        const char *name,
-        const pa_sample_spec *spec,
-        const pa_channel_map *map,
-        const pa_cvolume *volume, 
-        int variable_rate,
-        int resample_method) {
+        pa_core *core,
+        pa_sink_input_new_data *data,
+        pa_sink_input_flags_t flags) {
     
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
     int r;
-    char st[256];
-    pa_channel_map tmap;
-    pa_cvolume tvol;
+    char st[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
-    assert(s);
-    assert(spec);
-    assert(s->state == PA_SINK_RUNNING);
+    assert(core);
+    assert(data);
 
-    CHECK_VALIDITY_RETURN_NULL(pa_sample_spec_valid(spec));
+    if (!(flags & PA_SINK_INPUT_NO_HOOKS))
+        if (pa_hook_fire(&core->hook_sink_input_new, data) < 0)
+            return NULL;
 
-    if (!map)
-        map = pa_channel_map_init_auto(&tmap, spec->channels, PA_CHANNEL_MAP_DEFAULT);
-    if (!volume)
-        volume = pa_cvolume_reset(&tvol, spec->channels);
+    CHECK_VALIDITY_RETURN_NULL(!data->driver || pa_utf8_valid(data->driver));
+    CHECK_VALIDITY_RETURN_NULL(!data->name || pa_utf8_valid(data->name));
 
-    CHECK_VALIDITY_RETURN_NULL(map && pa_channel_map_valid(map));
-    CHECK_VALIDITY_RETURN_NULL(volume && pa_cvolume_valid(volume));
-    CHECK_VALIDITY_RETURN_NULL(map->channels == spec->channels);
-    CHECK_VALIDITY_RETURN_NULL(volume->channels == spec->channels);
-    CHECK_VALIDITY_RETURN_NULL(!driver || pa_utf8_valid(driver));
-    CHECK_VALIDITY_RETURN_NULL(pa_utf8_valid(name));
-            
-    if (pa_idxset_size(s->inputs) >= PA_MAX_INPUTS_PER_SINK) {
+    if (!data->sink)
+        data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK, 1);
+    
+    CHECK_VALIDITY_RETURN_NULL(data->sink && data->sink->state == PA_SINK_RUNNING);
+
+    if (!data->sample_spec_is_set)
+        data->sample_spec = data->sink->sample_spec;
+    
+    CHECK_VALIDITY_RETURN_NULL(pa_sample_spec_valid(&data->sample_spec));
+    
+    if (!data->channel_map_is_set)
+        pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
+    
+    CHECK_VALIDITY_RETURN_NULL(pa_channel_map_valid(&data->channel_map));
+    CHECK_VALIDITY_RETURN_NULL(data->channel_map.channels == data->sample_spec.channels);
+    
+    if (!data->volume_is_set)
+        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+
+    CHECK_VALIDITY_RETURN_NULL(pa_cvolume_valid(&data->volume));
+    CHECK_VALIDITY_RETURN_NULL(data->volume.channels == data->sample_spec.channels);
+
+    if (data->resample_method == PA_RESAMPLER_INVALID)
+        data->resample_method = core->resample_method;
+
+    CHECK_VALIDITY_RETURN_NULL(data->resample_method < PA_RESAMPLER_MAX);
+
+    if (pa_idxset_size(data->sink->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log_warn(__FILE__": Failed to create sink input: too many inputs per sink.");
         return NULL;
     }
 
-    if (resample_method == PA_RESAMPLER_INVALID)
-        resample_method = s->core->resample_method;
-    
-    if (variable_rate || !pa_sample_spec_equal(spec, &s->sample_spec) || !pa_channel_map_equal(map, &s->channel_map))
-        if (!(resampler = pa_resampler_new(spec, map, &s->sample_spec, &s->channel_map, s->core->memblock_stat, resample_method))) {
+    if ((flags & PA_SINK_INPUT_VARIABLE_RATE) ||
+        !pa_sample_spec_equal(&data->sample_spec, &data->sink->sample_spec) ||
+        !pa_channel_map_equal(&data->channel_map, &data->sink->channel_map))
+        
+        if (!(resampler = pa_resampler_new(
+                      &data->sample_spec, &data->channel_map,
+                      &data->sink->sample_spec, &data->sink->channel_map,
+                      core->memblock_stat,
+                      data->resample_method))) {
             pa_log_warn(__FILE__": Unsupported resampling operation.");
             return NULL;
         }
@@ -100,15 +146,16 @@ pa_sink_input* pa_sink_input_new(
     i = pa_xnew(pa_sink_input, 1);
     i->ref = 1;
     i->state = PA_SINK_INPUT_DRAINED;
-    i->name = pa_xstrdup(name);
-    i->driver = pa_xstrdup(driver);
-    i->owner = NULL;
-    i->sink = s;
-    i->client = NULL;
+    i->flags = flags;
+    i->name = pa_xstrdup(data->name);
+    i->driver = pa_xstrdup(data->driver);
+    i->module = data->module;
+    i->sink = data->sink;
+    i->client = data->client;
 
-    i->sample_spec = *spec;
-    i->channel_map = *map;
-    i->volume = *volume;
+    i->sample_spec = data->sample_spec;
+    i->channel_map = data->channel_map;
+    i->volume = data->volume;
         
     i->peek = NULL;
     i->drop = NULL;
@@ -116,25 +163,26 @@ pa_sink_input* pa_sink_input_new(
     i->get_latency = NULL;
     i->underrun = NULL;
     i->userdata = NULL;
+    
     i->move_silence = 0;
 
     pa_memchunk_reset(&i->resampled_chunk);
     i->resampler = resampler;
-    i->resample_method = resample_method;
-    i->variable_rate = variable_rate;
-
+    i->resample_method = data->resample_method;
     i->silence_memblock = NULL;
     
-    assert(s->core);
-    r = pa_idxset_put(s->core->sink_inputs, i, &i->index);
-    assert(r == 0 && i->index != PA_IDXSET_INVALID);
-    r = pa_idxset_put(s->inputs, i, NULL);
+    r = pa_idxset_put(core->sink_inputs, i, &i->index);
+    assert(r == 0);
+    r = pa_idxset_put(i->sink->inputs, i, NULL);
     assert(r == 0);
 
-    pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log_info(__FILE__": created %u \"%s\" on %u with sample spec \"%s\"", i->index, i->name, s->index, st);
-
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
+    pa_log_info(__FILE__": created %u \"%s\" on %s with sample spec %s",
+                i->index,
+                i->name,
+                i->sink->name,
+                pa_sample_spec_snprint(st, sizeof(st), &i->sample_spec));
+    
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
 
     /* We do not call pa_sink_notify() here, because the virtual
      * functions have not yet been initialized */

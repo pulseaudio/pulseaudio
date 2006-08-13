@@ -325,9 +325,10 @@ static int esd_proto_connect(struct connection *c, PA_GCC_UNUSED esd_proto_t req
 static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t request, const void *data, size_t length) {
     char name[ESD_NAME_MAX], *utf8_name;
     int32_t format, rate;
-    pa_sink *sink;
     pa_sample_spec ss;
     size_t l;
+    pa_sink *sink;
+    pa_sink_input_new_data sdata;
 
     assert(c && length == (sizeof(int32_t)*2+ESD_NAME_MAX));
     
@@ -355,7 +356,15 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
 
     assert(!c->sink_input && !c->input_memblockq);
 
-    c->sink_input = pa_sink_input_new(sink, __FILE__, utf8_name, &ss, NULL, NULL, 0, -1);
+    pa_sink_input_new_data_init(&sdata);
+    sdata.sink = sink;
+    sdata.driver = __FILE__;
+    sdata.name = utf8_name;
+    pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
+    sdata.module = c->protocol->module;
+    sdata.client = c->client;
+    
+    c->sink_input = pa_sink_input_new(c->protocol->core, &sdata, 0);
 
     pa_xfree(utf8_name);
 
@@ -374,8 +383,6 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     pa_iochannel_socket_set_rcvbuf(c->io, l/PLAYBACK_BUFFER_FRAGMENTS*2);
     c->playback.fragment_size = l/10;
 
-    c->sink_input->owner = c->protocol->module;
-    c->sink_input->client = c->client;
     c->sink_input->peek = sink_input_peek_cb;
     c->sink_input->drop = sink_input_drop_cb;
     c->sink_input->kill = sink_input_kill_cb;

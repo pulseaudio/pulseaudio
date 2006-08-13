@@ -362,23 +362,24 @@ static void record_stream_free(struct record_stream* r) {
 }
 
 static struct playback_stream* playback_stream_new(
-    struct connection *c,
-    pa_sink *sink,
-    const pa_sample_spec *ss,
-    const pa_channel_map *map,
-    const char *name,
-    size_t maxlength,
-    size_t tlength,
-    size_t prebuf,
-    size_t minreq,
-    pa_cvolume *volume,
-    uint32_t syncid) {
+        struct connection *c,
+        pa_sink *sink,
+        const pa_sample_spec *ss,
+        const pa_channel_map *map,
+        const char *name,
+        size_t maxlength,
+        size_t tlength,
+        size_t prebuf,
+        size_t minreq,
+        pa_cvolume *volume,
+        uint32_t syncid) {
     
     struct playback_stream *s, *ssync;
     pa_sink_input *sink_input;
     pa_memblock *silence;
     uint32_t idx;
     int64_t start_index;
+    pa_sink_input_new_data data;
     
     assert(c && sink && ss && name && maxlength);
 
@@ -395,8 +396,18 @@ static struct playback_stream* playback_stream_new(
     /* Synced streams must connect to the same sink */
     if (ssync && ssync->sink_input->sink != sink)
         return NULL;
-    
-    if (!(sink_input = pa_sink_input_new(sink, __FILE__, name, ss, map, volume, 0, -1)))
+
+    pa_sink_input_new_data_init(&data);
+    data.sink = sink;
+    data.driver = __FILE__;
+    data.name = name;
+    pa_sink_input_new_data_set_sample_spec(&data, ss);
+    pa_sink_input_new_data_set_channel_map(&data, map);
+    pa_sink_input_new_data_set_volume(&data, volume);
+    data.module = c->protocol->module;
+    data.client = c->client;
+
+    if (!(sink_input = pa_sink_input_new(sink->core, &data, 0)))
         return NULL;
     
     s = pa_xnew(struct playback_stream, 1);
@@ -411,8 +422,6 @@ static struct playback_stream* playback_stream_new(
     s->sink_input->kill = sink_input_kill_cb;
     s->sink_input->get_latency = sink_input_get_latency_cb;
     s->sink_input->userdata = s;
-    s->sink_input->owner = c->protocol->module;
-    s->sink_input->client = c->client;
 
     if (ssync) {
         /* Sync id found, now find head of list */
@@ -1331,7 +1340,7 @@ static void sink_input_fill_tagstruct(pa_tagstruct *t, pa_sink_input *s) {
     assert(t && s);
     pa_tagstruct_putu32(t, s->index);
     pa_tagstruct_puts(t, s->name);
-    pa_tagstruct_putu32(t, s->owner ? s->owner->index : PA_INVALID_INDEX);
+    pa_tagstruct_putu32(t, s->module ? s->module->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->client ? s->client->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->sink->index);
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);

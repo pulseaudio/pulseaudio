@@ -120,13 +120,20 @@ static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t le
     }
 }
 
-int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume) {
+int pa_play_file(
+        pa_sink *sink,
+        const char *fname,
+        const pa_cvolume *volume) {
+    
     struct userdata *u = NULL;
     SF_INFO sfinfo;
     pa_sample_spec ss;
-    assert(sink && fname);
+    pa_sink_input_new_data data;
+    
+    assert(sink);
+    assert(fname);
 
-    u = pa_xmalloc(sizeof(struct userdata));
+    u = pa_xnew(struct userdata, 1);
     u->sink_input = NULL;
     u->memchunk.memblock = NULL;
     u->memchunk.index = u->memchunk.length = 0;
@@ -171,8 +178,15 @@ int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume) {
         pa_log(__FILE__": Unsupported sample format in file %s", fname);
         goto fail;
     }
+
+    pa_sink_input_new_data_init(&data);
+    data.sink = sink;
+    data.driver = __FILE__;
+    data.name = fname;
+    pa_sink_input_new_data_set_sample_spec(&data, &ss);
+    pa_sink_input_new_data_set_volume(&data, volume);
     
-    if (!(u->sink_input = pa_sink_input_new(sink, __FILE__, fname, &ss, NULL, volume, 0, -1)))
+    if (!(u->sink_input = pa_sink_input_new(sink->core, &data, 0)))
         goto fail;
 
     u->sink_input->peek = sink_input_peek;
@@ -180,7 +194,7 @@ int pa_play_file(pa_sink *sink, const char *fname, const pa_cvolume *volume) {
     u->sink_input->kill = sink_input_kill;
     u->sink_input->userdata = u;
     
-    pa_sink_notify(sink);
+    pa_sink_notify(u->sink_input->sink);
 
     return 0;
 

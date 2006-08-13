@@ -257,8 +257,8 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
             pa_resample_method_to_string(pa_sink_input_get_resample_method(i)));
 
-        if (i->owner)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", i->owner->index);
+        if (i->module)
+            pa_strbuf_printf(s, "\towner module: <%u>\n", i->module->index);
         if (i->client)
             pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", i->client->index, i->client->name);
     }

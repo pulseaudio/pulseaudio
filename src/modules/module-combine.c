@@ -220,6 +220,8 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
 static struct output *output_new(struct userdata *u, pa_sink *sink, int resample_method) {
     struct output *o = NULL;
     char t[256];
+    pa_sink_input_new_data data;
+    
     assert(u && sink && u->sink);
     
     o = pa_xmalloc(sizeof(struct output));
@@ -237,7 +239,16 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
             sink->core->memblock_stat);
 
     snprintf(t, sizeof(t), "%s: output #%u", u->sink->name, u->n_outputs+1);
-    if (!(o->sink_input = pa_sink_input_new(sink, __FILE__, t, &u->sink->sample_spec, &u->sink->channel_map, NULL, 1, resample_method)))
+
+    pa_sink_input_new_data_init(&data);
+    data.sink = sink;
+    data.driver = __FILE__;
+    data.name = t;
+    pa_sink_input_new_data_set_sample_spec(&data, &u->sink->sample_spec);
+    pa_sink_input_new_data_set_channel_map(&data, &u->sink->channel_map);
+    data.module = u->module;
+    
+    if (!(o->sink_input = pa_sink_input_new(u->core, &data, PA_SINK_INPUT_VARIABLE_RATE)))
         goto fail;
 
     o->sink_input->get_latency = sink_input_get_latency_cb;
@@ -245,7 +256,6 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
     o->sink_input->drop = sink_input_drop_cb;
     o->sink_input->kill = sink_input_kill_cb;
     o->sink_input->userdata = o;
-    o->sink_input->owner = u->module;
     
     PA_LLIST_PREPEND(struct output, u->outputs, o);
     u->n_outputs++;

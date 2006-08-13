@@ -340,21 +340,20 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->client->userdata = c;
 
     if (p->mode & PLAYBACK) {
-        pa_sink *sink;
+        pa_sink_input_new_data data;
         size_t l;
 
-        if (!(sink = pa_namereg_get(p->core, p->sink_name, PA_NAMEREG_SINK, 1))) {
-            pa_log(__FILE__": Failed to get sink.");
-            goto fail;
-        }
+        pa_sink_input_new_data_init(&data);
+        data.driver = __FILE__;
+        data.name = c->client->name;
+        pa_sink_input_new_data_set_sample_spec(&data, &p->sample_spec);
+        data.module = p->module;
+        data.client = c->client;
 
-        if (!(c->sink_input = pa_sink_input_new(sink, __FILE__, c->client->name, &p->sample_spec, NULL, NULL, 0, -1))) {
+        if (!(c->sink_input = pa_sink_input_new(p->core, &data, 0))) {
             pa_log(__FILE__": Failed to create sink input.");
             goto fail;
         }
-        
-        c->sink_input->owner = p->module;
-        c->sink_input->client = c->client;
         
         c->sink_input->peek = sink_input_peek_cb;
         c->sink_input->drop = sink_input_drop_cb;
@@ -375,6 +374,8 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
         assert(c->input_memblockq);
         pa_iochannel_socket_set_rcvbuf(io, l/PLAYBACK_BUFFER_FRAGMENTS*5);
         c->playback.fragment_size = l/10;
+
+        pa_sink_notify(c->sink_input->sink);
     }
 
     if (p->mode & RECORD) {

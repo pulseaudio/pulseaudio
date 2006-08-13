@@ -27,11 +27,13 @@
 typedef struct pa_sink_input pa_sink_input;
 
 #include <pulse/sample.h>
-#include <pulsecore/sink.h>
+#include <pulsecore/hook-list.h>
 #include <pulsecore/memblockq.h>
 #include <pulsecore/resampler.h>
 #include <pulsecore/module.h>
 #include <pulsecore/client.h>
+#include <pulsecore/sink.h>
+#include <pulsecore/core.h>
 
 typedef enum pa_sink_input_state {
     PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
@@ -40,20 +42,25 @@ typedef enum pa_sink_input_state {
     PA_SINK_INPUT_DISCONNECTED  /*< The stream is dead */
 } pa_sink_input_state_t;
 
+typedef enum pa_sink_input_flags {
+    PA_SINK_INPUT_VARIABLE_RATE = 1,
+    PA_SINK_INPUT_NO_HOOKS = 2
+} pa_sink_input_flags_t;
+
 struct pa_sink_input {
     int ref;
     uint32_t index;
     pa_sink_input_state_t state;
+    pa_sink_input_flags_t flags;
     
     char *name, *driver;                /* may be NULL */
-    pa_module *owner;                   /* may be NULL */  
+    pa_module *module;                  /* may be NULL */  
+    pa_client *client;                  /* may be NULL */ 
 
     pa_sink *sink;
-    pa_client *client;                  /* may be NULL */
     
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
-
     pa_cvolume volume;
 
     /* Some silence to play before the actual data. This is used to
@@ -78,15 +85,29 @@ struct pa_sink_input {
     pa_memblock *silence_memblock;               /* may be NULL */
 };
 
-pa_sink_input* pa_sink_input_new(
-    pa_sink *s,
-    const char *driver,
-    const char *name,
-    const pa_sample_spec *spec,
-    const pa_channel_map *map,
-    const pa_cvolume *volume,
-    int variable_rate,
-    pa_resample_method_t resample_method);
+typedef struct pa_sink_input_new_data {
+    const char *name, *driver;
+    pa_module *module;
+    pa_client *client;
+    
+    pa_sink *sink;
+    
+    pa_sample_spec sample_spec;
+    int sample_spec_is_set;
+    pa_channel_map channel_map;
+    int channel_map_is_set;
+    pa_cvolume volume;
+    int volume_is_set;
+    
+    pa_resample_method_t resample_method;
+} pa_sink_input_new_data;
+
+pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data);
+void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const pa_sample_spec *spec);
+void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map);
+void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
+
+pa_sink_input* pa_sink_input_new(pa_core *core, pa_sink_input_new_data *data, pa_sink_input_flags_t flags);
 
 void pa_sink_input_unref(pa_sink_input* i);
 pa_sink_input* pa_sink_input_ref(pa_sink_input* i);

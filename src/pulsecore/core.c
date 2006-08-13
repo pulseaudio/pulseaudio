@@ -92,6 +92,9 @@ pa_core* pa_core_new(pa_mainloop_api *m) {
 
     c->is_system_instance = 0;
 
+    pa_hook_init(&c->hook_sink_input_new, c);
+    pa_hook_init(&c->hook_sink_input_disconnect, c);
+
     pa_property_init(c);
 
     pa_random(&c->cookie, sizeof(c->cookie));
@@ -137,6 +140,9 @@ void pa_core_free(pa_core *c) {
     pa_memblock_stat_unref(c->memblock_stat);
 
     pa_property_cleanup(c);
+
+    pa_hook_free(&c->hook_sink_input_new);
+    pa_hook_free(&c->hook_sink_input_disconnect);
     
     pa_xfree(c);    
 }
