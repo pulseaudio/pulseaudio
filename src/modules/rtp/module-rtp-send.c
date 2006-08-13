@@ -269,6 +269,7 @@ int pa__init(pa_core *c, pa_module*m) {
     data.name = "RTP Monitor Stream";
     data.driver = __FILE__;
     data.module = m;
+    data.source = s;
     pa_source_output_new_data_set_sample_spec(&data, &ss);
     pa_source_output_new_data_set_channel_map(&data, &cm);
     
