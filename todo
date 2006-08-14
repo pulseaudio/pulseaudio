@@ -45,6 +45,7 @@ Features:
 - examine if it is possible to mimic esd's handling of half duplex cards
   (switch to capture when a recording client connects and drop playback during
   that time)
+- Support for device selection in waveout driver
 
 Long term:
 - pass meta info for hearing impaired
