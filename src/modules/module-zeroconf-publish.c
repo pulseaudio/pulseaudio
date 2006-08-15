@@ -240,7 +240,7 @@ finish:
     return r;
 }
 
-static struct service *get_service(struct userdata *u, const char *name) {
+static struct service *get_service(struct userdata *u, const char *name, const char *description) {
     struct service *s;
     char hn[64];
     
@@ -253,7 +253,7 @@ static struct service *get_service(struct userdata *u, const char *name) {
     s->published = UNPUBLISHED;
     s->name = pa_xstrdup(name);
     s->loaded.valid = s->autoload.valid = 0;
-    s->service_name = pa_sprintf_malloc("%s on %s", s->name, pa_get_host_name(hn, sizeof(hn)));
+    s->service_name = pa_sprintf_malloc("%s on %s", description ? description : s->name, pa_get_host_name(hn, sizeof(hn)));
 
     pa_hashmap_put(u->services, s->name, s);
 
@@ -265,7 +265,7 @@ static int publish_sink(struct userdata *u, pa_sink *s) {
     int ret;
     assert(u && s);
 
-    svc = get_service(u, s->name);
+    svc = get_service(u, s->name, s->description);
     if (svc->loaded.valid)
         return publish_service(u, svc);
 
@@ -286,7 +286,7 @@ static int publish_source(struct userdata *u, pa_source *s) {
     
     assert(u && s);
 
-    svc = get_service(u, s->name);
+    svc = get_service(u, s->name, s->description);
     if (svc->loaded.valid)
         return publish_service(u, svc);
 
@@ -309,7 +309,7 @@ static int publish_autoload(struct userdata *u, pa_autoload_entry *s) {
     
     assert(u && s);
 
-    svc = get_service(u, s->name);
+    svc = get_service(u, s->name, NULL);
     if (svc->autoload.valid)
         return publish_service(u, svc);
 
