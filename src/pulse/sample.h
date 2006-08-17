@@ -182,7 +182,7 @@ pa_sample_format_t pa_parse_sample_format(const char *format);
 char* pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec);
 
 /** Pretty print a byte size value. (i.e. "2.5 MiB") */
-void pa_bytes_snprint(char *s, size_t l, unsigned v);
+char* pa_bytes_snprint(char *s, size_t l, unsigned v);
 
 PA_C_DECL_END
 
