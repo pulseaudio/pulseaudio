@@ -24,7 +24,7 @@
 void pa_hook_init(pa_hook *hook, void *data) {
     assert(hook);
 
-    PA_LLIST_HEAD_INIT(pa_hook_slots, hook->slots);
+    PA_LLIST_HEAD_INIT(pa_hook_slot, hook->slots);
     hook->last = NULL;
     hook->n_dead = hook->firing = 0;
     hook->data = data;
