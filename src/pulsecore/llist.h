@@ -34,7 +34,7 @@
 #define PA_LLIST_FIELDS(t) t *next, *prev
 
 /* Initialize the list's head */
-#define PA_LLIST_HEAD_INIT(t,item) do { (item) = NULL; } while(0)
+#define PA_LLIST_HEAD_INIT(t,item) do { (item) = (t*) NULL; } while(0)
 
 /* Initialize a list item */
 #define PA_LLIST_INIT(t,item) do { \
