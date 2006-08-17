@@ -22,6 +22,8 @@
   USA.
 ***/
 
+#include <sys/types.h>
+
 void pa_random_seed(void);
 void pa_random(void *ret_data, size_t length);
     
