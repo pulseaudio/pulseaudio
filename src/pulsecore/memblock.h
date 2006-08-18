@@ -116,6 +116,7 @@ void pa_mempool_free(pa_mempool *p);
 const pa_mempool_stat* pa_mempool_get_stat(pa_mempool *p);
 void pa_mempool_vacuum(pa_mempool *p);
 int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id);
+int pa_mempool_is_shared(pa_mempool *p);
 
 /* For recieving blocks from other nodes */
 pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void *userdata);
