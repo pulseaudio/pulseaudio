@@ -22,6 +22,8 @@
   USA.
 ***/
 
+#include <pulsecore/idxset.h>
+
 /* Simple Implementation of a hash table. Memory management is the
  * user's job. It's a good idea to have the key pointer point to a
  * string in the value data. */
@@ -29,7 +31,7 @@
 typedef struct pa_hashmap pa_hashmap;
 
 /* Create a new hashmap. Use the specified functions for hashing and comparing objects in the map */
-pa_hashmap *pa_hashmap_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b));
+pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func);
 
 /* Free the hash table. Calls the specified function for every value in the table. The function may be NULL */
 void pa_hashmap_free(pa_hashmap*, void (*free_func)(void *p, void *userdata), void *userdata);
@@ -49,5 +51,9 @@ unsigned pa_hashmap_size(pa_hashmap *h);
    *key, if key is non-NULL. After the last entry in the hashmap NULL
    is returned. */
 void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void**key);
+
+void *pa_hashmap_steal_first(pa_hashmap *h);
+
+void *pa_hashmap_get_first(pa_hashmap *h);
 
 #endif
