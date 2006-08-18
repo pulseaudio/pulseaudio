@@ -32,10 +32,13 @@
 
 #include "memchunk.h"
 
-void pa_memchunk_make_writable(pa_memchunk *c, pa_memblock_stat *s, size_t min) {
+void pa_memchunk_make_writable(pa_memchunk *c, size_t min) {
     pa_memblock *n;
     size_t l;
-    assert(c && c->memblock && c->memblock->ref >= 1);
+    
+    assert(c);
+    assert(c->memblock);
+    assert(c->memblock->ref >= 1);
 
     if (c->memblock->ref == 1 && !c->memblock->read_only && c->memblock->length >= c->index+min)
         return;
@@ -44,7 +47,7 @@ void pa_memchunk_make_writable(pa_memchunk *c, pa_memblock_stat *s, size_t min) 
     if (l < min)
         l = min;
     
-    n = pa_memblock_new(l, s);
+    n = pa_memblock_new(c->memblock->pool, l);
     memcpy(n->data, (uint8_t*) c->memblock->data + c->index, c->length);
     pa_memblock_unref(c->memblock);
     c->memblock = n;

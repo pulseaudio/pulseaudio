@@ -298,14 +298,14 @@ int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         pa_sw_cvolume_multiply(&volume, &s->sw_volume, &info[0].volume);
         
         if (s->sw_muted || !pa_cvolume_is_norm(&volume)) {
-            pa_memchunk_make_writable(result, s->core->memblock_stat, 0);
+            pa_memchunk_make_writable(result, 0);
             if (s->sw_muted)
                 pa_silence_memchunk(result, &s->sample_spec);
             else
                 pa_volume_memchunk(result, &s->sample_spec, &volume);
         }
     } else {
-        result->memblock = pa_memblock_new(length, s->core->memblock_stat);
+        result->memblock = pa_memblock_new(s->core->mempool, length);
         assert(result->memblock);
 
 /*          pa_log("mixing %i", n);  */
@@ -429,7 +429,7 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
 
     /*** This needs optimization ***/
     
-    result->memblock = pa_memblock_new(result->length = length, s->core->memblock_stat);
+    result->memblock = pa_memblock_new(s->core->mempool, result->length = length);
     result->index = 0;
 
     pa_sink_render_into_full(s, result);

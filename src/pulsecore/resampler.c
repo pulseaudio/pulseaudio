@@ -42,7 +42,7 @@ struct pa_resampler {
     pa_sample_spec i_ss, o_ss;
     pa_channel_map i_cm, o_cm;
     size_t i_fz, o_fz;
-    pa_memblock_stat *memblock_stat;
+    pa_mempool *mempool;
 
     void (*impl_free)(pa_resampler *r);
     void (*impl_update_input_rate)(pa_resampler *r, uint32_t rate);
@@ -71,15 +71,16 @@ static int libsamplerate_init(pa_resampler*r);
 static int trivial_init(pa_resampler*r);
 
 pa_resampler* pa_resampler_new(
-    const pa_sample_spec *a,
-    const pa_channel_map *am,
-    const pa_sample_spec *b,
-    const pa_channel_map *bm,
-    pa_memblock_stat *s,
-    pa_resample_method_t resample_method) {
+        pa_mempool *pool,
+        const pa_sample_spec *a,
+        const pa_channel_map *am,
+        const pa_sample_spec *b,
+        const pa_channel_map *bm,
+        pa_resample_method_t resample_method) {
     
     pa_resampler *r = NULL;
 
+    assert(pool);
     assert(a);
     assert(b);
     assert(pa_sample_spec_valid(a));
@@ -88,7 +89,7 @@ pa_resampler* pa_resampler_new(
 
     r = pa_xnew(pa_resampler, 1);
     r->impl_data = NULL;
-    r->memblock_stat = s;
+    r->mempool = pool;
     r->resample_method = resample_method;
 
     r->impl_free = NULL;
@@ -450,7 +451,7 @@ static void libsamplerate_run(pa_resampler *r, const pa_memchunk *in, pa_memchun
             assert(p);
 
             /* Take the existing buffer and make it a memblock */
-            out->memblock = pa_memblock_new_dynamic(*p, out->length, r->memblock_stat);
+            out->memblock = pa_memblock_new_malloced(r->mempool, *p, out->length);
             *p = NULL;
         }
     } else {
@@ -549,7 +550,7 @@ static void trivial_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out
         l = ((((n_frames+1) * r->o_ss.rate) / r->i_ss.rate) + 1) * fz;
         
         out->index = 0;
-        out->memblock = pa_memblock_new(l, r->memblock_stat);
+        out->memblock = pa_memblock_new(r->mempool, l);
         
         for (o_index = 0;; o_index++, u->o_counter++) {
             unsigned j;

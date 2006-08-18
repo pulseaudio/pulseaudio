@@ -100,6 +100,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int 
 static int pa_cli_command_list_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
+static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 
 /* A method table for all available commands */
 
@@ -144,6 +145,7 @@ static const struct command commands[] = {
     { "list-props",              pa_cli_command_list_props,         NULL, 1},
     { "move-sink-input",         pa_cli_command_move_sink_input,    "Move sink input to another sink (args: index, sink)", 3},
     { "move-source-output",      pa_cli_command_move_source_output, "Move source output to another source (args: index, source)", 3},
+    { "vacuum",                  pa_cli_command_vacuum,             NULL, 1},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -239,23 +241,32 @@ static int pa_cli_command_source_outputs(pa_core *c, pa_tokenizer *t, pa_strbuf 
 
 static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
     char s[256];
+    const pa_mempool_stat *stat;
     assert(c && t);
 
-    pa_bytes_snprint(s, sizeof(s), c->memblock_stat->total_size);
+    stat = pa_mempool_get_stat(c->mempool);
+    
     pa_strbuf_printf(buf, "Memory blocks currently allocated: %u, size: %s.\n",
-                     c->memblock_stat->total,
-                     s);
+                     stat->n_allocated,
+                     pa_bytes_snprint(s, sizeof(s), stat->allocated_size));
 
-    pa_bytes_snprint(s, sizeof(s), c->memblock_stat->allocated_size);
     pa_strbuf_printf(buf, "Memory blocks allocated during the whole lifetime: %u, size: %s.\n",
-                     c->memblock_stat->allocated,
-                     s);
+                     stat->n_accumulated,
+                     pa_bytes_snprint(s, sizeof(s), stat->accumulated_size));
 
-    pa_bytes_snprint(s, sizeof(s), pa_scache_total_size(c));
-    pa_strbuf_printf(buf, "Total sample cache size: %s.\n", s);
+    pa_strbuf_printf(buf, "Memory blocks imported from other processes: %u, size: %s.\n",
+                     stat->n_imported,
+                     pa_bytes_snprint(s, sizeof(s), stat->imported_size));
 
-    pa_sample_spec_snprint(s, sizeof(s), &c->default_sample_spec);
-    pa_strbuf_printf(buf, "Default sample spec: %s\n", s);
+    pa_strbuf_printf(buf, "Memory blocks exported to other processes: %u, size: %s.\n",
+                     stat->n_exported,
+                     pa_bytes_snprint(s, sizeof(s), stat->exported_size));
+
+    pa_strbuf_printf(buf, "Total sample cache size: %s.\n",
+                     pa_bytes_snprint(s, sizeof(s), pa_scache_total_size(c)));
+
+    pa_strbuf_printf(buf, "Default sample spec: %s\n",
+                     pa_sample_spec_snprint(s, sizeof(s), &c->default_sample_spec));
 
     pa_strbuf_printf(buf, "Default sink name: %s\n"
                      "Default source name: %s\n",
@@ -728,6 +739,15 @@ static int pa_cli_command_autoload_list(pa_core *c, pa_tokenizer *t, pa_strbuf *
 static int pa_cli_command_list_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
     assert(c && t);
     pa_property_dump(c, buf);
+    return 0;
+}
+
+static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail) {
+    assert(c);
+    assert(t);
+
+    pa_mempool_vacuum(c->mempool);
+    
     return 0;
 }
 

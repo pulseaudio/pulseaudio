@@ -28,7 +28,7 @@
 #include <pulsecore/memchunk.h>
 
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec);
-pa_memblock *pa_silence_memblock_new(const pa_sample_spec *spec, size_t length, pa_memblock_stat*s);
+pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spec, size_t length);
 void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec);
 void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec);
 

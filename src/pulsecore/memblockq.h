@@ -69,8 +69,7 @@ pa_memblockq* pa_memblockq_new(
         size_t base,
         size_t prebuf, 
         size_t minreq,
-        pa_memblock *silence,
-        pa_memblock_stat *s);
+        pa_memblock *silence);
 
 void pa_memblockq_free(pa_memblockq*bq);
 

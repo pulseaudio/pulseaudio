@@ -128,7 +128,7 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     c->subscribe_callback = NULL;
     c->subscribe_userdata = NULL;
 
-    c->memblock_stat = pa_memblock_stat_new();
+    c->mempool = pa_mempool_new(1);
     c->local = -1;
     c->server_list = NULL;
     c->server = NULL;
@@ -177,7 +177,7 @@ static void context_free(pa_context *c) {
     if (c->playback_streams)
         pa_dynarray_free(c->playback_streams, NULL, NULL);
 
-    pa_memblock_stat_unref(c->memblock_stat);
+    pa_mempool_free(c->mempool);
 
     if (c->conf)
         pa_client_conf_free(c->conf);
@@ -407,7 +407,9 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_context_ref(c);
     
     assert(!c->pstream);
-    c->pstream = pa_pstream_new(c->mainloop, io, c->memblock_stat);
+    c->pstream = pa_pstream_new(c->mainloop, io, c->mempool);
+
+    pa_pstream_use_shm(c->pstream, 1);
     
     pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);

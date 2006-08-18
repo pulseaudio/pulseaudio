@@ -36,7 +36,7 @@ typedef struct pa_memchunk {
 /* Make a memchunk writable, i.e. make sure that the caller may have
  * exclusive access to the memblock and it is not read_only. If needed
  * the memblock in the structure is replaced by a copy. */
-void pa_memchunk_make_writable(pa_memchunk *c, pa_memblock_stat *s, size_t min);
+void pa_memchunk_make_writable(pa_memchunk *c, size_t min);
 
 /* Invalidate a memchunk. This does not free the cotaining memblock,
  * but sets all members to zero. */

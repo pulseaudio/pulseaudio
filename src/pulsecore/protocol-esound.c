@@ -377,8 +377,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
             pa_frame_size(&ss),
             (size_t) -1,
             l/PLAYBACK_BUFFER_FRAGMENTS,
-            NULL,
-            c->protocol->core->memblock_stat);
+            NULL);
     pa_iochannel_socket_set_rcvbuf(c->io, l/PLAYBACK_BUFFER_FRAGMENTS*2);
     c->playback.fragment_size = l/10;
 
@@ -469,8 +468,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
             pa_frame_size(&ss),
             1,
             0,
-            NULL,
-            c->protocol->core->memblock_stat);
+            NULL);
     pa_iochannel_socket_set_sndbuf(c->io, l/RECORD_BUFFER_FRAGMENTS*2);
     
     c->source_output->push = source_output_push_cb;
@@ -722,7 +720,7 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     CHECK_VALIDITY(pa_utf8_valid(name), "Invalid UTF8 in sample name.");
     
     assert(!c->scache.memchunk.memblock);
-    c->scache.memchunk.memblock = pa_memblock_new(sc_length, c->protocol->core->memblock_stat);
+    c->scache.memchunk.memblock = pa_memblock_new(c->protocol->core->mempool, sc_length);
     c->scache.memchunk.index = 0;
     c->scache.memchunk.length = sc_length;
     c->scache.sample_spec = ss;
@@ -941,7 +939,7 @@ static int do_read(struct connection *c) {
             }
         
         if (!c->playback.current_memblock) {
-            c->playback.current_memblock = pa_memblock_new(c->playback.fragment_size*2, c->protocol->core->memblock_stat);
+            c->playback.current_memblock = pa_memblock_new(c->protocol->core->mempool, c->playback.fragment_size*2);
             assert(c->playback.current_memblock && c->playback.current_memblock->length >= l);
             c->playback.memblock_index = 0;
         }

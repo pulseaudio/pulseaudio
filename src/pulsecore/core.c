@@ -44,7 +44,7 @@
 
 #include "core.h"
 
-pa_core* pa_core_new(pa_mainloop_api *m) {
+pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_core* c;
     
     c = pa_xnew(pa_core, 1);
@@ -78,7 +78,7 @@ pa_core* pa_core_new(pa_mainloop_api *m) {
     PA_LLIST_HEAD_INIT(pa_subscription_event, c->subscription_event_queue);
     c->subscription_event_last = NULL;
 
-    c->memblock_stat = pa_memblock_stat_new();
+    c->mempool = pa_mempool_new(shared);
 
     c->disallow_module_loading = 0;
 
@@ -139,7 +139,7 @@ void pa_core_free(pa_core *c) {
     pa_xfree(c->default_source_name);
     pa_xfree(c->default_sink_name);
 
-    pa_memblock_stat_unref(c->memblock_stat);
+    pa_mempool_free(c->mempool);
 
     pa_property_cleanup(c);
 

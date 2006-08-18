@@ -139,7 +139,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
     
-    u->memblock = pa_memblock_new(pa_bytes_per_second(&ss), c->memblock_stat);
+    u->memblock = pa_memblock_new(c->mempool, pa_bytes_per_second(&ss));
     calc_sine(u->memblock->data, u->memblock->length, frequency);
 
     snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);

@@ -34,7 +34,7 @@
 #include "sound-file.h"
 #include "core-scache.h"
 
-int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *map, pa_memchunk *chunk, pa_memblock_stat *s) {
+int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, pa_channel_map *map, pa_memchunk *chunk) {
     SNDFILE*sf = NULL;
     SF_INFO sfinfo;
     int ret = -1;
@@ -92,7 +92,7 @@ int pa_sound_file_load(const char *fname, pa_sample_spec *ss, pa_channel_map *ma
         goto finish;
     }
 
-    chunk->memblock = pa_memblock_new(l, s);
+    chunk->memblock = pa_memblock_new(pool, l);
     assert(chunk->memblock);
     chunk->index = 0;
     chunk->length = l;

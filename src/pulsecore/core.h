@@ -67,7 +67,7 @@ struct pa_core {
     PA_LLIST_HEAD(pa_subscription_event, subscription_event_queue);
     pa_subscription_event *subscription_event_last;
 
-    pa_memblock_stat *memblock_stat;
+    pa_mempool *mempool;
 
     int disallow_module_loading, running_as_daemon;
     int exit_idle_time, module_idle_time, scache_idle_time;
@@ -88,7 +88,7 @@ struct pa_core {
         hook_source_disconnect;
 };
 
-pa_core* pa_core_new(pa_mainloop_api *m);
+pa_core* pa_core_new(pa_mainloop_api *m, int shared);
 void pa_core_free(pa_core*c);
 
 /* Check whether noone is connected to this core */

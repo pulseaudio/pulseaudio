@@ -211,7 +211,7 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
         pa_memchunk vchunk = *chunk;
         
         pa_memblock_ref(vchunk.memblock);
-        pa_memchunk_make_writable(&vchunk, s->core->memblock_stat, 0);
+        pa_memchunk_make_writable(&vchunk, 0);
         if (s->sw_muted)
             pa_silence_memchunk(&vchunk, &s->sample_spec);
         else

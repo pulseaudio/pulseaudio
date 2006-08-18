@@ -297,8 +297,7 @@ int pa__init(pa_core *c, pa_module*m) {
             pa_frame_size(&ss),
             1,
             0,
-            NULL,
-            c->memblock_stat);
+            NULL);
 
     u->mtu = mtu;
     

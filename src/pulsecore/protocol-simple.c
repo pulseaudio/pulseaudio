@@ -128,7 +128,7 @@ static int do_read(struct connection *c) {
         }
 
     if (!c->playback.current_memblock) {
-        c->playback.current_memblock = pa_memblock_new(c->playback.fragment_size*2, c->protocol->core->memblock_stat);
+        c->playback.current_memblock = pa_memblock_new(c->protocol->core->mempool, c->playback.fragment_size*2);
         assert(c->playback.current_memblock && c->playback.current_memblock->length >= l);
         c->playback.memblock_index = 0;
     }
@@ -369,8 +369,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
                 pa_frame_size(&p->sample_spec),
                 (size_t) -1,
                 l/PLAYBACK_BUFFER_FRAGMENTS,
-                NULL,
-                p->core->memblock_stat);
+                NULL);
         assert(c->input_memblockq);
         pa_iochannel_socket_set_rcvbuf(io, l/PLAYBACK_BUFFER_FRAGMENTS*5);
         c->playback.fragment_size = l/10;
@@ -406,8 +405,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
                 pa_frame_size(&p->sample_spec),
                 1,
                 0,
-                NULL,
-                p->core->memblock_stat);
+                NULL);
         pa_iochannel_socket_set_sndbuf(io, l/RECORD_BUFFER_FRAGMENTS*2);
         pa_source_notify(c->source_output->source);
     }

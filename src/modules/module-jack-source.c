@@ -137,7 +137,7 @@ static void io_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event_
         
         fs = pa_frame_size(&u->source->sample_spec);
 
-        chunk.memblock = pa_memblock_new(chunk.length = u->frames_posted * fs, u->core->memblock_stat);
+        chunk.memblock = pa_memblock_new(u->core->mempool, chunk.length = u->frames_posted * fs);
         chunk.index = 0;
         
         for (frame_idx = 0; frame_idx < u->frames_posted; frame_idx ++) {

@@ -63,7 +63,7 @@
 
 typedef struct pa_mcalign pa_mcalign;
 
-pa_mcalign *pa_mcalign_new(size_t base, pa_memblock_stat *s);
+pa_mcalign *pa_mcalign_new(size_t base);
 void pa_mcalign_free(pa_mcalign *m);
 
 /* Push a new memchunk into the aligner. The caller of this routine

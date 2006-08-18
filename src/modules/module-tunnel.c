@@ -651,7 +651,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
         return;
     }
 
-    u->pstream = pa_pstream_new(u->core->mainloop, io, u->core->memblock_stat);
+    u->pstream = pa_pstream_new(u->core->mainloop, io, u->core->mempool);
     u->pdispatch = pa_pdispatch_new(u->core->mainloop, command_table, PA_COMMAND_MAX);
 
     pa_pstream_set_die_callback(u->pstream, pstream_die_callback, u);

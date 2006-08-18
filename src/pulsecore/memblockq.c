@@ -49,7 +49,6 @@ struct pa_memblockq {
     size_t maxlength, tlength, base, prebuf, minreq;
     int64_t read_index, write_index;
     enum { PREBUF, RUNNING } state;
-    pa_memblock_stat *memblock_stat;
     pa_memblock *silence;
     pa_mcalign *mcalign;
 };
@@ -61,8 +60,7 @@ pa_memblockq* pa_memblockq_new(
         size_t base,
         size_t prebuf,
         size_t minreq,
-        pa_memblock *silence,
-        pa_memblock_stat *s) {
+        pa_memblock *silence) {
     
     pa_memblockq* bq;
     
@@ -75,7 +73,6 @@ pa_memblockq* pa_memblockq_new(
 
     bq->base = base;
     bq->read_index = bq->write_index = idx;
-    bq->memblock_stat = s;
 
     pa_log_debug(__FILE__": memblockq requested: maxlength=%lu, tlength=%lu, base=%lu, prebuf=%lu, minreq=%lu",
         (unsigned long)maxlength, (unsigned long)tlength, (unsigned long)base, (unsigned long)prebuf, (unsigned long)minreq);
@@ -586,7 +583,7 @@ int pa_memblockq_push_align(pa_memblockq* bq, const pa_memchunk *chunk) {
         return pa_memblockq_push(bq, chunk);
  	
     if (!bq->mcalign)
-        bq->mcalign = pa_mcalign_new(bq->base, bq->memblock_stat);
+        bq->mcalign = pa_mcalign_new(bq->base);
 
     if (!can_push(bq, pa_mcalign_csize(bq->mcalign, chunk->length)))
         return -1;

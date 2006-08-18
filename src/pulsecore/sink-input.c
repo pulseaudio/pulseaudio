@@ -136,9 +136,9 @@ pa_sink_input* pa_sink_input_new(
         !pa_channel_map_equal(&data->channel_map, &data->sink->channel_map))
         
         if (!(resampler = pa_resampler_new(
+                      core->mempool, 
                       &data->sample_spec, &data->channel_map,
                       &data->sink->sample_spec, &data->sink->channel_map,
-                      core->memblock_stat,
                       data->resample_method))) {
             pa_log_warn(__FILE__": Unsupported resampling operation.");
             return NULL;
@@ -299,7 +299,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
          * while until the old sink has drained its playback buffer */
         
         if (!i->silence_memblock)
-            i->silence_memblock = pa_silence_memblock_new(&i->sink->sample_spec, SILENCE_BUFFER_LENGTH, i->sink->core->memblock_stat);
+            i->silence_memblock = pa_silence_memblock_new(i->sink->core->mempool, &i->sink->sample_spec, SILENCE_BUFFER_LENGTH);
 
         chunk->memblock = pa_memblock_ref(i->silence_memblock);
         chunk->index = 0;
@@ -338,7 +338,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
         /* It might be necessary to adjust the volume here */
         if (do_volume_adj_here && !volume_is_norm) {
-            pa_memchunk_make_writable(&tchunk, i->sink->core->memblock_stat, 0);
+            pa_memchunk_make_writable(&tchunk, 0);
             pa_volume_memchunk(&tchunk, &i->sample_spec, &i->volume);
         }
 
@@ -540,9 +540,9 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
         /* Okey, we need a new resampler for the new sink */
         
         if (!(new_resampler = pa_resampler_new(
+                      dest->core->mempool,
                       &i->sample_spec, &i->channel_map,
                       &dest->sample_spec, &dest->channel_map,
-                      dest->core->memblock_stat,
                       i->resample_method))) {
             pa_log_warn(__FILE__": Unsupported resampling operation.");
             return -1;
@@ -553,7 +553,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
         pa_usec_t old_latency, new_latency;
         pa_usec_t silence_usec = 0;
 
-        buffer = pa_memblockq_new(0, MOVE_BUFFER_LENGTH, 0, pa_frame_size(&origin->sample_spec), 0, 0, NULL, NULL);
+        buffer = pa_memblockq_new(0, MOVE_BUFFER_LENGTH, 0, pa_frame_size(&origin->sample_spec), 0, 0, NULL);
         
         /* Let's do a little bit of Voodoo for compensating latency
          * differences */
@@ -599,7 +599,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
                 chunk.length = n;
 
                 if (!volume_is_norm) {
-                    pa_memchunk_make_writable(&chunk, origin->core->memblock_stat, 0);
+                    pa_memchunk_make_writable(&chunk, 0);
                     pa_volume_memchunk(&chunk, &origin->sample_spec, &volume);
                 }
 

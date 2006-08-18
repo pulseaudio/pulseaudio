@@ -43,12 +43,12 @@ typedef enum pa_resample_method {
 } pa_resample_method_t;
 
 pa_resampler* pa_resampler_new(
-    const pa_sample_spec *a,
-    const pa_channel_map *am,
-    const pa_sample_spec *b,
-    const pa_channel_map *bm,
-    pa_memblock_stat *s,
-    pa_resample_method_t resample_method);
+        pa_mempool *pool,
+        const pa_sample_spec *a,
+        const pa_channel_map *am,
+        const pa_sample_spec *b,
+        const pa_channel_map *bm,
+        pa_resample_method_t resample_method);
 
 void pa_resampler_free(pa_resampler *r);
 

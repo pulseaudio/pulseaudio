@@ -235,8 +235,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
             pa_frame_size(&u->sink->sample_spec),
             1,
             0,
-            NULL,
-            sink->core->memblock_stat);
+            NULL);
 
     snprintf(t, sizeof(t), "%s: output #%u", u->sink->name, u->n_outputs+1);
 

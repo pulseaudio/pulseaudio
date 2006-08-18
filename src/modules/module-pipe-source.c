@@ -91,7 +91,7 @@ static void do_read(struct userdata *u) {
     pa_module_set_used(u->module, pa_idxset_size(u->source->outputs));
 
     if (!u->chunk.memblock) {
-        u->chunk.memblock = pa_memblock_new(1024, u->core->memblock_stat);
+        u->chunk.memblock = pa_memblock_new(u->core->mempool, PIPE_BUF);
         u->chunk.index = chunk.length = 0;
     }
 

@@ -150,7 +150,7 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
     assert(fd == s->rtp_context.fd);
     assert(flags == PA_IO_EVENT_INPUT);
 
-    if (pa_rtp_recv(&s->rtp_context, &chunk, s->userdata->core->memblock_stat) < 0)
+    if (pa_rtp_recv(&s->rtp_context, &chunk, s->userdata->core->mempool) < 0)
         return;
 
     if (s->sdp_info.payload != s->rtp_context.payload) {
@@ -312,10 +312,10 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sink_input->kill = sink_input_kill;
     s->sink_input->get_latency = sink_input_get_latency;
 
-    silence = pa_silence_memblock_new(&s->sink_input->sample_spec,
+    silence = pa_silence_memblock_new(s->userdata->core->mempool,
+                                      &s->sink_input->sample_spec,
                                       (pa_bytes_per_second(&s->sink_input->sample_spec)/128/pa_frame_size(&s->sink_input->sample_spec))*
-                                      pa_frame_size(&s->sink_input->sample_spec),
-                                      s->userdata->core->memblock_stat);
+                                      pa_frame_size(&s->sink_input->sample_spec));
     
     s->memblockq = pa_memblockq_new(
             0,
@@ -324,8 +324,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
             pa_frame_size(&s->sink_input->sample_spec),
             pa_bytes_per_second(&s->sink_input->sample_spec)/10+1,
             0,
-            silence,
-            u->core->memblock_stat);
+            silence);
 
     pa_memblock_unref(silence);
 

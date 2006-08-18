@@ -437,8 +437,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
                 pa_frame_size(&s->sample_spec),
                 1,
                 0,
-                NULL,
-                s->context->memblock_stat);
+                NULL);
     }
 
     s->channel_valid = 1;
@@ -604,9 +603,9 @@ int pa_stream_write(
         return 0;
 
     if (free_cb) 
-        chunk.memblock = pa_memblock_new_user((void*) data, length, free_cb, 1, s->context->memblock_stat);
+        chunk.memblock = pa_memblock_new_user(s->context->mempool, (void*) data, length, free_cb, 1);
     else {
-        chunk.memblock = pa_memblock_new(length, s->context->memblock_stat);
+        chunk.memblock = pa_memblock_new(s->context->mempool, length);
         memcpy(chunk.memblock->data, data, length);
     }
         

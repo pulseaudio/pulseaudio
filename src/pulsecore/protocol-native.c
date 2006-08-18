@@ -348,8 +348,7 @@ static struct record_stream* record_stream_new(
             base = pa_frame_size(ss),
             1,
             0,
-            NULL,
-            c->protocol->core->memblock_stat);
+            NULL);
     assert(s->memblockq);
 
     s->fragment_size = (fragment_size/base)*base;
@@ -448,7 +447,7 @@ static struct playback_stream* playback_stream_new(
         start_index = 0;
     }
     
-    silence = pa_silence_memblock_new(ss, 0, c->protocol->core->memblock_stat);
+    silence = pa_silence_memblock_new(c->protocol->core->mempool, ss, 0);
     
     s->memblockq = pa_memblockq_new(
             start_index,
@@ -457,8 +456,7 @@ static struct playback_stream* playback_stream_new(
             pa_frame_size(ss),
             prebuf,
             minreq,
-            silence,
-            c->protocol->core->memblock_stat);
+            silence);
 
     pa_memblock_unref(silence);
     
@@ -1076,6 +1074,7 @@ static void command_drain_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC
 static void command_stat(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct connection *c = userdata;
     pa_tagstruct *reply;
+    const pa_mempool_stat *stat;
     assert(c && t);
 
     if (!pa_tagstruct_eof(t)) {
@@ -1085,11 +1084,13 @@ static void command_stat(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
 
+    stat = pa_mempool_get_stat(c->protocol->core->mempool);
+    
     reply = reply_new(tag);
-    pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->total);
-    pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->total_size);
-    pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->allocated);
-    pa_tagstruct_putu32(reply, c->protocol->core->memblock_stat->allocated_size);
+    pa_tagstruct_putu32(reply, stat->n_allocated);
+    pa_tagstruct_putu32(reply, stat->allocated_size);
+    pa_tagstruct_putu32(reply, stat->n_accumulated);
+    pa_tagstruct_putu32(reply, stat->accumulated_size);
     pa_tagstruct_putu32(reply, pa_scache_total_size(c->protocol->core));
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
@@ -2256,7 +2257,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
                 pa_memblock_ref(u->memchunk.memblock);
                 u->length = 0;
             } else {
-                u->memchunk.memblock = pa_memblock_new(u->length, c->protocol->core->memblock_stat);
+                u->memchunk.memblock = pa_memblock_new(c->protocol->core->mempool, u->length);
                 u->memchunk.index = u->memchunk.length = 0;
             }
         }
@@ -2349,8 +2350,10 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     c->client->userdata = c;
     c->client->owner = p->module;
     
-    c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->memblock_stat);
+    c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->mempool);
     assert(c->pstream);
+
+    pa_pstream_use_shm(c->pstream, 1);
 
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
     pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);

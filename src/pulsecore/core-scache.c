@@ -176,7 +176,7 @@ int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint3
         filename = buf;
 #endif
 
-    if (pa_sound_file_load(filename, &ss, &map, &chunk, c->memblock_stat) < 0)
+    if (pa_sound_file_load(c->mempool, filename, &ss, &map, &chunk) < 0)
         return -1;
         
     r = pa_scache_add_item(c, name, &ss, &map, &chunk, idx);
@@ -261,7 +261,7 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
         return -1;
 
     if (e->lazy && !e->memchunk.memblock) {
-        if (pa_sound_file_load(e->filename, &e->sample_spec, &e->channel_map, &e->memchunk, c->memblock_stat) < 0)
+        if (pa_sound_file_load(c->mempool, e->filename, &e->sample_spec, &e->channel_map, &e->memchunk) < 0)
             return -1;
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);

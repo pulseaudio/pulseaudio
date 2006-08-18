@@ -39,7 +39,7 @@ typedef void (*pa_pstream_packet_cb_t)(pa_pstream *p, pa_packet *packet, const p
 typedef void (*pa_pstream_memblock_cb_t)(pa_pstream *p, uint32_t channel, int64_t offset, pa_seek_mode_t seek, const pa_memchunk *chunk, void *userdata);
 typedef void (*pa_pstream_notify_cb_t)(pa_pstream *p, void *userdata);
 
-pa_pstream* pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_memblock_stat *s);
+pa_pstream* pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *p);
 void pa_pstream_unref(pa_pstream*p);
 pa_pstream* pa_pstream_ref(pa_pstream*p);
 
@@ -53,6 +53,8 @@ void pa_pstream_set_drain_callback(pa_pstream *p, pa_pstream_notify_cb_t cb, voi
 void pa_pstream_set_die_callback(pa_pstream *p, pa_pstream_notify_cb_t cb, void *userdata);
 
 int pa_pstream_is_pending(pa_pstream *p);
+
+void pa_pstream_use_shm(pa_pstream *p, int enable);
 
 void pa_pstream_close(pa_pstream *p);
 

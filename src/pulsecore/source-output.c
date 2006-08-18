@@ -115,9 +115,9 @@ pa_source_output* pa_source_output_new(
     if (!pa_sample_spec_equal(&data->sample_spec, &data->source->sample_spec) ||
         !pa_channel_map_equal(&data->channel_map, &data->source->channel_map))
         if (!(resampler = pa_resampler_new(
+                      core->mempool,
                       &data->source->sample_spec, &data->source->channel_map,
                       &data->sample_spec, &data->channel_map,
-                      core->memblock_stat,
                       data->resample_method))) {
             pa_log_warn(__FILE__": Unsupported resampling operation.");
             return NULL;
@@ -330,9 +330,9 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
         /* Okey, we need a new resampler for the new sink */
         
         if (!(new_resampler = pa_resampler_new(
+                      dest->core->mempool,
                       &dest->sample_spec, &dest->channel_map,
                       &o->sample_spec, &o->channel_map,
-                      dest->core->memblock_stat,
                       o->resample_method))) {
             pa_log_warn(__FILE__": Unsupported resampling operation.");
             return -1;

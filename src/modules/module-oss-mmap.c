@@ -162,10 +162,10 @@ static void out_fill_memblocks(struct userdata *u, unsigned n) {
             
         chunk.memblock = u->out_memblocks[u->out_current] =
             pa_memblock_new_fixed(
+                    u->core->mempool,
                     (uint8_t*) u->out_mmap+u->out_fragment_size*u->out_current,
                     u->out_fragment_size,
-                    1,
-                    u->core->memblock_stat);
+                    1);
         assert(chunk.memblock);
         chunk.length = chunk.memblock->length;
         chunk.index = 0;
@@ -210,7 +210,7 @@ static void in_post_memblocks(struct userdata *u, unsigned n) {
         pa_memchunk chunk;
         
         if (!u->in_memblocks[u->in_current]) {
-            chunk.memblock = u->in_memblocks[u->in_current] = pa_memblock_new_fixed((uint8_t*) u->in_mmap+u->in_fragment_size*u->in_current, u->in_fragment_size, 1, u->core->memblock_stat);
+            chunk.memblock = u->in_memblocks[u->in_current] = pa_memblock_new_fixed(u->core->mempool, (uint8_t*) u->in_mmap+u->in_fragment_size*u->in_current, u->in_fragment_size, 1);
             chunk.length = chunk.memblock->length;
             chunk.index = 0;
             

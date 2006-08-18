@@ -35,10 +35,9 @@
 struct pa_mcalign {
     size_t base;
     pa_memchunk leftover, current;
-    pa_memblock_stat *memblock_stat;
 };
 
-pa_mcalign *pa_mcalign_new(size_t base, pa_memblock_stat *s) {
+pa_mcalign *pa_mcalign_new(size_t base) {
     pa_mcalign *m;
     assert(base);
 
@@ -47,7 +46,6 @@ pa_mcalign *pa_mcalign_new(size_t base, pa_memblock_stat *s) {
     m->base = base;
     pa_memchunk_reset(&m->leftover);
     pa_memchunk_reset(&m->current);
-    m->memblock_stat = s;
     
     return m;
 }
@@ -100,7 +98,7 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
                 l = c->length;
 
             /* Can we use the current block? */
-            pa_memchunk_make_writable(&m->leftover, m->memblock_stat, m->base);
+            pa_memchunk_make_writable(&m->leftover, m->base);
 
             memcpy((uint8_t*) m->leftover.memblock->data + m->leftover.index + m->leftover.length, (uint8_t*) c->memblock->data + c->index, l);
             m->leftover.length += l;

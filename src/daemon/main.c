@@ -559,7 +559,7 @@ int main(int argc, char *argv[]) {
     mainloop = pa_mainloop_new();
     assert(mainloop);
 
-    c = pa_core_new(pa_mainloop_get_api(mainloop));
+    c = pa_core_new(pa_mainloop_get_api(mainloop), 1);
     assert(c);
     c->is_system_instance = !!conf->system_instance;
 

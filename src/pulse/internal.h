@@ -69,7 +69,7 @@ struct pa_context {
     pa_context_subscribe_cb_t subscribe_callback;
     void *subscribe_userdata;
 
-    pa_memblock_stat *memblock_stat;
+    pa_mempool *mempool;
 
     int local;
     int do_autospawn;

@@ -149,7 +149,7 @@ pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd, size_t frame
     return c;
 }
 
-int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_memblock_stat *st) {
+int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     int size;
     struct msghdr m;
     struct iovec iov;
@@ -170,7 +170,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_memblock_stat *st) {
     if (!size)
         return 0;
 
-    chunk->memblock = pa_memblock_new(size, st);
+    chunk->memblock = pa_memblock_new(pool, size);
 
     iov.iov_base = chunk->memblock->data;
     iov.iov_len = size;

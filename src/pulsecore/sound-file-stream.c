@@ -75,7 +75,7 @@ static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
         uint32_t fs = pa_frame_size(&i->sample_spec);
         sf_count_t n;
 
-        u->memchunk.memblock = pa_memblock_new(BUF_SIZE, i->sink->core->memblock_stat);
+        u->memchunk.memblock = pa_memblock_new(i->sink->core->mempool, BUF_SIZE);
         u->memchunk.index = 0;
 
         if (u->readf_function) {

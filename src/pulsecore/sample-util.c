@@ -35,13 +35,14 @@
 #include "sample-util.h"
 #include "endianmacros.h"
 
-pa_memblock *pa_silence_memblock_new(const pa_sample_spec *spec, size_t length, pa_memblock_stat*s) {
+pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spec, size_t length) {
+    assert(pool);
     assert(spec);
 
     if (length == 0)
-        length = pa_bytes_per_second(spec)/10; /* 100 ms */
+        length = pa_bytes_per_second(spec)/20; /* 50 ms */
 
-    return pa_silence_memblock(pa_memblock_new(length, s), spec);
+    return pa_silence_memblock(pa_memblock_new(pool, length), spec);
 }
 
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
