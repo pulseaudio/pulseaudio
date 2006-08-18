@@ -476,7 +476,6 @@ static void prepare_next_write_item(pa_pstream *p) {
 #ifdef HAVE_CREDS
     if ((p->send_creds_now = p->write.current->with_creds))
         p->write_creds = p->write.current->creds;
-    
 #endif
 }
 
@@ -860,9 +859,25 @@ void pa_pstream_use_shm(pa_pstream *p, int enable) {
 
     p->use_shm = enable;
 
-    if (!p->import)
-        p->import = pa_memimport_new(p->mempool, memimport_release_cb, p);
+    if (enable) {
+    
+        if (!p->import)
+            p->import = pa_memimport_new(p->mempool, memimport_release_cb, p);
+        
+        if (!p->export)
+            p->export = pa_memexport_new(p->mempool, memexport_revoke_cb, p);
 
-    if (!p->export)
-        p->export = pa_memexport_new(p->mempool, memexport_revoke_cb, p);
+    } else {
+
+        if (p->import) {
+            pa_memimport_free(p->import);
+            p->import = NULL;
+        }
+        
+        if (p->export) {
+            pa_memexport_free(p->export);
+            p->export = NULL;
+        }
+        
+    }
 }
