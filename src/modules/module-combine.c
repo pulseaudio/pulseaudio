@@ -124,7 +124,7 @@ static void adjust_rates(struct userdata *u) {
 
     target_latency = max_sink_latency > min_total_latency ? max_sink_latency : min_total_latency;
     
-    pa_log_info(__FILE__": [%s] target latency is %0.0f usec.", u->sink->name, (float) target_latency);
+    pa_log_info("[%s] target latency is %0.0f usec.", u->sink->name, (float) target_latency);
 
     base_rate = u->sink->sample_spec.rate;
 
@@ -137,9 +137,9 @@ static void adjust_rates(struct userdata *u) {
             r += (uint32_t) (((((double) o->total_latency - target_latency))/u->adjust_time)*r/ 1000000);
 
         if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1))
-            pa_log_warn(__FILE__": [%s] sample rates too different, not adjusting (%u vs. %u).", o->sink_input->name, base_rate, r);
+            pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", o->sink_input->name, base_rate, r);
         else {
-            pa_log_info(__FILE__": [%s] new rate is %u Hz; ratio is %0.3f; latency is %0.0f usec.", o->sink_input->name, r, (double) r / base_rate, (float) o->total_latency);
+            pa_log_info("[%s] new rate is %u Hz; ratio is %0.3f; latency is %0.0f usec.", o->sink_input->name, r, (double) r / base_rate, (float) o->total_latency);
             pa_sink_input_set_rate(o->sink_input, r);
         }
     }
@@ -323,13 +323,13 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments");
+        pa_log("failed to parse module arguments");
         goto fail;
     }
 
     if ((rm = pa_modargs_get_value(ma, "resample_method", NULL))) {
         if ((resample_method = pa_parse_resample_method(rm)) < 0) {
-            pa_log(__FILE__": invalid resample method '%s'", rm);
+            pa_log("invalid resample method '%s'", rm);
             goto fail;
         }
     }
@@ -346,23 +346,23 @@ int pa__init(pa_core *c, pa_module*m) {
     PA_LLIST_HEAD_INIT(struct output, u->outputs);
 
     if (pa_modargs_get_value_u32(ma, "adjust_time", &u->adjust_time) < 0) {
-        pa_log(__FILE__": failed to parse adjust_time value");
+        pa_log("failed to parse adjust_time value");
         goto fail;
     }
     
     if (!(master_name = pa_modargs_get_value(ma, "master", NULL)) || !(slaves = pa_modargs_get_value(ma, "slaves", NULL))) {
-        pa_log(__FILE__": no master or slave sinks specified");
+        pa_log("no master or slave sinks specified");
         goto fail;
     }
 
     if (!(master_sink = pa_namereg_get(c, master_name, PA_NAMEREG_SINK, 1))) {
-        pa_log(__FILE__": invalid master sink '%s'", master_name);
+        pa_log("invalid master sink '%s'", master_name);
         goto fail;
     }
 
     ss = master_sink->sample_spec;
     if ((pa_modargs_get_sample_spec(ma, &ss) < 0)) {
-        pa_log(__FILE__": invalid sample specification.");
+        pa_log("invalid sample specification.");
         goto fail;
     }
 
@@ -372,17 +372,17 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_channel_map_init_auto(&map, ss.channels, PA_CHANNEL_MAP_DEFAULT);
 
     if ((pa_modargs_get_channel_map(ma, &map) < 0)) {
-        pa_log(__FILE__": invalid channel map.");
+        pa_log("invalid channel map.");
         goto fail;
     }
 
     if (ss.channels != map.channels) {
-        pa_log(__FILE__": channel map and sample specification don't match.");
+        pa_log("channel map and sample specification don't match.");
         goto fail;
     }
     
     if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
-        pa_log(__FILE__": failed to create sink");
+        pa_log("failed to create sink");
         goto fail;
     }
 
@@ -392,7 +392,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sink->userdata = u;
     
     if (!(u->master = output_new(u, master_sink, resample_method))) {
-        pa_log(__FILE__": failed to create master sink input on sink '%s'.", u->sink->name);
+        pa_log("failed to create master sink input on sink '%s'.", u->sink->name);
         goto fail;
     }
     
@@ -401,20 +401,20 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_sink *slave_sink;
         
         if (!(slave_sink = pa_namereg_get(c, n, PA_NAMEREG_SINK, 1))) {
-            pa_log(__FILE__": invalid slave sink '%s'", n);
+            pa_log("invalid slave sink '%s'", n);
             goto fail;
         }
 
         pa_xfree(n);
 
         if (!output_new(u, slave_sink, resample_method)) {
-            pa_log(__FILE__": failed to create slave sink input on sink '%s'.", slave_sink->name);
+            pa_log("failed to create slave sink input on sink '%s'.", slave_sink->name);
             goto fail;
         }
     }
            
     if (u->n_outputs <= 1)
-        pa_log_warn(__FILE__": WARNING: no slave sinks specified.");
+        pa_log_warn("WARNING: no slave sinks specified.");
 
     if (u->adjust_time > 0) {
         pa_gettimeofday(&tv);

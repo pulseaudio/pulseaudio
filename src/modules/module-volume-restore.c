@@ -123,10 +123,10 @@ static int load_rules(struct userdata *u) {
 
     if (!f) {
         if (errno == ENOENT) {
-            pa_log_info(__FILE__": starting with empty ruleset.");
+            pa_log_info("starting with empty ruleset.");
             ret = 0;
         } else
-            pa_log(__FILE__": failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
+            pa_log("failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
         
         goto finish;
     }
@@ -155,14 +155,14 @@ static int load_rules(struct userdata *u) {
         assert(ln == buf_volume);
 
         if (!parse_volume(buf_volume, &v)) {
-            pa_log(__FILE__": parse failure in %s:%u, stopping parsing", u->table_file, n);
+            pa_log("parse failure in %s:%u, stopping parsing", u->table_file, n);
             goto finish;
         }
 
         ln = buf_name;
         
         if (pa_hashmap_get(u->hashmap, buf_name)) {
-            pa_log(__FILE__": double entry in %s:%u, ignoring", u->table_file, n);
+            pa_log("double entry in %s:%u, ignoring", u->table_file, n);
             goto finish;
         }
         
@@ -174,7 +174,7 @@ static int load_rules(struct userdata *u) {
     }
 
     if (ln == buf_volume) {
-        pa_log(__FILE__": invalid number of lines in %s.", u->table_file);
+        pa_log("invalid number of lines in %s.", u->table_file);
         goto finish;
     }
 
@@ -200,7 +200,7 @@ static int save_rules(struct userdata *u) {
         pa_open_config_file(NULL, DEFAULT_VOLUME_TABLE_FILE, NULL, &u->table_file, "w");
 
     if (!f) {
-        pa_log(__FILE__": failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
+        pa_log("failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
         goto finish;
     }
 
@@ -279,12 +279,12 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         pa_xfree(name);
 
         if (!pa_cvolume_equal(pa_sink_input_get_volume(si), &r->volume)) {
-            pa_log_info(__FILE__": Saving volume for <%s>", r->name);
+            pa_log_info("Saving volume for <%s>", r->name);
             r->volume = *pa_sink_input_get_volume(si);
             u->modified = 1;
         }
     } else {
-        pa_log_info(__FILE__": Creating new entry for <%s>", name);
+        pa_log_info("Creating new entry for <%s>", name);
 
         r = pa_xnew(struct rule, 1);
         r->name = name;
@@ -307,7 +307,7 @@ static pa_hook_result_t hook_callback(pa_core *c, pa_sink_input_new_data *data, 
     if ((r = pa_hashmap_get(u->hashmap, name))) {
 
         if (data->sample_spec_is_set && data->sample_spec.channels == r->volume.channels) {
-            pa_log_info(__FILE__": Restoring volume for <%s>", r->name);
+            pa_log_info("Restoring volume for <%s>", r->name);
             pa_sink_input_new_data_set_volume(data, &r->volume);
         }
     }
@@ -323,7 +323,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments");
+        pa_log("Failed to parse module arguments");
         goto fail;
     }
 

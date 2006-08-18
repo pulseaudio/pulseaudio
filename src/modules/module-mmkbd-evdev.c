@@ -82,7 +82,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
     assert(u);
 
     if (events & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) {
-        pa_log(__FILE__": lost connection to evdev device.");
+        pa_log("lost connection to evdev device.");
         goto fail;
     }
         
@@ -90,14 +90,14 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
         struct input_event ev;
 
         if (pa_loop_read(u->fd, &ev, sizeof(ev), &u->fd_type) <= 0) {
-            pa_log(__FILE__": failed to read from event device: %s", pa_cstrerror(errno));
+            pa_log("failed to read from event device: %s", pa_cstrerror(errno));
             goto fail;
         }
 
         if (ev.type == EV_KEY && (ev.value == 1 || ev.value == 2)) {
             enum { INVALID, UP, DOWN, MUTE_TOGGLE } volchange = INVALID;
 
-            pa_log_debug(__FILE__": key code=%u, value=%u", ev.code, ev.value);
+            pa_log_debug("key code=%u, value=%u", ev.code, ev.value);
 
             switch (ev.code) {
                 case KEY_VOLUMEDOWN:  volchange = DOWN; break;
@@ -109,7 +109,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 pa_sink *s;
                 
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
-                    pa_log(__FILE__": failed to get sink '%s'", u->sink_name);
+                    pa_log("failed to get sink '%s'", u->sink_name);
                 else {
                     int i;
                     pa_cvolume cv = *pa_sink_get_volume(s, PA_MIXER_HARDWARE);
@@ -173,7 +173,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments");
+        pa_log("Failed to parse module arguments");
         goto fail;
     }
 
@@ -185,41 +185,41 @@ int pa__init(pa_core *c, pa_module*m) {
     u->fd_type = 0;
 
     if ((u->fd = open(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), O_RDONLY)) < 0) {
-        pa_log(__FILE__": failed to open evdev device: %s", pa_cstrerror(errno));
+        pa_log("failed to open evdev device: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (ioctl(u->fd, EVIOCGVERSION, &version) < 0) {
-        pa_log(__FILE__": EVIOCGVERSION failed: %s", pa_cstrerror(errno));
+        pa_log("EVIOCGVERSION failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
-    pa_log_info(__FILE__": evdev driver version %i.%i.%i", version >> 16, (version >> 8) & 0xff, version & 0xff);
+    pa_log_info("evdev driver version %i.%i.%i", version >> 16, (version >> 8) & 0xff, version & 0xff);
 
     if(ioctl(u->fd, EVIOCGID, &input_id)) {
-        pa_log(__FILE__": EVIOCGID failed: %s", pa_cstrerror(errno));
+        pa_log("EVIOCGID failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
-    pa_log_info(__FILE__": evdev vendor 0x%04hx product 0x%04hx version 0x%04hx bustype %u",
+    pa_log_info("evdev vendor 0x%04hx product 0x%04hx version 0x%04hx bustype %u",
                 input_id.vendor, input_id.product, input_id.version, input_id.bustype);
 
     memset(name, 0, sizeof(name));
     if(ioctl(u->fd, EVIOCGNAME(sizeof(name)), name) < 0) {
-        pa_log(__FILE__": EVIOCGNAME failed: %s", pa_cstrerror(errno));
+        pa_log("EVIOCGNAME failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
-    pa_log_info(__FILE__": evdev device name: %s", name);
+    pa_log_info("evdev device name: %s", name);
 
     memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
     if (ioctl(u->fd, EVIOCGBIT(0, EV_MAX), evtype_bitmask) < 0) {
-        pa_log(__FILE__": EVIOCGBIT failed: %s", pa_cstrerror(errno));
+        pa_log("EVIOCGBIT failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (!test_bit(EV_KEY, evtype_bitmask)) {
-        pa_log(__FILE__": device has no keys.");
+        pa_log("device has no keys.");
         goto fail;
     }
 

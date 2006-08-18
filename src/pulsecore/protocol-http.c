@@ -145,7 +145,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
             /* We're done */
             c->state = DATA;
 
-            pa_log_info(__FILE__": request for %s", c->url);
+            pa_log_info("request for %s", c->url);
             
             if (!strcmp(c->url, URL_ROOT)) {
                 char txt[256];
@@ -224,7 +224,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     assert(s && io && p);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
-        pa_log_warn(__FILE__": Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
+        pa_log_warn("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
     }

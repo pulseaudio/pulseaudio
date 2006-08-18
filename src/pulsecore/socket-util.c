@@ -191,7 +191,7 @@ int pa_socket_set_rcvbuf(int fd, size_t l) {
     assert(fd >= 0);
 
 /*     if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&l, sizeof(l)) < 0) { */
-/*         pa_log(__FILE__": SO_RCVBUF: %s", strerror(errno)); */
+/*         pa_log("SO_RCVBUF: %s", strerror(errno)); */
 /*         return -1; */
 /*     } */
 
@@ -202,7 +202,7 @@ int pa_socket_set_sndbuf(int fd, size_t l) {
     assert(fd >= 0);
 
 /*     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&l, sizeof(l)) < 0) { */
-/*         pa_log(__FILE__": SO_SNDBUF: %s", strerror(errno)); */
+/*         pa_log("SO_SNDBUF: %s", strerror(errno)); */
 /*         return -1; */
 /*     } */
 
@@ -216,7 +216,7 @@ int pa_unix_socket_is_stale(const char *fn) {
     int fd = -1, ret = -1;
 
     if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s", pa_cstrerror(errno));
+        pa_log("socket(): %s", pa_cstrerror(errno));
         goto finish;
     }
 

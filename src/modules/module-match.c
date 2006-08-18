@@ -83,7 +83,7 @@ static int load_rules(struct userdata *u, const char *filename) {
         pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn, "r");
 
     if (!f) {
-        pa_log(__FILE__": failed to open file '%s': %s", fn, pa_cstrerror(errno));
+        pa_log("failed to open file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 
@@ -118,7 +118,7 @@ static int load_rules(struct userdata *u, const char *filename) {
 
         *d = 0;
         if (pa_atou(v, &k) < 0) {
-            pa_log(__FILE__": [%s:%u] failed to parse volume", filename, n);
+            pa_log("[%s:%u] failed to parse volume", filename, n);
             goto finish;
         }
 
@@ -126,7 +126,7 @@ static int load_rules(struct userdata *u, const char *filename) {
 
         
         if (regcomp(&regex, ln, REG_EXTENDED|REG_NOSUB) != 0) {
-            pa_log(__FILE__": [%s:%u] invalid regular expression", filename, n);
+            pa_log("[%s:%u] invalid regular expression", filename, n);
             goto finish;
         }
 
@@ -176,7 +176,7 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
     for (r = u->rules; r; r = r->next) {
         if (!regexec(&r->regex, si->name, 0, NULL, 0)) {
             pa_cvolume cv;
-            pa_log_debug(__FILE__": changing volume of sink input '%s' to 0x%03x", si->name, r->volume);
+            pa_log_debug("changing volume of sink input '%s' to 0x%03x", si->name, r->volume);
             pa_cvolume_set(&cv, r->volume, si->sample_spec.channels);
             pa_sink_input_set_volume(si, &cv);
         }
@@ -189,7 +189,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments");
+        pa_log("Failed to parse module arguments");
         goto fail;
     }
 

@@ -360,7 +360,7 @@ static void add_file(pa_core *c, const char *pathname) {
     e = pa_path_get_filename(pathname);
     
     if (stat(pathname, &st) < 0) {
-        pa_log(__FILE__": stat('%s'): %s", pathname, pa_cstrerror(errno));
+        pa_log("stat('%s'): %s", pathname, pa_cstrerror(errno));
         return;
     }
 
@@ -382,7 +382,7 @@ int pa_scache_add_directory_lazy(pa_core *c, const char *pathname) {
         /* If that fails, try to open it as shell glob */
 
         if (glob(pathname, GLOB_ERR|GLOB_NOSORT, NULL, &p) < 0) {
-            pa_log(__FILE__": failed to open directory '%s': %s", pathname, pa_cstrerror(errno));
+            pa_log("failed to open directory '%s': %s", pathname, pa_cstrerror(errno));
             return -1;
         }
 

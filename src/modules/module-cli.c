@@ -73,22 +73,22 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(m);
 
     if (c->running_as_daemon) {
-        pa_log_info(__FILE__": Running as daemon, refusing to load this module.");
+        pa_log_info("Running as daemon, refusing to load this module.");
         return 0;
     }
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.");
+        pa_log("failed to parse module arguments.");
         goto fail;
     }
     
     if (pa_modargs_get_value_boolean(ma, "exit_on_eof", &exit_on_eof) < 0) {
-        pa_log(__FILE__": exit_on_eof= expects boolean argument.");
+        pa_log("exit_on_eof= expects boolean argument.");
         goto fail;
     }
 
     if (pa_stdio_acquire() < 0) {
-        pa_log(__FILE__": STDIN/STDUSE already in use.");
+        pa_log("STDIN/STDUSE already in use.");
         goto fail;
     }
 

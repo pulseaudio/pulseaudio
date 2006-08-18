@@ -125,7 +125,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
             
             if (k < 0) {
                 if (errno != EAGAIN) /* If the queue is full, just ignore it */
-                    pa_log(__FILE__": sendmsg() failed: %s", pa_cstrerror(errno));
+                    pa_log("sendmsg() failed: %s", pa_cstrerror(errno));
                 return -1;
             }
             
@@ -163,7 +163,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     chunk->memblock = NULL;
 
     if (ioctl(c->fd, FIONREAD, &size) < 0) {
-        pa_log(__FILE__": FIONREAD failed: %s", pa_cstrerror(errno));
+        pa_log("FIONREAD failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -184,12 +184,12 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     m.msg_flags = 0;
     
     if ((r = recvmsg(c->fd, &m, 0)) != size) {
-        pa_log(__FILE__": recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
+        pa_log("recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
         goto fail;
     }
 
     if (size < 12) {
-        pa_log(__FILE__": RTP packet too short.");
+        pa_log("RTP packet too short.");
         goto fail;
     }
 
@@ -202,17 +202,17 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     c->ssrc = ntohl(c->ssrc);
 
     if ((header >> 30) != 2) {
-        pa_log(__FILE__": Unsupported RTP version.");
+        pa_log("Unsupported RTP version.");
         goto fail;
     }
 
     if ((header >> 29) & 1) {
-        pa_log(__FILE__": RTP padding not supported.");
+        pa_log("RTP padding not supported.");
         goto fail;
     }
 
     if ((header >> 28) & 1) {
-        pa_log(__FILE__": RTP header extensions not supported.");
+        pa_log("RTP header extensions not supported.");
         goto fail;
     }
 
@@ -221,7 +221,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     c->sequence = header & 0xFFFF;
 
     if (12 + cc*4 > size) {
-        pa_log(__FILE__": RTP packet too short. (CSRC)");
+        pa_log("RTP packet too short. (CSRC)");
         goto fail;
     }
 
@@ -229,7 +229,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     chunk->length = size - chunk->index;
 
     if (chunk->length % c->frame_size != 0) {
-        pa_log(__FILE__": Vad RTP packet size.");
+        pa_log("Vad RTP packet size.");
         goto fail;
     }
     

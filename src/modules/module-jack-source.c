@@ -229,7 +229,7 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
 }
 
 static void jack_error_func(const char*t) {
-    pa_log_warn(__FILE__": JACK error >%s<", t);
+    pa_log_warn("JACK error >%s<", t);
 }
 
 int pa__init(pa_core *c, pa_module*m) {
@@ -251,12 +251,12 @@ int pa__init(pa_core *c, pa_module*m) {
     jack_set_error_function(jack_error_func);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.");
+        pa_log("failed to parse module arguments.");
         goto fail;
     }
 
     if (pa_modargs_get_value_boolean(ma, "connect", &do_connect) < 0) {
-        pa_log(__FILE__": failed to parse connect= argument.");
+        pa_log("failed to parse connect= argument.");
         goto fail;
     }
         
@@ -274,14 +274,14 @@ int pa__init(pa_core *c, pa_module*m) {
     pthread_cond_init(&u->cond, NULL);
     
     if (pipe(u->pipe_fds) < 0) {
-        pa_log(__FILE__": pipe() failed: %s", pa_cstrerror(errno));
+        pa_log("pipe() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     pa_make_nonblock_fd(u->pipe_fds[1]);
     
     if (!(u->client = jack_client_open(client_name, server_name ? JackServerName : JackNullOption, &status, server_name))) {
-        pa_log(__FILE__": jack_client_open() failed.");
+        pa_log("jack_client_open() failed.");
         goto fail;
     }
 
@@ -295,17 +295,17 @@ int pa__init(pa_core *c, pa_module*m) {
         channels = c->default_sample_spec.channels;
     
     if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 || channels <= 0 || channels >= PA_CHANNELS_MAX) {
-        pa_log(__FILE__": failed to parse channels= argument.");
+        pa_log("failed to parse channels= argument.");
         goto fail;
     }
 
     pa_channel_map_init_auto(&map, channels, PA_CHANNEL_MAP_ALSA);
     if (pa_modargs_get_channel_map(ma, &map) < 0 || map.channels != channels) {
-        pa_log(__FILE__": failed to parse channel_map= argument.");
+        pa_log("failed to parse channel_map= argument.");
         goto fail;
     }
     
-    pa_log_info(__FILE__": Successfully connected as '%s'", jack_get_client_name(u->client));
+    pa_log_info("Successfully connected as '%s'", jack_get_client_name(u->client));
 
     ss.channels = u->channels = channels;
     ss.rate = jack_get_sample_rate(u->client);
@@ -315,13 +315,13 @@ int pa__init(pa_core *c, pa_module*m) {
 
     for (i = 0; i < ss.channels; i++) {
         if (!(u->port[i] = jack_port_register(u->client, pa_channel_position_to_string(map.map[i]), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput|JackPortIsTerminal, 0))) {
-            pa_log(__FILE__": jack_port_register() failed.");
+            pa_log("jack_port_register() failed.");
             goto fail;
         }
     }
 
     if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
-        pa_log(__FILE__": failed to create source.");
+        pa_log("failed to create source.");
         goto fail;
     }
 
@@ -335,7 +335,7 @@ int pa__init(pa_core *c, pa_module*m) {
     jack_on_shutdown(u->client, jack_shutdown, u);
 
     if (jack_activate(u->client)) {
-        pa_log(__FILE__": jack_activate() failed");
+        pa_log("jack_activate() failed");
         goto fail;
     }
 
@@ -343,14 +343,14 @@ int pa__init(pa_core *c, pa_module*m) {
         for (i = 0, p = ports; i < ss.channels; i++, p++) {
 
             if (!*p) {
-                pa_log(__FILE__": not enough physical output ports, leaving unconnected.");
+                pa_log("not enough physical output ports, leaving unconnected.");
                 break;
             }
 
-            pa_log_info(__FILE__": connecting %s to %s", jack_port_name(u->port[i]), *p);
+            pa_log_info("connecting %s to %s", jack_port_name(u->port[i]), *p);
             
             if (jack_connect(u->client, *p, jack_port_name(u->port[i]))) {
-                pa_log(__FILE__": failed to connect %s to %s, leaving unconnected.", jack_port_name(u->port[i]), *p);
+                pa_log("failed to connect %s to %s, leaving unconnected.", jack_port_name(u->port[i]), *p);
                 break;
             }
         }

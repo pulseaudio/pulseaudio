@@ -57,27 +57,27 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
             tcaps = pcaps ? pcaps : &dcaps;
             
             if (ioctl(fd, SNDCTL_DSP_GETCAPS, tcaps) < 0) {
-                pa_log(__FILE__": SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
+                pa_log("SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
                 goto fail;
             }
 
             if (*tcaps & DSP_CAP_DUPLEX)
                 goto success;
 
-            pa_log_warn(__FILE__": '%s' doesn't support full duplex", device);
+            pa_log_warn("'%s' doesn't support full duplex", device);
 
             close(fd);
         }
         
         if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY)) < 0) {
             if ((fd = open(device, (*mode = O_RDONLY)|O_NDELAY)) < 0) {
-                pa_log(__FILE__": open('%s'): %s", device, pa_cstrerror(errno));
+                pa_log("open('%s'): %s", device, pa_cstrerror(errno));
                 goto fail;
             }
         }
     } else {
         if ((fd = open(device, *mode|O_NDELAY)) < 0) {
-            pa_log(__FILE__": open('%s'): %s", device, pa_cstrerror(errno));
+            pa_log("open('%s'): %s", device, pa_cstrerror(errno));
             goto fail;
         }
     } 
@@ -87,11 +87,11 @@ success:
     *pcaps = 0;
     
     if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
         goto fail;
     }
     
-    pa_log_debug(__FILE__": capabilities:%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+    pa_log_debug("capabilities:%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
                  *pcaps & DSP_CAP_BATCH ? " BATCH" : "",
                  *pcaps & DSP_CAP_BIND ? " BIND" : "",
                  *pcaps & DSP_CAP_COPROC ? " COPROC" : "",
@@ -168,7 +168,7 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
             if (ioctl(fd, SNDCTL_DSP_SETFMT, &format) < 0 || format != f) {
                 format = AFMT_U8;
                 if (ioctl(fd, SNDCTL_DSP_SETFMT, &format) < 0 || format != AFMT_U8) {
-                    pa_log(__FILE__": SNDCTL_DSP_SETFMT: %s", format != AFMT_U8 ? "No supported sample format" : pa_cstrerror(errno));
+                    pa_log("SNDCTL_DSP_SETFMT: %s", format != AFMT_U8 ? "No supported sample format" : pa_cstrerror(errno));
                     return -1;
                 } else
                     ss->format = PA_SAMPLE_U8;
@@ -179,31 +179,31 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
     }
 
     if (orig_format != ss->format)
-        pa_log_warn(__FILE__": device doesn't support sample format %s, changed to %s.",
+        pa_log_warn("device doesn't support sample format %s, changed to %s.",
                pa_sample_format_to_string(orig_format),
                pa_sample_format_to_string(ss->format));
     
     channels = ss->channels;
     if (ioctl(fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_CHANNELS: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_CHANNELS: %s", pa_cstrerror(errno));
         return -1;
     }
     assert(channels > 0);
 
     if (ss->channels != channels) {
-        pa_log_warn(__FILE__": device doesn't support %i channels, using %i channels.", ss->channels, channels);
+        pa_log_warn("device doesn't support %i channels, using %i channels.", ss->channels, channels);
         ss->channels = channels;
     }
 
     speed = ss->rate;
     if (ioctl(fd, SNDCTL_DSP_SPEED, &speed) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_SPEED: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_SPEED: %s", pa_cstrerror(errno));
         return -1;
     }
     assert(speed > 0);
 
     if (ss->rate != (unsigned) speed) {
-        pa_log_warn(__FILE__": device doesn't support %i Hz, changed to %i Hz.", ss->rate, speed);
+        pa_log_warn("device doesn't support %i Hz, changed to %i Hz.", ss->rate, speed);
 
         /* If the sample rate deviates too much, we need to resample */
         if (speed < ss->rate*.95 || speed > ss->rate*1.05)
@@ -230,7 +230,7 @@ int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
     arg = ((int) nfrags << 16) | simple_log2(frag_size);
     
     if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &arg) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_SETFRAGMENT: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_SETFRAGMENT: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -253,7 +253,7 @@ static int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvo
     if ((volume->channels = ss->channels) >= 2)
         volume->values[1] = (((vol >> 8) & 0xFF) * PA_VOLUME_NORM) / 100;
 
-    pa_log_debug(__FILE__": Read mixer settings: %s", pa_cvolume_snprint(cv, sizeof(cv), volume));
+    pa_log_debug("Read mixer settings: %s", pa_cvolume_snprint(cv, sizeof(cv), volume));
     return 0;
 }
 
@@ -274,7 +274,7 @@ static int pa_oss_set_volume(int fd, int mixer, const pa_sample_spec *ss, const 
     if (ioctl(fd, mixer, &vol) < 0)
         return -1;
 
-    pa_log_debug(__FILE__": Wrote mixer settings: %s", pa_cvolume_snprint(cv, sizeof(cv), volume));
+    pa_log_debug("Wrote mixer settings: %s", pa_cvolume_snprint(cv, sizeof(cv), volume));
     return 0;
 }
 
@@ -319,7 +319,7 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
         !(f = fopen("/proc/asound/oss/sndstat", "r"))) {
 
         if (errno != ENOENT)
-            pa_log_warn(__FILE__": failed to open OSS sndstat device: %s", pa_cstrerror(errno));
+            pa_log_warn("failed to open OSS sndstat device: %s", pa_cstrerror(errno));
 
         return -1;
     }

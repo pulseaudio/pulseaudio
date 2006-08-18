@@ -138,7 +138,7 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
     assert(goodbye);
 
     if (ioctl(c->fd, FIONREAD, &size) < 0) {
-        pa_log(__FILE__": FIONREAD failed: %s", pa_cstrerror(errno));
+        pa_log("FIONREAD failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -160,12 +160,12 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
     m.msg_flags = 0;
     
     if ((r = recvmsg(c->fd, &m, 0)) != size) {
-        pa_log(__FILE__": recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
+        pa_log("recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
         goto fail;
     }
 
     if (size < 4) {
-        pa_log(__FILE__": SAP packet too short.");
+        pa_log("SAP packet too short.");
         goto fail;
     }
 
@@ -173,17 +173,17 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
     header = ntohl(header);
 
     if (header >> 29 != 1) {
-        pa_log(__FILE__": Unsupported SAP version.");
+        pa_log("Unsupported SAP version.");
         goto fail;
     }
 
     if ((header >> 25) & 1) {
-        pa_log(__FILE__": Encrypted SAP not supported.");
+        pa_log("Encrypted SAP not supported.");
         goto fail;
     }
 
     if ((header >> 24) & 1) {
-        pa_log(__FILE__": Compressed SAP not supported.");
+        pa_log("Compressed SAP not supported.");
         goto fail;
     }
 
@@ -192,7 +192,7 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
 
     k = 4 + (six ? 16 : 4) + ac*4;
     if (size < k) {
-        pa_log(__FILE__": SAP packet too short (AD).");
+        pa_log("SAP packet too short (AD).");
         goto fail;
     }
 
@@ -203,7 +203,7 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
         e += sizeof(MIME_TYPE);
         size -= sizeof(MIME_TYPE);
     } else if ((unsigned) size < sizeof(PA_SDP_HEADER)-1 || strncmp(e, PA_SDP_HEADER, sizeof(PA_SDP_HEADER)-1)) {
-        pa_log(__FILE__": Invalid SDP header.");
+        pa_log("Invalid SDP header.");
         goto fail;
     }
 

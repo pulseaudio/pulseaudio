@@ -70,7 +70,7 @@ static int ring_bell(struct userdata *u, int percent) {
     assert(u);
 
     if (!(s = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
-        pa_log(__FILE__": Invalid sink: %s", u->sink_name);
+        pa_log("Invalid sink: %s", u->sink_name);
         return -1;
     }
 
@@ -89,7 +89,7 @@ static int x11_event_callback(pa_x11_wrapper *w, XEvent *e, void *userdata) {
     bne = (XkbBellNotifyEvent*) e;
 
     if (ring_bell(u, bne->percent) < 0) {
-        pa_log_info(__FILE__": Ringing bell failed, reverting to X11 device bell.");
+        pa_log_info("Ringing bell failed, reverting to X11 device bell.");
         XkbForceDeviceBell(pa_x11_wrapper_get_display(w), bne->device, bne->bell_class, bne->bell_id, bne->percent);
     }
 
@@ -104,7 +104,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments");
+        pa_log("failed to parse module arguments");
         goto fail;
     }
     
@@ -121,7 +121,7 @@ int pa__init(pa_core *c, pa_module*m) {
     minor = XkbMinorVersion;
     
     if (!XkbLibraryVersion(&major, &minor)) {
-        pa_log(__FILE__": XkbLibraryVersion() failed");
+        pa_log("XkbLibraryVersion() failed");
         goto fail;
     }
 
@@ -130,7 +130,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
 
     if (!XkbQueryExtension(pa_x11_wrapper_get_display(u->x11_wrapper), NULL, &u->xkb_event_base, NULL, &major, &minor)) {
-        pa_log(__FILE__": XkbQueryExtension() failed");
+        pa_log("XkbQueryExtension() failed");
         goto fail;
     }
 

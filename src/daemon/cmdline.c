@@ -199,14 +199,14 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
             case ARG_DAEMONIZE:
             case 'D':
                 if ((conf->daemonize = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
-                    pa_log(__FILE__": --daemonize expects boolean argument");
+                    pa_log("--daemonize expects boolean argument");
                     goto fail;
                 }
                 break;
 
             case ARG_FAIL:
                 if ((conf->fail = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
-                    pa_log(__FILE__": --fail expects boolean argument");
+                    pa_log("--fail expects boolean argument");
                     goto fail;
                 }
                 break;
@@ -216,7 +216,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
                 if (optarg) {
                     if (pa_daemon_conf_set_log_level(conf, optarg) < 0) {
-                        pa_log(__FILE__": --log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error).");
+                        pa_log("--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error).");
                         goto fail;
                     }
                 } else {
@@ -228,21 +228,21 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_HIGH_PRIORITY:
                 if ((conf->high_priority = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
-                    pa_log(__FILE__": --high-priority expects boolean argument");
+                    pa_log("--high-priority expects boolean argument");
                     goto fail;
                 }
                 break;
 
             case ARG_DISALLOW_MODULE_LOADING:
                 if ((conf->disallow_module_loading = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
-                    pa_log(__FILE__": --disallow-module-loading expects boolean argument");
+                    pa_log("--disallow-module-loading expects boolean argument");
                     goto fail;
                 }
                 break;
 
             case ARG_USE_PID_FILE:
                 if ((conf->use_pid_file = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
-                    pa_log(__FILE__": --use-pid-file expects boolean argument");
+                    pa_log("--use-pid-file expects boolean argument");
                     goto fail;
                 }
                 break;
@@ -260,7 +260,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_LOG_TARGET:
                 if (pa_daemon_conf_set_log_target(conf, optarg) < 0) {
-                    pa_log(__FILE__": Invalid log target: use either 'syslog', 'stderr' or 'auto'.");
+                    pa_log("Invalid log target: use either 'syslog', 'stderr' or 'auto'.");
                     goto fail;
                 }
                 break;
@@ -279,21 +279,21 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_RESAMPLE_METHOD:
                 if (pa_daemon_conf_set_resample_method(conf, optarg) < 0) {
-                    pa_log(__FILE__": Invalid resample method '%s'.", optarg);
+                    pa_log("Invalid resample method '%s'.", optarg);
                     goto fail;
                 }
                 break;
 
             case ARG_SYSTEM:
                 if ((conf->system_instance = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
-                    pa_log(__FILE__": --system expects boolean argument");
+                    pa_log("--system expects boolean argument");
                     goto fail;
                 }
                 break;
 
             case ARG_NO_CPU_LIMIT:
                 if ((conf->no_cpu_limit = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
-                    pa_log(__FILE__": --no-cpu-limit expects boolean argument");
+                    pa_log("--no-cpu-limit expects boolean argument");
                     goto fail;
                 }
                 break;

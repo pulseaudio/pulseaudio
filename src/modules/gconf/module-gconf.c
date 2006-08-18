@@ -96,7 +96,7 @@ static int fill_buf(struct userdata *u) {
     assert(u);
 
     if (u->buf_fill >= BUF_MAX) {
-        pa_log(__FILE__": read buffer overflow");
+        pa_log("read buffer overflow");
         return -1;
     }
 
@@ -148,7 +148,7 @@ static void unload_one_module(struct userdata *u, struct module_info*m, unsigned
     if (m->items[i].index == PA_INVALID_INDEX)
         return;
             
-    pa_log_debug(__FILE__": Unloading module #%i", m->items[i].index);
+    pa_log_debug("Unloading module #%i", m->items[i].index);
     pa_module_unload_by_index(u->core, m->items[i].index);
     m->items[i].index = PA_INVALID_INDEX;
     pa_xfree(m->items[i].name);
@@ -192,14 +192,14 @@ static void load_module(
         unload_one_module(u, m, i);
     }
     
-    pa_log_debug(__FILE__": Loading module '%s' with args '%s' due to GConf configuration.", name, args);
+    pa_log_debug("Loading module '%s' with args '%s' due to GConf configuration.", name, args);
 
     m->items[i].name = pa_xstrdup(name);
     m->items[i].args = pa_xstrdup(args);
     m->items[i].index = PA_INVALID_INDEX;
     
     if (!(mod = pa_module_load(u->core, name, args))) {
-        pa_log(__FILE__": pa_module_load() failed");
+        pa_log("pa_module_load() failed");
         return;
     }
     
@@ -308,7 +308,7 @@ static int handle_event(struct userdata *u) {
     return ret;
 
 fail:
-    pa_log(__FILE__": Unable to read or parse data from client.");
+    pa_log("Unable to read or parse data from client.");
     return -1;
 }
 
@@ -337,12 +337,12 @@ static int start_client(const char *n, pid_t *pid) {
     int pipe_fds[2] = { -1, -1 };
 
     if (pipe(pipe_fds) < 0) {
-        pa_log(__FILE__": pipe() failed: %s", pa_cstrerror(errno));
+        pa_log("pipe() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
     
     if ((child = fork()) == (pid_t) -1) {
-        pa_log(__FILE__": fork() failed: %s", pa_cstrerror(errno));
+        pa_log("fork() failed: %s", pa_cstrerror(errno));
         goto fail;
     } else if (child != 0) {
 

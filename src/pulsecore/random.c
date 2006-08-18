@@ -81,7 +81,7 @@ void pa_random_seed(void) {
 
     if (random_proper(&seed, sizeof(unsigned int)) < 0) {
         if (!has_whined)
-            pa_log_warn(__FILE__": failed to get proper entropy. Falling back to seeding with current time.");
+            pa_log_warn("failed to get proper entropy. Falling back to seeding with current time.");
         has_whined = 1;
 
         seed = (unsigned int) time(NULL);
@@ -100,7 +100,7 @@ void pa_random(void *ret_data, size_t length) {
         return;
 
     if (!has_whined)
-        pa_log_warn(__FILE__": failed to get proper entropy. Falling back to unsecure pseudo RNG.");
+        pa_log_warn("failed to get proper entropy. Falling back to unsecure pseudo RNG.");
     has_whined = 1;
 
     for (p = ret_data, l = length; l > 0; p++, l--)

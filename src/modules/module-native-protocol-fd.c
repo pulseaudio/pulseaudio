@@ -53,12 +53,12 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.");
+        pa_log("failed to parse module arguments.");
         goto finish;
     }
 
     if (pa_modargs_get_value_s32(ma, "fd", &fd) < 0) {
-        pa_log(__FILE__": invalid file descriptor.");
+        pa_log("invalid file descriptor.");
         goto finish;
     }
     

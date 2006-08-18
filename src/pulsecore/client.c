@@ -52,7 +52,7 @@ pa_client *pa_client_new(pa_core *core, const char *driver, const char *name) {
     r = pa_idxset_put(core->clients, c, &c->index);
     assert(c->index != PA_IDXSET_INVALID && r >= 0);
 
-    pa_log_info(__FILE__": created %u \"%s\"", c->index, c->name);
+    pa_log_info("created %u \"%s\"", c->index, c->name);
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_NEW, c->index);
 
     pa_core_check_quit(core);
@@ -67,7 +67,7 @@ void pa_client_free(pa_client *c) {
 
     pa_core_check_quit(c->core);
 
-    pa_log_info(__FILE__": freed %u \"%s\"", c->index, c->name);
+    pa_log_info("freed %u \"%s\"", c->index, c->name);
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
     pa_xfree(c->name);
     pa_xfree(c->driver);
@@ -77,7 +77,7 @@ void pa_client_free(pa_client *c) {
 void pa_client_kill(pa_client *c) {
     assert(c);
     if (!c->kill) {
-        pa_log_warn(__FILE__": kill() operation not implemented for client %u", c->index);
+        pa_log_warn("kill() operation not implemented for client %u", c->index);
         return;
     }
 
@@ -87,7 +87,7 @@ void pa_client_kill(pa_client *c) {
 void pa_client_set_name(pa_client *c, const char *name) {
     assert(c);
 
-    pa_log_info(__FILE__": client %u changed name from \"%s\" to \"%s\"", c->index, c->name, name);
+    pa_log_info("client %u changed name from \"%s\" to \"%s\"", c->index, c->name, name);
 
     pa_xfree(c->name);
     c->name = pa_xstrdup(name);

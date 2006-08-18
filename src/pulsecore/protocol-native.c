@@ -542,7 +542,7 @@ static void request_bytes(struct playback_stream *s) {
     pa_tagstruct_putu32(t, l);
     pa_pstream_send_tagstruct(s->connection->pstream, t);
 
-/*     pa_log(__FILE__": Requesting %u bytes", l);  */
+/*     pa_log("Requesting %u bytes", l);  */
 }
 
 static void send_memblock(struct connection *c) {
@@ -620,11 +620,11 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     }
     
     if (pa_memblockq_peek(s->memblockq, chunk) < 0) {
-/*         pa_log(__FILE__": peek: failure");    */
+/*         pa_log("peek: failure");    */
         return -1;
     }
 
-/*     pa_log(__FILE__": peek: %u", chunk->length);    */
+/*     pa_log("peek: %u", chunk->length);    */
     
     return 0;
 }
@@ -643,7 +643,7 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
         s->drain_request = 0;
     }
 
-/*     pa_log(__FILE__": after_drop: %u %u", pa_memblockq_get_length(s->memblockq), pa_memblockq_is_readable(s->memblockq));   */
+/*     pa_log("after_drop: %u %u", pa_memblockq_get_length(s->memblockq), pa_memblockq_is_readable(s->memblockq));   */
 }
 
 static void sink_input_kill_cb(pa_sink_input *i) {
@@ -657,7 +657,7 @@ static pa_usec_t sink_input_get_latency_cb(pa_sink_input *i) {
     assert(i && i->userdata);
     s = i->userdata;
 
-    /*pa_log(__FILE__": get_latency: %u", pa_memblockq_get_length(s->memblockq));*/
+    /*pa_log("get_latency: %u", pa_memblockq_get_length(s->memblockq));*/
     
     return pa_bytes_to_usec(pa_memblockq_get_length(s->memblockq), &s->sink_input->sample_spec);
 }
@@ -670,7 +670,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     s = o->userdata;
     
     if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
-        pa_log_warn(__FILE__": Failed to push data into output queue.");
+        pa_log_warn("Failed to push data into output queue.");
         return;
     } 
         
@@ -689,7 +689,7 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
     assert(o && o->userdata);
     s = o->userdata;
 
-    /*pa_log(__FILE__": get_latency: %u", pa_memblockq_get_length(s->memblockq));*/
+    /*pa_log("get_latency: %u", pa_memblockq_get_length(s->memblockq));*/
     
     return pa_bytes_to_usec(pa_memblockq_get_length(s->memblockq), &o->sample_spec);
 }
@@ -697,7 +697,7 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
 /*** pdispatch callbacks ***/
 
 static void protocol_error(struct connection *c) {
-    pa_log(__FILE__": protocol error, kicking client");
+    pa_log("protocol error, kicking client");
     connection_free(c);
 }
 
@@ -945,19 +945,19 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
                 gid_t gid;
 
                 if ((gid = pa_get_gid_of_group(c->protocol->auth_group)) == (gid_t) -1)
-                    pa_log_warn(__FILE__": failed to get GID of group '%s'", c->protocol->auth_group);
+                    pa_log_warn("failed to get GID of group '%s'", c->protocol->auth_group);
                 else if (gid == creds->gid)
                     success = 1;
                     
                 if (!success) {
                     if ((r = pa_uid_in_group(creds->uid, c->protocol->auth_group)) < 0)
-                        pa_log_warn(__FILE__": failed to check group membership.");
+                        pa_log_warn("failed to check group membership.");
                     else if (r > 0)
                         success = 1;
                 }
             }
                 
-            pa_log_info(__FILE__": Got credentials: uid=%lu gid=%lu success=%i",
+            pa_log_info("Got credentials: uid=%lu gid=%lu success=%i",
                         (unsigned long) creds->uid,
                         (unsigned long) creds->gid,
                         success);
@@ -968,7 +968,7 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
             success = 1;
 
         if (!success) {
-            pa_log_warn(__FILE__": Denied access to client with invalid authorization data.");
+            pa_log_warn("Denied access to client with invalid authorization data.");
             pa_pstream_send_error(c->pstream, tag, PA_ERR_ACCESS);
             return;
         }
@@ -2199,7 +2199,7 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_c
     assert(p && packet && packet->data && c);
 
     if (pa_pdispatch_run(c->pdispatch, packet, creds, c) < 0) {
-        pa_log(__FILE__": invalid packet.");
+        pa_log("invalid packet.");
         connection_free(c);
     }
 }
@@ -2210,7 +2210,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     assert(p && chunk && userdata);
     
     if (!(stream = pa_idxset_get_by_index(c->output_streams, channel))) {
-        pa_log(__FILE__": client sent block for invalid stream.");
+        pa_log("client sent block for invalid stream.");
         /* Ignoring */
         return;
     }
@@ -2227,7 +2227,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
         if (pa_memblockq_push_align(ps->memblockq, chunk) < 0) {
             pa_tagstruct *t;
             
-            pa_log_warn(__FILE__": failed to push data into queue");
+            pa_log_warn("failed to push data into queue");
 
             /* Pushing this block into the queue failed, so we simulate
              * it by skipping ahead */
@@ -2282,7 +2282,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     assert(p && c);
     connection_free(c);
 
-/*    pa_log(__FILE__": connection died.");*/
+/*    pa_log("connection died.");*/
 }
 
 
@@ -2317,7 +2317,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     assert(io && p);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
-        pa_log_warn(__FILE__": Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
+        pa_log_warn("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
     }
@@ -2327,7 +2327,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     c->authorized = !!p->public;
 
     if (!c->authorized && p->auth_ip_acl && pa_ip_acl_check(p->auth_ip_acl, pa_iochannel_get_recv_fd(io)) > 0) {
-        pa_log_info(__FILE__": Client authenticated by IP ACL.");
+        pa_log_info("Client authenticated by IP ACL.");
         c->authorized = 1;
     }
     
@@ -2388,7 +2388,7 @@ static int load_key(pa_protocol_native*p, const char*fn) {
     p->auth_cookie_in_property = 0;
     
     if (!fn && pa_authkey_prop_get(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0) {
-        pa_log_info(__FILE__": using already loaded auth cookie.");
+        pa_log_info("using already loaded auth cookie.");
         pa_authkey_prop_ref(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
         p->auth_cookie_in_property = 1;
         return 0;
@@ -2400,7 +2400,7 @@ static int load_key(pa_protocol_native*p, const char*fn) {
     if (pa_authkey_load_auto(fn, p->auth_cookie, sizeof(p->auth_cookie)) < 0)
         return -1;
 
-    pa_log_info(__FILE__": loading cookie from disk.");
+    pa_log_info("loading cookie from disk.");
 
     if (pa_authkey_prop_put(p->core, PA_NATIVE_COOKIE_PROPERTY_NAME, p->auth_cookie, sizeof(p->auth_cookie)) >= 0)
         p->auth_cookie_in_property = 1;
@@ -2417,7 +2417,7 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
     assert(ma);
 
     if (pa_modargs_get_value_boolean(ma, "auth-anonymous", &public) < 0) {
-        pa_log(__FILE__": auth-anonymous= expects a boolean argument.");
+        pa_log("auth-anonymous= expects a boolean argument.");
         return NULL;
     }
     
@@ -2432,13 +2432,13 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
     {
         int a = 1;
         if (pa_modargs_get_value_boolean(ma, "auth-group-enabled", &a) < 0) {
-            pa_log(__FILE__": auth-group-enabled= expects a boolean argument.");
+            pa_log("auth-group-enabled= expects a boolean argument.");
             return NULL;
         }
         p->auth_group = a ? pa_xstrdup(pa_modargs_get_value(ma, "auth-group", c->is_system_instance ? PA_ACCESS_GROUP : NULL)) : NULL;
 
         if (p->auth_group)
-            pa_log_info(__FILE__": Allowing access to group '%s'.", p->auth_group);
+            pa_log_info("Allowing access to group '%s'.", p->auth_group);
     }
 #endif
 
@@ -2446,7 +2446,7 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
     if ((acl = pa_modargs_get_value(ma, "auth-ip-acl", NULL))) {
 
         if (!(p->auth_ip_acl = pa_ip_acl_new(acl))) {
-            pa_log(__FILE__": Failed to parse IP ACL '%s'", acl);
+            pa_log("Failed to parse IP ACL '%s'", acl);
             goto fail;
         }
     }

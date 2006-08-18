@@ -282,7 +282,7 @@ size_t pa_mix(
         }
             
         default:
-            pa_log_error(__FILE__": ERROR: Unable to mix audio data of format %s.", pa_sample_format_to_string(spec->format));
+            pa_log_error("ERROR: Unable to mix audio data of format %s.", pa_sample_format_to_string(spec->format));
             abort();
     }
 }
@@ -398,7 +398,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
         }
 
         default:
-            pa_log_error(__FILE__": ERROR: Unable to change volume of format %s.",
+            pa_log_error("ERROR: Unable to change volume of format %s.",
                 pa_sample_format_to_string(spec->format));
             abort();
     }

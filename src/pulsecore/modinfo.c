@@ -73,7 +73,7 @@ pa_modinfo *pa_modinfo_get_by_name(const char *name) {
     assert(name);
 
     if (!(dl = lt_dlopenext(name))) {
-        pa_log(__FILE__": Failed to open module \"%s\": %s", name, lt_dlerror());
+        pa_log("Failed to open module \"%s\": %s", name, lt_dlerror());
         return NULL;
     }
 

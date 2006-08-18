@@ -192,7 +192,7 @@ static pa_io_event* mainloop_io_new(
         if ((select((SELECT_TYPE_ARG1) fd, NULL, NULL, SELECT_TYPE_ARG234 &xset,
                     SELECT_TYPE_ARG5 &tv) == -1) &&
              (WSAGetLastError() == WSAENOTSOCK)) {
-            pa_log_warn(__FILE__": WARNING: cannot monitor non-socket file descriptors.");
+            pa_log_warn("WARNING: cannot monitor non-socket file descriptors.");
             e->dead = 1;
         }
     }
@@ -448,7 +448,7 @@ pa_mainloop *pa_mainloop_new(void) {
 
     m->wakeup_pipe_type = 0;
     if (pipe(m->wakeup_pipe) < 0) {
-        pa_log_error(__FILE__": ERROR: cannot create wakeup pipe");
+        pa_log_error("ERROR: cannot create wakeup pipe");
         pa_xfree(m);
         return NULL;
     }
@@ -852,7 +852,7 @@ int pa_mainloop_poll(pa_mainloop *m) {
             if (errno == EINTR)
                 m->poll_func_ret = 0;
             else
-                pa_log(__FILE__": poll(): %s", pa_cstrerror(errno));
+                pa_log("poll(): %s", pa_cstrerror(errno));
         }
     }
 

@@ -142,7 +142,7 @@ int pa_play_file(
     memset(&sfinfo, 0, sizeof(sfinfo));
 
     if (!(u->sndfile = sf_open(fname, SFM_READ, &sfinfo))) {
-        pa_log(__FILE__": Failed to open file %s", fname);
+        pa_log("Failed to open file %s", fname);
         goto fail;
     }
 
@@ -175,7 +175,7 @@ int pa_play_file(
     ss.channels = sfinfo.channels;
 
     if (!pa_sample_spec_valid(&ss)) {
-        pa_log(__FILE__": Unsupported sample format in file %s", fname);
+        pa_log("Unsupported sample format in file %s", fname);
         goto fail;
     }
 

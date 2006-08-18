@@ -93,7 +93,7 @@ static void handle_io_event(PA_GCC_UNUSED pa_mainloop_api *ea, pa_io_event *e,
     assert(fd == dbus_watch_get_fd(watch));
 
     if (!dbus_watch_get_enabled(watch)) {
-        pa_log_warn(__FILE__": Asked to handle disabled watch: %p %i",
+        pa_log_warn("Asked to handle disabled watch: %p %i",
                     (void *) watch, fd);
         return;
     }

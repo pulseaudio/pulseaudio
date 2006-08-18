@@ -104,7 +104,7 @@ static void client_kill(pa_client *client) {
     assert(client && client->userdata);
     c = client->userdata;
     
-    pa_log_debug(__FILE__": CLI client killed.");
+    pa_log_debug("CLI client killed.");
     if (c->defer_kill)
         c->kill_requested = 1;
     else {
@@ -120,7 +120,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     assert(line && c);
 
     if (!s) {
-        pa_log_debug(__FILE__": CLI got EOF from user.");
+        pa_log_debug("CLI got EOF from user.");
         if (c->eof_callback)
             c->eof_callback(c, c->userdata);
 

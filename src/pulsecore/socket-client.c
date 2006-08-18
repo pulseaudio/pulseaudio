@@ -140,17 +140,17 @@ static void do_call(pa_socket_client *c) {
     
     lerror = sizeof(error);
     if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void*)&error, &lerror) < 0) {
-        pa_log(__FILE__": getsockopt(): %s", pa_cstrerror(errno));
+        pa_log("getsockopt(): %s", pa_cstrerror(errno));
         goto finish;
     }
 
     if (lerror != sizeof(error)) {
-        pa_log(__FILE__": getsockopt() returned invalid size.");
+        pa_log("getsockopt() returned invalid size.");
         goto finish;
     }
 
     if (error != 0) {
-        pa_log_debug(__FILE__": connect(): %s", pa_cstrerror(errno));
+        pa_log_debug("connect(): %s", pa_cstrerror(errno));
         errno = error;
         goto finish;
     }
@@ -192,10 +192,10 @@ static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t 
     if ((r = connect(c->fd, sa, len)) < 0) {
 #ifdef OS_IS_WIN32
         if (WSAGetLastError() != EWOULDBLOCK) {
-            pa_log_debug(__FILE__": connect(): %d", WSAGetLastError());
+            pa_log_debug("connect(): %d", WSAGetLastError());
 #else
         if (errno != EINPROGRESS) {
-            pa_log_debug(__FILE__": connect(): %s (%d)", pa_cstrerror(errno), errno);
+            pa_log_debug("connect(): %s (%d)", pa_cstrerror(errno), errno);
 #endif
             return -1;
         }
@@ -267,7 +267,7 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
     }
     
     if ((c->fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0) {
-        pa_log(__FILE__": socket(): %s", pa_cstrerror(errno));
+        pa_log("socket(): %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -485,7 +485,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
 
                 /* FIXME: PF_INET6 support */
                 if (hints.ai_family == PF_INET6) {
-                    pa_log_error(__FILE__": IPv6 is not supported on Windows");
+                    pa_log_error("IPv6 is not supported on Windows");
                     goto finish;
                 }
 

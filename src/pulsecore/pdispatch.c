@@ -205,7 +205,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
     if (!(p = command_names[command]))
         snprintf((char*) (p = t), sizeof(t), "%u", command);
     
-    pa_log(__FILE__": Recieved opcode <%s>", p);
+    pa_log("Recieved opcode <%s>", p);
 }
 #endif
 
@@ -226,7 +226,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
 
         (*c)(pd, command, tag, ts, userdata);
     } else {
-        pa_log(__FILE__": Recieved unsupported command %u", command);
+        pa_log("Recieved unsupported command %u", command);
         goto finish;
     }
 

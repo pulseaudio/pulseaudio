@@ -165,7 +165,7 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
         s->offset = s->rtp_context.timestamp;
 
         if (s->ssrc == s->userdata->core->cookie)
-            pa_log_warn(__FILE__": WARNING! Detected RTP packet loop!");
+            pa_log_warn("WARNING! Detected RTP packet loop!");
     } else {
         if (s->ssrc != s->rtp_context.ssrc) {
             pa_memblock_unref(chunk.memblock);
@@ -217,13 +217,13 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
     
     af = sa->sa_family;
     if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
-        pa_log(__FILE__": Failed to create socket: %s", pa_cstrerror(errno));
+        pa_log("Failed to create socket: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     one = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
-        pa_log(__FILE__": SO_REUSEADDR failed: %s", pa_cstrerror(errno));
+        pa_log("SO_REUSEADDR failed: %s", pa_cstrerror(errno));
         goto fail;
     }
     
@@ -240,12 +240,12 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
     }
 
     if (r < 0) {
-        pa_log_info(__FILE__": Joining mcast group failed: %s", pa_cstrerror(errno));
+        pa_log_info("Joining mcast group failed: %s", pa_cstrerror(errno));
         goto fail;
     }
     
     if (bind(fd, sa, salen) < 0) {
-        pa_log(__FILE__": bind() failed: %s", pa_cstrerror(errno));
+        pa_log("bind() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -268,12 +268,12 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     pa_sink_input_new_data data;
 
     if (u->n_sessions >= MAX_SESSIONS) {
-        pa_log(__FILE__": session limit reached.");
+        pa_log("session limit reached.");
         goto fail;
     }
     
     if (!(sink = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
-        pa_log(__FILE__": sink does not exist.");
+        pa_log("sink does not exist.");
         goto fail;
     }
 
@@ -301,7 +301,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     pa_xfree(c);
         
     if (!s->sink_input) {
-        pa_log(__FILE__": failed to create sink input.");
+        pa_log("failed to create sink input.");
         goto fail;
     }
 
@@ -338,7 +338,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
 
     pa_rtp_context_init_recv(&s->rtp_context, fd, pa_frame_size(&s->sdp_info.sample_spec));
 
-    pa_log_info(__FILE__": Found new session '%s'", s->sdp_info.session_name);
+    pa_log_info("Found new session '%s'", s->sdp_info.session_name);
 
     u->n_sessions++;
     
@@ -358,7 +358,7 @@ fail:
 static void session_free(struct session *s, int from_hash) {
     assert(s);
 
-    pa_log_info(__FILE__": Freeing session '%s'", s->sdp_info.session_name);
+    pa_log_info("Freeing session '%s'", s->sdp_info.session_name);
 
     s->userdata->core->mainloop->time_free(s->death_event);
     s->userdata->core->mainloop->io_free(s->rtp_event);
@@ -435,7 +435,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments");
+        pa_log("failed to parse module arguments");
         goto fail;
     }
 
@@ -452,7 +452,7 @@ int pa__init(pa_core *c, pa_module*m) {
         sa = (struct sockaddr*) &sa4;
         salen = sizeof(sa4);
     } else {
-        pa_log(__FILE__": invalid SAP address '%s'", sap_address);
+        pa_log("invalid SAP address '%s'", sap_address);
         goto fail;
     }
 

@@ -105,7 +105,7 @@ static void source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     u = o->userdata;
 
     if (pa_memblockq_push(u->memblockq, chunk) < 0) {
-        pa_log(__FILE__": Failed to push chunk into memblockq.");
+        pa_log("Failed to push chunk into memblockq.");
         return;
     }
     
@@ -174,17 +174,17 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments");
+        pa_log("failed to parse module arguments");
         goto fail;
     }
 
     if (!(s = pa_namereg_get(m->core, pa_modargs_get_value(ma, "source", NULL), PA_NAMEREG_SOURCE, 1))) {
-        pa_log(__FILE__": source does not exist.");
+        pa_log("source does not exist.");
         goto fail;
     }
 
     if (pa_modargs_get_value_boolean(ma, "loop", &loop) < 0) {
-        pa_log(__FILE__": failed to parse \"loop\" parameter.");
+        pa_log("failed to parse \"loop\" parameter.");
         goto fail;
     }
 
@@ -192,12 +192,12 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_rtp_sample_spec_fixup(&ss);
     cm = s->channel_map;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log(__FILE__": failed to parse sample specification");
+        pa_log("failed to parse sample specification");
         goto fail;
     }
 
     if (!pa_rtp_sample_spec_valid(&ss)) {
-        pa_log(__FILE__": specified sample type not compatible with RTP");
+        pa_log("specified sample type not compatible with RTP");
         goto fail;
     }
 
@@ -209,18 +209,18 @@ int pa__init(pa_core *c, pa_module*m) {
     mtu = (DEFAULT_MTU/pa_frame_size(&ss))*pa_frame_size(&ss);
     
     if (pa_modargs_get_value_u32(ma, "mtu", &mtu) < 0 || mtu < 1 || mtu % pa_frame_size(&ss) != 0) {
-        pa_log(__FILE__": invalid mtu.");
+        pa_log("invalid mtu.");
         goto fail;
     }
 
     port = DEFAULT_PORT + ((rand() % 512) << 1);
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
-        pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.");
+        pa_log("port= expects a numerical argument between 1 and 65535.");
         goto fail;
     }
 
     if (port & 1)
-        pa_log_warn(__FILE__": WARNING: port number not even as suggested in RFC3550!");
+        pa_log_warn("WARNING: port number not even as suggested in RFC3550!");
 
     dest = pa_modargs_get_value(ma, "destination", DEFAULT_DESTINATION);
 
@@ -235,33 +235,33 @@ int pa__init(pa_core *c, pa_module*m) {
         sap_sa4 = sa4;
         sap_sa4.sin_port = htons(SAP_PORT);
     } else {
-        pa_log(__FILE__": invalid destination '%s'", dest);
+        pa_log("invalid destination '%s'", dest);
         goto fail;
     }
     
     if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
-        pa_log(__FILE__": socket() failed: %s", pa_cstrerror(errno));
+        pa_log("socket() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (connect(fd, af == AF_INET ? (struct sockaddr*) &sa4 : (struct sockaddr*) &sa6, af == AF_INET ? sizeof(sa4) : sizeof(sa6)) < 0) {
-        pa_log(__FILE__": connect() failed: %s", pa_cstrerror(errno));
+        pa_log("connect() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if ((sap_fd = socket(af, SOCK_DGRAM, 0)) < 0) {
-        pa_log(__FILE__": socket() failed: %s", pa_cstrerror(errno));
+        pa_log("socket() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (connect(sap_fd, af == AF_INET ? (struct sockaddr*) &sap_sa4 : (struct sockaddr*) &sap_sa6, af == AF_INET ? sizeof(sap_sa4) : sizeof(sap_sa6)) < 0) {
-        pa_log(__FILE__": connect() failed: %s", pa_cstrerror(errno));
+        pa_log("connect() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0 ||
         setsockopt(sap_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0) {
-        pa_log(__FILE__": IP_MULTICAST_LOOP failed: %s", pa_cstrerror(errno));
+        pa_log("IP_MULTICAST_LOOP failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -274,7 +274,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_source_output_new_data_set_channel_map(&data, &cm);
     
     if (!(o = pa_source_output_new(c, &data, 0))) {
-        pa_log(__FILE__": failed to create source output.");
+        pa_log("failed to create source output.");
         goto fail;
     }
 
@@ -317,8 +317,8 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_rtp_context_init_send(&u->rtp_context, fd, c->cookie, payload, pa_frame_size(&ss));
     pa_sap_context_init_send(&u->sap_context, sap_fd, p);
 
-    pa_log_info(__FILE__": RTP stream initialized with mtu %u on %s:%u, SSRC=0x%08x, payload=%u, initial sequence #%u", mtu, dest, port, u->rtp_context.ssrc, payload, u->rtp_context.sequence);
-    pa_log_info(__FILE__": SDP-Data:\n%s\n"__FILE__": EOF", p);
+    pa_log_info("RTP stream initialized with mtu %u on %s:%u, SSRC=0x%08x, payload=%u, initial sequence #%u", mtu, dest, port, u->rtp_context.ssrc, payload, u->rtp_context.sequence);
+    pa_log_info("SDP-Data:\n%s\n"__FILE__": EOF", p);
 
     pa_sap_send(&u->sap_context, 0);
 

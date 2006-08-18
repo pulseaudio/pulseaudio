@@ -70,7 +70,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
     assert(u);
 
     if (events & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) {
-        pa_log(__FILE__": lost connection to LIRC daemon.");
+        pa_log("lost connection to LIRC daemon.");
         goto fail;
     }
         
@@ -78,13 +78,13 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
         char *c;
         
         if (lirc_nextcode(&code) != 0 || !code) {
-            pa_log(__FILE__": lirc_nextcode() failed.");
+            pa_log("lirc_nextcode() failed.");
             goto fail;
         }
         
         c = pa_xstrdup(code);
         c[strcspn(c, "\n\r")] = 0;
-        pa_log_debug(__FILE__": raw IR code '%s'", c);
+        pa_log_debug("raw IR code '%s'", c);
         pa_xfree(c);
         
         while (lirc_code2char(u->config, code, &name) == 0 && name) {
@@ -97,7 +97,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 MUTE_TOGGLE
             } volchange = INVALID;
             
-            pa_log_info(__FILE__": translated IR code '%s'", name);
+            pa_log_info("translated IR code '%s'", name);
             
             if (strcasecmp(name, "volume-up") == 0)
                 volchange = UP;
@@ -111,12 +111,12 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 volchange = RESET;
             
             if (volchange == INVALID)
-                pa_log_warn(__FILE__": recieved unknown IR code '%s'", name);
+                pa_log_warn("recieved unknown IR code '%s'", name);
             else {
                 pa_sink *s;
                 
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
-                    pa_log(__FILE__": failed to get sink '%s'", u->sink_name);
+                    pa_log("failed to get sink '%s'", u->sink_name);
                 else {
                     int i;
                     pa_cvolume cv = *pa_sink_get_volume(s, PA_MIXER_HARDWARE);
@@ -186,12 +186,12 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (lirc_in_use) {
-        pa_log(__FILE__": module-lirc may no be loaded twice.");
+        pa_log("module-lirc may no be loaded twice.");
         return -1;
     }
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments");
+        pa_log("Failed to parse module arguments");
         goto fail;
     }
 
@@ -204,12 +204,12 @@ int pa__init(pa_core *c, pa_module*m) {
     u->mute_toggle_save = 0;
 
     if ((u->lirc_fd = lirc_init((char*) pa_modargs_get_value(ma, "appname", "pulseaudio"), 1)) < 0) {
-        pa_log(__FILE__": lirc_init() failed.");
+        pa_log("lirc_init() failed.");
         goto fail;
     }
 
     if (lirc_readconfig((char*) pa_modargs_get_value(ma, "config", NULL), &u->config, NULL) < 0) {
-        pa_log(__FILE__": lirc_readconfig() failed.");
+        pa_log("lirc_readconfig() failed.");
         goto fail;
     }
     

@@ -294,7 +294,7 @@ static int esd_proto_connect(struct connection *c, PA_GCC_UNUSED esd_proto_t req
 
     if (!c->authorized) {
         if (memcmp(data, c->protocol->esd_key, ESD_KEY_LEN) != 0) {
-            pa_log(__FILE__": kicked client with invalid authorization key.");
+            pa_log("kicked client with invalid authorization key.");
             return -1;
         }
 
@@ -313,7 +313,7 @@ static int esd_proto_connect(struct connection *c, PA_GCC_UNUSED esd_proto_t req
     else if (ekey == ESD_SWAP_ENDIAN_KEY)
         c->swap_byte_order = 1;
     else {
-        pa_log(__FILE__": client sent invalid endian key");
+        pa_log("client sent invalid endian key");
         return -1;
     }
 
@@ -421,19 +421,19 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
         pa_sink* sink;
 
         if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1))) {
-            pa_log(__FILE__": no such sink.");
+            pa_log("no such sink.");
             return -1;
         }
 
         if (!(source = sink->monitor_source)) {
-            pa_log(__FILE__": no such monitor source.");
+            pa_log("no such monitor source.");
             return -1;
         }
     } else {
         assert(request == ESD_PROTO_STREAM_REC);
         
         if (!(source = pa_namereg_get(c->protocol->core, c->protocol->source_name, PA_NAMEREG_SOURCE, 1))) {
-            pa_log(__FILE__": no such source.");
+            pa_log("no such source.");
             return -1;
         }
     }
@@ -822,7 +822,7 @@ static int do_read(struct connection *c) {
         assert(c->read_data_length < sizeof(c->request));
 
         if ((r = pa_iochannel_read(c->io, ((uint8_t*) &c->request) + c->read_data_length, sizeof(c->request) - c->read_data_length)) <= 0) {
-            pa_log_debug(__FILE__": read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+            pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
 
@@ -832,16 +832,16 @@ static int do_read(struct connection *c) {
             c->request = MAYBE_INT32_SWAP(c->swap_byte_order, c->request);
 
             if (c->request < ESD_PROTO_CONNECT || c->request > ESD_PROTO_MAX) {
-                pa_log(__FILE__": recieved invalid request.");
+                pa_log("recieved invalid request.");
                 return -1;
             }
 
             handler = proto_map+c->request;
 
-/*             pa_log(__FILE__": executing request #%u", c->request); */
+/*             pa_log("executing request #%u", c->request); */
 
             if (!handler->proc) {
-                pa_log(__FILE__": recieved unimplemented request #%u.", c->request);
+                pa_log("recieved unimplemented request #%u.", c->request);
                 return -1;
             }
             
@@ -870,7 +870,7 @@ static int do_read(struct connection *c) {
         assert(c->read_data && c->read_data_length < handler->data_length);
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
-            pa_log_debug(__FILE__": read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+            pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
 
@@ -890,7 +890,7 @@ static int do_read(struct connection *c) {
         assert(c->scache.memchunk.memblock && c->scache.name && c->scache.memchunk.index < c->scache.memchunk.length);
         
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache.memchunk.memblock->data+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index)) <= 0) {
-            pa_log_debug(__FILE__": read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+            pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
 
@@ -945,7 +945,7 @@ static int do_read(struct connection *c) {
         }
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
-            pa_log_debug(__FILE__": read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+            pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
         
@@ -975,7 +975,7 @@ static int do_write(struct connection *c) {
         
         assert(c->write_data_index < c->write_data_length);
         if ((r = pa_iochannel_write(c->io, (uint8_t*) c->write_data+c->write_data_index, c->write_data_length-c->write_data_index)) < 0) {
-            pa_log(__FILE__": write(): %s", pa_cstrerror(errno));
+            pa_log("write(): %s", pa_cstrerror(errno));
             return -1;
         }
         
@@ -994,7 +994,7 @@ static int do_write(struct connection *c) {
         
         if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
             pa_memblock_unref(chunk.memblock);
-            pa_log(__FILE__": write(): %s", pa_cstrerror(errno));
+            pa_log("write(): %s", pa_cstrerror(errno));
             return -1;
         }
 
@@ -1154,7 +1154,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     assert(s && io && p);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
-        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
+        pa_log("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
     }
@@ -1203,7 +1203,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->original_name = NULL;
 
     if (!c->authorized && p->auth_ip_acl && pa_ip_acl_check(p->auth_ip_acl, pa_iochannel_get_recv_fd(io)) > 0) {
-        pa_log_info(__FILE__": Client authenticated by IP ACL.");
+        pa_log_info("Client authenticated by IP ACL.");
         c->authorized = 1;
     }
 
@@ -1237,7 +1237,7 @@ pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *serve
     p = pa_xnew(pa_protocol_esound, 1);
 
     if (pa_modargs_get_value_boolean(ma, "auth-anonymous", &public) < 0) {
-        pa_log(__FILE__": auth-anonymous= expects a boolean argument.");
+        pa_log("auth-anonymous= expects a boolean argument.");
         goto fail;
     }
 
@@ -1247,7 +1247,7 @@ pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *serve
     if ((acl = pa_modargs_get_value(ma, "auth-ip-acl", NULL))) {
 
         if (!(p->auth_ip_acl = pa_ip_acl_new(acl))) {
-            pa_log(__FILE__": Failed to parse IP ACL '%s'", acl);
+            pa_log("Failed to parse IP ACL '%s'", acl);
             goto fail;
         }
     } else

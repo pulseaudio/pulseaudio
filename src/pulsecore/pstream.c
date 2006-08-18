@@ -357,7 +357,7 @@ static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userd
     if (p->dead)
         return;
 
-/*     pa_log(__FILE__": Releasing block %u", block_id); */
+/*     pa_log("Releasing block %u", block_id); */
 
     item = pa_xnew(struct item_info, 1);
     item->type = PA_PSTREAM_ITEM_SHMRELEASE;
@@ -380,7 +380,7 @@ static void memexport_revoke_cb(pa_memexport *e, uint32_t block_id, void *userda
     if (p->dead)
         return;
 
-/*     pa_log(__FILE__": Revoking block %u", block_id); */
+/*     pa_log("Revoking block %u", block_id); */
     
     item = pa_xnew(struct item_info, 1);
     item->type = PA_PSTREAM_ITEM_SHMREVOKE;
@@ -462,7 +462,7 @@ static void prepare_next_write_item(pa_pstream *p) {
                 p->write.data = p->write.shm_info;
             }
 /*             else */
-/*                 pa_log_warn(__FILE__": Failed to export memory block."); */
+/*                 pa_log_warn("Failed to export memory block."); */
         }
 
         if (send_payload) {
@@ -569,7 +569,7 @@ static int do_read(pa_pstream *p) {
         flags = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]);
 
         if (!p->use_shm && (flags & PA_FLAG_SHMMASK) != 0) {
-            pa_log_warn(__FILE__": Recieved SHM frame on a socket where SHM is disabled.");
+            pa_log_warn("Recieved SHM frame on a socket where SHM is disabled.");
             return -1;
         }
         
@@ -577,7 +577,7 @@ static int do_read(pa_pstream *p) {
 
             /* This is a SHM memblock release frame with no payload */
 
-/*             pa_log(__FILE__": Got release frame for %u", ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])); */
+/*             pa_log("Got release frame for %u", ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])); */
             
             assert(p->export);
             pa_memexport_process_release(p->export, ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI]));
@@ -588,7 +588,7 @@ static int do_read(pa_pstream *p) {
 
             /* This is a SHM memblock revoke frame with no payload */
 
-/*             pa_log(__FILE__": Got revoke frame for %u", ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])); */
+/*             pa_log("Got revoke frame for %u", ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])); */
 
             assert(p->import);
             pa_memimport_process_revoke(p->import, ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI]));
@@ -599,7 +599,7 @@ static int do_read(pa_pstream *p) {
         length = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]);
         
         if (length > FRAME_SIZE_MAX) {
-            pa_log_warn(__FILE__": Recieved invalid frame size : %lu", (unsigned long) length);
+            pa_log_warn("Recieved invalid frame size : %lu", (unsigned long) length);
             return -1;
         }
         
@@ -610,7 +610,7 @@ static int do_read(pa_pstream *p) {
         if (channel == (uint32_t) -1) {
 
             if (flags != 0) {
-                pa_log_warn(__FILE__": Received packet frame with invalid flags value.");
+                pa_log_warn("Received packet frame with invalid flags value.");
                 return -1;
             }
             
@@ -621,14 +621,14 @@ static int do_read(pa_pstream *p) {
         } else {
 
             if ((flags & PA_FLAG_SEEKMASK) > PA_SEEK_RELATIVE_END) {
-                pa_log_warn(__FILE__": Received memblock frame with invalid seek mode.");
+                pa_log_warn("Received memblock frame with invalid seek mode.");
                 return -1;
             }
             
             if ((flags & PA_FLAG_SHMMASK) == PA_FLAG_SHMDATA) {
 
                 if (length != sizeof(p->read.shm_info)) {
-                    pa_log_warn(__FILE__": Recieved SHM memblock frame with Invalid frame length.");
+                    pa_log_warn("Recieved SHM memblock frame with Invalid frame length.");
                     return -1;
                 }
             
@@ -643,7 +643,7 @@ static int do_read(pa_pstream *p) {
                 p->read.data = p->read.memblock->data;
             } else {
                 
-                pa_log_warn(__FILE__": Recieved memblock frame with invalid flags value.");
+                pa_log_warn("Recieved memblock frame with invalid flags value.");
                 return -1;
             }
         }
@@ -717,7 +717,7 @@ static int do_read(pa_pstream *p) {
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_INDEX]),
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_LENGTH])))) {
 
-                    pa_log_warn(__FILE__": Failed to import memory block.");
+                    pa_log_warn("Failed to import memory block.");
                     return -1;
                 }
 

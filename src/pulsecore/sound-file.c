@@ -48,7 +48,7 @@ int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, 
     memset(&sfinfo, 0, sizeof(sfinfo));
 
     if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
-        pa_log(__FILE__": Failed to open file %s", fname);
+        pa_log("Failed to open file %s", fname);
         goto finish;
     }
 
@@ -80,7 +80,7 @@ int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, 
     ss->channels = sfinfo.channels;
 
     if (!pa_sample_spec_valid(ss)) {
-        pa_log(__FILE__": Unsupported sample format in file %s", fname);
+        pa_log("Unsupported sample format in file %s", fname);
         goto finish;
     }
 
@@ -88,7 +88,7 @@ int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, 
         pa_channel_map_init_auto(map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
     
     if ((l = pa_frame_size(ss)*sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
-        pa_log(__FILE__": File too large");
+        pa_log("File too large");
         goto finish;
     }
 
@@ -99,7 +99,7 @@ int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, 
 
     if ((readf_function && readf_function(sf, chunk->memblock->data, sfinfo.frames) != sfinfo.frames) ||
         (!readf_function && sf_read_raw(sf, chunk->memblock->data, l) != l)) {
-        pa_log(__FILE__": Premature file end");
+        pa_log("Premature file end");
         goto finish;
     }
         
@@ -123,7 +123,7 @@ int pa_sound_file_too_big_to_cache(const char *fname) {
     pa_sample_spec ss;
 
     if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
-        pa_log(__FILE__": Failed to open file %s", fname);
+        pa_log("Failed to open file %s", fname);
         return 0;
     }
 
@@ -155,7 +155,7 @@ int pa_sound_file_too_big_to_cache(const char *fname) {
     ss.channels = sfinfo.channels;
 
     if ((pa_frame_size(&ss) * sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
-        pa_log(__FILE__": File too large %s", fname);
+        pa_log("File too large %s", fname);
         return 1;
     }
 

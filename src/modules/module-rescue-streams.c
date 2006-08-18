@@ -54,12 +54,12 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
     assert(sink);
 
     if (!pa_idxset_size(sink->inputs)) {
-        pa_log_debug(__FILE__": No sink inputs to move away.");
+        pa_log_debug("No sink inputs to move away.");
         return PA_HOOK_OK;
     }
     
     if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SINK, 0))) {
-        pa_log_info(__FILE__": No evacuation sink found.");
+        pa_log_info("No evacuation sink found.");
         return PA_HOOK_OK;
     }
 
@@ -67,11 +67,11 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
 
     while ((i = pa_idxset_first(sink->inputs, NULL))) {
         if (pa_sink_input_move_to(i, target, 1) < 0) {
-            pa_log_warn(__FILE__": Failed to move sink input %u \"%s\" to %s.", i->index, i->name, target->name);
+            pa_log_warn("Failed to move sink input %u \"%s\" to %s.", i->index, i->name, target->name);
             return PA_HOOK_OK;
         }
 
-        pa_log_info(__FILE__": Sucessfully moved sink input %u \"%s\" to %s.", i->index, i->name, target->name);
+        pa_log_info("Sucessfully moved sink input %u \"%s\" to %s.", i->index, i->name, target->name);
     }
 
     
@@ -86,12 +86,12 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
     assert(source);
 
     if (!pa_idxset_size(source->outputs)) {
-        pa_log_debug(__FILE__": No source outputs to move away.");
+        pa_log_debug("No source outputs to move away.");
         return PA_HOOK_OK;
     }
     
     if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SOURCE, 0))) {
-        pa_log_info(__FILE__": No evacuation source found.");
+        pa_log_info("No evacuation source found.");
         return PA_HOOK_OK;
     }
 
@@ -99,11 +99,11 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
 
     while ((o = pa_idxset_first(source->outputs, NULL))) {
         if (pa_source_output_move_to(o, target) < 0) {
-            pa_log_warn(__FILE__": Failed to move source output %u \"%s\" to %s.", o->index, o->name, target->name);
+            pa_log_warn("Failed to move source output %u \"%s\" to %s.", o->index, o->name, target->name);
             return PA_HOOK_OK;
         }
 
-        pa_log_info(__FILE__": Sucessfully moved source output %u \"%s\" to %s.", o->index, o->name, target->name);
+        pa_log_info("Sucessfully moved source output %u \"%s\" to %s.", o->index, o->name, target->name);
     }
 
     
@@ -118,7 +118,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments");
+        pa_log("Failed to parse module arguments");
         return -1;
     }
 

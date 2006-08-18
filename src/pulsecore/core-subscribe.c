@@ -145,7 +145,7 @@ static void dump_event(const char * prefix, pa_subscription_event*e) {
         [PA_SUBSCRIPTION_EVENT_REMOVE] = "REMOVE"
     };
 
-    pa_log(__FILE__": %s event (%s|%s|%u)",
+    pa_log("%s event (%s|%s|%u)",
            prefix,
            fac_table[e->type & PA_SUBSCRIPTION_EVENT_FACILITY_MASK],
            type_table[e->type & PA_SUBSCRIPTION_EVENT_TYPE_MASK],
@@ -234,7 +234,7 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
                  * entry in the queue. */
 
                 free_event(i);
-                pa_log_debug(__FILE__": dropped redundant event.");
+                pa_log_debug("dropped redundant event.");
                 continue;
             }
 
@@ -242,7 +242,7 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
                 /* This object has changed. If a "new" or "change" event for
                  * this object is still in the queue we can exit. */
 
-                pa_log_debug(__FILE__": dropped redundant event.");
+                pa_log_debug("dropped redundant event.");
                 return;
             }
         }

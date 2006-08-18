@@ -112,7 +112,7 @@ char *pa_get_user_name(char *s, size_t l) {
 char *pa_get_host_name(char *s, size_t l) {
     assert(s && l > 0);
     if (gethostname(s, l) < 0) {
-        pa_log(__FILE__": gethostname(): %s", pa_cstrerror(errno));
+        pa_log("gethostname(): %s", pa_cstrerror(errno));
         return NULL;
     }
     s[l-1] = 0;
@@ -138,12 +138,12 @@ char *pa_get_home_dir(char *s, size_t l) {
 #ifdef HAVE_PWD_H
 #ifdef HAVE_GETPWUID_R
     if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
-        pa_log(__FILE__": getpwuid_r() failed");
+        pa_log("getpwuid_r() failed");
 #else
     /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X)
         * that do not support getpwuid_r. */
     if ((r = getpwuid(getuid())) == NULL) {
-        pa_log(__FILE__": getpwuid_r() failed");
+        pa_log("getpwuid_r() failed");
 #endif
         return NULL;
     }

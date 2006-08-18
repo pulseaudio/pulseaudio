@@ -129,7 +129,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
     i->payload = 255;
     
     if (!pa_startswith(t, PA_SDP_HEADER)) {
-        pa_log(__FILE__": Failed to parse SDP data: invalid header.");
+        pa_log("Failed to parse SDP data: invalid header.");
         goto fail;
     }
 
@@ -141,7 +141,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
         l = strcspn(t, "\n");
 
         if (l <= 2) {
-            pa_log(__FILE__": Failed to parse SDP data: line too short: >%s<.", t);
+            pa_log("Failed to parse SDP data: line too short: >%s<.", t);
             goto fail;
         }
 
@@ -159,7 +159,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
             a[strcspn(a, "/")] = 0;
 
             if (inet_pton(AF_INET, a, &((struct sockaddr_in*) &i->sa)->sin_addr) <= 0) {
-                pa_log(__FILE__": Failed to parse SDP data: bad address: >%s<.", a);
+                pa_log("Failed to parse SDP data: bad address: >%s<.", a);
                 goto fail;
             }
 
@@ -176,7 +176,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
             a[strcspn(a, "/")] = 0;
 
             if (inet_pton(AF_INET6, a, &((struct sockaddr_in6*) &i->sa)->sin6_addr) <= 0) {
-                pa_log(__FILE__": Failed to parse SDP data: bad address: >%s<.", a);
+                pa_log("Failed to parse SDP data: bad address: >%s<.", a);
                 goto fail;
             }
 
@@ -191,12 +191,12 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
                 if (sscanf(t+8, "%i RTP/AVP %i", &_port, &_payload) == 2) {
 
                     if (_port <= 0 || _port > 0xFFFF) {
-                        pa_log(__FILE__": Failed to parse SDP data: invalid port %i.", _port);
+                        pa_log("Failed to parse SDP data: invalid port %i.", _port);
                         goto fail;
                     }
 
                     if (_payload < 0 || _payload > 127) {
-                        pa_log(__FILE__": Failed to parse SDP data: invalid payload %i.", _payload);
+                        pa_log("Failed to parse SDP data: invalid payload %i.", _payload);
                         goto fail;
                     }
 
@@ -216,7 +216,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
                 if (sscanf(t+9, "%i %64c", &_payload, c) == 2) {
 
                     if (_payload < 0 || _payload > 127) {
-                        pa_log(__FILE__": Failed to parse SDP data: invalid payload %i.", _payload);
+                        pa_log("Failed to parse SDP data: invalid payload %i.", _payload);
                         goto fail;
                     }
                     if (_payload == i->payload) {
@@ -237,7 +237,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
     }
 
     if (!i->origin || (!is_goodbye && (!i->salen || i->payload > 127 || !ss_valid || port == 0))) {
-        pa_log(__FILE__": Failed to parse SDP data: missing data.");
+        pa_log("Failed to parse SDP data: missing data.");
         goto fail;
     }
 

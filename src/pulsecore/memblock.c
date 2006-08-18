@@ -184,7 +184,7 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
     } else if (p->n_init < p->n_blocks)
         slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * p->n_init++));
     else {
-        pa_log_debug(__FILE__": Pool full");
+        pa_log_debug("Pool full");
         p->stat.n_pool_full++;
         return NULL;
     }
@@ -241,7 +241,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
         b->type = PA_MEMBLOCK_POOL_EXTERNAL;
         b->data = mempool_slot_data(slot);
     } else {
-        pa_log_debug(__FILE__": Memory block to large for pool: %u > %u", length, p->block_size - sizeof(struct mempool_slot));
+        pa_log_debug("Memory block to large for pool: %u > %u", length, p->block_size - sizeof(struct mempool_slot));
         p->stat.n_too_large_for_pool++;
         return NULL;
     }
@@ -464,7 +464,7 @@ void pa_mempool_free(pa_mempool *p) {
         pa_memexport_free(p->exports);
 
     if (p->stat.n_allocated > 0)
-        pa_log_warn(__FILE__": WARNING! Memory pool destroyed but not all memory blocks freed!");
+        pa_log_warn("WARNING! Memory pool destroyed but not all memory blocks freed!");
     
     pa_shm_free(&p->memory);
     pa_xfree(p);

@@ -97,7 +97,7 @@ static void do_read(struct userdata *u) {
 
     assert(u->chunk.memblock && u->chunk.memblock->length > u->chunk.index);
     if ((r = pa_iochannel_read(u->io, (uint8_t*) u->chunk.memblock->data + u->chunk.index, u->chunk.memblock->length - u->chunk.index)) <= 0) {
-        pa_log(__FILE__": read(): %s", pa_cstrerror(errno));
+        pa_log("read(): %s", pa_cstrerror(errno));
         return;
     }
 
@@ -131,32 +131,32 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments");
+        pa_log("failed to parse module arguments");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
-        pa_log(__FILE__": invalid sample format specification or channel map");
+        pa_log("invalid sample format specification or channel map");
         goto fail;
     }
     
     mkfifo(p = pa_modargs_get_value(ma, "file", DEFAULT_FIFO_NAME), 0777);
 
     if ((fd = open(p, O_RDWR)) < 0) {
-        pa_log(__FILE__": open('%s'): %s", p, pa_cstrerror(errno));
+        pa_log("open('%s'): %s", p, pa_cstrerror(errno));
         goto fail;
     }
 
     pa_fd_set_cloexec(fd, 1);
     
     if (fstat(fd, &st) < 0) {
-        pa_log(__FILE__": fstat('%s'): %s", p, pa_cstrerror(errno));
+        pa_log("fstat('%s'): %s", p, pa_cstrerror(errno));
         goto fail;
     }
 
     if (!S_ISFIFO(st.st_mode)) {
-        pa_log(__FILE__": '%s' is not a FIFO.", p);
+        pa_log("'%s' is not a FIFO.", p);
         goto fail;
     }
 
@@ -166,7 +166,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->core = c;
     
     if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
-        pa_log(__FILE__": failed to create source.");
+        pa_log("failed to create source.");
         goto fail;
     }
     u->source->userdata = u;

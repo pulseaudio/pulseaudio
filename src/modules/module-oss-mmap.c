@@ -187,7 +187,7 @@ static void do_write(struct userdata *u) {
     update_usage(u);
     
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETOPTR: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_GETOPTR: %s", pa_cstrerror(errno));
 
         clear_up(u);
         pa_module_unload_request(u->module);
@@ -253,7 +253,7 @@ static void do_read(struct userdata *u) {
     update_usage(u);
     
     if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETIPTR: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_GETIPTR: %s", pa_cstrerror(errno));
 
         clear_up(u);
         pa_module_unload_request(u->module);
@@ -293,7 +293,7 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     assert(s && u);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETOPTR: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_GETOPTR: %s", pa_cstrerror(errno));
         return 0;
     }
 
@@ -319,7 +319,7 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
     assert(s && u);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_GETIPTR: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_GETIPTR: %s", pa_cstrerror(errno));
         return 0;
     }
 
@@ -342,7 +342,7 @@ static int sink_get_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_get_pcm_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
+        pa_log_info("device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
         s->get_hw_volume = NULL;
         return -1;
     }
@@ -354,7 +354,7 @@ static int sink_set_hw_volume(pa_sink *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_set_pcm_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
+        pa_log_info("device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
         s->set_hw_volume = NULL;
         return -1;
     }
@@ -366,7 +366,7 @@ static int source_get_hw_volume(pa_source *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_get_input_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
+        pa_log_info("device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
         s->get_hw_volume = NULL;
         return -1;
     }
@@ -378,7 +378,7 @@ static int source_set_hw_volume(pa_source *s) {
     struct userdata *u = s->userdata;
 
     if (pa_oss_set_input_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info(__FILE__": device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
+        pa_log_info("device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
         s->set_hw_volume = NULL;
         return -1;
     }
@@ -410,17 +410,17 @@ int pa__init(pa_core *c, pa_module*m) {
     u->core = c;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.");
+        pa_log("failed to parse module arguments.");
         goto fail;
     }
     
     if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
-        pa_log(__FILE__": record= and playback= expect numeric arguments.");
+        pa_log("record= and playback= expect numeric arguments.");
         goto fail;
     }
 
     if (!playback && !record) {
-        pa_log(__FILE__": neither playback nor record enabled for device.");
+        pa_log("neither playback nor record enabled for device.");
         goto fail;
     }
 
@@ -429,13 +429,13 @@ int pa__init(pa_core *c, pa_module*m) {
     nfrags = DEFAULT_NFRAGS;
     frag_size = DEFAULT_FRAGSIZE;
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
-        pa_log(__FILE__": failed to parse fragments arguments");
+        pa_log("failed to parse fragments arguments");
         goto fail;
     }
 
     u->sample_spec = c->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &u->sample_spec, &map, PA_CHANNEL_MAP_OSS) < 0) {
-        pa_log(__FILE__": failed to parse sample specification or channel map");
+        pa_log("failed to parse sample specification or channel map");
         goto fail;
     }
 
@@ -443,14 +443,14 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
 
     if (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_TRIGGER)) {
-        pa_log(__FILE__": OSS device not mmap capable.");
+        pa_log("OSS device not mmap capable.");
         goto fail;
     }
 
-    pa_log_info(__FILE__": device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
+    pa_log_info("device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
     if (pa_oss_get_hw_description(p, hwdesc, sizeof(hwdesc)) >= 0)
-        pa_log_info(__FILE__": hardware name is '%s'.", hwdesc);
+        pa_log_info("hardware name is '%s'.", hwdesc);
     else
         hwdesc[0] = 0;
 
@@ -463,19 +463,19 @@ int pa__init(pa_core *c, pa_module*m) {
 
     if (mode != O_WRONLY) {
         if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0) {
-            pa_log(__FILE__": SNDCTL_DSP_GETISPACE: %s", pa_cstrerror(errno));
+            pa_log("SNDCTL_DSP_GETISPACE: %s", pa_cstrerror(errno));
             goto fail;
         }
 
-        pa_log_info(__FILE__": input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
+        pa_log_info("input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->in_mmap_length = (u->in_fragment_size = info.fragsize) * (u->in_fragments = info.fragstotal);
 
         if ((u->in_mmap = mmap(NULL, u->in_mmap_length, PROT_READ, MAP_SHARED, u->fd, 0)) == MAP_FAILED) {
             if (mode == O_RDWR) {
-                pa_log(__FILE__": mmap failed for input. Changing to O_WRONLY mode.");
+                pa_log("mmap failed for input. Changing to O_WRONLY mode.");
                 mode = O_WRONLY;
             } else {
-                pa_log(__FILE__": mmap(): %s", pa_cstrerror(errno));
+                pa_log("mmap(): %s", pa_cstrerror(errno));
                 goto fail;
             }
         } else {
@@ -513,19 +513,19 @@ int pa__init(pa_core *c, pa_module*m) {
     
     if (mode != O_RDONLY) {
         if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
-            pa_log(__FILE__": SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
+            pa_log("SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
             goto fail;
         }
         
-        pa_log_info(__FILE__": output -- %u fragments of size %u.", info.fragstotal, info.fragsize);
+        pa_log_info("output -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->out_mmap_length = (u->out_fragment_size = info.fragsize) * (u->out_fragments = info.fragstotal);
 
         if ((u->out_mmap = mmap(NULL, u->out_mmap_length, PROT_WRITE, MAP_SHARED, u->fd, 0))  == MAP_FAILED) {
             if (mode == O_RDWR) {
-                pa_log(__FILE__": mmap filed for output. Changing to O_RDONLY mode.");
+                pa_log("mmap filed for output. Changing to O_RDONLY mode.");
                 mode = O_RDONLY;
             } else {
-                pa_log(__FILE__": mmap(): %s", pa_cstrerror(errno));
+                pa_log("mmap(): %s", pa_cstrerror(errno));
                 goto fail;
             }
         } else {
@@ -565,12 +565,12 @@ int pa__init(pa_core *c, pa_module*m) {
     
     zero = 0;
     if (ioctl(u->fd, SNDCTL_DSP_SETTRIGGER, &zero) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_SETTRIGGER: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_SETTRIGGER: %s", pa_cstrerror(errno));
         goto fail;
     }
     
     if (ioctl(u->fd, SNDCTL_DSP_SETTRIGGER, &enable_bits) < 0) {
-        pa_log(__FILE__": SNDCTL_DSP_SETTRIGGER: %s", pa_cstrerror(errno));
+        pa_log("SNDCTL_DSP_SETTRIGGER: %s", pa_cstrerror(errno));
         goto fail;
     }
         

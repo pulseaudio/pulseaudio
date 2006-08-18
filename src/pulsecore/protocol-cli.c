@@ -56,7 +56,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     assert(s && io && p);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
-        pa_log(__FILE__": Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
+        pa_log("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
         pa_iochannel_free(io);
         return;
     }

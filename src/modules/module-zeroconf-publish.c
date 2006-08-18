@@ -203,12 +203,12 @@ static int publish_service(struct userdata *u, struct service *s) {
                     u->port,
                     txt) < 0) {
             
-            pa_log(__FILE__": avahi_entry_group_add_service_strlst(): %s", avahi_strerror(avahi_client_errno(u->client)));
+            pa_log("avahi_entry_group_add_service_strlst(): %s", avahi_strerror(avahi_client_errno(u->client)));
             goto finish;
         }
         
         if (avahi_entry_group_commit(s->entry_group) < 0) {
-            pa_log(__FILE__": avahi_entry_group_commit(): %s", avahi_strerror(avahi_client_errno(u->client)));
+            pa_log("avahi_entry_group_commit(): %s", avahi_strerror(avahi_client_errno(u->client)));
             goto finish;
         }
         
@@ -456,7 +456,7 @@ static int publish_main_service(struct userdata *u) {
     
     if (!u->main_entry_group) {
         if (!(u->main_entry_group = avahi_entry_group_new(u->client, main_entry_group_callback, u))) {
-            pa_log(__FILE__": avahi_entry_group_new() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
+            pa_log("avahi_entry_group_new() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
             goto fail;
         }
     } else
@@ -475,12 +475,12 @@ static int publish_main_service(struct userdata *u) {
                 u->port,
                 txt) < 0) {
         
-        pa_log(__FILE__": avahi_entry_group_add_service_strlst() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
+        pa_log("avahi_entry_group_add_service_strlst() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
         goto fail;
     }
             
     if (avahi_entry_group_commit(u->main_entry_group) < 0) {
-        pa_log(__FILE__": avahi_entry_group_commit() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
+        pa_log("avahi_entry_group_commit() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
         goto fail;
     }
 
@@ -501,7 +501,7 @@ static int publish_all_services(struct userdata *u) {
     
     assert(u);
 
-    pa_log_debug(__FILE__": Publishing services in Zeroconf");
+    pa_log_debug("Publishing services in Zeroconf");
 
     for (sink = pa_idxset_first(u->core->sinks, &idx); sink; sink = pa_idxset_next(u->core->sinks, &idx))
         if (publish_sink(u, sink) < 0)
@@ -531,7 +531,7 @@ static void unpublish_all_services(struct userdata *u, int rem) {
     
     assert(u);
 
-    pa_log_debug(__FILE__": Unpublishing services in Zeroconf");
+    pa_log_debug("Unpublishing services in Zeroconf");
 
     while ((s = pa_hashmap_iterate(u->services, &state, NULL))) {
         if (s->entry_group) {
@@ -576,7 +576,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
                 avahi_client_free(u->client);
 
                 if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error)))
-                    pa_log(__FILE__": pa_avahi_client_new() failed: %s", avahi_strerror(error));
+                    pa_log("pa_avahi_client_new() failed: %s", avahi_strerror(error));
             }
             
             break;
@@ -593,12 +593,12 @@ int pa__init(pa_core *c, pa_module*m) {
     int error;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.");
+        pa_log("failed to parse module arguments.");
         goto fail;
     }
 
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port == 0 || port >= 0xFFFF) {
-        pa_log(__FILE__": invalid port specified.");
+        pa_log("invalid port specified.");
         goto fail;
     }
 
@@ -623,7 +623,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->service_name = pa_xstrdup(pa_get_host_name(hn, sizeof(hn)));
 
     if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
-        pa_log(__FILE__": pa_avahi_client_new() failed: %s", avahi_strerror(error));
+        pa_log("pa_avahi_client_new() failed: %s", avahi_strerror(error));
         goto fail;
     }
 

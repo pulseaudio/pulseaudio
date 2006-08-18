@@ -125,7 +125,7 @@ static void do_write(struct userdata *u)
     LeaveCriticalSection(&u->crit);
 
     if (free_frags == u->fragments)
-        pa_log_debug(__FILE__": WaveOut underflow!");
+        pa_log_debug("WaveOut underflow!");
 
     while (free_frags) {
         hdr = &u->ohdrs[u->cur_ohdr];
@@ -209,7 +209,7 @@ static void do_read(struct userdata *u)
     LeaveCriticalSection(&u->crit);
 
     if (free_frags == u->fragments)
-        pa_log_debug(__FILE__": WaveIn overflow!");
+        pa_log_debug("WaveIn overflow!");
 
     while (free_frags) {
         hdr = &u->ihdrs[u->cur_ihdr];
@@ -395,7 +395,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     wf->wFormatTag = WAVE_FORMAT_PCM;
 
     if (ss->channels > 2) {
-        pa_log_error(__FILE__": ERROR: More than two channels not supported.");
+        pa_log_error("ERROR: More than two channels not supported.");
         return -1;
     }
 
@@ -408,7 +408,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     case 44100:
         break;
     default:
-        pa_log_error(__FILE__": ERROR: Unsupported sample rate.");
+        pa_log_error("ERROR: Unsupported sample rate.");
         return -1;
     }
 
@@ -419,7 +419,7 @@ static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
     else if (ss->format == PA_SAMPLE_S16NE)
         wf->wBitsPerSample = 16;
     else {
-        pa_log_error(__FILE__": ERROR: Unsupported sample format.");
+        pa_log_error("ERROR: Unsupported sample format.");
         return -1;
     }
 
@@ -447,30 +447,30 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.");
+        pa_log("failed to parse module arguments.");
         goto fail;
     }
 
     if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
-        pa_log(__FILE__": record= and playback= expect boolean argument.");
+        pa_log("record= and playback= expect boolean argument.");
         goto fail;
     }
 
     if (!playback && !record) {
-        pa_log(__FILE__": neither playback nor record enabled for device.");
+        pa_log("neither playback nor record enabled for device.");
         goto fail;
     }
 
     nfrags = 5;
     frag_size = 8192;
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
-        pa_log(__FILE__": failed to parse fragments arguments");
+        pa_log("failed to parse fragments arguments");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_WAVEEX) < 0) {
-        pa_log(__FILE__": failed to parse sample specification");
+        pa_log("failed to parse sample specification");
         goto fail;
     }
 
@@ -484,13 +484,13 @@ int pa__init(pa_core *c, pa_module*m) {
             goto fail;
         if (waveInStart(hwi) != MMSYSERR_NOERROR)
             goto fail;
-        pa_log_debug(__FILE__": Opened waveIn subsystem.");
+        pa_log_debug("Opened waveIn subsystem.");
     }
 
     if (playback) {
         if (waveOutOpen(&hwo, WAVE_MAPPER, &wf, (DWORD_PTR)chunk_done_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
             goto fail;
-        pa_log_debug(__FILE__": Opened waveOut subsystem.");
+        pa_log_debug("Opened waveOut subsystem.");
     }
 
     InitializeCriticalSection(&u->crit);

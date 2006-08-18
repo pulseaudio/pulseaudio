@@ -117,7 +117,7 @@ static void message_cb(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const s
 #endif
 
 static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e, int sig, void *userdata) {
-    pa_log_info(__FILE__": Got signal %s.", pa_strsignal(sig));
+    pa_log_info("Got signal %s.", pa_strsignal(sig));
 
     switch (sig) {
 #ifdef SIGUSR1
@@ -144,7 +144,7 @@ static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e,
         case SIGINT:
         case SIGTERM:
         default:
-            pa_log_info(__FILE__": Exiting.");
+            pa_log_info("Exiting.");
             m->quit(m, 1);
             break;
     }
@@ -172,34 +172,34 @@ static int change_user(void) {
      * afterwards. */
     
     if (!(pw = getpwnam(PA_SYSTEM_USER))) {
-        pa_log(__FILE__": Failed to find user '%s'.", PA_SYSTEM_USER);
+        pa_log("Failed to find user '%s'.", PA_SYSTEM_USER);
         return -1;
     }
 
     if (!(gr = getgrnam(PA_SYSTEM_GROUP))) {
-        pa_log(__FILE__": Failed to find group '%s'.", PA_SYSTEM_GROUP);
+        pa_log("Failed to find group '%s'.", PA_SYSTEM_GROUP);
         return -1;
     }
 
-    pa_log_info(__FILE__": Found user '%s' (UID %lu) and group '%s' (GID %lu).",
+    pa_log_info("Found user '%s' (UID %lu) and group '%s' (GID %lu).",
                 PA_SYSTEM_USER, (unsigned long) pw->pw_uid,
                 PA_SYSTEM_GROUP, (unsigned long) gr->gr_gid);
 
     if (pw->pw_gid != gr->gr_gid) {
-        pa_log(__FILE__": GID of user '%s' and of group '%s' don't match.", PA_SYSTEM_USER, PA_SYSTEM_GROUP);
+        pa_log("GID of user '%s' and of group '%s' don't match.", PA_SYSTEM_USER, PA_SYSTEM_GROUP);
         return -1;
     }
 
     if (strcmp(pw->pw_dir, PA_SYSTEM_RUNTIME_PATH) != 0)
-        pa_log_warn(__FILE__": Warning: home directory of user '%s' is not '%s', ignoring.", PA_SYSTEM_USER, PA_SYSTEM_RUNTIME_PATH);
+        pa_log_warn("Warning: home directory of user '%s' is not '%s', ignoring.", PA_SYSTEM_USER, PA_SYSTEM_RUNTIME_PATH);
 
     if (pa_make_secure_dir(PA_SYSTEM_RUNTIME_PATH, 0755, pw->pw_uid, gr->gr_gid) < 0) {
-        pa_log(__FILE__": Failed to create '%s': %s", PA_SYSTEM_RUNTIME_PATH, pa_cstrerror(errno));
+        pa_log("Failed to create '%s': %s", PA_SYSTEM_RUNTIME_PATH, pa_cstrerror(errno));
         return -1;
     }
     
     if (initgroups(PA_SYSTEM_USER, gr->gr_gid) != 0) {
-        pa_log(__FILE__": Failed to change group list: %s", pa_cstrerror(errno));
+        pa_log("Failed to change group list: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -215,7 +215,7 @@ static int change_user(void) {
 #endif
 
     if (r < 0) {
-        pa_log(__FILE__": Failed to change GID: %s", pa_cstrerror(errno));
+        pa_log("Failed to change GID: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -231,7 +231,7 @@ static int change_user(void) {
 #endif
 
     if (r < 0) {
-        pa_log(__FILE__": Failed to change UID: %s", pa_cstrerror(errno));
+        pa_log("Failed to change UID: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -243,7 +243,7 @@ static int change_user(void) {
     set_env("PULSE_RUNTIME_PATH", PA_SYSTEM_RUNTIME_PATH);
     set_env("PULSE_CONFIG_PATH", PA_SYSTEM_RUNTIME_PATH);
 
-    pa_log_info(__FILE__": Successfully dropped root privileges.");
+    pa_log_info("Successfully dropped root privileges.");
 
     return 0;
 }
@@ -251,7 +251,7 @@ static int change_user(void) {
 #else /* HAVE_PWD_H && HAVE_GRP_H */
 
 static int change_user(void) {
-    pa_log(__FILE__": System wide mode unsupported on this platform.");
+    pa_log("System wide mode unsupported on this platform.");
     return -1;
 }
 
@@ -267,7 +267,7 @@ static int create_runtime_dir(void) {
      * /tmp/ with the current UID/GID */
     
     if (pa_make_secure_dir(fn, 0700, (uid_t)-1, (gid_t)-1) < 0) {
-        pa_log(__FILE__": Failed to create '%s': %s", fn, pa_cstrerror(errno));
+        pa_log("Failed to create '%s': %s", fn, pa_cstrerror(errno));
         return -1;
     }
 
@@ -286,7 +286,7 @@ static void set_one_rlimit(const pa_rlimit *r, int resource, const char *name) {
     rl.rlim_cur = rl.rlim_max = r->value;
 
     if (setrlimit(resource, &rl) < 0)
-        pa_log_warn(__FILE__": setrlimit(%s, (%u, %u)) failed: %s", name, (unsigned) r->value, (unsigned) r->value, pa_cstrerror(errno));
+        pa_log_warn("setrlimit(%s, (%u, %u)) failed: %s", name, (unsigned) r->value, (unsigned) r->value, pa_cstrerror(errno));
 }
 
 static void set_all_rlimits(const pa_daemon_conf *conf) {
@@ -335,7 +335,7 @@ int main(int argc, char *argv[]) {
     suid_root = !real_root && geteuid() == 0;
     
     if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0 || gid >= 1000)) {
-        pa_log_warn(__FILE__": WARNING: called SUID root, but not in group '"PA_REALTIME_GROUP"'.");
+        pa_log_warn("WARNING: called SUID root, but not in group '"PA_REALTIME_GROUP"'.");
         pa_drop_root();
     }
 #else
@@ -368,7 +368,7 @@ int main(int argc, char *argv[]) {
         goto finish;
 
     if (pa_cmdline_parse(conf, argc, argv, &d) < 0) {
-        pa_log(__FILE__": failed to parse command line.");
+        pa_log("failed to parse command line.");
         goto finish;
     }
 
@@ -414,9 +414,9 @@ int main(int argc, char *argv[]) {
             pid_t pid;
 
             if (pa_pid_file_check_running(&pid) < 0) {
-                pa_log_info(__FILE__": daemon not running");
+                pa_log_info("daemon not running");
             } else {
-                pa_log_info(__FILE__": daemon running as PID %u", pid);
+                pa_log_info("daemon running as PID %u", pid);
                 retval = 0;
             }
 
@@ -426,7 +426,7 @@ int main(int argc, char *argv[]) {
         case PA_CMD_KILL:
 
             if (pa_pid_file_kill(SIGINT, NULL) < 0)
-                pa_log(__FILE__": failed to kill daemon.");
+                pa_log("failed to kill daemon.");
             else
                 retval = 0;
             
@@ -437,9 +437,9 @@ int main(int argc, char *argv[]) {
     }
 
     if (real_root && !conf->system_instance) {
-        pa_log_warn(__FILE__": This program is not intended to be run as root (unless --system is specified).");
+        pa_log_warn("This program is not intended to be run as root (unless --system is specified).");
     } else if (!real_root && conf->system_instance) {
-        pa_log(__FILE__": Root priviliges required.");
+        pa_log("Root priviliges required.");
         goto finish;
     }
 
@@ -448,18 +448,18 @@ int main(int argc, char *argv[]) {
         int tty_fd;
 
         if (pa_stdio_acquire() < 0) {
-            pa_log(__FILE__": failed to acquire stdio.");
+            pa_log("failed to acquire stdio.");
             goto finish;
         }
 
 #ifdef HAVE_FORK
         if (pipe(daemon_pipe) < 0) {
-            pa_log(__FILE__": failed to create pipe.");
+            pa_log("failed to create pipe.");
             goto finish;
         }
         
         if ((child = fork()) < 0) {
-            pa_log(__FILE__": fork() failed: %s", pa_cstrerror(errno));
+            pa_log("fork() failed: %s", pa_cstrerror(errno));
             goto finish;
         }
 
@@ -470,14 +470,14 @@ int main(int argc, char *argv[]) {
             daemon_pipe[1] = -1;
 
             if (pa_loop_read(daemon_pipe[0], &retval, sizeof(retval), NULL) != sizeof(retval)) {
-                pa_log(__FILE__": read() failed: %s", pa_cstrerror(errno));
+                pa_log("read() failed: %s", pa_cstrerror(errno));
                 retval = 1;
             }
 
             if (retval)
-                pa_log(__FILE__": daemon startup failed.");
+                pa_log("daemon startup failed.");
             else
-                pa_log_info(__FILE__": daemon startup successful.");
+                pa_log_info("daemon startup successful.");
             
             goto finish;
         }
@@ -537,7 +537,7 @@ int main(int argc, char *argv[]) {
     
     if (conf->use_pid_file) {
         if (pa_pid_file_create() < 0) {
-            pa_log(__FILE__": pa_pid_file_create() failed.");
+            pa_log("pa_pid_file_create() failed.");
 #ifdef HAVE_FORK
             if (conf->daemonize)
                 pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
@@ -604,13 +604,13 @@ int main(int argc, char *argv[]) {
     pa_xfree(s);
     
     if (r < 0 && conf->fail) {
-        pa_log(__FILE__": failed to initialize daemon.");
+        pa_log("failed to initialize daemon.");
 #ifdef HAVE_FORK
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
 #endif
     } else if (!c->modules || pa_idxset_size(c->modules) == 0) {
-        pa_log(__FILE__": daemon startup without any loaded modules, refusing to work.");
+        pa_log("daemon startup without any loaded modules, refusing to work.");
 #ifdef HAVE_FORK
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
@@ -634,10 +634,10 @@ int main(int argc, char *argv[]) {
             pa_log_error("%s : Fatal error. Default sink name (%s) does not exist in name register.", __FILE__, c->default_sink_name);
             retval = 1;
         } else {
-            pa_log_info(__FILE__": Daemon startup complete.");
+            pa_log_info("Daemon startup complete.");
             if (pa_mainloop_run(mainloop, &retval) < 0)
                 retval = 1;
-            pa_log_info(__FILE__": Daemon shutdown initiated.");
+            pa_log_info("Daemon shutdown initiated.");
         }
     }
 
@@ -653,7 +653,7 @@ int main(int argc, char *argv[]) {
     pa_signal_done();
     pa_mainloop_free(mainloop);
     
-    pa_log_info(__FILE__": Daemon terminated.");
+    pa_log_info("Daemon terminated.");
     
 finish:
 

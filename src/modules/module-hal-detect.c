@@ -287,11 +287,11 @@ static int hal_device_add_all(struct userdata *u, capability_t capability)
 
     assert(capability < CAP_MAX);
 
-    pa_log_info(__FILE__": Trying capability %u (%s)", capability, cap);
+    pa_log_info("Trying capability %u (%s)", capability, cap);
     dbus_error_init(&error);
     udis = libhal_find_device_by_capability(u->ctx, cap, &n, &error);
     if (dbus_error_is_set(&error)) {
-        pa_log_error(__FILE__": Error finding devices: %s: %s", error.name,
+        pa_log_error("Error finding devices: %s: %s", error.name,
                      error.message);
         dbus_error_free(&error);
         return -1;
@@ -301,7 +301,7 @@ static int hal_device_add_all(struct userdata *u, capability_t capability)
     for (i = 0; i < n; ++i) {
         r = hal_device_add(u, udis[i], &error);
         if (dbus_error_is_set(&error)) {
-            pa_log_error(__FILE__": Error adding device: %s: %s", error.name,
+            pa_log_error("Error adding device: %s: %s", error.name,
                          error.message);
             dbus_error_free(&error);
             count = -1;
@@ -338,7 +338,7 @@ static void device_added_time_cb(pa_mainloop_api *ea, pa_time_event *ev,
         hal_device_add(td->u, td->udi, &error);
 
     if (dbus_error_is_set(&error)) {
-        pa_log_error(__FILE__": Error adding device: %s: %s", error.name,
+        pa_log_error("Error adding device: %s: %s", error.name,
                      error.message);
         dbus_error_free(&error);
     }
@@ -357,12 +357,12 @@ static void device_added_cb(LibHalContext *ctx, const char *udi)
     struct userdata *u = (struct userdata*) libhal_ctx_get_user_data(ctx);
     const char* cap = get_capability_name(u->capability);
 
-    pa_log_debug(__FILE__": HAL Device added: %s", udi);
+    pa_log_debug("HAL Device added: %s", udi);
 
     dbus_error_init(&error);
     has_cap = device_has_capability(ctx, udi, cap, &error);
     if (dbus_error_is_set(&error)) {
-        pa_log_error(__FILE__": Error getting capability: %s: %s", error.name,
+        pa_log_error("Error getting capability: %s: %s", error.name,
                      error.message);
         dbus_error_free(&error);
         return;
@@ -388,7 +388,7 @@ static void device_removed_cb(LibHalContext* ctx, const char *udi)
     struct device *d;
     struct userdata *u = (struct userdata*) libhal_ctx_get_user_data(ctx);
 
-    pa_log_debug(__FILE__": Device removed: %s", udi);
+    pa_log_debug("Device removed: %s", udi);
     if ((d = pa_hashmap_remove(u->devices, udi))) {
         pa_module_unload_by_index(u->core, d->index);
         hal_device_free(d);
@@ -456,18 +456,18 @@ static LibHalContext* pa_hal_context_new(pa_core* c, DBusConnection *conn)
 
     dbus_error_init(&error);
     if (!(hal_ctx = libhal_ctx_new())) {
-        pa_log_error(__FILE__": libhal_ctx_new() failed");
+        pa_log_error("libhal_ctx_new() failed");
         goto fail;
     }
 
     if (!libhal_ctx_set_dbus_connection(hal_ctx, conn)) {
-        pa_log_error(__FILE__": Error establishing DBUS connection: %s: %s",
+        pa_log_error("Error establishing DBUS connection: %s: %s",
                      error.name, error.message);
         goto fail;
     }
 
     if (!libhal_ctx_init(hal_ctx, &error)) {
-        pa_log_error(__FILE__": Couldn't connect to hald: %s: %s",
+        pa_log_error("Couldn't connect to hald: %s: %s",
                      error.name, error.message);
         goto fail;
     }
@@ -496,7 +496,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     dbus_error_init(&error);
     if (!(conn = pa_dbus_bus_get(c, DBUS_BUS_SYSTEM, &error))) {
-        pa_log_error(__FILE__": Unable to contact DBUS system bus: %s: %s",
+        pa_log_error("Unable to contact DBUS system bus: %s: %s",
                      error.name, error.message);
         dbus_error_free(&error);
         return -1;
@@ -522,7 +522,7 @@ int pa__init(pa_core *c, pa_module*m) {
     if ((n = hal_device_add_all(u, CAP_OSS)) <= 0)
 #endif
     {
-        pa_log_warn(__FILE__": failed to detect any sound hardware.");
+        pa_log_warn("failed to detect any sound hardware.");
         userdata_free(u);
         return -1;
     }
@@ -536,14 +536,14 @@ int pa__init(pa_core *c, pa_module*m) {
 
     dbus_error_init(&error);
     if (!libhal_device_property_watch_all(hal_ctx, &error)) {
-        pa_log_error(__FILE__": error monitoring device list: %s: %s",
+        pa_log_error("error monitoring device list: %s: %s",
                      error.name, error.message);
         dbus_error_free(&error);
         userdata_free(u);
         return -1;
     }
 
-    pa_log_info(__FILE__": loaded %i modules.", n);
+    pa_log_info("loaded %i modules.", n);
 
     return 0;
 }

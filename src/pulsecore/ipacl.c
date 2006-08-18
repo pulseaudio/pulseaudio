@@ -88,7 +88,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
             *slash = 0;
             slash++;
             if (pa_atou(slash, &bits) < 0) {
-                pa_log(__FILE__": failed to parse number of bits: %s", slash);
+                pa_log("failed to parse number of bits: %s", slash);
                 goto fail;
             }
         } else
@@ -99,21 +99,21 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
             e.bits = bits == (uint32_t) -1 ? 32 : (int) bits;
             
             if (e.bits > 32) {
-                pa_log(__FILE__": number of bits out of range: %i", e.bits);
+                pa_log("number of bits out of range: %i", e.bits);
                 goto fail;
             }
 
             e.family = AF_INET;
 
             if (e.bits < 32 && (uint32_t) (ntohl(e.address_ipv4.s_addr) << e.bits) != 0)
-                pa_log_warn(__FILE__": WARNING: Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
+                pa_log_warn("WARNING: Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
                 
         } else if (inet_pton(AF_INET6, a, &e.address_ipv6) > 0) {
 
             e.bits = bits == (uint32_t) -1 ? 128 : (int) bits;
 
             if (e.bits > 128) {
-                pa_log(__FILE__": number of bits out of range: %i", e.bits);
+                pa_log("number of bits out of range: %i", e.bits);
                 goto fail;
             }
             e.family = AF_INET6;
@@ -135,11 +135,11 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
                 }
 
                 if (t)
-                    pa_log_warn(__FILE__": WARNING: Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
+                    pa_log_warn("WARNING: Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
             }
             
         } else {
-            pa_log(__FILE__": failed to parse address: %s", a);
+            pa_log("failed to parse address: %s", a);
             goto fail;
         }
 

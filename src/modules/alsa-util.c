@@ -88,7 +88,7 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, PA_GCC_UNUSED int fd, pa_io
         err = snd_mixer_poll_descriptors_revents(fdl->mixer, fdl->work_fds, fdl->num_fds, &revents);
 
     if (err < 0) {
-        pa_log_error(__FILE__": Unable to get poll revent: %s",
+        pa_log_error("Unable to get poll revent: %s",
             snd_strerror(err));
         return;
     }
@@ -135,7 +135,7 @@ static void defer_cb(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event* e, void *u
         err = snd_mixer_poll_descriptors(fdl->mixer, fdl->work_fds, num_fds);
 
     if (err < 0) {
-        pa_log_error(__FILE__": Unable to get poll descriptors: %s",
+        pa_log_error("Unable to get poll descriptors: %s",
             snd_strerror(err));
         return;
     }
@@ -343,7 +343,7 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         goto finish;
 
     if (ss->rate != r) {
-        pa_log_warn(__FILE__": device doesn't support %u Hz, changed to %u Hz.", ss->rate, r);
+        pa_log_warn("device doesn't support %u Hz, changed to %u Hz.", ss->rate, r);
 
         /* If the sample rate deviates too much, we need to resample */
         if (r < ss->rate*.95 || r > ss->rate*1.05)
@@ -351,12 +351,12 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     }
 
     if (ss->channels != c) {
-        pa_log_warn(__FILE__": device doesn't support %u channels, changed to %u.", ss->channels, c);
+        pa_log_warn("device doesn't support %u channels, changed to %u.", ss->channels, c);
         ss->channels = c;
     }
 
     if (ss->format != f) {
-        pa_log_warn(__FILE__": device doesn't support sample format %s, changed to %s.", pa_sample_format_to_string(ss->format), pa_sample_format_to_string(f));
+        pa_log_warn("device doesn't support sample format %s, changed to %s.", pa_sample_format_to_string(ss->format), pa_sample_format_to_string(f));
         ss->format = f;
     }
     
@@ -387,17 +387,17 @@ int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
     assert(mixer && dev);
 
     if ((err = snd_mixer_attach(mixer, dev)) < 0) {
-        pa_log_warn(__FILE__": Unable to attach to mixer %s: %s", dev, snd_strerror(err));
+        pa_log_warn("Unable to attach to mixer %s: %s", dev, snd_strerror(err));
         return -1;
     }
 
     if ((err = snd_mixer_selem_register(mixer, NULL, NULL)) < 0) {
-        pa_log_warn(__FILE__": Unable to register mixer: %s", snd_strerror(err));
+        pa_log_warn("Unable to register mixer: %s", snd_strerror(err));
         return -1;
     }
 
     if ((err = snd_mixer_load(mixer)) < 0) {
-        pa_log_warn(__FILE__": Unable to load mixer: %s", snd_strerror(err));
+        pa_log_warn("Unable to load mixer: %s", snd_strerror(err));
         return -1;
     }
 
@@ -415,18 +415,18 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
     snd_mixer_selem_id_set_name(sid, name);
 
     if (!(elem = snd_mixer_find_selem(mixer, sid))) {
-        pa_log_warn(__FILE__": Cannot find mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
+        pa_log_warn("Cannot find mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
 
         if (fallback) {
             snd_mixer_selem_id_set_name(sid, fallback);
             
             if (!(elem = snd_mixer_find_selem(mixer, sid)))
-                pa_log_warn(__FILE__": Cannot find fallback mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
+                pa_log_warn("Cannot find fallback mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
         }
     }
 
     if (elem)
-        pa_log_info(__FILE__": Using mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
+        pa_log_info("Using mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
 
     return elem;
 }

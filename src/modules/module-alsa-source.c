@@ -126,10 +126,10 @@ static int xrun_recovery(struct userdata *u) {
     int ret;
     assert(u);
 
-    pa_log_info(__FILE__": *** ALSA-XRUN (capture) ***");
+    pa_log_info("*** ALSA-XRUN (capture) ***");
     
     if ((ret = snd_pcm_prepare(u->pcm_handle)) < 0) {
-        pa_log(__FILE__": snd_pcm_prepare() failed: %s", snd_strerror(-ret));
+        pa_log("snd_pcm_prepare() failed: %s", snd_strerror(-ret));
 
         clear_up(u);
         pa_module_unload_request(u->module);
@@ -172,7 +172,7 @@ static void do_read(struct userdata *u) {
                 continue;
             }
 
-            pa_log(__FILE__": snd_pcm_readi() failed: %s", snd_strerror(-frames));
+            pa_log("snd_pcm_readi() failed: %s", snd_strerror(-frames));
 
             clear_up(u);
             pa_module_unload_request(u->module);
@@ -238,7 +238,7 @@ static pa_usec_t source_get_latency_cb(pa_source *s) {
     assert(s && u && u->source);
 
     if (snd_pcm_delay(u->pcm_handle, &frames) < 0) {
-        pa_log(__FILE__": failed to get delay");
+        pa_log("failed to get delay");
         s->get_latency = NULL;
         return 0;
     }
@@ -272,7 +272,7 @@ static int source_get_hw_volume_cb(pa_source *s) {
     return 0;
 
 fail:
-    pa_log_error(__FILE__": Unable to read volume: %s", snd_strerror(err));
+    pa_log_error("Unable to read volume: %s", snd_strerror(err));
     s->get_hw_volume = NULL;
     s->set_hw_volume = NULL;
     return -1;
@@ -303,7 +303,7 @@ static int source_set_hw_volume_cb(pa_source *s) {
     return 0;
 
 fail:
-    pa_log_error(__FILE__": Unable to set volume: %s", snd_strerror(err));
+    pa_log_error("Unable to set volume: %s", snd_strerror(err));
     s->get_hw_volume = NULL;
     s->set_hw_volume = NULL;
     return -1;
@@ -317,7 +317,7 @@ static int source_get_hw_mute_cb(pa_source *s) {
 
     err = snd_mixer_selem_get_capture_switch(u->mixer_elem, 0, &sw);
     if (err) {
-        pa_log_error(__FILE__": Unable to get switch: %s", snd_strerror(err));
+        pa_log_error("Unable to get switch: %s", snd_strerror(err));
         s->get_hw_mute = NULL;
         s->set_hw_mute = NULL;
         return -1;
@@ -336,7 +336,7 @@ static int source_set_hw_mute_cb(pa_source *s) {
 
     err = snd_mixer_selem_set_capture_switch_all(u->mixer_elem, !s->hw_muted);
     if (err) {
-        pa_log_error(__FILE__": Unable to set switch: %s", snd_strerror(err));
+        pa_log_error("Unable to set switch: %s", snd_strerror(err));
         s->get_hw_mute = NULL;
         s->set_hw_mute = NULL;
         return -1;
@@ -363,13 +363,13 @@ int pa__init(pa_core *c, pa_module*m) {
     int namereg_fail;
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments");
+        pa_log("failed to parse module arguments");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_ALSA) < 0) {
-        pa_log(__FILE__": failed to parse sample specification");
+        pa_log("failed to parse sample specification");
         goto fail;
     }
 
@@ -380,7 +380,7 @@ int pa__init(pa_core *c, pa_module*m) {
     fragsize = pa_bytes_per_second(&ss)/128;
     
     if (pa_modargs_get_value_u32(ma, "fragments", &periods) < 0 || pa_modargs_get_value_u32(ma, "fragment_size", &fragsize) < 0) {
-        pa_log(__FILE__": failed to parse buffer metrics");
+        pa_log("failed to parse buffer metrics");
         goto fail;
     }
     period_size = fragsize/frame_size;
@@ -391,18 +391,18 @@ int pa__init(pa_core *c, pa_module*m) {
     
     snd_config_update_free_global();
     if ((err = snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK)) < 0) {
-        pa_log(__FILE__": Error opening PCM device %s: %s", dev, snd_strerror(err));
+        pa_log("Error opening PCM device %s: %s", dev, snd_strerror(err));
         goto fail;
     }
 
     if ((err = snd_pcm_info_malloc(&pcm_info)) < 0 ||
         (err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
-        pa_log(__FILE__": Error fetching PCM info: %s", snd_strerror(err));
+        pa_log("Error fetching PCM info: %s", snd_strerror(err));
         goto fail;
     }
 
     if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &periods, &period_size)) < 0) {
-        pa_log(__FILE__": Failed to set hardware parameters: %s", snd_strerror(err));
+        pa_log("Failed to set hardware parameters: %s", snd_strerror(err));
         goto fail;
     }
 
@@ -411,7 +411,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_channel_map_init_auto(&map, ss.channels, PA_CHANNEL_MAP_ALSA);
 
     if ((err = snd_mixer_open(&u->mixer_handle, 0)) < 0) {
-        pa_log(__FILE__": Error opening mixer: %s", snd_strerror(err));
+        pa_log("Error opening mixer: %s", snd_strerror(err));
         goto fail;
     }
 
@@ -429,7 +429,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     
     if (!(u->source = pa_source_new(c, __FILE__, name, namereg_fail, &ss, &map))) {
-        pa_log(__FILE__": Failed to create source object");
+        pa_log("Failed to create source object");
         goto fail;
     }
 
@@ -465,7 +465,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->pcm_fdl = pa_alsa_fdlist_new();
     assert(u->pcm_fdl);
     if (pa_alsa_fdlist_init_pcm(u->pcm_fdl, u->pcm_handle, c->mainloop, fdl_callback, u) < 0) {
-        pa_log(__FILE__": failed to initialise file descriptor monitoring");
+        pa_log("failed to initialise file descriptor monitoring");
         goto fail;
     }
 
@@ -473,7 +473,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->mixer_fdl = pa_alsa_fdlist_new();
         assert(u->mixer_fdl);
         if (pa_alsa_fdlist_init_mixer(u->mixer_fdl, u->mixer_handle, c->mainloop) < 0) {
-            pa_log(__FILE__": failed to initialise file descriptor monitoring");
+            pa_log("failed to initialise file descriptor monitoring");
             goto fail;
         }
         snd_mixer_elem_set_callback(u->mixer_elem, mixer_callback);
@@ -484,7 +484,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->frame_size = frame_size;
     u->fragment_size = period_size * frame_size;
 
-    pa_log_info(__FILE__": using %u fragments of size %lu bytes.", periods, (long unsigned) u->fragment_size);
+    pa_log_info("using %u fragments of size %lu bytes.", periods, (long unsigned) u->fragment_size);
 
     u->memchunk.memblock = NULL;
     u->memchunk.index = u->memchunk.length = 0;

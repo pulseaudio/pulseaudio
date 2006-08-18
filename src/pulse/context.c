@@ -462,7 +462,7 @@ static int context_connect_spawn(pa_context *c) {
     pa_context_ref(c);
     
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds) < 0) {
-        pa_log(__FILE__": socketpair(): %s", pa_cstrerror(errno));
+        pa_log("socketpair(): %s", pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     }
@@ -476,7 +476,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.prefork();
 
     if ((pid = fork()) < 0) {
-        pa_log(__FILE__": fork(): %s", pa_cstrerror(errno));
+        pa_log("fork(): %s", pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
 
         if (c->spawn_api.postfork)
@@ -532,7 +532,7 @@ static int context_connect_spawn(pa_context *c) {
         c->spawn_api.postfork();
         
     if (r < 0) {
-        pa_log(__FILE__": waitpid(): %s", pa_cstrerror(errno));
+        pa_log("waitpid(): %s", pa_cstrerror(errno));
         pa_context_fail(c, PA_ERR_INTERNAL);
         goto fail;
     } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
@@ -594,7 +594,7 @@ static int try_next_connection(pa_context *c) {
             goto finish;
         }
         
-        pa_log_debug(__FILE__": Trying to connect to %s...", u);  
+        pa_log_debug("Trying to connect to %s...", u);  
 
         pa_xfree(c->server);
         c->server = pa_xstrdup(u);

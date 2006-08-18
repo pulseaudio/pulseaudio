@@ -116,12 +116,12 @@ pa_sink* pa_sink_new(
     assert(s->index != PA_IDXSET_INVALID && r >= 0);
     
     pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log_info(__FILE__": created %u \"%s\" with sample spec \"%s\"", s->index, s->name, st);
+    pa_log_info("created %u \"%s\" with sample spec \"%s\"", s->index, s->name, st);
 
     n = pa_sprintf_malloc("%s.monitor", name);
     
     if (!(s->monitor_source = pa_source_new(core, driver, n, 0, spec, map)))
-        pa_log_warn(__FILE__": failed to create monitor source.");
+        pa_log_warn("failed to create monitor source.");
     else {
         char *d;
         s->monitor_source->monitor_of = s;
@@ -176,7 +176,7 @@ static void sink_free(pa_sink *s) {
     if (s->state != PA_SINK_DISCONNECTED)
         pa_sink_disconnect(s);
 
-    pa_log_info(__FILE__": freed %u \"%s\"", s->index, s->name); 
+    pa_log_info("freed %u \"%s\"", s->index, s->name); 
 
     if (s->monitor_source) {
         pa_source_unref(s->monitor_source);

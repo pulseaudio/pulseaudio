@@ -221,7 +221,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": Failed to parse module arguments");
+        pa_log("Failed to parse module arguments");
         goto finish;
     }
 
@@ -229,7 +229,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
 #if defined(USE_TCP_SOCKETS)
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port < 1 || port > 0xFFFF) {
-        pa_log(__FILE__": port= expects a numerical argument between 1 and 65535.");
+        pa_log("port= expects a numerical argument between 1 and 65535.");
         goto fail;
     }
 
@@ -268,18 +268,18 @@ int pa__init(pa_core *c, pa_module*m) {
      * /tmp/.esd/, hence we have to create the dir first */
     
     if (pa_make_secure_parent_dir(u->socket_path, c->is_system_instance ? 0755 : 0700, (uid_t)-1, (gid_t)-1) < 0) {
-        pa_log(__FILE__": Failed to create socket directory: %s\n", pa_cstrerror(errno));
+        pa_log("Failed to create socket directory: %s\n", pa_cstrerror(errno));
         goto fail;
     }
 #endif
     
     if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
-        pa_log(__FILE__": Failed to remove stale UNIX socket '%s': %s", tmp, pa_cstrerror(errno));
+        pa_log("Failed to remove stale UNIX socket '%s': %s", tmp, pa_cstrerror(errno));
         goto fail;
     }
     
     if (r)
-        pa_log(__FILE__": Removed stale UNIX socket '%s'.", tmp);
+        pa_log("Removed stale UNIX socket '%s'.", tmp);
     
     if (!(s = pa_socket_server_new_unix(c->mainloop, tmp)))
         goto fail;

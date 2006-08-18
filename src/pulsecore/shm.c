@@ -61,7 +61,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
 
 #ifdef MAP_ANONYMOUS
         if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_ANONYMOUS, fd, 0)) == MAP_FAILED) {
-            pa_log(__FILE__": mmap() failed: %s", pa_cstrerror(errno));
+            pa_log("mmap() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 #else
@@ -75,17 +75,17 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
         segment_name(fn, sizeof(fn), m->id);
     
         if ((fd = shm_open(fn, O_RDWR|O_CREAT|O_EXCL, mode & 0444)) < 0) {
-            pa_log(__FILE__": shm_open() failed: %s", pa_cstrerror(errno));
+            pa_log("shm_open() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
         
         if (ftruncate(fd, m->size = size) < 0) {
-            pa_log(__FILE__": ftruncate() failed: %s", pa_cstrerror(errno));
+            pa_log("ftruncate() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
         
         if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED) {
-            pa_log(__FILE__": mmap() failed: %s", pa_cstrerror(errno));
+            pa_log("mmap() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
@@ -121,7 +121,7 @@ void pa_shm_free(pa_shm *m) {
 #endif        
     
     if (munmap(m->ptr, m->size) < 0)
-        pa_log(__FILE__": munmap() failed: %s", pa_cstrerror(errno));
+        pa_log("munmap() failed: %s", pa_cstrerror(errno));
 
     if (m->do_unlink) {
         segment_name(fn, sizeof(fn), m->id);
@@ -188,24 +188,24 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
     segment_name(fn, sizeof(fn), m->id = id);
 
     if ((fd = shm_open(fn, O_RDONLY, 0)) < 0) {
-        pa_log(__FILE__": shm_open() failed: %s", pa_cstrerror(errno));
+        pa_log("shm_open() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (fstat(fd, &st) < 0) {
-        pa_log(__FILE__": fstat() failed: %s", pa_cstrerror(errno));
+        pa_log("fstat() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     if (st.st_size <= 0 || st.st_size > MAX_SHM_SIZE) {
-        pa_log(__FILE__": Invalid shared memory segment size");
+        pa_log("Invalid shared memory segment size");
         goto fail;
     }
 
     m->size = st.st_size;
         
     if ((m->ptr = mmap(NULL, m->size, PROT_READ, MAP_SHARED, fd, 0)) == MAP_FAILED) {
-        pa_log(__FILE__": mmap() failed: %s", pa_cstrerror(errno));
+        pa_log("mmap() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 

@@ -168,7 +168,7 @@ static int parse_log_target(const char *filename, unsigned line, const char *lva
     assert(filename && lvalue && rvalue && data);
 
     if (pa_daemon_conf_set_log_target(c, rvalue) < 0) {
-        pa_log(__FILE__": [%s:%u] Invalid log target '%s'.", filename, line, rvalue);
+        pa_log("[%s:%u] Invalid log target '%s'.", filename, line, rvalue);
         return -1;
     }
 
@@ -180,7 +180,7 @@ static int parse_log_level(const char *filename, unsigned line, const char *lval
     assert(filename && lvalue && rvalue && data);
 
     if (pa_daemon_conf_set_log_level(c, rvalue) < 0) {
-        pa_log(__FILE__": [%s:%u] Invalid log level '%s'.", filename, line, rvalue);
+        pa_log("[%s:%u] Invalid log level '%s'.", filename, line, rvalue);
         return -1;
     }
 
@@ -192,7 +192,7 @@ static int parse_resample_method(const char *filename, unsigned line, const char
     assert(filename && lvalue && rvalue && data);
 
     if (pa_daemon_conf_set_resample_method(c, rvalue) < 0) {
-        pa_log(__FILE__": [%s:%u] Inavalid resample method '%s'.", filename, line, rvalue);
+        pa_log("[%s:%u] Inavalid resample method '%s'.", filename, line, rvalue);
         return -1;
     }
 
@@ -214,14 +214,14 @@ static int parse_rlimit(const char *filename, unsigned line, const char *lvalue,
     } else {
         int32_t k;
         if (pa_atoi(rvalue, &k) < 0) {
-            pa_log(__FILE__": [%s:%u] Inavalid rlimit '%s'.", filename, line, rvalue);
+            pa_log("[%s:%u] Inavalid rlimit '%s'.", filename, line, rvalue);
             return -1;
         }
         r->is_set = k >= 0;
         r->value = k >= 0 ? (rlim_t) k : 0;
     }
 #else
-    pa_log_warn(__FILE__": [%s:%u] rlimit not supported on this platform.", filename, line);
+    pa_log_warn("[%s:%u] rlimit not supported on this platform.", filename, line);
 #endif
 
     return 0;
@@ -308,7 +308,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file, "r");
 
     if (!f && errno != ENOENT) {
-        pa_log(__FILE__": WARNING: failed to open configuration file '%s': %s", c->config_file, pa_cstrerror(errno));
+        pa_log("WARNING: failed to open configuration file '%s': %s", c->config_file, pa_cstrerror(errno));
         goto finish;
     }
 

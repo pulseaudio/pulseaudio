@@ -55,12 +55,12 @@ int pa__init(pa_core *c, pa_module*m) {
     if (!(ma = pa_modargs_new(m->argument, valid_modargs)) ||
         pa_modargs_get_value_s32(ma, "fd", &fd) < 0 ||
         fd < 0) {
-        pa_log(__FILE__": Failed to parse module arguments");
+        pa_log("Failed to parse module arguments");
         goto finish;
     }
 
     if (pa_loop_write(fd, &x, sizeof(x), NULL) != sizeof(x))
-        pa_log(__FILE__": WARNING: write(%u, 1, 1) failed: %s", fd, pa_cstrerror(errno));
+        pa_log("WARNING: write(%u, 1, 1) failed: %s", fd, pa_cstrerror(errno));
 
     close(fd);
 

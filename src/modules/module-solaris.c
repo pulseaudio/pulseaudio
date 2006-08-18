@@ -144,7 +144,7 @@ static void do_write(struct userdata *u) {
         len = 0;
 
     if (len == u->buffer_size)
-        pa_log_debug(__FILE__": Solaris buffer underflow!");
+        pa_log_debug("Solaris buffer underflow!");
 
     len -= len % u->frame_size;
 
@@ -168,7 +168,7 @@ static void do_write(struct userdata *u) {
     }
 
     if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, len)) < 0) {
-        pa_log(__FILE__": write() failed: %s", pa_cstrerror(errno));
+        pa_log("write() failed: %s", pa_cstrerror(errno));
         return;
     }
 
@@ -206,7 +206,7 @@ static void do_read(struct userdata *u) {
     if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
         pa_memblock_unref(memchunk.memblock);
         if (errno != EAGAIN)
-            pa_log(__FILE__": read() failed: %s", pa_cstrerror(errno));
+            pa_log("read() failed: %s", pa_cstrerror(errno));
         return;
     }
     
@@ -332,9 +332,9 @@ static int sink_set_hw_volume_cb(pa_sink *s) {
 
     if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
         if (errno == EINVAL)
-            pa_log(__FILE__": AUDIO_SETINFO: Unsupported volume.");
+            pa_log("AUDIO_SETINFO: Unsupported volume.");
         else
-            pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -363,7 +363,7 @@ static int sink_set_hw_mute_cb(pa_sink *s) {
     info.output_muted = !!s->hw_muted;
 
     if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
-        pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
+        pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -395,9 +395,9 @@ static int source_set_hw_volume_cb(pa_source *s) {
 
     if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0) {
         if (errno == EINVAL)
-            pa_log(__FILE__": AUDIO_SETINFO: Unsupported volume.");
+            pa_log("AUDIO_SETINFO: Unsupported volume.");
         else
-            pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -461,9 +461,9 @@ static int pa_solaris_auto_format(int fd, int mode, pa_sample_spec *ss) {
 
     if (ioctl(fd, AUDIO_SETINFO, &info) < 0) {
         if (errno == EINVAL)
-            pa_log(__FILE__": AUDIO_SETINFO: Unsupported sample format.");
+            pa_log("AUDIO_SETINFO: Unsupported sample format.");
         else
-            pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -479,9 +479,9 @@ static int pa_solaris_set_buffer(int fd, int buffer_size) {
 
     if (ioctl(fd, AUDIO_SETINFO, &info) < 0) {
         if (errno == EINVAL)
-            pa_log(__FILE__": AUDIO_SETINFO: Unsupported buffer size.");
+            pa_log("AUDIO_SETINFO: Unsupported buffer size.");
         else
-            pa_log(__FILE__": AUDIO_SETINFO: %s", pa_cstrerror(errno));
+            pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -503,17 +503,17 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log(__FILE__": failed to parse module arguments.");
+        pa_log("failed to parse module arguments.");
         goto fail;
     }
     
     if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
-        pa_log(__FILE__": record= and playback= expect numeric argument.");
+        pa_log("record= and playback= expect numeric argument.");
         goto fail;
     }
 
     if (!playback && !record) {
-        pa_log(__FILE__": neither playback nor record enabled for device.");
+        pa_log("neither playback nor record enabled for device.");
         goto fail;
     }
 
@@ -521,20 +521,20 @@ int pa__init(pa_core *c, pa_module*m) {
 
     buffer_size = 16384;    
     if (pa_modargs_get_value_s32(ma, "buffer_size", &buffer_size) < 0) {
-        pa_log(__FILE__": failed to parse buffer size argument");
+        pa_log("failed to parse buffer size argument");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
-        pa_log(__FILE__": failed to parse sample specification");
+        pa_log("failed to parse sample specification");
         goto fail;
     }
     
     if ((fd = open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), mode | O_NONBLOCK)) < 0)
         goto fail;
 
-    pa_log_info(__FILE__": device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
+    pa_log_info("device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
     if (pa_solaris_auto_format(fd, mode, &ss) < 0)
         goto fail;

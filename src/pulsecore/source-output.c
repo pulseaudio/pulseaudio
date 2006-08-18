@@ -108,7 +108,7 @@ pa_source_output* pa_source_output_new(
     CHECK_VALIDITY_RETURN_NULL(data->resample_method < PA_RESAMPLER_MAX);
     
     if (pa_idxset_size(data->source->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
-        pa_log(__FILE__": Failed to create source output: too many outputs per source.");
+        pa_log("Failed to create source output: too many outputs per source.");
         return NULL;
     }
 
@@ -119,7 +119,7 @@ pa_source_output* pa_source_output_new(
                       &data->source->sample_spec, &data->source->channel_map,
                       &data->sample_spec, &data->channel_map,
                       data->resample_method))) {
-            pa_log_warn(__FILE__": Unsupported resampling operation.");
+            pa_log_warn("Unsupported resampling operation.");
             return NULL;
         }
     
@@ -148,7 +148,7 @@ pa_source_output* pa_source_output_new(
     r = pa_idxset_put(o->source->outputs, o, NULL);
     assert(r == 0);
 
-    pa_log_info(__FILE__": created %u \"%s\" on %s with sample spec %s",
+    pa_log_info("created %u \"%s\" on %s with sample spec %s",
                 o->index,
                 o->name,
                 o->source->name,
@@ -187,7 +187,7 @@ static void source_output_free(pa_source_output* o) {
     if (o->state != PA_SOURCE_OUTPUT_DISCONNECTED)
         pa_source_output_disconnect(o);
 
-    pa_log_info(__FILE__": freed %u \"%s\"", o->index, o->name); 
+    pa_log_info("freed %u \"%s\"", o->index, o->name); 
     
     if (o->resampler)
         pa_resampler_free(o->resampler);
@@ -313,7 +313,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
         return 0;
 
     if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
-        pa_log_warn(__FILE__": Failed to move source output: too many outputs per source.");
+        pa_log_warn("Failed to move source output: too many outputs per source.");
         return -1;
     }
 
@@ -334,7 +334,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
                       &dest->sample_spec, &dest->channel_map,
                       &o->sample_spec, &o->channel_map,
                       o->resample_method))) {
-            pa_log_warn(__FILE__": Unsupported resampling operation.");
+            pa_log_warn("Unsupported resampling operation.");
             return -1;
         }
     }

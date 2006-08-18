@@ -90,12 +90,12 @@ static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags
         if (errno == EAGAIN)
             return;
 
-        pa_log(__FILE__": read(): %s", pa_cstrerror(errno));
+        pa_log("read(): %s", pa_cstrerror(errno));
         return;
     }
     
     if (r != sizeof(sig)) {
-        pa_log(__FILE__": short read()");
+        pa_log("short read()");
         return;
     }
 
@@ -107,7 +107,7 @@ int pa_signal_init(pa_mainloop_api *a) {
     assert(!api && a && signal_pipe[0] == -1 && signal_pipe[1] == -1 && !io_event);
 
     if (pipe(signal_pipe) < 0) {
-        pa_log(__FILE__": pipe(): %s", pa_cstrerror(errno));
+        pa_log("pipe(): %s", pa_cstrerror(errno));
         return -1;
     }
 

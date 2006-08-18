@@ -421,7 +421,7 @@ pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m) {
 #else /* defined(OS_IS_WIN32) || defined(HAVE_PTHREAD) */
 
 pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
-	pa_log_error(__FILE__": Threaded main loop not supported on this platform");
+	pa_log_error("Threaded main loop not supported on this platform");
 	return NULL;
 }
 

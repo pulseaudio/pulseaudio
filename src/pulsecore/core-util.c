@@ -128,10 +128,10 @@ void pa_make_nonblock_fd(int fd) {
     u_long arg = 1;
     if (ioctlsocket(fd, FIONBIO, &arg) < 0) {
         if (WSAGetLastError() == WSAENOTSOCK)
-            pa_log_warn(__FILE__": WARNING: Only sockets can be made non-blocking!");
+            pa_log_warn("WARNING: Only sockets can be made non-blocking!");
     }
 #else
-    pa_log_warn(__FILE__": WARNING: Non-blocking I/O not supported.!");
+    pa_log_warn("WARNING: Non-blocking I/O not supported.!");
 #endif
 }
 
@@ -359,7 +359,7 @@ void pa_check_signal_is_blocked(int sig) {
     if (pthread_sigmask(SIG_SETMASK, NULL, &set) < 0) {
 #endif
         if (sigprocmask(SIG_SETMASK, NULL, &set) < 0) {
-            pa_log(__FILE__": sigprocmask(): %s", pa_cstrerror(errno));
+            pa_log("sigprocmask(): %s", pa_cstrerror(errno));
             return;
         }
 #ifdef HAVE_PTHREAD
@@ -372,16 +372,16 @@ void pa_check_signal_is_blocked(int sig) {
     /* Check whether the signal is trapped */
     
     if (sigaction(sig, NULL, &sa) < 0) {
-        pa_log(__FILE__": sigaction(): %s", pa_cstrerror(errno));
+        pa_log("sigaction(): %s", pa_cstrerror(errno));
         return;
     }
         
     if (sa.sa_handler != SIG_DFL)
         return;
     
-    pa_log(__FILE__": WARNING: %s is not trapped. This might cause malfunction!", pa_strsignal(sig));
+    pa_log("WARNING: %s is not trapped. This might cause malfunction!", pa_strsignal(sig));
 #else /* HAVE_SIGACTION */
-    pa_log(__FILE__": WARNING: %s might not be trapped. This might cause malfunction!", pa_strsignal(sig));
+    pa_log("WARNING: %s might not be trapped. This might cause malfunction!", pa_strsignal(sig));
 #endif
 }
 
@@ -460,9 +460,9 @@ void pa_raise_priority(void) {
 
 #ifdef HAVE_SYS_RESOURCE_H
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
-        pa_log_warn(__FILE__": setpriority(): %s", pa_cstrerror(errno));
+        pa_log_warn("setpriority(): %s", pa_cstrerror(errno));
     else 
-        pa_log_info(__FILE__": Successfully gained nice level %i.", NICE_LEVEL); 
+        pa_log_info("Successfully gained nice level %i.", NICE_LEVEL); 
 #endif
     
 #ifdef _POSIX_PRIORITY_SCHEDULING
@@ -470,25 +470,25 @@ void pa_raise_priority(void) {
         struct sched_param sp;
 
         if (sched_getparam(0, &sp) < 0) {
-            pa_log(__FILE__": sched_getparam(): %s", pa_cstrerror(errno));
+            pa_log("sched_getparam(): %s", pa_cstrerror(errno));
             return;
         }
         
         sp.sched_priority = 1;
         if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0) {
-            pa_log_warn(__FILE__": sched_setscheduler(): %s", pa_cstrerror(errno));
+            pa_log_warn("sched_setscheduler(): %s", pa_cstrerror(errno));
             return;
         }
 
-        pa_log_info(__FILE__": Successfully enabled SCHED_FIFO scheduling."); 
+        pa_log_info("Successfully enabled SCHED_FIFO scheduling."); 
     }
 #endif
 
 #ifdef OS_IS_WIN32
     if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
-        pa_log_warn(__FILE__": SetPriorityClass() failed: 0x%08X", GetLastError());
+        pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
     else
-        pa_log_info(__FILE__": Successfully gained high priority class."); 
+        pa_log_info("Successfully gained high priority class."); 
 #endif
 }
 
@@ -627,7 +627,7 @@ static int is_group(gid_t gid, const char *name) {
     data = pa_xmalloc(n);
 
     if (getgrgid_r(gid, &group, data, n, &result) < 0 || !result) {
-        pa_log(__FILE__": getgrgid_r(%u): %s", (unsigned)gid, pa_cstrerror(errno));
+        pa_log("getgrgid_r(%u): %s", (unsigned)gid, pa_cstrerror(errno));
         goto finish;
     }
 
@@ -639,7 +639,7 @@ finish:
     /* XXX Not thread-safe, but needed on OSes (e.g. FreeBSD 4.X) that do not
      * support getgrgid_r. */
     if ((result = getgrgid(gid)) == NULL) {
-        pa_log(__FILE__": getgrgid(%u): %s", gid, pa_cstrerror(errno));
+        pa_log("getgrgid(%u): %s", gid, pa_cstrerror(errno));
         goto finish;
     }
 
@@ -662,7 +662,7 @@ int pa_own_uid_in_group(const char *name, gid_t *gid) {
     gids = pa_xmalloc(sizeof(GETGROUPS_T)*n);
     
     if ((n = getgroups(n, gids)) < 0) {
-        pa_log(__FILE__": getgroups(): %s", pa_cstrerror(errno));
+        pa_log("getgroups(): %s", pa_cstrerror(errno));
         goto finish;
     }
 
@@ -803,7 +803,7 @@ int pa_lock_fd(int fd, int b) {
             return 0;
     }
         
-    pa_log(__FILE__": %slock: %s", !b? "un" : "",
+    pa_log("%slock: %s", !b? "un" : "",
         pa_cstrerror(errno));
 #endif
 
@@ -815,7 +815,7 @@ int pa_lock_fd(int fd, int b) {
     if (!b && UnlockFile(h, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF))
         return 0;
 
-    pa_log(__FILE__": %slock failed: 0x%08X", !b ? "un" : "", GetLastError());
+    pa_log("%slock failed: 0x%08X", !b ? "un" : "", GetLastError());
 #endif
 
     return -1;
@@ -838,18 +838,18 @@ int pa_lock_lockfile(const char *fn) {
         struct stat st;
         
         if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
-            pa_log(__FILE__": failed to create lock file '%s': %s", fn,
+            pa_log("failed to create lock file '%s': %s", fn,
                 pa_cstrerror(errno));
             goto fail;
         }
         
         if (pa_lock_fd(fd, 1) < 0) {
-            pa_log(__FILE__": failed to lock file '%s'.", fn);
+            pa_log("failed to lock file '%s'.", fn);
             goto fail;
         }
         
         if (fstat(fd, &st) < 0) {
-            pa_log(__FILE__": failed to fstat() file '%s'.", fn);
+            pa_log("failed to fstat() file '%s'.", fn);
             goto fail;
         }
 
@@ -858,12 +858,12 @@ int pa_lock_lockfile(const char *fn) {
             break;
             
         if (pa_lock_fd(fd, 0) < 0) {
-            pa_log(__FILE__": failed to unlock file '%s'.", fn);
+            pa_log("failed to unlock file '%s'.", fn);
             goto fail;
         }
         
         if (close(fd) < 0) {
-            pa_log(__FILE__": failed to close file '%s'.", fn);
+            pa_log("failed to close file '%s'.", fn);
             goto fail;
         }
 
@@ -886,18 +886,18 @@ int pa_unlock_lockfile(const char *fn, int fd) {
     assert(fn && fd >= 0);
 
     if (unlink(fn) < 0) {
-        pa_log_warn(__FILE__": WARNING: unable to remove lock file '%s': %s",
+        pa_log_warn("WARNING: unable to remove lock file '%s': %s",
             fn, pa_cstrerror(errno));
         r = -1;
     }
     
     if (pa_lock_fd(fd, 0) < 0) {
-        pa_log_warn(__FILE__": WARNING: failed to unlock file '%s'.", fn);
+        pa_log_warn("WARNING: failed to unlock file '%s'.", fn);
         r = -1;
     }
 
     if (close(fd) < 0) {
-        pa_log_warn(__FILE__": WARNING: failed to close lock file '%s': %s",
+        pa_log_warn("WARNING: failed to close lock file '%s': %s",
             fn, pa_cstrerror(errno));
         r = -1;
     }

@@ -145,7 +145,7 @@ static pa_x11_wrapper* x11_wrapper_new(pa_core *c, const char *name, const char 
     int r;
 
     if (!(d = XOpenDisplay(name))) {
-        pa_log(__FILE__": XOpenDisplay() failed");
+        pa_log("XOpenDisplay() failed");
         return NULL;
     }
 
