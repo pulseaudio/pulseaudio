@@ -71,7 +71,7 @@ struct pa_context {
 
     pa_mempool *mempool;
 
-    int local;
+    int is_local;
     int do_autospawn;
     int autospawn_lock_fd;
     pa_spawn_api spawn_api;

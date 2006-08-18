@@ -129,7 +129,7 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     c->subscribe_userdata = NULL;
 
     c->mempool = pa_mempool_new(1);
-    c->local = -1;
+    c->is_local = -1;
     c->server_list = NULL;
     c->server = NULL;
     c->autospawn_lock_fd = -1;
@@ -376,6 +376,21 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
                 goto finish;
             }
 
+            /* Enable shared memory support if possible */
+            if (c->version >= 10 &&
+                pa_mempool_is_shared(c->mempool) &&
+                c->is_local) {
+
+                /* Only enable SHM if both sides are owned by the same
+                 * user. This is a security measure because otherwise
+                 * data private to the user might leak. */
+                
+                const pa_creds *creds;
+                if ((creds = pa_pdispatch_creds(pd)))
+                    if (getuid() == creds->uid)
+                        pa_pstream_use_shm(c->pstream, 1);
+            }
+
             reply = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
             pa_tagstruct_puts(reply, c->name);
             pa_pstream_send_tagstruct(c->pstream, reply);
@@ -409,8 +424,6 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     assert(!c->pstream);
     c->pstream = pa_pstream_new(c->mainloop, io, c->mempool);
 
-    pa_pstream_use_shm(c->pstream, 1);
-    
     pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
     pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
@@ -431,13 +444,16 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
 {
     pa_creds ucred;
 
+    if (pa_iochannel_creds_supported(io))
+        pa_iochannel_creds_enable(io);
+
     ucred.uid = getuid();
     ucred.gid = getgid();
     
     pa_pstream_send_tagstruct_with_creds(c->pstream, t, &ucred);
 }
 #else
-    pa_pstream_send_tagstruct_with_creds(c->pstream, t, NULL);
+    pa_pstream_send_tagstruct(c->pstream, t, NULL);
 #endif
     
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c, NULL);
@@ -542,7 +558,7 @@ static int context_connect_spawn(pa_context *c) {
 
     close(fds[1]);
 
-    c->local = 1;
+    c->is_local = 1;
     
     io = pa_iochannel_new(c->mainloop, fds[0], fds[0]);
 
@@ -602,7 +618,7 @@ static int try_next_connection(pa_context *c) {
         if (!(c->client = pa_socket_client_new_string(c->mainloop, u, PA_NATIVE_DEFAULT_PORT)))
             continue;
         
-        c->local = pa_socket_client_is_local(c->client);
+        c->is_local = pa_socket_client_is_local(c->client);
         pa_socket_client_set_callback(c->client, on_connection, c);
         break;
     }
@@ -938,7 +954,7 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
 int pa_context_is_local(pa_context *c) {
     assert(c);
     
-    return c->local;
+    return c->is_local;
 }
 
 pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_success_cb_t cb, void *userdata) {
