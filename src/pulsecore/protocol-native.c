@@ -961,6 +961,15 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
                         (unsigned long) creds->uid,
                         (unsigned long) creds->gid,
                         success);
+
+            if (c->version >= 10 &&
+                pa_mempool_is_shared(c->protocol->core->mempool) &&
+                creds->uid == getuid()) {
+
+                pa_pstream_use_shm(c->pstream, 1);
+                pa_log_info("Enabled SHM for new connection");
+            }
+                
         }
 #endif
 
@@ -982,7 +991,21 @@ static void command_auth(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
 
     reply = reply_new(tag);
     pa_tagstruct_putu32(reply, PA_PROTOCOL_VERSION);
+
+#ifdef HAVE_CREDS
+{
+    /* SHM support is only enabled after both sides made sure they are the same user. */
+    
+    pa_creds ucred;
+
+    ucred.uid = getuid();
+    ucred.gid = getgid();
+    
+    pa_pstream_send_tagstruct_with_creds(c->pstream, reply, &ucred);
+}
+#else
     pa_pstream_send_tagstruct(c->pstream, reply);
+#endif
 }
 
 static void command_set_client_name(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -2352,8 +2375,6 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     
     c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->mempool);
     assert(c->pstream);
-
-    pa_pstream_use_shm(c->pstream, 1);
 
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
     pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
