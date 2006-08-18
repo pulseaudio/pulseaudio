@@ -34,7 +34,6 @@ Auth/Crypto:
 Features:
 - alsa mmap driver
 - alsa driver with hw mixing
-- allow passing data with shared memory between local clients and the server
 - "window manager for sound"
 - chroot()
 - use scatter/gather io for sockets
