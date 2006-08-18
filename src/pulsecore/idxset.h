@@ -41,10 +41,18 @@ int pa_idxset_trivial_compare_func(const void *a, const void *b);
 unsigned pa_idxset_string_hash_func(const void *p);
 int pa_idxset_string_compare_func(const void *a, const void *b);
 
+#define PA_PTR_TO_UINT(p) ((unsigned int) (unsigned long) (p))
+#define PA_UINT_TO_PTR(u) ((void*) (unsigned long) (u))
+#define PA_PTR_TO_UINT32(p) ((uint32_t) PA_PTR_TO_UINT(p))
+#define PA_UINT32_TO_PTR(u) PA_UINT_TO_PTR(u)
+
+typedef unsigned (*pa_hash_func_t)(const void *p);
+typedef int (*pa_compare_func_t)(const void *a, const void *b);
+
 typedef struct pa_idxset pa_idxset;
 
 /* Instantiate a new idxset with the specified hash and comparison functions */
-pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b));
+pa_idxset* pa_idxset_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func);
 
 /* Free the idxset. When the idxset is not empty the specified function is called for every entry contained */
 void pa_idxset_free(pa_idxset *s, void (*free_func) (void *p, void *userdata), void *userdata);

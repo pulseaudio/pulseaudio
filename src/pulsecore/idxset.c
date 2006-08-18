@@ -42,8 +42,8 @@ typedef struct idxset_entry {
 } idxset_entry;
 
 struct pa_idxset {
-    unsigned (*hash_func) (const void *p);
-    int (*compare_func)(const void *a, const void *b);
+    pa_hash_func_t hash_func;
+    pa_compare_func_t compare_func;
     
     unsigned hash_table_size, n_entries;
     idxset_entry **hash_table, **array, *iterate_list_head, *iterate_list_tail;
@@ -65,21 +65,21 @@ int pa_idxset_string_compare_func(const void *a, const void *b) {
 }
 
 unsigned pa_idxset_trivial_hash_func(const void *p) {
-    return (unsigned) (long) p;
+    return PA_PTR_TO_UINT(p);
 }
 
 int pa_idxset_trivial_compare_func(const void *a, const void *b) {
     return a != b;
 }
 
-pa_idxset* pa_idxset_new(unsigned (*hash_func) (const void *p), int (*compare_func) (const void*a, const void*b)) {
+pa_idxset* pa_idxset_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func) {
     pa_idxset *s;
 
     s = pa_xnew(pa_idxset, 1);
     s->hash_func = hash_func ? hash_func : pa_idxset_trivial_hash_func;
     s->compare_func = compare_func ? compare_func : pa_idxset_trivial_compare_func;
     s->hash_table_size = 127;
-    s->hash_table = pa_xmalloc0(sizeof(idxset_entry*)*s->hash_table_size);
+    s->hash_table = pa_xnew0(idxset_entry*, s->hash_table_size);
     s->array = NULL;
     s->array_size = 0;
     s->index = 0;
