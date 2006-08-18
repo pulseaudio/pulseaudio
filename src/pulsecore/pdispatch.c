@@ -137,7 +137,7 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_
     pd->mainloop = mainloop;
     pd->callback_table = table;
     pd->n_commands = entries;
-    PA_LLIST_HEAD_INIT(pa_reply_info, pd->replies);
+    PA_LLIST_HEAD_INIT(struct reply_info, pd->replies);
     pd->drain_callback = NULL;
     pd->drain_userdata = NULL;
     pd->creds = NULL;
