@@ -38,9 +38,14 @@
 /* A simple program for testing pa_mcalign */
 
 int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
-    pa_mcalign *a = pa_mcalign_new(11, NULL);
+    pa_mempool *p;
+    pa_mcalign *a;
     pa_memchunk c;
 
+    p = pa_mempool_new(0);
+
+    a = pa_mcalign_new(11);
+    
     pa_memchunk_reset(&c);
 
     srand(time(NULL));
@@ -50,7 +55,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
         size_t l;
 
         if (!c.memblock) {
-            c.memblock = pa_memblock_new(2048, NULL);
+            c.memblock = pa_memblock_new(p, 2048);
             c.index = c.length = 0;
         }
 
@@ -93,6 +98,8 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
 
     if (c.memblock)
         pa_memblock_unref(c.memblock);
+
+    pa_mempool_free(p);
 
     return 0;
 }

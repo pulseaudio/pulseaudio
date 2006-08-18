@@ -32,34 +32,38 @@
 
 int main(int argc, char *argv[]) {
     int ret;
+
+    pa_mempool *p;
     pa_memblockq *bq;
     pa_memchunk chunk1, chunk2, chunk3, chunk4;
     pa_memblock *silence;
 
     pa_log_set_maximal_level(PA_LOG_DEBUG);
+
+    p = pa_mempool_new(0);
     
-    silence = pa_memblock_new_fixed((char*)  "__", 2, 1, NULL);
+    silence = pa_memblock_new_fixed(p, (char*)  "__", 2, 1);
     assert(silence);
 
-    bq = pa_memblockq_new(0, 40, 10, 2, 4, 4, silence, NULL);
+    bq = pa_memblockq_new(0, 40, 10, 2, 4, 4, silence);
     assert(bq);
 
-    chunk1.memblock = pa_memblock_new_fixed((char*) "AA", 2, 1, NULL);
+    chunk1.memblock = pa_memblock_new_fixed(p, (char*) "AA", 2, 1);
     chunk1.index = 0;
     chunk1.length = 2;
     assert(chunk1.memblock);
     
-    chunk2.memblock = pa_memblock_new_fixed((char*) "TTBB", 4, 1, NULL);
+    chunk2.memblock = pa_memblock_new_fixed(p, (char*) "TTBB", 4, 1);
     chunk2.index = 2;
     chunk2.length = 2;
     assert(chunk2.memblock);
 
-    chunk3.memblock = pa_memblock_new_fixed((char*) "ZZZZ", 4, 1, NULL);
+    chunk3.memblock = pa_memblock_new_fixed(p, (char*) "ZZZZ", 4, 1);
     chunk3.index = 0;
     chunk3.length = 4;
     assert(chunk3.memblock);
 
-    chunk4.memblock = pa_memblock_new_fixed((char*) "KKKKKKKK", 8, 1, NULL);
+    chunk4.memblock = pa_memblock_new_fixed(p, (char*) "KKKKKKKK", 8, 1);
     chunk4.index = 0;
     chunk4.length = 8;
     assert(chunk4.memblock);
