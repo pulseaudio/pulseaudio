@@ -23,6 +23,7 @@
 ***/
 
 #include <stdarg.h>
+#include <stdlib.h>
 #include <pulsecore/gccmacro.h>
 
 /* A simple logging subsystem */
@@ -53,16 +54,50 @@ void pa_log_set_target(pa_log_target_t t, void (*func)(pa_log_level_t t, const c
 /* Minimal log level */
 void pa_log_set_maximal_level(pa_log_level_t l);
 
-/* Do a log line */
-void pa_log_debug(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
-void pa_log_info(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
-void pa_log_notice(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
-void pa_log_warn(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
-void pa_log_error(const char *format, ...)  PA_GCC_PRINTF_ATTR(1,2);
+void pa_log_level_meta(
+        pa_log_level_t level,
+        const char*file,
+        int line,
+        const char *func,
+        const char *format, ...) PA_GCC_PRINTF_ATTR(5,6);
+void pa_log_levelv_meta(
+        pa_log_level_t level,
+        const char*file,
+        int line,
+        const char *func,
+        const char *format,
+        va_list ap);
 
 void pa_log_level(pa_log_level_t level, const char *format, ...) PA_GCC_PRINTF_ATTR(2,3);
-
 void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap);
+
+#if __STDC_VERSION__ >= 199901L
+
+/* ISO varargs available */
+
+#define pa_log_debug(...)  pa_log_level_meta(PA_LOG_DEBUG,  __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define pa_log_info(...)   pa_log_level_meta(PA_LOG_INFO,   __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define pa_log_notice(...) pa_log_level_meta(PA_LOG_NOTICE, __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define pa_log_warn(...)   pa_log_level_meta(PA_LOG_WARN,   __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define pa_log_error(...)  pa_log_level_meta(PA_LOG_ERROR,  __FILE__, __LINE__, __func__, __VA_ARGS__)
+
+#else
+
+#define LOG_FUNC(suffix, level) \
+PA_GCC_UNUSED static void pa_log_##suffix(const char *format, ...) { \
+    va_list ap; \
+    va_start(ap, format); \
+    pa_log_levelv_meta(level, NULL, 0, NULL, format, ap); \
+    va_end(ap); \
+}
+
+LOG_FUNC(debug, PA_LOG_DEBUG)
+LOG_FUNC(info, PA_LOG_INFO)
+LOG_FUNC(notice, PA_LOG_NOTICE)
+LOG_FUNC(warn, PA_LOG_WARN)
+LOG_FUNC(error, PA_LOG_ERROR)
+
+#endif
 
 #define pa_log pa_log_error
 

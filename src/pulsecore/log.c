@@ -35,12 +35,14 @@
 
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
+#include <pulse/util.h>
 
 #include <pulsecore/core-util.h>
 
 #include "log.h"
 
 #define ENV_LOGLEVEL "PULSE_LOG"
+#define ENV_LOGMETA "PULSE_LOG_META"
 
 static char *log_ident = NULL, *log_ident_local = NULL;
 static pa_log_target_t log_target = PA_LOG_STDERR;
@@ -80,11 +82,19 @@ void pa_log_set_target(pa_log_target_t t, void (*func)(pa_log_level_t l, const c
     user_log_func = func;
 }
 
-void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
+void pa_log_levelv_meta(
+        pa_log_level_t level,
+        const char*file,
+        int line,
+        const char *func,
+        const char *format,
+        va_list ap) {
+    
     const char *e;
-    char *text, *t, *n;
+    char *text, *t, *n, *location = pa_xstrdup("");
     
     assert(level < PA_LOG_LEVEL_MAX);
+    assert(format);
 
     if ((e = getenv(ENV_LOGLEVEL)))
         maximal_level = atoi(e);
@@ -93,6 +103,11 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
         return;
 
     text = pa_vsprintf_malloc(format, ap);
+
+    if (getenv(ENV_LOGMETA) && file && line > 0 && func)
+        location = pa_sprintf_malloc("[%s:%i %s()] ", file, line, func);
+    else if (file)
+        location = pa_sprintf_malloc("%s: ", pa_path_get_filename(file));
 
     if (!pa_utf8_valid(text))
         pa_log_level(level, __FILE__": invalid UTF-8 string following below:");
@@ -126,9 +141,9 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
 
                 local_t = pa_utf8_to_locale(t);
                 if (!local_t)
-                    fprintf(stderr, "%s%s%s\n", prefix, t, suffix);
+                    fprintf(stderr, "%s%s%s%s\n", location, prefix, t, suffix);
                 else {
-                    fprintf(stderr, "%s%s%s\n", prefix, local_t, suffix);
+                    fprintf(stderr, "%s%s%s%s\n", location, prefix, local_t, suffix);
                     pa_xfree(local_t);
                 }
 
@@ -143,9 +158,9 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
 
                 local_t = pa_utf8_to_locale(t);
                 if (!local_t)
-                    syslog(level_to_syslog[level], "%s", t);
+                    syslog(level_to_syslog[level], "%s%s", location, t);
                 else {
-                    syslog(level_to_syslog[level], "%s", local_t);
+                    syslog(level_to_syslog[level], "%s%s", location, local_t);
                     pa_xfree(local_t);
                 }
 
@@ -154,9 +169,15 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
             }
 #endif
                 
-            case PA_LOG_USER: 
-                user_log_func(level, t);
+            case PA_LOG_USER: {
+                char *x;
+
+                x = pa_sprintf_malloc("%s%s", location, t);
+                user_log_func(level, x);
+                pa_xfree(x);
+                
                 break;
+            }
                 
             case PA_LOG_NULL:
             default:
@@ -165,47 +186,29 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
     }
 
     pa_xfree(text);
+    pa_xfree(location);
+}
 
+void pa_log_level_meta(
+        pa_log_level_t level,
+        const char*file,
+        int line,
+        const char *func,
+        const char *format, ...) {
+    
+    va_list ap;
+    va_start(ap, format);
+    pa_log_levelv_meta(level, file, line, func, format, ap);
+    va_end(ap);
+}
+
+void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
+    pa_log_levelv_meta(level, NULL, 0, NULL, format, ap);
 }
 
 void pa_log_level(pa_log_level_t level, const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    pa_log_levelv(level, format, ap);
-    va_end(ap);
-}
-
-void pa_log_debug(const char *format, ...) {
-    va_list ap;
-    va_start(ap, format);
-    pa_log_levelv(PA_LOG_DEBUG, format, ap);
-    va_end(ap);
-}
-
-void pa_log_info(const char *format, ...) {
-    va_list ap;
-    va_start(ap, format);
-    pa_log_levelv(PA_LOG_INFO, format, ap);
-    va_end(ap);
-}
-
-void pa_log_notice(const char *format, ...) {
-    va_list ap;
-    va_start(ap, format);
-    pa_log_levelv(PA_LOG_INFO, format, ap);
-    va_end(ap);
-}
-
-void pa_log_warn(const char *format, ...) {
-    va_list ap;
-    va_start(ap, format);
-    pa_log_levelv(PA_LOG_WARN, format, ap);
-    va_end(ap);
-}
-
-void pa_log_error(const char *format, ...) {
-    va_list ap;
-    va_start(ap, format);
-    pa_log_levelv(PA_LOG_ERROR, format, ap);
+    pa_log_levelv_meta(level, NULL, 0, NULL, format, ap);
     va_end(ap);
 }
