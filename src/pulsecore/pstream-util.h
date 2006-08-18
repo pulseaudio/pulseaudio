@@ -30,7 +30,7 @@
 /* The tagstruct is freed!*/
 void pa_pstream_send_tagstruct_with_creds(pa_pstream *p, pa_tagstruct *t, const pa_creds *creds);
 
-#define pa_pstream_send_tagstruct(p, t) pa_pstream_send_tagstruct_with_creds((p), (t), 0)
+#define pa_pstream_send_tagstruct(p, t) pa_pstream_send_tagstruct_with_creds((p), (t), NULL)
 
 void pa_pstream_send_error(pa_pstream *p, uint32_t tag, uint32_t error);
 void pa_pstream_send_simple_ack(pa_pstream *p, uint32_t tag);
