@@ -206,6 +206,8 @@ AC_SEARCH_LIBS([dlopen], [dl])
 # BSD
 AC_SEARCH_LIBS([connect], [socket])
 
+AC_SEARCH_LIBS([shm_open], [rt])
+
 # Non-standard
 
 # This magic is needed so we do not needlessly add static libs to the win32
