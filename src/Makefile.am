@@ -197,7 +197,8 @@ noinst_PROGRAMS = \
 		utf8-test \
 		get-binary-name-test \
 		ipacl-test \
-		hook-list-test
+		hook-list-test \
+		memblock-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -241,6 +242,11 @@ hook_list_test_SOURCES = tests/hook-list-test.c
 hook_list_test_CFLAGS = $(AM_CFLAGS)
 hook_list_test_LDADD = $(AM_LDADD) libpulsecore.la
 hook_list_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+memblock_test_SOURCES = tests/memblock-test.c 
+memblock_test_CFLAGS = $(AM_CFLAGS)
+memblock_test_LDADD = $(AM_LDADD) libpulsecore.la
+memblock_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
@@ -414,7 +420,8 @@ libpulse_la_SOURCES += \
 		pulsecore/strlist.c pulsecore/strlist.h \
 		pulsecore/tagstruct.c pulsecore/tagstruct.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
-		pulsecore/winsock.h pulsecore/creds.h
+		pulsecore/winsock.h pulsecore/creds.h \
+		pulsecore/shm.c pulsecore/shm.h
 
 if OS_IS_WIN32
 libpulse_la_SOURCES += \
@@ -519,7 +526,8 @@ pulsecoreinclude_HEADERS = \
 		pulsecore/source-output.h \
 		pulsecore/strbuf.h \
 		pulsecore/tokenizer.h \
-		pulsecore/creds.h
+		pulsecore/creds.h \
+		pulsecore/shm.h
 
 lib_LTLIBRARIES += libpulsecore.la
 
@@ -586,7 +594,8 @@ libpulsecore_la_SOURCES += \
 		pulsecore/tokenizer.c pulsecore/tokenizer.h \
 		pulsecore/winsock.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
-		pulsecore/hook-list.c pulsecore/hook-list.h
+		pulsecore/hook-list.c pulsecore/hook-list.h \
+		pulsecore/shm.c pulsecore/shm.h
 
 if OS_IS_WIN32
 libpulsecore_la_SOURCES += \
