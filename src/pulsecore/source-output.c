@@ -301,7 +301,7 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
 
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     pa_source *origin;
-    pa_resampler *new_resampler;
+    pa_resampler *new_resampler = NULL;
 
     assert(o);
     assert(o->ref >= 1);
