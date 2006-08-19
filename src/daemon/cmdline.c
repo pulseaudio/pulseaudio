@@ -60,6 +60,7 @@ enum {
     ARG_USE_PID_FILE,
     ARG_CHECK,
     ARG_NO_CPU_LIMIT,
+    ARG_DISABLE_SHM,
     ARG_SYSTEM
 };
 
@@ -88,6 +89,7 @@ static struct option long_options[] = {
     {"check",                       0, 0, ARG_CHECK},
     {"system",                      2, 0, ARG_SYSTEM},
     {"no-cpu-limit",                2, 0, ARG_NO_CPU_LIMIT},
+    {"disable-shm",                 2, 0, ARG_DISABLE_SHM},
     {NULL, 0, 0, 0}
 };
 
@@ -132,7 +134,8 @@ void pa_cmdline_help(const char *argv0) {
            "                                        src-zero-order-hold,src-linear,trivial)\n"
            "      --use-pid-file[=BOOL]             Create a PID file\n"
            "      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
-           "                                        platforms that support it.\n\n"
+           "                                        platforms that support it.\n"
+           "      --disable-shm[=BOOL]              Disable shared memory support.\n\n"
 
            "STARTUP SCRIPT:\n"
            "  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with\n"
@@ -297,7 +300,13 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                     goto fail;
                 }
                 break;
-                
+
+            case ARG_DISABLE_SHM:
+                if ((conf->disable_shm = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log("--disable-shm expects boolean argument");
+                    goto fail;
+                }
+                break;
                 
             default:
                 goto fail;
