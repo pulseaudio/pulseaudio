@@ -22,7 +22,9 @@ Cleanups:
 - use software volume when hardware doesn't support all channels (alsa done)
 - silence generation should be moved into the core to avoid races and code
   duplication in the backends
-- rework resampler to not use pa_xrealloc. Use pa_memblock_new instead.
+- pdispatch: split large memory blocks when sending
+- sysv shm
+- posix_memalign
 
 Auth/Crypto:
 - ssl
