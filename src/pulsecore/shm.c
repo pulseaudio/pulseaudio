@@ -60,7 +60,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
         m->size = size;
 
 #ifdef MAP_ANONYMOUS
-        if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_ANONYMOUS, fd, 0)) == MAP_FAILED) {
+        if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0)) == MAP_FAILED) {
             pa_log("mmap() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
