@@ -41,19 +41,21 @@
 #include <pulsecore/log.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/sink-input.h>
+#include <pulsecore/source-output.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/namereg.h>
 #include <pulse/volume.h>
 
 #include "module-volume-restore-symdef.h"
 
 PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Automatically restore volume of playback streams")
+PA_MODULE_DESCRIPTION("Automatically restore the volume and the devices of streams")
 PA_MODULE_USAGE("table=<filename>")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 
 #define WHITESPACE "\n\r \t"
 
-#define DEFAULT_VOLUME_TABLE_FILE "volume.table"
+#define DEFAULT_VOLUME_TABLE_FILE "volume-restore.table"
 
 static const char* const valid_modargs[] = {
     "table",
@@ -62,13 +64,16 @@ static const char* const valid_modargs[] = {
 
 struct rule {
     char* name;
+    int volume_is_set;
     pa_cvolume volume;
+    char *sink;
+    char *source;
 };
 
 struct userdata {
     pa_hashmap *hashmap;
     pa_subscription *subscription;
-    pa_hook_slot *hook_slot;
+    pa_hook_slot *sink_input_hook_slot, *source_output_hook_slot;
     int modified;
     char *table_file;
 };
@@ -114,7 +119,7 @@ static int load_rules(struct userdata *u) {
     FILE *f;
     int n = 0;
     int ret = -1;
-    char buf_name[256], buf_volume[256];
+    char buf_name[256], buf_volume[256], buf_sink[256], buf_source[256];
     char *ln = buf_name;
 
     f = u->table_file ?
@@ -136,6 +141,7 @@ static int load_rules(struct userdata *u) {
     while (!feof(f)) {
         struct rule *rule;
         pa_cvolume v;
+        int v_is_set;
         
         if (!fgets(ln, sizeof(buf_name), f))
             break;
@@ -144,7 +150,7 @@ static int load_rules(struct userdata *u) {
         
         pa_strip_nl(ln);
 
-        if (ln[0] == '#' || !*ln )
+        if (ln[0] == '#')
             continue;
 
         if (ln == buf_name) {
@@ -152,28 +158,46 @@ static int load_rules(struct userdata *u) {
             continue;
         }
 
-        assert(ln == buf_volume);
-
-        if (!parse_volume(buf_volume, &v)) {
-            pa_log("parse failure in %s:%u, stopping parsing", u->table_file, n);
-            goto finish;
+        if (ln == buf_volume) {
+            ln = buf_sink;
+            continue;
         }
+
+        if (ln == buf_sink) {
+            ln = buf_source;
+            continue;
+        }
+
+        assert(ln == buf_source);
+
+        if (buf_volume[0]) {
+            if (!parse_volume(buf_volume, &v)) {
+                pa_log("parse failure in %s:%u, stopping parsing", u->table_file, n);
+                goto finish;
+            }
+
+            v_is_set = 1;
+        } else
+            v_is_set = 0;
 
         ln = buf_name;
         
         if (pa_hashmap_get(u->hashmap, buf_name)) {
             pa_log("double entry in %s:%u, ignoring", u->table_file, n);
-            goto finish;
+            continue;
         }
         
         rule = pa_xnew(struct rule, 1);
         rule->name = pa_xstrdup(buf_name);
-        rule->volume = v;
+        if ((rule->volume_is_set = v_is_set))
+            rule->volume = v;
+        rule->sink = buf_sink[0] ? pa_xstrdup(buf_sink) : NULL;
+        rule->source = buf_source[0] ? pa_xstrdup(buf_source) : NULL;
 
         pa_hashmap_put(u->hashmap, rule->name, rule);
     }
 
-    if (ln == buf_volume) {
+    if (ln != buf_name) {
         pa_log("invalid number of lines in %s.", u->table_file);
         goto finish;
     }
@@ -209,12 +233,18 @@ static int save_rules(struct userdata *u) {
     while ((rule = pa_hashmap_iterate(u->hashmap, &state, NULL))) {
         unsigned i;
         
-        fprintf(f, "%s\n%u", rule->name, rule->volume.channels);
-        
-        for (i = 0; i < rule->volume.channels; i++)
-            fprintf(f, " %u", rule->volume.values[i]);
+        fprintf(f, "%s\n", rule->name);
 
-        fprintf(f, "\n");
+        if (rule->volume_is_set) {
+            fprintf(f, "%u", rule->volume.channels);
+
+            for (i = 0; i < rule->volume.channels; i++)
+                fprintf(f, " %u", rule->volume.values[i]);
+        }
+            
+        fprintf(f, "\n%s\n%s\n",
+                rule->sink ? rule->sink : "",
+                rule->source ? rule->source : "");
     }
     
     ret = 0;
@@ -260,7 +290,8 @@ static char* client_name(pa_client *c) {
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u =  userdata;
-    pa_sink_input *si;
+    pa_sink_input *si = NULL;
+    pa_source_output *so = NULL;
     struct rule *r;
     char *name;
     
@@ -268,36 +299,80 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     assert(u);
 
     if (t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW) &&
-        t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE))
+        t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE) &&
+        t != (PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW) &&
+        t != (PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE))
         return;
+
+    if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
+        if (!(si = pa_idxset_get_by_index(c->sink_inputs, idx)))
+            return;
         
-    if (!(si = pa_idxset_get_by_index(c->sink_inputs, idx)))
-        return;
-    
-    if (!si->client || !(name = client_name(si->client)))
-        return;
+        if (!si->client || !(name = client_name(si->client)))
+            return;
+    } else {
+        assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT);
+
+        if (!(so = pa_idxset_get_by_index(c->source_outputs, idx)))
+            return;
+        
+        if (!so->client || !(name = client_name(so->client)))
+            return;
+    }
 
     if ((r = pa_hashmap_get(u->hashmap, name))) {
         pa_xfree(name);
 
-        if (!pa_cvolume_equal(pa_sink_input_get_volume(si), &r->volume)) {
-            pa_log_info("Saving volume for <%s>", r->name);
-            r->volume = *pa_sink_input_get_volume(si);
-            u->modified = 1;
+        if (si) {
+
+            if (!r->volume_is_set || !pa_cvolume_equal(pa_sink_input_get_volume(si), &r->volume)) {
+                pa_log_info("Saving volume for <%s>", r->name);
+                r->volume = *pa_sink_input_get_volume(si);
+                r->volume_is_set = 1;
+                u->modified = 1;
+            }
+
+            if (!r->sink || strcmp(si->sink->name, r->sink) != 0) {
+                pa_log_info("Saving sink for <%s>", r->name);
+                pa_xfree(r->sink);
+                r->sink = pa_xstrdup(si->sink->name);
+                u->modified = 1;
+            }
+        } else {
+            assert(so);
+
+            if (!r->source || strcmp(so->source->name, r->source) != 0) {
+                pa_log_info("Saving source for <%s>", r->name);
+                pa_xfree(r->source);
+                r->source = pa_xstrdup(so->source->name);
+                u->modified = 1;
+            }
         }
+            
     } else {
         pa_log_info("Creating new entry for <%s>", name);
 
         r = pa_xnew(struct rule, 1);
         r->name = name;
-        r->volume = *pa_sink_input_get_volume(si);
-        pa_hashmap_put(u->hashmap, r->name, r);
 
+        if (si) {
+            r->volume = *pa_sink_input_get_volume(si);
+            r->volume_is_set = 1;
+            r->sink = pa_xstrdup(si->sink->name);
+            r->source = NULL;
+        } else {
+            assert(so);
+            r->volume_is_set = 0;
+            r->sink = NULL;
+            r->source = pa_xstrdup(so->source->name);
+        }
+            
+        pa_hashmap_put(u->hashmap, r->name, r);
         u->modified = 1;
     }
 }
 
-static pa_hook_result_t hook_callback(pa_core *c, pa_sink_input_new_data *data, struct userdata *u) {
+static pa_hook_result_t sink_input_hook_callback(pa_core *c, pa_sink_input_new_data *data, struct userdata *u) {
     struct rule *r;
     char *name;
 
@@ -308,9 +383,33 @@ static pa_hook_result_t hook_callback(pa_core *c, pa_sink_input_new_data *data, 
 
     if ((r = pa_hashmap_get(u->hashmap, name))) {
 
-        if (data->sample_spec_is_set && data->sample_spec.channels == r->volume.channels) {
+        if (r->volume_is_set && data->sample_spec.channels == r->volume.channels) {
             pa_log_info("Restoring volume for <%s>", r->name);
             pa_sink_input_new_data_set_volume(data, &r->volume);
+        }
+
+        if (!data->sink && r->sink) {
+            if ((data->sink = pa_namereg_get(c, r->sink, PA_NAMEREG_SINK, 1)))
+                pa_log_info("Restoring sink for <%s>", r->name);
+        }
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_hook_callback(pa_core *c, pa_source_output_new_data *data, struct userdata *u) {
+    struct rule *r;
+    char *name;
+
+    assert(data);
+
+    if (!data->client || !(name = client_name(data->client)))
+        return PA_HOOK_OK;
+
+    if ((r = pa_hashmap_get(u->hashmap, name))) {
+        if (!data->source && r->source) {
+            if ((data->source = pa_namereg_get(c, r->source, PA_NAMEREG_SOURCE, 1)))
+                pa_log_info("Restoring source for <%s>", r->name);
         }
     }
 
@@ -340,8 +439,9 @@ int pa__init(pa_core *c, pa_module*m) {
     if (load_rules(u) < 0)
         goto fail;
 
-    u->subscription = pa_subscription_new(c, PA_SUBSCRIPTION_MASK_SINK_INPUT, subscribe_callback, u);
-    u->hook_slot = pa_hook_connect(&c->hook_sink_input_new, (pa_hook_cb_t) hook_callback, u);
+    u->subscription = pa_subscription_new(c, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
+    u->sink_input_hook_slot = pa_hook_connect(&c->hook_sink_input_new, (pa_hook_cb_t) sink_input_hook_callback, u);
+    u->source_output_hook_slot = pa_hook_connect(&c->hook_source_output_new, (pa_hook_cb_t) source_output_hook_callback, u);
 
     pa_modargs_free(ma);
     return 0;
@@ -360,6 +460,8 @@ static void free_func(void *p, void *userdata) {
     assert(r);
 
     pa_xfree(r->name);
+    pa_xfree(r->sink);
+    pa_xfree(r->source);
     pa_xfree(r);
 }
 
@@ -375,8 +477,10 @@ void pa__done(pa_core *c, pa_module*m) {
     if (u->subscription)
         pa_subscription_free(u->subscription);
 
-    if (u->hook_slot)
-        pa_hook_slot_free(u->hook_slot);
+    if (u->sink_input_hook_slot)
+        pa_hook_slot_free(u->sink_input_hook_slot);
+    if (u->source_output_hook_slot)
+        pa_hook_slot_free(u->source_output_hook_slot);
 
     if (u->hashmap) {
 
