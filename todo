@@ -23,9 +23,12 @@ Cleanups:
 - silence generation should be moved into the core to avoid races and code
   duplication in the backends
 - pdispatch: split large memory blocks when sending
-- sysv shm
-- posix_memalign
-- test sample upload
+- don't read/write audio data from/to ALSA devices if noone is listening
+
+Test:
+- autoload
+- sample upload + SHM
+- SHM revoke stuff
 
 Auth/Crypto:
 - ssl
