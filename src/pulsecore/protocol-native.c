@@ -319,7 +319,7 @@ static struct record_stream* record_stream_new(
     size_t base;
     pa_source_output_new_data data;
     
-    assert(c && source && ss && name && maxlength);
+    assert(c && ss && name && maxlength);
 
     pa_source_output_new_data_init(&data);
     data.source = source;
@@ -330,7 +330,7 @@ static struct record_stream* record_stream_new(
     data.module = c->protocol->module;
     data.client = c->client;
     
-    if (!(source_output = pa_source_output_new(source->core, &data, 0)))
+    if (!(source_output = pa_source_output_new(c->protocol->core, &data, 0)))
         return NULL;
 
     s = pa_xnew(struct record_stream, 1);
@@ -389,7 +389,7 @@ static struct playback_stream* playback_stream_new(
     int64_t start_index;
     pa_sink_input_new_data data;
     
-    assert(c && sink && ss && name && maxlength);
+    assert(c && ss && name && maxlength);
 
     /* Find syncid group */
     for (ssync = pa_idxset_first(c->output_streams, &idx); ssync; ssync = pa_idxset_next(c->output_streams, &idx)) {
@@ -402,8 +402,8 @@ static struct playback_stream* playback_stream_new(
     }
 
     /* Synced streams must connect to the same sink */
-    if (ssync && ssync->sink_input->sink != sink)
-        return NULL;
+    if (ssync)
+        sink = ssync->sink_input->sink;
 
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
@@ -415,7 +415,7 @@ static struct playback_stream* playback_stream_new(
     data.module = c->protocol->module;
     data.client = c->client;
 
-    if (!(sink_input = pa_sink_input_new(sink->core, &data, 0)))
+    if (!(sink_input = pa_sink_input_new(c->protocol->core, &data, 0)))
         return NULL;
     
     s = pa_xnew(struct playback_stream, 1);
@@ -725,7 +725,7 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     pa_sample_spec ss;
     pa_channel_map map;
     pa_tagstruct *reply;
-    pa_sink *sink;
+    pa_sink *sink = NULL;
     pa_cvolume volume;
     int corked;
     
@@ -761,12 +761,13 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, maxlength > 0 && maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
 
-    if (sink_index != PA_INVALID_INDEX)
+    if (sink_index != PA_INVALID_INDEX) {
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
-    else
+        CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
+    } else if (sink_name) {
         sink = pa_namereg_get(c->protocol->core, sink_name, PA_NAMEREG_SINK, 1);
-
-    CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
+        CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
+    }
 
     s = playback_stream_new(c, sink, &ss, &map, name, maxlength, tlength, prebuf, minreq, &volume, syncid);
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
@@ -844,7 +845,7 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_sample_spec ss;
     pa_channel_map map;
     pa_tagstruct *reply;
-    pa_source *source;
+    pa_source *source = NULL;
     int corked;
     assert(c && t && c->protocol && c->protocol->core);
     
@@ -869,12 +870,13 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
 
-    if (source_index != PA_INVALID_INDEX)
+    if (source_index != PA_INVALID_INDEX) {
         source = pa_idxset_get_by_index(c->protocol->core->sources, source_index);
-    else
+        CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
+    } else if (source_name) {
         source = pa_namereg_get(c->protocol->core, source_name, PA_NAMEREG_SOURCE, 1);
-
-    CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
+        CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
+    } 
     
     s = record_stream_new(c, source, &ss, &map, name, maxlength, fragment_size);
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);

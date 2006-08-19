@@ -327,7 +327,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     int32_t format, rate;
     pa_sample_spec ss;
     size_t l;
-    pa_sink *sink;
+    pa_sink *sink = NULL;
     pa_sink_input_new_data sdata;
 
     assert(c && length == (sizeof(int32_t)*2+ESD_NAME_MAX));
@@ -344,8 +344,11 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     format_esd2native(format, c->swap_byte_order, &ss);
 
     CHECK_VALIDITY(pa_sample_spec_valid(&ss), "Invalid sample specification");
-    sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1);
-    CHECK_VALIDITY(sink, "No such sink");
+
+    if (c->protocol->sink_name) {
+        sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1);
+        CHECK_VALIDITY(sink, "No such sink");
+    }
 
     strncpy(name, data, sizeof(name));
     name[sizeof(name)-1] = 0;
@@ -397,7 +400,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
 static int esd_proto_stream_record(struct connection *c, esd_proto_t request, const void *data, size_t length) {
     char name[ESD_NAME_MAX], *utf8_name;
     int32_t format, rate;
-    pa_source *source;
+    pa_source *source = NULL;
     pa_sample_spec ss;
     size_t l;
     pa_source_output_new_data sdata;
@@ -431,10 +434,12 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
         }
     } else {
         assert(request == ESD_PROTO_STREAM_REC);
-        
-        if (!(source = pa_namereg_get(c->protocol->core, c->protocol->source_name, PA_NAMEREG_SOURCE, 1))) {
-            pa_log("no such source.");
-            return -1;
+
+        if (c->protocol->source_name) {
+            if (!(source = pa_namereg_get(c->protocol->core, c->protocol->source_name, PA_NAMEREG_SOURCE, 1))) {
+                pa_log("no such source.");
+                return -1;
+            }
         }
     }
     
