@@ -128,7 +128,6 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     c->subscribe_callback = NULL;
     c->subscribe_userdata = NULL;
 
-    c->mempool = pa_mempool_new(1);
     c->is_local = -1;
     c->server_list = NULL;
     c->server = NULL;
@@ -148,6 +147,8 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     pa_client_conf_from_x11(c->conf, NULL);
 #endif
     pa_client_conf_env(c->conf);
+
+    c->mempool = pa_mempool_new(!c->conf->disable_shm);
 
     return c;
 }

@@ -62,6 +62,7 @@ static const pa_client_conf default_conf = {
     .default_source = NULL,
     .default_server = NULL,
     .autospawn = 0,
+    .disable_shm = 0,
     .cookie_file = NULL,
     .cookie_valid = 0,
 };
@@ -100,6 +101,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         { "default-server",         pa_config_parse_string,  NULL },
         { "autospawn",              pa_config_parse_bool,    NULL },
         { "cookie-file",            pa_config_parse_string,  NULL },
+        { "disable-shm",            pa_config_parse_bool,    NULL },
         { NULL,                     NULL,                    NULL },
     };
 
@@ -110,6 +112,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
     table[4].data = &c->default_server;
     table[5].data = &c->autospawn;
     table[6].data = &c->cookie_file;
+    table[7].data = &c->disable_shm;
 
     f = filename ?
         fopen((fn = pa_xstrdup(filename)), "r") :
