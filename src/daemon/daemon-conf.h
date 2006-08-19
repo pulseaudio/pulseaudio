@@ -59,7 +59,8 @@ typedef struct pa_daemon_conf {
         auto_log_target,
         use_pid_file,
         system_instance,
-        no_cpu_limit;
+        no_cpu_limit,
+        disable_shm;
     char *script_commands, *dl_search_path, *default_script_file;
     pa_log_target_t log_target;
     pa_log_level_t log_level;

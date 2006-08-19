@@ -306,10 +306,10 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
 #endif
 
 int main(int argc, char *argv[]) {
-    pa_core *c;
+    pa_core *c = NULL;
     pa_strbuf *buf = NULL;
-    pa_daemon_conf *conf;
-    pa_mainloop *mainloop;
+    pa_daemon_conf *conf = NULL;
+    pa_mainloop *mainloop = NULL;
 
     char *s; 
     int r, retval = 1, d = 0;
@@ -559,8 +559,9 @@ int main(int argc, char *argv[]) {
     mainloop = pa_mainloop_new();
     assert(mainloop);
 
-    c = pa_core_new(pa_mainloop_get_api(mainloop), 1);
-    assert(c);
+    if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm)))
+        goto finish;
+
     c->is_system_instance = !!conf->system_instance;
 
     r = pa_signal_init(pa_mainloop_get_api(mainloop));
@@ -651,11 +652,13 @@ int main(int argc, char *argv[]) {
         pa_cpu_limit_done();
     
     pa_signal_done();
-    pa_mainloop_free(mainloop);
     
     pa_log_info("Daemon terminated.");
     
 finish:
+
+    if (mainloop)
+        pa_mainloop_free(mainloop);
 
     if (conf)
         pa_daemon_conf_free(conf);

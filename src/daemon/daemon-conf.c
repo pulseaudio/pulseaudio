@@ -73,7 +73,8 @@ static const pa_daemon_conf default_conf = {
     .config_file = NULL,
     .use_pid_file = 1,
     .system_instance = 0,
-    .no_cpu_limit = 0
+    .no_cpu_limit = 0,
+    .disable_shm = 0
 #ifdef HAVE_SYS_RESOURCE_H
     , .rlimit_as = { .value = 0, .is_set = 0 },
     .rlimit_core = { .value = 0, .is_set = 0 },
@@ -248,6 +249,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "use-pid-file",            pa_config_parse_bool,    NULL },
         { "system-instance",         pa_config_parse_bool,    NULL },
         { "no-cpu-limit",            pa_config_parse_bool,    NULL },
+        { "disable-shm",             pa_config_parse_bool,    NULL },
 #ifdef HAVE_SYS_RESOURCE_H
         { "rlimit-as",               parse_rlimit,            NULL },
         { "rlimit-core",             parse_rlimit,            NULL },
@@ -281,21 +283,22 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[13].data = &c->use_pid_file;
     table[14].data = &c->system_instance;
     table[15].data = &c->no_cpu_limit;
+    table[16].data = &c->disable_shm;
 #ifdef HAVE_SYS_RESOURCE_H
-    table[16].data = &c->rlimit_as;
-    table[17].data = &c->rlimit_core;
-    table[18].data = &c->rlimit_data;
-    table[19].data = &c->rlimit_fsize;
-    table[20].data = &c->rlimit_nofile;
-    table[21].data = &c->rlimit_stack;
+    table[17].data = &c->rlimit_as;
+    table[18].data = &c->rlimit_core;
+    table[19].data = &c->rlimit_data;
+    table[20].data = &c->rlimit_fsize;
+    table[21].data = &c->rlimit_nofile;
+    table[22].data = &c->rlimit_stack;
 #ifdef RLIMIT_NPROC
-    table[22].data = &c->rlimit_nproc;
+    table[23].data = &c->rlimit_nproc;
 #endif
 #ifdef RLIMIT_MEMLOCK
 #ifndef RLIMIT_NPROC
 #error "Houston, we have a numbering problem!"
 #endif
-    table[23].data = &c->rlimit_memlock;
+    table[24].data = &c->rlimit_memlock;
 #endif
 #endif
     
@@ -367,6 +370,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "use-pid-file = %i\n", c->use_pid_file);
     pa_strbuf_printf(s, "system-instance = %i\n", !!c->system_instance);
     pa_strbuf_printf(s, "no-cpu-limit = %i\n", !!c->no_cpu_limit);
+    pa_strbuf_printf(s, "disable_shm = %i\n", !!c->disable_shm);
 #ifdef HAVE_SYS_RESOURCE_H
     pa_strbuf_printf(s, "rlimit-as = %li\n", c->rlimit_as.is_set ? (long int) c->rlimit_as.value : -1);
     pa_strbuf_printf(s, "rlimit-core = %li\n", c->rlimit_core.is_set ? (long int) c->rlimit_core.value : -1);
