@@ -40,3 +40,6 @@
 
 ### Cookie file
 ; cookie-file = 
+
+### Disable shared memory data transfer
+; disable-shm = 0
