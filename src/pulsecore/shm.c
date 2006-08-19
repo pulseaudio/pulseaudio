@@ -19,6 +19,10 @@
   USA.
 ***/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -32,6 +36,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/random.h>
+#include <pulse/xmalloc.h>
 
 #include "shm.h"
 
@@ -63,6 +68,15 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
         if ((m->ptr = mmap(NULL, m->size, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0)) == MAP_FAILED) {
             pa_log("mmap() failed: %s", pa_cstrerror(errno));
             goto fail;
+        }
+#elif defined(HAVE_POSIX_MEMALIGN)
+        {
+            int r;
+            
+            if ((r = posix_memalign(&m->ptr, sysconf(_SC_PAGESIZE), size)) < 0) {
+                pa_log("posix_memalign() failed: %s", pa_cstrerror(r));
+                goto fail;
+            }
         }
 #else
         m->ptr = pa_xmalloc(m->size);
@@ -114,7 +128,11 @@ void pa_shm_free(pa_shm *m) {
     assert(m->ptr && m->ptr != MAP_FAILED);
     assert(m->size > 0);
 
-#ifndef MAP_ANONYMOUS
+#if !defined(MAP_ANONYMOUS) && defined(HAVE_POSIX_MEMALIGN)
+    if (!m->shared)
+        free(m->ptr);
+    else
+#elif !defined(MAP_ANONYMOUS)
     if (!m->shared)
         pa_xfree(m->ptr);
     else
@@ -139,7 +157,6 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     assert(m);
     assert(m->ptr && m->ptr != MAP_FAILED);
     assert(m->size > 0);
-    assert(m->do_unlink);
     assert(offset < m->size);
     assert(offset+size < m->size);
 
