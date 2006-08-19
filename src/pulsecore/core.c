@@ -46,7 +46,11 @@
 
 pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_core* c;
-    
+    pa_mempool *pool;
+
+    if (!(pool = pa_mempool_new(shared)))
+        return NULL;
+            
     c = pa_xnew(pa_core, 1);
 
     c->mainloop = m;
@@ -78,7 +82,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     PA_LLIST_HEAD_INIT(pa_subscription_event, c->subscription_event_queue);
     c->subscription_event_last = NULL;
 
-    c->mempool = pa_mempool_new(shared);
+    c->mempool = pool;
 
     c->disallow_module_loading = 0;
 
