@@ -40,6 +40,7 @@ typedef enum pa_memblock_type {
     PA_MEMBLOCK_USER,             /* User supplied memory, to be freed with free_cb */
     PA_MEMBLOCK_FIXED,            /* data is a pointer to fixed memory that needs not to be freed */
     PA_MEMBLOCK_IMPORTED,         /* Memory is imported from another process via shm */
+    PA_MEMBLOCK_TYPE_MAX
 } pa_memblock_type_t;
 
 typedef struct pa_memblock pa_memblock;
@@ -84,6 +85,9 @@ struct pa_mempool_stat {
 
     unsigned n_too_large_for_pool;
     unsigned n_pool_full;
+
+    unsigned n_allocated_by_type[PA_MEMBLOCK_TYPE_MAX];
+    unsigned n_accumulated_by_type[PA_MEMBLOCK_TYPE_MAX];
 };
 
 /* Allocate a new memory block of type PA_MEMBLOCK_MEMPOOL or PA_MEMBLOCK_APPENDED, depending on the size */

@@ -121,6 +121,9 @@ static void stat_add(pa_memblock*b) {
         b->pool->stat.n_imported++;
         b->pool->stat.imported_size += b->length;
     }
+
+    b->pool->stat.n_allocated_by_type[b->type]++;
+    b->pool->stat.n_accumulated_by_type[b->type]++;
 }
 
 static void stat_remove(pa_memblock *b) {
@@ -140,6 +143,8 @@ static void stat_remove(pa_memblock *b) {
         b->pool->stat.n_imported --;
         b->pool->stat.imported_size -= b->length;
     }
+
+    b->pool->stat.n_allocated_by_type[b->type]--;
 }
 
 static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length);
@@ -353,12 +358,20 @@ void pa_memblock_unref(pa_memblock*b) {
             
             if (b->type == PA_MEMBLOCK_POOL_EXTERNAL)
                 pa_xfree(b);
+
+            break;
         }
+
+        case PA_MEMBLOCK_TYPE_MAX:
+        default:
+            abort();
     }
 }
 
 static void memblock_make_local(pa_memblock *b) {
     assert(b);
+
+    b->pool->stat.n_allocated_by_type[b->type]--;
 
     if (b->length <= b->pool->block_size - sizeof(struct mempool_slot)) {
         struct mempool_slot *slot;
@@ -373,7 +386,7 @@ static void memblock_make_local(pa_memblock *b) {
             new_data = mempool_slot_data(slot);
             memcpy(new_data, b->data, b->length);
             b->data = new_data;
-            return;
+            goto finish;
         }
     }
 
@@ -382,6 +395,10 @@ static void memblock_make_local(pa_memblock *b) {
     b->per_type.user.free_cb = pa_xfree;
     b->read_only = 0;
     b->data = pa_xmemdup(b->data, b->length);
+
+finish:
+    b->pool->stat.n_allocated_by_type[b->type]++;
+    b->pool->stat.n_accumulated_by_type[b->type]++;
 }
 
 void pa_memblock_unref_fixed(pa_memblock *b) {
