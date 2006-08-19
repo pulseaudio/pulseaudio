@@ -49,7 +49,6 @@ Features:
   (switch to capture when a recording client connects and drop playback during
   that time)
 - Support for device selection in waveout driver
-- beefup module-volume-restore to restore the device a stream was connected to, too
 - add an API to libpulse for allocating memory from the pa_context memory pool
 
 Long term:
