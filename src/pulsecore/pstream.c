@@ -78,7 +78,8 @@ enum {
 typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 
 #define PA_PSTREAM_DESCRIPTOR_SIZE (PA_PSTREAM_DESCRIPTOR_MAX*sizeof(uint32_t))
-#define FRAME_SIZE_MAX PA_SCACHE_ENTRY_SIZE_MAX /* allow uploading a single sample in one frame at max */
+#define FRAME_SIZE_MAX_ALLOW PA_SCACHE_ENTRY_SIZE_MAX /* allow uploading a single sample in one frame at max */
+#define FRAME_SIZE_MAX_USE (1024*64)
 
 struct item_info {
     enum {
@@ -323,7 +324,7 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *cre
 }
 
 void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek_mode, const pa_memchunk *chunk) {
-    struct item_info *i;
+    size_t length, idx;
     
     assert(p);
     assert(p->ref >= 1);
@@ -333,19 +334,34 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     if (p->dead)
         return;
 
-    i = pa_xnew(struct item_info, 1);
-    i->type = PA_PSTREAM_ITEM_MEMBLOCK;
-    i->chunk = *chunk;
-    i->channel = channel;
-    i->offset = offset;
-    i->seek_mode = seek_mode;
+    length = chunk->length;
+    idx = 0;
+
+    while (length > 0) {
+        struct item_info *i;
+        size_t n;
+        
+        i = pa_xnew(struct item_info, 1);
+        i->type = PA_PSTREAM_ITEM_MEMBLOCK;
+
+        n = length < FRAME_SIZE_MAX_USE ? length : FRAME_SIZE_MAX_USE;
+        i->chunk.index = chunk->index + idx;
+        i->chunk.length = n;
+        i->chunk.memblock = pa_memblock_ref(chunk->memblock);
+        
+        i->channel = channel;
+        i->offset = offset;
+        i->seek_mode = seek_mode;
 #ifdef HAVE_CREDS
-    i->with_creds = 0;
+        i->with_creds = 0;
 #endif
+        
+        pa_queue_push(p->send_queue, i);
 
-    pa_memblock_ref(i->chunk.memblock);
-
-    pa_queue_push(p->send_queue, i);
+        idx += n;
+        length -= n;
+    }
+        
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
@@ -599,7 +615,7 @@ static int do_read(pa_pstream *p) {
 
         length = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]);
         
-        if (length > FRAME_SIZE_MAX) {
+        if (length > FRAME_SIZE_MAX_ALLOW) {
             pa_log_warn("Recieved invalid frame size : %lu", (unsigned long) length);
             return -1;
         }
