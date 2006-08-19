@@ -96,3 +96,6 @@
 ; rlimit-stack = -1
 ; rlimit-nproc = -1
 ; rlimit-memlock = 25
+
+## Disable shared memory data transfer 
+; disable-shm = 0
