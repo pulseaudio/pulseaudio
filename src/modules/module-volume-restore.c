@@ -237,8 +237,10 @@ static char* client_name(pa_client *c) {
     t = pa_sprintf_malloc("%s$%s", c->driver, c->name);
     t[strcspn(t, "\n\r#")] = 0;
 
-    if (!*t)
+    if (!*t) {
+        pa_xfree(t);
         return NULL;
+    }
 
     if ((e = strrchr(t, '('))) {
         char *k = e + 1 + strspn(e + 1, "0123456789-");
