@@ -240,12 +240,11 @@ AC_CHECK_FUNCS([lstat])
 
 # Non-standard
 
-AC_CHECK_FUNCS(setresuid)
-AC_CHECK_FUNCS(setresgid)
-AC_CHECK_FUNCS(setreuid)
-AC_CHECK_FUNCS(setregid)
-AC_CHECK_FUNCS(seteuid)
-AC_CHECK_FUNCS(setegid)
+AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid])
+
+# Memory mangement
+
+AC_CHECK_FUNCS([mmap posix_memalign madvise])
 
 #### POSIX threads ####
 
