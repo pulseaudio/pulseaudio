@@ -51,6 +51,7 @@ struct pa_resampler {
 };
 
 struct impl_libsamplerate {
+    pa_memblock *buf1_block, *buf2_block, *buf3_block, *buf4_block;
     float* buf1, *buf2, *buf3, *buf4;
     unsigned buf1_samples, buf2_samples, buf3_samples, buf4_samples;
     
@@ -223,10 +224,14 @@ static void libsamplerate_free(pa_resampler *r) {
     if (u->src_state)
         src_delete(u->src_state);
 
-    pa_xfree(u->buf1);
-    pa_xfree(u->buf2);
-    pa_xfree(u->buf3);
-    pa_xfree(u->buf4);
+    if (u->buf1_block)
+        pa_memblock_unref(u->buf1_block);
+    if (u->buf2_block)
+        pa_memblock_unref(u->buf2_block);
+    if (u->buf3_block)
+        pa_memblock_unref(u->buf3_block);
+    if (u->buf4_block)
+        pa_memblock_unref(u->buf4_block);
     pa_xfree(u);
 }
 
@@ -281,8 +286,14 @@ static float * convert_to_float(pa_resampler *r, void *input, unsigned n_frames)
     
     n_samples = n_frames * r->i_ss.channels;
 
-    if (u->buf1_samples < n_samples)
-        u->buf1 = pa_xrealloc(u->buf1, sizeof(float) * (u->buf1_samples = n_samples));
+    if (u->buf1_samples < n_samples) {
+        if (u->buf1_block)
+            pa_memblock_unref(u->buf1_block);
+
+        u->buf1_samples = n_samples;
+        u->buf1_block = pa_memblock_new(r->mempool, sizeof(float) * n_samples);
+        u->buf1 = u->buf1_block->data;
+    }
     
     u->to_float32ne_func(n_samples, input, u->buf1);
 
@@ -307,8 +318,14 @@ static float *remap_channels(pa_resampler *r, float *input, unsigned n_frames) {
 
     n_samples = n_frames * r->o_ss.channels;
 
-    if (u->buf2_samples < n_samples)
-        u->buf2 = pa_xrealloc(u->buf2, sizeof(float) * (u->buf2_samples = n_samples));
+    if (u->buf2_samples < n_samples) {
+        if (u->buf2_block)
+            pa_memblock_unref(u->buf2_block);
+
+        u->buf2_samples = n_samples;
+        u->buf2_block = pa_memblock_new(r->mempool, sizeof(float) * n_samples);
+        u->buf2 = u->buf2_block->data;
+    }
 
     memset(u->buf2, 0, n_samples * sizeof(float));
 
@@ -351,8 +368,14 @@ static float *resample(pa_resampler *r, float *input, unsigned *n_frames) {
     out_n_frames = (*n_frames*r->o_ss.rate/r->i_ss.rate)+1024;
     out_n_samples = out_n_frames * r->o_ss.channels;
 
-    if (u->buf3_samples < out_n_samples)
-        u->buf3 = pa_xrealloc(u->buf3, sizeof(float) * (u->buf3_samples = out_n_samples));
+    if (u->buf3_samples < out_n_samples) {
+        if (u->buf3_block)
+            pa_memblock_unref(u->buf3_block);
+
+        u->buf3_samples = out_n_samples;
+        u->buf3_block = pa_memblock_new(r->mempool, sizeof(float) * out_n_samples);
+        u->buf3 = u->buf3_block->data;
+    }
     
     data.data_in = input;
     data.input_frames = *n_frames;
@@ -388,9 +411,15 @@ static void *convert_from_float(pa_resampler *r, float *input, unsigned n_frames
     
     n_samples = n_frames * r->o_ss.channels;
 
-    if (u->buf4_samples < n_samples)
-        u->buf4 = pa_xrealloc(u->buf4, sizeof(float) * (u->buf4_samples = n_samples));
-    
+    if (u->buf4_samples < n_samples) {
+        if (u->buf4_block)
+            pa_memblock_unref(u->buf4_block);
+
+        u->buf4_samples = n_samples;
+        u->buf4_block = pa_memblock_new(r->mempool, sizeof(float) * n_samples);
+        u->buf4 = u->buf4_block->data;
+    }
+        
     u->from_float32ne_func(n_samples, input, u->buf4);
 
     return u->buf4;
@@ -429,30 +458,33 @@ static void libsamplerate_run(pa_resampler *r, const pa_memchunk *in, pa_memchun
             out->index = in->index;
             out->length = in->length;
         } else {
-            float **p = NULL;
-            
             out->length = n_frames * r->o_fz;
             out->index = 0;
-
+            out->memblock = NULL;
+            
             if (output == u->buf1) {
-                p = &u->buf1;
+                u->buf1 = NULL;
                 u->buf1_samples = 0;
+                out->memblock = u->buf1_block;
+                u->buf1_block = NULL;
             } else if (output == u->buf2) {
-                p = &u->buf2;
+                u->buf2 = NULL;
                 u->buf2_samples = 0;
+                out->memblock = u->buf2_block;
+                u->buf2_block = NULL;
             } else if (output == u->buf3) {
-                p = &u->buf3;
+                u->buf3 = NULL;
                 u->buf3_samples = 0;
+                out->memblock = u->buf3_block;
+                u->buf3_block = NULL;
             } else if (output == u->buf4) {
-                p = &u->buf4;
+                u->buf4 = NULL;
                 u->buf4_samples = 0;
+                out->memblock = u->buf4_block;
+                u->buf4_block = NULL;
             }
 
-            assert(p);
-
-            /* Take the existing buffer and make it a memblock */
-            out->memblock = pa_memblock_new_malloced(r->mempool, *p, out->length);
-            *p = NULL;
+            assert(out->memblock);
         }
     } else {
         out->memblock = NULL;
@@ -485,6 +517,7 @@ static int libsamplerate_init(pa_resampler *r) {
     r->impl_data = u = pa_xnew(struct impl_libsamplerate, 1);
 
     u->buf1 = u->buf2 = u->buf3 = u->buf4 = NULL;
+    u->buf1_block = u->buf2_block = u->buf3_block = u->buf4_block = NULL;
     u->buf1_samples = u->buf2_samples = u->buf3_samples = u->buf4_samples = 0;
 
     if (r->i_ss.format == PA_SAMPLE_FLOAT32NE)
