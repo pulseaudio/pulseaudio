@@ -25,6 +25,7 @@ Cleanups:
 - pdispatch: split large memory blocks when sending
 - sysv shm
 - posix_memalign
+- test sample upload
 
 Auth/Crypto:
 - ssl
