@@ -242,7 +242,19 @@ static int pa_cli_command_source_outputs(pa_core *c, pa_tokenizer *t, pa_strbuf 
 static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
     char s[256];
     const pa_mempool_stat *stat;
-    assert(c && t);
+    unsigned k;
+
+    static const char* const type_table[PA_MEMBLOCK_TYPE_MAX] = {
+        [PA_MEMBLOCK_POOL] = "POOL",
+        [PA_MEMBLOCK_POOL_EXTERNAL] = "POOL_EXTERNAL",
+        [PA_MEMBLOCK_APPENDED] = "APPENDED",
+        [PA_MEMBLOCK_USER] = "USER",
+        [PA_MEMBLOCK_FIXED] = "FIXED",
+        [PA_MEMBLOCK_IMPORTED] = "IMPORTED",
+    };
+        
+    assert(c);
+    assert(t);
 
     stat = pa_mempool_get_stat(c->mempool);
     
@@ -273,6 +285,13 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
                      pa_namereg_get_default_sink_name(c),
                      pa_namereg_get_default_source_name(c));
 
+    for (k = 0; k < PA_MEMBLOCK_TYPE_MAX; k++)
+        pa_strbuf_printf(buf,
+                         "Memory blocks of type %s: %u allocated/%u accumulated.\n",
+                         type_table[k],
+                         stat->n_allocated_by_type[k],
+                         stat->n_accumulated_by_type[k]);
+    
     return 0;
 }
 
