@@ -251,7 +251,9 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
 
     p->use_shm = 0;
     p->export = NULL;
-    p->import = NULL; 
+
+    /* We do importing unconditionally */
+    p->import = pa_memimport_new(p->mempool, memimport_release_cb, p);
 
     pa_iochannel_socket_set_rcvbuf(io, 1024*8); 
     pa_iochannel_socket_set_sndbuf(io, 1024*8);
@@ -567,7 +569,7 @@ static int do_read(pa_pstream *p) {
 
         flags = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]);
 
-        if (!p->use_shm && (flags & PA_FLAG_SHMMASK) != 0) {
+        if (!p->import && (flags & PA_FLAG_SHMMASK) != 0) {
             pa_log_warn("Recieved SHM frame on a socket where SHM is disabled.");
             return -1;
         }
@@ -861,19 +863,11 @@ void pa_pstream_use_shm(pa_pstream *p, int enable) {
 
     if (enable) {
     
-        if (!p->import)
-            p->import = pa_memimport_new(p->mempool, memimport_release_cb, p);
-        
         if (!p->export)
             p->export = pa_memexport_new(p->mempool, memexport_revoke_cb, p);
 
     } else {
 
-        if (p->import) {
-            pa_memimport_free(p->import);
-            p->import = NULL;
-        }
-        
         if (p->export) {
             pa_memexport_free(p->export);
             p->export = NULL;
