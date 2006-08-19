@@ -91,7 +91,7 @@ void pa_log_levelv_meta(
         va_list ap) {
     
     const char *e;
-    char *text, *t, *n, *location = pa_xstrdup("");
+    char *text, *t, *n, *location;
     
     assert(level < PA_LOG_LEVEL_MAX);
     assert(format);
@@ -108,6 +108,8 @@ void pa_log_levelv_meta(
         location = pa_sprintf_malloc("[%s:%i %s()] ", file, line, func);
     else if (file)
         location = pa_sprintf_malloc("%s: ", pa_path_get_filename(file));
+    else
+        location = pa_xstrdup("");
 
     if (!pa_utf8_valid(text))
         pa_log_level(level, __FILE__": invalid UTF-8 string following below:");
