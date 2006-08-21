@@ -228,8 +228,8 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
            "Latency: %0.0f usec\n"
            "Flags: %s%s%s\n",
            i->index,
-           i->driver,
            i->name,
+           i->driver,
            i->description,
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
