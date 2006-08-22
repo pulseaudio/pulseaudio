@@ -565,7 +565,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     
     u->silence.length = u->fragment_size;
-    u->silence.memblock = pa_memblock_new(u->core->mem, u->silence.length);
+    u->silence.memblock = pa_memblock_new(u->core->mempool, u->silence.length);
     assert(u->silence.memblock);
     pa_silence_memblock(u->silence.memblock, &ss);
     u->silence.index = 0;
