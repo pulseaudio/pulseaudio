@@ -443,8 +443,14 @@ pa_mempool* pa_mempool_new(int shared) {
 
     p = pa_xnew(pa_mempool, 1);
 
+#ifdef HAVE_SYSCONF
     ps = (size_t) sysconf(_SC_PAGESIZE);
-    
+#elif defined(PAGE_SIZE)
+	ps = (size_t) PAGE_SIZE;
+#else
+	ps = 4096; /* Let's hope it's like x86. */
+#endif
+
     p->block_size = (PA_MEMPOOL_SLOT_SIZE/ps)*ps;
 
     if (p->block_size < ps)
