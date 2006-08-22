@@ -217,7 +217,7 @@ static void do_read(struct userdata *u)
             waveInUnprepareHeader(u->hwi, hdr, sizeof(WAVEHDR));
 
         if (hdr->dwBytesRecorded) {
-            memchunk.memblock = pa_memblock_new(hdr->dwBytesRecorded, u->core->memblock_stat);
+            memchunk.memblock = pa_memblock_new(u->core->mempool, hdr->dwBytesRecorded);
             assert(memchunk.memblock);
 
             memcpy((char*)memchunk.memblock->data, hdr->lpData, hdr->dwBytesRecorded);
@@ -564,7 +564,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     
     u->silence.length = u->fragment_size;
-    u->silence.memblock = pa_memblock_new(u->silence.length, u->core->memblock_stat);
+    u->silence.memblock = pa_memblock_new(u->core->mem, u->silence.length);
     assert(u->silence.memblock);
     pa_silence_memblock(u->silence.memblock, &ss);
     u->silence.index = 0;
