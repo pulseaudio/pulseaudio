@@ -34,7 +34,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
+
+#ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
+#endif
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>

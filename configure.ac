@@ -144,7 +144,7 @@ AC_HEADER_STDC
 # POSIX
 AC_CHECK_HEADERS([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
     netinet/in_systm.h netinet/ip.h netinet/tcp.h pwd.h sched.h \
-    sys/resource.h sys/select.h sys/socket.h sys/wait.h \
+    sys/mman.h sys/resource.h sys/select.h sys/socket.h sys/wait.h \
     syslog.h])
 AC_CHECK_HEADERS([regex.h], [HAVE_REGEX=1], [HAVE_REGEX=0])
 AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
@@ -202,11 +202,10 @@ AC_SEARCH_LIBS([pow], [m])
 # POSIX
 AC_SEARCH_LIBS([sched_setscheduler], [rt])
 AC_SEARCH_LIBS([dlopen], [dl])
+AC_SEARCH_LIBS([shm_open], [rt])
 
 # BSD
 AC_SEARCH_LIBS([connect], [socket])
-
-AC_SEARCH_LIBS([shm_open], [rt])
 
 # Non-standard
 
@@ -221,8 +220,8 @@ AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS([chmod chown getaddrinfo getgrgid_r getpwuid_r gettimeofday \
-    getuid inet_ntop inet_pton nanosleep pipe setpgid setsid sigaction sleep \
-    sysconf])
+    getuid inet_ntop inet_pton nanosleep pipe posix_memalignsetpgid setsid \
+    shm_open sigaction sleep sysconf])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
 
 AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")
@@ -242,10 +241,6 @@ AC_CHECK_FUNCS([lstat])
 # Non-standard
 
 AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid])
-
-# Memory mangement
-
-AC_CHECK_FUNCS([mmap posix_memalign madvise])
 
 #### POSIX threads ####
 

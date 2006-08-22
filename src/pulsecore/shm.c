@@ -27,11 +27,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/mman.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
+
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
+#endif
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
@@ -50,6 +53,8 @@ static char *segment_name(char *fn, size_t l, unsigned id) {
     snprintf(fn, l, "/pulse-shm-%u", id);
     return fn;
 }
+
+#ifdef HAVE_SHM_OPEN
 
 int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
     char fn[32];
@@ -239,3 +244,21 @@ fail:
 
     return -1;
 }
+
+#else /* HAVE_SHM_OPEN */
+
+int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
+	return -1;
+}
+
+void pa_shm_free(pa_shm *m) {
+}
+
+void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
+}
+
+int pa_shm_attach_ro(pa_shm *m, unsigned id) {
+	return -1;
+}
+
+#endif /* HAVE_SHM_OPEN */
