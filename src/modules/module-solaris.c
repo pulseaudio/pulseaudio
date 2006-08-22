@@ -43,6 +43,7 @@
 #include <pulse/error.h>
 #include <pulse/mainloop-signal.h>
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
