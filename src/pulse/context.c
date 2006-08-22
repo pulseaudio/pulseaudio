@@ -434,10 +434,8 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     assert(!c->pdispatch);
     c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
 
-    if (!c->conf->cookie_valid) {
-        pa_context_fail(c, PA_ERR_AUTHKEY);
-        goto finish;
-    }
+    if (!c->conf->cookie_valid)
+        pa_log_warn("No cookie loaded. Attempting to connect without.");
 
     t = pa_tagstruct_command(c, PA_COMMAND_AUTH, &tag);
     pa_tagstruct_putu32(t, PA_PROTOCOL_VERSION);
@@ -463,8 +461,6 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
 
     pa_context_set_state(c, PA_CONTEXT_AUTHORIZING);
 
-finish:
-    
     pa_context_unref(c);
 }
 
