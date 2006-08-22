@@ -75,11 +75,10 @@ struct userdata {
     uint32_t free_ofrags, free_ifrags;
 
     DWORD written_bytes;
+    int sink_underflow;
 
     int cur_ohdr, cur_ihdr;
-    unsigned int oremain;
     WAVEHDR *ohdrs, *ihdrs;
-    pa_memchunk silence;
 
     HWAVEOUT hwo;
     HWAVEIN hwi;
@@ -110,8 +109,8 @@ static void update_usage(struct userdata *u) {
 
 static void do_write(struct userdata *u)
 {
-    uint32_t free_frags, remain;
-    pa_memchunk memchunk, *cur_chunk;
+    uint32_t free_frags;
+    pa_memchunk memchunk;
     WAVEHDR *hdr;
     MMRESULT res;
 
@@ -119,13 +118,10 @@ static void do_write(struct userdata *u)
         return;
 
     EnterCriticalSection(&u->crit);
-
     free_frags = u->free_ofrags;
-    u->free_ofrags = 0;
-
     LeaveCriticalSection(&u->crit);
 
-    if (free_frags == u->fragments)
+    if (!u->sink_underflow && (free_frags == u->fragments))
         pa_log_debug("WaveOut underflow!");
 
     while (free_frags) {
@@ -133,44 +129,38 @@ static void do_write(struct userdata *u)
         if (hdr->dwFlags & WHDR_PREPARED)
             waveOutUnprepareHeader(u->hwo, hdr, sizeof(WAVEHDR));
 
-        remain = u->oremain;
-        while (remain) {
-            cur_chunk = &memchunk;
+        hdr->dwBufferLength = 0;
+        while (hdr->dwBufferLength < u->fragment_size) {
+            size_t len;
 
-            if (pa_sink_render(u->sink, remain, cur_chunk) < 0) {
-                /*
-                 * Don't fill with silence unless we're getting close to
-                 * underflowing.
-                 */
-                if (free_frags > u->fragments/2)
-                    cur_chunk = &u->silence;
-                else {
-                    EnterCriticalSection(&u->crit);
+            len = u->fragment_size - hdr->dwBufferLength;
 
-                    u->free_ofrags += free_frags;
+            if (pa_sink_render(u->sink, len, &memchunk) < 0)
+                break;
 
-                    LeaveCriticalSection(&u->crit);
+            assert(memchunk.memblock);
+            assert(memchunk.memblock->data);
+            assert(memchunk.length);
 
-                    u->oremain = remain;
-                    return;
-                }
-            }
+            if (memchunk.length < len)
+                len = memchunk.length;
 
-            assert(cur_chunk->memblock);
-            assert(cur_chunk->memblock->data);
-            assert(cur_chunk->length);
+            memcpy(hdr->lpData + hdr->dwBufferLength,
+                (char*)memchunk.memblock->data + memchunk.index, len);
 
-            memcpy(hdr->lpData + u->fragment_size - remain,
-                (char*)cur_chunk->memblock->data + cur_chunk->index,
-                (cur_chunk->length < remain)?cur_chunk->length:remain);
+            hdr->dwBufferLength += len;
 
-            remain -= (cur_chunk->length < remain)?cur_chunk->length:remain;
-
-            if (cur_chunk != &u->silence) {
-                pa_memblock_unref(cur_chunk->memblock);
-                cur_chunk->memblock = NULL;
-            }
+            pa_memblock_unref(memchunk.memblock);
+            memchunk.memblock = NULL;
         }
+
+        /* Insufficient data in sink buffer? */
+        if (hdr->dwBufferLength == 0) {
+            u->sink_underflow = 1;
+            break;
+        }
+
+        u->sink_underflow = 0;
 
         res = waveOutPrepareHeader(u->hwo, hdr, sizeof(WAVEHDR));
         if (res != MMSYSERR_NOERROR) {
@@ -183,12 +173,15 @@ static void do_write(struct userdata *u)
                 res);
         }
         
-        u->written_bytes += u->fragment_size;
+        u->written_bytes += hdr->dwBufferLength;
+
+        EnterCriticalSection(&u->crit);
+        u->free_ofrags--;
+        LeaveCriticalSection(&u->crit);
 
         free_frags--;
         u->cur_ohdr++;
         u->cur_ohdr %= u->fragments;
-        u->oremain = u->fragment_size;
     }
 }
 
@@ -540,8 +533,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->fragment_size = frag_size - (frag_size % pa_frame_size(&ss));
 
     u->written_bytes = 0;
-
-    u->oremain = u->fragment_size;
+    u->sink_underflow = 1;
 
     u->poll_timeout = pa_bytes_to_usec(u->fragments * u->fragment_size / 10, &ss);
 
@@ -570,12 +562,6 @@ int pa__init(pa_core *c, pa_module*m) {
         assert(u->ohdrs);
     }
     
-    u->silence.length = u->fragment_size;
-    u->silence.memblock = pa_memblock_new(u->core->mempool, u->silence.length);
-    assert(u->silence.memblock);
-    pa_silence_memblock(u->silence.memblock, &ss);
-    u->silence.index = 0;
-
     u->module = m;
     m->userdata = u;
 
@@ -611,9 +597,6 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (!(u = m->userdata))
         return;
-
-    if (u->silence.memblock)
-        pa_memblock_unref(u->silence.memblock);
     
     if (u->event)
         c->mainloop->time_free(u->event);
