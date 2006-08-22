@@ -481,16 +481,22 @@ int pa__init(pa_core *c, pa_module*m) {
     u = pa_xmalloc(sizeof(struct userdata));
 
     if (record) {
-        if (waveInOpen(&hwi, WAVE_MAPPER, &wf, (DWORD_PTR)chunk_ready_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
+        if (waveInOpen(&hwi, WAVE_MAPPER, &wf, (DWORD_PTR)chunk_ready_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
+            pa_log("failed to open waveIn");
             goto fail;
-        if (waveInStart(hwi) != MMSYSERR_NOERROR)
+        }
+        if (waveInStart(hwi) != MMSYSERR_NOERROR) {
+            pa_log("failed to start waveIn");
             goto fail;
+        }
         pa_log_debug("Opened waveIn subsystem.");
     }
 
     if (playback) {
-        if (waveOutOpen(&hwo, WAVE_MAPPER, &wf, (DWORD_PTR)chunk_done_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
+        if (waveOutOpen(&hwo, WAVE_MAPPER, &wf, (DWORD_PTR)chunk_done_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
+            pa_log("failed to open waveOut");
             goto fail;
+        }
         pa_log_debug("Opened waveOut subsystem.");
     }
 
