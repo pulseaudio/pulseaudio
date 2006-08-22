@@ -54,8 +54,6 @@ static char *segment_name(char *fn, size_t l, unsigned id) {
     return fn;
 }
 
-#ifdef HAVE_SHM_OPEN
-
 int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
     char fn[32];
     int fd = -1;
@@ -90,9 +88,10 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
         m->do_unlink = 0;
         
     } else {
+#ifdef HAVE_SHM_OPEN
         pa_random(&m->id, sizeof(m->id));
         segment_name(fn, sizeof(fn), m->id);
-    
+
         if ((fd = shm_open(fn, O_RDWR|O_CREAT|O_EXCL, mode & 0444)) < 0) {
             pa_log("shm_open() failed: %s", pa_cstrerror(errno));
             goto fail;
@@ -110,6 +109,9 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
 
         close(fd);
         m->do_unlink = 1;
+#else
+		return -1;
+#endif
     }
 
     m->shared = shared;
@@ -118,40 +120,52 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
     
 fail:
 
+#ifdef HAVE_SHM_OPEN
     if (fd >= 0) {
         shm_unlink(fn);
         close(fd);
     }
+#endif
 
     return -1;
 }
 
 void pa_shm_free(pa_shm *m) {
-    char fn[32];
-    
     assert(m);
-    assert(m->ptr && m->ptr != MAP_FAILED);
+    assert(m->ptr);
     assert(m->size > 0);
 
-#if !defined(MAP_ANONYMOUS) && defined(HAVE_POSIX_MEMALIGN)
-    if (!m->shared)
-        free(m->ptr);
-    else
-#elif !defined(MAP_ANONYMOUS)
-    if (!m->shared)
-        pa_xfree(m->ptr);
-    else
-#endif        
-    
-    if (munmap(m->ptr, m->size) < 0)
-        pa_log("munmap() failed: %s", pa_cstrerror(errno));
+#ifdef MAP_FAILED
+	assert(m->ptr != MAP_FAILED);
+#endif
 
-    if (m->do_unlink) {
-        segment_name(fn, sizeof(fn), m->id);
-        
-        if (shm_unlink(fn) < 0)
-            pa_log(__FILE__":shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
-    }
+	if (!m->shared) {
+#ifdef MAP_ANONYMOUS
+	    if (munmap(m->ptr, m->size) < 0)
+	        pa_log("munmap() failed: %s", pa_cstrerror(errno));
+#elif defined(HAVE_POSIX_MEMALIGN)
+        free(m->ptr);
+#else
+        pa_xfree(m->ptr);
+#endif
+	} else {
+#ifdef HAVE_SHM_OPEN
+	    if (munmap(m->ptr, m->size) < 0)
+	        pa_log("munmap() failed: %s", pa_cstrerror(errno));
+
+	    if (m->do_unlink) {
+		    char fn[32];
+
+    	    segment_name(fn, sizeof(fn), m->id);
+
+	        if (shm_unlink(fn) < 0)
+    	        pa_log(__FILE__":shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
+	    }
+#else
+		/* We shouldn't be here without shm support */
+		assert(0);
+#endif
+	}
 
     memset(m, 0, sizeof(*m));
 }
@@ -160,10 +174,14 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     void *ptr;
     
     assert(m);
-    assert(m->ptr && m->ptr != MAP_FAILED);
+    assert(m->ptr);
     assert(m->size > 0);
     assert(offset < m->size);
     assert(offset+size < m->size);
+
+#ifdef MAP_FAILED
+	assert(m->ptr != MAP_FAILED);
+#endif
 
     /* You're welcome to implement this as NOOP on systems that don't
      * support it */
@@ -199,6 +217,8 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     madvise(ptr, size, MADV_DONTNEED);
 #endif
 }
+
+#ifdef HAVE_SHM_OPEN
 
 int pa_shm_attach_ro(pa_shm *m, unsigned id) {
     char fn[32];
@@ -246,16 +266,6 @@ fail:
 }
 
 #else /* HAVE_SHM_OPEN */
-
-int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
-	return -1;
-}
-
-void pa_shm_free(pa_shm *m) {
-}
-
-void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
-}
 
 int pa_shm_attach_ro(pa_shm *m, unsigned id) {
 	return -1;
