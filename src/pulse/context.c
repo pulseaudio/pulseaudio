@@ -385,11 +385,13 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
                 /* Only enable SHM if both sides are owned by the same
                  * user. This is a security measure because otherwise
                  * data private to the user might leak. */
-                
+
+#ifdef HAVE_CREDS                
                 const pa_creds *creds;
                 if ((creds = pa_pdispatch_creds(pd)))
                     if (getuid() == creds->uid)
                         pa_pstream_use_shm(c->pstream, 1);
+#endif
             }
 
             reply = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
