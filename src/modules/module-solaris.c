@@ -52,6 +52,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
+#include <pulsecore/core-error.h>
 
 #include "module-solaris-symdef.h"
 
