@@ -456,7 +456,7 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_pstream_send_tagstruct_with_creds(c->pstream, t, &ucred);
 }
 #else
-    pa_pstream_send_tagstruct(c->pstream, t, NULL);
+    pa_pstream_send_tagstruct(c->pstream, t);
 #endif
     
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c, NULL);
