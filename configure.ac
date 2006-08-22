@@ -220,7 +220,7 @@ AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS([chmod chown getaddrinfo getgrgid_r getpwuid_r gettimeofday \
-    getuid inet_ntop inet_pton nanosleep pipe posix_memalignsetpgid setsid \
+    getuid inet_ntop inet_pton nanosleep pipe posix_memalign setpgid setsid \
     shm_open sigaction sleep sysconf])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
 
