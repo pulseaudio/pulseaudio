@@ -30,6 +30,7 @@
 #include <pulse/mainloop-api.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
