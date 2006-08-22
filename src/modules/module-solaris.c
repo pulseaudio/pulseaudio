@@ -80,11 +80,12 @@ struct userdata {
     pa_usec_t poll_timeout;
     pa_signal_event *sig;
 
-    pa_memchunk memchunk, silence;
+    pa_memchunk memchunk;
 
     uint32_t frame_size;
     uint32_t buffer_size;
     unsigned int written_bytes, read_bytes;
+    int sink_underflow;
 
     int fd;
     pa_module *module;
@@ -119,7 +120,6 @@ static void update_usage(struct userdata *u) {
 static void do_write(struct userdata *u) {
     audio_info_t info;
     int err;
-    pa_memchunk *memchunk;
     size_t len;
     ssize_t r;
     
@@ -145,7 +145,7 @@ static void do_write(struct userdata *u) {
     if (len > u->buffer_size)
         len = 0;
 
-    if (len == u->buffer_size)
+    if (!u->sink_underflow && (len == u->buffer_size))
         pa_log_debug("Solaris buffer underflow!");
 
     len -= len % u->frame_size;
@@ -153,37 +153,39 @@ static void do_write(struct userdata *u) {
     if (len == 0)
         return;
 
-    memchunk = &u->memchunk;
-    
-    if (!memchunk->length)
-        if (pa_sink_render(u->sink, len, memchunk) < 0)
-            memchunk = &u->silence;
-    
-    assert(memchunk->memblock);
-    assert(memchunk->memblock->data);
-    assert(memchunk->length);
+    if (!u->memchunk.length) {
+        if (pa_sink_render(u->sink, len, &u->memchunk) < 0) {
+            u->sink_underflow = 1;
+            return;
+        }
+    }
 
-    if (memchunk->length < len) {
-        len = memchunk->length;
+    u->sink_underflow = 0;
+    
+    assert(u->memchunk.memblock);
+    assert(u->memchunk.memblock->data);
+    assert(u->memchunk.length);
+
+    if (u->memchunk.length < len) {
+        len = u->memchunk.length;
         len -= len % u->frame_size;
         assert(len);
     }
 
-    if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, len)) < 0) {
+    if ((r = pa_iochannel_write(u->io,
+        (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, len)) < 0) {
         pa_log("write() failed: %s", pa_cstrerror(errno));
         return;
     }
 
     assert(r % u->frame_size == 0);
     
-    if (memchunk != &u->silence) {
-        u->memchunk.index += r;
-        u->memchunk.length -= r;
-        
-        if (u->memchunk.length <= 0) {
-            pa_memblock_unref(u->memchunk.memblock);
-            u->memchunk.memblock = NULL;
-        }
+    u->memchunk.index += r;
+    u->memchunk.length -= r;
+    
+    if (u->memchunk.length <= 0) {
+        pa_memblock_unref(u->memchunk.memblock);
+        u->memchunk.memblock = NULL;
     }
 
     u->written_bytes += r;
@@ -590,13 +592,10 @@ int pa__init(pa_core *c, pa_module*m) {
     u->frame_size = pa_frame_size(&ss);
     u->buffer_size = buffer_size;
 
-    u->silence.memblock = pa_memblock_new(u->core->mempool, u->silence.length = CHUNK_SIZE);
-    assert(u->silence.memblock);
-    pa_silence_memblock(u->silence.memblock, &ss);
-    u->silence.index = 0;
-
     u->written_bytes = 0;
     u->read_bytes = 0;
+
+    u->sink_underflow = 1;
 
     u->module = m;
     m->userdata = u;
@@ -649,8 +648,6 @@ void pa__done(pa_core *c, pa_module*m) {
     
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
-    if (u->silence.memblock)
-        pa_memblock_unref(u->silence.memblock);
 
     if (u->sink) {
         pa_sink_disconnect(u->sink);
