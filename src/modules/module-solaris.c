@@ -202,7 +202,7 @@ static void do_read(struct userdata *u) {
     err = ioctl(u->fd, I_NREAD, &l);
     assert(err >= 0);
 
-    memchunk.memblock = pa_memblock_new(l, u->core->memblock_stat);
+    memchunk.memblock = pa_memblock_new(u->core->mempool, l);
     assert(memchunk.memblock);
     if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
         pa_memblock_unref(memchunk.memblock);
@@ -589,7 +589,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->frame_size = pa_frame_size(&ss);
     u->buffer_size = buffer_size;
 
-    u->silence.memblock = pa_memblock_new(u->silence.length = CHUNK_SIZE, u->core->memblock_stat);
+    u->silence.memblock = pa_memblock_new(u->core->mempool, u->silence.length = CHUNK_SIZE);
     assert(u->silence.memblock);
     pa_silence_memblock(u->silence.memblock, &ss);
     u->silence.index = 0;
