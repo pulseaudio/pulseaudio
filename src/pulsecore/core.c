@@ -49,11 +49,20 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_core* c;
     pa_mempool *pool;
 
-    if (!(pool = pa_mempool_new(shared))) {
-    	pa_log("pa_mempool_new() failed.");
-        return NULL;
+    if (shared) {
+        if (!(pool = pa_mempool_new(shared))) {
+            pa_log_warn("failed to allocate shared memory pool. Falling back to a normal memory pool.");
+            shared = 0;
+        }
+    }
+
+    if (!shared) {
+        if (!(pool = pa_mempool_new(shared))) {
+        	pa_log("pa_mempool_new() failed.");
+            return NULL;
+        }
 	}
-            
+
     c = pa_xnew(pa_core, 1);
 
     c->mainloop = m;
