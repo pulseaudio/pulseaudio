@@ -611,6 +611,9 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+    if (u->silence.memblock)
+        pa_memblock_unref(u->silence.memblock);
     
     if (u->event)
         c->mainloop->time_free(u->event);
