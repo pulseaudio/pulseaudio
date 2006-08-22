@@ -41,6 +41,7 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/props.h>
 #include <pulsecore/random.h>
+#include <pulsecore/log.h>
 
 #include "core.h"
 
@@ -48,8 +49,10 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_core* c;
     pa_mempool *pool;
 
-    if (!(pool = pa_mempool_new(shared)))
+    if (!(pool = pa_mempool_new(shared))) {
+    	pa_log("pa_mempool_new() failed.");
         return NULL;
+	}
             
     c = pa_xnew(pa_core, 1);
 

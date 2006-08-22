@@ -184,7 +184,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
         goto fail;
     }
 #else
-    fprintf(stderr, "FIXME: pa_make_secure_dir()\n");
+	pa_log_warn("secure directory creation not supported on Win32.");
 #endif
     
     return 0;
