@@ -82,6 +82,8 @@ struct userdata {
 
     pa_memchunk memchunk;
 
+    unsigned int page_size;
+
     uint32_t frame_size;
     uint32_t buffer_size;
     unsigned int written_bytes, read_bytes;
@@ -193,7 +195,8 @@ static void do_write(struct userdata *u) {
 
 static void do_read(struct userdata *u) {
     pa_memchunk memchunk;
-    int err, l;
+    int err;
+    size_t l;
     ssize_t r;
     assert(u);
     
@@ -204,6 +207,11 @@ static void do_read(struct userdata *u) {
 
     err = ioctl(u->fd, I_NREAD, &l);
     assert(err >= 0);
+
+    /* This is to make sure it fits in the memory pool. Also, a page
+       should be the most efficient transfer size. */
+    if (l > u->page_size)
+        l = u->page_size;
 
     memchunk.memblock = pa_memblock_new(u->core->mempool, l);
     assert(memchunk.memblock);
@@ -589,6 +597,10 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
+
+    /* We use this to get a reasonable chunk size */
+    u->page_size = sysconf(_SC_PAGESIZE);
+
     u->frame_size = pa_frame_size(&ss);
     u->buffer_size = buffer_size;
 
