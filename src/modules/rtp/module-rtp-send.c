@@ -81,6 +81,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "destination",
     "port",
+    "mtu" ,
     "loop",
     NULL
 };
