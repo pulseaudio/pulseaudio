@@ -246,7 +246,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
         b->type = PA_MEMBLOCK_POOL_EXTERNAL;
         b->data = mempool_slot_data(slot);
     } else {
-        pa_log_debug("Memory block to large for pool: %u > %u", length, p->block_size - sizeof(struct mempool_slot));
+        pa_log_debug("Memory block too large for pool: %u > %u", length, p->block_size - sizeof(struct mempool_slot));
         p->stat.n_too_large_for_pool++;
         return NULL;
     }
