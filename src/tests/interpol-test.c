@@ -37,6 +37,10 @@
 #include <pthread.h>
 #endif
 
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+
 #include <pulse/pulseaudio.h>
 #include <pulse/mainloop.h>
 
