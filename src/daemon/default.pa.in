@@ -27,7 +27,11 @@
 #load-module module-pipe-sink
 
 ### Automatically load driver modules depending on the hardware available
-load-module module-detect
+load-module module-hal-detect
+
+### Alternatively use the static hardware detection module (for systems that
+### lack HAL support
+#load-module module-detect
 
 ### Load audio drivers automatically on access
 #add-autoload-sink output module-oss device="/dev/dsp" sink_name=output source_name=input
@@ -41,21 +45,24 @@ load-module module-detect
 load-module module-esound-protocol-unix
 load-module module-native-protocol-unix
 
+### Network access (may be configured with paprefs, so leave this commented
+### here if you plan to use paprefs)
 #load-module module-esound-protocol-tcp
 #load-module module-native-protocol-tcp
 #load-module module-zeroconf-publish
 
-### Load the RTP reciever module
+### Load the RTP reciever module (also configured via paprefs, see above)
 #load-module module-rtp-recv
 
-### Load the RTP sender module
-#load-module module-null-sink sink_name=rtp
-#load-module module-rtp-send source=rtp_monitor
+### Load the RTP sender module (also configured via paprefs, see above)
+#load-module module-null-sink sink_name=rtp format=s16be channels=2 rate=44100 description="RTP Multicast Sink"
+#load-module module-rtp-send source=rtp.monitor
 
 ### Automatically restore the volume of playback streams
 load-module module-volume-restore
 
-### Automatically move streams to the default sink if the sink they are connected to dies
+### Automatically move streams to the default sink if the sink they are
+### connected to dies, similar for sources
 load-module module-rescue-streams
 
 ### Make some devices default
