@@ -79,9 +79,6 @@ PA_MODULE_USAGE(
 PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 
-#define DEFAULT_SINK_NAME "tunnel"
-#define DEFAULT_SOURCE_NAME "tunnel"
-
 #define DEFAULT_TLENGTH (44100*2*2/10)  //(10240*8)
 #define DEFAULT_MAXLENGTH ((DEFAULT_TLENGTH*3)/2)
 #define DEFAULT_MINREQ 512
@@ -503,15 +500,33 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
     }
 
     if (pa_tagstruct_getu32(t, &u->channel) < 0 ||
-        pa_tagstruct_getu32(t, &u->device_index) < 0 ||
+        pa_tagstruct_getu32(t, &u->device_index) < 0
 #ifdef TUNNEL_SINK        
-        pa_tagstruct_getu32(t, &u->requested_bytes) < 0 ||
+        || pa_tagstruct_getu32(t, &u->requested_bytes) < 0
 #endif        
-        !pa_tagstruct_eof(t)) {
-        pa_log("invalid reply. (create stream)");
-        die(u);
-        return;
+        )
+        goto parse_error;
+
+    if (u->version >= 9) {
+#ifdef TUNNEL_SINK
+        uint32_t maxlength, tlength, prebuf, minreq;
+        
+        if (pa_tagstruct_getu32(t, &maxlength) < 0 ||
+            pa_tagstruct_getu32(t, &tlength) < 0 ||
+            pa_tagstruct_getu32(t, &prebuf) < 0 ||
+            pa_tagstruct_getu32(t, &minreq) < 0)
+            goto parse_error;
+#else
+        uint32_t maxlength, fragsize;
+        
+        if (pa_tagstruct_getu32(t, &maxlength) < 0 ||
+            pa_tagstruct_getu32(t, &fragsize) < 0) 
+            goto parse_error;
+#endif
     }
+    
+    if (!pa_tagstruct_eof(t))
+        goto parse_error;
 
     start_subscribe(u);
     request_info(u);
@@ -520,6 +535,12 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 #ifdef TUNNEL_SINK
     send_bytes(u);
 #endif
+
+    return;
+    
+parse_error:
+    pa_log("invalid reply. (create stream)");
+    die(u);
 }
 
 static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -550,12 +571,12 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     }
 
 #ifdef TUNNEL_SINK
-    snprintf(name, sizeof(name), "Tunnel from host '%s', user '%s', sink '%s'",
+    snprintf(name, sizeof(name), "Tunnel from host %s, user %s, sink %s",
              pa_get_host_name(hn, sizeof(hn)),
              pa_get_user_name(un, sizeof(un)),
              u->sink->name);
 #else
-    snprintf(name, sizeof(name), "Tunnel from host '%s', user '%s', source '%s'",
+    snprintf(name, sizeof(name), "Tunnel from host %s, user %s, source %s",
              pa_get_host_name(hn, sizeof(hn)),
              pa_get_user_name(un, sizeof(un)),
              u->source->name);
@@ -859,7 +880,8 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     struct timeval ntv;
-    char *t;
+    char *t, *dn = NULL;
+    
     
     assert(c && m);
 
@@ -915,7 +937,11 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_socket_client_set_callback(u->client, on_connection, u);
 
 #ifdef TUNNEL_SINK
-    if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
+
+    if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
+        dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
+
+    if (!(u->sink = pa_sink_new(c, __FILE__, dn, 0, &ss, &map))) {
         pa_log("failed to create sink.");
         goto fail;
     }
@@ -927,12 +953,16 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sink->get_hw_mute = sink_get_hw_mute;
     u->sink->set_hw_mute = sink_set_hw_mute;
     u->sink->userdata = u;
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Tunnel to '%s%s%s'", u->sink_name ? u->sink_name : "", u->sink_name ? "@" : "", u->server_name));
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Tunnel to %s%s%s", u->sink_name ? u->sink_name : "", u->sink_name ? " on " : "", u->server_name));
     pa_xfree(t);
 
     pa_sink_set_owner(u->sink, m);
 #else
-    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
+
+    if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "source_name", NULL))))
+        dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
+
+    if (!(u->source = pa_source_new(c, __FILE__, dn, 0, &ss, &map))) {
         pa_log("failed to create source.");
         goto fail;
     }
@@ -944,12 +974,14 @@ int pa__init(pa_core *c, pa_module*m) {
     u->source->set_hw_mute = source_set_hw_mute;
     u->source->userdata = u;
 
-    pa_source_set_description(u->source, t = pa_sprintf_malloc("Tunnel to '%s%s%s'", u->source_name ? u->source_name : "", u->source_name ? "@" : "", u->server_name));
+    pa_source_set_description(u->source, t = pa_sprintf_malloc("Tunnel to %s%s%s", u->source_name ? u->source_name : "", u->source_name ? " on " : "", u->server_name));
     pa_xfree(t);
 
     pa_source_set_owner(u->source, m);
 #endif
     
+    pa_xfree(dn);
+
     pa_gettimeofday(&ntv);
     ntv.tv_sec += LATENCY_INTERVAL;
     u->time_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, u);
@@ -963,6 +995,9 @@ fail:
 
     if (ma)
         pa_modargs_free(ma);
+
+    pa_xfree(dn);
+    
     return  -1;
 }
 
