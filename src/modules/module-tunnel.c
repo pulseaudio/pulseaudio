@@ -266,6 +266,8 @@ static void send_bytes(struct userdata *u) {
         pa_pstream_send_memblock(u->pstream, u->channel, 0, PA_SEEK_RELATIVE, &chunk);
         pa_memblock_unref(chunk.memblock);
 
+/*         pa_log("sent %lu", (unsigned long) chunk.length); */
+
         if (chunk.length > u->requested_bytes)
             u->requested_bytes = 0;
         else
@@ -330,6 +332,8 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
 
     pa_gettimeofday(&now);
 
+    /* FIXME! This could use some serious love. */
+    
     if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now)) {
         /* local and remote seem to have synchronized clocks */
 #ifdef TUNNEL_SINK
@@ -350,7 +354,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
         u->host_latency = 0;
 #endif
 
-/*     pa_log("estimated host latency: %0.0f usec", (double) u->host_latency); */
+/*     pa_log("estimated host latency: %0.0f usec", (double) u->host_latency);  */
 }
 
 static void request_latency(struct userdata *u) {
@@ -631,7 +635,6 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     die(u);
 }
 
-
 static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_creds *creds, void *userdata) {
     struct userdata *u = userdata;
     assert(p && packet && u);
@@ -772,6 +775,7 @@ static int sink_set_hw_mute(pa_sink *sink) {
 
     return 0;
 }
+
 #else
 static pa_usec_t source_get_latency(pa_source *source) {
     struct userdata *u;
@@ -946,12 +950,12 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    u->sink->notify = sink_notify;
     u->sink->get_latency = sink_get_latency;
     u->sink->get_hw_volume = sink_get_hw_volume;
     u->sink->set_hw_volume = sink_set_hw_volume;
     u->sink->get_hw_mute = sink_get_hw_mute;
     u->sink->set_hw_mute = sink_set_hw_mute;
+    u->sink->notify = sink_notify;
     u->sink->userdata = u;
     pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Tunnel to %s%s%s", u->sink_name ? u->sink_name : "", u->sink_name ? " on " : "", u->server_name));
     pa_xfree(t);

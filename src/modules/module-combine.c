@@ -217,6 +217,18 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
         pa_sink_get_latency(u->master->sink_input->sink);
 }
 
+static void sink_notify(pa_sink *s) {
+    struct userdata *u;
+    struct output *o;
+    
+    assert(s);
+    u = s->userdata;
+    assert(u);
+    
+    for (o = u->outputs; o; o = o->next)
+        pa_sink_notify(o->sink_input->sink);
+}
+
 static struct output *output_new(struct userdata *u, pa_sink *sink, int resample_method) {
     struct output *o = NULL;
     char t[256];
@@ -237,7 +249,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
             0,
             NULL);
 
-    snprintf(t, sizeof(t), "%s: output #%u", u->sink->name, u->n_outputs+1);
+    snprintf(t, sizeof(t), "Output stream #%u of sink %s", u->n_outputs+1, u->sink->name);
 
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
@@ -387,8 +399,9 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     pa_sink_set_owner(u->sink, m);
-    pa_sink_set_description(u->sink, "Combined sink");
+    pa_sink_set_description(u->sink, "Combined Sink");
     u->sink->get_latency = sink_get_latency_cb;
+    u->sink->notify = sink_notify;
     u->sink->userdata = u;
     
     if (!(u->master = output_new(u, master_sink, resample_method))) {
