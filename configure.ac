@@ -23,7 +23,7 @@ AC_PREREQ(2.57)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
-m4_define(PA_MICRO, [4])
+m4_define(PA_MICRO, [5])
 
 AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzcbylcnhqvb (at) 0pointer (dot) de])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
@@ -36,11 +36,11 @@ AC_SUBST(PACKAGE_URL, [http://0pointer.de/lennart/projects/pulseaudio/])
 AC_SUBST(PA_API_VERSION, 10)
 AC_SUBST(PA_PROTOCOL_VERSION, 10)
 
-AC_SUBST(LIBPULSE_VERSION_INFO, [0:2:0])
-AC_SUBST(LIBPULSECORE_VERSION_INFO, [1:1:0])
+AC_SUBST(LIBPULSE_VERSION_INFO, [1:0:1])
+AC_SUBST(LIBPULSECORE_VERSION_INFO, [2:0:0])
 AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:0:0])
 AC_SUBST(LIBPULSE_BROWSE_VERSION_INFO, [1:0:1])
-AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:1:0])
+AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:2:0])
 
 if type -p stow > /dev/null && test -d /usr/local/stow ; then
    AC_MSG_NOTICE([*** Found /usr/local/stow: default install prefix set to /usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION} ***])
