@@ -41,7 +41,7 @@
 
 #include "client-conf.h"
 
-#define DEFAULT_TIMEOUT (10)
+#define DEFAULT_TIMEOUT (30)
 
 struct pa_context {
     int ref;
