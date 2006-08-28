@@ -156,10 +156,10 @@ void pa_shm_free(pa_shm *m) {
 	    if (m->do_unlink) {
 		    char fn[32];
 
-    	    segment_name(fn, sizeof(fn), m->id);
-
-	        if (shm_unlink(fn) < 0)
-    	        pa_log(__FILE__":shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
+                    segment_name(fn, sizeof(fn), m->id);
+                    
+                    if (shm_unlink(fn) < 0)
+                        pa_log(" shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
 	    }
 #else
 		/* We shouldn't be here without shm support */
@@ -176,8 +176,7 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     assert(m);
     assert(m->ptr);
     assert(m->size > 0);
-    assert(offset < m->size);
-    assert(offset+size < m->size);
+    assert(offset+size <= m->size);
 
 #ifdef MAP_FAILED
 	assert(m->ptr != MAP_FAILED);
