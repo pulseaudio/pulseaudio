@@ -51,6 +51,7 @@ Features:
 - Support for device selection in waveout driver
 - add an API to libpulse for allocating memory from the pa_context memory pool
 - allow buffer metric changes during runtime
+- "include" command in configuration files. should have glob support.
 
 Long term:
 - pass meta info for hearing impaired
