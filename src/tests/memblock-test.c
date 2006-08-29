@@ -54,16 +54,16 @@ static void print_stats(pa_mempool *p, const char *text) {
            "n_pool_full = %u\n"
            "}\n",
            text,
-           s->n_allocated,
-           s->n_accumulated,
-           s->n_imported,
-           s->n_exported,
-           (unsigned long) s->allocated_size,
-           (unsigned long) s->accumulated_size,
-           (unsigned long) s->imported_size,
-           (unsigned long) s->exported_size,
-           s->n_too_large_for_pool,
-           s->n_pool_full);
+           (unsigned) AO_load_acquire_read((AO_t*) &s->n_allocated),
+           (unsigned) AO_load_acquire_read((AO_t*) &s->n_accumulated),
+           (unsigned) AO_load_acquire_read((AO_t*) &s->n_imported),
+           (unsigned) AO_load_acquire_read((AO_t*) &s->n_exported),
+           (unsigned long) AO_load_acquire_read((AO_t*) &s->allocated_size),
+           (unsigned long) AO_load_acquire_read((AO_t*) &s->accumulated_size),
+           (unsigned long) AO_load_acquire_read((AO_t*) &s->imported_size),
+           (unsigned long) AO_load_acquire_read((AO_t*) &s->exported_size),
+           (unsigned) AO_load_acquire_read((AO_t*) &s->n_too_large_for_pool),
+           (unsigned) AO_load_acquire_read((AO_t*) &s->n_pool_full));
 }
 
 int main(int argc, char *argv[]) {

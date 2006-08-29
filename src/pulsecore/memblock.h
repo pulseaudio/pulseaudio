@@ -74,21 +74,25 @@ struct pa_memblock {
     } per_type;
 };
 
+/* Please note that updates to this structure are not locked,
+ * i.e. n_allocated might be updated at a point in time where
+ * n_accumulated is not yet. Take these values with a grain of salt,
+ * threy are here for purely statistical reasons.*/
 struct pa_mempool_stat {
-    unsigned n_allocated;
-    unsigned n_accumulated;
-    unsigned n_imported;
-    unsigned n_exported;
-    size_t allocated_size;
-    size_t accumulated_size;
-    size_t imported_size;
-    size_t exported_size;
+    AO_t n_allocated;
+    AO_t n_accumulated;
+    AO_t n_imported;
+    AO_t n_exported;
+    AO_t allocated_size;
+    AO_t accumulated_size;
+    AO_t imported_size;
+    AO_t exported_size;
 
-    unsigned n_too_large_for_pool;
-    unsigned n_pool_full;
+    AO_t n_too_large_for_pool;
+    AO_t n_pool_full;
 
-    unsigned n_allocated_by_type[PA_MEMBLOCK_TYPE_MAX];
-    unsigned n_accumulated_by_type[PA_MEMBLOCK_TYPE_MAX];
+    AO_t n_allocated_by_type[PA_MEMBLOCK_TYPE_MAX];
+    AO_t n_accumulated_by_type[PA_MEMBLOCK_TYPE_MAX];
 };
 
 /* Allocate a new memory block of type PA_MEMBLOCK_MEMPOOL or PA_MEMBLOCK_APPENDED, depending on the size */
