@@ -198,7 +198,8 @@ noinst_PROGRAMS = \
 		get-binary-name-test \
 		ipacl-test \
 		hook-list-test \
-		memblock-test
+		memblock-test \
+		thread-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -247,6 +248,11 @@ memblock_test_SOURCES = tests/memblock-test.c
 memblock_test_CFLAGS = $(AM_CFLAGS)
 memblock_test_LDADD = $(AM_LDADD) libpulsecore.la
 memblock_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
+
+thread_test_SOURCES = tests/thread-test.c 
+thread_test_CFLAGS = $(AM_CFLAGS)
+thread_test_LDADD = $(AM_LDADD) libpulsecore.la
+thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
@@ -529,7 +535,9 @@ pulsecoreinclude_HEADERS = \
 		pulsecore/creds.h \
 		pulsecore/shm.h \
 		pulsecore/llist.h \
-		pulsecore/refcnt.h
+		pulsecore/refcnt.h \
+		pulsecore/mutex.h \
+		pulsecore/thread.h
 
 lib_LTLIBRARIES += libpulsecore.la
 
@@ -597,7 +605,9 @@ libpulsecore_la_SOURCES += \
 		pulsecore/winsock.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
-		pulsecore/shm.c pulsecore/shm.h
+		pulsecore/shm.c pulsecore/shm.h \
+		pulsecore/mutex-posix.c pulsecore/mutex.h \
+		pulsecore/thread-posix.c pulsecore/thread.h
 
 if OS_IS_WIN32
 libpulsecore_la_SOURCES += \
