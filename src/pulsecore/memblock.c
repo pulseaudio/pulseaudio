@@ -170,7 +170,7 @@ static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length) {
     b = pa_xmalloc(sizeof(pa_memblock) + length);
     b->type = PA_MEMBLOCK_APPENDED;
     b->read_only = 0;
-    b->ref = 1;
+    PA_REFCNT_INIT(b);
     b->length = length;
     b->data = (uint8_t*) b + sizeof(pa_memblock);
     b->pool = p;
@@ -253,7 +253,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
 
     b->length = length;
     b->read_only = 0;
-    b->ref = 1;
+    PA_REFCNT_INIT(b);
     b->pool = p;
 
     stat_add(b);
@@ -270,7 +270,7 @@ pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, int re
     b = pa_xnew(pa_memblock, 1);
     b->type = PA_MEMBLOCK_FIXED;
     b->read_only = read_only;
-    b->ref = 1;
+    PA_REFCNT_INIT(b);
     b->length = length;
     b->data = d;
     b->pool = p;
@@ -290,7 +290,7 @@ pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, void (*
     b = pa_xnew(pa_memblock, 1);
     b->type = PA_MEMBLOCK_USER;
     b->read_only = read_only;
-    b->ref = 1;
+    PA_REFCNT_INIT(b);
     b->length = length;
     b->data = d;
     b->per_type.user.free_cb = free_cb;
@@ -302,17 +302,17 @@ pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, void (*
 
 pa_memblock* pa_memblock_ref(pa_memblock*b) {
     assert(b);
-    assert(b->ref >= 1);
-    
-    b->ref++;
+    assert(PA_REFCNT_VALUE(b) > 0);
+
+    PA_REFCNT_INC(b);
     return b;
 }
 
 void pa_memblock_unref(pa_memblock*b) {
     assert(b);
-    assert(b->ref >= 1);
+    assert(PA_REFCNT_VALUE(b) > 0);
 
-    if ((--(b->ref)) > 0)
+    if (PA_REFCNT_DEC(b) > 0)
         return;
     
     stat_remove(b);
@@ -403,10 +403,10 @@ finish:
 
 void pa_memblock_unref_fixed(pa_memblock *b) {
     assert(b);
-    assert(b->ref >= 1);
+    assert(PA_REFCNT_VALUE(b) > 0);
     assert(b->type == PA_MEMBLOCK_FIXED);
 
-    if (b->ref > 1)
+    if (PA_REFCNT_VALUE(b) > 1)
         memblock_make_local(b);
 
     pa_memblock_unref(b);
@@ -615,7 +615,7 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
     b = pa_xnew(pa_memblock, 1);
     b->type = PA_MEMBLOCK_IMPORTED;
     b->read_only = 1;
-    b->ref = 1;
+    PA_REFCNT_INIT(b);
     b->length = size;
     b->data = (uint8_t*) seg->memory.ptr + offset;
     b->pool = i->pool;

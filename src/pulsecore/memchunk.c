@@ -38,9 +38,11 @@ void pa_memchunk_make_writable(pa_memchunk *c, size_t min) {
     
     assert(c);
     assert(c->memblock);
-    assert(c->memblock->ref >= 1);
+    assert(PA_REFCNT_VALUE(c->memblock) > 0);
 
-    if (c->memblock->ref == 1 && !c->memblock->read_only && c->memblock->length >= c->index+min)
+    if (PA_REFCNT_VALUE(c->memblock) == 1 &&
+        !c->memblock->read_only &&
+        c->memblock->length >= c->index+min)
         return;
 
     l = c->length;

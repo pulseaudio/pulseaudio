@@ -26,6 +26,7 @@
 #include <inttypes.h>
 
 #include <pulsecore/llist.h>
+#include <pulsecore/refcnt.h>
 
 /* A pa_memblock is a reference counted memory block. PulseAudio
  * passed references to pa_memblocks around instead of copying
@@ -56,7 +57,7 @@ typedef void (*pa_memexport_revoke_cb_t)(pa_memexport *e, uint32_t block_id, voi
 struct pa_memblock {
     pa_memblock_type_t type;
     int read_only; /* boolean */
-    unsigned ref;  /* the reference counter */
+    PA_REFCNT_DECLARE; /* the reference counter */
     size_t length;
     void *data;
     pa_mempool *pool;
