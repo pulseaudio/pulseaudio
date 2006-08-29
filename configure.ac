@@ -320,6 +320,18 @@ PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.10 ])
 AC_SUBST(LIBSNDFILE_CFLAGS)
 AC_SUBST(LIBSNDFILE_LIBS)
 
+#### atomic-ops ###
+
+AC_CHECK_HEADERS([atomic_ops.h], [], [
+AC_MSG_ERROR([*** libatomic-ops headers not found])
+])
+
+AC_SEARCH_LIBS([AO_spin], [atomic_ops], [], [
+AC_MSG_ERROR([*** libatomic-ops library file not found])
+])
+
+
+
 #### OSS support (optional) ####
 
 AC_ARG_ENABLE([oss], 
