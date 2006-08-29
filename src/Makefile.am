@@ -527,7 +527,9 @@ pulsecoreinclude_HEADERS = \
 		pulsecore/strbuf.h \
 		pulsecore/tokenizer.h \
 		pulsecore/creds.h \
-		pulsecore/shm.h
+		pulsecore/shm.h \
+		pulsecore/llist.h \
+		pulsecore/refcnt.h
 
 lib_LTLIBRARIES += libpulsecore.la
 
