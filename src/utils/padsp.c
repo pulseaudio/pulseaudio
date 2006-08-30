@@ -1487,9 +1487,9 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
                 pa_operation *o;
 
                 if (request == SOUND_MIXER_READ_PCM)
-                    o = pa_context_set_sink_volume_by_index(i->context, i->sink_index, pv, NULL, NULL);
+                    o = pa_context_set_sink_volume_by_index(i->context, i->sink_index, pv, context_success_cb, i);
                 else
-                    o = pa_context_set_source_volume_by_index(i->context, i->source_index, pv, NULL, NULL);
+                    o = pa_context_set_source_volume_by_index(i->context, i->source_index, pv, context_success_cb, i);
 
                 if (!o)
                     debug(DEBUG_LEVEL_NORMAL, __FILE__":Failed set volume: %s", pa_strerror(pa_context_errno(i->context)));
