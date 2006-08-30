@@ -66,9 +66,9 @@ static void* internal_thread_func(void *userdata) {
     ASSERT_SUCCESS(pthread_once(&thread_tls_once, thread_tls_once_func));
     pa_tls_set(thread_tls, t);
     
-    AO_store_release_write(&t->running, 1);
+    AO_fetch_and_add1_full(&t->running);
     t->thread_func(t->userdata);
-    AO_store_release_write(&t->running, 0);
+    AO_fetch_and_add_full(&t->running, (AO_t) -2);
     
     return NULL;
 }
@@ -79,19 +79,24 @@ pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
     t = pa_xnew(pa_thread, 1);
     t->thread_func = thread_func;
     t->userdata = userdata;
+    AO_store_full(&t->running, 0);
 
     if (pthread_create(&t->id, NULL, internal_thread_func, t) < 0) {
         pa_xfree(t);
         return NULL;
     }
 
+    AO_fetch_and_add1_full(&t->running);
+
     return t;
 }
 
 int pa_thread_is_running(pa_thread *t) {
+    AO_t r;
     assert(t);
 
-    return !!AO_load_acquire_read(&t->running);
+    r = AO_load_full(&t->running);
+    return r == 1 || r == 2;
 }
 
 void pa_thread_free(pa_thread *t) {
