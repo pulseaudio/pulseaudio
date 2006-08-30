@@ -22,6 +22,7 @@
   USA.
 ***/
 
+#define AO_REQUIRE_CAS
 #include <atomic_ops.h>
 
 #define PA_REFCNT_DECLARE volatile AO_t _ref
