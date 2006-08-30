@@ -326,6 +326,8 @@ AC_CHECK_HEADERS([atomic_ops.h], [], [
 AC_MSG_ERROR([*** libatomic-ops headers not found])
 ])
 
+LIBS="$LIBS -latomic_ops"
+
 #### OSS support (optional) ####
 
 AC_ARG_ENABLE([oss], 
