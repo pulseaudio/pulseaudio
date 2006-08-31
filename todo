@@ -23,6 +23,7 @@ Cleanups:
 - silence generation should be moved into the core to avoid races and code
   duplication in the backends
 - don't read/write audio data from/to ALSA devices if noone is listening
+- using POSIX monotonous clocks wherever possible instead of gettimeofday()
 
 Test:
 - autoload
