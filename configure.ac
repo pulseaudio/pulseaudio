@@ -326,7 +326,10 @@ AC_CHECK_HEADERS([atomic_ops.h], [], [
 AC_MSG_ERROR([*** libatomic-ops headers not found])
 ])
 
-LIBS="$LIBS -latomic_ops"
+# Win32 does not need the lib and breaks horribly if we try to include it
+if test "x$os_is_win32" != "x1" ; then
+    LIBS="$LIBS -latomic_ops"
+fi
 
 #### OSS support (optional) ####
 
