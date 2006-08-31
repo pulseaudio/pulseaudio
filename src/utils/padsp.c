@@ -2121,6 +2121,13 @@ int close(int fd) {
 }
 
 int access(const char *pathname, int mode) {
+
+    if (!pathname) {
+        /* Firefox needs this. See #27 */
+        errno = EFAULT;
+        return -1;
+    }
+    
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": access(%s)\n", pathname);
 
     if (strcmp(pathname, "/dev/dsp") != 0 &&
