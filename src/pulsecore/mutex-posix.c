@@ -26,7 +26,6 @@
 #include <assert.h>
 #include <pthread.h>
 
-#define AO_REQUIRE_CAS
 #include <atomic_ops.h>
 
 #include <pulse/xmalloc.h>
