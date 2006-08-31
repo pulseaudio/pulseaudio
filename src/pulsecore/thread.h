@@ -33,6 +33,7 @@ void pa_thread_free(pa_thread *t);
 int pa_thread_join(pa_thread *t);
 int pa_thread_is_running(pa_thread *t);
 pa_thread *pa_thread_self(void);
+void pa_thread_yield(void);
 
 typedef struct pa_tls pa_tls;
 

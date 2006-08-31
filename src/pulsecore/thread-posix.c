@@ -25,6 +25,7 @@
 
 #include <assert.h>
 #include <pthread.h>
+#include <sched.h>
 
 #include <atomic_ops.h>
 
@@ -114,6 +115,14 @@ int pa_thread_join(pa_thread *t) {
 pa_thread* pa_thread_self(void) {
     ASSERT_SUCCESS(pthread_once(&thread_tls_once, thread_tls_once_func));
     return pa_tls_get(thread_tls);
+}
+
+void pa_thread_yield(void) {
+#ifdef HAVE_PTHREAD_YIELD
+    pthread_yield();
+#else
+    sched_yield();
+#endif
 }
 
 pa_tls* pa_tls_new(pa_free_cb_t free_cb) {

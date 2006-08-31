@@ -23,8 +23,6 @@
 #include <config.h>
 #endif
 
-#include <sched.h>
-
 #include <pulsecore/thread.h>
 #include <pulsecore/mutex.h>
 #include <pulsecore/log.h>
@@ -73,7 +71,7 @@ static void thread_func(void *data) {
         
         /* Spin! */
         for (n = 0; n < k; n++)
-            sched_yield();
+            pa_thread_yield();
         
         pa_mutex_lock(mutex);
     }
