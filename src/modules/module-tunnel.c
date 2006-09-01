@@ -490,8 +490,21 @@ static void start_subscribe(struct userdata *u) {
     pa_pstream_send_tagstruct(u->pstream, t);
 }
 
+static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
+    struct userdata *u = userdata;
+    struct timeval ntv;
+    assert(m && e && u);
+
+    request_latency(u);
+    
+    pa_gettimeofday(&ntv);
+    ntv.tv_sec += LATENCY_INTERVAL;
+    m->time_restart(e, &ntv);
+}
+
 static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
+    struct timeval ntv;
     assert(pd && u && u->pdispatch == pd);
 
     if (command != PA_COMMAND_REPLY) {
@@ -534,6 +547,11 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 
     start_subscribe(u);
     request_info(u);
+
+    assert(!u->time_event);
+    pa_gettimeofday(&ntv);
+    ntv.tv_sec += LATENCY_INTERVAL;
+    u->time_event = u->core->mainloop->time_new(u->core->mainloop, &ntv, timeout_callback, u);
 
     request_latency(u);
 #ifdef TUNNEL_SINK
@@ -840,18 +858,6 @@ static int source_set_hw_mute(pa_source *source) {
 }
 #endif
 
-static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
-    struct userdata *u = userdata;
-    struct timeval ntv;
-    assert(m && e && u);
-
-    request_latency(u);
-    
-    pa_gettimeofday(&ntv);
-    ntv.tv_sec += LATENCY_INTERVAL;
-    m->time_restart(e, &ntv);
-}
-
 static int load_key(struct userdata *u, const char*fn) {
     assert(u);
 
@@ -883,9 +889,7 @@ int pa__init(pa_core *c, pa_module*m) {
     struct userdata *u = NULL;
     pa_sample_spec ss;
     pa_channel_map map;
-    struct timeval ntv;
     char *t, *dn = NULL;
-    
     
     assert(c && m);
 
@@ -986,9 +990,7 @@ int pa__init(pa_core *c, pa_module*m) {
     
     pa_xfree(dn);
 
-    pa_gettimeofday(&ntv);
-    ntv.tv_sec += LATENCY_INTERVAL;
-    u->time_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, u);
+    u->time_event = NULL;
 
     pa_modargs_free(ma);
 
