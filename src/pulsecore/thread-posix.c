@@ -30,6 +30,7 @@
 #include <atomic_ops.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/mutex.h>
 
 #include "thread.h"
 
@@ -51,6 +52,9 @@ struct pa_tls {
 
 static pa_tls *thread_tls;
 static pthread_once_t thread_tls_once = PTHREAD_ONCE_INIT;
+
+static pa_mutex *once_mutex;
+static pthread_once_t thread_once_once = PTHREAD_ONCE_INIT;
 
 static void thread_tls_once_func(void) {
     thread_tls = pa_tls_new(NULL);
@@ -123,6 +127,27 @@ void pa_thread_yield(void) {
 #else
     sched_yield();
 #endif
+}
+
+static void thread_once_once_func(void) {
+    once_mutex = pa_mutex_new();
+    assert(once_mutex);
+}
+
+void pa_thread_once(pa_thread_once_t *control, pa_thread_once_func_t once_func) {
+    assert(control);
+    assert(once_func);
+
+    ASSERT_SUCCESS(pthread_once(&thread_once_once, thread_once_once_func));
+
+    pa_mutex_lock(once_mutex);
+
+    if (*control == PA_THREAD_ONCE_INIT) {
+        *control = ~PA_THREAD_ONCE_INIT;
+        pa_mutex_unlock(once_mutex);
+        once_func();
+    } else
+        pa_mutex_unlock(once_mutex);
 }
 
 pa_tls* pa_tls_new(pa_free_cb_t free_cb) {

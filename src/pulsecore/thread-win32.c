@@ -49,35 +49,21 @@ struct pa_tls_monitor {
     void *data;
 };
 
-static pa_tls *thread_tls = NULL;
-static pa_tls *monitor_tls = NULL;
+static pa_tls *thread_tls;
+static pa_thread_once_t thread_tls_once = PA_THREAD_ONCE_INIT;
+static pa_tls *monitor_tls;
+static pa_thread_once_t monitor_tls_once = PA_THREAD_ONCE_INIT;
 
 static void thread_tls_once_func(void) {
-    HANDLE mutex;
-    char name[64];
-
-    sprintf(name, "pulse%d", (int)GetCurrentProcessId());
-
-    mutex = CreateMutex(NULL, FALSE, name);
-    assert(mutex);
-
-    WaitForSingleObject(mutex, INFINITE);
-
-    if (thread_tls == NULL) {
-        thread_tls = pa_tls_new(NULL);
-        assert(thread_tls);
-    }
-
-    ReleaseMutex(mutex);
-
-    CloseHandle(mutex);
+    thread_tls = pa_tls_new(NULL);
+    assert(thread_tls);
 }
 
 static DWORD WINAPI internal_thread_func(LPVOID param) {
     pa_thread *t = param;
     assert(t);
 
-    thread_tls_once_func();
+    pa_thread_once(&thread_tls_once, thread_tls_once_func);
     pa_tls_set(thread_tls, t);
 
     t->thread_func(t->userdata);
@@ -133,7 +119,7 @@ int pa_thread_join(pa_thread *t) {
 }
 
 pa_thread* pa_thread_self(void) {
-    thread_tls_once_func();
+    pa_thread_once(&thread_tls_once, thread_tls_once_func);
     return pa_tls_get(thread_tls);
 }
 
@@ -141,9 +127,12 @@ void pa_thread_yield(void) {
     Sleep(0);
 }
 
-static void monitor_tls_once_func(void) {
+void pa_thread_once(pa_thread_once_t *control, pa_thread_once_func_t once_func) {
     HANDLE mutex;
     char name[64];
+
+    assert(control);
+    assert(once_func);
 
     sprintf(name, "pulse%d", (int)GetCurrentProcessId());
 
@@ -152,15 +141,20 @@ static void monitor_tls_once_func(void) {
 
     WaitForSingleObject(mutex, INFINITE);
 
-    if (monitor_tls == NULL) {
-        monitor_tls = pa_tls_new(NULL);
-        assert(monitor_tls);
-        pa_tls_set(monitor_tls, NULL);
-    }
-
-    ReleaseMutex(mutex);
+    if (*control == PA_THREAD_ONCE_INIT) {
+        *control = ~PA_THREAD_ONCE_INIT;
+        ReleaseMutex(mutex);
+        once_func();
+    } else
+        ReleaseMutex(mutex);
 
     CloseHandle(mutex);
+}
+
+static void monitor_tls_once_func(void) {
+    monitor_tls = pa_tls_new(NULL);
+    assert(monitor_tls);
+    pa_tls_set(monitor_tls, NULL);
 }
 
 static DWORD WINAPI monitor_thread_func(LPVOID param) {
@@ -218,7 +212,7 @@ void *pa_tls_set(pa_tls *t, void *userdata) {
     if (t->free_func) {
         struct pa_tls_monitor *m;
 
-        monitor_tls_once_func();
+        pa_thread_once(&monitor_tls_once, monitor_tls_once_func);
 
         m = pa_tls_get(monitor_tls);
         if (!m) {
