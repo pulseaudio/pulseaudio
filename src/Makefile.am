@@ -580,6 +580,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/modargs.c pulsecore/modargs.h \
 		pulsecore/modinfo.c pulsecore/modinfo.h \
 		pulsecore/module.c pulsecore/module.h \
+		pulsecore/mutex.h \
 		pulsecore/namereg.c pulsecore/namereg.h \
 		pulsecore/pid.c pulsecore/pid.h \
 		pulsecore/pipe.c pulsecore/pipe.h \
@@ -602,17 +603,26 @@ libpulsecore_la_SOURCES += \
 		pulsecore/source.c pulsecore/source.h \
 		pulsecore/source-output.c pulsecore/source-output.h \
 		pulsecore/strbuf.c pulsecore/strbuf.h \
+		pulsecore/thread.h \
 		pulsecore/tokenizer.c pulsecore/tokenizer.h \
 		pulsecore/winsock.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
-		pulsecore/shm.c pulsecore/shm.h \
-		pulsecore/mutex-posix.c pulsecore/mutex.h \
-		pulsecore/thread-posix.c pulsecore/thread.h
+		pulsecore/shm.c pulsecore/shm.h
 
 if OS_IS_WIN32
 libpulsecore_la_SOURCES += \
 		pulsecore/dllmain.c 
+endif
+
+if OS_IS_WIN32
+libpulsecore_la_SOURCES += \
+		pulsecore/mutex-win32.c \
+		pulsecore/thread-win32.c
+else
+libpulsecore_la_SOURCES += \
+		pulsecore/mutex-posix.c \
+		pulsecore/thread-posix.c
 endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
