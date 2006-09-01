@@ -130,7 +130,7 @@ void pa_thread_yield(void) {
 }
 
 static void thread_once_once_func(void) {
-    once_mutex = pa_mutex_new();
+    once_mutex = pa_mutex_new(0);
     assert(once_mutex);
 }
 
