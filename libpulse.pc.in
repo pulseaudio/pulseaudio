@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: libpulse
 Description: Client Interface to PulseAudio
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lpulse
+Libs: -L${libdir} -lpulse @PTHREAD_LIBS@
 Cflags: -D_REENTRANT -I${includedir}
 Requires:
