@@ -42,7 +42,7 @@ endif
 #     Compiler/linker flags       #
 ###################################
 
-AM_CFLAGS = -I$(top_srcdir)/src
+AM_CFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src/modules -I$(top_builddir)/src/modules/rtp -I$(top_builddir)/src/modules/gconf
 AM_CFLAGS += $(PTHREAD_CFLAGS) -D_POSIX_PTHREAD_SEMANTICS
 AM_CFLAGS += $(LTDLINCL)
 AM_CFLAGS += $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS)
@@ -995,12 +995,8 @@ SYMDEF_FILES = \
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
 
-modulesdirs: 
-	$(mkdir_p) modules
-	$(mkdir_p) modules/gconf
-	$(mkdir_p) modules/rtp
-
-$(SYMDEF_FILES): modules/module-defs.h.m4 modulesdirs
+$(SYMDEF_FILES): modules/module-defs.h.m4
+	$(mkdir_p) modules/gconf modules/rtp
 	$(M4) -Dfname="$@" $< > $@
 
 # Simple protocol
