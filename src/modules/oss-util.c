@@ -93,7 +93,11 @@ success:
     
     pa_log_debug("capabilities:%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
                  *pcaps & DSP_CAP_BATCH ? " BATCH" : "",
+#ifdef DSP_CAP_BIND
                  *pcaps & DSP_CAP_BIND ? " BIND" : "",
+#else
+		 "",
+#endif
                  *pcaps & DSP_CAP_COPROC ? " COPROC" : "",
                  *pcaps & DSP_CAP_DUPLEX ? " DUPLEX" : "",
 #ifdef DSP_CAP_FREERATE                     
@@ -112,7 +116,11 @@ success:
 #else
                  "",
 #endif
+#ifdef DSP_CAP_MULTI
                  *pcaps & DSP_CAP_MULTI ? " MULTI" : "",
+#else
+		 "",
+#endif
 #ifdef DSP_CAP_OUTPUT
                  *pcaps & DSP_CAP_OUTPUT ? " OUTPUT" : "",
 #else

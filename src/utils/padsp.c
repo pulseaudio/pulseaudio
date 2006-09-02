@@ -53,6 +53,11 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/gccmacro.h>
 
+/* On some systems SIOCINQ isn't defined, but FIONREAD is just an alias */
+#if !defined(SIOCINQ) && defined(FIONREAD)
+# define SIOCINQ FIONREAD
+#endif
+
 typedef enum {
     FD_INFO_MIXER,
     FD_INFO_STREAM,
