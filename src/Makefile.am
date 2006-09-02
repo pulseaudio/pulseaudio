@@ -995,7 +995,12 @@ SYMDEF_FILES = \
 EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
 
-$(SYMDEF_FILES): modules/module-defs.h.m4
+modulesdirs: 
+	$(mkdir_p) modules
+	$(mkdir_p) modules/gconf
+	$(mkdir_p) modules/rtp
+
+$(SYMDEF_FILES): modules/module-defs.h.m4 modulesdirs
 	$(M4) -Dfname="$@" $< > $@
 
 # Simple protocol
