@@ -143,9 +143,18 @@ AC_HEADER_STDC
 
 # POSIX
 AC_CHECK_HEADERS([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
-    netinet/in_systm.h netinet/ip.h netinet/tcp.h pwd.h sched.h \
+    netinet/in_systm.h netinet/tcp.h pwd.h sched.h \
     sys/mman.h sys/resource.h sys/select.h sys/socket.h sys/wait.h \
     syslog.h])
+AC_CHECK_HEADERS([netinet/ip.h], [], [],
+		 [#include <sys/types.h>
+		  #if HAVE_NETINET_IN_H
+		  # include <netinet/in.h>
+		  #endif
+		  #if HAVE_NETINET_IN_SYSTM_H
+		  # include <netinet/in_systm.h>
+		  #endif
+		 ])
 AC_CHECK_HEADERS([regex.h], [HAVE_REGEX=1], [HAVE_REGEX=0])
 AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
 
