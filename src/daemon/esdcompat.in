@@ -28,7 +28,7 @@ fail() {
 
 ARGS=" --log-target=syslog"
 
-for N in $(seq $#) ; do
+while [ "$#" -gt "0" ]; do
 
     case "$1" in
         "")
