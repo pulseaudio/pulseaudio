@@ -97,6 +97,8 @@ int main(int argc, char *argv[]) {
     GConfClient *client;
     GSList *modules, *m;
 
+    g_type_init();
+
     if (!(client = gconf_client_get_default()))
         goto fail;
 
