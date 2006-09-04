@@ -619,8 +619,14 @@ if OS_IS_WIN32
 libpulsecore_la_SOURCES += \
 		pulsecore/mutex-win32.c \
 		pulsecore/thread-win32.c
+libpulse_la_SOURCES += \
+		pulsecore/mutex-win32.c \
+		pulsecore/thread-win32.c
 else
 libpulsecore_la_SOURCES += \
+		pulsecore/mutex-posix.c \
+		pulsecore/thread-posix.c
+libpulse_la_SOURCES += \
 		pulsecore/mutex-posix.c \
 		pulsecore/thread-posix.c
 endif
