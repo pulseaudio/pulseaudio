@@ -162,6 +162,18 @@ pa_thread* pa_thread_self(void) {
     return t;
 }
 
+void* pa_thread_get_data(pa_thread *t) {
+    assert(t);
+
+    return t->userdata;
+}
+
+void pa_thread_set_data(pa_thread *t, void *userdata) {
+    assert(t);
+
+    t->userdata = userdata;
+}
+
 void pa_thread_yield(void) {
 #ifdef HAVE_PTHREAD_YIELD
     pthread_yield();

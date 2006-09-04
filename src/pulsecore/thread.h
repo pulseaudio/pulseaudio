@@ -40,6 +40,9 @@ pa_thread *pa_thread_self(void);
 void pa_thread_yield(void);
 void pa_thread_once(pa_thread_once_t *control, pa_thread_once_func_t once_func);
 
+void* pa_thread_get_data(pa_thread *t);
+void pa_thread_set_data(pa_thread *t, void *userdata);
+
 typedef struct pa_tls pa_tls;
 
 pa_tls* pa_tls_new(pa_free_cb_t free_cb);
