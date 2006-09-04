@@ -117,15 +117,32 @@ int pa_thread_join(pa_thread *t) {
 }
 
 pa_thread* pa_thread_self(void) {
+    pa_thread *t;
+    
     ASSERT_SUCCESS(pthread_once(&thread_tls_once, thread_tls_once_func));
-    return pa_tls_get(thread_tls);
+
+    if ((t = pa_tls_get(thread_tls)))
+        return t;
+
+    /* This is a foreign thread, let's create a pthread structure to
+     * make sure that we can always return a sensible pointer */
+    
+    t = pa_xnew(pa_thread, 1);
+    t->id = pthread_self();
+    t->thread_func = NULL;
+    t->userdata = NULL;
+    AO_store_full(&t->running, 1);
+
+    pa_tls_set(thread_tls, t);
+    
+    return t;
 }
 
 void pa_thread_yield(void) {
 #ifdef HAVE_PTHREAD_YIELD
     pthread_yield();
 #else
-    sched_yield();
+    ASSERT_SUCCESS(sched_yield());
 #endif
 }
 
