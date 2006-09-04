@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <sched.h>
+#include <errno.h>
 
 #include <atomic_ops.h>
 
@@ -56,8 +57,18 @@ static pthread_once_t thread_tls_once = PTHREAD_ONCE_INIT;
 static pa_mutex *once_mutex;
 static pthread_once_t thread_once_once = PTHREAD_ONCE_INIT;
 
+static void tls_free_cb(void *p) {
+    pa_thread *t = p;
+
+    assert(t);
+    
+    if (!t->thread_func) 
+        /* This is a foreign thread, we need to free the struct */
+        pa_xfree(t);
+}
+
 static void thread_tls_once_func(void) {
-    thread_tls = pa_tls_new(NULL);
+    thread_tls = pa_tls_new(tls_free_cb);
     assert(thread_tls);
 }
 
@@ -80,6 +91,8 @@ static void* internal_thread_func(void *userdata) {
 pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
     pa_thread *t;
 
+    assert(thread_func);
+    
     t = pa_xnew(pa_thread, 1);
     t->thread_func = thread_func;
     t->userdata = userdata;
@@ -98,6 +111,17 @@ pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
 int pa_thread_is_running(pa_thread *t) {
     AO_t r;
     assert(t);
+
+    if (!t->thread_func) {
+        /* Mhmm, this is a foreign thread, t->running is not
+         * necessarily valid. We misuse pthread_getschedparam() to
+         * check if the thread is valid. This might not be portable. */
+
+        int policy;
+        struct sched_param param;
+        
+        return pthread_getschedparam(t->id, &policy, &param) >= 0 || errno != ESRCH;
+    }
 
     r = AO_load_full(&t->running);
     return r == 1 || r == 2;
