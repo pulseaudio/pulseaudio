@@ -58,10 +58,10 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
 
     if (!shared) {
         if (!(pool = pa_mempool_new(shared))) {
-        	pa_log("pa_mempool_new() failed.");
+            pa_log("pa_mempool_new() failed.");
             return NULL;
         }
-	}
+    }
 
     c = pa_xnew(pa_core, 1);
 
