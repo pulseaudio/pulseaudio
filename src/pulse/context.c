@@ -98,6 +98,8 @@ static void unlock_autospawn_lock_file(pa_context *c) {
     }
 }
 
+static void context_free(pa_context *c);
+
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     pa_context *c;
     
@@ -148,7 +150,16 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
 #endif
     pa_client_conf_env(c->conf);
 
-    c->mempool = pa_mempool_new(!c->conf->disable_shm);
+    if (!(c->mempool = pa_mempool_new(!c->conf->disable_shm))) {
+
+        if (!c->conf->disable_shm)
+            c->mempool = pa_mempool_new(0);
+
+        if (!c->mempool) {
+            context_free(c);
+            return NULL;
+        }
+    }
 
     return c;
 }
@@ -178,7 +189,8 @@ static void context_free(pa_context *c) {
     if (c->playback_streams)
         pa_dynarray_free(c->playback_streams, NULL, NULL);
 
-    pa_mempool_free(c->mempool);
+    if (c->mempool)
+        pa_mempool_free(c->mempool);
 
     if (c->conf)
         pa_client_conf_free(c->conf);
