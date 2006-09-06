@@ -2072,7 +2072,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         case SNDCTL_DSP_GETOPTR: {
             count_info *info;
             
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETODELAY\n");
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETOPTR\n");
 
             info = (count_info*) argp;
             memset(info, 0, sizeof(*info));
