@@ -93,6 +93,8 @@ struct fd_info {
     pa_cvolume sink_volume, source_volume;
     uint32_t sink_index, source_index;
     int volume_modify_count;
+
+    int optr_n_blocks;
     
     PA_LLIST_FIELDS(fd_info);
 };
@@ -579,6 +581,7 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     i->volume_modify_count = 0;
     i->sink_index = (uint32_t) -1;
     i->source_index = (uint32_t) -1;
+    i->optr_n_blocks = 0;
     PA_LLIST_INIT(fd_info, i);
 
     reset_params(i);
@@ -1952,6 +1955,8 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             free_streams(i);
             dsp_flush_socket(i);
             reset_params(i);
+
+            i->optr_n_blocks = 0;
             
             pa_threaded_mainloop_unlock(i->mainloop);
             break;
@@ -2040,14 +2045,76 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             break;
         }
 
+        case SOUND_PCM_READ_RATE:
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_PCM_READ_RATE\n");
+            
+            pa_threaded_mainloop_lock(i->mainloop);
+            *(int*) argp = i->sample_spec.rate;
+            pa_threaded_mainloop_unlock(i->mainloop);
+            break; 
+
+        case SOUND_PCM_READ_CHANNELS:
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_PCM_READ_CHANNELS\n");
+            
+            pa_threaded_mainloop_lock(i->mainloop);
+            *(int*) argp = i->sample_spec.channels;
+            pa_threaded_mainloop_unlock(i->mainloop);
+            break; 
+
+        case SOUND_PCM_READ_BITS:
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_PCM_READ_BITS\n");
+            
+            pa_threaded_mainloop_lock(i->mainloop);
+            *(int*) argp = pa_sample_size(&i->sample_spec)*8;
+            pa_threaded_mainloop_unlock(i->mainloop);
+            break; 
+            
+        case SNDCTL_DSP_GETOPTR: {
+            count_info *info;
+            
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETODELAY\n");
+
+            info = (count_info*) argp;
+            memset(info, 0, sizeof(*info));
+            
+            pa_threaded_mainloop_lock(i->mainloop);
+
+            for (;;) {
+                pa_usec_t usec;
+
+                PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, exit_loop);
+
+                if (pa_stream_get_time(i->play_stream, &usec) >= 0) {
+                    size_t k = pa_usec_to_bytes(usec, &i->sample_spec);
+                    int m;
+                    
+                    info->bytes = (int) k;
+                    m = k / i->fragment_size;
+                    info->blocks = m - i->optr_n_blocks;
+                    i->optr_n_blocks = m;
+
+                    break;
+                }
+
+                if (pa_context_errno(i->context) != PA_ERR_NODATA) {
+                    debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_get_latency(): %s\n", pa_strerror(pa_context_errno(i->context)));
+                    break;
+                }
+
+                pa_threaded_mainloop_wait(i->mainloop);
+            }
+            
+            pa_threaded_mainloop_unlock(i->mainloop);
+
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": GETOPTR bytes=%i, blocks=%i, ptr=%i\n", info->bytes, info->blocks, info->ptr);
+
+            break;
+        }
+
         case SNDCTL_DSP_GETIPTR:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": invalid ioctl SNDCTL_DSP_GETIPTR\n");
             goto inval;
-
-        case SNDCTL_DSP_GETOPTR:
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": invalid ioctl SNDCTL_DSP_GETOPTR\n");
-            goto inval;
-
+            
         default:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": unknown ioctl 0x%08lx\n", request);
 
