@@ -101,7 +101,6 @@ struct pa_mempool {
 
     /* A list of free slots that may be reused */
     PA_LLIST_HEAD(struct mempool_slot, free_slots);
-    PA_LLIST_HEAD(struct mempool_slot, used_slots);
     
     pa_mempool_stat stat;
 };
@@ -195,7 +194,6 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
         return NULL;
     }
 
-    PA_LLIST_PREPEND(struct mempool_slot, p->used_slots, slot);
     return slot;
 }
 
@@ -354,7 +352,6 @@ void pa_memblock_unref(pa_memblock*b) {
             slot = mempool_slot_by_ptr(b->pool, b->data);
             assert(slot);
             
-            PA_LLIST_REMOVE(struct mempool_slot, b->pool->used_slots, slot);
             PA_LLIST_PREPEND(struct mempool_slot, b->pool->free_slots, slot);
             
             if (b->type == PA_MEMBLOCK_POOL_EXTERNAL)
@@ -471,7 +468,6 @@ pa_mempool* pa_mempool_new(int shared) {
     PA_LLIST_HEAD_INIT(pa_memimport, p->imports);
     PA_LLIST_HEAD_INIT(pa_memexport, p->exports);
     PA_LLIST_HEAD_INIT(struct mempool_slot, p->free_slots);
-    PA_LLIST_HEAD_INIT(struct mempool_slot, p->used_slots);
 
     memset(&p->stat, 0, sizeof(p->stat));
 
@@ -505,9 +501,8 @@ void pa_mempool_vacuum(pa_mempool *p) {
     
     assert(p);
 
-    for (slot = p->free_slots; slot; slot = slot->next) {
+    for (slot = p->free_slots; slot; slot = slot->next)
         pa_shm_punch(&p->memory, (uint8_t*) slot + sizeof(struct mempool_slot) - (uint8_t*) p->memory.ptr, p->block_size - sizeof(struct mempool_slot));
-    }
 }
 
 int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id) {
