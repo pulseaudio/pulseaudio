@@ -20,7 +20,7 @@
 
 ### Load audio drivers statically
 #load-module module-alsa-sink
-#load-module module-alsa-source device=plughw:1,0
+#load-module module-alsa-source device=hw:1,0
 #load-module module-oss device="/dev/dsp" sink_name=output source_name=input
 #load-module module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
 #load-module module-null-sink
