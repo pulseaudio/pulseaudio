@@ -33,6 +33,8 @@ typedef struct pa_atomic_int {
     volatile AO_t value;
 } pa_atomic_int_t;
 
+#define PA_ATOMIC_INIT(v) { .value = (v) }
+
 /* For now we do only full memory barriers. Eventually we might want
  * to support more elaborate memory barriers, in which case we will add
  * suffixes to the function names */
