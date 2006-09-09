@@ -24,13 +24,9 @@
 
 #include <pulse/def.h>
 
-#define PA_THREAD_ONCE_INIT 0
-
 typedef struct pa_thread pa_thread;
 
 typedef void (*pa_thread_func_t) (void *userdata);
-typedef void (*pa_thread_once_func_t) (void);
-typedef unsigned int pa_thread_once_t;
 
 pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata);
 void pa_thread_free(pa_thread *t);
@@ -38,7 +34,6 @@ int pa_thread_join(pa_thread *t);
 int pa_thread_is_running(pa_thread *t);
 pa_thread *pa_thread_self(void);
 void pa_thread_yield(void);
-void pa_thread_once(pa_thread_once_t *control, pa_thread_once_func_t once_func);
 
 void* pa_thread_get_data(pa_thread *t);
 void pa_thread_set_data(pa_thread *t, void *userdata);

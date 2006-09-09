@@ -28,10 +28,10 @@
 #include <sched.h>
 #include <errno.h>
 
-#include <atomic_ops.h>
-
 #include <pulse/xmalloc.h>
 #include <pulsecore/mutex.h>
+#include <pulsecore/once.h>
+#include <pulsecore/atomic.h>
 
 #include "thread.h"
 
@@ -44,7 +44,7 @@ struct pa_thread {
     pthread_t id;
     pa_thread_func_t thread_func;
     void *userdata;
-    AO_t running;
+    pa_atomic_int_t running;
 };
 
 struct pa_tls {
@@ -52,10 +52,7 @@ struct pa_tls {
 };
 
 static pa_tls *thread_tls;
-static pthread_once_t thread_tls_once = PTHREAD_ONCE_INIT;
-
-static pa_mutex *once_mutex;
-static pthread_once_t thread_once_once = PTHREAD_ONCE_INIT;
+static pa_once_t thread_tls_once = PA_ONCE_INIT;
 
 static void tls_free_cb(void *p) {
     pa_thread *t = p;
@@ -78,12 +75,13 @@ static void* internal_thread_func(void *userdata) {
 
     t->id = pthread_self();
 
-    ASSERT_SUCCESS(pthread_once(&thread_tls_once, thread_tls_once_func));
+    pa_once(&thread_tls_once, thread_tls_once_func);
+        
     pa_tls_set(thread_tls, t);
     
-    AO_fetch_and_add1_full(&t->running);
+    pa_atomic_inc(&t->running);
     t->thread_func(t->userdata);
-    AO_fetch_and_add_full(&t->running, (AO_t) -2);
+    pa_atomic_add(&t->running, -2);
     
     return NULL;
 }
@@ -96,20 +94,19 @@ pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
     t = pa_xnew(pa_thread, 1);
     t->thread_func = thread_func;
     t->userdata = userdata;
-    AO_store_full(&t->running, 0);
+    pa_atomic_store(&t->running, 0);
 
     if (pthread_create(&t->id, NULL, internal_thread_func, t) < 0) {
         pa_xfree(t);
         return NULL;
     }
 
-    AO_fetch_and_add1_full(&t->running);
+    pa_atomic_inc(&t->running);
 
     return t;
 }
 
 int pa_thread_is_running(pa_thread *t) {
-    AO_t r;
     assert(t);
 
     if (!t->thread_func) {
@@ -123,8 +120,7 @@ int pa_thread_is_running(pa_thread *t) {
         return pthread_getschedparam(t->id, &policy, &param) >= 0 || errno != ESRCH;
     }
 
-    r = AO_load_full(&t->running);
-    return r == 1 || r == 2;
+    return pa_atomic_load(&t->running) > 0;
 }
 
 void pa_thread_free(pa_thread *t) {
@@ -143,7 +139,7 @@ int pa_thread_join(pa_thread *t) {
 pa_thread* pa_thread_self(void) {
     pa_thread *t;
     
-    ASSERT_SUCCESS(pthread_once(&thread_tls_once, thread_tls_once_func));
+    pa_once(&thread_tls_once, thread_tls_once_func);
 
     if ((t = pa_tls_get(thread_tls)))
         return t;
@@ -155,7 +151,7 @@ pa_thread* pa_thread_self(void) {
     t->id = pthread_self();
     t->thread_func = NULL;
     t->userdata = NULL;
-    AO_store_full(&t->running, 1);
+    pa_atomic_store(&t->running, 2);
 
     pa_tls_set(thread_tls, t);
     
@@ -180,27 +176,6 @@ void pa_thread_yield(void) {
 #else
     ASSERT_SUCCESS(sched_yield());
 #endif
-}
-
-static void thread_once_once_func(void) {
-    once_mutex = pa_mutex_new(0);
-    assert(once_mutex);
-}
-
-void pa_thread_once(pa_thread_once_t *control, pa_thread_once_func_t once_func) {
-    assert(control);
-    assert(once_func);
-
-    ASSERT_SUCCESS(pthread_once(&thread_once_once, thread_once_once_func));
-
-    pa_mutex_lock(once_mutex);
-
-    if (*control == PA_THREAD_ONCE_INIT) {
-        *control = ~PA_THREAD_ONCE_INIT;
-        pa_mutex_unlock(once_mutex);
-        once_func();
-    } else
-        pa_mutex_unlock(once_mutex);
 }
 
 pa_tls* pa_tls_new(pa_free_cb_t free_cb) {
