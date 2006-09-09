@@ -22,21 +22,17 @@
   USA.
 ***/
 
-#include <pulsecore/atomic.h>
+#include <pulsecore/mutex.h>
 
 typedef struct pa_once {
-    pa_atomic_int_t atomic;
+    unsigned int once_value;
+    pa_mutex *mutex;
 } pa_once_t;
 
-#define PA_ONCE_INIT { PA_ATOMIC_INIT(0) }
-
-#define pa_once_test(o) (pa_atomic_cmpxchg(&(o)->atomic, 0, 1))
+#define PA_ONCE_INIT { .once_value = 0, .mutex = NULL }
 
 typedef void (*pa_once_func_t) (void);
 
-static inline void pa_once(pa_once_t *o, pa_once_func_t f) {
-    if (pa_once_test(o))
-        f();
-}
+void pa_once(pa_once_t *o, pa_once_func_t f);
 
 #endif
