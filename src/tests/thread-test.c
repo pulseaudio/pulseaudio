@@ -25,6 +25,7 @@
 
 #include <pulsecore/thread.h>
 #include <pulsecore/mutex.h>
+#include <pulsecore/once.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
 #include <pulse/xmalloc.h>
@@ -36,6 +37,12 @@ static pa_tls *tls = NULL;
 static int magic_number = 0;
 
 #define THREADS_MAX 20
+
+static void once_func(void) {
+    pa_log("once!");
+}
+
+static pa_once_t once = PA_ONCE_INIT;
 
 static void thread_func(void *data) {
     pa_tls_set(tls, data);
@@ -64,6 +71,8 @@ static void thread_func(void *data) {
         magic_number = 0;
 
         pa_mutex_unlock(mutex);
+
+        pa_once(&once, once_func);
 
         pa_cond_signal(cond2, 0);
         
