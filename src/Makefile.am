@@ -200,7 +200,8 @@ noinst_PROGRAMS = \
 		ipacl-test \
 		hook-list-test \
 		memblock-test \
-		thread-test
+		thread-test \
+		flist-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -250,10 +251,15 @@ memblock_test_CFLAGS = $(AM_CFLAGS)
 memblock_test_LDADD = $(AM_LDADD) libpulsecore.la
 memblock_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
 
-thread_test_SOURCES = tests/thread-test.c 
+thread_test_SOURCES = tests/thread-test.c pulse/xmalloc.c pulsecore/flist.c pulsecore/thread-posix.c pulsecore/mutex-posix.c pulsecore/log.c pulsecore/core-util.c pulse/util.c pulse/utf8.c pulsecore/core-error.c pulsecore/once-posix.c
 thread_test_CFLAGS = $(AM_CFLAGS)
-thread_test_LDADD = $(AM_LDADD) libpulsecore.la
+thread_test_LDADD = $(AM_LDADD) 
 thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
+
+flist_test_SOURCES = tests/flist-test.c pulse/xmalloc.c pulsecore/flist.c pulsecore/thread-posix.c pulsecore/mutex-posix.c pulsecore/log.c pulsecore/core-util.c pulse/util.c pulse/utf8.c pulsecore/core-error.c pulsecore/once-posix.c
+flist_test_CFLAGS = $(AM_CFLAGS)
+flist_test_LDADD = $(AM_LDADD) 
+flist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
@@ -625,10 +631,12 @@ libpulse_la_SOURCES += \
 else
 libpulsecore_la_SOURCES += \
 		pulsecore/mutex-posix.c \
-		pulsecore/thread-posix.c
+		pulsecore/thread-posix.c \
+		pulsecore/once-posix.c
 libpulse_la_SOURCES += \
 		pulsecore/mutex-posix.c \
-		pulsecore/thread-posix.c
+		pulsecore/thread-posix.c \
+		pulecore/once-posix.c
 endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
