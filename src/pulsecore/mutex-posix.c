@@ -52,16 +52,11 @@ pa_mutex* pa_mutex_new(int recursive) {
     pthread_mutexattr_init(&attr);
 
     if (recursive)
-        if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE) < 0)
-            return NULL;
+        ASSERT_SUCCESS(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE));
 
     m = pa_xnew(pa_mutex, 1);
 
-    if (pthread_mutex_init(&m->mutex, &attr) < 0) {
-        pa_xfree(m);
-        return NULL;
-    }
-
+    ASSERT_SUCCESS(pthread_mutex_init(&m->mutex, &attr));
     return m;
 }
 
@@ -84,17 +79,12 @@ void pa_mutex_unlock(pa_mutex *m) {
     ASSERT_SUCCESS(pthread_mutex_unlock(&m->mutex));
 }
 
-
 pa_cond *pa_cond_new(void) {
     pa_cond *c;
 
     c = pa_xnew(pa_cond, 1);
 
-    if (pthread_cond_init(&c->cond, NULL) < 0) {
-        pa_xfree(c);
-        return NULL;
-    }
-
+    ASSERT_SUCCESS(pthread_cond_init(&c->cond, NULL));
     return c;
 }
 
