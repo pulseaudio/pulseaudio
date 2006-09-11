@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <pulse/util.h>
 #include <pulse/xmalloc.h>
 #include <pulsecore/flist.h>
 #include <pulsecore/thread.h>
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
         assert(threads[i]);
     }
 
-    sleep(60);
+    pa_msleep(60000);
     quit = 1;
 
     for (i = 0; i < THREADS_MAX; i++)
