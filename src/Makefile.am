@@ -70,6 +70,18 @@ AM_LDFLAGS+=-Wl,--export-all-symbols
 WINSOCK_LIBS=-lwsock32 -lws2_32 -lwininet
 endif
 
+if OS_IS_WIN32
+PA_THREAD_OBJS = \
+		pulsecore/once-win32.c pulsecore/once.h \
+		pulsecore/mutex-win32.c pulsecore/mutex.h \
+		pulsecore/thread-win32.c pulsecore/thread.h
+else
+PA_THREAD_OBJS = \
+		pulsecore/once-posix.c pulsecore/once.h \
+		pulsecore/mutex-posix.c pulsecore/mutex.h \
+		pulsecore/thread-posix.c pulsecore/thread.h
+endif
+
 ###################################
 #          Extra files            #
 ###################################
@@ -251,14 +263,15 @@ memblock_test_CFLAGS = $(AM_CFLAGS)
 memblock_test_LDADD = $(AM_LDADD) libpulsecore.la
 memblock_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
 
-thread_test_SOURCES = tests/thread-test.c pulse/xmalloc.c pulsecore/flist.c pulsecore/thread-posix.c pulsecore/mutex-posix.c pulsecore/log.c pulsecore/core-util.c pulse/util.c pulse/utf8.c pulsecore/core-error.c pulsecore/once-posix.c
+thread_test_SOURCES = tests/thread-test.c
 thread_test_CFLAGS = $(AM_CFLAGS)
-thread_test_LDADD = $(AM_LDADD) 
+thread_test_LDADD = $(AM_LDADD) libpulsecore.la
 thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
 
-flist_test_SOURCES = tests/flist-test.c pulse/xmalloc.c pulsecore/flist.c pulsecore/thread-posix.c pulsecore/mutex-posix.c pulsecore/log.c pulsecore/core-util.c pulse/util.c pulse/utf8.c pulsecore/core-error.c pulsecore/once-posix.c
+flist_test_SOURCES = tests/flist-test.c \
+		pulsecore/flist.c pulsecore/flist.h
 flist_test_CFLAGS = $(AM_CFLAGS)
-flist_test_LDADD = $(AM_LDADD) 
+flist_test_LDADD = $(AM_LDADD) libpulsecore.la
 flist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
 
 mcalign_test_SOURCES = tests/mcalign-test.c
@@ -434,7 +447,8 @@ libpulse_la_SOURCES += \
 		pulsecore/tagstruct.c pulsecore/tagstruct.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/winsock.h pulsecore/creds.h \
-		pulsecore/shm.c pulsecore/shm.h
+		pulsecore/shm.c pulsecore/shm.h \
+		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
 libpulse_la_SOURCES += \
@@ -544,7 +558,8 @@ pulsecoreinclude_HEADERS = \
 		pulsecore/llist.h \
 		pulsecore/refcnt.h \
 		pulsecore/mutex.h \
-		pulsecore/thread.h
+		pulsecore/thread.h \
+		pulsecore/once.h
 
 lib_LTLIBRARIES += libpulsecore.la
 
@@ -586,7 +601,6 @@ libpulsecore_la_SOURCES += \
 		pulsecore/modargs.c pulsecore/modargs.h \
 		pulsecore/modinfo.c pulsecore/modinfo.h \
 		pulsecore/module.c pulsecore/module.h \
-		pulsecore/mutex.h \
 		pulsecore/namereg.c pulsecore/namereg.h \
 		pulsecore/pid.c pulsecore/pid.h \
 		pulsecore/pipe.c pulsecore/pipe.h \
@@ -609,34 +623,16 @@ libpulsecore_la_SOURCES += \
 		pulsecore/source.c pulsecore/source.h \
 		pulsecore/source-output.c pulsecore/source-output.h \
 		pulsecore/strbuf.c pulsecore/strbuf.h \
-		pulsecore/thread.h \
 		pulsecore/tokenizer.c pulsecore/tokenizer.h \
 		pulsecore/winsock.h \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
-		pulsecore/shm.c pulsecore/shm.h
+		pulsecore/shm.c pulsecore/shm.h \
+		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
 libpulsecore_la_SOURCES += \
 		pulsecore/dllmain.c 
-endif
-
-if OS_IS_WIN32
-libpulsecore_la_SOURCES += \
-		pulsecore/mutex-win32.c \
-		pulsecore/thread-win32.c
-libpulse_la_SOURCES += \
-		pulsecore/mutex-win32.c \
-		pulsecore/thread-win32.c
-else
-libpulsecore_la_SOURCES += \
-		pulsecore/mutex-posix.c \
-		pulsecore/thread-posix.c \
-		pulsecore/once-posix.c
-libpulse_la_SOURCES += \
-		pulsecore/mutex-posix.c \
-		pulsecore/thread-posix.c \
-		pulsecore/once-posix.c
 endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)

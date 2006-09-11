@@ -29,6 +29,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/log.h>
+#include <pulsecore/once.h>
 
 #include "thread.h"
 
@@ -50,9 +51,9 @@ struct pa_tls_monitor {
 };
 
 static pa_tls *thread_tls;
-static pa_thread_once_t thread_tls_once = PA_THREAD_ONCE_INIT;
+static pa_once_t thread_tls_once = PA_ONCE_INIT;
 static pa_tls *monitor_tls;
-static pa_thread_once_t monitor_tls_once = PA_THREAD_ONCE_INIT;
+static pa_once_t monitor_tls_once = PA_ONCE_INIT;
 
 static void thread_tls_once_func(void) {
     thread_tls = pa_tls_new(NULL);
@@ -63,7 +64,7 @@ static DWORD WINAPI internal_thread_func(LPVOID param) {
     pa_thread *t = param;
     assert(t);
 
-    pa_thread_once(&thread_tls_once, thread_tls_once_func);
+    pa_once(&thread_tls_once, thread_tls_once_func);
     pa_tls_set(thread_tls, t);
 
     t->thread_func(t->userdata);
@@ -119,36 +120,12 @@ int pa_thread_join(pa_thread *t) {
 }
 
 pa_thread* pa_thread_self(void) {
-    pa_thread_once(&thread_tls_once, thread_tls_once_func);
+    pa_once(&thread_tls_once, thread_tls_once_func);
     return pa_tls_get(thread_tls);
 }
 
 void pa_thread_yield(void) {
     Sleep(0);
-}
-
-void pa_thread_once(pa_thread_once_t *control, pa_thread_once_func_t once_func) {
-    HANDLE mutex;
-    char name[64];
-
-    assert(control);
-    assert(once_func);
-
-    sprintf(name, "pulse%d", (int)GetCurrentProcessId());
-
-    mutex = CreateMutex(NULL, FALSE, name);
-    assert(mutex);
-
-    WaitForSingleObject(mutex, INFINITE);
-
-    if (*control == PA_THREAD_ONCE_INIT) {
-        *control = ~PA_THREAD_ONCE_INIT;
-        ReleaseMutex(mutex);
-        once_func();
-    } else
-        ReleaseMutex(mutex);
-
-    CloseHandle(mutex);
 }
 
 static void monitor_tls_once_func(void) {
@@ -212,7 +189,7 @@ void *pa_tls_set(pa_tls *t, void *userdata) {
     if (t->free_func) {
         struct pa_tls_monitor *m;
 
-        pa_thread_once(&monitor_tls_once, monitor_tls_once_func);
+        pa_once(&monitor_tls_once, monitor_tls_once_func);
 
         m = pa_tls_get(monitor_tls);
         if (!m) {
