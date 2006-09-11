@@ -636,7 +636,7 @@ libpulsecore_la_SOURCES += \
 libpulse_la_SOURCES += \
 		pulsecore/mutex-posix.c \
 		pulsecore/thread-posix.c \
-		pulecore/once-posix.c
+		pulsecore/once-posix.c
 endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
