@@ -1875,7 +1875,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             break;
 
         case SNDCTL_DSP_SETFRAGMENT:
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETFRAGMENT: 0x%8x\n", *(int*) argp);
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETFRAGMENT: 0x%08x\n", *(int*) argp);
             
             pa_threaded_mainloop_lock(i->mainloop);
             
