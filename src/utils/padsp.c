@@ -1879,7 +1879,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             
             pa_threaded_mainloop_lock(i->mainloop);
             
-            i->fragment_size = 1 << (*(int*) argp);
+            i->fragment_size = 1 << ((*(int*) argp) & 31);
             i->n_fragments = (*(int*) argp) >> 16;
 
             /* 0x7FFF means that we can set whatever we like */
