@@ -707,7 +707,7 @@ AC_DEFINE_UNQUOTED(PA_SYSTEM_GROUP,"$PA_SYSTEM_GROUP", [Group for the PulseAudio
 
 AC_ARG_WITH(realtime_group,AS_HELP_STRING([--with-realtime-group=<group>],[Group for users that are allowed to start the PulseAudio daemon with realtime scheduling (realtime)]))
 if test -z "$with_realtime_group" ; then
-    PA_REALTIME_GROUP=realtime
+    PA_REALTIME_GROUP=pulse-rt
 else
     PA_REALTIME_GROUP=$with_realtime_group
 fi
