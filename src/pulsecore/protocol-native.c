@@ -2274,6 +2274,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     } else {
         struct upload_stream *u = (struct upload_stream*) stream;
         size_t l;
+        
         assert(u->type == UPLOAD_STREAM);
 
         if (!u->memchunk.memblock) {
@@ -2293,9 +2294,18 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
         if (l > chunk->length)
             l = chunk->length;
 
+        
         if (l > 0) {
-            memcpy((uint8_t*) u->memchunk.memblock->data + u->memchunk.index + u->memchunk.length,
-                   (uint8_t*) chunk->memblock->data+chunk->index, l);
+            void *src, *dst;
+            dst = pa_memblock_acquire(u->memchunk.memblock);
+            src = pa_memblock_acquire(chunk->memblock);
+            
+            memcpy((uint8_t*) dst + u->memchunk.index + u->memchunk.length,
+                   (uint8_t*) src+chunk->index, l);
+
+            pa_memblock_release(u->memchunk.memblock);
+            pa_memblock_release(chunk->memblock);
+            
             u->memchunk.length += l;
             u->length -= l;
         }

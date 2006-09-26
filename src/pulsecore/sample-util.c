@@ -46,15 +46,27 @@ pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spe
 }
 
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
-    assert(b && b->data && spec);
-    pa_silence_memory(b->data, b->length, spec);
+    void *data;
+
+    assert(b);
+    assert(spec);
+    
+    data = pa_memblock_acquire(b);
+    pa_silence_memory(data, pa_memblock_get_length(b), spec);
+    pa_memblock_release(b);
     return b;
 }
 
 void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
-    assert(c && c->memblock && c->memblock->data && spec && c->length);
+    void *data;
+    
+    assert(c);
+    assert(c->memblock);
+    assert(spec);
 
-    pa_silence_memory((uint8_t*) c->memblock->data+c->index, c->length, spec);
+    data = pa_memblock_acquire(c->memblock);
+    pa_silence_memory((uint8_t*) data+c->index, c->length, spec);
+    pa_memblock_release(c->memblock);
 }
 
 void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
@@ -82,26 +94,38 @@ void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
 }
 
 size_t pa_mix(
-    const pa_mix_info streams[],
-    unsigned nstreams,
-    void *data,
-    size_t length,
-    const pa_sample_spec *spec,
-    const pa_cvolume *volume,
-    int mute) {
-    
-    assert(streams && data && length && spec);
+        pa_mix_info streams[],
+        unsigned nstreams,
+        void *data,
+        size_t length,
+        const pa_sample_spec *spec,
+        const pa_cvolume *volume,
+        int mute) {
 
+    pa_cvolume full_volume;
+    size_t d = 0;
+    unsigned k;
+    
+    assert(streams);
+    assert(data);
+    assert(length);
+    assert(spec);
+
+    if (!volume)
+        volume = pa_cvolume_reset(&full_volume, spec->channels);
+
+    for (k = 0; k < nstreams; k++)
+        streams[k].internal = pa_memblock_acquire(streams[k].chunk.memblock);
+    
     switch (spec->format) {
         case PA_SAMPLE_S16NE:{
-            size_t d;
             unsigned channel = 0;
             
             for (d = 0;; d += sizeof(int16_t)) {
                 int32_t sum = 0;
                 
                 if (d >= length)
-                    return d;
+                    goto finish;
 
                 if (!mute && volume->values[channel] != PA_VOLUME_MUTED) {
                     unsigned i;
@@ -111,12 +135,12 @@ size_t pa_mix(
                         pa_volume_t cvolume = streams[i].volume.values[channel];
                         
                         if (d >= streams[i].chunk.length)
-                            return d;
+                            goto finish;
                         
                         if (cvolume == PA_VOLUME_MUTED)
                             v = 0;
                         else {
-                            v = *((int16_t*) ((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d));
+                            v = *((int16_t*) ((uint8_t*) streams[i].internal + streams[i].chunk.index + d));
                             
                             if (cvolume != PA_VOLUME_NORM)
                                 v = (int32_t) (v * pa_sw_volume_to_linear(cvolume));
@@ -139,17 +163,18 @@ size_t pa_mix(
                 if (++channel >= spec->channels)
                     channel = 0;
             }
+            
+            break;
         }
 
         case PA_SAMPLE_S16RE:{
-            size_t d;
             unsigned channel = 0;
             
             for (d = 0;; d += sizeof(int16_t)) {
                 int32_t sum = 0;
                 
                 if (d >= length)
-                    return d;
+                    goto finish;
 
                 if (!mute && volume->values[channel] != PA_VOLUME_MUTED) {
                     unsigned i;
@@ -159,12 +184,12 @@ size_t pa_mix(
                         pa_volume_t cvolume = streams[i].volume.values[channel];
                         
                         if (d >= streams[i].chunk.length)
-                            return d;
+                            goto finish;
                         
                         if (cvolume == PA_VOLUME_MUTED)
                             v = 0;
                         else {
-                            v = INT16_SWAP(*((int16_t*) ((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d)));
+                            v = INT16_SWAP(*((int16_t*) ((uint8_t*) streams[i].internal + streams[i].chunk.index + d)));
                             
                             if (cvolume != PA_VOLUME_NORM)
                                 v = (int32_t) (v * pa_sw_volume_to_linear(cvolume));
@@ -187,17 +212,18 @@ size_t pa_mix(
                 if (++channel >= spec->channels)
                     channel = 0;
             }
+
+            break;
         }
             
         case PA_SAMPLE_U8: {
-            size_t d;
             unsigned channel = 0;
             
             for (d = 0;; d ++) {
                 int32_t sum = 0;
                 
                 if (d >= length)
-                    return d;
+                    goto finish;
 
                 if (!mute && volume->values[channel] != PA_VOLUME_MUTED) {
                     unsigned i;
@@ -207,12 +233,12 @@ size_t pa_mix(
                         pa_volume_t cvolume = streams[i].volume.values[channel];
                         
                         if (d >= streams[i].chunk.length)
-                            return d;
+                            goto finish;
                         
                         if (cvolume == PA_VOLUME_MUTED)
                             v = 0;
                         else {
-                            v = (int32_t) *((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d) - 0x80;
+                            v = (int32_t) *((uint8_t*) streams[i].internal + streams[i].chunk.index + d) - 0x80;
                             
                             if (cvolume != PA_VOLUME_NORM)
                                 v = (int32_t) (v * pa_sw_volume_to_linear(cvolume));
@@ -235,17 +261,18 @@ size_t pa_mix(
                 if (++channel >= spec->channels)
                     channel = 0;
             }
+            
+            break;
         }
             
         case PA_SAMPLE_FLOAT32NE: {
-            size_t d;
             unsigned channel = 0;
             
             for (d = 0;; d += sizeof(float)) {
                 float sum = 0;
                 
                 if (d >= length)
-                    return d;
+                    goto finish;
                 
                 if (!mute && volume->values[channel] != PA_VOLUME_MUTED) {
                     unsigned i;
@@ -255,12 +282,12 @@ size_t pa_mix(
                         pa_volume_t cvolume = streams[i].volume.values[channel];
                         
                         if (d >= streams[i].chunk.length)
-                            return d;
+                            goto finish;
                         
                         if (cvolume == PA_VOLUME_MUTED)
                             v = 0;
                         else {
-                            v = *((float*) ((uint8_t*) streams[i].chunk.memblock->data + streams[i].chunk.index + d));
+                            v = *((float*) ((uint8_t*) streams[i].internal + streams[i].chunk.index + d));
                             
                             if (cvolume != PA_VOLUME_NORM)
                                 v *= pa_sw_volume_to_linear(cvolume);
@@ -279,17 +306,34 @@ size_t pa_mix(
                 if (++channel >= spec->channels)
                     channel = 0;
             }
+
+            break;
         }
             
         default:
             pa_log_error("ERROR: Unable to mix audio data of format %s.", pa_sample_format_to_string(spec->format));
             abort();
     }
+
+finish:
+
+    for (k = 0; k < nstreams; k++)
+        pa_memblock_release(streams[k].chunk.memblock);
+    
+    return d;
 }
 
 
-void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvolume *volume) {
-    assert(c && spec && (c->length % pa_frame_size(spec) == 0));
+void pa_volume_memchunk(
+        pa_memchunk*c,
+        const pa_sample_spec *spec,
+        const pa_cvolume *volume) {
+
+    void *ptr;
+    
+    assert(c);
+    assert(spec);
+    assert(c->length % pa_frame_size(spec) == 0);
     assert(volume);
 
     if (pa_cvolume_channels_equal_to(volume, PA_VOLUME_NORM))
@@ -299,6 +343,8 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
         pa_silence_memchunk(c, spec);
         return;
     }
+
+    ptr = pa_memblock_acquire(c->memblock);
 
     switch (spec->format) {
         case PA_SAMPLE_S16NE: {
@@ -310,7 +356,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
             for (channel = 0; channel < spec->channels; channel++)
                 linear[channel] = pa_sw_volume_to_linear(volume->values[channel]);
             
-            for (channel = 0, d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+            for (channel = 0, d = (int16_t*) ((uint8_t*) ptr + c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
                 int32_t t = (int32_t)(*d);
                 
                 t = (int32_t) (t * linear[channel]);
@@ -335,7 +381,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
             for (channel = 0; channel < spec->channels; channel++)
                 linear[channel] = pa_sw_volume_to_linear(volume->values[channel]);
             
-            for (channel = 0, d = (int16_t*) ((uint8_t*) c->memblock->data+c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
+            for (channel = 0, d = (int16_t*) ((uint8_t*) ptr + c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
                 int32_t t = (int32_t)(INT16_SWAP(*d));
                 
                 t = (int32_t) (t * linear[channel]);
@@ -357,7 +403,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
             size_t n;
             unsigned channel = 0;
             
-            for (d = (uint8_t*) c->memblock->data + c->index, n = c->length; n > 0; d++, n--) {
+            for (d = (uint8_t*) ptr + c->index, n = c->length; n > 0; d++, n--) {
                 int32_t t = (int32_t) *d - 0x80;
                 
                 t = (int32_t) (t * pa_sw_volume_to_linear(volume->values[channel]));
@@ -379,7 +425,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
             unsigned n;
             unsigned channel;
         
-            d = (float*) ((uint8_t*) c->memblock->data + c->index);
+            d = (float*) ((uint8_t*) ptr + c->index);
             skip = spec->channels * sizeof(float);
             n = c->length/sizeof(float)/spec->channels;
             
@@ -402,5 +448,7 @@ void pa_volume_memchunk(pa_memchunk*c, const pa_sample_spec *spec, const pa_cvol
                 pa_sample_format_to_string(spec->format));
             abort();
     }
+
+    pa_memblock_release(c->memblock);
 }
 

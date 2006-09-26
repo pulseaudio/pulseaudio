@@ -294,6 +294,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
     assert(i->state == PA_SINK_INPUT_RUNNING || i->state == PA_SINK_INPUT_DRAINED);
 
     if (i->move_silence > 0) {
+        size_t l;
 
         /* We have just been moved and shall play some silence for a
          * while until the old sink has drained its playback buffer */
@@ -303,7 +304,8 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
         chunk->memblock = pa_memblock_ref(i->silence_memblock);
         chunk->index = 0;
-        chunk->length = i->move_silence < chunk->memblock->length ? i->move_silence : chunk->memblock->length;
+        l = pa_memblock_get_length(chunk->memblock);
+        chunk->length = i->move_silence < l ? i->move_silence : l;
 
         ret = 0;
         do_volume_adj_here = 1;
@@ -389,10 +391,13 @@ void pa_sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t lengt
     if (i->move_silence > 0) {
 
         if (chunk) {
+            size_t l;
 
+            l = pa_memblock_get_length(i->silence_memblock);
+            
             if (chunk->memblock != i->silence_memblock ||
                 chunk->index != 0 ||
-                (chunk->memblock && (chunk->length != (i->silence_memblock->length < i->move_silence ? i->silence_memblock->length : i->move_silence)))) 
+                (chunk->memblock && (chunk->length != (l < i->move_silence ? l : i->move_silence)))) 
                 return;
             
         }

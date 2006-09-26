@@ -149,6 +149,7 @@ static void do_read(struct userdata *u) {
         pa_memchunk post_memchunk;
         snd_pcm_sframes_t frames;
         size_t l;
+        void *p;
         
         if (!u->memchunk.memblock) {
             u->memchunk.memblock = pa_memblock_new(u->source->core->mempool, u->memchunk.length = u->fragment_size);
@@ -157,11 +158,13 @@ static void do_read(struct userdata *u) {
             
         assert(u->memchunk.memblock);
         assert(u->memchunk.length);
-        assert(u->memchunk.memblock->data);
-        assert(u->memchunk.memblock->length);
         assert(u->memchunk.length % u->frame_size == 0);
 
-        if ((frames = snd_pcm_readi(u->pcm_handle, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length / u->frame_size)) < 0) {
+        p = pa_memblock_acquire(u->memchunk.memblock);
+        
+        if ((frames = snd_pcm_readi(u->pcm_handle, (uint8_t*) p + u->memchunk.index, u->memchunk.length / u->frame_size)) < 0) {
+            pa_memblock_release(u->memchunk.memblock);
+            
             if (frames == -EAGAIN)
                 return;
             
@@ -178,6 +181,7 @@ static void do_read(struct userdata *u) {
             pa_module_unload_request(u->module);
             return;
         }
+        pa_memblock_release(u->memchunk.memblock);
 
         l = frames * u->frame_size;
         

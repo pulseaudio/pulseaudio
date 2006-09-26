@@ -113,6 +113,7 @@ struct pa_stream {
     uint32_t requested_bytes;
 
     pa_memchunk peek_memchunk;
+    void *peek_data;
     pa_memblockq *record_memblockq;
 
     int corked;
