@@ -1,5 +1,5 @@
-#ifndef foopulserefcntfoo
-#define foopulserefcntfoo
+#ifndef foopulserefcnthfoo
+#define foopulserefcnthfoo
 
 /* $Id$ */
 
@@ -22,20 +22,21 @@
   USA.
 ***/
 
-#include <atomic_ops.h>
+#include <pulsecore/atomic.h>
 
-#define PA_REFCNT_DECLARE volatile AO_t _ref
+#define PA_REFCNT_DECLARE \
+  pa_atomic_int_t _ref
 
 #define PA_REFCNT_INIT(p) \
-  AO_store_release_write(&(p)->_ref,  1)
+  pa_atomic_store(&p->_ref, 1)
 
 #define PA_REFCNT_INC(p) \
-  AO_fetch_and_add1_release_write(&(p)->_ref)
+  pa_atomic_inc(&p->_ref)
 
 #define PA_REFCNT_DEC(p) \
-  (AO_fetch_and_sub1_release_write(&(p)->_ref)-1)
+  (pa_atomic_dec(&p->_ref)-1)
 
 #define PA_REFCNT_VALUE(p) \
-  AO_load_acquire_read(&(p)->_ref)
+  pa_atomic_load(&p->_ref)
 
 #endif
