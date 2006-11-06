@@ -120,7 +120,8 @@ void pa_threaded_mainloop_free(pa_threaded_mainloop* m) {
 
     pa_threaded_mainloop_stop(m);
 
-    pa_thread_free(m->thread);
+    if (m->thread)
+        pa_thread_free(m->thread);
 
     pa_mainloop_free(m->real_mainloop);
 
