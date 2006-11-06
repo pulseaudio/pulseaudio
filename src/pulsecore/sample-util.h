@@ -36,11 +36,10 @@ typedef struct pa_mix_info {
     pa_memchunk chunk;
     pa_cvolume volume;
     void *userdata;
-    void *internal; /* Used internally by pa_mix(), should not be initialised when calling pa_mix() */
 } pa_mix_info;
 
 size_t pa_mix(
-    pa_mix_info channels[],
+    const pa_mix_info channels[],
     unsigned nchannels,
     void *data,
     size_t length,

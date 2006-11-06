@@ -59,27 +59,24 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
             c.index = c.length = 0;
         }
 
-        assert(c.index < pa_memblock_get_length(c.memblock));
+        assert(c.index < c.memblock->length);
 
-        l = pa_memblock_get_length(c.memblock) - c.index;
+        l = c.memblock->length - c.index;
 
         l = l <= 1 ? l : rand() % (l-1) +1 ;
-
-        p = pa_memblock_acquire(c.memblock);
-        if ((r = read(STDIN_FILENO, (uint8_t*) p + c.index, l)) <= 0) {
-            pa_memblock_release(c.memblock);
+        
+        if ((r = read(STDIN_FILENO, (uint8_t*) c.memblock->data + c.index, l)) <= 0) {
             fprintf(stderr, "read() failed: %s\n", r < 0 ? strerror(errno) : "EOF");
             break;
         }
-        pa_memblock_release(c.memblock);
-            
+
         c.length = r;
         pa_mcalign_push(a, &c);
         fprintf(stderr, "Read %ld bytes\n", (long)r);
 
         c.index += r;
 
-        if (c.index >= pa_memblock_get_length(c.memblock)) {
+        if (c.index >= c.memblock->length) {
             pa_memblock_unref(c.memblock);
             pa_memchunk_reset(&c);
         }
@@ -90,9 +87,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
             if (pa_mcalign_pop(a, &t) < 0)
                 break;
 
-            p = pa_memblock_acquire(t.memblock);
-            pa_loop_write(STDOUT_FILENO, (uint8_t*) p + t.index, t.length, NULL);
-            pa_memblock_release(t.memblock);
+            pa_loop_write(STDOUT_FILENO, (uint8_t*) t.memblock->data + t.index, t.length, NULL);
             fprintf(stderr, "Wrote %lu bytes.\n", (unsigned long) t.length);
 
             pa_memblock_unref(t.memblock);

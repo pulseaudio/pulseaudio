@@ -176,7 +176,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
     assert(uchunk);
     assert(uchunk->memblock);
     assert(uchunk->length > 0);
-    assert(uchunk->index + uchunk->length <= pa_memblock_get_length(uchunk->memblock));
+    assert(uchunk->index + uchunk->length <= uchunk->memblock->length);
 
     if (uchunk->length % bq->base)
         return -1;
@@ -360,8 +360,8 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
         if (bq->silence) {
             chunk->memblock = pa_memblock_ref(bq->silence);
 
-            if (!length || length > pa_memblock_get_length(chunk->memblock))
-                length = pa_memblock_get_length(chunk->memblock);
+            if (!length || length > chunk->memblock->length)
+                length = chunk->memblock->length;
                 
             chunk->length = length;
         } else {
@@ -413,8 +413,8 @@ void pa_memblockq_drop(pa_memblockq *bq, const pa_memchunk *chunk, size_t length
 
             if (bq->silence) {
 
-                if (!l || l > pa_memblock_get_length(bq->silence))
-                    l = pa_memblock_get_length(bq->silence);
+                if (!l || l > bq->silence->length)
+                    l = bq->silence->length;
 
             }
 

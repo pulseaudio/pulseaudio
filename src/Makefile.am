@@ -268,7 +268,8 @@ thread_test_CFLAGS = $(AM_CFLAGS)
 thread_test_LDADD = $(AM_LDADD) libpulsecore.la
 thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
 
-flist_test_SOURCES = tests/flist-test.c
+flist_test_SOURCES = tests/flist-test.c \
+		pulsecore/flist.c pulsecore/flist.h
 flist_test_CFLAGS = $(AM_CFLAGS)
 flist_test_LDADD = $(AM_LDADD) libpulsecore.la
 flist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
@@ -447,8 +448,6 @@ libpulse_la_SOURCES += \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/winsock.h pulsecore/creds.h \
 		pulsecore/shm.c pulsecore/shm.h \
-		pulsecore/flist.c pulsecore/flist.h \
-		pulsecore/anotify.c pulsecore/anotify.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -629,8 +628,6 @@ libpulsecore_la_SOURCES += \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
 		pulsecore/shm.c pulsecore/shm.h \
-		pulsecore/flist.c pulsecore/flist.h \
-		pulsecore/anotify.c pulsecore/anotify.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32

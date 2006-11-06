@@ -89,7 +89,6 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
 
         } else {
             size_t l;
-            void *lo_data, *m_data;
 
             /* We have to copy */
             assert(m->leftover.length < m->base);
@@ -101,15 +100,10 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
             /* Can we use the current block? */
             pa_memchunk_make_writable(&m->leftover, m->base);
 
-            lo_data = pa_memblock_acquire(m->leftover.memblock);
-            m_data = pa_memblock_acquire(c->memblock);
-            memcpy((uint8_t*) lo_data + m->leftover.index + m->leftover.length, (uint8_t*) m_data + c->index, l);
-            pa_memblock_release(m->leftover.memblock);
-            pa_memblock_release(c->memblock);
+            memcpy((uint8_t*) m->leftover.memblock->data + m->leftover.index + m->leftover.length, (uint8_t*) c->memblock->data + c->index, l);
             m->leftover.length += l;
 
-            assert(m->leftover.length <= m->base);
-            assert(m->leftover.length <= pa_memblock_get_length(m->leftover.memblock));
+            assert(m->leftover.length <= m->base && m->leftover.length <= m->leftover.memblock->length);
 
             if (c->length > l) {
                 /* Save the remainder of the memory block */

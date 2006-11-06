@@ -144,7 +144,6 @@ static void do_write(struct userdata *u) {
     update_usage(u);
     
     for (;;) {
-        void *p;
         pa_memchunk *memchunk = NULL;
         snd_pcm_sframes_t frames;
         
@@ -157,15 +156,9 @@ static void do_write(struct userdata *u) {
                 memchunk = &u->memchunk;
         }
             
-        assert(memchunk->memblock);
-        assert(memchunk->length);
-        assert((memchunk->length % u->frame_size) == 0);
+        assert(memchunk->memblock && memchunk->memblock->data && memchunk->length && memchunk->memblock->length && (memchunk->length % u->frame_size) == 0);
 
-        p = pa_memblock_acquire(memchunk->memblock);
-        
-        if ((frames = snd_pcm_writei(u->pcm_handle, (uint8_t*) p + memchunk->index, memchunk->length / u->frame_size)) < 0) {
-            pa_memblock_release(memchunk->memblock);
-            
+        if ((frames = snd_pcm_writei(u->pcm_handle, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length / u->frame_size)) < 0) {
             if (frames == -EAGAIN)
                 return;
 
@@ -182,9 +175,6 @@ static void do_write(struct userdata *u) {
             pa_module_unload_request(u->module);
             return;
         }
-
-        pa_memblock_release(memchunk->memblock);
-        
 
         if (memchunk == &u->memchunk) {
             size_t l = frames * u->frame_size;

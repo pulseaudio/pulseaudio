@@ -74,26 +74,21 @@ static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
     if (!u->memchunk.memblock) {
         uint32_t fs = pa_frame_size(&i->sample_spec);
         sf_count_t n;
-        void *p;
 
         u->memchunk.memblock = pa_memblock_new(i->sink->core->mempool, BUF_SIZE);
         u->memchunk.index = 0;
 
-        p = pa_memblock_acquire(u->memchunk.memblock);
-        
         if (u->readf_function) {
-            if ((n = u->readf_function(u->sndfile, p, BUF_SIZE/fs)) <= 0)
+            if ((n = u->readf_function(u->sndfile, u->memchunk.memblock->data, BUF_SIZE/fs)) <= 0)
                 n = 0;
 
             u->memchunk.length = n * fs;
         } else {
-            if ((n = sf_read_raw(u->sndfile, p, BUF_SIZE)) <= 0)
+            if ((n = sf_read_raw(u->sndfile, u->memchunk.memblock->data, BUF_SIZE)) <= 0)
                 n = 0;
             
             u->memchunk.length = n;
         }
-
-        pa_memblock_release(u->memchunk.memblock);
         
         if (!u->memchunk.length) {
             free_userdata(u);

@@ -63,7 +63,7 @@ static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
 
     chunk->memblock = pa_memblock_ref(u->memblock);
     chunk->index = u->peek_index;
-    chunk->length = pa_memblock_get_length(u->memblock) - u->peek_index;
+    chunk->length = u->memblock->length - u->peek_index;
     return 0;
 }
 
@@ -72,12 +72,11 @@ static void sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t l
     assert(i && chunk && length && i->userdata);
     u = i->userdata;
 
-    assert(chunk->memblock == u->memblock);
-    assert(length <= pa_memblock_get_length(u->memblock)-u->peek_index);
+    assert(chunk->memblock == u->memblock && length <= u->memblock->length-u->peek_index);
 
     u->peek_index += length;
 
-    if (u->peek_index >= pa_memblock_get_length(u->memblock))
+    if (u->peek_index >= u->memblock->length)
         u->peek_index = 0;
 }
 
@@ -110,7 +109,6 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     uint32_t frequency;
     char t[256];
-    void *p;
     pa_sink_input_new_data data;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -142,10 +140,8 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     
     u->memblock = pa_memblock_new(c->mempool, pa_bytes_per_second(&ss));
-    p = pa_memblock_acquire(u->memblock);
-    calc_sine(p, pa_memblock_get_length(u->memblock), frequency);
-    pa_memblock_release(u->memblock);
-    
+    calc_sine(u->memblock->data, u->memblock->length, frequency);
+
     snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
 
     pa_sink_input_new_data_init(&data);

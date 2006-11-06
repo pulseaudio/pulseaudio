@@ -237,6 +237,7 @@ static unsigned fill_mix_info(pa_sink *s, pa_mix_info *info, unsigned maxinfo) {
         info->userdata = i;
         
         assert(info->chunk.memblock);
+        assert(info->chunk.memblock->data);
         assert(info->chunk.length);
         
         info++;
@@ -304,16 +305,13 @@ int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
                 pa_volume_memchunk(result, &s->sample_spec, &volume);
         }
     } else {
-        void *ptr;
         result->memblock = pa_memblock_new(s->core->mempool, length);
         assert(result->memblock);
 
 /*          pa_log("mixing %i", n);  */
 
-        ptr = pa_memblock_acquire(result->memblock);
-        result->length = pa_mix(info, n, ptr, length, &s->sample_spec, &s->sw_volume, s->sw_muted);
-        pa_memblock_release(result->memblock);
-        
+        result->length = pa_mix(info, n, result->memblock->data, length,
+            &s->sample_spec, &s->sw_volume, s->sw_muted);
         result->index = 0;
     }
 
@@ -334,13 +332,13 @@ int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
     int r = -1;
-    void *ptr;
     
     assert(s);
     assert(s->ref >= 1);
     assert(target);
     assert(target->memblock);
     assert(target->length);
+    assert(target->memblock->data);
 
     pa_sink_ref(s);
     
@@ -349,22 +347,15 @@ int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     if (n <= 0)
         goto finish;
 
-    ptr = pa_memblock_acquire(target->memblock);
-    
     if (n == 1) {
-        void *src;
         pa_cvolume volume;
 
         if (target->length > info[0].chunk.length)
             target->length = info[0].chunk.length;
-
-        src = pa_memblock_acquire(info[0].chunk.memblock);
         
-        memcpy((uint8_t*) ptr + target->index,
-               (uint8_t*) src + info[0].chunk.index,
+        memcpy((uint8_t*) target->memblock->data + target->index,
+               (uint8_t*) info[0].chunk.memblock->data + info[0].chunk.index,
                target->length);
-
-        pa_memblock_release(info[0].chunk.memblock);
 
         pa_sw_cvolume_multiply(&volume, &s->sw_volume, &info[0].volume);
 
@@ -374,13 +365,11 @@ int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
             pa_volume_memchunk(target, &s->sample_spec, &volume);
     } else
         target->length = pa_mix(info, n,
-                                (uint8_t*) ptr + target->index,
+                                (uint8_t*) target->memblock->data + target->index,
                                 target->length,
                                 &s->sample_spec,
                                 &s->sw_volume,
                                 s->sw_muted);
-
-    pa_memblock_release(target->memblock);
     
     inputs_drop(s, info, n, target->length);
 
@@ -404,6 +393,7 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
     assert(target);
     assert(target->memblock);
     assert(target->length);
+    assert(target->memblock->data);
 
     pa_sink_ref(s);
     

@@ -131,10 +131,8 @@ int main(int argc, char *argv[]) {
         if (pa_memblockq_peek(bq, &out) < 0)
             break;
 
-        p = pa_memblock_acquire(out.memblock);
-        for (e = (char*) p + out.index, n = 0; n < out.length; n++)
+        for (e = (char*) out.memblock->data + out.index, n = 0; n < out.length; n++)
             printf("%c", *e);
-        pa_memblock_release(out.memblock);
 
         pa_memblock_unref(out.memblock);
         pa_memblockq_drop(bq, &out, out.length);

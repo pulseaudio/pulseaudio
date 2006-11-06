@@ -142,25 +142,18 @@ static int do_write(struct userdata *u) {
             u->write_index = u->write_length = 0;
         }
     } else if (u->state == STATE_RUNNING) {
-        void *p;
-        
         pa_module_set_used(u->module, pa_sink_used_by(u->sink));
         
         if (!u->memchunk.length)
             if (pa_sink_render(u->sink, 8192, &u->memchunk) < 0)
                 return 0;
 
-        assert(u->memchunk.memblock);
-        assert(u->memchunk.length);
-
-        p = pa_memblock_acquire(u->memchunk.memblock);
+        assert(u->memchunk.memblock && u->memchunk.length);
         
-        if ((r = pa_iochannel_write(u->io, (uint8_t*) p + u->memchunk.index, u->memchunk.length)) < 0) {
-            pa_memblock_release(u->memchunk.memblock);
+        if ((r = pa_iochannel_write(u->io, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
             pa_log("write() failed: %s", pa_cstrerror(errno));
             return -1;
         }
-        pa_memblock_release(u->memchunk.memblock);
 
         u->memchunk.index += r;
         u->memchunk.length -= r;

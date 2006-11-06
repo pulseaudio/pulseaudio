@@ -55,7 +55,7 @@ static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
     if (c->length <= 0)
         return -1;
     
-    assert(c->memblock);
+    assert(c->memblock && c->memblock->length);
     *chunk = *c;
     pa_memblock_ref(c->memblock);
 

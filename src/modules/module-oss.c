@@ -155,7 +155,6 @@ static void do_write(struct userdata *u) {
     }
 
     do {
-        void *p;
         memchunk = &u->memchunk;
         
         if (!memchunk->length)
@@ -163,18 +162,16 @@ static void do_write(struct userdata *u) {
                 memchunk = &u->silence;
         
         assert(memchunk->memblock);
+        assert(memchunk->memblock->data);
         assert(memchunk->length);
-
-        p = pa_memblock_acquire(memchunk->memblock);
-        if ((r = pa_iochannel_write(u->io, (uint8_t*) p + memchunk->index, memchunk->length)) < 0) {
-            pa_memblock_release(memchunk->memblock);
+        
+        if ((r = pa_iochannel_write(u->io, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length)) < 0) {
             pa_log("write() failed: %s", pa_cstrerror(errno));
 
             clear_up(u);
             pa_module_unload_request(u->module);
             break;
         }
-        pa_memblock_release(memchunk->memblock);
         
         if (memchunk == &u->silence)
             assert(r % u->sample_size == 0);
@@ -220,13 +217,9 @@ static void do_read(struct userdata *u) {
     }
     
     do {
-        void *p;
         memchunk.memblock = pa_memblock_new(u->core->mempool, l);
-
-        p = pa_memblock_acquire(memchunk.memblock);
-        
-        if ((r = pa_iochannel_read(u->io, p, pa_memblock_get_length(memchunk.memblock))) < 0) {
-            pa_memblock_release(memchunk.memblock);
+        assert(memchunk.memblock);
+        if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
             pa_memblock_unref(memchunk.memblock);
             if (errno != EAGAIN) {
                 pa_log("read() failed: %s", pa_cstrerror(errno));
@@ -235,10 +228,9 @@ static void do_read(struct userdata *u) {
             }
             break;
         }
-        pa_memblock_release(memchunk.memblock);
         
-        assert(r <= (ssize_t) pa_memblock_get_length(memchunk.memblock));
-        memchunk.length = r;
+        assert(r <= (ssize_t) memchunk.memblock->length);
+        memchunk.length = memchunk.memblock->length = r;
         memchunk.index = 0;
         
         pa_source_post(u->source, &memchunk);

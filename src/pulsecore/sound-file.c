@@ -40,11 +40,7 @@ int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, 
     int ret = -1;
     size_t l;
     sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames) = NULL;
-    void *ptr = NULL;
-    
-    assert(fname);
-    assert(ss);
-    assert(chunk);
+    assert(fname && ss && chunk);
 
     chunk->memblock = NULL;
     chunk->index = chunk->length = 0;
@@ -101,10 +97,8 @@ int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, 
     chunk->index = 0;
     chunk->length = l;
 
-    ptr = pa_memblock_acquire(chunk->memblock);
-    
-    if ((readf_function && readf_function(sf, ptr, sfinfo.frames) != sfinfo.frames) ||
-        (!readf_function && sf_read_raw(sf, ptr, l) != l)) {
+    if ((readf_function && readf_function(sf, chunk->memblock->data, sfinfo.frames) != sfinfo.frames) ||
+        (!readf_function && sf_read_raw(sf, chunk->memblock->data, l) != l)) {
         pa_log("Premature file end");
         goto finish;
     }
@@ -116,9 +110,6 @@ finish:
     if (sf)
         sf_close(sf);
 
-    if (ptr)
-        pa_memblock_release(chunk->memblock);
-    
     if (ret != 0 && chunk->memblock)
         pa_memblock_unref(chunk->memblock);
     

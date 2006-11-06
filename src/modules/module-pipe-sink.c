@@ -84,8 +84,6 @@ static const char* const valid_modargs[] = {
 
 static void do_write(struct userdata *u) {
     ssize_t r;
-    void *p;
-    
     assert(u);
 
     u->core->mainloop->defer_enable(u->defer_event, 0);
@@ -99,17 +97,12 @@ static void do_write(struct userdata *u) {
         if (pa_sink_render(u->sink, PIPE_BUF, &u->memchunk) < 0)
             return;
 
-    assert(u->memchunk.memblock);
-    assert(u->memchunk.length);
-
-    p = pa_memblock_acquire(u->memchunk.memblock);
+    assert(u->memchunk.memblock && u->memchunk.length);
     
-    if ((r = pa_iochannel_write(u->io, (uint8_t*) p + u->memchunk.index, u->memchunk.length)) < 0) {
-        pa_memblock_release(u->memchunk.memblock);
+    if ((r = pa_iochannel_write(u->io, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
         pa_log("write(): %s", pa_cstrerror(errno));
         return;
     }
-    pa_memblock_release(u->memchunk.memblock);
 
     u->memchunk.index += r;
     u->memchunk.length -= r;

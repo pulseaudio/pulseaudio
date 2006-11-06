@@ -88,7 +88,6 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     s->peek_memchunk.index = 0;
     s->peek_memchunk.length = 0;
     s->peek_memchunk.memblock = NULL;
-    s->peek_data = NULL;
 
     s->record_memblockq = NULL;
 
@@ -123,11 +122,8 @@ static void stream_free(pa_stream *s) {
         s->mainloop->time_free(s->auto_timing_update_event);
     }
 
-    if (s->peek_memchunk.memblock) {
-        if (s->peek_data)
-            pa_memblock_release(s->peek_memchunk.memblock);
+    if (s->peek_memchunk.memblock)
         pa_memblock_unref(s->peek_memchunk.memblock);
-    }
 
     if (s->record_memblockq)
         pa_memblockq_free(s->record_memblockq);
@@ -609,11 +605,8 @@ int pa_stream_write(
     if (free_cb) 
         chunk.memblock = pa_memblock_new_user(s->context->mempool, (void*) data, length, free_cb, 1);
     else {
-        void *tdata;
         chunk.memblock = pa_memblock_new(s->context->mempool, length);
-        tdata = pa_memblock_acquire(chunk.memblock);
-        memcpy(tdata, data, length);
-        pa_memblock_release(chunk.memblock);
+        memcpy(chunk.memblock->data, data, length);
     }
         
     chunk.index = 0;
@@ -679,12 +672,9 @@ int pa_stream_peek(pa_stream *s, const void **data, size_t *length) {
             *length = 0;
             return 0;
         }
-
-        s->peek_data = pa_memblock_acquire(s->peek_memchunk.memblock);
     }
 
-    assert(s->peek_data);
-    *data = (uint8_t*) s->peek_data + s->peek_memchunk.index;
+    *data = (const char*) s->peek_memchunk.memblock->data + s->peek_memchunk.index;
     *length = s->peek_memchunk.length;
     return 0;
 }
@@ -702,9 +692,7 @@ int pa_stream_drop(pa_stream *s) {
     /* Fix the simulated local read index */
     if (s->timing_info_valid && !s->timing_info.read_index_corrupt)
         s->timing_info.read_index += s->peek_memchunk.length;
-
-    assert(s->peek_data);
-    pa_memblock_release(s->peek_memchunk.memblock);
+    
     pa_memblock_unref(s->peek_memchunk.memblock);
     s->peek_memchunk.length = 0;
     s->peek_memchunk.index = 0;

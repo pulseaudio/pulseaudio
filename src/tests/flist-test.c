@@ -54,7 +54,7 @@ static void thread_func(void *data) {
     int b = 1;
 
     while (!quit) {
-        char *text;
+        char *text, *t;
 
         /* Allocate some memory, if possible take it from the flist */
         if (b && (text = pa_flist_pop(flist)))

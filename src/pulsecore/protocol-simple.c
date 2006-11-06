@@ -113,7 +113,6 @@ static int do_read(struct connection *c) {
     pa_memchunk chunk;
     ssize_t r;
     size_t l;
-    void *p;
 
     if (!c->sink_input || !(l = pa_memblockq_missing(c->input_memblockq)))
         return 0;
@@ -122,7 +121,7 @@ static int do_read(struct connection *c) {
         l = c->playback.fragment_size;
 
     if (c->playback.current_memblock) 
-        if (pa_memblock_get_length(c->playback.current_memblock) - c->playback.memblock_index < l) {
+        if (c->playback.current_memblock->length - c->playback.memblock_index < l) {
             pa_memblock_unref(c->playback.current_memblock);
             c->playback.current_memblock = NULL;
             c->playback.memblock_index = 0;
@@ -130,20 +129,15 @@ static int do_read(struct connection *c) {
 
     if (!c->playback.current_memblock) {
         c->playback.current_memblock = pa_memblock_new(c->protocol->core->mempool, c->playback.fragment_size*2);
-        assert(c->playback.current_memblock);
-        assert(pa_memblock_get_length(c->playback.current_memblock) >= l);
+        assert(c->playback.current_memblock && c->playback.current_memblock->length >= l);
         c->playback.memblock_index = 0;
     }
-
-    p = pa_memblock_acquire(c->playback.current_memblock);
     
-    if ((r = pa_iochannel_read(c->io, (uint8_t*) p + c->playback.memblock_index, l)) <= 0) {
-        pa_memblock_release(c->playback.current_memblock);
+    if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
         pa_log_debug("read(): %s", r == 0 ? "EOF" : pa_cstrerror(errno));
         return -1;
     }
 
-    pa_memblock_release(c->playback.current_memblock);
     chunk.memblock = c->playback.current_memblock;
     chunk.index = c->playback.memblock_index;
     chunk.length = r;
@@ -162,8 +156,7 @@ static int do_read(struct connection *c) {
 static int do_write(struct connection *c) {
     pa_memchunk chunk;
     ssize_t r;
-    void *p;
-    
+
     if (!c->source_output)
         return 0;    
 
@@ -172,17 +165,12 @@ static int do_write(struct connection *c) {
         return 0;
     
     assert(chunk.memblock && chunk.length);
-
-    p = pa_memblock_acquire(chunk.memblock);
     
-    if ((r = pa_iochannel_write(c->io, (uint8_t*) p+chunk.index, chunk.length)) < 0) {
-        pa_memblock_release(chunk.memblock);
+    if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
         pa_memblock_unref(chunk.memblock);
         pa_log("write(): %s", pa_cstrerror(errno));
         return -1;
     }
-
-    pa_memblock_release(chunk.memblock);
     
     pa_memblockq_drop(c->output_memblockq, &chunk, r);
     pa_memblock_unref(chunk.memblock);
