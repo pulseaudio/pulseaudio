@@ -1003,12 +1003,21 @@ static void free_streams(fd_info *i) {
         pa_stream_disconnect(i->play_stream);
         pa_stream_unref(i->play_stream);
         i->play_stream = NULL;
+        i->io_flags |= PA_IO_EVENT_INPUT;
     }
 
     if (i->rec_stream) {
         pa_stream_disconnect(i->rec_stream);
         pa_stream_unref(i->rec_stream);
         i->rec_stream = NULL;
+        i->io_flags |= PA_IO_EVENT_OUTPUT;
+    }
+
+    if (i->io_event) {
+        pa_mainloop_api *api;
+
+        api = pa_threaded_mainloop_get_api(i->mainloop);
+        api->io_enable(i->io_event, i->io_flags);
     }
 }
 
@@ -1954,7 +1963,6 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
             free_streams(i);
             dsp_flush_socket(i);
-            reset_params(i);
 
             i->optr_n_blocks = 0;
             
