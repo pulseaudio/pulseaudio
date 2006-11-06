@@ -191,7 +191,7 @@ do { \
 
 #define CONTEXT_CHECK_DEAD_GOTO(i, label) do { \
 if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY) { \
-    debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s\n", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
     goto label; \
 } \
 } while(0);
@@ -199,7 +199,7 @@ if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY) { \
 #define PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, label) do { \
 if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
     !(i)->play_stream || pa_stream_get_state((i)->play_stream) != PA_STREAM_READY) { \
-    debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s\n", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
     goto label; \
 } \
 } while(0);
@@ -207,7 +207,7 @@ if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
 #define RECORD_STREAM_CHECK_DEAD_GOTO(i, label) do { \
 if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
     !(i)->rec_stream || pa_stream_get_state((i)->rec_stream) != PA_STREAM_READY) { \
-    debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s\n", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
     goto label; \
 } \
 } while(0);
