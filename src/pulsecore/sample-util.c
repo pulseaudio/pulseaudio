@@ -68,6 +68,7 @@ void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
         case PA_SAMPLE_S16LE:
         case PA_SAMPLE_S16BE:
         case PA_SAMPLE_FLOAT32:
+        case PA_SAMPLE_FLOAT32RE:
             c = 0;
             break;
         case PA_SAMPLE_ALAW:

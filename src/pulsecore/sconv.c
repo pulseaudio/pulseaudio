@@ -72,6 +72,22 @@ static void float32ne_from_float32ne(unsigned n, const float *a, void *b) {
     oil_memcpy(b, a, sizeof(float) * n);
 }
 
+static void float32re_to_float32ne(unsigned n, const void *a, float *b) {
+    assert(a);
+    assert(b);
+
+    while (n-- > 0)
+        ((uint32_t *)b)[n] = UINT32_SWAP (((uint32_t *)a)[n]);
+}
+
+static void float32re_from_float32ne(unsigned n, const float *a, void *b) {
+    assert(a);
+    assert(b);
+
+    while (n-- > 0)
+        ((uint32_t *)b)[n] = UINT32_SWAP (((uint32_t *)a)[n]);
+}
+
 static void ulaw_to_float32ne(unsigned n, const void *a, float *b) {
     const uint8_t *ca = a;
 
@@ -140,6 +156,8 @@ pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(pa_sample_fo
             return pa_sconv_s16be_to_float32ne;
         case PA_SAMPLE_FLOAT32NE:
             return float32ne_to_float32ne;
+        case PA_SAMPLE_FLOAT32RE:
+            return float32re_to_float32ne;
         case PA_SAMPLE_ALAW:
             return alaw_to_float32ne;
         case PA_SAMPLE_ULAW:
@@ -159,6 +177,8 @@ pa_convert_from_float32ne_func_t pa_get_convert_from_float32ne_function(pa_sampl
             return pa_sconv_s16be_from_float32ne;
         case PA_SAMPLE_FLOAT32NE:
             return float32ne_from_float32ne;
+        case PA_SAMPLE_FLOAT32RE:
+            return float32re_from_float32ne;
         case PA_SAMPLE_ALAW:
             return alaw_from_float32ne;
         case PA_SAMPLE_ULAW:
