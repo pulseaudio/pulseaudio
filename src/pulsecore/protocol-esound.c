@@ -463,7 +463,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     sdata.client = c->client;
     
     c->source_output = pa_source_output_new(c->protocol->core, &sdata, 9);
-    CHECK_VALIDITY(c->sink_input, "Failed to create source_output.");
+    CHECK_VALIDITY(c->source_output, "Failed to create source_output.");
 
     l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS); 
     c->output_memblockq = pa_memblockq_new(
