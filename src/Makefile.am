@@ -77,6 +77,7 @@ PA_THREAD_OBJS = \
 		pulsecore/thread-win32.c pulsecore/thread.h
 else
 PA_THREAD_OBJS = \
+		pulsecore/atomic.h \
 		pulsecore/once-posix.c pulsecore/once.h \
 		pulsecore/mutex-posix.c pulsecore/mutex.h \
 		pulsecore/thread-posix.c pulsecore/thread.h
@@ -270,6 +271,7 @@ thread_test_LDADD = $(AM_LDADD) libpulsecore.la
 thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
 
 flist_test_SOURCES = tests/flist-test.c \
+		pulsecore/atomic.h \
 		pulsecore/flist.c pulsecore/flist.h
 flist_test_CFLAGS = $(AM_CFLAGS)
 flist_test_LDADD = $(AM_LDADD) libpulsecore.la
@@ -514,6 +516,7 @@ libpulsedsp_la_LDFLAGS = -avoid-version
 
 pulsecoreinclude_HEADERS = \
 		pulsecore/autoload.h \
+		pulsecore/atomic.h \
 		pulsecore/cli-command.h \
 		pulsecore/cli-text.h \
 		pulsecore/client.h \
