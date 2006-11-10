@@ -88,6 +88,7 @@ endif
 
 EXTRA_DIST = \
 		pulse/client.conf.in \
+		pulse/version.h.in \
 		daemon/daemon.conf.in \
 		daemon/default.pa.in \
 		daemon/default.pa.win32 \
