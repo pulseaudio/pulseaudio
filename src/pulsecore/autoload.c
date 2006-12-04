@@ -102,7 +102,7 @@ int pa_autoload_add(pa_core *c, const char*name, pa_namereg_type_t type, const c
 
 int pa_autoload_remove_by_name(pa_core *c, const char*name, pa_namereg_type_t type) {
     pa_autoload_entry *e;
-    assert(c && name && module && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
+    assert(c && name && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
 
     if (!c->autoload_hashmap || !(e = pa_hashmap_get(c->autoload_hashmap, name)) || e->type != type)
         return -1;
