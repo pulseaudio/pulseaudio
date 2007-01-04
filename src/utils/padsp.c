@@ -913,10 +913,14 @@ static void stream_state_cb(pa_stream *s, void * userdata) {
                 debug(DEBUG_LEVEL_NORMAL,
                     __FILE__": pa_stream_connect_playback() failed: %s\n",
                     pa_strerror(pa_context_errno(i->context)));
+                pa_stream_unref(i->play_stream);
+                i->play_stream = NULL;
             } else if (s == i->rec_stream) {
                 debug(DEBUG_LEVEL_NORMAL,
                     __FILE__": pa_stream_connect_record() failed: %s\n",
                     pa_strerror(pa_context_errno(i->context)));
+                pa_stream_unref(i->rec_stream);
+                i->rec_stream = NULL;
             }
             fd_info_shutdown(i);
             break;
