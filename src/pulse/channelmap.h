@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -72,7 +72,7 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_LEFT,
     PA_CHANNEL_POSITION_RIGHT,
     PA_CHANNEL_POSITION_CENTER,
-    
+
     PA_CHANNEL_POSITION_FRONT_LEFT = PA_CHANNEL_POSITION_LEFT,
     PA_CHANNEL_POSITION_FRONT_RIGHT = PA_CHANNEL_POSITION_RIGHT,
     PA_CHANNEL_POSITION_FRONT_CENTER = PA_CHANNEL_POSITION_CENTER,
@@ -80,13 +80,13 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_REAR_CENTER,
     PA_CHANNEL_POSITION_REAR_LEFT,
     PA_CHANNEL_POSITION_REAR_RIGHT,
-    
+
     PA_CHANNEL_POSITION_LFE,
     PA_CHANNEL_POSITION_SUBWOOFER = PA_CHANNEL_POSITION_LFE,
-    
+
     PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER,
     PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER,
-    
+
     PA_CHANNEL_POSITION_SIDE_LEFT,
     PA_CHANNEL_POSITION_SIDE_RIGHT,
 
@@ -124,7 +124,7 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_AUX31,
 
     PA_CHANNEL_POSITION_TOP_CENTER,
-    
+
     PA_CHANNEL_POSITION_TOP_FRONT_LEFT,
     PA_CHANNEL_POSITION_TOP_FRONT_RIGHT,
     PA_CHANNEL_POSITION_TOP_FRONT_CENTER,
@@ -132,7 +132,7 @@ typedef enum pa_channel_position {
     PA_CHANNEL_POSITION_TOP_REAR_LEFT,
     PA_CHANNEL_POSITION_TOP_REAR_RIGHT,
     PA_CHANNEL_POSITION_TOP_REAR_CENTER,
-    
+
     PA_CHANNEL_POSITION_MAX
 } pa_channel_position_t;
 
@@ -143,7 +143,7 @@ typedef enum pa_channel_map_def {
     PA_CHANNEL_MAP_AUX,    /**< Only aux channels */
     PA_CHANNEL_MAP_WAVEEX, /**< Microsoft's WAVEFORMATEXTENSIBLE mapping */
     PA_CHANNEL_MAP_OSS,    /**< The default channel mapping used by OSS as defined in the OSS 4.0 API specs */
-    
+
     PA_CHANNEL_MAP_DEFAULT = PA_CHANNEL_MAP_AIFF /**< The default channel map */
 } pa_channel_map_def_t;
 

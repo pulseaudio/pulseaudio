@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -48,7 +48,7 @@ struct pa_anotify {
 static void dispatch_event(pa_anotify *a) {
     assert(a);
     assert(a->queue_index < a->n_queued_events);
-    
+
     a->callback(a->queued_events[a->queue_index++], a->userdata);
 
     if (a->queue_index >= a->n_queued_events) {
@@ -69,14 +69,14 @@ static void io_callback(
         int fd,
         pa_io_event_flags_t events,
         void *userdata) {
-    
+
     pa_anotify *a = userdata;
     ssize_t r;
 
     assert(a);
     assert(events == PA_IO_EVENT_INPUT);
     assert(a->n_queued_events == 0);
-    
+
     r = read(fd, a->queued_events, sizeof(a->queued_events));
     assert(r > 0);
 
@@ -96,7 +96,7 @@ static void defer_callback(pa_mainloop_api *api, pa_defer_event *e, void *userda
 
 pa_anotify *pa_anotify_new(pa_mainloop_api*api, pa_anotify_cb_t cb, void *userdata) {
     pa_anotify *a;
-    
+
     assert(api);
     assert(cb);
 
@@ -106,7 +106,7 @@ pa_anotify *pa_anotify_new(pa_mainloop_api*api, pa_anotify_cb_t cb, void *userda
         pa_xfree(a);
         return NULL;
     }
-    
+
     a->api = api;
     a->callback = cb;
     a->userdata = userdata;
@@ -130,7 +130,7 @@ void pa_anotify_free(pa_anotify *a) {
         close(a->fds[0]);
     if (a->fds[1] >= 0)
         close(a->fds[1]);
-    
+
     pa_xfree(a);
 }
 

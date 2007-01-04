@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -39,27 +39,27 @@ typedef struct pa_memblockq pa_memblockq;
 
 
 /* Parameters:
-   
+
    - idx:       start value for both read and write index
 
    - maxlength: maximum length of queue. If more data is pushed into
                 the queue, the operation will fail. Must not be 0.
-   
+
    - tlength:   the target length of the queue. Pass 0 for the default.
-   
+
    - base:      a base value for all metrics. Only multiples of this value
                 are popped from the queue or should be pushed into
                 it. Must not be 0.
-   
+
    - prebuf:    If the queue runs empty wait until this many bytes are in
                 queue again before passing the first byte out. If set
                 to 0 pa_memblockq_pop() will return a silence memblock
                 if no data is in the queue and will never fail. Pass
                 (size_t) -1 for the default.
-                
+
    - minreq:    pa_memblockq_missing() will only return values greater
                 than this value. Pass 0 for the default.
-   
+
    - silence:   return this memblock whzen reading unitialized data
 */
 pa_memblockq* pa_memblockq_new(
@@ -67,7 +67,7 @@ pa_memblockq* pa_memblockq_new(
         size_t maxlength,
         size_t tlength,
         size_t base,
-        size_t prebuf, 
+        size_t prebuf,
         size_t minreq,
         pa_memblock *silence);
 

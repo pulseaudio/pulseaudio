@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -49,7 +49,7 @@ struct userdata {
 static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* userdata) {
     pa_sink_input *i;
     pa_sink *target;
-    
+
     assert(c);
     assert(sink);
 
@@ -57,7 +57,7 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
         pa_log_debug("No sink inputs to move away.");
         return PA_HOOK_OK;
     }
-    
+
     if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SINK, 0))) {
         pa_log_info("No evacuation sink found.");
         return PA_HOOK_OK;
@@ -74,14 +74,14 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
         pa_log_info("Sucessfully moved sink input %u \"%s\" to %s.", i->index, i->name, target->name);
     }
 
-    
+
     return PA_HOOK_OK;
 }
 
 static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void* userdata) {
     pa_source_output *o;
     pa_source *target;
-    
+
     assert(c);
     assert(source);
 
@@ -89,7 +89,7 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
         pa_log_debug("No source outputs to move away.");
         return PA_HOOK_OK;
     }
-    
+
     if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SOURCE, 0))) {
         pa_log_info("No evacuation source found.");
         return PA_HOOK_OK;
@@ -106,14 +106,14 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
         pa_log_info("Sucessfully moved source output %u \"%s\" to %s.", o->index, o->name, target->name);
     }
 
-    
+
     return PA_HOOK_OK;
 }
 
 int pa__init(pa_core *c, pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    
+
     assert(c);
     assert(m);
 
@@ -132,7 +132,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
 void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
-    
+
     assert(c);
     assert(m);
 

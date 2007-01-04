@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -85,7 +85,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
         pa_log("lost connection to evdev device.");
         goto fail;
     }
-        
+
     if (events & PA_IO_EVENT_INPUT) {
         struct input_event ev;
 
@@ -107,15 +107,15 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
 
             if (volchange != INVALID) {
                 pa_sink *s;
-                
+
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
                     pa_log("failed to get sink '%s'", u->sink_name);
                 else {
                     int i;
                     pa_cvolume cv = *pa_sink_get_volume(s, PA_MIXER_HARDWARE);
-                    
+
 #define DELTA (PA_VOLUME_NORM/20)
-                    
+
                     switch (volchange) {
                         case UP:
                             for (i = 0; i < cv.channels; i++) {
@@ -127,7 +127,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
 
                             pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
                             break;
-                            
+
                         case DOWN:
                             for (i = 0; i < cv.channels; i++) {
                                 if (cv.values[i] >= DELTA)
@@ -135,10 +135,10 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                                 else
                                     cv.values[i] = PA_VOLUME_MUTED;
                             }
-                            
+
                             pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
                             break;
-                            
+
                         case MUTE_TOGGLE:
 
                             pa_sink_set_mute(s, PA_MIXER_HARDWARE, !pa_sink_get_mute(s, PA_MIXER_HARDWARE));
@@ -153,7 +153,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
     }
 
     return;
-    
+
 fail:
     u->module->core->mainloop->io_free(u->io);
     u->io = NULL;
@@ -162,7 +162,7 @@ fail:
 }
 
 #define test_bit(bit, array) (array[bit/8] & (1<<(bit%8)))
-    
+
 int pa__init(pa_core *c, pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -226,7 +226,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->io = c->mainloop->io_new(c->mainloop, u->fd, PA_IO_EVENT_INPUT|PA_IO_EVENT_HANGUP, io_callback, u);
 
     pa_modargs_free(ma);
-    
+
     return 0;
 
 fail:

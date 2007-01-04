@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -41,12 +41,12 @@
 static void u8_to_float32ne(unsigned n, const void *a, float *b) {
     const uint8_t *ca = a;
     static const double add = -128.0/127.0, factor = 1.0/127.0;
-    
+
     assert(a);
     assert(b);
 
     oil_scaleconv_f32_u8(b, ca, n, &add, &factor);
-}    
+}
 
 static void u8_from_float32ne(unsigned n, const float *a, void *b) {
     uint8_t *cb = b;
@@ -93,7 +93,7 @@ static void ulaw_to_float32ne(unsigned n, const void *a, float *b) {
 
     assert(a);
     assert(b);
-    
+
     for (; n > 0; n--)
         *(b++) = st_ulaw2linear16(*(ca++)) * 1.0F / 0x7FFF;
 }
@@ -103,7 +103,7 @@ static void ulaw_from_float32ne(unsigned n, const float *a, void *b) {
 
     assert(a);
     assert(b);
-    
+
     for (; n > 0; n--) {
         float v = *(a++);
 
@@ -132,7 +132,7 @@ static void alaw_from_float32ne(unsigned n, const float *a, void *b) {
 
     assert(a);
     assert(b);
-    
+
     for (; n > 0; n--) {
         float v = *(a++);
 

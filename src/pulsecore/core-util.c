@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -139,7 +139,7 @@ void pa_make_nonblock_fd(int fd) {
 int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     struct stat st;
     int r;
-    
+
     assert(dir);
 
 #ifdef OS_IS_WIN32
@@ -152,7 +152,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     umask(u);
     }
 #endif
-    
+
     if (r < 0 && errno != EEXIST)
         return -1;
 
@@ -163,18 +163,18 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
         gid = getgid();
     chown(dir, uid, gid);
 #endif
-    
+
 #ifdef HAVE_CHMOD
     chmod(dir, m);
 #endif
-    
+
 #ifdef HAVE_LSTAT
     if (lstat(dir, &st) < 0)
 #else
     if (stat(dir, &st) < 0)
 #endif
         goto fail;
-    
+
 #ifndef OS_IS_WIN32
     if (!S_ISDIR(st.st_mode) ||
         (st.st_uid != uid) ||
@@ -186,9 +186,9 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
 #else
 	pa_log_warn("secure directory creation not supported on Win32.");
 #endif
-    
+
     return 0;
-    
+
 fail:
     rmdir(dir);
     return -1;
@@ -214,12 +214,12 @@ int pa_make_secure_parent_dir(const char *fn, mode_t m, uid_t uid, gid_t gid) {
 
     if (!(dir = pa_parent_dir(fn)))
         goto finish;
-    
+
     if (pa_make_secure_dir(dir, m, uid, gid) < 0)
         goto finish;
 
     ret = 0;
-    
+
 finish:
     pa_xfree(dir);
     return ret;
@@ -237,7 +237,7 @@ ssize_t pa_read(int fd, void *buf, size_t count, int *type) {
 
     if (!type || *type == 0) {
         ssize_t r;
-        
+
         if ((r = recv(fd, buf, count, 0)) >= 0)
             return r;
 
@@ -251,7 +251,7 @@ ssize_t pa_read(int fd, void *buf, size_t count, int *type) {
     }
 
 #endif
-    
+
     return read(fd, buf, count);
 }
 
@@ -263,7 +263,7 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
 
         if ((r = send(fd, buf, count, MSG_NOSIGNAL)) >= 0)
             return r;
-    
+
 #ifdef OS_IS_WIN32
         if (WSAGetLastError() != WSAENOTSOCK) {
             errno = WSAGetLastError();
@@ -286,7 +286,7 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
 ssize_t pa_loop_read(int fd, void*data, size_t size, int *type) {
     ssize_t ret = 0;
     int _type;
-    
+
     assert(fd >= 0);
     assert(data);
     assert(size);
@@ -304,7 +304,7 @@ ssize_t pa_loop_read(int fd, void*data, size_t size, int *type) {
 
         if (r == 0)
             break;
-        
+
         ret += r;
         data = (uint8_t*) data + r;
         size -= r;
@@ -335,7 +335,7 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
 
         if (r == 0)
             break;
-        
+
         ret += r;
         data = (const uint8_t*) data + r;
         size -= r;
@@ -354,8 +354,8 @@ void pa_check_signal_is_blocked(int sig) {
     /* If POSIX threads are supported use thread-aware
      * pthread_sigmask() function, to check if the signal is
      * blocked. Otherwise fall back to sigprocmask() */
-    
-#ifdef HAVE_PTHREAD    
+
+#ifdef HAVE_PTHREAD
     if (pthread_sigmask(SIG_SETMASK, NULL, &set) < 0) {
 #endif
         if (sigprocmask(SIG_SETMASK, NULL, &set) < 0) {
@@ -370,15 +370,15 @@ void pa_check_signal_is_blocked(int sig) {
         return;
 
     /* Check whether the signal is trapped */
-    
+
     if (sigaction(sig, NULL, &sa) < 0) {
         pa_log("sigaction(): %s", pa_cstrerror(errno));
         return;
     }
-        
+
     if (sa.sa_handler != SIG_DFL)
         return;
-    
+
     pa_log("WARNING: %s is not trapped. This might cause malfunction!", pa_strsignal(sig));
 #else /* HAVE_SIGACTION */
     pa_log("WARNING: %s might not be trapped. This might cause malfunction!", pa_strsignal(sig));
@@ -390,9 +390,9 @@ void pa_check_signal_is_blocked(int sig) {
 char *pa_sprintf_malloc(const char *format, ...) {
     int  size = 100;
     char *c = NULL;
-    
+
     assert(format);
-    
+
     for(;;) {
         int r;
         va_list ap;
@@ -402,12 +402,12 @@ char *pa_sprintf_malloc(const char *format, ...) {
         va_start(ap, format);
         r = vsnprintf(c, size, format, ap);
         va_end(ap);
-        
+
         if (r > -1 && r < size)
             return c;
 
         if (r > -1)    /* glibc 2.1 */
-            size = r+1; 
+            size = r+1;
         else           /* glibc 2.0 */
             size *= 2;
     }
@@ -418,9 +418,9 @@ char *pa_sprintf_malloc(const char *format, ...) {
 char *pa_vsprintf_malloc(const char *format, va_list ap) {
     int  size = 100;
     char *c = NULL;
-    
+
     assert(format);
-    
+
     for(;;) {
         int r;
         va_list aq;
@@ -431,12 +431,12 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
         r = vsnprintf(c, size, format, aq);
 
         va_end(aq);
-        
+
         if (r > -1 && r < size)
             return c;
 
         if (r > -1)    /* glibc 2.1 */
-            size = r+1; 
+            size = r+1;
         else           /* glibc 2.0 */
             size *= 2;
     }
@@ -461,10 +461,10 @@ void pa_raise_priority(void) {
 #ifdef HAVE_SYS_RESOURCE_H
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
         pa_log_warn("setpriority(): %s", pa_cstrerror(errno));
-    else 
-        pa_log_info("Successfully gained nice level %i.", NICE_LEVEL); 
+    else
+        pa_log_info("Successfully gained nice level %i.", NICE_LEVEL);
 #endif
-    
+
 #ifdef _POSIX_PRIORITY_SCHEDULING
     {
         struct sched_param sp;
@@ -473,14 +473,14 @@ void pa_raise_priority(void) {
             pa_log("sched_getparam(): %s", pa_cstrerror(errno));
             return;
         }
-        
+
         sp.sched_priority = 1;
         if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0) {
             pa_log_warn("sched_setscheduler(): %s", pa_cstrerror(errno));
             return;
         }
 
-        pa_log_info("Successfully enabled SCHED_FIFO scheduling."); 
+        pa_log_info("Successfully enabled SCHED_FIFO scheduling.");
     }
 #endif
 
@@ -488,7 +488,7 @@ void pa_raise_priority(void) {
     if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
         pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
     else
-        pa_log_info("Successfully gained high priority class."); 
+        pa_log_info("Successfully gained high priority class.");
 #endif
 }
 
@@ -521,19 +521,19 @@ int pa_fd_set_cloexec(int fd, int b) {
 
     if ((v = fcntl(fd, F_GETFD, 0)) < 0)
         return -1;
-    
+
     v = (v & ~FD_CLOEXEC) | (b ? FD_CLOEXEC : 0);
-    
+
     if (fcntl(fd, F_SETFD, v) < 0)
         return -1;
-#endif    
+#endif
 
     return 0;
 }
 
 /* Try to parse a boolean string value.*/
 int pa_parse_boolean(const char *v) {
-    
+
     if (!strcmp(v, "1") || v[0] == 'y' || v[0] == 'Y' || v[0] == 't' || v[0] == 'T' || !strcasecmp(v, "on"))
         return 1;
     else if (!strcmp(v, "0") || v[0] == 'n' || v[0] == 'N' || v[0] == 'f' || v[0] == 'F' || !strcasecmp(v, "off"))
@@ -552,7 +552,7 @@ char *pa_split(const char *c, const char *delimiter, const char**state) {
 
     if (!*current)
         return NULL;
-    
+
     l = strcspn(current, delimiter);
     *state = current+l;
 
@@ -632,7 +632,7 @@ static int is_group(gid_t gid, const char *name) {
     }
 
     r = strcmp(name, result->gr_name) == 0;
-    
+
 finish:
     pa_xfree(data);
 #else
@@ -647,7 +647,7 @@ finish:
 
 finish:
 #endif
-    
+
     return r;
 }
 
@@ -658,9 +658,9 @@ int pa_own_uid_in_group(const char *name, gid_t *gid) {
     int r = -1, i;
 
     assert(n > 0);
-    
+
     gids = pa_xmalloc(sizeof(GETGROUPS_T)*n);
-    
+
     if ((n = getgroups(n, gids)) < 0) {
         pa_log("getgroups(): %s", pa_cstrerror(errno));
         goto finish;
@@ -681,7 +681,7 @@ int pa_own_uid_in_group(const char *name, gid_t *gid) {
     }
 
     r = 0;
-    
+
 finish:
 
     pa_xfree(gids);
@@ -695,20 +695,20 @@ int pa_uid_in_group(uid_t uid, const char *name) {
     struct group grbuf, *gr;
     char **i;
     int r = -1;
-    
+
     g_n = sysconf(_SC_GETGR_R_SIZE_MAX);
     g_buf = pa_xmalloc(g_n);
 
     p_n = sysconf(_SC_GETPW_R_SIZE_MAX);
     p_buf = pa_xmalloc(p_n);
-    
+
     if (getgrnam_r(name, &grbuf, g_buf, (size_t) g_n, &gr) != 0 || !gr)
         goto finish;
 
     r = 0;
     for (i = gr->gr_mem; *i; i++) {
         struct passwd pwbuf, *pw;
-        
+
         if (getpwnam_r(*i, &pwbuf, p_buf, (size_t) p_n, &pw) != 0 || !pw)
             continue;
 
@@ -763,7 +763,7 @@ int pa_check_in_group(gid_t g) {
 
 int pa_own_uid_in_group(const char *name, gid_t *gid) {
     return -1;
-    
+
 }
 
 int pa_uid_in_group(uid_t uid, const char *name) {
@@ -787,7 +787,7 @@ int pa_lock_fd(int fd, int b) {
     struct flock flock;
 
     /* Try a R/W lock first */
-    
+
     flock.l_type = b ? F_WRLCK : F_UNLCK;
     flock.l_whence = SEEK_SET;
     flock.l_start = 0;
@@ -802,7 +802,7 @@ int pa_lock_fd(int fd, int b) {
         if (fcntl(fd, F_SETLKW, &flock) >= 0)
             return 0;
     }
-        
+
     pa_log("%slock: %s", !b? "un" : "",
         pa_cstrerror(errno));
 #endif
@@ -836,18 +836,18 @@ int pa_lock_lockfile(const char *fn) {
 
     for (;;) {
         struct stat st;
-        
+
         if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
             pa_log("failed to create lock file '%s': %s", fn,
                 pa_cstrerror(errno));
             goto fail;
         }
-        
+
         if (pa_lock_fd(fd, 1) < 0) {
             pa_log("failed to lock file '%s'.", fn);
             goto fail;
         }
-        
+
         if (fstat(fd, &st) < 0) {
             pa_log("failed to fstat() file '%s'.", fn);
             goto fail;
@@ -856,12 +856,12 @@ int pa_lock_lockfile(const char *fn) {
         /* Check wheter the file has been removed meanwhile. When yes, restart this loop, otherwise, we're done */
         if (st.st_nlink >= 1)
             break;
-            
+
         if (pa_lock_fd(fd, 0) < 0) {
             pa_log("failed to unlock file '%s'.", fn);
             goto fail;
         }
-        
+
         if (close(fd) < 0) {
             pa_log("failed to close file '%s'.", fn);
             goto fail;
@@ -869,7 +869,7 @@ int pa_lock_lockfile(const char *fn) {
 
         fd = -1;
     }
-        
+
     return fd;
 
 fail:
@@ -890,7 +890,7 @@ int pa_unlock_lockfile(const char *fn, int fd) {
             fn, pa_cstrerror(errno));
         r = -1;
     }
-    
+
     if (pa_lock_fd(fd, 0) < 0) {
         pa_log_warn("WARNING: failed to unlock file '%s'.", fn);
         r = -1;
@@ -946,20 +946,20 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 
         if (lfn) {
             FILE *f;
-        
+
 #ifdef OS_IS_WIN32
             if (!ExpandEnvironmentStrings(lfn, buf, PATH_MAX))
                 return NULL;
             fn = buf;
 #endif
-            
+
             if ((f = fopen(fn, mode)) || errno != ENOENT) {
                 if (result)
                     *result = pa_xstrdup(fn);
                 pa_xfree(lfn);
                 return f;
             }
-        
+
             pa_xfree(lfn);
         }
     }
@@ -979,10 +979,10 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 
     if (result)
         *result = pa_xstrdup(global);
-    
+
     return fopen(global, mode);
 }
-                 
+
 /* Format the specified data as a hexademical string */
 char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength) {
     size_t i = 0, j = 0;
@@ -1025,7 +1025,7 @@ size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
 
         if ((b = hexc(*(p++))) < 0)
             return (size_t) -1;
-        
+
         d[j] = (uint8_t) (b << 4);
 
         if (!*p)
@@ -1044,10 +1044,10 @@ size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
 /* Returns nonzero when *s starts with *pfx */
 int pa_startswith(const char *s, const char *pfx) {
     size_t l;
-    
+
     assert(s);
     assert(pfx);
-    
+
     l = strlen(pfx);
 
     return strlen(s) >= l && strncmp(s, pfx, l) == 0;
@@ -1056,10 +1056,10 @@ int pa_startswith(const char *s, const char *pfx) {
 /* Returns nonzero when *s ends with *sfx */
 int pa_endswith(const char *s, const char *sfx) {
     size_t l1, l2;
-    
+
     assert(s);
     assert(sfx);
-    
+
     l1 = strlen(s);
     l2 = strlen(sfx);
 
@@ -1081,20 +1081,20 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
 
     if ((e = getenv("PULSE_RUNTIME_PATH"))) {
 
-        if (fn)    
+        if (fn)
             snprintf(s, l, "%s%c%s", e, PATH_SEP, fn);
         else
             snprintf(s, l, "%s", e);
-        
+
     } else {
         char u[256];
-        
-        if (fn)    
+
+        if (fn)
             snprintf(s, l, "%s%s%c%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PATH_SEP, fn);
         else
             snprintf(s, l, "%s%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
     }
-    
+
 
 #ifdef OS_IS_WIN32
     {
@@ -1119,7 +1119,7 @@ int pa_atoi(const char *s, int32_t *ret_i) {
         return -1;
 
     *ret_i = (int32_t) l;
-    
+
     return 0;
 }
 
@@ -1135,6 +1135,6 @@ int pa_atou(const char *s, uint32_t *ret_u) {
         return -1;
 
     *ret_u = (uint32_t) l;
-    
+
     return 0;
 }

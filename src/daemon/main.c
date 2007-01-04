@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -125,7 +125,7 @@ static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e,
             pa_module_load(userdata, "module-cli", NULL);
             break;
 #endif
-            
+
 #ifdef SIGUSR2
         case SIGUSR2:
             pa_module_load(userdata, "module-cli-protocol-unix", NULL);
@@ -170,7 +170,7 @@ static int change_user(void) {
     /* This function is called only in system-wide mode. It creates a
      * runtime dir in /var/run/ with proper UID/GID and drops privs
      * afterwards. */
-    
+
     if (!(pw = getpwnam(PA_SYSTEM_USER))) {
         pa_log("Failed to find user '%s'.", PA_SYSTEM_USER);
         return -1;
@@ -197,7 +197,7 @@ static int change_user(void) {
         pa_log("Failed to create '%s': %s", PA_SYSTEM_RUNTIME_PATH, pa_cstrerror(errno));
         return -1;
     }
-    
+
     if (initgroups(PA_SYSTEM_USER, gr->gr_gid) != 0) {
         pa_log("Failed to change group list: %s", pa_cstrerror(errno));
         return -1;
@@ -265,7 +265,7 @@ static int create_runtime_dir(void) {
     /* This function is called only when the daemon is started in
      * per-user mode. We create the runtime directory somewhere in
      * /tmp/ with the current UID/GID */
-    
+
     if (pa_make_secure_dir(fn, 0700, (uid_t)-1, (gid_t)-1) < 0) {
         pa_log("Failed to create '%s': %s", fn, pa_cstrerror(errno));
         return -1;
@@ -311,7 +311,7 @@ int main(int argc, char *argv[]) {
     pa_daemon_conf *conf = NULL;
     pa_mainloop *mainloop = NULL;
 
-    char *s; 
+    char *s;
     int r, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
     int suid_root, real_root;
@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_GETUID
     real_root = getuid() == 0;
     suid_root = !real_root && geteuid() == 0;
-    
+
     if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0 || gid >= 1000)) {
         pa_log_warn("WARNING: called SUID root, but not in group '"PA_REALTIME_GROUP"'.");
         pa_drop_root();
@@ -342,9 +342,9 @@ int main(int argc, char *argv[]) {
     real_root = 0;
     suid_root = 0;
 #endif
-    
+
     LTDL_SET_PRELOADED_SYMBOLS();
-    
+
     r = lt_dlinit();
     assert(r == 0);
 
@@ -356,11 +356,11 @@ int main(int argc, char *argv[]) {
 #endif
 
     pa_random_seed();
-    
+
     pa_log_set_ident("pulseaudio");
-    
+
     conf = pa_daemon_conf_new();
-    
+
     if (pa_daemon_conf_load(conf, NULL) < 0)
         goto finish;
 
@@ -429,9 +429,9 @@ int main(int argc, char *argv[]) {
                 pa_log("failed to kill daemon.");
             else
                 retval = 0;
-            
+
             goto finish;
-            
+
         default:
             assert(conf->cmd == PA_CMD_DAEMON);
     }
@@ -457,7 +457,7 @@ int main(int argc, char *argv[]) {
             pa_log("failed to create pipe.");
             goto finish;
         }
-        
+
         if ((child = fork()) < 0) {
             pa_log("fork() failed: %s", pa_cstrerror(errno));
             goto finish;
@@ -478,7 +478,7 @@ int main(int argc, char *argv[]) {
                 pa_log("daemon startup failed.");
             else
                 pa_log_info("daemon startup successful.");
-            
+
             goto finish;
         }
 
@@ -517,7 +517,7 @@ int main(int argc, char *argv[]) {
 #ifdef SIGTSTP
         signal(SIGTSTP, SIG_IGN);
 #endif
-        
+
 #ifdef TIOCNOTTY
         if ((tty_fd = open("/dev/tty", O_RDWR)) >= 0) {
             ioctl(tty_fd, TIOCNOTTY, (char*) 0);
@@ -528,13 +528,13 @@ int main(int argc, char *argv[]) {
 
     chdir("/");
     umask(0022);
-    
+
     if (conf->system_instance) {
         if (change_user() < 0)
             goto finish;
     } else if (create_runtime_dir() < 0)
         goto finish;
-    
+
     if (conf->use_pid_file) {
         if (pa_pid_file_create() < 0) {
             pa_log("pa_pid_file_create() failed.");
@@ -551,7 +551,7 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_SYS_RESOURCE_H
     set_all_rlimits(conf);
 #endif
-    
+
 #ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN);
 #endif
@@ -580,7 +580,7 @@ int main(int argc, char *argv[]) {
 #ifdef SIGHUP
     pa_signal_new(SIGHUP, signal_callback, c);
 #endif
-    
+
 #ifdef OS_IS_WIN32
     timer = pa_mainloop_get_api(mainloop)->time_new(
         pa_mainloop_get_api(mainloop), pa_gettimeofday(&tv), message_cb, NULL);
@@ -596,7 +596,7 @@ int main(int argc, char *argv[]) {
         r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
         assert(r == 0);
     }
-        
+
     buf = pa_strbuf_new();
     if (conf->default_script_file)
         r = pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail);
@@ -605,7 +605,7 @@ int main(int argc, char *argv[]) {
         r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail);
     pa_log_error("%s", s = pa_strbuf_tostring_free(buf));
     pa_xfree(s);
-    
+
     if (r < 0 && conf->fail) {
         pa_log("failed to initialize daemon.");
 #ifdef HAVE_FORK
@@ -652,11 +652,11 @@ int main(int argc, char *argv[]) {
 
     if (!conf->no_cpu_limit)
         pa_cpu_limit_done();
-    
+
     pa_signal_done();
-    
+
     pa_log_info("Daemon terminated.");
-    
+
 finish:
 
     if (mainloop)
@@ -667,7 +667,7 @@ finish:
 
     if (valid_pid_file)
         pa_pid_file_remove();
-    
+
     close_pipe(daemon_pipe);
 
 #ifdef OS_IS_WIN32
@@ -675,6 +675,6 @@ finish:
 #endif
 
     lt_dlexit();
-    
+
     return retval;
 }

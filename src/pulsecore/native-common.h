@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -51,7 +51,7 @@ enum {
     PA_COMMAND_FINISH_UPLOAD_STREAM,
     PA_COMMAND_PLAY_SAMPLE,
     PA_COMMAND_REMOVE_SAMPLE,
-    
+
     PA_COMMAND_GET_SERVER_INFO,
     PA_COMMAND_GET_SINK_INFO,
     PA_COMMAND_GET_SINK_INFO_LIST,
@@ -68,24 +68,24 @@ enum {
     PA_COMMAND_GET_SAMPLE_INFO,
     PA_COMMAND_GET_SAMPLE_INFO_LIST,
     PA_COMMAND_SUBSCRIBE,
-    
+
     PA_COMMAND_SET_SINK_VOLUME,
     PA_COMMAND_SET_SINK_INPUT_VOLUME,
     PA_COMMAND_SET_SOURCE_VOLUME,
 
     PA_COMMAND_SET_SINK_MUTE,
     PA_COMMAND_SET_SOURCE_MUTE,
-    
+
     PA_COMMAND_CORK_PLAYBACK_STREAM,
     PA_COMMAND_FLUSH_PLAYBACK_STREAM,
     PA_COMMAND_TRIGGER_PLAYBACK_STREAM,
-    
+
     PA_COMMAND_SET_DEFAULT_SINK,
     PA_COMMAND_SET_DEFAULT_SOURCE,
-    
+
     PA_COMMAND_SET_PLAYBACK_STREAM_NAME,
     PA_COMMAND_SET_RECORD_STREAM_NAME,
-    
+
     PA_COMMAND_KILL_CLIENT,
     PA_COMMAND_KILL_SINK_INPUT,
     PA_COMMAND_KILL_SOURCE_OUTPUT,

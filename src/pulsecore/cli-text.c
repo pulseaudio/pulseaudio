@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -52,10 +52,10 @@ char *pa_module_list_to_string(pa_core *c) {
     assert(s);
 
     pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_size(c->modules));
-    
+
     for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx))
         pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\targument: <%s>\n\tused: %i\n\tauto unload: %s\n", m->index, m->name, m->argument, m->n_used, m->auto_unload ? "yes" : "no");
-    
+
     return pa_strbuf_tostring_free(s);
 }
 
@@ -69,14 +69,14 @@ char *pa_client_list_to_string(pa_core *c) {
     assert(s);
 
     pa_strbuf_printf(s, "%u client(s) logged in.\n", pa_idxset_size(c->clients));
-    
+
     for (client = pa_idxset_first(c->clients, &idx); client; client = pa_idxset_next(c->clients, &idx)) {
         pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\tdriver: <%s>\n", client->index, client->name, client->driver);
 
         if (client->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", client->owner->index);
     }
-        
+
     return pa_strbuf_tostring_free(s);
 }
 
@@ -93,7 +93,7 @@ char *pa_sink_list_to_string(pa_core *c) {
 
     for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
-        
+
         pa_strbuf_printf(
             s,
             "  %c index: %u\n"
@@ -118,7 +118,7 @@ char *pa_sink_list_to_string(pa_core *c) {
         if (sink->description)
             pa_strbuf_printf(s, "\tdescription: <%s>\n", sink->description);
     }
-    
+
     return pa_strbuf_tostring_free(s);
 }
 
@@ -135,8 +135,8 @@ char *pa_source_list_to_string(pa_core *c) {
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
-        
-        
+
+
         pa_strbuf_printf(
             s,
             "  %c index: %u\n"
@@ -153,14 +153,14 @@ char *pa_source_list_to_string(pa_core *c) {
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map));
 
-        if (source->monitor_of) 
+        if (source->monitor_of)
             pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);
         if (source->owner)
             pa_strbuf_printf(s, "\towner module: <%u>\n", source->owner->index);
         if (source->description)
             pa_strbuf_printf(s, "\tdescription: <%s>\n", source->description);
     }
-    
+
     return pa_strbuf_tostring_free(s);
 }
 
@@ -183,9 +183,9 @@ char *pa_source_output_list_to_string(pa_core *c) {
 
     for (o = pa_idxset_first(c->source_outputs, &idx); o; o = pa_idxset_next(c->source_outputs, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
-        
+
         assert(o->source);
-        
+
         pa_strbuf_printf(
             s,
             "    index: %u\n"
@@ -209,7 +209,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
         if (o->client)
             pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", o->client->index, o->client->name);
     }
-    
+
     return pa_strbuf_tostring_free(s);
 }
 
@@ -233,7 +233,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
         assert(i->sink);
-        
+
         pa_strbuf_printf(
             s,
             "    index: %u\n"
@@ -262,7 +262,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
         if (i->client)
             pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", i->client->index, i->client->name);
     }
-    
+
     return pa_strbuf_tostring_free(s);
 }
 
@@ -282,13 +282,13 @@ char *pa_scache_list_to_string(pa_core *c) {
         for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
             double l = 0;
             char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX] = "n/a";
-            
+
             if (e->memchunk.memblock) {
                 pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
                 pa_channel_map_snprint(cm, sizeof(cm), &e->channel_map);
                 l = (double) e->memchunk.length / pa_bytes_per_second(&e->sample_spec);
             }
-            
+
             pa_strbuf_printf(
                 s,
                 "    name: <%s>\n"
@@ -351,9 +351,9 @@ char *pa_full_status_string(pa_core *c) {
 
     for (i = 0; i < 8; i++) {
         char *t = NULL;
-        
+
         switch (i) {
-            case 0: 
+            case 0:
                 t = pa_sink_list_to_string(c);
                 break;
             case 1:
@@ -365,7 +365,7 @@ char *pa_full_status_string(pa_core *c) {
             case 3:
                 t = pa_source_output_list_to_string(c);
                 break;
-            case 4: 
+            case 4:
                 t = pa_client_list_to_string(c);
                 break;
             case 5:

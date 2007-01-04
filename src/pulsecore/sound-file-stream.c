@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -52,7 +52,7 @@ static void free_userdata(struct userdata *u) {
         pa_sink_input_disconnect(u->sink_input);
         pa_sink_input_unref(u->sink_input);
     }
-    
+
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
     if (u->sndfile)
@@ -86,10 +86,10 @@ static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
         } else {
             if ((n = sf_read_raw(u->sndfile, u->memchunk.memblock->data, BUF_SIZE)) <= 0)
                 n = 0;
-            
+
             u->memchunk.length = n;
         }
-        
+
         if (!u->memchunk.length) {
             free_userdata(u);
             return -1;
@@ -124,12 +124,12 @@ int pa_play_file(
         pa_sink *sink,
         const char *fname,
         const pa_cvolume *volume) {
-    
+
     struct userdata *u = NULL;
     SF_INFO sfinfo;
     pa_sample_spec ss;
     pa_sink_input_new_data data;
-    
+
     assert(sink);
     assert(fname);
 
@@ -147,7 +147,7 @@ int pa_play_file(
     }
 
     u->readf_function = NULL;
-    
+
     switch (sfinfo.format & 0xFF) {
         case SF_FORMAT_PCM_16:
         case SF_FORMAT_PCM_U8:
@@ -159,7 +159,7 @@ int pa_play_file(
         case SF_FORMAT_ULAW:
             ss.format = PA_SAMPLE_ULAW;
             break;
-            
+
         case SF_FORMAT_ALAW:
             ss.format = PA_SAMPLE_ALAW;
             break;
@@ -170,7 +170,7 @@ int pa_play_file(
             u->readf_function = (sf_count_t (*)(SNDFILE *sndfile, void *ptr, sf_count_t frames)) sf_readf_float;
             break;
     }
-            
+
     ss.rate = sfinfo.samplerate;
     ss.channels = sfinfo.channels;
 
@@ -185,7 +185,7 @@ int pa_play_file(
     data.name = fname;
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     pa_sink_input_new_data_set_volume(&data, volume);
-    
+
     if (!(u->sink_input = pa_sink_input_new(sink->core, &data, 0)))
         goto fail;
 
@@ -193,7 +193,7 @@ int pa_play_file(
     u->sink_input->drop = sink_input_drop;
     u->sink_input->kill = sink_input_kill;
     u->sink_input->userdata = u;
-    
+
     pa_sink_notify(u->sink_input->sink);
 
     return 0;
@@ -201,6 +201,6 @@ int pa_play_file(
 fail:
     if (u)
         free_userdata(u);
-    
+
     return -1;
 }

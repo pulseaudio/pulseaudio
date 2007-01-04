@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -69,7 +69,7 @@ struct userdata {
 
     void *write_data;
     size_t write_length, write_index;
-    
+
     void *read_data;
     size_t read_length, read_index;
 
@@ -135,7 +135,7 @@ static int do_write(struct userdata *u) {
 
         u->write_index += r;
         assert(u->write_index <= u->write_length);
-        
+
         if (u->write_index == u->write_length) {
             free(u->write_data);
             u->write_data = NULL;
@@ -143,13 +143,13 @@ static int do_write(struct userdata *u) {
         }
     } else if (u->state == STATE_RUNNING) {
         pa_module_set_used(u->module, pa_sink_used_by(u->sink));
-        
+
         if (!u->memchunk.length)
             if (pa_sink_render(u->sink, 8192, &u->memchunk) < 0)
                 return 0;
 
         assert(u->memchunk.memblock && u->memchunk.length);
-        
+
         if ((r = pa_iochannel_write(u->io, (uint8_t*) u->memchunk.memblock->data + u->memchunk.index, u->memchunk.length)) < 0) {
             pa_log("write() failed: %s", pa_cstrerror(errno));
             return -1;
@@ -157,13 +157,13 @@ static int do_write(struct userdata *u) {
 
         u->memchunk.index += r;
         u->memchunk.length -= r;
-        
+
         if (u->memchunk.length <= 0) {
             pa_memblock_unref(u->memchunk.memblock);
             u->memchunk.memblock = NULL;
         }
     }
-    
+
     return 0;
 }
 
@@ -191,7 +191,7 @@ static int handle_response(struct userdata *u) {
             assert(u->read_length >= sizeof(int32_t));
             u->read_index = 0;
             u->read_length = sizeof(int32_t);
-            
+
             break;
 
         case STATE_LATENCY: {
@@ -220,10 +220,10 @@ static int handle_response(struct userdata *u) {
             pa_xfree(u->read_data);
             u->read_data = NULL;
             u->read_index = u->read_length = 0;
-            
+
             break;
         }
-            
+
         default:
             abort();
     }
@@ -233,18 +233,18 @@ static int handle_response(struct userdata *u) {
 
 static int do_read(struct userdata *u) {
     assert(u);
-    
+
     if (!pa_iochannel_is_readable(u->io))
         return 0;
-    
+
     if (u->state == STATE_AUTH || u->state == STATE_LATENCY) {
         ssize_t r;
-        
+
         if (!u->read_data)
             return 0;
-        
+
         assert(u->read_index < u->read_length);
-        
+
         if ((r = pa_iochannel_read(u->io, (uint8_t*) u->read_data + u->read_index, u->read_length - u->read_index)) <= 0) {
             pa_log("read() failed: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             cancel(u);
@@ -265,7 +265,7 @@ static void do_work(struct userdata *u) {
     assert(u);
 
     u->core->mainloop->defer_enable(u->defer_event, 0);
-    
+
     if (do_read(u) < 0 || do_write(u) < 0)
         cancel(u);
 }
@@ -304,13 +304,13 @@ static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, vo
 
     pa_socket_client_unref(u->client);
     u->client = NULL;
-    
+
     if (!io) {
         pa_log("connection failed: %s", pa_cstrerror(errno));
         cancel(u);
         return;
     }
-    
+
     u->io = io;
     pa_iochannel_set_callback(u->io, io_callback, u);
 }
@@ -321,9 +321,9 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     pa_modargs *ma = NULL;
     char *t;
-    
+
     assert(c && m);
-    
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("failed to parse module arguments");
         goto fail;
@@ -340,7 +340,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("esound sample type support is limited to mono/stereo and U8 or S16NE sample data");
         goto fail;
     }
-        
+
     u = pa_xmalloc0(sizeof(struct userdata));
     u->core = c;
     u->module = m;
@@ -378,7 +378,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     /* Reserve space for the response */
     u->read_data = pa_xmalloc(u->read_length = sizeof(int32_t));
-    
+
     u->sink->notify = notify_cb;
     u->sink->get_latency = get_latency_cb;
     u->sink->userdata = u;
@@ -392,15 +392,15 @@ int pa__init(pa_core *c, pa_module*m) {
     u->defer_event = c->mainloop->defer_new(c->mainloop, defer_callback, u);
     c->mainloop->defer_enable(u->defer_event, 0);
 
-    
+
     pa_modargs_free(ma);
-    
+
     return 0;
 
 fail:
     if (ma)
         pa_modargs_free(ma);
-        
+
     pa__done(c, m);
 
     return -1;
@@ -415,13 +415,13 @@ void pa__done(pa_core *c, pa_module*m) {
 
     u->module = NULL;
     cancel(u);
-    
+
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
 
     if (u->client)
         pa_socket_client_unref(u->client);
-    
+
     pa_xfree(u->read_data);
     pa_xfree(u->write_data);
 

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -82,7 +82,7 @@ static pa_cvolume* parse_volume(const char *s, pa_cvolume *v) {
     char *p;
     long k;
     unsigned i;
-    
+
     assert(s);
     assert(v);
 
@@ -92,7 +92,7 @@ static pa_cvolume* parse_volume(const char *s, pa_cvolume *v) {
     k = strtol(s, &p, 0);
     if (k <= 0 || k > PA_CHANNELS_MAX)
         return NULL;
-    
+
     v->channels = (unsigned) k;
 
     for (i = 0; i < v->channels; i++) {
@@ -105,7 +105,7 @@ static pa_cvolume* parse_volume(const char *s, pa_cvolume *v) {
 
         if (k < PA_VOLUME_MUTED)
             return NULL;
-        
+
         v->values[i] = (pa_volume_t) k;
     }
 
@@ -132,22 +132,22 @@ static int load_rules(struct userdata *u) {
             ret = 0;
         } else
             pa_log("failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
-        
+
         goto finish;
     }
 
     pa_lock_fd(fileno(f), 1);
-    
+
     while (!feof(f)) {
         struct rule *rule;
         pa_cvolume v;
         int v_is_set;
-        
+
         if (!fgets(ln, sizeof(buf_name), f))
             break;
 
         n++;
-        
+
         pa_strip_nl(ln);
 
         if (ln[0] == '#')
@@ -181,12 +181,12 @@ static int load_rules(struct userdata *u) {
             v_is_set = 0;
 
         ln = buf_name;
-        
+
         if (pa_hashmap_get(u->hashmap, buf_name)) {
             pa_log("double entry in %s:%u, ignoring", u->table_file, n);
             continue;
         }
-        
+
         rule = pa_xnew(struct rule, 1);
         rule->name = pa_xstrdup(buf_name);
         if ((rule->volume_is_set = v_is_set))
@@ -203,7 +203,7 @@ static int load_rules(struct userdata *u) {
     }
 
     ret = 0;
-    
+
 finish:
     if (f) {
         pa_lock_fd(fileno(f), 0);
@@ -218,7 +218,7 @@ static int save_rules(struct userdata *u) {
     int ret = -1;
     void *state = NULL;
     struct rule *rule;
-    
+
     f = u->table_file ?
         fopen(u->table_file, "w") :
         pa_open_config_file(NULL, DEFAULT_VOLUME_TABLE_FILE, NULL, &u->table_file, "w");
@@ -232,7 +232,7 @@ static int save_rules(struct userdata *u) {
 
     while ((rule = pa_hashmap_iterate(u->hashmap, &state, NULL))) {
         unsigned i;
-        
+
         fprintf(f, "%s\n", rule->name);
 
         if (rule->volume_is_set) {
@@ -241,14 +241,14 @@ static int save_rules(struct userdata *u) {
             for (i = 0; i < rule->volume.channels; i++)
                 fprintf(f, " %u", rule->volume.values[i]);
         }
-            
+
         fprintf(f, "\n%s\n%s\n",
                 rule->sink ? rule->sink : "",
                 rule->source ? rule->source : "");
     }
-    
+
     ret = 0;
-    
+
 finish:
     if (f) {
         pa_lock_fd(fileno(f), 0);
@@ -260,7 +260,7 @@ finish:
 
 static char* client_name(pa_client *c) {
     char *t, *e;
-    
+
     if (!c->name || !c->driver)
         return NULL;
 
@@ -280,11 +280,11 @@ static char* client_name(pa_client *c) {
          * sessions of the same application, which is something we
          * explicitly don't want. Besides other stuff this makes xmms
          * with esound work properly for us. */
-        
+
         if (*k == ')' && *(k+1) == 0)
             *e = 0;
     }
-    
+
     return t;
 }
 
@@ -294,7 +294,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     pa_source_output *so = NULL;
     struct rule *r;
     char *name;
-    
+
     assert(c);
     assert(u);
 
@@ -307,7 +307,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     if ((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
         if (!(si = pa_idxset_get_by_index(c->sink_inputs, idx)))
             return;
-        
+
         if (!si->client || !(name = client_name(si->client)))
             return;
     } else {
@@ -315,7 +315,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         if (!(so = pa_idxset_get_by_index(c->source_outputs, idx)))
             return;
-        
+
         if (!so->client || !(name = client_name(so->client)))
             return;
     }
@@ -348,7 +348,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
                 u->modified = 1;
             }
         }
-            
+
     } else {
         pa_log_info("Creating new entry for <%s>", name);
 
@@ -366,7 +366,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             r->sink = NULL;
             r->source = pa_xstrdup(so->source->name);
         }
-            
+
         pa_hashmap_put(u->hashmap, r->name, r);
         u->modified = 1;
     }
@@ -419,7 +419,7 @@ static pa_hook_result_t source_output_hook_callback(pa_core *c, pa_source_output
 int pa__init(pa_core *c, pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    
+
     assert(c);
     assert(m);
 
@@ -433,9 +433,9 @@ int pa__init(pa_core *c, pa_module*m) {
     u->subscription = NULL;
     u->table_file = pa_xstrdup(pa_modargs_get_value(ma, "table", NULL));
     u->modified = 0;
-    
+
     m->userdata = u;
-    
+
     if (load_rules(u) < 0)
         goto fail;
 
@@ -451,7 +451,7 @@ fail:
 
     if (ma)
         pa_modargs_free(ma);
-    
+
     return  -1;
 }
 
@@ -467,7 +467,7 @@ static void free_func(void *p, void *userdata) {
 
 void pa__done(pa_core *c, pa_module*m) {
     struct userdata* u;
-    
+
     assert(c);
     assert(m);
 
@@ -486,7 +486,7 @@ void pa__done(pa_core *c, pa_module*m) {
 
         if (u->modified)
             save_rules(u);
-        
+
         pa_hashmap_free(u->hashmap, free_func, NULL);
     }
 

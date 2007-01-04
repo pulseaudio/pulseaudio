@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -270,7 +270,7 @@ static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_s
     };
 
     int i, ret;
-    
+
     assert(pcm_handle);
     assert(f);
 
@@ -290,12 +290,12 @@ static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_s
 
     if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
         return ret;
-        
+
 try_auto:
 
     for (i = 0; try_order[i] != PA_SAMPLE_INVALID; i++) {
         *f = try_order[i];
-        
+
         if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
             return ret;
     }
@@ -312,14 +312,14 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     unsigned int c = ss->channels;
     pa_sample_format_t f = ss->format;
     snd_pcm_hw_params_t *hwparams;
-    
+
     assert(pcm_handle);
     assert(ss);
     assert(periods);
     assert(period_size);
 
     buffer_size = *periods * *period_size;
-    
+
     if ((ret = snd_pcm_hw_params_malloc(&hwparams)) < 0 ||
         (ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0 ||
         (ret = snd_pcm_hw_params_set_rate_resample(pcm_handle, hwparams, 0)) < 0 ||
@@ -359,25 +359,25 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         pa_log_warn("device doesn't support sample format %s, changed to %s.", pa_sample_format_to_string(ss->format), pa_sample_format_to_string(f));
         ss->format = f;
     }
-    
+
     if ((ret = snd_pcm_prepare(pcm_handle)) < 0)
         goto finish;
 
     if ((ret = snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size)) < 0 ||
         (ret = snd_pcm_hw_params_get_period_size(hwparams, period_size, NULL)) < 0)
         goto finish;
-    
+
     assert(buffer_size > 0);
     assert(*period_size > 0);
     *periods = buffer_size / *period_size;
     assert(*periods > 0);
-    
+
     ret = 0;
-    
+
 finish:
     if (hwparams)
         snd_pcm_hw_params_free(hwparams);
-    
+
     return ret;
 }
 
@@ -419,7 +419,7 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
 
         if (fallback) {
             snd_mixer_selem_id_set_name(sid, fallback);
-            
+
             if (!(elem = snd_mixer_find_selem(mixer, sid)))
                 pa_log_warn("Cannot find fallback mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
         }

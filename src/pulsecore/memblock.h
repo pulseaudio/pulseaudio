@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -37,7 +37,7 @@
 typedef enum pa_memblock_type {
     PA_MEMBLOCK_POOL,             /* Memory is part of the memory pool */
     PA_MEMBLOCK_POOL_EXTERNAL,    /* Data memory is part of the memory pool but the pa_memblock structure itself not */
-    PA_MEMBLOCK_APPENDED,         /* the data is appended to the memory block */ 
+    PA_MEMBLOCK_APPENDED,         /* the data is appended to the memory block */
     PA_MEMBLOCK_USER,             /* User supplied memory, to be freed with free_cb */
     PA_MEMBLOCK_FIXED,            /* data is a pointer to fixed memory that needs not to be freed */
     PA_MEMBLOCK_IMPORTED,         /* Memory is imported from another process via shm */
@@ -66,7 +66,7 @@ struct pa_memblock {
         struct {
             void (*free_cb)(void *p);  /* If type == PA_MEMBLOCK_USER this points to a function for freeing this memory block */
         } user;
-            
+
         struct  {
             uint32_t id;
             pa_memimport_segment *segment;

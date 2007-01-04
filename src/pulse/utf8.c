@@ -130,7 +130,7 @@ ONE_REMAINING:
 
             if (o)
                 o++;
-            
+
             continue;
 
 error:

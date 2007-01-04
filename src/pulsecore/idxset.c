@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -44,7 +44,7 @@ typedef struct idxset_entry {
 struct pa_idxset {
     pa_hash_func_t hash_func;
     pa_compare_func_t compare_func;
-    
+
     unsigned hash_table_size, n_entries;
     idxset_entry **hash_table, **array, *iterate_list_head, *iterate_list_tail;
     uint32_t index, start_index, array_size;
@@ -53,7 +53,7 @@ struct pa_idxset {
 unsigned pa_idxset_string_hash_func(const void *p) {
     unsigned hash = 0;
     const char *c;
-    
+
     for (c = p; *c; c++)
         hash = 31 * hash + *c;
 
@@ -97,7 +97,7 @@ void pa_idxset_free(pa_idxset *s, void (*free_func) (void *p, void *userdata), v
     while (s->iterate_list_head) {
         idxset_entry *e = s->iterate_list_head;
         s->iterate_list_head = s->iterate_list_head->iterate_next;
-        
+
         if (free_func)
             free_func(e->data, userdata);
         pa_xfree(e);
@@ -133,12 +133,12 @@ static void extend_array(pa_idxset *s, uint32_t idx) {
 
     l = idx - s->start_index - i + 100;
     n = pa_xnew0(idxset_entry*, l);
-    
+
     for (j = 0; j < s->array_size-i; j++)
         n[j] = s->array[i+j];
 
     pa_xfree(s->array);
-    
+
     s->array = n;
     s->array_size = l;
     s->start_index += i;
@@ -147,17 +147,17 @@ static void extend_array(pa_idxset *s, uint32_t idx) {
 static idxset_entry** array_index(pa_idxset*s, uint32_t idx) {
     if (idx >= s->start_index + s->array_size)
         return NULL;
-    
+
     if (idx < s->start_index)
         return NULL;
-    
+
     return s->array + idx - s->start_index;
 }
 
 int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx) {
     unsigned h;
     idxset_entry *e, **a;
-    
+
     assert(s);
     assert(p);
 
@@ -168,7 +168,7 @@ int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx) {
     if ((e = hash_scan(s, s->hash_table[h], p))) {
         if (idx)
             *idx = e->index;
-        
+
         return -1;
     }
 
@@ -201,10 +201,10 @@ int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx) {
         s->iterate_list_head = e;
     }
     s->iterate_list_tail = e;
-    
+
     s->n_entries++;
     assert(s->n_entries >= 1);
-    
+
     if (idx)
         *idx = e->index;
 
@@ -214,7 +214,7 @@ int pa_idxset_put(pa_idxset*s, void *p, uint32_t *idx) {
 void* pa_idxset_get_by_index(pa_idxset*s, uint32_t idx) {
     idxset_entry **a;
     assert(s);
-    
+
     if (!(a = array_index(s, idx)))
         return NULL;
 
@@ -228,7 +228,7 @@ void* pa_idxset_get_by_data(pa_idxset*s, const void *p, uint32_t *idx) {
     unsigned h;
     idxset_entry *e;
     assert(s && p);
-    
+
     assert(s->hash_func);
     h = s->hash_func(p) % s->hash_table_size;
 
@@ -250,13 +250,13 @@ static void remove_entry(pa_idxset *s, idxset_entry *e) {
     a = array_index(s, e->index);
     assert(a && *a && *a == e);
     *a = NULL;
-    
+
     /* Remove from linked list */
     if (e->iterate_next)
         e->iterate_next->iterate_prev = e->iterate_prev;
     else
         s->iterate_list_tail = e->iterate_prev;
-    
+
     if (e->iterate_prev)
         e->iterate_prev->iterate_next = e->iterate_next;
     else
@@ -280,7 +280,7 @@ static void remove_entry(pa_idxset *s, idxset_entry *e) {
 void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx) {
     idxset_entry **a;
     void *data;
-    
+
     assert(s);
 
     if (!(a = array_index(s, idx)))
@@ -291,15 +291,15 @@ void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx) {
 
     data = (*a)->data;
     remove_entry(s, *a);
-    
-    return data; 
+
+    return data;
 }
 
 void* pa_idxset_remove_by_data(pa_idxset*s, const void *data, uint32_t *idx) {
     idxset_entry *e;
     unsigned h;
     void *r;
-    
+
     assert(s->hash_func);
     h = s->hash_func(data) % s->hash_table_size;
 
@@ -328,7 +328,7 @@ void* pa_idxset_rrobin(pa_idxset *s, uint32_t *idx) {
 
     if (!e)
         return NULL;
-    
+
     *idx = e->index;
     return e->data;
 }
@@ -351,7 +351,7 @@ void *pa_idxset_next(pa_idxset *s, uint32_t *idx) {
 
     if ((a = array_index(s, *idx)) && *a)
         e = (*a)->iterate_next;
-    
+
     if (e) {
         *idx = e->index;
         return e->data;
@@ -380,7 +380,7 @@ int pa_idxset_foreach(pa_idxset*s, int (*func)(void *p, uint32_t idx, int *del, 
 
         e = n;
     }
-    
+
     return 0;
 }
 

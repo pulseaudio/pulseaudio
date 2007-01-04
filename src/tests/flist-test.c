@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -41,7 +41,7 @@ static int quit = 0;
 
 static void spin(void) {
     int k;
-    
+
     /* Spin a little */
     k = rand() % 10000;
     for (; k > 0; k--)
@@ -100,6 +100,6 @@ int main(int argc, char* argv[]) {
         pa_thread_free(threads[i]);
 
     pa_flist_free(flist, pa_xfree);
-    
+
     return 0;
 }

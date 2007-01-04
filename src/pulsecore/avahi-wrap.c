@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -58,7 +58,7 @@ static pa_io_event_flags_t translate_io_flags(AvahiWatchEvent e) {
 
 static void watch_callback(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
     AvahiWatch *w = userdata;
-    
+
     assert(a);
     assert(e);
     assert(w);
@@ -75,7 +75,7 @@ static AvahiWatch* watch_new(const AvahiPoll *api, int fd, AvahiWatchEvent event
     assert(api);
     assert(fd >= 0);
     assert(callback);
-    
+
     p = api->userdata;
     assert(p);
 
@@ -88,19 +88,19 @@ static AvahiWatch* watch_new(const AvahiPoll *api, int fd, AvahiWatchEvent event
 
     return w;
 }
- 
+
 static void watch_update(AvahiWatch *w, AvahiWatchEvent event) {
     assert(w);
 
     w->avahi_poll->mainloop->io_enable(w->io_event, translate_io_flags(event));
 }
- 
+
 static AvahiWatchEvent watch_get_events(AvahiWatch *w) {
     assert(w);
 
     return w->current_event;
 }
- 
+
 static void watch_free(AvahiWatch *w) {
     assert(w);
 
@@ -117,7 +117,7 @@ struct AvahiTimeout {
 
 static void timeout_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
     AvahiTimeout *t = userdata;
-    
+
     assert(a);
     assert(e);
     assert(t);
@@ -131,7 +131,7 @@ static AvahiTimeout* timeout_new(const AvahiPoll *api, const struct timeval *tv,
 
     assert(api);
     assert(callback);
-    
+
     p = api->userdata;
     assert(p);
 
@@ -139,12 +139,12 @@ static AvahiTimeout* timeout_new(const AvahiPoll *api, const struct timeval *tv,
     t->avahi_poll = p;
     t->callback = callback;
     t->userdata = userdata;
-    
+
     t->time_event = tv ? p->mainloop->time_new(p->mainloop, tv, timeout_callback, t) : NULL;
 
     return t;
 }
- 
+
 static void timeout_update(AvahiTimeout *t, const struct timeval *tv) {
     assert(t);
 
@@ -157,7 +157,7 @@ static void timeout_update(AvahiTimeout *t, const struct timeval *tv) {
         t->time_event = NULL;
     }
 }
-     
+
 static void timeout_free(AvahiTimeout *t) {
     assert(t);
 
@@ -170,9 +170,9 @@ AvahiPoll* pa_avahi_poll_new(pa_mainloop_api *m) {
     pa_avahi_poll *p;
 
     assert(m);
-    
+
     p = pa_xnew(pa_avahi_poll, 1);
-    
+
     p->api.userdata = p;
     p->api.watch_new = watch_new;
     p->api.watch_update = watch_update;
@@ -182,7 +182,7 @@ AvahiPoll* pa_avahi_poll_new(pa_mainloop_api *m) {
     p->api.timeout_update = timeout_update;
     p->api.timeout_free = timeout_free;
     p->mainloop = m;
-    
+
     return &p->api;
 }
 
@@ -191,7 +191,7 @@ void pa_avahi_poll_free(AvahiPoll *api) {
     assert(api);
     p = api->userdata;
     assert(p);
-    
+
     pa_xfree(p);
 }
 

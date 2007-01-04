@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -57,7 +57,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_AUTHORIZING:
         case PA_CONTEXT_SETTING_NAME:
             break;
-        
+
         case PA_CONTEXT_READY: {
 
             static const pa_sample_spec ss = {
@@ -65,18 +65,18 @@ static void context_state_callback(pa_context *c, void *userdata) {
                 .rate = 44100,
                 .channels = 1
             };
-            
+
             fprintf(stderr, "Connection established.\n");
 
             stream = pa_stream_new(c, "interpol-test", &ss, NULL);
             assert(stream);
-            
+
             pa_stream_connect_playback(stream, NULL, NULL, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL);
             pa_stream_set_write_callback(stream, stream_write_cb, NULL);
-                
+
             break;
         }
-            
+
         case PA_CONTEXT_TERMINATED:
             break;
 
@@ -108,19 +108,19 @@ int main(int argc, char *argv[]) {
     assert(r >= 0);
 
     pa_gettimeofday(&start);
-    
+
     pa_threaded_mainloop_start(m);
 
     for (k = 0; k < 5000; k++) {
         int success = 0, changed = 0;
         pa_usec_t t, rtc;
         struct timeval now, tv;
-        
+
         pa_threaded_mainloop_lock(m);
 
         if (stream) {
             const pa_timing_info *info;
-            
+
             if (pa_stream_get_time(stream, &t) >= 0)
                 success = 1;
 
@@ -130,9 +130,9 @@ int main(int argc, char *argv[]) {
                     last_info = info->timestamp;
                 }
         }
-        
+
         pa_threaded_mainloop_unlock(m);
-        
+
         if (success) {
             pa_gettimeofday(&now);
 
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
         pa_stream_disconnect(stream);
         pa_stream_unref(stream);
     }
-    
+
     if (context) {
         pa_context_disconnect(context);
         pa_context_unref(context);
@@ -164,6 +164,6 @@ int main(int argc, char *argv[]) {
 
     if (m)
         pa_threaded_mainloop_free(m);
-    
+
     return 0;
 }

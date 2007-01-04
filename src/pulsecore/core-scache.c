@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -94,7 +94,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
             pa_memblock_unref(e->memchunk.memblock);
 
         pa_xfree(e->filename);
-        
+
         assert(e->core == c);
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
@@ -178,7 +178,7 @@ int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint3
 
     if (pa_sound_file_load(c->mempool, filename, &ss, &map, &chunk) < 0)
         return -1;
-        
+
     r = pa_scache_add_item(c, name, &ss, &map, &chunk, idx);
     pa_memblock_unref(chunk.memblock);
 
@@ -202,7 +202,7 @@ int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, 
 
     e->lazy = 1;
     e->filename = pa_xstrdup(filename);
-    
+
     if (!c->scache_auto_unload_event) {
         struct timeval ntv;
         pa_gettimeofday(&ntv);
@@ -252,7 +252,7 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
     pa_scache_entry *e;
     char *t;
     pa_cvolume r;
-    
+
     assert(c);
     assert(name);
     assert(sink);
@@ -269,7 +269,7 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
         if (e->volume.channels > e->sample_spec.channels)
             e->volume.channels = e->sample_spec.channels;
     }
-    
+
     if (!e->memchunk.memblock)
         return -1;
 
@@ -287,7 +287,7 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
 
     if (e->lazy)
         time(&e->last_used_time);
-    
+
     return 0;
 }
 
@@ -318,7 +318,7 @@ uint32_t pa_scache_total_size(pa_core *c) {
 
     if (!c->scache || !pa_idxset_size(c->scache))
         return 0;
-    
+
     for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx))
         if (e->memchunk.memblock)
             sum += e->memchunk.length;
@@ -334,7 +334,7 @@ void pa_scache_unload_unused(pa_core *c) {
 
     if (!c->scache || !pa_idxset_size(c->scache))
         return;
-    
+
     time(&now);
 
     for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
@@ -344,7 +344,7 @@ void pa_scache_unload_unused(pa_core *c) {
 
         if (e->last_used_time + c->scache_idle_time > now)
             continue;
-        
+
         pa_memblock_unref(e->memchunk.memblock);
         e->memchunk.memblock = NULL;
         e->memchunk.index = e->memchunk.length = 0;
@@ -358,7 +358,7 @@ static void add_file(pa_core *c, const char *pathname) {
     const char *e;
 
     e = pa_path_get_filename(pathname);
-    
+
     if (stat(pathname, &st) < 0) {
         pa_log("stat('%s'): %s", pathname, pa_cstrerror(errno));
         return;
@@ -388,7 +388,7 @@ int pa_scache_add_directory_lazy(pa_core *c, const char *pathname) {
 
         for (i = 0; i < p.gl_pathc; i++)
             add_file(c, p.gl_pathv[i]);
-        
+
         globfree(&p);
 #else
         return -1;

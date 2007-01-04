@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -65,7 +65,7 @@ static void sched_event(pa_core *c);
 /* Allocate a new subscription object for the given subscription mask. Use the specified callback function and user data */
 pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m, pa_subscription_cb_t callback, void *userdata) {
     pa_subscription *s;
-    
+
     assert(c);
     assert(m);
     assert(callback);
@@ -85,7 +85,7 @@ pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m, pa_su
 void pa_subscription_free(pa_subscription*s) {
     assert(s);
     assert(!s->dead);
-    
+
     s->dead = 1;
     sched_event(s->core);
 }
@@ -104,7 +104,7 @@ static void free_event(pa_subscription_event *s) {
 
     if (!s->next)
         s->core->subscription_event_last = s->prev;
-    
+
     PA_LLIST_REMOVE(pa_subscription_event, s->core->subscription_event_queue, s);
     pa_xfree(s);
 }
@@ -112,7 +112,7 @@ static void free_event(pa_subscription_event *s) {
 /* Free all subscription objects */
 void pa_subscription_free_all(pa_core *c) {
     assert(c);
-    
+
     while (c->subscriptions)
         free_subscription(c->subscriptions);
 
@@ -157,7 +157,7 @@ static void dump_event(const char * prefix, pa_subscription_event*e) {
 static void defer_cb(pa_mainloop_api *m, pa_defer_event *de, void *userdata) {
     pa_core *c = userdata;
     pa_subscription *s;
-    
+
     assert(c->mainloop == m);
     assert(c);
     assert(c->subscription_defer_event == de);
@@ -170,7 +170,7 @@ static void defer_cb(pa_mainloop_api *m, pa_defer_event *de, void *userdata) {
         pa_subscription_event *e = c->subscription_event_queue;
 
         for (s = c->subscriptions; s; s = s->next) {
-            
+
             if (!s->dead && pa_subscription_match_flags(s->mask, e->type))
                 s->callback(c, e->type, e->index, s->userdata);
         }
@@ -182,7 +182,7 @@ static void defer_cb(pa_mainloop_api *m, pa_defer_event *de, void *userdata) {
     }
 
     /* Remove dead subscriptions */
-    
+
     s = c->subscriptions;
     while (s) {
         pa_subscription *n = s->next;
@@ -200,7 +200,7 @@ static void sched_event(pa_core *c) {
         c->subscription_defer_event = c->mainloop->defer_new(c->mainloop, defer_cb, c);
         assert(c->subscription_defer_event);
     }
-        
+
     c->mainloop->defer_enable(c->subscription_defer_event, 1);
 }
 
@@ -212,18 +212,18 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
     /* No need for queuing subscriptions of noone is listening */
     if (!c->subscriptions)
         return;
-    
+
     if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) != PA_SUBSCRIPTION_EVENT_NEW) {
         pa_subscription_event *i, *n;
-        
+
         /* Check for duplicates */
         for (i = c->subscription_event_last; i; i = n) {
             n = i->prev;
-                
+
             /* not the same object type */
             if (((t ^ i->type) & PA_SUBSCRIPTION_EVENT_FACILITY_MASK))
                 continue;
-            
+
             /* not the same object */
             if (i->index != index)
                 continue;
@@ -253,7 +253,7 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
     e->type = t;
     e->index = index;
 
-    PA_LLIST_INSERT_AFTER(pa_subscription_event, c->subscription_event_queue, c->subscription_event_last, e); 
+    PA_LLIST_INSERT_AFTER(pa_subscription_event, c->subscription_event_queue, c->subscription_event_last, e);
     c->subscription_event_last = e;
 
 #ifdef DEBUG

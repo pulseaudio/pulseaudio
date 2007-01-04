@@ -44,7 +44,7 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
 
     if (!dname && !getenv("DISPLAY"))
         goto finish;
-    
+
     if (!(d = XOpenDisplay(dname))) {
         pa_log("XOpenDisplay() failed");
         goto finish;
@@ -89,5 +89,5 @@ finish:
         XCloseDisplay(d);
 
     return ret;
-    
+
 }

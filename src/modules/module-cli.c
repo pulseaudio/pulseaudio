@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -48,7 +48,7 @@ static const char* const valid_modargs[] = {
 
 static void eof_and_unload_cb(pa_cli*c, void *userdata) {
     pa_module *m = userdata;
-    
+
     assert(c);
     assert(m);
 
@@ -68,7 +68,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_iochannel *io;
     pa_modargs *ma;
     int exit_on_eof = 0;
-    
+
     assert(c);
     assert(m);
 
@@ -81,7 +81,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("failed to parse module arguments.");
         goto fail;
     }
-    
+
     if (pa_modargs_get_value_boolean(ma, "exit_on_eof", &exit_on_eof) < 0) {
         pa_log("exit_on_eof= expects boolean argument.");
         goto fail;
@@ -102,7 +102,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_cli_set_eof_callback(m->userdata, exit_on_eof ? eof_and_exit_cb : eof_and_unload_cb, m);
 
     pa_modargs_free(ma);
-    
+
     return 0;
 
 fail:

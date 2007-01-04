@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -91,7 +91,7 @@ struct userdata {
     struct output *master;
     pa_time_event *time_event;
     uint32_t adjust_time;
-    
+
     PA_LLIST_HEAD(struct output, outputs);
 };
 
@@ -110,9 +110,9 @@ static void adjust_rates(struct userdata *u) {
 
     for (o = u->outputs; o; o = o->next) {
         uint32_t sink_latency = o->sink_input->sink ? pa_sink_get_latency(o->sink_input->sink) : 0;
-        
+
         o->total_latency = sink_latency + pa_sink_input_get_latency(o->sink_input);
-        
+
         if (sink_latency > max_sink_latency)
             max_sink_latency = sink_latency;
 
@@ -123,14 +123,14 @@ static void adjust_rates(struct userdata *u) {
     assert(min_total_latency != (pa_usec_t) -1);
 
     target_latency = max_sink_latency > min_total_latency ? max_sink_latency : min_total_latency;
-    
+
     pa_log_info("[%s] target latency is %0.0f usec.", u->sink->name, (float) target_latency);
 
     base_rate = u->sink->sample_spec.rate;
 
     for (o = u->outputs; o; o = o->next) {
-        uint32_t r = base_rate; 
-        
+        uint32_t r = base_rate;
+
         if (o->total_latency < target_latency)
             r -= (uint32_t) (((((double) target_latency - o->total_latency))/u->adjust_time)*r/ 1000000);
         else if (o->total_latency > target_latency)
@@ -151,7 +151,7 @@ static void request_memblock(struct userdata *u) {
     assert(u && u->sink);
 
     update_usage(u);
-    
+
     if (pa_sink_render(u->sink, RENDER_SIZE, &chunk) < 0)
         return;
 
@@ -179,10 +179,10 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
 
     if (pa_memblockq_peek(o->memblockq, chunk) >= 0)
         return 0;
-    
+
     /* Try harder */
     request_memblock(o->userdata);
-    
+
     return pa_memblockq_peek(o->memblockq, chunk);
 }
 
@@ -204,7 +204,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
 static pa_usec_t sink_input_get_latency_cb(pa_sink_input *i) {
     struct output *o = i->userdata;
     assert(i && o && o->sink_input);
-    
+
     return pa_bytes_to_usec(pa_memblockq_get_length(o->memblockq), &i->sample_spec);
 }
 
@@ -220,11 +220,11 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
 static void sink_notify(pa_sink *s) {
     struct userdata *u;
     struct output *o;
-    
+
     assert(s);
     u = s->userdata;
     assert(u);
-    
+
     for (o = u->outputs; o; o = o->next)
         pa_sink_notify(o->sink_input->sink);
 }
@@ -233,12 +233,12 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
     struct output *o = NULL;
     char t[256];
     pa_sink_input_new_data data;
-    
+
     assert(u && sink && u->sink);
-    
+
     o = pa_xmalloc(sizeof(struct output));
     o->userdata = u;
-    
+
     o->counter = 0;
     o->memblockq = pa_memblockq_new(
             0,
@@ -258,7 +258,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
     pa_sink_input_new_data_set_sample_spec(&data, &u->sink->sample_spec);
     pa_sink_input_new_data_set_channel_map(&data, &u->sink->channel_map);
     data.module = u->module;
-    
+
     if (!(o->sink_input = pa_sink_input_new(u->core, &data, PA_SINK_INPUT_VARIABLE_RATE)))
         goto fail;
 
@@ -267,7 +267,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
     o->sink_input->drop = sink_input_drop_cb;
     o->sink_input->kill = sink_input_kill_cb;
     o->sink_input->userdata = o;
-    
+
     PA_LLIST_PREPEND(struct output, u->outputs, o);
     u->n_outputs++;
     return o;
@@ -282,7 +282,7 @@ fail:
 
         if (o->memblockq)
             pa_memblockq_free(o->memblockq);
-        
+
         pa_xfree(o);
     }
 
@@ -302,17 +302,17 @@ static void output_free(struct output *o) {
 static void clear_up(struct userdata *u) {
     struct output *o;
     assert(u);
-    
+
     if (u->time_event) {
         u->core->mainloop->time_free(u->time_event);
         u->time_event = NULL;
     }
-    
+
     while ((o = u->outputs))
         output_free(o);
 
     u->master = NULL;
-    
+
     if (u->sink) {
         pa_sink_disconnect(u->sink);
         pa_sink_unref(u->sink);
@@ -331,7 +331,7 @@ int pa__init(pa_core *c, pa_module*m) {
     int resample_method = -1;
     pa_sample_spec ss;
     pa_channel_map map;
-    
+
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -345,7 +345,7 @@ int pa__init(pa_core *c, pa_module*m) {
             goto fail;
         }
     }
-    
+
     u = pa_xnew(struct userdata, 1);
     m->userdata = u;
     u->sink = NULL;
@@ -361,7 +361,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("failed to parse adjust_time value");
         goto fail;
     }
-    
+
     if (!(master_name = pa_modargs_get_value(ma, "master", NULL)) || !(slaves = pa_modargs_get_value(ma, "slaves", NULL))) {
         pa_log("no master or slave sinks specified");
         goto fail;
@@ -392,7 +392,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("channel map and sample specification don't match.");
         goto fail;
     }
-    
+
     if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
         pa_log("failed to create sink");
         goto fail;
@@ -403,16 +403,16 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sink->get_latency = sink_get_latency_cb;
     u->sink->notify = sink_notify;
     u->sink->userdata = u;
-    
+
     if (!(u->master = output_new(u, master_sink, resample_method))) {
         pa_log("failed to create master sink input on sink '%s'.", u->sink->name);
         goto fail;
     }
-    
+
     split_state = NULL;
     while ((n = pa_split(slaves, ",", &split_state))) {
         pa_sink *slave_sink;
-        
+
         if (!(slave_sink = pa_namereg_get(c, n, PA_NAMEREG_SINK, 1))) {
             pa_log("invalid slave sink '%s'", n);
             goto fail;
@@ -425,7 +425,7 @@ int pa__init(pa_core *c, pa_module*m) {
             goto fail;
         }
     }
-           
+
     if (u->n_outputs <= 1)
         pa_log_warn("WARNING: no slave sinks specified.");
 
@@ -434,13 +434,13 @@ int pa__init(pa_core *c, pa_module*m) {
         tv.tv_sec += u->adjust_time;
         u->time_event = c->mainloop->time_new(c->mainloop, &tv, time_callback, u);
     }
-    
+
     pa_modargs_free(ma);
-    return 0;    
+    return 0;
 
 fail:
     pa_xfree(n);
-    
+
     if (ma)
         pa_modargs_free(ma);
 

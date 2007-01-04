@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -206,7 +206,7 @@ PA_C_DECL_BEGIN
 /** Stores information about sinks */
 typedef struct pa_sink_info {
     const char *name;                  /**< Name of the sink */
-    uint32_t index;                    /**< Index of the sink */ 
+    uint32_t index;                    /**< Index of the sink */
     const char *description;           /**< Description of this sink */
     pa_sample_spec sample_spec;        /**< Sample spec of this sink */
     pa_channel_map channel_map;        /**< Channel map \since 0.8 */
@@ -233,7 +233,7 @@ pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t id, pa_s
 pa_operation* pa_context_get_sink_info_list(pa_context *c, pa_sink_info_cb_t cb, void *userdata);
 
 /** Stores information about sources */
-typedef struct pa_source_info { 
+typedef struct pa_source_info {
     const char *name ;                  /**< Name of the source */
     uint32_t index;                     /**< Index of the source */
     const char *description;            /**< Description of this source */
@@ -316,7 +316,7 @@ pa_operation* pa_context_get_client_info_list(pa_context *c, pa_client_info_cb_t
 
 /** Stores information about sink inputs */
 typedef struct pa_sink_input_info {
-    uint32_t index;                      /**< Index of the sink input */  
+    uint32_t index;                      /**< Index of the sink input */
     const char *name;                    /**< Name of the sink input */
     uint32_t owner_module;               /**< Index of the module this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any module */
     uint32_t client;                     /**< Index of the client this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any client */
@@ -341,11 +341,11 @@ pa_operation* pa_context_get_sink_input_info_list(pa_context *c, pa_sink_input_i
 
 /** Stores information about source outputs */
 typedef struct pa_source_output_info {
-    uint32_t index;                      /**< Index of the sink input */ 
+    uint32_t index;                      /**< Index of the sink input */
     const char *name;                    /**< Name of the sink input */
-    uint32_t owner_module;               /**< Index of the module this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any module */ 
-    uint32_t client;                     /**< Index of the client this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any client */  
-    uint32_t source;                     /**< Index of the connected source */ 
+    uint32_t owner_module;               /**< Index of the module this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any module */
+    uint32_t client;                     /**< Index of the client this sink input belongs to, or PA_INVALID_INDEX when it does not belong to any client */
+    uint32_t source;                     /**< Index of the connected source */
     pa_sample_spec sample_spec;          /**< The sample specification of the source output */
     pa_channel_map channel_map;          /**< Channel map */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in the source output, see pa_latency_info for details. \since 0.5 */
@@ -396,7 +396,7 @@ typedef struct pa_stat_info {
     uint32_t memblock_total_size;      /**< Currentl total size of allocated memory blocks */
     uint32_t memblock_allocated;       /**< Allocated memory blocks during the whole lifetime of the daemon */
     uint32_t memblock_allocated_size;  /**< Total size of all memory blocks allocated during the whole lifetime of the daemon */
-    uint32_t scache_size;              /**< Total size of all sample cache entries. \since 0.4 */ 
+    uint32_t scache_size;              /**< Total size of all sample cache entries. \since 0.4 */
 } pa_stat_info;
 
 /** Callback prototype for pa_context_stat() */
@@ -432,7 +432,7 @@ pa_operation* pa_context_get_sample_info_list(pa_context *c, pa_sample_info_cb_t
 
 /** Kill a client. \since 0.5 */
 pa_operation* pa_context_kill_client(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
-                                            
+
 /** Kill a sink input. \since 0.5 */
 pa_operation* pa_context_kill_sink_input(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
 

@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -55,11 +55,11 @@
 /** \mainpage
  *
  * \section intro_sec Introduction
- * 
+ *
  * This document describes the client API for the PulseAudio sound
  * server. The API comes in two flavours to accomodate different styles
  * of applications and different needs in complexity:
- * 
+ *
  * \li The complete but somewhat complicated to use asynchronous API
  * \li The simplified, easy to use, but limited synchronous API
  *
@@ -67,7 +67,7 @@
  * locale. Some functions will filter invalid sequences from the string, some
  * will simply fail. To ensure reliable behaviour, make sure everything you
  * pass to the API is already in UTF-8.
- 
+
  * \section simple_sec Simple API
  *
  * Use this if you develop your program in synchronous style and just

@@ -42,24 +42,24 @@
 /* Run the user supplied parser for an assignment */
 static int next_assignment(const char *filename, unsigned line, const pa_config_item *t, const char *lvalue, const char *rvalue, void *userdata) {
     assert(filename && t && lvalue && rvalue);
-    
+
     for (; t->parse; t++)
         if (!strcmp(lvalue, t->lvalue))
             return t->parse(filename, line, lvalue, rvalue, t->data, userdata);
 
     pa_log("[%s:%u] Unknown lvalue '%s'.", filename, line, lvalue);
-    
+
     return -1;
 }
 
 /* Returns non-zero when c is contained in s */
 static int in_string(char c, const char *s) {
     assert(s);
-    
+
     for (; *s; s++)
         if (*s == c)
             return 1;
-    
+
     return 0;
 }
 
@@ -85,7 +85,7 @@ static int parse_line(const char *filename, unsigned line, const pa_config_item 
 
     if ((c = strpbrk(b, COMMENTS)))
         *c = 0;
-    
+
     if (!*b)
         return 0;
 
@@ -106,13 +106,13 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
     unsigned line = 0;
     int do_close = !f;
     assert(filename && t);
-    
+
     if (!f && !(f = fopen(filename, "r"))) {
         if (errno == ENOENT) {
             r = 0;
             goto finish;
         }
-        
+
         pa_log_warn("WARNING: failed to open configuration file '%s': %s",
             filename, pa_cstrerror(errno));
         goto finish;
@@ -123,23 +123,23 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
         if (!fgets(l, sizeof(l), f)) {
             if (feof(f))
                 break;
-            
+
             pa_log_warn("WARNING: failed to read configuration file '%s': %s",
                 filename, pa_cstrerror(errno));
             goto finish;
         }
-            
+
         if (parse_line(filename, ++line, t,  l, userdata) < 0)
             goto finish;
     }
-    
+
     r = 0;
-    
+
 finish:
 
     if (do_close && f)
         fclose(f);
-    
+
     return r;
 }
 
@@ -152,22 +152,22 @@ int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue,
         pa_log("[%s:%u] Failed to parse numeric value: %s", filename, line, rvalue);
         return -1;
     }
-    
+
     *i = (int) k;
-    return 0; 
+    return 0;
 }
 
 int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
     int *b = data, k;
     assert(filename && lvalue && rvalue && data);
-    
+
     if ((k = pa_parse_boolean(rvalue)) < 0) {
         pa_log("[%s:%u] Failed to parse boolean value: %s", filename, line, rvalue);
         return -1;
     }
-    
+
     *b = k;
-    
+
     return 0;
 }
 

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -77,14 +77,14 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
         fprintf(stderr, "Failed to drain stream: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
     }
-    
-    if (verbose)    
+
+    if (verbose)
         fprintf(stderr, "Playback stream drained.\n");
 
     pa_stream_disconnect(stream);
     pa_stream_unref(stream);
     stream = NULL;
-    
+
     if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
         pa_context_disconnect(context);
     else {
@@ -111,7 +111,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
 
         if ((bytes = readf_function(sndfile, data, length/k)) > 0)
             bytes *= k;
-        
+
     } else
         bytes = sf_read_raw(sndfile, data, length);
 
@@ -140,7 +140,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
             if (verbose)
                 fprintf(stderr, "Stream successfully created\n");
             break;
-            
+
         case PA_STREAM_FAILED:
         default:
             fprintf(stderr, "Stream errror: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
@@ -157,10 +157,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_AUTHORIZING:
         case PA_CONTEXT_SETTING_NAME:
             break;
-        
+
         case PA_CONTEXT_READY: {
             pa_cvolume cv;
-            
+
             assert(c && !stream);
 
             if (verbose)
@@ -172,10 +172,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
             pa_stream_set_state_callback(stream, stream_state_callback, NULL);
             pa_stream_set_write_callback(stream, stream_write_callback, NULL);
             pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL);
-                
+
             break;
         }
-            
+
         case PA_CONTEXT_TERMINATED:
             quit(0);
             break;
@@ -192,7 +192,7 @@ static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig,
     if (verbose)
         fprintf(stderr, "Got SIGINT, exiting.\n");
     quit(0);
-    
+
 }
 
 static void help(const char *argv0) {
@@ -251,7 +251,7 @@ int main(int argc, char *argv[]) {
                 help(bn);
                 ret = 0;
                 goto quit;
-                
+
             case ARG_VERSION:
                 printf("paplay "PACKAGE_VERSION"\nCompiled with libpulse %s\nLinked with libpulse %s\n", pa_get_headers_version(), pa_get_library_version());
                 ret = 0;
@@ -302,7 +302,7 @@ int main(int argc, char *argv[]) {
     }
 
     filename = optind < argc ? argv[optind] : "STDIN";
-    
+
     memset(&sfinfo, 0, sizeof(sfinfo));
 
     if (optind < argc)
@@ -317,9 +317,9 @@ int main(int argc, char *argv[]) {
 
     sample_spec.rate = sfinfo.samplerate;
     sample_spec.channels = sfinfo.channels;
-    
+
     readf_function = NULL;
-    
+
     switch (sfinfo.format & 0xFF) {
         case SF_FORMAT_PCM_16:
         case SF_FORMAT_PCM_U8:
@@ -327,11 +327,11 @@ int main(int argc, char *argv[]) {
             sample_spec.format = PA_SAMPLE_S16NE;
             readf_function = (sf_count_t (*)(SNDFILE *_sndfile, void *ptr, sf_count_t frames)) sf_readf_short;
             break;
-            
+
         case SF_FORMAT_ULAW:
             sample_spec.format = PA_SAMPLE_ULAW;
             break;
-            
+
         case SF_FORMAT_ALAW:
             sample_spec.format = PA_SAMPLE_ALAW;
             break;
@@ -369,13 +369,13 @@ int main(int argc, char *argv[]) {
         if (!stream_name)
             stream_name = pa_utf8_filter(n);
     }
-    
+
     if (verbose) {
         char t[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(t, sizeof(t), &sample_spec);
         fprintf(stderr, "Using sample spec '%s'\n", t);
     }
-    
+
     /* Set up a new main loop */
     if (!(m = pa_mainloop_new())) {
         fprintf(stderr, "pa_mainloop_new() failed.\n");
@@ -390,7 +390,7 @@ int main(int argc, char *argv[]) {
 #ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN);
 #endif
-    
+
     /* Create a new connection context */
     if (!(context = pa_context_new(mainloop_api, client_name))) {
         fprintf(stderr, "pa_context_new() failed.\n");
@@ -407,7 +407,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "pa_mainloop_run() failed.\n");
         goto quit;
     }
-    
+
 quit:
     if (stream)
         pa_stream_unref(stream);
@@ -427,6 +427,6 @@ quit:
 
     if (sndfile)
         sf_close(sndfile);
-    
+
     return ret;
 }

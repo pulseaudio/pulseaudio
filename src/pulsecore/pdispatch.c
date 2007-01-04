@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -120,9 +120,9 @@ static void reply_info_free(struct reply_info *r) {
 
     if (r->time_event)
         r->pdispatch->mainloop->time_free(r->time_event);
-    
+
     PA_LLIST_REMOVE(struct reply_info, r->pdispatch->replies, r);
-    
+
     pa_xfree(r);
 }
 
@@ -131,7 +131,7 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_
     assert(mainloop);
 
     assert((entries && table) || (!entries && !table));
-    
+
     pd = pa_xmalloc(sizeof(pa_pdispatch));
     pd->ref = 1;
     pd->mainloop = mainloop;
@@ -141,7 +141,7 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_
     pd->drain_callback = NULL;
     pd->drain_userdata = NULL;
     pd->creds = NULL;
-    
+
     return pd;
 }
 
@@ -154,7 +154,7 @@ static void pdispatch_free(pa_pdispatch *pd) {
 
         reply_info_free(pd->replies);
     }
-    
+
     pa_xfree(pd);
 }
 
@@ -165,13 +165,13 @@ static void run_action(pa_pdispatch *pd, struct reply_info *r, uint32_t command,
     assert(r);
 
     pa_pdispatch_ref(pd);
-    
+
     callback = r->callback;
     userdata = r->userdata;
     tag = r->tag;
-    
+
     reply_info_free(r);
-    
+
     callback(pd, command, tag, ts, userdata);
 
     if (pd->drain_callback && !pa_pdispatch_is_pending(pd))
@@ -187,24 +187,24 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
     assert(pd && packet && packet->data);
 
     pa_pdispatch_ref(pd);
-    
+
     if (packet->length <= 8)
         goto finish;
 
     ts = pa_tagstruct_new(packet->data, packet->length);
     assert(ts);
-    
+
     if (pa_tagstruct_getu32(ts, &command) < 0 ||
         pa_tagstruct_getu32(ts, &tag) < 0)
         goto finish;
-    
+
 #ifdef DEBUG_OPCODES
 {
     char t[256];
     char const *p;
     if (!(p = command_names[command]))
         snprintf((char*) (p = t), sizeof(t), "%u", command);
-    
+
     pa_log("Recieved opcode <%s>", p);
 }
 #endif
@@ -231,10 +231,10 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
     }
 
     ret = 0;
-        
+
 finish:
     pd->creds = NULL;
-    
+
     if (ts)
         pa_tagstruct_free(ts);
 
@@ -261,7 +261,7 @@ void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa
     r->userdata = userdata;
     r->free_cb = free_cb;
     r->tag = tag;
-    
+
     pa_gettimeofday(&tv);
     tv.tv_sec += timeout;
 
@@ -292,7 +292,7 @@ void pa_pdispatch_unregister_reply(pa_pdispatch *pd, void *userdata) {
     for (r = pd->replies; r; r = n) {
         n = r->next;
 
-        if (r->userdata == userdata) 
+        if (r->userdata == userdata)
             reply_info_free(r);
     }
 }
@@ -313,6 +313,6 @@ pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd) {
 const pa_creds * pa_pdispatch_creds(pa_pdispatch *pd) {
     assert(pd);
     assert(pd->ref >= 1);
-    
+
     return pd->creds;
 }

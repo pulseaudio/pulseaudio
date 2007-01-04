@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -88,7 +88,7 @@ static int load_rules(struct userdata *u, const char *filename) {
     }
 
     pa_lock_fd(fileno(f), 1);
-    
+
     while (!feof(f)) {
         char *d, *v;
         pa_volume_t volume;
@@ -96,12 +96,12 @@ static int load_rules(struct userdata *u, const char *filename) {
         regex_t regex;
         char ln[256];
         struct rule *rule;
-        
+
         if (!fgets(ln, sizeof(ln), f))
             break;
 
         n++;
-        
+
         pa_strip_nl(ln);
 
         if (ln[0] == '#' || !*ln )
@@ -110,7 +110,7 @@ static int load_rules(struct userdata *u, const char *filename) {
         d = ln+strcspn(ln, WHITESPACE);
         v = d+strspn(d, WHITESPACE);
 
-        
+
         if (!*v) {
             pa_log(__FILE__ ": [%s:%u] failed to parse line - too few words", filename, n);
             goto finish;
@@ -124,7 +124,7 @@ static int load_rules(struct userdata *u, const char *filename) {
 
         volume = (pa_volume_t) k;
 
-        
+
         if (regcomp(&regex, ln, REG_EXTENDED|REG_NOSUB) != 0) {
             pa_log("[%s:%u] invalid regular expression", filename, n);
             goto finish;
@@ -140,12 +140,12 @@ static int load_rules(struct userdata *u, const char *filename) {
         else
             u->rules = rule;
         end = rule;
-        
+
         *d = 0;
     }
 
     ret = 0;
-    
+
 finish:
     if (f) {
         pa_lock_fd(fileno(f), 0);
@@ -172,7 +172,7 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
 
     if (!si->name)
         return;
-    
+
     for (r = u->rules; r; r = r->next) {
         if (!regexec(&r->regex, si->name, 0, NULL, 0)) {
             pa_cvolume cv;
@@ -197,7 +197,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->rules = NULL;
     u->subscription = NULL;
     m->userdata = u;
-    
+
     if (load_rules(u, pa_modargs_get_value(ma, "table", NULL)) < 0)
         goto fail;
 
@@ -224,7 +224,7 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (u->subscription)
         pa_subscription_free(u->subscription);
-    
+
     for (r = u->rules; r; r = n) {
         n = r->next;
 

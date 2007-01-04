@@ -69,11 +69,11 @@ static const pa_client_conf default_conf = {
 
 pa_client_conf *pa_client_conf_new(void) {
     pa_client_conf *c = pa_xmemdup(&default_conf, sizeof(default_conf));
-    
+
     c->daemon_binary = pa_xstrdup(PA_BINARY);
     c->extra_arguments = pa_xstrdup("--log-target=syslog --exit-idle-time=5");
     c->cookie_file = pa_xstrdup(PA_NATIVE_COOKIE_FILE);
-    
+
     return c;
 }
 
@@ -122,25 +122,25 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         pa_log("WARNING: failed to open configuration file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
-    
+
     r = f ? pa_config_parse(fn, f, table, NULL) : 0;
 
     if (!r)
         r = pa_client_conf_load_cookie(c);
-    
+
 
 finish:
     pa_xfree(fn);
 
     if (f)
         fclose(f);
-    
+
     return r;
 }
 
 int pa_client_conf_env(pa_client_conf *c) {
     char *e;
-    
+
     if ((e = getenv(ENV_DEFAULT_SINK))) {
         pa_xfree(c->default_sink);
         c->default_sink = pa_xstrdup(e);
@@ -155,7 +155,7 @@ int pa_client_conf_env(pa_client_conf *c) {
         pa_xfree(c->default_server);
         c->default_server = pa_xstrdup(e);
     }
-    
+
     if ((e = getenv(ENV_DAEMON_BINARY))) {
         pa_xfree(c->daemon_binary);
         c->daemon_binary = pa_xstrdup(e);
@@ -167,7 +167,7 @@ int pa_client_conf_env(pa_client_conf *c) {
 
         return pa_client_conf_load_cookie(c);
     }
-    
+
     return 0;
 }
 

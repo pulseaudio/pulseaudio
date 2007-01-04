@@ -48,7 +48,7 @@ char* pa_x11_get_prop(Display *d, const char *name, char *p, size_t l) {
     unsigned long nbytes_after;
     unsigned char *prop = NULL;
     char *ret = NULL;
-    
+
     Atom a = XInternAtom(d, name, False);
     if (XGetWindowProperty(d, RootWindow(d, 0), a, 0, (l+2)/4, False, XA_STRING, &actual_type, &actual_format, &nitems, &nbytes_after, &prop) != Success)
         goto finish;
@@ -65,6 +65,6 @@ finish:
 
     if (prop)
         XFree(prop);
-    
+
     return ret;
 }

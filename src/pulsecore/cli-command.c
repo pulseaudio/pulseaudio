@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -172,7 +172,7 @@ static int pa_cli_command_help(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
     assert(c && t && buf);
 
     pa_strbuf_puts(buf, "Available commands:\n");
-    
+
     for (command = commands; command->name; command++)
         if (command->help)
             pa_strbuf_printf(buf, "    %-25s %s\n", command->name, command->help);
@@ -252,12 +252,12 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
         [PA_MEMBLOCK_FIXED] = "FIXED",
         [PA_MEMBLOCK_IMPORTED] = "IMPORTED",
     };
-        
+
     assert(c);
     assert(t);
 
     stat = pa_mempool_get_stat(c->mempool);
-    
+
     pa_strbuf_printf(buf, "Memory blocks currently allocated: %u, size: %s.\n",
                      (unsigned) AO_load_acquire_read((AO_t*) &stat->n_allocated),
                      pa_bytes_snprint(s, sizeof(s), (size_t) AO_load_acquire_read((AO_t*) &stat->allocated_size)));
@@ -291,7 +291,7 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
                          type_table[k],
                          (unsigned) AO_load_acquire_read(&stat->n_allocated_by_type[k]),
                          (unsigned) AO_load_acquire_read(&stat->n_accumulated_by_type[k]));
-    
+
     return 0;
 }
 
@@ -318,7 +318,7 @@ static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
         pa_strbuf_puts(buf, "You need to specify the module name and optionally arguments.\n");
         return -1;
     }
-    
+
     if (!(m = pa_module_load(c, name,  pa_tokenizer_get(t, 2)))) {
         pa_strbuf_puts(buf, "Module load failed.\n");
         return -1;
@@ -724,14 +724,14 @@ static int pa_cli_command_autoload_add(pa_core *c, pa_tokenizer *t, pa_strbuf *b
     }
 
     pa_autoload_add(c, a, strstr(pa_tokenizer_get(t, 0), "sink") ? PA_NAMEREG_SINK : PA_NAMEREG_SOURCE, b, pa_tokenizer_get(t, 3), NULL);
-    
+
     return 0;
 }
 
 static int pa_cli_command_autoload_remove(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail) {
     const char *name;
     assert(c && t && buf && fail);
-    
+
     if (!(name = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a device name\n");
         return -1;
@@ -742,7 +742,7 @@ static int pa_cli_command_autoload_remove(pa_core *c, pa_tokenizer *t, pa_strbuf
         return -1;
     }
 
-    return 0;        
+    return 0;
 }
 
 static int pa_cli_command_autoload_list(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
@@ -766,7 +766,7 @@ static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, in
     assert(t);
 
     pa_mempool_vacuum(c->mempool);
-    
+
     return 0;
 }
 
@@ -857,7 +857,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
     time_t now;
     void *i;
     pa_autoload_entry *a;
-    
+
     assert(c && t);
 
     time(&now);
@@ -868,7 +868,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
     pa_strbuf_printf(buf, "### Configuration dump generated at %s\n", ctime(&now));
 #endif
 
-    
+
     for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx)) {
         if (m->auto_unload)
             continue;
@@ -912,7 +912,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
 
     if (c->autoload_hashmap) {
         nl = 0;
-        
+
         i = NULL;
         while ((a = pa_hashmap_iterate(c->autoload_hashmap, &i, NULL))) {
 
@@ -920,18 +920,18 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
                 pa_strbuf_puts(buf, "\n");
                 nl = 1;
             }
-            
+
             pa_strbuf_printf(buf, "add-autoload-%s %s %s", a->type == PA_NAMEREG_SINK ? "sink" : "source", a->name, a->module);
-            
+
             if (a->argument)
                 pa_strbuf_printf(buf, " %s", a->argument);
-            
+
             pa_strbuf_puts(buf, "\n");
         }
     }
 
     nl = 0;
-    
+
     if ((p = pa_namereg_get_default_sink_name(c))) {
         if (!nl) {
             pa_strbuf_puts(buf, "\n");
@@ -955,7 +955,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
 
 int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *fail) {
     const char *cs;
-    
+
     cs = s+strspn(s, whitespace);
 
     if (*cs == '#' || !*cs)
@@ -983,10 +983,10 @@ int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *
         const struct command*command;
         int unknown = 1;
         size_t l;
-        
+
         l = strcspn(cs, whitespace);
 
-        for (command = commands; command->name; command++) 
+        for (command = commands; command->name; command++)
             if (strlen(command->name) == l && !strncmp(cs, command->name, l)) {
                 int ret;
                 pa_tokenizer *t = pa_tokenizer_new(cs, command->args);
@@ -997,7 +997,7 @@ int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *
 
                 if (ret < 0 && *fail)
                     return -1;
-                
+
                 break;
             }
 
@@ -1049,7 +1049,7 @@ int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, int *fail)
     while (*p) {
         size_t l = strcspn(p, linebreak);
         char *line = pa_xstrndup(p, l);
-        
+
         if (pa_cli_command_execute_line(c, line, buf, fail) < 0&& *fail) {
             pa_xfree(line);
             return -1;

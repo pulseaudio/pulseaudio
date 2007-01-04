@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -59,7 +59,7 @@
 
 struct acl_entry {
     PA_LLIST_FIELDS(struct acl_entry);
-    int family;    
+    int family;
     struct in_addr address_ipv4;
     struct in6_addr address_ipv6;
     int bits;
@@ -75,10 +75,10 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
     pa_ip_acl *acl;
 
     assert(s);
-    
+
     acl = pa_xnew(pa_ip_acl, 1);
     PA_LLIST_HEAD_INIT(struct acl_entry, acl->entries);
-    
+
     while ((a = pa_split(s, ";", &state))) {
         char *slash;
         struct acl_entry e, *n;
@@ -97,7 +97,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
         if (inet_pton(AF_INET, a, &e.address_ipv4) > 0) {
 
             e.bits = bits == (uint32_t) -1 ? 32 : (int) bits;
-            
+
             if (e.bits > 32) {
                 pa_log("number of bits out of range: %i", e.bits);
                 goto fail;
@@ -107,7 +107,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
 
             if (e.bits < 32 && (uint32_t) (ntohl(e.address_ipv4.s_addr) << e.bits) != 0)
                 pa_log_warn("WARNING: Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
-                
+
         } else if (inet_pton(AF_INET6, a, &e.address_ipv6) > 0) {
 
             e.bits = bits == (uint32_t) -1 ? 128 : (int) bits;
@@ -123,7 +123,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
 
                 for (i = 0, bits = e.bits; i < 16; i++) {
 
-                    if (bits >= 8) 
+                    if (bits >= 8)
                         bits -= 8;
                     else {
                         if ((uint8_t) ((e.address_ipv6.s6_addr[i]) << bits) != 0) {
@@ -137,7 +137,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
                 if (t)
                     pa_log_warn("WARNING: Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
             }
-            
+
         } else {
             pa_log("failed to parse address: %s", a);
             goto fail;
@@ -145,16 +145,16 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
 
         n = pa_xmemdup(&e, sizeof(struct acl_entry));
         PA_LLIST_PREPEND(struct acl_entry, acl->entries, n);
-        
+
         pa_xfree(a);
     }
 
     return acl;
-    
+
 fail:
     pa_xfree(a);
     pa_ip_acl_free(acl);
-    
+
     return NULL;
 }
 
@@ -166,7 +166,7 @@ void pa_ip_acl_free(pa_ip_acl *acl) {
         PA_LLIST_REMOVE(struct acl_entry, acl->entries, e);
         pa_xfree(e);
     }
-    
+
     pa_xfree(acl);
 }
 
@@ -174,7 +174,7 @@ int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
     struct sockaddr_storage sa;
     struct acl_entry *e;
     socklen_t  salen;
-        
+
     assert(acl);
     assert(fd >= 0);
 
@@ -190,7 +190,7 @@ int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
 
     if (sa.ss_family == AF_INET6 && salen != sizeof(struct sockaddr_in6))
         return -1;
-    
+
     for (e = acl->entries; e; e = e->next) {
 
         if (e->family != sa.ss_family)
@@ -198,7 +198,7 @@ int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
 
         if (e->family == AF_INET) {
             struct sockaddr_in *sai = (struct sockaddr_in*) &sa;
-            
+
             if (e->bits == 0 || /* this needs special handling because >> takes the right-hand side modulo 32 */
                 (ntohl(sai->sin_addr.s_addr ^ e->address_ipv4.s_addr) >> (32 - e->bits)) == 0)
                 return 1;
@@ -211,7 +211,7 @@ int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
 
             if (e->bits == 0)
                 return 1;
-                
+
             for (i = 0, bits = e->bits; i < 16; i++) {
 
                 if (bits >= 8) {

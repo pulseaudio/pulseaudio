@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -77,14 +77,14 @@ static int load_key(struct userdata *u, const char*fn) {
     assert(u);
 
     u->auth_cookie_in_property = 0;
-    
+
     if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
         pa_log_debug("using already loaded auth cookie.");
         pa_authkey_prop_ref(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
         u->auth_cookie_in_property = 1;
         return 0;
     }
-    
+
     if (!fn)
         fn = PA_NATIVE_COOKIE_FILE;
 
@@ -92,7 +92,7 @@ static int load_key(struct userdata *u, const char*fn) {
         return -1;
 
     pa_log_debug("loading cookie from disk.");
-    
+
     if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
         u->auth_cookie_in_property = 1;
 
@@ -121,7 +121,7 @@ int pa__init(pa_core *c, pa_module*m) {
     if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
         goto fail;
 
-    if (!(u->x11_wrapper = pa_x11_wrapper_get(c, pa_modargs_get_value(ma, "display", NULL)))) 
+    if (!(u->x11_wrapper = pa_x11_wrapper_get(c, pa_modargs_get_value(ma, "display", NULL))))
         goto fail;
 
     if (!(l = pa_property_get(c, PA_NATIVE_SERVER_PROPERTY_NAME)))
@@ -130,10 +130,10 @@ int pa__init(pa_core *c, pa_module*m) {
     s = pa_strlist_tostring(l);
     pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER", s);
     pa_xfree(s);
-    
+
     if (!pa_get_fqdn(hn, sizeof(hn)) || !pa_get_user_name(un, sizeof(un)))
         goto fail;
-    
+
     u->id = pa_sprintf_malloc("%s@%s/%u", un, hn, (unsigned) getpid());
     pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_ID", u->id);
 
@@ -144,10 +144,10 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SINK", t);
 
     pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_COOKIE", pa_hexstr(u->auth_cookie, sizeof(u->auth_cookie), hx, sizeof(hx)));
-    
+
     pa_modargs_free(ma);
     return 0;
-    
+
 fail:
     if (ma)
         pa_modargs_free(ma);
@@ -162,7 +162,7 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (!(u = m->userdata))
         return;
-    
+
     if (u->x11_wrapper) {
         char t[256];
 
@@ -178,7 +178,7 @@ void pa__done(pa_core *c, pa_module*m) {
             XSync(pa_x11_wrapper_get_display(u->x11_wrapper), False);
         }
     }
-    
+
     if (u->x11_wrapper)
         pa_x11_wrapper_unref(u->x11_wrapper);
 

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -79,7 +79,7 @@ char *pa_get_user_name(char *s, size_t l) {
 
     if (!(p = getenv("USER")) && !(p = getenv("LOGNAME")) && !(p = getenv("USERNAME"))) {
 #ifdef HAVE_PWD_H
-        
+
 #ifdef HAVE_GETPWUID_R
         if (getpwuid_r(getuid(), &pw, buf, sizeof(buf), &r) != 0 || !r) {
 #else
@@ -90,7 +90,7 @@ char *pa_get_user_name(char *s, size_t l) {
             snprintf(s, l, "%lu", (unsigned long) getuid());
             return s;
         }
-        
+
         p = r->pw_name;
 
 #elif defined(OS_IS_WIN32) /* HAVE_PWD_H */
@@ -162,26 +162,26 @@ char *pa_get_binary_name(char *s, size_t l) {
 #if defined(OS_IS_WIN32)
     {
         char path[PATH_MAX];
-        
+
         if (GetModuleFileName(NULL, path, PATH_MAX))
             return pa_strlcpy(s, pa_path_get_filename(path), l);
     }
 #endif
-    
+
 #ifdef HAVE_READLINK
     {
         int i;
         char path[PATH_MAX];
         /* This works on Linux only */
-        
+
         if ((i = readlink("/proc/self/exe", path, sizeof(path)-1)) >= 0) {
             path[i] = 0;
             return pa_strlcpy(s, pa_path_get_filename(path), l);
         }
     }
-    
+
 #endif
-    
+
 #if defined(HAVE_SYS_PRCTL_H) && defined(PR_GET_NAME)
     {
 
@@ -192,14 +192,14 @@ char *pa_get_binary_name(char *s, size_t l) {
 
         char tcomm[TASK_COMM_LEN+1];
         memset(tcomm, 0, sizeof(tcomm));
-        
+
         /* This works on Linux only */
         if (prctl(PR_GET_NAME, (unsigned long) tcomm, 0, 0, 0) == 0)
             return pa_strlcpy(s, tcomm, l);
-        
+
     }
 #endif
-    
+
     return NULL;
 }
 
@@ -214,7 +214,7 @@ const char *pa_path_get_filename(const char *p) {
 
 char *pa_get_fqdn(char *s, size_t l) {
     char hn[256];
-#ifdef HAVE_GETADDRINFO    
+#ifdef HAVE_GETADDRINFO
     struct addrinfo *a, hints;
 #endif
 
@@ -225,7 +225,7 @@ char *pa_get_fqdn(char *s, size_t l) {
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_flags = AI_CANONNAME;
-    
+
     if (getaddrinfo(hn, NULL, &hints, &a) < 0 || !a || !a->ai_canonname || !*a->ai_canonname)
         return pa_strlcpy(s, hn, l);
 

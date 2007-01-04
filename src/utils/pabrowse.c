@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -40,7 +40,7 @@ static void dump_server(const pa_browse_info *i) {
 
     if (i->cookie)
         snprintf(t, sizeof(t), "0x%08x", *i->cookie);
-    
+
     printf("server: %s\n"
            "server-version: %s\n"
            "user-name: %s\n"
@@ -65,7 +65,7 @@ static void dump_device(const pa_browse_info *i) {
            i->device,
            i->description ? i->description : "n/a",
            i->sample_spec ? ss : "n/a");
-           
+
 }
 
 static void browser_callback(pa_browser *b, pa_browse_opcode_t c, const pa_browse_info *i, void *userdata) {
@@ -89,7 +89,7 @@ static void browser_callback(pa_browser *b, pa_browse_opcode_t c, const pa_brows
             dump_server(i);
             dump_device(i);
             break;
-            
+
         case PA_BROWSE_REMOVE_SERVER:
             printf("\n=> removed server <%s>\n", i->name);
             break;
@@ -109,7 +109,7 @@ static void browser_callback(pa_browser *b, pa_browse_opcode_t c, const pa_brows
 
 static void error_callback(pa_browser *b, const char *s, void *userdata) {
     pa_mainloop_api*m = userdata;
-    
+
     fprintf(stderr, "Failure: %s\n", s);
     m->quit(m, 1);
 }
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
     pa_signal_new(SIGINT, exit_signal_callback, NULL);
     pa_signal_new(SIGTERM, exit_signal_callback, NULL);
     signal(SIGPIPE, SIG_IGN);
-    
+
     if (!(browser = pa_browser_new_full(pa_mainloop_get_api(mainloop), PA_BROWSE_FOR_SERVERS|PA_BROWSE_FOR_SINKS|PA_BROWSE_FOR_SOURCES, &s))) {
         fprintf(stderr, "pa_browse_new_full(): %s\n", s);
         goto finish;
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
 
     pa_browser_set_callback(browser, browser_callback, NULL);
     pa_browser_set_error_callback(browser, error_callback, pa_mainloop_get_api(mainloop));
-    
+
     ret = 0;
     pa_mainloop_run(mainloop, &ret);
 

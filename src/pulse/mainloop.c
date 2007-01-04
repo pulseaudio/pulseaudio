@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -57,11 +57,11 @@
 struct pa_io_event {
     pa_mainloop *mainloop;
     int dead;
-    
+
     int fd;
     pa_io_event_flags_t events;
     struct pollfd *pollfd;
-    
+
     pa_io_event_cb_t callback;
     void *userdata;
     pa_io_event_destroy_cb_t destroy_callback;
@@ -154,7 +154,7 @@ static pa_io_event* mainloop_io_new(
         pa_io_event_flags_t events,
         pa_io_event_cb_t callback,
         void *userdata) {
-    
+
     pa_mainloop *m;
     pa_io_event *e;
 
@@ -162,7 +162,7 @@ static pa_io_event* mainloop_io_new(
     assert(a->userdata);
     assert(fd >= 0);
     assert(callback);
-    
+
     m = a->userdata;
     assert(a == &m->api);
 
@@ -173,7 +173,7 @@ static pa_io_event* mainloop_io_new(
     e->fd = fd;
     e->events = events;
     e->pollfd = NULL;
-    
+
     e->callback = callback;
     e->userdata = userdata;
     e->destroy_callback = NULL;
@@ -213,7 +213,7 @@ static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags_t events) {
 
     if (e->events == events)
         return;
-    
+
     e->events = events;
 
     if (e->pollfd)
@@ -239,7 +239,7 @@ static void mainloop_io_free(pa_io_event *e) {
 
 static void mainloop_io_set_destroy(pa_io_event *e, pa_io_event_destroy_cb_t callback) {
     assert(e);
-    
+
     e->destroy_callback = callback;
 }
 
@@ -255,7 +255,7 @@ static pa_defer_event* mainloop_defer_new(
     assert(a);
     assert(a->userdata);
     assert(callback);
-    
+
     m = a->userdata;
     assert(a == &m->api);
 
@@ -265,7 +265,7 @@ static pa_defer_event* mainloop_defer_new(
 
     e->enabled = 1;
     m->n_enabled_defer_events++;
-    
+
     e->callback = callback;
     e->userdata = userdata;
     e->destroy_callback = NULL;
@@ -288,7 +288,7 @@ static void mainloop_defer_enable(pa_defer_event *e, int b) {
         e->mainloop->n_enabled_defer_events++;
         pa_mainloop_wakeup(e->mainloop);
     }
-    
+
     e->enabled = b;
 }
 
@@ -318,14 +318,14 @@ static pa_time_event* mainloop_time_new(
         const struct timeval *tv,
         pa_time_event_cb_t callback,
         void *userdata) {
-    
+
     pa_mainloop *m;
     pa_time_event *e;
 
     assert(a);
     assert(a->userdata);
     assert(callback);
-    
+
     m = a->userdata;
     assert(a == &m->api);
 
@@ -354,7 +354,7 @@ static pa_time_event* mainloop_time_new(
 
     if (e->enabled)
         pa_mainloop_wakeup(m);
-    
+
     return e;
 }
 
@@ -375,7 +375,7 @@ static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
 
     if (e->mainloop->cached_next_time_event && e->enabled) {
         assert(e->mainloop->cached_next_time_event->enabled);
-            
+
         if (pa_timeval_cmp(tv, &e->mainloop->cached_next_time_event->timeval) < 0)
             e->mainloop->cached_next_time_event = e;
     } else if (e->mainloop->cached_next_time_event == e)
@@ -396,7 +396,7 @@ static void mainloop_time_free(pa_time_event *e) {
 
     if (e->mainloop->cached_next_time_event == e)
         e->mainloop->cached_next_time_event = NULL;
-    
+
     /* no wakeup needed here. Think about it! */
 }
 
@@ -411,7 +411,7 @@ static void mainloop_time_set_destroy(pa_time_event *e, pa_time_event_destroy_cb
 
 static void mainloop_quit(pa_mainloop_api*a, int retval) {
     pa_mainloop *m;
-    
+
     assert(a);
     assert(a->userdata);
     m = a->userdata;
@@ -419,7 +419,7 @@ static void mainloop_quit(pa_mainloop_api*a, int retval) {
 
     pa_mainloop_quit(m, retval);
 }
-    
+
 static const pa_mainloop_api vtable = {
     .userdata = NULL,
 
@@ -432,12 +432,12 @@ static const pa_mainloop_api vtable = {
     .time_restart = mainloop_time_restart,
     .time_free = mainloop_time_free,
     .time_set_destroy = mainloop_time_set_destroy,
-    
+
     .defer_new = mainloop_defer_new,
     .defer_enable = mainloop_defer_enable,
     .defer_free = mainloop_defer_free,
     .defer_set_destroy = mainloop_defer_set_destroy,
-    
+
     .quit = mainloop_quit,
 };
 
@@ -466,7 +466,7 @@ pa_mainloop *pa_mainloop_new(void) {
 
     m->cached_next_time_event = NULL;
     m->prepared_timeout = 0;
-    
+
     m->pollfds = NULL;
     m->max_pollfds = m->n_pollfds = 0;
     m->rebuild_pollfds = 1;
@@ -481,7 +481,7 @@ pa_mainloop *pa_mainloop_new(void) {
     m->poll_func = NULL;
     m->poll_func_userdata = NULL;
     m->poll_func_ret = -1;
-    
+
     return m;
 }
 
@@ -494,7 +494,7 @@ static void cleanup_io_events(pa_mainloop *m, int force) {
 
         if (!force && m->io_events_please_scan <= 0)
             break;
-        
+
         if (force || e->dead) {
             PA_LLIST_REMOVE(pa_io_event, m->io_events, e);
 
@@ -502,10 +502,10 @@ static void cleanup_io_events(pa_mainloop *m, int force) {
                 assert(m->io_events_please_scan > 0);
                 m->io_events_please_scan--;
             }
-            
+
             if (e->destroy_callback)
                 e->destroy_callback(&m->api, e, e->userdata);
-            
+
             pa_xfree(e);
 
             m->rebuild_pollfds = 1;
@@ -526,7 +526,7 @@ static void cleanup_time_events(pa_mainloop *m, int force) {
 
         if (!force && m->time_events_please_scan <= 0)
             break;
-        
+
         if (force || e->dead) {
             PA_LLIST_REMOVE(pa_time_event, m->time_events, e);
 
@@ -539,10 +539,10 @@ static void cleanup_time_events(pa_mainloop *m, int force) {
                 assert(m->n_enabled_time_events > 0);
                 m->n_enabled_time_events--;
             }
-            
+
             if (e->destroy_callback)
                 e->destroy_callback(&m->api, e, e->userdata);
-            
+
             pa_xfree(e);
         }
 
@@ -561,7 +561,7 @@ static void cleanup_defer_events(pa_mainloop *m, int force) {
 
         if (!force && m->defer_events_please_scan <= 0)
             break;
-        
+
         if (force || e->dead) {
             PA_LLIST_REMOVE(pa_defer_event, m->defer_events, e);
 
@@ -574,10 +574,10 @@ static void cleanup_defer_events(pa_mainloop *m, int force) {
                 assert(m->n_enabled_defer_events > 0);
                 m->n_enabled_defer_events--;
             }
-            
+
             if (e->destroy_callback)
                 e->destroy_callback(&m->api, e, e->userdata);
-            
+
             pa_xfree(e);
         }
 
@@ -664,11 +664,11 @@ static int dispatch_pollfds(pa_mainloop *m) {
     int r = 0, k;
 
     assert(m->poll_func_ret > 0);
-    
+
     for (e = m->io_events, k = m->poll_func_ret; e && !m->quit && k > 0; e = e->next) {
         if (e->dead || !e->pollfd || !e->pollfd->revents)
             continue;
-        
+
         assert(e->pollfd->fd == e->fd && e->callback);
         e->callback(&m->api, e, e->fd, map_flags_from_libc(e->pollfd->revents), e->userdata);
         e->pollfd->revents = 0;
@@ -690,7 +690,7 @@ static int dispatch_defer(pa_mainloop *m) {
     for (e = m->defer_events; e && !m->quit; e = e->next) {
         if (e->dead || !e->enabled)
             continue;
- 
+
         assert(e->callback);
         e->callback(&m->api, e, e->userdata);
         r++;
@@ -705,7 +705,7 @@ static pa_time_event* find_next_time_event(pa_mainloop *m) {
 
     if (m->cached_next_time_event)
         return m->cached_next_time_event;
-    
+
     for (t = m->time_events; t; t = t->next) {
 
         if (t->dead || !t->enabled)
@@ -737,7 +737,7 @@ static int calc_next_timeout(pa_mainloop *m) {
 
     if (t->timeval.tv_sec <= 0)
         return 0;
-    
+
     pa_gettimeofday(&now);
 
     if (pa_timeval_cmp(&t->timeval, &now) <= 0)
@@ -759,7 +759,7 @@ static int dispatch_timeout(pa_mainloop *m) {
     pa_gettimeofday(&now);
 
     for (e = m->time_events; e && !m->quit; e = e->next) {
-        
+
         if (e->dead || !e->enabled)
             continue;
 
@@ -815,7 +815,7 @@ int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
     if (m->n_enabled_defer_events <= 0) {
         if (m->rebuild_pollfds)
             rebuild_pollfds(m);
-        
+
         m->prepared_timeout = calc_next_timeout(m);
         if (timeout >= 0 && (timeout < m->prepared_timeout || m->prepared_timeout < 0))
             m->prepared_timeout = timeout;
@@ -842,7 +842,7 @@ int pa_mainloop_poll(pa_mainloop *m) {
         m->poll_func_ret = 0;
     else {
         assert(!m->rebuild_pollfds);
-        
+
         if (m->poll_func)
             m->poll_func_ret = m->poll_func(m->pollfds, m->n_pollfds, m->prepared_timeout, m->poll_func_userdata);
         else
@@ -872,23 +872,23 @@ int pa_mainloop_dispatch(pa_mainloop *m) {
 
     if (m->quit)
         goto quit;
-    
+
     if (m->n_enabled_defer_events)
         dispatched += dispatch_defer(m);
     else {
-        if (m->n_enabled_time_events) 
+        if (m->n_enabled_time_events)
             dispatched += dispatch_timeout(m);
-        
+
         if (m->quit)
             goto quit;
 
         if (m->poll_func_ret > 0)
             dispatched += dispatch_pollfds(m);
     }
-    
+
     if (m->quit)
         goto quit;
-    
+
     m->state = STATE_PASSIVE;
 
     return dispatched;
@@ -919,7 +919,7 @@ int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval) {
     return r;
 
 quit:
-    
+
     if ((r == -2) && retval)
         *retval = pa_mainloop_get_retval(m);
     return r;
@@ -927,7 +927,7 @@ quit:
 
 int pa_mainloop_run(pa_mainloop *m, int *retval) {
     int r;
-    
+
     while ((r = pa_mainloop_iterate(m, 1, retval)) >= 0);
 
     if (r == -2)

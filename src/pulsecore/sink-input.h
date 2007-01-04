@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -52,13 +52,13 @@ struct pa_sink_input {
     uint32_t index;
     pa_sink_input_state_t state;
     pa_sink_input_flags_t flags;
-    
+
     char *name, *driver;                /* may be NULL */
-    pa_module *module;                  /* may be NULL */  
-    pa_client *client;                  /* may be NULL */ 
+    pa_module *module;                  /* may be NULL */
+    pa_client *client;                  /* may be NULL */
 
     pa_sink *sink;
-    
+
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
     pa_cvolume volume;
@@ -67,7 +67,7 @@ struct pa_sink_input {
      * compensate for latency differences when moving a sink input
      * "hot" between sinks. */
     size_t move_silence;
-    
+
     int (*peek) (pa_sink_input *i, pa_memchunk *chunk);
     void (*drop) (pa_sink_input *i, const pa_memchunk *chunk, size_t length);
     void (*kill) (pa_sink_input *i);             /* may be NULL */
@@ -88,16 +88,16 @@ typedef struct pa_sink_input_new_data {
     const char *name, *driver;
     pa_module *module;
     pa_client *client;
-    
+
     pa_sink *sink;
-    
+
     pa_sample_spec sample_spec;
     int sample_spec_is_set;
     pa_channel_map channel_map;
     int channel_map_is_set;
     pa_cvolume volume;
     int volume_is_set;
-    
+
     pa_resample_method_t resample_method;
 } pa_sink_input_new_data;
 

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -172,7 +172,7 @@ static void do_write(struct userdata *u)
             pa_log_error(__FILE__ ": ERROR: Unable to write waveOut block: %d",
                 res);
         }
-        
+
         u->written_bytes += hdr->dwBufferLength;
 
         EnterCriticalSection(&u->crit);
@@ -233,7 +233,7 @@ static void do_read(struct userdata *u)
             pa_log_error(__FILE__ ": ERROR: Unable to add waveIn block: %d",
                 res);
         }
-        
+
         free_frags--;
         u->cur_ihdr++;
         u->cur_ihdr %= u->fragments;
@@ -561,7 +561,7 @@ int pa__init(pa_core *c, pa_module*m) {
         u->ohdrs[i].lpData = pa_xmalloc(u->fragment_size);
         assert(u->ohdrs);
     }
-    
+
     u->module = m;
     m->userdata = u;
 
@@ -585,7 +585,7 @@ fail:
 
     if (ma)
         pa_modargs_free(ma);
-    
+
     return -1;
 }
 
@@ -597,7 +597,7 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (!(u = m->userdata))
         return;
-    
+
     if (u->event)
         c->mainloop->time_free(u->event);
 
@@ -608,12 +608,12 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_sink_disconnect(u->sink);
         pa_sink_unref(u->sink);
     }
-    
+
     if (u->source) {
         pa_source_disconnect(u->source);
         pa_source_unref(u->source);
     }
-    
+
     if (u->hwi != INVALID_HANDLE_VALUE) {
         waveInReset(u->hwi);
         waveInClose(u->hwi);
@@ -633,6 +633,6 @@ void pa__done(pa_core *c, pa_module*m) {
     pa_xfree(u->ohdrs);
 
     DeleteCriticalSection(&u->crit);
-    
+
     pa_xfree(u);
 }

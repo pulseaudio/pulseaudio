@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     size_t offset, size;
 
     const char txt[] = "This is a test!";
-    
+
     pool_a = pa_mempool_new(1);
     pool_b = pa_mempool_new(1);
     pool_c = pa_mempool_new(1);
@@ -86,9 +86,9 @@ int main(int argc, char *argv[]) {
     pa_mempool_get_shm_id(pool_a, &id_a);
     pa_mempool_get_shm_id(pool_b, &id_b);
     pa_mempool_get_shm_id(pool_c, &id_c);
-    
+
     assert(pool_a && pool_b && pool_c);
-    
+
     blocks[0] = pa_memblock_new_fixed(pool_a, (void*) txt, sizeof(txt), 1);
     blocks[1] = pa_memblock_new(pool_a, sizeof(txt));
     snprintf(blocks[1]->data, blocks[1]->length, "%s", txt);
@@ -102,23 +102,23 @@ int main(int argc, char *argv[]) {
 
         mb_a = blocks[i];
         assert(mb_a);
-        
+
         export_a = pa_memexport_new(pool_a, revoke_cb, (void*) "A");
         export_b = pa_memexport_new(pool_b, revoke_cb, (void*) "B");
-        
+
         assert(export_a && export_b);
-        
+
         import_b = pa_memimport_new(pool_b, release_cb, (void*) "B");
         import_c = pa_memimport_new(pool_c, release_cb, (void*) "C");
-        
+
         assert(import_b && import_c);
-        
+
         r = pa_memexport_put(export_a, mb_a, &id, &shm_id, &offset, &size);
         assert(r >= 0);
         assert(shm_id == id_a);
 
         printf("A: Memory block exported as %u\n", id);
-        
+
         mb_b = pa_memimport_get(import_b, id, shm_id, offset, size);
         assert(mb_b);
         r = pa_memexport_put(export_b, mb_b, &id, &shm_id, &offset, &size);
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
         pa_memblock_unref(mb_b);
 
         printf("B: Memory block exported as %u\n", id);
-        
+
         mb_c = pa_memimport_get(import_c, id, shm_id, offset, size);
         assert(mb_c);
         printf("1 data=%s\n", (char*) mb_c->data);
@@ -135,21 +135,21 @@ int main(int argc, char *argv[]) {
         print_stats(pool_a, "A");
         print_stats(pool_b, "B");
         print_stats(pool_c, "C");
-        
+
         pa_memexport_free(export_b);
         printf("2 data=%s\n", (char*) mb_c->data);
         pa_memblock_unref(mb_c);
-        
+
         pa_memimport_free(import_b);
-        
+
         pa_memblock_unref(mb_a);
-        
+
         pa_memimport_free(import_c);
         pa_memexport_free(export_a);
     }
 
     printf("vaccuuming...\n");
-    
+
     pa_mempool_vacuum(pool_a);
     pa_mempool_vacuum(pool_b);
     pa_mempool_vacuum(pool_c);

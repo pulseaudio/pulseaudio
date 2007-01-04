@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -79,20 +79,20 @@ static void do_stream_write(size_t length) {
 
     if (!buffer || !buffer_length)
         return;
-    
+
     l = length;
     if (l > buffer_length)
         l = buffer_length;
-    
+
     if (pa_stream_write(stream, (uint8_t*) buffer + buffer_index, l, NULL, 0, PA_SEEK_RELATIVE) < 0) {
         fprintf(stderr, "pa_stream_write() failed: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
         return;
     }
-    
+
     buffer_length -= l;
     buffer_index += l;
-    
+
     if (!buffer_length) {
         pa_xfree(buffer);
         buffer = NULL;
@@ -126,7 +126,7 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
         quit(1);
         return;
     }
-    
+
     assert(data && length);
 
     if (buffer) {
@@ -156,7 +156,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
         case PA_STREAM_READY:
             if (verbose) {
                 const pa_buffer_attr *a;
-                
+
                 fprintf(stderr, "Stream successfully created.\n");
 
                 if (!(a = pa_stream_get_buffer_attr(s)))
@@ -169,13 +169,13 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
                         assert(mode == RECORD);
                         fprintf(stderr, "Buffer metrics: maxlength=%u, fragsize=%u\n", a->maxlength, a->fragsize);
                     }
-                    
+
                 }
 
             }
-            
+
             break;
-            
+
         case PA_STREAM_FAILED:
         default:
             fprintf(stderr, "Stream error: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
@@ -192,10 +192,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_AUTHORIZING:
         case PA_CONTEXT_SETTING_NAME:
             break;
-        
+
         case PA_CONTEXT_READY: {
             int r;
-            
+
             assert(c && !stream);
 
             if (verbose)
@@ -216,17 +216,17 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     fprintf(stderr, "pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
-                    
+
             } else {
                 if ((r = pa_stream_connect_record(stream, device, NULL, 0)) < 0) {
                     fprintf(stderr, "pa_stream_connect_record() failed: %s\n", pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
             }
-                
+
             break;
         }
-            
+
         case PA_CONTEXT_TERMINATED:
             quit(0);
             break;
@@ -238,10 +238,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
     }
 
     return;
-    
+
 fail:
     quit(1);
-    
+
 }
 
 /* Connection draining complete */
@@ -257,14 +257,14 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
         fprintf(stderr, "Failed to drain stream: %s\n", pa_strerror(pa_context_errno(context)));
         quit(1);
     }
-    
-    if (verbose)    
+
+    if (verbose)
         fprintf(stderr, "Playback stream drained.\n");
 
     pa_stream_disconnect(stream);
     pa_stream_unref(stream);
     stream = NULL;
-    
+
     if (!(o = pa_context_drain(context, context_drain_complete, NULL)))
         pa_context_disconnect(context);
     else {
@@ -286,7 +286,7 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
 
     if (!stream || pa_stream_get_state(stream) != PA_STREAM_READY || !(l = w = pa_stream_writable_size(stream)))
         l = 4096;
-    
+
     buffer = pa_xmalloc(l);
 
     if ((r = read(fd, buffer, l)) <= 0) {
@@ -296,17 +296,17 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
 
             if (stream) {
                 pa_operation *o;
-            
+
                 if (!(o = pa_stream_drain(stream, stream_drain_complete, NULL))) {
                     fprintf(stderr, "pa_stream_drain(): %s\n", pa_strerror(pa_context_errno(context)));
                     quit(1);
                     return;
                 }
-                
+
                 pa_operation_unref(o);
             } else
                 quit(0);
-            
+
         } else {
             fprintf(stderr, "read() failed: %s\n", strerror(errno));
             quit(1);
@@ -335,7 +335,7 @@ static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_eve
     }
 
     assert(buffer_length);
-    
+
     if ((r = write(fd, (uint8_t*) buffer+buffer_index, buffer_length)) <= 0) {
         fprintf(stderr, "write() failed: %s\n", strerror(errno));
         quit(1);
@@ -366,7 +366,7 @@ static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig,
 static void stream_update_timing_callback(pa_stream *s, int success, void *userdata) {
     pa_usec_t latency, usec;
     int negative = 0;
-    
+
     assert(s);
 
     if (!success ||
@@ -387,13 +387,13 @@ static void sigusr1_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int s
 
     if (!stream)
         return;
-    
+
     pa_operation_unref(pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL));
 }
 
 static void time_event_callback(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
     struct timeval next;
-    
+
     if (stream && pa_stream_get_state(stream) == PA_STREAM_READY) {
         pa_operation *o;
         if (!(o = pa_stream_update_timing_info(stream, stream_update_timing_callback, NULL)))
@@ -481,7 +481,7 @@ int main(int argc, char *argv[]) {
                 help(bn);
                 ret = 0;
                 goto quit;
-                
+
             case ARG_VERSION:
                 printf("pacat "PACKAGE_VERSION"\nCompiled with libpulse %s\nLinked with libpulse %s\n", pa_get_headers_version(), pa_get_library_version());
                 ret = 0;
@@ -525,7 +525,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
-            case ARG_CHANNELS: 
+            case ARG_CHANNELS:
                 sample_spec.channels = atoi(optarg);
                 break;
 
@@ -545,7 +545,7 @@ int main(int argc, char *argv[]) {
 
                 channel_map_set = 1;
                 break;
-                
+
             default:
                 goto quit;
         }
@@ -560,7 +560,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Channel map doesn't match sample specification\n");
         goto quit;
     }
-    
+
     if (verbose) {
         char t[PA_SAMPLE_SPEC_SNPRINT_MAX];
         pa_sample_spec_snprint(t, sizeof(t), &sample_spec);
@@ -570,22 +570,22 @@ int main(int argc, char *argv[]) {
     if (!(optind >= argc)) {
         if (optind+1 == argc) {
             int fd;
-            
+
             if ((fd = open(argv[optind], mode == PLAYBACK ? O_RDONLY : O_WRONLY|O_TRUNC|O_CREAT, 0666)) < 0) {
                 fprintf(stderr, "open(): %s\n", strerror(errno));
                 goto quit;
             }
-            
+
             if (dup2(fd, mode == PLAYBACK ? 0 : 1) < 0) {
                 fprintf(stderr, "dup2(): %s\n", strerror(errno));
                 goto quit;
             }
-            
+
             close(fd);
 
             if (!stream_name)
                 stream_name = pa_xstrdup(argv[optind]);
-            
+
         } else {
             fprintf(stderr, "Too many arguments.\n");
             goto quit;
@@ -616,7 +616,7 @@ int main(int argc, char *argv[]) {
 #ifdef SIGPIPE
     signal(SIGPIPE, SIG_IGN);
 #endif
-    
+
     if (!(stdio_event = mainloop_api->io_new(mainloop_api,
                                              mode == PLAYBACK ? STDIN_FILENO : STDOUT_FILENO,
                                              mode == PLAYBACK ? PA_IO_EVENT_INPUT : PA_IO_EVENT_OUTPUT,
@@ -641,7 +641,7 @@ int main(int argc, char *argv[]) {
 
         pa_gettimeofday(&tv);
         pa_timeval_add(&tv, TIME_EVENT_USEC);
-        
+
         if (!(time_event = mainloop_api->time_new(mainloop_api, &tv, time_event_callback, NULL))) {
             fprintf(stderr, "time_new() failed.\n");
             goto quit;
@@ -653,7 +653,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "pa_mainloop_run() failed.\n");
         goto quit;
     }
-    
+
 quit:
     if (stream)
         pa_stream_unref(stream);
@@ -670,7 +670,7 @@ quit:
         assert(mainloop_api);
         mainloop_api->time_free(time_event);
     }
-    
+
     if (m) {
         pa_signal_done();
         pa_mainloop_free(m);
@@ -682,6 +682,6 @@ quit:
     pa_xfree(device);
     pa_xfree(client_name);
     pa_xfree(stream_name);
-    
+
     return ret;
 }

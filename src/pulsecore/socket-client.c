@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -110,17 +110,17 @@ static pa_socket_client*pa_socket_client_new(pa_mainloop_api *m) {
 
 static void free_events(pa_socket_client *c) {
     assert(c);
-    
+
     if (c->io_event) {
         c->mainloop->io_free(c->io_event);
         c->io_event = NULL;
     }
-    
+
     if (c->defer_event) {
         c->mainloop->defer_free(c->defer_event);
         c->defer_event = NULL;
     }
-    
+
     if (c->timeout_event) {
         c->mainloop->time_free(c->timeout_event);
         c->timeout_event = NULL;
@@ -137,7 +137,7 @@ static void do_call(pa_socket_client *c) {
 
     if (c->fd < 0)
         goto finish;
-    
+
     lerror = sizeof(error);
     if (getsockopt(c->fd, SOL_SOCKET, SO_ERROR, (void*)&error, &lerror) < 0) {
         pa_log("getsockopt(): %s", pa_cstrerror(errno));
@@ -157,17 +157,17 @@ static void do_call(pa_socket_client *c) {
 
     io = pa_iochannel_new(c->mainloop, c->fd, c->fd);
     assert(io);
-    
+
 finish:
     if (!io && c->fd >= 0)
         close(c->fd);
     c->fd = -1;
 
     free_events(c);
-    
+
     assert(c->callback);
     c->callback(c, io, c->userdata);
-    
+
     pa_socket_client_unref(c);
 }
 
@@ -186,9 +186,9 @@ static void connect_io_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUS
 static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t len) {
     int r;
     assert(c && sa && len);
-    
+
     pa_make_nonblock_fd(c->fd);
-    
+
     if ((r = connect(c->fd, sa, len)) < 0) {
 #ifdef OS_IS_WIN32
         if (WSAGetLastError() != EWOULDBLOCK) {
@@ -227,7 +227,7 @@ pa_socket_client* pa_socket_client_new_ipv4(pa_mainloop_api *m, uint32_t address
 pa_socket_client* pa_socket_client_new_unix(pa_mainloop_api *m, const char *filename) {
     struct sockaddr_un sa;
     assert(m && filename);
-    
+
     memset(&sa, 0, sizeof(sa));
     sa.sun_family = AF_UNIX;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
@@ -248,24 +248,24 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
     assert(c);
     assert(sa);
     assert(salen);
-    
+
     switch (sa->sa_family) {
         case AF_UNIX:
             c->local = 1;
             break;
-            
+
         case AF_INET:
             c->local = ((const struct sockaddr_in*) sa)->sin_addr.s_addr == INADDR_LOOPBACK;
             break;
-            
+
         case AF_INET6:
             c->local = memcmp(&((const struct sockaddr_in6*) sa)->sin6_addr, &in6addr_loopback, sizeof(struct in6_addr)) == 0;
             break;
-            
+
         default:
             c->local = 0;
     }
-    
+
     if ((c->fd = socket(sa->sa_family, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(): %s", pa_cstrerror(errno));
         return -1;
@@ -291,13 +291,13 @@ pa_socket_client* pa_socket_client_new_sockaddr(pa_mainloop_api *m, const struct
 
     if (sockaddr_prepare(c, sa, salen) < 0)
         goto fail;
-    
+
     return c;
 
 fail:
     pa_socket_client_unref(c);
     return NULL;
-    
+
 }
 
 static void socket_client_free(pa_socket_client *c) {
@@ -305,7 +305,7 @@ static void socket_client_free(pa_socket_client *c) {
 
 
     free_events(c);
-    
+
     if (c->fd >= 0)
         close(c->fd);
 
@@ -317,7 +317,7 @@ static void socket_client_free(pa_socket_client *c) {
     if (c->asyncns_io_event)
         c->mainloop->io_free(c->asyncns_io_event);
 #endif
-    
+
     pa_xfree(c);
 }
 
@@ -342,7 +342,7 @@ void pa_socket_client_set_callback(pa_socket_client *c, void (*on_connection)(pa
 
 pa_socket_client* pa_socket_client_new_ipv6(pa_mainloop_api *m, uint8_t address[16], uint16_t port) {
     struct sockaddr_in6 sa;
-    
+
     memset(&sa, 0, sizeof(sa));
     sa.sin6_family = AF_INET6;
     sa.sin6_port = htons(port);
@@ -370,24 +370,24 @@ static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED 
 
     if (ret != 0 || !res)
         goto fail;
-    
+
     if (res->ai_addr)
         sockaddr_prepare(c, res->ai_addr, res->ai_addrlen);
-    
+
     asyncns_freeaddrinfo(res);
 
     m->io_free(c->asyncns_io_event);
     c->asyncns_io_event = NULL;
     return;
-    
+
 fail:
     m->io_free(c->asyncns_io_event);
     c->asyncns_io_event = NULL;
-    
+
     errno = EHOSTUNREACH;
     do_call(c);
     return;
-    
+
 }
 
 #endif
@@ -428,7 +428,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
 
     if (!a.port)
         a.port = default_port;
-    
+
     switch (a.type) {
         case PA_PARSED_ADDRESS_UNIX:
             if ((c = pa_socket_client_new_unix(m, a.path_or_host)))
@@ -447,11 +447,11 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
             memset(&hints, 0, sizeof(hints));
             hints.ai_family = a.type == PA_PARSED_ADDRESS_TCP4 ? PF_INET : (a.type == PA_PARSED_ADDRESS_TCP6 ? PF_INET6 : PF_UNSPEC);
             hints.ai_socktype = SOCK_STREAM;
-            
+
 #ifdef HAVE_LIBASYNCNS
             {
                 asyncns_t *asyncns;
-                
+
                 if (!(asyncns = asyncns_new(1)))
                     goto finish;
 
@@ -469,7 +469,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
                 struct addrinfo *res = NULL;
 
                 ret = getaddrinfo(a.path_or_host, port, &hints, &res);
-                
+
                 if (ret < 0 || !res)
                     goto finish;
 
@@ -477,7 +477,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
                     if ((c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen)))
                         start_timeout(c);
 				}
-                
+
                 freeaddrinfo(res);
 #else /* HAVE_GETADDRINFO */
                 struct hostent *host = NULL;
@@ -514,7 +514,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
 finish:
     pa_xfree(a.path_or_host);
     return c;
-    
+
 }
 
 /* Return non-zero when the target sockaddr is considered

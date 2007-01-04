@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -39,7 +39,7 @@
 static void context_stat_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     pa_stat_info i, *p = &i;
-    
+
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
@@ -81,11 +81,11 @@ pa_operation* pa_context_stat(pa_context *c, pa_stat_info_cb_t cb, void *userdat
 static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     pa_server_info i, *p = &i;
-    
+
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
-    
+
     if (!o->context)
         goto finish;
 
@@ -107,7 +107,7 @@ static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command,
         pa_context_fail(o->context, PA_ERR_PROTOCOL);
         goto finish;
     }
-    
+
     if (o->callback) {
         pa_server_info_cb_t cb = (pa_server_info_cb_t) o->callback;
         cb(o->context, p, o->userdata);
@@ -127,14 +127,14 @@ pa_operation* pa_context_get_server_info(pa_context *c, pa_server_info_cb_t cb, 
 static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     int eol = 1;
-    
+
     assert(pd);
     assert(o);
     assert(o->ref >= 1);
 
     if (!o->context)
         goto finish;
-    
+
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
@@ -142,10 +142,10 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
         eol = -1;
     } else {
         uint32_t flags;
-        
+
         while (!pa_tagstruct_eof(t)) {
             pa_sink_info i;
-            
+
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_gets(t, &i.description) < 0 ||
@@ -159,7 +159,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
                 pa_tagstruct_getu32(t, &flags) < 0) {
-                
+
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
@@ -172,7 +172,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
             }
         }
     }
-    
+
     if (o->callback) {
         pa_sink_info_cb_t cb = (pa_sink_info_cb_t) o->callback;
         cb(o->context, NULL, eol, o->userdata);
@@ -191,7 +191,7 @@ pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t idx, pa_
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
-    
+
     assert(c);
     assert(c->ref >= 1);
     assert(cb);
@@ -213,7 +213,7 @@ pa_operation* pa_context_get_sink_info_by_name(pa_context *c, const char *name, 
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
-    
+
     assert(c);
     assert(c->ref >= 1);
     assert(cb);
@@ -251,11 +251,11 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
 
         eol = -1;
     } else {
-        
+
         while (!pa_tagstruct_eof(t)) {
             pa_source_info i;
             uint32_t flags;
-            
+
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_gets(t, &i.description) < 0 ||
@@ -269,7 +269,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
                 pa_tagstruct_getu32(t, &flags) < 0) {
-                
+
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
@@ -282,7 +282,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
             }
         }
     }
-    
+
     if (o->callback) {
         pa_source_info_cb_t cb = (pa_source_info_cb_t) o->callback;
         cb(o->context, NULL, eol, o->userdata);
@@ -309,7 +309,7 @@ pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t idx, p
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
-    
+
     t = pa_tagstruct_command(c, PA_COMMAND_GET_SOURCE_INFO, &tag);
     pa_tagstruct_putu32(t, idx);
     pa_tagstruct_puts(t, NULL);
@@ -361,10 +361,10 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
 
         eol = -1;
     } else {
-        
+
         while (!pa_tagstruct_eof(t)) {
             pa_client_info i;
-            
+
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
@@ -379,7 +379,7 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
             }
         }
     }
-    
+
     if (o->callback) {
         pa_client_info_cb_t cb = (pa_client_info_cb_t) o->callback;
         cb(o->context, NULL, eol, o->userdata);
@@ -428,17 +428,17 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
 
     if (!o->context)
         goto finish;
-    
+
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
 
         eol = -1;
     } else {
-        
+
         while (!pa_tagstruct_eof(t)) {
             pa_module_info i;
-            
+
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_gets(t, &i.argument) < 0 ||
@@ -454,7 +454,7 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
             }
         }
     }
-    
+
     if (o->callback) {
         pa_module_info_cb_t cb = (pa_module_info_cb_t) o->callback;
         cb(o->context, NULL, eol, o->userdata);
@@ -476,7 +476,7 @@ pa_operation* pa_context_get_module_info(pa_context *c, uint32_t idx, pa_module_
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(c, PA_COMMAND_GET_MODULE_INFO, &tag);
@@ -503,17 +503,17 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
 
     if (!o->context)
         goto finish;
-    
+
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
 
         eol = -1;
     } else {
-        
+
         while (!pa_tagstruct_eof(t)) {
             pa_sink_input_info i;
-            
+
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
@@ -526,7 +526,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
                 pa_tagstruct_get_usec(t, &i.sink_usec) < 0 ||
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0) {
-                
+
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
@@ -537,7 +537,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
             }
         }
     }
-    
+
     if (o->callback) {
         pa_sink_input_info_cb_t cb = (pa_sink_input_info_cb_t) o->callback;
         cb(o->context, NULL, eol, o->userdata);
@@ -559,7 +559,7 @@ pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, pa_sin
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(c, PA_COMMAND_GET_SINK_INPUT_INFO, &tag);
@@ -593,10 +593,10 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
 
         eol = -1;
     } else {
-        
+
         while (!pa_tagstruct_eof(t)) {
             pa_source_output_info i;
-            
+
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
@@ -608,7 +608,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
                 pa_tagstruct_get_usec(t, &i.source_usec) < 0 ||
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0) {
-                
+
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
@@ -619,7 +619,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
             }
         }
     }
-    
+
     if (o->callback) {
         pa_source_output_info_cb_t cb = (pa_source_output_info_cb_t) o->callback;
         cb(o->context, NULL, eol, o->userdata);
@@ -641,7 +641,7 @@ pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, pa_
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(c, PA_COMMAND_GET_SOURCE_OUTPUT_INFO, &tag);
@@ -695,7 +695,7 @@ pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, pa_cvolume_valid(volume), PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, !name || *name, PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(c, PA_COMMAND_SET_SINK_VOLUME, &tag);
@@ -741,7 +741,7 @@ pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, 
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, !name || *name, PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(c, PA_COMMAND_SET_SINK_MUTE, &tag);
@@ -766,7 +766,7 @@ pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, cons
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, pa_cvolume_valid(volume), PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(c, PA_COMMAND_SET_SINK_INPUT_VOLUME, &tag);
@@ -815,7 +815,7 @@ pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *na
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, pa_cvolume_valid(volume), PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, !name || *name, PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(c, PA_COMMAND_SET_SOURCE_VOLUME, &tag);
@@ -861,7 +861,7 @@ pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, !name || *name, PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(c, PA_COMMAND_SET_SOURCE_MUTE, &tag);
@@ -886,17 +886,17 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
 
     if (!o->context)
         goto finish;
-    
+
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
 
         eol = -1;
     } else {
-        
+
         while (!pa_tagstruct_eof(t)) {
             pa_sample_info i;
-            
+
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
@@ -906,7 +906,7 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_getu32(t, &i.bytes) < 0 ||
                 pa_tagstruct_get_boolean(t, &i.lazy) < 0 ||
                 pa_tagstruct_gets(t, &i.filename) < 0) {
-                
+
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
@@ -917,7 +917,7 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
             }
         }
     }
-    
+
     if (o->callback) {
         pa_sample_info_cb_t cb = (pa_sample_info_cb_t) o->callback;
         cb(o->context, NULL, eol, o->userdata);
@@ -932,7 +932,7 @@ pa_operation* pa_context_get_sample_info_by_name(pa_context *c, const char *name
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
-    
+
     assert(c);
     assert(c->ref >= 1);
     assert(cb);
@@ -1002,7 +1002,7 @@ static pa_operation* command_kill(pa_context *c, uint32_t command, uint32_t idx,
 pa_operation* pa_context_kill_client(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata) {
     return command_kill(c, PA_COMMAND_KILL_CLIENT, idx, cb, userdata);
 }
-                                            
+
 pa_operation* pa_context_kill_sink_input(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata) {
     return command_kill(c, PA_COMMAND_KILL_SINK_INPUT, idx, cb, userdata);
 }
@@ -1021,7 +1021,7 @@ static void context_index_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 
     if (!o->context)
         goto finish;
-    
+
     if (command != PA_COMMAND_REPLY) {
         if (pa_context_handle_error(o->context, command, t) < 0)
             goto finish;
@@ -1048,7 +1048,7 @@ pa_operation* pa_context_load_module(pa_context *c, const char*name, const char 
     pa_operation *o;
     pa_tagstruct *t;
     uint32_t tag;
-    
+
     assert(c);
     assert(c->ref >= 1);
 
@@ -1089,10 +1089,10 @@ static void context_get_autoload_info_callback(pa_pdispatch *pd, uint32_t comman
 
         eol = -1;
     } else {
-        
+
         while (!pa_tagstruct_eof(t)) {
             pa_autoload_info i;
-            
+
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.type) < 0 ||
@@ -1108,7 +1108,7 @@ static void context_get_autoload_info_callback(pa_pdispatch *pd, uint32_t comman
             }
         }
     }
-    
+
     if (o->callback) {
         pa_autoload_info_cb_t cb = (pa_autoload_info_cb_t) o->callback;
         cb(o->context, NULL, eol, o->userdata);
@@ -1147,7 +1147,7 @@ pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx,
     pa_tagstruct *t;
     pa_operation *o;
     uint32_t tag;
-    
+
     assert(c);
     assert(c->ref >= 1);
     assert(cb);
@@ -1176,7 +1176,7 @@ pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autolo
 
     assert(c);
     assert(c->ref >= 1);
-    
+
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, type == PA_AUTOLOAD_SINK || type == PA_AUTOLOAD_SOURCE, PA_ERR_INVALID);
@@ -1202,7 +1202,7 @@ pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name
 
     assert(c);
     assert(c->ref >= 1);
-    
+
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, type == PA_AUTOLOAD_SINK || type == PA_AUTOLOAD_SOURCE, PA_ERR_INVALID);

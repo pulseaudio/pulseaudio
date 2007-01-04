@@ -37,13 +37,13 @@ int main(int argc, char *argv[]) {
     int r;
     pa_ip_acl *acl;
 
-    fd = socket(PF_INET, SOCK_STREAM, 0); 
+    fd = socket(PF_INET, SOCK_STREAM, 0);
     assert(fd >= 0);
-    
+
     sa.sin_family = AF_INET;
     sa.sin_port = htons(22);
     sa.sin_addr.s_addr = inet_addr("127.0.0.1");
-        
+
     r = connect(fd, (struct sockaddr*) &sa, sizeof(sa));
     assert(r >= 0);
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     assert(acl);
     printf("result=%u (should be 1)\n", pa_ip_acl_check(acl, fd));
     pa_ip_acl_free(acl);
-    
+
     acl = pa_ip_acl_new("127.0.0.2");
     assert(acl);
     printf("result=%u (should be 0)\n", pa_ip_acl_check(acl, fd));
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     assert(acl);
     printf("result=%u (should be 0)\n", pa_ip_acl_check(acl, fd));
     pa_ip_acl_free(acl);
-    
+
     close(fd);
 
     fd = socket(PF_INET6, SOCK_STREAM, 0);
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
     sa6.sin6_family = AF_INET6;
     sa6.sin6_port = htons(22);
     inet_pton(AF_INET6, "::1", &sa6.sin6_addr);
-        
+
     r = connect(fd, (struct sockaddr*) &sa6, sizeof(sa6));
     assert(r >= 0);
 
@@ -131,6 +131,6 @@ int main(int argc, char *argv[]) {
     pa_ip_acl_free(acl);
 
     close(fd);
-    
+
     return 0;
 }

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -64,7 +64,7 @@ if (!(expression)) { \
     goto label; \
     }  \
 } while(0);
-    
+
 #define CHECK_DEAD_GOTO(p, rerror, label) do { \
 if (!(p)->context || pa_context_get_state((p)->context) != PA_CONTEXT_READY || \
     !(p)->stream || pa_stream_get_state((p)->stream) != PA_STREAM_READY) { \
@@ -143,7 +143,7 @@ pa_simple* pa_simple_new(
     const pa_channel_map *map,
     const pa_buffer_attr *attr,
     int *rerror) {
-    
+
     pa_simple *p;
     int error = PA_ERR_INTERNAL, r;
 
@@ -162,12 +162,12 @@ pa_simple* pa_simple_new(
 
     if (!(p->mainloop = pa_threaded_mainloop_new()))
         goto fail;
-    
+
     if (!(p->context = pa_context_new(pa_threaded_mainloop_get_api(p->mainloop), name)))
         goto fail;
 
     pa_context_set_state_callback(p->context, context_state_cb, p);
-    
+
     if (pa_context_connect(p->context, server, 0, NULL) < 0) {
         error = pa_context_errno(p->context);
         goto fail;
@@ -180,7 +180,7 @@ pa_simple* pa_simple_new(
 
     /* Wait until the context is ready */
     pa_threaded_mainloop_wait(p->mainloop);
-    
+
     if (pa_context_get_state(p->context) != PA_CONTEXT_READY) {
         error = pa_context_errno(p->context);
         goto unlock_and_fail;
@@ -216,12 +216,12 @@ pa_simple* pa_simple_new(
     }
 
     pa_threaded_mainloop_unlock(p->mainloop);
-    
+
     return p;
 
 unlock_and_fail:
     pa_threaded_mainloop_unlock(p->mainloop);
-    
+
 fail:
     if (rerror)
         *rerror = error;
@@ -234,10 +234,10 @@ void pa_simple_free(pa_simple *s) {
 
     if (s->mainloop)
         pa_threaded_mainloop_stop(s->mainloop);
-    
+
     if (s->stream)
         pa_stream_unref(s->stream);
-    
+
     if (s->context)
         pa_context_unref(s->context);
 
@@ -249,38 +249,38 @@ void pa_simple_free(pa_simple *s) {
 
 int pa_simple_write(pa_simple *p, const void*data, size_t length, int *rerror) {
     assert(p);
-    
+
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
     CHECK_VALIDITY_RETURN_ANY(rerror, data && length, PA_ERR_INVALID, -1);
 
     pa_threaded_mainloop_lock(p->mainloop);
-    
+
     CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
 
     while (length > 0) {
         size_t l;
         int r;
-        
+
         while (!(l = pa_stream_writable_size(p->stream))) {
             pa_threaded_mainloop_wait(p->mainloop);
             CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
         }
 
         CHECK_SUCCESS_GOTO(p, rerror, l != (size_t) -1, unlock_and_fail);
-        
+
         if (l > length)
             l = length;
 
         r = pa_stream_write(p->stream, data, l, NULL, 0, PA_SEEK_RELATIVE);
         CHECK_SUCCESS_GOTO(p, rerror, r >= 0, unlock_and_fail);
-        
+
         data = (const uint8_t*) data + l;
         length -= l;
     }
 
     pa_threaded_mainloop_unlock(p->mainloop);
     return 0;
-    
+
 unlock_and_fail:
     pa_threaded_mainloop_unlock(p->mainloop);
     return -1;
@@ -293,15 +293,15 @@ int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
     CHECK_VALIDITY_RETURN_ANY(rerror, data && length, PA_ERR_INVALID, -1);
 
     pa_threaded_mainloop_lock(p->mainloop);
-    
+
     CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
 
     while (length > 0) {
         size_t l;
-            
+
         while (!p->read_data) {
             int r;
-        
+
             r = pa_stream_peek(p->stream, &p->read_data, &p->read_length);
             CHECK_SUCCESS_GOTO(p, rerror, r == 0, unlock_and_fail);
 
@@ -311,31 +311,31 @@ int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
             } else
                 p->read_index = 0;
         }
-        
+
         l = p->read_length < length ? p->read_length : length;
         memcpy(data, (const uint8_t*) p->read_data+p->read_index, l);
 
         data = (uint8_t*) data + l;
         length -= l;
-        
+
         p->read_index += l;
         p->read_length -= l;
 
         if (!p->read_length) {
             int r;
-            
+
             r = pa_stream_drop(p->stream);
             p->read_data = NULL;
             p->read_length = 0;
             p->read_index = 0;
-            
+
             CHECK_SUCCESS_GOTO(p, rerror, r == 0, unlock_and_fail);
         }
     }
 
     pa_threaded_mainloop_unlock(p->mainloop);
     return 0;
-    
+
 unlock_and_fail:
     pa_threaded_mainloop_unlock(p->mainloop);
     return -1;
@@ -353,7 +353,7 @@ static void success_cb(pa_stream *s, int success, void *userdata) {
 
 int pa_simple_drain(pa_simple *p, int *rerror) {
     pa_operation *o = NULL;
-    
+
     assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
@@ -370,7 +370,7 @@ int pa_simple_drain(pa_simple *p, int *rerror) {
         CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
     }
     CHECK_SUCCESS_GOTO(p, rerror, p->operation_success, unlock_and_fail);
-    
+
     pa_operation_unref(o);
     pa_threaded_mainloop_unlock(p->mainloop);
 
@@ -389,7 +389,7 @@ unlock_and_fail:
 
 int pa_simple_flush(pa_simple *p, int *rerror) {
     pa_operation *o = NULL;
-    
+
     assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
@@ -399,7 +399,7 @@ int pa_simple_flush(pa_simple *p, int *rerror) {
 
     o = pa_stream_flush(p->stream, success_cb, p);
     CHECK_SUCCESS_GOTO(p, rerror, o, unlock_and_fail);
-    
+
     p->operation_success = 0;
     while (pa_operation_get_state(o) != PA_OPERATION_DONE) {
         pa_threaded_mainloop_wait(p->mainloop);
@@ -426,14 +426,14 @@ unlock_and_fail:
 pa_usec_t pa_simple_get_latency(pa_simple *p, int *rerror) {
     pa_usec_t t;
     int negative;
-    
+
     assert(p);
-    
+
     pa_threaded_mainloop_lock(p->mainloop);
 
     for (;;) {
         CHECK_DEAD_GOTO(p, rerror, unlock_and_fail);
-        
+
         if (pa_stream_get_latency(p->stream, &t, &negative) >= 0)
             break;
 
@@ -442,7 +442,7 @@ pa_usec_t pa_simple_get_latency(pa_simple *p, int *rerror) {
         /* Wait until latency data is available again */
         pa_threaded_mainloop_wait(p->mainloop);
     }
-    
+
     pa_threaded_mainloop_unlock(p->mainloop);
 
     return negative ? 0 : t;

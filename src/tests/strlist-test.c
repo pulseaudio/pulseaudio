@@ -16,7 +16,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char* argv[]) {
 
     t = pa_strlist_tostring(l);
     pa_strlist_free(l);
-    
+
     fprintf(stderr, "1: %s\n", t);
 
     l = pa_strlist_parse(t);
@@ -29,9 +29,9 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char* argv[]) {
     l = pa_strlist_pop(l, &u);
     fprintf(stderr, "3: %s\n", u);
     pa_xfree(u);
-    
+
     l = pa_strlist_remove(l, "c");
-    
+
     t = pa_strlist_tostring(l);
     fprintf(stderr, "4: %s\n", t);
     pa_xfree(t);

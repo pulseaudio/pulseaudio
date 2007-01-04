@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -42,11 +42,11 @@ pa_mcalign *pa_mcalign_new(size_t base) {
     assert(base);
 
     m = pa_xnew(pa_mcalign, 1);
-    
+
     m->base = base;
     pa_memchunk_reset(&m->leftover);
     pa_memchunk_reset(&m->current);
-    
+
     return m;
 }
 
@@ -58,22 +58,22 @@ void pa_mcalign_free(pa_mcalign *m) {
 
     if (m->current.memblock)
         pa_memblock_unref(m->current.memblock);
-    
+
     pa_xfree(m);
 }
 
 void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
     assert(m);
     assert(c);
-    
+
     assert(c->memblock);
     assert(c->length > 0);
 
     assert(!m->current.memblock);
-    
+
     /* Append to the leftover memory block */
     if (m->leftover.memblock) {
-        
+
         /* Try to merge */
         if (m->leftover.memblock == c->memblock &&
             m->leftover.index + m->leftover.length == c->index) {
@@ -85,7 +85,7 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
             if (m->leftover.length >= m->base) {
                 m->current = m->leftover;
                 pa_memchunk_reset(&m->leftover);
-            } 
+            }
 
         } else {
             size_t l;
@@ -93,7 +93,7 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
             /* We have to copy */
             assert(m->leftover.length < m->base);
             l = m->base - m->leftover.length;
-            
+
             if (l > c->length)
                 l = c->length;
 
@@ -115,7 +115,7 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
         }
     } else {
         /* Nothing to merge or copy, just store it */
-        
+
         if (c->length >= m->base)
             m->current = *c;
         else
@@ -146,7 +146,7 @@ int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
             m->leftover = m->current;
             pa_memchunk_reset(&m->current);
         }
-        
+
         return 0;
     }
 
@@ -182,13 +182,13 @@ int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
         }
 
         pa_memchunk_reset(&m->current);
-            
+
         return 0;
     }
 
     /* There's simply nothing */
     return -1;
-    
+
 }
 
 size_t pa_mcalign_csize(pa_mcalign *m, size_t l) {
@@ -196,9 +196,9 @@ size_t pa_mcalign_csize(pa_mcalign *m, size_t l) {
     assert(l > 0);
 
     assert(!m->current.memblock);
-           
+
     if (m->leftover.memblock)
         l += m->leftover.length;
-    
+
     return (l/m->base)*m->base;
 }

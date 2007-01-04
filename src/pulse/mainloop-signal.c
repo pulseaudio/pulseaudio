@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -73,7 +73,7 @@ static void signal_handler(int sig) {
 static void dispatch(pa_mainloop_api*a, int sig) {
     pa_signal_event*s;
 
-    for (s = signals; s; s = s->next) 
+    for (s = signals; s; s = s->next)
         if (s->sig == sig) {
             assert(s->callback);
             s->callback(a, s, sig, s->userdata);
@@ -93,7 +93,7 @@ static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags
         pa_log("read(): %s", pa_cstrerror(errno));
         return;
     }
-    
+
     if (r != sizeof(sig)) {
         pa_log("short read()");
         return;
@@ -129,7 +129,7 @@ void pa_signal_done(void) {
 
     while (signals)
         pa_signal_free(signals);
-    
+
     api->io_free(io_event);
     io_event = NULL;
 
@@ -148,11 +148,11 @@ pa_signal_event* pa_signal_new(int sig, void (*_callback) (pa_mainloop_api *api,
 #endif
 
     assert(sig > 0 && _callback);
-    
+
     for (e = signals; e; e = e->next)
         if (e->sig == sig)
             goto fail;
-    
+
     e = pa_xmalloc(sizeof(pa_signal_event));
     e->sig = sig;
     e->callback = _callback;
@@ -164,7 +164,7 @@ pa_signal_event* pa_signal_new(int sig, void (*_callback) (pa_mainloop_api *api,
     sa.sa_handler = signal_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
-    
+
     if (sigaction(sig, &sa, &e->saved_sigaction) < 0)
 #else
     if ((e->saved_handler = signal(sig, signal_handler)) == SIG_ERR)
@@ -200,7 +200,7 @@ void pa_signal_free(pa_signal_event *e) {
 
     if (e->destroy_callback)
         e->destroy_callback(api, e, e->userdata);
-    
+
     pa_xfree(e);
 }
 

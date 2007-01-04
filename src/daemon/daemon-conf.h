@@ -66,7 +66,7 @@ typedef struct pa_daemon_conf {
     pa_log_level_t log_level;
     int resample_method;
     char *config_file;
-    
+
 #ifdef HAVE_SYS_RESOURCE_H
     pa_rlimit rlimit_as, rlimit_core, rlimit_data, rlimit_fsize, rlimit_nofile, rlimit_stack;
 #ifdef RLIMIT_NPROC
@@ -76,7 +76,7 @@ typedef struct pa_daemon_conf {
     pa_rlimit rlimit_memlock;
 #endif
 #endif
-    
+
 } pa_daemon_conf;
 
 /* Allocate a new structure and fill it with sane defaults */

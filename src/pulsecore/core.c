@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -116,7 +116,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_property_init(c);
 
     pa_random(&c->cookie, sizeof(c->cookie));
-    
+
 #ifdef SIGPIPE
     pa_check_signal_is_blocked(SIGPIPE);
 #endif
@@ -131,16 +131,16 @@ void pa_core_free(pa_core *c) {
 
     assert(pa_idxset_isempty(c->clients));
     pa_idxset_free(c->clients, NULL, NULL);
-    
+
     assert(pa_idxset_isempty(c->sinks));
     pa_idxset_free(c->sinks, NULL, NULL);
 
     assert(pa_idxset_isempty(c->sources));
     pa_idxset_free(c->sources, NULL, NULL);
-    
+
     assert(pa_idxset_isempty(c->source_outputs));
     pa_idxset_free(c->source_outputs, NULL, NULL);
-    
+
     assert(pa_idxset_isempty(c->sink_inputs));
     pa_idxset_free(c->sink_inputs, NULL, NULL);
 
@@ -163,8 +163,8 @@ void pa_core_free(pa_core *c) {
     pa_hook_free(&c->hook_sink_disconnect);
     pa_hook_free(&c->hook_source_output_new);
     pa_hook_free(&c->hook_source_disconnect);
-    
-    pa_xfree(c);    
+
+    pa_xfree(c);
 }
 
 static void quit_callback(pa_mainloop_api*m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {

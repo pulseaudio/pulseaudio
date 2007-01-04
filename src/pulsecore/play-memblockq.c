@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -65,11 +65,11 @@ static void si_kill(PA_GCC_UNUSED pa_mainloop_api *m, void *i) {
 
 static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t length) {
     pa_memblockq *q;
-    
+
     assert(i);
     assert(length > 0);
     assert( i->userdata);
-    
+
     q = i->userdata;
 
     pa_memblockq_drop(q, chunk, length);
@@ -85,7 +85,7 @@ int pa_play_memblockq(
         const pa_channel_map *map,
         pa_memblockq *q,
         pa_cvolume *volume) {
-    
+
     pa_sink_input *si;
     pa_sink_input_new_data data;
 
@@ -110,17 +110,17 @@ int pa_play_memblockq(
     pa_sink_input_new_data_set_channel_map(&data, map);
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_volume(&data, volume);
-    
+
     if (!(si = pa_sink_input_new(sink->core, &data, 0)))
         return -1;
 
     si->peek = sink_input_peek;
     si->drop = sink_input_drop;
     si->kill = sink_input_kill;
-    
+
     si->userdata = q;
 
     pa_sink_notify(si->sink);
-    
+
     return 0;
 }

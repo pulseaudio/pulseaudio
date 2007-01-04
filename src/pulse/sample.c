@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -70,7 +70,7 @@ pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) {
 size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) {
     assert(spec);
 
-    return (size_t) (((double) t * spec->rate / 1000000))*pa_frame_size(spec); 
+    return (size_t) (((double) t * spec->rate / 1000000))*pa_frame_size(spec);
 }
 
 int pa_sample_spec_valid(const pa_sample_spec *spec) {
@@ -111,7 +111,7 @@ const char *pa_sample_format_to_string(pa_sample_format_t f) {
 
 char *pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec) {
     assert(s && l && spec);
-    
+
     if (!pa_sample_spec_valid(spec))
         snprintf(s, l, "Invalid");
     else
@@ -134,7 +134,7 @@ char* pa_bytes_snprint(char *s, size_t l, unsigned v) {
 }
 
 pa_sample_format_t pa_parse_sample_format(const char *format) {
-    
+
     if (strcasecmp(format, "s16le") == 0)
         return PA_SAMPLE_S16LE;
     else if (strcasecmp(format, "s16be") == 0)

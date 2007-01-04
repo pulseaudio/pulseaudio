@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -42,7 +42,7 @@ struct pa_x11_internal {
 struct pa_x11_wrapper {
     pa_core *core;
     int ref;
-    
+
     char *property_name;
     Display *display;
 
@@ -63,7 +63,7 @@ struct pa_x11_client {
 /* Dispatch all pending X11 events */
 static void work(pa_x11_wrapper *w) {
     assert(w && w->ref >= 1);
-    
+
     while (XPending(w->display)) {
         pa_x11_client *c;
         XEvent e;
@@ -90,7 +90,7 @@ static void defer_event(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
     assert(m && e && w && w->ref >= 1);
 
     m->defer_enable(e, 0);
-    
+
     work(w);
 }
 
@@ -154,7 +154,7 @@ static pa_x11_wrapper* x11_wrapper_new(pa_core *c, const char *name, const char 
     w->ref = 1;
     w->property_name = pa_xstrdup(t);
     w->display = d;
-    
+
     PA_LLIST_HEAD_INIT(pa_x11_client, w->clients);
     PA_LLIST_HEAD_INIT(pa_x11_internal, w->internals);
 
@@ -162,10 +162,10 @@ static pa_x11_wrapper* x11_wrapper_new(pa_core *c, const char *name, const char 
     w->io_event = c->mainloop->io_new(c->mainloop, ConnectionNumber(d), PA_IO_EVENT_INPUT, display_io_event, w);
 
     XAddConnectionWatch(d, x11_watch, (XPointer) w);
-    
+
     r = pa_property_set(c, w->property_name, w);
     assert(r >= 0);
-    
+
     return w;
 }
 
@@ -180,13 +180,13 @@ static void x11_wrapper_free(pa_x11_wrapper*w) {
 
     XRemoveConnectionWatch(w->display, x11_watch, (XPointer) w);
     XCloseDisplay(w->display);
-    
+
     w->core->mainloop->io_free(w->io_event);
     w->core->mainloop->defer_free(w->defer_event);
 
     while (w->internals)
         x11_internal_remove(w, w->internals);
-    
+
     pa_xfree(w->property_name);
     pa_xfree(w);
 }
@@ -195,7 +195,7 @@ pa_x11_wrapper* pa_x11_wrapper_get(pa_core *c, const char *name) {
     char t[256];
     pa_x11_wrapper *w;
     assert(c);
-        
+
     snprintf(t, sizeof(t), "x11-wrapper%s%s", name ? "-" : "", name ? name : "");
     if ((w = pa_property_get(c, t)))
         return pa_x11_wrapper_ref(w);
@@ -221,7 +221,7 @@ Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w) {
 
     /* Somebody is using us, schedule a output buffer flush */
     w->core->mainloop->defer_enable(w->defer_event, 1);
-    
+
     return w->display;
 }
 

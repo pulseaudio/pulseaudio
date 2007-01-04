@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -47,7 +47,7 @@ static time_t start;
 static void func(pa_mainloop_api *m, PA_GCC_UNUSED pa_signal_event *e, PA_GCC_UNUSED int sig, PA_GCC_UNUSED void *userdata) {
     time_t now;
     time(&now);
-    
+
     if ((now - start) >= 30) {
         m->quit(m, 1);
         fprintf(stderr, "Test failed\n");
@@ -59,7 +59,7 @@ static void func(pa_mainloop_api *m, PA_GCC_UNUSED pa_signal_event *e, PA_GCC_UN
 
 int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
     pa_mainloop *m;
-    
+
     m = pa_mainloop_new();
     assert(m);
 
@@ -77,7 +77,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
     for (;;) {
         time_t now;
         time(&now);
-        
+
         if ((now - start) >= 30) {
             fprintf(stderr, "Test failed\n");
             break;
@@ -86,7 +86,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char *argv[]) {
 #endif
 
     pa_cpu_limit_done();
-    
+
     pa_mainloop_free(m);
 
     return 0;

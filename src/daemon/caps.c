@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -50,7 +50,7 @@ int setresuid(uid_t r, uid_t e, uid_t s);
 /* Drop root rights when called SUID root */
 void pa_drop_root(void) {
     uid_t uid = getuid();
-    
+
     if (uid == 0 || geteuid() != 0)
         return;
 
@@ -96,13 +96,13 @@ int pa_limit_caps(void) {
     if (cap_set_proc(caps) < 0)
         goto fail;
 
-    pa_log_info("dropped capabilities successfully."); 
-    
+    pa_log_info("dropped capabilities successfully.");
+
     r = 0;
 
 fail:
     cap_free (caps);
-    
+
     return r;
 }
 
@@ -124,12 +124,12 @@ int pa_drop_caps(void) {
         pa_log("failed to drop capabilities: %s", pa_cstrerror(errno));
         goto fail;
     }
-    
+
     r = 0;
 
 fail:
     cap_free (caps);
-    
+
     return r;
 }
 

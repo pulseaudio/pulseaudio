@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -63,7 +63,7 @@ struct userdata {
     pa_core *core;
 
     char *filename;
-    
+
     pa_source *source;
     pa_iochannel *io;
     pa_module *module;
@@ -127,9 +127,9 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_channel_map map;
     pa_modargs *ma = NULL;
     char *t;
-    
+
     assert(c && m);
-    
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("failed to parse module arguments");
         goto fail;
@@ -140,7 +140,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("invalid sample format specification or channel map");
         goto fail;
     }
-    
+
     mkfifo(p = pa_modargs_get_value(ma, "file", DEFAULT_FIFO_NAME), 0777);
 
     if ((fd = open(p, O_RDWR)) < 0) {
@@ -149,7 +149,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     pa_fd_set_cloexec(fd, 1);
-    
+
     if (fstat(fd, &st) < 0) {
         pa_log("fstat('%s'): %s", p, pa_cstrerror(errno));
         goto fail;
@@ -164,7 +164,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->filename = pa_xstrdup(p);
     u->core = c;
-    
+
     if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
         pa_log("failed to create source.");
         goto fail;
@@ -180,18 +180,18 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->chunk.memblock = NULL;
     u->chunk.index = u->chunk.length = 0;
-    
+
     u->module = m;
     m->userdata = u;
 
     pa_modargs_free(ma);
-    
+
     return 0;
 
 fail:
     if (ma)
         pa_modargs_free(ma);
-        
+
     if (fd >= 0)
         close(fd);
 
@@ -206,10 +206,10 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (!(u = m->userdata))
         return;
-    
+
     if (u->chunk.memblock)
         pa_memblock_unref(u->chunk.memblock);
-        
+
     pa_source_disconnect(u->source);
     pa_source_unref(u->source);
     pa_iochannel_free(u->io);
@@ -217,6 +217,6 @@ void pa__done(pa_core *c, pa_module*m) {
     assert(u->filename);
     unlink(u->filename);
     pa_xfree(u->filename);
-    
+
     pa_xfree(u);
 }

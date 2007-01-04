@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -51,7 +51,7 @@ if (!(condition)) \
 
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data) {
     assert(data);
-    
+
     memset(data, 0, sizeof(*data));
     data->resample_method = PA_RESAMPLER_INVALID;
     return data;
@@ -82,7 +82,7 @@ pa_sink_input* pa_sink_input_new(
         pa_core *core,
         pa_sink_input_new_data *data,
         pa_sink_input_flags_t flags) {
-    
+
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
     int r;
@@ -100,21 +100,21 @@ pa_sink_input* pa_sink_input_new(
 
     if (!data->sink)
         data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK, 1);
-    
+
     CHECK_VALIDITY_RETURN_NULL(data->sink);
     CHECK_VALIDITY_RETURN_NULL(data->sink->state == PA_SINK_RUNNING);
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->sink->sample_spec;
-    
+
     CHECK_VALIDITY_RETURN_NULL(pa_sample_spec_valid(&data->sample_spec));
-    
+
     if (!data->channel_map_is_set)
         pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
-    
+
     CHECK_VALIDITY_RETURN_NULL(pa_channel_map_valid(&data->channel_map));
     CHECK_VALIDITY_RETURN_NULL(data->channel_map.channels == data->sample_spec.channels);
-    
+
     if (!data->volume_is_set)
         pa_cvolume_reset(&data->volume, data->sample_spec.channels);
 
@@ -134,9 +134,9 @@ pa_sink_input* pa_sink_input_new(
     if ((flags & PA_SINK_INPUT_VARIABLE_RATE) ||
         !pa_sample_spec_equal(&data->sample_spec, &data->sink->sample_spec) ||
         !pa_channel_map_equal(&data->channel_map, &data->sink->channel_map))
-        
+
         if (!(resampler = pa_resampler_new(
-                      core->mempool, 
+                      core->mempool,
                       &data->sample_spec, &data->channel_map,
                       &data->sink->sample_spec, &data->sink->channel_map,
                       data->resample_method))) {
@@ -157,21 +157,21 @@ pa_sink_input* pa_sink_input_new(
     i->sample_spec = data->sample_spec;
     i->channel_map = data->channel_map;
     i->volume = data->volume;
-        
+
     i->peek = NULL;
     i->drop = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
     i->underrun = NULL;
     i->userdata = NULL;
-    
+
     i->move_silence = 0;
 
     pa_memchunk_reset(&i->resampled_chunk);
     i->resampler = resampler;
     i->resample_method = data->resample_method;
     i->silence_memblock = NULL;
-    
+
     r = pa_idxset_put(core->sink_inputs, i, &i->index);
     assert(r == 0);
     r = pa_idxset_put(i->sink->inputs, i, NULL);
@@ -182,13 +182,13 @@ pa_sink_input* pa_sink_input_new(
                 i->name,
                 i->sink->name,
                 pa_sample_spec_snprint(st, sizeof(st), &i->sample_spec));
-    
+
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
 
     /* We do not call pa_sink_notify() here, because the virtual
      * functions have not yet been initialized */
-    
-    return i;    
+
+    return i;
 }
 
 void pa_sink_input_disconnect(pa_sink_input *i) {
@@ -218,17 +218,17 @@ static void sink_input_free(pa_sink_input* i) {
     if (i->state != PA_SINK_INPUT_DISCONNECTED)
         pa_sink_input_disconnect(i);
 
-    pa_log_info("freed %u \"%s\"", i->index, i->name); 
-    
+    pa_log_info("freed %u \"%s\"", i->index, i->name);
+
     if (i->resampled_chunk.memblock)
         pa_memblock_unref(i->resampled_chunk.memblock);
-    
+
     if (i->resampler)
         pa_resampler_free(i->resampler);
 
     if (i->silence_memblock)
         pa_memblock_unref(i->silence_memblock);
-    
+
     pa_xfree(i->name);
     pa_xfree(i->driver);
     pa_xfree(i);
@@ -245,7 +245,7 @@ void pa_sink_input_unref(pa_sink_input *i) {
 pa_sink_input* pa_sink_input_ref(pa_sink_input *i) {
     assert(i);
     assert(i->ref >= 1);
-    
+
     i->ref++;
     return i;
 }
@@ -260,10 +260,10 @@ void pa_sink_input_kill(pa_sink_input*i) {
 
 pa_usec_t pa_sink_input_get_latency(pa_sink_input *i) {
     pa_usec_t r = 0;
-    
+
     assert(i);
     assert(i->ref >= 1);
-    
+
     if (i->get_latency)
         r += i->get_latency(i);
 
@@ -280,7 +280,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
     int ret = -1;
     int do_volume_adj_here;
     int volume_is_norm;
-    
+
     assert(i);
     assert(i->ref >= 1);
     assert(chunk);
@@ -297,7 +297,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
         /* We have just been moved and shall play some silence for a
          * while until the old sink has drained its playback buffer */
-        
+
         if (!i->silence_memblock)
             i->silence_memblock = pa_silence_memblock_new(i->sink->core->mempool, &i->sink->sample_spec, SILENCE_BUFFER_LENGTH);
 
@@ -309,7 +309,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
         do_volume_adj_here = 1;
         goto finish;
     }
-    
+
     if (!i->resampler) {
         do_volume_adj_here = 0;
         ret = i->peek(i, chunk);
@@ -318,16 +318,16 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
     do_volume_adj_here = !pa_channel_map_equal(&i->channel_map, &i->sink->channel_map);
     volume_is_norm = pa_cvolume_is_norm(&i->volume);
-    
+
     while (!i->resampled_chunk.memblock) {
         pa_memchunk tchunk;
         size_t l;
-        
+
         if ((ret = i->peek(i, &tchunk)) < 0)
             goto finish;
 
         assert(tchunk.length);
-        
+
         l = pa_resampler_request(i->resampler, CONVERT_BUFFER_LENGTH);
 
         if (l > tchunk.length)
@@ -348,7 +348,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
     assert(i->resampled_chunk.memblock);
     assert(i->resampled_chunk.length);
-    
+
     *chunk = i->resampled_chunk;
     pa_memblock_ref(i->resampled_chunk.memblock);
 
@@ -375,9 +375,9 @@ finish:
             /* We've both the same channel map, so let's have the sink do the adjustment for us*/
             *volume = i->volume;
     }
-    
+
     pa_sink_input_unref(i);
-    
+
     return ret;
 }
 
@@ -392,13 +392,13 @@ void pa_sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t lengt
 
             if (chunk->memblock != i->silence_memblock ||
                 chunk->index != 0 ||
-                (chunk->memblock && (chunk->length != (i->silence_memblock->length < i->move_silence ? i->silence_memblock->length : i->move_silence)))) 
+                (chunk->memblock && (chunk->length != (i->silence_memblock->length < i->move_silence ? i->silence_memblock->length : i->move_silence))))
                 return;
-            
+
         }
 
         assert(i->move_silence >= length);
-        
+
         i->move_silence -= length;
 
         if (i->move_silence <= 0) {
@@ -415,7 +415,7 @@ void pa_sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t lengt
             i->drop(i, chunk, length);
         return;
     }
-    
+
     assert(i->resampled_chunk.memblock);
     assert(i->resampled_chunk.length >= length);
 
@@ -437,7 +437,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
 
     if (pa_cvolume_equal(&i->volume, volume))
         return;
-        
+
     i->volume = *volume;
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
@@ -451,7 +451,7 @@ const pa_cvolume * pa_sink_input_get_volume(pa_sink_input *i) {
 
 void pa_sink_input_cork(pa_sink_input *i, int b) {
     int n;
-    
+
     assert(i);
     assert(i->ref >= 1);
 
@@ -491,7 +491,7 @@ void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
 
     if (i->name && name && !strcmp(i->name, name))
         return;
-    
+
     pa_xfree(i->name);
     i->name = pa_xstrdup(name);
 
@@ -512,7 +512,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
     pa_resampler *new_resampler = NULL;
     pa_memblockq *buffer = NULL;
     pa_sink *origin;
-    
+
     assert(i);
     assert(dest);
 
@@ -532,13 +532,13 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
 
         /* Try to reuse the old resampler if possible */
         new_resampler = i->resampler;
-    
+
     else if ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ||
         !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec) ||
         !pa_channel_map_equal(&i->channel_map, &dest->channel_map)) {
 
         /* Okey, we need a new resampler for the new sink */
-        
+
         if (!(new_resampler = pa_resampler_new(
                       dest->core->mempool,
                       &i->sample_spec, &i->channel_map,
@@ -554,13 +554,13 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
         pa_usec_t silence_usec = 0;
 
         buffer = pa_memblockq_new(0, MOVE_BUFFER_LENGTH, 0, pa_frame_size(&origin->sample_spec), 0, 0, NULL);
-        
+
         /* Let's do a little bit of Voodoo for compensating latency
          * differences */
 
         old_latency = pa_sink_get_latency(origin);
         new_latency = pa_sink_get_latency(dest);
-        
+
         /* The already resampled data should go to the old sink */
 
         if (old_latency >= new_latency) {
@@ -571,17 +571,17 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
              * while */
 
             silence_usec = old_latency - new_latency;
-            
+
         } else {
             size_t l;
             int volume_is_norm;
-            
+
             /* The latency of new sink is larger than the latency of
              * the old sink. Therefore we have to precompute a little
              * and make sure that this is still played on the old
              * sink, until we can play the first sample on the new
              * sink.*/
-            
+
             l = pa_usec_to_bytes(new_latency - old_latency, &origin->sample_spec);
 
             volume_is_norm = pa_cvolume_is_norm(&i->volume);
@@ -655,7 +655,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
         i->resampled_chunk.memblock = NULL;
         i->resampled_chunk.index = i->resampled_chunk.length = 0;
     }
-    
+
     /* Notify everyone */
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     pa_sink_notify(i->sink);

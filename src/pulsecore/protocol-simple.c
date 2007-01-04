@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -55,7 +55,7 @@ struct connection {
     pa_defer_event *defer_event;
 
     int dead;
-    
+
     struct {
         pa_memblock *current_memblock;
         size_t memblock_index, fragment_size;
@@ -120,7 +120,7 @@ static int do_read(struct connection *c) {
     if (l > c->playback.fragment_size)
         l = c->playback.fragment_size;
 
-    if (c->playback.current_memblock) 
+    if (c->playback.current_memblock)
         if (c->playback.current_memblock->length - c->playback.memblock_index < l) {
             pa_memblock_unref(c->playback.current_memblock);
             c->playback.current_memblock = NULL;
@@ -132,7 +132,7 @@ static int do_read(struct connection *c) {
         assert(c->playback.current_memblock && c->playback.current_memblock->length >= l);
         c->playback.memblock_index = 0;
     }
-    
+
     if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
         pa_log_debug("read(): %s", r == 0 ? "EOF" : pa_cstrerror(errno));
         return -1;
@@ -144,12 +144,12 @@ static int do_read(struct connection *c) {
     assert(chunk.memblock);
 
     c->playback.memblock_index += r;
-    
+
     assert(c->input_memblockq);
     pa_memblockq_push_align(c->input_memblockq, &chunk);
     assert(c->sink_input);
     pa_sink_notify(c->sink_input->sink);
-    
+
     return 0;
 }
 
@@ -158,25 +158,25 @@ static int do_write(struct connection *c) {
     ssize_t r;
 
     if (!c->source_output)
-        return 0;    
+        return 0;
 
     assert(c->output_memblockq);
     if (pa_memblockq_peek(c->output_memblockq, &chunk) < 0)
         return 0;
-    
+
     assert(chunk.memblock && chunk.length);
-    
+
     if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
         pa_memblock_unref(chunk.memblock);
         pa_log("write(): %s", pa_cstrerror(errno));
         return -1;
     }
-    
+
     pa_memblockq_drop(c->output_memblockq, &chunk, r);
     pa_memblock_unref(chunk.memblock);
 
     pa_source_notify(c->source_output->source);
-    
+
     return 0;
 }
 
@@ -188,7 +188,7 @@ static void do_work(struct connection *c) {
 
     if (c->dead)
         return;
-    
+
     if (pa_iochannel_is_readable(c->io)) {
         if (do_read(c) < 0)
             goto fail;
@@ -198,7 +198,7 @@ static void do_work(struct connection *c) {
     if (pa_iochannel_is_writable(c->io)) {
         if (do_write(c) < 0)
             goto fail;
-    } 
+    }
 
     return;
 
@@ -206,7 +206,7 @@ fail:
 
     if (c->sink_input) {
         c->dead = 1;
-        
+
         pa_iochannel_free(c->io);
         c->io = NULL;
 
@@ -222,12 +222,12 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     struct connection*c;
     assert(i && i->userdata && chunk);
     c = i->userdata;
-    
+
     if (pa_memblockq_peek(c->input_memblockq, chunk) < 0) {
-        
+
         if (c->dead)
             connection_free(c);
-        
+
         return -1;
     }
 
@@ -331,7 +331,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->playback.memblock_index = 0;
     c->playback.fragment_size = 0;
     c->dead = 0;
-    
+
     pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
     c->client = pa_client_new(p->core, __FILE__, cname);
     assert(c->client);
@@ -354,7 +354,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
             pa_log("Failed to create sink input.");
             goto fail;
         }
-        
+
         c->sink_input->peek = sink_input_peek_cb;
         c->sink_input->drop = sink_input_drop_cb;
         c->sink_input->kill = sink_input_kill_cb;
@@ -416,9 +416,9 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->defer_event = p->core->mainloop->defer_new(p->core->mainloop, defer_callback, c);
     assert(c->defer_event);
     p->core->mainloop->defer_enable(c->defer_event, 0);
-    
+
     return;
-    
+
 fail:
     if (c)
         connection_free(c);
@@ -443,7 +443,7 @@ pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *serv
 
     p->source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));
     p->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
-    
+
     enable = 0;
     if (pa_modargs_get_value_boolean(ma, "record", &enable) < 0) {
         pa_log("record= expects a numeric argument.");
@@ -462,9 +462,9 @@ pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *serv
         pa_log("neither playback nor recording enabled for protocol.");
         goto fail;
     }
-    
+
     pa_socket_server_set_callback(p->server, on_connection, p);
-    
+
     return p;
 
 fail:
@@ -481,7 +481,7 @@ void pa_protocol_simple_free(pa_protocol_simple *p) {
     if (p->connections) {
         while((c = pa_idxset_first(p->connections, NULL)))
             connection_free(c);
-        
+
         pa_idxset_free(p->connections, NULL, NULL);
     }
 

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -93,7 +93,7 @@ struct connection {
     pa_defer_event *defer_event;
 
     char *original_name;
-    
+
     struct {
         pa_memblock *current_memblock;
         size_t memblock_index, fragment_size;
@@ -177,7 +177,7 @@ static struct proto_handler proto_map[ESD_PROTO_MAX] = {
 
     { 3 * sizeof(int),                esd_proto_stream_pan, "stream pan"},
     { 3 * sizeof(int),                NULL, "sample pan" },
-     
+
     { sizeof(int),                    NULL, "standby mode" },
     { 0,                              esd_proto_get_latency, "get latency" }
 };
@@ -188,19 +188,19 @@ static void connection_free(struct connection *c) {
 
     if (c->state == ESD_STREAMING_DATA)
         c->protocol->n_player--;
-    
+
     pa_client_free(c->client);
 
     if (c->sink_input) {
         pa_sink_input_disconnect(c->sink_input);
         pa_sink_input_unref(c->sink_input);
     }
-    
+
     if (c->source_output) {
         pa_source_output_disconnect(c->source_output);
         pa_source_output_unref(c->source_output);
     }
-    
+
     if (c->input_memblockq)
         pa_memblockq_free(c->input_memblockq);
     if (c->output_memblockq)
@@ -208,13 +208,13 @@ static void connection_free(struct connection *c) {
 
     if (c->playback.current_memblock)
         pa_memblock_unref(c->playback.current_memblock);
-    
+
     pa_xfree(c->read_data);
     pa_xfree(c->write_data);
 
     if (c->io)
         pa_iochannel_free(c->io);
-    
+
     if (c->defer_event)
         c->protocol->core->mainloop->defer_free(c->defer_event);
 
@@ -254,7 +254,7 @@ static void connection_write(struct connection *c, const void *data, size_t leng
 
     i = c->write_data_length;
     c->write_data_length += length;
-    
+
     memcpy((char*)c->write_data + i, data, length);
 }
 
@@ -270,7 +270,7 @@ static void format_esd2native(int format, int swap_bytes, pa_sample_spec *ss) {
 
 static int format_native2esd(pa_sample_spec *ss) {
     int format = 0;
-    
+
     format = (ss->format == PA_SAMPLE_U8) ? ESD_BITS8 : ESD_BITS16;
     format |= (ss->channels >= 2) ? ESD_STEREO : ESD_MONO;
 
@@ -331,7 +331,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     pa_sink_input_new_data sdata;
 
     assert(c && length == (sizeof(int32_t)*2+ESD_NAME_MAX));
-    
+
     memcpy(&format, data, sizeof(int32_t));
     format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
     data = (const char*)data + sizeof(int32_t);
@@ -356,7 +356,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     utf8_name = pa_utf8_filter(name);
     pa_client_set_name(c->client, utf8_name);
     pa_xfree(utf8_name);
-    
+
     c->original_name = pa_xstrdup(name);
 
     assert(!c->sink_input && !c->input_memblockq);
@@ -368,11 +368,11 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
     sdata.module = c->protocol->module;
     sdata.client = c->client;
-    
+
     c->sink_input = pa_sink_input_new(c->protocol->core, &sdata, 0);
     CHECK_VALIDITY(c->sink_input, "Failed to create sink input.");
 
-    l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS); 
+    l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS);
     c->input_memblockq = pa_memblockq_new(
             0,
             l,
@@ -393,7 +393,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
     c->state = ESD_STREAMING_DATA;
 
     c->protocol->n_player++;
-    
+
     return 0;
 }
 
@@ -406,7 +406,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     pa_source_output_new_data sdata;
 
     assert(c && length == (sizeof(int32_t)*2+ESD_NAME_MAX));
-    
+
     memcpy(&format, data, sizeof(int32_t));
     format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
     data = (const char*)data + sizeof(int32_t);
@@ -442,14 +442,14 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
             }
         }
     }
-    
+
     strncpy(name, data, sizeof(name));
     name[sizeof(name)-1] = 0;
 
     utf8_name = pa_utf8_filter(name);
     pa_client_set_name(c->client, utf8_name);
     pa_xfree(utf8_name);
-    
+
     c->original_name = pa_xstrdup(name);
 
     assert(!c->output_memblockq && !c->source_output);
@@ -461,11 +461,11 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     pa_source_output_new_data_set_sample_spec(&sdata, &ss);
     sdata.module = c->protocol->module;
     sdata.client = c->client;
-    
+
     c->source_output = pa_source_output_new(c->protocol->core, &sdata, 9);
     CHECK_VALIDITY(c->source_output, "Failed to create source_output.");
 
-    l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS); 
+    l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS);
     c->output_memblockq = pa_memblockq_new(
             0,
             l,
@@ -475,7 +475,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
             0,
             NULL);
     pa_iochannel_socket_set_sndbuf(c->io, l/RECORD_BUFFER_FRAGMENTS*2);
-    
+
     c->source_output->push = source_output_push_cb;
     c->source_output->kill = source_output_kill_cb;
     c->source_output->get_latency = source_output_get_latency_cb;
@@ -484,7 +484,7 @@ static int esd_proto_stream_record(struct connection *c, esd_proto_t request, co
     c->state = ESD_STREAMING_DATA;
 
     c->protocol->n_player++;
-    
+
     return 0;
 }
 
@@ -500,7 +500,7 @@ static int esd_proto_get_latency(struct connection *c, PA_GCC_UNUSED esd_proto_t
         double usec = pa_sink_get_latency(sink);
         latency = (int) ((usec*44100)/1000000);
     }
-    
+
     latency = MAYBE_INT32_SWAP(c->swap_byte_order, latency);
     connection_write(c, &latency, sizeof(int32_t));
     return 0;
@@ -538,7 +538,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
     char terminator[sizeof(int32_t)*6+ESD_NAME_MAX];
 
     assert(c && data && length == sizeof(int32_t));
-    
+
     if (esd_proto_server_info(c, request, data, length) < 0)
         return -1;
 
@@ -559,7 +559,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             continue;
 
         assert(t >= k*2+s);
-        
+
         if (conn->sink_input) {
             pa_cvolume volume = *pa_sink_input_get_volume(conn->sink_input);
             rate = conn->sink_input->sample_spec.rate;
@@ -567,7 +567,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             rvolume = (volume.values[1]*ESD_VOLUME_BASE)/PA_VOLUME_NORM;
             format = format_native2esd(&conn->sink_input->sample_spec);
         }
-        
+
         /* id */
         id = MAYBE_INT32_SWAP(c->swap_byte_order, (int32_t) (conn->index+1));
         connection_write(c, &id, sizeof(int32_t));
@@ -606,7 +606,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
 
     if (nsamples) {
         pa_scache_entry *ce;
-        
+
         idx = PA_IDXSET_INVALID;
         for (ce = pa_idxset_first(c->protocol->core->scache, &idx); ce; ce = pa_idxset_next(c->protocol->core->scache, &idx)) {
             int32_t id, rate, lvolume, rvolume, format, len;
@@ -617,7 +617,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             /* id */
             id = MAYBE_INT32_SWAP(c->swap_byte_order, (int) (ce->index+1));
             connection_write(c, &id, sizeof(int32_t));
-            
+
             /* name */
             memset(name, 0, ESD_NAME_MAX); /* don't leak old data */
             if (strncmp(ce->name, SCACHE_PREFIX, sizeof(SCACHE_PREFIX)-1) == 0)
@@ -625,19 +625,19 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             else
                 snprintf(name, ESD_NAME_MAX, "native.%s", ce->name);
             connection_write(c, name, ESD_NAME_MAX);
-            
+
             /* rate */
             rate = MAYBE_UINT32_SWAP(c->swap_byte_order, ce->sample_spec.rate);
             connection_write(c, &rate, sizeof(int32_t));
-            
+
             /* left */
             lvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             connection_write(c, &lvolume, sizeof(int32_t));
-            
+
             /*right*/
             rvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             connection_write(c, &rvolume, sizeof(int32_t));
-            
+
             /*format*/
             format = MAYBE_INT32_SWAP(c->swap_byte_order, format_native2esd(&ce->sample_spec));
             connection_write(c, &format, sizeof(int32_t));
@@ -663,7 +663,7 @@ static int esd_proto_stream_pan(struct connection *c, PA_GCC_UNUSED esd_proto_t 
     struct connection *conn;
 
     assert(c && data && length == sizeof(int32_t)*3);
-    
+
     memcpy(&idx, data, sizeof(uint32_t));
     idx = MAYBE_UINT32_SWAP(c->swap_byte_order, idx) - 1;
     data = (const char*)data + sizeof(uint32_t);
@@ -687,7 +687,7 @@ static int esd_proto_stream_pan(struct connection *c, PA_GCC_UNUSED esd_proto_t 
         ok = 0;
 
     connection_write(c, &ok, sizeof(int32_t));
-    
+
     return 0;
 }
 
@@ -706,7 +706,7 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     memcpy(&rate, data, sizeof(int32_t));
     rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
     data = (const char*)data + sizeof(int32_t);
-    
+
     ss.rate = rate;
     format_esd2native(format, c->swap_byte_order, &ss);
 
@@ -723,7 +723,7 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     name[sizeof(name)-1] = 0;
 
     CHECK_VALIDITY(pa_utf8_valid(name), "Invalid UTF8 in sample name.");
-    
+
     assert(!c->scache.memchunk.memblock);
     c->scache.memchunk.memblock = pa_memblock_new(c->protocol->core->mempool, sc_length);
     c->scache.memchunk.index = 0;
@@ -731,14 +731,14 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     c->scache.sample_spec = ss;
     assert(!c->scache.name);
     c->scache.name = pa_xstrdup(name);
-    
+
     c->state = ESD_CACHING_SAMPLE;
 
     pa_scache_add_item(c->protocol->core, c->scache.name, NULL, NULL, NULL, &idx);
 
     idx += 1;
     connection_write(c, &idx, sizeof(uint32_t));
-    
+
     return 0;
 }
 
@@ -775,11 +775,11 @@ static int esd_proto_sample_free_or_play(struct connection *c, esd_proto_t reque
     idx = MAYBE_UINT32_SWAP(c->swap_byte_order, idx) - 1;
 
     ok = 0;
-    
+
     if ((name = pa_scache_get_name_by_id(c->protocol->core, idx))) {
         if (request == ESD_PROTO_SAMPLE_PLAY) {
             pa_sink *sink;
-        
+
             if ((sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1)))
                 if (pa_scache_play_item(c->protocol->core, name, sink, PA_VOLUME_NORM) >= 0)
                     ok = idx + 1;
@@ -790,7 +790,7 @@ static int esd_proto_sample_free_or_play(struct connection *c, esd_proto_t reque
                 ok = idx + 1;
         }
     }
-    
+
     connection_write(c, &ok, sizeof(int32_t));
 
     return 0;
@@ -821,7 +821,7 @@ static int do_read(struct connection *c) {
     assert(c && c->io);
 
 /*      pa_log("READ");  */
-    
+
     if (c->state == ESD_NEXT_REQUEST) {
         ssize_t r;
         assert(c->read_data_length < sizeof(c->request));
@@ -833,7 +833,7 @@ static int do_read(struct connection *c) {
 
         if ((c->read_data_length+= r) >= sizeof(c->request)) {
             struct proto_handler *handler;
-            
+
             c->request = MAYBE_INT32_SWAP(c->swap_byte_order, c->request);
 
             if (c->request < ESD_PROTO_CONNECT || c->request > ESD_PROTO_MAX) {
@@ -849,18 +849,18 @@ static int do_read(struct connection *c) {
                 pa_log("recieved unimplemented request #%u.", c->request);
                 return -1;
             }
-            
+
             if (handler->data_length == 0) {
                 c->read_data_length = 0;
 
                 if (handler->proc(c, c->request, NULL, 0) < 0)
                     return -1;
-                
+
             } else {
                 if (c->read_data_alloc < handler->data_length)
                     c->read_data = pa_xrealloc(c->read_data, c->read_data_alloc = handler->data_length);
                 assert(c->read_data);
-                
+
                 c->state = ESD_NEEDS_REQDATA;
                 c->read_data_length = 0;
             }
@@ -871,7 +871,7 @@ static int do_read(struct connection *c) {
         struct proto_handler *handler = proto_map+c->request;
 
         assert(handler->proc);
-        
+
         assert(c->read_data && c->read_data_length < handler->data_length);
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
@@ -885,7 +885,7 @@ static int do_read(struct connection *c) {
 
             c->state = ESD_NEXT_REQUEST;
             c->read_data_length = 0;
-            
+
             if (handler->proc(c, c->request, c->read_data, l) < 0)
                 return -1;
         }
@@ -893,7 +893,7 @@ static int do_read(struct connection *c) {
         ssize_t r;
 
         assert(c->scache.memchunk.memblock && c->scache.name && c->scache.memchunk.index < c->scache.memchunk.length);
-        
+
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache.memchunk.memblock->data+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index)) <= 0) {
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
@@ -901,10 +901,10 @@ static int do_read(struct connection *c) {
 
         c->scache.memchunk.index += r;
         assert(c->scache.memchunk.index <= c->scache.memchunk.length);
-        
+
         if (c->scache.memchunk.index == c->scache.memchunk.length) {
             uint32_t idx;
-            
+
             c->scache.memchunk.index = 0;
             pa_scache_add_item(c->protocol->core, c->scache.name, &c->scache.sample_spec, NULL, &c->scache.memchunk, &idx);
 
@@ -920,7 +920,7 @@ static int do_read(struct connection *c) {
             idx += 1;
             connection_write(c, &idx, sizeof(uint32_t));
         }
-        
+
     } else if (c->state == ESD_STREAMING_DATA && c->sink_input) {
         pa_memchunk chunk;
         ssize_t r;
@@ -936,13 +936,13 @@ static int do_read(struct connection *c) {
         if (l > c->playback.fragment_size)
             l = c->playback.fragment_size;
 
-        if (c->playback.current_memblock) 
+        if (c->playback.current_memblock)
             if (c->playback.current_memblock->length - c->playback.memblock_index < l) {
                 pa_memblock_unref(c->playback.current_memblock);
                 c->playback.current_memblock = NULL;
                 c->playback.memblock_index = 0;
             }
-        
+
         if (!c->playback.current_memblock) {
             c->playback.current_memblock = pa_memblock_new(c->protocol->core->mempool, c->playback.fragment_size*2);
             assert(c->playback.current_memblock && c->playback.current_memblock->length >= l);
@@ -953,20 +953,20 @@ static int do_read(struct connection *c) {
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
-        
+
         chunk.memblock = c->playback.current_memblock;
         chunk.index = c->playback.memblock_index;
         chunk.length = r;
         assert(chunk.memblock);
 
         c->playback.memblock_index += r;
-        
+
         assert(c->input_memblockq);
         pa_memblockq_push_align(c->input_memblockq, &chunk);
         assert(c->sink_input);
         pa_sink_notify(c->sink_input->sink);
     }
-    
+
     return 0;
 }
 
@@ -974,19 +974,19 @@ static int do_write(struct connection *c) {
     assert(c && c->io);
 
 /*     pa_log("WRITE"); */
-    
+
     if (c->write_data_length) {
         ssize_t r;
-        
+
         assert(c->write_data_index < c->write_data_length);
         if ((r = pa_iochannel_write(c->io, (uint8_t*) c->write_data+c->write_data_index, c->write_data_length-c->write_data_index)) < 0) {
             pa_log("write(): %s", pa_cstrerror(errno));
             return -1;
         }
-        
+
         if ((c->write_data_index +=r) >= c->write_data_length)
             c->write_data_length = c->write_data_index = 0;
-        
+
     } else if (c->state == ESD_STREAMING_DATA && c->source_output) {
         pa_memchunk chunk;
         ssize_t r;
@@ -994,9 +994,9 @@ static int do_write(struct connection *c) {
         assert(c->output_memblockq);
         if (pa_memblockq_peek(c->output_memblockq, &chunk) < 0)
             return 0;
-        
+
         assert(chunk.memblock && chunk.length);
-        
+
         if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
             pa_memblock_unref(chunk.memblock);
             pa_log("write(): %s", pa_cstrerror(errno));
@@ -1008,7 +1008,7 @@ static int do_write(struct connection *c) {
 
         pa_source_notify(c->source_output->source);
     }
-    
+
     return 0;
 }
 
@@ -1035,7 +1035,7 @@ static void do_work(struct connection *c) {
     if (pa_iochannel_is_writable(c->io))
         if (do_write(c) < 0)
             goto fail;
-    
+
     return;
 
 fail:
@@ -1066,7 +1066,7 @@ static void defer_callback(pa_mainloop_api*a, pa_defer_event *e, void *userdata)
     assert(a && c && c->defer_event == e);
 
 /*     pa_log("DEFER"); */
-    
+
     do_work(c);
 }
 
@@ -1076,12 +1076,12 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     struct connection*c;
     assert(i && i->userdata && chunk);
     c = i->userdata;
-    
+
     if (pa_memblockq_peek(c->input_memblockq, chunk) < 0) {
 
         if (c->dead)
             connection_free(c);
-        
+
         return -1;
     }
 
@@ -1093,7 +1093,7 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
     assert(i && c && length);
 
 /*     pa_log("DROP"); */
-    
+
     pa_memblockq_drop(c->input_memblockq, chunk, length);
 
     /* do something */
@@ -1163,7 +1163,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
         pa_iochannel_free(io);
         return;
     }
-    
+
     c = pa_xnew(struct connection, 1);
     c->protocol = p;
     c->io = io;
@@ -1177,7 +1177,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->client->owner = p->module;
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
-    
+
     c->authorized = !!p->public;
     c->swap_byte_order = 0;
     c->dead = 0;
@@ -1219,7 +1219,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
         c->auth_timeout_event = p->core->mainloop->time_new(p->core->mainloop, &tv, auth_timeout, c);
     } else
         c->auth_timeout_event = NULL;
-    
+
     c->defer_event = p->core->mainloop->defer_new(p->core->mainloop, defer_callback, c);
     assert(c->defer_event);
     p->core->mainloop->defer_enable(c->defer_event, 0);
@@ -1233,7 +1233,7 @@ pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *serve
     pa_protocol_esound *p;
     int public = 0;
     const char *acl;
-    
+
     assert(core);
     assert(server);
     assert(m);
@@ -1257,7 +1257,7 @@ pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *serve
         }
     } else
         p->auth_ip_acl = NULL;
-    
+
     p->module = m;
     p->public = public;
     p->server = server;

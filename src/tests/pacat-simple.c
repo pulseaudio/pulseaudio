@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -43,7 +43,7 @@ int main(PA_GCC_UNUSED int argc, char*argv[]) {
         .rate = 44100,
         .channels = 2
     };
-    
+
     pa_simple *s = NULL;
     int ret = 1;
     int error;
@@ -61,10 +61,10 @@ int main(PA_GCC_UNUSED int argc, char*argv[]) {
             fprintf(stderr, __FILE__": dup2() failed: %s\n", strerror(errno));
             goto finish;
         }
-        
+
         close(fd);
     }
-    
+
     /* Create a new playback stream */
     if (!(s = pa_simple_new(NULL, argv[0], PA_STREAM_PLAYBACK, NULL, "playback", &ss, NULL, NULL, &error))) {
         fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(error));
@@ -90,7 +90,7 @@ int main(PA_GCC_UNUSED int argc, char*argv[]) {
         if ((r = read(STDIN_FILENO, buf, sizeof(buf))) <= 0) {
             if (r == 0) /* EOF */
                 break;
-            
+
             fprintf(stderr, __FILE__": read() failed: %s\n", strerror(errno));
             goto finish;
         }
@@ -114,6 +114,6 @@ finish:
 
     if (s)
         pa_simple_free(s);
-    
+
     return ret;
 }

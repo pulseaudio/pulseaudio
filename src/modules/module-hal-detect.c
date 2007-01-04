@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -58,7 +58,7 @@ typedef enum {
 #endif
 #ifdef HAVE_OSS
     CAP_OSS,
-#endif    
+#endif
     CAP_MAX
 } capability_t;
 
@@ -181,7 +181,7 @@ static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi,
         module_name = "module-alsa-source";
         snprintf(args, sizeof(args), "device=hw:%u source_name=alsa_input.%s", card, strip_udi(udi));
     }
-        
+
     return pa_module_load(u->core, module_name, args);
 }
 
@@ -198,7 +198,7 @@ static dbus_bool_t hal_device_is_oss_pcm(LibHalContext *ctx, const char *udi,
     type = libhal_device_get_property_string(ctx, udi, "oss.type", error);
     if (!type || dbus_error_is_set(error))
         return FALSE;
-    
+
     if (!strcmp(type, "pcm")) {
         char *e;
 

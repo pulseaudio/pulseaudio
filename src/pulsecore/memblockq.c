@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -61,12 +61,12 @@ pa_memblockq* pa_memblockq_new(
         size_t prebuf,
         size_t minreq,
         pa_memblock *silence) {
-    
+
     pa_memblockq* bq;
-    
+
     assert(base > 0);
     assert(maxlength >= base);
-    
+
     bq = pa_xnew(pa_memblockq, 1);
     bq->blocks = bq->blocks_tail = NULL;
     bq->n_blocks = 0;
@@ -90,20 +90,20 @@ pa_memblockq* pa_memblockq_new(
         bq->prebuf = bq->maxlength;
 
     bq->minreq = (minreq/base)*base;
-    
+
     if (bq->minreq > bq->tlength - bq->prebuf)
         bq->minreq = bq->tlength - bq->prebuf;
 
     if (!bq->minreq)
         bq->minreq = 1;
-    
+
     pa_log_debug("memblockq sanitized: maxlength=%lu, tlength=%lu, base=%lu, prebuf=%lu, minreq=%lu",
         (unsigned long)bq->maxlength, (unsigned long)bq->tlength, (unsigned long)bq->base, (unsigned long)bq->prebuf, (unsigned long)bq->minreq);
 
     bq->state = bq->prebuf ? PREBUF : RUNNING;
     bq->silence = silence ? pa_memblock_ref(silence) : NULL;
     bq->mcalign = NULL;
-    
+
     return bq;
 }
 
@@ -117,7 +117,7 @@ void pa_memblockq_free(pa_memblockq* bq) {
 
     if (bq->mcalign)
         pa_mcalign_free(bq->mcalign);
-    
+
     pa_xfree(bq);
 }
 
@@ -126,12 +126,12 @@ static void drop_block(pa_memblockq *bq, struct memblock_list *q) {
     assert(q);
 
     assert(bq->n_blocks >= 1);
-    
+
     if (q->prev)
         q->prev->next = q->next;
     else
         bq->blocks = q->next;
-    
+
     if (q->next)
         q->next->prev = q->prev;
     else
@@ -168,10 +168,10 @@ static int can_push(pa_memblockq *bq, size_t l) {
 }
 
 int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
-    
+
     struct memblock_list *q, *n;
     pa_memchunk chunk;
-    
+
     assert(bq);
     assert(uchunk);
     assert(uchunk->memblock);
@@ -185,7 +185,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
         return -1;
 
     chunk = *uchunk;
-    
+
     if (bq->read_index > bq->write_index) {
 
         /* We currently have a buffer underflow, we need to drop some
@@ -203,7 +203,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
             return 0;
         }
     }
-    
+
     /* We go from back to front to look for the right place to add
      * this new entry. Drop data we will overwrite on the way */
 
@@ -275,29 +275,29 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
             assert(bq->write_index + (int64_t)chunk.length > q->index &&
                    bq->write_index + (int64_t)chunk.length < q->index + (int64_t)q->chunk.length &&
                    bq->write_index < q->index);
-            
+
             /* The job overwrites the current entry at the end, so let's drop the beginning of this entry */
 
             d = bq->write_index + chunk.length - q->index;
             q->index += d;
             q->chunk.index += d;
             q->chunk.length -= d;
-            
+
             q = q->prev;
         }
-        
+
     }
 
     if (q) {
         assert(bq->write_index >=  q->index + (int64_t)q->chunk.length);
         assert(!q->next || (bq->write_index + (int64_t)chunk.length <= q->next->index));
-               
+
         /* Try to merge memory blocks */
-        
+
         if (q->chunk.memblock == chunk.memblock &&
             q->chunk.index + (int64_t)q->chunk.length == chunk.index &&
             bq->write_index == q->index + (int64_t)q->chunk.length) {
-            
+
             q->chunk.length += chunk.length;
             bq->write_index += chunk.length;
             return 0;
@@ -324,7 +324,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
         n->prev->next = n;
     else
         bq->blocks = n;
-    
+
     bq->n_blocks++;
     return 0;
 }
@@ -347,7 +347,7 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
         bq->state = PREBUF;
         return -1;
     }
-    
+
     /* Do we need to spit out silence? */
     if (!bq->blocks || bq->blocks->index > bq->read_index) {
 
@@ -362,7 +362,7 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
 
             if (!length || length > chunk->memblock->length)
                 length = chunk->memblock->length;
-                
+
             chunk->length = length;
         } else {
 
@@ -370,7 +370,7 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
              * the time to sleep */
             if (!bq->blocks)
                 return -1;
-            
+
             chunk->memblock = NULL;
             chunk->length = length;
         }
@@ -381,7 +381,7 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
 
     /* Ok, let's pass real data to the caller */
     assert(bq->blocks->index == bq->read_index);
-    
+
     *chunk = bq->blocks->chunk;
     pa_memblock_ref(chunk->memblock);
 
@@ -432,14 +432,14 @@ void pa_memblockq_drop(pa_memblockq *bq, const pa_memchunk *chunk, size_t length
             assert(bq->blocks->index >= bq->read_index);
 
             d = (size_t) (bq->blocks->index - bq->read_index);
-            
+
             if (d >= length) {
                 /* The first block is too far in the future */
-                
+
                 bq->read_index += length;
                 break;
             } else {
-                
+
                 length -= d;
                 bq->read_index += d;
             }
@@ -462,7 +462,7 @@ void pa_memblockq_drop(pa_memblockq *bq, const pa_memchunk *chunk, size_t length
                 bq->read_index += length;
                 break;
             }
-            
+
         } else {
 
             /* The list is empty, there's nothing we could drop */
@@ -477,7 +477,7 @@ int pa_memblockq_is_readable(pa_memblockq *bq) {
 
     if (bq->prebuf > 0) {
         size_t l = pa_memblockq_get_length(bq);
-        
+
         if (bq->state == PREBUF && l < bq->prebuf)
             return 0;
 
@@ -493,7 +493,7 @@ int pa_memblockq_is_writable(pa_memblockq *bq, size_t length) {
 
     if (length % bq->base)
         return 0;
-    
+
     return pa_memblockq_get_length(bq) + length <= bq->tlength;
 }
 
@@ -502,7 +502,7 @@ size_t pa_memblockq_get_length(pa_memblockq *bq) {
 
     if (bq->write_index <= bq->read_index)
         return 0;
-    
+
     return (size_t) (bq->write_index - bq->read_index);
 }
 
@@ -546,7 +546,7 @@ void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek) {
 
 void pa_memblockq_flush(pa_memblockq *bq) {
     assert(bq);
-    
+
     while (bq->blocks)
         drop_block(bq, bq->blocks);
 
@@ -559,7 +559,7 @@ void pa_memblockq_flush(pa_memblockq *bq) {
 
 size_t pa_memblockq_get_tlength(pa_memblockq *bq) {
     assert(bq);
-    
+
     return bq->tlength;
 }
 
@@ -578,18 +578,18 @@ int pa_memblockq_push_align(pa_memblockq* bq, const pa_memchunk *chunk) {
 
     assert(bq);
     assert(chunk && bq->base);
- 	
+
     if (bq->base == 1)
         return pa_memblockq_push(bq, chunk);
- 	
+
     if (!bq->mcalign)
         bq->mcalign = pa_mcalign_new(bq->base);
 
     if (!can_push(bq, pa_mcalign_csize(bq->mcalign, chunk->length)))
         return -1;
-    
+
     pa_mcalign_push(bq->mcalign, chunk);
- 	
+
     while (pa_mcalign_pop(bq->mcalign, &rchunk) >= 0) {
         int r;
         r = pa_memblockq_push(bq, &rchunk);

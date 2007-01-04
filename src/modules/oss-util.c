@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -48,14 +48,14 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
 
     if(!pcaps)
         pcaps = &caps;
-    
+
     if (*mode == O_RDWR) {
         if ((fd = open(device, O_RDWR|O_NDELAY)) >= 0) {
             int dcaps, *tcaps;
             ioctl(fd, SNDCTL_DSP_SETDUPLEX, 0);
 
             tcaps = pcaps ? pcaps : &dcaps;
-            
+
             if (ioctl(fd, SNDCTL_DSP_GETCAPS, tcaps) < 0) {
                 pa_log("SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
                 goto fail;
@@ -68,7 +68,7 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
 
             close(fd);
         }
-        
+
         if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY)) < 0) {
             if ((fd = open(device, (*mode = O_RDONLY)|O_NDELAY)) < 0) {
                 pa_log("open('%s'): %s", device, pa_cstrerror(errno));
@@ -80,17 +80,17 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
             pa_log("open('%s'): %s", device, pa_cstrerror(errno));
             goto fail;
         }
-    } 
+    }
 
 success:
 
     *pcaps = 0;
-    
+
     if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
         pa_log("SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
         goto fail;
     }
-    
+
     pa_log_debug("capabilities:%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
                  *pcaps & DSP_CAP_BATCH ? " BATCH" : "",
 #ifdef DSP_CAP_BIND
@@ -100,7 +100,7 @@ success:
 #endif
                  *pcaps & DSP_CAP_COPROC ? " COPROC" : "",
                  *pcaps & DSP_CAP_DUPLEX ? " DUPLEX" : "",
-#ifdef DSP_CAP_FREERATE                     
+#ifdef DSP_CAP_FREERATE
                  *pcaps & DSP_CAP_FREERATE ? " FREERATE" : "",
 #else
                  "",
@@ -140,7 +140,7 @@ success:
                  *pcaps & DSP_CAP_TRIGGER ? " TRIGGER" : "");
 
     pa_fd_set_cloexec(fd, 1);
-    
+
     return fd;
 
 fail:
@@ -152,7 +152,7 @@ fail:
 int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
     int format, channels, speed, reqformat;
     pa_sample_format_t orig_format;
-    
+
     static const int format_trans[PA_SAMPLE_MAX] = {
         [PA_SAMPLE_U8] = AFMT_U8,
         [PA_SAMPLE_ALAW] = AFMT_A_LAW,
@@ -166,7 +166,7 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
     assert(fd >= 0 && ss);
 
     orig_format = ss->format;
-    
+
     reqformat = format = format_trans[ss->format];
     if (reqformat == AFMT_QUERY || ioctl(fd, SNDCTL_DSP_SETFMT, &format) < 0 || format != reqformat) {
         format = AFMT_S16_NE;
@@ -190,7 +190,7 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         pa_log_warn("device doesn't support sample format %s, changed to %s.",
                pa_sample_format_to_string(orig_format),
                pa_sample_format_to_string(ss->format));
-    
+
     channels = ss->channels;
     if (ioctl(fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {
         pa_log("SNDCTL_DSP_CHANNELS: %s", pa_cstrerror(errno));
@@ -229,14 +229,14 @@ static int simple_log2(int v) {
         if (!v) break;
         k++;
     }
-    
+
     return k;
 }
 
 int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
     int arg;
     arg = ((int) nfrags << 16) | simple_log2(frag_size);
-    
+
     if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &arg) < 0) {
         pa_log("SNDCTL_DSP_SETFRAGMENT: %s", pa_cstrerror(errno));
         return -1;
@@ -252,7 +252,7 @@ static int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvo
     assert(fd >= 0);
     assert(ss);
     assert(volume);
-    
+
     if (ioctl(fd, mixer, &vol) < 0)
         return -1;
 
@@ -278,7 +278,7 @@ static int pa_oss_set_volume(int fd, int mixer, const pa_sample_spec *ss, const 
         r = volume->values[1] > PA_VOLUME_NORM ? PA_VOLUME_NORM : volume->values[1];
         vol |= ((r*100)/PA_VOLUME_NORM) << 8;
     }
-    
+
     if (ioctl(fd, mixer, &vol) < 0)
         return -1;
 
@@ -321,7 +321,7 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
         n = *e - '0';
     else
         return -1;
-    
+
     if (!(f = fopen("/dev/sndstat", "r")) &&
         !(f = fopen("/proc/sndstat", "r")) &&
         !(f = fopen("/proc/asound/oss/sndstat", "r"))) {
@@ -335,7 +335,7 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
     while (!feof(f)) {
         char line[64];
         int device;
-    
+
         if (!fgets(line, sizeof(line), f))
             break;
 
@@ -348,7 +348,7 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
 
         if (line[0] == 0)
             break;
-        
+
         if (sscanf(line, "%i: ", &device) != 1)
             continue;
 
@@ -360,7 +360,7 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
 
             if (pa_endswith(k, " (DUPLEX)"))
                 k[strlen(k)-9] = 0;
-            
+
             pa_strlcpy(name, k, l);
             r = 0;
             break;

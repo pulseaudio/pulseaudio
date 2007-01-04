@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -111,12 +111,12 @@ pa_flist *pa_flist_new(unsigned size) {
         size = FLIST_SIZE;
 
     assert(is_power_of_two(size));
-    
+
     l = pa_xnew(pa_flist, 1);
 
     l->size = size;
     l->cells = pa_xnew0(struct cell, size);
-    
+
     pa_atomic_store(&l->read_idx, 0);
     pa_atomic_store(&l->write_idx, 0);
     pa_atomic_store(&l->length, 0);
@@ -133,10 +133,10 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
 
     if (free_cb) {
         int len, idx;
-        
+
         idx = reduce(l, pa_atomic_load(&l->read_idx));
         len = pa_atomic_load(&l->length);
-        
+
         for (; len > 0; len--) {
 
             if (pa_atomic_load(&l->cells[idx].state) == STATE_USED)
@@ -152,7 +152,7 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
 
 int pa_flist_push(pa_flist*l, void *p) {
     int idx, len, n;
-    
+
     assert(l);
     assert(p);
 
@@ -183,13 +183,13 @@ int pa_flist_push(pa_flist*l, void *p) {
     if (len > N_EXTRA_SCAN)
         pa_log("WARNING: Didn't  find free cell after %u iterations.", len);
 #endif
-    
+
     return -1;
 }
 
 void* pa_flist_pop(pa_flist*l) {
     int idx, len, n;
-    
+
     assert(l);
 
     n = len = pa_atomic_load(&l->length) + N_EXTRA_SCAN;
@@ -221,6 +221,6 @@ void* pa_flist_pop(pa_flist*l) {
     if (len > N_EXTRA_SCAN)
         pa_log("WARNING: Didn't find used cell after %u iterations.", len);
 #endif
-    
+
     return NULL;
 }

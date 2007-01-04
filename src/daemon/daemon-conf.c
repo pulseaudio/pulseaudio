@@ -231,7 +231,7 @@ static int parse_rlimit(const char *filename, unsigned line, const char *lvalue,
 int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     int r = -1;
     FILE *f = NULL;
-    
+
     pa_config_item table[] = {
         { "daemonize",               pa_config_parse_bool,    NULL },
         { "fail",                    pa_config_parse_bool,    NULL },
@@ -266,7 +266,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
 #endif
         { NULL,                      NULL,                    NULL },
     };
-    
+
     table[0].data = &c->daemonize;
     table[1].data = &c->fail;
     table[2].data = &c->high_priority;
@@ -301,8 +301,8 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[24].data = &c->rlimit_memlock;
 #endif
 #endif
-    
-    
+
+
     pa_xfree(c->config_file);
     c->config_file = NULL;
 
@@ -316,11 +316,11 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     }
 
     r = f ? pa_config_parse(c->config_file, f, table, NULL) : 0;
-    
+
 finish:
     if (f)
         fclose(f);
-    
+
     return r;
 }
 
@@ -354,7 +354,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
         pa_strbuf_printf(s, "### Read from configuration file: %s ###\n", c->config_file);
 
     assert(c->log_level <= PA_LOG_LEVEL_MAX);
-    
+
     pa_strbuf_printf(s, "daemonize = %i\n", !!c->daemonize);
     pa_strbuf_printf(s, "fail = %i\n", !!c->fail);
     pa_strbuf_printf(s, "high-priority = %i\n", !!c->high_priority);
@@ -385,6 +385,6 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "rlimit-memlock = %li\n", c->rlimit_memlock.is_set ? (long int) c->rlimit_memlock.value : -1);
 #endif
 #endif
-    
+
     return pa_strbuf_tostring_free(s);
 }

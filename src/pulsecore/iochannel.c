@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -54,11 +54,11 @@ struct pa_iochannel {
 
     pa_iochannel_cb_t callback;
     void*userdata;
-    
+
     int readable;
     int writable;
     int hungup;
-    
+
     int no_close;
 
     pa_io_event* input_event, *output_event;
@@ -70,7 +70,7 @@ static void enable_mainloop_sources(pa_iochannel *io) {
     if (io->input_event == io->output_event && io->input_event) {
         pa_io_event_flags_t f = PA_IO_EVENT_NULL;
         assert(io->input_event);
-        
+
         if (!io->readable)
             f |= PA_IO_EVENT_INPUT;
         if (!io->writable)
@@ -88,7 +88,7 @@ static void enable_mainloop_sources(pa_iochannel *io) {
 static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     pa_iochannel *io = userdata;
     int changed = 0;
-    
+
     assert(m);
     assert(e);
     assert(fd >= 0);
@@ -104,7 +104,7 @@ static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_fla
         changed = 1;
         assert(e == io->input_event);
     }
-    
+
     if ((f & PA_IO_EVENT_OUTPUT) && !io->writable) {
         io->writable = 1;
         changed = 1;
@@ -113,7 +113,7 @@ static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_fla
 
     if (changed) {
         enable_mainloop_sources(io);
-        
+
         if (io->callback)
             io->callback(io, io->userdata);
     }
@@ -121,7 +121,7 @@ static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_fla
 
 pa_iochannel* pa_iochannel_new(pa_mainloop_api*m, int ifd, int ofd) {
     pa_iochannel *io;
-    
+
     assert(m);
     assert(ifd >= 0 || ofd >= 0);
 
@@ -165,42 +165,42 @@ void pa_iochannel_free(pa_iochannel*io) {
 
     if (io->input_event)
         io->mainloop->io_free(io->input_event);
-    
+
     if (io->output_event && (io->output_event != io->input_event))
         io->mainloop->io_free(io->output_event);
 
     if (!io->no_close) {
         if (io->ifd >= 0)
-            
+
             close(io->ifd);
         if (io->ofd >= 0 && io->ofd != io->ifd)
             close(io->ofd);
     }
-    
+
     pa_xfree(io);
 }
 
 int pa_iochannel_is_readable(pa_iochannel*io) {
     assert(io);
-    
+
     return io->readable || io->hungup;
 }
 
 int pa_iochannel_is_writable(pa_iochannel*io) {
     assert(io);
-    
+
     return io->writable && !io->hungup;
 }
 
 int pa_iochannel_is_hungup(pa_iochannel*io) {
     assert(io);
-    
+
     return io->hungup;
 }
 
 ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
     ssize_t r;
-    
+
     assert(io);
     assert(data);
     assert(l);
@@ -217,7 +217,7 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
 
 ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
     ssize_t r;
-    
+
     assert(io);
     assert(data);
     assert(io->ifd >= 0);
@@ -236,13 +236,13 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
 int pa_iochannel_creds_supported(pa_iochannel *io) {
     struct sockaddr_un sa;
     socklen_t l;
-    
+
     assert(io);
     assert(io->ifd >= 0);
     assert(io->ofd == io->ifd);
 
     l = sizeof(sa);
-    
+
     if (getsockname(io->ifd, (struct sockaddr*) &sa, &l) < 0)
         return 0;
 
@@ -254,7 +254,7 @@ int pa_iochannel_creds_enable(pa_iochannel *io) {
 
     assert(io);
     assert(io->ifd >= 0);
-    
+
     if (setsockopt(io->ifd, SOL_SOCKET, SO_PASSCRED, &t, sizeof(t)) < 0) {
         pa_log_error("setsockopt(SOL_SOCKET, SO_PASSCRED): %s", pa_cstrerror(errno));
         return -1;
@@ -270,7 +270,7 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     uint8_t cmsg_data[CMSG_SPACE(sizeof(struct ucred))];
     struct ucred *u;
     struct cmsghdr *cmsg;
-    
+
     assert(io);
     assert(data);
     assert(l);
@@ -296,7 +296,7 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
         u->uid = getuid();
         u->gid = getgid();
     }
-    
+
     memset(&mh, 0, sizeof(mh));
     mh.msg_name = NULL;
     mh.msg_namelen = 0;
@@ -319,7 +319,7 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
     struct msghdr mh;
     struct iovec iov;
     uint8_t cmsg_data[CMSG_SPACE(sizeof(struct ucred))];
-    
+
     assert(io);
     assert(data);
     assert(l);
@@ -346,9 +346,9 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
         struct cmsghdr *cmsg;
 
         *creds_valid = 0;
-    
+
         for (cmsg = CMSG_FIRSTHDR(&mh); cmsg; cmsg = CMSG_NXTHDR(&mh, cmsg)) {
-            
+
             if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_CREDENTIALS) {
                 struct ucred u;
                 assert(cmsg->cmsg_len == CMSG_LEN(sizeof(struct ucred)));
@@ -364,7 +364,7 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
         io->readable = 0;
         enable_mainloop_sources(io);
     }
-    
+
     return r;
 }
 
@@ -372,14 +372,14 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
 
 void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_cb_t _callback, void *userdata) {
     assert(io);
-    
+
     io->callback = _callback;
     io->userdata = userdata;
 }
 
 void pa_iochannel_set_noclose(pa_iochannel*io, int b) {
     assert(io);
-    
+
     io->no_close = b;
 }
 
@@ -387,25 +387,25 @@ void pa_iochannel_socket_peer_to_string(pa_iochannel*io, char*s, size_t l) {
     assert(io);
     assert(s);
     assert(l);
-    
+
     pa_socket_peer_to_string(io->ifd, s, l);
 }
 
 int pa_iochannel_socket_set_rcvbuf(pa_iochannel *io, size_t l) {
     assert(io);
-    
+
     return pa_socket_set_rcvbuf(io->ifd, l);
 }
 
 int pa_iochannel_socket_set_sndbuf(pa_iochannel *io, size_t l) {
     assert(io);
-    
+
     return pa_socket_set_sndbuf(io->ofd, l);
 }
 
 pa_mainloop_api* pa_iochannel_get_mainloop_api(pa_iochannel *io) {
     assert(io);
-    
+
     return io->mainloop;
 }
 

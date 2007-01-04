@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -85,13 +85,13 @@
                   "record=<enable record?> "
                   SOCKET_USAGE)
 #elif defined(USE_PROTOCOL_CLI)
-  #include <pulsecore/protocol-cli.h> 
+  #include <pulsecore/protocol-cli.h>
   #define protocol_new pa_protocol_cli_new
   #define protocol_free pa_protocol_cli_free
   #define TCPWRAP_SERVICE "pulseaudio-cli"
   #define IPV4_PORT 4712
   #define UNIX_SOCKET "cli"
-  #define MODULE_ARGUMENTS 
+  #define MODULE_ARGUMENTS
   #ifdef USE_TCP_SOCKETS
     #include "module-cli-protocol-tcp-symdef.h"
   #else
@@ -106,7 +106,7 @@
   #define TCPWRAP_SERVICE "pulseaudio-http"
   #define IPV4_PORT 4714
   #define UNIX_SOCKET "http"
-  #define MODULE_ARGUMENTS 
+  #define MODULE_ARGUMENTS
   #ifdef USE_TCP_SOCKETS
     #include "module-http-protocol-tcp-symdef.h"
   #else
@@ -129,16 +129,16 @@
   #endif
 
   #if defined(HAVE_CREDS) && !defined(USE_TCP_SOCKETS)
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group", "auth-group-enable", 
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-group", "auth-group-enable",
     #define AUTH_USAGE "auth-group=<system group to allow access> auth-group-enable=<enable auth by UNIX group?> "
   #elif defined(USE_TCP_SOCKETS)
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl", 
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl",
     #define AUTH_USAGE "auth-ip-acl=<IP address ACL to allow access> "
   #else
     #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
     #define AUTH_USAGE
   #endif
-  
+
   PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION)
   PA_MODULE_USAGE("auth-anonymous=<don't check for cookies?> "
                   "cookie=<path to cookie file> "
@@ -160,7 +160,7 @@
   #endif
 
   #if defined(USE_TCP_SOCKETS)
-    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl", 
+    #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON "auth-ip-acl",
     #define AUTH_USAGE "auth-ip-acl=<IP address ACL to allow access> "
   #else
     #define MODULE_ARGUMENTS MODULE_ARGUMENTS_COMMON
@@ -175,7 +175,7 @@
                   AUTH_USAGE
                   SOCKET_USAGE)
 #else
-  #error "Broken build system" 
+  #error "Broken build system"
 #endif
 
 PA_MODULE_AUTHOR("Lennart Poettering")
@@ -266,21 +266,21 @@ int pa__init(pa_core *c, pa_module*m) {
 
     /* This socket doesn't reside in our own runtime dir but in
      * /tmp/.esd/, hence we have to create the dir first */
-    
+
     if (pa_make_secure_parent_dir(u->socket_path, c->is_system_instance ? 0755 : 0700, (uid_t)-1, (gid_t)-1) < 0) {
         pa_log("Failed to create socket directory: %s\n", pa_cstrerror(errno));
         goto fail;
     }
 #endif
-    
+
     if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
         pa_log("Failed to remove stale UNIX socket '%s': %s", tmp, pa_cstrerror(errno));
         goto fail;
     }
-    
+
     if (r)
         pa_log("Removed stale UNIX socket '%s'.", tmp);
-    
+
     if (!(s = pa_socket_server_new_unix(c->mainloop, tmp)))
         goto fail;
 
@@ -332,7 +332,7 @@ fail:
 
 void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
-    
+
     assert(c);
     assert(m);
 
@@ -354,8 +354,8 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_xfree(p);
     }
 #endif
-    
-    
+
+
     pa_xfree(u->socket_path);
 #endif
 

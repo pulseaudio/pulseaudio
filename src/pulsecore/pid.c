@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -64,7 +64,7 @@ static pid_t read_pid(const char *fn, int fd) {
 
     if (r == 0)
         return (pid_t) 0;
-    
+
     t[r] = 0;
     if ((e = strchr(t, '\n')))
         *e = 0;
@@ -79,10 +79,10 @@ static pid_t read_pid(const char *fn, int fd) {
 
 static int open_pid_file(const char *fn, int mode) {
     int fd = -1;
-    
+
     for (;;) {
         struct stat st;
-        
+
         if ((fd = open(fn, mode, S_IRUSR|S_IWUSR)) < 0) {
             if (mode != O_RDONLY || errno != ENOENT)
                 pa_log_warn("WARNING: failed to open PID file '%s': %s",
@@ -93,7 +93,7 @@ static int open_pid_file(const char *fn, int mode) {
         /* Try to lock the file. If that fails, go without */
         if (pa_lock_fd(fd, 1) < 0)
             goto fail;
-        
+
         if (fstat(fd, &st) < 0) {
             pa_log_warn("WARNING: failed to fstat() PID file '%s': %s",
                 fn, pa_cstrerror(errno));
@@ -168,23 +168,23 @@ int pa_pid_file_create(void) {
             fn, pa_cstrerror(errno));
         goto fail;
     }
-    
+
     snprintf(t, sizeof(t), "%lu\n", (unsigned long) getpid());
     l = strlen(t);
-    
+
     if (pa_loop_write(fd, t, l, NULL) != (ssize_t) l) {
         pa_log("failed to write PID file.");
         goto fail;
     }
 
     ret = 0;
-    
+
 fail:
     if (fd >= 0) {
         pa_lock_fd(fd, 0);
         close(fd);
     }
-    
+
     return ret;
 }
 
@@ -230,7 +230,7 @@ int pa_pid_file_remove(void) {
     }
 
     ret = 0;
-    
+
 fail:
 
     if (fd >= 0) {
@@ -262,26 +262,26 @@ int pa_pid_file_kill(int sig, pid_t *pid) {
 
     if (!pid)
         pid = &_pid;
-    
+
     pa_runtime_path("pid", fn, sizeof(fn));
-    
+
     if ((fd = open_pid_file(fn, O_RDONLY)) < 0)
         goto fail;
-    
+
     if ((*pid = read_pid(fn, fd)) == (pid_t) -1)
         goto fail;
 
     ret = kill(*pid, sig);
-    
+
 fail:
-    
+
     if (fd >= 0) {
         pa_lock_fd(fd, 0);
         close(fd);
     }
 
     return ret;
-    
+
 }
 
 #else /* OS_IS_WIN32 */

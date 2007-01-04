@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -37,14 +37,14 @@
 int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_tagstruct *t;
     uint32_t tag;
-    
+
     assert(s);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, length > 0, PA_ERR_INVALID);
-    
+
     pa_stream_ref(s);
-    
+
     s->direction = PA_STREAM_UPLOAD;
 
     t = pa_tagstruct_command(s->context, PA_COMMAND_CREATE_UPLOAD_STREAM, &tag);
@@ -56,7 +56,7 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_create_stream_callback, s, NULL);
 
     pa_stream_set_state(s, PA_STREAM_CREATING);
-    
+
     pa_stream_unref(s);
     return 0;
 }
@@ -87,16 +87,16 @@ pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char
 
     assert(c);
     assert(c->ref >= 1);
-    
+
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, !dev || *dev, PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     if (!dev)
         dev = c->conf->default_sink;
-    
+
     t = pa_tagstruct_command(c, PA_COMMAND_PLAY_SAMPLE, &tag);
     pa_tagstruct_putu32(t, PA_INVALID_INDEX);
     pa_tagstruct_puts(t, dev);
@@ -118,9 +118,9 @@ pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_conte
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
-    
+
     t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_SAMPLE, &tag);
     pa_tagstruct_puts(t, name);
     pa_pstream_send_tagstruct(c->pstream, t);

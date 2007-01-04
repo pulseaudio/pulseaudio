@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -48,7 +48,7 @@ static void thread_func(void *data) {
     pa_tls_set(tls, data);
 
     pa_log("thread_func() for %s starting...", (char*) pa_tls_get(tls));
-    
+
     pa_mutex_lock(mutex);
 
     for (;;) {
@@ -57,13 +57,13 @@ static void thread_func(void *data) {
         pa_log("%s waiting ...", (char*) pa_tls_get(tls));
 
         for (;;) {
-            
+
             if (magic_number < 0)
                 goto quit;
 
             if (magic_number != 0)
                 break;
-            
+
             pa_cond_wait(cond1, mutex);
         }
 
@@ -75,18 +75,18 @@ static void thread_func(void *data) {
         pa_once(&once, once_func);
 
         pa_cond_signal(cond2, 0);
-        
+
         pa_log("%s got number %i", (char*) pa_tls_get(tls), k);
-        
+
         /* Spin! */
         for (n = 0; n < k; n++)
             pa_thread_yield();
-        
+
         pa_mutex_lock(mutex);
     }
 
 quit:
-        
+
     pa_mutex_unlock(mutex);
 
     pa_log("thread_func() for %s done...", (char*) pa_tls_get(tls));
@@ -97,25 +97,25 @@ int main(int argc, char *argv[]) {
     pa_thread* t[THREADS_MAX];
 
     assert(pa_thread_is_running(pa_thread_self()));
-    
+
     mutex = pa_mutex_new(0);
     cond1 = pa_cond_new();
     cond2 = pa_cond_new();
     tls = pa_tls_new(pa_xfree);
-    
+
     for (i = 0; i < THREADS_MAX; i++) {
         t[i] = pa_thread_new(thread_func, pa_sprintf_malloc("Thread #%i", i+1));
         assert(t[i]);
     }
 
     pa_mutex_lock(mutex);
-    
+
     pa_log("loop-init");
 
     for (k = 0; k < 100; k++) {
         assert(magic_number == 0);
 
-        
+
         magic_number = (int) rand() % 0x10000;
 
         pa_log("iteration %i (%i)", k, magic_number);
@@ -126,10 +126,10 @@ int main(int argc, char *argv[]) {
     }
 
     pa_log("loop-exit");
-    
+
     magic_number = -1;
     pa_cond_signal(cond1, 1);
-    
+
     pa_mutex_unlock(mutex);
 
     for (i = 0; i < THREADS_MAX; i++)

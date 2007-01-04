@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -69,7 +69,7 @@ struct pa_defer_event {
     int dead;
 
     int enabled;
-    
+
     pa_defer_event_cb_t callback;
     void *userdata;
     pa_defer_event_destroy_cb_t destroy_callback;
@@ -79,7 +79,7 @@ struct pa_defer_event {
 
 struct pa_glib_mainloop {
     GSource source;
-    
+
     pa_mainloop_api api;
     GMainContext *context;
 
@@ -102,7 +102,7 @@ static void cleanup_io_events(pa_glib_mainloop *g, int force) {
 
         if (!force && g->io_events_please_scan <= 0)
             break;
-        
+
         if (force || e->dead) {
             PA_LLIST_REMOVE(pa_io_event, g->io_events, e);
 
@@ -110,13 +110,13 @@ static void cleanup_io_events(pa_glib_mainloop *g, int force) {
                 g_assert(g->io_events_please_scan > 0);
                 g->io_events_please_scan--;
             }
-            
+
             if (e->poll_fd_added)
                 g_source_remove_poll(&g->source, &e->poll_fd);
-            
+
             if (e->destroy_callback)
                 e->destroy_callback(&g->api, e, e->userdata);
-            
+
             pa_xfree(e);
         }
 
@@ -135,7 +135,7 @@ static void cleanup_time_events(pa_glib_mainloop *g, int force) {
 
         if (!force && g->time_events_please_scan <= 0)
             break;
-        
+
         if (force || e->dead) {
             PA_LLIST_REMOVE(pa_time_event, g->time_events, e);
 
@@ -148,10 +148,10 @@ static void cleanup_time_events(pa_glib_mainloop *g, int force) {
                 g_assert(g->n_enabled_time_events > 0);
                 g->n_enabled_time_events--;
             }
-            
+
             if (e->destroy_callback)
                 e->destroy_callback(&g->api, e, e->userdata);
-            
+
             pa_xfree(e);
         }
 
@@ -170,7 +170,7 @@ static void cleanup_defer_events(pa_glib_mainloop *g, int force) {
 
         if (!force && g->defer_events_please_scan <= 0)
             break;
-        
+
         if (force || e->dead) {
             PA_LLIST_REMOVE(pa_defer_event, g->defer_events, e);
 
@@ -183,10 +183,10 @@ static void cleanup_defer_events(pa_glib_mainloop *g, int force) {
                 g_assert(g->n_enabled_defer_events > 0);
                 g->n_enabled_defer_events--;
             }
-            
+
             if (e->destroy_callback)
                 e->destroy_callback(&g->api, e, e->userdata);
-            
+
             pa_xfree(e);
         }
 
@@ -218,7 +218,7 @@ static pa_io_event* glib_io_new(
         pa_io_event_flags_t f,
         pa_io_event_cb_t cb,
         void *userdata) {
-    
+
     pa_io_event *e;
     pa_glib_mainloop *g;
 
@@ -226,7 +226,7 @@ static pa_io_event* glib_io_new(
     g_assert(m->userdata);
     g_assert(fd >= 0);
     g_assert(cb);
-    
+
     g = m->userdata;
 
     e = pa_xnew(pa_io_event, 1);
@@ -236,7 +236,7 @@ static pa_io_event* glib_io_new(
     e->poll_fd.fd = fd;
     e->poll_fd.events = map_flags_to_glib(f);
     e->poll_fd.revents = 0;
-    
+
     e->callback = cb;
     e->userdata = userdata;
     e->destroy_callback = NULL;
@@ -245,7 +245,7 @@ static pa_io_event* glib_io_new(
 
     g_source_add_poll(&g->source, &e->poll_fd);
     e->poll_fd_added = 1;
-    
+
     return e;
 }
 
@@ -272,7 +272,7 @@ static void glib_io_free(pa_io_event*e) {
 static void glib_io_set_destroy(pa_io_event*e, pa_io_event_destroy_cb_t cb) {
     g_assert(e);
     g_assert(!e->dead);
-    
+
     e->destroy_callback = cb;
 }
 
@@ -283,14 +283,14 @@ static pa_time_event* glib_time_new(
         const struct timeval *tv,
         pa_time_event_cb_t cb,
         void *userdata) {
-    
+
     pa_glib_mainloop *g;
     pa_time_event *e;
-    
+
     g_assert(m);
     g_assert(m->userdata);
     g_assert(cb);
-    
+
     g = m->userdata;
 
     e = pa_xnew(pa_time_event, 1);
@@ -308,13 +308,13 @@ static pa_time_event* glib_time_new(
                 g->cached_next_time_event = e;
         }
     }
-    
+
     e->callback = cb;
     e->userdata = userdata;
     e->destroy_callback = NULL;
 
     PA_LLIST_PREPEND(pa_time_event, g->time_events, e);
-    
+
     return e;
 }
 
@@ -328,12 +328,12 @@ static void glib_time_restart(pa_time_event*e, const struct timeval *tv) {
     } else if (!e->enabled && tv)
         e->mainloop->n_enabled_time_events++;
 
-    if ((e->enabled = !!tv)) 
+    if ((e->enabled = !!tv))
         e->timeval = *tv;
 
     if (e->mainloop->cached_next_time_event && e->enabled) {
         g_assert(e->mainloop->cached_next_time_event->enabled);
-            
+
         if (pa_timeval_cmp(tv, &e->mainloop->cached_next_time_event->timeval) < 0)
             e->mainloop->cached_next_time_event = e;
     } else if (e->mainloop->cached_next_time_event == e)
@@ -357,7 +357,7 @@ static void glib_time_free(pa_time_event *e) {
 static void glib_time_set_destroy(pa_time_event *e, pa_time_event_destroy_cb_t cb) {
     g_assert(e);
     g_assert(!e->dead);
-    
+
     e->destroy_callback = cb;
 }
 
@@ -367,27 +367,27 @@ static pa_defer_event* glib_defer_new(
         pa_mainloop_api*m,
         pa_defer_event_cb_t cb,
         void *userdata) {
-    
+
     pa_defer_event *e;
     pa_glib_mainloop *g;
 
     g_assert(m);
     g_assert(m->userdata);
     g_assert(cb);
-    
+
     g = m->userdata;
-    
+
     e = pa_xnew(pa_defer_event, 1);
     e->mainloop = g;
     e->dead = 0;
 
     e->enabled = 1;
     g->n_enabled_defer_events++;
-    
+
     e->callback = cb;
     e->userdata = userdata;
     e->destroy_callback = NULL;
-    
+
     PA_LLIST_PREPEND(pa_defer_event, g->defer_events, e);
     return e;
 }
@@ -430,7 +430,7 @@ static void glib_defer_set_destroy(pa_defer_event *e, pa_defer_event_destroy_cb_
 static void glib_quit(pa_mainloop_api*a, PA_GCC_UNUSED int retval) {
 
     g_warning("quit() ignored");
-    
+
     /* NOOP */
 }
 
@@ -440,7 +440,7 @@ static pa_time_event* find_next_time_event(pa_glib_mainloop *g) {
 
     if (g->cached_next_time_event)
         return g->cached_next_time_event;
-    
+
     for (t = g->time_events; t; t = t->next) {
 
         if (t->dead || !t->enabled)
@@ -461,7 +461,7 @@ static pa_time_event* find_next_time_event(pa_glib_mainloop *g) {
 
 static void scan_dead(pa_glib_mainloop *g) {
     g_assert(g);
-    
+
     if (g->io_events_please_scan)
         cleanup_io_events(g, 0);
 
@@ -499,7 +499,7 @@ static gboolean prepare_func(GSource *source, gint *timeout) {
         if (pa_timeval_cmp(&t->timeval, &tvnow) <= 0) {
             *timeout = 0;
             return TRUE;
-        } 
+        }
         usec = pa_timeval_diff(&t->timeval, &tvnow);
         *timeout = (gint) (usec / 1000);
     } else
@@ -519,10 +519,10 @@ static gboolean check_func(GSource *source) {
         pa_time_event *t;
         GTimeVal now;
         struct timeval tvnow;
-    
+
         t = find_next_time_event(g);
         g_assert(t);
-        
+
         g_source_get_current_time(source, &now);
         tvnow.tv_sec = now.tv_sec;
         tvnow.tv_usec = now.tv_usec;
@@ -555,7 +555,7 @@ static gboolean dispatch_func(GSource *source, PA_GCC_UNUSED GSourceFunc callbac
         }
 
         g_assert(d);
-        
+
         d->callback(&g->api, d, d->userdata);
         return TRUE;
     }
@@ -567,7 +567,7 @@ static gboolean dispatch_func(GSource *source, PA_GCC_UNUSED GSourceFunc callbac
 
         t = find_next_time_event(g);
         g_assert(t);
-        
+
         g_source_get_current_time(source, &now);
         tvnow.tv_sec = now.tv_sec;
         tvnow.tv_usec = now.tv_usec;
@@ -576,7 +576,7 @@ static gboolean dispatch_func(GSource *source, PA_GCC_UNUSED GSourceFunc callbac
 
             /* Disable time event */
             glib_time_restart(t, NULL);
-            
+
             t->callback(&g->api, t, &t->timeval, t->userdata);
             return TRUE;
         }
@@ -604,12 +604,12 @@ static const pa_mainloop_api vtable = {
     .time_restart = glib_time_restart,
     .time_free = glib_time_free,
     .time_set_destroy = glib_time_set_destroy,
-    
+
     .defer_new = glib_defer_new,
     .defer_enable = glib_defer_enable,
     .defer_free = glib_defer_free,
     .defer_set_destroy = glib_defer_set_destroy,
-    
+
     .quit = glib_quit,
 };
 
@@ -624,10 +624,10 @@ pa_glib_mainloop *pa_glib_mainloop_new(GMainContext *c) {
         NULL,
         NULL
     };
-    
+
     g = (pa_glib_mainloop*) g_source_new(&source_funcs, sizeof(pa_glib_mainloop));
     g_main_context_ref(g->context = c ? c : g_main_context_default());
-    
+
     g->api = vtable;
     g->api.userdata = g;
 
@@ -639,10 +639,10 @@ pa_glib_mainloop *pa_glib_mainloop_new(GMainContext *c) {
     g->io_events_please_scan = g->time_events_please_scan = g->defer_events_please_scan = 0;
 
     g->cached_next_time_event = NULL;
-    
+
     g_source_attach(&g->source, g->context);
     g_source_set_can_recurse(&g->source, FALSE);
-    
+
     return g;
 }
 
@@ -660,6 +660,6 @@ void pa_glib_mainloop_free(pa_glib_mainloop* g) {
 
 pa_mainloop_api* pa_glib_mainloop_get_api(pa_glib_mainloop *g) {
     g_assert(g);
-    
+
     return &g->api;
 }

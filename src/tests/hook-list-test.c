@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     pa_hook_connect(&hook, (pa_hook_cb_t) func1, (void*) "slot1");
     slot = pa_hook_connect(&hook, (pa_hook_cb_t) func2, (void*) "slot2");
     pa_hook_connect(&hook, (pa_hook_cb_t) func1, (void*) "slot3");
-    
+
     pa_hook_fire(&hook, (void*) "call1");
 
     pa_hook_slot_free(slot);
@@ -30,6 +30,6 @@ int main(int argc, char *argv[]) {
     pa_hook_fire(&hook, (void*) "call2");
 
     pa_hook_free(&hook);
-    
+
     return 0;
 }

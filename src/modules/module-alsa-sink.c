@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -95,13 +95,13 @@ static void update_usage(struct userdata *u) {
 
 static void clear_up(struct userdata *u) {
     assert(u);
-    
+
     if (u->sink) {
         pa_sink_disconnect(u->sink);
         pa_sink_unref(u->sink);
         u->sink = NULL;
     }
-    
+
     if (u->pcm_fdl)
         pa_alsa_fdlist_free(u->pcm_fdl);
     if (u->mixer_fdl)
@@ -113,7 +113,7 @@ static void clear_up(struct userdata *u) {
         snd_mixer_close(u->mixer_handle);
         u->mixer_handle = NULL;
     }
-    
+
     if (u->pcm_handle) {
         snd_pcm_drop(u->pcm_handle);
         snd_pcm_close(u->pcm_handle);
@@ -126,7 +126,7 @@ static int xrun_recovery(struct userdata *u) {
     assert(u);
 
     pa_log_info("*** ALSA-XRUN (playback) ***");
-    
+
     if ((ret = snd_pcm_prepare(u->pcm_handle)) < 0) {
         pa_log("snd_pcm_prepare() failed: %s", snd_strerror(-ret));
 
@@ -142,11 +142,11 @@ static void do_write(struct userdata *u) {
     assert(u);
 
     update_usage(u);
-    
+
     for (;;) {
         pa_memchunk *memchunk = NULL;
         snd_pcm_sframes_t frames;
-        
+
         if (u->memchunk.memblock)
             memchunk = &u->memchunk;
         else {
@@ -155,7 +155,7 @@ static void do_write(struct userdata *u) {
             else
                 memchunk = &u->memchunk;
         }
-            
+
         assert(memchunk->memblock && memchunk->memblock->data && memchunk->length && memchunk->memblock->length && (memchunk->length % u->frame_size) == 0);
 
         if ((frames = snd_pcm_writei(u->pcm_handle, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length / u->frame_size)) < 0) {
@@ -165,7 +165,7 @@ static void do_write(struct userdata *u) {
             if (frames == -EPIPE) {
                 if (xrun_recovery(u) < 0)
                     return;
-                
+
                 continue;
             }
 
@@ -187,7 +187,7 @@ static void do_write(struct userdata *u) {
                 memchunk->index = memchunk->length = 0;
             }
         }
-        
+
         break;
     }
 }
@@ -229,7 +229,7 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     snd_pcm_sframes_t frames;
     int err;
-    
+
     assert(s && u && u->sink);
 
     if ((err = snd_pcm_delay(u->pcm_handle, &frames)) < 0) {
@@ -292,14 +292,14 @@ static int sink_set_hw_volume_cb(pa_sink *s) {
 
     for (i = 0; i < s->hw_volume.channels; i++) {
         long alsa_vol;
-        
+
         assert(snd_mixer_selem_has_playback_channel(u->mixer_elem, i));
 
         vol = s->hw_volume.values[i];
 
         if (vol > PA_VOLUME_NORM)
             vol = PA_VOLUME_NORM;
-        
+
         alsa_vol = (long) roundf(((float) vol * (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
 
         if ((err = snd_mixer_selem_set_playback_volume(u->mixer_elem, i, alsa_vol)) < 0)
@@ -367,7 +367,7 @@ int pa__init(pa_core *c, pa_module*m) {
     const char *name;
     char *name_buf = NULL;
     int namereg_fail;
-    
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("failed to parse module arguments");
         goto fail;
@@ -380,7 +380,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     frame_size = pa_frame_size(&ss);
-    
+
     /* Fix latency to 100ms */
     periods = 8;
     fragsize = pa_bytes_per_second(&ss)/128;
@@ -390,11 +390,11 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
     period_size = fragsize/frame_size;
-    
+
     u = pa_xnew0(struct userdata, 1);
     m->userdata = u;
     u->module = m;
-    
+
     snd_config_update_free_global();
     if ((err = snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK)) < 0) {
         pa_log("Error opening PCM device %s: %s", dev, snd_strerror(err));
@@ -415,7 +415,7 @@ int pa__init(pa_core *c, pa_module*m) {
     if (ss.channels != map.channels)
         /* Seems ALSA didn't like the channel number, so let's fix the channel map */
         pa_channel_map_init_auto(&map, ss.channels, PA_CHANNEL_MAP_ALSA);
-    
+
     if ((err = snd_mixer_open(&u->mixer_handle, 0)) < 0) {
         pa_log("Error opening mixer: %s", snd_strerror(err));
         goto fail;
@@ -486,7 +486,7 @@ int pa__init(pa_core *c, pa_module*m) {
         snd_mixer_elem_set_callback_private(u->mixer_elem, u);
     } else
         u->mixer_fdl = NULL;
-    
+
     u->frame_size = frame_size;
     u->fragment_size = period_size * frame_size;
 
@@ -499,7 +499,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->memchunk.memblock = NULL;
     u->memchunk.index = u->memchunk.length = 0;
-    
+
     ret = 0;
 
     /* Get initial mixer settings */
@@ -507,21 +507,21 @@ int pa__init(pa_core *c, pa_module*m) {
         u->sink->get_hw_volume(u->sink);
     if (u->sink->get_hw_mute)
         u->sink->get_hw_mute(u->sink);
-     
+
 finish:
 
     pa_xfree(name_buf);
-    
+
      if (ma)
          pa_modargs_free(ma);
 
     if (pcm_info)
         snd_pcm_info_free(pcm_info);
-    
+
     return ret;
 
 fail:
-    
+
     if (u)
         pa__done(c, m);
 
@@ -541,7 +541,7 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_memblock_unref(u->memchunk.memblock);
     if (u->silence.memblock)
         pa_memblock_unref(u->silence.memblock);
-    
+
     pa_xfree(u);
 }
 

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -116,10 +116,10 @@ static void command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
 #ifdef TUNNEL_SINK
     [PA_COMMAND_REQUEST] = command_request,
-#endif    
+#endif
     [PA_COMMAND_PLAYBACK_STREAM_KILLED] = command_stream_killed,
     [PA_COMMAND_RECORD_STREAM_KILLED] = command_stream_killed,
-    [PA_COMMAND_SUBSCRIBE_EVENT] = command_subscribe_event, 
+    [PA_COMMAND_SUBSCRIBE_EVENT] = command_subscribe_event,
 };
 
 struct userdata {
@@ -136,7 +136,7 @@ struct userdata {
     char *source_name;
     pa_source *source;
 #endif
-    
+
     pa_module *module;
     pa_core *core;
 
@@ -146,7 +146,7 @@ struct userdata {
     uint32_t ctag;
     uint32_t device_index;
     uint32_t channel;
-    
+
     pa_usec_t host_latency;
 
     pa_time_event *time_event;
@@ -156,7 +156,7 @@ struct userdata {
 
 static void close_stuff(struct userdata *u) {
     assert(u);
-    
+
     if (u->pstream) {
         pa_pstream_close(u->pstream);
         pa_pstream_unref(u->pstream);
@@ -256,10 +256,10 @@ static void send_bytes(struct userdata *u) {
     while (u->requested_bytes > 0) {
         pa_memchunk chunk;
         if (pa_sink_render(u->sink, u->requested_bytes, &chunk) < 0) {
-            
-            if (u->requested_bytes >= DEFAULT_TLENGTH-DEFAULT_PREBUF) 
+
+            if (u->requested_bytes >= DEFAULT_TLENGTH-DEFAULT_PREBUF)
                 send_prebuf_request(u);
-            
+
             return;
         }
 
@@ -293,7 +293,7 @@ static void command_request(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED ui
         die(u);
         return;
     }
-    
+
     u->requested_bytes += bytes;
     send_bytes(u);
 }
@@ -316,7 +316,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
         die(u);
         return;
     }
-    
+
     if (pa_tagstruct_get_usec(t, &sink_usec) < 0 ||
         pa_tagstruct_get_usec(t, &source_usec) < 0 ||
         pa_tagstruct_get_boolean(t, &playing) < 0 ||
@@ -333,14 +333,14 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
     pa_gettimeofday(&now);
 
     /* FIXME! This could use some serious love. */
-    
+
     if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now)) {
         /* local and remote seem to have synchronized clocks */
 #ifdef TUNNEL_SINK
         transport_usec = pa_timeval_diff(&remote, &local);
 #else
         transport_usec = pa_timeval_diff(&now, &remote);
-#endif    
+#endif
     } else
         transport_usec = pa_timeval_diff(&now, &local)/2;
 
@@ -364,7 +364,7 @@ static void request_latency(struct userdata *u) {
     assert(u);
 
     t = pa_tagstruct_new(NULL, 0);
-#ifdef TUNNEL_SINK    
+#ifdef TUNNEL_SINK
     pa_tagstruct_putu32(t, PA_COMMAND_GET_PLAYBACK_LATENCY);
 #else
     pa_tagstruct_putu32(t, PA_COMMAND_GET_RECORD_LATENCY);
@@ -374,7 +374,7 @@ static void request_latency(struct userdata *u) {
 
     pa_gettimeofday(&now);
     pa_tagstruct_put_timeval(t, &now);
-    
+
     pa_pstream_send_tagstruct(u->pstream, t);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, u, NULL);
 }
@@ -496,7 +496,7 @@ static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED 
     assert(m && e && u);
 
     request_latency(u);
-    
+
     pa_gettimeofday(&ntv);
     ntv.tv_sec += LATENCY_INTERVAL;
     m->time_restart(e, &ntv);
@@ -518,16 +518,16 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 
     if (pa_tagstruct_getu32(t, &u->channel) < 0 ||
         pa_tagstruct_getu32(t, &u->device_index) < 0
-#ifdef TUNNEL_SINK        
+#ifdef TUNNEL_SINK
         || pa_tagstruct_getu32(t, &u->requested_bytes) < 0
-#endif        
+#endif
         )
         goto parse_error;
 
     if (u->version >= 9) {
 #ifdef TUNNEL_SINK
         uint32_t maxlength, tlength, prebuf, minreq;
-        
+
         if (pa_tagstruct_getu32(t, &maxlength) < 0 ||
             pa_tagstruct_getu32(t, &tlength) < 0 ||
             pa_tagstruct_getu32(t, &prebuf) < 0 ||
@@ -535,13 +535,13 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
             goto parse_error;
 #else
         uint32_t maxlength, fragsize;
-        
+
         if (pa_tagstruct_getu32(t, &maxlength) < 0 ||
-            pa_tagstruct_getu32(t, &fragsize) < 0) 
+            pa_tagstruct_getu32(t, &fragsize) < 0)
             goto parse_error;
 #endif
     }
-    
+
     if (!pa_tagstruct_eof(t))
         goto parse_error;
 
@@ -559,7 +559,7 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 #endif
 
     return;
-    
+
 parse_error:
     pa_log("invalid reply. (create stream)");
     die(u);
@@ -603,7 +603,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
              pa_get_user_name(un, sizeof(un)),
              u->source->name);
 #endif
-    
+
     reply = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(reply, PA_COMMAND_SET_CLIENT_NAME);
     pa_tagstruct_putu32(reply, tag = u->ctag++);
@@ -612,7 +612,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     /* We ignore the server's reply here */
 
     reply = pa_tagstruct_new(NULL, 0);
-#ifdef TUNNEL_SINK    
+#ifdef TUNNEL_SINK
     pa_tagstruct_putu32(reply, PA_COMMAND_CREATE_PLAYBACK_STREAM);
     pa_tagstruct_putu32(reply, tag = u->ctag++);
     pa_tagstruct_puts(reply, name);
@@ -640,7 +640,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_put_boolean(reply, 0);
     pa_tagstruct_putu32(reply, DEFAULT_FRAGSIZE);
 #endif
-    
+
     pa_pstream_send_tagstruct(u->pstream, reply);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, u, NULL);
 }
@@ -673,7 +673,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, PA_GCC_UN
         die(u);
         return;
     }
-    
+
     pa_source_post(u->source, chunk);
 }
 #endif
@@ -686,7 +686,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
 
     pa_socket_client_unref(u->client);
     u->client = NULL;
-    
+
     if (!io) {
         pa_log("connection failed.");
         pa_module_unload_request(u->module);
@@ -701,7 +701,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
 #ifndef TUNNEL_SINK
     pa_pstream_set_recieve_memblock_callback(u->pstream, pstream_memblock_callback, u);
 #endif
-    
+
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_AUTH);
     pa_tagstruct_putu32(t, tag = u->ctag++);
@@ -709,7 +709,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     pa_tagstruct_put_arbitrary(t, u->auth_cookie, sizeof(u->auth_cookie));
     pa_pstream_send_tagstruct(u->pstream, t);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, u, NULL);
-    
+
 }
 
 #ifdef TUNNEL_SINK
@@ -862,14 +862,14 @@ static int load_key(struct userdata *u, const char*fn) {
     assert(u);
 
     u->auth_cookie_in_property = 0;
-    
+
     if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
         pa_log_debug("using already loaded auth cookie.");
         pa_authkey_prop_ref(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
         u->auth_cookie_in_property = 1;
         return 0;
     }
-    
+
     if (!fn)
         fn = PA_NATIVE_COOKIE_FILE;
 
@@ -877,7 +877,7 @@ static int load_key(struct userdata *u, const char*fn) {
         return -1;
 
     pa_log_debug("loading cookie from disk.");
-    
+
     if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
         u->auth_cookie_in_property = 1;
 
@@ -890,7 +890,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     char *t, *dn = NULL;
-    
+
     assert(c && m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -919,10 +919,10 @@ int pa__init(pa_core *c, pa_module*m) {
     u->host_latency = 0;
     u->auth_cookie_in_property = 0;
     u->time_event = NULL;
-    
+
     if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
         goto fail;
-    
+
     if (!(u->server_name = pa_xstrdup(pa_modargs_get_value(ma, "server", NULL)))) {
         pa_log("no server specified.");
         goto fail;
@@ -938,7 +938,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("failed to connect to server '%s'", u->server_name);
         goto fail;
     }
-    
+
     if (!u->client)
         goto fail;
 
@@ -987,7 +987,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     pa_source_set_owner(u->source, m);
 #endif
-    
+
     pa_xfree(dn);
 
     u->time_event = NULL;
@@ -995,7 +995,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_modargs_free(ma);
 
     return 0;
-    
+
 fail:
     pa__done(c, m);
 
@@ -1003,7 +1003,7 @@ fail:
         pa_modargs_free(ma);
 
     pa_xfree(dn);
-    
+
     return  -1;
 }
 
@@ -1018,7 +1018,7 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (u->auth_cookie_in_property)
         pa_authkey_prop_unref(c, PA_NATIVE_COOKIE_PROPERTY_NAME);
-    
+
 #ifdef TUNNEL_SINK
     pa_xfree(u->sink_name);
 #else

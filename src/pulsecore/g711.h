@@ -33,7 +33,7 @@ extern int16_t _st_ulaw2linear16[256];
 #define st_14linear2ulaw(sw) (_st_14linear2ulaw[(sw + 0x2000)])
 #define st_ulaw2linear16(uc) (_st_ulaw2linear16[uc])
 #else
-unsigned char st_14linear2ulaw(int16_t pcm_val); 
+unsigned char st_14linear2ulaw(int16_t pcm_val);
 int16_t st_ulaw2linear16(unsigned char);
 #endif
 

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -58,7 +58,7 @@ static int detect_alsa(pa_core *c, int just_one) {
 
         if (errno != ENOENT)
             pa_log_error("open(\"/proc/asound/devices\") failed: %s", pa_cstrerror(errno));
-        
+
         return -1;
     }
 
@@ -66,7 +66,7 @@ static int detect_alsa(pa_core *c, int just_one) {
         char line[64], args[64];
         unsigned device, subdevice;
         int is_sink;
-    
+
         if (!fgets(line, sizeof(line), f))
             break;
 
@@ -81,7 +81,7 @@ static int detect_alsa(pa_core *c, int just_one) {
 
         if (just_one && is_sink && n_sink >= 1)
             continue;
-        
+
         if (just_one && !is_sink && n_source >= 1)
             continue;
 
@@ -105,7 +105,7 @@ static int detect_alsa(pa_core *c, int just_one) {
     }
 
     fclose(f);
-    
+
     return n;
 }
 #endif
@@ -114,7 +114,7 @@ static int detect_alsa(pa_core *c, int just_one) {
 static int detect_oss(pa_core *c, int just_one) {
     FILE *f;
     int n = 0, b = 0;
-    
+
     if (!(f = fopen("/dev/sndstat", "r")) &&
         !(f = fopen("/proc/sndstat", "r")) &&
         !(f = fopen("/proc/asound/oss/sndstat", "r"))) {
@@ -128,7 +128,7 @@ static int detect_oss(pa_core *c, int just_one) {
     while (!feof(f)) {
         char line[64], args[64];
         unsigned device;
-    
+
         if (!fgets(line, sizeof(line), f))
             break;
 
@@ -141,20 +141,20 @@ static int detect_oss(pa_core *c, int just_one) {
 
         if (line[0] == 0)
             break;
-        
+
         if (sscanf(line, "%u: ", &device) == 1) {
             if (device == 0)
                 snprintf(args, sizeof(args), "device=/dev/dsp");
             else
                 snprintf(args, sizeof(args), "device=/dev/dsp%u", device);
-            
+
             if (!pa_module_load(c, "module-oss", args))
                 continue;
-            
+
 	} else if (sscanf(line, "pcm%u: ", &device) == 1) {
             /* FreeBSD support, the devices are named /dev/dsp0.0, dsp0.1 and so on */
             snprintf(args, sizeof(args), "device=/dev/dsp%u.0", device);
-            
+
             if (!pa_module_load(c, "module-oss", args))
                 continue;
 	}
@@ -219,7 +219,7 @@ int pa__init(pa_core *c, pa_module*m) {
         "just-one",
         NULL
     };
-    
+
     assert(c);
     assert(m);
 
@@ -227,14 +227,14 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("Failed to parse module arguments");
         goto fail;
     }
-    
+
     if (pa_modargs_get_value_boolean(ma, "just-one", &just_one) < 0) {
         pa_log("just_one= expects a boolean argument.");
         goto fail;
     }
 
 #if HAVE_ALSA
-    if ((n = detect_alsa(c, just_one)) <= 0) 
+    if ((n = detect_alsa(c, just_one)) <= 0)
 #endif
 #if HAVE_OSS
     if ((n = detect_oss(c, just_one)) <= 0)
@@ -251,7 +251,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     pa_log_info("loaded %i modules.", n);
-    
+
     /* We were successful and can unload ourselves now. */
     pa_module_unload_request(m);
 
@@ -262,7 +262,7 @@ int pa__init(pa_core *c, pa_module*m) {
 fail:
     if (ma)
         pa_modargs_free(ma);
-    
+
     return -1;
 }
 

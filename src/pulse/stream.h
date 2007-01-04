@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -113,7 +113,7 @@
  * read index may be larger than the write index, in which case
  * silence is played. If the application writes data to indexes lower
  * than the read index, the data is immediately lost.
- *                
+ *
  * \section transfer_sec Transferring Data
  *
  * Once the stream is up, data can start flowing between the client and the
@@ -159,13 +159,13 @@
  * \li PA_SEEK_ABSOLUTE - seek relative to the beginning of the playback buffer, (i.e. the first that was ever played in the stream)
  * \li PA_SEEK_RELATIVE_ON_READ - seek relative to the current read index. Use this to write data to the output buffer that should be played as soon as possible
  * \li PA_SEEK_RELATIVE_END - seek relative to the last byte ever written.
- * 
+ *
  * If an application just wants to append some data to the output
  * buffer, PA_SEEK_RELATIVE and an offset of 0 should be used.
  *
  * After a call to pa_stream_write() the write index will be left at
  * the position right after the last byte of the written data.
- *                         
+ *
  * \section latency_sec Latency
  *
  * A major problem with networked audio is the increased latency caused by
@@ -217,7 +217,7 @@
  * this option with PA_STREAM_AUTO_TIMING_UPDATE, which will enable
  * you to monitor the current playback time/latency very precisely and
  * very frequently without requiring a network round trip every time.
- * 
+ *
  * \section flow_sec Overflow and underflow
  *
  * Even with the best precautions, buffers will sometime over - or
@@ -275,7 +275,7 @@ typedef void (*pa_stream_notify_cb_t)(pa_stream *p, void *userdata);
 
 /** Create a new, unconnected stream with the specified name and sample type */
 pa_stream* pa_stream_new(
-        pa_context *c                     /**< The context to create this stream in */,             
+        pa_context *c                     /**< The context to create this stream in */,
         const char *name                  /**< A name for this stream */,
         const pa_sample_spec *ss          /**< The desired sample format */,
         const pa_channel_map *map         /**< The desired channel map, or NULL for default */);
@@ -320,7 +320,7 @@ int pa_stream_disconnect(pa_stream *s);
  * is not copied. If NULL, the data is copied into an internal
  * buffer. The client my freely seek around in the output buffer. For
  * most applications passing 0 and PA_SEEK_RELATIVE as arguments for
- * offset and seek should be useful.*/ 
+ * offset and seek should be useful.*/
 int pa_stream_write(
         pa_stream *p             /**< The stream to use */,
         const void *data         /**< The data to write */,
@@ -333,7 +333,7 @@ int pa_stream_write(
  * data will point to the actual data and length will contain the size
  * of the data in bytes (which can be less than a complete framgnet).
  * Use pa_stream_drop() to actually remove the data from the
- * buffer. If no data is available will return a NULL pointer  \since 0.8 */ 
+ * buffer. If no data is available will return a NULL pointer  \since 0.8 */
 int pa_stream_peek(
         pa_stream *p                 /**< The stream to use */,
         const void **data            /**< Pointer to pointer that will point to data */,

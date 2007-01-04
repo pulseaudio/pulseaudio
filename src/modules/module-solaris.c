@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -124,7 +124,7 @@ static void do_write(struct userdata *u) {
     int err;
     size_t len;
     ssize_t r;
-    
+
     assert(u);
 
     /* We cannot check pa_iochannel_is_writable() because of our buffer hack */
@@ -163,7 +163,7 @@ static void do_write(struct userdata *u) {
     }
 
     u->sink_underflow = 0;
-    
+
     assert(u->memchunk.memblock);
     assert(u->memchunk.memblock->data);
     assert(u->memchunk.length);
@@ -181,10 +181,10 @@ static void do_write(struct userdata *u) {
     }
 
     assert(r % u->frame_size == 0);
-    
+
     u->memchunk.index += r;
     u->memchunk.length -= r;
-    
+
     if (u->memchunk.length <= 0) {
         pa_memblock_unref(u->memchunk.memblock);
         u->memchunk.memblock = NULL;
@@ -199,7 +199,7 @@ static void do_read(struct userdata *u) {
     size_t l;
     ssize_t r;
     assert(u);
-    
+
     if (!u->source || !pa_iochannel_is_readable(u->io))
         return;
 
@@ -221,11 +221,11 @@ static void do_read(struct userdata *u) {
             pa_log("read() failed: %s", pa_cstrerror(errno));
         return;
     }
-    
+
     assert(r <= (ssize_t) memchunk.memblock->length);
     memchunk.length = memchunk.memblock->length = r;
     memchunk.index = 0;
-    
+
     pa_source_post(u->source, &memchunk);
     pa_memblock_unref(memchunk.memblock);
 
@@ -256,7 +256,7 @@ static void timer_cb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *
 static void sig_callback(pa_mainloop_api *api, pa_signal_event*e, int sig, void *userdata) {
     struct userdata *u = userdata;
     pa_cvolume old_vol;
-    
+
     assert(u);
 
     if (u->sink) {
@@ -518,7 +518,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("failed to parse module arguments.");
         goto fail;
     }
-    
+
     if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
         pa_log("record= and playback= expect numeric argument.");
         goto fail;
@@ -531,7 +531,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
 
-    buffer_size = 16384;    
+    buffer_size = 16384;
     if (pa_modargs_get_value_s32(ma, "buffer_size", &buffer_size) < 0) {
         pa_log("failed to parse buffer size argument");
         goto fail;
@@ -542,7 +542,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("failed to parse sample specification");
         goto fail;
     }
-    
+
     if ((fd = open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), mode | O_NONBLOCK)) < 0)
         goto fail;
 
@@ -642,7 +642,7 @@ fail:
 
     if (ma)
         pa_modargs_free(ma);
-    
+
     return -1;
 }
 
@@ -657,7 +657,7 @@ void pa__done(pa_core *c, pa_module*m) {
         c->mainloop->time_free(u->timer);
     ioctl(u->fd, I_SETSIG, 0);
     pa_signal_free(u->sig);
-    
+
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
 
@@ -665,12 +665,12 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_sink_disconnect(u->sink);
         pa_sink_unref(u->sink);
     }
-    
+
     if (u->source) {
         pa_source_disconnect(u->source);
         pa_source_unref(u->source);
     }
-    
+
     pa_iochannel_free(u->io);
     pa_xfree(u);
 }

@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -47,7 +47,7 @@ struct pa_source_output {
     int ref;
     uint32_t index;
     pa_source_output_state_t state;
-    
+
     char *name, *driver;                  /* may be NULL */
     pa_module *module;                    /* may be NULL */
 
@@ -56,14 +56,14 @@ struct pa_source_output {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
-    
+
     void (*push)(pa_source_output *o, const pa_memchunk *chunk);
     void (*kill)(pa_source_output* o);              /* may be NULL */
     pa_usec_t (*get_latency) (pa_source_output *o); /* may be NULL */
 
     pa_resampler* resampler;              /* may be NULL */
     pa_resample_method_t resample_method;
-    
+
     void *userdata;
 };
 

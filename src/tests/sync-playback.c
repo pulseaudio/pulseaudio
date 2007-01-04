@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -67,7 +67,7 @@ static void underflow_cb(struct pa_stream *s, void *userdata) {
     int i = (int) (long) userdata;
 
     fprintf(stderr, "Stream %i finished\n", i);
-    
+
     if (++n_streams_ready >= 2*NSTREAMS) {
         fprintf(stderr, "We're done\n");
         mainloop_api->quit(mainloop_api, 0);
@@ -89,19 +89,19 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
             int r, i = (int) (long) userdata;
 
             fprintf(stderr, "Writing data to stream %i.\n", i);
-            
+
             r = pa_stream_write(s, data, sizeof(data), nop_free_cb, sizeof(data) * i, PA_SEEK_ABSOLUTE);
             assert(r == 0);
 
             /* Be notified when this stream is drained */
             pa_stream_set_underflow_callback(s, underflow_cb, userdata);
-            
+
             /* All streams have been set up, let's go! */
             if (++n_streams_ready >= NSTREAMS) {
                 fprintf(stderr, "Uncorking\n");
                 pa_operation_unref(pa_stream_cork(s, 0, NULL, NULL));
             }
-           
+
             break;
         }
 
@@ -121,7 +121,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_AUTHORIZING:
         case PA_CONTEXT_SETTING_NAME:
             break;
-        
+
         case PA_CONTEXT_READY: {
 
             int i;
@@ -131,18 +131,18 @@ static void context_state_callback(pa_context *c, void *userdata) {
                 char name[64];
 
                 fprintf(stderr, "Creating stream %i\n", i);
-                
+
                 snprintf(name, sizeof(name), "stream #%i", i);
-            
+
                 streams[i] = pa_stream_new(c, name, &sample_spec, NULL);
                 assert(streams[i]);
                 pa_stream_set_state_callback(streams[i], stream_state_callback, (void*) (long) i);
                 pa_stream_connect_playback(streams[i], NULL, &buffer_attr, PA_STREAM_START_CORKED, NULL, i == 0 ? NULL : streams[0]);
             }
-                
+
             break;
         }
-            
+
         case PA_CONTEXT_TERMINATED:
             mainloop_api->quit(mainloop_api, 0);
             break;
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
 
     for (i = 0; i < NSTREAMS; i++)
         streams[i] = NULL;
-    
+
     /* Set up a new main loop */
     m = pa_mainloop_new();
     assert(m);
@@ -187,6 +187,6 @@ int main(int argc, char *argv[]) {
             pa_stream_unref(streams[i]);
 
     pa_mainloop_free(m);
-    
+
     return ret;
 }

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -80,7 +80,7 @@ static pa_io_event *io_event = NULL;
 static struct sigaction sigaction_prev;
 
 /* Nonzero after pa_cpu_limit_init() */
-static int installed = 0; 
+static int installed = 0;
 
 /* The current state of operation */
 static enum  {
@@ -131,24 +131,24 @@ static void signal_handler(int sig) {
         snprintf(t, sizeof(t), "Using %0.1f%% CPU\n", (double)CPUTIME_INTERVAL_SOFT/(now-last_time)*100);
         write_err(t);
 #endif
-        
+
         if (CPUTIME_INTERVAL_SOFT >= ((now-last_time)*(double)CPUTIME_PERCENT/100)) {
             static const char c = 'X';
 
             write_err("Soft CPU time limit exhausted, terminating.\n");
-            
+
             /* Try a soft cleanup */
             write(the_pipe[1], &c, sizeof(c));
             phase = PHASE_SOFT;
             reset_cpu_time(CPUTIME_INTERVAL_HARD);
-            
+
         } else {
 
             /* Everything's fine */
             reset_cpu_time(CPUTIME_INTERVAL_SOFT);
             last_time = now;
         }
-        
+
     } else if (phase == PHASE_SOFT) {
         write_err("Hard CPU time limit exhausted, terminating forcibly.\n");
         _exit(1); /* Forced exit */
@@ -167,7 +167,7 @@ static void callback(pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags
 int pa_cpu_limit_init(pa_mainloop_api *m) {
     struct sigaction sa;
     assert(m && !api && !io_event && the_pipe[0] == -1 && the_pipe[1] == -1 && !installed);
-    
+
     time(&last_time);
 
     /* Prepare the main loop pipe */
@@ -191,7 +191,7 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
     sa.sa_handler = signal_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
-    
+
     if (sigaction(SIGXCPU, &sa, &sigaction_prev) < 0) {
         pa_cpu_limit_done();
         return -1;
@@ -200,7 +200,7 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
     installed = 1;
 
     reset_cpu_time(CPUTIME_INTERVAL_SOFT);
-    
+
     return 0;
 }
 

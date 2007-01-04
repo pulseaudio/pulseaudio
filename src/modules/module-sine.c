@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -96,7 +96,7 @@ static void calc_sine(float *f, size_t l, float freq) {
     size_t i;
 
     l /= sizeof(float);
-    
+
     for (i = 0; i < l; i++)
         f[i] = (float) sin((double) i/l*M_PI*2*freq)/2;
 }
@@ -115,7 +115,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("Failed to parse module arguments");
         goto fail;
     }
-    
+
     m->userdata = u = pa_xmalloc(sizeof(struct userdata));
     u->core = c;
     u->module = m;
@@ -138,7 +138,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("Invalid frequency specification");
         goto fail;
     }
-    
+
     u->memblock = pa_memblock_new(c->mempool, pa_bytes_per_second(&ss));
     calc_sine(u->memblock->data, u->memblock->length, frequency);
 
@@ -160,10 +160,10 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sink_input->userdata = u;
 
     u->peek_index = 0;
-    
+
     pa_modargs_free(ma);
     return 0;
-    
+
 fail:
     if (ma)
         pa_modargs_free(ma);
@@ -183,7 +183,7 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_sink_input_disconnect(u->sink_input);
         pa_sink_input_unref(u->sink_input);
     }
-    
+
     if (u->memblock)
         pa_memblock_unref(u->memblock);
     pa_xfree(u);

@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -115,10 +115,10 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
-    
+
     assert(c);
     assert(m);
-    
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("failed to parse module arguments.");
         goto fail;
@@ -129,12 +129,12 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("invalid sample format specification or channel map.");
         goto fail;
     }
-    
+
     u = pa_xnew0(struct userdata, 1);
     u->core = c;
     u->module = m;
     m->userdata = u;
-    
+
     if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
         pa_log("failed to create sink.");
         goto fail;
@@ -147,19 +147,19 @@ int pa__init(pa_core *c, pa_module*m) {
 
     u->n_bytes = 0;
     pa_gettimeofday(&u->start_time);
-    
+
     u->time_event = c->mainloop->time_new(c->mainloop, &u->start_time, time_callback, u);
 
     u->block_size = pa_bytes_per_second(&ss) / 10;
-    
+
     pa_modargs_free(ma);
-    
+
     return 0;
 
 fail:
     if (ma)
         pa_modargs_free(ma);
-        
+
     pa__done(c, m);
 
     return -1;
@@ -171,7 +171,7 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (!(u = m->userdata))
         return;
-    
+
     pa_sink_disconnect(u->sink);
     pa_sink_unref(u->sink);
 

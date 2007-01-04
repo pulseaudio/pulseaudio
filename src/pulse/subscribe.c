@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -69,7 +69,7 @@ pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, pa_c
     assert(c->ref >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
-    
+
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
     t = pa_tagstruct_command(c, PA_COMMAND_SUBSCRIBE, &tag);
@@ -83,7 +83,7 @@ pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, pa_c
 void pa_context_set_subscribe_callback(pa_context *c, pa_context_subscribe_cb_t cb, void *userdata) {
     assert(c);
     assert(c->ref >= 1);
-    
+
     c->subscribe_callback = cb;
     c->subscribe_userdata = userdata;
 }

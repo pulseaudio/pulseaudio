@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -73,20 +73,20 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
         pa_log("lost connection to LIRC daemon.");
         goto fail;
     }
-        
+
     if (events & PA_IO_EVENT_INPUT) {
         char *c;
-        
+
         if (lirc_nextcode(&code) != 0 || !code) {
             pa_log("lirc_nextcode() failed.");
             goto fail;
         }
-        
+
         c = pa_xstrdup(code);
         c[strcspn(c, "\n\r")] = 0;
         pa_log_debug("raw IR code '%s'", c);
         pa_xfree(c);
-        
+
         while (lirc_code2char(u->config, code, &name) == 0 && name) {
             enum {
                 INVALID,
@@ -96,9 +96,9 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 RESET,
                 MUTE_TOGGLE
             } volchange = INVALID;
-            
+
             pa_log_info("translated IR code '%s'", name);
-            
+
             if (strcasecmp(name, "volume-up") == 0)
                 volchange = UP;
             else if (strcasecmp(name, "volume-down") == 0)
@@ -109,12 +109,12 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 volchange = MUTE_TOGGLE;
             else if (strcasecmp(name, "reset") == 0)
                 volchange = RESET;
-            
+
             if (volchange == INVALID)
                 pa_log_warn("recieved unknown IR code '%s'", name);
             else {
                 pa_sink *s;
-                
+
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
                     pa_log("failed to get sink '%s'", u->sink_name);
                 else {
@@ -134,7 +134,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
 
                             pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
                             break;
-                            
+
                         case DOWN:
                             for (i = 0; i < cv.channels; i++) {
                                 if (cv.values[i] >= DELTA)
@@ -142,18 +142,18 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                                 else
                                     cv.values[i] = PA_VOLUME_MUTED;
                             }
-                            
+
                             pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
                             break;
-                            
+
                         case MUTE:
                             pa_sink_set_mute(s, PA_MIXER_HARDWARE, 0);
                             break;
-                            
+
                         case RESET:
                             pa_sink_set_mute(s, PA_MIXER_HARDWARE, 1);
                             break;
-                            
+
                         case MUTE_TOGGLE:
 
                             pa_sink_set_mute(s, PA_MIXER_HARDWARE, !pa_sink_get_mute(s, PA_MIXER_HARDWARE));
@@ -170,7 +170,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
     pa_xfree(code);
 
     return;
-    
+
 fail:
     u->module->core->mainloop->io_free(u->io);
     u->io = NULL;
@@ -179,7 +179,7 @@ fail:
 
     free(code);
 }
-    
+
 int pa__init(pa_core *c, pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -189,7 +189,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("module-lirc may no be loaded twice.");
         return -1;
     }
-    
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
         goto fail;
@@ -212,13 +212,13 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("lirc_readconfig() failed.");
         goto fail;
     }
-    
+
     u->io = c->mainloop->io_new(c->mainloop, u->lirc_fd, PA_IO_EVENT_INPUT|PA_IO_EVENT_HANGUP, io_callback, u);
 
     lirc_in_use = 1;
 
     pa_modargs_free(ma);
-    
+
     return 0;
 
 fail:

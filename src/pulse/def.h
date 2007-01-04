@@ -5,17 +5,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -69,7 +69,7 @@ typedef enum pa_context_flags {
     PA_CONTEXT_NOAUTOSPAWN = 1 /**< Disabled autospawning of the PulseAudio daemon if required */
 } pa_context_flags_t;
 
-/** The direction of a pa_stream object */ 
+/** The direction of a pa_stream object */
 typedef enum pa_stream_direction {
     PA_STREAM_NODIRECTION,   /**< Invalid direction */
     PA_STREAM_PLAYBACK,      /**< Playback stream */
@@ -149,7 +149,7 @@ enum {
     PA_ERR_EXIST,                  /**< Entity exists */
     PA_ERR_NOENTITY,               /**< No such entity */
     PA_ERR_CONNECTIONREFUSED,      /**< Connection refused */
-    PA_ERR_PROTOCOL,               /**< Protocol error */ 
+    PA_ERR_PROTOCOL,               /**< Protocol error */
     PA_ERR_TIMEOUT,                /**< Timeout */
     PA_ERR_AUTHKEY,                /**< No authorization key */
     PA_ERR_INTERNAL,               /**< Internal error */
@@ -207,7 +207,7 @@ typedef enum pa_subscription_event_type {
  * total output latency a sample that is written with
  * pa_stream_write() takes to be played may be estimated by
  * sink_usec+buffer_usec+transport_usec. (where buffer_usec is defined
- * as pa_bytes_to_usec(write_index-read_index)) The output buffer 
+ * as pa_bytes_to_usec(write_index-read_index)) The output buffer
  * which buffer_usec relates to may be manipulated freely (with
  * pa_stream_write()'s seek argument, pa_stream_flush() and friends),
  * the buffers sink_usec and source_usec relate to are first-in
@@ -256,7 +256,7 @@ typedef struct pa_timing_info {
                                * flush request that corrupted it has
                                * been issued in the time since this
                                * latency info was current. \since 0.8  */
-    
+
     int64_t read_index;       /**< Current read index into the
                                * playback buffer in bytes. Think twice before
                                * using this for seeking purposes: it
@@ -288,7 +288,7 @@ typedef struct pa_spawn_api {
 /** Seek type for pa_stream_write(). \since 0.8*/
 typedef enum pa_seek_mode {
     PA_SEEK_RELATIVE = 0,           /**< Seek relatively to the write index */
-    PA_SEEK_ABSOLUTE = 1,           /**< Seek relatively to the start of the buffer queue */  
+    PA_SEEK_ABSOLUTE = 1,           /**< Seek relatively to the start of the buffer queue */
     PA_SEEK_RELATIVE_ON_READ = 2,   /**< Seek relatively to the read index.  */
     PA_SEEK_RELATIVE_END = 3        /**< Seek relatively to the current end of the buffer queue. */
 } pa_seek_mode_t;

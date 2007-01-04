@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -69,7 +69,7 @@ pa_strlist* pa_strlist_remove(pa_strlist *l, const char *s) {
     while (l) {
         if (!strcmp(l->str, s)) {
             pa_strlist *n = l->next;
-            
+
             if (!prev) {
                 assert(ret == l);
                 ret = n;
@@ -80,7 +80,7 @@ pa_strlist* pa_strlist_remove(pa_strlist *l, const char *s) {
             pa_xfree(l);
 
             l = n;
-            
+
         } else {
             prev = l;
             l = l->next;
@@ -103,12 +103,12 @@ void pa_strlist_free(pa_strlist *l) {
 pa_strlist* pa_strlist_pop(pa_strlist *l, char **s) {
     pa_strlist *r;
     assert(s);
-    
+
     if (!l) {
         *s = NULL;
         return NULL;
     }
-        
+
     *s = l->str;
     r = l->next;
     pa_xfree(l);

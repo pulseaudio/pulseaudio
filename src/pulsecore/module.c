@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -100,17 +100,17 @@ static inline fnptr load_sym(lt_dlhandle handle, const char *module, const char 
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
     int r;
-    
+
     assert(c && name);
 
     if (c->disallow_module_loading)
         goto fail;
-    
+
     m = pa_xmalloc(sizeof(pa_module));
 
     m->name = pa_xstrdup(name);
     m->argument = pa_xstrdup(argument);
-    
+
     if (!(m->dl = lt_dlopenext(name))) {
         pa_log("Failed to open module \"%s\": %s", name, lt_dlerror());
         goto fail;
@@ -125,7 +125,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
         pa_log("Failed to load module \"%s\": symbol \""PA_SYMBOL_DONE"\" not found.", name);
         goto fail;
     }
-    
+
     m->userdata = NULL;
     m->core = c;
     m->n_used = -1;
@@ -148,23 +148,23 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
         c->module_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
     }
     assert(c->module_auto_unload_event);
-    
+
     assert(c->modules);
     r = pa_idxset_put(c->modules, m, &m->index);
     assert(r >= 0 && m->index != PA_IDXSET_INVALID);
 
-    pa_log_info("Loaded \"%s\" (index: #%u; argument: \"%s\").", m->name, m->index, m->argument ? m->argument : ""); 
+    pa_log_info("Loaded \"%s\" (index: #%u; argument: \"%s\").", m->name, m->index, m->argument ? m->argument : "");
 
     pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_NEW, m->index);
-    
+
     return m;
-    
+
 fail:
 
     if (m) {
         pa_xfree(m->argument);
         pa_xfree(m->name);
-        
+
         if (m->dl)
             lt_dlclose(m->dl);
 
@@ -180,16 +180,16 @@ static void pa_module_free(pa_module *m) {
     if (m->core->disallow_module_loading)
         return;
 
-    pa_log_info("Unloading \"%s\" (index: #%u).", m->name, m->index); 
+    pa_log_info("Unloading \"%s\" (index: #%u).", m->name, m->index);
 
     m->done(m->core, m);
 
     lt_dlclose(m->dl);
-    
-    pa_log_info("Unloaded \"%s\" (index: #%u).", m->name, m->index); 
+
+    pa_log_info("Unloaded \"%s\" (index: #%u).", m->name, m->index);
 
     pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_REMOVE, m->index);
-    
+
     pa_xfree(m->name);
     pa_xfree(m->argument);
     pa_xfree(m);
@@ -250,7 +250,7 @@ static int unused_callback(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void *
     pa_module *m = p;
     time_t *now = userdata;
     assert(p && del && now);
-    
+
     if (m->n_used == 0 && m->auto_unload && m->last_used_time+m->core->module_idle_time <= *now) {
         pa_module_free(m);
         *del = 1;
@@ -265,7 +265,7 @@ void pa_module_unload_unused(pa_core *c) {
 
     if (!c->modules)
         return;
-    
+
     time(&now);
     pa_idxset_foreach(c->modules, unused_callback, &now);
 }
@@ -309,7 +309,7 @@ void pa_module_set_used(pa_module*m, int used) {
 
     if (m->n_used != used)
         pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_CHANGE, m->index);
-    
+
     if (m->n_used != used && used == 0)
         time(&m->last_used_time);
 

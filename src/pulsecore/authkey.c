@@ -2,17 +2,17 @@
 
 /***
   This file is part of PulseAudio.
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 2.1 of the
   License, or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   Lesser General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -91,25 +91,25 @@ static int load(const char *fn, void *data, size_t length) {
 
     if ((size_t) r != length) {
         pa_log_debug("got %d bytes from cookie file '%s', expected %d", (int)r, fn, (int)length);
-        
+
         if (!writable) {
             pa_log("unable to write cookie to read only file");
             goto finish;
         }
-        
+
         if (generate(fd, data, length) < 0)
             goto finish;
     }
 
     ret = 0;
-    
+
 finish:
 
     if (fd >= 0) {
-        
+
         if (unlock)
             pa_lock_fd(fd, 0);
-        
+
         close(fd);
     }
 
@@ -144,7 +144,7 @@ static const char *normalize_path(const char *fn, char *s, size_t l) {
         char homedir[PATH_MAX];
         if (!pa_get_home_dir(homedir, sizeof(homedir)))
             return NULL;
-        
+
 #ifndef OS_IS_WIN32
         snprintf(s, l, "%s/%s", homedir, fn);
 #else
@@ -165,7 +165,7 @@ int pa_authkey_load_auto(const char *fn, void *data, size_t length) {
 
     if (!(p = normalize_path(fn, path, sizeof(path))))
         return -2;
-        
+
     return pa_authkey_load(p, data, length);
 }
 
@@ -194,14 +194,14 @@ int pa_authkey_save(const char *fn, const void *data, size_t length) {
     }
 
     ret = 0;
-    
+
 finish:
 
     if (fd >= 0) {
-        
+
         if (unlock)
             pa_lock_fd(fd, 0);
-        
+
         close(fd);
     }
 
