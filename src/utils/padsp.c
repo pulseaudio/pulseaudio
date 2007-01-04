@@ -1800,6 +1800,16 @@ fail:
 static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) {
     int ret = -1;
 
+    if (i->thread_fd == -1) {
+        /*
+         * We've encountered some fatal error and are just waiting
+         * for a close.
+         */
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": got ioctl 0x%08lx in fatal error state\n", request);
+        *_errno = EIO;
+        return -1;
+    }
+
     switch (request) {
         case SNDCTL_DSP_SETFMT: {
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETFMT: %i\n", *(int*) argp);
