@@ -909,7 +909,15 @@ static void stream_state_cb(pa_stream *s, void * userdata) {
             break;
 
         case PA_STREAM_FAILED:
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
+            if (s == i->play_stream) {
+                debug(DEBUG_LEVEL_NORMAL,
+                    __FILE__": pa_stream_connect_playback() failed: %s\n",
+                    pa_strerror(pa_context_errno(i->context)));
+            } else if (s == i->rec_stream) {
+                debug(DEBUG_LEVEL_NORMAL,
+                    __FILE__": pa_stream_connect_record() failed: %s\n",
+                    pa_strerror(pa_context_errno(i->context)));
+            }
             fd_info_shutdown(i);
             break;
 
@@ -981,7 +989,7 @@ static int create_record_stream(fd_info *i) {
     attr.fragsize = i->fragment_size;
 
     if (pa_stream_connect_record(i->rec_stream, NULL, &attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE) < 0) {
-        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_connect_record() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
 
