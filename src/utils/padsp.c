@@ -2145,6 +2145,11 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
             debug(DEBUG_LEVEL_NORMAL, __FILE__": invalid ioctl SNDCTL_DSP_GETIPTR\n");
             goto inval;
 
+        case SNDCTL_DSP_SETDUPLEX:
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETDUPLEX\n");
+	    /* this is a no-op */
+	    break;
+	
         default:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": unknown ioctl 0x%08lx\n", request);
 
