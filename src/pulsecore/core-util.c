@@ -184,7 +184,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
         goto fail;
     }
 #else
-	pa_log_warn("secure directory creation not supported on Win32.");
+    pa_log_warn("secure directory creation not supported on Win32.");
 #endif
 
     return 0;
@@ -953,11 +953,17 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
             fn = buf;
 #endif
 
-            if ((f = fopen(fn, mode)) || errno != ENOENT) {
+            f = fopen(fn, mode);
+            if (f != NULL) {
                 if (result)
                     *result = pa_xstrdup(fn);
                 pa_xfree(lfn);
                 return f;
+            }
+
+            if (errno != ENOENT) {
+                pa_log_warn("WARNING: failed to open configuration file '%s': %s",
+                    lfn, pa_cstrerror(errno));
             }
 
             pa_xfree(lfn);
