@@ -47,7 +47,8 @@ PA_MODULE_DESCRIPTION("Windows waveOut Sink/Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE(
     "sink_name=<name for the sink> "
-    "source_name=<name for the source>"
+    "source_name=<name for the source> "
+    "device=<device number> "
     "record=<enable source?> "
     "playback=<enable sink?> "
     "format=<sample format> "
@@ -90,6 +91,7 @@ struct userdata {
 static const char* const valid_modargs[] = {
     "sink_name",
     "source_name",
+    "device",
     "record",
     "playback",
     "fragments",
@@ -432,6 +434,7 @@ int pa__init(pa_core *c, pa_module*m) {
     WAVEFORMATEX wf;
     int nfrags, frag_size;
     int record = 1, playback = 1;
+    unsigned int device;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
@@ -455,6 +458,12 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
+    device = WAVE_MAPPER;
+    if (pa_modargs_get_value_u32(ma, "device", &device) < 0) {
+        pa_log("failed to parse device argument");
+        goto fail;
+    }
+
     nfrags = 5;
     frag_size = 8192;
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
@@ -474,7 +483,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u = pa_xmalloc(sizeof(struct userdata));
 
     if (record) {
-        if (waveInOpen(&hwi, WAVE_MAPPER, &wf, (DWORD_PTR)chunk_ready_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
+        if (waveInOpen(&hwi, device, &wf, (DWORD_PTR)chunk_ready_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
             pa_log("failed to open waveIn");
             goto fail;
         }
@@ -486,7 +495,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (playback) {
-        if (waveOutOpen(&hwo, WAVE_MAPPER, &wf, (DWORD_PTR)chunk_done_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
+        if (waveOutOpen(&hwo, device, &wf, (DWORD_PTR)chunk_done_cb, (DWORD_PTR)u, CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {
             pa_log("failed to open waveOut");
             goto fail;
         }
