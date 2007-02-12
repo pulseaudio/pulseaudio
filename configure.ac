@@ -42,6 +42,8 @@ AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:0:0])
 AC_SUBST(LIBPULSE_BROWSE_VERSION_INFO, [1:0:1])
 AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:2:0])
 
+AC_CANONICAL_HOST
+
 if type -p stow > /dev/null && test -d /usr/local/stow ; then
    AC_MSG_NOTICE([*** Found /usr/local/stow: default install prefix set to /usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION} ***])
    ac_default_prefix="/usr/local/stow/${PACKAGE_NAME}-${PACKAGE_VERSION}"
