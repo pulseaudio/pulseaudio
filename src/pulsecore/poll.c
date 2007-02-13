@@ -1,14 +1,10 @@
 /* $Id$ */
 
-/***
-   Copyright (C) 1994, 1996, 1997 Free Software Foundation, Inc.
-   Copyright (C) 2005, Cendio AB.
-   This file is part of PulseAudio.
-   Based on work for the GNU C Library.
-***/
 
 /***
   This file is part of PulseAudio.
+
+  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -24,6 +20,11 @@
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
+***/
+
+/***
+   Based on work for the GNU C Library.
+   Copyright (C) 1994, 1996, 1997 Free Software Foundation, Inc.
 ***/
 
 /* Poll the file descriptors described by the NFDS structures starting at

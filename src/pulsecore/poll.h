@@ -1,15 +1,9 @@
 /* $Id$ */
 
 /***
-   Compatibility definitions for System V `poll' interface.
-   Copyright (C) 1994,96,97,98,99,2000,2001,2004 Free Software Foundation, Inc.
-   Copyright (C) 2005, Cendio AB.
-   This file is part of PulseAudio.
-   Based on work for the GNU C Library.
-***/
-
-/***
   This file is part of PulseAudio.
+
+  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -25,6 +19,11 @@
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
   USA.
+***/
+
+/***
+   Based on work for the GNU C Library.
+   Copyright (C) 1994,96,97,98,99,2000,2001,2004 Free Software Foundation, Inc.
 ***/
 
 /* Event types that can be polled for.  These bits may be set in `events'

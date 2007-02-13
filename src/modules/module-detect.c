@@ -3,6 +3,10 @@
 /***
   This file is part of PulseAudio.
 
+  Copyright 2006 Lennart Poettering
+  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2006 Diego Pettenò
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
