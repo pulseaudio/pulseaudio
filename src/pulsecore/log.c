@@ -129,6 +129,7 @@ void pa_log_levelv_meta(
         switch (log_target) {
             case PA_LOG_STDERR: {
                 const char *prefix = "", *suffix = "";
+                const char *level_code = "";
                 char *local_t;
 
 #ifndef OS_IS_WIN32
@@ -144,11 +145,33 @@ void pa_log_levelv_meta(
                 }
 #endif
 
+                switch (level) {
+                    case PA_LOG_ERROR:
+                        level_code = "E";
+                        break;
+                    case PA_LOG_WARN:
+                        level_code = "W";
+                        break;
+                    case PA_LOG_NOTICE:
+                        level_code = "N";
+                        break;
+                    case PA_LOG_INFO:
+                        level_code = "I";
+                        break;
+                    case PA_LOG_DEBUG:
+                        level_code = "D";
+                        break;
+                    default:
+                        level_code = "?";
+                }
+
                 local_t = pa_utf8_to_locale(t);
-                if (!local_t)
-                    fprintf(stderr, "%s%s%s%s\n", location, prefix, t, suffix);
-                else {
-                    fprintf(stderr, "%s%s%s%s\n", location, prefix, local_t, suffix);
+                if (!local_t) {
+                    fprintf(stderr, "%s: %s%s%s%s\n", level_code, location,
+                        prefix, t, suffix);
+                } else {
+                    fprintf(stderr, "%s: %s%s%s%s\n", level_code, location,
+                        prefix, local_t, suffix);
                     pa_xfree(local_t);
                 }
 
