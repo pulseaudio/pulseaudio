@@ -280,9 +280,9 @@ static int format_native2esd(pa_sample_spec *ss) {
     return format;
 }
 
-#define CHECK_VALIDITY(expression, string) do { \
+#define CHECK_VALIDITY(expression, ...) do { \
     if (!(expression)) { \
-        pa_log_warn(__FILE__ ": " string); \
+        pa_log_warn(__FILE__ ": " __VA_ARGS__); \
         return -1; \
     } \
 } while(0);
@@ -350,7 +350,7 @@ static int esd_proto_stream_play(struct connection *c, PA_GCC_UNUSED esd_proto_t
 
     if (c->protocol->sink_name) {
         sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1);
-        CHECK_VALIDITY(sink, "No such sink");
+        CHECK_VALIDITY(sink, "No such sink: %s", c->protocol->sink_name);
     }
 
     strncpy(name, data, sizeof(name));
@@ -719,7 +719,7 @@ static int esd_proto_sample_cache(struct connection *c, PA_GCC_UNUSED esd_proto_
     sc_length = MAYBE_INT32_SWAP(c->swap_byte_order, sc_length);
     data = (const char*)data + sizeof(int32_t);
 
-    CHECK_VALIDITY(sc_length <= MAX_CACHE_SAMPLE_SIZE, "Sample too large.");
+    CHECK_VALIDITY(sc_length <= MAX_CACHE_SAMPLE_SIZE, "Sample too large (%d bytes).", (int)sc_length);
 
     strcpy(name, SCACHE_PREFIX);
     strncpy(name+sizeof(SCACHE_PREFIX)-1, data, ESD_NAME_MAX);
