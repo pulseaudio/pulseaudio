@@ -5,7 +5,7 @@
 
   Copyright 2004-2006 Lennart Poettering
   Copyright 2004 Joe Marcus Clarke
-  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -346,6 +346,26 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
     }
 
     return ret;
+}
+
+/** Platform independent read function. Necessary since not all
+ * systems treat all file descriptors equal. */
+int pa_close(int fd)
+{
+#ifdef OS_IS_WIN32
+    int ret;
+
+    ret = closesocket(fd);
+    if (ret == 0)
+        return 0;
+
+    if (WSAGetLastError() != WSAENOTSOCK) {
+        errno = WSAGetLastError();
+        return ret;
+    }
+#endif
+
+    return close(fd);
 }
 
 /* Print a warning messages in case that the given signal is not

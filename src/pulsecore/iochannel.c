@@ -4,7 +4,7 @@
   This file is part of PulseAudio.
 
   Copyright 2004-2006 Lennart Poettering
-  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -174,10 +174,9 @@ void pa_iochannel_free(pa_iochannel*io) {
 
     if (!io->no_close) {
         if (io->ifd >= 0)
-
-            close(io->ifd);
+            pa_close(io->ifd);
         if (io->ofd >= 0 && io->ofd != io->ifd)
-            close(io->ofd);
+            pa_close(io->ofd);
     }
 
     pa_xfree(io);

@@ -4,7 +4,7 @@
   This file is part of PulseAudio.
 
   Copyright 2004-2006 Lennart Poettering
-  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -163,7 +163,7 @@ static void do_call(pa_socket_client *c) {
 
 finish:
     if (!io && c->fd >= 0)
-        close(c->fd);
+        pa_close(c->fd);
     c->fd = -1;
 
     free_events(c);
@@ -310,7 +310,7 @@ static void socket_client_free(pa_socket_client *c) {
     free_events(c);
 
     if (c->fd >= 0)
-        close(c->fd);
+        pa_close(c->fd);
 
 #ifdef HAVE_LIBASYNCNS
     if (c->asyncns_query)
@@ -403,7 +403,7 @@ static void timeout_cb(pa_mainloop_api *m, pa_time_event *e, const struct timeva
     assert(c);
 
     if (c->fd >= 0) {
-        close(c->fd);
+        pa_close(c->fd);
         c->fd = -1;
     }
 

@@ -5,7 +5,7 @@
 
   Copyright 2004-2006 Lennart Poettering
   Copyright 2004 Joe Marcus Clarke
-  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -236,7 +236,7 @@ int pa_unix_socket_is_stale(const char *fn) {
 
 finish:
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
 
     return ret;
 }

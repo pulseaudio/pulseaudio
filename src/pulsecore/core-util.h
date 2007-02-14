@@ -7,7 +7,7 @@
   This file is part of PulseAudio.
 
   Copyright 2004-2006 Lennart Poettering
-  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -43,6 +43,8 @@ ssize_t pa_read(int fd, void *buf, size_t count, int *type);
 ssize_t pa_write(int fd, const void *buf, size_t count, int *type);
 ssize_t pa_loop_read(int fd, void*data, size_t size, int *type);
 ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type);
+
+int pa_close(int fd);
 
 void pa_check_signal_is_blocked(int sig);
 

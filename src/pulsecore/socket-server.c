@@ -4,7 +4,7 @@
   This file is part of PulseAudio.
 
   Copyright 2004-2006 Lennart Poettering
-  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -106,7 +106,7 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_U
     pa_fd_set_cloexec(nfd, 1);
 
     if (!s->on_connection) {
-        close(nfd);
+        pa_close(nfd);
         goto finish;
     }
 
@@ -119,7 +119,7 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_U
         fromhost(&req);
         if (!hosts_access(&req)) {
             pa_log_warn("TCP connection refused by tcpwrap.");
-            close(nfd);
+            pa_close(nfd);
             goto finish;
         }
 
@@ -216,7 +216,7 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
 
 fail:
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
 
     return NULL;
 }
@@ -275,7 +275,7 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
 
 fail:
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
 
     return NULL;
 }
@@ -331,7 +331,7 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
 
 fail:
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
 
     return NULL;
 }
@@ -398,7 +398,7 @@ static void socket_server_free(pa_socket_server*s) {
         pa_xfree(s->filename);
     }
 
-    close(s->fd);
+    pa_close(s->fd);
 
     pa_xfree(s->tcpwrap_service);
 

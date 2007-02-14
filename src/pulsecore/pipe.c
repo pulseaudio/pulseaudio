@@ -3,7 +3,7 @@
 /***
   This file is part of PulseAudio.
 
-  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -144,17 +144,17 @@ int pipe(int filedes[2]) {
     if ((addr.sin_port != peer.sin_port) || (addr.sin_addr.s_addr != peer.sin_addr.s_addr))
         goto error;
 
-    close(listener);
+    pa_close(listener);
 
     return 0;
 
 error:
 	if (listener >= 0)
-		close(listener);
+		pa_close(listener);
 	if (filedes[0] >= 0)
-		close(filedes[0]);
+		pa_close(filedes[0]);
 	if (filedes[1] >= 0)
-		close(filedes[0]);
+		pa_close(filedes[0]);
 
 	return -1;
 }
