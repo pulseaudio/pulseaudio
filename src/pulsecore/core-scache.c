@@ -138,6 +138,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
 
 int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map, const pa_memchunk *chunk, uint32_t *idx) {
     pa_scache_entry *e;
+    char st[PA_SAMPLE_SPEC_SNPRINT_MAX];
     assert(c && name);
 
     if (chunk && chunk->length > PA_SCACHE_ENTRY_SIZE_MAX)
@@ -162,6 +163,10 @@ int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, c
 
     if (idx)
         *idx = e->index;
+
+    pa_log_debug("created sample \"%s\" (#%d), %d bytes with sample spec %s",
+        name, e->index, e->memchunk.length,
+        pa_sample_spec_snprint(st, sizeof(st), &e->sample_spec));
 
     return 0;
 }
@@ -229,7 +234,10 @@ int pa_scache_remove_item(pa_core *c, const char *name) {
     if (pa_idxset_remove_by_data(c->scache, e, NULL) != e)
         assert(0);
 
+    pa_log_debug("removed sample \"%s\"", name);
+
     free_entry(e);
+
     return 0;
 }
 
@@ -275,6 +283,8 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
 
     if (!e->memchunk.memblock)
         return -1;
+
+    pa_log_debug("playing sample \"%s\" on \"%s\"", name, sink->name);
 
     t = pa_sprintf_malloc("sample:%s", name);
 
