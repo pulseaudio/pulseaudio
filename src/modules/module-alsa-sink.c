@@ -159,7 +159,11 @@ static void do_write(struct userdata *u) {
                 memchunk = &u->memchunk;
         }
 
-        assert(memchunk->memblock && memchunk->memblock->data && memchunk->length && memchunk->memblock->length && (memchunk->length % u->frame_size) == 0);
+        assert(memchunk->memblock);
+        assert(memchunk->memblock->data);
+        assert(memchunk->length);
+        assert(memchunk->memblock->length);
+        assert((memchunk->length % u->frame_size) == 0);
 
         if ((frames = snd_pcm_writei(u->pcm_handle, (uint8_t*) memchunk->memblock->data + memchunk->index, memchunk->length / u->frame_size)) < 0) {
             if (frames == -EAGAIN)
@@ -414,6 +418,9 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("Failed to set hardware parameters: %s", snd_strerror(err));
         goto fail;
     }
+
+    /* ALSA might tweak the sample spec, so recalculate the frame size */
+    frame_size = pa_frame_size(&ss);
 
     if (ss.channels != map.channels)
         /* Seems ALSA didn't like the channel number, so let's fix the channel map */
