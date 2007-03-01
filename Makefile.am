@@ -17,8 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-EXTRA_DIST = config.rpath m4/ChangeLog  bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
-SUBDIRS= libltdl src doxygen
+EXTRA_DIST = bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
+SUBDIRS=libltdl src doxygen
 
 MAINTAINERCLEANFILES =
 noinst_DATA =
@@ -46,5 +46,3 @@ doxygen:
 	$(MAKE) -C doxygen doxygen
 
 .PHONY: homepage distcleancheck doxygen
-
-ACLOCAL_AMFLAGS = -I m4

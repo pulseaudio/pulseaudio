@@ -772,7 +772,6 @@ AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "x1"])
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
-po/Makefile.in
 libpulse.pc
 libpulse-simple.pc
 libpulse-browse.pc
