@@ -141,6 +141,33 @@ static int xrun_recovery(struct userdata *u) {
     return ret;
 }
 
+static int suspend_recovery(struct userdata *u) {
+    int ret;
+    assert(u);
+
+    pa_log_info("*** ALSA-SUSPEND (playback) ***");
+
+    if ((ret = snd_pcm_resume(u->pcm_handle)) < 0) {
+        if (ret == -EAGAIN)
+            return -1;
+
+        if (ret != -ENOSYS)
+            pa_log("snd_pcm_resume() failed: %s", snd_strerror(-ret));
+        else {
+            if ((ret = snd_pcm_prepare(u->pcm_handle)) < 0)
+                pa_log("snd_pcm_prepare() failed: %s", snd_strerror(-ret));
+        }
+
+        if (ret < 0) {
+            clear_up(u);
+            pa_module_unload_request(u->module);
+            return -1;
+        }
+    }
+
+    return ret;
+}
+
 static void do_write(struct userdata *u) {
     assert(u);
 
@@ -176,6 +203,13 @@ static void do_write(struct userdata *u) {
                 continue;
             }
 
+            if (frames == -ESTRPIPE) {
+                if (suspend_recovery(u) < 0)
+                    return;
+
+                continue;
+            }
+
             pa_log("snd_pcm_writei() failed: %s", snd_strerror(-frames));
 
             clear_up(u);
@@ -205,6 +239,10 @@ static void fdl_callback(void *userdata) {
 
     if (snd_pcm_state(u->pcm_handle) == SND_PCM_STATE_XRUN)
         if (xrun_recovery(u) < 0)
+            return;
+
+    if (snd_pcm_state(u->pcm_handle) == SND_PCM_STATE_SUSPENDED)
+        if (suspend_recovery(u) < 0)
             return;
 
     do_write(u);

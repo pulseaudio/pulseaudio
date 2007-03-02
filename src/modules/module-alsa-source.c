@@ -143,6 +143,34 @@ static int xrun_recovery(struct userdata *u) {
     return 0;
 }
 
+
+static int suspend_recovery(struct userdata *u) {
+    int ret;
+    assert(u);
+
+    pa_log_info("*** ALSA-SUSPEND (capture) ***");
+
+    if ((ret = snd_pcm_resume(u->pcm_handle)) < 0) {
+        if (ret == -EAGAIN)
+            return -1;
+
+        if (ret != -ENOSYS)
+            pa_log("snd_pcm_resume() failed: %s", snd_strerror(-ret));
+        else {
+            if ((ret = snd_pcm_prepare(u->pcm_handle)) < 0)
+                pa_log("snd_pcm_prepare() failed: %s", snd_strerror(-ret));
+        }
+
+        if (ret < 0) {
+            clear_up(u);
+            pa_module_unload_request(u->module);
+            return -1;
+        }
+    }
+
+    return ret;
+}
+
 static void do_read(struct userdata *u) {
     assert(u);
 
@@ -170,6 +198,13 @@ static void do_read(struct userdata *u) {
 
             if (frames == -EPIPE) {
                 if (xrun_recovery(u) < 0)
+                    return;
+
+                continue;
+            }
+
+            if (frames == -ESTRPIPE) {
+                if (suspend_recovery(u) < 0)
                     return;
 
                 continue;
@@ -208,6 +243,10 @@ static void fdl_callback(void *userdata) {
 
     if (snd_pcm_state(u->pcm_handle) == SND_PCM_STATE_XRUN)
         if (xrun_recovery(u) < 0)
+            return;
+
+    if (snd_pcm_state(u->pcm_handle) == SND_PCM_STATE_SUSPENDED)
+        if (suspend_recovery(u) < 0)
             return;
 
     do_read(u);
