@@ -1149,7 +1149,7 @@ module_x11_bell_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA
 module_x11_publish_la_SOURCES = modules/module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
-module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauthkey-prop.la libx11prop.la libstrlist.la
+module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauthkey-prop.la libx11prop.la libstrlist.la libpulsecore.la
 
 # OSS
 
