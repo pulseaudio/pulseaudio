@@ -488,7 +488,6 @@ fail:
 }
 
 int pa__init(pa_core *c, pa_module*m) {
-    int n;
     DBusError error;
     pa_dbus_connection *conn;
     struct userdata *u = NULL;
@@ -519,16 +518,11 @@ int pa__init(pa_core *c, pa_module*m) {
     m->userdata = (void*) u;
 
 #ifdef HAVE_ALSA
-    if ((n = hal_device_add_all(u, CAP_ALSA)) <= 0)
+    hal_device_add_all(u, CAP_ALSA);
 #endif
 #ifdef HAVE_OSS
-    if ((n = hal_device_add_all(u, CAP_OSS)) <= 0)
+    hal_device_add_all(u, CAP_OSS);
 #endif
-    {
-        pa_log_warn("failed to detect any sound hardware.");
-        userdata_free(u);
-        return -1;
-    }
 
     libhal_ctx_set_user_data(hal_ctx, (void*) u);
     libhal_ctx_set_device_added(hal_ctx, device_added_cb);
