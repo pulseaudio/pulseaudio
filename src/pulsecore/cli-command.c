@@ -246,6 +246,7 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
     char s[256];
     const pa_mempool_stat *stat;
     unsigned k;
+    const char *def_sink, *def_source;
 
     static const char* const type_table[PA_MEMBLOCK_TYPE_MAX] = {
         [PA_MEMBLOCK_POOL] = "POOL",
@@ -283,10 +284,12 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
     pa_strbuf_printf(buf, "Default sample spec: %s\n",
                      pa_sample_spec_snprint(s, sizeof(s), &c->default_sample_spec));
 
+    def_sink = pa_namereg_get_default_sink_name(c);
+    def_source = pa_namereg_get_default_source_name(c);
     pa_strbuf_printf(buf, "Default sink name: %s\n"
                      "Default source name: %s\n",
-                     pa_namereg_get_default_sink_name(c),
-                     pa_namereg_get_default_source_name(c));
+                     def_sink ? def_sink : "none",
+                     def_source ? def_source : "none");
 
     for (k = 0; k < PA_MEMBLOCK_TYPE_MAX; k++)
         pa_strbuf_printf(buf,

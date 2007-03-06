@@ -55,8 +55,15 @@ char *pa_module_list_to_string(pa_core *c) {
 
     pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_size(c->modules));
 
-    for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx))
-        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\targument: <%s>\n\tused: %i\n\tauto unload: %s\n", m->index, m->name, m->argument, m->n_used, m->auto_unload ? "yes" : "no");
+    for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx)) {
+        pa_strbuf_printf(s, "    index: %u\n"
+            "\tname: <%s>\n"
+            "\targument: <%s>\n"
+            "\tused: %i\n"
+            "\tauto unload: %s\n",
+            m->index, m->name, m->argument ? m->argument : "", m->n_used,
+            m->auto_unload ? "yes" : "no");
+    }
 
     return pa_strbuf_tostring_free(s);
 }
@@ -337,7 +344,7 @@ char *pa_autoload_list_to_string(pa_core *c) {
                 e->type == PA_NAMEREG_SOURCE ? "source" : "sink",
                 e->index,
                 e->module,
-                e->argument);
+                e->argument ? e->argument : "");
 
         }
     }
