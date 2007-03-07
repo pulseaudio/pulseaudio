@@ -4,7 +4,7 @@
   This file is part of PulseAudio.
 
   Copyright 2006 Lennart Poettering
-  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+  Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
@@ -84,6 +84,8 @@ struct fd_info {
     pa_context *context;
     pa_stream *play_stream;
     pa_stream *rec_stream;
+    int play_precork;
+    int rec_precork;
 
     pa_io_event *io_event;
     pa_io_event_flags_t io_flags;
@@ -197,7 +199,7 @@ if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY) { \
     debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s\n", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
     goto label; \
 } \
-} while(0);
+} while(0)
 
 #define PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, label) do { \
 if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
@@ -205,7 +207,7 @@ if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
     debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s\n", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
     goto label; \
 } \
-} while(0);
+} while(0)
 
 #define RECORD_STREAM_CHECK_DEAD_GOTO(i, label) do { \
 if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
@@ -213,7 +215,7 @@ if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
     debug(DEBUG_LEVEL_NORMAL, __FILE__": Not connected: %s\n", (i)->context ? pa_strerror(pa_context_errno((i)->context)) : "NULL"); \
     goto label; \
 } \
-} while(0);
+} while(0)
 
 static void debug(int level, const char *format, ...) PA_GCC_PRINTF_ATTR(2,3);
 
@@ -572,6 +574,8 @@ static fd_info* fd_info_new(fd_info_type_t type, int *_errno) {
     i->context = NULL;
     i->play_stream = NULL;
     i->rec_stream = NULL;
+    i->play_precork = 0;
+    i->rec_precork = 0;
     i->io_event = NULL;
     i->io_flags = 0;
     pthread_mutex_init(&i->mutex, NULL);
@@ -937,7 +941,7 @@ static void stream_state_cb(pa_stream *s, void * userdata) {
 
 static int create_playback_stream(fd_info *i) {
     pa_buffer_attr attr;
-    int n;
+    int n, flags;
 
     assert(i);
 
@@ -958,7 +962,12 @@ static int create_playback_stream(fd_info *i) {
     attr.prebuf = i->fragment_size;
     attr.minreq = i->fragment_size;
 
-    if (pa_stream_connect_playback(i->play_stream, NULL, &attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL) < 0) {
+    flags = PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE;
+    if (i->play_precork) {
+        flags |= PA_STREAM_START_CORKED;
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": creating stream corked\n");
+    }
+    if (pa_stream_connect_playback(i->play_stream, NULL, &attr, flags, NULL, NULL) < 0) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
@@ -976,7 +985,7 @@ fail:
 
 static int create_record_stream(fd_info *i) {
     pa_buffer_attr attr;
-    int n;
+    int n, flags;
 
     assert(i);
 
@@ -995,7 +1004,12 @@ static int create_record_stream(fd_info *i) {
     attr.maxlength = i->fragment_size * (i->n_fragments+1);
     attr.fragsize = i->fragment_size;
 
-    if (pa_stream_connect_record(i->rec_stream, NULL, &attr, PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE) < 0) {
+    flags = PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_AUTO_TIMING_UPDATE;
+    if (i->rec_precork) {
+        flags |= PA_STREAM_START_CORKED;
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": creating stream corked\n");
+    }
+    if (pa_stream_connect_record(i->rec_stream, NULL, &attr, flags) < 0) {
         debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_connect_record() failed: %s\n", pa_strerror(pa_context_errno(i->context)));
         goto fail;
     }
@@ -1800,6 +1814,44 @@ fail:
     return 0;
 }
 
+static int dsp_cork(fd_info *i, pa_stream *s, int b) {
+    pa_operation *o = NULL;
+    int r = -1;
+
+    pa_threaded_mainloop_lock(i->mainloop);
+
+    if (!(o = pa_stream_cork(s, b, stream_success_cb, i))) {
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_cork(): %s\n", pa_strerror(pa_context_errno(i->context)));
+        goto fail;
+    }
+
+    i->operation_success = 0;
+    while (!pa_operation_get_state(o) != PA_OPERATION_DONE) {
+        if (s == i->play_stream)
+            PLAYBACK_STREAM_CHECK_DEAD_GOTO(i, fail);
+        else if (s == i->rec_stream)
+            RECORD_STREAM_CHECK_DEAD_GOTO(i, fail);
+
+        pa_threaded_mainloop_wait(i->mainloop);
+    }
+
+    if (!i->operation_success) {
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": pa_stream_cork(): %s\n", pa_strerror(pa_context_errno(i->context)));
+        goto fail;
+    }
+
+    r = 0;
+
+fail:
+
+    if (o)
+        pa_operation_unref(o);
+
+    pa_threaded_mainloop_unlock(i->mainloop);
+
+    return 0;
+}
+
 static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) {
     int ret = -1;
 
@@ -1929,7 +1981,7 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
         case SNDCTL_DSP_GETCAPS:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_CAPS\n");
 
-            *(int*)  argp = DSP_CAP_DUPLEX
+            *(int*)  argp = DSP_CAP_DUPLEX | DSP_CAP_TRIGGER
 #ifdef DSP_CAP_MULTI
 	      | DSP_CAP_MULTI
 #endif
@@ -2007,6 +2059,32 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
             if (dsp_trigger(i) < 0)
                 *_errno = EIO;
+            break;
+
+        case SNDCTL_DSP_SETTRIGGER:
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETTRIGGER: 0x%08x\n", *(int*) argp);
+
+            if (!i->io_event) {
+                *_errno = EIO;
+                break;
+            }
+
+            i->play_precork = !((*(int*) argp) & PCM_ENABLE_OUTPUT);
+
+            if (i->play_stream) {
+                if (dsp_cork(i, i->play_stream, !((*(int*) argp) & PCM_ENABLE_OUTPUT)) < 0)
+                    *_errno = EIO;
+                if (dsp_trigger(i) < 0)
+                    *_errno = EIO;
+            }
+
+            i->rec_precork = !((*(int*) argp) & PCM_ENABLE_INPUT);
+
+            if (i->rec_stream) {
+                if (dsp_cork(i, i->rec_stream, !((*(int*) argp) & PCM_ENABLE_INPUT)) < 0)
+                    *_errno = EIO;
+            }
+
             break;
 
         case SNDCTL_DSP_SYNC:
