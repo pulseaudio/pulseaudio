@@ -13,7 +13,7 @@
 ** implied warranty.
 */
 
-/** Copied from sox -- Lennart Poettring*/
+/** Copied from sox -- Lennart Poettering */
 
 #include <inttypes.h>
 
