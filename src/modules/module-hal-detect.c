@@ -85,6 +85,9 @@ struct userdata {
     capability_t capability;
     pa_dbus_connection *conn;
     pa_hashmap *devices;
+#if defined(HAVE_ALSA) && defined(HAVE_OSS)
+    int use_oss;
+#endif    
 };
 
 struct timerdata {
@@ -185,6 +188,8 @@ static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi,
         snprintf(args, sizeof(args), "device=hw:%u source_name=alsa_input.%s", card, strip_udi(udi));
     }
 
+    pa_log_debug("Loading %s with arguments '%s'", module_name, args);
+
     return pa_module_load(u->core, module_name, args);
 }
 
@@ -242,6 +247,8 @@ static pa_module* hal_device_load_oss(struct userdata *u, const char *udi,
     snprintf(args, sizeof(args), "device=%s sink_name=oss_output.%s source_name=oss_input.%s", device, strip_udi(udi), strip_udi(udi));
     libhal_free_string(device);
 
+    pa_log_debug("Loading module-oss with arguments '%s'", args);
+
     return pa_module_load(u->core, "module-oss", args);
 }
 #endif
@@ -249,7 +256,7 @@ static pa_module* hal_device_load_oss(struct userdata *u, const char *udi,
 static dbus_bool_t hal_device_add(struct userdata *u, const char *udi,
                                   DBusError *error)
 {
-    pa_module* m;
+    pa_module* m = NULL;
     struct device *d;
 
     switch(u->capability) {
@@ -260,7 +267,10 @@ static dbus_bool_t hal_device_add(struct userdata *u, const char *udi,
 #endif
 #ifdef HAVE_OSS
         case CAP_OSS:
-            m = hal_device_load_oss(u, udi, error);
+#ifdef HAVE_ALSA
+            if (u->use_oss)
+#endif                
+                m = hal_device_load_oss(u, udi, error);
             break;
 #endif
         default:
@@ -492,6 +502,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_dbus_connection *conn;
     struct userdata *u = NULL;
     LibHalContext *hal_ctx = NULL;
+    int n = 0;
 
     assert(c);
     assert(m);
@@ -518,13 +529,26 @@ int pa__init(pa_core *c, pa_module*m) {
     m->userdata = (void*) u;
 
 #ifdef HAVE_ALSA
-    hal_device_add_all(u, CAP_ALSA);
+    n = hal_device_add_all(u, CAP_ALSA);
 #endif
+#if defined(HAVE_ALSA) && defined(HAVE_OSS)
+    u->use_oss = 0;
+    
+    if (n <= 0) {
+#endif    
 #ifdef HAVE_OSS
-    hal_device_add_all(u, CAP_OSS);
+        n += hal_device_add_all(u, CAP_OSS);
 #endif
+#if defined(HAVE_ALSA) && defined(HAVE_OSS)
 
-    libhal_ctx_set_user_data(hal_ctx, (void*) u);
+        /* We found something with OSS, but didn't find anything with
+         * ALSA. Then let's use only OSS from now on. */
+        if (n > 0)
+            u->use_oss = 1;
+    }
+#endif    
+
+    libhal_ctx_set_user_data(hal_ctx, u);
     libhal_ctx_set_device_added(hal_ctx, device_added_cb);
     libhal_ctx_set_device_removed(hal_ctx, device_removed_cb);
     libhal_ctx_set_device_new_capability(hal_ctx, new_capability_cb);
