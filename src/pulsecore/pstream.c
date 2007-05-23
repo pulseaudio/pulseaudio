@@ -632,7 +632,7 @@ static int do_read(pa_pstream *p) {
 
         flags = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]);
 
-        if (!p->import && (flags & PA_FLAG_SHMMASK) != 0) {
+        if (!p->use_shm && (flags & PA_FLAG_SHMMASK) != 0) {
             pa_log_warn("Recieved SHM frame on a socket where SHM is disabled.");
             return -1;
         }
