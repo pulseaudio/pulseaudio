@@ -1511,14 +1511,14 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
         case SOUND_MIXER_WRITE_IGAIN: {
             pa_cvolume v, *pv;
 
-            if (request == SOUND_MIXER_READ_PCM)
+            if (request == SOUND_MIXER_WRITE_PCM)
                 debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_WRITE_PCM\n");
             else
                 debug(DEBUG_LEVEL_NORMAL, __FILE__": SOUND_MIXER_WRITE_IGAIN\n");
 
             pa_threaded_mainloop_lock(i->mainloop);
 
-            if (request == SOUND_MIXER_READ_PCM) {
+            if (request == SOUND_MIXER_WRITE_PCM) {
                 v = i->sink_volume;
                 pv = &i->sink_volume;
             } else {
@@ -1532,7 +1532,7 @@ static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno
             if (!pa_cvolume_equal(pv, &v)) {
                 pa_operation *o;
 
-                if (request == SOUND_MIXER_READ_PCM)
+                if (request == SOUND_MIXER_WRITE_PCM)
                     o = pa_context_set_sink_volume_by_index(i->context, i->sink_index, pv, context_success_cb, i);
                 else
                     o = pa_context_set_source_volume_by_index(i->context, i->source_index, pv, context_success_cb, i);
