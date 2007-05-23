@@ -44,7 +44,7 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     int ret = -1;
     char t[1024];
 
-    if (!dname && !getenv("DISPLAY"))
+    if (!dname && (!(dname = getenv("DISPLAY")) || *dname == '\0'))
         goto finish;
 
     if (!(d = XOpenDisplay(dname))) {
