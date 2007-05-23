@@ -435,6 +435,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->subscription = NULL;
     u->table_file = pa_xstrdup(pa_modargs_get_value(ma, "table", NULL));
     u->modified = 0;
+    u->sink_input_hook_slot = u->source_output_hook_slot = NULL;
 
     m->userdata = u;
 
