@@ -38,13 +38,25 @@
 #include "sample-util.h"
 #include "endianmacros.h"
 
+#define PA_SILENCE_MAX (1024*1024*1)
+
 pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spec, size_t length) {
+    size_t fs;
     assert(pool);
     assert(spec);
 
     if (length == 0)
         length = pa_bytes_per_second(spec)/20; /* 50 ms */
 
+    if (length > PA_SILENCE_MAX)
+        length = PA_SILENCE_MAX;
+
+    fs = pa_frame_size(spec);
+    length = ((PA_SILENCE_MAX+fs-1) / fs) * fs;
+
+    if (length <= 0)
+        length = fs;
+    
     return pa_silence_memblock(pa_memblock_new(pool, length), spec);
 }
 
