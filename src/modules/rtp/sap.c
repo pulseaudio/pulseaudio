@@ -144,9 +144,6 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
         goto fail;
     }
 
-    if (!size)
-        return 0;
-
     buf = pa_xnew(char, size+1);
     buf[size] = 0;
     
