@@ -337,7 +337,7 @@ pa_browser *pa_browser_new_full(pa_mainloop_api *mainloop, pa_browse_flags_t fla
         !(b->server_browser = avahi_service_browser_new(
                   b->client,
                   AVAHI_IF_UNSPEC,
-                  AVAHI_PROTO_UNSPEC,
+                  AVAHI_PROTO_INET,
                   SERVICE_TYPE_SERVER,
                   NULL,
                   0,
