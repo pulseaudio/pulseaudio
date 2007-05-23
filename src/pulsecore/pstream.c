@@ -663,7 +663,7 @@ static int do_read(pa_pstream *p) {
         length = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]);
 
         if (length > FRAME_SIZE_MAX_ALLOW || length <= 0) {
-            pa_log_warn("Recieved invalid frame size : %lu", (unsigned long) length);
+            pa_log_warn("Recieved invalid frame size: %lu", (unsigned long) length);
             return -1;
         }
 
