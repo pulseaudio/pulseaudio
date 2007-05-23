@@ -105,6 +105,9 @@ PA_C_DECL_BEGIN
 /** Maximum number of allowed channels */
 #define PA_CHANNELS_MAX 32
 
+/** Maximum allowed sample rate */
+#define PA_RATE_MAX (48000*4)
+
 /** Sample format */
 typedef enum pa_sample_format {
     PA_SAMPLE_U8,              /**< Unsigned 8 Bit PCM */

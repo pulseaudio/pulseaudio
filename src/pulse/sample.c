@@ -80,6 +80,7 @@ int pa_sample_spec_valid(const pa_sample_spec *spec) {
     assert(spec);
 
     if (spec->rate <= 0 ||
+        spec->rate > PA_RATE_MAX ||
         spec->channels <= 0 ||
         spec->channels > PA_CHANNELS_MAX ||
         spec->format >= PA_SAMPLE_MAX ||
