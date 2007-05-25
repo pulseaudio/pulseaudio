@@ -1283,9 +1283,9 @@ gconf_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 #        Some minor stuff         #
 ###################################
 
-suid: pulse
-	chown root $<
-	chmod u+s $<
+suid: pulseaudio .libs/lt-pulseaudio
+	chown root $^
+	chmod u+s $^
 
 CLEANFILES = esdcompat client.conf default.pa daemon.conf
 
