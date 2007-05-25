@@ -51,6 +51,10 @@
 #include <sys/resource.h>
 #endif
 
+#ifdef HAVE_SYS_CAPABILITY_H
+#include <sys/capability.h>
+#endif
+
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
@@ -481,7 +485,23 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
 sensible: set the nice level to -15 and enable realtime scheduling if
 supported.*/
 void pa_raise_priority(void) {
+#if defined(HAVE_SYS_CAPABILITY_H)
+    cap_t caps;
 
+    /* Temporarily acquire CAP_SYS_NICE in the effective set */
+    if ((caps = cap_get_proc())) {
+        cap_t caps_new;
+        cap_value_t nice_cap = CAP_SYS_NICE;
+        
+        if ((caps_new = cap_dup(caps))) {
+            cap_set_flag(caps_new, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET);
+            cap_set_flag(caps_new, CAP_PERMITTED, 1, &nice_cap, CAP_SET);
+            cap_set_proc(caps_new);
+            cap_free(caps_new);
+        }
+    }
+#endif
+    
 #ifdef HAVE_SYS_RESOURCE_H
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
         pa_log_warn("setpriority(): %s", pa_cstrerror(errno));
@@ -495,13 +515,13 @@ void pa_raise_priority(void) {
 
         if (sched_getparam(0, &sp) < 0) {
             pa_log("sched_getparam(): %s", pa_cstrerror(errno));
-            return;
+            goto fail;
         }
 
         sp.sched_priority = 1;
         if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0) {
             pa_log_warn("sched_setscheduler(): %s", pa_cstrerror(errno));
-            return;
+            goto fail;
         }
 
         pa_log_info("Successfully enabled SCHED_FIFO scheduling.");
@@ -513,6 +533,16 @@ void pa_raise_priority(void) {
         pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
     else
         pa_log_info("Successfully gained high priority class.");
+#endif
+
+fail:
+
+#if defined(HAVE_SYS_CAPABILITY_H)
+    if (caps) {
+        /* Restore original caps */
+        cap_set_proc(caps);
+        cap_free(caps);
+    }
 #endif
 }
 

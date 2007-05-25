@@ -35,6 +35,9 @@
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
 #endif
+#ifdef HAVE_SYS_PRCTL_H
+#include <sys/prctl.h>
+#endif
 
 #include <pulsecore/core-error.h>
 
@@ -76,35 +79,31 @@ void pa_drop_root(void) {
 
 #endif
 
-#ifdef HAVE_SYS_CAPABILITY_H
+#if defined(HAVE_SYS_CAPABILITY_H) && defined(HAVE_SYS_PRCTL_H)
 
-/* Limit capabilities set to CAPSYS_NICE */
+/* Limit permitted capabilities set to CAPSYS_NICE */
 int pa_limit_caps(void) {
     int r = -1;
     cap_t caps;
     cap_value_t nice_cap = CAP_SYS_NICE;
 
-    /* Only drop caps when called SUID */
-    if (getuid() == 0)
-        return 0;
-
     caps = cap_init();
     assert(caps);
-
     cap_clear(caps);
-
-    cap_set_flag(caps, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET);
     cap_set_flag(caps, CAP_PERMITTED, 1, &nice_cap, CAP_SET);
 
     if (cap_set_proc(caps) < 0)
         goto fail;
 
+    if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) < 0)
+        goto fail;
+    
     pa_log_info("dropped capabilities successfully.");
-
-    r = 0;
+    
+    r = 1;
 
 fail:
-    cap_free (caps);
+    cap_free(caps);
 
     return r;
 }
@@ -114,24 +113,22 @@ int pa_drop_caps(void) {
     cap_t caps;
     int r = -1;
 
-    /* Only drop caps when called SUID */
-    if (getuid() == 0)
-        return 0;
-
     caps = cap_init();
     assert(caps);
 
     cap_clear(caps);
 
+    prctl(PR_SET_KEEPCAPS, 0, 0, 0, 0);
+    
     if (cap_set_proc(caps) < 0) {
         pa_log("failed to drop capabilities: %s", pa_cstrerror(errno));
         goto fail;
     }
-
+    
     r = 0;
 
 fail:
-    cap_free (caps);
+    cap_free(caps);
 
     return r;
 }

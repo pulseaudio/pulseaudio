@@ -329,22 +329,29 @@ int main(int argc, char *argv[]) {
     struct timeval tv;
 #endif
 
-    setlocale(LC_ALL, "");
-
-    pa_limit_caps();
-
 #ifdef HAVE_GETUID
     real_root = getuid() == 0;
     suid_root = !real_root && geteuid() == 0;
-
-    if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0 || gid >= 1000)) {
-        pa_log_warn("WARNING: called SUID root, but not in group '"PA_REALTIME_GROUP"'.");
-        pa_drop_root();
-    }
 #else
     real_root = 0;
     suid_root = 0;
 #endif
+
+    if (suid_root) {
+        if (pa_limit_caps() > 0)
+            /* We managed to drop capabilities except the needed
+             * ones. Hence we can drop the uid. */
+            pa_drop_root();
+    }
+
+    setlocale(LC_ALL, "");
+
+    if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0 || gid >= 1000)) {
+        pa_log_warn("WARNING: called SUID root, but not in group '"PA_REALTIME_GROUP"'.");
+        pa_drop_caps();
+        pa_drop_root();
+        suid_root = real_root = 0;
+    }
 
     LTDL_SET_PRELOADED_SYMBOLS();
 
@@ -381,10 +388,10 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority();
 
-    pa_drop_caps();
-
-    if (suid_root)
+    if (suid_root) {
+        pa_drop_caps();
         pa_drop_root();
+    }
 
     if (conf->dl_search_path)
         lt_dlsetsearchpath(conf->dl_search_path);
