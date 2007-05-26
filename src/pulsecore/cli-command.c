@@ -31,6 +31,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <pulse/xmalloc.h>
 
@@ -63,9 +64,18 @@ struct command {
     unsigned args;
 };
 
-#define INCLUDE_META ".include"
-#define FAIL_META ".fail"
-#define NOFAIL_META ".nofail"
+#define META_INCLUDE ".include"
+#define META_FAIL ".fail"
+#define META_NOFAIL ".nofail"
+#define META_IFEXISTS ".ifexists"
+#define META_ELSE ".else"
+#define META_ENDIF ".endif"
+
+enum {
+    IFSTATE_NONE = -1,
+    IFSTATE_FALSE = 0,
+    IFSTATE_TRUE = 1,
+};
 
 /* Prototypes for all available commands */
 static int pa_cli_command_exit(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
@@ -959,7 +969,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
     return 0;
 }
 
-int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *fail) {
+int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *buf, int *fail, int *ifstate) {
     const char *cs;
 
     cs = s+strspn(s, whitespace);
@@ -967,19 +977,50 @@ int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *
     if (*cs == '#' || !*cs)
         return 0;
     else if (*cs == '.') {
-        if (!strcmp(cs, FAIL_META))
+        if (!strcmp(cs, META_ELSE)) {
+            if (!ifstate || *ifstate == IFSTATE_NONE) {
+                pa_strbuf_printf(buf, "Meta command %s is not valid in this context\n", cs);
+                return -1;
+            } else if (*ifstate == IFSTATE_TRUE)
+                *ifstate = IFSTATE_FALSE;
+            else
+                *ifstate = IFSTATE_TRUE;
+            return 0;
+        } else if (!strcmp(cs, META_ENDIF)) {
+            if (!ifstate || *ifstate == IFSTATE_NONE) {
+                pa_strbuf_printf(buf, "Meta command %s is not valid in this context\n", cs);
+                return -1;
+            } else
+                *ifstate = IFSTATE_NONE;
+            return 0;
+        }
+        if (ifstate && *ifstate == IFSTATE_FALSE)
+            return 0;
+        if (!strcmp(cs, META_FAIL))
             *fail = 1;
-        else if (!strcmp(cs, NOFAIL_META))
+        else if (!strcmp(cs, META_NOFAIL))
             *fail = 0;
         else {
             size_t l;
             l = strcspn(cs, whitespace);
 
-            if (l == sizeof(INCLUDE_META)-1 && !strncmp(cs, INCLUDE_META, l)) {
+            if (l == sizeof(META_INCLUDE)-1 && !strncmp(cs, META_INCLUDE, l)) {
                 const char *filename = cs+l+strspn(cs+l, whitespace);
 
                 if (pa_cli_command_execute_file(c, filename, buf, fail) < 0)
                     if (*fail) return -1;
+            } else if (l == sizeof(META_IFEXISTS)-1 && !strncmp(cs, META_IFEXISTS, l)) {
+                if (!ifstate) {
+                    pa_strbuf_printf(buf, "Meta command %s is not valid in this context\n", cs);
+                    return -1;
+                } else if (*ifstate != IFSTATE_NONE) {
+                    pa_strbuf_printf(buf, "Nested %s commands not supported\n", cs);
+                    return -1;
+                } else {
+                    const char *filename = cs+l+strspn(cs+l, whitespace);
+
+                    *ifstate = access(filename, F_OK) == 0 ? IFSTATE_TRUE : IFSTATE_FALSE;
+                }
             } else {
                 pa_strbuf_printf(buf, "Invalid meta command: %s\n", cs);
                 if (*fail) return -1;
@@ -990,8 +1031,12 @@ int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *
         int unknown = 1;
         size_t l;
 
-        l = strcspn(cs, whitespace);
+        if (ifstate && *ifstate == IFSTATE_FALSE)
+             return 0;
+        
 
+        l = strcspn(cs, whitespace);
+        
         for (command = commands; command->name; command++)
             if (strlen(command->name) == l && !strncmp(cs, command->name, l)) {
                 int ret;
@@ -1017,11 +1062,19 @@ int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *
     return 0;
 }
 
+int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *fail) {
+    return pa_cli_command_execute_line_stateful(c, s, buf, fail, NULL);
+}
+
 int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, int *fail) {
     char line[256];
     FILE *f = NULL;
+    int ifstate = IFSTATE_NONE;
     int ret = -1;
-    assert(c && fn && buf);
+    
+    assert(c);
+    assert(fn);
+    assert(buf);
 
     if (!(f = fopen(fn, "r"))) {
         pa_strbuf_printf(buf, "open('%s') failed: %s\n", fn, pa_cstrerror(errno));
@@ -1034,7 +1087,7 @@ int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, int 
         char *e = line + strcspn(line, linebreak);
         *e = 0;
 
-        if (pa_cli_command_execute_line(c, line, buf, fail) < 0 && *fail)
+        if (pa_cli_command_execute_line_stateful(c, line, buf, fail, &ifstate) < 0 && *fail)
             goto fail;
     }
 
@@ -1049,14 +1102,18 @@ fail:
 
 int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, int *fail) {
     const char *p;
-    assert(c && s && buf && fail);
+    int ifstate = IFSTATE_NONE;
+    
+    assert(c);
+    assert(s);
+    assert(buf);
 
     p = s;
     while (*p) {
         size_t l = strcspn(p, linebreak);
         char *line = pa_xstrndup(p, l);
 
-        if (pa_cli_command_execute_line(c, line, buf, fail) < 0&& *fail) {
+        if (pa_cli_command_execute_line_stateful(c, line, buf, fail, &ifstate) < 0 && *fail) {
             pa_xfree(line);
             return -1;
         }

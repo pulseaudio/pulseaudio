@@ -39,4 +39,7 @@ int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, int 
 /* Split the specified string into lines and run pa_cli_command_execute_line() for each. */
 int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, int *fail);
 
+/* Same as pa_cli_command_execute_line() but also take ifstate var. */
+int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *buf, int *fail, int *ifstate);
+
 #endif

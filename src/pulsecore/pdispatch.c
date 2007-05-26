@@ -258,7 +258,7 @@ void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa
     struct timeval tv;
     assert(pd && pd->ref >= 1 && cb);
 
-    r = pa_xmalloc(sizeof(struct reply_info));
+    r = pa_xnew(struct reply_info, 1);
     r->pdispatch = pd;
     r->callback = cb;
     r->userdata = userdata;
