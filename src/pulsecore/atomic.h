@@ -53,6 +53,10 @@ static inline int pa_atomic_add(pa_atomic_int_t *a, int i) {
     return AO_fetch_and_add_full(&a->value, (AO_t) i);
 }
 
+static inline int pa_atomic_sub(pa_atomic_int_t *a, int i) {
+    return AO_fetch_and_add_full(&a->value, (AO_t) -i);
+}
+
 static inline int pa_atomic_inc(pa_atomic_int_t *a) {
     return AO_fetch_and_add1_full(&a->value);
 }

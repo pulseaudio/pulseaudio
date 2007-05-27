@@ -273,20 +273,20 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
     stat = pa_mempool_get_stat(c->mempool);
 
     pa_strbuf_printf(buf, "Memory blocks currently allocated: %u, size: %s.\n",
-                     (unsigned) AO_load_acquire_read((AO_t*) &stat->n_allocated),
-                     pa_bytes_snprint(s, sizeof(s), (size_t) AO_load_acquire_read((AO_t*) &stat->allocated_size)));
+                     (unsigned) pa_atomic_load(&stat->n_allocated),
+                     pa_bytes_snprint(s, sizeof(s), (size_t) pa_atomic_load(&stat->allocated_size)));
 
     pa_strbuf_printf(buf, "Memory blocks allocated during the whole lifetime: %u, size: %s.\n",
-                     (unsigned) AO_load_acquire_read((AO_t*) &stat->n_accumulated),
-                     pa_bytes_snprint(s, sizeof(s), (size_t) AO_load_acquire_read((AO_t*) &stat->accumulated_size)));
+                     (unsigned) pa_atomic_load(&stat->n_accumulated),
+                     pa_bytes_snprint(s, sizeof(s), (size_t) pa_atomic_load(&stat->accumulated_size)));
 
     pa_strbuf_printf(buf, "Memory blocks imported from other processes: %u, size: %s.\n",
-                     (unsigned) AO_load_acquire_read((AO_t*) &stat->n_imported),
-                     pa_bytes_snprint(s, sizeof(s), (size_t) AO_load_acquire_read((AO_t*) &stat->imported_size)));
+                     (unsigned) pa_atomic_load(&stat->n_imported),
+                     pa_bytes_snprint(s, sizeof(s), (size_t) pa_atomic_load(&stat->imported_size)));
 
     pa_strbuf_printf(buf, "Memory blocks exported to other processes: %u, size: %s.\n",
-                     (unsigned) AO_load_acquire_read((AO_t*) &stat->n_exported),
-                     pa_bytes_snprint(s, sizeof(s), (size_t) AO_load_acquire_read((AO_t*) &stat->exported_size)));
+                     (unsigned) pa_atomic_load(&stat->n_exported),
+                     pa_bytes_snprint(s, sizeof(s), (size_t) pa_atomic_load(&stat->exported_size)));
 
     pa_strbuf_printf(buf, "Total sample cache size: %s.\n",
                      pa_bytes_snprint(s, sizeof(s), pa_scache_total_size(c)));
@@ -305,8 +305,8 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
         pa_strbuf_printf(buf,
                          "Memory blocks of type %s: %u allocated/%u accumulated.\n",
                          type_table[k],
-                         (unsigned) AO_load_acquire_read(&stat->n_allocated_by_type[k]),
-                         (unsigned) AO_load_acquire_read(&stat->n_accumulated_by_type[k]));
+                         (unsigned) pa_atomic_load(&stat->n_allocated_by_type[k]),
+                         (unsigned) pa_atomic_load(&stat->n_accumulated_by_type[k]));
 
     return 0;
 }

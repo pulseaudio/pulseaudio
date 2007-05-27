@@ -30,6 +30,7 @@
 
 #include <pulsecore/llist.h>
 #include <pulsecore/refcnt.h>
+#include <pulsecore/atomic.h>
 
 /* A pa_memblock is a reference counted memory block. PulseAudio
  * passed references to pa_memblocks around instead of copying
@@ -82,20 +83,20 @@ struct pa_memblock {
  * n_accumulated is not yet. Take these values with a grain of salt,
  * threy are here for purely statistical reasons.*/
 struct pa_mempool_stat {
-    AO_t n_allocated;
-    AO_t n_accumulated;
-    AO_t n_imported;
-    AO_t n_exported;
-    AO_t allocated_size;
-    AO_t accumulated_size;
-    AO_t imported_size;
-    AO_t exported_size;
+    pa_atomic_int_t n_allocated;
+    pa_atomic_int_t n_accumulated;
+    pa_atomic_int_t n_imported;
+    pa_atomic_int_t n_exported;
+    pa_atomic_int_t allocated_size;
+    pa_atomic_int_t accumulated_size;
+    pa_atomic_int_t imported_size;
+    pa_atomic_int_t exported_size;
 
-    AO_t n_too_large_for_pool;
-    AO_t n_pool_full;
+    pa_atomic_int_t n_too_large_for_pool;
+    pa_atomic_int_t n_pool_full;
 
-    AO_t n_allocated_by_type[PA_MEMBLOCK_TYPE_MAX];
-    AO_t n_accumulated_by_type[PA_MEMBLOCK_TYPE_MAX];
+    pa_atomic_int_t n_allocated_by_type[PA_MEMBLOCK_TYPE_MAX];
+    pa_atomic_int_t n_accumulated_by_type[PA_MEMBLOCK_TYPE_MAX];
 };
 
 /* Allocate a new memory block of type PA_MEMBLOCK_MEMPOOL or PA_MEMBLOCK_APPENDED, depending on the size */

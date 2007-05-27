@@ -1116,10 +1116,10 @@ static void command_stat(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t 
     stat = pa_mempool_get_stat(c->protocol->core->mempool);
 
     reply = reply_new(tag);
-    pa_tagstruct_putu32(reply, (uint32_t) AO_load_acquire_read((AO_t*) &stat->n_allocated));
-    pa_tagstruct_putu32(reply, (uint32_t) AO_load_acquire_read((AO_t*) &stat->allocated_size));
-    pa_tagstruct_putu32(reply, (uint32_t) AO_load_acquire_read((AO_t*) &stat->n_accumulated));
-    pa_tagstruct_putu32(reply, (uint32_t) AO_load_acquire_read((AO_t*) &stat->accumulated_size));
+    pa_tagstruct_putu32(reply, (uint32_t) pa_atomic_load(&stat->n_allocated));
+    pa_tagstruct_putu32(reply, (uint32_t) pa_atomic_load(&stat->allocated_size));
+    pa_tagstruct_putu32(reply, (uint32_t) pa_atomic_load(&stat->n_accumulated));
+    pa_tagstruct_putu32(reply, (uint32_t) pa_atomic_load(&stat->accumulated_size));
     pa_tagstruct_putu32(reply, pa_scache_total_size(c->protocol->core));
     pa_pstream_send_tagstruct(c->pstream, reply);
 }

@@ -114,40 +114,40 @@ static void stat_add(pa_memblock*b) {
     assert(b);
     assert(b->pool);
 
-    AO_fetch_and_add1_release_write(&b->pool->stat.n_allocated);
-    AO_fetch_and_add_release_write(&b->pool->stat.allocated_size, (AO_t) b->length);
+    pa_atomic_inc(&b->pool->stat.n_allocated);
+    pa_atomic_add(&b->pool->stat.allocated_size, b->length);
 
-    AO_fetch_and_add1_release_write(&b->pool->stat.n_accumulated);
-    AO_fetch_and_add_release_write(&b->pool->stat.accumulated_size, (AO_t) b->length);
+    pa_atomic_inc(&b->pool->stat.n_accumulated);
+    pa_atomic_add(&b->pool->stat.accumulated_size, b->length);
 
     if (b->type == PA_MEMBLOCK_IMPORTED) {
-        AO_fetch_and_add1_release_write(&b->pool->stat.n_imported);
-        AO_fetch_and_add_release_write(&b->pool->stat.imported_size, (AO_t) b->length);
+        pa_atomic_inc(&b->pool->stat.n_imported);
+        pa_atomic_add(&b->pool->stat.imported_size, b->length);
     }
 
-    AO_fetch_and_add1_release_write(&b->pool->stat.n_allocated_by_type[b->type]);
-    AO_fetch_and_add1_release_write(&b->pool->stat.n_accumulated_by_type[b->type]);
+    pa_atomic_inc(&b->pool->stat.n_allocated_by_type[b->type]);
+    pa_atomic_inc(&b->pool->stat.n_accumulated_by_type[b->type]);
 }
 
 static void stat_remove(pa_memblock *b) {
     assert(b);
     assert(b->pool);
 
-    assert(AO_load_acquire_read(&b->pool->stat.n_allocated) > 0);
-    assert(AO_load_acquire_read(&b->pool->stat.allocated_size) >= (AO_t) b->length);
+    assert(pa_atomic_load(&b->pool->stat.n_allocated) > 0);
+    assert(pa_atomic_load(&b->pool->stat.allocated_size) >= (int) b->length);
 
-    AO_fetch_and_sub1_release_write(&b->pool->stat.n_allocated);
-    AO_fetch_and_add_release_write(&b->pool->stat.allocated_size,  (AO_t) (-b->length));
+    pa_atomic_dec(&b->pool->stat.n_allocated);
+    pa_atomic_sub(&b->pool->stat.allocated_size,  b->length);
 
     if (b->type == PA_MEMBLOCK_IMPORTED) {
-        assert(AO_load_acquire_read(&b->pool->stat.n_imported) > 0);
-        assert(AO_load_acquire_read(&b->pool->stat.imported_size) >= (AO_t) b->length);
+        assert(pa_atomic_load(&b->pool->stat.n_imported) > 0);
+        assert(pa_atomic_load(&b->pool->stat.imported_size) >= (int) b->length);
 
-        AO_fetch_and_sub1_release_write(&b->pool->stat.n_imported);
-        AO_fetch_and_add_release_write(&b->pool->stat.imported_size, (AO_t)  (-b->length));
+        pa_atomic_dec(&b->pool->stat.n_imported);
+        pa_atomic_sub(&b->pool->stat.imported_size, b->length);
     }
 
-    AO_fetch_and_sub1_release_write(&b->pool->stat.n_allocated_by_type[b->type]);
+    pa_atomic_dec(&b->pool->stat.n_allocated_by_type[b->type]);
 }
 
 static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length);
@@ -193,7 +193,7 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
         slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * p->n_init++));
     else {
         pa_log_debug("Pool full");
-        AO_fetch_and_add1_release_write(&p->stat.n_pool_full);
+        pa_atomic_inc(&p->stat.n_pool_full);
         return NULL;
     }
 
@@ -249,7 +249,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
         b->data = mempool_slot_data(slot);
     } else {
         pa_log_debug("Memory block too large for pool: %u > %u", length, p->block_size - sizeof(struct mempool_slot));
-        AO_fetch_and_add1_release_write(&p->stat.n_too_large_for_pool);
+        pa_atomic_inc(&p->stat.n_too_large_for_pool);
         return NULL;
     }
 
@@ -372,7 +372,7 @@ void pa_memblock_unref(pa_memblock*b) {
 static void memblock_make_local(pa_memblock *b) {
     assert(b);
 
-    AO_fetch_and_sub1_release_write(&b->pool->stat.n_allocated_by_type[b->type]);
+    pa_atomic_dec(&b->pool->stat.n_allocated_by_type[b->type]);
 
     if (b->length <= b->pool->block_size - sizeof(struct mempool_slot)) {
         struct mempool_slot *slot;
@@ -398,8 +398,8 @@ static void memblock_make_local(pa_memblock *b) {
     b->data = pa_xmemdup(b->data, b->length);
 
 finish:
-    AO_fetch_and_add1_release_write(&b->pool->stat.n_allocated_by_type[b->type]);
-    AO_fetch_and_add1_release_write(&b->pool->stat.n_accumulated_by_type[b->type]);
+    pa_atomic_inc(&b->pool->stat.n_allocated_by_type[b->type]);
+    pa_atomic_inc(&b->pool->stat.n_accumulated_by_type[b->type]);
 }
 
 void pa_memblock_unref_fixed(pa_memblock *b) {
@@ -419,10 +419,10 @@ static void memblock_replace_import(pa_memblock *b) {
     assert(b);
     assert(b->type == PA_MEMBLOCK_IMPORTED);
 
-    assert(AO_load_acquire_read(&b->pool->stat.n_imported) > 0);
-    assert(AO_load_acquire_read(&b->pool->stat.imported_size) >= (AO_t) b->length);
-    AO_fetch_and_sub1_release_write(&b->pool->stat.n_imported);
-    AO_fetch_and_add_release_write(&b->pool->stat.imported_size, (AO_t) - b->length);
+    assert(pa_atomic_load(&b->pool->stat.n_imported) > 0);
+    assert(pa_atomic_load(&b->pool->stat.imported_size) >= (int) b->length);
+    pa_atomic_dec(&b->pool->stat.n_imported);
+    pa_atomic_sub(&b->pool->stat.imported_size, b->length);
 
     seg = b->per_type.imported.segment;
     assert(seg);
@@ -486,7 +486,7 @@ void pa_mempool_free(pa_mempool *p) {
     while (p->exports)
         pa_memexport_free(p->exports);
 
-    if (AO_load_acquire_read(&p->stat.n_allocated) > 0)
+    if (pa_atomic_load(&p->stat.n_allocated) > 0)
         pa_log_warn("WARNING! Memory pool destroyed but not all memory blocks freed!");
 
     pa_shm_free(&p->memory);
@@ -684,11 +684,11 @@ int pa_memexport_process_release(pa_memexport *e, uint32_t id) {
 
 /*     pa_log("Processing release for %u", id); */
 
-    assert(AO_load_acquire_read(&e->pool->stat.n_exported) > 0);
-    assert(AO_load_acquire_read(&e->pool->stat.exported_size) >= (AO_t) e->slots[id].block->length);
+    assert(pa_atomic_load(&e->pool->stat.n_exported) > 0);
+    assert(pa_atomic_load(&e->pool->stat.exported_size) >= (int) e->slots[id].block->length);
 
-    AO_fetch_and_sub1_release_write(&e->pool->stat.n_exported);
-    AO_fetch_and_add_release_write(&e->pool->stat.exported_size, (AO_t) -e->slots[id].block->length);
+    pa_atomic_dec(&e->pool->stat.n_exported);
+    pa_atomic_sub(&e->pool->stat.exported_size, e->slots[id].block->length);
 
     pa_memblock_unref(e->slots[id].block);
     e->slots[id].block = NULL;
@@ -785,8 +785,8 @@ int pa_memexport_put(pa_memexport *e, pa_memblock *b, uint32_t *block_id, uint32
     *offset = (uint8_t*) b->data - (uint8_t*) memory->ptr;
     *size = b->length;
 
-    AO_fetch_and_add1_release_write(&e->pool->stat.n_exported);
-    AO_fetch_and_add_release_write(&e->pool->stat.exported_size, (AO_t) b->length);
+    pa_atomic_inc(&e->pool->stat.n_exported);
+    pa_atomic_add(&e->pool->stat.exported_size, b->length);
 
     return 0;
 }

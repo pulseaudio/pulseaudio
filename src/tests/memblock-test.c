@@ -46,24 +46,24 @@ static void print_stats(pa_mempool *p, const char *text) {
            "n_accumulated = %u\n"
            "n_imported = %u\n"
            "n_exported = %u\n"
-           "allocated_size = %lu\n"
-           "accumulated_size = %lu\n"
-           "imported_size = %lu\n"
-           "exported_size = %lu\n"
+           "allocated_size = %u\n"
+           "accumulated_size = %u\n"
+           "imported_size = %u\n"
+           "exported_size = %u\n"
            "n_too_large_for_pool = %u\n"
            "n_pool_full = %u\n"
            "}\n",
            text,
-           (unsigned) AO_load_acquire_read((AO_t*) &s->n_allocated),
-           (unsigned) AO_load_acquire_read((AO_t*) &s->n_accumulated),
-           (unsigned) AO_load_acquire_read((AO_t*) &s->n_imported),
-           (unsigned) AO_load_acquire_read((AO_t*) &s->n_exported),
-           (unsigned long) AO_load_acquire_read((AO_t*) &s->allocated_size),
-           (unsigned long) AO_load_acquire_read((AO_t*) &s->accumulated_size),
-           (unsigned long) AO_load_acquire_read((AO_t*) &s->imported_size),
-           (unsigned long) AO_load_acquire_read((AO_t*) &s->exported_size),
-           (unsigned) AO_load_acquire_read((AO_t*) &s->n_too_large_for_pool),
-           (unsigned) AO_load_acquire_read((AO_t*) &s->n_pool_full));
+           (unsigned) pa_atomic_load(&s->n_allocated),
+           (unsigned) pa_atomic_load(&s->n_accumulated),
+           (unsigned) pa_atomic_load(&s->n_imported),
+           (unsigned) pa_atomic_load(&s->n_exported),
+           (unsigned) pa_atomic_load(&s->allocated_size),
+           (unsigned) pa_atomic_load(&s->accumulated_size),
+           (unsigned) pa_atomic_load(&s->imported_size),
+           (unsigned) pa_atomic_load(&s->exported_size),
+           (unsigned) pa_atomic_load(&s->n_too_large_for_pool),
+           (unsigned) pa_atomic_load(&s->n_pool_full));
 }
 
 int main(int argc, char *argv[]) {
