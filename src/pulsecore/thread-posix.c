@@ -111,17 +111,12 @@ pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
 
 int pa_thread_is_running(pa_thread *t) {
     assert(t);
-
-    if (!t->thread_func) {
-        /* Mhmm, this is a foreign thread, t->running is not
-         * necessarily valid. We misuse pthread_getschedparam() to
-         * check if the thread is valid. This might not be portable. */
-
-        int policy;
-        struct sched_param param;
-
-        return pthread_getschedparam(t->id, &policy, &param) >= 0 || errno != ESRCH;
-    }
+    
+    /* Unfortunately there is no way to tell whether a "foreign"
+     * thread is still running. See
+     * http://udrepper.livejournal.com/16844.html for more
+     * information */
+    assert(t->thread_func);
 
     return pa_atomic_load(&t->running) > 0;
 }
