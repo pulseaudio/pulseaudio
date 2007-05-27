@@ -62,6 +62,14 @@ static const int level_to_syslog[] = {
 };
 #endif
 
+static const char level_to_char[] = {
+    [PA_LOG_ERROR] = 'E',
+    [PA_LOG_WARN] = 'W',
+    [PA_LOG_NOTICE] = 'N',
+    [PA_LOG_INFO] = 'I',
+    [PA_LOG_DEBUG] = 'D'
+};
+
 void pa_log_set_ident(const char *p) {
     if (log_ident)
         pa_xfree(log_ident);
@@ -129,7 +137,6 @@ void pa_log_levelv_meta(
         switch (log_target) {
             case PA_LOG_STDERR: {
                 const char *prefix = "", *suffix = "";
-                const char *level_code = "";
                 char *local_t;
 
 #ifndef OS_IS_WIN32
@@ -145,33 +152,11 @@ void pa_log_levelv_meta(
                 }
 #endif
 
-                switch (level) {
-                    case PA_LOG_ERROR:
-                        level_code = "E";
-                        break;
-                    case PA_LOG_WARN:
-                        level_code = "W";
-                        break;
-                    case PA_LOG_NOTICE:
-                        level_code = "N";
-                        break;
-                    case PA_LOG_INFO:
-                        level_code = "I";
-                        break;
-                    case PA_LOG_DEBUG:
-                        level_code = "D";
-                        break;
-                    default:
-                        level_code = "?";
-                }
-
                 local_t = pa_utf8_to_locale(t);
-                if (!local_t) {
-                    fprintf(stderr, "%s: %s%s%s%s\n", level_code, location,
-                        prefix, t, suffix);
-                } else {
-                    fprintf(stderr, "%s: %s%s%s%s\n", level_code, location,
-                        prefix, local_t, suffix);
+                if (!local_t)
+                    fprintf(stderr, "%c: %s%s%s%s\n", level_to_char[level], location, prefix, t, suffix);
+                else {
+                    fprintf(stderr, "%c: %s%s%s%s\n", level_to_char[level], location, prefix, local_t, suffix);
                     pa_xfree(local_t);
                 }
 
