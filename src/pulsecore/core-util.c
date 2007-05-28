@@ -544,6 +544,10 @@ fail:
         cap_free(caps);
     }
 #endif
+
+    ; /* We put this here to get the code to compile when
+       * HAVE_SYS_CAPABILITY_H is not defined. Don't remove unless you
+       * know what you do */
 }
 
 /* Reset the priority to normal, inverting the changes made by pa_raise_priority() */
