@@ -45,4 +45,7 @@ homepage: all dist doxygen
 doxygen:
 	$(MAKE) -C doxygen doxygen
 
+eolspace:
+	find \( -name '*.c' -o -name '*.h' -o -name 'Makefile.am' \) -exec perl -i -pe 's/\s+\n$$/\1\n/;' \{\} \;
+
 .PHONY: homepage distcleancheck doxygen
