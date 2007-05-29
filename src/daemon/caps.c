@@ -97,9 +97,9 @@ int pa_limit_caps(void) {
 
     if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) < 0)
         goto fail;
-    
+
     pa_log_info("dropped capabilities successfully.");
-    
+
     r = 1;
 
 fail:
@@ -119,12 +119,12 @@ int pa_drop_caps(void) {
     cap_clear(caps);
 
     prctl(PR_SET_KEEPCAPS, 0, 0, 0, 0);
-    
+
     if (cap_set_proc(caps) < 0) {
         pa_log("failed to drop capabilities: %s", pa_cstrerror(errno));
         goto fail;
     }
-    
+
     r = 0;
 
 fail:

@@ -1033,10 +1033,10 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
 
         if (ifstate && *ifstate == IFSTATE_FALSE)
              return 0;
-        
+
 
         l = strcspn(cs, whitespace);
-        
+
         for (command = commands; command->name; command++)
             if (strlen(command->name) == l && !strncmp(cs, command->name, l)) {
                 int ret;
@@ -1071,7 +1071,7 @@ int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, int 
     FILE *f = NULL;
     int ifstate = IFSTATE_NONE;
     int ret = -1;
-    
+
     assert(c);
     assert(fn);
     assert(buf);
@@ -1103,7 +1103,7 @@ fail:
 int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, int *fail) {
     const char *p;
     int ifstate = IFSTATE_NONE;
-    
+
     assert(c);
     assert(s);
     assert(buf);

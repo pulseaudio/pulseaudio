@@ -4,17 +4,17 @@
   This file is part of PulseAudio.
 
   Copyright 2006 Lennart Poettering
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -60,8 +60,8 @@ pa_sap_context* pa_sap_context_init_send(pa_sap_context *c, int fd, char *sdp_da
     c->fd = fd;
     c->sdp_data = sdp_data;
     c->msg_id_hash = (uint16_t) (rand()*rand());
-    
-    return c;    
+
+    return c;
 }
 
 void pa_sap_context_destroy(pa_sap_context *c) {
@@ -86,7 +86,7 @@ int pa_sap_send(pa_sap_context *c, int goodbye) {
     }
 
     assert(sa->sa_family == AF_INET || sa->sa_family == AF_INET6);
-    
+
     header = htonl(((uint32_t) 1 << 29) |
                    (sa->sa_family == AF_INET6 ? (uint32_t) 1 << 28 : 0) |
                    (goodbye ? (uint32_t) 1 << 26 : 0) |
@@ -103,7 +103,7 @@ int pa_sap_send(pa_sap_context *c, int goodbye) {
 
     iov[3].iov_base = c->sdp_data;
     iov[3].iov_len = strlen(c->sdp_data);
-                   
+
     m.msg_name = NULL;
     m.msg_namelen = 0;
     m.msg_iov = iov;
@@ -111,7 +111,7 @@ int pa_sap_send(pa_sap_context *c, int goodbye) {
     m.msg_control = NULL;
     m.msg_controllen = 0;
     m.msg_flags = 0;
-    
+
     if ((k = sendmsg(c->fd, &m, MSG_DONTWAIT)) < 0)
         pa_log("sendmsg() failed: %s\n", pa_cstrerror(errno));
 
@@ -135,7 +135,7 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
     uint32_t header;
     int six, ac;
     ssize_t r;
-    
+
     assert(c);
     assert(goodbye);
 
@@ -146,7 +146,7 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
 
     buf = pa_xnew(char, size+1);
     buf[size] = 0;
-    
+
     iov.iov_base = buf;
     iov.iov_len = size;
 
@@ -157,7 +157,7 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
     m.msg_control = NULL;
     m.msg_controllen = 0;
     m.msg_flags = 0;
-    
+
     if ((r = recvmsg(c->fd, &m, 0)) != size) {
         pa_log("recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
         goto fail;
@@ -208,12 +208,12 @@ int pa_sap_recv(pa_sap_context *c, int *goodbye) {
 
     if (c->sdp_data)
         pa_xfree(c->sdp_data);
-    
+
     c->sdp_data = pa_xstrndup(e, size);
     pa_xfree(buf);
-    
+
     *goodbye = !!((header >> 26) & 1);
-    
+
     return 0;
 
 fail:

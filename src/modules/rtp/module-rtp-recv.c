@@ -3,17 +3,17 @@
   This file is part of PulseAudio.
 
   Copyright 2006 Lennart Poettering
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -145,7 +145,7 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
     pa_memchunk chunk;
     int64_t k, j, delta;
     struct timeval tv;
-    
+
     assert(m);
     assert(e);
     assert(s);
@@ -159,7 +159,7 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
         pa_memblock_unref(chunk.memblock);
         return;
     }
-    
+
     if (!s->first_packet) {
         s->first_packet = 1;
 
@@ -183,7 +183,7 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
         delta = k;
     else
         delta = j;
-    
+
     pa_memblockq_seek(s->memblockq, delta * s->rtp_context.frame_size, PA_SEEK_RELATIVE);
 
     if (pa_memblockq_push(s->memblockq, &chunk) < 0) {
@@ -191,10 +191,10 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
         pa_memblockq_flush(s->memblockq);
         pa_memblockq_push(s->memblockq, &chunk);
     }
-    
+
     /* The next timestamp we expect */
     s->offset = s->rtp_context.timestamp + (chunk.length / s->rtp_context.frame_size);
-    
+
     pa_memblock_unref(chunk.memblock);
 
     /* Reset death timer */
@@ -205,7 +205,7 @@ static void rtp_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
 
 static void death_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *tv, void *userdata) {
     struct session *s = userdata;
-    
+
     assert(m);
     assert(t);
     assert(tv);
@@ -216,7 +216,7 @@ static void death_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct ti
 
 static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
     int af, fd = -1, r, one;
-    
+
     af = sa->sa_family;
     if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
         pa_log("Failed to create socket: %s", pa_cstrerror(errno));
@@ -228,7 +228,7 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
         pa_log("SO_REUSEADDR failed: %s", pa_cstrerror(errno));
         goto fail;
     }
-    
+
     if (af == AF_INET) {
         struct ip_mreq mr4;
         memset(&mr4, 0, sizeof(mr4));
@@ -245,14 +245,14 @@ static int mcast_socket(const struct sockaddr* sa, socklen_t salen) {
         pa_log_info("Joining mcast group failed: %s", pa_cstrerror(errno));
         goto fail;
     }
-    
+
     if (bind(fd, sa, salen) < 0) {
         pa_log("bind() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
     return fd;
-    
+
 fail:
     if (fd >= 0)
         close(fd);
@@ -273,7 +273,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
         pa_log("session limit reached.");
         goto fail;
     }
-    
+
     if (!(sink = pa_namereg_get(u->core, u->sink_name, PA_NAMEREG_SINK, 1))) {
         pa_log("sink does not exist.");
         goto fail;
@@ -289,7 +289,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
 
     c = pa_sprintf_malloc("RTP Stream%s%s%s",
                           sdp_info->session_name ? " (" : "",
-                          sdp_info->session_name ? sdp_info->session_name : "", 
+                          sdp_info->session_name ? sdp_info->session_name : "",
                           sdp_info->session_name ? ")" : "");
 
     pa_sink_input_new_data_init(&data);
@@ -298,10 +298,10 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     data.name = c;
     data.module = u->module;
     pa_sink_input_new_data_set_sample_spec(&data, &sdp_info->sample_spec);
-    
+
     s->sink_input = pa_sink_input_new(u->core, &data, 0);
     pa_xfree(c);
-        
+
     if (!s->sink_input) {
         pa_log("failed to create sink input.");
         goto fail;
@@ -318,7 +318,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
                                       &s->sink_input->sample_spec,
                                       (pa_bytes_per_second(&s->sink_input->sample_spec)/128/pa_frame_size(&s->sink_input->sample_spec))*
                                       pa_frame_size(&s->sink_input->sample_spec));
-    
+
     s->memblockq = pa_memblockq_new(
             0,
             MEMBLOCKQ_MAXLENGTH,
@@ -331,7 +331,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     pa_memblock_unref(silence);
 
     s->rtp_event = u->core->mainloop->io_new(u->core->mainloop, fd, PA_IO_EVENT_INPUT, rtp_event_cb, s);
-    
+
     pa_gettimeofday(&tv);
     pa_timeval_add(&tv, DEATH_TIMEOUT);
     s->death_event = u->core->mainloop->time_new(u->core->mainloop, &tv, death_event_cb, s);
@@ -343,14 +343,14 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     pa_log_info("Found new session '%s'", s->sdp_info.session_name);
 
     u->n_sessions++;
-    
+
     return s;
 
 fail:
     if (s) {
         if (fd >= 0)
             close(fd);
-        
+
         pa_xfree(s);
     }
 
@@ -377,7 +377,7 @@ static void session_free(struct session *s, int from_hash) {
 
     assert(s->userdata->n_sessions >= 1);
     s->userdata->n_sessions--;
-    
+
     pa_xfree(s);
 }
 
@@ -386,7 +386,7 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
     int goodbye;
     pa_sdp_info info;
     struct session *s;
-    
+
     assert(m);
     assert(e);
     assert(u);
@@ -410,14 +410,14 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
         if (!(s = pa_hashmap_get(u->by_origin, info.origin))) {
             if (!(s = session_new(u, &info)))
                 pa_sdp_info_destroy(&info);
-            
+
         } else {
             struct timeval tv;
-            
+
             pa_gettimeofday(&tv);
             pa_timeval_add(&tv, DEATH_TIMEOUT);
             m->time_restart(s->death_event, &tv);
-            
+
             pa_sdp_info_destroy(&info);
         }
     }
@@ -432,7 +432,7 @@ int pa__init(pa_core *c, pa_module*m) {
     socklen_t salen;
     const char *sap_address;
     int fd = -1;
-    
+
     assert(c);
     assert(m);
 
@@ -442,7 +442,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     sap_address = pa_modargs_get_value(ma, "sap_address", DEFAULT_SAP_ADDRESS);
-    
+
     if (inet_pton(AF_INET6, sap_address, &sa6.sin6_addr) > 0) {
         sa6.sin6_family = AF_INET6;
         sa6.sin6_port = htons(SAP_PORT);
@@ -471,9 +471,9 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sap_event = c->mainloop->io_new(c->mainloop, fd, PA_IO_EVENT_INPUT, sap_event_cb, u);
 
     u->by_origin = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    
+
     pa_sap_context_init_recv(&u->sap_context, fd);
-    
+
     pa_modargs_free(ma);
 
     return 0;
@@ -484,7 +484,7 @@ fail:
 
     if (fd >= 0)
         close(fd);
-    
+
     return -1;
 }
 
@@ -504,7 +504,7 @@ void pa__done(pa_core *c, pa_module*m) {
     pa_sap_context_destroy(&u->sap_context);
 
     pa_hashmap_free(u->by_origin, free_func, NULL);
-    
+
     pa_xfree(u->sink_name);
     pa_xfree(u);
 }

@@ -111,7 +111,7 @@ pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
 
 int pa_thread_is_running(pa_thread *t) {
     assert(t);
-    
+
     /* Unfortunately there is no way to tell whether a "foreign"
      * thread is still running. See
      * http://udrepper.livejournal.com/16844.html for more

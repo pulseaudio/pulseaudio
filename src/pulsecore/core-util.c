@@ -492,7 +492,7 @@ void pa_raise_priority(void) {
     if ((caps = cap_get_proc())) {
         cap_t caps_new;
         cap_value_t nice_cap = CAP_SYS_NICE;
-        
+
         if ((caps_new = cap_dup(caps))) {
             cap_set_flag(caps_new, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET);
             cap_set_flag(caps_new, CAP_PERMITTED, 1, &nice_cap, CAP_SET);
@@ -501,7 +501,7 @@ void pa_raise_priority(void) {
         }
     }
 #endif
-    
+
 #ifdef HAVE_SYS_RESOURCE_H
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
         pa_log_warn("setpriority(): %s", pa_cstrerror(errno));

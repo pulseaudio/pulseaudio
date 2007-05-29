@@ -126,7 +126,7 @@ pulseaudio_SOURCES = \
 		pulsecore/gccmacro.h
 
 pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
-pulseaudio_CPPFLAGS = $(AM_CPPFLAGS) 
+pulseaudio_CPPFLAGS = $(AM_CPPFLAGS)
 pulseaudio_LDADD = $(AM_LDADD) libpulsecore.la $(LIBLTDL) \
 		$(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS) $(LIBOIL_LIBS)
 # This is needed because automake doesn't properly expand the foreach below
@@ -168,8 +168,8 @@ endif
 bin_SCRIPTS = esdcompat
 
 pacat_SOURCES = utils/pacat.c
-pacat_LDADD = $(AM_LDADD) libpulse.la 
-pacat_CFLAGS = $(AM_CFLAGS) 
+pacat_LDADD = $(AM_LDADD) libpulse.la
+pacat_CFLAGS = $(AM_CFLAGS)
 pacat_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 paplay_SOURCES = utils/paplay.c
@@ -247,7 +247,7 @@ utf8_test_CFLAGS = $(AM_CFLAGS)
 utf8_test_LDADD = $(AM_LDADD) libpulsecore.la
 utf8_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-get_binary_name_test_SOURCES = tests/get-binary-name-test.c 
+get_binary_name_test_SOURCES = tests/get-binary-name-test.c
 get_binary_name_test_CFLAGS = $(AM_CFLAGS)
 get_binary_name_test_LDADD = $(AM_LDADD) libpulse.la
 get_binary_name_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
@@ -264,22 +264,22 @@ hook_list_test_CFLAGS = $(AM_CFLAGS)
 hook_list_test_LDADD = $(AM_LDADD) libpulsecore.la
 hook_list_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-memblock_test_SOURCES = tests/memblock-test.c 
+memblock_test_SOURCES = tests/memblock-test.c
 memblock_test_CFLAGS = $(AM_CFLAGS)
 memblock_test_LDADD = $(AM_LDADD) libpulsecore.la
-memblock_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
+memblock_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 thread_test_SOURCES = tests/thread-test.c
 thread_test_CFLAGS = $(AM_CFLAGS)
 thread_test_LDADD = $(AM_LDADD) libpulsecore.la
-thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
+thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 flist_test_SOURCES = tests/flist-test.c \
 		pulsecore/atomic.h \
 		pulsecore/flist.c pulsecore/flist.h
 flist_test_CFLAGS = $(AM_CFLAGS)
 flist_test_LDADD = $(AM_LDADD) libpulsecore.la
-flist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) 
+flist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
@@ -333,12 +333,12 @@ memblockq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 sync_playback_SOURCES = tests/sync-playback.c
 sync_playback_LDADD = $(AM_LDADD) libpulse.la
-sync_playback_CFLAGS = $(AM_CFLAGS) 
+sync_playback_CFLAGS = $(AM_CFLAGS)
 sync_playback_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 interpol_test_SOURCES = tests/interpol-test.c
 interpol_test_LDADD = $(AM_LDADD) libpulse.la
-interpol_test_CFLAGS = $(AM_CFLAGS) 
+interpol_test_CFLAGS = $(AM_CFLAGS)
 interpol_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
@@ -459,7 +459,7 @@ libpulse_la_SOURCES += \
 
 if OS_IS_WIN32
 libpulse_la_SOURCES += \
-		pulsecore/dllmain.c 
+		pulsecore/dllmain.c
 endif
 
 if HAVE_X11
@@ -482,7 +482,7 @@ libpulse_la_CFLAGS += $(LIBASYNCNS_CFLAGS)
 libpulse_la_LIBADD += $(LIBASYNCNS_LIBS)
 endif
 
-libpulse_simple_la_SOURCES = pulse/simple.c pulse/simple.h 
+libpulse_simple_la_SOURCES = pulse/simple.c pulse/simple.h
 libpulse_simple_la_CFLAGS = $(AM_CFLAGS)
 libpulse_simple_la_LIBADD = $(AM_LIBADD) libpulse.la
 libpulse_simple_la_LDFLAGS = -version-info $(LIBPULSE_SIMPLE_VERSION_INFO)
@@ -640,7 +640,7 @@ libpulsecore_la_SOURCES += \
 
 if OS_IS_WIN32
 libpulsecore_la_SOURCES += \
-		pulsecore/dllmain.c 
+		pulsecore/dllmain.c
 endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
@@ -820,7 +820,7 @@ libsocket_util_la_SOURCES = \
 libsocket_util_la_LDFLAGS = -avoid-version
 libsocket_util_la_LIBADD = $(AM_LIBADD) $(WINSOCK_LIBS) libpulsecore.la
 
-librtp_la_SOURCES = modules/rtp/rtp.c modules/rtp/rtp.h modules/rtp/sdp.c modules/rtp/sdp.h modules/rtp/sap.c modules/rtp/sap.h 
+librtp_la_SOURCES = modules/rtp/rtp.c modules/rtp/rtp.h modules/rtp/sdp.c modules/rtp/sdp.h modules/rtp/sap.c modules/rtp/sap.h
 librtp_la_LDFLAGS = -avoid-version
 librtp_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
@@ -1298,7 +1298,7 @@ esdcompat: daemon/esdcompat.in Makefile
 client.conf: pulse/client.conf.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' < $< > $@
 
-if OS_IS_WIN32    
+if OS_IS_WIN32
 default.pa: daemon/default.pa.win32
 	cp $< $@
 else

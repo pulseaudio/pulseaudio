@@ -4,17 +4,17 @@
   This file is part of PulseAudio.
 
   Copyright 2006 Lennart Poettering
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -48,30 +48,30 @@ static void handle_module(GConfClient *client, const char *name) {
 
     snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/enabled", name);
     enabled = gconf_client_get_bool(client, p, FALSE);
-    
+
     printf("%c%s%c", enabled ? '+' : '-', name, 0);
 
     if (enabled) {
-    
+
         for (i = 0; i < 10; i++) {
             gchar *n, *a;
-            
+
             snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/name%i", name, i);
             if (!(n = gconf_client_get_string(client, p, NULL)) || !*n)
                 break;
-            
+
             snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/args%i", name, i);
             a = gconf_client_get_string(client, p, NULL);
-            
+
             printf("%s%c%s%c", n, 0, a ? a : "", 0);
-            
+
             g_free(n);
             g_free(a);
         }
-        
+
         printf("%c", 0);
     }
-        
+
     fflush(stdout);
 }
 
@@ -83,7 +83,7 @@ static void modules_callback(
 
     const char *n;
     char buf[128];
-    
+
     g_assert(strncmp(entry->key, PA_GCONF_PATH_MODULES"/", sizeof(PA_GCONF_PATH_MODULES)) == 0);
 
     n = entry->key + sizeof(PA_GCONF_PATH_MODULES);
@@ -113,17 +113,17 @@ int main(int argc, char *argv[]) {
         char *e = strrchr(m->data, '/');
         handle_module(client, e ? e+1 : m->data);
     }
-    
+
     g_slist_free(modules);
 
     /* Signal the parent that we are now initialized */
     printf("!");
     fflush(stdout);
-    
+
     g = g_main_loop_new(NULL, FALSE);
     g_main_loop_run(g);
     g_main_loop_unref(g);
-    
+
     g_object_unref(G_OBJECT(client));
 
     return 0;

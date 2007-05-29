@@ -4,17 +4,17 @@
   This file is part of PulseAudio.
 
   Copyright 2006 Lennart Poettering
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -53,7 +53,7 @@ pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssr
     c->ssrc = ssrc ? ssrc : (uint32_t) (rand()*rand());
     c->payload = payload & 127;
     c->frame_size = frame_size;
-    
+
     return c;
 }
 
@@ -64,14 +64,14 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
     pa_memblock* mb[MAX_IOVECS];
     int iov_idx = 1;
     size_t n = 0, skip = 0;
-    
+
     assert(c);
     assert(size > 0);
     assert(q);
 
     if (pa_memblockq_get_length(q) < size)
         return 0;
-    
+
     for (;;) {
         int r;
         pa_memchunk chunk;
@@ -105,7 +105,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
 
                 iov[0].iov_base = (void*)header;
                 iov[0].iov_len = sizeof(header);
-                
+
                 m.msg_name = NULL;
                 m.msg_namelen = 0;
                 m.msg_iov = iov;
@@ -113,7 +113,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
                 m.msg_control = NULL;
                 m.msg_controllen = 0;
                 m.msg_flags = 0;
-                
+
                 k = sendmsg(c->fd, &m, MSG_DONTWAIT);
 
                 for (i = 1; i < iov_idx; i++)
@@ -124,13 +124,13 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
                 k = 0;
 
             c->timestamp += skip/c->frame_size;
-            
+
             if (k < 0) {
                 if (errno != EAGAIN) /* If the queue is full, just ignore it */
                     pa_log("sendmsg() failed: %s", pa_cstrerror(errno));
                 return -1;
             }
-            
+
             if (r < 0 || pa_memblockq_get_length(q) < size)
                 break;
 
@@ -158,7 +158,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     uint32_t header;
     int cc;
     ssize_t r;
-    
+
     assert(c);
     assert(chunk);
 
@@ -184,7 +184,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     m.msg_control = NULL;
     m.msg_controllen = 0;
     m.msg_flags = 0;
-    
+
     if ((r = recvmsg(c->fd, &m, 0)) != size) {
         pa_log("recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
         goto fail;
@@ -198,7 +198,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     memcpy(&header, chunk->memblock->data, sizeof(uint32_t));
     memcpy(&c->timestamp, (uint8_t*) chunk->memblock->data + 4, sizeof(uint32_t));
     memcpy(&c->ssrc, (uint8_t*) chunk->memblock->data + 8, sizeof(uint32_t));
-    
+
     header = ntohl(header);
     c->timestamp = ntohl(c->timestamp);
     c->ssrc = ntohl(c->ssrc);
@@ -234,7 +234,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
         pa_log("Vad RTP packet size.");
         goto fail;
     }
-    
+
     return 0;
 
 fail:
@@ -255,7 +255,7 @@ uint8_t pa_rtp_payload_from_sample_spec(const pa_sample_spec *ss) {
         return 10;
     if (ss->format == PA_SAMPLE_S16BE && ss->rate == 44100 && ss->channels == 1)
         return 11;
-    
+
     return 127;
 }
 
@@ -280,7 +280,7 @@ pa_sample_spec *pa_rtp_sample_spec_from_payload(uint8_t payload, pa_sample_spec 
             ss->format = PA_SAMPLE_S16BE;
             ss->rate = 44100;
             break;
-            
+
         case 11:
             ss->channels = 1;
             ss->format = PA_SAMPLE_S16BE;
@@ -340,7 +340,7 @@ const char* pa_rtp_format_to_string(pa_sample_format_t f) {
 
 pa_sample_format_t pa_rtp_string_to_format(const char *s) {
     assert(s);
-    
+
     if (!(strcmp(s, "L16")))
         return PA_SAMPLE_S16BE;
     else if (!strcmp(s, "L8"))

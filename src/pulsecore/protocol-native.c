@@ -764,7 +764,7 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, maxlength > 0 && maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, maxlength >= pa_frame_size(&ss), tag, PA_ERR_INVALID);
-    
+
     if (sink_index != PA_INVALID_INDEX) {
         sink = pa_idxset_get_by_index(c->protocol->core->sinks, sink_index);
         CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);

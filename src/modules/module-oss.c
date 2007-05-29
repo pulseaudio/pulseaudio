@@ -172,11 +172,11 @@ static void do_write(struct userdata *u) {
 
             if (errno != EAGAIN) {
                 pa_log("write() failed: %s", pa_cstrerror(errno));
-                
+
                 clear_up(u);
                 pa_module_unload_request(u->module);
             }
-            
+
             break;
         }
 
@@ -228,14 +228,14 @@ static void do_read(struct userdata *u) {
         assert(memchunk.memblock);
         if ((r = pa_iochannel_read(u->io, memchunk.memblock->data, memchunk.memblock->length)) < 0) {
             pa_memblock_unref(memchunk.memblock);
-            
+
             if (errno != EAGAIN) {
                 pa_log("read() failed: %s", pa_cstrerror(errno));
-                
+
                 clear_up(u);
                 pa_module_unload_request(u->module);
             }
-            
+
             break;
         }
 

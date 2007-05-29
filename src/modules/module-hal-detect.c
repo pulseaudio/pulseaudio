@@ -87,7 +87,7 @@ struct userdata {
     pa_hashmap *devices;
 #if defined(HAVE_ALSA) && defined(HAVE_OSS)
     int use_oss;
-#endif    
+#endif
 };
 
 struct timerdata {
@@ -269,7 +269,7 @@ static dbus_bool_t hal_device_add(struct userdata *u, const char *udi,
         case CAP_OSS:
 #ifdef HAVE_ALSA
             if (u->use_oss)
-#endif                
+#endif
                 m = hal_device_load_oss(u, udi, error);
             break;
 #endif
@@ -533,9 +533,9 @@ int pa__init(pa_core *c, pa_module*m) {
 #endif
 #if defined(HAVE_ALSA) && defined(HAVE_OSS)
     u->use_oss = 0;
-    
+
     if (n <= 0) {
-#endif    
+#endif
 #ifdef HAVE_OSS
         n += hal_device_add_all(u, CAP_OSS);
 #endif
@@ -546,7 +546,7 @@ int pa__init(pa_core *c, pa_module*m) {
         if (n > 0)
             u->use_oss = 1;
     }
-#endif    
+#endif
 
     libhal_ctx_set_user_data(hal_ctx, u);
     libhal_ctx_set_device_added(hal_ctx, device_added_cb);

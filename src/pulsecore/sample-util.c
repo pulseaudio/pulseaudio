@@ -56,7 +56,7 @@ pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spe
 
     if (length <= 0)
         length = fs;
-    
+
     return pa_silence_memblock(pa_memblock_new(pool, length), spec);
 }
 

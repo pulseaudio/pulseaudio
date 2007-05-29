@@ -4,17 +4,17 @@
   This file is part of PulseAudio.
 
   Copyright 2006 Lennart Poettering
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -111,7 +111,7 @@ static void source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
         pa_log("Failed to push chunk into memblockq.");
         return;
     }
-    
+
     pa_rtp_send(&u->rtp_context, u->mtu, u->memblockq);
 }
 
@@ -138,7 +138,7 @@ static pa_usec_t source_output_get_latency (pa_source_output *o) {
 static void sap_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *tv, void *userdata) {
     struct userdata *u = userdata;
     struct timeval next;
-    
+
     assert(m);
     assert(t);
     assert(tv);
@@ -172,7 +172,7 @@ int pa__init(pa_core *c, pa_module*m) {
     char hn[128], *n;
     int loop = 0;
     pa_source_output_new_data data;
-    
+
     assert(c);
     assert(m);
 
@@ -210,7 +210,7 @@ int pa__init(pa_core *c, pa_module*m) {
     payload = pa_rtp_payload_from_sample_spec(&ss);
 
     mtu = (DEFAULT_MTU/pa_frame_size(&ss))*pa_frame_size(&ss);
-    
+
     if (pa_modargs_get_value_u32(ma, "mtu", &mtu) < 0 || mtu < 1 || mtu % pa_frame_size(&ss) != 0) {
         pa_log("invalid mtu.");
         goto fail;
@@ -241,7 +241,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("invalid destination '%s'", dest);
         goto fail;
     }
-    
+
     if ((fd = socket(af, SOCK_DGRAM, 0)) < 0) {
         pa_log("socket() failed: %s", pa_cstrerror(errno));
         goto fail;
@@ -275,7 +275,7 @@ int pa__init(pa_core *c, pa_module*m) {
     data.source = s;
     pa_source_output_new_data_set_sample_spec(&data, &ss);
     pa_source_output_new_data_set_channel_map(&data, &cm);
-    
+
     if (!(o = pa_source_output_new(c, &data, 0))) {
         pa_log("failed to create source output.");
         goto fail;
@@ -284,7 +284,7 @@ int pa__init(pa_core *c, pa_module*m) {
     o->push = source_output_push;
     o->kill = source_output_kill;
     o->get_latency = source_output_get_latency;
-    
+
     u = pa_xnew(struct userdata, 1);
     m->userdata = u;
     o->userdata = u;
@@ -292,7 +292,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->module = m;
     u->core = c;
     u->source_output = o;
-    
+
     u->memblockq = pa_memblockq_new(
             0,
             MEMBLOCKQ_MAXLENGTH,
@@ -303,20 +303,20 @@ int pa__init(pa_core *c, pa_module*m) {
             NULL);
 
     u->mtu = mtu;
-    
+
     k = sizeof(sa_dst);
     r = getsockname(fd, (struct sockaddr*) &sa_dst, &k);
     assert(r >= 0);
 
     n = pa_sprintf_malloc("PulseAudio RTP Stream on %s", pa_get_fqdn(hn, sizeof(hn)));
-        
+
     p = pa_sdp_build(af,
                      af == AF_INET ? (void*) &((struct sockaddr_in*) &sa_dst)->sin_addr : (void*) &((struct sockaddr_in6*) &sa_dst)->sin6_addr,
                      af == AF_INET ? (void*) &sa4.sin_addr : (void*) &sa6.sin6_addr,
                      n, port, payload, &ss);
 
     pa_xfree(n);
-    
+
     pa_rtp_context_init_send(&u->rtp_context, fd, c->cookie, payload, pa_frame_size(&ss));
     pa_sap_context_init_send(&u->sap_context, sap_fd, p);
 
@@ -339,7 +339,7 @@ fail:
 
     if (fd >= 0)
         close(fd);
-    
+
     if (sap_fd >= 0)
         close(sap_fd);
 
@@ -347,7 +347,7 @@ fail:
         pa_source_output_disconnect(o);
         pa_source_output_unref(o);
     }
-        
+
     return -1;
 }
 
@@ -360,7 +360,7 @@ void pa__done(pa_core *c, pa_module*m) {
         return;
 
     c->mainloop->time_free(u->sap_event);
-    
+
     if (u->source_output) {
         pa_source_output_disconnect(u->source_output);
         pa_source_output_unref(u->source_output);
@@ -372,6 +372,6 @@ void pa__done(pa_core *c, pa_module*m) {
     pa_sap_context_destroy(&u->sap_context);
 
     pa_memblockq_free(u->memblockq);
-    
+
     pa_xfree(u);
 }
