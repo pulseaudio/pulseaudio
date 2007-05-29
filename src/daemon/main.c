@@ -320,9 +320,7 @@ int main(int argc, char *argv[]) {
     int suid_root, real_root;
     int valid_pid_file = 0;
 
-#ifdef HAVE_GETUID
     gid_t gid = (gid_t) -1;
-#endif
 
 #ifdef OS_IS_WIN32
     pa_time_event *timer;
