@@ -2061,6 +2061,17 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
                 *_errno = EIO;
             break;
 
+        case SNDCTL_DSP_GETTRIGGER:
+            debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_GETTRIGGER\n");
+
+            *(int*) argp = 0;
+            if (!i->play_precork)
+                *(int*) argp |= PCM_ENABLE_OUTPUT;
+            if (!i->rec_precork)
+                *(int*) argp |= PCM_ENABLE_INPUT;
+
+            break;
+
         case SNDCTL_DSP_SETTRIGGER:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETTRIGGER: 0x%08x\n", *(int*) argp);
 
