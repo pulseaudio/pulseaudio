@@ -568,7 +568,7 @@ int main(int argc, char *argv[]) {
     assert(mainloop);
 
     if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm))) {
-    	pa_log("pa_core_new() failed.");
+            pa_log("pa_core_new() failed.");
         goto finish;
     }
 

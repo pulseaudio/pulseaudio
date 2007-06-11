@@ -139,7 +139,7 @@ static int detect_oss(pa_core *c, int just_one) {
         line[strcspn(line, "\r\n")] = 0;
 
         if (!b) {
-	     b = strcmp(line, "Audio devices:") == 0 || strcmp(line, "Installed devices:") == 0;
+             b = strcmp(line, "Audio devices:") == 0 || strcmp(line, "Installed devices:") == 0;
             continue;
         }
 
@@ -155,13 +155,13 @@ static int detect_oss(pa_core *c, int just_one) {
             if (!pa_module_load(c, "module-oss", args))
                 continue;
 
-	} else if (sscanf(line, "pcm%u: ", &device) == 1) {
+        } else if (sscanf(line, "pcm%u: ", &device) == 1) {
             /* FreeBSD support, the devices are named /dev/dsp0.0, dsp0.1 and so on */
             snprintf(args, sizeof(args), "device=/dev/dsp%u.0", device);
 
             if (!pa_module_load(c, "module-oss", args))
                 continue;
-	}
+        }
 
         n++;
 

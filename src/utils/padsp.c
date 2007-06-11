@@ -259,9 +259,9 @@ if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
 
 static void debug(int level, const char *format, ...) PA_GCC_PRINTF_ATTR(2,3);
 
-#define DEBUG_LEVEL_ALWAYS		0
-#define DEBUG_LEVEL_NORMAL		1
-#define DEBUG_LEVEL_VERBOSE		2
+#define DEBUG_LEVEL_ALWAYS                0
+#define DEBUG_LEVEL_NORMAL                1
+#define DEBUG_LEVEL_VERBOSE                2
 
 static void debug(int level, const char *format, ...) {
     va_list ap;
@@ -421,7 +421,7 @@ static void fd_info_unref(fd_info *i) {
     pthread_mutex_lock(&i->mutex);
     assert(i->ref >= 1);
     r = --i->ref;
-	debug(DEBUG_LEVEL_VERBOSE, __FILE__": ref--, now %i\n", i->ref);
+        debug(DEBUG_LEVEL_VERBOSE, __FILE__": ref--, now %i\n", i->ref);
     pthread_mutex_unlock(&i->mutex);
 
     if (r <= 0)
@@ -1395,7 +1395,7 @@ static int sndstat_open(int flags, int *_errno) {
 
     if (flags != O_RDONLY
 #ifdef O_LARGEFILE
-	&& flags != (O_RDONLY|O_LARGEFILE)
+        && flags != (O_RDONLY|O_LARGEFILE)
 #endif
        ) {
         *_errno = EACCES;
@@ -1446,7 +1446,7 @@ int open(const char *filename, int flags, ...) {
     va_start(args, flags);
     if (flags & O_CREAT) {
       if (sizeof(mode_t) < sizeof(int))
-	mode = va_arg(args, int);
+        mode = va_arg(args, int);
       else
         mode = va_arg(args, mode_t);
     }
@@ -2023,9 +2023,9 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
             *(int*)  argp = DSP_CAP_DUPLEX | DSP_CAP_TRIGGER
 #ifdef DSP_CAP_MULTI
-	      | DSP_CAP_MULTI
+              | DSP_CAP_MULTI
 #endif
-	      ;
+              ;
             break;
 
         case SNDCTL_DSP_GETODELAY: {
@@ -2279,8 +2279,8 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
         case SNDCTL_DSP_SETDUPLEX:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETDUPLEX\n");
-	    /* this is a no-op */
-	    break;
+            /* this is a no-op */
+            break;
 
         default:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": unknown ioctl 0x%08lx\n", request);

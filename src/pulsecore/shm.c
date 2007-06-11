@@ -113,7 +113,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
         close(fd);
         m->do_unlink = 1;
 #else
-		return -1;
+                return -1;
 #endif
     }
 
@@ -139,36 +139,36 @@ void pa_shm_free(pa_shm *m) {
     assert(m->size > 0);
 
 #ifdef MAP_FAILED
-	assert(m->ptr != MAP_FAILED);
+        assert(m->ptr != MAP_FAILED);
 #endif
 
-	if (!m->shared) {
+        if (!m->shared) {
 #ifdef MAP_ANONYMOUS
-	    if (munmap(m->ptr, m->size) < 0)
-	        pa_log("munmap() failed: %s", pa_cstrerror(errno));
+            if (munmap(m->ptr, m->size) < 0)
+                pa_log("munmap() failed: %s", pa_cstrerror(errno));
 #elif defined(HAVE_POSIX_MEMALIGN)
         free(m->ptr);
 #else
         pa_xfree(m->ptr);
 #endif
-	} else {
+        } else {
 #ifdef HAVE_SHM_OPEN
-	    if (munmap(m->ptr, m->size) < 0)
-	        pa_log("munmap() failed: %s", pa_cstrerror(errno));
+            if (munmap(m->ptr, m->size) < 0)
+                pa_log("munmap() failed: %s", pa_cstrerror(errno));
 
-	    if (m->do_unlink) {
-		    char fn[32];
+            if (m->do_unlink) {
+                    char fn[32];
 
                     segment_name(fn, sizeof(fn), m->id);
 
                     if (shm_unlink(fn) < 0)
                         pa_log(" shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
-	    }
+            }
 #else
-		/* We shouldn't be here without shm support */
-		assert(0);
+                /* We shouldn't be here without shm support */
+                assert(0);
 #endif
-	}
+        }
 
     memset(m, 0, sizeof(*m));
 }
@@ -182,7 +182,7 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     assert(offset+size <= m->size);
 
 #ifdef MAP_FAILED
-	assert(m->ptr != MAP_FAILED);
+        assert(m->ptr != MAP_FAILED);
 #endif
 
     /* You're welcome to implement this as NOOP on systems that don't
@@ -270,7 +270,7 @@ fail:
 #else /* HAVE_SHM_OPEN */
 
 int pa_shm_attach_ro(pa_shm *m, unsigned id) {
-	return -1;
+        return -1;
 }
 
 #endif /* HAVE_SHM_OPEN */

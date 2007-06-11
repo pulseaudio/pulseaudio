@@ -435,7 +435,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
     switch (a.type) {
         case PA_PARSED_ADDRESS_UNIX:
             if ((c = pa_socket_client_new_unix(m, a.path_or_host)))
-            	start_timeout(c);
+                    start_timeout(c);
             break;
 
         case PA_PARSED_ADDRESS_TCP4:  /* Fallthrough */
@@ -479,7 +479,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
                 if (res->ai_addr) {
                     if ((c = pa_socket_client_new_sockaddr(m, res->ai_addr, res->ai_addrlen)))
                         start_timeout(c);
-				}
+                                }
 
                 freeaddrinfo(res);
 #else /* HAVE_GETADDRINFO */
@@ -507,7 +507,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
                 s.sin_port = htons(a.port);
 
                 if ((c = pa_socket_client_new_sockaddr(m, (struct sockaddr*)&s, sizeof(s))))
-                	start_timeout(c);
+                        start_timeout(c);
 #endif /* HAVE_GETADDRINFO */
             }
 #endif /* HAVE_LIBASYNCNS */

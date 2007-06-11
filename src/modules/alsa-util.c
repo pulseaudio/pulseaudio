@@ -326,7 +326,7 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     if ((ret = snd_pcm_hw_params_malloc(&hwparams)) < 0 ||
         (ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0 ||
         (ret = snd_pcm_hw_params_set_rate_resample(pcm_handle, hwparams, 0)) < 0 ||
-    	(ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+            (ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
         goto finish;
 
     if ((ret = set_format(pcm_handle, hwparams, &f)) < 0)

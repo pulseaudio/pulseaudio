@@ -149,14 +149,14 @@ int pipe(int filedes[2]) {
     return 0;
 
 error:
-	if (listener >= 0)
-		pa_close(listener);
-	if (filedes[0] >= 0)
-		pa_close(filedes[0]);
-	if (filedes[1] >= 0)
-		pa_close(filedes[0]);
+        if (listener >= 0)
+                pa_close(listener);
+        if (filedes[0] >= 0)
+                pa_close(filedes[0]);
+        if (filedes[1] >= 0)
+                pa_close(filedes[0]);
 
-	return -1;
+        return -1;
 }
 
 #endif /* HAVE_PIPE */

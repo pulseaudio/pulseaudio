@@ -177,7 +177,7 @@ int pa_socket_tcp_low_delay(int fd) {
 #endif
 
 #if defined(IPTOS_LOWDELAY) && defined(IP_TOS) && (defined(SOL_IP) || \
-	defined(IPPROTO_IP))
+        defined(IPPROTO_IP))
     tos = IPTOS_LOWDELAY;
 #ifdef SOL_IP
     if (setsockopt(fd, SOL_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
