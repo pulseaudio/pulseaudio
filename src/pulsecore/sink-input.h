@@ -52,7 +52,7 @@ typedef enum pa_sink_input_flags {
 
 struct pa_sink_input {
     pa_msgobject parent;
-    
+
     uint32_t index;
     pa_core *core;
     pa_atomic_t state;
@@ -66,11 +66,11 @@ struct pa_sink_input {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
-    
+
     pa_cvolume volume;
     int muted;
 
-    int (*process_msg)(pa_sink_input *i, int code, void *userdata); 
+    int (*process_msg)(pa_sink_input *i, int code, void *userdata);
     int (*peek) (pa_sink_input *i, pa_memchunk *chunk);
     void (*drop) (pa_sink_input *i, const pa_memchunk *chunk, size_t length);
     void (*kill) (pa_sink_input *i);             /* may be NULL */
@@ -81,10 +81,10 @@ struct pa_sink_input {
 
     struct {
         pa_sample_spec sample_spec;
-        
+
         pa_memchunk resampled_chunk;
         pa_resampler *resampler;                     /* may be NULL */
-        
+
         /* Some silence to play before the actual data. This is used to
          * compensate for latency differences when moving a sink input
          * "hot" between sinks. */
@@ -94,7 +94,7 @@ struct pa_sink_input {
         pa_cvolume volume;
         int muted;
     } thread_info;
-    
+
     void *userdata;
 };
 

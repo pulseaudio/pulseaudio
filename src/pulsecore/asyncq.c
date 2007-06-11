@@ -85,7 +85,7 @@ pa_asyncq *pa_asyncq_new(unsigned size) {
         pa_xfree(l);
         return NULL;
     }
-    
+
     if (pipe(l->write_fds) < 0) {
         pa_close(l->read_fds[0]);
         pa_close(l->read_fds[1]);
@@ -104,7 +104,7 @@ void pa_asyncq_free(pa_asyncq *l, pa_free_cb_t free_cb) {
 
     if (free_cb) {
         void *p;
-        
+
         while ((p = pa_asyncq_pop(l, 0)))
             free_cb(p);
     }
@@ -113,7 +113,7 @@ void pa_asyncq_free(pa_asyncq *l, pa_free_cb_t free_cb) {
     pa_close(l->read_fds[1]);
     pa_close(l->write_fds[0]);
     pa_close(l->write_fds[1]);
-    
+
     pa_xfree(l);
 }
 
@@ -125,12 +125,12 @@ int pa_asyncq_push(pa_asyncq*l, void *p, int wait) {
     pa_assert(p);
 
     cells = PA_ASYNCQ_CELLS(l);
-    
+
     _Y;
     idx = reduce(l, l->write_idx);
 
     if (!pa_atomic_ptr_cmpxchg(&cells[idx], NULL, p)) {
-        
+
         /* First try failed. Let's wait for changes. */
 
         if (!wait)
@@ -142,7 +142,7 @@ int pa_asyncq_push(pa_asyncq*l, void *p, int wait) {
 
         for (;;) {
             char x[20];
-            
+
             _Y;
 
             if (pa_atomic_ptr_cmpxchg(&cells[idx], NULL, p))
@@ -155,21 +155,21 @@ int pa_asyncq_push(pa_asyncq*l, void *p, int wait) {
                 return -1;
             }
         }
-        
+
         _Y;
 
         pa_atomic_dec(&l->write_waiting);
     }
-    
+
     _Y;
     l->write_idx++;
-    
+
     if (pa_atomic_load(&l->read_waiting)) {
         char x = 'x';
         _Y;
         write(l->read_fds[1], &x, sizeof(x));
     }
-    
+
     return 0;
 }
 
@@ -188,7 +188,7 @@ void* pa_asyncq_pop(pa_asyncq*l, int wait) {
     if (!(ret = pa_atomic_ptr_load(&cells[idx]))) {
 
         /* First try failed. Let's wait for changes. */
-    
+
         if (!wait)
             return NULL;
 
@@ -228,7 +228,7 @@ void* pa_asyncq_pop(pa_asyncq*l, int wait) {
         _Y;
         write(l->write_fds[1], &x, sizeof(x));
     }
-            
+
     return ret;
 }
 
@@ -253,7 +253,7 @@ int pa_asyncq_before_poll(pa_asyncq *l) {
         return -1;
 
     pa_atomic_inc(&l->read_waiting);
-    
+
     if (pa_atomic_ptr_load(&cells[idx])) {
         pa_atomic_dec(&l->read_waiting);
         return -1;

@@ -38,7 +38,7 @@
 static void producer(void *_q) {
     pa_asyncq *q = _q;
     int i;
-    
+
     for (i = 0; i < 1000; i++) {
         pa_asyncq_push(q, (void*) (i+1), 1);
         printf("pushed %i\n", i);
@@ -54,7 +54,7 @@ static void consumer(void *_q) {
     int i;
 
     sleep(1);
-    
+
     for (i = 0;; i++) {
         p = pa_asyncq_pop(q, 1);
 
@@ -62,7 +62,7 @@ static void consumer(void *_q) {
             break;
 
         pa_assert(p == (void *) (i+1));
-        
+
         printf("popped %i\n", i);
     }
 
@@ -72,7 +72,7 @@ static void consumer(void *_q) {
 int main(int argc, char *argv[]) {
     pa_asyncq *q;
     pa_thread *t1, *t2;
-    
+
     pa_assert_se(q = pa_asyncq_new(0));
 
     pa_assert_se(t1 = pa_thread_new(producer, q));

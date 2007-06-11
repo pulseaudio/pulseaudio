@@ -113,7 +113,7 @@ pa_source_output* pa_source_output_new(
     if ((flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ||
         !pa_sample_spec_equal(&data->sample_spec, &data->source->sample_spec) ||
         !pa_channel_map_equal(&data->channel_map, &data->source->channel_map)) {
-        
+
         if (!(resampler = pa_resampler_new(
                       core->mempool,
                       &data->source->sample_spec, &data->source->channel_map,
@@ -127,10 +127,10 @@ pa_source_output* pa_source_output_new(
     }
 
     o = pa_source_output_new(pa_source_output);
-    
+
     o->parent.parent.free = source_output_free;
     o->parent.process_msg = pa_source_output_process_msg;
-    
+
     o->core = core;
     pa_atomic_load(&o->state, PA_SOURCE_OUTPUT_RUNNING);
     o->flags = flags;
@@ -173,7 +173,7 @@ void pa_source_output_disconnect(pa_source_output*o) {
     pa_assert(o->source->core);
 
     pa_asyncmsgq_send(i->sink->asyncmsgq, i->sink, PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, NULL);
-    
+
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     pa_idxset_remove_by_data(o->source->outputs, o, NULL);
 
@@ -190,7 +190,7 @@ void pa_source_output_disconnect(pa_source_output*o) {
 
 static void source_output_free(pa_msgobject* mo) {
     pa_source_output *o = PA_SOURCE_OUTPUT(mo);
-    
+
     pa_assert(pa_source_output_refcnt(o) == 0);
 
     pa_source_output_disconnect(o);
@@ -207,7 +207,7 @@ static void source_output_free(pa_msgobject* mo) {
 
 void pa_source_output_put(pa_source_output *o) {
     pa_source_output_assert_ref(o);
-    
+
     pa_asyncmsgq_post(o->source->asyncmsgq, o->source, PA_SOURCE_MESSAGE_ADD_OUTPUT, o, NULL, pa_source_unref, pa_source_output_unref);
     pa_source_update_status(o->source);
 
@@ -228,7 +228,7 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
 
     if (pa_asyncmsgq_send(o->source->asyncmsgq, i->source, PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY, &r, NULL) < 0)
         r = 0;
-    
+
     if (o->get_latency)
         r += o->get_latency(o);
 
@@ -244,12 +244,12 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     pa_assert(chunk->length);
 
     state = pa_source_output_get_state(o);
-    
+
     if (!o->push || state == PA_SOURCE_OUTPUT_DISCONNECTED || state == PA_SOURCE_OUTPUT_CORKED)
         return;
 
     pa_assert(state = PA_SOURCE_OUTPUT_RUNNING);
-    
+
     if (!o->resampler) {
         o->push(o, chunk);
         return;
@@ -289,7 +289,7 @@ int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
     i->sample_spec.rate = rate;
 
     pa_asyncmsgq_post(s->asyncmsgq, pa_source_output_ref(i), PA_SOURCE_OUTPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), NULL, pa_source_output_unref, NULL);
-    
+
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT!|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     return 0;
 }
@@ -312,7 +312,7 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
     pa_source_output_assert_ref(o);
 
-    return o->resample_method; 
+    return o->resample_method;
 }
 
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
@@ -323,7 +323,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     pa_source_assert_ref(dest);
 
     return -1;
-    
+
 /*     origin = o->source; */
 
 /*     if (dest == origin) */
@@ -377,13 +377,13 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
 
 int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, pa_memchunk* chunk) {
     pa_source_output *o = PA_SOURCE_OUTPUT(o);
-    
+
     pa_source_output_assert_ref(i);
 
     switch (code) {
 
         case PA_SOURCE_OUTPUT_MESSAGE_SET_RATE: {
-            
+
             i->thread_info.sample_spec.rate = PA_PTR_TO_UINT(userdata);
             pa_resampler_set_output_rate(i->resampler, PA_PTR_TO_UINT(userdata));
 

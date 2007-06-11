@@ -86,7 +86,7 @@ pa_sink* pa_sink_new(
 
     s->parent.parent.free = sink_free;
     s->parent.process_msg = pa_sink_process_msg;
-    
+
     s->core = core;
     pa_atomic_store(&s->state, PA_SINK_IDLE);
     s->name = pa_xstrdup(name);
@@ -115,7 +115,7 @@ pa_sink* pa_sink_new(
     s->userdata = NULL;
 
     pa_assert_se(s->asyncmsgq = pa_asyncmsgq_new(0));
-    
+
     r = pa_idxset_put(core->sinks, s, &s->index);
     pa_assert(s->index != PA_IDXSET_INVALID && r >= 0);
 
@@ -139,7 +139,7 @@ pa_sink* pa_sink_new(
     s->thread_info.inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume = s->volume;
     s->thread_info.soft_muted = s->muted;
-    
+
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
 
     return s;
@@ -163,7 +163,7 @@ static void sink_start(pa_sink *s) {
 static void sink_stop(pa_sink *s) {
     pa_sink_state_t state;
     int stop;
-    
+
     pa_assert(s);
     state = pa_sink_get_state(s);
     pa_return_if_fail(state == PA_SINK_RUNNING || state == PA_SINK_SUSPENDED);
@@ -216,7 +216,7 @@ void pa_sink_disconnect(pa_sink* s) {
 
 static void sink_free(pa_object *o) {
     pa_sink *s = PA_SINK(o);
-            
+
     pa_assert(s);
     pa_assert(pa_sink_refcnt(s) == 0);
 
@@ -230,11 +230,11 @@ static void sink_free(pa_object *o) {
     }
 
     pa_idxset_free(s->inputs, NULL, NULL);
-    
+
     pa_hashmap_free(s->thread_info.inputs, (pa_free2_cb_t) pa_sink_input_unref, NULL);
 
     pa_asyncmsgq_free(s->asyncmsgq);
-    
+
     pa_xfree(s->name);
     pa_xfree(s->description);
     pa_xfree(s->driver);
@@ -246,7 +246,7 @@ void pa_sink_update_status(pa_sink*s) {
 
     if (pa_sink_get_state(s) == PA_SINK_SUSPENDED)
         return;
-    
+
     if (pa_sink_used_by(s) > 0)
         sink_start(s);
     else
@@ -270,7 +270,7 @@ void pa_sink_suspend(pa_sink *s, int suspend) {
             s->stop(s);
         else
             pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_STOP, NULL, NULL, NULL);
-        
+
     } else {
         pa_atomic_store(&s->state, PA_SINK_RUNNING);
 
@@ -417,38 +417,38 @@ int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
         else {
             void *src, *ptr;
             pa_cvolume volume;
-            
+
             ptr = pa_memblock_acquire(target->memblock);
             src = pa_memblock_acquire(info[0].chunk.memblock);
-            
+
             memcpy((uint8_t*) ptr + target->index,
                    (uint8_t*) src + info[0].chunk.index,
                    target->length);
-            
+
             pa_memblock_release(target->memblock);
             pa_memblock_release(info[0].chunk.memblock);
-            
+
             pa_sw_cvolume_multiply(&volume, &s->thread_info.soft_volume, &info[0].volume);
 
             if (!pa_cvolume_is_norm(&volume))
                 pa_volume_memchunk(target, &s->sample_spec, &volume);
         }
-            
+
     } else {
         void *ptr;
 
         ptr = pa_memblock_acquire(target->memblock);
-        
+
         target->length = pa_mix(info, n,
                                 (uint8_t*) ptr + target->index,
                                 target->length,
                                 &s->sample_spec,
                                 &s->thread_info.soft_volume,
                                 s->thread_info.soft_muted);
-    
+
         pa_memblock_release(target->memblock);
     }
-    
+
     inputs_drop(s, info, n, target->length);
 
     if (s->monitor_source)
@@ -512,12 +512,12 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
 
 pa_usec_t pa_sink_get_latency(pa_sink *s) {
     pa_usec_t usec = 0;
-    
+
     pa_sink_assert_ref(s);
 
     if (s->get_latency)
         return s->get_latency(s);
-    
+
     if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LATENCY, &usec, NULL) < 0)
         return 0;
 
@@ -532,7 +532,7 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume) {
 
     changed = !pa_cvolume_equal(volume, &s->volume);
     s->volume = *volume;
-    
+
     if (s->set_volume && s->set_volume(s) < 0)
         s->set_volume = NULL;
 
@@ -549,7 +549,7 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s) {
     pa_sink_assert_ref(s);
 
     old_volume = s->volume;
-    
+
     if (s->get_volume && s->get_volume(s) < 0)
         s->get_volume = NULL;
 
@@ -558,13 +558,13 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s) {
 
     if (!pa_cvolume_equal(&old_volume, &s->volume))
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-    
+
     return &s->volume;
 }
 
 void pa_sink_set_mute(pa_sink *s, int mute) {
     int changed;
-    
+
     pa_sink_assert_ref(s);
 
     changed = s->muted != mute;
@@ -581,11 +581,11 @@ void pa_sink_set_mute(pa_sink *s, int mute) {
 
 int pa_sink_get_mute(pa_sink *s) {
     int old_muted;
-    
+
     pa_sink_assert_ref(s);
 
     old_muted = s->muted;
-    
+
     if (s->get_mute && s->get_mute(s) < 0)
         s->get_mute = NULL;
 
@@ -594,7 +594,7 @@ int pa_sink_get_mute(pa_sink *s) {
 
     if (old_muted != s->muted)
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-    
+
     return s->muted;
 }
 
@@ -658,29 +658,29 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *
             pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index), pa_sink_input_ref(i));
             return 0;
         }
-            
+
         case PA_SINK_MESSAGE_REMOVE_INPUT: {
             pa_sink_input *i = userdata;
             pa_hashmap_remove(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index));
             return 0;
         }
-            
+
         case PA_SINK_MESSAGE_SET_VOLUME:
             s->thread_info.soft_volume = *((pa_cvolume*) userdata);
             return 0;
-            
+
         case PA_SINK_MESSAGE_SET_MUTE:
             s->thread_info.soft_muted = PA_PTR_TO_UINT(userdata);
             return 0;
-            
+
         case PA_SINK_MESSAGE_GET_VOLUME:
             *((pa_cvolume*) userdata) = s->thread_info.soft_volume;
             return 0;
-            
+
         case PA_SINK_MESSAGE_GET_MUTE:
             *((int*) userdata) = s->thread_info.soft_muted;
             return 0;
-            
+
         default:
             return -1;
     }

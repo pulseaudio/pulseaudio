@@ -54,7 +54,7 @@ typedef enum pa_source_state {
 
 struct pa_source {
     pa_msgobject parent;
-    
+
     uint32_t index;
     pa_core *core;
     pa_atomic_t state;
@@ -91,7 +91,7 @@ struct pa_source {
         pa_cvolume soft_volume;
         int soft_muted;
     } thread_info;
-    
+
     void *userdata;
 };
 

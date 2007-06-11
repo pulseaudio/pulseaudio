@@ -65,7 +65,7 @@ pa_asyncmsgq *pa_asyncmsgq_new(unsigned size) {
     pa_assert_se(a->asyncq = pa_asyncq_new(size));
     pa_assert_se(a->mutex = pa_mutex_new(0));
     a->current = NULL;
-    
+
     return a;
 }
 
@@ -82,10 +82,10 @@ void pa_asyncmsgq_free(pa_asyncmsgq *a) {
 
         if (i->memchunk.memblock)
             pa_memblock_unref(i->object);
-        
+
         if (i->userdata_free_cb)
             i->userdata_free_cb(i->userdata);
-        
+
         if (pa_flist_push(PA_STATIC_FLIST_GET(asyncmsgq), i) < 0)
             pa_xfree(i);
     }
@@ -162,7 +162,7 @@ int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **u
         *object = a->current->object;
     if (chunk)
         *chunk = a->chunk;
-    
+
     return 0;
 }
 
@@ -183,7 +183,7 @@ void pa_asyncmsgq_done(pa_asyncmsgq *a, int ret) {
 
         if (a->current->memchunk.memblock)
             pa_memblock_unref(a->current->memchunk.memblock);
-        
+
         if (pa_flist_push(PA_STATIC_FLIST_GET(asyncmsgq), a->current) < 0)
             pa_xfree(a->current);
     }
@@ -194,14 +194,14 @@ void pa_asyncmsgq_done(pa_asyncmsgq *a, int ret) {
 int pa_asyncmsgq_wait_for(pa_asyncmsgq *a, int code) {
     int c;
     pa_assert(a);
-    
+
     do {
-        
+
         if (pa_asyncmsgq_get(a, NULL, &c, NULL, 1) < 0)
             return -1;
 
         pa_asyncmsgq_done(a);
-        
+
     } while (c != code);
 
     return 0;

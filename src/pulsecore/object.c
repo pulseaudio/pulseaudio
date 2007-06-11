@@ -30,7 +30,7 @@
 
 pa_object *pa_object_new_internal(size_t size, const char *type_name) {
     pa_object *o;
-    
+
     pa_assert(size > sizeof(pa_object));
     pa_assert(type_name);
 

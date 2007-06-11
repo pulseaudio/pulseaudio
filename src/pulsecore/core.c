@@ -53,9 +53,9 @@ static int core_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchu
     pa_core *c = PA_CORE(o);
 
     pa_core_assert_ref(c);
-    
+
     switch (code) {
-        
+
         case PA_CORE_MESSAGE_UNLOAD_MODULE:
             pa_module_unload(c, userdata);
             return 0;
@@ -67,7 +67,7 @@ static int core_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchu
 
 static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
     pa_core *c = userdata;
-    
+
     pa_assert(pa_asyncmsgq_get_fd(c->asyncmsgq) == fd);
     pa_assert(events == PA_IO_EVENT_INPUT);
 
@@ -84,7 +84,7 @@ static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_even
             pa_asyncmsgq_dispatch(object, code, data, &chunk);
             pa_asyncmsgq_done(c->asyncmsgq, 0);
         }
-        
+
         if (pa_asyncmsgq_before_poll(c->asyncmsgq) == 0)
             break;
     }
@@ -97,7 +97,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_mempool *pool;
 
     pa_assert(m);
-    
+
     if (shared) {
         if (!(pool = pa_mempool_new(shared))) {
             pa_log_warn("failed to allocate shared memory pool. Falling back to a normal memory pool.");
@@ -175,7 +175,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_assert_se(c->asyncmsgq = pa_asyncmsgq_new(0));
     pa_assert_se(pa_asyncmsgq_before_poll(c->asyncmsgq) == 0);
     pa_assert_se(c->asyncmsgq_event = c->mainloop->io_new(c->mainloop, pa_asyncmsgq_get_fd(c->asyncmsgq), PA_IO_EVENT_INPUT, asyncmsgq_cb, c));
-            
+
     return c;
 }
 

@@ -163,7 +163,7 @@ int pa_flist_push(pa_flist*l, void *p) {
     assert(p);
 
     cells = PA_FLIST_CELLS(l);
-    
+
     n = len = (int) l->size - pa_atomic_load(&l->length) + N_EXTRA_SCAN;
     _Y;
     idx = reduce(l, pa_atomic_load(&l->write_idx));

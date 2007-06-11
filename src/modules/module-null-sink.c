@@ -94,7 +94,7 @@ static void thread_func(void *userdata) {
     pollfd.events = POLLIN;
 
     pa_gettimeofday(u->timestamp);
-    
+
     for (;;) {
         int code;
         void *data, *object;
@@ -116,7 +116,7 @@ static void thread_func(void *userdata) {
                         pa_sink_process_msg(u->sink->asyncmsgq, object, code, data);
 
                 }
-                
+
             } else if (object == u->sink) {
 
                 switch (code) {
@@ -124,29 +124,29 @@ static void thread_func(void *userdata) {
                         pa_assert(running);
                         running = 0;
                         break;
-                        
+
                     case PA_SINK_MESSAGE_START:
                         pa_assert(!running);
                         running = 1;
-                        
+
                         pa_gettimeofday(u->timestamp);
                         break;
-                        
+
                     case PA_SINK_MESSAGE_GET_LATENCY:
-                        
+
                         if (pa_timeval_cmp(&u->timestamp, &now) > 0)
                             *((pa_usec_t*) data) = 0;
                         else
                             *((pa_usec_t*) data) = pa_timeval_diff(&u->timestamp, &now);
                         break;
-                        
+
                         /* ... */
 
                     default:
                         pa_sink_process_msg(u->sink->asyncmsgq, object, code, data);
                 }
             }
-            
+
             pa_asyncmsgq_done(u->sink->asyncmsgq);
             continue;
         }
@@ -155,30 +155,30 @@ static void thread_func(void *userdata) {
 
         if (running) {
             pa_gettimeofday(&now);
-            
+
             if (pa_timeval_cmp(u->timestamp, &now) <= 0) {
                 pa_memchunk chunk;
                 size_t l;
-                
+
                 if (pa_sink_render(u->sink, u->block_size, &chunk) >= 0) {
                     l = chunk.length;
                     pa_memblock_unref(chunk.memblock);
                 } else
                     l = u->block_size;
-                
+
                 pa_timeval_add(&u->timestamp, pa_bytes_to_usec(l, &u->sink->sample_spec));
                 continue;
             }
 
             timeout = pa_timeval_diff(&u->timestamp, &now)/1000;
-            
+
             if (timeout < 1)
                 timeout = 1;
         } else
             timeout = -1;
 
         /* Hmm, nothing to do. Let's sleep */
-        
+
         if (pa_asyncmsgq_before_poll(u->sink->asyncmsgq) < 0)
             continue;
 
@@ -192,7 +192,7 @@ static void thread_func(void *userdata) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
-        
+
         pa_assert(r == 0 || pollfd.revents == POLLIN);
     }
 
@@ -241,7 +241,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sink_set_description(u->sink, pa_modargs_get_value(ma, "description", "NULL sink"));
 
     u->block_size = pa_bytes_per_second(&ss) / 20; /* 50 ms */
-    
+
     if (u->block_size <= 0)
         u->block_size = pa_frame_size(&ss);
 
@@ -249,7 +249,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("Failed to create thread.");
         goto fail;
     }
-    
+
     pa_modargs_free(ma);
 
     return 0;
@@ -265,7 +265,7 @@ fail:
 
 void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
-    
+
     pa_assert(c);
     pa_assert(m);
 
@@ -278,7 +278,7 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_asyncmsgq_send(u->sink->asyncmsgq, PA_SINK_MESSAGE_SHUTDOWN, NULL);
         pa_thread_free(u->thread);
     }
-    
+
     pa_sink_unref(u->sink);
 
     pa_xfree(u);

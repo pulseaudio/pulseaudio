@@ -86,11 +86,11 @@ enum {
 };
 
 enum {
-    MESSAGE_REQUEST_DATA,   /* data from source output to main loop */ 
+    MESSAGE_REQUEST_DATA,   /* data from source output to main loop */
     MESSAGE_POST_DATA       /* data from source output to main loop */
 };
 
-    
+
 #define PLAYBACK_BUFFER_SECONDS (.5)
 #define PLAYBACK_BUFFER_FRAGMENTS (10)
 #define RECORD_BUFFER_SECONDS (5)
@@ -105,15 +105,15 @@ static void connection_free(struct connection *c) {
         pa_sink_input_disconnect(c->sink_input);
         pa_sink_input_unref(c->sink_input);
     }
-    
+
     if (c->source_output) {
         pa_source_output_disconnect(c->source_output);
         pa_source_output_unref(c->source_output);
     }
-    
+
     if (c->playback.current_memblock)
         pa_memblock_unref(c->playback.current_memblock);
-    
+
     if (c->client)
         pa_client_free(c->client);
     if (c->io)
@@ -122,7 +122,7 @@ static void connection_free(struct connection *c) {
         pa_memblockq_free(c->input_memblockq);
     if (c->output_memblockq)
         pa_memblockq_free(c->output_memblockq);
-    
+
     pa_xfree(c);
 }
 
@@ -133,7 +133,7 @@ static int do_read(struct connection *c) {
     void *p;
 
     pa_assert(c);
-    
+
     if (!c->sink_input || !(l = pa_atomic_load(&c->playback.missing)))
         return 0;
 
@@ -155,12 +155,12 @@ static int do_read(struct connection *c) {
     p = pa_memblock_acquire(c->playback.current_memblock);
     r = pa_iochannel_read(c->io, (uint8_t*) p + c->playback.memblock_index, l);
     pa_memblock_release(c->playback.current_memblock);
-    
+
     if (r <= 0) {
 
         if (errno == EINTR || errno == EAGAIN)
             return 0;
-        
+
         pa_log_debug("read(): %s", r == 0 ? "EOF" : pa_cstrerror(errno));
         return -1;
     }
@@ -195,7 +195,7 @@ static int do_write(struct connection *c) {
     p = pa_memblock_acquire(chunk.memblock);
     r = pa_iochannel_write(c->io, (uint8_t*) p+chunk.index, chunk.length);
     pa_memblock_release(chunk.memblock);
-    
+
     pa_memblock_unref(chunk.memblock);
 
     if (r < 0) {
@@ -208,7 +208,7 @@ static int do_write(struct connection *c) {
     }
 
     pa_memblockq_drop(c->output_memblockq, &chunk, r);
-    
+
     return 0;
 }
 
@@ -251,7 +251,7 @@ fail:
 /* Called from thread context */
 static int sink_input_process_msg(pa_sink_input *i, int code, void *userdata, const pa_memchunk *chunk) {
     struct connection*c;
-    
+
     pa_assert(i);
     c = i->userdata;
     pa_assert(c);
@@ -265,10 +265,10 @@ static int sink_input_process_msg(pa_sink_input *i, int code, void *userdata, co
             pa_memblockq_push_align(c->input_memblockq, chunk);
             return 0;
         }
-        
+
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
             pa_usec_t *r = userdata;
-            
+
             *r = pa_bytes_to_usec(pa_memblockq_get_length(c->input_memblockq), &c->sink_input->sample_spec);
 
             /* Fall through, the default handler will add in the extra
@@ -283,7 +283,7 @@ static int sink_input_process_msg(pa_sink_input *i, int code, void *userdata, co
 /* Called from thread context */
 static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     struct connection*c;
-    
+
     pa_assert(i);
     c = i->userdata;
     pa_assert(c);
@@ -301,7 +301,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
 static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
     struct connection*c = i->userdata;
     size_t old, new;
-    
+
     pa_assert(i);
     pa_assert(c);
     pa_assert(length);
@@ -320,7 +320,7 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
 static void sink_input_kill_cb(pa_sink_input *i) {
     pa_assert(i);
     pa_assert(i->userdata);
-    
+
     connection_free((struct connection *) i->userdata);
 }
 
@@ -328,7 +328,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
 
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     struct connection *c;
-    
+
     pa_assert(o);
     c = o->userdata;
     pa_assert(c);
@@ -343,17 +343,17 @@ static void source_output_kill_cb(pa_source_output *o) {
     pa_assert(o);
     c = o->userdata;
     pa_assert(c);
-    
+
     connection_free(c);
 }
 
 static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
     struct connection*c;
-    
+
     pa_assert(o);
     c = o->userdata;
     pa_assert(c);
-    
+
     return pa_bytes_to_usec(pa_memblockq_get_length(c->output_memblockq), &c->source_output->sample_spec);
 }
 
@@ -361,7 +361,7 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
 
 static void client_kill_cb(pa_client *client) {
     struct connection*c;
-    
+
     pa_assert(client);
     c = client->userdata;
     pa_assert(c);
@@ -386,7 +386,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     pa_protocol_simple *p = userdata;
     struct connection *c = NULL;
     char cname[256];
-    
+
     pa_assert(s);
     pa_assert(io);
     pa_assert(p);
@@ -415,7 +415,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
 
-    
+
     if (p->mode & PLAYBACK) {
         pa_sink_input_new_data data;
         size_t l;
@@ -493,7 +493,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
     pa_iochannel_set_callback(c->io, io_callback, c);
     pa_idxset_put(p->connections, c, NULL);
-    
+
     return;
 
 fail:
@@ -504,7 +504,7 @@ fail:
 static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
     pa_protocol_simple *p = userdata;
     int do_some_work = 0;
-    
+
     pa_assert(pa_asyncmsgq_get_fd(p->asyncmsgq) == fd);
     pa_assert(events == PA_IO_EVENT_INPUT);
 
@@ -520,7 +520,7 @@ static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_even
             connection *c = object;
 
             pa_assert(c);
-            
+
             switch (code) {
 
                 case MESSAGE_REQUEST_DATA:
@@ -535,7 +535,7 @@ static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_even
 
             pa_asyncmsgq_done(p->asyncmsgq);
         }
-        
+
         if (pa_asyncmsgq_before_poll(p->asyncmsgq) == 0)
             break;
     }
@@ -544,7 +544,7 @@ static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_even
 pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma) {
     pa_protocol_simple* p = NULL;
     int enable;
-    
+
     pa_assert(core);
     pa_assert(server);
     pa_assert(ma);
@@ -588,13 +588,13 @@ pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *serv
 
     pa_assert_se(pa_asyncmsgq_before_poll(p->asyncmsgq) == 0);
     pa_assert_se(p->asyncmsgq_event = core->mainloop->io_event_new(core->mainloop, pa_asyncmsgq_get_fd(p->asyncmsgq), PA_IO_EVENT_INPUT, p));
-    
+
     return p;
 
 fail:
     if (p)
         pa_protocol_simple_free(p);
-    
+
     return NULL;
 }
 
@@ -618,7 +618,7 @@ void pa_protocol_simple_free(pa_protocol_simple *p) {
         pa_asyncmsgq_after_poll(c->asyncmsgq);
         pa_asyncmsgq_free(p->asyncmsgq);
     }
-    
+
     pa_xfree(p);
 }
 

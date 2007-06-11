@@ -78,7 +78,7 @@ pa_source* pa_source_new(
 
     s->parent.parent.free = source_free;
     s->parent.process_msg = pa_source_process_msg;
-    
+
     s->core = core;
     pa_atomic_store(&s->state, PA_SOURCE_IDLE);
     s->name = pa_xstrdup(name);
@@ -108,7 +108,7 @@ pa_source* pa_source_new(
     s->userdata = NULL;
 
     pa_assert_se(s->asyncmsgq = pa_asyncmsgq_new(0));
-    
+
     r = pa_idxset_put(core->sources, s, &s->index);
     assert(s->index != PA_IDXSET_INVALID && r >= 0);
 
@@ -118,7 +118,7 @@ pa_source* pa_source_new(
     s->thread_info.outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume = s->volume;
     s->thread_info.soft_muted = s->muted;
-    
+
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
 
     return s;
@@ -142,7 +142,7 @@ static void source_start(pa_source *s) {
 static void source_stop(pa_source *s) {
     pa_source_state_t state;
     int stop;
-    
+
     pa_assert(s);
     state = pa_source_get_state(s);
     pa_return_if_fail(state == PA_SOURCE_RUNNING || state == PA_SOURCE_SUSPENDED);
@@ -165,7 +165,7 @@ void pa_source_disconnect(pa_source *s) {
     pa_return_if_fail(pa_sink_get_state(s) != PA_SINK_DISCONNECT);
 
     source_stop(s);
-    
+
     pa_atomic_store(&s->state, PA_SOURCE_DISCONNECTED);
     pa_namereg_unregister(s->core, s->name);
 
@@ -192,7 +192,7 @@ void pa_source_disconnect(pa_source *s) {
 
 static void source_free(pa_msgobject *o) {
     pa_source *s = PA_SOURCE(o);
-    
+
     pa_assert(s);
     pa_assert(pa_source_refcnt(s) == 0);
 
@@ -204,7 +204,7 @@ static void source_free(pa_msgobject *o) {
     pa_hashmap_free(s->thread_info.outputs, pa_sink_output_unref, NULL);
 
     pa_asyncmsgq_free(s->asyncmsgq);
-    
+
     pa_xfree(s->name);
     pa_xfree(s->description);
     pa_xfree(s->driver);
@@ -216,7 +216,7 @@ void pa_source_update_status(pa_source*s) {
 
     if (pa_source_get_state(s) == PA_SOURCE_STATE_SUSPENDED)
         return;
-    
+
     if (pa_source_used_by(s) > 0)
         source_start(s);
     else
@@ -240,7 +240,7 @@ void pa_source_suspend(pa_source *s, int suspend) {
             s->stop(s);
         else
             pa_asyncmsgq_post(s->asyncmsgq, s, PA_SOURCE_MESSAGE_STOP, NULL, NULL, pa_source_unref, NULL);
-        
+
     } else {
         pa_atomic_store(&s->state, PA_SOURCE_RUNNING);
 
@@ -254,7 +254,7 @@ void pa_source_suspend(pa_source *s, int suspend) {
 void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
     pa_source_output *o;
     void *state = NULL;
-    
+
     pa_source_assert_ref(s);
     pa_assert(chunk);
 
@@ -263,7 +263,7 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 
         pa_memblock_ref(vchunk.memblock);
         pa_memchunk_make_writable(&vchunk, 0);
-        
+
         if (s->thread_info.muted || pa_cvolume_is_muted(s->thread_info.volume))
             pa_silence_memchunk(&vchunk, &s->sample_spec);
         else
@@ -271,10 +271,10 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 
         while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
             pa_source_output_push(o, &vchunk);
-            
+
         pa_memblock_unref(vchunk.memblock);
     } else {
-        
+
         while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
             pa_source_output_push(o, chunk);
 
@@ -303,7 +303,7 @@ void pa_source_set_volume(pa_source *s, const pa_cvolume *volume) {
 
     changed = !pa_cvolume_equal(volume, s->volume);
     s->volume = *volume;
-    
+
     if (s->set_volume && s->set_volume(s) < 0)
         s->set_volume = NULL;
 
@@ -318,7 +318,7 @@ const pa_cvolume *pa_source_get_volume(pa_source *s) {
     pa_source_assert_ref(s);
 
     old_volume = s->volume;
-    
+
     if (s->get_volume && s->get_volume(s) < 0)
         s->get_volume = NULL;
 
@@ -327,13 +327,13 @@ const pa_cvolume *pa_source_get_volume(pa_source *s) {
 
     if (!pa_cvolume_equal(&old_volume, &s->volume))
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-    
+
     return &s->volume;
 }
 
 void pa_source_set_mute(pa_source *s, pa_mixer_t m, int mute) {
     int changed;
-    
+
     pa_source_assert_ref(s);
 
     changed = s->muted != mute;
@@ -350,11 +350,11 @@ void pa_source_set_mute(pa_source *s, pa_mixer_t m, int mute) {
 
 int pa_source_get_mute(pa_source *s, pa_mixer_t m) {
     int old_muted;
-    
+
     pa_source_assert_ref(s);
 
     old_muted = s->muted;
-    
+
     if (s->get_mute && s->get_mute(s) < 0)
         s->get_mute = NULL;
 
@@ -363,7 +363,7 @@ int pa_source_get_mute(pa_source *s, pa_mixer_t m) {
 
     if (old_muted != s->muted)
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-    
+
     return s->muted;
 }
 
@@ -374,7 +374,7 @@ void pa_source_set_module(pa_source *s, pa_module *m) {
         return;
 
     s->module = m;
-    
+
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
@@ -409,29 +409,29 @@ int pa_source_process_msg(pa_msgobject *o, void *object, int code, pa_memchunk *
             pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(i->index), pa_source_output_ref(i));
             return 0;
         }
-            
+
         case PA_SOURCE_MESSAGE_REMOVE_INPUT: {
             pa_source_input *i = userdata;
             pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(i->index), pa_source_output_ref(i));
             return 0;
         }
-            
+
         case PA_SOURCE_MESSAGE_SET_VOLUME:
             s->thread_info.soft_volume = *((pa_cvolume*) userdata);
             return 0;
-            
+
         case PA_SOURCE_MESSAGE_SET_MUTE:
             s->thread_info.soft_muted = PA_PTR_TO_UINT(userdata);
             return 0;
-            
+
         case PA_SOURCE_MESSAGE_GET_VOLUME:
             *((pa_cvolume*) userdata) = s->thread_info.soft_volume;
             return 0;
-            
+
         case PA_SOURCE_MESSAGE_GET_MUTE:
             *((int*) userdata) = s->thread_info.soft_muted;
             return 0;
-            
+
         default:
             return -1;
     }

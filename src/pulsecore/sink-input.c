@@ -52,7 +52,7 @@ pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data
 
     memset(data, 0, sizeof(*data));
     data->resample_method = PA_RESAMPLER_INVALID;
-    
+
     return data;
 }
 
@@ -117,7 +117,7 @@ pa_sink_input* pa_sink_input_new(
     if (!data->channel_map_is_set) {
         if (data->sink->channel_map.channels == data->sample_spec.channels)
             data->channel_map = data->sink->channel_map;
-        else 
+        else
             pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
     }
 
@@ -132,7 +132,7 @@ pa_sink_input* pa_sink_input_new(
 
     if (!data->muted_is_set)
         data->muted = 0;
-    
+
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
 
@@ -163,7 +163,7 @@ pa_sink_input* pa_sink_input_new(
 
     i->parent.parent.free = sink_input_free;
     i->parent.process_msg = pa_sink_input_process_msg;
-    
+
     i->core = core;
     pa_atomic_load(&i->state, PA_SINK_INPUT_DRAINED);
     i->flags = flags;
@@ -172,14 +172,14 @@ pa_sink_input* pa_sink_input_new(
     i->module = data->module;
     i->sink = data->sink;
     i->client = data->client;
-    
+
     i->resample_method = data->resample_method;
     i->sample_spec = data->sample_spec;
     i->channel_map = data->channel_map;
 
     i->volume = data->volume;
     i->muted = data->muted;
-    
+
     i->process_msg = NULL;
     i->peek = NULL;
     i->drop = NULL;
@@ -214,7 +214,7 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
     pa_return_if_fail(pa_sink_input_get_state(i) != PA_SINK_INPUT_DISCONNECTED);
 
     pa_asyncmsgq_send(i->sink->asyncmsgq, i->sink, PA_SINK_MESSAGE_REMOVE_INPUT, i, NULL);
-    
+
     pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
     pa_idxset_remove_by_data(i->sink->inputs, i, NULL);
 
@@ -236,7 +236,7 @@ static void sink_input_free(pa_msgobject *o) {
 
     pa_assert(i);
     pa_assert(pa_sink_input_refcnt(i) == 0);
-    
+
     pa_sink_input_disconnect(i);
 
     pa_log_info("Freeing output %u \"%s\"", i->index, i->name);
@@ -281,7 +281,7 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i) {
 
     if (pa_asyncmsgq_send(i->sink->asyncmsgq, i->sink, PA_SINK_INPUT_MESSAGE_GET_LATENCY, &r, NULL) < 0)
         r = 0;
-    
+
     if (i->get_latency)
         r += i->get_latency(i);
 
@@ -293,7 +293,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
     int do_volume_adj_here;
     int volume_is_norm;
     pa_sink_input_state_t state;
-    
+
     pa_sink_input_assert_ref(i);
     pa_assert(chunk);
     pa_assert(volume);
@@ -508,7 +508,7 @@ int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
     i->sample_spec.rate = rate;
 
     pa_asyncmsgq_post(s->asyncmsgq, pa_sink_input_ref(i), PA_SINK_INPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), NULL, pa_sink_input_unref, NULL);
-    
+
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     return 0
 }
@@ -543,7 +543,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
     pa_sink_assert_ref(dest);
 
     return -1;
-    
+
 /*     origin = i->sink; */
 
 /*     if (dest == origin) */
@@ -697,32 +697,32 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
 
 int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk) {
     pa_sink_input *i = PA_SINK_INPUT(o);
-    
+
     pa_sink_input_assert_ref(i);
 
     switch (code) {
         case PA_SINK_INPUT_MESSAGE_SET_VOLUME:
             s->thread_info.soft_volume = *((pa_cvolume*) userdata);
             return 0;
-            
+
         case PA_SINK_INPUT_MESSAGE_SET_MUTE:
             s->thread_info.soft_muted = PA_PTR_TO_UINT(userdata);
             return 0;
-            
+
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
             pa_usec_t *r = userdata;
-            
+
             if (i->thread_info.resampled_chunk.memblock)
                 *r += pa_bytes_to_usec(i->resampled_chunk.length, &i->sink->sample_spec);
 
 /*             if (i->move_silence) */
 /*                 r += pa_bytes_to_usec(i->move_silence, &i->sink->sample_spec); */
-            
+
             return 0;
         }
-            
+
         case PA_SINK_INPUT_MESSAGE_SET_RATE: {
-            
+
             i->thread_info.sample_spec.rate = PA_PTR_TO_UINT(userdata);
             pa_resampler_set_input_rate(i->resampler, PA_PTR_TO_UINT(userdata));
 

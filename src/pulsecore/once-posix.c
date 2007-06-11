@@ -35,17 +35,17 @@
 /* Not reentrant -- how could it be? */
 void pa_once(pa_once_t *control, pa_once_func_t func) {
     pa_mutex *m;
-    
+
     pa_assert(control);
     pa_assert(func);
 
     if (pa_atomic_load(&control->done))
         return;
-    
+
     pa_atomic_inc(&control->ref);
-        
+
     for (;;) {
-        
+
         if ((m = pa_atomic_ptr_load(&control->mutex))) {
 
             /* The mutex is stored in locked state, hence let's just
@@ -57,7 +57,7 @@ void pa_once(pa_once_t *control, pa_once_func_t func) {
 
         pa_assert_se(m = pa_mutex_new(0));
         pa_mutex_lock(m);
-        
+
         if (pa_atomic_ptr_cmpxchg(&control->mutex, NULL, m)) {
             func();
             pa_atomic_store(&control->done, 1);
@@ -71,7 +71,7 @@ void pa_once(pa_once_t *control, pa_once_func_t func) {
     }
 
     pa_assert(pa_atomic_load(&control->done));
-    
+
     if (pa_atomic_dec(&control->ref) <= 1) {
         pa_assert(pa_atomic_ptr_cmpxchg(&control->mutex, m, NULL));
         pa_mutex_free(m);

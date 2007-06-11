@@ -48,7 +48,7 @@ typedef struct pa_core pa_core;
 
 struct pa_core {
     pa_msgobject parent;
-    
+
     /* A random value which may be used to identify this instance of
      * PulseAudio. Not cryptographically secure in any way. */
     uint32_t cookie;

@@ -124,9 +124,9 @@ static void thread_func(void *userdata) {
                     default:
                         pa_sink_process_msg(u->sink->asyncmsgq, object, code, data);
                 }
-                
+
             } else if (object == u->sink) {
-                        
+
                 case PA_SINK_MESSAGE_STOP:
                     pa_assert(running);
                     running = 0;
@@ -155,7 +155,7 @@ static void thread_func(void *userdata) {
                 default:
                     pa_sink_process_msg(u->sink->asyncmsgq, object, code, data);
             }
-            
+
             pa_asyncmsgq_done(u->sink->asyncmsgq);
             continue;
         }
@@ -171,20 +171,20 @@ static void thread_func(void *userdata) {
 
             if (!underrun) {
                 ssize_t l;
-                
+
                 p = pa_memblock_acquire(u->memchunk.memblock);
                 l = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length);
                 pa_memblock_release(p);
-                    
+
                 if (l < 0) {
 
                     if (errno != EINTR && errno != EAGAIN) {
                         pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
                         goto fail;
                     }
-                    
+
                 } else {
-                        
+
                     u->memchunk.index += l;
                     u->memchunk.length -= l;
 
@@ -202,7 +202,7 @@ static void thread_func(void *userdata) {
         pollfd[POLLFD_FIFO].events = running && !underrun ? POLLOUT : 0;
 
         /* Hmm, nothing to do. Let's sleep */
-        
+
         if (pa_asyncmsgq_before_poll(u->sink->asyncmsgq) < 0)
             continue;
 
@@ -221,10 +221,10 @@ static void thread_func(void *userdata) {
             pa_log("FIFO shutdown.");
             goto fail;
         }
-        
+
         pa_assert(pollfd[POLLFD_ASYNCQ].revents & ~POLLIN == 0);
     }
-    
+
 fail:
     /* We have to continue processing messages until we receive the
      * SHUTDOWN message */
@@ -265,9 +265,9 @@ int pa__init(pa_core *c, pa_module*m) {
     u->memchunk.memblock = NULL;
     u->memchunk.length = 0;
     m->userdata = u;
-    
+
     mkfifo(u->filename, 0666);
-    
+
     if ((u->fd = open(u->filename, O_RDWR)) < 0) {
         pa_log("open('%s'): %s", p, pa_cstrerror(errno));
         goto fail;
@@ -290,7 +290,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("Failed to create sink.");
         goto fail;
     }
-    
+
     u->sink->userdata = u;
     pa_sink_set_owner(u->sink, m);
     pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Unix FIFO sink '%s'", p));
@@ -300,7 +300,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("Failed to create thread.");
         goto fail;
     }
-    
+
     pa_modargs_free(ma);
 
     return 0;
@@ -328,7 +328,7 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_asyncmsgq_send(u->sink->asyncmsgq, PA_SINK_MESSAGE_SHUTDOWN, NULL);
         pa_thread_free(u->thread);
     }
-    
+
     pa_sink_unref(u->sink);
 
     if (u->memchunk.memblock)

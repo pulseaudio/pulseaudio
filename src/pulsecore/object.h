@@ -68,5 +68,5 @@ static inline int pa_object_refcnt(pa_object *o) {
         pa_object_assert_ref(PA_OBJECT(o));                     \
     }                                                           \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
-        
+
 #endif

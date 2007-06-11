@@ -60,7 +60,7 @@ void pa_semaphore_post(pa_semaphore *s) {
 void pa_semaphore_wait(pa_semaphore *s) {
     int ret;
     pa_assert(s);
-    
+
     do {
         ret = sem_wait(&s->sem);
     } while (ret < 0 && errno == EINTR);

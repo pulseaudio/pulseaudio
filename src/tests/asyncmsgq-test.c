@@ -48,11 +48,11 @@ static void the_thread(void *_q) {
 
     do {
         int code = 0;
-        
+
         pa_assert_se(pa_asyncmsgq_get(q, NULL, &code, NULL, 1) == 0);
 
         switch (code) {
-            
+
             case OPERATION_A:
                 printf("Operation A\n");
                 break;
@@ -64,7 +64,7 @@ static void the_thread(void *_q) {
             case OPERATION_C:
                 printf("Operation C\n");
                 break;
-                
+
             case QUIT:
                 printf("quit\n");
                 quit = 1;
@@ -79,7 +79,7 @@ static void the_thread(void *_q) {
 int main(int argc, char *argv[]) {
     pa_asyncmsgq *q;
     pa_thread *t;
-    
+
     pa_assert_se(q = pa_asyncmsgq_new(0));
 
     pa_assert_se(t = pa_thread_new(the_thread, q));

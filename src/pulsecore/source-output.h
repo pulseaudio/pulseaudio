@@ -48,7 +48,7 @@ typedef enum pa_source_output_flags {
 
 struct pa_source_output {
     pa_msgobject parent;
-    
+
     uint32_t index;
     pa_core *core;
     pa_atomic_t state;
@@ -72,10 +72,10 @@ struct pa_source_output {
 
     struct {
         pa_sample_spec sample_spec;
-        
+
         pa_resampler* resampler;              /* may be NULL */
     } thread_info;
-        
+
     void *userdata;
 };
 
