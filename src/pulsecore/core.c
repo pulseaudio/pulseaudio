@@ -45,13 +45,59 @@
 #include <pulsecore/props.h>
 #include <pulsecore/random.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "core.h"
+
+static int core_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk) {
+    pa_core *c = PA_CORE(o);
+
+    pa_core_assert_ref(c);
+    
+    switch (code) {
+        
+        case PA_CORE_MESSAGE_UNLOAD_MODULE:
+            pa_module_unload(c, userdata);
+            return 0;
+
+        default:
+            return -1;
+    }
+}
+
+static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
+    pa_core *c = userdata;
+    
+    pa_assert(pa_asyncmsgq_get_fd(c->asyncmsgq) == fd);
+    pa_assert(events == PA_IO_EVENT_INPUT);
+
+    pa_asyncmsgq_after_poll(c->asyncmsgq);
+
+    for (;;) {
+        pa_msgobject *object;
+        int code;
+        void *data;
+        pa_memchunk chunk;
+
+        /* Check whether there is a message for us to process */
+        while (pa_asyncmsgq_get(c->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
+            pa_asyncmsgq_dispatch(object, code, data, &chunk);
+            pa_asyncmsgq_done(c->asyncmsgq, 0);
+        }
+        
+        if (pa_asyncmsgq_before_poll(c->asyncmsgq) == 0)
+            break;
+    }
+}
+
+static void core_free(pa_object *o);
 
 pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_core* c;
     pa_mempool *pool;
 
+    pa_assert(m);
+    
     if (shared) {
         if (!(pool = pa_mempool_new(shared))) {
             pa_log_warn("failed to allocate shared memory pool. Falling back to a normal memory pool.");
@@ -66,7 +112,9 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
         }
     }
 
-    c = pa_xnew(pa_core, 1);
+    c = pa_msgobject_new(pa_core);
+    c->parent.parent.free = core_free;
+    c->parent.process_msg = core_process_msg;
 
     c->mainloop = m;
     c->clients = pa_idxset_new(NULL, NULL);
@@ -123,11 +171,17 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
 #ifdef SIGPIPE
     pa_check_signal_is_blocked(SIGPIPE);
 #endif
+
+    pa_assert_se(c->asyncmsgq = pa_asyncmsgq_new(0));
+    pa_assert_se(pa_asyncmsgq_before_poll(c->asyncmsgq) == 0);
+    pa_assert_se(c->asyncmsgq_event = c->mainloop->io_new(c->mainloop, pa_asyncmsgq_get_fd(c->asyncmsgq), PA_IO_EVENT_INPUT, asyncmsgq_cb, c));
+            
     return c;
 }
 
-void pa_core_free(pa_core *c) {
-    assert(c);
+static void core_free(pa_object *o) {
+    pa_core *c = PA_CORE(o);
+    pa_core_assert_ref(c);
 
     pa_module_unload_all(c);
     assert(!c->modules);
@@ -161,6 +215,10 @@ void pa_core_free(pa_core *c) {
     pa_mempool_free(c->mempool);
 
     pa_property_cleanup(c);
+
+    c->mainloop->io_free(c->asyncmsgq_event);
+    pa_asyncmsgq_after_poll(c->asyncmsgq);
+    pa_asyncmsgq_free(c->asyncmsgq);
 
     pa_hook_free(&c->hook_sink_input_new);
     pa_hook_free(&c->hook_sink_disconnect);

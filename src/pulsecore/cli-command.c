@@ -95,6 +95,7 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
 static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
+static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_kill_client(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
@@ -130,12 +131,13 @@ static const struct command commands[] = {
     { "info",                    pa_cli_command_info,               "Show comprehensive status",    1 },
     { "ls",                      pa_cli_command_info,               NULL,                           1 },
     { "list",                    pa_cli_command_info,               NULL,                           1 },
-    { "load-module",             pa_cli_command_load,               "Load a module (args: name, arguments)",                     3},
-    { "unload-module",           pa_cli_command_unload,             "Unload a module (args: index)",                             2},
-    { "set-sink-volume",         pa_cli_command_sink_volume,        "Set the volume of a sink (args: index|name, volume)",             3},
+    { "load-module",             pa_cli_command_load,               "Load a module (args: name, arguments)", 3},
+    { "unload-module",           pa_cli_command_unload,             "Unload a module (args: index)", 2},
+    { "set-sink-volume",         pa_cli_command_sink_volume,        "Set the volume of a sink (args: index|name, volume)", 3},
     { "set-sink-input-volume",   pa_cli_command_sink_input_volume,  "Set the volume of a sink input (args: index|name, volume)", 3},
     { "set-source-volume",       pa_cli_command_source_volume,      "Set the volume of a source (args: index|name, volume)", 3},
     { "set-sink-mute",           pa_cli_command_sink_mute,          "Set the mute switch of a sink (args: index|name, mute)", 3},
+    { "set-sink-input-mute",     pa_cli_command_sink_input_mute,    "Set the mute switch of a sink input (args: index|name, mute)", 3},
     { "set-source-mute",         pa_cli_command_source_mute,        "Set the mute switch of a source (args: index|name, mute)", 3},
     { "set-default-sink",        pa_cli_command_sink_default,       "Set the default sink (args: index|name)", 2},
     { "set-default-source",      pa_cli_command_source_default,     "Set the default source (args: index|name)", 2},
@@ -392,7 +394,7 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     }
 
     pa_cvolume_set(&cvolume, sink->sample_spec.channels, volume);
-    pa_sink_set_volume(sink, PA_MIXER_HARDWARE, &cvolume);
+    pa_sink_set_volume(sink, &cvolume);
     return 0;
 }
 
@@ -460,7 +462,7 @@ static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *
     }
 
     pa_cvolume_set(&cvolume, source->sample_spec.channels, volume);
-    pa_source_set_volume(source, PA_MIXER_HARDWARE, &cvolume);
+    pa_source_set_volume(source, &cvolume);
     return 0;
 }
 
@@ -489,7 +491,7 @@ static int pa_cli_command_sink_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
         return -1;
     }
 
-    pa_sink_set_mute(sink, PA_MIXER_HARDWARE, mute);
+    pa_sink_set_mute(sink, mute);
     return 0;
 }
 
@@ -518,7 +520,42 @@ static int pa_cli_command_source_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    pa_source_set_mute(source, PA_MIXER_HARDWARE, mute);
+    pa_source_set_mute(source, mute);
+    return 0;
+}
+
+static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
+    const char *n, *v;
+    pa_sink_input *si;
+    uint32_t idx;
+    int mute;
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a sink input by its index.\n");
+        return -1;
+    }
+
+    if ((idx = parse_index(n)) == PA_IDXSET_INVALID) {
+        pa_strbuf_puts(buf, "Failed to parse index.\n");
+        return -1;
+    }
+
+    if (!(v = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        return -1;
+    }
+
+    if (pa_atoi(v, &mute) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse mute switch.\n");
+        return -1;
+    }
+
+    if (!(si = pa_idxset_get_by_index(c->sink_inputs, (uint32_t) idx))) {
+        pa_strbuf_puts(buf, "No sink input found with this index.\n");
+        return -1;
+    }
+
+    pa_sink_input_set_mute(si, mute);
     return 0;
 }
 
@@ -900,7 +937,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
     nl = 0;
 
     for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
-        if (sink->owner && sink->owner->auto_unload)
+        if (sink->module && sink->module->auto_unload)
             continue;
 
         if (!nl) {
@@ -908,12 +945,12 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
             nl = 1;
         }
 
-        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_avg(pa_sink_get_volume(sink, PA_MIXER_HARDWARE)));
-        pa_strbuf_printf(buf, "set-sink-mute %s %d\n", sink->name, pa_sink_get_mute(sink, PA_MIXER_HARDWARE));
+        pa_strbuf_printf(buf, "set-sink-volume %s 0x%03x\n", sink->name, pa_cvolume_avg(pa_sink_get_volume(sink)));
+        pa_strbuf_printf(buf, "set-sink-mute %s %d\n", sink->name, pa_sink_get_mute(sink));
     }
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
-        if (source->owner && source->owner->auto_unload)
+        if (source->module && source->module->auto_unload)
             continue;
 
         if (!nl) {
@@ -921,8 +958,8 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
             nl = 1;
         }
 
-        pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_avg(pa_source_get_volume(source, PA_MIXER_HARDWARE)));
-        pa_strbuf_printf(buf, "set-source-mute %s %d\n", source->name, pa_source_get_mute(source, PA_MIXER_HARDWARE));
+        pa_strbuf_printf(buf, "set-source-volume %s 0x%03x\n", source->name, pa_cvolume_avg(pa_source_get_volume(source)));
+        pa_strbuf_printf(buf, "set-source-mute %s %d\n", source->name, pa_source_get_mute(source));
     }
 
 

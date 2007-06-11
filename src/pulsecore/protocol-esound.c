@@ -894,13 +894,21 @@ static int do_read(struct connection *c) {
         }
     } else if (c->state == ESD_CACHING_SAMPLE) {
         ssize_t r;
+        void *p;
 
-        assert(c->scache.memchunk.memblock && c->scache.name && c->scache.memchunk.index < c->scache.memchunk.length);
+        assert(c->scache.memchunk.memblock);
+        assert(c->scache.name);
+        assert(c->scache.memchunk.index < c->scache.memchunk.length);
 
-        if ((r = pa_iochannel_read(c->io, (uint8_t*) c->scache.memchunk.memblock->data+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index)) <= 0) {
+        p = pa_memblock_acquire(c->scache.memchunk.memblock);
+
+        if ((r = pa_iochannel_read(c->io, (uint8_t*) p+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index)) <= 0) {
+            pa_memblock_release(c->scache.memchunk.memblock);
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
+
+        pa_memblock_release(c->scache.memchunk.memblock);
 
         c->scache.memchunk.index += r;
         assert(c->scache.memchunk.index <= c->scache.memchunk.length);
@@ -928,6 +936,7 @@ static int do_read(struct connection *c) {
         pa_memchunk chunk;
         ssize_t r;
         size_t l;
+        void *p;
 
         assert(c->input_memblockq);
 
@@ -940,7 +949,7 @@ static int do_read(struct connection *c) {
             l = c->playback.fragment_size;
 
         if (c->playback.current_memblock)
-            if (c->playback.current_memblock->length - c->playback.memblock_index < l) {
+            if (pa_memblock_get_length(c->playback.current_memblock) - c->playback.memblock_index < l) {
                 pa_memblock_unref(c->playback.current_memblock);
                 c->playback.current_memblock = NULL;
                 c->playback.memblock_index = 0;
@@ -948,14 +957,19 @@ static int do_read(struct connection *c) {
 
         if (!c->playback.current_memblock) {
             c->playback.current_memblock = pa_memblock_new(c->protocol->core->mempool, c->playback.fragment_size*2);
-            assert(c->playback.current_memblock && c->playback.current_memblock->length >= l);
+            assert(c->playback.current_memblock);
+            assert(pa_memblock_get_length(c->playback.current_memblock) >= l);
             c->playback.memblock_index = 0;
         }
 
-        if ((r = pa_iochannel_read(c->io, (uint8_t*) c->playback.current_memblock->data+c->playback.memblock_index, l)) <= 0) {
+        p = pa_memblock_acquire(c->playback.current_memblock);
+
+        if ((r = pa_iochannel_read(c->io, (uint8_t*) p+c->playback.memblock_index, l)) <= 0) {
+            pa_memblock_release(c->playback.current_memblock);
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
+        pa_memblock_release(c->playback.current_memblock);
 
         chunk.memblock = c->playback.current_memblock;
         chunk.index = c->playback.memblock_index;
@@ -993,18 +1007,25 @@ static int do_write(struct connection *c) {
     } else if (c->state == ESD_STREAMING_DATA && c->source_output) {
         pa_memchunk chunk;
         ssize_t r;
+        void *p;
 
         assert(c->output_memblockq);
         if (pa_memblockq_peek(c->output_memblockq, &chunk) < 0)
             return 0;
 
-        assert(chunk.memblock && chunk.length);
+        assert(chunk.memblock);
+        assert(chunk.length);
 
-        if ((r = pa_iochannel_write(c->io, (uint8_t*) chunk.memblock->data+chunk.index, chunk.length)) < 0) {
+        p = pa_memblock_acquire(chunk.memblock);
+
+        if ((r = pa_iochannel_write(c->io, (uint8_t*) p+chunk.index, chunk.length)) < 0) {
+            pa_memblock_release(chunk.memblock);
             pa_memblock_unref(chunk.memblock);
             pa_log("write(): %s", pa_cstrerror(errno));
             return -1;
         }
+
+        pa_memblock_release(chunk.memblock);
 
         pa_memblockq_drop(c->output_memblockq, &chunk, r);
         pa_memblock_unref(chunk.memblock);

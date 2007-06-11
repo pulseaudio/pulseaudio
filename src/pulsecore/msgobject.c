@@ -1,11 +1,9 @@
-#ifndef foocoredefhfoo
-#define foocoredefhfoo
-
 /* $Id$ */
 
 /***
   This file is part of PulseAudio.
 
+  Copyright 2004-2006 Lennart Poettering
   Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
@@ -24,6 +22,19 @@
   USA.
 ***/
 
-/* FIXME: Remove this shit */
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
+
+#include "msgobject.h"
+
+pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_name) {
+    pa_msgobject *o;
+    
+    pa_assert(size > sizeof(pa_msgobject));
+    pa_assert(type_name);
+
+    o = PA_MSGOBJECT(pa_object_new_internal(size, type_name));
+    o->process_msg = NULL;
+    return o;
+}

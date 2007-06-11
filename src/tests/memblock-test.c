@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
     pa_memblock* blocks[5];
     uint32_t id, shm_id;
     size_t offset, size;
+    char *x;
 
     const char txt[] = "This is a test!";
 
@@ -90,10 +91,17 @@ int main(int argc, char *argv[]) {
     assert(pool_a && pool_b && pool_c);
 
     blocks[0] = pa_memblock_new_fixed(pool_a, (void*) txt, sizeof(txt), 1);
+
     blocks[1] = pa_memblock_new(pool_a, sizeof(txt));
-    snprintf(blocks[1]->data, blocks[1]->length, "%s", txt);
+    x = pa_memblock_acquire(blocks[1]);
+    snprintf(x, pa_memblock_get_length(blocks[1]), "%s", txt);
+    pa_memblock_release(blocks[1]);
+
     blocks[2] = pa_memblock_new_pool(pool_a, sizeof(txt));
-    snprintf(blocks[2]->data, blocks[2]->length, "%s", txt);
+    x = pa_memblock_acquire(blocks[2]);
+    snprintf(x, pa_memblock_get_length(blocks[2]), "%s", txt);
+    pa_memblock_release(blocks[1]);
+
     blocks[3] = pa_memblock_new_malloced(pool_a, pa_xstrdup(txt), sizeof(txt));
     blocks[4] = NULL;
 
@@ -130,14 +138,18 @@ int main(int argc, char *argv[]) {
 
         mb_c = pa_memimport_get(import_c, id, shm_id, offset, size);
         assert(mb_c);
-        printf("1 data=%s\n", (char*) mb_c->data);
+        x = pa_memblock_acquire(mb_c);
+        printf("1 data=%s\n", x);
+        pa_memblock_release(mb_c);
 
         print_stats(pool_a, "A");
         print_stats(pool_b, "B");
         print_stats(pool_c, "C");
 
         pa_memexport_free(export_b);
-        printf("2 data=%s\n", (char*) mb_c->data);
+        x = pa_memblock_acquire(mb_c);
+        printf("2 data=%s\n", x);
+        pa_memblock_release(mb_c);
         pa_memblock_unref(mb_c);
 
         pa_memimport_free(import_b);

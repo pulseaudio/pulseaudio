@@ -34,17 +34,21 @@
 #include <pulsecore/queue.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/hook-list.h>
+#include <pulsecore/asyncmsgq.h>
 
 typedef struct pa_core pa_core;
 
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/sink-input.h>
+#include <pulsecore/msgobject.h>
 
 /* The core structure of PulseAudio. Every PulseAudio daemon contains
  * exactly one of these. It is used for storing kind of global
  * variables for the daemon. */
 
 struct pa_core {
+    pa_msgobject parent;
+    
     /* A random value which may be used to identify this instance of
      * PulseAudio. Not cryptographically secure in any way. */
     uint32_t cookie;
@@ -88,10 +92,20 @@ struct pa_core {
         hook_sink_disconnect,
         hook_source_output_new,
         hook_source_disconnect;
+
+    pa_asyncmsgq *asyncmsgq;
+    pa_io_event *asyncmsgq_event;
+};
+
+PA_DECLARE_CLASS(pa_core);
+#define PA_CORE(o) ((pa_core*) o)
+
+enum {
+    PA_CORE_MESSAGE_UNLOAD_MODULE,
+    PA_CORE_MESSAGE_MAX
 };
 
 pa_core* pa_core_new(pa_mainloop_api *m, int shared);
-void pa_core_free(pa_core*c);
 
 /* Check whether noone is connected to this core */
 void pa_core_check_quit(pa_core *c);

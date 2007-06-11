@@ -1,5 +1,5 @@
-#ifndef foopulserefcnthfoo
-#define foopulserefcnthfoo
+#ifndef foopulsesemaphorehfoo
+#define foopulsesemaphorehfoo
 
 /* $Id$ */
 
@@ -24,21 +24,12 @@
   USA.
 ***/
 
-#include <pulsecore/atomic.h>
+typedef struct pa_semaphore pa_semaphore;
 
-#define PA_REFCNT_DECLARE \
-    pa_atomic_t _ref
+pa_semaphore* pa_semaphore_new(unsigned value);
+void pa_semaphore_free(pa_semaphore *m);
 
-#define PA_REFCNT_INIT(p) \
-    pa_atomic_store(&(p)->_ref, 1)
-
-#define PA_REFCNT_INC(p) \
-    pa_atomic_inc(&(p)->_ref)
-
-#define PA_REFCNT_DEC(p) \
-    (pa_atomic_dec(&(p)->_ref)-1)
-
-#define PA_REFCNT_VALUE(p) \
-    pa_atomic_load(&(p)->_ref)
+void pa_semaphore_post(pa_semaphore *m);
+void pa_semaphore_wait(pa_semaphore *m);
 
 #endif

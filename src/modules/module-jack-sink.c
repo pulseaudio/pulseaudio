@@ -137,22 +137,25 @@ static void io_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event_
         unsigned fs;
         jack_nframes_t frame_idx;
         pa_memchunk chunk;
+        void *p;
 
         fs = pa_frame_size(&u->sink->sample_spec);
 
         pa_sink_render_full(u->sink, u->frames_requested * fs, &chunk);
+        p = pa_memblock_acquire(chunk.memblock);
 
         for (frame_idx = 0; frame_idx < u->frames_requested; frame_idx ++) {
             unsigned c;
 
             for (c = 0; c < u->channels; c++) {
-                float *s = ((float*) ((uint8_t*) chunk.memblock->data + chunk.index)) + (frame_idx * u->channels) + c;
+                float *s = ((float*) ((uint8_t*) p + chunk.index)) + (frame_idx * u->channels) + c;
                 float *d = ((float*) u->buffer[c]) + frame_idx;
 
                 *d = *s;
             }
         }
 
+        pa_memblock_release(chunk.memblock);
         pa_memblock_unref(chunk.memblock);
 
         u->frames_requested = 0;

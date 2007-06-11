@@ -26,44 +26,56 @@
 #endif
 
 #include <pthread.h>
-#include <assert.h>
 
+#include <pulsecore/macro.h>
 #include <pulsecore/mutex.h>
 
 #include "once.h"
 
-#define ASSERT_SUCCESS(x) do { \
-    int _r = (x); \
-    assert(_r == 0); \
-} while(0)
-
-static pa_mutex *global_mutex;
-static pthread_once_t global_mutex_once = PTHREAD_ONCE_INIT;
-
-static void global_mutex_once_func(void) {
-    global_mutex = pa_mutex_new(0);
-}
-
+/* Not reentrant -- how could it be? */
 void pa_once(pa_once_t *control, pa_once_func_t func) {
-    assert(control);
-    assert(func);
+    pa_mutex *m;
+    
+    pa_assert(control);
+    pa_assert(func);
 
-    /* Create the global mutex */
-    ASSERT_SUCCESS(pthread_once(&global_mutex_once, global_mutex_once_func));
+    if (pa_atomic_load(&control->done))
+        return;
+    
+    pa_atomic_inc(&control->ref);
+        
+    for (;;) {
+        
+        if ((m = pa_atomic_ptr_load(&control->mutex))) {
 
-    /* Create the local mutex */
-    pa_mutex_lock(global_mutex);
-    if (!control->mutex)
-        control->mutex = pa_mutex_new(1);
-    pa_mutex_unlock(global_mutex);
+            /* The mutex is stored in locked state, hence let's just
+             * wait until it is unlocked */
+            pa_mutex_lock(m);
+            pa_mutex_unlock(m);
+            break;
+        }
 
-    /* Execute function */
-    pa_mutex_lock(control->mutex);
-    if (!control->once_value) {
-        control->once_value = 1;
-        func();
+        pa_assert_se(m = pa_mutex_new(0));
+        pa_mutex_lock(m);
+        
+        if (pa_atomic_ptr_cmpxchg(&control->mutex, NULL, m)) {
+            func();
+            pa_atomic_store(&control->done, 1);
+            pa_mutex_unlock(m);
+
+            break;
+        }
+
+        pa_mutex_unlock(m);
+        pa_mutex_free(m);
     }
-    pa_mutex_unlock(control->mutex);
+
+    pa_assert(pa_atomic_load(&control->done));
+    
+    if (pa_atomic_dec(&control->ref) <= 1) {
+        pa_assert(pa_atomic_ptr_cmpxchg(&control->mutex, m, NULL));
+        pa_mutex_free(m);
+    }
 
     /* Caveat: We have to make sure that the once func has completed
      * before returning, even if the once func is not actually

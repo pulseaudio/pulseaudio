@@ -93,6 +93,12 @@ char *pa_sink_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_sink *sink;
     uint32_t idx = PA_IDXSET_INVALID;
+    static const char* const state_table[] = {
+        [PA_SINK_RUNNING] = "RUNNING",
+        [PA_SINK_SUSPENDED] = "SUSPENDED",
+        [PA_SINK_IDLE] = "IDLE",
+        [PA_SINK_DISCONNECTED] = "DISCONNECTED"
+    };
     assert(c);
 
     s = pa_strbuf_new();
@@ -108,22 +114,29 @@ char *pa_sink_list_to_string(pa_core *c) {
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
+            "\tis_hardware: <%i>\n"
+            "\tstate: %s\n"
             "\tvolume: <%s>\n"
+            "\tmute: <%i>\n"
             "\tlatency: <%0.0f usec>\n"
             "\tmonitor_source: <%u>\n"
             "\tsample spec: <%s>\n"
             "\tchannel map: <%s>\n",
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
-            sink->index, sink->name,
+            sink->index,
+            sink->name,
             sink->driver,
-            pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink, PA_MIXER_HARDWARE)),
+            !!sink->is_hardware,
+            state_table[pa_sink_get_state(sink)],
+            pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink)),
+            !!pa_sink_get_mute(sink),
             (double) pa_sink_get_latency(sink),
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
             pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map));
 
-        if (sink->owner)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", sink->owner->index);
+        if (sink->module)
+            pa_strbuf_printf(s, "\tmodule: <%u>\n", sink->module->index);
         if (sink->description)
             pa_strbuf_printf(s, "\tdescription: <%s>\n", sink->description);
     }
@@ -135,6 +148,12 @@ char *pa_source_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_source *source;
     uint32_t idx = PA_IDXSET_INVALID;
+    static const char* const state_table[] = {
+        [PA_SOURCE_RUNNING] = "RUNNING",
+        [PA_SOURCE_SUSPENDED] = "SUSPENDED",
+        [PA_SOURCE_IDLE] = "IDLE",
+        [PA_SOURCE_DISCONNECTED] = "DISCONNECTED"
+    };
     assert(c);
 
     s = pa_strbuf_new();
@@ -143,7 +162,7 @@ char *pa_source_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_size(c->sources));
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX];
 
 
         pa_strbuf_printf(
@@ -151,6 +170,10 @@ char *pa_source_list_to_string(pa_core *c) {
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
+            "\tis_hardware: <%i>\n"
+            "\tstate: %s\n"
+            "\tvolume: <%s>\n"
+            "\tmute: <%u>\n"
             "\tlatency: <%0.0f usec>\n"
             "\tsample spec: <%s>\n"
             "\tchannel map: <%s>\n",
@@ -158,14 +181,18 @@ char *pa_source_list_to_string(pa_core *c) {
             source->index,
             source->name,
             source->driver,
+            !!source->is_hardware,
+            state_table[pa_source_get_state(source)],
+            pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source)),
+            !!pa_source_get_mute(source),
             (double) pa_source_get_latency(source),
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map));
 
         if (source->monitor_of)
             pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);
-        if (source->owner)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", source->owner->index);
+        if (source->module)
+            pa_strbuf_printf(s, "\tmodule: <%u>\n", source->module->index);
         if (source->description)
             pa_strbuf_printf(s, "\tdescription: <%s>\n", source->description);
     }
@@ -179,9 +206,9 @@ char *pa_source_output_list_to_string(pa_core *c) {
     pa_source_output *o;
     uint32_t idx = PA_IDXSET_INVALID;
     static const char* const state_table[] = {
-        "RUNNING",
-        "CORKED",
-        "DISCONNECTED"
+        [PA_SOURCE_OUTPUT_RUNNING] = "RUNNING",
+        [PA_SOURCE_OUTPUT_CORKED] = "CORKED",
+        [PA_SOURCE_OUTPUT_DISCONNECTED] = "DISCONNECTED"
     };
     assert(c);
 
@@ -202,14 +229,16 @@ char *pa_source_output_list_to_string(pa_core *c) {
             "\tdriver: <%s>\n"
             "\tstate: %s\n"
             "\tsource: <%u> '%s'\n"
+            "\tlatency: <%0.0f usec>\n"
             "\tsample spec: <%s>\n"
             "\tchannel map: <%s>\n"
             "\tresample method: %s\n",
             o->index,
             o->name,
             o->driver,
-            state_table[o->state],
+            state_table[pa_source_output_get_state(o)],
             o->source->index, o->source->name,
+            (double) pa_source_output_get_latency(o),
             pa_sample_spec_snprint(ss, sizeof(ss), &o->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map),
             pa_resample_method_to_string(pa_source_output_get_resample_method(o)));
@@ -227,9 +256,10 @@ char *pa_sink_input_list_to_string(pa_core *c) {
     pa_sink_input *i;
     uint32_t idx = PA_IDXSET_INVALID;
     static const char* const state_table[] = {
-        "RUNNING",
-        "CORKED",
-        "DISCONNECTED"
+        [PA_SINK_INPUT_RUNNING] = "RUNNING",
+        [PA_SINK_INPUT_DRAINED] = "DRAINED",
+        [PA_SINK_INPUT_CORKED] = "CORKED",
+        [PA_SINK_INPUT_DISCONNECTED] = "DISCONNECTED"
     };
 
     assert(c);
@@ -251,6 +281,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             "\tstate: %s\n"
             "\tsink: <%u> '%s'\n"
             "\tvolume: <%s>\n"
+            "\tmute: <%i>\n"
             "\tlatency: <%0.0f usec>\n"
             "\tsample spec: <%s>\n"
             "\tchannel map: <%s>\n"
@@ -258,16 +289,17 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             i->index,
             i->name,
             i->driver,
-            state_table[i->state],
+            state_table[pa_sink_input_get_state(i)],
             i->sink->index, i->sink->name,
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_input_get_volume(i)),
+            !!pa_sink_input_get_mute(i),
             (double) pa_sink_input_get_latency(i),
             pa_sample_spec_snprint(ss, sizeof(ss), &i->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
             pa_resample_method_to_string(pa_sink_input_get_resample_method(i)));
 
         if (i->module)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", i->module->index);
+            pa_strbuf_printf(s, "\tmodule: <%u>\n", i->module->index);
         if (i->client)
             pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", i->client->index, i->client->name);
     }

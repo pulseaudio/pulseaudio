@@ -1,5 +1,5 @@
-#ifndef foosourceoutputhfoo
-#define foosourceoutputhfoo
+#ifndef foopulsesourceoutputhfoo
+#define foopulsesourceoutputhfoo
 
 /* $Id$ */
 
@@ -35,38 +35,57 @@ typedef struct pa_source_output pa_source_output;
 #include <pulsecore/module.h>
 #include <pulsecore/client.h>
 
-typedef enum {
+typedef enum pa_source_output_state {
     PA_SOURCE_OUTPUT_RUNNING,
     PA_SOURCE_OUTPUT_CORKED,
     PA_SOURCE_OUTPUT_DISCONNECTED
 } pa_source_output_state_t;
 
 typedef enum pa_source_output_flags {
-    PA_SOURCE_OUTPUT_NO_HOOKS = 1
+    PA_SOURCE_OUTPUT_NO_HOOKS = 1,
+    PA_SOURCE_OUTPUT_VARIABLE_RATE = 2
 } pa_source_output_flags_t;
 
 struct pa_source_output {
-    int ref;
+    pa_msgobject parent;
+    
     uint32_t index;
-    pa_source_output_state_t state;
+    pa_core *core;
+    pa_atomic_t state;
+    pa_source_output_flags_t flags;
 
     char *name, *driver;                  /* may be NULL */
     pa_module *module;                    /* may be NULL */
+    pa_client *client;                    /* may be NULL */
 
     pa_source *source;
-    pa_client *client;                    /* may be NULL */
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
+    int (*process_msg)(pa_sink_input *i, int code, void *userdata);
     void (*push)(pa_source_output *o, const pa_memchunk *chunk);
     void (*kill)(pa_source_output* o);              /* may be NULL */
     pa_usec_t (*get_latency) (pa_source_output *o); /* may be NULL */
 
-    pa_resampler* resampler;              /* may be NULL */
     pa_resample_method_t resample_method;
 
+    struct {
+        pa_sample_spec sample_spec;
+        
+        pa_resampler* resampler;              /* may be NULL */
+    } thread_info;
+        
     void *userdata;
+};
+
+PA_DECLARE_CLASS(pa_source_output);
+#define PA_SOURCE_OUTPUT(o) ((pa_source_output*) (o))
+
+enum {
+    PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY,
+    PA_SOURCE_OUTPUT_MESSAGE_SET_RATE,
+    PA_SOURCE_OUTPUT_MESSAGE_MAX
 };
 
 typedef struct pa_source_output_new_data {
@@ -89,30 +108,38 @@ void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, 
 void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, const pa_channel_map *map);
 void pa_source_output_new_data_set_volume(pa_source_output_new_data *data, const pa_cvolume *volume);
 
+/* To be called by the implementing module only */
+
 pa_source_output* pa_source_output_new(
         pa_core *core,
         pa_source_output_new_data *data,
         pa_source_output_flags_t flags);
 
-void pa_source_output_unref(pa_source_output* o);
-pa_source_output* pa_source_output_ref(pa_source_output *o);
-
-/* To be called by the implementing module only */
+void pa_source_output_put(pa_source_output *o);
 void pa_source_output_disconnect(pa_source_output*o);
+
+void pa_source_output_set_name(pa_source_output *i, const char *name);
+
+/* Callable by everyone */
 
 /* External code may request disconnection with this funcion */
 void pa_source_output_kill(pa_source_output*o);
-
-void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk);
-
-void pa_source_output_set_name(pa_source_output *i, const char *name);
 
 pa_usec_t pa_source_output_get_latency(pa_source_output *i);
 
 void pa_source_output_cork(pa_source_output *i, int b);
 
+void pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
+
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
+
+#define pa_source_output_get_state(o) ((pa_source_output_state_t) pa_atomic_load(&o->state))
+
+/* To be used exclusively by the source driver thread */
+
+void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk);
+int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, pa_memchunk *chunk);
 
 #endif

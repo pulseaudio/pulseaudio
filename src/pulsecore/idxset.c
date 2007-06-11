@@ -32,6 +32,7 @@
 #include <string.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
 
 #include "idxset.h"
 

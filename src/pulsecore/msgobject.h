@@ -1,11 +1,12 @@
-#ifndef foocoredefhfoo
-#define foocoredefhfoo
+#ifndef foopulsemsgobjecthfoo
+#define foopulsemsgobjecthfoo
 
 /* $Id$ */
 
 /***
   This file is part of PulseAudio.
 
+  Copyright 2004-2006 Lennart Poettering
   Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
   PulseAudio is free software; you can redistribute it and/or modify
@@ -24,6 +25,28 @@
   USA.
 ***/
 
-/* FIXME: Remove this shit */
+#include <sys/types.h>
+
+#include <pulse/xmalloc.h>
+#include <pulsecore/refcnt.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/object.h>
+#include <pulsecore/memchunk.h>
+
+typedef struct pa_msgobject pa_msgobject;
+
+struct pa_msgobject {
+    pa_object parent;
+    int (*process_msg)(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
+};
+
+pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_name);
+
+#define pa_msgobject_new(type) ((type*) pa_msgobject_new_internal(sizeof(type), #type))
+#define pa_msgobject_free ((void (*) (pa_msgobject* o)) pa_object_free)
+
+#define PA_MSGOBJECT(o) ((pa_msgobject*) (o))
+
+PA_DECLARE_CLASS(pa_msgobject);
 
 #endif

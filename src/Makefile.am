@@ -78,13 +78,15 @@ if OS_IS_WIN32
 PA_THREAD_OBJS = \
 		pulsecore/once-win32.c pulsecore/once.h \
 		pulsecore/mutex-win32.c pulsecore/mutex.h \
-		pulsecore/thread-win32.c pulsecore/thread.h
+		pulsecore/thread-win32.c pulsecore/thread.h \
+		pulsecore/semaphore-win32.c pulsecore/semaphore.h
 else
 PA_THREAD_OBJS = \
 		pulsecore/atomic.h \
 		pulsecore/once-posix.c pulsecore/once.h \
 		pulsecore/mutex-posix.c pulsecore/mutex.h \
-		pulsecore/thread-posix.c pulsecore/thread.h
+		pulsecore/thread-posix.c pulsecore/thread.h \
+		pulsecore/semaphore-posix.c pulsecore/semaphore.h
 endif
 
 ###################################
@@ -219,7 +221,9 @@ noinst_PROGRAMS = \
 		hook-list-test \
 		memblock-test \
 		thread-test \
-		flist-test
+		flist-test \
+		asyncq-test \
+		asyncmsgq-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -274,12 +278,20 @@ thread_test_CFLAGS = $(AM_CFLAGS)
 thread_test_LDADD = $(AM_LDADD) libpulsecore.la
 thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-flist_test_SOURCES = tests/flist-test.c \
-		pulsecore/atomic.h \
-		pulsecore/flist.c pulsecore/flist.h
+flist_test_SOURCES = tests/flist-test.c
 flist_test_CFLAGS = $(AM_CFLAGS)
 flist_test_LDADD = $(AM_LDADD) libpulsecore.la
 flist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+asyncq_test_SOURCES = tests/asyncq-test.c pulsecore/thread-posix.c pulsecore/thread.h pulsecore/asyncq.c pulsecore/asyncq.h pulsecore/core-util.c pulsecore/core-util.h pulse/xmalloc.c pulse/xmalloc.h pulsecore/log.h pulsecore/log.c pulsecore/core-error.h pulsecore/core-error.c pulsecore/once-posix.c pulsecore/once.h pulsecore/mutex-posix.c pulsecore/mutex.h pulse/utf8.c pulse/utf8.h pulse/util.h pulse/util.c
+asyncq_test_CFLAGS = $(AM_CFLAGS)
+asyncq_test_LDADD = $(AM_LDADD) #libpulsecore.la
+asyncq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+asyncmsgq_test_SOURCES = tests/asyncmsgq-test.c pulsecore/thread-posix.c pulsecore/thread.h pulsecore/asyncq.c pulsecore/asyncq.h pulsecore/asyncmsgq.c pulsecore/asyncmsgq.h pulsecore/core-util.c pulsecore/core-util.h pulse/xmalloc.c pulse/xmalloc.h pulsecore/log.h pulsecore/log.c pulsecore/core-error.h pulsecore/core-error.c pulsecore/once-posix.c pulsecore/once.h pulsecore/mutex-posix.c pulsecore/mutex.h pulse/utf8.c pulse/utf8.h pulse/util.h pulse/util.c pulsecore/semaphore.h pulsecore/semaphore-posix.c pulsecore/flist.h pulsecore/flist.c
+asyncmsgq_test_CFLAGS = $(AM_CFLAGS)
+asyncmsgq_test_LDADD = $(AM_LDADD) #libpulsecore.la
+asyncmsgq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
@@ -455,6 +467,9 @@ libpulse_la_SOURCES += \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/winsock.h pulsecore/creds.h \
 		pulsecore/shm.c pulsecore/shm.h \
+		pulsecore/flist.c pulsecore/flist.h \
+		pulsecore/object.c pulsecore/object.h \
+		pulsecore/msgobject.c pulsecore/msgobject.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -567,6 +582,7 @@ pulsecoreinclude_HEADERS = \
 		pulsecore/refcnt.h \
 		pulsecore/mutex.h \
 		pulsecore/thread.h \
+		pulsecore/semaphore.h \
 		pulsecore/once.h
 
 lib_LTLIBRARIES += libpulsecore.la
@@ -636,6 +652,8 @@ libpulsecore_la_SOURCES += \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
 		pulsecore/shm.c pulsecore/shm.h \
+		pulsecore/flist.c pulsecore/flist.h \
+		pulsecore/anotify.c pulsecore/anotify.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -851,34 +869,34 @@ modlibexec_LTLIBRARIES += \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
 		module-simple-protocol-tcp.la \
-		module-esound-protocol-tcp.la \
-		module-native-protocol-tcp.la \
-		module-native-protocol-fd.la \
-		module-sine.la \
-		module-combine.la \
-		module-tunnel-sink.la \
-		module-tunnel-source.la \
-		module-null-sink.la \
-		module-esound-sink.la \
-		module-http-protocol-tcp.la \
-		module-detect.la \
-		module-volume-restore.la \
-		module-rescue-streams.la
+		module-null-sink.la
+#		module-esound-protocol-tcp.la \
+#		module-native-protocol-tcp.la \
+#		module-native-protocol-fd.la \
+#		module-sine.la \
+#		module-combine.la \
+#		module-tunnel-sink.la \
+#		module-tunnel-source.la \
+#		module-esound-sink.la \
+#		module-http-protocol-tcp.la \
+#		module-detect.la \
+#		module-volume-restore.la \
+#		module-rescue-streams.la
 
 # See comment at librtp.la above
-if !OS_IS_WIN32
-modlibexec_LTLIBRARIES += \
-		module-rtp-send.la \
-		module-rtp-recv.la
-endif
+#if !OS_IS_WIN32
+#modlibexec_LTLIBRARIES += \
+#		module-rtp-send.la \
+#		module-rtp-recv.la
+#endif
 
 if HAVE_AF_UNIX
 modlibexec_LTLIBRARIES += \
 		module-cli-protocol-unix.la \
-		module-simple-protocol-unix.la \
-		module-esound-protocol-unix.la \
-		module-native-protocol-unix.la \
-		module-http-protocol-unix.la
+		module-simple-protocol-unix.la
+#		module-esound-protocol-unix.la \
+#		module-native-protocol-unix.la \
+#		module-http-protocol-unix.la
 endif
 
 if HAVE_MKFIFO
@@ -887,11 +905,11 @@ modlibexec_LTLIBRARIES += \
 		module-pipe-source.la
 endif
 
-if !OS_IS_WIN32
-modlibexec_LTLIBRARIES += \
-		module-esound-compat-spawnfd.la \
-		module-esound-compat-spawnpid.la
-endif
+#if !OS_IS_WIN32
+#modlibexec_LTLIBRARIES += \
+#		module-esound-compat-spawnfd.la \
+#		module-esound-compat-spawnpid.la
+#endif
 
 if HAVE_REGEX
 modlibexec_LTLIBRARIES += \
@@ -904,19 +922,19 @@ modlibexec_LTLIBRARIES += \
 		module-x11-publish.la
 endif
 
-if HAVE_OSS
-modlibexec_LTLIBRARIES += \
-		liboss-util.la \
-		module-oss.la \
-		module-oss-mmap.la
-endif
+#if HAVE_OSS
+#modlibexec_LTLIBRARIES += \
+#		liboss-util.la \
+#		module-oss.la \
+#		module-oss-mmap.la
+#endif
 
-if HAVE_ALSA
-modlibexec_LTLIBRARIES += \
-		libalsa-util.la \
-		module-alsa-sink.la \
-		module-alsa-source.la
-endif
+#if HAVE_ALSA
+#modlibexec_LTLIBRARIES += \
+#		libalsa-util.la \
+#		module-alsa-sink.la \
+#		module-alsa-source.la
+#endif
 
 if HAVE_SOLARIS
 modlibexec_LTLIBRARIES += \
@@ -938,11 +956,11 @@ modlibexec_LTLIBRARIES += \
 		module-mmkbd-evdev.la
 endif
 
-if HAVE_JACK
-modlibexec_LTLIBRARIES += \
-		module-jack-sink.la \
-		module-jack-source.la
-endif
+#if HAVE_JACK
+#modlibexec_LTLIBRARIES += \
+#		module-jack-sink.la \
+#		module-jack-source.la
+#endif
 
 if HAVE_GCONF
 modlibexec_LTLIBRARIES += \

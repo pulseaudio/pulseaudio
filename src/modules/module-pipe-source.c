@@ -84,7 +84,9 @@ static const char* const valid_modargs[] = {
 
 static void do_read(struct userdata *u) {
     ssize_t r;
+    void *p;
     pa_memchunk chunk;
+
     assert(u);
 
     if (!pa_iochannel_is_readable(u->io))
@@ -97,17 +99,22 @@ static void do_read(struct userdata *u) {
         u->chunk.index = chunk.length = 0;
     }
 
-    assert(u->chunk.memblock && u->chunk.memblock->length > u->chunk.index);
-    if ((r = pa_iochannel_read(u->io, (uint8_t*) u->chunk.memblock->data + u->chunk.index, u->chunk.memblock->length - u->chunk.index)) <= 0) {
+    assert(u->chunk.memblock);
+    assert(pa_memblock_get_length(u->chunk.memblock) > u->chunk.index);
+
+    p = pa_memblock_acquire(u->chunk.memblock);
+    if ((r = pa_iochannel_read(u->io, (uint8_t*) p + u->chunk.index, pa_memblock_get_length(u->chunk.memblock) - u->chunk.index)) <= 0) {
+        pa_memblock_release(u->chunk.memblock);
         pa_log("read(): %s", pa_cstrerror(errno));
         return;
     }
+    pa_memblock_release(u->chunk.memblock);
 
     u->chunk.length = r;
     pa_source_post(u->source, &u->chunk);
     u->chunk.index += r;
 
-    if (u->chunk.index >= u->chunk.memblock->length) {
+    if (u->chunk.index >= pa_memblock_get_length(u->chunk.memblock)) {
         u->chunk.index = u->chunk.length = 0;
         pa_memblock_unref(u->chunk.memblock);
         u->chunk.memblock = NULL;

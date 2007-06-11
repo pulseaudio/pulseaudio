@@ -37,22 +37,25 @@
 void pa_memchunk_make_writable(pa_memchunk *c, size_t min) {
     pa_memblock *n;
     size_t l;
+    void *tdata, *sdata;
 
     assert(c);
     assert(c->memblock);
-    assert(PA_REFCNT_VALUE(c->memblock) > 0);
 
-    if (PA_REFCNT_VALUE(c->memblock) == 1 &&
-        !c->memblock->read_only &&
-        c->memblock->length >= c->index+min)
+    if (pa_memblock_is_read_only(c->memblock) &&
+        pa_memblock_get_length(c->memblock) >= c->index+min)
         return;
 
     l = c->length;
     if (l < min)
         l = min;
 
-    n = pa_memblock_new(c->memblock->pool, l);
-    memcpy(n->data, (uint8_t*) c->memblock->data + c->index, c->length);
+    n = pa_memblock_new(pa_memblock_get_pool(c->memblock), l);
+    tdata = pa_memblock_acquire(n);
+    sdata = pa_memblock_acquire(c->memblock);
+    memcpy(tdata, (uint8_t*) sdata + c->index, c->length);
+    pa_memblock_release(n);
+    pa_memblock_release(c->memblock);
     pa_memblock_unref(c->memblock);
     c->memblock = n;
     c->index = 0;

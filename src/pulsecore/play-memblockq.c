@@ -122,7 +122,5 @@ int pa_play_memblockq(
 
     si->userdata = q;
 
-    pa_sink_notify(si->sink);
-
     return 0;
 }

@@ -28,8 +28,6 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include <atomic_ops.h>
-
 #include <pulse/xmalloc.h>
 
 #include "mutex.h"

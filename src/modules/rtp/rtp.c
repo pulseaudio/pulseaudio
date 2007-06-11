@@ -81,7 +81,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
             size_t k = n + chunk.length > size ? size - n : chunk.length;
 
             if (chunk.memblock) {
-                iov[iov_idx].iov_base = (void*)((uint8_t*) chunk.memblock->data + chunk.index);
+                iov[iov_idx].iov_base = (void*)((uint8_t*) pa_memblock_acquire(chunk.memblock) + chunk.index);
                 iov[iov_idx].iov_len = k;
                 mb[iov_idx] = chunk.memblock;
                 iov_idx ++;
@@ -116,8 +116,10 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
 
                 k = sendmsg(c->fd, &m, MSG_DONTWAIT);
 
-                for (i = 1; i < iov_idx; i++)
+                for (i = 1; i < iov_idx; i++) {
+                    pa_memblock_release(mb[i]);
                     pa_memblock_unref(mb[i]);
+                }
 
                 c->sequence++;
             } else
@@ -174,7 +176,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
 
     chunk->memblock = pa_memblock_new(pool, size);
 
-    iov.iov_base = chunk->memblock->data;
+    iov.iov_base = pa_memblock_acquire(chunk->memblock);
     iov.iov_len = size;
 
     m.msg_name = NULL;
@@ -195,9 +197,9 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
         goto fail;
     }
 
-    memcpy(&header, chunk->memblock->data, sizeof(uint32_t));
-    memcpy(&c->timestamp, (uint8_t*) chunk->memblock->data + 4, sizeof(uint32_t));
-    memcpy(&c->ssrc, (uint8_t*) chunk->memblock->data + 8, sizeof(uint32_t));
+    memcpy(&header, iov.iov_base, sizeof(uint32_t));
+    memcpy(&c->timestamp, (uint8_t*) iov.iov_base + 4, sizeof(uint32_t));
+    memcpy(&c->ssrc, (uint8_t*) iov.iov_base + 8, sizeof(uint32_t));
 
     header = ntohl(header);
     c->timestamp = ntohl(c->timestamp);
@@ -238,8 +240,10 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     return 0;
 
 fail:
-    if (chunk->memblock)
+    if (chunk->memblock) {
+        pa_memblock_release(chunk->memblock);
         pa_memblock_unref(chunk->memblock);
+    }
 
     return -1;
 }
