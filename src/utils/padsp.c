@@ -116,9 +116,17 @@ static int (*_ioctl)(int, int, void*) = NULL;
 static int (*_close)(int) = NULL;
 static int (*_open)(const char *, int, mode_t) = NULL;
 static FILE* (*_fopen)(const char *path, const char *mode) = NULL;
+static int (*_stat)(const char *, struct stat *) = NULL;
+#ifdef _STAT_VER
+static int (*___xstat)(int, const char *, struct stat *) = NULL;
+#endif
 #ifdef HAVE_OPEN64
 static int (*_open64)(const char *, int, mode_t) = NULL;
 static FILE* (*_fopen64)(const char *path, const char *mode) = NULL;
+static int (*_stat64)(const char *, struct stat64 *) = NULL;
+#ifdef _STAT_VER
+static int (*___xstat64)(int, const char *, struct stat64 *) = NULL;
+#endif
 #endif
 static int (*_fclose)(FILE *f) = NULL;
 static int (*_access)(const char *, int) = NULL;
@@ -167,6 +175,38 @@ do { \
     pthread_mutex_lock(&func_mutex); \
     if (!_access) \
         _access = (int (*)(const char*, int)) dlsym_fn(RTLD_NEXT, "access"); \
+    pthread_mutex_unlock(&func_mutex); \
+} while(0)
+
+#define LOAD_STAT_FUNC() \
+do { \
+    pthread_mutex_lock(&func_mutex); \
+    if (!_stat) \
+        _stat = (int (*)(const char *, struct stat *)) dlsym_fn(RTLD_NEXT, "stat"); \
+    pthread_mutex_unlock(&func_mutex); \
+} while(0)
+
+#define LOAD_STAT64_FUNC() \
+do { \
+    pthread_mutex_lock(&func_mutex); \
+    if (!_stat64) \
+        _stat64 = (int (*)(const char *, struct stat64 *)) dlsym_fn(RTLD_NEXT, "stat64"); \
+    pthread_mutex_unlock(&func_mutex); \
+} while(0)
+
+#define LOAD_XSTAT_FUNC() \
+do { \
+    pthread_mutex_lock(&func_mutex); \
+    if (!___xstat) \
+        ___xstat = (int (*)(int, const char *, struct stat *)) dlsym_fn(RTLD_NEXT, "__xstat"); \
+    pthread_mutex_unlock(&func_mutex); \
+} while(0)
+
+#define LOAD_XSTAT64_FUNC() \
+do { \
+    pthread_mutex_lock(&func_mutex); \
+    if (!___xstat64) \
+        ___xstat64 = (int (*)(int, const char *, struct stat64 *)) dlsym_fn(RTLD_NEXT, "__xstat64"); \
     pthread_mutex_unlock(&func_mutex); \
 } while(0)
 
@@ -2348,7 +2388,107 @@ int access(const char *pathname, int mode) {
     return 0;
 }
 
+int stat(const char *pathname, struct stat *buf) {
 #ifdef HAVE_OPEN64
+    struct stat64 parent;
+#else
+    struct stat parent;
+#endif
+    int ret;
+
+    if (!pathname || !buf) {
+        errno = EFAULT;
+        return -1;
+    }
+
+    if (strcmp(pathname, "/dev/dsp") != 0 &&
+        strcmp(pathname, "/dev/adsp") != 0 &&
+        strcmp(pathname, "/dev/sndstat") != 0 &&
+        strcmp(pathname, "/dev/mixer") != 0) {
+        debug(DEBUG_LEVEL_VERBOSE, __FILE__": stat(%s)\n", pathname);
+        LOAD_STAT_FUNC();
+        return _stat(pathname, buf);
+    }
+
+    debug(DEBUG_LEVEL_NORMAL, __FILE__": stat(%s)\n", pathname);
+
+#ifdef _STAT_VER
+#ifdef HAVE_OPEN64
+    ret = __xstat64(_STAT_VER, "/dev", &parent);
+#else
+    ret = __xstat(_STAT_VER, "/dev", &parent);
+#endif
+#else
+#ifdef HAVE_OPEN64
+    ret = stat64("/dev", &parent);
+#else
+    ret = stat("/dev", &parent);
+#endif
+#endif
+
+    if (ret) {
+        debug(DEBUG_LEVEL_NORMAL, __FILE__": unable to stat \"/dev\"\n");
+        return -1;
+    }
+
+    buf->st_dev = parent.st_dev;
+    buf->st_ino = 0xDEADBEEF;   /* FIXME: Can we do this in a safe way? */
+    buf->st_mode = S_IFCHR | S_IRUSR | S_IWUSR;
+    buf->st_nlink = 1;
+    buf->st_uid = getuid();
+    buf->st_gid = getgid();
+    buf->st_rdev = 0x0E03;      /* FIXME: Linux specific */
+    buf->st_size = 0;
+    buf->st_atime = 1181557705;
+    buf->st_mtime = 1181557705;
+    buf->st_ctime = 1181557705;
+    buf->st_blksize = 1;
+    buf->st_blocks = 0;
+
+    return 0;
+}
+
+#ifdef HAVE_OPEN64
+
+int stat64(const char *pathname, struct stat64 *buf) {
+    struct stat oldbuf;
+    int ret;
+
+    if (!pathname || !buf) {
+        errno = EFAULT;
+        return -1;
+    }
+
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": stat64(%s)\n", pathname);
+
+    if (strcmp(pathname, "/dev/dsp") != 0 &&
+        strcmp(pathname, "/dev/adsp") != 0 &&
+        strcmp(pathname, "/dev/sndstat") != 0 &&
+        strcmp(pathname, "/dev/mixer") != 0) {
+        LOAD_STAT64_FUNC();
+        return _stat64(pathname, buf);
+    }
+
+    ret = stat(pathname, &oldbuf);
+    if (ret)
+        return ret;
+
+    buf->st_dev = oldbuf.st_dev;
+    buf->st_ino = oldbuf.st_ino;
+    buf->st_mode = oldbuf.st_mode;
+    buf->st_nlink = oldbuf.st_nlink;
+    buf->st_uid = oldbuf.st_uid;
+    buf->st_gid = oldbuf.st_gid;
+    buf->st_rdev = oldbuf.st_rdev;
+    buf->st_size = oldbuf.st_size;
+    buf->st_atime = oldbuf.st_atime;
+    buf->st_mtime = oldbuf.st_mtime;
+    buf->st_ctime = oldbuf.st_ctime;
+    buf->st_blksize = oldbuf.st_blksize;
+    buf->st_blocks = oldbuf.st_blocks;
+
+    return 0;
+}
 
 int open64(const char *filename, int flags, ...) {
     va_list args;
@@ -2371,6 +2511,62 @@ int open64(const char *filename, int flags, ...) {
 
     return open(filename, flags, mode);
 }
+
+#endif
+
+#ifdef _STAT_VER
+
+int __xstat(int ver, const char *pathname, struct stat *buf) {
+    if (!pathname || !buf) {
+        errno = EFAULT;
+        return -1;
+    }
+
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": __xstat(%s)\n", pathname);
+
+    if (strcmp(pathname, "/dev/dsp") != 0 &&
+        strcmp(pathname, "/dev/adsp") != 0 &&
+        strcmp(pathname, "/dev/sndstat") != 0 &&
+        strcmp(pathname, "/dev/mixer") != 0) {
+        LOAD_XSTAT_FUNC();
+        return ___xstat(ver, pathname, buf);
+    }
+
+    if (ver != _STAT_VER) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    return stat(pathname, buf);
+}
+
+#ifdef HAVE_OPEN64
+
+int __xstat64(int ver, const char *pathname, struct stat64 *buf) {
+    if (!pathname || !buf) {
+        errno = EFAULT;
+        return -1;
+    }
+
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": __xstat64(%s)\n", pathname);
+
+    if (strcmp(pathname, "/dev/dsp") != 0 &&
+        strcmp(pathname, "/dev/adsp") != 0 &&
+        strcmp(pathname, "/dev/sndstat") != 0 &&
+        strcmp(pathname, "/dev/mixer") != 0) {
+        LOAD_XSTAT64_FUNC();
+        return ___xstat64(ver, pathname, buf);
+    }
+
+    if (ver != _STAT_VER) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    return stat64(pathname, buf);
+}
+
+#endif
 
 #endif
 
