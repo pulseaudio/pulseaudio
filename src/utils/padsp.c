@@ -2279,11 +2279,12 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
         case SNDCTL_DSP_SETDUPLEX:
             debug(DEBUG_LEVEL_NORMAL, __FILE__": SNDCTL_DSP_SETDUPLEX\n");
-	    /* this is a no-op */
-	    break;
+            /* this is a no-op */
+            break;
 
         default:
-            debug(DEBUG_LEVEL_NORMAL, __FILE__": unknown ioctl 0x%08lx\n", request);
+            /* Mixer ioctls are valid on /dev/dsp aswell */
+            return mixer_ioctl(i, request, argp, _errno);
 
 inval:
             *_errno = EINVAL;
