@@ -207,7 +207,7 @@ static void sched_event(pa_core *c) {
 }
 
 /* Append a new subscription event to the subscription event queue and schedule a main loop event */
-void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t index) {
+void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t idx) {
     pa_subscription_event *e;
     assert(c);
 
@@ -227,7 +227,7 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
                 continue;
 
             /* not the same object */
-            if (i->index != index)
+            if (i->index != idx)
                 continue;
 
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
@@ -253,7 +253,7 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
     e = pa_xnew(pa_subscription_event, 1);
     e->core = c;
     e->type = t;
-    e->index = index;
+    e->index = idx;
 
     PA_LLIST_INSERT_AFTER(pa_subscription_event, c->subscription_event_queue, c->subscription_event_last, e);
     c->subscription_event_last = e;

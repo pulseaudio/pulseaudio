@@ -55,7 +55,7 @@ struct pa_sink {
 
     uint32_t index;
     pa_core *core;
-    pa_atomic_t state;
+    pa_sink_state_t state;
 
     char *name;
     char *description, *driver;            /* may be NULL */
@@ -74,8 +74,7 @@ struct pa_sink {
     int refresh_volume;
     int refresh_mute;
 
-    int (*start)(pa_sink *s);
-    int (*stop)(pa_sink *s);
+    int (*set_state)(pa_sink *s, pa_sink_state_t state);
     int (*set_volume)(pa_sink *s);      /* dito */
     int (*get_volume)(pa_sink *s);      /* dito */
     int (*get_mute)(pa_sink *s);        /* dito */
@@ -87,6 +86,7 @@ struct pa_sink {
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
     struct {
+        pa_sink_state_t state;
         pa_hashmap *inputs;
         pa_cvolume soft_volume;
         int soft_muted;
@@ -96,7 +96,7 @@ struct pa_sink {
 };
 
 PA_DECLARE_CLASS(pa_sink);
-#define PA_SINK(s) ((pa_sink*) (s))
+#define PA_SINK(s) (pa_sink_cast(s))
 
 typedef enum pa_sink_message {
     PA_SINK_MESSAGE_ADD_INPUT,
@@ -106,8 +106,8 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_GET_MUTE,
     PA_SINK_MESSAGE_SET_MUTE,
     PA_SINK_MESSAGE_GET_LATENCY,
-    PA_SINK_MESSAGE_START,
-    PA_SINK_MESSAGE_STOP,
+    PA_SINK_MESSAGE_SET_STATE,
+    PA_SINK_MESSAGE_PING,
     PA_SINK_MESSAGE_MAX
 } pa_sink_message_t;
 
@@ -125,13 +125,19 @@ void pa_sink_disconnect(pa_sink* s);
 
 void pa_sink_set_module(pa_sink *sink, pa_module *m);
 void pa_sink_set_description(pa_sink *s, const char *description);
+void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q);
 
 /* Usable by everyone */
 
 pa_usec_t pa_sink_get_latency(pa_sink *s);
 
-void pa_sink_update_status(pa_sink*s);
-void pa_sink_suspend(pa_sink *s, int suspend);
+int pa_sink_update_status(pa_sink*s);
+int pa_sink_suspend(pa_sink *s, int suspend);
+
+/* Sends a ping message to the sink thread, to make it wake up and
+ * check for data to process even if there is no real message is
+ * sent */
+void pa_sink_ping(pa_sink *s); 
 
 void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume);
 const pa_cvolume *pa_sink_get_volume(pa_sink *sink);
@@ -139,7 +145,7 @@ void pa_sink_set_mute(pa_sink *sink, int mute);
 int pa_sink_get_mute(pa_sink *sink);
 
 unsigned pa_sink_used_by(pa_sink *s);
-#define pa_sink_get_state(s) ((pa_sink_state_t) pa_atomic_load(&(s)->state))
+#define pa_sink_get_state(s) ((s)->state)
 
 /* To be used exclusively by the sink driver thread */
 
@@ -149,5 +155,5 @@ int pa_sink_render_into(pa_sink*s, pa_memchunk *target);
 void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
 
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
-
+    
 #endif

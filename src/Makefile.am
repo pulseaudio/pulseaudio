@@ -283,14 +283,14 @@ flist_test_CFLAGS = $(AM_CFLAGS)
 flist_test_LDADD = $(AM_LDADD) libpulsecore.la
 flist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-asyncq_test_SOURCES = tests/asyncq-test.c pulsecore/thread-posix.c pulsecore/thread.h pulsecore/asyncq.c pulsecore/asyncq.h pulsecore/core-util.c pulsecore/core-util.h pulse/xmalloc.c pulse/xmalloc.h pulsecore/log.h pulsecore/log.c pulsecore/core-error.h pulsecore/core-error.c pulsecore/once-posix.c pulsecore/once.h pulsecore/mutex-posix.c pulsecore/mutex.h pulse/utf8.c pulse/utf8.h pulse/util.h pulse/util.c
+asyncq_test_SOURCES = tests/asyncq-test.c
 asyncq_test_CFLAGS = $(AM_CFLAGS)
-asyncq_test_LDADD = $(AM_LDADD) #libpulsecore.la
+asyncq_test_LDADD = $(AM_LDADD) libpulsecore.la
 asyncq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-asyncmsgq_test_SOURCES = tests/asyncmsgq-test.c pulsecore/thread-posix.c pulsecore/thread.h pulsecore/asyncq.c pulsecore/asyncq.h pulsecore/asyncmsgq.c pulsecore/asyncmsgq.h pulsecore/core-util.c pulsecore/core-util.h pulse/xmalloc.c pulse/xmalloc.h pulsecore/log.h pulsecore/log.c pulsecore/core-error.h pulsecore/core-error.c pulsecore/once-posix.c pulsecore/once.h pulsecore/mutex-posix.c pulsecore/mutex.h pulse/utf8.c pulse/utf8.h pulse/util.h pulse/util.c pulsecore/semaphore.h pulsecore/semaphore-posix.c pulsecore/flist.h pulsecore/flist.c
+asyncmsgq_test_SOURCES = tests/asyncmsgq-test.c
 asyncmsgq_test_CFLAGS = $(AM_CFLAGS)
-asyncmsgq_test_LDADD = $(AM_LDADD) #libpulsecore.la
+asyncmsgq_test_LDADD = $(AM_LDADD) libpulsecore.la
 asyncmsgq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
@@ -653,7 +653,10 @@ libpulsecore_la_SOURCES += \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
 		pulsecore/shm.c pulsecore/shm.h \
 		pulsecore/flist.c pulsecore/flist.h \
-		pulsecore/anotify.c pulsecore/anotify.h \
+		pulsecore/asyncmsgq.c pulsecore/asyncmsgqq.h \
+		pulsecore/asyncq.c pulsecore/asyncq.h \
+		pulsecore/object.c pulsecore/object.h \
+		pulsecore/msgobject.c pulsecore/msgobject.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -718,9 +721,10 @@ modlibexec_LTLIBRARIES = \
 		libauthkey-prop.la \
 		libstrlist.la \
 		libprotocol-simple.la \
-		libprotocol-esound.la \
-		libprotocol-native.la \
-		libprotocol-http.la
+		libprotocol-http.la 
+
+#		libprotocol-esound.la
+#		libprotocol-native.la
 
 # We need to emulate sendmsg/recvmsg to support this on Win32
 if !OS_IS_WIN32
@@ -870,6 +874,11 @@ modlibexec_LTLIBRARIES += \
 		module-cli-protocol-tcp.la \
 		module-simple-protocol-tcp.la \
 		module-null-sink.la
+		module-detect.la \
+		module-volume-restore.la \
+		module-rescue-streams.la \
+		module-http-protocol-tcp.la 
+
 #		module-esound-protocol-tcp.la \
 #		module-native-protocol-tcp.la \
 #		module-native-protocol-fd.la \
@@ -877,11 +886,7 @@ modlibexec_LTLIBRARIES += \
 #		module-combine.la \
 #		module-tunnel-sink.la \
 #		module-tunnel-source.la \
-#		module-esound-sink.la \
-#		module-http-protocol-tcp.la \
-#		module-detect.la \
-#		module-volume-restore.la \
-#		module-rescue-streams.la
+#		module-esound-sink.la
 
 # See comment at librtp.la above
 #if !OS_IS_WIN32
@@ -894,9 +899,9 @@ if HAVE_AF_UNIX
 modlibexec_LTLIBRARIES += \
 		module-cli-protocol-unix.la \
 		module-simple-protocol-unix.la
+		module-http-protocol-unix.la
 #		module-esound-protocol-unix.la \
-#		module-native-protocol-unix.la \
-#		module-http-protocol-unix.la
+#		module-native-protocol-unix.la
 endif
 
 if HAVE_MKFIFO
@@ -1079,44 +1084,44 @@ module_http_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-h
 
 # Native protocol
 
-module_native_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
-module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
-module_native_protocol_tcp_la_LDFLAGS = -module -avoid-version
-module_native_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la
+#module_native_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
+#module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
+#module_native_protocol_tcp_la_LDFLAGS = -module -avoid-version
+#module_native_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la
 
-module_native_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
-module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
-module_native_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_native_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la libsocket-util.la
+#module_native_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
+#module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
+#module_native_protocol_unix_la_LDFLAGS = -module -avoid-version
+#module_native_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la libsocket-util.la
 
-module_native_protocol_fd_la_SOURCES = modules/module-native-protocol-fd.c
-module_native_protocol_fd_la_CFLAGS = $(AM_CFLAGS)
-module_native_protocol_fd_la_LDFLAGS = -module -avoid-version
-module_native_protocol_fd_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la libsocket-util.la libiochannel.la
+#module_native_protocol_fd_la_SOURCES = modules/module-native-protocol-fd.c
+#module_native_protocol_fd_la_CFLAGS = $(AM_CFLAGS)
+#module_native_protocol_fd_la_LDFLAGS = -module -avoid-version
+#module_native_protocol_fd_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la libsocket-util.la libiochannel.la
 
 # EsounD protocol
 
-module_esound_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
-module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
-module_esound_protocol_tcp_la_LDFLAGS = -module -avoid-version
-module_esound_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-esound.la libsocket-server.la
+#module_esound_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
+#module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
+#module_esound_protocol_tcp_la_LDFLAGS = -module -avoid-version
+#module_esound_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-esound.la libsocket-server.la
 
-module_esound_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
-module_esound_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
-module_esound_protocol_unix_la_LDFLAGS = -module -avoid-version
-module_esound_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-esound.la libsocket-server.la libsocket-util.la
+#module_esound_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
+#module_esound_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
+#module_esound_protocol_unix_la_LDFLAGS = -module -avoid-version
+#module_esound_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-esound.la libsocket-server.la libsocket-util.la
 
-module_esound_compat_spawnfd_la_SOURCES = modules/module-esound-compat-spawnfd.c
-module_esound_compat_spawnfd_la_LDFLAGS = -module -avoid-version
-module_esound_compat_spawnfd_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+#module_esound_compat_spawnfd_la_SOURCES = modules/module-esound-compat-spawnfd.c
+#module_esound_compat_spawnfd_la_LDFLAGS = -module -avoid-version
+#module_esound_compat_spawnfd_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
-module_esound_compat_spawnpid_la_SOURCES = modules/module-esound-compat-spawnpid.c
-module_esound_compat_spawnpid_la_LDFLAGS = -module -avoid-version
-module_esound_compat_spawnpid_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+#module_esound_compat_spawnpid_la_SOURCES = modules/module-esound-compat-spawnpid.c
+#module_esound_compat_spawnpid_la_LDFLAGS = -module -avoid-version
+#module_esound_compat_spawnpid_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
-module_esound_sink_la_SOURCES = modules/module-esound-sink.c
-module_esound_sink_la_LDFLAGS = -module -avoid-version
-module_esound_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-client.la libauthkey.la
+#module_esound_sink_la_SOURCES = modules/module-esound-sink.c
+#module_esound_sink_la_LDFLAGS = -module -avoid-version
+#module_esound_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-client.la libauthkey.la
 
 # Pipes
 
@@ -1140,22 +1145,22 @@ module_null_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 # Couplings
 
-module_combine_la_SOURCES = modules/module-combine.c
-module_combine_la_LDFLAGS = -module -avoid-version
-module_combine_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+#module_combine_la_SOURCES = modules/module-combine.c
+#module_combine_la_LDFLAGS = -module -avoid-version
+#module_combine_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
 module_match_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
-module_tunnel_sink_la_SOURCES = modules/module-tunnel.c
-module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
-module_tunnel_sink_la_LDFLAGS = -module -avoid-version
-module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
+#module_tunnel_sink_la_SOURCES = modules/module-tunnel.c
+#module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
+#module_tunnel_sink_la_LDFLAGS = -module -avoid-version
+#module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
 
-module_tunnel_source_la_SOURCES = modules/module-tunnel.c
-module_tunnel_source_la_LDFLAGS = -module -avoid-version
-module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
+#module_tunnel_source_la_SOURCES = modules/module-tunnel.c
+#module_tunnel_source_la_LDFLAGS = -module -avoid-version
+#module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
 
 # X11
 
@@ -1171,34 +1176,34 @@ module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EX
 
 # OSS
 
-liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
-liboss_util_la_LDFLAGS = -avoid-version
-liboss_util_la_LIBADD = libpulsecore.la
+#liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
+#liboss_util_la_LDFLAGS = -avoid-version
+#liboss_util_la_LIBADD = libpulsecore.la
 
-module_oss_la_SOURCES = modules/module-oss.c
-module_oss_la_LDFLAGS = -module -avoid-version
-module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
+#module_oss_la_SOURCES = modules/module-oss.c
+#module_oss_la_LDFLAGS = -module -avoid-version
+#module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
 
-module_oss_mmap_la_SOURCES = modules/module-oss-mmap.c
-module_oss_mmap_la_LDFLAGS = -module -avoid-version
-module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore.la
+#module_oss_mmap_la_SOURCES = modules/module-oss-mmap.c
+#module_oss_mmap_la_LDFLAGS = -module -avoid-version
+#module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore.la
 
 # ALSA
 
-libalsa_util_la_SOURCES = modules/alsa-util.c modules/alsa-util.h
-libalsa_util_la_LDFLAGS = -avoid-version
-libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libpulsecore.la
-libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+#libalsa_util_la_SOURCES = modules/alsa-util.c modules/alsa-util.h
+#libalsa_util_la_LDFLAGS = -avoid-version
+#libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libpulsecore.la
+#libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
-module_alsa_sink_la_SOURCES = modules/module-alsa-sink.c
-module_alsa_sink_la_LDFLAGS = -module -avoid-version
-module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore.la
-module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+#module_alsa_sink_la_SOURCES = modules/module-alsa-sink.c
+#module_alsa_sink_la_LDFLAGS = -module -avoid-version
+#module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore.la
+#module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
-module_alsa_source_la_SOURCES = modules/module-alsa-source.c
-module_alsa_source_la_LDFLAGS = -module -avoid-version
-module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore.la
-module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+#module_alsa_source_la_SOURCES = modules/module-alsa-source.c
+#module_alsa_source_la_LDFLAGS = -module -avoid-version
+#module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore.la
+#module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 # Solaris
 
@@ -1265,15 +1270,15 @@ module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
 
 # JACK
 
-module_jack_sink_la_SOURCES = modules/module-jack-sink.c
-module_jack_sink_la_LDFLAGS = -module -avoid-version
-module_jack_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
-module_jack_sink_la_CFLAGS = $(AM_LIBADD) $(JACK_CFLAGS)
+#module_jack_sink_la_SOURCES = modules/module-jack-sink.c
+#module_jack_sink_la_LDFLAGS = -module -avoid-version
+#module_jack_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
+#module_jack_sink_la_CFLAGS = $(AM_LIBADD) $(JACK_CFLAGS)
 
-module_jack_source_la_SOURCES = modules/module-jack-source.c
-module_jack_source_la_LDFLAGS = -module -avoid-version
-module_jack_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
-module_jack_source_la_CFLAGS = $(AM_LIBADD) $(JACK_CFLAGS)
+#module_jack_source_la_SOURCES = modules/module-jack-source.c
+#module_jack_source_la_LDFLAGS = -module -avoid-version
+#module_jack_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
+#module_jack_source_la_CFLAGS = $(AM_LIBADD) $(JACK_CFLAGS)
 
 # HAL
 libdbus_util_la_SOURCES = modules/dbus-util.c modules/dbus-util.h

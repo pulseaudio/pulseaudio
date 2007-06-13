@@ -179,7 +179,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
     u->source->userdata = u;
-    pa_source_set_owner(u->source, m);
+    pa_source_set_module(u->source, m);
     pa_source_set_description(u->source, t = pa_sprintf_malloc("Unix FIFO source '%s'", p));
     pa_xfree(t);
 

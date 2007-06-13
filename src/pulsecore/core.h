@@ -98,7 +98,7 @@ struct pa_core {
 };
 
 PA_DECLARE_CLASS(pa_core);
-#define PA_CORE(o) ((pa_core*) o)
+#define PA_CORE(o) pa_core_cast(o)
 
 enum {
     PA_CORE_MESSAGE_UNLOAD_MODULE,

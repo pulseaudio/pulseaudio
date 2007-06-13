@@ -99,7 +99,7 @@ struct pa_sink_input {
 };
 
 PA_DECLARE_CLASS(pa_sink_input);
-#define PA_SINK_INPUT(o) ((pa_sink_input*) (o))
+#define PA_SINK_INPUT(o) pa_sink_input_cast(o)
 
 enum {
     PA_SINK_INPUT_MESSAGE_SET_VOLUME,
@@ -160,7 +160,7 @@ int pa_sink_input_get_mute(pa_sink_input *i);
 
 void pa_sink_input_cork(pa_sink_input *i, int b);
 
-void pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
+int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 

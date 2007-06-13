@@ -63,6 +63,9 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out);
 /* Change the input rate of the resampler object */
 void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate);
 
+/* Change the output rate of the resampler object */
+void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate);
+
 /* Return the resampling method of the resampler object */
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r);
 

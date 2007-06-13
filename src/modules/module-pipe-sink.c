@@ -34,6 +34,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
+#include <sys/ioctl.h>
+#include <sys/poll.h>
 
 #include <pulse/xmalloc.h>
 
@@ -44,6 +46,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
+#include <pulsecore/thread.h>
 
 #include "module-pipe-sink-symdef.h"
 
@@ -65,9 +68,12 @@ struct userdata {
     pa_core *core;
     pa_module *module;
     pa_sink *sink;
+    pa_thread *thread;
+    pa_asyncmsgq *asyncmsgq;
     char *filename;
     int fd;
-    pa_thread *thread;
+
+    pa_memchunk memchunk;
 };
 
 static const char* const valid_modargs[] = {
@@ -80,109 +86,99 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-enum {
-    POLLFD_ASYNCQ,
-    POLLFD_FIFO,
-    POLLFD_MAX,
-};
+static int sink_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *chunk) {
+    struct userdata *u = PA_SINK(o)->userdata;
+
+    switch (code) {
+            
+        case PA_SINK_MESSAGE_GET_LATENCY: {
+            size_t n = 0;
+            int l;
+            
+            if (ioctl(u->fd, TIOCINQ, &l) >= 0 && l > 0)
+                n = (size_t) l;
+            
+            n += u->memchunk.length;
+            
+            *((pa_usec_t*) data) = pa_bytes_to_usec(n, &u->sink->sample_spec);
+            break;
+        }
+    }
+    
+    return pa_sink_process_msg(o, code, data, chunk);
+}
 
 static void thread_func(void *userdata) {
+    enum {
+        POLLFD_ASYNCQ,
+        POLLFD_FIFO,
+        POLLFD_MAX,
+    };
+    
     struct userdata *u = userdata;
-    int quit = 0;
     struct pollfd pollfd[POLLFD_MAX];
-    int running = 1, underrun = 0;
-    pa_memchunk memchunk;
+    int underrun = 0;
+    int write_type = 0;
 
     pa_assert(u);
 
     pa_log_debug("Thread starting up");
 
+    pa_memchunk_reset(&u->memchunk);
+    
     memset(&pollfd, 0, sizeof(pollfd));
-    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->sink->asyncmsgq, PA_ASYNCQ_POP);
+    
+    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
     pollfd[POLLFD_ASYNCQ].events = POLLIN;
-
     pollfd[POLLFD_FIFO].fd = u->fd;
 
-    memset(&memchunk, 0, sizeof(memchunk));
-
     for (;;) {
+        pa_msgobject *object;
         int code;
-        void *object, *data;
+        void *data;
+        pa_memchunk chunk;
         int r;
-        struct timeval now;
 
         /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->sink->asyncmsgq, &object, &code, &data) == 0) {
+        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
+            int ret;
 
-
-            /* Now process these messages our own way */
-            if (!object) {
-                switch (code) {
-                    case PA_SINK_MESSAGE_SHUTDOWN:
-                        goto finish;
-
-                    default:
-                        pa_sink_process_msg(u->sink->asyncmsgq, object, code, data);
-                }
-
-            } else if (object == u->sink) {
-
-                case PA_SINK_MESSAGE_STOP:
-                    pa_assert(running);
-                    running = 0;
-                    break;
-
-                case PA_SINK_MESSAGE_START:
-                    pa_assert(!running);
-                    running = 1;
-                    break;
-
-                case PA_SINK_MESSAGE_GET_LATENCY: {
-                    size_t n = 0;
-                    int l;
-
-                    if (ioctl(u->fd, TIOCINQ, &l) >= 0 && l > 0)
-                        n = (size_t) l;
-
-                    n += memchunk.length;
-
-                    *((pa_usec_t*) data) pa_bytes_to_usec(n, &u->sink->sample_spec);
-                    break;
-                }
-
-                /* ... */
-
-                default:
-                    pa_sink_process_msg(u->sink->asyncmsgq, object, code, data);
+            if (!object && code == PA_MESSAGE_SHUTDOWN) {
+                pa_asyncmsgq_done(u->asyncmsgq, 0);
+                goto finish;
             }
 
-            pa_asyncmsgq_done(u->sink->asyncmsgq);
+            ret = pa_asyncmsgq_dispatch(object, code, data, &chunk);
+            pa_asyncmsgq_done(u->asyncmsgq, ret);
             continue;
         }
 
         /* Render some data and write it to the fifo */
 
-        if (running && (pollfd[POLLFD_FIFO].revents || underrun)) {
+        if (u->sink->thread_info.state == PA_SINK_RUNNING && (pollfd[POLLFD_FIFO].revents || underrun)) {
 
-            if (chunk.length <= 0)
-                pa_sink_render(u->fd, PIPE_BUF, &chunk);
+            if (u->memchunk.length <= 0)
+                pa_sink_render(u->sink, PIPE_BUF, &u->memchunk);
 
-            underrun = chunk.length <= 0;
+            underrun = u->memchunk.length <= 0;
 
             if (!underrun) {
                 ssize_t l;
+                void *p;
 
                 p = pa_memblock_acquire(u->memchunk.memblock);
-                l = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length);
-                pa_memblock_release(p);
+                l = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &write_type);
+                pa_memblock_release(u->memchunk.memblock);
 
                 if (l < 0) {
 
-                    if (errno != EINTR && errno != EAGAIN) {
+                    if (errno == EINTR)
+                        continue;
+                    else if (errno != EAGAIN) {
                         pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
                         goto fail;
                     }
-
+                    
                 } else {
 
                     u->memchunk.index += l;
@@ -190,24 +186,24 @@ static void thread_func(void *userdata) {
 
                     if (u->memchunk.length <= 0) {
                         pa_memblock_unref(u->memchunk.memblock);
-                        u->memchunk.memblock = NULL;
+                        pa_memchunk_reset(&u->memchunk);
                     }
-                }
 
-                pollfd[POLLFD_FIFO].revents = 0;
-                continue;
+                    pollfd[POLLFD_FIFO].revents = 0;
+                    continue;
+                }
             }
         }
 
-        pollfd[POLLFD_FIFO].events = running && !underrun ? POLLOUT : 0;
+        pollfd[POLLFD_FIFO].events = (u->sink->thread_info.state == PA_SINK_RUNNING && !underrun) ? POLLOUT : 0;
 
         /* Hmm, nothing to do. Let's sleep */
 
-        if (pa_asyncmsgq_before_poll(u->sink->asyncmsgq) < 0)
+        if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
             continue;
 
-        r = poll(&pollfd, 1, 0);
-        pa_asyncmsgq_after_poll(u->sink->asyncmsgq);
+        r = poll(pollfd, POLLFD_MAX, -1);
+        pa_asyncmsgq_after_poll(u->asyncmsgq);
 
         if (r < 0) {
             if (errno == EINTR)
@@ -217,19 +213,19 @@ static void thread_func(void *userdata) {
             goto fail;
         }
 
-        if (pollfd[POLLFD_FIFO].revents & ~POLLIN) {
+        if (pollfd[POLLFD_FIFO].revents & ~POLLOUT) {
             pa_log("FIFO shutdown.");
             goto fail;
         }
 
-        pa_assert(pollfd[POLLFD_ASYNCQ].revents & ~POLLIN == 0);
+        pa_assert((pollfd[POLLFD_ASYNCQ].revents & ~POLLIN) == 0);
     }
 
 fail:
     /* We have to continue processing messages until we receive the
      * SHUTDOWN message */
-    pa_asyncmsgq_post(u->core->asyncmsgq, u->core, PA_CORE_MESSAGE_UNLOAD_MODULE, pa_module_ref(u->module), pa_module_unref);
-    pa_asyncmsgq_wait_for(PA_SINK_MESSAGE_SHUTDOWN);
+    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->asyncmsgq, PA_MESSAGE_SHUTDOWN);
 
 finish:
     pa_log_debug("Thread shutting down");
@@ -253,23 +249,22 @@ int pa__init(pa_core *c, pa_module*m) {
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
-        pa_log("Invalid sample format specification");
+        pa_log("Invalid sample format specification or channel map");
         goto fail;
     }
 
     u = pa_xnew0(struct userdata, 1);
     u->core = c;
     u->module = m;
-    u->filename = pa_xstrdup(pa_modargs_get_value(ma, "file", DEFAULT_FIFO_NAME));
-    u->fd = fd;
-    u->memchunk.memblock = NULL;
-    u->memchunk.length = 0;
     m->userdata = u;
 
-    mkfifo(u->filename, 0666);
+    pa_assert_se(u->asyncmsgq = pa_asyncmsgq_new(0));
+    
+    u->filename = pa_xstrdup(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
 
-    if ((u->fd = open(u->filename, O_RDWR)) < 0) {
-        pa_log("open('%s'): %s", p, pa_cstrerror(errno));
+    mkfifo(u->filename, 0666);
+    if ((u->fd = open(u->filename, O_RDWR|O_NOCTTY)) < 0) {
+        pa_log("open('%s'): %s", u->filename, pa_cstrerror(errno));
         goto fail;
     }
 
@@ -277,12 +272,12 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_make_nonblock_fd(u->fd);
 
     if (fstat(u->fd, &st) < 0) {
-        pa_log("fstat('%s'): %s", p, pa_cstrerror(errno));
+        pa_log("fstat('%s'): %s", u->filename, pa_cstrerror(errno));
         goto fail;
     }
 
     if (!S_ISFIFO(st.st_mode)) {
-        pa_log("'%s' is not a FIFO.", p);
+        pa_log("'%s' is not a FIFO.", u->filename);
         goto fail;
     }
 
@@ -291,9 +286,12 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
+    u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
-    pa_sink_set_owner(u->sink, m);
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Unix FIFO sink '%s'", p));
+    
+    pa_sink_set_module(u->sink, m);
+    pa_sink_set_asyncmsgq(u->sink, u->asyncmsgq);
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Unix FIFO sink '%s'", u->filename));
     pa_xfree(t);
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
@@ -316,20 +314,26 @@ fail:
 
 void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
+    
     pa_assert(c);
     pa_assert(m);
 
     if (!(u = m->userdata))
         return;
 
-    pa_sink_disconnect(u->sink);
+    if (u->sink)
+        pa_sink_disconnect(u->sink);
 
     if (u->thread) {
-        pa_asyncmsgq_send(u->sink->asyncmsgq, PA_SINK_MESSAGE_SHUTDOWN, NULL);
+        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, NULL);
         pa_thread_free(u->thread);
     }
 
-    pa_sink_unref(u->sink);
+    if (u->asyncmsgq)
+        pa_asyncmsgq_free(u->asyncmsgq);
+    
+    if (u->sink)
+        pa_sink_unref(u->sink);
 
     if (u->memchunk.memblock)
        pa_memblock_unref(u->memchunk.memblock);

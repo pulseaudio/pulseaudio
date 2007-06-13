@@ -47,6 +47,8 @@
 
 #define MAX_MIX_CHANNELS 32
 
+static PA_DEFINE_CHECK_TYPE(pa_sink, sink_check_type, pa_msgobject_check_type);
+
 static void sink_free(pa_object *s);
 
 pa_sink* pa_sink_new(
@@ -77,7 +79,7 @@ pa_sink* pa_sink_new(
     pa_return_null_if_fail(!driver || pa_utf8_valid(driver));
     pa_return_null_if_fail(name && pa_utf8_valid(name) && *name);
 
-    s = pa_msgobject_new(pa_sink);
+    s = pa_msgobject_new(pa_sink, sink_check_type);
 
     if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SINK, s, fail))) {
         pa_xfree(s);
@@ -88,7 +90,7 @@ pa_sink* pa_sink_new(
     s->parent.process_msg = pa_sink_process_msg;
 
     s->core = core;
-    pa_atomic_store(&s->state, PA_SINK_IDLE);
+    s->state = PA_SINK_IDLE;
     s->name = pa_xstrdup(name);
     s->description = NULL;
     s->driver = pa_xstrdup(driver);
@@ -110,11 +112,10 @@ pa_sink* pa_sink_new(
     s->get_volume = NULL;
     s->set_mute = NULL;
     s->get_mute = NULL;
-    s->start = NULL;
-    s->stop = NULL;
+    s->set_state = NULL;
     s->userdata = NULL;
 
-    pa_assert_se(s->asyncmsgq = pa_asyncmsgq_new(0));
+    s->asyncmsgq = NULL;
 
     r = pa_idxset_put(core->sinks, s, &s->index);
     pa_assert(s->index != PA_IDXSET_INVALID && r >= 0);
@@ -139,56 +140,40 @@ pa_sink* pa_sink_new(
     s->thread_info.inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume = s->volume;
     s->thread_info.soft_muted = s->muted;
+    s->thread_info.state = s->state;
 
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
 
     return s;
 }
 
-static void sink_start(pa_sink *s) {
-    pa_sink_state_t state;
+static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
+    int ret;
+    
     pa_assert(s);
 
-    state = pa_sink_get_state(s);
-    pa_return_if_fail(state == PA_SINK_IDLE || state == PA_SINK_SUSPENDED);
+    if (s->state == state)
+        return 0;
 
-    pa_atomic_store(&s->state, PA_SINK_RUNNING);
+    if (s->set_state)
+        if ((ret = s->set_state(s, state)) < 0)
+            return -1;
 
-    if (s->start)
-        s->start(s);
-    else
-        pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_START, NULL, NULL, NULL);
-}
+    if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), NULL) < 0)
+        return -1;
 
-static void sink_stop(pa_sink *s) {
-    pa_sink_state_t state;
-    int stop;
-
-    pa_assert(s);
-    state = pa_sink_get_state(s);
-    pa_return_if_fail(state == PA_SINK_RUNNING || state == PA_SINK_SUSPENDED);
-
-    stop = state == PA_SINK_RUNNING;
-    pa_atomic_store(&s->state, PA_SINK_IDLE);
-
-    if (stop) {
-        if (s->stop)
-            s->stop(s);
-        else
-            pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_STOP, NULL, NULL, NULL);
-    }
+    s->state = state;
+    return 0;
 }
 
 void pa_sink_disconnect(pa_sink* s) {
     pa_sink_input *i, *j = NULL;
 
     pa_assert(s);
-    pa_return_if_fail(pa_sink_get_state(s) != PA_SINK_DISCONNECTED);
+    pa_return_if_fail(s->state != PA_SINK_DISCONNECTED);
 
-    sink_stop(s);
-
-    pa_atomic_store(&s->state, PA_SINK_DISCONNECTED);
     pa_namereg_unregister(s->core, s->name);
+    pa_idxset_remove_by_data(s->core->sinks, s, NULL);
 
     pa_hook_fire(&s->core->hook_sink_disconnect, s);
 
@@ -201,26 +186,27 @@ void pa_sink_disconnect(pa_sink* s) {
     if (s->monitor_source)
         pa_source_disconnect(s->monitor_source);
 
-    pa_idxset_remove_by_data(s->core->sinks, s, NULL);
+    sink_set_state(s, PA_SINK_DISCONNECTED);
 
     s->get_latency = NULL;
     s->get_volume = NULL;
     s->set_volume = NULL;
     s->set_mute = NULL;
     s->get_mute = NULL;
-    s->start = NULL;
-    s->stop = NULL;
+    s->set_state = NULL;
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
 }
 
 static void sink_free(pa_object *o) {
     pa_sink *s = PA_SINK(o);
+    pa_sink_input *i;
 
     pa_assert(s);
     pa_assert(pa_sink_refcnt(s) == 0);
 
-    pa_sink_disconnect(s);
+    if (s->state != PA_SINK_DISCONNECTED)
+        pa_sink_disconnect(s);
 
     pa_log_info("Freeing sink %u \"%s\"", s->index, s->name);
 
@@ -231,9 +217,10 @@ static void sink_free(pa_object *o) {
 
     pa_idxset_free(s->inputs, NULL, NULL);
 
-    pa_hashmap_free(s->thread_info.inputs, (pa_free2_cb_t) pa_sink_input_unref, NULL);
-
-    pa_asyncmsgq_free(s->asyncmsgq);
+    while ((i = pa_hashmap_steal_first(s->thread_info.inputs)))
+        pa_sink_input_unref(i);
+    
+    pa_hashmap_free(s->thread_info.inputs, NULL, NULL);
 
     pa_xfree(s->name);
     pa_xfree(s->description);
@@ -241,44 +228,38 @@ static void sink_free(pa_object *o) {
     pa_xfree(s);
 }
 
-void pa_sink_update_status(pa_sink*s) {
+void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q) {
     pa_sink_assert_ref(s);
+    pa_assert(q);
 
-    if (pa_sink_get_state(s) == PA_SINK_SUSPENDED)
-        return;
+    s->asyncmsgq = q;
 
-    if (pa_sink_used_by(s) > 0)
-        sink_start(s);
-    else
-        sink_stop(s);
+    if (s->monitor_source)
+        pa_source_set_asyncmsgq(s->monitor_source, q);
 }
 
-void pa_sink_suspend(pa_sink *s, int suspend) {
-    pa_sink_state_t state;
-
+int pa_sink_update_status(pa_sink*s) {
     pa_sink_assert_ref(s);
 
-    state = pa_sink_get_state(s);
-    pa_return_if_fail(suspend && (state == PA_SINK_RUNNING || state == PA_SINK_IDLE));
-    pa_return_if_fail(!suspend && (state == PA_SINK_SUSPENDED));
+    if (s->state == PA_SINK_SUSPENDED)
+        return 0;
 
+    return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE);
+}
 
-    if (suspend) {
-        pa_atomic_store(&s->state, PA_SINK_SUSPENDED);
+int pa_sink_suspend(pa_sink *s, int suspend) {
+    pa_sink_assert_ref(s);
 
-        if (s->stop)
-            s->stop(s);
-        else
-            pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_STOP, NULL, NULL, NULL);
+    if (suspend)
+        return sink_set_state(s, PA_SINK_SUSPENDED);
+    else
+        return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE);
+}
 
-    } else {
-        pa_atomic_store(&s->state, PA_SINK_RUNNING);
+void pa_sink_ping(pa_sink *s) {
+    pa_sink_assert_ref(s);
 
-        if (s->start)
-            s->start(s);
-        else
-            pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_START, NULL, NULL, NULL);
-    }
+    pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_PING, NULL, NULL, NULL);
 }
 
 static unsigned fill_mix_info(pa_sink *s, pa_mix_info *info, unsigned maxinfo) {
@@ -652,7 +633,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *
     pa_sink *s = PA_SINK(o);
     pa_sink_assert_ref(s);
 
-    switch (code) {
+    switch ((pa_sink_message_t) code) {
         case PA_SINK_MESSAGE_ADD_INPUT: {
             pa_sink_input *i = userdata;
             pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index), pa_sink_input_ref(i));
@@ -681,7 +662,17 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *
             *((int*) userdata) = s->thread_info.soft_muted;
             return 0;
 
-        default:
-            return -1;
+        case PA_SINK_MESSAGE_PING:
+            return 0;
+
+        case PA_SINK_MESSAGE_SET_STATE:
+            s->thread_info.state = PA_PTR_TO_UINT(userdata);
+            return 0;
+            
+        case PA_SINK_MESSAGE_GET_LATENCY:
+        case PA_SINK_MESSAGE_MAX:
+            ;
     }
+
+    return -1;
 }

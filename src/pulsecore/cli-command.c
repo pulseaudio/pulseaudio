@@ -115,6 +115,8 @@ static int pa_cli_command_list_props(pa_core *c, pa_tokenizer *t, pa_strbuf *buf
 static int pa_cli_command_move_sink_input(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
+static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
+static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 
 /* A method table for all available commands */
 
@@ -134,11 +136,11 @@ static const struct command commands[] = {
     { "load-module",             pa_cli_command_load,               "Load a module (args: name, arguments)", 3},
     { "unload-module",           pa_cli_command_unload,             "Unload a module (args: index)", 2},
     { "set-sink-volume",         pa_cli_command_sink_volume,        "Set the volume of a sink (args: index|name, volume)", 3},
-    { "set-sink-input-volume",   pa_cli_command_sink_input_volume,  "Set the volume of a sink input (args: index|name, volume)", 3},
+    { "set-sink-input-volume",   pa_cli_command_sink_input_volume,  "Set the volume of a sink input (args: index, volume)", 3},
     { "set-source-volume",       pa_cli_command_source_volume,      "Set the volume of a source (args: index|name, volume)", 3},
-    { "set-sink-mute",           pa_cli_command_sink_mute,          "Set the mute switch of a sink (args: index|name, mute)", 3},
-    { "set-sink-input-mute",     pa_cli_command_sink_input_mute,    "Set the mute switch of a sink input (args: index|name, mute)", 3},
-    { "set-source-mute",         pa_cli_command_source_mute,        "Set the mute switch of a source (args: index|name, mute)", 3},
+    { "set-sink-mute",           pa_cli_command_sink_mute,          "Set the mute switch of a sink (args: index|name, bool)", 3},
+    { "set-sink-input-mute",     pa_cli_command_sink_input_mute,    "Set the mute switch of a sink input (args: index, bool)", 3},
+    { "set-source-mute",         pa_cli_command_source_mute,        "Set the mute switch of a source (args: index|name, bool)", 3},
     { "set-default-sink",        pa_cli_command_sink_default,       "Set the default sink (args: index|name)", 2},
     { "set-default-source",      pa_cli_command_source_default,     "Set the default source (args: index|name)", 2},
     { "kill-client",             pa_cli_command_kill_client,        "Kill a client (args: index)", 2},
@@ -161,6 +163,8 @@ static const struct command commands[] = {
     { "move-sink-input",         pa_cli_command_move_sink_input,    "Move sink input to another sink (args: index, sink)", 3},
     { "move-source-output",      pa_cli_command_move_source_output, "Move source output to another source (args: index, source)", 3},
     { "vacuum",                  pa_cli_command_vacuum,             NULL, 1},
+    { "suspend-sink",            pa_cli_command_suspend_sink,       "Suspend sink (args: index|name, bool)", 3},
+    { "suspend-source",          pa_cli_command_suspend_source,     "Suspend source (args: index|name, bool)", 3},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -899,6 +903,64 @@ static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_str
     return 0;
 }
 
+static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail) {
+    const char *n, *m;
+    pa_sink *sink;
+    int suspend;
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a sink either by its name or its index.\n");
+        return -1;
+    }
+
+    if (!(m = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a suspend switch setting (0/1).\n");
+        return -1;
+    }
+
+    if (pa_atoi(m, &suspend) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
+        return -1;
+    }
+
+    if (!(sink = pa_namereg_get(c, n, PA_NAMEREG_SINK, 1))) {
+        pa_strbuf_puts(buf, "No sink found by this name or index.\n");
+        return -1;
+    }
+
+    pa_sink_suspend(sink, suspend);
+    return 0;
+}
+
+static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail) {
+    const char *n, *m;
+    pa_source *source;
+    int suspend;
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a source either by its name or its index.\n");
+        return -1;
+    }
+
+    if (!(m = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a suspend switch setting (0/1).\n");
+        return -1;
+    }
+
+    if (pa_atoi(m, &suspend) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
+        return -1;
+    }
+
+    if (!(source = pa_namereg_get(c, n, PA_NAMEREG_SOURCE, 1))) {
+        pa_strbuf_puts(buf, "No source found by this name or index.\n");
+        return -1;
+    }
+
+    pa_source_suspend(source, suspend);
+    return 0;
+}
+
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
     pa_module *m;
     pa_sink *sink;
@@ -1162,3 +1224,4 @@ int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, int *fail)
 
     return 0;
 }
+

@@ -114,14 +114,15 @@ char *pa_sink_list_to_string(pa_core *c) {
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tis_hardware: <%i>\n"
+            "\tis hardware: <%i>\n"
             "\tstate: %s\n"
             "\tvolume: <%s>\n"
             "\tmute: <%i>\n"
             "\tlatency: <%0.0f usec>\n"
-            "\tmonitor_source: <%u>\n"
+            "\tmonitor source: <%u>\n"
             "\tsample spec: <%s>\n"
-            "\tchannel map: <%s>\n",
+            "\tchannel map: <%s>\n"
+            "\tused by: <%u>\n", 
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index,
             sink->name,
@@ -133,7 +134,8 @@ char *pa_sink_list_to_string(pa_core *c) {
             (double) pa_sink_get_latency(sink),
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
             pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
-            pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map));
+            pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map),
+            pa_sink_used_by(sink));
 
         if (sink->module)
             pa_strbuf_printf(s, "\tmodule: <%u>\n", sink->module->index);
@@ -170,13 +172,14 @@ char *pa_source_list_to_string(pa_core *c) {
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tis_hardware: <%i>\n"
+            "\tis hardware: <%i>\n"
             "\tstate: %s\n"
             "\tvolume: <%s>\n"
             "\tmute: <%u>\n"
             "\tlatency: <%0.0f usec>\n"
             "\tsample spec: <%s>\n"
-            "\tchannel map: <%s>\n",
+            "\tchannel map: <%s>\n"
+            "\tused by: <%u>\n",
             c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
             source->index,
             source->name,
@@ -187,7 +190,8 @@ char *pa_source_list_to_string(pa_core *c) {
             !!pa_source_get_mute(source),
             (double) pa_source_get_latency(source),
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
-            pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map));
+            pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map),
+            pa_source_used_by(source));
 
         if (source->monitor_of)
             pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);

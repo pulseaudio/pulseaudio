@@ -52,8 +52,8 @@ struct pa_asyncq {
     unsigned size;
     unsigned read_idx;
     unsigned write_idx;
-    pa_atomic_int_t read_waiting;
-    pa_atomic_int_t write_waiting;
+    pa_atomic_t read_waiting, n_read;
+    pa_atomic_t write_waiting, n_written;
     int read_fds[2], write_fds[2];
 };
 
@@ -80,6 +80,8 @@ pa_asyncq *pa_asyncq_new(unsigned size) {
     l->size = size;
     pa_atomic_store(&l->read_waiting, 0);
     pa_atomic_store(&l->write_waiting, 0);
+    pa_atomic_store(&l->n_written, 0);
+    pa_atomic_store(&l->n_read, 0);
 
     if (pipe(l->read_fds) < 0) {
         pa_xfree(l);
@@ -131,10 +133,26 @@ int pa_asyncq_push(pa_asyncq*l, void *p, int wait) {
 
     if (!pa_atomic_ptr_cmpxchg(&cells[idx], NULL, p)) {
 
-        /* First try failed. Let's wait for changes. */
-
-        if (!wait)
+        if (!wait) {
+            /* Let's empty the FIFO from old notifications, before we return */
+            
+            while (pa_atomic_load(&l->n_read) > 0) {
+                ssize_t r;
+                int x[20];
+                
+                errno = 0;
+                if ((r = read(l->write_fds[0], x, sizeof(x))) <= 0 && errno != EINTR)
+                    return -1;
+                
+                if (r > 0)
+                    if (pa_atomic_sub(&l->n_read, r) <= r)
+                        break;
+            }
+            
             return -1;
+        }
+
+        /* First try failed. Let's wait for changes. */
 
         _Y;
 
@@ -142,6 +160,7 @@ int pa_asyncq_push(pa_asyncq*l, void *p, int wait) {
 
         for (;;) {
             char x[20];
+            ssize_t r;
 
             _Y;
 
@@ -150,10 +169,13 @@ int pa_asyncq_push(pa_asyncq*l, void *p, int wait) {
 
             _Y;
 
-            if (read(l->write_fds[0], x, sizeof(x)) < 0 && errno != EINTR) {
+            if ((r = read(l->write_fds[0], x, sizeof(x))) < 0 && errno != EINTR) {
                 pa_atomic_dec(&l->write_waiting);
                 return -1;
             }
+
+            if (r > 0)
+                pa_atomic_sub(&l->n_read, r);
         }
 
         _Y;
@@ -167,7 +189,8 @@ int pa_asyncq_push(pa_asyncq*l, void *p, int wait) {
     if (pa_atomic_load(&l->read_waiting)) {
         char x = 'x';
         _Y;
-        write(l->read_fds[1], &x, sizeof(x));
+        if (write(l->read_fds[1], &x, sizeof(x)) > 0)
+            pa_atomic_inc(&l->n_written);
     }
 
     return 0;
@@ -189,8 +212,24 @@ void* pa_asyncq_pop(pa_asyncq*l, int wait) {
 
         /* First try failed. Let's wait for changes. */
 
-        if (!wait)
+        if (!wait) {
+            /* Let's empty the FIFO from old notifications, before we return */
+            
+            while (pa_atomic_load(&l->n_written) > 0) {
+                ssize_t r;
+                int x[20];
+                
+                errno = 0;
+                if ((r = read(l->read_fds[0], x, sizeof(x))) <= 0 && errno != EINTR)
+                    return NULL;
+                
+                if (r > 0)
+                    if (pa_atomic_sub(&l->n_written, r) <= r)
+                        break;
+            }
+            
             return NULL;
+        }
 
         _Y;
 
@@ -198,6 +237,7 @@ void* pa_asyncq_pop(pa_asyncq*l, int wait) {
 
         for (;;) {
             char x[20];
+            ssize_t r;
 
             _Y;
 
@@ -206,10 +246,13 @@ void* pa_asyncq_pop(pa_asyncq*l, int wait) {
 
             _Y;
 
-            if (read(l->read_fds[0], x, sizeof(x)) < 0 && errno != EINTR) {
+            if ((r = read(l->read_fds[0], x, sizeof(x)) < 0) && errno != EINTR) {
                 pa_atomic_dec(&l->read_waiting);
                 return NULL;
             }
+
+            if (r > 0)
+                pa_atomic_sub(&l->n_written, r);
         }
 
         _Y;
@@ -226,7 +269,8 @@ void* pa_asyncq_pop(pa_asyncq*l, int wait) {
     if (pa_atomic_load(&l->write_waiting)) {
         char x = 'x';
         _Y;
-        write(l->write_fds[1], &x, sizeof(x));
+        if (write(l->write_fds[1], &x, sizeof(x)) >= 0)
+            pa_atomic_inc(&l->n_read);
     }
 
     return ret;
@@ -262,10 +306,13 @@ int pa_asyncq_before_poll(pa_asyncq *l) {
     return 0;
 }
 
-int pa_asyncq_after_poll(pa_asyncq *l) {
+void pa_asyncq_after_poll(pa_asyncq *l) {
     pa_assert(l);
 
     pa_assert(pa_atomic_load(&l->read_waiting) > 0);
 
     pa_atomic_dec(&l->read_waiting);
+
+
+    
 }

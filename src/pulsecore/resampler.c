@@ -48,6 +48,7 @@ struct pa_resampler {
 
     void (*impl_free)(pa_resampler *r);
     void (*impl_update_input_rate)(pa_resampler *r, uint32_t rate);
+    void (*impl_update_output_rate)(pa_resampler *r, uint32_t rate);
     void (*impl_run)(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out);
     void *impl_data;
 };
@@ -163,6 +164,19 @@ void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate) {
 
     if (r->impl_update_input_rate)
         r->impl_update_input_rate(r, rate);
+}
+
+void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
+    assert(r);
+    assert(rate > 0);
+
+    if (r->o_ss.rate == rate)
+        return;
+
+    r->o_ss.rate = rate;
+
+    if (r->impl_update_output_rate)
+        r->impl_update_output_rate(r, rate);
 }
 
 void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) {
@@ -512,6 +526,25 @@ static void libsamplerate_update_input_rate(pa_resampler *r, uint32_t rate) {
     }
 }
 
+
+static void libsamplerate_update_output_rate(pa_resampler *r, uint32_t rate) {
+    struct impl_libsamplerate *u;
+
+    assert(r);
+    assert(rate > 0);
+    assert(r->impl_data);
+    u = r->impl_data;
+
+    if (!u->src_state) {
+        int err;
+        u->src_state = src_new(r->resample_method, r->o_ss.channels, &err);
+        assert(u->src_state);
+    } else {
+        int ret = src_set_ratio(u->src_state, (double) rate / r->i_ss.rate);
+        assert(ret == 0);
+    }
+}
+
 static int libsamplerate_init(pa_resampler *r) {
     struct impl_libsamplerate *u = NULL;
     int err;
@@ -541,6 +574,7 @@ static int libsamplerate_init(pa_resampler *r) {
 
     r->impl_free = libsamplerate_free;
     r->impl_update_input_rate = libsamplerate_update_input_rate;
+    r->impl_update_output_rate = libsamplerate_update_output_rate;
     r->impl_run = libsamplerate_run;
 
     calc_map_table(r);
@@ -631,7 +665,7 @@ static void trivial_free(pa_resampler *r) {
     pa_xfree(r->impl_data);
 }
 
-static void trivial_update_input_rate(pa_resampler *r, uint32_t rate) {
+static void trivial_update_rate(pa_resampler *r, uint32_t rate) {
     struct impl_trivial *u;
 
     assert(r);
@@ -655,7 +689,8 @@ static int trivial_init(pa_resampler*r) {
 
     r->impl_run = trivial_run;
     r->impl_free = trivial_free;
-    r->impl_update_input_rate = trivial_update_input_rate;
+    r->impl_update_input_rate = trivial_update_rate;
+    r->impl_update_output_rate = trivial_update_rate;
 
     return 0;
 }

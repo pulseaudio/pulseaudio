@@ -42,6 +42,10 @@
 
 #include "source.h"
 
+static PA_DEFINE_CHECK_TYPE(pa_source, source_check_type, pa_msgobject_check_type);
+
+static void source_free(pa_object *o);
+
 pa_source* pa_source_new(
         pa_core *core,
         const char *driver,
@@ -69,7 +73,7 @@ pa_source* pa_source_new(
     pa_return_null_if_fail(!driver || pa_utf8_valid(driver));
     pa_return_null_if_fail(pa_utf8_valid(name) && *name);
 
-    s = pa_msgobject_new(pa_source);
+    s = pa_msgobject_new(pa_source, source_check_type);
 
     if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SOURCE, s, fail))) {
         pa_xfree(s);
@@ -80,7 +84,7 @@ pa_source* pa_source_new(
     s->parent.process_msg = pa_source_process_msg;
 
     s->core = core;
-    pa_atomic_store(&s->state, PA_SOURCE_IDLE);
+    s->state = PA_SOURCE_IDLE;
     s->name = pa_xstrdup(name);
     s->description = NULL;
     s->driver = pa_xstrdup(driver);
@@ -94,7 +98,7 @@ pa_source* pa_source_new(
 
     pa_cvolume_reset(&s->volume, spec->channels);
     s->muted = 0;
-    s->refresh_volume = s->refresh_mute = 0;
+    s->refresh_volume = s->refresh_muted = 0;
 
     s->is_hardware = 0;
 
@@ -103,11 +107,10 @@ pa_source* pa_source_new(
     s->get_volume = NULL;
     s->set_mute = NULL;
     s->get_mute = NULL;
-    s->start = NULL;
-    s->stop = NULL;
+    s->set_state = NULL;
     s->userdata = NULL;
 
-    pa_assert_se(s->asyncmsgq = pa_asyncmsgq_new(0));
+    s->asyncmsgq = NULL;
 
     r = pa_idxset_put(core->sources, s, &s->index);
     assert(s->index != PA_IDXSET_INVALID && r >= 0);
@@ -118,56 +121,40 @@ pa_source* pa_source_new(
     s->thread_info.outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume = s->volume;
     s->thread_info.soft_muted = s->muted;
+    s->thread_info.state = s->state;
 
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
 
     return s;
 }
 
-static void source_start(pa_source *s) {
-    pa_source_state_t state;
+static int source_set_state(pa_source *s, pa_source_state_t state) {
+    int ret;
+    
     pa_assert(s);
 
-    state = pa_source_get_state(s);
-    pa_return_if_fail(state == PA_SOURCE_IDLE || state == PA_SOURCE_SUSPENDED);
+    if (s->state == state)
+        return 0;
 
-    pa_atomic_store(&s->state, PA_SOURCE_RUNNING);
+    if (s->set_state)
+        if ((ret = s->set_state(s, state)) < 0)
+            return -1;
 
-    if (s->start)
-        s->start(s);
-    else
-        pa_asyncmsgq_post(s->asyncmsgq, s, PA_SOURCE_MESSAGE_START, NULL, NULL, pa_source_unref, NULL);
-}
+    if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), NULL) < 0)
+        return -1;
 
-static void source_stop(pa_source *s) {
-    pa_source_state_t state;
-    int stop;
-
-    pa_assert(s);
-    state = pa_source_get_state(s);
-    pa_return_if_fail(state == PA_SOURCE_RUNNING || state == PA_SOURCE_SUSPENDED);
-
-    stop = state == PA_SOURCE_RUNNING;
-    pa_atomic_store(&s->state, PA_SOURCE_IDLE);
-
-    if (stop) {
-        if (s->stop)
-            s->stop(s);
-        else
-            pa_asyncmsgq_post(s->asyncmsgq, s, PA_SOURCE_MESSAGE_STOP, NULL, NULL, pa_source_unref, NULL);
-    }
+    s->state = state;
+    return 0;
 }
 
 void pa_source_disconnect(pa_source *s) {
     pa_source_output *o, *j = NULL;
 
     pa_assert(s);
-    pa_return_if_fail(pa_sink_get_state(s) != PA_SINK_DISCONNECT);
+    pa_return_if_fail(s->state != PA_SOURCE_DISCONNECTED);
 
-    source_stop(s);
-
-    pa_atomic_store(&s->state, PA_SOURCE_DISCONNECTED);
     pa_namereg_unregister(s->core, s->name);
+    pa_idxset_remove_by_data(s->core->sources, s, NULL);
 
     pa_hook_fire(&s->core->hook_source_disconnect, s);
 
@@ -177,33 +164,36 @@ void pa_source_disconnect(pa_source *s) {
         j = o;
     }
 
-    pa_idxset_remove_by_data(s->core->sources, s, NULL);
+    source_set_state(s, PA_SOURCE_DISCONNECTED);
 
     s->get_latency = NULL;
     s->get_volume = NULL;
     s->set_volume = NULL;
     s->set_mute = NULL;
     s->get_mute = NULL;
-    s->start = NULL;
-    s->stop = NULL;
+    s->set_state = NULL;
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
 }
 
-static void source_free(pa_msgobject *o) {
+static void source_free(pa_object *o) {
+    pa_source_output *so;
     pa_source *s = PA_SOURCE(o);
 
     pa_assert(s);
     pa_assert(pa_source_refcnt(s) == 0);
 
-    pa_source_disconnect(s);
+    if (s->state != PA_SOURCE_DISCONNECTED)
+        pa_source_disconnect(s);
 
     pa_log_info("Freeing source %u \"%s\"", s->index, s->name);
 
     pa_idxset_free(s->outputs, NULL, NULL);
-    pa_hashmap_free(s->thread_info.outputs, pa_sink_output_unref, NULL);
 
-    pa_asyncmsgq_free(s->asyncmsgq);
+    while ((so = pa_hashmap_steal_first(s->thread_info.outputs)))
+        pa_source_output_unref(so);
+    
+    pa_hashmap_free(s->thread_info.outputs, NULL, NULL);
 
     pa_xfree(s->name);
     pa_xfree(s->description);
@@ -211,44 +201,28 @@ static void source_free(pa_msgobject *o) {
     pa_xfree(s);
 }
 
-void pa_source_update_status(pa_source*s) {
+int pa_source_update_status(pa_source*s) {
     pa_source_assert_ref(s);
 
-    if (pa_source_get_state(s) == PA_SOURCE_STATE_SUSPENDED)
-        return;
+    if (s->state == PA_SOURCE_SUSPENDED)
+        return 0;
 
-    if (pa_source_used_by(s) > 0)
-        source_start(s);
-    else
-        source_stop(s);
+    return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
 }
 
-void pa_source_suspend(pa_source *s, int suspend) {
-    pa_source_state_t state;
-
+int pa_source_suspend(pa_source *s, int suspend) {
     pa_source_assert_ref(s);
 
-    state = pa_source_get_state(s);
-    pa_return_if_fail(suspend && (s->state == PA_SOURCE_RUNNING || s->state == PA_SOURCE_IDLE));
-    pa_return_if_fail(!suspend && (s->state == PA_SOURCE_SUSPENDED));
+    if (suspend)
+        return source_set_state(s, PA_SOURCE_SUSPENDED);
+    else
+        return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
+}
 
+void pa_source_ping(pa_source *s) {
+    pa_source_assert_ref(s);
 
-    if (suspend) {
-        pa_atomic_store(&s->state, PA_SOURCE_SUSPENDED);
-
-        if (s->stop)
-            s->stop(s);
-        else
-            pa_asyncmsgq_post(s->asyncmsgq, s, PA_SOURCE_MESSAGE_STOP, NULL, NULL, pa_source_unref, NULL);
-
-    } else {
-        pa_atomic_store(&s->state, PA_SOURCE_RUNNING);
-
-        if (s->start)
-            s->start(s);
-        else
-            pa_asyncmsgq_post(s->asyncmsgq, s, PA_SOURCE_MESSAGE_START, NULL, NULL, pa_source_unref, NULL);
-    }
+    pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_PING, NULL, NULL, NULL);
 }
 
 void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
@@ -258,16 +232,16 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
     pa_source_assert_ref(s);
     pa_assert(chunk);
 
-    if (s->sw_muted || !pa_cvolume_is_norm(&s->sw_volume)) {
+    if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&s->thread_info.soft_volume)) {
         pa_memchunk vchunk = *chunk;
 
         pa_memblock_ref(vchunk.memblock);
         pa_memchunk_make_writable(&vchunk, 0);
 
-        if (s->thread_info.muted || pa_cvolume_is_muted(s->thread_info.volume))
+        if (s->thread_info.soft_muted || pa_cvolume_is_muted(&s->thread_info.soft_volume))
             pa_silence_memchunk(&vchunk, &s->sample_spec);
         else
-            pa_volume_memchunk(&vchunk, &s->sample_spec, &s->thread_info.volume);
+            pa_volume_memchunk(&vchunk, &s->sample_spec, &s->thread_info.soft_volume);
 
         while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
             pa_source_output_push(o, &vchunk);
@@ -289,32 +263,33 @@ pa_usec_t pa_source_get_latency(pa_source *s) {
     if (s->get_latency)
         return s->get_latency(s);
 
-    if (pa_asyncmsgq_send(s->asyncmsgq, s, PA_SOURCE_MESSAGE_GET_LATENCY, &usec, NULL) < 0)
+    if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_LATENCY, &usec, NULL) < 0)
         return 0;
 
     return usec;
 }
 
 void pa_source_set_volume(pa_source *s, const pa_cvolume *volume) {
-    pa_cvolume *v;
+    int changed;
 
     pa_source_assert_ref(s);
     pa_assert(volume);
 
-    changed = !pa_cvolume_equal(volume, s->volume);
+    changed = !pa_cvolume_equal(volume, &s->volume);
     s->volume = *volume;
 
     if (s->set_volume && s->set_volume(s) < 0)
         s->set_volume = NULL;
 
     if (!s->set_volume)
-        pa_asyncmsgq_post(s->asyncmsgq, pa_source_ref(s), PA_SOURCE_MESSAGE_SET_VOLUME, pa_xnewdup(struct pa_cvolume, volume, 1), pa_source_unref, pa_xfree);
+        pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_VOLUME, pa_xnewdup(struct pa_cvolume, volume, 1), NULL, pa_xfree);
 
     if (changed)
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
 const pa_cvolume *pa_source_get_volume(pa_source *s) {
+    pa_cvolume old_volume;
     pa_source_assert_ref(s);
 
     old_volume = s->volume;
@@ -323,7 +298,7 @@ const pa_cvolume *pa_source_get_volume(pa_source *s) {
         s->get_volume = NULL;
 
     if (!s->get_volume && s->refresh_volume)
-        pa_asyncmsgq_send(s->asyncmsgq, s, PA_SOURCE_MESSAGE_GET_VOLUME, &s->volume);
+        pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_VOLUME, &s->volume, NULL);
 
     if (!pa_cvolume_equal(&old_volume, &s->volume))
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
@@ -331,7 +306,7 @@ const pa_cvolume *pa_source_get_volume(pa_source *s) {
     return &s->volume;
 }
 
-void pa_source_set_mute(pa_source *s, pa_mixer_t m, int mute) {
+void pa_source_set_mute(pa_source *s, int mute) {
     int changed;
 
     pa_source_assert_ref(s);
@@ -342,13 +317,13 @@ void pa_source_set_mute(pa_source *s, pa_mixer_t m, int mute) {
         s->set_mute = NULL;
 
     if (!s->set_mute)
-        pa_asyncmsgq_post(s->asyncmsgq, pa_source_ref(s), PA_SOURCE_MESSAGE_SET_MUTE, PA_UINT_TO_PTR(mute), pa_source_unref, NULL);
+        pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_SET_MUTE, PA_UINT_TO_PTR(mute), NULL, NULL);
 
     if (changed)
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
-int pa_source_get_mute(pa_source *s, pa_mixer_t m) {
+int pa_source_get_mute(pa_source *s) {
     int old_muted;
 
     pa_source_assert_ref(s);
@@ -358,8 +333,8 @@ int pa_source_get_mute(pa_source *s, pa_mixer_t m) {
     if (s->get_mute && s->get_mute(s) < 0)
         s->get_mute = NULL;
 
-    if (!s->get_mute && s->refresh_mute)
-        pa_asyncmsgq_send(s->asyncmsgq, s, PA_SOURCE_MESSAGE_GET_MUTE, &s->muted);
+    if (!s->get_mute && s->refresh_muted)
+        pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_MUTE, &s->muted, NULL);
 
     if (old_muted != s->muted)
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
@@ -393,26 +368,33 @@ void pa_source_set_description(pa_source *s, const char *description) {
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
+void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q) {
+    pa_source_assert_ref(s);
+    pa_assert(q);
+
+    s->asyncmsgq = q;
+}
+
 unsigned pa_source_used_by(pa_source *s) {
     pa_source_assert_ref(s);
 
     return pa_idxset_size(s->outputs);
 }
 
-int pa_source_process_msg(pa_msgobject *o, void *object, int code, pa_memchunk *chunk, void *userdata) {
+int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk) {
     pa_source *s = PA_SOURCE(o);
     pa_source_assert_ref(s);
 
-    switch (code) {
+    switch ((pa_source_message_t) code) {
         case PA_SOURCE_MESSAGE_ADD_OUTPUT: {
             pa_source_output *i = userdata;
             pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(i->index), pa_source_output_ref(i));
             return 0;
         }
 
-        case PA_SOURCE_MESSAGE_REMOVE_INPUT: {
-            pa_source_input *i = userdata;
-            pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(i->index), pa_source_output_ref(i));
+        case PA_SOURCE_MESSAGE_REMOVE_OUTPUT: {
+            pa_source_output *i = userdata;
+            pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(i->index));
             return 0;
         }
 
@@ -432,7 +414,17 @@ int pa_source_process_msg(pa_msgobject *o, void *object, int code, pa_memchunk *
             *((int*) userdata) = s->thread_info.soft_muted;
             return 0;
 
-        default:
-            return -1;
+        case PA_SOURCE_MESSAGE_PING:
+            return 0;
+
+        case PA_SOURCE_MESSAGE_SET_STATE:
+            s->thread_info.state = PA_PTR_TO_UINT(userdata);
+            return 0;
+            
+        case PA_SOURCE_MESSAGE_GET_LATENCY:
+        case PA_SOURCE_MESSAGE_MAX:
+            ;
     }
+
+    return -1;
 }

@@ -49,6 +49,8 @@
 
 #include "core.h"
 
+static PA_DEFINE_CHECK_TYPE(pa_core, core_check_type, pa_msgobject_check_type);
+
 static int core_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk) {
     pa_core *c = PA_CORE(o);
 
@@ -81,8 +83,10 @@ static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_even
 
         /* Check whether there is a message for us to process */
         while (pa_asyncmsgq_get(c->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
-            pa_asyncmsgq_dispatch(object, code, data, &chunk);
-            pa_asyncmsgq_done(c->asyncmsgq, 0);
+            int ret;
+
+            ret = pa_asyncmsgq_dispatch(object, code, data, &chunk);
+            pa_asyncmsgq_done(c->asyncmsgq, ret);
         }
 
         if (pa_asyncmsgq_before_poll(c->asyncmsgq) == 0)
@@ -112,7 +116,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
         }
     }
 
-    c = pa_msgobject_new(pa_core);
+    c = pa_msgobject_new(pa_core, core_check_type);
     c->parent.parent.free = core_free;
     c->parent.process_msg = core_process_msg;
 
@@ -181,7 +185,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
 
 static void core_free(pa_object *o) {
     pa_core *c = PA_CORE(o);
-    pa_core_assert_ref(c);
+    pa_assert(c);
 
     pa_module_unload_all(c);
     assert(!c->modules);
@@ -212,13 +216,14 @@ static void core_free(pa_object *o) {
     pa_xfree(c->default_source_name);
     pa_xfree(c->default_sink_name);
 
+    pa_asyncmsgq_after_poll(c->asyncmsgq);
+    pa_asyncmsgq_free(c->asyncmsgq);
+
     pa_mempool_free(c->mempool);
 
     pa_property_cleanup(c);
 
     c->mainloop->io_free(c->asyncmsgq_event);
-    pa_asyncmsgq_after_poll(c->asyncmsgq);
-    pa_asyncmsgq_free(c->asyncmsgq);
 
     pa_hook_free(&c->hook_sink_input_new);
     pa_hook_free(&c->hook_sink_disconnect);

@@ -121,7 +121,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                     pa_log("failed to get sink '%s'", u->sink_name);
                 else {
                     int i;
-                    pa_cvolume cv = *pa_sink_get_volume(s, PA_MIXER_HARDWARE);
+                    pa_cvolume cv = *pa_sink_get_volume(s);
 
 #define DELTA (PA_VOLUME_NORM/20)
 
@@ -134,7 +134,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                                     cv.values[i] = PA_VOLUME_NORM;
                             }
 
-                            pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
+                            pa_sink_set_volume(s, &cv);
                             break;
 
                         case DOWN:
@@ -145,20 +145,20 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                                     cv.values[i] = PA_VOLUME_MUTED;
                             }
 
-                            pa_sink_set_volume(s, PA_MIXER_HARDWARE, &cv);
+                            pa_sink_set_volume(s, &cv);
                             break;
 
                         case MUTE:
-                            pa_sink_set_mute(s, PA_MIXER_HARDWARE, 0);
+                            pa_sink_set_mute(s, 0);
                             break;
 
                         case RESET:
-                            pa_sink_set_mute(s, PA_MIXER_HARDWARE, 1);
+                            pa_sink_set_mute(s, 1);
                             break;
 
                         case MUTE_TOGGLE:
 
-                            pa_sink_set_mute(s, PA_MIXER_HARDWARE, !pa_sink_get_mute(s, PA_MIXER_HARDWARE));
+                            pa_sink_set_mute(s, !pa_sink_get_mute(s));
                             break;
 
                         case INVALID:

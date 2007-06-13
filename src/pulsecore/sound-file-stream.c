@@ -200,7 +200,7 @@ int pa_play_file(
     u->sink_input->kill = sink_input_kill;
     u->sink_input->userdata = u;
 
-    pa_sink_notify(u->sink_input->sink);
+/*     pa_sink_notify(u->sink_input->sink); */
 
     return 0;
 

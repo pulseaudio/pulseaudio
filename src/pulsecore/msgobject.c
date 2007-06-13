@@ -28,13 +28,15 @@
 
 #include "msgobject.h"
 
-pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_name) {
+PA_DEFINE_CHECK_TYPE(pa_msgobject, pa_msgobject_check_type, pa_object_check_type);
+
+pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_name, int (*check_type)(pa_object *o, const char *type_name)) {
     pa_msgobject *o;
 
     pa_assert(size > sizeof(pa_msgobject));
     pa_assert(type_name);
 
-    o = PA_MSGOBJECT(pa_object_new_internal(size, type_name));
+    o = PA_MSGOBJECT(pa_object_new_internal(size, type_name, check_type ? check_type : pa_msgobject_check_type));
     o->process_msg = NULL;
     return o;
 }

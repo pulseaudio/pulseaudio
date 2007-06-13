@@ -28,7 +28,7 @@
 
 #include "object.h"
 
-pa_object *pa_object_new_internal(size_t size, const char *type_name) {
+pa_object *pa_object_new_internal(size_t size, const char *type_name, int (*check_type)(pa_object *o, const char *type_name)) {
     pa_object *o;
 
     pa_assert(size > sizeof(pa_object));
@@ -38,24 +38,30 @@ pa_object *pa_object_new_internal(size_t size, const char *type_name) {
     PA_REFCNT_INIT(o);
     o->type_name = type_name;
     o->free = pa_object_free;
+    o->check_type = check_type ? check_type : pa_object_check_type;
 
     return o;
 }
 
 pa_object *pa_object_ref(pa_object *o) {
-    pa_assert(o);
-    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+    pa_object_assert_ref(o);
 
     PA_REFCNT_INC(o);
     return o;
 }
 
 void pa_object_unref(pa_object *o) {
-    pa_assert(o);
-    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+    pa_object_assert_ref(o);
 
     if (PA_REFCNT_DEC(o) <= 0) {
         pa_assert(o->free);
         o->free(o);
     }
+}
+
+int pa_object_check_type(pa_object *o, const char *type_name) {
+    pa_assert(o);
+    pa_assert(type_name);
+    
+    return type_name == "pa_object" || strcmp(type_name, "pa_object") == 0;
 }

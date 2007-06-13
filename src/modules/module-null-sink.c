@@ -33,17 +33,19 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
+#include <sys/poll.h>
 
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/macro.h>
-#include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/core-error.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
+#include <pulsecore/thread.h>
 
 #include "module-null-sink-symdef.h"
 
@@ -65,7 +67,9 @@ struct userdata {
     pa_module *module;
     pa_sink *sink;
     pa_thread *thread;
+    pa_asyncmsgq *asyncmsgq;
     size_t block_size;
+    
     struct timeval timestamp;
 };
 
@@ -79,85 +83,74 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
+static int sink_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *chunk) {
+    struct userdata *u = PA_SINK(o)->userdata;
+
+    switch (code) {
+        case PA_SINK_MESSAGE_SET_STATE:
+
+            if (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING)
+                pa_gettimeofday(&u->timestamp);
+            
+            break;
+            
+        case PA_SINK_MESSAGE_GET_LATENCY: {
+            struct timeval now;
+    
+            pa_gettimeofday(&now);
+            
+            if (pa_timeval_cmp(&u->timestamp, &now) > 0)
+                *((pa_usec_t*) data) = 0;
+            else
+                *((pa_usec_t*) data) = pa_timeval_diff(&u->timestamp, &now);
+            break;
+        }
+    }
+    
+    return pa_sink_process_msg(o, code, data, chunk);
+}
+
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
-    int quit = 0;
     struct pollfd pollfd;
-    int running = 1;
 
     pa_assert(u);
 
     pa_log_debug("Thread starting up");
 
+    pa_gettimeofday(&u->timestamp);
+
     memset(&pollfd, 0, sizeof(pollfd));
-    pollfd.fd = pa_asyncmsgq_get_fd(u->sink->asyncmsgq, PA_ASYNCQ_POP);
+    pollfd.fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
     pollfd.events = POLLIN;
 
-    pa_gettimeofday(u->timestamp);
-
     for (;;) {
+        pa_msgobject *object;
         int code;
-        void *data, *object;
+        void *data;
+        pa_memchunk chunk;
         int r, timeout;
         struct timeval now;
 
         /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->sink->asyncmsgq, &object, &code, &data) == 0) {
+        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
+            int ret;
 
-
-            /* Now process these messages our own way */
-            if (!object) {
-
-                switch (code) {
-                    case PA_MESSAGE_SHUTDOWN:
-                        goto finish;
-
-                    default:
-                        pa_sink_process_msg(u->sink->asyncmsgq, object, code, data);
-
-                }
-
-            } else if (object == u->sink) {
-
-                switch (code) {
-                    case PA_SINK_MESSAGE_STOP:
-                        pa_assert(running);
-                        running = 0;
-                        break;
-
-                    case PA_SINK_MESSAGE_START:
-                        pa_assert(!running);
-                        running = 1;
-
-                        pa_gettimeofday(u->timestamp);
-                        break;
-
-                    case PA_SINK_MESSAGE_GET_LATENCY:
-
-                        if (pa_timeval_cmp(&u->timestamp, &now) > 0)
-                            *((pa_usec_t*) data) = 0;
-                        else
-                            *((pa_usec_t*) data) = pa_timeval_diff(&u->timestamp, &now);
-                        break;
-
-                        /* ... */
-
-                    default:
-                        pa_sink_process_msg(u->sink->asyncmsgq, object, code, data);
-                }
+            if (!object && code == PA_MESSAGE_SHUTDOWN) {
+                pa_asyncmsgq_done(u->asyncmsgq, 0);
+                goto finish;
             }
-
-            pa_asyncmsgq_done(u->sink->asyncmsgq);
+                    
+            ret = pa_asyncmsgq_dispatch(object, code, data, &chunk);
+            pa_asyncmsgq_done(u->asyncmsgq, ret);
             continue;
         }
 
         /* Render some data and drop it immediately */
-
-        if (running) {
+        if (u->sink->thread_info.state == PA_SINK_RUNNING) {
             pa_gettimeofday(&now);
 
-            if (pa_timeval_cmp(u->timestamp, &now) <= 0) {
-                pa_memchunk chunk;
+            if (pa_timeval_cmp(&u->timestamp, &now) <= 0) {
                 size_t l;
 
                 if (pa_sink_render(u->sink, u->block_size, &chunk) >= 0) {
@@ -179,11 +172,11 @@ static void thread_func(void *userdata) {
 
         /* Hmm, nothing to do. Let's sleep */
 
-        if (pa_asyncmsgq_before_poll(u->sink->asyncmsgq) < 0)
+        if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
             continue;
 
         r = poll(&pollfd, 1, timeout);
-        pa_asyncmsgq_after_poll(u->sink->asyncmsgq);
+        pa_asyncmsgq_after_poll(u->asyncmsgq);
 
         if (r < 0) {
             if (errno == EINTR)
@@ -199,8 +192,8 @@ static void thread_func(void *userdata) {
 fail:
     /* We have to continue processing messages until we receive the
      * SHUTDOWN message */
-    pa_asyncmsgq_post(u->core->asyncmsgq, u->core, PA_CORE_MESSAGE_UNLOAD_MODULE, pa_module_ref(u->module), NULL, pa_module_unref);
-    pa_asyncmsgq_wait_for(PA_MESSAGE_SHUTDOWN);
+    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->asyncmsgq, PA_MESSAGE_SHUTDOWN);
 
 finish:
     pa_log_debug("Thread shutting down");
@@ -231,20 +224,24 @@ int pa__init(pa_core *c, pa_module*m) {
     u->module = m;
     m->userdata = u;
 
+    pa_assert_se(u->asyncmsgq = pa_asyncmsgq_new(0));
+    
     if (!(u->sink = pa_sink_new(c, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
         pa_log("Failed to create sink.");
         goto fail;
     }
 
+    u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
-    pa_sink_set_owner(u->sink, m);
+
+    pa_sink_set_module(u->sink, m);
+    pa_sink_set_asyncmsgq(u->sink, u->asyncmsgq);
     pa_sink_set_description(u->sink, pa_modargs_get_value(ma, "description", "NULL sink"));
 
     u->block_size = pa_bytes_per_second(&ss) / 20; /* 50 ms */
-
     if (u->block_size <= 0)
         u->block_size = pa_frame_size(&ss);
-
+    
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
@@ -272,14 +269,19 @@ void pa__done(pa_core *c, pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    pa_sink_disconnect(u->sink);
+    if (u->sink)
+        pa_sink_disconnect(u->sink);
 
     if (u->thread) {
-        pa_asyncmsgq_send(u->sink->asyncmsgq, PA_SINK_MESSAGE_SHUTDOWN, NULL);
+        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, NULL);
         pa_thread_free(u->thread);
     }
 
-    pa_sink_unref(u->sink);
+    if (u->asyncmsgq)
+        pa_asyncmsgq_free(u->asyncmsgq);
+
+    if (u->sink)
+        pa_sink_unref(u->sink);
 
     pa_xfree(u);
 }

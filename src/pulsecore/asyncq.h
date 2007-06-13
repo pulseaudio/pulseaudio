@@ -51,6 +51,6 @@ int pa_asyncq_push(pa_asyncq *q, void *p, int wait);
 
 int pa_asyncq_get_fd(pa_asyncq *q);
 int pa_asyncq_before_poll(pa_asyncq *a);
-int pa_asyncq_after_poll(pa_asyncq *a);
+void pa_asyncq_after_poll(pa_asyncq *a);
 
 #endif

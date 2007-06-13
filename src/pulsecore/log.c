@@ -71,14 +71,11 @@ static const char level_to_char[] = {
 };
 
 void pa_log_set_ident(const char *p) {
-    if (log_ident)
-        pa_xfree(log_ident);
-    if (log_ident_local)
-        pa_xfree(log_ident_local);
+    pa_xfree(log_ident);
+    pa_xfree(log_ident_local);
 
     log_ident = pa_xstrdup(p);
-    log_ident_local = pa_utf8_to_locale(log_ident);
-    if (!log_ident_local)
+    if (!(log_ident_local = pa_utf8_to_locale(log_ident)))
         log_ident_local = pa_xstrdup(log_ident);
 }
 

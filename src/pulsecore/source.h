@@ -57,7 +57,7 @@ struct pa_source {
 
     uint32_t index;
     pa_core *core;
-    pa_atomic_t state;
+    pa_source_state_t state;
 
     char *name;
     char *description, *driver;              /* may be NULL */
@@ -74,10 +74,9 @@ struct pa_source {
     pa_cvolume volume;
     int muted;
     int refresh_volume;
-    int referesh_mute;
+    int refresh_muted;
 
-    void (*start)(pa_source*source);         /* may be NULL */
-    void (*stop)(pa_source*source);          /* may be NULL */
+    int (*set_state)(pa_source*source, pa_source_state_t state);          /* may be NULL */
     int (*set_volume)(pa_source *s);         /* dito */
     int (*get_volume)(pa_source *s);         /* dito */
     int (*set_mute)(pa_source *s);           /* dito */
@@ -87,6 +86,7 @@ struct pa_source {
     pa_asyncmsgq *asyncmsgq;
 
     struct {
+        pa_source_state_t state;
         pa_hashmap *outputs;
         pa_cvolume soft_volume;
         int soft_muted;
@@ -96,7 +96,7 @@ struct pa_source {
 };
 
 PA_DECLARE_CLASS(pa_source);
-#define PA_SOURCE(s) ((pa_source*) (s))
+#define PA_SOURCE(s) pa_source_cast(s)
 
 typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_ADD_OUTPUT,
@@ -106,8 +106,8 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_GET_MUTE,
     PA_SOURCE_MESSAGE_SET_MUTE,
     PA_SOURCE_MESSAGE_GET_LATENCY,
-    PA_SOURCE_MESSAGE_START,
-    PA_SOURCE_MESSAGE_STOP,
+    PA_SOURCE_MESSAGE_SET_STATE,
+    PA_SOURCE_MESSAGE_PING,
     PA_SOURCE_MESSAGE_MAX
 } pa_source_message_t;
 
@@ -125,13 +125,15 @@ void pa_source_disconnect(pa_source *s);
 
 void pa_source_set_module(pa_source *s, pa_module *m);
 void pa_source_set_description(pa_source *s, const char *description);
+void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q);
 
 /* Callable by everyone */
 
 pa_usec_t pa_source_get_latency(pa_source *s);
 
-void pa_source_update_status(pa_source*s);
-void pa_source_suspend(pa_source *s);
+int pa_source_update_status(pa_source*s);
+int pa_source_suspend(pa_source *s, int suspend);
+void pa_source_ping(pa_source *s);
 
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume);
 const pa_cvolume *pa_source_get_volume(pa_source *source);
@@ -139,11 +141,11 @@ void pa_source_set_mute(pa_source *source, int mute);
 int pa_source_get_mute(pa_source *source);
 
 unsigned pa_source_used_by(pa_source *s);
-#define pa_source_get_state(s) ((pa_source_state_t) pa_atomic_load(&(s)->state))
+#define pa_source_get_state(s) ((pa_source_state_t) (s)->state)
 
 /* To be used exclusively by the source driver thread */
 
 void pa_source_post(pa_source*s, const pa_memchunk *b);
-void pa_source_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
+int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
 
 #endif

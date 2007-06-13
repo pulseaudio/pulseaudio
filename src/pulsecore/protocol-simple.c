@@ -40,13 +40,15 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/atomic.h>
 
 #include "protocol-simple.h"
 
 /* Don't allow more than this many concurrent connections */
 #define MAX_CONNECTIONS 10
 
-struct connection {
+typedef struct connection {
+    pa_msgobject parent;
     pa_protocol_simple *protocol;
     pa_iochannel *io;
     pa_sink_input *sink_input;
@@ -59,17 +61,20 @@ struct connection {
     struct {
         pa_memblock *current_memblock;
         size_t memblock_index, fragment_size;
-        pa_atomic_int missing;
+        pa_atomic_t missing;
     } playback;
-};
+} connection;
 
+PA_DECLARE_CLASS(connection);
+#define CONNECTION(o) (connection_cast(o))
+
+static PA_DEFINE_CHECK_TYPE(connection, connection_check_type, pa_msgobject_check_type);
+                     
 struct pa_protocol_simple {
     pa_module *module;
     pa_core *core;
     pa_socket_server*server;
     pa_idxset *connections;
-
-    pa_asyncmsgq *asyncmsgq;
 
     enum {
         RECORD = 1,
@@ -86,8 +91,9 @@ enum {
 };
 
 enum {
-    MESSAGE_REQUEST_DATA,   /* data from source output to main loop */
-    MESSAGE_POST_DATA       /* data from source output to main loop */
+    MESSAGE_REQUEST_DATA,      /* data requested from sink input from the main loop */
+    MESSAGE_POST_DATA,         /* data from source output to main loop */
+    MESSAGE_DROP_CONNECTION    /* Please drop a aconnection now */
 };
 
 
@@ -96,26 +102,13 @@ enum {
 #define RECORD_BUFFER_SECONDS (5)
 #define RECORD_BUFFER_FRAGMENTS (100)
 
-static void connection_free(struct connection *c) {
+static void connection_free(pa_object *o) {
+    connection *c = CONNECTION(o);
     pa_assert(c);
-
-    pa_idxset_remove_by_data(c->protocol->connections, c, NULL);
-
-    if (c->sink_input) {
-        pa_sink_input_disconnect(c->sink_input);
-        pa_sink_input_unref(c->sink_input);
-    }
-
-    if (c->source_output) {
-        pa_source_output_disconnect(c->source_output);
-        pa_source_output_unref(c->source_output);
-    }
 
     if (c->playback.current_memblock)
         pa_memblock_unref(c->playback.current_memblock);
 
-    if (c->client)
-        pa_client_free(c->client);
     if (c->io)
         pa_iochannel_free(c->io);
     if (c->input_memblockq)
@@ -126,7 +119,32 @@ static void connection_free(struct connection *c) {
     pa_xfree(c);
 }
 
-static int do_read(struct connection *c) {
+static void connection_drop(connection *c) {
+    pa_assert(c);
+    
+    pa_idxset_remove_by_data(c->protocol->connections, c, NULL);
+
+    if (c->sink_input) {
+        pa_sink_input_disconnect(c->sink_input);
+        pa_sink_input_unref(c->sink_input);
+        c->sink_input = NULL;
+    }
+
+    if (c->source_output) {
+        pa_source_output_disconnect(c->source_output);
+        pa_source_output_unref(c->source_output);
+        c->source_output = NULL;
+    }
+
+    if (c->client) {
+        pa_client_free(c->client);
+        c->client = NULL;
+    }
+
+    connection_unref(c);
+}
+
+static int do_read(connection *c) {
     pa_memchunk chunk;
     ssize_t r;
     size_t l;
@@ -171,17 +189,17 @@ static int do_read(struct connection *c) {
 
     c->playback.memblock_index += r;
 
-    pa_asyncmsgq_post(c->protocol->asyncmsgq, c, MESSAGE_POST_DATA, NULL, &chunk, NULL, NULL);
+    pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, &chunk, NULL);
 
     return 0;
 }
 
-static int do_write(struct connection *c) {
+static int do_write(connection *c) {
     pa_memchunk chunk;
     ssize_t r;
     void *p;
 
-    p_assert(c);
+    pa_assert(c);
 
     if (!c->source_output)
         return 0;
@@ -212,7 +230,7 @@ static int do_write(struct connection *c) {
     return 0;
 }
 
-static void do_work(struct connection *c) {
+static void do_work(connection *c) {
     pa_assert(c);
 
     if (c->dead)
@@ -243,14 +261,39 @@ fail:
 
         pa_memblockq_prebuf_disable(c->input_memblockq);
     } else
-        connection_free(c);
+        connection_drop(c);
+}
+
+static int connection_process_msg(pa_msgobject *o, int code, void*userdata, pa_memchunk *chunk) {
+    connection *c = CONNECTION(o);
+    
+    connection_assert_ref(c);
+
+    switch (code) {
+        case MESSAGE_REQUEST_DATA:
+            do_work(c);
+            break;
+            
+        case MESSAGE_POST_DATA:
+            pa_memblockq_push(c->output_memblockq, chunk);
+            do_work(c);
+            break;
+
+        case MESSAGE_DROP_CONNECTION:
+            connection_drop(c);
+            break;
+
+    }
+
+    return 0;
 }
 
 /*** sink_input callbacks ***/
 
 /* Called from thread context */
-static int sink_input_process_msg(pa_sink_input *i, int code, void *userdata, const pa_memchunk *chunk) {
-    struct connection*c;
+static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk) {
+    pa_sink_input *i = PA_SINK_INPUT(o);
+    connection*c;
 
     pa_assert(i);
     c = i->userdata;
@@ -263,6 +306,8 @@ static int sink_input_process_msg(pa_sink_input *i, int code, void *userdata, co
 
             /* New data from the main loop */
             pa_memblockq_push_align(c->input_memblockq, chunk);
+            pa_atomic_store(&c->playback.missing, pa_memblockq_missing(c->input_memblockq));
+            
             return 0;
         }
 
@@ -276,13 +321,14 @@ static int sink_input_process_msg(pa_sink_input *i, int code, void *userdata, co
         }
 
         default:
-            return pa_sink_input_process_msg(i, code, userdata);
+            return pa_sink_input_process_msg(o, code, userdata, chunk);
     }
 }
 
 /* Called from thread context */
 static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
-    struct connection*c;
+    connection*c;
+    int r;
 
     pa_assert(i);
     c = i->userdata;
@@ -292,14 +338,14 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     r = pa_memblockq_peek(c->input_memblockq, chunk);
 
     if (c->dead && r < 0)
-        connection_free(c);
+        pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), MESSAGE_DROP_CONNECTION, c, NULL, NULL);
 
     return r;
 }
 
 /* Called from thread context */
 static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
-    struct connection*c = i->userdata;
+    connection*c = i->userdata;
     size_t old, new;
 
     pa_assert(i);
@@ -310,10 +356,10 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
     pa_memblockq_drop(c->input_memblockq, chunk, length);
     new = pa_memblockq_missing(c->input_memblockq);
 
-    pa_atomic_store(&c->playback.missing, &new);
+    pa_atomic_store(&c->playback.missing, new);
 
     if (new > old)
-        pa_asyncmsgq_post(c->protocol->asyncmsgq, c, MESSAGE_REQUEST_DATA, NULL, NULL, NULL, NULL);
+        pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), MESSAGE_REQUEST_DATA, NULL, NULL, NULL);
 }
 
 /* Called from main context */
@@ -321,34 +367,34 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_assert(i);
     pa_assert(i->userdata);
 
-    connection_free((struct connection *) i->userdata);
+    connection_drop((connection *) i->userdata);
 }
 
 /*** source_output callbacks ***/
 
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
-    struct connection *c;
+    connection *c;
 
     pa_assert(o);
     c = o->userdata;
     pa_assert(c);
     pa_assert(chunk);
 
-    pa_asyncmsgq_post(c->protocol->asyncmsgq, c, MESSAGE_REQUEST_DATA, NULL, chunk, NULL, NULL);
+    pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), MESSAGE_POST_DATA, NULL, chunk, NULL);
 }
 
 static void source_output_kill_cb(pa_source_output *o) {
-    struct connection*c;
+    connection*c;
 
     pa_assert(o);
     c = o->userdata;
     pa_assert(c);
 
-    connection_free(c);
+    connection_drop(c);
 }
 
 static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
-    struct connection*c;
+    connection*c;
 
     pa_assert(o);
     c = o->userdata;
@@ -360,19 +406,19 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
 /*** client callbacks ***/
 
 static void client_kill_cb(pa_client *client) {
-    struct connection*c;
+    connection*c;
 
     pa_assert(client);
     c = client->userdata;
     pa_assert(c);
 
-    connection_free(client);
+    connection_drop(c);
 }
 
 /*** pa_iochannel callbacks ***/
 
 static void io_callback(pa_iochannel*io, void *userdata) {
-    struct connection *c = userdata;
+    connection *c = userdata;
 
     pa_assert(io);
     pa_assert(c);
@@ -384,7 +430,7 @@ static void io_callback(pa_iochannel*io, void *userdata) {
 
 static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) {
     pa_protocol_simple *p = userdata;
-    struct connection *c = NULL;
+    connection *c = NULL;
     char cname[256];
 
     pa_assert(s);
@@ -397,7 +443,9 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
         return;
     }
 
-    c = pa_xnew(struct connection, 1);
+    c = pa_msgobject_new(connection, connection_check_type);
+    c->parent.parent.free = connection_free;
+    c->parent.process_msg = connection_process_msg;
     c->io = io;
     c->sink_input = NULL;
     c->source_output = NULL;
@@ -415,7 +463,6 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
 
-
     if (p->mode & PLAYBACK) {
         pa_sink_input_new_data data;
         size_t l;
@@ -432,10 +479,10 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
             goto fail;
         }
 
+        c->sink_input->parent.process_msg = sink_input_process_msg;
         c->sink_input->peek = sink_input_peek_cb;
         c->sink_input->drop = sink_input_drop_cb;
         c->sink_input->kill = sink_input_kill_cb;
-        c->sink_input->get_latency = sink_input_get_latency_cb;
         c->sink_input->userdata = c;
 
         l = (size_t) (pa_bytes_per_second(&p->sample_spec)*PLAYBACK_BUFFER_SECONDS);
@@ -449,7 +496,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
                 NULL);
         pa_assert(c->input_memblockq);
         pa_iochannel_socket_set_rcvbuf(io, l/PLAYBACK_BUFFER_FRAGMENTS*5);
-        c->playback.fragment_size = l/10;
+        c->playback.fragment_size = l/PLAYBACK_BUFFER_FRAGMENTS;
 
         pa_atomic_store(&c->playback.missing, pa_memblockq_missing(c->input_memblockq));
 
@@ -498,47 +545,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
 fail:
     if (c)
-        connection_free(c);
-}
-
-static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
-    pa_protocol_simple *p = userdata;
-    int do_some_work = 0;
-
-    pa_assert(pa_asyncmsgq_get_fd(p->asyncmsgq) == fd);
-    pa_assert(events == PA_IO_EVENT_INPUT);
-
-    pa_asyncmsgq_after_poll(p->asyncmsgq);
-
-    for (;;) {
-        int code;
-        void *object, *data;
-
-        /* Check whether there is a message for us to process */
-        while (pa_asyncmsgq_get(p->asyncmsgq, &object, &code, &data) == 0) {
-
-            connection *c = object;
-
-            pa_assert(c);
-
-            switch (code) {
-
-                case MESSAGE_REQUEST_DATA:
-                    do_work(c);
-                    break;
-
-                case MESSAGE_POST_DATA:
-                    pa_memblockq_push(c->output_memblockq, chunk);
-                    do_work(c);
-                    break;
-            }
-
-            pa_asyncmsgq_done(p->asyncmsgq);
-        }
-
-        if (pa_asyncmsgq_before_poll(p->asyncmsgq) == 0)
-            break;
-    }
+        connection_drop(c);
 }
 
 pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma) {
@@ -554,7 +561,6 @@ pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *serv
     p->core = core;
     p->server = server;
     p->connections = pa_idxset_new(NULL, NULL);
-    pa_assert_se(p->asyncmsgq = pa_asyncmsgq_new(0));
 
     p->sample_spec = core->default_sample_spec;
     if (pa_modargs_get_sample_spec(ma, &p->sample_spec) < 0) {
@@ -586,9 +592,6 @@ pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *serv
 
     pa_socket_server_set_callback(p->server, on_connection, p);
 
-    pa_assert_se(pa_asyncmsgq_before_poll(p->asyncmsgq) == 0);
-    pa_assert_se(p->asyncmsgq_event = core->mainloop->io_event_new(core->mainloop, pa_asyncmsgq_get_fd(p->asyncmsgq), PA_IO_EVENT_INPUT, p));
-
     return p;
 
 fail:
@@ -600,24 +603,18 @@ fail:
 
 
 void pa_protocol_simple_free(pa_protocol_simple *p) {
-    struct connection *c;
+    connection *c;
     pa_assert(p);
 
     if (p->connections) {
         while((c = pa_idxset_first(p->connections, NULL)))
-            connection_free(c);
+            connection_drop(c);
 
         pa_idxset_free(p->connections, NULL, NULL);
     }
 
     if (p->server)
         pa_socket_server_unref(p->server);
-
-    if (p->asyncmsgq) {
-        c->mainloop->io_event_free(c->asyncmsgq_event);
-        pa_asyncmsgq_after_poll(c->asyncmsgq);
-        pa_asyncmsgq_free(p->asyncmsgq);
-    }
 
     pa_xfree(p);
 }

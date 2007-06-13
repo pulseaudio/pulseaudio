@@ -80,7 +80,7 @@ struct pa_source_output {
 };
 
 PA_DECLARE_CLASS(pa_source_output);
-#define PA_SOURCE_OUTPUT(o) ((pa_source_output*) (o))
+#define PA_SOURCE_OUTPUT(o) pa_source_output_cast(o)
 
 enum {
     PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY,
@@ -129,7 +129,7 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *i);
 
 void pa_source_output_cork(pa_source_output *i, int b);
 
-void pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
+int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 

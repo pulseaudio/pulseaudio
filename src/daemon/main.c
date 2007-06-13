@@ -656,7 +656,7 @@ int main(int argc, char *argv[]) {
     pa_mainloop_get_api(mainloop)->time_free(timer);
 #endif
 
-    pa_core_free(c);
+    pa_core_unref(c);
 
     if (!conf->no_cpu_limit)
         pa_cpu_limit_done();
