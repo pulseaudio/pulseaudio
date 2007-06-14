@@ -51,7 +51,7 @@ struct pa_source_output {
 
     uint32_t index;
     pa_core *core;
-    pa_atomic_t state;
+    pa_source_output_state_t state;
     pa_source_output_flags_t flags;
 
     char *name, *driver;                  /* may be NULL */
@@ -63,7 +63,6 @@ struct pa_source_output {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
-    int (*process_msg)(pa_sink_input *i, int code, void *userdata);
     void (*push)(pa_source_output *o, const pa_memchunk *chunk);
     void (*kill)(pa_source_output* o);              /* may be NULL */
     pa_usec_t (*get_latency) (pa_source_output *o); /* may be NULL */
@@ -71,6 +70,8 @@ struct pa_source_output {
     pa_resample_method_t resample_method;
 
     struct {
+        pa_source_output_state_t state;
+        
         pa_sample_spec sample_spec;
 
         pa_resampler* resampler;              /* may be NULL */
@@ -85,6 +86,7 @@ PA_DECLARE_CLASS(pa_source_output);
 enum {
     PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY,
     PA_SOURCE_OUTPUT_MESSAGE_SET_RATE,
+    PA_SOURCE_OUTPUT_MESSAGE_SET_STATE,
     PA_SOURCE_OUTPUT_MESSAGE_MAX
 };
 
@@ -135,7 +137,7 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o);
 
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
 
-#define pa_source_output_get_state(o) ((pa_source_output_state_t) pa_atomic_load(&o->state))
+#define pa_source_output_get_state(o) ((o)->state)
 
 /* To be used exclusively by the source driver thread */
 

@@ -135,7 +135,7 @@ pa_source_output* pa_source_output_new(
     o->parent.process_msg = pa_source_output_process_msg;
 
     o->core = core;
-    pa_atomic_store(&o->state, PA_SOURCE_OUTPUT_RUNNING);
+    o->state = PA_SOURCE_OUTPUT_RUNNING;
     o->flags = flags;
     o->name = pa_xstrdup(data->name);
     o->driver = pa_xstrdup(data->driver);
@@ -147,12 +147,13 @@ pa_source_output* pa_source_output_new(
     o->sample_spec = data->sample_spec;
     o->channel_map = data->channel_map;
 
-    o->process_msg = NULL;
     o->push = NULL;
     o->kill = NULL;
     o->get_latency = NULL;
     o->userdata = NULL;
 
+    o->thread_info.state = o->state;
+    o->thread_info.sample_spec = o->sample_spec;
     o->thread_info.resampler = resampler;
 
     pa_assert_se(pa_idxset_put(core->source_outputs, o, &o->index) == 0);
@@ -169,11 +170,22 @@ pa_source_output* pa_source_output_new(
     return o;
 }
 
+static int source_output_set_state(pa_source_output *o, pa_source_output_state_t state) {
+    pa_assert(o);
+
+    if (o->state == state)
+        return 0;
+
+    if (pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), NULL) < 0)
+        return -1;
+
+    o->state = state;
+    return 0;
+}
+
 void pa_source_output_disconnect(pa_source_output*o) {
     pa_assert(o);
-    pa_return_if_fail(pa_source_output_get_state(o) != PA_SOURCE_OUTPUT_DISCONNECTED);
-    pa_assert(o->source);
-    pa_assert(o->source->core);
+    pa_return_if_fail(o->state != PA_SOURCE_OUTPUT_DISCONNECTED);
 
     pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, NULL);
 
@@ -182,15 +194,13 @@ void pa_source_output_disconnect(pa_source_output*o) {
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
 
+    source_output_set_state(o, PA_SOURCE_OUTPUT_DISCONNECTED);
     pa_source_update_status(o->source);
 
     o->source = NULL;
-    o->process_msg = NULL;
     o->push = NULL;
     o->kill = NULL;
     o->get_latency = NULL;
-
-    pa_atomic_store(&o->state, PA_SOURCE_OUTPUT_DISCONNECTED);
 }
 
 static void source_output_free(pa_object* mo) {
@@ -198,7 +208,8 @@ static void source_output_free(pa_object* mo) {
 
     pa_assert(pa_source_output_refcnt(o) == 0);
 
-    pa_source_output_disconnect(o);
+    if (o->state != PA_SOURCE_OUTPUT_DISCONNECTED)
+        pa_source_output_disconnect(o);
 
     pa_log_info("Freeing output %u \"%s\"", o->index, o->name);
 
@@ -242,18 +253,15 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
 
 void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     pa_memchunk rchunk;
-    pa_source_output_state_t state;
 
     pa_source_output_assert_ref(o);
     pa_assert(chunk);
     pa_assert(chunk->length);
 
-    state = pa_source_output_get_state(o);
-
-    if (!o->push || state == PA_SOURCE_OUTPUT_DISCONNECTED || state == PA_SOURCE_OUTPUT_CORKED)
+    if (!o->push || o->state == PA_SOURCE_OUTPUT_DISCONNECTED || o->state == PA_SOURCE_OUTPUT_CORKED)
         return;
 
-    pa_assert(state = PA_SOURCE_OUTPUT_RUNNING);
+    pa_assert(o->state = PA_SOURCE_OUTPUT_RUNNING);
 
     if (!o->thread_info.resampler) {
         o->push(o, chunk);
@@ -270,17 +278,9 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 }
 
 void pa_source_output_cork(pa_source_output *o, int b) {
-    pa_source_output_state_t state;
-
     pa_source_output_assert_ref(o);
 
-    state = pa_source_output_get_state(o);
-    pa_assert(state != PA_SOURCE_OUTPUT_DISCONNECTED);
-
-    if (b && state != PA_SOURCE_OUTPUT_CORKED)
-        pa_atomic_store(&o->state, PA_SOURCE_OUTPUT_CORKED);
-    else if (!b && state == PA_SOURCE_OUTPUT_CORKED)
-        pa_atomic_cmpxchg(&o->state, state, PA_SOURCE_OUTPUT_RUNNING);
+    source_output_set_state(o, b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING);
 }
 
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
@@ -393,6 +393,13 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, pa_
 
             return 0;
         }
+
+        case PA_SOURCE_OUTPUT_MESSAGE_SET_STATE: {
+            o->thread_info.state = PA_PTR_TO_UINT(userdata);
+
+            return 0;
+        }
+            
     }
 
     return -1;

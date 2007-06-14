@@ -39,8 +39,8 @@ typedef struct pa_sink_input pa_sink_input;
 #include <pulsecore/core.h>
 
 typedef enum pa_sink_input_state {
-    PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
     PA_SINK_INPUT_DRAINED,      /*< The stream stopped playing because there was no data to play */
+    PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
     PA_SINK_INPUT_CORKED,       /*< The stream was corked on user request */
     PA_SINK_INPUT_DISCONNECTED  /*< The stream is dead */
 } pa_sink_input_state_t;
@@ -55,7 +55,11 @@ struct pa_sink_input {
 
     uint32_t index;
     pa_core *core;
-    pa_atomic_t state;
+
+    /* Please note that this state should only be read with
+     * pa_sink_input_get_state(). That function will transparently
+     * merge the thread_info.drained value in. */
+    pa_sink_input_state_t state; 
     pa_sink_input_flags_t flags;
 
     char *name, *driver;                /* may be NULL */
@@ -70,7 +74,6 @@ struct pa_sink_input {
     pa_cvolume volume;
     int muted;
 
-    int (*process_msg)(pa_sink_input *i, int code, void *userdata);
     int (*peek) (pa_sink_input *i, pa_memchunk *chunk);
     void (*drop) (pa_sink_input *i, const pa_memchunk *chunk, size_t length);
     void (*kill) (pa_sink_input *i);             /* may be NULL */
@@ -80,6 +83,9 @@ struct pa_sink_input {
     pa_resample_method_t resample_method;
 
     struct {
+        pa_sink_input_state_t state;
+        pa_atomic_t drained;
+        
         pa_sample_spec sample_spec;
 
         pa_memchunk resampled_chunk;
@@ -106,6 +112,7 @@ enum {
     PA_SINK_INPUT_MESSAGE_SET_MUTE,
     PA_SINK_INPUT_MESSAGE_GET_LATENCY,
     PA_SINK_INPUT_MESSAGE_SET_RATE,
+    PA_SINK_INPUT_MESSAGE_SET_STATE,
     PA_SINK_INPUT_MESSAGE_MAX
 };
 
@@ -166,7 +173,7 @@ pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i);
 
 int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately);
 
-#define pa_sink_input_get_state(i) ((pa_sink_input_state_t) pa_atomic_load(&i->state))
+pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 
 /* To be used exclusively by the sink driver thread */
 
