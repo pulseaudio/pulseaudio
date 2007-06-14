@@ -261,7 +261,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     if (!o->push || o->state == PA_SOURCE_OUTPUT_DISCONNECTED || o->state == PA_SOURCE_OUTPUT_CORKED)
         return;
 
-    pa_assert(o->state = PA_SOURCE_OUTPUT_RUNNING);
+    pa_assert(o->state == PA_SOURCE_OUTPUT_RUNNING);
 
     if (!o->thread_info.resampler) {
         o->push(o, chunk);
