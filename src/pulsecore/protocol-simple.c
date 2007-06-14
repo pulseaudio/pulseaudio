@@ -205,8 +205,10 @@ static int do_write(connection *c) {
     if (!c->source_output)
         return 0;
 
-    if (pa_memblockq_peek(c->output_memblockq, &chunk) < 0)
+    if (pa_memblockq_peek(c->output_memblockq, &chunk) < 0) {
+/*         pa_log("peek failed"); */
         return 0;
+    }
 
     pa_assert(chunk.memblock);
     pa_assert(chunk.length);
@@ -276,7 +278,8 @@ static int connection_process_msg(pa_msgobject *o, int code, void*userdata, pa_m
             break;
             
         case MESSAGE_POST_DATA:
-            pa_memblockq_push(c->output_memblockq, chunk);
+/*             pa_log("got data %u", chunk->length); */
+            pa_memblockq_push_align(c->output_memblockq, chunk);
             do_work(c);
             break;
 
