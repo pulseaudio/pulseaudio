@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdio.h>
-#include <assert.h>
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
@@ -40,7 +39,6 @@
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
-#include <pulsecore/iochannel.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core-util.h>
@@ -170,6 +168,8 @@ static void thread_func(void *userdata) {
                 l = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &write_type);
                 pa_memblock_release(u->memchunk.memblock);
 
+                pa_assert(l != 0);
+                
                 if (l < 0) {
 
                     if (errno == EINTR)
@@ -202,7 +202,10 @@ static void thread_func(void *userdata) {
         if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
             continue;
 
+/*         pa_log("polling for %u (underrun=%i)", pollfd[POLLFD_FIFO].events, underrun);  */
         r = poll(pollfd, POLLFD_MAX, -1);
+/*         pa_log("polling got %u", r > 0 ? pollfd[POLLFD_FIFO].revents : 0);  */
+
         pa_asyncmsgq_after_poll(u->asyncmsgq);
 
         if (r < 0) {
@@ -232,11 +235,11 @@ finish:
 }
 
 int pa__init(pa_core *c, pa_module*m) {
-    struct userdata *u = NULL;
+    struct userdata *u;
     struct stat st;
     pa_sample_spec ss;
     pa_channel_map map;
-    pa_modargs *ma = NULL;
+    pa_modargs *ma;
     char *t;
 
     pa_assert(c);
