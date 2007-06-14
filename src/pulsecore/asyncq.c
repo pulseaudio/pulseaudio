@@ -141,8 +141,10 @@ int pa_asyncq_push(pa_asyncq*l, void *p, int wait) {
                 int x[20];
                 
                 errno = 0;
-                if ((r = read(l->write_fds[0], x, sizeof(x))) <= 0 && errno != EINTR)
+                if ((r = read(l->write_fds[0], x, sizeof(x))) < 0 && errno != EINTR)
                     return -1;
+
+                pa_assert(r != 0);
                 
                 if (r > 0)
                     if (pa_atomic_sub(&l->n_read, r) <= r)
@@ -173,6 +175,8 @@ int pa_asyncq_push(pa_asyncq*l, void *p, int wait) {
                 pa_atomic_dec(&l->write_waiting);
                 return -1;
             }
+
+            pa_assert(r != 0);
 
             if (r > 0)
                 pa_atomic_sub(&l->n_read, r);
@@ -220,8 +224,10 @@ void* pa_asyncq_pop(pa_asyncq*l, int wait) {
                 int x[20];
                 
                 errno = 0;
-                if ((r = read(l->read_fds[0], x, sizeof(x))) <= 0 && errno != EINTR)
+                if ((r = read(l->read_fds[0], x, sizeof(x))) < 0 && errno != EINTR)
                     return NULL;
+
+                pa_assert(r != 0);
                 
                 if (r > 0)
                     if (pa_atomic_sub(&l->n_written, r) <= r)
@@ -246,10 +252,12 @@ void* pa_asyncq_pop(pa_asyncq*l, int wait) {
 
             _Y;
 
-            if ((r = read(l->read_fds[0], x, sizeof(x)) < 0) && errno != EINTR) {
+            if ((r = read(l->read_fds[0], x, sizeof(x))) < 0 && errno != EINTR) {
                 pa_atomic_dec(&l->read_waiting);
                 return NULL;
             }
+
+            pa_assert(r != 0);
 
             if (r > 0)
                 pa_atomic_sub(&l->n_written, r);
@@ -312,7 +320,4 @@ void pa_asyncq_after_poll(pa_asyncq *l) {
     pa_assert(pa_atomic_load(&l->read_waiting) > 0);
 
     pa_atomic_dec(&l->read_waiting);
-
-
-    
 }
