@@ -164,7 +164,7 @@ int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **u
     if (chunk)
         *chunk = a->current->memchunk;
 
-    pa_log_debug("q=%p object=%p code=%i data=%p", a, a->current->object, a->current->code, a->current->userdata);
+    pa_log_debug("q=%p object=%p (%s) code=%i data=%p", (void*) a, (void*) a->current->object, a->current->object ? a->current->object->parent.type_name : NULL, a->current->code, (void*) a->current->userdata);
     
     return 0;
 }
