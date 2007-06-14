@@ -88,6 +88,7 @@ struct pa_protocol_simple {
 
 enum {
     SINK_INPUT_MESSAGE_POST_DATA = PA_SINK_INPUT_MESSAGE_MAX, /* data from main loop to sink input */
+    SINK_INPUT_MESSAGE_DISABLE_PREBUF /* disabled prebuf, get playback started. */
 };
 
 enum {
@@ -189,7 +190,7 @@ static int do_read(connection *c) {
 
     c->playback.memblock_index += r;
 
-    pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, &chunk, NULL);
+    pa_asyncmsgq_post(c->sink_input->sink->asyncmsgq, PA_MSGOBJECT(c->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, &chunk, NULL);
 
     return 0;
 }
@@ -259,7 +260,7 @@ fail:
         pa_iochannel_free(c->io);
         c->io = NULL;
 
-        pa_memblockq_prebuf_disable(c->input_memblockq);
+        pa_asyncmsgq_post(c->sink_input->sink->asyncmsgq, PA_MSGOBJECT(c->sink_input), SINK_INPUT_MESSAGE_DISABLE_PREBUF, NULL, NULL, NULL);
     } else
         connection_drop(c);
 }
@@ -282,7 +283,6 @@ static int connection_process_msg(pa_msgobject *o, int code, void*userdata, pa_m
         case MESSAGE_DROP_CONNECTION:
             connection_drop(c);
             break;
-
     }
 
     return 0;
@@ -307,7 +307,14 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, pa_
             /* New data from the main loop */
             pa_memblockq_push_align(c->input_memblockq, chunk);
             pa_atomic_store(&c->playback.missing, pa_memblockq_missing(c->input_memblockq));
+
+/*             pa_log("got data, %u", pa_memblockq_get_length(c->input_memblockq)); */
             
+            return 0;
+        }
+
+        case SINK_INPUT_MESSAGE_DISABLE_PREBUF: {
+            pa_memblockq_prebuf_disable(c->input_memblockq);
             return 0;
         }
 
@@ -336,6 +343,8 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     pa_assert(chunk);
 
     r = pa_memblockq_peek(c->input_memblockq, chunk);
+
+/*     pa_log("peeked %u %i", r >= 0 ? chunk->length: 0, r); */
 
     if (c->dead && r < 0)
         pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), MESSAGE_DROP_CONNECTION, c, NULL, NULL);
