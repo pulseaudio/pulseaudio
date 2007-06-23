@@ -140,7 +140,7 @@ static void thread_func(void *userdata) {
                 pa_asyncmsgq_done(u->asyncmsgq, 0);
                 goto finish;
             }
-                    
+
             ret = pa_asyncmsgq_dispatch(object, code, data, &chunk);
             pa_asyncmsgq_done(u->asyncmsgq, ret);
             continue;
@@ -151,15 +151,11 @@ static void thread_func(void *userdata) {
             pa_gettimeofday(&now);
 
             if (pa_timeval_cmp(&u->timestamp, &now) <= 0) {
-                size_t l;
 
-                if (pa_sink_render(u->sink, u->block_size, &chunk) >= 0) {
-                    l = chunk.length;
-                    pa_memblock_unref(chunk.memblock);
-                } else
-                    l = u->block_size;
+                pa_sink_render(u->sink, u->block_size, &chunk);
+                pa_memblock_unref(chunk.memblock);
 
-                pa_timeval_add(&u->timestamp, pa_bytes_to_usec(l, &u->sink->sample_spec));
+                pa_timeval_add(&u->timestamp, pa_bytes_to_usec(chunk.length, &u->sink->sample_spec));
                 continue;
             }
 
