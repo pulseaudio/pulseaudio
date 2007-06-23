@@ -116,6 +116,7 @@ pa_sink* pa_sink_new(
     s->userdata = NULL;
 
     s->asyncmsgq = NULL;
+    s->silence = NULL;
 
     r = pa_idxset_put(core->sinks, s, &s->index);
     pa_assert(s->index != PA_IDXSET_INVALID && r >= 0);
@@ -222,6 +223,9 @@ static void sink_free(pa_object *o) {
     
     pa_hashmap_free(s->thread_info.inputs, NULL, NULL);
 
+    if (s->silence)
+        pa_memblock_unref(s->silence);
+    
     pa_xfree(s->name);
     pa_xfree(s->description);
     pa_xfree(s->driver);
@@ -270,53 +274,85 @@ static unsigned fill_mix_info(pa_sink *s, pa_mix_info *info, unsigned maxinfo) {
     pa_sink_assert_ref(s);
     pa_assert(info);
 
-    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))) {
-        /* Increase ref counter, to make sure that this input doesn't
-         * vanish while we still need it */
-        pa_sink_input_ref(i);
+    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)) && maxinfo > 0) {
+        pa_sink_input_assert_ref(i);
 
-        if (pa_sink_input_peek(i, &info->chunk, &info->volume) < 0) {
-            pa_sink_input_unref(i);
+        if (pa_sink_input_peek(i, &info->chunk, &info->volume) < 0)
             continue;
-        }
 
-        info->userdata = i;
+        info->userdata = pa_sink_input_ref(i);
 
         pa_assert(info->chunk.memblock);
-        pa_assert(info->chunk.length);
+        pa_assert(info->chunk.length > 0);
 
         info++;
-        maxinfo--;
         n++;
+        maxinfo--;
     }
 
     return n;
 }
 
-static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned maxinfo, size_t length) {
+static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, size_t length) {
+    pa_sink_input *i;
+    void *state = NULL;
+    unsigned p = 0;
+    unsigned n_unreffed = 0;
+
     pa_sink_assert_ref(s);
-    pa_assert(info);
 
-    for (; maxinfo > 0; maxinfo--, info++) {
-        pa_sink_input *i = info->userdata;
+    /* We optimize for the case where the order of the inputs has not changed */
 
-        pa_assert(i);
-        pa_assert(info->chunk.memblock);
+    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))) {
+        unsigned j;
+        pa_mix_info* m;
+
+        pa_sink_input_assert_ref(i);
+
+        m = NULL;
+
+        /* Let's try to find the matching entry info the pa_mix_info array */
+        for (j = 0; j < n; j ++) {
+
+            if (info[p].userdata == i) {
+                m = info + p;
+                break;
+            }
+
+            if (++p > n)
+                p = 0;
+        }
 
         /* Drop read data */
-        pa_sink_input_drop(i, &info->chunk, length);
-        pa_memblock_unref(info->chunk.memblock);
+        pa_sink_input_drop(i, m ? &m->chunk : NULL, length);
 
-        /* Decrease ref counter */
-        pa_sink_input_unref(i);
-        info->userdata = NULL;
+        if (m) {
+            pa_sink_input_unref(m->userdata);
+            m->userdata = NULL;
+            if (m->chunk.memblock)
+                pa_memblock_unref(m->chunk.memblock);
+            pa_memchunk_reset(&m->chunk);
+
+            n_unreffed += 1;
+        }
+    }
+
+    /* Now drop references to entries that are included in the
+     * pa_mix_info array but don't exist anymore */
+
+    if (n_unreffed < n) {
+        for (; n > 0; info++, n--) {
+            if (info->userdata)
+                pa_sink_input_unref(info->userdata);
+            if (info->chunk.memblock)
+                pa_memblock_unref(info->chunk.memblock);
+        }
     }
 }
 
-int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
+void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
-    int r = -1;
 
     pa_sink_assert_ref(s);
     pa_assert(length);
@@ -326,10 +362,19 @@ int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
     n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
 
-    if (n <= 0)
-        goto finish;
+    if (n == 0) {
 
-    if (n == 1) {
+        if (!s->silence || pa_memblock_get_length(s->silence) < length) {
+            if (s->silence)
+                pa_memblock_unref(s->silence);
+            s->silence = pa_silence_memblock_new(s->core->mempool, &s->sample_spec, length);
+        }
+
+        result->memblock = pa_memblock_ref(s->silence);
+        result->length = length;
+        result->index = 0;
+
+    } else if (n == 1) {
         pa_cvolume volume;
 
         *result = info[0].chunk;
@@ -363,18 +408,12 @@ int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     if (s->monitor_source)
         pa_source_post(s->monitor_source, result);
 
-    r = 0;
-
-finish:
     pa_sink_unref(s);
-
-    return r;
 }
 
-int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
+void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
-    int r = -1;
 
     pa_sink_assert_ref(s);
     pa_assert(target);
@@ -385,11 +424,9 @@ int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
 
     n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
 
-    if (n <= 0)
-        goto finish;
-
-
-    if (n == 1) {
+    if (n == 0) {
+        pa_silence_memchunk(target, &s->sample_spec);
+    } else if (n == 1) {
         if (target->length > info[0].chunk.length)
             target->length = info[0].chunk.length;
 
@@ -435,12 +472,7 @@ int pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     if (s->monitor_source)
         pa_source_post(s->monitor_source, target);
 
-    r = 0;
-
-finish:
     pa_sink_unref(s);
-
-    return r;
 }
 
 void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
@@ -461,18 +493,10 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
         chunk.index += d;
         chunk.length -= d;
 
-        if (pa_sink_render_into(s, &chunk) < 0)
-            break;
+        pa_sink_render_into(s, &chunk);
 
         d += chunk.length;
         l -= chunk.length;
-    }
-
-    if (l > 0) {
-        chunk = *target;
-        chunk.index += d;
-        chunk.length -= d;
-        pa_silence_memchunk(&chunk, &s->sample_spec);
     }
 
     pa_sink_unref(s);
@@ -668,7 +692,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *
         case PA_SINK_MESSAGE_SET_STATE:
             s->thread_info.state = PA_PTR_TO_UINT(userdata);
             return 0;
-            
+
         case PA_SINK_MESSAGE_GET_LATENCY:
         case PA_SINK_MESSAGE_MAX:
             ;

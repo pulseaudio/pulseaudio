@@ -92,6 +92,8 @@ struct pa_sink {
         int soft_muted;
     } thread_info;
 
+    pa_memblock *silence;
+
     void *userdata;
 };
 
@@ -149,9 +151,9 @@ unsigned pa_sink_used_by(pa_sink *s);
 
 /* To be used exclusively by the sink driver thread */
 
-int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result);
+void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result);
 void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result);
-int pa_sink_render_into(pa_sink*s, pa_memchunk *target);
+void pa_sink_render_into(pa_sink*s, pa_memchunk *target);
 void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
 
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
