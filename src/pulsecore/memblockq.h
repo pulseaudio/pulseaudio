@@ -62,7 +62,7 @@ typedef struct pa_memblockq pa_memblockq;
    - minreq:    pa_memblockq_missing() will only return values greater
                 than this value. Pass 0 for the default.
 
-   - silence:   return this memblock whzen reading unitialized data
+   - silence:   return this memblock when reading unitialized data
 */
 pa_memblockq* pa_memblockq_new(
         int64_t idx,
