@@ -22,12 +22,31 @@
   USA.
 ***/
 
+/* General power management rules:
+ *
+ *   When SUSPENDED we close the audio device.
+ *
+ *   We make no difference between IDLE and RUNNING in our handling.
+ *
+ *   As long as we are in RUNNING/IDLE state we will *always* write data to
+ *   the device. If none is avilable from the inputs, we write silence
+ *   instead.
+ *
+ *   If power should be saved on IDLE this should be implemented in a
+ *   special suspend-on-idle module that will put us into SUSPEND mode
+ *   as soon and we're idle for too long.
+ *
+ */
+
+/* TODO: handle restoring of volume after suspend */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
+#include <sys/poll.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -42,7 +61,7 @@
 #include <pulse/util.h>
 
 #include <pulsecore/core-error.h>
-#include <pulsecore/iochannel.h>
+#include <pulsecore/thread.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/module.h>
@@ -70,19 +89,33 @@ PA_MODULE_USAGE(
         "fragment_size=<fragment size> "
         "channel_map=<channel map>")
 
+#define DEFAULT_DEVICE "/dev/dsp"
+
 struct userdata {
+    pa_core *core;
+    pa_module *module;
     pa_sink *sink;
     pa_source *source;
-    pa_iochannel *io;
-    pa_core *core;
+    pa_thread *thread;
+    pa_asyncmsgq *asyncmsgq;
 
-    pa_memchunk memchunk, silence;
+    char *device_name;
+    
+    pa_memchunk memchunk;
 
     uint32_t in_fragment_size, out_fragment_size, sample_size;
     int use_getospace, use_getispace;
+    int use_getodelay;
+
+    int use_pcm_volume;
+    int use_input_volume;
+
+    int sink_suspended, source_suspended;
 
     int fd;
-    pa_module *module;
+    int mode;
+
+    int nfrags, frag_size;
 };
 
 static const char* const valid_modargs[] = {
@@ -100,264 +133,500 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-#define DEFAULT_DEVICE "/dev/dsp"
+static int suspend(struct userdata *u) {
+    pa_assert(u);
+    pa_assert(u->fd >= 0);
 
-static void update_usage(struct userdata *u) {
-   pa_module_set_used(u->module,
-                      (u->sink ? pa_sink_used_by(u->sink) : 0) +
-                      (u->source ? pa_source_used_by(u->source) : 0));
+    /* Let's suspend */
+    ioctl(u->fd, SNDCTL_DSP_SYNC);
+    close(u->fd);
+    u->fd = -1;
+    
+    return 0;
 }
 
-static void clear_up(struct userdata *u) {
-    assert(u);
+static int unsuspend(struct userdata *u) {
+    int m;
+    pa_sample_spec ss, *ss_original;
+    int frag_size, in_frag_size, out_frag_size;
+    struct audio_buf_info info;
 
-    if (u->sink) {
-        pa_sink_disconnect(u->sink);
-        pa_sink_unref(u->sink);
-        u->sink = NULL;
+    pa_assert(u);
+    pa_assert(u->fd < 0);
+
+    m = u->mode;
+
+    pa_log_debug("Trying resume...");
+
+    if ((u->fd = pa_oss_open(u->device_name, &m, NULL)) < 0) {
+        pa_log_warn("Resume failed, device busy (%s)", pa_cstrerror(errno));
+        return -1;
+
+    if (m != u->mode)
+        pa_log_warn("Resume failed, couldn't open device with original access mode.");
+        goto fail;
     }
 
+    if (u->nfrags >= 2 && u->frag_size >= 1)
+        if (pa_oss_set_fragments(u->fd, u->nfrags, u->frag_size) < 0) {
+            pa_log_warn("Resume failed, couldn't set original fragment settings.");
+            goto fail;
+        }
+
+    ss = *(ss_original = u->sink ? &u->sink->sample_spec : &u->source->sample_spec);
+    if (pa_oss_auto_format(u->fd, &ss) < 0 || !pa_sample_spec_equal(&ss, ss_original)) {
+        pa_log_warn("Resume failed, couldn't set original sample format settings.");
+        goto fail;
+    }
+
+    if (ioctl(u->fd, SNDCTL_DSP_GETBLKSIZE, &frag_size) < 0) {
+        pa_log("SNDCTL_DSP_GETBLKSIZE: %s", pa_cstrerror(errno));
+        goto fail;
+    }
+
+    in_frag_size = out_frag_size = frag_size;
+
+    if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) >= 0)
+        in_frag_size = info.fragsize;
+
+    if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) >= 0)
+        out_frag_size = info.fragsize;
+
+    if ((u->source && in_frag_size != (int) u->in_fragment_size) || (u->sink && out_frag_size != (int) u->out_fragment_size)) {
+        pa_log_warn("Resume failed, fragment settings don't match.");
+        goto fail;
+    }
+
+    /*
+     * Some crappy drivers do not start the recording until we read something.
+     * Without this snippet, poll will never register the fd as ready.
+     */
     if (u->source) {
-        pa_source_disconnect(u->source);
-        pa_source_unref(u->source);
-        u->source = NULL;
+        uint8_t *buf = pa_xnew(uint8_t, u->sample_size);
+        pa_read(u->fd, buf, u->sample_size, NULL);
+        pa_xfree(buf);
     }
 
-    if (u->io) {
-        pa_iochannel_free(u->io);
-        u->io = NULL;
-    }
+    return 0;
+
+fail:
+    close(u->fd);
+    u->fd = -1;
+    return -1;
 }
 
-static void do_write(struct userdata *u) {
-    pa_memchunk *memchunk;
-    ssize_t r;
-    size_t l;
-    int loop = 0;
+static int sink_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *chunk) {
+    struct userdata *u = PA_SINK(o)->userdata;
 
-    assert(u);
+    switch (code) {
 
-    if (!u->sink || !pa_iochannel_is_writable(u->io))
-        return;
+        case PA_SINK_MESSAGE_GET_LATENCY: {
+            pa_usec_t r = 0;
 
-    update_usage(u);
-
-    l = u->out_fragment_size;
-
-    if (u->use_getospace) {
-        audio_buf_info info;
-
-        if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0)
-            u->use_getospace = 0;
-        else {
-            if (info.bytes/l > 0) {
-                l = (info.bytes/l)*l;
-                loop = 1;
+            if (u->fd >= 0) {
+                if (u->use_getodelay) {
+                    int arg;
+                    
+                    if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
+                        pa_log_info("Device doesn't support SNDCTL_DSP_GETODELAY: %s", pa_cstrerror(errno));
+                        u->use_getodelay = 0;
+                    } else
+                        r = pa_bytes_to_usec(arg, &u->sink->sample_spec);
+                    
+                }
+                
+                if (!u->use_getodelay && u->use_getospace) {
+                    struct audio_buf_info info;
+                    
+                    if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
+                        pa_log_info("Device doesn't support SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
+                        u->use_getospace = 0;
+                    } else
+                        r = pa_bytes_to_usec(info.bytes, &u->sink->sample_spec);
+                }
             }
-        }
-    }
 
-    do {
-        void *p;
-        memchunk = &u->memchunk;
+            if (u->memchunk.memblock)
+                r += pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec);
 
-        if (!memchunk->length)
-            if (pa_sink_render(u->sink, l, memchunk) < 0)
-                memchunk = &u->silence;
-
-        assert(memchunk->memblock);
-        assert(memchunk->length);
-
-        p = pa_memblock_acquire(memchunk->memblock);
-        if ((r = pa_iochannel_write(u->io, (uint8_t*) p + memchunk->index, memchunk->length)) < 0) {
-            pa_memblock_release(memchunk->memblock);
-
-            if (errno != EAGAIN) {
-                pa_log("write() failed: %s", pa_cstrerror(errno));
-
-                clear_up(u);
-                pa_module_unload_request(u->module);
-            }
+            *((pa_usec_t*) data) = r;
 
             break;
         }
 
-        pa_memblock_release(memchunk->memblock);
+        case PA_SINK_MESSAGE_SET_STATE:
 
-        if (memchunk == &u->silence)
-            assert(r % u->sample_size == 0);
-        else {
-            u->memchunk.index += r;
-            u->memchunk.length -= r;
+            if (PA_PTR_TO_UINT(data) != PA_SINK_RUNNING && u->fd >= 0)
+                ioctl(u->fd, SNDCTL_DSP_POST);
 
-            if (u->memchunk.length <= 0) {
-                pa_memblock_unref(u->memchunk.memblock);
-                u->memchunk.memblock = NULL;
+            if (PA_PTR_TO_UINT(data) == PA_SINK_SUSPENDED) {
+                pa_assert(u->sink->thread_info.state != PA_SINK_SUSPENDED);
+
+                if (u->source_suspended)
+                    if (suspend(u) < 0)
+                        return -1;
+
+                u->sink_suspended = 1;
             }
-        }
 
-        l = l > (size_t) r ? l - r : 0;
-    } while (loop && l > 0);
-}
+            if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+                pa_assert(PA_PTR_TO_UINT(data) != PA_SINK_SUSPENDED);
 
-static void do_read(struct userdata *u) {
-    pa_memchunk memchunk;
-    ssize_t r;
-    size_t l;
-    int loop = 0;
-    assert(u);
+                if (u->source_suspended)
+                    if (unsuspend(u) < 0)
+                        return -1;
 
-    if (!u->source || !pa_iochannel_is_readable(u->io) || !pa_idxset_size(u->source->outputs))
-        return;
-
-    update_usage(u);
-
-    l = u->in_fragment_size;
-
-    if (u->use_getispace) {
-        audio_buf_info info;
-
-        if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0)
-            u->use_getispace = 0;
-        else {
-            if (info.bytes/l > 0) {
-                l = (info.bytes/l)*l;
-                loop = 1;
+                u->sink_suspended = 0;
             }
-        }
-    }
+            
+            break;
 
-    do {
-        void *p;
-        memchunk.memblock = pa_memblock_new(u->core->mempool, l);
+        case PA_SINK_MESSAGE_SET_VOLUME:
 
-        p = pa_memblock_acquire(memchunk.memblock);
+            if (u->use_pcm_volume && u->fd >= 0) {
 
-        if ((r = pa_iochannel_read(u->io, p, pa_memblock_get_length(memchunk.memblock))) < 0) {
-            pa_memblock_release(memchunk.memblock);
-            pa_memblock_unref(memchunk.memblock);
-
-            if (errno != EAGAIN) {
-                pa_log("read() failed: %s", pa_cstrerror(errno));
-
-                clear_up(u);
-                pa_module_unload_request(u->module);
+                if (pa_oss_set_pcm_volume(u->fd, &u->sink->sample_spec, ((pa_cvolume*) data)) < 0) {
+                    pa_log_info("Device doesn't support setting mixer settings: %s", pa_cstrerror(errno));
+                    u->use_pcm_volume = 0;
+                } else
+                    return 0;
             }
 
             break;
-        }
 
-        pa_memblock_release(memchunk.memblock);
+        case PA_SINK_MESSAGE_GET_VOLUME:
 
-        assert(r <= (ssize_t) pa_memblock_get_length(memchunk.memblock));
-        memchunk.length = r;
-        memchunk.index = 0;
+            if (u->use_pcm_volume && u->fd >= 0) {
 
-        pa_source_post(u->source, &memchunk);
-        pa_memblock_unref(memchunk.memblock);
+                if (pa_oss_get_pcm_volume(u->fd, &u->sink->sample_spec, ((pa_cvolume*) data)) < 0) {
+                    pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
+                    u->use_pcm_volume = 0;
+                } else
+                    return 0;
+            }
 
-        l = l > (size_t) r ? l - r : 0;
-    } while (loop && l > 0);
+            break;
+    }
+
+    return pa_sink_process_msg(o, code, data, chunk);
 }
 
-static void io_callback(PA_GCC_UNUSED pa_iochannel *io, void*userdata) {
+static int source_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *chunk) {
+    struct userdata *u = PA_SOURCE(o)->userdata;
+
+    switch (code) {
+
+        case PA_SOURCE_MESSAGE_GET_LATENCY: {
+            pa_usec_t r = 0;
+
+            if (u->use_getispace && u->fd >= 0) {
+                struct audio_buf_info info;
+
+                if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0) {
+                    pa_log_info("Device doesn't support SNDCTL_DSP_GETISPACE: %s", pa_cstrerror(errno));
+                    u->use_getispace = 0;
+                } else
+                    r = pa_bytes_to_usec(info.bytes, &u->sink->sample_spec);
+            }
+
+            *((pa_usec_t*) data) = r;
+            break;
+        }
+
+        case PA_SOURCE_MESSAGE_SET_STATE:
+
+            if (PA_PTR_TO_UINT(data) == PA_SOURCE_SUSPENDED) {
+                pa_assert(u->source->thread_info.state != PA_SOURCE_SUSPENDED);
+
+                if (u->sink_suspended)
+                    if (suspend(u) < 0)
+                        return -1;
+
+                u->source_suspended = 1;
+            }
+
+            if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
+                pa_assert(PA_PTR_TO_UINT(data) != PA_SOURCE_SUSPENDED);
+
+                if (u->sink_suspended)
+                    if (unsuspend(u) < 0)
+                        return -1;
+
+                u->source_suspended = 0;
+            }
+
+            break;
+
+        case PA_SOURCE_MESSAGE_SET_VOLUME:
+
+            if (u->use_input_volume && u->fd >= 0) {
+
+                if (pa_oss_set_input_volume(u->fd, &u->source->sample_spec, ((pa_cvolume*) data)) < 0) {
+                    pa_log_info("Device doesn't support setting mixer settings: %s", pa_cstrerror(errno));
+                    u->use_input_volume = 0;
+                } else
+                    return 0;
+            }
+
+            break;
+
+        case PA_SOURCE_MESSAGE_GET_VOLUME:
+
+            if (u->use_input_volume && u->fd >= 0) {
+
+                if (pa_oss_get_input_volume(u->fd, &u->source->sample_spec, ((pa_cvolume*) data)) < 0) {
+                    pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
+                    u->use_input_volume = 0;
+                } else
+                    return 0;
+            }
+
+            break;
+    }
+
+    return pa_source_process_msg(o, code, data, chunk);
+}
+
+static void thread_func(void *userdata) {
+    enum {
+        POLLFD_ASYNCQ,
+        POLLFD_DSP,
+        POLLFD_MAX,
+    };
+
     struct userdata *u = userdata;
-    assert(u);
-    do_write(u);
-    do_read(u);
-}
+    struct pollfd pollfd[POLLFD_MAX];
+    int write_type = 0, read_type = 0;
 
-static void source_notify_cb(pa_source *s) {
-    struct userdata *u = s->userdata;
-    assert(u);
-    do_read(u);
-}
+    pa_assert(u);
 
-static pa_usec_t sink_get_latency_cb(pa_sink *s) {
-    pa_usec_t r = 0;
-    int arg;
-    struct userdata *u = s->userdata;
-    assert(s && u && u->sink);
+    pa_log_debug("Thread starting up");
 
-    if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
-        pa_log_info("device doesn't support SNDCTL_DSP_GETODELAY: %s", pa_cstrerror(errno));
-        s->get_latency = NULL;
-        return 0;
+    /*
+     * Some crappy drivers do not start the recording until we read something.
+     * Without this snippet, poll will never register the fd as ready.
+     */
+    if (u->source) {
+        uint8_t *buf = pa_xnew(uint8_t, u->sample_size);
+        pa_read(u->fd, buf, u->sample_size, &read_type);
+        pa_xfree(buf);
     }
 
-    r += pa_bytes_to_usec(arg, &s->sample_spec);
+    memset(&pollfd, 0, sizeof(pollfd));
 
-    if (u->memchunk.memblock)
-        r += pa_bytes_to_usec(u->memchunk.length, &s->sample_spec);
+    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
+    pollfd[POLLFD_ASYNCQ].events = POLLIN;
+    pollfd[POLLFD_DSP].fd = u->fd;
 
-    return r;
-}
+    for (;;) {
+        pa_msgobject *object;
+        int code;
+        void *data;
+        pa_memchunk chunk;
+        int r;
 
-static pa_usec_t source_get_latency_cb(pa_source *s) {
-    struct userdata *u = s->userdata;
-    audio_buf_info info;
-    assert(s && u && u->source);
+        /* Check whether there is a message for us to process */
+        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
+            int ret;
 
-    if (!u->use_getispace)
-        return 0;
+            if (!object && code == PA_MESSAGE_SHUTDOWN) {
+                pa_asyncmsgq_done(u->asyncmsgq, 0);
+                goto finish;
+            }
 
-    if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0) {
-        u->use_getispace = 0;
-        return 0;
+            ret = pa_asyncmsgq_dispatch(object, code, data, &chunk);
+            pa_asyncmsgq_done(u->asyncmsgq, ret);
+            continue;
+        }
+
+        /* Render some data and write it to the dsp */
+
+        if (u->sink && u->sink->thread_info.state == PA_SINK_RUNNING && (pollfd[POLLFD_DSP].revents & POLLOUT)) {
+            ssize_t l;
+            void *p;
+            int loop = 0;
+
+            l = u->out_fragment_size;
+
+            if (u->use_getospace) {
+                audio_buf_info info;
+
+                if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
+                    pa_log_info("Device doesn't support SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
+                    u->use_getospace = 0;
+                } else {
+                    if (info.bytes >= l) {
+                        l = (info.bytes/l)*l;
+                        loop = 1;
+                    }
+                }
+            }
+
+            do {
+                ssize_t t;
+
+                pa_assert(l > 0);
+
+                if (u->memchunk.length <= 0)
+                    pa_sink_render(u->sink, l, &u->memchunk);
+
+                pa_assert(u->memchunk.length > 0);
+
+                p = pa_memblock_acquire(u->memchunk.memblock);
+                t = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &write_type);
+                pa_memblock_release(u->memchunk.memblock);
+
+                pa_assert(t != 0);
+
+                if (t < 0) {
+
+                    if (errno == EINTR)
+                        continue;
+
+                    else if (errno == EAGAIN) {
+
+                        pollfd[POLLFD_DSP].revents &= ~POLLOUT;
+                        break;
+
+                    } else {
+                        pa_log("Failed to write data to DSP: %s", pa_cstrerror(errno));
+                        goto fail;
+                    }
+
+                } else {
+
+                    u->memchunk.index += t;
+                    u->memchunk.length -= t;
+
+                    if (u->memchunk.length <= 0) {
+                        pa_memblock_unref(u->memchunk.memblock);
+                        pa_memchunk_reset(&u->memchunk);
+                    }
+
+                    l -= t;
+
+                    pollfd[POLLFD_DSP].revents &= ~POLLOUT;
+                }
+
+            } while (loop && l > 0);
+
+            continue;
+        }
+
+        /* Try to read some data and pass it on to the source driver */
+
+        if (u->source && u->source->thread_info.state == PA_SOURCE_RUNNING && ((pollfd[POLLFD_DSP].revents & POLLIN))) {
+            void *p;
+            ssize_t l;
+            pa_memchunk memchunk;
+            int loop = 0;
+
+            l = u->in_fragment_size;
+
+            if (u->use_getispace) {
+                audio_buf_info info;
+
+                if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0) {
+                    pa_log_info("Device doesn't support SNDCTL_DSP_GETISPACE: %s", pa_cstrerror(errno));
+                    u->use_getispace = 0;
+                } else {
+                    if (info.bytes >= l) {
+                        l = (info.bytes/l)*l;
+                        loop = 1;
+                    }
+                }
+            }
+
+            do {
+                ssize_t t;
+
+                pa_assert(l > 0);
+
+                memchunk.memblock = pa_memblock_new(u->core->mempool, l);
+
+                p = pa_memblock_acquire(memchunk.memblock);
+                t = pa_read(u->fd, p, l, &read_type);
+                pa_memblock_release(memchunk.memblock);
+
+                pa_assert(t != 0); /* EOF cannot happen */
+
+                if (t < 0) {
+                    pa_memblock_unref(memchunk.memblock);
+
+                    if (errno == EINTR)
+                        continue;
+
+                    else if (errno == EAGAIN) {
+                        pollfd[POLLFD_DSP].revents &= ~POLLIN;
+                        break;
+
+                    } else {
+                        pa_log("Faile to read data from DSP: %s", pa_cstrerror(errno));
+                        goto fail;
+                    }
+
+                } else {
+                    memchunk.index = 0;
+                    memchunk.length = t;
+
+                    pa_source_post(u->source, &memchunk);
+                    pa_memblock_unref(memchunk.memblock);
+
+                    l -= t;
+
+                    pollfd[POLLFD_DSP].revents &= ~POLLIN;
+                }
+            } while (loop && l > 0);
+
+            continue;
+        }
+
+
+        if (u->fd >= 0) {
+            pollfd[POLLFD_DSP].fd = u->fd;
+            pollfd[POLLFD_DSP].events =
+                ((u->source && u->source->thread_info.state == PA_SOURCE_RUNNING) ? POLLIN : 0) |
+                ((u->sink && u->sink->thread_info.state == PA_SINK_RUNNING) ? POLLOUT : 0);
+        }
+            
+        /* Hmm, nothing to do. Let's sleep */
+
+        if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
+            continue;
+
+/*         pa_log("polling for %u", pollfd[POLLFD_DSP].events);  */
+        r = poll(pollfd, u->fd >= 0 ? POLLFD_MAX : POLLFD_DSP, -1);
+/*         pa_log("polling got %u", r > 0 ? pollfd[POLLFD_DSP].revents : 0);  */
+
+        pa_asyncmsgq_after_poll(u->asyncmsgq);
+
+        if (u->fd < 0)
+            pollfd[POLLFD_DSP].revents = 0;
+        
+        if (r < 0) {
+            if (errno == EINTR)
+                continue;
+
+            pa_log("poll() failed: %s", pa_cstrerror(errno));
+            goto fail;
+        }
+
+        if (pollfd[POLLFD_DSP].revents & ~(POLLOUT|POLLIN)) {
+            pa_log("DSP shutdown.");
+            goto fail;
+        }
+
+        pa_assert((pollfd[POLLFD_ASYNCQ].revents & ~POLLIN) == 0);
     }
 
-    if (info.bytes <= 0)
-        return 0;
+fail:
+    /* We have to continue processing messages until we receive the
+     * SHUTDOWN message */
+    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->asyncmsgq, PA_MESSAGE_SHUTDOWN);
 
-    return pa_bytes_to_usec(info.bytes, &s->sample_spec);
-}
-
-static int sink_get_hw_volume(pa_sink *s) {
-    struct userdata *u = s->userdata;
-
-    if (pa_oss_get_pcm_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info("device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
-        s->get_hw_volume = NULL;
-        return -1;
-    }
-
-    return 0;
-}
-
-static int sink_set_hw_volume(pa_sink *s) {
-    struct userdata *u = s->userdata;
-
-    if (pa_oss_set_pcm_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info("device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
-        s->set_hw_volume = NULL;
-        return -1;
-    }
-
-    return 0;
-}
-
-static int source_get_hw_volume(pa_source *s) {
-    struct userdata *u = s->userdata;
-
-    if (pa_oss_get_input_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info("device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
-        s->get_hw_volume = NULL;
-        return -1;
-    }
-
-    return 0;
-}
-
-static int source_set_hw_volume(pa_source *s) {
-    struct userdata *u = s->userdata;
-
-    if (pa_oss_set_input_volume(u->fd, &s->sample_spec, &s->hw_volume) < 0) {
-        pa_log_info("device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
-        s->set_hw_volume = NULL;
-        return -1;
-    }
-
-    return 0;
+finish:
+    pa_log_debug("Thread shutting down");
 }
 
 int pa__init(pa_core *c, pa_module*m) {
@@ -380,7 +649,7 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log("failed to parse module arguments.");
+        pa_log("Failed to parse module arguments.");
         goto fail;
     }
 
@@ -390,15 +659,15 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (!playback && !record) {
-        pa_log("neither playback nor record enabled for device.");
+        pa_log("Neither playback nor record enabled for device.");
         goto fail;
     }
 
-    mode = (playback&&record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
+    mode = (playback && record) ? O_RDWR : (playback ? O_WRONLY : (record ? O_RDONLY : 0));
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_OSS) < 0) {
-        pa_log("failed to parse sample specification or channel map");
+        pa_log("Failed to parse sample specification or channel map");
         goto fail;
     }
 
@@ -407,7 +676,7 @@ int pa__init(pa_core *c, pa_module*m) {
     frag_size = pa_bytes_per_second(&ss)/128;
 
     if (pa_modargs_get_value_s32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_s32(ma, "fragment_size", &frag_size) < 0) {
-        pa_log("failed to parse fragments arguments");
+        pa_log("Failed to parse fragments arguments");
         goto fail;
     }
 
@@ -415,11 +684,11 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
 
     if (pa_oss_get_hw_description(p, hwdesc, sizeof(hwdesc)) >= 0)
-        pa_log_info("hardware name is '%s'.", hwdesc);
+        pa_log_info("Hardware name is '%s'.", hwdesc);
     else
         hwdesc[0] = 0;
 
-    pa_log_info("device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
+    pa_log_info("Device opened in %s mode.", mode == O_WRONLY ? "O_WRONLY" : (mode == O_RDONLY ? "O_RDONLY" : "O_RDWR"));
 
     if (nfrags >= 2 && frag_size >= 1)
         if (pa_oss_set_fragments(fd, nfrags, frag_size) < 0)
@@ -435,18 +704,27 @@ int pa__init(pa_core *c, pa_module*m) {
     assert(frag_size);
     in_frag_size = out_frag_size = frag_size;
 
-    u = pa_xmalloc(sizeof(struct userdata));
+    u = pa_xnew0(struct userdata, 1);
     u->core = c;
+    u->module = m;
+    m->userdata = u;
     u->use_getospace = u->use_getispace = 0;
+    u->use_getodelay = 0;
+    u->use_input_volume = u->use_pcm_volume = 0;
+    u->mode = mode;
+    u->device_name = pa_xstrdup(p);
+    u->nfrags = nfrags;
+    u->frag_size = frag_size;
+    pa_assert_se(u->asyncmsgq = pa_asyncmsgq_new(0));
 
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
-        pa_log_info("input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
+        pa_log_info("Input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         in_frag_size = info.fragsize;
         u->use_getispace = 1;
     }
 
     if (ioctl(fd, SNDCTL_DSP_GETOSPACE, &info) >= 0) {
-        pa_log_info("output -- %u fragments of size %u.", info.fragstotal, info.fragsize);
+        pa_log_info("Output -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         out_frag_size = info.fragsize;
         u->use_getospace = 1;
     }
@@ -462,12 +740,11 @@ int pa__init(pa_core *c, pa_module*m) {
         if (!(u->source = pa_source_new(c, __FILE__, name, namereg_fail, &ss, &map)))
             goto fail;
 
+        u->source->parent.process_msg = source_process_msg;
         u->source->userdata = u;
-        u->source->notify = source_notify_cb;
-        u->source->get_latency = source_get_latency_cb;
-        u->source->get_hw_volume = source_get_hw_volume;
-        u->source->set_hw_volume = source_set_hw_volume;
-        pa_source_set_owner(u->source, m);
+
+        pa_source_set_module(u->source, m);
+        pa_source_set_asyncmsgq(u->source, u->asyncmsgq);
         pa_source_set_description(u->source, t = pa_sprintf_malloc("OSS PCM on %s%s%s%s",
                                                                  p,
                                                                  hwdesc[0] ? " (" : "",
@@ -475,6 +752,7 @@ int pa__init(pa_core *c, pa_module*m) {
                                                                  hwdesc[0] ? ")" : ""));
         pa_xfree(t);
         u->source->is_hardware = 1;
+        u->source->refresh_volume = 1;
     } else
         u->source = NULL;
 
@@ -492,11 +770,11 @@ int pa__init(pa_core *c, pa_module*m) {
         if (!(u->sink = pa_sink_new(c, __FILE__, name, namereg_fail, &ss, &map)))
             goto fail;
 
-        u->sink->get_latency = sink_get_latency_cb;
-        u->sink->get_hw_volume = sink_get_hw_volume;
-        u->sink->set_hw_volume = sink_set_hw_volume;
+        u->sink->parent.process_msg = sink_process_msg;
         u->sink->userdata = u;
-        pa_sink_set_owner(u->sink, m);
+        
+        pa_sink_set_module(u->sink, m);
+        pa_sink_set_asyncmsgq(u->sink, u->asyncmsgq);
         pa_sink_set_description(u->sink, t = pa_sprintf_malloc("OSS PCM on %s%s%s%s",
                                                            p,
                                                            hwdesc[0] ? " (" : "",
@@ -504,6 +782,7 @@ int pa__init(pa_core *c, pa_module*m) {
                                                            hwdesc[0] ? ")" : ""));
         pa_xfree(t);
         u->sink->is_hardware = 1;
+        u->sink->refresh_volume = 1;
     } else
         u->sink = NULL;
 
@@ -512,42 +791,26 @@ int pa__init(pa_core *c, pa_module*m) {
 
     assert(u->source || u->sink);
 
-    u->io = pa_iochannel_new(c->mainloop, u->source ? fd : -1, u->sink ? fd : -1);
-    assert(u->io);
-    pa_iochannel_set_callback(u->io, io_callback, u);
     u->fd = fd;
 
-    u->memchunk.memblock = NULL;
-    u->memchunk.length = 0;
+    pa_memchunk_reset(&u->memchunk);
     u->sample_size = pa_frame_size(&ss);
 
     u->out_fragment_size = out_frag_size;
     u->in_fragment_size = in_frag_size;
-    u->silence.memblock = pa_memblock_new(u->core->mempool, u->silence.length = u->out_fragment_size);
-    assert(u->silence.memblock);
-    pa_silence_memblock(u->silence.memblock, &ss);
-    u->silence.index = 0;
 
-    u->module = m;
-    m->userdata = u;
+    if (!(u->thread = pa_thread_new(thread_func, u))) {
+        pa_log("Failed to create thread.");
+        goto fail;
+    }
 
     pa_modargs_free(ma);
 
-    /*
-     * Some crappy drivers do not start the recording until we read something.
-     * Without this snippet, poll will never register the fd as ready.
-     */
-    if (u->source) {
-        char *buf = pa_xnew(char, u->sample_size);
-        pa_read(u->fd, buf, u->sample_size, NULL);
-        pa_xfree(buf);
-    }
-
     /* Read mixer settings */
     if (u->source)
-        source_get_hw_volume(u->source);
+        pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_GET_VOLUME, &u->source->volume, NULL, NULL);
     if (u->sink)
-        sink_get_hw_volume(u->sink);
+        pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_VOLUME, &u->sink->volume, NULL, NULL);
 
     return 0;
 
@@ -572,12 +835,33 @@ void pa__done(pa_core *c, pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    clear_up(u);
+    if (u->sink)
+        pa_sink_disconnect(u->sink);
+
+    if (u->source)
+        pa_source_disconnect(u->source);
+
+    if (u->thread) {
+        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, NULL);
+        pa_thread_free(u->thread);
+    }
+
+    if (u->asyncmsgq)
+        pa_asyncmsgq_free(u->asyncmsgq);
+
+    if (u->sink)
+        pa_sink_unref(u->sink);
+
+    if (u->source)
+        pa_source_unref(u->source);
 
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
-    if (u->silence.memblock)
-        pa_memblock_unref(u->silence.memblock);
 
+    if (u->fd >= 0)
+        close(u->fd);
+
+    pa_xfree(u->device_name);
+    
     pa_xfree(u);
 }

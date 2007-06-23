@@ -927,12 +927,12 @@ modlibexec_LTLIBRARIES += \
 		module-x11-publish.la
 endif
 
-#if HAVE_OSS
-#modlibexec_LTLIBRARIES += \
-#		liboss-util.la \
-#		module-oss.la \
+if HAVE_OSS
+modlibexec_LTLIBRARIES += \
+		liboss-util.la \
+		module-oss.la
 #		module-oss-mmap.la
-#endif
+endif
 
 #if HAVE_ALSA
 #modlibexec_LTLIBRARIES += \
@@ -1176,13 +1176,13 @@ module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EX
 
 # OSS
 
-#liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
-#liboss_util_la_LDFLAGS = -avoid-version
-#liboss_util_la_LIBADD = libpulsecore.la
+liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
+liboss_util_la_LDFLAGS = -avoid-version
+liboss_util_la_LIBADD = libpulsecore.la
 
-#module_oss_la_SOURCES = modules/module-oss.c
-#module_oss_la_LDFLAGS = -module -avoid-version
-#module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
+module_oss_la_SOURCES = modules/module-oss.c
+module_oss_la_LDFLAGS = -module -avoid-version
+module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
 
 #module_oss_mmap_la_SOURCES = modules/module-oss-mmap.c
 #module_oss_mmap_la_LDFLAGS = -module -avoid-version
