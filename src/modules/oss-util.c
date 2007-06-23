@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
 #include <stdio.h>
@@ -40,6 +39,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "oss-util.h"
 
@@ -47,24 +47,23 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
     int fd = -1;
     int caps;
 
-    assert(device && mode && (*mode == O_RDWR || *mode == O_RDONLY || *mode == O_WRONLY));
+    pa_assert(device);
+    pa_assert(mode);
+    pa_assert(*mode == O_RDWR || *mode == O_RDONLY || *mode == O_WRONLY);
 
     if(!pcaps)
         pcaps = &caps;
 
     if (*mode == O_RDWR) {
-        if ((fd = open(device, O_RDWR|O_NDELAY)) >= 0) {
-            int dcaps, *tcaps;
+        if ((fd = open(device, O_RDWR|O_NDELAY|O_NOCTTY)) >= 0) {
             ioctl(fd, SNDCTL_DSP_SETDUPLEX, 0);
 
-            tcaps = pcaps ? pcaps : &dcaps;
-
-            if (ioctl(fd, SNDCTL_DSP_GETCAPS, tcaps) < 0) {
+            if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
                 pa_log("SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
                 goto fail;
             }
 
-            if (*tcaps & DSP_CAP_DUPLEX)
+            if (*pcaps & DSP_CAP_DUPLEX)
                 goto success;
 
             pa_log_warn("'%s' doesn't support full duplex", device);
@@ -72,20 +71,18 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
             close(fd);
         }
 
-        if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY)) < 0) {
-            if ((fd = open(device, (*mode = O_RDONLY)|O_NDELAY)) < 0) {
+        if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY|O_NOCTTY)) < 0) {
+            if ((fd = open(device, (*mode = O_RDONLY)|O_NDELAY|O_NOCTTY)) < 0) {
                 pa_log("open('%s'): %s", device, pa_cstrerror(errno));
                 goto fail;
             }
         }
     } else {
-        if ((fd = open(device, *mode|O_NDELAY)) < 0) {
+        if ((fd = open(device, *mode|O_NDELAY|O_NOCTTY)) < 0) {
             pa_log("open('%s'): %s", device, pa_cstrerror(errno));
             goto fail;
         }
     }
-
-success:
 
     *pcaps = 0;
 
@@ -93,6 +90,8 @@ success:
         pa_log("SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
         goto fail;
     }
+
+success:
 
     pa_log_debug("capabilities:%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
                  *pcaps & DSP_CAP_BATCH ? " BATCH" : "",
@@ -166,7 +165,8 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         [PA_SAMPLE_FLOAT32BE] = AFMT_QUERY, /* not supported */
     };
 
-    assert(fd >= 0 && ss);
+    pa_assert(fd >= 0);
+    pa_assert(ss);
 
     orig_format = ss->format;
 
@@ -199,7 +199,7 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         pa_log("SNDCTL_DSP_CHANNELS: %s", pa_cstrerror(errno));
         return -1;
     }
-    assert(channels > 0);
+    pa_assert(channels > 0);
 
     if (ss->channels != channels) {
         pa_log_warn("device doesn't support %i channels, using %i channels.", ss->channels, channels);
@@ -211,7 +211,7 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         pa_log("SNDCTL_DSP_SPEED: %s", pa_cstrerror(errno));
         return -1;
     }
-    assert(speed > 0);
+    pa_assert(speed > 0);
 
     if (ss->rate != (unsigned) speed) {
         pa_log_warn("device doesn't support %i Hz, changed to %i Hz.", ss->rate, speed);
@@ -252,9 +252,9 @@ static int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvo
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
 
-    assert(fd >= 0);
-    assert(ss);
-    assert(volume);
+    pa_assert(fd >= 0);
+    pa_assert(ss);
+    pa_assert(volume);
 
     if (ioctl(fd, mixer, &vol) < 0)
         return -1;
@@ -357,7 +357,7 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
 
         if (device == n) {
             char *k = strchr(line, ':');
-            assert(k);
+            pa_assert(k);
             k++;
             k += strspn(k, " ");
 
