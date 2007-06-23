@@ -99,8 +99,6 @@ static void thread_func(void *userdata) {
 
     pa_log_debug("Thread starting up");
 
-    pa_memchunk_reset(&u->memchunk);
-    
     memset(&pollfd, 0, sizeof(pollfd));
     
     pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
@@ -128,19 +126,19 @@ static void thread_func(void *userdata) {
             continue;
         }
 
-        /* Render some data and write it to the fifo */
+        /* Try to read some data and pass it on to the source driver */
 
         if (u->source->thread_info.state == PA_SOURCE_RUNNING && pollfd[POLLFD_FIFO].revents) {
             void *p;
             ssize_t l;
-            
+
             if (!u->memchunk.memblock) {
                 u->memchunk.memblock = pa_memblock_new(u->core->mempool, PIPE_BUF);
                 u->memchunk.index = u->memchunk.length = 0;
             }
 
             pa_assert(pa_memblock_get_length(u->memchunk.memblock) > u->memchunk.index);
-            
+
             p = pa_memblock_acquire(u->memchunk.memblock);
             l = pa_read(u->fd, (uint8_t*) p + u->memchunk.index, pa_memblock_get_length(u->memchunk.memblock) - u->memchunk.index, &read_type);
             pa_memblock_release(u->memchunk.memblock);
@@ -157,7 +155,7 @@ static void thread_func(void *userdata) {
                 }
 
             } else {
-                
+
                 u->memchunk.length = l;
                 pa_source_post(u->source, &u->memchunk);
                 u->memchunk.index += l;
@@ -172,7 +170,7 @@ static void thread_func(void *userdata) {
             }
         }
 
-        pollfd[POLLFD_FIFO].events = u->source->thread_info.state == PA_SINK_RUNNING ? POLLIN : 0;
+        pollfd[POLLFD_FIFO].events = u->source->thread_info.state == PA_SOURCE_RUNNING ? POLLIN : 0;
 
         /* Hmm, nothing to do. Let's sleep */
 
@@ -237,7 +235,8 @@ int pa__init(pa_core *c, pa_module*m) {
     u->core = c;
     u->module = m;
     m->userdata = u;
-
+    pa_memchunk_reset(&u->memchunk);
+    
     pa_assert_se(u->asyncmsgq = pa_asyncmsgq_new(0));
 
     u->filename = pa_xstrdup(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
