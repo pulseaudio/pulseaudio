@@ -115,15 +115,12 @@ static void thread_func(void *userdata) {
     
     struct userdata *u = userdata;
     struct pollfd pollfd[POLLFD_MAX];
-    int underrun = 0;
     int write_type = 0;
 
     pa_assert(u);
 
     pa_log_debug("Thread starting up");
 
-    pa_memchunk_reset(&u->memchunk);
-    
     memset(&pollfd, 0, sizeof(pollfd));
     
     pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
@@ -153,56 +150,53 @@ static void thread_func(void *userdata) {
 
         /* Render some data and write it to the fifo */
 
-        if (u->sink->thread_info.state == PA_SINK_RUNNING && (pollfd[POLLFD_FIFO].revents || underrun)) {
+        if (u->sink->thread_info.state == PA_SINK_RUNNING && pollfd[POLLFD_FIFO].revents) {
+            ssize_t l;
+            void *p;
 
             if (u->memchunk.length <= 0)
                 pa_sink_render(u->sink, PIPE_BUF, &u->memchunk);
 
-            underrun = u->memchunk.length <= 0;
+            pa_assert(u->memchunk.length > 0);
 
-            if (!underrun) {
-                ssize_t l;
-                void *p;
+            p = pa_memblock_acquire(u->memchunk.memblock);
+            l = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &write_type);
+            pa_memblock_release(u->memchunk.memblock);
 
-                p = pa_memblock_acquire(u->memchunk.memblock);
-                l = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &write_type);
-                pa_memblock_release(u->memchunk.memblock);
+            pa_assert(l != 0);
 
-                pa_assert(l != 0);
-                
-                if (l < 0) {
+            if (l < 0) {
 
-                    if (errno == EINTR)
-                        continue;
-                    else if (errno != EAGAIN) {
-                        pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
-                        goto fail;
-                    }
-                    
-                } else {
-
-                    u->memchunk.index += l;
-                    u->memchunk.length -= l;
-
-                    if (u->memchunk.length <= 0) {
-                        pa_memblock_unref(u->memchunk.memblock);
-                        pa_memchunk_reset(&u->memchunk);
-                    }
-
-                    pollfd[POLLFD_FIFO].revents = 0;
+                if (errno == EINTR)
                     continue;
+                else if (errno != EAGAIN) {
+                    pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
+                    goto fail;
                 }
+
+            } else {
+
+                u->memchunk.index += l;
+                u->memchunk.length -= l;
+
+                if (u->memchunk.length <= 0) {
+                    pa_memblock_unref(u->memchunk.memblock);
+                    pa_memchunk_reset(&u->memchunk);
+                }
+
+                pollfd[POLLFD_FIFO].revents = 0;
+                continue;
             }
         }
 
-        pollfd[POLLFD_FIFO].events = (u->sink->thread_info.state == PA_SINK_RUNNING && !underrun) ? POLLOUT : 0;
+        pollfd[POLLFD_FIFO].events = u->sink->thread_info.state == PA_SINK_RUNNING ? POLLOUT : 0;
 
         /* Hmm, nothing to do. Let's sleep */
 
         if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
             continue;
 
-/*         pa_log("polling for %u (underrun=%i)", pollfd[POLLFD_FIFO].events, underrun);  */
+/*         pa_log("polling for %u", pollfd[POLLFD_FIFO].events);  */
         r = poll(pollfd, POLLFD_MAX, -1);
 /*         pa_log("polling got %u", r > 0 ? pollfd[POLLFD_FIFO].revents : 0);  */
 
@@ -260,6 +254,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->core = c;
     u->module = m;
     m->userdata = u;
+    pa_memchunk_reset(&u->memchunk);
 
     pa_assert_se(u->asyncmsgq = pa_asyncmsgq_new(0));
     
