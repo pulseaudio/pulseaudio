@@ -93,7 +93,7 @@ static void handle_io_event(PA_GCC_UNUSED pa_mainloop_api *ea, pa_io_event *e,
     unsigned int flags = 0;
     DBusWatch *watch = (DBusWatch*) userdata;
 
-    assert(fd == dbus_watch_get_fd(watch));
+    assert(fd == dbus_watch_get_unix_fd(watch));
 
     if (!dbus_watch_get_enabled(watch)) {
         pa_log_warn("Asked to handle disabled watch: %p %i",
@@ -135,7 +135,7 @@ static dbus_bool_t add_watch(DBusWatch *watch, void *data)
     pa_io_event *ev;
     pa_core *c = (pa_core*) data;
 
-    ev = c->mainloop->io_new(c->mainloop, dbus_watch_get_fd(watch),
+    ev = c->mainloop->io_new(c->mainloop, dbus_watch_get_unix_fd(watch),
                              get_watch_flags(watch),
                              handle_io_event, (void*) watch);
     if (NULL == ev)
