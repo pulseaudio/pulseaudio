@@ -25,6 +25,7 @@
 ***/
 
 #include <sys/types.h>
+#include <assert.h>
 #include <pulsecore/log.h>
 
 static inline size_t pa_align(size_t l) {
