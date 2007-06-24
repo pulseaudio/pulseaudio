@@ -123,7 +123,7 @@ static void connection_free(pa_object *o) {
 static void connection_drop(connection *c) {
     pa_assert(c);
     
-    pa_idxset_remove_by_data(c->protocol->connections, c, NULL);
+    pa_assert_se(pa_idxset_remove_by_data(c->protocol->connections, c, NULL) == c);
 
     if (c->sink_input) {
         pa_sink_input_disconnect(c->sink_input);
@@ -153,7 +153,7 @@ static int do_read(connection *c) {
 
     pa_assert(c);
 
-    if (!c->sink_input || !(l = pa_atomic_load(&c->playback.missing)))
+    if (!c->sink_input || (l = pa_atomic_load(&c->playback.missing)) <= 0)
         return 0;
 
     if (l > c->playback.fragment_size)
@@ -191,6 +191,7 @@ static int do_read(connection *c) {
     c->playback.memblock_index += r;
 
     pa_asyncmsgq_post(c->sink_input->sink->asyncmsgq, PA_MSGOBJECT(c->sink_input), SINK_INPUT_MESSAGE_POST_DATA, NULL, &chunk, NULL);
+    pa_atomic_sub(&c->playback.missing, r);
 
     return 0;
 }
@@ -309,7 +310,6 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, pa_
 
             /* New data from the main loop */
             pa_memblockq_push_align(c->input_memblockq, chunk);
-            pa_atomic_store(&c->playback.missing, pa_memblockq_missing(c->input_memblockq));
 
 /*             pa_log("got data, %u", pa_memblockq_get_length(c->input_memblockq)); */
             
@@ -368,10 +368,10 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
     pa_memblockq_drop(c->input_memblockq, chunk, length);
     new = pa_memblockq_missing(c->input_memblockq);
 
-    pa_atomic_store(&c->playback.missing, new);
-
-    if (new > old)
-        pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), MESSAGE_REQUEST_DATA, NULL, NULL, NULL);
+    if (new > old) {
+        if (pa_atomic_add(&c->playback.missing, new - old) <= 0)
+            pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), MESSAGE_REQUEST_DATA, NULL, NULL, NULL);
+    }
 }
 
 /* Called from main context */
