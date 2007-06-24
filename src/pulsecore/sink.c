@@ -46,6 +46,7 @@
 #include "sink.h"
 
 #define MAX_MIX_CHANNELS 32
+#define SILENCE_BUFFER_LENGTH (64*1024)
 
 static PA_DEFINE_CHECK_TYPE(pa_sink, sink_check_type, pa_msgobject_check_type);
 
@@ -363,6 +364,9 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
 
     if (n == 0) {
+
+        if (length > SILENCE_BUFFER_LENGTH)
+            length = SILENCE_BUFFER_LENGTH;
 
         if (!s->silence || pa_memblock_get_length(s->silence) < length) {
             if (s->silence)
