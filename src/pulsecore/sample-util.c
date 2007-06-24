@@ -28,12 +28,12 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include <liboil/liboilfuncs.h>
 
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "sample-util.h"
 #include "endianmacros.h"
@@ -42,20 +42,23 @@
 
 pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spec, size_t length) {
     size_t fs;
-    assert(pool);
-    assert(spec);
+    pa_assert(pool);
+    pa_assert(spec);
 
-    if (length == 0)
+    if (length <= 0)
         length = pa_bytes_per_second(spec)/20; /* 50 ms */
 
     if (length > PA_SILENCE_MAX)
         length = PA_SILENCE_MAX;
 
     fs = pa_frame_size(spec);
-    length = ((PA_SILENCE_MAX+fs-1) / fs) * fs;
+
+    length = (length+fs-1)/fs;
 
     if (length <= 0)
-        length = fs;
+        length = 1;
+    
+    length *= fs;
 
     return pa_silence_memblock(pa_memblock_new(pool, length), spec);
 }
@@ -63,8 +66,8 @@ pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spe
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
     void *data;
 
-    assert(b);
-    assert(spec);
+    pa_assert(b);
+    pa_assert(spec);
 
     data = pa_memblock_acquire(b);
     pa_silence_memory(data, pa_memblock_get_length(b), spec);
@@ -75,9 +78,9 @@ pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
 void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
     void *data;
 
-    assert(c);
-    assert(c->memblock);
-    assert(spec);
+    pa_assert(c);
+    pa_assert(c->memblock);
+    pa_assert(spec);
 
     data = pa_memblock_acquire(c->memblock);
     pa_silence_memory((uint8_t*) data+c->index, c->length, spec);
@@ -86,7 +89,9 @@ void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
 
 void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
     uint8_t c = 0;
-    assert(p && length && spec);
+    pa_assert(p);
+    pa_assert(length > 0);
+    pa_assert(spec);
 
     switch (spec->format) {
         case PA_SAMPLE_U8:
@@ -103,7 +108,7 @@ void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
             c = 80;
             break;
         default:
-            assert(0);
+            pa_assert_not_reached();
     }
 
     memset(p, c, length);
@@ -122,10 +127,10 @@ size_t pa_mix(
     size_t d = 0;
     unsigned k;
 
-    assert(streams);
-    assert(data);
-    assert(length);
-    assert(spec);
+    pa_assert(streams);
+    pa_assert(data);
+    pa_assert(length);
+    pa_assert(spec);
 
     if (!volume)
         volume = pa_cvolume_reset(&full_volume, spec->channels);
@@ -347,10 +352,10 @@ void pa_volume_memchunk(
 
     void *ptr;
 
-    assert(c);
-    assert(spec);
-    assert(c->length % pa_frame_size(spec) == 0);
-    assert(volume);
+    pa_assert(c);
+    pa_assert(spec);
+    pa_assert(c->length % pa_frame_size(spec) == 0);
+    pa_assert(volume);
 
     if (pa_cvolume_channels_equal_to(volume, PA_VOLUME_NORM))
         return;
