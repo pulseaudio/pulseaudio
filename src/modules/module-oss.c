@@ -56,6 +56,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
+#include <signal.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
@@ -138,7 +139,7 @@ static int suspend(struct userdata *u) {
     pa_assert(u->fd >= 0);
 
     /* Let's suspend */
-    ioctl(u->fd, SNDCTL_DSP_SYNC);
+    ioctl(u->fd, SNDCTL_DSP_SYNC, NULL);
     close(u->fd);
     u->fd = -1;
     
@@ -180,7 +181,7 @@ static int unsuspend(struct userdata *u) {
     }
 
     if (ioctl(u->fd, SNDCTL_DSP_GETBLKSIZE, &frag_size) < 0) {
-        pa_log("SNDCTL_DSP_GETBLKSIZE: %s", pa_cstrerror(errno));
+        pa_log_warn("SNDCTL_DSP_GETBLKSIZE: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -255,9 +256,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *
         }
 
         case PA_SINK_MESSAGE_SET_STATE:
-
-            if (PA_PTR_TO_UINT(data) != PA_SINK_RUNNING && u->fd >= 0)
-                ioctl(u->fd, SNDCTL_DSP_POST);
 
             if (PA_PTR_TO_UINT(data) == PA_SINK_SUSPENDED) {
                 pa_assert(u->sink->thread_info.state != PA_SINK_SUSPENDED);
@@ -425,9 +423,13 @@ static void thread_func(void *userdata) {
         pa_memchunk chunk;
         int r;
 
+/*         pa_log("loop"); */
+        
         /* Check whether there is a message for us to process */
         if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
             int ret;
+
+/*             pa_log("processing msg"); */
 
             if (!object && code == PA_MESSAGE_SHUTDOWN) {
                 pa_asyncmsgq_done(u->asyncmsgq, 0);
@@ -437,11 +439,13 @@ static void thread_func(void *userdata) {
             ret = pa_asyncmsgq_dispatch(object, code, data, &chunk);
             pa_asyncmsgq_done(u->asyncmsgq, ret);
             continue;
-        }
+        } 
+
+/*         pa_log("loop2"); */
 
         /* Render some data and write it to the dsp */
 
-        if (u->sink && u->sink->thread_info.state == PA_SINK_RUNNING && (pollfd[POLLFD_DSP].revents & POLLOUT)) {
+        if (u->sink && u->sink->thread_info.state != PA_SINK_SUSPENDED && (pollfd[POLLFD_DSP].revents & POLLOUT)) {
             ssize_t l;
             void *p;
             int loop = 0;
@@ -476,6 +480,8 @@ static void thread_func(void *userdata) {
                 t = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &write_type);
                 pa_memblock_release(u->memchunk.memblock);
 
+/*                 pa_log("wrote %i bytes", t); */
+                
                 pa_assert(t != 0);
 
                 if (t < 0) {
@@ -515,7 +521,7 @@ static void thread_func(void *userdata) {
 
         /* Try to read some data and pass it on to the source driver */
 
-        if (u->source && u->source->thread_info.state == PA_SOURCE_RUNNING && ((pollfd[POLLFD_DSP].revents & POLLIN))) {
+        if (u->source && u->source->thread_info.state != PA_SOURCE_SUSPENDED && ((pollfd[POLLFD_DSP].revents & POLLIN))) {
             void *p;
             ssize_t l;
             pa_memchunk memchunk;
@@ -585,8 +591,8 @@ static void thread_func(void *userdata) {
         if (u->fd >= 0) {
             pollfd[POLLFD_DSP].fd = u->fd;
             pollfd[POLLFD_DSP].events =
-                ((u->source && u->source->thread_info.state == PA_SOURCE_RUNNING) ? POLLIN : 0) |
-                ((u->sink && u->sink->thread_info.state == PA_SINK_RUNNING) ? POLLOUT : 0);
+                ((u->source && u->source->thread_info.state != PA_SOURCE_SUSPENDED) ? POLLIN : 0) |
+                ((u->sink && u->sink->thread_info.state != PA_SINK_SUSPENDED) ? POLLOUT : 0);
         }
             
         /* Hmm, nothing to do. Let's sleep */
@@ -594,9 +600,9 @@ static void thread_func(void *userdata) {
         if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
             continue;
 
-/*         pa_log("polling for %u", pollfd[POLLFD_DSP].events);  */
+/*         pa_log("polling for %i", u->fd >= 0 ? pollfd[POLLFD_DSP].events : -1);    */
         r = poll(pollfd, u->fd >= 0 ? POLLFD_MAX : POLLFD_DSP, -1);
-/*         pa_log("polling got %u", r > 0 ? pollfd[POLLFD_DSP].revents : 0);  */
+/*         pa_log("polling got dsp=%i amq=%i (%i)", r > 0 ? pollfd[POLLFD_DSP].revents : 0, r > 0 ? pollfd[POLLFD_ASYNCQ].revents : 0, r);    */
 
         pa_asyncmsgq_after_poll(u->asyncmsgq);
 
@@ -610,6 +616,8 @@ static void thread_func(void *userdata) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
+
+        pa_assert(r > 0);
 
         if (pollfd[POLLFD_DSP].revents & ~(POLLOUT|POLLIN)) {
             pa_log("DSP shutdown.");
@@ -708,9 +716,9 @@ int pa__init(pa_core *c, pa_module*m) {
     u->core = c;
     u->module = m;
     m->userdata = u;
-    u->use_getospace = u->use_getispace = 0;
-    u->use_getodelay = 0;
-    u->use_input_volume = u->use_pcm_volume = 0;
+    u->use_getospace = u->use_getispace = 1;
+    u->use_getodelay = 1;
+    u->use_input_volume = u->use_pcm_volume = 1;
     u->mode = mode;
     u->device_name = pa_xstrdup(p);
     u->nfrags = nfrags;
