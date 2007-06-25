@@ -123,7 +123,8 @@ static void connection_free(pa_object *o) {
 static void connection_drop(connection *c) {
     pa_assert(c);
     
-    pa_assert_se(pa_idxset_remove_by_data(c->protocol->connections, c, NULL) == c);
+    if (!pa_idxset_remove_by_data(c->protocol->connections, c, NULL))
+        return;
 
     if (c->sink_input) {
         pa_sink_input_disconnect(c->sink_input);
