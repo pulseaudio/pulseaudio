@@ -94,9 +94,6 @@ void pa_memblockq_drop(pa_memblockq *bq, const pa_memchunk *chunk, size_t length
 /* Test if the pa_memblockq is currently readable, that is, more data than base */
 int pa_memblockq_is_readable(pa_memblockq *bq);
 
-/* Test if the pa_memblockq is currently writable for the specified amount of bytes */
-int pa_memblockq_is_writable(pa_memblockq *bq, size_t length);
-
 /* Return the length of the queue in bytes */
 size_t pa_memblockq_get_length(pa_memblockq *bq);
 
