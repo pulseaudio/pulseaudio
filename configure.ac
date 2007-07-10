@@ -208,6 +208,10 @@ AC_CHECK_DEFINE([INADDR_NONE], [netinet/in.h], [],
     [AC_CHECK_DEFINE([INADDR_NONE], [winsock2.h], [],
         [AC_DEFINE([INADDR_NONE],  [0xffffffff], [Define INADDR_NONE if not found in <netinet/in.h>])])])
 
+#### POSIX threads ####
+
+ACX_PTHREAD
+
 #### Check for libs ####
 
 # ISO
@@ -255,10 +259,6 @@ AC_CHECK_FUNCS([lstat])
 # Non-standard
 
 AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid])
-
-#### POSIX threads ####
-
-ACX_PTHREAD
 
 #### Large File-Support (LFS) ####
 
