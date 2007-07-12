@@ -142,6 +142,8 @@ static int suspend(struct userdata *u) {
     ioctl(u->fd, SNDCTL_DSP_SYNC, NULL);
     close(u->fd);
     u->fd = -1;
+
+    pa_log_debug("Device suspended...");
     
     return 0;
 }
@@ -207,6 +209,8 @@ static int unsuspend(struct userdata *u) {
         pa_read(u->fd, buf, u->sample_size, NULL);
         pa_xfree(buf);
     }
+
+    pa_log_debug("Resumed successfully...");
 
     return 0;
 
@@ -610,8 +614,11 @@ static void thread_func(void *userdata) {
             pollfd[POLLFD_DSP].revents = 0;
         
         if (r < 0) {
-            if (errno == EINTR)
+            if (errno == EINTR) {
+                pollfd[POLLFD_ASYNCQ].revents = 0;
+                pollfd[POLLFD_DSP].revents = 0;
                 continue;
+            }
 
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
