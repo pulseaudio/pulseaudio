@@ -324,7 +324,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk
                     pa_log_info("Device doesn't support SNDCTL_DSP_GETISPACE: %s", pa_cstrerror(errno));
                     u->use_getispace = 0;
                 } else
-                    r = pa_bytes_to_usec(info.bytes, &u->sink->sample_spec);
+                    r = pa_bytes_to_usec(info.bytes, &u->source->sample_spec);
             }
 
             *((pa_usec_t*) data) = r;
