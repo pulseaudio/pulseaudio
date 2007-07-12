@@ -203,8 +203,11 @@ static void thread_func(void *userdata) {
         pa_asyncmsgq_after_poll(u->asyncmsgq);
 
         if (r < 0) {
-            if (errno == EINTR)
+            if (errno == EINTR) {
+                pollfd[POLLFD_ASYNCQ].revents = 0;
+                pollfd[POLLFD_FIFO].revents = 0;
                 continue;
+            }
 
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
