@@ -873,16 +873,16 @@ modlibexec_LTLIBRARIES += \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
 		module-simple-protocol-tcp.la \
-		module-null-sink.la
+		module-null-sink.la \
 		module-detect.la \
 		module-volume-restore.la \
 		module-rescue-streams.la \
-		module-http-protocol-tcp.la 
+		module-http-protocol-tcp.la \
+		module-sine.la
 
 #		module-esound-protocol-tcp.la \
 #		module-native-protocol-tcp.la \
 #		module-native-protocol-fd.la \
-#		module-sine.la \
 #		module-combine.la \
 #		module-tunnel-sink.la \
 #		module-tunnel-source.la \
