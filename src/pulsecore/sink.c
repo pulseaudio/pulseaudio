@@ -361,7 +361,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
     pa_sink_ref(s);
 
-    n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
+    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, info, MAX_MIX_CHANNELS) : 0;
 
     if (n == 0) {
 
@@ -426,7 +426,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
 
     pa_sink_ref(s);
 
-    n = fill_mix_info(s, info, MAX_MIX_CHANNELS);
+    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, info, MAX_MIX_CHANNELS) : 0;
 
     if (n == 0) {
         pa_silence_memchunk(target, &s->sample_spec);
