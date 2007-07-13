@@ -320,7 +320,8 @@ static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, size_t length
                 break;
             }
 
-            if (++p > n)
+            p++;
+            if (p >= n)
                 p = 0;
         }
 
