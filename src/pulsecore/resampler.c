@@ -489,7 +489,8 @@ static void libsamplerate_run(pa_resampler *r, const pa_memchunk *in, pa_memchun
 
     u = r->impl_data;
 
-    buf = convert_to_float(r, (pa_memchunk*) in);
+    buf = (pa_memchunk*) in;
+    buf = convert_to_float(r, buf);
     buf = remap_channels(r, buf);
     buf = resample(r, buf);
 
