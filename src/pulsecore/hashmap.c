@@ -33,6 +33,7 @@
 
 #include <pulsecore/idxset.h>
 #include <pulsecore/log.h>
+#include <pulsecore/flist.h>
 
 #include "hashmap.h"
 
@@ -54,6 +55,8 @@ struct pa_hashmap {
     pa_hash_func_t hash_func;
     pa_compare_func_t compare_func;
 };
+
+PA_STATIC_FLIST_DECLARE(entries, 0);
 
 pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func) {
     pa_hashmap *h;
@@ -88,7 +91,9 @@ static void remove(pa_hashmap *h, struct hashmap_entry *e) {
         h->data[e->hash] = e->bucket_next;
     }
 
-    pa_xfree(e);
+    if (pa_flist_push(PA_STATIC_FLIST_GET(entries), e) < 0)
+        pa_xfree(e);
+    
     h->n_entries--;
 }
 
@@ -127,7 +132,9 @@ int pa_hashmap_put(pa_hashmap *h, const void *key, void *value) {
     if ((e = get(h, hash, key)))
         return -1;
 
-    e = pa_xnew(struct hashmap_entry, 1);
+    if (!(e = pa_flist_pop(PA_STATIC_FLIST_GET(entries))))
+        e = pa_xnew(struct hashmap_entry, 1);
+    
     e->hash = hash;
     e->key = key;
     e->value = value;
