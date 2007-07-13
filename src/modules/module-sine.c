@@ -58,34 +58,42 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     struct userdata *u;
-    assert(i && chunk && i->userdata);
+    
+    pa_assert(i);
     u = i->userdata;
+    pa_assert(u);
+    pa_assert(chunk);
 
     chunk->memblock = pa_memblock_ref(u->memblock);
     chunk->index = u->peek_index;
     chunk->length = pa_memblock_get_length(u->memblock) - u->peek_index;
+    
     return 0;
 }
 
-static void sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
+static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
     struct userdata *u;
-    assert(i && chunk && length && i->userdata);
+    size_t l;
+    
+    pa_assert(i);
     u = i->userdata;
-
-    assert(chunk->memblock == u->memblock);
-    assert(length <= pa_memblock_get_length(u->memblock)-u->peek_index);
+    pa_assert(u);
+    pa_assert(chunk);
+    pa_assert(length > 0);
 
     u->peek_index += length;
 
-    if (u->peek_index >= pa_memblock_get_length(u->memblock))
-        u->peek_index = 0;
+    l = pa_memblock_get_length(u->memblock);
+    
+    while (u->peek_index >= l)
+        u->peek_index -= l;
 }
 
-static void sink_input_kill(pa_sink_input *i) {
+static void sink_input_kill_cb(pa_sink_input *i) {
     struct userdata *u;
-    assert(i && i->userdata);
+    pa_assert(i && i->userdata);
     u = i->userdata;
 
     pa_sink_input_disconnect(u->sink_input);
@@ -108,7 +116,6 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     pa_sink *sink;
-    const char *sink_name;
     pa_sample_spec ss;
     uint32_t frequency;
     char t[256];
@@ -120,15 +127,14 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xmalloc(sizeof(struct userdata));
+    m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = c;
     u->module = m;
     u->sink_input = NULL;
     u->memblock = NULL;
+    u->peek_index = 0;
 
-    sink_name = pa_modargs_get_value(ma, "sink", NULL);
-
-    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(c, pa_modargs_get_value(ma, "sink", NULL), PA_NAMEREG_SINK, 1))) {
         pa_log("No such sink.");
         goto fail;
     }
@@ -160,13 +166,13 @@ int pa__init(pa_core *c, pa_module*m) {
     if (!(u->sink_input = pa_sink_input_new(c, &data, 0)))
         goto fail;
 
-    u->sink_input->peek = sink_input_peek;
-    u->sink_input->drop = sink_input_drop;
-    u->sink_input->kill = sink_input_kill;
+    u->sink_input->peek = sink_input_peek_cb;
+    u->sink_input->drop = sink_input_drop_cb;
+    u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->userdata = u;
 
-    u->peek_index = 0;
-
+    pa_sink_input_put(u->sink_input);
+    
     pa_modargs_free(ma);
     return 0;
 
@@ -179,10 +185,12 @@ fail:
 }
 
 void pa__done(pa_core *c, pa_module*m) {
-    struct userdata *u = m->userdata;
-    assert(c && m);
+    struct userdata *u;
+    
+    pa_assert(c);
+    pa_assert(m);
 
-    if (!u)
+    if (!(u = m->userdata))
         return;
 
     if (u->sink_input) {
@@ -192,6 +200,7 @@ void pa__done(pa_core *c, pa_module*m) {
 
     if (u->memblock)
         pa_memblock_unref(u->memblock);
+    
     pa_xfree(u);
 }
 
