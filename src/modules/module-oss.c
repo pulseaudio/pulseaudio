@@ -54,7 +54,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdio.h>
-#include <assert.h>
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
@@ -1034,8 +1033,8 @@ int pa__init(pa_core *c, pa_module*m) {
     const char *name;
     int namereg_fail;
 
-    assert(c);
-    assert(m);
+    pa_assert(c);
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
@@ -1101,7 +1100,7 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("SNDCTL_DSP_GETBLKSIZE: %s", pa_cstrerror(errno));
         goto fail;
     }
-    assert(frag_size);
+    pa_assert(frag_size > 0);
 
     u = pa_xnew0(struct userdata, 1);
     u->core = c;
@@ -1269,8 +1268,8 @@ fail:
 void pa__done(pa_core *c, pa_module*m) {
     struct userdata *u;
 
-    assert(c);
-    assert(m);
+    pa_assert(c);
+    pa_assert(m);
 
     if (!(u = m->userdata))
         return;
