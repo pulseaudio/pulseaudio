@@ -931,7 +931,6 @@ if HAVE_OSS
 modlibexec_LTLIBRARIES += \
 		liboss-util.la \
 		module-oss.la
-#		module-oss-mmap.la
 endif
 
 #if HAVE_ALSA
@@ -1018,7 +1017,6 @@ SYMDEF_FILES = \
 		modules/module-x11-bell-symdef.h \
 		modules/module-x11-publish-symdef.h \
 		modules/module-oss-symdef.h \
-		modules/module-oss-mmap-symdef.h \
 		modules/module-alsa-sink-symdef.h \
 		modules/module-alsa-source-symdef.h \
 		modules/module-solaris-symdef.h \
@@ -1183,10 +1181,6 @@ liboss_util_la_LIBADD = libpulsecore.la
 module_oss_la_SOURCES = modules/module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version
 module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
-
-#module_oss_mmap_la_SOURCES = modules/module-oss-mmap.c
-#module_oss_mmap_la_LDFLAGS = -module -avoid-version
-#module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore.la
 
 # ALSA
 
