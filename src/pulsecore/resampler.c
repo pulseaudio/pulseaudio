@@ -455,7 +455,7 @@ static pa_memchunk *convert_from_float(pa_resampler *r, pa_memchunk *input) {
     n_frames = input->length / sizeof(float) / r->o_ss.channels;
     n_samples = n_frames * r->o_ss.channels;
 
-    if (u->buf4_samples < n_samples) {
+    if (!u->buf4.memblock || u->buf4_samples < n_samples) {
         if (u->buf4.memblock)
             pa_memblock_unref(u->buf4.memblock);
 
@@ -503,9 +503,6 @@ static void libsamplerate_run(pa_resampler *r, const pa_memchunk *in, pa_memchun
             pa_memchunk_reset(buf);
     } else
         pa_memchunk_reset(out);
-
-    pa_memblock_release(in->memblock);
-
 }
 
 static void libsamplerate_update_input_rate(pa_resampler *r, uint32_t rate) {
@@ -525,7 +522,6 @@ static void libsamplerate_update_input_rate(pa_resampler *r, uint32_t rate) {
         assert(ret == 0);
     }
 }
-
 
 static void libsamplerate_update_output_rate(pa_resampler *r, uint32_t rate) {
     struct impl_libsamplerate *u;
