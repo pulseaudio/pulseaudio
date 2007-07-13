@@ -567,10 +567,10 @@ void pa_memblock_unref_fixed(pa_memblock *b) {
     assert(PA_REFCNT_VALUE(b) > 0);
     assert(b->type == PA_MEMBLOCK_FIXED);
 
-    if (PA_REFCNT_DEC(b) > 0)
+    if (PA_REFCNT_VALUE(b) > 1)
         memblock_make_local(b);
-    else
-        memblock_free(b);
+
+    pa_memblock_unref(b);
 }
 
 /* Self-locked. This function is not multiple-caller safe */
