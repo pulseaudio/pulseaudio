@@ -315,7 +315,9 @@ static pa_memchunk* convert_to_float(pa_resampler *r, pa_memchunk *input) {
 
     src = (uint8_t*) pa_memblock_acquire(input->memblock) + input->index;
     dst = (uint8_t*) pa_memblock_acquire(u->buf1.memblock);
+
     u->to_float32ne_func(n_samples, src, dst);
+
     pa_memblock_release(input->memblock);
     pa_memblock_release(u->buf1.memblock);
 
@@ -402,9 +404,9 @@ static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
         return input;
 
     in_n_samples = input->length / sizeof(float);
-    in_n_frames = in_n_samples * r->o_ss.channels;
+    in_n_frames = in_n_samples / r->o_ss.channels;
 
-    out_n_frames = (in_n_frames*r->o_ss.rate/r->i_ss.rate)+1024;
+    out_n_frames = ((in_n_frames*r->o_ss.rate)/r->i_ss.rate)+1024;
     out_n_samples = out_n_frames * r->o_ss.channels;
 
     if (!u->buf3.memblock || u->buf3_samples < out_n_samples) {
@@ -464,7 +466,7 @@ static pa_memchunk *convert_from_float(pa_resampler *r, pa_memchunk *input) {
         u->buf4.index = 0;
     }
 
-    src = (uint8_t*) pa_memblock_acquire(input->memblock) + input->length;
+    src = (uint8_t*) pa_memblock_acquire(input->memblock) + input->index;
     dst = pa_memblock_acquire(u->buf4.memblock);
     u->from_float32ne_func(n_samples, src, dst);
     pa_memblock_release(input->memblock);
