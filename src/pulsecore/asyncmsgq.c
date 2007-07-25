@@ -39,7 +39,7 @@
 
 #include "asyncmsgq.h"
 
-PA_STATIC_FLIST_DECLARE(asyncmsgq, 0);
+PA_STATIC_FLIST_DECLARE(asyncmsgq, 0, pa_xfree);
 
 struct asyncmsgq_item {
     int code;
