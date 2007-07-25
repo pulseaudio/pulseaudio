@@ -27,6 +27,7 @@
 #include <pulse/def.h>
 
 #include <pulsecore/once.h>
+#include <pulsecore/gccmacro.h>
 
 /* A multiple-reader multipler-write lock-free free list implementation */
 
@@ -40,20 +41,26 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb);
 int pa_flist_push(pa_flist*l, void *p);
 void* pa_flist_pop(pa_flist*l);
 
-#define PA_STATIC_FLIST_DECLARE(name, size)                     \
-    static struct {                                             \
-        pa_flist *flist;                                        \
-        pa_once_t once;                                         \
-    } name##_static_flist = { NULL, PA_ONCE_INIT };             \
-                                                                \
-    static void name##_init(void) {                             \
-        name##_static_flist.flist = pa_flist_new(size);         \
-    }                                                           \
-                                                                \
-    static inline pa_flist* name##_get(void) {                  \
-        pa_once(&name##_static_flist.once, name##_init);        \
-        return name##_static_flist.flist;                       \
-    } \
+/* Please not that the destructor stuff is not really necesary, we do
+ * this just to make valgrind output more useful. */
+
+#define PA_STATIC_FLIST_DECLARE(name, size, destroy_cb)                 \
+    static struct {                                                     \
+        pa_flist *flist;                                                \
+        pa_once_t once;                                                 \
+    } name##_static_flist = { NULL, PA_ONCE_INIT };                     \
+    static void name##_init(void) {                                     \
+        name##_static_flist.flist = pa_flist_new(size);                 \
+    }                                                                   \
+    static inline pa_flist* name##_get(void) {                          \
+        pa_once(&name##_static_flist.once, name##_init);                \
+        return name##_static_flist.flist;                               \
+    }                                                                   \
+    static void name##_destructor(void) PA_GCC_DESTRUCTOR;              \
+    static void name##_destructor(void) {                               \
+        if (name##_static_flist.flist)                                  \
+            pa_flist_free(name##_static_flist.flist, destroy_cb);       \
+    }                                                                   \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 
 #define PA_STATIC_FLIST_GET(name) (name##_get())
