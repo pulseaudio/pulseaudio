@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <errno.h>
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -83,6 +82,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/winsock.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "core-util.h"
 
@@ -1201,4 +1201,22 @@ int pa_atou(const char *s, uint32_t *ret_u) {
     *ret_u = (uint32_t) l;
 
     return 0;
+}
+
+/* Same as snprintf, but guarantees NUL-termination on every platform */
+int pa_snprintf(char *str, size_t size, const char *format, ...) {
+    int ret;
+    va_list ap;
+
+    pa_assert(str);
+    pa_assert(size > 0);
+    pa_assert(format);
+    
+    va_start(ap, format);
+    ret = vsnprintf(str, size, format, ap);
+    va_end(ap);
+
+    str[size-1] = 0;
+
+    return ret;
 }
