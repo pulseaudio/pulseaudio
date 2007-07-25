@@ -1297,15 +1297,6 @@ void pa__done(pa_core *c, pa_module*m) {
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
 
-    if (u->in_mmap && u->in_mmap != MAP_FAILED)
-        munmap(u->in_mmap, u->in_hwbuf_size);
-
-    if (u->out_mmap && u->out_mmap != MAP_FAILED)
-        munmap(u->out_mmap, u->out_hwbuf_size);
-    
-    if (u->fd >= 0)
-        close(u->fd);
-
     if (u->out_mmap_memblocks) {
         unsigned i;
         for (i = 0; i < u->out_nfrags; i++)
@@ -1321,6 +1312,15 @@ void pa__done(pa_core *c, pa_module*m) {
                 pa_memblock_unref_fixed(u->in_mmap_memblocks[i]);
         pa_xfree(u->in_mmap_memblocks);
     }
+
+    if (u->in_mmap && u->in_mmap != MAP_FAILED)
+        munmap(u->in_mmap, u->in_hwbuf_size);
+
+    if (u->out_mmap && u->out_mmap != MAP_FAILED)
+        munmap(u->out_mmap, u->out_hwbuf_size);
+    
+    if (u->fd >= 0)
+        close(u->fd);
 
     pa_xfree(u->device_name);
     
