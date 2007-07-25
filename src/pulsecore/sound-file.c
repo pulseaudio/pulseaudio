@@ -26,31 +26,35 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
 
 #include <sndfile.h>
 
 #include <pulse/sample.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "sound-file.h"
 #include "core-scache.h"
 
-int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, pa_channel_map *map, pa_memchunk *chunk) {
-    SNDFILE*sf = NULL;
+int pa_sound_file_load(
+        pa_mempool *pool,
+        const char *fname,
+        pa_sample_spec *ss,
+        pa_channel_map *map,
+        pa_memchunk *chunk) {
+    
+    SNDFILE *sf = NULL;
     SF_INFO sfinfo;
     int ret = -1;
     size_t l;
     sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames) = NULL;
     void *ptr = NULL;
 
-    assert(fname);
-    assert(ss);
-    assert(chunk);
+    pa_assert(fname);
+    pa_assert(ss);
+    pa_assert(chunk);
 
-    chunk->memblock = NULL;
-    chunk->index = chunk->length = 0;
-
+    pa_memchunk_reset(chunk);
     memset(&sfinfo, 0, sizeof(sfinfo));
 
     if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
@@ -93,13 +97,12 @@ int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, 
     if (map)
         pa_channel_map_init_auto(map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
 
-    if ((l = pa_frame_size(ss)*sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
+    if ((l = pa_frame_size(ss) * sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log("File too large");
         goto finish;
     }
 
     chunk->memblock = pa_memblock_new(pool, l);
-    assert(chunk->memblock);
     chunk->index = 0;
     chunk->length = l;
 
@@ -125,17 +128,19 @@ finish:
         pa_memblock_unref(chunk->memblock);
 
     return ret;
-
 }
 
 int pa_sound_file_too_big_to_cache(const char *fname) {
+    
     SNDFILE*sf = NULL;
     SF_INFO sfinfo;
     pa_sample_spec ss;
 
+    pa_assert(fname);
+    
     if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
         pa_log("Failed to open file %s", fname);
-        return 0;
+        return -1;
     }
 
     sf_close(sf);
@@ -165,8 +170,13 @@ int pa_sound_file_too_big_to_cache(const char *fname) {
     ss.rate = sfinfo.samplerate;
     ss.channels = sfinfo.channels;
 
+    if (!pa_sample_spec_valid(&ss)) {
+        pa_log("Unsupported sample format in file %s", fname);
+        return -1;
+    }
+    
     if ((pa_frame_size(&ss) * sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
-        pa_log("File too large %s", fname);
+        pa_log("File too large: %s", fname);
         return 1;
     }
 
