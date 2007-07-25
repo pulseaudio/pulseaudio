@@ -26,26 +26,31 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/strbuf.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 
 #include "strlist.h"
 
 struct pa_strlist {
     pa_strlist *next;
-    char *str;
 };
+
+#define ITEM_TO_TEXT(c) ((char*) (c) + PA_ALIGN(sizeof(pa_strlist)))
 
 pa_strlist* pa_strlist_prepend(pa_strlist *l, const char *s) {
     pa_strlist *n;
-    assert(s);
-    n = pa_xmalloc(sizeof(pa_strlist));
-    n->str = pa_xstrdup(s);
+    size_t size;
+    
+    pa_assert(s);
+    size = strlen(s);
+    n = pa_xmalloc(PA_ALIGN(sizeof(pa_strlist)) + size + 1);
+    memcpy(ITEM_TO_TEXT(n), s, size + 1);
     n->next = l;
+
     return  n;
 }
 
@@ -58,7 +63,7 @@ char *pa_strlist_tostring(pa_strlist *l) {
         if (!first)
             pa_strbuf_puts(b, " ");
         first = 0;
-        pa_strbuf_puts(b, l->str);
+        pa_strbuf_puts(b, ITEM_TO_TEXT(l));
     }
 
     return pa_strbuf_tostring_free(b);
@@ -66,19 +71,20 @@ char *pa_strlist_tostring(pa_strlist *l) {
 
 pa_strlist* pa_strlist_remove(pa_strlist *l, const char *s) {
     pa_strlist *ret = l, *prev = NULL;
-    assert(l && s);
+
+    pa_assert(l);
+    pa_assert(s);
 
     while (l) {
-        if (!strcmp(l->str, s)) {
+        if (!strcmp(ITEM_TO_TEXT(l), s)) {
             pa_strlist *n = l->next;
 
             if (!prev) {
-                assert(ret == l);
+                pa_assert(ret == l);
                 ret = n;
             } else
                 prev->next = n;
 
-            pa_xfree(l->str);
             pa_xfree(l);
 
             l = n;
@@ -96,22 +102,21 @@ void pa_strlist_free(pa_strlist *l) {
     while (l) {
         pa_strlist *c = l;
         l = l->next;
-
-        pa_xfree(c->str);
         pa_xfree(c);
     }
 }
 
 pa_strlist* pa_strlist_pop(pa_strlist *l, char **s) {
     pa_strlist *r;
-    assert(s);
+    
+    pa_assert(s);
 
     if (!l) {
         *s = NULL;
         return NULL;
     }
 
-    *s = l->str;
+    *s = pa_xstrdup(ITEM_TO_TEXT(l));
     r = l->next;
     pa_xfree(l);
     return r;
@@ -124,10 +129,12 @@ pa_strlist* pa_strlist_parse(const char *s) {
 
     while ((r = pa_split_spaces(s, &state))) {
         pa_strlist *n;
+        size_t size = strlen(r);
 
-        n = pa_xmalloc(sizeof(pa_strlist));
-        n->str = r;
+        n = pa_xmalloc(PA_ALIGN(sizeof(pa_strlist)) + size + 1);
         n->next = NULL;
+        memcpy(ITEM_TO_TEXT(n), r, size+1);
+        pa_xfree(r);
 
         if (p)
             p->next = n;
