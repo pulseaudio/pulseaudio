@@ -56,7 +56,7 @@ struct pa_hashmap {
     pa_compare_func_t compare_func;
 };
 
-PA_STATIC_FLIST_DECLARE(entries, 0);
+PA_STATIC_FLIST_DECLARE(entries, 0, pa_xfree);
 
 pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func) {
     pa_hashmap *h;
