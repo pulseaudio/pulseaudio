@@ -52,4 +52,10 @@
 #define PA_GCC_UNUSED
 #endif
 
+#ifdef __GNUC__
+#define PA_GCC_DESTRUCTOR __attribute__ ((destructor))
+#else
+#define PA_GCC_DESTRUCTOR
+#endif
+
 #endif
