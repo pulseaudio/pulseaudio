@@ -153,6 +153,7 @@ int pa_strbuf_printf(pa_strbuf *sb, const char *format, ...) {
 
         va_start(ap, format);
         r = vsnprintf(CHUNK_TO_TEXT(c), size, format, ap);
+        CHUNK_TO_TEXT(c)[size-1] = 0;
         va_end(ap);
 
         if (r > -1 && r < size) {

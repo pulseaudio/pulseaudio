@@ -2381,7 +2381,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     c->version = 8;
     c->protocol = p;
     pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
-    snprintf(cname, sizeof(cname), "Native client (%s)", pname);
+    pa_snprintf(cname, sizeof(cname), "Native client (%s)", pname);
     assert(p->core);
     c->client = pa_client_new(p->core, __FILE__, cname);
     assert(c->client);

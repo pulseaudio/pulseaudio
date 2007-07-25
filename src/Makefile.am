@@ -1292,7 +1292,7 @@ module_gconf_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_gconf_la_CFLAGS = $(AM_CFLAGS) -DPA_GCONF_HELPER=\"$(pulselibexecdir)/gconf-helper\"
 
 gconf_helper_SOURCES = modules/gconf/gconf-helper.c
-gconf_helper_LDADD = $(AM_LDADD) $(GCONF_LIBS)
+gconf_helper_LDADD = $(AM_LDADD) $(GCONF_LIBS) libpulsecore.la
 gconf_helper_CFLAGS = $(AM_CFLAGS) $(GCONF_CFLAGS)
 gconf_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 

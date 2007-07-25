@@ -42,6 +42,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/random.h>
+#include <pulsecore/core-util.h>
 #include <pulse/xmalloc.h>
 
 #include "shm.h"
@@ -53,7 +54,7 @@
 #define MAX_SHM_SIZE (1024*1024*20)
 
 static char *segment_name(char *fn, size_t l, unsigned id) {
-    snprintf(fn, l, "/pulse-shm-%u", id);
+    pa_snprintf(fn, l, "/pulse-shm-%u", id);
     return fn;
 }
 

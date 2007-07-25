@@ -112,10 +112,10 @@ static void resolve_callback(
     assert(opcode >= 0);
 
     if (aa->proto == AVAHI_PROTO_INET)
-        snprintf(a, sizeof(a), "tcp:%s:%u", avahi_address_snprint(ip, sizeof(ip), aa), port);
+        pa_snprintf(a, sizeof(a), "tcp:%s:%u", avahi_address_snprint(ip, sizeof(ip), aa), port);
     else {
         assert(aa->proto == AVAHI_PROTO_INET6);
-        snprintf(a, sizeof(a), "tcp6:%s:%u", avahi_address_snprint(ip, sizeof(ip), aa), port);
+        pa_snprintf(a, sizeof(a), "tcp6:%s:%u", avahi_address_snprint(ip, sizeof(ip), aa), port);
     }
     i.server = a;
 

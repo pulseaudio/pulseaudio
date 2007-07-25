@@ -29,6 +29,7 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
 #include <pulsecore/props.h>
+#include <pulsecore/core-util.h>
 
 #include "x11wrap.h"
 
@@ -198,7 +199,7 @@ pa_x11_wrapper* pa_x11_wrapper_get(pa_core *c, const char *name) {
     pa_x11_wrapper *w;
     assert(c);
 
-    snprintf(t, sizeof(t), "x11-wrapper%s%s", name ? "-" : "", name ? name : "");
+    pa_snprintf(t, sizeof(t), "x11-wrapper%s%s", name ? "-" : "", name ? name : "");
     if ((w = pa_property_get(c, t)))
         return pa_x11_wrapper_ref(w);
 

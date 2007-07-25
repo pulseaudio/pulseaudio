@@ -172,7 +172,7 @@ int pa_pid_file_create(void) {
         goto fail;
     }
 
-    snprintf(t, sizeof(t), "%lu\n", (unsigned long) getpid());
+    pa_snprintf(t, sizeof(t), "%lu\n", (unsigned long) getpid());
     l = strlen(t);
 
     if (pa_loop_write(fd, t, l, NULL) != (ssize_t) l) {

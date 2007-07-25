@@ -35,6 +35,7 @@
 #include <pulse/util.h>
 
 #include <pulsecore/modinfo.h>
+#include <pulsecore/core-util.h>
 
 #include "dumpmodules.h"
 
@@ -93,7 +94,7 @@ static int is_preloaded(const char *name) {
         if (l->address)
             continue;
 
-        snprintf(buf, sizeof(buf), "%s", l->name);
+        pa_snprintf(buf, sizeof(buf), "%s", l->name);
         if ((e = strrchr(buf, '.')))
             *e = 0;
 
@@ -137,7 +138,7 @@ void pa_dump_modules(pa_daemon_conf *c, int argc, char * const argv[]) {
             if (strlen(l->name) <= sizeof(PREFIX)-1 || strncmp(l->name, PREFIX, sizeof(PREFIX)-1))
                 continue;
 
-            snprintf(buf, sizeof(buf), "%s", l->name);
+            pa_snprintf(buf, sizeof(buf), "%s", l->name);
             if ((e = strrchr(buf, '.')))
                 *e = 0;
 

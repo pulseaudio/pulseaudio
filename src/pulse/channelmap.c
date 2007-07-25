@@ -370,7 +370,7 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
     *(e = s) = 0;
 
     for (channel = 0; channel < map->channels && l > 1; channel++) {
-        l -= snprintf(e, l, "%s%s",
+        l -= pa_snprintf(e, l, "%s%s",
                       first ? "" : ",",
                       pa_channel_position_to_string(map->map[channel]));
 

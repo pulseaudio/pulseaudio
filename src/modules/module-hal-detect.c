@@ -182,10 +182,10 @@ static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi,
 
     if (type == ALSA_TYPE_SINK) {
         module_name = "module-alsa-sink";
-        snprintf(args, sizeof(args), "device=hw:%u sink_name=alsa_output.%s", card, strip_udi(udi));
+        pa_snprintf(args, sizeof(args), "device=hw:%u sink_name=alsa_output.%s", card, strip_udi(udi));
     } else {
         module_name = "module-alsa-source";
-        snprintf(args, sizeof(args), "device=hw:%u source_name=alsa_input.%s", card, strip_udi(udi));
+        pa_snprintf(args, sizeof(args), "device=hw:%u source_name=alsa_input.%s", card, strip_udi(udi));
     }
 
     pa_log_debug("Loading %s with arguments '%s'", module_name, args);
@@ -244,7 +244,7 @@ static pa_module* hal_device_load_oss(struct userdata *u, const char *udi,
     if (!device || dbus_error_is_set(error))
         return NULL;
 
-    snprintf(args, sizeof(args), "device=%s sink_name=oss_output.%s source_name=oss_input.%s", device, strip_udi(udi), strip_udi(udi));
+    pa_snprintf(args, sizeof(args), "device=%s sink_name=oss_output.%s source_name=oss_input.%s", device, strip_udi(udi), strip_udi(udi));
     libhal_free_string(device);
 
     pa_log_debug("Loading module-oss with arguments '%s'", args);

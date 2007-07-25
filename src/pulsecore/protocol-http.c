@@ -69,7 +69,7 @@ static void http_response(struct connection *c, int code, const char *msg, const
     assert(msg);
     assert(mime);
 
-    snprintf(s, sizeof(s),
+    pa_snprintf(s, sizeof(s),
              "HTTP/1.0 %i %s\n"
              "Connection: close\n"
              "Content-Type: %s\n"
@@ -90,7 +90,7 @@ static void http_message(struct connection *c, int code, const char *msg, const 
     if (!text)
         text = msg;
 
-    snprintf(s, sizeof(s),
+    pa_snprintf(s, sizeof(s),
              "<?xml version=\"1.0\"?>\n"
              "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n"
              "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>%s</title></head>\n"

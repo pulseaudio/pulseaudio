@@ -96,7 +96,7 @@ static int detect_alsa(pa_core *c, int just_one) {
         if (subdevice != 0)
             continue;
 
-        snprintf(args, sizeof(args), "device=hw:%u", device);
+        pa_snprintf(args, sizeof(args), "device=hw:%u", device);
         if (!pa_module_load(c, is_sink ? "module-alsa-sink" : "module-alsa-source", args))
             continue;
 
@@ -148,16 +148,16 @@ static int detect_oss(pa_core *c, int just_one) {
 
         if (sscanf(line, "%u: ", &device) == 1) {
             if (device == 0)
-                snprintf(args, sizeof(args), "device=/dev/dsp");
+                pa_snprintf(args, sizeof(args), "device=/dev/dsp");
             else
-                snprintf(args, sizeof(args), "device=/dev/dsp%u", device);
+                pa_snprintf(args, sizeof(args), "device=/dev/dsp%u", device);
 
             if (!pa_module_load(c, "module-oss", args))
                 continue;
 
         } else if (sscanf(line, "pcm%u: ", &device) == 1) {
             /* FreeBSD support, the devices are named /dev/dsp0.0, dsp0.1 and so on */
-            snprintf(args, sizeof(args), "device=/dev/dsp%u.0", device);
+            pa_snprintf(args, sizeof(args), "device=/dev/dsp%u.0", device);
 
             if (!pa_module_load(c, "module-oss", args))
                 continue;
@@ -193,7 +193,7 @@ static int detect_solaris(pa_core *c, int just_one) {
     if (!S_ISCHR(s.st_mode))
         return 0;
 
-    snprintf(args, sizeof(args), "device=%s", dev);
+    pa_snprintf(args, sizeof(args), "device=%s", dev);
 
     if (!pa_module_load(c, "module-solaris", args))
         return 0;

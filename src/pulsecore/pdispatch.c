@@ -206,7 +206,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
     char t[256];
     char const *p;
     if (!(p = command_names[command]))
-        snprintf((char*) (p = t), sizeof(t), "%u", command);
+        pa_snprintf((char*) (p = t), sizeof(t), "%u", command);
 
     pa_log("Recieved opcode <%s>", p);
 }

@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <pulsecore/core-util.h>
 #include "volume.h"
 
 int pa_cvolume_equal(const pa_cvolume *a, const pa_cvolume *b) {
@@ -125,7 +126,7 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
     *(e = s) = 0;
 
     for (channel = 0; channel < c->channels && l > 1; channel++) {
-        l -= snprintf(e, l, "%s%u: %3u%%",
+        l -= pa_snprintf(e, l, "%s%u: %3u%%",
                       first ? "" : " ",
                       channel,
                       (c->values[channel]*100)/PA_VOLUME_NORM);

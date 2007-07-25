@@ -431,6 +431,8 @@ char *pa_sprintf_malloc(const char *format, ...) {
         r = vsnprintf(c, size, format, ap);
         va_end(ap);
 
+        c[size-1] = 0;
+
         if (r > -1 && r < size)
             return c;
 
@@ -453,12 +455,13 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
         int r;
         va_list aq;
 
-        va_copy(aq, ap);
-
         c = pa_xrealloc(c, size);
-        r = vsnprintf(c, size, format, aq);
 
+        va_copy(aq, ap);
+        r = vsnprintf(c, size, format, aq);
         va_end(aq);
+
+        c[size-1] = 0;
 
         if (r > -1 && r < size)
             return c;
@@ -1146,17 +1149,17 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
     if ((e = getenv("PULSE_RUNTIME_PATH"))) {
 
         if (fn)
-            snprintf(s, l, "%s%c%s", e, PATH_SEP, fn);
+            pa_snprintf(s, l, "%s%c%s", e, PATH_SEP, fn);
         else
-            snprintf(s, l, "%s", e);
+            pa_snprintf(s, l, "%s", e);
 
     } else {
         char u[256];
 
         if (fn)
-            snprintf(s, l, "%s%s%c%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PATH_SEP, fn);
+            pa_snprintf(s, l, "%s%s%c%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PATH_SEP, fn);
         else
-            snprintf(s, l, "%s%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
+            pa_snprintf(s, l, "%s%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
     }
 
 

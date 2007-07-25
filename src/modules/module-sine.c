@@ -36,6 +36,7 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/log.h>
+#include <pulsecore/core-util.h>
 
 #include "module-sine-symdef.h"
 
@@ -155,7 +156,7 @@ int pa__init(pa_core *c, pa_module*m) {
     calc_sine(p, pa_memblock_get_length(u->memblock), frequency);
     pa_memblock_release(u->memblock);
 
-    snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
+    pa_snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
 
     pa_sink_input_new_data_init(&data);
     data.sink = sink;

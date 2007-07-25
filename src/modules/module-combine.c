@@ -251,7 +251,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
             0,
             NULL);
 
-    snprintf(t, sizeof(t), "Output stream #%u of sink %s", u->n_outputs+1, u->sink->name);
+    pa_snprintf(t, sizeof(t), "Output stream #%u of sink %s", u->n_outputs+1, u->sink->name);
 
     pa_sink_input_new_data_init(&data);
     data.sink = sink;

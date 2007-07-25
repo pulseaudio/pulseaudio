@@ -130,7 +130,7 @@ static void signal_handler(int sig) {
         time(&now);
 
 #ifdef PRINT_CPU_LOAD
-        snprintf(t, sizeof(t), "Using %0.1f%% CPU\n", (double)CPUTIME_INTERVAL_SOFT/(now-last_time)*100);
+        pa_snprintf(t, sizeof(t), "Using %0.1f%% CPU\n", (double)CPUTIME_INTERVAL_SOFT/(now-last_time)*100);
         write_err(t);
 #endif
 

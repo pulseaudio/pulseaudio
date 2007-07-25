@@ -31,6 +31,7 @@
 #include <math.h>
 #include <string.h>
 
+#include <pulsecore/core-util.h>
 #include "sample.h"
 
 size_t pa_sample_size(const pa_sample_spec *spec) {
@@ -117,22 +118,22 @@ char *pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec) {
     assert(s && l && spec);
 
     if (!pa_sample_spec_valid(spec))
-        snprintf(s, l, "Invalid");
+        pa_snprintf(s, l, "Invalid");
     else
-        snprintf(s, l, "%s %uch %uHz", pa_sample_format_to_string(spec->format), spec->channels, spec->rate);
+        pa_snprintf(s, l, "%s %uch %uHz", pa_sample_format_to_string(spec->format), spec->channels, spec->rate);
 
     return s;
 }
 
 char* pa_bytes_snprint(char *s, size_t l, unsigned v) {
     if (v >= ((unsigned) 1024)*1024*1024)
-        snprintf(s, l, "%0.1f GiB", ((double) v)/1024/1024/1024);
+        pa_snprintf(s, l, "%0.1f GiB", ((double) v)/1024/1024/1024);
     else if (v >= ((unsigned) 1024)*1024)
-        snprintf(s, l, "%0.1f MiB", ((double) v)/1024/1024);
+        pa_snprintf(s, l, "%0.1f MiB", ((double) v)/1024/1024);
     else if (v >= (unsigned) 1024)
-        snprintf(s, l, "%0.1f KiB", ((double) v)/1024);
+        pa_snprintf(s, l, "%0.1f KiB", ((double) v)/1024);
     else
-        snprintf(s, l, "%u B", (unsigned) v);
+        pa_snprintf(s, l, "%u B", (unsigned) v);
 
     return s;
 }

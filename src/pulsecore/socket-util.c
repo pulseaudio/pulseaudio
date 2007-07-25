@@ -85,7 +85,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
 
 #ifndef OS_IS_WIN32
     if (fstat(fd, &st) < 0) {
-        snprintf(c, l, "Invalid client fd");
+        pa_snprintf(c, l, "Invalid client fd");
         return;
     }
 #endif
@@ -108,7 +108,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
             if (sa.sa.sa_family == AF_INET) {
                 uint32_t ip = ntohl(sa.in.sin_addr.s_addr);
 
-                snprintf(c, l, "TCP/IP client from %i.%i.%i.%i:%u",
+                pa_snprintf(c, l, "TCP/IP client from %i.%i.%i.%i:%u",
                          ip >> 24,
                          (ip >> 16) & 0xFF,
                          (ip >> 8) & 0xFF,
@@ -121,27 +121,27 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
 
                 res = inet_ntop(AF_INET6, &sa.in6.sin6_addr, buf, sizeof(buf));
                 if (res) {
-                    snprintf(c, l, "TCP/IP client from [%s]:%u", buf, ntohs(sa.in6.sin6_port));
+                    pa_snprintf(c, l, "TCP/IP client from [%s]:%u", buf, ntohs(sa.in6.sin6_port));
                     return;
                 }
 #ifdef HAVE_SYS_UN_H
             } else if (sa.sa.sa_family == AF_UNIX) {
-                snprintf(c, l, "UNIX socket client");
+                pa_snprintf(c, l, "UNIX socket client");
                 return;
 #endif
             }
 
         }
 #ifndef OS_IS_WIN32
-        snprintf(c, l, "Unknown network client");
+        pa_snprintf(c, l, "Unknown network client");
         return;
     } else if (S_ISCHR(st.st_mode) && (fd == 0 || fd == 1)) {
-        snprintf(c, l, "STDIN/STDOUT client");
+        pa_snprintf(c, l, "STDIN/STDOUT client");
         return;
     }
 #endif /* OS_IS_WIN32 */
 
-    snprintf(c, l, "Unknown client");
+    pa_snprintf(c, l, "Unknown client");
 }
 
 int pa_socket_low_delay(int fd) {

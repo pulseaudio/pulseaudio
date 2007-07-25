@@ -90,7 +90,7 @@ char *pa_get_user_name(char *s, size_t l) {
             * that do not support getpwuid_r. */
         if ((r = getpwuid(getuid())) == NULL) {
 #endif
-            snprintf(s, l, "%lu", (unsigned long) getuid());
+            pa_snprintf(s, l, "%lu", (unsigned long) getuid());
             return s;
         }
 

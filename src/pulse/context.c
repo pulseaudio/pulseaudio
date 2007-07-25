@@ -535,7 +535,7 @@ static int context_connect_spawn(pa_context *c) {
         argv[n++] = c->conf->daemon_binary;
         argv[n++] = "--daemonize=yes";
 
-        snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
+        pa_snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
         argv[n++] = strdup(t);
 
         while (n < MAX_ARGS) {

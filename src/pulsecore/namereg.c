@@ -142,7 +142,7 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
         k = pa_xnew(char, l+4);
 
         for (i = 2; i <= 99; i++) {
-            snprintf(k, l+4, "%s.%u", name, i);
+            pa_snprintf(k, l+4, "%s.%u", name, i);
 
             if (!(e = pa_hashmap_get(c->namereg, k)))
                 break;

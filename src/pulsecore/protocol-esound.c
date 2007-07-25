@@ -626,7 +626,7 @@ static int esd_proto_all_info(struct connection *c, esd_proto_t request, const v
             if (strncmp(ce->name, SCACHE_PREFIX, sizeof(SCACHE_PREFIX)-1) == 0)
                 strncpy(name, ce->name+sizeof(SCACHE_PREFIX)-1, ESD_NAME_MAX);
             else
-                snprintf(name, ESD_NAME_MAX, "native.%s", ce->name);
+                pa_snprintf(name, ESD_NAME_MAX, "native.%s", ce->name);
             connection_write(c, name, ESD_NAME_MAX);
 
             /* rate */
@@ -1194,7 +1194,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     pa_iochannel_set_callback(c->io, io_callback, c);
 
     pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
-    snprintf(cname, sizeof(cname), "EsounD client (%s)", pname);
+    pa_snprintf(cname, sizeof(cname), "EsounD client (%s)", pname);
     assert(p->core);
     c->client = pa_client_new(p->core, __FILE__, cname);
     assert(c->client);

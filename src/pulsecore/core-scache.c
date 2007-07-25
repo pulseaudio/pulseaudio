@@ -415,7 +415,7 @@ int pa_scache_add_directory_lazy(pa_core *c, const char *pathname) {
             if (e->d_name[0] == '.')
                 continue;
 
-            snprintf(p, sizeof(p), "%s/%s", pathname, e->d_name);
+            pa_snprintf(p, sizeof(p), "%s/%s", pathname, e->d_name);
             add_file(c, p);
         }
     }

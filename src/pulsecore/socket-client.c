@@ -445,7 +445,7 @@ pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*nam
             struct addrinfo hints;
             char port[12];
 
-            snprintf(port, sizeof(port), "%u", (unsigned) a.port);
+            pa_snprintf(port, sizeof(port), "%u", (unsigned) a.port);
 
             memset(&hints, 0, sizeof(hints));
             hints.ai_family = a.type == PA_PARSED_ADDRESS_TCP4 ? PF_INET : (a.type == PA_PARSED_ADDRESS_TCP6 ? PF_INET6 : PF_UNSPEC);

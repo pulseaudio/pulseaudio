@@ -32,6 +32,8 @@
 #include <gconf/gconf-client.h>
 #include <glib.h>
 
+#include <pulsecore/core-util.h>
+
 #define PA_GCONF_ROOT "/system/pulseaudio"
 #define PA_GCONF_PATH_MODULES PA_GCONF_ROOT"/modules"
 
@@ -40,13 +42,13 @@ static void handle_module(GConfClient *client, const char *name) {
     gboolean enabled, locked;
     int i;
 
-    snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/locked", name);
+    pa_snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/locked", name);
     locked = gconf_client_get_bool(client, p, FALSE);
 
     if (locked)
         return;
 
-    snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/enabled", name);
+    pa_snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/enabled", name);
     enabled = gconf_client_get_bool(client, p, FALSE);
 
     printf("%c%s%c", enabled ? '+' : '-', name, 0);
@@ -56,11 +58,11 @@ static void handle_module(GConfClient *client, const char *name) {
         for (i = 0; i < 10; i++) {
             gchar *n, *a;
 
-            snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/name%i", name, i);
+            pa_snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/name%i", name, i);
             if (!(n = gconf_client_get_string(client, p, NULL)) || !*n)
                 break;
 
-            snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/args%i", name, i);
+            pa_snprintf(p, sizeof(p), PA_GCONF_PATH_MODULES"/%s/args%i", name, i);
             a = gconf_client_get_string(client, p, NULL);
 
             printf("%s%c%s%c", n, 0, a ? a : "", 0);
