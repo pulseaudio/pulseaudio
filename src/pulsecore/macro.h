@@ -68,10 +68,11 @@ static inline size_t pa_align(size_t l) {
 #define pa_assert_not_reached() pa_assert(!"Should not be reached.")
 
 /* An assert which guarantees side effects of x */
-#define pa_assert_se(x) do {                  \
-        int _r = !!(x);                       \
-        pa_assert(_r);                        \
-    } while(0)
+#ifdef NDEBUG
+#define pa_assert_se(x) x
+#else
+#define pa_assert_se(x) pa_assert(x)
+#endif
 
 #define PA_PTR_TO_UINT(p) ((unsigned int) (unsigned long) (p))
 #define PA_UINT_TO_PTR(u) ((void*) (unsigned long) (u))
