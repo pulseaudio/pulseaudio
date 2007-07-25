@@ -341,7 +341,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 /*     } */
 
     if (!i->thread_info.resampler) {
-        do_volume_adj_here = 0;
+        do_volume_adj_here = 0; /* FIXME??? */
         ret = i->peek(i, chunk);
         goto finish;
     }
@@ -356,15 +356,14 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
         if ((ret = i->peek(i, &tchunk)) < 0)
             goto finish;
 
-        pa_assert(tchunk.length);
+        pa_assert(tchunk.length > 0);
 
         l = pa_resampler_request(i->thread_info.resampler, CONVERT_BUFFER_LENGTH);
 
-        if (l > tchunk.length)
-            l = tchunk.length;
+        if (tchunk.length > l)
+            tchunk.length = l;
 
-        i->drop(i, &tchunk, l);
-        tchunk.length = l;
+        i->drop(i, tchunk.length);
 
         /* It might be necessary to adjust the volume here */
         if (do_volume_adj_here && !volume_is_norm) {
@@ -377,7 +376,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
     }
 
     pa_assert(i->thread_info.resampled_chunk.memblock);
-    pa_assert(i->thread_info.resampled_chunk.length);
+    pa_assert(i->thread_info.resampled_chunk.length > 0);
 
     *chunk = i->thread_info.resampled_chunk;
     pa_memblock_ref(i->thread_info.resampled_chunk.memblock);
@@ -409,7 +408,7 @@ finish:
     return ret;
 }
 
-void pa_sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
+void pa_sink_input_drop(pa_sink_input *i, size_t length) {
     pa_sink_input_assert_ref(i);
     pa_assert(length > 0);
 
@@ -440,22 +439,67 @@ void pa_sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t lengt
 /*         return; */
 /*     } */
 
-    if (!i->thread_info.resampler) {
-        if (i->drop)
-            i->drop(i, chunk, length);
-        return;
+    pa_log("dropping %u", length);
+    
+    if (i->thread_info.resampled_chunk.memblock) {
+        size_t l = length;
+
+        if (l > i->thread_info.resampled_chunk.length)
+            l = i->thread_info.resampled_chunk.length;
+
+        pa_log("really dropping %u", l);
+        
+        i->thread_info.resampled_chunk.index += l;
+        i->thread_info.resampled_chunk.length -= l;
+        
+        if (i->thread_info.resampled_chunk.length <= 0) {
+            pa_memblock_unref(i->thread_info.resampled_chunk.memblock);
+            pa_memchunk_reset(&i->thread_info.resampled_chunk);
+        }
+
+        length -= l;
     }
 
-    pa_assert(i->thread_info.resampled_chunk.memblock);
-    pa_assert(i->thread_info.resampled_chunk.length >= length);
+    pa_log("really remaining %u", length);
+    
+    if (length > 0) {
+        
+        if (i->thread_info.resampler) {
+            /* So, we have a resampler. To avoid discontinuities we
+             * have to actually read all data that could be read and
+             * pass it through the resampler. */
 
-    i->thread_info.resampled_chunk.index += length;
-    i->thread_info.resampled_chunk.length -= length;
+            while (length > 0) {
+                pa_memchunk chunk;
+                pa_cvolume volume;
+                
+                if (pa_sink_input_peek(i, &chunk, &volume) >= 0) {
+                    size_t l = chunk.length;
 
-    if (i->thread_info.resampled_chunk.length <= 0) {
-        pa_memblock_unref(i->thread_info.resampled_chunk.memblock);
-        i->thread_info.resampled_chunk.memblock = NULL;
-        i->thread_info.resampled_chunk.index = i->thread_info.resampled_chunk.length = 0;
+                    if (l > length)
+                        l = length;
+                    
+                    pa_sink_input_drop(i, l);
+                    length -= l;
+                    
+                } else {
+                    /* Hmmm, peeking failed, so let's at least drop
+                     * the right amount of data */
+                    
+                    if (i->drop)
+                        i->drop(i, pa_resampler_request(i->thread_info.resampler, length));
+                            
+                    break;
+                }
+            }
+
+        } else {
+
+            /* We have no resampler, hence let's just drop the data */
+
+            if (i->drop)
+                i->drop(i, length);
+        }
     }
 }
 

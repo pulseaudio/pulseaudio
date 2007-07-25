@@ -67,7 +67,6 @@ typedef struct connection {
 
 PA_DECLARE_CLASS(connection);
 #define CONNECTION(o) (connection_cast(o))
-
 static PA_DEFINE_CHECK_TYPE(connection, connection_check_type, pa_msgobject_check_type);
                      
 struct pa_protocol_simple {
@@ -230,7 +229,7 @@ static int do_write(connection *c) {
         return -1;
     }
 
-    pa_memblockq_drop(c->output_memblockq, &chunk, r);
+    pa_memblockq_drop(c->output_memblockq, r);
 
     return 0;
 }
@@ -271,7 +270,6 @@ fail:
 
 static int connection_process_msg(pa_msgobject *o, int code, void*userdata, pa_memchunk *chunk) {
     connection *c = CONNECTION(o);
-    
     connection_assert_ref(c);
 
     switch (code) {
@@ -351,13 +349,13 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
 /*     pa_log("peeked %u %i", r >= 0 ? chunk->length: 0, r); */
 
     if (c->dead && r < 0)
-        pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), MESSAGE_DROP_CONNECTION, c, NULL, NULL);
+        pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), MESSAGE_DROP_CONNECTION, NULL, NULL, NULL);
 
     return r;
 }
 
 /* Called from thread context */
-static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
+static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     connection*c = i->userdata;
     size_t old, new;
 
@@ -366,7 +364,7 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
     pa_assert(length);
 
     old = pa_memblockq_missing(c->input_memblockq);
-    pa_memblockq_drop(c->input_memblockq, chunk, length);
+    pa_memblockq_drop(c->input_memblockq, length);
     new = pa_memblockq_missing(c->input_memblockq);
 
     if (new > old) {
@@ -378,9 +376,8 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
 /* Called from main context */
 static void sink_input_kill_cb(pa_sink_input *i) {
     pa_assert(i);
-    pa_assert(i->userdata);
 
-    connection_drop((connection *) i->userdata);
+    connection_drop(CONNECTION(i->userdata));
 }
 
 /*** source_output callbacks ***/

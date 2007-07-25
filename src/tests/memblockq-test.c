@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <signal.h>
 
 #include <pulsecore/memblockq.h>
 #include <pulsecore/log.h>
@@ -48,22 +49,22 @@ int main(int argc, char *argv[]) {
     bq = pa_memblockq_new(0, 40, 10, 2, 4, 4, silence);
     assert(bq);
 
-    chunk1.memblock = pa_memblock_new_fixed(p, (char*) "AA", 2, 1);
+    chunk1.memblock = pa_memblock_new_fixed(p, (char*) "11", 2, 1);
     chunk1.index = 0;
     chunk1.length = 2;
     assert(chunk1.memblock);
 
-    chunk2.memblock = pa_memblock_new_fixed(p, (char*) "TTBB", 4, 1);
+    chunk2.memblock = pa_memblock_new_fixed(p, (char*) "XX22", 4, 1);
     chunk2.index = 2;
     chunk2.length = 2;
     assert(chunk2.memblock);
 
-    chunk3.memblock = pa_memblock_new_fixed(p, (char*) "ZZZZ", 4, 1);
+    chunk3.memblock = pa_memblock_new_fixed(p, (char*) "3333", 4, 1);
     chunk3.index = 0;
     chunk3.length = 4;
     assert(chunk3.memblock);
 
-    chunk4.memblock = pa_memblock_new_fixed(p, (char*) "KKKKKKKK", 8, 1);
+    chunk4.memblock = pa_memblock_new_fixed(p, (char*) "44444444", 8, 1);
     chunk4.index = 0;
     chunk4.length = 8;
     assert(chunk4.memblock);
@@ -115,13 +116,12 @@ int main(int argc, char *argv[]) {
 
     chunk3.index += 2;
     chunk3.length -= 2;
-
     ret = pa_memblockq_push(bq, &chunk3);
     assert(ret == 0);
 
-    printf(">");
+    pa_memblockq_shorten(bq, pa_memblockq_get_length(bq)-2);
 
-    pa_memblockq_shorten(bq, 6);
+    printf(">");
 
     for (;;) {
         pa_memchunk out;
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
         pa_memblock_release(out.memblock);
 
         pa_memblock_unref(out.memblock);
-        pa_memblockq_drop(bq, &out, out.length);
+        pa_memblockq_drop(bq, out.length);
     }
 
     printf("<\n");

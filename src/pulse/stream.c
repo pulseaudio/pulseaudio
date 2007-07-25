@@ -700,7 +700,7 @@ int pa_stream_drop(pa_stream *s) {
     PA_CHECK_VALIDITY(s->context, s->direction == PA_STREAM_RECORD, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->peek_memchunk.memblock, PA_ERR_BADSTATE);
 
-    pa_memblockq_drop(s->record_memblockq, &s->peek_memchunk, s->peek_memchunk.length);
+    pa_memblockq_drop(s->record_memblockq, s->peek_memchunk.length);
 
     /* Fix the simulated local read index */
     if (s->timing_info_valid && !s->timing_info.read_index_corrupt)

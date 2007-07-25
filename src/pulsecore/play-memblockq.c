@@ -37,7 +37,7 @@
 
 #include "play-memblockq.h"
 
-static void sink_input_kill(pa_sink_input *i) {
+static void sink_input_kill_cb(pa_sink_input *i) {
     pa_memblockq *q;
     assert(i);
     assert(i->userdata);
@@ -50,7 +50,7 @@ static void sink_input_kill(pa_sink_input *i) {
     pa_memblockq_free(q);
 }
 
-static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     pa_memblockq *q;
     assert(i);
     assert(chunk);
@@ -61,11 +61,11 @@ static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
     return pa_memblockq_peek(q, chunk);
 }
 
-static void si_kill(PA_GCC_UNUSED pa_mainloop_api *m, void *i) {
-    sink_input_kill(i);
+static void si_kill_cb(PA_GCC_UNUSED pa_mainloop_api *m, void *i) {
+    sink_input_kill_cb(i);
 }
 
-static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t length) {
+static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     pa_memblockq *q;
 
     assert(i);
@@ -74,10 +74,10 @@ static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t le
 
     q = i->userdata;
 
-    pa_memblockq_drop(q, chunk, length);
+    pa_memblockq_drop(q, length);
 
     if (pa_memblockq_get_length(q) <= 0)
-        pa_mainloop_api_once(i->sink->core->mainloop, si_kill, i);
+        pa_mainloop_api_once(i->sink->core->mainloop, si_kill_cb, i);
 }
 
 int pa_play_memblockq(
@@ -116,9 +116,9 @@ int pa_play_memblockq(
     if (!(si = pa_sink_input_new(sink->core, &data, 0)))
         return -1;
 
-    si->peek = sink_input_peek;
-    si->drop = sink_input_drop;
-    si->kill = sink_input_kill;
+    si->peek = sink_input_peek_cb;
+    si->drop = sink_input_drop_cb;
+    si->kill = sink_input_kill_cb;
 
     si->userdata = q;
 

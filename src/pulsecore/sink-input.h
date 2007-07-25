@@ -75,7 +75,7 @@ struct pa_sink_input {
     int muted;
 
     int (*peek) (pa_sink_input *i, pa_memchunk *chunk);
-    void (*drop) (pa_sink_input *i, const pa_memchunk *chunk, size_t length);
+    void (*drop) (pa_sink_input *i, size_t length);
     void (*kill) (pa_sink_input *i);             /* may be NULL */
     pa_usec_t (*get_latency) (pa_sink_input *i); /* may be NULL */
     void (*underrun) (pa_sink_input *i);         /* may be NULL */
@@ -178,7 +178,7 @@ pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 /* To be used exclusively by the sink driver thread */
 
 int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume);
-void pa_sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t length);
+void pa_sink_input_drop(pa_sink_input *i, size_t length);
 int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
 
 #endif

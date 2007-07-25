@@ -150,7 +150,7 @@ struct pa_mempool {
 
 static void segment_detach(pa_memimport_segment *seg);
 
-PA_STATIC_FLIST_DECLARE(unused_memblocks, 0);
+PA_STATIC_FLIST_DECLARE(unused_memblocks, 0, pa_xfree);
 
 /* No lock necessary */
 static void stat_add(pa_memblock*b) {
@@ -670,8 +670,8 @@ void pa_mempool_free(pa_mempool *p) {
     pa_mutex_unlock(p->mutex);
 
     if (pa_atomic_load(&p->stat.n_allocated) > 0) {
-        raise(SIGTRAP);
-        pa_log_warn("WARNING! Memory pool destroyed but not all memory blocks freed!");
+/*         raise(SIGTRAP);  */
+        pa_log_warn("WARNING! Memory pool destroyed but not all memory blocks freed! %u remain.", pa_atomic_load(&p->stat.n_allocated));
     }
 
     pa_flist_free(p->free_slots, NULL);

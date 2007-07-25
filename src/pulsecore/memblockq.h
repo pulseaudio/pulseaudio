@@ -83,13 +83,16 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *chunk);
  * you know what you do. */
 int pa_memblockq_push_align(pa_memblockq* bq, const pa_memchunk *chunk);
 
-/* Return a copy of the next memory chunk in the queue. It is not removed from the queue */
+/* Return a copy of the next memory chunk in the queue. It is not
+ * removed from the queue. There are two reasons this function might
+ * fail: 1. prebuffering is active, 2. queue is empty and no silence
+ * memblock was passed at initialization. If the queue is not empty,
+ * but we're currently at a hole in the queue and no silence memblock
+ * was passed we return the length of the hole in chunk->length. */
 int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk);
 
-/* Drop the specified bytes from the queue, but only if the first
- * chunk in the queue matches the one passed here. If NULL is passed,
- * this check isn't done. */
-void pa_memblockq_drop(pa_memblockq *bq, const pa_memchunk *chunk, size_t length);
+/* Drop the specified bytes from the queue. */
+void pa_memblockq_drop(pa_memblockq *bq, size_t length);
 
 /* Test if the pa_memblockq is currently readable, that is, more data than base */
 int pa_memblockq_is_readable(pa_memblockq *bq);

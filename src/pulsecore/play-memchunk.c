@@ -37,7 +37,7 @@
 
 #include "play-memchunk.h"
 
-static void sink_input_kill(pa_sink_input *i) {
+static void sink_input_kill_cb(pa_sink_input *i) {
     pa_memchunk *c;
     assert(i && i->userdata);
     c = i->userdata;
@@ -49,7 +49,7 @@ static void sink_input_kill(pa_sink_input *i) {
     pa_xfree(c);
 }
 
-static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     pa_memchunk *c;
     assert(i && chunk && i->userdata);
     c = i->userdata;
@@ -64,23 +64,24 @@ static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
     return 0;
 }
 
-static void si_kill(PA_GCC_UNUSED pa_mainloop_api *m, void *i) {
-    sink_input_kill(i);
+static void si_kill_cb(PA_GCC_UNUSED pa_mainloop_api *m, void *i) {
+    sink_input_kill_cb(i);
 }
 
-static void sink_input_drop(pa_sink_input *i, const pa_memchunk*chunk, size_t length) {
+static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     pa_memchunk *c;
     assert(i && length && i->userdata);
     c = i->userdata;
 
-    assert(!memcmp(chunk, c, sizeof(chunk)));
-    assert(length <= c->length);
+    if (length >= c->length) {
+        c->length -= length;
+        c->index += length;
+    } else {
 
-    c->length -= length;
-    c->index += length;
+        c->length = 0;
 
-    if (c->length <= 0)
-        pa_mainloop_api_once(i->sink->core->mainloop, si_kill, i);
+        pa_mainloop_api_once(i->sink->core->mainloop, si_kill_cb, i);
+    }
 }
 
 int pa_play_memchunk(
@@ -113,9 +114,9 @@ int pa_play_memchunk(
     if (!(si = pa_sink_input_new(sink->core, &data, 0)))
         return -1;
 
-    si->peek = sink_input_peek;
-    si->drop = sink_input_drop;
-    si->kill = sink_input_kill;
+    si->peek = sink_input_peek_cb;
+    si->drop = sink_input_drop_cb;
+    si->kill = sink_input_kill_cb;
 
     si->userdata = nchunk = pa_xnew(pa_memchunk, 1);
     *nchunk = *chunk;

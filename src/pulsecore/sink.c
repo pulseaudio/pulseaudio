@@ -326,7 +326,7 @@ static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, size_t length
         }
 
         /* Drop read data */
-        pa_sink_input_drop(i, m ? &m->chunk : NULL, length);
+        pa_sink_input_drop(i, length);
 
         if (m) {
             pa_sink_input_unref(m->userdata);

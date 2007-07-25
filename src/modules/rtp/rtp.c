@@ -90,7 +90,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
             }
 
             skip += k;
-            pa_memblockq_drop(q, &chunk, k);
+            pa_memblockq_drop(q, k);
         }
 
         if (r < 0 || !chunk.memblock || n >= size || iov_idx >= MAX_IOVECS) {

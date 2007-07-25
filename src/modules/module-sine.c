@@ -73,14 +73,13 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     return 0;
 }
 
-static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
+static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     struct userdata *u;
     size_t l;
     
     pa_assert(i);
     u = i->userdata;
     pa_assert(u);
-    pa_assert(chunk);
     pa_assert(length > 0);
 
     u->peek_index += length;
@@ -93,8 +92,10 @@ static void sink_input_drop_cb(pa_sink_input *i, const pa_memchunk *chunk, size_
 
 static void sink_input_kill_cb(pa_sink_input *i) {
     struct userdata *u;
-    pa_assert(i && i->userdata);
+    
+    pa_assert(i);
     u = i->userdata;
+    pa_assert(u);
 
     pa_sink_input_disconnect(u->sink_input);
     pa_sink_input_unref(u->sink_input);
