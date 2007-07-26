@@ -475,8 +475,11 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length) {
                 pa_cvolume volume;
                 
                 if (pa_sink_input_peek(i, &chunk, &volume) >= 0) {
-                    size_t l = chunk.length;
+                    size_t l;
 
+                    pa_memblock_unref(chunk.memblock);
+
+                    l = chunk.length;
                     if (l > length)
                         l = length;
                     
