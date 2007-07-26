@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <string.h>
 
 #include <samplerate.h>
@@ -33,9 +32,9 @@
 #include <liboil/liboil.h>
 
 #include <pulse/xmalloc.h>
-
 #include <pulsecore/sconv.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "resampler.h"
 
@@ -83,12 +82,12 @@ pa_resampler* pa_resampler_new(
 
     pa_resampler *r = NULL;
 
-    assert(pool);
-    assert(a);
-    assert(b);
-    assert(pa_sample_spec_valid(a));
-    assert(pa_sample_spec_valid(b));
-    assert(resample_method != PA_RESAMPLER_INVALID);
+    pa_assert(pool);
+    pa_assert(a);
+    pa_assert(b);
+    pa_assert(pa_sample_spec_valid(a));
+    pa_assert(pa_sample_spec_valid(b));
+    pa_assert(resample_method != PA_RESAMPLER_INVALID);
 
     r = pa_xnew(pa_resampler, 1);
     r->impl_data = NULL;
@@ -145,7 +144,7 @@ fail:
 }
 
 void pa_resampler_free(pa_resampler *r) {
-    assert(r);
+    pa_assert(r);
 
     if (r->impl_free)
         r->impl_free(r);
@@ -154,8 +153,8 @@ void pa_resampler_free(pa_resampler *r) {
 }
 
 void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate) {
-    assert(r);
-    assert(rate > 0);
+    pa_assert(r);
+    pa_assert(rate > 0);
 
     if (r->i_ss.rate == rate)
         return;
@@ -167,8 +166,8 @@ void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate) {
 }
 
 void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
-    assert(r);
-    assert(rate > 0);
+    pa_assert(r);
+    pa_assert(rate > 0);
 
     if (r->o_ss.rate == rate)
         return;
@@ -180,19 +179,19 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
 }
 
 void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) {
-    assert(r && in && out && r->impl_run);
+    pa_assert(r && in && out && r->impl_run);
 
     r->impl_run(r, in, out);
 }
 
 size_t pa_resampler_request(pa_resampler *r, size_t out_length) {
-    assert(r);
+    pa_assert(r);
 
     return (((out_length / r->o_fz)*r->i_ss.rate)/r->o_ss.rate) * r->i_fz;
 }
 
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
-    assert(r);
+    pa_assert(r);
     return r->resample_method;
 }
 
@@ -216,7 +215,7 @@ const char *pa_resample_method_to_string(pa_resample_method_t m) {
 pa_resample_method_t pa_parse_resample_method(const char *string) {
     pa_resample_method_t m;
 
-    assert(string);
+    pa_assert(string);
 
     for (m = 0; m < PA_RESAMPLER_MAX; m++)
         if (!strcmp(string, resample_methods[m]))
@@ -231,8 +230,8 @@ pa_resample_method_t pa_parse_resample_method(const char *string) {
 static void libsamplerate_free(pa_resampler *r) {
     struct impl_libsamplerate *u;
 
-    assert(r);
-    assert(r->impl_data);
+    pa_assert(r);
+    pa_assert(r->impl_data);
 
     u = r->impl_data;
 
@@ -253,12 +252,13 @@ static void libsamplerate_free(pa_resampler *r) {
 static void calc_map_table(pa_resampler *r) {
     struct impl_libsamplerate *u;
     unsigned oc;
-    assert(r);
-    assert(r->impl_data);
+    
+    pa_assert(r);
+    pa_assert(r->impl_data);
 
     u = r->impl_data;
 
-    if (!(u->map_required = (!pa_channel_map_equal(&r->i_cm, &r->o_cm) || r->i_ss.channels != r->o_ss.channels)))
+    if (!(u->map_required = (r->i_ss.channels != r->o_ss.channels || !pa_channel_map_equal(&r->i_cm, &r->o_cm))))
         return;
 
     for (oc = 0; oc < r->o_ss.channels; oc++) {
@@ -290,11 +290,11 @@ static pa_memchunk* convert_to_float(pa_resampler *r, pa_memchunk *input) {
     unsigned n_samples;
     void *src, *dst;
 
-    assert(r);
-    assert(input);
-    assert(input->memblock);
+    pa_assert(r);
+    pa_assert(input);
+    pa_assert(input->memblock);
 
-    assert(r->impl_data);
+    pa_assert(r->impl_data);
     u = r->impl_data;
 
     /* Convert the incoming sample into floats and place them in buf1 */
@@ -328,16 +328,16 @@ static pa_memchunk* convert_to_float(pa_resampler *r, pa_memchunk *input) {
 
 static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     struct impl_libsamplerate *u;
-    unsigned n_samples, n_frames;
+    unsigned in_n_samples, out_n_samples, n_frames;
     int i_skip, o_skip;
     unsigned oc;
     float *src, *dst;
 
-    assert(r);
-    assert(input);
-    assert(input->memblock);
+    pa_assert(r);
+    pa_assert(input);
+    pa_assert(input->memblock);
 
-    assert(r->impl_data);
+    pa_assert(r->impl_data);
     u = r->impl_data;
 
     /* Remap channels and place the result int buf2 */
@@ -345,22 +345,23 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     if (!u->map_required || !input->length)
         return input;
 
-    n_samples = input->length / sizeof(float);
-    n_frames = n_samples / r->o_ss.channels;
+    in_n_samples = input->length / sizeof(float);
+    n_frames = in_n_samples / r->i_ss.channels;
+    out_n_samples = n_frames * r->o_ss.channels;
 
-    if (!u->buf2.memblock || u->buf2_samples < n_samples) {
+    if (!u->buf2.memblock || u->buf2_samples < out_n_samples) {
         if (u->buf2.memblock)
             pa_memblock_unref(u->buf2.memblock);
 
-        u->buf2_samples = n_samples;
-        u->buf2.memblock = pa_memblock_new(r->mempool, u->buf2.length = sizeof(float) * n_samples);
+        u->buf2_samples = out_n_samples;
+        u->buf2.memblock = pa_memblock_new(r->mempool, u->buf2.length = sizeof(float) * out_n_samples);
         u->buf2.index = 0;
     }
 
     src = (float*) ((uint8_t*) pa_memblock_acquire(input->memblock) + input->index);
     dst = (float*) pa_memblock_acquire(u->buf2.memblock);
 
-    memset(dst, 0, n_samples * sizeof(float));
+    memset(dst, 0, u->buf2.length);
 
     o_skip = sizeof(float) * r->o_ss.channels;
     i_skip = sizeof(float) * r->i_ss.channels;
@@ -381,7 +382,7 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
     pa_memblock_release(input->memblock);
     pa_memblock_release(u->buf2.memblock);
 
-    u->buf2.length = n_frames * sizeof(float) * r->o_ss.channels;
+    u->buf2.length = out_n_samples * sizeof(float);
 
     return &u->buf2;
 }
@@ -393,9 +394,9 @@ static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
     unsigned out_n_frames, out_n_samples;
     int ret;
 
-    assert(r);
-    assert(input);
-    assert(r->impl_data);
+    pa_assert(r);
+    pa_assert(input);
+    pa_assert(r->impl_data);
     u = r->impl_data;
 
     /* Resample the data and place the result in buf3 */
@@ -428,8 +429,8 @@ static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
     data.end_of_input = 0;
 
     ret = src_process(u->src_state, &data);
-    assert(ret == 0);
-    assert((unsigned) data.input_frames_used == in_n_frames);
+    pa_assert(ret == 0);
+    pa_assert((unsigned) data.input_frames_used == in_n_frames);
 
     pa_memblock_release(input->memblock);
     pa_memblock_release(u->buf3.memblock);
@@ -444,9 +445,9 @@ static pa_memchunk *convert_from_float(pa_resampler *r, pa_memchunk *input) {
     unsigned n_samples, n_frames;
     void *src, *dst;
 
-    assert(r);
-    assert(input);
-    assert(r->impl_data);
+    pa_assert(r);
+    pa_assert(input);
+    pa_assert(r->impl_data);
     u = r->impl_data;
 
     /* Convert the data into the correct sample type and place the result in buf4 */
@@ -481,13 +482,13 @@ static void libsamplerate_run(pa_resampler *r, const pa_memchunk *in, pa_memchun
     struct impl_libsamplerate *u;
     pa_memchunk *buf;
 
-    assert(r);
-    assert(in);
-    assert(out);
-    assert(in->length);
-    assert(in->memblock);
-    assert(in->length % r->i_fz == 0);
-    assert(r->impl_data);
+    pa_assert(r);
+    pa_assert(in);
+    pa_assert(out);
+    pa_assert(in->length);
+    pa_assert(in->memblock);
+    pa_assert(in->length % r->i_fz == 0);
+    pa_assert(r->impl_data);
 
     u = r->impl_data;
 
@@ -511,36 +512,36 @@ static void libsamplerate_run(pa_resampler *r, const pa_memchunk *in, pa_memchun
 static void libsamplerate_update_input_rate(pa_resampler *r, uint32_t rate) {
     struct impl_libsamplerate *u;
 
-    assert(r);
-    assert(rate > 0);
-    assert(r->impl_data);
+    pa_assert(r);
+    pa_assert(rate > 0);
+    pa_assert(r->impl_data);
     u = r->impl_data;
 
     if (!u->src_state) {
         int err;
         u->src_state = src_new(r->resample_method, r->o_ss.channels, &err);
-        assert(u->src_state);
+        pa_assert(u->src_state);
     } else {
         int ret = src_set_ratio(u->src_state, (double) r->o_ss.rate / rate);
-        assert(ret == 0);
+        pa_assert(ret == 0);
     }
 }
 
 static void libsamplerate_update_output_rate(pa_resampler *r, uint32_t rate) {
     struct impl_libsamplerate *u;
 
-    assert(r);
-    assert(rate > 0);
-    assert(r->impl_data);
+    pa_assert(r);
+    pa_assert(rate > 0);
+    pa_assert(r->impl_data);
     u = r->impl_data;
 
     if (!u->src_state) {
         int err;
         u->src_state = src_new(r->resample_method, r->o_ss.channels, &err);
-        assert(u->src_state);
+        pa_assert(u->src_state);
     } else {
         int ret = src_set_ratio(u->src_state, (double) rate / r->i_ss.rate);
-        assert(ret == 0);
+        pa_assert(ret == 0);
     }
 }
 
@@ -592,15 +593,15 @@ static void trivial_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out
     unsigned  n_frames;
     struct impl_trivial *u;
 
-    assert(r);
-    assert(in);
-    assert(out);
-    assert(r->impl_data);
+    pa_assert(r);
+    pa_assert(in);
+    pa_assert(out);
+    pa_assert(r->impl_data);
 
     u = r->impl_data;
 
     fz = r->i_fz;
-    assert(fz == r->o_fz);
+    pa_assert(fz == r->o_fz);
 
     n_frames = in->length/fz;
 
@@ -635,7 +636,7 @@ static void trivial_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out
             if (j >= n_frames)
                 break;
 
-            assert(o_index*fz < pa_memblock_get_length(out->memblock));
+            pa_assert(o_index*fz < pa_memblock_get_length(out->memblock));
 
             memcpy((uint8_t*) dst + fz*o_index,
                    (uint8_t*) src + fz*j, fz);
@@ -653,13 +654,13 @@ static void trivial_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out
     /* Normalize counters */
     while (u->i_counter >= r->i_ss.rate) {
         u->i_counter -= r->i_ss.rate;
-        assert(u->o_counter >= r->o_ss.rate);
+        pa_assert(u->o_counter >= r->o_ss.rate);
         u->o_counter -= r->o_ss.rate;
     }
 }
 
 static void trivial_free(pa_resampler *r) {
-    assert(r);
+    pa_assert(r);
 
     pa_xfree(r->impl_data);
 }
@@ -667,9 +668,9 @@ static void trivial_free(pa_resampler *r) {
 static void trivial_update_rate(pa_resampler *r, uint32_t rate) {
     struct impl_trivial *u;
 
-    assert(r);
-    assert(rate > 0);
-    assert(r->impl_data);
+    pa_assert(r);
+    pa_assert(rate > 0);
+    pa_assert(r->impl_data);
 
     u = r->impl_data;
     u->i_counter = 0;
@@ -679,9 +680,9 @@ static void trivial_update_rate(pa_resampler *r, uint32_t rate) {
 static int trivial_init(pa_resampler*r) {
     struct impl_trivial *u;
 
-    assert(r);
-    assert(r->i_ss.format == r->o_ss.format);
-    assert(r->i_ss.channels == r->o_ss.channels);
+    pa_assert(r);
+    pa_assert(r->i_ss.format == r->o_ss.format);
+    pa_assert(r->i_ss.channels == r->o_ss.channels);
 
     r->impl_data = u = pa_xnew(struct impl_trivial, 1);
     u->o_counter = u->i_counter = 0;
