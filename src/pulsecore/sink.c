@@ -671,7 +671,8 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *
 
         case PA_SINK_MESSAGE_REMOVE_INPUT: {
             pa_sink_input *i = userdata;
-            pa_hashmap_remove(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index));
+            if (pa_hashmap_remove(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index)))
+                pa_sink_input_unref(i);
             return 0;
         }
 

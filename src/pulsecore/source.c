@@ -384,20 +384,22 @@ unsigned pa_source_used_by(pa_source *s) {
     return pa_idxset_size(s->outputs);
 }
 
-int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk) {
-    pa_source *s = PA_SOURCE(o);
+int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, pa_memchunk *chunk) {
+    pa_source *s = PA_SOURCE(object);
     pa_source_assert_ref(s);
 
     switch ((pa_source_message_t) code) {
         case PA_SOURCE_MESSAGE_ADD_OUTPUT: {
-            pa_source_output *i = userdata;
-            pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(i->index), pa_source_output_ref(i));
+            pa_source_output *o = userdata;
+            pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index), pa_source_output_ref(o));
             return 0;
         }
 
         case PA_SOURCE_MESSAGE_REMOVE_OUTPUT: {
-            pa_source_output *i = userdata;
-            pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(i->index));
+            pa_source_output *o = userdata;
+            if (pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index)))
+                pa_source_output_unref(o);
+            
             return 0;
         }
 
