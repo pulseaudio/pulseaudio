@@ -655,6 +655,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/flist.c pulsecore/flist.h \
 		pulsecore/asyncmsgq.c pulsecore/asyncmsgqq.h \
 		pulsecore/asyncq.c pulsecore/asyncq.h \
+		pulsecore/fdsem.c pulsecore/fdsem.h \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/msgobject.c pulsecore/msgobject.h \
 		$(PA_THREAD_OBJS)
