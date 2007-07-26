@@ -440,16 +440,12 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length) {
 /*         return; */
 /*     } */
 
-    pa_log("dropping %u", length);
-    
     if (i->thread_info.resampled_chunk.memblock) {
         size_t l = length;
 
         if (l > i->thread_info.resampled_chunk.length)
             l = i->thread_info.resampled_chunk.length;
 
-        pa_log("really dropping %u", l);
-        
         i->thread_info.resampled_chunk.index += l;
         i->thread_info.resampled_chunk.length -= l;
         
@@ -461,8 +457,6 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length) {
         length -= l;
     }
 
-    pa_log("really remaining %u", length);
-    
     if (length > 0) {
         
         if (i->thread_info.resampler) {
