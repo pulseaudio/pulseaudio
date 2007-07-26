@@ -40,8 +40,8 @@ static void producer(void *_q) {
     int i;
 
     for (i = 0; i < 1000; i++) {
+        printf("pushing %i\n", i);
         pa_asyncq_push(q, (void*) (i+1), 1);
-        printf("pushed %i\n", i);
     }
 
     pa_asyncq_push(q, (void*) -1, 1);
