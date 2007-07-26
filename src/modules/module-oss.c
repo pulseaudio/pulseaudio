@@ -1078,10 +1078,15 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
 
     if (use_mmap && (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_TRIGGER))) {
-        pa_log("OSS device not mmap capable, falling back to UNIX read/write mode");
+        pa_log_info("OSS device not mmap capable, falling back to UNIX read/write mode.");
         use_mmap = 0;
     }
     
+    if (use_mmap && mode == O_WRONLY) {
+        pa_log_info("Device opened for write only, cannot do memory mapping, falling back to UNIX read/write mode.");
+        use_mmap = 0;
+    }
+
     if (pa_oss_get_hw_description(p, hwdesc, sizeof(hwdesc)) >= 0)
         pa_log_info("Hardware name is '%s'.", hwdesc);
     else
