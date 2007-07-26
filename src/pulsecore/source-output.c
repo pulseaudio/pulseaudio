@@ -157,7 +157,7 @@ pa_source_output* pa_source_output_new(
     o->thread_info.resampler = resampler;
 
     pa_assert_se(pa_idxset_put(core->source_outputs, o, &o->index) == 0);
-    pa_assert_se( pa_idxset_put(o->source->outputs, o, NULL) == 0);
+    pa_assert_se(pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL) == 0);
 
     pa_log_info("Created output %u \"%s\" on %s with sample spec %s",
                 o->index,
@@ -191,6 +191,7 @@ void pa_source_output_disconnect(pa_source_output*o) {
 
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     pa_idxset_remove_by_data(o->source->outputs, o, NULL);
+    pa_source_output_unref(o);
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
 

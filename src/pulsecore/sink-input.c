@@ -198,7 +198,7 @@ pa_sink_input* pa_sink_input_new(
     i->thread_info.volume = i->volume;
     i->thread_info.muted = i->muted;
 
-    pa_assert_se(pa_idxset_put(core->sink_inputs, i, &i->index) == 0);
+    pa_assert_se(pa_idxset_put(core->sink_inputs, pa_sink_input_ref(i), &i->index) == 0);
     pa_assert_se(pa_idxset_put(i->sink->inputs, i, NULL) == 0);
 
     pa_log_info("Created input %u \"%s\" on %s with sample spec %s",
@@ -235,6 +235,7 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
     pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, NULL);
     pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
     pa_idxset_remove_by_data(i->sink->inputs, i, NULL);
+    pa_sink_input_unref(i);
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
 
