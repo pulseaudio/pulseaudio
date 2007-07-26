@@ -62,8 +62,6 @@ static void file_stream_free(pa_object *o) {
     file_stream *u = FILE_STREAM(o);
     pa_assert(u);
 
-    pa_log("xxxx ffreee");
-    
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
 
@@ -76,11 +74,9 @@ static void file_stream_free(pa_object *o) {
 static void file_stream_drop(file_stream *u) {
     file_stream_assert_ref(u);
 
-    pa_log("xxxx drop");
-    
-    
     if (u->sink_input) {
         pa_sink_input_disconnect(u->sink_input);
+
         pa_sink_input_unref(u->sink_input);
         u->sink_input = NULL;
 
@@ -116,6 +112,9 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     u = FILE_STREAM(i->userdata);
     file_stream_assert_ref(u);
 
+    if (!u->sndfile)
+        return -1;
+    
     for (;;) {
         
         if (!u->memchunk.memblock) {
@@ -132,11 +131,6 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
                 n = u->readf_function(u->sndfile, p, BUF_SIZE/fs);
                 pa_memblock_release(u->memchunk.memblock);
 
-                pa_log("%u/%u = data: %02x %02x %02x %02x %02x %02x %02x %02x",
-                       (unsigned int) n, BUF_SIZE/fs,
-                       ((uint8_t*)p)[0], ((uint8_t*)p)[1], ((uint8_t*)p)[2], ((uint8_t*)p)[3],
-                       ((uint8_t*)p)[4], ((uint8_t*)p)[5], ((uint8_t*)p)[6], ((uint8_t*)p)[7]);
-                
                 if (n <= 0)
                     n = 0;
                 
@@ -161,6 +155,10 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
                 pa_memchunk_reset(&u->memchunk);
                 
                 pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u), MESSAGE_DROP_FILE_STREAM, NULL, NULL, NULL);
+
+                sf_close(u->sndfile);
+                u->sndfile = NULL;
+                
                 return -1;
             }
         }
@@ -293,7 +291,7 @@ int pa_play_file(
 
     /* The reference to u is dangling here, because we want to keep
      * this stream around until it is fully played. */
-
+    
     return 0;
 
 fail:
