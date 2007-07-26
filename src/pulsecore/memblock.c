@@ -669,12 +669,13 @@ void pa_mempool_free(pa_mempool *p) {
 
     pa_mutex_unlock(p->mutex);
 
+    pa_flist_free(p->free_slots, NULL);
+
     if (pa_atomic_load(&p->stat.n_allocated) > 0) {
 /*         raise(SIGTRAP);  */
         pa_log_warn("WARNING! Memory pool destroyed but not all memory blocks freed! %u remain.", pa_atomic_load(&p->stat.n_allocated));
     }
 
-    pa_flist_free(p->free_slots, NULL);
     pa_shm_free(&p->memory);
 
     pa_mutex_free(p->mutex);
