@@ -408,7 +408,8 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         result->index = 0;
     }
 
-    inputs_drop(s, info, n, result->length);
+    if (s->thread_info.state == PA_SINK_RUNNING)
+        inputs_drop(s, info, n, result->length);
 
     if (s->monitor_source)
         pa_source_post(s->monitor_source, result);
@@ -472,7 +473,8 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
         pa_memblock_release(target->memblock);
     }
 
-    inputs_drop(s, info, n, target->length);
+    if (s->thread_info.state == PA_SINK_RUNNING)
+        inputs_drop(s, info, n, target->length);
 
     if (s->monitor_source)
         pa_source_post(s->monitor_source, target);
