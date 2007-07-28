@@ -33,8 +33,189 @@
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "alsa-util.h"
+
+struct pa_alsa_fdlist {
+    int num_fds;
+    struct pollfd *fds;
+    /* This is a temporary buffer used to avoid lots of mallocs */
+    struct pollfd *work_fds;
+
+    snd_mixer_t *mixer;
+
+    pa_mainloop_api *m;
+    pa_defer_event *defer;
+    pa_io_event **ios;
+
+    int polled;
+
+    void (*cb)(void *userdata);
+    void *userdata;
+};
+
+static void io_cb(pa_mainloop_api*a, pa_io_event* e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void *userdata) {
+    
+    struct pa_alsa_fdlist *fdl = userdata;
+    int err, i;
+    unsigned short revents;
+
+    pa_assert(a);
+    pa_assert(fdl);
+    pa_assert(fdl->mixer);
+    pa_assert(fdl->fds);
+    pa_assert(fdl->work_fds);
+
+    if (fdl->polled)
+        return;
+
+    fdl->polled = 1;
+
+    memcpy(fdl->work_fds, fdl->fds, sizeof(struct pollfd) * fdl->num_fds);
+
+    for (i = 0;i < fdl->num_fds; i++) {
+        if (e == fdl->ios[i]) {
+            if (events & PA_IO_EVENT_INPUT)
+                fdl->work_fds[i].revents |= POLLIN;
+            if (events & PA_IO_EVENT_OUTPUT)
+                fdl->work_fds[i].revents |= POLLOUT;
+            if (events & PA_IO_EVENT_ERROR)
+                fdl->work_fds[i].revents |= POLLERR;
+            if (events & PA_IO_EVENT_HANGUP)
+                fdl->work_fds[i].revents |= POLLHUP;
+            break;
+        }
+    }
+
+    assert(i != fdl->num_fds);
+
+    if ((err = snd_mixer_poll_descriptors_revents(fdl->mixer, fdl->work_fds, fdl->num_fds, &revents)) < 0) {
+        pa_log_error("Unable to get poll revent: %s", snd_strerror(err));
+        return;
+    }
+
+    a->defer_enable(fdl->defer, 1);
+
+    if (revents)
+        snd_mixer_handle_events(fdl->mixer);
+}
+
+static void defer_cb(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event* e, void *userdata) {
+    struct pa_alsa_fdlist *fdl = userdata;
+    int num_fds, i, err;
+    struct pollfd *temp;
+
+    pa_assert(a);
+    pa_assert(fdl);
+    pa_assert(fdl->mixer);
+
+    a->defer_enable(fdl->defer, 0);
+
+    num_fds = snd_mixer_poll_descriptors_count(fdl->mixer);
+    pa_assert(num_fds > 0);
+
+    if (num_fds != fdl->num_fds) {
+        if (fdl->fds)
+            pa_xfree(fdl->fds);
+        if (fdl->work_fds)
+            pa_xfree(fdl->work_fds);
+        fdl->fds = pa_xnew0(struct pollfd, num_fds);
+        fdl->work_fds = pa_xnew(struct pollfd, num_fds);
+    }
+
+    memset(fdl->work_fds, 0, sizeof(struct pollfd) * num_fds);
+
+    if ((err = snd_mixer_poll_descriptors(fdl->mixer, fdl->work_fds, num_fds)) < 0) {
+        pa_log_error("Unable to get poll descriptors: %s", snd_strerror(err));
+        return;
+    }
+
+    fdl->polled = 0;
+
+    if (memcmp(fdl->fds, fdl->work_fds, sizeof(struct pollfd) * num_fds) == 0)
+        return;
+
+    if (fdl->ios) {
+        for (i = 0; i < fdl->num_fds; i++)
+            a->io_free(fdl->ios[i]);
+        
+        if (num_fds != fdl->num_fds) {
+            pa_xfree(fdl->ios);
+            fdl->ios = NULL;
+        }
+    }
+
+    if (!fdl->ios)
+        fdl->ios = pa_xnew(pa_io_event*, num_fds);
+
+    /* Swap pointers */
+    temp = fdl->work_fds;
+    fdl->work_fds = fdl->fds;
+    fdl->fds = temp;
+
+    fdl->num_fds = num_fds;
+
+    for (i = 0;i < num_fds;i++)
+        fdl->ios[i] = a->io_new(a, fdl->fds[i].fd,
+            ((fdl->fds[i].events & POLLIN) ? PA_IO_EVENT_INPUT : 0) |
+            ((fdl->fds[i].events & POLLOUT) ? PA_IO_EVENT_OUTPUT : 0),
+            io_cb, fdl);
+}
+
+struct pa_alsa_fdlist *pa_alsa_fdlist_new(void) {
+    struct pa_alsa_fdlist *fdl;
+
+    fdl = pa_xnew0(struct pa_alsa_fdlist, 1);
+
+    fdl->num_fds = 0;
+    fdl->fds = NULL;
+    fdl->work_fds = NULL;
+    fdl->mixer = NULL;
+    fdl->m = NULL;
+    fdl->defer = NULL;
+    fdl->ios = NULL;
+    fdl->polled = 0;
+
+    return fdl;
+}
+
+void pa_alsa_fdlist_free(struct pa_alsa_fdlist *fdl) {
+    pa_assert(fdl);
+
+    if (fdl->defer) {
+        pa_assert(fdl->m);
+        fdl->m->defer_free(fdl->defer);
+    }
+
+    if (fdl->ios) {
+        int i;
+        pa_assert(fdl->m);
+        for (i = 0;i < fdl->num_fds;i++)
+            fdl->m->io_free(fdl->ios[i]);
+        pa_xfree(fdl->ios);
+    }
+
+    if (fdl->fds)
+        pa_xfree(fdl->fds);
+    if (fdl->work_fds)
+        pa_xfree(fdl->work_fds);
+
+    pa_xfree(fdl);
+}
+
+int pa_alsa_fdlist_set_mixer(struct pa_alsa_fdlist *fdl, snd_mixer_t *mixer_handle, pa_mainloop_api* m) {
+    pa_assert(fdl);
+    pa_assert(mixer_handle);
+    pa_assert(m);
+    pa_assert(!fdl->m);
+
+    fdl->mixer = mixer_handle;
+    fdl->m = m;
+    fdl->defer = m->defer_new(m, defer_cb, fdl);
+
+    return 0;
+}
 
 static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_sample_format_t *f) {
 
@@ -61,8 +242,8 @@ static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_s
 
     int i, ret;
 
-    assert(pcm_handle);
-    assert(f);
+    pa_assert(pcm_handle);
+    pa_assert(f);
 
     if ((ret = snd_pcm_hw_params_set_format(pcm_handle, hwparams, format_trans[*f])) >= 0)
         return ret;
@@ -103,10 +284,10 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     pa_sample_format_t f = ss->format;
     snd_pcm_hw_params_t *hwparams;
 
-    assert(pcm_handle);
-    assert(ss);
-    assert(periods);
-    assert(period_size);
+    pa_assert(pcm_handle);
+    pa_assert(ss);
+    pa_assert(periods);
+    pa_assert(period_size);
 
     buffer_size = *periods * *period_size;
 
@@ -166,10 +347,10 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         (ret = snd_pcm_hw_params_get_period_size(hwparams, period_size, NULL)) < 0)
         goto finish;
 
-    assert(buffer_size > 0);
-    assert(*period_size > 0);
+    pa_assert(buffer_size > 0);
+    pa_assert(*period_size > 0);
     *periods = buffer_size / *period_size;
-    assert(*periods > 0);
+    pa_assert(*periods > 0);
 
     ret = 0;
 
@@ -183,7 +364,8 @@ finish:
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
     int err;
 
-    assert(mixer && dev);
+    pa_assert(mixer);
+    pa_assert(dev);
 
     if ((err = snd_mixer_attach(mixer, dev)) < 0) {
         pa_log_warn("Unable to attach to mixer %s: %s", dev, snd_strerror(err));
@@ -206,10 +388,11 @@ int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
 snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback) {
     snd_mixer_elem_t *elem;
     snd_mixer_selem_id_t *sid = NULL;
+    
     snd_mixer_selem_id_alloca(&sid);
 
-    assert(mixer);
-    assert(name);
+    pa_assert(mixer);
+    pa_assert(name);
 
     snd_mixer_selem_id_set_name(sid, name);
 
