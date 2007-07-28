@@ -559,6 +559,11 @@ static int unsuspend(struct userdata *u) {
 
     u->out_mmap_current = u->in_mmap_current = 0;
     u->out_mmap_saved_nfrags = u->in_mmap_saved_nfrags = 0;
+
+    if (u->sink)
+        pa_sink_get_volume(u->sink);
+    if (u->source)
+        pa_source_get_volume(u->source);
     
     /* Now, start only what we need */
     trigger(u, 0);
