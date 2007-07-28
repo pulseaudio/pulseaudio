@@ -48,9 +48,14 @@
 #include <sys/mman.h>
 #endif
 
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#else
+#include "poll.h"
+#endif
+
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
-#include <sys/poll.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -73,6 +78,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "oss-util.h"
 #include "module-oss-symdef.h"
@@ -805,7 +811,6 @@ static void thread_func(void *userdata) {
 
             } else {
                 ssize_t l;
-                void *p;
                 int loop = 0;
                 
                 l = u->out_fragment_size;
@@ -825,6 +830,7 @@ static void thread_func(void *userdata) {
                 }
                 
                 do {
+                    void *p;
                     ssize_t t;
                     
                     pa_assert(l > 0);
@@ -1019,9 +1025,10 @@ finish:
 }
 
 int pa__init(pa_core *c, pa_module*m) {
+    
     struct audio_buf_info info;
     struct userdata *u = NULL;
-    const char *p;
+    const char *dev;
     int fd = -1;
     int nfrags, frag_size;
     int mode, caps;
@@ -1074,7 +1081,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
     
-    if ((fd = pa_oss_open(p = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, &caps)) < 0)
+    if ((fd = pa_oss_open(dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, &caps)) < 0)
         goto fail;
 
     if (use_mmap && (!(caps & DSP_CAP_MMAP) || !(caps & DSP_CAP_TRIGGER))) {
@@ -1087,7 +1094,7 @@ int pa__init(pa_core *c, pa_module*m) {
         use_mmap = 0;
     }
 
-    if (pa_oss_get_hw_description(p, hwdesc, sizeof(hwdesc)) >= 0)
+    if (pa_oss_get_hw_description(dev, hwdesc, sizeof(hwdesc)) >= 0)
         pa_log_info("Hardware name is '%s'.", hwdesc);
     else
         hwdesc[0] = 0;
@@ -1111,11 +1118,12 @@ int pa__init(pa_core *c, pa_module*m) {
     u->core = c;
     u->module = m;
     m->userdata = u;
+    u->fd = fd;
     u->use_getospace = u->use_getispace = 1;
     u->use_getodelay = 1;
     u->use_input_volume = u->use_pcm_volume = 1;
     u->mode = mode;
-    u->device_name = pa_xstrdup(p);
+    u->device_name = pa_xstrdup(dev);
     u->in_nfrags = u->out_nfrags = u->nfrags = nfrags;
     u->out_fragment_size = u->in_fragment_size = u->frag_size = frag_size;
     u->use_mmap = use_mmap;
@@ -1159,25 +1167,28 @@ int pa__init(pa_core *c, pa_module*m) {
         if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
             namereg_fail = 1;
         else {
-            name = name_buf = pa_sprintf_malloc("oss_input.%s", pa_path_get_filename(p));
+            name = name_buf = pa_sprintf_malloc("oss_input.%s", pa_path_get_filename(dev));
             namereg_fail = 0;
         }
 
         u->source = pa_source_new(c, __FILE__, name, namereg_fail, &ss, &map);
         pa_xfree(name_buf);
-        if (!u->source)
+        if (!u->source) {
+            pa_log("Failed to create source object");
             goto fail;
+        }
 
         u->source->parent.process_msg = source_process_msg;
         u->source->userdata = u;
 
         pa_source_set_module(u->source, m);
         pa_source_set_asyncmsgq(u->source, u->asyncmsgq);
-        pa_source_set_description(u->source, t = pa_sprintf_malloc("OSS PCM on %s%s%s%s",
-                                                                 p,
-                                                                 hwdesc[0] ? " (" : "",
-                                                                 hwdesc[0] ? hwdesc : "",
-                                                                 hwdesc[0] ? ")" : ""));
+        pa_source_set_description(u->source, t = pa_sprintf_malloc(
+                                          "OSS PCM on %s%s%s%s",
+                                          dev,
+                                          hwdesc[0] ? " (" : "",
+                                          hwdesc[0] ? hwdesc : "",
+                                          hwdesc[0] ? ")" : ""));
         pa_xfree(t);
         u->source->is_hardware = 1;
         u->source->refresh_volume = 1;
@@ -1210,25 +1221,28 @@ try_write:
         if ((name = pa_modargs_get_value(ma, "sink_name", NULL)))
             namereg_fail = 1;
         else {
-            name = name_buf = pa_sprintf_malloc("oss_output.%s", pa_path_get_filename(p));
+            name = name_buf = pa_sprintf_malloc("oss_output.%s", pa_path_get_filename(dev));
             namereg_fail = 0;
         }
 
         u->sink = pa_sink_new(c, __FILE__, name, namereg_fail, &ss, &map);
         pa_xfree(name_buf);
-        if (!u->sink)
+        if (!u->sink) {
+            pa_log("Failed to create sink object");
             goto fail;
+        }
 
         u->sink->parent.process_msg = sink_process_msg;
         u->sink->userdata = u;
         
         pa_sink_set_module(u->sink, m);
         pa_sink_set_asyncmsgq(u->sink, u->asyncmsgq);
-        pa_sink_set_description(u->sink, t = pa_sprintf_malloc("OSS PCM on %s%s%s%s",
-                                                           p,
-                                                           hwdesc[0] ? " (" : "",
-                                                           hwdesc[0] ? hwdesc : "",
-                                                           hwdesc[0] ? ")" : ""));
+        pa_sink_set_description(u->sink, t = pa_sprintf_malloc(
+                                        "OSS PCM on %s%s%s%s",
+                                        dev,
+                                        hwdesc[0] ? " (" : "",
+                                        hwdesc[0] ? hwdesc : "",
+                                        hwdesc[0] ? ")" : ""));
         pa_xfree(t);
         u->sink->is_hardware = 1;
         u->sink->refresh_volume = 1;
@@ -1240,8 +1254,6 @@ try_write:
 go_on:
     
     pa_assert(u->source || u->sink);
-
-    u->fd = fd;
 
     pa_memchunk_reset(&u->memchunk);
 
@@ -1261,7 +1273,10 @@ go_on:
     return 0;
 
 fail:
-    if (fd >= 0)
+
+    if (u)
+        pa__done(c, m);
+    else if (fd >= 0)
         close(fd);
 
     if (ma)

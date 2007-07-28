@@ -934,12 +934,12 @@ modlibexec_LTLIBRARIES += \
 		module-oss.la
 endif
 
-#if HAVE_ALSA
-#modlibexec_LTLIBRARIES += \
-#		libalsa-util.la \
-#		module-alsa-sink.la \
+if HAVE_ALSA
+modlibexec_LTLIBRARIES += \
+		libalsa-util.la \
+		module-alsa-sink.la
 #		module-alsa-source.la
-#endif
+endif
 
 if HAVE_SOLARIS
 modlibexec_LTLIBRARIES += \
@@ -1185,15 +1185,15 @@ module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
 
 # ALSA
 
-#libalsa_util_la_SOURCES = modules/alsa-util.c modules/alsa-util.h
-#libalsa_util_la_LDFLAGS = -avoid-version
-#libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libpulsecore.la
-#libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+libalsa_util_la_SOURCES = modules/alsa-util.c modules/alsa-util.h
+libalsa_util_la_LDFLAGS = -avoid-version
+libalsa_util_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libpulsecore.la
+libalsa_util_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
-#module_alsa_sink_la_SOURCES = modules/module-alsa-sink.c
-#module_alsa_sink_la_LDFLAGS = -module -avoid-version
-#module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore.la
-#module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+module_alsa_sink_la_SOURCES = modules/module-alsa-sink.c
+module_alsa_sink_la_LDFLAGS = -module -avoid-version
+module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore.la
+module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 #module_alsa_source_la_SOURCES = modules/module-alsa-source.c
 #module_alsa_source_la_LDFLAGS = -module -avoid-version
