@@ -937,8 +937,8 @@ endif
 if HAVE_ALSA
 modlibexec_LTLIBRARIES += \
 		libalsa-util.la \
-		module-alsa-sink.la
-#		module-alsa-source.la
+		module-alsa-sink.la \
+		module-alsa-source.la
 endif
 
 if HAVE_SOLARIS
@@ -1195,10 +1195,10 @@ module_alsa_sink_la_LDFLAGS = -module -avoid-version
 module_alsa_sink_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore.la
 module_alsa_sink_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
-#module_alsa_source_la_SOURCES = modules/module-alsa-source.c
-#module_alsa_source_la_LDFLAGS = -module -avoid-version
-#module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore.la
-#module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
+module_alsa_source_la_SOURCES = modules/module-alsa-source.c
+module_alsa_source_la_LDFLAGS = -module -avoid-version
+module_alsa_source_la_LIBADD = $(AM_LIBADD) $(ASOUNDLIB_LIBS) libalsa-util.la libpulsecore.la
+module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 # Solaris
 
