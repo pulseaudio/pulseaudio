@@ -287,9 +287,8 @@ static int unsuspend(struct userdata *u) {
         goto fail;
     }
 
-    pa_sink_get_volume(u->sink);
-    pa_sink_get_mute(u->sink);
-
+    /* FIXME: We need to reload the volume somehow */
+    
     u->first = 1;
                 
     pa_log_debug("Resumed successfully...");
