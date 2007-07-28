@@ -50,7 +50,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -59,6 +58,8 @@
 #ifdef HAVE_ICONV
 #include <iconv.h>
 #endif
+
+#include <pulsecore/macro.h>
 
 #include "utf8.h"
 #include "xmalloc.h"
@@ -207,10 +208,9 @@ static char* iconv_simple(const char *str, const char *to, const char *from) {
 
     inlen = len = strlen(str) + 1;
     new_str = pa_xmalloc(len);
-    assert(new_str);
 
-    while (1) {
-        inbuf = (ICONV_CONST char*)str; /* Brain dead prototype for iconv() */
+    for (;;) {
+        inbuf = (ICONV_CONST char*) str; /* Brain dead prototype for iconv() */
         inbytes = inlen;
         outbuf = new_str;
         outbytes = len;
@@ -226,11 +226,10 @@ static char* iconv_simple(const char *str, const char *to, const char *from) {
             break;
         }
 
-        assert(inbytes != 0);
+        pa_assert(inbytes != 0);
 
         len += inbytes;
         new_str = pa_xrealloc(new_str, len);
-        assert(new_str);
     }
 
     iconv_close(cd);
