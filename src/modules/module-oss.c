@@ -158,18 +158,20 @@ static const char* const valid_modargs[] = {
 static void trigger(struct userdata *u, int quick) {
     int enable_bits = 0, zero = 0;
 
-/*     pa_log_debug("trigger"); */
+    if (u->fd < 0)
+        return;
 
-    if (u->source && u->source->thread_info.state != PA_SOURCE_SUSPENDED)
+    pa_log_debug("trigger"); 
+
+    if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state))
         enable_bits |= PCM_ENABLE_INPUT;
     
-    if (u->sink && u->sink->thread_info.state != PA_SINK_SUSPENDED)
+    if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state))
         enable_bits |= PCM_ENABLE_OUTPUT;
     
     if (u->use_mmap) {
 
         if (!quick)
-            /* First, let's stop all playback, capturing */
             ioctl(u->fd, SNDCTL_DSP_SETTRIGGER, &zero);
 
 #ifdef SNDCTL_DSP_HALT
@@ -199,7 +201,7 @@ static void trigger(struct userdata *u, int quick) {
              * register the fd as ready.
              */
             
-            if (u->source && u->source->thread_info.state != PA_SOURCE_SUSPENDED) {
+            if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) {
                 uint8_t *buf = pa_xnew(uint8_t, u->in_fragment_size);
                 pa_read(u->fd, buf, u->in_fragment_size, NULL);
                 pa_xfree(buf);
@@ -212,6 +214,8 @@ static void mmap_fill_memblocks(struct userdata *u, unsigned n) {
     pa_assert(u);
     pa_assert(u->out_mmap_memblocks);
 
+/*     pa_log("Mmmap writing %u blocks", n); */
+    
     while (n > 0) {
         pa_memchunk chunk;
 
@@ -241,10 +245,11 @@ static void mmap_fill_memblocks(struct userdata *u, unsigned n) {
 static int mmap_write(struct userdata *u) {
     struct count_info info;
     
-    
     pa_assert(u);
     pa_assert(u->sink);
 
+/*     pa_log("Mmmap writing..."); */
+    
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
         pa_log("SNDCTL_DSP_GETOPTR: %s", pa_cstrerror(errno));
         return -1;
@@ -262,6 +267,8 @@ static int mmap_write(struct userdata *u) {
 static void mmap_post_memblocks(struct userdata *u, unsigned n) {
     pa_assert(u);
     pa_assert(u->in_mmap_memblocks);
+
+/*     pa_log("Mmmap reading %u blocks", n); */
 
     while (n > 0) {
         pa_memchunk chunk;
@@ -317,6 +324,8 @@ static int mmap_read(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->source);
 
+/*     pa_log("Mmmap reading..."); */
+    
     if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
         pa_log("SNDCTL_DSP_GETIPTR: %s", pa_cstrerror(errno));
         return -1;
@@ -437,6 +446,8 @@ static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->fd >= 0);
 
+    pa_log_debug("Suspending...");
+    
     if (u->out_mmap_memblocks) {
         unsigned i;
         for (i = 0; i < u->out_nfrags; i++)
@@ -559,15 +570,7 @@ static int unsuspend(struct userdata *u) {
 
     u->out_mmap_current = u->in_mmap_current = 0;
     u->out_mmap_saved_nfrags = u->in_mmap_saved_nfrags = 0;
-
-    if (u->sink)
-        pa_sink_get_volume(u->sink);
-    if (u->source)
-        pa_source_get_volume(u->source);
     
-    /* Now, start only what we need */
-    trigger(u, 0);
-
     pa_log_debug("Resumed successfully...");
 
     return 0;
@@ -580,7 +583,7 @@ fail:
 
 static int sink_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
-    int do_trigger = 0, ret;
+    int do_trigger = 0, ret, quick = 1;
 
     switch (code) {
 
@@ -601,30 +604,44 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *
 
         case PA_SINK_MESSAGE_SET_STATE:
 
-            if (PA_PTR_TO_UINT(data) == PA_SINK_SUSPENDED) {
-                pa_assert(u->sink->thread_info.state != PA_SINK_SUSPENDED);
+            switch ((pa_sink_state_t) PA_PTR_TO_UINT(data)) {
 
-                if (u->source_suspended) {
-                    if (suspend(u) < 0)
-                        return -1;
-                } else
+                case PA_SINK_SUSPENDED:
+                    pa_assert(PA_SINK_OPENED(u->sink->thread_info.state));
+
+                    if (!u->source || u->source_suspended) {
+                        if (suspend(u) < 0)
+                            return -1;
+                    } 
+
                     do_trigger = 1;
 
-                u->sink_suspended = 1;
-                
-            } else if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
-                pa_assert(PA_PTR_TO_UINT(data) != PA_SINK_SUSPENDED);
+                    u->sink_suspended = 1;
+                    break;
+                    
+                case PA_SINK_IDLE:
+                case PA_SINK_RUNNING:
+                    
+                    if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
+                        
+                        if (!u->source || u->source_suspended) {
+                            if (unsuspend(u) < 0) 
+                                return -1;
+                            quick = 0;
+                        }
 
-                if (u->source_suspended) {
-                    if (unsuspend(u) < 0) 
-                        return -1;
-                } else
-                    do_trigger = 1;
+                        do_trigger = 1;
+                        
+                        u->out_mmap_current = 0;
+                        u->out_mmap_saved_nfrags = 0;
+                        
+                        u->sink_suspended = 0;
+                    }
 
-                u->out_mmap_current = 0;
-                u->out_mmap_saved_nfrags = 0;
+                    break;
 
-                u->sink_suspended = 0;
+                case PA_SINK_DISCONNECTED:
+                    ;
             }
             
             break;
@@ -659,14 +676,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *
     ret = pa_sink_process_msg(o, code, data, chunk);
 
     if (do_trigger)
-        trigger(u, 1);
+        trigger(u, quick);
     
     return ret;
 }
 
 static int source_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
-    int do_trigger = 0, ret;
+    int do_trigger = 0, ret, quick = 1;
 
     switch (code) {
 
@@ -686,32 +703,44 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk
 
         case PA_SOURCE_MESSAGE_SET_STATE:
 
-            if (PA_PTR_TO_UINT(data) == PA_SOURCE_SUSPENDED) {
-                pa_assert(u->source->thread_info.state != PA_SOURCE_SUSPENDED);
+            switch ((pa_source_state_t) PA_PTR_TO_UINT(data)) {
+                case PA_SOURCE_SUSPENDED:
+                    pa_assert(PA_SOURCE_OPENED(u->source->thread_info.state));
 
-                if (u->sink_suspended) {
-                    if (suspend(u) < 0) 
-                        return -1;
-                } else
+                    if (!u->sink || u->sink_suspended) {
+                        if (suspend(u) < 0) 
+                            return -1;
+                    } 
+
                     do_trigger = 1;
+                    
+                    u->source_suspended = 1;
+                    break;
 
-                u->source_suspended = 1;
+                case PA_SOURCE_IDLE:
+                case PA_SOURCE_RUNNING:
+                    
+                    if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
 
-            } else if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
-                pa_assert(PA_PTR_TO_UINT(data) != PA_SOURCE_SUSPENDED);
+                        if (!u->sink || u->sink_suspended) {
+                            if (unsuspend(u) < 0) 
+                                return -1;
+                            quick = 0;
+                        } 
 
-                if (u->sink_suspended) {
-                    if (unsuspend(u) < 0) 
-                        return -1;
-                } else
-                    do_trigger = 1;
-                
-                u->in_mmap_current = 0;
-                u->in_mmap_saved_nfrags = 0;
+                        do_trigger = 1;
+                        
+                        u->in_mmap_current = 0;
+                        u->in_mmap_saved_nfrags = 0;
+                        
+                        u->source_suspended = 0;
+                    }
+                    break;
 
-                u->source_suspended = 0;
+                case PA_SOURCE_DISCONNECTED:
+                    ;
+
             }
-
             break;
 
         case PA_SOURCE_MESSAGE_SET_VOLUME:
@@ -744,7 +773,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk
     ret = pa_source_process_msg(o, code, data, chunk);
 
     if (do_trigger)
-        trigger(u, 1);
+        trigger(u, quick);
 
     return ret;
 }
@@ -779,7 +808,7 @@ static void thread_func(void *userdata) {
         pa_memchunk chunk;
         int r;
 
-/*         pa_log("loop");   */
+/*        pa_log("loop");    */
         
         /* Check whether there is a message for us to process */
         if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
@@ -801,7 +830,7 @@ static void thread_func(void *userdata) {
 
         /* Render some data and write it to the dsp */
 
-        if (u->sink && u->sink->thread_info.state != PA_SINK_SUSPENDED && (pollfd[POLLFD_DSP].revents & POLLOUT)) {
+        if (u->sink && u->sink->thread_info.state != PA_SINK_DISCONNECTED && u->fd >= 0 && (pollfd[POLLFD_DSP].revents & POLLOUT)) {
 
             if (u->use_mmap) {
                 int ret;
@@ -892,7 +921,7 @@ static void thread_func(void *userdata) {
 
         /* Try to read some data and pass it on to the source driver */
 
-        if (u->source && u->source->thread_info.state != PA_SOURCE_SUSPENDED && ((pollfd[POLLFD_DSP].revents & POLLIN))) {
+        if (u->source && u->source->thread_info.state != PA_SOURCE_DISCONNECTED && u->fd >= 0 && ((pollfd[POLLFD_DSP].revents & POLLIN))) {
 
             if (u->use_mmap) {
                 int ret;
@@ -980,8 +1009,8 @@ static void thread_func(void *userdata) {
         if (u->fd >= 0) {
             pollfd[POLLFD_DSP].fd = u->fd;
             pollfd[POLLFD_DSP].events =
-                ((u->source && u->source->thread_info.state != PA_SOURCE_SUSPENDED) ? POLLIN : 0) |
-                ((u->sink && u->sink->thread_info.state != PA_SINK_SUSPENDED) ? POLLOUT : 0);
+                ((u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) ? POLLIN : 0) |
+                ((u->sink && PA_SINK_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0);
         }
             
         /* Hmm, nothing to do. Let's sleep */
