@@ -564,7 +564,7 @@ static void thread_func(void *userdata) {
                     pa_assert(u->memchunk.length > 0);
                     
                     p = pa_memblock_acquire(u->memchunk.memblock);
-                    t = snd_pcm_writei(u->pcm_handle, (uint8_t*) p + u->memchunk.index, u->memchunk.length / u->frame_size);
+                    t = snd_pcm_writei(u->pcm_handle, (const uint8_t*) p + u->memchunk.index, u->memchunk.length / u->frame_size);
                     pa_memblock_release(u->memchunk.memblock);
                     
 /*                     pa_log("wrote %i bytes of %u (%u)", t*u->frame_size, u->memchunk.length, l);   */
@@ -654,11 +654,6 @@ static void thread_func(void *userdata) {
         } else
             revents = 0;
         
-        if (revents & ~(POLLOUT|POLLERR)) {
-            pa_log("DSP shutdown.");
-            goto fail;
-        }
-
         pa_assert((pollfd[POLLFD_ASYNCQ].revents & ~POLLIN) == 0);
     }
 
@@ -697,13 +692,13 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log("failed to parse module arguments");
+        pa_log("Failed to parse module arguments");
         goto fail;
     }
 
     ss = c->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_ALSA) < 0) {
-        pa_log("failed to parse sample specification and channel map");
+        pa_log("Failed to parse sample specification and channel map");
         goto fail;
     }
 
@@ -715,7 +710,7 @@ int pa__init(pa_core *c, pa_module*m) {
         frag_size = frame_size;
 
     if (pa_modargs_get_value_u32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_u32(ma, "fragment_size", &frag_size) < 0) {
-        pa_log("failed to parse buffer metrics");
+        pa_log("Failed to parse buffer metrics");
         goto fail;
     }
     period_size = frag_size/frame_size;
@@ -809,7 +804,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->sink->is_hardware = 1;
 
     u->frame_size = frame_size;
-    u->fragment_size = period_size * frame_size;
+    u->fragment_size = frag_size = period_size * frame_size;
     u->nfragments = nfrags;
     u->hwbuf_size = u->fragment_size * nfrags;
 
@@ -836,13 +831,13 @@ int pa__init(pa_core *c, pa_module*m) {
                 snd_mixer_selem_get_playback_volume_range(u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max);
             }
         }
+        
         if (snd_mixer_selem_has_playback_switch(u->mixer_elem)) {
             u->sink->get_mute = sink_get_mute_cb;
             u->sink->set_mute = sink_set_mute_cb;
         }
 
         u->mixer_fdl = pa_alsa_fdlist_new();
-        pa_assert(u->mixer_fdl);
 
         if (pa_alsa_fdlist_set_mixer(u->mixer_fdl, u->mixer_handle, c->mainloop) < 0) {
             pa_log("failed to initialise file descriptor monitoring");
@@ -853,7 +848,6 @@ int pa__init(pa_core *c, pa_module*m) {
         snd_mixer_elem_set_callback_private(u->mixer_elem, u);
     } else
         u->mixer_fdl = NULL;
-
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");
@@ -872,9 +866,9 @@ finish:
 
      if (ma)
          pa_modargs_free(ma);
-
-    if (pcm_info)
-        snd_pcm_info_free(pcm_info);
+     
+     if (pcm_info)
+         snd_pcm_info_free(pcm_info);
 
     return ret;
 
@@ -924,9 +918,8 @@ void pa__done(pa_core *c, pa_module*m) {
     }
     
     pa_xfree(u->device_name);
-
-    snd_config_update_free_global();
-    
     pa_xfree(u);
+    
+    snd_config_update_free_global();
 }
 
