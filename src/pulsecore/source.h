@@ -148,4 +148,8 @@ unsigned pa_source_used_by(pa_source *s);
 void pa_source_post(pa_source*s, const pa_memchunk *b);
 int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
 
+static inline int PA_SOURCE_OPENED(pa_source_state_t x) {
+    return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE;
+}
+
 #endif

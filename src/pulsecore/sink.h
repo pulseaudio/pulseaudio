@@ -157,5 +157,9 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target);
 void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
 
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
-    
+
+static inline int PA_SINK_OPENED(pa_sink_state_t x) {
+    return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
+}
+
 #endif
