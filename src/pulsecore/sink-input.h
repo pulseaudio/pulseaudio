@@ -131,6 +131,7 @@ typedef struct pa_sink_input_new_data {
     int sample_spec_is_set;
     pa_channel_map channel_map;
     int channel_map_is_set;
+    
     pa_cvolume volume;
     int volume_is_set;
     int muted;

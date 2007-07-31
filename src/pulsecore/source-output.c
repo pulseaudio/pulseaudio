@@ -135,7 +135,7 @@ pa_source_output* pa_source_output_new(
     o->parent.process_msg = pa_source_output_process_msg;
 
     o->core = core;
-    o->state = data->corked ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
+    o->state = data->start_corked ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
     o->flags = flags;
     o->name = pa_xstrdup(data->name);
     o->driver = pa_xstrdup(data->driver);

@@ -443,7 +443,7 @@ static record_stream* record_stream_new(
     data.source = source;
     data.driver = __FILE__;
     data.name = name;
-    data.corked = corked;
+    data.start_corked = corked;
     pa_source_output_new_data_set_sample_spec(&data, ss);
     pa_source_output_new_data_set_channel_map(&data, map);
 
