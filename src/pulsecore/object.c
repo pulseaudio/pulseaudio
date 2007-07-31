@@ -28,17 +28,23 @@
 
 #include "object.h"
 
-pa_object *pa_object_new_internal(size_t size, const char *type_name, int (*check_type)(pa_object *o, const char *type_name)) {
+pa_object *pa_object_new_internal(size_t size, const char *type_name, int (*check_type)(const char *type_name)) {
     pa_object *o;
 
     pa_assert(size > sizeof(pa_object));
     pa_assert(type_name);
 
+    if (!check_type)
+        check_type = pa_object_check_type;
+
+    pa_assert(check_type(type_name));
+    pa_assert(check_type("pa_object"));
+    
     o = pa_xmalloc(size);
     PA_REFCNT_INIT(o);
     o->type_name = type_name;
     o->free = pa_object_free;
-    o->check_type = check_type ? check_type : pa_object_check_type;
+    o->check_type = check_type;
 
     return o;
 }
@@ -59,8 +65,7 @@ void pa_object_unref(pa_object *o) {
     }
 }
 
-int pa_object_check_type(pa_object *o, const char *type_name) {
-    pa_assert(o);
+int pa_object_check_type(const char *type_name) {
     pa_assert(type_name);
     
     return type_name == "pa_object" || strcmp(type_name, "pa_object") == 0;

@@ -103,6 +103,8 @@ typedef struct pa_source_output_new_data {
     int channel_map_is_set;
 
     pa_resample_method_t resample_method;
+
+    int corked;
 } pa_source_output_new_data;
 
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
@@ -142,6 +144,6 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
 /* To be used exclusively by the source driver thread */
 
 void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk);
-int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, pa_memchunk *chunk);
+int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 
 #endif

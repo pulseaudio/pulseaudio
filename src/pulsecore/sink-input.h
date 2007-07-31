@@ -71,6 +71,8 @@ struct pa_sink_input {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
+    pa_sink_input *sync_prev, *sync_next;
+    
     pa_cvolume volume;
     int muted;
 
@@ -97,6 +99,8 @@ struct pa_sink_input {
         /*         size_t move_silence; */
         pa_memblock *silence_memblock;               /* may be NULL */
 
+        pa_sink_input *sync_prev, *sync_next;
+        
         pa_cvolume volume;
         int muted;
     } thread_info;
@@ -133,6 +137,9 @@ typedef struct pa_sink_input_new_data {
     int muted_is_set;
 
     pa_resample_method_t resample_method;
+
+    int start_corked;
+    pa_sink_input *sync_base;
 } pa_sink_input_new_data;
 
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data);
@@ -179,6 +186,6 @@ pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 
 int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume);
 void pa_sink_input_drop(pa_sink_input *i, size_t length);
-int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
+int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 
 #endif

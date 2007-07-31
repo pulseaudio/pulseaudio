@@ -111,9 +111,10 @@ static void thread_func(void *userdata) {
         void *data;
         pa_memchunk chunk;
         int r;
+        int64_t offset;
 
         /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
+        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
 
             if (!object && code == PA_MESSAGE_SHUTDOWN) {
@@ -121,7 +122,7 @@ static void thread_func(void *userdata) {
                 goto finish;
             }
 
-            ret = pa_asyncmsgq_dispatch(object, code, data, &chunk);
+            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
             pa_asyncmsgq_done(u->asyncmsgq, ret);
             continue;
         }
@@ -202,7 +203,7 @@ static void thread_func(void *userdata) {
 fail:
     /* We have to continue processing messages until we receive the
      * SHUTDOWN message */
-    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, NULL, NULL);
+    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
     pa_asyncmsgq_wait_for(u->asyncmsgq, PA_MESSAGE_SHUTDOWN);
 
 finish:
@@ -303,7 +304,7 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_source_disconnect(u->source);
 
     if (u->thread) {
-        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, NULL);
+        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
     }
 

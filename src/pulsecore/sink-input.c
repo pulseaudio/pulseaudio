@@ -45,7 +45,7 @@
 #define MOVE_BUFFER_LENGTH (1024*1024)
 #define SILENCE_BUFFER_LENGTH (64*1024)
 
-static PA_DEFINE_CHECK_TYPE(pa_sink_input, sink_input_check_type, pa_msgobject_check_type);
+static PA_DEFINE_CHECK_TYPE(pa_sink_input, pa_msgobject);
 
 static void sink_input_free(pa_object *o);
 
@@ -110,6 +110,7 @@ pa_sink_input* pa_sink_input_new(
 
     pa_return_null_if_fail(data->sink);
     pa_return_null_if_fail(pa_sink_get_state(data->sink) != PA_SINK_DISCONNECTED);
+    pa_return_null_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED));
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->sink->sample_spec;
@@ -161,12 +162,12 @@ pa_sink_input* pa_sink_input_new(
         data->resample_method = pa_resampler_get_method(resampler);
     }
 
-    i = pa_msgobject_new(pa_sink_input, sink_input_check_type);
+    i = pa_msgobject_new(pa_sink_input);
     i->parent.parent.free = sink_input_free;
     i->parent.process_msg = pa_sink_input_process_msg;
 
     i->core = core;
-    i->state = PA_SINK_INPUT_RUNNING;
+    i->state = data->start_corked ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING;
     i->flags = flags;
     i->name = pa_xstrdup(data->name);
     i->driver = pa_xstrdup(data->driver);
@@ -181,6 +182,16 @@ pa_sink_input* pa_sink_input_new(
     i->volume = data->volume;
     i->muted = data->muted;
 
+    if (data->sync_base) {
+        i->sync_next = data->sync_base->sync_next;
+        i->sync_prev = data->sync_base;
+
+        if (data->sync_base->sync_next)
+            data->sync_base->sync_next->sync_prev = i;
+        data->sync_base->sync_next = i;
+    } else 
+        i->sync_next = i->sync_prev = NULL;
+    
     i->peek = NULL;
     i->drop = NULL;
     i->kill = NULL;
@@ -213,6 +224,7 @@ pa_sink_input* pa_sink_input_new(
 }
 
 static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
+    pa_sink_input *ssync;
     pa_assert(i);
 
     if (state == PA_SINK_INPUT_DRAINED)
@@ -221,10 +233,15 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
     if (i->state == state)
         return 0;
 
-    if (pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), NULL) < 0)
+    if (pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) < 0)
         return -1;
 
     i->state = state;
+    for (ssync = i->sync_prev; ssync; ssync = ssync->sync_prev)
+        ssync->state = state;
+    for (ssync = i->sync_next; ssync; ssync = ssync->sync_next)
+        ssync->state = state;
+    
     return 0;
 }
 
@@ -232,10 +249,16 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
     pa_assert(i);
     pa_return_if_fail(i->state != PA_SINK_INPUT_DISCONNECTED);
 
-    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, NULL);
+    if (i->sync_prev)
+        i->sync_prev->sync_next = i->sync_next;
+    if (i->sync_next)
+        i->sync_next->sync_prev = i->sync_prev;
+        
+    i->sync_prev = i->sync_next = NULL;
+    
+    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, 0, NULL);
     pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
     pa_idxset_remove_by_data(i->sink->inputs, i, NULL);
-    pa_sink_input_unref(i);
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
 
@@ -248,6 +271,7 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
     i->kill = NULL;
     i->get_latency = NULL;
     i->underrun = NULL;
+    pa_sink_input_unref(i);
 }
 
 static void sink_input_free(pa_object *o) {
@@ -281,7 +305,7 @@ void pa_sink_input_put(pa_sink_input *i) {
     i->thread_info.volume = i->volume;
     i->thread_info.muted = i->muted;
 
-    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, pa_sink_input_ref(i), NULL, (pa_free_cb_t) pa_sink_input_unref);
+    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, i, 0, NULL);
     pa_sink_update_status(i->sink);
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
@@ -299,7 +323,7 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i) {
 
     pa_sink_input_assert_ref(i);
 
-    if (pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_GET_LATENCY, &r, NULL) < 0)
+    if (pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_GET_LATENCY, &r, 0, NULL) < 0)
         r = 0;
 
     if (i->get_latency)
@@ -509,7 +533,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
 
     i->volume = *volume;
 
-    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, pa_xnewdup(struct pa_cvolume, volume, 1), NULL, pa_xfree);
+    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_VOLUME, pa_xnewdup(struct pa_cvolume, volume, 1), 0, NULL, pa_xfree);
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
 
@@ -528,7 +552,7 @@ void pa_sink_input_set_mute(pa_sink_input *i, int mute) {
 
     i->muted = mute;
 
-    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_MUTE, PA_UINT_TO_PTR(mute), NULL, NULL);
+    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_MUTE, PA_UINT_TO_PTR(mute), 0, NULL, NULL);
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
 }
 
@@ -553,7 +577,7 @@ int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
 
     i->sample_spec.rate = rate;
 
-    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), NULL, NULL);
+    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), 0, NULL, NULL);
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     return 0;
@@ -741,7 +765,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
 /*     return 0; */
 }
 
-int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk) {
+int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_sink_input *i = PA_SINK_INPUT(o);
 
     pa_sink_input_assert_ref(i);
@@ -776,12 +800,28 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, pa_memc
         }
 
         case PA_SINK_INPUT_MESSAGE_SET_STATE: {
+            pa_sink_input *ssync;
+            
             if ((PA_PTR_TO_UINT(userdata) == PA_SINK_INPUT_DRAINED || PA_PTR_TO_UINT(userdata) == PA_SINK_INPUT_RUNNING) &&
                 (i->thread_info.state != PA_SINK_INPUT_DRAINED) && (i->thread_info.state != PA_SINK_INPUT_RUNNING))
                 pa_atomic_store(&i->thread_info.drained, 1);
             
             i->thread_info.state = PA_PTR_TO_UINT(userdata);
 
+            for (ssync = i->thread_info.sync_prev; ssync; ssync = ssync->thread_info.sync_prev) {
+                if ((PA_PTR_TO_UINT(userdata) == PA_SINK_INPUT_DRAINED || PA_PTR_TO_UINT(userdata) == PA_SINK_INPUT_RUNNING) &&
+                    (ssync->thread_info.state != PA_SINK_INPUT_DRAINED) && (ssync->thread_info.state != PA_SINK_INPUT_RUNNING))
+                    pa_atomic_store(&ssync->thread_info.drained, 1);
+                ssync->thread_info.state = PA_PTR_TO_UINT(userdata);
+            }
+            
+            for (ssync = i->thread_info.sync_next; ssync; ssync = ssync->thread_info.sync_next) {
+                if ((PA_PTR_TO_UINT(userdata) == PA_SINK_INPUT_DRAINED || PA_PTR_TO_UINT(userdata) == PA_SINK_INPUT_RUNNING) &&
+                    (ssync->thread_info.state != PA_SINK_INPUT_DRAINED) && (ssync->thread_info.state != PA_SINK_INPUT_RUNNING))
+                    pa_atomic_store(&ssync->thread_info.drained, 1);
+                ssync->thread_info.state = PA_PTR_TO_UINT(userdata);
+            }
+            
             return 0;
         }
     }

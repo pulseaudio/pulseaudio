@@ -722,10 +722,10 @@ modlibexec_LTLIBRARIES = \
 		libauthkey-prop.la \
 		libstrlist.la \
 		libprotocol-simple.la \
-		libprotocol-http.la 
+		libprotocol-http.la \
+		libprotocol-native.la
 
 #		libprotocol-esound.la
-#		libprotocol-native.la
 
 # We need to emulate sendmsg/recvmsg to support this on Win32
 if !OS_IS_WIN32
@@ -879,11 +879,10 @@ modlibexec_LTLIBRARIES += \
 		module-volume-restore.la \
 		module-rescue-streams.la \
 		module-http-protocol-tcp.la \
-		module-sine.la
-
+		module-sine.la \
+		module-native-protocol-tcp.la \
+		module-native-protocol-fd.la
 #		module-esound-protocol-tcp.la \
-#		module-native-protocol-tcp.la \
-#		module-native-protocol-fd.la \
 #		module-combine.la \
 #		module-tunnel-sink.la \
 #		module-tunnel-source.la \
@@ -899,10 +898,10 @@ modlibexec_LTLIBRARIES += \
 if HAVE_AF_UNIX
 modlibexec_LTLIBRARIES += \
 		module-cli-protocol-unix.la \
-		module-simple-protocol-unix.la
-		module-http-protocol-unix.la
-#		module-esound-protocol-unix.la \
-#		module-native-protocol-unix.la
+		module-simple-protocol-unix.la \
+		module-http-protocol-unix.la \
+		module-native-protocol-unix.la
+#		module-esound-protocol-unix.la 
 endif
 
 if HAVE_MKFIFO
@@ -1083,20 +1082,20 @@ module_http_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-h
 
 # Native protocol
 
-#module_native_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
-#module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
-#module_native_protocol_tcp_la_LDFLAGS = -module -avoid-version
-#module_native_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la
+module_native_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
+module_native_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
+module_native_protocol_tcp_la_LDFLAGS = -module -avoid-version
+module_native_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la
 
-#module_native_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
-#module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
-#module_native_protocol_unix_la_LDFLAGS = -module -avoid-version
-#module_native_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la libsocket-util.la
+module_native_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
+module_native_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE $(AM_CFLAGS)
+module_native_protocol_unix_la_LDFLAGS = -module -avoid-version
+module_native_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la libsocket-util.la
 
-#module_native_protocol_fd_la_SOURCES = modules/module-native-protocol-fd.c
-#module_native_protocol_fd_la_CFLAGS = $(AM_CFLAGS)
-#module_native_protocol_fd_la_LDFLAGS = -module -avoid-version
-#module_native_protocol_fd_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la libsocket-util.la libiochannel.la
+module_native_protocol_fd_la_SOURCES = modules/module-native-protocol-fd.c
+module_native_protocol_fd_la_CFLAGS = $(AM_CFLAGS)
+module_native_protocol_fd_la_LDFLAGS = -module -avoid-version
+module_native_protocol_fd_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-native.la libsocket-server.la libsocket-util.la libiochannel.la
 
 # EsounD protocol
 

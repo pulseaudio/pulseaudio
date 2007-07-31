@@ -83,7 +83,7 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static int sink_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *chunk) {
+static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
 
     switch (code) {
@@ -107,7 +107,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, pa_memchunk *
         }
     }
     
-    return pa_sink_process_msg(o, code, data, chunk);
+    return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
 static void thread_func(void *userdata) {
@@ -131,9 +131,10 @@ static void thread_func(void *userdata) {
         pa_memchunk chunk;
         int r, timeout;
         struct timeval now;
+        int64_t offset;
 
         /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
+        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
 
             if (!object && code == PA_MESSAGE_SHUTDOWN) {
@@ -141,7 +142,7 @@ static void thread_func(void *userdata) {
                 goto finish;
             }
 
-            ret = pa_asyncmsgq_dispatch(object, code, data, &chunk);
+            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
             pa_asyncmsgq_done(u->asyncmsgq, ret);
             continue;
         }
@@ -190,7 +191,7 @@ static void thread_func(void *userdata) {
 fail:
     /* We have to continue processing messages until we receive the
      * SHUTDOWN message */
-    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, NULL, NULL);
+    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
     pa_asyncmsgq_wait_for(u->asyncmsgq, PA_MESSAGE_SHUTDOWN);
 
 finish:
@@ -271,7 +272,7 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_sink_disconnect(u->sink);
 
     if (u->thread) {
-        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, NULL);
+        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
     }
 

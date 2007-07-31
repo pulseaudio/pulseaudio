@@ -56,7 +56,7 @@ enum {
 
 PA_DECLARE_CLASS(file_stream);
 #define FILE_STREAM(o) (file_stream_cast(o))
-static PA_DEFINE_CHECK_TYPE(file_stream, file_stream_check_type, pa_msgobject_check_type);
+static PA_DEFINE_CHECK_TYPE(file_stream, pa_msgobject);
 
 static void file_stream_free(pa_object *o) {
     file_stream *u = FILE_STREAM(o);
@@ -85,7 +85,7 @@ static void file_stream_drop(file_stream *u) {
     }
 }
 
-static int file_stream_process_msg(pa_msgobject *o, int code, void*userdata, pa_memchunk *chunk) {
+static int file_stream_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
     file_stream *u = FILE_STREAM(o);
     file_stream_assert_ref(u);
     
@@ -154,7 +154,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
                 pa_memblock_unref(u->memchunk.memblock);
                 pa_memchunk_reset(&u->memchunk);
                 
-                pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u), MESSAGE_DROP_FILE_STREAM, NULL, NULL, NULL);
+                pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u), MESSAGE_DROP_FILE_STREAM, NULL, 0, NULL, NULL);
 
                 sf_close(u->sndfile);
                 u->sndfile = NULL;
@@ -224,7 +224,7 @@ int pa_play_file(
     pa_assert(sink);
     pa_assert(fname);
 
-    u = pa_msgobject_new(file_stream, file_stream_check_type);
+    u = pa_msgobject_new(file_stream);
     u->parent.parent.free = file_stream_free;
     u->parent.process_msg = file_stream_process_msg;
     u->core = sink->core;

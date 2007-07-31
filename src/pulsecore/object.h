@@ -38,20 +38,19 @@ struct pa_object {
     PA_REFCNT_DECLARE;
     const char *type_name;
     void (*free)(pa_object *o);
-    int (*check_type)(pa_object *o, const char *type_name);
+    int (*check_type)(const char *type_name);
 };
 
-pa_object *pa_object_new_internal(size_t size, const char *type_name, int (*check_type)(pa_object *o, const char *type_name));
-#define pa_object_new(type, check_type) ((type*) pa_object_new_internal(sizeof(type), #type, check_type)
+pa_object *pa_object_new_internal(size_t size, const char *type_name, int (*check_type)(const char *type_name));
+#define pa_object_new(type) ((type*) pa_object_new_internal(sizeof(type), #type, type##_check_type)
 
 #define pa_object_free ((void (*) (pa_object* o)) pa_xfree)
 
-int pa_object_check_type(pa_object *o, const char *type);
+int pa_object_check_type(const char *type);
 
 static inline int pa_object_isinstance(void *o) {
     pa_object *obj = (pa_object*) o;
-    pa_assert(obj);
-    return obj->check_type(obj, "pa_object");
+    return obj ? obj->check_type("pa_object") : 0;
 }
 
 pa_object *pa_object_ref(pa_object *o);
@@ -63,19 +62,18 @@ static inline int pa_object_refcnt(pa_object *o) {
 
 static inline pa_object* pa_object_cast(void *o) {
     pa_object *obj = (pa_object*) o;
-    pa_assert(obj->check_type(obj, "pa_object"));
+    pa_assert(!obj || obj->check_type("pa_object"));
     return obj;
 }
 
-#define pa_object_assert_ref(o) pa_assert(pa_object_refcnt(o))
+#define pa_object_assert_ref(o) pa_assert(pa_object_refcnt(o) > 0)
 
 #define PA_OBJECT(o) pa_object_cast(o)
 
 #define PA_DECLARE_CLASS(c)                                             \
     static inline int c##_isinstance(void *o) {                         \
         pa_object *obj = (pa_object*) o;                                \
-        pa_assert(obj);                                                 \
-        return obj->check_type(obj, #c);                                \
+        return obj ? obj->check_type(#c) : 1;                           \
     }                                                                   \
     static inline c* c##_cast(void *o) {                                \
         pa_assert(c##_isinstance(o));                                   \
@@ -95,14 +93,13 @@ static inline pa_object* pa_object_cast(void *o) {
     }                                                                   \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 
-#define PA_DEFINE_CHECK_TYPE(c, func, parent)                           \
-    int func(pa_object *o, const char *type) {                          \
-        pa_assert(o);                                                   \
+#define PA_DEFINE_CHECK_TYPE(c, parent)                                 \
+    int c##_check_type(const char *type) {                              \
         pa_assert(type);                                                \
         if (type == #c ||                                               \
             strcmp(type, #c) == 0)                                      \
             return 1;                                                   \
-        return parent(o, type);                                         \
+        return parent##_check_type(type);                               \
     }                                                                   \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 

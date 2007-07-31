@@ -46,6 +46,7 @@ struct asyncmsgq_item {
     pa_msgobject *object;
     void *userdata;
     pa_free_cb_t free_cb;
+    int64_t offset;
     pa_memchunk memchunk;
     pa_semaphore *semaphore;
     int ret;
@@ -96,7 +97,7 @@ void pa_asyncmsgq_free(pa_asyncmsgq *a) {
     pa_xfree(a);
 }
 
-void pa_asyncmsgq_post(pa_asyncmsgq *a, pa_msgobject *object, int code, const void *userdata, const pa_memchunk *chunk, pa_free_cb_t free_cb) {
+void pa_asyncmsgq_post(pa_asyncmsgq *a, pa_msgobject *object, int code, const void *userdata, int64_t offset, const pa_memchunk *chunk, pa_free_cb_t free_cb) {
     struct asyncmsgq_item *i;
     pa_assert(a);
 
@@ -107,6 +108,7 @@ void pa_asyncmsgq_post(pa_asyncmsgq *a, pa_msgobject *object, int code, const vo
     i->object = object ? pa_msgobject_ref(object) : NULL;
     i->userdata = (void*) userdata;
     i->free_cb = free_cb;
+    i->offset = offset;
     if (chunk) {
         pa_assert(chunk->memblock);
         i->memchunk = *chunk;
@@ -121,7 +123,7 @@ void pa_asyncmsgq_post(pa_asyncmsgq *a, pa_msgobject *object, int code, const vo
     pa_mutex_unlock(a->mutex);
 }
 
-int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const void *userdata, const pa_memchunk *chunk) {
+int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const void *userdata, int64_t offset, const pa_memchunk *chunk) {
     struct asyncmsgq_item i;
     pa_assert(a);
 
@@ -130,6 +132,7 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
     i.userdata = (void*) userdata;
     i.free_cb = NULL;
     i.ret = -1;
+    i.offset = offset;
     if (chunk) {
         pa_assert(chunk->memblock);
         i.memchunk = *chunk;
@@ -148,7 +151,7 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
     return i.ret;
 }
 
-int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **userdata, pa_memchunk *chunk, int wait) {
+int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *chunk, int wait) {
     pa_assert(a);
     pa_assert(code);
     pa_assert(!a->current);
@@ -163,6 +166,8 @@ int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **u
     *code = a->current->code;
     if (userdata)
         *userdata = a->current->userdata;
+    if (offset)
+        *offset = a->current->offset;
     if (object) {
         if ((*object = a->current->object))
             pa_msgobject_assert_ref(*object);
@@ -207,13 +212,14 @@ int pa_asyncmsgq_wait_for(pa_asyncmsgq *a, int code) {
     do {
         pa_msgobject *o;
         void *data;
+    int64_t offset;
         pa_memchunk chunk;
         int ret;
 
-        if (pa_asyncmsgq_get(a, &o, &c, &data, &chunk, 1) < 0)
+        if (pa_asyncmsgq_get(a, &o, &c, &data, &offset, &chunk, 1) < 0)
             return -1;
 
-        ret = pa_asyncmsgq_dispatch(o, c, data, &chunk);
+        ret = pa_asyncmsgq_dispatch(o, c, data, offset, &chunk);
         pa_asyncmsgq_done(a, ret);
 
     } while (c != code);
@@ -239,10 +245,10 @@ void pa_asyncmsgq_after_poll(pa_asyncmsgq *a) {
     pa_asyncq_after_poll(a->asyncq);
 }
 
-int pa_asyncmsgq_dispatch(pa_msgobject *object, int code, void *userdata, pa_memchunk *memchunk) {
+int pa_asyncmsgq_dispatch(pa_msgobject *object, int code, void *userdata, int64_t offset, pa_memchunk *memchunk) {
 
     if (object)
-        return object->process_msg(object, code, userdata, memchunk);
+        return object->process_msg(object, code, userdata, offset, memchunk);
 
     return 0;
 }

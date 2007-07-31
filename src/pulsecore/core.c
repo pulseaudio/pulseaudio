@@ -49,9 +49,9 @@
 
 #include "core.h"
 
-static PA_DEFINE_CHECK_TYPE(pa_core, core_check_type, pa_msgobject_check_type);
+static PA_DEFINE_CHECK_TYPE(pa_core, pa_msgobject);
 
-static int core_process_msg(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk) {
+static int core_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_core *c = PA_CORE(o);
 
     pa_core_assert_ref(c);
@@ -79,13 +79,14 @@ static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_even
         pa_msgobject *object;
         int code;
         void *data;
+        int64_t offset;
         pa_memchunk chunk;
 
         /* Check whether there is a message for us to process */
-        while (pa_asyncmsgq_get(c->asyncmsgq, &object, &code, &data, &chunk, 0) == 0) {
+        while (pa_asyncmsgq_get(c->asyncmsgq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
 
-            ret = pa_asyncmsgq_dispatch(object, code, data, &chunk);
+            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
             pa_asyncmsgq_done(c->asyncmsgq, ret);
         }
 
@@ -116,7 +117,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
         }
     }
 
-    c = pa_msgobject_new(pa_core, core_check_type);
+    c = pa_msgobject_new(pa_core);
     c->parent.parent.free = core_free;
     c->parent.process_msg = core_process_msg;
 

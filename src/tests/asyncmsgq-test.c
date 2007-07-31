@@ -49,7 +49,7 @@ static void the_thread(void *_q) {
     do {
         int code = 0;
 
-        pa_assert_se(pa_asyncmsgq_get(q, NULL, &code, NULL, NULL, 1) == 0);
+        pa_assert_se(pa_asyncmsgq_get(q, NULL, &code, NULL, NULL, NULL, 1) == 0);
 
         switch (code) {
 
@@ -85,22 +85,22 @@ int main(int argc, char *argv[]) {
     pa_assert_se(t = pa_thread_new(the_thread, q));
 
     printf("Operation A post\n");
-    pa_asyncmsgq_post(q, NULL, OPERATION_A, NULL, NULL, NULL);
+    pa_asyncmsgq_post(q, NULL, OPERATION_A, NULL, 0, NULL, NULL);
 
     pa_thread_yield();
 
     printf("Operation B post\n");
-    pa_asyncmsgq_post(q, NULL, OPERATION_B, NULL, NULL, NULL);
+    pa_asyncmsgq_post(q, NULL, OPERATION_B, NULL, 0, NULL, NULL);
     
     pa_thread_yield();
 
     printf("Operation C send\n");
-    pa_asyncmsgq_send(q, NULL, OPERATION_C, NULL, NULL);
+    pa_asyncmsgq_send(q, NULL, OPERATION_C, NULL, 0, NULL);
 
     pa_thread_yield();
 
     printf("Quit post\n");
-    pa_asyncmsgq_post(q, NULL, QUIT, NULL, NULL, NULL);
+    pa_asyncmsgq_post(q, NULL, QUIT, NULL, 0, NULL, NULL);
 
     pa_thread_free(t);
 

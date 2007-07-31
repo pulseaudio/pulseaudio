@@ -38,7 +38,7 @@
 
 #include "source-output.h"
 
-static PA_DEFINE_CHECK_TYPE(pa_source_output, source_output_check_type, pa_msgobject_check_type);
+static PA_DEFINE_CHECK_TYPE(pa_source_output, pa_msgobject);
 
 static void source_output_free(pa_object* mo);
 
@@ -130,12 +130,12 @@ pa_source_output* pa_source_output_new(
         data->resample_method = pa_resampler_get_method(resampler);
     }
 
-    o = pa_msgobject_new(pa_source_output, source_output_check_type);
+    o = pa_msgobject_new(pa_source_output);
     o->parent.parent.free = source_output_free;
     o->parent.process_msg = pa_source_output_process_msg;
 
     o->core = core;
-    o->state = PA_SOURCE_OUTPUT_RUNNING;
+    o->state = data->corked ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
     o->flags = flags;
     o->name = pa_xstrdup(data->name);
     o->driver = pa_xstrdup(data->driver);
@@ -176,7 +176,7 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
     if (o->state == state)
         return 0;
 
-    if (pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), NULL) < 0)
+    if (pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) < 0)
         return -1;
 
     o->state = state;
@@ -187,7 +187,7 @@ void pa_source_output_disconnect(pa_source_output*o) {
     pa_assert(o);
     pa_return_if_fail(o->state != PA_SOURCE_OUTPUT_DISCONNECTED);
 
-    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, NULL);
+    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
 
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     pa_idxset_remove_by_data(o->source->outputs, o, NULL);
@@ -225,7 +225,7 @@ static void source_output_free(pa_object* mo) {
 void pa_source_output_put(pa_source_output *o) {
     pa_source_output_assert_ref(o);
 
-    pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, pa_source_output_ref(o), NULL, (pa_free_cb_t) pa_source_output_unref);
+    pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, pa_source_output_ref(o), 0, NULL, (pa_free_cb_t) pa_source_output_unref);
     pa_source_update_status(o->source);
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
@@ -243,7 +243,7 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
 
     pa_source_output_assert_ref(o);
 
-    if (pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY, &r, NULL) < 0)
+    if (pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY, &r, 0, NULL) < 0)
         r = 0;
 
     if (o->get_latency)
@@ -293,7 +293,7 @@ int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
 
     o->sample_spec.rate = rate;
 
-    pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), NULL, NULL);
+    pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_RATE, PA_UINT_TO_PTR(rate), 0, NULL, NULL);
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
     return 0;
@@ -380,7 +380,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
 /*     return 0; */
 }
 
-int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, pa_memchunk* chunk) {
+int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk* chunk) {
     pa_source_output *o = PA_SOURCE_OUTPUT(mo);
 
     pa_source_output_assert_ref(o);

@@ -37,14 +37,14 @@ typedef struct pa_msgobject pa_msgobject;
 
 struct pa_msgobject {
     pa_object parent;
-    int (*process_msg)(pa_msgobject *o, int code, void *userdata, pa_memchunk *chunk);
+    int (*process_msg)(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 };
 
-pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_name, int (*check_type)(pa_object *o, const char *type_name));
+pa_msgobject *pa_msgobject_new_internal(size_t size, const char *type_name, int (*check_type)(const char *type_name));
 
-int pa_msgobject_check_type(pa_object *o, const char *type);
+int pa_msgobject_check_type(const char *type);
 
-#define pa_msgobject_new(type, check_type) ((type*) pa_msgobject_new_internal(sizeof(type), #type, check_type))
+#define pa_msgobject_new(type) ((type*) pa_msgobject_new_internal(sizeof(type), #type, type##_check_type))
 #define pa_msgobject_free ((void (*) (pa_msgobject* o)) pa_object_free)
 
 #define PA_MSGOBJECT(o) pa_msgobject_cast(o)
