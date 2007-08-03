@@ -533,19 +533,25 @@ static void thread_func(void *userdata) {
                     goto fail;
 
             } else {
-                ssize_t l;
 
-                if ((err = snd_pcm_status(u->pcm_handle, status)) >= 0)
-                    l = snd_pcm_status_get_avail(status) * u->frame_size;
-                else
-                    l = u->fragment_size;
-
-                while (l > 0) {
+                for (;;) {
                     void *p;
                     snd_pcm_sframes_t t;
+                    ssize_t l;
 
-                    pa_assert(l > 0);
+                    if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) {
+                        pa_log("Failed to query DSP status data: %s", snd_strerror(t));
+                        goto fail;
+                    }
 
+                    if (snd_pcm_status_get_avail_max(status)*u->frame_size >= u->hwbuf_size)
+                        pa_log_debug("Buffer overrun!");
+                    
+                    l = snd_pcm_status_get_avail(status) * u->frame_size;
+
+                    if (l <= 0)
+                        break;
+                    
                     chunk.memblock = pa_memblock_new(u->core->mempool, l);
 
                     p = pa_memblock_acquire(chunk.memblock);
@@ -559,8 +565,7 @@ static void thread_func(void *userdata) {
                     if (t < 0) {
                         pa_memblock_unref(chunk.memblock);
 
-                        if (t == -EPIPE)
-                            pa_log_debug("Buffer underrun!");
+                        pa_assert(t != -EPIPE);
                         
                         if ((t = snd_pcm_recover(u->pcm_handle, t, 1)) == 0)
                             continue;
@@ -573,18 +578,18 @@ static void thread_func(void *userdata) {
                             goto fail;
                         }
                         
-                    } else {
+                    } 
                         
-                        chunk.index = 0;
-                        chunk.length = t * u->frame_size;
+                    chunk.index = 0;
+                    chunk.length = t * u->frame_size;
 
-                        pa_source_post(u->source, &chunk);
-                        pa_memblock_unref(chunk.memblock);
-                        
-                        l -= t * u->frame_size;
+                    pa_source_post(u->source, &chunk);
+                    pa_memblock_unref(chunk.memblock);
+                    
+                    work_done = 1;
 
-                        work_done = 1;
-                    }
+                    if (t * u->frame_size >= (unsigned) l)
+                        break;
                 } 
             }
 
@@ -730,6 +735,11 @@ int pa__init(pa_core *c, pa_module*m) {
 
     if (u->use_mmap)
         pa_log_info("Successfully enabled mmap() mode.");
+
+    if ((err = pa_alsa_set_sw_params(u->pcm_handle)) < 0) {
+        pa_log("Failed to set software parameters: %s", snd_strerror(err));
+        goto fail;
+    }
     
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);

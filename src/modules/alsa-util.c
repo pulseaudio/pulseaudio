@@ -289,10 +289,11 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     pa_assert(periods);
     pa_assert(period_size);
 
+    snd_pcm_hw_params_alloca(&hwparams);
+    
     buffer_size = *periods * *period_size;
 
-    if ((ret = snd_pcm_hw_params_malloc(&hwparams)) < 0 ||
-        (ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0 ||
+    if ((ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0 ||
         (ret = snd_pcm_hw_params_set_rate_resample(pcm_handle, hwparams, 0)) < 0)
         goto finish;
 
@@ -355,10 +356,34 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     ret = 0;
 
 finish:
-    if (hwparams)
-        snd_pcm_hw_params_free(hwparams);
 
     return ret;
+}
+
+int pa_alsa_set_sw_params(snd_pcm_t *pcm) {
+    snd_pcm_sw_params_t *swparams;
+    int err;
+    
+    pa_assert(pcm);
+
+    snd_pcm_sw_params_alloca(&swparams);
+
+    if ((err = snd_pcm_sw_params_current(pcm, swparams) < 0)) {
+        pa_log_warn("Unable to determine current swparams: %s\n", snd_strerror(err));
+        return err;
+    }
+
+    if ((err = snd_pcm_sw_params_set_stop_threshold(pcm, swparams, (snd_pcm_uframes_t) -1)) < 0) {
+        pa_log_warn("Unable to set stop threshold: %s\n", snd_strerror(err));
+        return err;
+    }
+    
+    if ((err = snd_pcm_sw_params(pcm, swparams)) < 0) {
+        pa_log_warn("Unable to set sw params: %s\n", snd_strerror(err));
+        return err;
+    }
+
+    return 0;
 }
 
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
