@@ -547,7 +547,6 @@ static void thread_func(void *userdata) {
             } else {
                 ssize_t l;
 
-                snd_pcm_hwsync(u->pcm_handle);
                 if ((err = snd_pcm_status(u->pcm_handle, status)) >= 0)
                     l = snd_pcm_status_get_avail(status) * u->frame_size;
                 else
