@@ -744,7 +744,7 @@ int pa__init(pa_core *c, pa_module*m) {
     else {
         
         if ((pa_alsa_prepare_mixer(u->mixer_handle, dev) < 0) ||
-            !(u->mixer_elem = pa_alsa_find_elem(u->mixer_handle, "Capture", "Mic"))) {
+            !(u->mixer_elem = pa_alsa_find_elem(u->mixer_handle, "Capture", NULL))) {
             snd_mixer_close(u->mixer_handle);
             u->mixer_handle = NULL;
         }
