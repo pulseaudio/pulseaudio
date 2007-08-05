@@ -353,7 +353,7 @@ static upload_stream* upload_stream_new(
     pa_assert(length > 0);
 
     s = pa_msgobject_new(upload_stream);
-    c->parent.parent.free = upload_stream_free;
+    s->parent.parent.parent.free = upload_stream_free;
     s->connection = c;
     s->sample_spec = *ss;
     s->channel_map = *map;
@@ -451,8 +451,8 @@ static record_stream* record_stream_new(
         return NULL;
 
     s = pa_msgobject_new(record_stream);
-    c->parent.parent.free = record_stream_free;
-    c->parent.process_msg = record_stream_process_msg;
+    s->parent.parent.free = record_stream_free;
+    s->parent.process_msg = record_stream_process_msg;
     s->connection = c;
     s->source_output = source_output;
     s->source_output->push = source_output_push_cb;
@@ -630,8 +630,8 @@ static playback_stream* playback_stream_new(
         return NULL;
 
     s = pa_msgobject_new(playback_stream);
-    c->parent.parent.free = playback_stream_free;
-    c->parent.process_msg = playback_stream_process_msg;
+    s->parent.parent.parent.free = playback_stream_free;
+    s->parent.parent.process_msg = playback_stream_process_msg;
     s->connection = c;
     s->syncid = syncid;
     s->sink_input = sink_input;
@@ -697,7 +697,7 @@ static void connection_unlink(connection *c) {
         pa_subscription_free(c->subscription);
 
     if (c->pstream)
-        pa_pstream_close(c->pstream);
+        pa_pstream_unlink(c->pstream);
 
     if (c->auth_timeout_event) {
         c->protocol->core->mainloop->time_free(c->auth_timeout_event);
@@ -705,8 +705,8 @@ static void connection_unlink(connection *c) {
     }
     
     pa_assert_se(pa_idxset_remove_by_data(c->protocol->connections, c, NULL) == c);
-    connection_unref(c);
     c->protocol = NULL;
+    connection_unref(c);
 }
 
 static void connection_free(pa_object *o) {
@@ -1933,7 +1933,6 @@ static void subscription_cb(pa_core *core, pa_subscription_event_type_t e, uint3
     connection *c = CONNECTION(userdata);
 
     connection_assert_ref(c);
-    pa_assert(t);
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE_EVENT);
@@ -2653,9 +2652,8 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     connection_assert_ref(c);
 
     connection_unlink(c);
-/*    pa_log("connection died.");*/
+    pa_log_info("connection died.");
 }
-
 
 static void pstream_drain_callback(pa_pstream *p, void *userdata) {
     connection *c = CONNECTION(userdata);
@@ -2732,7 +2730,6 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     c->client->owner = p->module;
 
     c->pstream = pa_pstream_new(p->core->mainloop, io, p->core->mempool);
-    pa_assert(c->pstream);
 
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
     pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
@@ -2740,17 +2737,14 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     pa_pstream_set_drain_callback(c->pstream, pstream_drain_callback, c);
 
     c->pdispatch = pa_pdispatch_new(p->core->mainloop, command_table, PA_COMMAND_MAX);
-    pa_assert(c->pdispatch);
 
     c->record_streams = pa_idxset_new(NULL, NULL);
     c->output_streams = pa_idxset_new(NULL, NULL);
-    pa_assert(c->record_streams && c->output_streams);
 
     c->rrobin_index = PA_IDXSET_INVALID;
     c->subscription = NULL;
 
     pa_idxset_put(p->connections, c, NULL);
-
 
 #ifdef HAVE_CREDS
     if (pa_iochannel_creds_supported(io))
@@ -2834,7 +2828,6 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
         goto fail;
 
     p->connections = pa_idxset_new(NULL, NULL);
-    pa_assert(p->connections);
 
     return p;
 
