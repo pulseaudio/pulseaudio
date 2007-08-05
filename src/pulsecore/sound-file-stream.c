@@ -40,6 +40,8 @@
 
 #define BUF_SIZE (1024*10)
 
+/* FIXME: file access needs to be moved to seperate thread */
+
 typedef struct file_stream {
     pa_msgobject parent;
     pa_core *core;
@@ -58,10 +60,27 @@ PA_DECLARE_CLASS(file_stream);
 #define FILE_STREAM(o) (file_stream_cast(o))
 static PA_DEFINE_CHECK_TYPE(file_stream, pa_msgobject);
 
+static void file_stream_unlink(file_stream *u) {
+    pa_assert(u);
+
+    if (!u->sink_input)
+        return;
+    
+    pa_sink_input_disconnect(u->sink_input);
+    
+    pa_sink_input_unref(u->sink_input);
+    u->sink_input = NULL;
+    
+    /* Make sure we don't decrease the ref count twice. */
+    file_stream_unref(u);
+}
+
 static void file_stream_free(pa_object *o) {
     file_stream *u = FILE_STREAM(o);
     pa_assert(u);
 
+    file_stream_unlink(u);
+    
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
 
@@ -71,27 +90,13 @@ static void file_stream_free(pa_object *o) {
     pa_xfree(u);
 }
 
-static void file_stream_drop(file_stream *u) {
-    file_stream_assert_ref(u);
-
-    if (u->sink_input) {
-        pa_sink_input_disconnect(u->sink_input);
-
-        pa_sink_input_unref(u->sink_input);
-        u->sink_input = NULL;
-
-        /* Make sure we don't decrease the ref count twice. */
-        file_stream_unref(u);
-    }
-}
-
 static int file_stream_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
     file_stream *u = FILE_STREAM(o);
     file_stream_assert_ref(u);
     
     switch (code) {
         case MESSAGE_DROP_FILE_STREAM:
-            file_stream_drop(u);
+            file_stream_unlink(u);
             break;
     }
 
@@ -99,9 +104,9 @@ static int file_stream_process_msg(pa_msgobject *o, int code, void*userdata, int
 }
 
 static void sink_input_kill_cb(pa_sink_input *i) {
-    pa_assert(i);
+    pa_sink_input_assert_ref(i);
     
-    file_stream_drop(FILE_STREAM(i->userdata));
+    file_stream_unlink(FILE_STREAM(i->userdata));
 }
 
 static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
