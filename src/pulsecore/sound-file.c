@@ -26,12 +26,16 @@
 #endif
 
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include <sndfile.h>
 
 #include <pulse/sample.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core-error.h>
 
 #include "sound-file.h"
 #include "core-scache.h"
@@ -49,6 +53,7 @@ int pa_sound_file_load(
     size_t l;
     sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames) = NULL;
     void *ptr = NULL;
+    int fd;
 
     pa_assert(fname);
     pa_assert(ss);
@@ -57,8 +62,20 @@ int pa_sound_file_load(
     pa_memchunk_reset(chunk);
     memset(&sfinfo, 0, sizeof(sfinfo));
 
-    if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
+    if ((fd = open(fname, O_RDONLY|O_NOCTTY)) < 0) {
+        pa_log("Failed to open file %s: %s", fname, pa_cstrerror(errno));
+        goto finish;
+    }
+
+    if (posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL) < 0) {
+        pa_log_warn("POSIX_FADV_SEQUENTIAL failed: %s", pa_cstrerror(errno));
+        goto finish;
+    } else
+        pa_log_debug("POSIX_FADV_SEQUENTIAL succeeded.");
+    
+    if (!(sf = sf_open_fd(fd, SFM_READ, &sfinfo, 1))) {
         pa_log("Failed to open file %s", fname);
+        close(fd);
         goto finish;
     }
 
