@@ -28,19 +28,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include <sndfile.h>
 
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/core-error.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/log.h>
 
 #include "sound-file-stream.h"
 
-#define BUF_SIZE (1024*10)
-
-/* FIXME: file access needs to be moved to seperate thread */
+#define BUF_SIZE (1024*16)
 
 typedef struct file_stream {
     pa_msgobject parent;
@@ -53,7 +55,7 @@ typedef struct file_stream {
 } file_stream;
 
 enum {
-    MESSAGE_DROP_FILE_STREAM
+    FILE_STREAM_MESSAGE_UNLINK
 };
 
 PA_DECLARE_CLASS(file_stream);
@@ -95,7 +97,7 @@ static int file_stream_process_msg(pa_msgobject *o, int code, void*userdata, int
     file_stream_assert_ref(u);
     
     switch (code) {
-        case MESSAGE_DROP_FILE_STREAM:
+        case FILE_STREAM_MESSAGE_UNLINK:
             file_stream_unlink(u);
             break;
     }
@@ -159,7 +161,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
                 pa_memblock_unref(u->memchunk.memblock);
                 pa_memchunk_reset(&u->memchunk);
                 
-                pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u), MESSAGE_DROP_FILE_STREAM, NULL, 0, NULL, NULL);
+                pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u), FILE_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
 
                 sf_close(u->sndfile);
                 u->sndfile = NULL;
@@ -225,7 +227,8 @@ int pa_play_file(
     SF_INFO sfinfo;
     pa_sample_spec ss;
     pa_sink_input_new_data data;
-
+    int fd;
+    
     pa_assert(sink);
     pa_assert(fname);
 
@@ -241,8 +244,31 @@ int pa_play_file(
 
     memset(&sfinfo, 0, sizeof(sfinfo));
 
-    if (!(u->sndfile = sf_open(fname, SFM_READ, &sfinfo))) {
+    if ((fd = open(fname, O_RDONLY|O_NOCTTY)) < 0) {
+        pa_log("Failed to open file %s: %s", fname, pa_cstrerror(errno));
+        goto fail;
+    }
+
+    /* FIXME: For now we just use posix_fadvise to avoid page faults
+     * when accessing the file data. Eventually we should move the
+     * file reader into the main event loop and pass the data over the
+     * asyncmsgq. */
+
+    if (posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL) < 0) {
+        pa_log_warn("POSIX_FADV_SEQUENTIAL failed: %s", pa_cstrerror(errno));
+        goto fail;
+    } else
+        pa_log_debug("POSIX_FADV_SEQUENTIAL succeeded.");
+    
+    if (posix_fadvise(fd, 0, 0, POSIX_FADV_WILLNEED) < 0) {
+        pa_log_warn("POSIX_FADV_WILLNEED failed: %s", pa_cstrerror(errno));
+        goto fail;
+    } else
+        pa_log_debug("POSIX_FADV_WILLNEED succeeded.");
+    
+    if (!(u->sndfile = sf_open_fd(fd, SFM_READ, &sfinfo, 1))) {
         pa_log("Failed to open file %s", fname);
+        close(fd);
         goto fail;
     }
 
