@@ -183,7 +183,7 @@ static void context_free(pa_context *c) {
     if (c->pdispatch)
         pa_pdispatch_unref(c->pdispatch);
     if (c->pstream) {
-        pa_pstream_close(c->pstream);
+        pa_pstream_unlink(c->pstream);
         pa_pstream_unref(c->pstream);
     }
 
@@ -250,7 +250,7 @@ void pa_context_set_state(pa_context *c, pa_context_state_t st) {
         c->pdispatch = NULL;
 
         if (c->pstream) {
-            pa_pstream_close(c->pstream);
+            pa_pstream_unlink(c->pstream);
             pa_pstream_unref(c->pstream);
         }
         c->pstream = NULL;
