@@ -26,7 +26,6 @@
 #endif
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -37,51 +36,105 @@
 
 #include "play-memchunk.h"
 
-static void sink_input_kill_cb(pa_sink_input *i) {
-    pa_memchunk *c;
-    assert(i && i->userdata);
-    c = i->userdata;
+typedef struct memchunk_stream {
+    pa_msgobject parent;
+    pa_core *core;
+    pa_sink_input *sink_input;
+    pa_memchunk memchunk;
+} memchunk_stream;
 
-    pa_sink_input_disconnect(i);
-    pa_sink_input_unref(i);
+enum {
+    MEMCHUNK_STREAM_MESSAGE_UNLINK,
+};
 
-    pa_memblock_unref(c->memblock);
-    pa_xfree(c);
+PA_DECLARE_CLASS(memchunk_stream);
+#define MEMCHUNK_STREAM(o) (memchunk_stream_cast(o))
+static PA_DEFINE_CHECK_TYPE(memchunk_stream, pa_msgobject);
+
+static void memchunk_stream_unlink(memchunk_stream *u) {
+    pa_assert(u);
+
+    if (!u->sink_input)
+        return;
+
+    pa_sink_input_disconnect(u->sink_input);
+    
+    pa_sink_input_unref(u->sink_input);
+    u->sink_input = NULL;
+    
+    /* Make sure we don't decrease the ref count twice. */
+    memchunk_stream_unref(u);
 }
 
-static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
-    pa_memchunk *c;
-    assert(i && chunk && i->userdata);
-    c = i->userdata;
+static void memchunk_stream_free(pa_object *o) {
+    memchunk_stream *u = MEMCHUNK_STREAM(o);
+    pa_assert(u);
 
-    if (c->length <= 0)
-        return -1;
+    memchunk_stream_unlink(u);
+    
+    if (u->memchunk.memblock)
+        pa_memblock_unref(u->memchunk.memblock);
 
-    assert(c->memblock);
-    *chunk = *c;
-    pa_memblock_ref(c->memblock);
+    pa_xfree(u);
+}
+
+static int memchunk_stream_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
+    memchunk_stream *u = MEMCHUNK_STREAM(o);
+    memchunk_stream_assert_ref(u);
+    
+    switch (code) {
+        case MEMCHUNK_STREAM_MESSAGE_UNLINK:
+            memchunk_stream_unlink(u);
+            break;
+    }
 
     return 0;
 }
 
-static void si_kill_cb(PA_GCC_UNUSED pa_mainloop_api *m, void *i) {
-    sink_input_kill_cb(i);
+static void sink_input_kill_cb(pa_sink_input *i) {
+    pa_sink_input_assert_ref(i);
+
+    memchunk_stream_unlink(MEMCHUNK_STREAM(i->userdata));
+}
+
+static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
+    memchunk_stream *u;
+
+    pa_assert(i);
+    pa_assert(chunk);
+    u = MEMCHUNK_STREAM(i->userdata);
+    memchunk_stream_assert_ref(u);
+
+    if (!u->memchunk.memblock)
+        return -1;
+    
+    if (u->memchunk.length <= 0) {
+        pa_memblock_unref(u->memchunk.memblock);
+        u->memchunk.memblock = NULL;
+        pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u), MEMCHUNK_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
+        return -1;
+    }
+
+    pa_assert(u->memchunk.memblock);
+    *chunk = u->memchunk;
+    pa_memblock_ref(chunk->memblock);
+
+    return 0;
 }
 
 static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
-    pa_memchunk *c;
-    assert(i && length && i->userdata);
-    c = i->userdata;
+    memchunk_stream *u;
 
-    if (length >= c->length) {
-        c->length -= length;
-        c->index += length;
-    } else {
+    pa_assert(i);
+    pa_assert(length > 0);
+    u = MEMCHUNK_STREAM(i->userdata);
+    memchunk_stream_assert_ref(u);
 
-        c->length = 0;
-
-        pa_mainloop_api_once(i->sink->core->mainloop, si_kill_cb, i);
-    }
+    if (length >= u->memchunk.length) {
+        u->memchunk.length -= length;
+        u->memchunk.index += length;
+    } else
+        u->memchunk.length = 0;
 }
 
 int pa_play_memchunk(
@@ -92,36 +145,51 @@ int pa_play_memchunk(
         const pa_memchunk *chunk,
         pa_cvolume *volume) {
 
-    pa_sink_input *si;
-    pa_memchunk *nchunk;
+    memchunk_stream *u = NULL;
     pa_sink_input_new_data data;
 
-    assert(sink);
-    assert(ss);
-    assert(chunk);
+    pa_assert(sink);
+    pa_assert(ss);
+    pa_assert(chunk);
 
     if (volume && pa_cvolume_is_muted(volume))
         return 0;
 
+    u = pa_msgobject_new(memchunk_stream);
+    u->parent.parent.free = memchunk_stream_free;
+    u->parent.process_msg = memchunk_stream_process_msg;
+    u->core = sink->core;
+    u->sink_input = NULL;
+    u->memchunk = *chunk;
+    pa_memblock_ref(u->memchunk.memblock);
+
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
-    data.name = name;
     data.driver = __FILE__;
+    data.name = name;
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
     pa_sink_input_new_data_set_volume(&data, volume);
 
-    if (!(si = pa_sink_input_new(sink->core, &data, 0)))
-        return -1;
+    if (!(u->sink_input = pa_sink_input_new(sink->core, &data, 0)))
+        goto fail;
+    
+    u->sink_input->peek = sink_input_peek_cb;
+    u->sink_input->drop = sink_input_drop_cb;
+    u->sink_input->kill = sink_input_kill_cb;
+    u->sink_input->userdata = u;
 
-    si->peek = sink_input_peek_cb;
-    si->drop = sink_input_drop_cb;
-    si->kill = sink_input_kill_cb;
+    pa_sink_input_put(u->sink_input);
 
-    si->userdata = nchunk = pa_xnew(pa_memchunk, 1);
-    *nchunk = *chunk;
-
-    pa_memblock_ref(chunk->memblock);
-
+    /* The reference to u is dangling here, because we want to keep
+     * this stream around until it is fully played. */
+    
     return 0;
+
+fail:
+    if (u)
+        memchunk_stream_unref(u);
+
+    return -1;
 }
+
