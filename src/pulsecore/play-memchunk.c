@@ -130,7 +130,7 @@ static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     u = MEMCHUNK_STREAM(i->userdata);
     memchunk_stream_assert_ref(u);
 
-    if (length >= u->memchunk.length) {
+    if (length < u->memchunk.length) {
         u->memchunk.length -= length;
         u->memchunk.index += length;
     } else
