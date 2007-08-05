@@ -390,13 +390,13 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
     switch ((pa_source_message_t) code) {
         case PA_SOURCE_MESSAGE_ADD_OUTPUT: {
-            pa_source_output *o = userdata;
+            pa_source_output *o = PA_SOURCE_OUTPUT(userdata);
             pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index), pa_source_output_ref(o));
             return 0;
         }
 
         case PA_SOURCE_MESSAGE_REMOVE_OUTPUT: {
-            pa_source_output *o = userdata;
+            pa_source_output *o = PA_SOURCE_OUTPUT(userdata);
             if (pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index)))
                 pa_source_output_unref(o);
             

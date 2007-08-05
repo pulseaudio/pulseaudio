@@ -667,7 +667,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
     switch ((pa_sink_message_t) code) {
         
         case PA_SINK_MESSAGE_ADD_INPUT: {
-            pa_sink_input *i = userdata;
+            pa_sink_input *i = PA_SINK_INPUT(userdata);
             pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index), pa_sink_input_ref(i));
 
             /* Since the caller sleeps in pa_sink_input_put(), we can
@@ -690,7 +690,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
         }
 
         case PA_SINK_MESSAGE_REMOVE_INPUT: {
-            pa_sink_input *i = userdata;
+            pa_sink_input *i = PA_SINK_INPUT(userdata);
 
             /* Since the caller sleeps in pa_sink_input_disconnect(),
              * we can safely access data outside of thread_info even
