@@ -2298,6 +2298,8 @@ static void command_kill(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uint3
 
         client = pa_idxset_get_by_index(c->protocol->core->clients, idx);
         CHECK_VALIDITY(c->pstream, client, tag, PA_ERR_NOENTITY);
+
+        connection_ref(c);
         pa_client_kill(client);
 
     } else if (command == PA_COMMAND_KILL_SINK_INPUT) {
@@ -2306,6 +2308,7 @@ static void command_kill(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uint3
         s = pa_idxset_get_by_index(c->protocol->core->sink_inputs, idx);
         CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
+        connection_ref(c);
         pa_sink_input_kill(s);
     } else {
         pa_source_output *s;
@@ -2315,10 +2318,12 @@ static void command_kill(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, uint3
         s = pa_idxset_get_by_index(c->protocol->core->source_outputs, idx);
         CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_NOENTITY);
 
+        connection_ref(c);
         pa_source_output_kill(s);
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);
+    connection_unref(c);
 }
 
 static void command_load_module(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
