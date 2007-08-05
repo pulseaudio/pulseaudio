@@ -59,6 +59,6 @@ int pa_pstream_is_pending(pa_pstream *p);
 
 void pa_pstream_use_shm(pa_pstream *p, int enable);
 
-void pa_pstream_close(pa_pstream *p);
+void pa_pstream_unlink(pa_pstream *p);
 
 #endif
