@@ -723,9 +723,8 @@ modlibexec_LTLIBRARIES = \
 		libstrlist.la \
 		libprotocol-simple.la \
 		libprotocol-http.la \
-		libprotocol-native.la
-
-#		libprotocol-esound.la
+		libprotocol-native.la \
+		libprotocol-esound.la
 
 # We need to emulate sendmsg/recvmsg to support this on Win32
 if !OS_IS_WIN32
@@ -881,8 +880,8 @@ modlibexec_LTLIBRARIES += \
 		module-http-protocol-tcp.la \
 		module-sine.la \
 		module-native-protocol-tcp.la \
-		module-native-protocol-fd.la
-#		module-esound-protocol-tcp.la \
+		module-native-protocol-fd.la \
+		module-esound-protocol-tcp.la
 #		module-combine.la \
 #		module-tunnel-sink.la \
 #		module-tunnel-source.la \
@@ -900,8 +899,8 @@ modlibexec_LTLIBRARIES += \
 		module-cli-protocol-unix.la \
 		module-simple-protocol-unix.la \
 		module-http-protocol-unix.la \
-		module-native-protocol-unix.la
-#		module-esound-protocol-unix.la 
+		module-native-protocol-unix.la \
+		module-esound-protocol-unix.la 
 endif
 
 if HAVE_MKFIFO
@@ -910,11 +909,11 @@ modlibexec_LTLIBRARIES += \
 		module-pipe-source.la
 endif
 
-#if !OS_IS_WIN32
-#modlibexec_LTLIBRARIES += \
-#		module-esound-compat-spawnfd.la \
-#		module-esound-compat-spawnpid.la
-#endif
+if !OS_IS_WIN32
+modlibexec_LTLIBRARIES += \
+		module-esound-compat-spawnfd.la \
+		module-esound-compat-spawnpid.la
+endif
 
 if HAVE_REGEX
 modlibexec_LTLIBRARIES += \
@@ -940,10 +939,10 @@ modlibexec_LTLIBRARIES += \
 		module-alsa-source.la
 endif
 
-if HAVE_SOLARIS
-modlibexec_LTLIBRARIES += \
-		module-solaris.la
-endif
+#if HAVE_SOLARIS
+#modlibexec_LTLIBRARIES += \
+#		module-solaris.la
+#endif
 
 if HAVE_AVAHI
 modlibexec_LTLIBRARIES += \
@@ -974,10 +973,10 @@ pulselibexec_PROGRAMS = \
 		gconf-helper
 endif
 
-if OS_IS_WIN32
-modlibexec_LTLIBRARIES += \
-		module-waveout.la
-endif
+#if OS_IS_WIN32
+#modlibexec_LTLIBRARIES += \
+#		module-waveout.la
+#endif
 
 if HAVE_HAL
 modlibexec_LTLIBRARIES += \
@@ -1099,23 +1098,23 @@ module_native_protocol_fd_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-n
 
 # EsounD protocol
 
-#module_esound_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
-#module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
-#module_esound_protocol_tcp_la_LDFLAGS = -module -avoid-version
-#module_esound_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-esound.la libsocket-server.la
+module_esound_protocol_tcp_la_SOURCES = modules/module-protocol-stub.c
+module_esound_protocol_tcp_la_CFLAGS = -DUSE_TCP_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
+module_esound_protocol_tcp_la_LDFLAGS = -module -avoid-version
+module_esound_protocol_tcp_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-esound.la libsocket-server.la
 
-#module_esound_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
-#module_esound_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
-#module_esound_protocol_unix_la_LDFLAGS = -module -avoid-version
-#module_esound_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-esound.la libsocket-server.la libsocket-util.la
+module_esound_protocol_unix_la_SOURCES = modules/module-protocol-stub.c
+module_esound_protocol_unix_la_CFLAGS = -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_ESOUND $(AM_CFLAGS)
+module_esound_protocol_unix_la_LDFLAGS = -module -avoid-version
+module_esound_protocol_unix_la_LIBADD = $(AM_LIBADD) libpulsecore.la libprotocol-esound.la libsocket-server.la libsocket-util.la
 
-#module_esound_compat_spawnfd_la_SOURCES = modules/module-esound-compat-spawnfd.c
-#module_esound_compat_spawnfd_la_LDFLAGS = -module -avoid-version
-#module_esound_compat_spawnfd_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_esound_compat_spawnfd_la_SOURCES = modules/module-esound-compat-spawnfd.c
+module_esound_compat_spawnfd_la_LDFLAGS = -module -avoid-version
+module_esound_compat_spawnfd_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
-#module_esound_compat_spawnpid_la_SOURCES = modules/module-esound-compat-spawnpid.c
-#module_esound_compat_spawnpid_la_LDFLAGS = -module -avoid-version
-#module_esound_compat_spawnpid_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_esound_compat_spawnpid_la_SOURCES = modules/module-esound-compat-spawnpid.c
+module_esound_compat_spawnpid_la_LDFLAGS = -module -avoid-version
+module_esound_compat_spawnpid_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 #module_esound_sink_la_SOURCES = modules/module-esound-sink.c
 #module_esound_sink_la_LDFLAGS = -module -avoid-version
@@ -1201,9 +1200,9 @@ module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 # Solaris
 
-module_solaris_la_SOURCES = modules/module-solaris.c
-module_solaris_la_LDFLAGS = -module -avoid-version
-module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la
+#module_solaris_la_SOURCES = modules/module-solaris.c
+#module_solaris_la_LDFLAGS = -module -avoid-version
+#module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
 # Avahi
 
@@ -1228,10 +1227,10 @@ module_mmkbd_evdev_la_CFLAGS = $(AM_CFLAGS)
 
 # Windows waveout
 
-module_waveout_la_SOURCES = modules/module-waveout.c
-module_waveout_la_LDFLAGS = -module -avoid-version
-module_waveout_la_LIBADD = $(AM_LIBADD) libpulsecore.la -lwinmm
-module_waveout_la_CFLAGS = $(AM_CFLAGS)
+#module_waveout_la_SOURCES = modules/module-waveout.c
+#module_waveout_la_LDFLAGS = -module -avoid-version
+#module_waveout_la_LIBADD = $(AM_LIBADD) libpulsecore.la -lwinmm
+#module_waveout_la_CFLAGS = $(AM_CFLAGS)
 
 # Hardware autodetection module
 module_detect_la_SOURCES = modules/module-detect.c
