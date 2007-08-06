@@ -347,7 +347,8 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
         return;
 
     idx = 0;
-
+    length = chunk->length;
+    
     while (length > 0) {
         struct item_info *i;
         size_t n;
