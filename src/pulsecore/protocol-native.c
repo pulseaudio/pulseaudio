@@ -2710,7 +2710,8 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     pa_protocol_native *p = userdata;
     connection *c;
     char cname[256], pname[128];
-    
+
+    pa_assert(s);
     pa_assert(io);
     pa_assert(p);
 
@@ -2742,9 +2743,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     c->protocol = p;
     pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
     pa_snprintf(cname, sizeof(cname), "Native client (%s)", pname);
-    pa_assert(p->core);
     c->client = pa_client_new(p->core, __FILE__, cname);
-    pa_assert(c->client);
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
     c->client->owner = p->module;

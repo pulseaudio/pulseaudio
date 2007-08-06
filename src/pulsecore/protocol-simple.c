@@ -93,7 +93,7 @@ enum {
 enum {
     CONNECTION_MESSAGE_REQUEST_DATA,      /* data requested from sink input from the main loop */
     CONNECTION_MESSAGE_POST_DATA,         /* data from source output to main loop */
-    CONNECTION_MESSAGE_DROP_CONNECTION    /* Please drop a aconnection now */
+    CONNECTION_MESSAGE_UNLINK_CONNECTION    /* Please drop a aconnection now */
 };
 
 
@@ -125,6 +125,11 @@ static void connection_unlink(connection *c) {
         c->client = NULL;
     }
 
+    if (c->io) {
+        pa_iochannel_free(c->io);
+        c->io = NULL;
+    }
+    
     pa_assert_se(pa_idxset_remove_by_data(c->protocol->connections, c, NULL) == c);
     c->protocol = NULL;
     connection_unref(c);
@@ -139,8 +144,6 @@ static void connection_free(pa_object *o) {
     if (c->playback.current_memblock)
         pa_memblock_unref(c->playback.current_memblock);
 
-    if (c->io)
-        pa_iochannel_free(c->io);
     if (c->input_memblockq)
         pa_memblockq_free(c->input_memblockq);
     if (c->output_memblockq)
@@ -155,7 +158,7 @@ static int do_read(connection *c) {
     size_t l;
     void *p;
 
-    pa_assert(c);
+    connection_assert_ref(c);
 
     if (!c->sink_input || (l = pa_atomic_load(&c->playback.missing)) <= 0)
         return 0;
@@ -205,7 +208,7 @@ static int do_write(connection *c) {
     ssize_t r;
     void *p;
 
-    pa_assert(c);
+    connection_assert_ref(c);
 
     if (!c->source_output)
         return 0;
@@ -239,7 +242,7 @@ static int do_write(connection *c) {
 }
 
 static void do_work(connection *c) {
-    pa_assert(c);
+    connection_assert_ref(c);
 
     if (c->dead)
         return;
@@ -287,7 +290,7 @@ static int connection_process_msg(pa_msgobject *o, int code, void*userdata, int6
             do_work(c);
             break;
 
-        case CONNECTION_MESSAGE_DROP_CONNECTION:
+        case CONNECTION_MESSAGE_UNLINK_CONNECTION:
             connection_unlink(c);
             break;
     }
@@ -340,12 +343,12 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
 /* Called from thread context */
 static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
-    connection*c;
+    connection *c;
     int r;
 
     pa_assert(i);
-    c = i->userdata;
-    pa_assert(c);
+    c = CONNECTION(i->userdata);
+    connection_assert_ref(c);
     pa_assert(chunk);
 
     r = pa_memblockq_peek(c->input_memblockq, chunk);
@@ -353,18 +356,19 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
 /*     pa_log("peeked %u %i", r >= 0 ? chunk->length: 0, r); */
 
     if (c->dead && r < 0)
-        pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_DROP_CONNECTION, NULL, 0, NULL, NULL);
+        pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
 
     return r;
 }
 
 /* Called from thread context */
 static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
-    connection*c = i->userdata;
+    connection *c;
     size_t old, new;
 
     pa_assert(i);
-    pa_assert(c);
+    c = CONNECTION(i->userdata);
+    connection_assert_ref(c);
     pa_assert(length);
 
     old = pa_memblockq_missing(c->input_memblockq);
@@ -391,7 +395,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     connection *c;
 
     pa_assert(o);
-    c = o->userdata;
+    c = CONNECTION(o->userdata);
     pa_assert(c);
     pa_assert(chunk);
 
@@ -433,8 +437,8 @@ static void client_kill_cb(pa_client *client) {
 static void io_callback(pa_iochannel*io, void *userdata) {
     connection *c = CONNECTION(userdata);
 
+    connection_assert_ref(c);
     pa_assert(io);
-    pa_assert(c);
 
     do_work(c);
 }
@@ -507,7 +511,6 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
                 (size_t) -1,
                 l/PLAYBACK_BUFFER_FRAGMENTS,
                 NULL);
-        pa_assert(c->input_memblockq);
         pa_iochannel_socket_set_rcvbuf(io, l/PLAYBACK_BUFFER_FRAGMENTS*5);
         c->playback.fragment_size = l/PLAYBACK_BUFFER_FRAGMENTS;
 
