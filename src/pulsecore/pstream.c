@@ -274,7 +274,7 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     return p;
 }
 
-static void item_free(void *item, PA_GCC_UNUSED void *p) {
+static void item_free(void *item, PA_GCC_UNUSED void *q) {
     struct item_info *i = item;
     pa_assert(i);
 
@@ -299,14 +299,14 @@ static void pstream_free(pa_pstream *p) {
     if (p->write.current)
         item_free(p->write.current, NULL);
 
+    if (p->write.memchunk.memblock)
+        pa_memblock_unref(p->write.memchunk.memblock);
+
     if (p->read.memblock)
         pa_memblock_unref(p->read.memblock);
 
     if (p->read.packet)
         pa_packet_unref(p->read.packet);
-
-    if (p->write.memchunk.memblock)
-        pa_memblock_unref(p->write.memchunk.memblock);
 
     pa_xfree(p);
 }
@@ -568,8 +568,13 @@ static int do_write(pa_pstream *p) {
 
     if (p->write.index >= PA_PSTREAM_DESCRIPTOR_SIZE + ntohl(p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH])) {
         pa_assert(p->write.current);
-        item_free(p->write.current, (void *) 1);
+        item_free(p->write.current, NULL);
         p->write.current = NULL;
+
+        if (p->write.memchunk.memblock)
+            pa_memblock_unref(p->write.memchunk.memblock);
+
+        pa_memchunk_reset(&p->write.memchunk);
 
         if (p->drain_callback && !pa_pstream_is_pending(p))
             p->drain_callback(p, p->drain_callback_userdata);
