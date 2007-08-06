@@ -321,8 +321,8 @@ static void upload_stream_unlink(upload_stream *s) {
         return;
 
     pa_assert_se(pa_idxset_remove_by_data(s->connection->output_streams, s, NULL) == s);
-    upload_stream_unref(s);
     s->connection = NULL;
+    upload_stream_unref(s);
 }
 
 static void upload_stream_free(pa_object *o) {
@@ -379,8 +379,8 @@ static void record_stream_unlink(record_stream *s) {
     }
 
     pa_assert_se(pa_idxset_remove_by_data(s->connection->record_streams, s, NULL) == s);
-    record_stream_unref(s);    
     s->connection = NULL;
+    record_stream_unref(s);    
 }
 
 static void record_stream_free(pa_object *o) {
@@ -496,8 +496,8 @@ static void playback_stream_unlink(playback_stream *s) {
         pa_pstream_send_error(s->connection->pstream, s->drain_tag, PA_ERR_NOENTITY);
 
     pa_assert_se(pa_idxset_remove_by_data(s->connection->output_streams, s, NULL) == s);
-    playback_stream_unref(s);    
     s->connection = NULL;
+    playback_stream_unref(s);    
 }
 
 static void playback_stream_free(pa_object* o) {
@@ -531,7 +531,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             pa_tagstruct_putu32(t, l);
             pa_pstream_send_tagstruct(s->connection->pstream, t);
 
-     /*     pa_log("Requesting %u bytes", l);  */
+/*             pa_log("Requesting %u bytes", l);    */
             break;
         }
 
@@ -729,15 +729,21 @@ static void connection_free(pa_object *o) {
 static void request_bytes(playback_stream *s) {
     size_t new_missing, delta, previous_missing;
 
+
+/*     pa_log("request_bytes()"); */
     playback_stream_assert_ref(s);
 
     new_missing = pa_memblockq_missing(s->memblockq);
-
-    if (new_missing <= s->last_missing)
+    
+    if (new_missing <= s->last_missing) {
+        s->last_missing = new_missing;
         return;
+    }
 
     delta = new_missing - s->last_missing;
     s->last_missing = new_missing;
+
+/*     pa_log("request_bytes(%u)", delta); */
 
     previous_missing = pa_atomic_add(&s->missing, delta);
     if (previous_missing < pa_memblockq_get_minreq(s->memblockq) && previous_missing+delta >= pa_memblockq_get_minreq(s->memblockq))
@@ -812,6 +818,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 
         case SINK_INPUT_MESSAGE_SEEK: 
             pa_memblockq_seek(s->memblockq, offset, PA_PTR_TO_UINT(userdata));
+            request_bytes(s);
             return 0;
 
         case SINK_INPUT_MESSAGE_POST_DATA: {
@@ -823,6 +830,8 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
                 pa_asyncmsgq_post(s->connection->protocol->core->asyncmsgq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_OVERFLOW, NULL, 0, NULL, NULL);
                 pa_memblockq_seek(s->memblockq, chunk->length, PA_SEEK_RELATIVE);
             }
+
+            request_bytes(s);
 
             s->underrun = 0;
             return 0;
@@ -838,6 +847,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
                 s->drain_tag = PA_PTR_TO_UINT(userdata);
                 s->drain_request = 1;
             }
+            request_bytes(s);
 
             return 0;
         }
@@ -891,6 +901,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
         case PA_SINK_INPUT_MESSAGE_SET_STATE:
 
             pa_memblockq_prebuf_force(s->memblockq);
+            request_bytes(s);
             break;
 
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
@@ -921,11 +932,13 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     }
 
     if (pa_memblockq_peek(s->memblockq, chunk) < 0) {
-/*         pa_log("peek: failure");    */
+/*         pa_log("peek: failure");     */
         return -1;
     }
 
-/*     pa_log("peek: %u", chunk->length);    */
+/*     pa_log("peek: %u", chunk->length);     */
+
+    request_bytes(s);
 
     return 0;
 }
@@ -1083,6 +1096,8 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     pa_tagstruct_putu32(reply, s->sink_input->index);
     pa_tagstruct_putu32(reply, missing);
 
+/*     pa_log("initial request is %u", missing); */
+    
     if (c->version >= 9) {
         /* Since 0.9 we support sending the buffer metrics back to the client */
 
@@ -2158,11 +2173,11 @@ static void command_trigger_or_flush_or_prebuf_playback_stream(PA_GCC_UNUSED pa_
             break;
             
         case PA_COMMAND_PREBUF_PLAYBACK_STREAM:
-            pa_asyncmsgq_send(s->sink_input->sink->asyncmsgq, PA_MSGOBJECT(s->sink_input), SINK_INPUT_MESSAGE_TRIGGER, NULL, 0, NULL);
+            pa_asyncmsgq_send(s->sink_input->sink->asyncmsgq, PA_MSGOBJECT(s->sink_input), SINK_INPUT_MESSAGE_PREBUF_FORCE, NULL, 0, NULL);
             break;
 
         case PA_COMMAND_TRIGGER_PLAYBACK_STREAM:
-            pa_asyncmsgq_send(s->sink_input->sink->asyncmsgq, PA_MSGOBJECT(s->sink_input), SINK_INPUT_MESSAGE_PREBUF_FORCE, NULL, 0, NULL);
+            pa_asyncmsgq_send(s->sink_input->sink->asyncmsgq, PA_MSGOBJECT(s->sink_input), SINK_INPUT_MESSAGE_TRIGGER, NULL, 0, NULL);
             break;
 
         default:
