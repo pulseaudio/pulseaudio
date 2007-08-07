@@ -117,6 +117,7 @@ static int pa_cli_command_move_source_output(pa_core *c, pa_tokenizer *t, pa_str
 static int pa_cli_command_vacuum(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_suspend_sink(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
+static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail);
 
 /* A method table for all available commands */
 
@@ -165,6 +166,7 @@ static const struct command commands[] = {
     { "vacuum",                  pa_cli_command_vacuum,             NULL, 1},
     { "suspend-sink",            pa_cli_command_suspend_sink,       "Suspend sink (args: index|name, bool)", 3},
     { "suspend-source",          pa_cli_command_suspend_source,     "Suspend source (args: index|name, bool)", 3},
+    { "suspend",                 pa_cli_command_suspend,            "Suspend all sinks and all sources (args: bool)", 2},
     { NULL, NULL, NULL, 0 }
 };
 
@@ -961,6 +963,32 @@ static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf 
     return 0;
 }
 
+static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail) {
+    const char *m;
+    pa_sink *sink;
+    pa_source *source;
+    int suspend;
+    uint32_t idx;
+
+    if (!(m = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a suspend switch setting (0/1).\n");
+        return -1;
+    }
+
+    if (pa_atoi(m, &suspend) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse suspend switch.\n");
+        return -1;
+    }
+
+    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx))
+        pa_sink_suspend(sink, suspend);
+
+    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx))
+        pa_source_suspend(source, suspend);
+    
+    return 0;
+}
+
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_GCC_UNUSED int *fail) {
     pa_module *m;
     pa_sink *sink;
@@ -982,7 +1010,6 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, PA_G
 #else
     pa_strbuf_printf(buf, "### Configuration dump generated at %s\n", ctime(&now));
 #endif
-
 
     for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx)) {
         if (m->auto_unload)
