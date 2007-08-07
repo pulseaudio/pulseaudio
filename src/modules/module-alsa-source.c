@@ -264,7 +264,7 @@ static int unsuspend(struct userdata *u) {
         pa_log_warn("Resume failed, couldn't get original access mode.");
         goto fail;
     }
-
+    
     if (!pa_sample_spec_equal(&ss, &u->source->sample_spec)) {
         pa_log_warn("Resume failed, couldn't restore original sample settings.");
         goto fail;
@@ -275,6 +275,11 @@ static int unsuspend(struct userdata *u) {
         goto fail;
     }
 
+    if ((err = pa_alsa_set_sw_params(u->pcm_handle)) < 0) {
+        pa_log("Failed to set software parameters: %s", snd_strerror(err));
+        goto fail;
+    }
+    
     snd_pcm_start(u->pcm_handle);
     
     /* FIXME: We need to reload the volume somehow */
@@ -565,8 +570,6 @@ static void thread_func(void *userdata) {
                     if (t < 0) {
                         pa_memblock_unref(chunk.memblock);
 
-                        pa_assert(t != -EPIPE);
-                        
                         if ((t = snd_pcm_recover(u->pcm_handle, t, 1)) == 0)
                             continue;
                         
