@@ -685,6 +685,7 @@ static void thread_func(void *userdata) {
 
                 goto fail;
             }
+/*             pa_log("got alsa event"); */
         } else
             revents = 0;
         
