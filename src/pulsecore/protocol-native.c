@@ -402,7 +402,7 @@ static int record_stream_process_msg(pa_msgobject *o, int code, void*userdata, i
         case RECORD_STREAM_MESSAGE_POST_DATA:
             
             if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
-                pa_log_warn("Failed to push data into output queue.");
+/*                 pa_log_warn("Failed to push data into output queue."); */
                 return -1;
             }
 
