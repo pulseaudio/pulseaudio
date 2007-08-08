@@ -377,6 +377,11 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm) {
         pa_log_warn("Unable to set stop threshold: %s\n", snd_strerror(err));
         return err;
     }
+
+    if ((err = snd_pcm_sw_params_set_start_threshold(pcm, swparams, (snd_pcm_uframes_t) -1)) < 0) {
+        pa_log_warn("Unable to set start threshold: %s\n", snd_strerror(err));
+        return err;
+    }
     
     if ((err = snd_pcm_sw_params(pcm, swparams)) < 0) {
         pa_log_warn("Unable to set sw params: %s\n", snd_strerror(err));

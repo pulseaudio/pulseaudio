@@ -96,6 +96,14 @@ struct userdata {
     int use_mmap;
 
     int first;
+
+    struct pollfd *pollfd;
+    int n_alsa_fds;
+};
+
+enum {
+    POLLFD_ASYNCQ,
+    POLLFD_ALSA_BASE
 };
 
 static const char* const valid_modargs[] = {
@@ -232,6 +240,31 @@ static pa_usec_t sink_get_latency(struct userdata *u) {
     return r;
 }
 
+static int build_pollfd(struct userdata *u) {
+    int err;
+    
+    pa_assert(u);
+    pa_assert(u->pcm_handle);
+
+    if ((u->n_alsa_fds = snd_pcm_poll_descriptors_count(u->pcm_handle)) < 0) {
+        pa_log("snd_pcm_poll_descriptors_count() failed: %s", snd_strerror(u->n_alsa_fds));
+        return -1;
+    }
+
+    pa_xfree(u->pollfd);
+    u->pollfd = pa_xnew0(struct pollfd, POLLFD_ALSA_BASE + u->n_alsa_fds);
+
+    u->pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
+    u->pollfd[POLLFD_ASYNCQ].events = POLLIN;
+
+    if ((err = snd_pcm_poll_descriptors(u->pcm_handle, u->pollfd+POLLFD_ALSA_BASE, u->n_alsa_fds)) < 0) {
+        pa_log("snd_pcm_poll_descriptors() failed: %s", snd_strerror(err));
+        return -1;
+    }
+    
+    return 0;
+}
+
 static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->pcm_handle);
@@ -287,6 +320,14 @@ static int unsuspend(struct userdata *u) {
         goto fail;
     }
 
+    if ((err = pa_alsa_set_sw_params(u->pcm_handle)) < 0) {
+        pa_log("Failed to set software parameters: %s", snd_strerror(err));
+        goto fail;
+    }
+
+    if (build_pollfd(u) < 0)
+        goto fail;
+    
     /* FIXME: We need to reload the volume somehow */
     
     u->first = 1;
@@ -474,36 +515,19 @@ static int sink_set_mute_cb(pa_sink *s) {
 }
 
 static void thread_func(void *userdata) {
-    enum {
-        POLLFD_ASYNCQ,
-        POLLFD_ALSA_BASE
-    };
 
     struct userdata *u = userdata;
-    struct pollfd *pollfd = NULL;
-    int n_alsa_fds, err;
     unsigned short revents = 0;
     snd_pcm_status_t *status;
-
+    int err;
+    
     pa_assert(u);
     snd_pcm_status_alloca(&status);
 
     pa_log_debug("Thread starting up");
 
-    if ((n_alsa_fds = snd_pcm_poll_descriptors_count(u->pcm_handle)) < 0) {
-        pa_log("snd_pcm_poll_descriptors_count() failed: %s", snd_strerror(n_alsa_fds));
+    if (build_pollfd(u) < 0)
         goto fail;
-    }
-
-    pollfd = pa_xnew0(struct pollfd, POLLFD_ALSA_BASE + n_alsa_fds);
-
-    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
-    pollfd[POLLFD_ASYNCQ].events = POLLIN;
-
-    if ((err = snd_pcm_poll_descriptors(u->pcm_handle, pollfd+POLLFD_ALSA_BASE, n_alsa_fds)) < 0) {
-        pa_log("snd_pcm_poll_descriptors() failed: %s", snd_strerror(err));
-        goto fail;
-    }
 
     for (;;) {
         pa_msgobject *object;
@@ -513,13 +537,13 @@ static void thread_func(void *userdata) {
         int64_t offset;
         int r;
 
-/*         pa_log("loop");     */
+/*         pa_log("loop");      */
         
         /* Check whether there is a message for us to process */
         if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
 
-/*             pa_log("processing msg"); */
+/*             pa_log("processing msg");  */
 
             if (!object && code == PA_MESSAGE_SHUTDOWN) {
                 pa_asyncmsgq_done(u->asyncmsgq, 0);
@@ -545,6 +569,7 @@ static void thread_func(void *userdata) {
                     goto fail;
 
             } else {
+                
                 for (;;) {
                     void *p;
                     snd_pcm_sframes_t t;
@@ -560,6 +585,8 @@ static void thread_func(void *userdata) {
                     
                     l = snd_pcm_status_get_avail(status) * u->frame_size;
 
+/*                     pa_log("%u bytes to write", l); */
+                    
                     if (l <= 0)
                         break;
                     
@@ -578,8 +605,6 @@ static void thread_func(void *userdata) {
                     
                     if (t < 0) {
 
-                        pa_assert(t != -EPIPE);
-                        
                         if ((t = snd_pcm_recover(u->pcm_handle, t, 1)) == 0)
                             continue;
                         
@@ -625,16 +650,15 @@ static void thread_func(void *userdata) {
         if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
             continue;
 
-/*         pa_log("polling for %i", POLLFD_ALSA_BASE + (PA_SINK_OPENED(u->sink->thread_info.state) ? n_alsa_fds : 0));   */
-        r = poll(pollfd, POLLFD_ALSA_BASE + (PA_SINK_OPENED(u->sink->thread_info.state) ? n_alsa_fds : 0), -1);
-        /*pa_log("polling got dsp=%i amq=%i (%i)", r > 0 ? pollfd[POLLFD_DSP].revents : 0, r > 0 ? pollfd[POLLFD_ASYNCQ].revents : 0, r); */
+/*         pa_log("polling for %i", POLLFD_ALSA_BASE + (PA_SINK_OPENED(u->sink->thread_info.state) ? u->n_alsa_fds : 0));    */
+        r = poll(u->pollfd, POLLFD_ALSA_BASE + (PA_SINK_OPENED(u->sink->thread_info.state) ? u->n_alsa_fds : 0), -1);
 /*         pa_log("poll end"); */
 
         pa_asyncmsgq_after_poll(u->asyncmsgq);
 
         if (r < 0) {
             if (errno == EINTR) {
-                pollfd[POLLFD_ASYNCQ].revents = 0;
+                u->pollfd[POLLFD_ASYNCQ].revents = 0;
                 revents = 0;
                 continue;
             }
@@ -646,16 +670,25 @@ static void thread_func(void *userdata) {
         pa_assert(r > 0);
 
         if (PA_SINK_OPENED(u->sink->thread_info.state)) {
-            if ((err = snd_pcm_poll_descriptors_revents(u->pcm_handle, pollfd + POLLFD_ALSA_BASE, n_alsa_fds, &revents)) < 0) {
+            if ((err = snd_pcm_poll_descriptors_revents(u->pcm_handle, u->pollfd + POLLFD_ALSA_BASE, u->n_alsa_fds, &revents)) < 0) {
                 pa_log("snd_pcm_poll_descriptors_revents() failed: %s", snd_strerror(err));
                 goto fail;
             }
 
-/*             pa_log("got alsa event"); */
+            if (revents & (POLLERR|POLLNVAL|POLLHUP)) {
+                if (revents & POLLERR)
+                    pa_log_warn("Got POLLERR from ALSA");
+                if (revents & POLLNVAL)
+                    pa_log_warn("Got POLLNVAL from ALSA"); 
+                if (revents & POLLHUP)
+                    pa_log_warn("Got POLLHUP from ALSA");
+
+                goto fail;
+            }
         } else
             revents = 0;
         
-        pa_assert((pollfd[POLLFD_ASYNCQ].revents & ~POLLIN) == 0);
+        pa_assert((u->pollfd[POLLFD_ASYNCQ].revents & ~POLLIN) == 0);
     }
 
 fail:
@@ -666,8 +699,6 @@ fail:
 
 finish:
     pa_log_debug("Thread shutting down");
-
-    pa_xfree(pollfd);
 }
 
 int pa__init(pa_core *c, pa_module*m) {
@@ -727,6 +758,8 @@ int pa__init(pa_core *c, pa_module*m) {
     m->userdata = u;
     u->use_mmap = use_mmap;
     u->first = 1;
+    u->n_alsa_fds = 0;
+    u->pollfd = NULL;
     pa_assert_se(u->asyncmsgq = pa_asyncmsgq_new(0));
 
     snd_config_update_free_global();
@@ -922,7 +955,8 @@ void pa__done(pa_core *c, pa_module*m) {
         snd_pcm_drop(u->pcm_handle);
         snd_pcm_close(u->pcm_handle);
     }
-    
+
+    pa_xfree(u->pollfd);
     pa_xfree(u->device_name);
     pa_xfree(u);
     
