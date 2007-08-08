@@ -293,7 +293,7 @@ static int do_read(pa_ioline *l) {
 
         /* Read some data */
         if ((r = pa_iochannel_read(l->io, l->rbuf+l->rbuf_index+l->rbuf_valid_length, len)) <= 0) {
-            if (r < 0) {
+            if (r < 0 && errno != ECONNRESET) {
                 pa_log("read(): %s", pa_cstrerror(errno));
                 failure(l, 0);
             } else
@@ -318,9 +318,13 @@ static int do_write(pa_ioline *l) {
 
     while (!l->dead && pa_iochannel_is_writable(l->io) && l->wbuf_valid_length) {
 
-        if ((r = pa_iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) < 0) {
-            pa_log("write(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+        if ((r = pa_iochannel_write(l->io, l->wbuf+l->wbuf_index, l->wbuf_valid_length)) <= 0) {
+
+            if (r < 0 && errno != EPIPE)
+                pa_log("write(): %s", pa_cstrerror(errno));
+
             failure(l, 0);
+            
             return -1;
         }
 
