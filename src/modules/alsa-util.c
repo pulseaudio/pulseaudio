@@ -324,7 +324,7 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         goto finish;
 
     if (ss->rate != r) {
-        pa_log_warn("device doesn't support %u Hz, changed to %u Hz.", ss->rate, r);
+        pa_log_warn("Device %s doesn't support %u Hz, changed to %u Hz.", snd_pcm_name(pcm_handle), ss->rate, r);
 
         /* If the sample rate deviates too much, we need to resample */
         if (r < ss->rate*.95 || r > ss->rate*1.05)
@@ -332,12 +332,12 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     }
 
     if (ss->channels != c) {
-        pa_log_warn("device doesn't support %u channels, changed to %u.", ss->channels, c);
+        pa_log_warn("Device %s doesn't support %u channels, changed to %u.", snd_pcm_name(pcm_handle), ss->channels, c);
         ss->channels = c;
     }
 
     if (ss->format != f) {
-        pa_log_warn("device doesn't support sample format %s, changed to %s.", pa_sample_format_to_string(ss->format), pa_sample_format_to_string(f));
+        pa_log_warn("Device %s doesn't support sample format %s, changed to %s.", snd_pcm_name(pcm_handle), pa_sample_format_to_string(ss->format), pa_sample_format_to_string(f));
         ss->format = f;
     }
 
