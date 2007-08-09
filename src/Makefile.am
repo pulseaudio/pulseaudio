@@ -924,7 +924,8 @@ endif
 if HAVE_X11
 modlibexec_LTLIBRARIES += \
 		module-x11-bell.la \
-		module-x11-publish.la
+		module-x11-publish.la \
+		module-x11-xsmp.la
 endif
 
 if HAVE_OSS
@@ -1016,6 +1017,7 @@ SYMDEF_FILES = \
 		modules/module-http-protocol-unix-symdef.h \
 		modules/module-x11-bell-symdef.h \
 		modules/module-x11-publish-symdef.h \
+		modules/module-x11-xsmp-symdef.h \
 		modules/module-oss-symdef.h \
 		modules/module-alsa-sink-symdef.h \
 		modules/module-alsa-source-symdef.h \
@@ -1172,6 +1174,11 @@ module_x11_publish_la_SOURCES = modules/module-x11-publish.c
 module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
 module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauthkey-prop.la libx11prop.la libstrlist.la libpulsecore.la
+
+module_x11_xsmp_la_SOURCES = modules/module-x11-xsmp.c
+module_x11_xsmp_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+module_x11_xsmp_la_LDFLAGS = -module -avoid-version
+module_x11_xsmp_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libpulsecore.la
 
 # OSS
 
