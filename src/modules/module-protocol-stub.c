@@ -154,7 +154,6 @@
   #define protocol_free pa_protocol_esound_free
   #define TCPWRAP_SERVICE "esound"
   #define IPV4_PORT ESD_DEFAULT_PORT
-  #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
   #define MODULE_ARGUMENTS_COMMON "sink", "source", "auth-anonymous", "cookie",
   #ifdef USE_TCP_SOCKETS
     #include "module-esound-protocol-tcp-symdef.h"
@@ -219,6 +218,10 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_socket_server *s;
     int r;
     char tmp[PATH_MAX];
+
+#if defined(USE_PROTOCOL_ESOUND)
+    char tmp2[PATH_MAX];
+#endif
 #endif
 
     assert(c && m);
@@ -262,11 +265,12 @@ int pa__init(pa_core *c, pa_module*m) {
 
 #else
 
-    pa_runtime_path(pa_modargs_get_value(ma, "socket", UNIX_SOCKET), tmp, sizeof(tmp));
-    u->socket_path = pa_xstrdup(tmp);
-
 #if defined(USE_PROTOCOL_ESOUND)
 
+    snprintf(tmp2, sizeof(tmp2), "/tmp/.esd-%lu/socket", (unsigned long) getuid());
+    pa_runtime_path(pa_modargs_get_value(ma, "socket", tmp2), tmp, sizeof(tmp));
+    u->socket_path = pa_xstrdup(tmp);
+    
     /* This socket doesn't reside in our own runtime dir but in
      * /tmp/.esd/, hence we have to create the dir first */
 
@@ -274,6 +278,10 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("Failed to create socket directory '%s': %s\n", u->socket_path, pa_cstrerror(errno));
         goto fail;
     }
+
+#else
+    pa_runtime_path(pa_modargs_get_value(ma, "socket", UNIX_SOCKET), tmp, sizeof(tmp));
+    u->socket_path = pa_xstrdup(tmp);
 #endif
 
     if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
