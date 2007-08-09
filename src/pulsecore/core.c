@@ -164,10 +164,22 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
 
     c->is_system_instance = 0;
 
-    pa_hook_init(&c->hook_sink_input_new, c);
+    pa_hook_init(&c->hook_sink_new, c);
+    pa_hook_init(&c->hook_sink_new_post, c);
     pa_hook_init(&c->hook_sink_disconnect, c);
-    pa_hook_init(&c->hook_source_output_new, c);
+    pa_hook_init(&c->hook_sink_disconnect_post, c);
+    pa_hook_init(&c->hook_source_new, c);
+    pa_hook_init(&c->hook_source_new_post, c);
     pa_hook_init(&c->hook_source_disconnect, c);
+    pa_hook_init(&c->hook_source_disconnect_post, c);
+    pa_hook_init(&c->hook_sink_input_new, c);
+    pa_hook_init(&c->hook_sink_input_new_post, c);
+    pa_hook_init(&c->hook_sink_input_disconnect, c);
+    pa_hook_init(&c->hook_sink_input_disconnect_post, c);
+    pa_hook_init(&c->hook_source_output_new, c);
+    pa_hook_init(&c->hook_source_output_new_post, c);
+    pa_hook_init(&c->hook_source_output_disconnect, c);
+    pa_hook_init(&c->hook_source_output_disconnect_post, c);
 
     pa_property_init(c);
 
@@ -226,10 +238,22 @@ static void core_free(pa_object *o) {
 
     c->mainloop->io_free(c->asyncmsgq_event);
 
-    pa_hook_free(&c->hook_sink_input_new);
+    pa_hook_free(&c->hook_sink_new);
+    pa_hook_free(&c->hook_sink_new_post);
     pa_hook_free(&c->hook_sink_disconnect);
-    pa_hook_free(&c->hook_source_output_new);
+    pa_hook_free(&c->hook_sink_disconnect_post);
+    pa_hook_free(&c->hook_source_new);
+    pa_hook_free(&c->hook_source_new_post);
     pa_hook_free(&c->hook_source_disconnect);
+    pa_hook_free(&c->hook_source_disconnect_post);
+    pa_hook_free(&c->hook_sink_input_new);
+    pa_hook_free(&c->hook_sink_input_new_post);
+    pa_hook_free(&c->hook_sink_input_disconnect);
+    pa_hook_free(&c->hook_sink_input_disconnect_post);
+    pa_hook_free(&c->hook_source_output_new);
+    pa_hook_free(&c->hook_source_output_new_post);
+    pa_hook_free(&c->hook_source_output_disconnect);
+    pa_hook_free(&c->hook_source_output_disconnect_post);
 
     pa_xfree(c);
 }

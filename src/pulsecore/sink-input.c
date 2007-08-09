@@ -249,6 +249,8 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
     pa_assert(i);
     pa_return_if_fail(i->state != PA_SINK_INPUT_DISCONNECTED);
 
+    pa_hook_fire(&i->sink->core->hook_sink_input_disconnect, i);
+    
     if (i->sync_prev)
         i->sync_prev->sync_next = i->sync_next;
     if (i->sync_next)
@@ -265,12 +267,14 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
     sink_input_set_state(i, PA_SINK_INPUT_DISCONNECTED);
     pa_sink_update_status(i->sink);
     
-    i->sink = NULL;
     i->peek = NULL;
     i->drop = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
     i->underrun = NULL;
+
+    pa_hook_fire(&i->sink->core->hook_sink_input_disconnect_post, i);
+    i->sink = NULL;
     pa_sink_input_unref(i);
 }
 
@@ -309,6 +313,7 @@ void pa_sink_input_put(pa_sink_input *i) {
     pa_sink_update_status(i->sink);
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
+    pa_hook_fire(&i->sink->core->hook_sink_input_new_post, i);
 }
 
 void pa_sink_input_kill(pa_sink_input*i) {

@@ -187,21 +187,26 @@ void pa_source_output_disconnect(pa_source_output*o) {
     pa_assert(o);
     pa_return_if_fail(o->state != PA_SOURCE_OUTPUT_DISCONNECTED);
 
+    pa_hook_fire(&o->source->core->hook_source_output_disconnect, o);
+    
     pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
 
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
     pa_idxset_remove_by_data(o->source->outputs, o, NULL);
-    pa_source_output_unref(o);
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
 
     source_output_set_state(o, PA_SOURCE_OUTPUT_DISCONNECTED);
     pa_source_update_status(o->source);
 
-    o->source = NULL;
     o->push = NULL;
     o->kill = NULL;
     o->get_latency = NULL;
+
+    pa_hook_fire(&o->source->core->hook_source_output_disconnect_post, o);
+
+    o->source = NULL;
+    pa_source_output_unref(o);
 }
 
 static void source_output_free(pa_object* mo) {
@@ -229,6 +234,8 @@ void pa_source_output_put(pa_source_output *o) {
     pa_source_update_status(o->source);
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
+
+    pa_hook_fire(&o->source->core->hook_source_output_new_post, o);
 }
 
 void pa_source_output_kill(pa_source_output*o) {

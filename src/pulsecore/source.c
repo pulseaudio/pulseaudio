@@ -73,6 +73,9 @@ pa_source* pa_source_new(
     pa_return_null_if_fail(!driver || pa_utf8_valid(driver));
     pa_return_null_if_fail(pa_utf8_valid(name) && *name);
 
+    if (pa_hook_fire(&core->hook_sink_new, NULL) < 0) /* FIXME */
+        return NULL;
+    
     s = pa_msgobject_new(pa_source);
 
     if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SOURCE, s, fail))) {
@@ -125,6 +128,8 @@ pa_source* pa_source_new(
 
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
 
+    pa_hook_fire(&core->hook_source_new_post, s);
+    
     return s;
 }
 
@@ -153,10 +158,10 @@ void pa_source_disconnect(pa_source *s) {
     pa_assert(s);
     pa_return_if_fail(s->state != PA_SOURCE_DISCONNECTED);
 
+    pa_hook_fire(&s->core->hook_source_disconnect, s);
+
     pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sources, s, NULL);
-
-    pa_hook_fire(&s->core->hook_source_disconnect, s);
 
     while ((o = pa_idxset_first(s->outputs, NULL))) {
         pa_assert(o != j);
@@ -174,6 +179,8 @@ void pa_source_disconnect(pa_source *s) {
     s->set_state = NULL;
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
+
+    pa_hook_fire(&s->core->hook_source_disconnect_post, s);
 }
 
 static void source_free(pa_object *o) {

@@ -88,10 +88,22 @@ struct pa_core {
 
     /* hooks */
     pa_hook
-        hook_sink_input_new,
+        hook_sink_new,
+        hook_sink_new_post,
         hook_sink_disconnect,
+        hook_sink_disconnect_post,
+        hook_source_new,
+        hook_source_new_post,
+        hook_source_disconnect,
+        hook_source_disconnect_post,
+        hook_sink_input_new,
+        hook_sink_input_new_post,
+        hook_sink_input_disconnect,
+        hook_sink_input_disconnect_post,
         hook_source_output_new,
-        hook_source_disconnect;
+        hook_source_output_new_post,
+        hook_source_output_disconnect,
+        hook_source_output_disconnect_post;
 
     pa_asyncmsgq *asyncmsgq;
     pa_io_event *asyncmsgq_event;
