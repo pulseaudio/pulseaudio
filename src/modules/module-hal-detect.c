@@ -44,6 +44,8 @@
 #include <pulsecore/hashmap.h>
 #include <pulsecore/idxset.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/namereg.h>
+#include <pulsecore/core-scache.h>
 
 #include <hal/libhal.h>
 
@@ -57,6 +59,7 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 struct device {
     uint32_t index;
     char *udi;
+    char *sink_name, *source_name;
 };
 
 struct userdata {
@@ -79,6 +82,8 @@ static void hal_device_free(struct device* d) {
     pa_assert(d);
     
     pa_xfree(d->udi);
+    pa_xfree(d->sink_name);
+    pa_xfree(d->source_name);
     pa_xfree(d);
 }
 
@@ -136,15 +141,22 @@ static int hal_alsa_device_is_modem(LibHalContext *context, const char *udi, DBu
     return r;
 }
 
-static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi) {
+static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi, char **sink_name, char **source_name) {
     char args[128];
     alsa_type_t type;
     int device, card;
     const char *module_name;
     DBusError error;
+    pa_module *m;
     
     dbus_error_init(&error);
 
+    pa_assert(u);
+    pa_assert(sink_name);
+    pa_assert(source_name);
+
+    *sink_name = *source_name = NULL;
+    
     type = hal_alsa_device_get_type(u->context, udi, &error);
     if (dbus_error_is_set(&error) || type == ALSA_TYPE_OTHER)
         goto fail;
@@ -161,16 +173,28 @@ static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi) {
         goto fail;
 
     if (type == ALSA_TYPE_SINK) {
+        *sink_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
+        
         module_name = "module-alsa-sink";
-        pa_snprintf(args, sizeof(args), "device=hw:%u sink_name=alsa_output.%s", card, strip_udi(udi));
+        pa_snprintf(args, sizeof(args), "device=hw:%u sink_name=%s", card, *sink_name);
     } else {
+        *source_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
+        
         module_name = "module-alsa-source";
-        pa_snprintf(args, sizeof(args), "device=hw:%u source_name=alsa_input.%s", card, strip_udi(udi));
+        pa_snprintf(args, sizeof(args), "device=hw:%u source_name=%s", card, *source_name);
     }
 
     pa_log_debug("Loading %s with arguments '%s'", module_name, args);
 
-    return pa_module_load(u->core, module_name, args);
+    m = pa_module_load(u->core, module_name, args);
+
+    if (!m) {
+        pa_xfree(*sink_name);
+        pa_xfree(*source_name);
+        *sink_name = *source_name = NULL;
+    }
+    
+    return m;
 
 fail:
     if (dbus_error_is_set(&error)) {
@@ -219,12 +243,19 @@ finish:
     return r;
 }
 
-static pa_module* hal_device_load_oss(struct userdata *u, const char *udi) {
+static pa_module* hal_device_load_oss(struct userdata *u, const char *udi, char **sink_name, char **source_name) {
     char args[256];
     char* device;
     DBusError error;
+    pa_module *m;
     
     dbus_error_init(&error);
+
+    pa_assert(u);
+    pa_assert(sink_name);
+    pa_assert(source_name);
+
+    *sink_name = *source_name = NULL;
 
     if (!hal_oss_device_is_pcm(u->context, udi, &error) || dbus_error_is_set(&error))
         goto fail;
@@ -233,12 +264,23 @@ static pa_module* hal_device_load_oss(struct userdata *u, const char *udi) {
     if (!device || dbus_error_is_set(&error))
         goto fail;
 
-    pa_snprintf(args, sizeof(args), "device=%s sink_name=oss_output.%s source_name=oss_input.%s", device, strip_udi(udi), strip_udi(udi));
+    *sink_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
+    *source_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
+    
+    pa_snprintf(args, sizeof(args), "device=%s sink_name=%s source_name=%s", device, sink_name, source_name);
     libhal_free_string(device);
 
     pa_log_debug("Loading module-oss with arguments '%s'", args);
 
-    return pa_module_load(u->core, "module-oss", args);
+    m = pa_module_load(u->core, "module-oss", args);
+
+    if (!m) {
+        pa_xfree(*sink_name);
+        pa_xfree(*source_name);
+        *sink_name = *source_name = NULL;
+    }
+
+    return m;
 
 fail:
     if (dbus_error_is_set(&error)) {
@@ -250,31 +292,34 @@ fail:
 }
 #endif
 
-static int hal_device_add(struct userdata *u, const char *udi) {
+static struct device* hal_device_add(struct userdata *u, const char *udi) {
     pa_module* m = NULL;
     struct device *d;
+    char *sink_name = NULL, *source_name = NULL;
 
     pa_assert(u);
     pa_assert(u->capability);
 
 #ifdef HAVE_ALSA
     if (strcmp(u->capability, CAPABILITY_ALSA) == 0)
-        m = hal_device_load_alsa(u, udi);
+        m = hal_device_load_alsa(u, udi, &sink_name, &source_name);
 #endif
 #ifdef HAVE_OSS
     if (strcmp(u->capability, CAPABILITY_OSS) == 0)
-        m = hal_device_load_oss(u, udi);
+        m = hal_device_load_oss(u, udi, &sink_name, &source_name);
 #endif
 
     if (!m)
-        return -1;
+        return NULL;
 
     d = pa_xnew(struct device, 1);
     d->udi = pa_xstrdup(udi);
     d->index = m->index;
+    d->sink_name = sink_name;
+    d->source_name = source_name;
     pa_hashmap_put(u->devices, d->udi, d);
 
-    return 0;
+    return d;
 }
 
 static int hal_device_add_all(struct userdata *u, const char *capability) {
@@ -300,10 +345,15 @@ static int hal_device_add_all(struct userdata *u, const char *capability) {
         u->capability = capability;
         
         for (i = 0; i < n; i++) {
-            if (hal_device_add(u, udis[i]) < 0)
+            struct device *d;
+            
+            if (!(d = hal_device_add(u, udis[i])))
                 pa_log_debug("Not loaded device %s", udis[i]);
-            else
+            else {
+                if (d->sink_name)
+                    pa_scache_play_item_by_name(u->core, "pulse-coldplug", d->sink_name, PA_VOLUME_NORM, 0);
                 count++;
+            }
         }
     }
 
@@ -325,6 +375,7 @@ static void device_added_time_cb(pa_mainloop_api *ea, pa_time_event *ev, const s
     DBusError error;
     struct timerdata *td = userdata;
     int b;
+    struct device *d;
 
     dbus_error_init(&error);
     
@@ -333,8 +384,14 @@ static void device_added_time_cb(pa_mainloop_api *ea, pa_time_event *ev, const s
     if (dbus_error_is_set(&error)) {
         pa_log_error("Error adding device: %s: %s", error.name, error.message);
         dbus_error_free(&error);
-    } else if (b)
-        hal_device_add(td->u, td->udi);
+    } else if (b) {
+        if (!(d = hal_device_add(td->u, td->udi))) 
+            pa_log_debug("Not loaded device %s", td->udi);
+        else {
+            if (d->sink_name)
+                pa_scache_play_item_by_name(td->u->core, "pulse-hotplug", d->sink_name, PA_VOLUME_NORM, 0);
+        }
+    }
 
     pa_xfree(td->udi);
     pa_xfree(td);
@@ -446,6 +503,66 @@ static void lost_capability_cb(LibHalContext *context, const char *udi, const ch
         device_removed_cb(context, udi);
 }
 
+
+static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, void *userdata) {
+    struct userdata*u = userdata;
+    DBusError error;
+
+    pa_assert(bus);
+    pa_assert(message);
+    pa_assert(u);
+    
+    dbus_error_init(&error);
+
+    pa_log_debug("dbus: interface=%s, path=%s, member=%s\n",
+                 dbus_message_get_interface(message),
+                 dbus_message_get_path(message),
+                 dbus_message_get_member(message));
+
+    if (dbus_message_is_signal(message, "org.freedesktop.Hal.Device.AccessControl", "ACLAdded") ||
+        dbus_message_is_signal(message, "org.freedesktop.Hal.Device.AccessControl", "ACLRemoved")) {
+        uint32_t uid;
+        int suspend = strcmp(dbus_message_get_member(message), "ACLRemoved") == 0;
+        
+        if (!dbus_message_get_args(message, &error, DBUS_TYPE_UINT32, &uid, DBUS_TYPE_INVALID) || dbus_error_is_set(&error)) {
+            pa_log_error("Failed to parse ACL message: %s: %s", error.name, error.message);
+            goto finish;
+        }
+
+        if (uid == getuid() || uid == geteuid()) {
+            struct device *d;
+            const char *udi;
+
+            udi = dbus_message_get_path(message);
+            
+            if ((d = pa_hashmap_get(u->devices, udi))) {
+                
+                if (d->sink_name) {
+                    pa_sink *sink;
+                    
+                    if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK, 0)))
+                        if (pa_sink_suspend(sink, suspend) >= 0)
+                            pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, PA_VOLUME_NORM, 0);
+                }
+
+                if (d->source_name) {
+                    pa_source *source;
+
+                    if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE, 0)))
+                        pa_source_suspend(source, suspend);
+                }
+            }
+
+        }
+        
+    }
+
+finish:
+    dbus_error_free(&error);
+        
+    return DBUS_HANDLER_RESULT_HANDLED;
+}
+
 static void hal_context_free(LibHalContext* hal_context) {
     DBusError error;
 
@@ -454,8 +571,7 @@ static void hal_context_free(LibHalContext* hal_context) {
     libhal_ctx_shutdown(hal_context, &error);
     libhal_ctx_free(hal_context);
 
-    if (dbus_error_is_set(&error))
-        dbus_error_free(&error);
+    dbus_error_free(&error);
 }
 
 static LibHalContext* hal_context_new(pa_core* c, DBusConnection *conn) {
@@ -485,8 +601,7 @@ fail:
     if (hal_context)
         hal_context_free(hal_context);
 
-    if (dbus_error_is_set(&error))
-        dbus_error_free(&error);
+    dbus_error_free(&error);
 
     return NULL;
 }
@@ -503,16 +618,17 @@ int pa__init(pa_core *c, pa_module*m) {
 
     dbus_error_init(&error);
     
-    if (!(conn = pa_dbus_bus_get(c, DBUS_BUS_SYSTEM, &error))) {
+    if (!(conn = pa_dbus_bus_get(c, DBUS_BUS_SYSTEM, &error)) || dbus_error_is_set(&error)) {
+        if (conn)
+            pa_dbus_connection_unref(conn);
         pa_log_error("Unable to contact DBUS system bus: %s: %s", error.name, error.message);
-        dbus_error_free(&error);
-        return -1;
+        goto fail;
     }
 
     if (!(hal_context = hal_context_new(c, pa_dbus_connection_get(conn)))) {
         /* pa_hal_context_new() logs appropriate errors */
         pa_dbus_connection_unref(conn);
-        return -1;
+        goto fail;
     }
 
     u = pa_xnew(struct userdata, 1);
@@ -539,18 +655,30 @@ int pa__init(pa_core *c, pa_module*m) {
     libhal_ctx_set_device_new_capability(hal_context, new_capability_cb);
     libhal_ctx_set_device_lost_capability(hal_context, lost_capability_cb);
 
-    dbus_error_init(&error);
-    
     if (!libhal_device_property_watch_all(hal_context, &error)) {
         pa_log_error("Error monitoring device list: %s: %s", error.name, error.message);
-        dbus_error_free(&error);
-        pa__done(c, m);
-        return -1;
+        goto fail;
     }
 
+    if (!dbus_connection_add_filter(pa_dbus_connection_get(conn), filter_cb, u, NULL)) {
+        pa_log_error("Failed to add filter function");
+        goto fail;
+    }
+
+    dbus_bus_add_match(pa_dbus_connection_get(conn), "type='signal',sender='org.freedesktop.Hal', interface='org.freedesktop.Hal.Device.AccessControl'", &error);
+    if (dbus_error_is_set(&error)) {
+        pa_log_error("Unable to subscribe to HAL ACL signals: %s: %s", error.name, error.message);
+        goto fail;
+    }
+    
     pa_log_info("Loaded %i modules.", n);
 
     return 0;
+
+fail:
+    dbus_error_free(&error);
+    pa__done(c, m);
+    return -1;
 }
 
 
