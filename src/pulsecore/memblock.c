@@ -743,7 +743,7 @@ pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void
     pa_assert(cb);
 
     i = pa_xnew(pa_memimport, 1);
-    i->mutex = pa_mutex_new(0);
+    i->mutex = pa_mutex_new(1);
     i->pool = p;
     i->segments = pa_hashmap_new(NULL, NULL);
     i->blocks = pa_hashmap_new(NULL, NULL);
