@@ -21,7 +21,7 @@
 ### Load something into the sample cache
 load-sample-lazy x11-bell /usr/share/sounds/gtk-events/activate.wav
 load-sample-lazy pulse-hotplug /usr/share/sounds/email.wav
-load-sample-lazy pulse-coldplug /usr/share/sounds/login.wav
+load-sample-lazy pulse-coldplug /usr/share/sounds/startup3.wav
 load-sample-lazy pulse-access /usr/share/sounds/generic.wav
 
 .fail
