@@ -325,8 +325,10 @@ static int unsuspend(struct userdata *u) {
     return 0;
 
 fail:
-    snd_pcm_close(u->pcm_handle);
-    u->pcm_handle = NULL;
+    if (u->pcm_handle) {
+        snd_pcm_close(u->pcm_handle);
+        u->pcm_handle = NULL;
+    }
 
     return -1;
 }
