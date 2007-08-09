@@ -574,6 +574,7 @@ static void cleanup_defer_events(pa_mainloop *m, int force) {
             }
 
             if (!e->dead && e->enabled) {
+                e->enabled = 0;
                 assert(m->n_enabled_defer_events > 0);
                 m->n_enabled_defer_events--;
             }
