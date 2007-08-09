@@ -551,7 +551,9 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE, 0)))
                         pa_source_suspend(source, suspend);
                 }
-            }
+                
+            } else if (!suspend)
+                hal_device_add(u, udi);
 
         }
         
@@ -643,7 +645,7 @@ int pa__init(pa_core *c, pa_module*m) {
     n = hal_device_add_all(u, CAPABILITY_ALSA);
 #endif
 #if defined(HAVE_ALSA) && defined(HAVE_OSS)
-    if (n <= 0)
+    if (!u->capability)
 #endif        
 #ifdef HAVE_OSS
         n += hal_device_add_all(u, CAPABILITY_OSS);
