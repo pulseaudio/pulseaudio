@@ -304,6 +304,19 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
     return 0;
 }
 
+int pa_scache_play_item_by_name(pa_core *c, const char *name, const char*sink_name, pa_volume_t volume, int autoload) {
+    pa_sink *sink;
+    
+    pa_assert(c);
+    pa_assert(name);
+
+    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, autoload)))
+        return -1;
+
+    return pa_scache_play_item(c, name, sink, volume);
+}
+
+
 const char * pa_scache_get_name_by_id(pa_core *c, uint32_t id) {
     pa_scache_entry *e;
     assert(c && id != PA_IDXSET_INVALID);
