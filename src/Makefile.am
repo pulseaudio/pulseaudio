@@ -877,6 +877,7 @@ modlibexec_LTLIBRARIES += \
 		module-detect.la \
 		module-volume-restore.la \
 		module-rescue-streams.la \
+		module-suspend-on-idle.la \
 		module-http-protocol-tcp.la \
 		module-sine.la \
 		module-native-protocol-tcp.la \
@@ -1027,6 +1028,7 @@ SYMDEF_FILES = \
 		modules/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
 		modules/module-rescue-streams-symdef.h \
+		modules/module-suspend-on-idle-symdef.h \
 		modules/module-hal-detect-symdef.h \
 		modules/gconf/module-gconf-symdef.h
 
@@ -1249,6 +1251,12 @@ module_rescue_streams_la_SOURCES = modules/module-rescue-streams.c
 module_rescue_streams_la_LDFLAGS = -module -avoid-version
 module_rescue_streams_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_rescue_streams_la_CFLAGS = $(AM_CFLAGS)
+
+# Suspend-on-idle module
+module_suspend_on_idle_la_SOURCES = modules/module-suspend-on-idle.c
+module_suspend_on_idle_la_LDFLAGS = -module -avoid-version
+module_suspend_on_idle_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # RTP modules
 module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
