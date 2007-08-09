@@ -542,7 +542,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     
                     if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK, 0)))
                         if (pa_sink_suspend(sink, suspend) >= 0)
-                            pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, PA_VOLUME_NORM, 0);
+                            if (!suspend)
+                                pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, PA_VOLUME_NORM, 0);
                 }
 
                 if (d->source_name) {
