@@ -503,7 +503,6 @@ static void lost_capability_cb(LibHalContext *context, const char *udi, const ch
         device_removed_cb(context, udi);
 }
 
-
 static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, void *userdata) {
     struct userdata*u = userdata;
     DBusError error;
@@ -565,7 +564,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                 }
                 
             } else if (!suspend)
-                hal_device_add(u, udi);
+                device_added_cb(u->context, udi);
         }
         
     } else if (dbus_message_is_signal(message, "org.pulseaudio.Server", "DirtyGiveUpMessage")) {
@@ -605,7 +604,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
             
         } else 
             /* Yes, we don't check the UDI for validity, but hopefully HAL will */
-            hal_device_add(u, udi);
+            device_added_cb(u->context, udi);
     }
 
 finish:
