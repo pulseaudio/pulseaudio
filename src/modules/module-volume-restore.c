@@ -396,6 +396,8 @@ static pa_hook_result_t sink_input_hook_callback(pa_core *c, pa_sink_input_new_d
         }
     }
 
+    pa_xfree(name);
+
     return PA_HOOK_OK;
 }
 
