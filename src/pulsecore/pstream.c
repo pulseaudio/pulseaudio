@@ -155,6 +155,12 @@ struct pa_pstream {
     pa_pstream_notify_cb_t die_callback;
     void *die_callback_userdata;
 
+    pa_pstream_block_id_cb_t revoke_callback;
+    void *revoke_callback_userdata;
+
+    pa_pstream_block_id_cb_t release_callback;
+    void *release_callback_userdata;
+
     pa_mempool *mempool;
 
 #ifdef HAVE_CREDS
@@ -254,7 +260,11 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     p->drain_callback_userdata = NULL;
     p->die_callback = NULL;
     p->die_callback_userdata = NULL;
-
+    p->revoke_callback = NULL;
+    p->revoke_callback_userdata = NULL;
+    p->release_callback = NULL;
+    p->release_callback_userdata = NULL;
+    
     p->mempool = pool;
 
     p->use_shm = 0;
@@ -376,11 +386,8 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
-/* might be called from thread context */
-static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userdata) {
+void pa_pstream_send_release(pa_pstream *p, uint32_t block_id) {
     struct item_info *item;
-    pa_pstream *p = userdata;
-
     pa_assert(p);
     pa_assert(PA_REFCNT_VALUE(p) > 0);
 
@@ -401,10 +408,23 @@ static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userd
 }
 
 /* might be called from thread context */
-static void memexport_revoke_cb(pa_memexport *e, uint32_t block_id, void *userdata) {
-    struct item_info *item;
+static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userdata) {
     pa_pstream *p = userdata;
 
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    if (p->dead)
+        return;
+
+    if (p->release_callback)
+        p->release_callback(p, block_id, p->release_callback_userdata);
+    else
+        pa_pstream_send_release(p, block_id);
+}
+
+void pa_pstream_send_revoke(pa_pstream *p, uint32_t block_id) {
+    struct item_info *item;
     pa_assert(p);
     pa_assert(PA_REFCNT_VALUE(p) > 0);
 
@@ -421,6 +441,19 @@ static void memexport_revoke_cb(pa_memexport *e, uint32_t block_id, void *userda
 
     pa_queue_push(p->send_queue, item);
     p->mainloop->defer_enable(p->defer_event, 1);
+}
+
+/* might be called from thread context */
+static void memexport_revoke_cb(pa_memexport *e, uint32_t block_id, void *userdata) {
+    pa_pstream *p = userdata;
+
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    if (p->revoke_callback)
+        p->revoke_callback(p, block_id, p->revoke_callback_userdata);
+    else
+        pa_pstream_send_revoke(p, block_id);
 }
 
 static void prepare_next_write_item(pa_pstream *p) {
@@ -873,6 +906,22 @@ void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, pa_pstream_memblock
 
     p->recieve_memblock_callback = cb;
     p->recieve_memblock_callback_userdata = userdata;
+}
+
+void pa_pstream_set_release_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, void *userdata) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    p->release_callback = cb;
+    p->release_callback_userdata = userdata;
+}
+
+void pa_pstream_set_revoke_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, void *userdata) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    p->release_callback = cb;
+    p->release_callback_userdata = userdata;
 }
 
 int pa_pstream_is_pending(pa_pstream *p) {
