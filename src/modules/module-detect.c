@@ -52,6 +52,11 @@ PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("just-one=<boolean>")
 
+static const char* const valid_modargs[] = {
+    "just-one",
+    NULL
+};
+
 #ifdef HAVE_ALSA
 
 static int detect_alsa(pa_core *c, int just_one) {
@@ -215,17 +220,11 @@ static int detect_waveout(pa_core *c, int just_one) {
 }
 #endif
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     int just_one = 0, n = 0;
     pa_modargs *ma;
 
-    static const char* const valid_modargs[] = {
-        "just-one",
-        NULL
-    };
-
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
@@ -238,16 +237,16 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
 #if HAVE_ALSA
-    if ((n = detect_alsa(c, just_one)) <= 0)
+    if ((n = detect_alsa(m->core, just_one)) <= 0)
 #endif
 #if HAVE_OSS
-    if ((n = detect_oss(c, just_one)) <= 0)
+    if ((n = detect_oss(m->core, just_one)) <= 0)
 #endif
 #if HAVE_SOLARIS
-    if ((n = detect_solaris(c, just_one)) <= 0)
+    if ((n = detect_solaris(m->core, just_one)) <= 0)
 #endif
 #if OS_IS_WIN32
-    if ((n = detect_waveout(c, just_one)) <= 0)
+    if ((n = detect_waveout(m->core, just_one)) <= 0)
 #endif
     {
         pa_log_warn("failed to detect any sound hardware.");
@@ -269,9 +268,3 @@ fail:
 
     return -1;
 }
-
-
-void pa__done(PA_GCC_UNUSED pa_core *c, PA_GCC_UNUSED pa_module*m) {
-    /* NOP */
-}
-

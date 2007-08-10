@@ -420,11 +420,10 @@ static pa_hook_result_t source_output_hook_callback(pa_core *c, pa_source_output
     return PA_HOOK_OK;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
 
-    assert(c);
     assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -444,16 +443,15 @@ int pa__init(pa_core *c, pa_module*m) {
     if (load_rules(u) < 0)
         goto fail;
 
-    u->subscription = pa_subscription_new(c, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
-    u->sink_input_hook_slot = pa_hook_connect(&c->hook_sink_input_new, (pa_hook_cb_t) sink_input_hook_callback, u);
-    u->source_output_hook_slot = pa_hook_connect(&c->hook_source_output_new, (pa_hook_cb_t) source_output_hook_callback, u);
+    u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
+    u->sink_input_hook_slot = pa_hook_connect(&m->core->hook_sink_input_new, (pa_hook_cb_t) sink_input_hook_callback, u);
+    u->source_output_hook_slot = pa_hook_connect(&m->core->hook_source_output_new, (pa_hook_cb_t) source_output_hook_callback, u);
 
     pa_modargs_free(ma);
     return 0;
 
 fail:
-    pa__done(c, m);
-
+    pa__done(m);
     if (ma)
         pa_modargs_free(ma);
 
@@ -470,10 +468,9 @@ static void free_func(void *p, void *userdata) {
     pa_xfree(r);
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata* u;
 
-    assert(c);
     assert(m);
 
     if (!(u = m->userdata))

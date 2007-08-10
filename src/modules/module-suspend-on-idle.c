@@ -209,7 +209,7 @@ static pa_hook_result_t device_disconnect_hook_cb(pa_core *c, pa_object *o, stru
     return PA_HOOK_OK;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     uint32_t timeout = 5;
@@ -217,8 +217,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sink *sink;
     pa_source *source;
 
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
@@ -231,25 +230,25 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     
     m->userdata = u = pa_xnew(struct userdata, 1);
-    u->core = c;
+    u->core = m->core;
     u->timeout = timeout;
     u->device_infos = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx))
-        device_new_hook_cb(c, PA_OBJECT(sink), u);
+    for (sink = pa_idxset_first(m->core->sinks, &idx); sink; sink = pa_idxset_next(m->core->sinks, &idx))
+        device_new_hook_cb(m->core, PA_OBJECT(sink), u);
 
-    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx))
-        device_new_hook_cb(c, PA_OBJECT(source), u);
+    for (source = pa_idxset_first(m->core->sources, &idx); source; source = pa_idxset_next(m->core->sources, &idx))
+        device_new_hook_cb(m->core, PA_OBJECT(source), u);
 
-    u->sink_new_slot = pa_hook_connect(&c->hook_sink_new_post, (pa_hook_cb_t) device_new_hook_cb, u);
-    u->source_new_slot = pa_hook_connect(&c->hook_source_new_post, (pa_hook_cb_t) device_new_hook_cb, u);
-    u->sink_disconnect_slot = pa_hook_connect(&c->hook_sink_disconnect_post, (pa_hook_cb_t) device_disconnect_hook_cb, u);
-    u->source_disconnect_slot = pa_hook_connect(&c->hook_source_disconnect_post, (pa_hook_cb_t) device_disconnect_hook_cb, u);
+    u->sink_new_slot = pa_hook_connect(&m->core->hook_sink_new_post, (pa_hook_cb_t) device_new_hook_cb, u);
+    u->source_new_slot = pa_hook_connect(&m->core->hook_source_new_post, (pa_hook_cb_t) device_new_hook_cb, u);
+    u->sink_disconnect_slot = pa_hook_connect(&m->core->hook_sink_disconnect_post, (pa_hook_cb_t) device_disconnect_hook_cb, u);
+    u->source_disconnect_slot = pa_hook_connect(&m->core->hook_source_disconnect_post, (pa_hook_cb_t) device_disconnect_hook_cb, u);
 
-    u->sink_input_new_slot = pa_hook_connect(&c->hook_sink_input_new_post, (pa_hook_cb_t) sink_input_new_hook_cb, u);
-    u->source_output_new_slot = pa_hook_connect(&c->hook_source_output_new_post, (pa_hook_cb_t) source_output_new_hook_cb, u);
-    u->sink_input_disconnect_slot = pa_hook_connect(&c->hook_sink_input_disconnect_post, (pa_hook_cb_t) sink_input_disconnect_hook_cb, u);
-    u->source_output_disconnect_slot = pa_hook_connect(&c->hook_source_output_disconnect_post, (pa_hook_cb_t) source_output_disconnect_hook_cb, u);
+    u->sink_input_new_slot = pa_hook_connect(&m->core->hook_sink_input_new_post, (pa_hook_cb_t) sink_input_new_hook_cb, u);
+    u->source_output_new_slot = pa_hook_connect(&m->core->hook_source_output_new_post, (pa_hook_cb_t) source_output_new_hook_cb, u);
+    u->sink_input_disconnect_slot = pa_hook_connect(&m->core->hook_sink_input_disconnect_post, (pa_hook_cb_t) sink_input_disconnect_hook_cb, u);
+    u->source_output_disconnect_slot = pa_hook_connect(&m->core->hook_source_output_disconnect_post, (pa_hook_cb_t) source_output_disconnect_hook_cb, u);
     
     pa_modargs_free(ma);
     return 0;
@@ -262,12 +261,11 @@ fail:
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
     struct device_info *d;
     
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!m->userdata)
         return;

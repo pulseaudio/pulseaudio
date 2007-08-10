@@ -68,11 +68,12 @@ static int lirc_in_use = 0;
 static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void*userdata) {
     struct userdata *u = userdata;
     char *name = NULL, *code = NULL;
-    assert(io);
-    assert(u);
+
+    pa_assert(io);
+    pa_assert(u);
 
     if (events & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) {
-        pa_log("lost connection to LIRC daemon.");
+        pa_log("Lost connection to LIRC daemon.");
         goto fail;
     }
 
@@ -86,7 +87,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
 
         c = pa_xstrdup(code);
         c[strcspn(c, "\n\r")] = 0;
-        pa_log_debug("raw IR code '%s'", c);
+        pa_log_debug("Raw IR code '%s'", c);
         pa_xfree(c);
 
         while (lirc_code2char(u->config, code, &name) == 0 && name) {
@@ -99,7 +100,7 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 MUTE_TOGGLE
             } volchange = INVALID;
 
-            pa_log_info("translated IR code '%s'", name);
+            pa_log_info("Translated IR code '%s'", name);
 
             if (strcasecmp(name, "volume-up") == 0)
                 volchange = UP;
@@ -113,12 +114,12 @@ static void io_callback(pa_mainloop_api *io, PA_GCC_UNUSED pa_io_event *e, PA_GC
                 volchange = RESET;
 
             if (volchange == INVALID)
-                pa_log_warn("recieved unknown IR code '%s'", name);
+                pa_log_warn("Recieved unknown IR code '%s'", name);
             else {
                 pa_sink *s;
 
                 if (!(s = pa_namereg_get(u->module->core, u->sink_name, PA_NAMEREG_SINK, 1)))
-                    pa_log("failed to get sink '%s'", u->sink_name);
+                    pa_log("Failed to get sink '%s'", u->sink_name);
                 else {
                     int i;
                     pa_cvolume cv = *pa_sink_get_volume(s);
@@ -179,13 +180,14 @@ fail:
 
     pa_module_unload_request(u->module);
 
-    free(code);
+    pa_xfree(code);
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    assert(c && m);
+    
+    pa_assert(m);
 
     if (lirc_in_use) {
         pa_log("module-lirc may no be loaded twice.");
@@ -197,7 +199,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xmalloc(sizeof(struct userdata));
+    m->userdata = u = pa_xnew(struct userdata, 1);
     u->module = m;
     u->io = NULL;
     u->config = NULL;
@@ -215,7 +217,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    u->io = c->mainloop->io_new(c->mainloop, u->lirc_fd, PA_IO_EVENT_INPUT|PA_IO_EVENT_HANGUP, io_callback, u);
+    u->io = m->core->mainloop->io_new(m->core->mainloop, u->lirc_fd, PA_IO_EVENT_INPUT|PA_IO_EVENT_HANGUP, io_callback, u);
 
     lirc_in_use = 1;
 
@@ -228,14 +230,13 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    pa__done(c, m);
+    pa__done(m);
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!(u = m->userdata))
         return;

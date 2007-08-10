@@ -679,7 +679,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     
     pa_modargs *ma = NULL;
     int ret = -1;
@@ -698,7 +698,6 @@ int pa__init(pa_core *c, pa_module*m) {
     int namereg_fail;
     int use_mmap = 1, b;
 
-    pa_assert(c);
     pa_assert(m);
     
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -706,7 +705,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    ss = c->default_sample_spec;
+    ss = m->core->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_ALSA) < 0) {
         pa_log("Failed to parse sample specification");
         goto fail;
@@ -732,7 +731,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
     
     u = pa_xnew0(struct userdata, 1);
-    u->core = c;
+    u->core = m->core;
     u->module = m;
     m->userdata = u;
     u->use_mmap = use_mmap;
@@ -796,7 +795,7 @@ int pa__init(pa_core *c, pa_module*m) {
         namereg_fail = 0;
     }
 
-    u->source = pa_source_new(c, __FILE__, name, namereg_fail, &ss, &map);
+    u->source = pa_source_new(m->core, __FILE__, name, namereg_fail, &ss, &map);
     pa_xfree(name_buf);
     
     if (!u->source) {
@@ -849,7 +848,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
         u->mixer_fdl = pa_alsa_fdlist_new();
         
-        if (pa_alsa_fdlist_set_mixer(u->mixer_fdl, u->mixer_handle, c->mainloop) < 0) {
+        if (pa_alsa_fdlist_set_mixer(u->mixer_fdl, u->mixer_handle, m->core->mainloop) < 0) {
             pa_log("failed to initialise file descriptor monitoring");
             goto fail;
         }
@@ -886,15 +885,14 @@ finish:
 fail:
 
     if (u)
-        pa__done(c, m);
+        pa__done(m);
 
     goto finish;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
     
-    pa_assert(c);
     pa_assert(m);
 
     if (!(u = m->userdata))

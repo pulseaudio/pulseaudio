@@ -26,7 +26,6 @@
 #endif
 
 #include <unistd.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 
@@ -48,21 +47,23 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     int ret = -1, fd = -1;
     char x = 1;
-    assert(c && m);
+    
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs)) ||
         pa_modargs_get_value_s32(ma, "fd", &fd) < 0 ||
         fd < 0) {
+        
         pa_log("Failed to parse module arguments");
         goto finish;
     }
 
     if (pa_loop_write(fd, &x, sizeof(x), NULL) != sizeof(x))
-        pa_log("WARNING: write(%u, 1, 1) failed: %s", fd, pa_cstrerror(errno));
+        pa_log_warn("WARNING: write(%u, 1, 1) failed: %s", fd, pa_cstrerror(errno));
 
     close(fd);
 
@@ -76,9 +77,3 @@ finish:
 
     return ret;
 }
-
-void pa__done(pa_core *c, pa_module*m) {
-    assert(c && m);
-}
-
-

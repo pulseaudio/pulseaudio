@@ -26,7 +26,6 @@
 #endif
 
 #include <unistd.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -80,6 +79,8 @@ static int load_rules(struct userdata *u, const char *filename) {
     struct rule *end = NULL;
     char *fn = NULL;
 
+    pa_assert(u);
+
     f = filename ?
         fopen(fn = pa_xstrdup(filename), "r") :
         pa_open_config_file(DEFAULT_MATCH_TABLE_FILE, DEFAULT_MATCH_TABLE_FILE_USER, NULL, &fn, "r");
@@ -132,7 +133,7 @@ static int load_rules(struct userdata *u, const char *filename) {
             goto finish;
         }
 
-        rule = pa_xmalloc(sizeof(struct rule));
+        rule = pa_xnew(struct rule, 1);
         rule->regex = regex;
         rule->volume = volume;
         rule->next = NULL;
@@ -164,7 +165,9 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
     struct userdata *u =  userdata;
     pa_sink_input *si;
     struct rule *r;
-    assert(c && u);
+    
+    pa_assert(c);
+    pa_assert(u);
 
     if (t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW))
         return;
@@ -185,17 +188,18 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
     }
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    assert(c && m);
+    
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
         goto fail;
     }
 
-    u = pa_xmalloc(sizeof(struct userdata));
+    u = pa_xnew(struct userdata, 1);
     u->rules = NULL;
     u->subscription = NULL;
     m->userdata = u;
@@ -203,23 +207,24 @@ int pa__init(pa_core *c, pa_module*m) {
     if (load_rules(u, pa_modargs_get_value(ma, "table", NULL)) < 0)
         goto fail;
 
-    u->subscription = pa_subscription_new(c, PA_SUBSCRIPTION_MASK_SINK_INPUT, callback, u);
+    u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT, callback, u);
 
     pa_modargs_free(ma);
     return 0;
 
 fail:
-    pa__done(c, m);
+    pa__done(m);
 
     if (ma)
         pa_modargs_free(ma);
     return  -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata* u;
     struct rule *r, *n;
-    assert(c && m);
+    
+    pa_assert(m);
 
     if (!(u = m->userdata))
         return;

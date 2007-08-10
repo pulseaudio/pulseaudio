@@ -210,7 +210,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     struct userdata *u;
     struct stat st;
     pa_sample_spec ss;
@@ -218,7 +218,6 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_modargs *ma;
     char *t;
 
-    pa_assert(c);
     pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -226,14 +225,14 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    ss = c->default_sample_spec;
+    ss = m->core->default_sample_spec;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
         pa_log("invalid sample format specification or channel map");
         goto fail;
     }
 
     u = pa_xnew0(struct userdata, 1);
-    u->core = c;
+    u->core = m->core;
     u->module = m;
     m->userdata = u;
     pa_memchunk_reset(&u->memchunk);
@@ -261,7 +260,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
+    if (!(u->source = pa_source_new(m->core, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
         pa_log("Failed to create source.");
         goto fail;
     }
@@ -286,15 +285,14 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    pa__done(c, m);
+    pa__done(m);
 
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
     
-    pa_assert(c);
     pa_assert(m);
 
     if (!(u = m->userdata))

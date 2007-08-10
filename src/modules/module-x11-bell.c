@@ -88,14 +88,13 @@ static int x11_event_callback(pa_x11_wrapper *w, XEvent *e, void *userdata) {
     return 1;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
 
     struct userdata *u = NULL;
     pa_modargs *ma = NULL;
     int major, minor;
     unsigned int auto_ctrls, auto_values;
     
-    pa_assert(c);
     pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -104,12 +103,12 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     m->userdata = u = pa_xnew(struct userdata, 1);
-    u->core = c;
+    u->core = m->core;
     u->scache_item = pa_xstrdup(pa_modargs_get_value(ma, "sample", "x11-bell"));
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->x11_client = NULL;
 
-    if (!(u->x11_wrapper = pa_x11_wrapper_get(c, pa_modargs_get_value(ma, "display", NULL))))
+    if (!(u->x11_wrapper = pa_x11_wrapper_get(m->core, pa_modargs_get_value(ma, "display", NULL))))
         goto fail;
 
     major = XkbMajorVersion;
@@ -143,16 +142,15 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    pa__done(c, m);
+    pa__done(m);
     
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
     
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!m->userdata)
         return;

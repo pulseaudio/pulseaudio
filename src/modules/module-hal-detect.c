@@ -46,6 +46,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-scache.h>
+#include <pulsecore/modargs.h>
 
 #include <hal/libhal.h>
 
@@ -55,6 +56,13 @@
 PA_MODULE_AUTHOR("Shahms King")
 PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers")
 PA_MODULE_VERSION(PACKAGE_VERSION)
+#if defined(HAVE_ALSA) && defined(HAVE_OSS)
+PA_MODULE_USAGE("api=<alsa or oss>")
+#elif defined(HAVE_ALSA)
+PA_MODULE_USAGE("api=<alsa>")
+#elif defined(HAVE_OSS)
+PA_MODULE_USAGE("api=<oss>")
+#endif
 
 struct device {
     uint32_t index;
@@ -77,6 +85,11 @@ struct timerdata {
 
 #define CAPABILITY_ALSA "alsa"
 #define CAPABILITY_OSS "oss"
+
+static const char* const valid_modargs[] = {
+    "api",
+    NULL
+};
 
 static void hal_device_free(struct device* d) {
     pa_assert(d);
@@ -663,37 +676,65 @@ fail:
     return NULL;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     DBusError error;
     pa_dbus_connection *conn;
     struct userdata *u = NULL;
     LibHalContext *hal_context = NULL;
     int n = 0;
+    pa_modargs *ma;
+    const char *api;
     
-    pa_assert(c);
     pa_assert(m);
 
     dbus_error_init(&error);
-    
-    if (!(conn = pa_dbus_bus_get(c, DBUS_BUS_SYSTEM, &error)) || dbus_error_is_set(&error)) {
+
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log("Failed to parse module arguments");
+        goto fail;
+    }
+
+    if ((api = pa_modargs_get_value(ma, "api", NULL))) {
+        int good = 0;
+
+#ifdef HAVE_ALSA
+        if (strcmp(api, CAPABILITY_ALSA) == 0) {
+            good = 1;
+            api = CAPABILITY_ALSA;
+        } 
+#endif
+#ifdef HAVE_OSS
+        if (strcmp(api, CAPABILITY_OSS) == 0) {
+            good = 1;
+            api = CAPABILITY_OSS;
+        }
+#endif
+        
+        if (!good) {
+            pa_log_error("Invalid API specification.");
+            goto fail;
+        }
+    }
+        
+    if (!(conn = pa_dbus_bus_get(m->core, DBUS_BUS_SYSTEM, &error)) || dbus_error_is_set(&error)) {
         if (conn)
             pa_dbus_connection_unref(conn);
         pa_log_error("Unable to contact DBUS system bus: %s: %s", error.name, error.message);
         goto fail;
     }
 
-    if (!(hal_context = hal_context_new(c, pa_dbus_connection_get(conn)))) {
+    if (!(hal_context = hal_context_new(m->core, pa_dbus_connection_get(conn)))) {
         /* pa_hal_context_new() logs appropriate errors */
         pa_dbus_connection_unref(conn);
         goto fail;
     }
 
     u = pa_xnew(struct userdata, 1);
-    u->core = c;
+    u->core = m->core;
     u->context = hal_context;
     u->connection = conn;
     u->devices = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    u->capability = NULL;
+    u->capability = api;
     m->userdata = u;
 
 #ifdef HAVE_ALSA
@@ -736,19 +777,24 @@ int pa__init(pa_core *c, pa_module*m) {
     
     pa_log_info("Loaded %i modules.", n);
 
+    pa_modargs_free(ma);
+    
     return 0;
 
 fail:
+    if (ma)
+        pa_modargs_free(ma);
+    
     dbus_error_free(&error);
-    pa__done(c, m);
+    pa__done(m);
+
     return -1;
 }
 
 
-void pa__done(PA_GCC_UNUSED pa_core *c, pa_module *m) {
+void pa__done(pa_module *m) {
     struct userdata *u;
     
-    pa_assert(c);
     pa_assert(m);
 
     if (!(u = m->userdata))

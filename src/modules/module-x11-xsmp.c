@@ -49,17 +49,14 @@ PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("X11 session management")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 
-struct userdata {
-    pa_core *core;
-    SmcConn sm_conn;
-};
+static int ice_in_use = 0;
 
 static const char* const valid_modargs[] = {
     NULL
 };
 
 static void die_cb(SmcConn connection, SmPointer client_data){
-    pa_core *c = client_data;
+    pa_core *c = PA_CORE(client_data);
 
     pa_log_debug("Got die message from XSM. Exiting...");
     
@@ -98,17 +95,25 @@ static void new_ice_connection(IceConn connection, IcePointer client_data, Bool 
         c->mainloop->io_free(*watch_data);
 }
 
-int pa__init(pa_core *c, pa_module*m) {
-    struct userdata *u = NULL;
+int pa__init(pa_module*m) {
+
     pa_modargs *ma = NULL;
     char t[256], *vendor, *client_id;
     SmcCallbacks callbacks;
     SmProp prop_program, prop_user;
     SmProp *prop_list[2];
     SmPropValue val_program, val_user;
+    SmcConn connection;
     
-    pa_assert(c);
     pa_assert(m);
+
+    if (ice_in_use) {
+        pa_log("module-x11-xsmp may no be loaded twice.");
+        return -1;
+    }
+    
+    IceAddConnectionWatch(new_ice_connection, m->core);
+    ice_in_use = 1;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
@@ -119,23 +124,19 @@ int pa__init(pa_core *c, pa_module*m) {
         pa_log("X11 session manager not running.");
         goto fail;
     }
-
-    m->userdata = u = pa_xnew(struct userdata, 1);
-    u->core = c;
-    u->sm_conn = NULL;
-
-    IceAddConnectionWatch(new_ice_connection, c);
     
     memset(&callbacks, 0, sizeof(callbacks));
     callbacks.die.callback = die_cb;
-    callbacks.die.client_data = c;
-
+    callbacks.die.client_data = m->core;
     callbacks.save_yourself.callback = save_yourself_cb;
+    callbacks.save_yourself.client_data = m->core;
     callbacks.save_complete.callback = save_complete_cb;
+    callbacks.save_complete.client_data = m->core;
     callbacks.shutdown_cancelled.callback = shutdown_cancelled_cb;
+    callbacks.shutdown_cancelled.client_data = m->core;
     
-    if (!(u->sm_conn = SmcOpenConnection(
-                  NULL, u,
+    if (!(m->userdata = connection = SmcOpenConnection(
+                  NULL, m->core,
                   SmProtoMajor, SmProtoMinor,
                   SmcSaveYourselfProcMask | SmcDieProcMask | SmcSaveCompleteProcMask | SmcShutdownCancelledProcMask,
                   &callbacks, NULL, &client_id,
@@ -162,9 +163,9 @@ int pa__init(pa_core *c, pa_module*m) {
     prop_user.vals = &val_user;
     prop_list[1] = &prop_user;
 
-    SmcSetProperties(u->sm_conn, PA_ELEMENTSOF(prop_list), prop_list);
+    SmcSetProperties(connection, PA_ELEMENTSOF(prop_list), prop_list);
 
-    pa_log_info("Connected to session manager '%s' as '%s'.", vendor = SmcVendor(u->sm_conn), client_id);
+    pa_log_info("Connected to session manager '%s' as '%s'.", vendor = SmcVendor(connection), client_id);
     free(vendor);
     free(client_id);
     
@@ -176,26 +177,19 @@ fail:
     if (ma)
         pa_modargs_free(ma);
     
-    pa__done(c, m);
+    pa__done(m);
     
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
-    struct userdata *u;
-    
-    assert(c);
-    assert(m);
+void pa__done(pa_module*m) {
+    pa_assert(m);
 
-    if (!m->userdata)
-        return;
+    if (m->userdata)
+        SmcCloseConnection(m->userdata, 0, NULL);
 
-    u = m->userdata;
-
-    if (u->sm_conn)
-        SmcCloseConnection(u->sm_conn, 0, NULL);
-
-    IceRemoveConnectionWatch(new_ice_connection, c);
-    
-    pa_xfree(u);
+    if (ice_in_use) {
+        IceRemoveConnectionWatch(new_ice_connection, m->core);
+        ice_in_use = 0;
+    }
 }

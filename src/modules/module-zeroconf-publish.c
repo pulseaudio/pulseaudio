@@ -102,25 +102,25 @@ struct userdata {
 };
 
 static void get_service_data(struct userdata *u, struct service *s, pa_sample_spec *ret_ss, char **ret_description) {
-    assert(u && s && s->loaded.valid && ret_ss && ret_description);
+    pa_assert(u && s && s->loaded.valid && ret_ss && ret_description);
 
     if (s->loaded.type == PA_NAMEREG_SINK) {
         pa_sink *sink = pa_idxset_get_by_index(u->core->sinks, s->loaded.index);
-        assert(sink);
+        pa_assert(sink);
         *ret_ss = sink->sample_spec;
         *ret_description = sink->description;
     } else if (s->loaded.type == PA_NAMEREG_SOURCE) {
         pa_source *source = pa_idxset_get_by_index(u->core->sources, s->loaded.index);
-        assert(source);
+        pa_assert(source);
         *ret_ss = source->sample_spec;
         *ret_description = source->description;
     } else
-        assert(0);
+        pa_assert(0);
 }
 
 static AvahiStringList* txt_record_server_data(pa_core *c, AvahiStringList *l) {
     char s[128];
-    assert(c);
+    pa_assert(c);
 
     l = avahi_string_list_add_pair(l, "server-version", PACKAGE_NAME" "PACKAGE_VERSION);
     l = avahi_string_list_add_pair(l, "user-name", pa_get_user_name(s, sizeof(s)));
@@ -150,8 +150,8 @@ static int publish_service(struct userdata *u, struct service *s) {
     int r = -1;
     AvahiStringList *txt = NULL;
 
-    assert(u);
-    assert(s);
+    pa_assert(u);
+    pa_assert(s);
 
     if (!u->client || avahi_client_get_state(u->client) != AVAHI_CLIENT_S_RUNNING)
         return 0;
@@ -265,7 +265,7 @@ static struct service *get_service(struct userdata *u, const char *name, const c
 static int publish_sink(struct userdata *u, pa_sink *s) {
     struct service *svc;
     int ret;
-    assert(u && s);
+    pa_assert(u && s);
 
     svc = get_service(u, s->name, s->description);
     if (svc->loaded.valid)
@@ -286,7 +286,7 @@ static int publish_source(struct userdata *u, pa_source *s) {
     struct service *svc;
     int ret;
 
-    assert(u && s);
+    pa_assert(u && s);
 
     svc = get_service(u, s->name, s->description);
     if (svc->loaded.valid)
@@ -309,7 +309,7 @@ static int publish_autoload(struct userdata *u, pa_autoload_entry *s) {
     struct service *svc;
     int ret;
 
-    assert(u && s);
+    pa_assert(u && s);
 
     svc = get_service(u, s->name, NULL);
     if (svc->autoload.valid)
@@ -328,7 +328,7 @@ static int publish_autoload(struct userdata *u, pa_autoload_entry *s) {
 
 static int remove_sink(struct userdata *u, uint32_t idx) {
     struct service *svc;
-    assert(u && idx != PA_INVALID_INDEX);
+    pa_assert(u && idx != PA_INVALID_INDEX);
 
     if (!(svc = pa_dynarray_get(u->sink_dynarray, idx)))
         return 0;
@@ -344,7 +344,7 @@ static int remove_sink(struct userdata *u, uint32_t idx) {
 
 static int remove_source(struct userdata *u, uint32_t idx) {
     struct service *svc;
-    assert(u && idx != PA_INVALID_INDEX);
+    pa_assert(u && idx != PA_INVALID_INDEX);
 
     if (!(svc = pa_dynarray_get(u->source_dynarray, idx)))
         return 0;
@@ -360,7 +360,7 @@ static int remove_source(struct userdata *u, uint32_t idx) {
 
 static int remove_autoload(struct userdata *u, uint32_t idx) {
     struct service *svc;
-    assert(u && idx != PA_INVALID_INDEX);
+    pa_assert(u && idx != PA_INVALID_INDEX);
 
     if (!(svc = pa_dynarray_get(u->autoload_dynarray, idx)))
         return 0;
@@ -376,7 +376,7 @@ static int remove_autoload(struct userdata *u, uint32_t idx) {
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
     struct userdata *u = userdata;
-    assert(u && c);
+    pa_assert(u && c);
 
     switch (t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK)
         case PA_SUBSCRIPTION_EVENT_SINK: {
@@ -439,7 +439,7 @@ static int publish_main_service(struct userdata *u);
 
 static void main_entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, void *userdata) {
     struct userdata *u = userdata;
-    assert(u);
+    pa_assert(u);
 
     if (state == AVAHI_ENTRY_GROUP_COLLISION) {
         char *t;
@@ -501,7 +501,7 @@ static int publish_all_services(struct userdata *u) {
     int r = -1;
     uint32_t idx;
 
-    assert(u);
+    pa_assert(u);
 
     pa_log_debug("Publishing services in Zeroconf");
 
@@ -531,7 +531,7 @@ static void unpublish_all_services(struct userdata *u, int rem) {
     void *state = NULL;
     struct service *s;
 
-    assert(u);
+    pa_assert(u);
 
     pa_log_debug("Unpublishing services in Zeroconf");
 
@@ -558,7 +558,7 @@ static void unpublish_all_services(struct userdata *u, int rem) {
 
 static void client_callback(AvahiClient *c, AvahiClientState state, void *userdata) {
     struct userdata *u = userdata;
-    assert(c);
+    pa_assert(c);
 
     u->client = c;
 
@@ -587,7 +587,8 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
     }
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
+    
     struct userdata *u;
     uint32_t port = PA_NATIVE_DEFAULT_PORT;
     pa_modargs *ma = NULL;
@@ -599,23 +600,23 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port == 0 || port >= 0xFFFF) {
+    if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port <= 0 || port > 0xFFFF) {
         pa_log("invalid port specified.");
         goto fail;
     }
 
     m->userdata = u = pa_xnew(struct userdata, 1);
-    u->core = c;
+    u->core = m->core;
     u->port = (uint16_t) port;
 
-    u->avahi_poll = pa_avahi_poll_new(c->mainloop);
+    u->avahi_poll = pa_avahi_poll_new(m->core->mainloop);
 
     u->services = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     u->sink_dynarray = pa_dynarray_new();
     u->source_dynarray = pa_dynarray_new();
     u->autoload_dynarray = pa_dynarray_new();
 
-    u->subscription = pa_subscription_new(c,
+    u->subscription = pa_subscription_new(m->core,
                                           PA_SUBSCRIPTION_MASK_SINK|
                                           PA_SUBSCRIPTION_MASK_SOURCE|
                                           PA_SUBSCRIPTION_MASK_AUTOLOAD, subscribe_callback, u);
@@ -634,7 +635,7 @@ int pa__init(pa_core *c, pa_module*m) {
     return 0;
 
 fail:
-    pa__done(c, m);
+    pa__done(m);
 
     if (ma)
         pa_modargs_free(ma);
@@ -646,8 +647,8 @@ static void service_free(void *p, void *userdata) {
     struct service *s = p;
     struct userdata *u = userdata;
 
-    assert(s);
-    assert(u);
+    pa_assert(s);
+    pa_assert(u);
 
     if (s->entry_group)
         avahi_entry_group_free(s->entry_group);
@@ -657,9 +658,9 @@ static void service_free(void *p, void *userdata) {
     pa_xfree(s);
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata*u;
-    assert(c && m);
+    pa_assert(m);
 
     if (!(u = m->userdata))
         return;

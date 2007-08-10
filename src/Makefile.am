@@ -624,6 +624,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/memchunk.c pulsecore/memchunk.h \
 		pulsecore/modargs.c pulsecore/modargs.h \
 		pulsecore/modinfo.c pulsecore/modinfo.h \
+		pulsecore/ltdl-helper.c pulsecore/ltdl-helper.h \
 		pulsecore/module.c pulsecore/module.h \
 		pulsecore/namereg.c pulsecore/namereg.h \
 		pulsecore/pid.c pulsecore/pid.h \
@@ -1038,9 +1039,7 @@ EXTRA_DIST += $(SYMDEF_FILES)
 BUILT_SOURCES += $(SYMDEF_FILES)
 
 $(SYMDEF_FILES): modules/module-defs.h.m4
-	-mkdir modules
-	-mkdir modules/gconf
-	-mkdir modules/rtp
+	$(mkdir_p) modules modules/gconf modules/rtp
 	$(M4) -Dfname="$@" $< > $@
 
 # Simple protocol

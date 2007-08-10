@@ -114,7 +114,7 @@ static void calc_sine(float *f, size_t l, float freq) {
         f[i] = (float) sin((double) i/l*M_PI*2*freq)/2;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     pa_sink *sink;
@@ -130,13 +130,13 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
-    u->core = c;
+    u->core = m->core;
     u->module = m;
     u->sink_input = NULL;
     u->memblock = NULL;
     u->peek_index = 0;
 
-    if (!(sink = pa_namereg_get(c, pa_modargs_get_value(ma, "sink", NULL), PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink", NULL), PA_NAMEREG_SINK, 1))) {
         pa_log("No such sink.");
         goto fail;
     }
@@ -151,7 +151,7 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    u->memblock = pa_memblock_new(c->mempool, pa_bytes_per_second(&ss));
+    u->memblock = pa_memblock_new(m->core->mempool, pa_bytes_per_second(&ss));
     p = pa_memblock_acquire(u->memblock);
     calc_sine(p, pa_memblock_get_length(u->memblock), frequency);
     pa_memblock_release(u->memblock);
@@ -165,7 +165,7 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     data.module = m;
 
-    if (!(u->sink_input = pa_sink_input_new(c, &data, 0)))
+    if (!(u->sink_input = pa_sink_input_new(m->core, &data, 0)))
         goto fail;
 
     u->sink_input->peek = sink_input_peek_cb;
@@ -182,14 +182,13 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    pa__done(c, m);
+    pa__done(m);
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
     
-    pa_assert(c);
     pa_assert(m);
 
     if (!(u = m->userdata))

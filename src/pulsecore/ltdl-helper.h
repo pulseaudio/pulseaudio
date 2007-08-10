@@ -1,5 +1,5 @@
-#ifndef foomodinfohfoo
-#define foomodinfohfoo
+#ifndef foopulsecoreltdlhelperhfoo
+#define foopulsecoreltdlhelperhfoo
 
 /* $Id$ */
 
@@ -24,22 +24,11 @@
   USA.
 ***/
 
-/* Some functions for reading module meta data from PulseAudio modules */
+#include <ltdl.h>
 
-typedef struct pa_modinfo {
-    char *author;
-    char *description;
-    char *usage;
-    char *version;
-} pa_modinfo;
+typedef void (*pa_void_func_t)(void);
 
-/* Read meta data from an libtool handle */
-pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl, const char *module_name);
-
-/* Read meta data from a module file */
-pa_modinfo *pa_modinfo_get_by_name(const char *name);
-
-/* Free meta data */
-void pa_modinfo_free(pa_modinfo *i);
+pa_void_func_t pa_load_sym(lt_dlhandle handle, const char*module, const char *symbol);
 
 #endif
+
