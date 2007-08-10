@@ -381,14 +381,17 @@ static int start_client(const char *n, pid_t *pid) {
             struct dirent *de;
 
             while ((de = readdir(d))) {
-                char *e;
+                char *e = NULL;
                 int fd;
+
+                if (de->d_name[0] == '.')
+                    continue;
                 
                 errno = 0;
                 fd = strtol(de->d_name, &e, 10);
-                pa_assert(errno == 0 && *e == 0);
+                pa_assert(errno == 0 && e && *e == 0);
 
-                if (fd >= 3)
+                if (fd >= 3 && dirfd(d) != fd)
                     close(fd);
             }
             
