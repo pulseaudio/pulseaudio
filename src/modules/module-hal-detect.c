@@ -540,10 +540,21 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                 if (d->sink_name) {
                     pa_sink *sink;
                     
-                    if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK, 0)))
-                        if (pa_sink_suspend(sink, suspend) >= 0)
-                            if (!suspend)
+                    if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK, 0))) {
+                        
+                        int prev_suspended = pa_sink_get_state(sink) == PA_SINK_SUSPENDED;
+
+                        if (pa_sink_suspend(sink, suspend) >= 0) {
+                            if (!suspend && prev_suspended)
                                 pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, PA_VOLUME_NORM, 0);
+                            else if (suspend && !prev_suspended) {
+                                DBusMessage *msg;
+                                msg = dbus_message_new_signal(udi, "org.pulseaudio.Server", "DirtyGiveUpMessage");
+                                dbus_connection_send(pa_dbus_connection_get(u->connection), msg, NULL);
+                                dbus_message_unref(msg);
+                            }
+                        }
+                    }
                 }
 
                 if (d->source_name) {
@@ -555,9 +566,46 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                 
             } else if (!suspend)
                 hal_device_add(u, udi);
-
         }
         
+    } else if (dbus_message_is_signal(message, "org.pulseaudio.Server", "DirtyGiveUpMessage")) {
+        /* We use this message to avoid a dirty race condition when we
+           get an ACLAdded message before the previously owning PA
+           sever has closed the device. We can remove this as
+           soon as HAL learns frevoke() */
+
+        const char *udi;
+        struct device *d;
+
+        pa_log_debug("Got dirty give up message, trying resume ...");
+
+        udi = dbus_message_get_path(message);
+        
+        if ((d = pa_hashmap_get(u->devices, udi))) {
+
+            if (d->sink_name) {
+                pa_sink *sink;
+                
+                if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK, 0))) {
+
+                    int prev_suspended = pa_sink_get_state(sink) == PA_SINK_SUSPENDED;
+                    
+                    if (pa_sink_suspend(sink, 0) >= 0)
+                        if (prev_suspended && !prev_suspended)
+                            pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, PA_VOLUME_NORM, 0);
+                }
+            }
+            
+            if (d->source_name) {
+                pa_source *source;
+                
+                if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE, 0)))
+                    pa_source_suspend(source, 0);
+            }
+            
+        } else 
+            /* Yes, we don't check the UDI for validity, but hopefully HAL will */
+            hal_device_add(u, udi);
     }
 
 finish:
@@ -671,6 +719,12 @@ int pa__init(pa_core *c, pa_module*m) {
     dbus_bus_add_match(pa_dbus_connection_get(conn), "type='signal',sender='org.freedesktop.Hal', interface='org.freedesktop.Hal.Device.AccessControl'", &error);
     if (dbus_error_is_set(&error)) {
         pa_log_error("Unable to subscribe to HAL ACL signals: %s: %s", error.name, error.message);
+        goto fail;
+    }
+
+    dbus_bus_add_match(pa_dbus_connection_get(conn), "type='signal',interface='org.pulseaudio.Server'", &error);
+    if (dbus_error_is_set(&error)) {
+        pa_log_error("Unable to subscribe to PulseAudio signals: %s: %s", error.name, error.message);
         goto fail;
     }
     
