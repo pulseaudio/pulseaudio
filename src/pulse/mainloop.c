@@ -305,6 +305,7 @@ static void mainloop_defer_free(pa_defer_event *e) {
     if (e->enabled) {
         assert(e->mainloop->n_enabled_defer_events > 0);
         e->mainloop->n_enabled_defer_events--;
+        e->enabled = 0;
     }
 }
 
@@ -395,6 +396,7 @@ static void mainloop_time_free(pa_time_event *e) {
     if (e->enabled) {
         assert(e->mainloop->n_enabled_time_events > 0);
         e->mainloop->n_enabled_time_events--;
+        e->enabled = 0;
     }
 
     if (e->mainloop->cached_next_time_event == e)
@@ -541,6 +543,7 @@ static void cleanup_time_events(pa_mainloop *m, int force) {
             if (!e->dead && e->enabled) {
                 assert(m->n_enabled_time_events > 0);
                 m->n_enabled_time_events--;
+                e->enabled = 0;
             }
 
             if (e->destroy_callback)
@@ -574,9 +577,9 @@ static void cleanup_defer_events(pa_mainloop *m, int force) {
             }
 
             if (!e->dead && e->enabled) {
-                e->enabled = 0;
                 assert(m->n_enabled_defer_events > 0);
                 m->n_enabled_defer_events--;
+                e->enabled = 0;
             }
 
             if (e->destroy_callback)
