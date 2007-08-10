@@ -79,6 +79,7 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/thread-mq.h>
 
 #include "oss-util.h"
 #include "module-oss-symdef.h"
@@ -111,7 +112,7 @@ struct userdata {
     pa_sink *sink;
     pa_source *source;
     pa_thread *thread;
-    pa_asyncmsgq *asyncmsgq;
+    pa_thread_mq thread_mq;
 
     char *device_name;
     
@@ -793,11 +794,13 @@ static void thread_func(void *userdata) {
 
     pa_log_debug("Thread starting up");
 
+    pa_thread_mq_install(&u->thread_mq);
+
     trigger(u, 0);
     
     memset(&pollfd, 0, sizeof(pollfd));
 
-    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
+    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->thread_mq.inq);
     pollfd[POLLFD_ASYNCQ].events = POLLIN;
     pollfd[POLLFD_DSP].fd = u->fd;
 
@@ -812,18 +815,18 @@ static void thread_func(void *userdata) {
 /*        pa_log("loop");    */
         
         /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &offset, &chunk, 0) == 0) {
+        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
 
 /*             pa_log("processing msg"); */
 
             if (!object && code == PA_MESSAGE_SHUTDOWN) {
-                pa_asyncmsgq_done(u->asyncmsgq, 0);
+                pa_asyncmsgq_done(u->thread_mq.inq, 0);
                 goto finish;
             }
 
             ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(u->asyncmsgq, ret);
+            pa_asyncmsgq_done(u->thread_mq.inq, ret);
             continue;
         } 
 
@@ -1016,14 +1019,14 @@ static void thread_func(void *userdata) {
             
         /* Hmm, nothing to do. Let's sleep */
 
-        if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
+        if (pa_asyncmsgq_before_poll(u->thread_mq.inq) < 0)
             continue;
 
 /*         pa_log("polling for %i (legend: %i=POLLIN, %i=POLLOUT)", u->fd >= 0 ? pollfd[POLLFD_DSP].events : -1, POLLIN, POLLOUT); */
         r = poll(pollfd, u->fd >= 0 ? POLLFD_MAX : POLLFD_DSP, -1);
 /*         pa_log("polling got dsp=%i amq=%i (%i)", r > 0 ? pollfd[POLLFD_DSP].revents : 0, r > 0 ? pollfd[POLLFD_ASYNCQ].revents : 0, r); */
 
-        pa_asyncmsgq_after_poll(u->asyncmsgq);
+        pa_asyncmsgq_after_poll(u->thread_mq.inq);
 
         if (u->fd < 0)
             pollfd[POLLFD_DSP].revents = 0;
@@ -1052,8 +1055,8 @@ static void thread_func(void *userdata) {
 fail:
     /* We have to continue processing messages until we receive the
      * SHUTDOWN message */
-    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
-    pa_asyncmsgq_wait_for(u->asyncmsgq, PA_MESSAGE_SHUTDOWN);
+    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
 
 finish:
     pa_log_debug("Thread shutting down");
@@ -1161,7 +1164,7 @@ int pa__init(pa_module*m) {
     u->in_nfrags = u->out_nfrags = u->nfrags = nfrags;
     u->out_fragment_size = u->in_fragment_size = u->frag_size = frag_size;
     u->use_mmap = use_mmap;
-    pa_assert_se(u->asyncmsgq = pa_asyncmsgq_new(0));
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
 
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
         pa_log_info("Input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
@@ -1216,7 +1219,7 @@ int pa__init(pa_module*m) {
         u->source->userdata = u;
 
         pa_source_set_module(u->source, m);
-        pa_source_set_asyncmsgq(u->source, u->asyncmsgq);
+        pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_description(u->source, t = pa_sprintf_malloc(
                                           "OSS PCM on %s%s%s%s",
                                           dev,
@@ -1270,7 +1273,7 @@ try_write:
         u->sink->userdata = u;
         
         pa_sink_set_module(u->sink, m);
-        pa_sink_set_asyncmsgq(u->sink, u->asyncmsgq);
+        pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_description(u->sink, t = pa_sprintf_malloc(
                                         "OSS PCM on %s%s%s%s",
                                         dev,
@@ -1300,9 +1303,9 @@ go_on:
 
     /* Read mixer settings */
     if (u->source)
-        pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_GET_VOLUME, &u->source->volume, 0, NULL, NULL);
+        pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_GET_VOLUME, &u->source->volume, 0, NULL, NULL);
     if (u->sink)
-        pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_VOLUME, &u->sink->volume, 0, NULL, NULL);
+        pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_VOLUME, &u->sink->volume, 0, NULL, NULL);
 
     return 0;
 
@@ -1334,12 +1337,11 @@ void pa__done(pa_module*m) {
         pa_source_disconnect(u->source);
 
     if (u->thread) {
-        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
+        pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
     }
 
-    if (u->asyncmsgq)
-        pa_asyncmsgq_free(u->asyncmsgq);
+    pa_thread_mq_done(&u->thread_mq);
 
     if (u->sink)
         pa_sink_unref(u->sink);

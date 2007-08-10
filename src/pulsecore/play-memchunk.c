@@ -33,6 +33,7 @@
 
 #include <pulsecore/sink-input.h>
 #include <pulsecore/gccmacro.h>
+#include <pulsecore/thread-mq.h>
 
 #include "play-memchunk.h"
 
@@ -111,7 +112,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     if (u->memchunk.length <= 0) {
         pa_memblock_unref(u->memchunk.memblock);
         u->memchunk.memblock = NULL;
-        pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u), MEMCHUNK_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u), MEMCHUNK_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
         return -1;
     }
 

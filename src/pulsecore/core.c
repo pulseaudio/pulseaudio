@@ -67,34 +67,6 @@ static int core_process_msg(pa_msgobject *o, int code, void *userdata, int64_t o
     }
 }
 
-static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
-    pa_core *c = userdata;
-
-    pa_assert(pa_asyncmsgq_get_fd(c->asyncmsgq) == fd);
-    pa_assert(events == PA_IO_EVENT_INPUT);
-
-    pa_asyncmsgq_after_poll(c->asyncmsgq);
-
-    for (;;) {
-        pa_msgobject *object;
-        int code;
-        void *data;
-        int64_t offset;
-        pa_memchunk chunk;
-
-        /* Check whether there is a message for us to process */
-        while (pa_asyncmsgq_get(c->asyncmsgq, &object, &code, &data, &offset, &chunk, 0) == 0) {
-            int ret;
-
-            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(c->asyncmsgq, ret);
-        }
-
-        if (pa_asyncmsgq_before_poll(c->asyncmsgq) == 0)
-            break;
-    }
-}
-
 static void core_free(pa_object *o);
 
 pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
@@ -189,10 +161,6 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_check_signal_is_blocked(SIGPIPE);
 #endif
 
-    pa_assert_se(c->asyncmsgq = pa_asyncmsgq_new(0));
-    pa_assert_se(pa_asyncmsgq_before_poll(c->asyncmsgq) == 0);
-    pa_assert_se(c->asyncmsgq_event = c->mainloop->io_new(c->mainloop, pa_asyncmsgq_get_fd(c->asyncmsgq), PA_IO_EVENT_INPUT, asyncmsgq_cb, c));
-
     return c;
 }
 
@@ -229,14 +197,9 @@ static void core_free(pa_object *o) {
     pa_xfree(c->default_source_name);
     pa_xfree(c->default_sink_name);
 
-    pa_asyncmsgq_after_poll(c->asyncmsgq);
-    pa_asyncmsgq_free(c->asyncmsgq);
-
     pa_mempool_free(c->mempool);
 
     pa_property_cleanup(c);
-
-    c->mainloop->io_free(c->asyncmsgq_event);
 
     pa_hook_free(&c->hook_sink_new);
     pa_hook_free(&c->hook_sink_new_post);
@@ -260,13 +223,13 @@ static void core_free(pa_object *o) {
 
 static void quit_callback(pa_mainloop_api*m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     pa_core *c = userdata;
-    assert(c->quit_event = e);
+    pa_assert(c->quit_event = e);
 
     m->quit(m, 0);
 }
 
 void pa_core_check_quit(pa_core *c) {
-    assert(c);
+    pa_assert(c);
 
     if (!c->quit_event && c->exit_idle_time >= 0 && pa_idxset_size(c->clients) == 0) {
         struct timeval tv;

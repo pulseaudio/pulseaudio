@@ -41,6 +41,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/atomic.h>
+#include <pulsecore/thread-mq.h>
 
 #include "protocol-simple.h"
 
@@ -356,7 +357,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
 /*     pa_log("peeked %u %i", r >= 0 ? chunk->length: 0, r); */
 
     if (c->dead && r < 0)
-        pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
 
     return r;
 }
@@ -377,7 +378,7 @@ static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
 
     if (new > old) {
         if (pa_atomic_add(&c->playback.missing, new - old) <= 0)
-            pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
+            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
     }
 }
 
@@ -399,7 +400,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     pa_assert(c);
     pa_assert(chunk);
 
-    pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
+    pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
 }
 
 /* Called from main context */

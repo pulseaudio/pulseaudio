@@ -51,6 +51,7 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/thread-mq.h>
 
 #include "alsa-util.h"
 #include "module-alsa-source-symdef.h"
@@ -78,7 +79,7 @@ struct userdata {
     pa_module *module;
     pa_source *source;
     pa_thread *thread;
-    pa_asyncmsgq *asyncmsgq;
+    pa_thread_mq thread_mq;
 
     snd_pcm_t *pcm_handle;
 
@@ -242,7 +243,7 @@ static int build_pollfd(struct userdata *u) {
     pa_xfree(u->pollfd);
     u->pollfd = pa_xnew0(struct pollfd, POLLFD_ALSA_BASE + u->n_alsa_fds);
 
-    u->pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
+    u->pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->thread_mq.inq);
     u->pollfd[POLLFD_ASYNCQ].events = POLLIN;
 
     if ((err = snd_pcm_poll_descriptors(u->pcm_handle, u->pollfd+POLLFD_ALSA_BASE, u->n_alsa_fds)) < 0) {
@@ -516,6 +517,8 @@ static void thread_func(void *userdata) {
 
     pa_log_debug("Thread starting up");
 
+    pa_thread_mq_install(&u->thread_mq);
+    
     if (build_pollfd(u) < 0)
         goto fail;
 
@@ -530,18 +533,18 @@ static void thread_func(void *userdata) {
 /*         pa_log("loop");     */
         
         /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &offset, &chunk, 0) == 0) {
+        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
 
 /*             pa_log("processing msg"); */
 
             if (!object && code == PA_MESSAGE_SHUTDOWN) {
-                pa_asyncmsgq_done(u->asyncmsgq, 0);
+                pa_asyncmsgq_done(u->thread_mq.inq, 0);
                 goto finish;
             }
 
             ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(u->asyncmsgq, ret);
+            pa_asyncmsgq_done(u->thread_mq.inq, ret);
             continue;
         } 
 
@@ -624,14 +627,14 @@ static void thread_func(void *userdata) {
         }
 
         /* Hmm, nothing to do. Let's sleep */
-        if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
+        if (pa_asyncmsgq_before_poll(u->thread_mq.inq) < 0)
             continue;
 
 /*         pa_log("polling for %i", POLLFD_ALSA_BASE + (PA_SOURCE_OPENED(u->source->thread_info.state) ? n_alsa_fds : 0));   */
         r = poll(u->pollfd, POLLFD_ALSA_BASE + (PA_SOURCE_OPENED(u->source->thread_info.state) ? u->n_alsa_fds : 0), -1);
 /*         pa_log("poll end"); */
 
-        pa_asyncmsgq_after_poll(u->asyncmsgq);
+        pa_asyncmsgq_after_poll(u->thread_mq.inq);
 
         if (r < 0) {
             if (errno == EINTR) {
@@ -672,8 +675,8 @@ static void thread_func(void *userdata) {
 fail:
     /* We have to continue processing messages until we receive the
      * SHUTDOWN message */
-    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
-    pa_asyncmsgq_wait_for(u->asyncmsgq, PA_MESSAGE_SHUTDOWN);
+    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
 
 finish:
     pa_log_debug("Thread shutting down");
@@ -735,7 +738,9 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->use_mmap = use_mmap;
-    pa_assert_se(u->asyncmsgq = pa_asyncmsgq_new(0));
+    u->n_alsa_fds = 0;
+    u->pollfd = NULL;
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
 
     snd_config_update_free_global();
     if ((err = snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK)) < 0) {
@@ -807,7 +812,7 @@ int pa__init(pa_module*m) {
     u->source->userdata = u;
 
     pa_source_set_module(u->source, m);
-    pa_source_set_asyncmsgq(u->source, u->asyncmsgq);
+    pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_description(u->source, t = pa_sprintf_malloc(
                                       "ALSA PCM on %s (%s)",
                                       dev,
@@ -902,12 +907,11 @@ void pa__done(pa_module*m) {
         pa_source_disconnect(u->source);
 
     if (u->thread) {
-        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
+        pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
     }
 
-    if (u->asyncmsgq)
-        pa_asyncmsgq_free(u->asyncmsgq);
+    pa_thread_mq_done(&u->thread_mq);
 
     if (u->source)
         pa_source_unref(u->source);

@@ -39,6 +39,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/log.h>
+#include <pulsecore/thread-mq.h>
 
 #include "sound-file-stream.h"
 
@@ -161,7 +162,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
                 pa_memblock_unref(u->memchunk.memblock);
                 pa_memchunk_reset(&u->memchunk);
                 
-                pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u), FILE_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
+                pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u), FILE_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
 
                 sf_close(u->sndfile);
                 u->sndfile = NULL;

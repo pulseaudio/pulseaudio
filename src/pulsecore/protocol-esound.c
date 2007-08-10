@@ -53,6 +53,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/ipacl.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/thread-mq.h>
 
 #include "endianmacros.h"
 
@@ -1194,6 +1195,7 @@ static int connection_process_msg(pa_msgobject *o, int code, void*userdata, int6
 
 /*** sink_input callbacks ***/
 
+/* Called from thread context */
 static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_sink_input *i = PA_SINK_INPUT(o);
     connection*c;
@@ -1234,7 +1236,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
     }
 }
 
-
+/* Called from thread context */
 static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     connection*c;
     int r;
@@ -1245,11 +1247,12 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     pa_assert(chunk);
 
     if ((r = pa_memblockq_peek(c->input_memblockq, chunk)) < 0 && c->dead)
-        pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
 
     return r;
 }
 
+/* Called from thread context */
 static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     connection*c;
     size_t old, new;
@@ -1267,7 +1270,7 @@ static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
 
     if (new > old) {
         if (pa_atomic_add(&c->playback.missing, new - old) <= 0)
-            pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
+            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
     }
 }
 
@@ -1279,6 +1282,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
 
 /*** source_output callbacks ***/
 
+/* Called from thread context */
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk) {
     connection *c;
 
@@ -1287,7 +1291,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     pa_assert(c);
     pa_assert(chunk);
 
-    pa_asyncmsgq_post(c->protocol->core->asyncmsgq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
+    pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
 }
 
 static void source_output_kill_cb(pa_source_output *o) {

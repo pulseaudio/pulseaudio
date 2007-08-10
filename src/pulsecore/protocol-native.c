@@ -60,6 +60,7 @@
 #include <pulsecore/creds.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/ipacl.h>
+#include <pulsecore/thread-mq.h>
 
 #include "protocol-native.h"
 
@@ -752,7 +753,7 @@ static void request_bytes(playback_stream *s) {
 
     previous_missing = pa_atomic_add(&s->missing, delta);
     if (previous_missing < pa_memblockq_get_minreq(s->memblockq) && previous_missing+delta >= pa_memblockq_get_minreq(s->memblockq))
-        pa_asyncmsgq_post(s->connection->protocol->core->asyncmsgq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
 }
 
 static void send_memblock(connection *c) {
@@ -833,7 +834,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             if (pa_memblockq_push_align(s->memblockq, chunk) < 0) {
 
                 pa_log_warn("Failed to push data into queue");
-                pa_asyncmsgq_post(s->connection->protocol->core->asyncmsgq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_OVERFLOW, NULL, 0, NULL, NULL);
+                pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_OVERFLOW, NULL, 0, NULL, NULL);
                 pa_memblockq_seek(s->memblockq, chunk->length, PA_SEEK_RELATIVE);
             }
 
@@ -848,7 +849,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             pa_memblockq_prebuf_disable(s->memblockq);
 
             if (!pa_memblockq_is_readable(s->memblockq))
-                pa_asyncmsgq_post(s->connection->protocol->core->asyncmsgq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_DRAIN_ACK, userdata, 0, NULL, NULL);
+                pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_DRAIN_ACK, userdata, 0, NULL, NULL);
             else {
                 s->drain_tag = PA_PTR_TO_UINT(userdata);
                 s->drain_request = 1;
@@ -941,7 +942,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     pa_assert(chunk);
 
     if (pa_memblockq_get_length(s->memblockq) <= 0 && !s->underrun) {
-        pa_asyncmsgq_post(s->connection->protocol->core->asyncmsgq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UNDERFLOW, NULL, 0, NULL, NULL);
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_UNDERFLOW, NULL, 0, NULL, NULL);
         s->underrun = 1;
     }
 
@@ -970,7 +971,7 @@ static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
 
     if (s->drain_request && !pa_memblockq_is_readable(s->memblockq)) {
         s->drain_request = 0;
-        pa_asyncmsgq_post(s->connection->protocol->core->asyncmsgq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_DRAIN_ACK, PA_UINT_TO_PTR(s->drain_tag), 0, NULL, NULL);
+        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_DRAIN_ACK, PA_UINT_TO_PTR(s->drain_tag), 0, NULL, NULL);
     }
 
     request_bytes(s);
@@ -1000,7 +1001,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     record_stream_assert_ref(s);
     pa_assert(chunk);
 
-    pa_asyncmsgq_post(s->connection->protocol->core->asyncmsgq, PA_MSGOBJECT(s), RECORD_STREAM_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
+    pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), RECORD_STREAM_MESSAGE_POST_DATA, NULL, 0, chunk, NULL);
 }
 
 static void source_output_kill_cb(pa_source_output *o) {

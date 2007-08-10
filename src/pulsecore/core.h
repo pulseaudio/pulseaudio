@@ -104,9 +104,6 @@ struct pa_core {
         hook_source_output_new_post,
         hook_source_output_disconnect,
         hook_source_output_disconnect_post;
-
-    pa_asyncmsgq *asyncmsgq;
-    pa_io_event *asyncmsgq_event;
 };
 
 PA_DECLARE_CLASS(pa_core);

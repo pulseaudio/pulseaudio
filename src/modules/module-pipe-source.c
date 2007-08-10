@@ -44,6 +44,7 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
+#include <pulsecore/thread-mq.h>
 
 #include "module-pipe-source-symdef.h"
 
@@ -66,7 +67,7 @@ struct userdata {
     pa_module *module;
     pa_source *source;
     pa_thread *thread;
-    pa_asyncmsgq *asyncmsgq;
+    pa_thread_mq thread_mq;
     
     char *filename;
     int fd;
@@ -99,9 +100,11 @@ static void thread_func(void *userdata) {
 
     pa_log_debug("Thread starting up");
 
+    pa_thread_mq_install(&u->thread_mq);
+
     memset(&pollfd, 0, sizeof(pollfd));
     
-    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->asyncmsgq);
+    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->thread_mq.inq);
     pollfd[POLLFD_ASYNCQ].events = POLLIN;
     pollfd[POLLFD_FIFO].fd = u->fd;
 
@@ -114,16 +117,16 @@ static void thread_func(void *userdata) {
         int64_t offset;
 
         /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->asyncmsgq, &object, &code, &data, &offset, &chunk, 0) == 0) {
+        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
 
             if (!object && code == PA_MESSAGE_SHUTDOWN) {
-                pa_asyncmsgq_done(u->asyncmsgq, 0);
+                pa_asyncmsgq_done(u->thread_mq.inq, 0);
                 goto finish;
             }
 
             ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(u->asyncmsgq, ret);
+            pa_asyncmsgq_done(u->thread_mq.inq, ret);
             continue;
         }
 
@@ -175,14 +178,14 @@ static void thread_func(void *userdata) {
 
         /* Hmm, nothing to do. Let's sleep */
 
-        if (pa_asyncmsgq_before_poll(u->asyncmsgq) < 0)
+        if (pa_asyncmsgq_before_poll(u->thread_mq.inq) < 0)
             continue;
 
 /*         pa_log("polling for %i", pollfd[POLLFD_FIFO].events); */
         r = poll(pollfd, POLLFD_MAX, -1);
 /*         pa_log("polling got %i (r=%i) %i", r > 0 ? pollfd[POLLFD_FIFO].revents : 0, r, r > 0 ? pollfd[POLLFD_ASYNCQ].revents: 0); */
 
-        pa_asyncmsgq_after_poll(u->asyncmsgq);
+        pa_asyncmsgq_after_poll(u->thread_mq.inq);
 
         if (r < 0) {
             if (errno == EINTR)
@@ -203,8 +206,8 @@ static void thread_func(void *userdata) {
 fail:
     /* We have to continue processing messages until we receive the
      * SHUTDOWN message */
-    pa_asyncmsgq_post(u->core->asyncmsgq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
-    pa_asyncmsgq_wait_for(u->asyncmsgq, PA_MESSAGE_SHUTDOWN);
+    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
 
 finish:
     pa_log_debug("Thread shutting down");
@@ -236,8 +239,7 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     pa_memchunk_reset(&u->memchunk);
-    
-    pa_assert_se(u->asyncmsgq = pa_asyncmsgq_new(0));
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
 
     u->filename = pa_xstrdup(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
     
@@ -268,7 +270,7 @@ int pa__init(pa_module*m) {
     u->source->userdata = u;
     
     pa_source_set_module(u->source, m);
-    pa_source_set_asyncmsgq(u->source, u->asyncmsgq);
+    pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_description(u->source, t = pa_sprintf_malloc("Unix FIFO source '%s'", u->filename));
     pa_xfree(t);
 
@@ -302,12 +304,11 @@ void pa__done(pa_module*m) {
         pa_source_disconnect(u->source);
 
     if (u->thread) {
-        pa_asyncmsgq_send(u->asyncmsgq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
+        pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
     }
 
-    if (u->asyncmsgq)
-        pa_asyncmsgq_free(u->asyncmsgq);
+    pa_thread_mq_done(&u->thread_mq);
 
     if (u->source)
         pa_source_unref(u->source);
