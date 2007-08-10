@@ -47,13 +47,13 @@ void* pa_flist_pop(pa_flist*l);
 #define PA_STATIC_FLIST_DECLARE(name, size, destroy_cb)                 \
     static struct {                                                     \
         pa_flist *flist;                                                \
-        pa_once_t once;                                                 \
+        pa_once once;                                                   \
     } name##_static_flist = { NULL, PA_ONCE_INIT };                     \
     static void name##_init(void) {                                     \
         name##_static_flist.flist = pa_flist_new(size);                 \
     }                                                                   \
     static inline pa_flist* name##_get(void) {                          \
-        pa_once(&name##_static_flist.once, name##_init);                \
+        pa_run_once(&name##_static_flist.once, name##_init);            \
         return name##_static_flist.flist;                               \
     }                                                                   \
     static void name##_destructor(void) PA_GCC_DESTRUCTOR;              \

@@ -30,17 +30,17 @@
 typedef struct pa_once {
     pa_atomic_ptr_t mutex;
     pa_atomic_t ref, done;
-} pa_once_t;
+} pa_once;
 
 #define PA_ONCE_INIT                                                    \
     {                                                                   \
         .mutex = PA_ATOMIC_PTR_INIT(NULL),                              \
-        .ref = PA_ATOMIC_INIT(0),                                   \
-        .done = PA_ATOMIC_INIT(0)                                   \
+        .ref = PA_ATOMIC_INIT(0),                                       \
+        .done = PA_ATOMIC_INIT(0)                                       \
     }
 
 typedef void (*pa_once_func_t) (void);
 
-void pa_once(pa_once_t *o, pa_once_func_t f);
+void pa_run_once(pa_once *o, pa_once_func_t f);
 
 #endif

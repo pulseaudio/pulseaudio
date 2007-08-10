@@ -33,7 +33,7 @@
 #include "once.h"
 
 /* Not reentrant -- how could it be? */
-void pa_once(pa_once_t *control, pa_once_func_t func) {
+void pa_run_once(pa_once *control, pa_once_func_t func) {
     pa_mutex *m;
 
     pa_assert(control);
