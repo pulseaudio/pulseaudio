@@ -238,7 +238,6 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     m->defer_enable(p->defer_event, 0);
     
     p->send_queue = pa_queue_new();
-    pa_assert(p->send_queue);
 
     p->write.current = NULL;
     p->write.index = 0;
@@ -377,6 +376,7 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
+/* might be called from thread context */
 static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userdata) {
     struct item_info *item;
     pa_pstream *p = userdata;
@@ -400,6 +400,7 @@ static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userd
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
+/* might be called from thread context */
 static void memexport_revoke_cb(pa_memexport *e, uint32_t block_id, void *userdata) {
     struct item_info *item;
     pa_pstream *p = userdata;
