@@ -110,10 +110,7 @@ void pa_thread_mq_install(pa_thread_mq *q) {
 }
 
 pa_thread_mq *pa_thread_mq_get(void) {
-    pa_thread_mq *q;
-
     pa_run_once(&once, init_tls);
-    pa_assert_se(q = pa_tls_get(tls));
-    return q;
+    return pa_tls_get(tls);
 }
 
