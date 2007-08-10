@@ -42,7 +42,7 @@ static void once_func(void) {
     pa_log("once!");
 }
 
-static pa_once_t once = PA_ONCE_INIT;
+static pa_once once = PA_ONCE_INIT;
 
 static void thread_func(void *data) {
     pa_tls_set(tls, data);
@@ -72,7 +72,7 @@ static void thread_func(void *data) {
 
         pa_mutex_unlock(mutex);
 
-        pa_once(&once, once_func);
+        pa_run_once(&once, once_func);
 
         pa_cond_signal(cond2, 0);
 
