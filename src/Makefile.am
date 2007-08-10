@@ -662,6 +662,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/flist.c pulsecore/flist.h \
 		pulsecore/asyncmsgq.c pulsecore/asyncmsgqq.h \
 		pulsecore/asyncq.c pulsecore/asyncq.h \
+		pulsecore/thread-mq.c pulsecore/thread-mq.h \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/msgobject.c pulsecore/msgobject.h \
