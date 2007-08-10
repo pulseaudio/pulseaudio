@@ -223,7 +223,8 @@ noinst_PROGRAMS = \
 		thread-test \
 		flist-test \
 		asyncq-test \
-		asyncmsgq-test
+		asyncmsgq-test \
+		queue-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -292,6 +293,11 @@ asyncmsgq_test_SOURCES = tests/asyncmsgq-test.c
 asyncmsgq_test_CFLAGS = $(AM_CFLAGS)
 asyncmsgq_test_LDADD = $(AM_LDADD) libpulsecore.la
 asyncmsgq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+queue_test_SOURCES = tests/queue-test.c
+queue_test_CFLAGS = $(AM_CFLAGS)
+queue_test_LDADD = $(AM_LDADD) libpulsecore.la
+queue_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)

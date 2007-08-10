@@ -25,12 +25,15 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/flist.h>
 
 #include "queue.h"
+
+PA_STATIC_FLIST_DECLARE(entries, 0, pa_xfree);
 
 struct queue_entry {
     struct queue_entry *next;
@@ -44,40 +47,42 @@ struct pa_queue {
 
 pa_queue* pa_queue_new(void) {
     pa_queue *q = pa_xnew(pa_queue, 1);
+    
     q->front = q->back = NULL;
     q->length = 0;
+    
     return q;
 }
 
 void pa_queue_free(pa_queue* q, void (*destroy)(void *p, void *userdata), void *userdata) {
-    struct queue_entry *e;
-    assert(q);
+    void *data;
+    pa_assert(q);
 
-    e = q->front;
-    while (e) {
-        struct queue_entry *n = e->next;
-
+    while ((data = pa_queue_pop(q)))
         if (destroy)
-            destroy(e->data, userdata);
+            destroy(data, userdata);
 
-        pa_xfree(e);
-        e = n;
-    }
-
+    pa_assert(!q->front);
+    pa_assert(!q->back);
+    pa_assert(q->length == 0);
+    
     pa_xfree(q);
 }
 
 void pa_queue_push(pa_queue *q, void *p) {
     struct queue_entry *e;
 
-    e = pa_xnew(struct queue_entry, 1);
+    if (!(e = pa_flist_pop(PA_STATIC_FLIST_GET(entries))))
+        e = pa_xnew(struct queue_entry, 1);
+    
     e->data = p;
     e->next = NULL;
 
-    if (q->back)
+    if (q->back) {
+        pa_assert(q->front);
         q->back->next = e;
-    else {
-        assert(!q->front);
+    } else {
+        pa_assert(!q->front);
         q->front = e;
     }
 
@@ -88,24 +93,30 @@ void pa_queue_push(pa_queue *q, void *p) {
 void* pa_queue_pop(pa_queue *q) {
     void *p;
     struct queue_entry *e;
-    assert(q);
+    pa_assert(q);
 
     if (!(e = q->front))
         return NULL;
 
     q->front = e->next;
-    if (q->back == e)
+
+    if (q->back == e) {
+        pa_assert(!e->next);
         q->back = NULL;
+    }
 
     p = e->data;
-    pa_xfree(e);
 
+    if (pa_flist_push(PA_STATIC_FLIST_GET(entries), e) < 0)
+        pa_xfree(e);
+    
     q->length--;
 
     return p;
 }
 
 int pa_queue_is_empty(pa_queue *q) {
-    assert(q);
+    pa_assert(q);
+    
     return q->length == 0;
 }
