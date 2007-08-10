@@ -299,7 +299,8 @@ static struct device* hal_device_add(struct userdata *u, const char *udi) {
 
     pa_assert(u);
     pa_assert(u->capability);
-
+    pa_assert(!pa_hashmap_get(u->devices, udi));
+    
 #ifdef HAVE_ALSA
     if (strcmp(u->capability, CAPABILITY_ALSA) == 0)
         m = hal_device_load_alsa(u, udi, &sink_name, &source_name);
@@ -374,22 +375,25 @@ static dbus_bool_t device_has_capability(LibHalContext *context, const char *udi
 static void device_added_time_cb(pa_mainloop_api *ea, pa_time_event *ev, const struct timeval *tv, void *userdata) {
     DBusError error;
     struct timerdata *td = userdata;
-    int b;
-    struct device *d;
 
     dbus_error_init(&error);
-    
-    b = libhal_device_exists(td->u->context, td->udi, &error);
-    
-    if (dbus_error_is_set(&error)) {
-        pa_log_error("Error adding device: %s: %s", error.name, error.message);
-        dbus_error_free(&error);
-    } else if (b) {
-        if (!(d = hal_device_add(td->u, td->udi))) 
-            pa_log_debug("Not loaded device %s", td->udi);
-        else {
-            if (d->sink_name)
-                pa_scache_play_item_by_name(td->u->core, "pulse-hotplug", d->sink_name, PA_VOLUME_NORM, 0);
+
+    if (!pa_hashmap_get(td->u->devices, td->udi)) {
+        int b;
+        struct device *d;
+        
+        b = libhal_device_exists(td->u->context, td->udi, &error);
+        
+        if (dbus_error_is_set(&error)) {
+            pa_log_error("Error adding device: %s: %s", error.name, error.message);
+            dbus_error_free(&error);
+        } else if (b) {
+            if (!(d = hal_device_add(td->u, td->udi))) 
+                pa_log_debug("Not loaded device %s", td->udi);
+            else {
+                if (d->sink_name)
+                    pa_scache_play_item_by_name(td->u->core, "pulse-hotplug", d->sink_name, PA_VOLUME_NORM, 0);
+            }
         }
     }
 
@@ -406,6 +410,9 @@ static void device_added_cb(LibHalContext *context, const char *udi) {
     int good = 0;
 
     pa_assert_se(u = libhal_ctx_get_user_data(context));
+
+    if (pa_hashmap_get(u->devices, udi))
+        return;
     
     pa_log_debug("HAL Device added: %s", udi);
 
