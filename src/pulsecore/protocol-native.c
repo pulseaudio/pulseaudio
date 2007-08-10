@@ -139,7 +139,6 @@ struct connection {
     pa_time_event *auth_timeout_event;
 };
 
-
 PA_DECLARE_CLASS(record_stream);
 #define RECORD_STREAM(o) (record_stream_cast(o))
 static PA_DEFINE_CHECK_TYPE(record_stream, pa_msgobject);
@@ -193,6 +192,11 @@ enum {
 
 enum {
     RECORD_STREAM_MESSAGE_POST_DATA         /* data from source output to main loop */
+};
+
+enum {
+    CONNECTION_MESSAGE_RELEASE,
+    CONNECTION_MESSAGE_REVOKE
 };
 
 static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk);
@@ -679,6 +683,24 @@ static playback_stream* playback_stream_new(
     pa_sink_input_put(s->sink_input);
     
     return s;
+}
+
+static int connection_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
+    connection *c = CONNECTION(o);
+    connection_assert_ref(c);
+
+    switch (code) {
+        
+        case CONNECTION_MESSAGE_REVOKE:
+            pa_pstream_send_revoke(c->pstream, PA_PTR_TO_UINT(userdata));
+            break;
+
+        case CONNECTION_MESSAGE_RELEASE:
+            pa_pstream_send_release(c->pstream, PA_PTR_TO_UINT(userdata));
+            break;
+    }
+
+    return 0;
 }
 
 static void connection_unlink(connection *c) {
@@ -2702,6 +2724,24 @@ static void pstream_drain_callback(pa_pstream *p, void *userdata) {
     send_memblock(c);
 }
 
+static void pstream_revoke_callback(pa_pstream *p, uint32_t block_id, void *userdata) {
+    pa_thread_mq *q;
+    
+    if (!(q = pa_thread_mq_get()))
+        pa_pstream_send_revoke(p, block_id);
+    else
+        pa_asyncmsgq_post(q->outq, PA_MSGOBJECT(userdata), CONNECTION_MESSAGE_REVOKE, PA_UINT_TO_PTR(block_id), 0, NULL, NULL);
+}
+
+static void pstream_release_callback(pa_pstream *p, uint32_t block_id, void *userdata) {
+    pa_thread_mq *q;
+    
+    if (!(q = pa_thread_mq_get()))
+        pa_pstream_send_release(p, block_id);
+    else
+        pa_asyncmsgq_post(q->outq, PA_MSGOBJECT(userdata), CONNECTION_MESSAGE_RELEASE, PA_UINT_TO_PTR(block_id), 0, NULL, NULL);
+}
+
 /*** client callbacks ***/
 
 static void client_kill_cb(pa_client *c) {
@@ -2741,6 +2781,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
 
     c = pa_msgobject_new(connection);
     c->parent.parent.free = connection_free;
+    c->parent.process_msg = connection_process_msg;
 
     c->authorized = !!p->public;
 
@@ -2772,6 +2813,8 @@ static void on_connection(PA_GCC_UNUSED pa_socket_server*s, pa_iochannel *io, vo
     pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
     pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);
     pa_pstream_set_drain_callback(c->pstream, pstream_drain_callback, c);
+    pa_pstream_set_revoke_callback(c->pstream, pstream_revoke_callback, c);
+    pa_pstream_set_release_callback(c->pstream, pstream_release_callback, c);
 
     c->pdispatch = pa_pdispatch_new(p->core->mainloop, command_table, PA_COMMAND_MAX);
 
