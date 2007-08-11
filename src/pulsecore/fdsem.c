@@ -64,8 +64,6 @@ pa_fdsem *pa_fdsem_new(void) {
 void pa_fdsem_free(pa_fdsem *f) {
     pa_assert(f);
 
-    pa_assert(pa_atomic_load(&f->waiting) == 0);
-    
     close(f->fds[0]);
     close(f->fds[1]);
 
@@ -168,17 +166,16 @@ int pa_fdsem_before_poll(pa_fdsem *f) {
     pa_atomic_inc(&f->waiting);
 
     if (pa_atomic_cmpxchg(&f->signalled, 1, 0)) {
-        pa_atomic_dec(&f->waiting);
+        pa_assert_se(pa_atomic_dec(&f->waiting) >= 1);
         return -1;
-    }
-        
+    }        
     return 0;
 }
 
 int pa_fdsem_after_poll(pa_fdsem *f) {
     pa_assert(f);
 
-    pa_atomic_dec(&f->waiting);
+    pa_assert_se(pa_atomic_dec(&f->waiting) >= 1);
 
     flush(f);
 
