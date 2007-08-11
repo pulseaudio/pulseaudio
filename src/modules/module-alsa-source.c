@@ -811,9 +811,10 @@ int pa__init(pa_module*m) {
     pa_source_set_module(u->source, m);
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_description(u->source, t = pa_sprintf_malloc(
-                                      "ALSA PCM on %s (%s)",
+                                      "ALSA PCM on %s (%s)%s",
                                       dev,
-                                      snd_pcm_info_get_name(pcm_info)));
+                                      snd_pcm_info_get_name(pcm_info),
+                                      use_mmap ? " via DMA" : ""));
     pa_xfree(t);
 
     u->source->is_hardware = 1;
