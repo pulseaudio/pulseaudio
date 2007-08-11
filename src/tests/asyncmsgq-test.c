@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 
     pa_thread_free(t);
 
-    pa_asyncmsgq_free(q);
+    pa_asyncmsgq_unref(q);
 
     return 0;
 }

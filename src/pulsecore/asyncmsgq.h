@@ -49,13 +49,14 @@
  * latter waits for completion, synchronously. */
 
 enum {
-    PA_MESSAGE_SHUTDOWN /* A generic message to inform the handler of this queue to quit */
+    PA_MESSAGE_SHUTDOWN = -1/* A generic message to inform the handler of this queue to quit */
 };
 
 typedef struct pa_asyncmsgq pa_asyncmsgq;
 
 pa_asyncmsgq* pa_asyncmsgq_new(size_t size);
-void pa_asyncmsgq_free(pa_asyncmsgq* q);
+pa_asyncmsgq* pa_asyncmsgq_ref(pa_asyncmsgq *q);
+void pa_asyncmsgq_unref(pa_asyncmsgq* q);
 
 void pa_asyncmsgq_post(pa_asyncmsgq *q, pa_msgobject *object, int code, const void *userdata, int64_t offset, const pa_memchunk *memchunk, pa_free_cb_t userdata_free_cb);
 int pa_asyncmsgq_send(pa_asyncmsgq *q, pa_msgobject *object, int code, const void *userdata, int64_t offset, const pa_memchunk *memchunk);

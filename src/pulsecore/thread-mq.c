@@ -46,11 +46,13 @@ static pa_tls *tls;
 
 static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
     pa_thread_mq *q = userdata;
+    pa_asyncmsgq *aq;
 
     pa_assert(pa_asyncmsgq_get_fd(q->outq) == fd);
     pa_assert(events == PA_IO_EVENT_INPUT);
 
-    pa_asyncmsgq_after_poll(q->outq);
+    pa_asyncmsgq_ref(aq = q->outq);
+    pa_asyncmsgq_after_poll(aq);
 
     for (;;) {
         pa_msgobject *object;
@@ -60,16 +62,18 @@ static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_even
         pa_memchunk chunk;
 
         /* Check whether there is a message for us to process */
-        while (pa_asyncmsgq_get(q->outq, &object, &code, &data, &offset, &chunk, 0) == 0) {
+        while (pa_asyncmsgq_get(aq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
 
             ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(q->outq, ret);
+            pa_asyncmsgq_done(aq, ret);
         }
 
-        if (pa_asyncmsgq_before_poll(q->outq) == 0)
+        if (pa_asyncmsgq_before_poll(aq) == 0)
             break;
     }
+
+    pa_asyncmsgq_unref(aq);
 }
 
 void pa_thread_mq_init(pa_thread_mq *q, pa_mainloop_api *mainloop) {
@@ -90,9 +94,8 @@ void pa_thread_mq_done(pa_thread_mq *q) {
     q->mainloop->io_free(q->io_event);
     q->io_event = NULL;
 
-    pa_asyncmsgq_after_poll(q->outq);
-    pa_asyncmsgq_free(q->inq);
-    pa_asyncmsgq_free(q->outq);
+    pa_asyncmsgq_unref(q->inq);
+    pa_asyncmsgq_unref(q->outq);
     q->inq = q->outq = NULL;
     
     q->mainloop = NULL;
