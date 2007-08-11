@@ -80,9 +80,6 @@ pa_sink* pa_sink_new(
     pa_return_null_if_fail(!driver || pa_utf8_valid(driver));
     pa_return_null_if_fail(name && pa_utf8_valid(name) && *name);
 
-    if (pa_hook_fire(&core->hook_sink_new, NULL) < 0) /* FIXME */
-        return NULL;
-    
     s = pa_msgobject_new(pa_sink);
 
     if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SINK, s, fail))) {
@@ -149,7 +146,7 @@ pa_sink* pa_sink_new(
 
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
 
-    pa_hook_fire(&core->hook_sink_new_post, s);
+    pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_NEW_POST], s);
 
     return s;
 }
@@ -170,6 +167,8 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
         return -1;
 
     s->state = state;
+    
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
     return 0;
 }
 
@@ -179,7 +178,7 @@ void pa_sink_disconnect(pa_sink* s) {
     pa_assert(s);
     pa_return_if_fail(s->state != PA_SINK_DISCONNECTED);
 
-    pa_hook_fire(&s->core->hook_sink_disconnect, s);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_DISCONNECT], s);
     
     pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
@@ -204,7 +203,7 @@ void pa_sink_disconnect(pa_sink* s) {
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
 
-    pa_hook_fire(&s->core->hook_sink_disconnect_post, s);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_DISCONNECT_POST], s);
 }
 
 static void sink_free(pa_object *o) {

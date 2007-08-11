@@ -98,9 +98,8 @@ pa_sink_input* pa_sink_input_new(
     pa_assert(core);
     pa_assert(data);
 
-    if (!(flags & PA_SINK_INPUT_NO_HOOKS))
-        if (pa_hook_fire(&core->hook_sink_input_new, data) < 0)
-            return NULL;
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], data) < 0)
+        return NULL;
 
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
     pa_return_null_if_fail(!data->name || pa_utf8_valid(data->name));
@@ -249,7 +248,7 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
     pa_assert(i);
     pa_return_if_fail(i->state != PA_SINK_INPUT_DISCONNECTED);
 
-    pa_hook_fire(&i->sink->core->hook_sink_input_disconnect, i);
+    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_DISCONNECT], i);
     
     if (i->sync_prev)
         i->sync_prev->sync_next = i->sync_next;
@@ -273,7 +272,7 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
     i->get_latency = NULL;
     i->underrun = NULL;
 
-    pa_hook_fire(&i->sink->core->hook_sink_input_disconnect_post, i);
+    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_DISCONNECT_POST], i);
     i->sink = NULL;
     pa_sink_input_unref(i);
 }
@@ -313,7 +312,7 @@ void pa_sink_input_put(pa_sink_input *i) {
     pa_sink_update_status(i->sink);
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
-    pa_hook_fire(&i->sink->core->hook_sink_input_new_post, i);
+    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], i);
 }
 
 void pa_sink_input_kill(pa_sink_input*i) {

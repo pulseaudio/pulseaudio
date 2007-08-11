@@ -138,8 +138,8 @@ int pa__init(pa_module*m) {
     }
 
     m->userdata = u = pa_xnew(struct userdata, 1);
-    u->sink_slot = pa_hook_connect(&m->core->hook_sink_disconnect, (pa_hook_cb_t) sink_hook_callback, NULL);
-    u->source_slot = pa_hook_connect(&m->core->hook_source_disconnect, (pa_hook_cb_t) source_hook_callback, NULL);
+    u->sink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_DISCONNECT], (pa_hook_cb_t) sink_hook_callback, NULL);
+    u->source_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_DISCONNECT], (pa_hook_cb_t) source_hook_callback, NULL);
 
     pa_modargs_free(ma);
     return 0;

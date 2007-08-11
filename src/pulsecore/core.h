@@ -42,6 +42,26 @@ typedef struct pa_core pa_core;
 #include <pulsecore/sink-input.h>
 #include <pulsecore/msgobject.h>
 
+typedef enum pa_core_hook {
+    PA_CORE_HOOK_SINK_NEW_POST,
+    PA_CORE_HOOK_SINK_DISCONNECT,
+    PA_CORE_HOOK_SINK_DISCONNECT_POST,
+    PA_CORE_HOOK_SINK_STATE_CHANGED,
+    PA_CORE_HOOK_SOURCE_NEW_POST,
+    PA_CORE_HOOK_SOURCE_DISCONNECT,
+    PA_CORE_HOOK_SOURCE_DISCONNECT_POST,
+    PA_CORE_HOOK_SOURCE_STATE_CHANGED,
+    PA_CORE_HOOK_SINK_INPUT_NEW,
+    PA_CORE_HOOK_SINK_INPUT_PUT,
+    PA_CORE_HOOK_SINK_INPUT_DISCONNECT,
+    PA_CORE_HOOK_SINK_INPUT_DISCONNECT_POST,
+    PA_CORE_HOOK_SOURCE_OUTPUT_NEW,
+    PA_CORE_HOOK_SOURCE_OUTPUT_PUT,
+    PA_CORE_HOOK_SOURCE_OUTPUT_DISCONNECT,
+    PA_CORE_HOOK_SOURCE_OUTPUT_DISCONNECT_POST,
+    PA_CORE_HOOK_MAX
+} pa_core_hook_t;
+
 /* The core structure of PulseAudio. Every PulseAudio daemon contains
  * exactly one of these. It is used for storing kind of global
  * variables for the daemon. */
@@ -89,23 +109,7 @@ struct pa_core {
     int is_system_instance;
 
     /* hooks */
-    pa_hook
-        hook_sink_new,
-        hook_sink_new_post,
-        hook_sink_disconnect,
-        hook_sink_disconnect_post,
-        hook_source_new,
-        hook_source_new_post,
-        hook_source_disconnect,
-        hook_source_disconnect_post,
-        hook_sink_input_new,
-        hook_sink_input_new_post,
-        hook_sink_input_disconnect,
-        hook_sink_input_disconnect_post,
-        hook_source_output_new,
-        hook_source_output_new_post,
-        hook_source_output_disconnect,
-        hook_source_output_disconnect_post;
+    pa_hook hooks[PA_CORE_HOOK_MAX];
 };
 
 PA_DECLARE_CLASS(pa_core);

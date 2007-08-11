@@ -50,7 +50,7 @@ struct userdata {
     pa_core *core;
     pa_usec_t timeout;
     pa_hashmap *device_infos;
-    pa_hook_slot *sink_new_slot, *source_new_slot, *sink_disconnect_slot, *source_disconnect_slot;
+    pa_hook_slot *sink_new_slot, *source_new_slot, *sink_disconnect_slot, *source_disconnect_slot, *sink_state_changed_slot, *source_state_changed_slot;
     pa_hook_slot *sink_input_new_slot, *source_output_new_slot, *sink_input_disconnect_slot, *source_output_disconnect_slot;
 };
 
@@ -69,13 +69,13 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
 
     d->userdata->core->mainloop->time_restart(d->time_event, NULL);
     
-    if (d->sink && pa_sink_used_by(d->sink) <= 0) {
+    if (d->sink && pa_sink_used_by(d->sink) <= 0 && pa_sink_get_state(d->sink) != PA_SINK_SUSPENDED) {
         pa_log_info("Sink %s idle for too long, suspending ...", d->sink->name);
         pa_sink_suspend(d->sink, 1);
         pa_source_suspend(d->sink->monitor_source, 1);
     }
 
-    if (d->source && pa_source_used_by(d->source) <= 0) {
+    if (d->source && pa_source_used_by(d->source) <= 0 && pa_source_get_state(d->source) != PA_SOURCE_SUSPENDED) {
         pa_log_info("Source %s idle for too long, suspending ...", d->source->name);
         pa_source_suspend(d->source, 1);
     }
@@ -209,6 +209,40 @@ static pa_hook_result_t device_disconnect_hook_cb(pa_core *c, pa_object *o, stru
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, struct userdata *u) {
+    struct device_info *d;
+
+    pa_assert(c);
+    pa_object_assert_ref(o);
+    pa_assert(u);
+
+    if (!(d = pa_hashmap_get(u->device_infos, o)))
+        return PA_HOOK_OK;
+
+    if (pa_sink_isinstance(o)) {
+        pa_sink *s = PA_SINK(o);
+        
+        if (pa_sink_used_by(s) <= 0) {
+            pa_sink_state_t state = pa_sink_get_state(s);
+
+            if (state == PA_SINK_RUNNING || state == PA_SINK_IDLE)
+                restart(d);
+        }
+        
+    } else if (pa_source_isinstance(o)) {
+        pa_source *s = PA_SOURCE(o);
+
+        if (pa_source_used_by(s) <= 0) {
+            pa_sink_state_t state = pa_source_get_state(s);
+
+            if (state == PA_SINK_RUNNING || state == PA_SINK_IDLE)
+                restart(d);
+        }
+    }
+            
+    return PA_HOOK_OK;
+}
+
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
@@ -240,15 +274,17 @@ int pa__init(pa_module*m) {
     for (source = pa_idxset_first(m->core->sources, &idx); source; source = pa_idxset_next(m->core->sources, &idx))
         device_new_hook_cb(m->core, PA_OBJECT(source), u);
 
-    u->sink_new_slot = pa_hook_connect(&m->core->hook_sink_new_post, (pa_hook_cb_t) device_new_hook_cb, u);
-    u->source_new_slot = pa_hook_connect(&m->core->hook_source_new_post, (pa_hook_cb_t) device_new_hook_cb, u);
-    u->sink_disconnect_slot = pa_hook_connect(&m->core->hook_sink_disconnect_post, (pa_hook_cb_t) device_disconnect_hook_cb, u);
-    u->source_disconnect_slot = pa_hook_connect(&m->core->hook_source_disconnect_post, (pa_hook_cb_t) device_disconnect_hook_cb, u);
+    u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_NEW_POST], (pa_hook_cb_t) device_new_hook_cb, u);
+    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_NEW_POST], (pa_hook_cb_t) device_new_hook_cb, u);
+    u->sink_disconnect_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_DISCONNECT], (pa_hook_cb_t) device_disconnect_hook_cb, u);
+    u->source_disconnect_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_DISCONNECT], (pa_hook_cb_t) device_disconnect_hook_cb, u);
+    u->sink_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], (pa_hook_cb_t) device_state_changed_hook_cb, u);
+    u->source_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], (pa_hook_cb_t) device_state_changed_hook_cb, u);
 
-    u->sink_input_new_slot = pa_hook_connect(&m->core->hook_sink_input_new_post, (pa_hook_cb_t) sink_input_new_hook_cb, u);
-    u->source_output_new_slot = pa_hook_connect(&m->core->hook_source_output_new_post, (pa_hook_cb_t) source_output_new_hook_cb, u);
-    u->sink_input_disconnect_slot = pa_hook_connect(&m->core->hook_sink_input_disconnect_post, (pa_hook_cb_t) sink_input_disconnect_hook_cb, u);
-    u->source_output_disconnect_slot = pa_hook_connect(&m->core->hook_source_output_disconnect_post, (pa_hook_cb_t) source_output_disconnect_hook_cb, u);
+    u->sink_input_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], (pa_hook_cb_t) sink_input_new_hook_cb, u);
+    u->source_output_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], (pa_hook_cb_t) source_output_new_hook_cb, u);
+    u->sink_input_disconnect_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_DISCONNECT_POST], (pa_hook_cb_t) sink_input_disconnect_hook_cb, u);
+    u->source_output_disconnect_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_DISCONNECT_POST], (pa_hook_cb_t) source_output_disconnect_hook_cb, u);
     
     pa_modargs_free(ma);
     return 0;
@@ -276,11 +312,15 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->sink_new_slot);
     if (u->sink_disconnect_slot)
         pa_hook_slot_free(u->sink_disconnect_slot);
+    if (u->sink_state_changed_slot)
+        pa_hook_slot_free(u->sink_state_changed_slot);
 
     if (u->source_new_slot)
         pa_hook_slot_free(u->source_new_slot);
     if (u->source_disconnect_slot)
         pa_hook_slot_free(u->source_disconnect_slot);
+    if (u->source_state_changed_slot)
+        pa_hook_slot_free(u->source_state_changed_slot);
 
     if (u->sink_input_new_slot)
         pa_hook_slot_free(u->sink_input_new_slot);

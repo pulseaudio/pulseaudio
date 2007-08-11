@@ -72,7 +72,8 @@ static void core_free(pa_object *o);
 pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     pa_core* c;
     pa_mempool *pool;
-
+    int j;
+    
     pa_assert(m);
 
     if (shared) {
@@ -138,22 +139,8 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
 
     c->is_system_instance = 0;
 
-    pa_hook_init(&c->hook_sink_new, c);
-    pa_hook_init(&c->hook_sink_new_post, c);
-    pa_hook_init(&c->hook_sink_disconnect, c);
-    pa_hook_init(&c->hook_sink_disconnect_post, c);
-    pa_hook_init(&c->hook_source_new, c);
-    pa_hook_init(&c->hook_source_new_post, c);
-    pa_hook_init(&c->hook_source_disconnect, c);
-    pa_hook_init(&c->hook_source_disconnect_post, c);
-    pa_hook_init(&c->hook_sink_input_new, c);
-    pa_hook_init(&c->hook_sink_input_new_post, c);
-    pa_hook_init(&c->hook_sink_input_disconnect, c);
-    pa_hook_init(&c->hook_sink_input_disconnect_post, c);
-    pa_hook_init(&c->hook_source_output_new, c);
-    pa_hook_init(&c->hook_source_output_new_post, c);
-    pa_hook_init(&c->hook_source_output_disconnect, c);
-    pa_hook_init(&c->hook_source_output_disconnect_post, c);
+    for (j = 0; j < PA_CORE_HOOK_MAX; j++)
+        pa_hook_init(&c->hooks[j], c);
 
     pa_property_init(c);
 
@@ -168,6 +155,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
 
 static void core_free(pa_object *o) {
     pa_core *c = PA_CORE(o);
+    int j;
     pa_assert(c);
 
     pa_module_unload_all(c);
@@ -203,22 +191,8 @@ static void core_free(pa_object *o) {
 
     pa_property_cleanup(c);
 
-    pa_hook_free(&c->hook_sink_new);
-    pa_hook_free(&c->hook_sink_new_post);
-    pa_hook_free(&c->hook_sink_disconnect);
-    pa_hook_free(&c->hook_sink_disconnect_post);
-    pa_hook_free(&c->hook_source_new);
-    pa_hook_free(&c->hook_source_new_post);
-    pa_hook_free(&c->hook_source_disconnect);
-    pa_hook_free(&c->hook_source_disconnect_post);
-    pa_hook_free(&c->hook_sink_input_new);
-    pa_hook_free(&c->hook_sink_input_new_post);
-    pa_hook_free(&c->hook_sink_input_disconnect);
-    pa_hook_free(&c->hook_sink_input_disconnect_post);
-    pa_hook_free(&c->hook_source_output_new);
-    pa_hook_free(&c->hook_source_output_new_post);
-    pa_hook_free(&c->hook_source_output_disconnect);
-    pa_hook_free(&c->hook_source_output_disconnect_post);
+    for (j = 0; j < PA_CORE_HOOK_MAX; j++)
+        pa_hook_free(&c->hooks[j]);
 
     pa_xfree(c);
 }

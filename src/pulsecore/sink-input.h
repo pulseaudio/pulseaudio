@@ -47,7 +47,6 @@ typedef enum pa_sink_input_state {
 
 typedef enum pa_sink_input_flags {
     PA_SINK_INPUT_VARIABLE_RATE = 1,
-    PA_SINK_INPUT_NO_HOOKS = 2
 } pa_sink_input_flags_t;
 
 struct pa_sink_input {

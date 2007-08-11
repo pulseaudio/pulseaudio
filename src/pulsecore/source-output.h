@@ -42,8 +42,7 @@ typedef enum pa_source_output_state {
 } pa_source_output_state_t;
 
 typedef enum pa_source_output_flags {
-    PA_SOURCE_OUTPUT_NO_HOOKS = 1,
-    PA_SOURCE_OUTPUT_VARIABLE_RATE = 2
+    PA_SOURCE_OUTPUT_VARIABLE_RATE = 1
 } pa_source_output_flags_t;
 
 struct pa_source_output {
