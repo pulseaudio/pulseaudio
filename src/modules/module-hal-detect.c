@@ -155,7 +155,7 @@ static int hal_alsa_device_is_modem(LibHalContext *context, const char *udi, DBu
 }
 
 static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi, char **sink_name, char **source_name) {
-    char args[128];
+    char *args;
     alsa_type_t type;
     int device, card;
     const char *module_name;
@@ -189,17 +189,19 @@ static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi, char
         *sink_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
         
         module_name = "module-alsa-sink";
-        pa_snprintf(args, sizeof(args), "device=hw:%u sink_name=%s", card, *sink_name);
+        args = pa_sprintf_malloc("device=hw:%u sink_name=%s", card, *sink_name);
     } else {
-        *source_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
+        *source_name = pa_sprintf_malloc("alsa_input.%s", strip_udi(udi));
         
         module_name = "module-alsa-source";
-        pa_snprintf(args, sizeof(args), "device=hw:%u source_name=%s", card, *source_name);
+        args = pa_sprintf_malloc("device=hw:%u source_name=%s", card, *source_name);
     }
 
     pa_log_debug("Loading %s with arguments '%s'", module_name, args);
 
     m = pa_module_load(u->core, module_name, args);
+
+    pa_xfree(args);
 
     if (!m) {
         pa_xfree(*sink_name);
@@ -257,7 +259,7 @@ finish:
 }
 
 static pa_module* hal_device_load_oss(struct userdata *u, const char *udi, char **sink_name, char **source_name) {
-    char args[256];
+    char* args;
     char* device;
     DBusError error;
     pa_module *m;
@@ -277,15 +279,15 @@ static pa_module* hal_device_load_oss(struct userdata *u, const char *udi, char 
     if (!device || dbus_error_is_set(&error))
         goto fail;
 
-    *sink_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
-    *source_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
+    *sink_name = pa_sprintf_malloc("oss_output.%s", strip_udi(udi));
+    *source_name = pa_sprintf_malloc("oss_input.%s", strip_udi(udi));
     
-    pa_snprintf(args, sizeof(args), "device=%s sink_name=%s source_name=%s", device, sink_name, source_name);
+    args = pa_sprintf_malloc("device=%s sink_name=%s source_name=%s", device, *sink_name, *source_name);
     libhal_free_string(device);
 
     pa_log_debug("Loading module-oss with arguments '%s'", args);
-
     m = pa_module_load(u->core, "module-oss", args);
+    pa_xfree(args);
 
     if (!m) {
         pa_xfree(*sink_name);
@@ -342,10 +344,12 @@ static int hal_device_add_all(struct userdata *u, const char *capability) {
     char** udis;
 
     pa_assert(u);
-    pa_assert(!u->capability);
     
     dbus_error_init(&error);
 
+    if (u->capability && strcmp(u->capability, capability) != 0)
+        return 0;
+    
     pa_log_info("Trying capability %s", capability);
 
     udis = libhal_find_device_by_capability(u->context, capability, &n, &error);
@@ -356,7 +360,6 @@ static int hal_device_add_all(struct userdata *u, const char *capability) {
     }
 
     if (n > 0) {
-        u->capability = capability;
         
         for (i = 0; i < n; i++) {
             struct device *d;
@@ -741,7 +744,7 @@ int pa__init(pa_module*m) {
     n = hal_device_add_all(u, CAPABILITY_ALSA);
 #endif
 #if defined(HAVE_ALSA) && defined(HAVE_OSS)
-    if (!u->capability)
+    if (n <= 0)
 #endif        
 #ifdef HAVE_OSS
         n += hal_device_add_all(u, CAPABILITY_OSS);
