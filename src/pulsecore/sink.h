@@ -110,6 +110,7 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_GET_LATENCY,
     PA_SINK_MESSAGE_SET_STATE,
     PA_SINK_MESSAGE_PING,
+    PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER,
     PA_SINK_MESSAGE_MAX
 } pa_sink_message_t;
 

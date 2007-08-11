@@ -95,7 +95,7 @@ struct pa_sink_input {
         /* Some silence to play before the actual data. This is used to
          * compensate for latency differences when moving a sink input
          * "hot" between sinks. */
-        /*         size_t move_silence; */
+        size_t move_silence;
         pa_memblock *silence_memblock;               /* may be NULL */
 
         pa_sink_input *sync_prev, *sync_next;
@@ -187,5 +187,12 @@ pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume);
 void pa_sink_input_drop(pa_sink_input *i, size_t length);
 int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
+
+typedef struct pa_sink_input_move_info {
+    pa_sink_input *sink_input;
+    pa_sink_input *ghost_sink_input;
+    pa_memblockq *buffer;
+    size_t buffer_bytes;
+} pa_sink_input_move_info;
 
 #endif
