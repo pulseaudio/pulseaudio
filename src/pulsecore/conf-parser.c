@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -35,6 +34,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "conf-parser.h"
 
@@ -43,7 +43,10 @@
 
 /* Run the user supplied parser for an assignment */
 static int next_assignment(const char *filename, unsigned line, const pa_config_item *t, const char *lvalue, const char *rvalue, void *userdata) {
-    assert(filename && t && lvalue && rvalue);
+    pa_assert(filename);
+    pa_assert(t);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
 
     for (; t->parse; t++)
         if (!strcmp(lvalue, t->lvalue))
@@ -56,7 +59,7 @@ static int next_assignment(const char *filename, unsigned line, const pa_config_
 
 /* Returns non-zero when c is contained in s */
 static int in_string(char c, const char *s) {
-    assert(s);
+    pa_assert(s);
 
     for (; *s; s++)
         if (*s == c)
@@ -107,7 +110,9 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
     int r = -1;
     unsigned line = 0;
     int do_close = !f;
-    assert(filename && t);
+    
+    pa_assert(filename);
+    pa_assert(t);
 
     if (!f && !(f = fopen(filename, "r"))) {
         if (errno == ENOENT) {
@@ -148,7 +153,11 @@ finish:
 int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
     int *i = data;
     int32_t k;
-    assert(filename && lvalue && rvalue && data);
+    
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
 
     if (pa_atoi(rvalue, &k) < 0) {
         pa_log("[%s:%u] Failed to parse numeric value: %s", filename, line, rvalue);
@@ -161,7 +170,11 @@ int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue,
 
 int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
     int *b = data, k;
-    assert(filename && lvalue && rvalue && data);
+
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
 
     if ((k = pa_parse_boolean(rvalue)) < 0) {
         pa_log("[%s:%u] Failed to parse boolean value: %s", filename, line, rvalue);
@@ -175,7 +188,11 @@ int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue
 
 int pa_config_parse_string(const char *filename, PA_GCC_UNUSED unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
     char **s = data;
-    assert(filename && lvalue && rvalue && data);
+
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
 
     pa_xfree(*s);
     *s = *rvalue ? pa_xstrdup(rvalue) : NULL;
