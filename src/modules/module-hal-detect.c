@@ -360,6 +360,7 @@ static int hal_device_add_all(struct userdata *u, const char *capability) {
     }
 
     if (n > 0) {
+        u->capability = capability;
         
         for (i = 0; i < n; i++) {
             struct device *d;
