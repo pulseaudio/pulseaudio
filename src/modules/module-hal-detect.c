@@ -68,6 +68,7 @@ struct device {
     uint32_t index;
     char *udi;
     char *sink_name, *source_name;
+    int acl_race_fix;
 };
 
 struct userdata {
@@ -329,6 +330,7 @@ static struct device* hal_device_add(struct userdata *u, const char *udi) {
         return NULL;
 
     d = pa_xnew(struct device, 1);
+    d->acl_race_fix = 0;
     d->udi = pa_xstrdup(udi);
     d->index = m->index;
     d->sink_name = sink_name;
@@ -559,23 +561,27 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
             udi = dbus_message_get_path(message);
             
             if ((d = pa_hashmap_get(u->devices, udi))) {
-                
+                int send_acl_race_fix_message = 0;
+
+                d->acl_race_fix = 0;                            
+
                 if (d->sink_name) {
                     pa_sink *sink;
                     
                     if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK, 0))) {
-                        
                         int prev_suspended = pa_sink_get_state(sink) == PA_SINK_SUSPENDED;
 
-                        if (pa_sink_suspend(sink, suspend) >= 0) {
-                            if (!suspend && prev_suspended)
+                        if (prev_suspended && !suspend) {
+                            /* resume */
+                            if (pa_sink_suspend(sink, 0) >= 0)
                                 pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, PA_VOLUME_NORM, 0);
-                            else if (suspend && !prev_suspended) {
-                                DBusMessage *msg;
-                                msg = dbus_message_new_signal(udi, "org.pulseaudio.Server", "DirtyGiveUpMessage");
-                                dbus_connection_send(pa_dbus_connection_get(u->connection), msg, NULL);
-                                dbus_message_unref(msg);
-                            }
+                            else
+                                d->acl_race_fix = 1;
+                            
+                        } else if (!prev_suspended && suspend) {
+                            /* suspend */
+                            if (pa_sink_suspend(sink, 1) >= 0)
+                                send_acl_race_fix_message = 1;
                         }
                     }
                 }
@@ -583,10 +589,29 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                 if (d->source_name) {
                     pa_source *source;
 
-                    if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE, 0)))
-                        pa_source_suspend(source, suspend);
+                    if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE, 0))) {
+                        int prev_suspended = pa_source_get_state(source) == PA_SOURCE_SUSPENDED;
+
+                        if (prev_suspended && !suspend) {
+                            /* resume */
+                            if (pa_source_suspend(source, 0) < 0)
+                                d->acl_race_fix = 1;
+
+                        } else if (!prev_suspended && suspend) {
+                            /* suspend */
+                            if (pa_source_suspend(source, 0) >= 0)
+                                send_acl_race_fix_message = 1;
+                        }
+                    }
                 }
-                
+
+                if (send_acl_race_fix_message) {
+                    DBusMessage *msg;
+                    msg = dbus_message_new_signal(udi, "org.pulseaudio.Server", "DirtyGiveUpMessage");
+                    dbus_connection_send(pa_dbus_connection_get(u->connection), msg, NULL);
+                    dbus_message_unref(msg);
+                }
+                    
             } else if (!suspend)
                 device_added_cb(u->context, udi);
         }
@@ -600,30 +625,38 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
         const char *udi;
         struct device *d;
 
-        pa_log_debug("Got dirty give up message, trying resume ...");
-
         udi = dbus_message_get_path(message);
         
-        if ((d = pa_hashmap_get(u->devices, udi))) {
+        if ((d = pa_hashmap_get(u->devices, udi)) && d->acl_race_fix) {
+            pa_log_debug("Got dirty give up message for '%s', trying resume ...", udi);
 
+            d->acl_race_fix = 0;
+            
             if (d->sink_name) {
                 pa_sink *sink;
                 
                 if ((sink = pa_namereg_get(u->core, d->sink_name, PA_NAMEREG_SINK, 0))) {
 
                     int prev_suspended = pa_sink_get_state(sink) == PA_SINK_SUSPENDED;
-                    
-                    if (pa_sink_suspend(sink, 0) >= 0)
-                        if (prev_suspended && !prev_suspended)
+
+                    if (prev_suspended) {
+                        /* resume */
+                        if (pa_sink_suspend(sink, 0) >= 0)
                             pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, PA_VOLUME_NORM, 0);
+                    }
                 }
             }
             
             if (d->source_name) {
                 pa_source *source;
                 
-                if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE, 0)))
-                    pa_source_suspend(source, 0);
+                if ((source = pa_namereg_get(u->core, d->source_name, PA_NAMEREG_SOURCE, 0))) {
+
+                    int prev_suspended = pa_source_get_state(source) == PA_SOURCE_SUSPENDED;
+
+                    if (prev_suspended)
+                        pa_source_suspend(source, 0);
+                }
             }
             
         } else 
