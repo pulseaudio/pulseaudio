@@ -229,7 +229,7 @@ static void source_output_free(pa_object* mo) {
 void pa_source_output_put(pa_source_output *o) {
     pa_source_output_assert_ref(o);
 
-    pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, pa_source_output_ref(o), 0, NULL, (pa_free_cb_t) pa_source_output_unref);
+    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL);
     pa_source_update_status(o->source);
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
@@ -327,63 +327,73 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
 }
 
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
-/*     pa_source *origin; */
-/*     pa_resampler *new_resampler = NULL; */
+    pa_source *origin;
+    pa_resampler *new_resampler = NULL;
 
     pa_source_output_assert_ref(o);
     pa_source_assert_ref(dest);
+    
+    origin = o->source;
 
-    return -1;
+    if (dest == origin)
+        return 0;
 
-/*     origin = o->source; */
+    if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
+        pa_log_warn("Failed to move source output: too many outputs per source.");
+        return -1;
+    }
 
-/*     if (dest == origin) */
-/*         return 0; */
+    if (o->thread_info.resampler &&
+        pa_sample_spec_equal(&origin->sample_spec, &dest->sample_spec) &&
+        pa_channel_map_equal(&origin->channel_map, &dest->channel_map))
 
-/*     if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) { */
-/*         pa_log_warn("Failed to move source output: too many outputs per source."); */
-/*         return -1; */
-/*     } */
+        /* Try to reuse the old resampler if possible */
+        new_resampler = o->thread_info.resampler;
 
-/*     if (o->resampler && */
-/*         pa_sample_spec_equal(&origin->sample_spec, &dest->sample_spec) && */
-/*         pa_channel_map_equal(&origin->channel_map, &dest->channel_map)) */
+    else if (!pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec) ||
+        !pa_channel_map_equal(&o->channel_map, &dest->channel_map)) {
 
-/*         /\* Try to reuse the old resampler if possible *\/ */
-/*         new_resampler = o->resampler; */
+        /* Okey, we need a new resampler for the new source */
 
-/*     else if (!pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec) || */
-/*         !pa_channel_map_equal(&o->channel_map, &dest->channel_map)) { */
+        if (!(new_resampler = pa_resampler_new(
+                      dest->core->mempool,
+                      &dest->sample_spec, &dest->channel_map,
+                      &o->sample_spec, &o->channel_map,
+                      o->resample_method))) {
+            pa_log_warn("Unsupported resampling operation.");
+            return -1;
+        }
+    }
 
-/*         /\* Okey, we need a new resampler for the new source *\/ */
+    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE], o);
 
-/*         if (!(new_resampler = pa_resampler_new( */
-/*                       dest->core->mempool, */
-/*                       &dest->sample_spec, &dest->channel_map, */
-/*                       &o->sample_spec, &o->channel_map, */
-/*                       o->resample_method))) { */
-/*             pa_log_warn("Unsupported resampling operation."); */
-/*             return -1; */
-/*         } */
-/*     } */
+    /* Okey, let's move it */
+    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
+    
+    pa_idxset_remove_by_data(origin->outputs, o, NULL);
+    pa_idxset_put(dest->outputs, o, NULL);
+    o->source = dest;
 
-/*     /\* Okey, let's move it *\/ */
-/*     pa_idxset_remove_by_data(origin->outputs, o, NULL); */
-/*     pa_idxset_put(dest->outputs, o, NULL); */
-/*     o->source = dest; */
+    /* Replace resampler */
+    if (new_resampler != o->thread_info.resampler) {
+        if (o->thread_info.resampler)
+            pa_resampler_free(o->thread_info.resampler);
+        o->thread_info.resampler = new_resampler;
+    }
 
-/*     /\* Replace resampler *\/ */
-/*     if (new_resampler != o->resampler) { */
-/*         if (o->resampler) */
-/*             pa_resampler_free(o->resampler); */
-/*         o->resampler = new_resampler; */
-/*     } */
+    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL);
 
-/*     /\* Notify everyone *\/ */
-/*     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index); */
-/*     pa_source_notify(o->source); */
+    pa_source_update_status(origin);
+    pa_source_update_status(dest);
 
-/*     return 0; */
+    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_POST], o);
+
+    pa_log_debug("Successfully moved source output %i from %s to %s.", o->index, origin->name, dest->name);
+
+    /* Notify everyone */
+    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+
+    return 0;
 }
 
 int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk* chunk) {
