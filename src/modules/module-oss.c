@@ -103,9 +103,6 @@ PA_MODULE_USAGE(
 
 #define DEFAULT_DEVICE "/dev/dsp"
 
-#define DEFAULT_NFRAGS 4
-#define DEFAULT_FRAGSIZE_MSEC 25
-
 struct userdata {
     pa_core *core;
     pa_module *module;
@@ -1103,8 +1100,8 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    nfrags = DEFAULT_NFRAGS;
-    frag_size = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*1000, &ss);
+    nfrags = m->core->default_n_fragments;
+    frag_size = pa_usec_to_bytes(m->core->default_fragment_size_msec*1000, &ss);
     if (frag_size <= 0)
         frag_size = pa_frame_size(&ss);
 
@@ -1127,7 +1124,7 @@ int pa__init(pa_module*m) {
     }
     
     if (use_mmap && mode == O_WRONLY) {
-        pa_log_info("Device opened for write only, cannot do memory mapping, falling back to UNIX read/write mode.");
+        pa_log_info("Device opened for playback only, cannot do memory mapping, falling back to UNIX write() mode.");
         use_mmap = 0;
     }
 
@@ -1188,17 +1185,11 @@ int pa__init(pa_module*m) {
 
         if (use_mmap) {
             if ((u->in_mmap = mmap(NULL, u->in_hwbuf_size, PROT_READ, MAP_SHARED, fd, 0)) == MAP_FAILED) {
-                if (mode == O_RDWR) {
-                    pa_log_debug("mmap() failed for input. Changing to O_WRONLY mode.");
-                    mode = O_WRONLY;
-                    goto try_write;
-                } else {
-                    pa_log("mmap(): %s", pa_cstrerror(errno));
-                    goto fail;
-                }
-            }
-
-            pa_log_debug("Successfully mmap()ed input buffer.");
+                pa_log_warn("mmap(PROT_READ) failed, reverting to non-mmap mode: %s", pa_cstrerror(errno));
+                use_mmap = u->use_mmap = 0;
+                u->in_mmap = NULL;
+            } else
+                pa_log_debug("Successfully mmap()ed input buffer.");
         }
 
         if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
@@ -1221,11 +1212,12 @@ int pa__init(pa_module*m) {
         pa_source_set_module(u->source, m);
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_description(u->source, t = pa_sprintf_malloc(
-                                          "OSS PCM on %s%s%s%s",
+                                          "OSS PCM on %s%s%s%s%s",
                                           dev,
                                           hwdesc[0] ? " (" : "",
                                           hwdesc[0] ? hwdesc : "",
-                                          hwdesc[0] ? ")" : ""));
+                                          hwdesc[0] ? ")" : "",
+                                          use_mmap ? " via DMA" : ""));
         pa_xfree(t);
         u->source->is_hardware = 1;
         u->source->refresh_volume = 1;
@@ -1234,8 +1226,6 @@ int pa__init(pa_module*m) {
             u->in_mmap_memblocks = pa_xnew0(pa_memblock*, u->in_nfrags);
     }
 
-try_write:
-    
     if (mode != O_RDONLY) {
         char *name_buf = NULL;
 
@@ -1246,13 +1236,14 @@ try_write:
                     mode = O_WRONLY;
                     goto go_on;
                 } else {
-                    pa_log("mmap(): %s", pa_cstrerror(errno));
-                    goto fail;
+                    pa_log_warn("mmap(PROT_WRITE) failed, reverting to non-mmap mode: %s", pa_cstrerror(errno));
+                    u->use_mmap = use_mmap = 0;
+                    u->out_mmap = NULL;
                 }
+            } else {
+                pa_log_debug("Successfully mmap()ed output buffer.");
+                pa_silence_memory(u->out_mmap, u->out_hwbuf_size, &ss);
             }
-
-            pa_log_debug("Successfully mmap()ed output buffer.");
-            pa_silence_memory(u->out_mmap, u->out_hwbuf_size, &ss);
         }
         
         if ((name = pa_modargs_get_value(ma, "sink_name", NULL)))
@@ -1275,11 +1266,12 @@ try_write:
         pa_sink_set_module(u->sink, m);
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_description(u->sink, t = pa_sprintf_malloc(
-                                        "OSS PCM on %s%s%s%s",
+                                        "OSS PCM on %s%s%s%s%s",
                                         dev,
                                         hwdesc[0] ? " (" : "",
                                         hwdesc[0] ? hwdesc : "",
-                                        hwdesc[0] ? ")" : ""));
+                                        hwdesc[0] ? ")" : "",
+                                        use_mmap ? " via DMA" : ""));
         pa_xfree(t);
         u->sink->is_hardware = 1;
         u->sink->refresh_volume = 1;
