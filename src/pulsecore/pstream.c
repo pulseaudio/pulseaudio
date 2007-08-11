@@ -49,6 +49,7 @@
 #include <pulsecore/core-scache.h>
 #include <pulsecore/creds.h>
 #include <pulsecore/refcnt.h>
+#include <pulsecore/flist.h>
 
 #include "pstream.h"
 
@@ -84,6 +85,8 @@ typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 #define FRAME_SIZE_MAX_ALLOW PA_SCACHE_ENTRY_SIZE_MAX /* allow uploading a single sample in one frame at max */
 #define FRAME_SIZE_MAX_USE (1024*64)
 
+PA_STATIC_FLIST_DECLARE(items, 0, pa_xfree);
+
 struct item_info {
     enum {
         PA_PSTREAM_ITEM_PACKET,
@@ -91,7 +94,6 @@ struct item_info {
         PA_PSTREAM_ITEM_SHMRELEASE,
         PA_PSTREAM_ITEM_SHMREVOKE
     } type;
-
 
     /* packet info */
     pa_packet *packet;
@@ -295,7 +297,8 @@ static void item_free(void *item, PA_GCC_UNUSED void *q) {
         pa_packet_unref(i->packet);
     }
 
-    pa_xfree(i);
+    if (pa_flist_push(PA_STATIC_FLIST_GET(items), i) < 0)
+        pa_xfree(i);
 }
 
 static void pstream_free(pa_pstream *p) {
@@ -330,7 +333,9 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *cre
     if (p->dead)
         return;
 
-    i = pa_xnew(struct item_info, 1);
+    if (!(i = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
+        i = pa_xnew(struct item_info, 1);
+    
     i->type = PA_PSTREAM_ITEM_PACKET;
     i->packet = pa_packet_ref(packet);
 
@@ -362,7 +367,8 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
         struct item_info *i;
         size_t n;
 
-        i = pa_xnew(struct item_info, 1);
+        if (!(i = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
+            i = pa_xnew(struct item_info, 1);
         i->type = PA_PSTREAM_ITEM_MEMBLOCK;
 
         n = length < FRAME_SIZE_MAX_USE ? length : FRAME_SIZE_MAX_USE;
@@ -396,7 +402,8 @@ void pa_pstream_send_release(pa_pstream *p, uint32_t block_id) {
 
 /*     pa_log("Releasing block %u", block_id); */
 
-    item = pa_xnew(struct item_info, 1);
+    if (!(item = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
+        item = pa_xnew(struct item_info, 1);
     item->type = PA_PSTREAM_ITEM_SHMRELEASE;
     item->block_id = block_id;
 #ifdef HAVE_CREDS
@@ -432,7 +439,8 @@ void pa_pstream_send_revoke(pa_pstream *p, uint32_t block_id) {
         return;
 /*     pa_log("Revoking block %u", block_id); */
 
-    item = pa_xnew(struct item_info, 1);
+    if (!(item = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
+        item = pa_xnew(struct item_info, 1);
     item->type = PA_PSTREAM_ITEM_SHMREVOKE;
     item->block_id = block_id;
 #ifdef HAVE_CREDS
