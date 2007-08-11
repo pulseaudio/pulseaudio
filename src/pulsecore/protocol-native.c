@@ -407,6 +407,9 @@ static int record_stream_process_msg(pa_msgobject *o, int code, void*userdata, i
     record_stream *s = RECORD_STREAM(o);
     record_stream_assert_ref(s);
 
+    if (!s->connection)
+        return -1;
+    
     switch (code) {
         
         case RECORD_STREAM_MESSAGE_POST_DATA:
@@ -523,6 +526,9 @@ static void playback_stream_free(pa_object* o) {
 static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata, int64_t offset, pa_memchunk *chunk) {
     playback_stream *s = PLAYBACK_STREAM(o);
     playback_stream_assert_ref(s);
+
+    if (!s->connection)
+        return -1;
 
     switch (code) {
         case PLAYBACK_STREAM_MESSAGE_REQUEST_DATA: {
@@ -689,6 +695,9 @@ static int connection_process_msg(pa_msgobject *o, int code, void*userdata, int6
     connection *c = CONNECTION(o);
     connection_assert_ref(c);
 
+    if (!c->protocol)
+        return -1;
+    
     switch (code) {
         
         case CONNECTION_MESSAGE_REVOKE:
