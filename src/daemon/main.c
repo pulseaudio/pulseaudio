@@ -573,6 +573,9 @@ int main(int argc, char *argv[]) {
     }
 
     c->is_system_instance = !!conf->system_instance;
+    c->default_sample_spec = conf->default_sample_spec;
+    c->default_n_fragments = conf->default_n_fragments;
+    c->default_fragment_size_msec = conf->default_fragment_size_msec;
 
     r = pa_signal_init(pa_mainloop_get_api(mainloop));
     assert(r == 0);

@@ -99,3 +99,12 @@
 
 ## Disable shared memory data transfer 
 ; disable-shm = 0
+
+## Default sample format
+; default-sample-format = s16le
+; default-sample-rate = 44100
+; default-sample-channels = 2
+
+## Default fragment settings, for device drivers that need this
+; default-fragments = 4
+; default-fragment-size-msec = 25

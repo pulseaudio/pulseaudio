@@ -26,6 +26,7 @@
 ***/
 
 #include <pulsecore/log.h>
+#include <pulse/sample.h>
 
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
@@ -80,6 +81,8 @@ typedef struct pa_daemon_conf {
 #endif
 #endif
 
+    unsigned default_n_fragments, default_fragment_size_msec;
+    pa_sample_spec default_sample_spec;
 } pa_daemon_conf;
 
 /* Allocate a new structure and fill it with sane defaults */
