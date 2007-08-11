@@ -209,17 +209,18 @@ static int mmap_read(struct userdata *u) {
 
 static pa_usec_t source_get_latency(struct userdata *u) {
     pa_usec_t r = 0;
+    snd_pcm_status_t *status;
     snd_pcm_sframes_t frames = 0;
     int err;
+
+    snd_pcm_status_alloca(&status);
     
     pa_assert(u);
 
-    snd_pcm_avail_update(u->pcm_handle);
-
-    if ((err = snd_pcm_delay(u->pcm_handle, &frames)) < 0) {
+    if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) 
         pa_log("Failed to get delay: %s", snd_strerror(err));
-        return 0;
-    }
+    else
+        frames = snd_pcm_status_get_delay(status);
 
     if (frames > 0)
         r = pa_bytes_to_usec(frames * u->frame_size, &u->source->sample_spec);
@@ -345,7 +346,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             *((pa_usec_t*) data) = r;
 
-            break;
+            return 0;
         }
 
         case PA_SOURCE_MESSAGE_SET_STATE:

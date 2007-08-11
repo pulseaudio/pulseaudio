@@ -597,7 +597,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             *((pa_usec_t*) data) = r;
 
-            break;
+            return 0;
         }
 
         case PA_SINK_MESSAGE_SET_STATE:
