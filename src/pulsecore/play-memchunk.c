@@ -63,7 +63,6 @@ static void memchunk_stream_unlink(memchunk_stream *u) {
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
     
-    /* Make sure we don't decrease the ref count twice. */
     memchunk_stream_unref(u);
 }
 
@@ -160,7 +159,6 @@ int pa_play_memchunk(
     u->parent.parent.free = memchunk_stream_free;
     u->parent.process_msg = memchunk_stream_process_msg;
     u->core = sink->core;
-    u->sink_input = NULL;
     u->memchunk = *chunk;
     pa_memblock_ref(u->memchunk.memblock);
 
