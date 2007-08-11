@@ -71,8 +71,6 @@ PA_MODULE_USAGE(
         "mmap=<enable memory mapping?>")
 
 #define DEFAULT_DEVICE "default"
-#define DEFAULT_NFRAGS 4
-#define DEFAULT_FRAGSIZE_MSEC 25
 
 struct userdata {
     pa_core *core;
@@ -716,9 +714,8 @@ int pa__init(pa_module*m) {
 
     frame_size = pa_frame_size(&ss);
 
-    /* Fix latency to 100ms */
-    nfrags = DEFAULT_NFRAGS;
-    frag_size = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*1000, &ss);
+    nfrags = m->core->default_n_fragments;
+    frag_size = pa_usec_to_bytes(m->core->default_fragment_size_msec*1000, &ss);
     if (frag_size <= 0)
         frag_size = frame_size;
 
