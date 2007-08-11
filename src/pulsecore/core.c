@@ -112,6 +112,8 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     c->default_sample_spec.format = PA_SAMPLE_S16NE;
     c->default_sample_spec.rate = 44100;
     c->default_sample_spec.channels = 2;
+    c->default_n_fragments = 4;
+    c->default_fragment_size_msec = 25;
 
     c->module_auto_unload_event = NULL;
     c->module_defer_unload_event = NULL;

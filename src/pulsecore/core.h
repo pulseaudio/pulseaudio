@@ -65,6 +65,8 @@ struct pa_core {
     char *default_source_name, *default_sink_name;
 
     pa_sample_spec default_sample_spec;
+    unsigned default_n_fragments, default_fragment_size_msec;
+    
     pa_time_event *module_auto_unload_event;
     pa_defer_event *module_defer_unload_event;
 
