@@ -258,6 +258,7 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
     return r;
 }
 
+/* Called from thread context */
 void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     pa_memchunk rchunk;
 
@@ -396,6 +397,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     return 0;
 }
 
+/* Called from thread context */
 int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk* chunk) {
     pa_source_output *o = PA_SOURCE_OUTPUT(mo);
 
