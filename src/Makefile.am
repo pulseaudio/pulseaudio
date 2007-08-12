@@ -667,6 +667,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/msgobject.c pulsecore/msgobject.h \
+		pulsecore/macro.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32

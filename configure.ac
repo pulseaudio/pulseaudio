@@ -115,6 +115,7 @@ AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AC_SUBST(LTDLINCL)
 AC_SUBST(LIBLTDL)
+AC_CONFIG_SUBDIRS(libltdl)
 
 if test "x$enable_ltdl_install" = "xno" && test "x$ac_cv_lib_ltdl_lt_dlinit" = "xno" ; then
     AC_MSG_ERROR([[
@@ -781,8 +782,6 @@ doxygen/doxygen.conf
 src/pulse/version.h
 ])
 AC_OUTPUT
-
-AC_CONFIG_SUBDIRS(libltdl)
 
 # ==========================================================================
 ENABLE_X11=no
