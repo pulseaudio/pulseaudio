@@ -2491,6 +2491,7 @@ int stat64(const char *pathname, struct stat64 *buf) {
     return 0;
 }
 
+#undef open64
 int open64(const char *filename, int flags, ...) {
     va_list args;
     mode_t mode = 0;
