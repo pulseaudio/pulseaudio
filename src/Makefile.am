@@ -79,7 +79,8 @@ PA_THREAD_OBJS = \
 		pulsecore/once-win32.c pulsecore/once.h \
 		pulsecore/mutex-win32.c pulsecore/mutex.h \
 		pulsecore/thread-win32.c pulsecore/thread.h \
-		pulsecore/semaphore-win32.c pulsecore/semaphore.h
+		pulsecore/semaphore.h
+#pulsecore/semaphore-win32.c pulsecore/semaphore.h
 else
 PA_THREAD_OBJS = \
 		pulsecore/atomic.h \
@@ -660,7 +661,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
 		pulsecore/shm.c pulsecore/shm.h \
 		pulsecore/flist.c pulsecore/flist.h \
-		pulsecore/asyncmsgq.c pulsecore/asyncmsgqq.h \
+		pulsecore/asyncmsgq.c pulsecore/asyncmsgq.h \
 		pulsecore/asyncq.c pulsecore/asyncq.h \
 		pulsecore/thread-mq.c pulsecore/thread-mq.h \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
