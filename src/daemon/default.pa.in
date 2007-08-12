@@ -77,7 +77,8 @@ load-module module-x11-bell sample=x11-bell
 load-module module-x11-publish
 
 ### Register ourselves in the X11 session manager
-load-module module-x11-xsmp
+# Deactivated by default, to avoid deadlock when PA is started from gnome-session
+# load-module module-x11-xsmp
 
 ### Load additional modules from GConf settings. This can be configured with the paprefs tool.
 ### Please keep in mind that the modules configured by paprefs might conflict with manually
