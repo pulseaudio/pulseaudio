@@ -311,7 +311,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
         pa_atomic_ptr_store(&b->data, mempool_slot_data(slot));
 
     } else {
-        pa_log_debug("Memory block too large for pool: %u > %u", length, p->block_size - sizeof(struct mempool_slot));
+        pa_log_debug("Memory block too large for pool: %lu > %lu", (unsigned long) length, (unsigned long) (p->block_size - sizeof(struct mempool_slot)));
         pa_atomic_inc(&p->stat.n_too_large_for_pool);
         return NULL;
     }

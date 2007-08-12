@@ -738,7 +738,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 
                 volume_is_norm = pa_cvolume_is_norm(&info->sink_input->thread_info.volume);
 
-                pa_log_debug("Buffering %u bytes ...", info->buffer_bytes);
+                pa_log_debug("Buffering l%u bytes ...", (unsigned long) info->buffer_bytes);
                 
                 while (info->buffer_bytes > 0) {
                     pa_memchunk memchunk;
@@ -772,7 +772,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
                 pa_memblockq_sink_input_set_queue(info->ghost_sink_input, info->buffer);
 
-                pa_log_debug("Buffered %u bytes ...", pa_memblockq_get_length(info->buffer));
+                pa_log_debug("Buffered %lu bytes ...", (unsigned long) pa_memblockq_get_length(info->buffer));
             }
 
             /* Let's remove the sink input ...*/

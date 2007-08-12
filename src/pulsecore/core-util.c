@@ -169,7 +169,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
         uid = getuid();
     if (gid == (gid_t)-1)
         gid = getgid();
-    chown(dir, uid, gid);
+    (void) chown(dir, uid, gid);
 #endif
 
 #ifdef HAVE_CHMOD

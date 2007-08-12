@@ -43,7 +43,7 @@
 
 typedef struct pa_asyncq pa_asyncq;
 
-pa_asyncq* pa_asyncq_new(size_t size);
+pa_asyncq* pa_asyncq_new(unsigned size);
 void pa_asyncq_free(pa_asyncq* q, pa_free_cb_t free_cb);
 
 void* pa_asyncq_pop(pa_asyncq *q, int wait);

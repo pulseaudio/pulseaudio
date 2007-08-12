@@ -164,8 +164,8 @@ int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, c
     if (idx)
         *idx = e->index;
 
-    pa_log_debug("created sample \"%s\" (#%d), %d bytes with sample spec %s",
-        name, e->index, e->memchunk.length,
+    pa_log_debug("created sample \"%s\" (#%d), %lu bytes with sample spec %s",
+                 name, e->index, (unsigned long) e->memchunk.length,
         pa_sample_spec_snprint(st, sizeof(st), &e->sample_spec));
 
     return 0;
@@ -315,7 +315,6 @@ int pa_scache_play_item_by_name(pa_core *c, const char *name, const char*sink_na
 
     return pa_scache_play_item(c, name, sink, volume);
 }
-
 
 const char * pa_scache_get_name_by_id(pa_core *c, uint32_t id) {
     pa_scache_entry *e;

@@ -54,7 +54,7 @@ enum {
 
 typedef struct pa_asyncmsgq pa_asyncmsgq;
 
-pa_asyncmsgq* pa_asyncmsgq_new(size_t size);
+pa_asyncmsgq* pa_asyncmsgq_new(unsigned size);
 pa_asyncmsgq* pa_asyncmsgq_ref(pa_asyncmsgq *q);
 void pa_asyncmsgq_unref(pa_asyncmsgq* q);
 
