@@ -1436,6 +1436,7 @@ fail:
     return -1;
 }
 
+#undef open
 int open(const char *filename, int flags, ...) {
     va_list args;
     mode_t mode = 0;
