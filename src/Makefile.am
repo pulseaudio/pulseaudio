@@ -30,6 +30,7 @@ pulseincludedir=$(includedir)/pulse
 pulsecoreincludedir=$(includedir)/pulsecore
 pulseconfdir=$(sysconfdir)/pulse
 pulselibexecdir=$(libexecdir)/pulse
+xdgautostartdir=$(sysconfdir)/xdg/autostart
 
 ###################################
 #            Defines              #
@@ -103,12 +104,18 @@ EXTRA_DIST = \
 		depmod.py \
 		daemon/esdcompat.in \
 		utils/padsp \
-		modules/module-defs.h.m4
+		modules/module-defs.h.m4 \
+		daemon/pulseaudio-module-xsmp.desktop
 
 pulseconf_DATA = \
 		default.pa \
 		daemon.conf \
 		client.conf
+
+if HAVE_X11
+xdgautostart_DATA = \
+		daemon/pulseaudio-module-xsmp.desktop
+endif
 
 BUILT_SOURCES = \
 		pulse/version.h
