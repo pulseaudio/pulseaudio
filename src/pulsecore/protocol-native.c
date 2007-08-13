@@ -590,14 +590,14 @@ static playback_stream* playback_stream_new(
         const pa_sample_spec *ss,
         const pa_channel_map *map,
         const char *name,
-        size_t *maxlength,
-        size_t *tlength,
-        size_t *prebuf,
-        size_t *minreq,
+        uint32_t *maxlength,
+        uint32_t *tlength,
+        uint32_t *prebuf,
+        uint32_t *minreq,
         pa_cvolume *volume,
         uint32_t syncid,
         int corked,
-        size_t *missing) {
+        uint32_t *missing) {
 
     playback_stream *s, *ssync;
     pa_sink_input *sink_input;
@@ -674,11 +674,11 @@ static playback_stream* playback_stream_new(
 
     pa_memblock_unref(silence);
 
-    *maxlength = pa_memblockq_get_maxlength(s->memblockq);
-    *tlength = pa_memblockq_get_tlength(s->memblockq);
-    *prebuf = pa_memblockq_get_prebuf(s->memblockq);
-    *minreq = pa_memblockq_get_minreq(s->memblockq);
-    *missing = pa_memblockq_missing(s->memblockq);
+    *maxlength = (uint32_t) pa_memblockq_get_maxlength(s->memblockq);
+    *tlength = (uint32_t) pa_memblockq_get_tlength(s->memblockq);
+    *prebuf = (uint32_t) pa_memblockq_get_prebuf(s->memblockq);
+    *minreq = (uint32_t) pa_memblockq_get_minreq(s->memblockq);
+    *missing = (uint32_t) pa_memblockq_missing(s->memblockq);
     
     pa_atomic_store(&s->missing, 0);
     s->last_missing = *missing;

@@ -41,10 +41,10 @@ static void producer(void *_q) {
 
     for (i = 0; i < 1000; i++) {
         printf("pushing %i\n", i);
-        pa_asyncq_push(q, (void*) (i+1), 1);
+        pa_asyncq_push(q, PA_UINT_TO_PTR(i+1), 1);
     }
 
-    pa_asyncq_push(q, (void*) -1, 1);
+    pa_asyncq_push(q, PA_UINT_TO_PTR(-1), 1);
     printf("pushed end\n");
 }
 
@@ -58,10 +58,10 @@ static void consumer(void *_q) {
     for (i = 0;; i++) {
         p = pa_asyncq_pop(q, 1);
 
-        if (p == (void*) -1)
+        if (p == PA_UINT_TO_PTR(-1))
             break;
 
-        pa_assert(p == (void *) (i+1));
+        pa_assert(p == PA_UINT_TO_PTR(i+1));
 
         printf("popped %i\n", i);
     }

@@ -738,7 +738,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 
                 volume_is_norm = pa_cvolume_is_norm(&info->sink_input->thread_info.volume);
 
-                pa_log_debug("Buffering l%u bytes ...", (unsigned long) info->buffer_bytes);
+                pa_log_debug("Buffering %lu bytes ...", (unsigned long) info->buffer_bytes);
                 
                 while (info->buffer_bytes > 0) {
                     pa_memchunk memchunk;

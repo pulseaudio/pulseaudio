@@ -268,7 +268,7 @@ static int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvo
     return 0;
 }
 
-static int pa_oss_set_volume(int fd, int mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
+static int pa_oss_set_volume(int fd, long mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
     pa_volume_t l, r;
