@@ -460,6 +460,8 @@ pa_mainloop *pa_mainloop_new(void) {
 
     pa_make_nonblock_fd(m->wakeup_pipe[0]);
     pa_make_nonblock_fd(m->wakeup_pipe[1]);
+    pa_fd_set_cloexec(m->wakeup_pipe[0], 1);
+    pa_fd_set_cloexec(m->wakeup_pipe[1], 1);
     m->wakeup_requested = 0;
 
     PA_LLIST_HEAD_INIT(pa_io_event, m->io_events);

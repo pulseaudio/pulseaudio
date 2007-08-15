@@ -54,6 +54,9 @@ pa_fdsem *pa_fdsem_new(void) {
         return NULL;
     }
 
+    pa_fd_set_cloexec(f->fds[0], 1);
+    pa_fd_set_cloexec(f->fds[1], 1);
+
     pa_atomic_store(&f->waiting, 0);
     pa_atomic_store(&f->signalled, 0);
     pa_atomic_store(&f->in_pipe, 0);
