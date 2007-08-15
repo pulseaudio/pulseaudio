@@ -163,4 +163,6 @@ static inline int PA_SINK_OPENED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
 }
 
+int pa_sink_suspend_all(pa_core *c, int suspend);
+
 #endif

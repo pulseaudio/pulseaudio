@@ -587,6 +587,7 @@ void pa_sink_set_mute(pa_sink *s, int mute) {
     pa_sink_assert_ref(s);
 
     changed = s->muted != mute;
+    s->muted = mute;
 
     if (s->set_mute && s->set_mute(s) < 0)
         s->set_mute = NULL;
@@ -818,4 +819,17 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
     }
 
     return -1;
+}
+
+int pa_sink_suspend_all(pa_core *c, int suspend) {
+    pa_sink *sink;
+    uint32_t idx;
+    int ret = 0;
+    
+    pa_core_assert_ref(c);
+
+    for (sink = PA_SINK(pa_idxset_first(c->sinks, &idx)); sink; sink = PA_SINK(pa_idxset_next(c->sinks, &idx)))
+        ret -= pa_sink_suspend(sink, suspend) < 0;
+
+    return ret;
 }
