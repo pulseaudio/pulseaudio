@@ -965,10 +965,8 @@ static int pa_cli_command_suspend_source(pa_core *c, pa_tokenizer *t, pa_strbuf 
 
 static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, int *fail) {
     const char *m;
-    pa_sink *sink;
-    pa_source *source;
     int suspend;
-    uint32_t idx;
+    int ret;
 
     if (!(m = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a suspend switch setting (0/1).\n");
@@ -980,11 +978,12 @@ static int pa_cli_command_suspend(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, i
         return -1;
     }
 
-    for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx))
-        pa_sink_suspend(sink, suspend);
+    ret = - (pa_sink_suspend_all(c, suspend) < 0);
+    if (pa_source_suspend_all(c, suspend) < 0)
+        ret = -1;
 
-    for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx))
-        pa_source_suspend(source, suspend);
+    if (ret < 0)
+        pa_strbuf_puts(buf, "Failed to resume/suspend all sinks/sources.\n");
     
     return 0;
 }
