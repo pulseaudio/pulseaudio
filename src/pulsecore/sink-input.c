@@ -398,7 +398,11 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
         /* It might be necessary to adjust the volume here */
         if (do_volume_adj_here && !volume_is_norm) {
             pa_memchunk_make_writable(&tchunk, 0);
-            pa_volume_memchunk(&tchunk, &i->thread_info.sample_spec, &i->thread_info.volume);
+            
+            if (i->thread_info.muted)
+                pa_silence_memchunk(&tchunk, &i->thread_info.sample_spec);
+            else
+                pa_volume_memchunk(&tchunk, &i->thread_info.sample_spec, &i->thread_info.volume);
         }
 
         pa_resampler_run(i->thread_info.resampler, &tchunk, &i->thread_info.resampled_chunk);
@@ -430,8 +434,10 @@ finish:
         if (do_volume_adj_here)
             /* We had different channel maps, so we already did the adjustment */
             pa_cvolume_reset(volume, i->sink->sample_spec.channels);
-        else
+        else if (i->thread_info.muted)
             /* We've both the same channel map, so let's have the sink do the adjustment for us*/
+            pa_cvolume_mute(volume, i->sink->sample_spec.channels);
+        else
             *volume = i->thread_info.volume;
     }
 
