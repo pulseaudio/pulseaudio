@@ -161,7 +161,8 @@ endif
 bin_PROGRAMS += \
 		pacat \
 		pactl \
-		paplay
+		paplay \
+		pasuspender
 
 if HAVE_AF_UNIX
 bin_PROGRAMS += pacmd
@@ -191,6 +192,11 @@ pactl_SOURCES = utils/pactl.c
 pactl_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
 pactl_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 pactl_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+pasuspender_SOURCES = utils/pasuspender.c
+pasuspender_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
+pasuspender_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
+pasuspender_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pacmd_SOURCES = utils/pacmd.c pulsecore/pid.c pulsecore/pid.h
 pacmd_CFLAGS = $(AM_CFLAGS)
