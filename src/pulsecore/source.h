@@ -152,4 +152,6 @@ static inline int PA_SOURCE_OPENED(pa_source_state_t x) {
     return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE;
 }
 
+int pa_source_suspend_all(pa_core *c, int suspend);
+
 #endif

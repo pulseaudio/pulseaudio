@@ -320,6 +320,7 @@ void pa_source_set_mute(pa_source *s, int mute) {
     pa_source_assert_ref(s);
 
     changed = s->muted != mute;
+    s->muted = mute;
 
     if (s->set_mute && s->set_mute(s) < 0)
         s->set_mute = NULL;
@@ -437,4 +438,17 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
     }
 
     return -1;
+}
+
+int pa_source_suspend_all(pa_core *c, int suspend) {
+    uint32_t idx;
+    pa_source *source;
+    int ret = 0;
+    
+    pa_core_assert_ref(c);
+    
+    for (source = PA_SOURCE(pa_idxset_first(c->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(c->sources, &idx)))
+        ret -= pa_source_suspend(source, suspend) < 0;
+
+    return ret;
 }
