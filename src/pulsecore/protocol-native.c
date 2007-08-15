@@ -537,12 +537,22 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
     switch (code) {
         case PLAYBACK_STREAM_MESSAGE_REQUEST_DATA: {
             pa_tagstruct *t;
-            int32_t l;
+            int32_t l = 0;
 
-            if ((l = pa_atomic_load(&s->missing)) <= 0)
+            for (;;) {
+                int32_t k;
+                
+                if ((k = pa_atomic_load(&s->missing)) <= 0)
+                    break;
+
+                l += k;
+                
+                if (pa_atomic_sub(&s->missing, k) <= k)
+                    break;
+            }
+
+            if (l <= 0)
                 break;
-            
-            pa_assert_se(pa_atomic_sub(&s->missing, l) >= l);
             
             t = pa_tagstruct_new(NULL, 0);
             pa_tagstruct_putu32(t, PA_COMMAND_REQUEST);
@@ -551,7 +561,7 @@ static int playback_stream_process_msg(pa_msgobject *o, int code, void*userdata,
             pa_tagstruct_putu32(t, l);
             pa_pstream_send_tagstruct(s->connection->pstream, t);
 
-/*             pa_log("Requesting %u bytes", l);    */
+/*             pa_log("Requesting %u bytes", l);     */
             break;
         }
 
@@ -770,24 +780,22 @@ static void connection_free(pa_object *o) {
 /* Called from thread context */
 static void request_bytes(playback_stream *s) {
     size_t new_missing, delta, previous_missing;
+    size_t minreq;
 
-/*     pa_log("request_bytes()"); */
     playback_stream_assert_ref(s);
 
     new_missing = pa_memblockq_missing(s->memblockq);
-    
-    if (new_missing <= s->last_missing) {
-        s->last_missing = new_missing;
-        return;
-    }
-
-    delta = new_missing - s->last_missing;
+    delta = new_missing > s->last_missing ? new_missing - s->last_missing : 0;
     s->last_missing = new_missing;
 
+    if (delta <= 0)
+        return;
+
 /*     pa_log("request_bytes(%u)", delta); */
+    minreq = pa_memblockq_get_minreq(s->memblockq);
 
     previous_missing = pa_atomic_add(&s->missing, delta);
-    if (previous_missing < pa_memblockq_get_minreq(s->memblockq) && previous_missing+delta >= pa_memblockq_get_minreq(s->memblockq))
+    if (previous_missing < minreq && previous_missing+delta >= minreq)
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
 }
 
