@@ -247,6 +247,7 @@ static void command_get_autoload_info_list(pa_pdispatch *pd, uint32_t command, u
 static void command_cork_record_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_flush_record_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ERROR] = NULL,
@@ -296,6 +297,9 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_SET_SINK_INPUT_MUTE] = command_set_mute,
     [PA_COMMAND_SET_SOURCE_MUTE] = command_set_mute,
 
+    [PA_COMMAND_SUSPEND_SINK] = command_suspend,
+    [PA_COMMAND_SUSPEND_SOURCE] = command_suspend,
+    
     [PA_COMMAND_CORK_PLAYBACK_STREAM] = command_cork_playback_stream,
     [PA_COMMAND_FLUSH_PLAYBACK_STREAM] = command_trigger_or_flush_or_prebuf_playback_stream,
     [PA_COMMAND_TRIGGER_PLAYBACK_STREAM] = command_trigger_or_flush_or_prebuf_playback_stream,
@@ -1770,7 +1774,7 @@ static void module_fill_tagstruct(pa_tagstruct *t, pa_module *module) {
     pa_tagstruct_put_boolean(t, module->auto_unload);
 }
 
-static void sink_input_fill_tagstruct(pa_tagstruct *t, pa_sink_input *s) {
+static void sink_input_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink_input *s) {
     pa_assert(t);
     pa_sink_input_assert_ref(s);
 
@@ -1786,6 +1790,8 @@ static void sink_input_fill_tagstruct(pa_tagstruct *t, pa_sink_input *s) {
     pa_tagstruct_put_usec(t, pa_sink_get_latency(s->sink));
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_sink_input_get_resample_method(s)));
     pa_tagstruct_puts(t, s->driver);
+    if (c->version >= 11)
+        pa_tagstruct_put_boolean(t, pa_sink_input_get_mute(s));    
 }
 
 static void source_output_fill_tagstruct(pa_tagstruct *t, pa_source_output *s) {
@@ -1891,7 +1897,7 @@ static void command_get_info(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, u
     else if (module)
         module_fill_tagstruct(reply, module);
     else if (si)
-        sink_input_fill_tagstruct(reply, si);
+        sink_input_fill_tagstruct(c, reply, si);
     else if (so)
         source_output_fill_tagstruct(reply, so);
     else
@@ -1946,7 +1952,7 @@ static void command_get_info_list(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t comma
             else if (command == PA_COMMAND_GET_MODULE_INFO_LIST)
                 module_fill_tagstruct(reply, p);
             else if (command == PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
-                sink_input_fill_tagstruct(reply, p);
+                sink_input_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)
                 source_output_fill_tagstruct(reply, p);
             else {
@@ -2620,6 +2626,8 @@ static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag
         pa_source_output *so = NULL;
         pa_source *source;
 
+        pa_assert(command == PA_COMMAND_MOVE_SOURCE_OUTPUT);
+
         so = pa_idxset_get_by_index(c->protocol->core->source_outputs, idx);
 
         if (idx_device != PA_INVALID_INDEX)
@@ -2632,6 +2640,80 @@ static void command_move_stream(pa_pdispatch *pd, uint32_t command, uint32_t tag
         if (pa_source_output_move_to(so, source) < 0) {
             pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
             return;
+        }
+    }
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
+static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    connection *c = CONNECTION(userdata);
+    uint32_t idx = PA_INVALID_INDEX;
+    const char *name = NULL;
+    int b;
+
+    connection_assert_ref(c);
+    pa_assert(t);
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_get_boolean(t, &b) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, idx != PA_INVALID_INDEX || !name || !*name || pa_utf8_valid(name), tag, PA_ERR_INVALID);
+
+    if (command == PA_COMMAND_SUSPEND_SINK) {
+
+        if (idx == PA_INVALID_INDEX && name && !*name) {
+
+            if (pa_sink_suspend_all(c->protocol->core, b) < 0) {
+                pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
+                return;
+            }
+        } else {
+            pa_sink *sink = NULL;
+
+            if (idx != PA_INVALID_INDEX)
+                sink = pa_idxset_get_by_index(c->protocol->core->sinks, idx);
+            else 
+                sink = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SINK, 1);
+
+            CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
+
+            if (pa_sink_suspend(sink, b) < 0) {
+                pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
+                return;
+            }
+        }
+    } else {
+
+        pa_assert(command == PA_COMMAND_SUSPEND_SOURCE);
+        
+        if (idx == PA_INVALID_INDEX && name && !*name) {
+            
+            if (pa_source_suspend_all(c->protocol->core, b) < 0) {
+                pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
+                return;
+            }
+
+        } else {
+            pa_source *source;
+
+            if (idx != PA_INVALID_INDEX)
+                source = pa_idxset_get_by_index(c->protocol->core->sources, idx);
+            else
+                source = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_SOURCE, 1);
+            
+            CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
+
+            if (pa_source_suspend(source, b) < 0) {
+                pa_pstream_send_error(c->pstream, tag, PA_ERR_INVALID);
+                return;
+            }
         }
     }
 

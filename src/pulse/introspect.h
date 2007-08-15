@@ -249,7 +249,7 @@ typedef struct pa_source_info {
     const char *monitor_of_sink_name;   /**< Name of the owning sink, or PA_INVALID_INDEX */
     pa_usec_t latency;                  /**< Length of filled record buffer of this source. \since 0.5 */
     const char *driver;                 /**< Driver name \since 0.8 */
-    pa_source_flags_t flags;            /**< Flags \since 0.8 */
+    pa_source_flags_t flags;            /**< Flags \since 0.8 */    
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */
@@ -331,6 +331,7 @@ typedef struct pa_sink_input_info {
     pa_usec_t sink_usec;                 /**< Latency of the sink device, see pa_latency_info for details */
     const char *resample_method;         /**< Thre resampling method used by this sink input. \since 0.7 */
     const char *driver;                  /**< Driver name \since 0.8 */
+    int mute;                            /**< Stream muted \since 0.9.7 */
 } pa_sink_input_info;
 
 /** Callback prototype for pa_context_get_sink_input_info() and firends*/
@@ -380,6 +381,9 @@ pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, 
 
 /** Set the volume of a sink input stream */
 pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a sink input stream \since 0.9.7 */
+pa_operation* pa_context_set_sink_input_mute(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
 
 /** Set the volume of a source device specified by its index \since 0.8 */
 pa_operation* pa_context_set_source_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
@@ -498,6 +502,18 @@ pa_operation* pa_context_move_source_output_by_name(pa_context *c, uint32_t idx,
 
 /** Move the specified source output to a different source. \since 0.9.5 */
 pa_operation* pa_context_move_source_output_by_index(pa_context *c, uint32_t idx, uint32_t source_idx, pa_context_success_cb_t cb, void* userdata);
+
+/** Suspend/Resume a sink. \since 0.9.7 */
+pa_operation* pa_context_suspend_sink_by_name(pa_context *c, char *sink_name, int suspend, pa_context_success_cb_t cb, void* userdata);
+
+/** Suspend/Resume a sink. If idx is PA_INVALID_INDEX all sinks will be suspended. \since 0.9.7 */
+pa_operation* pa_context_suspend_sink_by_index(pa_context *c, uint32_t idx, int suspend,  pa_context_success_cb_t cb, void* userdata);
+
+/** Suspend/Resume a source. \since 0.9.7 */
+pa_operation* pa_context_suspend_source_by_name(pa_context *c, char *source_name, int suspend, pa_context_success_cb_t cb, void* userdata);
+
+/** Suspend/Resume a source. If idx is PA_INVALID_INDEX all sources will be suspended. \since 0.9.7 */
+pa_operation* pa_context_suspend_source_by_index(pa_context *c, uint32_t idx, int suspend, pa_context_success_cb_t cb, void* userdata);
 
 PA_C_DECL_END
 
