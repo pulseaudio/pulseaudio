@@ -336,10 +336,19 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (suid_root) {
-        if (pa_limit_caps() > 0)
-            /* We managed to drop capabilities except the needed
-             * ones. Hence we can drop the uid. */
-            pa_drop_root();
+        /* Drop all capabilities except CAP_SYS_NICE  */
+        pa_limit_caps();
+
+        /* Drop priviliges, but keep CAP_SYS_NICE */
+        pa_drop_root();
+
+        /* After dropping root, the effective set is reset, hence,
+         * let's raise it again */
+        pa_limit_caps();
+
+        /* When capabilities are not supported we will not be able to
+         * aquire RT sched anymore. But yes, that's the way it is. It
+         * is just too risky tun let PA run as root all the time. */
     }
 
     setlocale(LC_ALL, "");
@@ -386,7 +395,7 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority();
 
-    if (suid_root) {
+    if (suid_root && conf->cmd != PA_CMD_DAEMON) {
         pa_drop_caps();
         pa_drop_root();
     }
