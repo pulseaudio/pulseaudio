@@ -78,6 +78,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
+#include <pulse/utf8.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/winsock.h>
@@ -1222,4 +1223,21 @@ int pa_snprintf(char *str, size_t size, const char *format, ...) {
     str[size-1] = 0;
 
     return ret;
+}
+
+/* Truncate the specified string, but guarantee that the string
+ * returned still validates as UTF8 */
+char *pa_truncate_utf8(char *c, size_t l) {
+    pa_assert(c);
+    pa_assert(pa_utf8_valid(c));
+
+    if (strlen(c) <= l)
+        return c;
+
+    c[l] = 0;
+
+    while (l > 0 && !pa_utf8_valid(c))
+        c[--l] = 0;
+    
+    return c;
 }

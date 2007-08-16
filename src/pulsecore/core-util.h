@@ -94,4 +94,6 @@ int pa_atou(const char *s, uint32_t *ret_u);
 
 int pa_snprintf(char *str, size_t size, const char *format, ...);
 
+char *pa_truncate_utf8(char *c, size_t l);
+
 #endif
