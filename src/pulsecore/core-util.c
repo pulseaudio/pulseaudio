@@ -355,8 +355,7 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
 
 /** Platform independent read function. Necessary since not all
  * systems treat all file descriptors equal. */
-int pa_close(int fd)
-{
+int pa_close(int fd) {
 #ifdef OS_IS_WIN32
     int ret;
 
@@ -483,28 +482,37 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
     return b;
 }
 
-#define NICE_LEVEL (-15)
+/* Make the current thread a realtime thread*/
+void pa_make_realtime(void) {
+
+#ifdef _POSIX_PRIORITY_SCHEDULING
+    struct sched_param sp;
+    int r, policy;
+
+    memset(&sp, 0, sizeof(sp));
+    policy = 0;
+    
+    if ((r = pthread_getschedparam(pthread_self(), &policy, &sp)) != 0) {
+        pa_log("pthread_getschedgetparam(): %s", pa_cstrerror(r));
+        return;
+    }
+    
+    sp.sched_priority = 1;
+    if ((r = pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)) != 0) {
+        pa_log_warn("pthread_setschedparam(): %s", pa_cstrerror(r));
+        return;
+    }
+    
+    pa_log_info("Successfully enabled SCHED_FIFO scheduling for thread.");
+#endif
+    
+}
+
+#define NICE_LEVEL (-11)
 
 /* Raise the priority of the current process as much as possible and
-sensible: set the nice level to -15 and enable realtime scheduling if
-supported.*/
+sensible: set the nice level to -15.*/
 void pa_raise_priority(void) {
-#if defined(HAVE_SYS_CAPABILITY_H)
-    cap_t caps;
-
-    /* Temporarily acquire CAP_SYS_NICE in the effective set */
-    if ((caps = cap_get_proc())) {
-        cap_t caps_new;
-        cap_value_t nice_cap = CAP_SYS_NICE;
-
-        if ((caps_new = cap_dup(caps))) {
-            cap_set_flag(caps_new, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET);
-            cap_set_flag(caps_new, CAP_PERMITTED, 1, &nice_cap, CAP_SET);
-            cap_set_proc(caps_new);
-            cap_free(caps_new);
-        }
-    }
-#endif
 
 #ifdef HAVE_SYS_RESOURCE_H
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
@@ -513,60 +521,19 @@ void pa_raise_priority(void) {
         pa_log_info("Successfully gained nice level %i.", NICE_LEVEL);
 #endif
 
-#ifdef _POSIX_PRIORITY_SCHEDULING
-    {
-        struct sched_param sp;
-
-        if (sched_getparam(0, &sp) < 0) {
-            pa_log("sched_getparam(): %s", pa_cstrerror(errno));
-            goto fail;
-        }
-
-        sp.sched_priority = 1;
-        if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0) {
-            pa_log_warn("sched_setscheduler(): %s", pa_cstrerror(errno));
-            goto fail;
-        }
-
-        pa_log_info("Successfully enabled SCHED_FIFO scheduling.");
-    }
-#endif
-
 #ifdef OS_IS_WIN32
     if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
         pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
     else
         pa_log_info("Successfully gained high priority class.");
 #endif
-
-fail:
-
-#if defined(HAVE_SYS_CAPABILITY_H)
-    if (caps) {
-        /* Restore original caps */
-        cap_set_proc(caps);
-        cap_free(caps);
-    }
-#endif
-
-    ; /* We put this here to get the code to compile when
-       * HAVE_SYS_CAPABILITY_H is not defined. Don't remove unless you
-       * know what you do */
 }
 
-/* Reset the priority to normal, inverting the changes made by pa_raise_priority() */
+/* Reset the priority to normal, inverting the changes made by
+ * pa_raise_priority() */
 void pa_reset_priority(void) {
 #ifdef OS_IS_WIN32
     SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
-#endif
-
-#ifdef _POSIX_PRIORITY_SCHEDULING
-    {
-        struct sched_param sp;
-        sched_getparam(0, &sp);
-        sp.sched_priority = 0;
-        sched_setscheduler(0, SCHED_OTHER, &sp);
-    }
 #endif
 
 #ifdef HAVE_SYS_RESOURCE_H

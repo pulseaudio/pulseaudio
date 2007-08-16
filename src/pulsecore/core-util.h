@@ -55,6 +55,7 @@ char *pa_strlcpy(char *b, const char *s, size_t l);
 
 char *pa_parent_dir(const char *fn);
 
+void pa_make_realtime(void);
 void pa_raise_priority(void);
 void pa_reset_priority(void);
 
