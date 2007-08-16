@@ -143,8 +143,12 @@ static void context_state_callback(pa_context *c, void *userdata) {
             break;
 
         case PA_CONTEXT_READY:
-            pa_operation_unref(pa_context_suspend_sink_by_index(c, PA_INVALID_INDEX, 1, suspend_complete, NULL));
-            pa_operation_unref(pa_context_suspend_source_by_index(c, PA_INVALID_INDEX, 1, suspend_complete, NULL));
+            if (pa_context_is_local(c)) {
+                pa_operation_unref(pa_context_suspend_sink_by_index(c, PA_INVALID_INDEX, 1, suspend_complete, NULL));
+                pa_operation_unref(pa_context_suspend_source_by_index(c, PA_INVALID_INDEX, 1, suspend_complete, NULL));
+            } else
+                start_child();
+            
             break;
                     
         case PA_CONTEXT_TERMINATED:
@@ -193,9 +197,12 @@ static void sigchld_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, vo
     }
 
     if (context) {
-        /* A context is around, so let's resume */
-        pa_operation_unref(pa_context_suspend_sink_by_index(context, PA_INVALID_INDEX, 0, resume_complete, NULL));
-        pa_operation_unref(pa_context_suspend_source_by_index(context, PA_INVALID_INDEX, 0, resume_complete, NULL));
+        if (pa_context_is_local(context)) {
+            /* A context is around, so let's resume */
+            pa_operation_unref(pa_context_suspend_sink_by_index(context, PA_INVALID_INDEX, 0, resume_complete, NULL));
+            pa_operation_unref(pa_context_suspend_source_by_index(context, PA_INVALID_INDEX, 0, resume_complete, NULL));
+        } else
+            drain();
     } else
         /* Hmm, no context here, so let's terminate right away */
         quit(0);
