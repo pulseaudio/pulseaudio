@@ -32,6 +32,7 @@
 #include <pulsecore/flist.h>
 #include <pulsecore/once.h>
 #include <pulsecore/thread.h>
+#include <pulsecore/core-util.h>
 
 #include "rtsig.h"
 
