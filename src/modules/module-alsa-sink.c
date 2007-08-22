@@ -28,12 +28,6 @@
 
 #include <stdio.h>
 
-#ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
-#else
-#include "poll.h"
-#endif
-
 #include <asoundlib.h>
 
 #include <pulse/xmalloc.h>
@@ -343,7 +337,8 @@ static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
-    snd_pcm_drain(u->pcm_handle);    /* Let's suspend */
+    /* Let's suspend */
+    snd_pcm_drain(u->pcm_handle);    
     snd_pcm_close(u->pcm_handle);
     u->pcm_handle = NULL;
 
@@ -624,8 +619,6 @@ static void thread_func(void *userdata) {
         if (PA_SINK_OPENED(u->sink->thread_info.state)) {
             int work_done = 0;
             
-            pa_assert(u->pcm_handle);
-
             if (u->use_mmap) {
                 if ((work_done = mmap_write(u)) < 0)
                     goto fail;
@@ -647,8 +640,6 @@ static void thread_func(void *userdata) {
         /* Check whether there is a message for us to process */
         if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
-
-/*             pa_log("processing msg");  */
 
             if (!object && code == PA_MESSAGE_SHUTDOWN) {
                 pa_asyncmsgq_done(u->thread_mq.inq, 0);
@@ -707,7 +698,6 @@ finish:
 int pa__init(pa_module*m) {
     
     pa_modargs *ma = NULL;
-    int ret = -1;
     struct userdata *u = NULL;
     const char *dev;
     pa_sample_spec ss;
@@ -723,6 +713,8 @@ int pa__init(pa_module*m) {
     int namereg_fail;
     int use_mmap = 1, b;
 
+    snd_pcm_info_alloca(&pcm_info);
+    
     pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -773,8 +765,7 @@ int pa__init(pa_module*m) {
 
     u->device_name = pa_xstrdup(dev);
 
-    if ((err = snd_pcm_info_malloc(&pcm_info)) < 0 ||
-        (err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
+    if ((err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
         pa_log("Error fetching PCM info: %s", snd_strerror(err));
         goto fail;
     }
@@ -903,24 +894,18 @@ int pa__init(pa_module*m) {
     if (u->sink->get_mute)
         u->sink->get_mute(u->sink);
 
-    ret = 0;
-
-finish:
-
-     if (ma)
-         pa_modargs_free(ma);
-     
-     if (pcm_info)
-         snd_pcm_info_free(pcm_info);
-
-    return ret;
-
+    pa_modargs_free(ma);
+    
+    return 0;
+    
 fail:
 
-    if (u)
-        pa__done(m);
+    if (ma)
+        pa_modargs_free(ma);
 
-    goto finish;
+    pa__done(m);
+
+    return -1;
 }
 
 void pa__done(pa_module*m) {
