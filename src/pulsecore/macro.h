@@ -76,7 +76,14 @@ static inline size_t pa_align(size_t l) {
 
 #define PA_PTR_TO_UINT(p) ((unsigned int) (unsigned long) (p))
 #define PA_UINT_TO_PTR(u) ((void*) (unsigned long) (u))
+
 #define PA_PTR_TO_UINT32(p) ((uint32_t) PA_PTR_TO_UINT(p))
-#define PA_UINT32_TO_PTR(u) PA_UINT_TO_PTR(u)
+#define PA_UINT32_TO_PTR(u) PA_UINT_TO_PTR((uint32_t) u)
+
+#define PA_PTR_TO_INT(p) ((int) PA_PTR_TO_UINT(p))
+#define PA_INT_TO_PTR(u) PA_UINT_TO_PTR((int) u)
+
+#define PA_PTR_TO_INT32(p) ((int32_t) PA_PTR_TO_UINT(p))
+#define PA_INT32_TO_PTR(u) PA_UINT_TO_PTR((int32_t) u)
 
 #endif
