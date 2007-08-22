@@ -79,6 +79,7 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/random.h>
 #include <pulsecore/rtsig.h>
+#include <pulsecore/rtclock.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -574,7 +575,7 @@ int main(int argc, char *argv[]) {
     signal(SIGPIPE, SIG_IGN);
 #endif
 
-    if (!pa_rtclock_hrtimer())
+    if (pa_rtclock_hrtimer())
         pa_log_debug("Fresh high-resolution timers available! Bon appetit!");
     else
         pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!");
