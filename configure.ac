@@ -255,7 +255,7 @@ AC_CHECK_FUNCS([lstat])
 
 # Non-standard
 
-AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid])
+AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid ppoll])
 
 #### POSIX threads ####
 
