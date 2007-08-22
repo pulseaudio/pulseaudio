@@ -44,25 +44,25 @@ void* pa_flist_pop(pa_flist*l);
 /* Please not that the destructor stuff is not really necesary, we do
  * this just to make valgrind output more useful. */
 
-#define PA_STATIC_FLIST_DECLARE(name, size, destroy_cb)                 \
+#define PA_STATIC_FLIST_DECLARE(name, size, free_cb)                    \
     static struct {                                                     \
         pa_flist *flist;                                                \
         pa_once once;                                                   \
-    } name##_static_flist = { NULL, PA_ONCE_INIT };                     \
-    static void name##_init(void) {                                     \
-        name##_static_flist.flist = pa_flist_new(size);                 \
+    } name##_flist = { NULL, PA_ONCE_INIT };                            \
+    static void name##_flist_init(void) {                               \
+        name##_flist.flist = pa_flist_new(size);                        \
     }                                                                   \
-    static inline pa_flist* name##_get(void) {                          \
-        pa_run_once(&name##_static_flist.once, name##_init);            \
-        return name##_static_flist.flist;                               \
+    static inline pa_flist* name##_flist_get(void) {                    \
+        pa_run_once(&name##_flist.once, name##_flist_init);             \
+        return name##_flist.flist;                                      \
     }                                                                   \
-    static void name##_destructor(void) PA_GCC_DESTRUCTOR;              \
-    static void name##_destructor(void) {                               \
-        if (name##_static_flist.flist)                                  \
-            pa_flist_free(name##_static_flist.flist, destroy_cb);       \
+    static void name##_flist_destructor(void) PA_GCC_DESTRUCTOR;        \
+    static void name##_flist_destructor(void) {                         \
+        if (name##_flist.flist)                                         \
+            pa_flist_free(name##_flist.flist, (free_cb));               \
     }                                                                   \
     struct __stupid_useless_struct_to_allow_trailing_semicolon
 
-#define PA_STATIC_FLIST_GET(name) (name##_get())
+#define PA_STATIC_FLIST_GET(name) (name##_flist_get())
 
 #endif
