@@ -29,15 +29,10 @@
 #include <assert.h>
 #include <stdio.h>
 
-#ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
-#else
-#include "poll.h"
-#endif
-
 #include <asoundlib.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/util.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core.h>
@@ -52,6 +47,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/rtpoll.h>
 
 #include "alsa-util.h"
 #include "module-alsa-source-symdef.h"
@@ -76,8 +72,10 @@ struct userdata {
     pa_core *core;
     pa_module *module;
     pa_source *source;
+    
     pa_thread *thread;
     pa_thread_mq thread_mq;
+    pa_rtpoll *rtpoll;
 
     snd_pcm_t *pcm_handle;
 
@@ -93,13 +91,7 @@ struct userdata {
 
     int use_mmap;
 
-    struct pollfd *pollfd;
-    int n_alsa_fds;
-};
-
-enum {
-    POLLFD_ASYNCQ,
-    POLLFD_ALSA_BASE
+    pa_rtpoll_item *alsa_rtpoll_item;
 };
 
 static const char* const valid_modargs[] = {
@@ -116,16 +108,16 @@ static const char* const valid_modargs[] = {
 };
 
 static int mmap_read(struct userdata *u) {
-    snd_pcm_sframes_t n;
-    int err;
-    const snd_pcm_channel_area_t *areas;
-    snd_pcm_uframes_t offset, frames;
     int work_done = 0;
     
     pa_assert(u);
-    pa_assert(u->source);
+    pa_source_assert_ref(u->source);
 
     for (;;) {
+        snd_pcm_sframes_t n;
+        int err;
+        const snd_pcm_channel_area_t *areas;
+        snd_pcm_uframes_t offset, frames;
         pa_memchunk chunk;
         void *p;
         
@@ -207,6 +199,73 @@ static int mmap_read(struct userdata *u) {
     }
 }
 
+static int unix_read(struct userdata *u) {
+    snd_pcm_status_t *status;
+    int work_done = 0;
+
+    snd_pcm_status_alloca(&status);
+
+    pa_assert(u);
+    pa_source_assert_ref(u->source);
+
+    for (;;) {
+        void *p;
+        snd_pcm_sframes_t t;
+        ssize_t l;
+        int err;
+        pa_memchunk chunk;
+        
+        if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) {
+            pa_log("Failed to query DSP status data: %s", snd_strerror(t));
+            return -1;
+        }
+
+        if (snd_pcm_status_get_avail_max(status)*u->frame_size >= u->hwbuf_size)
+            pa_log_debug("Buffer overrun!");
+                    
+        l = snd_pcm_status_get_avail(status) * u->frame_size;
+
+        if (l <= 0)
+            return work_done;
+                    
+        chunk.memblock = pa_memblock_new(u->core->mempool, l);
+
+        p = pa_memblock_acquire(chunk.memblock);
+        t = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, l / u->frame_size);
+        pa_memblock_release(chunk.memblock);
+        
+/*                     pa_log("wrote %i bytes of %u (%u)", t*u->frame_size, u->memchunk.length, l);   */
+        
+        pa_assert(t != 0);
+                    
+        if (t < 0) {
+            pa_memblock_unref(chunk.memblock);
+            
+            if ((t = snd_pcm_recover(u->pcm_handle, t, 1)) == 0)
+                continue;
+                        
+            if (t == -EAGAIN) {
+                pa_log_debug("EAGAIN");
+                return work_done;
+            } else {
+                pa_log("Failed to read data from DSP: %s", snd_strerror(t));
+                return -1;
+            }
+        } 
+                        
+        chunk.index = 0;
+        chunk.length = t * u->frame_size;
+
+        pa_source_post(u->source, &chunk);
+        pa_memblock_unref(chunk.memblock);
+                    
+        work_done = 1;
+
+        if (t * u->frame_size >= (unsigned) l)
+            return work_done;
+    }
+}
+
 static pa_usec_t source_get_latency(struct userdata *u) {
     pa_usec_t r = 0;
     snd_pcm_status_t *status;
@@ -216,6 +275,7 @@ static pa_usec_t source_get_latency(struct userdata *u) {
     snd_pcm_status_alloca(&status);
     
     pa_assert(u);
+    pa_assert(u->pcm_handle);
 
     if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) 
         pa_log("Failed to get delay: %s", snd_strerror(err));
@@ -230,22 +290,24 @@ static pa_usec_t source_get_latency(struct userdata *u) {
 
 static int build_pollfd(struct userdata *u) {
     int err;
+    struct pollfd *pollfd;
+    int n;
     
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
-    if ((u->n_alsa_fds = snd_pcm_poll_descriptors_count(u->pcm_handle)) < 0) {
-        pa_log("snd_pcm_poll_descriptors_count() failed: %s", snd_strerror(u->n_alsa_fds));
+    if ((n = snd_pcm_poll_descriptors_count(u->pcm_handle)) < 0) {
+        pa_log("snd_pcm_poll_descriptors_count() failed: %s", snd_strerror(n));
         return -1;
     }
 
-    pa_xfree(u->pollfd);
-    u->pollfd = pa_xnew0(struct pollfd, POLLFD_ALSA_BASE + u->n_alsa_fds);
+    if (u->alsa_rtpoll_item)
+        pa_rtpoll_item_free(u->alsa_rtpoll_item);
 
-    u->pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->thread_mq.inq);
-    u->pollfd[POLLFD_ASYNCQ].events = POLLIN;
-
-    if ((err = snd_pcm_poll_descriptors(u->pcm_handle, u->pollfd+POLLFD_ALSA_BASE, u->n_alsa_fds)) < 0) {
+    u->alsa_rtpoll_item = pa_rtpoll_item_new(u->rtpoll, n);
+    pollfd = pa_rtpoll_item_get_pollfd(u->alsa_rtpoll_item, NULL);
+    
+    if ((err = snd_pcm_poll_descriptors(u->pcm_handle, pollfd, n)) < 0) {
         pa_log("snd_pcm_poll_descriptors() failed: %s", snd_strerror(err));
         return -1;
     }
@@ -261,6 +323,11 @@ static int suspend(struct userdata *u) {
     snd_pcm_close(u->pcm_handle);
     u->pcm_handle = NULL;
 
+    if (u->alsa_rtpoll_item) {
+        pa_rtpoll_item_free(u->alsa_rtpoll_item);
+        u->alsa_rtpoll_item = NULL;
+    }
+    
     pa_log_debug("Device suspended...");
     
     return 0;
@@ -505,14 +572,9 @@ static int source_set_mute_cb(pa_source *s) {
 }
 
 static void thread_func(void *userdata) {
-
     struct userdata *u = userdata;
-    int err;
-    unsigned short revents = 0;
-    snd_pcm_status_t *status;
 
     pa_assert(u);
-    snd_pcm_status_alloca(&status);
 
     pa_log_debug("Thread starting up");
 
@@ -520,19 +582,36 @@ static void thread_func(void *userdata) {
         pa_make_realtime();
 
     pa_thread_mq_install(&u->thread_mq);
+    pa_rtpoll_install(u->rtpoll);
     
     if (build_pollfd(u) < 0)
         goto fail;
 
+    snd_pcm_start(u->pcm_handle);
+    
     for (;;) {
         pa_msgobject *object;
         int code;
         void *data;
-        int r;
         int64_t offset;
         pa_memchunk chunk;
 
 /*         pa_log("loop");     */
+        
+        /* Render some data and write it to the dsp */
+        if (PA_SOURCE_OPENED(u->source->thread_info.state)) {
+            
+            if (u->use_mmap) {
+                if (mmap_read(u) < 0)
+                    goto fail;
+
+            } else {
+                if (unix_read(u) < 0)
+                    goto fail;
+            }
+        }
+
+/*         pa_log("loop2"); */
         
         /* Check whether there is a message for us to process */
         if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
@@ -550,109 +629,20 @@ static void thread_func(void *userdata) {
             continue;
         } 
 
-/*         pa_log("loop2"); */
-
-        /* Render some data and write it to the dsp */
-
-        if (PA_SOURCE_OPENED(u->source->thread_info.state) && (revents & POLLIN)) {
-            int work_done = 0;
-            pa_assert(u->pcm_handle);
-
-            if (u->use_mmap) {
-
-                if ((work_done = mmap_read(u)) < 0)
-                    goto fail;
-
-            } else {
-
-                for (;;) {
-                    void *p;
-                    snd_pcm_sframes_t t;
-                    ssize_t l;
-
-                    if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) {
-                        pa_log("Failed to query DSP status data: %s", snd_strerror(t));
-                        goto fail;
-                    }
-
-                    if (snd_pcm_status_get_avail_max(status)*u->frame_size >= u->hwbuf_size)
-                        pa_log_debug("Buffer overrun!");
-                    
-                    l = snd_pcm_status_get_avail(status) * u->frame_size;
-
-                    if (l <= 0)
-                        break;
-                    
-                    chunk.memblock = pa_memblock_new(u->core->mempool, l);
-
-                    p = pa_memblock_acquire(chunk.memblock);
-                    t = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, l / u->frame_size);
-                    pa_memblock_release(chunk.memblock);
-                    
-/*                     pa_log("wrote %i bytes of %u (%u)", t*u->frame_size, u->memchunk.length, l);   */
-                    
-                    pa_assert(t != 0);
-                    
-                    if (t < 0) {
-                        pa_memblock_unref(chunk.memblock);
-
-                        if ((t = snd_pcm_recover(u->pcm_handle, t, 1)) == 0)
-                            continue;
-                        
-                        if (t == -EAGAIN) {
-                            pa_log_debug("EAGAIN");
-                            break;
-                        } else {
-                            pa_log("Failed to read data from DSP: %s", snd_strerror(t));
-                            goto fail;
-                        }
-                        
-                    } 
-                        
-                    chunk.index = 0;
-                    chunk.length = t * u->frame_size;
-
-                    pa_source_post(u->source, &chunk);
-                    pa_memblock_unref(chunk.memblock);
-                    
-                    work_done = 1;
-
-                    if (t * u->frame_size >= (unsigned) l)
-                        break;
-                } 
-            }
-
-            revents &= ~POLLIN;
-            
-            if (work_done)
-                continue;
-        }
-
-        /* Hmm, nothing to do. Let's sleep */
-        if (pa_asyncmsgq_before_poll(u->thread_mq.inq) < 0)
-            continue;
-
-/*         pa_log("polling for %i", POLLFD_ALSA_BASE + (PA_SOURCE_OPENED(u->source->thread_info.state) ? n_alsa_fds : 0));   */
-        r = poll(u->pollfd, POLLFD_ALSA_BASE + (PA_SOURCE_OPENED(u->source->thread_info.state) ? u->n_alsa_fds : 0), -1);
-/*         pa_log("poll end"); */
-
-        pa_asyncmsgq_after_poll(u->thread_mq.inq);
-
-        if (r < 0) {
-            if (errno == EINTR) {
-                u->pollfd[POLLFD_ASYNCQ].revents = 0;
-                revents = 0;
-                continue;
-            }
-
+        if (pa_rtpoll_run(u->rtpoll) < 0) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
-        pa_assert(r > 0);
-
         if (PA_SOURCE_OPENED(u->source->thread_info.state)) {
-            if ((err = snd_pcm_poll_descriptors_revents(u->pcm_handle, u->pollfd + POLLFD_ALSA_BASE, u->n_alsa_fds, &revents)) < 0) {
+            struct pollfd *pollfd;
+            unsigned short revents = 0;
+            int err;
+            unsigned n;
+
+            pollfd = pa_rtpoll_item_get_pollfd(u->alsa_rtpoll_item, &n);
+            
+            if ((err = snd_pcm_poll_descriptors_revents(u->pcm_handle, pollfd, n, &revents)) < 0) {
                 pa_log("snd_pcm_poll_descriptors_revents() failed: %s", snd_strerror(err));
                 goto fail;
             }
@@ -668,10 +658,7 @@ static void thread_func(void *userdata) {
                 goto fail;
             }
 /*             pa_log("got alsa event"); */
-        } else
-            revents = 0;
-        
-        pa_assert((u->pollfd[POLLFD_ASYNCQ].revents & ~POLLIN) == 0);
+        }
     }
 
 fail:
@@ -687,7 +674,6 @@ finish:
 int pa__init(pa_module*m) {
     
     pa_modargs *ma = NULL;
-    int ret = -1;
     struct userdata *u = NULL;
     const char *dev;
     pa_sample_spec ss;
@@ -702,6 +688,8 @@ int pa__init(pa_module*m) {
     char *name_buf = NULL;
     int namereg_fail;
     int use_mmap = 1, b;
+
+    snd_pcm_info_alloca(&pcm_info);
 
     pa_assert(m);
     
@@ -739,9 +727,10 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->use_mmap = use_mmap;
-    u->n_alsa_fds = 0;
-    u->pollfd = NULL;
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
+    u->rtpoll = pa_rtpoll_new();
+    u->alsa_rtpoll_item = NULL;
+    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, u->thread_mq.inq);
 
     snd_config_update_free_global();
     if ((err = snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK)) < 0) {
@@ -751,8 +740,7 @@ int pa__init(pa_module*m) {
 
     u->device_name = pa_xstrdup(dev);
 
-    if ((err = snd_pcm_info_malloc(&pcm_info)) < 0 ||
-        (err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
+    if ((err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
         pa_log("Error fetching PCM info: %s", snd_strerror(err));
         goto fail;
     }
@@ -875,26 +863,18 @@ int pa__init(pa_module*m) {
     if (u->source->get_mute)
         u->source->get_mute(u->source);
 
-    snd_pcm_start(u->pcm_handle);
+    pa_modargs_free(ma);
     
-    ret = 0;
-
-finish:
+    return 0;
+    
+fail:
 
     if (ma)
         pa_modargs_free(ma);
+
+    pa__done(m);
     
-    if (pcm_info)
-        snd_pcm_info_free(pcm_info);
-
-    return ret;
-
-fail:
-
-    if (u)
-        pa__done(m);
-
-    goto finish;
+    return -1;
 }
 
 void pa__done(pa_module*m) {
@@ -918,6 +898,12 @@ void pa__done(pa_module*m) {
     if (u->source)
         pa_source_unref(u->source);
 
+    if (u->alsa_rtpoll_item)
+        pa_rtpoll_item_free(u->alsa_rtpoll_item);
+    
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
+    
     if (u->mixer_fdl)
         pa_alsa_fdlist_free(u->mixer_fdl);
 
@@ -929,7 +915,6 @@ void pa__done(pa_module*m) {
         snd_pcm_close(u->pcm_handle);
     }
 
-    pa_xfree(u->pollfd);
     pa_xfree(u->device_name);
     pa_xfree(u);
 

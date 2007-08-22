@@ -33,7 +33,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
-#include <sys/poll.h>
 
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
@@ -47,6 +46,8 @@
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/rtpoll.h>
+#include <pulsecore/rtclock.h>
 
 #include "module-null-sink-symdef.h"
 
@@ -67,11 +68,14 @@ struct userdata {
     pa_core *core;
     pa_module *module;
     pa_sink *sink;
+
     pa_thread *thread;
     pa_thread_mq thread_mq;
+    pa_rtpoll *rtpoll;
+
     size_t block_size;
     
-    struct timeval timestamp;
+    struct timespec timestamp;
 };
 
 static const char* const valid_modargs[] = {
@@ -91,19 +95,19 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case PA_SINK_MESSAGE_SET_STATE:
 
             if (PA_PTR_TO_UINT(data) == PA_SINK_RUNNING)
-                pa_gettimeofday(&u->timestamp);
+                pa_rtclock_get(&u->timestamp);
             
             break;
             
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            struct timeval now;
+            struct timespec now;
     
-            pa_gettimeofday(&now);
+            pa_rtclock_get(&now);
             
-            if (pa_timeval_cmp(&u->timestamp, &now) > 0)
+            if (pa_timespec_cmp(&u->timestamp, &now) > 0)
                 *((pa_usec_t*) data) = 0;
             else
-                *((pa_usec_t*) data) = pa_timeval_diff(&u->timestamp, &now);
+                *((pa_usec_t*) data) = pa_timespec_diff(&u->timestamp, &now);
             break;
         }
     }
@@ -113,28 +117,40 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
-    struct pollfd pollfd;
 
     pa_assert(u);
 
     pa_log_debug("Thread starting up");
 
     pa_thread_mq_install(&u->thread_mq);
+    pa_rtpoll_install(u->rtpoll);
 
-    pa_gettimeofday(&u->timestamp);
-
-    memset(&pollfd, 0, sizeof(pollfd));
-    pollfd.fd = pa_asyncmsgq_get_fd(u->thread_mq.inq);
-    pollfd.events = POLLIN;
+    pa_rtclock_get(&u->timestamp);
 
     for (;;) {
         pa_msgobject *object;
         int code;
         void *data;
         pa_memchunk chunk;
-        int r, timeout;
-        struct timeval now;
         int64_t offset;
+
+        /* Render some data and drop it immediately */
+        if (u->sink->thread_info.state == PA_SINK_RUNNING) {
+            struct timespec now;
+            
+            pa_rtclock_get(&now);
+
+            if (pa_timespec_cmp(&u->timestamp, &now) <= 0) {
+
+                pa_sink_render(u->sink, u->block_size, &chunk);
+                pa_memblock_unref(chunk.memblock);
+
+                pa_timespec_add(&u->timestamp, pa_bytes_to_usec(chunk.length, &u->sink->sample_spec));
+            }
+
+            pa_rtpoll_set_timer_absolute(u->rtpoll, &u->timestamp);
+        } else
+            pa_rtpoll_set_timer_disabled(u->rtpoll);
 
         /* Check whether there is a message for us to process */
         if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
@@ -150,45 +166,11 @@ static void thread_func(void *userdata) {
             continue;
         }
 
-        /* Render some data and drop it immediately */
-        if (u->sink->thread_info.state == PA_SINK_RUNNING) {
-            pa_gettimeofday(&now);
-
-            if (pa_timeval_cmp(&u->timestamp, &now) <= 0) {
-
-                pa_sink_render(u->sink, u->block_size, &chunk);
-                pa_memblock_unref(chunk.memblock);
-
-                pa_timeval_add(&u->timestamp, pa_bytes_to_usec(chunk.length, &u->sink->sample_spec));
-                continue;
-            }
-
-            timeout = pa_timeval_diff(&u->timestamp, &now)/1000;
-
-            if (timeout < 1)
-                timeout = 1;
-        } else
-            timeout = -1;
-
         /* Hmm, nothing to do. Let's sleep */
-
-        if (pa_asyncmsgq_before_poll(u->thread_mq.inq) < 0)
-            continue;
-
-        r = poll(&pollfd, 1, timeout);
-        pa_asyncmsgq_after_poll(u->thread_mq.inq);
-
-        if (r < 0) {
-            if (errno == EINTR) {
-                pollfd.revents = 0;
-                continue;
-            }
-
+        if (pa_rtpoll_run(u->rtpoll) < 0) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
-
-        pa_assert(r == 0 || pollfd.revents == POLLIN);
     }
 
 fail:
@@ -224,8 +206,9 @@ int pa__init(pa_module*m) {
     u->core = m->core;
     u->module = m;
     m->userdata = u;
-
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
+    u->rtpoll = pa_rtpoll_new();
+    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, u->thread_mq.inq);
     
     if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
         pa_log("Failed to create sink.");
@@ -282,5 +265,8 @@ void pa__done(pa_module*m) {
     if (u->sink)
         pa_sink_unref(u->sink);
 
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
+    
     pa_xfree(u);
 }

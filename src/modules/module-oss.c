@@ -32,9 +32,7 @@
  *   the device. If none is avilable from the inputs, we write silence
  *   instead.
  *
- *   If power should be saved on IDLE this should be implemented in a
- *   special suspend-on-idle module that will put us into SUSPEND mode
- *   as soon and we're idle for too long.
+ *   If power should be saved on IDLE module-suspend-on-idle should be used.
  *
  */
 
@@ -46,12 +44,6 @@
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
-#endif
-
-#ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
-#else
-#include "poll.h"
 #endif
 
 #include <sys/soundcard.h>
@@ -80,6 +72,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/rtpoll.h>
 
 #include "oss-util.h"
 #include "module-oss-symdef.h"
@@ -108,8 +101,10 @@ struct userdata {
     pa_module *module;
     pa_sink *sink;
     pa_source *source;
+    
     pa_thread *thread;
     pa_thread_mq thread_mq;
+    pa_rtpoll *rtpoll;
 
     char *device_name;
     
@@ -135,6 +130,8 @@ struct userdata {
     pa_memblock **in_mmap_memblocks, **out_mmap_memblocks;
 
     int in_mmap_saved_nfrags, out_mmap_saved_nfrags;
+
+    pa_rtpoll_item *rtpoll_item;
 };
 
 static const char* const valid_modargs[] = {
@@ -156,10 +153,12 @@ static const char* const valid_modargs[] = {
 static void trigger(struct userdata *u, int quick) {
     int enable_bits = 0, zero = 0;
 
+    pa_assert(u);
+    
     if (u->fd < 0)
         return;
 
-    pa_log_debug("trigger"); 
+/*     pa_log_debug("trigger");  */
 
     if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state))
         enable_bits |= PCM_ENABLE_INPUT;
@@ -479,6 +478,11 @@ static int suspend(struct userdata *u) {
     close(u->fd);
     u->fd = -1;
 
+    if (u->rtpoll_item) {
+        pa_rtpoll_item_free(u->rtpoll_item);
+        u->rtpoll_item = NULL;
+    }
+    
     pa_log_debug("Device suspended...");
     
     return 0;
@@ -490,6 +494,7 @@ static int unsuspend(struct userdata *u) {
     int frag_size, in_frag_size, out_frag_size;
     int in_nfrags, out_nfrags;
     struct audio_buf_info info;
+    struct pollfd *pollfd;
 
     pa_assert(u);
     pa_assert(u->fd < 0);
@@ -568,7 +573,15 @@ static int unsuspend(struct userdata *u) {
 
     u->out_mmap_current = u->in_mmap_current = 0;
     u->out_mmap_saved_nfrags = u->in_mmap_saved_nfrags = 0;
+
+    pa_assert(!u->rtpoll_item);
     
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, 1);
+    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+    pollfd->fd = u->fd;
+    pollfd->events = 0;
+    pollfd->revents = 0;
+
     pa_log_debug("Resumed successfully...");
 
     return 0;
@@ -777,15 +790,9 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 }
 
 static void thread_func(void *userdata) {
-    enum {
-        POLLFD_ASYNCQ,
-        POLLFD_DSP,
-        POLLFD_MAX,
-    };
-
     struct userdata *u = userdata;
-    struct pollfd pollfd[POLLFD_MAX];
     int write_type = 0, read_type = 0;
+    unsigned short revents = 0;
 
     pa_assert(u);
 
@@ -795,46 +802,22 @@ static void thread_func(void *userdata) {
         pa_make_realtime();
 
     pa_thread_mq_install(&u->thread_mq);
+    pa_rtpoll_install(u->rtpoll);
 
     trigger(u, 0);
     
-    memset(&pollfd, 0, sizeof(pollfd));
-
-    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->thread_mq.inq);
-    pollfd[POLLFD_ASYNCQ].events = POLLIN;
-    pollfd[POLLFD_DSP].fd = u->fd;
-
     for (;;) {
         pa_msgobject *object;
         int code;
         void *data;
         pa_memchunk chunk;
-        int r;
         int64_t offset;
 
 /*        pa_log("loop");    */
         
-        /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
-            int ret;
-
-/*             pa_log("processing msg"); */
-
-            if (!object && code == PA_MESSAGE_SHUTDOWN) {
-                pa_asyncmsgq_done(u->thread_mq.inq, 0);
-                goto finish;
-            }
-
-            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(u->thread_mq.inq, ret);
-            continue;
-        } 
-
-/*         pa_log("loop2"); */
-
         /* Render some data and write it to the dsp */
 
-        if (u->sink && u->sink->thread_info.state != PA_SINK_DISCONNECTED && u->fd >= 0 && (pollfd[POLLFD_DSP].revents & POLLOUT)) {
+        if (u->sink && u->sink->thread_info.state != PA_SINK_DISCONNECTED && u->fd >= 0 && (revents & POLLOUT)) {
 
             if (u->use_mmap) {
                 int ret;
@@ -842,7 +825,7 @@ static void thread_func(void *userdata) {
                 if ((ret = mmap_write(u)) < 0)
                     goto fail;
 
-                pollfd[POLLFD_DSP].revents &= ~POLLOUT;
+                revents &= ~POLLOUT;
                 
                 if (ret > 0)
                     continue;
@@ -894,7 +877,7 @@ static void thread_func(void *userdata) {
                         else if (errno == EAGAIN) {
                             pa_log_debug("EAGAIN"); 
                             
-                            pollfd[POLLFD_DSP].revents &= ~POLLOUT;
+                            revents &= ~POLLOUT;
                             break;
                             
                         } else {
@@ -914,7 +897,7 @@ static void thread_func(void *userdata) {
                         
                         l -= t;
                         
-                        pollfd[POLLFD_DSP].revents &= ~POLLOUT;
+                        revents &= ~POLLOUT;
                     }
                     
                 } while (loop && l > 0);
@@ -925,7 +908,7 @@ static void thread_func(void *userdata) {
 
         /* Try to read some data and pass it on to the source driver */
 
-        if (u->source && u->source->thread_info.state != PA_SOURCE_DISCONNECTED && u->fd >= 0 && ((pollfd[POLLFD_DSP].revents & POLLIN))) {
+        if (u->source && u->source->thread_info.state != PA_SOURCE_DISCONNECTED && u->fd >= 0 && ((revents & POLLIN))) {
 
             if (u->use_mmap) {
                 int ret;
@@ -933,7 +916,7 @@ static void thread_func(void *userdata) {
                 if ((ret = mmap_read(u)) < 0)
                     goto fail;
 
-                pollfd[POLLFD_DSP].revents &= ~POLLIN;
+                revents &= ~POLLIN;
                 
                 if (ret > 0)
                     continue;
@@ -985,7 +968,7 @@ static void thread_func(void *userdata) {
                         else if (errno == EAGAIN) {
                             pa_log_debug("EAGAIN"); 
 
-                            pollfd[POLLFD_DSP].revents &= ~POLLIN;
+                            revents &= ~POLLIN;
                             break;
 
                         } else {
@@ -1002,7 +985,7 @@ static void thread_func(void *userdata) {
 
                         l -= t;
 
-                        pollfd[POLLFD_DSP].revents &= ~POLLIN;
+                        revents &= ~POLLIN;
                     }
                 } while (loop && l > 0);
 
@@ -1010,46 +993,53 @@ static void thread_func(void *userdata) {
             }
         }
 
+/*         pa_log("loop2"); */
+
+        /* Check whether there is a message for us to process */
+        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
+            int ret;
+
+/*             pa_log("processing msg"); */
+
+            if (!object && code == PA_MESSAGE_SHUTDOWN) {
+                pa_asyncmsgq_done(u->thread_mq.inq, 0);
+                goto finish;
+            }
+
+            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
+            pa_asyncmsgq_done(u->thread_mq.inq, ret);
+            continue;
+        } 
+
         if (u->fd >= 0) {
-            pollfd[POLLFD_DSP].fd = u->fd;
-            pollfd[POLLFD_DSP].events =
+            struct pollfd *pollfd;
+
+            pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+            pollfd->events =
                 ((u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) ? POLLIN : 0) |
                 ((u->sink && PA_SINK_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0);
         }
-            
-        /* Hmm, nothing to do. Let's sleep */
 
-        if (pa_asyncmsgq_before_poll(u->thread_mq.inq) < 0)
-            continue;
-
-/*         pa_log("polling for %i (legend: %i=POLLIN, %i=POLLOUT)", u->fd >= 0 ? pollfd[POLLFD_DSP].events : -1, POLLIN, POLLOUT); */
-        r = poll(pollfd, u->fd >= 0 ? POLLFD_MAX : POLLFD_DSP, -1);
-/*         pa_log("polling got dsp=%i amq=%i (%i)", r > 0 ? pollfd[POLLFD_DSP].revents : 0, r > 0 ? pollfd[POLLFD_ASYNCQ].revents : 0, r); */
-
-        pa_asyncmsgq_after_poll(u->thread_mq.inq);
-
-        if (u->fd < 0)
-            pollfd[POLLFD_DSP].revents = 0;
         
-        if (r < 0) {
-            if (errno == EINTR) {
-                pollfd[POLLFD_ASYNCQ].revents = 0;
-                pollfd[POLLFD_DSP].revents = 0;
-                continue;
-            }
-
+        /* Hmm, nothing to do. Let's sleep */
+        if (pa_rtpoll_run(u->rtpoll) < 0) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
-        pa_assert(r > 0);
+        if (u->fd >= 0) {
+            struct pollfd *pollfd;
+            
+            pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+            
+            if (pollfd->revents & ~(POLLOUT|POLLIN)) {
+                pa_log("DSP shutdown.");
+                goto fail;
+            }
 
-        if (pollfd[POLLFD_DSP].revents & ~(POLLOUT|POLLIN)) {
-            pa_log("DSP shutdown.");
-            goto fail;
-        }
-
-        pa_assert((pollfd[POLLFD_ASYNCQ].revents & ~POLLIN) == 0);
+            revents = pollfd->revents;
+        } else
+            revents = 0;
     }
 
 fail:
@@ -1077,6 +1067,7 @@ int pa__init(pa_module*m) {
     char hwdesc[64], *t;
     const char *name;
     int namereg_fail;
+    struct pollfd *pollfd;
 
     pa_assert(m);
 
@@ -1165,7 +1156,14 @@ int pa__init(pa_module*m) {
     u->out_fragment_size = u->in_fragment_size = u->frag_size = frag_size;
     u->use_mmap = use_mmap;
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
-
+    u->rtpoll = pa_rtpoll_new();
+    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, u->thread_mq.inq);
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, 1);
+    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+    pollfd->fd = fd;
+    pollfd->events = 0;
+    pollfd->revents = 0;
+    
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
         pa_log_info("Input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->in_fragment_size = info.fragsize;
@@ -1294,13 +1292,13 @@ go_on:
         goto fail;
     }
 
-    pa_modargs_free(ma);
-
     /* Read mixer settings */
     if (u->source)
         pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_GET_VOLUME, &u->source->volume, 0, NULL, NULL);
     if (u->sink)
         pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_VOLUME, &u->sink->volume, 0, NULL, NULL);
+
+    pa_modargs_free(ma);
 
     return 0;
 
@@ -1343,10 +1341,16 @@ void pa__done(pa_module*m) {
 
     if (u->source)
         pa_source_unref(u->source);
-
+    
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
 
+    if (u->rtpoll_item)
+        pa_rtpoll_item_free(u->rtpoll_item);
+    
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
+    
     if (u->out_mmap_memblocks) {
         unsigned i;
         for (i = 0; i < u->out_nfrags; i++)

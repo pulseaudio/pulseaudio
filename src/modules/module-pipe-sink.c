@@ -34,7 +34,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/ioctl.h>
-#include <sys/poll.h>
 
 #include <pulse/xmalloc.h>
 
@@ -46,6 +45,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/rtpoll.h>
 
 #include "module-pipe-sink-symdef.h"
 
@@ -67,12 +67,17 @@ struct userdata {
     pa_core *core;
     pa_module *module;
     pa_sink *sink;
+    
     pa_thread *thread;
     pa_thread_mq thread_mq;
+    pa_rtpoll *rtpoll;
+    
     char *filename;
     int fd;
 
     pa_memchunk memchunk;
+
+    pa_rtpoll_item *rtpoll_item;
 };
 
 static const char* const valid_modargs[] = {
@@ -108,14 +113,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 }
 
 static void thread_func(void *userdata) {
-    enum {
-        POLLFD_ASYNCQ,
-        POLLFD_FIFO,
-        POLLFD_MAX,
-    };
-    
     struct userdata *u = userdata;
-    struct pollfd pollfd[POLLFD_MAX];
     int write_type = 0;
 
     pa_assert(u);
@@ -123,38 +121,21 @@ static void thread_func(void *userdata) {
     pa_log_debug("Thread starting up");
 
     pa_thread_mq_install(&u->thread_mq);
-
-    memset(&pollfd, 0, sizeof(pollfd));
-    
-    pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->thread_mq.inq);
-    pollfd[POLLFD_ASYNCQ].events = POLLIN;
-    pollfd[POLLFD_FIFO].fd = u->fd;
+    pa_rtpoll_install(u->rtpoll);
 
     for (;;) {
         pa_msgobject *object;
         int code;
         void *data;
         pa_memchunk chunk;
-        int r;
         int64_t offset;
-
-        /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
-            int ret;
-
-            if (!object && code == PA_MESSAGE_SHUTDOWN) {
-                pa_asyncmsgq_done(u->thread_mq.inq, 0);
-                goto finish;
-            }
-
-            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(u->thread_mq.inq, ret);
-            continue;
-        }
+        struct pollfd *pollfd;
 
         /* Render some data and write it to the fifo */
 
-        if (u->sink->thread_info.state == PA_SINK_RUNNING && pollfd[POLLFD_FIFO].revents) {
+        pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+        
+        if (u->sink->thread_info.state == PA_SINK_RUNNING && pollfd->revents) {
             ssize_t l;
             void *p;
 
@@ -188,41 +169,37 @@ static void thread_func(void *userdata) {
                     pa_memchunk_reset(&u->memchunk);
                 }
 
-                pollfd[POLLFD_FIFO].revents = 0;
-                continue;
+                pollfd->revents = 0;
             }
         }
 
-        pollfd[POLLFD_FIFO].events = u->sink->thread_info.state == PA_SINK_RUNNING ? POLLOUT : 0;
+        /* Check whether there is a message for us to process */
+        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
+            int ret;
 
-        /* Hmm, nothing to do. Let's sleep */
-
-        if (pa_asyncmsgq_before_poll(u->thread_mq.inq) < 0)
-            continue;
-
-/*         pa_log("polling for %u", pollfd[POLLFD_FIFO].events);  */
-        r = poll(pollfd, POLLFD_MAX, -1);
-/*         pa_log("polling got %u", r > 0 ? pollfd[POLLFD_FIFO].revents : 0);  */
-
-        pa_asyncmsgq_after_poll(u->thread_mq.inq);
-
-        if (r < 0) {
-            if (errno == EINTR) {
-                pollfd[POLLFD_ASYNCQ].revents = 0;
-                pollfd[POLLFD_FIFO].revents = 0;
-                continue;
+            if (!object && code == PA_MESSAGE_SHUTDOWN) {
+                pa_asyncmsgq_done(u->thread_mq.inq, 0);
+                goto finish;
             }
 
+            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
+            pa_asyncmsgq_done(u->thread_mq.inq, ret);
+            continue;
+        }
+        
+        /* Hmm, nothing to do. Let's sleep */
+        pollfd->events = u->sink->thread_info.state == PA_SINK_RUNNING ? POLLOUT : 0;
+
+        if (pa_rtpoll_run(u->rtpoll) < 0) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
-        if (pollfd[POLLFD_FIFO].revents & ~POLLOUT) {
+        pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+        if (pollfd->revents & ~POLLOUT) {
             pa_log("FIFO shutdown.");
             goto fail;
         }
-
-        pa_assert((pollfd[POLLFD_ASYNCQ].revents & ~POLLIN) == 0);
     }
 
 fail:
@@ -242,6 +219,7 @@ int pa__init(pa_module*m) {
     pa_channel_map map;
     pa_modargs *ma;
     char *t;
+    struct pollfd *pollfd;
 
     pa_assert(m);
 
@@ -262,6 +240,8 @@ int pa__init(pa_module*m) {
     m->userdata = u;
     pa_memchunk_reset(&u->memchunk);
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
+    u->rtpoll = pa_rtpoll_new();
+    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, u->thread_mq.inq);
     
     u->filename = pa_xstrdup(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
 
@@ -297,6 +277,11 @@ int pa__init(pa_module*m) {
     pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Unix FIFO sink '%s'", u->filename));
     pa_xfree(t);
 
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, 1);
+    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+    pollfd->fd = u->fd;
+    pollfd->events = pollfd->revents = 0;
+   
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
@@ -338,6 +323,12 @@ void pa__done(pa_module*m) {
 
     if (u->memchunk.memblock)
        pa_memblock_unref(u->memchunk.memblock);
+
+    if (u->rtpoll_item)
+        pa_rtpoll_item_free(u->rtpoll_item);
+    
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
 
     if (u->filename) {
         unlink(u->filename);
