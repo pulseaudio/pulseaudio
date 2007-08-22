@@ -31,6 +31,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 #include <pulse/xmalloc.h>
 
 #include "flist.h"
