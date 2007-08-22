@@ -59,11 +59,18 @@ void pa_rtpoll_free(pa_rtpoll *p);
 void pa_rtpoll_install(pa_rtpoll *p);
 
 int pa_rtpoll_run(pa_rtpoll *f);
-void pa_rtpoll_set_itimer(pa_rtpoll *p, pa_usec_t usec);
+
+void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timespec *ts);
+void pa_rtpoll_set_timer_periodic(pa_rtpoll *p, pa_usec_t usec);
+void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec);
+void pa_rtpoll_set_timer_disabled(pa_rtpoll *p);
 
 pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, unsigned n_fds);
 void pa_rtpoll_item_free(pa_rtpoll_item *i);
 
+/* Please note that this pointer might change on every call and when
+ * pa_rtpoll_run() is called. Hence: call this immediately before
+ * using the pointer and don't save the result anywhere */
 struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds);
 
 void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i));
@@ -73,6 +80,5 @@ void* pa_rtpoll_item_get_userdata(pa_rtpoll_item *i);
 
 pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_fdsem *s);
 pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_asyncmsgq *q);
-
 
 #endif
