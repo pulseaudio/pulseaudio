@@ -104,17 +104,13 @@ struct pa_flist {
 
 #define PA_FLIST_CELLS(x) ((struct cell*) ((uint8_t*) (x) + PA_ALIGN(sizeof(struct pa_flist))))
 
-static int is_power_of_two(unsigned size) {
-    return !(size & (size - 1));
-}
-
 pa_flist *pa_flist_new(unsigned size) {
     pa_flist *l;
 
     if (!size)
         size = FLIST_SIZE;
 
-    assert(is_power_of_two(size));
+    assert(pa_is_power_of_two(size));
 
     l = pa_xmalloc0(PA_ALIGN(sizeof(pa_flist)) + (sizeof(struct cell) * size));
 
