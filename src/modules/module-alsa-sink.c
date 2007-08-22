@@ -527,7 +527,8 @@ static void thread_func(void *userdata) {
 
     pa_log_debug("Thread starting up");
 
-    pa_make_realtime();
+    if (u->core->high_priority)
+        pa_make_realtime();
 
     pa_thread_mq_install(&u->thread_mq);
     
