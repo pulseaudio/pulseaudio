@@ -241,7 +241,9 @@ static void rtpoll_item_destroy(pa_rtpoll_item *i) {
 void pa_rtpoll_free(pa_rtpoll *p) {
     pa_assert(p);
 
-    pa_assert(!p->items);
+    while (p->items)
+        rtpoll_item_destroy(p->items);
+    
     pa_xfree(p->pollfd);
     pa_xfree(p->pollfd2);
 
@@ -256,6 +258,8 @@ void pa_rtpoll_free(pa_rtpoll *p) {
 int pa_rtpoll_run(pa_rtpoll *p) {
     pa_rtpoll_item *i;
     int r = 0;
+    int no_events = 0;
+    int saved_errno;
     
     pa_assert(p);
     pa_assert(!p->running);
@@ -308,8 +312,12 @@ int pa_rtpoll_run(pa_rtpoll *p) {
         r = poll(p->pollfd, p->n_pollfd_used, p->interval > 0 ? p->interval / 1000 : -1);
 #endif
 
-    if (r < 0 && (errno == EAGAIN || errno == EINTR))
+    saved_errno = errno;
+    
+    if (r < 0 && (errno == EAGAIN || errno == EINTR)) {
         r = 0;
+        no_events = 1;
+    }
 
     for (i = p->items; i; i = i->next) {
 
@@ -319,6 +327,13 @@ int pa_rtpoll_run(pa_rtpoll *p) {
         if (!i->after_cb)
             continue;
 
+        if (no_events) {
+            unsigned j;
+
+            for (j = 0; j < i->n_pollfd; j++)
+                i->pollfd[j].revents = 0;
+        }
+        
         i->after_cb(i);
     }
 
@@ -338,6 +353,8 @@ finish:
                 rtpoll_item_destroy(i);
         }
     }
+
+    errno = saved_errno;
 
     return r;
 }
@@ -451,4 +468,69 @@ void pa_rtpoll_item_set_userdata(pa_rtpoll_item *i, void *userdata) {
     pa_assert(i);
 
     i->userdata = userdata;
+}
+
+void* pa_rtpoll_item_get_userdata(pa_rtpoll_item *i) {
+    pa_assert(i);
+
+    return i->userdata;
+}
+
+static int fdsem_before(pa_rtpoll_item *i) {
+    return pa_fdsem_before_poll(i->userdata);
+}
+
+static void fdsem_after(pa_rtpoll_item *i) {
+    pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
+    pa_fdsem_after_poll(i->userdata);
+}
+
+pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_fdsem *f) {
+    pa_rtpoll_item *i;
+    struct pollfd *pollfd;
+    
+    pa_assert(p);
+    pa_assert(f);
+
+    i = pa_rtpoll_item_new(p, 1);
+
+    pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
+
+    pollfd->fd = pa_fdsem_get(f);
+    pollfd->events = POLLIN;
+    
+    i->before_cb = fdsem_before;
+    i->after_cb = fdsem_after;
+    i->userdata = f;
+
+    return i;
+}
+
+static int asyncmsgq_before(pa_rtpoll_item *i) {
+    return pa_asyncmsgq_before_poll(i->userdata);
+}
+
+static void asyncmsgq_after(pa_rtpoll_item *i) {
+    pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
+    pa_asyncmsgq_after_poll(i->userdata);
+}
+
+pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_asyncmsgq *q) {
+    pa_rtpoll_item *i;
+    struct pollfd *pollfd;
+    
+    pa_assert(p);
+    pa_assert(q);
+
+    i = pa_rtpoll_item_new(p, 1);
+
+    pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
+    pollfd->fd = pa_asyncmsgq_get_fd(q);
+    pollfd->events = POLLIN;
+    
+    i->before_cb = asyncmsgq_before;
+    i->after_cb = asyncmsgq_after;
+    i->userdata = q;
+
+    return i;
 }

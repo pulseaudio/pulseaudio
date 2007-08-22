@@ -28,6 +28,8 @@
 #include <sys/types.h>
 
 #include <pulse/sample.h>
+#include <pulsecore/asyncmsgq.h>
+#include <pulsecore/fdsem.h>
 
 /* An implementation of a "real-time" poll loop. Basically, this is
  * yet another wrapper around poll(). However it has certain
@@ -67,5 +69,10 @@ struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds);
 void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i));
 void pa_rtpoll_item_set_after_callback(pa_rtpoll_item *i, void (*after_cb)(pa_rtpoll_item *i));
 void pa_rtpoll_item_set_userdata(pa_rtpoll_item *i, void *userdata);
+void* pa_rtpoll_item_get_userdata(pa_rtpoll_item *i);
+
+pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_fdsem *s);
+pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_asyncmsgq *q);
+
 
 #endif
