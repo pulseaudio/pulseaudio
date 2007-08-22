@@ -78,6 +78,7 @@
 #include <pulsecore/pid.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/random.h>
+#include <pulsecore/rtsig.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -395,7 +396,7 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority();
 
-    if (suid_root && conf->cmd != PA_CMD_DAEMON) {
+    if (suid_root && (conf->cmd != PA_CMD_DAEMON || !conf->high_priority)) {
         pa_drop_caps();
         pa_drop_root();
     }
@@ -543,7 +544,7 @@ int main(int argc, char *argv[]) {
 #endif
     }
 
-    chdir("/");
+    pa_assert(chdir("/") == 0);
     umask(0022);
 
     if (conf->system_instance) {
@@ -573,21 +574,28 @@ int main(int argc, char *argv[]) {
     signal(SIGPIPE, SIG_IGN);
 #endif
 
+    if (!pa_rtclock_hrtimer())
+        pa_log_debug("Fresh high-resolution timers available! Bon appetit!");
+    else
+        pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!");
+    
+    pa_rtsig_configure(SIGRTMIN+10, SIGRTMAX);
+
     mainloop = pa_mainloop_new();
     assert(mainloop);
 
     if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm))) {
-            pa_log("pa_core_new() failed.");
+        pa_log("pa_core_new() failed.");
         goto finish;
     }
 
     c->is_system_instance = !!conf->system_instance;
+    c->high_priority = !!conf->high_priority;
     c->default_sample_spec = conf->default_sample_spec;
     c->default_n_fragments = conf->default_n_fragments;
     c->default_fragment_size_msec = conf->default_fragment_size_msec;
 
-    r = pa_signal_init(pa_mainloop_get_api(mainloop));
-    assert(r == 0);
+    pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);
     pa_signal_new(SIGTERM, signal_callback, c);
 
