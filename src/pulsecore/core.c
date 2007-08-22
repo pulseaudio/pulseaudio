@@ -127,8 +127,6 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
 
     c->mempool = pool;
 
-    c->disallow_module_loading = 0;
-
     c->quit_event = NULL;
 
     c->exit_idle_time = -1;
@@ -138,6 +136,9 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     c->resample_method = PA_RESAMPLER_SRC_SINC_FASTEST;
 
     c->is_system_instance = 0;
+    c->disallow_module_loading = 0;
+    c->high_priority = 0;
+
 
     for (j = 0; j < PA_CORE_HOOK_MAX; j++)
         pa_hook_init(&c->hooks[j], c);

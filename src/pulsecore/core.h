@@ -101,16 +101,16 @@ struct pa_core {
 
     pa_mempool *mempool;
 
-    int disallow_module_loading, running_as_daemon;
     int exit_idle_time, module_idle_time, scache_idle_time;
 
     pa_time_event *quit_event;
 
     pa_time_event *scache_auto_unload_event;
 
+    int disallow_module_loading, running_as_daemon;
     pa_resample_method_t resample_method;
-
     int is_system_instance;
+    int high_priority; 
 
     /* hooks */
     pa_hook hooks[PA_CORE_HOOK_MAX];
