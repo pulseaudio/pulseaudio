@@ -48,4 +48,30 @@ void pa_tls_free(pa_tls *t);
 void * pa_tls_get(pa_tls *t);
 void *pa_tls_set(pa_tls *t, void *userdata);
 
+/* To make use of the static TLS stuff you have to include once.h, as well */
+
+#define PA_STATIC_TLS_DECLARE(name, free_cb)                            \
+    static struct {                                                     \
+        pa_once once;                                                   \
+        pa_tls *tls;                                                    \
+    } name##_tls = {                                                    \
+        .once = PA_ONCE_INIT,                                           \
+        .tls = NULL                                                     \
+    };                                                                  \
+    static void name##_tls_init(void) {                                 \
+        name##_tls.tls = pa_tls_new(free_cb);                           \
+    }                                                                   \
+    static inline pa_tls* name##_tls_get(void) {                        \
+        pa_run_once(&name##_tls.once, name##_tls_init);                 \
+        return name##_tls.tls;                                          \
+    }                                                                   \
+    static void name##_tls_destructor(void) PA_GCC_DESTRUCTOR;          \
+    static void name##_tls_destructor(void) {                           \
+        if (name##_tls.tls)                                             \
+            pa_tls_free(name##_tls.tls);                                \
+    }                                                                   \
+    struct __stupid_useless_struct_to_allow_trailing_semicolon
+
+#define PA_STATIC_TLS_GET(name) (name##_tls_get())
+
 #endif
