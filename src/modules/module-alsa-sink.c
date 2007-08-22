@@ -51,6 +51,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/rtpoll.h>
 
 #include "alsa-util.h"
 #include "module-alsa-sink-symdef.h"
@@ -75,8 +76,10 @@ struct userdata {
     pa_core *core;
     pa_module *module;
     pa_sink *sink;
+    
     pa_thread *thread;
     pa_thread_mq thread_mq;
+    pa_rtpoll *rtpoll;
     
     snd_pcm_t *pcm_handle;
 
@@ -95,13 +98,7 @@ struct userdata {
 
     int first;
 
-    struct pollfd *pollfd;
-    int n_alsa_fds;
-};
-
-enum {
-    POLLFD_ASYNCQ,
-    POLLFD_ALSA_BASE
+    pa_rtpoll_item *alsa_rtpoll_item;
 };
 
 static const char* const valid_modargs[] = {
@@ -118,18 +115,18 @@ static const char* const valid_modargs[] = {
 };
 
 static int mmap_write(struct userdata *u) {
-    snd_pcm_sframes_t n;
-    int err;
-    const snd_pcm_channel_area_t *areas;
-    snd_pcm_uframes_t offset, frames;
     int work_done = 0;
     
     pa_assert(u);
-    pa_assert(u->sink);
+    pa_sink_assert_ref(u->sink);
 
     for (;;) {
         pa_memchunk chunk;
         void *p;
+        snd_pcm_sframes_t n;
+        int err;
+        const snd_pcm_channel_area_t *areas;
+        snd_pcm_uframes_t offset, frames;
         
         if ((n = snd_pcm_avail_update(u->pcm_handle)) < 0) {
 
@@ -211,8 +208,83 @@ static int mmap_write(struct userdata *u) {
 
         work_done = 1;
 
+        if (frames >= (snd_pcm_uframes_t) n)
+            return work_done;
+        
 /*         pa_log("wrote %i samples", (int) frames); */
     }
+}
+
+static int unix_write(struct userdata *u) {
+    snd_pcm_status_t *status;
+    int work_done = 0;
+
+    snd_pcm_status_alloca(&status);
+    
+    pa_assert(u);
+    pa_sink_assert_ref(u->sink);
+
+    for (;;) {
+        void *p;
+        snd_pcm_sframes_t t;
+        ssize_t l;
+        int err;
+                
+        if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) {
+            pa_log("Failed to query DSP status data: %s", snd_strerror(t));
+            return -1;
+        }
+
+        if (snd_pcm_status_get_avail_max(status)*u->frame_size >= u->hwbuf_size)
+            pa_log_debug("Buffer underrun!");
+                    
+        l = snd_pcm_status_get_avail(status) * u->frame_size;
+
+/*                     pa_log("%u bytes to write", l); */
+                    
+        if (l <= 0)
+            return work_done;
+                    
+        if (u->memchunk.length <= 0)
+            pa_sink_render(u->sink, l, &u->memchunk);
+                    
+        pa_assert(u->memchunk.length > 0);
+                    
+        p = pa_memblock_acquire(u->memchunk.memblock);
+        t = snd_pcm_writei(u->pcm_handle, (const uint8_t*) p + u->memchunk.index, u->memchunk.length / u->frame_size);
+        pa_memblock_release(u->memchunk.memblock);
+                    
+/*                     pa_log("wrote %i bytes of %u (%u)", t*u->frame_size, u->memchunk.length, l);   */
+                    
+        pa_assert(t != 0);
+                    
+        if (t < 0) {
+
+            if ((t = snd_pcm_recover(u->pcm_handle, t, 1)) == 0)
+                continue;
+                        
+            if (t == -EAGAIN) {
+                pa_log_debug("EAGAIN");
+                return work_done;
+            } else {
+                pa_log("Failed to write data to DSP: %s", snd_strerror(t));
+                return -1;
+            }
+        }
+                        
+        u->memchunk.index += t * u->frame_size;
+        u->memchunk.length -= t * u->frame_size;
+                    
+        if (u->memchunk.length <= 0) {
+            pa_memblock_unref(u->memchunk.memblock);
+            pa_memchunk_reset(&u->memchunk);
+        }
+
+        work_done = 1;
+
+        if (t * u->frame_size >= (unsigned) l)
+            return work_done;
+    } 
 }
 
 static pa_usec_t sink_get_latency(struct userdata *u) {
@@ -224,6 +296,7 @@ static pa_usec_t sink_get_latency(struct userdata *u) {
     snd_pcm_status_alloca(&status);
     
     pa_assert(u);
+    pa_assert(u->pcm_handle);
 
     if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) 
         pa_log("Failed to get delay: %s", snd_strerror(err));
@@ -241,22 +314,24 @@ static pa_usec_t sink_get_latency(struct userdata *u) {
 
 static int build_pollfd(struct userdata *u) {
     int err;
+    struct pollfd *pollfd;
+    int n;
     
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
-    if ((u->n_alsa_fds = snd_pcm_poll_descriptors_count(u->pcm_handle)) < 0) {
-        pa_log("snd_pcm_poll_descriptors_count() failed: %s", snd_strerror(u->n_alsa_fds));
+    if ((n = snd_pcm_poll_descriptors_count(u->pcm_handle)) < 0) {
+        pa_log("snd_pcm_poll_descriptors_count() failed: %s", snd_strerror(n));
         return -1;
     }
 
-    pa_xfree(u->pollfd);
-    u->pollfd = pa_xnew0(struct pollfd, POLLFD_ALSA_BASE + u->n_alsa_fds);
+    if (u->alsa_rtpoll_item)
+        pa_rtpoll_item_free(u->alsa_rtpoll_item);
 
-    u->pollfd[POLLFD_ASYNCQ].fd = pa_asyncmsgq_get_fd(u->thread_mq.inq);
-    u->pollfd[POLLFD_ASYNCQ].events = POLLIN;
+    u->alsa_rtpoll_item = pa_rtpoll_item_new(u->rtpoll, n);
+    pollfd = pa_rtpoll_item_get_pollfd(u->alsa_rtpoll_item, NULL);
 
-    if ((err = snd_pcm_poll_descriptors(u->pcm_handle, u->pollfd+POLLFD_ALSA_BASE, u->n_alsa_fds)) < 0) {
+    if ((err = snd_pcm_poll_descriptors(u->pcm_handle, pollfd, n)) < 0) {
         pa_log("snd_pcm_poll_descriptors() failed: %s", snd_strerror(err));
         return -1;
     }
@@ -272,6 +347,11 @@ static int suspend(struct userdata *u) {
     snd_pcm_close(u->pcm_handle);
     u->pcm_handle = NULL;
 
+    if (u->alsa_rtpoll_item) {
+        pa_rtpoll_item_free(u->alsa_rtpoll_item);
+        u->alsa_rtpoll_item = NULL;
+    }
+    
     pa_log_debug("Device suspended...");
     
     return 0;
@@ -516,14 +596,9 @@ static int sink_set_mute_cb(pa_sink *s) {
 }
 
 static void thread_func(void *userdata) {
-
     struct userdata *u = userdata;
-    unsigned short revents = 0;
-    snd_pcm_status_t *status;
-    int err;
     
     pa_assert(u);
-    snd_pcm_status_alloca(&status);
 
     pa_log_debug("Thread starting up");
 
@@ -531,6 +606,7 @@ static void thread_func(void *userdata) {
         pa_make_realtime();
 
     pa_thread_mq_install(&u->thread_mq);
+    pa_rtpoll_install(u->rtpoll);
     
     if (build_pollfd(u) < 0)
         goto fail;
@@ -541,10 +617,33 @@ static void thread_func(void *userdata) {
         void *data;
         pa_memchunk chunk;
         int64_t offset;
-        int r;
 
 /*         pa_log("loop");      */
         
+        /* Render some data and write it to the dsp */
+        if (PA_SINK_OPENED(u->sink->thread_info.state)) {
+            int work_done = 0;
+            
+            pa_assert(u->pcm_handle);
+
+            if (u->use_mmap) {
+                if ((work_done = mmap_write(u)) < 0)
+                    goto fail;
+            } else {
+                if ((work_done = unix_write(u)) < 0)
+                    goto fail;
+            }
+
+            if (work_done && u->first) {
+                pa_log_info("Starting playback.");
+                snd_pcm_start(u->pcm_handle);
+                u->first = 0;
+                continue;
+            }
+        }
+
+/*         pa_log("loop2"); */
+
         /* Check whether there is a message for us to process */
         if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
             int ret;
@@ -561,122 +660,21 @@ static void thread_func(void *userdata) {
             continue;
         } 
 
-/*         pa_log("loop2"); */
-
-        /* Render some data and write it to the dsp */
-
-        if (PA_SINK_OPENED(u->sink->thread_info.state) && ((revents & POLLOUT) || u->first == 1)) {
-            int work_done = 0;
-            pa_assert(u->pcm_handle);
-
-            if (u->use_mmap) {
-
-                if ((work_done = mmap_write(u)) < 0)
-                    goto fail;
-
-            } else {
-                
-                for (;;) {
-                    void *p;
-                    snd_pcm_sframes_t t;
-                    ssize_t l;
-                
-                    if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) {
-                        pa_log("Failed to query DSP status data: %s", snd_strerror(t));
-                        goto fail;
-                    }
-
-                    if (snd_pcm_status_get_avail_max(status)*u->frame_size >= u->hwbuf_size)
-                        pa_log_debug("Buffer underrun!");
-                    
-                    l = snd_pcm_status_get_avail(status) * u->frame_size;
-
-/*                     pa_log("%u bytes to write", l); */
-                    
-                    if (l <= 0)
-                        break;
-                    
-                    if (u->memchunk.length <= 0)
-                        pa_sink_render(u->sink, l, &u->memchunk);
-                    
-                    pa_assert(u->memchunk.length > 0);
-                    
-                    p = pa_memblock_acquire(u->memchunk.memblock);
-                    t = snd_pcm_writei(u->pcm_handle, (const uint8_t*) p + u->memchunk.index, u->memchunk.length / u->frame_size);
-                    pa_memblock_release(u->memchunk.memblock);
-                    
-/*                     pa_log("wrote %i bytes of %u (%u)", t*u->frame_size, u->memchunk.length, l);   */
-                    
-                    pa_assert(t != 0);
-                    
-                    if (t < 0) {
-
-                        if ((t = snd_pcm_recover(u->pcm_handle, t, 1)) == 0)
-                            continue;
-                        
-                        if (t == -EAGAIN) {
-                            pa_log_debug("EAGAIN");
-                            break;
-                        } else {
-                            pa_log("Failed to write data to DSP: %s", snd_strerror(t));
-                            goto fail;
-                        }
-                    }
-                        
-                    u->memchunk.index += t * u->frame_size;
-                    u->memchunk.length -= t * u->frame_size;
-                    
-                    if (u->memchunk.length <= 0) {
-                        pa_memblock_unref(u->memchunk.memblock);
-                        pa_memchunk_reset(&u->memchunk);
-                    }
-
-                    work_done = 1;
-
-                    if (t * u->frame_size >= (unsigned) l)
-                        break;
-                } 
-            }
-
-            revents &= ~POLLOUT;
-            
-            if (work_done) {
-
-                if (u->first) {
-                    pa_log_info("Starting playback.");
-                    snd_pcm_start(u->pcm_handle);
-                    u->first = 0;
-                }
-            
-                continue;
-            }
-        }
-
         /* Hmm, nothing to do. Let's sleep */
-        if (pa_asyncmsgq_before_poll(u->thread_mq.inq) < 0)
-            continue;
-
-/*         pa_log("polling for %i", POLLFD_ALSA_BASE + (PA_SINK_OPENED(u->sink->thread_info.state) ? u->n_alsa_fds : 0));    */
-        r = poll(u->pollfd, POLLFD_ALSA_BASE + (PA_SINK_OPENED(u->sink->thread_info.state) ? u->n_alsa_fds : 0), -1);
-/*         pa_log("poll end"); */
-
-        pa_asyncmsgq_after_poll(u->thread_mq.inq);
-
-        if (r < 0) {
-            if (errno == EINTR) {
-                u->pollfd[POLLFD_ASYNCQ].revents = 0;
-                revents = 0;
-                continue;
-            }
-
+        if (pa_rtpoll_run(u->rtpoll) < 0) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
-        pa_assert(r > 0);
-
         if (PA_SINK_OPENED(u->sink->thread_info.state)) {
-            if ((err = snd_pcm_poll_descriptors_revents(u->pcm_handle, u->pollfd + POLLFD_ALSA_BASE, u->n_alsa_fds, &revents)) < 0) {
+            struct pollfd *pollfd;
+            unsigned short revents = 0;
+            int err;
+            unsigned n;
+
+            pollfd = pa_rtpoll_item_get_pollfd(u->alsa_rtpoll_item, &n);
+
+            if ((err = snd_pcm_poll_descriptors_revents(u->pcm_handle, pollfd, n, &revents)) < 0) {
                 pa_log("snd_pcm_poll_descriptors_revents() failed: %s", snd_strerror(err));
                 goto fail;
             }
@@ -692,10 +690,8 @@ static void thread_func(void *userdata) {
                 goto fail;
             }
 /*             pa_log("got alsa event"); */
-        } else
-            revents = 0;
+        }
         
-        pa_assert((u->pollfd[POLLFD_ASYNCQ].revents & ~POLLIN) == 0);
     }
 
 fail:
@@ -764,9 +760,10 @@ int pa__init(pa_module*m) {
     m->userdata = u;
     u->use_mmap = use_mmap;
     u->first = 1;
-    u->n_alsa_fds = 0;
-    u->pollfd = NULL;
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
+    u->rtpoll = pa_rtpoll_new();
+    u->alsa_rtpoll_item = NULL;
+    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, u->thread_mq.inq);
 
     snd_config_update_free_global();
     if ((err = snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK)) < 0) {
@@ -943,13 +940,19 @@ void pa__done(pa_module*m) {
     }
 
     pa_thread_mq_done(&u->thread_mq);
-    
+
     if (u->sink)
         pa_sink_unref(u->sink);
     
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
 
+    if (u->alsa_rtpoll_item)
+        pa_rtpoll_item_free(u->alsa_rtpoll_item);
+    
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
+    
     if (u->mixer_fdl)
         pa_alsa_fdlist_free(u->mixer_fdl);
     
@@ -961,7 +964,6 @@ void pa__done(pa_module*m) {
         snd_pcm_close(u->pcm_handle);
     }
 
-    pa_xfree(u->pollfd);
     pa_xfree(u->device_name);
     pa_xfree(u);
     
