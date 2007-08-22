@@ -238,7 +238,8 @@ noinst_PROGRAMS = \
 		flist-test \
 		asyncq-test \
 		asyncmsgq-test \
-		queue-test
+		queue-test \
+		rtpoll-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -312,6 +313,11 @@ queue_test_SOURCES = tests/queue-test.c
 queue_test_CFLAGS = $(AM_CFLAGS)
 queue_test_LDADD = $(AM_LDADD) libpulsecore.la
 queue_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+rtpoll_test_SOURCES = tests/rtpoll-test.c
+rtpoll_test_CFLAGS = $(AM_CFLAGS)
+rtpoll_test_LDADD = $(AM_LDADD) libpulsecore.la
+rtpoll_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
@@ -680,6 +686,9 @@ libpulsecore_la_SOURCES += \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/msgobject.c pulsecore/msgobject.h \
+		pulsecore/rtsig.c pulsecore/rtsog.h \
+		pulsecore/rtpoll.c pulsecore/rtpoll.h \
+		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/macro.h \
 		$(PA_THREAD_OBJS)
 
