@@ -1208,3 +1208,21 @@ char *pa_truncate_utf8(char *c, size_t l) {
     
     return c;
 }
+
+int pa_is_power_of_two(unsigned n) {
+    return !(n & (n - 1));
+}
+
+unsigned pa_make_power_of_two(unsigned n) {
+    unsigned j = n;
+
+    if (pa_is_power_of_two(n))
+        return n;
+    
+    while (j) {
+        j = j >> 1;
+        n = n | j;
+    }
+
+    return n + 1;
+}
