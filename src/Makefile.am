@@ -686,7 +686,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/fdsem.c pulsecore/fdsem.h \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/msgobject.c pulsecore/msgobject.h \
-		pulsecore/rtsig.c pulsecore/rtsog.h \
+		pulsecore/rtsig.c pulsecore/rtsig.h \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
 		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/macro.h \
