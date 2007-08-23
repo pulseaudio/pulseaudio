@@ -27,58 +27,58 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <math.h>
 #include <string.h>
 
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
+
 #include "sample.h"
 
 size_t pa_sample_size(const pa_sample_spec *spec) {
-    assert(spec);
+    
+    static const size_t table[] = {
+        [PA_SAMPLE_U8] = 1,
+        [PA_SAMPLE_ULAW] = 1,
+        [PA_SAMPLE_ALAW] = 1,
+        [PA_SAMPLE_S16LE] = 2,
+        [PA_SAMPLE_S16BE] = 2,
+        [PA_SAMPLE_FLOAT32LE] = 4,
+        [PA_SAMPLE_FLOAT32BE] = 4
+    };
 
-    switch (spec->format) {
-        case PA_SAMPLE_U8:
-        case PA_SAMPLE_ULAW:
-        case PA_SAMPLE_ALAW:
-            return 1;
-        case PA_SAMPLE_S16LE:
-        case PA_SAMPLE_S16BE:
-            return 2;
-        case PA_SAMPLE_FLOAT32LE:
-        case PA_SAMPLE_FLOAT32BE:
-            return 4;
-        default:
-            assert(0);
-            return 0;
-    }
+    pa_assert(spec);
+    pa_assert(spec->format >= 0);
+    pa_assert(spec->format < PA_SAMPLE_MAX);
+    
+    return table[spec->format];
 }
 
 size_t pa_frame_size(const pa_sample_spec *spec) {
-    assert(spec);
+    pa_assert(spec);
 
     return pa_sample_size(spec) * spec->channels;
 }
 
 size_t pa_bytes_per_second(const pa_sample_spec *spec) {
-    assert(spec);
+    pa_assert(spec);
     return spec->rate*pa_frame_size(spec);
 }
 
 pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) {
-    assert(spec);
+    pa_assert(spec);
 
     return (pa_usec_t) (((double) length/pa_frame_size(spec)*1000000)/spec->rate);
 }
 
 size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) {
-    assert(spec);
+    pa_assert(spec);
 
     return (size_t) (((double) t * spec->rate / 1000000))*pa_frame_size(spec);
 }
 
 int pa_sample_spec_valid(const pa_sample_spec *spec) {
-    assert(spec);
+    pa_assert(spec);
 
     if (spec->rate <= 0 ||
         spec->rate > PA_RATE_MAX ||
@@ -92,7 +92,8 @@ int pa_sample_spec_valid(const pa_sample_spec *spec) {
 }
 
 int pa_sample_spec_equal(const pa_sample_spec*a, const pa_sample_spec*b) {
-    assert(a && b);
+    pa_assert(a);
+    pa_assert(b);
 
     return (a->format == b->format) && (a->rate == b->rate) && (a->channels == b->channels);
 }
@@ -108,14 +109,16 @@ const char *pa_sample_format_to_string(pa_sample_format_t f) {
         [PA_SAMPLE_FLOAT32BE] = "float32be",
     };
 
-    if (f >= PA_SAMPLE_MAX)
+    if (f < 0 || f >= PA_SAMPLE_MAX)
         return NULL;
 
     return table[f];
 }
 
 char *pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec) {
-    assert(s && l && spec);
+    pa_assert(s);
+    pa_assert(l);
+    pa_assert(spec);
 
     if (!pa_sample_spec_valid(spec))
         pa_snprintf(s, l, "Invalid");
@@ -126,6 +129,8 @@ char *pa_sample_spec_snprint(char *s, size_t l, const pa_sample_spec *spec) {
 }
 
 char* pa_bytes_snprint(char *s, size_t l, unsigned v) {
+    pa_assert(s);
+    
     if (v >= ((unsigned) 1024)*1024*1024)
         pa_snprintf(s, l, "%0.1f GiB", ((double) v)/1024/1024/1024);
     else if (v >= ((unsigned) 1024)*1024)
@@ -139,6 +144,7 @@ char* pa_bytes_snprint(char *s, size_t l, unsigned v) {
 }
 
 pa_sample_format_t pa_parse_sample_format(const char *format) {
+    pa_assert(format);
 
     if (strcasecmp(format, "s16le") == 0)
         return PA_SAMPLE_S16LE;
@@ -146,15 +152,19 @@ pa_sample_format_t pa_parse_sample_format(const char *format) {
         return PA_SAMPLE_S16BE;
     else if (strcasecmp(format, "s16ne") == 0 || strcasecmp(format, "s16") == 0 || strcasecmp(format, "16") == 0)
         return PA_SAMPLE_S16NE;
+    else if (strcasecmp(format, "s16re") == 0)
+        return PA_SAMPLE_S16RE;
     else if (strcasecmp(format, "u8") == 0 || strcasecmp(format, "8") == 0)
         return PA_SAMPLE_U8;
     else if (strcasecmp(format, "float32") == 0 || strcasecmp(format, "float32ne") == 0)
-        return PA_SAMPLE_FLOAT32;
+        return PA_SAMPLE_FLOAT32NE;
+    else if (strcasecmp(format, "float32re") == 0)
+        return PA_SAMPLE_FLOAT32RE;
     else if (strcasecmp(format, "float32le") == 0)
         return PA_SAMPLE_FLOAT32LE;
     else if (strcasecmp(format, "float32be") == 0)
         return PA_SAMPLE_FLOAT32BE;
-    else if (strcasecmp(format, "ulaw") == 0)
+    else if (strcasecmp(format, "ulaw") == 0 || strcasecmp(format, "mulaw") == 0)
         return PA_SAMPLE_ULAW;
     else if (strcasecmp(format, "alaw") == 0)
         return PA_SAMPLE_ALAW;
