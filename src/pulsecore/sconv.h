@@ -27,10 +27,12 @@
 
 #include <pulse/sample.h>
 
-typedef void (*pa_convert_to_float32ne_func_t)(unsigned n, const void *a, float *b);
-typedef void (*pa_convert_from_float32ne_func_t)(unsigned n, const float *a, void *b);
+typedef void (*pa_convert_func_t)(unsigned n, const void *a, void *b);
 
-pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(pa_sample_format_t f);
-pa_convert_from_float32ne_func_t pa_get_convert_from_float32ne_function(pa_sample_format_t f);
+pa_convert_func_t pa_get_convert_to_float32ne_function(pa_sample_format_t f);
+pa_convert_func_t pa_get_convert_from_float32ne_function(pa_sample_format_t f);
+
+pa_convert_func_t pa_get_convert_to_s16ne_function(pa_sample_format_t f);
+pa_convert_func_t pa_get_convert_from_s16ne_function(pa_sample_format_t f);
 
 #endif

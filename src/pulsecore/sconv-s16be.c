@@ -33,6 +33,9 @@
 #define pa_sconv_s16le_to_float32ne pa_sconv_s16be_to_float32ne
 #define pa_sconv_s16le_from_float32ne pa_sconv_s16be_from_float32ne
 
+#define pa_sconv_s16le_to_float32re pa_sconv_s16be_to_float32re
+#define pa_sconv_s16le_from_float32re pa_sconv_s16be_from_float32re
+
 #ifdef WORDS_BIGENDIAN
 #define SWAP_WORDS 0
 #else

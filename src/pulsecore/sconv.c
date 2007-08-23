@@ -28,12 +28,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #include <liboil/liboilfuncs.h>
 #include <liboil/liboil.h>
 
 #include <pulsecore/g711.h>
+#include <pulsecore/macro.h>
 
 #include "endianmacros.h"
 #include "sconv-s16le.h"
@@ -41,71 +41,92 @@
 
 #include "sconv.h"
 
-static void u8_to_float32ne(unsigned n, const void *a, float *b) {
-    const uint8_t *ca = a;
+/* u8 */
+static void u8_to_float32ne(unsigned n, const uint8_t *a, float *b) {
     static const double add = -128.0/127.0, factor = 1.0/127.0;
 
-    assert(a);
-    assert(b);
+    pa_assert(a);
+    pa_assert(b);
 
-    oil_scaleconv_f32_u8(b, ca, n, &add, &factor);
+    oil_scaleconv_f32_u8(b, a, n, &add, &factor);
 }
 
-static void u8_from_float32ne(unsigned n, const float *a, void *b) {
-    uint8_t *cb = b;
+static void u8_from_float32ne(unsigned n, const float *a, uint8_t *b) {
     static const double add = 128.0, factor = 127.0;
 
-    assert(a);
-    assert(b);
+    pa_assert(a);
+    pa_assert(b);
 
-    oil_scaleconv_u8_f32(cb, a, n, &add, &factor);
+    oil_scaleconv_u8_f32(b, a, n, &add, &factor);
 }
 
-static void float32ne_to_float32ne(unsigned n, const void *a, float *b) {
-    assert(a);
-    assert(b);
+static void u8_to_s16ne(unsigned n, const uint8_t *a, int16_t *b) {
+    static const int16_t add = -128, factor = 0x100;
+
+    pa_assert(a);
+    pa_assert(b);
+
+    oil_conv_s16_u8(b, 2, a, 1, n);
+    oil_scalaradd_s16(b, 2, b, 2, &add, n);
+    oil_scalarmult_s16(b, 2, b, 2, &factor, n);
+}
+
+static void u8_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
+
+    pa_assert(a);
+    pa_assert(b);
+    
+    for (; n > 0; n--, a ++, a++)
+        *b = (uint8_t) (*a / 0x100 + 0x80);
+}
+
+/* float32 */
+
+static void float32ne_to_float32ne(unsigned n, const float *a, float *b) {
+    pa_assert(a);
+    pa_assert(b);
 
     oil_memcpy(b, a, sizeof(float) * n);
 }
 
-static void float32ne_from_float32ne(unsigned n, const float *a, void *b) {
-    assert(a);
-    assert(b);
+static void float32re_to_float32ne(unsigned n, const float *a, float *b) {
+    pa_assert(a);
+    pa_assert(b);
 
-    oil_memcpy(b, a, sizeof(float) * n);
+    for (; n > 0; n--, a++, b++)
+        *((uint32_t *) b) = UINT32_SWAP(*((uint32_t *) a));
 }
 
-static void float32re_to_float32ne(unsigned n, const void *a, float *b) {
-    assert(a);
-    assert(b);
+/* s16 */
 
-    while (n-- > 0)
-        ((uint32_t *)b)[n] = UINT32_SWAP (((uint32_t *)a)[n]);
+static void s16ne_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    oil_memcpy(b, a, sizeof(int16_t) * n);
 }
 
-static void float32re_from_float32ne(unsigned n, const float *a, void *b) {
-    assert(a);
-    assert(b);
+static void s16re_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {
+    pa_assert(a);
+    pa_assert(b);
 
-    while (n-- > 0)
-        ((uint32_t *)b)[n] = UINT32_SWAP (((uint32_t *)a)[n]);
+    for (; n > 0; n--, a++, b++)
+        *b = UINT16_SWAP(*a);
 }
 
-static void ulaw_to_float32ne(unsigned n, const void *a, float *b) {
-    const uint8_t *ca = a;
+/* ulaw */
 
-    assert(a);
-    assert(b);
+static void ulaw_to_float32ne(unsigned n, const uint8_t *a, float *b) {
+    pa_assert(a);
+    pa_assert(b);
 
     for (; n > 0; n--)
-        *(b++) = st_ulaw2linear16(*(ca++)) * 1.0F / 0x7FFF;
+        *(b++) = st_ulaw2linear16(*(a++)) * 1.0F / 0x7FFF;
 }
 
-static void ulaw_from_float32ne(unsigned n, const float *a, void *b) {
-    uint8_t *cb = b;
-
-    assert(a);
-    assert(b);
+static void ulaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
+    pa_assert(a);
+    pa_assert(b);
 
     for (; n > 0; n--) {
         float v = *(a++);
@@ -116,28 +137,42 @@ static void ulaw_from_float32ne(unsigned n, const float *a, void *b) {
         if (v < -1)
             v = -1;
 
-        *(cb++) = st_14linear2ulaw((int16_t) (v * 0x1FFF));
+        *(b++) = st_14linear2ulaw((int16_t) (v * 0x1FFF));
     }
 }
 
-static void alaw_to_float32ne(unsigned n, const void *a, float *b) {
-    const uint8_t *ca = a;
+static void ulaw_to_s16ne(unsigned n, const uint8_t *a, int16_t *b) {
+    pa_assert(a);
+    pa_assert(b);
 
-    assert(a);
-    assert(b);
-
-    for (; n > 0; n--)
-        *(b++) = st_alaw2linear16(*(ca++)) * 1.0F / 0x7FFF;
+    for (; n > 0; n--, a++, b++)
+        *b = st_ulaw2linear16(*a);
 }
 
-static void alaw_from_float32ne(unsigned n, const float *a, void *b) {
-    uint8_t *cb = b;
+static void ulaw_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
+    pa_assert(a);
+    pa_assert(b);
 
-    assert(a);
-    assert(b);
+    for (; n > 0; n--, a++, b++)
+        *b = st_14linear2ulaw(*a >> 2);
+}
 
-    for (; n > 0; n--) {
-        float v = *(a++);
+/* alaw */
+
+static void alaw_to_float32ne(unsigned n, const uint8_t *a, float *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--, a++, b++)
+        *b = st_alaw2linear16(*a) * 1.0F / 0x7FFF;
+}
+
+static void alaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--, a++, b++) {
+        float v = *a;
 
         if (v > 1)
             v = 1;
@@ -145,48 +180,94 @@ static void alaw_from_float32ne(unsigned n, const float *a, void *b) {
         if (v < -1)
             v = -1;
 
-        *(cb++) = st_13linear2alaw((int16_t) (v * 0xFFF));
+        *b = st_13linear2alaw((int16_t) (v * 0xFFF));
     }
 }
 
-pa_convert_to_float32ne_func_t pa_get_convert_to_float32ne_function(pa_sample_format_t f) {
-    switch(f) {
-        case PA_SAMPLE_U8:
-            return u8_to_float32ne;
-        case PA_SAMPLE_S16LE:
-            return pa_sconv_s16le_to_float32ne;
-        case PA_SAMPLE_S16BE:
-            return pa_sconv_s16be_to_float32ne;
-        case PA_SAMPLE_FLOAT32NE:
-            return float32ne_to_float32ne;
-        case PA_SAMPLE_FLOAT32RE:
-            return float32re_to_float32ne;
-        case PA_SAMPLE_ALAW:
-            return alaw_to_float32ne;
-        case PA_SAMPLE_ULAW:
-            return ulaw_to_float32ne;
-        default:
-            return NULL;
-    }
+static void alaw_to_s16ne(unsigned n, const int8_t *a, int16_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--, a++, b++)
+        *b = st_alaw2linear16(*a);
 }
 
-pa_convert_from_float32ne_func_t pa_get_convert_from_float32ne_function(pa_sample_format_t f) {
-    switch(f) {
-        case PA_SAMPLE_U8:
-            return u8_from_float32ne;
-        case PA_SAMPLE_S16LE:
-            return pa_sconv_s16le_from_float32ne;
-        case PA_SAMPLE_S16BE:
-            return pa_sconv_s16be_from_float32ne;
-        case PA_SAMPLE_FLOAT32NE:
-            return float32ne_from_float32ne;
-        case PA_SAMPLE_FLOAT32RE:
-            return float32re_from_float32ne;
-        case PA_SAMPLE_ALAW:
-            return alaw_from_float32ne;
-        case PA_SAMPLE_ULAW:
-            return ulaw_from_float32ne;
-        default:
-            return NULL;
-    }
+static void alaw_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    for (; n > 0; n--)
+        *b = st_13linear2alaw(*a >> 3);
+}
+
+pa_convert_func_t pa_get_convert_to_float32ne_function(pa_sample_format_t f) {
+
+    static const pa_convert_func_t table[] = {
+        [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_to_float32ne,
+        [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_to_float32ne,
+        [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_to_float32ne,
+        [PA_SAMPLE_S16LE]     = (pa_convert_func_t) pa_sconv_s16le_to_float32ne,
+        [PA_SAMPLE_S16BE]     = (pa_convert_func_t) pa_sconv_s16be_to_float32ne,
+        [PA_SAMPLE_FLOAT32NE] = (pa_convert_func_t) float32ne_to_float32ne,
+        [PA_SAMPLE_FLOAT32RE] = (pa_convert_func_t) float32re_to_float32ne,
+    };
+
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    return table[f];
+}
+
+pa_convert_func_t pa_get_convert_from_float32ne_function(pa_sample_format_t f) {
+
+    static const pa_convert_func_t table[] = {
+        [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_from_float32ne,
+        [PA_SAMPLE_S16LE]     = (pa_convert_func_t) pa_sconv_s16le_from_float32ne,
+        [PA_SAMPLE_S16BE]     = (pa_convert_func_t) pa_sconv_s16be_from_float32ne,
+        [PA_SAMPLE_FLOAT32NE] = (pa_convert_func_t) float32ne_to_float32ne,
+        [PA_SAMPLE_FLOAT32RE] = (pa_convert_func_t) float32re_to_float32ne,
+        [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_from_float32ne,
+        [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_from_float32ne
+    };
+
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    return table[f];
+}
+
+pa_convert_func_t pa_get_convert_to_s16ne_function(pa_sample_format_t f) {
+
+    static const pa_convert_func_t table[] = {
+        [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_to_s16ne,
+        [PA_SAMPLE_S16NE]     = (pa_convert_func_t) s16ne_to_s16ne,
+        [PA_SAMPLE_S16RE]     = (pa_convert_func_t) s16re_to_s16ne,
+        [PA_SAMPLE_FLOAT32BE] = (pa_convert_func_t) pa_sconv_float32be_to_s16ne,
+        [PA_SAMPLE_FLOAT32LE] = (pa_convert_func_t) pa_sconv_float32le_to_s16ne,
+        [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_to_s16ne,
+        [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_to_s16ne
+    };
+
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    return table[f];
+}
+
+pa_convert_func_t pa_get_convert_from_s16ne_function(pa_sample_format_t f) {
+
+    static const pa_convert_func_t table[] = {
+        [PA_SAMPLE_U8]        = (pa_convert_func_t) u8_from_s16ne,
+        [PA_SAMPLE_S16NE]     = (pa_convert_func_t) s16ne_to_s16ne,
+        [PA_SAMPLE_S16RE]     = (pa_convert_func_t) s16re_to_s16ne,
+        [PA_SAMPLE_FLOAT32BE] = (pa_convert_func_t) pa_sconv_float32be_from_s16ne,
+        [PA_SAMPLE_FLOAT32LE] = (pa_convert_func_t) pa_sconv_float32le_from_s16ne,
+        [PA_SAMPLE_ALAW]      = (pa_convert_func_t) alaw_from_s16ne,
+        [PA_SAMPLE_ULAW]      = (pa_convert_func_t) ulaw_from_s16ne,
+    };
+
+    pa_assert(f >= 0);
+    pa_assert(f < PA_SAMPLE_MAX);
+
+    return table[f];
 }
