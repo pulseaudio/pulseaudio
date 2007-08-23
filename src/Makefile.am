@@ -556,8 +556,21 @@ libpulsedsp_la_LIBADD = $(AM_LIBADD) libpulse.la
 libpulsedsp_la_LDFLAGS = -avoid-version
 
 ###################################
+#      Speex Resampler            #
+###################################
+
+noinst_LTLIBRARIES = libspeex-resampler-fixed.la libspeex-resampler-float.la
+
+libspeex_resampler_fixed_la_CPPFLAGS = $(AM_CPPFLAGS) -DRANDOM_PREFIX=paspfx -DOUTSIDE_SPEEX -DFIXED_POINT
+libspeex_resampler_fixed_la_SOURCES = pulsecore/speex/resample.c pulsecore/speex/speex_resampler.h pulsecore/speex/arch.h pulsecore/speex/fixed_generic.h
+
+libspeex_resampler_float_la_CPPFLAGS = $(AM_CPPFLAGS) -DRANDOM_PREFIX=paspfl -DOUTSIDE_SPEEX 
+libspeex_resampler_float_la_SOURCES = pulsecore/speex/resample.c pulsecore/speex/speex_resampler.h pulsecore/speex/arch.h
+
+###################################
 #      Daemon core library        #
 ###################################
+
 
 pulsecoreinclude_HEADERS = \
 		pulsecore/autoload.h \
@@ -699,7 +712,7 @@ endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
 libpulsecore_la_LDFLAGS = -version-info $(LIBPULSECORE_VERSION_INFO)
-libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LIBICONV)
+libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LIBICONV) libspeex-resampler-fixed.la libspeex-resampler-float.la
 
 ###################################
 #   Plug-in support libraries     #
@@ -1383,5 +1396,11 @@ install-exec-hook:
 
 massif: pulseaudio
 	libtool --mode=execute valgrind --tool=massif --depth=6  --alloc-fn=pa_xmalloc --alloc-fn=pa_xmalloc0 --alloc-fn=pa_xrealloc --alloc-fn=dbus_realloc --alloc-fn=pa_xnew0_internal --alloc-fn=pa_xnew_internal ./pulseaudio
+
+update-speex:
+	wget -O pulsecore/speex/speex_resampler.h http://svn.xiph.org/trunk/speex/include/speex/speex_resampler.h
+	wget -O pulsecore/speex/resample.c http://svn.xiph.org/trunk/speex/libspeex/resample.c
+	wget -O pulsecore/speex/arch.h http://svn.xiph.org/trunk/speex/libspeex/arch.h
+	wget -O pulsecore/speex/fixed_generic.h http://svn.xiph.org/trunk/speex/libspeex/fixed_generic.h
 
 .PHONY: utils/padsp
