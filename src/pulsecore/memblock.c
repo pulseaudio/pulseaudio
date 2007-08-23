@@ -608,10 +608,11 @@ static void memblock_replace_import(pa_memblock *b) {
 
     memblock_make_local(b);
 
-    if (-- seg->n_blocks <= 0)
+    if (-- seg->n_blocks <= 0) {
+        pa_mutex_unlock(seg->import->mutex);
         segment_detach(seg);
-
-    pa_mutex_unlock(seg->import->mutex);
+    } else 
+        pa_mutex_unlock(seg->import->mutex);
 }
 
 pa_mempool* pa_mempool_new(int shared) {
