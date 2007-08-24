@@ -753,8 +753,7 @@ static void io_event_cb(pa_mainloop_api* m, pa_io_event* e, int fd,
     part2_length = buffer[1].len / sizeof(float);
 
     /* If the amount of free space is not a multiple of the frame size, we have
-       to adjust the lengths in order to not get confused with which sample is
-       which channel. */
+       to truncate the lengths so that we process only complete frames. */
     if ((rem = (part1_length + part2_length) % u->channels) != 0) {
         if (part2_length >= rem) {
             part2_length -= rem;
