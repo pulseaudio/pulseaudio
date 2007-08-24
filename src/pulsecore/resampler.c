@@ -39,6 +39,8 @@
 
 #include "speexwrap.h"
 
+#include "ffmpeg/avcodec.h"
+
 #include "resampler.h"
 
 struct pa_resampler {
@@ -75,11 +77,17 @@ struct pa_resampler {
     struct { /* data specific to speex */
         SpeexResamplerState* state;
     } speex;
+
+    struct { /* data specific to ffmpeg */
+        struct AVResampleContext *state;
+        unsigned initial_i_rate, initial_o_rate;
+    } ffmpeg;
 };
 
 static int libsamplerate_init(pa_resampler*r);
 static int trivial_init(pa_resampler*r);
 static int speex_init(pa_resampler*r);
+static int ffmpeg_init(pa_resampler*r);
 
 static void calc_map_table(pa_resampler *r);
 
@@ -112,6 +120,7 @@ static int (* const init_table[])(pa_resampler*r) = {
     [PA_RESAMPLER_SPEEX_FIXED_BASE+8]      = speex_init,
     [PA_RESAMPLER_SPEEX_FIXED_BASE+9]      = speex_init,
     [PA_RESAMPLER_SPEEX_FIXED_BASE+10]     = speex_init,
+    [PA_RESAMPLER_FFMPEG]                  = ffmpeg_init,
     [PA_RESAMPLER_AUTO]                    = NULL,
 };
 
@@ -131,7 +140,8 @@ pa_resampler* pa_resampler_new(
         const pa_channel_map *am,
         const pa_sample_spec *b,
         const pa_channel_map *bm,
-        pa_resample_method_t resample_method) {
+        pa_resample_method_t resample_method,
+        int variable_rate) {
 
     pa_resampler *r = NULL;
 
@@ -144,6 +154,12 @@ pa_resampler* pa_resampler_new(
     pa_assert(resample_method < PA_RESAMPLER_MAX);
 
     /* Fix method */
+
+    if (resample_method == PA_RESAMPLER_FFMPEG && variable_rate) {
+        pa_log_info("Resampler 'ffmpeg' cannot do variable rate, reverting to resampler 'auto'." );
+        resample_method = PA_RESAMPLER_AUTO;
+    }
+
     if (resample_method == PA_RESAMPLER_AUTO) {
         if (a->format == PA_SAMPLE_FLOAT32LE || a->format == PA_SAMPLE_FLOAT32BE ||
             b->format == PA_SAMPLE_FLOAT32LE || b->format == PA_SAMPLE_FLOAT32BE)
@@ -151,7 +167,7 @@ pa_resampler* pa_resampler_new(
         else
             resample_method = PA_RESAMPLER_SPEEX_FIXED_BASE + 0;
     }
-    
+
     r = pa_xnew(pa_resampler, 1);
     r->mempool = pool;
     r->resample_method = resample_method;
@@ -188,7 +204,8 @@ pa_resampler* pa_resampler_new(
 
     pa_log_info("Using resampler '%s'", pa_resample_method_to_string(resample_method));
     
-    if (resample_method >= PA_RESAMPLER_SPEEX_FIXED_BASE && resample_method <= PA_RESAMPLER_SPEEX_FIXED_MAX)
+    if ((resample_method >= PA_RESAMPLER_SPEEX_FIXED_BASE && resample_method <= PA_RESAMPLER_SPEEX_FIXED_MAX) ||
+        (resample_method == PA_RESAMPLER_FFMPEG))
         r->work_format = PA_SAMPLE_S16NE;
     else if (resample_method == PA_RESAMPLER_TRIVIAL) {
 
@@ -268,6 +285,7 @@ void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate) {
         return;
 
     r->i_ss.rate = rate;
+
     r->impl_update_rates(r);
 }
 
@@ -279,6 +297,7 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
         return;
 
     r->o_ss.rate = rate;
+
     r->impl_update_rates(r);
 }
 
@@ -323,6 +342,7 @@ static const char * const resample_methods[] = {
     "speex-fixed-8",
     "speex-fixed-9",
     "speex-fixed-10",
+    "ffmpeg",
     "auto"
 };
 
@@ -825,4 +845,56 @@ static int trivial_init(pa_resampler*r) {
     return 0;
 }
 
+/*** ffmpeg based implementation ***/
 
+static void ffmpeg_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
+    short *src, *dst;
+    int consumed;
+    int c;
+    
+    pa_assert(r);
+    pa_assert(input);
+    pa_assert(output);
+    pa_assert(out_n_frames);
+    
+    src = (short*) ((uint8_t*) pa_memblock_acquire(input->memblock) + input->index);
+    dst = (short*) ((uint8_t*) pa_memblock_acquire(output->memblock) + output->index);
+
+    for (c = 0; c < r->o_ss.channels; c++) 
+        *out_n_frames = av_resample(r->ffmpeg.state,
+                                    dst + r->w_sz*c,
+                                    src + r->w_sz*c,
+                                    &consumed,
+                                    in_n_frames, *out_n_frames,
+                                    c >= r->o_ss.channels-1);
+
+    pa_assert(*out_n_frames > 0);
+    pa_assert(consumed == in_n_frames);
+    
+    pa_memblock_release(input->memblock);
+    pa_memblock_release(output->memblock);
+}
+
+static void ffmpeg_free(pa_resampler *r) {
+    pa_assert(r);
+    
+    if (r->ffmpeg.state)
+        av_resample_close(r->ffmpeg.state);
+}
+
+static int ffmpeg_init(pa_resampler *r) {
+    pa_assert(r);
+
+    /* We could probably implement different quality levels by
+     * adjusting the filter parameters here. However, ffmpeg
+     * internally only uses these hardcoded values, so let's use them
+     * here for now as well until ffmpeg makes this configurable. */
+    
+    if (!(r->ffmpeg.state = av_resample_init(r->o_ss.rate, r->i_ss.rate, 16, 10, 0, 0.8)))
+        return -1;
+
+    r->impl_free = ffmpeg_free;
+    r->impl_resample = ffmpeg_resample;
+
+    return 0;
+}

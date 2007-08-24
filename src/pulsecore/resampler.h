@@ -45,6 +45,7 @@ typedef enum pa_resample_method {
     PA_RESAMPLER_SPEEX_FLOAT_MAX = PA_RESAMPLER_SPEEX_FLOAT_BASE + 10,
     PA_RESAMPLER_SPEEX_FIXED_BASE,
     PA_RESAMPLER_SPEEX_FIXED_MAX = PA_RESAMPLER_SPEEX_FIXED_BASE + 10,
+    PA_RESAMPLER_FFMPEG,
     PA_RESAMPLER_AUTO, /* automatic select based on sample format */
     PA_RESAMPLER_MAX
 } pa_resample_method_t;
@@ -55,7 +56,8 @@ pa_resampler* pa_resampler_new(
         const pa_channel_map *am,
         const pa_sample_spec *b,
         const pa_channel_map *bm,
-        pa_resample_method_t resample_method);
+        pa_resample_method_t resample_method,
+        int variable_rate);
 
 void pa_resampler_free(pa_resampler *r);
 

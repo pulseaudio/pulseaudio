@@ -121,7 +121,8 @@ pa_source_output* pa_source_output_new(
                       core->mempool,
                       &data->source->sample_spec, &data->source->channel_map,
                       &data->sample_spec, &data->channel_map,
-                      data->resample_method))) {
+                      data->resample_method,
+                      !!(flags & PA_SOURCE_OUTPUT_VARIABLE_RATE)))) {
             pa_log_warn("Unsupported resampling operation.");
             return NULL;
         }
@@ -351,8 +352,9 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
         /* Try to reuse the old resampler if possible */
         new_resampler = o->thread_info.resampler;
 
-    else if (!pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec) ||
-        !pa_channel_map_equal(&o->channel_map, &dest->channel_map)) {
+    else if ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ||
+             !pa_sample_spec_equal(&o->sample_spec, &dest->sample_spec) ||
+             !pa_channel_map_equal(&o->channel_map, &dest->channel_map)) {
 
         /* Okey, we need a new resampler for the new source */
 
@@ -360,7 +362,8 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
                       dest->core->mempool,
                       &dest->sample_spec, &dest->channel_map,
                       &o->sample_spec, &o->channel_map,
-                      o->resample_method))) {
+                      o->resample_method,
+                      !!(o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE)))) {
             pa_log_warn("Unsupported resampling operation.");
             return -1;
         }

@@ -153,7 +153,8 @@ pa_sink_input* pa_sink_input_new(
                       core->mempool,
                       &data->sample_spec, &data->channel_map,
                       &data->sink->sample_spec, &data->sink->channel_map,
-                      data->resample_method))) {
+                      data->resample_method,
+                      !!(flags & PA_SINK_INPUT_VARIABLE_RATE)))) {
             pa_log_warn("Unsupported resampling operation.");
             return NULL;
         }
@@ -639,8 +640,8 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
         new_resampler = i->thread_info.resampler;
 
     else if ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ||
-        !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec) ||
-        !pa_channel_map_equal(&i->channel_map, &dest->channel_map)) {
+             !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec) ||
+             !pa_channel_map_equal(&i->channel_map, &dest->channel_map)) {
 
         /* Okey, we need a new resampler for the new sink */
 
@@ -648,7 +649,8 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
                       dest->core->mempool,
                       &i->sample_spec, &i->channel_map,
                       &dest->sample_spec, &dest->channel_map,
-                      i->resample_method))) {
+                      i->resample_method,
+                      !!(i->flags & PA_SINK_INPUT_VARIABLE_RATE)))) {
             pa_log_warn("Unsupported resampling operation.");
             return -1;
         }
