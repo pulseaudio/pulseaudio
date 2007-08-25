@@ -419,6 +419,15 @@ int main(int argc, char *argv[]) {
             goto finish;
         }
 
+        case PA_CMD_DUMP_RESAMPLE_METHODS: {
+            int i;
+
+            for (i = 0; i < PA_RESAMPLER_MAX; i++)
+                printf("%s\n", pa_resample_method_to_string(i));
+                       
+            goto finish;
+        }
+            
         case PA_CMD_HELP :
             pa_cmdline_help(argv[0]);
             retval = 0;

@@ -63,6 +63,7 @@ enum {
     ARG_CHECK,
     ARG_NO_CPU_LIMIT,
     ARG_DISABLE_SHM,
+    ARG_DUMP_RESAMPLE_METHODS,
     ARG_SYSTEM
 };
 
@@ -92,6 +93,7 @@ static struct option long_options[] = {
     {"system",                      2, 0, ARG_SYSTEM},
     {"no-cpu-limit",                2, 0, ARG_NO_CPU_LIMIT},
     {"disable-shm",                 2, 0, ARG_DISABLE_SHM},
+    {"dump-resample-methods",       2, 0, ARG_DUMP_RESAMPLE_METHODS},
     {NULL, 0, 0, 0}
 };
 
@@ -109,6 +111,7 @@ void pa_cmdline_help(const char *argv0) {
            "      --version                         Show version\n"
            "      --dump-conf                       Dump default configuration\n"
            "      --dump-modules                    Dump list of available modules\n"
+           "      --dump-resample-methods           Dump available resample methods\n"
            "  -k  --kill                            Kill a running daemon\n"
            "      --check                           Check for a running daemon\n\n"
 
@@ -131,9 +134,8 @@ void pa_cmdline_help(const char *argv0) {
            "  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
            "                                        objects (plugins)\n"
            "      --resample-method=[METHOD]        Use the specified resampling method\n"
-           "                                        (one of src-sinc-medium-quality,\n"
-           "                                        src-sinc-best-quality,src-sinc-fastest\n"
-           "                                        src-zero-order-hold,src-linear,trivial)\n"
+           "                                        (See --dump-resample-methods for\n"
+           "                                        possible values)\n"
            "      --use-pid-file[=BOOL]             Create a PID file\n"
            "      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
            "                                        platforms that support it.\n"
@@ -178,6 +180,10 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                 conf->cmd = PA_CMD_DUMP_MODULES;
                 break;
 
+            case ARG_DUMP_RESAMPLE_METHODS:
+                conf->cmd = PA_CMD_DUMP_RESAMPLE_METHODS;
+                break;
+                
             case 'k':
             case ARG_KILL:
                 conf->cmd = PA_CMD_KILL;
