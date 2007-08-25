@@ -160,13 +160,8 @@ pa_resampler* pa_resampler_new(
         resample_method = PA_RESAMPLER_AUTO;
     }
 
-    if (resample_method == PA_RESAMPLER_AUTO) {
-        if (a->format == PA_SAMPLE_FLOAT32LE || a->format == PA_SAMPLE_FLOAT32BE ||
-            b->format == PA_SAMPLE_FLOAT32LE || b->format == PA_SAMPLE_FLOAT32BE)
-            resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 0;
-        else
-            resample_method = PA_RESAMPLER_SPEEX_FIXED_BASE + 0;
-    }
+    if (resample_method == PA_RESAMPLER_AUTO)
+        resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 0;
 
     r = pa_xnew(pa_resampler, 1);
     r->mempool = pool;
