@@ -741,13 +741,14 @@ static void speex_update_rates(pa_resampler *r) {
 static void speex_free(pa_resampler *r) {
     pa_assert(r);
     
-    if (r->speex.state) {
-        if (r->resample_method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FIXED_MAX) 
-            paspfx_resampler_destroy(r->speex.state);
-        else {
-            pa_assert(r->resample_method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
-            paspfl_resampler_destroy(r->speex.state);
-        }
+    if (!r->speex.state)
+        return;
+    
+    if (r->resample_method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FIXED_MAX) 
+        paspfx_resampler_destroy(r->speex.state);
+    else {
+        pa_assert(r->resample_method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
+        paspfl_resampler_destroy(r->speex.state);
     }
 }
 
@@ -761,20 +762,24 @@ static int speex_init(pa_resampler *r) {
     
     if (r->resample_method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FIXED_MAX) {
         q = r->resample_method - PA_RESAMPLER_SPEEX_FIXED_BASE;
-        r->impl_resample = speex_resample_int;
 
+        pa_log_info("Choosing speex quality setting %i.", q);
+        
         if (!(r->speex.state = paspfx_resampler_init(r->o_ss.channels, r->i_ss.rate, r->o_ss.rate, q, &err)))
             return -1;
 
+        r->impl_resample = speex_resample_int;
     } else {
         pa_assert(r->resample_method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
         q = r->resample_method - PA_RESAMPLER_SPEEX_FLOAT_BASE;
-        r->impl_resample = speex_resample_float;
 
+        pa_log_info("Choosing speex quality setting %i.", q);
+        
         if (!(r->speex.state = paspfl_resampler_init(r->o_ss.channels, r->i_ss.rate, r->o_ss.rate, q, &err)))
             return -1;
+
+        r->impl_resample = speex_resample_float;
     }
-    
 
     return 0;
 }
