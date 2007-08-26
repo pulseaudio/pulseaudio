@@ -355,7 +355,7 @@ int main(int argc, char *argv[]) {
 
     setlocale(LC_ALL, "");
 
-    if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0 || gid >= 1000)) {
+    if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0)) {
         pa_log_warn("WARNING: called SUID root, but not in group '"PA_REALTIME_GROUP"'.");
         pa_drop_caps();
         pa_drop_root();
