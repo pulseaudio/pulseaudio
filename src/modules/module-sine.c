@@ -98,7 +98,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     u = i->userdata;
     pa_assert(u);
 
-    pa_sink_input_disconnect(u->sink_input);
+    pa_sink_input_unlink(u->sink_input);
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
 
@@ -195,7 +195,7 @@ void pa__done(pa_module*m) {
         return;
 
     if (u->sink_input) {
-        pa_sink_input_disconnect(u->sink_input);
+        pa_sink_input_unlink(u->sink_input);
         pa_sink_input_unref(u->sink_input);
     }
 

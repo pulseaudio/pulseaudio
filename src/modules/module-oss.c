@@ -443,7 +443,7 @@ static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->fd >= 0);
 
-    pa_log_debug("Suspending...");
+    pa_log_info("Suspending...");
     
     if (u->out_mmap_memblocks) {
         unsigned i;
@@ -483,7 +483,7 @@ static int suspend(struct userdata *u) {
         u->rtpoll_item = NULL;
     }
     
-    pa_log_debug("Device suspended...");
+    pa_log_info("Device suspended...");
     
     return 0;
 }
@@ -501,7 +501,7 @@ static int unsuspend(struct userdata *u) {
 
     m = u->mode;
 
-    pa_log_debug("Trying resume...");
+    pa_log_info("Trying resume...");
 
     if ((u->fd = pa_oss_open(u->device_name, &m, NULL)) < 0) {
         pa_log_warn("Resume failed, device busy (%s)", pa_cstrerror(errno));
@@ -582,7 +582,7 @@ static int unsuspend(struct userdata *u) {
     pollfd->events = 0;
     pollfd->revents = 0;
 
-    pa_log_debug("Resumed successfully...");
+    pa_log_info("Resumed successfully...");
 
     return 0;
 
@@ -651,7 +651,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
                     break;
 
-                case PA_SINK_DISCONNECTED:
+                case PA_SINK_UNLINKED:
+                case PA_SINK_INIT:
                     ;
             }
             
@@ -748,7 +749,8 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     }
                     break;
 
-                case PA_SOURCE_DISCONNECTED:
+                case PA_SOURCE_UNLINKED:
+                case PA_SOURCE_INIT:
                     ;
 
             }
@@ -807,20 +809,15 @@ static void thread_func(void *userdata) {
     trigger(u, 0);
     
     for (;;) {
-        pa_msgobject *object;
-        int code;
-        void *data;
-        pa_memchunk chunk;
-        int64_t offset;
+        int ret;
 
 /*        pa_log("loop");    */
         
         /* Render some data and write it to the dsp */
 
-        if (u->sink && u->sink->thread_info.state != PA_SINK_DISCONNECTED && u->fd >= 0 && (revents & POLLOUT)) {
+        if (u->sink && u->sink->thread_info.state != PA_SINK_UNLINKED && u->fd >= 0 && (revents & POLLOUT)) {
 
             if (u->use_mmap) {
-                int ret;
 
                 if ((ret = mmap_write(u)) < 0)
                     goto fail;
@@ -908,10 +905,9 @@ static void thread_func(void *userdata) {
 
         /* Try to read some data and pass it on to the source driver */
 
-        if (u->source && u->source->thread_info.state != PA_SOURCE_DISCONNECTED && u->fd >= 0 && ((revents & POLLIN))) {
+        if (u->source && u->source->thread_info.state != PA_SOURCE_UNLINKED && u->fd >= 0 && ((revents & POLLIN))) {
 
             if (u->use_mmap) {
-                int ret;
 
                 if ((ret = mmap_read(u)) < 0)
                     goto fail;
@@ -995,21 +991,23 @@ static void thread_func(void *userdata) {
 
 /*         pa_log("loop2"); */
 
-        /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
-            int ret;
-
-/*             pa_log("processing msg"); */
-
-            if (!object && code == PA_MESSAGE_SHUTDOWN) {
-                pa_asyncmsgq_done(u->thread_mq.inq, 0);
-                goto finish;
-            }
-
-            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(u->thread_mq.inq, ret);
+        /* Now give the sink inputs some to time to process their data */
+        if ((ret = pa_sink_process_inputs(u->sink)) < 0)
+            goto fail;
+        if (ret > 0)
             continue;
-        } 
+
+        /* Now give the source outputs some to time to process their data */
+        if ((ret = pa_source_process_outputs(u->source)) < 0)
+            goto fail;
+        if (ret > 0)
+            continue;
+        
+        /* Check whether there is a message for us to process */
+        if ((ret = pa_thread_mq_process(&u->thread_mq) < 0))
+            goto finish;
+        if (ret > 0)
+            continue;
 
         if (u->fd >= 0) {
             struct pollfd *pollfd;
@@ -1019,7 +1017,6 @@ static void thread_func(void *userdata) {
                 ((u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) ? POLLIN : 0) |
                 ((u->sink && PA_SINK_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0);
         }
-
         
         /* Hmm, nothing to do. Let's sleep */
         if (pa_rtpoll_run(u->rtpoll) < 0) {
@@ -1212,6 +1209,7 @@ int pa__init(pa_module*m) {
 
         pa_source_set_module(u->source, m);
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
+        pa_source_set_rtpoll(u->source, u->rtpoll);
         pa_source_set_description(u->source, t = pa_sprintf_malloc(
                                           "OSS PCM on %s%s%s%s%s",
                                           dev,
@@ -1220,7 +1218,7 @@ int pa__init(pa_module*m) {
                                           hwdesc[0] ? ")" : "",
                                           use_mmap ? " via DMA" : ""));
         pa_xfree(t);
-        u->source->is_hardware = 1;
+        u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_CAN_SUSPEND|PA_SOURCE_LATENCY|PA_SOURCE_HW_VOLUME_CTRL;
         u->source->refresh_volume = 1;
 
         if (use_mmap)
@@ -1266,6 +1264,7 @@ int pa__init(pa_module*m) {
         
         pa_sink_set_module(u->sink, m);
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
+        pa_sink_set_rtpoll(u->sink, u->rtpoll);
         pa_sink_set_description(u->sink, t = pa_sprintf_malloc(
                                         "OSS PCM on %s%s%s%s%s",
                                         dev,
@@ -1274,7 +1273,7 @@ int pa__init(pa_module*m) {
                                         hwdesc[0] ? ")" : "",
                                         use_mmap ? " via DMA" : ""));
         pa_xfree(t);
-        u->sink->is_hardware = 1;
+        u->sink->flags = PA_SINK_HARDWARE|PA_SINK_CAN_SUSPEND|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL;
         u->sink->refresh_volume = 1;
 
         if (use_mmap)
@@ -1298,6 +1297,11 @@ go_on:
     if (u->sink)
         pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_VOLUME, &u->sink->volume, 0, NULL, NULL);
 
+    if (u->sink)
+        pa_sink_put(u->sink);
+    if (u->source)
+        pa_source_put(u->source);
+    
     pa_modargs_free(ma);
 
     return 0;
@@ -1324,10 +1328,10 @@ void pa__done(pa_module*m) {
         return;
 
     if (u->sink)
-        pa_sink_disconnect(u->sink);
+        pa_sink_unlink(u->sink);
 
     if (u->source)
-        pa_source_disconnect(u->source);
+        pa_source_unlink(u->source);
 
     if (u->thread) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);

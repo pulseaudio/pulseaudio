@@ -387,7 +387,7 @@ static void record_stream_unlink(record_stream *s) {
         return;
 
     if (s->source_output) {
-        pa_source_output_disconnect(s->source_output);
+        pa_source_output_unlink(s->source_output);
         pa_source_output_unref(s->source_output);
         s->source_output = NULL;
     }
@@ -460,11 +460,10 @@ static record_stream* record_stream_new(
     data.source = source;
     data.driver = __FILE__;
     data.name = name;
-    data.start_corked = corked;
     pa_source_output_new_data_set_sample_spec(&data, ss);
     pa_source_output_new_data_set_channel_map(&data, map);
 
-    if (!(source_output = pa_source_output_new(c->protocol->core, &data, 0)))
+    if (!(source_output = pa_source_output_new(c->protocol->core, &data, corked ? PA_SOURCE_OUTPUT_START_CORKED : 0)))
         return NULL;
 
     s = pa_msgobject_new(record_stream);
@@ -504,7 +503,7 @@ static void playback_stream_unlink(playback_stream *s) {
         return;
 
     if (s->sink_input) {
-        pa_sink_input_disconnect(s->sink_input);
+        pa_sink_input_unlink(s->sink_input);
         pa_sink_input_unref(s->sink_input);
         s->sink_input = NULL;
     }
@@ -653,10 +652,9 @@ static playback_stream* playback_stream_new(
     pa_sink_input_new_data_set_volume(&data, volume);
     data.module = c->protocol->module;
     data.client = c->client;
-    data.start_corked = corked;
     data.sync_base = ssync ? ssync->sink_input : NULL;
 
-    if (!(sink_input = pa_sink_input_new(c->protocol->core, &data, 0)))
+    if (!(sink_input = pa_sink_input_new(c->protocol->core, &data, corked ? PA_SINK_INPUT_START_CORKED : 0)))
         return NULL;
 
     s = pa_msgobject_new(playback_stream);
@@ -1729,10 +1727,7 @@ static void sink_fill_tagstruct(pa_tagstruct *t, pa_sink *sink) {
         PA_TAG_STRING, sink->monitor_source ? sink->monitor_source->name : NULL,
         PA_TAG_USEC, pa_sink_get_latency(sink),
         PA_TAG_STRING, sink->driver,
-        PA_TAG_U32,
-        (sink->get_volume ? PA_SINK_HW_VOLUME_CTRL : 0) |  /* FIXME */
-        (sink->get_latency ? PA_SINK_LATENCY : 0) |        /* FIXME */ 
-        (sink->is_hardware ? PA_SINK_HARDWARE : 0),
+        PA_TAG_U32, sink->flags,
         PA_TAG_INVALID);
 }
 
@@ -1754,10 +1749,7 @@ static void source_fill_tagstruct(pa_tagstruct *t, pa_source *source) {
         PA_TAG_STRING, source->monitor_of ? source->monitor_of->name : NULL,
         PA_TAG_USEC, pa_source_get_latency(source),
         PA_TAG_STRING, source->driver,
-        PA_TAG_U32,
-        (source->get_volume ? PA_SOURCE_HW_VOLUME_CTRL : 0) |     /* FIXME */
-        (source->get_latency ? PA_SOURCE_LATENCY : 0) |              /* FIXME */
-        (source->is_hardware ? PA_SOURCE_HARDWARE : 0),
+        PA_TAG_U32, source->flags,
         PA_TAG_INVALID);
 }
 

@@ -40,15 +40,25 @@ typedef struct pa_sink pa_sink;
 #include <pulsecore/module.h>
 #include <pulsecore/refcnt.h>
 #include <pulsecore/msgobject.h>
+#include <pulsecore/rtpoll.h>
 
 #define PA_MAX_INPUTS_PER_SINK 32
 
 typedef enum pa_sink_state {
+    PA_SINK_INIT,
     PA_SINK_RUNNING,
     PA_SINK_SUSPENDED,
     PA_SINK_IDLE,
-    PA_SINK_DISCONNECTED
+    PA_SINK_UNLINKED
 } pa_sink_state_t;
+
+static inline int PA_SINK_OPENED(pa_sink_state_t x) {
+    return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
+}
+
+static inline int PA_SINK_LINKED(pa_sink_state_t x) {
+    return x == PA_SINK_RUNNING || x == PA_SINK_IDLE || x == PA_SINK_SUSPENDED;
+}
 
 struct pa_sink {
     pa_msgobject parent;
@@ -56,10 +66,10 @@ struct pa_sink {
     uint32_t index;
     pa_core *core;
     pa_sink_state_t state;
+    pa_sink_flags_t flags;
 
     char *name;
     char *description, *driver;            /* may be NULL */
-    int is_hardware;
 
     pa_module *module;                      /* may be NULL */
 
@@ -67,21 +77,22 @@ struct pa_sink {
     pa_channel_map channel_map;
 
     pa_idxset *inputs;
-    pa_source *monitor_source;             /* may be NULL */
+    pa_source *monitor_source;           
 
     pa_cvolume volume;
     int muted;
     int refresh_volume;
     int refresh_mute;
 
-    int (*set_state)(pa_sink *s, pa_sink_state_t state);
-    int (*set_volume)(pa_sink *s);      /* dito */
-    int (*get_volume)(pa_sink *s);      /* dito */
-    int (*get_mute)(pa_sink *s);        /* dito */
-    int (*set_mute)(pa_sink *s);        /* dito */
+    int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
+    int (*set_volume)(pa_sink *s);           /* dito */
+    int (*get_volume)(pa_sink *s);           /* dito */
+    int (*get_mute)(pa_sink *s);             /* dito */
+    int (*set_mute)(pa_sink *s);             /* dito */
     pa_usec_t (*get_latency)(pa_sink *s);    /* dito */
 
     pa_asyncmsgq *asyncmsgq;
+    pa_rtpoll *rtpoll;
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -114,7 +125,7 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_MAX
 } pa_sink_message_t;
 
-/* To be used exclusively by the sink driver */
+/* To be called exclusively by the sink driver, from main context */
 
 pa_sink* pa_sink_new(
         pa_core *core,
@@ -124,18 +135,21 @@ pa_sink* pa_sink_new(
         const pa_sample_spec *spec,
         const pa_channel_map *map);
 
-void pa_sink_disconnect(pa_sink* s);
+void pa_sink_put(pa_sink *s);
+void pa_sink_unlink(pa_sink* s);
 
 void pa_sink_set_module(pa_sink *sink, pa_module *m);
 void pa_sink_set_description(pa_sink *s, const char *description);
 void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q);
+void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p);
 
-/* Usable by everyone */
+/* May be called by everyone, from main context */
 
 pa_usec_t pa_sink_get_latency(pa_sink *s);
 
 int pa_sink_update_status(pa_sink*s);
 int pa_sink_suspend(pa_sink *s, int suspend);
+int pa_sink_suspend_all(pa_core *c, int suspend);
 
 /* Sends a ping message to the sink thread, to make it wake up and
  * check for data to process even if there is no real message is
@@ -150,19 +164,17 @@ int pa_sink_get_mute(pa_sink *sink);
 unsigned pa_sink_used_by(pa_sink *s);
 #define pa_sink_get_state(s) ((s)->state)
 
-/* To be used exclusively by the sink driver thread */
+/* To be called exclusively by the sink driver, from IO context */
 
 void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result);
 void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result);
 void pa_sink_render_into(pa_sink*s, pa_memchunk *target);
 void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
 
+void pa_sink_skip(pa_sink *s, size_t length);
+
+int pa_sink_process_inputs(pa_sink *s);
+
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
-
-static inline int PA_SINK_OPENED(pa_sink_state_t x) {
-    return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
-}
-
-int pa_sink_suspend_all(pa_core *c, int suspend);
 
 #endif

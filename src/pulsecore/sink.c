@@ -92,7 +92,8 @@ pa_sink* pa_sink_new(
     s->parent.process_msg = pa_sink_process_msg;
 
     s->core = core;
-    s->state = PA_SINK_IDLE;
+    s->state = PA_SINK_INIT;
+    s->flags = 0;
     s->name = pa_xstrdup(name);
     s->description = NULL;
     s->driver = pa_xstrdup(driver);
@@ -107,8 +108,6 @@ pa_sink* pa_sink_new(
     s->muted = 0;
     s->refresh_volume = s->refresh_mute = 0;
 
-    s->is_hardware = 0;
-
     s->get_latency = NULL;
     s->set_volume = NULL;
     s->get_volume = NULL;
@@ -118,6 +117,7 @@ pa_sink* pa_sink_new(
     s->userdata = NULL;
 
     s->asyncmsgq = NULL;
+    s->rtpoll = NULL;
     s->silence = NULL;
 
     r = pa_idxset_put(core->sinks, s, &s->index);
@@ -145,11 +145,22 @@ pa_sink* pa_sink_new(
     s->thread_info.soft_muted = s->muted;
     s->thread_info.state = s->state;
 
-    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
-
-    pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_NEW_POST], s);
-
     return s;
+}
+
+void pa_sink_put(pa_sink* s) {
+    pa_sink_assert_ref(s);
+
+    pa_assert(s->state == PA_SINK_INIT);
+    pa_assert(s->asyncmsgq);
+    pa_assert(s->rtpoll);
+
+    s->thread_info.state = s->state = PA_SINK_IDLE;
+    
+    pa_source_put(s->monitor_source);
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_NEW_POST], s);
 }
 
 static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
@@ -160,6 +171,21 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     if (s->state == state)
         return 0;
 
+    if (state == PA_SINK_SUSPENDED && !(s->flags & PA_SINK_CAN_SUSPEND))
+        return -1;
+
+    if ((s->state == PA_SINK_SUSPENDED && PA_SINK_OPENED(state)) ||
+        (PA_SINK_OPENED(s->state) && state == PA_SINK_SUSPENDED)) {
+        pa_sink_input *i;
+        uint32_t idx;
+        
+        /* We're suspending or resuming, tell everyone about it */
+        
+        for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx)))
+            if (i->suspend)
+                i->suspend(i, state == PA_SINK_SUSPENDED);
+    }
+    
     if (s->set_state)
         if ((ret = s->set_state(s, state)) < 0)
             return -1;
@@ -168,18 +194,19 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
         return -1;
 
     s->state = state;
-    
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
+
+    if (state != PA_SINK_UNLINKED) /* if we enter UNLINKED state pa_sink_unlink() will fire the apropriate events */
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
     return 0;
 }
 
-void pa_sink_disconnect(pa_sink* s) {
+void pa_sink_unlink(pa_sink* s) {
     pa_sink_input *i, *j = NULL;
 
     pa_assert(s);
-    pa_return_if_fail(s->state != PA_SINK_DISCONNECTED);
+    pa_assert(PA_SINK_LINKED(s->state));
 
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_DISCONNECT], s);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_UNLINK], s);
     
     pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
@@ -191,9 +218,9 @@ void pa_sink_disconnect(pa_sink* s) {
     }
 
     if (s->monitor_source)
-        pa_source_disconnect(s->monitor_source);
+        pa_source_unlink(s->monitor_source);
 
-    sink_set_state(s, PA_SINK_DISCONNECTED);
+    sink_set_state(s, PA_SINK_UNLINKED);
 
     s->get_latency = NULL;
     s->get_volume = NULL;
@@ -204,7 +231,7 @@ void pa_sink_disconnect(pa_sink* s) {
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
 
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_DISCONNECT_POST], s);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_UNLINK_POST], s);
 }
 
 static void sink_free(pa_object *o) {
@@ -214,8 +241,8 @@ static void sink_free(pa_object *o) {
     pa_assert(s);
     pa_assert(pa_sink_refcnt(s) == 0);
 
-    if (s->state != PA_SINK_DISCONNECTED)
-        pa_sink_disconnect(s);
+    if (PA_SINK_LINKED(s->state))
+        pa_sink_unlink(s);
 
     pa_log_info("Freeing sink %u \"%s\"", s->index, s->name);
 
@@ -250,8 +277,18 @@ void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q) {
         pa_source_set_asyncmsgq(s->monitor_source, q);
 }
 
+void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p) {
+    pa_sink_assert_ref(s);
+    pa_assert(p);
+
+    s->rtpoll = p;
+    if (s->monitor_source)
+        pa_source_set_rtpoll(s->monitor_source, p);
+}
+
 int pa_sink_update_status(pa_sink*s) {
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
 
     if (s->state == PA_SINK_SUSPENDED)
         return 0;
@@ -261,6 +298,7 @@ int pa_sink_update_status(pa_sink*s) {
 
 int pa_sink_suspend(pa_sink *s, int suspend) {
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
 
     if (suspend)
         return sink_set_state(s, PA_SINK_SUSPENDED);
@@ -270,6 +308,7 @@ int pa_sink_suspend(pa_sink *s, int suspend) {
 
 void pa_sink_ping(pa_sink *s) {
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
 
     pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_PING, NULL, 0, NULL, NULL);
 }
@@ -364,6 +403,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     unsigned n;
 
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(length);
     pa_assert(result);
 
@@ -429,6 +469,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     unsigned n;
 
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(target);
     pa_assert(target->memblock);
     pa_assert(target->length);
@@ -494,6 +535,7 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
     size_t l, d;
 
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(target);
     pa_assert(target->memblock);
     pa_assert(target->length);
@@ -518,6 +560,7 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
 
 void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(length);
     pa_assert(result);
 
@@ -529,10 +572,46 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     pa_sink_render_into_full(s, result);
 }
 
+void pa_sink_skip(pa_sink *s, size_t length) {
+    pa_sink_input *i;
+    void *state = NULL;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_OPENED(s->thread_info.state));
+    pa_assert(length > 0);
+    
+    if (pa_source_used_by(s->monitor_source)) {
+        pa_memchunk chunk;
+        
+        /* If something is connected to our monitor source, we have to
+         * pass valid data to it */
+
+        while (length > 0) {
+            pa_sink_render(s, length, &chunk);
+            pa_memblock_unref(chunk.memblock);
+
+            pa_assert(chunk.length <= length);
+            length -= chunk.length;
+        }
+        
+    } else {
+        /* Ok, noone cares about the rendered data, so let's not even render it */
+
+        while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))) {
+            pa_sink_input_assert_ref(i);
+            pa_sink_input_drop(i, length);
+        }
+    }
+}
+
 pa_usec_t pa_sink_get_latency(pa_sink *s) {
     pa_usec_t usec = 0;
 
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
+
+    if (!PA_SINK_OPENED(s->state))
+        return 0;
 
     if (s->get_latency)
         return s->get_latency(s);
@@ -547,6 +626,7 @@ void pa_sink_set_volume(pa_sink *s, const pa_cvolume *volume) {
     int changed;
 
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
     pa_assert(volume);
 
     changed = !pa_cvolume_equal(volume, &s->volume);
@@ -566,6 +646,7 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s) {
     struct pa_cvolume old_volume;
 
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
 
     old_volume = s->volume;
 
@@ -585,6 +666,7 @@ void pa_sink_set_mute(pa_sink *s, int mute) {
     int changed;
 
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
 
     changed = s->muted != mute;
     s->muted = mute;
@@ -603,6 +685,7 @@ int pa_sink_get_mute(pa_sink *s) {
     int old_muted;
 
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
 
     old_muted = s->muted;
 
@@ -659,6 +742,7 @@ unsigned pa_sink_used_by(pa_sink *s) {
     unsigned ret;
 
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
 
     ret = pa_idxset_size(s->inputs);
 
@@ -671,6 +755,7 @@ unsigned pa_sink_used_by(pa_sink *s) {
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_sink *s = PA_SINK(o);
     pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->thread_info.state));
 
     switch ((pa_sink_message_t) code) {
         
@@ -694,13 +779,19 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 i->thread_info.sync_next->thread_info.sync_prev = i;
             }
 
+            if (i->attach)
+                i->attach(i);
+
             return 0;
         }
 
         case PA_SINK_MESSAGE_REMOVE_INPUT: {
             pa_sink_input *i = PA_SINK_INPUT(userdata);
 
-            /* Since the caller sleeps in pa_sink_input_disconnect(),
+            if (i->detach)
+                i->detach(i);
+            
+            /* Since the caller sleeps in pa_sink_input_unlink(),
              * we can safely access data outside of thread_info even
              * though it is mutable */
 
@@ -832,4 +923,22 @@ int pa_sink_suspend_all(pa_core *c, int suspend) {
         ret -= pa_sink_suspend(sink, suspend) < 0;
 
     return ret;
+}
+
+int pa_sink_process_inputs(pa_sink *s) {
+    pa_sink_input *i;
+    void *state = NULL;
+    int r;
+    
+    pa_sink_assert_ref(s);
+
+    if (!PA_SINK_LINKED(s->thread_info.state))
+        return 0;
+    
+    while ((i = PA_SINK_INPUT(pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))))
+        if (i->process)
+            if ((r = i->process(i)))
+                return r;
+
+    return 0;
 }

@@ -42,15 +42,25 @@ typedef struct pa_source pa_source;
 #include <pulsecore/module.h>
 #include <pulsecore/asyncmsgq.h>
 #include <pulsecore/msgobject.h>
+#include <pulsecore/rtpoll.h>
 
 #define PA_MAX_OUTPUTS_PER_SOURCE 32
 
 typedef enum pa_source_state {
+    PA_SOURCE_INIT,
     PA_SOURCE_RUNNING,
     PA_SOURCE_SUSPENDED,
     PA_SOURCE_IDLE,
-    PA_SOURCE_DISCONNECTED
+    PA_SOURCE_UNLINKED
 } pa_source_state_t;
+
+static inline int PA_SOURCE_OPENED(pa_source_state_t x) {
+    return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE;
+}
+
+static inline int PA_SOURCE_LINKED(pa_source_state_t x) {
+    return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE || x == PA_SOURCE_SUSPENDED;
+}
 
 struct pa_source {
     pa_msgobject parent;
@@ -58,10 +68,10 @@ struct pa_source {
     uint32_t index;
     pa_core *core;
     pa_source_state_t state;
+    pa_source_flags_t flags;
 
     char *name;
     char *description, *driver;              /* may be NULL */
-    int is_hardware;
 
     pa_module *module;                        /* may be NULL */
 
@@ -76,7 +86,7 @@ struct pa_source {
     int refresh_volume;
     int refresh_muted;
 
-    int (*set_state)(pa_source*source, pa_source_state_t state);          /* may be NULL */
+    int (*set_state)(pa_source*source, pa_source_state_t state); /* may be NULL */
     int (*set_volume)(pa_source *s);         /* dito */
     int (*get_volume)(pa_source *s);         /* dito */
     int (*set_mute)(pa_source *s);           /* dito */
@@ -84,7 +94,10 @@ struct pa_source {
     pa_usec_t (*get_latency)(pa_source *s);  /* dito */
 
     pa_asyncmsgq *asyncmsgq;
+    pa_rtpoll *rtpoll;
 
+    /* Contains copies of the above data so that the real-time worker
+     * thread can work without access locking */
     struct {
         pa_source_state_t state;
         pa_hashmap *outputs;
@@ -111,7 +124,7 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_MAX
 } pa_source_message_t;
 
-/* To be used exclusively by the source driver */
+/* To be called exclusively by the source driver, from main context */
 
 pa_source* pa_source_new(
         pa_core *core,
@@ -121,18 +134,22 @@ pa_source* pa_source_new(
         const pa_sample_spec *spec,
         const pa_channel_map *map);
 
-void pa_source_disconnect(pa_source *s);
+void pa_source_put(pa_source *s);
+void pa_source_unlink(pa_source *s);
 
 void pa_source_set_module(pa_source *s, pa_module *m);
 void pa_source_set_description(pa_source *s, const char *description);
 void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q);
+void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p);
 
-/* Callable by everyone */
+/* May be called by everyone, from main context */
 
 pa_usec_t pa_source_get_latency(pa_source *s);
 
 int pa_source_update_status(pa_source*s);
 int pa_source_suspend(pa_source *s, int suspend);
+int pa_source_suspend_all(pa_core *c, int suspend);
+
 void pa_source_ping(pa_source *s);
 
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume);
@@ -143,15 +160,12 @@ int pa_source_get_mute(pa_source *source);
 unsigned pa_source_used_by(pa_source *s);
 #define pa_source_get_state(s) ((pa_source_state_t) (s)->state)
 
-/* To be used exclusively by the source driver thread */
+/* To be called exclusively by the source driver, from IO context */
 
 void pa_source_post(pa_source*s, const pa_memchunk *b);
+
+int pa_source_process_outputs(pa_source *o);
+
 int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, int64_t, pa_memchunk *chunk);
-
-static inline int PA_SOURCE_OPENED(pa_source_state_t x) {
-    return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE;
-}
-
-int pa_source_suspend_all(pa_core *c, int suspend);
 
 #endif

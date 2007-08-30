@@ -108,7 +108,7 @@ pa_sink_input* pa_sink_input_new(
         data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK, 1);
 
     pa_return_null_if_fail(data->sink);
-    pa_return_null_if_fail(pa_sink_get_state(data->sink) != PA_SINK_DISCONNECTED);
+    pa_return_null_if_fail(pa_sink_get_state(data->sink) != PA_SINK_UNLINKED);
     pa_return_null_if_fail(!data->sync_base || (data->sync_base->sink == data->sink && pa_sink_input_get_state(data->sync_base) == PA_SINK_INPUT_CORKED));
 
     if (!data->sample_spec_is_set)
@@ -167,7 +167,7 @@ pa_sink_input* pa_sink_input_new(
     i->parent.process_msg = pa_sink_input_process_msg;
 
     i->core = core;
-    i->state = data->start_corked ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING;
+    i->state = PA_SINK_INPUT_INIT;
     i->flags = flags;
     i->name = pa_xstrdup(data->name);
     i->driver = pa_xstrdup(data->driver);
@@ -194,9 +194,12 @@ pa_sink_input* pa_sink_input_new(
     
     i->peek = NULL;
     i->drop = NULL;
+    i->process = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
-    i->underrun = NULL;
+    i->attach = NULL;
+    i->detach = NULL;
+    i->suspend = NULL;
     i->userdata = NULL;
 
     i->thread_info.state = i->state;
@@ -245,11 +248,11 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
     return 0;
 }
 
-void pa_sink_input_disconnect(pa_sink_input *i) {
+void pa_sink_input_unlink(pa_sink_input *i) {
     pa_assert(i);
-    pa_return_if_fail(i->state != PA_SINK_INPUT_DISCONNECTED);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
-    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_DISCONNECT], i);
+    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], i);
     
     if (i->sync_prev)
         i->sync_prev->sync_next = i->sync_next;
@@ -264,16 +267,19 @@ void pa_sink_input_disconnect(pa_sink_input *i) {
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
 
-    sink_input_set_state(i, PA_SINK_INPUT_DISCONNECTED);
+    sink_input_set_state(i, PA_SINK_INPUT_UNLINKED);
     pa_sink_update_status(i->sink);
     
     i->peek = NULL;
     i->drop = NULL;
+    i->process = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
-    i->underrun = NULL;
+    i->attach = NULL;
+    i->detach = NULL;
+    i->suspend = NULL;
 
-    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_DISCONNECT_POST], i);
+    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], i);
     i->sink = NULL;
     pa_sink_input_unref(i);
 }
@@ -284,8 +290,8 @@ static void sink_input_free(pa_object *o) {
     pa_assert(i);
     pa_assert(pa_sink_input_refcnt(i) == 0);
 
-    if (i->state != PA_SINK_INPUT_DISCONNECTED)
-        pa_sink_input_disconnect(i);
+    if (PA_SINK_INPUT_LINKED(i->state))
+        pa_sink_input_unlink(i);
 
     pa_log_info("Freeing output %u \"%s\"", i->index, i->name);
 
@@ -306,6 +312,11 @@ static void sink_input_free(pa_object *o) {
 void pa_sink_input_put(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
 
+    pa_assert(i->state == PA_SINK_INPUT_INIT);
+    pa_assert(i->peek);
+    pa_assert(i->drop);
+
+    i->thread_info.state = i->state = i->flags & PA_SINK_INPUT_START_CORKED ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING;
     i->thread_info.volume = i->volume;
     i->thread_info.muted = i->muted;
 
@@ -314,10 +325,15 @@ void pa_sink_input_put(pa_sink_input *i) {
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
     pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], i);
+
+    /* Please note that if you change something here, you have to
+       change something in pa_sink_input_move() with the ghost stream
+       registration too. */
 }
 
 void pa_sink_input_kill(pa_sink_input*i) {
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
     if (i->kill)
         i->kill(i);
@@ -327,6 +343,7 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i) {
     pa_usec_t r = 0;
 
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
     if (pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_GET_LATENCY, &r, 0, NULL) < 0)
         r = 0;
@@ -344,10 +361,11 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
     int volume_is_norm;
 
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
     pa_assert(chunk);
     pa_assert(volume);
 
-    if (!i->peek || !i->drop || i->thread_info.state == PA_SINK_INPUT_DISCONNECTED || i->thread_info.state == PA_SINK_INPUT_CORKED)
+    if (!i->peek || !i->drop || i->thread_info.state == PA_SINK_INPUT_UNLINKED || i->thread_info.state == PA_SINK_INPUT_CORKED)
         goto finish;
 
     pa_assert(i->thread_info.state == PA_SINK_INPUT_RUNNING || i->thread_info.state == PA_SINK_INPUT_DRAINED);
@@ -420,9 +438,6 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
 finish:
 
-    if (ret < 0 && !pa_atomic_load(&i->thread_info.drained) && i->underrun)
-        i->underrun(i);
-
     if (ret >= 0)
         pa_atomic_store(&i->thread_info.drained, 0);
     else if (ret < 0)
@@ -448,13 +463,18 @@ finish:
 /* Called from thread context */
 void pa_sink_input_drop(pa_sink_input *i, size_t length) {
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
     pa_assert(length > 0);
 
     if (i->thread_info.move_silence > 0) {
 
-        pa_assert(i->thread_info.move_silence >= length);
-
-        i->thread_info.move_silence -= length;
+        if (i->thread_info.move_silence >= length) {
+            i->thread_info.move_silence -= length;
+            length = 0;
+        } else {
+            length -= i->thread_info.move_silence;
+            i->thread_info.move_silence = 0;
+        }
 
         if (i->thread_info.move_silence <= 0) {
             pa_assert(i->thread_info.silence_memblock);
@@ -462,7 +482,8 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length) {
             i->thread_info.silence_memblock = NULL;
         }
 
-        return;
+        if (length <= 0)
+            return;
     }
 
     if (i->thread_info.resampled_chunk.memblock) {
@@ -531,6 +552,7 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length) {
 
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
     if (pa_cvolume_equal(&i->volume, volume))
         return;
@@ -543,6 +565,7 @@ void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
 
 const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
     return &i->volume;
 }
@@ -550,6 +573,7 @@ const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
 void pa_sink_input_set_mute(pa_sink_input *i, int mute) {
     pa_assert(i);
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
     if (!i->muted == !mute)
         return;
@@ -562,18 +586,21 @@ void pa_sink_input_set_mute(pa_sink_input *i, int mute) {
 
 int pa_sink_input_get_mute(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
     return !!i->muted;
 }
 
 void pa_sink_input_cork(pa_sink_input *i, int b) {
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
     sink_input_set_state(i, b ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING);
 }
 
 int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
     pa_return_val_if_fail(i->thread_info.resampler, -1);
 
     if (i->sample_spec.rate == rate)
@@ -615,12 +642,16 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
     pa_sink_input_move_info info;
 
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
     pa_sink_assert_ref(dest);
 
     origin = i->sink;
 
     if (dest == origin)
         return 0;
+
+    if (i->flags & PA_SINK_INPUT_DONT_MOVE)
+        return -1;
 
     if (i->sync_next || i->sync_prev) {
         pa_log_warn("Moving synchronised streams not supported.");
@@ -714,6 +745,10 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
 
     if (info.ghost_sink_input) {
         /* Basically, do what pa_sink_input_put() does ...*/
+        info.ghost_sink_input->thread_info.state = info.ghost_sink_input->state = PA_SINK_INPUT_RUNNING;
+        info.ghost_sink_input->thread_info.volume = info.ghost_sink_input->volume;
+        info.ghost_sink_input->thread_info.muted = info.ghost_sink_input->muted;
+        
         pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, info.ghost_sink_input->index);
         pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], info.ghost_sink_input);
         pa_sink_input_unref(info.ghost_sink_input);
@@ -774,6 +809,7 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
     pa_sink_input *i = PA_SINK_INPUT(o);
 
     pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
 
     switch (code) {
         case PA_SINK_INPUT_MESSAGE_SET_VOLUME:
@@ -841,3 +877,4 @@ pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i) {
 
     return i->state;
 }
+

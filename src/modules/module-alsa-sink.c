@@ -347,7 +347,7 @@ static int suspend(struct userdata *u) {
         u->alsa_rtpoll_item = NULL;
     }
     
-    pa_log_debug("Device suspended...");
+    pa_log_info("Device suspended...");
     
     return 0;
 }
@@ -361,7 +361,7 @@ static int unsuspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(!u->pcm_handle);
 
-    pa_log_debug("Trying resume...");
+    pa_log_info("Trying resume...");
 
     snd_config_update_free_global();
     if ((err = snd_pcm_open(&u->pcm_handle, u->device_name, SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK)) < 0) {
@@ -406,7 +406,7 @@ static int unsuspend(struct userdata *u) {
     
     u->first = 1;
                 
-    pa_log_debug("Resumed successfully...");
+    pa_log_info("Resumed successfully...");
 
     return 0;
 
@@ -457,7 +457,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     
                     break;
 
-                case PA_SINK_DISCONNECTED:
+                case PA_SINK_UNLINKED:
+                case PA_SINK_INIT:
                     ;
             }
             
@@ -607,13 +608,7 @@ static void thread_func(void *userdata) {
         goto fail;
 
     for (;;) {
-        pa_msgobject *object;
-        int code;
-        void *data;
-        pa_memchunk chunk;
-        int64_t offset;
-
-/*         pa_log("loop");      */
+        int ret;
         
         /* Render some data and write it to the dsp */
         if (PA_SINK_OPENED(u->sink->thread_info.state)) {
@@ -635,28 +630,25 @@ static void thread_func(void *userdata) {
             }
         }
 
-/*         pa_log("loop2"); */
+        /* Now give the sink inputs some to time to process their data */
+        if ((ret = pa_sink_process_inputs(u->sink)) < 0)
+            goto fail;
+        if (ret > 0)
+            continue;
 
         /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
-            int ret;
-
-            if (!object && code == PA_MESSAGE_SHUTDOWN) {
-                pa_asyncmsgq_done(u->thread_mq.inq, 0);
-                goto finish;
-            }
-
-            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(u->thread_mq.inq, ret);
+        if ((ret = pa_thread_mq_process(&u->thread_mq) < 0))
+            goto finish;
+        if (ret > 0)
             continue;
-        } 
-
+        
         /* Hmm, nothing to do. Let's sleep */
         if (pa_rtpoll_run(u->rtpoll) < 0) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
+        /* Tell ALSA about this and process its response */
         if (PA_SINK_OPENED(u->sink->thread_info.state)) {
             struct pollfd *pollfd;
             unsigned short revents = 0;
@@ -680,9 +672,7 @@ static void thread_func(void *userdata) {
 
                 goto fail;
             }
-/*             pa_log("got alsa event"); */
         }
-        
     }
 
 fail:
@@ -828,6 +818,7 @@ int pa__init(pa_module*m) {
 
     pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
+    pa_sink_set_rtpoll(u->sink, u->rtpoll);
     pa_sink_set_description(u->sink, t = pa_sprintf_malloc(
                                     "ALSA PCM on %s (%s)%s",
                                     dev,
@@ -835,7 +826,7 @@ int pa__init(pa_module*m) {
                                     use_mmap ? " via DMA" : ""));
     pa_xfree(t);
     
-    u->sink->is_hardware = 1;
+    u->sink->flags = PA_SINK_HARDWARE|PA_SINK_CAN_SUSPEND|PA_SINK_HW_VOLUME_CTRL|PA_SINK_LATENCY;
 
     u->frame_size = frame_size;
     u->fragment_size = frag_size = period_size * frame_size;
@@ -894,6 +885,8 @@ int pa__init(pa_module*m) {
     if (u->sink->get_mute)
         u->sink->get_mute(u->sink);
 
+    pa_sink_put(u->sink);
+    
     pa_modargs_free(ma);
     
     return 0;
@@ -917,7 +910,7 @@ void pa__done(pa_module*m) {
         return;
 
     if (u->sink)
-        pa_sink_disconnect(u->sink);
+        pa_sink_unlink(u->sink);
 
     if (u->thread) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);

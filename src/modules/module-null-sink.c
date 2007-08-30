@@ -128,11 +128,7 @@ static void thread_func(void *userdata) {
     pa_rtclock_get(&u->timestamp);
 
     for (;;) {
-        pa_msgobject *object;
-        int code;
-        void *data;
-        pa_memchunk chunk;
-        int64_t offset;
+        int ret;
 
         /* Render some data and drop it immediately */
         if (u->sink->thread_info.state == PA_SINK_RUNNING) {
@@ -141,30 +137,25 @@ static void thread_func(void *userdata) {
             pa_rtclock_get(&now);
 
             if (pa_timespec_cmp(&u->timestamp, &now) <= 0) {
-
-                pa_sink_render(u->sink, u->block_size, &chunk);
-                pa_memblock_unref(chunk.memblock);
-
-                pa_timespec_add(&u->timestamp, pa_bytes_to_usec(chunk.length, &u->sink->sample_spec));
+                pa_sink_skip(u->sink, u->block_size);
+                pa_timespec_add(&u->timestamp, pa_bytes_to_usec(u->block_size, &u->sink->sample_spec));
             }
 
             pa_rtpoll_set_timer_absolute(u->rtpoll, &u->timestamp);
         } else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
-        /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
-            int ret;
-
-            if (!object && code == PA_MESSAGE_SHUTDOWN) {
-                pa_asyncmsgq_done(u->thread_mq.inq, 0);
-                goto finish;
-            }
-
-            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(u->thread_mq.inq, ret);
+        /* Now give the sink inputs some to time to process their data */
+        if ((ret = pa_sink_process_inputs(u->sink)) < 0)
+            goto fail;
+        if (ret > 0)
             continue;
-        }
+
+        /* Check whether there is a message for us to process */
+        if ((ret = pa_thread_mq_process(&u->thread_mq) < 0))
+            goto finish;
+        if (ret > 0)
+            continue;
 
         /* Hmm, nothing to do. Let's sleep */
         if (pa_rtpoll_run(u->rtpoll) < 0) {
@@ -217,9 +208,11 @@ int pa__init(pa_module*m) {
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
+    u->sink->flags = PA_SINK_LATENCY;
 
     pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
+    pa_sink_set_rtpoll(u->sink, u->rtpoll);
     pa_sink_set_description(u->sink, pa_modargs_get_value(ma, "description", "NULL sink"));
 
     u->block_size = pa_bytes_per_second(&ss) / 20; /* 50 ms */
@@ -231,6 +224,8 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    pa_sink_put(u->sink);
+    
     pa_modargs_free(ma);
 
     return 0;
@@ -253,7 +248,7 @@ void pa__done(pa_module*m) {
         return;
 
     if (u->sink)
-        pa_sink_disconnect(u->sink);
+        pa_sink_unlink(u->sink);
 
     if (u->thread) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);

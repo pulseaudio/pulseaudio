@@ -328,7 +328,7 @@ static int suspend(struct userdata *u) {
         u->alsa_rtpoll_item = NULL;
     }
     
-    pa_log_debug("Device suspended...");
+    pa_log_info("Device suspended...");
     
     return 0;
 }
@@ -342,7 +342,7 @@ static int unsuspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(!u->pcm_handle);
 
-    pa_log_debug("Trying resume...");
+    pa_log_info("Trying resume...");
 
     snd_config_update_free_global();
     if ((err = snd_pcm_open(&u->pcm_handle, u->device_name, SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK)) < 0) {
@@ -387,7 +387,7 @@ static int unsuspend(struct userdata *u) {
     
     /* FIXME: We need to reload the volume somehow */
                 
-    pa_log_debug("Resumed successfully...");
+    pa_log_info("Resumed successfully...");
 
     return 0;
 
@@ -438,7 +438,8 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     
                     break;
 
-                case PA_SOURCE_DISCONNECTED:
+                case PA_SOURCE_UNLINKED:
+                case PA_SOURCE_INIT:
                     ;
             }
             
@@ -590,15 +591,9 @@ static void thread_func(void *userdata) {
     snd_pcm_start(u->pcm_handle);
     
     for (;;) {
-        pa_msgobject *object;
-        int code;
-        void *data;
-        int64_t offset;
-        pa_memchunk chunk;
+        int ret;
 
-/*         pa_log("loop");     */
-        
-        /* Render some data and write it to the dsp */
+        /* Read some data and pass it to the sources */
         if (PA_SOURCE_OPENED(u->source->thread_info.state)) {
             
             if (u->use_mmap) {
@@ -611,29 +606,25 @@ static void thread_func(void *userdata) {
             }
         }
 
-/*         pa_log("loop2"); */
+        /* Now give the source outputs some to time to process their data */
+        if ((ret = pa_source_process_outputs(u->source)) < 0)
+            goto fail;
+        if (ret > 0)
+            continue;
         
         /* Check whether there is a message for us to process */
-        if (pa_asyncmsgq_get(u->thread_mq.inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
-            int ret;
-
-/*             pa_log("processing msg"); */
-
-            if (!object && code == PA_MESSAGE_SHUTDOWN) {
-                pa_asyncmsgq_done(u->thread_mq.inq, 0);
-                goto finish;
-            }
-
-            ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-            pa_asyncmsgq_done(u->thread_mq.inq, ret);
+        if ((ret = pa_thread_mq_process(&u->thread_mq) < 0))
+            goto finish;
+        if (ret > 0)
             continue;
-        } 
 
+        /* Hmm, nothing to do. Let's sleep */
         if (pa_rtpoll_run(u->rtpoll) < 0) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
 
+        /* Tell ALSA about this and process its response */
         if (PA_SOURCE_OPENED(u->source->thread_info.state)) {
             struct pollfd *pollfd;
             unsigned short revents = 0;
@@ -657,7 +648,6 @@ static void thread_func(void *userdata) {
 
                 goto fail;
             }
-/*             pa_log("got alsa event"); */
         }
     }
 
@@ -802,6 +792,7 @@ int pa__init(pa_module*m) {
 
     pa_source_set_module(u->source, m);
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
+    pa_source_set_rtpoll(u->source, u->rtpoll);
     pa_source_set_description(u->source, t = pa_sprintf_malloc(
                                       "ALSA PCM on %s (%s)%s",
                                       dev,
@@ -809,7 +800,7 @@ int pa__init(pa_module*m) {
                                       use_mmap ? " via DMA" : ""));
     pa_xfree(t);
 
-    u->source->is_hardware = 1;
+    u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_CAN_SUSPEND|PA_SOURCE_LATENCY|PA_SOURCE_HW_VOLUME_CTRL;
 
     u->frame_size = frame_size;
     u->fragment_size = frag_size = period_size * frame_size;
@@ -863,6 +854,8 @@ int pa__init(pa_module*m) {
     if (u->source->get_mute)
         u->source->get_mute(u->source);
 
+    pa_source_put(u->source);    
+    
     pa_modargs_free(ma);
     
     return 0;
@@ -886,7 +879,7 @@ void pa__done(pa_module*m) {
         return;
 
     if (u->source)
-        pa_source_disconnect(u->source);
+        pa_source_unlink(u->source);
 
     if (u->thread) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);

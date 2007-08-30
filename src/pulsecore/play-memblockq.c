@@ -58,7 +58,7 @@ static void memblockq_stream_unlink(memblockq_stream *u) {
     if (!u->sink_input)
         return;
 
-    pa_sink_input_disconnect(u->sink_input);
+    pa_sink_input_unlink(u->sink_input);
     
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;

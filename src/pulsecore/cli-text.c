@@ -97,7 +97,7 @@ char *pa_sink_list_to_string(pa_core *c) {
         [PA_SINK_RUNNING] = "RUNNING",
         [PA_SINK_SUSPENDED] = "SUSPENDED",
         [PA_SINK_IDLE] = "IDLE",
-        [PA_SINK_DISCONNECTED] = "DISCONNECTED"
+        [PA_SINK_UNLINKED] = "UNLINKED"
     };
     assert(c);
 
@@ -114,7 +114,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tis hardware: <%i>\n"
+            "\tflags: %s%s%s%s\n"
             "\tstate: %s\n"
             "\tvolume: <%s>\n"
             "\tmute: <%i>\n"
@@ -127,7 +127,10 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->index,
             sink->name,
             sink->driver,
-            !!sink->is_hardware,
+            sink->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
+            sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
+            sink->flags & PA_SINK_HARDWARE ? "HARDWARE " : "",
+            sink->flags & PA_SINK_CAN_SUSPEND ? "CAN_SUSPEND " : "",
             state_table[pa_sink_get_state(sink)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink)),
             !!pa_sink_get_mute(sink),
@@ -154,7 +157,7 @@ char *pa_source_list_to_string(pa_core *c) {
         [PA_SOURCE_RUNNING] = "RUNNING",
         [PA_SOURCE_SUSPENDED] = "SUSPENDED",
         [PA_SOURCE_IDLE] = "IDLE",
-        [PA_SOURCE_DISCONNECTED] = "DISCONNECTED"
+        [PA_SOURCE_UNLINKED] = "UNLINKED"
     };
     assert(c);
 
@@ -172,7 +175,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tis hardware: <%i>\n"
+            "\tflags: %s%s%s%s\n"
             "\tstate: %s\n"
             "\tvolume: <%s>\n"
             "\tmute: <%u>\n"
@@ -184,7 +187,10 @@ char *pa_source_list_to_string(pa_core *c) {
             source->index,
             source->name,
             source->driver,
-            !!source->is_hardware,
+            source->flags & PA_SOURCE_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
+            source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
+            source->flags & PA_SOURCE_HARDWARE ? "HARDWARE " : "",
+            source->flags & PA_SOURCE_CAN_SUSPEND ? "CAN_SUSPEND " : "",
             state_table[pa_source_get_state(source)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source)),
             !!pa_source_get_mute(source),
@@ -212,7 +218,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
     static const char* const state_table[] = {
         [PA_SOURCE_OUTPUT_RUNNING] = "RUNNING",
         [PA_SOURCE_OUTPUT_CORKED] = "CORKED",
-        [PA_SOURCE_OUTPUT_DISCONNECTED] = "DISCONNECTED"
+        [PA_SOURCE_OUTPUT_UNLINKED] = "UNLINKED"
     };
     assert(c);
 
@@ -231,6 +237,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
             "    index: %u\n"
             "\tname: '%s'\n"
             "\tdriver: <%s>\n"
+            "\tflags: %s%s\n"
             "\tstate: %s\n"
             "\tsource: <%u> '%s'\n"
             "\tlatency: <%0.0f usec>\n"
@@ -240,6 +247,8 @@ char *pa_source_output_list_to_string(pa_core *c) {
             o->index,
             o->name,
             o->driver,
+            o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE ? "VARIABLE_RATE " : "",
+            o->flags & PA_SOURCE_OUTPUT_DONT_MOVE ? "DONT_MOVE " : "",
             state_table[pa_source_output_get_state(o)],
             o->source->index, o->source->name,
             (double) pa_source_output_get_latency(o),
@@ -263,7 +272,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
         [PA_SINK_INPUT_RUNNING] = "RUNNING",
         [PA_SINK_INPUT_DRAINED] = "DRAINED",
         [PA_SINK_INPUT_CORKED] = "CORKED",
-        [PA_SINK_INPUT_DISCONNECTED] = "DISCONNECTED"
+        [PA_SINK_INPUT_UNLINKED] = "UNLINKED"
     };
 
     assert(c);
@@ -282,6 +291,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             "    index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
+            "\tflags: %s%s\n"
             "\tstate: %s\n"
             "\tsink: <%u> '%s'\n"
             "\tvolume: <%s>\n"
@@ -293,6 +303,8 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             i->index,
             i->name,
             i->driver,
+            i->flags & PA_SINK_INPUT_VARIABLE_RATE ? "VARIABLE_RATE " : "",
+            i->flags & PA_SINK_INPUT_DONT_MOVE ? "DONT_MOVE " : "",
             state_table[pa_sink_input_get_state(i)],
             i->sink->index, i->sink->name,
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_input_get_volume(i)),

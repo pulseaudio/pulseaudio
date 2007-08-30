@@ -36,13 +36,20 @@ typedef struct pa_source_output pa_source_output;
 #include <pulsecore/client.h>
 
 typedef enum pa_source_output_state {
+    PA_SOURCE_OUTPUT_INIT,
     PA_SOURCE_OUTPUT_RUNNING,
     PA_SOURCE_OUTPUT_CORKED,
-    PA_SOURCE_OUTPUT_DISCONNECTED
+    PA_SOURCE_OUTPUT_UNLINKED
 } pa_source_output_state_t;
 
+static inline int PA_SOURCE_OUTPUT_LINKED(pa_source_output_state_t x) {
+    return x == PA_SOURCE_OUTPUT_RUNNING || x == PA_SOURCE_OUTPUT_CORKED;
+}
+
 typedef enum pa_source_output_flags {
-    PA_SOURCE_OUTPUT_VARIABLE_RATE = 1
+    PA_SOURCE_OUTPUT_VARIABLE_RATE = 1,
+    PA_SOURCE_OUTPUT_DONT_MOVE = 2,
+    PA_SOURCE_OUTPUT_START_CORKED = 4
 } pa_source_output_flags_t;
 
 struct pa_source_output {
@@ -62,8 +69,37 @@ struct pa_source_output {
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
+    /* Pushes a new memchunk into the output. Called from IO thread
+     * context. */
     void (*push)(pa_source_output *o, const pa_memchunk *chunk);
+
+    /* If non-NULL this function is called in each IO event loop and
+     * can be used to do additional processing even when the device is
+     * suspended and peek() is never called. Should return 1 when
+     * "some work" has been done and the IO event loop should be
+     * reiterated immediately. Called from IO thread context. */
+    int (*process) (pa_source_output *o);           /* may be NULL */
+
+    /* If non-NULL this function is called when the output is first
+     * connected to a source. Called from IO thread context */
+    void (*attach) (pa_source_output *o);           /* may be NULL */ 
+
+    /* If non-NULL this function is called when the output is
+     * disconnected from its source. Called from IO thread context */
+    void (*detach) (pa_source_output *o);           /* may be NULL */ 
+    
+    /* If non-NULL called whenever the the source this output is attached
+     * to suspends or resumes. Called from main context */
+    void (*suspend) (pa_source_output *o, int b);   /* may be NULL */
+
+    /* Supposed to unlink and destroy this stream. Called from main
+     * context. */
     void (*kill)(pa_source_output* o);              /* may be NULL */
+
+    /* Return the current latency (i.e. length of bufferd audio) of
+    this stream. Called from main context. If NULL a
+    PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY message is sent to the IO
+    thread instead. */
     pa_usec_t (*get_latency) (pa_source_output *o); /* may be NULL */
 
     pa_resample_method_t resample_method;
@@ -102,8 +138,6 @@ typedef struct pa_source_output_new_data {
     int channel_map_is_set;
 
     pa_resample_method_t resample_method;
-
-    int start_corked;
 } pa_source_output_new_data;
 
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
@@ -119,7 +153,7 @@ pa_source_output* pa_source_output_new(
         pa_source_output_flags_t flags);
 
 void pa_source_output_put(pa_source_output *o);
-void pa_source_output_disconnect(pa_source_output*o);
+void pa_source_output_unlink(pa_source_output*o);
 
 void pa_source_output_set_name(pa_source_output *i, const char *name);
 

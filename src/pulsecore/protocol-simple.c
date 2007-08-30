@@ -110,13 +110,13 @@ static void connection_unlink(connection *c) {
         return;
     
     if (c->sink_input) {
-        pa_sink_input_disconnect(c->sink_input);
+        pa_sink_input_unlink(c->sink_input);
         pa_sink_input_unref(c->sink_input);
         c->sink_input = NULL;
     }
 
     if (c->source_output) {
-        pa_source_output_disconnect(c->source_output);
+        pa_source_output_unlink(c->source_output);
         pa_source_output_unref(c->source_output);
         c->source_output = NULL;
     }

@@ -86,7 +86,7 @@ pa_source_output* pa_source_output_new(
         data->source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE, 1);
 
     pa_return_null_if_fail(data->source);
-    pa_return_null_if_fail(pa_source_get_state(data->source) != PA_SOURCE_DISCONNECTED);
+    pa_return_null_if_fail(pa_source_get_state(data->source) != PA_SOURCE_UNLINKED);
 
     if (!data->sample_spec_is_set)
         data->sample_spec = data->source->sample_spec;
@@ -135,7 +135,7 @@ pa_source_output* pa_source_output_new(
     o->parent.process_msg = pa_source_output_process_msg;
 
     o->core = core;
-    o->state = data->start_corked ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
+    o->state = PA_SOURCE_OUTPUT_INIT;
     o->flags = flags;
     o->name = pa_xstrdup(data->name);
     o->driver = pa_xstrdup(data->driver);
@@ -148,8 +148,12 @@ pa_source_output* pa_source_output_new(
     o->channel_map = data->channel_map;
 
     o->push = NULL;
+    o->process = NULL;
     o->kill = NULL;
     o->get_latency = NULL;
+    o->detach = NULL;
+    o->attach = NULL;
+    o->suspend = NULL;
     o->userdata = NULL;
 
     o->thread_info.state = o->state;
@@ -183,11 +187,11 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
     return 0;
 }
 
-void pa_source_output_disconnect(pa_source_output*o) {
+void pa_source_output_unlink(pa_source_output*o) {
     pa_assert(o);
-    pa_return_if_fail(o->state != PA_SOURCE_OUTPUT_DISCONNECTED);
+    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
 
-    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_DISCONNECT], o);
+    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
     
     pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
 
@@ -196,14 +200,18 @@ void pa_source_output_disconnect(pa_source_output*o) {
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
 
-    source_output_set_state(o, PA_SOURCE_OUTPUT_DISCONNECTED);
+    source_output_set_state(o, PA_SOURCE_OUTPUT_UNLINKED);
     pa_source_update_status(o->source);
 
     o->push = NULL;
+    o->process = NULL;
     o->kill = NULL;
     o->get_latency = NULL;
+    o->attach = NULL;
+    o->detach = NULL;
+    o->suspend = NULL;
 
-    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_DISCONNECT_POST], o);
+    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], o);
 
     o->source = NULL;
     pa_source_output_unref(o);
@@ -214,8 +222,8 @@ static void source_output_free(pa_object* mo) {
 
     pa_assert(pa_source_output_refcnt(o) == 0);
 
-    if (o->state != PA_SOURCE_OUTPUT_DISCONNECTED)
-        pa_source_output_disconnect(o);
+    if (PA_SOURCE_LINKED(o->state))
+        pa_source_output_unlink(o);
 
     pa_log_info("Freeing output %u \"%s\"", o->index, o->name);
 
@@ -230,6 +238,11 @@ static void source_output_free(pa_object* mo) {
 void pa_source_output_put(pa_source_output *o) {
     pa_source_output_assert_ref(o);
 
+    pa_assert(o->state == PA_SOURCE_OUTPUT_INIT);
+    pa_assert(o->push);
+
+    o->thread_info.state = o->state = o->flags & PA_SOURCE_OUTPUT_START_CORKED ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
+
     pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL);
     pa_source_update_status(o->source);
 
@@ -240,7 +253,8 @@ void pa_source_output_put(pa_source_output *o) {
 
 void pa_source_output_kill(pa_source_output*o) {
     pa_source_output_assert_ref(o);
-
+    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
+    
     if (o->kill)
         o->kill(o);
 }
@@ -249,6 +263,7 @@ pa_usec_t pa_source_output_get_latency(pa_source_output *o) {
     pa_usec_t r = 0;
 
     pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
 
     if (pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY, &r, 0, NULL) < 0)
         r = 0;
@@ -264,10 +279,11 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     pa_memchunk rchunk;
 
     pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->thread_info.state));
     pa_assert(chunk);
     pa_assert(chunk->length);
 
-    if (!o->push || o->state == PA_SOURCE_OUTPUT_DISCONNECTED || o->state == PA_SOURCE_OUTPUT_CORKED)
+    if (!o->push || o->state == PA_SOURCE_OUTPUT_UNLINKED || o->state == PA_SOURCE_OUTPUT_CORKED)
         return;
 
     pa_assert(o->state == PA_SOURCE_OUTPUT_RUNNING);
@@ -288,12 +304,14 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
 
 void pa_source_output_cork(pa_source_output *o, int b) {
     pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
 
     source_output_set_state(o, b ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING);
 }
 
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
     pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
     pa_return_val_if_fail(o->thread_info.resampler, -1);
 
     if (o->sample_spec.rate == rate)
@@ -333,12 +351,16 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     pa_resampler *new_resampler = NULL;
 
     pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
     pa_source_assert_ref(dest);
     
     origin = o->source;
 
     if (dest == origin)
         return 0;
+
+    if (o->flags & PA_SOURCE_OUTPUT_DONT_MOVE)
+        return -1;
 
     if (pa_idxset_size(dest->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
         pa_log_warn("Failed to move source output: too many outputs per source.");
@@ -405,6 +427,7 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
     pa_source_output *o = PA_SOURCE_OUTPUT(mo);
 
     pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->thread_info.state));
 
     switch (code) {
 

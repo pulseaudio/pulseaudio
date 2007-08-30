@@ -39,14 +39,21 @@ typedef struct pa_sink_input pa_sink_input;
 #include <pulsecore/core.h>
 
 typedef enum pa_sink_input_state {
+    PA_SINK_INPUT_INIT,         /*< The stream is not active yet, because pa_sink_put() has not been called yet */
     PA_SINK_INPUT_DRAINED,      /*< The stream stopped playing because there was no data to play */
     PA_SINK_INPUT_RUNNING,      /*< The stream is alive and kicking */
     PA_SINK_INPUT_CORKED,       /*< The stream was corked on user request */
-    PA_SINK_INPUT_DISCONNECTED  /*< The stream is dead */
+    PA_SINK_INPUT_UNLINKED      /*< The stream is dead */
 } pa_sink_input_state_t;
+
+static inline int PA_SINK_INPUT_LINKED(pa_sink_input_state_t x) {
+    return x == PA_SINK_INPUT_DRAINED || x == PA_SINK_INPUT_RUNNING || x == PA_SINK_INPUT_CORKED;
+}
 
 typedef enum pa_sink_input_flags {
     PA_SINK_INPUT_VARIABLE_RATE = 1,
+    PA_SINK_INPUT_DONT_MOVE = 2,
+    PA_SINK_INPUT_START_CORKED = 4
 } pa_sink_input_flags_t;
 
 struct pa_sink_input {
@@ -75,11 +82,42 @@ struct pa_sink_input {
     pa_cvolume volume;
     int muted;
 
+    /* Returns the chunk of audio data (but doesn't drop it
+     * yet!). Returns -1 on failure. Called from IO thread context. */
     int (*peek) (pa_sink_input *i, pa_memchunk *chunk);
+
+    /* Drops the specified number of bytes, usually called right after
+     * peek(), but not necessarily. Called from IO thread context. */
     void (*drop) (pa_sink_input *i, size_t length);
+
+    /* If non-NULL this function is called in each IO event loop and
+     * can be used to do additional processing even when the device is
+     * suspended and peek() is never called. Should return 1 when
+     * "some work" has been done and the IO event loop should be
+     * reiterated immediately. Called from IO thread context. */
+    int (*process) (pa_sink_input *i);           /* may be NULL */
+
+    /* If non-NULL this function is called when the input is first
+     * connected to a sink. Called from IO thread context */
+    void (*attach) (pa_sink_input *i);           /* may be NULL */ 
+
+    /* If non-NULL this function is called when the output is
+     * disconnected from its sink. Called from IO thread context */
+    void (*detach) (pa_sink_input *i);           /* may be NULL */
+
+    /* If non-NULL called whenever the the sink this input is attached
+     * to suspends or resumes. Called from main context */
+    void (*suspend) (pa_sink_input *i, int b);   /* may be NULL */
+    
+    /* Supposed to unlink and destroy this stream. Called from main
+     * context. */
     void (*kill) (pa_sink_input *i);             /* may be NULL */
+
+    /* Return the current latency (i.e. length of bufferd audio) of
+    this stream. Called from main context. If NULL a
+    PA_SINK_INPUT_MESSAGE_GET_LATENCY message is sent to the IO thread
+    instead. */
     pa_usec_t (*get_latency) (pa_sink_input *i); /* may be NULL */
-    void (*underrun) (pa_sink_input *i);         /* may be NULL */
 
     pa_resample_method_t resample_method;
 
@@ -138,7 +176,6 @@ typedef struct pa_sink_input_new_data {
 
     pa_resample_method_t resample_method;
 
-    int start_corked;
     pa_sink_input *sync_base;
 } pa_sink_input_new_data;
 
@@ -156,7 +193,7 @@ pa_sink_input* pa_sink_input_new(
         pa_sink_input_flags_t flags);
 
 void pa_sink_input_put(pa_sink_input *i);
-void pa_sink_input_disconnect(pa_sink_input* i);
+void pa_sink_input_unlink(pa_sink_input* i);
 
 void pa_sink_input_set_name(pa_sink_input *i, const char *name);
 
