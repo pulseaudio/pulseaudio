@@ -137,7 +137,7 @@ void pa_fdsem_wait(pa_fdsem *f) {
         pa_atomic_sub(&f->in_pipe, r);
     }
 
-    pa_atomic_dec(&f->waiting);
+    pa_assert_se(pa_atomic_dec(&f->waiting) >= 1);
 }
 
 int pa_fdsem_try(pa_fdsem *f) {
