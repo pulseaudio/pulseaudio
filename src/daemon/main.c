@@ -604,6 +604,11 @@ int main(int argc, char *argv[]) {
     c->default_sample_spec = conf->default_sample_spec;
     c->default_n_fragments = conf->default_n_fragments;
     c->default_fragment_size_msec = conf->default_fragment_size_msec;
+    c->disallow_module_loading = conf->disallow_module_loading;
+    c->exit_idle_time = conf->exit_idle_time;
+    c->module_idle_time = conf->module_idle_time;
+    c->scache_idle_time = conf->scache_idle_time;
+    c->resample_method = conf->resample_method;
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);
@@ -634,7 +639,7 @@ int main(int argc, char *argv[]) {
         r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
         assert(r == 0);
     }
-
+    
     buf = pa_strbuf_new();
     if (conf->default_script_file)
         r = pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail);
@@ -663,12 +668,6 @@ int main(int argc, char *argv[]) {
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
 #endif
-
-        c->disallow_module_loading = conf->disallow_module_loading;
-        c->exit_idle_time = conf->exit_idle_time;
-        c->module_idle_time = conf->module_idle_time;
-        c->scache_idle_time = conf->scache_idle_time;
-        c->resample_method = conf->resample_method;
 
         if (c->default_sink_name &&
             pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK, 1) == NULL) {
