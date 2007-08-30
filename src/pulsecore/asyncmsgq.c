@@ -169,7 +169,6 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
 
 int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **userdata, int64_t *offset, pa_memchunk *chunk, int wait) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
-    pa_assert(code);
     pa_assert(!a->current);
 
     if (!(a->current = pa_asyncq_pop(a->asyncq, wait))) {
@@ -179,7 +178,8 @@ int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **u
 
 /*     pa_log("success"); */
 
-    *code = a->current->code;
+    if (code)
+        *code = a->current->code;
     if (userdata)
         *userdata = a->current->userdata;
     if (offset)
@@ -191,7 +191,7 @@ int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **u
     if (chunk)
         *chunk = a->current->memchunk;
 
-    pa_log_debug("Get q=%p object=%p (%s) code=%i data=%p chunk.length=%lu", (void*) a, (void*) a->current->object, a->current->object ? a->current->object->parent.type_name : NULL, a->current->code, (void*) a->current->userdata, (unsigned long) a->current->memchunk.length);
+/*     pa_log_debug("Get q=%p object=%p (%s) code=%i data=%p chunk.length=%lu", (void*) a, (void*) a->current->object, a->current->object ? a->current->object->parent.type_name : NULL, a->current->code, (void*) a->current->userdata, (unsigned long) a->current->memchunk.length); */
     
     return 0;
 }
