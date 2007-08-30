@@ -930,8 +930,8 @@ modlibexec_LTLIBRARIES += \
 		module-sine.la \
 		module-native-protocol-tcp.la \
 		module-native-protocol-fd.la \
-		module-esound-protocol-tcp.la
-#		module-combine.la \
+		module-esound-protocol-tcp.la \
+		module-combine.la
 #		module-tunnel-sink.la \
 #		module-tunnel-source.la \
 #		module-esound-sink.la
@@ -1192,9 +1192,9 @@ module_null_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 # Couplings
 
-#module_combine_la_SOURCES = modules/module-combine.c
-#module_combine_la_LDFLAGS = -module -avoid-version
-#module_combine_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_combine_la_SOURCES = modules/module-combine.c
+module_combine_la_LDFLAGS = -module -avoid-version
+module_combine_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
