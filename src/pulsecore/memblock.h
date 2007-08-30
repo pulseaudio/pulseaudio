@@ -107,6 +107,7 @@ manually if called from more than one thread at the same time.  */
 void pa_memblock_unref_fixed(pa_memblock*b);
 
 int pa_memblock_is_read_only(pa_memblock *b);
+int pa_memblock_ref_is_one(pa_memblock *b);
 void* pa_memblock_acquire(pa_memblock *b);
 void pa_memblock_release(pa_memblock *b);
 size_t pa_memblock_get_length(pa_memblock *b);

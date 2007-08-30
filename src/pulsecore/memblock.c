@@ -385,6 +385,18 @@ int pa_memblock_is_read_only(pa_memblock *b) {
 }
 
 /* No lock necessary */
+int pa_memblock_ref_is_one(pa_memblock *b) {
+    int r;
+    
+    pa_assert(b);
+
+    r = PA_REFCNT_VALUE(b);
+    pa_assert(r > 0);
+
+    return r == 1;
+}
+
+/* No lock necessary */
 void* pa_memblock_acquire(pa_memblock *b) {
     pa_assert(b);
     pa_assert(PA_REFCNT_VALUE(b) > 0);
