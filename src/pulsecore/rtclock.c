@@ -46,6 +46,13 @@ struct timespec *pa_timespec_store(struct timespec *a, pa_usec_t u) {
     return a;
 }
 
+struct timespec *pa_timespec_reset(struct timespec *a) {
+    pa_assert(a);
+
+    a->tv_sec = a->tv_nsec = 0;
+    return a;
+}
+
 pa_usec_t pa_timespec_load(struct timespec *ts) {
     pa_assert(ts);
     

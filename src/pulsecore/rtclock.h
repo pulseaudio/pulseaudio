@@ -37,6 +37,7 @@ pa_usec_t pa_rtclock_age(const struct timespec *tv);
 int pa_rtclock_hrtimer(void);
 
 struct timespec *pa_timespec_store(struct timespec *a, pa_usec_t u);
+struct timespec *pa_timespec_reset(struct timespec *a);
 pa_usec_t pa_timespec_load(struct timespec *tv);
 struct timespec *pa_timespec_add(struct timespec *tv, pa_usec_t t);
 pa_usec_t pa_timespec_diff(const struct timespec *a, const struct timespec *b);
