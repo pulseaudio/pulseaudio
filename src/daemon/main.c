@@ -554,7 +554,7 @@ int main(int argc, char *argv[]) {
 #endif
     }
 
-    pa_assert(chdir("/") == 0);
+    pa_assert_se(chdir("/") == 0);
     umask(0022);
 
     if (conf->system_instance) {
