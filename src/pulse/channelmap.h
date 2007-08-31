@@ -174,6 +174,9 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
 /** Return a text label for the specified channel position */
 const char* pa_channel_position_to_string(pa_channel_position_t pos);
 
+/** Return a human readable text label for the specified channel position. \since 0.9.7 */
+const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);
+
 /** The maximum length of strings returned by pa_channel_map_snprint() */
 #define PA_CHANNEL_MAP_SNPRINT_MAX 336
 
