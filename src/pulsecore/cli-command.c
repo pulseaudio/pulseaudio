@@ -1131,9 +1131,9 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
 
             if (l == sizeof(META_INCLUDE)-1 && !strncmp(cs, META_INCLUDE, l)) {
                 const char *filename = cs+l+strspn(cs+l, whitespace);
-
                 if (pa_cli_command_execute_file(c, filename, buf, fail) < 0)
-                    if (*fail) return -1;
+                    if (*fail)
+                        return -1;
             } else if (l == sizeof(META_IFEXISTS)-1 && !strncmp(cs, META_IFEXISTS, l)) {
                 if (!ifstate) {
                     pa_strbuf_printf(buf, "Meta command %s is not valid in this context\n", cs);
