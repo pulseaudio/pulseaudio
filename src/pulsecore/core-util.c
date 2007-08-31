@@ -1208,3 +1208,36 @@ char *pa_truncate_utf8(char *c, size_t l) {
     
     return c;
 }
+
+char *pa_getcwd(void) {
+    size_t l = 128;
+    
+    for (;;) {
+        char *p = pa_xnew(char, l);
+        if (getcwd(p, l))
+            return p;
+
+        if (errno != ERANGE)
+            return NULL;
+
+        pa_xfree(p);
+        l *= 2;
+    }
+}
+
+char *pa_make_path_absolute(const char *p) {
+    char *r;
+    char *cwd;
+    
+    pa_assert(p);
+
+    if (p[0] == '/')
+        return pa_xstrdup(p);
+
+    if (!(cwd = pa_getcwd()))
+        return pa_xstrdup(p);
+
+    r = pa_sprintf_malloc("%s/%s", cwd, p);
+    pa_xfree(cwd);
+    return r;
+}

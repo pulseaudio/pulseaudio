@@ -97,6 +97,9 @@ int pa_snprintf(char *str, size_t size, const char *format, ...);
 
 char *pa_truncate_utf8(char *c, size_t l);
 
+char *pa_getcwd(void);
+char *pa_make_path_absolute(const char *p);
+
 static inline int pa_is_power_of_two(unsigned n) {
     return !(n & (n - 1));
 }
