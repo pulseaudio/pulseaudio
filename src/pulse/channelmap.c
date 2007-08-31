@@ -90,13 +90,76 @@ const char *const table[] = {
 
     [PA_CHANNEL_POSITION_TOP_CENTER] = "top-center",
 
+    [PA_CHANNEL_POSITION_TOP_FRONT_CENTER] = "top-front-center",
     [PA_CHANNEL_POSITION_TOP_FRONT_LEFT] = "top-front-left",
     [PA_CHANNEL_POSITION_TOP_FRONT_RIGHT] = "top-front-right",
-    [PA_CHANNEL_POSITION_TOP_FRONT_CENTER] = "top-front-center",
 
+    [PA_CHANNEL_POSITION_TOP_REAR_CENTER] = "top-rear-center",
     [PA_CHANNEL_POSITION_TOP_REAR_LEFT] = "top-rear-left",
-    [PA_CHANNEL_POSITION_TOP_REAR_RIGHT] = "top-rear-right",
-    [PA_CHANNEL_POSITION_TOP_REAR_CENTER] = "top-rear-center"
+    [PA_CHANNEL_POSITION_TOP_REAR_RIGHT] = "top-rear-right"
+};
+
+const char *const pretty_table[] = {
+    [PA_CHANNEL_POSITION_MONO] = "Mono",
+
+    [PA_CHANNEL_POSITION_FRONT_CENTER] = "Front Center",
+    [PA_CHANNEL_POSITION_FRONT_LEFT] = "Front Left",
+    [PA_CHANNEL_POSITION_FRONT_RIGHT] = "Front Right",
+
+    [PA_CHANNEL_POSITION_REAR_CENTER] = "Rear Center",
+    [PA_CHANNEL_POSITION_REAR_LEFT] = "Rear Left",
+    [PA_CHANNEL_POSITION_REAR_RIGHT] = "Rear Right",
+
+    [PA_CHANNEL_POSITION_LFE] = "Low Frequency Emmiter",
+
+    [PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER] = "Front Left-of-center",
+    [PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER] = "Front Right-of-center",
+
+    [PA_CHANNEL_POSITION_SIDE_LEFT] = "Side Left",
+    [PA_CHANNEL_POSITION_SIDE_RIGHT] = "Side Right",
+
+    [PA_CHANNEL_POSITION_AUX0] = "Auxiliary 0",
+    [PA_CHANNEL_POSITION_AUX1] = "Auxiliary 1",
+    [PA_CHANNEL_POSITION_AUX2] = "Auxiliary 2",
+    [PA_CHANNEL_POSITION_AUX3] = "Auxiliary 3",
+    [PA_CHANNEL_POSITION_AUX4] = "Auxiliary 4",
+    [PA_CHANNEL_POSITION_AUX5] = "Auxiliary 5",
+    [PA_CHANNEL_POSITION_AUX6] = "Auxiliary 6",
+    [PA_CHANNEL_POSITION_AUX7] = "Auxiliary 7",
+    [PA_CHANNEL_POSITION_AUX8] = "Auxiliary 8",
+    [PA_CHANNEL_POSITION_AUX9] = "Auxiliary 9",
+    [PA_CHANNEL_POSITION_AUX10] = "Auxiliary 10",
+    [PA_CHANNEL_POSITION_AUX11] = "Auxiliary 11",
+    [PA_CHANNEL_POSITION_AUX12] = "Auxiliary 12",
+    [PA_CHANNEL_POSITION_AUX13] = "Auxiliary 13",
+    [PA_CHANNEL_POSITION_AUX14] = "Auxiliary 14",
+    [PA_CHANNEL_POSITION_AUX15] = "Auxiliary 15",
+    [PA_CHANNEL_POSITION_AUX16] = "Auxiliary 16",
+    [PA_CHANNEL_POSITION_AUX17] = "Auxiliary 17",
+    [PA_CHANNEL_POSITION_AUX18] = "Auxiliary 18",
+    [PA_CHANNEL_POSITION_AUX19] = "Auxiliary 19",
+    [PA_CHANNEL_POSITION_AUX20] = "Auxiliary 20",
+    [PA_CHANNEL_POSITION_AUX21] = "Auxiliary 21",
+    [PA_CHANNEL_POSITION_AUX22] = "Auxiliary 22",
+    [PA_CHANNEL_POSITION_AUX23] = "Auxiliary 23",
+    [PA_CHANNEL_POSITION_AUX24] = "Auxiliary 24",
+    [PA_CHANNEL_POSITION_AUX25] = "Auxiliary 25",
+    [PA_CHANNEL_POSITION_AUX26] = "Auxiliary 26",
+    [PA_CHANNEL_POSITION_AUX27] = "Auxiliary 27",
+    [PA_CHANNEL_POSITION_AUX28] = "Auxiliary 28",
+    [PA_CHANNEL_POSITION_AUX29] = "Auxiliary 29",
+    [PA_CHANNEL_POSITION_AUX30] = "Auxiliary 30",
+    [PA_CHANNEL_POSITION_AUX31] = "Auxiliary 31",
+
+    [PA_CHANNEL_POSITION_TOP_CENTER] = "Top Center",
+
+    [PA_CHANNEL_POSITION_TOP_FRONT_CENTER] = "Top Front Center",
+    [PA_CHANNEL_POSITION_TOP_FRONT_LEFT] = "Top Front Left",
+    [PA_CHANNEL_POSITION_TOP_FRONT_RIGHT] = "Top Front Right",
+
+    [PA_CHANNEL_POSITION_TOP_REAR_CENTER] = "Top Rear Center",
+    [PA_CHANNEL_POSITION_TOP_REAR_LEFT] = "Top Rear left",
+    [PA_CHANNEL_POSITION_TOP_REAR_RIGHT] = "Top Rear Right"
 };
 
 pa_channel_map* pa_channel_map_init(pa_channel_map *m) {
@@ -340,6 +403,13 @@ const char* pa_channel_position_to_string(pa_channel_position_t pos) {
         return NULL;
 
     return table[pos];
+}
+
+const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos) {
+    if (pos < 0 || pos >= PA_CHANNEL_POSITION_MAX)
+        return NULL;
+
+    return pretty_table[pos];
 }
 
 int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b) {
