@@ -462,9 +462,12 @@ static int suspend(struct userdata *u) {
     /* Let's suspend by unlinking all streams */
     
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
-        pa_sink_input_unlink(o->sink_input);
-        pa_sink_input_unref(o->sink_input);
-        o->sink_input = NULL;
+
+        if (o->sink_input) {
+            pa_sink_input_unlink(o->sink_input);
+            pa_sink_input_unref(o->sink_input);
+            o->sink_input = NULL;
+        }
     }
 
     if (pick_master(u) < 0)
@@ -484,11 +487,15 @@ static int unsuspend(struct userdata *u) {
     /* Let's resume */
     
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
-            
-        if (output_create_sink_input(u, o) < 0)
-            output_free(o);
-        else
-            pa_sink_input_put(o->sink_input);
+
+        pa_sink_suspend(o->sink, 0);
+        
+        if (PA_SINK_OPENED(pa_sink_get_state(o->sink))) {
+            if (output_create_sink_input(u, o) < 0)
+                output_free(o);
+            else
+                pa_sink_input_put(o->sink_input);
+        }
     }
 
     if (pick_master(u) < 0)
@@ -765,7 +772,8 @@ static int output_create_sink_input(struct userdata *u, struct output *o) {
     pa_sink_input_new_data_set_sample_spec(&data, &u->sink->sample_spec);
     pa_sink_input_new_data_set_channel_map(&data, &u->sink->channel_map);
     data.module = u->module;
-
+    data.resample_method = u->resample_method;
+    
     o->sink_input = pa_sink_input_new(u->core, &data, PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE);
 
     pa_xfree(t);
@@ -785,7 +793,7 @@ static int output_create_sink_input(struct userdata *u, struct output *o) {
     return 0;
 }
 
-static struct output *output_new(struct userdata *u, pa_sink *sink, int resample_method) {
+static struct output *output_new(struct userdata *u, pa_sink *sink) {
     struct output *o;
 
     pa_assert(u);
@@ -808,17 +816,22 @@ static struct output *output_new(struct userdata *u, pa_sink *sink, int resample
             NULL);
 
 
+    pa_assert_se(pa_idxset_put(u->outputs, o, NULL) == 0);
+
     update_description(u);
 
-    pa_assert_se(pa_idxset_put(u->outputs, o, NULL) == 0);
     if (u->sink && PA_SINK_LINKED(pa_sink_get_state(u->sink)))
         pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_ADD_OUTPUT, o, 0, NULL);
     else
         PA_LLIST_PREPEND(struct output, u->thread_info.outputs, o);
 
-    if (PA_SINK_OPENED(pa_sink_get_state(sink)))
-        if (output_create_sink_input(u, o) < 0)
-            goto fail;
+    if (PA_SINK_OPENED(pa_sink_get_state(u->sink)) || pa_sink_get_state(u->sink) == PA_SINK_INIT) {
+        pa_sink_suspend(sink, 0);
+    
+        if (PA_SINK_OPENED(pa_sink_get_state(sink)))
+            if (output_create_sink_input(u, o) < 0)
+                goto fail;
+    }
 
     return o;
 
@@ -855,7 +868,7 @@ static pa_hook_result_t sink_new_hook_cb(pa_core *c, pa_sink *s, struct userdata
 
     pa_log_info("Configuring new sink: %s", s->name);
     
-    if (!(o = output_new(u, s, u->resample_method))) {
+    if (!(o = output_new(u, s))) {
         pa_log("Failed to create sink input on sink '%s'.", s->name);
         return PA_HOOK_OK;
     }
@@ -914,7 +927,7 @@ static pa_hook_result_t sink_state_changed_hook_cb(pa_core *c, pa_sink *s, struc
 
     state = pa_sink_get_state(s);
     
-    if (PA_SINK_OPENED(state) && !o->sink_input) {
+    if (PA_SINK_OPENED(state) && PA_SINK_OPENED(pa_sink_get_state(u->sink)) && !o->sink_input) {
         output_create_sink_input(u, o);
 
         if (pick_master(u) < 0)
@@ -943,7 +956,7 @@ int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     const char *master_name, *slaves, *rm;
     pa_sink *master_sink = NULL;
-    int resample_method = -1;
+    int resample_method = PA_RESAMPLER_TRIVIAL;
     pa_sample_spec ss;
     pa_channel_map map;
     struct output *o;
@@ -1051,7 +1064,7 @@ int pa__init(pa_module*m) {
 
         /* The master and slaves have been specified manually */
         
-        if (!(u->master = output_new(u, master_sink, resample_method))) {
+        if (!(u->master = output_new(u, master_sink))) {
             pa_log("Failed to create master sink input on sink '%s'.", master_sink->name);
             goto fail;
         }
@@ -1068,7 +1081,7 @@ int pa__init(pa_module*m) {
             
             pa_xfree(n);
             
-            if (!output_new(u, slave_sink, resample_method)) {
+            if (!output_new(u, slave_sink)) {
                 pa_log("Failed to create slave sink input on sink '%s'.", slave_sink->name);
                 goto fail;
             }
@@ -1090,7 +1103,7 @@ int pa__init(pa_module*m) {
             if (!(s->flags & PA_SINK_HARDWARE) || s == u->sink)
                 continue;
 
-            if (!output_new(u, s, resample_method)) {
+            if (!output_new(u, s)) {
                 pa_log("Failed to create sink input on sink '%s'.", s->name);
                 goto fail;
             }
@@ -1104,12 +1117,14 @@ int pa__init(pa_module*m) {
     
     if (pick_master(u) < 0)
         goto fail;
-
+    
     /* Activate the sink and the sink inputs */
     pa_sink_put(u->sink);
-    for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx))
-        pa_sink_input_put(o->sink_input);
     
+    for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx))
+        if (o->sink_input)
+            pa_sink_input_put(o->sink_input);
+
     if (u->adjust_time > 0) {
         struct timeval tv;
         pa_gettimeofday(&tv);
