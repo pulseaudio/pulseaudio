@@ -199,9 +199,12 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                 break;
 
             case ARG_FILE:
-            case 'F':
-                pa_strbuf_printf(buf, ".include %s\n", optarg);
+            case 'F': {
+                char *p;
+                pa_strbuf_printf(buf, ".include %s\n", p = pa_make_path_absolute(optarg));
+                pa_xfree(p);
                 break;
+            }
 
             case 'C':
                 pa_strbuf_puts(buf, "load-module module-cli exit_on_eof=1\n");
