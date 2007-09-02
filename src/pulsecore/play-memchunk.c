@@ -155,6 +155,8 @@ int pa_play_memchunk(
     if (volume && pa_cvolume_is_muted(volume))
         return 0;
 
+    pa_memchunk_will_need(chunk);
+
     u = pa_msgobject_new(memchunk_stream);
     u->parent.parent.free = memchunk_stream_free;
     u->parent.process_msg = memchunk_stream_process_msg;
