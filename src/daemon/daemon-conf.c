@@ -86,13 +86,13 @@ static const pa_daemon_conf default_conf = {
     .rlimit_core = { .value = 0, .is_set = 0 },
     .rlimit_data = { .value = 0, .is_set = 0 },
     .rlimit_fsize = { .value = 0, .is_set = 0 },
-    .rlimit_nofile = { .value = 200, .is_set = 1 },
+    .rlimit_nofile = { .value = 256, .is_set = 1 },
     .rlimit_stack = { .value = 0, .is_set = 0 }
 #ifdef RLIMIT_NPROC
     , .rlimit_nproc = { .value = 0, .is_set = 0 }
 #endif
 #ifdef RLIMIT_MEMLOCK
-    , .rlimit_memlock = { .value = 0, .is_set = 1 }
+    , .rlimit_memlock = { .value = 16384, .is_set = 1 }
 #endif
 #endif
 };

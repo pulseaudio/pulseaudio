@@ -92,10 +92,10 @@
 ; rlimit-core = -1
 ; rlimit-data = -1
 ; rlimit-fsize = -1
-; rlimit-nofile = 200
+; rlimit-nofile = 256
 ; rlimit-stack = -1
 ; rlimit-nproc = -1
-; rlimit-memlock = 25
+; rlimit-memlock = 16384
 
 ## Disable shared memory data transfer 
 ; disable-shm = 0
