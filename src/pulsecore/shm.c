@@ -43,6 +43,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/random.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 #include <pulse/xmalloc.h>
 
 #include "shm.h"
@@ -80,7 +81,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
         {
             int r;
 
-            if ((r = posix_memalign(&m->ptr, sysconf(_SC_PAGESIZE), size)) < 0) {
+            if ((r = posix_memalign(&m->ptr, PA_PAGE_SIZE, size)) < 0) {
                 pa_log("posix_memalign() failed: %s", pa_cstrerror(r));
                 goto fail;
             }
@@ -140,42 +141,43 @@ void pa_shm_free(pa_shm *m) {
     assert(m->size > 0);
 
 #ifdef MAP_FAILED
-        assert(m->ptr != MAP_FAILED);
+    assert(m->ptr != MAP_FAILED);
 #endif
-
-        if (!m->shared) {
+    
+    if (!m->shared) {
 #ifdef MAP_ANONYMOUS
-            if (munmap(m->ptr, m->size) < 0)
-                pa_log("munmap() failed: %s", pa_cstrerror(errno));
+        if (munmap(m->ptr, m->size) < 0)
+            pa_log("munmap() failed: %s", pa_cstrerror(errno));
 #elif defined(HAVE_POSIX_MEMALIGN)
         free(m->ptr);
 #else
         pa_xfree(m->ptr);
 #endif
-        } else {
+    } else {
 #ifdef HAVE_SHM_OPEN
-            if (munmap(m->ptr, m->size) < 0)
-                pa_log("munmap() failed: %s", pa_cstrerror(errno));
-
-            if (m->do_unlink) {
-                    char fn[32];
-
-                    segment_name(fn, sizeof(fn), m->id);
-
-                    if (shm_unlink(fn) < 0)
-                        pa_log(" shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
-            }
-#else
-                /* We shouldn't be here without shm support */
-                assert(0);
-#endif
+        if (munmap(m->ptr, m->size) < 0)
+            pa_log("munmap() failed: %s", pa_cstrerror(errno));
+        
+        if (m->do_unlink) {
+            char fn[32];
+            
+            segment_name(fn, sizeof(fn), m->id);
+            
+            if (shm_unlink(fn) < 0)
+                pa_log(" shm_unlink(%s) failed: %s", fn, pa_cstrerror(errno));
         }
+#else
+        /* We shouldn't be here without shm support */
+        pa_assert_not_reached();
+#endif
+    }
 
     memset(m, 0, sizeof(*m));
 }
 
 void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     void *ptr;
+    size_t o, ps;
 
     assert(m);
     assert(m->ptr);
@@ -183,28 +185,21 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     assert(offset+size <= m->size);
 
 #ifdef MAP_FAILED
-        assert(m->ptr != MAP_FAILED);
+    assert(m->ptr != MAP_FAILED);
 #endif
 
     /* You're welcome to implement this as NOOP on systems that don't
      * support it */
 
+    /* Align this to multiples of the page size */
     ptr = (uint8_t*) m->ptr + offset;
-
-#ifdef __linux__
-{
-    /* On Linux ptr must be page aligned */
-    long psz = sysconf(_SC_PAGESIZE);
-    unsigned o;
-
-    o = ((unsigned long) ptr) - ((((unsigned long) ptr)/psz) * psz);
-
+    o = (uint8_t*) ptr - (uint8_t*) PA_PAGE_ALIGN_PTR(ptr);
+    
     if (o > 0) {
-        ptr = (uint8_t*) ptr + (psz - o);
-        size -= psz - o;
+        ps = PA_PAGE_SIZE;
+        ptr = (uint8_t*) ptr + (ps - o);
+        size -= ps - o;
     }
-}
-#endif
 
 #ifdef MADV_REMOVE
     if (madvise(ptr, size, MADV_REMOVE) >= 0)
@@ -217,7 +212,9 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
 #endif
 
 #ifdef MADV_DONTNEED
-    madvise(ptr, size, MADV_DONTNEED);
+    pa_assert_se(madvise(ptr, size, MADV_DONTNEED) == 0);
+#elif defined(POSIX_MADV_DONTNEED)
+    pa_assert_se(posix_madvise(ptr, size, POSIX_MADV_DONTNEED) == 0);
 #endif
 }
 
