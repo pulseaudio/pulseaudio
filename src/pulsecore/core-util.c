@@ -78,7 +78,9 @@
 #include <grp.h>
 #endif
 
+#ifdef HAVE_LIBSAMPLERATE
 #include <samplerate.h>
+#endif
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>

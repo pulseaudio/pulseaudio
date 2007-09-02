@@ -27,7 +27,9 @@
 
 #include <string.h>
 
+#if HAVE_LIBSAMPLERATE
 #include <samplerate.h>
+#endif 
 
 #include <liboil/liboilfuncs.h>
 #include <liboil/liboil.h>
@@ -70,9 +72,11 @@ struct pa_resampler {
         unsigned i_counter;
     } trivial;
 
+#ifdef HAVE_LIBSAMPLERATE
     struct { /* data specific to libsamplerate */
         SRC_STATE *state;
     } src;
+#endif
 
     struct { /* data specific to speex */
         SpeexResamplerState* state;
@@ -84,7 +88,6 @@ struct pa_resampler {
     } ffmpeg;
 };
 
-static int libsamplerate_init(pa_resampler*r);
 static int trivial_init(pa_resampler*r);
 static int speex_init(pa_resampler*r);
 static int ffmpeg_init(pa_resampler*r);
@@ -92,11 +95,19 @@ static int ffmpeg_init(pa_resampler*r);
 static void calc_map_table(pa_resampler *r);
 
 static int (* const init_table[])(pa_resampler*r) = {
+#ifdef HAVE_LIBSAMPLERATE
     [PA_RESAMPLER_SRC_SINC_BEST_QUALITY]   = libsamplerate_init,
     [PA_RESAMPLER_SRC_SINC_MEDIUM_QUALITY] = libsamplerate_init,
     [PA_RESAMPLER_SRC_SINC_FASTEST]        = libsamplerate_init,
     [PA_RESAMPLER_SRC_ZERO_ORDER_HOLD]     = libsamplerate_init,
     [PA_RESAMPLER_SRC_LINEAR]              = libsamplerate_init,
+#else
+    [PA_RESAMPLER_SRC_SINC_BEST_QUALITY]   = NULL,
+    [PA_RESAMPLER_SRC_SINC_MEDIUM_QUALITY] = NULL,
+    [PA_RESAMPLER_SRC_SINC_FASTEST]        = NULL,
+    [PA_RESAMPLER_SRC_ZERO_ORDER_HOLD]     = NULL,
+    [PA_RESAMPLER_SRC_LINEAR]              = NULL,
+#endif    
     [PA_RESAMPLER_TRIVIAL]                 = trivial_init,
     [PA_RESAMPLER_SPEEX_FLOAT_BASE+0]      = speex_init,
     [PA_RESAMPLER_SPEEX_FLOAT_BASE+1]      = speex_init,
@@ -622,6 +633,7 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
 
 /*** libsamplerate based implementation ***/
 
+#ifdef HAVE_LIBSAMPLERATE
 static void libsamplerate_resample(pa_resampler *r, const pa_memchunk *input, unsigned in_n_frames, pa_memchunk *output, unsigned *out_n_frames) {
     SRC_DATA data;
     
@@ -677,6 +689,7 @@ static int libsamplerate_init(pa_resampler *r) {
 
     return 0;
 }
+#endif
 
 /*** speex based implementation ***/
 

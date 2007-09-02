@@ -24,8 +24,6 @@
   USA.
 ***/
 
-#include <samplerate.h>
-
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulsecore/memblock.h>
@@ -35,11 +33,11 @@ typedef struct pa_resampler pa_resampler;
 
 typedef enum pa_resample_method {
     PA_RESAMPLER_INVALID                 = -1,
-    PA_RESAMPLER_SRC_SINC_BEST_QUALITY   = SRC_SINC_BEST_QUALITY,
-    PA_RESAMPLER_SRC_SINC_MEDIUM_QUALITY = SRC_SINC_MEDIUM_QUALITY,
-    PA_RESAMPLER_SRC_SINC_FASTEST        = SRC_SINC_FASTEST,
-    PA_RESAMPLER_SRC_ZERO_ORDER_HOLD     = SRC_ZERO_ORDER_HOLD,
-    PA_RESAMPLER_SRC_LINEAR              = SRC_LINEAR,
+    PA_RESAMPLER_SRC_SINC_BEST_QUALITY   = 0, /* = SRC_SINC_BEST_QUALITY */
+    PA_RESAMPLER_SRC_SINC_MEDIUM_QUALITY = 1, /* = SRC_SINC_MEDIUM_QUALITY */
+    PA_RESAMPLER_SRC_SINC_FASTEST        = 2, /* = SRC_SINC_FASTEST */
+    PA_RESAMPLER_SRC_ZERO_ORDER_HOLD     = 3, /* = SRC_ZERO_ORDER_HOLD */
+    PA_RESAMPLER_SRC_LINEAR              = 4, /* = SRC_LINEAR */
     PA_RESAMPLER_TRIVIAL,
     PA_RESAMPLER_SPEEX_FLOAT_BASE,
     PA_RESAMPLER_SPEEX_FLOAT_MAX = PA_RESAMPLER_SPEEX_FLOAT_BASE + 10,
