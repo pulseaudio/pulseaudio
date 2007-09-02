@@ -29,8 +29,11 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <errno.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 
 #include "memchunk.h"
 
@@ -69,6 +72,22 @@ pa_memchunk* pa_memchunk_reset(pa_memchunk *c) {
 
     c->memblock = NULL;
     c->length = c->index = 0;
+
+    return c;
+}
+
+pa_memchunk *pa_memchunk_will_need(pa_memchunk *c) {
+    void *p;
+
+    pa_assert(c);
+    pa_assert(c->memblock);
+
+    /* A version of pa_memblock_will_need() that works on memchunks
+     * instead of memblocks */
+
+    p = (uint8_t*) pa_memblock_acquire(c->memblock) + c->index;
+    pa_will_need(p, c->length);
+    pa_memblock_release(c->memblock);
 
     return c;
 }

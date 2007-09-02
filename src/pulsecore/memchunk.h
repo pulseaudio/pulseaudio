@@ -44,4 +44,7 @@ pa_memchunk* pa_memchunk_make_writable(pa_memchunk *c, size_t min);
  * but sets all members to zero. */
 pa_memchunk* pa_memchunk_reset(pa_memchunk *c);
 
+/* Map a memory chunk back into memory if it was swapped out */
+pa_memchunk *pa_memchunk_will_need(pa_memchunk *c);
+
 #endif
