@@ -76,7 +76,7 @@ pa_memchunk* pa_memchunk_reset(pa_memchunk *c) {
     return c;
 }
 
-pa_memchunk *pa_memchunk_will_need(pa_memchunk *c) {
+pa_memchunk *pa_memchunk_will_need(const pa_memchunk *c) {
     void *p;
 
     pa_assert(c);
@@ -89,5 +89,5 @@ pa_memchunk *pa_memchunk_will_need(pa_memchunk *c) {
     pa_will_need(p, c->length);
     pa_memblock_release(c->memblock);
 
-    return c;
+    return (pa_memchunk*) c;
 }
