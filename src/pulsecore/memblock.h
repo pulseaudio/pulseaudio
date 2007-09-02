@@ -113,6 +113,8 @@ void pa_memblock_release(pa_memblock *b);
 size_t pa_memblock_get_length(pa_memblock *b);
 pa_mempool * pa_memblock_get_pool(pa_memblock *b);
 
+pa_memblock *pa_memblock_will_need(pa_memblock *b);
+
 /* The memory block manager */
 pa_mempool* pa_mempool_new(int shared);
 void pa_mempool_free(pa_mempool *p);

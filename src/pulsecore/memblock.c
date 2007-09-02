@@ -32,6 +32,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/def.h>
@@ -42,6 +43,7 @@
 #include <pulsecore/semaphore.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/flist.h>
+#include <pulsecore/core-util.h>
 
 #include "memblock.h"
 
@@ -596,6 +598,20 @@ void pa_memblock_unref_fixed(pa_memblock *b) {
     pa_memblock_unref(b);
 }
 
+/* No lock necessary. */
+pa_memblock *pa_memblock_will_need(pa_memblock *b) {
+    void *p;
+    
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
+
+    p = pa_memblock_acquire(b);
+    pa_will_need(p, b->length);
+    pa_memblock_release(b);
+
+    return b;
+}
+
 /* Self-locked. This function is not multiple-caller safe */
 static void memblock_replace_import(pa_memblock *b) {
     pa_memimport_segment *seg;
@@ -628,7 +644,6 @@ static void memblock_replace_import(pa_memblock *b) {
 }
 
 pa_mempool* pa_mempool_new(int shared) {
-    size_t ps;
     pa_mempool *p;
 
     p = pa_xnew(pa_mempool, 1);
@@ -636,18 +651,9 @@ pa_mempool* pa_mempool_new(int shared) {
     p->mutex = pa_mutex_new(1);
     p->semaphore = pa_semaphore_new(0);
 
-#ifdef HAVE_SYSCONF
-    ps = (size_t) sysconf(_SC_PAGESIZE);
-#elif defined(PAGE_SIZE)
-    ps = (size_t) PAGE_SIZE;
-#else
-    ps = 4096; /* Let's hope it's like x86. */
-#endif
-
-    p->block_size = (PA_MEMPOOL_SLOT_SIZE/ps)*ps;
-
-    if (p->block_size < ps)
-        p->block_size = ps;
+    p->block_size = PA_PAGE_ALIGN(PA_MEMPOOL_SLOT_SIZE);
+    if (p->block_size < PA_PAGE_SIZE)
+        p->block_size = PA_PAGE_SIZE;
 
     p->n_blocks = PA_MEMPOOL_SLOTS_MAX;
 
