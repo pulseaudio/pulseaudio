@@ -323,12 +323,6 @@ fi
 
 PKG_PROG_PKG_CONFIG
 
-#### Sample rate conversion ####
-
-PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ])
-AC_SUBST(LIBSAMPLERATE_CFLAGS)
-AC_SUBST(LIBSAMPLERATE_LIBS)
-
 #### Sound file ####
 
 PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.10 ])
@@ -345,6 +339,37 @@ AC_MSG_ERROR([*** libatomic-ops headers not found])
 if test "x$os_is_win32" != "x1" ; then
     LIBS="$LIBS -latomic_ops"
 fi
+
+#### Libsamplerate support (optional) ####
+
+AC_ARG_ENABLE([samplerate], 
+    AC_HELP_STRING([--disable-samplerate], [Disable optional libsamplerate support]), 
+        [
+            case "${enableval}" in
+                yes) samplerate=yes ;;
+                no) samplerate=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-samplerate) ;;
+            esac
+        ],
+        [samplerate=auto])
+
+if test "x${samplerate}" != xno ; then
+    PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ],
+        HAVE_LIBSAMPLERATE=1,
+        [
+            HAVE_LIBSAMPLERATE=0
+            if test "x$samplerate" = xyes ; then
+                AC_MSG_ERROR([*** Libsamplerate not found])
+            fi
+        ])
+else
+    HAVE_LIBSAMPLERATE=0
+fi
+
+AC_SUBST(LIBSAMPLERATE_CFLAGS)
+AC_SUBST(LIBSAMPLERATE_LIBS)
+AC_SUBST(HAVE_LIBSAMPLERATE)
+AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
 
 #### OSS support (optional) ####
 
@@ -844,6 +869,11 @@ if test "x${LIBWRAP_LIBS}" != x ; then
    ENABLE_TCPWRAP=yes
 fi
 
+ENABLE_LIBSAMPLERATE=no
+if test "x${HAVE_LIBSAMPLERATE}" = "x1" ; then
+   ENABLE_LIBSAMPLERATE=yes
+fi
+
 echo "
  ---{ $PACKAGE_NAME $VERSION }---
 
@@ -865,6 +895,7 @@ echo "
     Enable LIRC:            ${ENABLE_LIRC}
     Enable HAL:             ${ENABLE_HAL}
     Enable TCP Wrappers:    ${ENABLE_TCPWRAP}
+    Enable libsamplerate:   ${ENABLE_LIBSAMPLERATE}
     System User:            ${PA_SYSTEM_USER}
     System Group:           ${PA_SYSTEM_GROUP}
     Realtime Group:         ${PA_REALTIME_GROUP}
