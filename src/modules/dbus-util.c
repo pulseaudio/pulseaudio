@@ -96,7 +96,7 @@ static void handle_io_event(PA_GCC_UNUSED pa_mainloop_api *ea, pa_io_event *e, i
     unsigned int flags = 0;
     DBusWatch *watch = userdata;
 
-#if (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MINOR == 1 && DBUS_VERSION_MICRO >= 1) || (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MAJOR > 1) || (DBUS_VERSION_MAJOR > 1) 
+#if (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MINOR == 1 && DBUS_VERSION_MICRO >= 1) || (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MINOR > 1) || (DBUS_VERSION_MAJOR > 1) 
     pa_assert(fd == dbus_watch_get_unix_fd(watch));
 #else
     pa_assert(fd == dbus_watch_get_fd(watch));
