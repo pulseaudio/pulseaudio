@@ -25,14 +25,38 @@
 ***/
 
 #include <sys/types.h>
+#include <unistd.h>
 #include <assert.h>
+#include <limits.h>
+#include <unistd.h>  
+
 #include <pulsecore/log.h>
+
+#if defined(PAGE_SIZE)
+#define PA_PAGE_SIZE ((size_t) PAGE_SIZE)
+#elif defined(PAGESIZE)
+#define PA_PAGE_SIZE ((size_t) PAGESIZE)
+#elif defined(HAVE_SYSCONF)
+#define PA_PAGE_SIZE ((size_t) (sysconf(_SC_PAGE_SIZE)))
+#else
+/* Let's hope it's like x86. */
+#define PA_PAGE_SIZE ((size_t) 4096)
+#endif
 
 static inline size_t pa_align(size_t l) {
     return (((l + sizeof(void*) - 1) / sizeof(void*)) * sizeof(void*));
 }
-
 #define PA_ALIGN(x) (pa_align(x))
+
+static inline void* pa_page_align_ptr(const void *p) {
+    return (void*) (((size_t) p) & ~(PA_PAGE_SIZE-1));
+}
+#define PA_PAGE_ALIGN_PTR(x) (pa_page_align_ptr(x))
+
+static inline size_t pa_page_align(size_t l) {
+    return l & ~(PA_PAGE_SIZE-1);
+}
+#define PA_PAGE_ALIGN(x) (pa_page_align(x))
 
 #define PA_ELEMENTSOF(x) (sizeof(x)/sizeof((x)[0]))
 
