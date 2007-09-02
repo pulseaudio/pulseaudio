@@ -54,6 +54,10 @@
 #include <sys/capability.h>
 #endif
 
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
+#endif
+
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
@@ -1240,4 +1244,70 @@ char *pa_make_path_absolute(const char *p) {
     r = pa_sprintf_malloc("%s/%s", cwd, p);
     pa_xfree(cwd);
     return r;
+}
+
+void *pa_will_need(const void *p, size_t l) {
+#ifdef RLIMIT_MEMLOCK
+    struct rlimit rlim;
+#endif
+    const void *a;
+    size_t size;
+    int r;
+    size_t bs;
+    
+    pa_assert(p);
+    pa_assert(l > 0);
+
+    a = PA_PAGE_ALIGN_PTR(p);
+    size = (const uint8_t*) p + l - (const uint8_t*) a;
+    
+    if ((r = posix_madvise((void*) a, size, POSIX_MADV_WILLNEED)) == 0) {
+        pa_log_debug("posix_madvise() worked fine!");
+        return (void*) p;
+    }
+    
+    /* Most likely the memory was not mmap()ed from a file and thus
+     * madvise() didn't work, so let's misuse mlock() do page this
+     * stuff back into RAM. Yeah, let's fuck with the MM!  It's so
+     * inviting, the man page of mlock() tells us: "All pages that
+     * contain a part of the specified address range are guaranteed to
+     * be resident in RAM when the call returns successfully." */
+        
+#ifdef RLIMIT_MEMLOCK
+    pa_assert_se(getrlimit(RLIMIT_MEMLOCK, &rlim) == 0);
+    
+    if (rlim.rlim_cur < PA_PAGE_SIZE) {
+        pa_log_debug("posix_madvise() failed, resource limits don't allow mlock(), can't page in data: %s", pa_cstrerror(r));
+        return (void*) p;
+    }
+    
+    bs = PA_PAGE_ALIGN(rlim.rlim_cur);
+#else
+    bs = PA_PAGE_SIZE*4;
+#endif
+        
+    pa_log_debug("posix_madvise() failed, trying mlock(): %s", pa_cstrerror(r));
+
+    while (size > 0 && bs > 0) {
+
+        if (bs > size)
+            bs = size;
+        
+        if (mlock(a, bs) < 0) {
+            bs = PA_PAGE_ALIGN(bs / 2);
+            continue;
+        }
+
+        pa_assert_se(munlock(a, bs) == 0);
+
+        a = (const uint8_t*) a + bs;
+        size -= bs;
+    }
+
+    if (bs <= 0)
+        pa_log_debug("mlock() failed too, giving up: %s", pa_cstrerror(errno));
+    else
+        pa_log_debug("mlock() worked fine!");
+
+    return (void*) p;
 }
