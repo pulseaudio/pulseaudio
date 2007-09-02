@@ -602,7 +602,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->memchunk.length = 0;
 
     /* We use this to get a reasonable chunk size */
-    u->page_size = sysconf(_SC_PAGESIZE);
+    u->page_size = PA_PAGE_SIZE;
 
     u->frame_size = pa_frame_size(&ss);
     u->buffer_size = buffer_size;
