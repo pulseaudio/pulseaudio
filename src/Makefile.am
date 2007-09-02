@@ -574,8 +574,8 @@ libffmpeg_resampler_la_SOURCES = pulsecore/ffmpeg/resample2.c
 #      Daemon core library        #
 ###################################
 
-
-pulsecoreinclude_HEADERS = \
+#pulsecoreinclude_HEADERS =
+noinst_HEADERS = \
 		pulsecore/autoload.h \
 		pulsecore/atomic.h \
 		pulsecore/cli-command.h \
@@ -627,7 +627,7 @@ pulsecoreinclude_HEADERS = \
 		pulsecore/semaphore.h \
 		pulsecore/once.h
 
-lib_LTLIBRARIES += libpulsecore.la
+noinst_LTLIBRARIES += libpulsecore.la
 
 # Some public stuff is used even in the core
 libpulsecore_la_SOURCES = \
@@ -721,7 +721,8 @@ libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDF
 #   Plug-in support libraries     #
 ###################################
 
-pulsecoreinclude_HEADERS += \
+#pulsecoreinclude_HEADERS +=
+noinst_HEADERS += \
 		pulsecore/socket-util.h \
 		pulsecore/iochannel.h \
 		pulsecore/socket-server.h \
@@ -781,7 +782,8 @@ modlibexec_LTLIBRARIES += \
 endif
 
 if HAVE_X11
-pulsecoreinclude_HEADERS += \
+#pulsecoreinclude_HEADERS +=
+noinst_HEADERS += \
 		pulsecore/x11wrap.h \
 		pulsecore/x11prop.h
 
@@ -791,7 +793,8 @@ modlibexec_LTLIBRARIES += \
 endif
 
 if HAVE_AVAHI
-pulsecoreinclude_HEADERS += \
+#pulsecoreinclude_HEADERS +=
+noinst_HEADERS += \
 		pulsecore/avahi-wrap.h
 
 modlibexec_LTLIBRARIES += \
@@ -1312,15 +1315,15 @@ module_suspend_on_idle_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # RTP modules
-module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
-module_rtp_send_la_LDFLAGS = -module -avoid-version
-module_rtp_send_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la
-module_rtp_send_la_CFLAGS = $(AM_CFLAGS)
+#module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
+#module_rtp_send_la_LDFLAGS = -module -avoid-version
+#module_rtp_send_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la
+#module_rtp_send_la_CFLAGS = $(AM_CFLAGS)
 
-module_rtp_recv_la_SOURCES = modules/rtp/module-rtp-recv.c
-module_rtp_recv_la_LDFLAGS = -module -avoid-version
-module_rtp_recv_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la
-module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
+#module_rtp_recv_la_SOURCES = modules/rtp/module-rtp-recv.c
+#module_rtp_recv_la_LDFLAGS = -module -avoid-version
+#module_rtp_recv_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la
+#module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
 
 # JACK
 
