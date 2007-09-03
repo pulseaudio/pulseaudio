@@ -927,6 +927,7 @@ modlibexec_LTLIBRARIES += \
 		module-null-sink.la \
 		module-detect.la \
 		module-volume-restore.la \
+		module-default-device-restore.la \
 		module-rescue-streams.la \
 		module-suspend-on-idle.la \
 		module-http-protocol-tcp.la \
@@ -1080,6 +1081,7 @@ SYMDEF_FILES = \
 		modules/module-jack-sink-symdef.h \
 		modules/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
+		modules/module-default-device-restore-symdef.h \
 		modules/module-rescue-streams-symdef.h \
 		modules/module-suspend-on-idle-symdef.h \
 		modules/module-hal-detect-symdef.h \
@@ -1301,6 +1303,12 @@ module_volume_restore_la_SOURCES = modules/module-volume-restore.c
 module_volume_restore_la_LDFLAGS = -module -avoid-version
 module_volume_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_volume_restore_la_CFLAGS = $(AM_CFLAGS)
+
+# Default sink/source restore module
+module_default_device_restore_la_SOURCES = modules/module-default-device-restore.c
+module_default_device_restore_la_LDFLAGS = -module -avoid-version
+module_default_device_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_default_device_restore_la_CFLAGS = $(AM_CFLAGS)
 
 # Rescue streams module
 module_rescue_streams_la_SOURCES = modules/module-rescue-streams.c
