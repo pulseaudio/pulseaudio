@@ -91,6 +91,9 @@ struct pa_resampler {
 static int trivial_init(pa_resampler*r);
 static int speex_init(pa_resampler*r);
 static int ffmpeg_init(pa_resampler*r);
+#ifdef HAVE_LIBSAMPLERATE
+static int libsamplerate_init(pa_resampler*r);
+#endif
 
 static void calc_map_table(pa_resampler *r);
 
@@ -166,6 +169,11 @@ pa_resampler* pa_resampler_new(
 
     /* Fix method */
 
+    if (!pa_resample_method_supported(resample_method)) {
+        pa_log_warn("Support for resampler '%s' not compiled in, reverting to 'auto'.", pa_resample_method_to_string(resample_method));
+        resample_method = PA_RESAMPLER_AUTO;
+    }
+    
     if (resample_method == PA_RESAMPLER_FFMPEG && variable_rate) {
         pa_log_info("Resampler 'ffmpeg' cannot do variable rate, reverting to resampler 'auto'." );
         resample_method = PA_RESAMPLER_AUTO;
@@ -358,6 +366,19 @@ const char *pa_resample_method_to_string(pa_resample_method_t m) {
         return NULL;
 
     return resample_methods[m];
+}
+
+int pa_resample_method_supported(pa_resample_method_t m) {
+
+    if (m < 0 || m >= PA_RESAMPLER_MAX)
+        return 0;
+
+#ifndef HAVE_LIBSAMPLERATE
+    if (m <= PA_RESAMPLER_SRC_LINEAR)
+        return 0;
+#endif
+        
+    return 1;
 }
 
 pa_resample_method_t pa_parse_resample_method(const char *string) {

@@ -80,4 +80,7 @@ pa_resample_method_t pa_parse_resample_method(const char *string);
 /* return a human readable string for the specified resampling method. Inverse of pa_parse_resample_method() */
 const char *pa_resample_method_to_string(pa_resample_method_t m);
 
+/* Return 1 when the specified resampling method is supported */
+int pa_resample_method_supported(pa_resample_method_t m);
+
 #endif
