@@ -34,6 +34,7 @@
 #include <ctype.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/volume.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
@@ -43,9 +44,7 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
-#include <pulsecore/core-util.h>
 #include <pulsecore/namereg.h>
-#include <pulse/volume.h>
 
 #include "module-volume-restore-symdef.h"
 
