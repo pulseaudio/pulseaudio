@@ -365,8 +365,7 @@ int main(int argc, char *argv[]) {
 
     LTDL_SET_PRELOADED_SYMBOLS();
 
-    r = lt_dlinit();
-    assert(r == 0);
+    pa_assert_se(lt_dlinit() == 0);
 
 #ifdef OS_IS_WIN32
     {
@@ -424,7 +423,8 @@ int main(int argc, char *argv[]) {
             int i;
 
             for (i = 0; i < PA_RESAMPLER_MAX; i++)
-                printf("%s\n", pa_resample_method_to_string(i));
+                if (pa_resample_method_supported(i))
+                    printf("%s\n", pa_resample_method_to_string(i));
                        
             goto finish;
         }
