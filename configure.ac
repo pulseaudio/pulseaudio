@@ -81,8 +81,8 @@ fi
 # GCC flags
 
 test_gcc_flag() {
-    AC_LANG_CONFTEST([int main() {}])
-    $CC -c conftest.c $CFLAGS $@ > /dev/null 2> /dev/null
+    AC_LANG_CONFTEST([int main(int argc, char*argv[]) {}])
+    $CC -c conftest.c $CFLAGS -o conftest.o > /dev/null 2> /dev/null
     ret=$?
     rm -f conftest.o
     return $ret
@@ -104,6 +104,18 @@ if test "x$GCC" = "xyes" ; then
            AC_MSG_RESULT([no])
         fi
     done 
+fi
+
+AC_MSG_CHECKING([whether $CC knows __sync_bool_compare_and_swap()])
+AC_LANG_CONFTEST([int main() { int a = 4; __sync_bool_compare_and_swap(&a, 4, 5); }])
+$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
+ret=$?
+rm -f conftest.o conftest
+if test $ret -eq 0 ; then
+    AC_DEFINE([HAVE_ATOMIC_BUILTINS], 1, [Have __sync_bool_compare_and_swap() and friends.])
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
 fi
 
 #### libtool stuff ####
