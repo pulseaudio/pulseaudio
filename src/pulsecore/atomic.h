@@ -24,22 +24,95 @@
   USA.
 ***/
 
-#include <atomic_ops.h>
-
-/* atomic_ops guarantees us that sizeof(AO_t) == sizeof(void*).
+/*
+ * atomic_ops guarantees us that sizeof(AO_t) == sizeof(void*).  It is
+ * not guaranteed however, that sizeof(AO_t) == sizeof(size_t).
+ * however very likely.
+ * 
+ * For now we do only full memory barriers. Eventually we might want
+ * to support more elaborate memory barriers, in which case we will add
+ * suffixes to the function names.
  *
- * It is not guaranteed however, that sizeof(AO_t) == sizeof(size_t).
- * however very likely. */
+ * On gcc >= 4.1 we use the builtin atomic functions. otherwise we use
+ * libatomic_ops
+ */
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+
+/* gcc based implementation */
+
+typedef struct pa_atomic {
+    volatile int value;
+} pa_atomic_t;
+
+#define PA_ATOMIC_INIT(v) { .value = (v) }
+
+static inline int pa_atomic_load(const pa_atomic_t *a) {
+    __sync_synchronize();
+    return a->value;
+}
+
+static inline void pa_atomic_store(pa_atomic_t *a, int i) {
+    a->value = i;
+    __sync_synchronize();
+}
+
+/* Returns the previously set value */
+static inline int pa_atomic_add(pa_atomic_t *a, int i) {
+    return __sync_fetch_and_add(&a->value, i);
+}
+
+/* Returns the previously set value */
+static inline int pa_atomic_sub(pa_atomic_t *a, int i) {
+    return __sync_fetch_and_sub(&a->value, i);
+}
+
+/* Returns the previously set value */
+static inline int pa_atomic_inc(pa_atomic_t *a) {
+    return pa_atomic_add(a, 1);
+}
+
+/* Returns the previously set value */
+static inline int pa_atomic_dec(pa_atomic_t *a) {
+    return pa_atomic_sub(a, 1);
+}
+
+/* Returns non-zero when the operation was successful. */
+static inline int pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
+    return __sync_bool_compare_and_swap(&a->value, old_i, new_i);
+}
+
+typedef struct pa_atomic_ptr {
+    volatile long value;
+} pa_atomic_ptr_t;
+
+#define PA_ATOMIC_PTR_INIT(v) { .value = (long) (v) }
+
+static inline void* pa_atomic_ptr_load(const pa_atomic_ptr_t *a) {
+    __sync_synchronize();
+    return (void*) a->value;
+}
+
+static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
+    a->value = (long) p;
+    __sync_synchronize();
+}
+
+static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
+    return __sync_bool_compare_and_swap(&a->value, (long) old_p, (long) new_p);
+}
+
+#else
+
+/* libatomic_ops based implementation */
+
+#include <atomic_ops.h>
 
 typedef struct pa_atomic {
     volatile AO_t value;
 } pa_atomic_t;
 
 #define PA_ATOMIC_INIT(v) { .value = (v) }
-
-/* For now we do only full memory barriers. Eventually we might want
- * to support more elaborate memory barriers, in which case we will add
- * suffixes to the function names */
 
 static inline int pa_atomic_load(const pa_atomic_t *a) {
     return (int) AO_load_full((AO_t*) &a->value);
@@ -86,5 +159,7 @@ static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
 static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
     return AO_compare_and_swap_full(&a->value, (AO_t) old_p, (AO_t) new_p);
 }
+
+#endif
 
 #endif
