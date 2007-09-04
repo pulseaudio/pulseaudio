@@ -160,7 +160,7 @@
 #define LTDL_SHLIB_EXT ".so"
 
 /* Define to the system default library search path. */
-#define LTDL_SYSSEARCHPATH "/usr/lib:/lib:/usr/local/lib:/usr/lib/qt-3.3/lib"
+#define LTDL_SYSSEARCHPATH "/lib:/usr/lib:/usr/lib/atlas:/usr/local/lib:/lib/i486-linux-gnu:/usr/lib/i486-linux-gnu:/usr/local/lib"
 
 /* Define if dlsym() requires a leading underscore in symbol names. */
 /* #undef NEED_USCORE */

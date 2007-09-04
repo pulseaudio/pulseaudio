@@ -1068,17 +1068,6 @@ lt_estrdup (str)
 #  include <sys/dl.h>
 #endif
 
-#ifdef RTLD_GLOBAL
-#  define LT_GLOBAL		RTLD_GLOBAL
-#else
-#  ifdef DL_GLOBAL
-#    define LT_GLOBAL		DL_GLOBAL
-#  endif
-#endif /* !RTLD_GLOBAL */
-#ifndef LT_GLOBAL
-#  define LT_GLOBAL		0
-#endif /* !LT_GLOBAL */
-
 /* We may have to define LT_LAZY_OR_NOW in the command line if we
    find out it does not work in some platform. */
 #ifndef LT_LAZY_OR_NOW
@@ -1114,7 +1103,7 @@ sys_dl_open (loader_data, filename)
      lt_user_data loader_data;
      const char *filename;
 {
-  lt_module   module   = dlopen (filename, LT_GLOBAL | LT_LAZY_OR_NOW);
+  lt_module   module   = dlopen (filename, LT_LAZY_OR_NOW);
 
   if (!module)
     {
@@ -3225,9 +3214,7 @@ try_dlopen (phandle, filename)
 	}
       if (!file)
 	{
-	  /* don't open .la files in current directory, root might get tricked to run a binary in a prepared directory */
-	  if(!strncmp((filename + strlen(filename) - 3), LTDL_ARCHIVE_EXT,3) || strstr(filename,"/"))
-	    file = fopen (filename, LT_READTEXT_MODE);
+	  file = fopen (filename, LT_READTEXT_MODE);
 	}
 
       /* If we didn't find the file by now, it really isn't there.  Set
