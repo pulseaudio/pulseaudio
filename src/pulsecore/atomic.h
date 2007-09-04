@@ -37,9 +37,14 @@
  * libatomic_ops
  */
 
-#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+/* We have to include config.h here, which sucks */
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-/* gcc based implementation */
+#ifdef HAVE_ATOMIC_BUILTINS
+
+/* __sync based implementation */
 
 typedef struct pa_atomic {
     volatile int value;
@@ -83,7 +88,7 @@ static inline int pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
 }
 
 typedef struct pa_atomic_ptr {
-    volatile long value;
+    volatile unsigned long value;
 } pa_atomic_ptr_t;
 
 #define PA_ATOMIC_PTR_INIT(v) { .value = (long) (v) }
@@ -94,12 +99,86 @@ static inline void* pa_atomic_ptr_load(const pa_atomic_ptr_t *a) {
 }
 
 static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
-    a->value = (long) p;
+    a->value = (unsigned long) p;
     __sync_synchronize();
 }
 
 static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
     return __sync_bool_compare_and_swap(&a->value, (long) old_p, (long) new_p);
+}
+
+#elif defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
+
+/* Addapted from glibc */
+
+typedef struct pa_atomic {
+    volatile int value;
+} pa_atomic_t;
+
+#define PA_ATOMIC_INIT(v) { .value = (v) }
+
+static inline int pa_atomic_load(const pa_atomic_t *a) {
+    return a->value;
+}
+
+static inline void pa_atomic_store(pa_atomic_t *a, int i) {
+    a->value = i;
+}
+
+static inline int pa_atomic_add(pa_atomic_t *a, int i) {
+    int result;
+    
+    __asm __volatile ("lock; xaddl %0, %1"
+                      : "=r" (result), "=m" (a->value)
+                      : "0" (i), "m" (a->value));
+
+    return result;
+}
+
+static inline int pa_atomic_sub(pa_atomic_t *a, int i) {
+    return pa_atomic_add(a, -i);
+}
+
+static inline int pa_atomic_inc(pa_atomic_t *a) {
+    return pa_atomic_add(a, 1);
+}
+
+static inline int pa_atomic_dec(pa_atomic_t *a) {
+    return pa_atomic_sub(a, 1);
+}
+
+static inline int pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
+    int result;
+    
+    __asm__ __volatile__ ("lock; cmpxchgl %2, %1"
+                          : "=a" (result), "=m" (a->value)
+                          : "r" (new_i), "m" (a->value), "0" (old_i)); 
+    
+    return result == oldval;
+}
+
+typedef struct pa_atomic_ptr {
+    volatile unsigned long value;
+} pa_atomic_ptr_t;
+
+#define PA_ATOMIC_PTR_INIT(v) { .value = (long) (v) }
+
+static inline void* pa_atomic_ptr_load(const pa_atomic_ptr_t *a) {
+    return (void*) a->value;
+}
+
+static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
+    a->value = (unsigned long) p;
+}
+
+static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
+    void *result;
+    
+    __asm__ __volatile__ ("lock; cmpxchgq %q2, %1"
+                          : "=a" (result), "=m" (a->value)
+                          : "r" (new_p), "m" (a->value), "0" (old_p)); 
+
+    return result;
 }
 
 #else
