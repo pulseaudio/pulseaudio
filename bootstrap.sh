@@ -48,6 +48,7 @@ else
     rm -rf autom4te.cache
     rm -f config.cache
 
+    touch config.rpath
     test "x$LIBTOOLIZE" = "x" && LIBTOOLIZE=libtoolize
 
     "$LIBTOOLIZE" -c --force --ltdl
