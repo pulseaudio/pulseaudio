@@ -439,8 +439,8 @@ static record_stream* record_stream_new(
         const pa_sample_spec *ss,
         const pa_channel_map *map,
         const char *name,
-        size_t *maxlength,
-        size_t fragment_size,
+        uint32_t *maxlength,
+        uint32_t fragment_size,
         int corked) {
 
     record_stream *s;

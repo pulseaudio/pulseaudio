@@ -132,7 +132,7 @@ static int mmap_read(struct userdata *u) {
             if (err == -EAGAIN)
                 return work_done;
             
-            pa_log("snd_pcm_avail_update: %s", snd_strerror(n));
+            pa_log("snd_pcm_avail_update: %s", snd_strerror(err));
             return -1;
         }
 
@@ -216,7 +216,7 @@ static int unix_read(struct userdata *u) {
         pa_memchunk chunk;
         
         if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) {
-            pa_log("Failed to query DSP status data: %s", snd_strerror(t));
+            pa_log("Failed to query DSP status data: %s", snd_strerror(err));
             return -1;
         }
 

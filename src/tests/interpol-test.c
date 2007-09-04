@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
             pa_gettimeofday(&now);
 
             rtc = pa_timeval_diff(&now, &start);
-            printf("%i\t%llu\t%llu\t%llu\t%llu\t%u\n", k, rtc, t, rtc-old_rtc, t-old_t, changed);
+            printf("%i\t%llu\t%llu\t%llu\t%llu\t%u\n", k, (unsigned long long) rtc, (unsigned long long) t, (unsigned long long) (rtc-old_rtc), (unsigned long long) (t-old_t), changed);
             old_t = t;
             old_rtc = rtc;
         }

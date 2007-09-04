@@ -126,7 +126,7 @@ int pa_sound_file_load(
     ptr = pa_memblock_acquire(chunk->memblock);
 
     if ((readf_function && readf_function(sf, ptr, sfinfo.frames) != sfinfo.frames) ||
-        (!readf_function && sf_read_raw(sf, ptr, l) != l)) {
+        (!readf_function && sf_read_raw(sf, ptr, l) != (sf_count_t) l)) {
         pa_log("Premature file end");
         goto finish;
     }

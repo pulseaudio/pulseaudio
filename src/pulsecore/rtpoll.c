@@ -383,7 +383,8 @@ finish:
         }
     }
 
-    errno = saved_errno;
+    if (r < 0)
+        errno = saved_errno;
 
     return r;
 }
