@@ -336,7 +336,6 @@ static const char *libtool_get_error(void) {
 
 static void libtool_init(void)  {
     pa_assert_se(libtool_mutex = pa_mutex_new(1));
-    libtool_lock(); /* Hmm, somehow libtool expects this mutex to be initialized in locking state! */
     pa_assert_se(lt_dlmutex_register(libtool_lock, libtool_unlock, libtool_set_error, libtool_get_error) == 0);
     pa_assert_se(lt_dlinit() == 0);
 }
