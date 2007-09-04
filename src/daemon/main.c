@@ -81,6 +81,9 @@
 #include <pulsecore/rtsig.h>
 #include <pulsecore/rtclock.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/mutex.h>
+#include <pulsecore/thread.h>
+#include <pulsecore/once.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -311,6 +314,39 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
 }
 #endif
 
+static pa_mutex *libtool_mutex = NULL;
+        
+static void libtool_lock(void) {
+    pa_mutex_lock(libtool_mutex);
+}
+
+static void libtool_unlock(void) {
+    pa_mutex_unlock(libtool_mutex);
+}
+
+PA_STATIC_TLS_DECLARE(libtool_tls, NULL);
+
+static void libtool_set_error(const char * error) {
+    pa_tls_set(PA_STATIC_TLS_GET(libtool_tls), (char*) error);
+}
+
+static const char *libtool_get_error(void) {
+    return pa_tls_get(PA_STATIC_TLS_GET(libtool_tls));
+}
+
+static void libtool_init(void)  {
+    pa_assert_se(libtool_mutex = pa_mutex_new(1));
+    libtool_lock(); /* Hmm, somehow libtool expects this mutex to be initialized in locking state! */
+    pa_assert_se(lt_dlmutex_register(libtool_lock, libtool_unlock, libtool_set_error, libtool_get_error) == 0);
+    pa_assert_se(lt_dlinit() == 0);
+}
+
+static void libtool_done(void) {
+    pa_assert_se(lt_dlexit() == 0);
+    pa_mutex_free(libtool_mutex);
+    libtool_mutex = NULL;
+}
+
 int main(int argc, char *argv[]) {
     pa_core *c = NULL;
     pa_strbuf *buf = NULL;
@@ -365,7 +401,7 @@ int main(int argc, char *argv[]) {
 
     LTDL_SET_PRELOADED_SYMBOLS();
 
-    pa_assert_se(lt_dlinit() == 0);
+    libtool_init();
 
 #ifdef OS_IS_WIN32
     {
@@ -714,7 +750,7 @@ finish:
     WSACleanup();
 #endif
 
-    lt_dlexit();
+    libtool_done();
 
     return retval;
 }
