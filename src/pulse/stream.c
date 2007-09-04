@@ -38,6 +38,7 @@
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/hashmap.h>
+#include <pulsecore/macro.h>
 
 #include "internal.h"
 
@@ -218,6 +219,13 @@ void pa_stream_set_state(pa_stream *s, pa_stream_state_t st) {
         s->channel_valid = 0;
 
         s->context = NULL;
+
+        s->read_callback = NULL;
+        s->write_callback = NULL;
+        s->state_callback = NULL;
+        s->overflow_callback = NULL;
+        s->underflow_callback = NULL;
+        s->latency_update_callback = NULL;
     }
 
     pa_stream_unref(s);
@@ -321,7 +329,6 @@ void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, PA_GCC
 }
 
 static void request_auto_timing_update(pa_stream *s, int force) {
-    struct timeval next;
     assert(s);
 
     if (!(s->flags & PA_STREAM_AUTO_TIMING_UPDATE))
@@ -339,9 +346,12 @@ static void request_auto_timing_update(pa_stream *s, int force) {
         }
     }
 
-    pa_gettimeofday(&next);
-    pa_timeval_add(&next, LATENCY_IPOL_INTERVAL_USEC);
-    s->mainloop->time_restart(s->auto_timing_update_event, &next);
+    if (s->auto_timing_update_event) {
+        struct timeval next;
+        pa_gettimeofday(&next);
+        pa_timeval_add(&next, LATENCY_IPOL_INTERVAL_USEC);
+        s->mainloop->time_restart(s->auto_timing_update_event, &next);
+    }
 }
 
 static void invalidate_indexes(pa_stream *s, int r, int w) {
@@ -385,6 +395,24 @@ static void auto_timing_update_callback(PA_GCC_UNUSED pa_mainloop_api *m, PA_GCC
     pa_stream_ref(s);
     request_auto_timing_update(s, 0);
     pa_stream_unref(s);
+}
+
+static void create_stream_complete(pa_stream *s) {
+    pa_assert(s);
+    pa_assert(s->state == PA_STREAM_CREATING);
+
+    pa_stream_set_state(s, PA_STREAM_READY);
+
+    if (s->requested_bytes > 0 && s->write_callback)
+        s->write_callback(s, s->requested_bytes, s->write_userdata);
+
+    if (s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
+        struct timeval tv;
+        pa_gettimeofday(&tv);
+        tv.tv_usec += LATENCY_IPOL_INTERVAL_USEC; /* every 100 ms */
+        assert(!s->auto_timing_update_event);
+        s->auto_timing_update_event = s->mainloop->time_new(s->mainloop, &tv, &auto_timing_update_callback, s);
+    }    
 }
 
 void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -450,23 +478,16 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
     s->channel_valid = 1;
     pa_dynarray_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, s->channel, s);
 
-    pa_stream_set_state(s, PA_STREAM_READY);
-
-    if (s->direction != PA_STREAM_UPLOAD &&
-        s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
-        struct timeval tv;
-
-        pa_gettimeofday(&tv);
-        tv.tv_usec += LATENCY_IPOL_INTERVAL_USEC; /* every 100 ms */
-
-        assert(!s->auto_timing_update_event);
-        s->auto_timing_update_event = s->mainloop->time_new(s->mainloop, &tv, &auto_timing_update_callback, s);
-
+    if (s->direction != PA_STREAM_UPLOAD && s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
+        /* If automatic timing updates are active, we wait for the
+         * first timing update before going to PA_STREAM_READY
+         * state */
+        s->state = PA_STREAM_READY;
         request_auto_timing_update(s, 1);
-    }
-
-    if (s->requested_bytes > 0 && s->ref > 1 && s->write_callback)
-        s->write_callback(s, s->requested_bytes, s->write_userdata);
+        s->state = PA_STREAM_CREATING;
+        
+    } else
+        create_stream_complete(s);
 
 finish:
     pa_stream_unref(s);
@@ -885,6 +906,10 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
                 o->stream->write_index_corrections[n].valid = 0;
         }
     }
+
+    /* First, let's complete the initialization, if necessary. */
+    if (o->stream->state == PA_STREAM_CREATING) 
+        create_stream_complete(o->stream);
 
     if (o->stream->latency_update_callback)
         o->stream->latency_update_callback(o->stream, o->stream->latency_update_userdata);
