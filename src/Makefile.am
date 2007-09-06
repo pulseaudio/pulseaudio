@@ -1392,8 +1392,8 @@ default.pa: daemon/default.pa.win32
 else
 default.pa: daemon/default.pa.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
-	    -e 's,@HAVE_HAL_TRUE\@,@HAVE_HAL_TRUE@,g' \
-	    -e 's,@HAVE_HAL_FALSE\@,@HAVE_HAL_FALSE@,g' < $< > $@
+            -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
+	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@
 endif
 
 daemon.conf: daemon/daemon.conf.in Makefile

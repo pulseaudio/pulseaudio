@@ -1145,6 +1145,7 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                     const char *filename = cs+l+strspn(cs+l, whitespace);
 
                     *ifstate = access(filename, F_OK) == 0 ? IFSTATE_TRUE : IFSTATE_FALSE;
+                    pa_log_debug("Checking for existance of '%s': %s", filename, *ifstate == IFSTATE_TRUE ? "success" : "failure");
                 }
             } else {
                 pa_strbuf_printf(buf, "Invalid meta command: %s\n", cs);
