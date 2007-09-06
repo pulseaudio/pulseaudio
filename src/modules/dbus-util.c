@@ -96,7 +96,7 @@ static void handle_io_event(PA_GCC_UNUSED pa_mainloop_api *ea, pa_io_event *e, i
     unsigned int flags = 0;
     DBusWatch *watch = userdata;
 
-#if (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MINOR == 1 && DBUS_VERSION_MICRO >= 1) || (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MINOR > 1) || (DBUS_VERSION_MAJOR > 1) 
+#if HAVE_DBUS_WATCH_GET_UNIX_FD
     pa_assert(fd == dbus_watch_get_unix_fd(watch));
 #else
     pa_assert(fd == dbus_watch_get_fd(watch));
@@ -141,14 +141,15 @@ static dbus_bool_t add_watch(DBusWatch *watch, void *data) {
     pa_assert(watch);
     pa_assert(c);
 
-    ev = c->mainloop->io_new(c->mainloop, 
-#if (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MINOR == 1 && DBUS_VERSION_MICRO >= 1) || (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MAJOR > 1) || (DBUS_VERSION_MAJOR > 1) 
-			     dbus_watch_get_unix_fd(watch), 
+    ev = c->mainloop->io_new(
+            c->mainloop, 
+#if HAVE_DBUS_WATCH_GET_UNIX_FD
+            dbus_watch_get_unix_fd(watch), 
 #else
-			     dbus_watch_get_fd(watch), 
+            dbus_watch_get_fd(watch), 
 #endif
-			     get_watch_flags(watch), handle_io_event, watch);
-
+            get_watch_flags(watch), handle_io_event, watch);
+    
     dbus_watch_set_data(watch, ev, NULL);
 
     return TRUE;

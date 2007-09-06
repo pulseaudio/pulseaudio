@@ -713,7 +713,6 @@ AC_ARG_ENABLE([hal],
             esac
         ],
         [hal=auto])
-
 if test "x${hal}" != xno -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \) ; then
     PKG_CHECK_MODULES(HAL, [ hal >= 0.5.7 ],
         HAVE_HAL=1,
@@ -731,6 +730,49 @@ AC_SUBST(HAL_CFLAGS)
 AC_SUBST(HAL_LIBS)
 AC_SUBST(HAVE_HAL)
 AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
+
+#### D-Bus support (optional) ####
+
+AC_ARG_ENABLE([dbus], 
+    AC_HELP_STRING([--disable-dbus], [Disable optional D-Bus support]), 
+        [
+            case "${enableval}" in
+                yes) dbus=yes ;;
+                no) dbus=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-dbus) ;;
+            esac
+        ],
+        [dbus=auto])
+
+if test "x$HAVE_HAL" = x1 ; then 
+   dbus=yes
+fi
+
+if test "x${dbus}" != xno ; then
+
+    PKG_CHECK_MODULES(DBUS, [ dbus-1 >= 1.0.0 ],
+        [
+            HAVE_DBUS=1
+            saved_LIBS="$LIBS"
+            LIBS="$LIBS $DBUS_LIBS"
+            AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
+            LIBS="$saved_LIBS"
+        
+        ],
+        [
+            HAVE_DBUS=0
+            if test "x$dbus" = xyes ; then
+                AC_MSG_ERROR([*** D-Bus support not found])
+            fi
+        ])
+else
+    HAVE_DBUS=0
+fi
+
+AC_SUBST(DBUS_CFLAGS)
+AC_SUBST(DBUS_LIBS)
+AC_SUBST(HAVE_DBUS)
+AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 
 #### PulseAudio system group & user  #####
 
