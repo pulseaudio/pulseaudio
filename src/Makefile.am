@@ -627,7 +627,7 @@ noinst_HEADERS = \
 		pulsecore/semaphore.h \
 		pulsecore/once.h
 
-noinst_LTLIBRARIES += libpulsecore.la
+lib_LTLIBRARIES += libpulsecore.la
 
 # Some public stuff is used even in the core
 libpulsecore_la_SOURCES = \
