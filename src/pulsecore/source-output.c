@@ -222,7 +222,7 @@ static void source_output_free(pa_object* mo) {
 
     pa_assert(pa_source_output_refcnt(o) == 0);
 
-    if (PA_SOURCE_LINKED(o->state))
+    if (PA_SOURCE_OUTPUT_LINKED(o->state))
         pa_source_output_unlink(o);
 
     pa_log_info("Freeing output %u \"%s\"", o->index, o->name);
