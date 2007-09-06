@@ -218,6 +218,11 @@ static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length) {
     pa_assert(p);
     pa_assert(length > 0);
 
+    /* If -1 is passed as length we choose the size for the caller. */
+    
+    if (length == (size_t) -1)
+        length = p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) - PA_ALIGN(sizeof(pa_memblock));
+    
     b = pa_xmalloc(PA_ALIGN(sizeof(pa_memblock)) + length);
     PA_REFCNT_INIT(b);
     b->pool = p;
@@ -261,7 +266,7 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
 static void* mempool_slot_data(struct mempool_slot *slot) {
     pa_assert(slot);
 
-    return (uint8_t*) slot + sizeof(struct mempool_slot);
+    return (uint8_t*) slot + PA_ALIGN(sizeof(struct mempool_slot));
 }
 
 /* No lock necessary */
@@ -292,16 +297,22 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
     pa_assert(p);
     pa_assert(length > 0);
 
-    if (p->block_size - sizeof(struct mempool_slot) >= sizeof(pa_memblock) + length) {
+    /* If -1 is passed as length we choose the size for the caller: we
+     * take the largest size that fits in one of our slots. */
+    
+    if (length == (size_t) -1)
+        length = p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) - PA_ALIGN(sizeof(pa_memblock));
+    
+    if (p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) >= PA_ALIGN(sizeof(pa_memblock)) + length) {
 
         if (!(slot = mempool_allocate_slot(p)))
             return NULL;
 
         b = mempool_slot_data(slot);
         b->type = PA_MEMBLOCK_POOL;
-        pa_atomic_ptr_store(&b->data, (uint8_t*) b + sizeof(pa_memblock));
+        pa_atomic_ptr_store(&b->data, (uint8_t*) b + PA_ALIGN(sizeof(pa_memblock)));
 
-    } else if (p->block_size - sizeof(struct mempool_slot) >= length) {
+    } else if (p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) >= length) {
 
         if (!(slot = mempool_allocate_slot(p)))
             return NULL;
@@ -313,7 +324,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
         pa_atomic_ptr_store(&b->data, mempool_slot_data(slot));
 
     } else {
-        pa_log_debug("Memory block too large for pool: %lu > %lu", (unsigned long) length, (unsigned long) (p->block_size - sizeof(struct mempool_slot)));
+        pa_log_debug("Memory block too large for pool: %lu > %lu", (unsigned long) length, (unsigned long) (p->block_size - PA_ALIGN(sizeof(struct mempool_slot))));
         pa_atomic_inc(&p->stat.n_too_large_for_pool);
         return NULL;
     }
@@ -335,6 +346,7 @@ pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, int re
 
     pa_assert(p);
     pa_assert(d);
+    pa_assert(length != (size_t) -1);
     pa_assert(length > 0);
 
     if (!(b = pa_flist_pop(PA_STATIC_FLIST_GET(unused_memblocks))))
@@ -359,6 +371,7 @@ pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, void (*
     pa_assert(p);
     pa_assert(d);
     pa_assert(length > 0);
+    pa_assert(length != (size_t) -1);
     pa_assert(free_cb);
 
     if (!(b = pa_flist_pop(PA_STATIC_FLIST_GET(unused_memblocks))))
@@ -555,7 +568,7 @@ static void memblock_make_local(pa_memblock *b) {
 
     pa_atomic_dec(&b->pool->stat.n_allocated_by_type[b->type]);
 
-    if (b->length <= b->pool->block_size - sizeof(struct mempool_slot)) {
+    if (b->length <= b->pool->block_size - PA_ALIGN(sizeof(struct mempool_slot))) {
         struct mempool_slot *slot;
 
         if ((slot = mempool_allocate_slot(b->pool))) {
@@ -657,7 +670,7 @@ pa_mempool* pa_mempool_new(int shared) {
 
     p->n_blocks = PA_MEMPOOL_SLOTS_MAX;
 
-    pa_assert(p->block_size > sizeof(struct mempool_slot));
+    pa_assert(p->block_size > PA_ALIGN(sizeof(struct mempool_slot)));
 
     if (pa_shm_create_rw(&p->memory, p->n_blocks * p->block_size, shared, 0700) < 0) {
         pa_xfree(p);
@@ -725,8 +738,8 @@ void pa_mempool_vacuum(pa_mempool *p) {
 
     while ((slot = pa_flist_pop(list))) {
         pa_shm_punch(&p->memory,
-                     (uint8_t*) slot - (uint8_t*) p->memory.ptr + sizeof(struct mempool_slot),
-                     p->block_size - sizeof(struct mempool_slot));
+                     (uint8_t*) slot - (uint8_t*) p->memory.ptr + PA_ALIGN(sizeof(struct mempool_slot)),
+                     p->block_size - PA_ALIGN(sizeof(struct mempool_slot)));
 
         while (pa_flist_push(p->free_slots, slot))
             ;

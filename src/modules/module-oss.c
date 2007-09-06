@@ -110,6 +110,7 @@ struct userdata {
     
     pa_memchunk memchunk;
 
+    size_t frame_size;
     uint32_t in_fragment_size, out_fragment_size, in_nfrags, out_nfrags, in_hwbuf_size, out_hwbuf_size;
     int use_getospace, use_getispace;
     int use_getodelay;
@@ -941,14 +942,21 @@ static void thread_func(void *userdata) {
                 }
 
                 do {
-                    ssize_t t;
+                    ssize_t t, k;
 
                     pa_assert(l > 0);
 
-                    memchunk.memblock = pa_memblock_new(u->core->mempool, l);
+                    memchunk.memblock = pa_memblock_new(u->core->mempool, (size_t) -1);
 
+                    k = pa_memblock_get_length(memchunk.memblock);
+
+                    if (k > l)
+                        k = l;
+
+                    k = (k/u->frame_size)*u->frame_size;
+        
                     p = pa_memblock_acquire(memchunk.memblock);
-                    t = pa_read(u->fd, p, l, &read_type);
+                    t = pa_read(u->fd, p, k, &read_type);
                     pa_memblock_release(memchunk.memblock);
 
                     pa_assert(t != 0); /* EOF cannot happen */
@@ -992,16 +1000,20 @@ static void thread_func(void *userdata) {
 /*         pa_log("loop2"); */
 
         /* Now give the sink inputs some to time to process their data */
-        if ((ret = pa_sink_process_inputs(u->sink)) < 0)
-            goto fail;
-        if (ret > 0)
-            continue;
+        if (u->sink) {
+            if ((ret = pa_sink_process_inputs(u->sink)) < 0)
+                goto fail;
+            if (ret > 0)
+                continue;
+        }
 
         /* Now give the source outputs some to time to process their data */
-        if ((ret = pa_source_process_outputs(u->source)) < 0)
-            goto fail;
-        if (ret > 0)
-            continue;
+        if (u->source) {
+            if ((ret = pa_source_process_outputs(u->source)) < 0)
+                goto fail;
+            if (ret > 0)
+                continue;
+        }
         
         /* Check whether there is a message for us to process */
         if ((ret = pa_thread_mq_process(&u->thread_mq) < 0))
@@ -1148,6 +1160,7 @@ int pa__init(pa_module*m) {
     u->use_getodelay = 1;
     u->use_input_volume = u->use_pcm_volume = 1;
     u->mode = mode;
+    u->frame_size = pa_frame_size(&ss);
     u->device_name = pa_xstrdup(dev);
     u->in_nfrags = u->out_nfrags = u->nfrags = nfrags;
     u->out_fragment_size = u->in_fragment_size = u->frag_size = frag_size;

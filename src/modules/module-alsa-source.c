@@ -210,7 +210,7 @@ static int unix_read(struct userdata *u) {
 
     for (;;) {
         void *p;
-        snd_pcm_sframes_t t;
+        snd_pcm_sframes_t t, k;
         ssize_t l;
         int err;
         pa_memchunk chunk;
@@ -228,10 +228,17 @@ static int unix_read(struct userdata *u) {
         if (l <= 0)
             return work_done;
                     
-        chunk.memblock = pa_memblock_new(u->core->mempool, l);
+        chunk.memblock = pa_memblock_new(u->core->mempool, (size_t) -1);
+
+        k = pa_memblock_get_length(chunk.memblock);
+
+        if (k > l)
+            k = l;
+
+        k = (k/u->frame_size)*u->frame_size;
 
         p = pa_memblock_acquire(chunk.memblock);
-        t = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, l / u->frame_size);
+        t = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, k / u->frame_size);
         pa_memblock_release(chunk.memblock);
         
 /*                     pa_log("wrote %i bytes of %u (%u)", t*u->frame_size, u->memchunk.length, l);   */
