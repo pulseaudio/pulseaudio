@@ -51,7 +51,7 @@
  * pa_simple *s;
  * pa_sample_spec ss;
  *
- * ss.format = PA_SAMPLE_S16_NE;
+ * ss.format = PA_SAMPLE_S16NE;
  * ss.channels = 2;
  * ss.rate = 44100;
  *
