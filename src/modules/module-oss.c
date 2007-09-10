@@ -711,7 +711,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             }
             
             *((pa_usec_t*) data) = r;
-            break;
+            return 0;
         }
 
         case PA_SOURCE_MESSAGE_SET_STATE:
