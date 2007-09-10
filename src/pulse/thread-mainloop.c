@@ -223,3 +223,9 @@ pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m) {
 
     return pa_mainloop_get_api(m->real_mainloop);
 }
+
+int pa_threaded_mainloop_in_thread(pa_threaded_mainloop *m) {
+    pa_assert(m);
+
+    return m->thread && pa_thread_self() == m->thread;
+}
