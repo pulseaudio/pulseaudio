@@ -139,9 +139,11 @@ struct timespec *pa_rtclock_get(struct timespec *ts) {
     pa_assert(ts);
 
     if (!no_monotonic) {
+#ifdef CLOCK_MONOTONIC
         if (clock_gettime(CLOCK_MONOTONIC, ts) >= 0)
             return ts;
-        
+#endif        
+
         no_monotonic = 1;
     }
 
@@ -152,8 +154,10 @@ struct timespec *pa_rtclock_get(struct timespec *ts) {
 int pa_rtclock_hrtimer(void) {
     struct timespec ts;
     
+#ifdef CLOCK_MONOTONIC
     if (clock_getres(CLOCK_MONOTONIC, &ts) >= 0)
         return ts.tv_sec == 0 && ts.tv_nsec <= PA_HRTIMER_THRESHOLD_USEC*1000;
+#endif        
 
     pa_assert_se(clock_getres(CLOCK_REALTIME, &ts) == 0);
     return ts.tv_sec == 0 && ts.tv_nsec <= PA_HRTIMER_THRESHOLD_USEC*1000;
