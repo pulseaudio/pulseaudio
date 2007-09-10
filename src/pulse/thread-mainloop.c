@@ -26,24 +26,24 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <signal.h>
 #include <stdio.h>
 
 #ifdef HAVE_SYS_POLL_H
 #include <sys/poll.h>
 #else
-#include "../pulsecore/poll.h"
+#include <pulsecore/poll.h>
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/mainloop.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/mutex.h>
+#include <pulsecore/macro.h>
 
-#include "mainloop.h"
 #include "thread-mainloop.h"
 
 struct pa_threaded_mainloop {
@@ -63,7 +63,7 @@ static int poll_func(struct pollfd *ufds, unsigned long nfds, int timeout, void 
     pa_mutex *mutex = userdata;
     int r;
 
-    assert(mutex);
+    pa_assert(mutex);
 
     /* Before entering poll() we unlock the mutex, so that
      * avahi_simple_poll_quit() can succeed from another thread. */
@@ -116,10 +116,10 @@ pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
 }
 
 void pa_threaded_mainloop_free(pa_threaded_mainloop* m) {
-    assert(m);
+    pa_assert(m);
 
     /* Make sure that this function is not called from the helper thread */
-    assert((m->thread && !pa_thread_is_running(m->thread)) || !in_worker(m));
+    pa_assert((m->thread && !pa_thread_is_running(m->thread)) || !in_worker(m));
 
     pa_threaded_mainloop_stop(m);
 
@@ -136,9 +136,9 @@ void pa_threaded_mainloop_free(pa_threaded_mainloop* m) {
 }
 
 int pa_threaded_mainloop_start(pa_threaded_mainloop *m) {
-    assert(m);
+    pa_assert(m);
 
-    assert(!m->thread || !pa_thread_is_running(m->thread));
+    pa_assert(!m->thread || !pa_thread_is_running(m->thread));
 
     if (!(m->thread = pa_thread_new(thread, m)))
         return -1;
@@ -147,13 +147,13 @@ int pa_threaded_mainloop_start(pa_threaded_mainloop *m) {
 }
 
 void pa_threaded_mainloop_stop(pa_threaded_mainloop *m) {
-    assert(m);
+    pa_assert(m);
 
     if (!m->thread || !pa_thread_is_running(m->thread))
         return;
 
     /* Make sure that this function is not called from the helper thread */
-    assert(!in_worker(m));
+    pa_assert(!in_worker(m));
 
     pa_mutex_lock(m->mutex);
     pa_mainloop_quit(m->real_mainloop, 0);
@@ -163,25 +163,25 @@ void pa_threaded_mainloop_stop(pa_threaded_mainloop *m) {
 }
 
 void pa_threaded_mainloop_lock(pa_threaded_mainloop *m) {
-    assert(m);
+    pa_assert(m);
 
     /* Make sure that this function is not called from the helper thread */
-    assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
+    pa_assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
 
     pa_mutex_lock(m->mutex);
 }
 
 void pa_threaded_mainloop_unlock(pa_threaded_mainloop *m) {
-    assert(m);
+    pa_assert(m);
 
     /* Make sure that this function is not called from the helper thread */
-    assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
+    pa_assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
 
     pa_mutex_unlock(m->mutex);
 }
 
 void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_accept) {
-    assert(m);
+    pa_assert(m);
 
     pa_cond_signal(m->cond, 1);
 
@@ -190,36 +190,36 @@ void pa_threaded_mainloop_signal(pa_threaded_mainloop *m, int wait_for_accept) {
 }
 
 void pa_threaded_mainloop_wait(pa_threaded_mainloop *m) {
-    assert(m);
+    pa_assert(m);
 
     /* Make sure that this function is not called from the helper thread */
-    assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
+    pa_assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
 
     m->n_waiting ++;
 
     pa_cond_wait(m->cond, m->mutex);
 
-    assert(m->n_waiting > 0);
+    pa_assert(m->n_waiting > 0);
     m->n_waiting --;
 }
 
 void pa_threaded_mainloop_accept(pa_threaded_mainloop *m) {
-    assert(m);
+    pa_assert(m);
 
     /* Make sure that this function is not called from the helper thread */
-    assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
+    pa_assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
 
     pa_cond_signal(m->accept_cond, 0);
 }
 
 int pa_threaded_mainloop_get_retval(pa_threaded_mainloop *m) {
-    assert(m);
+    pa_assert(m);
 
     return pa_mainloop_get_retval(m->real_mainloop);
 }
 
 pa_mainloop_api* pa_threaded_mainloop_get_api(pa_threaded_mainloop*m) {
-    assert(m);
+    pa_assert(m);
 
     return pa_mainloop_get_api(m->real_mainloop);
 }

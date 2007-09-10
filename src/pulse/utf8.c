@@ -59,14 +59,15 @@
 #include <iconv.h>
 #endif
 
+#include <pulse/xmalloc.h>
 #include <pulsecore/macro.h>
 
 #include "utf8.h"
-#include "xmalloc.h"
 
 #define FILTER_CHAR '_'
 
 static inline int is_unicode_valid(uint32_t ch) {
+    
     if (ch >= 0x110000) /* End of unicode space */
         return 0;
     if ((ch & 0xFFFFF800) == 0xD800) /* Reserved area for UTF-16 */
@@ -75,6 +76,7 @@ static inline int is_unicode_valid(uint32_t ch) {
         return 0;
     if ((ch & 0xFFFE) == 0xFFFE) /* BOM (Byte Order Mark) */
         return 0;
+    
     return 1;
 }
 
@@ -96,6 +98,8 @@ static char* utf8_validate(const char *str, char *output) {
     int size;
     uint8_t *o;
 
+    pa_assert(str);
+    
     o = (uint8_t*) output;
     for (p = (const uint8_t*) str; *p; p++) {
         if (*p < 128) {
@@ -179,15 +183,15 @@ failure:
     return NULL;
 }
 
-const char* pa_utf8_valid (const char *str) {
+char* pa_utf8_valid (const char *str) {
     return utf8_validate(str, NULL);
 }
 
 char* pa_utf8_filter (const char *str) {
     char *new_str;
 
+    pa_assert(str);
     new_str = pa_xnew(char, strlen(str) + 1);
-
     return utf8_validate(str, new_str);
 }
 
@@ -196,18 +200,21 @@ char* pa_utf8_filter (const char *str) {
 static char* iconv_simple(const char *str, const char *to, const char *from) {
     char *new_str;
     size_t len, inlen;
-
     iconv_t cd;
     ICONV_CONST char *inbuf;
     char *outbuf;
     size_t res, inbytes, outbytes;
 
+    pa_assert(str);
+    pa_assert(to);
+    pa_assert(from);
+    
     cd = iconv_open(to, from);
     if (cd == (iconv_t)-1)
         return NULL;
 
     inlen = len = strlen(str) + 1;
-    new_str = pa_xmalloc(len);
+    new_str = pa_xnew(char, len);
 
     for (;;) {
         inbuf = (ICONV_CONST char*) str; /* Brain dead prototype for iconv() */
@@ -248,10 +255,12 @@ char* pa_locale_to_utf8 (const char *str) {
 #else
 
 char* pa_utf8_to_locale (const char *str) {
+    pa_assert(str);
     return NULL;
 }
 
 char* pa_locale_to_utf8 (const char *str) {
+    pa_assert(str);
     return NULL;
 }
 

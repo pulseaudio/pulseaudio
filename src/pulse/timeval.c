@@ -79,6 +79,7 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
 
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
     pa_usec_t r;
+    
     pa_assert(a);
     pa_assert(b);
 
