@@ -1306,9 +1306,9 @@ go_on:
 
     /* Read mixer settings */
     if (u->source)
-        pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_GET_VOLUME, &u->source->volume, 0, NULL, NULL);
+        pa_asyncmsgq_send(u->thread_mq.inq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_GET_VOLUME, &u->source->volume, 0, NULL);
     if (u->sink)
-        pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_VOLUME, &u->sink->volume, 0, NULL, NULL);
+        pa_asyncmsgq_send(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_VOLUME, &u->sink->volume, 0, NULL);
 
     if (u->sink)
         pa_sink_put(u->sink);
