@@ -255,6 +255,7 @@ int pa_play_file(
      * file reader into the main event loop and pass the data over the
      * asyncmsgq. */
 
+#ifdef HAVE_POSIX_FADVISE
     if (posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL) < 0) {
         pa_log_warn("POSIX_FADV_SEQUENTIAL failed: %s", pa_cstrerror(errno));
         goto fail;
@@ -266,6 +267,7 @@ int pa_play_file(
         goto fail;
     } else
         pa_log_debug("POSIX_FADV_WILLNEED succeeded.");
+#endif
     
     if (!(u->sndfile = sf_open_fd(fd, SFM_READ, &sfinfo, 1))) {
         pa_log("Failed to open file %s", fname);

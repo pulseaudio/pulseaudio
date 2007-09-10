@@ -67,11 +67,13 @@ int pa_sound_file_load(
         goto finish;
     }
 
+#ifdef HAVE_POSIX_FADVISE
     if (posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL) < 0) {
         pa_log_warn("POSIX_FADV_SEQUENTIAL failed: %s", pa_cstrerror(errno));
         goto finish;
     } else
         pa_log_debug("POSIX_FADV_SEQUENTIAL succeeded.");
+#endif
     
     if (!(sf = sf_open_fd(fd, SFM_READ, &sfinfo, 1))) {
         pa_log("Failed to open file %s", fname);

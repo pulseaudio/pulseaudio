@@ -1262,11 +1262,13 @@ void *pa_will_need(const void *p, size_t l) {
 
     a = PA_PAGE_ALIGN_PTR(p);
     size = (const uint8_t*) p + l - (const uint8_t*) a;
-    
+
+#ifdef HAVE_POSIX_MADVISE    
     if ((r = posix_madvise((void*) a, size, POSIX_MADV_WILLNEED)) == 0) {
         pa_log_debug("posix_madvise() worked fine!");
         return (void*) p;
     }
+#endif
     
     /* Most likely the memory was not mmap()ed from a file and thus
      * madvise() didn't work, so let's misuse mlock() do page this
@@ -1279,7 +1281,7 @@ void *pa_will_need(const void *p, size_t l) {
     pa_assert_se(getrlimit(RLIMIT_MEMLOCK, &rlim) == 0);
     
     if (rlim.rlim_cur < PA_PAGE_SIZE) {
-        pa_log_debug("posix_madvise() failed, resource limits don't allow mlock(), can't page in data: %s", pa_cstrerror(r));
+        pa_log_debug("posix_madvise() failed (or doesn't exist), resource limits don't allow mlock(), can't page in data: %s", pa_cstrerror(r));
         return (void*) p;
     }
     
@@ -1288,7 +1290,7 @@ void *pa_will_need(const void *p, size_t l) {
     bs = PA_PAGE_SIZE*4;
 #endif
         
-    pa_log_debug("posix_madvise() failed, trying mlock(): %s", pa_cstrerror(r));
+    pa_log_debug("posix_madvise() failed (or doesn't exist), trying mlock(): %s", pa_cstrerror(r));
 
     while (size > 0 && bs > 0) {
 
