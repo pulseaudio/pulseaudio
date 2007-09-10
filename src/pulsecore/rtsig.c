@@ -71,13 +71,13 @@ int pa_rtsig_get_for_thread(void) {
     int sig;
     void *p;
 
-    if ((p = pa_tls_get(PA_STATIC_TLS_GET(rtsig_tls))))
+    if ((p = PA_STATIC_TLS_GET(rtsig_tls)))
         return PA_PTR_TO_INT(p);
     
     if ((sig = pa_rtsig_get()) < 0)
         return -1;
 
-    pa_tls_set(PA_STATIC_TLS_GET(rtsig_tls), PA_INT_TO_PTR(sig));
+    PA_STATIC_TLS_SET(rtsig_tls, PA_INT_TO_PTR(sig));
     return sig;
 }
 

@@ -49,9 +49,6 @@ struct pa_tls {
     pthread_key_t key;
 };
 
-static pthread_key_t thread_key;
-static pthread_once_t thread_once = PTHREAD_ONCE_INIT;
-
 static void thread_free_cb(void *p) {
     pa_thread *t = p;
 
@@ -62,9 +59,7 @@ static void thread_free_cb(void *p) {
         pa_xfree(t);
 }
 
-static void thread_once_func(void) {
-    pa_assert_se(pthread_key_create(&thread_key, thread_free_cb) == 0);
-}
+PA_STATIC_TLS_DECLARE(current_thread, thread_free_cb);
 
 static void* internal_thread_func(void *userdata) {
     pa_thread *t = userdata;
@@ -72,8 +67,7 @@ static void* internal_thread_func(void *userdata) {
 
     t->id = pthread_self();
 
-    pthread_once(&thread_once, thread_once_func);
-    pthread_setspecific(thread_key, t);
+    PA_STATIC_TLS_SET(current_thread, t);
 
     pa_atomic_inc(&t->running);
     t->thread_func(t->userdata);
@@ -130,11 +124,9 @@ int pa_thread_join(pa_thread *t) {
 pa_thread* pa_thread_self(void) {
     pa_thread *t;
 
-    pthread_once(&thread_once, thread_once_func);
-
-    if ((t = pthread_getspecific(thread_key)))
+    if ((t = PA_STATIC_TLS_GET(current_thread)))
         return t;
-
+        
     /* This is a foreign thread, let's create a pthread structure to
      * make sure that we can always return a sensible pointer */
 
@@ -144,7 +136,7 @@ pa_thread* pa_thread_self(void) {
     t->userdata = NULL;
     pa_atomic_store(&t->running, 2);
 
-    pthread_setspecific(thread_key, t);
+    PA_STATIC_TLS_SET(current_thread, t);
 
     return t;
 }

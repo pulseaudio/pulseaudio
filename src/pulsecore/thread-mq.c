@@ -41,8 +41,7 @@
 
 #include "thread-mq.h"
 
-static pa_once once = PA_ONCE_INIT;
-static pa_tls *tls;
+PA_STATIC_TLS_DECLARE_NO_FREE(thread_mq);
 
 static void asyncmsgq_cb(pa_mainloop_api*api, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
     pa_thread_mq *q = userdata;
@@ -101,20 +100,15 @@ void pa_thread_mq_done(pa_thread_mq *q) {
     q->mainloop = NULL;
 }
 
-static void init_tls(void) {
-    tls = pa_tls_new(NULL);
-}
-
 void pa_thread_mq_install(pa_thread_mq *q) {
     pa_assert(q);
 
-    pa_run_once(&once, init_tls);
-    pa_tls_set(tls, q);
+    pa_assert(!(PA_STATIC_TLS_GET(thread_mq)));
+    PA_STATIC_TLS_SET(thread_mq, q);
 }
 
 pa_thread_mq *pa_thread_mq_get(void) {
-    pa_run_once(&once, init_tls);
-    return pa_tls_get(tls);
+    return PA_STATIC_TLS_GET(thread_mq);
 }
 
 int pa_thread_mq_process(pa_thread_mq *q) {

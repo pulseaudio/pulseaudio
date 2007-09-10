@@ -37,7 +37,7 @@
  * libatomic_ops
  */
 
-/* We have to include config.h here, which sucks */
+/* We have to include config.h here (for the __sync stuff), which sucks */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

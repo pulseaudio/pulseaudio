@@ -324,14 +324,14 @@ static void libtool_unlock(void) {
     pa_mutex_unlock(libtool_mutex);
 }
 
-PA_STATIC_TLS_DECLARE(libtool_tls, NULL);
+PA_STATIC_TLS_DECLARE_NO_FREE(libtool_tls);
 
 static void libtool_set_error(const char * error) {
-    pa_tls_set(PA_STATIC_TLS_GET(libtool_tls), (char*) error);
+    PA_STATIC_TLS_SET(libtool_tls, (char*) error);
 }
 
 static const char *libtool_get_error(void) {
-    return pa_tls_get(PA_STATIC_TLS_GET(libtool_tls));
+    return PA_STATIC_TLS_GET(libtool_tls);
 }
 
 static void libtool_init(void)  {
