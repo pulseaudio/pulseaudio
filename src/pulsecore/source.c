@@ -289,7 +289,6 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 
         while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
             pa_source_output_push(o, chunk);
-
     }
 }
 
