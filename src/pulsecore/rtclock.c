@@ -27,6 +27,7 @@
 #endif
 
 #include <stddef.h>
+#include <time.h>
 #include <sys/time.h>
 
 #include <pulse/timeval.h>
