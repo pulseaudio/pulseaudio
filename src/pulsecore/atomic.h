@@ -109,6 +109,8 @@ static inline int pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* n
 
 #elif defined(__GNUC__) && (defined(__amd64__) || defined(__x86_64__))
 
+#error "The native atomic operations implementation for AMD64 has not been tested. libatomic_ops is known to not work properly on AMD64 and your gcc version is too old for the gcc-builtin atomic ops support. You have three options now: make the native atomic operations implementation for AMD64 work, fix libatomic_ops, or upgrade your GCC."
+
 /* Addapted from glibc */
 
 typedef struct pa_atomic {
