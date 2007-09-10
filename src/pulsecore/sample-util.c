@@ -82,6 +82,7 @@ void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
     pa_assert(c->memblock);
     pa_assert(spec);
 
+    pa_memchunk_make_writable(c, 0);
     data = pa_memblock_acquire(c->memblock);
     pa_silence_memory((uint8_t*) data+c->index, c->length, spec);
     pa_memblock_release(c->memblock);
