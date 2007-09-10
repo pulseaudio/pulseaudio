@@ -4,7 +4,6 @@ Build System:
 - Remove symdef files and use macros (like most other projects)
 - Use own name mangling scheme instead of ltdl's, which will eliminate the
   need for .la files or extra trickery.
-- build pulsecore only statically by default, it's not a public API yet
 
 Porting:
 - rtp module ported to Win32 (sendmsg/recvmsg emulation)
@@ -13,16 +12,12 @@ I18N:
 - iconv stuff sent from utils to server (UTF-8)
 - iconv sample loading in server
 - Document utf8.h, timeval.h and util.h
-- gettextify polypaudio
+- gettextify pulseaudio
 
 Cleanups:
 - drop dependency of libpolyp on libX11, instead use an external mini binary
-- merge module-oss-mmap into module-oss
 - module-tunnel: improve latency calculation
 - use software volume when hardware doesn't support all channels (alsa done)
-- silence generation should be moved into the core to avoid races and code
-  duplication in the backends
-- don't read/write audio data from/to ALSA devices if noone is listening
 - using POSIX monotonous clocks wherever possible instead of gettimeofday()
 
 Test:
@@ -35,7 +30,6 @@ Auth/Crypto:
 - sasl auth 
 
 Features:
-- alsa mmap driver
 - alsa driver with hw mixing
 - "window manager for sound"
 - chroot()
@@ -52,7 +46,8 @@ Features:
 - Support for device selection in waveout driver
 - add an API to libpulse for allocating memory from the pa_context memory pool
 - allow buffer metric changes during runtime
-- "include" command in configuration files. should have glob support.
+- better ".include" command in configuration files. should have glob support.
+- recursive .if
 
 Long term:
 - pass meta info for hearing impaired
