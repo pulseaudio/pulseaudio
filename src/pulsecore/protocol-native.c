@@ -425,8 +425,7 @@ static int record_stream_process_msg(pa_msgobject *o, int code, void*userdata, i
 
             if (!pa_pstream_is_pending(s->connection->pstream))
                 send_memblock(s->connection);
-            
-            pa_pstream_send_memblock(s->connection->pstream, s->index, 0, PA_SEEK_RELATIVE, chunk);
+
             break;
     }
 
