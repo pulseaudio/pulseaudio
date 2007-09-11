@@ -257,7 +257,7 @@ void pa_rtpoll_free(pa_rtpoll *p) {
     pa_xfree(p);
 }
 
-int pa_rtpoll_run(pa_rtpoll *p) {
+int pa_rtpoll_run(pa_rtpoll *p, int wait) {
     pa_rtpoll_item *i;
     int r = 0;
     int no_events = 0;
@@ -301,7 +301,10 @@ int pa_rtpoll_run(pa_rtpoll *p) {
         rtpoll_rebuild(p);
 
     /* Calculate timeout */
-    if (p->timer_enabled) {
+    if (!wait) {
+        timeout.tv_sec = 0;
+        timeout.tv_nsec = 0;
+    } else if (p->timer_enabled) {
         struct timespec now;
         pa_rtclock_get(&now);
 

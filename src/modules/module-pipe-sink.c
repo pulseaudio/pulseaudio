@@ -185,7 +185,7 @@ static void thread_func(void *userdata) {
         /* Hmm, nothing to do. Let's sleep */
         pollfd->events = u->sink->thread_info.state == PA_SINK_RUNNING ? POLLOUT : 0;
 
-        if (pa_rtpoll_run(u->rtpoll) < 0) {
+        if (pa_rtpoll_run(u->rtpoll, 1) < 0) {
             pa_log("poll() failed: %s", pa_cstrerror(errno));
             goto fail;
         }

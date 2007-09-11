@@ -58,7 +58,10 @@ void pa_rtpoll_free(pa_rtpoll *p);
 
 void pa_rtpoll_install(pa_rtpoll *p);
 
-int pa_rtpoll_run(pa_rtpoll *f);
+/* Sleep on the rtpoll until the time event, or any of the fd events
+ * is triggered. If "wait" is 0 we don't sleep but only update the
+ * struct pollfd. */
+int pa_rtpoll_run(pa_rtpoll *f, int wait);
 
 void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timespec *ts);
 void pa_rtpoll_set_timer_periodic(pa_rtpoll *p, pa_usec_t usec);

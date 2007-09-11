@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     pa_rtpoll_install(p);
     pa_rtpoll_set_timer_periodic(p, 10000000); /* 10 s */
 
-    pa_rtpoll_run(p);
+    pa_rtpoll_run(p, 1);
     
     pa_rtpoll_item_free(i);
     
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     pollfd->fd = 0;
     pollfd->events = POLLIN;
     
-    pa_rtpoll_run(p);
+    pa_rtpoll_run(p, 1);
 
     pa_rtpoll_item_free(i);
     
