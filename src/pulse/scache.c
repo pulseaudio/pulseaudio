@@ -88,7 +88,7 @@ pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
@@ -116,7 +116,7 @@ pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_conte
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);

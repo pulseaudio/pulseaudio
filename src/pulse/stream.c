@@ -54,7 +54,7 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     PA_CHECK_VALIDITY_RETURN_NULL(c, !map || (pa_channel_map_valid(map) && map->channels == ss->channels), PA_ERR_INVALID);
 
     s = pa_xnew(pa_stream, 1);
-    s->ref = 1;
+    PA_REFCNT_INIT(s);
     s->context = c;
     s->mainloop = c->mainloop;
 
@@ -142,37 +142,37 @@ static void stream_free(pa_stream *s) {
 
 void pa_stream_unref(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
-    if (--(s->ref) == 0)
+    if (PA_REFCNT_DEC(s) <= 0)
         stream_free(s);
 }
 
 pa_stream* pa_stream_ref(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
-    s->ref++;
+    PA_REFCNT_INC(s);
     return s;
 }
 
 pa_stream_state_t pa_stream_get_state(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     return s->state;
 }
 
 pa_context* pa_stream_get_context(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     return s->context;
 }
 
 uint32_t pa_stream_get_index(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE, PA_INVALID_INDEX);
 
@@ -181,7 +181,7 @@ uint32_t pa_stream_get_index(pa_stream *s) {
 
 void pa_stream_set_state(pa_stream *s, pa_stream_state_t st) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     if (s->state == st)
         return;
@@ -506,7 +506,7 @@ static int create_stream(
     uint32_t tag;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, !(flags & ~((direction != PA_STREAM_UPLOAD ?
@@ -591,7 +591,7 @@ int pa_stream_connect_playback(
         pa_stream *sync_stream) {
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     return create_stream(PA_STREAM_PLAYBACK, s, dev, attr, flags, volume, sync_stream);
 }
@@ -603,7 +603,7 @@ int pa_stream_connect_record(
         pa_stream_flags_t flags) {
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     return create_stream(PA_STREAM_RECORD, s, dev, attr, flags, NULL, NULL);
 }
@@ -619,7 +619,7 @@ int pa_stream_write(
     pa_memchunk chunk;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
     assert(data);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
@@ -689,7 +689,7 @@ int pa_stream_write(
 
 int pa_stream_peek(pa_stream *s, const void **data, size_t *length) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
     assert(data);
     assert(length);
 
@@ -715,7 +715,7 @@ int pa_stream_peek(pa_stream *s, const void **data, size_t *length) {
 
 int pa_stream_drop(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->direction == PA_STREAM_RECORD, PA_ERR_BADSTATE);
@@ -739,7 +739,7 @@ int pa_stream_drop(pa_stream *s) {
 
 size_t pa_stream_writable_size(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE, (size_t) -1);
     PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->direction != PA_STREAM_RECORD, PA_ERR_BADSTATE, (size_t) -1);
@@ -749,7 +749,7 @@ size_t pa_stream_writable_size(pa_stream *s) {
 
 size_t pa_stream_readable_size(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE, (size_t) -1);
     PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->direction == PA_STREAM_RECORD, PA_ERR_BADSTATE, (size_t) -1);
@@ -763,7 +763,7 @@ pa_operation * pa_stream_drain(pa_stream *s, pa_stream_success_cb_t cb, void *us
     uint32_t tag;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE);
@@ -933,7 +933,7 @@ pa_operation* pa_stream_update_timing_info(pa_stream *s, pa_stream_success_cb_t 
     int cidx = 0;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
@@ -977,7 +977,7 @@ void pa_stream_disconnect_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 
     assert(pd);
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     pa_stream_ref(s);
 
@@ -1003,7 +1003,7 @@ int pa_stream_disconnect(pa_stream *s) {
     uint32_t tag;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY(s->context, s->channel_valid, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->context->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -1025,7 +1025,7 @@ int pa_stream_disconnect(pa_stream *s) {
 
 void pa_stream_set_read_callback(pa_stream *s, pa_stream_request_cb_t cb, void *userdata) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     s->read_callback = cb;
     s->read_userdata = userdata;
@@ -1033,7 +1033,7 @@ void pa_stream_set_read_callback(pa_stream *s, pa_stream_request_cb_t cb, void *
 
 void pa_stream_set_write_callback(pa_stream *s, pa_stream_request_cb_t cb, void *userdata) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     s->write_callback = cb;
     s->write_userdata = userdata;
@@ -1041,7 +1041,7 @@ void pa_stream_set_write_callback(pa_stream *s, pa_stream_request_cb_t cb, void 
 
 void pa_stream_set_state_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     s->state_callback = cb;
     s->state_userdata = userdata;
@@ -1049,7 +1049,7 @@ void pa_stream_set_state_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *
 
 void pa_stream_set_overflow_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     s->overflow_callback = cb;
     s->overflow_userdata = userdata;
@@ -1057,7 +1057,7 @@ void pa_stream_set_overflow_callback(pa_stream *s, pa_stream_notify_cb_t cb, voi
 
 void pa_stream_set_underflow_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     s->underflow_callback = cb;
     s->underflow_userdata = userdata;
@@ -1065,7 +1065,7 @@ void pa_stream_set_underflow_callback(pa_stream *s, pa_stream_notify_cb_t cb, vo
 
 void pa_stream_set_latency_update_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     s->latency_update_callback = cb;
     s->latency_update_userdata = userdata;
@@ -1077,7 +1077,7 @@ void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -1108,7 +1108,7 @@ pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, voi
     uint32_t tag;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
@@ -1138,7 +1138,7 @@ static pa_operation* stream_send_simple_command(pa_stream *s, uint32_t command, 
     uint32_t tag;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
 
@@ -1207,7 +1207,7 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
     uint32_t tag;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
     assert(name);
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
@@ -1231,7 +1231,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
     pa_usec_t usec = 0;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
@@ -1315,7 +1315,7 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
 
 static pa_usec_t time_counter_diff(pa_stream *s, pa_usec_t a, pa_usec_t b, int *negative) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     if (negative)
         *negative = 0;
@@ -1337,7 +1337,7 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative) {
     int64_t cindex;
 
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
     assert(r_usec);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
@@ -1369,7 +1369,7 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative) {
 
 const pa_timing_info* pa_stream_get_timing_info(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
@@ -1380,21 +1380,21 @@ const pa_timing_info* pa_stream_get_timing_info(pa_stream *s) {
 
 const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     return &s->sample_spec;
 }
 
 const pa_channel_map* pa_stream_get_channel_map(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     return &s->channel_map;
 }
 
 const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s) {
     assert(s);
-    assert(s->ref >= 1);
+    assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);

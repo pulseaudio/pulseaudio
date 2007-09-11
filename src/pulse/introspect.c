@@ -45,7 +45,7 @@ static void context_stat_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNU
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     memset(&i, 0, sizeof(i));
     
@@ -88,7 +88,7 @@ static void context_get_server_info_callback(pa_pdispatch *pd, uint32_t command,
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     memset(&i, 0, sizeof(i));
     
@@ -135,7 +135,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -199,7 +199,7 @@ pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t idx, pa_
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -221,7 +221,7 @@ pa_operation* pa_context_get_sink_info_by_name(pa_context *c, const char *name, 
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -246,7 +246,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -310,7 +310,7 @@ pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t idx, p
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -332,7 +332,7 @@ pa_operation* pa_context_get_source_info_by_name(pa_context *c, const char *name
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -357,7 +357,7 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -404,7 +404,7 @@ pa_operation* pa_context_get_client_info(pa_context *c, uint32_t idx, pa_client_
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -432,7 +432,7 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -480,7 +480,7 @@ pa_operation* pa_context_get_module_info(pa_context *c, uint32_t idx, pa_module_
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -508,7 +508,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -565,7 +565,7 @@ pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, pa_sin
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -593,7 +593,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -649,7 +649,7 @@ pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, pa_
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -677,7 +677,7 @@ pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, c
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(volume);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -701,7 +701,7 @@ pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(name);
     assert(volume);
 
@@ -727,7 +727,7 @@ pa_operation* pa_context_set_sink_mute_by_index(pa_context *c, uint32_t idx, int
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -749,7 +749,7 @@ pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, 
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(name);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -773,7 +773,7 @@ pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, cons
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(volume);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -797,7 +797,7 @@ pa_operation* pa_context_set_sink_input_mute(pa_context *c, uint32_t idx, int mu
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
@@ -820,7 +820,7 @@ pa_operation* pa_context_set_source_volume_by_index(pa_context *c, uint32_t idx,
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(volume);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -844,7 +844,7 @@ pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *na
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(name);
     assert(volume);
 
@@ -870,7 +870,7 @@ pa_operation* pa_context_set_source_mute_by_index(pa_context *c, uint32_t idx, i
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -892,7 +892,7 @@ pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(name);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -918,7 +918,7 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -972,7 +972,7 @@ pa_operation* pa_context_get_sample_info_by_name(pa_context *c, const char *name
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -995,7 +995,7 @@ pa_operation* pa_context_get_sample_info_by_index(pa_context *c, uint32_t idx, p
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -1022,7 +1022,7 @@ static pa_operation* command_kill(pa_context *c, uint32_t command, uint32_t idx,
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
@@ -1055,7 +1055,7 @@ static void context_index_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -1088,7 +1088,7 @@ pa_operation* pa_context_load_module(pa_context *c, const char*name, const char 
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
@@ -1116,7 +1116,7 @@ static void context_get_autoload_info_callback(pa_pdispatch *pd, uint32_t comman
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -1165,7 +1165,7 @@ pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *na
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -1189,7 +1189,7 @@ pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx,
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(cb);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -1215,7 +1215,7 @@ pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autolo
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
@@ -1241,7 +1241,7 @@ pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
@@ -1264,7 +1264,7 @@ pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, p
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, idx != PA_INVALID_INDEX, PA_ERR_INVALID);
@@ -1285,7 +1285,7 @@ pa_operation* pa_context_move_sink_input_by_name(pa_context *c, uint32_t idx, ch
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 10, PA_ERR_NOTSUPPORTED);
@@ -1310,7 +1310,7 @@ pa_operation* pa_context_move_sink_input_by_index(pa_context *c, uint32_t idx, u
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 10, PA_ERR_NOTSUPPORTED);
@@ -1335,7 +1335,7 @@ pa_operation* pa_context_move_source_output_by_name(pa_context *c, uint32_t idx,
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 10, PA_ERR_NOTSUPPORTED);
@@ -1360,7 +1360,7 @@ pa_operation* pa_context_move_source_output_by_index(pa_context *c, uint32_t idx
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 10, PA_ERR_NOTSUPPORTED);
@@ -1385,7 +1385,7 @@ pa_operation* pa_context_suspend_sink_by_name(pa_context *c, char *sink_name, in
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 11, PA_ERR_NOTSUPPORTED);
@@ -1409,7 +1409,7 @@ pa_operation* pa_context_suspend_sink_by_index(pa_context *c, uint32_t idx, int 
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 11, PA_ERR_NOTSUPPORTED);
@@ -1432,7 +1432,7 @@ pa_operation* pa_context_suspend_source_by_name(pa_context *c, char *source_name
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 11, PA_ERR_NOTSUPPORTED);
@@ -1456,7 +1456,7 @@ pa_operation* pa_context_suspend_source_by_index(pa_context *c, uint32_t idx, in
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 11, PA_ERR_NOTSUPPORTED);

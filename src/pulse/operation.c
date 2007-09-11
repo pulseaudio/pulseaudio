@@ -36,7 +36,7 @@ pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t cb
     pa_assert(c);
 
     o = pa_xnew(pa_operation, 1);
-    o->ref = 1;
+    PA_REFCNT_INIT(o);
     o->context = c;
     o->stream = s;
 
@@ -53,17 +53,17 @@ pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t cb
 
 pa_operation *pa_operation_ref(pa_operation *o) {
     pa_assert(o);
-    pa_assert(o->ref >= 1);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
-    o->ref++;
+    PA_REFCNT_INC(o);
     return o;
 }
 
 void pa_operation_unref(pa_operation *o) {
     pa_assert(o);
-    pa_assert(o->ref >= 1);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
-    if ((--(o->ref)) == 0) {
+    if (PA_REFCNT_DEC(o) <= 0) {
         pa_assert(!o->context);
         pa_assert(!o->stream);
         pa_xfree(o);
@@ -72,7 +72,7 @@ void pa_operation_unref(pa_operation *o) {
 
 static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
     pa_assert(o);
-    pa_assert(o->ref >= 1);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (st == o->state)
         return;
@@ -84,7 +84,7 @@ static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
     if ((o->state == PA_OPERATION_DONE) || (o->state == PA_OPERATION_CANCELED)) {
 
         if (o->context) {
-            pa_assert(o->ref >= 2);
+            pa_assert(PA_REFCNT_VALUE(o) >= 2);
 
             PA_LLIST_REMOVE(pa_operation, o->context->operations, o);
             pa_operation_unref(o);
@@ -101,21 +101,21 @@ static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
 
 void pa_operation_cancel(pa_operation *o) {
     pa_assert(o);
-    pa_assert(o->ref >= 1);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
     operation_set_state(o, PA_OPERATION_CANCELED);
 }
 
 void pa_operation_done(pa_operation *o) {
     pa_assert(o);
-    pa_assert(o->ref >= 1);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
     operation_set_state(o, PA_OPERATION_DONE);
 }
 
 pa_operation_state_t pa_operation_get_state(pa_operation *o) {
     pa_assert(o);
-    pa_assert(o->ref >= 1);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
     return o->state;
 }

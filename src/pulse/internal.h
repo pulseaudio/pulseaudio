@@ -41,13 +41,14 @@
 #include <pulsecore/mcalign.h>
 #include <pulsecore/memblockq.h>
 #include <pulsecore/hashmap.h>
+#include <pulsecore/refcnt.h>
 
 #include "client-conf.h"
 
 #define DEFAULT_TIMEOUT (30)
 
 struct pa_context {
-    int ref;
+    PA_REFCNT_DECLARE;
 
     char *name;
     pa_mainloop_api* mainloop;
@@ -96,7 +97,7 @@ typedef struct pa_index_correction {
 } pa_index_correction;
 
 struct pa_stream {
-    int ref;
+    PA_REFCNT_DECLARE;
     pa_context *context;
     pa_mainloop_api *mainloop;
     PA_LLIST_FIELDS(pa_stream);
@@ -161,7 +162,8 @@ struct pa_stream {
 typedef void (*pa_operation_cb_t)(void);
 
 struct pa_operation {
-    int ref;
+    PA_REFCNT_DECLARE;
+
     pa_context *context;
     pa_stream *stream;
 

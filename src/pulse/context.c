@@ -110,7 +110,7 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     assert(name);
 
     c = pa_xnew(pa_context, 1);
-    c->ref = 1;
+    PA_REFCNT_INIT(c);
     c->name = pa_xstrdup(name);
     c->mainloop = mainloop;
     c->client = NULL;
@@ -207,23 +207,23 @@ static void context_free(pa_context *c) {
 
 pa_context* pa_context_ref(pa_context *c) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
-    c->ref++;
+    PA_REFCNT_INC(c);
     return c;
 }
 
 void pa_context_unref(pa_context *c) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
-    if (--c->ref <= 0)
+    if (PA_REFCNT_DEC(c) <= 0)
         context_free(c);
 }
 
 void pa_context_set_state(pa_context *c, pa_context_state_t st) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     if (c->state == st)
         return;
@@ -265,7 +265,7 @@ void pa_context_set_state(pa_context *c, pa_context_state_t st) {
 
 void pa_context_fail(pa_context *c, int error) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     pa_context_set_error(c, error);
     pa_context_set_state(c, PA_CONTEXT_FAILED);
@@ -314,7 +314,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     assert(chunk->memblock);
     assert(chunk->length);
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     pa_context_ref(c);
 
@@ -338,7 +338,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
 int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     if (command == PA_COMMAND_ERROR) {
         assert(t);
@@ -684,7 +684,7 @@ int pa_context_connect(
     int r = -1;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY(c, c->state == PA_CONTEXT_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(c, !(flags & ~PA_CONTEXT_NOAUTOSPAWN), PA_ERR_INVALID);
@@ -756,28 +756,28 @@ finish:
 
 void pa_context_disconnect(pa_context *c) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     pa_context_set_state(c, PA_CONTEXT_TERMINATED);
 }
 
 pa_context_state_t pa_context_get_state(pa_context *c) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     return c->state;
 }
 
 int pa_context_errno(pa_context *c) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     return c->error;
 }
 
 void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, void *userdata) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     c->state_callback = cb;
     c->state_userdata = userdata;
@@ -785,7 +785,7 @@ void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, voi
 
 int pa_context_is_pending(pa_context *c) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY(c,
                       c->state == PA_CONTEXT_CONNECTING ||
@@ -812,9 +812,9 @@ static void set_dispatch_callbacks(pa_operation *o) {
     int done = 1;
 
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
     assert(o->context);
-    assert(o->context->ref >= 1);
+    assert(PA_REFCNT_VALUE(o->context) >= 1);
     assert(o->context->state == PA_CONTEXT_READY);
 
     pa_pstream_set_drain_callback(o->context->pstream, NULL, NULL);
@@ -845,7 +845,7 @@ pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *u
     pa_operation *o;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, pa_context_is_pending(c), PA_ERR_BADSTATE);
@@ -862,7 +862,7 @@ void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_U
 
     assert(pd);
     assert(o);
-    assert(o->ref >= 1);
+    assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -893,7 +893,7 @@ pa_operation* pa_context_exit_daemon(pa_context *c, pa_context_success_cb_t cb, 
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -912,7 +912,7 @@ pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, pa
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -931,7 +931,7 @@ pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_co
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -951,7 +951,7 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -977,7 +977,7 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
     uint32_t tag;
 
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
     assert(name);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -998,7 +998,7 @@ const char* pa_get_library_version(void) {
 
 const char* pa_context_get_server(pa_context *c) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     if (!c->server)
         return NULL;
@@ -1017,7 +1017,7 @@ uint32_t pa_context_get_protocol_version(PA_GCC_UNUSED pa_context *c) {
 
 uint32_t pa_context_get_server_protocol_version(pa_context *c) {
     assert(c);
-    assert(c->ref >= 1);
+    assert(PA_REFCNT_VALUE(c) >= 1);
 
     return c->version;
 }
