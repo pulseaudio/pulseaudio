@@ -1,32 +1,31 @@
 /* $Id$ */
 
 /***
-  This file is part of PulseAudio.
+    This file is part of PulseAudio.
 
-  Copyright 2006 Lennart Poettering
-  Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
+    Copyright 2006 Lennart Poettering
+    Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
 
-  PulseAudio is free software; you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License as
-  published by the Free Software Foundation; either version 2.1 of the
-  License, or (at your option) any later version.
+    PulseAudio is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation; either version 2.1 of the
+    License, or (at your option) any later version.
 
-  PulseAudio is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  Lesser General Public License for more details.
+    PulseAudio is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with PulseAudio; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-  USA.
+    You should have received a copy of the GNU Lesser General Public
+    License along with PulseAudio; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+    USA.
 ***/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -63,10 +62,10 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
     char fn[32];
     int fd = -1;
 
-    assert(m);
-    assert(size > 0);
-    assert(size < MAX_SHM_SIZE);
-    assert(mode >= 0600);
+    pa_assert(m);
+    pa_assert(size > 0);
+    pa_assert(size < MAX_SHM_SIZE);
+    pa_assert(mode >= 0600);
 
     if (!shared) {
         m->id = 0;
@@ -115,7 +114,7 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
         close(fd);
         m->do_unlink = 1;
 #else
-                return -1;
+        return -1;
 #endif
     }
 
@@ -128,7 +127,7 @@ fail:
 #ifdef HAVE_SHM_OPEN
     if (fd >= 0) {
         shm_unlink(fn);
-        close(fd);
+        pa_assert_se(close(fd) >= 0);
     }
 #endif
 
@@ -136,12 +135,12 @@ fail:
 }
 
 void pa_shm_free(pa_shm *m) {
-    assert(m);
-    assert(m->ptr);
-    assert(m->size > 0);
+    pa_assert(m);
+    pa_assert(m->ptr);
+    pa_assert(m->size > 0);
 
 #ifdef MAP_FAILED
-    assert(m->ptr != MAP_FAILED);
+    pa_assert(m->ptr != MAP_FAILED);
 #endif
     
     if (!m->shared) {
@@ -179,13 +178,13 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size) {
     void *ptr;
     size_t o, ps;
 
-    assert(m);
-    assert(m->ptr);
-    assert(m->size > 0);
-    assert(offset+size <= m->size);
+    pa_assert(m);
+    pa_assert(m->ptr);
+    pa_assert(m->size > 0);
+    pa_assert(offset+size <= m->size);
 
 #ifdef MAP_FAILED
-    assert(m->ptr != MAP_FAILED);
+    pa_assert(m->ptr != MAP_FAILED);
 #endif
 
     /* You're welcome to implement this as NOOP on systems that don't
@@ -225,7 +224,7 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
     int fd = -1;
     struct stat st;
 
-    assert(m);
+    pa_assert(m);
 
     segment_name(fn, sizeof(fn), m->id = id);
 
@@ -254,13 +253,13 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
     m->do_unlink = 0;
     m->shared = 1;
 
-    close(fd);
+    pa_assert_se(close(fd) >= 0);
 
     return 0;
 
 fail:
     if (fd >= 0)
-        close(fd);
+        pa_assert_se(close(fd) >= 0);
 
     return -1;
 }
@@ -268,7 +267,7 @@ fail:
 #else /* HAVE_SHM_OPEN */
 
 int pa_shm_attach_ro(pa_shm *m, unsigned id) {
-        return -1;
+    return -1;
 }
 
 #endif /* HAVE_SHM_OPEN */

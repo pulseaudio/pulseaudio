@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdio.h>
 
 #include <asoundlib.h>
@@ -817,7 +816,7 @@ int pa__init(pa_module*m) {
     pa_log_info("Using %u fragments of size %lu bytes.", nfrags, (long unsigned) u->fragment_size);
 
     if (u->mixer_handle) {
-        assert(u->mixer_elem);
+        pa_assert(u->mixer_elem);
         
         if (snd_mixer_selem_has_capture_volume(u->mixer_elem)) {
             int i;

@@ -27,7 +27,6 @@
 #endif
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -64,7 +63,6 @@ pa_sink* pa_sink_new(
     pa_sink *s;
     char *n = NULL;
     char st[256];
-    int r;
     pa_channel_map tmap;
 
     pa_assert(core);
@@ -120,8 +118,7 @@ pa_sink* pa_sink_new(
     s->rtpoll = NULL;
     s->silence = NULL;
 
-    r = pa_idxset_put(core->sinks, s, &s->index);
-    pa_assert(s->index != PA_IDXSET_INVALID && r >= 0);
+    pa_assert_se(pa_idxset_put(core->sinks, s, &s->index) >= 0);
 
     pa_sample_spec_snprint(st, sizeof(st), spec);
     pa_log_info("Created sink %u \"%s\" with sample spec \"%s\"", s->index, s->name, st);

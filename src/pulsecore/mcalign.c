@@ -27,10 +27,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
 
 #include "mcalign.h"
 
@@ -41,7 +41,7 @@ struct pa_mcalign {
 
 pa_mcalign *pa_mcalign_new(size_t base) {
     pa_mcalign *m;
-    assert(base);
+    pa_assert(base);
 
     m = pa_xnew(pa_mcalign, 1);
 
@@ -53,7 +53,7 @@ pa_mcalign *pa_mcalign_new(size_t base) {
 }
 
 void pa_mcalign_free(pa_mcalign *m) {
-    assert(m);
+    pa_assert(m);
 
     if (m->leftover.memblock)
         pa_memblock_unref(m->leftover.memblock);
@@ -65,13 +65,13 @@ void pa_mcalign_free(pa_mcalign *m) {
 }
 
 void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
-    assert(m);
-    assert(c);
+    pa_assert(m);
+    pa_assert(c);
 
-    assert(c->memblock);
-    assert(c->length > 0);
+    pa_assert(c->memblock);
+    pa_assert(c->length > 0);
 
-    assert(!m->current.memblock);
+    pa_assert(!m->current.memblock);
 
     /* Append to the leftover memory block */
     if (m->leftover.memblock) {
@@ -94,7 +94,7 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
             void *lo_data, *m_data;
 
             /* We have to copy */
-            assert(m->leftover.length < m->base);
+            pa_assert(m->leftover.length < m->base);
             l = m->base - m->leftover.length;
 
             if (l > c->length)
@@ -110,8 +110,8 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
             pa_memblock_release(c->memblock);
             m->leftover.length += l;
 
-            assert(m->leftover.length <= m->base);
-            assert(m->leftover.length <= pa_memblock_get_length(m->leftover.memblock));
+            pa_assert(m->leftover.length <= m->base);
+            pa_assert(m->leftover.length <= pa_memblock_get_length(m->leftover.memblock));
 
             if (c->length > l) {
                 /* Save the remainder of the memory block */
@@ -134,12 +134,13 @@ void pa_mcalign_push(pa_mcalign *m, const pa_memchunk *c) {
 }
 
 int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
-    assert(m);
-    assert(c);
+    pa_assert(m);
+    pa_assert(c);
 
     /* First test if there's a leftover memory block available */
     if (m->leftover.memblock) {
-        assert(m->leftover.length > 0 && m->leftover.length <= m->base);
+        pa_assert(m->leftover.length > 0);
+        pa_assert(m->leftover.length <= m->base);
 
         /* The leftover memory block is not yet complete */
         if (m->leftover.length < m->base)
@@ -161,13 +162,13 @@ int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
     /* Now let's see if there is other data available */
     if (m->current.memblock) {
         size_t l;
-        assert(m->current.length >= m->base);
+        pa_assert(m->current.length >= m->base);
 
         /* The length of the returned memory block */
         l = m->current.length;
         l /= m->base;
         l *= m->base;
-        assert(l > 0);
+        pa_assert(l > 0);
 
         /* Prepare the returned block */
         *c = m->current;
@@ -175,7 +176,7 @@ int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
         c->length = l;
 
         /* Drop that from the current memory block */
-        assert(l <= m->current.length);
+        pa_assert(l <= m->current.length);
         m->current.index += l;
         m->current.length -= l;
 
@@ -184,7 +185,7 @@ int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
             pa_memblock_unref(m->current.memblock);
         else {
             /* Move the raimainder to leftover */
-            assert(m->current.length < m->base && !m->leftover.memblock);
+            pa_assert(m->current.length < m->base && !m->leftover.memblock);
 
             m->leftover = m->current;
         }
@@ -200,10 +201,10 @@ int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
 }
 
 size_t pa_mcalign_csize(pa_mcalign *m, size_t l) {
-    assert(m);
-    assert(l > 0);
+    pa_assert(m);
+    pa_assert(l > 0);
 
-    assert(!m->current.memblock);
+    pa_assert(!m->current.memblock);
 
     if (m->leftover.memblock)
         l += m->leftover.length;

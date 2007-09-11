@@ -25,8 +25,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
-
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
 

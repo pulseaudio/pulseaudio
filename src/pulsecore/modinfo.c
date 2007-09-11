@@ -82,7 +82,7 @@ pa_modinfo *pa_modinfo_get_by_name(const char *name) {
 }
 
 void pa_modinfo_free(pa_modinfo *i) {
-    assert(i);
+    pa_assert(i);
     
     pa_xfree(i->author);
     pa_xfree(i->description);

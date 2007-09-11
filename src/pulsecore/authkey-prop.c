@@ -38,7 +38,6 @@
 
 struct authkey_data {
     PA_REFCNT_DECLARE;
-    int ref;
     size_t length;
 };
 

@@ -25,11 +25,9 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
-
 #include <pulse/xmalloc.h>
-
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "props.h"
 
@@ -41,9 +39,11 @@ typedef struct pa_property {
 /* Allocate a new property object */
 static pa_property* property_new(const char *name, void *data) {
     pa_property* p;
-    assert(name && data);
+    
+    pa_assert(name);
+    pa_assert(data);
 
-    p = pa_xmalloc(sizeof(pa_property));
+    p = pa_xnew(pa_property, 1);
     p->name = pa_xstrdup(name);
     p->data = data;
 
@@ -52,7 +52,7 @@ static pa_property* property_new(const char *name, void *data) {
 
 /* Free a property object */
 static void property_free(pa_property *p) {
-    assert(p);
+    pa_assert(p);
 
     pa_xfree(p->name);
     pa_xfree(p);
@@ -60,7 +60,10 @@ static void property_free(pa_property *p) {
 
 void* pa_property_get(pa_core *c, const char *name) {
     pa_property *p;
-    assert(c && name && c->properties);
+    
+    pa_assert(c);
+    pa_assert(name);
+    pa_assert(c->properties);
 
     if (!(p = pa_hashmap_get(c->properties, name)))
         return NULL;
@@ -70,7 +73,11 @@ void* pa_property_get(pa_core *c, const char *name) {
 
 int pa_property_set(pa_core *c, const char *name, void *data) {
     pa_property *p;
-    assert(c && name && data && c->properties);
+    
+    pa_assert(c);
+    pa_assert(name);
+    pa_assert(data);
+    pa_assert(c->properties);
 
     if (pa_hashmap_get(c->properties, name))
         return -1;
@@ -82,7 +89,10 @@ int pa_property_set(pa_core *c, const char *name, void *data) {
 
 int pa_property_remove(pa_core *c, const char *name) {
     pa_property *p;
-    assert(c && name && c->properties);
+    
+    pa_assert(c);
+    pa_assert(name);
+    pa_assert(c->properties);
 
     if (!(p = pa_hashmap_remove(c->properties, name)))
         return -1;
@@ -92,18 +102,18 @@ int pa_property_remove(pa_core *c, const char *name) {
 }
 
 void pa_property_init(pa_core *c) {
-    assert(c);
+    pa_assert(c);
 
     c->properties = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 }
 
 void pa_property_cleanup(pa_core *c) {
-    assert(c);
+    pa_assert(c);
 
     if (!c->properties)
         return;
 
-    assert(!pa_hashmap_size(c->properties));
+    pa_assert(!pa_hashmap_size(c->properties));
 
     pa_hashmap_free(c->properties, NULL, NULL);
     c->properties = NULL;
@@ -113,14 +123,17 @@ void pa_property_cleanup(pa_core *c) {
 void pa_property_dump(pa_core *c, pa_strbuf *s) {
     void *state = NULL;
     pa_property *p;
-    assert(c && s);
+    
+    pa_assert(c);
+    pa_assert(s);
 
     while ((p = pa_hashmap_iterate(c->properties, &state, NULL)))
         pa_strbuf_printf(s, "[%s] -> [%p]\n", p->name, p->data);
 }
 
 int pa_property_replace(pa_core *c, const char *name, void *data) {
-    assert(c && name);
+    pa_assert(c);
+    pa_assert(name);
 
     pa_property_remove(c, name);
     return pa_property_set(c, name, data);

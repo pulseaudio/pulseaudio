@@ -72,6 +72,9 @@ void pa_queue_free(pa_queue* q, void (*destroy)(void *p, void *userdata), void *
 void pa_queue_push(pa_queue *q, void *p) {
     struct queue_entry *e;
 
+    pa_assert(q);
+    pa_assert(p);
+    
     if (!(e = pa_flist_pop(PA_STATIC_FLIST_GET(entries))))
         e = pa_xnew(struct queue_entry, 1);
     

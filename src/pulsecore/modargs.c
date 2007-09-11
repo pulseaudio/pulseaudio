@@ -26,7 +26,6 @@
 #endif
 
 #include <ctype.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -39,6 +38,7 @@
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "modargs.h"
 
@@ -48,7 +48,10 @@ struct entry {
 
 static int add_key_value(pa_hashmap *map, char *key, char *value, const char* const valid_keys[]) {
     struct entry *e;
-    assert(map && key && value);
+    
+    pa_assert(map);
+    pa_assert(key);
+    pa_assert(value);
 
     if (valid_keys) {
         const char*const* v;
@@ -63,10 +66,11 @@ static int add_key_value(pa_hashmap *map, char *key, char *value, const char* co
         }
     }
 
-    e = pa_xmalloc(sizeof(struct entry));
+    e = pa_xnew(struct entry, 1);
     e->key = key;
     e->value = value;
     pa_hashmap_put(map, key, e);
+    
     return 0;
 }
 
@@ -74,7 +78,6 @@ pa_modargs *pa_modargs_new(const char *args, const char* const* valid_keys) {
     pa_hashmap *map = NULL;
 
     map = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    assert(map);
 
     if (args) {
         enum { WHITESPACE, KEY, VALUE_START, VALUE_SIMPLE, VALUE_DOUBLE_QUOTES, VALUE_TICKS } state;
@@ -166,10 +169,10 @@ fail:
     return NULL;
 }
 
-
 static void free_func(void *p, PA_GCC_UNUSED void*userdata) {
     struct entry *e = p;
-    assert(e);
+    pa_assert(e);
+    
     pa_xfree(e->key);
     pa_xfree(e->value);
     pa_xfree(e);
@@ -192,7 +195,10 @@ const char *pa_modargs_get_value(pa_modargs *ma, const char *key, const char *de
 
 int pa_modargs_get_value_u32(pa_modargs *ma, const char *key, uint32_t *value) {
     const char *v;
-    assert(ma && key && value);
+
+    pa_assert(ma);
+    pa_assert(key);
+    pa_assert(value);
 
     if (!(v = pa_modargs_get_value(ma, key, NULL)))
         return 0;
@@ -205,7 +211,10 @@ int pa_modargs_get_value_u32(pa_modargs *ma, const char *key, uint32_t *value) {
 
 int pa_modargs_get_value_s32(pa_modargs *ma, const char *key, int32_t *value) {
     const char *v;
-    assert(ma && key && value);
+
+    pa_assert(ma);
+    pa_assert(key);
+    pa_assert(value);
 
     if (!(v = pa_modargs_get_value(ma, key, NULL)))
         return 0;
@@ -219,7 +228,10 @@ int pa_modargs_get_value_s32(pa_modargs *ma, const char *key, int32_t *value) {
 int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, int *value) {
     const char *v;
     int r;
-    assert(ma && key && value);
+
+    pa_assert(ma);
+    pa_assert(key);
+    pa_assert(value);
 
     if (!(v = pa_modargs_get_value(ma, key, NULL)))
         return 0;
@@ -238,9 +250,9 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     const char *format;
     uint32_t channels;
     pa_sample_spec ss;
-    assert(ma && rss);
-
-/*    DEBUG_TRAP;*/
+    
+    pa_assert(ma);
+    pa_assert(rss);
 
     ss = *rss;
     if ((pa_modargs_get_value_u32(ma, "rate", &ss.rate)) < 0)
@@ -267,8 +279,8 @@ int pa_modargs_get_channel_map(pa_modargs *ma, pa_channel_map *rmap) {
     pa_channel_map map;
     const char *cm;
 
-    assert(ma);
-    assert(rmap);
+    pa_assert(ma);
+    pa_assert(rmap);
 
     map = *rmap;
 
@@ -287,9 +299,9 @@ int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *r
     pa_sample_spec ss;
     pa_channel_map map;
 
-    assert(ma);
-    assert(rss);
-    assert(rmap);
+    pa_assert(ma);
+    pa_assert(rss);
+    pa_assert(rmap);
 
     ss = *rss;
 

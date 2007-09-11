@@ -26,10 +26,10 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
 
 #include "dynarray.h"
 
@@ -52,7 +52,7 @@ pa_dynarray* pa_dynarray_new(void) {
 
 void pa_dynarray_free(pa_dynarray* a, void (*func)(void *p, void *userdata), void *userdata) {
     unsigned i;
-    assert(a);
+    pa_assert(a);
 
     if (func)
         for (i = 0; i < a->n_entries; i++)
@@ -64,7 +64,7 @@ void pa_dynarray_free(pa_dynarray* a, void (*func)(void *p, void *userdata), voi
 }
 
 void pa_dynarray_put(pa_dynarray*a, unsigned i, void *p) {
-    assert(a);
+    pa_assert(a);
 
     if (i >= a->n_allocated) {
         unsigned n;
@@ -85,21 +85,27 @@ void pa_dynarray_put(pa_dynarray*a, unsigned i, void *p) {
 }
 
 unsigned pa_dynarray_append(pa_dynarray*a, void *p) {
-    unsigned i = a->n_entries;
+    unsigned i;
+
+    pa_assert(a);
+    
+    i = a->n_entries;
     pa_dynarray_put(a, i, p);
     return i;
 }
 
 void *pa_dynarray_get(pa_dynarray*a, unsigned i) {
-    assert(a);
+    pa_assert(a);
+    
     if (i >= a->n_entries)
         return NULL;
 
-    assert(a->data);
+    pa_assert(a->data);
     return a->data[i];
 }
 
 unsigned pa_dynarray_size(pa_dynarray*a) {
-    assert(a);
+    pa_assert(a);
+    
     return a->n_entries;
 }

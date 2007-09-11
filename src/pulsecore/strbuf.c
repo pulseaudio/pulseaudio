@@ -82,7 +82,7 @@ char *pa_strbuf_tostring(pa_strbuf *sb) {
     e = t = pa_xnew(char, sb->length+1);
 
     for (c = sb->head; c; c = c->next) {
-        assert((size_t) (e-t) <= sb->length);
+        pa_assert((size_t) (e-t) <= sb->length);
         memcpy(e, CHUNK_TO_TEXT(c), c->length);
         e += c->length;
     }
@@ -90,7 +90,7 @@ char *pa_strbuf_tostring(pa_strbuf *sb) {
     /* Trailing NUL */
     *e = 0;
 
-    assert(e == t+sb->length);
+    pa_assert(e == t+sb->length);
 
     return t;
 }

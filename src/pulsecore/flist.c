@@ -25,14 +25,14 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/atomic.h>
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
-#include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
 
 #include "flist.h"
 
@@ -111,7 +111,7 @@ pa_flist *pa_flist_new(unsigned size) {
     if (!size)
         size = FLIST_SIZE;
 
-    assert(pa_is_power_of_two(size));
+    pa_assert(pa_is_power_of_two(size));
 
     l = pa_xmalloc0(PA_ALIGN(sizeof(pa_flist)) + (sizeof(struct cell) * size));
 
@@ -129,7 +129,7 @@ static int reduce(pa_flist *l, int value) {
 }
 
 void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
-    assert(l);
+    pa_assert(l);
 
     if (free_cb) {
         struct cell *cells;
@@ -156,8 +156,8 @@ int pa_flist_push(pa_flist*l, void *p) {
     int idx, len, n;
     struct cell *cells;
 
-    assert(l);
-    assert(p);
+    pa_assert(l);
+    pa_assert(p);
 
     cells = PA_FLIST_CELLS(l);
 
@@ -196,7 +196,7 @@ void* pa_flist_pop(pa_flist*l) {
     int idx, len, n;
     struct cell *cells;
 
-    assert(l);
+    pa_assert(l);
 
     cells = PA_FLIST_CELLS(l);
 

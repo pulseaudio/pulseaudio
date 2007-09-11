@@ -25,21 +25,17 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/atomic.h>
 
 #include "sioman.h"
 
-static int stdio_inuse = 0;
+static pa_atomic_t stdio_inuse = PA_ATOMIC_INIT(0);
 
 int pa_stdio_acquire(void) {
-    if (stdio_inuse)
-        return -1;
-
-    stdio_inuse = 1;
-    return 0;
+    return pa_atomic_cmpxchg(&stdio_inuse, 0, 1) ? 0 : -1;
 }
 
 void pa_stdio_release(void) {
-    assert(stdio_inuse);
-    stdio_inuse = 0;
+    pa_assert_se(pa_atomic_cmpxchg(&stdio_inuse, 1, 0));
 }

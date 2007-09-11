@@ -26,13 +26,13 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
-
 #include <pulse/util.h>
+
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "parseaddr.h"
 
@@ -45,7 +45,9 @@
  *  Return a newly allocated string of the hostname and fill in *ret_port if specified  */
 
 static char *parse_host(const char *s, uint16_t *ret_port) {
-    assert(s && ret_port);
+    pa_assert(s);
+    pa_assert(ret_port);
+    
     if (*s == '[') {
         char *e;
         if (!(e = strchr(s+1, ']')))
@@ -70,7 +72,10 @@ static char *parse_host(const char *s, uint16_t *ret_port) {
 
 int pa_parse_address(const char *name, pa_parsed_address *ret_p) {
     const char *p;
-    assert(name && ret_p);
+    
+    pa_assert(name);
+    pa_assert(ret_p);
+    
     memset(ret_p, 0, sizeof(pa_parsed_address));
     ret_p->type = PA_PARSED_ADDRESS_TCP_AUTO;
 
@@ -111,7 +116,6 @@ int pa_parse_address(const char *name, pa_parsed_address *ret_p) {
     else
         if (!(ret_p->path_or_host = parse_host(p, &ret_p->port)))
             return -1;
-
 
     return 0;
 }

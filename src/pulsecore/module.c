@@ -157,7 +157,8 @@ static void pa_module_free(pa_module *m) {
 }
 
 void pa_module_unload(pa_core *c, pa_module *m) {
-    pa_assert(c && m);
+    pa_assert(c);
+    pa_assert(m);
 
     pa_assert(c->modules);
     if (!(m = pa_idxset_remove_by_data(c->modules, m, NULL)))

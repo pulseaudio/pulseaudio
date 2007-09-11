@@ -26,11 +26,11 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <unistd.h>
 #include <string.h>
-#include <lirc/lirc_client.h>
 #include <stdlib.h>
+
+#include <lirc/lirc_client.h>
 
 #include <pulse/xmalloc.h>
 
@@ -39,6 +39,7 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/macro.h>
 
 #include "module-lirc-symdef.h"
 

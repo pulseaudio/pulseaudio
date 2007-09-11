@@ -132,7 +132,7 @@ int pa_set_root(HANDLE handle) {
 void pa_make_nonblock_fd(int fd) {
 #ifdef O_NONBLOCK
     int v;
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
     if ((v = fcntl(fd, F_GETFL)) >= 0)
         if (!(v & O_NONBLOCK))
@@ -153,7 +153,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     struct stat st;
     int r;
 
-    assert(dir);
+    pa_assert(dir);
 
 #ifdef OS_IS_WIN32
     r = mkdir(dir);
@@ -300,9 +300,9 @@ ssize_t pa_loop_read(int fd, void*data, size_t size, int *type) {
     ssize_t ret = 0;
     int _type;
 
-    assert(fd >= 0);
-    assert(data);
-    assert(size);
+    pa_assert(fd >= 0);
+    pa_assert(data);
+    pa_assert(size);
 
     if (!type) {
         _type = 0;
@@ -331,9 +331,9 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
     ssize_t ret = 0;
     int _type;
 
-    assert(fd >= 0);
-    assert(data);
-    assert(size);
+    pa_assert(fd >= 0);
+    pa_assert(data);
+    pa_assert(size);
 
     if (!type) {
         _type = 0;
@@ -423,7 +423,7 @@ char *pa_sprintf_malloc(const char *format, ...) {
     int  size = 100;
     char *c = NULL;
 
-    assert(format);
+    pa_assert(format);
 
     for(;;) {
         int r;
@@ -453,7 +453,7 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
     int  size = 100;
     char *c = NULL;
 
-    assert(format);
+    pa_assert(format);
 
     for(;;) {
         int r;
@@ -479,7 +479,9 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
 
 /* Similar to OpenBSD's strlcpy() function */
 char *pa_strlcpy(char *b, const char *s, size_t l) {
-    assert(b && s && l > 0);
+    pa_assert(b);
+    pa_assert(s);
+    pa_assert(l > 0);
 
     strncpy(b, s, l);
     b[l-1] = 0;
@@ -550,7 +552,7 @@ int pa_fd_set_cloexec(int fd, int b) {
 
 #ifdef FD_CLOEXEC
     int v;
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
     if ((v = fcntl(fd, F_GETFD, 0)) < 0)
         return -1;
@@ -690,7 +692,7 @@ int pa_own_uid_in_group(const char *name, gid_t *gid) {
     int n = sysconf(_SC_NGROUPS_MAX);
     int r = -1, i;
 
-    assert(n > 0);
+    pa_assert(n > 0);
 
     gids = pa_xmalloc(sizeof(GETGROUPS_T)*n);
 
@@ -856,7 +858,7 @@ int pa_lock_fd(int fd, int b) {
 
 /* Remove trailing newlines from a string */
 char* pa_strip_nl(char *s) {
-    assert(s);
+    pa_assert(s);
 
     s[strcspn(s, "\r\n")] = 0;
     return s;
@@ -865,7 +867,7 @@ char* pa_strip_nl(char *s) {
 /* Create a temporary lock file and lock it. */
 int pa_lock_lockfile(const char *fn) {
     int fd = -1;
-    assert(fn);
+    pa_assert(fn);
 
     for (;;) {
         struct stat st;
@@ -916,7 +918,8 @@ fail:
 /* Unlock a temporary lcok file */
 int pa_unlock_lockfile(const char *fn, int fd) {
     int r = 0;
-    assert(fn && fd >= 0);
+    pa_assert(fn);
+    pa_assert(fd >= 0);
 
     if (unlink(fn) < 0) {
         pa_log_warn("WARNING: unable to remove lock file '%s': %s",
@@ -1026,7 +1029,10 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength) {
     size_t i = 0, j = 0;
     const char hex[] = "0123456789abcdef";
-    assert(d && s && slength > 0);
+
+    pa_assert(d);
+    pa_assert(s);
+    pa_assert(slength > 0);
 
     while (i < dlength && j+3 <= slength) {
         s[j++] = hex[*d >> 4];
@@ -1057,7 +1063,9 @@ static int hexc(char c) {
 /* Parse a hexadecimal string as created by pa_hexstr() to a BLOB */
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
     size_t j = 0;
-    assert(p && d);
+    
+    pa_assert(p);
+    pa_assert(d);
 
     while (j < dlength && *p) {
         int b;
@@ -1084,8 +1092,8 @@ size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
 int pa_startswith(const char *s, const char *pfx) {
     size_t l;
 
-    assert(s);
-    assert(pfx);
+    pa_assert(s);
+    pa_assert(pfx);
 
     l = strlen(pfx);
 
@@ -1096,8 +1104,8 @@ int pa_startswith(const char *s, const char *pfx) {
 int pa_endswith(const char *s, const char *sfx) {
     size_t l1, l2;
 
-    assert(s);
-    assert(sfx);
+    pa_assert(s);
+    pa_assert(sfx);
 
     l1 = strlen(s);
     l2 = strlen(sfx);
@@ -1150,7 +1158,9 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
 int pa_atoi(const char *s, int32_t *ret_i) {
     char *x = NULL;
     long l;
-    assert(s && ret_i);
+    
+    pa_assert(s);
+    pa_assert(ret_i);
 
     l = strtol(s, &x, 0);
 
@@ -1166,7 +1176,9 @@ int pa_atoi(const char *s, int32_t *ret_i) {
 int pa_atou(const char *s, uint32_t *ret_u) {
     char *x = NULL;
     unsigned long l;
-    assert(s && ret_u);
+    
+    pa_assert(s);
+    pa_assert(ret_u);
 
     l = strtoul(s, &x, 0);
 

@@ -27,7 +27,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 
@@ -42,8 +41,8 @@ pa_memchunk* pa_memchunk_make_writable(pa_memchunk *c, size_t min) {
     size_t l;
     void *tdata, *sdata;
 
-    assert(c);
-    assert(c->memblock);
+    pa_assert(c);
+    pa_assert(c->memblock);
 
     if (pa_memblock_ref_is_one(c->memblock) &&
         !pa_memblock_is_read_only(c->memblock) &&
@@ -68,7 +67,7 @@ pa_memchunk* pa_memchunk_make_writable(pa_memchunk *c, size_t min) {
 }
 
 pa_memchunk* pa_memchunk_reset(pa_memchunk *c) {
-    assert(c);
+    pa_assert(c);
 
     c->memblock = NULL;
     c->length = c->index = 0;

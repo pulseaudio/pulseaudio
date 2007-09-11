@@ -27,7 +27,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -38,6 +37,7 @@
 #include <pulsecore/sink.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "namereg.h"
 
@@ -90,23 +90,22 @@ static char* cleanup_name(const char *name) {
 }
 
 void pa_namereg_free(pa_core *c) {
-    assert(c);
+    pa_assert(c);
 
     if (!c->namereg)
         return;
 
-    assert(pa_hashmap_size(c->namereg) == 0);
+    pa_assert(pa_hashmap_size(c->namereg) == 0);
     pa_hashmap_free(c->namereg, NULL, NULL);
 }
 
 const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t type, void *data, int fail) {
     struct namereg_entry *e;
     char *n = NULL;
-    int r;
 
-    assert(c);
-    assert(name);
-    assert(data);
+    pa_assert(c);
+    pa_assert(name);
+    pa_assert(data);
 
     if (!*name)
         return NULL;
@@ -163,8 +162,7 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
     e->name = n ? n : pa_xstrdup(name);
     e->data = data;
 
-    r = pa_hashmap_put(c->namereg, e->name, e);
-    assert (r >= 0);
+    pa_assert_se(pa_hashmap_put(c->namereg, e->name, e) >= 0);
 
     return e->name;
 }
@@ -172,11 +170,10 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
 void pa_namereg_unregister(pa_core *c, const char *name) {
     struct namereg_entry *e;
 
-    assert(c);
-    assert(name);
+    pa_assert(c);
+    pa_assert(name);
 
-    e = pa_hashmap_remove(c->namereg, name);
-    assert(e);
+    pa_assert_se(e = pa_hashmap_remove(c->namereg, name));
 
     pa_xfree(e->name);
     pa_xfree(e);
@@ -185,7 +182,7 @@ void pa_namereg_unregister(pa_core *c, const char *name) {
 void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, int autoload) {
     struct namereg_entry *e;
     uint32_t idx;
-    assert(c);
+    pa_assert(c);
 
     if (!name) {
 
@@ -245,8 +242,8 @@ void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, int a
 int pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type_t type) {
     char **s;
 
-    assert(c);
-    assert(type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE);
+    pa_assert(c);
+    pa_assert(type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE);
 
     s = type == PA_NAMEREG_SINK ? &c->default_sink_name : &c->default_source_name;
 
@@ -269,7 +266,7 @@ int pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type_t type) 
 const char *pa_namereg_get_default_sink_name(pa_core *c) {
     pa_sink *s;
 
-    assert(c);
+    pa_assert(c);
 
     if (c->default_sink_name)
         return c->default_sink_name;
@@ -284,7 +281,7 @@ const char *pa_namereg_get_default_source_name(pa_core *c) {
     pa_source *s;
     uint32_t idx;
 
-    assert(c);
+    pa_assert(c);
 
     if (c->default_source_name)
         return c->default_source_name;

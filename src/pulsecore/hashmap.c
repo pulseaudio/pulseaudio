@@ -26,7 +26,6 @@
 #endif
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #include <pulse/xmalloc.h>
@@ -34,6 +33,7 @@
 #include <pulsecore/idxset.h>
 #include <pulsecore/log.h>
 #include <pulsecore/flist.h>
+#include <pulsecore/macro.h>
 
 #include "hashmap.h"
 
@@ -72,8 +72,8 @@ pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_f
 }
 
 static void remove(pa_hashmap *h, struct hashmap_entry *e) {
-    assert(h);
-    assert(e);
+    pa_assert(h);
+    pa_assert(e);
 
     if (e->next)
         e->next->previous = e->previous;
@@ -87,7 +87,7 @@ static void remove(pa_hashmap *h, struct hashmap_entry *e) {
     if (e->bucket_previous)
         e->bucket_previous->bucket_next = e->bucket_next;
     else {
-        assert(e->hash < h->size);
+        pa_assert(e->hash < h->size);
         h->data[e->hash] = e->bucket_next;
     }
 
@@ -98,7 +98,7 @@ static void remove(pa_hashmap *h, struct hashmap_entry *e) {
 }
 
 void pa_hashmap_free(pa_hashmap*h, void (*free_func)(void *p, void *userdata), void *userdata) {
-    assert(h);
+    pa_assert(h);
 
     while (h->first_entry) {
         if (free_func)
@@ -112,8 +112,8 @@ void pa_hashmap_free(pa_hashmap*h, void (*free_func)(void *p, void *userdata), v
 
 static struct hashmap_entry *get(pa_hashmap *h, unsigned hash, const void *key) {
     struct hashmap_entry *e;
-    assert(h);
-    assert(hash < h->size);
+    pa_assert(h);
+    pa_assert(hash < h->size);
 
     for (e = h->data[hash]; e; e = e->bucket_next)
         if (h->compare_func(e->key, key) == 0)
@@ -125,7 +125,7 @@ static struct hashmap_entry *get(pa_hashmap *h, unsigned hash, const void *key) 
 int pa_hashmap_put(pa_hashmap *h, const void *key, void *value) {
     struct hashmap_entry *e;
     unsigned hash;
-    assert(h);
+    pa_assert(h);
 
     hash = h->hash_func(key) % h->size;
 
@@ -159,7 +159,7 @@ void* pa_hashmap_get(pa_hashmap *h, const void *key) {
     unsigned hash;
     struct hashmap_entry *e;
 
-    assert(h);
+    pa_assert(h);
 
     hash = h->hash_func(key) % h->size;
 
@@ -174,7 +174,7 @@ void* pa_hashmap_remove(pa_hashmap *h, const void *key) {
     unsigned hash;
     void *data;
 
-    assert(h);
+    pa_assert(h);
 
     hash = h->hash_func(key) % h->size;
 
@@ -191,8 +191,8 @@ unsigned pa_hashmap_size(pa_hashmap *h) {
 }
 
 void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void **key) {
-    assert(h);
-    assert(state);
+    pa_assert(h);
+    pa_assert(state);
 
     if (!*state)
         *state = h->first_entry;
@@ -214,7 +214,7 @@ void *pa_hashmap_iterate(pa_hashmap *h, void **state, const void **key) {
 void* pa_hashmap_steal_first(pa_hashmap *h) {
     void *data;
 
-    assert(h);
+    pa_assert(h);
 
     if (!h->first_entry)
         return NULL;
@@ -225,7 +225,7 @@ void* pa_hashmap_steal_first(pa_hashmap *h) {
 }
 
 void *pa_hashmap_get_first(pa_hashmap *h) {
-    assert(h);
+    pa_assert(h);
 
     if (!h->first_entry)
         return NULL;

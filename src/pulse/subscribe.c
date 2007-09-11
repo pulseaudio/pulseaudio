@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdio.h>
 
 #include <pulsecore/gccmacro.h>

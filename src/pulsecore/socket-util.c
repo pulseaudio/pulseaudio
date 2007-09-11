@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <errno.h>
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -75,19 +74,19 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "socket-util.h"
 
 void pa_socket_peer_to_string(int fd, char *c, size_t l) {
     struct stat st;
 
-    assert(c && l && fd >= 0);
+    pa_assert(fd >= 0);
+    pa_assert(c);
+    pa_assert(l > 0);
 
 #ifndef OS_IS_WIN32
-    if (fstat(fd, &st) < 0) {
-        pa_snprintf(c, l, "Invalid client fd");
-        return;
-    }
+    pa_assert_se(fstat(fd, &st) == 0);
 #endif
 
 #ifndef OS_IS_WIN32
@@ -109,11 +108,11 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
                 uint32_t ip = ntohl(sa.in.sin_addr.s_addr);
 
                 pa_snprintf(c, l, "TCP/IP client from %i.%i.%i.%i:%u",
-                         ip >> 24,
-                         (ip >> 16) & 0xFF,
-                         (ip >> 8) & 0xFF,
-                         ip & 0xFF,
-                         ntohs(sa.in.sin_port));
+                            ip >> 24,
+                            (ip >> 16) & 0xFF,
+                            (ip >> 8) & 0xFF,
+                            ip & 0xFF,
+                            ntohs(sa.in.sin_port));
                 return;
             } else if (sa.sa.sa_family == AF_INET6) {
                 char buf[INET6_ADDRSTRLEN];
@@ -147,7 +146,7 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
 int pa_socket_low_delay(int fd) {
 #ifdef SO_PRIORITY
     int priority;
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
     priority = 7;
     if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, (void*)&priority, sizeof(priority)) < 0)
@@ -160,7 +159,7 @@ int pa_socket_low_delay(int fd) {
 int pa_socket_tcp_low_delay(int fd) {
     int ret, tos, on;
 
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
     ret = pa_socket_low_delay(fd);
 
@@ -176,8 +175,7 @@ int pa_socket_tcp_low_delay(int fd) {
         ret = -1;
 #endif
 
-#if defined(IPTOS_LOWDELAY) && defined(IP_TOS) && (defined(SOL_IP) || \
-        defined(IPPROTO_IP))
+#if defined(IPTOS_LOWDELAY) && defined(IP_TOS) && (defined(SOL_IP) || defined(IPPROTO_IP))
     tos = IPTOS_LOWDELAY;
 #ifdef SOL_IP
     if (setsockopt(fd, SOL_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
@@ -188,27 +186,26 @@ int pa_socket_tcp_low_delay(int fd) {
 #endif
 
     return ret;
-
 }
 
 int pa_socket_set_rcvbuf(int fd, size_t l) {
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
-/*     if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&l, sizeof(l)) < 0) { */
-/*         pa_log("SO_RCVBUF: %s", strerror(errno)); */
-/*         return -1; */
-/*     } */
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&l, sizeof(l)) < 0) {
+        pa_log_warn("SO_RCVBUF: %s", pa_cstrerror(errno));
+        return -1;
+    }
 
     return 0;
 }
 
 int pa_socket_set_sndbuf(int fd, size_t l) {
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
-/*     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&l, sizeof(l)) < 0) { */
-/*         pa_log("SO_SNDBUF: %s", strerror(errno)); */
-/*         return -1; */
-/*     } */
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&l, sizeof(l)) < 0) {
+        pa_log("SO_SNDBUF: %s", pa_cstrerror(errno));
+        return -1;
+    }
 
     return 0;
 }
@@ -218,6 +215,8 @@ int pa_socket_set_sndbuf(int fd, size_t l) {
 int pa_unix_socket_is_stale(const char *fn) {
     struct sockaddr_un sa;
     int fd = -1, ret = -1;
+
+    pa_assert(fn);
 
     if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(): %s", pa_cstrerror(errno));
@@ -243,6 +242,8 @@ finish:
 
 int pa_unix_socket_remove_stale(const char *fn) {
     int r;
+
+    pa_assert(fn);
 
     if ((r = pa_unix_socket_is_stale(fn)) < 0)
         return errno != ENOENT ? -1 : 0;

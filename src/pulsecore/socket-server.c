@@ -27,7 +27,6 @@
 #endif
 
 #include <stdlib.h>
-#include <assert.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
@@ -72,12 +71,14 @@
 #include <pulsecore/socket-util.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/refcnt.h>
 
 #include "socket-server.h"
 
 struct pa_socket_server {
-    int ref;
+    PA_REFCNT_DECLARE;
     int fd;
     char *filename;
     char *tcpwrap_service;
@@ -94,7 +95,14 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_U
     pa_socket_server *s = userdata;
     pa_iochannel *io;
     int nfd;
-    assert(s && s->mainloop == mainloop && s->io_event == e && e && fd >= 0 && fd == s->fd);
+    
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+    pa_assert(s->mainloop == mainloop);
+    pa_assert(s->io_event == e);
+    pa_assert(e);
+    pa_assert(fd >= 0);
+    pa_assert(fd == s->fd);
 
     pa_socket_server_ref(s);
 
@@ -133,8 +141,7 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_U
     else
         pa_socket_low_delay(fd);
 
-    io = pa_iochannel_new(s->mainloop, nfd, nfd);
-    assert(io);
+    pa_assert_se(io = pa_iochannel_new(s->mainloop, nfd, nfd));
     s->on_connection(s, io, s->userdata);
 
 finish:
@@ -143,10 +150,12 @@ finish:
 
 pa_socket_server* pa_socket_server_new(pa_mainloop_api *m, int fd) {
     pa_socket_server *s;
-    assert(m && fd >= 0);
+    
+    pa_assert(m);
+    pa_assert(fd >= 0);
 
-    s = pa_xmalloc(sizeof(pa_socket_server));
-    s->ref = 1;
+    s = pa_xnew(pa_socket_server, 1);
+    PA_REFCNT_INIT(s);
     s->fd = fd;
     s->filename = NULL;
     s->on_connection = NULL;
@@ -154,8 +163,7 @@ pa_socket_server* pa_socket_server_new(pa_mainloop_api *m, int fd) {
     s->tcpwrap_service = NULL;
 
     s->mainloop = m;
-    s->io_event = m->io_new(m, fd, PA_IO_EVENT_INPUT, callback, s);
-    assert(s->io_event);
+    pa_assert_se(s->io_event = m->io_new(m, fd, PA_IO_EVENT_INPUT, callback, s));
 
     s->type = SOCKET_SERVER_GENERIC;
 
@@ -163,8 +171,10 @@ pa_socket_server* pa_socket_server_new(pa_mainloop_api *m, int fd) {
 }
 
 pa_socket_server* pa_socket_server_ref(pa_socket_server *s) {
-    assert(s && s->ref >= 1);
-    s->ref++;
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+        
+    PA_REFCNT_INC(s);
     return s;
 }
 
@@ -175,7 +185,8 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
     struct sockaddr_un sa;
     pa_socket_server *s;
 
-    assert(m && filename);
+    pa_assert(m);
+    pa_assert(filename);
 
     if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(): %s", pa_cstrerror(errno));
@@ -206,8 +217,7 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
         goto fail;
     }
 
-    s = pa_socket_server_new(m, fd);
-    assert(s);
+    pa_assert_se(s = pa_socket_server_new(m, fd));
 
     s->filename = pa_xstrdup(filename);
     s->type = SOCKET_SERVER_UNIX;
@@ -235,7 +245,8 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
     struct sockaddr_in sa;
     int on = 1;
 
-    assert(m && port);
+    pa_assert(m);
+    pa_assert(port);
 
     if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(PF_INET): %s", pa_cstrerror(errno));
@@ -286,7 +297,8 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
     struct sockaddr_in6 sa;
     int on = 1;
 
-    assert(m && port);
+    pa_assert(m);
+    pa_assert(port > 0);
 
     if ((fd = socket(PF_INET6, SOCK_STREAM, 0)) < 0) {
         pa_log("socket(PF_INET6): %s", pa_cstrerror(errno));
@@ -337,29 +349,29 @@ fail:
 }
 
 pa_socket_server* pa_socket_server_new_ipv4_loopback(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
-    assert(m);
-    assert(port > 0);
+    pa_assert(m);
+    pa_assert(port > 0);
 
     return pa_socket_server_new_ipv4(m, INADDR_LOOPBACK, port, tcpwrap_service);
 }
 
 pa_socket_server* pa_socket_server_new_ipv6_loopback(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
-    assert(m);
-    assert(port > 0);
+    pa_assert(m);
+    pa_assert(port > 0);
 
     return pa_socket_server_new_ipv6(m, in6addr_loopback.s6_addr, port, tcpwrap_service);
 }
 
 pa_socket_server* pa_socket_server_new_ipv4_any(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
-    assert(m);
-    assert(port > 0);
+    pa_assert(m);
+    pa_assert(port > 0);
 
     return pa_socket_server_new_ipv4(m, INADDR_ANY, port, tcpwrap_service);
 }
 
 pa_socket_server* pa_socket_server_new_ipv6_any(pa_mainloop_api *m, uint16_t port, const char *tcpwrap_service) {
-    assert(m);
-    assert(port > 0);
+    pa_assert(m);
+    pa_assert(port > 0);
 
     return pa_socket_server_new_ipv6(m, in6addr_any.s6_addr, port, tcpwrap_service);
 }
@@ -367,9 +379,9 @@ pa_socket_server* pa_socket_server_new_ipv6_any(pa_mainloop_api *m, uint16_t por
 pa_socket_server* pa_socket_server_new_ipv4_string(pa_mainloop_api *m, const char *name, uint16_t port, const char *tcpwrap_service) {
     struct in_addr ipv4;
 
-    assert(m);
-    assert(name);
-    assert(port > 0);
+    pa_assert(m);
+    pa_assert(name);
+    pa_assert(port > 0);
 
     if (inet_pton(AF_INET, name, &ipv4) > 0)
         return pa_socket_server_new_ipv4(m, ntohl(ipv4.s_addr), port, tcpwrap_service);
@@ -380,9 +392,9 @@ pa_socket_server* pa_socket_server_new_ipv4_string(pa_mainloop_api *m, const cha
 pa_socket_server* pa_socket_server_new_ipv6_string(pa_mainloop_api *m, const char *name, uint16_t port, const char *tcpwrap_service) {
     struct in6_addr ipv6;
 
-    assert(m);
-    assert(name);
-    assert(port > 0);
+    pa_assert(m);
+    pa_assert(name);
+    pa_assert(port > 0);
 
     if (inet_pton(AF_INET6, name, &ipv6) > 0)
         return pa_socket_server_new_ipv6(m, ipv6.s6_addr, port, tcpwrap_service);
@@ -391,7 +403,7 @@ pa_socket_server* pa_socket_server_new_ipv6_string(pa_mainloop_api *m, const cha
 }
 
 static void socket_server_free(pa_socket_server*s) {
-    assert(s);
+    pa_assert(s);
 
     if (s->filename) {
         unlink(s->filename);
@@ -407,21 +419,26 @@ static void socket_server_free(pa_socket_server*s) {
 }
 
 void pa_socket_server_unref(pa_socket_server *s) {
-    assert(s && s->ref >= 1);
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
-    if (!(--(s->ref)))
+    if (PA_REFCNT_DEC(s))
         socket_server_free(s);
 }
 
 void pa_socket_server_set_callback(pa_socket_server*s, void (*on_connection)(pa_socket_server*s, pa_iochannel *io, void *userdata), void *userdata) {
-    assert(s && s->ref >= 1);
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
     s->on_connection = on_connection;
     s->userdata = userdata;
 }
 
 char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l) {
-    assert(s && c && l > 0);
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+    pa_assert(c);
+    pa_assert(l > 0);
 
     switch (s->type) {
         case SOCKET_SERVER_IPV6: {

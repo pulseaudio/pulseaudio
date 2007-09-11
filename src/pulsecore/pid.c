@@ -33,7 +33,6 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <signal.h>
@@ -47,6 +46,7 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "pid.h"
 
@@ -57,7 +57,8 @@ static pid_t read_pid(const char *fn, int fd) {
     char t[20], *e;
     uint32_t pid;
 
-    assert(fn && fd >= 0);
+    pa_assert(fn);
+    pa_assert(fd >= 0);
 
     if ((r = pa_loop_read(fd, t, sizeof(t)-1, NULL)) < 0) {
         pa_log_warn("WARNING: failed to read PID file '%s': %s",
@@ -73,7 +74,7 @@ static pid_t read_pid(const char *fn, int fd) {
         *e = 0;
 
     if (pa_atou(t, &pid) < 0) {
-        pa_log("WARNING: failed to parse PID file '%s'", fn);
+        pa_log_warn("WARNING: failed to parse PID file '%s'", fn);
         return (pid_t) -1;
     }
 
@@ -82,6 +83,8 @@ static pid_t read_pid(const char *fn, int fd) {
 
 static int open_pid_file(const char *fn, int mode) {
     int fd = -1;
+
+    pa_assert(fn);
 
     for (;;) {
         struct stat st;
@@ -238,7 +241,7 @@ fail:
 
     if (fd >= 0) {
         pa_lock_fd(fd, 0);
-        close(fd);
+        pa_assert_se(close(fd) == 0);
     }
 
     return ret;
@@ -280,7 +283,7 @@ fail:
 
     if (fd >= 0) {
         pa_lock_fd(fd, 0);
-        close(fd);
+        pa_assert_se(close(fd) == 0);
     }
 
     return ret;

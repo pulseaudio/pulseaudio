@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stddef.h>
-#include <assert.h>
 #include <ltdl.h>
 #include <limits.h>
 #include <fcntl.h>
@@ -287,7 +286,7 @@ static int create_runtime_dir(void) {
 
 static void set_one_rlimit(const pa_rlimit *r, int resource, const char *name) {
     struct rlimit rl;
-    assert(r);
+    pa_assert(r);
 
     if (!r->is_set)
         return;
@@ -498,7 +497,7 @@ int main(int argc, char *argv[]) {
             goto finish;
 
         default:
-            assert(conf->cmd == PA_CMD_DAEMON);
+            pa_assert(conf->cmd == PA_CMD_DAEMON);
     }
 
     if (real_root && !conf->system_instance) {
@@ -630,8 +629,7 @@ int main(int argc, char *argv[]) {
     
     pa_rtsig_configure(SIGRTMIN+10, SIGRTMAX);
 
-    mainloop = pa_mainloop_new();
-    assert(mainloop);
+    pa_assert_se(mainloop = pa_mainloop_new());
 
     if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm))) {
         pa_log("pa_core_new() failed.");
@@ -664,9 +662,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef OS_IS_WIN32
-    timer = pa_mainloop_get_api(mainloop)->time_new(
-        pa_mainloop_get_api(mainloop), pa_gettimeofday(&tv), message_cb, NULL);
-    assert(timer);
+    pa_assert_se(timer = pa_mainloop_get_api(mainloop)->time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&tv), message_cb, NULL));
 #endif
 
     if (conf->daemonize)
@@ -674,10 +670,8 @@ int main(int argc, char *argv[]) {
 
     oil_init();
 
-    if (!conf->no_cpu_limit) {
-        r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
-        assert(r == 0);
-    }
+    if (!conf->no_cpu_limit)
+        pa_assert_se(pa_cpu_limit_init(pa_mainloop_get_api(mainloop)) == 0);
     
     buf = pa_strbuf_new();
     if (conf->default_script_file)

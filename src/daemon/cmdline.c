@@ -26,7 +26,6 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>
@@ -36,6 +35,7 @@
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/strbuf.h>
+#include <pulsecore/macro.h>
 
 #include "cmdline.h"
 
@@ -100,6 +100,8 @@ static struct option long_options[] = {
 void pa_cmdline_help(const char *argv0) {
     const char *e;
 
+    pa_assert(argv0);
+    
     if ((e = strrchr(argv0, '/')))
         e++;
     else
@@ -154,7 +156,10 @@ void pa_cmdline_help(const char *argv0) {
 int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d) {
     pa_strbuf *buf = NULL;
     int c;
-    assert(conf && argc && argv);
+    
+    pa_assert(conf);
+    pa_assert(argc > 0);
+    pa_assert(argv);
 
     buf = pa_strbuf_new();
 

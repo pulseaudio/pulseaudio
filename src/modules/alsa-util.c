@@ -88,7 +88,7 @@ static void io_cb(pa_mainloop_api*a, pa_io_event* e, PA_GCC_UNUSED int fd, pa_io
         }
     }
 
-    assert(i != fdl->num_fds);
+    pa_assert(i != fdl->num_fds);
 
     if ((err = snd_mixer_poll_descriptors_revents(fdl->mixer, fdl->work_fds, fdl->num_fds, &revents)) < 0) {
         pa_log_error("Unable to get poll revent: %s", snd_strerror(err));

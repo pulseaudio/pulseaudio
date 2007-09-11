@@ -26,7 +26,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <unistd.h>
 
 #include <pulsecore/module.h>
@@ -35,6 +34,7 @@
 #include <pulsecore/sioman.h>
 #include <pulsecore/log.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/macro.h>
 
 #include "module-cli-symdef.h"
 
@@ -51,8 +51,8 @@ static const char* const valid_modargs[] = {
 static void eof_and_unload_cb(pa_cli*c, void *userdata) {
     pa_module *m = userdata;
 
-    assert(c);
-    assert(m);
+    pa_assert(c);
+    pa_assert(m);
 
     pa_module_unload_request(m);
 }
@@ -60,8 +60,8 @@ static void eof_and_unload_cb(pa_cli*c, void *userdata) {
 static void eof_and_exit_cb(pa_cli*c, void *userdata) {
     pa_module *m = userdata;
 
-    assert(c);
-    assert(m);
+    pa_assert(c);
+    pa_assert(m);
 
     m->core->mainloop->quit(m->core->mainloop, 0);
 }
@@ -71,7 +71,7 @@ int pa__init(pa_module*m) {
     pa_modargs *ma;
     int exit_on_eof = 0;
 
-    assert(m);
+    pa_assert(m);
 
     if (m->core->running_as_daemon) {
         pa_log_info("Running as daemon, refusing to load this module.");
@@ -113,7 +113,7 @@ fail:
 }
 
 void pa__done(pa_module*m) {
-    assert(m);
+    pa_assert(m);
 
     if (m->core->running_as_daemon == 0) {
         pa_cli_free(m->userdata);

@@ -21,10 +21,16 @@
   USA.
 ***/
 
-#include <pulsecore/hook-list.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <pulsecore/macro.h>
+
+#include "hook-list.h"
 
 void pa_hook_init(pa_hook *hook, void *data) {
-    assert(hook);
+    pa_assert(hook);
 
     PA_LLIST_HEAD_INIT(pa_hook_slot, hook->slots);
     hook->last = NULL;
@@ -33,8 +39,8 @@ void pa_hook_init(pa_hook *hook, void *data) {
 }
 
 static void slot_free(pa_hook *hook, pa_hook_slot *slot) {
-    assert(hook);
-    assert(slot);
+    pa_assert(hook);
+    pa_assert(slot);
 
     if (hook->last == slot)
         hook->last = slot->prev;
@@ -45,8 +51,8 @@ static void slot_free(pa_hook *hook, pa_hook_slot *slot) {
 }
 
 void pa_hook_free(pa_hook *hook) {
-    assert(hook);
-    assert(!hook->firing);
+    pa_assert(hook);
+    pa_assert(!hook->firing);
 
     while (hook->slots)
         slot_free(hook, hook->slots);
@@ -57,7 +63,7 @@ void pa_hook_free(pa_hook *hook) {
 pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_cb_t cb, void *data) {
     pa_hook_slot *slot;
 
-    assert(cb);
+    pa_assert(cb);
 
     slot = pa_xnew(pa_hook_slot, 1);
     slot->hook = hook;
@@ -72,8 +78,8 @@ pa_hook_slot* pa_hook_connect(pa_hook *hook, pa_hook_cb_t cb, void *data) {
 }
 
 void pa_hook_slot_free(pa_hook_slot *slot) {
-    assert(slot);
-    assert(!slot->dead);
+    pa_assert(slot);
+    pa_assert(!slot->dead);
 
     if (slot->hook->firing > 0) {
         slot->dead = 1;
@@ -86,7 +92,7 @@ pa_hook_result_t pa_hook_fire(pa_hook *hook, void *data) {
     pa_hook_slot *slot, *next;
     pa_hook_result_t result = PA_HOOK_OK;
 
-    assert(hook);
+    pa_assert(hook);
 
     hook->firing ++;
 

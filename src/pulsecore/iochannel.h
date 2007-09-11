@@ -25,6 +25,10 @@
   USA.
 ***/
 
+#ifndef PACKAGE
+#error "Please include config.h before including this file!"
+#endif
+
 #include <sys/types.h>
 
 #include <pulse/mainloop-api.h>

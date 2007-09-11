@@ -46,13 +46,13 @@
 #include <arpa/inet.h>
 #endif
 
-#include "winsock.h"
-
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/winsock.h>
 
 #ifndef HAVE_INET_PTON
 #include "inet_pton.h"
@@ -77,7 +77,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
     char *a;
     pa_ip_acl *acl;
 
-    assert(s);
+    pa_assert(s);
 
     acl = pa_xnew(pa_ip_acl, 1);
     PA_LLIST_HEAD_INIT(struct acl_entry, acl->entries);
@@ -91,7 +91,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
             *slash = 0;
             slash++;
             if (pa_atou(slash, &bits) < 0) {
-                pa_log("failed to parse number of bits: %s", slash);
+                pa_log_warn("Failed to parse number of bits: %s", slash);
                 goto fail;
             }
         } else
@@ -102,7 +102,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
             e.bits = bits == (uint32_t) -1 ? 32 : (int) bits;
 
             if (e.bits > 32) {
-                pa_log("number of bits out of range: %i", e.bits);
+                pa_log_warn("Number of bits out of range: %i", e.bits);
                 goto fail;
             }
 
@@ -116,7 +116,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
             e.bits = bits == (uint32_t) -1 ? 128 : (int) bits;
 
             if (e.bits > 128) {
-                pa_log("number of bits out of range: %i", e.bits);
+                pa_log_warn("Number of bits out of range: %i", e.bits);
                 goto fail;
             }
             e.family = AF_INET6;
@@ -142,7 +142,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
             }
 
         } else {
-            pa_log("failed to parse address: %s", a);
+            pa_log_warn("Failed to parse address: %s", a);
             goto fail;
         }
 
@@ -162,7 +162,7 @@ fail:
 }
 
 void pa_ip_acl_free(pa_ip_acl *acl) {
-    assert(acl);
+    pa_assert(acl);
 
     while (acl->entries) {
         struct acl_entry *e = acl->entries;
@@ -178,8 +178,8 @@ int pa_ip_acl_check(pa_ip_acl *acl, int fd) {
     struct acl_entry *e;
     socklen_t  salen;
 
-    assert(acl);
-    assert(fd >= 0);
+    pa_assert(acl);
+    pa_assert(fd >= 0);
 
     salen = sizeof(sa);
     if (getpeername(fd, (struct sockaddr*) &sa, &salen) < 0)

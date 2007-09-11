@@ -28,7 +28,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -44,6 +43,7 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "module-detect-symdef.h"
 

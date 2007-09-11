@@ -27,7 +27,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -56,12 +55,11 @@ pa_source* pa_source_new(
 
     pa_source *s;
     char st[256];
-    int r;
     pa_channel_map tmap;
 
-    assert(core);
-    assert(name);
-    assert(spec);
+    pa_assert(core);
+    pa_assert(name);
+    pa_assert(spec);
 
     pa_return_null_if_fail(pa_sample_spec_valid(spec));
 
@@ -112,8 +110,7 @@ pa_source* pa_source_new(
     s->asyncmsgq = NULL;
     s->rtpoll = NULL;
 
-    r = pa_idxset_put(core->sources, s, &s->index);
-    assert(s->index != PA_IDXSET_INVALID && r >= 0);
+    pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
 
     pa_sample_spec_snprint(st, sizeof(st), spec);
     pa_log_info("Created source %u \"%s\" with sample spec \"%s\"", s->index, s->name, st);
