@@ -42,13 +42,7 @@
 
 #include "client-conf.h"
 
-#ifndef OS_IS_WIN32
-# define PATH_SEP "/"
-#else
-# define PATH_SEP "\\"
-#endif
-
-#define DEFAULT_CLIENT_CONFIG_FILE PA_DEFAULT_CONFIG_DIR PATH_SEP "client.conf"
+#define DEFAULT_CLIENT_CONFIG_FILE PA_DEFAULT_CONFIG_DIR PA_PATH_SEP "client.conf"
 #define DEFAULT_CLIENT_CONFIG_FILE_USER "client.conf"
 
 #define ENV_CLIENT_CONFIG_FILE "PULSE_CLIENTCONFIG"

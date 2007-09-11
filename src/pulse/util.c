@@ -64,12 +64,6 @@
 
 #include "util.h"
 
-#ifndef OS_IS_WIN32
-#define PATH_SEP '/'
-#else
-#define PATH_SEP '\\'
-#endif
-
 char *pa_get_user_name(char *s, size_t l) {
     char *p;
     char buf[1024];
@@ -217,7 +211,7 @@ char *pa_path_get_filename(const char *p) {
 
     pa_assert(p);
 
-    if ((fn = strrchr(p, PATH_SEP)))
+    if ((fn = strrchr(p, PA_PATH_SEP_CHAR)))
         return fn+1;
 
     return (char*) p;

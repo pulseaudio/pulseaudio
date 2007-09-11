@@ -114,4 +114,12 @@ static inline size_t pa_page_align(size_t l) {
 #define PA_PTR_TO_INT32(p) ((int32_t) PA_PTR_TO_UINT(p))
 #define PA_INT32_TO_PTR(u) PA_UINT_TO_PTR((int32_t) u)
 
+#ifdef OS_IS_WIN32
+#define PA_PATH_SEP "\\"
+#define PA_PATH_SEP_CHAR '\\'
+#else
+#define PA_PATH_SEP "/"
+#define PA_PATH_SEP_CHAR '/'
+#endif
+
 #endif

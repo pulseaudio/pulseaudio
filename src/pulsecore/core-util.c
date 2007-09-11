@@ -100,10 +100,8 @@
 
 #ifndef OS_IS_WIN32
 #define PA_USER_RUNTIME_PATH_PREFIX "/tmp/pulse-"
-#define PATH_SEP '/'
 #else
 #define PA_USER_RUNTIME_PATH_PREFIX "%TEMP%\\pulse-"
-#define PATH_SEP '\\'
 #endif
 
 #ifdef OS_IS_WIN32
@@ -118,7 +116,7 @@ int pa_set_root(HANDLE handle) {
     if (!GetModuleFileName(handle, library_path + sizeof(PULSE_ROOTENV), MAX_PATH))
         return 0;
 
-    sep = strrchr(library_path, '\\');
+    sep = strrchr(library_path, PA_PATH_SEP_CHAR);
     if (sep)
         *sep = '\0';
 
@@ -1123,7 +1121,7 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
     if ((e = getenv("PULSE_RUNTIME_PATH"))) {
 
         if (fn)
-            pa_snprintf(s, l, "%s%c%s", e, PATH_SEP, fn);
+            pa_snprintf(s, l, "%s%c%s", e, PA_PATH_SEP_CHAR, fn);
         else
             pa_snprintf(s, l, "%s", e);
 
@@ -1131,7 +1129,7 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
         char u[256];
 
         if (fn)
-            pa_snprintf(s, l, "%s%s%c%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PATH_SEP, fn);
+            pa_snprintf(s, l, "%s%s%c%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PA_PATH_SEP_CHAR, fn);
         else
             pa_snprintf(s, l, "%s%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
     }

@@ -42,16 +42,10 @@
 
 #include "daemon-conf.h"
 
-#ifndef OS_IS_WIN32
-# define PATH_SEP "/"
-#else
-# define PATH_SEP "\\"
-#endif
-
-#define DEFAULT_SCRIPT_FILE PA_DEFAULT_CONFIG_DIR PATH_SEP "default.pa"
-#define DEFAULT_SCRIPT_FILE_USER PATH_SEP "default.pa"
-#define DEFAULT_CONFIG_FILE PA_DEFAULT_CONFIG_DIR PATH_SEP "daemon.conf"
-#define DEFAULT_CONFIG_FILE_USER PATH_SEP "daemon.conf"
+#define DEFAULT_SCRIPT_FILE PA_DEFAULT_CONFIG_DIR PA_PATH_SEP "default.pa"
+#define DEFAULT_SCRIPT_FILE_USER PA_PATH_SEP "default.pa"
+#define DEFAULT_CONFIG_FILE PA_DEFAULT_CONFIG_DIR PA_PATH_SEP "daemon.conf"
+#define DEFAULT_CONFIG_FILE_USER PA_PATH_SEP "daemon.conf"
 
 #define ENV_SCRIPT_FILE "PULSE_SCRIPT"
 #define ENV_CONFIG_FILE "PULSE_CONFIG"
