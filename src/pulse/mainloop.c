@@ -677,7 +677,8 @@ static int dispatch_pollfds(pa_mainloop *m) {
         if (e->dead || !e->pollfd || !e->pollfd->revents)
             continue;
 
-        pa_assert(e->pollfd->fd == e->fd && e->callback);
+        pa_assert(e->pollfd->fd == e->fd);
+        pa_assert(e->callback);
         e->callback(&m->api, e, e->fd, map_flags_from_libc(e->pollfd->revents), e->userdata);
         e->pollfd->revents = 0;
         r++;

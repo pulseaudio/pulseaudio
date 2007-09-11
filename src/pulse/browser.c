@@ -25,7 +25,6 @@
 #include "config.h"
 #endif
 
-#include <assert.h>
 #include <string.h>
 
 #include <avahi-client/lookup.h>
@@ -36,8 +35,9 @@
 
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
-
 #include <pulsecore/avahi-wrap.h>
+#include <pulsecore/refcnt.h>
+#include <pulsecore/macro.h>
 
 #include "browser.h"
 
@@ -46,7 +46,8 @@
 #define SERVICE_TYPE_SERVER "_pulse-server._tcp."
 
 struct pa_browser {
-    int ref;
+    PA_REFCNT_DECLARE;
+    
     pa_mainloop_api *mainloop;
     AvahiPoll* avahi_poll;
 
@@ -62,6 +63,7 @@ struct pa_browser {
 };
 
 static int map_to_opcode(const char *type, int new) {
+    
     if (avahi_domain_equal(type, SERVICE_TYPE_SINK))
         return new ? PA_BROWSE_NEW_SINK : PA_BROWSE_REMOVE_SINK;
     else if (avahi_domain_equal(type, SERVICE_TYPE_SOURCE))
@@ -97,7 +99,8 @@ static void resolve_callback(
     int ss_valid = 0;
     char *key = NULL, *value = NULL;
 
-    assert(b);
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) >= 1);
 
     memset(&i, 0, sizeof(i));
     i.name = name;
@@ -109,12 +112,12 @@ static void resolve_callback(
         goto fail;
 
     opcode = map_to_opcode(type, 1);
-    assert(opcode >= 0);
+    pa_assert(opcode >= 0);
 
     if (aa->proto == AVAHI_PROTO_INET)
         pa_snprintf(a, sizeof(a), "tcp:%s:%u", avahi_address_snprint(ip, sizeof(ip), aa), port);
     else {
-        assert(aa->proto == AVAHI_PROTO_INET6);
+        pa_assert(aa->proto == AVAHI_PROTO_INET6);
         pa_snprintf(a, sizeof(a), "tcp6:%s:%u", avahi_address_snprint(ip, sizeof(ip), aa), port);
     }
     i.server = a;
@@ -146,7 +149,7 @@ static void resolve_callback(
             value = NULL;
 
             l = strlen(a);
-            assert(l+1 <= sizeof(a));
+            pa_assert(l+1 <= sizeof(a));
             strncat(a, " ", sizeof(a)-l-1);
             strncat(a, i.fqdn, sizeof(a)-l-2);
         } else if (!strcmp(key, "cookie")) {
@@ -211,7 +214,9 @@ fail:
 
 static void handle_failure(pa_browser *b) {
     const char *e = NULL;
-    assert(b);
+
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) >= 1);
 
     if (b->sink_browser)
         avahi_service_browser_free(b->sink_browser);
@@ -245,7 +250,9 @@ static void browse_callback(
         void *userdata) {
 
     pa_browser *b = userdata;
-    assert(b);
+
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) >= 1);
 
     switch (event) {
         case AVAHI_BROWSER_NEW: {
@@ -276,7 +283,7 @@ static void browse_callback(
                 i.name = name;
 
                 opcode = map_to_opcode(type, 0);
-                assert(opcode >= 0);
+                pa_assert(opcode >= 0);
 
                 b->callback(b, opcode, &i, b->userdata);
             }
@@ -295,7 +302,10 @@ static void browse_callback(
 
 static void client_callback(AvahiClient *s, AvahiClientState state, void *userdata) {
     pa_browser *b = userdata;
-    assert(s);
+
+    pa_assert(s);
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) >= 1);
 
     if (state == AVAHI_CLIENT_FAILURE)
         handle_failure(b);
@@ -311,14 +321,14 @@ pa_browser *pa_browser_new_full(pa_mainloop_api *mainloop, pa_browse_flags_t fla
     pa_browser *b;
     int error;
 
-    assert(mainloop);
+    pa_assert(mainloop);
 
     if (flags & ~(PA_BROWSE_FOR_SERVERS|PA_BROWSE_FOR_SINKS|PA_BROWSE_FOR_SOURCES) || flags == 0)
         return NULL;
 
     b = pa_xnew(pa_browser, 1);
     b->mainloop = mainloop;
-    b->ref = 1;
+    PA_REFCNT_INIT(b);
     b->callback = NULL;
     b->userdata = NULL;
     b->error_callback = NULL;
@@ -391,7 +401,8 @@ fail:
 }
 
 static void browser_free(pa_browser *b) {
-    assert(b && b->mainloop);
+    pa_assert(b);
+    pa_assert(b->mainloop);
 
     if (b->sink_browser)
         avahi_service_browser_free(b->sink_browser);
@@ -410,29 +421,32 @@ static void browser_free(pa_browser *b) {
 }
 
 pa_browser *pa_browser_ref(pa_browser *b) {
-    assert(b);
-    assert(b->ref >= 1);
-    b->ref++;
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) >= 1);
+
+    PA_REFCNT_INC(b);
     return b;
 }
 
 void pa_browser_unref(pa_browser *b) {
-    assert(b);
-    assert(b->ref >= 1);
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) >= 1);
 
-    if ((-- (b->ref)) <= 0)
+    if (PA_REFCNT_DEC(b) <= 0)
         browser_free(b);
 }
 
 void pa_browser_set_callback(pa_browser *b, pa_browse_cb_t cb, void *userdata) {
-    assert(b);
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) >= 1);
 
     b->callback = cb;
     b->userdata = userdata;
 }
 
 void pa_browser_set_error_callback(pa_browser *b, pa_browser_error_cb_t cb, void *userdata) {
-    assert(b);
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) >= 1);
 
     b->error_callback = cb;
     b->error_userdata = userdata;

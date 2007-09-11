@@ -1,3 +1,4 @@
+
 /* $Id$ */
 
 /***
@@ -27,7 +28,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pulse/pulseaudio.h>
@@ -36,6 +36,7 @@
 
 #include <pulsecore/native-common.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "simple.h"
 
@@ -83,8 +84,8 @@ if (!(p)->context || pa_context_get_state((p)->context) != PA_CONTEXT_READY || \
 
 static void context_state_cb(pa_context *c, void *userdata) {
     pa_simple *p = userdata;
-    assert(c);
-    assert(p);
+    pa_assert(c);
+    pa_assert(p);
 
     switch (pa_context_get_state(c)) {
         case PA_CONTEXT_READY:
@@ -103,8 +104,8 @@ static void context_state_cb(pa_context *c, void *userdata) {
 
 static void stream_state_cb(pa_stream *s, void * userdata) {
     pa_simple *p = userdata;
-    assert(s);
-    assert(p);
+    pa_assert(s);
+    pa_assert(p);
 
     switch (pa_stream_get_state(s)) {
 
@@ -122,7 +123,7 @@ static void stream_state_cb(pa_stream *s, void * userdata) {
 
 static void stream_request_cb(pa_stream *s, size_t length, void *userdata) {
     pa_simple *p = userdata;
-    assert(p);
+    pa_assert(p);
 
     pa_threaded_mainloop_signal(p->mainloop, 0);
 }
@@ -130,21 +131,21 @@ static void stream_request_cb(pa_stream *s, size_t length, void *userdata) {
 static void stream_latency_update_cb(pa_stream *s, void *userdata) {
     pa_simple *p = userdata;
 
-    assert(p);
+    pa_assert(p);
 
     pa_threaded_mainloop_signal(p->mainloop, 0);
 }
 
 pa_simple* pa_simple_new(
-    const char *server,
-    const char *name,
-    pa_stream_direction_t dir,
-    const char *dev,
-    const char *stream_name,
-    const pa_sample_spec *ss,
-    const pa_channel_map *map,
-    const pa_buffer_attr *attr,
-    int *rerror) {
+        const char *server,
+        const char *name,
+        pa_stream_direction_t dir,
+        const char *dev,
+        const char *stream_name,
+        const pa_sample_spec *ss,
+        const pa_channel_map *map,
+        const pa_buffer_attr *attr,
+        int *rerror) {
 
     pa_simple *p;
     int error = PA_ERR_INTERNAL, r;
@@ -232,7 +233,7 @@ fail:
 }
 
 void pa_simple_free(pa_simple *s) {
-    assert(s);
+    pa_assert(s);
 
     if (s->mainloop)
         pa_threaded_mainloop_stop(s->mainloop);
@@ -250,7 +251,7 @@ void pa_simple_free(pa_simple *s) {
 }
 
 int pa_simple_write(pa_simple *p, const void*data, size_t length, int *rerror) {
-    assert(p);
+    pa_assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
     CHECK_VALIDITY_RETURN_ANY(rerror, data && length, PA_ERR_INVALID, -1);
@@ -289,7 +290,7 @@ unlock_and_fail:
 }
 
 int pa_simple_read(pa_simple *p, void*data, size_t length, int *rerror) {
-    assert(p);
+    pa_assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_RECORD, PA_ERR_BADSTATE, -1);
     CHECK_VALIDITY_RETURN_ANY(rerror, data && length, PA_ERR_INVALID, -1);
@@ -346,8 +347,8 @@ unlock_and_fail:
 static void success_cb(pa_stream *s, int success, void *userdata) {
     pa_simple *p = userdata;
 
-    assert(s);
-    assert(p);
+    pa_assert(s);
+    pa_assert(p);
 
     p->operation_success = success;
     pa_threaded_mainloop_signal(p->mainloop, 0);
@@ -356,7 +357,7 @@ static void success_cb(pa_stream *s, int success, void *userdata) {
 int pa_simple_drain(pa_simple *p, int *rerror) {
     pa_operation *o = NULL;
 
-    assert(p);
+    pa_assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
 
@@ -392,7 +393,7 @@ unlock_and_fail:
 int pa_simple_flush(pa_simple *p, int *rerror) {
     pa_operation *o = NULL;
 
-    assert(p);
+    pa_assert(p);
 
     CHECK_VALIDITY_RETURN_ANY(rerror, p->direction == PA_STREAM_PLAYBACK, PA_ERR_BADSTATE, -1);
 
@@ -429,7 +430,7 @@ pa_usec_t pa_simple_get_latency(pa_simple *p, int *rerror) {
     pa_usec_t t;
     int negative;
 
-    assert(p);
+    pa_assert(p);
 
     pa_threaded_mainloop_lock(p->mainloop);
 

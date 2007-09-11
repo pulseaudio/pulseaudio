@@ -161,7 +161,8 @@ pa_signal_event* pa_signal_new(int sig, void (*_callback) (pa_mainloop_api *api,
     struct sigaction sa;
 #endif
 
-    pa_assert(sig > 0 && _callback);
+    pa_assert(sig > 0);
+    pa_assert(_callback);
 
     for (e = signals; e; e = e->next)
         if (e->sig == sig)
