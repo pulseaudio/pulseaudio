@@ -31,29 +31,28 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <fcntl.h>
 #include <errno.h>
 
 #ifdef HAVE_SYS_POLL_H
 #include <sys/poll.h>
 #else
-#include "../pulsecore/poll.h"
+#include <pulsecore/poll.h>
 #endif
-
-#include "../pulsecore/winsock.h"
 
 #ifndef HAVE_PIPE
-#include "../pulsecore/pipe.h"
+#include <pulsecore/pipe.h>
 #endif
 
-#include <pulsecore/core-error.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
+#include <pulsecore/core-error.h>
+#include <pulsecore/winsock.h>
+#include <pulsecore/macro.h>
 
 #include "mainloop.h"
 
@@ -161,13 +160,13 @@ static pa_io_event* mainloop_io_new(
     pa_mainloop *m;
     pa_io_event *e;
 
-    assert(a);
-    assert(a->userdata);
-    assert(fd >= 0);
-    assert(callback);
+    pa_assert(a);
+    pa_assert(a->userdata);
+    pa_assert(fd >= 0);
+    pa_assert(callback);
 
     m = a->userdata;
-    assert(a == &m->api);
+    pa_assert(a == &m->api);
 
     e = pa_xnew(pa_io_event, 1);
     e->mainloop = m;
@@ -211,8 +210,8 @@ static pa_io_event* mainloop_io_new(
 }
 
 static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags_t events) {
-    assert(e);
-    assert(!e->dead);
+    pa_assert(e);
+    pa_assert(!e->dead);
 
     if (e->events == events)
         return;
@@ -228,8 +227,8 @@ static void mainloop_io_enable(pa_io_event *e, pa_io_event_flags_t events) {
 }
 
 static void mainloop_io_free(pa_io_event *e) {
-    assert(e);
-    assert(!e->dead);
+    pa_assert(e);
+    pa_assert(!e->dead);
 
     e->dead = 1;
     e->mainloop->io_events_please_scan ++;
@@ -241,7 +240,7 @@ static void mainloop_io_free(pa_io_event *e) {
 }
 
 static void mainloop_io_set_destroy(pa_io_event *e, pa_io_event_destroy_cb_t callback) {
-    assert(e);
+    pa_assert(e);
 
     e->destroy_callback = callback;
 }
@@ -255,12 +254,12 @@ static pa_defer_event* mainloop_defer_new(
     pa_mainloop *m;
     pa_defer_event *e;
 
-    assert(a);
-    assert(a->userdata);
-    assert(callback);
+    pa_assert(a);
+    pa_assert(a->userdata);
+    pa_assert(callback);
 
     m = a->userdata;
-    assert(a == &m->api);
+    pa_assert(a == &m->api);
 
     e = pa_xnew(pa_defer_event, 1);
     e->mainloop = m;
@@ -281,11 +280,11 @@ static pa_defer_event* mainloop_defer_new(
 }
 
 static void mainloop_defer_enable(pa_defer_event *e, int b) {
-    assert(e);
-    assert(!e->dead);
+    pa_assert(e);
+    pa_assert(!e->dead);
 
     if (e->enabled && !b) {
-        assert(e->mainloop->n_enabled_defer_events > 0);
+        pa_assert(e->mainloop->n_enabled_defer_events > 0);
         e->mainloop->n_enabled_defer_events--;
     } else if (!e->enabled && b) {
         e->mainloop->n_enabled_defer_events++;
@@ -296,22 +295,22 @@ static void mainloop_defer_enable(pa_defer_event *e, int b) {
 }
 
 static void mainloop_defer_free(pa_defer_event *e) {
-    assert(e);
-    assert(!e->dead);
+    pa_assert(e);
+    pa_assert(!e->dead);
 
     e->dead = 1;
     e->mainloop->defer_events_please_scan ++;
 
     if (e->enabled) {
-        assert(e->mainloop->n_enabled_defer_events > 0);
+        pa_assert(e->mainloop->n_enabled_defer_events > 0);
         e->mainloop->n_enabled_defer_events--;
         e->enabled = 0;
     }
 }
 
 static void mainloop_defer_set_destroy(pa_defer_event *e, pa_defer_event_destroy_cb_t callback) {
-    assert(e);
-    assert(!e->dead);
+    pa_assert(e);
+    pa_assert(!e->dead);
 
     e->destroy_callback = callback;
 }
@@ -326,12 +325,12 @@ static pa_time_event* mainloop_time_new(
     pa_mainloop *m;
     pa_time_event *e;
 
-    assert(a);
-    assert(a->userdata);
-    assert(callback);
+    pa_assert(a);
+    pa_assert(a->userdata);
+    pa_assert(callback);
 
     m = a->userdata;
-    assert(a == &m->api);
+    pa_assert(a == &m->api);
 
     e = pa_xnew(pa_time_event, 1);
     e->mainloop = m;
@@ -343,7 +342,7 @@ static pa_time_event* mainloop_time_new(
         m->n_enabled_time_events++;
 
         if (m->cached_next_time_event) {
-            assert(m->cached_next_time_event->enabled);
+            pa_assert(m->cached_next_time_event->enabled);
 
             if (pa_timeval_cmp(tv, &m->cached_next_time_event->timeval) < 0)
                 m->cached_next_time_event = e;
@@ -363,11 +362,11 @@ static pa_time_event* mainloop_time_new(
 }
 
 static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
-    assert(e);
-    assert(!e->dead);
+    pa_assert(e);
+    pa_assert(!e->dead);
 
     if (e->enabled && !tv) {
-        assert(e->mainloop->n_enabled_time_events > 0);
+        pa_assert(e->mainloop->n_enabled_time_events > 0);
         e->mainloop->n_enabled_time_events--;
     } else if (!e->enabled && tv)
         e->mainloop->n_enabled_time_events++;
@@ -378,7 +377,7 @@ static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
     }
 
     if (e->mainloop->cached_next_time_event && e->enabled) {
-        assert(e->mainloop->cached_next_time_event->enabled);
+        pa_assert(e->mainloop->cached_next_time_event->enabled);
 
         if (pa_timeval_cmp(tv, &e->mainloop->cached_next_time_event->timeval) < 0)
             e->mainloop->cached_next_time_event = e;
@@ -387,14 +386,14 @@ static void mainloop_time_restart(pa_time_event *e, const struct timeval *tv) {
 }
 
 static void mainloop_time_free(pa_time_event *e) {
-    assert(e);
-    assert(!e->dead);
+    pa_assert(e);
+    pa_assert(!e->dead);
 
     e->dead = 1;
     e->mainloop->time_events_please_scan ++;
 
     if (e->enabled) {
-        assert(e->mainloop->n_enabled_time_events > 0);
+        pa_assert(e->mainloop->n_enabled_time_events > 0);
         e->mainloop->n_enabled_time_events--;
         e->enabled = 0;
     }
@@ -406,8 +405,8 @@ static void mainloop_time_free(pa_time_event *e) {
 }
 
 static void mainloop_time_set_destroy(pa_time_event *e, pa_time_event_destroy_cb_t callback) {
-    assert(e);
-    assert(!e->dead);
+    pa_assert(e);
+    pa_assert(!e->dead);
 
     e->destroy_callback = callback;
 }
@@ -417,10 +416,10 @@ static void mainloop_time_set_destroy(pa_time_event *e, pa_time_event_destroy_cb
 static void mainloop_quit(pa_mainloop_api*a, int retval) {
     pa_mainloop *m;
 
-    assert(a);
-    assert(a->userdata);
+    pa_assert(a);
+    pa_assert(a->userdata);
     m = a->userdata;
-    assert(a == &m->api);
+    pa_assert(a == &m->api);
 
     pa_mainloop_quit(m, retval);
 }
@@ -506,7 +505,7 @@ static void cleanup_io_events(pa_mainloop *m, int force) {
             PA_LLIST_REMOVE(pa_io_event, m->io_events, e);
 
             if (e->dead) {
-                assert(m->io_events_please_scan > 0);
+                pa_assert(m->io_events_please_scan > 0);
                 m->io_events_please_scan--;
             }
 
@@ -521,7 +520,7 @@ static void cleanup_io_events(pa_mainloop *m, int force) {
         e = n;
     }
 
-    assert(m->io_events_please_scan == 0);
+    pa_assert(m->io_events_please_scan == 0);
 }
 
 static void cleanup_time_events(pa_mainloop *m, int force) {
@@ -538,12 +537,12 @@ static void cleanup_time_events(pa_mainloop *m, int force) {
             PA_LLIST_REMOVE(pa_time_event, m->time_events, e);
 
             if (e->dead) {
-                assert(m->time_events_please_scan > 0);
+                pa_assert(m->time_events_please_scan > 0);
                 m->time_events_please_scan--;
             }
 
             if (!e->dead && e->enabled) {
-                assert(m->n_enabled_time_events > 0);
+                pa_assert(m->n_enabled_time_events > 0);
                 m->n_enabled_time_events--;
                 e->enabled = 0;
             }
@@ -557,7 +556,7 @@ static void cleanup_time_events(pa_mainloop *m, int force) {
         e = n;
     }
 
-    assert(m->time_events_please_scan == 0);
+    pa_assert(m->time_events_please_scan == 0);
 }
 
 static void cleanup_defer_events(pa_mainloop *m, int force) {
@@ -574,12 +573,12 @@ static void cleanup_defer_events(pa_mainloop *m, int force) {
             PA_LLIST_REMOVE(pa_defer_event, m->defer_events, e);
 
             if (e->dead) {
-                assert(m->defer_events_please_scan > 0);
+                pa_assert(m->defer_events_please_scan > 0);
                 m->defer_events_please_scan--;
             }
 
             if (!e->dead && e->enabled) {
-                assert(m->n_enabled_defer_events > 0);
+                pa_assert(m->n_enabled_defer_events > 0);
                 m->n_enabled_defer_events--;
                 e->enabled = 0;
             }
@@ -593,12 +592,12 @@ static void cleanup_defer_events(pa_mainloop *m, int force) {
         e = n;
     }
 
-    assert(m->defer_events_please_scan == 0);
+    pa_assert(m->defer_events_please_scan == 0);
 }
 
 
 void pa_mainloop_free(pa_mainloop* m) {
-    assert(m);
+    pa_assert(m);
 
     cleanup_io_events(m, 1);
     cleanup_defer_events(m, 1);
@@ -615,7 +614,7 @@ void pa_mainloop_free(pa_mainloop* m) {
 }
 
 static void scan_dead(pa_mainloop *m) {
-    assert(m);
+    pa_assert(m);
 
     if (m->io_events_please_scan)
         cleanup_io_events(m, 0);
@@ -672,13 +671,13 @@ static int dispatch_pollfds(pa_mainloop *m) {
     pa_io_event *e;
     int r = 0, k;
 
-    assert(m->poll_func_ret > 0);
+    pa_assert(m->poll_func_ret > 0);
 
     for (e = m->io_events, k = m->poll_func_ret; e && !m->quit && k > 0; e = e->next) {
         if (e->dead || !e->pollfd || !e->pollfd->revents)
             continue;
 
-        assert(e->pollfd->fd == e->fd && e->callback);
+        pa_assert(e->pollfd->fd == e->fd && e->callback);
         e->callback(&m->api, e, e->fd, map_flags_from_libc(e->pollfd->revents), e->userdata);
         e->pollfd->revents = 0;
         r++;
@@ -700,7 +699,7 @@ static int dispatch_defer(pa_mainloop *m) {
         if (e->dead || !e->enabled)
             continue;
 
-        assert(e->callback);
+        pa_assert(e->callback);
         e->callback(&m->api, e, e->userdata);
         r++;
     }
@@ -710,7 +709,7 @@ static int dispatch_defer(pa_mainloop *m) {
 
 static pa_time_event* find_next_time_event(pa_mainloop *m) {
     pa_time_event *t, *n = NULL;
-    assert(m);
+    pa_assert(m);
 
     if (m->cached_next_time_event)
         return m->cached_next_time_event;
@@ -742,7 +741,7 @@ static int calc_next_timeout(pa_mainloop *m) {
         return -1;
 
     t = find_next_time_event(m);
-    assert(t);
+    pa_assert(t);
 
     if (t->timeval.tv_sec <= 0)
         return 0;
@@ -760,7 +759,7 @@ static int dispatch_timeout(pa_mainloop *m) {
     pa_time_event *e;
     struct timeval now;
     int r = 0;
-    assert(m);
+    pa_assert(m);
 
     if (m->n_enabled_time_events <= 0)
         return 0;
@@ -773,7 +772,7 @@ static int dispatch_timeout(pa_mainloop *m) {
             continue;
 
         if (pa_timeval_cmp(&e->timeval, &now) <= 0) {
-            assert(e->callback);
+            pa_assert(e->callback);
 
             /* Disable time event */
             mainloop_time_restart(e, NULL);
@@ -789,7 +788,7 @@ static int dispatch_timeout(pa_mainloop *m) {
 
 void pa_mainloop_wakeup(pa_mainloop *m) {
     char c = 'W';
-    assert(m);
+    pa_assert(m);
 
     if (m->wakeup_pipe[1] >= 0 && m->state == STATE_POLLING) {
         pa_write(m->wakeup_pipe[1], &c, sizeof(c), &m->wakeup_pipe_type);
@@ -800,7 +799,7 @@ void pa_mainloop_wakeup(pa_mainloop *m) {
 static void clear_wakeup(pa_mainloop *m) {
     char c[10];
 
-    assert(m);
+    pa_assert(m);
 
     if (m->wakeup_pipe[0] < 0)
         return;
@@ -812,8 +811,8 @@ static void clear_wakeup(pa_mainloop *m) {
 }
 
 int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
-    assert(m);
-    assert(m->state == STATE_PASSIVE);
+    pa_assert(m);
+    pa_assert(m->state == STATE_PASSIVE);
 
     clear_wakeup(m);
     scan_dead(m);
@@ -839,8 +838,8 @@ quit:
 }
 
 int pa_mainloop_poll(pa_mainloop *m) {
-    assert(m);
-    assert(m->state == STATE_PREPARED);
+    pa_assert(m);
+    pa_assert(m->state == STATE_PREPARED);
 
     if (m->quit)
         goto quit;
@@ -850,7 +849,7 @@ int pa_mainloop_poll(pa_mainloop *m) {
     if (m->n_enabled_defer_events )
         m->poll_func_ret = 0;
     else {
-        assert(!m->rebuild_pollfds);
+        pa_assert(!m->rebuild_pollfds);
 
         if (m->poll_func)
             m->poll_func_ret = m->poll_func(m->pollfds, m->n_pollfds, m->prepared_timeout, m->poll_func_userdata);
@@ -876,8 +875,8 @@ quit:
 int pa_mainloop_dispatch(pa_mainloop *m) {
     int dispatched = 0;
 
-    assert(m);
-    assert(m->state == STATE_POLLED);
+    pa_assert(m);
+    pa_assert(m->state == STATE_POLLED);
 
     if (m->quit)
         goto quit;
@@ -908,13 +907,13 @@ quit:
 }
 
 int pa_mainloop_get_retval(pa_mainloop *m) {
-    assert(m);
+    pa_assert(m);
     return m->retval;
 }
 
 int pa_mainloop_iterate(pa_mainloop *m, int block, int *retval) {
     int r;
-    assert(m);
+    pa_assert(m);
 
     if ((r = pa_mainloop_prepare(m, block ? -1 : 0)) < 0)
         goto quit;
@@ -948,7 +947,7 @@ int pa_mainloop_run(pa_mainloop *m, int *retval) {
 }
 
 void pa_mainloop_quit(pa_mainloop *m, int retval) {
-    assert(m);
+    pa_assert(m);
 
     m->quit = 1;
     m->retval = retval;
@@ -956,12 +955,12 @@ void pa_mainloop_quit(pa_mainloop *m, int retval) {
 }
 
 pa_mainloop_api* pa_mainloop_get_api(pa_mainloop*m) {
-    assert(m);
+    pa_assert(m);
     return &m->api;
 }
 
 void pa_mainloop_set_poll_func(pa_mainloop *m, pa_poll_func poll_func, void *userdata) {
-    assert(m);
+    pa_assert(m);
 
     m->poll_func = poll_func;
     m->poll_func_userdata = userdata;

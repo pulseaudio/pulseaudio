@@ -27,12 +27,12 @@
 #endif
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "channelmap.h"
 
@@ -164,7 +164,7 @@ const char *const pretty_table[] = {
 
 pa_channel_map* pa_channel_map_init(pa_channel_map *m) {
     unsigned c;
-    assert(m);
+    pa_assert(m);
 
     m->channels = 0;
 
@@ -175,7 +175,7 @@ pa_channel_map* pa_channel_map_init(pa_channel_map *m) {
 }
 
 pa_channel_map* pa_channel_map_init_mono(pa_channel_map *m) {
-    assert(m);
+    pa_assert(m);
 
     pa_channel_map_init(m);
 
@@ -185,7 +185,7 @@ pa_channel_map* pa_channel_map_init_mono(pa_channel_map *m) {
 }
 
 pa_channel_map* pa_channel_map_init_stereo(pa_channel_map *m) {
-    assert(m);
+    pa_assert(m);
 
     pa_channel_map_init(m);
 
@@ -196,9 +196,9 @@ pa_channel_map* pa_channel_map_init_stereo(pa_channel_map *m) {
 }
 
 pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, pa_channel_map_def_t def) {
-    assert(m);
-    assert(channels > 0);
-    assert(channels <= PA_CHANNELS_MAX);
+    pa_assert(m);
+    pa_assert(channels > 0);
+    pa_assert(channels <= PA_CHANNELS_MAX);
 
     pa_channel_map_init(m);
 
@@ -415,8 +415,8 @@ const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos) {
 int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b) {
     unsigned c;
 
-    assert(a);
-    assert(b);
+    pa_assert(a);
+    pa_assert(b);
 
     if (a->channels != b->channels)
         return 0;
@@ -433,9 +433,9 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map) {
     int first = 1;
     char *e;
 
-    assert(s);
-    assert(l > 0);
-    assert(map);
+    pa_assert(s);
+    pa_assert(l > 0);
+    pa_assert(map);
 
     *(e = s) = 0;
 
@@ -456,8 +456,8 @@ pa_channel_map *pa_channel_map_parse(pa_channel_map *rmap, const char *s) {
     pa_channel_map map;
     char *p;
 
-    assert(rmap);
-    assert(s);
+    pa_assert(rmap);
+    pa_assert(s);
 
     memset(&map, 0, sizeof(map));
 
@@ -517,7 +517,7 @@ finish:
 int pa_channel_map_valid(const pa_channel_map *map) {
     unsigned c;
 
-    assert(map);
+    pa_assert(map);
 
     if (map->channels <= 0 || map->channels > PA_CHANNELS_MAX)
         return 0;

@@ -27,14 +27,14 @@
 #endif
 
 #include <stdlib.h>
-#include <assert.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
 
-#include <pulsecore/core-error.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/macro.h>
+#include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/conf-parser.h>
 #include <pulsecore/core-util.h>
@@ -81,7 +81,7 @@ pa_client_conf *pa_client_conf_new(void) {
 }
 
 void pa_client_conf_free(pa_client_conf *c) {
-    assert(c);
+    pa_assert(c);
     pa_xfree(c->daemon_binary);
     pa_xfree(c->extra_arguments);
     pa_xfree(c->default_sink);
@@ -90,6 +90,7 @@ void pa_client_conf_free(pa_client_conf *c) {
     pa_xfree(c->cookie_file);
     pa_xfree(c);
 }
+
 int pa_client_conf_load(pa_client_conf *c, const char *filename) {
     FILE *f = NULL;
     char *fn = NULL;
@@ -122,7 +123,7 @@ int pa_client_conf_load(pa_client_conf *c, const char *filename) {
         pa_open_config_file(DEFAULT_CLIENT_CONFIG_FILE, DEFAULT_CLIENT_CONFIG_FILE_USER, ENV_CLIENT_CONFIG_FILE, &fn, "r");
 
     if (!f && errno != EINTR) {
-        pa_log("WARNING: failed to open configuration file '%s': %s", fn, pa_cstrerror(errno));
+        pa_log_warn("WARNING: failed to open configuration file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 
@@ -175,7 +176,7 @@ int pa_client_conf_env(pa_client_conf *c) {
 }
 
 int pa_client_conf_load_cookie(pa_client_conf* c) {
-    assert(c);
+    pa_assert(c);
 
     c->cookie_valid = 0;
 

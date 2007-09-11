@@ -26,7 +26,6 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -36,6 +35,7 @@
 #include <pulsecore/x11prop.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "client-conf-x11.h"
 
@@ -43,6 +43,8 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
     Display *d = NULL;
     int ret = -1;
     char t[1024];
+
+    pa_assert(c);
 
     if (!dname && (!(dname = getenv("DISPLAY")) || *dname == '\0'))
         goto finish;
@@ -75,7 +77,7 @@ int pa_client_conf_from_x11(pa_client_conf *c, const char *dname) {
             goto finish;
         }
 
-        assert(sizeof(cookie) == sizeof(c->cookie));
+        pa_assert(sizeof(cookie) == sizeof(c->cookie));
         memcpy(c->cookie, cookie, sizeof(cookie));
 
         c->cookie_valid = 1;

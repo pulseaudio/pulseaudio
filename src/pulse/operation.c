@@ -25,16 +25,15 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
-
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
 
 #include "internal.h"
 #include "operation.h"
 
 pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t cb, void *userdata) {
     pa_operation *o;
-    assert(c);
+    pa_assert(c);
 
     o = pa_xnew(pa_operation, 1);
     o->ref = 1;
@@ -53,27 +52,27 @@ pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t cb
 }
 
 pa_operation *pa_operation_ref(pa_operation *o) {
-    assert(o);
-    assert(o->ref >= 1);
+    pa_assert(o);
+    pa_assert(o->ref >= 1);
 
     o->ref++;
     return o;
 }
 
 void pa_operation_unref(pa_operation *o) {
-    assert(o);
-    assert(o->ref >= 1);
+    pa_assert(o);
+    pa_assert(o->ref >= 1);
 
     if ((--(o->ref)) == 0) {
-        assert(!o->context);
-        assert(!o->stream);
+        pa_assert(!o->context);
+        pa_assert(!o->stream);
         pa_xfree(o);
     }
 }
 
 static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
-    assert(o);
-    assert(o->ref >= 1);
+    pa_assert(o);
+    pa_assert(o->ref >= 1);
 
     if (st == o->state)
         return;
@@ -85,7 +84,7 @@ static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
     if ((o->state == PA_OPERATION_DONE) || (o->state == PA_OPERATION_CANCELED)) {
 
         if (o->context) {
-            assert(o->ref >= 2);
+            pa_assert(o->ref >= 2);
 
             PA_LLIST_REMOVE(pa_operation, o->context->operations, o);
             pa_operation_unref(o);
@@ -101,22 +100,22 @@ static void operation_set_state(pa_operation *o, pa_operation_state_t st) {
 }
 
 void pa_operation_cancel(pa_operation *o) {
-    assert(o);
-    assert(o->ref >= 1);
+    pa_assert(o);
+    pa_assert(o->ref >= 1);
 
     operation_set_state(o, PA_OPERATION_CANCELED);
 }
 
 void pa_operation_done(pa_operation *o) {
-    assert(o);
-    assert(o->ref >= 1);
+    pa_assert(o);
+    pa_assert(o->ref >= 1);
 
     operation_set_state(o, PA_OPERATION_DONE);
 }
 
 pa_operation_state_t pa_operation_get_state(pa_operation *o) {
-    assert(o);
-    assert(o->ref >= 1);
+    pa_assert(o);
+    pa_assert(o->ref >= 1);
 
     return o->state;
 }
