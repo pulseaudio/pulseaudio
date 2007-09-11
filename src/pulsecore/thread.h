@@ -85,7 +85,7 @@ void *pa_tls_set(pa_tls *t, void *userdata);
 /* An optimized version of the above that requires no dynamic
  * allocation if the compiler supports __thread */
 #define PA_STATIC_TLS_DECLARE_NO_FREE(name)                             \
-    static __thread void *name##_tls;                                   \
+    static __thread void *name##_tls = NULL;                            \
     static inline void* name##_tls_get(void) {                          \
         return name##_tls;                                              \
     }                                                                   \
