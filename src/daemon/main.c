@@ -58,13 +58,12 @@
 #include <tcpd.h>
 #endif
 
-#include "../pulsecore/winsock.h"
-
 #include <pulse/mainloop.h>
 #include <pulse/mainloop-signal.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core.h>
 #include <pulsecore/memblock.h>
@@ -83,6 +82,7 @@
 #include <pulsecore/mutex.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/once.h>
+#include <pulsecore/shm.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
@@ -496,6 +496,13 @@ int main(int argc, char *argv[]) {
 
             goto finish;
 
+        case PA_CMD_CLEANUP_SHM:
+
+            if (pa_shm_cleanup() >= 0)
+                retval = 0;
+
+            goto finish;
+            
         default:
             pa_assert(conf->cmd == PA_CMD_DAEMON);
     }

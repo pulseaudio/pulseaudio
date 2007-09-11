@@ -41,4 +41,6 @@ void pa_shm_punch(pa_shm *m, size_t offset, size_t size);
 
 void pa_shm_free(pa_shm *m);
 
+int pa_shm_cleanup(void);
+
 #endif

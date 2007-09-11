@@ -33,17 +33,22 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <signal.h>
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
+
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/random.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
-#include <pulse/xmalloc.h>
+#include <pulsecore/atomic.h>
 
 #include "shm.h"
 
@@ -51,8 +56,29 @@
 #define MADV_REMOVE 9
 #endif
 
-#define MAX_SHM_SIZE (1024*1024*20)
+#define MAX_SHM_SIZE (PA_ALIGN(1024*1024*20))
 
+#ifdef __linux__
+/* On Linux we know that the shared memory blocks are files in
+ * /dev/shm. We can use that information to list all blocks and
+ * cleanup unused ones */
+#define SHM_PATH "/dev/shm/"
+#else
+#undef SHM_PATH
+#endif
+
+#define SHM_MARKER ((int) 0xbeefcafe)
+
+/* We now put this SHM marker at the end of each segment. It's optional to not require a reboot when upgrading, though */
+struct shm_marker {
+    pa_atomic_t marker; /* 0xbeefcafe */
+    pa_atomic_t pid;
+    void *_reserverd1;
+    void *_reserverd2;
+    void *_reserverd3;
+    void *_reserverd4;
+};
+    
 static char *segment_name(char *fn, size_t l, unsigned id) {
     pa_snprintf(fn, l, "/pulse-shm-%u", id);
     return fn;
@@ -67,6 +93,13 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
     pa_assert(size < MAX_SHM_SIZE);
     pa_assert(mode >= 0600);
 
+    /* Each time we create a new SHM area, let's first drop all stale
+     * ones */
+    pa_shm_cleanup();
+    
+    /* Round up to make it aligned */
+    size = PA_ALIGN(size);
+    
     if (!shared) {
         m->id = 0;
         m->size = size;
@@ -93,6 +126,8 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
 
     } else {
 #ifdef HAVE_SHM_OPEN
+        struct shm_marker *marker;
+        
         pa_random(&m->id, sizeof(m->id));
         segment_name(fn, sizeof(fn), m->id);
 
@@ -101,7 +136,9 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
             goto fail;
         }
 
-        if (ftruncate(fd, m->size = size) < 0) {
+        m->size = size + PA_ALIGN(sizeof(struct shm_marker));
+
+        if (ftruncate(fd, m->size) < 0) {
             pa_log("ftruncate() failed: %s", pa_cstrerror(errno));
             goto fail;
         }
@@ -111,6 +148,12 @@ int pa_shm_create_rw(pa_shm *m, size_t size, int shared, mode_t mode) {
             goto fail;
         }
 
+        /* We store our PID at the end of the shm block, so that we
+         * can check for dead shm segments later */
+        marker = (struct shm_marker*) ((uint8_t*) m->ptr + m->size - PA_ALIGN(sizeof(struct shm_marker)));
+        pa_atomic_store(&marker->pid, (int) getpid());
+        pa_atomic_store(&marker->marker, SHM_MARKER);
+        
         close(fd);
         m->do_unlink = 1;
 #else
@@ -229,7 +272,8 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
     segment_name(fn, sizeof(fn), m->id = id);
 
     if ((fd = shm_open(fn, O_RDONLY, 0)) < 0) {
-        pa_log("shm_open() failed: %s", pa_cstrerror(errno));
+        if (errno != EACCES)
+            pa_log("shm_open() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -238,7 +282,7 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
         goto fail;
     }
 
-    if (st.st_size <= 0 || st.st_size > MAX_SHM_SIZE) {
+    if (st.st_size <= 0 || st.st_size > MAX_SHM_SIZE+PA_ALIGN(sizeof(struct shm_marker)) || PA_ALIGN(st.st_size) != st.st_size) {
         pa_log("Invalid shared memory segment size");
         goto fail;
     }
@@ -271,3 +315,67 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
 }
 
 #endif /* HAVE_SHM_OPEN */
+
+int pa_shm_cleanup(void) {
+
+#ifdef SHM_PATH
+    DIR *d;
+    struct dirent *de;
+
+    if (!(d = opendir(SHM_PATH))) {
+        pa_log_warn("Failed to read "SHM_PATH": %s", pa_cstrerror(errno));
+        return -1;
+    }
+
+    while ((de = readdir(d))) {
+        pa_shm seg;
+        unsigned id;
+        pid_t pid;
+        char fn[128];
+        struct shm_marker *m;
+        
+        if (strncmp(de->d_name, "pulse-shm-", 10))
+            continue;
+
+        if (pa_atou(de->d_name + 10, &id) < 0)
+            continue;
+        
+        if (pa_shm_attach_ro(&seg, id) < 0)
+            continue;
+
+        if (seg.size < PA_ALIGN(sizeof(struct shm_marker))) {
+            pa_shm_free(&seg);
+            continue;
+        }
+        
+        m = (struct shm_marker*) ((uint8_t*) seg.ptr + seg.size - PA_ALIGN(sizeof(struct shm_marker)));
+        
+        if (pa_atomic_load(&m->marker) != SHM_MARKER) {
+            pa_shm_free(&seg);
+            continue;
+        }
+            
+        if (!(pid = (pid_t) pa_atomic_load(&m->pid))) {
+            pa_shm_free(&seg);
+            continue;
+        }
+
+        if (kill(pid, 0) == 0 || errno != ESRCH) {
+            pa_shm_free(&seg);
+            continue;
+        }
+
+        pa_shm_free(&seg);
+        
+        /* Ok, the owner of this shms segment is dead, so, let's remove the segment */
+        segment_name(fn, sizeof(fn), id);
+
+        if (shm_unlink(fn) < 0 && errno != EACCES)
+            pa_log_warn("Failed to remove SHM segment %s: %s\n", fn, pa_cstrerror(errno));
+    }
+
+    closedir(d);
+#endif
+
+    return 0;
+}

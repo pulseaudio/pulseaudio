@@ -64,7 +64,8 @@ enum {
     ARG_NO_CPU_LIMIT,
     ARG_DISABLE_SHM,
     ARG_DUMP_RESAMPLE_METHODS,
-    ARG_SYSTEM
+    ARG_SYSTEM,
+    ARG_CLEANUP_SHM
 };
 
 /* Tabel for getopt_long() */
@@ -94,6 +95,7 @@ static struct option long_options[] = {
     {"no-cpu-limit",                2, 0, ARG_NO_CPU_LIMIT},
     {"disable-shm",                 2, 0, ARG_DISABLE_SHM},
     {"dump-resample-methods",       2, 0, ARG_DUMP_RESAMPLE_METHODS},
+    {"cleanup-shm",                 2, 0, ARG_CLEANUP_SHM},
     {NULL, 0, 0, 0}
 };
 
@@ -114,6 +116,7 @@ void pa_cmdline_help(const char *argv0) {
            "      --dump-conf                       Dump default configuration\n"
            "      --dump-modules                    Dump list of available modules\n"
            "      --dump-resample-methods           Dump available resample methods\n"
+           "      --cleanup-shm                     Cleanup stale shared memory segments\n"
            "  -k  --kill                            Kill a running daemon\n"
            "      --check                           Check for a running daemon\n\n"
 
@@ -187,6 +190,10 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_DUMP_RESAMPLE_METHODS:
                 conf->cmd = PA_CMD_DUMP_RESAMPLE_METHODS;
+                break;
+
+            case ARG_CLEANUP_SHM:
+                conf->cmd = PA_CMD_CLEANUP_SHM;
                 break;
                 
             case 'k':
