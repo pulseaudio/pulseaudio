@@ -37,9 +37,8 @@
  * libatomic_ops
  */
 
-/* We have to include config.h here (for the __sync stuff), which sucks */
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#ifndef PACKAGE
+#error "Please include config.h before including this file!"
 #endif
 
 #ifdef HAVE_ATOMIC_BUILTINS

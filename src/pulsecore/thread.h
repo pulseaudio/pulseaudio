@@ -28,9 +28,8 @@
 #include <pulse/def.h>
 #include <pulsecore/once.h>
 
-/* We have to include config.h here (for the __tls stuff), which sucks */
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#ifndef PACKAGE
+#error "Please include config.h before including this file!"
 #endif
 
 typedef struct pa_thread pa_thread;

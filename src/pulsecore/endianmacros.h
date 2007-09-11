@@ -27,8 +27,8 @@
 
 #include <inttypes.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#ifndef PACKAGE
+#error "Please include config.h before including this file!"
 #endif
 
 #define INT16_SWAP(x) ( (int16_t) ( ((uint16_t) x >> 8) | ((uint16_t) x << 8) ) )

@@ -32,6 +32,10 @@
 
 #include <pulsecore/log.h>
 
+#ifndef PACKAGE
+#error "Please include config.h before including this file!"
+#endif
+
 #if defined(PAGE_SIZE)
 #define PA_PAGE_SIZE ((size_t) PAGE_SIZE)
 #elif defined(PAGESIZE)
