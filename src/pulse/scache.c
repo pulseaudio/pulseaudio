@@ -25,12 +25,12 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <pulsecore/pstream-util.h>
+#include <pulsecore/macro.h>
 
 #include "internal.h"
 
@@ -40,7 +40,8 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_tagstruct *t;
     uint32_t tag;
 
-    assert(s);
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, length > 0, PA_ERR_INVALID);
@@ -66,7 +67,9 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
 int pa_stream_finish_upload(pa_stream *s) {
     pa_tagstruct *t;
     uint32_t tag;
-    assert(s);
+    
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
     PA_CHECK_VALIDITY(s->context, s->channel_valid, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(s->context, s->context->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
@@ -87,8 +90,8 @@ pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char
     pa_tagstruct *t;
     uint32_t tag;
 
-    assert(c);
-    assert(PA_REFCNT_VALUE(c) >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
@@ -115,8 +118,8 @@ pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_conte
     pa_tagstruct *t;
     uint32_t tag;
 
-    assert(c);
-    assert(PA_REFCNT_VALUE(c) >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
