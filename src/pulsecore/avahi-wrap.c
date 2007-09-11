@@ -21,11 +21,14 @@
   USA.
 ***/
 
-#include <assert.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "avahi-wrap.h"
 
@@ -61,9 +64,9 @@ static pa_io_event_flags_t translate_io_flags(AvahiWatchEvent e) {
 static void watch_callback(pa_mainloop_api*a, pa_io_event* e, int fd, pa_io_event_flags_t events, void *userdata) {
     AvahiWatch *w = userdata;
 
-    assert(a);
-    assert(e);
-    assert(w);
+    pa_assert(a);
+    pa_assert(e);
+    pa_assert(w);
 
     w->current_event = translate_io_flags_back(events);
     w->callback(w, fd, w->current_event, w->userdata);
@@ -74,12 +77,10 @@ static AvahiWatch* watch_new(const AvahiPoll *api, int fd, AvahiWatchEvent event
     pa_avahi_poll *p;
     AvahiWatch *w;
 
-    assert(api);
-    assert(fd >= 0);
-    assert(callback);
-
-    p = api->userdata;
-    assert(p);
+    pa_assert(api);
+    pa_assert(fd >= 0);
+    pa_assert(callback);
+    pa_assert_se(p = api->userdata);
 
     w = pa_xnew(AvahiWatch, 1);
     w->avahi_poll = p;
@@ -92,19 +93,19 @@ static AvahiWatch* watch_new(const AvahiPoll *api, int fd, AvahiWatchEvent event
 }
 
 static void watch_update(AvahiWatch *w, AvahiWatchEvent event) {
-    assert(w);
+    pa_assert(w);
 
     w->avahi_poll->mainloop->io_enable(w->io_event, translate_io_flags(event));
 }
 
 static AvahiWatchEvent watch_get_events(AvahiWatch *w) {
-    assert(w);
+    pa_assert(w);
 
     return w->current_event;
 }
 
 static void watch_free(AvahiWatch *w) {
-    assert(w);
+    pa_assert(w);
 
     w->avahi_poll->mainloop->io_free(w->io_event);
     pa_xfree(w);
@@ -120,9 +121,9 @@ struct AvahiTimeout {
 static void timeout_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
     AvahiTimeout *t = userdata;
 
-    assert(a);
-    assert(e);
-    assert(t);
+    pa_assert(a);
+    pa_assert(e);
+    pa_assert(t);
 
     t->callback(t, t->userdata);
 }
@@ -131,11 +132,9 @@ static AvahiTimeout* timeout_new(const AvahiPoll *api, const struct timeval *tv,
     pa_avahi_poll *p;
     AvahiTimeout *t;
 
-    assert(api);
-    assert(callback);
-
-    p = api->userdata;
-    assert(p);
+    pa_assert(api);
+    pa_assert(callback);
+    pa_assert_se(p = api->userdata);
 
     t = pa_xnew(AvahiTimeout, 1);
     t->avahi_poll = p;
@@ -148,7 +147,7 @@ static AvahiTimeout* timeout_new(const AvahiPoll *api, const struct timeval *tv,
 }
 
 static void timeout_update(AvahiTimeout *t, const struct timeval *tv) {
-    assert(t);
+    pa_assert(t);
 
     if (t->time_event && tv)
         t->avahi_poll->mainloop->time_restart(t->time_event, tv);
@@ -161,7 +160,7 @@ static void timeout_update(AvahiTimeout *t, const struct timeval *tv) {
 }
 
 static void timeout_free(AvahiTimeout *t) {
-    assert(t);
+    pa_assert(t);
 
     if (t->time_event)
         t->avahi_poll->mainloop->time_free(t->time_event);
@@ -171,7 +170,7 @@ static void timeout_free(AvahiTimeout *t) {
 AvahiPoll* pa_avahi_poll_new(pa_mainloop_api *m) {
     pa_avahi_poll *p;
 
-    assert(m);
+    pa_assert(m);
 
     p = pa_xnew(pa_avahi_poll, 1);
 
@@ -190,9 +189,8 @@ AvahiPoll* pa_avahi_poll_new(pa_mainloop_api *m) {
 
 void pa_avahi_poll_free(AvahiPoll *api) {
     pa_avahi_poll *p;
-    assert(api);
-    p = api->userdata;
-    assert(p);
+    pa_assert(api);
+    pa_assert_se(p = api->userdata);
 
     pa_xfree(p);
 }

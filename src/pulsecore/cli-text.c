@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <string.h>
 
 #include <pulse/volume.h>
@@ -41,6 +40,7 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/autoload.h>
+#include <pulsecore/macro.h>
 
 #include "cli-text.h"
 
@@ -48,10 +48,9 @@ char *pa_module_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_module *m;
     uint32_t idx = PA_IDXSET_INVALID;
-    assert(c);
+    pa_assert(c);
 
     s = pa_strbuf_new();
-    assert(s);
 
     pa_strbuf_printf(s, "%u module(s) loaded.\n", pa_idxset_size(c->modules));
 
@@ -72,10 +71,9 @@ char *pa_client_list_to_string(pa_core *c) {
     pa_strbuf *s;
     pa_client *client;
     uint32_t idx = PA_IDXSET_INVALID;
-    assert(c);
+    pa_assert(c);
 
     s = pa_strbuf_new();
-    assert(s);
 
     pa_strbuf_printf(s, "%u client(s) logged in.\n", pa_idxset_size(c->clients));
 
@@ -99,10 +97,9 @@ char *pa_sink_list_to_string(pa_core *c) {
         [PA_SINK_IDLE] = "IDLE",
         [PA_SINK_UNLINKED] = "UNLINKED"
     };
-    assert(c);
+    pa_assert(c);
 
     s = pa_strbuf_new();
-    assert(s);
 
     pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_size(c->sinks));
 
@@ -159,10 +156,9 @@ char *pa_source_list_to_string(pa_core *c) {
         [PA_SOURCE_IDLE] = "IDLE",
         [PA_SOURCE_UNLINKED] = "UNLINKED"
     };
-    assert(c);
+    pa_assert(c);
 
     s = pa_strbuf_new();
-    assert(s);
 
     pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_size(c->sources));
 
@@ -220,17 +216,16 @@ char *pa_source_output_list_to_string(pa_core *c) {
         [PA_SOURCE_OUTPUT_CORKED] = "CORKED",
         [PA_SOURCE_OUTPUT_UNLINKED] = "UNLINKED"
     };
-    assert(c);
+    pa_assert(c);
 
     s = pa_strbuf_new();
-    assert(s);
 
     pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_size(c->source_outputs));
 
     for (o = pa_idxset_first(c->source_outputs, &idx); o; o = pa_idxset_next(c->source_outputs, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
-        assert(o->source);
+        pa_assert(o->source);
 
         pa_strbuf_printf(
             s,
@@ -275,16 +270,15 @@ char *pa_sink_input_list_to_string(pa_core *c) {
         [PA_SINK_INPUT_UNLINKED] = "UNLINKED"
     };
 
-    assert(c);
+    pa_assert(c);
     s = pa_strbuf_new();
-    assert(s);
 
     pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_size(c->sink_inputs));
 
     for (i = pa_idxset_first(c->sink_inputs, &idx); i; i = pa_idxset_next(c->sink_inputs, &idx)) {
         char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
-        assert(i->sink);
+        pa_assert(i->sink);
 
         pa_strbuf_printf(
             s,
@@ -325,10 +319,9 @@ char *pa_sink_input_list_to_string(pa_core *c) {
 
 char *pa_scache_list_to_string(pa_core *c) {
     pa_strbuf *s;
-    assert(c);
+    pa_assert(c);
 
     s = pa_strbuf_new();
-    assert(s);
 
     pa_strbuf_printf(s, "%u cache entries available.\n", c->scache ? pa_idxset_size(c->scache) : 0);
 
@@ -374,10 +367,9 @@ char *pa_scache_list_to_string(pa_core *c) {
 
 char *pa_autoload_list_to_string(pa_core *c) {
     pa_strbuf *s;
-    assert(c);
+    pa_assert(c);
 
     s = pa_strbuf_new();
-    assert(s);
 
     pa_strbuf_printf(s, "%u autoload entries available.\n", c->autoload_hashmap ? pa_hashmap_size(c->autoload_hashmap) : 0);
 

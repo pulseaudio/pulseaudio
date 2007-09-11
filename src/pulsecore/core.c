@@ -27,7 +27,6 @@
 #endif
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <signal.h>
 
@@ -160,21 +159,21 @@ static void core_free(pa_object *o) {
     pa_assert(c);
 
     pa_module_unload_all(c);
-    assert(!c->modules);
+    pa_assert(!c->modules);
 
-    assert(pa_idxset_isempty(c->clients));
+    pa_assert(pa_idxset_isempty(c->clients));
     pa_idxset_free(c->clients, NULL, NULL);
 
-    assert(pa_idxset_isempty(c->sinks));
+    pa_assert(pa_idxset_isempty(c->sinks));
     pa_idxset_free(c->sinks, NULL, NULL);
 
-    assert(pa_idxset_isempty(c->sources));
+    pa_assert(pa_idxset_isempty(c->sources));
     pa_idxset_free(c->sources, NULL, NULL);
 
-    assert(pa_idxset_isempty(c->source_outputs));
+    pa_assert(pa_idxset_isempty(c->source_outputs));
     pa_idxset_free(c->source_outputs, NULL, NULL);
 
-    assert(pa_idxset_isempty(c->sink_inputs));
+    pa_assert(pa_idxset_isempty(c->sink_inputs));
     pa_idxset_free(c->sink_inputs, NULL, NULL);
 
     pa_scache_free(c);
@@ -200,7 +199,7 @@ static void core_free(pa_object *o) {
 
 static void quit_callback(pa_mainloop_api*m, pa_time_event *e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     pa_core *c = userdata;
-    pa_assert(c->quit_event = e);
+    pa_assert(c->quit_event == e);
 
     m->quit(m, 0);
 }

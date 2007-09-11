@@ -25,44 +25,53 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <string.h>
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/props.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/log.h>
+#include <pulsecore/refcnt.h>
 
 #include "authkey-prop.h"
 
 struct authkey_data {
+    PA_REFCNT_DECLARE;
     int ref;
     size_t length;
 };
 
 int pa_authkey_prop_get(pa_core *c, const char *name, void *data, size_t len) {
     struct authkey_data *a;
-    assert(c && name && data && len > 0);
+    
+    pa_assert(c);
+    pa_assert(name);
+    pa_assert(data);
+    pa_assert(len > 0);
 
     if (!(a = pa_property_get(c, name)))
         return -1;
 
-    assert(a->length == len);
-    memcpy(data, a+1, len);
+    pa_assert(a->length == len);
+    memcpy(data, (uint8_t*) a + PA_ALIGN(sizeof(struct authkey_data)), len);
+    
     return 0;
 }
 
 int pa_authkey_prop_put(pa_core *c, const char *name, const void *data, size_t len) {
     struct authkey_data *a;
-    assert(c && name);
+    
+    pa_assert(c);
+    pa_assert(name);
 
     if (pa_property_get(c, name))
         return -1;
 
-    a = pa_xmalloc(sizeof(struct authkey_data) + len);
-    a->ref = 1;
+    a = pa_xmalloc(PA_ALIGN(sizeof(struct authkey_data)) + len);
+    PA_REFCNT_INIT(a);
     a->length = len;
-    memcpy(a+1, data, len);
+    memcpy((uint8_t*) a + PA_ALIGN(sizeof(struct authkey_data)), data, len);
 
     pa_property_set(c, name, a);
 
@@ -71,22 +80,27 @@ int pa_authkey_prop_put(pa_core *c, const char *name, const void *data, size_t l
 
 void pa_authkey_prop_ref(pa_core *c, const char *name) {
     struct authkey_data *a;
-    assert(c && name);
+
+    pa_assert(c);
+    pa_assert(name);
 
     a = pa_property_get(c, name);
-    assert(a && a->ref >= 1);
-
-    a->ref++;
+    pa_assert(a);
+    pa_assert(PA_REFCNT_VALUE(a) >= 1);
+    PA_REFCNT_INC(a);
 }
 
 void pa_authkey_prop_unref(pa_core *c, const char *name) {
     struct authkey_data *a;
-    assert(c && name);
+    
+    pa_assert(c);
+    pa_assert(name);
 
     a = pa_property_get(c, name);
-    assert(a && a->ref >= 1);
+    pa_assert(a);
+    pa_assert(PA_REFCNT_VALUE(a) >= 1);
 
-    if (!(--a->ref)) {
+    if (PA_REFCNT_DEC(a) <= 0) {
         pa_property_remove(c, name);
         pa_xfree(a);
     }
