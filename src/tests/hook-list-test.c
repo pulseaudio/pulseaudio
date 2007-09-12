@@ -1,5 +1,9 @@
 /* $Id$ */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <pulsecore/hook-list.h>
 #include <pulsecore/log.h>
 
