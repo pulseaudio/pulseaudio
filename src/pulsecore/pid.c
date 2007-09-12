@@ -61,8 +61,7 @@ static pid_t read_pid(const char *fn, int fd) {
     pa_assert(fd >= 0);
 
     if ((r = pa_loop_read(fd, t, sizeof(t)-1, NULL)) < 0) {
-        pa_log_warn("WARNING: failed to read PID file '%s': %s",
-            fn, pa_cstrerror(errno));
+        pa_log_warn("Failed to read PID file '%s': %s", fn, pa_cstrerror(errno));
         return (pid_t) -1;
     }
 
@@ -74,7 +73,7 @@ static pid_t read_pid(const char *fn, int fd) {
         *e = 0;
 
     if (pa_atou(t, &pid) < 0) {
-        pa_log_warn("WARNING: failed to parse PID file '%s'", fn);
+        pa_log_warn("Failed to parse PID file '%s'", fn);
         return (pid_t) -1;
     }
 
@@ -91,8 +90,7 @@ static int open_pid_file(const char *fn, int mode) {
 
         if ((fd = open(fn, mode, S_IRUSR|S_IWUSR)) < 0) {
             if (mode != O_RDONLY || errno != ENOENT)
-                pa_log_warn("WARNING: failed to open PID file '%s': %s",
-                    fn, pa_cstrerror(errno));
+                pa_log_warn("WARNING: failed to open PID file '%s': %s", fn, pa_cstrerror(errno));
             goto fail;
         }
 
@@ -101,8 +99,7 @@ static int open_pid_file(const char *fn, int mode) {
             goto fail;
 
         if (fstat(fd, &st) < 0) {
-            pa_log_warn("WARNING: failed to fstat() PID file '%s': %s",
-                fn, pa_cstrerror(errno));
+            pa_log_warn("Failed to fstat() PID file '%s': %s", fn, pa_cstrerror(errno));
             goto fail;
         }
 
@@ -113,9 +110,9 @@ static int open_pid_file(const char *fn, int mode) {
         if (pa_lock_fd(fd, 0) < 0)
             goto fail;
 
-        if (close(fd) < 0) {
-            pa_log_warn("WARNING: failed to close file '%s': %s",
-                fn, pa_cstrerror(errno));
+        if (pa_close(fd) < 0) {
+            pa_log_warn("Failed to close file '%s': %s", fn, pa_cstrerror(errno));
+            fd = -1;
             goto fail;
         }
 
@@ -128,7 +125,7 @@ fail:
 
     if (fd >= 0) {
         pa_lock_fd(fd, 0);
-        close(fd);
+        pa_close(fd);
     }
 
     return -1;
@@ -153,7 +150,7 @@ int pa_pid_file_create(void) {
         goto fail;
 
     if ((pid = read_pid(fn, fd)) == (pid_t) -1)
-        pa_log("corrupt PID file, overwriting.");
+        pa_log_warn("Corrupt PID file, overwriting.");
     else if (pid > 0) {
 #ifdef OS_IS_WIN32
         if ((process = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid)) != NULL) {
@@ -161,17 +158,16 @@ int pa_pid_file_create(void) {
 #else
         if (kill(pid, 0) >= 0 || errno != ESRCH) {
 #endif
-            pa_log("daemon already running.");
+            pa_log("Daemon already running.");
             goto fail;
         }
 
-        pa_log("stale PID file, overwriting.");
+        pa_log_warn("Stale PID file, overwriting.");
     }
 
     /* Overwrite the current PID file */
     if (lseek(fd, 0, SEEK_SET) == (off_t) -1 || ftruncate(fd, 0) < 0) {
-        pa_log("failed to truncate PID file '%s': %s",
-            fn, pa_cstrerror(errno));
+        pa_log("Failed to truncate PID file '%s': %s", fn, pa_cstrerror(errno));
         goto fail;
     }
 
@@ -179,7 +175,7 @@ int pa_pid_file_create(void) {
     l = strlen(t);
 
     if (pa_loop_write(fd, t, l, NULL) != (ssize_t) l) {
-        pa_log("failed to write PID file.");
+        pa_log("Failed to write PID file.");
         goto fail;
     }
 
@@ -188,7 +184,11 @@ int pa_pid_file_create(void) {
 fail:
     if (fd >= 0) {
         pa_lock_fd(fd, 0);
-        close(fd);
+        
+        if (pa_close(fd) < 0) {
+            pa_log("Failed to close PID file '%s': %s", fn, pa_cstrerror(errno));
+            ret = -1;
+        }
     }
 
     return ret;
@@ -213,13 +213,12 @@ int pa_pid_file_remove(void) {
         goto fail;
 
     if (pid != getpid()) {
-        pa_log("WARNING: PID file '%s' not mine!", fn);
+        pa_log("PID file '%s' not mine!", fn);
         goto fail;
     }
 
     if (ftruncate(fd, 0) < 0) {
-        pa_log_warn("WARNING: failed to truncate PID file '%s': %s",
-            fn, pa_cstrerror(errno));
+        pa_log_warn("Failed to truncate PID file '%s': %s", fn, pa_cstrerror(errno));
         goto fail;
     }
 
@@ -230,8 +229,7 @@ int pa_pid_file_remove(void) {
 #endif
 
     if (unlink(fn) < 0) {
-        pa_log_warn("WARNING: failed to remove PID file '%s': %s",
-            fn, pa_cstrerror(errno));
+        pa_log_warn("Failed to remove PID file '%s': %s", fn, pa_cstrerror(errno));
         goto fail;
     }
 
@@ -241,7 +239,11 @@ fail:
 
     if (fd >= 0) {
         pa_lock_fd(fd, 0);
-        pa_assert_se(close(fd) == 0);
+
+        if (pa_close(fd) < 0) {
+            pa_log_warn("Failed to close PID file '%s': %s", fn, pa_cstrerror(errno));
+            ret = -1;
+        }
     }
 
     return ret;
@@ -283,7 +285,7 @@ fail:
 
     if (fd >= 0) {
         pa_lock_fd(fd, 0);
-        pa_assert_se(close(fd) == 0);
+        pa_close(fd);
     }
 
     return ret;

@@ -476,7 +476,7 @@ static int suspend(struct userdata *u) {
 
     /* Let's suspend */
     ioctl(u->fd, SNDCTL_DSP_SYNC, NULL);
-    close(u->fd);
+    pa_close(u->fd);
     u->fd = -1;
 
     if (u->rtpoll_item) {
@@ -588,7 +588,7 @@ static int unsuspend(struct userdata *u) {
     return 0;
 
 fail:
-    close(u->fd);
+    pa_close(u->fd);
     u->fd = -1;
     return -1;
 }
@@ -1324,7 +1324,7 @@ fail:
     if (u)
         pa__done(m);
     else if (fd >= 0)
-        close(fd);
+        pa_close(fd);
 
     if (ma)
         pa_modargs_free(ma);
@@ -1391,7 +1391,7 @@ void pa__done(pa_module*m) {
         munmap(u->out_mmap, u->out_hwbuf_size);
     
     if (u->fd >= 0)
-        close(u->fd);
+        pa_close(u->fd);
 
     pa_xfree(u->device_name);
     

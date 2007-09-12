@@ -160,9 +160,9 @@ static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e,
 
 static void close_pipe(int p[2]) {
     if (p[0] != -1)
-        close(p[0]);
+        pa_assert_se(pa_close(p[0]) == 0);
     if (p[1] != -1)
-        close(p[1]);
+        pa_assert_se(pa_close(p[1]) == 0);
     p[0] = p[1] = -1;
 }
 
@@ -537,7 +537,7 @@ int main(int argc, char *argv[]) {
         if (child != 0) {
             /* Father */
 
-            close(daemon_pipe[1]);
+            pa_assert_se(pa_close(daemon_pipe[1]) == 0);
             daemon_pipe[1] = -1;
 
             if (pa_loop_read(daemon_pipe[0], &retval, sizeof(retval), NULL) != sizeof(retval)) {
@@ -553,7 +553,7 @@ int main(int argc, char *argv[]) {
             goto finish;
         }
 
-        close(daemon_pipe[0]);
+        pa_assert_se(pa_close(daemon_pipe[0]) == 0);
         daemon_pipe[0] = -1;
 #endif
 
@@ -568,9 +568,9 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifndef OS_IS_WIN32
-        close(0);
-        close(1);
-        close(2);
+        pa_close(0);
+        pa_close(1);
+        pa_close(2);
 
         open("/dev/null", O_RDONLY);
         open("/dev/null", O_WRONLY);
@@ -592,7 +592,7 @@ int main(int argc, char *argv[]) {
 #ifdef TIOCNOTTY
         if ((tty_fd = open("/dev/tty", O_RDWR)) >= 0) {
             ioctl(tty_fd, TIOCNOTTY, (char*) 0);
-            close(tty_fd);
+            pa_assert_se(pa_close(tty_fd) == 0);
         }
 #endif
     }

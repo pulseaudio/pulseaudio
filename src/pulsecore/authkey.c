@@ -120,7 +120,10 @@ finish:
         if (unlock)
             pa_lock_fd(fd, 0);
 
-        close(fd);
+        if (pa_close(fd) < 0) {
+            pa_log_warn("Failed to close cookie file: %s", pa_cstrerror(errno));
+            ret = -1;
+        }
     }
 
     return ret;
@@ -221,7 +224,10 @@ finish:
         if (unlock)
             pa_lock_fd(fd, 0);
 
-        close(fd);
+        if (pa_close(fd) < 0) {
+            pa_log_warn("Failed to close cookie file: %s", pa_cstrerror(errno));
+            ret = -1;
+        }
     }
 
     return ret;

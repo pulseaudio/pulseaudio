@@ -36,6 +36,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/core-util.h>
 
 #include "sound-file.h"
 #include "core-scache.h"
@@ -77,7 +78,7 @@ int pa_sound_file_load(
     
     if (!(sf = sf_open_fd(fd, SFM_READ, &sfinfo, 1))) {
         pa_log("Failed to open file %s", fname);
-        close(fd);
+        pa_close(fd);
         goto finish;
     }
 

@@ -68,7 +68,7 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
 
             pa_log_warn("'%s' doesn't support full duplex", device);
 
-            close(fd);
+            pa_close(fd);
         }
 
         if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY|O_NOCTTY)) < 0) {
@@ -147,7 +147,7 @@ success:
 
 fail:
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
     return -1;
 }
 

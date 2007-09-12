@@ -360,11 +360,11 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
 /** Platform independent read function. Necessary since not all
  * systems treat all file descriptors equal. */
 int pa_close(int fd) {
+
 #ifdef OS_IS_WIN32
     int ret;
 
-    ret = closesocket(fd);
-    if (ret == 0)
+    if ((ret = closesocket(fd)) == 0)
         return 0;
 
     if (WSAGetLastError() != WSAENOTSOCK) {
@@ -838,8 +838,7 @@ int pa_lock_fd(int fd, int b) {
             return 0;
     }
 
-    pa_log("%slock: %s", !b? "un" : "",
-        pa_cstrerror(errno));
+    pa_log("%slock: %s", !b? "un" : "", pa_cstrerror(errno));
 #endif
 
 #ifdef OS_IS_WIN32
@@ -873,32 +872,33 @@ int pa_lock_lockfile(const char *fn) {
         struct stat st;
 
         if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
-            pa_log("failed to create lock file '%s': %s", fn,
-                pa_cstrerror(errno));
+            pa_log_warn("Failed to create lock file '%s': %s", fn, pa_cstrerror(errno));
             goto fail;
         }
 
         if (pa_lock_fd(fd, 1) < 0) {
-            pa_log("failed to lock file '%s'.", fn);
+            pa_log_warn("Failed to lock file '%s'.", fn);
             goto fail;
         }
 
         if (fstat(fd, &st) < 0) {
-            pa_log("failed to fstat() file '%s'.", fn);
+            pa_log_warn("Failed to fstat() file '%s': %s", fn, pa_cstrerror(errno));
             goto fail;
         }
 
-        /* Check wheter the file has been removed meanwhile. When yes, restart this loop, otherwise, we're done */
+        /* Check wheter the file has been removed meanwhile. When yes,
+         * restart this loop, otherwise, we're done */
         if (st.st_nlink >= 1)
             break;
 
         if (pa_lock_fd(fd, 0) < 0) {
-            pa_log("failed to unlock file '%s'.", fn);
+            pa_log_warn("Failed to unlock file '%s'.", fn);
             goto fail;
         }
 
-        if (close(fd) < 0) {
-            pa_log("failed to close file '%s'.", fn);
+        if (pa_close(fd) < 0) {
+            pa_log_warn("Failed to close file '%s': %s", fn, pa_cstrerror(errno));
+            fd = -1;
             goto fail;
         }
 
@@ -910,7 +910,7 @@ int pa_lock_lockfile(const char *fn) {
 fail:
 
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
 
     return -1;
 }
@@ -922,19 +922,17 @@ int pa_unlock_lockfile(const char *fn, int fd) {
     pa_assert(fd >= 0);
 
     if (unlink(fn) < 0) {
-        pa_log_warn("WARNING: unable to remove lock file '%s': %s",
-            fn, pa_cstrerror(errno));
+        pa_log_warn("Unable to remove lock file '%s': %s", fn, pa_cstrerror(errno));
         r = -1;
     }
 
     if (pa_lock_fd(fd, 0) < 0) {
-        pa_log_warn("WARNING: failed to unlock file '%s'.", fn);
+        pa_log_warn("Failed to unlock file '%s'.", fn);
         r = -1;
     }
 
-    if (close(fd) < 0) {
-        pa_log_warn("WARNING: failed to close lock file '%s': %s",
-            fn, pa_cstrerror(errno));
+    if (pa_close(fd) < 0) {
+        pa_log_warn("Failed to close '%s': %s", fn, pa_cstrerror(errno));
         r = -1;
     }
 

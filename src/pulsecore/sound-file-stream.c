@@ -40,6 +40,7 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/log.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/core-util.h>
 
 #include "sound-file-stream.h"
 
@@ -271,7 +272,7 @@ int pa_play_file(
     
     if (!(u->sndfile = sf_open_fd(fd, SFM_READ, &sfinfo, 1))) {
         pa_log("Failed to open file %s", fname);
-        close(fd);
+        pa_close(fd);
         goto fail;
     }
 

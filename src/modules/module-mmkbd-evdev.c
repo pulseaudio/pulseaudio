@@ -254,7 +254,7 @@ void pa__done(pa_module*m) {
         m->core->mainloop->io_free(u->io);
 
     if (u->fd >= 0)
-        close(u->fd);
+        pa_assert_se(pa_close(u->fd) == 0);
 
     pa_xfree(u->sink_name);
     pa_xfree(u);

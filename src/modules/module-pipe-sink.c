@@ -335,7 +335,7 @@ void pa__done(pa_module*m) {
     }
 
     if (u->fd >= 0)
-        close(u->fd);
+        pa_assert_se(pa_close(u->fd) == 0);
 
     pa_xfree(u);
 }

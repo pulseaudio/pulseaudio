@@ -524,7 +524,7 @@ static int context_connect_spawn(pa_context *c) {
         int n;
 
         /* Not required, since fds[0] has CLOEXEC enabled anyway */
-        close(fds[0]);
+        pa_assert_se(pa_close(fds[0]) == 0);
 
         if (c->spawn_api.atfork)
             c->spawn_api.atfork();
@@ -571,7 +571,7 @@ static int context_connect_spawn(pa_context *c) {
         goto fail;
     }
 
-    close(fds[1]);
+    pa_assert_se(pa_close(fds[1]) == 0);
 
     c->is_local = 1;
 
@@ -586,9 +586,9 @@ static int context_connect_spawn(pa_context *c) {
 
 fail:
     if (fds[0] != -1)
-        close(fds[0]);
+        pa_assert_se(pa_close(fds[0]) == 0);
     if (fds[1] != -1)
-        close(fds[1]);
+        pa_assert_se(pa_close(fds[1]) == 0);
 
     unlock_autospawn_lock_file(c);
 
