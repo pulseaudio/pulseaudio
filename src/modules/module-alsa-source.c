@@ -310,7 +310,7 @@ static int build_pollfd(struct userdata *u) {
     if (u->alsa_rtpoll_item)
         pa_rtpoll_item_free(u->alsa_rtpoll_item);
 
-    u->alsa_rtpoll_item = pa_rtpoll_item_new(u->rtpoll, n);
+    u->alsa_rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, n);
     pollfd = pa_rtpoll_item_get_pollfd(u->alsa_rtpoll_item, NULL);
     
     if ((err = snd_pcm_poll_descriptors(u->pcm_handle, pollfd, n)) < 0) {
@@ -726,7 +726,7 @@ int pa__init(pa_module*m) {
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
     u->alsa_rtpoll_item = NULL;
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, u->thread_mq.inq);
+    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
 
     snd_config_update_free_global();
     if ((err = snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK)) < 0) {

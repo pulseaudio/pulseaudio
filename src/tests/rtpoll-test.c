@@ -38,16 +38,21 @@ static void after(pa_rtpoll_item *i) {
     pa_log("after");
 }
 
+static int worker(pa_rtpoll_item *w) {
+    pa_log("worker");
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     pa_rtpoll *p;
-    pa_rtpoll_item *i;
+    pa_rtpoll_item *i, *w;
     struct pollfd *pollfd;
 
     pa_rtsig_configure(SIGRTMIN+10, SIGRTMAX);
     
     p = pa_rtpoll_new();
 
-    i = pa_rtpoll_item_new(p, 1);
+    i = pa_rtpoll_item_new(p, PA_RTPOLL_EARLY, 1);
     pa_rtpoll_item_set_before_callback(i, before);
     pa_rtpoll_item_set_after_callback(i, after);
 
@@ -55,6 +60,9 @@ int main(int argc, char *argv[]) {
     pollfd->fd = 0;
     pollfd->events = POLLIN;
 
+    w = pa_rtpoll_item_new(p, PA_RTPOLL_NORMAL, 0);
+    pa_rtpoll_item_set_before_callback(w, worker);
+    
     pa_rtpoll_install(p);
     pa_rtpoll_set_timer_periodic(p, 10000000); /* 10 s */
 
@@ -62,7 +70,7 @@ int main(int argc, char *argv[]) {
     
     pa_rtpoll_item_free(i);
     
-    i = pa_rtpoll_item_new(p, 1);
+    i = pa_rtpoll_item_new(p, PA_RTPOLL_EARLY, 1);
     pa_rtpoll_item_set_before_callback(i, before);
     pa_rtpoll_item_set_after_callback(i, after);
 
@@ -73,6 +81,8 @@ int main(int argc, char *argv[]) {
     pa_rtpoll_run(p, 1);
 
     pa_rtpoll_item_free(i);
+
+    pa_rtpoll_item_free(w);
     
     pa_rtpoll_free(p);
 

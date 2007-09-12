@@ -26,6 +26,7 @@
 
 #include <poll.h>
 #include <sys/types.h>
+#include <limits.h>
 
 #include <pulse/sample.h>
 #include <pulsecore/asyncmsgq.h>
@@ -53,9 +54,17 @@
 typedef struct pa_rtpoll pa_rtpoll;
 typedef struct pa_rtpoll_item pa_rtpoll_item;
 
+typedef enum pa_rtpoll_priority {
+    PA_RTPOLL_EARLY  = -100,          /* For veeery important stuff, like handling control messages */
+    PA_RTPOLL_NORMAL = 0,             /* For normal stuff */
+    PA_RTPOLL_LATE   = +100,          /* For housekeeping */
+    PA_RTPOLL_NEVER  = INT_MAX,       /* For stuff that doesn't register any callbacks, but only fds to listen on */ 
+} pa_rtpoll_priority_t;
+
 pa_rtpoll *pa_rtpoll_new(void);
 void pa_rtpoll_free(pa_rtpoll *p);
 
+/* Install the rtpoll in the current thread */
 void pa_rtpoll_install(pa_rtpoll *p);
 
 /* Sleep on the rtpoll until the time event, or any of the fd events
@@ -68,7 +77,8 @@ void pa_rtpoll_set_timer_periodic(pa_rtpoll *p, pa_usec_t usec);
 void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec);
 void pa_rtpoll_set_timer_disabled(pa_rtpoll *p);
 
-pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, unsigned n_fds);
+/* A new fd wakeup item for pa_rtpoll */
+pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, pa_rtpoll_priority_t prio, unsigned n_fds);
 void pa_rtpoll_item_free(pa_rtpoll_item *i);
 
 /* Please note that this pointer might change on every call and when
@@ -76,12 +86,18 @@ void pa_rtpoll_item_free(pa_rtpoll_item *i);
  * using the pointer and don't save the result anywhere */
 struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds);
 
+/* Set the callback that shall be called immediately before entering
+ * the sleeping poll: If the callback returns a negative value, the
+ * poll is skipped. */
 void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i));
+
+/* Set the callback that shall be called immediately after having
+ * entered the sleeping poll */
 void pa_rtpoll_item_set_after_callback(pa_rtpoll_item *i, void (*after_cb)(pa_rtpoll_item *i));
 void pa_rtpoll_item_set_userdata(pa_rtpoll_item *i, void *userdata);
 void* pa_rtpoll_item_get_userdata(pa_rtpoll_item *i);
 
-pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_fdsem *s);
-pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_asyncmsgq *q);
+pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_fdsem *s);
+pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q);
 
 #endif

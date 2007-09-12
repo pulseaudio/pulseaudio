@@ -45,7 +45,6 @@
 #include "rtpoll.h"
 
 struct pa_rtpoll {
-
     struct pollfd *pollfd, *pollfd2;
     unsigned n_pollfd_alloc, n_pollfd_used;
 
@@ -71,6 +70,8 @@ struct pa_rtpoll {
 struct pa_rtpoll_item {
     pa_rtpoll *rtpoll;
     int dead;
+
+    pa_rtpoll_priority_t priority;
 
     struct pollfd *pollfd;
     unsigned n_pollfd;
@@ -245,7 +246,7 @@ void pa_rtpoll_free(pa_rtpoll *p) {
 
     while (p->items)
         rtpoll_item_destroy(p->items);
-    
+
     pa_xfree(p->pollfd);
     pa_xfree(p->pollfd2);
 
@@ -257,11 +258,37 @@ void pa_rtpoll_free(pa_rtpoll *p) {
     pa_xfree(p);
 }
 
+static void reset_revents(pa_rtpoll_item *i) {
+    struct pollfd *f;
+    unsigned n;
+    
+    pa_assert(i);
+
+    if (!(f = pa_rtpoll_item_get_pollfd(i, &n)))
+        return;
+    
+    for (; n > 0; n--)
+        f[n-1].revents = 0;
+}
+
+static void reset_all_revents(pa_rtpoll *p) {
+    pa_rtpoll_item *i;
+
+    pa_assert(p);
+    
+    for (i = p->items; i; i = i->next) {
+        
+        if (i->dead)
+            continue;
+        
+        reset_revents(i);
+    }
+}
+
 int pa_rtpoll_run(pa_rtpoll *p, int wait) {
     pa_rtpoll_item *i;
     int r = 0;
-    int no_events = 0;
-    int saved_errno;
+    int saved_errno = 0;
     struct timespec timeout;
     
     pa_assert(p);
@@ -270,20 +297,23 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
     
     p->running = 1;
 
-    for (i = p->items; i; i = i->next) {
-
+    for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
+        int k;
+        
         if (i->dead)
             continue;
         
         if (!i->before_cb)
             continue;
 
-        if (i->before_cb(i) < 0) {
+        if ((k = i->before_cb(i)) != 0) {
 
             /* Hmm, this one doesn't let us enter the poll, so rewind everything */
 
+            reset_all_revents(p);
+            
             for (i = i->prev; i; i = i->prev) {
-
+                
                 if (i->dead)
                     continue;
                 
@@ -292,6 +322,9 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
 
                 i->after_cb(i);
             }
+
+            if (k < 0)
+                r = k;
             
             goto finish;
         }
@@ -329,7 +362,13 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
         r = poll(p->pollfd, p->n_pollfd_used, p->timer_enabled > 0 ? (timeout.tv_sec*1000) + (timeout.tv_nsec / 1000000) : -1);
 #endif
 
-    saved_errno = errno;
+    if (r < 0)
+        reset_all_revents(p);
+    
+    if (r < 0 && (errno == EAGAIN || errno == EINTR))
+        r = 0;
+
+    saved_errno = r < 0 ? errno : 0;
 
     if (p->timer_enabled) {
         if (p->period > 0) {
@@ -340,18 +379,13 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
 
             /* Guarantee that the next timeout will happen in the future */
             if (pa_timespec_cmp(&p->next_elapse, &now) < 0)
-                pa_timespec_add(&p->next_elapse, (pa_timespec_diff(&now, &p->next_elapse) / p->period + 1)  * p->period);
+                pa_timespec_add(&p->next_elapse, (pa_timespec_diff(&now, &p->next_elapse) / p->period + 1) * p->period);
 
         } else
             p->timer_enabled = 0;
     }
-    
-    if (r == 0 || (r < 0 && (errno == EAGAIN || errno == EINTR))) {
-        r = 0;
-        no_events = 1;
-    }
 
-    for (i = p->items; i; i = i->next) {
+    for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
 
         if (i->dead)
             continue;
@@ -359,13 +393,6 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
         if (!i->after_cb)
             continue;
 
-        if (no_events) {
-            unsigned j;
-
-            for (j = 0; j < i->n_pollfd; j++)
-                i->pollfd[j].revents = 0;
-        }
-        
         i->after_cb(i);
     }
 
@@ -386,7 +413,7 @@ finish:
         }
     }
 
-    if (r < 0)
+    if (saved_errno != 0)
         errno = saved_errno;
 
     return r;
@@ -484,11 +511,10 @@ void pa_rtpoll_set_timer_disabled(pa_rtpoll *p) {
     update_timer(p);
 }
 
-pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, unsigned n_fds) {
-    pa_rtpoll_item *i;
+pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, pa_rtpoll_priority_t prio, unsigned n_fds) {
+    pa_rtpoll_item *i, *j, *l = NULL;
     
     pa_assert(p);
-    pa_assert(n_fds > 0);
 
     if (!(i = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
         i = pa_xnew(pa_rtpoll_item, 1);
@@ -497,15 +523,25 @@ pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, unsigned n_fds) {
     i->dead = 0;
     i->n_pollfd = n_fds;
     i->pollfd = NULL;
+    i->priority = prio;
 
     i->userdata = NULL;
     i->before_cb = NULL;
     i->after_cb = NULL;
-    
-    PA_LLIST_PREPEND(pa_rtpoll_item, p->items, i);
 
-    p->rebuild_needed = 1;
-    p->n_pollfd_used += n_fds;
+    for (j = p->items; j; j = j->next) {
+        if (prio <= j->priority)
+            break;
+
+        l = j;
+    }
+
+    PA_LLIST_INSERT_AFTER(pa_rtpoll_item, p->items, j ? j->prev : l, i);
+
+    if (n_fds > 0) {
+        p->rebuild_needed = 1;
+        p->n_pollfd_used += n_fds;
+    }
 
     return i;
 }
@@ -525,8 +561,9 @@ void pa_rtpoll_item_free(pa_rtpoll_item *i) {
 struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds) {
     pa_assert(i);
 
-    if (i->rtpoll->rebuild_needed)
-        rtpoll_rebuild(i->rtpoll);
+    if (i->n_pollfd > 0) 
+        if (i->rtpoll->rebuild_needed)
+            rtpoll_rebuild(i->rtpoll);
     
     if (n_fds)
         *n_fds = i->n_pollfd;
@@ -536,12 +573,14 @@ struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds) {
 
 void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i)) {
     pa_assert(i);
-
+    pa_assert(i->priority < PA_RTPOLL_NEVER);
+    
     i->before_cb = before_cb;
 }
 
 void pa_rtpoll_item_set_after_callback(pa_rtpoll_item *i, void (*after_cb)(pa_rtpoll_item *i)) {
     pa_assert(i);
+    pa_assert(i->priority < PA_RTPOLL_NEVER);
 
     i->after_cb = after_cb;
 }
@@ -559,22 +598,28 @@ void* pa_rtpoll_item_get_userdata(pa_rtpoll_item *i) {
 }
 
 static int fdsem_before(pa_rtpoll_item *i) {
-    return pa_fdsem_before_poll(i->userdata);
+
+    if (pa_fdsem_before_poll(i->userdata) < 0)
+        return 1; /* 1 means immediate restart of the loop */
+
+    return 0;
 }
 
 static void fdsem_after(pa_rtpoll_item *i) {
+    pa_assert(i);
+    
     pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
     pa_fdsem_after_poll(i->userdata);
 }
 
-pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_fdsem *f) {
+pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_fdsem *f) {
     pa_rtpoll_item *i;
     struct pollfd *pollfd;
     
     pa_assert(p);
     pa_assert(f);
 
-    i = pa_rtpoll_item_new(p, 1);
+    i = pa_rtpoll_item_new(p, prio, 1);
 
     pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
 
@@ -589,22 +634,29 @@ pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_fdsem *f) {
 }
 
 static int asyncmsgq_before(pa_rtpoll_item *i) {
-    return pa_asyncmsgq_before_poll(i->userdata);
+    pa_assert(i);
+    
+    if (pa_asyncmsgq_before_poll(i->userdata) < 0)
+        return 1; /* 1 means immediate restart of the loop */
+
+    return 0;
 }
 
 static void asyncmsgq_after(pa_rtpoll_item *i) {
+    pa_assert(i);
+    
     pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
     pa_asyncmsgq_after_poll(i->userdata);
 }
 
-pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_asyncmsgq *q) {
+pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
     pa_rtpoll_item *i;
     struct pollfd *pollfd;
     
     pa_assert(p);
     pa_assert(q);
 
-    i = pa_rtpoll_item_new(p, 1);
+    i = pa_rtpoll_item_new(p, prio, 1);
 
     pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
     pollfd->fd = pa_asyncmsgq_get_fd(q);

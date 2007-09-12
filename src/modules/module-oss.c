@@ -577,7 +577,7 @@ static int unsuspend(struct userdata *u) {
 
     pa_assert(!u->rtpoll_item);
     
-    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, 1);
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
     pollfd->fd = u->fd;
     pollfd->events = 0;
@@ -1167,8 +1167,8 @@ int pa__init(pa_module*m) {
     u->use_mmap = use_mmap;
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
-    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, u->thread_mq.inq);
-    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, 1);
+    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
     pollfd->fd = fd;
     pollfd->events = 0;

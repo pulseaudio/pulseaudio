@@ -401,7 +401,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_assert(o);
 
     pa_assert(!o->rtpoll_item);
-    o->rtpoll_item = pa_rtpoll_item_new_asyncmsgq(i->sink->rtpoll, o->asyncmsgq);
+    o->rtpoll_item = pa_rtpoll_item_new_asyncmsgq(i->sink->rtpoll, PA_RTPOLL_NORMAL, o->asyncmsgq);
 }
 
 /* Called from I/O thread context */
@@ -721,7 +721,7 @@ static int update_master(struct userdata *u, struct output *o) {
             pa_assert(!u->rtpoll);
             
             u->rtpoll = pa_rtpoll_new();
-            pa_rtpoll_item_new_asyncmsgq(u->rtpoll, u->thread_mq.inq);
+            pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
 
             pa_sink_set_rtpoll(u->sink, u->rtpoll);
             

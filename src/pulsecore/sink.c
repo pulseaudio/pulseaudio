@@ -126,7 +126,7 @@ pa_sink* pa_sink_new(
     n = pa_sprintf_malloc("%s.monitor", name);
 
     if (!(s->monitor_source = pa_source_new(core, driver, n, 0, spec, map)))
-        pa_log_warn("failed to create monitor source.");
+        pa_log_warn("Failed to create monitor source.");
     else {
         char *d;
         s->monitor_source->monitor_of = s;
