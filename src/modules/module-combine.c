@@ -233,7 +233,7 @@ static void thread_func(void *userdata) {
 
     pa_rtclock_get(&u->timestamp);
 
-    /* This is only run when were are in NULL mode, to make sure that
+    /* This is only run when we are in NULL mode, to make sure that
      * playback doesn't stop. In all other cases we hook our stuff
      * into the master sink. */
     
@@ -1029,7 +1029,7 @@ int pa__init(pa_module*m) {
     else
         pa_channel_map_init_auto(&map, ss.channels, PA_CHANNEL_MAP_DEFAULT);
 
-    if ((pa_modargs_get_channel_map(ma, &map) < 0)) {
+    if ((pa_modargs_get_channel_map(ma, NULL, &map) < 0)) {
         pa_log("Invalid channel map.");
         goto fail;
     }

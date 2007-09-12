@@ -275,7 +275,7 @@ int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *rss) {
     return 0;
 }
 
-int pa_modargs_get_channel_map(pa_modargs *ma, pa_channel_map *rmap) {
+int pa_modargs_get_channel_map(pa_modargs *ma, const char *name, pa_channel_map *rmap) {
     pa_channel_map map;
     const char *cm;
 
@@ -284,7 +284,7 @@ int pa_modargs_get_channel_map(pa_modargs *ma, pa_channel_map *rmap) {
 
     map = *rmap;
 
-    if ((cm = pa_modargs_get_value(ma, "channel_map", NULL)))
+    if ((cm = pa_modargs_get_value(ma, name ? name : "channel_map", NULL)))
         if (!pa_channel_map_parse(&map, cm))
             return -1;
 
@@ -311,7 +311,7 @@ int pa_modargs_get_sample_spec_and_channel_map(pa_modargs *ma, pa_sample_spec *r
     if (!pa_channel_map_init_auto(&map, ss.channels, def))
         map.channels = 0;
 
-    if (pa_modargs_get_channel_map(ma, &map) < 0)
+    if (pa_modargs_get_channel_map(ma, NULL, &map) < 0)
         return -1;
 
     if (map.channels != ss.channels)
