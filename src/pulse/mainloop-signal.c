@@ -147,9 +147,7 @@ void pa_signal_done(void) {
     api->io_free(io_event);
     io_event = NULL;
 
-    pa_assert_se(close(signal_pipe[0]) == 0);
-    pa_assert_se(close(signal_pipe[1]) == 0);
-    signal_pipe[0] = signal_pipe[1] = -1;
+    pa_close_pipe(signal_pipe);
 
     api = NULL;
 }

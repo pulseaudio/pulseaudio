@@ -1323,3 +1323,16 @@ void *pa_will_need(const void *p, size_t l) {
 
     return (void*) p;
 }
+
+void pa_close_pipe(int fds[2]) {
+    pa_assert(fds);
+    
+    if (fds[0] >= 0)
+        pa_assert_se(pa_close(fds[0]) == 0);
+    
+    if (fds[1] >= 0)
+        pa_assert_se(pa_close(fds[1]) == 0);
+    
+    fds[0] = fds[1] = -1;
+}
+

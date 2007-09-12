@@ -605,10 +605,7 @@ void pa_mainloop_free(pa_mainloop* m) {
 
     pa_xfree(m->pollfds);
 
-    if (m->wakeup_pipe[0] >= 0)
-        pa_assert_se(pa_close(m->wakeup_pipe[0]) == 0);
-    if (m->wakeup_pipe[1] >= 0)
-        pa_assert_se(pa_close(m->wakeup_pipe[1]) == 0);
+    pa_close_pipe(m->wakeup_pipe);
 
     pa_xfree(m);
 }

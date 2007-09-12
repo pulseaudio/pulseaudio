@@ -158,14 +158,6 @@ static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e,
     }
 }
 
-static void close_pipe(int p[2]) {
-    if (p[0] != -1)
-        pa_assert_se(pa_close(p[0]) == 0);
-    if (p[1] != -1)
-        pa_assert_se(pa_close(p[1]) == 0);
-    p[0] = p[1] = -1;
-}
-
 #define set_env(key, value) putenv(pa_sprintf_malloc("%s=%s", (key), (value)))
 
 #if defined(HAVE_PWD_H) && defined(HAVE_GRP_H)
@@ -745,7 +737,7 @@ finish:
     if (valid_pid_file)
         pa_pid_file_remove();
 
-    close_pipe(daemon_pipe);
+    pa_close_pipe(daemon_pipe);
 
 #ifdef OS_IS_WIN32
     WSACleanup();

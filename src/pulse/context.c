@@ -585,10 +585,7 @@ static int context_connect_spawn(pa_context *c) {
     return 0;
 
 fail:
-    if (fds[0] != -1)
-        pa_assert_se(pa_close(fds[0]) == 0);
-    if (fds[1] != -1)
-        pa_assert_se(pa_close(fds[1]) == 0);
+    pa_close_pipe(fds);
 
     unlock_autospawn_lock_file(c);
 

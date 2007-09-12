@@ -222,11 +222,7 @@ void pa_cpu_limit_done(void) {
         api = NULL;
     }
 
-    if (the_pipe[0] >= 0)
-        pa_assert_se(pa_close(the_pipe[0]) == 0);
-    if (the_pipe[1] >= 0)
-        pa_assert_se(pa_close(the_pipe[1]) == 0);
-    the_pipe[0] = the_pipe[1] = -1;
+    pa_close_pipe(the_pipe);
 
     if (installed) {
         pa_assert_se(sigaction(SIGXCPU, &sigaction_prev, NULL) >= 0);

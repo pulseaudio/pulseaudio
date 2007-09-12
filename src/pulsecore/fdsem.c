@@ -67,8 +67,7 @@ pa_fdsem *pa_fdsem_new(void) {
 void pa_fdsem_free(pa_fdsem *f) {
     pa_assert(f);
 
-    pa_assert_se(pa_close(f->fds[0]) == 0);
-    pa_assert_se(pa_close(f->fds[1]) == 0);
+    pa_close_pipe(f->fds);
 
     pa_xfree(f);
 }

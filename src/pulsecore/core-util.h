@@ -120,4 +120,6 @@ static inline unsigned pa_make_power_of_two(unsigned n) {
     return n + 1;
 }
 
+void pa_close_pipe(int fds[2]);
+
 #endif
