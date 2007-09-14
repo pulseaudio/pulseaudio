@@ -769,7 +769,7 @@ if test "x${dbus}" != xno ; then
             LIBS="$LIBS $DBUS_LIBS"
             AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
             LIBS="$saved_LIBS"
-        
+            AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.])
         ],
         [
             HAVE_DBUS=0

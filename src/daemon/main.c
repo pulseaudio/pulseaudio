@@ -58,6 +58,10 @@
 #include <tcpd.h>
 #endif
 
+#ifdef HAVE_DBUS
+#include <dbus/dbus.h>
+#endif
+
 #include <pulse/mainloop.h>
 #include <pulse/mainloop-signal.h>
 #include <pulse/timeval.h>
@@ -745,5 +749,9 @@ finish:
 
     libtool_done();
 
+#ifdef HAVE_DBUS
+    dbus_shutdown();
+#endif
+    
     return retval;
 }
