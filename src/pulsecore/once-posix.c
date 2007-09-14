@@ -32,18 +32,20 @@
 
 #include "once.h"
 
-/* Not reentrant -- how could it be? */
-void pa_run_once(pa_once *control, pa_once_func_t func) {
+int pa_once_begin(pa_once *control) {
     pa_mutex *m;
 
     pa_assert(control);
-    pa_assert(func);
 
     if (pa_atomic_load(&control->done))
-        return;
+        return 0;
 
     pa_atomic_inc(&control->ref);
 
+    /* Caveat: We have to make sure that the once func has completed
+     * before returning, even if the once func is not actually
+     * executed by us. Hence the awkward locking. */
+    
     for (;;) {
 
         if ((m = pa_atomic_ptr_load(&control->mutex))) {
@@ -51,33 +53,46 @@ void pa_run_once(pa_once *control, pa_once_func_t func) {
             /* The mutex is stored in locked state, hence let's just
              * wait until it is unlocked */
             pa_mutex_lock(m);
-            pa_mutex_unlock(m);
-            break;
+
+            pa_once_end(control);
+            return 0;
         }
 
         pa_assert_se(m = pa_mutex_new(0));
         pa_mutex_lock(m);
 
-        if (pa_atomic_ptr_cmpxchg(&control->mutex, NULL, m)) {
-            func();
-            pa_atomic_store(&control->done, 1);
-            pa_mutex_unlock(m);
-
-            break;
-        }
+        if (pa_atomic_ptr_cmpxchg(&control->mutex, NULL, m))
+            return 1;
 
         pa_mutex_unlock(m);
         pa_mutex_free(m);
     }
+}
 
-    pa_assert(pa_atomic_load(&control->done));
+void pa_once_end(pa_once *control) {
+    pa_mutex *m;
+    
+    pa_assert(control);
+
+    pa_atomic_store(&control->done, 1);
+
+    pa_assert_se(m = pa_atomic_ptr_load(&control->mutex));
+    pa_mutex_unlock(m);
 
     if (pa_atomic_dec(&control->ref) <= 1) {
-        pa_assert(pa_atomic_ptr_cmpxchg(&control->mutex, m, NULL));
+        pa_assert_se(pa_atomic_ptr_cmpxchg(&control->mutex, m, NULL));
         pa_mutex_free(m);
     }
-
-    /* Caveat: We have to make sure that the once func has completed
-     * before returning, even if the once func is not actually
-     * executed by us. Hence the awkward locking. */
 }
+
+/* Not reentrant -- how could it be? */
+void pa_run_once(pa_once *control, pa_once_func_t func) {
+    pa_assert(control);
+    pa_assert(func);
+
+    if (pa_once_begin(control)) {
+        func();
+        pa_once_end(control);
+    }
+}
+

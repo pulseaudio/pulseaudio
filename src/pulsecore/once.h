@@ -39,8 +39,38 @@ typedef struct pa_once {
         .done = PA_ATOMIC_INIT(0)                                       \
     }
 
-typedef void (*pa_once_func_t) (void);
+/* Not to be called directly, use the macros defined below instead */
+int pa_once_begin(pa_once *o);
+void pa_once_end(pa_once *o);
 
+#define PA_ONCE_BEGIN                                                   \
+    do {                                                                \
+        static pa_once _once = PA_ONCE_INIT;                            \
+        if (pa_once_begin(&_once)) {{
+
+#define PA_ONCE_END                                                     \
+            }                                                           \
+            pa_once_end(&_once);                                        \
+        }                                                               \
+    } while(0)
+
+/*
+  
+  Usage of these macros is like this:
+ 
+  void foo() {
+ 
+      PA_ONCE_BEGIN {
+ 
+          ... stuff to be called just once ...
+  
+      } PA_ONCE_END;
+  }
+  
+*/
+
+/* Same API but calls a function */
+typedef void (*pa_once_func_t) (void);
 void pa_run_once(pa_once *o, pa_once_func_t f);
 
 #endif
