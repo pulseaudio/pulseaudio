@@ -422,7 +422,7 @@ void pa_socket_server_unref(pa_socket_server *s) {
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
 
-    if (PA_REFCNT_DEC(s))
+    if (PA_REFCNT_DEC(s) <= 0)
         socket_server_free(s);
 }
 

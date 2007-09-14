@@ -349,7 +349,7 @@ void pa_socket_client_unref(pa_socket_client *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
-    if (PA_REFCNT_DEC(c) < 0)
+    if (PA_REFCNT_DEC(c) <= 0)
         socket_client_free(c);
 }
 
