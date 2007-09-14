@@ -70,8 +70,14 @@ void *pa_tls_set(pa_tls *t, void *userdata);
     }                                                                   \
     static void name##_tls_destructor(void) PA_GCC_DESTRUCTOR;          \
     static void name##_tls_destructor(void) {                           \
-        if (name##_tls.tls)                                             \
-            pa_tls_free(name##_tls.tls);                                \
+        if (!name##_tls.tls)                                            \
+            return;                                                     \
+        if (free_cb) {                                                  \
+            void *p;                                                    \
+            if ((p = pa_tls_get(name##_tls.tls)))                       \
+                free_cb(p);                                             \
+        }                                                               \
+        pa_tls_free(name##_tls.tls);                                    \
     }                                                                   \
     static inline void* name##_tls_get(void) {                          \
         return pa_tls_get(name##_tls_obj());                            \
