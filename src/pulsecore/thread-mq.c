@@ -110,28 +110,3 @@ void pa_thread_mq_install(pa_thread_mq *q) {
 pa_thread_mq *pa_thread_mq_get(void) {
     return PA_STATIC_TLS_GET(thread_mq);
 }
-
-int pa_thread_mq_process(pa_thread_mq *q) {
-    pa_msgobject *object;
-    int code;
-    void *data;
-    pa_memchunk chunk;
-    int64_t offset;
-
-    pa_assert(q);
-
-    if (pa_asyncmsgq_get(q->inq, &object, &code, &data, &offset, &chunk, 0) == 0) {
-        int ret;
-        
-        if (!object && code == PA_MESSAGE_SHUTDOWN) {
-            pa_asyncmsgq_done(q->inq, 0);
-            return -1;
-        }
-
-        ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
-        pa_asyncmsgq_done(q->inq, ret);
-        return 1;
-    } 
-
-    return 0;
-}

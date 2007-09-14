@@ -194,7 +194,6 @@ pa_sink_input* pa_sink_input_new(
     
     i->peek = NULL;
     i->drop = NULL;
-    i->process = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
     i->attach = NULL;
@@ -272,7 +271,6 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     
     i->peek = NULL;
     i->drop = NULL;
-    i->process = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
     i->attach = NULL;

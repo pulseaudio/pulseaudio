@@ -73,13 +73,6 @@ struct pa_source_output {
      * context. */
     void (*push)(pa_source_output *o, const pa_memchunk *chunk);
 
-    /* If non-NULL this function is called in each IO event loop and
-     * can be used to do additional processing even when the device is
-     * suspended and peek() is never called. Should return 1 when
-     * "some work" has been done and the IO event loop should be
-     * reiterated immediately. Called from IO thread context. */
-    int (*process) (pa_source_output *o);           /* may be NULL */
-
     /* If non-NULL this function is called when the output is first
      * connected to a source. Called from IO thread context */
     void (*attach) (pa_source_output *o);           /* may be NULL */ 

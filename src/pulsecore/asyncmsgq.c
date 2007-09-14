@@ -248,6 +248,27 @@ int pa_asyncmsgq_wait_for(pa_asyncmsgq *a, int code) {
     return 0;
 }
 
+int pa_asyncmsgq_process_one(pa_asyncmsgq *a) {
+    pa_msgobject *object;
+    int code;
+    void *data;
+    pa_memchunk chunk;
+    int64_t offset;
+    int ret;
+
+    pa_assert(PA_REFCNT_VALUE(a) > 0);
+    
+    if (pa_asyncmsgq_get(a, &object, &code, &data, &offset, &chunk, 0) < 0)
+        return 0;
+    
+    pa_asyncmsgq_ref(a);
+    ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
+    pa_asyncmsgq_done(a, ret);
+    pa_asyncmsgq_unref(a);
+    
+    return 1;
+}
+
 int pa_asyncmsgq_get_fd(pa_asyncmsgq *a) {
     pa_assert(PA_REFCNT_VALUE(a) > 0);
 

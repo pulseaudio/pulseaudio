@@ -504,21 +504,3 @@ int pa_source_suspend_all(pa_core *c, int suspend) {
 
     return ret;
 }
-
-int pa_source_process_outputs(pa_source *s) {
-    pa_source_output *o;
-    void *state = NULL;
-    int r;
-    
-    pa_source_assert_ref(s);
-
-    if (!PA_SOURCE_LINKED(s->state))
-        return 0;
-    
-    while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
-        if (o->process)
-            if ((r = o->process(o)))
-                return r;
-
-    return 0;
-}

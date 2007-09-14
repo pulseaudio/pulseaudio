@@ -630,24 +630,13 @@ static void thread_func(void *userdata) {
             }
         }
 
-        /* Now give the sink inputs some to time to process their data */
-        if ((ret = pa_sink_process_inputs(u->sink)) < 0)
-            goto fail;
-        if (ret > 0)
-            continue;
-
-        /* Check whether there is a message for us to process */
-        if ((ret = pa_thread_mq_process(&u->thread_mq) < 0))
-            goto finish;
-        if (ret > 0)
-            continue;
-        
         /* Hmm, nothing to do. Let's sleep */
-        if (pa_rtpoll_run(u->rtpoll, 1) < 0) {
-            pa_log("poll() failed: %s", pa_cstrerror(errno));
+        if ((ret = pa_rtpoll_run(u->rtpoll, 1)) < 0)
             goto fail;
-        }
 
+        if (ret == 0)
+            goto finish;
+        
         /* Tell ALSA about this and process its response */
         if (PA_SINK_OPENED(u->sink->thread_info.state)) {
             struct pollfd *pollfd;
@@ -676,8 +665,8 @@ static void thread_func(void *userdata) {
     }
 
 fail:
-    /* We have to continue processing messages until we receive the
-     * SHUTDOWN message */
+    /* If this was no regular exit from the loop we have to continue
+     * processing messages until we received PA_MESSAGE_SHUTDOWN */
     pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
     pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
 

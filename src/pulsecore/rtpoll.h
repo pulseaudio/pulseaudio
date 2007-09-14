@@ -69,7 +69,9 @@ void pa_rtpoll_install(pa_rtpoll *p);
 
 /* Sleep on the rtpoll until the time event, or any of the fd events
  * is triggered. If "wait" is 0 we don't sleep but only update the
- * struct pollfd. */
+ * struct pollfd. Returns negative on error, positive if the loop
+ * should continue to run, 0 when the loop should be terminated
+ * cleanly. */
 int pa_rtpoll_run(pa_rtpoll *f, int wait);
 
 void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timespec *ts);
@@ -86,18 +88,30 @@ void pa_rtpoll_item_free(pa_rtpoll_item *i);
  * using the pointer and don't save the result anywhere */
 struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds);
 
+/* Set the callback that shall be called when there's time to do some work: If the
+ * callback returns a value > 0, the poll is skipped and the next
+ * iteraton of the loop will start immediately. */
+void pa_rtpoll_item_set_work_callback(pa_rtpoll_item *i, int (*work_cb)(pa_rtpoll_item *i));
+
 /* Set the callback that shall be called immediately before entering
- * the sleeping poll: If the callback returns a negative value, the
- * poll is skipped. */
+ * the sleeping poll: If the callback returns a value > 0, the poll is
+ * skipped and the next iteraton of the loop will start
+ * immediately.. */
 void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i));
 
 /* Set the callback that shall be called immediately after having
  * entered the sleeping poll */
 void pa_rtpoll_item_set_after_callback(pa_rtpoll_item *i, void (*after_cb)(pa_rtpoll_item *i));
+
+
 void pa_rtpoll_item_set_userdata(pa_rtpoll_item *i, void *userdata);
 void* pa_rtpoll_item_get_userdata(pa_rtpoll_item *i);
 
 pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_fdsem *s);
 pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q);
+
+/* Requests the loop to exit. Will cause the next iteration of
+ * pa_rtpoll_run() to return 0 */
+void pa_rtpoll_quit(pa_rtpoll *p);
 
 #endif

@@ -922,20 +922,3 @@ int pa_sink_suspend_all(pa_core *c, int suspend) {
     return ret;
 }
 
-int pa_sink_process_inputs(pa_sink *s) {
-    pa_sink_input *i;
-    void *state = NULL;
-    int r;
-    
-    pa_sink_assert_ref(s);
-
-    if (!PA_SINK_LINKED(s->thread_info.state))
-        return 0;
-    
-    while ((i = PA_SINK_INPUT(pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))))
-        if (i->process)
-            if ((r = i->process(i)))
-                return r;
-
-    return 0;
-}

@@ -43,9 +43,6 @@ void pa_thread_mq_done(pa_thread_mq *q);
 /* Install the specified pa_thread_mq object for the current thread */
 void pa_thread_mq_install(pa_thread_mq *q);
 
-/* Dispatched queued events on the thread side. */
-int pa_thread_mq_process(pa_thread_mq *q);
-
 /* Return the pa_thread_mq object that is set for the current thread */
 pa_thread_mq *pa_thread_mq_get(void);
 

@@ -90,13 +90,6 @@ struct pa_sink_input {
      * peek(), but not necessarily. Called from IO thread context. */
     void (*drop) (pa_sink_input *i, size_t length);
 
-    /* If non-NULL this function is called in each IO event loop and
-     * can be used to do additional processing even when the device is
-     * suspended and peek() is never called. Should return 1 when
-     * "some work" has been done and the IO event loop should be
-     * reiterated immediately. Called from IO thread context. */
-    int (*process) (pa_sink_input *i);           /* may be NULL */
-
     /* If non-NULL this function is called when the input is first
      * connected to a sink. Called from IO thread context */
     void (*attach) (pa_sink_input *i);           /* may be NULL */ 

@@ -148,7 +148,6 @@ pa_source_output* pa_source_output_new(
     o->channel_map = data->channel_map;
 
     o->push = NULL;
-    o->process = NULL;
     o->kill = NULL;
     o->get_latency = NULL;
     o->detach = NULL;
@@ -204,7 +203,6 @@ void pa_source_output_unlink(pa_source_output*o) {
     pa_source_update_status(o->source);
 
     o->push = NULL;
-    o->process = NULL;
     o->kill = NULL;
     o->get_latency = NULL;
     o->attach = NULL;

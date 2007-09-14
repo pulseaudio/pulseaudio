@@ -65,6 +65,7 @@ int pa_asyncmsgq_get(pa_asyncmsgq *q, pa_msgobject **object, int *code, void **u
 int pa_asyncmsgq_dispatch(pa_msgobject *object, int code, void *userdata, int64_t offset, pa_memchunk *memchunk);
 void pa_asyncmsgq_done(pa_asyncmsgq *q, int ret);
 int pa_asyncmsgq_wait_for(pa_asyncmsgq *a, int code);
+int pa_asyncmsgq_process_one(pa_asyncmsgq *a);
 
 /* Just for the reading side */
 int pa_asyncmsgq_get_fd(pa_asyncmsgq *q);

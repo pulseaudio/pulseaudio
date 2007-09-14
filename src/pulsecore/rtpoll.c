@@ -53,7 +53,7 @@ struct pa_rtpoll {
     pa_usec_t period;
 
     int scan_for_dead;
-    int running, installed, rebuild_needed;
+    int running, installed, rebuild_needed, quit;
 
 #ifdef HAVE_PPOLL
     int rtsig;
@@ -76,6 +76,7 @@ struct pa_rtpoll_item {
     struct pollfd *pollfd;
     unsigned n_pollfd;
 
+    int (*work_cb)(pa_rtpoll_item *i);
     int (*before_cb)(pa_rtpoll_item *i);
     void (*after_cb)(pa_rtpoll_item *i);
     void *userdata;
@@ -134,6 +135,7 @@ pa_rtpoll *pa_rtpoll_new(void) {
     p->installed = 0;
     p->scan_for_dead = 0;
     p->rebuild_needed = 0;
+    p->quit = 0;
     
     PA_LLIST_HEAD_INIT(pa_rtpoll_item, p->items);
 
@@ -288,7 +290,6 @@ static void reset_all_revents(pa_rtpoll *p) {
 int pa_rtpoll_run(pa_rtpoll *p, int wait) {
     pa_rtpoll_item *i;
     int r = 0;
-    int saved_errno = 0;
     struct timespec timeout;
     
     pa_assert(p);
@@ -297,6 +298,7 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
     
     p->running = 1;
 
+    /* First, let's do some work */
     for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
         int k;
         
@@ -306,12 +308,31 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
         if (!i->before_cb)
             continue;
 
-        if ((k = i->before_cb(i)) != 0) {
+        if (p->quit)
+            goto finish;
+        
+        if ((k = i->work_cb(i)) != 0) {
+            if (k < 0)
+                r = k;
+            
+            goto finish;
+        }
+    }
+
+    /* Now let's prepare for entering the sleep */
+    for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
+        int k = 0;
+        
+        if (i->dead)
+            continue;
+        
+        if (!i->before_cb)
+            continue;
+
+        if (p->quit || (k = i->before_cb(i)) != 0) {
 
             /* Hmm, this one doesn't let us enter the poll, so rewind everything */
 
-            reset_all_revents(p);
-            
             for (i = i->prev; i; i = i->prev) {
                 
                 if (i->dead)
@@ -334,7 +355,7 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
         rtpoll_rebuild(p);
 
     /* Calculate timeout */
-    if (!wait) {
+    if (!wait || p->quit) {
         timeout.tv_sec = 0;
         timeout.tv_nsec = 0;
     } else if (p->timer_enabled) {
@@ -362,13 +383,14 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
         r = poll(p->pollfd, p->n_pollfd_used, p->timer_enabled > 0 ? (timeout.tv_sec*1000) + (timeout.tv_nsec / 1000000) : -1);
 #endif
 
-    if (r < 0)
+    if (r < 0) {
         reset_all_revents(p);
     
-    if (r < 0 && (errno == EAGAIN || errno == EINTR))
-        r = 0;
-
-    saved_errno = r < 0 ? errno : 0;
+        if (errno == EAGAIN || errno == EINTR)
+            r = 0;
+        else
+            pa_log_error("poll(): %s", pa_cstrerror(errno));
+    }
 
     if (p->timer_enabled) {
         if (p->period > 0) {
@@ -385,6 +407,7 @@ int pa_rtpoll_run(pa_rtpoll *p, int wait) {
             p->timer_enabled = 0;
     }
 
+    /* Let's tell everyone that we left the sleep */
     for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
 
         if (i->dead)
@@ -413,10 +436,7 @@ finish:
         }
     }
 
-    if (saved_errno != 0)
-        errno = saved_errno;
-
-    return r;
+    return r < 0 ? r : !p->quit;
 }
 
 static void update_timer(pa_rtpoll *p) {
@@ -528,6 +548,7 @@ pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, pa_rtpoll_priority_t prio, unsi
     i->userdata = NULL;
     i->before_cb = NULL;
     i->after_cb = NULL;
+    i->work_cb = NULL;
 
     for (j = p->items; j; j = j->next) {
         if (prio <= j->priority)
@@ -583,6 +604,13 @@ void pa_rtpoll_item_set_after_callback(pa_rtpoll_item *i, void (*after_cb)(pa_rt
     pa_assert(i->priority < PA_RTPOLL_NEVER);
 
     i->after_cb = after_cb;
+}
+
+void pa_rtpoll_item_set_work_callback(pa_rtpoll_item *i, int (*work_cb)(pa_rtpoll_item *i)) {
+    pa_assert(i);
+    pa_assert(i->priority < PA_RTPOLL_NEVER);
+
+    i->work_cb = work_cb;
 }
 
 void pa_rtpoll_item_set_userdata(pa_rtpoll_item *i, void *userdata) {
@@ -649,6 +677,32 @@ static void asyncmsgq_after(pa_rtpoll_item *i) {
     pa_asyncmsgq_after_poll(i->userdata);
 }
 
+static int asyncmsgq_work(pa_rtpoll_item *i) {
+    pa_msgobject *object;
+    int code;
+    void *data;
+    pa_memchunk chunk;
+    int64_t offset;
+
+    pa_assert(i);
+
+    if (pa_asyncmsgq_get(i->userdata, &object, &code, &data, &offset, &chunk, 0) == 0) {
+        int ret;
+        
+        if (!object && code == PA_MESSAGE_SHUTDOWN) {
+            pa_asyncmsgq_done(i->userdata, 0);
+            pa_rtpoll_quit(i->rtpoll);
+            return 1;
+        }
+
+        ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
+        pa_asyncmsgq_done(i->userdata, ret);
+        return 1;
+    } 
+
+    return 0;
+}
+
 pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
     pa_rtpoll_item *i;
     struct pollfd *pollfd;
@@ -664,7 +718,14 @@ pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t 
     
     i->before_cb = asyncmsgq_before;
     i->after_cb = asyncmsgq_after;
+    i->work_cb = asyncmsgq_work;
     i->userdata = q;
 
     return i;
+}
+
+void pa_rtpoll_quit(pa_rtpoll *p) {
+    pa_assert(p);
+
+    p->quit = 1;
 }
