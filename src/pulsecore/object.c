@@ -68,5 +68,5 @@ void pa_object_unref(pa_object *o) {
 int pa_object_check_type(const char *type_name) {
     pa_assert(type_name);
     
-    return type_name == "pa_object" || strcmp(type_name, "pa_object") == 0;
+    return strcmp(type_name, "pa_object") == 0;
 }

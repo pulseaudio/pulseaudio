@@ -96,8 +96,7 @@ static inline pa_object* pa_object_cast(void *o) {
 #define PA_DEFINE_CHECK_TYPE(c, parent)                                 \
     int c##_check_type(const char *type) {                              \
         pa_assert(type);                                                \
-        if (type == #c ||                                               \
-            strcmp(type, #c) == 0)                                      \
+        if (strcmp(type, #c) == 0)                                      \
             return 1;                                                   \
         return parent##_check_type(type);                               \
     }                                                                   \
