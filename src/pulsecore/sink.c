@@ -901,6 +901,20 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             s->thread_info.state = PA_PTR_TO_UINT(userdata);
             return 0;
 
+        case PA_SINK_MESSAGE_DETACH:
+
+            /* We're detaching all our input streams so that the
+             * asyncmsgq and rtpoll fields can be changed without
+             * problems */
+            pa_sink_detach_within_thread(s);
+            break;
+
+        case PA_SINK_MESSAGE_ATTACH:
+
+            /* Reattach all streams */
+            pa_sink_attach_within_thread(s);
+            break;
+            
         case PA_SINK_MESSAGE_GET_LATENCY:
         case PA_SINK_MESSAGE_MAX:
             ;
@@ -920,5 +934,49 @@ int pa_sink_suspend_all(pa_core *c, int suspend) {
         ret -= pa_sink_suspend(sink, suspend) < 0;
 
     return ret;
+}
+
+void pa_sink_detach(pa_sink *s) {
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
+
+    pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_DETACH, NULL, 0, NULL);
+}
+
+void pa_sink_attach(pa_sink *s) {
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
+
+    pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_ATTACH, NULL, 0, NULL);
+}
+
+void pa_sink_detach_within_thread(pa_sink *s) {
+    pa_sink_input *i;
+    void *state = NULL;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+
+    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
+        if (i->detach)
+            i->detach(i);
+
+    if (s->monitor_source)
+        pa_source_detach_within_thread(s->monitor_source);
+}
+
+void pa_sink_attach_within_thread(pa_sink *s) {
+    pa_sink_input *i;
+    void *state = NULL;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+
+    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
+        if (i->attach)
+            i->attach(i);
+
+    if (s->monitor_source)
+        pa_source_attach_within_thread(s->monitor_source);
 }
 

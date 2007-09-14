@@ -483,6 +483,20 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
         case PA_SOURCE_MESSAGE_SET_STATE:
             s->thread_info.state = PA_PTR_TO_UINT(userdata);
             return 0;
+
+        case PA_SOURCE_MESSAGE_DETACH:
+
+            /* We're detaching all our output streams so that the
+             * asyncmsgq and rtpoll fields can be changed without
+             * problems */
+            pa_source_detach_within_thread(s);
+            break;
+
+        case PA_SOURCE_MESSAGE_ATTACH:
+
+            /* Reattach all streams */
+            pa_source_attach_within_thread(s);
+            break;
             
         case PA_SOURCE_MESSAGE_GET_LATENCY:
         case PA_SOURCE_MESSAGE_MAX:
@@ -503,4 +517,43 @@ int pa_source_suspend_all(pa_core *c, int suspend) {
         ret -= pa_source_suspend(source, suspend) < 0;
 
     return ret;
+}
+
+void pa_source_detach(pa_source *s) {
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_LINKED(s->state));
+
+    pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_DETACH, NULL, 0, NULL);
+}
+
+void pa_source_attach(pa_source *s) {
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_LINKED(s->state));
+
+    pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_ATTACH, NULL, 0, NULL);
+}
+
+void pa_source_detach_within_thread(pa_source *s) {
+    pa_source_output *o;
+    void *state = NULL;
+
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_LINKED(s->thread_info.state));
+
+    while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
+        if (o->detach)
+            o->detach(o);
+}
+
+void pa_source_attach_within_thread(pa_source *s) {
+    pa_source_output *o;
+    void *state = NULL;
+
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_LINKED(s->thread_info.state));
+
+    while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
+        if (o->attach)
+            o->attach(o);
+
 }

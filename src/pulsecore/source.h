@@ -121,6 +121,8 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_GET_LATENCY,
     PA_SOURCE_MESSAGE_SET_STATE,
     PA_SOURCE_MESSAGE_PING,
+    PA_SOURCE_MESSAGE_ATTACH,
+    PA_SOURCE_MESSAGE_DETACH,
     PA_SOURCE_MESSAGE_MAX
 } pa_source_message_t;
 
@@ -141,6 +143,9 @@ void pa_source_set_module(pa_source *s, pa_module *m);
 void pa_source_set_description(pa_source *s, const char *description);
 void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q);
 void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p);
+
+void pa_source_detach(pa_source *s);
+void pa_source_attach(pa_source *s);
 
 /* May be called by everyone, from main context */
 
@@ -164,8 +169,9 @@ unsigned pa_source_used_by(pa_source *s);
 
 void pa_source_post(pa_source*s, const pa_memchunk *b);
 
-int pa_source_process_outputs(pa_source *o);
-
 int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, int64_t, pa_memchunk *chunk);
+
+void pa_source_attach_within_thread(pa_source *s);
+void pa_source_detach_within_thread(pa_source *s);
 
 #endif

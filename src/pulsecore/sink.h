@@ -122,6 +122,8 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_SET_STATE,
     PA_SINK_MESSAGE_PING,
     PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER,
+    PA_SINK_MESSAGE_ATTACH,
+    PA_SINK_MESSAGE_DETACH,
     PA_SINK_MESSAGE_MAX
 } pa_sink_message_t;
 
@@ -142,6 +144,9 @@ void pa_sink_set_module(pa_sink *sink, pa_module *m);
 void pa_sink_set_description(pa_sink *s, const char *description);
 void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q);
 void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p);
+
+void pa_sink_detach(pa_sink *s);
+void pa_sink_attach(pa_sink *s);
 
 /* May be called by everyone, from main context */
 
@@ -173,8 +178,9 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
 
 void pa_sink_skip(pa_sink *s, size_t length);
 
-int pa_sink_process_inputs(pa_sink *s);
-
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
+
+void pa_sink_attach_within_thread(pa_sink *s);
+void pa_sink_detach_within_thread(pa_sink *s);
 
 #endif

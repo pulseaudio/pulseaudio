@@ -91,7 +91,10 @@ struct pa_sink_input {
     void (*drop) (pa_sink_input *i, size_t length);
 
     /* If non-NULL this function is called when the input is first
-     * connected to a sink. Called from IO thread context */
+     * connected to a sink or when the rtpoll/asyncmsgq fields
+     * change. You usually don't need to implement this function
+     * unless you rewrite a sink that is piggy-backed onto
+     * another. Called from IO thread context */
     void (*attach) (pa_sink_input *i);           /* may be NULL */ 
 
     /* If non-NULL this function is called when the output is

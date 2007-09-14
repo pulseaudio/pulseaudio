@@ -133,9 +133,7 @@ struct userdata {
 };
 
 enum {
-    SINK_MESSAGE_DETACH = PA_SINK_MESSAGE_MAX,
-    SINK_MESSAGE_ATTACH,
-    SINK_MESSAGE_ADD_OUTPUT,
+    SINK_MESSAGE_ADD_OUTPUT = PA_SINK_MESSAGE_MAX,
     SINK_MESSAGE_REMOVE_OUTPUT
 };
 
@@ -358,6 +356,15 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     o = i->userdata;
     pa_assert(o);
 
+    if (o->userdata->master == o) {
+        /* Calling these two functions here is safe, because both
+         * threads that might access this sink input are known to be
+         * waiting for us. */
+        pa_sink_set_asyncmsgq(o->userdata->sink, i->sink->asyncmsgq);
+        pa_sink_set_rtpoll(o->userdata->sink, i->sink->rtpoll);
+        pa_sink_attach_within_thread(o->userdata->sink);
+    }
+    
     pa_assert(!o->rtpoll_item);
     o->rtpoll_item = pa_rtpoll_item_new_asyncmsgq(
             i->sink->rtpoll,
@@ -376,6 +383,9 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_assert(o->rtpoll_item);
     pa_rtpoll_item_free(o->rtpoll_item);
     o->rtpoll_item = NULL;
+
+    if (o->userdata->master == o)
+        pa_sink_detach_from_thread(o->userdata->sink);
 }
 
 /* Called from main context */
@@ -543,36 +553,20 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             break;
         }
 
-        case SINK_MESSAGE_DETACH: {
-            pa_sink_input *i;
-            void *state = NULL;
+        case PA_SINK_MESSAGE_DETACH:
 
             /* We're detaching all our input streams artificially, so
-             * that we can driver our sink from a different sink */
-
-            while ((i = pa_hashmap_iterate(u->sink->thread_info.inputs, &state, NULL)))
-                if (i->detach)
-                    i->detach(i);
+             * that we can drive our sink from a different sink */
 
             u->thread_info.master = NULL;
-            
             break;
-        }
 
-        case SINK_MESSAGE_ATTACH: {
-            pa_sink_input *i;
-            void *state = NULL;
+        case PA_SINK_MESSAGE_ATTACH:
 
             /* We're attached all our input streams artificially again */
-
-            while ((i = pa_hashmap_iterate(u->sink->thread_info.inputs, &state, NULL)))
-                if (i->attach)
-                    i->attach(i);
-
-            u->thread_info.master = data;
             
+            u->thread_info.master = data;
             break;
-        }
 
         case SINK_MESSAGE_ADD_OUTPUT:
             PA_LLIST_PREPEND(struct output, u->thread_info.outputs, (struct output*) data);
@@ -655,7 +649,7 @@ static int update_master(struct userdata *u, struct output *o) {
 
     /* Make sure everything is detached from the old thread before we move our stuff to a new thread */
     if (u->sink && PA_SINK_LINKED(pa_sink_get_state(u->sink)))
-        pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_DETACH, NULL, 0, NULL);
+        pa_sink_detach(u->sink);
     
     if (o) {
         /* If we have a master sink we run our own sink in its thread */
@@ -706,7 +700,7 @@ static int update_master(struct userdata *u, struct output *o) {
 
     /* Now attach everything again */
     if (u->sink && PA_SINK_LINKED(pa_sink_get_state(u->sink)))
-        pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_ATTACH, u->master, 0, NULL);
+        pa_sink_attach(u->sink);
 
     return 0;
 }
