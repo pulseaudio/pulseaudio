@@ -225,6 +225,15 @@ pa_sink_input* pa_sink_input_new(
     return i;
 }
 
+static void update_n_corked(pa_sink_input *i, pa_sink_input_state_t state) {
+    pa_assert(i);
+
+    if (i->state == PA_SINK_INPUT_CORKED && state != PA_SINK_INPUT_CORKED)
+        pa_assert_se(i->sink->n_corked -- >= 1);
+    else if (i->state != PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_CORKED)
+        i->sink->n_corked++;
+}
+
 static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
     pa_sink_input *ssync;
     pa_assert(i);
@@ -238,11 +247,17 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
     if (pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) < 0)
         return -1;
 
+    update_n_corked(i, state);
     i->state = state;
-    for (ssync = i->sync_prev; ssync; ssync = ssync->sync_prev)
+    
+    for (ssync = i->sync_prev; ssync; ssync = ssync->sync_prev) {
+        update_n_corked(ssync, state);
         ssync->state = state;
-    for (ssync = i->sync_next; ssync; ssync = ssync->sync_next)
+    }
+    for (ssync = i->sync_next; ssync; ssync = ssync->sync_next) {
+        update_n_corked(ssync, state);
         ssync->state = state;
+    }
     
     return 0;
 }

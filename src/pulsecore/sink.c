@@ -101,6 +101,7 @@ pa_sink* pa_sink_new(
     s->channel_map = *map;
 
     s->inputs = pa_idxset_new(NULL, NULL);
+    s->n_corked = 0;
 
     pa_cvolume_reset(&s->volume, spec->channels);
     s->muted = 0;
@@ -735,6 +736,20 @@ void pa_sink_set_description(pa_sink *s, const char *description) {
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
+unsigned pa_sink_linked_by(pa_sink *s) {
+    unsigned ret;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
+
+    ret = pa_idxset_size(s->inputs);
+
+    if (s->monitor_source)
+        ret += pa_source_used_by(s->monitor_source);
+
+    return ret;
+}
+
 unsigned pa_sink_used_by(pa_sink *s) {
     unsigned ret;
 
@@ -742,6 +757,10 @@ unsigned pa_sink_used_by(pa_sink *s) {
     pa_assert(PA_SINK_LINKED(s->state));
 
     ret = pa_idxset_size(s->inputs);
+
+    pa_assert(ret >= s->n_corked);
+
+    ret -= s->n_corked;
 
     if (s->monitor_source)
         ret += pa_source_used_by(s->monitor_source);

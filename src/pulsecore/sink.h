@@ -77,7 +77,8 @@ struct pa_sink {
     pa_channel_map channel_map;
 
     pa_idxset *inputs;
-    pa_source *monitor_source;           
+    unsigned n_corked;
+    pa_source *monitor_source;
 
     pa_cvolume volume;
     int muted;
@@ -166,7 +167,8 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *sink);
 void pa_sink_set_mute(pa_sink *sink, int mute);
 int pa_sink_get_mute(pa_sink *sink);
 
-unsigned pa_sink_used_by(pa_sink *s);
+unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
+unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */
 #define pa_sink_get_state(s) ((s)->state)
 
 /* To be called exclusively by the sink driver, from IO context */

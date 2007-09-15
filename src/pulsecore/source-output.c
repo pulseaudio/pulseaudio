@@ -182,7 +182,13 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
     if (pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_STATE, PA_UINT_TO_PTR(state), 0, NULL) < 0)
         return -1;
 
+    if (o->state == PA_SOURCE_OUTPUT_CORKED && state != PA_SOURCE_OUTPUT_CORKED)
+        pa_assert_se(o->source->n_corked -- >= 1);
+    else if (o->state != PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_CORKED)
+        o->source->n_corked++;
+    
     o->state = state;
+    
     return 0;
 }
 

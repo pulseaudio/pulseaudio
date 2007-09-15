@@ -93,6 +93,7 @@ pa_source* pa_source_new(
     s->channel_map = *map;
 
     s->outputs = pa_idxset_new(NULL, NULL);
+    s->n_corked = 0;
     s->monitor_of = NULL;
 
     pa_cvolume_reset(&s->volume, spec->channels);
@@ -426,11 +427,23 @@ void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p) {
     s->rtpoll = p;
 }
 
-unsigned pa_source_used_by(pa_source *s) {
+unsigned pa_source_linked_by(pa_source *s) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_LINKED(s->state));
 
     return pa_idxset_size(s->outputs);
+}
+
+unsigned pa_source_used_by(pa_source *s) {
+    unsigned ret;
+    
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_LINKED(s->state));
+
+    ret = pa_idxset_size(s->outputs);
+    pa_assert(ret >= s->n_corked);
+
+    return ret - s->n_corked;
 }
 
 int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {

@@ -79,6 +79,7 @@ struct pa_source {
     pa_channel_map channel_map;
 
     pa_idxset *outputs;
+    unsigned n_corked;
     pa_sink *monitor_of;                     /* may be NULL */
 
     pa_cvolume volume;
@@ -162,7 +163,8 @@ const pa_cvolume *pa_source_get_volume(pa_source *source);
 void pa_source_set_mute(pa_source *source, int mute);
 int pa_source_get_mute(pa_source *source);
 
-unsigned pa_source_used_by(pa_source *s);
+unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
+unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */
 #define pa_source_get_state(s) ((pa_source_state_t) (s)->state)
 
 /* To be called exclusively by the source driver, from IO context */

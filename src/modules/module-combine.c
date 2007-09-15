@@ -385,7 +385,7 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     o->rtpoll_item = NULL;
 
     if (o->userdata->master == o)
-        pa_sink_detach_from_thread(o->userdata->sink);
+        pa_sink_detach_within_thread(o->userdata->sink);
 }
 
 /* Called from main context */
