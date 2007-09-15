@@ -322,7 +322,7 @@ static void request_memblock(struct output *o) {
     pa_mutex_unlock(o->userdata->mutex);
 }
 
-/* Called from I/O trhead context */
+/* Called from I/O thread context */
 static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     struct output *o;
 
