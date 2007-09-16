@@ -934,7 +934,8 @@ modlibexec_LTLIBRARIES += \
 		module-native-protocol-tcp.la \
 		module-native-protocol-fd.la \
 		module-esound-protocol-tcp.la \
-		module-combine.la
+		module-combine.la \
+		module-remap-sink.la
 #		module-tunnel-sink.la \
 #		module-tunnel-source.la \
 #		module-esound-sink.la
@@ -1054,6 +1055,7 @@ SYMDEF_FILES = \
 		modules/module-native-protocol-fd-symdef.h \
 		modules/module-sine-symdef.h \
 		modules/module-combine-symdef.h \
+		modules/module-remap-sink-symdef.h \
 		modules/module-esound-compat-spawnfd-symdef.h \
 		modules/module-esound-compat-spawnpid-symdef.h \
 		modules/module-match-symdef.h \
@@ -1201,6 +1203,10 @@ module_null_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_combine_la_SOURCES = modules/module-combine.c
 module_combine_la_LDFLAGS = -module -avoid-version
 module_combine_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+
+module_remap_sink_la_SOURCES = modules/module-remap-sink.c
+module_remap_sink_la_LDFLAGS = -module -avoid-version
+module_remap_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
