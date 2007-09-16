@@ -45,6 +45,7 @@ typedef enum pa_resample_method {
     PA_RESAMPLER_SPEEX_FIXED_MAX = PA_RESAMPLER_SPEEX_FIXED_BASE + 10,
     PA_RESAMPLER_FFMPEG,
     PA_RESAMPLER_AUTO, /* automatic select based on sample format */
+    PA_RESAMPLER_COPY,
     PA_RESAMPLER_MAX
 } pa_resample_method_t;
 
@@ -61,6 +62,9 @@ void pa_resampler_free(pa_resampler *r);
 
 /* Returns the size of an input memory block which is required to return the specified amount of output data */
 size_t pa_resampler_request(pa_resampler *r, size_t out_length);
+
+/* Requires the maximum size of input blocks we can process without needing bounce buffers larger than the mempool tile size. */
+size_t pa_resampler_max_block_size(pa_resampler *r);
 
 /* Pass the specified memory chunk to the resampler and return the newly resampled data */
 void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out);

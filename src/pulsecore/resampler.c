@@ -45,6 +45,9 @@
 
 #include "resampler.h"
 
+/* Number of samples of extra space we allow the resamplers to return */
+#define EXTRA_SAMPLES 128
+
 struct pa_resampler {
     pa_resample_method_t resample_method;
     pa_sample_spec i_ss, o_ss;
@@ -88,6 +91,7 @@ struct pa_resampler {
     } ffmpeg;
 };
 
+static int copy_init(pa_resampler *r);
 static int trivial_init(pa_resampler*r);
 static int speex_init(pa_resampler*r);
 static int ffmpeg_init(pa_resampler*r);
@@ -136,6 +140,7 @@ static int (* const init_table[])(pa_resampler*r) = {
     [PA_RESAMPLER_SPEEX_FIXED_BASE+10]     = speex_init,
     [PA_RESAMPLER_FFMPEG]                  = ffmpeg_init,
     [PA_RESAMPLER_AUTO]                    = NULL,
+    [PA_RESAMPLER_COPY]                    = copy_init
 };
 
 static inline size_t sample_size(pa_sample_format_t f) {
@@ -169,13 +174,23 @@ pa_resampler* pa_resampler_new(
 
     /* Fix method */
 
+    if (!variable_rate && a->rate == b->rate) {
+        pa_log_info("Forcing resampler 'copy', because of fixed, identical sample rates.");
+        resample_method = PA_RESAMPLER_COPY;
+    }
+    
     if (!pa_resample_method_supported(resample_method)) {
         pa_log_warn("Support for resampler '%s' not compiled in, reverting to 'auto'.", pa_resample_method_to_string(resample_method));
         resample_method = PA_RESAMPLER_AUTO;
     }
     
     if (resample_method == PA_RESAMPLER_FFMPEG && variable_rate) {
-        pa_log_info("Resampler 'ffmpeg' cannot do variable rate, reverting to resampler 'auto'." );
+        pa_log_info("Resampler 'ffmpeg' cannot do variable rate, reverting to resampler 'auto'.");
+        resample_method = PA_RESAMPLER_AUTO;
+    }
+
+    if (resample_method == PA_RESAMPLER_COPY && (variable_rate || a->rate != b->rate)) {
+        pa_log_info("Resampler 'copy' cannot change sampling rate, reverting to resampler 'auto'.");
         resample_method = PA_RESAMPLER_AUTO;
     }
 
@@ -321,6 +336,35 @@ size_t pa_resampler_request(pa_resampler *r, size_t out_length) {
     return (((out_length / r->o_fz)*r->i_ss.rate)/r->o_ss.rate) * r->i_fz;
 }
 
+size_t pa_resampler_max_block_size(pa_resampler *r) {
+    size_t block_size_max;
+    pa_sample_spec ss;
+    size_t fs;
+    
+    pa_assert(r);
+
+    block_size_max = pa_mempool_block_size_max(r->mempool);
+
+    /* We deduce the "largest" sample spec we're using during the
+     * conversion */
+    ss = r->i_ss;
+    if (r->o_ss.channels > ss.channels)
+        ss.channels = r->o_ss.channels;
+
+    /* We silently assume that the format enum is ordered by size */
+    if (r->o_ss.format > ss.format) 
+        ss.format = r->o_ss.format;
+    if (r->work_format > ss.format)
+        ss.format = r->work_format;
+
+    if (r->o_ss.rate > ss.rate)
+        ss.rate = r->o_ss.rate;
+
+    fs = pa_frame_size(&ss);
+    
+    return (((block_size_max/fs + EXTRA_SAMPLES)*r->i_ss.rate)/ss.rate)*r->i_fz;
+}
+
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
     pa_assert(r);
     
@@ -357,7 +401,8 @@ static const char * const resample_methods[] = {
     "speex-fixed-9",
     "speex-fixed-10",
     "ffmpeg",
-    "auto"
+    "auto",
+    "copy"
 };
 
 const char *pa_resample_method_to_string(pa_resample_method_t m) {
@@ -568,7 +613,7 @@ static pa_memchunk *resample(pa_resampler *r, pa_memchunk *input) {
     in_n_samples = input->length / r->w_sz;
     in_n_frames = in_n_samples / r->o_ss.channels;
 
-    out_n_frames = ((in_n_frames*r->o_ss.rate)/r->i_ss.rate)+1024;
+    out_n_frames = ((in_n_frames*r->o_ss.rate)/r->i_ss.rate)+EXTRA_SAMPLES;
     out_n_samples = out_n_frames * r->o_ss.channels;
 
     r->buf3.index = 0;
@@ -875,6 +920,7 @@ static int trivial_init(pa_resampler*r) {
 
     r->impl_resample = trivial_resample;
     r->impl_update_rates = trivial_update_rates;
+    r->impl_free = NULL;
 
     return 0;
 }
@@ -991,6 +1037,20 @@ static int ffmpeg_init(pa_resampler *r) {
 
     for (c = 0; c < PA_ELEMENTSOF(r->ffmpeg.buf); c++) 
         pa_memchunk_reset(&r->ffmpeg.buf[c]);
+
+    return 0;
+}
+
+/*** copy (noop) implementation ***/
+
+static int copy_init(pa_resampler *r) {
+    pa_assert(r);
+
+    pa_assert(r->o_ss.rate == r->i_ss.rate);
+    
+    r->impl_free = NULL;
+    r->impl_resample = NULL;
+    r->impl_update_rates = NULL;
 
     return 0;
 }
