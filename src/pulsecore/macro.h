@@ -64,8 +64,13 @@ static inline size_t pa_page_align(size_t l) {
 
 #define PA_ELEMENTSOF(x) (sizeof(x)/sizeof((x)[0]))
 
-#define SA_MAX(a, b) ((a) > (b) ? (a) : (b))
-#define SA_MIN(a, b) ((a) < (b) ? (a) : (b))
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
 
 #ifdef __GNUC__
 #define PA_PRETTY_FUNCTION __PRETTY_FUNCTION__
