@@ -56,8 +56,8 @@ void pa_volume_memchunk(
     const pa_sample_spec *spec,
     const pa_cvolume *volume);
 
-size_t pa_frame_align(size_t l, const pa_sample_spec *ss);
+size_t pa_frame_align(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;
 
-int pa_frame_aligned(size_t l, const pa_sample_spec *ss);
+int pa_frame_aligned(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;
 
 #endif

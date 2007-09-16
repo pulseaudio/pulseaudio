@@ -61,14 +61,14 @@ void pa_reset_priority(void);
 
 int pa_fd_set_cloexec(int fd, int b);
 
-int pa_parse_boolean(const char *s);
+int pa_parse_boolean(const char *s) PA_GCC_PURE;
 
 char *pa_split(const char *c, const char*delimiters, const char **state);
 char *pa_split_spaces(const char *c, const char **state);
 
 char *pa_strip_nl(char *s);
 
-const char *pa_strsignal(int sig);
+const char *pa_strsignal(int sig) PA_GCC_PURE;
 
 int pa_own_uid_in_group(const char *name, gid_t *gid);
 int pa_uid_in_group(uid_t uid, const char *name);
@@ -85,8 +85,8 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength);
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength);
 
-int pa_startswith(const char *s, const char *pfx);
-int pa_endswith(const char *s, const char *sfx);
+int pa_startswith(const char *s, const char *pfx) PA_GCC_PURE;
+int pa_endswith(const char *s, const char *sfx) PA_GCC_PURE;
 
 char *pa_runtime_path(const char *fn, char *s, size_t l);
 

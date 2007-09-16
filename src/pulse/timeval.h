@@ -44,16 +44,16 @@ struct timeval *pa_gettimeofday(struct timeval *tv);
 
 /** Calculate the difference between the two specified timeval
  * structs. */
-pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b);
+pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) PA_GCC_PURE;
 
 /** Compare the two timeval structs and return 0 when equal, negative when a < b, positive otherwse */
-int pa_timeval_cmp(const struct timeval *a, const struct timeval *b);
+int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) PA_GCC_PURE;
 
 /** Return the time difference between now and the specified timestamp */
 pa_usec_t pa_timeval_age(const struct timeval *tv);
 
 /** Add the specified time inmicroseconds to the specified timeval structure */
-struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v);
+struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v) PA_GCC_PURE;
 
 PA_C_DECL_END
 
