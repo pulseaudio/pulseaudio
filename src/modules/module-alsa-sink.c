@@ -234,7 +234,7 @@ static int unix_write(struct userdata *u) {
                     
         l = snd_pcm_status_get_avail(status) * u->frame_size;
 
-/*                     pa_log("%u bytes to write", l); */
+/*         pa_log("%u bytes to write", l); */
                     
         if (l <= 0)
             return work_done;
@@ -248,7 +248,7 @@ static int unix_write(struct userdata *u) {
         t = snd_pcm_writei(u->pcm_handle, (const uint8_t*) p + u->memchunk.index, u->memchunk.length / u->frame_size);
         pa_memblock_release(u->memchunk.memblock);
                     
-/*                     pa_log("wrote %i bytes of %u (%u)", t*u->frame_size, u->memchunk.length, l);   */
+/*         pa_log("wrote %i bytes of %u (%u)", t*u->frame_size, u->memchunk.length, l); */
                     
         pa_assert(t != 0);
                     
@@ -834,16 +834,17 @@ int pa__init(pa_module*m) {
         if (snd_mixer_selem_has_playback_volume(u->mixer_elem)) {
             int i;
 
-            for (i = 0;i < ss.channels; i++) {
+            for (i = 0; i < ss.channels; i++)
                 if (!snd_mixer_selem_has_playback_channel(u->mixer_elem, i))
                     break;
-            }
 
             if (i == ss.channels) {
+                pa_log_debug("ALSA device has separate volumes controls for all %u channels.", ss.channels);
                 u->sink->get_volume = sink_get_volume_cb;
                 u->sink->set_volume = sink_set_volume_cb;
                 snd_mixer_selem_get_playback_volume_range(u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max);
-            }
+            } else
+                pa_log_info("ALSA device lacks separate volumes controls for all %u channels (%u available), falling back to software volume control.", ss.channels, i+1);
         }
         
         if (snd_mixer_selem_has_playback_switch(u->mixer_elem)) {
