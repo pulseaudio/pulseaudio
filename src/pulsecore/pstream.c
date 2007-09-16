@@ -40,16 +40,17 @@
 #include <netinet/in.h>
 #endif
 
-#include "winsock.h"
 
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/winsock.h>
 #include <pulsecore/queue.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/creds.h>
 #include <pulsecore/refcnt.h>
 #include <pulsecore/flist.h>
+#include <pulsecore/macro.h>
 
 #include "pstream.h"
 
@@ -83,7 +84,6 @@ typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 
 #define PA_PSTREAM_DESCRIPTOR_SIZE (PA_PSTREAM_DESCRIPTOR_MAX*sizeof(uint32_t))
 #define FRAME_SIZE_MAX_ALLOW PA_SCACHE_ENTRY_SIZE_MAX /* allow uploading a single sample in one frame at max */
-#define FRAME_SIZE_MAX_USE (1024*64)
 
 PA_STATIC_FLIST_DECLARE(items, 0, pa_xfree);
 
@@ -351,6 +351,7 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *cre
 
 void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek_mode, const pa_memchunk *chunk) {
     size_t length, idx;
+    size_t bsm;
 
     pa_assert(p);
     pa_assert(PA_REFCNT_VALUE(p) > 0);
@@ -362,6 +363,8 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
 
     idx = 0;
     length = chunk->length;
+
+    bsm = pa_mempool_block_size_max(p->mempool);
     
     while (length > 0) {
         struct item_info *i;
@@ -371,7 +374,7 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
             i = pa_xnew(struct item_info, 1);
         i->type = PA_PSTREAM_ITEM_MEMBLOCK;
 
-        n = length < FRAME_SIZE_MAX_USE ? length : FRAME_SIZE_MAX_USE;
+        n = MIN(length, bsm);
         i->chunk.index = chunk->index + idx;
         i->chunk.length = n;
         i->chunk.memblock = pa_memblock_ref(chunk->memblock);
