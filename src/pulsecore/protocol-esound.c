@@ -150,7 +150,7 @@ typedef struct proto_handler {
 } esd_proto_handler_info_t;
 
 static void sink_input_drop_cb(pa_sink_input *i, size_t length);
-static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk);
+static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk);
 static void sink_input_kill_cb(pa_sink_input *i);
 static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 static pa_usec_t source_output_get_latency_cb(pa_source_output *o);
@@ -1237,7 +1237,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 }
 
 /* Called from thread context */
-static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     connection*c;
     int r;
     

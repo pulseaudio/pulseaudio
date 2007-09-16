@@ -97,7 +97,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     memchunk_stream_unlink(MEMCHUNK_STREAM(i->userdata));
 }
 
-static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     memchunk_stream *u;
 
     pa_assert(i);

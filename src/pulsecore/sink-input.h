@@ -83,8 +83,12 @@ struct pa_sink_input {
     int muted;
 
     /* Returns the chunk of audio data (but doesn't drop it
-     * yet!). Returns -1 on failure. Called from IO thread context. */
-    int (*peek) (pa_sink_input *i, pa_memchunk *chunk);
+     * yet!). Returns -1 on failure. Called from IO thread context. If
+     * data needs to be generated from scratch then please in the
+     * specified length. This is an optimization only. If less data is
+     * available, it's fine to return a smaller block. If more data is
+     * already ready, it is better to return the full block.*/
+    int (*peek) (pa_sink_input *i, size_t length, pa_memchunk *chunk);
 
     /* Drops the specified number of bytes, usually called right after
      * peek(), but not necessarily. Called from IO thread context. */
@@ -217,7 +221,7 @@ pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i);
 
 /* To be used exclusively by the sink driver thread */
 
-int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume);
+int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_cvolume *volume);
 void pa_sink_input_drop(pa_sink_input *i, size_t length);
 int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 

@@ -41,9 +41,9 @@
 
 #include "sink-input.h"
 
-#define CONVERT_BUFFER_LENGTH 4096
-#define MOVE_BUFFER_LENGTH (1024*1024)
-#define SILENCE_BUFFER_LENGTH (64*1024)
+#define CONVERT_BUFFER_LENGTH (PA_PAGE_SIZE)
+#define SILENCE_BUFFER_LENGTH (PA_PAGE_SIZE*12)
+#define MOVE_BUFFER_LENGTH (PA_PAGE_SIZE*256)
 
 static PA_DEFINE_CHECK_TYPE(pa_sink_input, pa_msgobject);
 
@@ -368,13 +368,15 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i) {
 }
 
 /* Called from thread context */
-int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume) {
+int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_cvolume *volume) {
     int ret = -1;
     int do_volume_adj_here;
     int volume_is_norm;
+    size_t block_size_max;
 
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
+    pa_assert(pa_frame_aligned(length, &i->sink->sample_spec));
     pa_assert(chunk);
     pa_assert(volume);
 
@@ -383,6 +385,15 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
     pa_assert(i->thread_info.state == PA_SINK_INPUT_RUNNING || i->thread_info.state == PA_SINK_INPUT_DRAINED);
 
+    /* Default buffer size */
+    if (length <= 0)
+        length = pa_frame_align(CONVERT_BUFFER_LENGTH, &i->sink->sample_spec);
+
+    /* Make sure the buffer fits in the mempool tile */
+    block_size_max = pa_mempool_block_size_max(i->sink->core->mempool);
+    if (length > block_size_max)
+        length = pa_frame_align(block_size_max, &i->sink->sample_spec);
+    
     if (i->thread_info.move_silence > 0) {
         size_t l;
 
@@ -390,7 +401,10 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
          * while until the old sink has drained its playback buffer */
 
         if (!i->thread_info.silence_memblock)
-            i->thread_info.silence_memblock = pa_silence_memblock_new(i->sink->core->mempool, &i->sink->sample_spec, SILENCE_BUFFER_LENGTH);
+            i->thread_info.silence_memblock = pa_silence_memblock_new(
+                    i->sink->core->mempool,
+                    &i->sink->sample_spec,
+                    pa_frame_align(SILENCE_BUFFER_LENGTH, &i->sink->sample_spec));
 
         chunk->memblock = pa_memblock_ref(i->thread_info.silence_memblock);
         chunk->index = 0;
@@ -404,7 +418,7 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
     if (!i->thread_info.resampler) {
         do_volume_adj_here = 0; /* FIXME??? */
-        ret = i->peek(i, chunk);
+        ret = i->peek(i, length, chunk);
         goto finish;
     }
 
@@ -413,14 +427,21 @@ int pa_sink_input_peek(pa_sink_input *i, pa_memchunk *chunk, pa_cvolume *volume)
 
     while (!i->thread_info.resampled_chunk.memblock) {
         pa_memchunk tchunk;
-        size_t l;
+        size_t l, rmbs;
 
-        if ((ret = i->peek(i, &tchunk)) < 0)
+        l = pa_resampler_request(i->thread_info.resampler, length);
+
+        if (l <= 0)
+            l = pa_frame_align(CONVERT_BUFFER_LENGTH, &i->sample_spec);
+
+        rmbs = pa_resampler_max_block_size(i->thread_info.resampler);
+        if (l > rmbs)
+            l = rmbs;
+        
+        if ((ret = i->peek(i, l, &tchunk)) < 0)
             goto finish;
 
         pa_assert(tchunk.length > 0);
-
-        l = pa_resampler_request(i->thread_info.resampler, CONVERT_BUFFER_LENGTH);
 
         if (tchunk.length > l)
             tchunk.length = l;
@@ -477,6 +498,7 @@ finish:
 void pa_sink_input_drop(pa_sink_input *i, size_t length) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
+    pa_assert(pa_frame_aligned(length, &i->sink->sample_spec));
     pa_assert(length > 0);
 
     if (i->thread_info.move_silence > 0) {
@@ -527,9 +549,9 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length) {
                 pa_memchunk chunk;
                 pa_cvolume volume;
                 
-                if (pa_sink_input_peek(i, &chunk, &volume) >= 0) {
+                if (pa_sink_input_peek(i, length, &chunk, &volume) >= 0) {
                     size_t l;
-
+                    
                     pa_memblock_unref(chunk.memblock);
 
                     l = chunk.length;
@@ -541,11 +563,13 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length) {
                     
                 } else {
                     size_t l;
-
+                    
+                    l = pa_resampler_request(i->thread_info.resampler, length);
+                    
                     /* Hmmm, peeking failed, so let's at least drop
                      * the right amount of data */
 
-                    if ((l = pa_resampler_request(i->thread_info.resampler, length)) > 0)
+                    if (l > 0)
                         if (i->drop)
                             i->drop(i, l);
                             
@@ -798,9 +822,9 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
         i->thread_info.move_silence = 0;
     else
         i->thread_info.move_silence = pa_usec_to_bytes(
-                pa_bytes_to_usec(i->thread_info.move_silence, &i->sample_spec) +
+                pa_bytes_to_usec(i->thread_info.move_silence, &origin->sample_spec) +
                 silence_usec,
-                &i->sample_spec);
+                &dest->sample_spec);
 
     pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, i, 0, NULL);
     

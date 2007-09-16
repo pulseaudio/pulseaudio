@@ -44,8 +44,6 @@
 
 #include "sound-file-stream.h"
 
-#define BUF_SIZE (1024*16)
-
 typedef struct file_stream {
     pa_msgobject parent;
     pa_core *core;
@@ -113,7 +111,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     file_stream_unlink(FILE_STREAM(i->userdata));
 }
 
-static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     file_stream *u;
     
     pa_assert(i);
@@ -128,7 +126,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
         
         if (!u->memchunk.memblock) {
             
-            u->memchunk.memblock = pa_memblock_new(i->sink->core->mempool, BUF_SIZE);
+            u->memchunk.memblock = pa_memblock_new(i->sink->core->mempool, length);
             u->memchunk.index = 0;
             
             if (u->readf_function) {
@@ -137,7 +135,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
                 size_t fs = pa_frame_size(&i->sample_spec);
                 
                 p = pa_memblock_acquire(u->memchunk.memblock);
-                n = u->readf_function(u->sndfile, p, BUF_SIZE/fs);
+                n = u->readf_function(u->sndfile, p, length/fs);
                 pa_memblock_release(u->memchunk.memblock);
 
                 if (n <= 0)
@@ -149,7 +147,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
                 void *p;
 
                 p = pa_memblock_acquire(u->memchunk.memblock);
-                n = sf_read_raw(u->sndfile, p, BUF_SIZE);
+                n = sf_read_raw(u->sndfile, p, length);
                 pa_memblock_release(u->memchunk.memblock);
                 
                 if (n <= 0)

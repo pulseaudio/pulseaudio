@@ -58,7 +58,7 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     struct userdata *u;
     
     pa_assert(i);

@@ -199,7 +199,7 @@ enum {
     CONNECTION_MESSAGE_REVOKE
 };
 
-static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk);
+static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk);
 static void sink_input_drop_cb(pa_sink_input *i, size_t length);
 static void sink_input_kill_cb(pa_sink_input *i);
 
@@ -973,7 +973,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 }
 
 /* Called from thread context */
-static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     playback_stream *s;
 
     pa_sink_input_assert_ref(i);

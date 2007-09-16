@@ -46,7 +46,8 @@
 #include "sink.h"
 
 #define MAX_MIX_CHANNELS 32
-#define SILENCE_BUFFER_LENGTH (64*1024)
+#define MIX_BUFFER_LENGTH (PA_PAGE_SIZE)
+#define SILENCE_BUFFER_LENGTH (PA_PAGE_SIZE*12)
 
 static PA_DEFINE_CHECK_TYPE(pa_sink, pa_msgobject);
 
@@ -311,7 +312,7 @@ void pa_sink_ping(pa_sink *s) {
     pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_PING, NULL, 0, NULL, NULL);
 }
 
-static unsigned fill_mix_info(pa_sink *s, pa_mix_info *info, unsigned maxinfo) {
+static unsigned fill_mix_info(pa_sink *s, size_t length, pa_mix_info *info, unsigned maxinfo) {
     pa_sink_input *i;
     unsigned n = 0;
     void *state = NULL;
@@ -322,7 +323,7 @@ static unsigned fill_mix_info(pa_sink *s, pa_mix_info *info, unsigned maxinfo) {
     while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)) && maxinfo > 0) {
         pa_sink_input_assert_ref(i);
 
-        if (pa_sink_input_peek(i, &info->chunk, &info->volume) < 0)
+        if (pa_sink_input_peek(i, length, &info->chunk, &info->volume) < 0)
             continue;
 
         info->userdata = pa_sink_input_ref(i);
@@ -399,20 +400,32 @@ static void inputs_drop(pa_sink *s, pa_mix_info *info, unsigned n, size_t length
 void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
-
+    size_t block_size_max;
+    
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_OPENED(s->thread_info.state));
-    pa_assert(length);
+    pa_assert(pa_frame_aligned(length, &s->sample_spec));
     pa_assert(result);
 
     pa_sink_ref(s);
 
-    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, info, MAX_MIX_CHANNELS) : 0;
+    if (length <= 0)
+        length = pa_frame_align(MIX_BUFFER_LENGTH, &s->sample_spec);
+
+    block_size_max = pa_mempool_block_size_max(s->core->mempool);
+    if (length > block_size_max)
+        length = pa_frame_align(block_size_max, &s->sample_spec);
+
+    pa_assert(length > 0);
+    
+    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, length, info, MAX_MIX_CHANNELS) : 0;
 
     if (n == 0) {
 
         if (length > SILENCE_BUFFER_LENGTH)
-            length = SILENCE_BUFFER_LENGTH;
+            length = pa_frame_align(SILENCE_BUFFER_LENGTH, &s->sample_spec);
+
+        pa_assert(length > 0);
 
         if (!s->silence || pa_memblock_get_length(s->silence) < length) {
             if (s->silence)
@@ -470,11 +483,12 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(target);
     pa_assert(target->memblock);
-    pa_assert(target->length);
+    pa_assert(target->length > 0);
+    pa_assert(pa_frame_aligned(target->length, &s->sample_spec));
 
     pa_sink_ref(s);
 
-    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, info, MAX_MIX_CHANNELS) : 0;
+    n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, target->length, info, MAX_MIX_CHANNELS) : 0;
 
     if (n == 0) {
         pa_silence_memchunk(target, &s->sample_spec);
@@ -536,7 +550,8 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
     pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(target);
     pa_assert(target->memblock);
-    pa_assert(target->length);
+    pa_assert(target->length > 0);
+    pa_assert(pa_frame_aligned(target->length, &s->sample_spec));
 
     pa_sink_ref(s);
 
@@ -559,13 +574,15 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
 void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_OPENED(s->thread_info.state));
-    pa_assert(length);
+    pa_assert(length > 0);
+    pa_assert(pa_frame_aligned(length, &s->sample_spec));
     pa_assert(result);
 
     /*** This needs optimization ***/
 
-    result->memblock = pa_memblock_new(s->core->mempool, result->length = length);
     result->index = 0;
+    result->length = length;
+    result->memblock = pa_memblock_new(s->core->mempool, length);
 
     pa_sink_render_into_full(s, result);
 }
@@ -577,6 +594,7 @@ void pa_sink_skip(pa_sink *s, size_t length) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(length > 0);
+    pa_assert(pa_frame_aligned(length, &s->sample_spec));
     
     if (pa_source_used_by(s->monitor_source)) {
         pa_memchunk chunk;
@@ -853,7 +871,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                     pa_cvolume volume;
                     size_t n;
                     
-                    if (pa_sink_input_peek(info->sink_input, &memchunk, &volume) < 0)
+                    if (pa_sink_input_peek(info->sink_input, info->buffer_bytes, &memchunk, &volume) < 0)
                         break;
                     
                     n = memchunk.length > info->buffer_bytes ? info->buffer_bytes : memchunk.length;

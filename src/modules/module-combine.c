@@ -275,7 +275,7 @@ finish:
     pa_log_debug("Thread shutting down");
 }
 
-static void request_memblock(struct output *o) {
+static void request_memblock(struct output *o, size_t length) {
     pa_memchunk chunk;
     
     pa_assert(o);
@@ -306,7 +306,7 @@ static void request_memblock(struct output *o) {
             struct output *j;
             
             /* Do it! */
-            pa_sink_render(o->userdata->sink, o->userdata->block_size, &chunk);
+            pa_sink_render(o->userdata->sink, length, &chunk);
             
             /* OK, let's send this data to the other threads */
             for (j = o->userdata->thread_info.outputs; j; j = j->next)
@@ -323,7 +323,7 @@ static void request_memblock(struct output *o) {
 }
 
 /* Called from I/O thread context */
-static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     struct output *o;
 
     pa_sink_input_assert_ref(i);
@@ -331,7 +331,7 @@ static int sink_input_peek_cb(pa_sink_input *i, pa_memchunk *chunk) {
     pa_assert(o);
 
     /* If necessary, get some new data */
-    request_memblock(o);
+    request_memblock(o, length);
 
     return  pa_memblockq_peek(o->memblockq, chunk);
 }
