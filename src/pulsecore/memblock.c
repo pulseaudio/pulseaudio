@@ -300,7 +300,7 @@ pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
      * take the largest size that fits in one of our slots. */
     
     if (length == (size_t) -1)
-        length = p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) - PA_ALIGN(sizeof(pa_memblock));
+        length = pa_mempool_block_size_max(p);
     
     if (p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) >= PA_ALIGN(sizeof(pa_memblock)) + length) {
 
@@ -720,6 +720,13 @@ const pa_mempool_stat* pa_mempool_get_stat(pa_mempool *p) {
     pa_assert(p);
 
     return &p->stat;
+}
+
+/* No lock necessary */
+size_t pa_mempool_block_size_max(pa_mempool *p) {
+    pa_assert(p);
+
+    return p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) - PA_ALIGN(sizeof(pa_memblock));
 }
 
 /* No lock necessary */
