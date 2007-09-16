@@ -38,7 +38,7 @@
 #include "sample-util.h"
 #include "endianmacros.h"
 
-#define PA_SILENCE_MAX (1024*1024*1)
+#define PA_SILENCE_MAX (PA_PAGE_SIZE*16)
 
 pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spec, size_t length) {
     size_t fs;
@@ -82,7 +82,6 @@ void pa_silence_memchunk(pa_memchunk *c, const pa_sample_spec *spec) {
     pa_assert(c->memblock);
     pa_assert(spec);
 
-    pa_memchunk_make_writable(c, 0);
     data = pa_memblock_acquire(c->memblock);
     pa_silence_memory((uint8_t*) data+c->index, c->length, spec);
     pa_memblock_release(c->memblock);
@@ -472,5 +471,25 @@ void pa_volume_memchunk(
     }
 
     pa_memblock_release(c->memblock);
+}
+
+size_t pa_frame_align(size_t l, const pa_sample_spec *ss) {
+    size_t fs;
+
+    pa_assert(ss);
+    
+    fs = pa_frame_size(ss);
+
+    return (l/fs) * fs;
+}
+
+int pa_frame_aligned(size_t l, const pa_sample_spec *ss) {
+    size_t fs;
+    
+    pa_assert(ss);
+
+    fs = pa_frame_size(ss);
+    
+    return l % fs == 0;
 }
 
