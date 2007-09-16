@@ -79,10 +79,10 @@ void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const 
         data->sample_spec = *spec;
 }
 
-void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, int mute) {
+void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute) {
     pa_assert(data);
 
-    data->muted_is_set = 1;
+    data->muted_is_set = TRUE;
     data->muted = !!mute;
 }
 
@@ -607,7 +607,7 @@ const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i) {
     return &i->volume;
 }
 
-void pa_sink_input_set_mute(pa_sink_input *i, int mute) {
+void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute) {
     pa_assert(i);
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_LINKED(i->state));
@@ -628,7 +628,7 @@ int pa_sink_input_get_mute(pa_sink_input *i) {
     return !!i->muted;
 }
 
-void pa_sink_input_cork(pa_sink_input *i, int b) {
+void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b) {
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_LINKED(i->state));
 

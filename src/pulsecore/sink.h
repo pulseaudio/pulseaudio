@@ -52,11 +52,11 @@ typedef enum pa_sink_state {
     PA_SINK_UNLINKED
 } pa_sink_state_t;
 
-static inline int PA_SINK_OPENED(pa_sink_state_t x) {
+static inline pa_bool_t PA_SINK_OPENED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
 }
 
-static inline int PA_SINK_LINKED(pa_sink_state_t x) {
+static inline pa_bool_t PA_SINK_LINKED(pa_sink_state_t x) {
     return x == PA_SINK_RUNNING || x == PA_SINK_IDLE || x == PA_SINK_SUSPENDED;
 }
 
@@ -81,9 +81,9 @@ struct pa_sink {
     pa_source *monitor_source;
 
     pa_cvolume volume;
-    int muted;
-    int refresh_volume;
-    int refresh_mute;
+    pa_bool_t muted;
+    pa_bool_t refresh_volume;
+    pa_bool_t refresh_mute;
 
     int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
     int (*set_volume)(pa_sink *s);           /* dito */
@@ -101,7 +101,7 @@ struct pa_sink {
         pa_sink_state_t state;
         pa_hashmap *inputs;
         pa_cvolume soft_volume;
-        int soft_muted;
+        pa_bool_t soft_muted;
     } thread_info;
 
     pa_memblock *silence;
@@ -154,8 +154,8 @@ void pa_sink_attach(pa_sink *s);
 pa_usec_t pa_sink_get_latency(pa_sink *s);
 
 int pa_sink_update_status(pa_sink*s);
-int pa_sink_suspend(pa_sink *s, int suspend);
-int pa_sink_suspend_all(pa_core *c, int suspend);
+int pa_sink_suspend(pa_sink *s, pa_bool_t suspend);
+int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend);
 
 /* Sends a ping message to the sink thread, to make it wake up and
  * check for data to process even if there is no real message is
@@ -164,8 +164,8 @@ void pa_sink_ping(pa_sink *s);
 
 void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume);
 const pa_cvolume *pa_sink_get_volume(pa_sink *sink);
-void pa_sink_set_mute(pa_sink *sink, int mute);
-int pa_sink_get_mute(pa_sink *sink);
+void pa_sink_set_mute(pa_sink *sink, pa_bool_t mute);
+pa_bool_t pa_sink_get_mute(pa_sink *sink);
 
 unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
 unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */

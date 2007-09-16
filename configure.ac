@@ -130,6 +130,18 @@ else
     AC_MSG_RESULT([no])
 fi
 
+AC_MSG_CHECKING([whether $CC knows _Bool])
+AC_LANG_CONFTEST([int main() { _Bool b; }])
+$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
+ret=$?
+rm -f conftest.o conftest
+if test $ret -eq 0 ; then
+    AC_DEFINE([HAVE_STD_BOOL], 1, [Have _Bool.])
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+fi
+
 #### libtool stuff ####
 
 AC_LTDL_ENABLE_INSTALL

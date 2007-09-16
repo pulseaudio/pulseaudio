@@ -54,11 +54,11 @@ typedef enum pa_source_state {
     PA_SOURCE_UNLINKED
 } pa_source_state_t;
 
-static inline int PA_SOURCE_OPENED(pa_source_state_t x) {
+static inline pa_bool_t PA_SOURCE_OPENED(pa_source_state_t x) {
     return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE;
 }
 
-static inline int PA_SOURCE_LINKED(pa_source_state_t x) {
+static inline pa_bool_t PA_SOURCE_LINKED(pa_source_state_t x) {
     return x == PA_SOURCE_RUNNING || x == PA_SOURCE_IDLE || x == PA_SOURCE_SUSPENDED;
 }
 
@@ -83,9 +83,9 @@ struct pa_source {
     pa_sink *monitor_of;                     /* may be NULL */
 
     pa_cvolume volume;
-    int muted;
-    int refresh_volume;
-    int refresh_muted;
+    pa_bool_t muted;
+    pa_bool_t refresh_volume;
+    pa_bool_t refresh_muted;
 
     int (*set_state)(pa_source*source, pa_source_state_t state); /* may be NULL */
     int (*set_volume)(pa_source *s);         /* dito */
@@ -103,7 +103,7 @@ struct pa_source {
         pa_source_state_t state;
         pa_hashmap *outputs;
         pa_cvolume soft_volume;
-        int soft_muted;
+        pa_bool_t soft_muted;
     } thread_info;
 
     void *userdata;
@@ -153,15 +153,15 @@ void pa_source_attach(pa_source *s);
 pa_usec_t pa_source_get_latency(pa_source *s);
 
 int pa_source_update_status(pa_source*s);
-int pa_source_suspend(pa_source *s, int suspend);
-int pa_source_suspend_all(pa_core *c, int suspend);
+int pa_source_suspend(pa_source *s, pa_bool_t suspend);
+int pa_source_suspend_all(pa_core *c, pa_bool_t suspend);
 
 void pa_source_ping(pa_source *s);
 
 void pa_source_set_volume(pa_source *source, const pa_cvolume *volume);
 const pa_cvolume *pa_source_get_volume(pa_source *source);
-void pa_source_set_mute(pa_source *source, int mute);
-int pa_source_get_mute(pa_source *source);
+void pa_source_set_mute(pa_source *source, pa_bool_t mute);
+pa_bool_t pa_source_get_mute(pa_source *source);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */

@@ -46,7 +46,7 @@ typedef enum pa_sink_input_state {
     PA_SINK_INPUT_UNLINKED      /*< The stream is dead */
 } pa_sink_input_state_t;
 
-static inline int PA_SINK_INPUT_LINKED(pa_sink_input_state_t x) {
+static inline pa_bool_t PA_SINK_INPUT_LINKED(pa_sink_input_state_t x) {
     return x == PA_SINK_INPUT_DRAINED || x == PA_SINK_INPUT_RUNNING || x == PA_SINK_INPUT_CORKED;
 }
 
@@ -80,7 +80,7 @@ struct pa_sink_input {
     pa_sink_input *sync_prev, *sync_next;
     
     pa_cvolume volume;
-    int muted;
+    pa_bool_t muted;
 
     /* Returns the chunk of audio data (but doesn't drop it
      * yet!). Returns -1 on failure. Called from IO thread context. If
@@ -139,7 +139,7 @@ struct pa_sink_input {
         pa_sink_input *sync_prev, *sync_next;
         
         pa_cvolume volume;
-        int muted;
+        pa_bool_t muted;
     } thread_info;
 
     void *userdata;
@@ -165,14 +165,14 @@ typedef struct pa_sink_input_new_data {
     pa_sink *sink;
 
     pa_sample_spec sample_spec;
-    int sample_spec_is_set;
+    pa_bool_t sample_spec_is_set;
     pa_channel_map channel_map;
-    int channel_map_is_set;
+    pa_bool_t channel_map_is_set;
     
     pa_cvolume volume;
-    int volume_is_set;
-    int muted;
-    int muted_is_set;
+    pa_bool_t volume_is_set;
+    pa_bool_t muted;
+    pa_bool_t muted_is_set;
 
     pa_resample_method_t resample_method;
 
@@ -183,7 +183,7 @@ pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data
 void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const pa_sample_spec *spec);
 void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map);
 void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cvolume *volume);
-void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, int mute);
+void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute);
 
 /* To be called by the implementing module only */
 
@@ -206,10 +206,10 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i);
 
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume);
 const pa_cvolume *pa_sink_input_get_volume(pa_sink_input *i);
-void pa_sink_input_set_mute(pa_sink_input *i, int mute);
+void pa_sink_input_set_mute(pa_sink_input *i, pa_bool_t mute);
 int pa_sink_input_get_mute(pa_sink_input *i);
 
-void pa_sink_input_cork(pa_sink_input *i, int b);
+void pa_sink_input_cork(pa_sink_input *i, pa_bool_t b);
 
 int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
 

@@ -97,8 +97,8 @@ pa_source* pa_source_new(
     s->monitor_of = NULL;
 
     pa_cvolume_reset(&s->volume, spec->channels);
-    s->muted = 0;
-    s->refresh_volume = s->refresh_muted = 0;
+    s->muted = FALSE;
+    s->refresh_volume = s->refresh_muted = FALSE;
 
     s->get_latency = NULL;
     s->set_volume = NULL;
@@ -240,7 +240,7 @@ int pa_source_update_status(pa_source*s) {
     return source_set_state(s, pa_source_used_by(s) ? PA_SOURCE_RUNNING : PA_SOURCE_IDLE);
 }
 
-int pa_source_suspend(pa_source *s, int suspend) {
+int pa_source_suspend(pa_source *s, pa_bool_t suspend) {
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_LINKED(s->state));
 
@@ -348,7 +348,7 @@ const pa_cvolume *pa_source_get_volume(pa_source *s) {
     return &s->volume;
 }
 
-void pa_source_set_mute(pa_source *s, int mute) {
+void pa_source_set_mute(pa_source *s, pa_bool_t mute) {
     int changed;
 
     pa_source_assert_ref(s);
@@ -367,8 +367,8 @@ void pa_source_set_mute(pa_source *s, int mute) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
-int pa_source_get_mute(pa_source *s) {
-    int old_muted;
+pa_bool_t pa_source_get_mute(pa_source *s) {
+    pa_bool_t old_muted;
 
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_LINKED(s->state));
@@ -487,7 +487,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             return 0;
 
         case PA_SOURCE_MESSAGE_GET_MUTE:
-            *((int*) userdata) = s->thread_info.soft_muted;
+            *((pa_bool_t*) userdata) = s->thread_info.soft_muted;
             return 0;
 
         case PA_SOURCE_MESSAGE_PING:
@@ -519,7 +519,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
     return -1;
 }
 
-int pa_source_suspend_all(pa_core *c, int suspend) {
+int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
     uint32_t idx;
     pa_source *source;
     int ret = 0;

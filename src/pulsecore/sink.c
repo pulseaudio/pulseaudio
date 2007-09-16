@@ -105,8 +105,8 @@ pa_sink* pa_sink_new(
     s->n_corked = 0;
 
     pa_cvolume_reset(&s->volume, spec->channels);
-    s->muted = 0;
-    s->refresh_volume = s->refresh_mute = 0;
+    s->muted = FALSE;
+    s->refresh_volume = s->refresh_mute = FALSE;
 
     s->get_latency = NULL;
     s->set_volume = NULL;
@@ -295,7 +295,7 @@ int pa_sink_update_status(pa_sink*s) {
     return sink_set_state(s, pa_sink_used_by(s) ? PA_SINK_RUNNING : PA_SINK_IDLE);
 }
 
-int pa_sink_suspend(pa_sink *s, int suspend) {
+int pa_sink_suspend(pa_sink *s, pa_bool_t suspend) {
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_LINKED(s->state));
 
@@ -678,7 +678,7 @@ const pa_cvolume *pa_sink_get_volume(pa_sink *s) {
     return &s->volume;
 }
 
-void pa_sink_set_mute(pa_sink *s, int mute) {
+void pa_sink_set_mute(pa_sink *s, pa_bool_t mute) {
     int changed;
 
     pa_sink_assert_ref(s);
@@ -697,8 +697,8 @@ void pa_sink_set_mute(pa_sink *s, int mute) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
-int pa_sink_get_mute(pa_sink *s) {
-    int old_muted;
+pa_bool_t pa_sink_get_mute(pa_sink *s) {
+    pa_bool_t old_muted;
 
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_LINKED(s->state));
@@ -927,7 +927,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             return 0;
 
         case PA_SINK_MESSAGE_GET_MUTE:
-            *((int*) userdata) = s->thread_info.soft_muted;
+            *((pa_bool_t*) userdata) = s->thread_info.soft_muted;
             return 0;
 
         case PA_SINK_MESSAGE_PING:
@@ -960,7 +960,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
     return -1;
 }
 
-int pa_sink_suspend_all(pa_core *c, int suspend) {
+int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend) {
     pa_sink *sink;
     uint32_t idx;
     int ret = 0;

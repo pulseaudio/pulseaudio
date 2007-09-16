@@ -42,7 +42,7 @@ typedef enum pa_source_output_state {
     PA_SOURCE_OUTPUT_UNLINKED
 } pa_source_output_state_t;
 
-static inline int PA_SOURCE_OUTPUT_LINKED(pa_source_output_state_t x) {
+static inline pa_bool_t PA_SOURCE_OUTPUT_LINKED(pa_source_output_state_t x) {
     return x == PA_SOURCE_OUTPUT_RUNNING || x == PA_SOURCE_OUTPUT_CORKED;
 }
 
@@ -126,9 +126,9 @@ typedef struct pa_source_output_new_data {
     pa_source *source;
 
     pa_sample_spec sample_spec;
-    int sample_spec_is_set;
+    pa_bool_t sample_spec_is_set;
     pa_channel_map channel_map;
-    int channel_map_is_set;
+    pa_bool_t channel_map_is_set;
 
     pa_resample_method_t resample_method;
 } pa_source_output_new_data;
@@ -157,7 +157,7 @@ void pa_source_output_kill(pa_source_output*o);
 
 pa_usec_t pa_source_output_get_latency(pa_source_output *i);
 
-void pa_source_output_cork(pa_source_output *i, int b);
+void pa_source_output_cork(pa_source_output *i, pa_bool_t b);
 
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
 

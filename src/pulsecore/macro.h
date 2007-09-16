@@ -72,6 +72,21 @@ static inline size_t pa_page_align(size_t l) {
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
+/* This type is not intended to be used in exported APIs! Use classic "int" there! */
+#ifdef HAVE_STD_BOOL
+typedef _Bool pa_bool_t;
+#else
+typedef int pa_bool_t;
+#endif
+
+#ifndef FALSE
+#define FALSE ((pa_bool_t) 0)
+#endif
+
+#ifndef TRUE
+#define TRUE (!FALSE)
+#endif
+
 #ifdef __GNUC__
 #define PA_PRETTY_FUNCTION __PRETTY_FUNCTION__
 #else

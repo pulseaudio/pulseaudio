@@ -306,7 +306,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     pa_memblock_unref(rchunk.memblock);
 }
 
-void pa_source_output_cork(pa_source_output *o, int b) {
+void pa_source_output_cork(pa_source_output *o, pa_bool_t b) {
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
 
