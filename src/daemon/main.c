@@ -317,7 +317,7 @@ int main(int argc, char *argv[]) {
     pa_mainloop *mainloop = NULL;
 
     char *s;
-    int r, retval = 1, d = 0;
+    int r = 0, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
     int suid_root, real_root;
     int valid_pid_file = 0;
