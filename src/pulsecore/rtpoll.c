@@ -157,7 +157,7 @@ void pa_rtpoll_install(pa_rtpoll *p) {
         return;
     }
 
-    pa_log_debug("Acquired POSIX realtime signal SIGRTMIN+%i", p->rtsig - SIGRTMIN);
+    pa_log_debug("Acquired POSIX realtime signal %s", pa_sig2str(p->rtsig));
 
     {
         sigset_t ss;

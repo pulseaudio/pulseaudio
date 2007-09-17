@@ -68,7 +68,7 @@ char *pa_split_spaces(const char *c, const char **state);
 
 char *pa_strip_nl(char *s);
 
-const char *pa_strsignal(int sig) PA_GCC_PURE;
+const char *pa_sig2str(int sig) PA_GCC_PURE;
 
 int pa_own_uid_in_group(const char *name, gid_t *gid);
 int pa_uid_in_group(uid_t uid, const char *name);

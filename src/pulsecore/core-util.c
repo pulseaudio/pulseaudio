@@ -90,6 +90,7 @@
 #include <pulsecore/winsock.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/thread.h>
 
 #include "core-util.h"
 
@@ -411,9 +412,9 @@ void pa_check_signal_is_blocked(int sig) {
     if (sa.sa_handler != SIG_DFL)
         return;
 
-    pa_log_warn("%s is not trapped. This might cause malfunction!", pa_strsignal(sig));
+    pa_log_warn("%s is not trapped. This might cause malfunction!", pa_sig2str(sig));
 #else /* HAVE_SIGACTION */
-    pa_log_warn("%s might not be trapped. This might cause malfunction!", pa_strsignal(sig));
+    pa_log_warn("%s might not be trapped. This might cause malfunction!", pa_sig2str(sig));
 #endif
 }
 
@@ -616,31 +617,93 @@ char *pa_split_spaces(const char *c, const char **state) {
     return pa_xstrndup(current, l);
 }
 
-/* Return the name of an UNIX signal. Similar to GNU's strsignal() */
-const char *pa_strsignal(int sig) {
+PA_STATIC_TLS_DECLARE(signame, pa_xfree);
+
+/* Return the name of an UNIX signal. Similar to Solaris sig2str() */
+const char *pa_sig2str(int sig) {
+    char *t;
+
+    if (sig <= 0 || sig >= _NSIG)
+        goto fail;
+    
+#ifdef HAVE_SIG2STR
+    {
+        char buf[SIG2STR_MAX];
+        
+        if (str2sig(sig, buf) == 0) {
+            pa_xfree(PA_STATIC_TLS_GET(signame));
+            t = pa_sprintf_malloc("SIG%s", buf);
+            PA_STATIC_TLS_SET(signame, t);
+            return t;
+        }
+    }
+#else
+
     switch(sig) {
-        case SIGINT: return "SIGINT";
-        case SIGTERM: return "SIGTERM";
+#ifdef SIGHUP
+        case SIGHUP:    return "SIGHUP";
+#endif
+        case SIGINT:    return "SIGINT";
+        case SIGQUIT:   return "SIGQUIT";
+        case SIGILL:    return "SIGULL";
+        case SIGTRAP:   return "SIGTRAP";
+        case SIGABRT:   return "SIGABRT";
+        case SIGBUS:    return "SIGBUS";
+        case SIGFPE:    return "SIGFPE";
+        case SIGKILL:   return "SIGKILL";
 #ifdef SIGUSR1
-        case SIGUSR1: return "SIGUSR1";
+        case SIGUSR1:   return "SIGUSR1";
 #endif
+        case SIGSEGV:   return "SIGSEGV";
 #ifdef SIGUSR2
-        case SIGUSR2: return "SIGUSR2";
-#endif
-#ifdef SIGXCPU
-        case SIGXCPU: return "SIGXCPU";
+        case SIGUSR2:   return "SIGUSR2";
 #endif
 #ifdef SIGPIPE
-        case SIGPIPE: return "SIGPIPE";
+        case SIGPIPE:   return "SIGPIPE";
 #endif
+        case SIGALRM:   return "SIGALRM";
+        case SIGTERM:   return "SIGTERM";
+        case SIGSTKFLT: return "SIGSTKFLT";
 #ifdef SIGCHLD
-        case SIGCHLD: return "SIGCHLD";
+        case SIGCHLD:   return "SIGCHLD";
 #endif
-#ifdef SIGHUP
-        case SIGHUP: return "SIGHUP";
+        case SIGCONT:   return "SIGCONT";
+        case SIGSTOP:   return "SIGSTOP";
+        case SIGTSTP:   return "SIGTSTP";
+        case SIGTTIN:   return "SIGTTIN";
+        case SIGTTOU:   return "SIGTTOU";
+        case SIGURG:    return "SIGURG";
+#ifdef SIGXCPU
+        case SIGXCPU:   return "SIGXCPU";
 #endif
-        default: return "UNKNOWN SIGNAL";
+#ifdef SIGXFSZ
+        case SIGXFSZ:   return "SIGXFSZ";
+#endif
+        case SIGVTALRM: return "SIGVTALRM";
+        case SIGPROF:   return "SIGPROF";
+        case SIGWINCH:  return "SIGWINCH";
+        case SIGIO:     return "SIGIO";
+        case SIGPWR:    return "SIGPWR";
+        case SIGSYS:    return "SIGSYS";
     }
+
+#ifdef SIGRTMIN
+    if (sig >= SIGRTMIN && sig <= SIGRTMAX) {
+        pa_xfree(PA_STATIC_TLS_GET(signame));
+        t = pa_sprintf_malloc("SIGRTMIN+%i", sig - SIGRTMIN);
+        PA_STATIC_TLS_SET(signame, t);
+        return t;
+    }
+#endif        
+    
+#endif
+
+fail:
+
+    pa_xfree(PA_STATIC_TLS_GET(signame));
+    t = pa_sprintf_malloc("SIG%i", sig);
+    PA_STATIC_TLS_SET(signame, t);
+    return t;
 }
 
 #ifdef HAVE_GRP_H

@@ -235,7 +235,8 @@ noinst_PROGRAMS = \
 		asyncq-test \
 		asyncmsgq-test \
 		queue-test \
-		rtpoll-test
+		rtpoll-test \
+		sig2str-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -374,6 +375,11 @@ interpol_test_SOURCES = tests/interpol-test.c
 interpol_test_LDADD = $(AM_LDADD) libpulse.la
 interpol_test_CFLAGS = $(AM_CFLAGS)
 interpol_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+sig2str_test_SOURCES = tests/sig2str-test.c
+sig2str_test_LDADD = $(AM_LDADD) libpulsecore.la
+sig2str_test_CFLAGS = $(AM_CFLAGS)
+sig2str_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #         Client library          #

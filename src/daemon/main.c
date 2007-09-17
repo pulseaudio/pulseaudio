@@ -130,7 +130,7 @@ static void message_cb(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const s
 #endif
 
 static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e, int sig, void *userdata) {
-    pa_log_info("Got signal %s.", pa_strsignal(sig));
+    pa_log_info("Got signal %s.", pa_sig2str(sig));
 
     switch (sig) {
 #ifdef SIGUSR1
