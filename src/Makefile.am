@@ -940,7 +940,8 @@ modlibexec_LTLIBRARIES += \
 		module-native-protocol-fd.la \
 		module-esound-protocol-tcp.la \
 		module-combine.la \
-		module-remap-sink.la
+		module-remap-sink.la \
+		module-ladspa-sink.la
 #		module-tunnel-sink.la \
 #		module-tunnel-source.la \
 #		module-esound-sink.la
@@ -1061,6 +1062,7 @@ SYMDEF_FILES = \
 		modules/module-sine-symdef.h \
 		modules/module-combine-symdef.h \
 		modules/module-remap-sink-symdef.h \
+		modules/module-ladspa-sink-symdef.h \
 		modules/module-esound-compat-spawnfd-symdef.h \
 		modules/module-esound-compat-spawnpid-symdef.h \
 		modules/module-match-symdef.h \
@@ -1212,6 +1214,11 @@ module_combine_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_remap_sink_la_SOURCES = modules/module-remap-sink.c
 module_remap_sink_la_LDFLAGS = -module -avoid-version
 module_remap_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+
+module_ladspa_sink_la_SOURCES = modules/module-ladspa-sink.c modules/ladspa.h
+module_ladspa_sink_la_CFLAGS = -DLADSPA_PATH=\"$(libdir)/ladspa:/usr/local/lib/ladspa:/usr/lib/ladspa\" $(AM_CFLAGS)
+module_ladspa_sink_la_LDFLAGS = -module -avoid-version
+module_ladspa_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
