@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 
     assert(pa_thread_is_running(pa_thread_self()));
 
-    mutex = pa_mutex_new(0);
+    mutex = pa_mutex_new(FALSE, FALSE);
     cond1 = pa_cond_new();
     cond2 = pa_cond_new();
     tls = pa_tls_new(pa_xfree);

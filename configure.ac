@@ -297,6 +297,22 @@ AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid ppoll])
 
 ACX_PTHREAD
 
+AC_MSG_CHECKING([for PTHREAD_PRIO_INHERIT])
+AC_LANG_CONFTEST([AC_LANG_SOURCE([[
+#include <pthread.h> 
+int main() { int i = PTHREAD_PRIO_INHERIT; }]])])
+$PTHREAD_CC conftest.c $PTHREAD_CFLAGS $CFLAGS $PTHREAD_LIBS -o conftest > /dev/null 2> /dev/null
+ret=$?
+rm -f conftest.o conftest
+
+if test $ret -eq 0 ; then
+    AC_DEFINE([HAVE_PTHREAD_PRIO_INHERIT], 1, [Have PTHREAD_PRIO_INHERIT.])
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+fi
+
+
 #### Large File-Support (LFS) ####
 
 AC_SYS_LARGEFILE

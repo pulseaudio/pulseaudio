@@ -660,7 +660,7 @@ pa_mempool* pa_mempool_new(int shared) {
 
     p = pa_xnew(pa_mempool, 1);
 
-    p->mutex = pa_mutex_new(1);
+    p->mutex = pa_mutex_new(TRUE, TRUE);
     p->semaphore = pa_semaphore_new(0);
 
     p->block_size = PA_PAGE_ALIGN(PA_MEMPOOL_SLOT_SIZE);
@@ -781,7 +781,7 @@ pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void
     pa_assert(cb);
 
     i = pa_xnew(pa_memimport, 1);
-    i->mutex = pa_mutex_new(1);
+    i->mutex = pa_mutex_new(TRUE, TRUE);
     i->pool = p;
     i->segments = pa_hashmap_new(NULL, NULL);
     i->blocks = pa_hashmap_new(NULL, NULL);
@@ -909,18 +909,22 @@ finish:
 
 int pa_memimport_process_revoke(pa_memimport *i, uint32_t id) {
     pa_memblock *b;
+    int ret = 0;
     pa_assert(i);
 
     pa_mutex_lock(i->mutex);
 
-    if (!(b = pa_hashmap_get(i->blocks, PA_UINT32_TO_PTR(id))))
-        return -1;
+    if (!(b = pa_hashmap_get(i->blocks, PA_UINT32_TO_PTR(id)))) {
+        ret = -1;
+        goto finish;
+    }
 
     memblock_replace_import(b);
 
+finish:
     pa_mutex_unlock(i->mutex);
 
-    return 0;
+    return ret;
 }
 
 /* For sending blocks to other nodes */
@@ -934,7 +938,7 @@ pa_memexport* pa_memexport_new(pa_mempool *p, pa_memexport_revoke_cb_t cb, void 
         return NULL;
 
     e = pa_xnew(pa_memexport, 1);
-    e->mutex = pa_mutex_new(1);
+    e->mutex = pa_mutex_new(TRUE, TRUE);
     e->pool = p;
     PA_LLIST_HEAD_INIT(struct memexport_slot, e->free_slots);
     PA_LLIST_HEAD_INIT(struct memexport_slot, e->used_slots);

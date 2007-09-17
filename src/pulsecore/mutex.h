@@ -24,9 +24,17 @@
   USA.
 ***/
 
+#include <pulsecore/macro.h>
+
 typedef struct pa_mutex pa_mutex;
 
-pa_mutex* pa_mutex_new(int recursive);
+/* Please think twice before enabling priority inheritance. This is no
+ * magic wand! Use it only when the potentially priorized threads are
+ * good candidates for it. Don't use this blindly! Also, note that
+ * only very few operating systems actually implement this, hence this
+ * is merely a hint. */
+pa_mutex* pa_mutex_new(pa_bool_t recursive, pa_bool_t inherit_priority);
+
 void pa_mutex_free(pa_mutex *m);
 void pa_mutex_lock(pa_mutex *m);
 void pa_mutex_unlock(pa_mutex *m);

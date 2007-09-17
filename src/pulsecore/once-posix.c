@@ -58,7 +58,7 @@ int pa_once_begin(pa_once *control) {
             return 0;
         }
 
-        pa_assert_se(m = pa_mutex_new(0));
+        pa_assert_se(m = pa_mutex_new(FALSE, FALSE));
         pa_mutex_lock(m);
 
         if (pa_atomic_ptr_cmpxchg(&control->mutex, NULL, m))

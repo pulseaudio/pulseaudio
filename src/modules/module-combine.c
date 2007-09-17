@@ -947,7 +947,7 @@ int pa__init(pa_module*m) {
     u->thread_info.master = u->master = NULL;
     u->time_event = NULL; 
     u->adjust_time = DEFAULT_ADJUST_TIME; 
-    u->mutex = pa_mutex_new(0);
+    u->mutex = pa_mutex_new(FALSE, TRUE);
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = NULL;
     u->thread = NULL;

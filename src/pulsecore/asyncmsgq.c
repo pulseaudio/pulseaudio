@@ -67,7 +67,7 @@ pa_asyncmsgq *pa_asyncmsgq_new(unsigned size) {
 
     PA_REFCNT_INIT(a);
     pa_assert_se(a->asyncq = pa_asyncq_new(size));
-    pa_assert_se(a->mutex = pa_mutex_new(0));
+    pa_assert_se(a->mutex = pa_mutex_new(FALSE, TRUE));
     a->current = NULL;
 
     return a;
