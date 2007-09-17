@@ -194,7 +194,7 @@ static pa_io_event* mainloop_io_new(
         if ((select((SELECT_TYPE_ARG1) fd, NULL, NULL, SELECT_TYPE_ARG234 &xset,
                     SELECT_TYPE_ARG5 &tv) == -1) &&
              (WSAGetLastError() == WSAENOTSOCK)) {
-            pa_log_warn("WARNING: cannot monitor non-socket file descriptors.");
+            pa_log_warn("Cannot monitor non-socket file descriptors.");
             e->dead = 1;
         }
     }

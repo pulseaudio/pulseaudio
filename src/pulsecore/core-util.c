@@ -141,10 +141,10 @@ void pa_make_nonblock_fd(int fd) {
     u_long arg = 1;
     if (ioctlsocket(fd, FIONBIO, &arg) < 0) {
         if (WSAGetLastError() == WSAENOTSOCK)
-            pa_log_warn("WARNING: Only sockets can be made non-blocking!");
+            pa_log_warn("Only sockets can be made non-blocking!");
     }
 #else
-    pa_log_warn("WARNING: Non-blocking I/O not supported.!");
+    pa_log_warn("Non-blocking I/O not supported.!");
 #endif
 }
 
@@ -411,9 +411,9 @@ void pa_check_signal_is_blocked(int sig) {
     if (sa.sa_handler != SIG_DFL)
         return;
 
-    pa_log("WARNING: %s is not trapped. This might cause malfunction!", pa_strsignal(sig));
+    pa_log_warn("%s is not trapped. This might cause malfunction!", pa_strsignal(sig));
 #else /* HAVE_SIGACTION */
-    pa_log("WARNING: %s might not be trapped. This might cause malfunction!", pa_strsignal(sig));
+    pa_log_warn("%s might not be trapped. This might cause malfunction!", pa_strsignal(sig));
 #endif
 }
 
@@ -995,10 +995,8 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
                 return f;
             }
 
-            if (errno != ENOENT) {
-                pa_log_warn("WARNING: failed to open configuration file '%s': %s",
-                    lfn, pa_cstrerror(errno));
-            }
+            if (errno != ENOENT)
+                pa_log_warn("Failed to open configuration file '%s': %s", lfn, pa_cstrerror(errno));
 
             pa_xfree(lfn);
         }

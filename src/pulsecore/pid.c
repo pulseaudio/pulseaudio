@@ -90,7 +90,7 @@ static int open_pid_file(const char *fn, int mode) {
 
         if ((fd = open(fn, mode, S_IRUSR|S_IWUSR)) < 0) {
             if (mode != O_RDONLY || errno != ENOENT)
-                pa_log_warn("WARNING: failed to open PID file '%s': %s", fn, pa_cstrerror(errno));
+                pa_log_warn("Failed to open PID file '%s': %s", fn, pa_cstrerror(errno));
             goto fail;
         }
 
@@ -204,7 +204,7 @@ int pa_pid_file_remove(void) {
     pa_runtime_path("pid", fn, sizeof(fn));
 
     if ((fd = open_pid_file(fn, O_RDWR)) < 0) {
-        pa_log_warn("WARNING: failed to open PID file '%s': %s",
+        pa_log_warn("Failed to open PID file '%s': %s",
             fn, pa_cstrerror(errno));
         goto fail;
     }

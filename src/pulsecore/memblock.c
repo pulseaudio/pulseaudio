@@ -704,7 +704,7 @@ void pa_mempool_free(pa_mempool *p) {
 
     if (pa_atomic_load(&p->stat.n_allocated) > 0) {
 /*         raise(SIGTRAP);  */
-        pa_log_warn("WARNING! Memory pool destroyed but not all memory blocks freed! %u remain.", pa_atomic_load(&p->stat.n_allocated));
+        pa_log_warn("Memory pool destroyed but not all memory blocks freed! %u remain.", pa_atomic_load(&p->stat.n_allocated));
     }
 
     pa_shm_free(&p->memory);

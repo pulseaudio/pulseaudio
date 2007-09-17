@@ -120,7 +120,7 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
             goto finish;
         }
 
-        pa_log_warn("WARNING: failed to open configuration file '%s': %s",
+        pa_log_warn("Failed to open configuration file '%s': %s",
             filename, pa_cstrerror(errno));
         goto finish;
     }
@@ -131,7 +131,7 @@ int pa_config_parse(const char *filename, FILE *f, const pa_config_item *t, void
             if (feof(f))
                 break;
 
-            pa_log_warn("WARNING: failed to read configuration file '%s': %s",
+            pa_log_warn("Failed to read configuration file '%s': %s",
                 filename, pa_cstrerror(errno));
             goto finish;
         }

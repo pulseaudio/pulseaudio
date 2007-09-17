@@ -1051,7 +1051,7 @@ int pa__init(pa_module*m) {
         }
 
         if (pa_idxset_size(u->outputs) <= 1)
-            pa_log_warn("WARNING: No slave sinks specified.");
+            pa_log_warn("No slave sinks specified.");
 
         u->sink_new_slot = NULL;
         

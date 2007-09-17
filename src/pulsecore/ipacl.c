@@ -109,7 +109,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
             e.family = AF_INET;
 
             if (e.bits < 32 && (uint32_t) (ntohl(e.address_ipv4.s_addr) << e.bits) != 0)
-                pa_log_warn("WARNING: Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
+                pa_log_warn("Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
 
         } else if (inet_pton(AF_INET6, a, &e.address_ipv6) > 0) {
 
@@ -138,7 +138,7 @@ pa_ip_acl* pa_ip_acl_new(const char *s) {
                 }
 
                 if (t)
-                    pa_log_warn("WARNING: Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
+                    pa_log_warn("Host part of ACL entry '%s/%u' is not zero!", a, e.bits);
             }
 
         } else {

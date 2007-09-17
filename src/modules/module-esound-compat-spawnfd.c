@@ -63,7 +63,7 @@ int pa__init(pa_module*m) {
     }
 
     if (pa_loop_write(fd, &x, sizeof(x), NULL) != sizeof(x))
-        pa_log_warn("WARNING: write(%u, 1, 1) failed: %s", fd, pa_cstrerror(errno));
+        pa_log_warn("write(%u, 1, 1) failed: %s", fd, pa_cstrerror(errno));
 
     pa_assert_se(pa_close(fd) == 0);
 

@@ -210,7 +210,7 @@ static int handle_response(struct userdata *u) {
             /* Process latency info */
             u->latency = (pa_usec_t) ((double) (*(int32_t*) u->read_data) * 1000000 / 44100);
             if (u->latency > 10000000) {
-                pa_log("WARNING! Invalid latency information received from server");
+                pa_log_warn("Invalid latency information received from server");
                 u->latency = 0;
             }
 

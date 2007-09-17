@@ -62,7 +62,7 @@ int pa__init(pa_module*m) {
     }
 
     if (kill(pid, SIGUSR1) < 0)
-        pa_log_warn("WARNING: kill(%u) failed: %s", pid, pa_cstrerror(errno));
+        pa_log_warn("kill(%u) failed: %s", pid, pa_cstrerror(errno));
 
     pa_module_unload_request(m);
 

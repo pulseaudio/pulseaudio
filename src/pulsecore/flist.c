@@ -186,7 +186,7 @@ int pa_flist_push(pa_flist*l, void *p) {
 
 #ifdef PROFILE
     if (len > N_EXTRA_SCAN)
-        pa_log("WARNING: Didn't  find free cell after %u iterations.", len);
+        pa_log_warn("Didn't  find free cell after %u iterations.", len);
 #endif
 
     return -1;
@@ -227,7 +227,7 @@ void* pa_flist_pop(pa_flist*l) {
 
 #ifdef PROFILE
     if (len > N_EXTRA_SCAN)
-        pa_log("WARNING: Didn't find used cell after %u iterations.", len);
+        pa_log_warn("Didn't find used cell after %u iterations.", len);
 #endif
 
     return NULL;
