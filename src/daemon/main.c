@@ -315,7 +315,6 @@ int main(int argc, char *argv[]) {
     pa_strbuf *buf = NULL;
     pa_daemon_conf *conf = NULL;
     pa_mainloop *mainloop = NULL;
-
     char *s;
     int r = 0, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
@@ -329,6 +328,23 @@ int main(int argc, char *argv[]) {
     struct timeval tv;
 #endif
 
+    
+#if defined(__linux__) && defined(__OPTIMIZE__)
+    /*
+       Disable lazy relocations to make usage of external libraries
+       more deterministic for our RT threads. We abuse __OPTIMIZE__ as
+       a check whether we are a debug build or not.
+    */
+
+    if (!getenv("LD_BIND_NOW")) {
+        putenv(pa_xstrdup("LD_BIND_NOW=1"));
+
+        /* We have to execute ourselves, because the libc caches the
+         * value of $LD_BIND_NOW on initialization. */
+        pa_assert_se(execv("/proc/self/exe", argv) == 0);
+    }
+#endif
+    
 #ifdef HAVE_GETUID
     real_root = getuid() == 0;
     suid_root = !real_root && geteuid() == 0;
