@@ -320,7 +320,6 @@ int main(int argc, char *argv[]) {
     int daemon_pipe[2] = { -1, -1 };
     int suid_root, real_root;
     int valid_pid_file = 0;
-
     gid_t gid = (gid_t) -1;
 
 #ifdef OS_IS_WIN32

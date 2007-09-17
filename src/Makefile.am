@@ -77,15 +77,11 @@ endif
 
 if OS_IS_WIN32
 PA_THREAD_OBJS = \
-		pulsecore/once-win32.c pulsecore/once.h \
 		pulsecore/mutex-win32.c pulsecore/mutex.h \
 		pulsecore/thread-win32.c pulsecore/thread.h \
-		pulsecore/semaphore.h
-#pulsecore/semaphore-win32.c pulsecore/semaphore.h
+		pulsecore/semaphore-win32.c pulsecore/semaphore.h
 else
 PA_THREAD_OBJS = \
-		pulsecore/atomic.h \
-		pulsecore/once-posix.c pulsecore/once.h \
 		pulsecore/mutex-posix.c pulsecore/mutex.h \
 		pulsecore/thread-posix.c pulsecore/thread.h \
 		pulsecore/semaphore-posix.c pulsecore/semaphore.h
@@ -496,6 +492,7 @@ libpulse_la_SOURCES += \
 		pulsecore/flist.c pulsecore/flist.h \
 		pulsecore/object.c pulsecore/object.h \
 		pulsecore/msgobject.c pulsecore/msgobject.h \
+		pulsecore/once.c pulsecore/once.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -706,6 +703,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
 		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/macro.h \
+		pulsecore/once.c pulsecore/once.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
