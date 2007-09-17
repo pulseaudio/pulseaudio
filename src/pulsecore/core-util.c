@@ -42,6 +42,10 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
+#ifdef HAVE_STRTOF_L
+#include <locale.h>
+#endif
+
 #ifdef HAVE_SCHED_H
 #include <sched.h>
 #endif
@@ -1221,11 +1225,15 @@ int pa_atoi(const char *s, int32_t *ret_i) {
     pa_assert(s);
     pa_assert(ret_i);
 
+    errno = 0;
     l = strtol(s, &x, 0);
 
-    if (!x || *x)
+    if (!x || *x || errno != 0)
         return -1;
 
+    if ((int32_t) l != l)
+        return -1;
+    
     *ret_i = (int32_t) l;
 
     return 0;
@@ -1239,14 +1247,63 @@ int pa_atou(const char *s, uint32_t *ret_u) {
     pa_assert(s);
     pa_assert(ret_u);
 
+    errno = 0;
     l = strtoul(s, &x, 0);
 
-    if (!x || *x)
+    if (!x || *x || errno != 0)
+        return -1;
+
+    if ((uint32_t) l != l)
         return -1;
 
     *ret_u = (uint32_t) l;
 
     return 0;
+}
+
+#ifdef HAVE_STRTOF_L
+static locale_t c_locale = NULL;
+
+static void c_locale_destroy(void) {
+    freelocale(c_locale);
+}
+#endif
+
+int pa_atof(const char *s, float *ret_f) {
+    char *x = NULL;
+    float f;
+    int r = 0;
+    
+    pa_assert(s);
+    pa_assert(ret_f);
+
+    /* This should be locale independent */
+    
+#ifdef HAVE_STRTOF_L
+    
+    PA_ONCE_BEGIN {
+        
+        if ((c_locale = newlocale(LC_ALL_MASK, "C", NULL)))
+            atexit(c_locale_destroy);
+        
+    } PA_ONCE_END;
+    
+    if (c_locale) {
+        errno = 0;
+        f = strtof_l(s, &x, c_locale);
+    } else
+#endif
+    {
+        errno = 0;
+        f = strtof(s, &x);
+    }
+
+    if (!x || *x || errno != 0)
+        r =  -1;
+    else
+        *ret_f = f;
+    
+    return r;
 }
 
 /* Same as snprintf, but guarantees NUL-termination on every platform */
