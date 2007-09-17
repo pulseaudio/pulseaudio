@@ -756,6 +756,7 @@ int pa__init(pa_module*m) {
                 
                 if (pa_startswith(dev, "hw:")) {
                     char *d = pa_sprintf_malloc("plughw:%s", dev+3);
+                    pa_log_debug("Opening the device as '%s' didn't work, retrying with '%s'.", dev, d);
                     pa_xfree(dev);
                     dev = d;
                     continue;
