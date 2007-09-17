@@ -93,6 +93,7 @@
 #include "daemon-conf.h"
 #include "dumpmodules.h"
 #include "caps.h"
+#include "ltdl-bind-now.h"
 
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
@@ -309,38 +310,6 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
 }
 #endif
 
-static pa_mutex *libtool_mutex = NULL;
-        
-static void libtool_lock(void) {
-    pa_mutex_lock(libtool_mutex);
-}
-
-static void libtool_unlock(void) {
-    pa_mutex_unlock(libtool_mutex);
-}
-
-PA_STATIC_TLS_DECLARE_NO_FREE(libtool_tls);
-
-static void libtool_set_error(const char * error) {
-    PA_STATIC_TLS_SET(libtool_tls, (char*) error);
-}
-
-static const char *libtool_get_error(void) {
-    return PA_STATIC_TLS_GET(libtool_tls);
-}
-
-static void libtool_init(void)  {
-    pa_assert_se(libtool_mutex = pa_mutex_new(TRUE, FALSE));
-    pa_assert_se(lt_dlmutex_register(libtool_lock, libtool_unlock, libtool_set_error, libtool_get_error) == 0);
-    pa_assert_se(lt_dlinit() == 0);
-}
-
-static void libtool_done(void) {
-    pa_assert_se(lt_dlexit() == 0);
-    pa_mutex_free(libtool_mutex);
-    libtool_mutex = NULL;
-}
-
 int main(int argc, char *argv[]) {
     pa_core *c = NULL;
     pa_strbuf *buf = NULL;
@@ -396,7 +365,7 @@ int main(int argc, char *argv[]) {
 
     LTDL_SET_PRELOADED_SYMBOLS();
 
-    libtool_init();
+    pa_ltdl_init();
 
 #ifdef OS_IS_WIN32
     {
@@ -747,7 +716,7 @@ finish:
     WSACleanup();
 #endif
 
-    libtool_done();
+    pa_ltdl_done();
 
 #ifdef HAVE_DBUS
     dbus_shutdown();

@@ -132,6 +132,7 @@ pulseaudio_SOURCES = \
 		daemon/cpulimit.c daemon/cpulimit.h \
 		daemon/daemon-conf.c daemon/daemon-conf.h \
 		daemon/dumpmodules.c daemon/dumpmodules.h \
+		daemon/ltdl-bind-now.c daemon/ltdl-bind-now.h \
 		daemon/main.c \
 		pulsecore/gccmacro.h
 
