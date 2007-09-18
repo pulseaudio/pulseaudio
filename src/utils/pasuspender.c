@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 
-#include <sys/prctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -40,6 +39,10 @@
 #include <getopt.h>
 
 #include <sndfile.h>
+
+#ifdef __linux__
+#include <sys/prctl.h>
+#endif
 
 #include <pulse/pulseaudio.h>
 #include <pulsecore/macro.h>
