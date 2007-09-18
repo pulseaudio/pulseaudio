@@ -49,6 +49,7 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/sample-util.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/socket-util.h>
 
 #include "module-rtp-send-symdef.h"
 
@@ -280,6 +281,7 @@ int pa__init(pa_module*m) {
 
     /* If the socket queue is full, let's drop packets */
     pa_make_nonblock_fd(fd);
+    pa_socket_udp_low_delay(fd);
 
     pa_source_output_new_data_init(&data);
     data.name = "RTP Monitor Stream";
