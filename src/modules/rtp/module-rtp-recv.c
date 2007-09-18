@@ -163,9 +163,22 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
     int64_t k, j, delta;
     struct timespec now;
     struct session *s;
-
+    struct pollfd *p;
+    
     pa_assert_se(s = pa_rtpoll_item_get_userdata(i));
 
+    p = pa_rtpoll_item_get_pollfd(i, NULL);
+
+    if (p->revents & (POLLERR|POLLNVAL|POLLHUP|POLLOUT)) {
+        pa_log("poll() signalled bad revents.");
+        return -1;
+    }
+    
+    if ((p->revents & POLLIN) == 0)
+        return 0;
+
+    p->revents = 0;
+    
     if (pa_rtp_recv(&s->rtp_context, &chunk, s->userdata->module->core->mempool) < 0)
         return 0;
 
@@ -405,14 +418,14 @@ static void session_free(struct session *s) {
     pa_sink_input_unlink(s->sink_input);
     pa_sink_input_unref(s->sink_input);
 
-    pa_memblockq_free(s->memblockq);
-    pa_sdp_info_destroy(&s->sdp_info);
-    pa_rtp_context_destroy(&s->rtp_context);
-
     PA_LLIST_REMOVE(struct session, s->userdata->sessions, s);
     pa_assert(s->userdata->n_sessions >= 1);
     s->userdata->n_sessions--;
     pa_hashmap_remove(s->userdata->by_origin, s->sdp_info.origin);
+    
+    pa_memblockq_free(s->memblockq);
+    pa_sdp_info_destroy(&s->sdp_info);
+    pa_rtp_context_destroy(&s->rtp_context);
 
     pa_xfree(s);
 }
@@ -466,7 +479,7 @@ static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const str
     pa_assert(m);
     pa_assert(t);
     pa_assert(ptv);
-    pa_assert(s);
+    pa_assert(u);
 
     pa_rtclock_get(&now);
 
@@ -530,13 +543,13 @@ int pa__init(pa_module*m) {
     m->userdata = u;
     u->module = m;
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
-    u->n_sessions = 0;
 
     u->sap_event = m->core->mainloop->io_new(m->core->mainloop, fd, PA_IO_EVENT_INPUT, sap_event_cb, u);
-
-    u->by_origin = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-
     pa_sap_context_init_recv(&u->sap_context, fd);
+
+    PA_LLIST_HEAD_INIT(struct session, u->sessions);
+    u->n_sessions = 0;
+    u->by_origin = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     pa_gettimeofday(&tv);
     pa_timeval_add(&tv, DEATH_TIMEOUT * PA_USEC_PER_SEC);
