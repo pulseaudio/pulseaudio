@@ -166,7 +166,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     pa_assert(c);
     pa_assert(chunk);
 
-    chunk->memblock = NULL;
+    pa_memchunk_reset(chunk);
 
     if (ioctl(c->fd, FIONREAD, &size) < 0) {
         pa_log_warn("FIONREAD failed: %s", pa_cstrerror(errno));
@@ -189,7 +189,10 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     m.msg_controllen = 0;
     m.msg_flags = 0;
 
-    if ((r = recvmsg(c->fd, &m, 0)) != size) {
+    r = recvmsg(c->fd, &m, 0);
+    pa_memblock_release(chunk->memblock);
+    
+    if (r != size) {
         if (r < 0 && errno != EAGAIN && errno != EINTR)
             pa_log_warn("recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
         
@@ -244,10 +247,8 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     return 0;
 
 fail:
-    if (chunk->memblock) {
-        pa_memblock_release(chunk->memblock);
+    if (chunk->memblock)
         pa_memblock_unref(chunk->memblock);
-    }
 
     return -1;
 }
