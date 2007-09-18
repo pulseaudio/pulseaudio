@@ -149,7 +149,7 @@ int pa_socket_low_delay(int fd) {
     int priority;
     pa_assert(fd >= 0);
 
-    priority = 7;
+    priority = 6;
     if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, (void*)&priority, sizeof(priority)) < 0) {
         pa_log_warn("SO_PRIORITY failed: %s", pa_cstrerror(errno));
         return -1;
