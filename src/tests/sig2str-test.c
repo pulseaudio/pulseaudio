@@ -32,7 +32,7 @@
 int main(int argc, char *argv[]) {
     int sig;
     
-    for (sig = -1; sig < _NSIG+1; sig++)
+    for (sig = -1; sig <= NSIG; sig++)
         printf("%i = %s\n", sig, pa_sig2str(sig));
 
     return 0;
