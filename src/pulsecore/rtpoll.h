@@ -31,6 +31,7 @@
 #include <pulse/sample.h>
 #include <pulsecore/asyncmsgq.h>
 #include <pulsecore/fdsem.h>
+#include <pulsecore/macro.h>
 
 /* An implementation of a "real-time" poll loop. Basically, this is
  * yet another wrapper around poll(). However it has certain
@@ -72,7 +73,7 @@ void pa_rtpoll_install(pa_rtpoll *p);
  * struct pollfd. Returns negative on error, positive if the loop
  * should continue to run, 0 when the loop should be terminated
  * cleanly. */
-int pa_rtpoll_run(pa_rtpoll *f, int wait);
+int pa_rtpoll_run(pa_rtpoll *f, pa_bool_t wait);
 
 void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timespec *ts);
 void pa_rtpoll_set_timer_periodic(pa_rtpoll *p, pa_usec_t usec);
