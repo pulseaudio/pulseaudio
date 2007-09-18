@@ -759,6 +759,9 @@ int pa__init(pa_module*m) {
                     pa_log_debug("Opening the device as '%s' didn't work, retrying with '%s'.", dev, d);
                     pa_xfree(dev);
                     dev = d;
+
+                    snd_pcm_close(u->pcm_handle);
+                    u->pcm_handle = NULL;
                     continue;
                 }
             }
