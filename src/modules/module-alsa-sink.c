@@ -774,6 +774,8 @@ int pa__init(pa_module*m) {
         break;
     }
     
+    u->device_name = dev;
+        
     if (use_mmap && !b) {
         pa_log_info("Device doesn't support mmap(), falling back to UNIX read/write mode.");
         u->use_mmap = use_mmap = b;
@@ -787,8 +789,6 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->device_name = dev;
-        
     if ((err = pa_alsa_set_sw_params(u->pcm_handle)) < 0) {
         pa_log("Failed to set software parameters: %s", snd_strerror(err));
         goto fail;

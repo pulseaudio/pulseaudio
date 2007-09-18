@@ -660,7 +660,7 @@ int pa__init(pa_module*m) {
     
     pa_modargs *ma = NULL;
     struct userdata *u = NULL;
-    const char *dev;
+    char *dev;
     pa_sample_spec ss;
     pa_channel_map map;
     unsigned nfrags, frag_size;
@@ -718,24 +718,45 @@ int pa__init(pa_module*m) {
     pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
 
     snd_config_update_free_global();
-    if ((err = snd_pcm_open(&u->pcm_handle, dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK)) < 0) {
-        pa_log("Error opening PCM device %s: %s", dev, snd_strerror(err));
-        goto fail;
+
+    dev = pa_xstrdup(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE));
+    
+    for (;;) {
+        
+        if ((err = snd_pcm_open(&u->pcm_handle, dev, SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK)) < 0) {
+            pa_log("Error opening PCM device %s: %s", dev, snd_strerror(err));
+            pa_xfree(dev);
+            goto fail;
+        }
+
+        b = use_mmap;
+        if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, &b)) < 0) {
+
+            if (err == -EPERM) {
+                /* Hmm, some hw is very exotic, so we retry with plughw, if hw didn't work */
+                
+                if (pa_startswith(dev, "hw:")) {
+                    char *d = pa_sprintf_malloc("plughw:%s", dev+3);
+                    pa_log_debug("Opening the device as '%s' didn't work, retrying with '%s'.", dev, d);
+                    pa_xfree(dev);
+                    dev = d;
+
+                    snd_pcm_close(u->pcm_handle);
+                    u->pcm_handle = NULL;
+                    continue;
+                }
+            }
+            
+            pa_log("Failed to set hardware parameters: %s", snd_strerror(err));
+            pa_xfree(dev);
+            goto fail;
+        }
+
+        break;
     }
 
-    u->device_name = pa_xstrdup(dev);
-
-    if ((err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
-        pa_log("Error fetching PCM info: %s", snd_strerror(err));
-        goto fail;
-    }
-
-    b = use_mmap;
-    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, &b)) < 0) {
-        pa_log("Failed to set hardware parameters: %s", snd_strerror(err));
-        goto fail;
-    }
-
+    u->device_name = dev;
+    
     if (use_mmap && !b) {
         pa_log_info("Device doesn't support mmap(), falling back to UNIX read/write mode.");
         u->use_mmap = use_mmap = b;
@@ -743,6 +764,11 @@ int pa__init(pa_module*m) {
 
     if (u->use_mmap)
         pa_log_info("Successfully enabled mmap() mode.");
+
+    if ((err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
+        pa_log("Error fetching PCM info: %s", snd_strerror(err));
+        goto fail;
+    }
 
     if ((err = pa_alsa_set_sw_params(u->pcm_handle)) < 0) {
         pa_log("Failed to set software parameters: %s", snd_strerror(err));
