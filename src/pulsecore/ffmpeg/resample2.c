@@ -86,6 +86,13 @@ static double bessel(double x){
     return v;
 }
 
+/*
+ * crude lrintf for non-C99 systems.
+ */
+#ifndef HAVE_LFRINTF
+#define lrintf(x) ((long int)(x))
+#endif
+
 /**
  * builds a polyphase filterbank.
  * @param factor resampling factor
