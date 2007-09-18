@@ -216,10 +216,10 @@ void pa_sink_unlink(pa_sink* s) {
         j = i;
     }
 
+    sink_set_state(s, PA_SINK_UNLINKED);
+
     if (s->monitor_source)
         pa_source_unlink(s->monitor_source);
-
-    sink_set_state(s, PA_SINK_UNLINKED);
 
     s->get_latency = NULL;
     s->get_volume = NULL;
