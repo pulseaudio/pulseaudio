@@ -144,13 +144,16 @@ void pa_socket_peer_to_string(int fd, char *c, size_t l) {
 }
 
 int pa_socket_low_delay(int fd) {
+    
 #ifdef SO_PRIORITY
     int priority;
     pa_assert(fd >= 0);
 
     priority = 7;
-    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, (void*)&priority, sizeof(priority)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_PRIORITY, (void*)&priority, sizeof(priority)) < 0) {
+        pa_log_warn("SO_PRIORITY failed: %s", pa_cstrerror(errno));
         return -1;
+    }
 #endif
 
     return 0;
@@ -172,7 +175,10 @@ int pa_socket_tcp_low_delay(int fd) {
 #else
     if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (void*)&on, sizeof(on)) < 0)
 #endif
+    {
+        pa_log_warn("TCP_NODELAY failed: %s", pa_cstrerror(errno));
         ret = -1;
+    }
 #endif
 
 #if defined(IPTOS_LOWDELAY) && defined(IP_TOS) && (defined(SOL_IP) || defined(IPPROTO_IP))
@@ -182,7 +188,35 @@ int pa_socket_tcp_low_delay(int fd) {
 #else
     if (setsockopt(fd, IPPROTO_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
 #endif
+    {
+        pa_log_warn("IP_TOS failed: %s", pa_cstrerror(errno));
         ret = -1;
+    }
+#endif
+
+    return ret;
+}
+
+int pa_socket_udp_low_delay(int fd) {
+    int ret, tos;
+
+    pa_assert(fd >= 0);
+
+    ret = pa_socket_low_delay(fd);
+
+    tos = 0;
+
+#if defined(IPTOS_LOWDELAY) && defined(IP_TOS) && (defined(SOL_IP) || defined(IPPROTO_IP))
+    tos = IPTOS_LOWDELAY;
+#ifdef SOL_IP
+    if (setsockopt(fd, SOL_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
+#else
+    if (setsockopt(fd, IPPROTO_IP, IP_TOS, (void*)&tos, sizeof(tos)) < 0)
+#endif
+    {
+        ret = -1;
+        pa_log_warn("IP_TOS failed: %s", pa_cstrerror(errno));
+    }
 #endif
 
     return ret;
