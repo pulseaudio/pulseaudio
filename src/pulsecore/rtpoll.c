@@ -41,6 +41,7 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/rtsig.h>
 #include <pulsecore/flist.h>
+#include <pulsecore/core-util.h>
 
 #include "rtpoll.h"
 
