@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <time.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -38,33 +37,29 @@
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "sdp.h"
 #include "rtp.h"
 
-
 char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, uint16_t port, uint8_t payload, const pa_sample_spec *ss) {
     uint32_t ntp;
-    char buf_src[64], buf_dst[64];
+    char buf_src[64], buf_dst[64], un[64];
     const char *u, *f, *a;
 
-    assert(src);
-    assert(dst);
-    assert(af == AF_INET || af == AF_INET6);
+    pa_assert(src);
+    pa_assert(dst);
+    pa_assert(af == AF_INET || af == AF_INET6);
 
-    f = pa_rtp_format_to_string(ss->format);
-    assert(f);
+    pa_assert_se(f = pa_rtp_format_to_string(ss->format));
 
-    if (!(u = getenv("USER")))
-        if (!(u = getenv("USERNAME")))
-            u = "-";
+    if (!(u = pa_get_user_name(un, sizeof(un))))
+        u = "-";
 
     ntp = time(NULL) + 2208988800U;
 
-    a = inet_ntop(af, src, buf_src, sizeof(buf_src));
-    assert(a);
-    a = inet_ntop(af, dst, buf_dst, sizeof(buf_dst));
-    assert(a);
+    pa_assert_se(a = inet_ntop(af, src, buf_src, sizeof(buf_src)));
+    pa_assert_se(a = inet_ntop(af, dst, buf_dst, sizeof(buf_dst)));
 
     return pa_sprintf_malloc(
             PA_SDP_HEADER
@@ -86,8 +81,8 @@ char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, u
 
 static pa_sample_spec *parse_sdp_sample_spec(pa_sample_spec *ss, char *c) {
     unsigned rate, channels;
-    assert(ss);
-    assert(c);
+    pa_assert(ss);
+    pa_assert(c);
 
     if (pa_startswith(c, "L16/")) {
         ss->format = PA_SAMPLE_S16BE;
@@ -123,8 +118,8 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
     uint16_t port = 0;
     int ss_valid = 0;
 
-    assert(t);
-    assert(i);
+    pa_assert(t);
+    pa_assert(i);
 
     i->origin = i->session_name = NULL;
     i->salen = 0;
@@ -258,7 +253,7 @@ fail:
 }
 
 void pa_sdp_info_destroy(pa_sdp_info *i) {
-    assert(i);
+    pa_assert(i);
 
     pa_xfree(i->origin);
     pa_xfree(i->session_name);

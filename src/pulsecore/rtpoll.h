@@ -103,7 +103,6 @@ void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_r
  * entered the sleeping poll */
 void pa_rtpoll_item_set_after_callback(pa_rtpoll_item *i, void (*after_cb)(pa_rtpoll_item *i));
 
-
 void pa_rtpoll_item_set_userdata(pa_rtpoll_item *i, void *userdata);
 void* pa_rtpoll_item_get_userdata(pa_rtpoll_item *i);
 

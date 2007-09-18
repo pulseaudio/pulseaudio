@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -48,6 +47,8 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/sample-util.h>
+#include <pulsecore/macro.h>
 
 #include "module-rtp-send-symdef.h"
 
@@ -74,7 +75,7 @@ PA_MODULE_USAGE(
 #define DEFAULT_DESTINATION "224.0.0.56"
 #define MEMBLOCKQ_MAXLENGTH (1024*170)
 #define DEFAULT_MTU 1280
-#define SAP_INTERVAL 5000000
+#define SAP_INTERVAL 5
 
 static const char* const valid_modargs[] = {
     "source",
@@ -90,7 +91,6 @@ static const char* const valid_modargs[] = {
 
 struct userdata {
     pa_module *module;
-    pa_core *core;
 
     pa_source_output *source_output;
     pa_memblockq *memblockq;
@@ -102,56 +102,67 @@ struct userdata {
     pa_time_event *sap_event;
 };
 
+/* Called from I/O thread context */
+static int source_output_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
+    struct userdata *u;
+    pa_assert_se(u = PA_SOURCE_OUTPUT(o)->userdata);
+
+    switch (code) {
+        case PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY:
+            *((pa_usec_t*) data) = pa_bytes_to_usec(pa_memblockq_get_length(u->memblockq), &u->source_output->sample_spec);
+            
+            /* Fall through, the default handler will add in the extra
+             * latency added by the resampler */
+            break;
+    }
+
+    return pa_source_output_process_msg(o, code, data, offset, chunk);
+}
+
+/* Called from I/O thread context */
 static void source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     struct userdata *u;
-    assert(o);
-    u = o->userdata;
+    pa_source_output_assert_ref(o);
+    pa_assert_se(u = o->userdata);
 
     if (pa_memblockq_push(u->memblockq, chunk) < 0) {
-        pa_log("Failed to push chunk into memblockq.");
+        pa_log_warn("Failed to push chunk into memblockq.");
         return;
     }
 
     pa_rtp_send(&u->rtp_context, u->mtu, u->memblockq);
 }
 
+/* Called from main context */
 static void source_output_kill(pa_source_output* o) {
     struct userdata *u;
-    assert(o);
-    u = o->userdata;
+    pa_source_output_assert_ref(o);
+    pa_assert_se(u = o->userdata);
 
     pa_module_unload_request(u->module);
 
-    pa_source_output_disconnect(u->source_output);
+    pa_source_output_unlink(u->source_output);
     pa_source_output_unref(u->source_output);
     u->source_output = NULL;
-}
-
-static pa_usec_t source_output_get_latency (pa_source_output *o) {
-    struct userdata *u;
-    assert(o);
-    u = o->userdata;
-
-    return pa_bytes_to_usec(pa_memblockq_get_length(u->memblockq), &o->sample_spec);
 }
 
 static void sap_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *tv, void *userdata) {
     struct userdata *u = userdata;
     struct timeval next;
 
-    assert(m);
-    assert(t);
-    assert(tv);
-    assert(u);
+    pa_assert(m);
+    pa_assert(t);
+    pa_assert(tv);
+    pa_assert(u);
 
     pa_sap_send(&u->sap_context, 0);
 
     pa_gettimeofday(&next);
-    pa_timeval_add(&next, SAP_INTERVAL);
+    pa_timeval_add(&next, SAP_INTERVAL * PA_USEC_PER_SEC);
     m->time_restart(t, &next);
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     struct userdata *u;
     pa_modargs *ma = NULL;
     const char *dest;
@@ -173,21 +184,20 @@ int pa__init(pa_core *c, pa_module*m) {
     int loop = 0;
     pa_source_output_new_data data;
 
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log("failed to parse module arguments");
+        pa_log("Failed to parse module arguments");
         goto fail;
     }
 
     if (!(s = pa_namereg_get(m->core, pa_modargs_get_value(ma, "source", NULL), PA_NAMEREG_SOURCE, 1))) {
-        pa_log("source does not exist.");
+        pa_log("Source does not exist.");
         goto fail;
     }
 
     if (pa_modargs_get_value_boolean(ma, "loop", &loop) < 0) {
-        pa_log("failed to parse \"loop\" parameter.");
+        pa_log("Failed to parse \"loop\" parameter.");
         goto fail;
     }
 
@@ -195,12 +205,12 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_rtp_sample_spec_fixup(&ss);
     cm = s->channel_map;
     if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log("failed to parse sample specification");
+        pa_log("Failed to parse sample specification");
         goto fail;
     }
 
     if (!pa_rtp_sample_spec_valid(&ss)) {
-        pa_log("specified sample type not compatible with RTP");
+        pa_log("Specified sample type not compatible with RTP");
         goto fail;
     }
 
@@ -209,10 +219,10 @@ int pa__init(pa_core *c, pa_module*m) {
 
     payload = pa_rtp_payload_from_sample_spec(&ss);
 
-    mtu = (DEFAULT_MTU/pa_frame_size(&ss))*pa_frame_size(&ss);
+    mtu = pa_frame_align(DEFAULT_MTU, &ss);
 
     if (pa_modargs_get_value_u32(ma, "mtu", &mtu) < 0 || mtu < 1 || mtu % pa_frame_size(&ss) != 0) {
-        pa_log("invalid mtu.");
+        pa_log("Invalid MTU.");
         goto fail;
     }
 
@@ -223,7 +233,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (port & 1)
-        pa_log_warn("WARNING: port number not even as suggested in RFC3550!");
+        pa_log_warn("Port number not even as suggested in RFC3550!");
 
     dest = pa_modargs_get_value(ma, "destination", DEFAULT_DESTINATION);
 
@@ -238,7 +248,7 @@ int pa__init(pa_core *c, pa_module*m) {
         sap_sa4 = sa4;
         sap_sa4.sin_port = htons(SAP_PORT);
     } else {
-        pa_log("invalid destination '%s'", dest);
+        pa_log("Invalid destination '%s'", dest);
         goto fail;
     }
 
@@ -268,6 +278,9 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
+    /* If the socket queue is full, let's drop packets */
+    pa_make_nonblock_fd(fd);
+
     pa_source_output_new_data_init(&data);
     data.name = "RTP Monitor Stream";
     data.driver = __FILE__;
@@ -276,21 +289,20 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_source_output_new_data_set_sample_spec(&data, &ss);
     pa_source_output_new_data_set_channel_map(&data, &cm);
 
-    if (!(o = pa_source_output_new(c, &data, 0))) {
+    if (!(o = pa_source_output_new(m->core, &data, 0))) {
         pa_log("failed to create source output.");
         goto fail;
     }
 
+    o->parent.process_msg = source_output_process_msg;
     o->push = source_output_push;
     o->kill = source_output_kill;
-    o->get_latency = source_output_get_latency;
 
     u = pa_xnew(struct userdata, 1);
     m->userdata = u;
     o->userdata = u;
 
     u->module = m;
-    u->core = c;
     u->source_output = o;
 
     u->memblockq = pa_memblockq_new(
@@ -305,8 +317,7 @@ int pa__init(pa_core *c, pa_module*m) {
     u->mtu = mtu;
 
     k = sizeof(sa_dst);
-    r = getsockname(fd, (struct sockaddr*) &sa_dst, &k);
-    assert(r >= 0);
+    pa_assert_se((r = getsockname(fd, (struct sockaddr*) &sa_dst, &k)) >= 0);
 
     n = pa_sprintf_malloc("PulseAudio RTP Stream on %s", pa_get_fqdn(hn, sizeof(hn)));
 
@@ -317,18 +328,20 @@ int pa__init(pa_core *c, pa_module*m) {
 
     pa_xfree(n);
 
-    pa_rtp_context_init_send(&u->rtp_context, fd, c->cookie, payload, pa_frame_size(&ss));
+    pa_rtp_context_init_send(&u->rtp_context, fd, m->core->cookie, payload, pa_frame_size(&ss));
     pa_sap_context_init_send(&u->sap_context, sap_fd, p);
 
     pa_log_info("RTP stream initialized with mtu %u on %s:%u, SSRC=0x%08x, payload=%u, initial sequence #%u", mtu, dest, port, u->rtp_context.ssrc, payload, u->rtp_context.sequence);
-    pa_log_info("SDP-Data:\n%s\n"__FILE__": EOF", p);
+    pa_log_info("SDP-Data:\n%s\nEOF", p);
 
     pa_sap_send(&u->sap_context, 0);
 
     pa_gettimeofday(&tv);
-    pa_timeval_add(&tv, SAP_INTERVAL);
-    u->sap_event = c->mainloop->time_new(c->mainloop, &tv, sap_event_cb, u);
+    pa_timeval_add(&tv, SAP_INTERVAL * PA_USEC_PER_SEC);
+    u->sap_event = m->core->mainloop->time_new(m->core->mainloop, &tv, sap_event_cb, u);
 
+    pa_source_output_put(u->source_output);
+    
     pa_modargs_free(ma);
 
     return 0;
@@ -338,31 +351,31 @@ fail:
         pa_modargs_free(ma);
 
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
 
     if (sap_fd >= 0)
-        close(sap_fd);
+        pa_close(sap_fd);
 
     if (o) {
-        pa_source_output_disconnect(o);
+        pa_source_output_unlink(o);
         pa_source_output_unref(o);
     }
 
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!(u = m->userdata))
         return;
 
-    c->mainloop->time_free(u->sap_event);
+    if (u->sap_event)
+        m->core->mainloop->time_free(u->sap_event);
 
     if (u->source_output) {
-        pa_source_output_disconnect(u->source_output);
+        pa_source_output_unlink(u->source_output);
         pa_source_output_unref(u->source_output);
     }
 
@@ -371,7 +384,8 @@ void pa__done(pa_core *c, pa_module*m) {
     pa_sap_send(&u->sap_context, 1);
     pa_sap_context_destroy(&u->sap_context);
 
-    pa_memblockq_free(u->memblockq);
+    if (u->memblockq)
+        pa_memblockq_free(u->memblockq);
 
     pa_xfree(u);
 }

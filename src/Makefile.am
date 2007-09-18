@@ -947,11 +947,11 @@ modlibexec_LTLIBRARIES += \
 #		module-esound-sink.la
 
 # See comment at librtp.la above
-#if !OS_IS_WIN32
-#modlibexec_LTLIBRARIES += \
-#		module-rtp-send.la \
-#		module-rtp-recv.la
-#endif
+if !OS_IS_WIN32
+modlibexec_LTLIBRARIES += \
+		module-rtp-send.la \
+		module-rtp-recv.la
+endif
 
 if HAVE_AF_UNIX
 modlibexec_LTLIBRARIES += \
@@ -1342,15 +1342,15 @@ module_suspend_on_idle_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
 
 # RTP modules
-#module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
-#module_rtp_send_la_LDFLAGS = -module -avoid-version
-#module_rtp_send_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la
-#module_rtp_send_la_CFLAGS = $(AM_CFLAGS)
+module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
+module_rtp_send_la_LDFLAGS = -module -avoid-version
+module_rtp_send_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la
+module_rtp_send_la_CFLAGS = $(AM_CFLAGS)
 
-#module_rtp_recv_la_SOURCES = modules/rtp/module-rtp-recv.c
-#module_rtp_recv_la_LDFLAGS = -module -avoid-version
-#module_rtp_recv_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la
-#module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
+module_rtp_recv_la_SOURCES = modules/rtp/module-rtp-recv.c
+module_rtp_recv_la_LDFLAGS = -module -avoid-version
+module_rtp_recv_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la
+module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
 
 # JACK
 
