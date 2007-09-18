@@ -627,9 +627,14 @@ PA_STATIC_TLS_DECLARE(signame, pa_xfree);
 const char *pa_sig2str(int sig) {
     char *t;
 
-    if (sig <= 0 || sig >= _NSIG)
+    if (sig <= 0)
         goto fail;
-    
+
+#ifdef NSIG
+	if (sig >= NSIG)
+		goto fail;
+#endif
+
 #ifdef HAVE_SIG2STR
     {
         char buf[SIG2STR_MAX];
