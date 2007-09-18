@@ -267,7 +267,7 @@ AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 #### Check for functions ####
 
 # ISO
-AC_CHECK_FUNCS([lrintf])
+AC_CHECK_FUNCS([lrintf strtof])
 
 # POSIX
 AC_FUNC_FORK

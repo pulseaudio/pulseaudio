@@ -1300,7 +1300,11 @@ int pa_atof(const char *s, float *ret_f) {
 #endif
     {
         errno = 0;
+#ifdef HAVE_STRTOF
         f = strtof(s, &x);
+#else
+        f = strtod(s, &x);
+#endif
     }
 
     if (!x || *x || errno != 0)
