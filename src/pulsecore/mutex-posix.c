@@ -26,9 +26,12 @@
 #endif
 
 #include <pthread.h>
+#include <errno.h>
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/log.h>
+#include <pulsecore/core-error.h>
 
 #include "mutex.h"
 
@@ -43,19 +46,36 @@ struct pa_cond {
 pa_mutex* pa_mutex_new(pa_bool_t recursive, pa_bool_t inherit_priority) {
     pa_mutex *m;
     pthread_mutexattr_t attr;
+    int r;
 
-    pthread_mutexattr_init(&attr);
+    pa_assert_se(pthread_mutexattr_init(&attr) == 0);
     
     if (recursive)
         pa_assert_se(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE) == 0);
 
 #ifdef HAVE_PTHREAD_PRIO_INHERIT
     if (inherit_priority)
-        pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+        pa_assert_se(pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT) == 0);
 #endif
 
     m = pa_xnew(pa_mutex, 1);
+
+#ifndef HAVE_PTHREAD_PRIO_INHERIT        
     pa_assert_se(pthread_mutex_init(&m->mutex, &attr) == 0);
+    
+#else
+    if ((r = pthread_mutex_init(&m->mutex, &attr))) {
+
+        /* If this failed, then this was probably due to non-available
+         * priority inheritance. In which case we fall back to normal
+         * mutexes. */
+        pa_assert(r == ENOTSUP && inherit_priority);
+
+        pa_assert_se(pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_NONE) == 0);
+        pa_assert_se(pthread_mutex_init(&m->mutex, &attr) == 0);
+    }
+#endif        
+    
     return m;
 }
 
