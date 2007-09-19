@@ -774,6 +774,10 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
                     NULL,
                     NULL);
 
+            info.ghost_sink_input->thread_info.state = info.ghost_sink_input->state = PA_SINK_INPUT_RUNNING;
+            info.ghost_sink_input->thread_info.volume = info.ghost_sink_input->volume;
+            info.ghost_sink_input->thread_info.muted = info.ghost_sink_input->muted;
+            
             info.buffer = pa_memblockq_new(0, MOVE_BUFFER_LENGTH, 0, pa_frame_size(&origin->sample_spec), 0, 0, NULL);
         }
     }
@@ -782,9 +786,6 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
 
     if (info.ghost_sink_input) {
         /* Basically, do what pa_sink_input_put() does ...*/
-        info.ghost_sink_input->thread_info.state = info.ghost_sink_input->state = PA_SINK_INPUT_RUNNING;
-        info.ghost_sink_input->thread_info.volume = info.ghost_sink_input->volume;
-        info.ghost_sink_input->thread_info.muted = info.ghost_sink_input->muted;
         
         pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, info.ghost_sink_input->index);
         pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], info.ghost_sink_input);
