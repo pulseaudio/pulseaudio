@@ -75,7 +75,7 @@ void av_build_filter(int16_t *filter, double factor, int tap_count, int phase_co
 /*
  * crude lrintf for non-C99 systems.
  */
-#ifndef HAVE_LFRINTF
+#ifndef HAVE_LRINTF
 #define lrintf(x) ((long int)(x))
 #endif
 
