@@ -25,6 +25,10 @@
  * ffmpeg, just enough to get resample2.c to compile without
  * modification -- Lennart */
 
+#if !defined(PACKAGE) && defined(HAVE_CONFIG_H)
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <inttypes.h>
 #include <math.h>
@@ -67,5 +71,12 @@ int av_resample(struct AVResampleContext *c, short *dst, short *src, int *consum
 void av_resample_compensate(struct AVResampleContext *c, int sample_delta, int compensation_distance);
 void av_resample_close(struct AVResampleContext *c);
 void av_build_filter(int16_t *filter, double factor, int tap_count, int phase_count, int scale, int type);
+
+/*
+ * crude lrintf for non-C99 systems.
+ */
+#ifndef HAVE_LFRINTF
+#define lrintf(x) ((long int)(x))
+#endif
 
 #endif /* AVCODEC_H */
