@@ -141,7 +141,7 @@ success:
 #endif
                  *pcaps & DSP_CAP_TRIGGER ? " TRIGGER" : "");
 
-    pa_fd_set_cloexec(fd, 1);
+    pa_make_fd_cloexec(fd);
 
     return fd;
 

@@ -236,8 +236,8 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    pa_fd_set_cloexec(u->fd, 1);
-    pa_make_nonblock_fd(u->fd);
+    pa_make_fd_cloexec(u->fd);
+    pa_make_fd_nonblock(u->fd);
 
     if (fstat(u->fd, &st) < 0) {
         pa_log("fstat('%s'): %s", u->filename, pa_cstrerror(errno));

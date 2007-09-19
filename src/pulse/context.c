@@ -498,10 +498,10 @@ static int context_connect_spawn(pa_context *c) {
         goto fail;
     }
 
-    pa_fd_set_cloexec(fds[0], 1);
+    pa_make_fd_cloexec(fds[0]);
 
-    pa_socket_low_delay(fds[0]);
-    pa_socket_low_delay(fds[1]);
+    pa_make_socket_low_delay(fds[0]);
+    pa_make_socket_low_delay(fds[1]);
 
     if (c->spawn_api.prefork)
         c->spawn_api.prefork();

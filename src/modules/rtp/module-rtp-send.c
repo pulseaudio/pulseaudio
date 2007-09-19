@@ -280,8 +280,10 @@ int pa__init(pa_module*m) {
     }
 
     /* If the socket queue is full, let's drop packets */
-    pa_make_nonblock_fd(fd);
-    pa_socket_udp_low_delay(fd);
+    pa_make_fd_nonblock(fd);
+    pa_make_udp_socket_low_delay(fd);
+    pa_make_fd_cloexec(fd);
+    pa_make_fd_cloexec(sap_fd);
 
     pa_source_output_new_data_init(&data);
     data.name = "RTP Monitor Stream";

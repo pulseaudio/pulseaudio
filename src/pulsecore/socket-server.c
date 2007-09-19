@@ -111,7 +111,7 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_U
         goto finish;
     }
 
-    pa_fd_set_cloexec(nfd, 1);
+    pa_make_fd_cloexec(nfd);
 
     if (!s->on_connection) {
         pa_close(nfd);
@@ -137,9 +137,9 @@ static void callback(pa_mainloop_api *mainloop, pa_io_event *e, int fd, PA_GCC_U
 
     /* There should be a check for socket type here */
     if (s->type == SOCKET_SERVER_IPV4)
-        pa_socket_tcp_low_delay(fd);
+        pa_make_tcp_socket_low_delay(fd);
     else
-        pa_socket_low_delay(fd);
+        pa_make_socket_low_delay(fd);
 
     pa_assert_se(io = pa_iochannel_new(s->mainloop, nfd, nfd));
     s->on_connection(s, io, s->userdata);
@@ -193,13 +193,13 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
         goto fail;
     }
 
-    pa_fd_set_cloexec(fd, 1);
+    pa_make_fd_cloexec(fd);
 
     sa.sun_family = AF_UNIX;
     strncpy(sa.sun_path, filename, sizeof(sa.sun_path)-1);
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
-    pa_socket_low_delay(fd);
+    pa_make_socket_low_delay(fd);
 
     if (bind(fd, (struct sockaddr*) &sa, SUN_LEN(&sa)) < 0) {
         pa_log("bind(): %s", pa_cstrerror(errno));
@@ -253,14 +253,14 @@ pa_socket_server* pa_socket_server_new_ipv4(pa_mainloop_api *m, uint32_t address
         goto fail;
     }
 
-    pa_fd_set_cloexec(fd, 1);
+    pa_make_fd_cloexec(fd);
 
 #ifdef SO_REUSEADDR
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
         pa_log("setsockopt(): %s", pa_cstrerror(errno));
 #endif
 
-    pa_socket_tcp_low_delay(fd);
+    pa_make_tcp_socket_low_delay(fd);
 
     memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
@@ -305,7 +305,7 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
         goto fail;
     }
 
-    pa_fd_set_cloexec(fd, 1);
+    pa_make_fd_cloexec(fd);
 
 #ifdef IPV6_V6ONLY
     if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0)
@@ -317,7 +317,7 @@ pa_socket_server* pa_socket_server_new_ipv6(pa_mainloop_api *m, const uint8_t ad
         pa_log("setsockopt(SOL_SOCKET, SO_REUSEADDR, 1): %s", pa_cstrerror(errno));
 #endif
 
-    pa_socket_tcp_low_delay(fd);
+    pa_make_tcp_socket_low_delay(fd);
 
     memset(&sa, 0, sizeof(sa));
     sa.sin6_family = AF_INET6;

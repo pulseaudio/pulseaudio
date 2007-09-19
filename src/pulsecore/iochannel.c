@@ -145,17 +145,17 @@ pa_iochannel* pa_iochannel_new(pa_mainloop_api*m, int ifd, int ofd) {
 
     if (ifd == ofd) {
         pa_assert(ifd >= 0);
-        pa_make_nonblock_fd(io->ifd);
+        pa_make_fd_nonblock(io->ifd);
         io->input_event = io->output_event = m->io_new(m, ifd, PA_IO_EVENT_INPUT|PA_IO_EVENT_OUTPUT, callback, io);
     } else {
 
         if (ifd >= 0) {
-            pa_make_nonblock_fd(io->ifd);
+            pa_make_fd_nonblock(io->ifd);
             io->input_event = m->io_new(m, ifd, PA_IO_EVENT_INPUT, callback, io);
         }
 
         if (ofd >= 0) {
-            pa_make_nonblock_fd(io->ofd);
+            pa_make_fd_nonblock(io->ofd);
             io->output_event = m->io_new(m, ofd, PA_IO_EVENT_OUTPUT, callback, io);
         }
     }

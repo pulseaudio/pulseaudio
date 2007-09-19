@@ -134,23 +134,42 @@ int pa_set_root(HANDLE handle) {
 #endif
 
 /** Make a file descriptor nonblock. Doesn't do any error checking */
-void pa_make_nonblock_fd(int fd) {
+void pa_make_fd_nonblock(int fd) {
+
 #ifdef O_NONBLOCK
     int v;
     pa_assert(fd >= 0);
 
-    if ((v = fcntl(fd, F_GETFL)) >= 0)
-        if (!(v & O_NONBLOCK))
-            fcntl(fd, F_SETFL, v|O_NONBLOCK);
+    pa_assert_se((v = fcntl(fd, F_GETFL)) >= 0);
+
+    if (!(v & O_NONBLOCK))
+        pa_assert_se(fcntl(fd, F_SETFL, v|O_NONBLOCK) >= 0);
+    
 #elif defined(OS_IS_WIN32)
     u_long arg = 1;
     if (ioctlsocket(fd, FIONBIO, &arg) < 0) {
-        if (WSAGetLastError() == WSAENOTSOCK)
-            pa_log_warn("Only sockets can be made non-blocking!");
+        pa_assert_se(WSAGetLastError() == WSAENOTSOCK);
+        pa_log_warn("Only sockets can be made non-blocking!");
     }
 #else
     pa_log_warn("Non-blocking I/O not supported.!");
 #endif
+
+}
+
+/* Set the FD_CLOEXEC flag for a fd */
+void pa_make_fd_cloexec(int fd) {
+
+#ifdef FD_CLOEXEC
+    int v;
+    pa_assert(fd >= 0);
+
+    pa_assert_se((v = fcntl(fd, F_GETFD, 0)) >= 0);
+
+    if (!(v & FD_CLOEXEC))
+        pa_assert_se(fcntl(fd, F_SETFD, v|FD_CLOEXEC) >= 0);
+#endif
+
 }
 
 /** Creates a directory securely */
@@ -552,25 +571,6 @@ void pa_reset_priority(void) {
 #endif
 }
 
-/* Set the FD_CLOEXEC flag for a fd */
-int pa_fd_set_cloexec(int fd, int b) {
-
-#ifdef FD_CLOEXEC
-    int v;
-    pa_assert(fd >= 0);
-
-    if ((v = fcntl(fd, F_GETFD, 0)) < 0)
-        return -1;
-
-    v = (v & ~FD_CLOEXEC) | (b ? FD_CLOEXEC : 0);
-
-    if (fcntl(fd, F_SETFD, v) < 0)
-        return -1;
-#endif
-
-    return 0;
-}
-
 /* Try to parse a boolean string value.*/
 int pa_parse_boolean(const char *v) {
 
@@ -629,12 +629,12 @@ const char *pa_sig2str(int sig) {
 
     if (sig <= 0)
         goto fail;
-
+ 
 #ifdef NSIG
-	if (sig >= NSIG)
-		goto fail;
+    if (sig >= NSIG)
+        goto fail;
 #endif
-
+        
 #ifdef HAVE_SIG2STR
     {
         char buf[SIG2STR_MAX];

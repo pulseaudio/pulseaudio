@@ -34,7 +34,8 @@
 
 struct timeval;
 
-void pa_make_nonblock_fd(int fd);
+void pa_make_fd_nonblock(int fd);
+void pa_make_fd_cloexec(int fd);
 
 int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid);
 int pa_make_secure_parent_dir(const char *fn, mode_t, uid_t uid, gid_t gid);
@@ -58,8 +59,6 @@ char *pa_parent_dir(const char *fn);
 void pa_make_realtime(void);
 void pa_raise_priority(void);
 void pa_reset_priority(void);
-
-int pa_fd_set_cloexec(int fd, int b);
 
 int pa_parse_boolean(const char *s) PA_GCC_PURE;
 

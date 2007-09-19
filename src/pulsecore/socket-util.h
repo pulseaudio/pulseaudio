@@ -29,9 +29,9 @@
 
 void pa_socket_peer_to_string(int fd, char *c, size_t l);
 
-int pa_socket_low_delay(int fd);
-int pa_socket_tcp_low_delay(int fd);
-int pa_socket_udp_low_delay(int fd);
+void pa_make_socket_low_delay(int fd);
+void pa_make_tcp_socket_low_delay(int fd);
+void pa_make_udp_socket_low_delay(int fd);
 
 int pa_socket_set_sndbuf(int fd, size_t l);
 int pa_socket_set_rcvbuf(int fd, size_t l);

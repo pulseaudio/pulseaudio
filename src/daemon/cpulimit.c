@@ -184,10 +184,10 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
         return -1;
     }
 
-    pa_make_nonblock_fd(the_pipe[0]);
-    pa_make_nonblock_fd(the_pipe[1]);
-    pa_fd_set_cloexec(the_pipe[0], 1);
-    pa_fd_set_cloexec(the_pipe[1], 1);
+    pa_make_fd_nonblock(the_pipe[0]);
+    pa_make_fd_nonblock(the_pipe[1]);
+    pa_make_fd_cloexec(the_pipe[0]);
+    pa_make_fd_cloexec(the_pipe[1]);
 
     api = m;
     io_event = api->io_new(m, the_pipe[0], PA_IO_EVENT_INPUT, callback, NULL);

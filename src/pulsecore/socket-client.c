@@ -208,7 +208,7 @@ static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t 
     pa_assert(sa);
     pa_assert(len > 0);
 
-    pa_make_nonblock_fd(c->fd);
+    pa_make_fd_nonblock(c->fd);
 
     if ((r = connect(c->fd, sa, len)) < 0) {
 #ifdef OS_IS_WIN32
@@ -293,11 +293,11 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
         return -1;
     }
 
-    pa_fd_set_cloexec(c->fd, 1);
+    pa_make_fd_cloexec(c->fd);
     if (sa->sa_family == AF_INET || sa->sa_family == AF_INET6)
-        pa_socket_tcp_low_delay(c->fd);
+        pa_make_tcp_socket_low_delay(c->fd);
     else
-        pa_socket_low_delay(c->fd);
+        pa_make_socket_low_delay(c->fd);
 
     if (do_connect(c, sa, salen) < 0)
         return -1;

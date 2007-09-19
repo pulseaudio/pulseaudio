@@ -123,10 +123,10 @@ int pa_signal_init(pa_mainloop_api *a) {
         return -1;
     }
 
-    pa_make_nonblock_fd(signal_pipe[0]);
-    pa_make_nonblock_fd(signal_pipe[1]);
-    pa_assert_se(pa_fd_set_cloexec(signal_pipe[0], 1) == 0);
-    pa_assert_se(pa_fd_set_cloexec(signal_pipe[1], 1) == 0);
+    pa_make_fd_nonblock(signal_pipe[0]);
+    pa_make_fd_nonblock(signal_pipe[1]);
+    pa_make_fd_cloexec(signal_pipe[0]);
+    pa_make_fd_cloexec(signal_pipe[1]);
 
     api = a;
 
