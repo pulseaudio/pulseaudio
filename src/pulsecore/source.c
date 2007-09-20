@@ -139,7 +139,7 @@ void pa_source_put(pa_source *s) {
 
 static int source_set_state(pa_source *s, pa_source_state_t state) {
     int ret;
-    
+
     pa_assert(s);
 
     if (s->state == state)
@@ -147,14 +147,14 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 
     if (state == PA_SOURCE_SUSPENDED && !(s->flags & PA_SOURCE_CAN_SUSPEND))
         return -1;
-    
+
     if ((s->state == PA_SOURCE_SUSPENDED && PA_SOURCE_OPENED(state)) ||
         (PA_SOURCE_OPENED(s->state) && state == PA_SOURCE_SUSPENDED)) {
         pa_source_output *o;
         uint32_t idx;
-        
+
         /* We're suspending or resuming, tell everyone about it */
-        
+
         for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx)))
             if (o->suspend)
                 o->suspend(o, state == PA_SINK_SUSPENDED);
@@ -180,7 +180,7 @@ void pa_source_unlink(pa_source *s) {
     pa_assert(s);
     pa_assert(PA_SOURCE_LINKED(s->state));
 
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], s);    
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], s);
 
     pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sources, s, NULL);
@@ -202,7 +202,7 @@ void pa_source_unlink(pa_source *s) {
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
 
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK_POST], s);    
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK_POST], s);
 }
 
 static void source_free(pa_object *o) {
@@ -221,7 +221,7 @@ static void source_free(pa_object *o) {
 
     while ((so = pa_hashmap_steal_first(s->thread_info.outputs)))
         pa_source_output_unref(so);
-    
+
     pa_hashmap_free(s->thread_info.outputs, NULL, NULL);
 
     pa_xfree(s->name);
@@ -267,7 +267,7 @@ void pa_source_post(pa_source*s, const pa_memchunk *chunk) {
 
     if (s->thread_info.state != PA_SOURCE_RUNNING)
         return;
-    
+
     if (s->thread_info.soft_muted || !pa_cvolume_is_norm(&s->thread_info.soft_volume)) {
         pa_memchunk vchunk = *chunk;
 
@@ -436,7 +436,7 @@ unsigned pa_source_linked_by(pa_source *s) {
 
 unsigned pa_source_used_by(pa_source *s) {
     unsigned ret;
-    
+
     pa_source_assert_ref(s);
     pa_assert(PA_SOURCE_LINKED(s->state));
 
@@ -456,9 +456,12 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             pa_source_output *o = PA_SOURCE_OUTPUT(userdata);
             pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index), pa_source_output_ref(o));
 
+            pa_assert(!o->thread_info.attached);
+            o->thread_info.attached = TRUE;
+
             if (o->attach)
                 o->attach(o);
-            
+
             return 0;
         }
 
@@ -467,6 +470,9 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             if (o->detach)
                 o->detach(o);
+
+            pa_assert(o->thread_info.attached);
+            o->thread_info.attached = FALSE;
 
             if (pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index)))
                 pa_source_output_unref(o);
@@ -510,7 +516,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
             /* Reattach all streams */
             pa_source_attach_within_thread(s);
             break;
-            
+
         case PA_SOURCE_MESSAGE_GET_LATENCY:
         case PA_SOURCE_MESSAGE_MAX:
             ;
@@ -523,9 +529,9 @@ int pa_source_suspend_all(pa_core *c, pa_bool_t suspend) {
     uint32_t idx;
     pa_source *source;
     int ret = 0;
-    
+
     pa_core_assert_ref(c);
-    
+
     for (source = PA_SOURCE(pa_idxset_first(c->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(c->sources, &idx)))
         ret -= pa_source_suspend(source, suspend) < 0;
 

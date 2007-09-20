@@ -155,7 +155,7 @@ void pa_sink_put(pa_sink* s) {
     pa_assert(s->rtpoll);
 
     s->thread_info.state = s->state = PA_SINK_IDLE;
-    
+
     pa_source_put(s->monitor_source);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
@@ -164,7 +164,7 @@ void pa_sink_put(pa_sink* s) {
 
 static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     int ret;
-    
+
     pa_assert(s);
 
     if (s->state == state)
@@ -177,14 +177,14 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
         (PA_SINK_OPENED(s->state) && state == PA_SINK_SUSPENDED)) {
         pa_sink_input *i;
         uint32_t idx;
-        
+
         /* We're suspending or resuming, tell everyone about it */
-        
+
         for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx)))
             if (i->suspend)
                 i->suspend(i, state == PA_SINK_SUSPENDED);
     }
-    
+
     if (s->set_state)
         if ((ret = s->set_state(s, state)) < 0)
             return -1;
@@ -206,7 +206,7 @@ void pa_sink_unlink(pa_sink* s) {
     pa_assert(PA_SINK_LINKED(s->state));
 
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_UNLINK], s);
-    
+
     pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
 
@@ -254,12 +254,12 @@ static void sink_free(pa_object *o) {
 
     while ((i = pa_hashmap_steal_first(s->thread_info.inputs)))
         pa_sink_input_unref(i);
-    
+
     pa_hashmap_free(s->thread_info.inputs, NULL, NULL);
 
     if (s->silence)
         pa_memblock_unref(s->silence);
-    
+
     pa_xfree(s->name);
     pa_xfree(s->description);
     pa_xfree(s->driver);
@@ -401,7 +401,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     pa_mix_info info[MAX_MIX_CHANNELS];
     unsigned n;
     size_t block_size_max;
-    
+
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
@@ -417,7 +417,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
         length = pa_frame_align(block_size_max, &s->sample_spec);
 
     pa_assert(length > 0);
-    
+
     n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, length, info, MAX_MIX_CHANNELS) : 0;
 
     if (n == 0) {
@@ -595,10 +595,10 @@ void pa_sink_skip(pa_sink *s, size_t length) {
     pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(length > 0);
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
-    
+
     if (pa_source_used_by(s->monitor_source)) {
         pa_memchunk chunk;
-        
+
         /* If something is connected to our monitor source, we have to
          * pass valid data to it */
 
@@ -609,7 +609,7 @@ void pa_sink_skip(pa_sink *s, size_t length) {
             pa_assert(chunk.length <= length);
             length -= chunk.length;
         }
-        
+
     } else {
         /* Ok, noone cares about the rendered data, so let's not even render it */
 
@@ -792,7 +792,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
     pa_assert(PA_SINK_LINKED(s->thread_info.state));
 
     switch ((pa_sink_message_t) code) {
-        
+
         case PA_SINK_MESSAGE_ADD_INPUT: {
             pa_sink_input *i = PA_SINK_INPUT(userdata);
             pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index), pa_sink_input_ref(i));
@@ -813,6 +813,9 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 i->thread_info.sync_next->thread_info.sync_prev = i;
             }
 
+            pa_assert(!i->thread_info.attached);
+            i->thread_info.attached = TRUE;
+
             if (i->attach)
                 i->attach(i);
 
@@ -824,14 +827,17 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             if (i->detach)
                 i->detach(i);
-            
+
+            pa_assert(i->thread_info.attached);
+            i->thread_info.attached = FALSE;
+
             /* Since the caller sleeps in pa_sink_input_unlink(),
              * we can safely access data outside of thread_info even
              * though it is mutable */
 
             pa_assert(!i->thread_info.sync_prev);
             pa_assert(!i->thread_info.sync_next);
-            
+
             if (i->thread_info.sync_prev) {
                 i->thread_info.sync_prev->thread_info.sync_next = i->thread_info.sync_prev->sync_next;
                 i->thread_info.sync_prev = NULL;
@@ -841,10 +847,10 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 i->thread_info.sync_next->thread_info.sync_prev = i->thread_info.sync_next->sync_prev;
                 i->thread_info.sync_next = NULL;
             }
-            
+
             if (pa_hashmap_remove(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index)))
                 pa_sink_input_unref(i);
-            
+
             return 0;
         }
 
@@ -857,37 +863,37 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             pa_assert(!info->sink_input->sync_next);
             pa_assert(!info->sink_input->thread_info.sync_next);
             pa_assert(!info->sink_input->thread_info.sync_prev);
-            
+
             if (info->ghost_sink_input) {
                 pa_assert(info->buffer_bytes > 0);
                 pa_assert(info->buffer);
-                
+
                 volume_is_norm = pa_cvolume_is_norm(&info->sink_input->thread_info.volume);
 
                 pa_log_debug("Buffering %lu bytes ...", (unsigned long) info->buffer_bytes);
-                
+
                 while (info->buffer_bytes > 0) {
                     pa_memchunk memchunk;
                     pa_cvolume volume;
                     size_t n;
-                    
+
                     if (pa_sink_input_peek(info->sink_input, info->buffer_bytes, &memchunk, &volume) < 0)
                         break;
-                    
+
                     n = memchunk.length > info->buffer_bytes ? info->buffer_bytes : memchunk.length;
                     pa_sink_input_drop(info->sink_input, n);
                     memchunk.length = n;
-                    
+
                     if (!volume_is_norm) {
                         pa_memchunk_make_writable(&memchunk, 0);
                         pa_volume_memchunk(&memchunk, &s->sample_spec, &volume);
                     }
-                    
+
                     if (pa_memblockq_push(info->buffer, &memchunk) < 0) {
                         pa_memblock_unref(memchunk.memblock);
                         break;
                     }
-                    
+
                     pa_memblock_unref(memchunk.memblock);
                     info->buffer_bytes -= n;
                 }
@@ -910,7 +916,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(info->ghost_sink_input->index), pa_sink_input_ref(info->ghost_sink_input));
                 info->ghost_sink_input->thread_info.sync_prev = info->ghost_sink_input->thread_info.sync_next = NULL;
             }
-            
+
             return 0;
         }
 
@@ -934,7 +940,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             return 0;
 
         case PA_SINK_MESSAGE_SET_STATE:
-            
+
             s->thread_info.state = PA_PTR_TO_UINT(userdata);
             return 0;
 
@@ -951,7 +957,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             /* Reattach all streams */
             pa_sink_attach_within_thread(s);
             break;
-            
+
         case PA_SINK_MESSAGE_GET_LATENCY:
         case PA_SINK_MESSAGE_MAX:
             ;
@@ -964,7 +970,7 @@ int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend) {
     pa_sink *sink;
     uint32_t idx;
     int ret = 0;
-    
+
     pa_core_assert_ref(c);
 
     for (sink = PA_SINK(pa_idxset_first(c->sinks, &idx)); sink; sink = PA_SINK(pa_idxset_next(c->sinks, &idx)))
@@ -1016,4 +1022,3 @@ void pa_sink_attach_within_thread(pa_sink *s) {
     if (s->monitor_source)
         pa_source_attach_within_thread(s->monitor_source);
 }
-

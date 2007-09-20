@@ -124,6 +124,8 @@ struct pa_sink_input {
     struct {
         pa_sink_input_state_t state;
         pa_atomic_t drained;
+
+        pa_bool_t attached; /* True only between ->attach() and ->detach() calls */
         
         pa_sample_spec sample_spec;
 

@@ -156,6 +156,7 @@ pa_source_output* pa_source_output_new(
     o->userdata = NULL;
 
     o->thread_info.state = o->state;
+    o->thread_info.attached = FALSE;
     o->thread_info.sample_spec = o->sample_spec;
     o->thread_info.resampler = resampler;
 
@@ -186,9 +187,9 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
         pa_assert_se(o->source->n_corked -- >= 1);
     else if (o->state != PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_CORKED)
         o->source->n_corked++;
-    
+
     o->state = state;
-    
+
     return 0;
 }
 
@@ -197,7 +198,7 @@ void pa_source_output_unlink(pa_source_output*o) {
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
 
     pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
-    
+
     pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
 
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
@@ -231,6 +232,8 @@ static void source_output_free(pa_object* mo) {
 
     pa_log_info("Freeing output %u \"%s\"", o->index, o->name);
 
+    pa_assert(!o->thread_info.attached);
+
     if (o->thread_info.resampler)
         pa_resampler_free(o->thread_info.resampler);
 
@@ -258,7 +261,7 @@ void pa_source_output_put(pa_source_output *o) {
 void pa_source_output_kill(pa_source_output*o) {
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
-    
+
     if (o->kill)
         o->kill(o);
 }
@@ -357,7 +360,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
     pa_source_assert_ref(dest);
-    
+
     origin = o->source;
 
     if (dest == origin)
@@ -399,7 +402,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
 
     /* Okey, let's move it */
     pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
-    
+
     pa_idxset_remove_by_data(origin->outputs, o, NULL);
     pa_idxset_put(dest->outputs, o, NULL);
     o->source = dest;
@@ -448,7 +451,7 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
 
             return 0;
         }
-            
+
     }
 
     return -1;

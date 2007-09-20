@@ -99,6 +99,8 @@ struct pa_source_output {
 
     struct {
         pa_source_output_state_t state;
+
+        pa_bool_t attached; /* True only between ->attach() and ->detach() calls */
         
         pa_sample_spec sample_spec;
 
