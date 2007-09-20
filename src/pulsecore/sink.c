@@ -819,11 +819,19 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             if (i->attach)
                 i->attach(i);
 
+            /* If you change anything here, make sure to change the
+             * ghost sink input handling a few lines down at
+             * PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER, too. */
+
             return 0;
         }
 
         case PA_SINK_MESSAGE_REMOVE_INPUT: {
             pa_sink_input *i = PA_SINK_INPUT(userdata);
+
+            /* If you change anything here, make sure to change the
+             * sink input handling a few lines down at
+             * PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER, too. */
 
             if (i->detach)
                 i->detach(i);
@@ -863,6 +871,12 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             pa_assert(!info->sink_input->sync_next);
             pa_assert(!info->sink_input->thread_info.sync_next);
             pa_assert(!info->sink_input->thread_info.sync_prev);
+
+            if (info->sink_input->detach)
+                info->sink_input->detach(info->sink_input);
+
+            pa_assert(info->sink_input->thread_info.attached);
+            info->sink_input->thread_info.attached = FALSE;
 
             if (info->ghost_sink_input) {
                 pa_assert(info->buffer_bytes > 0);
@@ -915,6 +929,12 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             if (info->ghost_sink_input) {
                 pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(info->ghost_sink_input->index), pa_sink_input_ref(info->ghost_sink_input));
                 info->ghost_sink_input->thread_info.sync_prev = info->ghost_sink_input->thread_info.sync_next = NULL;
+
+                pa_assert(!info->ghost_sink_input->thread_info.attached);
+                info->ghost_sink_input->thread_info.attached = TRUE;
+
+                if (info->ghost_sink_input->attach)
+                    info->ghost_sink_input->attach(info->ghost_sink_input);
             }
 
             return 0;
