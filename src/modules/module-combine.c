@@ -394,8 +394,6 @@ static void create_master_rtpolls(struct userdata *u) {
                 u->master->sink->rtpoll,
                 PA_RTPOLL_EARLY+1,  /* This one has a slightly lower priority than the normal message handling */
                 k->outq);
-
-        pa_log("1: %p now has rptoll item %p", k, k->outq_rtpoll_item);
     }
 }
 
@@ -425,8 +423,6 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(o = i->userdata);
-
-    pa_log("attaching %s", i->sink->name);
 
     if (o->userdata->thread_info.master == o) {
         create_master_rtpolls(o->userdata);
@@ -636,6 +632,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case SINK_MESSAGE_SET_MASTER:
+
+            if (u->thread_info.master && data != u->thread_info.master) {
+
+                if (u->thread_info.master->sink_input->thread_info.attached)
+                    free_master_rtpolls(u);
+
+            }
+
             if ((u->thread_info.master = data)) {
 
                 /* There's now a master, and we're being executed in
@@ -645,12 +649,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 if (u->thread_info.master->sink_input->thread_info.attached)
                     create_master_rtpolls(u);
 
-            } else {
-
-                if (u->thread_info.master->sink_input->thread_info.attached)
-                    free_master_rtpolls(u);
-
             }
+
             return 0;
 
         case SINK_MESSAGE_ADD_OUTPUT: {
@@ -667,19 +667,13 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                         u->thread_info.master->sink->rtpoll,
                         PA_RTPOLL_EARLY+1,  /* This one has a slightly lower priority than the normal message handling */
                         op->outq);
-
-                pa_log("2: %p now has rptoll item %p", op, op->outq_rtpoll_item);
             }
-
-            pa_log("Added output %s", op->sink_input->sink->name);
 
             return 0;
         }
 
         case SINK_MESSAGE_REMOVE_OUTPUT: {
             struct output *op = data;
-
-            pa_log("Remove output %s", op->sink_input->sink->name);
 
             PA_LLIST_REMOVE(struct output, u->thread_info.outputs, op);
 
