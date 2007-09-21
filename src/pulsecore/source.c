@@ -175,14 +175,21 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 }
 
 void pa_source_unlink(pa_source *s) {
+    pa_bool_t linked;
     pa_source_output *o, *j = NULL;
 
     pa_assert(s);
-    pa_assert(PA_SOURCE_LINKED(s->state));
 
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], s);
+    /* See pa_sink_unlink() for a couple of comments how this function
+     * works. */
 
-    pa_namereg_unregister(s->core, s->name);
+    linked = PA_SOURCE_LINKED(s->state);
+
+    if (linked)
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], s);
+
+    if (s->state != PA_SOURCE_UNLINKED)
+        pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sources, s, NULL);
 
     while ((o = pa_idxset_first(s->outputs, NULL))) {
@@ -191,7 +198,10 @@ void pa_source_unlink(pa_source *s) {
         j = o;
     }
 
-    source_set_state(s, PA_SOURCE_UNLINKED);
+    if (linked)
+        source_set_state(s, PA_SOURCE_UNLINKED);
+    else
+        s->state = PA_SOURCE_UNLINKED;
 
     s->get_latency = NULL;
     s->get_volume = NULL;
@@ -200,9 +210,10 @@ void pa_source_unlink(pa_source *s) {
     s->get_mute = NULL;
     s->set_state = NULL;
 
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
-
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK_POST], s);
+    if (linked) {
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK_POST], s);
+    }
 }
 
 static void source_free(pa_object *o) {

@@ -264,10 +264,18 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
 }
 
 void pa_sink_input_unlink(pa_sink_input *i) {
+    pa_bool_t linked;
     pa_assert(i);
-    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
-    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], i);
+    /* See pa_sink_unlink() for a couple of comments how this function
+     * works */
+
+    pa_sink_input_ref(i);
+
+    linked = PA_SINK_INPUT_LINKED(i->state);
+
+    if (linked)
+        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], i);
 
     if (i->sync_prev)
         i->sync_prev->sync_next = i->sync_next;
@@ -276,14 +284,16 @@ void pa_sink_input_unlink(pa_sink_input *i) {
 
     i->sync_prev = i->sync_next = NULL;
 
-    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, 0, NULL);
     pa_idxset_remove_by_data(i->sink->core->sink_inputs, i, NULL);
-    pa_idxset_remove_by_data(i->sink->inputs, i, NULL);
+    if (pa_idxset_remove_by_data(i->sink->inputs, i, NULL))
+        pa_sink_input_unref(i);
 
-    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
-
-    sink_input_set_state(i, PA_SINK_INPUT_UNLINKED);
-    pa_sink_update_status(i->sink);
+    if (linked) {
+        pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_REMOVE_INPUT, i, 0, NULL);
+        sink_input_set_state(i, PA_SINK_INPUT_UNLINKED);
+        pa_sink_update_status(i->sink);
+    } else
+        i->state = PA_SINK_INPUT_UNLINKED;
 
     i->peek = NULL;
     i->drop = NULL;
@@ -293,7 +303,11 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     i->detach = NULL;
     i->suspend = NULL;
 
-    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], i);
+    if (linked) {
+        pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
+        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK_POST], i);
+    }
+
     i->sink = NULL;
     pa_sink_input_unref(i);
 }

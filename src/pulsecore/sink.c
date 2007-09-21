@@ -200,14 +200,26 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
 }
 
 void pa_sink_unlink(pa_sink* s) {
+    pa_bool_t linked;
     pa_sink_input *i, *j = NULL;
 
     pa_assert(s);
-    pa_assert(PA_SINK_LINKED(s->state));
 
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_UNLINK], s);
+    /* Please note that pa_sink_unlink() does more than simply
+     * reversing pa_sink_put(). It also undoes the registrations
+     * already done in pa_sink_new()! */
 
-    pa_namereg_unregister(s->core, s->name);
+    /* All operations here shall be idempotent, i.e. pa_sink_unlink()
+     * may be called multiple times on the same sink without bad
+     * effects. */
+
+    linked = PA_SINK_LINKED(s->state);
+
+    if (linked)
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_UNLINK], s);
+
+    if (s->state != PA_SINK_UNLINKED)
+        pa_namereg_unregister(s->core, s->name);
     pa_idxset_remove_by_data(s->core->sinks, s, NULL);
 
     while ((i = pa_idxset_first(s->inputs, NULL))) {
@@ -216,10 +228,10 @@ void pa_sink_unlink(pa_sink* s) {
         j = i;
     }
 
-    sink_set_state(s, PA_SINK_UNLINKED);
-
-    if (s->monitor_source)
-        pa_source_unlink(s->monitor_source);
+    if (linked)
+        sink_set_state(s, PA_SINK_UNLINKED);
+    else
+        s->state = PA_SINK_UNLINKED;
 
     s->get_latency = NULL;
     s->get_volume = NULL;
@@ -228,9 +240,13 @@ void pa_sink_unlink(pa_sink* s) {
     s->get_mute = NULL;
     s->set_state = NULL;
 
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
+    if (s->monitor_source)
+        pa_source_unlink(s->monitor_source);
 
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_UNLINK_POST], s);
+    if (linked) {
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_UNLINK_POST], s);
+    }
 }
 
 static void sink_free(pa_object *o) {

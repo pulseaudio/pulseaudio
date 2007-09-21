@@ -194,20 +194,29 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
 }
 
 void pa_source_output_unlink(pa_source_output*o) {
+    pa_bool_t linked;
     pa_assert(o);
-    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
 
-    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
+    /* See pa_sink_unlink() for a couple of comments how this function
+     * works */
 
-    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
+    pa_source_output_ref(o);
+
+    linked = PA_SOURCE_OUTPUT_LINKED(o->state);
+
+    if (linked)
+        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], o);
 
     pa_idxset_remove_by_data(o->source->core->source_outputs, o, NULL);
-    pa_idxset_remove_by_data(o->source->outputs, o, NULL);
+    if (pa_idxset_remove_by_data(o->source->outputs, o, NULL))
+        pa_source_output_unref(o);
 
-    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
-
-    source_output_set_state(o, PA_SOURCE_OUTPUT_UNLINKED);
-    pa_source_update_status(o->source);
+    if (linked) {
+        pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
+        source_output_set_state(o, PA_SOURCE_OUTPUT_UNLINKED);
+        pa_source_update_status(o->source);
+    } else
+        o->state = PA_SOURCE_OUTPUT_UNLINKED;
 
     o->push = NULL;
     o->kill = NULL;
@@ -216,7 +225,10 @@ void pa_source_output_unlink(pa_source_output*o) {
     o->detach = NULL;
     o->suspend = NULL;
 
-    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], o);
+    if (linked) {
+        pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
+        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST], o);
+    }
 
     o->source = NULL;
     pa_source_output_unref(o);
@@ -451,7 +463,6 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
 
             return 0;
         }
-
     }
 
     return -1;
