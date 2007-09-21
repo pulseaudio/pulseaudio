@@ -28,7 +28,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <limits.h>
-#include <unistd.h>  
+#include <unistd.h>
 
 #include <pulsecore/log.h>
 
@@ -70,6 +70,10 @@ static inline size_t pa_page_align(size_t l) {
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+#ifndef CLAMP
+#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #endif
 
 /* This type is not intended to be used in exported APIs! Use classic "int" there! */
