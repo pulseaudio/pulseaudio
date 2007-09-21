@@ -52,7 +52,7 @@ PA_MODULE_USAGE(
         "channels=<number of channels> "
         "rate=<sample rate> "
         "channel_map=<channel map> "
-        "plugin=<ladspa plugin name> " 
+        "plugin=<ladspa plugin name> "
         "label=<ladspa plugin label> "
         "control=<comma seperated list of input control values>")
 
@@ -61,7 +61,7 @@ PA_MODULE_USAGE(
 struct userdata {
     pa_core *core;
     pa_module *module;
-    
+
     pa_sink *sink, *master;
     pa_sink_input *sink_input;
 
@@ -92,7 +92,7 @@ static const char* const valid_modargs[] = {
 /* Called from I/O thread context */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
-    
+
     switch (code) {
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
@@ -100,25 +100,25 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             if (PA_MSGOBJECT(u->master)->process_msg(PA_MSGOBJECT(u->master), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
                 usec = 0;
-            
+
             *((pa_usec_t*) data) = usec + pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec);
             return 0;
         }
     }
-    
+
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
 /* Called from main context */
 static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     struct userdata *u;
-    
+
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
     if (PA_SINK_LINKED(state) && u->sink_input)
         pa_sink_input_cork(u->sink_input, state == PA_SINK_SUSPENDED);
-    
+
     return 0;
 }
 
@@ -157,14 +157,14 @@ static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chun
         n = tchunk.length / fs;
 
         pa_assert(n > 0);
-        
+
         u->memchunk.memblock = pa_memblock_new(i->sink->core->mempool, tchunk.length);
         u->memchunk.index = 0;
         u->memchunk.length = tchunk.length;
-        
+
         src = (float*) ((uint8_t*) pa_memblock_acquire(tchunk.memblock) + tchunk.index);
         dst = (float*) pa_memblock_acquire(u->memchunk.memblock);
-                        
+
         for (c = 0; c < u->channels; c++) {
             unsigned j;
             float *p, *q;
@@ -172,14 +172,14 @@ static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chun
             p = src + c;
             q = u->input;
             for (j = 0; j < n; j++, p += u->channels, q++)
-                *q = *p;
+                *q = CLAMP(*p, -1.0, 1.0);
 
             u->descriptor->run(u->handle[c], n);
 
             q = u->output;
             p = dst + c;
             for (j = 0; j < n; j++, q++, p += u->channels)
-                *p = *q;
+                *p = CLAMP(*q, -1.0, 1.0);
         }
 
         pa_memblock_release(tchunk.memblock);
@@ -188,9 +188,12 @@ static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chun
         pa_memblock_unref(tchunk.memblock);
     }
 
+    pa_assert(u->memchunk.length > 0);
     pa_assert(u->memchunk.memblock);
+
     *chunk = u->memchunk;
     pa_memblock_ref(chunk->memblock);
+
     return 0;
 }
 
@@ -203,13 +206,13 @@ static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     pa_assert(length > 0);
 
     if (u->memchunk.memblock) {
-    
+
         if (length < u->memchunk.length) {
             u->memchunk.index += length;
             u->memchunk.length -= length;
             return;
         }
-        
+
         pa_memblock_unref(u->memchunk.memblock);
         length -= u->memchunk.length;
         pa_memchunk_reset(&u->memchunk);
@@ -238,7 +241,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     pa_sink_set_asyncmsgq(u->sink, i->sink->asyncmsgq);
     pa_sink_set_rtpoll(u->sink, i->sink->rtpoll);
-    
+
     pa_sink_attach_within_thread(u->sink);
 }
 
@@ -256,7 +259,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_unlink(u->sink);
     pa_sink_unref(u->sink);
     u->sink = NULL;
-    
+
     pa_module_unload_request(u->module);
 }
 
@@ -274,11 +277,12 @@ int pa__init(pa_module*m) {
     const LADSPA_Descriptor *d;
     unsigned long input_port, output_port, p, j, n_control;
     unsigned c;
-    
+    pa_bool_t *use_default = NULL;
+
     pa_assert(m);
 
     pa_assert(sizeof(LADSPA_Data) == sizeof(float));
-    
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
         goto fail;
@@ -308,7 +312,7 @@ int pa__init(pa_module*m) {
     }
 
     cdata = pa_modargs_get_value(ma, "control", NULL);
-    
+
     u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
@@ -358,7 +362,7 @@ int pa__init(pa_module*m) {
 
     input_port = output_port = (unsigned long) -1;
     n_control = 0;
-    
+
     for (p = 0; p < d->PortCount; p++) {
 
         if (LADSPA_IS_PORT_INPUT(d->PortDescriptors[p]) && LADSPA_IS_PORT_AUDIO(d->PortDescriptors[p])) {
@@ -370,7 +374,7 @@ int pa__init(pa_module*m) {
                 pa_log("Found audio input port on plugin we cannot handle: %s", d->PortNames[p]);
                 goto fail;
             }
-            
+
         } else if (LADSPA_IS_PORT_OUTPUT(d->PortDescriptors[p]) && LADSPA_IS_PORT_AUDIO(d->PortDescriptors[p])) {
 
             if (strcmp(d->PortNames[p], "Output") == 0) {
@@ -381,7 +385,7 @@ int pa__init(pa_module*m) {
                 goto fail;
             }
 
-        } else if (LADSPA_IS_PORT_INPUT(d->PortDescriptors[p]) && LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p])) 
+        } else if (LADSPA_IS_PORT_INPUT(d->PortDescriptors[p]) && LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]))
             n_control++;
         else
             pa_log("Cannot handle type of port %s", d->PortNames[p]);
@@ -401,9 +405,9 @@ int pa__init(pa_module*m) {
         u->output = (LADSPA_Data*) pa_xnew(uint8_t, u->block_size);
     else
         u->output = u->input;
-    
+
     u->channels = ss.channels;
-    
+
     for (c = 0; c < ss.channels; c++) {
         if (!(u->handle[c] = d->instantiate(d, ss.rate))) {
             pa_log("Failed to instantiate plugin %s with label %s for channel %i", plugin, d->Label, c);
@@ -423,12 +427,19 @@ int pa__init(pa_module*m) {
         const char *state = NULL;
         char *k;
         unsigned long h;
-        
+
         u->control = pa_xnew(LADSPA_Data, n_control);
+        use_default = pa_xnew(pa_bool_t, n_control);
         p = 0;
-        
+
         while ((k = pa_split(cdata, ",", &state))) {
             float f;
+
+            if (*k == 0) {
+                use_default[p++] = TRUE;
+                pa_xfree(k);
+                continue;
+            }
 
             if (pa_atof(k, &f) < 0) {
                 pa_log("Failed to parse control value '%s'", k);
@@ -443,6 +454,7 @@ int pa__init(pa_module*m) {
                 goto fail;
             }
 
+            use_default[p] = FALSE;
             u->control[p++] = f;
         }
 
@@ -453,15 +465,89 @@ int pa__init(pa_module*m) {
 
         h = 0;
         for (p = 0; p < d->PortCount; p++) {
-                
+            LADSPA_PortRangeHintDescriptor hint = d->PortRangeHints[p].HintDescriptor;
+
             if (!LADSPA_IS_PORT_INPUT(d->PortDescriptors[p]) || !LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]))
                 continue;
 
             pa_assert(h < n_control);
-            
+
+            if (use_default[c]) {
+                LADSPA_Data lower, upper;
+
+                if (!LADSPA_IS_HINT_HAS_DEFAULT(hint)) {
+                    pa_log("Control port value left empty but plugin defines no default.");
+                    goto fail;
+                }
+
+                lower = d->PortRangeHints[p].LowerBound;
+                upper = d->PortRangeHints[p].UpperBound;
+
+                if (LADSPA_IS_HINT_SAMPLE_RATE(hint)) {
+                    lower *= ss.rate;
+                    upper *= ss.rate;
+                }
+
+                switch (hint & LADSPA_HINT_DEFAULT_MASK) {
+
+                    case LADSPA_HINT_DEFAULT_MINIMUM:
+                        u->control[h] = lower;
+                        break;
+
+                    case LADSPA_HINT_DEFAULT_MAXIMUM:
+                        u->control[h] = upper;
+                        break;
+
+                    case LADSPA_HINT_DEFAULT_LOW:
+                        if (LADSPA_IS_HINT_LOGARITHMIC(hint))
+                            u->control[h] = exp(log(lower) * 0.75 + log(upper) * 0.25);
+                        else
+                            u->control[h] = lower * 0.75 + upper * 0.25;
+                        break;
+
+                    case LADSPA_HINT_DEFAULT_MIDDLE:
+                        if (LADSPA_IS_HINT_LOGARITHMIC(hint))
+                            u->control[h] = exp(log(lower) * 0.5 + log(upper) * 0.5);
+                        else
+                            u->control[h] = lower * 0.5 + upper * 0.5;
+                        break;
+
+                    case LADSPA_HINT_DEFAULT_HIGH:
+                        if (LADSPA_IS_HINT_LOGARITHMIC(hint))
+                            u->control[h] = exp(log(lower) * 0.25 + log(upper) * 0.75);
+                        else
+                            u->control[h] = lower * 0.25 + upper * 0.75;
+                        break;
+
+                    case LADSPA_HINT_DEFAULT_0:
+                        u->control[h] = 0;
+                        break;
+
+                    case LADSPA_HINT_DEFAULT_1:
+                        u->control[h] = 1;
+                        break;
+
+                    case LADSPA_HINT_DEFAULT_100:
+                        u->control[h] = 100;
+                        break;
+
+                    case LADSPA_HINT_DEFAULT_440:
+                        u->control[h] = 440;
+                        break;
+
+                    default:
+                        pa_assert_not_reached();
+                }
+            }
+
+            if (LADSPA_IS_HINT_INTEGER(hint))
+                u->control[h] = roundf(u->control[h]);
+
+            pa_log_debug("Binding %f to port %s", u->control[h], d->PortNames[p]);
+
             for (c = 0; c < ss.channels; c++)
                 d->connect_port(u->handle[c], p, &u->control[h]);
-            
+
             h++;
         }
 
@@ -482,7 +568,7 @@ int pa__init(pa_module*m) {
     u->sink->set_state = sink_set_state;
     u->sink->userdata = u;
     u->sink->flags = PA_SINK_LATENCY|PA_SINK_CAN_SUSPEND;
-    
+
     pa_sink_set_module(u->sink, m);
     pa_sink_set_description(u->sink, t = pa_sprintf_malloc("LADSPA on '%s'", master->description));
     pa_xfree(t);
@@ -514,11 +600,15 @@ int pa__init(pa_module*m) {
 
     pa_modargs_free(ma);
 
+    pa_xfree(use_default);
+
     return 0;
 
 fail:
     if (ma)
         pa_modargs_free(ma);
+
+    pa_xfree(use_default);
 
     pa__done(m);
 
@@ -528,7 +618,7 @@ fail:
 void pa__done(pa_module*m) {
     struct userdata *u;
     unsigned c;
-    
+
     pa_assert(m);
 
     if (!(u = m->userdata))
@@ -558,8 +648,8 @@ void pa__done(pa_module*m) {
         pa_xfree(u->output);
 
     pa_xfree(u->input);
-    
+
     pa_xfree(u->control);
-    
+
     pa_xfree(u);
 }
