@@ -82,12 +82,7 @@ void pa_sconv_s16le_from_float32ne(unsigned n, const float *a, int16_t *b) {
         int16_t s;
         float v = *(a++);
 
-        if (v > 1)
-            v = 1;
-
-        if (v < -1)
-            v = -1;
-
+        v = CLAMP(v, -1, 1);
         s = (int16_t) (v * 0x7FFF);
         *(b++) = INT16_TO(s);
     }
@@ -104,8 +99,6 @@ void pa_sconv_s16le_to_float32re(unsigned n, const int16_t *a, float *b) {
     pa_assert(a);
     pa_assert(b);
 
-#if SWAP_WORDS == 1
-
     for (; n > 0; n--) {
         int16_t s = *(a++);
         float k = ((float) INT16_FROM(s))/0x7FFF;
@@ -113,31 +106,19 @@ void pa_sconv_s16le_to_float32re(unsigned n, const int16_t *a, float *b) {
         *j = UINT32_SWAP(*j);
         *(b++) = k;
     }
-
-#endif
 }
 
 void pa_sconv_s16le_from_float32re(unsigned n, const float *a, int16_t *b) {
     pa_assert(a);
     pa_assert(b);
 
-#if SWAP_WORDS == 1
-
     for (; n > 0; n--) {
         int16_t s;
         float v = *(a++);
         uint32_t *j = (uint32_t*) &v;
         *j = UINT32_SWAP(*j);
-
-        if (v > 1)
-            v = 1;
-
-        if (v < -1)
-            v = -1;
-
+        v = CLAMP(v, -1, 1);
         s = (int16_t) (v * 0x7FFF);
         *(b++) = INT16_TO(s);
     }
-
-#endif
 }

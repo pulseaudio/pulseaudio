@@ -43,7 +43,7 @@
 
 /* u8 */
 static void u8_to_float32ne(unsigned n, const uint8_t *a, float *b) {
-    static const double add = -128.0/127.0, factor = 1.0/127.0;
+    static const double add = -1, factor = 1.0/128.0;
 
     pa_assert(a);
     pa_assert(b);
@@ -52,7 +52,7 @@ static void u8_to_float32ne(unsigned n, const uint8_t *a, float *b) {
 }
 
 static void u8_from_float32ne(unsigned n, const float *a, uint8_t *b) {
-    static const double add = 128.0, factor = 127.0;
+    static const double add = 128, factor = 127.0;
 
     pa_assert(a);
     pa_assert(b);
@@ -61,7 +61,7 @@ static void u8_from_float32ne(unsigned n, const float *a, uint8_t *b) {
 }
 
 static void u8_to_s16ne(unsigned n, const uint8_t *a, int16_t *b) {
-    static const int16_t add = -128, factor = 0x100;
+    static const int16_t add = -0x80, factor = 0x100;
 
     pa_assert(a);
     pa_assert(b);
@@ -75,8 +75,8 @@ static void u8_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
 
     pa_assert(a);
     pa_assert(b);
-    
-    for (; n > 0; n--, a ++, a++)
+
+    for (; n > 0; n--, a++, b++)
         *b = (uint8_t) (*a / 0x100 + 0x80);
 }
 
@@ -121,7 +121,7 @@ static void ulaw_to_float32ne(unsigned n, const uint8_t *a, float *b) {
     pa_assert(b);
 
     for (; n > 0; n--)
-        *(b++) = st_ulaw2linear16(*(a++)) * 1.0F / 0x7FFF;
+        *(b++) = (float) st_ulaw2linear16(*(a++)) / 0x8000;
 }
 
 static void ulaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
@@ -130,14 +130,9 @@ static void ulaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
 
     for (; n > 0; n--) {
         float v = *(a++);
-
-        if (v > 1)
-            v = 1;
-
-        if (v < -1)
-            v = -1;
-
-        *(b++) = st_14linear2ulaw((int16_t) (v * 0x1FFF));
+        v = CLAMP(v, -1, 1);
+        v *= 0x1FFF;
+        *(b++) = st_14linear2ulaw((int16_t) v);
     }
 }
 
@@ -164,7 +159,7 @@ static void alaw_to_float32ne(unsigned n, const uint8_t *a, float *b) {
     pa_assert(b);
 
     for (; n > 0; n--, a++, b++)
-        *b = st_alaw2linear16(*a) * 1.0F / 0x7FFF;
+        *b = (float) st_alaw2linear16(*a) / 0x8000;
 }
 
 static void alaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
@@ -173,14 +168,9 @@ static void alaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
 
     for (; n > 0; n--, a++, b++) {
         float v = *a;
-
-        if (v > 1)
-            v = 1;
-
-        if (v < -1)
-            v = -1;
-
-        *b = st_13linear2alaw((int16_t) (v * 0xFFF));
+        v = CLAMP(v, -1, 1);
+        v *= 0xFFF;
+        *b = st_13linear2alaw((int16_t) v);
     }
 }
 
@@ -196,7 +186,7 @@ static void alaw_from_s16ne(unsigned n, const int16_t *a, uint8_t *b) {
     pa_assert(a);
     pa_assert(b);
 
-    for (; n > 0; n--)
+    for (; n > 0; n--, a++, b++)
         *b = st_13linear2alaw(*a >> 3);
 }
 
