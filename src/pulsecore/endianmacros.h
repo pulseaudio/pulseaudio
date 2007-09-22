@@ -31,10 +31,21 @@
 #error "Please include config.h before including this file!"
 #endif
 
+#ifdef HAVE_BYTESWAP_H
+#include <byteswap.h>
+#endif
+
+#ifdef HAVE_BYTESWAP_H
+#define INT16_SWAP(x) ((int16_t) bswap_16((uint16_t) x))
+#define UINT16_SWAP(x) ((uint16_t) bswap_16((uint16_t) x))
+#define INT32_SWAP(x) ((int32_t) bswap_32((uint32_t) x))
+#define UINT32_SWAP(x) ((uint32_t) bswap_32((uint32_t) x))
+#else
 #define INT16_SWAP(x) ( (int16_t) ( ((uint16_t) x >> 8) | ((uint16_t) x << 8) ) )
 #define UINT16_SWAP(x) ( (uint16_t) ( ((uint16_t) x >> 8) | ((uint16_t) x << 8) ) )
 #define INT32_SWAP(x) ( (int32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
 #define UINT32_SWAP(x) ( (uint32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
+#endif
 
 #define MAYBE_INT32_SWAP(c,x) ((c) ? INT32_SWAP(x) : x)
 #define MAYBE_UINT32_SWAP(c,x) ((c) ? UINT32_SWAP(x) : x)

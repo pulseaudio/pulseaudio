@@ -97,13 +97,13 @@ if test "x$GCC" = "xyes" ; then
 
     for flag in $DESIRED_FLAGS ; do
         AC_MSG_CHECKING([whether $CC accepts $flag])
-        if test_gcc_flag $flag ; then 
+        if test_gcc_flag $flag ; then
            CFLAGS="$CFLAGS $flag"
            AC_MSG_RESULT([yes])
         else
            AC_MSG_RESULT([no])
         fi
-    done 
+    done
 fi
 
 AC_MSG_CHECKING([whether $CC knows __sync_bool_compare_and_swap()])
@@ -221,6 +221,7 @@ AC_CHECK_HEADERS([windows.h winsock2.h ws2tcpip.h])
 
 # Other
 AC_CHECK_HEADERS([sys/ioctl.h])
+AC_CHECK_HEADERS([byteswap.h])
 
 #### Typdefs, structures, etc. ####
 
@@ -302,7 +303,7 @@ ACX_PTHREAD
 
 AC_MSG_CHECKING([for PTHREAD_PRIO_INHERIT])
 AC_LANG_CONFTEST([AC_LANG_SOURCE([[
-#include <pthread.h> 
+#include <pthread.h>
 int main() { int i = PTHREAD_PRIO_INHERIT; }]])])
 $PTHREAD_CC conftest.c $PTHREAD_CFLAGS $CFLAGS $PTHREAD_LIBS -o conftest > /dev/null 2> /dev/null
 ret=$?
@@ -397,8 +398,8 @@ fi
 
 #### Libsamplerate support (optional) ####
 
-AC_ARG_ENABLE([samplerate], 
-    AC_HELP_STRING([--disable-samplerate], [Disable optional libsamplerate support]), 
+AC_ARG_ENABLE([samplerate],
+    AC_HELP_STRING([--disable-samplerate], [Disable optional libsamplerate support]),
         [
             case "${enableval}" in
                 yes) samplerate=yes ;;
@@ -432,8 +433,8 @@ AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
 
 #### OSS support (optional) ####
 
-AC_ARG_ENABLE([oss], 
-    AC_HELP_STRING([--disable-oss], [Disable optional OSS support]), 
+AC_ARG_ENABLE([oss],
+    AC_HELP_STRING([--disable-oss], [Disable optional OSS support]),
         [
             case "${enableval}" in
                 yes) oss=yes ;;
@@ -465,8 +466,8 @@ AM_CONDITIONAL([HAVE_OSS], [test "x$HAVE_OSS" = x1])
 
 #### ALSA support (optional) ####
 
-AC_ARG_ENABLE([alsa], 
-    AC_HELP_STRING([--disable-alsa], [Disable optional ALSA support]), 
+AC_ARG_ENABLE([alsa],
+    AC_HELP_STRING([--disable-alsa], [Disable optional ALSA support]),
         [
             case "${enableval}" in
                 yes) alsa=yes ;;
@@ -493,14 +494,14 @@ else
 fi
 
 AC_SUBST(ASOUNDLIB_CFLAGS)
-AC_SUBST(ASOUNDLIB_LIBS) 
+AC_SUBST(ASOUNDLIB_LIBS)
 AC_SUBST(HAVE_ALSA)
 AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 
 #### Solaris audio support (optional) ####
 
-AC_ARG_ENABLE([solaris], 
-    AC_HELP_STRING([--disable-solaris], [Disable optional Solaris audio support]), 
+AC_ARG_ENABLE([solaris],
+    AC_HELP_STRING([--disable-solaris], [Disable optional Solaris audio support]),
         [
             case "${enableval}" in
                 yes) solaris=yes ;;
@@ -531,8 +532,8 @@ AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
 
 #### GLib 2 support (optional) ####
 
-AC_ARG_ENABLE([glib2], 
-    AC_HELP_STRING([--disable-glib2], [Disable optional GLib 2 support]), 
+AC_ARG_ENABLE([glib2],
+    AC_HELP_STRING([--disable-glib2], [Disable optional GLib 2 support]),
         [
             case "${enableval}" in
                 yes) glib2=yes ;;
@@ -562,8 +563,8 @@ AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 
 #### GConf support (optional) ####
 
-AC_ARG_ENABLE([gconf], 
-    AC_HELP_STRING([--disable-gconf], [Disable optional GConf support]), 
+AC_ARG_ENABLE([gconf],
+    AC_HELP_STRING([--disable-gconf], [Disable optional GConf support]),
         [
             case "${enableval}" in
                 yes) gconf=yes ;;
@@ -593,8 +594,8 @@ AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
 
 #### Avahi support (optional) ####
 
-AC_ARG_ENABLE([avahi], 
-    AC_HELP_STRING([--disable-avahi], [Disable optional Avahi support]), 
+AC_ARG_ENABLE([avahi],
+    AC_HELP_STRING([--disable-avahi], [Disable optional Avahi support]),
         [
             case "${enableval}" in
                 yes) avahi=yes ;;
@@ -630,8 +631,8 @@ AC_SUBST(LIBOIL_LIBS)
 
 ### JACK (optional) ####
 
-AC_ARG_ENABLE([jack], 
-    AC_HELP_STRING([--disable-jack], [Disable optional JACK support]), 
+AC_ARG_ENABLE([jack],
+    AC_HELP_STRING([--disable-jack], [Disable optional JACK support]),
         [
             case "${enableval}" in
                 yes) jack=yes ;;
@@ -661,8 +662,8 @@ AM_CONDITIONAL([HAVE_JACK], [test "x$HAVE_JACK" = x1])
 
 #### Async DNS support (optional) ####
 
-AC_ARG_ENABLE([asyncns], 
-    AC_HELP_STRING([--disable-asyncns], [Disable optional Async DNS support]), 
+AC_ARG_ENABLE([asyncns],
+    AC_HELP_STRING([--disable-asyncns], [Disable optional Async DNS support]),
         [
             case "${enableval}" in
                 yes) asyncns=yes ;;
@@ -696,8 +697,8 @@ fi
 
 #### TCP wrappers (optional) ####
 
-AC_ARG_ENABLE([tcpwrap], 
-    AC_HELP_STRING([--disable-tcpwrap], [Disable optional TCP wrappers support]), 
+AC_ARG_ENABLE([tcpwrap],
+    AC_HELP_STRING([--disable-tcpwrap], [Disable optional TCP wrappers support]),
         [
             case "${enableval}" in
                 yes) tcpwrap=yes ;;
@@ -720,8 +721,8 @@ AC_SUBST(LIBWRAP_LIBS)
 
 #### LIRC support (optional) ####
 
-AC_ARG_ENABLE([lirc], 
-    AC_HELP_STRING([--disable-lirc], [Disable optional LIRC support]), 
+AC_ARG_ENABLE([lirc],
+    AC_HELP_STRING([--disable-lirc], [Disable optional LIRC support]),
         [
             case "${enableval}" in
                 yes) lirc=yes ;;
@@ -746,8 +747,8 @@ AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 
 #### HAL support (optional) ####
 
-AC_ARG_ENABLE([hal], 
-    AC_HELP_STRING([--disable-hal], [Disable optional HAL support]), 
+AC_ARG_ENABLE([hal],
+    AC_HELP_STRING([--disable-hal], [Disable optional HAL support]),
         [
             case "${enableval}" in
                 yes) hal=yes ;;
@@ -776,8 +777,8 @@ AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
 
 #### D-Bus support (optional) ####
 
-AC_ARG_ENABLE([dbus], 
-    AC_HELP_STRING([--disable-dbus], [Disable optional D-Bus support]), 
+AC_ARG_ENABLE([dbus],
+    AC_HELP_STRING([--disable-dbus], [Disable optional D-Bus support]),
         [
             case "${enableval}" in
                 yes) dbus=yes ;;
@@ -787,7 +788,7 @@ AC_ARG_ENABLE([dbus],
         ],
         [dbus=auto])
 
-if test "x$HAVE_HAL" = x1 ; then 
+if test "x$HAVE_HAL" = x1 ; then
    dbus=yes
 fi
 
