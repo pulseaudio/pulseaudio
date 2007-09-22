@@ -38,7 +38,7 @@
 
 static float swap_float(float a) {
     uint32_t *b = (uint32_t*) &a;
-    *b = UINT32_SWAP(*b);
+    *b = PA_UINT32_SWAP(*b);
     return a;
 }
 

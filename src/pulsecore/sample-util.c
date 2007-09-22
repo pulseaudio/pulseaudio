@@ -208,7 +208,7 @@ size_t pa_mix(
                         if (cvolume == PA_VOLUME_MUTED)
                             v = 0;
                         else {
-                            v = INT16_SWAP(*((int16_t*) ((uint8_t*) streams[i].internal + streams[i].chunk.index + d)));
+                            v = PA_INT16_SWAP(*((int16_t*) ((uint8_t*) streams[i].internal + streams[i].chunk.index + d)));
 
                             if (cvolume != PA_VOLUME_NORM)
                                 v = (int32_t) (v * pa_sw_volume_to_linear(cvolume));
@@ -223,7 +223,7 @@ size_t pa_mix(
                     sum = CLAMP(sum, -0x8000, 0x7FFF);
                 }
 
-                *((int16_t*) data) = INT16_SWAP((int16_t) sum);
+                *((int16_t*) data) = PA_INT16_SWAP((int16_t) sum);
                 data = (uint8_t*) data + sizeof(int16_t);
 
                 if (++channel >= spec->channels)
@@ -398,10 +398,10 @@ void pa_volume_memchunk(
             for (channel = 0, d = (int16_t*) ((uint8_t*) ptr + c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
                 int32_t t;
 
-                t = (int32_t)(INT16_SWAP(*d));
+                t = (int32_t)(PA_INT16_SWAP(*d));
                 t = (t * linear[channel]) / 0x10000;
                 t = CLAMP(t, -0x8000, 0x7FFF);
-                *d = INT16_SWAP((int16_t) t);
+                *d = PA_INT16_SWAP((int16_t) t);
 
                 if (++channel >= spec->channels)
                     channel = 0;

@@ -36,56 +36,59 @@
 #endif
 
 #ifdef HAVE_BYTESWAP_H
-#define INT16_SWAP(x) ((int16_t) bswap_16((uint16_t) x))
-#define UINT16_SWAP(x) ((uint16_t) bswap_16((uint16_t) x))
-#define INT32_SWAP(x) ((int32_t) bswap_32((uint32_t) x))
-#define UINT32_SWAP(x) ((uint32_t) bswap_32((uint32_t) x))
+#define PA_INT16_SWAP(x) ((int16_t) bswap_16((uint16_t) x))
+#define PA_UINT16_SWAP(x) ((uint16_t) bswap_16((uint16_t) x))
+#define PA_INT32_SWAP(x) ((int32_t) bswap_32((uint32_t) x))
+#define PA_UINT32_SWAP(x) ((uint32_t) bswap_32((uint32_t) x))
 #else
-#define INT16_SWAP(x) ( (int16_t) ( ((uint16_t) x >> 8) | ((uint16_t) x << 8) ) )
-#define UINT16_SWAP(x) ( (uint16_t) ( ((uint16_t) x >> 8) | ((uint16_t) x << 8) ) )
-#define INT32_SWAP(x) ( (int32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
-#define UINT32_SWAP(x) ( (uint32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
+#define PA_INT16_SWAP(x) ( (int16_t) ( ((uint16_t) x >> 8) | ((uint16_t) x << 8) ) )
+#define PA_UINT16_SWAP(x) ( (uint16_t) ( ((uint16_t) x >> 8) | ((uint16_t) x << 8) ) )
+#define PA_INT32_SWAP(x) ( (int32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
+#define PA_UINT32_SWAP(x) ( (uint32_t) ( ((uint32_t) x >> 24) | ((uint32_t) x << 24) | (((uint32_t) x & 0xFF00) << 8) | ((((uint32_t) x) >> 8) & 0xFF00) ) )
 #endif
 
-#define MAYBE_INT32_SWAP(c,x) ((c) ? INT32_SWAP(x) : x)
-#define MAYBE_UINT32_SWAP(c,x) ((c) ? UINT32_SWAP(x) : x)
+#define PA_MAYBE_INT16_SWAP(c,x) ((c) ? PA_INT32_SWAP(x) : x)
+#define PA_MAYBE_UINT16_SWAP(c,x) ((c) ? PA_UINT32_SWAP(x) : x)
+
+#define PA_MAYBE_INT32_SWAP(c,x) ((c) ? PA_INT32_SWAP(x) : x)
+#define PA_MAYBE_UINT32_SWAP(c,x) ((c) ? PA_UINT32_SWAP(x) : x)
 
 #ifdef WORDS_BIGENDIAN
- #define INT16_FROM_LE(x) INT16_SWAP(x)
- #define INT16_FROM_BE(x) ((int16_t)(x))
+ #define PA_INT16_FROM_LE(x) PA_INT16_SWAP(x)
+ #define PA_INT16_FROM_BE(x) ((int16_t)(x))
 
- #define INT16_TO_LE(x) INT16_SWAP(x)
- #define INT16_TO_BE(x) ((int16_t)(x))
+ #define PA_INT16_TO_LE(x) PA_INT16_SWAP(x)
+ #define PA_INT16_TO_BE(x) ((int16_t)(x))
 
- #define UINT16_FROM_LE(x) UINT16_SWAP(x)
- #define UINT16_FROM_BE(x) ((uint16_t)(x))
+ #define PA_UINT16_FROM_LE(x) PA_UINT16_SWAP(x)
+ #define PA_UINT16_FROM_BE(x) ((uint16_t)(x))
 
- #define INT32_FROM_LE(x) INT32_SWAP(x)
- #define INT32_FROM_BE(x) ((int32_t)(x))
+ #define PA_INT32_FROM_LE(x) PA_INT32_SWAP(x)
+ #define PA_INT32_FROM_BE(x) ((int32_t)(x))
 
- #define UINT32_FROM_LE(x) UINT32_SWAP(x)
- #define UINT32_FROM_BE(x) ((uint32_t)(x))
+ #define PA_UINT32_FROM_LE(x) PA_UINT32_SWAP(x)
+ #define PA_UINT32_FROM_BE(x) ((uint32_t)(x))
 
- #define UINT32_TO_LE(x) UINT32_SWAP(x)
- #define UINT32_TO_BE(x) ((uint32_t)(x))
+ #define PA_UINT32_TO_LE(x) PA_UINT32_SWAP(x)
+ #define PA_UINT32_TO_BE(x) ((uint32_t)(x))
 #else
- #define INT16_FROM_LE(x) ((int16_t)(x))
- #define INT16_FROM_BE(x) INT16_SWAP(x)
+ #define PA_INT16_FROM_LE(x) ((int16_t)(x))
+ #define PA_INT16_FROM_BE(x) PA_INT16_SWAP(x)
 
- #define INT16_TO_LE(x) ((int16_t)(x))
- #define INT16_TO_BE(x) INT16_SWAP(x)
+ #define PA_INT16_TO_LE(x) ((int16_t)(x))
+ #define PA_INT16_TO_BE(x) PA_INT16_SWAP(x)
 
- #define UINT16_FROM_LE(x) ((uint16_t)(x))
- #define UINT16_FROM_BE(x) UINT16_SWAP(x)
+ #define PA_UINT16_FROM_LE(x) ((uint16_t)(x))
+ #define PA_UINT16_FROM_BE(x) PA_UINT16_SWAP(x)
 
- #define INT32_FROM_LE(x) ((int32_t)(x))
- #define INT32_FROM_BE(x) INT32_SWAP(x)
+ #define PA_INT32_FROM_LE(x) ((int32_t)(x))
+ #define PA_INT32_FROM_BE(x) PA_INT32_SWAP(x)
 
- #define UINT32_FROM_LE(x) ((uint32_t)(x))
- #define UINT32_FROM_BE(x) UINT32_SWAP(x)
+ #define PA_UINT32_FROM_LE(x) ((uint32_t)(x))
+ #define PA_UINT32_FROM_BE(x) PA_UINT32_SWAP(x)
 
- #define UINT32_TO_LE(x) ((uint32_t)(x))
- #define UINT32_TO_BE(x) UINT32_SWAP(x)
+ #define PA_UINT32_TO_LE(x) ((uint32_t)(x))
+ #define PA_UINT32_TO_BE(x) PA_UINT32_SWAP(x)
 #endif
 
 #endif

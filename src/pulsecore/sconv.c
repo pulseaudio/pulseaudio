@@ -94,7 +94,7 @@ static void float32re_to_float32ne(unsigned n, const float *a, float *b) {
     pa_assert(b);
 
     for (; n > 0; n--, a++, b++)
-        *((uint32_t *) b) = UINT32_SWAP(*((uint32_t *) a));
+        *((uint32_t *) b) = PA_UINT32_SWAP(*((uint32_t *) a));
 }
 
 /* s16 */
@@ -111,7 +111,7 @@ static void s16re_to_s16ne(unsigned n, const int16_t *a, int16_t *b) {
     pa_assert(b);
 
     for (; n > 0; n--, a++, b++)
-        *b = UINT16_SWAP(*a);
+        *b = PA_UINT16_SWAP(*a);
 }
 
 /* ulaw */

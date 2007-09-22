@@ -38,11 +38,11 @@
 #include "sconv-s16le.h"
 
 #ifndef INT16_FROM
-#define INT16_FROM INT16_FROM_LE
+#define INT16_FROM PA_INT16_FROM_LE
 #endif
 
 #ifndef INT16_TO
-#define INT16_TO INT16_TO_LE
+#define INT16_TO PA_INT16_TO_LE
 #endif
 
 #ifndef SWAP_WORDS
@@ -103,7 +103,7 @@ void pa_sconv_s16le_to_float32re(unsigned n, const int16_t *a, float *b) {
         int16_t s = *(a++);
         float k = ((float) INT16_FROM(s))/0x7FFF;
         uint32_t *j = (uint32_t*) &k;
-        *j = UINT32_SWAP(*j);
+        *j = PA_UINT32_SWAP(*j);
         *(b++) = k;
     }
 }
@@ -116,7 +116,7 @@ void pa_sconv_s16le_from_float32re(unsigned n, const float *a, int16_t *b) {
         int16_t s;
         float v = *(a++);
         uint32_t *j = (uint32_t*) &v;
-        *j = UINT32_SWAP(*j);
+        *j = PA_UINT32_SWAP(*j);
         v = CLAMP(v, -1, 1);
         s = (int16_t) (v * 0x7FFF);
         *(b++) = INT16_TO(s);

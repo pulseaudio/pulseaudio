@@ -80,7 +80,7 @@
 
 typedef struct connection {
     pa_msgobject parent;
-    
+
     uint32_t index;
     int dead;
     pa_protocol_esound *protocol;
@@ -125,7 +125,7 @@ struct pa_protocol_esound {
     int public;
     pa_socket_server *server;
     pa_idxset *connections;
-    
+
     char *sink_name, *source_name;
     unsigned n_player;
     uint8_t esd_key[ESD_KEY_LEN];
@@ -227,7 +227,7 @@ static void connection_unlink(connection *c) {
         pa_client_free(c->client);
         c->client = NULL;
     }
-    
+
     if (c->state == ESD_STREAMING_DATA)
         c->protocol->n_player--;
 
@@ -254,7 +254,7 @@ static void connection_unlink(connection *c) {
 static void connection_free(pa_object *obj) {
     connection *c = CONNECTION(obj);
     pa_assert(c);
-    
+
     if (c->input_memblockq)
         pa_memblockq_free(c->input_memblockq);
     if (c->output_memblockq)
@@ -381,11 +381,11 @@ static int esd_proto_stream_play(connection *c, PA_GCC_UNUSED esd_proto_t reques
     pa_assert(length == (sizeof(int32_t)*2+ESD_NAME_MAX));
 
     memcpy(&format, data, sizeof(int32_t));
-    format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
+    format = PA_MAYBE_INT32_SWAP(c->swap_byte_order, format);
     data = (const char*) data + sizeof(int32_t);
 
     memcpy(&rate, data, sizeof(int32_t));
-    rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
+    rate = PA_MAYBE_INT32_SWAP(c->swap_byte_order, rate);
     data = (const char*) data + sizeof(int32_t);
 
     ss.rate = rate;
@@ -445,7 +445,7 @@ static int esd_proto_stream_play(connection *c, PA_GCC_UNUSED esd_proto_t reques
     pa_atomic_store(&c->playback.missing, pa_memblockq_missing(c->input_memblockq));
 
     pa_sink_input_put(c->sink_input);
-    
+
     return 0;
 }
 
@@ -462,11 +462,11 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     pa_assert(length == (sizeof(int32_t)*2+ESD_NAME_MAX));
 
     memcpy(&format, data, sizeof(int32_t));
-    format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
+    format = PA_MAYBE_INT32_SWAP(c->swap_byte_order, format);
     data = (const char*) data + sizeof(int32_t);
 
     memcpy(&rate, data, sizeof(int32_t));
-    rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
+    rate = PA_MAYBE_INT32_SWAP(c->swap_byte_order, rate);
     data = (const char*) data + sizeof(int32_t);
 
     ss.rate = rate;
@@ -559,7 +559,7 @@ static int esd_proto_get_latency(connection *c, PA_GCC_UNUSED esd_proto_t reques
         latency = (int) ((usec*44100)/1000000);
     }
 
-    latency = MAYBE_INT32_SWAP(c->swap_byte_order, latency);
+    latency = PA_MAYBE_INT32_SWAP(c->swap_byte_order, latency);
     connection_write(c, &latency, sizeof(int32_t));
     return 0;
 }
@@ -582,9 +582,9 @@ static int esd_proto_server_info(connection *c, PA_GCC_UNUSED esd_proto_t reques
 
     response = 0;
     connection_write(c, &response, sizeof(int32_t));
-    rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
+    rate = PA_MAYBE_INT32_SWAP(c->swap_byte_order, rate);
     connection_write(c, &rate, sizeof(int32_t));
-    format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
+    format = PA_MAYBE_INT32_SWAP(c->swap_byte_order, format);
     connection_write(c, &format, sizeof(int32_t));
 
     return 0;
@@ -631,7 +631,7 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
         }
 
         /* id */
-        id = MAYBE_INT32_SWAP(c->swap_byte_order, (int32_t) (conn->index+1));
+        id = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int32_t) (conn->index+1));
         connection_write(c, &id, sizeof(int32_t));
 
         /* name */
@@ -643,19 +643,19 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
         connection_write(c, name, ESD_NAME_MAX);
 
         /* rate */
-        rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
+        rate = PA_MAYBE_INT32_SWAP(c->swap_byte_order, rate);
         connection_write(c, &rate, sizeof(int32_t));
 
         /* left */
-        lvolume = MAYBE_INT32_SWAP(c->swap_byte_order, lvolume);
+        lvolume = PA_MAYBE_INT32_SWAP(c->swap_byte_order, lvolume);
         connection_write(c, &lvolume, sizeof(int32_t));
 
         /*right*/
-        rvolume = MAYBE_INT32_SWAP(c->swap_byte_order, rvolume);
+        rvolume = PA_MAYBE_INT32_SWAP(c->swap_byte_order, rvolume);
         connection_write(c, &rvolume, sizeof(int32_t));
 
         /*format*/
-        format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
+        format = PA_MAYBE_INT32_SWAP(c->swap_byte_order, format);
         connection_write(c, &format, sizeof(int32_t));
 
         t -= k;
@@ -677,7 +677,7 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
             pa_assert(t >= s*2);
 
             /* id */
-            id = MAYBE_INT32_SWAP(c->swap_byte_order, (int) (ce->index+1));
+            id = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int) (ce->index+1));
             connection_write(c, &id, sizeof(int32_t));
 
             /* name */
@@ -689,23 +689,23 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
             connection_write(c, name, ESD_NAME_MAX);
 
             /* rate */
-            rate = MAYBE_UINT32_SWAP(c->swap_byte_order, ce->sample_spec.rate);
+            rate = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, ce->sample_spec.rate);
             connection_write(c, &rate, sizeof(int32_t));
 
             /* left */
-            lvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
+            lvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             connection_write(c, &lvolume, sizeof(int32_t));
 
             /*right*/
-            rvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
+            rvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, (ce->volume.values[0]*ESD_VOLUME_BASE)/PA_VOLUME_NORM);
             connection_write(c, &rvolume, sizeof(int32_t));
 
             /*format*/
-            format = MAYBE_INT32_SWAP(c->swap_byte_order, format_native2esd(&ce->sample_spec));
+            format = PA_MAYBE_INT32_SWAP(c->swap_byte_order, format_native2esd(&ce->sample_spec));
             connection_write(c, &format, sizeof(int32_t));
 
             /*length*/
-            len = MAYBE_INT32_SWAP(c->swap_byte_order, (int) ce->memchunk.length);
+            len = PA_MAYBE_INT32_SWAP(c->swap_byte_order, (int) ce->memchunk.length);
             connection_write(c, &len, sizeof(int32_t));
 
             t -= s;
@@ -729,15 +729,15 @@ static int esd_proto_stream_pan(connection *c, PA_GCC_UNUSED esd_proto_t request
     pa_assert(length == sizeof(int32_t)*3);
 
     memcpy(&idx, data, sizeof(uint32_t));
-    idx = MAYBE_UINT32_SWAP(c->swap_byte_order, idx) - 1;
+    idx = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, idx) - 1;
     data = (const char*)data + sizeof(uint32_t);
 
     memcpy(&lvolume, data, sizeof(uint32_t));
-    lvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, lvolume);
+    lvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, lvolume);
     data = (const char*)data + sizeof(uint32_t);
 
     memcpy(&rvolume, data, sizeof(uint32_t));
-    rvolume = MAYBE_UINT32_SWAP(c->swap_byte_order, rvolume);
+    rvolume = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, rvolume);
     data = (const char*)data + sizeof(uint32_t);
 
     if ((conn = pa_idxset_get_by_index(c->protocol->connections, idx)) && conn->sink_input) {
@@ -766,11 +766,11 @@ static int esd_proto_sample_cache(connection *c, PA_GCC_UNUSED esd_proto_t reque
     pa_assert(length == (ESD_NAME_MAX+3*sizeof(int32_t)));
 
     memcpy(&format, data, sizeof(int32_t));
-    format = MAYBE_INT32_SWAP(c->swap_byte_order, format);
+    format = PA_MAYBE_INT32_SWAP(c->swap_byte_order, format);
     data = (const char*)data + sizeof(int32_t);
 
     memcpy(&rate, data, sizeof(int32_t));
-    rate = MAYBE_INT32_SWAP(c->swap_byte_order, rate);
+    rate = PA_MAYBE_INT32_SWAP(c->swap_byte_order, rate);
     data = (const char*)data + sizeof(int32_t);
 
     ss.rate = rate;
@@ -779,7 +779,7 @@ static int esd_proto_sample_cache(connection *c, PA_GCC_UNUSED esd_proto_t reque
     CHECK_VALIDITY(pa_sample_spec_valid(&ss), "Invalid sample specification.");
 
     memcpy(&sc_length, data, sizeof(int32_t));
-    sc_length = MAYBE_INT32_SWAP(c->swap_byte_order, sc_length);
+    sc_length = PA_MAYBE_INT32_SWAP(c->swap_byte_order, sc_length);
     data = (const char*)data + sizeof(int32_t);
 
     CHECK_VALIDITY(sc_length <= MAX_CACHE_SAMPLE_SIZE, "Sample too large (%d bytes).", (int)sc_length);
@@ -842,7 +842,7 @@ static int esd_proto_sample_free_or_play(connection *c, esd_proto_t request, con
     pa_assert(length == sizeof(int32_t));
 
     memcpy(&idx, data, sizeof(uint32_t));
-    idx = MAYBE_UINT32_SWAP(c->swap_byte_order, idx) - 1;
+    idx = PA_MAYBE_UINT32_SWAP(c->swap_byte_order, idx) - 1;
 
     ok = 0;
 
@@ -884,7 +884,7 @@ static int esd_proto_standby_or_resume(connection *c, PA_GCC_UNUSED esd_proto_t 
 
 static void client_kill_cb(pa_client *c) {
     pa_assert(c);
-    
+
     connection_unlink(CONNECTION(c->userdata));
 }
 
@@ -907,7 +907,7 @@ static int do_read(connection *c) {
         if ((c->read_data_length+= r) >= sizeof(c->request)) {
             struct proto_handler *handler;
 
-            c->request = MAYBE_INT32_SWAP(c->swap_byte_order, c->request);
+            c->request = PA_MAYBE_INT32_SWAP(c->swap_byte_order, c->request);
 
             if (c->request < ESD_PROTO_CONNECT || c->request > ESD_PROTO_MAX) {
                 pa_log("recieved invalid request.");
@@ -950,7 +950,7 @@ static int do_read(connection *c) {
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
             if (errno == EINTR || errno == EAGAIN)
                 return 0;
-            
+
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
@@ -976,11 +976,11 @@ static int do_read(connection *c) {
         p = pa_memblock_acquire(c->scache.memchunk.memblock);
         r = pa_iochannel_read(c->io, (uint8_t*) p+c->scache.memchunk.index, c->scache.memchunk.length-c->scache.memchunk.index);
         pa_memblock_release(c->scache.memchunk.memblock);
-        
+
         if (r <= 0) {
             if (errno == EINTR || errno == EAGAIN)
                 return 0;
-            
+
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
             return -1;
         }
@@ -1038,9 +1038,9 @@ static int do_read(connection *c) {
         p = pa_memblock_acquire(c->playback.current_memblock);
         r = pa_iochannel_read(c->io, (uint8_t*) p+c->playback.memblock_index, l);
         pa_memblock_release(c->playback.current_memblock);
-        
+
         if (r <= 0) {
-            
+
             if (errno == EINTR || errno == EAGAIN)
                 return 0;
 
@@ -1074,7 +1074,7 @@ static int do_write(connection *c) {
 
             if (errno == EINTR || errno == EAGAIN)
                 return 0;
-            
+
             pa_log("write(): %s", pa_cstrerror(errno));
             return -1;
         }
@@ -1098,12 +1098,12 @@ static int do_write(connection *c) {
         pa_memblock_release(chunk.memblock);
 
         pa_memblock_unref(chunk.memblock);
-        
+
         if (r < 0) {
 
             if (errno == EINTR || errno == EAGAIN)
                 return 0;
-        
+
             pa_log("write(): %s", pa_cstrerror(errno));
             return -1;
         }
@@ -1178,7 +1178,7 @@ static int connection_process_msg(pa_msgobject *o, int code, void*userdata, int6
         case CONNECTION_MESSAGE_REQUEST_DATA:
             do_work(c);
             break;
-            
+
         case CONNECTION_MESSAGE_POST_DATA:
 /*             pa_log("got data %u", chunk->length); */
             pa_memblockq_push_align(c->output_memblockq, chunk);
@@ -1213,7 +1213,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             pa_memblockq_push_align(c->input_memblockq, chunk);
 
 /*             pa_log("got data, %u", pa_memblockq_get_length(c->input_memblockq)); */
-            
+
             return 0;
         }
 
@@ -1240,7 +1240,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     connection*c;
     int r;
-    
+
     pa_assert(i);
     c = CONNECTION(i->userdata);
     connection_assert_ref(c);
@@ -1314,7 +1314,7 @@ static pa_usec_t source_output_get_latency_cb(pa_source_output *o) {
 
 static void auth_timeout(pa_mainloop_api*m, pa_time_event *e, const struct timeval *tv, void *userdata) {
     connection *c = CONNECTION(userdata);
-    
+
     pa_assert(m);
     pa_assert(tv);
     connection_assert_ref(c);
@@ -1328,7 +1328,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     connection *c;
     pa_protocol_esound *p = userdata;
     char cname[256], pname[128];
-    
+
     pa_assert(s);
     pa_assert(io);
     pa_assert(p);

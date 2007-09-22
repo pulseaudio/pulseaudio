@@ -205,7 +205,7 @@ typedef int esd_client_state_t;
 /* the endian key is transferred in binary, if it's read into int, */
 /* and matches ESD_ENDIAN_KEY (ENDN), then the endianness of the */
 /* server and the client match; if it's SWAP_ENDIAN_KEY, swap data */
-#define ESD_SWAP_ENDIAN_KEY (UINT32_SWAP(ESD_ENDIAN_KEY))
+#define ESD_SWAP_ENDIAN_KEY (PA_UINT32_SWAP(ESD_ENDIAN_KEY))
 
 
 #endif
