@@ -471,7 +471,7 @@ int pa__init(pa_module*m) {
 
             pa_assert(h < n_control);
 
-            if (use_default[c]) {
+            if (use_default[h]) {
                 LADSPA_Data lower, upper;
 
                 if (!LADSPA_IS_HINT_HAS_DEFAULT(hint)) {
