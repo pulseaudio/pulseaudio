@@ -236,7 +236,8 @@ noinst_PROGRAMS = \
 		asyncmsgq-test \
 		queue-test \
 		rtpoll-test \
-		sig2str-test
+		sig2str-test \
+		resampler-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -380,6 +381,11 @@ sig2str_test_SOURCES = tests/sig2str-test.c
 sig2str_test_LDADD = $(AM_LDADD) libpulsecore.la
 sig2str_test_CFLAGS = $(AM_CFLAGS)
 sig2str_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+resampler_test_SOURCES = tests/resampler-test.c
+resampler_test_LDADD = $(AM_LDADD) libpulsecore.la
+resampler_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+resampler_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 ###################################
 #         Client library          #
@@ -567,10 +573,10 @@ noinst_LTLIBRARIES = libspeex-resampler-fixed.la libspeex-resampler-float.la lib
 libspeex_resampler_fixed_la_CPPFLAGS = $(AM_CPPFLAGS) -DRANDOM_PREFIX=paspfx -DOUTSIDE_SPEEX -DFIXED_POINT
 libspeex_resampler_fixed_la_SOURCES = pulsecore/speex/resample.c pulsecore/speex/speex_resampler.h pulsecore/speex/arch.h pulsecore/speex/fixed_generic.h pulsecore/speexwrap.h
 
-libspeex_resampler_float_la_CPPFLAGS = $(AM_CPPFLAGS) -DRANDOM_PREFIX=paspfl -DOUTSIDE_SPEEX 
+libspeex_resampler_float_la_CPPFLAGS = $(AM_CPPFLAGS) -DRANDOM_PREFIX=paspfl -DOUTSIDE_SPEEX
 libspeex_resampler_float_la_SOURCES = pulsecore/speex/resample.c pulsecore/speex/speex_resampler.h pulsecore/speex/arch.h
 
-libffmpeg_resampler_la_CPPFLAGS = $(AM_CPPFLAGS) 
+libffmpeg_resampler_la_CPPFLAGS = $(AM_CPPFLAGS)
 libffmpeg_resampler_la_SOURCES = pulsecore/ffmpeg/resample2.c pulsecore/ffmpeg/avcodec.h pulsecore/ffmpeg/dsputil.h
 
 ###################################
@@ -959,7 +965,7 @@ modlibexec_LTLIBRARIES += \
 		module-simple-protocol-unix.la \
 		module-http-protocol-unix.la \
 		module-native-protocol-unix.la \
-		module-esound-protocol-unix.la 
+		module-esound-protocol-unix.la
 endif
 
 if HAVE_MKFIFO
