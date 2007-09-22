@@ -52,12 +52,10 @@ PA_MODULE_USAGE(
         "rate=<sample rate> "
         "channel_map=<channel map>")
 
-#define DEFAULT_SINK_NAME "remapped"
-
 struct userdata {
     pa_core *core;
     pa_module *module;
-    
+
     pa_sink *sink, *master;
     pa_sink_input *sink_input;
 
@@ -67,7 +65,7 @@ struct userdata {
 static const char* const valid_modargs[] = {
     "sink_name",
     "master",
-    "master_channel_map", 
+    "master_channel_map",
     "rate",
     "format",
     "channels",
@@ -78,7 +76,7 @@ static const char* const valid_modargs[] = {
 /* Called from I/O thread context */
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
-    
+
     switch (code) {
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
@@ -86,25 +84,25 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             if (PA_MSGOBJECT(u->master)->process_msg(PA_MSGOBJECT(u->master), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
                 usec = 0;
-            
+
             *((pa_usec_t*) data) = usec + pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec);
             return 0;
         }
     }
-    
+
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
 /* Called from main context */
 static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     struct userdata *u;
-    
+
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
     if (PA_SINK_LINKED(state) && u->sink_input)
         pa_sink_input_cork(u->sink_input, state == PA_SINK_SUSPENDED);
-    
+
     return 0;
 }
 
@@ -149,13 +147,13 @@ static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     pa_assert(length > 0);
 
     if (u->memchunk.memblock) {
-    
+
         if (length < u->memchunk.length) {
             u->memchunk.index += length;
             u->memchunk.length -= length;
             return;
         }
-        
+
         pa_memblock_unref(u->memchunk.memblock);
         length -= u->memchunk.length;
         pa_memchunk_reset(&u->memchunk);
@@ -184,7 +182,7 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     pa_sink_set_asyncmsgq(u->sink, i->sink->asyncmsgq);
     pa_sink_set_rtpoll(u->sink, i->sink->rtpoll);
-    
+
     pa_sink_attach_within_thread(u->sink);
 }
 
@@ -202,7 +200,7 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_unlink(u->sink);
     pa_sink_unref(u->sink);
     u->sink = NULL;
-    
+
     pa_module_unload_request(u->module);
 }
 
@@ -214,6 +212,7 @@ int pa__init(pa_module*m) {
     char *t;
     pa_sink *master;
     pa_sink_input_new_data data;
+    char *default_sink_name = NULL;
 
     pa_assert(m);
 
@@ -244,7 +243,7 @@ int pa__init(pa_module*m) {
         pa_log("Number of channels doesn't match");
         goto fail;
     }
-    
+
     u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
@@ -252,8 +251,10 @@ int pa__init(pa_module*m) {
     u->master = master;
     pa_memchunk_reset(&u->memchunk);
 
+    default_sink_name = pa_sprintf_malloc("%s.remapped", master->name);
+
     /* Create sink */
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &sink_map))) {
+    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", default_sink_name), 0, &ss, &sink_map))) {
         pa_log("Failed to create sink.");
         goto fail;
     }
@@ -262,9 +263,9 @@ int pa__init(pa_module*m) {
     u->sink->set_state = sink_set_state;
     u->sink->userdata = u;
     u->sink->flags = PA_SINK_LATENCY|PA_SINK_CAN_SUSPEND;
-    
+
     pa_sink_set_module(u->sink, m);
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Remapped sink of '%s'", master->description));
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Remapped %s", master->description));
     pa_xfree(t);
     pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
     pa_sink_set_rtpoll(u->sink, master->rtpoll);
@@ -273,7 +274,7 @@ int pa__init(pa_module*m) {
     pa_sink_input_new_data_init(&data);
     data.sink = u->master;
     data.driver = __FILE__;
-    data.name = "Remapped stream";
+    data.name = "Remapped Stream";
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     pa_sink_input_new_data_set_channel_map(&data, &stream_map);
     data.module = m;
@@ -293,6 +294,7 @@ int pa__init(pa_module*m) {
     pa_sink_input_put(u->sink_input);
 
     pa_modargs_free(ma);
+    pa_xfree(default_sink_name);
 
     return 0;
 
@@ -302,12 +304,14 @@ fail:
 
     pa__done(m);
 
+    pa_xfree(default_sink_name);
+
     return -1;
 }
 
 void pa__done(pa_module*m) {
     struct userdata *u;
-    
+
     pa_assert(m);
 
     if (!(u = m->userdata))

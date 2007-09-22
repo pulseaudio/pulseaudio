@@ -56,8 +56,6 @@ PA_MODULE_USAGE(
         "label=<ladspa plugin label> "
         "control=<comma seperated list of input control values>")
 
-#define DEFAULT_SINK_NAME "ladspa"
-
 struct userdata {
     pa_core *core;
     pa_module *module;
@@ -278,6 +276,7 @@ int pa__init(pa_module*m) {
     unsigned long input_port, output_port, p, j, n_control;
     unsigned c;
     pa_bool_t *use_default = NULL;
+    char *default_sink_name = NULL;
 
     pa_assert(m);
 
@@ -558,8 +557,10 @@ int pa__init(pa_module*m) {
         for (c = 0; c < u->channels; c++)
             d->activate(u->handle[c]);
 
+    default_sink_name = pa_sprintf_malloc("%s.ladspa", master->name);
+
     /* Create sink */
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
+    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", default_sink_name), 0, &ss, &map))) {
         pa_log("Failed to create sink.");
         goto fail;
     }
@@ -570,7 +571,7 @@ int pa__init(pa_module*m) {
     u->sink->flags = PA_SINK_LATENCY|PA_SINK_CAN_SUSPEND;
 
     pa_sink_set_module(u->sink, m);
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("LADSPA on '%s'", master->description));
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("LADSPA plugin '%s' on '%s'", label, master->description));
     pa_xfree(t);
     pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
     pa_sink_set_rtpoll(u->sink, master->rtpoll);
@@ -601,6 +602,7 @@ int pa__init(pa_module*m) {
     pa_modargs_free(ma);
 
     pa_xfree(use_default);
+    pa_xfree(default_sink_name);
 
     return 0;
 
@@ -609,6 +611,7 @@ fail:
         pa_modargs_free(ma);
 
     pa_xfree(use_default);
+    pa_xfree(default_sink_name);
 
     pa__done(m);
 
