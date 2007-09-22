@@ -690,7 +690,7 @@ pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {
 }
 
 int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
-    pa_resampler *new_resampler = NULL;
+    pa_resampler *new_resampler;
     pa_sink *origin;
     pa_usec_t silence_usec = 0;
     pa_sink_input_move_info info;
@@ -739,7 +739,8 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
             pa_log_warn("Unsupported resampling operation.");
             return -1;
         }
-    }
+    } else
+        new_resampler = NULL;
 
     pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE], i);
 
