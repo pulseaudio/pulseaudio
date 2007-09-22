@@ -182,7 +182,7 @@ static void callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, v
         if (!regexec(&r->regex, si->name, 0, NULL, 0)) {
             pa_cvolume cv;
             pa_log_debug("changing volume of sink input '%s' to 0x%03x", si->name, r->volume);
-            pa_cvolume_set(&cv, r->volume, si->sample_spec.channels);
+            pa_cvolume_set(&cv, si->sample_spec.channels, r->volume);
             pa_sink_input_set_volume(si, &cv);
         }
     }
