@@ -57,7 +57,7 @@ pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spe
 
     if (length <= 0)
         length = 1;
-    
+
     length *= fs;
 
     return pa_silence_memblock(pa_memblock_new(pool, length), spec);
@@ -173,12 +173,10 @@ size_t pa_mix(
                     if (volume->values[channel] != PA_VOLUME_NORM)
                         sum = (int32_t) (sum * pa_sw_volume_to_linear(volume->values[channel]));
 
-                    if (sum < -0x8000) sum = -0x8000;
-                    if (sum > 0x7FFF) sum = 0x7FFF;
-
+                    sum = CLAMP(sum, -0x8000, 0x7FFF);
                 }
 
-                *((int16_t*) data) = sum;
+                *((int16_t*) data) = (int16_t) sum;
                 data = (uint8_t*) data + sizeof(int16_t);
 
                 if (++channel >= spec->channels)
@@ -222,12 +220,10 @@ size_t pa_mix(
                     if (volume->values[channel] != PA_VOLUME_NORM)
                         sum = (int32_t) (sum * pa_sw_volume_to_linear(volume->values[channel]));
 
-                    if (sum < -0x8000) sum = -0x8000;
-                    if (sum > 0x7FFF) sum = 0x7FFF;
-
+                    sum = CLAMP(sum, -0x8000, 0x7FFF);
                 }
 
-                *((int16_t*) data) = INT16_SWAP(sum);
+                *((int16_t*) data) = INT16_SWAP((int16_t) sum);
                 data = (uint8_t*) data + sizeof(int16_t);
 
                 if (++channel >= spec->channels)
@@ -271,9 +267,7 @@ size_t pa_mix(
                     if (volume->values[channel] != PA_VOLUME_NORM)
                         sum = (int32_t) (sum * pa_sw_volume_to_linear(volume->values[channel]));
 
-                    if (sum < -0x80) sum = -0x80;
-                    if (sum > 0x7F) sum = 0x7F;
-
+                    sum = CLAMP(sum, -0x80, 0x7F);
                 }
 
                 *((uint8_t*) data) = (uint8_t) (sum + 0x80);
@@ -368,23 +362,22 @@ void pa_volume_memchunk(
     ptr = pa_memblock_acquire(c->memblock);
 
     switch (spec->format) {
+
         case PA_SAMPLE_S16NE: {
             int16_t *d;
             size_t n;
             unsigned channel;
-            double linear[PA_CHANNELS_MAX];
+            int32_t linear[PA_CHANNELS_MAX];
 
             for (channel = 0; channel < spec->channels; channel++)
-                linear[channel] = pa_sw_volume_to_linear(volume->values[channel]);
+                linear[channel] = (int32_t) (pa_sw_volume_to_linear(volume->values[channel]) * 0x10000);
 
             for (channel = 0, d = (int16_t*) ((uint8_t*) ptr + c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
-                int32_t t = (int32_t)(*d);
+                int32_t t;
 
-                t = (int32_t) (t * linear[channel]);
-
-                if (t < -0x8000) t = -0x8000;
-                if (t > 0x7FFF) t = 0x7FFF;
-
+                t = (int32_t)(*d);
+                t = (t * linear[channel]) / 0x10000;
+                t = CLAMP(t, -0x8000, 0x7FFF);
                 *d = (int16_t) t;
 
                 if (++channel >= spec->channels)
@@ -397,19 +390,17 @@ void pa_volume_memchunk(
             int16_t *d;
             size_t n;
             unsigned channel;
-            double linear[PA_CHANNELS_MAX];
+            int32_t linear[PA_CHANNELS_MAX];
 
             for (channel = 0; channel < spec->channels; channel++)
-                linear[channel] = pa_sw_volume_to_linear(volume->values[channel]);
+                linear[channel] = (int32_t) (pa_sw_volume_to_linear(volume->values[channel]) * 0x10000);
 
             for (channel = 0, d = (int16_t*) ((uint8_t*) ptr + c->index), n = c->length/sizeof(int16_t); n > 0; d++, n--) {
-                int32_t t = (int32_t)(INT16_SWAP(*d));
+                int32_t t;
 
-                t = (int32_t) (t * linear[channel]);
-
-                if (t < -0x8000) t = -0x8000;
-                if (t > 0x7FFF) t = 0x7FFF;
-
+                t = (int32_t)(INT16_SWAP(*d));
+                t = (t * linear[channel]) / 0x10000;
+                t = CLAMP(t, -0x8000, 0x7FFF);
                 *d = INT16_SWAP((int16_t) t);
 
                 if (++channel >= spec->channels)
@@ -422,16 +413,18 @@ void pa_volume_memchunk(
         case PA_SAMPLE_U8: {
             uint8_t *d;
             size_t n;
-            unsigned channel = 0;
+            unsigned channel;
+            int32_t linear[PA_CHANNELS_MAX];
 
-            for (d = (uint8_t*) ptr + c->index, n = c->length; n > 0; d++, n--) {
-                int32_t t = (int32_t) *d - 0x80;
+            for (channel = 0; channel < spec->channels; channel++)
+                linear[channel] = (int32_t) (pa_sw_volume_to_linear(volume->values[channel]) * 0x10000);
 
-                t = (int32_t) (t * pa_sw_volume_to_linear(volume->values[channel]));
+            for (channel = 0, d = (uint8_t*) ptr + c->index, n = c->length; n > 0; d++, n--) {
+                int32_t t;
 
-                if (t < -0x80) t = -0x80;
-                if (t > 0x7F) t = 0x7F;
-
+                t = (int32_t) *d - 0x80;
+                t = (t * linear[channel]) / 0x10000;
+                t = CLAMP(t, -0x80, 0x7F);
                 *d = (uint8_t) (t + 0x80);
 
                 if (++channel >= spec->channels)
@@ -457,7 +450,6 @@ void pa_volume_memchunk(
                     continue;
 
                 v = (float) pa_sw_volume_to_linear(volume->values[channel]);
-
                 t = d + channel;
                 oil_scalarmult_f32(t, skip, t, skip, &v, n);
             }
@@ -465,9 +457,8 @@ void pa_volume_memchunk(
         }
 
         default:
-            pa_log_error("ERROR: Unable to change volume of format %s.",
-                pa_sample_format_to_string(spec->format));
-            abort();
+            pa_log_warn(" Unable to change volume of format %s.", pa_sample_format_to_string(spec->format));
+            /* If we cannot change the volume, we just don't do it */
     }
 
     pa_memblock_release(c->memblock);
@@ -477,7 +468,7 @@ size_t pa_frame_align(size_t l, const pa_sample_spec *ss) {
     size_t fs;
 
     pa_assert(ss);
-    
+
     fs = pa_frame_size(ss);
 
     return (l/fs) * fs;
@@ -485,11 +476,10 @@ size_t pa_frame_align(size_t l, const pa_sample_spec *ss) {
 
 int pa_frame_aligned(size_t l, const pa_sample_spec *ss) {
     size_t fs;
-    
+
     pa_assert(ss);
 
     fs = pa_frame_size(ss);
-    
+
     return l % fs == 0;
 }
-
