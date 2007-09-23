@@ -36,6 +36,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <pulse/xmalloc.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
@@ -248,7 +249,7 @@ int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
     return 0;
 }
 
-static int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvolume *volume) {
+int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
 
@@ -259,16 +260,18 @@ static int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvo
     if (ioctl(fd, mixer, &vol) < 0)
         return -1;
 
+    pa_cvolume_reset(volume, ss->channels);
+
     volume->values[0] = ((vol & 0xFF) * PA_VOLUME_NORM) / 100;
 
-    if ((volume->channels = ss->channels) >= 2)
+    if (volume->channels >= 2)
         volume->values[1] = (((vol >> 8) & 0xFF) * PA_VOLUME_NORM) / 100;
 
     pa_log_debug("Read mixer settings: %s", pa_cvolume_snprint(cv, sizeof(cv), volume));
     return 0;
 }
 
-static int pa_oss_set_volume(int fd, long mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
+int pa_oss_set_volume(int fd, long mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
     pa_volume_t l, r;
@@ -289,40 +292,38 @@ static int pa_oss_set_volume(int fd, long mixer, const pa_sample_spec *ss, const
     return 0;
 }
 
-int pa_oss_get_pcm_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
-    return pa_oss_get_volume(fd, SOUND_MIXER_READ_PCM, ss, volume);
-}
+static int get_device_number(const char *dev) {
+    char buf[PATH_MAX];
+    const char *p, *e;
 
-int pa_oss_set_pcm_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume) {
-    return pa_oss_set_volume(fd, SOUND_MIXER_WRITE_PCM, ss, volume);
-}
+    if (readlink(dev, buf, sizeof(buf)) < 0) {
+        if (errno != EINVAL && errno != ENOLINK)
+            return -1;
 
-int pa_oss_get_input_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
-    return pa_oss_get_volume(fd, SOUND_MIXER_READ_IGAIN, ss, volume);
-}
+        p = dev;
+    } else
+        p = buf;
 
-int pa_oss_set_input_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume) {
-    return pa_oss_set_volume(fd, SOUND_MIXER_WRITE_IGAIN, ss, volume);
+    if ((e = strrchr(p, '/')))
+        p = e+1;
+
+    if (p == 0)
+        return 0;
+
+    p = strchr(p, 0) -1;
+
+    if (*p >= '0' && *p <= '9')
+        return *p - '0';
+
+    return -1;
 }
 
 int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
     FILE *f;
-    const char *e = NULL;
     int n, r = -1;
     int b = 0;
 
-    if (strncmp(dev, "/dev/dsp", 8) == 0)
-        e = dev+8;
-    else if (strncmp(dev, "/dev/adsp", 9) == 0)
-        e = dev+9;
-    else
-        return -1;
-
-    if (*e == 0)
-        n = 0;
-    else if (*e >= '0' && *e <= '9' && *(e+1) == 0)
-        n = *e - '0';
-    else
+    if ((n = get_device_number(dev)) < 0)
         return -1;
 
     if (!(f = fopen("/dev/sndstat", "r")) &&
@@ -372,4 +373,35 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
 
     fclose(f);
     return r;
+}
+
+static int open_mixer(const char *mixer) {
+    int fd;
+
+    if ((fd = open(mixer, O_RDWR|O_NDELAY|O_NOCTTY)) >= 0)
+        return fd;
+
+    return -1;
+}
+
+int pa_oss_open_mixer_for_device(const char *device) {
+    int n;
+    char *fn;
+    int fd;
+
+    if ((n = get_device_number(device)) < 0)
+        return -1;
+
+    if (n == 0)
+        if ((fd = open_mixer("/dev/mixer")) >= 0)
+            return fd;
+
+    fn = pa_sprintf_malloc("/dev/mixer%i", n);
+    fd = open_mixer(fn);
+    pa_xfree(fn);
+
+    if (fd < 0)
+        pa_log_warn("Failed to open mixer '%s': %s", device, pa_cstrerror(errno));
+
+    return fd;
 }

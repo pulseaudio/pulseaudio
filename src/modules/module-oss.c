@@ -36,8 +36,6 @@
  *
  */
 
-/* TODO: handle restoring of volume after suspend */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -101,13 +99,13 @@ struct userdata {
     pa_module *module;
     pa_sink *sink;
     pa_source *source;
-    
+
     pa_thread *thread;
     pa_thread_mq thread_mq;
     pa_rtpoll *rtpoll;
 
     char *device_name;
-    
+
     pa_memchunk memchunk;
 
     size_t frame_size;
@@ -115,13 +113,13 @@ struct userdata {
     int use_getospace, use_getispace;
     int use_getodelay;
 
-    int use_pcm_volume;
-    int use_input_volume;
-
     int sink_suspended, source_suspended;
 
     int fd;
     int mode;
+
+    int mixer_fd;
+    int mixer_devmask;
 
     int nfrags, frag_size;
 
@@ -155,7 +153,7 @@ static void trigger(struct userdata *u, int quick) {
     int enable_bits = 0, zero = 0;
 
     pa_assert(u);
-    
+
     if (u->fd < 0)
         return;
 
@@ -163,10 +161,10 @@ static void trigger(struct userdata *u, int quick) {
 
     if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state))
         enable_bits |= PCM_ENABLE_INPUT;
-    
+
     if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state))
         enable_bits |= PCM_ENABLE_OUTPUT;
-    
+
     if (u->use_mmap) {
 
         if (!quick)
@@ -177,28 +175,28 @@ static void trigger(struct userdata *u, int quick) {
             if (ioctl(u->fd, SNDCTL_DSP_HALT, NULL) < 0)
                 pa_log_warn("SNDCTL_DSP_HALT: %s", pa_cstrerror(errno));
 #endif
-        
+
         if (ioctl(u->fd, SNDCTL_DSP_SETTRIGGER, &enable_bits) < 0)
             pa_log_warn("SNDCTL_DSP_SETTRIGGER: %s", pa_cstrerror(errno));
-        
+
         if (u->sink && !(enable_bits & PCM_ENABLE_OUTPUT)) {
             pa_log_debug("clearing playback buffer");
             pa_silence_memory(u->out_mmap, u->out_hwbuf_size, &u->sink->sample_spec);
         }
-        
+
     } else {
 
         if (enable_bits)
             if (ioctl(u->fd, SNDCTL_DSP_POST, NULL) < 0)
                 pa_log_warn("SNDCTL_DSP_POST: %s", pa_cstrerror(errno));
-        
+
         if (!quick) {
             /*
              * Some crappy drivers do not start the recording until we
              * read something.  Without this snippet, poll will never
              * register the fd as ready.
              */
-            
+
             if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) {
                 uint8_t *buf = pa_xnew(uint8_t, u->in_fragment_size);
                 pa_read(u->fd, buf, u->in_fragment_size, NULL);
@@ -213,7 +211,7 @@ static void mmap_fill_memblocks(struct userdata *u, unsigned n) {
     pa_assert(u->out_mmap_memblocks);
 
 /*     pa_log("Mmmap writing %u blocks", n); */
-    
+
     while (n > 0) {
         pa_memchunk chunk;
 
@@ -242,12 +240,12 @@ static void mmap_fill_memblocks(struct userdata *u, unsigned n) {
 
 static int mmap_write(struct userdata *u) {
     struct count_info info;
-    
+
     pa_assert(u);
     pa_assert(u->sink);
 
 /*     pa_log("Mmmap writing..."); */
-    
+
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
         pa_log("SNDCTL_DSP_GETOPTR: %s", pa_cstrerror(errno));
         return -1;
@@ -258,7 +256,7 @@ static int mmap_write(struct userdata *u) {
 
     if (info.blocks > 0)
         mmap_fill_memblocks(u, info.blocks);
-    
+
     return info.blocks;
 }
 
@@ -272,14 +270,14 @@ static void mmap_post_memblocks(struct userdata *u, unsigned n) {
         pa_memchunk chunk;
 
         if (!u->in_mmap_memblocks[u->in_mmap_current]) {
-            
+
             chunk.memblock = u->in_mmap_memblocks[u->in_mmap_current] =
                 pa_memblock_new_fixed(
                         u->core->mempool,
                         (uint8_t*) u->in_mmap + u->in_fragment_size*u->in_mmap_current,
                         u->in_fragment_size,
                         1);
-            
+
             chunk.length = pa_memblock_get_length(chunk.memblock);
             chunk.index = 0;
 
@@ -296,7 +294,7 @@ static void mmap_post_memblocks(struct userdata *u, unsigned n) {
 
 static void mmap_clear_memblocks(struct userdata*u, unsigned n) {
     unsigned i = u->in_mmap_current;
-    
+
     pa_assert(u);
     pa_assert(u->in_mmap_memblocks);
 
@@ -323,7 +321,7 @@ static int mmap_read(struct userdata *u) {
     pa_assert(u->source);
 
 /*     pa_log("Mmmap reading..."); */
-    
+
     if (ioctl(u->fd, SNDCTL_DSP_GETIPTR, &info) < 0) {
         pa_log("SNDCTL_DSP_GETIPTR: %s", pa_cstrerror(errno));
         return -1;
@@ -336,14 +334,14 @@ static int mmap_read(struct userdata *u) {
         mmap_post_memblocks(u, info.blocks);
         mmap_clear_memblocks(u, u->in_nfrags/2);
     }
-    
+
     return info.blocks;
 }
 
 static pa_usec_t mmap_sink_get_latency(struct userdata *u) {
     struct count_info info;
     size_t bpos, n;
-    
+
     pa_assert(u);
 
     if (ioctl(u->fd, SNDCTL_DSP_GETOPTR, &info) < 0) {
@@ -391,23 +389,23 @@ static pa_usec_t mmap_source_get_latency(struct userdata *u) {
 
 static pa_usec_t io_sink_get_latency(struct userdata *u) {
     pa_usec_t r = 0;
-    
+
     pa_assert(u);
-    
+
     if (u->use_getodelay) {
         int arg;
-        
+
         if (ioctl(u->fd, SNDCTL_DSP_GETODELAY, &arg) < 0) {
             pa_log_info("Device doesn't support SNDCTL_DSP_GETODELAY: %s", pa_cstrerror(errno));
             u->use_getodelay = 0;
         } else
             r = pa_bytes_to_usec(arg, &u->sink->sample_spec);
-        
+
     }
-    
+
     if (!u->use_getodelay && u->use_getospace) {
         struct audio_buf_info info;
-        
+
         if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
             pa_log_info("Device doesn't support SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
             u->use_getospace = 0;
@@ -424,9 +422,9 @@ static pa_usec_t io_sink_get_latency(struct userdata *u) {
 
 static pa_usec_t io_source_get_latency(struct userdata *u) {
     pa_usec_t r = 0;
-    
+
     pa_assert(u);
-    
+
     if (u->use_getispace) {
         struct audio_buf_info info;
 
@@ -445,7 +443,7 @@ static int suspend(struct userdata *u) {
     pa_assert(u->fd >= 0);
 
     pa_log_info("Suspending...");
-    
+
     if (u->out_mmap_memblocks) {
         unsigned i;
         for (i = 0; i < u->out_nfrags; i++)
@@ -463,12 +461,12 @@ static int suspend(struct userdata *u) {
                 u->in_mmap_memblocks[i] = NULL;
             }
     }
-    
+
     if (u->in_mmap && u->in_mmap != MAP_FAILED) {
         munmap(u->in_mmap, u->in_hwbuf_size);
         u->in_mmap = NULL;
     }
-        
+
     if (u->out_mmap && u->out_mmap != MAP_FAILED) {
         munmap(u->out_mmap, u->out_hwbuf_size);
         u->out_mmap = NULL;
@@ -483,9 +481,9 @@ static int suspend(struct userdata *u) {
         pa_rtpoll_item_free(u->rtpoll_item);
         u->rtpoll_item = NULL;
     }
-    
+
     pa_log_info("Device suspended...");
-    
+
     return 0;
 }
 
@@ -567,7 +565,7 @@ static int unsuspend(struct userdata *u) {
 
                 goto fail;
             }
-            
+
             pa_silence_memory(u->out_mmap, u->out_hwbuf_size, &ss);
         }
     }
@@ -576,12 +574,17 @@ static int unsuspend(struct userdata *u) {
     u->out_mmap_saved_nfrags = u->in_mmap_saved_nfrags = 0;
 
     pa_assert(!u->rtpoll_item);
-    
+
     u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
     pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
     pollfd->fd = u->fd;
     pollfd->events = 0;
     pollfd->revents = 0;
+
+    if (u->sink)
+        pa_sink_get_volume(u->sink);
+    if (u->source)
+        pa_source_get_volume(u->source);
 
     pa_log_info("Resumed successfully...");
 
@@ -624,29 +627,29 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     if (!u->source || u->source_suspended) {
                         if (suspend(u) < 0)
                             return -1;
-                    } 
+                    }
 
                     do_trigger = 1;
 
                     u->sink_suspended = 1;
                     break;
-                    
+
                 case PA_SINK_IDLE:
                 case PA_SINK_RUNNING:
-                    
+
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
-                        
+
                         if (!u->source || u->source_suspended) {
-                            if (unsuspend(u) < 0) 
+                            if (unsuspend(u) < 0)
                                 return -1;
                             quick = 0;
                         }
 
                         do_trigger = 1;
-                        
+
                         u->out_mmap_current = 0;
                         u->out_mmap_saved_nfrags = 0;
-                        
+
                         u->sink_suspended = 0;
                     }
 
@@ -656,41 +659,16 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 case PA_SINK_INIT:
                     ;
             }
-            
-            break;
-
-        case PA_SINK_MESSAGE_SET_VOLUME:
-
-            if (u->use_pcm_volume && u->fd >= 0) {
-
-                if (pa_oss_set_pcm_volume(u->fd, &u->sink->sample_spec, ((pa_cvolume*) data)) < 0) {
-                    pa_log_info("Device doesn't support setting mixer settings: %s", pa_cstrerror(errno));
-                    u->use_pcm_volume = 0;
-                } else
-                    return 0;
-            }
 
             break;
 
-        case PA_SINK_MESSAGE_GET_VOLUME:
-
-            if (u->use_pcm_volume && u->fd >= 0) {
-
-                if (pa_oss_get_pcm_volume(u->fd, &u->sink->sample_spec, ((pa_cvolume*) data)) < 0) {
-                    pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
-                    u->use_pcm_volume = 0;
-                } else
-                    return 0;
-            }
-
-            break;
     }
 
     ret = pa_sink_process_msg(o, code, data, offset, chunk);
 
     if (do_trigger)
         trigger(u, quick);
-    
+
     return ret;
 }
 
@@ -709,7 +687,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                 else
                     r = io_source_get_latency(u);
             }
-            
+
             *((pa_usec_t*) data) = r;
             return 0;
         }
@@ -721,31 +699,31 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                     pa_assert(PA_SOURCE_OPENED(u->source->thread_info.state));
 
                     if (!u->sink || u->sink_suspended) {
-                        if (suspend(u) < 0) 
+                        if (suspend(u) < 0)
                             return -1;
-                    } 
+                    }
 
                     do_trigger = 1;
-                    
+
                     u->source_suspended = 1;
                     break;
 
                 case PA_SOURCE_IDLE:
                 case PA_SOURCE_RUNNING:
-                    
+
                     if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
 
                         if (!u->sink || u->sink_suspended) {
-                            if (unsuspend(u) < 0) 
+                            if (unsuspend(u) < 0)
                                 return -1;
                             quick = 0;
-                        } 
+                        }
 
                         do_trigger = 1;
-                        
+
                         u->in_mmap_current = 0;
                         u->in_mmap_saved_nfrags = 0;
-                        
+
                         u->source_suspended = 0;
                     }
                     break;
@@ -757,31 +735,6 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             }
             break;
 
-        case PA_SOURCE_MESSAGE_SET_VOLUME:
-
-            if (u->use_input_volume && u->fd >= 0) {
-
-                if (pa_oss_set_input_volume(u->fd, &u->source->sample_spec, ((pa_cvolume*) data)) < 0) {
-                    pa_log_info("Device doesn't support setting mixer settings: %s", pa_cstrerror(errno));
-                    u->use_input_volume = 0;
-                } else
-                    return 0;
-            }
-
-            break;
-
-        case PA_SOURCE_MESSAGE_GET_VOLUME:
-
-            if (u->use_input_volume && u->fd >= 0) {
-
-                if (pa_oss_get_input_volume(u->fd, &u->source->sample_spec, ((pa_cvolume*) data)) < 0) {
-                    pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
-                    u->use_input_volume = 0;
-                } else
-                    return 0;
-            }
-
-            break;
     }
 
     ret = pa_source_process_msg(o, code, data, offset, chunk);
@@ -790,6 +743,86 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         trigger(u, quick);
 
     return ret;
+}
+
+static int sink_get_volume(pa_sink *s) {
+    struct userdata *u;
+    int r;
+
+    pa_assert_se(u = s->userdata);
+
+    pa_assert(u->mixer_devmask & (SOUND_MASK_VOLUME|SOUND_MASK_PCM));
+
+    if (u->mixer_devmask & SOUND_MASK_VOLUME)
+        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_VOLUME, &s->sample_spec, &s->volume)) >= 0)
+            return r;
+
+    if (u->mixer_devmask & SOUND_MASK_PCM)
+        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_PCM, &s->sample_spec, &s->volume)) >= 0)
+            return r;
+
+    pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
+    return -1;
+}
+
+static int sink_set_volume(pa_sink *s) {
+    struct userdata *u;
+    int r;
+
+    pa_assert_se(u = s->userdata);
+
+    pa_assert(u->mixer_devmask & (SOUND_MASK_VOLUME|SOUND_MASK_PCM));
+
+    if (u->mixer_devmask & SOUND_MASK_VOLUME)
+        if ((r = pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_VOLUME, &s->sample_spec, &s->volume)) >= 0)
+            return r;
+
+    if (u->mixer_devmask & SOUND_MASK_PCM)
+        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_PCM, &s->sample_spec, &s->volume)) >= 0)
+            return r;
+
+    pa_log_info("Device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
+    return -1;
+}
+
+static int source_get_volume(pa_source *s) {
+    struct userdata *u;
+    int r;
+
+    pa_assert_se(u = s->userdata);
+
+    pa_assert(u->mixer_devmask & (SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
+
+    if (u->mixer_devmask & SOUND_MASK_IGAIN)
+        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_IGAIN, &s->sample_spec, &s->volume)) >= 0)
+            return r;
+
+    if (u->mixer_devmask & SOUND_MASK_RECLEV)
+        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_RECLEV, &s->sample_spec, &s->volume)) >= 0)
+            return r;
+
+    pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
+    return -1;
+}
+
+static int source_set_volume(pa_source *s) {
+    struct userdata *u;
+    int r;
+
+    pa_assert_se(u = s->userdata);
+
+    pa_assert(u->mixer_devmask & (SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
+
+    if (u->mixer_devmask & SOUND_MASK_IGAIN)
+        if ((r = pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_IGAIN, &s->sample_spec, &s->volume)) >= 0)
+            return r;
+
+    if (u->mixer_devmask & SOUND_MASK_RECLEV)
+        if ((r = pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_RECLEV, &s->sample_spec, &s->volume)) >= 0)
+            return r;
+
+    pa_log_info("Device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
+    return -1;
 }
 
 static void thread_func(void *userdata) {
@@ -808,12 +841,12 @@ static void thread_func(void *userdata) {
     pa_rtpoll_install(u->rtpoll);
 
     trigger(u, 0);
-    
+
     for (;;) {
         int ret;
 
 /*        pa_log("loop");    */
-        
+
         /* Render some data and write it to the dsp */
 
         if (u->sink && u->sink->thread_info.state != PA_SINK_UNLINKED && u->fd >= 0 && (revents & POLLOUT)) {
@@ -824,19 +857,19 @@ static void thread_func(void *userdata) {
                     goto fail;
 
                 revents &= ~POLLOUT;
-                
+
                 if (ret > 0)
                     continue;
 
             } else {
                 ssize_t l;
                 int loop = 0;
-                
+
                 l = u->out_fragment_size;
-                
+
                 if (u->use_getospace) {
                     audio_buf_info info;
-                    
+
                     if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
                         pa_log_info("Device doesn't support SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
                         u->use_getospace = 0;
@@ -847,59 +880,59 @@ static void thread_func(void *userdata) {
                         }
                     }
                 }
-                
+
                 do {
                     void *p;
                     ssize_t t;
-                    
+
                     pa_assert(l > 0);
-                    
+
                     if (u->memchunk.length <= 0)
                         pa_sink_render(u->sink, l, &u->memchunk);
-                    
+
                     pa_assert(u->memchunk.length > 0);
-                    
+
                     p = pa_memblock_acquire(u->memchunk.memblock);
                     t = pa_write(u->fd, (uint8_t*) p + u->memchunk.index, u->memchunk.length, &write_type);
                     pa_memblock_release(u->memchunk.memblock);
-                    
+
 /*                     pa_log("wrote %i bytes of %u", t, l); */
-                    
+
                     pa_assert(t != 0);
-                    
+
                     if (t < 0) {
-                        
+
                         if (errno == EINTR)
                             continue;
-                        
+
                         else if (errno == EAGAIN) {
-                            pa_log_debug("EAGAIN"); 
-                            
+                            pa_log_debug("EAGAIN");
+
                             revents &= ~POLLOUT;
                             break;
-                            
+
                         } else {
                             pa_log("Failed to write data to DSP: %s", pa_cstrerror(errno));
                             goto fail;
                         }
-                        
+
                     } else {
-                        
+
                         u->memchunk.index += t;
                         u->memchunk.length -= t;
-                        
+
                         if (u->memchunk.length <= 0) {
                             pa_memblock_unref(u->memchunk.memblock);
                             pa_memchunk_reset(&u->memchunk);
                         }
-                        
+
                         l -= t;
-                        
+
                         revents &= ~POLLOUT;
                     }
-                    
+
                 } while (loop && l > 0);
-                
+
                 continue;
             }
         }
@@ -914,7 +947,7 @@ static void thread_func(void *userdata) {
                     goto fail;
 
                 revents &= ~POLLIN;
-                
+
                 if (ret > 0)
                     continue;
 
@@ -954,7 +987,7 @@ static void thread_func(void *userdata) {
                         k = l;
 
                     k = (k/u->frame_size)*u->frame_size;
-        
+
                     p = pa_memblock_acquire(memchunk.memblock);
                     t = pa_read(u->fd, p, k, &read_type);
                     pa_memblock_release(memchunk.memblock);
@@ -962,7 +995,7 @@ static void thread_func(void *userdata) {
                     pa_assert(t != 0); /* EOF cannot happen */
 
 /*                     pa_log("read %i bytes of %u", t, l); */
-                    
+
                     if (t < 0) {
                         pa_memblock_unref(memchunk.memblock);
 
@@ -970,7 +1003,7 @@ static void thread_func(void *userdata) {
                             continue;
 
                         else if (errno == EAGAIN) {
-                            pa_log_debug("EAGAIN"); 
+                            pa_log_debug("EAGAIN");
 
                             revents &= ~POLLIN;
                             break;
@@ -1007,19 +1040,19 @@ static void thread_func(void *userdata) {
                 ((u->source && PA_SOURCE_OPENED(u->source->thread_info.state)) ? POLLIN : 0) |
                 ((u->sink && PA_SINK_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0);
         }
-        
+
         /* Hmm, nothing to do. Let's sleep */
         if ((ret = pa_rtpoll_run(u->rtpoll, 1)) < 0)
             goto fail;
 
         if (ret == 0)
             goto finish;
-        
+
         if (u->fd >= 0) {
             struct pollfd *pollfd;
-            
+
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-            
+
             if (pollfd->revents & ~(POLLOUT|POLLIN)) {
                 pa_log("DSP shutdown.");
                 goto fail;
@@ -1041,7 +1074,7 @@ finish:
 }
 
 int pa__init(pa_module*m) {
-    
+
     struct audio_buf_info info;
     struct userdata *u = NULL;
     const char *dev;
@@ -1096,7 +1129,7 @@ int pa__init(pa_module*m) {
         pa_log("Failed to parse mmap argument.");
         goto fail;
     }
-    
+
     if ((fd = pa_oss_open(dev = pa_modargs_get_value(ma, "device", DEFAULT_DEVICE), &mode, &caps)) < 0)
         goto fail;
 
@@ -1104,7 +1137,7 @@ int pa__init(pa_module*m) {
         pa_log_info("OSS device not mmap capable, falling back to UNIX read/write mode.");
         use_mmap = 0;
     }
-    
+
     if (use_mmap && mode == O_WRONLY) {
         pa_log_info("Device opened for playback only, cannot do memory mapping, falling back to UNIX write() mode.");
         use_mmap = 0;
@@ -1135,9 +1168,9 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->fd = fd;
+    u->mixer_fd = -1;
     u->use_getospace = u->use_getispace = 1;
     u->use_getodelay = 1;
-    u->use_input_volume = u->use_pcm_volume = 1;
     u->mode = mode;
     u->frame_size = pa_frame_size(&ss);
     u->device_name = pa_xstrdup(dev);
@@ -1152,7 +1185,7 @@ int pa__init(pa_module*m) {
     pollfd->fd = fd;
     pollfd->events = 0;
     pollfd->revents = 0;
-    
+
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
         pa_log_info("Input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
         u->in_fragment_size = info.fragsize;
@@ -1169,7 +1202,7 @@ int pa__init(pa_module*m) {
 
     u->in_hwbuf_size = u->in_nfrags * u->in_fragment_size;
     u->out_hwbuf_size = u->out_nfrags * u->out_fragment_size;
-    
+
     if (mode != O_WRONLY) {
         char *name_buf = NULL;
 
@@ -1210,7 +1243,7 @@ int pa__init(pa_module*m) {
                                           hwdesc[0] ? ")" : "",
                                           use_mmap ? " via DMA" : ""));
         pa_xfree(t);
-        u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_CAN_SUSPEND|PA_SOURCE_LATENCY|PA_SOURCE_HW_VOLUME_CTRL;
+        u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_CAN_SUSPEND|PA_SOURCE_LATENCY;
         u->source->refresh_volume = 1;
 
         if (use_mmap)
@@ -1236,7 +1269,7 @@ int pa__init(pa_module*m) {
                 pa_silence_memory(u->out_mmap, u->out_hwbuf_size, &ss);
             }
         }
-        
+
         if ((name = pa_modargs_get_value(ma, "sink_name", NULL)))
             namereg_fail = 1;
         else {
@@ -1253,7 +1286,7 @@ int pa__init(pa_module*m) {
 
         u->sink->parent.process_msg = sink_process_msg;
         u->sink->userdata = u;
-        
+
         pa_sink_set_module(u->sink, m);
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
@@ -1265,15 +1298,46 @@ int pa__init(pa_module*m) {
                                         hwdesc[0] ? ")" : "",
                                         use_mmap ? " via DMA" : ""));
         pa_xfree(t);
-        u->sink->flags = PA_SINK_HARDWARE|PA_SINK_CAN_SUSPEND|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL;
+        u->sink->flags = PA_SINK_HARDWARE|PA_SINK_CAN_SUSPEND|PA_SINK_LATENCY;
         u->sink->refresh_volume = 1;
 
         if (use_mmap)
             u->out_mmap_memblocks = pa_xnew0(pa_memblock*, u->out_nfrags);
     }
 
+    if ((u->mixer_fd = pa_oss_open_mixer_for_device(u->device_name)) >= 0) {
+        int do_close = 1;
+        u->mixer_devmask = 0;
+
+        if (ioctl(fd, SOUND_MIXER_READ_DEVMASK, &u->mixer_devmask) < 0)
+            pa_log_warn("SOUND_MIXER_READ_DEVMASK failed: %s", pa_cstrerror(errno));
+
+        else {
+            if (u->sink && (u->mixer_devmask & (SOUND_MASK_VOLUME|SOUND_MASK_PCM))) {
+                pa_log_debug("Found hardware mixer track for playback.");
+                u->sink->flags |= PA_SINK_HW_VOLUME_CTRL;
+                u->sink->get_volume = sink_get_volume;
+                u->sink->set_volume = sink_set_volume;
+                do_close = 0;
+            }
+
+            if (u->source && (u->mixer_devmask & (SOUND_MASK_RECLEV|SOUND_MASK_IGAIN))) {
+                pa_log_debug("Found hardware mixer track for recording.");
+                u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL;
+                u->source->get_volume = source_get_volume;
+                u->source->set_volume = source_set_volume;
+                do_close = 0;
+            }
+        }
+
+        if (do_close) {
+            pa_close(u->mixer_fd);
+            u->mixer_fd = -1;
+        }
+    }
+
 go_on:
-    
+
     pa_assert(u->source || u->sink);
 
     pa_memchunk_reset(&u->memchunk);
@@ -1284,16 +1348,16 @@ go_on:
     }
 
     /* Read mixer settings */
-    if (u->source)
-        pa_asyncmsgq_send(u->thread_mq.inq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_GET_VOLUME, &u->source->volume, 0, NULL);
-    if (u->sink)
-        pa_asyncmsgq_send(u->thread_mq.inq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_GET_VOLUME, &u->sink->volume, 0, NULL);
+    if (u->sink && u->sink->get_volume)
+        sink_get_volume(u->sink);
+    if (u->source && u->source->get_volume)
+        source_get_volume(u->source);
 
     if (u->sink)
         pa_sink_put(u->sink);
     if (u->source)
         pa_source_put(u->source);
-    
+
     pa_modargs_free(ma);
 
     return 0;
@@ -1337,16 +1401,16 @@ void pa__done(pa_module*m) {
 
     if (u->source)
         pa_source_unref(u->source);
-    
+
     if (u->memchunk.memblock)
         pa_memblock_unref(u->memchunk.memblock);
 
     if (u->rtpoll_item)
         pa_rtpoll_item_free(u->rtpoll_item);
-    
+
     if (u->rtpoll)
         pa_rtpoll_free(u->rtpoll);
-    
+
     if (u->out_mmap_memblocks) {
         unsigned i;
         for (i = 0; i < u->out_nfrags; i++)
@@ -1368,11 +1432,14 @@ void pa__done(pa_module*m) {
 
     if (u->out_mmap && u->out_mmap != MAP_FAILED)
         munmap(u->out_mmap, u->out_hwbuf_size);
-    
+
     if (u->fd >= 0)
         pa_close(u->fd);
 
+    if (u->mixer_fd >= 0)
+        pa_close(u->mixer_fd);
+
     pa_xfree(u->device_name);
-    
+
     pa_xfree(u);
 }
