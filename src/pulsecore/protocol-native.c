@@ -792,8 +792,10 @@ static void request_bytes(playback_stream *s) {
     minreq = pa_memblockq_get_minreq(s->memblockq);
 
     previous_missing = pa_atomic_add(&s->missing, delta);
-    if (previous_missing < minreq && previous_missing+delta >= minreq)
+    if (previous_missing < minreq && previous_missing+delta >= minreq) {
+        pa_assert(pa_thread_mq_get());
         pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(s), PLAYBACK_STREAM_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
+    }
 }
 
 static void send_memblock(connection *c) {
