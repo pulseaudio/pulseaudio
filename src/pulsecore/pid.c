@@ -88,7 +88,12 @@ static int open_pid_file(const char *fn, int mode) {
     for (;;) {
         struct stat st;
 
-        if ((fd = open(fn, mode, S_IRUSR|S_IWUSR)) < 0) {
+        if ((fd = open(fn, mode|O_NOCTTY
+#ifdef O_NOFOLLOW
+                       |O_NOFOLLOW
+#endif
+                       , S_IRUSR|S_IWUSR
+             )) < 0) {
             if (mode != O_RDONLY || errno != ENOENT)
                 pa_log_warn("Failed to open PID file '%s': %s", fn, pa_cstrerror(errno));
             goto fail;
@@ -184,7 +189,7 @@ int pa_pid_file_create(void) {
 fail:
     if (fd >= 0) {
         pa_lock_fd(fd, 0);
-        
+
         if (pa_close(fd) < 0) {
             pa_log("Failed to close PID file '%s': %s", fn, pa_cstrerror(errno));
             ret = -1;
@@ -204,8 +209,7 @@ int pa_pid_file_remove(void) {
     pa_runtime_path("pid", fn, sizeof(fn));
 
     if ((fd = open_pid_file(fn, O_RDWR)) < 0) {
-        pa_log_warn("Failed to open PID file '%s': %s",
-            fn, pa_cstrerror(errno));
+        pa_log_warn("Failed to open PID file '%s': %s", fn, pa_cstrerror(errno));
         goto fail;
     }
 
