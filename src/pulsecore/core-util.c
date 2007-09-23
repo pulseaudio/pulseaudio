@@ -144,7 +144,7 @@ void pa_make_fd_nonblock(int fd) {
 
     if (!(v & O_NONBLOCK))
         pa_assert_se(fcntl(fd, F_SETFL, v|O_NONBLOCK) >= 0);
-    
+
 #elif defined(OS_IS_WIN32)
     u_long arg = 1;
     if (ioctlsocket(fd, FIONBIO, &arg) < 0) {
@@ -521,21 +521,21 @@ void pa_make_realtime(void) {
 
     memset(&sp, 0, sizeof(sp));
     policy = 0;
-    
+
     if ((r = pthread_getschedparam(pthread_self(), &policy, &sp)) != 0) {
         pa_log("pthread_getschedgetparam(): %s", pa_cstrerror(r));
         return;
     }
-    
+
     sp.sched_priority = 1;
     if ((r = pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)) != 0) {
         pa_log_warn("pthread_setschedparam(): %s", pa_cstrerror(r));
         return;
     }
-    
+
     pa_log_info("Successfully enabled SCHED_FIFO scheduling for thread.");
 #endif
-    
+
 }
 
 #define NICE_LEVEL (-11)
@@ -629,16 +629,16 @@ const char *pa_sig2str(int sig) {
 
     if (sig <= 0)
         goto fail;
- 
+
 #ifdef NSIG
     if (sig >= NSIG)
         goto fail;
 #endif
-        
+
 #ifdef HAVE_SIG2STR
     {
         char buf[SIG2STR_MAX];
-        
+
         if (str2sig(sig, buf) == 0) {
             pa_xfree(PA_STATIC_TLS_GET(signame));
             t = pa_sprintf_malloc("SIG%s", buf);
@@ -703,8 +703,8 @@ const char *pa_sig2str(int sig) {
         PA_STATIC_TLS_SET(signame, t);
         return t;
     }
-#endif        
-    
+#endif
+
 #endif
 
 fail:
@@ -943,7 +943,11 @@ int pa_lock_lockfile(const char *fn) {
     for (;;) {
         struct stat st;
 
-        if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
+        if ((fd = open(fn, O_CREAT|O_RDWR|O_NOCTTY
+#ifdef O_NOFOLLOW
+                       |O_NOFOLLOW
+#endif
+                       , S_IRUSR|S_IWUSR)) < 0) {
             pa_log_warn("Failed to create lock file '%s': %s", fn, pa_cstrerror(errno));
             goto fail;
         }
@@ -1131,7 +1135,7 @@ static int hexc(char c) {
 /* Parse a hexadecimal string as created by pa_hexstr() to a BLOB */
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
     size_t j = 0;
-    
+
     pa_assert(p);
     pa_assert(d);
 
@@ -1226,7 +1230,7 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
 int pa_atoi(const char *s, int32_t *ret_i) {
     char *x = NULL;
     long l;
-    
+
     pa_assert(s);
     pa_assert(ret_i);
 
@@ -1238,7 +1242,7 @@ int pa_atoi(const char *s, int32_t *ret_i) {
 
     if ((int32_t) l != l)
         return -1;
-    
+
     *ret_i = (int32_t) l;
 
     return 0;
@@ -1248,7 +1252,7 @@ int pa_atoi(const char *s, int32_t *ret_i) {
 int pa_atou(const char *s, uint32_t *ret_u) {
     char *x = NULL;
     unsigned long l;
-    
+
     pa_assert(s);
     pa_assert(ret_u);
 
@@ -1278,21 +1282,21 @@ int pa_atof(const char *s, float *ret_f) {
     char *x = NULL;
     float f;
     int r = 0;
-    
+
     pa_assert(s);
     pa_assert(ret_f);
 
     /* This should be locale independent */
-    
+
 #ifdef HAVE_STRTOF_L
-    
+
     PA_ONCE_BEGIN {
-        
+
         if ((c_locale = newlocale(LC_ALL_MASK, "C", NULL)))
             atexit(c_locale_destroy);
-        
+
     } PA_ONCE_END;
-    
+
     if (c_locale) {
         errno = 0;
         f = strtof_l(s, &x, c_locale);
@@ -1311,7 +1315,7 @@ int pa_atof(const char *s, float *ret_f) {
         r =  -1;
     else
         *ret_f = f;
-    
+
     return r;
 }
 
@@ -1323,7 +1327,7 @@ int pa_snprintf(char *str, size_t size, const char *format, ...) {
     pa_assert(str);
     pa_assert(size > 0);
     pa_assert(format);
-    
+
     va_start(ap, format);
     ret = vsnprintf(str, size, format, ap);
     va_end(ap);
@@ -1346,13 +1350,13 @@ char *pa_truncate_utf8(char *c, size_t l) {
 
     while (l > 0 && !pa_utf8_valid(c))
         c[--l] = 0;
-    
+
     return c;
 }
 
 char *pa_getcwd(void) {
     size_t l = 128;
-    
+
     for (;;) {
         char *p = pa_xnew(char, l);
         if (getcwd(p, l))
@@ -1369,7 +1373,7 @@ char *pa_getcwd(void) {
 char *pa_make_path_absolute(const char *p) {
     char *r;
     char *cwd;
-    
+
     pa_assert(p);
 
     if (p[0] == '/')
@@ -1391,47 +1395,47 @@ void *pa_will_need(const void *p, size_t l) {
     size_t size;
     int r;
     size_t bs;
-    
+
     pa_assert(p);
     pa_assert(l > 0);
 
     a = PA_PAGE_ALIGN_PTR(p);
     size = (const uint8_t*) p + l - (const uint8_t*) a;
 
-#ifdef HAVE_POSIX_MADVISE    
+#ifdef HAVE_POSIX_MADVISE
     if ((r = posix_madvise((void*) a, size, POSIX_MADV_WILLNEED)) == 0) {
         pa_log_debug("posix_madvise() worked fine!");
         return (void*) p;
     }
 #endif
-    
+
     /* Most likely the memory was not mmap()ed from a file and thus
      * madvise() didn't work, so let's misuse mlock() do page this
      * stuff back into RAM. Yeah, let's fuck with the MM!  It's so
      * inviting, the man page of mlock() tells us: "All pages that
      * contain a part of the specified address range are guaranteed to
      * be resident in RAM when the call returns successfully." */
-        
+
 #ifdef RLIMIT_MEMLOCK
     pa_assert_se(getrlimit(RLIMIT_MEMLOCK, &rlim) == 0);
-    
+
     if (rlim.rlim_cur < PA_PAGE_SIZE) {
         pa_log_debug("posix_madvise() failed (or doesn't exist), resource limits don't allow mlock(), can't page in data: %s", pa_cstrerror(r));
         return (void*) p;
     }
-    
+
     bs = PA_PAGE_ALIGN(rlim.rlim_cur);
 #else
     bs = PA_PAGE_SIZE*4;
 #endif
-        
+
     pa_log_debug("posix_madvise() failed (or doesn't exist), trying mlock(): %s", pa_cstrerror(r));
 
     while (size > 0 && bs > 0) {
 
         if (bs > size)
             bs = size;
-        
+
         if (mlock(a, bs) < 0) {
             bs = PA_PAGE_ALIGN(bs / 2);
             continue;
@@ -1453,13 +1457,12 @@ void *pa_will_need(const void *p, size_t l) {
 
 void pa_close_pipe(int fds[2]) {
     pa_assert(fds);
-    
+
     if (fds[0] >= 0)
         pa_assert_se(pa_close(fds[0]) == 0);
-    
+
     if (fds[1] >= 0)
         pa_assert_se(pa_close(fds[1]) == 0);
-    
+
     fds[0] = fds[1] = -1;
 }
-
