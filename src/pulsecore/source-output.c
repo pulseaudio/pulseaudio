@@ -356,7 +356,10 @@ void pa_source_output_set_name(pa_source_output *o, const char *name) {
     pa_xfree(o->name);
     o->name = pa_xstrdup(name);
 
-    pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    if (PA_SOURCE_OUTPUT_LINKED(o->state)) {
+        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NAME_CHANGED], o);
+        pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    }
 }
 
 pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {

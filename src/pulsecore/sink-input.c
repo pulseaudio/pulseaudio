@@ -683,7 +683,10 @@ void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
     pa_xfree(i->name);
     i->name = pa_xstrdup(name);
 
-    pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    if (PA_SINK_INPUT_LINKED(i->state)) {
+        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_NAME_CHANGED], i);
+        pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    }
 }
 
 pa_resample_method_t pa_sink_input_get_resample_method(pa_sink_input *i) {

@@ -764,7 +764,10 @@ void pa_sink_set_description(pa_sink *s, const char *description) {
         pa_xfree(n);
     }
 
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    if (PA_SINK_LINKED(s->state)) {
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_DESCRIPTION_CHANGED], s);
+    }
 }
 
 unsigned pa_sink_linked_by(pa_sink *s) {

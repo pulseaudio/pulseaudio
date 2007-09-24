@@ -418,7 +418,10 @@ void pa_source_set_description(pa_source *s, const char *description) {
     pa_xfree(s->description);
     s->description = pa_xstrdup(description);
 
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    if (PA_SOURCE_LINKED(s->state)) {
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_DESCRIPTION_CHANGED], s);
+        pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+    }
 }
 
 void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q) {
