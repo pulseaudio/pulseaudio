@@ -450,7 +450,7 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(o = i->userdata);
 
-    pa_log("detaching %s", i->sink->name);
+/*     pa_log("detaching %s", i->sink->name); */
 
     pa_assert(o->inq_rtpoll_item);
     pa_rtpoll_item_free(o->inq_rtpoll_item);
@@ -516,6 +516,9 @@ static int suspend(struct userdata *u) {
 
     /* Let's suspend by unlinking all streams */
 
+    if (update_master(u, NULL) < 0)
+        pa_module_unload_request(u->module);
+
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
 
         if (o->sink_input) {
@@ -524,9 +527,6 @@ static int suspend(struct userdata *u) {
             o->sink_input = NULL;
         }
     }
-
-    if (pick_master(u, NULL) < 0)
-        pa_module_unload_request(u->module);
 
     pa_log_info("Device suspended...");
 
