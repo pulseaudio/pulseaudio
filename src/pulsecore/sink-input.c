@@ -233,6 +233,8 @@ static void update_n_corked(pa_sink_input *i, pa_sink_input_state_t state) {
         pa_assert_se(i->sink->n_corked -- >= 1);
     else if (i->state != PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;
+
+    pa_sink_update_status(i->sink);
 }
 
 static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
@@ -349,6 +351,9 @@ void pa_sink_input_put(pa_sink_input *i) {
     i->thread_info.state = i->state = i->flags & PA_SINK_INPUT_START_CORKED ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING;
     i->thread_info.volume = i->volume;
     i->thread_info.muted = i->muted;
+
+    if (i->state == PA_SINK_INPUT_CORKED)
+        i->sink->n_corked++;
 
     pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, i, 0, NULL);
     pa_sink_update_status(i->sink);

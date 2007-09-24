@@ -188,6 +188,8 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
     else if (o->state != PA_SOURCE_OUTPUT_CORKED && state == PA_SOURCE_OUTPUT_CORKED)
         o->source->n_corked++;
 
+    pa_source_update_status(o->source);
+
     o->state = state;
 
     return 0;
@@ -261,6 +263,9 @@ void pa_source_output_put(pa_source_output *o) {
     pa_assert(o->push);
 
     o->thread_info.state = o->state = o->flags & PA_SOURCE_OUTPUT_START_CORKED ? PA_SOURCE_OUTPUT_CORKED : PA_SOURCE_OUTPUT_RUNNING;
+
+    if (o->state == PA_SOURCE_OUTPUT_CORKED)
+        o->source->n_corked++;
 
     pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL);
     pa_source_update_status(o->source);
