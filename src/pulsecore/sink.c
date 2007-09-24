@@ -482,7 +482,7 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
     if (s->thread_info.state == PA_SINK_RUNNING)
         inputs_drop(s, info, n, result->length);
 
-    if (s->monitor_source)
+    if (s->monitor_source && PA_SOURCE_OPENED(pa_source_get_state(s->monitor_source)))
         pa_source_post(s->monitor_source, result);
 
     pa_sink_unref(s);
@@ -549,7 +549,7 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
     if (s->thread_info.state == PA_SINK_RUNNING)
         inputs_drop(s, info, n, target->length);
 
-    if (s->monitor_source)
+    if (s->monitor_source && PA_SOURCE_OPENED(pa_source_get_state(s->monitor_source)))
         pa_source_post(s->monitor_source, target);
 
     pa_sink_unref(s);
