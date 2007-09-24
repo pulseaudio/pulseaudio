@@ -262,6 +262,9 @@ static int sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) {
         ssync->state = state;
     }
 
+    if (state != PA_SINK_INPUT_UNLINKED)
+        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], i);
+
     return 0;
 }
 
@@ -824,6 +827,11 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
     pa_idxset_remove_by_data(origin->inputs, i, NULL);
     pa_idxset_put(dest->inputs, i, NULL);
     i->sink = dest;
+
+    if (pa_sink_input_get_state(i) == PA_SINK_INPUT_CORKED) {
+        pa_assert_se(origin->n_corked-- >= 1);
+        dest->n_corked++;
+    }
 
     /* Replace resampler */
     if (new_resampler != i->thread_info.resampler) {

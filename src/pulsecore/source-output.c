@@ -192,6 +192,9 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
 
     o->state = state;
 
+    if (state != PA_SOURCE_OUTPUT_UNLINKED)
+        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], o);
+
     return 0;
 }
 
@@ -426,6 +429,11 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     pa_idxset_remove_by_data(origin->outputs, o, NULL);
     pa_idxset_put(dest->outputs, o, NULL);
     o->source = dest;
+
+    if (pa_source_output_get_state(o) == PA_SOURCE_OUTPUT_CORKED) {
+        pa_assert_se(origin->n_corked-- >= 1);
+        dest->n_corked++;
+    }
 
     /* Replace resampler */
     if (new_resampler != o->thread_info.resampler) {
