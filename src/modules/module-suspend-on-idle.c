@@ -57,7 +57,7 @@ struct userdata {
         *source_unlink_slot,
         *sink_state_changed_slot,
         *source_state_changed_slot;
-    
+
     pa_hook_slot
         *sink_input_new_slot,
         *source_output_new_slot,
@@ -83,7 +83,7 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
     pa_assert(d);
 
     d->userdata->core->mainloop->time_restart(d->time_event, NULL);
-    
+
     if (d->sink && pa_sink_used_by(d->sink) <= 0 && pa_sink_get_state(d->sink) != PA_SINK_SUSPENDED) {
         pa_log_info("Sink %s idle for too long, suspending ...", d->sink->name);
         pa_sink_suspend(d->sink, 1);
@@ -119,7 +119,7 @@ static void resume(struct device_info *d) {
     if (d->sink) {
         pa_sink_suspend(d->sink, 0);
         pa_source_suspend(d->sink->monitor_source, 0);
-        
+
         pa_log_debug("Sink %s becomes busy.", d->sink->name);
     }
 
@@ -134,14 +134,14 @@ static void resume(struct device_info *d) {
 
 static pa_hook_result_t sink_input_new_hook_cb(pa_core *c, pa_sink_input *s, struct userdata *u) {
     struct device_info *d;
-    
+
     pa_assert(c);
     pa_sink_input_assert_ref(s);
     pa_assert(u);
-    
+
     if ((d = pa_hashmap_get(u->device_infos, s->sink)))
         resume(d);
-    
+
     return PA_HOOK_OK;
 }
 
@@ -151,10 +151,10 @@ static pa_hook_result_t source_output_new_hook_cb(pa_core *c, pa_source_output *
     pa_assert(c);
     pa_source_output_assert_ref(s);
     pa_assert(u);
-    
+
     if ((d = pa_hashmap_get(u->device_infos, s->source)))
         resume(d);
-    
+
     return PA_HOOK_OK;
 }
 
@@ -168,7 +168,7 @@ static pa_hook_result_t sink_input_unlink_hook_cb(pa_core *c, pa_sink_input *s, 
         if ((d = pa_hashmap_get(u->device_infos, s->sink)))
             restart(d);
     }
-    
+
     return PA_HOOK_OK;
 }
 
@@ -182,7 +182,7 @@ static pa_hook_result_t source_output_unlink_hook_cb(pa_core *c, pa_source_outpu
         if ((d = pa_hashmap_get(u->device_infos, s->source)))
             restart(d);
     }
-    
+
     return PA_HOOK_OK;
 }
 
@@ -196,7 +196,7 @@ static pa_hook_result_t sink_input_move_hook_cb(pa_core *c, pa_sink_input *s, st
         if ((d = pa_hashmap_get(u->device_infos, s->sink)))
             restart(d);
     }
-    
+
     return PA_HOOK_OK;
 }
 
@@ -208,7 +208,7 @@ static pa_hook_result_t sink_input_move_post_hook_cb(pa_core *c, pa_sink_input *
 
     if ((d = pa_hashmap_get(u->device_infos, s->sink)))
         resume(d);
-    
+
     return PA_HOOK_OK;
 }
 
@@ -223,7 +223,7 @@ static pa_hook_result_t source_output_move_hook_cb(pa_core *c, pa_source_output 
         if ((d = pa_hashmap_get(u->device_infos, s->source)))
             restart(d);
     }
-    
+
     return PA_HOOK_OK;
 }
 
@@ -235,7 +235,7 @@ static pa_hook_result_t source_output_move_post_hook_cb(pa_core *c, pa_source_ou
 
     if ((d = pa_hashmap_get(u->device_infos, s->source)))
         resume(d);
-    
+
     return PA_HOOK_OK;
 }
 
@@ -243,7 +243,7 @@ static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct user
     struct device_info *d;
     pa_source *source;
     pa_sink *sink;
-    
+
     pa_assert(c);
     pa_object_assert_ref(o);
     pa_assert(u);
@@ -252,12 +252,6 @@ static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct user
     sink = pa_sink_isinstance(o) ? PA_SINK(o) : NULL;
 
     pa_assert(source || sink);
-    
-    if (source && !(source->flags & PA_SOURCE_CAN_SUSPEND))
-        return PA_HOOK_OK;
-
-    if (sink && !(sink->flags & PA_SINK_CAN_SUSPEND))
-        return PA_HOOK_OK;
 
     d = pa_xnew(struct device_info, 1);
     d->userdata = u;
@@ -275,20 +269,20 @@ static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct user
 
 static void device_info_free(struct device_info *d) {
     pa_assert(d);
-    
+
     if (d->source)
         pa_source_unref(d->source);
     if (d->sink)
         pa_sink_unref(d->sink);
-    
+
     d->userdata->core->mainloop->time_free(d->time_event);
-    
+
     pa_xfree(d);
 }
 
 static pa_hook_result_t device_unlink_hook_cb(pa_core *c, pa_object *o, struct userdata *u) {
     struct device_info *d;
-    
+
     pa_assert(c);
     pa_object_assert_ref(o);
     pa_assert(u);
@@ -311,14 +305,14 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
 
     if (pa_sink_isinstance(o)) {
         pa_sink *s = PA_SINK(o);
-        
+
         if (pa_sink_used_by(s) <= 0) {
             pa_sink_state_t state = pa_sink_get_state(s);
 
             if (state == PA_SINK_RUNNING || state == PA_SINK_IDLE)
                 restart(d);
         }
-        
+
     } else if (pa_source_isinstance(o)) {
         pa_source *s = PA_SOURCE(o);
 
@@ -329,7 +323,7 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
                 restart(d);
         }
     }
-            
+
     return PA_HOOK_OK;
 }
 
@@ -352,7 +346,7 @@ int pa__init(pa_module*m) {
         pa_log("Failed to parse timeout value.");
         goto fail;
     }
-    
+
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
     u->timeout = timeout;
@@ -380,29 +374,29 @@ int pa__init(pa_module*m) {
     u->sink_input_move_post_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_POST], (pa_hook_cb_t) sink_input_move_post_hook_cb, u);
     u->source_output_move_post_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_POST], (pa_hook_cb_t) source_output_move_post_hook_cb, u);
 
-    
+
     pa_modargs_free(ma);
     return 0;
 
 fail:
-    
+
     if (ma)
         pa_modargs_free(ma);
-    
+
     return -1;
 }
 
 void pa__done(pa_module*m) {
     struct userdata *u;
     struct device_info *d;
-    
+
     pa_assert(m);
 
     if (!m->userdata)
         return;
 
     u = m->userdata;
-    
+
     if (u->sink_new_slot)
         pa_hook_slot_free(u->sink_new_slot);
     if (u->sink_unlink_slot)
@@ -439,6 +433,6 @@ void pa__done(pa_module*m) {
         device_info_free(d);
 
     pa_hashmap_free(u->device_infos, NULL, NULL);
-    
+
     pa_xfree(u);
 }

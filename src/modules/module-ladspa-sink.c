@@ -568,7 +568,7 @@ int pa__init(pa_module*m) {
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->set_state = sink_set_state;
     u->sink->userdata = u;
-    u->sink->flags = PA_SINK_LATENCY|PA_SINK_CAN_SUSPEND;
+    u->sink->flags = PA_SINK_LATENCY;
 
     pa_sink_set_module(u->sink, m);
     pa_sink_set_description(u->sink, t = pa_sprintf_malloc("LADSPA plugin '%s' on '%s'", label, master->description));

@@ -170,9 +170,6 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     if (s->state == state)
         return 0;
 
-    if (state == PA_SINK_SUSPENDED && !(s->flags & PA_SINK_CAN_SUSPEND))
-        return -1;
-
     if ((s->state == PA_SINK_SUSPENDED && PA_SINK_OPENED(state)) ||
         (PA_SINK_OPENED(s->state) && state == PA_SINK_SUSPENDED)) {
         pa_sink_input *i;

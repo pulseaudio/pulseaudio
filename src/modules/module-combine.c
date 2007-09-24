@@ -1134,7 +1134,7 @@ int pa__init(pa_module*m) {
     u->sink->set_state = sink_set_state;
     u->sink->userdata = u;
 
-    u->sink->flags = PA_SINK_CAN_SUSPEND|PA_SINK_LATENCY;
+    u->sink->flags = PA_SINK_LATENCY;
     pa_sink_set_module(u->sink, m);
     pa_sink_set_description(u->sink, "Simultaneous output");
 

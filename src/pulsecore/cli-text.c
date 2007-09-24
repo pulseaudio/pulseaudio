@@ -111,7 +111,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s\n"
+            "\tflags: %s%s%s\n"
             "\tstate: %s\n"
             "\tvolume: <%s>\n"
             "\tmute: <%i>\n"
@@ -119,7 +119,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tmonitor source: <%u>\n"
             "\tsample spec: <%s>\n"
             "\tchannel map: <%s>\n"
-            "\tused by: <%u>\n", 
+            "\tused by: <%u>\n",
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index,
             sink->name,
@@ -127,7 +127,6 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
             sink->flags & PA_SINK_HARDWARE ? "HARDWARE " : "",
-            sink->flags & PA_SINK_CAN_SUSPEND ? "CAN_SUSPEND " : "",
             state_table[pa_sink_get_state(sink)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink)),
             !!pa_sink_get_mute(sink),
@@ -171,7 +170,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s\n"
+            "\tflags: %s%s%s\n"
             "\tstate: %s\n"
             "\tvolume: <%s>\n"
             "\tmute: <%u>\n"
@@ -186,7 +185,6 @@ char *pa_source_list_to_string(pa_core *c) {
             source->flags & PA_SOURCE_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
             source->flags & PA_SOURCE_HARDWARE ? "HARDWARE " : "",
-            source->flags & PA_SOURCE_CAN_SUSPEND ? "CAN_SUSPEND " : "",
             state_table[pa_source_get_state(source)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source)),
             !!pa_source_get_mute(source),

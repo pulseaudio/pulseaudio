@@ -423,7 +423,7 @@ static void create_stream_complete(pa_stream *s) {
         tv.tv_usec += LATENCY_IPOL_INTERVAL_USEC; /* every 100 ms */
         pa_assert(!s->auto_timing_update_event);
         s->auto_timing_update_event = s->mainloop->time_new(s->mainloop, &tv, &auto_timing_update_callback, s);
-    }    
+    }
 }
 
 void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -497,7 +497,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
         s->state = PA_STREAM_READY;
         request_auto_timing_update(s, 1);
         s->state = PA_STREAM_CREATING;
-        
+
     } else
         create_stream_complete(s);
 
@@ -540,12 +540,12 @@ static int create_stream(
     if (attr)
         s->buffer_attr = *attr;
     else {
-        /* half a second */
+        /* half a second, with minimum request of 10 ms */
         s->buffer_attr.tlength = pa_bytes_per_second(&s->sample_spec)/2;
         s->buffer_attr.maxlength = (s->buffer_attr.tlength*3)/2;
-        s->buffer_attr.minreq = s->buffer_attr.tlength/100;
+        s->buffer_attr.minreq = s->buffer_attr.tlength/50;
         s->buffer_attr.prebuf = s->buffer_attr.tlength - s->buffer_attr.minreq;
-        s->buffer_attr.fragsize = s->buffer_attr.tlength/100;
+        s->buffer_attr.fragsize = s->buffer_attr.tlength/50;
     }
 
     if (!dev)
@@ -921,7 +921,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
     }
 
     /* First, let's complete the initialization, if necessary. */
-    if (o->stream->state == PA_STREAM_CREATING) 
+    if (o->stream->state == PA_STREAM_CREATING)
         create_stream_complete(o->stream);
 
     if (o->stream->latency_update_callback)

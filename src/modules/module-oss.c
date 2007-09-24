@@ -1243,7 +1243,7 @@ int pa__init(pa_module*m) {
                                           hwdesc[0] ? ")" : "",
                                           use_mmap ? " via DMA" : ""));
         pa_xfree(t);
-        u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_CAN_SUSPEND|PA_SOURCE_LATENCY;
+        u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY;
         u->source->refresh_volume = 1;
 
         if (use_mmap)
@@ -1298,7 +1298,7 @@ int pa__init(pa_module*m) {
                                         hwdesc[0] ? ")" : "",
                                         use_mmap ? " via DMA" : ""));
         pa_xfree(t);
-        u->sink->flags = PA_SINK_HARDWARE|PA_SINK_CAN_SUSPEND|PA_SINK_LATENCY;
+        u->sink->flags = PA_SINK_HARDWARE|PA_SINK_LATENCY;
         u->sink->refresh_volume = 1;
 
         if (use_mmap)

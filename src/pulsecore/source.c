@@ -145,9 +145,6 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
     if (s->state == state)
         return 0;
 
-    if (state == PA_SOURCE_SUSPENDED && !(s->flags & PA_SOURCE_CAN_SUSPEND))
-        return -1;
-
     if ((s->state == PA_SOURCE_SUSPENDED && PA_SOURCE_OPENED(state)) ||
         (PA_SOURCE_OPENED(s->state) && state == PA_SOURCE_SUSPENDED)) {
         pa_source_output *o;
