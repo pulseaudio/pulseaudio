@@ -66,7 +66,9 @@ struct userdata {
         *sink_input_move_slot,
         *source_output_move_slot,
         *sink_input_move_post_slot,
-        *source_output_move_post_slot;
+        *source_output_move_post_slot,
+        *sink_input_state_changed_slot,
+        *source_output_state_changed_slot;
 };
 
 struct device_info {
@@ -86,13 +88,12 @@ static void timeout_cb(pa_mainloop_api*a, pa_time_event* e, const struct timeval
 
     if (d->sink && pa_sink_used_by(d->sink) <= 0 && pa_sink_get_state(d->sink) != PA_SINK_SUSPENDED) {
         pa_log_info("Sink %s idle for too long, suspending ...", d->sink->name);
-        pa_sink_suspend(d->sink, 1);
-        pa_source_suspend(d->sink->monitor_source, 1);
+        pa_sink_suspend(d->sink, TRUE);
     }
 
     if (d->source && pa_source_used_by(d->source) <= 0 && pa_source_get_state(d->source) != PA_SOURCE_SUSPENDED) {
         pa_log_info("Source %s idle for too long, suspending ...", d->source->name);
-        pa_source_suspend(d->source, 1);
+        pa_source_suspend(d->source, TRUE);
     }
 }
 
@@ -117,16 +118,13 @@ static void resume(struct device_info *d) {
     d->userdata->core->mainloop->time_restart(d->time_event, NULL);
 
     if (d->sink) {
-        pa_sink_suspend(d->sink, 0);
-        pa_source_suspend(d->sink->monitor_source, 0);
+        pa_sink_suspend(d->sink, FALSE);
 
         pa_log_debug("Sink %s becomes busy.", d->sink->name);
     }
 
     if (d->source) {
-        pa_source_suspend(d->source, 0);
-        if (d->source->monitor_of)
-            pa_sink_suspend(d->source->monitor_of, 0);
+        pa_source_suspend(d->source, FALSE);
 
         pa_log_debug("Source %s becomes busy.", d->source->name);
     }
@@ -239,6 +237,36 @@ static pa_hook_result_t source_output_move_post_hook_cb(pa_core *c, pa_source_ou
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t sink_input_state_changed_hook_cb(pa_core *c, pa_sink_input *s, struct userdata *u) {
+    struct device_info *d;
+    pa_sink_input_state_t state;
+    pa_assert(c);
+    pa_sink_input_assert_ref(s);
+    pa_assert(u);
+
+    state = pa_sink_input_get_state(s);
+    if (state == PA_SINK_INPUT_RUNNING || state == PA_SINK_INPUT_DRAINED)
+        if ((d = pa_hashmap_get(u->device_infos, s->sink)))
+            resume(d);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_state_changed_hook_cb(pa_core *c, pa_source_output *s, struct userdata *u) {
+    struct device_info *d;
+    pa_source_output_state_t state;
+    pa_assert(c);
+    pa_source_output_assert_ref(s);
+    pa_assert(u);
+
+    state = pa_source_output_get_state(s);
+    if (state == PA_SOURCE_OUTPUT_RUNNING)
+        if ((d = pa_hashmap_get(u->device_infos, s->source)))
+            resume(d);
+
+    return PA_HOOK_OK;
+}
+
 static pa_hook_result_t device_new_hook_cb(pa_core *c, pa_object *o, struct userdata *u) {
     struct device_info *d;
     pa_source *source;
@@ -305,21 +333,22 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
 
     if (pa_sink_isinstance(o)) {
         pa_sink *s = PA_SINK(o);
+        pa_sink_state_t state = pa_sink_get_state(s);
 
         if (pa_sink_used_by(s) <= 0) {
-            pa_sink_state_t state = pa_sink_get_state(s);
 
-            if (state == PA_SINK_RUNNING || state == PA_SINK_IDLE)
+            if (PA_SINK_OPENED(state))
                 restart(d);
+
         }
 
     } else if (pa_source_isinstance(o)) {
         pa_source *s = PA_SOURCE(o);
+        pa_source_state_t state = pa_source_get_state(s);
 
         if (pa_source_used_by(s) <= 0) {
-            pa_sink_state_t state = pa_source_get_state(s);
 
-            if (state == PA_SINK_RUNNING || state == PA_SINK_IDLE)
+            if (PA_SOURCE_OPENED(state))
                 restart(d);
         }
     }
@@ -373,6 +402,8 @@ int pa__init(pa_module*m) {
     u->source_output_move_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE], (pa_hook_cb_t) source_output_move_hook_cb, u);
     u->sink_input_move_post_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_POST], (pa_hook_cb_t) sink_input_move_post_hook_cb, u);
     u->source_output_move_post_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_POST], (pa_hook_cb_t) source_output_move_post_hook_cb, u);
+    u->sink_input_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], (pa_hook_cb_t) sink_input_state_changed_hook_cb, u);
+    u->source_output_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], (pa_hook_cb_t) source_output_state_changed_hook_cb, u);
 
 
     pa_modargs_free(ma);
@@ -419,6 +450,8 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->sink_input_move_slot);
     if (u->sink_input_move_post_slot)
         pa_hook_slot_free(u->sink_input_move_post_slot);
+    if (u->sink_input_state_changed_slot)
+        pa_hook_slot_free(u->sink_input_state_changed_slot);
 
     if (u->source_output_new_slot)
         pa_hook_slot_free(u->source_output_new_slot);
@@ -428,6 +461,8 @@ void pa__done(pa_module*m) {
         pa_hook_slot_free(u->source_output_move_slot);
     if (u->source_output_move_post_slot)
         pa_hook_slot_free(u->source_output_move_post_slot);
+    if (u->source_output_state_changed_slot)
+        pa_hook_slot_free(u->source_output_state_changed_slot);
 
     while ((d = pa_hashmap_steal_first(u->device_infos)))
         device_info_free(d);
