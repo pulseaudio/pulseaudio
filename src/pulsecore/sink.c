@@ -775,8 +775,11 @@ unsigned pa_sink_linked_by(pa_sink *s) {
 
     ret = pa_idxset_size(s->inputs);
 
+    /* We add in the number of streams connected to us here. Please
+     * not the asymmmetry to pa_sink_used_by()! */
+
     if (s->monitor_source)
-        ret += pa_source_used_by(s->monitor_source);
+        ret += pa_source_linked_by(s->monitor_source);
 
     return ret;
 }
@@ -788,13 +791,11 @@ unsigned pa_sink_used_by(pa_sink *s) {
     pa_assert(PA_SINK_LINKED(s->state));
 
     ret = pa_idxset_size(s->inputs);
-
     pa_assert(ret >= s->n_corked);
-
     ret -= s->n_corked;
 
-    if (s->monitor_source)
-        ret += pa_source_used_by(s->monitor_source);
+    /* Streams connected to our monitor source do not matter for
+     * pa_sink_used_by()!.*/
 
     return ret;
 }

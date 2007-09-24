@@ -119,7 +119,8 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tmonitor source: <%u>\n"
             "\tsample spec: <%s>\n"
             "\tchannel map: <%s>\n"
-            "\tused by: <%u>\n",
+            "\tused by: <%u>\n"
+            "\tlinked by: <%u>\n",
             c->default_sink_name && !strcmp(sink->name, c->default_sink_name) ? '*' : ' ',
             sink->index,
             sink->name,
@@ -134,7 +135,8 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
             pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map),
-            pa_sink_used_by(sink));
+            pa_sink_used_by(sink),
+            pa_sink_linked_by(sink));
 
         if (sink->module)
             pa_strbuf_printf(s, "\tmodule: <%u>\n", sink->module->index);
@@ -177,7 +179,8 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tlatency: <%0.0f usec>\n"
             "\tsample spec: <%s>\n"
             "\tchannel map: <%s>\n"
-            "\tused by: <%u>\n",
+            "\tused by: <%u>\n"
+            "\tlinked by: <%u>\n",
             c->default_source_name && !strcmp(source->name, c->default_source_name) ? '*' : ' ',
             source->index,
             source->name,
@@ -191,7 +194,8 @@ char *pa_source_list_to_string(pa_core *c) {
             (double) pa_source_get_latency(source),
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map),
-            pa_source_used_by(source));
+            pa_source_used_by(source),
+            pa_source_linked_by(source));
 
         if (source->monitor_of)
             pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);
