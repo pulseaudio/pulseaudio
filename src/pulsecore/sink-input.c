@@ -397,7 +397,7 @@ int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_c
     pa_assert(chunk);
     pa_assert(volume);
 
-    if (!i->peek || !i->drop || i->thread_info.state == PA_SINK_INPUT_UNLINKED || i->thread_info.state == PA_SINK_INPUT_CORKED)
+    if (!i->peek || !i->drop || i->thread_info.state == PA_SINK_INPUT_CORKED)
         goto finish;
 
     pa_assert(i->thread_info.state == PA_SINK_INPUT_RUNNING || i->thread_info.state == PA_SINK_INPUT_DRAINED);
@@ -517,6 +517,9 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length) {
     pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(length, &i->sink->sample_spec));
     pa_assert(length > 0);
+
+    if (!i->peek || !i->drop || i->thread_info.state == PA_SINK_INPUT_CORKED)
+        return;
 
     if (i->thread_info.move_silence > 0) {
 
