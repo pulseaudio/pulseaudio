@@ -39,7 +39,6 @@
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
-#include <pulsecore/autoload.h>
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
 #include <pulsecore/native-common.h>
@@ -71,53 +70,43 @@ struct service {
     struct userdata *userdata;
     AvahiEntryGroup *entry_group;
     char *service_name;
-    char *name;
-    enum  { UNPUBLISHED, PUBLISHED_REAL, PUBLISHED_AUTOLOAD } published ;
-
-    struct {
-        int valid;
-        pa_namereg_type_t type;
-        uint32_t index;
-    } loaded;
-
-    struct {
-        int valid;
-        pa_namereg_type_t type;
-        uint32_t index;
-    } autoload;
+    pa_object *device;
 };
 
 struct userdata {
     pa_core *core;
     AvahiPoll *avahi_poll;
     AvahiClient *client;
+
     pa_hashmap *services;
-    pa_dynarray *sink_dynarray, *source_dynarray, *autoload_dynarray;
-    pa_subscription *subscription;
     char *service_name;
 
     AvahiEntryGroup *main_entry_group;
 
     uint16_t port;
+
+    pa_hook_slot *sink_new_slot, *source_new_slot, *sink_unlink_slot, *source_unlink_slot, *sink_changed_slot, *source_changed_slot;
 };
 
-static void get_service_data(struct userdata *u, struct service *s, pa_sample_spec *ret_ss, char **ret_description) {
-    pa_assert(u);
+static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_channel_map *ret_map, const char **ret_name, const char **ret_description) {
     pa_assert(s);
-    pa_assert(s->loaded.valid);
     pa_assert(ret_ss);
     pa_assert(ret_description);
 
-    if (s->loaded.type == PA_NAMEREG_SINK) {
-        pa_sink *sink = PA_SINK(pa_idxset_get_by_index(u->core->sinks, s->loaded.index));
-        pa_sink_assert_ref(sink);
+    if (pa_sink_isinstance(s->device)) {
+        pa_sink *sink = PA_SINK(s->device);
+
         *ret_ss = sink->sample_spec;
+        *ret_map = sink->channel_map;
+        *ret_name = sink->name;
         *ret_description = sink->description;
-        
-    } else if (s->loaded.type == PA_NAMEREG_SOURCE) {
-        pa_source *source = PA_SOURCE(pa_idxset_get_by_index(u->core->sources, s->loaded.index));
-        pa_source_assert_ref(source);
+
+    } else if (pa_source_isinstance(s->device)) {
+        pa_source *source = PA_SOURCE(s->device);
+
         *ret_ss = source->sample_spec;
+        *ret_map = source->channel_map;
+        *ret_name = source->name;
         *ret_description = source->description;
     } else
         pa_assert_not_reached();
@@ -125,7 +114,7 @@ static void get_service_data(struct userdata *u, struct service *s, pa_sample_sp
 
 static AvahiStringList* txt_record_server_data(pa_core *c, AvahiStringList *l) {
     char s[128];
-    
+
     pa_core_assert_ref(c);
 
     l = avahi_string_list_add_pair(l, "server-version", PACKAGE_NAME" "PACKAGE_VERSION);
@@ -136,324 +125,180 @@ static AvahiStringList* txt_record_server_data(pa_core *c, AvahiStringList *l) {
     return l;
 }
 
-static int publish_service(struct userdata *u, struct service *s);
+static int publish_service(struct service *s);
 
 static void service_entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, void *userdata) {
     struct service *s = userdata;
 
     pa_assert(s);
 
-    if (state == AVAHI_ENTRY_GROUP_COLLISION) {
-        char *t;
+    switch (state) {
 
-        t = avahi_alternative_service_name(s->service_name);
-        pa_xfree(s->service_name);
-        s->service_name = t;
+        case AVAHI_ENTRY_GROUP_ESTABLISHED:
+            pa_log_info("Successfully established service %s.", s->service_name);
+            break;
 
-        publish_service(s->userdata, s);
+        case AVAHI_ENTRY_GROUP_COLLISION: {
+            char *t;
+
+            t = avahi_alternative_service_name(s->service_name);
+            pa_log_info("Name collision, renaming %s to %s.", s->service_name, t);
+            pa_xfree(s->service_name);
+            s->service_name = t;
+
+            publish_service(s);
+            break;
+        }
+
+        case AVAHI_ENTRY_GROUP_FAILURE: {
+            pa_log("Failed to register service: %s", avahi_strerror(avahi_client_errno(avahi_entry_group_get_client(g))));
+
+            avahi_entry_group_free(g);
+            s->entry_group = NULL;
+
+            break;
+        }
+
+        case AVAHI_ENTRY_GROUP_UNCOMMITED:
+        case AVAHI_ENTRY_GROUP_REGISTERING:
+            ;
     }
 }
 
-static int publish_service(struct userdata *u, struct service *s) {
+static void service_free(struct service *s);
+
+static int publish_service(struct service *s) {
     int r = -1;
     AvahiStringList *txt = NULL;
+    const char *description = NULL, *name = NULL;
+    pa_sample_spec ss;
+    pa_channel_map map;
+    char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
-    pa_assert(u);
     pa_assert(s);
 
-    if (!u->client || avahi_client_get_state(u->client) != AVAHI_CLIENT_S_RUNNING)
+    if (!s->userdata->client || avahi_client_get_state(s->userdata->client) != AVAHI_CLIENT_S_RUNNING)
         return 0;
 
-    if ((s->published == PUBLISHED_REAL && s->loaded.valid) ||
-        (s->published == PUBLISHED_AUTOLOAD && s->autoload.valid && !s->loaded.valid))
-        return 0;
-
-    if (s->published != UNPUBLISHED) {
+    if (!s->entry_group) {
+        if (!(s->entry_group = avahi_entry_group_new(s->userdata->client, service_entry_group_callback, s))) {
+            pa_log("avahi_entry_group_new(): %s", avahi_strerror(avahi_client_errno(s->userdata->client)));
+            goto finish;
+        }
+    } else
         avahi_entry_group_reset(s->entry_group);
-        s->published = UNPUBLISHED;
+
+    txt = txt_record_server_data(s->userdata->core, txt);
+
+    get_service_data(s, &ss, &map, &name, &description);
+    txt = avahi_string_list_add_pair(txt, "device", name);
+    txt = avahi_string_list_add_printf(txt, "rate=%u", ss.rate);
+    txt = avahi_string_list_add_printf(txt, "channels=%u", ss.channels);
+    txt = avahi_string_list_add_pair(txt, "format", pa_sample_format_to_string(ss.format));
+    txt = avahi_string_list_add_pair(txt, "channel_map", pa_channel_map_snprint(cm, sizeof(cm), &map));
+
+    if (avahi_entry_group_add_service_strlst(
+                s->entry_group,
+                AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
+                0,
+                s->service_name,
+                pa_sink_isinstance(s->device) ? SERVICE_TYPE_SINK : SERVICE_TYPE_SOURCE,
+                NULL,
+                NULL,
+                s->userdata->port,
+                txt) < 0) {
+
+        pa_log("avahi_entry_group_add_service_strlst(): %s", avahi_strerror(avahi_client_errno(s->userdata->client)));
+        goto finish;
     }
 
-    if (s->loaded.valid || s->autoload.valid) {
-        pa_namereg_type_t type;
-
-        if (!s->entry_group) {
-            if (!(s->entry_group = avahi_entry_group_new(u->client, service_entry_group_callback, s))) {
-                pa_log("avahi_entry_group_new(): %s", avahi_strerror(avahi_client_errno(u->client)));
-                goto finish;
-            }
-        }
-
-        txt = avahi_string_list_add_pair(txt, "device", s->name);
-        txt = txt_record_server_data(u->core, txt);
-
-        if (s->loaded.valid) {
-            char *description;
-            pa_sample_spec ss;
-
-            get_service_data(u, s, &ss, &description);
-
-            txt = avahi_string_list_add_printf(txt, "rate=%u", ss.rate);
-            txt = avahi_string_list_add_printf(txt, "channels=%u", ss.channels);
-            txt = avahi_string_list_add_pair(txt, "format", pa_sample_format_to_string(ss.format));
-            if (description)
-                txt = avahi_string_list_add_pair(txt, "description", description);
-
-            type = s->loaded.type;
-        } else if (s->autoload.valid)
-            type = s->autoload.type;
-
-        if (avahi_entry_group_add_service_strlst(
-                    s->entry_group,
-                    AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
-                    0,
-                    s->service_name,
-                    type == PA_NAMEREG_SINK ? SERVICE_TYPE_SINK : SERVICE_TYPE_SOURCE,
-                    NULL,
-                    NULL,
-                    u->port,
-                    txt) < 0) {
-
-            pa_log("avahi_entry_group_add_service_strlst(): %s", avahi_strerror(avahi_client_errno(u->client)));
-            goto finish;
-        }
-
-        if (avahi_entry_group_commit(s->entry_group) < 0) {
-            pa_log("avahi_entry_group_commit(): %s", avahi_strerror(avahi_client_errno(u->client)));
-            goto finish;
-        }
-
-        if (s->loaded.valid)
-            s->published = PUBLISHED_REAL;
-        else if (s->autoload.valid)
-            s->published = PUBLISHED_AUTOLOAD;
+    if (avahi_entry_group_commit(s->entry_group) < 0) {
+        pa_log("avahi_entry_group_commit(): %s", avahi_strerror(avahi_client_errno(s->userdata->client)));
+        goto finish;
     }
 
     r = 0;
+    pa_log_debug("Successfully created entry group for %s.", s->service_name);
 
 finish:
 
-    if (s->published == UNPUBLISHED) {
-        /* Remove this service */
+    /* Remove this service */
+    if (r < 0)
+        service_free(s);
 
-        if (s->entry_group)
-            avahi_entry_group_free(s->entry_group);
-
-        pa_hashmap_remove(u->services, s->name);
-        pa_xfree(s->name);
-        pa_xfree(s->service_name);
-        pa_xfree(s);
-    }
-
-    if (txt)
-        avahi_string_list_free(txt);
+    avahi_string_list_free(txt);
 
     return r;
 }
 
-static struct service *get_service(struct userdata *u, const char *name, const char *description) {
+static struct service *get_service(struct userdata *u, pa_object *device) {
     struct service *s;
     char hn[64], un[64];
+    const char *n;
 
-    if ((s = pa_hashmap_get(u->services, name)))
+    pa_assert(u);
+    pa_object_assert_ref(device);
+
+    if ((s = pa_hashmap_get(u->services, device)))
         return s;
 
     s = pa_xnew(struct service, 1);
     s->userdata = u;
     s->entry_group = NULL;
-    s->published = UNPUBLISHED;
-    s->name = pa_xstrdup(name);
-    s->loaded.valid = s->autoload.valid = 0;
-    s->service_name = pa_truncate_utf8(pa_sprintf_malloc("%s@%s: %s", pa_get_user_name(un, sizeof(un)), pa_get_host_name(hn, sizeof(hn)), description ? description : s->name), AVAHI_LABEL_MAX-1);
+    s->device = device;
 
-    pa_hashmap_put(u->services, s->name, s);
+    if (pa_sink_isinstance(device)) {
+        if (!(n = PA_SINK(device)->description))
+            n = PA_SINK(device)->name;
+    } else {
+        if (!(n = PA_SOURCE(device)->description))
+            n = PA_SOURCE(device)->name;
+    }
+
+    s->service_name = pa_truncate_utf8(pa_sprintf_malloc("%s@%s: %s",
+                                                         pa_get_user_name(un, sizeof(un)),
+                                                         pa_get_host_name(hn, sizeof(hn)),
+                                                         n),
+                                       AVAHI_LABEL_MAX-1);
+
+    pa_hashmap_put(u->services, s->device, s);
 
     return s;
 }
 
-static int publish_sink(struct userdata *u, pa_sink *s) {
-    struct service *svc;
-    int ret;
-
-    pa_assert(u);
-    pa_sink_assert_ref(s);
-
-    svc = get_service(u, s->name, s->description);
-    if (svc->loaded.valid)
-        return publish_service(u, svc);
-
-    svc->loaded.valid = 1;
-    svc->loaded.type = PA_NAMEREG_SINK;
-    svc->loaded.index = s->index;
-
-    if ((ret = publish_service(u, svc)) < 0)
-        return ret;
-
-    pa_dynarray_put(u->sink_dynarray, s->index, svc);
-    return ret;
-}
-
-static int publish_source(struct userdata *u, pa_source *s) {
-    struct service *svc;
-    int ret;
-
-    pa_assert(u);
-    pa_source_assert_ref(s);
-
-    svc = get_service(u, s->name, s->description);
-    if (svc->loaded.valid)
-        return publish_service(u, svc);
-
-    svc->loaded.valid = 1;
-    svc->loaded.type = PA_NAMEREG_SOURCE;
-    svc->loaded.index = s->index;
-
-    pa_dynarray_put(u->source_dynarray, s->index, svc);
-
-    if ((ret = publish_service(u, svc)) < 0)
-        return ret;
-
-    pa_dynarray_put(u->sink_dynarray, s->index, svc);
-    return ret;
-}
-
-static int publish_autoload(struct userdata *u, pa_autoload_entry *s) {
-    struct service *svc;
-    int ret;
-
-    pa_assert(u);
+static void service_free(struct service *s) {
     pa_assert(s);
 
-    svc = get_service(u, s->name, NULL);
-    if (svc->autoload.valid)
-        return publish_service(u, svc);
+    pa_hashmap_remove(s->userdata->services, s->device);
 
-    svc->autoload.valid = 1;
-    svc->autoload.type = s->type;
-    svc->autoload.index = s->index;
-
-    if ((ret = publish_service(u, svc)) < 0)
-        return ret;
-
-    pa_dynarray_put(u->autoload_dynarray, s->index, svc);
-    return ret;
-}
-
-static int remove_sink(struct userdata *u, uint32_t idx) {
-    struct service *svc;
-    
-    pa_assert(u);
-    pa_assert(idx != PA_INVALID_INDEX);
-
-    if (!(svc = pa_dynarray_get(u->sink_dynarray, idx)))
-        return 0;
-
-    if (!svc->loaded.valid || svc->loaded.type != PA_NAMEREG_SINK)
-        return 0;
-
-    svc->loaded.valid = 0;
-    pa_dynarray_put(u->sink_dynarray, idx, NULL);
-
-    return publish_service(u, svc);
-}
-
-static int remove_source(struct userdata *u, uint32_t idx) {
-    struct service *svc;
-    
-    pa_assert(u);
-    pa_assert(idx != PA_INVALID_INDEX);
-
-    if (!(svc = pa_dynarray_get(u->source_dynarray, idx)))
-        return 0;
-
-    if (!svc->loaded.valid || svc->loaded.type != PA_NAMEREG_SOURCE)
-        return 0;
-
-    svc->loaded.valid = 0;
-    pa_dynarray_put(u->source_dynarray, idx, NULL);
-
-    return publish_service(u, svc);
-}
-
-static int remove_autoload(struct userdata *u, uint32_t idx) {
-    struct service *svc;
-    
-    pa_assert(u);
-    pa_assert(idx != PA_INVALID_INDEX);
-
-    if (!(svc = pa_dynarray_get(u->autoload_dynarray, idx)))
-        return 0;
-
-    if (!svc->autoload.valid)
-        return 0;
-
-    svc->autoload.valid = 0;
-    pa_dynarray_put(u->autoload_dynarray, idx, NULL);
-
-    return publish_service(u, svc);
-}
-
-static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
-    struct userdata *u = userdata;
-    
-    pa_assert(u);
-    pa_core_assert_ref(c);
-
-    switch (t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK)
-        
-        case PA_SUBSCRIPTION_EVENT_SINK: {
-            if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                pa_sink *sink;
-
-                if ((sink = PA_SINK(pa_idxset_get_by_index(c->sinks, idx)))) {
-                    if (publish_sink(u, sink) < 0)
-                        goto fail;
-                }
-            } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-                if (remove_sink(u, idx) < 0)
-                    goto fail;
-            }
-
-            break;
-
-        case PA_SUBSCRIPTION_EVENT_SOURCE:
-
-            if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                pa_source *source;
-
-                if ((source = PA_SOURCE(pa_idxset_get_by_index(c->sources, idx)))) {
-                    if (publish_source(u, source) < 0)
-                        goto fail;
-                }
-            } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-                if (remove_source(u, idx) < 0)
-                    goto fail;
-            }
-
-            break;
-
-        case PA_SUBSCRIPTION_EVENT_AUTOLOAD:
-            if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_NEW) {
-                pa_autoload_entry *autoload;
-
-                if ((autoload = pa_idxset_get_by_index(c->autoload_idxset, idx))) {
-                    if (publish_autoload(u, autoload) < 0)
-                        goto fail;
-                }
-            } else if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
-                if (remove_autoload(u, idx) < 0)
-                        goto fail;
-            }
-
-            break;
+    if (s->entry_group) {
+        pa_log_debug("Removing entry group for %s.", s->service_name);
+        avahi_entry_group_free(s->entry_group);
     }
 
-    return;
+    pa_xfree(s->service_name);
+    pa_xfree(s);
+}
 
-fail:
-    if (u->subscription) {
-        pa_subscription_free(u->subscription);
-        u->subscription = NULL;
-    }
+static pa_hook_result_t device_new_or_changed_cb(pa_core *c, pa_object *o, struct userdata *u) {
+    pa_assert(c);
+    pa_object_assert_ref(o);
+
+    publish_service(get_service(u, o));
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t device_unlink_cb(pa_core *c, pa_object *o, struct userdata *u) {
+    struct service *s;
+
+    pa_assert(c);
+    pa_object_assert_ref(o);
+
+    if ((s = pa_hashmap_get(u->services, o)))
+        service_free(s);
+
+    return PA_HOOK_OK;
 }
 
 static int publish_main_service(struct userdata *u);
@@ -462,14 +307,35 @@ static void main_entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState s
     struct userdata *u = userdata;
     pa_assert(u);
 
-    if (state == AVAHI_ENTRY_GROUP_COLLISION) {
-        char *t;
+    switch (state) {
 
-        t = avahi_alternative_service_name(u->service_name);
-        pa_xfree(u->service_name);
-        u->service_name = t;
+        case AVAHI_ENTRY_GROUP_ESTABLISHED:
+            pa_log_info("Successfully established main service.");
+            break;
 
-        publish_main_service(u);
+        case AVAHI_ENTRY_GROUP_COLLISION: {
+            char *t;
+
+            t = avahi_alternative_service_name(u->service_name);
+            pa_log_info("Name collision: renaming main service %s to %s.", u->service_name, t);
+            pa_xfree(u->service_name);
+            u->service_name = t;
+
+            publish_main_service(u);
+            break;
+        }
+
+        case AVAHI_ENTRY_GROUP_FAILURE: {
+            pa_log("Failed to register main service: %s", avahi_strerror(avahi_client_errno(avahi_entry_group_get_client(g))));
+
+            avahi_entry_group_free(g);
+            u->main_entry_group = NULL;
+            break;
+        }
+
+        case AVAHI_ENTRY_GROUP_UNCOMMITED:
+        case AVAHI_ENTRY_GROUP_REGISTERING:
+            break;
     }
 }
 
@@ -478,7 +344,7 @@ static int publish_main_service(struct userdata *u) {
     int r = -1;
 
     pa_assert(u);
-    
+
     if (!u->main_entry_group) {
         if (!(u->main_entry_group = avahi_entry_group_new(u->client, main_entry_group_callback, u))) {
             pa_log("avahi_entry_group_new() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
@@ -487,7 +353,7 @@ static int publish_main_service(struct userdata *u) {
     } else
         avahi_entry_group_reset(u->main_entry_group);
 
-    txt = txt_record_server_data(u->core, NULL);
+    txt = txt_record_server_data(u->core, txt);
 
     if (avahi_entry_group_add_service_strlst(
                 u->main_entry_group,
@@ -520,7 +386,6 @@ fail:
 static int publish_all_services(struct userdata *u) {
     pa_sink *sink;
     pa_source *source;
-    pa_autoload_entry *autoload;
     int r = -1;
     uint32_t idx;
 
@@ -529,17 +394,10 @@ static int publish_all_services(struct userdata *u) {
     pa_log_debug("Publishing services in Zeroconf");
 
     for (sink = PA_SINK(pa_idxset_first(u->core->sinks, &idx)); sink; sink = PA_SINK(pa_idxset_next(u->core->sinks, &idx)))
-        if (publish_sink(u, sink) < 0)
-            goto fail;
+        publish_service(get_service(u, PA_OBJECT(sink)));
 
     for (source = PA_SOURCE(pa_idxset_first(u->core->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(u->core->sources, &idx)))
-        if (publish_source(u, source) < 0)
-            goto fail;
-
-    if (u->core->autoload_idxset)
-        for (autoload = pa_idxset_first(u->core->autoload_idxset, &idx); autoload; autoload = pa_idxset_next(u->core->autoload_idxset, &idx))
-            if (publish_autoload(u, autoload) < 0)
-                goto fail;
+        publish_service(get_service(u, PA_OBJECT(source)));
 
     if (publish_main_service(u) < 0)
         goto fail;
@@ -550,7 +408,7 @@ fail:
     return r;
 }
 
-static void unpublish_all_services(struct userdata *u, int rem) {
+static void unpublish_all_services(struct userdata *u, pa_bool_t rem) {
     void *state = NULL;
     struct service *s;
 
@@ -561,27 +419,31 @@ static void unpublish_all_services(struct userdata *u, int rem) {
     while ((s = pa_hashmap_iterate(u->services, &state, NULL))) {
         if (s->entry_group) {
             if (rem) {
+                pa_log_debug("Removing entry group for %s.", s->service_name);
                 avahi_entry_group_free(s->entry_group);
                 s->entry_group = NULL;
-            } else
+            } else {
                 avahi_entry_group_reset(s->entry_group);
+                pa_log_debug("Resetting entry group for %s.", s->service_name);
+            }
         }
-
-        s->published = UNPUBLISHED;
     }
 
     if (u->main_entry_group) {
         if (rem) {
+            pa_log_debug("Removing main entry group.");
             avahi_entry_group_free(u->main_entry_group);
             u->main_entry_group = NULL;
-        } else
+        } else {
             avahi_entry_group_reset(u->main_entry_group);
+            pa_log_debug("Resetting main entry group.");
+        }
     }
 }
 
 static void client_callback(AvahiClient *c, AvahiClientState state, void *userdata) {
     struct userdata *u = userdata;
-    
+
     pa_assert(c);
     pa_assert(u);
 
@@ -593,13 +455,17 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
             break;
 
         case AVAHI_CLIENT_S_COLLISION:
-            unpublish_all_services(u, 0);
+            pa_log_debug("Host name collision");
+            unpublish_all_services(u, FALSE);
             break;
 
         case AVAHI_CLIENT_FAILURE:
             if (avahi_client_errno(c) == AVAHI_ERR_DISCONNECTED) {
                 int error;
-                unpublish_all_services(u, 1);
+
+                pa_log_debug("Avahi daemon disconnected.");
+
+                unpublish_all_services(u, TRUE);
                 avahi_client_free(u->client);
 
                 if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error)))
@@ -613,7 +479,7 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
 }
 
 int pa__init(pa_module*m) {
-    
+
     struct userdata *u;
     uint32_t port = PA_NATIVE_DEFAULT_PORT;
     pa_modargs *ma = NULL;
@@ -636,15 +502,14 @@ int pa__init(pa_module*m) {
 
     u->avahi_poll = pa_avahi_poll_new(m->core->mainloop);
 
-    u->services = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    u->sink_dynarray = pa_dynarray_new();
-    u->source_dynarray = pa_dynarray_new();
-    u->autoload_dynarray = pa_dynarray_new();
+    u->services = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    u->subscription = pa_subscription_new(m->core,
-                                          PA_SUBSCRIPTION_MASK_SINK|
-                                          PA_SUBSCRIPTION_MASK_SOURCE|
-                                          PA_SUBSCRIPTION_MASK_AUTOLOAD, subscribe_callback, u);
+    u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_NEW_POST], (pa_hook_cb_t) device_new_or_changed_cb, u);
+    u->sink_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_DESCRIPTION_CHANGED], (pa_hook_cb_t) device_new_or_changed_cb, u);
+    u->sink_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], (pa_hook_cb_t) device_unlink_cb, u);
+    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_NEW_POST], (pa_hook_cb_t) device_new_or_changed_cb, u);
+    u->source_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_DESCRIPTION_CHANGED], (pa_hook_cb_t) device_new_or_changed_cb, u);
+    u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], (pa_hook_cb_t) device_unlink_cb, u);
 
     u->main_entry_group = NULL;
 
@@ -668,21 +533,6 @@ fail:
     return -1;
 }
 
-static void service_free(void *p, void *userdata) {
-    struct service *s = p;
-    struct userdata *u = userdata;
-
-    pa_assert(s);
-    pa_assert(u);
-
-    if (s->entry_group)
-        avahi_entry_group_free(s->entry_group);
-
-    pa_xfree(s->service_name);
-    pa_xfree(s->name);
-    pa_xfree(s);
-}
-
 void pa__done(pa_module*m) {
     struct userdata*u;
     pa_assert(m);
@@ -690,18 +540,27 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->services)
-        pa_hashmap_free(u->services, service_free, u);
+    if (u->services) {
+        struct service *s;
 
-    if (u->subscription)
-        pa_subscription_free(u->subscription);
+        while ((s = pa_hashmap_get_first(u->services)))
+            service_free(s);
 
-    if (u->sink_dynarray)
-        pa_dynarray_free(u->sink_dynarray, NULL, NULL);
-    if (u->source_dynarray)
-        pa_dynarray_free(u->source_dynarray, NULL, NULL);
-    if (u->autoload_dynarray)
-        pa_dynarray_free(u->autoload_dynarray, NULL, NULL);
+        pa_hashmap_free(u->services, NULL, NULL);
+    }
+
+    if (u->sink_new_slot)
+        pa_hook_slot_free(u->sink_new_slot);
+    if (u->source_new_slot)
+        pa_hook_slot_free(u->source_new_slot);
+    if (u->sink_changed_slot)
+        pa_hook_slot_free(u->sink_changed_slot);
+    if (u->source_changed_slot)
+        pa_hook_slot_free(u->source_changed_slot);
+    if (u->sink_unlink_slot)
+        pa_hook_slot_free(u->sink_unlink_slot);
+    if (u->source_unlink_slot)
+        pa_hook_slot_free(u->source_unlink_slot);
 
     if (u->main_entry_group)
         avahi_entry_group_free(u->main_entry_group);
@@ -715,4 +574,3 @@ void pa__done(pa_module*m) {
     pa_xfree(u->service_name);
     pa_xfree(u);
 }
-
