@@ -115,7 +115,7 @@ static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_chann
 static AvahiStringList* txt_record_server_data(pa_core *c, AvahiStringList *l) {
     char s[128];
 
-    pa_core_assert_ref(c);
+    pa_assert(c);
 
     l = avahi_string_list_add_pair(l, "server-version", PACKAGE_NAME" "PACKAGE_VERSION);
     l = avahi_string_list_add_pair(l, "user-name", pa_get_user_name(s, sizeof(s)));
