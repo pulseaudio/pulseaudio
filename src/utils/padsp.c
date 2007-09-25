@@ -61,6 +61,10 @@
 # define SIOCINQ FIONREAD
 #endif
 
+/* make sure gcc doesn't redefine open and friends as macros */
+#undef open
+#undef open64
+
 typedef enum {
     FD_INFO_MIXER,
     FD_INFO_STREAM,
@@ -1436,35 +1440,23 @@ fail:
     return -1;
 }
 
-#undef open
-int open(const char *filename, int flags, ...) {
-    va_list args;
-    mode_t mode = 0;
+static int real_open(const char *filename, int flags, mode_t mode) {
     int r, _errno = 0;
 
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": open(%s)\n", filename);
-
-    va_start(args, flags);
-    if (flags & O_CREAT) {
-      if (sizeof(mode_t) < sizeof(int))
-        mode = va_arg(args, int);
-      else
-        mode = va_arg(args, mode_t);
-    }
-    va_end(args);
 
     if (!function_enter()) {
         LOAD_OPEN_FUNC();
         return _open(filename, flags, mode);
     }
 
-    if (dsp_cloak_enable() && (strcmp(filename, "/dev/dsp") == 0 || strcmp(filename, "/dev/adsp") == 0)) {
+    if (dsp_cloak_enable() && (strcmp(filename, "/dev/dsp") == 0 || strcmp(filename, "/dev/adsp") == 0))
         r = dsp_open(flags, &_errno);
-    } else if (mixer_cloak_enable() && strcmp(filename, "/dev/mixer") == 0) {
+    else if (mixer_cloak_enable() && strcmp(filename, "/dev/mixer") == 0)
         r = mixer_open(flags, &_errno);
-    } else if (sndstat_cloak_enable() && strcmp(filename, "/dev/sndstat") == 0) {
+    else if (sndstat_cloak_enable() && strcmp(filename, "/dev/sndstat") == 0)
         r = sndstat_open(flags, &_errno);
-    } else {
+    else {
         function_exit();
         LOAD_OPEN_FUNC();
         return _open(filename, flags, mode);
@@ -1476,6 +1468,22 @@ int open(const char *filename, int flags, ...) {
         errno = _errno;
 
     return r;
+}
+
+int open(const char *filename, int flags, ...) {
+    va_list args;
+    mode_t mode = 0;
+
+    if (flags & O_CREAT) {
+        va_start(args, flags);
+        if (sizeof(mode_t) < sizeof(int))
+            mode = va_arg(args, int);
+        else
+            mode = va_arg(args, mode_t);
+        va_end(args);
+    }
+
+    return real_open(filename, flags, mode);
 }
 
 static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) {
@@ -2491,17 +2499,20 @@ int stat64(const char *pathname, struct stat64 *buf) {
     return 0;
 }
 
-#undef open64
 int open64(const char *filename, int flags, ...) {
     va_list args;
     mode_t mode = 0;
 
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": open64(%s)\n", filename);
 
-    va_start(args, flags);
-    if (flags & O_CREAT)
-        mode = va_arg(args, mode_t);
-    va_end(args);
+    if (flags & O_CREAT) {
+        va_start(args, flags);
+        if (sizeof(mode_t) < sizeof(int))
+            mode = va_arg(args, int);
+        else
+            mode = va_arg(args, mode_t);
+        va_end(args);
+    }
 
     if (strcmp(filename, "/dev/dsp") != 0 &&
         strcmp(filename, "/dev/adsp") != 0 &&
@@ -2511,7 +2522,7 @@ int open64(const char *filename, int flags, ...) {
         return _open64(filename, flags, mode);
     }
 
-    return open(filename, flags, mode);
+    return real_open(filename, flags, mode);
 }
 
 #endif
@@ -2603,7 +2614,7 @@ FILE* fopen(const char *filename, const char *mode) {
     if ((((mode[1] == 'b') || (mode[1] == 't')) && (mode[2] == '+')) || (mode[1] == '+'))
         m = O_RDWR;
 
-    if ((fd = open(filename, m)) < 0)
+    if ((fd = real_open(filename, m, 0)) < 0)
         return NULL;
 
     if (!(f = fdopen(fd, mode))) {
