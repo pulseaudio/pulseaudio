@@ -76,7 +76,7 @@ void *pa_tls_set(pa_tls *t, void *userdata);
         if (_free_cb) {                                                 \
             void *p;                                                    \
             if ((p = pa_tls_get(name##_tls.tls)))                       \
-                free_cb(p);                                             \
+                _free_cb(p);                                            \
         }                                                               \
         pa_tls_free(name##_tls.tls);                                    \
     }                                                                   \
