@@ -374,13 +374,13 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 #ifdef __linux__
     if (!p->dont_use_ppoll)
 #endif
-        r = ppoll(p->pollfd, p->n_pollfd_used, p->timer_enabled > 0  ? &timeout : NULL, p->rtsig < 0 ? NULL : &p->sigset_unblocked);
+        r = ppoll(p->pollfd, p->n_pollfd_used, p->timer_enabled ? &timeout : NULL, p->rtsig < 0 ? NULL : &p->sigset_unblocked);
 #ifdef __linux__
     else
 #endif
 
 #endif
-        r = poll(p->pollfd, p->n_pollfd_used, p->timer_enabled > 0 ? (timeout.tv_sec*1000) + (timeout.tv_nsec / 1000000) : -1);
+        r = poll(p->pollfd, p->n_pollfd_used, p->timer_enabled ? (timeout.tv_sec*1000) + (timeout.tv_nsec / 1000000) : -1);
 
     if (r < 0) {
         if (errno == EAGAIN || errno == EINTR)
@@ -403,7 +403,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
                 pa_timespec_add(&p->next_elapse, (pa_timespec_diff(&now, &p->next_elapse) / p->period + 1) * p->period);
 
         } else
-            p->timer_enabled = 0;
+            p->timer_enabled = FALSE;
     }
 
     /* Let's tell everyone that we left the sleep */
