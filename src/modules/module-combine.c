@@ -84,11 +84,12 @@ static const char* const valid_modargs[] = {
 
 struct output {
     struct userdata *userdata;
+
     pa_sink *sink;
     pa_sink_input *sink_input;
 
-    pa_asyncmsgq *inq,    /* Message queue from the master to this sink input */
-                 *outq;   /* Message queue from this sink input to the master */
+    pa_asyncmsgq *inq,    /* Message queue from the sink thread to this sink input */
+                 *outq;   /* Message queue from this sink input to the sink thread */
     pa_rtpoll_item *inq_rtpoll_item, *outq_rtpoll_item;
 
     pa_memblockq *memblockq;
@@ -107,15 +108,11 @@ struct userdata {
     pa_thread_mq thread_mq;
     pa_rtpoll *rtpoll;
 
-    struct output *master;
-
     pa_time_event *time_event;
     uint32_t adjust_time;
 
-    int automatic;
+    pa_bool_t automatic;
     size_t block_size;
-
-    struct timespec timestamp;
 
     pa_hook_slot *sink_new_slot, *sink_unlink_slot, *sink_state_changed_slot;
 
@@ -123,19 +120,21 @@ struct userdata {
 
     struct timespec adjust_timestamp;
 
+    struct output *master;
     pa_idxset* outputs; /* managed in main context */
 
     struct {
-        PA_LLIST_HEAD(struct output, outputs); /* managed in IO thread context */
-        struct output *master;
+        PA_LLIST_HEAD(struct output, active_outputs); /* managed in IO thread context */
+        pa_atomic_t running;  /* we cache that value here, so that every thread can query it cheaply */
+        struct timespec timestamp;
+        pa_bool_t in_null_mode;
     } thread_info;
 };
 
 enum {
     SINK_MESSAGE_ADD_OUTPUT = PA_SINK_MESSAGE_MAX,
     SINK_MESSAGE_REMOVE_OUTPUT,
-    SINK_MESSAGE_NEED,
-    SINK_MESSAGE_SET_MASTER
+    SINK_MESSAGE_NEED
 };
 
 enum {
@@ -143,9 +142,9 @@ enum {
 };
 
 static void output_free(struct output *o);
-static int output_create_sink_input(struct userdata *u, struct output *o);
-static int update_master(struct userdata *u, struct output *o);
-static int pick_master(struct userdata *u, struct output *except);
+static int output_create_sink_input(struct output *o);
+static void update_master(struct userdata *u, struct output *o);
+static void pick_master(struct userdata *u, struct output *except);
 
 static void adjust_rates(struct userdata *u) {
     struct output *o;
@@ -159,22 +158,25 @@ static void adjust_rates(struct userdata *u) {
     if (pa_idxset_size(u->outputs) <= 0)
         return;
 
+    if (!u->master)
+        return;
+
     if (!PA_SINK_OPENED(pa_sink_get_state(u->sink)))
         return;
 
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
-        uint32_t sink_latency;
+        pa_usec_t sink_latency;
 
         if (!o->sink_input || !PA_SINK_OPENED(pa_sink_get_state(o->sink)))
             continue;
 
-        sink_latency = o->sink_input->sink ? pa_sink_get_latency(o->sink_input->sink) : 0;
+        sink_latency = pa_sink_get_latency(o->sink);
         o->total_latency = sink_latency + pa_sink_input_get_latency(o->sink_input);
 
         if (sink_latency > max_sink_latency)
             max_sink_latency = sink_latency;
 
-        if (o->total_latency < min_total_latency)
+        if (min_total_latency == (pa_usec_t) -1 || o->total_latency < min_total_latency)
             min_total_latency = o->total_latency;
     }
 
@@ -184,7 +186,7 @@ static void adjust_rates(struct userdata *u) {
     target_latency = max_sink_latency > min_total_latency ? max_sink_latency : min_total_latency;
 
     pa_log_info("[%s] target latency is %0.0f usec.", u->sink->name, (float) target_latency);
-    pa_log_info("[%s] master is %s", u->sink->name, u->master->sink->description);
+    pa_log_info("[%s] master %s latency %0.0f usec.", u->sink->name, u->master->sink->name, (float) u->master->total_latency);
 
     base_rate = u->sink->sample_spec.rate;
 
@@ -195,9 +197,9 @@ static void adjust_rates(struct userdata *u) {
             continue;
 
         if (o->total_latency < target_latency)
-            r -= (uint32_t) (((((double) target_latency - o->total_latency))/u->adjust_time)*r/ 1000000);
+            r -= (uint32_t) (((((double) target_latency - o->total_latency))/u->adjust_time)*r/PA_USEC_PER_SEC);
         else if (o->total_latency > target_latency)
-            r += (uint32_t) (((((double) o->total_latency - target_latency))/u->adjust_time)*r/ 1000000);
+            r += (uint32_t) (((((double) o->total_latency - target_latency))/u->adjust_time)*r/PA_USEC_PER_SEC);
 
         if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1)) {
             pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", o->sink_input->name, base_rate, r);
@@ -231,36 +233,46 @@ static void thread_func(void *userdata) {
 
     pa_log_debug("Thread starting up");
 
+    if (u->core->high_priority)
+        pa_make_realtime();
+
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
-    pa_rtclock_get(&u->timestamp);
-
-    /* This is only run when we are in NULL mode, to make sure that
-     * playback doesn't stop. In all other cases we hook our stuff
-     * into the master sink. */
+    pa_rtclock_get(&u->thread_info.timestamp);
+    u->thread_info.in_null_mode = FALSE;
 
     for (;;) {
         int ret;
 
-        /* Render some data and drop it immediately */
-        if (u->sink->thread_info.state == PA_SINK_RUNNING) {
+        /* If no outputs are connected, render some data and drop it immediately. */
+        if (u->sink->thread_info.state == PA_SINK_RUNNING && !u->thread_info.active_outputs) {
             struct timespec now;
 
             pa_rtclock_get(&now);
 
-            if (pa_timespec_cmp(&u->timestamp, &now) <= 0) {
+            if (!u->thread_info.in_null_mode || pa_timespec_cmp(&u->thread_info.timestamp, &now) <= 0) {
                 pa_sink_skip(u->sink, u->block_size);
-                pa_timespec_add(&u->timestamp, pa_bytes_to_usec(u->block_size, &u->sink->sample_spec));
+
+                if (!u->thread_info.in_null_mode)
+                    u->thread_info.timestamp = now;
+
+                pa_timespec_add(&u->thread_info.timestamp, pa_bytes_to_usec(u->block_size, &u->sink->sample_spec));
             }
 
-            pa_rtpoll_set_timer_absolute(u->rtpoll, &u->timestamp);
-        } else
+            pa_rtpoll_set_timer_absolute(u->rtpoll, &u->thread_info.timestamp);
+            u->thread_info.in_null_mode = TRUE;
+
+        } else {
             pa_rtpoll_set_timer_disabled(u->rtpoll);
+            u->thread_info.in_null_mode = FALSE;
+        }
 
         /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll, 1)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0) {
+            pa_log_info("pa_rtpoll_run() = %i", ret);
             goto fail;
+        }
 
         if (ret == 0)
             goto finish;
@@ -281,12 +293,13 @@ static void render_memblock(struct userdata *u, struct output *o, size_t length)
     pa_assert(u);
     pa_assert(o);
 
-    if (!PA_SINK_OPENED(u->sink->thread_info.state))
-        return;
+    /* We are run by the sink thread, on behalf of an output (o). The
+     * other output is waiting for us, hence it is safe to access its
+     * mainblockq and asyncmsgq directly. */
 
-    /* We are run by the master output (u->master), possibly on behalf
-     * of another output (o). The other output is waiting for us,
-     * hence it is safe to access its mainblockq directly. */
+    /* If we are not running, we cannot produce any data */
+    if (!pa_atomic_load(&u->thread_info.running))
+        return;
 
     /* Maybe there's some data in the requesting output's queue
      * now? */
@@ -302,19 +315,16 @@ static void render_memblock(struct userdata *u, struct output *o, size_t length)
         pa_sink_render(u->sink, length, &chunk);
 
         /* OK, let's send this data to the other threads */
-        for (j = o->userdata->thread_info.outputs; j; j = j->next)
+        for (j = u->thread_info.active_outputs; j; j = j->next)
 
             /* Send to other outputs, which are not the requesting
-             * one, and not the master */
+             * one */
 
-            if (j != o && j != u->thread_info.master && j->sink_input)
+            if (j != o)
                 pa_asyncmsgq_post(j->inq, PA_MSGOBJECT(j->sink_input), SINK_INPUT_MESSAGE_POST, NULL, 0, &chunk, NULL);
 
-        /* Now push it into the master queue */
-        pa_memblockq_push_align(u->thread_info.master->memblockq, &chunk);
-
-        /* And into the requesting output's queue */
-        if (o != u->thread_info.master)
+        /* And place it directly into the requesting output's queue */
+        if (o)
             pa_memblockq_push_align(o->memblockq, &chunk);
 
         pa_memblock_unref(chunk.memblock);
@@ -337,16 +347,8 @@ static void request_memblock(struct output *o, size_t length) {
     if (pa_memblockq_is_readable(o->memblockq))
         return;
 
-    /* OK, we need to prepare new data */
-
-    if (o == o->userdata->thread_info.master)
-        /* OK, we're the master, so let's render some data */
-        render_memblock(o->userdata, o, length);
-
-    else
-        /* We're not the master, we need to ask the master to do the
-         * rendering for us */
-
+    /* OK, we need to prepare new data, but only if the sink is actually running */
+    if (pa_atomic_load(&o->userdata->thread_info.running))
         pa_asyncmsgq_send(o->outq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_NEED, o, length, NULL);
 }
 
@@ -360,7 +362,7 @@ static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chun
     /* If necessary, get some new data */
     request_memblock(o, length);
 
-    return  pa_memblockq_peek(o->memblockq, chunk);
+    return pa_memblockq_peek(o->memblockq, chunk);
 }
 
 /* Called from I/O thread context */
@@ -374,49 +376,6 @@ static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     pa_memblockq_drop(o->memblockq, length);
 }
 
-/* Called from I/O thread context for the master */
-static void create_master_rtpolls(struct userdata *u) {
-    struct output *k;
-
-    pa_assert(u);
-
-    pa_assert(!u->master->outq_rtpoll_item);
-
-    /* Set up the queues from the outputs to the master */
-    for (k = u->thread_info.outputs; k; k = k->next) {
-
-        pa_assert(!k->outq_rtpoll_item);
-
-        if (k == u->master)
-            continue;
-
-        k->outq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq(
-                u->master->sink->rtpoll,
-                PA_RTPOLL_EARLY+1,  /* This one has a slightly lower priority than the normal message handling */
-                k->outq);
-    }
-}
-
-/* Called from I/O thread context for the master */
-static void free_master_rtpolls(struct userdata *u) {
-    struct output *k;
-
-    pa_assert(!u->master->outq_rtpoll_item);
-
-    for (k = u->thread_info.outputs; k; k = k->next) {
-
-        if (k == u->master)
-            continue;
-
-        if (k->outq_rtpoll_item) {
-            pa_rtpoll_item_free(k->outq_rtpoll_item);
-            k->outq_rtpoll_item = NULL;
-        }
-
-        pa_assert(!k->outq_rtpoll_item);
-    }
-}
-
 /* Called from I/O thread context */
 static void sink_input_attach_cb(pa_sink_input *i) {
     struct output *o;
@@ -424,22 +383,11 @@ static void sink_input_attach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(o = i->userdata);
 
-    if (o->userdata->thread_info.master == o) {
-        create_master_rtpolls(o->userdata);
-
-        /* Calling these two functions here is safe, because both
-         * threads that might access this sink are known to be
-         * waiting for us. */
-        pa_sink_set_asyncmsgq(o->userdata->sink, i->sink->asyncmsgq);
-        pa_sink_set_rtpoll(o->userdata->sink, i->sink->rtpoll);
-        pa_sink_attach_within_thread(o->userdata->sink);
-    }
-
-    /* Set up the queues from the inputs to the master */
+    /* Set up the queue from the sink thread to us */
     pa_assert(!o->inq_rtpoll_item);
     o->inq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq(
             i->sink->rtpoll,
-            PA_RTPOLL_NORMAL,  /* This one has a lower priority than the normal message handling */
+            PA_RTPOLL_LATE,  /* This one is not that important, since we check for data in _peek() anyway. */
             o->inq);
 }
 
@@ -450,16 +398,10 @@ static void sink_input_detach_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(o = i->userdata);
 
-/*     pa_log("detaching %s", i->sink->name); */
-
+    /* Shut down the queue from the sink thread to us */
     pa_assert(o->inq_rtpoll_item);
     pa_rtpoll_item_free(o->inq_rtpoll_item);
     o->inq_rtpoll_item = NULL;
-
-    if (o->userdata->thread_info.master == o) {
-        pa_sink_detach_within_thread(o->userdata->sink);
-        free_master_rtpolls(o->userdata);
-    }
 }
 
 /* Called from main context */
@@ -467,14 +409,10 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     struct output *o;
 
     pa_sink_input_assert_ref(i);
-    o = i->userdata;
-    pa_assert(o);
-
-    pa_sink_input_unlink(o->sink_input);
-    pa_sink_input_unref(o->sink_input);
-    o->sink_input = NULL;
+    pa_assert(o = i->userdata);
 
     pa_module_unload_request(o->userdata->module);
+    output_free(o);
 }
 
 /* Called from thread context */
@@ -493,7 +431,7 @@ static int sink_input_process_msg(pa_msgobject *obj, int code, void *data, int64
             break;
         }
 
-        case SINK_INPUT_MESSAGE_POST: {
+        case SINK_INPUT_MESSAGE_POST:
 
             if (PA_SINK_OPENED(o->sink_input->sink->thread_info.state))
                 pa_memblockq_push_align(o->memblockq, chunk);
@@ -501,66 +439,78 @@ static int sink_input_process_msg(pa_msgobject *obj, int code, void *data, int64
                 pa_memblockq_flush(o->memblockq);
 
             break;
-        }
     }
 
     return pa_sink_input_process_msg(obj, code, data, offset, chunk);
 }
 
 /* Called from main context */
-static int suspend(struct userdata *u) {
+static void disable_output(struct output *o) {
+    pa_assert(o);
+
+    if (!o->sink_input)
+        return;
+
+    pa_asyncmsgq_send(o->userdata->sink->asyncmsgq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
+    pa_sink_input_unlink(o->sink_input);
+    pa_sink_input_unref(o->sink_input);
+    o->sink_input = NULL;
+
+}
+
+/* Called from main context */
+static void enable_output(struct output *o) {
+    pa_assert(o);
+
+    if (o->sink_input)
+        return;
+
+    if (output_create_sink_input(o) >= 0) {
+
+        pa_memblockq_flush(o->memblockq);
+
+        pa_sink_input_put(o->sink_input);
+
+        if (o->userdata->sink && PA_SINK_LINKED(pa_sink_get_state(o->userdata->sink)))
+            pa_asyncmsgq_send(o->userdata->sink->asyncmsgq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_ADD_OUTPUT, o, 0, NULL);
+    }
+}
+
+/* Called from main context */
+static void suspend(struct userdata *u) {
     struct output *o;
     uint32_t idx;
 
     pa_assert(u);
 
     /* Let's suspend by unlinking all streams */
+    for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx))
+        disable_output(o);
 
-    if (update_master(u, NULL) < 0)
-        pa_module_unload_request(u->module);
-
-    for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
-
-        if (o->sink_input) {
-            pa_sink_input_unlink(o->sink_input);
-            pa_sink_input_unref(o->sink_input);
-            o->sink_input = NULL;
-        }
-    }
+    pick_master(u, NULL);
 
     pa_log_info("Device suspended...");
-
-    return 0;
 }
 
 /* Called from main context */
-static int unsuspend(struct userdata *u) {
+static void unsuspend(struct userdata *u) {
     struct output *o;
     uint32_t idx;
 
     pa_assert(u);
 
     /* Let's resume */
-
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx)) {
 
-        pa_sink_suspend(o->sink, 0);
+        pa_sink_suspend(o->sink, FALSE);
 
-        if (PA_SINK_OPENED(pa_sink_get_state(o->sink))) {
-            if (output_create_sink_input(u, o) < 0)
-                output_free(o);
-        }
+        if (PA_SINK_OPENED(pa_sink_get_state(o->sink)))
+            enable_output(o);
     }
 
-    if (pick_master(u, NULL) < 0)
-        pa_module_unload_request(u->module);
-
-    for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx))
-        if (o->sink_input && pa_sink_get_state(o->sink_input) == PA_SINK_INPUT_INIT)
-             pa_sink_input_put(o->sink_input);
+    pick_master(u, NULL);
 
     pa_log_info("Resumed successfully...");
-    return 0;
 }
 
 /* Called from main context */
@@ -577,18 +527,14 @@ static int sink_set_state(pa_sink *sink, pa_sink_state_t state) {
         case PA_SINK_SUSPENDED:
             pa_assert(PA_SINK_OPENED(pa_sink_get_state(u->sink)));
 
-            if (suspend(u) < 0)
-                return -1;
-
+            suspend(u);
             break;
 
         case PA_SINK_IDLE:
         case PA_SINK_RUNNING:
 
-            if (pa_sink_get_state(u->sink) == PA_SINK_SUSPENDED) {
-                if (unsuspend(u) < 0)
-                    return -1;
-            }
+            if (pa_sink_get_state(u->sink) == PA_SINK_SUSPENDED)
+                unsuspend(u);
 
             break;
 
@@ -607,67 +553,41 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     switch (code) {
 
         case PA_SINK_MESSAGE_SET_STATE:
-
-            if ((pa_sink_state_t) PA_PTR_TO_UINT(data) == PA_SINK_RUNNING) {
-                /* Only useful when running in NULL mode, i.e. when no
-                 * master sink is attached */
-                pa_rtclock_get(&u->timestamp);
-            }
-
+            pa_atomic_store(&u->thread_info.running, PA_PTR_TO_UINT(data) == PA_SINK_RUNNING);
             break;
 
-        case PA_SINK_MESSAGE_GET_LATENCY: {
-            struct timespec now;
+        case PA_SINK_MESSAGE_GET_LATENCY:
 
             /* This code will only be called when running in NULL
-             * mode, i.e. when no master sink is attached. See
+             * mode, i.e. when no output is attached. See
              * sink_get_latency_cb() below */
-            pa_rtclock_get(&now);
 
-            if (pa_timespec_cmp(&u->timestamp, &now) > 0)
-                *((pa_usec_t*) data) = 0;
-            else
-                *((pa_usec_t*) data) = pa_timespec_diff(&u->timestamp, &now);
+            if (u->thread_info.in_null_mode) {
+                struct timespec now;
+
+                if (pa_timespec_cmp(&u->thread_info.timestamp, pa_rtclock_get(&now)) > 0) {
+                    *((pa_usec_t*) data) = pa_timespec_diff(&u->thread_info.timestamp, &now);
+                    break;
+                }
+            }
+
+            *((pa_usec_t*) data) = 0;
+
             break;
-        }
-
-        case SINK_MESSAGE_SET_MASTER:
-
-            if (u->thread_info.master && data != u->thread_info.master) {
-
-                if (u->thread_info.master->sink_input->thread_info.attached)
-                    free_master_rtpolls(u);
-
-            }
-
-            if ((u->thread_info.master = data)) {
-
-                /* There's now a master, and we're being executed in
-                 * its thread, let's register the asyncmsgqs from other
-                 * outputs to us */
-
-                if (u->thread_info.master->sink_input->thread_info.attached)
-                    create_master_rtpolls(u);
-
-            }
-
-            return 0;
 
         case SINK_MESSAGE_ADD_OUTPUT: {
             struct output *op = data;
 
-            PA_LLIST_PREPEND(struct output, u->thread_info.outputs, op);
+            PA_LLIST_PREPEND(struct output, u->thread_info.active_outputs, op);
 
             pa_assert(!op->outq_rtpoll_item);
 
-            if (op != u->thread_info.master) {
-                /* Create pa_asyncmsgq to master */
+            /* Create pa_asyncmsgq to the sink thread */
 
-                op->outq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq(
-                        u->thread_info.master->sink->rtpoll,
-                        PA_RTPOLL_EARLY+1,  /* This one has a slightly lower priority than the normal message handling */
-                        op->outq);
-            }
+            op->outq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq(
+                    u->rtpoll,
+                    PA_RTPOLL_EARLY-1,  /* This item is very important */
+                    op->outq);
 
             return 0;
         }
@@ -675,14 +595,13 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         case SINK_MESSAGE_REMOVE_OUTPUT: {
             struct output *op = data;
 
-            PA_LLIST_REMOVE(struct output, u->thread_info.outputs, op);
+            PA_LLIST_REMOVE(struct output, u->thread_info.active_outputs, op);
 
-            /* Remove the q that leads from this output to the master output */
+            /* Remove the q that leads from this output to the sink thread */
 
-            if (op->outq_rtpoll_item) {
-                pa_rtpoll_item_free(op->outq_rtpoll_item);
-                op->outq_rtpoll_item = NULL;
-            }
+            pa_assert(op->outq_rtpoll_item);
+            pa_rtpoll_item_free(op->outq_rtpoll_item);
+            op->outq_rtpoll_item = NULL;
 
             return 0;
         }
@@ -700,8 +619,7 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
     struct userdata *u;
 
     pa_sink_assert_ref(s);
-    u = s->userdata;
-    pa_assert(u);
+    pa_assert_se(u = s->userdata);
 
     if (u->master) {
         /* If we have a master sink, we just return the latency of it
@@ -712,10 +630,10 @@ static pa_usec_t sink_get_latency_cb(pa_sink *s) {
 
         return
             pa_sink_input_get_latency(u->master->sink_input) +
-            pa_sink_get_latency(u->master->sink_input->sink);
+            pa_sink_get_latency(u->master->sink);
 
     } else {
-        pa_usec_t usec;
+        pa_usec_t usec = 0;
 
         /* We have no master, hence let's ask our own thread which
          * implements the NULL sink */
@@ -759,94 +677,50 @@ static void update_description(struct userdata *u) {
     pa_xfree(t);
 }
 
-static int update_master(struct userdata *u, struct output *o) {
+static void update_master(struct userdata *u, struct output *o) {
     pa_assert(u);
 
-    /* Make sure everything is detached from the old thread before we move our stuff to a new thread */
-    if (u->sink && PA_SINK_LINKED(pa_sink_get_state(u->sink))) {
-        pa_sink_detach(u->sink);
-        pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_SET_MASTER, NULL, 0, NULL);
-    } else
-        u->thread_info.master = NULL;
+    if (u->master == o)
+        return;
 
-    if (o) {
-        /* If we have a master sink we run our own sink in its thread */
-
-        pa_assert(o->sink_input);
-        pa_assert(PA_SINK_OPENED(pa_sink_get_state(o->sink)));
-
-        if (u->thread) {
-            /* If we previously were in NULL mode, let's kill the thread */
-            pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
-            pa_thread_free(u->thread);
-            u->thread = NULL;
-
-            pa_assert(u->rtpoll);
-            pa_rtpoll_free(u->rtpoll);
-            u->rtpoll = NULL;
-        }
-
-        pa_sink_set_asyncmsgq(u->sink, o->sink->asyncmsgq);
-        pa_sink_set_rtpoll(u->sink, o->sink->rtpoll);
-        u->master = o;
-
+    if ((u->master = o))
         pa_log_info("Master sink is now '%s'", o->sink_input->sink->name);
-
-    } else {
-
-        /* We have no master sink, let's create our own thread */
-
-        pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
-        u->master = NULL;
-
-        if (!u->thread) {
-            pa_assert(!u->rtpoll);
-
-            u->rtpoll = pa_rtpoll_new();
-            pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
-
-            pa_sink_set_rtpoll(u->sink, u->rtpoll);
-
-            if (!(u->thread = pa_thread_new(thread_func, u))) {
-                pa_log("Failed to create thread.");
-                return -1;
-            }
-        }
-
-        pa_log_info("No suitable master sink found, going to NULL mode\n");
-    }
-
-    /* Now attach everything again */
-    if (u->sink && PA_SINK_LINKED(pa_sink_get_state(u->sink))) {
-        pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_SET_MASTER, u->master, 0, NULL);
-        pa_sink_attach(u->sink);
-    } else
-        u->thread_info.master = u->master;
-
-    return 0;
+    else
+        pa_log_info("No master selected, lacking suitable outputs.");
 }
 
-static int pick_master(struct userdata *u, struct output *except) {
+static void pick_master(struct userdata *u, struct output *except) {
     struct output *o;
     uint32_t idx;
     pa_assert(u);
 
-    if (u->master && u->master != except && u->master->sink_input && PA_SINK_OPENED(pa_sink_get_state(u->master->sink)))
-        return update_master(u, u->master);
+    if (u->master &&
+        u->master != except &&
+        u->master->sink_input &&
+        PA_SINK_OPENED(pa_sink_get_state(u->master->sink))) {
+        update_master(u, u->master);
+        return;
+    }
 
     for (o = pa_idxset_first(u->outputs, &idx); o; o = pa_idxset_next(u->outputs, &idx))
-        if (o != except && o->sink_input && PA_SINK_OPENED(pa_sink_get_state(o->sink)))
-            return update_master(u, o);
+        if (o != except &&
+            o->sink_input &&
+            PA_SINK_OPENED(pa_sink_get_state(o->sink))) {
+            update_master(u, o);
+            return;
+        }
 
-    return update_master(u, NULL);
+    update_master(u, NULL);
 }
 
-static int output_create_sink_input(struct userdata *u, struct output *o) {
+static int output_create_sink_input(struct output *o) {
     pa_sink_input_new_data data;
     char *t;
 
-    pa_assert(u);
-    pa_assert(!o->sink_input);
+    pa_assert(o);
+
+    if (o->sink_input)
+        return 0;
 
     t = pa_sprintf_malloc("Simultaneous output on %s", o->sink->description);
 
@@ -854,12 +728,12 @@ static int output_create_sink_input(struct userdata *u, struct output *o) {
     data.sink = o->sink;
     data.driver = __FILE__;
     data.name = t;
-    pa_sink_input_new_data_set_sample_spec(&data, &u->sink->sample_spec);
-    pa_sink_input_new_data_set_channel_map(&data, &u->sink->channel_map);
-    data.module = u->module;
-    data.resample_method = u->resample_method;
+    pa_sink_input_new_data_set_sample_spec(&data, &o->userdata->sink->sample_spec);
+    pa_sink_input_new_data_set_channel_map(&data, &o->userdata->sink->channel_map);
+    data.module = o->userdata->module;
+    data.resample_method = o->userdata->resample_method;
 
-    o->sink_input = pa_sink_input_new(u->core, &data, PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE);
+    o->sink_input = pa_sink_input_new(o->userdata->core, &data, PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE);
 
     pa_xfree(t);
 
@@ -873,6 +747,7 @@ static int output_create_sink_input(struct userdata *u, struct output *o) {
     o->sink_input->detach = sink_input_detach_cb;
     o->sink_input->kill = sink_input_kill_cb;
     o->sink_input->userdata = o;
+
 
     return 0;
 }
@@ -901,29 +776,38 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
             0,
             NULL);
 
-
     pa_assert_se(pa_idxset_put(u->outputs, o, NULL) == 0);
-
-    update_description(u);
 
     if (u->sink && PA_SINK_LINKED(pa_sink_get_state(u->sink)))
         pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_ADD_OUTPUT, o, 0, NULL);
-    else
-        PA_LLIST_PREPEND(struct output, u->thread_info.outputs, o);
+    else {
+        /* If the sink is not yet started, we need to do the activation ourselves */
+        PA_LLIST_PREPEND(struct output, u->thread_info.active_outputs, o);
+
+        o->outq_rtpoll_item = pa_rtpoll_item_new_asyncmsgq(
+                u->rtpoll,
+                PA_RTPOLL_EARLY-1,  /* This item is very important */
+                o->outq);
+    }
 
     if (PA_SINK_OPENED(pa_sink_get_state(u->sink)) || pa_sink_get_state(u->sink) == PA_SINK_INIT) {
-        pa_sink_suspend(sink, 0);
+        pa_sink_suspend(sink, FALSE);
 
         if (PA_SINK_OPENED(pa_sink_get_state(sink)))
-            if (output_create_sink_input(u, o) < 0)
+            if (output_create_sink_input(o) < 0)
                 goto fail;
     }
+
+
+    update_description(u);
 
     return o;
 
 fail:
 
     if (o) {
+        pa_idxset_remove_by_data(u->outputs, o, NULL);
+
         if (o->sink_input) {
             pa_sink_input_unlink(o->sink_input);
             pa_sink_input_unref(o->sink_input);
@@ -962,11 +846,10 @@ static pa_hook_result_t sink_new_hook_cb(pa_core *c, pa_sink *s, struct userdata
         return PA_HOOK_OK;
     }
 
-    if (pick_master(u, NULL) < 0)
-        pa_module_unload_request(u->module);
-
     if (o->sink_input)
         pa_sink_input_put(o->sink_input);
+
+    pick_master(u, NULL);
 
     return PA_HOOK_OK;
 }
@@ -1014,24 +897,13 @@ static pa_hook_result_t sink_state_changed_hook_cb(pa_core *c, pa_sink *s, struc
     state = pa_sink_get_state(s);
 
     if (PA_SINK_OPENED(state) && PA_SINK_OPENED(pa_sink_get_state(u->sink)) && !o->sink_input) {
-        output_create_sink_input(u, o);
-
-        if (pick_master(u, NULL) < 0)
-            pa_module_unload_request(u->module);
-
-        if (o->sink_input)
-            pa_sink_input_put(o->sink_input);
+        enable_output(o);
+        pick_master(u, NULL);
     }
 
     if (state == PA_SINK_SUSPENDED && o->sink_input) {
-        pa_sink_input_unlink(o->sink_input);
-        pa_sink_input_unref(o->sink_input);
-        o->sink_input = NULL;
-
-        pa_memblockq_flush(o->memblockq);
-
-        if (pick_master(u, o) < 0)
-            pa_module_unload_request(u->module);
+        disable_output(o);
+        pick_master(u, o);
     }
 
     return PA_HOOK_OK;
@@ -1067,16 +939,20 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->sink = NULL;
-    u->thread_info.master = u->master = NULL;
+    u->master = NULL;
     u->time_event = NULL;
     u->adjust_time = DEFAULT_ADJUST_TIME;
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
-    u->rtpoll = NULL;
+    u->rtpoll = pa_rtpoll_new();
     u->thread = NULL;
-    PA_LLIST_HEAD_INIT(struct output, u->thread_info.outputs);
     u->resample_method = resample_method;
     u->outputs = pa_idxset_new(NULL, NULL);
     pa_timespec_reset(&u->adjust_timestamp);
+    u->sink_new_slot = u->sink_unlink_slot = u->sink_state_changed_slot = NULL;
+    PA_LLIST_HEAD_INIT(struct output, u->thread_info.active_outputs);
+    pa_atomic_store(&u->thread_info.running, FALSE);
+    u->thread_info.in_null_mode = FALSE;
+    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
 
     if (pa_modargs_get_value_u32(ma, "adjust_time", &u->adjust_time) < 0) {
         pa_log("Failed to parse adjust_time value");
@@ -1097,11 +973,11 @@ int pa__init(pa_module*m) {
         }
 
         ss = master_sink->sample_spec;
-        u->automatic = 0;
+        u->automatic = FALSE;
     } else {
         master_sink = NULL;
         ss = m->core->default_sample_spec;
-        u->automatic = 1;
+        u->automatic = TRUE;
     }
 
     if ((pa_modargs_get_sample_spec(ma, &ss) < 0)) {
@@ -1137,6 +1013,8 @@ int pa__init(pa_module*m) {
     u->sink->flags = PA_SINK_LATENCY;
     pa_sink_set_module(u->sink, m);
     pa_sink_set_description(u->sink, "Simultaneous output");
+    pa_sink_set_rtpoll(u->sink, u->rtpoll);
+    pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
 
     u->block_size = pa_bytes_per_second(&ss) / 20; /* 50 ms */
     if (u->block_size <= 0)
@@ -1200,8 +1078,12 @@ int pa__init(pa_module*m) {
     u->sink_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], (pa_hook_cb_t) sink_unlink_hook_cb, u);
     u->sink_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], (pa_hook_cb_t) sink_state_changed_hook_cb, u);
 
-    if (pick_master(u, NULL) < 0)
+    pick_master(u, NULL);
+
+    if (!(u->thread = pa_thread_new(thread_func, u))) {
+        pa_log("Failed to create thread.");
         goto fail;
+    }
 
     /* Activate the sink and the sink inputs */
     pa_sink_put(u->sink);
@@ -1234,21 +1116,11 @@ fail:
 static void output_free(struct output *o) {
     pa_assert(o);
 
-    /* Make sure the master points to a different output */
-    if (pick_master(o->userdata, o) < 0)
-        pa_module_unload_request(o->userdata->module);
+    pick_master(o->userdata, o);
 
-    if (o->userdata->sink && PA_SINK_LINKED(pa_sink_get_state(o->userdata->sink)))
-        pa_asyncmsgq_send(o->userdata->sink->asyncmsgq, PA_MSGOBJECT(o->userdata->sink), SINK_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
-    else
-        PA_LLIST_REMOVE(struct output, o->userdata->thread_info.outputs, o);
+    disable_output(o);
 
     pa_assert_se(pa_idxset_remove_by_data(o->userdata->outputs, o, NULL));
-
-    if (o->sink_input) {
-        pa_sink_input_unlink(o->sink_input);
-        pa_sink_input_unref(o->sink_input);
-    }
 
     update_description(o->userdata);
 
@@ -1288,15 +1160,15 @@ void pa__done(pa_module*m) {
     if (u->sink_state_changed_slot)
         pa_hook_slot_free(u->sink_state_changed_slot);
 
-    if (u->sink)
-        pa_sink_unlink(u->sink);
-
     if (u->outputs) {
         while ((o = pa_idxset_first(u->outputs, NULL)))
             output_free(o);
 
         pa_idxset_free(u->outputs, NULL, NULL);
     }
+
+    if (u->sink)
+        pa_sink_unlink(u->sink);
 
     if (u->thread) {
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
