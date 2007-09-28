@@ -62,9 +62,9 @@ struct pa_rtpoll {
     timer_t timer;
 #ifdef __linux__
     pa_bool_t dont_use_ppoll;
-#endif    
 #endif
-    
+#endif
+
     PA_LLIST_HEAD(pa_rtpoll_item, items);
 };
 
@@ -81,7 +81,7 @@ struct pa_rtpoll_item {
     int (*before_cb)(pa_rtpoll_item *i);
     void (*after_cb)(pa_rtpoll_item *i);
     void *userdata;
-    
+
     PA_LLIST_FIELDS(pa_rtpoll_item);
 };
 
@@ -99,11 +99,11 @@ pa_rtpoll *pa_rtpoll_new(void) {
 #ifdef __linux__
     /* ppoll is broken on Linux < 2.6.16 */
     p->dont_use_ppoll = FALSE;
-    
+
     {
         struct utsname u;
         unsigned major, minor, micro;
-    
+
         pa_assert_se(uname(&u) == 0);
 
         if (sscanf(u.release, "%u.%u.%u", &major, &minor, &micro) != 3 ||
@@ -119,7 +119,7 @@ pa_rtpoll *pa_rtpoll_new(void) {
     p->rtsig = -1;
     sigemptyset(&p->sigset_unblocked);
     p->timer = (timer_t) -1;
-        
+
 #endif
 
     p->n_pollfd_alloc = 32;
@@ -136,7 +136,7 @@ pa_rtpoll *pa_rtpoll_new(void) {
     p->scan_for_dead = FALSE;
     p->rebuild_needed = FALSE;
     p->quit = FALSE;
-    
+
     PA_LLIST_HEAD_INIT(pa_rtpoll_item, p->items);
 
     return p;
@@ -145,7 +145,7 @@ pa_rtpoll *pa_rtpoll_new(void) {
 void pa_rtpoll_install(pa_rtpoll *p) {
     pa_assert(p);
     pa_assert(!p->installed);
-    
+
     p->installed = 1;
 
 #ifdef HAVE_PPOLL
@@ -162,7 +162,7 @@ void pa_rtpoll_install(pa_rtpoll *p) {
     {
         sigset_t ss;
         struct sigaction sa;
-        
+
         pa_assert_se(sigemptyset(&ss) == 0);
         pa_assert_se(sigaddset(&ss, p->rtsig) == 0);
         pa_assert_se(pthread_sigmask(SIG_BLOCK, &ss, &p->sigset_unblocked) == 0);
@@ -171,12 +171,12 @@ void pa_rtpoll_install(pa_rtpoll *p) {
         memset(&sa, 0, sizeof(sa));
         sa.sa_handler = signal_handler_noop;
         pa_assert_se(sigemptyset(&sa.sa_mask) == 0);
-        
+
         pa_assert_se(sigaction(p->rtsig, &sa, NULL) == 0);
-        
+
         /* We never reset the signal handler. Why should we? */
     }
-    
+
 #endif
 }
 
@@ -185,7 +185,7 @@ static void rtpoll_rebuild(pa_rtpoll *p) {
     struct pollfd *e, *t;
     pa_rtpoll_item *i;
     int ra = 0;
-    
+
     pa_assert(p);
 
     p->rebuild_needed = FALSE;
@@ -203,7 +203,7 @@ static void rtpoll_rebuild(pa_rtpoll *p) {
 
         if (i->n_pollfd > 0)  {
             size_t l = i->n_pollfd * sizeof(struct pollfd);
-            
+
             if (i->pollfd)
                 memcpy(e, i->pollfd, l);
             else
@@ -212,7 +212,7 @@ static void rtpoll_rebuild(pa_rtpoll *p) {
             i->pollfd = e;
         } else
             i->pollfd = NULL;
-        
+
         e += i->n_pollfd;
     }
 
@@ -220,7 +220,7 @@ static void rtpoll_rebuild(pa_rtpoll *p) {
     t = p->pollfd;
     p->pollfd = p->pollfd2;
     p->pollfd2 = t;
-    
+
     if (ra)
         p->pollfd2 = pa_xrealloc(p->pollfd2, p->n_pollfd_alloc * sizeof(struct pollfd));
 
@@ -236,7 +236,7 @@ static void rtpoll_item_destroy(pa_rtpoll_item *i) {
     PA_LLIST_REMOVE(pa_rtpoll_item, p->items, i);
 
     p->n_pollfd_used -= i->n_pollfd;
-    
+
     if (pa_flist_push(PA_STATIC_FLIST_GET(items), i) < 0)
         pa_xfree(i);
 
@@ -253,22 +253,22 @@ void pa_rtpoll_free(pa_rtpoll *p) {
     pa_xfree(p->pollfd2);
 
 #ifdef HAVE_PPOLL
-    if (p->timer != (timer_t) -1) 
+    if (p->timer != (timer_t) -1)
         timer_delete(p->timer);
 #endif
-    
+
     pa_xfree(p);
 }
 
 static void reset_revents(pa_rtpoll_item *i) {
     struct pollfd *f;
     unsigned n;
-    
+
     pa_assert(i);
 
     if (!(f = pa_rtpoll_item_get_pollfd(i, &n)))
         return;
-    
+
     for (; n > 0; n--)
         f[n-1].revents = 0;
 }
@@ -277,12 +277,12 @@ static void reset_all_revents(pa_rtpoll *p) {
     pa_rtpoll_item *i;
 
     pa_assert(p);
-    
+
     for (i = p->items; i; i = i->next) {
-        
+
         if (i->dead)
             continue;
-        
+
         reset_revents(i);
     }
 }
@@ -291,30 +291,30 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
     pa_rtpoll_item *i;
     int r = 0;
     struct timespec timeout;
-    
+
     pa_assert(p);
     pa_assert(!p->running);
     pa_assert(p->installed);
-    
+
     p->running = TRUE;
 
     /* First, let's do some work */
     for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
         int k;
-        
+
         if (i->dead)
             continue;
-        
+
         if (!i->work_cb)
             continue;
 
         if (p->quit)
             goto finish;
-        
+
         if ((k = i->work_cb(i)) != 0) {
             if (k < 0)
                 r = k;
-            
+
             goto finish;
         }
     }
@@ -322,10 +322,10 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
     /* Now let's prepare for entering the sleep */
     for (i = p->items; i && i->priority < PA_RTPOLL_NEVER; i = i->next) {
         int k = 0;
-        
+
         if (i->dead)
             continue;
-        
+
         if (!i->before_cb)
             continue;
 
@@ -334,10 +334,10 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
             /* Hmm, this one doesn't let us enter the poll, so rewind everything */
 
             for (i = i->prev; i; i = i->prev) {
-                
+
                 if (i->dead)
                     continue;
-                
+
                 if (!i->after_cb)
                     continue;
 
@@ -346,7 +346,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 
             if (k < 0)
                 r = k;
-            
+
             goto finish;
         }
     }
@@ -367,7 +367,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
         else
             pa_timespec_store(&timeout, pa_timespec_diff(&p->next_elapse, &now));
     }
-    
+
     /* OK, now let's sleep */
 #ifdef HAVE_PPOLL
 
@@ -379,17 +379,16 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
     else
 #endif
 
-#else
-        r = poll(p->pollfd, p->n_pollfd_used, p->timer_enabled > 0 ? (timeout.tv_sec*1000) + (timeout.tv_nsec / 1000000) : -1);
 #endif
+        r = poll(p->pollfd, p->n_pollfd_used, p->timer_enabled > 0 ? (timeout.tv_sec*1000) + (timeout.tv_nsec / 1000000) : -1);
 
     if (r < 0) {
-        reset_all_revents(p);
-    
         if (errno == EAGAIN || errno == EINTR)
             r = 0;
         else
             pa_log_error("poll(): %s", pa_cstrerror(errno));
+
+        reset_all_revents(p);
     }
 
     if (p->timer_enabled) {
@@ -422,12 +421,12 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 finish:
 
     p->running = FALSE;
-        
+
     if (p->scan_for_dead) {
         pa_rtpoll_item *n;
 
         p->scan_for_dead = FALSE;
-        
+
         for (i = p->items; i; i = n) {
             n = i->next;
 
@@ -447,7 +446,7 @@ static void update_timer(pa_rtpoll *p) {
 #ifdef __linux__
     if (!p->dont_use_ppoll) {
 #endif
-        
+
         if (p->timer == (timer_t) -1) {
             struct sigevent se;
 
@@ -473,7 +472,7 @@ static void update_timer(pa_rtpoll *p) {
                  * "disarming" */
                 if (its.it_value.tv_sec == 0)
                     its.it_value.tv_nsec = 1;
-                
+
                 if (p->period > 0)
                     pa_timespec_store(&its.it_interval, p->period);
             }
@@ -484,18 +483,18 @@ static void update_timer(pa_rtpoll *p) {
 #ifdef __linux__
     }
 #endif
-    
+
 #endif
 }
 
 void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timespec *ts) {
     pa_assert(p);
     pa_assert(ts);
-    
+
     p->next_elapse = *ts;
     p->period = 0;
     p->timer_enabled = TRUE;
-    
+
     update_timer(p);
 }
 
@@ -533,7 +532,7 @@ void pa_rtpoll_set_timer_disabled(pa_rtpoll *p) {
 
 pa_rtpoll_item *pa_rtpoll_item_new(pa_rtpoll *p, pa_rtpoll_priority_t prio, unsigned n_fds) {
     pa_rtpoll_item *i, *j, *l = NULL;
-    
+
     pa_assert(p);
 
     if (!(i = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
@@ -582,20 +581,20 @@ void pa_rtpoll_item_free(pa_rtpoll_item *i) {
 struct pollfd *pa_rtpoll_item_get_pollfd(pa_rtpoll_item *i, unsigned *n_fds) {
     pa_assert(i);
 
-    if (i->n_pollfd > 0) 
+    if (i->n_pollfd > 0)
         if (i->rtpoll->rebuild_needed)
             rtpoll_rebuild(i->rtpoll);
-    
+
     if (n_fds)
         *n_fds = i->n_pollfd;
-    
+
     return i->pollfd;
 }
 
 void pa_rtpoll_item_set_before_callback(pa_rtpoll_item *i, int (*before_cb)(pa_rtpoll_item *i)) {
     pa_assert(i);
     pa_assert(i->priority < PA_RTPOLL_NEVER);
-    
+
     i->before_cb = before_cb;
 }
 
@@ -635,7 +634,7 @@ static int fdsem_before(pa_rtpoll_item *i) {
 
 static void fdsem_after(pa_rtpoll_item *i) {
     pa_assert(i);
-    
+
     pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
     pa_fdsem_after_poll(i->userdata);
 }
@@ -643,7 +642,7 @@ static void fdsem_after(pa_rtpoll_item *i) {
 pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_fdsem *f) {
     pa_rtpoll_item *i;
     struct pollfd *pollfd;
-    
+
     pa_assert(p);
     pa_assert(f);
 
@@ -653,7 +652,7 @@ pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio
 
     pollfd->fd = pa_fdsem_get(f);
     pollfd->events = POLLIN;
-    
+
     i->before_cb = fdsem_before;
     i->after_cb = fdsem_after;
     i->userdata = f;
@@ -663,7 +662,7 @@ pa_rtpoll_item *pa_rtpoll_item_new_fdsem(pa_rtpoll *p, pa_rtpoll_priority_t prio
 
 static int asyncmsgq_before(pa_rtpoll_item *i) {
     pa_assert(i);
-    
+
     if (pa_asyncmsgq_before_poll(i->userdata) < 0)
         return 1; /* 1 means immediate restart of the loop */
 
@@ -672,7 +671,7 @@ static int asyncmsgq_before(pa_rtpoll_item *i) {
 
 static void asyncmsgq_after(pa_rtpoll_item *i) {
     pa_assert(i);
-    
+
     pa_assert((i->pollfd[0].revents & ~POLLIN) == 0);
     pa_asyncmsgq_after_poll(i->userdata);
 }
@@ -688,7 +687,7 @@ static int asyncmsgq_work(pa_rtpoll_item *i) {
 
     if (pa_asyncmsgq_get(i->userdata, &object, &code, &data, &offset, &chunk, 0) == 0) {
         int ret;
-        
+
         if (!object && code == PA_MESSAGE_SHUTDOWN) {
             pa_asyncmsgq_done(i->userdata, 0);
             pa_rtpoll_quit(i->rtpoll);
@@ -698,7 +697,7 @@ static int asyncmsgq_work(pa_rtpoll_item *i) {
         ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
         pa_asyncmsgq_done(i->userdata, ret);
         return 1;
-    } 
+    }
 
     return 0;
 }
@@ -706,7 +705,7 @@ static int asyncmsgq_work(pa_rtpoll_item *i) {
 pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t prio, pa_asyncmsgq *q) {
     pa_rtpoll_item *i;
     struct pollfd *pollfd;
-    
+
     pa_assert(p);
     pa_assert(q);
 
@@ -715,7 +714,7 @@ pa_rtpoll_item *pa_rtpoll_item_new_asyncmsgq(pa_rtpoll *p, pa_rtpoll_priority_t 
     pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
     pollfd->fd = pa_asyncmsgq_get_fd(q);
     pollfd->events = POLLIN;
-    
+
     i->before_cb = asyncmsgq_before;
     i->after_cb = asyncmsgq_after;
     i->work_cb = asyncmsgq_work;
