@@ -1005,10 +1005,10 @@ modlibexec_LTLIBRARIES += \
 		module-alsa-source.la
 endif
 
-#if HAVE_SOLARIS
-#modlibexec_LTLIBRARIES += \
-#		module-solaris.la
-#endif
+if HAVE_SOLARIS
+modlibexec_LTLIBRARIES += \
+		module-solaris.la
+endif
 
 if HAVE_AVAHI
 modlibexec_LTLIBRARIES += \
@@ -1285,9 +1285,9 @@ module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 # Solaris
 
-#module_solaris_la_SOURCES = modules/module-solaris.c
-#module_solaris_la_LDFLAGS = -module -avoid-version
-#module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la
+module_solaris_la_SOURCES = modules/module-solaris.c
+module_solaris_la_LDFLAGS = -module -avoid-version
+module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la
 
 # Avahi
 
