@@ -639,7 +639,7 @@ const char *pa_sig2str(int sig) {
     {
         char buf[SIG2STR_MAX];
 
-        if (str2sig(sig, buf) == 0) {
+        if (sig2str(sig, buf) == 0) {
             pa_xfree(PA_STATIC_TLS_GET(signame));
             t = pa_sprintf_malloc("SIG%s", buf);
             PA_STATIC_TLS_SET(signame, t);
