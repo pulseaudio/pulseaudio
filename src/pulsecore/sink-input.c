@@ -540,9 +540,10 @@ void pa_sink_input_drop(pa_sink_input *i, size_t length) {
         }
 
         if (i->thread_info.move_silence <= 0) {
-            pa_assert(i->thread_info.silence_memblock);
-            pa_memblock_unref(i->thread_info.silence_memblock);
-            i->thread_info.silence_memblock = NULL;
+            if (i->thread_info.silence_memblock) {
+                pa_memblock_unref(i->thread_info.silence_memblock);
+                i->thread_info.silence_memblock = NULL;
+            }
         }
 
         if (length <= 0)
