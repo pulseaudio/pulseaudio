@@ -849,7 +849,7 @@ static void thread_func(void *userdata) {
 
         /* Render some data and write it to the dsp */
 
-        if (u->sink && u->sink->thread_info.state != PA_SINK_UNLINKED && u->fd >= 0 && (revents & POLLOUT)) {
+        if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state) && (revents & POLLOUT)) {
 
             if (u->use_mmap) {
 
@@ -939,7 +939,7 @@ static void thread_func(void *userdata) {
 
         /* Try to read some data and pass it on to the source driver */
 
-        if (u->source && u->source->thread_info.state != PA_SOURCE_UNLINKED && u->fd >= 0 && ((revents & POLLIN))) {
+        if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state) && ((revents & POLLIN))) {
 
             if (u->use_mmap) {
 
