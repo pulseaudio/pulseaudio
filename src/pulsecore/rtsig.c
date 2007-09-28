@@ -50,17 +50,17 @@ static int rtsig_start = -1, rtsig_end = -1;
 int pa_rtsig_get(void) {
     void *p;
     int sig;
-    
+
     if ((p = pa_flist_pop(PA_STATIC_FLIST_GET(rtsig_flist))))
         return PA_PTR_TO_INT(p);
 
-    sig = pa_atomic_inc(&rtsig_current);
+    sig = pa_atomic_dec(&rtsig_current);
 
-    pa_assert(sig >= SIGRTMIN);
-    pa_assert(sig >= rtsig_start);
-    
-    if (sig > rtsig_end) {
-        pa_atomic_dec(&rtsig_current);
+    pa_assert(sig <= SIGRTMAX);
+    pa_assert(sig <= rtsig_end);
+
+    if (sig < rtsig_start) {
+        pa_atomic_inc(&rtsig_current);
         return -1;
     }
 
@@ -73,7 +73,7 @@ int pa_rtsig_get_for_thread(void) {
 
     if ((p = PA_STATIC_TLS_GET(rtsig_tls)))
         return PA_PTR_TO_INT(p);
-    
+
     if ((sig = pa_rtsig_get()) < 0)
         return -1;
 
@@ -102,11 +102,12 @@ void pa_rtsig_configure(int start, int end) {
     rtsig_end = end;
 
     sigemptyset(&ss);
-    
+
     for (s = rtsig_start; s <= rtsig_end; s++)
         pa_assert_se(sigaddset(&ss, s) == 0);
-    
+
     pa_assert(pthread_sigmask(SIG_BLOCK, &ss, NULL) == 0);
-    
-    pa_atomic_store(&rtsig_current, rtsig_start);
+
+    /* We allocate starting from the end */
+    pa_atomic_store(&rtsig_current, rtsig_end);
 }
