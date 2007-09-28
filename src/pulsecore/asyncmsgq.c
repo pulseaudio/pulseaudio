@@ -40,6 +40,7 @@
 #include "asyncmsgq.h"
 
 PA_STATIC_FLIST_DECLARE(asyncmsgq, 0, pa_xfree);
+PA_STATIC_FLIST_DECLARE(semaphores, 0, (void(*)(void*)) pa_semaphore_free);
 
 struct asyncmsgq_item {
     int code;
@@ -154,7 +155,11 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
         i.memchunk = *chunk;
     } else
         pa_memchunk_reset(&i.memchunk);
-    pa_assert_se(i.semaphore = pa_semaphore_new(0));
+
+    if (!(i.semaphore = pa_flist_pop(PA_STATIC_FLIST_GET(semaphores))))
+        i.semaphore = pa_semaphore_new(0);
+
+    pa_assert_se(i.semaphore);
 
     /* Thus mutex makes the queue multiple-writer safe. This lock is only used on the writing side */
     pa_mutex_lock(a->mutex);
@@ -162,7 +167,9 @@ int pa_asyncmsgq_send(pa_asyncmsgq *a, pa_msgobject *object, int code, const voi
     pa_mutex_unlock(a->mutex);
 
     pa_semaphore_wait(i.semaphore);
-    pa_semaphore_free(i.semaphore);
+
+    if (pa_flist_push(PA_STATIC_FLIST_GET(semaphores), i.semaphore) < 0)
+        pa_semaphore_free(i.semaphore);
 
     return i.ret;
 }
@@ -192,7 +199,7 @@ int pa_asyncmsgq_get(pa_asyncmsgq *a, pa_msgobject **object, int *code, void **u
         *chunk = a->current->memchunk;
 
 /*     pa_log_debug("Get q=%p object=%p (%s) code=%i data=%p chunk.length=%lu", (void*) a, (void*) a->current->object, a->current->object ? a->current->object->parent.type_name : NULL, a->current->code, (void*) a->current->userdata, (unsigned long) a->current->memchunk.length); */
-    
+
     return 0;
 }
 
@@ -244,7 +251,7 @@ int pa_asyncmsgq_wait_for(pa_asyncmsgq *a, int code) {
     } while (c != code);
 
     pa_asyncmsgq_unref(a);
-    
+
     return 0;
 }
 
@@ -257,15 +264,15 @@ int pa_asyncmsgq_process_one(pa_asyncmsgq *a) {
     int ret;
 
     pa_assert(PA_REFCNT_VALUE(a) > 0);
-    
+
     if (pa_asyncmsgq_get(a, &object, &code, &data, &offset, &chunk, 0) < 0)
         return 0;
-    
+
     pa_asyncmsgq_ref(a);
     ret = pa_asyncmsgq_dispatch(object, code, data, offset, &chunk);
     pa_asyncmsgq_done(a, ret);
     pa_asyncmsgq_unref(a);
-    
+
     return 1;
 }
 
