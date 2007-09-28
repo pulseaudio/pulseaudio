@@ -327,7 +327,7 @@ int main(int argc, char *argv[]) {
     struct timeval tv;
 #endif
 
-    
+
 #if defined(__linux__) && defined(__OPTIMIZE__)
     /*
        Disable lazy relocations to make usage of external libraries
@@ -343,7 +343,7 @@ int main(int argc, char *argv[]) {
         pa_assert_se(execv("/proc/self/exe", argv) == 0);
     }
 #endif
-    
+
 #ifdef HAVE_GETUID
     real_root = getuid() == 0;
     suid_root = !real_root && geteuid() == 0;
@@ -440,10 +440,10 @@ int main(int argc, char *argv[]) {
             for (i = 0; i < PA_RESAMPLER_MAX; i++)
                 if (pa_resample_method_supported(i))
                     printf("%s\n", pa_resample_method_to_string(i));
-                       
+
             goto finish;
         }
-            
+
         case PA_CMD_HELP :
             pa_cmdline_help(argv[0]);
             retval = 0;
@@ -482,7 +482,7 @@ int main(int argc, char *argv[]) {
                 retval = 0;
 
             goto finish;
-            
+
         default:
             pa_assert(conf->cmd == PA_CMD_DAEMON);
     }
@@ -608,13 +608,13 @@ int main(int argc, char *argv[]) {
 #endif
 
     pa_log_info("Page size is %lu bytes", (unsigned long) PA_PAGE_SIZE);
-    
+
     if (pa_rtclock_hrtimer())
         pa_log_info("Fresh high-resolution timers available! Bon appetit!");
     else
         pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!");
-    
-    pa_rtsig_configure(SIGRTMIN+10, SIGRTMAX);
+
+    pa_rtsig_configure(SIGRTMIN, SIGRTMAX);
 
     pa_assert_se(mainloop = pa_mainloop_new());
 
@@ -659,7 +659,7 @@ int main(int argc, char *argv[]) {
 
     if (!conf->no_cpu_limit)
         pa_assert_se(pa_cpu_limit_init(pa_mainloop_get_api(mainloop)) == 0);
-    
+
     buf = pa_strbuf_new();
     if (conf->default_script_file)
         r = pa_cli_command_execute_file(c, conf->default_script_file, buf, &conf->fail);
@@ -736,6 +736,6 @@ finish:
 #ifdef HAVE_DBUS
     dbus_shutdown();
 #endif
-    
+
     return retval;
 }
