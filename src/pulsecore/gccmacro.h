@@ -70,9 +70,9 @@
 
 #ifndef PA_GCC_CONST
 #ifdef __GNUCC__
-#define PA_GCC_CONST __attribute__ ((pure))
+#define PA_GCC_CONST __attribute__ ((const))
 #else
-/** This function's return value depends only the arguments list (stricter version of PA_GCC_CONST) **/
+/** This function's return value depends only the arguments list (stricter version of PA_GCC_PURE) **/
 #define PA_GCC_CONST
 #endif
 #endif
