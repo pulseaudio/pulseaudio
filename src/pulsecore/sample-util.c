@@ -104,9 +104,11 @@ void pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {
             c = 0;
             break;
         case PA_SAMPLE_ALAW:
-        case PA_SAMPLE_ULAW:
-            c = 80;
+            c = 0xd5;
             break;
+        case PA_SAMPLE_ULAW:
+            c = 0xff;
+            breaK;
         default:
             pa_assert_not_reached();
     }
