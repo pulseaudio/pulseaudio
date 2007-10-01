@@ -47,15 +47,17 @@ struct list_item {
 };
 
 PA_STATIC_FLIST_DECLARE(list_items, 0, pa_xfree);
-        
+
 struct pa_memblockq {
     struct list_item *blocks, *blocks_tail;
     unsigned n_blocks;
     size_t maxlength, tlength, base, prebuf, minreq;
     int64_t read_index, write_index;
-    int in_prebuf;
+    pa_bool_t in_prebuf;
     pa_memblock *silence;
     pa_mcalign *mcalign;
+    int64_t missing;
+    size_t requested;
 };
 
 pa_memblockq* pa_memblockq_new(
@@ -109,6 +111,9 @@ pa_memblockq* pa_memblockq_new(
     bq->silence = silence ? pa_memblock_ref(silence) : NULL;
     bq->mcalign = NULL;
 
+    bq->missing = bq->tlength;
+    bq->requested = 0;
+
     return bq;
 }
 
@@ -116,7 +121,7 @@ void pa_memblockq_free(pa_memblockq* bq) {
     pa_assert(bq);
 
     pa_memblockq_flush(bq);
-    
+
     if (bq->silence)
         pa_memblock_unref(bq->silence);
 
@@ -150,7 +155,7 @@ static void drop_block(pa_memblockq *bq, struct list_item *q) {
     bq->n_blocks--;
 }
 
-static int can_push(pa_memblockq *bq, size_t l) {
+static pa_bool_t can_push(pa_memblockq *bq, size_t l) {
     int64_t end;
 
     pa_assert(bq);
@@ -161,7 +166,7 @@ static int can_push(pa_memblockq *bq, size_t l) {
         if (l > d)
             l -= d;
         else
-            return 1;
+            return TRUE;
     }
 
     end = bq->blocks_tail ? bq->blocks_tail->index + bq->blocks_tail->chunk.length : 0;
@@ -169,15 +174,15 @@ static int can_push(pa_memblockq *bq, size_t l) {
     /* Make sure that the list doesn't get too long */
     if (bq->write_index + (int64_t)l > end)
         if (bq->write_index + l - bq->read_index > bq->maxlength)
-            return 0;
+            return FALSE;
 
-    return 1;
+    return TRUE;
 }
 
 int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
-
     struct list_item *q, *n;
     pa_memchunk chunk;
+    int64_t old, delta;
 
     pa_assert(bq);
     pa_assert(uchunk);
@@ -191,6 +196,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
     if (!can_push(bq, uchunk->length))
         return -1;
 
+    old = bq->write_index;
     chunk = *uchunk;
 
     if (bq->read_index > bq->write_index) {
@@ -207,7 +213,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
         } else {
             /* We drop the incoming data completely */
             bq->write_index += chunk.length;
-            return 0;
+            goto finish;
         }
     }
 
@@ -245,7 +251,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
                 /* Create a new list entry for the end of thie memchunk */
                 if (!(p = pa_flist_pop(PA_STATIC_FLIST_GET(list_items))))
                     p = pa_xnew(struct list_item, 1);
-                
+
                 p->chunk = q->chunk;
                 pa_memblock_ref(p->chunk.memblock);
 
@@ -308,15 +314,14 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
 
             q->chunk.length += chunk.length;
             bq->write_index += chunk.length;
-            return 0;
+            goto finish;
         }
     } else
         pa_assert(!bq->blocks || (bq->write_index + (int64_t)chunk.length <= bq->blocks->index));
 
-
     if (!(n = pa_flist_pop(PA_STATIC_FLIST_GET(list_items))))
         n = pa_xnew(struct list_item, 1);
-    
+
     n->chunk = chunk;
     pa_memblock_ref(n->chunk.memblock);
     n->index = bq->write_index;
@@ -336,27 +341,42 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
         bq->blocks = n;
 
     bq->n_blocks++;
+
+finish:
+
+    delta = bq->write_index - old;
+
+    if (delta >= bq->requested) {
+        delta -= bq->requested;
+        bq->requested = 0;
+    } else {
+        bq->requested -= delta;
+        delta = 0;
+    }
+
+    bq->missing -= delta;
+
     return 0;
 }
 
-static int memblockq_check_prebuf(pa_memblockq *bq) {
+static pa_bool_t memblockq_check_prebuf(pa_memblockq *bq) {
     pa_assert(bq);
-    
-    if (bq->in_prebuf) {
-        
-        if (pa_memblockq_get_length(bq) < bq->prebuf)
-            return 1;
 
-        bq->in_prebuf = 0;
-        return 0;
+    if (bq->in_prebuf) {
+
+        if (pa_memblockq_get_length(bq) < bq->prebuf)
+            return TRUE;
+
+        bq->in_prebuf = FALSE;
+        return FALSE;
     } else {
 
         if (bq->prebuf > 0 && bq->read_index >= bq->write_index) {
-            bq->in_prebuf = 1;
-            return 1;
+            bq->in_prebuf = TRUE;
+            return TRUE;
         }
 
-        return 0;
+        return FALSE;
     }
 }
 
@@ -409,15 +429,18 @@ int pa_memblockq_peek(pa_memblockq* bq, pa_memchunk *chunk) {
 }
 
 void pa_memblockq_drop(pa_memblockq *bq, size_t length) {
+    int64_t old, delta;
     pa_assert(bq);
     pa_assert(length % bq->base == 0);
-    
+
+    old = bq->read_index;
+
     while (length > 0) {
 
         /* Do not drop any data when we are in prebuffering mode */
         if (memblockq_check_prebuf(bq))
             break;
-        
+
         if (bq->blocks) {
             size_t d;
 
@@ -462,6 +485,9 @@ void pa_memblockq_drop(pa_memblockq *bq, size_t length) {
             break;
         }
     }
+
+    delta = bq->read_index - old;
+    bq->missing += delta;
 }
 
 int pa_memblockq_is_readable(pa_memblockq *bq) {
@@ -493,6 +519,7 @@ size_t pa_memblockq_missing(pa_memblockq *bq) {
         return 0;
 
     l = bq->tlength - l;
+
     return l >= bq->minreq ? l : 0;
 }
 
@@ -503,27 +530,43 @@ size_t pa_memblockq_get_minreq(pa_memblockq *bq) {
 }
 
 void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek) {
+    int64_t old, delta;
     pa_assert(bq);
+
+    old = bq->write_index;
 
     switch (seek) {
         case PA_SEEK_RELATIVE:
             bq->write_index += offset;
-            return;
+            break;
         case PA_SEEK_ABSOLUTE:
             bq->write_index = offset;
-            return;
+            break;
         case PA_SEEK_RELATIVE_ON_READ:
             bq->write_index = bq->read_index + offset;
-            return;
+            break;
         case PA_SEEK_RELATIVE_END:
             bq->write_index = (bq->blocks_tail ? bq->blocks_tail->index + (int64_t) bq->blocks_tail->chunk.length : bq->read_index) + offset;
-            return;
+            break;
+        default:
+            pa_assert_not_reached();
     }
 
-    pa_assert_not_reached();
+    delta = bq->write_index - old;
+
+    if (delta >= bq->requested) {
+        delta -= bq->requested;
+        bq->requested = 0;
+    } else if (delta >= 0) {
+        bq->requested -= delta;
+        delta = 0;
+    }
+
+    bq->missing -= delta;
 }
 
 void pa_memblockq_flush(pa_memblockq *bq) {
+    int64_t old, delta;
     pa_assert(bq);
 
     while (bq->blocks)
@@ -531,9 +574,22 @@ void pa_memblockq_flush(pa_memblockq *bq) {
 
     pa_assert(bq->n_blocks == 0);
 
+    old = bq->write_index;
     bq->write_index = bq->read_index;
 
     pa_memblockq_prebuf_force(bq);
+
+    delta = bq->write_index - old;
+
+    if (delta > bq->requested) {
+        delta -= bq->requested;
+        bq->requested = 0;
+    } else if (delta >= 0) {
+        bq->requested -= delta;
+        delta = 0;
+    }
+
+    bq->missing -= delta;
 }
 
 size_t pa_memblockq_get_tlength(pa_memblockq *bq) {
@@ -594,14 +650,14 @@ void pa_memblockq_shorten(pa_memblockq *bq, size_t length) {
 void pa_memblockq_prebuf_disable(pa_memblockq *bq) {
     pa_assert(bq);
 
-    bq->in_prebuf = 0;
+    bq->in_prebuf = FALSE;
 }
 
 void pa_memblockq_prebuf_force(pa_memblockq *bq) {
     pa_assert(bq);
 
     if (!bq->in_prebuf && bq->prebuf > 0)
-        bq->in_prebuf = 1;
+        bq->in_prebuf = TRUE;
 }
 
 size_t pa_memblockq_get_maxlength(pa_memblockq *bq) {
@@ -614,4 +670,21 @@ size_t pa_memblockq_get_prebuf(pa_memblockq *bq) {
     pa_assert(bq);
 
     return bq->prebuf;
+}
+
+size_t pa_memblockq_pop_missing(pa_memblockq *bq) {
+    size_t l;
+
+    pa_assert(bq);
+
+/*     pa_log("pop: %lli", bq->missing); */
+
+    if (bq->missing <= 0)
+        return 0;
+
+    l = (size_t) bq->missing;
+    bq->missing = 0;
+    bq->requested += l;
+
+    return l;
 }

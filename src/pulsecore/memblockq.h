@@ -103,6 +103,10 @@ size_t pa_memblockq_get_length(pa_memblockq *bq);
 /* Return how many bytes are missing in queue to the specified fill amount */
 size_t pa_memblockq_missing(pa_memblockq *bq);
 
+/* Return the number of bytes that are missing since the last call to
+ * this function, reset the internal counter to 0. */
+size_t pa_memblockq_pop_missing(pa_memblockq *bq);
+
 /* Returns the minimal request value */
 size_t pa_memblockq_get_minreq(pa_memblockq *bq);
 
