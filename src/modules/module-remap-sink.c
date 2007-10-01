@@ -100,7 +100,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    if (PA_SINK_LINKED(state) && u->sink_input)
+    if (PA_SINK_LINKED(state) && u->sink_input && PA_SINK_INPUT_LINKED(pa_sink_input_get_state(u->sink_input)))
         pa_sink_input_cork(u->sink_input, state == PA_SINK_SUSPENDED);
 
     return 0;

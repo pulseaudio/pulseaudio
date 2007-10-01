@@ -437,6 +437,13 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                 case PA_SOURCE_IDLE:
                 case PA_SOURCE_RUNNING:
 
+                    if (u->source->thread_info.state == PA_SOURCE_INIT) {
+                        if (build_pollfd(u) < 0)
+                            return -1;
+
+                        snd_pcm_start(u->pcm_handle);
+                    }
+
                     if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
                         if (unsuspend(u) < 0)
                             return -1;
@@ -590,11 +597,6 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
-
-    if (build_pollfd(u) < 0)
-        goto fail;
-
-    snd_pcm_start(u->pcm_handle);
 
     for (;;) {
         int ret;

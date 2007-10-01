@@ -110,10 +110,10 @@ struct userdata {
 
     size_t frame_size;
     uint32_t in_fragment_size, out_fragment_size, in_nfrags, out_nfrags, in_hwbuf_size, out_hwbuf_size;
-    int use_getospace, use_getispace;
-    int use_getodelay;
+    pa_bool_t use_getospace, use_getispace;
+    pa_bool_t use_getodelay;
 
-    int sink_suspended, source_suspended;
+    pa_bool_t sink_suspended, source_suspended;
 
     int fd;
     int mode;
@@ -123,7 +123,7 @@ struct userdata {
 
     int nfrags, frag_size;
 
-    int use_mmap;
+    pa_bool_t use_mmap;
     unsigned out_mmap_current, in_mmap_current;
     void *in_mmap, *out_mmap;
     pa_memblock **in_mmap_memblocks, **out_mmap_memblocks;
@@ -149,7 +149,7 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static void trigger(struct userdata *u, int quick) {
+static void trigger(struct userdata *u, pa_bool_t quick) {
     int enable_bits = 0, zero = 0;
 
     pa_assert(u);
@@ -157,13 +157,16 @@ static void trigger(struct userdata *u, int quick) {
     if (u->fd < 0)
         return;
 
-/*     pa_log_debug("trigger");  */
+     pa_log_debug("trigger");
 
     if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state))
         enable_bits |= PCM_ENABLE_INPUT;
 
     if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state))
         enable_bits |= PCM_ENABLE_OUTPUT;
+
+    pa_log_debug("trigger: %i", enable_bits);
+
 
     if (u->use_mmap) {
 
@@ -327,6 +330,8 @@ static int mmap_read(struct userdata *u) {
         return -1;
     }
 
+/*     pa_log("... %i", info.blocks); */
+
     info.blocks += u->in_mmap_saved_nfrags;
     u->in_mmap_saved_nfrags = 0;
 
@@ -438,6 +443,22 @@ static pa_usec_t io_source_get_latency(struct userdata *u) {
     return r;
 }
 
+static void build_pollfd(struct userdata *u) {
+    struct pollfd *pollfd;
+
+    pa_assert(u);
+    pa_assert(u->fd >= 0);
+
+    if (u->rtpoll_item)
+        pa_rtpoll_item_free(u->rtpoll_item);
+
+    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
+    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
+    pollfd->fd = u->fd;
+    pollfd->events = 0;
+    pollfd->revents = 0;
+}
+
 static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->fd >= 0);
@@ -493,7 +514,6 @@ static int unsuspend(struct userdata *u) {
     int frag_size, in_frag_size, out_frag_size;
     int in_nfrags, out_nfrags;
     struct audio_buf_info info;
-    struct pollfd *pollfd;
 
     pa_assert(u);
     pa_assert(u->fd < 0);
@@ -575,11 +595,7 @@ static int unsuspend(struct userdata *u) {
 
     pa_assert(!u->rtpoll_item);
 
-    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
-    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-    pollfd->fd = u->fd;
-    pollfd->events = 0;
-    pollfd->revents = 0;
+    build_pollfd(u);
 
     if (u->sink)
         pa_sink_get_volume(u->sink);
@@ -598,7 +614,8 @@ fail:
 
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
-    int do_trigger = 0, ret, quick = 1;
+    int ret;
+    pa_bool_t do_trigger = FALSE, quick = TRUE;
 
     switch (code) {
 
@@ -629,28 +646,33 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                             return -1;
                     }
 
-                    do_trigger = 1;
+                    do_trigger = TRUE;
 
-                    u->sink_suspended = 1;
+                    u->sink_suspended = TRUE;
                     break;
 
                 case PA_SINK_IDLE:
                 case PA_SINK_RUNNING:
+
+                    if (u->sink->thread_info.state == PA_SINK_INIT) {
+                        do_trigger = TRUE;
+                        quick = u->source && PA_SOURCE_OPENED(u->source->thread_info.state);
+                    }
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
 
                         if (!u->source || u->source_suspended) {
                             if (unsuspend(u) < 0)
                                 return -1;
-                            quick = 0;
+                            quick = FALSE;
                         }
 
-                        do_trigger = 1;
+                        do_trigger = TRUE;
 
                         u->out_mmap_current = 0;
                         u->out_mmap_saved_nfrags = 0;
 
-                        u->sink_suspended = 0;
+                        u->sink_suspended = FALSE;
                     }
 
                     break;
@@ -674,7 +696,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
-    int do_trigger = 0, ret, quick = 1;
+    int ret;
+    int do_trigger = FALSE, quick = TRUE;
 
     switch (code) {
 
@@ -703,28 +726,33 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
                             return -1;
                     }
 
-                    do_trigger = 1;
+                    do_trigger = TRUE;
 
-                    u->source_suspended = 1;
+                    u->source_suspended = TRUE;
                     break;
 
                 case PA_SOURCE_IDLE:
                 case PA_SOURCE_RUNNING:
+
+                    if (u->source->thread_info.state == PA_SOURCE_INIT) {
+                        do_trigger = TRUE;
+                        quick = u->sink && PA_SINK_OPENED(u->sink->thread_info.state);
+                    }
 
                     if (u->source->thread_info.state == PA_SOURCE_SUSPENDED) {
 
                         if (!u->sink || u->sink_suspended) {
                             if (unsuspend(u) < 0)
                                 return -1;
-                            quick = 0;
+                            quick = FALSE;
                         }
 
-                        do_trigger = 1;
+                        do_trigger = TRUE;
 
                         u->in_mmap_current = 0;
                         u->in_mmap_saved_nfrags = 0;
 
-                        u->source_suspended = 0;
+                        u->source_suspended = FALSE;
                     }
                     break;
 
@@ -840,8 +868,6 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
-    trigger(u, 0);
-
     for (;;) {
         int ret;
 
@@ -849,7 +875,7 @@ static void thread_func(void *userdata) {
 
         /* Render some data and write it to the dsp */
 
-        if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state) && (revents & POLLOUT)) {
+        if (u->sink && PA_SINK_OPENED(u->sink->thread_info.state) && ((revents & POLLOUT) || u->use_mmap || u->use_getospace)) {
 
             if (u->use_mmap) {
 
@@ -863,7 +889,7 @@ static void thread_func(void *userdata) {
 
             } else {
                 ssize_t l;
-                int loop = 0;
+                pa_bool_t loop = FALSE, work_done = FALSE;
 
                 l = u->out_fragment_size;
 
@@ -872,20 +898,34 @@ static void thread_func(void *userdata) {
 
                     if (ioctl(u->fd, SNDCTL_DSP_GETOSPACE, &info) < 0) {
                         pa_log_info("Device doesn't support SNDCTL_DSP_GETOSPACE: %s", pa_cstrerror(errno));
-                        u->use_getospace = 0;
+                        u->use_getospace = FALSE;
                     } else {
-                        if (info.bytes >= l) {
-                            l = (info.bytes/l)*l;
-                            loop = 1;
-                        }
+                        l = info.bytes;
+
+                        /* We loop only if GETOSPACE worked and we
+                         * actually *know* that we can write more than
+                         * one fragment at a time */
+                        loop = TRUE;
                     }
                 }
 
-                do {
+                /* Round down to multiples of the fragment size,
+                 * because OSS needs that (at least some versions
+                 * do) */
+                l = (l/u->out_fragment_size) * u->out_fragment_size;
+
+                /* Hmm, so poll() signalled us that we can read
+                 * something, but GETOSPACE told us there was nothing?
+                 * Hmm, make the best of it, try to read some data, to
+                 * avoid spinning forever. */
+                if (l <= 0 && (revents & POLLOUT)) {
+                    l = u->out_fragment_size;
+                    loop = FALSE;
+                }
+
+                while (l > 0) {
                     void *p;
                     ssize_t t;
-
-                    pa_assert(l > 0);
 
                     if (u->memchunk.length <= 0)
                         pa_sink_render(u->sink, l, &u->memchunk);
@@ -929,17 +969,21 @@ static void thread_func(void *userdata) {
                         l -= t;
 
                         revents &= ~POLLOUT;
+                        work_done = TRUE;
                     }
 
-                } while (loop && l > 0);
+                    if (!loop)
+                        break;
+                }
 
-                continue;
+                if (work_done)
+                    continue;
             }
         }
 
-        /* Try to read some data and pass it on to the source driver */
+        /* Try to read some data and pass it on to the source driver. */
 
-        if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state) && ((revents & POLLIN))) {
+        if (u->source && PA_SOURCE_OPENED(u->source->thread_info.state) && ((revents & POLLIN) || u->use_mmap || u->use_getispace)) {
 
             if (u->use_mmap) {
 
@@ -956,7 +1000,7 @@ static void thread_func(void *userdata) {
                 void *p;
                 ssize_t l;
                 pa_memchunk memchunk;
-                int loop = 0;
+                pa_bool_t loop = FALSE, work_done = FALSE;
 
                 l = u->in_fragment_size;
 
@@ -965,16 +1009,21 @@ static void thread_func(void *userdata) {
 
                     if (ioctl(u->fd, SNDCTL_DSP_GETISPACE, &info) < 0) {
                         pa_log_info("Device doesn't support SNDCTL_DSP_GETISPACE: %s", pa_cstrerror(errno));
-                        u->use_getispace = 0;
+                        u->use_getispace = FALSE;
                     } else {
-                        if (info.bytes >= l) {
-                            l = (info.bytes/l)*l;
-                            loop = 1;
-                        }
+                        l = info.bytes;
+                        loop = TRUE;
                     }
                 }
 
-                do {
+                l = (l/u->in_fragment_size) * u->in_fragment_size;
+
+                if (l <= 0 && (revents & POLLIN)) {
+                    l = u->in_fragment_size;
+                    loop = FALSE;
+                }
+
+                while (l > 0) {
                     ssize_t t, k;
 
                     pa_assert(l > 0);
@@ -1023,17 +1072,24 @@ static void thread_func(void *userdata) {
                         l -= t;
 
                         revents &= ~POLLIN;
+                        work_done = TRUE;
                     }
-                } while (loop && l > 0);
 
-                continue;
+                    if (!loop)
+                        break;
+                }
+
+                if (work_done)
+                    continue;
             }
         }
 
-/*         pa_log("loop2"); */
+/*         pa_log("loop2 revents=%i", revents); */
 
-        if (u->fd >= 0) {
+        if (u->rtpoll_item) {
             struct pollfd *pollfd;
+
+            pa_assert(u->fd >= 0);
 
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
             pollfd->events =
@@ -1042,13 +1098,13 @@ static void thread_func(void *userdata) {
         }
 
         /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll, 1)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
 
         if (ret == 0)
             goto finish;
 
-        if (u->fd >= 0) {
+        if (u->rtpoll_item) {
             struct pollfd *pollfd;
 
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
@@ -1088,7 +1144,6 @@ int pa__init(pa_module*m) {
     char hwdesc[64], *t;
     const char *name;
     int namereg_fail;
-    struct pollfd *pollfd;
 
     pa_assert(m);
 
@@ -1180,11 +1235,8 @@ int pa__init(pa_module*m) {
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
     pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
-    u->rtpoll_item = pa_rtpoll_item_new(u->rtpoll, PA_RTPOLL_NEVER, 1);
-    pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-    pollfd->fd = fd;
-    pollfd->events = 0;
-    pollfd->revents = 0;
+    u->rtpoll_item = NULL;
+    build_pollfd(u);
 
     if (ioctl(fd, SNDCTL_DSP_GETISPACE, &info) >= 0) {
         pa_log_info("Input -- %u fragments of size %u.", info.fragstotal, info.fragsize);
@@ -1244,7 +1296,7 @@ int pa__init(pa_module*m) {
                                           use_mmap ? " via DMA" : ""));
         pa_xfree(t);
         u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY;
-        u->source->refresh_volume = 1;
+        u->source->refresh_volume = TRUE;
 
         if (use_mmap)
             u->in_mmap_memblocks = pa_xnew0(pa_memblock*, u->in_nfrags);
@@ -1261,7 +1313,7 @@ int pa__init(pa_module*m) {
                     goto go_on;
                 } else {
                     pa_log_warn("mmap(PROT_WRITE) failed, reverting to non-mmap mode: %s", pa_cstrerror(errno));
-                    u->use_mmap = use_mmap = 0;
+                    u->use_mmap = (use_mmap = FALSE);
                     u->out_mmap = NULL;
                 }
             } else {
@@ -1299,7 +1351,7 @@ int pa__init(pa_module*m) {
                                         use_mmap ? " via DMA" : ""));
         pa_xfree(t);
         u->sink->flags = PA_SINK_HARDWARE|PA_SINK_LATENCY;
-        u->sink->refresh_volume = 1;
+        u->sink->refresh_volume = TRUE;
 
         if (use_mmap)
             u->out_mmap_memblocks = pa_xnew0(pa_memblock*, u->out_nfrags);

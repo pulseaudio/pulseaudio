@@ -147,21 +147,6 @@ pa_sink* pa_sink_new(
     return s;
 }
 
-void pa_sink_put(pa_sink* s) {
-    pa_sink_assert_ref(s);
-
-    pa_assert(s->state == PA_SINK_INIT);
-    pa_assert(s->asyncmsgq);
-    pa_assert(s->rtpoll);
-
-    s->thread_info.state = s->state = PA_SINK_IDLE;
-
-    pa_source_put(s->monitor_source);
-
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_NEW_POST], s);
-}
-
 static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     int ret;
 
@@ -194,6 +179,21 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     if (state != PA_SINK_UNLINKED) /* if we enter UNLINKED state pa_sink_unlink() will fire the apropriate events */
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
     return 0;
+}
+
+void pa_sink_put(pa_sink* s) {
+    pa_sink_assert_ref(s);
+
+    pa_assert(s->state == PA_SINK_INIT);
+    pa_assert(s->asyncmsgq);
+    pa_assert(s->rtpoll);
+
+    pa_assert_se(sink_set_state(s, PA_SINK_IDLE) == 0);
+
+    pa_source_put(s->monitor_source);
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_NEW_POST], s);
 }
 
 void pa_sink_unlink(pa_sink* s) {
@@ -806,7 +806,7 @@ unsigned pa_sink_used_by(pa_sink *s) {
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_sink *s = PA_SINK(o);
     pa_sink_assert_ref(s);
-    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+    pa_assert(s->thread_info.state != PA_SINK_UNLINKED);
 
     switch ((pa_sink_message_t) code) {
 

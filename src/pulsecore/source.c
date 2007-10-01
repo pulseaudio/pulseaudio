@@ -124,19 +124,6 @@ pa_source* pa_source_new(
     return s;
 }
 
-void pa_source_put(pa_source *s) {
-    pa_source_assert_ref(s);
-
-    pa_assert(s->state == PA_SINK_INIT);
-    pa_assert(s->rtpoll);
-    pa_assert(s->asyncmsgq);
-
-    s->thread_info.state = s->state = PA_SOURCE_IDLE;
-
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_NEW_POST], s);
-}
-
 static int source_set_state(pa_source *s, pa_source_state_t state) {
     int ret;
 
@@ -169,6 +156,19 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
     if (state != PA_SOURCE_UNLINKED) /* if we enter UNLINKED state pa_source_unlink() will fire the apropriate events */
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], s);
     return 0;
+}
+
+void pa_source_put(pa_source *s) {
+    pa_source_assert_ref(s);
+
+    pa_assert(s->state == PA_SINK_INIT);
+    pa_assert(s->rtpoll);
+    pa_assert(s->asyncmsgq);
+
+    pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_NEW_POST], s);
 }
 
 void pa_source_unlink(pa_source *s) {
@@ -460,7 +460,7 @@ unsigned pa_source_used_by(pa_source *s) {
 int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_source *s = PA_SOURCE(object);
     pa_source_assert_ref(s);
-    pa_assert(PA_SOURCE_LINKED(s->thread_info.state));
+    pa_assert(s->thread_info.state != PA_SOURCE_UNLINKED);
 
     switch ((pa_source_message_t) code) {
         case PA_SOURCE_MESSAGE_ADD_OUTPUT: {

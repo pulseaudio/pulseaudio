@@ -450,6 +450,11 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 case PA_SINK_IDLE:
                 case PA_SINK_RUNNING:
 
+                    if (u->sink->thread_info.state == PA_SINK_INIT) {
+                        if (build_pollfd(u) < 0)
+                            return -1;
+                    }
+
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
                         if (unsuspend(u) < 0)
                             return -1;
@@ -603,9 +608,6 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
-
-    if (build_pollfd(u) < 0)
-        goto fail;
 
     for (;;) {
         int ret;
