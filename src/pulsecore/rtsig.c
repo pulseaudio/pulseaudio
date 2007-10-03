@@ -36,6 +36,8 @@
 
 #include "rtsig.h"
 
+#ifdef SIGRTMIN
+
 static void _free_rtsig(void *p) {
     pa_rtsig_put(PA_PTR_TO_INT(p));
 }
@@ -111,3 +113,21 @@ void pa_rtsig_configure(int start, int end) {
     /* We allocate starting from the end */
     pa_atomic_store(&rtsig_current, rtsig_end);
 }
+
+#else /* SIGRTMIN */
+
+int pa_rtsig_get(void) {
+    return -1;
+}
+
+int pa_rtsig_get_for_thread(void) {
+    return -1;
+}
+
+void pa_rtsig_put(int sig) {
+}
+
+void pa_rtsig_configure(int start, int end) {
+}
+
+#endif /* SIGRTMIN */
