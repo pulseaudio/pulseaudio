@@ -1224,7 +1224,7 @@ module_remap_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_ladspa_sink_la_SOURCES = modules/module-ladspa-sink.c modules/ladspa.h
 module_ladspa_sink_la_CFLAGS = -DLADSPA_PATH=\"$(libdir)/ladspa:/usr/local/lib/ladspa:/usr/lib/ladspa\" $(AM_CFLAGS)
 module_ladspa_sink_la_LDFLAGS = -module -avoid-version
-module_ladspa_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_ladspa_sink_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) libpulsecore.la
 
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
