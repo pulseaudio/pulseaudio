@@ -614,7 +614,9 @@ int main(int argc, char *argv[]) {
     else
         pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!");
 
+#ifdef SIGRTMIN
     pa_rtsig_configure(SIGRTMIN, SIGRTMAX);
+#endif
 
     pa_assert_se(mainloop = pa_mainloop_new());
 
