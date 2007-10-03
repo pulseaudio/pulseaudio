@@ -25,8 +25,6 @@
 #include <config.h>
 #endif
 
-#include <pthread.h>
-
 #include <pulsecore/macro.h>
 #include <pulsecore/mutex.h>
 

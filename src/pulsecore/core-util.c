@@ -653,13 +653,21 @@ const char *pa_sig2str(int sig) {
         case SIGHUP:    return "SIGHUP";
 #endif
         case SIGINT:    return "SIGINT";
+#ifdef SIGQUIT
         case SIGQUIT:   return "SIGQUIT";
+#endif
         case SIGILL:    return "SIGULL";
+#ifdef SIGTRAP
         case SIGTRAP:   return "SIGTRAP";
+#endif
         case SIGABRT:   return "SIGABRT";
+#ifdef SIGBUS
         case SIGBUS:    return "SIGBUS";
+#endif
         case SIGFPE:    return "SIGFPE";
+#ifdef SIGKILL
         case SIGKILL:   return "SIGKILL";
+#endif
 #ifdef SIGUSR1
         case SIGUSR1:   return "SIGUSR1";
 #endif
@@ -670,30 +678,58 @@ const char *pa_sig2str(int sig) {
 #ifdef SIGPIPE
         case SIGPIPE:   return "SIGPIPE";
 #endif
+#ifdef SIGALRM
         case SIGALRM:   return "SIGALRM";
+#endif
         case SIGTERM:   return "SIGTERM";
+#ifdef SIGSTKFLT
         case SIGSTKFLT: return "SIGSTKFLT";
+#endif
 #ifdef SIGCHLD
         case SIGCHLD:   return "SIGCHLD";
 #endif
+#ifdef SIGCONT
         case SIGCONT:   return "SIGCONT";
+#endif
+#ifdef SIGSTOP
         case SIGSTOP:   return "SIGSTOP";
+#endif
+#ifdef SIGTSTP
         case SIGTSTP:   return "SIGTSTP";
+#endif
+#ifdef SIGTTIN
         case SIGTTIN:   return "SIGTTIN";
+#endif
+#ifdef SIGTTOU
         case SIGTTOU:   return "SIGTTOU";
+#endif
+#ifdef SIGURG
         case SIGURG:    return "SIGURG";
+#endif
 #ifdef SIGXCPU
         case SIGXCPU:   return "SIGXCPU";
 #endif
 #ifdef SIGXFSZ
         case SIGXFSZ:   return "SIGXFSZ";
 #endif
+#ifdef SIGVTALRM
         case SIGVTALRM: return "SIGVTALRM";
+#endif
+#ifdef SIGPROF
         case SIGPROF:   return "SIGPROF";
+#endif
+#ifdef SIGWINCH
         case SIGWINCH:  return "SIGWINCH";
+#endif
+#ifdef SIGIO
         case SIGIO:     return "SIGIO";
+#endif
+#ifdef SIGPWR
         case SIGPWR:    return "SIGPWR";
+#endif
+#ifdef SIGSYS
         case SIGSYS:    return "SIGSYS";
+#endif
     }
 
 #ifdef SIGRTMIN
@@ -943,7 +979,10 @@ int pa_lock_lockfile(const char *fn) {
     for (;;) {
         struct stat st;
 
-        if ((fd = open(fn, O_CREAT|O_RDWR|O_NOCTTY
+        if ((fd = open(fn, O_CREAT|O_RDWR
+#ifdef O_NOCTTY
+                       |O_NOCTTY
+#endif
 #ifdef O_NOFOLLOW
                        |O_NOFOLLOW
 #endif
@@ -1431,6 +1470,7 @@ void *pa_will_need(const void *p, size_t l) {
 
     pa_log_debug("posix_madvise() failed (or doesn't exist), trying mlock(): %s", pa_cstrerror(r));
 
+#ifdef HAVE_MLOCK
     while (size > 0 && bs > 0) {
 
         if (bs > size)
@@ -1446,9 +1486,10 @@ void *pa_will_need(const void *p, size_t l) {
         a = (const uint8_t*) a + bs;
         size -= bs;
     }
+#endif
 
     if (bs <= 0)
-        pa_log_debug("mlock() failed too, giving up: %s", pa_cstrerror(errno));
+        pa_log_debug("mlock() failed too (or doesn't exist), giving up: %s", pa_cstrerror(errno));
     else
         pa_log_debug("mlock() worked fine!");
 

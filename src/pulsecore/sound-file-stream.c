@@ -244,7 +244,11 @@ int pa_play_file(
 
     memset(&sfinfo, 0, sizeof(sfinfo));
 
-    if ((fd = open(fname, O_RDONLY|O_NOCTTY)) < 0) {
+    if ((fd = open(fname, O_RDONLY
+#ifdef O_NOCTTY
+                   |O_NOCTTY
+#endif
+                   )) < 0) {
         pa_log("Failed to open file %s: %s", fname, pa_cstrerror(errno));
         goto fail;
     }

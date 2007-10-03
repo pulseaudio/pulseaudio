@@ -15,6 +15,8 @@
 #define EHOSTUNREACH    WSAEHOSTUNREACH
 #define EWOULDBLOCK     WSAEWOULDBLOCK
 
+typedef long suseconds_t;
+
 #endif
 
 #ifdef HAVE_WS2TCPIP_H

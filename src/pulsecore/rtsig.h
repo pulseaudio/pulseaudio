@@ -24,9 +24,6 @@
   USA.
 ***/
 
-#include <poll.h>
-#include <sys/types.h>
-
 /* Return the next unused POSIX Realtime signals */
 int pa_rtsig_get(void);
 

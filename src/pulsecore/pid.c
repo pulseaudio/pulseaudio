@@ -88,7 +88,10 @@ static int open_pid_file(const char *fn, int mode) {
     for (;;) {
         struct stat st;
 
-        if ((fd = open(fn, mode|O_NOCTTY
+        if ((fd = open(fn, mode
+#ifdef O_NOCTTY
+                       |O_NOCTTY
+#endif
 #ifdef O_NOFOLLOW
                        |O_NOFOLLOW
 #endif

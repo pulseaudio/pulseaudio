@@ -78,8 +78,8 @@ endif
 if OS_IS_WIN32
 PA_THREAD_OBJS = \
 		pulsecore/mutex-win32.c pulsecore/mutex.h \
-		pulsecore/thread-win32.c pulsecore/thread.h
-#		pulsecore/semaphore-win32.c pulsecore/semaphore.h
+		pulsecore/thread-win32.c pulsecore/thread.h \
+		pulsecore/semaphore-win32.c pulsecore/semaphore.h
 else
 PA_THREAD_OBJS = \
 		pulsecore/mutex-posix.c pulsecore/mutex.h \

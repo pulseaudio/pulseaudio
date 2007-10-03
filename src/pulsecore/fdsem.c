@@ -25,7 +25,10 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_SYS_SYSCALL_H
 #include <sys/syscall.h>
+#endif
+
 #include <unistd.h>
 #include <errno.h>
 
@@ -35,6 +38,10 @@
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulse/xmalloc.h>
+
+#ifndef HAVE_PIPE
+#include <pulsecore/pipe.h>
+#endif
 
 #ifdef __linux__
 

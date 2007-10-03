@@ -71,6 +71,10 @@ static int generate(int fd, void *ret_data, size_t length) {
 #define O_BINARY 0
 #endif
 
+#ifndef O_NOCTTY
+#define O_NOCTTY 0
+#endif
+
 /* Load an euthorization cookie from file fn and store it in data. If
  * the cookie file doesn't exist, create it */
 static int load(const char *fn, void *data, size_t length) {
