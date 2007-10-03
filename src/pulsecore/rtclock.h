@@ -24,24 +24,13 @@
   USA.
 ***/
 
-#include <sys/types.h>
-#include <time.h>
+struct timeval;
 
-#include <pulse/sample.h>
+/* Something like pulse/timeval.h but based on CLOCK_MONOTONIC */
 
-/* Something like pulse/timeval.h but based on CLOCK_MONOTONIC and
- * timespec instead of timeval */
-
-struct timespec *pa_rtclock_get(struct timespec *ts);
-pa_usec_t pa_rtclock_age(const struct timespec *tv);
+struct timeval *pa_rtclock_get(struct timeval *ts);
+pa_usec_t pa_rtclock_age(const struct timeval *tv);
 int pa_rtclock_hrtimer(void);
-
-struct timespec *pa_timespec_store(struct timespec *a, pa_usec_t u);
-struct timespec *pa_timespec_reset(struct timespec *a);
-pa_usec_t pa_timespec_load(struct timespec *tv);
-struct timespec *pa_timespec_add(struct timespec *tv, pa_usec_t t);
-pa_usec_t pa_timespec_diff(const struct timespec *a, const struct timespec *b);
-int pa_timespec_cmp(const struct timespec *a, const struct timespec *b);
 
 /* timer with a resolution better than this are considered high-resolution */
 #define PA_HRTIMER_THRESHOLD_USEC 10

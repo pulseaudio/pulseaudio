@@ -35,123 +35,48 @@
 
 #include "rtclock.h"
 
-struct timespec *pa_timespec_store(struct timespec *a, pa_usec_t u) {
-    pa_assert(a);
+pa_usec_t pa_rtclock_age(const struct timeval *tv) {
+    struct timeval now;
+    pa_assert(tv);
 
-    a->tv_sec = u / PA_USEC_PER_SEC;
-
-    u -= (pa_usec_t) a->tv_sec * PA_USEC_PER_SEC;
-    
-    a->tv_nsec = u * 1000;
-
-    return a;
+    return pa_timeval_diff(pa_rtclock_get(&now), tv);
 }
 
-struct timespec *pa_timespec_reset(struct timespec *a) {
-    pa_assert(a);
-
-    a->tv_sec = a->tv_nsec = 0;
-    return a;
-}
-
-pa_usec_t pa_timespec_load(struct timespec *ts) {
-    pa_assert(ts);
-    
-    return (pa_usec_t) ts->tv_sec * PA_USEC_PER_SEC + (pa_usec_t) (ts->tv_nsec / 1000);
-}
-
-pa_usec_t pa_timespec_diff(const struct timespec *a, const struct timespec *b) {
-    pa_usec_t r;
-    
-    pa_assert(a);
-    pa_assert(b);
-
-    /* Check which whan is the earlier time and swap the two arguments if required. */
-    if (pa_timespec_cmp(a, b) < 0) {
-        const struct timespec *c;
-        c = a;
-        a = b;
-        b = c;
-    }
-
-    /* Calculate the second difference*/
-    r = ((pa_usec_t) a->tv_sec - b->tv_sec) * PA_USEC_PER_SEC;
-
-    /* Calculate the microsecond difference */
-    if (a->tv_nsec > b->tv_nsec)
-        r += (pa_usec_t) ((a->tv_nsec - b->tv_nsec) / 1000);
-    else if (a->tv_nsec < b->tv_nsec)
-        r -= (pa_usec_t) ((b->tv_nsec - a->tv_nsec) / 1000);
-
-    return r;
-}
-
-int pa_timespec_cmp(const struct timespec *a, const struct timespec *b) {
-    pa_assert(a);
-    pa_assert(b);
-
-    if (a->tv_sec < b->tv_sec)
-        return -1;
-
-    if (a->tv_sec > b->tv_sec)
-        return 1;
-
-    if (a->tv_nsec < b->tv_nsec)
-        return -1;
-
-    if (a->tv_nsec > b->tv_nsec)
-        return 1;
-
-    return 0;
-}
-
-struct timespec* pa_timespec_add(struct timespec *ts, pa_usec_t v) {
-    unsigned long secs;
-    pa_assert(ts);
-
-    secs = (unsigned long) (v/PA_USEC_PER_SEC);
-    ts->tv_sec += secs;
-    v -= ((pa_usec_t) secs) * PA_USEC_PER_SEC;
-
-    ts->tv_nsec += (long) (v*1000);
-
-    /* Normalize */
-    while (ts->tv_nsec >= PA_NSEC_PER_SEC) {
-        ts->tv_sec++;
-        ts->tv_nsec -= PA_NSEC_PER_SEC;
-    }
-
-    return ts;
-}
-
-pa_usec_t pa_rtclock_age(const struct timespec *ts) {
-    struct timespec now;
-    pa_assert(ts);
-
-    return pa_timespec_diff(pa_rtclock_get(&now), ts);
-}
-
-struct timespec *pa_rtclock_get(struct timespec *ts) {
+struct timeval *pa_rtclock_get(struct timeval *tv) {
+#ifdef HAVE_CLOCK_GETTIME
     static int no_monotonic = 0;
+    struct timespec ts;
 
     /* No locking or atomic ops for no_monotonic here */
-    
-    pa_assert(ts);
 
     if (!no_monotonic) {
 #ifdef CLOCK_MONOTONIC
-        if (clock_gettime(CLOCK_MONOTONIC, ts) >= 0)
-            return ts;
+        if (clock_gettime(CLOCK_MONOTONIC, &ts) >= 0)
+            goto out;
 #endif        
 
         no_monotonic = 1;
     }
 
     pa_assert_se(clock_gettime(CLOCK_REALTIME, ts) == 0);
-    return ts;
+
+out:
+    pa_assert(tv);
+
+    tv->tv_sec = ts.tv_sec;
+    tv->tv_usec = ts.tv_nsec / 1000;
+
+    return tv;
+
+#else /* HAVE_CLOCK_GETTIME */
+
+    return pa_gettimeofday(tv);
+
+#endif
 }
 
 int pa_rtclock_hrtimer(void) {
+#ifdef HAVE_CLOCK_GETTIME
     struct timespec ts;
     
 #ifdef CLOCK_MONOTONIC
@@ -161,5 +86,11 @@ int pa_rtclock_hrtimer(void) {
 
     pa_assert_se(clock_getres(CLOCK_REALTIME, &ts) == 0);
     return ts.tv_sec == 0 && ts.tv_nsec <= PA_HRTIMER_THRESHOLD_USEC*1000;
+
+#else /* HAVE_CLOCK_GETTIME */
+
+    return 0;
+
+#endif
 }
 

@@ -26,14 +26,24 @@
 #include <config.h>
 #endif
 
-#include <sys/utsname.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <signal.h>
 #include <string.h>
 #include <errno.h>
 
+#ifdef __linux__
+#include <sys/utsname.h>
+#endif
+
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#else
+#include <pulsecore/poll.h>
+#endif
+
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/rtclock.h>
@@ -43,6 +53,8 @@
 #include <pulsecore/flist.h>
 #include <pulsecore/core-util.h>
 
+#include <pulsecore/winsock.h>
+
 #include "rtpoll.h"
 
 struct pa_rtpoll {
@@ -50,7 +62,7 @@ struct pa_rtpoll {
     unsigned n_pollfd_alloc, n_pollfd_used;
 
     pa_bool_t timer_enabled;
-    struct timespec next_elapse;
+    struct timeval next_elapse;
     pa_usec_t period;
 
     pa_bool_t scan_for_dead;
@@ -290,7 +302,7 @@ static void reset_all_revents(pa_rtpoll *p) {
 int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
     pa_rtpoll_item *i;
     int r = 0;
-    struct timespec timeout;
+    struct timeval timeout;
 
     pa_assert(p);
     pa_assert(!p->running);
@@ -357,15 +369,14 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
     /* Calculate timeout */
     if (!wait || p->quit) {
         timeout.tv_sec = 0;
-        timeout.tv_nsec = 0;
+        timeout.tv_usec = 0;
     } else if (p->timer_enabled) {
-        struct timespec now;
+        struct timeval now;
         pa_rtclock_get(&now);
 
-        if (pa_timespec_cmp(&p->next_elapse, &now) <= 0)
-            memset(&timeout, 0, sizeof(timeout));
-        else
-            pa_timespec_store(&timeout, pa_timespec_diff(&p->next_elapse, &now));
+        memset(&timeout, 0, sizeof(timeout));
+        if (pa_timeval_cmp(&p->next_elapse, &now) > 0)
+            pa_timeval_add(&timeout, pa_timeval_diff(&p->next_elapse, &now));
     }
 
     /* OK, now let's sleep */
@@ -380,7 +391,7 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 #endif
 
 #endif
-        r = poll(p->pollfd, p->n_pollfd_used, p->timer_enabled ? (timeout.tv_sec*1000) + (timeout.tv_nsec / 1000000) : -1);
+        r = poll(p->pollfd, p->n_pollfd_used, p->timer_enabled ? (timeout.tv_sec*1000) + (timeout.tv_usec / 1000) : -1);
 
     if (r < 0) {
         if (errno == EAGAIN || errno == EINTR)
@@ -393,14 +404,14 @@ int pa_rtpoll_run(pa_rtpoll *p, pa_bool_t wait) {
 
     if (p->timer_enabled) {
         if (p->period > 0) {
-            struct timespec now;
+            struct timeval now;
             pa_rtclock_get(&now);
 
-            pa_timespec_add(&p->next_elapse, p->period);
+            pa_timeval_add(&p->next_elapse, p->period);
 
             /* Guarantee that the next timeout will happen in the future */
-            if (pa_timespec_cmp(&p->next_elapse, &now) < 0)
-                pa_timespec_add(&p->next_elapse, (pa_timespec_diff(&now, &p->next_elapse) / p->period + 1) * p->period);
+            if (pa_timeval_cmp(&p->next_elapse, &now) < 0)
+                pa_timeval_add(&p->next_elapse, (pa_timeval_diff(&now, &p->next_elapse) / p->period + 1) * p->period);
 
         } else
             p->timer_enabled = FALSE;
@@ -487,7 +498,7 @@ static void update_timer(pa_rtpoll *p) {
 #endif
 }
 
-void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timespec *ts) {
+void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timeval *ts) {
     pa_assert(p);
     pa_assert(ts);
 
@@ -503,7 +514,7 @@ void pa_rtpoll_set_timer_periodic(pa_rtpoll *p, pa_usec_t usec) {
 
     p->period = usec;
     pa_rtclock_get(&p->next_elapse);
-    pa_timespec_add(&p->next_elapse, usec);
+    pa_timeval_add(&p->next_elapse, usec);
     p->timer_enabled = TRUE;
 
     update_timer(p);
@@ -514,7 +525,7 @@ void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec) {
 
     p->period = 0;
     pa_rtclock_get(&p->next_elapse);
-    pa_timespec_add(&p->next_elapse, usec);
+    pa_timeval_add(&p->next_elapse, usec);
     p->timer_enabled = TRUE;
 
     update_timer(p);

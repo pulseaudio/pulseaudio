@@ -118,7 +118,7 @@ struct userdata {
 
     pa_resample_method_t resample_method;
 
-    struct timespec adjust_timestamp;
+    struct timeval adjust_timestamp;
 
     struct output *master;
     pa_idxset* outputs; /* managed in main context */
@@ -126,7 +126,7 @@ struct userdata {
     struct {
         PA_LLIST_HEAD(struct output, active_outputs); /* managed in IO thread context */
         pa_atomic_t running;  /* we cache that value here, so that every thread can query it cheaply */
-        struct timespec timestamp;
+        struct timeval timestamp;
         pa_bool_t in_null_mode;
     } thread_info;
 };
@@ -247,17 +247,17 @@ static void thread_func(void *userdata) {
 
         /* If no outputs are connected, render some data and drop it immediately. */
         if (u->sink->thread_info.state == PA_SINK_RUNNING && !u->thread_info.active_outputs) {
-            struct timespec now;
+            struct timeval now;
 
             pa_rtclock_get(&now);
 
-            if (!u->thread_info.in_null_mode || pa_timespec_cmp(&u->thread_info.timestamp, &now) <= 0) {
+            if (!u->thread_info.in_null_mode || pa_timeval_cmp(&u->thread_info.timestamp, &now) <= 0) {
                 pa_sink_skip(u->sink, u->block_size);
 
                 if (!u->thread_info.in_null_mode)
                     u->thread_info.timestamp = now;
 
-                pa_timespec_add(&u->thread_info.timestamp, pa_bytes_to_usec(u->block_size, &u->sink->sample_spec));
+                pa_timeval_add(&u->thread_info.timestamp, pa_bytes_to_usec(u->block_size, &u->sink->sample_spec));
             }
 
             pa_rtpoll_set_timer_absolute(u->rtpoll, &u->thread_info.timestamp);
@@ -563,10 +563,10 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
              * sink_get_latency_cb() below */
 
             if (u->thread_info.in_null_mode) {
-                struct timespec now;
+                struct timeval now;
 
-                if (pa_timespec_cmp(&u->thread_info.timestamp, pa_rtclock_get(&now)) > 0) {
-                    *((pa_usec_t*) data) = pa_timespec_diff(&u->thread_info.timestamp, &now);
+                if (pa_timeval_cmp(&u->thread_info.timestamp, pa_rtclock_get(&now)) > 0) {
+                    *((pa_usec_t*) data) = pa_timeval_diff(&u->thread_info.timestamp, &now);
                     break;
                 }
             }
@@ -947,7 +947,7 @@ int pa__init(pa_module*m) {
     u->thread = NULL;
     u->resample_method = resample_method;
     u->outputs = pa_idxset_new(NULL, NULL);
-    pa_timespec_reset(&u->adjust_timestamp);
+    memset(&u->adjust_timestamp, 0, sizeof(u->adjust_timestamp));
     u->sink_new_slot = u->sink_unlink_slot = u->sink_state_changed_slot = NULL;
     PA_LLIST_HEAD_INIT(struct output, u->thread_info.active_outputs);
     pa_atomic_store(&u->thread_info.running, FALSE);

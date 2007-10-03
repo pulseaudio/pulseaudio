@@ -75,7 +75,7 @@ struct userdata {
 
     size_t block_size;
     
-    struct timespec timestamp;
+    struct timeval timestamp;
 };
 
 static const char* const valid_modargs[] = {
@@ -100,14 +100,14 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             break;
             
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            struct timespec now;
+            struct timeval now;
     
             pa_rtclock_get(&now);
             
-            if (pa_timespec_cmp(&u->timestamp, &now) > 0)
+            if (pa_timeval_cmp(&u->timestamp, &now) > 0)
                 *((pa_usec_t*) data) = 0;
             else
-                *((pa_usec_t*) data) = pa_timespec_diff(&u->timestamp, &now);
+                *((pa_usec_t*) data) = pa_timeval_diff(&u->timestamp, &now);
             break;
         }
     }
@@ -132,13 +132,13 @@ static void thread_func(void *userdata) {
 
         /* Render some data and drop it immediately */
         if (u->sink->thread_info.state == PA_SINK_RUNNING) {
-            struct timespec now;
+            struct timeval now;
             
             pa_rtclock_get(&now);
 
-            if (pa_timespec_cmp(&u->timestamp, &now) <= 0) {
+            if (pa_timeval_cmp(&u->timestamp, &now) <= 0) {
                 pa_sink_skip(u->sink, u->block_size);
-                pa_timespec_add(&u->timestamp, pa_bytes_to_usec(u->block_size, &u->sink->sample_spec));
+                pa_timeval_add(&u->timestamp, pa_bytes_to_usec(u->block_size, &u->sink->sample_spec));
             }
 
             pa_rtpoll_set_timer_absolute(u->rtpoll, &u->timestamp);
