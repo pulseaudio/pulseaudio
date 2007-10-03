@@ -34,8 +34,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
+#ifdef HAVE_POLL_H
+#include <poll.h>
 #else
 #include <pulsecore/poll.h>
 #endif

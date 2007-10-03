@@ -185,7 +185,7 @@ AC_HEADER_STDC
 
 # POSIX
 AC_CHECK_HEADERS([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
-    netinet/in_systm.h netinet/tcp.h pwd.h sched.h \
+    netinet/in_systm.h netinet/tcp.h poll.h pwd.h sched.h \
     sys/mman.h sys/resource.h sys/select.h sys/socket.h sys/wait.h \
     syslog.h sys/dl.h dlfcn.h])
 AC_CHECK_HEADERS([netinet/ip.h], [], [],
@@ -202,9 +202,6 @@ AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
 
 AM_CONDITIONAL(HAVE_REGEX, test "x$HAVE_REGEX" = "x1")
 AM_CONDITIONAL(HAVE_AF_UNIX, test "x$HAVE_AF_UNIX" = "x1")
-
-# XPG4-UNIX
-AC_CHECK_HEADERS([sys/poll.h])
 
 # Linux
 AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
