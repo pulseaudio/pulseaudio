@@ -45,7 +45,7 @@
 
 #include "winsock.h"
 
-#ifndef HAVE_SYS_POLL_H
+#ifndef HAVE_POLL_H
 
 #include <pulsecore/core-util.h>
 
