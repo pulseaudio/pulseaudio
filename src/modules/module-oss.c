@@ -55,6 +55,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <signal.h>
+#include <poll.h>
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
