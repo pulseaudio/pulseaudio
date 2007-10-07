@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/ioctl.h>
+#include <poll.h>
 
 #include <pulse/xmalloc.h>
 
@@ -67,11 +68,11 @@ struct userdata {
     pa_core *core;
     pa_module *module;
     pa_sink *sink;
-    
+
     pa_thread *thread;
     pa_thread_mq thread_mq;
     pa_rtpoll *rtpoll;
-    
+
     char *filename;
     int fd;
 
@@ -94,23 +95,23 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     struct userdata *u = PA_SINK(o)->userdata;
 
     switch (code) {
-            
+
         case PA_SINK_MESSAGE_GET_LATENCY: {
             size_t n = 0;
             int l;
 
-#ifdef TIOCINQ            
+#ifdef TIOCINQ
             if (ioctl(u->fd, TIOCINQ, &l) >= 0 && l > 0)
                 n = (size_t) l;
 #endif
-            
+
             n += u->memchunk.length;
-            
+
             *((pa_usec_t*) data) = pa_bytes_to_usec(n, &u->sink->sample_spec);
             break;
         }
     }
-    
+
     return pa_sink_process_msg(o, code, data, offset, chunk);
 }
 
@@ -180,12 +181,12 @@ static void thread_func(void *userdata) {
             goto finish;
 
         pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
-        
+
         if (pollfd->revents & ~POLLOUT) {
             pa_log("FIFO shutdown.");
             goto fail;
         }
-    } 
+    }
 
 fail:
     /* If this was no regular exit from the loop we have to continue
@@ -227,7 +228,7 @@ int pa__init(pa_module*m) {
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
     pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
-    
+
     u->filename = pa_xstrdup(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
 
     mkfifo(u->filename, 0666);
@@ -257,7 +258,7 @@ int pa__init(pa_module*m) {
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->userdata = u;
     u->sink->flags = PA_SINK_LATENCY;
-    
+
     pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
@@ -291,7 +292,7 @@ fail:
 
 void pa__done(pa_module*m) {
     struct userdata *u;
-    
+
     pa_assert(m);
 
     if (!(u = m->userdata))
@@ -306,7 +307,7 @@ void pa__done(pa_module*m) {
     }
 
     pa_thread_mq_done(&u->thread_mq);
-    
+
     if (u->sink)
         pa_sink_unref(u->sink);
 
@@ -315,7 +316,7 @@ void pa__done(pa_module*m) {
 
     if (u->rtpoll_item)
         pa_rtpoll_item_free(u->rtpoll_item);
-    
+
     if (u->rtpoll)
         pa_rtpoll_free(u->rtpoll);
 
