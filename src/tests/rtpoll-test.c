@@ -24,6 +24,7 @@
 #endif
 
 #include <signal.h>
+#include <poll.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/rtpoll.h>
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
     struct pollfd *pollfd;
 
     pa_rtsig_configure(SIGRTMIN+10, SIGRTMAX);
-    
+
     p = pa_rtpoll_new();
 
     i = pa_rtpoll_item_new(p, PA_RTPOLL_EARLY, 1);
@@ -62,14 +63,14 @@ int main(int argc, char *argv[]) {
 
     w = pa_rtpoll_item_new(p, PA_RTPOLL_NORMAL, 0);
     pa_rtpoll_item_set_before_callback(w, worker);
-    
+
     pa_rtpoll_install(p);
     pa_rtpoll_set_timer_periodic(p, 10000000); /* 10 s */
 
     pa_rtpoll_run(p, 1);
-    
+
     pa_rtpoll_item_free(i);
-    
+
     i = pa_rtpoll_item_new(p, PA_RTPOLL_EARLY, 1);
     pa_rtpoll_item_set_before_callback(i, before);
     pa_rtpoll_item_set_after_callback(i, after);
@@ -77,13 +78,13 @@ int main(int argc, char *argv[]) {
     pollfd = pa_rtpoll_item_get_pollfd(i, NULL);
     pollfd->fd = 0;
     pollfd->events = POLLIN;
-    
+
     pa_rtpoll_run(p, 1);
 
     pa_rtpoll_item_free(i);
 
     pa_rtpoll_item_free(w);
-    
+
     pa_rtpoll_free(p);
 
     return 0;
