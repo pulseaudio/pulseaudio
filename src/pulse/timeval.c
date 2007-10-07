@@ -55,7 +55,7 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
 #else
 #define EPOCHFILETIME (116444736000000000LL)
 #endif
-    
+
     FILETIME        ft;
     LARGE_INTEGER   li;
     __int64         t;
@@ -79,7 +79,7 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
 
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
     pa_usec_t r;
-    
+
     pa_assert(a);
     pa_assert(b);
 
@@ -144,6 +144,15 @@ struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v) {
         tv->tv_sec++;
         tv->tv_usec -= PA_USEC_PER_SEC;
     }
+
+    return tv;
+}
+
+struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v) {
+    pa_assert(tv);
+
+    tv->tv_sec = v / PA_USEC_PER_SEC;
+    tv->tv_usec = v % PA_USEC_PER_SEC;
 
     return tv;
 }
