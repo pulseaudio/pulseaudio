@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <poll.h>
 
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
@@ -161,10 +162,10 @@ static void sink_input_kill(pa_sink_input* i) {
 static int rtpoll_work_cb(pa_rtpoll_item *i) {
     pa_memchunk chunk;
     int64_t k, j, delta;
-    struct timespec now;
+    struct timeval now;
     struct session *s;
     struct pollfd *p;
-    
+
     pa_assert_se(s = pa_rtpoll_item_get_userdata(i));
 
     p = pa_rtpoll_item_get_pollfd(i, NULL);
@@ -173,12 +174,12 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
         pa_log("poll() signalled bad revents.");
         return -1;
     }
-    
+
     if ((p->revents & POLLIN) == 0)
         return 0;
 
     p->revents = 0;
-    
+
     if (pa_rtp_recv(&s->rtp_context, &chunk, s->userdata->module->core->mempool) < 0)
         return 0;
 
@@ -234,7 +235,7 @@ static int rtpoll_work_cb(pa_rtpoll_item *i) {
 static void sink_input_attach(pa_sink_input *i) {
     struct session *s;
     struct pollfd *p;
-    
+
     pa_sink_input_assert_ref(i);
     pa_assert_se(s = i->userdata);
 
@@ -317,7 +318,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     int fd = -1;
     pa_memblock *silence;
     pa_sink_input_new_data data;
-    struct timespec now;
+    struct timeval now;
 
     pa_assert(u);
     pa_assert(sdp_info);
@@ -406,7 +407,7 @@ fail:
 
     if (fd >= 0)
         pa_close(fd);
-    
+
     return NULL;
 }
 
@@ -422,7 +423,7 @@ static void session_free(struct session *s) {
     pa_assert(s->userdata->n_sessions >= 1);
     s->userdata->n_sessions--;
     pa_hashmap_remove(s->userdata->by_origin, s->sdp_info.origin);
-    
+
     pa_memblockq_free(s->memblockq);
     pa_sdp_info_destroy(&s->sdp_info);
     pa_rtp_context_destroy(&s->rtp_context);
@@ -461,10 +462,10 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
                 pa_sdp_info_destroy(&info);
 
         } else {
-            struct timespec now;
+            struct timeval now;
             pa_rtclock_get(&now);
             pa_atomic_store(&s->timestamp, now.tv_sec);
-            
+
             pa_sdp_info_destroy(&info);
         }
     }
@@ -473,7 +474,7 @@ static void sap_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event
 static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const struct timeval *ptv, void *userdata) {
     struct session *s, *n;
     struct userdata *u = userdata;
-    struct timespec now;
+    struct timeval now;
     struct timeval tv;
 
     pa_assert(m);
@@ -484,7 +485,7 @@ static void check_death_event_cb(pa_mainloop_api *m, pa_time_event *t, const str
     pa_rtclock_get(&now);
 
     pa_log_debug("Checking for dead streams ...");
-    
+
     for (s = u->sessions; s; s = n) {
         int k;
         n = s->next;
@@ -511,7 +512,7 @@ int pa__init(pa_module*m) {
     const char *sap_address;
     int fd = -1;
     struct timeval tv;
-    
+
     pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -554,7 +555,7 @@ int pa__init(pa_module*m) {
     pa_gettimeofday(&tv);
     pa_timeval_add(&tv, DEATH_TIMEOUT * PA_USEC_PER_SEC);
     u->check_death_event = m->core->mainloop->time_new(m->core->mainloop, &tv, check_death_event_cb, u);
-    
+
     pa_modargs_free(ma);
 
     return 0;
@@ -572,7 +573,7 @@ fail:
 void pa__done(pa_module*m) {
     struct userdata *u;
     struct session *s;
-    
+
     pa_assert(m);
 
     if (!(u = m->userdata))
@@ -589,7 +590,7 @@ void pa__done(pa_module*m) {
     if (u->by_origin) {
         while ((s = pa_hashmap_get_first(u->by_origin)))
             session_free(s);
-        
+
         pa_hashmap_free(u->by_origin, NULL, NULL);
     }
 
