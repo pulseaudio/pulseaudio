@@ -34,7 +34,7 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall])
 
 AC_SUBST(PA_MAJORMINOR, "PA_MAJOR.PA_MINOR")
-AC_SUBST(PACKAGE_URL, [http://0pointer.de/lennart/projects/pulseaudio/])
+AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 10)
 AC_SUBST(PA_PROTOCOL_VERSION, 11)
