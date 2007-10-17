@@ -636,6 +636,7 @@ static void thread_func(void *userdata) {
             }
 
             if (revents & (POLLERR|POLLNVAL|POLLHUP)) {
+
                 if (revents & POLLERR)
                     pa_log_warn("Got POLLERR from ALSA");
                 if (revents & POLLNVAL)
@@ -643,7 +644,34 @@ static void thread_func(void *userdata) {
                 if (revents & POLLHUP)
                     pa_log_warn("Got POLLHUP from ALSA");
 
-                goto fail;
+                /* Try to recover from this error */
+
+                switch (snd_pcm_state(u->pcm_handle)) {
+
+                    case SND_PCM_STATE_XRUN:
+                        if ((err = snd_pcm_recover(u->pcm_handle, -EPIPE, 1)) != 0) {
+                            pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and XRUN: %s", snd_strerror(err));
+                            goto fail;
+                        }
+                        break;
+
+                    case SND_PCM_STATE_SUSPENDED:
+                        if ((err = snd_pcm_recover(u->pcm_handle, -ESTRPIPE, 1)) != 0) {
+                            pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and SUSPENDED: %s", snd_strerror(err));
+                            goto fail;
+                        }
+                        break;
+
+                    default:
+
+                        snd_pcm_drop(u->pcm_handle);
+
+                        if ((err = snd_pcm_prepare(u->pcm_handle)) < 0) {
+                            pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP with snd_pcm_prepare(): %s", snd_strerror(err));
+                            goto fail;
+                        }
+                        break;
+                }
             }
         }
     }

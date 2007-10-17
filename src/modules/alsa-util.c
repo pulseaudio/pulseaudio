@@ -56,7 +56,7 @@ struct pa_alsa_fdlist {
 };
 
 static void io_cb(pa_mainloop_api*a, pa_io_event* e, PA_GCC_UNUSED int fd, pa_io_event_flags_t events, void *userdata) {
-    
+
     struct pa_alsa_fdlist *fdl = userdata;
     int err, i;
     unsigned short revents;
@@ -139,7 +139,7 @@ static void defer_cb(pa_mainloop_api*a, PA_GCC_UNUSED pa_defer_event* e, void *u
     if (fdl->ios) {
         for (i = 0; i < fdl->num_fds; i++)
             a->io_free(fdl->ios[i]);
-        
+
         if (num_fds != fdl->num_fds) {
             pa_xfree(fdl->ios);
             fdl->ios = NULL;
@@ -290,7 +290,7 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     pa_assert(period_size);
 
     snd_pcm_hw_params_alloca(&hwparams);
-    
+
     buffer_size = *periods * *period_size;
 
     if ((ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0 ||
@@ -302,11 +302,11 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
             if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
                 goto finish;
 
-    } else if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) 
+    } else if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
         goto finish;
     else if (*use_mmap)
         *use_mmap = 0;
-    
+
     if ((ret = set_format(pcm_handle, hwparams, &f)) < 0)
         goto finish;
 
@@ -363,7 +363,7 @@ finish:
 int pa_alsa_set_sw_params(snd_pcm_t *pcm) {
     snd_pcm_sw_params_t *swparams;
     int err;
-    
+
     pa_assert(pcm);
 
     snd_pcm_sw_params_alloca(&swparams);
@@ -382,7 +382,7 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm) {
         pa_log_warn("Unable to set start threshold: %s\n", snd_strerror(err));
         return err;
     }
-    
+
     if ((err = snd_pcm_sw_params(pcm, swparams)) < 0) {
         pa_log_warn("Unable to set sw params: %s\n", snd_strerror(err));
         return err;
@@ -418,7 +418,7 @@ int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
 snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback) {
     snd_mixer_elem_t *elem;
     snd_mixer_selem_id_t *sid = NULL;
-    
+
     snd_mixer_selem_id_alloca(&sid);
 
     pa_assert(mixer);
