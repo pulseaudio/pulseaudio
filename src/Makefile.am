@@ -1025,11 +1025,11 @@ modlibexec_LTLIBRARIES += \
 		module-mmkbd-evdev.la
 endif
 
-#if HAVE_JACK
-#modlibexec_LTLIBRARIES += \
-#		module-jack-sink.la \
+if HAVE_JACK
+modlibexec_LTLIBRARIES += \
+		module-jack-sink.la
 #		module-jack-source.la
-#endif
+endif
 
 if HAVE_GCONF
 modlibexec_LTLIBRARIES += \
@@ -1360,15 +1360,15 @@ module_rtp_recv_la_CFLAGS = $(AM_CFLAGS)
 
 # JACK
 
-#module_jack_sink_la_SOURCES = modules/module-jack-sink.c
-#module_jack_sink_la_LDFLAGS = -module -avoid-version
-#module_jack_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
-#module_jack_sink_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
+module_jack_sink_la_SOURCES = modules/module-jack-sink.c
+module_jack_sink_la_LDFLAGS = -module -avoid-version
+module_jack_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
+module_jack_sink_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
 
-#module_jack_source_la_SOURCES = modules/module-jack-source.c
-#module_jack_source_la_LDFLAGS = -module -avoid-version
-#module_jack_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
-#module_jack_source_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
+module_jack_source_la_SOURCES = modules/module-jack-source.c
+module_jack_source_la_LDFLAGS = -module -avoid-version
+module_jack_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la $(JACK_LIBS)
+module_jack_source_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
 
 # HAL
 libdbus_util_la_SOURCES = modules/dbus-util.c modules/dbus-util.h
