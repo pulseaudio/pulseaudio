@@ -31,6 +31,7 @@
 #include <stdlib.h>
 
 #include <liboil/liboilfuncs.h>
+#include <liboil/liboil.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
@@ -484,4 +485,60 @@ int pa_frame_aligned(size_t l, const pa_sample_spec *ss) {
     fs = pa_frame_size(ss);
 
     return l % fs == 0;
+}
+
+void pa_interleave(const void *src[], unsigned channels, void *dst, size_t ss, unsigned n) {
+    unsigned c;
+    size_t fs;
+
+    pa_assert(src);
+    pa_assert(channels > 0);
+    pa_assert(dst);
+    pa_assert(ss > 0);
+    pa_assert(n > 0);
+
+    fs = ss * channels;
+
+    for (c = 0; c < channels; c++) {
+        unsigned j;
+        void *d;
+        const void *s;
+
+        s = src[c];
+        d = (uint8_t*) dst + c * ss;
+
+        for (j = 0; j < n; j ++) {
+            oil_memcpy(d, s, ss);
+            s = (uint8_t*) s + ss;
+            d = (uint8_t*) d + fs;
+        }
+    }
+}
+
+void pa_deinterleave(const void *src, void *dst[], unsigned channels, size_t ss, unsigned n) {
+    size_t fs;
+    unsigned c;
+
+    pa_assert(src);
+    pa_assert(dst);
+    pa_assert(channels > 0);
+    pa_assert(ss > 0);
+    pa_assert(n > 0);
+
+    fs = ss * channels;
+
+    for (c = 0; c < channels; c++) {
+        unsigned j;
+        const void *s;
+        void *d;
+
+        s = (uint8_t*) src + c * ss;
+        d = dst[c];
+
+        for (j = 0; j < n; j ++) {
+            oil_memcpy(d, s, ss);
+            s = (uint8_t*) s + fs;
+            d = (uint8_t*) d + ss;
+        }
+    }
 }
