@@ -1027,8 +1027,8 @@ endif
 
 if HAVE_JACK
 modlibexec_LTLIBRARIES += \
-		module-jack-sink.la
-#		module-jack-source.la
+		module-jack-sink.la \
+		module-jack-source.la
 endif
 
 if HAVE_GCONF

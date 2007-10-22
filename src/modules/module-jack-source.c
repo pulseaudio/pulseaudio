@@ -34,25 +34,29 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
-#include <pthread.h>
 
 #include <jack/jack.h>
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-error.h>
-#include <pulsecore/iochannel.h>
 #include <pulsecore/source.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
-#include <pulse/mainloop-api.h>
+#include <pulsecore/thread.h>
+#include <pulsecore/thread-mq.h>
+#include <pulsecore/rtpoll.h>
+#include <pulsecore/sample-util.h>
 
 #include "module-jack-source-symdef.h"
 
+/* See module-jack-sink for a few comments how this module basically
+ * works */
+
 PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Jack Source")
+PA_MODULE_DESCRIPTION("JACK Source")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE(
         "source_name=<name of source> "
@@ -67,7 +71,6 @@ PA_MODULE_USAGE(
 struct userdata {
     pa_core *core;
     pa_module *module;
-
     pa_source *source;
 
     unsigned channels;
@@ -75,19 +78,15 @@ struct userdata {
     jack_port_t* port[PA_CHANNELS_MAX];
     jack_client_t *client;
 
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
+    pa_thread_mq thread_mq;
+    pa_asyncmsgq *jack_msgq;
+    pa_rtpoll *rtpoll;
+    pa_rtpoll_item *rtpoll_item;
 
-    void * buffer[PA_CHANNELS_MAX];
-    jack_nframes_t frames_posted;
-    int quit_requested;
+    pa_thread *thread;
 
-    int pipe_fds[2];
-    int pipe_fd_type;
-    pa_io_event *io_event;
-
-    jack_nframes_t frames_in_buffer;
-    jack_nframes_t timestamp;
+    jack_nframes_t saved_frame_time;
+    pa_bool_t saved_frame_time_valid;
 };
 
 static const char* const valid_modargs[] = {
@@ -100,146 +99,150 @@ static const char* const valid_modargs[] = {
     NULL
 };
 
-static void stop_source(struct userdata *u) {
-    assert (u);
+enum {
+    SOURCE_MESSAGE_POST = PA_SOURCE_MESSAGE_MAX,
+    SOURCE_MESSAGE_ON_SHUTDOWN
+};
 
-    jack_client_close(u->client);
-    u->client = NULL;
-    u->core->mainloop->io_free(u->io_event);
-    u->io_event = NULL;
-    pa_source_disconnect(u->source);
-    pa_source_unref(u->source);
-    u->source = NULL;
-    pa_module_unload_request(u->module);
-}
+static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
+    struct userdata *u = PA_SOURCE(o)->userdata;
 
-static void io_event_cb(pa_mainloop_api *m, pa_io_event *e, int fd, pa_io_event_flags_t flags, void *userdata) {
-    struct userdata *u = userdata;
-    char x;
+    switch (code) {
 
-    assert(m);
-    assert(flags == PA_IO_EVENT_INPUT);
-    assert(u);
-    assert(u->pipe_fds[0] == fd);
+        case SOURCE_MESSAGE_POST:
 
-    pa_read(fd, &x, 1, &u->pipe_fd_type);
+            /* Handle the new block from the JACK thread */
+            pa_assert(chunk);
+            pa_assert(chunk->length > 0);
 
-    if (u->quit_requested) {
-        stop_source(u);
-        u->quit_requested = 0;
-        return;
-    }
+            if (u->source->thread_info.state == PA_SOURCE_RUNNING)
+                pa_source_post(u->source, chunk);
 
-    pthread_mutex_lock(&u->mutex);
+            u->saved_frame_time = offset;
+            u->saved_frame_time_valid = TRUE;
 
-    if (u->frames_posted > 0) {
-        unsigned fs;
-        jack_nframes_t frame_idx;
-        pa_memchunk chunk;
-        void *p;
+            return 0;
 
-        fs = pa_frame_size(&u->source->sample_spec);
+        case SOURCE_MESSAGE_ON_SHUTDOWN:
+            pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+            return 0;
 
-        chunk.memblock = pa_memblock_new(u->core->mempool, chunk.length = u->frames_posted * fs);
-        chunk.index = 0;
+        case PA_SOURCE_MESSAGE_GET_LATENCY: {
+            jack_nframes_t l, ft, d;
+            size_t n;
 
-        p = pa_memblock_acquire(chunk.memblock);
+            /* This is the "worst-case" latency */
+            l = jack_port_get_total_latency(u->client, u->port[0]);
 
-        for (frame_idx = 0; frame_idx < u->frames_posted; frame_idx ++) {
-            unsigned c;
+            if (u->saved_frame_time_valid) {
+                /* Adjust the worst case latency by the time that
+                 * passed since we last handed data to JACK */
 
-            for (c = 0; c < u->channels; c++) {
-                float *s = ((float*) u->buffer[c]) + frame_idx;
-                float *d = ((float*) ((uint8_t*) p + chunk.index)) + (frame_idx * u->channels) + c;
-
-                *d = *s;
+                ft = jack_frame_time(u->client);
+                d = ft > u->saved_frame_time ? ft - u->saved_frame_time : 0;
+                l += d;
             }
+
+            /* Convert it to usec */
+            n = l * pa_frame_size(&u->source->sample_spec);
+            *((pa_usec_t*) data) = pa_bytes_to_usec(n, &u->source->sample_spec);
+
+            return 0;
         }
-
-        pa_memblock_release(chunk.memblock);
-
-        pa_source_post(u->source, &chunk);
-        pa_memblock_unref(chunk.memblock);
-
-        u->frames_posted = 0;
-
-        pthread_cond_signal(&u->cond);
     }
 
-    pthread_mutex_unlock(&u->mutex);
-}
-
-static void request_post(struct userdata *u) {
-    char c = 'x';
-    assert(u);
-
-    assert(u->pipe_fds[1] >= 0);
-    pa_write(u->pipe_fds[1], &c, 1, &u->pipe_fd_type);
-}
-
-static void jack_shutdown(void *arg) {
-    struct userdata *u = arg;
-    assert(u);
-
-    u->quit_requested = 1;
-    request_post(u);
+    return pa_source_process_msg(o, code, data, offset, chunk);
 }
 
 static int jack_process(jack_nframes_t nframes, void *arg) {
+    unsigned c;
     struct userdata *u = arg;
-    assert(u);
+    const void *buffer[PA_CHANNELS_MAX];
+    void *p;
+    jack_nframes_t frame_time;
+    pa_memchunk chunk;
 
-    if (jack_transport_query(u->client, NULL) == JackTransportRolling) {
-        unsigned c;
+    pa_assert(u);
 
-        pthread_mutex_lock(&u->mutex);
+    for (c = 0; c < u->channels; c++)
+        pa_assert(buffer[c] = jack_port_get_buffer(u->port[c], nframes));
 
-        u->frames_posted = nframes;
+    /* We interleave the data and pass it on to the other RT thread */
 
-        for (c = 0; c < u->channels; c++) {
-            u->buffer[c] = jack_port_get_buffer(u->port[c], nframes);
-            assert(u->buffer[c]);
-        }
+    pa_memchunk_reset(&chunk);
+    chunk.length = nframes * pa_frame_size(&u->source->sample_spec);
+    chunk.memblock = pa_memblock_new(u->core->mempool, chunk.length);
+    p = pa_memblock_acquire(chunk.memblock);
+    pa_interleave(buffer, u->channels, p, sizeof(float), nframes);
+    pa_memblock_release(chunk.memblock);
 
-        request_post(u);
+    frame_time = jack_frame_time(u->client);
 
-        pthread_cond_wait(&u->cond, &u->mutex);
+    pa_asyncmsgq_post(u->jack_msgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_POST, NULL, frame_time, &chunk, NULL);
 
-        u->frames_in_buffer = nframes;
-        u->timestamp = jack_get_current_transport_frame(u->client);
-
-        pthread_mutex_unlock(&u->mutex);
-    }
+    pa_memblock_unref(chunk.memblock);
 
     return 0;
 }
 
-static pa_usec_t source_get_latency_cb(pa_source *s) {
-    struct userdata *u;
-    jack_nframes_t n, l, d;
+static void thread_func(void *userdata) {
+    struct userdata *u = userdata;
 
-    assert(s);
-    u = s->userdata;
+    pa_assert(u);
 
-    if (jack_transport_query(u->client, NULL) != JackTransportRolling)
-        return 0;
+    pa_log_debug("Thread starting up");
 
-    n = jack_get_current_transport_frame(u->client);
+    if (u->core->high_priority)
+        pa_make_realtime();
 
-    if (n < u->timestamp)
-        return 0;
+    pa_thread_mq_install(&u->thread_mq);
+    pa_rtpoll_install(u->rtpoll);
 
-    d = n - u->timestamp;
-    l = jack_port_get_total_latency(u->client, u->port[0]);
+    for (;;) {
+        int ret;
 
-    return pa_bytes_to_usec((l + d) * pa_frame_size(&s->sample_spec), &s->sample_spec);
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
+            goto fail;
+
+        if (ret == 0)
+            goto finish;
+    }
+
+fail:
+    /* If this was no regular exit from the loop we have to continue
+     * processing messages until we received PA_MESSAGE_SHUTDOWN */
+    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+    pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
+
+finish:
+    pa_log_debug("Thread shutting down");
 }
 
 static void jack_error_func(const char*t) {
-    pa_log_warn("JACK error >%s<", t);
+    char *s;
+
+    s = pa_xstrndup(s, strcspn(s, "\n\r"));
+    pa_log_warn("JACK error >%s<", s);
+    pa_xfree(s);
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+static void jack_init(void *arg) {
+    struct userdata *u = arg;
+
+    pa_log_info("JACK thread starting up.");
+
+    if (u->core->high_priority)
+        pa_make_realtime();
+}
+
+static void jack_shutdown(void* arg) {
+    struct userdata *u = arg;
+
+    pa_log_info("JACK thread shutting down..");
+    pa_asyncmsgq_post(u->jack_msgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_ON_SHUTDOWN, NULL, 0, NULL, NULL);
+}
+
+int pa__init(pa_module*m) {
     struct userdata *u = NULL;
     pa_sample_spec ss;
     pa_channel_map map;
@@ -252,40 +255,34 @@ int pa__init(pa_core *c, pa_module*m) {
     const char **ports = NULL, **p;
     char *t;
 
-    assert(c);
     assert(m);
 
     jack_set_error_function(jack_error_func);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log("failed to parse module arguments.");
+        pa_log("Failed to parse module arguments.");
         goto fail;
     }
 
     if (pa_modargs_get_value_boolean(ma, "connect", &do_connect) < 0) {
-        pa_log("failed to parse connect= argument.");
+        pa_log("Failed to parse connect= argument.");
         goto fail;
     }
 
     server_name = pa_modargs_get_value(ma, "server_name", NULL);
-    client_name = pa_modargs_get_value(ma, "client_name", "PulseAudio");
+    client_name = pa_modargs_get_value(ma, "client_name", "PulseAudio JACK Source");
 
     u = pa_xnew0(struct userdata, 1);
-    m->userdata = u;
-    u->core = c;
+    u->core = m->core;
     u->module = m;
-    u->pipe_fds[0] = u->pipe_fds[1] = -1;
-    u->pipe_fd_type = 0;
+    m->userdata = u;
+    u->saved_frame_time_valid = FALSE;
+    pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
+    u->rtpoll = pa_rtpoll_new();
+    pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
 
-    pthread_mutex_init(&u->mutex, NULL);
-    pthread_cond_init(&u->cond, NULL);
-
-    if (pipe(u->pipe_fds) < 0) {
-        pa_log("pipe() failed: %s", pa_cstrerror(errno));
-        goto fail;
-    }
-
-    pa_make_nonblock_fd(u->pipe_fds[1]);
+    u->jack_msgq = pa_asyncmsgq_new(0);
+    u->rtpoll_item = pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY-1, u->jack_msgq);
 
     if (!(u->client = jack_client_open(client_name, server_name ? JackServerName : JackNullOption, &status, server_name))) {
         pa_log("jack_client_open() failed.");
@@ -299,7 +296,7 @@ int pa__init(pa_core *c, pa_module*m) {
         channels++;
 
     if (!channels)
-        channels = c->default_sample_spec.channels;
+        channels = m->core->default_sample_spec.channels;
 
     if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 || channels <= 0 || channels >= PA_CHANNELS_MAX) {
         pa_log("failed to parse channels= argument.");
@@ -307,7 +304,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     pa_channel_map_init_auto(&map, channels, PA_CHANNEL_MAP_ALSA);
-    if (pa_modargs_get_channel_map(ma, &map) < 0 || map.channels != channels) {
+    if (pa_modargs_get_channel_map(ma, NULL, &map) < 0 || map.channels != channels) {
         pa_log("failed to parse channel_map= argument.");
         goto fail;
     }
@@ -327,19 +324,29 @@ int pa__init(pa_core *c, pa_module*m) {
         }
     }
 
-    if (!(u->source = pa_source_new(c, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
+    if (!(u->source = pa_source_new(m->core, __FILE__, pa_modargs_get_value(ma, "source_name", DEFAULT_SOURCE_NAME), 0, &ss, &map))) {
         pa_log("failed to create source.");
         goto fail;
     }
 
+    u->source->parent.process_msg = source_process_msg;
     u->source->userdata = u;
-    pa_source_set_owner(u->source, m);
+    u->source->flags = PA_SOURCE_LATENCY;
+
+    pa_source_set_module(u->source, m);
+    pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
+    pa_source_set_rtpoll(u->source, u->rtpoll);
     pa_source_set_description(u->source, t = pa_sprintf_malloc("Jack source (%s)", jack_get_client_name(u->client)));
     pa_xfree(t);
-    u->source->get_latency = source_get_latency_cb;
 
     jack_set_process_callback(u->client, jack_process, u);
     jack_on_shutdown(u->client, jack_shutdown, u);
+    jack_set_thread_init_callback(u->client, jack_init, u);
+
+    if (!(u->thread = pa_thread_new(thread_func, u))) {
+        pa_log("Failed to create thread.");
+        goto fail;
+    }
 
     if (jack_activate(u->client)) {
         pa_log("jack_activate() failed");
@@ -364,7 +371,7 @@ int pa__init(pa_core *c, pa_module*m) {
 
     }
 
-    u->io_event = c->mainloop->io_new(c->mainloop, u->pipe_fds[0], PA_IO_EVENT_INPUT, io_event_cb, u);
+    pa_source_put(u->source);
 
     free(ports);
     pa_modargs_free(ma);
@@ -377,14 +384,14 @@ fail:
 
     free(ports);
 
-    pa__done(c, m);
+    pa__done(m);
 
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
-    assert(c && m);
+    assert(m);
 
     if (!(u = m->userdata))
         return;
@@ -392,20 +399,27 @@ void pa__done(pa_core *c, pa_module*m) {
     if (u->client)
         jack_client_close(u->client);
 
-    if (u->io_event)
-        c->mainloop->io_free(u->io_event);
+    if (u->source)
+        pa_source_unlink(u->source);
 
-    if (u->source) {
-        pa_source_disconnect(u->source);
-        pa_source_unref(u->source);
+    if (u->thread) {
+        pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
+        pa_thread_free(u->thread);
     }
 
-    if (u->pipe_fds[0] >= 0)
-        close(u->pipe_fds[0]);
-    if (u->pipe_fds[1] >= 0)
-        close(u->pipe_fds[1]);
+    pa_thread_mq_done(&u->thread_mq);
 
-    pthread_mutex_destroy(&u->mutex);
-    pthread_cond_destroy(&u->cond);
+    if (u->source)
+        pa_source_unref(u->source);
+
+    if (u->rtpoll_item)
+        pa_rtpoll_item_free(u->rtpoll_item);
+
+    if (u->jack_msgq)
+        pa_asyncmsgq_unref(u->jack_msgq);
+
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
+
     pa_xfree(u);
 }
