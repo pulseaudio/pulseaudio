@@ -174,7 +174,7 @@ static void thread_func(void *userdata) {
         /* Hmm, nothing to do. Let's sleep */
         pollfd->events = u->sink->thread_info.state == PA_SINK_RUNNING ? POLLOUT : 0;
 
-        if ((ret = pa_rtpoll_run(u->rtpoll, 1)) < 0)
+        if ((ret = pa_rtpoll_run(u->rtpoll, TRUE)) < 0)
             goto fail;
 
         if (ret == 0)
