@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdio.h>
-#include <assert.h>
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
@@ -221,7 +220,7 @@ finish:
 static void jack_error_func(const char*t) {
     char *s;
 
-    s = pa_xstrndup(s, strcspn(s, "\n\r"));
+    s = pa_xstrndup(t, strcspn(t, "\n\r"));
     pa_log_warn("JACK error >%s<", s);
     pa_xfree(s);
 }
@@ -255,7 +254,7 @@ int pa__init(pa_module*m) {
     const char **ports = NULL, **p;
     char *t;
 
-    assert(m);
+    pa_assert(m);
 
     jack_set_error_function(jack_error_func);
 
@@ -277,6 +276,7 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->saved_frame_time_valid = FALSE;
+
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
     pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
@@ -315,7 +315,7 @@ int pa__init(pa_module*m) {
     ss.rate = jack_get_sample_rate(u->client);
     ss.format = PA_SAMPLE_FLOAT32NE;
 
-    assert(pa_sample_spec_valid(&ss));
+    pa_assert(pa_sample_spec_valid(&ss));
 
     for (i = 0; i < ss.channels; i++) {
         if (!(u->port[i] = jack_port_register(u->client, pa_channel_position_to_string(map.map[i]), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput|JackPortIsTerminal, 0))) {
@@ -391,7 +391,7 @@ fail:
 
 void pa__done(pa_module*m) {
     struct userdata *u;
-    assert(m);
+    pa_assert(m);
 
     if (!(u = m->userdata))
         return;

@@ -244,7 +244,7 @@ finish:
 static void jack_error_func(const char*t) {
     char *s;
 
-    s = pa_xstrndup(s, strcspn(s, "\n\r"));
+    s = pa_xstrndup(t, strcspn(t, "\n\r"));
     pa_log_warn("JACK error >%s<", s);
     pa_xfree(s);
 }
