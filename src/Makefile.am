@@ -237,7 +237,8 @@ noinst_PROGRAMS = \
 		queue-test \
 		rtpoll-test \
 		sig2str-test \
-		resampler-test
+		resampler-test \
+		smoother-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -386,6 +387,11 @@ resampler_test_SOURCES = tests/resampler-test.c
 resampler_test_LDADD = $(AM_LDADD) libpulsecore.la
 resampler_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 resampler_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+smoother_test_SOURCES = tests/smoother-test.c
+smoother_test_LDADD = $(AM_LDADD) libpulsecore.la
+smoother_test_CFLAGS = $(AM_CFLAGS)
+smoother_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #         Client library          #
@@ -716,6 +722,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/rtclock.c pulsecore/rtclock.h \
 		pulsecore/macro.h \
 		pulsecore/once.c pulsecore/once.h \
+		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -948,9 +955,9 @@ modlibexec_LTLIBRARIES += \
 		module-combine.la \
 		module-remap-sink.la \
 		module-ladspa-sink.la
-#		module-tunnel-sink.la \
-#		module-tunnel-source.la \
 #		module-esound-sink.la
+#		module-tunnel-sink.la
+#		module-tunnel-source.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -1187,9 +1194,9 @@ module_esound_compat_spawnpid_la_SOURCES = modules/module-esound-compat-spawnpid
 module_esound_compat_spawnpid_la_LDFLAGS = -module -avoid-version
 module_esound_compat_spawnpid_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
-#module_esound_sink_la_SOURCES = modules/module-esound-sink.c
-#module_esound_sink_la_LDFLAGS = -module -avoid-version
-#module_esound_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-client.la libauthkey.la
+# module_esound_sink_la_SOURCES = modules/module-esound-sink.c
+# module_esound_sink_la_LDFLAGS = -module -avoid-version
+# module_esound_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-client.la libauthkey.la
 
 # Pipes
 
