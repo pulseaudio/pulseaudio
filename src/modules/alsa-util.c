@@ -298,14 +298,19 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         goto finish;
 
     if (use_mmap && *use_mmap) {
-        if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_INTERLEAVED)) < 0)
+        if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_INTERLEAVED)) < 0) {
+
+            /* mmap() didn't work, fall back to interleaved */
+
             if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
                 goto finish;
 
+            if (use_mmap)
+                *use_mmap = 0;
+        }
+
     } else if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
         goto finish;
-    else if (*use_mmap)
-        *use_mmap = 0;
 
     if ((ret = set_format(pcm_handle, hwparams, &f)) < 0)
         goto finish;
