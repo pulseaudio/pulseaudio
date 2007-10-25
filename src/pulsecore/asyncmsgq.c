@@ -134,7 +134,7 @@ void pa_asyncmsgq_post(pa_asyncmsgq *a, pa_msgobject *object, int code, const vo
         pa_memchunk_reset(&i->memchunk);
     i->semaphore = NULL;
 
-    /* Thus mutex makes the queue multiple-writer safe. This lock is only used on the writing side */
+    /* This mutex makes the queue multiple-writer safe. This lock is only used on the writing side */
     pa_mutex_lock(a->mutex);
     pa_assert_se(pa_asyncq_push(a->asyncq, i, 1) == 0);
     pa_mutex_unlock(a->mutex);

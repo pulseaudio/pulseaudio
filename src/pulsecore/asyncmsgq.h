@@ -45,7 +45,7 @@
  *    A memchunk (may be NULL)
  *
  * There are two functions for submitting messages: _post and
- * _send. The fromer just enqueues the message asynchronously, the
+ * _send. The former just enqueues the message asynchronously, the
  * latter waits for completion, synchronously. */
 
 enum {
