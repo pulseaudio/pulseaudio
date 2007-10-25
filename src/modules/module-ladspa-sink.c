@@ -21,6 +21,9 @@
   USA.
 ***/
 
+/* TODO: Some plugins cause latency, and some even report it by using a control
+   out port. We don't currently use the latency information. */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -70,6 +73,10 @@ struct userdata {
     size_t block_size;
     unsigned long input_port, output_port;
     LADSPA_Data *control;
+
+    /* This is a dummy buffer. Every port must be connected, but we don't care
+       about control out ports. We connect them all to this single buffer. */
+    LADSPA_Data control_out;
 
     pa_memchunk memchunk;
 };
@@ -386,8 +393,10 @@ int pa__init(pa_module*m) {
 
         } else if (LADSPA_IS_PORT_INPUT(d->PortDescriptors[p]) && LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]))
             n_control++;
-        else
-            pa_log("Cannot handle type of port %s", d->PortNames[p]);
+        else {
+            pa_assert(LADSPA_IS_PORT_OUTPUT(d->PortDescriptors[p]) && LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]));
+            pa_log_info("Ignored port \"%s\", because we ignore all control out ports.", d->PortNames[p]);
+        }
     }
 
     if ((input_port == (unsigned long) -1) || (output_port == (unsigned long) -1)) {
@@ -466,8 +475,14 @@ int pa__init(pa_module*m) {
         for (p = 0; p < d->PortCount; p++) {
             LADSPA_PortRangeHintDescriptor hint = d->PortRangeHints[p].HintDescriptor;
 
-            if (!LADSPA_IS_PORT_INPUT(d->PortDescriptors[p]) || !LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]))
+            if (!LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]))
                 continue;
+
+            if (LADSPA_IS_PORT_OUTPUT(d->PortDescriptors[p])) {
+                for (c = 0; c < ss.channels; c++)
+                    d->connect_port(u->handle[c], p, &u->control_out);
+                continue;
+            }
 
             pa_assert(h < n_control);
 
