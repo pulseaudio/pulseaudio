@@ -954,8 +954,8 @@ modlibexec_LTLIBRARIES += \
 		module-esound-protocol-tcp.la \
 		module-combine.la \
 		module-remap-sink.la \
-		module-ladspa-sink.la
-#		module-esound-sink.la
+		module-ladspa-sink.la \
+		module-esound-sink.la
 #		module-tunnel-sink.la
 #		module-tunnel-source.la
 
@@ -1194,9 +1194,9 @@ module_esound_compat_spawnpid_la_SOURCES = modules/module-esound-compat-spawnpid
 module_esound_compat_spawnpid_la_LDFLAGS = -module -avoid-version
 module_esound_compat_spawnpid_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
-# module_esound_sink_la_SOURCES = modules/module-esound-sink.c
-# module_esound_sink_la_LDFLAGS = -module -avoid-version
-# module_esound_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-client.la libauthkey.la
+module_esound_sink_la_SOURCES = modules/module-esound-sink.c
+module_esound_sink_la_LDFLAGS = -module -avoid-version
+module_esound_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-client.la libauthkey.la
 
 # Pipes
 
