@@ -45,12 +45,17 @@ int main(int argc, char*argv[]) {
 
     int msec[200];
 
+    srand(0);
+
     for (m = 0, u = 0; u < PA_ELEMENTSOF(msec)-2; u+= 2) {
 
         msec[u] = m+1;
         msec[u+1] = m + rand() % 2000 - 1000;
 
         m += rand() % 100;
+
+        if (msec[u+1] < 0)
+            msec[u+1] = 0;
     }
 
     msec[PA_ELEMENTSOF(msec)-2] = 0;
