@@ -34,7 +34,7 @@
 
 #include "time-smoother.h"
 
-#define HISTORY_MAX 100
+#define HISTORY_MAX 50
 
 /*
  * Implementation of a time smoothing algorithm to synchronize remote
@@ -63,6 +63,8 @@ struct pa_smoother {
     pa_usec_t adjust_time, history_time;
     pa_bool_t monotonic;
 
+    pa_usec_t time_offset;
+
     pa_usec_t px, py;     /* Point p, where we want to reach stability */
     double dp;            /* Gradient we want at point p */
 
@@ -79,6 +81,9 @@ struct pa_smoother {
     /* Cached parameters for our interpolation polynomial y=ax^3+b^2+cx */
     double a, b, c;
     pa_bool_t abc_valid;
+
+    pa_bool_t paused;
+    pa_usec_t pause_time;
 };
 
 pa_smoother* pa_smoother_new(pa_usec_t adjust_time, pa_usec_t history_time, pa_bool_t monotonic) {
@@ -90,6 +95,7 @@ pa_smoother* pa_smoother_new(pa_usec_t adjust_time, pa_usec_t history_time, pa_b
     s = pa_xnew(pa_smoother, 1);
     s->adjust_time = adjust_time;
     s->history_time = history_time;
+    s->time_offset = 0;
     s->monotonic = monotonic;
 
     s->px = s->py = 0;
@@ -104,6 +110,8 @@ pa_smoother* pa_smoother_new(pa_usec_t adjust_time, pa_usec_t history_time, pa_b
     s->last_y = 0;
 
     s->abc_valid = FALSE;
+
+    s->paused = FALSE;
 
     return s;
 }
@@ -293,12 +301,24 @@ static void estimate(pa_smoother *s, pa_usec_t x, pa_usec_t *y, double *deriv) {
 }
 
 void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
+    pa_usec_t ney;
+    double nde;
+
     pa_assert(s);
+    pa_assert(x >= s->time_offset);
+
+    /* Fix up x value */
+    if (s->paused)
+        x = s->pause_time;
+    else
+        x -= s->time_offset;
+
+    pa_assert(x >= s->ex);
 
     /* First, we calculate the position we'd estimate for x, so that
      * we can adjust our position smoothly from this one */
-    estimate(s, x, &s->ey, &s->de);
-    s->ex = x;
+    estimate(s, x, &ney, &nde);
+    s->ex = x; s->ey = ney; s->de = nde;
 
     /* Then, we add the new measurement to our history */
     add_to_history(s, x, y);
@@ -317,7 +337,42 @@ pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
     pa_usec_t y;
 
     pa_assert(s);
+    pa_assert(x >= s->time_offset);
+
+    /* Fix up x value */
+    if (s->paused)
+        x = s->pause_time;
+    else
+        x -= s->time_offset;
+
+    pa_assert(x >= s->ex);
 
     estimate(s, x, &y, NULL);
     return y;
+}
+
+void pa_smoother_set_time_offset(pa_smoother *s, pa_usec_t offset) {
+    pa_assert(s);
+
+    s->time_offset = offset;
+}
+
+void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
+    pa_assert(s);
+
+    if (s->paused)
+        return;
+
+    s->paused = TRUE;
+    s->pause_time = x;
+}
+
+void pa_smoother_resume(pa_smoother *s, pa_usec_t x) {
+    pa_assert(s);
+
+    if (!s->paused)
+        return;
+
+    s->paused = FALSE;
+    s->time_offset += x - s->pause_time;
 }
