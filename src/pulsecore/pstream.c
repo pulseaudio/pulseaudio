@@ -217,12 +217,12 @@ static void io_callback(pa_iochannel*io, void *userdata) {
 
 static void defer_callback(pa_mainloop_api *m, pa_defer_event *e, void*userdata) {
     pa_pstream *p = userdata;
-    
+
     pa_assert(p);
     pa_assert(PA_REFCNT_VALUE(p) > 0);
     pa_assert(p->defer_event == e);
     pa_assert(p->mainloop == m);
-    
+
     do_something(p);
 }
 
@@ -244,7 +244,7 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     p->mainloop = m;
     p->defer_event = m->defer_new(m, defer_callback, p);
     m->defer_enable(p->defer_event, 0);
-    
+
     p->send_queue = pa_queue_new();
 
     p->write.current = NULL;
@@ -266,7 +266,7 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     p->revoke_callback_userdata = NULL;
     p->release_callback = NULL;
     p->release_callback_userdata = NULL;
-    
+
     p->mempool = pool;
 
     p->use_shm = 0;
@@ -335,7 +335,7 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *cre
 
     if (!(i = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
         i = pa_xnew(struct item_info, 1);
-    
+
     i->type = PA_PSTREAM_ITEM_PACKET;
     i->packet = pa_packet_ref(packet);
 
@@ -365,7 +365,7 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     length = chunk->length;
 
     bsm = pa_mempool_block_size_max(p->mempool);
-    
+
     while (length > 0) {
         struct item_info *i;
         size_t n;
@@ -662,7 +662,7 @@ static int do_read(pa_pstream *p) {
 
 #ifdef HAVE_CREDS
     {
-        int b = 0;
+        pa_bool_t b = 0;
 
         if ((r = pa_iochannel_read_with_creds(p->io, d, l, &p->read_creds, &b)) <= 0)
             goto fail;
@@ -970,7 +970,7 @@ void pa_pstream_unlink(pa_pstream *p) {
 
     if (p->dead)
         return;
-    
+
     p->dead = 1;
 
     if (p->import) {
@@ -991,7 +991,7 @@ void pa_pstream_unlink(pa_pstream *p) {
     if (p->defer_event) {
         p->mainloop->defer_free(p->defer_event);
         p->defer_event = NULL;
-    }    
+    }
 
     p->die_callback = NULL;
     p->drain_callback = NULL;

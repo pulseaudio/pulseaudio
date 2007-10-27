@@ -58,11 +58,11 @@ struct pa_iochannel {
     pa_iochannel_cb_t callback;
     void*userdata;
 
-    int readable;
-    int writable;
-    int hungup;
+    pa_bool_t readable;
+    pa_bool_t writable;
+    pa_bool_t hungup;
 
-    int no_close;
+    pa_bool_t no_close;
 
     pa_io_event* input_event, *output_event;
 };
@@ -90,7 +90,7 @@ static void enable_mainloop_sources(pa_iochannel *io) {
 
 static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     pa_iochannel *io = userdata;
-    int changed = 0;
+    pa_bool_t changed = FALSE;
 
     pa_assert(m);
     pa_assert(e);
@@ -98,19 +98,19 @@ static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_fla
     pa_assert(userdata);
 
     if ((f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) && !io->hungup) {
-        io->hungup = 1;
-        changed = 1;
+        io->hungup = TRUE;
+        changed = TRUE;
     }
 
     if ((f & PA_IO_EVENT_INPUT) && !io->readable) {
-        io->readable = 1;
-        changed = 1;
+        io->readable = TRUE;
+        changed = TRUE;
         pa_assert(e == io->input_event);
     }
 
     if ((f & PA_IO_EVENT_OUTPUT) && !io->writable) {
-        io->writable = 1;
-        changed = 1;
+        io->writable = TRUE;
+        changed = TRUE;
         pa_assert(e == io->output_event);
     }
 
@@ -136,10 +136,10 @@ pa_iochannel* pa_iochannel_new(pa_mainloop_api*m, int ifd, int ofd) {
 
     io->userdata = NULL;
     io->callback = NULL;
-    io->readable = 0;
-    io->writable = 0;
-    io->hungup = 0;
-    io->no_close = 0;
+    io->readable = FALSE;
+    io->writable = FALSE;
+    io->hungup = FALSE;
+    io->no_close = FALSE;
 
     io->input_event = io->output_event = NULL;
 
@@ -182,19 +182,19 @@ void pa_iochannel_free(pa_iochannel*io) {
     pa_xfree(io);
 }
 
-int pa_iochannel_is_readable(pa_iochannel*io) {
+pa_bool_t pa_iochannel_is_readable(pa_iochannel*io) {
     pa_assert(io);
 
     return io->readable || io->hungup;
 }
 
-int pa_iochannel_is_writable(pa_iochannel*io) {
+pa_bool_t pa_iochannel_is_writable(pa_iochannel*io) {
     pa_assert(io);
 
     return io->writable && !io->hungup;
 }
 
-int pa_iochannel_is_hungup(pa_iochannel*io) {
+pa_bool_t pa_iochannel_is_hungup(pa_iochannel*io) {
     pa_assert(io);
 
     return io->hungup;
@@ -208,9 +208,8 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
     pa_assert(l);
     pa_assert(io->ofd >= 0);
 
-    r = pa_write(io->ofd, data, l, &io->ofd_type);
-    if (r >= 0) {
-        io->writable = 0;
+    if ((r = pa_write(io->ofd, data, l, &io->ofd_type)) >= 0) {
+        io->writable = FALSE;
         enable_mainloop_sources(io);
     }
 
@@ -224,9 +223,8 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
     pa_assert(data);
     pa_assert(io->ifd >= 0);
 
-    r = pa_read(io->ifd, data, l, &io->ifd_type);
-    if (r >= 0) {
-        io->readable = 0;
+    if ((r = pa_read(io->ifd, data, l, &io->ifd_type)) >= 0) {
+        io->readable = FALSE;
         enable_mainloop_sources(io);
     }
 
@@ -235,7 +233,7 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
 
 #ifdef HAVE_CREDS
 
-int pa_iochannel_creds_supported(pa_iochannel *io) {
+pa_bool_t pa_iochannel_creds_supported(pa_iochannel *io) {
     struct sockaddr_un sa;
     socklen_t l;
 
@@ -309,14 +307,14 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     mh.msg_flags = 0;
 
     if ((r = sendmsg(io->ofd, &mh, MSG_NOSIGNAL)) >= 0) {
-        io->writable = 0;
+        io->writable = FALSE;
         enable_mainloop_sources(io);
     }
 
     return r;
 }
 
-ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *creds, int *creds_valid) {
+ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *creds, pa_bool_t *creds_valid) {
     ssize_t r;
     struct msghdr mh;
     struct iovec iov;
@@ -358,12 +356,12 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
 
                 creds->gid = u.gid;
                 creds->uid = u.uid;
-                *creds_valid = 1;
+                *creds_valid = TRUE;
                 break;
             }
         }
 
-        io->readable = 0;
+        io->readable = FALSE;
         enable_mainloop_sources(io);
     }
 
@@ -379,10 +377,10 @@ void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_cb_t _callback, voi
     io->userdata = userdata;
 }
 
-void pa_iochannel_set_noclose(pa_iochannel*io, int b) {
+void pa_iochannel_set_noclose(pa_iochannel*io, pa_bool_t b) {
     pa_assert(io);
 
-    io->no_close = b;
+    io->no_close = !!b;
 }
 
 void pa_iochannel_socket_peer_to_string(pa_iochannel*io, char*s, size_t l) {
@@ -415,4 +413,10 @@ int pa_iochannel_get_recv_fd(pa_iochannel *io) {
     pa_assert(io);
 
     return io->ifd;
+}
+
+int pa_iochannel_get_send_fd(pa_iochannel *io) {
+    pa_assert(io);
+
+    return io->ofd;
 }

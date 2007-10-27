@@ -33,6 +33,7 @@
 
 #include <pulse/mainloop-api.h>
 #include <pulsecore/creds.h>
+#include <pulsecore/macro.h>
 
 /* A wrapper around UNIX file descriptors for attaching them to the a
    main event loop. Everytime new data may be read or be written to
@@ -58,20 +59,20 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l);
 ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l);
 
 #ifdef HAVE_CREDS
-int pa_iochannel_creds_supported(pa_iochannel *io);
+pa_bool_t pa_iochannel_creds_supported(pa_iochannel *io);
 int pa_iochannel_creds_enable(pa_iochannel *io);
 
 ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l, const pa_creds *ucred);
-ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *ucred, int *creds_valid);
+ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *ucred, pa_bool_t *creds_valid);
 #endif
 
-int pa_iochannel_is_readable(pa_iochannel*io);
-int pa_iochannel_is_writable(pa_iochannel*io);
-int pa_iochannel_is_hungup(pa_iochannel*io);
+pa_bool_t pa_iochannel_is_readable(pa_iochannel*io);
+pa_bool_t pa_iochannel_is_writable(pa_iochannel*io);
+pa_bool_t pa_iochannel_is_hungup(pa_iochannel*io);
 
 /* Don't close the file descirptors when the io channel is freed. By
  * default the file descriptors are closed. */
-void pa_iochannel_set_noclose(pa_iochannel*io, int b);
+void pa_iochannel_set_noclose(pa_iochannel*io, pa_bool_t b);
 
 /* Set the callback function that is called whenever data becomes available for read or write */
 typedef void (*pa_iochannel_cb_t)(pa_iochannel*io, void *userdata);
@@ -87,5 +88,6 @@ int pa_iochannel_socket_set_sndbuf(pa_iochannel*io, size_t l);
 pa_mainloop_api* pa_iochannel_get_mainloop_api(pa_iochannel *io);
 
 int pa_iochannel_get_recv_fd(pa_iochannel *io);
+int pa_iochannel_get_send_fd(pa_iochannel *io);
 
 #endif
