@@ -30,6 +30,7 @@
 typedef struct pa_smoother pa_smoother;
 
 pa_smoother* pa_smoother_new(pa_usec_t adjust_x, pa_usec_t history_x, pa_bool_t monotonic);
+void pa_smoother_free(pa_smoother* s);
 
 void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y);
 pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x);

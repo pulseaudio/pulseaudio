@@ -108,6 +108,12 @@ pa_smoother* pa_smoother_new(pa_usec_t adjust_time, pa_usec_t history_time, pa_b
     return s;
 }
 
+void pa_smoother_free(pa_smoother* s) {
+    pa_assert(s);
+
+    pa_xfree(s);
+}
+
 static void drop_old(pa_smoother *s, pa_usec_t x) {
     unsigned j;
 

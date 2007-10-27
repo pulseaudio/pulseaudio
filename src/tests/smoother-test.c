@@ -69,4 +69,7 @@ int main(int argc, char*argv[]) {
         printf("%llu\t%llu\n", x/PA_USEC_PER_MSEC, pa_smoother_get(s, x)/PA_USEC_PER_MSEC);
     }
 
+    pa_smoother_free(s);
+
+    return 0;
 }
