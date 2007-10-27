@@ -156,3 +156,11 @@ struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v) {
 
     return tv;
 }
+
+pa_usec_t pa_timeval_load(const struct timeval *tv) {
+    pa_assert(tv);
+
+    return
+        (pa_usec_t) tv->tv_sec * PA_USEC_PER_SEC +
+        (pa_usec_t) tv->tv_usec;
+}

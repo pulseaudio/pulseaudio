@@ -56,8 +56,11 @@ pa_usec_t pa_timeval_age(const struct timeval *tv);
 /** Add the specified time inmicroseconds to the specified timeval structure */
 struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v) PA_GCC_PURE;
 
-/** Store the specified uec value in the timeval struct */
+/** Store the specified uec value in the timeval struct. \since 0.9.7 */
 struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v);
+
+/** Load the specified tv value and return it in usec. \since 0.9.7 */
+pa_usec_t pa_timeval_load(const struct timeval *tv);
 
 PA_C_DECL_END
 
