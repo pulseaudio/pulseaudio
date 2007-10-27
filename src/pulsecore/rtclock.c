@@ -44,23 +44,20 @@ pa_usec_t pa_rtclock_age(const struct timeval *tv) {
 
 struct timeval *pa_rtclock_get(struct timeval *tv) {
 #ifdef HAVE_CLOCK_GETTIME
-    static int no_monotonic = 0;
     struct timespec ts;
 
-    /* No locking or atomic ops for no_monotonic here */
-
-    if (!no_monotonic) {
 #ifdef CLOCK_MONOTONIC
-        if (clock_gettime(CLOCK_MONOTONIC, &ts) >= 0)
-            goto out;
+    /* No locking or atomic ops for no_monotonic here */
+    static pa_bool_t no_monotonic = FALSE;
+
+    if (!no_monotonic)
+        if (clock_gettime(CLOCK_MONOTONIC, &ts) < 0)
+            no_monotonic = TRUE;
+
+    if (no_monotonic)
 #endif
+        pa_assert_se(clock_gettime(CLOCK_REALTIME, &ts) == 0);
 
-        no_monotonic = 1;
-    }
-
-    pa_assert_se(clock_gettime(CLOCK_REALTIME, &ts) == 0);
-
-out:
     pa_assert(tv);
 
     tv->tv_sec = ts.tv_sec;
