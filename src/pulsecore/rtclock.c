@@ -93,3 +93,9 @@ pa_bool_t pa_rtclock_hrtimer(void) {
 
 #endif
 }
+
+pa_usec_t pa_rtclock_usec(void) {
+    struct timeval tv;
+
+    return pa_timeval_load(pa_rtclock_get(&tv));
+}

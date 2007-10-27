@@ -31,6 +31,9 @@ struct timeval;
 /* Something like pulse/timeval.h but based on CLOCK_MONOTONIC */
 
 struct timeval *pa_rtclock_get(struct timeval *ts);
+
+pa_usec_t pa_rtclock_usec(void);
+
 pa_usec_t pa_rtclock_age(const struct timeval *tv);
 pa_bool_t pa_rtclock_hrtimer(void);
 
