@@ -1294,7 +1294,7 @@ module_alsa_source_la_CFLAGS = $(AM_CFLAGS) $(ASOUNDLIB_CFLAGS)
 
 module_solaris_la_SOURCES = modules/module-solaris.c
 module_solaris_la_LDFLAGS = -module -avoid-version
-module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la
+module_solaris_la_LIBADD = $(AM_LIBADD) libiochannel.la libpulsecore.la
 
 # Avahi
 
