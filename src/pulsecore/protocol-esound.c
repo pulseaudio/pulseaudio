@@ -82,11 +82,11 @@ typedef struct connection {
     pa_msgobject parent;
 
     uint32_t index;
-    int dead;
+    pa_bool_t dead;
     pa_protocol_esound *protocol;
     pa_iochannel *io;
     pa_client *client;
-    int authorized, swap_byte_order;
+    pa_bool_t authorized, swap_byte_order;
     void *write_data;
     size_t write_data_alloc, write_data_index, write_data_length;
     void *read_data;
@@ -302,7 +302,7 @@ static void connection_write(connection *c, const void *data, size_t length) {
     memcpy((uint8_t*) c->write_data + i, data, length);
 }
 
-static void format_esd2native(int format, int swap_bytes, pa_sample_spec *ss) {
+static void format_esd2native(int format, pa_bool_t swap_bytes, pa_sample_spec *ss) {
     pa_assert(ss);
 
     ss->channels = ((format & ESD_MASK_CHAN) == ESD_STEREO) ? 2 : 1;
@@ -344,7 +344,7 @@ static int esd_proto_connect(connection *c, PA_GCC_UNUSED esd_proto_t request, c
             return -1;
         }
 
-        c->authorized = 1;
+        c->authorized = TRUE;
         if (c->auth_timeout_event) {
             c->protocol->core->mainloop->time_free(c->auth_timeout_event);
             c->auth_timeout_event = NULL;
@@ -355,9 +355,9 @@ static int esd_proto_connect(connection *c, PA_GCC_UNUSED esd_proto_t request, c
 
     memcpy(&ekey, data, sizeof(uint32_t));
     if (ekey == ESD_ENDIAN_KEY)
-        c->swap_byte_order = 0;
+        c->swap_byte_order = FALSE;
     else if (ekey == ESD_SWAP_ENDIAN_KEY)
-        c->swap_byte_order = 1;
+        c->swap_byte_order = TRUE;
     else {
         pa_log_warn("Client sent invalid endian key");
         return -1;
@@ -893,7 +893,7 @@ static void client_kill_cb(pa_client *c) {
 static int do_read(connection *c) {
     connection_assert_ref(c);
 
-/*      pa_log("READ");  */
+/*     pa_log("READ"); */
 
     if (c->state == ESD_NEXT_REQUEST) {
         ssize_t r;
@@ -948,7 +948,7 @@ static int do_read(connection *c) {
         pa_assert(c->read_data && c->read_data_length < handler->data_length);
 
         if ((r = pa_iochannel_read(c->io, (uint8_t*) c->read_data + c->read_data_length, handler->data_length - c->read_data_length)) <= 0) {
-            if (errno == EINTR || errno == EAGAIN)
+            if (r < 0 && (errno == EINTR || errno == EAGAIN))
                 return 0;
 
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
@@ -978,7 +978,7 @@ static int do_read(connection *c) {
         pa_memblock_release(c->scache.memchunk.memblock);
 
         if (r <= 0) {
-            if (errno == EINTR || errno == EAGAIN)
+            if (r < 0 && (errno == EINTR || errno == EAGAIN))
                 return 0;
 
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
@@ -1041,7 +1041,7 @@ static int do_read(connection *c) {
 
         if (r <= 0) {
 
-            if (errno == EINTR || errno == EAGAIN)
+            if (r < 0 && (errno == EINTR || errno == EAGAIN))
                 return 0;
 
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
@@ -1072,7 +1072,7 @@ static int do_write(connection *c) {
         pa_assert(c->write_data_index < c->write_data_length);
         if ((r = pa_iochannel_write(c->io, (uint8_t*) c->write_data+c->write_data_index, c->write_data_length-c->write_data_index)) < 0) {
 
-            if (errno == EINTR || errno == EAGAIN)
+            if (r < 0 && (errno == EINTR || errno == EAGAIN))
                 return 0;
 
             pa_log("write(): %s", pa_cstrerror(errno));
@@ -1101,7 +1101,7 @@ static int do_write(connection *c) {
 
         if (r < 0) {
 
-            if (errno == EINTR || errno == EAGAIN)
+            if (r < 0 && (errno == EINTR || errno == EAGAIN))
                 return 0;
 
             pa_log("write(): %s", pa_cstrerror(errno));
@@ -1142,7 +1142,7 @@ static void do_work(connection *c) {
 fail:
 
     if (c->state == ESD_STREAMING_DATA && c->sink_input) {
-        c->dead = 1;
+        c->dead = TRUE;
 
         pa_iochannel_free(c->io);
         c->io = NULL;
@@ -1354,8 +1354,8 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     c->client->userdata = c;
 
     c->authorized = !!p->public;
-    c->swap_byte_order = 0;
-    c->dead = 0;
+    c->swap_byte_order = FALSE;
+    c->dead = FALSE;
 
     c->read_data_length = 0;
     c->read_data = pa_xmalloc(c->read_data_alloc = proto_map[ESD_PROTO_CONNECT].data_length);
@@ -1385,7 +1385,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
     if (!c->authorized && p->auth_ip_acl && pa_ip_acl_check(p->auth_ip_acl, pa_iochannel_get_recv_fd(io)) > 0) {
         pa_log_info("Client authenticated by IP ACL.");
-        c->authorized = 1;
+        c->authorized = TRUE;
     }
 
     if (!c->authorized) {
