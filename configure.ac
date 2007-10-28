@@ -244,6 +244,10 @@ AC_CHECK_DEFINE([INADDR_NONE], [netinet/in.h], [],
     [AC_CHECK_DEFINE([INADDR_NONE], [winsock2.h], [],
         [AC_DEFINE([INADDR_NONE],  [0xffffffff], [Define INADDR_NONE if not found in <netinet/in.h>])])])
 
+#### POSIX threads ####
+
+ACX_PTHREAD
+
 #### Check for libs ####
 
 # ISO
@@ -296,10 +300,6 @@ AC_CHECK_FUNCS([lstat])
 # Non-standard
 
 AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtof_l])
-
-#### POSIX threads ####
-
-ACX_PTHREAD
 
 AC_MSG_CHECKING([for PTHREAD_PRIO_INHERIT])
 AC_LANG_CONFTEST([AC_LANG_SOURCE([[
