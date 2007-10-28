@@ -27,40 +27,66 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
+#include <errno.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 
 #include "memchunk.h"
 
-void pa_memchunk_make_writable(pa_memchunk *c, size_t min) {
+pa_memchunk* pa_memchunk_make_writable(pa_memchunk *c, size_t min) {
     pa_memblock *n;
     size_t l;
+    void *tdata, *sdata;
 
-    assert(c);
-    assert(c->memblock);
-    assert(PA_REFCNT_VALUE(c->memblock) > 0);
+    pa_assert(c);
+    pa_assert(c->memblock);
 
-    if (PA_REFCNT_VALUE(c->memblock) == 1 &&
-        !c->memblock->read_only &&
-        c->memblock->length >= c->index+min)
-        return;
+    if (pa_memblock_ref_is_one(c->memblock) &&
+        !pa_memblock_is_read_only(c->memblock) &&
+        pa_memblock_get_length(c->memblock) >= c->index+min)
+        return c;
 
     l = c->length;
     if (l < min)
         l = min;
 
-    n = pa_memblock_new(c->memblock->pool, l);
-    memcpy(n->data, (uint8_t*) c->memblock->data + c->index, c->length);
+    n = pa_memblock_new(pa_memblock_get_pool(c->memblock), l);
+    tdata = pa_memblock_acquire(n);
+    sdata = pa_memblock_acquire(c->memblock);
+    memcpy(tdata, (uint8_t*) sdata + c->index, c->length);
+    pa_memblock_release(n);
+    pa_memblock_release(c->memblock);
     pa_memblock_unref(c->memblock);
     c->memblock = n;
     c->index = 0;
+
+    return c;
 }
 
-void pa_memchunk_reset(pa_memchunk *c) {
-    assert(c);
+pa_memchunk* pa_memchunk_reset(pa_memchunk *c) {
+    pa_assert(c);
 
     c->memblock = NULL;
     c->length = c->index = 0;
+
+    return c;
+}
+
+pa_memchunk *pa_memchunk_will_need(const pa_memchunk *c) {
+    void *p;
+
+    pa_assert(c);
+    pa_assert(c->memblock);
+
+    /* A version of pa_memblock_will_need() that works on memchunks
+     * instead of memblocks */
+
+    p = (uint8_t*) pa_memblock_acquire(c->memblock) + c->index;
+    pa_will_need(p, c->length);
+    pa_memblock_release(c->memblock);
+
+    return (pa_memchunk*) c;
 }

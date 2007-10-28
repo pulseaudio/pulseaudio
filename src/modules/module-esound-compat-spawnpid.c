@@ -25,7 +25,6 @@
 #endif
 
 #include <unistd.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
@@ -48,11 +47,12 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     int ret = -1;
     uint32_t pid = 0;
-    assert(c && m);
+
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs)) ||
         pa_modargs_get_value_u32(ma, "pid", &pid) < 0 ||
@@ -62,7 +62,7 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     if (kill(pid, SIGUSR1) < 0)
-        pa_log("WARNING: kill(%u) failed: %s", pid, pa_cstrerror(errno));
+        pa_log_warn("kill(%u) failed: %s", pid, pa_cstrerror(errno));
 
     pa_module_unload_request(m);
 
@@ -74,9 +74,3 @@ finish:
 
     return ret;
 }
-
-void pa__done(pa_core *c, pa_module*m) {
-    assert(c && m);
-}
-
-

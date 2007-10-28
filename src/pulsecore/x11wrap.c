@@ -21,7 +21,10 @@
   USA.
 ***/
 
-#include <assert.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 
 #include <pulse/xmalloc.h>
@@ -29,6 +32,8 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
 #include <pulsecore/props.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "x11wrap.h"
 
@@ -42,8 +47,8 @@ struct pa_x11_internal {
 };
 
 struct pa_x11_wrapper {
+    PA_REFCNT_DECLARE;
     pa_core *core;
-    int ref;
 
     char *property_name;
     Display *display;
@@ -64,7 +69,8 @@ struct pa_x11_client {
 
 /* Dispatch all pending X11 events */
 static void work(pa_x11_wrapper *w) {
-    assert(w && w->ref >= 1);
+    pa_assert(w);
+    pa_assert(PA_REFCNT_VALUE(w) >= 1);
 
     while (XPending(w->display)) {
         pa_x11_client *c;
@@ -72,7 +78,7 @@ static void work(pa_x11_wrapper *w) {
         XNextEvent(w->display, &e);
 
         for (c = w->clients; c; c = c->next) {
-            assert(c->callback);
+            pa_assert(c->callback);
             if (c->callback(w, &e, c->userdata) != 0)
                 break;
         }
@@ -82,14 +88,24 @@ static void work(pa_x11_wrapper *w) {
 /* IO notification event for the X11 display connection */
 static void display_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
     pa_x11_wrapper *w = userdata;
-    assert(m && e && fd >= 0 && w && w->ref >= 1);
+
+    pa_assert(m);
+    pa_assert(e);
+    pa_assert(fd >= 0);
+    pa_assert(w);
+    pa_assert(PA_REFCNT_VALUE(w) >= 1);
+
     work(w);
 }
 
 /* Deferred notification event. Called once each main loop iteration */
 static void defer_event(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
     pa_x11_wrapper *w = userdata;
-    assert(m && e && w && w->ref >= 1);
+
+    pa_assert(m);
+    pa_assert(e);
+    pa_assert(w);
+    pa_assert(PA_REFCNT_VALUE(w) >= 1);
 
     m->defer_enable(e, 0);
 
@@ -99,7 +115,12 @@ static void defer_event(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
 /* IO notification event for X11 internal connections */
 static void internal_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC_UNUSED pa_io_event_flags_t f, void *userdata) {
     pa_x11_wrapper *w = userdata;
-    assert(m && e && fd >= 0 && w && w->ref >= 1);
+
+    pa_assert(m);
+    pa_assert(e);
+    pa_assert(fd >= 0);
+    pa_assert(w);
+    pa_assert(PA_REFCNT_VALUE(w) >= 1);
 
     XProcessInternalConnection(w->display, fd);
 
@@ -109,10 +130,9 @@ static void internal_io_event(pa_mainloop_api *m, pa_io_event *e, int fd, PA_GCC
 /* Add a new IO source for the specified X11 internal connection */
 static pa_x11_internal* x11_internal_add(pa_x11_wrapper *w, int fd) {
     pa_x11_internal *i;
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
-    i = pa_xmalloc(sizeof(pa_x11_internal));
-    assert(i);
+    i = pa_xnew(pa_x11_internal, 1);
     i->wrapper = w;
     i->io_event = w->core->mainloop->io_new(w->core->mainloop, fd, PA_IO_EVENT_INPUT, internal_io_event, w);
     i->fd = fd;
@@ -123,7 +143,7 @@ static pa_x11_internal* x11_internal_add(pa_x11_wrapper *w, int fd) {
 
 /* Remove an IO source for an X11 internal connection */
 static void x11_internal_remove(pa_x11_wrapper *w, pa_x11_internal *i) {
-    assert(i);
+    pa_assert(i);
 
     PA_LLIST_REMOVE(pa_x11_internal, w->internals, i);
     w->core->mainloop->io_free(i->io_event);
@@ -133,7 +153,10 @@ static void x11_internal_remove(pa_x11_wrapper *w, pa_x11_internal *i) {
 /* Implementation of XConnectionWatchProc */
 static void x11_watch(Display *display, XPointer userdata, int fd, Bool opening, XPointer *watch_data) {
     pa_x11_wrapper *w = (pa_x11_wrapper*) userdata;
-    assert(display && w && fd >= 0);
+
+    pa_assert(display);
+    pa_assert(w);
+    pa_assert(fd >= 0);
 
     if (opening)
         *watch_data = (XPointer) x11_internal_add(w, fd);
@@ -144,16 +167,15 @@ static void x11_watch(Display *display, XPointer userdata, int fd, Bool opening,
 static pa_x11_wrapper* x11_wrapper_new(pa_core *c, const char *name, const char *t) {
     pa_x11_wrapper*w;
     Display *d;
-    int r;
 
     if (!(d = XOpenDisplay(name))) {
         pa_log("XOpenDisplay() failed");
         return NULL;
     }
 
-    w = pa_xmalloc(sizeof(pa_x11_wrapper));
+    w = pa_xnew(pa_x11_wrapper, 1);
+    PA_REFCNT_INIT(w);
     w->core = c;
-    w->ref = 1;
     w->property_name = pa_xstrdup(t);
     w->display = d;
 
@@ -165,20 +187,17 @@ static pa_x11_wrapper* x11_wrapper_new(pa_core *c, const char *name, const char 
 
     XAddConnectionWatch(d, x11_watch, (XPointer) w);
 
-    r = pa_property_set(c, w->property_name, w);
-    assert(r >= 0);
+    pa_assert_se(pa_property_set(c, w->property_name, w) >= 0);
 
     return w;
 }
 
 static void x11_wrapper_free(pa_x11_wrapper*w) {
-    int r;
-    assert(w);
+    pa_assert(w);
 
-    r = pa_property_remove(w->core, w->property_name);
-    assert(r >= 0);
+    pa_assert_se(pa_property_remove(w->core, w->property_name) >= 0);
 
-    assert(!w->clients);
+    pa_assert(!w->clients);
 
     XRemoveConnectionWatch(w->display, x11_watch, (XPointer) w);
     XCloseDisplay(w->display);
@@ -196,9 +215,10 @@ static void x11_wrapper_free(pa_x11_wrapper*w) {
 pa_x11_wrapper* pa_x11_wrapper_get(pa_core *c, const char *name) {
     char t[256];
     pa_x11_wrapper *w;
-    assert(c);
 
-    snprintf(t, sizeof(t), "x11-wrapper%s%s", name ? "-" : "", name ? name : "");
+    pa_core_assert_ref(c);
+
+    pa_snprintf(t, sizeof(t), "x11-wrapper%s%s", name ? "-" : "", name ? name : "");
     if ((w = pa_property_get(c, t)))
         return pa_x11_wrapper_ref(w);
 
@@ -206,20 +226,24 @@ pa_x11_wrapper* pa_x11_wrapper_get(pa_core *c, const char *name) {
 }
 
 pa_x11_wrapper* pa_x11_wrapper_ref(pa_x11_wrapper *w) {
-    assert(w && w->ref >= 1);
-    w->ref++;
+    pa_assert(w);
+    pa_assert(PA_REFCNT_VALUE(w) >= 1);
+
+    PA_REFCNT_INC(w);
     return w;
 }
 
 void pa_x11_wrapper_unref(pa_x11_wrapper* w) {
-    assert(w && w->ref >= 1);
+    pa_assert(w);
+    pa_assert(PA_REFCNT_VALUE(w) >= 1);
 
-    if (!(--w->ref))
+    if (PA_REFCNT_DEC(w) <= 0)
         x11_wrapper_free(w);
 }
 
 Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w) {
-    assert(w && w->ref >= 1);
+    pa_assert(w);
+    pa_assert(PA_REFCNT_VALUE(w) >= 1);
 
     /* Somebody is using us, schedule a output buffer flush */
     w->core->mainloop->defer_enable(w->defer_event, 1);
@@ -229,9 +253,11 @@ Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w) {
 
 pa_x11_client* pa_x11_client_new(pa_x11_wrapper *w, int (*cb)(pa_x11_wrapper *w, XEvent *e, void *userdata), void *userdata) {
     pa_x11_client *c;
-    assert(w && w->ref >= 1);
 
-    c = pa_xmalloc(sizeof(pa_x11_client));
+    pa_assert(w);
+    pa_assert(PA_REFCNT_VALUE(w) >= 1);
+
+    c = pa_xnew(pa_x11_client, 1);
     c->wrapper = w;
     c->callback = cb;
     c->userdata = userdata;
@@ -242,7 +268,9 @@ pa_x11_client* pa_x11_client_new(pa_x11_wrapper *w, int (*cb)(pa_x11_wrapper *w,
 }
 
 void pa_x11_client_free(pa_x11_client *c) {
-    assert(c && c->wrapper && c->wrapper->ref >= 1);
+    pa_assert(c);
+    pa_assert(c->wrapper);
+    pa_assert(PA_REFCNT_VALUE(c->wrapper) >= 1);
 
     PA_LLIST_REMOVE(pa_x11_client, c->wrapper->clients, c);
     pa_xfree(c);

@@ -596,12 +596,12 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     }
 
 #ifdef TUNNEL_SINK
-    snprintf(name, sizeof(name), "Tunnel from host %s, user %s, sink %s",
+    pa_snprintf(name, sizeof(name), "Tunnel from host %s, user %s, sink %s",
              pa_get_host_name(hn, sizeof(hn)),
              pa_get_user_name(un, sizeof(un)),
              u->sink->name);
 #else
-    snprintf(name, sizeof(name), "Tunnel from host %s, user %s, source %s",
+    pa_snprintf(name, sizeof(name), "Tunnel from host %s, user %s, source %s",
              pa_get_host_name(hn, sizeof(hn)),
              pa_get_user_name(un, sizeof(un)),
              u->source->name);

@@ -23,11 +23,11 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
 
 #include <pulsecore/memblock.h>
+#include <pulsecore/macro.h>
 #include <pulse/xmalloc.h>
 
 static void release_cb(pa_memimport *i, uint32_t block_id, void *userdata) {
@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
     pa_memblock* blocks[5];
     uint32_t id, shm_id;
     size_t offset, size;
+    char *x;
 
     const char txt[] = "This is a test!";
 
@@ -87,13 +88,20 @@ int main(int argc, char *argv[]) {
     pa_mempool_get_shm_id(pool_b, &id_b);
     pa_mempool_get_shm_id(pool_c, &id_c);
 
-    assert(pool_a && pool_b && pool_c);
+    pa_assert(pool_a && pool_b && pool_c);
 
     blocks[0] = pa_memblock_new_fixed(pool_a, (void*) txt, sizeof(txt), 1);
+
     blocks[1] = pa_memblock_new(pool_a, sizeof(txt));
-    snprintf(blocks[1]->data, blocks[1]->length, "%s", txt);
+    x = pa_memblock_acquire(blocks[1]);
+    snprintf(x, pa_memblock_get_length(blocks[1]), "%s", txt);
+    pa_memblock_release(blocks[1]);
+
     blocks[2] = pa_memblock_new_pool(pool_a, sizeof(txt));
-    snprintf(blocks[2]->data, blocks[2]->length, "%s", txt);
+    x = pa_memblock_acquire(blocks[2]);
+    snprintf(x, pa_memblock_get_length(blocks[2]), "%s", txt);
+    pa_memblock_release(blocks[2]);
+
     blocks[3] = pa_memblock_new_malloced(pool_a, pa_xstrdup(txt), sizeof(txt));
     blocks[4] = NULL;
 
@@ -101,43 +109,47 @@ int main(int argc, char *argv[]) {
         printf("Memory block %u\n", i);
 
         mb_a = blocks[i];
-        assert(mb_a);
+        pa_assert(mb_a);
 
         export_a = pa_memexport_new(pool_a, revoke_cb, (void*) "A");
         export_b = pa_memexport_new(pool_b, revoke_cb, (void*) "B");
 
-        assert(export_a && export_b);
+        pa_assert(export_a && export_b);
 
         import_b = pa_memimport_new(pool_b, release_cb, (void*) "B");
         import_c = pa_memimport_new(pool_c, release_cb, (void*) "C");
 
-        assert(import_b && import_c);
+        pa_assert(import_b && import_c);
 
         r = pa_memexport_put(export_a, mb_a, &id, &shm_id, &offset, &size);
-        assert(r >= 0);
-        assert(shm_id == id_a);
+        pa_assert(r >= 0);
+        pa_assert(shm_id == id_a);
 
         printf("A: Memory block exported as %u\n", id);
 
         mb_b = pa_memimport_get(import_b, id, shm_id, offset, size);
-        assert(mb_b);
+        pa_assert(mb_b);
         r = pa_memexport_put(export_b, mb_b, &id, &shm_id, &offset, &size);
-        assert(r >= 0);
-        assert(shm_id == id_a || shm_id == id_b);
+        pa_assert(r >= 0);
+        pa_assert(shm_id == id_a || shm_id == id_b);
         pa_memblock_unref(mb_b);
 
         printf("B: Memory block exported as %u\n", id);
 
         mb_c = pa_memimport_get(import_c, id, shm_id, offset, size);
-        assert(mb_c);
-        printf("1 data=%s\n", (char*) mb_c->data);
+        pa_assert(mb_c);
+        x = pa_memblock_acquire(mb_c);
+        printf("1 data=%s\n", x);
+        pa_memblock_release(mb_c);
 
         print_stats(pool_a, "A");
         print_stats(pool_b, "B");
         print_stats(pool_c, "C");
 
         pa_memexport_free(export_b);
-        printf("2 data=%s\n", (char*) mb_c->data);
+        x = pa_memblock_acquire(mb_c);
+        printf("2 data=%s\n", x);
+        pa_memblock_release(mb_c);
         pa_memblock_unref(mb_c);
 
         pa_memimport_free(import_b);

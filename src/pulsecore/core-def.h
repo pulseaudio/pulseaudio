@@ -24,9 +24,6 @@
   USA.
 ***/
 
-typedef enum pa_mixer {
-    PA_MIXER_SOFTWARE,
-    PA_MIXER_HARDWARE
-} pa_mixer_t;
+/* FIXME: Remove this shit */
 
 #endif

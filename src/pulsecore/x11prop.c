@@ -32,7 +32,6 @@
 
 #include "x11prop.h"
 
-
 void pa_x11_set_prop(Display *d, const char *name, const char *data) {
     Atom a = XInternAtom(d, name, False);
     XChangeProperty(d, RootWindow(d, 0), a, XA_STRING, 8, PropModeReplace, (const unsigned char*) data, strlen(data)+1);

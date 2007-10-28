@@ -26,7 +26,9 @@
 
 #include <sys/types.h>
 
-/* config.h must be included before this file */
+#ifndef PACKAGE
+#error "Please include config.h before including this file!"
+#endif
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>

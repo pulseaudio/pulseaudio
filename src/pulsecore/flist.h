@@ -26,6 +26,9 @@
 
 #include <pulse/def.h>
 
+#include <pulsecore/once.h>
+#include <pulsecore/gccmacro.h>
+
 /* A multiple-reader multipler-write lock-free free list implementation */
 
 typedef struct pa_flist pa_flist;
@@ -37,5 +40,29 @@ void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb);
 /* Please note that this routine might fail! */
 int pa_flist_push(pa_flist*l, void *p);
 void* pa_flist_pop(pa_flist*l);
+
+/* Please not that the destructor stuff is not really necesary, we do
+ * this just to make valgrind output more useful. */
+
+#define PA_STATIC_FLIST_DECLARE(name, size, free_cb)                    \
+    static struct {                                                     \
+        pa_flist *flist;                                                \
+        pa_once once;                                                   \
+    } name##_flist = { NULL, PA_ONCE_INIT };                            \
+    static void name##_flist_init(void) {                               \
+        name##_flist.flist = pa_flist_new(size);                        \
+    }                                                                   \
+    static inline pa_flist* name##_flist_get(void) {                    \
+        pa_run_once(&name##_flist.once, name##_flist_init);             \
+        return name##_flist.flist;                                      \
+    }                                                                   \
+    static void name##_flist_destructor(void) PA_GCC_DESTRUCTOR;        \
+    static void name##_flist_destructor(void) {                         \
+        if (name##_flist.flist)                                         \
+            pa_flist_free(name##_flist.flist, (free_cb));               \
+    }                                                                   \
+    struct __stupid_useless_struct_to_allow_trailing_semicolon
+
+#define PA_STATIC_FLIST_GET(name) (name##_flist_get())
 
 #endif

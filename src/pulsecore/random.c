@@ -31,21 +31,22 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <time.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "random.h"
 
 static int has_whined = 0;
 
-static const char *devices[] = { "/dev/urandom", "/dev/random", NULL };
+static const char * const devices[] = { "/dev/urandom", "/dev/random", NULL };
 
 static int random_proper(void *ret_data, size_t length) {
 #ifdef OS_IS_WIN32
-    assert(ret_data && length);
+    pa_assert(ret_data);
+    pa_assert(length > 0);
 
     return -1;
 
@@ -53,9 +54,10 @@ static int random_proper(void *ret_data, size_t length) {
 
     int fd, ret = -1;
     ssize_t r = 0;
-    const char **device;
+    const char *const * device;
 
-    assert(ret_data && length);
+    pa_assert(ret_data);
+    pa_assert(length > 0);
 
     device = devices;
 
@@ -67,7 +69,7 @@ static int random_proper(void *ret_data, size_t length) {
             if ((r = pa_loop_read(fd, ret_data, length, NULL)) < 0 || (size_t) r != length)
                 ret = -1;
 
-            close(fd);
+            pa_close(fd);
         } else
             ret = -1;
 
@@ -84,7 +86,7 @@ void pa_random_seed(void) {
 
     if (random_proper(&seed, sizeof(unsigned int)) < 0) {
         if (!has_whined)
-            pa_log_warn("failed to get proper entropy. Falling back to seeding with current time.");
+            pa_log_warn("Failed to get proper entropy. Falling back to seeding with current time.");
         has_whined = 1;
 
         seed = (unsigned int) time(NULL);
@@ -97,13 +99,14 @@ void pa_random(void *ret_data, size_t length) {
     uint8_t *p;
     size_t l;
 
-    assert(ret_data && length);
+    pa_assert(ret_data);
+    pa_assert(length > 0);
 
     if (random_proper(ret_data, length) >= 0)
         return;
 
     if (!has_whined)
-        pa_log_warn("failed to get proper entropy. Falling back to unsecure pseudo RNG.");
+        pa_log_warn("Failed to get proper entropy. Falling back to unsecure pseudo RNG.");
     has_whined = 1;
 
     for (p = ret_data, l = length; l > 0; p++, l--)

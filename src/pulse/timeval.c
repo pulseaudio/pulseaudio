@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stddef.h>
 #include <sys/time.h>
 
@@ -34,15 +33,17 @@
 #include <windows.h>
 #endif
 
-#include "../pulsecore/winsock.h"
+#include <pulsecore/winsock.h>
+#include <pulsecore/macro.h>
 
 #include "timeval.h"
 
 struct timeval *pa_gettimeofday(struct timeval *tv) {
 #ifdef HAVE_GETTIMEOFDAY
-    assert(tv);
+    pa_assert(tv);
 
-    return gettimeofday(tv, NULL) < 0 ? NULL : tv;
+    pa_assert_se(gettimeofday(tv, NULL) == 0);
+    return tv;
 #elif defined(OS_IS_WIN32)
     /*
      * Copied from implementation by Steven Edwards (LGPL).
@@ -59,7 +60,7 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
     LARGE_INTEGER   li;
     __int64         t;
 
-    assert(tv);
+    pa_assert(tv);
 
     GetSystemTimeAsFileTime(&ft);
     li.LowPart  = ft.dwLowDateTime;
@@ -67,8 +68,8 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
     t  = li.QuadPart;       /* In 100-nanosecond intervals */
     t -= EPOCHFILETIME;     /* Offset to the Epoch time */
     t /= 10;                /* In microseconds */
-    tv->tv_sec  = (long)(t / 1000000);
-    tv->tv_usec = (long)(t % 1000000);
+    tv->tv_sec  = (time_t) (t / PA_USEC_PER_SEC);
+    tv->tv_usec = (suseconds_t) (t % PA_USEC_PER_SEC);
 
     return tv;
 #else
@@ -78,9 +79,11 @@ struct timeval *pa_gettimeofday(struct timeval *tv) {
 
 pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
     pa_usec_t r;
-    assert(a && b);
 
-    /* Check which whan is the earlier time and swap the two arguments if reuqired. */
+    pa_assert(a);
+    pa_assert(b);
+
+    /* Check which whan is the earlier time and swap the two arguments if required. */
     if (pa_timeval_cmp(a, b) < 0) {
         const struct timeval *c;
         c = a;
@@ -89,7 +92,7 @@ pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
     }
 
     /* Calculate the second difference*/
-    r = ((pa_usec_t) a->tv_sec - b->tv_sec)* 1000000;
+    r = ((pa_usec_t) a->tv_sec - b->tv_sec) * PA_USEC_PER_SEC;
 
     /* Calculate the microsecond difference */
     if (a->tv_usec > b->tv_usec)
@@ -101,7 +104,8 @@ pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) {
 }
 
 int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) {
-    assert(a && b);
+    pa_assert(a);
+    pa_assert(b);
 
     if (a->tv_sec < b->tv_sec)
         return -1;
@@ -120,26 +124,43 @@ int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) {
 
 pa_usec_t pa_timeval_age(const struct timeval *tv) {
     struct timeval now;
-    assert(tv);
+    pa_assert(tv);
 
     return pa_timeval_diff(pa_gettimeofday(&now), tv);
 }
 
 struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v) {
     unsigned long secs;
-    assert(tv);
+    pa_assert(tv);
 
-    secs = (v/1000000);
-    tv->tv_sec += (unsigned long) secs;
-    v -= secs*1000000;
+    secs = (unsigned long) (v/PA_USEC_PER_SEC);
+    tv->tv_sec += secs;
+    v -= ((pa_usec_t) secs) * PA_USEC_PER_SEC;
 
-    tv->tv_usec += v;
+    tv->tv_usec += (suseconds_t) v;
 
     /* Normalize */
-    while (tv->tv_usec >= 1000000) {
+    while (tv->tv_usec >= PA_USEC_PER_SEC) {
         tv->tv_sec++;
-        tv->tv_usec -= 1000000;
+        tv->tv_usec -= PA_USEC_PER_SEC;
     }
 
     return tv;
+}
+
+struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v) {
+    pa_assert(tv);
+
+    tv->tv_sec = v / PA_USEC_PER_SEC;
+    tv->tv_usec = v % PA_USEC_PER_SEC;
+
+    return tv;
+}
+
+pa_usec_t pa_timeval_load(const struct timeval *tv) {
+    pa_assert(tv);
+
+    return
+        (pa_usec_t) tv->tv_sec * PA_USEC_PER_SEC +
+        (pa_usec_t) tv->tv_usec;
 }

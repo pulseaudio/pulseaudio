@@ -25,12 +25,14 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
+#include <pulse/xmalloc.h>
 
 #include <pulsecore/atomic.h>
 #include <pulsecore/log.h>
 #include <pulsecore/thread.h>
-#include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "flist.h"
 
@@ -90,21 +92,18 @@ enum {
 };
 
 struct cell {
-    pa_atomic_int_t state;
+    pa_atomic_t state;
     void *data;
 };
 
 struct pa_flist {
-    struct cell *cells;
     unsigned size;
-    pa_atomic_int_t length;
-    pa_atomic_int_t read_idx;
-    pa_atomic_int_t write_idx;
+    pa_atomic_t length;
+    pa_atomic_t read_idx;
+    pa_atomic_t write_idx;
 };
 
-static int is_power_of_two(unsigned size) {
-    return !(size & (size - 1));
-}
+#define PA_FLIST_CELLS(x) ((struct cell*) ((uint8_t*) (x) + PA_ALIGN(sizeof(struct pa_flist))))
 
 pa_flist *pa_flist_new(unsigned size) {
     pa_flist *l;
@@ -112,12 +111,11 @@ pa_flist *pa_flist_new(unsigned size) {
     if (!size)
         size = FLIST_SIZE;
 
-    assert(is_power_of_two(size));
+    pa_assert(pa_is_power_of_two(size));
 
-    l = pa_xnew(pa_flist, 1);
+    l = pa_xmalloc0(PA_ALIGN(sizeof(pa_flist)) + (sizeof(struct cell) * size));
 
     l->size = size;
-    l->cells = pa_xnew0(struct cell, size);
 
     pa_atomic_store(&l->read_idx, 0);
     pa_atomic_store(&l->write_idx, 0);
@@ -131,32 +129,37 @@ static int reduce(pa_flist *l, int value) {
 }
 
 void pa_flist_free(pa_flist *l, pa_free_cb_t free_cb) {
-    assert(l);
+    pa_assert(l);
 
     if (free_cb) {
+        struct cell *cells;
         int len, idx;
+
+        cells = PA_FLIST_CELLS(l);
 
         idx = reduce(l, pa_atomic_load(&l->read_idx));
         len = pa_atomic_load(&l->length);
 
         for (; len > 0; len--) {
 
-            if (pa_atomic_load(&l->cells[idx].state) == STATE_USED)
-                free_cb(l->cells[idx].data);
+            if (pa_atomic_load(&cells[idx].state) == STATE_USED)
+                free_cb(cells[idx].data);
 
             idx = reduce(l, idx + 1);
         }
     }
 
-    pa_xfree(l->cells);
     pa_xfree(l);
 }
 
 int pa_flist_push(pa_flist*l, void *p) {
     int idx, len, n;
+    struct cell *cells;
 
-    assert(l);
-    assert(p);
+    pa_assert(l);
+    pa_assert(p);
+
+    cells = PA_FLIST_CELLS(l);
 
     n = len = (int) l->size - pa_atomic_load(&l->length) + N_EXTRA_SCAN;
     _Y;
@@ -165,13 +168,13 @@ int pa_flist_push(pa_flist*l, void *p) {
     for (; n > 0 ; n--) {
         _Y;
 
-        if (pa_atomic_cmpxchg(&l->cells[idx].state, STATE_UNUSED, STATE_BUSY)) {
+        if (pa_atomic_cmpxchg(&cells[idx].state, STATE_UNUSED, STATE_BUSY)) {
             _Y;
             pa_atomic_inc(&l->write_idx);
             _Y;
-            l->cells[idx].data = p;
+            cells[idx].data = p;
             _Y;
-            pa_atomic_store(&l->cells[idx].state, STATE_USED);
+            pa_atomic_store(&cells[idx].state, STATE_USED);
             _Y;
             pa_atomic_inc(&l->length);
             return 0;
@@ -183,7 +186,7 @@ int pa_flist_push(pa_flist*l, void *p) {
 
 #ifdef PROFILE
     if (len > N_EXTRA_SCAN)
-        pa_log("WARNING: Didn't  find free cell after %u iterations.", len);
+        pa_log_warn("Didn't  find free cell after %u iterations.", len);
 #endif
 
     return -1;
@@ -191,8 +194,11 @@ int pa_flist_push(pa_flist*l, void *p) {
 
 void* pa_flist_pop(pa_flist*l) {
     int idx, len, n;
+    struct cell *cells;
 
-    assert(l);
+    pa_assert(l);
+
+    cells = PA_FLIST_CELLS(l);
 
     n = len = pa_atomic_load(&l->length) + N_EXTRA_SCAN;
     _Y;
@@ -201,14 +207,14 @@ void* pa_flist_pop(pa_flist*l) {
     for (; n > 0 ; n--) {
         _Y;
 
-        if (pa_atomic_cmpxchg(&l->cells[idx].state, STATE_USED, STATE_BUSY)) {
+        if (pa_atomic_cmpxchg(&cells[idx].state, STATE_USED, STATE_BUSY)) {
             void *p;
             _Y;
             pa_atomic_inc(&l->read_idx);
             _Y;
-            p = l->cells[idx].data;
+            p = cells[idx].data;
             _Y;
-            pa_atomic_store(&l->cells[idx].state, STATE_UNUSED);
+            pa_atomic_store(&cells[idx].state, STATE_UNUSED);
             _Y;
 
             pa_atomic_dec(&l->length);
@@ -221,7 +227,7 @@ void* pa_flist_pop(pa_flist*l) {
 
 #ifdef PROFILE
     if (len > N_EXTRA_SCAN)
-        pa_log("WARNING: Didn't find used cell after %u iterations.", len);
+        pa_log_warn("Didn't find used cell after %u iterations.", len);
 #endif
 
     return NULL;

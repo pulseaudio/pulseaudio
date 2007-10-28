@@ -25,16 +25,18 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "volume.h"
 
 int pa_cvolume_equal(const pa_cvolume *a, const pa_cvolume *b) {
     int i;
-    assert(a);
-    assert(b);
+    pa_assert(a);
+    pa_assert(b);
 
     if (a->channels != b->channels)
         return 0;
@@ -49,9 +51,9 @@ int pa_cvolume_equal(const pa_cvolume *a, const pa_cvolume *b) {
 pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v) {
     int i;
 
-    assert(a);
-    assert(channels > 0);
-    assert(channels <= PA_CHANNELS_MAX);
+    pa_assert(a);
+    pa_assert(channels > 0);
+    pa_assert(channels <= PA_CHANNELS_MAX);
 
     a->channels = channels;
 
@@ -64,7 +66,7 @@ pa_cvolume* pa_cvolume_set(pa_cvolume *a, unsigned channels, pa_volume_t v) {
 pa_volume_t pa_cvolume_avg(const pa_cvolume *a) {
     uint64_t sum = 0;
     int i;
-    assert(a);
+    pa_assert(a);
 
     for (i = 0; i < a->channels; i++)
         sum += a->values[i];
@@ -118,14 +120,14 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
     int first = 1;
     char *e;
 
-    assert(s);
-    assert(l > 0);
-    assert(c);
+    pa_assert(s);
+    pa_assert(l > 0);
+    pa_assert(c);
 
     *(e = s) = 0;
 
     for (channel = 0; channel < c->channels && l > 1; channel++) {
-        l -= snprintf(e, l, "%s%u: %3u%%",
+        l -= pa_snprintf(e, l, "%s%u: %3u%%",
                       first ? "" : " ",
                       channel,
                       (c->values[channel]*100)/PA_VOLUME_NORM);
@@ -140,7 +142,7 @@ char *pa_cvolume_snprint(char *s, size_t l, const pa_cvolume *c) {
 /** Return non-zero if the volume of all channels is equal to the specified value */
 int pa_cvolume_channels_equal_to(const pa_cvolume *a, pa_volume_t v) {
     unsigned c;
-    assert(a);
+    pa_assert(a);
 
     for (c = 0; c < a->channels; c++)
         if (a->values[c] != v)
@@ -152,9 +154,9 @@ int pa_cvolume_channels_equal_to(const pa_cvolume *a, pa_volume_t v) {
 pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b) {
     unsigned i;
 
-    assert(dest);
-    assert(a);
-    assert(b);
+    pa_assert(dest);
+    pa_assert(a);
+    pa_assert(b);
 
     for (i = 0; i < a->channels && i < b->channels && i < PA_CHANNELS_MAX; i++) {
 
@@ -169,7 +171,7 @@ pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const 
 }
 
 int pa_cvolume_valid(const pa_cvolume *v) {
-    assert(v);
+    pa_assert(v);
 
     if (v->channels <= 0 || v->channels > PA_CHANNELS_MAX)
         return 0;

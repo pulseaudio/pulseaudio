@@ -26,7 +26,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <math.h>
 
 #include <pulse/xmalloc.h>
@@ -36,6 +35,7 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/log.h>
+#include <pulsecore/core-util.h>
 
 #include "module-sine-symdef.h"
 
@@ -58,36 +58,46 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-static int sink_input_peek(pa_sink_input *i, pa_memchunk *chunk) {
+static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     struct userdata *u;
-    assert(i && chunk && i->userdata);
+
+    pa_assert(i);
     u = i->userdata;
+    pa_assert(u);
+    pa_assert(chunk);
 
     chunk->memblock = pa_memblock_ref(u->memblock);
     chunk->index = u->peek_index;
-    chunk->length = u->memblock->length - u->peek_index;
+    chunk->length = pa_memblock_get_length(u->memblock) - u->peek_index;
+
     return 0;
 }
 
-static void sink_input_drop(pa_sink_input *i, const pa_memchunk *chunk, size_t length) {
+static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
     struct userdata *u;
-    assert(i && chunk && length && i->userdata);
-    u = i->userdata;
+    size_t l;
 
-    assert(chunk->memblock == u->memblock && length <= u->memblock->length-u->peek_index);
+    pa_assert(i);
+    u = i->userdata;
+    pa_assert(u);
+    pa_assert(length > 0);
 
     u->peek_index += length;
 
-    if (u->peek_index >= u->memblock->length)
-        u->peek_index = 0;
+    l = pa_memblock_get_length(u->memblock);
+
+    while (u->peek_index >= l)
+        u->peek_index -= l;
 }
 
-static void sink_input_kill(pa_sink_input *i) {
+static void sink_input_kill_cb(pa_sink_input *i) {
     struct userdata *u;
-    assert(i && i->userdata);
-    u = i->userdata;
 
-    pa_sink_input_disconnect(u->sink_input);
+    pa_assert(i);
+    u = i->userdata;
+    pa_assert(u);
+
+    pa_sink_input_unlink(u->sink_input);
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
 
@@ -103,14 +113,14 @@ static void calc_sine(float *f, size_t l, float freq) {
         f[i] = (float) sin((double) i/l*M_PI*2*freq)/2;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     pa_sink *sink;
-    const char *sink_name;
     pa_sample_spec ss;
     uint32_t frequency;
     char t[256];
+    void *p;
     pa_sink_input_new_data data;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
@@ -118,15 +128,14 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    m->userdata = u = pa_xmalloc(sizeof(struct userdata));
-    u->core = c;
+    m->userdata = u = pa_xnew0(struct userdata, 1);
+    u->core = m->core;
     u->module = m;
     u->sink_input = NULL;
     u->memblock = NULL;
+    u->peek_index = 0;
 
-    sink_name = pa_modargs_get_value(ma, "sink", NULL);
-
-    if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, 1))) {
+    if (!(sink = pa_namereg_get(m->core, pa_modargs_get_value(ma, "sink", NULL), PA_NAMEREG_SINK, 1))) {
         pa_log("No such sink.");
         goto fail;
     }
@@ -141,10 +150,12 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    u->memblock = pa_memblock_new(c->mempool, pa_bytes_per_second(&ss));
-    calc_sine(u->memblock->data, u->memblock->length, frequency);
+    u->memblock = pa_memblock_new(m->core->mempool, pa_bytes_per_second(&ss));
+    p = pa_memblock_acquire(u->memblock);
+    calc_sine(p, pa_memblock_get_length(u->memblock), frequency);
+    pa_memblock_release(u->memblock);
 
-    snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
+    pa_snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
 
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
@@ -153,15 +164,15 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     data.module = m;
 
-    if (!(u->sink_input = pa_sink_input_new(c, &data, 0)))
+    if (!(u->sink_input = pa_sink_input_new(m->core, &data, 0)))
         goto fail;
 
-    u->sink_input->peek = sink_input_peek;
-    u->sink_input->drop = sink_input_drop;
-    u->sink_input->kill = sink_input_kill;
+    u->sink_input->peek = sink_input_peek_cb;
+    u->sink_input->drop = sink_input_drop_cb;
+    u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->userdata = u;
 
-    u->peek_index = 0;
+    pa_sink_input_put(u->sink_input);
 
     pa_modargs_free(ma);
     return 0;
@@ -170,24 +181,26 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    pa__done(c, m);
+    pa__done(m);
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
-    struct userdata *u = m->userdata;
-    assert(c && m);
+void pa__done(pa_module*m) {
+    struct userdata *u;
 
-    if (!u)
+    pa_assert(m);
+
+    if (!(u = m->userdata))
         return;
 
     if (u->sink_input) {
-        pa_sink_input_disconnect(u->sink_input);
+        pa_sink_input_unlink(u->sink_input);
         pa_sink_input_unref(u->sink_input);
     }
 
     if (u->memblock)
         pa_memblock_unref(u->memblock);
+
     pa_xfree(u);
 }
 

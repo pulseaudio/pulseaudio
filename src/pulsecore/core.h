@@ -34,17 +34,51 @@
 #include <pulsecore/queue.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/hook-list.h>
+#include <pulsecore/asyncmsgq.h>
 
 typedef struct pa_core pa_core;
 
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/sink-input.h>
+#include <pulsecore/msgobject.h>
+
+typedef enum pa_core_hook {
+    PA_CORE_HOOK_SINK_NEW_POST,
+    PA_CORE_HOOK_SINK_UNLINK,
+    PA_CORE_HOOK_SINK_UNLINK_POST,
+    PA_CORE_HOOK_SINK_STATE_CHANGED,
+    PA_CORE_HOOK_SINK_DESCRIPTION_CHANGED,
+    PA_CORE_HOOK_SOURCE_NEW_POST,
+    PA_CORE_HOOK_SOURCE_UNLINK,
+    PA_CORE_HOOK_SOURCE_UNLINK_POST,
+    PA_CORE_HOOK_SOURCE_STATE_CHANGED,
+    PA_CORE_HOOK_SOURCE_DESCRIPTION_CHANGED,
+    PA_CORE_HOOK_SINK_INPUT_NEW,
+    PA_CORE_HOOK_SINK_INPUT_PUT,
+    PA_CORE_HOOK_SINK_INPUT_UNLINK,
+    PA_CORE_HOOK_SINK_INPUT_UNLINK_POST,
+    PA_CORE_HOOK_SINK_INPUT_MOVE,
+    PA_CORE_HOOK_SINK_INPUT_MOVE_POST,
+    PA_CORE_HOOK_SINK_INPUT_NAME_CHANGED,
+    PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED,
+    PA_CORE_HOOK_SOURCE_OUTPUT_NEW,
+    PA_CORE_HOOK_SOURCE_OUTPUT_PUT,
+    PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK,
+    PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST,
+    PA_CORE_HOOK_SOURCE_OUTPUT_MOVE,
+    PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_POST,
+    PA_CORE_HOOK_SOURCE_OUTPUT_NAME_CHANGED,
+    PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED,
+    PA_CORE_HOOK_MAX
+} pa_core_hook_t;
 
 /* The core structure of PulseAudio. Every PulseAudio daemon contains
  * exactly one of these. It is used for storing kind of global
  * variables for the daemon. */
 
 struct pa_core {
+    pa_msgobject parent;
+
     /* A random value which may be used to identify this instance of
      * PulseAudio. Not cryptographically secure in any way. */
     uint32_t cookie;
@@ -61,6 +95,8 @@ struct pa_core {
     char *default_source_name, *default_sink_name;
 
     pa_sample_spec default_sample_spec;
+    unsigned default_n_fragments, default_fragment_size_msec;
+
     pa_time_event *module_auto_unload_event;
     pa_defer_event *module_defer_unload_event;
 
@@ -71,27 +107,30 @@ struct pa_core {
 
     pa_mempool *mempool;
 
-    int disallow_module_loading, running_as_daemon;
     int exit_idle_time, module_idle_time, scache_idle_time;
 
     pa_time_event *quit_event;
 
     pa_time_event *scache_auto_unload_event;
 
+    int disallow_module_loading, running_as_daemon;
     pa_resample_method_t resample_method;
-
     int is_system_instance;
+    int high_priority;
 
     /* hooks */
-    pa_hook
-        hook_sink_input_new,
-        hook_sink_disconnect,
-        hook_source_output_new,
-        hook_source_disconnect;
+    pa_hook hooks[PA_CORE_HOOK_MAX];
+};
+
+PA_DECLARE_CLASS(pa_core);
+#define PA_CORE(o) pa_core_cast(o)
+
+enum {
+    PA_CORE_MESSAGE_UNLOAD_MODULE,
+    PA_CORE_MESSAGE_MAX
 };
 
 pa_core* pa_core_new(pa_mainloop_api *m, int shared);
-void pa_core_free(pa_core*c);
 
 /* Check whether noone is connected to this core */
 void pa_core_check_quit(pa_core *c);

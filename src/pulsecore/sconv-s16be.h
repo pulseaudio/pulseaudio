@@ -24,7 +24,18 @@
   USA.
 ***/
 
-void pa_sconv_s16be_to_float32ne(unsigned n, const void *a, float *b);
-void pa_sconv_s16be_from_float32ne(unsigned n, const float *a, void *b);
+#include <inttypes.h>
+
+void pa_sconv_s16be_to_float32ne(unsigned n, const int16_t *a, float *b);
+void pa_sconv_s16be_from_float32ne(unsigned n, const float *a, int16_t *b);
+void pa_sconv_s16be_to_float32re(unsigned n, const int16_t *a, float *b);
+void pa_sconv_s16be_from_float32re(unsigned n, const float *a, int16_t *b);
+
+#ifdef WORDS_BIGENDIAN
+#define pa_sconv_float32be_to_s16ne pa_sconv_s16be_from_float32ne
+#define pa_sconv_float32be_from_s16ne pa_sconv_s16be_to_float32ne
+#define pa_sconv_float32le_to_s16ne pa_sconv_s16be_from_float32re
+#define pa_sconv_float32le_from_s16ne pa_sconv_s16be_to_float32re
+#endif
 
 #endif

@@ -29,7 +29,6 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
@@ -40,6 +39,8 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/ltdl-helper.h>
 
 #include "module.h"
 
@@ -48,69 +49,31 @@
 
 #define UNLOAD_POLL_TIME 2
 
-/* lt_dlsym() violates ISO C, so confide the breakage into this function to
- * avoid warnings. */
-typedef void (*fnptr)(void);
-static inline fnptr lt_dlsym_fn(lt_dlhandle handle, const char *symbol) {
-    return (fnptr) (long) lt_dlsym(handle, symbol);
-}
-
 static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
-    pa_core *c = userdata;
+    pa_core *c = PA_CORE(userdata);
     struct timeval ntv;
-    assert(c && c->mainloop == m && c->module_auto_unload_event == e);
+
+    pa_core_assert_ref(c);
+    pa_assert(c->mainloop == m);
+    pa_assert(c->module_auto_unload_event == e);
 
     pa_module_unload_unused(c);
 
     pa_gettimeofday(&ntv);
-    ntv.tv_sec += UNLOAD_POLL_TIME;
+    pa_timeval_add(&ntv, UNLOAD_POLL_TIME*1000000);
     m->time_restart(e, &ntv);
-}
-
-static inline fnptr load_sym(lt_dlhandle handle, const char *module, const char *symbol) {
-    char *buffer, *ch;
-    size_t buflen;
-    fnptr res;
-
-    res = lt_dlsym_fn(handle, symbol);
-    if (res)
-        return res;
-
-    /* As the .la files might have been cleansed from the system, we should
-     * try with the ltdl prefix as well. */
-
-    buflen = strlen(symbol) + strlen(module) + strlen("_LTX_") + 1;
-    buffer = pa_xmalloc(buflen);
-    assert(buffer);
-
-    strcpy(buffer, module);
-
-    for (ch = buffer;*ch != '\0';ch++) {
-        if (!isalnum(*ch))
-            *ch = '_';
-    }
-
-    strcat(buffer, "_LTX_");
-    strcat(buffer, symbol);
-
-    res = lt_dlsym_fn(handle, buffer);
-
-    pa_xfree(buffer);
-
-    return res;
 }
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
-    int r;
 
-    assert(c && name);
+    pa_assert(c);
+    pa_assert(name);
 
     if (c->disallow_module_loading)
         goto fail;
 
-    m = pa_xmalloc(sizeof(pa_module));
-
+    m = pa_xnew(pa_module, 1);
     m->name = pa_xstrdup(name);
     m->argument = pa_xstrdup(argument);
 
@@ -119,24 +82,19 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
         goto fail;
     }
 
-    if (!(m->init = (int (*)(pa_core *_c, pa_module*_m)) load_sym(m->dl, name, PA_SYMBOL_INIT))) {
+    if (!(m->init = (int (*)(pa_module*_m)) pa_load_sym(m->dl, name, PA_SYMBOL_INIT))) {
         pa_log("Failed to load module \"%s\": symbol \""PA_SYMBOL_INIT"\" not found.", name);
         goto fail;
     }
 
-    if (!(m->done = (void (*)(pa_core *_c, pa_module*_m)) load_sym(m->dl, name, PA_SYMBOL_DONE))) {
-        pa_log("Failed to load module \"%s\": symbol \""PA_SYMBOL_DONE"\" not found.", name);
-        goto fail;
-    }
-
+    m->done = (void (*)(pa_module*_m)) pa_load_sym(m->dl, name, PA_SYMBOL_DONE);
     m->userdata = NULL;
     m->core = c;
     m->n_used = -1;
     m->auto_unload = 0;
     m->unload_requested = 0;
 
-    assert(m->init);
-    if (m->init(c, m) < 0) {
+    if (m->init(m) < 0) {
         pa_log_error("Failed to load  module \"%s\" (argument: \"%s\"): initialization failed.", name, argument ? argument : "");
         goto fail;
     }
@@ -147,14 +105,12 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     if (!c->module_auto_unload_event) {
         struct timeval ntv;
         pa_gettimeofday(&ntv);
-        ntv.tv_sec += UNLOAD_POLL_TIME;
+        pa_timeval_add(&ntv, UNLOAD_POLL_TIME*1000000);
         c->module_auto_unload_event = c->mainloop->time_new(c->mainloop, &ntv, timeout_callback, c);
     }
-    assert(c->module_auto_unload_event);
 
-    assert(c->modules);
-    r = pa_idxset_put(c->modules, m, &m->index);
-    assert(r >= 0 && m->index != PA_IDXSET_INVALID);
+    pa_assert_se(pa_idxset_put(c->modules, m, &m->index) >= 0);
+    pa_assert(m->index != PA_IDXSET_INVALID);
 
     pa_log_info("Loaded \"%s\" (index: #%u; argument: \"%s\").", m->name, m->index, m->argument ? m->argument : "");
 
@@ -178,14 +134,16 @@ fail:
 }
 
 static void pa_module_free(pa_module *m) {
-    assert(m && m->done && m->core);
+    pa_assert(m);
+    pa_assert(m->core);
 
     if (m->core->disallow_module_loading)
         return;
 
     pa_log_info("Unloading \"%s\" (index: #%u).", m->name, m->index);
 
-    m->done(m->core, m);
+    if (m->done)
+        m->done(m);
 
     lt_dlclose(m->dl);
 
@@ -199,9 +157,10 @@ static void pa_module_free(pa_module *m) {
 }
 
 void pa_module_unload(pa_core *c, pa_module *m) {
-    assert(c && m);
+    pa_assert(c);
+    pa_assert(m);
 
-    assert(c->modules);
+    pa_assert(c->modules);
     if (!(m = pa_idxset_remove_by_data(c->modules, m, NULL)))
         return;
 
@@ -210,9 +169,9 @@ void pa_module_unload(pa_core *c, pa_module *m) {
 
 void pa_module_unload_by_index(pa_core *c, uint32_t idx) {
     pa_module *m;
-    assert(c && idx != PA_IDXSET_INVALID);
+    pa_assert(c);
+    pa_assert(idx != PA_IDXSET_INVALID);
 
-    assert(c->modules);
     if (!(m = pa_idxset_remove_by_index(c->modules, idx)))
         return;
 
@@ -221,13 +180,14 @@ void pa_module_unload_by_index(pa_core *c, uint32_t idx) {
 
 static void free_callback(void *p, PA_GCC_UNUSED void *userdata) {
     pa_module *m = p;
-    assert(m);
+    pa_assert(m);
     pa_module_free(m);
 }
 
 void pa_module_unload_all(pa_core *c) {
     pa_module *m;
-    assert(c);
+
+    pa_assert(c);
 
     if (!c->modules)
         return;
@@ -252,7 +212,10 @@ void pa_module_unload_all(pa_core *c) {
 static int unused_callback(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void *userdata) {
     pa_module *m = p;
     time_t *now = userdata;
-    assert(p && del && now);
+
+    pa_assert(m);
+    pa_assert(del);
+    pa_assert(now);
 
     if (m->n_used == 0 && m->auto_unload && m->last_used_time+m->core->module_idle_time <= *now) {
         pa_module_free(m);
@@ -264,7 +227,7 @@ static int unused_callback(void *p, PA_GCC_UNUSED uint32_t idx, int *del, void *
 
 void pa_module_unload_unused(pa_core *c) {
     time_t now;
-    assert(c);
+    pa_assert(c);
 
     if (!c->modules)
         return;
@@ -275,7 +238,7 @@ void pa_module_unload_unused(pa_core *c) {
 
 static int unload_callback(void *p, PA_GCC_UNUSED uint32_t idx, int *del, PA_GCC_UNUSED void *userdata) {
     pa_module *m = p;
-    assert(m);
+    pa_assert(m);
 
     if (m->unload_requested) {
         pa_module_free(m);
@@ -286,18 +249,19 @@ static int unload_callback(void *p, PA_GCC_UNUSED uint32_t idx, int *del, PA_GCC
 }
 
 static void defer_cb(pa_mainloop_api*api, pa_defer_event *e, void *userdata) {
-    pa_core *core = userdata;
+    pa_core *core = PA_CORE(userdata);
+
+    pa_core_assert_ref(core);
     api->defer_enable(e, 0);
 
     if (!core->modules)
         return;
 
     pa_idxset_foreach(core->modules, unload_callback, NULL);
-
 }
 
 void pa_module_unload_request(pa_module *m) {
-    assert(m);
+    pa_assert(m);
 
     m->unload_requested = 1;
 
@@ -308,19 +272,19 @@ void pa_module_unload_request(pa_module *m) {
 }
 
 void pa_module_set_used(pa_module*m, int used) {
-    assert(m);
+    pa_assert(m);
 
     if (m->n_used != used)
         pa_subscription_post(m->core, PA_SUBSCRIPTION_EVENT_MODULE|PA_SUBSCRIPTION_EVENT_CHANGE, m->index);
 
-    if (m->n_used != used && used == 0)
+    if (used == 0 && m->n_used > 0)
         time(&m->last_used_time);
 
     m->n_used = used;
 }
 
 pa_modinfo *pa_module_get_info(pa_module *m) {
-    assert(m);
+    pa_assert(m);
 
-    return pa_modinfo_get_by_handle(m->dl);
+    return pa_modinfo_get_by_handle(m->dl, m->name);
 }

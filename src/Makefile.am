@@ -30,6 +30,7 @@ pulseincludedir=$(includedir)/pulse
 pulsecoreincludedir=$(includedir)/pulsecore
 pulseconfdir=$(sysconfdir)/pulse
 pulselibexecdir=$(libexecdir)/pulse
+xdgautostartdir=$(sysconfdir)/xdg/autostart
 
 ###################################
 #            Defines              #
@@ -76,15 +77,14 @@ endif
 
 if OS_IS_WIN32
 PA_THREAD_OBJS = \
-		pulsecore/once-win32.c pulsecore/once.h \
 		pulsecore/mutex-win32.c pulsecore/mutex.h \
-		pulsecore/thread-win32.c pulsecore/thread.h
+		pulsecore/thread-win32.c pulsecore/thread.h \
+		pulsecore/semaphore-win32.c pulsecore/semaphore.h
 else
 PA_THREAD_OBJS = \
-		pulsecore/atomic.h \
-		pulsecore/once-posix.c pulsecore/once.h \
 		pulsecore/mutex-posix.c pulsecore/mutex.h \
-		pulsecore/thread-posix.c pulsecore/thread.h
+		pulsecore/thread-posix.c pulsecore/thread.h \
+		pulsecore/semaphore-posix.c pulsecore/semaphore.h
 endif
 
 ###################################
@@ -100,12 +100,18 @@ EXTRA_DIST = \
 		depmod.py \
 		daemon/esdcompat.in \
 		utils/padsp \
-		modules/module-defs.h.m4
+		modules/module-defs.h.m4 \
+		daemon/pulseaudio-module-xsmp.desktop
 
 pulseconf_DATA = \
 		default.pa \
 		daemon.conf \
 		client.conf
+
+if HAVE_X11
+xdgautostart_DATA = \
+		daemon/pulseaudio-module-xsmp.desktop
+endif
 
 BUILT_SOURCES = \
 		pulse/version.h
@@ -122,13 +128,13 @@ pulseaudio_SOURCES = \
 		daemon/cpulimit.c daemon/cpulimit.h \
 		daemon/daemon-conf.c daemon/daemon-conf.h \
 		daemon/dumpmodules.c daemon/dumpmodules.h \
+		daemon/ltdl-bind-now.c daemon/ltdl-bind-now.h \
 		daemon/main.c \
 		pulsecore/gccmacro.h
 
-pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+pulseaudio_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS) $(LIBSAMPLERATE_CFLAGS) $(LIBSNDFILE_CFLAGS) $(CAP_CFLAGS) $(LIBOIL_CFLAGS) $(DBUS_CFLAGS)
 pulseaudio_CPPFLAGS = $(AM_CPPFLAGS)
-pulseaudio_LDADD = $(AM_LDADD) libpulsecore.la $(LIBLTDL) \
-		$(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS) $(LIBOIL_LIBS)
+pulseaudio_LDADD = $(AM_LDADD) libpulsecore.la $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(CAP_LIBS) $(LIBOIL_LIBS) $(DBUS_LIBS)
 # This is needed because automake doesn't properly expand the foreach below
 pulseaudio_DEPENDENCIES = libpulsecore.la $(PREOPEN_LIBS)
 
@@ -151,7 +157,8 @@ endif
 bin_PROGRAMS += \
 		pacat \
 		pactl \
-		paplay
+		paplay \
+		pasuspender
 
 if HAVE_AF_UNIX
 bin_PROGRAMS += pacmd
@@ -181,6 +188,11 @@ pactl_SOURCES = utils/pactl.c
 pactl_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
 pactl_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 pactl_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+pasuspender_SOURCES = utils/pasuspender.c
+pasuspender_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
+pasuspender_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
+pasuspender_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 pacmd_SOURCES = utils/pacmd.c pulsecore/pid.c pulsecore/pid.h
 pacmd_CFLAGS = $(AM_CFLAGS)
@@ -219,7 +231,14 @@ noinst_PROGRAMS = \
 		hook-list-test \
 		memblock-test \
 		thread-test \
-		flist-test
+		flist-test \
+		asyncq-test \
+		asyncmsgq-test \
+		queue-test \
+		rtpoll-test \
+		sig2str-test \
+		resampler-test \
+		smoother-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -274,12 +293,30 @@ thread_test_CFLAGS = $(AM_CFLAGS)
 thread_test_LDADD = $(AM_LDADD) libpulsecore.la
 thread_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-flist_test_SOURCES = tests/flist-test.c \
-		pulsecore/atomic.h \
-		pulsecore/flist.c pulsecore/flist.h
+flist_test_SOURCES = tests/flist-test.c
 flist_test_CFLAGS = $(AM_CFLAGS)
 flist_test_LDADD = $(AM_LDADD) libpulsecore.la
 flist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+asyncq_test_SOURCES = tests/asyncq-test.c
+asyncq_test_CFLAGS = $(AM_CFLAGS)
+asyncq_test_LDADD = $(AM_LDADD) libpulsecore.la
+asyncq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+asyncmsgq_test_SOURCES = tests/asyncmsgq-test.c
+asyncmsgq_test_CFLAGS = $(AM_CFLAGS)
+asyncmsgq_test_LDADD = $(AM_LDADD) libpulsecore.la
+asyncmsgq_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+queue_test_SOURCES = tests/queue-test.c
+queue_test_CFLAGS = $(AM_CFLAGS)
+queue_test_LDADD = $(AM_LDADD) libpulsecore.la
+queue_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+rtpoll_test_SOURCES = tests/rtpoll-test.c
+rtpoll_test_CFLAGS = $(AM_CFLAGS)
+rtpoll_test_LDADD = $(AM_LDADD) libpulsecore.la
+rtpoll_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 mcalign_test_SOURCES = tests/mcalign-test.c
 mcalign_test_CFLAGS = $(AM_CFLAGS)
@@ -340,6 +377,21 @@ interpol_test_SOURCES = tests/interpol-test.c
 interpol_test_LDADD = $(AM_LDADD) libpulse.la
 interpol_test_CFLAGS = $(AM_CFLAGS)
 interpol_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+sig2str_test_SOURCES = tests/sig2str-test.c
+sig2str_test_LDADD = $(AM_LDADD) libpulsecore.la
+sig2str_test_CFLAGS = $(AM_CFLAGS)
+sig2str_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+resampler_test_SOURCES = tests/resampler-test.c
+resampler_test_LDADD = $(AM_LDADD) libpulsecore.la
+resampler_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+resampler_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+smoother_test_SOURCES = tests/smoother-test.c
+smoother_test_LDADD = $(AM_LDADD) libpulsecore.la
+smoother_test_CFLAGS = $(AM_CFLAGS)
+smoother_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 ###################################
 #         Client library          #
@@ -455,6 +507,10 @@ libpulse_la_SOURCES += \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/winsock.h pulsecore/creds.h \
 		pulsecore/shm.c pulsecore/shm.h \
+		pulsecore/flist.c pulsecore/flist.h \
+		pulsecore/object.c pulsecore/object.h \
+		pulsecore/msgobject.c pulsecore/msgobject.h \
+		pulsecore/once.c pulsecore/once.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -515,10 +571,26 @@ libpulsedsp_la_LIBADD = $(AM_LIBADD) libpulse.la
 libpulsedsp_la_LDFLAGS = -avoid-version
 
 ###################################
+#      Speex Resampler            #
+###################################
+
+noinst_LTLIBRARIES = libspeex-resampler-fixed.la libspeex-resampler-float.la libffmpeg-resampler.la
+
+libspeex_resampler_fixed_la_CPPFLAGS = $(AM_CPPFLAGS) -DRANDOM_PREFIX=paspfx -DOUTSIDE_SPEEX -DFIXED_POINT
+libspeex_resampler_fixed_la_SOURCES = pulsecore/speex/resample.c pulsecore/speex/speex_resampler.h pulsecore/speex/arch.h pulsecore/speex/fixed_generic.h pulsecore/speexwrap.h
+
+libspeex_resampler_float_la_CPPFLAGS = $(AM_CPPFLAGS) -DRANDOM_PREFIX=paspfl -DOUTSIDE_SPEEX
+libspeex_resampler_float_la_SOURCES = pulsecore/speex/resample.c pulsecore/speex/speex_resampler.h pulsecore/speex/arch.h
+
+libffmpeg_resampler_la_CPPFLAGS = $(AM_CPPFLAGS)
+libffmpeg_resampler_la_SOURCES = pulsecore/ffmpeg/resample2.c pulsecore/ffmpeg/avcodec.h pulsecore/ffmpeg/dsputil.h
+
+###################################
 #      Daemon core library        #
 ###################################
 
-pulsecoreinclude_HEADERS = \
+#pulsecoreinclude_HEADERS =
+noinst_HEADERS = \
 		pulsecore/autoload.h \
 		pulsecore/atomic.h \
 		pulsecore/cli-command.h \
@@ -567,6 +639,7 @@ pulsecoreinclude_HEADERS = \
 		pulsecore/refcnt.h \
 		pulsecore/mutex.h \
 		pulsecore/thread.h \
+		pulsecore/semaphore.h \
 		pulsecore/once.h
 
 lib_LTLIBRARIES += libpulsecore.la
@@ -608,6 +681,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/memchunk.c pulsecore/memchunk.h \
 		pulsecore/modargs.c pulsecore/modargs.h \
 		pulsecore/modinfo.c pulsecore/modinfo.h \
+		pulsecore/ltdl-helper.c pulsecore/ltdl-helper.h \
 		pulsecore/module.c pulsecore/module.h \
 		pulsecore/namereg.c pulsecore/namereg.h \
 		pulsecore/pid.c pulsecore/pid.h \
@@ -636,6 +710,19 @@ libpulsecore_la_SOURCES += \
 		pulsecore/core-error.c pulsecore/core-error.h \
 		pulsecore/hook-list.c pulsecore/hook-list.h \
 		pulsecore/shm.c pulsecore/shm.h \
+		pulsecore/flist.c pulsecore/flist.h \
+		pulsecore/asyncmsgq.c pulsecore/asyncmsgq.h \
+		pulsecore/asyncq.c pulsecore/asyncq.h \
+		pulsecore/thread-mq.c pulsecore/thread-mq.h \
+		pulsecore/fdsem.c pulsecore/fdsem.h \
+		pulsecore/object.c pulsecore/object.h \
+		pulsecore/msgobject.c pulsecore/msgobject.h \
+		pulsecore/rtsig.c pulsecore/rtsig.h \
+		pulsecore/rtpoll.c pulsecore/rtpoll.h \
+		pulsecore/rtclock.c pulsecore/rtclock.h \
+		pulsecore/macro.h \
+		pulsecore/once.c pulsecore/once.h \
+		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
@@ -645,13 +732,14 @@ endif
 
 libpulsecore_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBOIL_CFLAGS)
 libpulsecore_la_LDFLAGS = -version-info $(LIBPULSECORE_VERSION_INFO)
-libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LIBICONV)
+libpulsecore_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) $(LIBSAMPLERATE_LIBS) $(LIBSNDFILE_LIBS) $(WINSOCK_LIBS) $(LIBOIL_LIBS) $(LIBICONV) libspeex-resampler-fixed.la libspeex-resampler-float.la libffmpeg-resampler.la
 
 ###################################
 #   Plug-in support libraries     #
 ###################################
 
-pulsecoreinclude_HEADERS += \
+#pulsecoreinclude_HEADERS +=
+noinst_HEADERS += \
 		pulsecore/socket-util.h \
 		pulsecore/iochannel.h \
 		pulsecore/socket-server.h \
@@ -700,9 +788,9 @@ modlibexec_LTLIBRARIES = \
 		libauthkey-prop.la \
 		libstrlist.la \
 		libprotocol-simple.la \
-		libprotocol-esound.la \
+		libprotocol-http.la \
 		libprotocol-native.la \
-		libprotocol-http.la
+		libprotocol-esound.la
 
 # We need to emulate sendmsg/recvmsg to support this on Win32
 if !OS_IS_WIN32
@@ -711,7 +799,8 @@ modlibexec_LTLIBRARIES += \
 endif
 
 if HAVE_X11
-pulsecoreinclude_HEADERS += \
+#pulsecoreinclude_HEADERS +=
+noinst_HEADERS += \
 		pulsecore/x11wrap.h \
 		pulsecore/x11prop.h
 
@@ -721,7 +810,8 @@ modlibexec_LTLIBRARIES += \
 endif
 
 if HAVE_AVAHI
-pulsecoreinclude_HEADERS += \
+#pulsecoreinclude_HEADERS +=
+noinst_HEADERS += \
 		pulsecore/avahi-wrap.h
 
 modlibexec_LTLIBRARIES += \
@@ -851,19 +941,23 @@ modlibexec_LTLIBRARIES += \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
 		module-simple-protocol-tcp.la \
-		module-esound-protocol-tcp.la \
-		module-native-protocol-tcp.la \
-		module-native-protocol-fd.la \
-		module-sine.la \
-		module-combine.la \
-		module-tunnel-sink.la \
-		module-tunnel-source.la \
 		module-null-sink.la \
-		module-esound-sink.la \
-		module-http-protocol-tcp.la \
 		module-detect.la \
 		module-volume-restore.la \
-		module-rescue-streams.la
+		module-default-device-restore.la \
+		module-rescue-streams.la \
+		module-suspend-on-idle.la \
+		module-http-protocol-tcp.la \
+		module-sine.la \
+		module-native-protocol-tcp.la \
+		module-native-protocol-fd.la \
+		module-esound-protocol-tcp.la \
+		module-combine.la \
+		module-remap-sink.la \
+		module-ladspa-sink.la \
+		module-esound-sink.la
+#		module-tunnel-sink.la
+#		module-tunnel-source.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -876,9 +970,9 @@ if HAVE_AF_UNIX
 modlibexec_LTLIBRARIES += \
 		module-cli-protocol-unix.la \
 		module-simple-protocol-unix.la \
-		module-esound-protocol-unix.la \
+		module-http-protocol-unix.la \
 		module-native-protocol-unix.la \
-		module-http-protocol-unix.la
+		module-esound-protocol-unix.la
 endif
 
 if HAVE_MKFIFO
@@ -901,14 +995,14 @@ endif
 if HAVE_X11
 modlibexec_LTLIBRARIES += \
 		module-x11-bell.la \
-		module-x11-publish.la
+		module-x11-publish.la \
+		module-x11-xsmp.la
 endif
 
 if HAVE_OSS
 modlibexec_LTLIBRARIES += \
 		liboss-util.la \
-		module-oss.la \
-		module-oss-mmap.la
+		module-oss.la
 endif
 
 if HAVE_ALSA
@@ -952,10 +1046,10 @@ pulselibexec_PROGRAMS = \
 		gconf-helper
 endif
 
-if OS_IS_WIN32
-modlibexec_LTLIBRARIES += \
-		module-waveout.la
-endif
+#if OS_IS_WIN32
+#modlibexec_LTLIBRARIES += \
+#		module-waveout.la
+#endif
 
 if HAVE_HAL
 modlibexec_LTLIBRARIES += \
@@ -980,6 +1074,8 @@ SYMDEF_FILES = \
 		modules/module-native-protocol-fd-symdef.h \
 		modules/module-sine-symdef.h \
 		modules/module-combine-symdef.h \
+		modules/module-remap-sink-symdef.h \
+		modules/module-ladspa-sink-symdef.h \
 		modules/module-esound-compat-spawnfd-symdef.h \
 		modules/module-esound-compat-spawnpid-symdef.h \
 		modules/module-match-symdef.h \
@@ -994,8 +1090,8 @@ SYMDEF_FILES = \
 		modules/module-http-protocol-unix-symdef.h \
 		modules/module-x11-bell-symdef.h \
 		modules/module-x11-publish-symdef.h \
+		modules/module-x11-xsmp-symdef.h \
 		modules/module-oss-symdef.h \
-		modules/module-oss-mmap-symdef.h \
 		modules/module-alsa-sink-symdef.h \
 		modules/module-alsa-source-symdef.h \
 		modules/module-solaris-symdef.h \
@@ -1006,7 +1102,9 @@ SYMDEF_FILES = \
 		modules/module-jack-sink-symdef.h \
 		modules/module-jack-source-symdef.h \
 		modules/module-volume-restore-symdef.h \
+		modules/module-default-device-restore-symdef.h \
 		modules/module-rescue-streams-symdef.h \
+		modules/module-suspend-on-idle-symdef.h \
 		modules/module-hal-detect-symdef.h \
 		modules/gconf/module-gconf-symdef.h
 
@@ -1126,18 +1224,27 @@ module_combine_la_SOURCES = modules/module-combine.c
 module_combine_la_LDFLAGS = -module -avoid-version
 module_combine_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
+module_remap_sink_la_SOURCES = modules/module-remap-sink.c
+module_remap_sink_la_LDFLAGS = -module -avoid-version
+module_remap_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+
+module_ladspa_sink_la_SOURCES = modules/module-ladspa-sink.c modules/ladspa.h
+module_ladspa_sink_la_CFLAGS = -DLADSPA_PATH=\"$(libdir)/ladspa:/usr/local/lib/ladspa:/usr/lib/ladspa\" $(AM_CFLAGS)
+module_ladspa_sink_la_LDFLAGS = -module -avoid-version
+module_ladspa_sink_la_LIBADD = $(AM_LIBADD) $(LIBLTDL) libpulsecore.la
+
 module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
 module_match_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
-module_tunnel_sink_la_SOURCES = modules/module-tunnel.c
-module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
-module_tunnel_sink_la_LDFLAGS = -module -avoid-version
-module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
+#module_tunnel_sink_la_SOURCES = modules/module-tunnel.c
+#module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
+#module_tunnel_sink_la_LDFLAGS = -module -avoid-version
+#module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
 
-module_tunnel_source_la_SOURCES = modules/module-tunnel.c
-module_tunnel_source_la_LDFLAGS = -module -avoid-version
-module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
+#module_tunnel_source_la_SOURCES = modules/module-tunnel.c
+#module_tunnel_source_la_LDFLAGS = -module -avoid-version
+#module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
 
 # X11
 
@@ -1151,6 +1258,11 @@ module_x11_publish_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
 module_x11_publish_la_LDFLAGS = -module -avoid-version
 module_x11_publish_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libx11wrap.la libauthkey.la libauthkey-prop.la libx11prop.la libstrlist.la libpulsecore.la
 
+module_x11_xsmp_la_SOURCES = modules/module-x11-xsmp.c
+module_x11_xsmp_la_CFLAGS = $(AM_CFLAGS) $(X_CFLAGS)
+module_x11_xsmp_la_LDFLAGS = -module -avoid-version
+module_x11_xsmp_la_LIBADD = $(AM_LIBADD) $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS) libpulsecore.la
+
 # OSS
 
 liboss_util_la_SOURCES = modules/oss-util.c modules/oss-util.h
@@ -1160,10 +1272,6 @@ liboss_util_la_LIBADD = libpulsecore.la
 module_oss_la_SOURCES = modules/module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version
 module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la libpulsecore.la
-
-module_oss_mmap_la_SOURCES = modules/module-oss-mmap.c
-module_oss_mmap_la_LDFLAGS = -module -avoid-version
-module_oss_mmap_la_LIBADD = $(AM_LIBADD) liboss-util.la libpulsecore.la
 
 # ALSA
 
@@ -1211,10 +1319,10 @@ module_mmkbd_evdev_la_CFLAGS = $(AM_CFLAGS)
 
 # Windows waveout
 
-module_waveout_la_SOURCES = modules/module-waveout.c
-module_waveout_la_LDFLAGS = -module -avoid-version
-module_waveout_la_LIBADD = $(AM_LIBADD) libpulsecore.la -lwinmm
-module_waveout_la_CFLAGS = $(AM_CFLAGS)
+#module_waveout_la_SOURCES = modules/module-waveout.c
+#module_waveout_la_LDFLAGS = -module -avoid-version
+#module_waveout_la_LIBADD = $(AM_LIBADD) libpulsecore.la -lwinmm
+#module_waveout_la_CFLAGS = $(AM_CFLAGS)
 
 # Hardware autodetection module
 module_detect_la_SOURCES = modules/module-detect.c
@@ -1228,16 +1336,28 @@ module_volume_restore_la_LDFLAGS = -module -avoid-version
 module_volume_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_volume_restore_la_CFLAGS = $(AM_CFLAGS)
 
+# Default sink/source restore module
+module_default_device_restore_la_SOURCES = modules/module-default-device-restore.c
+module_default_device_restore_la_LDFLAGS = -module -avoid-version
+module_default_device_restore_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_default_device_restore_la_CFLAGS = $(AM_CFLAGS)
+
 # Rescue streams module
 module_rescue_streams_la_SOURCES = modules/module-rescue-streams.c
 module_rescue_streams_la_LDFLAGS = -module -avoid-version
 module_rescue_streams_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_rescue_streams_la_CFLAGS = $(AM_CFLAGS)
 
+# Suspend-on-idle module
+module_suspend_on_idle_la_SOURCES = modules/module-suspend-on-idle.c
+module_suspend_on_idle_la_LDFLAGS = -module -avoid-version
+module_suspend_on_idle_la_LIBADD = $(AM_LIBADD) libpulsecore.la
+module_suspend_on_idle_la_CFLAGS = $(AM_CFLAGS)
+
 # RTP modules
 module_rtp_send_la_SOURCES = modules/rtp/module-rtp-send.c
 module_rtp_send_la_LDFLAGS = -module -avoid-version
-module_rtp_send_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la
+module_rtp_send_la_LIBADD = $(AM_LIBADD) libpulsecore.la librtp.la libsocket-util.la
 module_rtp_send_la_CFLAGS = $(AM_CFLAGS)
 
 module_rtp_recv_la_SOURCES = modules/rtp/module-rtp-recv.c
@@ -1275,7 +1395,7 @@ module_gconf_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 module_gconf_la_CFLAGS = $(AM_CFLAGS) -DPA_GCONF_HELPER=\"$(pulselibexecdir)/gconf-helper\"
 
 gconf_helper_SOURCES = modules/gconf/gconf-helper.c
-gconf_helper_LDADD = $(AM_LDADD) $(GCONF_LIBS)
+gconf_helper_LDADD = $(AM_LDADD) $(GCONF_LIBS) libpulsecore.la
 gconf_helper_CFLAGS = $(AM_CFLAGS) $(GCONF_CFLAGS)
 gconf_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
@@ -1304,8 +1424,8 @@ default.pa: daemon/default.pa.win32
 else
 default.pa: daemon/default.pa.in Makefile
 	sed -e 's,@PA_BINARY\@,$(PA_BINARY),g' \
-	    -e 's,@HAVE_HAL_TRUE\@,@HAVE_HAL_TRUE@,g' \
-	    -e 's,@HAVE_HAL_FALSE\@,@HAVE_HAL_FALSE@,g' < $< > $@
+            -e 's,@PA_DLSEARCHPATH\@,$(modlibexecdir),g' \
+	    -e 's,@PA_SOEXT\@,.so,g' < $< > $@
 endif
 
 daemon.conf: daemon/daemon.conf.in Makefile
@@ -1322,5 +1442,14 @@ install-exec-hook:
 
 massif: pulseaudio
 	libtool --mode=execute valgrind --tool=massif --depth=6  --alloc-fn=pa_xmalloc --alloc-fn=pa_xmalloc0 --alloc-fn=pa_xrealloc --alloc-fn=dbus_realloc --alloc-fn=pa_xnew0_internal --alloc-fn=pa_xnew_internal ./pulseaudio
+
+update-speex:
+	wget -O pulsecore/speex/speex_resampler.h http://svn.xiph.org/trunk/speex/include/speex/speex_resampler.h
+	wget -O pulsecore/speex/resample.c http://svn.xiph.org/trunk/speex/libspeex/resample.c
+	wget -O pulsecore/speex/arch.h http://svn.xiph.org/trunk/speex/libspeex/arch.h
+	wget -O pulsecore/speex/fixed_generic.h http://svn.xiph.org/trunk/speex/libspeex/fixed_generic.h
+
+update-ffmpeg:
+	wget -O pulsecore/ffmpeg/resample2.c http://svn.mplayerhq.hu/ffmpeg/trunk/libavcodec/resample2.c?view=co
 
 .PHONY: utils/padsp

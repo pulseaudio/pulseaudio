@@ -25,12 +25,12 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/gccmacro.h>
+#include <pulsecore/macro.h>
 
 #include "mainloop-api.h"
 
@@ -41,32 +41,38 @@ struct once_info {
 
 static void once_callback(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
     struct once_info *i = userdata;
-    assert(m && i && i->callback);
 
+    pa_assert(m);
+    pa_assert(i);
+
+    pa_assert(i->callback);
     i->callback(m, i->userdata);
 
-    assert(m->defer_free);
+    pa_assert(m->defer_free);
     m->defer_free(e);
 }
 
 static void free_callback(pa_mainloop_api *m, PA_GCC_UNUSED pa_defer_event *e, void *userdata) {
     struct once_info *i = userdata;
-    assert(m && i);
+
+    pa_assert(m);
+    pa_assert(i);
     pa_xfree(i);
 }
 
 void pa_mainloop_api_once(pa_mainloop_api* m, void (*callback)(pa_mainloop_api *m, void *userdata), void *userdata) {
     struct once_info *i;
     pa_defer_event *e;
-    assert(m && callback);
+
+    pa_assert(m);
+    pa_assert(callback);
 
     i = pa_xnew(struct once_info, 1);
     i->callback = callback;
     i->userdata = userdata;
 
-    assert(m->defer_new);
-    e = m->defer_new(m, once_callback, i);
-    assert(e);
+    pa_assert(m->defer_new);
+    pa_assert_se(e = m->defer_new(m, once_callback, i));
     m->defer_set_destroy(e, free_callback);
 }
 

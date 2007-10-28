@@ -26,7 +26,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <unistd.h>
 
 #include <pulsecore/module.h>
@@ -35,6 +34,7 @@
 #include <pulsecore/sioman.h>
 #include <pulsecore/log.h>
 #include <pulsecore/modargs.h>
+#include <pulsecore/macro.h>
 
 #include "module-cli-symdef.h"
 
@@ -51,8 +51,8 @@ static const char* const valid_modargs[] = {
 static void eof_and_unload_cb(pa_cli*c, void *userdata) {
     pa_module *m = userdata;
 
-    assert(c);
-    assert(m);
+    pa_assert(c);
+    pa_assert(m);
 
     pa_module_unload_request(m);
 }
@@ -60,21 +60,20 @@ static void eof_and_unload_cb(pa_cli*c, void *userdata) {
 static void eof_and_exit_cb(pa_cli*c, void *userdata) {
     pa_module *m = userdata;
 
-    assert(c);
-    assert(m);
+    pa_assert(c);
+    pa_assert(m);
 
     m->core->mainloop->quit(m->core->mainloop, 0);
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_iochannel *io;
     pa_modargs *ma;
     int exit_on_eof = 0;
 
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
-    if (c->running_as_daemon) {
+    if (m->core->running_as_daemon) {
         pa_log_info("Running as daemon, refusing to load this module.");
         return 0;
     }
@@ -94,12 +93,10 @@ int pa__init(pa_core *c, pa_module*m) {
         goto fail;
     }
 
-    io = pa_iochannel_new(c->mainloop, STDIN_FILENO, STDOUT_FILENO);
-    assert(io);
+    io = pa_iochannel_new(m->core->mainloop, STDIN_FILENO, STDOUT_FILENO);
     pa_iochannel_set_noclose(io, 1);
 
-    m->userdata = pa_cli_new(c, io, m);
-    assert(m->userdata);
+    m->userdata = pa_cli_new(m->core, io, m);
 
     pa_cli_set_eof_callback(m->userdata, exit_on_eof ? eof_and_exit_cb : eof_and_unload_cb, m);
 
@@ -115,11 +112,10 @@ fail:
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
-    assert(c);
-    assert(m);
+void pa__done(pa_module*m) {
+    pa_assert(m);
 
-    if (c->running_as_daemon == 0) {
+    if (m->core->running_as_daemon == 0) {
         pa_cli_free(m->userdata);
         pa_stdio_release();
     }

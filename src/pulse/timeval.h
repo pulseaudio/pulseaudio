@@ -33,6 +33,11 @@
 
 PA_C_DECL_BEGIN
 
+#define PA_MSEC_PER_SEC 1000
+#define PA_USEC_PER_SEC 1000000
+#define PA_NSEC_PER_SEC 1000000000
+#define PA_USEC_PER_MSEC 1000
+
 struct timeval;
 
 /** Return the current timestamp, just like UNIX gettimeofday() */
@@ -40,16 +45,22 @@ struct timeval *pa_gettimeofday(struct timeval *tv);
 
 /** Calculate the difference between the two specified timeval
  * structs. */
-pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b);
+pa_usec_t pa_timeval_diff(const struct timeval *a, const struct timeval *b) PA_GCC_PURE;
 
 /** Compare the two timeval structs and return 0 when equal, negative when a < b, positive otherwse */
-int pa_timeval_cmp(const struct timeval *a, const struct timeval *b);
+int pa_timeval_cmp(const struct timeval *a, const struct timeval *b) PA_GCC_PURE;
 
 /** Return the time difference between now and the specified timestamp */
 pa_usec_t pa_timeval_age(const struct timeval *tv);
 
 /** Add the specified time inmicroseconds to the specified timeval structure */
-struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v);
+struct timeval* pa_timeval_add(struct timeval *tv, pa_usec_t v) PA_GCC_PURE;
+
+/** Store the specified uec value in the timeval struct. \since 0.9.7 */
+struct timeval* pa_timeval_store(struct timeval *tv, pa_usec_t v);
+
+/** Load the specified tv value and return it in usec. \since 0.9.7 */
+pa_usec_t pa_timeval_load(const struct timeval *tv);
 
 PA_C_DECL_END
 

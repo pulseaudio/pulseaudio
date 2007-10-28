@@ -27,12 +27,12 @@
 
 #include <sys/types.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
 
 #include "strbuf.h"
 
@@ -42,7 +42,7 @@ struct chunk {
     size_t length;
 };
 
-#define CHUNK_TO_TEXT(c) ((char*) (c) + sizeof(struct chunk))
+#define CHUNK_TO_TEXT(c) ((char*) (c) + PA_ALIGN(sizeof(struct chunk)))
 
 struct pa_strbuf {
     size_t length;
@@ -50,14 +50,18 @@ struct pa_strbuf {
 };
 
 pa_strbuf *pa_strbuf_new(void) {
-    pa_strbuf *sb = pa_xmalloc(sizeof(pa_strbuf));
+    pa_strbuf *sb;
+
+    sb = pa_xnew(pa_strbuf, 1);
     sb->length = 0;
     sb->head = sb->tail = NULL;
+
     return sb;
 }
 
 void pa_strbuf_free(pa_strbuf *sb) {
-    assert(sb);
+    pa_assert(sb);
+
     while (sb->head) {
         struct chunk *c = sb->head;
         sb->head = sb->head->next;
@@ -72,12 +76,13 @@ void pa_strbuf_free(pa_strbuf *sb) {
 char *pa_strbuf_tostring(pa_strbuf *sb) {
     char *t, *e;
     struct chunk *c;
-    assert(sb);
 
-    e = t = pa_xmalloc(sb->length+1);
+    pa_assert(sb);
+
+    e = t = pa_xnew(char, sb->length+1);
 
     for (c = sb->head; c; c = c->next) {
-        assert((size_t) (e-t) <= sb->length);
+        pa_assert((size_t) (e-t) <= sb->length);
         memcpy(e, CHUNK_TO_TEXT(c), c->length);
         e += c->length;
     }
@@ -85,7 +90,7 @@ char *pa_strbuf_tostring(pa_strbuf *sb) {
     /* Trailing NUL */
     *e = 0;
 
-    assert(e == t+sb->length);
+    pa_assert(e == t+sb->length);
 
     return t;
 }
@@ -93,27 +98,33 @@ char *pa_strbuf_tostring(pa_strbuf *sb) {
 /* Combination of pa_strbuf_free() and pa_strbuf_tostring() */
 char *pa_strbuf_tostring_free(pa_strbuf *sb) {
     char *t;
-    assert(sb);
+
+    pa_assert(sb);
     t = pa_strbuf_tostring(sb);
     pa_strbuf_free(sb);
+
     return t;
 }
 
 /* Append a string to the string buffer */
 void pa_strbuf_puts(pa_strbuf *sb, const char *t) {
-    assert(sb && t);
+
+    pa_assert(sb);
+    pa_assert(t);
+
     pa_strbuf_putsn(sb, t, strlen(t));
 }
 
 /* Append a new chunk to the linked list */
 static void append(pa_strbuf *sb, struct chunk *c) {
-    assert(sb && c);
+    pa_assert(sb);
+    pa_assert(c);
 
     if (sb->tail) {
-        assert(sb->head);
+        pa_assert(sb->head);
         sb->tail->next = c;
     } else {
-        assert(!sb->head);
+        pa_assert(!sb->head);
         sb->head = c;
     }
 
@@ -125,12 +136,14 @@ static void append(pa_strbuf *sb, struct chunk *c) {
 /* Append up to l bytes of a string to the string buffer */
 void pa_strbuf_putsn(pa_strbuf *sb, const char *t, size_t l) {
     struct chunk *c;
-    assert(sb && t);
+
+    pa_assert(sb);
+    pa_assert(t);
 
     if (!l)
        return;
 
-    c = pa_xmalloc(sizeof(struct chunk)+l);
+    c = pa_xmalloc(PA_ALIGN(sizeof(struct chunk)) + l);
     c->length = l;
     memcpy(CHUNK_TO_TEXT(c), t, l);
 
@@ -143,16 +156,18 @@ int pa_strbuf_printf(pa_strbuf *sb, const char *format, ...) {
     int size = 100;
     struct chunk *c = NULL;
 
-    assert(sb);
+    pa_assert(sb);
+    pa_assert(format);
 
     for(;;) {
         va_list ap;
         int r;
 
-        c = pa_xrealloc(c, sizeof(struct chunk)+size);
+        c = pa_xrealloc(c, PA_ALIGN(sizeof(struct chunk)) + size);
 
         va_start(ap, format);
         r = vsnprintf(CHUNK_TO_TEXT(c), size, format, ap);
+        CHUNK_TO_TEXT(c)[size-1] = 0;
         va_end(ap);
 
         if (r > -1 && r < size) {

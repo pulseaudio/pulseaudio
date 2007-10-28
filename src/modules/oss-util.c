@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
 #include <stdio.h>
@@ -37,9 +36,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <pulse/xmalloc.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "oss-util.h"
 
@@ -47,45 +48,42 @@ int pa_oss_open(const char *device, int *mode, int* pcaps) {
     int fd = -1;
     int caps;
 
-    assert(device && mode && (*mode == O_RDWR || *mode == O_RDONLY || *mode == O_WRONLY));
+    pa_assert(device);
+    pa_assert(mode);
+    pa_assert(*mode == O_RDWR || *mode == O_RDONLY || *mode == O_WRONLY);
 
     if(!pcaps)
         pcaps = &caps;
 
     if (*mode == O_RDWR) {
-        if ((fd = open(device, O_RDWR|O_NDELAY)) >= 0) {
-            int dcaps, *tcaps;
+        if ((fd = open(device, O_RDWR|O_NDELAY|O_NOCTTY)) >= 0) {
             ioctl(fd, SNDCTL_DSP_SETDUPLEX, 0);
 
-            tcaps = pcaps ? pcaps : &dcaps;
-
-            if (ioctl(fd, SNDCTL_DSP_GETCAPS, tcaps) < 0) {
+            if (ioctl(fd, SNDCTL_DSP_GETCAPS, pcaps) < 0) {
                 pa_log("SNDCTL_DSP_GETCAPS: %s", pa_cstrerror(errno));
                 goto fail;
             }
 
-            if (*tcaps & DSP_CAP_DUPLEX)
+            if (*pcaps & DSP_CAP_DUPLEX)
                 goto success;
 
             pa_log_warn("'%s' doesn't support full duplex", device);
 
-            close(fd);
+            pa_close(fd);
         }
 
-        if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY)) < 0) {
-            if ((fd = open(device, (*mode = O_RDONLY)|O_NDELAY)) < 0) {
+        if ((fd = open(device, (*mode = O_WRONLY)|O_NDELAY|O_NOCTTY)) < 0) {
+            if ((fd = open(device, (*mode = O_RDONLY)|O_NDELAY|O_NOCTTY)) < 0) {
                 pa_log("open('%s'): %s", device, pa_cstrerror(errno));
                 goto fail;
             }
         }
     } else {
-        if ((fd = open(device, *mode|O_NDELAY)) < 0) {
+        if ((fd = open(device, *mode|O_NDELAY|O_NOCTTY)) < 0) {
             pa_log("open('%s'): %s", device, pa_cstrerror(errno));
             goto fail;
         }
     }
-
-success:
 
     *pcaps = 0;
 
@@ -94,12 +92,14 @@ success:
         goto fail;
     }
 
+success:
+
     pa_log_debug("capabilities:%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
                  *pcaps & DSP_CAP_BATCH ? " BATCH" : "",
 #ifdef DSP_CAP_BIND
                  *pcaps & DSP_CAP_BIND ? " BIND" : "",
 #else
-		 "",
+                 "",
 #endif
                  *pcaps & DSP_CAP_COPROC ? " COPROC" : "",
                  *pcaps & DSP_CAP_DUPLEX ? " DUPLEX" : "",
@@ -122,7 +122,7 @@ success:
 #ifdef DSP_CAP_MULTI
                  *pcaps & DSP_CAP_MULTI ? " MULTI" : "",
 #else
-		 "",
+                 "",
 #endif
 #ifdef DSP_CAP_OUTPUT
                  *pcaps & DSP_CAP_OUTPUT ? " OUTPUT" : "",
@@ -142,13 +142,13 @@ success:
 #endif
                  *pcaps & DSP_CAP_TRIGGER ? " TRIGGER" : "");
 
-    pa_fd_set_cloexec(fd, 1);
+    pa_make_fd_cloexec(fd);
 
     return fd;
 
 fail:
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
     return -1;
 }
 
@@ -166,7 +166,8 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         [PA_SAMPLE_FLOAT32BE] = AFMT_QUERY, /* not supported */
     };
 
-    assert(fd >= 0 && ss);
+    pa_assert(fd >= 0);
+    pa_assert(ss);
 
     orig_format = ss->format;
 
@@ -199,7 +200,7 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         pa_log("SNDCTL_DSP_CHANNELS: %s", pa_cstrerror(errno));
         return -1;
     }
-    assert(channels > 0);
+    pa_assert(channels > 0);
 
     if (ss->channels != channels) {
         pa_log_warn("device doesn't support %i channels, using %i channels.", ss->channels, channels);
@@ -211,7 +212,7 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         pa_log("SNDCTL_DSP_SPEED: %s", pa_cstrerror(errno));
         return -1;
     }
-    assert(speed > 0);
+    pa_assert(speed > 0);
 
     if (ss->rate != (unsigned) speed) {
         pa_log_warn("device doesn't support %i Hz, changed to %i Hz.", ss->rate, speed);
@@ -248,27 +249,29 @@ int pa_oss_set_fragments(int fd, int nfrags, int frag_size) {
     return 0;
 }
 
-static int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvolume *volume) {
+int pa_oss_get_volume(int fd, int mixer, const pa_sample_spec *ss, pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
 
-    assert(fd >= 0);
-    assert(ss);
-    assert(volume);
+    pa_assert(fd >= 0);
+    pa_assert(ss);
+    pa_assert(volume);
 
     if (ioctl(fd, mixer, &vol) < 0)
         return -1;
 
+    pa_cvolume_reset(volume, ss->channels);
+
     volume->values[0] = ((vol & 0xFF) * PA_VOLUME_NORM) / 100;
 
-    if ((volume->channels = ss->channels) >= 2)
+    if (volume->channels >= 2)
         volume->values[1] = (((vol >> 8) & 0xFF) * PA_VOLUME_NORM) / 100;
 
     pa_log_debug("Read mixer settings: %s", pa_cvolume_snprint(cv, sizeof(cv), volume));
     return 0;
 }
 
-static int pa_oss_set_volume(int fd, int mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
+int pa_oss_set_volume(int fd, long mixer, const pa_sample_spec *ss, const pa_cvolume *volume) {
     char cv[PA_CVOLUME_SNPRINT_MAX];
     unsigned vol;
     pa_volume_t l, r;
@@ -289,40 +292,38 @@ static int pa_oss_set_volume(int fd, int mixer, const pa_sample_spec *ss, const 
     return 0;
 }
 
-int pa_oss_get_pcm_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
-    return pa_oss_get_volume(fd, SOUND_MIXER_READ_PCM, ss, volume);
-}
+static int get_device_number(const char *dev) {
+    char buf[PATH_MAX];
+    const char *p, *e;
 
-int pa_oss_set_pcm_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume) {
-    return pa_oss_set_volume(fd, SOUND_MIXER_WRITE_PCM, ss, volume);
-}
+    if (readlink(dev, buf, sizeof(buf)) < 0) {
+        if (errno != EINVAL && errno != ENOLINK)
+            return -1;
 
-int pa_oss_get_input_volume(int fd, const pa_sample_spec *ss, pa_cvolume *volume) {
-    return pa_oss_get_volume(fd, SOUND_MIXER_READ_IGAIN, ss, volume);
-}
+        p = dev;
+    } else
+        p = buf;
 
-int pa_oss_set_input_volume(int fd, const pa_sample_spec *ss, const pa_cvolume *volume) {
-    return pa_oss_set_volume(fd, SOUND_MIXER_WRITE_IGAIN, ss, volume);
+    if ((e = strrchr(p, '/')))
+        p = e+1;
+
+    if (p == 0)
+        return 0;
+
+    p = strchr(p, 0) -1;
+
+    if (*p >= '0' && *p <= '9')
+        return *p - '0';
+
+    return -1;
 }
 
 int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
     FILE *f;
-    const char *e = NULL;
     int n, r = -1;
     int b = 0;
 
-    if (strncmp(dev, "/dev/dsp", 8) == 0)
-        e = dev+8;
-    else if (strncmp(dev, "/dev/adsp", 9) == 0)
-        e = dev+9;
-    else
-        return -1;
-
-    if (*e == 0)
-        n = 0;
-    else if (*e >= '0' && *e <= '9' && *(e+1) == 0)
-        n = *e - '0';
-    else
+    if ((n = get_device_number(dev)) < 0)
         return -1;
 
     if (!(f = fopen("/dev/sndstat", "r")) &&
@@ -357,7 +358,7 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
 
         if (device == n) {
             char *k = strchr(line, ':');
-            assert(k);
+            pa_assert(k);
             k++;
             k += strspn(k, " ");
 
@@ -372,4 +373,35 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
 
     fclose(f);
     return r;
+}
+
+static int open_mixer(const char *mixer) {
+    int fd;
+
+    if ((fd = open(mixer, O_RDWR|O_NDELAY|O_NOCTTY)) >= 0)
+        return fd;
+
+    return -1;
+}
+
+int pa_oss_open_mixer_for_device(const char *device) {
+    int n;
+    char *fn;
+    int fd;
+
+    if ((n = get_device_number(device)) < 0)
+        return -1;
+
+    if (n == 0)
+        if ((fd = open_mixer("/dev/mixer")) >= 0)
+            return fd;
+
+    fn = pa_sprintf_malloc("/dev/mixer%i", n);
+    fd = open_mixer(fn);
+    pa_xfree(fn);
+
+    if (fd < 0)
+        pa_log_warn("Failed to open mixer '%s': %s", device, pa_cstrerror(errno));
+
+    return fd;
 }

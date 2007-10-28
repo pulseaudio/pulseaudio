@@ -37,11 +37,16 @@ typedef struct pa_memchunk {
 
 /* Make a memchunk writable, i.e. make sure that the caller may have
  * exclusive access to the memblock and it is not read_only. If needed
- * the memblock in the structure is replaced by a copy. */
-void pa_memchunk_make_writable(pa_memchunk *c, size_t min);
+ * the memblock in the structure is replaced by a copy. If min is not
+ * 0 it is made sure that the returned memblock is at least of the
+ * specified size, i.e. is enlarged if necessary. */
+pa_memchunk* pa_memchunk_make_writable(pa_memchunk *c, size_t min);
 
 /* Invalidate a memchunk. This does not free the cotaining memblock,
  * but sets all members to zero. */
-void pa_memchunk_reset(pa_memchunk *c);
+pa_memchunk* pa_memchunk_reset(pa_memchunk *c);
+
+/* Map a memory chunk back into memory if it was swapped out */
+pa_memchunk *pa_memchunk_will_need(const pa_memchunk *c);
 
 #endif

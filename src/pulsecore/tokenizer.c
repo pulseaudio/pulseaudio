@@ -26,19 +26,15 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/dynarray.h>
 #include <pulsecore/gccmacro.h>
+#include <pulsecore/macro.h>
 
 #include "tokenizer.h"
-
-struct pa_tokenizer {
-    pa_dynarray *dynarray;
-};
 
 static void token_free(void *p, PA_GCC_UNUSED void *userdata) {
     pa_xfree(p);
@@ -48,7 +44,9 @@ static void parse(pa_dynarray*a, const char *s, unsigned args) {
     int infty = 0;
     const char delimiter[] = " \t\n\r";
     const char *p;
-    assert(a && s);
+
+    pa_assert(a);
+    pa_assert(s);
 
     if (args == 0)
         infty = 1;
@@ -70,23 +68,23 @@ static void parse(pa_dynarray*a, const char *s, unsigned args) {
 }
 
 pa_tokenizer* pa_tokenizer_new(const char *s, unsigned args) {
-    pa_tokenizer *t;
+    pa_dynarray *a;
 
-    t = pa_xmalloc(sizeof(pa_tokenizer));
-    t->dynarray = pa_dynarray_new();
-    assert(t->dynarray);
-
-    parse(t->dynarray, s, args);
-    return t;
+    a = pa_dynarray_new();
+    parse(a, s, args);
+    return (pa_tokenizer*) a;
 }
 
 void pa_tokenizer_free(pa_tokenizer *t) {
-    assert(t);
-    pa_dynarray_free(t->dynarray, token_free, NULL);
-    pa_xfree(t);
+    pa_dynarray *a = (pa_dynarray*) t;
+
+    pa_assert(a);
+    pa_dynarray_free(a, token_free, NULL);
 }
 
 const char *pa_tokenizer_get(pa_tokenizer *t, unsigned i) {
-    assert(t);
-    return pa_dynarray_get(t->dynarray, i);
+    pa_dynarray *a = (pa_dynarray*) t;
+
+    pa_assert(a);
+    return pa_dynarray_get(a, i);
 }

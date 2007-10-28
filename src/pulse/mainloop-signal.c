@@ -27,7 +27,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <signal.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -39,12 +38,13 @@
 #include <windows.h>
 #endif
 
-#include <pulsecore/core-error.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/gccmacro.h>
+#include <pulsecore/macro.h>
 
 #include "mainloop-signal.h"
 
@@ -74,11 +74,11 @@ static void signal_handler(int sig) {
 }
 
 static void dispatch(pa_mainloop_api*a, int sig) {
-    pa_signal_event*s;
+    pa_signal_event *s;
 
     for (s = signals; s; s = s->next)
         if (s->sig == sig) {
-            assert(s->callback);
+            pa_assert(s->callback);
             s->callback(a, s, sig, s->userdata);
             break;
         }
@@ -87,7 +87,12 @@ static void dispatch(pa_mainloop_api*a, int sig) {
 static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags_t f, PA_GCC_UNUSED void *userdata) {
     ssize_t r;
     int sig;
-    assert(a && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == signal_pipe[0]);
+
+    pa_assert(a);
+    pa_assert(e);
+    pa_assert(f == PA_IO_EVENT_INPUT);
+    pa_assert(e == io_event);
+    pa_assert(fd == signal_pipe[0]);
 
     if ((r = pa_read(signal_pipe[0], &sig, sizeof(sig), NULL)) < 0) {
         if (errno == EAGAIN)
@@ -107,28 +112,34 @@ static void callback(pa_mainloop_api*a, pa_io_event*e, int fd, pa_io_event_flags
 
 int pa_signal_init(pa_mainloop_api *a) {
 
-    assert(!api && a && signal_pipe[0] == -1 && signal_pipe[1] == -1 && !io_event);
+    pa_assert(a);
+    pa_assert(!api);
+    pa_assert(signal_pipe[0] == -1);
+    pa_assert(signal_pipe[1] == -1);
+    pa_assert(!io_event);
 
     if (pipe(signal_pipe) < 0) {
         pa_log("pipe(): %s", pa_cstrerror(errno));
         return -1;
     }
 
-    pa_make_nonblock_fd(signal_pipe[0]);
-    pa_make_nonblock_fd(signal_pipe[1]);
-    pa_fd_set_cloexec(signal_pipe[0], 1);
-    pa_fd_set_cloexec(signal_pipe[1], 1);
+    pa_make_fd_nonblock(signal_pipe[0]);
+    pa_make_fd_nonblock(signal_pipe[1]);
+    pa_make_fd_cloexec(signal_pipe[0]);
+    pa_make_fd_cloexec(signal_pipe[1]);
 
     api = a;
 
-    io_event = api->io_new(api, signal_pipe[0], PA_IO_EVENT_INPUT, callback, NULL);
-    assert(io_event);
+    pa_assert_se(io_event = api->io_new(api, signal_pipe[0], PA_IO_EVENT_INPUT, callback, NULL));
 
     return 0;
 }
 
 void pa_signal_done(void) {
-    assert(api && signal_pipe[0] >= 0 && signal_pipe[1] >= 0 && io_event);
+    pa_assert(api);
+    pa_assert(signal_pipe[0] >= 0);
+    pa_assert(signal_pipe[1] >= 0);
+    pa_assert(io_event);
 
     while (signals)
         pa_signal_free(signals);
@@ -136,9 +147,7 @@ void pa_signal_done(void) {
     api->io_free(io_event);
     io_event = NULL;
 
-    close(signal_pipe[0]);
-    close(signal_pipe[1]);
-    signal_pipe[0] = signal_pipe[1] = -1;
+    pa_close_pipe(signal_pipe);
 
     api = NULL;
 }
@@ -150,13 +159,14 @@ pa_signal_event* pa_signal_new(int sig, void (*_callback) (pa_mainloop_api *api,
     struct sigaction sa;
 #endif
 
-    assert(sig > 0 && _callback);
+    pa_assert(sig > 0);
+    pa_assert(_callback);
 
     for (e = signals; e; e = e->next)
         if (e->sig == sig)
             goto fail;
 
-    e = pa_xmalloc(sizeof(pa_signal_event));
+    e = pa_xnew(pa_signal_event, 1);
     e->sig = sig;
     e->callback = _callback;
     e->userdata = userdata;
@@ -186,7 +196,7 @@ fail:
 }
 
 void pa_signal_free(pa_signal_event *e) {
-    assert(e);
+    pa_assert(e);
 
     if (e->next)
         e->next->previous = e->previous;
@@ -196,9 +206,9 @@ void pa_signal_free(pa_signal_event *e) {
         signals = e->next;
 
 #ifdef HAVE_SIGACTION
-    sigaction(e->sig, &e->saved_sigaction, NULL);
+    pa_assert_se(sigaction(e->sig, &e->saved_sigaction, NULL) == 0);
 #else
-    signal(e->sig, e->saved_handler);
+    pa_assert_se(signal(e->sig, e->saved_handler) == signal_handler);
 #endif
 
     if (e->destroy_callback)
@@ -208,6 +218,7 @@ void pa_signal_free(pa_signal_event *e) {
 }
 
 void pa_signal_set_destroy(pa_signal_event *e, void (*_callback) (pa_mainloop_api *api, pa_signal_event*e, void *userdata)) {
-    assert(e);
+    pa_assert(e);
+
     e->destroy_callback = _callback;
 }

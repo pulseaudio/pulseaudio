@@ -52,20 +52,26 @@ static pa_hook_result_t sink_hook_callback(pa_core *c, pa_sink *sink, void* user
     pa_sink_input *i;
     pa_sink *target;
 
-    assert(c);
-    assert(sink);
+    pa_assert(c);
+    pa_assert(sink);
 
     if (!pa_idxset_size(sink->inputs)) {
         pa_log_debug("No sink inputs to move away.");
         return PA_HOOK_OK;
     }
 
-    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SINK, 0))) {
-        pa_log_info("No evacuation sink found.");
-        return PA_HOOK_OK;
-    }
+    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SINK, 0)) || target == sink) {
+        uint32_t idx;
 
-    assert(target != sink);
+        for (target = pa_idxset_first(c->sinks, &idx); target; target = pa_idxset_next(c->sinks, &idx))
+            if (target != sink)
+                break;
+
+        if (!target) {
+            pa_log_info("No evacuation sink found.");
+            return PA_HOOK_OK;
+        }
+    }
 
     while ((i = pa_idxset_first(sink->inputs, NULL))) {
         if (pa_sink_input_move_to(i, target, 1) < 0) {
@@ -84,20 +90,28 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
     pa_source_output *o;
     pa_source *target;
 
-    assert(c);
-    assert(source);
+    pa_assert(c);
+    pa_assert(source);
 
     if (!pa_idxset_size(source->outputs)) {
         pa_log_debug("No source outputs to move away.");
         return PA_HOOK_OK;
     }
 
-    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SOURCE, 0))) {
-        pa_log_info("No evacuation source found.");
-        return PA_HOOK_OK;
+    if (!(target = pa_namereg_get(c, NULL, PA_NAMEREG_SOURCE, 0)) || target == source) {
+        uint32_t idx;
+
+        for (target = pa_idxset_first(c->sources, &idx); target; target = pa_idxset_next(c->sources, &idx))
+            if (target != source && !target->monitor_of == !source->monitor_of)
+                break;
+
+        if (!target) {
+            pa_log_info("No evacuation source found.");
+            return PA_HOOK_OK;
+        }
     }
 
-    assert(target != source);
+    pa_assert(target != source);
 
     while ((o = pa_idxset_first(source->outputs, NULL))) {
         if (pa_source_output_move_to(o, target) < 0) {
@@ -112,12 +126,11 @@ static pa_hook_result_t source_hook_callback(pa_core *c, pa_source *source, void
     return PA_HOOK_OK;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
 
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
@@ -125,18 +138,17 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
     m->userdata = u = pa_xnew(struct userdata, 1);
-    u->sink_slot = pa_hook_connect(&c->hook_sink_disconnect, (pa_hook_cb_t) sink_hook_callback, NULL);
-    u->source_slot = pa_hook_connect(&c->hook_source_disconnect, (pa_hook_cb_t) source_hook_callback, NULL);
+    u->sink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], (pa_hook_cb_t) sink_hook_callback, NULL);
+    u->source_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], (pa_hook_cb_t) source_hook_callback, NULL);
 
     pa_modargs_free(ma);
     return 0;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
 
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!m->userdata)
         return;

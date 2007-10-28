@@ -61,6 +61,10 @@
 # define SIOCINQ FIONREAD
 #endif
 
+/* make sure gcc doesn't redefine open and friends as macros */
+#undef open
+#undef open64
+
 typedef enum {
     FD_INFO_MIXER,
     FD_INFO_STREAM,
@@ -259,9 +263,9 @@ if (!(i)->context || pa_context_get_state((i)->context) != PA_CONTEXT_READY || \
 
 static void debug(int level, const char *format, ...) PA_GCC_PRINTF_ATTR(2,3);
 
-#define DEBUG_LEVEL_ALWAYS		0
-#define DEBUG_LEVEL_NORMAL		1
-#define DEBUG_LEVEL_VERBOSE		2
+#define DEBUG_LEVEL_ALWAYS                0
+#define DEBUG_LEVEL_NORMAL                1
+#define DEBUG_LEVEL_VERBOSE                2
 
 static void debug(int level, const char *format, ...) {
     va_list ap;
@@ -421,7 +425,7 @@ static void fd_info_unref(fd_info *i) {
     pthread_mutex_lock(&i->mutex);
     assert(i->ref >= 1);
     r = --i->ref;
-	debug(DEBUG_LEVEL_VERBOSE, __FILE__": ref--, now %i\n", i->ref);
+        debug(DEBUG_LEVEL_VERBOSE, __FILE__": ref--, now %i\n", i->ref);
     pthread_mutex_unlock(&i->mutex);
 
     if (r <= 0)
@@ -1395,7 +1399,7 @@ static int sndstat_open(int flags, int *_errno) {
 
     if (flags != O_RDONLY
 #ifdef O_LARGEFILE
-	&& flags != (O_RDONLY|O_LARGEFILE)
+        && flags != (O_RDONLY|O_LARGEFILE)
 #endif
        ) {
         *_errno = EACCES;
@@ -1436,34 +1440,23 @@ fail:
     return -1;
 }
 
-int open(const char *filename, int flags, ...) {
-    va_list args;
-    mode_t mode = 0;
+static int real_open(const char *filename, int flags, mode_t mode) {
     int r, _errno = 0;
 
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": open(%s)\n", filename);
-
-    va_start(args, flags);
-    if (flags & O_CREAT) {
-      if (sizeof(mode_t) < sizeof(int))
-	mode = va_arg(args, int);
-      else
-        mode = va_arg(args, mode_t);
-    }
-    va_end(args);
 
     if (!function_enter()) {
         LOAD_OPEN_FUNC();
         return _open(filename, flags, mode);
     }
 
-    if (dsp_cloak_enable() && (strcmp(filename, "/dev/dsp") == 0 || strcmp(filename, "/dev/adsp") == 0)) {
+    if (dsp_cloak_enable() && (strcmp(filename, "/dev/dsp") == 0 || strcmp(filename, "/dev/adsp") == 0))
         r = dsp_open(flags, &_errno);
-    } else if (mixer_cloak_enable() && strcmp(filename, "/dev/mixer") == 0) {
+    else if (mixer_cloak_enable() && strcmp(filename, "/dev/mixer") == 0)
         r = mixer_open(flags, &_errno);
-    } else if (sndstat_cloak_enable() && strcmp(filename, "/dev/sndstat") == 0) {
+    else if (sndstat_cloak_enable() && strcmp(filename, "/dev/sndstat") == 0)
         r = sndstat_open(flags, &_errno);
-    } else {
+    else {
         function_exit();
         LOAD_OPEN_FUNC();
         return _open(filename, flags, mode);
@@ -1475,6 +1468,22 @@ int open(const char *filename, int flags, ...) {
         errno = _errno;
 
     return r;
+}
+
+int open(const char *filename, int flags, ...) {
+    va_list args;
+    mode_t mode = 0;
+
+    if (flags & O_CREAT) {
+        va_start(args, flags);
+        if (sizeof(mode_t) < sizeof(int))
+            mode = va_arg(args, int);
+        else
+            mode = va_arg(args, mode_t);
+        va_end(args);
+    }
+
+    return real_open(filename, flags, mode);
 }
 
 static int mixer_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) {
@@ -2023,9 +2032,9 @@ static int dsp_ioctl(fd_info *i, unsigned long request, void*argp, int *_errno) 
 
             *(int*)  argp = DSP_CAP_DUPLEX | DSP_CAP_TRIGGER
 #ifdef DSP_CAP_MULTI
-	      | DSP_CAP_MULTI
+              | DSP_CAP_MULTI
 #endif
-	      ;
+              ;
             break;
 
         case SNDCTL_DSP_GETODELAY: {
@@ -2497,10 +2506,14 @@ int open64(const char *filename, int flags, ...) {
 
     debug(DEBUG_LEVEL_VERBOSE, __FILE__": open64(%s)\n", filename);
 
-    va_start(args, flags);
-    if (flags & O_CREAT)
-        mode = va_arg(args, mode_t);
-    va_end(args);
+    if (flags & O_CREAT) {
+        va_start(args, flags);
+        if (sizeof(mode_t) < sizeof(int))
+            mode = va_arg(args, int);
+        else
+            mode = va_arg(args, mode_t);
+        va_end(args);
+    }
 
     if (strcmp(filename, "/dev/dsp") != 0 &&
         strcmp(filename, "/dev/adsp") != 0 &&
@@ -2510,7 +2523,7 @@ int open64(const char *filename, int flags, ...) {
         return _open64(filename, flags, mode);
     }
 
-    return open(filename, flags, mode);
+    return real_open(filename, flags, mode);
 }
 
 #endif
@@ -2602,7 +2615,7 @@ FILE* fopen(const char *filename, const char *mode) {
     if ((((mode[1] == 'b') || (mode[1] == 't')) && (mode[2] == '+')) || (mode[1] == '+'))
         m = O_RDWR;
 
-    if ((fd = open(filename, m)) < 0)
+    if ((fd = real_open(filename, m, 0)) < 0)
         return NULL;
 
     if (!(f = fdopen(fd, mode))) {

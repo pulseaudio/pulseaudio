@@ -155,31 +155,31 @@ typedef struct pa_sample_spec {
 typedef uint64_t pa_usec_t;
 
 /** Return the amount of bytes playback of a second of audio with the specified sample type takes */
-size_t pa_bytes_per_second(const pa_sample_spec *spec);
+size_t pa_bytes_per_second(const pa_sample_spec *spec) PA_GCC_PURE;
 
 /** Return the size of a frame with the specific sample type */
-size_t pa_frame_size(const pa_sample_spec *spec);
+size_t pa_frame_size(const pa_sample_spec *spec) PA_GCC_PURE;
 
 /** Return the size of a sample with the specific sample type */
-size_t pa_sample_size(const pa_sample_spec *spec);
+size_t pa_sample_size(const pa_sample_spec *spec) PA_GCC_PURE;
 
 /** Calculate the time the specified bytes take to play with the specified sample type */
-pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec);
+pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) PA_GCC_PURE;
 
 /** Calculates the number of bytes that are required for the specified time. \since 0.9 */
-size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec);
+size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) PA_GCC_PURE;
 
 /** Return non-zero when the sample type specification is valid */
-int pa_sample_spec_valid(const pa_sample_spec *spec);
+int pa_sample_spec_valid(const pa_sample_spec *spec) PA_GCC_PURE;
 
 /** Return non-zero when the two sample type specifications match */
-int pa_sample_spec_equal(const pa_sample_spec*a, const pa_sample_spec*b);
+int pa_sample_spec_equal(const pa_sample_spec*a, const pa_sample_spec*b) PA_GCC_PURE;
 
 /** Return a descriptive string for the specified sample format. \since 0.8 */
-const char *pa_sample_format_to_string(pa_sample_format_t f);
+const char *pa_sample_format_to_string(pa_sample_format_t f) PA_GCC_PURE;
 
 /** Parse a sample format text. Inverse of pa_sample_format_to_string() */
-pa_sample_format_t pa_parse_sample_format(const char *format);
+pa_sample_format_t pa_parse_sample_format(const char *format) PA_GCC_PURE;
 
 /** Maximum required string length for pa_sample_spec_snprint() */
 #define PA_SAMPLE_SPEC_SNPRINT_MAX 32

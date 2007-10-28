@@ -27,7 +27,6 @@
 #endif
 
 #include <stdlib.h>
-#include <assert.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -47,6 +46,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "iochannel.h"
 
@@ -58,21 +58,21 @@ struct pa_iochannel {
     pa_iochannel_cb_t callback;
     void*userdata;
 
-    int readable;
-    int writable;
-    int hungup;
+    pa_bool_t readable;
+    pa_bool_t writable;
+    pa_bool_t hungup;
 
-    int no_close;
+    pa_bool_t no_close;
 
     pa_io_event* input_event, *output_event;
 };
 
 static void enable_mainloop_sources(pa_iochannel *io) {
-    assert(io);
+    pa_assert(io);
 
     if (io->input_event == io->output_event && io->input_event) {
         pa_io_event_flags_t f = PA_IO_EVENT_NULL;
-        assert(io->input_event);
+        pa_assert(io->input_event);
 
         if (!io->readable)
             f |= PA_IO_EVENT_INPUT;
@@ -90,28 +90,28 @@ static void enable_mainloop_sources(pa_iochannel *io) {
 
 static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     pa_iochannel *io = userdata;
-    int changed = 0;
+    pa_bool_t changed = FALSE;
 
-    assert(m);
-    assert(e);
-    assert(fd >= 0);
-    assert(userdata);
+    pa_assert(m);
+    pa_assert(e);
+    pa_assert(fd >= 0);
+    pa_assert(userdata);
 
     if ((f & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) && !io->hungup) {
-        io->hungup = 1;
-        changed = 1;
+        io->hungup = TRUE;
+        changed = TRUE;
     }
 
     if ((f & PA_IO_EVENT_INPUT) && !io->readable) {
-        io->readable = 1;
-        changed = 1;
-        assert(e == io->input_event);
+        io->readable = TRUE;
+        changed = TRUE;
+        pa_assert(e == io->input_event);
     }
 
     if ((f & PA_IO_EVENT_OUTPUT) && !io->writable) {
-        io->writable = 1;
-        changed = 1;
-        assert(e == io->output_event);
+        io->writable = TRUE;
+        changed = TRUE;
+        pa_assert(e == io->output_event);
     }
 
     if (changed) {
@@ -125,8 +125,8 @@ static void callback(pa_mainloop_api* m, pa_io_event *e, int fd, pa_io_event_fla
 pa_iochannel* pa_iochannel_new(pa_mainloop_api*m, int ifd, int ofd) {
     pa_iochannel *io;
 
-    assert(m);
-    assert(ifd >= 0 || ofd >= 0);
+    pa_assert(m);
+    pa_assert(ifd >= 0 || ofd >= 0);
 
     io = pa_xnew(pa_iochannel, 1);
     io->ifd = ifd;
@@ -136,26 +136,26 @@ pa_iochannel* pa_iochannel_new(pa_mainloop_api*m, int ifd, int ofd) {
 
     io->userdata = NULL;
     io->callback = NULL;
-    io->readable = 0;
-    io->writable = 0;
-    io->hungup = 0;
-    io->no_close = 0;
+    io->readable = FALSE;
+    io->writable = FALSE;
+    io->hungup = FALSE;
+    io->no_close = FALSE;
 
     io->input_event = io->output_event = NULL;
 
     if (ifd == ofd) {
-        assert(ifd >= 0);
-        pa_make_nonblock_fd(io->ifd);
+        pa_assert(ifd >= 0);
+        pa_make_fd_nonblock(io->ifd);
         io->input_event = io->output_event = m->io_new(m, ifd, PA_IO_EVENT_INPUT|PA_IO_EVENT_OUTPUT, callback, io);
     } else {
 
         if (ifd >= 0) {
-            pa_make_nonblock_fd(io->ifd);
+            pa_make_fd_nonblock(io->ifd);
             io->input_event = m->io_new(m, ifd, PA_IO_EVENT_INPUT, callback, io);
         }
 
         if (ofd >= 0) {
-            pa_make_nonblock_fd(io->ofd);
+            pa_make_fd_nonblock(io->ofd);
             io->output_event = m->io_new(m, ofd, PA_IO_EVENT_OUTPUT, callback, io);
         }
     }
@@ -164,7 +164,7 @@ pa_iochannel* pa_iochannel_new(pa_mainloop_api*m, int ifd, int ofd) {
 }
 
 void pa_iochannel_free(pa_iochannel*io) {
-    assert(io);
+    pa_assert(io);
 
     if (io->input_event)
         io->mainloop->io_free(io->input_event);
@@ -182,20 +182,20 @@ void pa_iochannel_free(pa_iochannel*io) {
     pa_xfree(io);
 }
 
-int pa_iochannel_is_readable(pa_iochannel*io) {
-    assert(io);
+pa_bool_t pa_iochannel_is_readable(pa_iochannel*io) {
+    pa_assert(io);
 
     return io->readable || io->hungup;
 }
 
-int pa_iochannel_is_writable(pa_iochannel*io) {
-    assert(io);
+pa_bool_t pa_iochannel_is_writable(pa_iochannel*io) {
+    pa_assert(io);
 
     return io->writable && !io->hungup;
 }
 
-int pa_iochannel_is_hungup(pa_iochannel*io) {
-    assert(io);
+pa_bool_t pa_iochannel_is_hungup(pa_iochannel*io) {
+    pa_assert(io);
 
     return io->hungup;
 }
@@ -203,14 +203,13 @@ int pa_iochannel_is_hungup(pa_iochannel*io) {
 ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
     ssize_t r;
 
-    assert(io);
-    assert(data);
-    assert(l);
-    assert(io->ofd >= 0);
+    pa_assert(io);
+    pa_assert(data);
+    pa_assert(l);
+    pa_assert(io->ofd >= 0);
 
-    r = pa_write(io->ofd, data, l, &io->ofd_type);
-    if (r >= 0) {
-        io->writable = 0;
+    if ((r = pa_write(io->ofd, data, l, &io->ofd_type)) >= 0) {
+        io->writable = FALSE;
         enable_mainloop_sources(io);
     }
 
@@ -220,13 +219,12 @@ ssize_t pa_iochannel_write(pa_iochannel*io, const void*data, size_t l) {
 ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
     ssize_t r;
 
-    assert(io);
-    assert(data);
-    assert(io->ifd >= 0);
+    pa_assert(io);
+    pa_assert(data);
+    pa_assert(io->ifd >= 0);
 
-    r = pa_read(io->ifd, data, l, &io->ifd_type);
-    if (r >= 0) {
-        io->readable = 0;
+    if ((r = pa_read(io->ifd, data, l, &io->ifd_type)) >= 0) {
+        io->readable = FALSE;
         enable_mainloop_sources(io);
     }
 
@@ -235,13 +233,13 @@ ssize_t pa_iochannel_read(pa_iochannel*io, void*data, size_t l) {
 
 #ifdef HAVE_CREDS
 
-int pa_iochannel_creds_supported(pa_iochannel *io) {
+pa_bool_t pa_iochannel_creds_supported(pa_iochannel *io) {
     struct sockaddr_un sa;
     socklen_t l;
 
-    assert(io);
-    assert(io->ifd >= 0);
-    assert(io->ofd == io->ifd);
+    pa_assert(io);
+    pa_assert(io->ifd >= 0);
+    pa_assert(io->ofd == io->ifd);
 
     l = sizeof(sa);
 
@@ -254,8 +252,8 @@ int pa_iochannel_creds_supported(pa_iochannel *io) {
 int pa_iochannel_creds_enable(pa_iochannel *io) {
     int t = 1;
 
-    assert(io);
-    assert(io->ifd >= 0);
+    pa_assert(io);
+    pa_assert(io->ifd >= 0);
 
     if (setsockopt(io->ifd, SOL_SOCKET, SO_PASSCRED, &t, sizeof(t)) < 0) {
         pa_log_error("setsockopt(SOL_SOCKET, SO_PASSCRED): %s", pa_cstrerror(errno));
@@ -273,10 +271,10 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     struct ucred *u;
     struct cmsghdr *cmsg;
 
-    assert(io);
-    assert(data);
-    assert(l);
-    assert(io->ofd >= 0);
+    pa_assert(io);
+    pa_assert(data);
+    pa_assert(l);
+    pa_assert(io->ofd >= 0);
 
     memset(&iov, 0, sizeof(iov));
     iov.iov_base = (void*) data;
@@ -309,25 +307,25 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     mh.msg_flags = 0;
 
     if ((r = sendmsg(io->ofd, &mh, MSG_NOSIGNAL)) >= 0) {
-        io->writable = 0;
+        io->writable = FALSE;
         enable_mainloop_sources(io);
     }
 
     return r;
 }
 
-ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *creds, int *creds_valid) {
+ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_creds *creds, pa_bool_t *creds_valid) {
     ssize_t r;
     struct msghdr mh;
     struct iovec iov;
     uint8_t cmsg_data[CMSG_SPACE(sizeof(struct ucred))];
 
-    assert(io);
-    assert(data);
-    assert(l);
-    assert(io->ifd >= 0);
-    assert(creds);
-    assert(creds_valid);
+    pa_assert(io);
+    pa_assert(data);
+    pa_assert(l);
+    pa_assert(io->ifd >= 0);
+    pa_assert(creds);
+    pa_assert(creds_valid);
 
     memset(&iov, 0, sizeof(iov));
     iov.iov_base = data;
@@ -353,17 +351,17 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
 
             if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_CREDENTIALS) {
                 struct ucred u;
-                assert(cmsg->cmsg_len == CMSG_LEN(sizeof(struct ucred)));
+                pa_assert(cmsg->cmsg_len == CMSG_LEN(sizeof(struct ucred)));
                 memcpy(&u, CMSG_DATA(cmsg), sizeof(struct ucred));
 
                 creds->gid = u.gid;
                 creds->uid = u.uid;
-                *creds_valid = 1;
+                *creds_valid = TRUE;
                 break;
             }
         }
 
-        io->readable = 0;
+        io->readable = FALSE;
         enable_mainloop_sources(io);
     }
 
@@ -373,46 +371,52 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
 #endif /* HAVE_CREDS */
 
 void pa_iochannel_set_callback(pa_iochannel*io, pa_iochannel_cb_t _callback, void *userdata) {
-    assert(io);
+    pa_assert(io);
 
     io->callback = _callback;
     io->userdata = userdata;
 }
 
-void pa_iochannel_set_noclose(pa_iochannel*io, int b) {
-    assert(io);
+void pa_iochannel_set_noclose(pa_iochannel*io, pa_bool_t b) {
+    pa_assert(io);
 
-    io->no_close = b;
+    io->no_close = !!b;
 }
 
 void pa_iochannel_socket_peer_to_string(pa_iochannel*io, char*s, size_t l) {
-    assert(io);
-    assert(s);
-    assert(l);
+    pa_assert(io);
+    pa_assert(s);
+    pa_assert(l);
 
     pa_socket_peer_to_string(io->ifd, s, l);
 }
 
 int pa_iochannel_socket_set_rcvbuf(pa_iochannel *io, size_t l) {
-    assert(io);
+    pa_assert(io);
 
     return pa_socket_set_rcvbuf(io->ifd, l);
 }
 
 int pa_iochannel_socket_set_sndbuf(pa_iochannel *io, size_t l) {
-    assert(io);
+    pa_assert(io);
 
     return pa_socket_set_sndbuf(io->ofd, l);
 }
 
 pa_mainloop_api* pa_iochannel_get_mainloop_api(pa_iochannel *io) {
-    assert(io);
+    pa_assert(io);
 
     return io->mainloop;
 }
 
 int pa_iochannel_get_recv_fd(pa_iochannel *io) {
-    assert(io);
+    pa_assert(io);
 
     return io->ifd;
+}
+
+int pa_iochannel_get_send_fd(pa_iochannel *io) {
+    pa_assert(io);
+
+    return io->ofd;
 }

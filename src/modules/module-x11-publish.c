@@ -26,7 +26,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -76,7 +75,7 @@ struct userdata {
 };
 
 static int load_key(struct userdata *u, const char*fn) {
-    assert(u);
+    pa_assert(u);
 
     u->auth_cookie_in_property = 0;
 
@@ -93,7 +92,7 @@ static int load_key(struct userdata *u, const char*fn) {
     if (pa_authkey_load_auto(fn, u->auth_cookie, sizeof(u->auth_cookie)) < 0)
         return -1;
 
-    pa_log_debug("loading cookie from disk.");
+    pa_log_debug("Loading cookie from disk.");
 
     if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
         u->auth_cookie_in_property = 1;
@@ -101,7 +100,7 @@ static int load_key(struct userdata *u, const char*fn) {
     return 0;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     struct userdata *u;
     pa_modargs *ma = NULL;
     char hn[256], un[128];
@@ -110,23 +109,25 @@ int pa__init(pa_core *c, pa_module*m) {
     char *s;
     pa_strlist *l;
 
+    pa_assert(m);
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("failed to parse module arguments");
         goto fail;
     }
 
     m->userdata = u = pa_xmalloc(sizeof(struct userdata));
-    u->core = c;
+    u->core = m->core;
     u->id = NULL;
     u->auth_cookie_in_property = 0;
 
     if (load_key(u, pa_modargs_get_value(ma, "cookie", NULL)) < 0)
         goto fail;
 
-    if (!(u->x11_wrapper = pa_x11_wrapper_get(c, pa_modargs_get_value(ma, "display", NULL))))
+    if (!(u->x11_wrapper = pa_x11_wrapper_get(m->core, pa_modargs_get_value(ma, "display", NULL))))
         goto fail;
 
-    if (!(l = pa_property_get(c, PA_NATIVE_SERVER_PROPERTY_NAME)))
+    if (!(l = pa_property_get(m->core, PA_NATIVE_SERVER_PROPERTY_NAME)))
         goto fail;
 
     s = pa_strlist_tostring(l);
@@ -154,13 +155,14 @@ fail:
     if (ma)
         pa_modargs_free(ma);
 
-    pa__done(c, m);
+    pa__done(m);
     return -1;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata*u;
-    assert(c && m);
+
+    pa_assert(m);
 
     if (!(u = m->userdata))
         return;
@@ -185,7 +187,7 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_x11_wrapper_unref(u->x11_wrapper);
 
     if (u->auth_cookie_in_property)
-        pa_authkey_prop_unref(c, PA_NATIVE_COOKIE_PROPERTY_NAME);
+        pa_authkey_prop_unref(m->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
 
     pa_xfree(u->id);
     pa_xfree(u);

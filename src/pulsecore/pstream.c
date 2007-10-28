@@ -28,7 +28,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <unistd.h>
 
 #ifdef HAVE_SYS_SOCKET_H
@@ -41,16 +40,17 @@
 #include <netinet/in.h>
 #endif
 
-#include "winsock.h"
 
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/winsock.h>
 #include <pulsecore/queue.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/creds.h>
-#include <pulsecore/mutex.h>
 #include <pulsecore/refcnt.h>
+#include <pulsecore/flist.h>
+#include <pulsecore/macro.h>
 
 #include "pstream.h"
 
@@ -84,7 +84,8 @@ typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
 
 #define PA_PSTREAM_DESCRIPTOR_SIZE (PA_PSTREAM_DESCRIPTOR_MAX*sizeof(uint32_t))
 #define FRAME_SIZE_MAX_ALLOW PA_SCACHE_ENTRY_SIZE_MAX /* allow uploading a single sample in one frame at max */
-#define FRAME_SIZE_MAX_USE (1024*64)
+
+PA_STATIC_FLIST_DECLARE(items, 0, pa_xfree);
 
 struct item_info {
     enum {
@@ -93,7 +94,6 @@ struct item_info {
         PA_PSTREAM_ITEM_SHMRELEASE,
         PA_PSTREAM_ITEM_SHMREVOKE
     } type;
-
 
     /* packet info */
     pa_packet *packet;
@@ -118,8 +118,8 @@ struct pa_pstream {
     pa_mainloop_api *mainloop;
     pa_defer_event *defer_event;
     pa_iochannel *io;
+
     pa_queue *send_queue;
-    pa_mutex *mutex;
 
     int dead;
 
@@ -129,6 +129,7 @@ struct pa_pstream {
         uint32_t shm_info[PA_PSTREAM_SHM_MAX];
         void *data;
         size_t index;
+        pa_memchunk memchunk;
     } write;
 
     struct {
@@ -156,6 +157,12 @@ struct pa_pstream {
     pa_pstream_notify_cb_t die_callback;
     void *die_callback_userdata;
 
+    pa_pstream_block_id_cb_t revoke_callback;
+    void *revoke_callback_userdata;
+
+    pa_pstream_block_id_cb_t release_callback;
+    void *release_callback_userdata;
+
     pa_mempool *mempool;
 
 #ifdef HAVE_CREDS
@@ -168,12 +175,10 @@ static int do_write(pa_pstream *p);
 static int do_read(pa_pstream *p);
 
 static void do_something(pa_pstream *p) {
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
     pa_pstream_ref(p);
-
-    pa_mutex_lock(p->mutex);
 
     p->mainloop->defer_enable(p->defer_event, 0);
 
@@ -188,28 +193,24 @@ static void do_something(pa_pstream *p) {
             goto fail;
     }
 
-    pa_mutex_unlock(p->mutex);
-
     pa_pstream_unref(p);
     return;
 
 fail:
 
-    p->dead = 1;
-
     if (p->die_callback)
         p->die_callback(p, p->die_callback_userdata);
 
-    pa_mutex_unlock(p->mutex);
-
+    pa_pstream_unlink(p);
     pa_pstream_unref(p);
 }
 
 static void io_callback(pa_iochannel*io, void *userdata) {
     pa_pstream *p = userdata;
 
-    assert(p);
-    assert(p->io == io);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p->io == io);
 
     do_something(p);
 }
@@ -217,9 +218,10 @@ static void io_callback(pa_iochannel*io, void *userdata) {
 static void defer_callback(pa_mainloop_api *m, pa_defer_event *e, void*userdata) {
     pa_pstream *p = userdata;
 
-    assert(p);
-    assert(p->defer_event == e);
-    assert(p->mainloop == m);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p->defer_event == e);
+    pa_assert(p->mainloop == m);
 
     do_something(p);
 }
@@ -229,9 +231,9 @@ static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userd
 pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *pool) {
     pa_pstream *p;
 
-    assert(m);
-    assert(io);
-    assert(pool);
+    pa_assert(m);
+    pa_assert(io);
+    pa_assert(pool);
 
     p = pa_xnew(pa_pstream, 1);
     PA_REFCNT_INIT(p);
@@ -239,17 +241,15 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     pa_iochannel_set_callback(io, io_callback, p);
     p->dead = 0;
 
-    p->mutex = pa_mutex_new(1);
-
     p->mainloop = m;
     p->defer_event = m->defer_new(m, defer_callback, p);
     m->defer_enable(p->defer_event, 0);
 
     p->send_queue = pa_queue_new();
-    assert(p->send_queue);
 
     p->write.current = NULL;
     p->write.index = 0;
+    pa_memchunk_reset(&p->write.memchunk);
     p->read.memblock = NULL;
     p->read.packet = NULL;
     p->read.index = 0;
@@ -262,6 +262,10 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     p->drain_callback_userdata = NULL;
     p->die_callback = NULL;
     p->die_callback_userdata = NULL;
+    p->revoke_callback = NULL;
+    p->revoke_callback_userdata = NULL;
+    p->release_callback = NULL;
+    p->release_callback_userdata = NULL;
 
     p->mempool = pool;
 
@@ -281,30 +285,34 @@ pa_pstream *pa_pstream_new(pa_mainloop_api *m, pa_iochannel *io, pa_mempool *poo
     return p;
 }
 
-static void item_free(void *item, PA_GCC_UNUSED void *p) {
+static void item_free(void *item, PA_GCC_UNUSED void *q) {
     struct item_info *i = item;
-    assert(i);
+    pa_assert(i);
 
     if (i->type == PA_PSTREAM_ITEM_MEMBLOCK) {
-        assert(i->chunk.memblock);
+        pa_assert(i->chunk.memblock);
         pa_memblock_unref(i->chunk.memblock);
     } else if (i->type == PA_PSTREAM_ITEM_PACKET) {
-        assert(i->packet);
+        pa_assert(i->packet);
         pa_packet_unref(i->packet);
     }
 
-    pa_xfree(i);
+    if (pa_flist_push(PA_STATIC_FLIST_GET(items), i) < 0)
+        pa_xfree(i);
 }
 
 static void pstream_free(pa_pstream *p) {
-    assert(p);
+    pa_assert(p);
 
-    pa_pstream_close(p);
+    pa_pstream_unlink(p);
 
     pa_queue_free(p->send_queue, item_free, NULL);
 
     if (p->write.current)
         item_free(p->write.current, NULL);
+
+    if (p->write.memchunk.memblock)
+        pa_memblock_unref(p->write.memchunk.memblock);
 
     if (p->read.memblock)
         pa_memblock_unref(p->read.memblock);
@@ -312,25 +320,22 @@ static void pstream_free(pa_pstream *p) {
     if (p->read.packet)
         pa_packet_unref(p->read.packet);
 
-    if (p->mutex)
-        pa_mutex_free(p->mutex);
-
     pa_xfree(p);
 }
 
 void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *creds) {
     struct item_info *i;
 
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
-    assert(packet);
-
-    pa_mutex_lock(p->mutex);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(packet);
 
     if (p->dead)
-        goto finish;
+        return;
 
-    i = pa_xnew(struct item_info, 1);
+    if (!(i = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
+        i = pa_xnew(struct item_info, 1);
+
     i->type = PA_PSTREAM_ITEM_PACKET;
     i->packet = pa_packet_ref(packet);
 
@@ -340,37 +345,36 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, const pa_creds *cre
 #endif
 
     pa_queue_push(p->send_queue, i);
+
     p->mainloop->defer_enable(p->defer_event, 1);
-
-finish:
-
-    pa_mutex_unlock(p->mutex);
 }
 
 void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek_mode, const pa_memchunk *chunk) {
     size_t length, idx;
+    size_t bsm;
 
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
-    assert(channel != (uint32_t) -1);
-    assert(chunk);
-
-    pa_mutex_lock(p->mutex);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(channel != (uint32_t) -1);
+    pa_assert(chunk);
 
     if (p->dead)
-        goto finish;
+        return;
 
-    length = chunk->length;
     idx = 0;
+    length = chunk->length;
+
+    bsm = pa_mempool_block_size_max(p->mempool);
 
     while (length > 0) {
         struct item_info *i;
         size_t n;
 
-        i = pa_xnew(struct item_info, 1);
+        if (!(i = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
+            i = pa_xnew(struct item_info, 1);
         i->type = PA_PSTREAM_ITEM_MEMBLOCK;
 
-        n = length < FRAME_SIZE_MAX_USE ? length : FRAME_SIZE_MAX_USE;
+        n = MIN(length, bsm);
         i->chunk.index = chunk->index + idx;
         i->chunk.length = n;
         i->chunk.memblock = pa_memblock_ref(chunk->memblock);
@@ -389,27 +393,20 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     }
 
     p->mainloop->defer_enable(p->defer_event, 1);
-
-finish:
-
-    pa_mutex_unlock(p->mutex);
 }
 
-static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userdata) {
+void pa_pstream_send_release(pa_pstream *p, uint32_t block_id) {
     struct item_info *item;
-    pa_pstream *p = userdata;
-
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
-
-    pa_mutex_lock(p->mutex);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
     if (p->dead)
-        goto finish;
+        return;
 
 /*     pa_log("Releasing block %u", block_id); */
 
-    item = pa_xnew(struct item_info, 1);
+    if (!(item = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
+        item = pa_xnew(struct item_info, 1);
     item->type = PA_PSTREAM_ITEM_SHMRELEASE;
     item->block_id = block_id;
 #ifdef HAVE_CREDS
@@ -418,27 +415,35 @@ static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userd
 
     pa_queue_push(p->send_queue, item);
     p->mainloop->defer_enable(p->defer_event, 1);
-
-finish:
-
-    pa_mutex_unlock(p->mutex);
 }
 
-static void memexport_revoke_cb(pa_memexport *e, uint32_t block_id, void *userdata) {
-    struct item_info *item;
+/* might be called from thread context */
+static void memimport_release_cb(pa_memimport *i, uint32_t block_id, void *userdata) {
     pa_pstream *p = userdata;
 
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
-
-    pa_mutex_lock(p->mutex);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
     if (p->dead)
-        goto finish;
+        return;
 
+    if (p->release_callback)
+        p->release_callback(p, block_id, p->release_callback_userdata);
+    else
+        pa_pstream_send_release(p, block_id);
+}
+
+void pa_pstream_send_revoke(pa_pstream *p, uint32_t block_id) {
+    struct item_info *item;
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    if (p->dead)
+        return;
 /*     pa_log("Revoking block %u", block_id); */
 
-    item = pa_xnew(struct item_info, 1);
+    if (!(item = pa_flist_pop(PA_STATIC_FLIST_GET(items))))
+        item = pa_xnew(struct item_info, 1);
     item->type = PA_PSTREAM_ITEM_SHMREVOKE;
     item->block_id = block_id;
 #ifdef HAVE_CREDS
@@ -447,21 +452,33 @@ static void memexport_revoke_cb(pa_memexport *e, uint32_t block_id, void *userda
 
     pa_queue_push(p->send_queue, item);
     p->mainloop->defer_enable(p->defer_event, 1);
+}
 
-finish:
+/* might be called from thread context */
+static void memexport_revoke_cb(pa_memexport *e, uint32_t block_id, void *userdata) {
+    pa_pstream *p = userdata;
 
-    pa_mutex_unlock(p->mutex);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    if (p->revoke_callback)
+        p->revoke_callback(p, block_id, p->revoke_callback_userdata);
+    else
+        pa_pstream_send_revoke(p, block_id);
 }
 
 static void prepare_next_write_item(pa_pstream *p) {
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
-    if (!(p->write.current = pa_queue_pop(p->send_queue)))
+    p->write.current = pa_queue_pop(p->send_queue);
+
+    if (!p->write.current)
         return;
 
     p->write.index = 0;
     p->write.data = NULL;
+    pa_memchunk_reset(&p->write.memchunk);
 
     p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = 0;
     p->write.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL] = htonl((uint32_t) -1);
@@ -471,7 +488,7 @@ static void prepare_next_write_item(pa_pstream *p) {
 
     if (p->write.current->type == PA_PSTREAM_ITEM_PACKET) {
 
-        assert(p->write.current->packet);
+        pa_assert(p->write.current->packet);
         p->write.data = p->write.current->packet->data;
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->packet->length);
 
@@ -489,8 +506,8 @@ static void prepare_next_write_item(pa_pstream *p) {
         uint32_t flags;
         int send_payload = 1;
 
-        assert(p->write.current->type == PA_PSTREAM_ITEM_MEMBLOCK);
-        assert(p->write.current->chunk.memblock);
+        pa_assert(p->write.current->type == PA_PSTREAM_ITEM_MEMBLOCK);
+        pa_assert(p->write.current->chunk.memblock);
 
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL] = htonl(p->write.current->channel);
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI] = htonl((uint32_t) (((uint64_t) p->write.current->offset) >> 32));
@@ -502,7 +519,7 @@ static void prepare_next_write_item(pa_pstream *p) {
             uint32_t block_id, shm_id;
             size_t offset, length;
 
-            assert(p->export);
+            pa_assert(p->export);
 
             if (pa_memexport_put(p->export,
                                  p->write.current->chunk.memblock,
@@ -528,7 +545,9 @@ static void prepare_next_write_item(pa_pstream *p) {
 
         if (send_payload) {
             p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH] = htonl(p->write.current->chunk.length);
-            p->write.data = (uint8_t*) p->write.current->chunk.memblock->data + p->write.current->chunk.index;
+            p->write.memchunk = p->write.current->chunk;
+            pa_memblock_ref(p->write.memchunk.memblock);
+            p->write.data = NULL;
         }
 
         p->write.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS] = htonl(flags);
@@ -544,9 +563,10 @@ static int do_write(pa_pstream *p) {
     void *d;
     size_t l;
     ssize_t r;
+    pa_memblock *release_memblock = NULL;
 
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
     if (!p->write.current)
         prepare_next_write_item(p);
@@ -558,71 +578,104 @@ static int do_write(pa_pstream *p) {
         d = (uint8_t*) p->write.descriptor + p->write.index;
         l = PA_PSTREAM_DESCRIPTOR_SIZE - p->write.index;
     } else {
-        assert(p->write.data);
+        pa_assert(p->write.data || p->write.memchunk.memblock);
 
-        d = (uint8_t*) p->write.data + p->write.index - PA_PSTREAM_DESCRIPTOR_SIZE;
+        if (p->write.data)
+            d = p->write.data;
+        else {
+            d = (uint8_t*) pa_memblock_acquire(p->write.memchunk.memblock) + p->write.memchunk.index;
+            release_memblock = p->write.memchunk.memblock;
+        }
+
+        d = (uint8_t*) d + p->write.index - PA_PSTREAM_DESCRIPTOR_SIZE;
         l = ntohl(p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) - (p->write.index - PA_PSTREAM_DESCRIPTOR_SIZE);
     }
 
-    assert(l > 0);
+    pa_assert(l > 0);
 
 #ifdef HAVE_CREDS
     if (p->send_creds_now) {
 
         if ((r = pa_iochannel_write_with_creds(p->io, d, l, &p->write_creds)) < 0)
-            return -1;
+            goto fail;
 
         p->send_creds_now = 0;
     } else
 #endif
 
     if ((r = pa_iochannel_write(p->io, d, l)) < 0)
-        return -1;
+        goto fail;
+
+    if (release_memblock)
+        pa_memblock_release(release_memblock);
 
     p->write.index += r;
 
     if (p->write.index >= PA_PSTREAM_DESCRIPTOR_SIZE + ntohl(p->write.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH])) {
-        assert(p->write.current);
-        item_free(p->write.current, (void *) 1);
+        pa_assert(p->write.current);
+        item_free(p->write.current, NULL);
         p->write.current = NULL;
+
+        if (p->write.memchunk.memblock)
+            pa_memblock_unref(p->write.memchunk.memblock);
+
+        pa_memchunk_reset(&p->write.memchunk);
 
         if (p->drain_callback && !pa_pstream_is_pending(p))
             p->drain_callback(p, p->drain_callback_userdata);
     }
 
     return 0;
+
+fail:
+
+    if (release_memblock)
+        pa_memblock_release(release_memblock);
+
+    return -1;
 }
 
 static int do_read(pa_pstream *p) {
     void *d;
     size_t l;
     ssize_t r;
-
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_memblock *release_memblock = NULL;
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
     if (p->read.index < PA_PSTREAM_DESCRIPTOR_SIZE) {
         d = (uint8_t*) p->read.descriptor + p->read.index;
         l = PA_PSTREAM_DESCRIPTOR_SIZE - p->read.index;
     } else {
-        assert(p->read.data);
-        d = (uint8_t*) p->read.data + p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE;
+        pa_assert(p->read.data || p->read.memblock);
+
+        if (p->read.data)
+            d = p->read.data;
+        else {
+            d = pa_memblock_acquire(p->read.memblock);
+            release_memblock = p->read.memblock;
+        }
+
+        d = (uint8_t*) d + p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE;
         l = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_LENGTH]) - (p->read.index - PA_PSTREAM_DESCRIPTOR_SIZE);
     }
 
 #ifdef HAVE_CREDS
     {
-        int b = 0;
+        pa_bool_t b = 0;
 
         if ((r = pa_iochannel_read_with_creds(p->io, d, l, &p->read_creds, &b)) <= 0)
-            return -1;
+            goto fail;
 
         p->read_creds_valid = p->read_creds_valid || b;
     }
 #else
     if ((r = pa_iochannel_read(p->io, d, l)) <= 0)
-        return -1;
+        goto fail;
 #endif
+
+    if (release_memblock)
+        pa_memblock_release(release_memblock);
 
     p->read.index += r;
 
@@ -643,7 +696,7 @@ static int do_read(pa_pstream *p) {
 
 /*             pa_log("Got release frame for %u", ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])); */
 
-            assert(p->export);
+            pa_assert(p->export);
             pa_memexport_process_release(p->export, ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI]));
 
             goto frame_done;
@@ -654,7 +707,7 @@ static int do_read(pa_pstream *p) {
 
 /*             pa_log("Got revoke frame for %u", ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])); */
 
-            assert(p->import);
+            pa_assert(p->import);
             pa_memimport_process_revoke(p->import, ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI]));
 
             goto frame_done;
@@ -667,7 +720,7 @@ static int do_read(pa_pstream *p) {
             return -1;
         }
 
-        assert(!p->read.packet && !p->read.memblock);
+        pa_assert(!p->read.packet && !p->read.memblock);
 
         channel = ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_CHANNEL]);
 
@@ -704,7 +757,7 @@ static int do_read(pa_pstream *p) {
                 /* Frame is a memblock frame */
 
                 p->read.memblock = pa_memblock_new(p->mempool, length);
-                p->read.data = p->read.memblock->data;
+                p->read.data = NULL;
             } else {
 
                 pa_log_warn("Recieved memblock frame with invalid flags value.");
@@ -771,9 +824,9 @@ static int do_read(pa_pstream *p) {
             } else {
                 pa_memblock *b;
 
-                assert((ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]) & PA_FLAG_SHMMASK) == PA_FLAG_SHMDATA);
+                pa_assert((ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_FLAGS]) & PA_FLAG_SHMMASK) == PA_FLAG_SHMDATA);
 
-                assert(p->import);
+                pa_assert(p->import);
 
                 if (!(b = pa_memimport_get(p->import,
                                           ntohl(p->read.shm_info[PA_PSTREAM_SHM_BLOCKID]),
@@ -791,7 +844,7 @@ static int do_read(pa_pstream *p) {
 
                     chunk.memblock = b;
                     chunk.index = 0;
-                    chunk.length = b->length;
+                    chunk.length = pa_memblock_get_length(b);
 
                     offset = (int64_t) (
                             (((uint64_t) ntohl(p->read.descriptor[PA_PSTREAM_DESCRIPTOR_OFFSET_HI])) << 32) |
@@ -819,92 +872,104 @@ frame_done:
     p->read.memblock = NULL;
     p->read.packet = NULL;
     p->read.index = 0;
+    p->read.data = NULL;
 
 #ifdef HAVE_CREDS
     p->read_creds_valid = 0;
 #endif
 
     return 0;
+
+fail:
+    if (release_memblock)
+        pa_memblock_release(release_memblock);
+
+    return -1;
 }
 
 void pa_pstream_set_die_callback(pa_pstream *p, pa_pstream_notify_cb_t cb, void *userdata) {
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
-    pa_mutex_lock(p->mutex);
     p->die_callback = cb;
     p->die_callback_userdata = userdata;
-    pa_mutex_unlock(p->mutex);
 }
 
 void pa_pstream_set_drain_callback(pa_pstream *p, pa_pstream_notify_cb_t cb, void *userdata) {
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
-    pa_mutex_lock(p->mutex);
     p->drain_callback = cb;
     p->drain_callback_userdata = userdata;
-    pa_mutex_unlock(p->mutex);
 }
 
 void pa_pstream_set_recieve_packet_callback(pa_pstream *p, pa_pstream_packet_cb_t cb, void *userdata) {
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
-    pa_mutex_lock(p->mutex);
     p->recieve_packet_callback = cb;
     p->recieve_packet_callback_userdata = userdata;
-    pa_mutex_unlock(p->mutex);
 }
 
 void pa_pstream_set_recieve_memblock_callback(pa_pstream *p, pa_pstream_memblock_cb_t cb, void *userdata) {
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
-    pa_mutex_lock(p->mutex);
     p->recieve_memblock_callback = cb;
     p->recieve_memblock_callback_userdata = userdata;
-    pa_mutex_unlock(p->mutex);
+}
+
+void pa_pstream_set_release_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, void *userdata) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    p->release_callback = cb;
+    p->release_callback_userdata = userdata;
+}
+
+void pa_pstream_set_revoke_callback(pa_pstream *p, pa_pstream_block_id_cb_t cb, void *userdata) {
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
+
+    p->release_callback = cb;
+    p->release_callback_userdata = userdata;
 }
 
 int pa_pstream_is_pending(pa_pstream *p) {
     int b;
 
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
-
-    pa_mutex_lock(p->mutex);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
     if (p->dead)
         b = 0;
     else
         b = p->write.current || !pa_queue_is_empty(p->send_queue);
 
-    pa_mutex_unlock(p->mutex);
-
     return b;
 }
 
 void pa_pstream_unref(pa_pstream*p) {
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
     if (PA_REFCNT_DEC(p) <= 0)
         pstream_free(p);
 }
 
 pa_pstream* pa_pstream_ref(pa_pstream*p) {
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
     PA_REFCNT_INC(p);
     return p;
 }
 
-void pa_pstream_close(pa_pstream *p) {
-    assert(p);
+void pa_pstream_unlink(pa_pstream *p) {
+    pa_assert(p);
 
-    pa_mutex_lock(p->mutex);
+    if (p->dead)
+        return;
 
     p->dead = 1;
 
@@ -932,15 +997,11 @@ void pa_pstream_close(pa_pstream *p) {
     p->drain_callback = NULL;
     p->recieve_packet_callback = NULL;
     p->recieve_memblock_callback = NULL;
-
-    pa_mutex_unlock(p->mutex);
 }
 
 void pa_pstream_use_shm(pa_pstream *p, int enable) {
-    assert(p);
-    assert(PA_REFCNT_VALUE(p) > 0);
-
-    pa_mutex_lock(p->mutex);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) > 0);
 
     p->use_shm = enable;
 
@@ -956,6 +1017,4 @@ void pa_pstream_use_shm(pa_pstream *p, int enable) {
             p->export = NULL;
         }
     }
-
-    pa_mutex_unlock(p->mutex);
 }

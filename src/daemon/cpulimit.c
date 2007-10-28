@@ -30,6 +30,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "cpulimit.h"
 
@@ -38,7 +39,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
@@ -92,23 +92,18 @@ static enum  {
 
 /* Reset the SIGXCPU timer to the next t seconds */
 static void reset_cpu_time(int t) {
-    int r;
     long n;
     struct rlimit rl;
     struct rusage ru;
 
     /* Get the current CPU time of the current process */
-    r = getrusage(RUSAGE_SELF, &ru);
-    assert(r >= 0);
+    pa_assert_se(getrusage(RUSAGE_SELF, &ru) >= 0);
 
     n = ru.ru_utime.tv_sec + ru.ru_stime.tv_sec + t;
-
-    r = getrlimit(RLIMIT_CPU, &rl);
-    assert(r >= 0);
+    pa_assert_se(getrlimit(RLIMIT_CPU, &rl) >= 0);
 
     rl.rlim_cur = n;
-    r = setrlimit(RLIMIT_CPU, &rl);
-    assert(r >= 0);
+    pa_assert_se(setrlimit(RLIMIT_CPU, &rl) >= 0);
 }
 
 /* A simple, thread-safe puts() work-alike */
@@ -118,7 +113,7 @@ static void write_err(const char *p) {
 
 /* The signal handler, called on every SIGXCPU */
 static void signal_handler(int sig) {
-    assert(sig == SIGXCPU);
+    pa_assert(sig == SIGXCPU);
 
     if (phase == PHASE_IDLE) {
         time_t now;
@@ -130,7 +125,7 @@ static void signal_handler(int sig) {
         time(&now);
 
 #ifdef PRINT_CPU_LOAD
-        snprintf(t, sizeof(t), "Using %0.1f%% CPU\n", (double)CPUTIME_INTERVAL_SOFT/(now-last_time)*100);
+        pa_snprintf(t, sizeof(t), "Using %0.1f%% CPU\n", (double)CPUTIME_INTERVAL_SOFT/(now-last_time)*100);
         write_err(t);
 #endif
 
@@ -160,7 +155,12 @@ static void signal_handler(int sig) {
 /* Callback for IO events on the FIFO */
 static void callback(pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags_t f, void *userdata) {
     char c;
-    assert(m && e && f == PA_IO_EVENT_INPUT && e == io_event && fd == the_pipe[0]);
+    pa_assert(m);
+    pa_assert(e);
+    pa_assert(f == PA_IO_EVENT_INPUT);
+    pa_assert(e == io_event);
+    pa_assert(fd == the_pipe[0]);
+
     pa_read(the_pipe[0], &c, sizeof(c), NULL);
     m->quit(m, 1); /* Quit the main loop */
 }
@@ -168,7 +168,13 @@ static void callback(pa_mainloop_api*m, pa_io_event*e, int fd, pa_io_event_flags
 /* Initializes CPU load limiter */
 int pa_cpu_limit_init(pa_mainloop_api *m) {
     struct sigaction sa;
-    assert(m && !api && !io_event && the_pipe[0] == -1 && the_pipe[1] == -1 && !installed);
+
+    pa_assert(m);
+    pa_assert(!api);
+    pa_assert(!io_event);
+    pa_assert(the_pipe[0] == -1);
+    pa_assert(the_pipe[1] == -1);
+    pa_assert(!installed);
 
     time(&last_time);
 
@@ -178,10 +184,10 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
         return -1;
     }
 
-    pa_make_nonblock_fd(the_pipe[0]);
-    pa_make_nonblock_fd(the_pipe[1]);
-    pa_fd_set_cloexec(the_pipe[0], 1);
-    pa_fd_set_cloexec(the_pipe[1], 1);
+    pa_make_fd_nonblock(the_pipe[0]);
+    pa_make_fd_nonblock(the_pipe[1]);
+    pa_make_fd_cloexec(the_pipe[0]);
+    pa_make_fd_cloexec(the_pipe[1]);
 
     api = m;
     io_event = api->io_new(m, the_pipe[0], PA_IO_EVENT_INPUT, callback, NULL);
@@ -208,24 +214,18 @@ int pa_cpu_limit_init(pa_mainloop_api *m) {
 
 /* Shutdown CPU load limiter */
 void pa_cpu_limit_done(void) {
-    int r;
 
     if (io_event) {
-        assert(api);
+        pa_assert(api);
         api->io_free(io_event);
         io_event = NULL;
         api = NULL;
     }
 
-    if (the_pipe[0] >= 0)
-        close(the_pipe[0]);
-    if (the_pipe[1] >= 0)
-        close(the_pipe[1]);
-    the_pipe[0] = the_pipe[1] = -1;
+    pa_close_pipe(the_pipe);
 
     if (installed) {
-        r = sigaction(SIGXCPU, &sigaction_prev, NULL);
-        assert(r >= 0);
+        pa_assert_se(sigaction(SIGXCPU, &sigaction_prev, NULL) >= 0);
         installed = 0;
     }
 }

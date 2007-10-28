@@ -48,4 +48,10 @@ doxygen:
 eolspace:
 	find \( -name '*.c' -o -name '*.h' -o -name 'Makefile.am' \) -exec perl -i -pe 's/\s+\n$$/\1\n/;' \{\} \;
 
+untabify:
+	find \( -name '*.c' -o -name '*.h' \) -exec perl -i -pe 's/\t/        /g;' \{\} \;
+
+fedora-snapshot: dist
+	cp $(distdir).tar.gz $$HOME/cvs.fedora/pulseaudio/devel/$(distdir).svn`date +%Y%m%d`.tar.gz
+
 .PHONY: homepage distcleancheck doxygen

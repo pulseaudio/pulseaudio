@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -40,6 +39,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
+#include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 
 #include "log.h"
@@ -71,24 +71,30 @@ static const char level_to_char[] = {
 };
 
 void pa_log_set_ident(const char *p) {
-    if (log_ident)
-        pa_xfree(log_ident);
-    if (log_ident_local)
-        pa_xfree(log_ident_local);
+    pa_xfree(log_ident);
+    pa_xfree(log_ident_local);
 
     log_ident = pa_xstrdup(p);
-    log_ident_local = pa_utf8_to_locale(log_ident);
-    if (!log_ident_local)
+    if (!(log_ident_local = pa_utf8_to_locale(log_ident)))
         log_ident_local = pa_xstrdup(log_ident);
 }
 
+/* To make valgrind shut up. */
+static void ident_destructor(void) PA_GCC_DESTRUCTOR;
+static void ident_destructor(void) {
+    pa_xfree(log_ident);
+    pa_xfree(log_ident_local);
+}
+
 void pa_log_set_maximal_level(pa_log_level_t l) {
-    assert(l < PA_LOG_LEVEL_MAX);
+    pa_assert(l < PA_LOG_LEVEL_MAX);
+
     maximal_level = l;
 }
 
 void pa_log_set_target(pa_log_target_t t, void (*func)(pa_log_level_t l, const char*s)) {
-    assert(t == PA_LOG_USER || !func);
+    pa_assert(t == PA_LOG_USER || !func);
+
     log_target = t;
     user_log_func = func;
 }
@@ -104,8 +110,8 @@ void pa_log_levelv_meta(
     const char *e;
     char *text, *t, *n, *location;
 
-    assert(level < PA_LOG_LEVEL_MAX);
-    assert(format);
+    pa_assert(level < PA_LOG_LEVEL_MAX);
+    pa_assert(format);
 
     if ((e = getenv(ENV_LOGLEVEL)))
         maximal_level = atoi(e);
@@ -221,6 +227,7 @@ void pa_log_levelv(pa_log_level_t level, const char *format, va_list ap) {
 
 void pa_log_level(pa_log_level_t level, const char *format, ...) {
     va_list ap;
+
     va_start(ap, format);
     pa_log_levelv_meta(level, NULL, 0, NULL, format, ap);
     va_end(ap);

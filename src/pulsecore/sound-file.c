@@ -26,31 +26,63 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include <sndfile.h>
 
 #include <pulse/sample.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/core-error.h>
+#include <pulsecore/core-util.h>
 
 #include "sound-file.h"
 #include "core-scache.h"
 
-int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, pa_channel_map *map, pa_memchunk *chunk) {
-    SNDFILE*sf = NULL;
+int pa_sound_file_load(
+        pa_mempool *pool,
+        const char *fname,
+        pa_sample_spec *ss,
+        pa_channel_map *map,
+        pa_memchunk *chunk) {
+
+    SNDFILE *sf = NULL;
     SF_INFO sfinfo;
     int ret = -1;
     size_t l;
     sf_count_t (*readf_function)(SNDFILE *sndfile, void *ptr, sf_count_t frames) = NULL;
-    assert(fname && ss && chunk);
+    void *ptr = NULL;
+    int fd;
 
-    chunk->memblock = NULL;
-    chunk->index = chunk->length = 0;
+    pa_assert(fname);
+    pa_assert(ss);
+    pa_assert(chunk);
 
+    pa_memchunk_reset(chunk);
     memset(&sfinfo, 0, sizeof(sfinfo));
 
-    if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
+    if ((fd = open(fname, O_RDONLY
+#ifdef O_NOCTTY
+                   |O_NOCTTY
+#endif
+                   )) < 0) {
+        pa_log("Failed to open file %s: %s", fname, pa_cstrerror(errno));
+        goto finish;
+    }
+
+#ifdef HAVE_POSIX_FADVISE
+    if (posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL) < 0) {
+        pa_log_warn("POSIX_FADV_SEQUENTIAL failed: %s", pa_cstrerror(errno));
+        goto finish;
+    } else
+        pa_log_debug("POSIX_FADV_SEQUENTIAL succeeded.");
+#endif
+
+    if (!(sf = sf_open_fd(fd, SFM_READ, &sfinfo, 1))) {
         pa_log("Failed to open file %s", fname);
+        pa_close(fd);
         goto finish;
     }
 
@@ -89,18 +121,19 @@ int pa_sound_file_load(pa_mempool *pool, const char *fname, pa_sample_spec *ss, 
     if (map)
         pa_channel_map_init_auto(map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
 
-    if ((l = pa_frame_size(ss)*sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
+    if ((l = pa_frame_size(ss) * sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
         pa_log("File too large");
         goto finish;
     }
 
     chunk->memblock = pa_memblock_new(pool, l);
-    assert(chunk->memblock);
     chunk->index = 0;
     chunk->length = l;
 
-    if ((readf_function && readf_function(sf, chunk->memblock->data, sfinfo.frames) != sfinfo.frames) ||
-        (!readf_function && sf_read_raw(sf, chunk->memblock->data, l) != l)) {
+    ptr = pa_memblock_acquire(chunk->memblock);
+
+    if ((readf_function && readf_function(sf, ptr, sfinfo.frames) != sfinfo.frames) ||
+        (!readf_function && sf_read_raw(sf, ptr, l) != (sf_count_t) l)) {
         pa_log("Premature file end");
         goto finish;
     }
@@ -112,21 +145,26 @@ finish:
     if (sf)
         sf_close(sf);
 
+    if (ptr)
+        pa_memblock_release(chunk->memblock);
+
     if (ret != 0 && chunk->memblock)
         pa_memblock_unref(chunk->memblock);
 
     return ret;
-
 }
 
 int pa_sound_file_too_big_to_cache(const char *fname) {
+
     SNDFILE*sf = NULL;
     SF_INFO sfinfo;
     pa_sample_spec ss;
 
+    pa_assert(fname);
+
     if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) {
         pa_log("Failed to open file %s", fname);
-        return 0;
+        return -1;
     }
 
     sf_close(sf);
@@ -156,8 +194,13 @@ int pa_sound_file_too_big_to_cache(const char *fname) {
     ss.rate = sfinfo.samplerate;
     ss.channels = sfinfo.channels;
 
+    if (!pa_sample_spec_valid(&ss)) {
+        pa_log("Unsupported sample format in file %s", fname);
+        return -1;
+    }
+
     if ((pa_frame_size(&ss) * sfinfo.frames) > PA_SCACHE_ENTRY_SIZE_MAX) {
-        pa_log("File too large %s", fname);
+        pa_log("File too large: %s", fname);
         return 1;
     }
 

@@ -34,7 +34,8 @@
 
 struct timeval;
 
-void pa_make_nonblock_fd(int fd);
+void pa_make_fd_nonblock(int fd);
+void pa_make_fd_cloexec(int fd);
 
 int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid);
 int pa_make_secure_parent_dir(const char *fn, mode_t, uid_t uid, gid_t gid);
@@ -55,19 +56,18 @@ char *pa_strlcpy(char *b, const char *s, size_t l);
 
 char *pa_parent_dir(const char *fn);
 
+void pa_make_realtime(void);
 void pa_raise_priority(void);
 void pa_reset_priority(void);
 
-int pa_fd_set_cloexec(int fd, int b);
-
-int pa_parse_boolean(const char *s);
+int pa_parse_boolean(const char *s) PA_GCC_PURE;
 
 char *pa_split(const char *c, const char*delimiters, const char **state);
 char *pa_split_spaces(const char *c, const char **state);
 
 char *pa_strip_nl(char *s);
 
-const char *pa_strsignal(int sig);
+const char *pa_sig2str(int sig) PA_GCC_PURE;
 
 int pa_own_uid_in_group(const char *name, gid_t *gid);
 int pa_uid_in_group(uid_t uid, const char *name);
@@ -84,12 +84,42 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength);
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength);
 
-int pa_startswith(const char *s, const char *pfx);
-int pa_endswith(const char *s, const char *sfx);
+int pa_startswith(const char *s, const char *pfx) PA_GCC_PURE;
+int pa_endswith(const char *s, const char *sfx) PA_GCC_PURE;
 
 char *pa_runtime_path(const char *fn, char *s, size_t l);
 
 int pa_atoi(const char *s, int32_t *ret_i);
 int pa_atou(const char *s, uint32_t *ret_u);
+int pa_atof(const char *s, float *ret_f);
+
+int pa_snprintf(char *str, size_t size, const char *format, ...);
+
+char *pa_truncate_utf8(char *c, size_t l);
+
+char *pa_getcwd(void);
+char *pa_make_path_absolute(const char *p);
+
+void *pa_will_need(const void *p, size_t l);
+
+static inline int pa_is_power_of_two(unsigned n) {
+    return !(n & (n - 1));
+}
+
+static inline unsigned pa_make_power_of_two(unsigned n) {
+    unsigned j = n;
+
+    if (pa_is_power_of_two(n))
+        return n;
+
+    while (j) {
+        j = j >> 1;
+        n = n | j;
+    }
+
+    return n + 1;
+}
+
+void pa_close_pipe(int fds[2]);
 
 #endif

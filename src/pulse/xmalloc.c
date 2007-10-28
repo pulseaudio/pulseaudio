@@ -27,12 +27,12 @@
 
 #include <stdlib.h>
 #include <signal.h>
-#include <assert.h>
 #include <unistd.h>
 #include <string.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/gccmacro.h>
+#include <pulsecore/macro.h>
 
 #include "xmalloc.h"
 
@@ -60,8 +60,8 @@ static void oom(void) {
 
 void* pa_xmalloc(size_t size) {
     void *p;
-    assert(size > 0);
-    assert(size < MAX_ALLOC_SIZE);
+    pa_assert(size > 0);
+    pa_assert(size < MAX_ALLOC_SIZE);
 
     if (!(p = malloc(size)))
         oom();
@@ -71,8 +71,8 @@ void* pa_xmalloc(size_t size) {
 
 void* pa_xmalloc0(size_t size) {
     void *p;
-    assert(size > 0);
-    assert(size < MAX_ALLOC_SIZE);
+    pa_assert(size > 0);
+    pa_assert(size < MAX_ALLOC_SIZE);
 
     if (!(p = calloc(1, size)))
         oom();
@@ -82,8 +82,8 @@ void* pa_xmalloc0(size_t size) {
 
 void *pa_xrealloc(void *ptr, size_t size) {
     void *p;
-    assert(size > 0);
-    assert(size < MAX_ALLOC_SIZE);
+    pa_assert(size > 0);
+    pa_assert(size < MAX_ALLOC_SIZE);
 
     if (!(p = realloc(ptr, size)))
         oom();

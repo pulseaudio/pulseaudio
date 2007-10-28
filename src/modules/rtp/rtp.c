@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,12 +39,14 @@
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 
 #include "rtp.h"
 
 pa_rtp_context* pa_rtp_context_init_send(pa_rtp_context *c, int fd, uint32_t ssrc, uint8_t payload, size_t frame_size) {
-    assert(c);
-    assert(fd >= 0);
+    pa_assert(c);
+    pa_assert(fd >= 0);
 
     c->fd = fd;
     c->sequence = (uint16_t) (rand()*rand());
@@ -63,11 +64,11 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
     struct iovec iov[MAX_IOVECS];
     pa_memblock* mb[MAX_IOVECS];
     int iov_idx = 1;
-    size_t n = 0, skip = 0;
+    size_t n = 0;
 
-    assert(c);
-    assert(size > 0);
-    assert(q);
+    pa_assert(c);
+    pa_assert(size > 0);
+    pa_assert(q);
 
     if (pa_memblockq_get_length(q) < size)
         return 0;
@@ -76,24 +77,26 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
         int r;
         pa_memchunk chunk;
 
+        pa_memchunk_reset(&chunk);
+
         if ((r = pa_memblockq_peek(q, &chunk)) >= 0) {
 
             size_t k = n + chunk.length > size ? size - n : chunk.length;
 
-            if (chunk.memblock) {
-                iov[iov_idx].iov_base = (void*)((uint8_t*) chunk.memblock->data + chunk.index);
-                iov[iov_idx].iov_len = k;
-                mb[iov_idx] = chunk.memblock;
-                iov_idx ++;
+            pa_assert(chunk.memblock);
 
-                n += k;
-            }
+            iov[iov_idx].iov_base = ((uint8_t*) pa_memblock_acquire(chunk.memblock) + chunk.index);
+            iov[iov_idx].iov_len = k;
+            mb[iov_idx] = chunk.memblock;
+            iov_idx ++;
 
-            skip += k;
-            pa_memblockq_drop(q, &chunk, k);
+            n += k;
+            pa_memblockq_drop(q, k);
         }
 
-        if (r < 0 || !chunk.memblock || n >= size || iov_idx >= MAX_IOVECS) {
+        pa_assert(n % c->frame_size == 0);
+
+        if (r < 0 || n >= size || iov_idx >= MAX_IOVECS) {
             uint32_t header[3];
             struct msghdr m;
             int k, i;
@@ -116,17 +119,19 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
 
                 k = sendmsg(c->fd, &m, MSG_DONTWAIT);
 
-                for (i = 1; i < iov_idx; i++)
+                for (i = 1; i < iov_idx; i++) {
+                    pa_memblock_release(mb[i]);
                     pa_memblock_unref(mb[i]);
+                }
 
                 c->sequence++;
             } else
                 k = 0;
 
-            c->timestamp += skip/c->frame_size;
+            c->timestamp += n/c->frame_size;
 
             if (k < 0) {
-                if (errno != EAGAIN) /* If the queue is full, just ignore it */
+                if (errno != EAGAIN && errno != EINTR) /* If the queue is full, just ignore it */
                     pa_log("sendmsg() failed: %s", pa_cstrerror(errno));
                 return -1;
             }
@@ -135,7 +140,6 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
                 break;
 
             n = 0;
-            skip = 0;
             iov_idx = 1;
         }
     }
@@ -144,7 +148,7 @@ int pa_rtp_send(pa_rtp_context *c, size_t size, pa_memblockq *q) {
 }
 
 pa_rtp_context* pa_rtp_context_init_recv(pa_rtp_context *c, int fd, size_t frame_size) {
-    assert(c);
+    pa_assert(c);
 
     c->fd = fd;
     c->frame_size = frame_size;
@@ -159,13 +163,13 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     int cc;
     ssize_t r;
 
-    assert(c);
-    assert(chunk);
+    pa_assert(c);
+    pa_assert(chunk);
 
-    chunk->memblock = NULL;
+    pa_memchunk_reset(chunk);
 
     if (ioctl(c->fd, FIONREAD, &size) < 0) {
-        pa_log("FIONREAD failed: %s", pa_cstrerror(errno));
+        pa_log_warn("FIONREAD failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
@@ -174,7 +178,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
 
     chunk->memblock = pa_memblock_new(pool, size);
 
-    iov.iov_base = chunk->memblock->data;
+    iov.iov_base = pa_memblock_acquire(chunk->memblock);
     iov.iov_len = size;
 
     m.msg_name = NULL;
@@ -185,36 +189,41 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     m.msg_controllen = 0;
     m.msg_flags = 0;
 
-    if ((r = recvmsg(c->fd, &m, 0)) != size) {
-        pa_log("recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
+    r = recvmsg(c->fd, &m, 0);
+    pa_memblock_release(chunk->memblock);
+
+    if (r != size) {
+        if (r < 0 && errno != EAGAIN && errno != EINTR)
+            pa_log_warn("recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
+
         goto fail;
     }
 
     if (size < 12) {
-        pa_log("RTP packet too short.");
+        pa_log_warn("RTP packet too short.");
         goto fail;
     }
 
-    memcpy(&header, chunk->memblock->data, sizeof(uint32_t));
-    memcpy(&c->timestamp, (uint8_t*) chunk->memblock->data + 4, sizeof(uint32_t));
-    memcpy(&c->ssrc, (uint8_t*) chunk->memblock->data + 8, sizeof(uint32_t));
+    memcpy(&header, iov.iov_base, sizeof(uint32_t));
+    memcpy(&c->timestamp, (uint8_t*) iov.iov_base + 4, sizeof(uint32_t));
+    memcpy(&c->ssrc, (uint8_t*) iov.iov_base + 8, sizeof(uint32_t));
 
     header = ntohl(header);
     c->timestamp = ntohl(c->timestamp);
     c->ssrc = ntohl(c->ssrc);
 
     if ((header >> 30) != 2) {
-        pa_log("Unsupported RTP version.");
+        pa_log_warn("Unsupported RTP version.");
         goto fail;
     }
 
     if ((header >> 29) & 1) {
-        pa_log("RTP padding not supported.");
+        pa_log_warn("RTP padding not supported.");
         goto fail;
     }
 
     if ((header >> 28) & 1) {
-        pa_log("RTP header extensions not supported.");
+        pa_log_warn("RTP header extensions not supported.");
         goto fail;
     }
 
@@ -223,7 +232,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     c->sequence = header & 0xFFFF;
 
     if (12 + cc*4 > size) {
-        pa_log("RTP packet too short. (CSRC)");
+        pa_log_warn("RTP packet too short. (CSRC)");
         goto fail;
     }
 
@@ -231,7 +240,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool) {
     chunk->length = size - chunk->index;
 
     if (chunk->length % c->frame_size != 0) {
-        pa_log("Vad RTP packet size.");
+        pa_log_warn("Bad RTP packet size.");
         goto fail;
     }
 
@@ -245,7 +254,7 @@ fail:
 }
 
 uint8_t pa_rtp_payload_from_sample_spec(const pa_sample_spec *ss) {
-    assert(ss);
+    pa_assert(ss);
 
     if (ss->format == PA_SAMPLE_ULAW && ss->rate == 8000 && ss->channels == 1)
         return 0;
@@ -260,7 +269,7 @@ uint8_t pa_rtp_payload_from_sample_spec(const pa_sample_spec *ss) {
 }
 
 pa_sample_spec *pa_rtp_sample_spec_from_payload(uint8_t payload, pa_sample_spec *ss) {
-    assert(ss);
+    pa_assert(ss);
 
     switch (payload) {
         case 0:
@@ -295,17 +304,17 @@ pa_sample_spec *pa_rtp_sample_spec_from_payload(uint8_t payload, pa_sample_spec 
 }
 
 pa_sample_spec *pa_rtp_sample_spec_fixup(pa_sample_spec * ss) {
-    assert(ss);
+    pa_assert(ss);
 
     if (!pa_rtp_sample_spec_valid(ss))
         ss->format = PA_SAMPLE_S16BE;
 
-    assert(pa_rtp_sample_spec_valid(ss));
+    pa_assert(pa_rtp_sample_spec_valid(ss));
     return ss;
 }
 
 int pa_rtp_sample_spec_valid(const pa_sample_spec *ss) {
-    assert(ss);
+    pa_assert(ss);
 
     if (!pa_sample_spec_valid(ss))
         return 0;
@@ -318,9 +327,9 @@ int pa_rtp_sample_spec_valid(const pa_sample_spec *ss) {
 }
 
 void pa_rtp_context_destroy(pa_rtp_context *c) {
-    assert(c);
+    pa_assert(c);
 
-    close(c->fd);
+    pa_close(c->fd);
 }
 
 const char* pa_rtp_format_to_string(pa_sample_format_t f) {
@@ -339,7 +348,7 @@ const char* pa_rtp_format_to_string(pa_sample_format_t f) {
 }
 
 pa_sample_format_t pa_rtp_string_to_format(const char *s) {
-    assert(s);
+    pa_assert(s);
 
     if (!(strcmp(s, "L16")))
         return PA_SAMPLE_S16BE;

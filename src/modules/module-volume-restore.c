@@ -26,7 +26,6 @@
 #endif
 
 #include <unistd.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -35,6 +34,7 @@
 #include <ctype.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/volume.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
@@ -44,9 +44,7 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/sink-input.h>
 #include <pulsecore/source-output.h>
-#include <pulsecore/core-util.h>
 #include <pulsecore/namereg.h>
-#include <pulse/volume.h>
 
 #include "module-volume-restore-symdef.h"
 
@@ -85,8 +83,8 @@ static pa_cvolume* parse_volume(const char *s, pa_cvolume *v) {
     long k;
     unsigned i;
 
-    assert(s);
-    assert(v);
+    pa_assert(s);
+    pa_assert(v);
 
     if (!isdigit(*s))
         return NULL;
@@ -170,7 +168,7 @@ static int load_rules(struct userdata *u) {
             continue;
         }
 
-        assert(ln == buf_source);
+        pa_assert(ln == buf_source);
 
         if (buf_volume[0]) {
             if (!parse_volume(buf_volume, &v)) {
@@ -297,8 +295,8 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
     struct rule *r;
     char *name;
 
-    assert(c);
-    assert(u);
+    pa_assert(c);
+    pa_assert(u);
 
     if (t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW) &&
         t != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE) &&
@@ -313,7 +311,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (!si->client || !(name = client_name(si->client)))
             return;
     } else {
-        assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT);
+        pa_assert((t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) == PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT);
 
         if (!(so = pa_idxset_get_by_index(c->source_outputs, idx)))
             return;
@@ -341,7 +339,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
                 u->modified = 1;
             }
         } else {
-            assert(so);
+            pa_assert(so);
 
             if (!r->source || strcmp(so->source->name, r->source) != 0) {
                 pa_log_info("Saving source for <%s>", r->name);
@@ -363,7 +361,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             r->sink = pa_xstrdup(si->sink->name);
             r->source = NULL;
         } else {
-            assert(so);
+            pa_assert(so);
             r->volume_is_set = 0;
             r->sink = NULL;
             r->source = pa_xstrdup(so->source->name);
@@ -378,7 +376,7 @@ static pa_hook_result_t sink_input_hook_callback(pa_core *c, pa_sink_input_new_d
     struct rule *r;
     char *name;
 
-    assert(data);
+    pa_assert(data);
 
     if (!data->client || !(name = client_name(data->client)))
         return PA_HOOK_OK;
@@ -396,6 +394,8 @@ static pa_hook_result_t sink_input_hook_callback(pa_core *c, pa_sink_input_new_d
         }
     }
 
+    pa_xfree(name);
+
     return PA_HOOK_OK;
 }
 
@@ -403,7 +403,7 @@ static pa_hook_result_t source_output_hook_callback(pa_core *c, pa_source_output
     struct rule *r;
     char *name;
 
-    assert(data);
+    pa_assert(data);
 
     if (!data->client || !(name = client_name(data->client)))
         return PA_HOOK_OK;
@@ -418,12 +418,11 @@ static pa_hook_result_t source_output_hook_callback(pa_core *c, pa_source_output
     return PA_HOOK_OK;
 }
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
 
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
@@ -442,16 +441,15 @@ int pa__init(pa_core *c, pa_module*m) {
     if (load_rules(u) < 0)
         goto fail;
 
-    u->subscription = pa_subscription_new(c, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
-    u->sink_input_hook_slot = pa_hook_connect(&c->hook_sink_input_new, (pa_hook_cb_t) sink_input_hook_callback, u);
-    u->source_output_hook_slot = pa_hook_connect(&c->hook_source_output_new, (pa_hook_cb_t) source_output_hook_callback, u);
+    u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
+    u->sink_input_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], (pa_hook_cb_t) sink_input_hook_callback, u);
+    u->source_output_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], (pa_hook_cb_t) source_output_hook_callback, u);
 
     pa_modargs_free(ma);
     return 0;
 
 fail:
-    pa__done(c, m);
-
+    pa__done(m);
     if (ma)
         pa_modargs_free(ma);
 
@@ -460,7 +458,7 @@ fail:
 
 static void free_func(void *p, void *userdata) {
     struct rule *r = p;
-    assert(r);
+    pa_assert(r);
 
     pa_xfree(r->name);
     pa_xfree(r->sink);
@@ -468,11 +466,10 @@ static void free_func(void *p, void *userdata) {
     pa_xfree(r);
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata* u;
 
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!(u = m->userdata))
         return;

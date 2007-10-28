@@ -26,12 +26,12 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/queue.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "core-subscribe.h"
 
@@ -68,9 +68,9 @@ static void sched_event(pa_core *c);
 pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m, pa_subscription_cb_t callback, void *userdata) {
     pa_subscription *s;
 
-    assert(c);
-    assert(m);
-    assert(callback);
+    pa_assert(c);
+    pa_assert(m);
+    pa_assert(callback);
 
     s = pa_xnew(pa_subscription, 1);
     s->core = c;
@@ -85,24 +85,24 @@ pa_subscription* pa_subscription_new(pa_core *c, pa_subscription_mask_t m, pa_su
 
 /* Free a subscription object, effectively marking it for deletion */
 void pa_subscription_free(pa_subscription*s) {
-    assert(s);
-    assert(!s->dead);
+    pa_assert(s);
+    pa_assert(!s->dead);
 
     s->dead = 1;
     sched_event(s->core);
 }
 
 static void free_subscription(pa_subscription *s) {
-    assert(s);
-    assert(s->core);
+    pa_assert(s);
+    pa_assert(s->core);
 
     PA_LLIST_REMOVE(pa_subscription, s->core->subscriptions, s);
     pa_xfree(s);
 }
 
 static void free_event(pa_subscription_event *s) {
-    assert(s);
-    assert(s->core);
+    pa_assert(s);
+    pa_assert(s->core);
 
     if (!s->next)
         s->core->subscription_event_last = s->prev;
@@ -113,7 +113,7 @@ static void free_event(pa_subscription_event *s) {
 
 /* Free all subscription objects */
 void pa_subscription_free_all(pa_core *c) {
-    assert(c);
+    pa_assert(c);
 
     while (c->subscriptions)
         free_subscription(c->subscriptions);
@@ -160,9 +160,9 @@ static void defer_cb(pa_mainloop_api *m, pa_defer_event *de, void *userdata) {
     pa_core *c = userdata;
     pa_subscription *s;
 
-    assert(c->mainloop == m);
-    assert(c);
-    assert(c->subscription_defer_event == de);
+    pa_assert(c->mainloop == m);
+    pa_assert(c);
+    pa_assert(c->subscription_defer_event == de);
 
     c->mainloop->defer_enable(c->subscription_defer_event, 0);
 
@@ -196,20 +196,20 @@ static void defer_cb(pa_mainloop_api *m, pa_defer_event *de, void *userdata) {
 
 /* Schedule an mainloop event so that a pending subscription event is dispatched */
 static void sched_event(pa_core *c) {
-    assert(c);
+    pa_assert(c);
 
     if (!c->subscription_defer_event) {
         c->subscription_defer_event = c->mainloop->defer_new(c->mainloop, defer_cb, c);
-        assert(c->subscription_defer_event);
+        pa_assert(c->subscription_defer_event);
     }
 
     c->mainloop->defer_enable(c->subscription_defer_event, 1);
 }
 
 /* Append a new subscription event to the subscription event queue and schedule a main loop event */
-void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t index) {
+void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t idx) {
     pa_subscription_event *e;
-    assert(c);
+    pa_assert(c);
 
     /* No need for queuing subscriptions of noone is listening */
     if (!c->subscriptions)
@@ -227,7 +227,7 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
                 continue;
 
             /* not the same object */
-            if (i->index != index)
+            if (i->index != idx)
                 continue;
 
             if ((t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) == PA_SUBSCRIPTION_EVENT_REMOVE) {
@@ -253,7 +253,7 @@ void pa_subscription_post(pa_core *c, pa_subscription_event_type_t t, uint32_t i
     e = pa_xnew(pa_subscription_event, 1);
     e->core = c;
     e->type = t;
-    e->index = index;
+    e->index = idx;
 
     PA_LLIST_INSERT_AFTER(pa_subscription_event, c->subscription_event_queue, c->subscription_event_last, e);
     c->subscription_event_last = e;

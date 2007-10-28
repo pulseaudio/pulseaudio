@@ -26,7 +26,6 @@
 #endif
 
 #include <string.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>
@@ -36,6 +35,7 @@
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/strbuf.h>
+#include <pulsecore/macro.h>
 
 #include "cmdline.h"
 
@@ -63,7 +63,9 @@ enum {
     ARG_CHECK,
     ARG_NO_CPU_LIMIT,
     ARG_DISABLE_SHM,
-    ARG_SYSTEM
+    ARG_DUMP_RESAMPLE_METHODS,
+    ARG_SYSTEM,
+    ARG_CLEANUP_SHM
 };
 
 /* Tabel for getopt_long() */
@@ -92,11 +94,15 @@ static struct option long_options[] = {
     {"system",                      2, 0, ARG_SYSTEM},
     {"no-cpu-limit",                2, 0, ARG_NO_CPU_LIMIT},
     {"disable-shm",                 2, 0, ARG_DISABLE_SHM},
+    {"dump-resample-methods",       2, 0, ARG_DUMP_RESAMPLE_METHODS},
+    {"cleanup-shm",                 2, 0, ARG_CLEANUP_SHM},
     {NULL, 0, 0, 0}
 };
 
 void pa_cmdline_help(const char *argv0) {
     const char *e;
+
+    pa_assert(argv0);
 
     if ((e = strrchr(argv0, '/')))
         e++;
@@ -109,6 +115,8 @@ void pa_cmdline_help(const char *argv0) {
            "      --version                         Show version\n"
            "      --dump-conf                       Dump default configuration\n"
            "      --dump-modules                    Dump list of available modules\n"
+           "      --dump-resample-methods           Dump available resample methods\n"
+           "      --cleanup-shm                     Cleanup stale shared memory segments\n"
            "  -k  --kill                            Kill a running daemon\n"
            "      --check                           Check for a running daemon\n\n"
 
@@ -131,9 +139,8 @@ void pa_cmdline_help(const char *argv0) {
            "  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
            "                                        objects (plugins)\n"
            "      --resample-method=[METHOD]        Use the specified resampling method\n"
-           "                                        (one of src-sinc-medium-quality,\n"
-           "                                        src-sinc-best-quality,src-sinc-fastest\n"
-           "                                        src-zero-order-hold,src-linear,trivial)\n"
+           "                                        (See --dump-resample-methods for\n"
+           "                                        possible values)\n"
            "      --use-pid-file[=BOOL]             Create a PID file\n"
            "      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
            "                                        platforms that support it.\n"
@@ -152,7 +159,10 @@ void pa_cmdline_help(const char *argv0) {
 int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d) {
     pa_strbuf *buf = NULL;
     int c;
-    assert(conf && argc && argv);
+
+    pa_assert(conf);
+    pa_assert(argc > 0);
+    pa_assert(argv);
 
     buf = pa_strbuf_new();
 
@@ -178,6 +188,14 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                 conf->cmd = PA_CMD_DUMP_MODULES;
                 break;
 
+            case ARG_DUMP_RESAMPLE_METHODS:
+                conf->cmd = PA_CMD_DUMP_RESAMPLE_METHODS;
+                break;
+
+            case ARG_CLEANUP_SHM:
+                conf->cmd = PA_CMD_CLEANUP_SHM;
+                break;
+
             case 'k':
             case ARG_KILL:
                 conf->cmd = PA_CMD_KILL;
@@ -193,9 +211,12 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                 break;
 
             case ARG_FILE:
-            case 'F':
-                pa_strbuf_printf(buf, ".include %s\n", optarg);
+            case 'F': {
+                char *p;
+                pa_strbuf_printf(buf, ".include %s\n", p = pa_make_path_absolute(optarg));
+                pa_xfree(p);
                 break;
+            }
 
             case 'C':
                 pa_strbuf_puts(buf, "load-module module-cli exit_on_eof=1\n");

@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stddef.h>
-#include <assert.h>
 #include <ltdl.h>
 #include <limits.h>
 #include <fcntl.h>
@@ -59,13 +58,16 @@
 #include <tcpd.h>
 #endif
 
-#include "../pulsecore/winsock.h"
+#ifdef HAVE_DBUS
+#include <dbus/dbus.h>
+#endif
 
 #include <pulse/mainloop.h>
 #include <pulse/mainloop-signal.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core.h>
 #include <pulsecore/memblock.h>
@@ -78,12 +80,20 @@
 #include <pulsecore/pid.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/random.h>
+#include <pulsecore/rtsig.h>
+#include <pulsecore/rtclock.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/mutex.h>
+#include <pulsecore/thread.h>
+#include <pulsecore/once.h>
+#include <pulsecore/shm.h>
 
 #include "cmdline.h"
 #include "cpulimit.h"
 #include "daemon-conf.h"
 #include "dumpmodules.h"
 #include "caps.h"
+#include "ltdl-bind-now.h"
 
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
@@ -120,7 +130,7 @@ static void message_cb(pa_mainloop_api*a, pa_time_event*e, PA_GCC_UNUSED const s
 #endif
 
 static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e, int sig, void *userdata) {
-    pa_log_info("Got signal %s.", pa_strsignal(sig));
+    pa_log_info("Got signal %s.", pa_sig2str(sig));
 
     switch (sig) {
 #ifdef SIGUSR1
@@ -151,14 +161,6 @@ static void signal_callback(pa_mainloop_api*m, PA_GCC_UNUSED pa_signal_event *e,
             m->quit(m, 1);
             break;
     }
-}
-
-static void close_pipe(int p[2]) {
-    if (p[0] != -1)
-        close(p[0]);
-    if (p[1] != -1)
-        close(p[1]);
-    p[0] = p[1] = -1;
 }
 
 #define set_env(key, value) putenv(pa_sprintf_malloc("%s=%s", (key), (value)))
@@ -281,7 +283,7 @@ static int create_runtime_dir(void) {
 
 static void set_one_rlimit(const pa_rlimit *r, int resource, const char *name) {
     struct rlimit rl;
-    assert(r);
+    pa_assert(r);
 
     if (!r->is_set)
         return;
@@ -313,18 +315,33 @@ int main(int argc, char *argv[]) {
     pa_strbuf *buf = NULL;
     pa_daemon_conf *conf = NULL;
     pa_mainloop *mainloop = NULL;
-
     char *s;
-    int r, retval = 1, d = 0;
+    int r = 0, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
     int suid_root, real_root;
     int valid_pid_file = 0;
-
     gid_t gid = (gid_t) -1;
 
 #ifdef OS_IS_WIN32
     pa_time_event *timer;
     struct timeval tv;
+#endif
+
+
+#if defined(__linux__) && defined(__OPTIMIZE__)
+    /*
+       Disable lazy relocations to make usage of external libraries
+       more deterministic for our RT threads. We abuse __OPTIMIZE__ as
+       a check whether we are a debug build or not.
+    */
+
+    if (!getenv("LD_BIND_NOW")) {
+        putenv(pa_xstrdup("LD_BIND_NOW=1"));
+
+        /* We have to execute ourselves, because the libc caches the
+         * value of $LD_BIND_NOW on initialization. */
+        pa_assert_se(execv("/proc/self/exe", argv) == 0);
+    }
 #endif
 
 #ifdef HAVE_GETUID
@@ -336,16 +353,26 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (suid_root) {
-        if (pa_limit_caps() > 0)
-            /* We managed to drop capabilities except the needed
-             * ones. Hence we can drop the uid. */
-            pa_drop_root();
+        /* Drop all capabilities except CAP_SYS_NICE  */
+        pa_limit_caps();
+
+        /* Drop priviliges, but keep CAP_SYS_NICE */
+        pa_drop_root();
+
+        /* After dropping root, the effective set is reset, hence,
+         * let's raise it again */
+        pa_limit_caps();
+
+        /* When capabilities are not supported we will not be able to
+         * aquire RT sched anymore. But yes, that's the way it is. It
+         * is just too risky tun let PA run as root all the time. */
     }
 
     setlocale(LC_ALL, "");
 
-    if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0 || gid >= 1000)) {
-        pa_log_warn("WARNING: called SUID root, but not in group '"PA_REALTIME_GROUP"'.");
+    if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0)) {
+        pa_log_info("Warning: Called SUID root, but not in group '"PA_REALTIME_GROUP"'. "
+                    "For enabling real-time scheduling please become a member of '"PA_REALTIME_GROUP"' , or increase the RLIMIT_RTPRIO user limit.");
         pa_drop_caps();
         pa_drop_root();
         suid_root = real_root = 0;
@@ -353,8 +380,7 @@ int main(int argc, char *argv[]) {
 
     LTDL_SET_PRELOADED_SYMBOLS();
 
-    r = lt_dlinit();
-    assert(r == 0);
+    pa_ltdl_init();
 
 #ifdef OS_IS_WIN32
     {
@@ -386,7 +412,7 @@ int main(int argc, char *argv[]) {
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority();
 
-    if (suid_root) {
+    if (suid_root && (conf->cmd != PA_CMD_DAEMON || !conf->high_priority)) {
         pa_drop_caps();
         pa_drop_root();
     }
@@ -405,6 +431,16 @@ int main(int argc, char *argv[]) {
             fputs(s, stdout);
             pa_xfree(s);
             retval = 0;
+            goto finish;
+        }
+
+        case PA_CMD_DUMP_RESAMPLE_METHODS: {
+            int i;
+
+            for (i = 0; i < PA_RESAMPLER_MAX; i++)
+                if (pa_resample_method_supported(i))
+                    printf("%s\n", pa_resample_method_to_string(i));
+
             goto finish;
         }
 
@@ -440,8 +476,15 @@ int main(int argc, char *argv[]) {
 
             goto finish;
 
+        case PA_CMD_CLEANUP_SHM:
+
+            if (pa_shm_cleanup() >= 0)
+                retval = 0;
+
+            goto finish;
+
         default:
-            assert(conf->cmd == PA_CMD_DAEMON);
+            pa_assert(conf->cmd == PA_CMD_DAEMON);
     }
 
     if (real_root && !conf->system_instance) {
@@ -474,7 +517,7 @@ int main(int argc, char *argv[]) {
         if (child != 0) {
             /* Father */
 
-            close(daemon_pipe[1]);
+            pa_assert_se(pa_close(daemon_pipe[1]) == 0);
             daemon_pipe[1] = -1;
 
             if (pa_loop_read(daemon_pipe[0], &retval, sizeof(retval), NULL) != sizeof(retval)) {
@@ -490,7 +533,7 @@ int main(int argc, char *argv[]) {
             goto finish;
         }
 
-        close(daemon_pipe[0]);
+        pa_assert_se(pa_close(daemon_pipe[0]) == 0);
         daemon_pipe[0] = -1;
 #endif
 
@@ -505,9 +548,9 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifndef OS_IS_WIN32
-        close(0);
-        close(1);
-        close(2);
+        pa_close(0);
+        pa_close(1);
+        pa_close(2);
 
         open("/dev/null", O_RDONLY);
         open("/dev/null", O_WRONLY);
@@ -529,12 +572,12 @@ int main(int argc, char *argv[]) {
 #ifdef TIOCNOTTY
         if ((tty_fd = open("/dev/tty", O_RDWR)) >= 0) {
             ioctl(tty_fd, TIOCNOTTY, (char*) 0);
-            close(tty_fd);
+            pa_assert_se(pa_close(tty_fd) == 0);
         }
 #endif
     }
 
-    chdir("/");
+    pa_assert_se(chdir("/") == 0);
     umask(0022);
 
     if (conf->system_instance) {
@@ -564,18 +607,37 @@ int main(int argc, char *argv[]) {
     signal(SIGPIPE, SIG_IGN);
 #endif
 
-    mainloop = pa_mainloop_new();
-    assert(mainloop);
+    pa_log_info("Page size is %lu bytes", (unsigned long) PA_PAGE_SIZE);
+
+    if (pa_rtclock_hrtimer())
+        pa_log_info("Fresh high-resolution timers available! Bon appetit!");
+    else
+        pa_log_info("Dude, your kernel stinks! The chef's recommendation today is Linux with high-resolution timers enabled!");
+
+#ifdef SIGRTMIN
+    /* Valgrind uses SIGRTMAX. To easy debugging we don't use it here */
+    pa_rtsig_configure(SIGRTMIN, SIGRTMAX-1);
+#endif
+
+    pa_assert_se(mainloop = pa_mainloop_new());
 
     if (!(c = pa_core_new(pa_mainloop_get_api(mainloop), !conf->disable_shm))) {
-    	pa_log("pa_core_new() failed.");
+        pa_log("pa_core_new() failed.");
         goto finish;
     }
 
     c->is_system_instance = !!conf->system_instance;
+    c->high_priority = !!conf->high_priority;
+    c->default_sample_spec = conf->default_sample_spec;
+    c->default_n_fragments = conf->default_n_fragments;
+    c->default_fragment_size_msec = conf->default_fragment_size_msec;
+    c->disallow_module_loading = conf->disallow_module_loading;
+    c->exit_idle_time = conf->exit_idle_time;
+    c->module_idle_time = conf->module_idle_time;
+    c->scache_idle_time = conf->scache_idle_time;
+    c->resample_method = conf->resample_method;
 
-    r = pa_signal_init(pa_mainloop_get_api(mainloop));
-    assert(r == 0);
+    pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);
     pa_signal_new(SIGTERM, signal_callback, c);
 
@@ -590,9 +652,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef OS_IS_WIN32
-    timer = pa_mainloop_get_api(mainloop)->time_new(
-        pa_mainloop_get_api(mainloop), pa_gettimeofday(&tv), message_cb, NULL);
-    assert(timer);
+    pa_assert_se(timer = pa_mainloop_get_api(mainloop)->time_new(pa_mainloop_get_api(mainloop), pa_gettimeofday(&tv), message_cb, NULL));
 #endif
 
     if (conf->daemonize)
@@ -600,10 +660,8 @@ int main(int argc, char *argv[]) {
 
     oil_init();
 
-    if (!conf->no_cpu_limit) {
-        r = pa_cpu_limit_init(pa_mainloop_get_api(mainloop));
-        assert(r == 0);
-    }
+    if (!conf->no_cpu_limit)
+        pa_assert_se(pa_cpu_limit_init(pa_mainloop_get_api(mainloop)) == 0);
 
     buf = pa_strbuf_new();
     if (conf->default_script_file)
@@ -634,12 +692,6 @@ int main(int argc, char *argv[]) {
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
 #endif
 
-        c->disallow_module_loading = conf->disallow_module_loading;
-        c->exit_idle_time = conf->exit_idle_time;
-        c->module_idle_time = conf->module_idle_time;
-        c->scache_idle_time = conf->scache_idle_time;
-        c->resample_method = conf->resample_method;
-
         if (c->default_sink_name &&
             pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK, 1) == NULL) {
             pa_log_error("%s : Fatal error. Default sink name (%s) does not exist in name register.", __FILE__, c->default_sink_name);
@@ -656,7 +708,7 @@ int main(int argc, char *argv[]) {
     pa_mainloop_get_api(mainloop)->time_free(timer);
 #endif
 
-    pa_core_free(c);
+    pa_core_unref(c);
 
     if (!conf->no_cpu_limit)
         pa_cpu_limit_done();
@@ -676,13 +728,17 @@ finish:
     if (valid_pid_file)
         pa_pid_file_remove();
 
-    close_pipe(daemon_pipe);
+    pa_close_pipe(daemon_pipe);
 
 #ifdef OS_IS_WIN32
     WSACleanup();
 #endif
 
-    lt_dlexit();
+    pa_ltdl_done();
+
+#ifdef HAVE_DBUS
+    dbus_shutdown();
+#endif
 
     return retval;
 }

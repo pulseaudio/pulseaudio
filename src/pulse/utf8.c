@@ -37,7 +37,7 @@
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.         See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
@@ -50,7 +50,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -60,12 +59,15 @@
 #include <iconv.h>
 #endif
 
+#include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
+
 #include "utf8.h"
-#include "xmalloc.h"
 
 #define FILTER_CHAR '_'
 
 static inline int is_unicode_valid(uint32_t ch) {
+
     if (ch >= 0x110000) /* End of unicode space */
         return 0;
     if ((ch & 0xFFFFF800) == 0xD800) /* Reserved area for UTF-16 */
@@ -74,6 +76,7 @@ static inline int is_unicode_valid(uint32_t ch) {
         return 0;
     if ((ch & 0xFFFE) == 0xFFFE) /* BOM (Byte Order Mark) */
         return 0;
+
     return 1;
 }
 
@@ -94,6 +97,8 @@ static char* utf8_validate(const char *str, char *output) {
     const uint8_t *p, *last;
     int size;
     uint8_t *o;
+
+    pa_assert(str);
 
     o = (uint8_t*) output;
     for (p = (const uint8_t*) str; *p; p++) {
@@ -178,15 +183,15 @@ failure:
     return NULL;
 }
 
-const char* pa_utf8_valid (const char *str) {
+char* pa_utf8_valid (const char *str) {
     return utf8_validate(str, NULL);
 }
 
 char* pa_utf8_filter (const char *str) {
     char *new_str;
 
+    pa_assert(str);
     new_str = pa_xnew(char, strlen(str) + 1);
-
     return utf8_validate(str, new_str);
 }
 
@@ -195,22 +200,24 @@ char* pa_utf8_filter (const char *str) {
 static char* iconv_simple(const char *str, const char *to, const char *from) {
     char *new_str;
     size_t len, inlen;
-
     iconv_t cd;
     ICONV_CONST char *inbuf;
     char *outbuf;
     size_t res, inbytes, outbytes;
+
+    pa_assert(str);
+    pa_assert(to);
+    pa_assert(from);
 
     cd = iconv_open(to, from);
     if (cd == (iconv_t)-1)
         return NULL;
 
     inlen = len = strlen(str) + 1;
-    new_str = pa_xmalloc(len);
-    assert(new_str);
+    new_str = pa_xnew(char, len);
 
-    while (1) {
-        inbuf = (ICONV_CONST char*)str; /* Brain dead prototype for iconv() */
+    for (;;) {
+        inbuf = (ICONV_CONST char*) str; /* Brain dead prototype for iconv() */
         inbytes = inlen;
         outbuf = new_str;
         outbytes = len;
@@ -226,11 +233,10 @@ static char* iconv_simple(const char *str, const char *to, const char *from) {
             break;
         }
 
-        assert(inbytes != 0);
+        pa_assert(inbytes != 0);
 
         len += inbytes;
         new_str = pa_xrealloc(new_str, len);
-        assert(new_str);
     }
 
     iconv_close(cd);
@@ -249,10 +255,12 @@ char* pa_locale_to_utf8 (const char *str) {
 #else
 
 char* pa_utf8_to_locale (const char *str) {
+    pa_assert(str);
     return NULL;
 }
 
 char* pa_locale_to_utf8 (const char *str) {
+    pa_assert(str);
     return NULL;
 }
 

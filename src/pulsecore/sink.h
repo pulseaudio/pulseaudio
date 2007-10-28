@@ -1,5 +1,5 @@
-#ifndef foosinkhfoo
-#define foosinkhfoo
+#ifndef foopulsesinkhfoo
+#define foopulsesinkhfoo
 
 /* $Id$ */
 
@@ -25,87 +25,164 @@
   USA.
 ***/
 
-#include <inttypes.h>
-
 typedef struct pa_sink pa_sink;
+
+#include <inttypes.h>
 
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
+
 #include <pulsecore/core-def.h>
 #include <pulsecore/core.h>
 #include <pulsecore/idxset.h>
 #include <pulsecore/source.h>
 #include <pulsecore/module.h>
+#include <pulsecore/refcnt.h>
+#include <pulsecore/msgobject.h>
+#include <pulsecore/rtpoll.h>
 
 #define PA_MAX_INPUTS_PER_SINK 32
 
 typedef enum pa_sink_state {
+    PA_SINK_INIT,
     PA_SINK_RUNNING,
-    PA_SINK_DISCONNECTED
+    PA_SINK_SUSPENDED,
+    PA_SINK_IDLE,
+    PA_SINK_UNLINKED
 } pa_sink_state_t;
 
+static inline pa_bool_t PA_SINK_OPENED(pa_sink_state_t x) {
+    return x == PA_SINK_RUNNING || x == PA_SINK_IDLE;
+}
+
+static inline pa_bool_t PA_SINK_LINKED(pa_sink_state_t x) {
+    return x == PA_SINK_RUNNING || x == PA_SINK_IDLE || x == PA_SINK_SUSPENDED;
+}
+
 struct pa_sink {
-    int ref;
+    pa_msgobject parent;
+
     uint32_t index;
     pa_core *core;
     pa_sink_state_t state;
+    pa_sink_flags_t flags;
 
     char *name;
     char *description, *driver;            /* may be NULL */
-    int is_hardware;
 
-    pa_module *owner;                      /* may be NULL */
+    pa_module *module;                      /* may be NULL */
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
 
     pa_idxset *inputs;
-    pa_source *monitor_source;             /* may be NULL */
+    unsigned n_corked;
+    pa_source *monitor_source;
 
-    pa_cvolume hw_volume, sw_volume;
-    int hw_muted, sw_muted;
+    pa_cvolume volume;
+    pa_bool_t muted;
+    pa_bool_t refresh_volume;
+    pa_bool_t refresh_mute;
 
-    void (*notify)(pa_sink*sink);          /* may be NULL */
-    pa_usec_t (*get_latency)(pa_sink *s);  /* dito */
-    int (*set_hw_volume)(pa_sink *s);      /* dito */
-    int (*get_hw_volume)(pa_sink *s);      /* dito */
-    int (*set_hw_mute)(pa_sink *s);        /* dito */
-    int (*get_hw_mute)(pa_sink *s);        /* dito */
+    int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
+    int (*set_volume)(pa_sink *s);           /* dito */
+    int (*get_volume)(pa_sink *s);           /* dito */
+    int (*get_mute)(pa_sink *s);             /* dito */
+    int (*set_mute)(pa_sink *s);             /* dito */
+    pa_usec_t (*get_latency)(pa_sink *s);    /* dito */
+
+    pa_asyncmsgq *asyncmsgq;
+    pa_rtpoll *rtpoll;
+
+    /* Contains copies of the above data so that the real-time worker
+     * thread can work without access locking */
+    struct {
+        pa_sink_state_t state;
+        pa_hashmap *inputs;
+        pa_cvolume soft_volume;
+        pa_bool_t soft_muted;
+    } thread_info;
+
+    pa_memblock *silence;
 
     void *userdata;
 };
 
+PA_DECLARE_CLASS(pa_sink);
+#define PA_SINK(s) (pa_sink_cast(s))
+
+typedef enum pa_sink_message {
+    PA_SINK_MESSAGE_ADD_INPUT,
+    PA_SINK_MESSAGE_REMOVE_INPUT,
+    PA_SINK_MESSAGE_GET_VOLUME,
+    PA_SINK_MESSAGE_SET_VOLUME,
+    PA_SINK_MESSAGE_GET_MUTE,
+    PA_SINK_MESSAGE_SET_MUTE,
+    PA_SINK_MESSAGE_GET_LATENCY,
+    PA_SINK_MESSAGE_SET_STATE,
+    PA_SINK_MESSAGE_PING,
+    PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER,
+    PA_SINK_MESSAGE_ATTACH,
+    PA_SINK_MESSAGE_DETACH,
+    PA_SINK_MESSAGE_MAX
+} pa_sink_message_t;
+
+/* To be called exclusively by the sink driver, from main context */
+
 pa_sink* pa_sink_new(
-    pa_core *core,
-    const char *driver,
-    const char *name,
-    int namereg_fail,
-    const pa_sample_spec *spec,
-    const pa_channel_map *map);
+        pa_core *core,
+        const char *driver,
+        const char *name,
+        int namereg_fail,
+        const pa_sample_spec *spec,
+        const pa_channel_map *map);
 
-void pa_sink_disconnect(pa_sink* s);
-void pa_sink_unref(pa_sink*s);
-pa_sink* pa_sink_ref(pa_sink *s);
+void pa_sink_put(pa_sink *s);
+void pa_sink_unlink(pa_sink* s);
 
-int pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result);
-void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result);
-int pa_sink_render_into(pa_sink*s, pa_memchunk *target);
-void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
+void pa_sink_set_module(pa_sink *sink, pa_module *m);
+void pa_sink_set_description(pa_sink *s, const char *description);
+void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q);
+void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p);
+
+void pa_sink_detach(pa_sink *s);
+void pa_sink_attach(pa_sink *s);
+
+/* May be called by everyone, from main context */
 
 pa_usec_t pa_sink_get_latency(pa_sink *s);
 
-void pa_sink_notify(pa_sink*s);
+int pa_sink_update_status(pa_sink*s);
+int pa_sink_suspend(pa_sink *s, pa_bool_t suspend);
+int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend);
 
-void pa_sink_set_owner(pa_sink *sink, pa_module *m);
+/* Sends a ping message to the sink thread, to make it wake up and
+ * check for data to process even if there is no real message is
+ * sent */
+void pa_sink_ping(pa_sink *s);
 
-void pa_sink_set_volume(pa_sink *sink, pa_mixer_t m, const pa_cvolume *volume);
-const pa_cvolume *pa_sink_get_volume(pa_sink *sink, pa_mixer_t m);
-void pa_sink_set_mute(pa_sink *sink, pa_mixer_t m, int mute);
-int pa_sink_get_mute(pa_sink *sink, pa_mixer_t m);
+void pa_sink_set_volume(pa_sink *sink, const pa_cvolume *volume);
+const pa_cvolume *pa_sink_get_volume(pa_sink *sink);
+void pa_sink_set_mute(pa_sink *sink, pa_bool_t mute);
+pa_bool_t pa_sink_get_mute(pa_sink *sink);
 
-void pa_sink_set_description(pa_sink *s, const char *description);
+unsigned pa_sink_linked_by(pa_sink *s); /* Number of connected streams */
+unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are not corked */
+#define pa_sink_get_state(s) ((s)->state)
 
-unsigned pa_sink_used_by(pa_sink *s);
+/* To be called exclusively by the sink driver, from IO context */
+
+void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result);
+void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result);
+void pa_sink_render_into(pa_sink*s, pa_memchunk *target);
+void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
+
+void pa_sink_skip(pa_sink *s, size_t length);
+
+int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
+
+void pa_sink_attach_within_thread(pa_sink *s);
+void pa_sink_detach_within_thread(pa_sink *s);
 
 #endif

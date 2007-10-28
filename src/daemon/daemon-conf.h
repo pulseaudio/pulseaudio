@@ -26,6 +26,7 @@
 ***/
 
 #include <pulsecore/log.h>
+#include <pulse/sample.h>
 
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
@@ -39,7 +40,9 @@ typedef enum pa_daemon_conf_cmd {
     PA_CMD_DUMP_CONF,
     PA_CMD_DUMP_MODULES,
     PA_CMD_KILL,
-    PA_CMD_CHECK
+    PA_CMD_CHECK,
+    PA_CMD_DUMP_RESAMPLE_METHODS,
+    PA_CMD_CLEANUP_SHM
 } pa_daemon_conf_cmd_t;
 
 #ifdef HAVE_SYS_RESOURCE_H
@@ -80,6 +83,8 @@ typedef struct pa_daemon_conf {
 #endif
 #endif
 
+    unsigned default_n_fragments, default_fragment_size_msec;
+    pa_sample_spec default_sample_spec;
 } pa_daemon_conf;
 
 /* Allocate a new structure and fill it with sane defaults */

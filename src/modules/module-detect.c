@@ -28,7 +28,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -44,6 +43,7 @@
 #include <pulsecore/modargs.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "module-detect-symdef.h"
 
@@ -51,6 +51,11 @@ PA_MODULE_AUTHOR("Lennart Poettering")
 PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers")
 PA_MODULE_VERSION(PACKAGE_VERSION)
 PA_MODULE_USAGE("just-one=<boolean>")
+
+static const char* const valid_modargs[] = {
+    "just-one",
+    NULL
+};
 
 #ifdef HAVE_ALSA
 
@@ -96,7 +101,7 @@ static int detect_alsa(pa_core *c, int just_one) {
         if (subdevice != 0)
             continue;
 
-        snprintf(args, sizeof(args), "device=hw:%u", device);
+        pa_snprintf(args, sizeof(args), "device=hw:%u", device);
         if (!pa_module_load(c, is_sink ? "module-alsa-sink" : "module-alsa-source", args))
             continue;
 
@@ -139,7 +144,7 @@ static int detect_oss(pa_core *c, int just_one) {
         line[strcspn(line, "\r\n")] = 0;
 
         if (!b) {
-	     b = strcmp(line, "Audio devices:") == 0 || strcmp(line, "Installed devices:") == 0;
+             b = strcmp(line, "Audio devices:") == 0 || strcmp(line, "Installed devices:") == 0;
             continue;
         }
 
@@ -148,20 +153,20 @@ static int detect_oss(pa_core *c, int just_one) {
 
         if (sscanf(line, "%u: ", &device) == 1) {
             if (device == 0)
-                snprintf(args, sizeof(args), "device=/dev/dsp");
+                pa_snprintf(args, sizeof(args), "device=/dev/dsp");
             else
-                snprintf(args, sizeof(args), "device=/dev/dsp%u", device);
+                pa_snprintf(args, sizeof(args), "device=/dev/dsp%u", device);
 
             if (!pa_module_load(c, "module-oss", args))
                 continue;
 
-	} else if (sscanf(line, "pcm%u: ", &device) == 1) {
+        } else if (sscanf(line, "pcm%u: ", &device) == 1) {
             /* FreeBSD support, the devices are named /dev/dsp0.0, dsp0.1 and so on */
-            snprintf(args, sizeof(args), "device=/dev/dsp%u.0", device);
+            pa_snprintf(args, sizeof(args), "device=/dev/dsp%u.0", device);
 
             if (!pa_module_load(c, "module-oss", args))
                 continue;
-	}
+        }
 
         n++;
 
@@ -193,7 +198,7 @@ static int detect_solaris(pa_core *c, int just_one) {
     if (!S_ISCHR(s.st_mode))
         return 0;
 
-    snprintf(args, sizeof(args), "device=%s", dev);
+    pa_snprintf(args, sizeof(args), "device=%s", dev);
 
     if (!pa_module_load(c, "module-solaris", args))
         return 0;
@@ -215,17 +220,11 @@ static int detect_waveout(pa_core *c, int just_one) {
 }
 #endif
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     int just_one = 0, n = 0;
     pa_modargs *ma;
 
-    static const char* const valid_modargs[] = {
-        "just-one",
-        NULL
-    };
-
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
@@ -238,16 +237,16 @@ int pa__init(pa_core *c, pa_module*m) {
     }
 
 #if HAVE_ALSA
-    if ((n = detect_alsa(c, just_one)) <= 0)
+    if ((n = detect_alsa(m->core, just_one)) <= 0)
 #endif
 #if HAVE_OSS
-    if ((n = detect_oss(c, just_one)) <= 0)
+    if ((n = detect_oss(m->core, just_one)) <= 0)
 #endif
 #if HAVE_SOLARIS
-    if ((n = detect_solaris(c, just_one)) <= 0)
+    if ((n = detect_solaris(m->core, just_one)) <= 0)
 #endif
 #if OS_IS_WIN32
-    if ((n = detect_waveout(c, just_one)) <= 0)
+    if ((n = detect_waveout(m->core, just_one)) <= 0)
 #endif
     {
         pa_log_warn("failed to detect any sound hardware.");
@@ -269,9 +268,3 @@ fail:
 
     return -1;
 }
-
-
-void pa__done(PA_GCC_UNUSED pa_core *c, PA_GCC_UNUSED pa_module*m) {
-    /* NOP */
-}
-

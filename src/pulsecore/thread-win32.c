@@ -53,9 +53,8 @@ struct pa_tls_monitor {
 };
 
 static pa_tls *thread_tls;
-static pa_once_t thread_tls_once = PA_ONCE_INIT;
+static pa_once thread_tls_once = PA_ONCE_INIT;
 static pa_tls *monitor_tls;
-static pa_once_t monitor_tls_once = PA_ONCE_INIT;
 
 static void thread_tls_once_func(void) {
     thread_tls = pa_tls_new(NULL);
@@ -66,7 +65,7 @@ static DWORD WINAPI internal_thread_func(LPVOID param) {
     pa_thread *t = param;
     assert(t);
 
-    pa_once(&thread_tls_once, thread_tls_once_func);
+    pa_run_once(&thread_tls_once, thread_tls_once_func);
     pa_tls_set(thread_tls, t);
 
     t->thread_func(t->userdata);
@@ -122,18 +121,12 @@ int pa_thread_join(pa_thread *t) {
 }
 
 pa_thread* pa_thread_self(void) {
-    pa_once(&thread_tls_once, thread_tls_once_func);
+    pa_run_once(&thread_tls_once, thread_tls_once_func);
     return pa_tls_get(thread_tls);
 }
 
 void pa_thread_yield(void) {
     Sleep(0);
-}
-
-static void monitor_tls_once_func(void) {
-    monitor_tls = pa_tls_new(NULL);
-    assert(monitor_tls);
-    pa_tls_set(monitor_tls, NULL);
 }
 
 static DWORD WINAPI monitor_thread_func(LPVOID param) {
@@ -191,7 +184,11 @@ void *pa_tls_set(pa_tls *t, void *userdata) {
     if (t->free_func) {
         struct pa_tls_monitor *m;
 
-        pa_once(&monitor_tls_once, monitor_tls_once_func);
+        PA_ONCE_BEGIN {
+            monitor_tls = pa_tls_new(NULL);
+            assert(monitor_tls);
+            pa_tls_set(monitor_tls, NULL);
+        } PA_ONCE_END;
 
         m = pa_tls_get(monitor_tls);
         if (!m) {

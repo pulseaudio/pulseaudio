@@ -39,8 +39,8 @@ struct pa_module {
 
     lt_dlhandle dl;
 
-    int (*init)(pa_core *c, pa_module*m);
-    void (*done)(pa_core *c, pa_module*m);
+    int (*init)(pa_module*m);
+    void (*done)(pa_module*m);
 
     void *userdata;
 
@@ -62,9 +62,9 @@ void pa_module_unload_request(pa_module *m);
 
 void pa_module_set_used(pa_module*m, int used);
 
-#define PA_MODULE_AUTHOR(s) const char * pa__get_author(void) { return s; }
-#define PA_MODULE_DESCRIPTION(s) const char * pa__get_description(void) { return s; }
-#define PA_MODULE_USAGE(s) const char * pa__get_usage(void) { return s; }
+#define PA_MODULE_AUTHOR(s) const char *pa__get_author(void) { return s; }
+#define PA_MODULE_DESCRIPTION(s) const char *pa__get_description(void) { return s; }
+#define PA_MODULE_USAGE(s) const char *pa__get_usage(void) { return s; }
 #define PA_MODULE_VERSION(s) const char * pa__get_version(void) { return s; }
 
 pa_modinfo *pa_module_get_info(pa_module *m);

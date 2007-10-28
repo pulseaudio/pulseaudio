@@ -49,8 +49,8 @@ int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, int *value);
 /* Return sample spec data from the three arguments "rate", "format" and "channels" */
 int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *ss);
 
-/* Return channel map data from the argument "channel_map" */
-int pa_modargs_get_channel_map(pa_modargs *ma, pa_channel_map *map);
+/* Return channel map data from the argument "channel_map" if name is NULL, otherwise read from the specified argument */
+int pa_modargs_get_channel_map(pa_modargs *ma, const char *name, pa_channel_map *map);
 
 /* Combination of pa_modargs_get_sample_spec() and
 pa_modargs_get_channel_map(). Not always suitable, since this routine

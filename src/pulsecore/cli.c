@@ -27,7 +27,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
@@ -45,6 +44,7 @@
 #include <pulsecore/cli-text.h>
 #include <pulsecore/cli-command.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "cli.h"
 
@@ -68,19 +68,17 @@ static void client_kill(pa_client *c);
 pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     char cname[256];
     pa_cli *c;
-    assert(io);
+    pa_assert(io);
 
-    c = pa_xmalloc(sizeof(pa_cli));
+    c = pa_xnew(pa_cli, 1);
     c->core = core;
-    c->line = pa_ioline_new(io);
-    assert(c->line);
+    pa_assert_se(c->line = pa_ioline_new(io));
 
     c->userdata = NULL;
     c->eof_callback = NULL;
 
     pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
-    c->client = pa_client_new(core, __FILE__, cname);
-    assert(c->client);
+    pa_assert_se(c->client = pa_client_new(core, __FILE__, cname));
     c->client->kill = client_kill;
     c->client->userdata = c;
     c->client->owner = m;
@@ -94,7 +92,8 @@ pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
 }
 
 void pa_cli_free(pa_cli *c) {
-    assert(c);
+    pa_assert(c);
+
     pa_ioline_close(c->line);
     pa_ioline_unref(c->line);
     pa_client_free(c->client);
@@ -103,8 +102,9 @@ void pa_cli_free(pa_cli *c) {
 
 static void client_kill(pa_client *client) {
     pa_cli *c;
-    assert(client && client->userdata);
-    c = client->userdata;
+
+    pa_assert(client);
+    pa_assert_se(c = client->userdata);
 
     pa_log_debug("CLI client killed.");
     if (c->defer_kill)
@@ -119,7 +119,9 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     pa_strbuf *buf;
     pa_cli *c = userdata;
     char *p;
-    assert(line && c);
+
+    pa_assert(line);
+    pa_assert(c);
 
     if (!s) {
         pa_log_debug("CLI got EOF from user.");
@@ -129,8 +131,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         return;
     }
 
-    buf = pa_strbuf_new();
-    assert(buf);
+    pa_assert_se(buf = pa_strbuf_new());
     c->defer_kill++;
     pa_cli_command_execute_line(c->core, s, buf, &c->fail);
     c->defer_kill--;
@@ -145,7 +146,8 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 }
 
 void pa_cli_set_eof_callback(pa_cli *c, void (*cb)(pa_cli*c, void *userdata), void *userdata) {
-    assert(c);
+    pa_assert(c);
+
     c->eof_callback = cb;
     c->userdata = userdata;
 }

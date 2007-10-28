@@ -26,11 +26,11 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
+#include <pulsecore/macro.h>
 
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
@@ -60,7 +60,7 @@ void pa_drop_root(void) {
     if (uid == 0 || geteuid() != 0)
         return;
 
-    pa_log_info("dropping root rights.");
+    pa_log_info("Dropping root priviliges.");
 
 #if defined(HAVE_SETRESUID)
     setresuid(uid, uid, uid);
@@ -88,8 +88,9 @@ int pa_limit_caps(void) {
     cap_value_t nice_cap = CAP_SYS_NICE;
 
     caps = cap_init();
-    assert(caps);
+    pa_assert(caps);
     cap_clear(caps);
+    cap_set_flag(caps, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET);
     cap_set_flag(caps, CAP_PERMITTED, 1, &nice_cap, CAP_SET);
 
     if (cap_set_proc(caps) < 0)
@@ -98,7 +99,7 @@ int pa_limit_caps(void) {
     if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) < 0)
         goto fail;
 
-    pa_log_info("dropped capabilities successfully.");
+    pa_log_info("Dropped capabilities successfully.");
 
     r = 1;
 
@@ -114,14 +115,14 @@ int pa_drop_caps(void) {
     int r = -1;
 
     caps = cap_init();
-    assert(caps);
+    pa_assert(caps);
 
     cap_clear(caps);
 
     prctl(PR_SET_KEEPCAPS, 0, 0, 0, 0);
 
     if (cap_set_proc(caps) < 0) {
-        pa_log("failed to drop capabilities: %s", pa_cstrerror(errno));
+        pa_log("Failed to drop capabilities: %s", pa_cstrerror(errno));
         goto fail;
     }
 

@@ -26,10 +26,10 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <unistd.h>
 
 #include <pulsecore/module.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/iochannel.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/protocol-native.h>
@@ -48,25 +48,26 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_iochannel *io;
     pa_modargs *ma;
     int fd, r = -1;
-    assert(c && m);
+
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log("failed to parse module arguments.");
+        pa_log("Failed to parse module arguments.");
         goto finish;
     }
 
     if (pa_modargs_get_value_s32(ma, "fd", &fd) < 0) {
-        pa_log("invalid file descriptor.");
+        pa_log("Invalid file descriptor.");
         goto finish;
     }
 
-    io = pa_iochannel_new(c->mainloop, fd, fd);
+    io = pa_iochannel_new(m->core->mainloop, fd, fd);
 
-    if (!(m->userdata = pa_protocol_native_new_iochannel(c, io, m, ma))) {
+    if (!(m->userdata = pa_protocol_native_new_iochannel(m->core, io, m, ma))) {
         pa_iochannel_free(io);
         goto finish;
     }
@@ -80,8 +81,8 @@ finish:
     return r;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
-    assert(c && m);
+void pa__done(pa_module*m) {
+    pa_assert(m);
 
     pa_protocol_native_free(m->userdata);
 }

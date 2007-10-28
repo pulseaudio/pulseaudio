@@ -25,16 +25,52 @@
 ***/
 
 #include <pulsecore/mutex.h>
+#include <pulsecore/atomic.h>
 
 typedef struct pa_once {
-    unsigned int once_value;
-    pa_mutex *mutex;
-} pa_once_t;
+    pa_atomic_ptr_t mutex;
+    pa_atomic_t ref, done;
+} pa_once;
 
-#define PA_ONCE_INIT { .once_value = 0, .mutex = NULL }
+#define PA_ONCE_INIT                                                    \
+    {                                                                   \
+        .mutex = PA_ATOMIC_PTR_INIT(NULL),                              \
+        .ref = PA_ATOMIC_INIT(0),                                       \
+        .done = PA_ATOMIC_INIT(0)                                       \
+    }
 
+/* Not to be called directly, use the macros defined below instead */
+int pa_once_begin(pa_once *o);
+void pa_once_end(pa_once *o);
+
+#define PA_ONCE_BEGIN                                                   \
+    do {                                                                \
+        static pa_once _once = PA_ONCE_INIT;                            \
+        if (pa_once_begin(&_once)) {{
+
+#define PA_ONCE_END                                                     \
+            }                                                           \
+            pa_once_end(&_once);                                        \
+        }                                                               \
+    } while(0)
+
+/*
+
+  Usage of these macros is like this:
+
+  void foo() {
+
+      PA_ONCE_BEGIN {
+
+          ... stuff to be called just once ...
+
+      } PA_ONCE_END;
+  }
+
+*/
+
+/* Same API but calls a function */
 typedef void (*pa_once_func_t) (void);
-
-void pa_once(pa_once_t *o, pa_once_func_t f);
+void pa_run_once(pa_once *o, pa_once_func_t f);
 
 #endif

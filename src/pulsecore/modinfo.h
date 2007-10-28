@@ -34,7 +34,7 @@ typedef struct pa_modinfo {
 } pa_modinfo;
 
 /* Read meta data from an libtool handle */
-pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl);
+pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl, const char *module_name);
 
 /* Read meta data from a module file */
 pa_modinfo *pa_modinfo_get_by_name(const char *name);

@@ -28,7 +28,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
@@ -37,6 +36,8 @@
 #include <pulsecore/llist.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/refcnt.h>
 
 #include "pdispatch.h"
 
@@ -108,7 +109,7 @@ struct reply_info {
 };
 
 struct pa_pdispatch {
-    int ref;
+    PA_REFCNT_DECLARE;
     pa_mainloop_api *mainloop;
     const pa_pdispatch_cb_t *callback_table;
     unsigned n_commands;
@@ -119,7 +120,9 @@ struct pa_pdispatch {
 };
 
 static void reply_info_free(struct reply_info *r) {
-    assert(r && r->pdispatch && r->pdispatch->mainloop);
+    pa_assert(r);
+    pa_assert(r->pdispatch);
+    pa_assert(r->pdispatch->mainloop);
 
     if (r->time_event)
         r->pdispatch->mainloop->time_free(r->time_event);
@@ -131,12 +134,12 @@ static void reply_info_free(struct reply_info *r) {
 
 pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_t*table, unsigned entries) {
     pa_pdispatch *pd;
-    assert(mainloop);
+    pa_assert(mainloop);
 
-    assert((entries && table) || (!entries && !table));
+    pa_assert((entries && table) || (!entries && !table));
 
-    pd = pa_xmalloc(sizeof(pa_pdispatch));
-    pd->ref = 1;
+    pd = pa_xnew(pa_pdispatch, 1);
+    PA_REFCNT_INIT(pd);
     pd->mainloop = mainloop;
     pd->callback_table = table;
     pd->n_commands = entries;
@@ -149,7 +152,7 @@ pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_
 }
 
 static void pdispatch_free(pa_pdispatch *pd) {
-    assert(pd);
+    pa_assert(pd);
 
     while (pd->replies) {
         if (pd->replies->free_cb)
@@ -165,7 +168,7 @@ static void run_action(pa_pdispatch *pd, struct reply_info *r, uint32_t command,
     pa_pdispatch_cb_t callback;
     void *userdata;
     uint32_t tag;
-    assert(r);
+    pa_assert(r);
 
     pa_pdispatch_ref(pd);
 
@@ -187,7 +190,12 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
     uint32_t tag, command;
     pa_tagstruct *ts = NULL;
     int ret = -1;
-    assert(pd && packet && packet->data);
+
+    pa_assert(pd);
+    pa_assert(PA_REFCNT_VALUE(pd) >= 1);
+    pa_assert(packet);
+    pa_assert(PA_REFCNT_VALUE(packet) >= 1);
+    pa_assert(packet->data);
 
     pa_pdispatch_ref(pd);
 
@@ -195,7 +203,6 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
         goto finish;
 
     ts = pa_tagstruct_new(packet->data, packet->length);
-    assert(ts);
 
     if (pa_tagstruct_getu32(ts, &command) < 0 ||
         pa_tagstruct_getu32(ts, &tag) < 0)
@@ -206,7 +213,7 @@ int pa_pdispatch_run(pa_pdispatch *pd, pa_packet*packet, const pa_creds *creds, 
     char t[256];
     char const *p;
     if (!(p = command_names[command]))
-        snprintf((char*) (p = t), sizeof(t), "%u", command);
+        pa_snprintf((char*) (p = t), sizeof(t), "%u", command);
 
     pa_log("Recieved opcode <%s>", p);
 }
@@ -248,7 +255,12 @@ finish:
 
 static void timeout_callback(pa_mainloop_api*m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     struct reply_info*r = userdata;
-    assert(r && r->time_event == e && r->pdispatch && r->pdispatch->mainloop == m && r->callback);
+
+    pa_assert(r);
+    pa_assert(r->time_event == e);
+    pa_assert(r->pdispatch);
+    pa_assert(r->pdispatch->mainloop == m);
+    pa_assert(r->callback);
 
     run_action(r->pdispatch, r, PA_COMMAND_TIMEOUT, NULL);
 }
@@ -256,7 +268,10 @@ static void timeout_callback(pa_mainloop_api*m, pa_time_event*e, PA_GCC_UNUSED c
 void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa_pdispatch_cb_t cb, void *userdata, pa_free_cb_t free_cb) {
     struct reply_info *r;
     struct timeval tv;
-    assert(pd && pd->ref >= 1 && cb);
+
+    pa_assert(pd);
+    pa_assert(PA_REFCNT_VALUE(pd) >= 1);
+    pa_assert(cb);
 
     r = pa_xnew(struct reply_info, 1);
     r->pdispatch = pd;
@@ -268,21 +283,22 @@ void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa
     pa_gettimeofday(&tv);
     tv.tv_sec += timeout;
 
-    r->time_event = pd->mainloop->time_new(pd->mainloop, &tv, timeout_callback, r);
-    assert(r->time_event);
+    pa_assert_se(r->time_event = pd->mainloop->time_new(pd->mainloop, &tv, timeout_callback, r));
 
     PA_LLIST_PREPEND(struct reply_info, pd->replies, r);
 }
 
 int pa_pdispatch_is_pending(pa_pdispatch *pd) {
-    assert(pd);
+    pa_assert(pd);
+    pa_assert(PA_REFCNT_VALUE(pd) >= 1);
 
     return !!pd->replies;
 }
 
 void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, void (*cb)(pa_pdispatch *pd, void *userdata), void *userdata) {
-    assert(pd);
-    assert(!cb || pa_pdispatch_is_pending(pd));
+    pa_assert(pd);
+    pa_assert(PA_REFCNT_VALUE(pd) >= 1);
+    pa_assert(!cb || pa_pdispatch_is_pending(pd));
 
     pd->drain_callback = cb;
     pd->drain_userdata = userdata;
@@ -290,7 +306,9 @@ void pa_pdispatch_set_drain_callback(pa_pdispatch *pd, void (*cb)(pa_pdispatch *
 
 void pa_pdispatch_unregister_reply(pa_pdispatch *pd, void *userdata) {
     struct reply_info *r, *n;
-    assert(pd);
+
+    pa_assert(pd);
+    pa_assert(PA_REFCNT_VALUE(pd) >= 1);
 
     for (r = pd->replies; r; r = n) {
         n = r->next;
@@ -301,21 +319,24 @@ void pa_pdispatch_unregister_reply(pa_pdispatch *pd, void *userdata) {
 }
 
 void pa_pdispatch_unref(pa_pdispatch *pd) {
-    assert(pd && pd->ref >= 1);
+    pa_assert(pd);
+    pa_assert(PA_REFCNT_VALUE(pd) >= 1);
 
-    if (!(--(pd->ref)))
+    if (PA_REFCNT_DEC(pd) <= 0)
         pdispatch_free(pd);
 }
 
 pa_pdispatch* pa_pdispatch_ref(pa_pdispatch *pd) {
-    assert(pd && pd->ref >= 1);
-    pd->ref++;
+    pa_assert(pd);
+    pa_assert(PA_REFCNT_VALUE(pd) >= 1);
+
+    PA_REFCNT_INC(pd);
     return pd;
 }
 
 const pa_creds * pa_pdispatch_creds(pa_pdispatch *pd) {
-    assert(pd);
-    assert(pd->ref >= 1);
+    pa_assert(pd);
+    pa_assert(PA_REFCNT_VALUE(pd) >= 1);
 
     return pd->creds;
 }

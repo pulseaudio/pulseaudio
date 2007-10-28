@@ -32,11 +32,13 @@
 
 typedef struct pa_hashmap pa_hashmap;
 
+typedef void (*pa_free2_cb_t)(void *p, void *userdata);
+
 /* Create a new hashmap. Use the specified functions for hashing and comparing objects in the map */
 pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_func);
 
 /* Free the hash table. Calls the specified function for every value in the table. The function may be NULL */
-void pa_hashmap_free(pa_hashmap*, void (*free_func)(void *p, void *userdata), void *userdata);
+void pa_hashmap_free(pa_hashmap*, pa_free2_cb_t free_cb, void *userdata);
 
 /* Returns non-zero when the entry already exists */
 int pa_hashmap_put(pa_hashmap *h, const void *key, void *value);

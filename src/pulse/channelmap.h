@@ -172,7 +172,10 @@ pa_channel_map* pa_channel_map_init_stereo(pa_channel_map *m);
 pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, pa_channel_map_def_t def);
 
 /** Return a text label for the specified channel position */
-const char* pa_channel_position_to_string(pa_channel_position_t pos);
+const char* pa_channel_position_to_string(pa_channel_position_t pos) PA_GCC_PURE;
+
+/** Return a human readable text label for the specified channel position. \since 0.9.7 */
+const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);
 
 /** The maximum length of strings returned by pa_channel_map_snprint() */
 #define PA_CHANNEL_MAP_SNPRINT_MAX 336
@@ -184,10 +187,10 @@ char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map);
 pa_channel_map *pa_channel_map_parse(pa_channel_map *map, const char *s);
 
 /** Compare two channel maps. Return 1 if both match. */
-int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b);
+int pa_channel_map_equal(const pa_channel_map *a, const pa_channel_map *b) PA_GCC_PURE;
 
 /** Return non-zero of the specified channel map is considered valid */
-int pa_channel_map_valid(const pa_channel_map *map);
+int pa_channel_map_valid(const pa_channel_map *map) PA_GCC_PURE;
 
 PA_C_DECL_END
 

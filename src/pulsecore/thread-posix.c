@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <pthread.h>
 #include <sched.h>
 #include <errno.h>
@@ -35,56 +34,44 @@
 #include <pulsecore/mutex.h>
 #include <pulsecore/once.h>
 #include <pulsecore/atomic.h>
+#include <pulsecore/macro.h>
 
 #include "thread.h"
-
-#define ASSERT_SUCCESS(x) do { \
-    int _r = (x); \
-    assert(_r == 0); \
-} while(0)
 
 struct pa_thread {
     pthread_t id;
     pa_thread_func_t thread_func;
     void *userdata;
-    pa_atomic_int_t running;
+    pa_atomic_t running;
 };
 
 struct pa_tls {
     pthread_key_t key;
 };
 
-static pa_tls *thread_tls;
-static pa_once_t thread_tls_once = PA_ONCE_INIT;
-
-static void tls_free_cb(void *p) {
+static void thread_free_cb(void *p) {
     pa_thread *t = p;
 
-    assert(t);
+    pa_assert(t);
 
     if (!t->thread_func)
         /* This is a foreign thread, we need to free the struct */
         pa_xfree(t);
 }
 
-static void thread_tls_once_func(void) {
-    thread_tls = pa_tls_new(tls_free_cb);
-    assert(thread_tls);
-}
+PA_STATIC_TLS_DECLARE(current_thread, thread_free_cb);
 
 static void* internal_thread_func(void *userdata) {
     pa_thread *t = userdata;
-    assert(t);
+    pa_assert(t);
 
     t->id = pthread_self();
 
-    pa_once(&thread_tls_once, thread_tls_once_func);
-
-    pa_tls_set(thread_tls, t);
+    PA_STATIC_TLS_SET(current_thread, t);
 
     pa_atomic_inc(&t->running);
     t->thread_func(t->userdata);
-    pa_atomic_add(&t->running, -2);
+    pa_atomic_sub(&t->running, 2);
 
     return NULL;
 }
@@ -92,7 +79,7 @@ static void* internal_thread_func(void *userdata) {
 pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
     pa_thread *t;
 
-    assert(thread_func);
+    pa_assert(thread_func);
 
     t = pa_xnew(pa_thread, 1);
     t->thread_func = thread_func;
@@ -110,26 +97,26 @@ pa_thread* pa_thread_new(pa_thread_func_t thread_func, void *userdata) {
 }
 
 int pa_thread_is_running(pa_thread *t) {
-    assert(t);
+    pa_assert(t);
 
     /* Unfortunately there is no way to tell whether a "foreign"
      * thread is still running. See
      * http://udrepper.livejournal.com/16844.html for more
      * information */
-    assert(t->thread_func);
+    pa_assert(t->thread_func);
 
     return pa_atomic_load(&t->running) > 0;
 }
 
 void pa_thread_free(pa_thread *t) {
-    assert(t);
+    pa_assert(t);
 
     pa_thread_join(t);
     pa_xfree(t);
 }
 
 int pa_thread_join(pa_thread *t) {
-    assert(t);
+    pa_assert(t);
 
     return pthread_join(t->id, NULL);
 }
@@ -137,9 +124,7 @@ int pa_thread_join(pa_thread *t) {
 pa_thread* pa_thread_self(void) {
     pa_thread *t;
 
-    pa_once(&thread_tls_once, thread_tls_once_func);
-
-    if ((t = pa_tls_get(thread_tls)))
+    if ((t = PA_STATIC_TLS_GET(current_thread)))
         return t;
 
     /* This is a foreign thread, let's create a pthread structure to
@@ -151,19 +136,19 @@ pa_thread* pa_thread_self(void) {
     t->userdata = NULL;
     pa_atomic_store(&t->running, 2);
 
-    pa_tls_set(thread_tls, t);
+    PA_STATIC_TLS_SET(current_thread, t);
 
     return t;
 }
 
 void* pa_thread_get_data(pa_thread *t) {
-    assert(t);
+    pa_assert(t);
 
     return t->userdata;
 }
 
 void pa_thread_set_data(pa_thread *t, void *userdata) {
-    assert(t);
+    pa_assert(t);
 
     t->userdata = userdata;
 }
@@ -172,7 +157,7 @@ void pa_thread_yield(void) {
 #ifdef HAVE_PTHREAD_YIELD
     pthread_yield();
 #else
-    ASSERT_SUCCESS(sched_yield());
+    pa_assert_se(sched_yield() == 0);
 #endif
 }
 
@@ -190,14 +175,14 @@ pa_tls* pa_tls_new(pa_free_cb_t free_cb) {
 }
 
 void pa_tls_free(pa_tls *t) {
-    assert(t);
+    pa_assert(t);
 
-    ASSERT_SUCCESS(pthread_key_delete(t->key));
+    pa_assert_se(pthread_key_delete(t->key) == 0);
     pa_xfree(t);
 }
 
 void *pa_tls_get(pa_tls *t) {
-    assert(t);
+    pa_assert(t);
 
     return pthread_getspecific(t->key);
 }
@@ -206,7 +191,7 @@ void *pa_tls_set(pa_tls *t, void *userdata) {
     void *r;
 
     r = pthread_getspecific(t->key);
-    ASSERT_SUCCESS(pthread_setspecific(t->key, userdata));
+    pa_assert_se(pthread_setspecific(t->key, userdata) == 0);
     return r;
 }
 

@@ -28,26 +28,30 @@
 
 #include <string.h>
 #include <getopt.h>
-#include <assert.h>
 #include <stdio.h>
 #include <ltdl.h>
 
 #include <pulse/util.h>
 
 #include <pulsecore/modinfo.h>
+#include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "dumpmodules.h"
 
 #define PREFIX "module-"
 
 static void short_info(const char *name, PA_GCC_UNUSED const char *path, pa_modinfo *i) {
-    assert(name && i);
+    pa_assert(name);
+    pa_assert(i);
+
     printf("%-40s%s\n", name, i->description ? i->description : "n/a");
 }
 
 static void long_info(const char *name, const char *path, pa_modinfo *i) {
     static int nl = 0;
-    assert(name && i);
+    pa_assert(name);
+    pa_assert(i);
 
     if (nl)
         printf("\n");
@@ -76,6 +80,8 @@ static void long_info(const char *name, const char *path, pa_modinfo *i) {
 static void show_info(const char *name, const char *path, void (*info)(const char *name, const char *path, pa_modinfo*i)) {
     pa_modinfo *i;
 
+    pa_assert(name);
+
     if ((i = pa_modinfo_get_by_name(path ? path : name))) {
         info(name, path, i);
         pa_modinfo_free(i);
@@ -93,7 +99,7 @@ static int is_preloaded(const char *name) {
         if (l->address)
             continue;
 
-        snprintf(buf, sizeof(buf), "%s", l->name);
+        pa_snprintf(buf, sizeof(buf), "%s", l->name);
         if ((e = strrchr(buf, '.')))
             *e = 0;
 
@@ -121,6 +127,8 @@ static int callback(const char *path, lt_ptr data) {
 }
 
 void pa_dump_modules(pa_daemon_conf *c, int argc, char * const argv[]) {
+    pa_assert(c);
+
     if (argc > 0) {
         int i;
         for (i = 0; i < argc; i++)
@@ -137,7 +145,7 @@ void pa_dump_modules(pa_daemon_conf *c, int argc, char * const argv[]) {
             if (strlen(l->name) <= sizeof(PREFIX)-1 || strncmp(l->name, PREFIX, sizeof(PREFIX)-1))
                 continue;
 
-            snprintf(buf, sizeof(buf), "%s", l->name);
+            pa_snprintf(buf, sizeof(buf), "%s", l->name);
             if ((e = strrchr(buf, '.')))
                 *e = 0;
 

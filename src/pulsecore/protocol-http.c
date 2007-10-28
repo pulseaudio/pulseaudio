@@ -25,7 +25,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -34,6 +33,7 @@
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/ioline.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/log.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/cli-text.h>
@@ -65,11 +65,12 @@ struct pa_protocol_http {
 
 static void http_response(struct connection *c, int code, const char *msg, const char *mime) {
     char s[256];
-    assert(c);
-    assert(msg);
-    assert(mime);
 
-    snprintf(s, sizeof(s),
+    pa_assert(c);
+    pa_assert(msg);
+    pa_assert(mime);
+
+    pa_snprintf(s, sizeof(s),
              "HTTP/1.0 %i %s\n"
              "Connection: close\n"
              "Content-Type: %s\n"
@@ -83,14 +84,14 @@ static void http_response(struct connection *c, int code, const char *msg, const
 
 static void http_message(struct connection *c, int code, const char *msg, const char *text) {
     char s[256];
-    assert(c);
+    pa_assert(c);
 
     http_response(c, code, msg, "text/html");
 
     if (!text)
         text = msg;
 
-    snprintf(s, sizeof(s),
+    pa_snprintf(s, sizeof(s),
              "<?xml version=\"1.0\"?>\n"
              "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n"
              "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>%s</title></head>\n"
@@ -103,21 +104,22 @@ static void http_message(struct connection *c, int code, const char *msg, const 
 
 
 static void connection_free(struct connection *c, int del) {
-    assert(c);
+    pa_assert(c);
 
     if (c->url)
         pa_xfree(c->url);
 
     if (del)
         pa_idxset_remove_by_data(c->protocol->connections, c, NULL);
+
     pa_ioline_unref(c->line);
     pa_xfree(c);
 }
 
 static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     struct connection *c = userdata;
-    assert(line);
-    assert(c);
+    pa_assert(line);
+    pa_assert(c);
 
     if (!s) {
         /* EOF */
@@ -223,7 +225,10 @@ fail:
 static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) {
     pa_protocol_http *p = userdata;
     struct connection *c;
-    assert(s && io && p);
+
+    pa_assert(s);
+    pa_assert(io);
+    pa_assert(p);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
         pa_log_warn("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
@@ -231,7 +236,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
         return;
     }
 
-    c = pa_xmalloc(sizeof(struct connection));
+    c = pa_xnew(struct connection, 1);
     c->protocol = p;
     c->line = pa_ioline_new(io);
     c->state = REQUEST_LINE;
@@ -243,9 +248,11 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
 pa_protocol_http* pa_protocol_http_new(pa_core *core, pa_socket_server *server, pa_module *m, PA_GCC_UNUSED pa_modargs *ma) {
     pa_protocol_http* p;
-    assert(core && server);
 
-    p = pa_xmalloc(sizeof(pa_protocol_http));
+    pa_core_assert_ref(core);
+    pa_assert(server);
+
+    p = pa_xnew(pa_protocol_http, 1);
     p->module = m;
     p->core = core;
     p->server = server;
@@ -257,12 +264,12 @@ pa_protocol_http* pa_protocol_http_new(pa_core *core, pa_socket_server *server, 
 }
 
 static void free_connection(void *p, PA_GCC_UNUSED void *userdata) {
-    assert(p);
+    pa_assert(p);
     connection_free(p, 0);
 }
 
 void pa_protocol_http_free(pa_protocol_http *p) {
-    assert(p);
+    pa_assert(p);
 
     pa_idxset_free(p->connections, free_connection, NULL);
     pa_socket_server_unref(p->server);

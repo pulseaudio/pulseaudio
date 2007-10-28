@@ -52,4 +52,29 @@
 #define PA_GCC_UNUSED
 #endif
 
+#ifdef __GNUC__
+#define PA_GCC_DESTRUCTOR __attribute__ ((destructor))
+#else
+/** Call this function when process terminates */
+#define PA_GCC_DESTRUCTOR
+#endif
+
+#ifndef PA_GCC_PURE
+#ifdef __GNUCC__
+#define PA_GCC_PURE __attribute__ ((pure))
+#else
+/** This function's return value depends only the arguments list and global state **/
+#define PA_GCC_PURE
+#endif
+#endif
+
+#ifndef PA_GCC_CONST
+#ifdef __GNUCC__
+#define PA_GCC_CONST __attribute__ ((const))
+#else
+/** This function's return value depends only the arguments list (stricter version of PA_GCC_PURE) **/
+#define PA_GCC_CONST
+#endif
+#endif
+
 #endif

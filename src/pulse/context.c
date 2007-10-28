@@ -27,7 +27,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -67,6 +66,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/socket-util.h>
 #include <pulsecore/creds.h>
+#include <pulsecore/macro.h>
 
 #include "internal.h"
 
@@ -90,7 +90,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
 };
 
 static void unlock_autospawn_lock_file(pa_context *c) {
-    assert(c);
+    pa_assert(c);
 
     if (c->autospawn_lock_fd >= 0) {
         char lf[PATH_MAX];
@@ -106,11 +106,11 @@ static void context_free(pa_context *c);
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
     pa_context *c;
 
-    assert(mainloop);
-    assert(name);
+    pa_assert(mainloop);
+    pa_assert(name);
 
     c = pa_xnew(pa_context, 1);
-    c->ref = 1;
+    PA_REFCNT_INIT(c);
     c->name = pa_xstrdup(name);
     c->mainloop = mainloop;
     c->client = NULL;
@@ -168,7 +168,7 @@ pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
 }
 
 static void context_free(pa_context *c) {
-    assert(c);
+    pa_assert(c);
 
     unlock_autospawn_lock_file(c);
 
@@ -183,7 +183,7 @@ static void context_free(pa_context *c) {
     if (c->pdispatch)
         pa_pdispatch_unref(c->pdispatch);
     if (c->pstream) {
-        pa_pstream_close(c->pstream);
+        pa_pstream_unlink(c->pstream);
         pa_pstream_unref(c->pstream);
     }
 
@@ -206,24 +206,24 @@ static void context_free(pa_context *c) {
 }
 
 pa_context* pa_context_ref(pa_context *c) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
-    c->ref++;
+    PA_REFCNT_INC(c);
     return c;
 }
 
 void pa_context_unref(pa_context *c) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
-    if (--c->ref <= 0)
+    if (PA_REFCNT_DEC(c) <= 0)
         context_free(c);
 }
 
 void pa_context_set_state(pa_context *c, pa_context_state_t st) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     if (c->state == st)
         return;
@@ -250,7 +250,7 @@ void pa_context_set_state(pa_context *c, pa_context_state_t st) {
         c->pdispatch = NULL;
 
         if (c->pstream) {
-            pa_pstream_close(c->pstream);
+            pa_pstream_unlink(c->pstream);
             pa_pstream_unref(c->pstream);
         }
         c->pstream = NULL;
@@ -264,16 +264,16 @@ void pa_context_set_state(pa_context *c, pa_context_state_t st) {
 }
 
 void pa_context_fail(pa_context *c, int error) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     pa_context_set_error(c, error);
     pa_context_set_state(c, PA_CONTEXT_FAILED);
 }
 
 int pa_context_set_error(pa_context *c, int error) {
-    assert(error >= 0);
-    assert(error < PA_ERR_MAX);
+    pa_assert(error >= 0);
+    pa_assert(error < PA_ERR_MAX);
 
     if (c)
         c->error = error;
@@ -284,8 +284,8 @@ int pa_context_set_error(pa_context *c, int error) {
 static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_context *c = userdata;
 
-    assert(p);
-    assert(c);
+    pa_assert(p);
+    pa_assert(c);
 
     pa_context_fail(c, PA_ERR_CONNECTIONTERMINATED);
 }
@@ -293,9 +293,9 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
 static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, const pa_creds *creds, void *userdata) {
     pa_context *c = userdata;
 
-    assert(p);
-    assert(packet);
-    assert(c);
+    pa_assert(p);
+    pa_assert(packet);
+    pa_assert(c);
 
     pa_context_ref(c);
 
@@ -309,18 +309,19 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
     pa_context *c = userdata;
     pa_stream *s;
 
-    assert(p);
-    assert(chunk);
-    assert(chunk->memblock);
-    assert(chunk->length);
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(p);
+    pa_assert(chunk);
+    pa_assert(chunk->memblock);
+    pa_assert(chunk->length);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     pa_context_ref(c);
 
     if ((s = pa_dynarray_get(c->record_streams, channel))) {
 
-        assert(seek == PA_SEEK_RELATIVE && offset == 0);
+        pa_assert(seek == PA_SEEK_RELATIVE);
+        pa_assert(offset == 0);
 
         pa_memblockq_seek(s->record_memblockq, offset, seek);
         pa_memblockq_push_align(s->record_memblockq, chunk);
@@ -337,11 +338,11 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 }
 
 int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     if (command == PA_COMMAND_ERROR) {
-        assert(t);
+        pa_assert(t);
 
         if (pa_tagstruct_getu32(t, &c->error) < 0) {
             pa_context_fail(c, PA_ERR_PROTOCOL);
@@ -361,9 +362,9 @@ int pa_context_handle_error(pa_context *c, uint32_t command, pa_tagstruct *t) {
 static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
 
-    assert(pd);
-    assert(c);
-    assert(c->state == PA_CONTEXT_AUTHORIZING || c->state == PA_CONTEXT_SETTING_NAME);
+    pa_assert(pd);
+    pa_assert(c);
+    pa_assert(c->state == PA_CONTEXT_AUTHORIZING || c->state == PA_CONTEXT_SETTING_NAME);
 
     pa_context_ref(c);
 
@@ -423,7 +424,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
             break;
 
         default:
-            assert(0);
+            pa_assert(0);
     }
 
 finish:
@@ -434,19 +435,19 @@ static void setup_context(pa_context *c, pa_iochannel *io) {
     pa_tagstruct *t;
     uint32_t tag;
 
-    assert(c);
-    assert(io);
+    pa_assert(c);
+    pa_assert(io);
 
     pa_context_ref(c);
 
-    assert(!c->pstream);
+    pa_assert(!c->pstream);
     c->pstream = pa_pstream_new(c->mainloop, io, c->mempool);
 
     pa_pstream_set_die_callback(c->pstream, pstream_die_callback, c);
     pa_pstream_set_recieve_packet_callback(c->pstream, pstream_packet_callback, c);
     pa_pstream_set_recieve_memblock_callback(c->pstream, pstream_memblock_callback, c);
 
-    assert(!c->pdispatch);
+    pa_assert(!c->pdispatch);
     c->pdispatch = pa_pdispatch_new(c->mainloop, command_table, PA_COMMAND_MAX);
 
     if (!c->conf->cookie_valid)
@@ -497,10 +498,10 @@ static int context_connect_spawn(pa_context *c) {
         goto fail;
     }
 
-    pa_fd_set_cloexec(fds[0], 1);
+    pa_make_fd_cloexec(fds[0]);
 
-    pa_socket_low_delay(fds[0]);
-    pa_socket_low_delay(fds[1]);
+    pa_make_socket_low_delay(fds[0]);
+    pa_make_socket_low_delay(fds[1]);
 
     if (c->spawn_api.prefork)
         c->spawn_api.prefork();
@@ -523,7 +524,7 @@ static int context_connect_spawn(pa_context *c) {
         int n;
 
         /* Not required, since fds[0] has CLOEXEC enabled anyway */
-        close(fds[0]);
+        pa_assert_se(pa_close(fds[0]) == 0);
 
         if (c->spawn_api.atfork)
             c->spawn_api.atfork();
@@ -535,7 +536,7 @@ static int context_connect_spawn(pa_context *c) {
         argv[n++] = c->conf->daemon_binary;
         argv[n++] = "--daemonize=yes";
 
-        snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
+        pa_snprintf(t, sizeof(t), "-Lmodule-native-protocol-fd fd=%i", fds[1]);
         argv[n++] = strdup(t);
 
         while (n < MAX_ARGS) {
@@ -570,7 +571,7 @@ static int context_connect_spawn(pa_context *c) {
         goto fail;
     }
 
-    close(fds[1]);
+    pa_assert_se(pa_close(fds[1]) == 0);
 
     c->is_local = 1;
 
@@ -584,10 +585,7 @@ static int context_connect_spawn(pa_context *c) {
     return 0;
 
 fail:
-    if (fds[0] != -1)
-        close(fds[0]);
-    if (fds[1] != -1)
-        close(fds[1]);
+    pa_close_pipe(fds);
 
     unlock_autospawn_lock_file(c);
 
@@ -602,8 +600,8 @@ static int try_next_connection(pa_context *c) {
     char *u = NULL;
     int r = -1;
 
-    assert(c);
-    assert(!c->client);
+    pa_assert(c);
+    pa_assert(!c->client);
 
     for (;;) {
         pa_xfree(u);
@@ -648,9 +646,9 @@ finish:
 static void on_connection(pa_socket_client *client, pa_iochannel*io, void *userdata) {
     pa_context *c = userdata;
 
-    assert(client);
-    assert(c);
-    assert(c->state == PA_CONTEXT_CONNECTING);
+    pa_assert(client);
+    pa_assert(c);
+    pa_assert(c->state == PA_CONTEXT_CONNECTING);
 
     pa_context_ref(c);
 
@@ -683,8 +681,8 @@ int pa_context_connect(
 
     int r = -1;
 
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY(c, c->state == PA_CONTEXT_UNCONNECTED, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY(c, !(flags & ~PA_CONTEXT_NOAUTOSPAWN), PA_ERR_INVALID);
@@ -695,7 +693,7 @@ int pa_context_connect(
 
     pa_context_ref(c);
 
-    assert(!c->server_list);
+    pa_assert(!c->server_list);
 
     if (server) {
         if (!(c->server_list = pa_strlist_parse(server))) {
@@ -735,7 +733,7 @@ int pa_context_connect(
 
             pa_runtime_path(AUTOSPAWN_LOCK, lf, sizeof(lf));
             pa_make_secure_parent_dir(lf, 0700, (uid_t)-1, (gid_t)-1);
-            assert(c->autospawn_lock_fd <= 0);
+            pa_assert(c->autospawn_lock_fd <= 0);
             c->autospawn_lock_fd = pa_lock_lockfile(lf);
 
             if (api)
@@ -755,37 +753,37 @@ finish:
 }
 
 void pa_context_disconnect(pa_context *c) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     pa_context_set_state(c, PA_CONTEXT_TERMINATED);
 }
 
 pa_context_state_t pa_context_get_state(pa_context *c) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     return c->state;
 }
 
 int pa_context_errno(pa_context *c) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     return c->error;
 }
 
 void pa_context_set_state_callback(pa_context *c, pa_context_notify_cb_t cb, void *userdata) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     c->state_callback = cb;
     c->state_userdata = userdata;
 }
 
 int pa_context_is_pending(pa_context *c) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY(c,
                       c->state == PA_CONTEXT_CONNECTING ||
@@ -811,11 +809,11 @@ static void pstream_drain_callback(PA_GCC_UNUSED pa_pstream *s, void *userdata) 
 static void set_dispatch_callbacks(pa_operation *o) {
     int done = 1;
 
-    assert(o);
-    assert(o->ref >= 1);
-    assert(o->context);
-    assert(o->context->ref >= 1);
-    assert(o->context->state == PA_CONTEXT_READY);
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+    pa_assert(o->context);
+    pa_assert(PA_REFCNT_VALUE(o->context) >= 1);
+    pa_assert(o->context->state == PA_CONTEXT_READY);
 
     pa_pstream_set_drain_callback(o->context->pstream, NULL, NULL);
     pa_pdispatch_set_drain_callback(o->context->pdispatch, NULL, NULL);
@@ -844,8 +842,8 @@ static void set_dispatch_callbacks(pa_operation *o) {
 pa_operation* pa_context_drain(pa_context *c, pa_context_notify_cb_t cb, void *userdata) {
     pa_operation *o;
 
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(c, pa_context_is_pending(c), PA_ERR_BADSTATE);
@@ -860,9 +858,9 @@ void pa_context_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_U
     pa_operation *o = userdata;
     int success = 1;
 
-    assert(pd);
-    assert(o);
-    assert(o->ref >= 1);
+    pa_assert(pd);
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
 
     if (!o->context)
         goto finish;
@@ -892,8 +890,8 @@ pa_operation* pa_context_exit_daemon(pa_context *c, pa_context_success_cb_t cb, 
     pa_operation *o;
     uint32_t tag;
 
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -911,8 +909,8 @@ pa_operation* pa_context_send_simple_command(pa_context *c, uint32_t command, pa
     pa_operation *o;
     uint32_t tag;
 
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -930,8 +928,8 @@ pa_operation* pa_context_set_default_sink(pa_context *c, const char *name, pa_co
     pa_operation *o;
     uint32_t tag;
 
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -950,8 +948,8 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
     pa_operation *o;
     uint32_t tag;
 
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -966,7 +964,7 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
 }
 
 int pa_context_is_local(pa_context *c) {
-    assert(c);
+    pa_assert(c);
 
     return c->is_local;
 }
@@ -976,9 +974,9 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
     pa_operation *o;
     uint32_t tag;
 
-    assert(c);
-    assert(c->ref >= 1);
-    assert(name);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+    pa_assert(name);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -997,8 +995,8 @@ const char* pa_get_library_version(void) {
 }
 
 const char* pa_context_get_server(pa_context *c) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     if (!c->server)
         return NULL;
@@ -1016,8 +1014,8 @@ uint32_t pa_context_get_protocol_version(PA_GCC_UNUSED pa_context *c) {
 }
 
 uint32_t pa_context_get_server_protocol_version(pa_context *c) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     return c->version;
 }
@@ -1025,8 +1023,8 @@ uint32_t pa_context_get_server_protocol_version(pa_context *c) {
 pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *tag) {
     pa_tagstruct *t;
 
-    assert(c);
-    assert(tag);
+    pa_assert(c);
+    pa_assert(tag);
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, command);

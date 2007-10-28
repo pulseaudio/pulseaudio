@@ -29,7 +29,6 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
-#include <assert.h>
 #include <unistd.h>
 #include <limits.h>
 
@@ -43,10 +42,9 @@
 #include <netinet/in.h>
 #endif
 
-#include "../pulsecore/winsock.h"
-
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
 #include <pulsecore/socket-server.h>
@@ -154,7 +152,6 @@
   #define protocol_free pa_protocol_esound_free
   #define TCPWRAP_SERVICE "esound"
   #define IPV4_PORT ESD_DEFAULT_PORT
-  #define UNIX_SOCKET ESD_UNIX_SOCKET_NAME
   #define MODULE_ARGUMENTS_COMMON "sink", "source", "auth-anonymous", "cookie",
   #ifdef USE_TCP_SOCKETS
     #include "module-esound-protocol-tcp-symdef.h"
@@ -205,10 +202,9 @@ struct userdata {
 #endif
 };
 
-int pa__init(pa_core *c, pa_module*m) {
+int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     int ret = -1;
-
     struct userdata *u = NULL;
 
 #if defined(USE_TCP_SOCKETS)
@@ -219,9 +215,13 @@ int pa__init(pa_core *c, pa_module*m) {
     pa_socket_server *s;
     int r;
     char tmp[PATH_MAX];
+
+#if defined(USE_PROTOCOL_ESOUND)
+    char tmp2[PATH_MAX];
+#endif
 #endif
 
-    assert(c && m);
+    pa_assert(m);
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
@@ -239,22 +239,22 @@ int pa__init(pa_core *c, pa_module*m) {
     listen_on = pa_modargs_get_value(ma, "listen", NULL);
 
     if (listen_on) {
-        s_ipv6 = pa_socket_server_new_ipv6_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE);
-        s_ipv4 = pa_socket_server_new_ipv4_string(c->mainloop, listen_on, port, TCPWRAP_SERVICE);
+        s_ipv6 = pa_socket_server_new_ipv6_string(m->core->mainloop, listen_on, port, TCPWRAP_SERVICE);
+        s_ipv4 = pa_socket_server_new_ipv4_string(m->core->mainloop, listen_on, port, TCPWRAP_SERVICE);
     } else {
-        s_ipv6 = pa_socket_server_new_ipv6_any(c->mainloop, port, TCPWRAP_SERVICE);
-        s_ipv4 = pa_socket_server_new_ipv4_any(c->mainloop, port, TCPWRAP_SERVICE);
+        s_ipv6 = pa_socket_server_new_ipv6_any(m->core->mainloop, port, TCPWRAP_SERVICE);
+        s_ipv4 = pa_socket_server_new_ipv4_any(m->core->mainloop, port, TCPWRAP_SERVICE);
     }
 
     if (!s_ipv4 && !s_ipv6)
         goto fail;
 
     if (s_ipv4)
-        if (!(u->protocol_ipv4 = protocol_new(c, s_ipv4, m, ma)))
+        if (!(u->protocol_ipv4 = protocol_new(m->core, s_ipv4, m, ma)))
             pa_socket_server_unref(s_ipv4);
 
     if (s_ipv6)
-        if (!(u->protocol_ipv6 = protocol_new(c, s_ipv6, m, ma)))
+        if (!(u->protocol_ipv6 = protocol_new(m->core, s_ipv6, m, ma)))
             pa_socket_server_unref(s_ipv6);
 
     if (!u->protocol_ipv4 && !u->protocol_ipv6)
@@ -262,18 +262,23 @@ int pa__init(pa_core *c, pa_module*m) {
 
 #else
 
-    pa_runtime_path(pa_modargs_get_value(ma, "socket", UNIX_SOCKET), tmp, sizeof(tmp));
-    u->socket_path = pa_xstrdup(tmp);
-
 #if defined(USE_PROTOCOL_ESOUND)
+
+    snprintf(tmp2, sizeof(tmp2), "/tmp/.esd-%lu/socket", (unsigned long) getuid());
+    pa_runtime_path(pa_modargs_get_value(ma, "socket", tmp2), tmp, sizeof(tmp));
+    u->socket_path = pa_xstrdup(tmp);
 
     /* This socket doesn't reside in our own runtime dir but in
      * /tmp/.esd/, hence we have to create the dir first */
 
-    if (pa_make_secure_parent_dir(u->socket_path, c->is_system_instance ? 0755 : 0700, (uid_t)-1, (gid_t)-1) < 0) {
+    if (pa_make_secure_parent_dir(u->socket_path, m->core->is_system_instance ? 0755 : 0700, (uid_t)-1, (gid_t)-1) < 0) {
         pa_log("Failed to create socket directory '%s': %s\n", u->socket_path, pa_cstrerror(errno));
         goto fail;
     }
+
+#else
+    pa_runtime_path(pa_modargs_get_value(ma, "socket", UNIX_SOCKET), tmp, sizeof(tmp));
+    u->socket_path = pa_xstrdup(tmp);
 #endif
 
     if ((r = pa_unix_socket_remove_stale(tmp)) < 0) {
@@ -284,10 +289,10 @@ int pa__init(pa_core *c, pa_module*m) {
     if (r)
         pa_log("Removed stale UNIX socket '%s'.", tmp);
 
-    if (!(s = pa_socket_server_new_unix(c->mainloop, tmp)))
+    if (!(s = pa_socket_server_new_unix(m->core->mainloop, tmp)))
         goto fail;
 
-    if (!(u->protocol_unix = protocol_new(c, s, m, ma)))
+    if (!(u->protocol_unix = protocol_new(m->core, s, m, ma)))
         goto fail;
 
 #endif
@@ -333,11 +338,10 @@ fail:
     goto finish;
 }
 
-void pa__done(pa_core *c, pa_module*m) {
+void pa__done(pa_module*m) {
     struct userdata *u;
 
-    assert(c);
-    assert(m);
+    pa_assert(m);
 
     u = m->userdata;
 
@@ -357,7 +361,6 @@ void pa__done(pa_core *c, pa_module*m) {
         pa_xfree(p);
     }
 #endif
-
 
     pa_xfree(u->socket_path);
 #endif

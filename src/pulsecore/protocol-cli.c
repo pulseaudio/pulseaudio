@@ -25,13 +25,13 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/cli.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 
 #include "protocol-cli.h"
 
@@ -47,7 +47,8 @@ struct pa_protocol_cli {
 
 static void cli_eof_cb(pa_cli*c, void*userdata) {
     pa_protocol_cli *p = userdata;
-    assert(p);
+    pa_assert(p);
+
     pa_idxset_remove_by_data(p->connections, c, NULL);
     pa_cli_free(c);
 }
@@ -55,7 +56,10 @@ static void cli_eof_cb(pa_cli*c, void*userdata) {
 static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) {
     pa_protocol_cli *p = userdata;
     pa_cli *c;
-    assert(s && io && p);
+
+    pa_assert(s);
+    pa_assert(io);
+    pa_assert(p);
 
     if (pa_idxset_size(p->connections)+1 > MAX_CONNECTIONS) {
         pa_log("Warning! Too many connections (%u), dropping incoming connection.", MAX_CONNECTIONS);
@@ -64,7 +68,6 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     }
 
     c = pa_cli_new(p->core, io, p->module);
-    assert(c);
     pa_cli_set_eof_callback(c, cli_eof_cb, p);
 
     pa_idxset_put(p->connections, c, NULL);
@@ -72,9 +75,11 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
 pa_protocol_cli* pa_protocol_cli_new(pa_core *core, pa_socket_server *server, pa_module *m, PA_GCC_UNUSED pa_modargs *ma) {
     pa_protocol_cli* p;
-    assert(core && server);
 
-    p = pa_xmalloc(sizeof(pa_protocol_cli));
+    pa_core_assert_ref(core);
+    pa_assert(server);
+
+    p = pa_xnew(pa_protocol_cli, 1);
     p->module = m;
     p->core = core;
     p->server = server;
@@ -86,12 +91,13 @@ pa_protocol_cli* pa_protocol_cli_new(pa_core *core, pa_socket_server *server, pa
 }
 
 static void free_connection(void *p, PA_GCC_UNUSED void *userdata) {
-    assert(p);
+    pa_assert(p);
+
     pa_cli_free(p);
 }
 
 void pa_protocol_cli_free(pa_protocol_cli *p) {
-    assert(p);
+    pa_assert(p);
 
     pa_idxset_free(p->connections, free_connection, NULL);
     pa_socket_server_unref(p->server);

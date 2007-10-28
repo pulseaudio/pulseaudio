@@ -25,22 +25,22 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
 
 #include "packet.h"
 
 pa_packet* pa_packet_new(size_t length) {
     pa_packet *p;
 
-    assert(length);
+    pa_assert(length > 0);
 
-    p = pa_xmalloc(sizeof(pa_packet)+length);
-    p->ref = 1;
+    p = pa_xmalloc(PA_ALIGN(sizeof(pa_packet)) + length);
+    PA_REFCNT_INIT(p);
     p->length = length;
-    p->data = (uint8_t*) (p+1);
+    p->data = (uint8_t*) p + PA_ALIGN(sizeof(pa_packet));
     p->type = PA_PACKET_APPENDED;
 
     return p;
@@ -49,11 +49,11 @@ pa_packet* pa_packet_new(size_t length) {
 pa_packet* pa_packet_new_dynamic(void* data, size_t length) {
     pa_packet *p;
 
-    assert(data);
-    assert(length);
+    pa_assert(data);
+    pa_assert(length > 0);
 
     p = pa_xnew(pa_packet, 1);
-    p->ref = 1;
+    PA_REFCNT_INIT(p);
     p->length = length;
     p->data = data;
     p->type = PA_PACKET_DYNAMIC;
@@ -62,18 +62,18 @@ pa_packet* pa_packet_new_dynamic(void* data, size_t length) {
 }
 
 pa_packet* pa_packet_ref(pa_packet *p) {
-    assert(p);
-    assert(p->ref >= 1);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
 
-    p->ref++;
+    PA_REFCNT_INC(p);
     return p;
 }
 
 void pa_packet_unref(pa_packet *p) {
-    assert(p);
-    assert(p->ref >= 1);
+    pa_assert(p);
+    pa_assert(PA_REFCNT_VALUE(p) >= 1);
 
-    if (--p->ref == 0) {
+    if (PA_REFCNT_DEC(p) <= 0) {
         if (p->type == PA_PACKET_DYNAMIC)
             pa_xfree(p->data);
         pa_xfree(p);

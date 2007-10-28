@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -36,13 +35,14 @@
 #include <pulsecore/memchunk.h>
 #include <pulsecore/sound-file.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/core-subscribe.h>
 
 #include "autoload.h"
 
 static void entry_free(pa_autoload_entry *e) {
-    assert(e);
+    pa_assert(e);
     pa_subscription_post(e->core, PA_SUBSCRIPTION_EVENT_AUTOLOAD|PA_SUBSCRIPTION_EVENT_REMOVE, PA_INVALID_INDEX);
     pa_xfree(e->name);
     pa_xfree(e->module);
@@ -51,7 +51,8 @@ static void entry_free(pa_autoload_entry *e) {
 }
 
 static void entry_remove_and_free(pa_autoload_entry *e) {
-    assert(e && e->core);
+    pa_assert(e);
+    pa_assert(e->core);
 
     pa_idxset_remove_by_data(e->core->autoload_idxset, e, NULL);
     pa_hashmap_remove(e->core->autoload_hashmap, e->name);
@@ -60,12 +61,14 @@ static void entry_remove_and_free(pa_autoload_entry *e) {
 
 static pa_autoload_entry* entry_new(pa_core *c, const char *name) {
     pa_autoload_entry *e = NULL;
-    assert(c && name);
+
+    pa_core_assert_ref(c);
+    pa_assert(name);
 
     if (c->autoload_hashmap && (e = pa_hashmap_get(c->autoload_hashmap, name)))
         return NULL;
 
-    e = pa_xmalloc(sizeof(pa_autoload_entry));
+    e = pa_xnew(pa_autoload_entry, 1);
     e->core = c;
     e->name = pa_xstrdup(name);
     e->module = e->argument = NULL;
@@ -73,7 +76,7 @@ static pa_autoload_entry* entry_new(pa_core *c, const char *name) {
 
     if (!c->autoload_hashmap)
         c->autoload_hashmap = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    assert(c->autoload_hashmap);
+    pa_assert(c->autoload_hashmap);
 
     pa_hashmap_put(c->autoload_hashmap, e->name, e);
 
@@ -88,7 +91,11 @@ static pa_autoload_entry* entry_new(pa_core *c, const char *name) {
 
 int pa_autoload_add(pa_core *c, const char*name, pa_namereg_type_t type, const char*module, const char *argument, uint32_t *idx) {
     pa_autoload_entry *e = NULL;
-    assert(c && name && module && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
+
+    pa_assert(c);
+    pa_assert(name);
+    pa_assert(module);
+    pa_assert(type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE);
 
     if (!(e = entry_new(c, name)))
         return -1;
@@ -105,7 +112,10 @@ int pa_autoload_add(pa_core *c, const char*name, pa_namereg_type_t type, const c
 
 int pa_autoload_remove_by_name(pa_core *c, const char*name, pa_namereg_type_t type) {
     pa_autoload_entry *e;
-    assert(c && name && (type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE));
+
+    pa_assert(c);
+    pa_assert(name);
+    pa_assert(type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE);
 
     if (!c->autoload_hashmap || !(e = pa_hashmap_get(c->autoload_hashmap, name)) || e->type != type)
         return -1;
@@ -116,7 +126,9 @@ int pa_autoload_remove_by_name(pa_core *c, const char*name, pa_namereg_type_t ty
 
 int pa_autoload_remove_by_index(pa_core *c, uint32_t idx) {
     pa_autoload_entry *e;
-    assert(c && idx != PA_IDXSET_INVALID);
+
+    pa_assert(c);
+    pa_assert(idx != PA_IDXSET_INVALID);
 
     if (!c->autoload_idxset || !(e = pa_idxset_get_by_index(c->autoload_idxset, idx)))
         return -1;
@@ -128,7 +140,9 @@ int pa_autoload_remove_by_index(pa_core *c, uint32_t idx) {
 void pa_autoload_request(pa_core *c, const char *name, pa_namereg_type_t type) {
     pa_autoload_entry *e;
     pa_module *m;
-    assert(c && name);
+
+    pa_assert(c);
+    pa_assert(name);
 
     if (!c->autoload_hashmap || !(e = pa_hashmap_get(c->autoload_hashmap, name)) || (e->type != type))
         return;
@@ -153,6 +167,7 @@ static void free_func(void *p, PA_GCC_UNUSED void *userdata) {
 }
 
 void pa_autoload_free(pa_core *c) {
+
     if (c->autoload_hashmap) {
         pa_hashmap_free(c->autoload_hashmap, free_func, NULL);
         c->autoload_hashmap = NULL;
@@ -166,7 +181,9 @@ void pa_autoload_free(pa_core *c) {
 
 const pa_autoload_entry* pa_autoload_get_by_name(pa_core *c, const char*name, pa_namereg_type_t type) {
     pa_autoload_entry *e;
-    assert(c && name);
+
+    pa_core_assert_ref(c);
+    pa_assert(name);
 
     if (!c->autoload_hashmap || !(e = pa_hashmap_get(c->autoload_hashmap, name)) || e->type != type)
         return NULL;
@@ -176,7 +193,9 @@ const pa_autoload_entry* pa_autoload_get_by_name(pa_core *c, const char*name, pa
 
 const pa_autoload_entry* pa_autoload_get_by_index(pa_core *c, uint32_t idx) {
     pa_autoload_entry *e;
-    assert(c && idx != PA_IDXSET_INVALID);
+
+    pa_core_assert_ref(c);
+    pa_assert(idx != PA_IDXSET_INVALID);
 
     if (!c->autoload_idxset || !(e = pa_idxset_get_by_index(c->autoload_idxset, idx)))
         return NULL;

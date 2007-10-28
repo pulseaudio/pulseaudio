@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <errno.h>
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -43,6 +42,10 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
+#ifdef HAVE_STRTOF_L
+#include <locale.h>
+#endif
+
 #ifdef HAVE_SCHED_H
 #include <sched.h>
 #endif
@@ -53,6 +56,10 @@
 
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
+#endif
+
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
 #endif
 
 #ifdef HAVE_PTHREAD
@@ -75,14 +82,19 @@
 #include <grp.h>
 #endif
 
+#ifdef HAVE_LIBSAMPLERATE
 #include <samplerate.h>
+#endif
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
+#include <pulse/utf8.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/winsock.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/thread.h>
 
 #include "core-util.h"
 
@@ -93,10 +105,8 @@
 
 #ifndef OS_IS_WIN32
 #define PA_USER_RUNTIME_PATH_PREFIX "/tmp/pulse-"
-#define PATH_SEP '/'
 #else
 #define PA_USER_RUNTIME_PATH_PREFIX "%TEMP%\\pulse-"
-#define PATH_SEP '\\'
 #endif
 
 #ifdef OS_IS_WIN32
@@ -111,7 +121,7 @@ int pa_set_root(HANDLE handle) {
     if (!GetModuleFileName(handle, library_path + sizeof(PULSE_ROOTENV), MAX_PATH))
         return 0;
 
-    sep = strrchr(library_path, '\\');
+    sep = strrchr(library_path, PA_PATH_SEP_CHAR);
     if (sep)
         *sep = '\0';
 
@@ -124,23 +134,42 @@ int pa_set_root(HANDLE handle) {
 #endif
 
 /** Make a file descriptor nonblock. Doesn't do any error checking */
-void pa_make_nonblock_fd(int fd) {
+void pa_make_fd_nonblock(int fd) {
+
 #ifdef O_NONBLOCK
     int v;
-    assert(fd >= 0);
+    pa_assert(fd >= 0);
 
-    if ((v = fcntl(fd, F_GETFL)) >= 0)
-        if (!(v & O_NONBLOCK))
-            fcntl(fd, F_SETFL, v|O_NONBLOCK);
+    pa_assert_se((v = fcntl(fd, F_GETFL)) >= 0);
+
+    if (!(v & O_NONBLOCK))
+        pa_assert_se(fcntl(fd, F_SETFL, v|O_NONBLOCK) >= 0);
+
 #elif defined(OS_IS_WIN32)
     u_long arg = 1;
     if (ioctlsocket(fd, FIONBIO, &arg) < 0) {
-        if (WSAGetLastError() == WSAENOTSOCK)
-            pa_log_warn("WARNING: Only sockets can be made non-blocking!");
+        pa_assert_se(WSAGetLastError() == WSAENOTSOCK);
+        pa_log_warn("Only sockets can be made non-blocking!");
     }
 #else
-    pa_log_warn("WARNING: Non-blocking I/O not supported.!");
+    pa_log_warn("Non-blocking I/O not supported.!");
 #endif
+
+}
+
+/* Set the FD_CLOEXEC flag for a fd */
+void pa_make_fd_cloexec(int fd) {
+
+#ifdef FD_CLOEXEC
+    int v;
+    pa_assert(fd >= 0);
+
+    pa_assert_se((v = fcntl(fd, F_GETFD, 0)) >= 0);
+
+    if (!(v & FD_CLOEXEC))
+        pa_assert_se(fcntl(fd, F_SETFD, v|FD_CLOEXEC) >= 0);
+#endif
+
 }
 
 /** Creates a directory securely */
@@ -148,7 +177,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
     struct stat st;
     int r;
 
-    assert(dir);
+    pa_assert(dir);
 
 #ifdef OS_IS_WIN32
     r = mkdir(dir);
@@ -169,7 +198,7 @@ int pa_make_secure_dir(const char* dir, mode_t m, uid_t uid, gid_t gid) {
         uid = getuid();
     if (gid == (gid_t)-1)
         gid = getgid();
-    chown(dir, uid, gid);
+    (void) chown(dir, uid, gid);
 #endif
 
 #ifdef HAVE_CHMOD
@@ -295,9 +324,9 @@ ssize_t pa_loop_read(int fd, void*data, size_t size, int *type) {
     ssize_t ret = 0;
     int _type;
 
-    assert(fd >= 0);
-    assert(data);
-    assert(size);
+    pa_assert(fd >= 0);
+    pa_assert(data);
+    pa_assert(size);
 
     if (!type) {
         _type = 0;
@@ -326,9 +355,9 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
     ssize_t ret = 0;
     int _type;
 
-    assert(fd >= 0);
-    assert(data);
-    assert(size);
+    pa_assert(fd >= 0);
+    pa_assert(data);
+    pa_assert(size);
 
     if (!type) {
         _type = 0;
@@ -354,13 +383,12 @@ ssize_t pa_loop_write(int fd, const void*data, size_t size, int *type) {
 
 /** Platform independent read function. Necessary since not all
  * systems treat all file descriptors equal. */
-int pa_close(int fd)
-{
+int pa_close(int fd) {
+
 #ifdef OS_IS_WIN32
     int ret;
 
-    ret = closesocket(fd);
-    if (ret == 0)
+    if ((ret = closesocket(fd)) == 0)
         return 0;
 
     if (WSAGetLastError() != WSAENOTSOCK) {
@@ -407,9 +435,9 @@ void pa_check_signal_is_blocked(int sig) {
     if (sa.sa_handler != SIG_DFL)
         return;
 
-    pa_log("WARNING: %s is not trapped. This might cause malfunction!", pa_strsignal(sig));
+    pa_log_warn("%s is not trapped. This might cause malfunction!", pa_sig2str(sig));
 #else /* HAVE_SIGACTION */
-    pa_log("WARNING: %s might not be trapped. This might cause malfunction!", pa_strsignal(sig));
+    pa_log_warn("%s might not be trapped. This might cause malfunction!", pa_sig2str(sig));
 #endif
 }
 
@@ -419,7 +447,7 @@ char *pa_sprintf_malloc(const char *format, ...) {
     int  size = 100;
     char *c = NULL;
 
-    assert(format);
+    pa_assert(format);
 
     for(;;) {
         int r;
@@ -430,6 +458,8 @@ char *pa_sprintf_malloc(const char *format, ...) {
         va_start(ap, format);
         r = vsnprintf(c, size, format, ap);
         va_end(ap);
+
+        c[size-1] = 0;
 
         if (r > -1 && r < size)
             return c;
@@ -447,18 +477,19 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
     int  size = 100;
     char *c = NULL;
 
-    assert(format);
+    pa_assert(format);
 
     for(;;) {
         int r;
         va_list aq;
 
-        va_copy(aq, ap);
-
         c = pa_xrealloc(c, size);
-        r = vsnprintf(c, size, format, aq);
 
+        va_copy(aq, ap);
+        r = vsnprintf(c, size, format, aq);
         va_end(aq);
+
+        c[size-1] = 0;
 
         if (r > -1 && r < size)
             return c;
@@ -472,35 +503,46 @@ char *pa_vsprintf_malloc(const char *format, va_list ap) {
 
 /* Similar to OpenBSD's strlcpy() function */
 char *pa_strlcpy(char *b, const char *s, size_t l) {
-    assert(b && s && l > 0);
+    pa_assert(b);
+    pa_assert(s);
+    pa_assert(l > 0);
 
     strncpy(b, s, l);
     b[l-1] = 0;
     return b;
 }
 
-#define NICE_LEVEL (-15)
+/* Make the current thread a realtime thread*/
+void pa_make_realtime(void) {
+
+#ifdef _POSIX_PRIORITY_SCHEDULING
+    struct sched_param sp;
+    int r, policy;
+
+    memset(&sp, 0, sizeof(sp));
+    policy = 0;
+
+    if ((r = pthread_getschedparam(pthread_self(), &policy, &sp)) != 0) {
+        pa_log("pthread_getschedgetparam(): %s", pa_cstrerror(r));
+        return;
+    }
+
+    sp.sched_priority = 1;
+    if ((r = pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)) != 0) {
+        pa_log_warn("pthread_setschedparam(): %s", pa_cstrerror(r));
+        return;
+    }
+
+    pa_log_info("Successfully enabled SCHED_FIFO scheduling for thread.");
+#endif
+
+}
+
+#define NICE_LEVEL (-11)
 
 /* Raise the priority of the current process as much as possible and
-sensible: set the nice level to -15 and enable realtime scheduling if
-supported.*/
+sensible: set the nice level to -15.*/
 void pa_raise_priority(void) {
-#if defined(HAVE_SYS_CAPABILITY_H)
-    cap_t caps;
-
-    /* Temporarily acquire CAP_SYS_NICE in the effective set */
-    if ((caps = cap_get_proc())) {
-        cap_t caps_new;
-        cap_value_t nice_cap = CAP_SYS_NICE;
-
-        if ((caps_new = cap_dup(caps))) {
-            cap_set_flag(caps_new, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET);
-            cap_set_flag(caps_new, CAP_PERMITTED, 1, &nice_cap, CAP_SET);
-            cap_set_proc(caps_new);
-            cap_free(caps_new);
-        }
-    }
-#endif
 
 #ifdef HAVE_SYS_RESOURCE_H
     if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
@@ -509,84 +551,24 @@ void pa_raise_priority(void) {
         pa_log_info("Successfully gained nice level %i.", NICE_LEVEL);
 #endif
 
-#ifdef _POSIX_PRIORITY_SCHEDULING
-    {
-        struct sched_param sp;
-
-        if (sched_getparam(0, &sp) < 0) {
-            pa_log("sched_getparam(): %s", pa_cstrerror(errno));
-            goto fail;
-        }
-
-        sp.sched_priority = 1;
-        if (sched_setscheduler(0, SCHED_FIFO, &sp) < 0) {
-            pa_log_warn("sched_setscheduler(): %s", pa_cstrerror(errno));
-            goto fail;
-        }
-
-        pa_log_info("Successfully enabled SCHED_FIFO scheduling.");
-    }
-#endif
-
 #ifdef OS_IS_WIN32
     if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
         pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
     else
         pa_log_info("Successfully gained high priority class.");
 #endif
-
-fail:
-
-#if defined(HAVE_SYS_CAPABILITY_H)
-    if (caps) {
-        /* Restore original caps */
-        cap_set_proc(caps);
-        cap_free(caps);
-    }
-#endif
-
-    ; /* We put this here to get the code to compile when
-       * HAVE_SYS_CAPABILITY_H is not defined. Don't remove unless you
-       * know what you do */
 }
 
-/* Reset the priority to normal, inverting the changes made by pa_raise_priority() */
+/* Reset the priority to normal, inverting the changes made by
+ * pa_raise_priority() */
 void pa_reset_priority(void) {
 #ifdef OS_IS_WIN32
     SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
 #endif
 
-#ifdef _POSIX_PRIORITY_SCHEDULING
-    {
-        struct sched_param sp;
-        sched_getparam(0, &sp);
-        sp.sched_priority = 0;
-        sched_setscheduler(0, SCHED_OTHER, &sp);
-    }
-#endif
-
 #ifdef HAVE_SYS_RESOURCE_H
     setpriority(PRIO_PROCESS, 0, 0);
 #endif
-}
-
-/* Set the FD_CLOEXEC flag for a fd */
-int pa_fd_set_cloexec(int fd, int b) {
-
-#ifdef FD_CLOEXEC
-    int v;
-    assert(fd >= 0);
-
-    if ((v = fcntl(fd, F_GETFD, 0)) < 0)
-        return -1;
-
-    v = (v & ~FD_CLOEXEC) | (b ? FD_CLOEXEC : 0);
-
-    if (fcntl(fd, F_SETFD, v) < 0)
-        return -1;
-#endif
-
-    return 0;
 }
 
 /* Try to parse a boolean string value.*/
@@ -639,31 +621,134 @@ char *pa_split_spaces(const char *c, const char **state) {
     return pa_xstrndup(current, l);
 }
 
-/* Return the name of an UNIX signal. Similar to GNU's strsignal() */
-const char *pa_strsignal(int sig) {
+PA_STATIC_TLS_DECLARE(signame, pa_xfree);
+
+/* Return the name of an UNIX signal. Similar to Solaris sig2str() */
+const char *pa_sig2str(int sig) {
+    char *t;
+
+    if (sig <= 0)
+        goto fail;
+
+#ifdef NSIG
+    if (sig >= NSIG)
+        goto fail;
+#endif
+
+#ifdef HAVE_SIG2STR
+    {
+        char buf[SIG2STR_MAX];
+
+        if (sig2str(sig, buf) == 0) {
+            pa_xfree(PA_STATIC_TLS_GET(signame));
+            t = pa_sprintf_malloc("SIG%s", buf);
+            PA_STATIC_TLS_SET(signame, t);
+            return t;
+        }
+    }
+#else
+
     switch(sig) {
-        case SIGINT: return "SIGINT";
-        case SIGTERM: return "SIGTERM";
+#ifdef SIGHUP
+        case SIGHUP:    return "SIGHUP";
+#endif
+        case SIGINT:    return "SIGINT";
+#ifdef SIGQUIT
+        case SIGQUIT:   return "SIGQUIT";
+#endif
+        case SIGILL:    return "SIGULL";
+#ifdef SIGTRAP
+        case SIGTRAP:   return "SIGTRAP";
+#endif
+        case SIGABRT:   return "SIGABRT";
+#ifdef SIGBUS
+        case SIGBUS:    return "SIGBUS";
+#endif
+        case SIGFPE:    return "SIGFPE";
+#ifdef SIGKILL
+        case SIGKILL:   return "SIGKILL";
+#endif
 #ifdef SIGUSR1
-        case SIGUSR1: return "SIGUSR1";
+        case SIGUSR1:   return "SIGUSR1";
 #endif
+        case SIGSEGV:   return "SIGSEGV";
 #ifdef SIGUSR2
-        case SIGUSR2: return "SIGUSR2";
-#endif
-#ifdef SIGXCPU
-        case SIGXCPU: return "SIGXCPU";
+        case SIGUSR2:   return "SIGUSR2";
 #endif
 #ifdef SIGPIPE
-        case SIGPIPE: return "SIGPIPE";
+        case SIGPIPE:   return "SIGPIPE";
+#endif
+#ifdef SIGALRM
+        case SIGALRM:   return "SIGALRM";
+#endif
+        case SIGTERM:   return "SIGTERM";
+#ifdef SIGSTKFLT
+        case SIGSTKFLT: return "SIGSTKFLT";
 #endif
 #ifdef SIGCHLD
-        case SIGCHLD: return "SIGCHLD";
+        case SIGCHLD:   return "SIGCHLD";
 #endif
-#ifdef SIGHUP
-        case SIGHUP: return "SIGHUP";
+#ifdef SIGCONT
+        case SIGCONT:   return "SIGCONT";
 #endif
-        default: return "UNKNOWN SIGNAL";
+#ifdef SIGSTOP
+        case SIGSTOP:   return "SIGSTOP";
+#endif
+#ifdef SIGTSTP
+        case SIGTSTP:   return "SIGTSTP";
+#endif
+#ifdef SIGTTIN
+        case SIGTTIN:   return "SIGTTIN";
+#endif
+#ifdef SIGTTOU
+        case SIGTTOU:   return "SIGTTOU";
+#endif
+#ifdef SIGURG
+        case SIGURG:    return "SIGURG";
+#endif
+#ifdef SIGXCPU
+        case SIGXCPU:   return "SIGXCPU";
+#endif
+#ifdef SIGXFSZ
+        case SIGXFSZ:   return "SIGXFSZ";
+#endif
+#ifdef SIGVTALRM
+        case SIGVTALRM: return "SIGVTALRM";
+#endif
+#ifdef SIGPROF
+        case SIGPROF:   return "SIGPROF";
+#endif
+#ifdef SIGWINCH
+        case SIGWINCH:  return "SIGWINCH";
+#endif
+#ifdef SIGIO
+        case SIGIO:     return "SIGIO";
+#endif
+#ifdef SIGPWR
+        case SIGPWR:    return "SIGPWR";
+#endif
+#ifdef SIGSYS
+        case SIGSYS:    return "SIGSYS";
+#endif
     }
+
+#ifdef SIGRTMIN
+    if (sig >= SIGRTMIN && sig <= SIGRTMAX) {
+        pa_xfree(PA_STATIC_TLS_GET(signame));
+        t = pa_sprintf_malloc("SIGRTMIN+%i", sig - SIGRTMIN);
+        PA_STATIC_TLS_SET(signame, t);
+        return t;
+    }
+#endif
+
+#endif
+
+fail:
+
+    pa_xfree(PA_STATIC_TLS_GET(signame));
+    t = pa_sprintf_malloc("SIG%i", sig);
+    PA_STATIC_TLS_SET(signame, t);
+    return t;
 }
 
 #ifdef HAVE_GRP_H
@@ -715,7 +800,7 @@ int pa_own_uid_in_group(const char *name, gid_t *gid) {
     int n = sysconf(_SC_NGROUPS_MAX);
     int r = -1, i;
 
-    assert(n > 0);
+    pa_assert(n > 0);
 
     gids = pa_xmalloc(sizeof(GETGROUPS_T)*n);
 
@@ -861,8 +946,7 @@ int pa_lock_fd(int fd, int b) {
             return 0;
     }
 
-    pa_log("%slock: %s", !b? "un" : "",
-        pa_cstrerror(errno));
+    pa_log("%slock: %s", !b? "un" : "", pa_cstrerror(errno));
 #endif
 
 #ifdef OS_IS_WIN32
@@ -881,7 +965,7 @@ int pa_lock_fd(int fd, int b) {
 
 /* Remove trailing newlines from a string */
 char* pa_strip_nl(char *s) {
-    assert(s);
+    pa_assert(s);
 
     s[strcspn(s, "\r\n")] = 0;
     return s;
@@ -890,38 +974,46 @@ char* pa_strip_nl(char *s) {
 /* Create a temporary lock file and lock it. */
 int pa_lock_lockfile(const char *fn) {
     int fd = -1;
-    assert(fn);
+    pa_assert(fn);
 
     for (;;) {
         struct stat st;
 
-        if ((fd = open(fn, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR)) < 0) {
-            pa_log("failed to create lock file '%s': %s", fn,
-                pa_cstrerror(errno));
+        if ((fd = open(fn, O_CREAT|O_RDWR
+#ifdef O_NOCTTY
+                       |O_NOCTTY
+#endif
+#ifdef O_NOFOLLOW
+                       |O_NOFOLLOW
+#endif
+                       , S_IRUSR|S_IWUSR)) < 0) {
+            pa_log_warn("Failed to create lock file '%s': %s", fn, pa_cstrerror(errno));
             goto fail;
         }
 
         if (pa_lock_fd(fd, 1) < 0) {
-            pa_log("failed to lock file '%s'.", fn);
+            pa_log_warn("Failed to lock file '%s'.", fn);
             goto fail;
         }
 
         if (fstat(fd, &st) < 0) {
-            pa_log("failed to fstat() file '%s'.", fn);
+            pa_log_warn("Failed to fstat() file '%s': %s", fn, pa_cstrerror(errno));
             goto fail;
         }
 
-        /* Check wheter the file has been removed meanwhile. When yes, restart this loop, otherwise, we're done */
+        /* Check wheter the file has been removed meanwhile. When yes,
+         * restart this loop, otherwise, we're done */
         if (st.st_nlink >= 1)
             break;
 
         if (pa_lock_fd(fd, 0) < 0) {
-            pa_log("failed to unlock file '%s'.", fn);
+            pa_log_warn("Failed to unlock file '%s'.", fn);
             goto fail;
         }
 
-        if (close(fd) < 0) {
-            pa_log("failed to close file '%s'.", fn);
+        if (pa_close(fd) < 0) {
+            pa_log_warn("Failed to close file '%s': %s", fn, pa_cstrerror(errno));
+            fd = -1;
             goto fail;
         }
 
@@ -933,7 +1025,7 @@ int pa_lock_lockfile(const char *fn) {
 fail:
 
     if (fd >= 0)
-        close(fd);
+        pa_close(fd);
 
     return -1;
 }
@@ -941,22 +1033,21 @@ fail:
 /* Unlock a temporary lcok file */
 int pa_unlock_lockfile(const char *fn, int fd) {
     int r = 0;
-    assert(fn && fd >= 0);
+    pa_assert(fn);
+    pa_assert(fd >= 0);
 
     if (unlink(fn) < 0) {
-        pa_log_warn("WARNING: unable to remove lock file '%s': %s",
-            fn, pa_cstrerror(errno));
+        pa_log_warn("Unable to remove lock file '%s': %s", fn, pa_cstrerror(errno));
         r = -1;
     }
 
     if (pa_lock_fd(fd, 0) < 0) {
-        pa_log_warn("WARNING: failed to unlock file '%s'.", fn);
+        pa_log_warn("Failed to unlock file '%s'.", fn);
         r = -1;
     }
 
-    if (close(fd) < 0) {
-        pa_log_warn("WARNING: failed to close lock file '%s': %s",
-            fn, pa_cstrerror(errno));
+    if (pa_close(fd) < 0) {
+        pa_log_warn("Failed to close '%s': %s", fn, pa_cstrerror(errno));
         r = -1;
     }
 
@@ -1019,10 +1110,8 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
                 return f;
             }
 
-            if (errno != ENOENT) {
-                pa_log_warn("WARNING: failed to open configuration file '%s': %s",
-                    lfn, pa_cstrerror(errno));
-            }
+            if (errno != ENOENT)
+                pa_log_warn("Failed to open configuration file '%s': %s", lfn, pa_cstrerror(errno));
 
             pa_xfree(lfn);
         }
@@ -1051,7 +1140,10 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 char *pa_hexstr(const uint8_t* d, size_t dlength, char *s, size_t slength) {
     size_t i = 0, j = 0;
     const char hex[] = "0123456789abcdef";
-    assert(d && s && slength > 0);
+
+    pa_assert(d);
+    pa_assert(s);
+    pa_assert(slength > 0);
 
     while (i < dlength && j+3 <= slength) {
         s[j++] = hex[*d >> 4];
@@ -1082,7 +1174,9 @@ static int hexc(char c) {
 /* Parse a hexadecimal string as created by pa_hexstr() to a BLOB */
 size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
     size_t j = 0;
-    assert(p && d);
+
+    pa_assert(p);
+    pa_assert(d);
 
     while (j < dlength && *p) {
         int b;
@@ -1109,8 +1203,8 @@ size_t pa_parsehex(const char *p, uint8_t *d, size_t dlength) {
 int pa_startswith(const char *s, const char *pfx) {
     size_t l;
 
-    assert(s);
-    assert(pfx);
+    pa_assert(s);
+    pa_assert(pfx);
 
     l = strlen(pfx);
 
@@ -1121,8 +1215,8 @@ int pa_startswith(const char *s, const char *pfx) {
 int pa_endswith(const char *s, const char *sfx) {
     size_t l1, l2;
 
-    assert(s);
-    assert(sfx);
+    pa_assert(s);
+    pa_assert(sfx);
 
     l1 = strlen(s);
     l2 = strlen(sfx);
@@ -1146,17 +1240,17 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
     if ((e = getenv("PULSE_RUNTIME_PATH"))) {
 
         if (fn)
-            snprintf(s, l, "%s%c%s", e, PATH_SEP, fn);
+            pa_snprintf(s, l, "%s%c%s", e, PA_PATH_SEP_CHAR, fn);
         else
-            snprintf(s, l, "%s", e);
+            pa_snprintf(s, l, "%s", e);
 
     } else {
         char u[256];
 
         if (fn)
-            snprintf(s, l, "%s%s%c%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PATH_SEP, fn);
+            pa_snprintf(s, l, "%s%s%c%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)), PA_PATH_SEP_CHAR, fn);
         else
-            snprintf(s, l, "%s%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
+            pa_snprintf(s, l, "%s%s", PA_USER_RUNTIME_PATH_PREFIX, pa_get_user_name(u, sizeof(u)));
     }
 
 
@@ -1175,11 +1269,17 @@ char *pa_runtime_path(const char *fn, char *s, size_t l) {
 int pa_atoi(const char *s, int32_t *ret_i) {
     char *x = NULL;
     long l;
-    assert(s && ret_i);
 
+    pa_assert(s);
+    pa_assert(ret_i);
+
+    errno = 0;
     l = strtol(s, &x, 0);
 
-    if (!x || *x)
+    if (!x || *x || errno != 0)
+        return -1;
+
+    if ((int32_t) l != l)
         return -1;
 
     *ret_i = (int32_t) l;
@@ -1191,14 +1291,219 @@ int pa_atoi(const char *s, int32_t *ret_i) {
 int pa_atou(const char *s, uint32_t *ret_u) {
     char *x = NULL;
     unsigned long l;
-    assert(s && ret_u);
 
+    pa_assert(s);
+    pa_assert(ret_u);
+
+    errno = 0;
     l = strtoul(s, &x, 0);
 
-    if (!x || *x)
+    if (!x || *x || errno != 0)
+        return -1;
+
+    if ((uint32_t) l != l)
         return -1;
 
     *ret_u = (uint32_t) l;
 
     return 0;
+}
+
+#ifdef HAVE_STRTOF_L
+static locale_t c_locale = NULL;
+
+static void c_locale_destroy(void) {
+    freelocale(c_locale);
+}
+#endif
+
+int pa_atof(const char *s, float *ret_f) {
+    char *x = NULL;
+    float f;
+    int r = 0;
+
+    pa_assert(s);
+    pa_assert(ret_f);
+
+    /* This should be locale independent */
+
+#ifdef HAVE_STRTOF_L
+
+    PA_ONCE_BEGIN {
+
+        if ((c_locale = newlocale(LC_ALL_MASK, "C", NULL)))
+            atexit(c_locale_destroy);
+
+    } PA_ONCE_END;
+
+    if (c_locale) {
+        errno = 0;
+        f = strtof_l(s, &x, c_locale);
+    } else
+#endif
+    {
+        errno = 0;
+#ifdef HAVE_STRTOF
+        f = strtof(s, &x);
+#else
+        f = strtod(s, &x);
+#endif
+    }
+
+    if (!x || *x || errno != 0)
+        r =  -1;
+    else
+        *ret_f = f;
+
+    return r;
+}
+
+/* Same as snprintf, but guarantees NUL-termination on every platform */
+int pa_snprintf(char *str, size_t size, const char *format, ...) {
+    int ret;
+    va_list ap;
+
+    pa_assert(str);
+    pa_assert(size > 0);
+    pa_assert(format);
+
+    va_start(ap, format);
+    ret = vsnprintf(str, size, format, ap);
+    va_end(ap);
+
+    str[size-1] = 0;
+
+    return ret;
+}
+
+/* Truncate the specified string, but guarantee that the string
+ * returned still validates as UTF8 */
+char *pa_truncate_utf8(char *c, size_t l) {
+    pa_assert(c);
+    pa_assert(pa_utf8_valid(c));
+
+    if (strlen(c) <= l)
+        return c;
+
+    c[l] = 0;
+
+    while (l > 0 && !pa_utf8_valid(c))
+        c[--l] = 0;
+
+    return c;
+}
+
+char *pa_getcwd(void) {
+    size_t l = 128;
+
+    for (;;) {
+        char *p = pa_xnew(char, l);
+        if (getcwd(p, l))
+            return p;
+
+        if (errno != ERANGE)
+            return NULL;
+
+        pa_xfree(p);
+        l *= 2;
+    }
+}
+
+char *pa_make_path_absolute(const char *p) {
+    char *r;
+    char *cwd;
+
+    pa_assert(p);
+
+    if (p[0] == '/')
+        return pa_xstrdup(p);
+
+    if (!(cwd = pa_getcwd()))
+        return pa_xstrdup(p);
+
+    r = pa_sprintf_malloc("%s/%s", cwd, p);
+    pa_xfree(cwd);
+    return r;
+}
+
+void *pa_will_need(const void *p, size_t l) {
+#ifdef RLIMIT_MEMLOCK
+    struct rlimit rlim;
+#endif
+    const void *a;
+    size_t size;
+    int r;
+    size_t bs;
+
+    pa_assert(p);
+    pa_assert(l > 0);
+
+    a = PA_PAGE_ALIGN_PTR(p);
+    size = (const uint8_t*) p + l - (const uint8_t*) a;
+
+#ifdef HAVE_POSIX_MADVISE
+    if ((r = posix_madvise((void*) a, size, POSIX_MADV_WILLNEED)) == 0) {
+        pa_log_debug("posix_madvise() worked fine!");
+        return (void*) p;
+    }
+#endif
+
+    /* Most likely the memory was not mmap()ed from a file and thus
+     * madvise() didn't work, so let's misuse mlock() do page this
+     * stuff back into RAM. Yeah, let's fuck with the MM!  It's so
+     * inviting, the man page of mlock() tells us: "All pages that
+     * contain a part of the specified address range are guaranteed to
+     * be resident in RAM when the call returns successfully." */
+
+#ifdef RLIMIT_MEMLOCK
+    pa_assert_se(getrlimit(RLIMIT_MEMLOCK, &rlim) == 0);
+
+    if (rlim.rlim_cur < PA_PAGE_SIZE) {
+        pa_log_debug("posix_madvise() failed (or doesn't exist), resource limits don't allow mlock(), can't page in data: %s", pa_cstrerror(r));
+        return (void*) p;
+    }
+
+    bs = PA_PAGE_ALIGN(rlim.rlim_cur);
+#else
+    bs = PA_PAGE_SIZE*4;
+#endif
+
+    pa_log_debug("posix_madvise() failed (or doesn't exist), trying mlock(): %s", pa_cstrerror(r));
+
+#ifdef HAVE_MLOCK
+    while (size > 0 && bs > 0) {
+
+        if (bs > size)
+            bs = size;
+
+        if (mlock(a, bs) < 0) {
+            bs = PA_PAGE_ALIGN(bs / 2);
+            continue;
+        }
+
+        pa_assert_se(munlock(a, bs) == 0);
+
+        a = (const uint8_t*) a + bs;
+        size -= bs;
+    }
+#endif
+
+    if (bs <= 0)
+        pa_log_debug("mlock() failed too (or doesn't exist), giving up: %s", pa_cstrerror(errno));
+    else
+        pa_log_debug("mlock() worked fine!");
+
+    return (void*) p;
+}
+
+void pa_close_pipe(int fds[2]) {
+    pa_assert(fds);
+
+    if (fds[0] >= 0)
+        pa_assert_se(pa_close(fds[0]) == 0);
+
+    if (fds[1] >= 0)
+        pa_assert_se(pa_close(fds[1]) == 0);
+
+    fds[0] = fds[1] = -1;
 }

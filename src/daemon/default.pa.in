@@ -1,5 +1,4 @@
-#!@PA_BINARY@ -nF 
-
+#!@PA_BINARY@ -nF
 #
 # This file is part of PulseAudio.
 #
@@ -17,8 +16,19 @@
 # along with PulseAudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
+.nofail
 
-### Load audio drivers statically
+### Load something into the sample cache
+#load-sample-lazy x11-bell /usr/share/sounds/gtk-events/activate.wav
+load-sample-lazy pulse-hotplug /usr/share/sounds/startup3.wav
+#load-sample-lazy pulse-coldplug /usr/share/sounds/startup3.wav
+#load-sample-lazy pulse-access /usr/share/sounds/generic.wav
+
+.fail
+
+### Load audio drivers statically (it's probably better to not load
+### these drivers manually, but instead use module-hal-detect --
+### see below -- for doing this automatically)
 #load-module module-alsa-sink
 #load-module module-alsa-source device=hw:1,0
 #load-module module-oss device="/dev/dsp" sink_name=output source_name=input
@@ -27,19 +37,13 @@
 #load-module module-pipe-sink
 
 ### Automatically load driver modules depending on the hardware available
-@HAVE_HAL_TRUE@load-module module-hal-detect
-
+.ifexists @PA_DLSEARCHPATH@/module-hal-detect@PA_SOEXT@
+load-module module-hal-detect
+.else
 ### Alternatively use the static hardware detection module (for systems that
-### lack HAL support
-@HAVE_HAL_FALSE@load-module module-detect
-
-### Load audio drivers automatically on access
-#add-autoload-sink output module-oss device="/dev/dsp" sink_name=output source_name=input
-#add-autoload-source input module-oss device="/dev/dsp" sink_name=output source_name=input
-#add-autoload-sink output module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
-#add-autoload-source input module-oss-mmap device="/dev/dsp" sink_name=output source_name=input
-#add-autoload-sink output module-alsa-sink sink_name=output
-#add-autoload-source input module-alsa-source source_name=input
+### lack HAL support)
+load-module module-detect
+.endif
 
 ### Load several protocols
 load-module module-esound-protocol-unix
@@ -61,27 +65,36 @@ load-module module-native-protocol-unix
 ### Automatically restore the volume of playback streams
 load-module module-volume-restore
 
+### Automatically restore the default sink/source when changed by the user during runtime
+load-module module-default-device-restore
+
 ### Automatically move streams to the default sink if the sink they are
 ### connected to dies, similar for sources
 load-module module-rescue-streams
 
-### Make some devices default
-#set-default-sink output
-#set-default-source input
-
-.nofail
-
-### Load something to the sample cache
-load-sample x11-bell /usr/share/sounds/gtk-events/activate.wav
-#load-sample-dir-lazy /usr/share/sounds/*.wav
+### Automatically suspend sinks/sources that become idle for too long
+load-module module-suspend-on-idle
 
 ### Load X11 bell module
-load-module module-x11-bell sample=x11-bell
+#load-module module-x11-bell sample=x11-bell
 
 ### Publish connection data in the X11 root window
+.ifexists @PA_DLSEARCHPATH@/module-x11-publish@PA_SOEXT@
 load-module module-x11-publish
+.endif
+
+### Register ourselves in the X11 session manager
+# Deactivated by default, to avoid deadlock when PA is started as esd from gnome-session
+# Instead we load this via /etc/xdg/autostart/ and "pactl load-module" now
+# load-module module-x11-xsmp
 
 ### Load additional modules from GConf settings. This can be configured with the paprefs tool.
 ### Please keep in mind that the modules configured by paprefs might conflict with manually
 ### loaded modules.
+.ifexists @PA_DLSEARCHPATH@/module-gconf@PA_SOEXT@
 load-module module-gconf
+.endif
+
+### Make some devices default
+#set-default-sink output
+#set-default-source input

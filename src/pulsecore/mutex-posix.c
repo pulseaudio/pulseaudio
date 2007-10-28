@@ -25,19 +25,15 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <pthread.h>
-
-#include <atomic_ops.h>
+#include <errno.h>
 
 #include <pulse/xmalloc.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/log.h>
+#include <pulsecore/core-error.h>
 
 #include "mutex.h"
-
-#define ASSERT_SUCCESS(x) do { \
-    int _r = (x); \
-    assert(_r == 0); \
-} while(0)
 
 struct pa_mutex {
     pthread_mutex_t mutex;
@@ -47,68 +43,88 @@ struct pa_cond {
     pthread_cond_t cond;
 };
 
-pa_mutex* pa_mutex_new(int recursive) {
+pa_mutex* pa_mutex_new(pa_bool_t recursive, pa_bool_t inherit_priority) {
     pa_mutex *m;
     pthread_mutexattr_t attr;
+    int r;
 
-    pthread_mutexattr_init(&attr);
+    pa_assert_se(pthread_mutexattr_init(&attr) == 0);
 
     if (recursive)
-        ASSERT_SUCCESS(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE));
+        pa_assert_se(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE) == 0);
+
+#ifdef HAVE_PTHREAD_PRIO_INHERIT
+    if (inherit_priority)
+        pa_assert_se(pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT) == 0);
+#endif
 
     m = pa_xnew(pa_mutex, 1);
 
-    ASSERT_SUCCESS(pthread_mutex_init(&m->mutex, &attr));
+#ifndef HAVE_PTHREAD_PRIO_INHERIT
+    pa_assert_se(pthread_mutex_init(&m->mutex, &attr) == 0);
+
+#else
+    if ((r = pthread_mutex_init(&m->mutex, &attr))) {
+
+        /* If this failed, then this was probably due to non-available
+         * priority inheritance. In which case we fall back to normal
+         * mutexes. */
+        pa_assert(r == ENOTSUP && inherit_priority);
+
+        pa_assert_se(pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_NONE) == 0);
+        pa_assert_se(pthread_mutex_init(&m->mutex, &attr) == 0);
+    }
+#endif
+
     return m;
 }
 
 void pa_mutex_free(pa_mutex *m) {
-    assert(m);
+    pa_assert(m);
 
-    ASSERT_SUCCESS(pthread_mutex_destroy(&m->mutex));
+    pa_assert_se(pthread_mutex_destroy(&m->mutex) == 0);
     pa_xfree(m);
 }
 
 void pa_mutex_lock(pa_mutex *m) {
-    assert(m);
+    pa_assert(m);
 
-    ASSERT_SUCCESS(pthread_mutex_lock(&m->mutex));
+    pa_assert_se(pthread_mutex_lock(&m->mutex) == 0);
 }
 
 void pa_mutex_unlock(pa_mutex *m) {
-    assert(m);
+    pa_assert(m);
 
-    ASSERT_SUCCESS(pthread_mutex_unlock(&m->mutex));
+    pa_assert_se(pthread_mutex_unlock(&m->mutex) == 0);
 }
 
 pa_cond *pa_cond_new(void) {
     pa_cond *c;
 
     c = pa_xnew(pa_cond, 1);
-
-    ASSERT_SUCCESS(pthread_cond_init(&c->cond, NULL));
+    pa_assert_se(pthread_cond_init(&c->cond, NULL) == 0);
     return c;
 }
 
 void pa_cond_free(pa_cond *c) {
-    assert(c);
+    pa_assert(c);
 
-    ASSERT_SUCCESS(pthread_cond_destroy(&c->cond));
+    pa_assert_se(pthread_cond_destroy(&c->cond) == 0);
     pa_xfree(c);
 }
 
 void pa_cond_signal(pa_cond *c, int broadcast) {
-    assert(c);
+    pa_assert(c);
 
     if (broadcast)
-        ASSERT_SUCCESS(pthread_cond_broadcast(&c->cond));
+        pa_assert_se(pthread_cond_broadcast(&c->cond) == 0);
     else
-        ASSERT_SUCCESS(pthread_cond_signal(&c->cond));
+        pa_assert_se(pthread_cond_signal(&c->cond) == 0);
 }
 
 int pa_cond_wait(pa_cond *c, pa_mutex *m) {
-    assert(c);
-    assert(m);
+    pa_assert(c);
+    pa_assert(m);
 
     return pthread_cond_wait(&c->cond, &m->mutex);
 }

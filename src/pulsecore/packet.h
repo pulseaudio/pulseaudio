@@ -27,9 +27,11 @@
 #include <sys/types.h>
 #include <inttypes.h>
 
+#include <pulsecore/refcnt.h>
+
 typedef struct pa_packet {
+    PA_REFCNT_DECLARE;
     enum { PA_PACKET_APPENDED, PA_PACKET_DYNAMIC } type;
-    unsigned ref;
     size_t length;
     uint8_t *data;
 } pa_packet;

@@ -44,11 +44,6 @@ int pa_idxset_trivial_compare_func(const void *a, const void *b);
 unsigned pa_idxset_string_hash_func(const void *p);
 int pa_idxset_string_compare_func(const void *a, const void *b);
 
-#define PA_PTR_TO_UINT(p) ((unsigned int) (unsigned long) (p))
-#define PA_UINT_TO_PTR(u) ((void*) (unsigned long) (u))
-#define PA_PTR_TO_UINT32(p) ((uint32_t) PA_PTR_TO_UINT(p))
-#define PA_UINT32_TO_PTR(u) PA_UINT_TO_PTR(u)
-
 typedef unsigned (*pa_hash_func_t)(const void *p);
 typedef int (*pa_compare_func_t)(const void *a, const void *b);
 

@@ -14,7 +14,7 @@
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  Lesser General Public License for more details.
+  Lesser General Public License for more details
 
   You should have received a copy of the GNU Lesser General Public
   License along with PulseAudio; if not, write to the Free Software
@@ -28,15 +28,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
+#include <errno.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/def.h>
 
 #include <pulsecore/shm.h>
 #include <pulsecore/log.h>
 #include <pulsecore/hashmap.h>
+#include <pulsecore/semaphore.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/flist.h>
+#include <pulsecore/core-util.h>
 
 #include "memblock.h"
 
@@ -48,6 +54,32 @@
 #define PA_MEMIMPORT_SLOTS_MAX 128
 #define PA_MEMIMPORT_SEGMENTS_MAX 16
 
+struct pa_memblock {
+    PA_REFCNT_DECLARE; /* the reference counter */
+    pa_mempool *pool;
+
+    pa_memblock_type_t type;
+    int read_only; /* boolean */
+
+    pa_atomic_ptr_t data;
+    size_t length;
+
+    pa_atomic_t n_acquired;
+    pa_atomic_t please_signal;
+
+    union {
+        struct {
+            /* If type == PA_MEMBLOCK_USER this points to a function for freeing this memory block */
+            pa_free_cb_t free_cb;
+        } user;
+
+        struct  {
+            uint32_t id;
+            pa_memimport_segment *segment;
+        } imported;
+    } per_type;
+};
+
 struct pa_memimport_segment {
     pa_memimport *import;
     pa_shm memory;
@@ -55,6 +87,8 @@ struct pa_memimport_segment {
 };
 
 struct pa_memimport {
+    pa_mutex *mutex;
+
     pa_mempool *pool;
     pa_hashmap *segments;
     pa_hashmap *blocks;
@@ -73,9 +107,11 @@ struct memexport_slot {
 };
 
 struct pa_memexport {
+    pa_mutex *mutex;
     pa_mempool *pool;
 
     struct memexport_slot slots[PA_MEMEXPORT_SLOTS_MAX];
+
     PA_LLIST_HEAD(struct memexport_slot, free_slots);
     PA_LLIST_HEAD(struct memexport_slot, used_slots);
     unsigned n_init;
@@ -95,24 +131,32 @@ struct mempool_slot {
 };
 
 struct pa_mempool {
+    pa_semaphore *semaphore;
+    pa_mutex *mutex;
+
     pa_shm memory;
     size_t block_size;
-    unsigned n_blocks, n_init;
+    unsigned n_blocks;
+
+    pa_atomic_t n_init;
 
     PA_LLIST_HEAD(pa_memimport, imports);
     PA_LLIST_HEAD(pa_memexport, exports);
 
     /* A list of free slots that may be reused */
-    PA_LLIST_HEAD(struct mempool_slot, free_slots);
+    pa_flist *free_slots;
 
     pa_mempool_stat stat;
 };
 
 static void segment_detach(pa_memimport_segment *seg);
 
+PA_STATIC_FLIST_DECLARE(unused_memblocks, 0, pa_xfree);
+
+/* No lock necessary */
 static void stat_add(pa_memblock*b) {
-    assert(b);
-    assert(b->pool);
+    pa_assert(b);
+    pa_assert(b->pool);
 
     pa_atomic_inc(&b->pool->stat.n_allocated);
     pa_atomic_add(&b->pool->stat.allocated_size, b->length);
@@ -129,19 +173,20 @@ static void stat_add(pa_memblock*b) {
     pa_atomic_inc(&b->pool->stat.n_accumulated_by_type[b->type]);
 }
 
+/* No lock necessary */
 static void stat_remove(pa_memblock *b) {
-    assert(b);
-    assert(b->pool);
+    pa_assert(b);
+    pa_assert(b->pool);
 
-    assert(pa_atomic_load(&b->pool->stat.n_allocated) > 0);
-    assert(pa_atomic_load(&b->pool->stat.allocated_size) >= (int) b->length);
+    pa_assert(pa_atomic_load(&b->pool->stat.n_allocated) > 0);
+    pa_assert(pa_atomic_load(&b->pool->stat.allocated_size) >= (int) b->length);
 
     pa_atomic_dec(&b->pool->stat.n_allocated);
     pa_atomic_sub(&b->pool->stat.allocated_size,  b->length);
 
     if (b->type == PA_MEMBLOCK_IMPORTED) {
-        assert(pa_atomic_load(&b->pool->stat.n_imported) > 0);
-        assert(pa_atomic_load(&b->pool->stat.imported_size) >= (int) b->length);
+        pa_assert(pa_atomic_load(&b->pool->stat.n_imported) > 0);
+        pa_assert(pa_atomic_load(&b->pool->stat.imported_size) >= (int) b->length);
 
         pa_atomic_dec(&b->pool->stat.n_imported);
         pa_atomic_sub(&b->pool->stat.imported_size, b->length);
@@ -152,11 +197,12 @@ static void stat_remove(pa_memblock *b) {
 
 static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length);
 
+/* No lock necessary */
 pa_memblock *pa_memblock_new(pa_mempool *p, size_t length) {
     pa_memblock *b;
 
-    assert(p);
-    assert(length > 0);
+    pa_assert(p);
+    pa_assert(length > 0);
 
     if (!(b = pa_memblock_new_pool(p, length)))
         b = memblock_new_appended(p, length);
@@ -164,56 +210,75 @@ pa_memblock *pa_memblock_new(pa_mempool *p, size_t length) {
     return b;
 }
 
+/* No lock necessary */
 static pa_memblock *memblock_new_appended(pa_mempool *p, size_t length) {
     pa_memblock *b;
 
-    assert(p);
-    assert(length > 0);
+    pa_assert(p);
+    pa_assert(length > 0);
 
-    b = pa_xmalloc(sizeof(pa_memblock) + length);
+    /* If -1 is passed as length we choose the size for the caller. */
+
+    if (length == (size_t) -1)
+        length = p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) - PA_ALIGN(sizeof(pa_memblock));
+
+    b = pa_xmalloc(PA_ALIGN(sizeof(pa_memblock)) + length);
+    PA_REFCNT_INIT(b);
+    b->pool = p;
     b->type = PA_MEMBLOCK_APPENDED;
     b->read_only = 0;
-    PA_REFCNT_INIT(b);
+    pa_atomic_ptr_store(&b->data, (uint8_t*) b + PA_ALIGN(sizeof(pa_memblock)));
     b->length = length;
-    b->data = (uint8_t*) b + sizeof(pa_memblock);
-    b->pool = p;
+    pa_atomic_store(&b->n_acquired, 0);
+    pa_atomic_store(&b->please_signal, 0);
 
     stat_add(b);
     return b;
 }
 
+/* No lock necessary */
 static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
     struct mempool_slot *slot;
-    assert(p);
+    pa_assert(p);
 
-    if (p->free_slots) {
-        slot = p->free_slots;
-        PA_LLIST_REMOVE(struct mempool_slot, p->free_slots, slot);
-    } else if (p->n_init < p->n_blocks)
-        slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * p->n_init++));
-    else {
-        pa_log_debug("Pool full");
-        pa_atomic_inc(&p->stat.n_pool_full);
-        return NULL;
+    if (!(slot = pa_flist_pop(p->free_slots))) {
+        int idx;
+
+        /* The free list was empty, we have to allocate a new entry */
+
+        if ((unsigned) (idx = pa_atomic_inc(&p->n_init)) >= p->n_blocks)
+            pa_atomic_dec(&p->n_init);
+        else
+            slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * idx));
+
+        if (!slot) {
+            pa_log_debug("Pool full");
+            pa_atomic_inc(&p->stat.n_pool_full);
+            return NULL;
+        }
     }
 
     return slot;
 }
 
+/* No lock necessary */
 static void* mempool_slot_data(struct mempool_slot *slot) {
-    assert(slot);
+    pa_assert(slot);
 
-    return (uint8_t*) slot + sizeof(struct mempool_slot);
+    return (uint8_t*) slot + PA_ALIGN(sizeof(struct mempool_slot));
 }
 
+/* No lock necessary */
 static unsigned mempool_slot_idx(pa_mempool *p, void *ptr) {
-    assert(p);
-    assert((uint8_t*) ptr >= (uint8_t*) p->memory.ptr);
-    assert((uint8_t*) ptr < (uint8_t*) p->memory.ptr + p->memory.size);
+    pa_assert(p);
+
+    pa_assert((uint8_t*) ptr >= (uint8_t*) p->memory.ptr);
+    pa_assert((uint8_t*) ptr < (uint8_t*) p->memory.ptr + p->memory.size);
 
     return ((uint8_t*) ptr - (uint8_t*) p->memory.ptr) / p->block_size;
 }
 
+/* No lock necessary */
 static struct mempool_slot* mempool_slot_by_ptr(pa_mempool *p, void *ptr) {
     unsigned idx;
 
@@ -223,189 +288,321 @@ static struct mempool_slot* mempool_slot_by_ptr(pa_mempool *p, void *ptr) {
     return (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (idx * p->block_size));
 }
 
+/* No lock necessary */
 pa_memblock *pa_memblock_new_pool(pa_mempool *p, size_t length) {
     pa_memblock *b = NULL;
     struct mempool_slot *slot;
 
-    assert(p);
-    assert(length > 0);
+    pa_assert(p);
+    pa_assert(length > 0);
 
-    if (p->block_size - sizeof(struct mempool_slot) >= sizeof(pa_memblock) + length) {
+    /* If -1 is passed as length we choose the size for the caller: we
+     * take the largest size that fits in one of our slots. */
+
+    if (length == (size_t) -1)
+        length = pa_mempool_block_size_max(p);
+
+    if (p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) >= PA_ALIGN(sizeof(pa_memblock)) + length) {
 
         if (!(slot = mempool_allocate_slot(p)))
             return NULL;
 
         b = mempool_slot_data(slot);
         b->type = PA_MEMBLOCK_POOL;
-        b->data = (uint8_t*) b + sizeof(pa_memblock);
+        pa_atomic_ptr_store(&b->data, (uint8_t*) b + PA_ALIGN(sizeof(pa_memblock)));
 
-    } else if (p->block_size - sizeof(struct mempool_slot) >= length) {
+    } else if (p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) >= length) {
 
         if (!(slot = mempool_allocate_slot(p)))
             return NULL;
 
-        b = pa_xnew(pa_memblock, 1);
+        if (!(b = pa_flist_pop(PA_STATIC_FLIST_GET(unused_memblocks))))
+            b = pa_xnew(pa_memblock, 1);
+
         b->type = PA_MEMBLOCK_POOL_EXTERNAL;
-        b->data = mempool_slot_data(slot);
+        pa_atomic_ptr_store(&b->data, mempool_slot_data(slot));
+
     } else {
-        pa_log_debug("Memory block too large for pool: %u > %u", length, p->block_size - sizeof(struct mempool_slot));
+        pa_log_debug("Memory block too large for pool: %lu > %lu", (unsigned long) length, (unsigned long) (p->block_size - PA_ALIGN(sizeof(struct mempool_slot))));
         pa_atomic_inc(&p->stat.n_too_large_for_pool);
         return NULL;
     }
 
-    b->length = length;
-    b->read_only = 0;
     PA_REFCNT_INIT(b);
     b->pool = p;
+    b->read_only = 0;
+    b->length = length;
+    pa_atomic_store(&b->n_acquired, 0);
+    pa_atomic_store(&b->please_signal, 0);
 
     stat_add(b);
     return b;
 }
 
+/* No lock necessary */
 pa_memblock *pa_memblock_new_fixed(pa_mempool *p, void *d, size_t length, int read_only) {
     pa_memblock *b;
 
-    assert(p);
-    assert(d);
-    assert(length > 0);
+    pa_assert(p);
+    pa_assert(d);
+    pa_assert(length != (size_t) -1);
+    pa_assert(length > 0);
 
-    b = pa_xnew(pa_memblock, 1);
+    if (!(b = pa_flist_pop(PA_STATIC_FLIST_GET(unused_memblocks))))
+        b = pa_xnew(pa_memblock, 1);
+    PA_REFCNT_INIT(b);
+    b->pool = p;
     b->type = PA_MEMBLOCK_FIXED;
     b->read_only = read_only;
-    PA_REFCNT_INIT(b);
+    pa_atomic_ptr_store(&b->data, d);
     b->length = length;
-    b->data = d;
-    b->pool = p;
+    pa_atomic_store(&b->n_acquired, 0);
+    pa_atomic_store(&b->please_signal, 0);
 
     stat_add(b);
     return b;
 }
 
+/* No lock necessary */
 pa_memblock *pa_memblock_new_user(pa_mempool *p, void *d, size_t length, void (*free_cb)(void *p), int read_only) {
     pa_memblock *b;
 
-    assert(p);
-    assert(d);
-    assert(length > 0);
-    assert(free_cb);
+    pa_assert(p);
+    pa_assert(d);
+    pa_assert(length > 0);
+    pa_assert(length != (size_t) -1);
+    pa_assert(free_cb);
 
-    b = pa_xnew(pa_memblock, 1);
+    if (!(b = pa_flist_pop(PA_STATIC_FLIST_GET(unused_memblocks))))
+        b = pa_xnew(pa_memblock, 1);
+    PA_REFCNT_INIT(b);
+    b->pool = p;
     b->type = PA_MEMBLOCK_USER;
     b->read_only = read_only;
-    PA_REFCNT_INIT(b);
+    pa_atomic_ptr_store(&b->data, d);
     b->length = length;
-    b->data = d;
+    pa_atomic_store(&b->n_acquired, 0);
+    pa_atomic_store(&b->please_signal, 0);
+
     b->per_type.user.free_cb = free_cb;
-    b->pool = p;
 
     stat_add(b);
     return b;
 }
 
+/* No lock necessary */
+int pa_memblock_is_read_only(pa_memblock *b) {
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
+
+    return b->read_only && PA_REFCNT_VALUE(b) == 1;
+}
+
+/* No lock necessary */
+int pa_memblock_ref_is_one(pa_memblock *b) {
+    int r;
+
+    pa_assert(b);
+
+    r = PA_REFCNT_VALUE(b);
+    pa_assert(r > 0);
+
+    return r == 1;
+}
+
+/* No lock necessary */
+void* pa_memblock_acquire(pa_memblock *b) {
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
+
+    pa_atomic_inc(&b->n_acquired);
+
+    return pa_atomic_ptr_load(&b->data);
+}
+
+/* No lock necessary, in corner cases locks by its own */
+void pa_memblock_release(pa_memblock *b) {
+    int r;
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
+
+    r = pa_atomic_dec(&b->n_acquired);
+    pa_assert(r >= 1);
+
+    /* Signal a waiting thread that this memblock is no longer used */
+    if (r == 1 && pa_atomic_load(&b->please_signal))
+        pa_semaphore_post(b->pool->semaphore);
+}
+
+size_t pa_memblock_get_length(pa_memblock *b) {
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
+
+    return b->length;
+}
+
+pa_mempool* pa_memblock_get_pool(pa_memblock *b) {
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
+
+    return b->pool;
+}
+
+/* No lock necessary */
 pa_memblock* pa_memblock_ref(pa_memblock*b) {
-    assert(b);
-    assert(PA_REFCNT_VALUE(b) > 0);
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
 
     PA_REFCNT_INC(b);
     return b;
 }
 
-void pa_memblock_unref(pa_memblock*b) {
-    assert(b);
-    assert(PA_REFCNT_VALUE(b) > 0);
+static void memblock_free(pa_memblock *b) {
+    pa_assert(b);
 
-    if (PA_REFCNT_DEC(b) > 0)
-        return;
+    pa_assert(pa_atomic_load(&b->n_acquired) == 0);
 
     stat_remove(b);
 
     switch (b->type) {
         case PA_MEMBLOCK_USER :
-            assert(b->per_type.user.free_cb);
-            b->per_type.user.free_cb(b->data);
+            pa_assert(b->per_type.user.free_cb);
+            b->per_type.user.free_cb(pa_atomic_ptr_load(&b->data));
 
             /* Fall through */
 
         case PA_MEMBLOCK_FIXED:
         case PA_MEMBLOCK_APPENDED :
-            pa_xfree(b);
+            if (pa_flist_push(PA_STATIC_FLIST_GET(unused_memblocks), b) < 0)
+                pa_xfree(b);
+
             break;
 
         case PA_MEMBLOCK_IMPORTED : {
             pa_memimport_segment *segment;
+            pa_memimport *import;
+
+            /* FIXME! This should be implemented lock-free */
 
             segment = b->per_type.imported.segment;
-            assert(segment);
-            assert(segment->import);
+            pa_assert(segment);
+            import = segment->import;
+            pa_assert(import);
 
-            pa_hashmap_remove(segment->import->blocks, PA_UINT32_TO_PTR(b->per_type.imported.id));
-            segment->import->release_cb(segment->import, b->per_type.imported.id, segment->import->userdata);
-
+            pa_mutex_lock(import->mutex);
+            pa_hashmap_remove(import->blocks, PA_UINT32_TO_PTR(b->per_type.imported.id));
             if (-- segment->n_blocks <= 0)
                 segment_detach(segment);
 
-            pa_xfree(b);
+            pa_mutex_unlock(import->mutex);
+
+            import->release_cb(import, b->per_type.imported.id, import->userdata);
+
+            if (pa_flist_push(PA_STATIC_FLIST_GET(unused_memblocks), b) < 0)
+                pa_xfree(b);
             break;
         }
 
         case PA_MEMBLOCK_POOL_EXTERNAL:
         case PA_MEMBLOCK_POOL: {
             struct mempool_slot *slot;
+            int call_free;
 
-            slot = mempool_slot_by_ptr(b->pool, b->data);
-            assert(slot);
+            slot = mempool_slot_by_ptr(b->pool, pa_atomic_ptr_load(&b->data));
+            pa_assert(slot);
 
-            PA_LLIST_PREPEND(struct mempool_slot, b->pool->free_slots, slot);
+            call_free = b->type == PA_MEMBLOCK_POOL_EXTERNAL;
 
-            if (b->type == PA_MEMBLOCK_POOL_EXTERNAL)
-                pa_xfree(b);
+            /* The free list dimensions should easily allow all slots
+             * to fit in, hence try harder if pushing this slot into
+             * the free list fails */
+            while (pa_flist_push(b->pool->free_slots, slot) < 0)
+                ;
+
+            if (call_free)
+                if (pa_flist_push(PA_STATIC_FLIST_GET(unused_memblocks), b) < 0)
+                    pa_xfree(b);
 
             break;
         }
 
         case PA_MEMBLOCK_TYPE_MAX:
         default:
-            abort();
+            pa_assert_not_reached();
     }
 }
 
+/* No lock necessary */
+void pa_memblock_unref(pa_memblock*b) {
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
+
+    if (PA_REFCNT_DEC(b) > 0)
+        return;
+
+    memblock_free(b);
+}
+
+/* Self locked */
+static void memblock_wait(pa_memblock *b) {
+    pa_assert(b);
+
+    if (pa_atomic_load(&b->n_acquired) > 0) {
+        /* We need to wait until all threads gave up access to the
+         * memory block before we can go on. Unfortunately this means
+         * that we have to lock and wait here. Sniff! */
+
+        pa_atomic_inc(&b->please_signal);
+
+        while (pa_atomic_load(&b->n_acquired) > 0)
+            pa_semaphore_wait(b->pool->semaphore);
+
+        pa_atomic_dec(&b->please_signal);
+    }
+}
+
+/* No lock necessary. This function is not multiple caller safe! */
 static void memblock_make_local(pa_memblock *b) {
-    assert(b);
+    pa_assert(b);
 
     pa_atomic_dec(&b->pool->stat.n_allocated_by_type[b->type]);
 
-    if (b->length <= b->pool->block_size - sizeof(struct mempool_slot)) {
+    if (b->length <= b->pool->block_size - PA_ALIGN(sizeof(struct mempool_slot))) {
         struct mempool_slot *slot;
 
         if ((slot = mempool_allocate_slot(b->pool))) {
             void *new_data;
             /* We can move it into a local pool, perfect! */
 
+            new_data = mempool_slot_data(slot);
+            memcpy(new_data, pa_atomic_ptr_load(&b->data), b->length);
+            pa_atomic_ptr_store(&b->data, new_data);
+
             b->type = PA_MEMBLOCK_POOL_EXTERNAL;
             b->read_only = 0;
 
-            new_data = mempool_slot_data(slot);
-            memcpy(new_data, b->data, b->length);
-            b->data = new_data;
             goto finish;
         }
     }
 
     /* Humm, not enough space in the pool, so lets allocate the memory with malloc() */
-    b->type = PA_MEMBLOCK_USER;
     b->per_type.user.free_cb = pa_xfree;
+    pa_atomic_ptr_store(&b->data, pa_xmemdup(pa_atomic_ptr_load(&b->data), b->length));
+
+    b->type = PA_MEMBLOCK_USER;
     b->read_only = 0;
-    b->data = pa_xmemdup(b->data, b->length);
 
 finish:
     pa_atomic_inc(&b->pool->stat.n_allocated_by_type[b->type]);
     pa_atomic_inc(&b->pool->stat.n_accumulated_by_type[b->type]);
+    memblock_wait(b);
 }
 
+/* No lock necessary. This function is not multiple caller safe*/
 void pa_memblock_unref_fixed(pa_memblock *b) {
-    assert(b);
-    assert(PA_REFCNT_VALUE(b) > 0);
-    assert(b->type == PA_MEMBLOCK_FIXED);
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
+    pa_assert(b->type == PA_MEMBLOCK_FIXED);
 
     if (PA_REFCNT_VALUE(b) > 1)
         memblock_make_local(b);
@@ -413,20 +610,37 @@ void pa_memblock_unref_fixed(pa_memblock *b) {
     pa_memblock_unref(b);
 }
 
+/* No lock necessary. */
+pa_memblock *pa_memblock_will_need(pa_memblock *b) {
+    void *p;
+
+    pa_assert(b);
+    pa_assert(PA_REFCNT_VALUE(b) > 0);
+
+    p = pa_memblock_acquire(b);
+    pa_will_need(p, b->length);
+    pa_memblock_release(b);
+
+    return b;
+}
+
+/* Self-locked. This function is not multiple-caller safe */
 static void memblock_replace_import(pa_memblock *b) {
     pa_memimport_segment *seg;
 
-    assert(b);
-    assert(b->type == PA_MEMBLOCK_IMPORTED);
+    pa_assert(b);
+    pa_assert(b->type == PA_MEMBLOCK_IMPORTED);
 
-    assert(pa_atomic_load(&b->pool->stat.n_imported) > 0);
-    assert(pa_atomic_load(&b->pool->stat.imported_size) >= (int) b->length);
+    pa_assert(pa_atomic_load(&b->pool->stat.n_imported) > 0);
+    pa_assert(pa_atomic_load(&b->pool->stat.imported_size) >= (int) b->length);
     pa_atomic_dec(&b->pool->stat.n_imported);
     pa_atomic_sub(&b->pool->stat.imported_size, b->length);
 
     seg = b->per_type.imported.segment;
-    assert(seg);
-    assert(seg->import);
+    pa_assert(seg);
+    pa_assert(seg->import);
+
+    pa_mutex_lock(seg->import->mutex);
 
     pa_hashmap_remove(
             seg->import->blocks,
@@ -434,51 +648,49 @@ static void memblock_replace_import(pa_memblock *b) {
 
     memblock_make_local(b);
 
-    if (-- seg->n_blocks <= 0)
+    if (-- seg->n_blocks <= 0) {
+        pa_mutex_unlock(seg->import->mutex);
         segment_detach(seg);
+    } else
+        pa_mutex_unlock(seg->import->mutex);
 }
 
 pa_mempool* pa_mempool_new(int shared) {
-    size_t ps;
     pa_mempool *p;
 
     p = pa_xnew(pa_mempool, 1);
 
-#ifdef HAVE_SYSCONF
-    ps = (size_t) sysconf(_SC_PAGESIZE);
-#elif defined(PAGE_SIZE)
-	ps = (size_t) PAGE_SIZE;
-#else
-	ps = 4096; /* Let's hope it's like x86. */
-#endif
+    p->mutex = pa_mutex_new(TRUE, TRUE);
+    p->semaphore = pa_semaphore_new(0);
 
-    p->block_size = (PA_MEMPOOL_SLOT_SIZE/ps)*ps;
-
-    if (p->block_size < ps)
-        p->block_size = ps;
+    p->block_size = PA_PAGE_ALIGN(PA_MEMPOOL_SLOT_SIZE);
+    if (p->block_size < PA_PAGE_SIZE)
+        p->block_size = PA_PAGE_SIZE;
 
     p->n_blocks = PA_MEMPOOL_SLOTS_MAX;
 
-    assert(p->block_size > sizeof(struct mempool_slot));
+    pa_assert(p->block_size > PA_ALIGN(sizeof(struct mempool_slot)));
 
     if (pa_shm_create_rw(&p->memory, p->n_blocks * p->block_size, shared, 0700) < 0) {
         pa_xfree(p);
         return NULL;
     }
 
-    p->n_init = 0;
+    memset(&p->stat, 0, sizeof(p->stat));
+    pa_atomic_store(&p->n_init, 0);
 
     PA_LLIST_HEAD_INIT(pa_memimport, p->imports);
     PA_LLIST_HEAD_INIT(pa_memexport, p->exports);
-    PA_LLIST_HEAD_INIT(struct mempool_slot, p->free_slots);
 
-    memset(&p->stat, 0, sizeof(p->stat));
+    p->free_slots = pa_flist_new(p->n_blocks*2);
 
     return p;
 }
 
 void pa_mempool_free(pa_mempool *p) {
-    assert(p);
+    pa_assert(p);
+
+    pa_mutex_lock(p->mutex);
 
     while (p->imports)
         pa_memimport_free(p->imports);
@@ -486,30 +698,65 @@ void pa_mempool_free(pa_mempool *p) {
     while (p->exports)
         pa_memexport_free(p->exports);
 
-    if (pa_atomic_load(&p->stat.n_allocated) > 0)
-        pa_log_warn("WARNING! Memory pool destroyed but not all memory blocks freed!");
+    pa_mutex_unlock(p->mutex);
+
+    pa_flist_free(p->free_slots, NULL);
+
+    if (pa_atomic_load(&p->stat.n_allocated) > 0) {
+/*         raise(SIGTRAP);  */
+        pa_log_warn("Memory pool destroyed but not all memory blocks freed! %u remain.", pa_atomic_load(&p->stat.n_allocated));
+    }
 
     pa_shm_free(&p->memory);
+
+    pa_mutex_free(p->mutex);
+    pa_semaphore_free(p->semaphore);
+
     pa_xfree(p);
 }
 
+/* No lock necessary */
 const pa_mempool_stat* pa_mempool_get_stat(pa_mempool *p) {
-    assert(p);
+    pa_assert(p);
 
     return &p->stat;
 }
 
-void pa_mempool_vacuum(pa_mempool *p) {
-    struct mempool_slot *slot;
+/* No lock necessary */
+size_t pa_mempool_block_size_max(pa_mempool *p) {
+    pa_assert(p);
 
-    assert(p);
-
-    for (slot = p->free_slots; slot; slot = slot->next)
-        pa_shm_punch(&p->memory, (uint8_t*) slot + sizeof(struct mempool_slot) - (uint8_t*) p->memory.ptr, p->block_size - sizeof(struct mempool_slot));
+    return p->block_size - PA_ALIGN(sizeof(struct mempool_slot)) - PA_ALIGN(sizeof(pa_memblock));
 }
 
+/* No lock necessary */
+void pa_mempool_vacuum(pa_mempool *p) {
+    struct mempool_slot *slot;
+    pa_flist *list;
+
+    pa_assert(p);
+
+    list = pa_flist_new(p->n_blocks*2);
+
+    while ((slot = pa_flist_pop(p->free_slots)))
+        while (pa_flist_push(list, slot) < 0)
+            ;
+
+    while ((slot = pa_flist_pop(list))) {
+        pa_shm_punch(&p->memory,
+                     (uint8_t*) slot - (uint8_t*) p->memory.ptr + PA_ALIGN(sizeof(struct mempool_slot)),
+                     p->block_size - PA_ALIGN(sizeof(struct mempool_slot)));
+
+        while (pa_flist_push(p->free_slots, slot))
+            ;
+    }
+
+    pa_flist_free(list, NULL);
+}
+
+/* No lock necessary */
 int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id) {
-    assert(p);
+    pa_assert(p);
 
     if (!p->memory.shared)
         return -1;
@@ -519,8 +766,9 @@ int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id) {
     return 0;
 }
 
+/* No lock necessary */
 int pa_mempool_is_shared(pa_mempool *p) {
-    assert(p);
+    pa_assert(p);
 
     return !!p->memory.shared;
 }
@@ -529,22 +777,27 @@ int pa_mempool_is_shared(pa_mempool *p) {
 pa_memimport* pa_memimport_new(pa_mempool *p, pa_memimport_release_cb_t cb, void *userdata) {
     pa_memimport *i;
 
-    assert(p);
-    assert(cb);
+    pa_assert(p);
+    pa_assert(cb);
 
     i = pa_xnew(pa_memimport, 1);
+    i->mutex = pa_mutex_new(TRUE, TRUE);
     i->pool = p;
     i->segments = pa_hashmap_new(NULL, NULL);
     i->blocks = pa_hashmap_new(NULL, NULL);
     i->release_cb = cb;
     i->userdata = userdata;
 
+    pa_mutex_lock(p->mutex);
     PA_LLIST_PREPEND(pa_memimport, p->imports, i);
+    pa_mutex_unlock(p->mutex);
+
     return i;
 }
 
 static void memexport_revoke_blocks(pa_memexport *e, pa_memimport *i);
 
+/* Should be called locked */
 static pa_memimport_segment* segment_attach(pa_memimport *i, uint32_t shm_id) {
     pa_memimport_segment* seg;
 
@@ -565,59 +818,79 @@ static pa_memimport_segment* segment_attach(pa_memimport *i, uint32_t shm_id) {
     return seg;
 }
 
+/* Should be called locked */
 static void segment_detach(pa_memimport_segment *seg) {
-    assert(seg);
+    pa_assert(seg);
 
     pa_hashmap_remove(seg->import->segments, PA_UINT32_TO_PTR(seg->memory.id));
     pa_shm_free(&seg->memory);
     pa_xfree(seg);
 }
 
+/* Self-locked. Not multiple-caller safe */
 void pa_memimport_free(pa_memimport *i) {
     pa_memexport *e;
     pa_memblock *b;
 
-    assert(i);
+    pa_assert(i);
+
+    pa_mutex_lock(i->mutex);
+
+    while ((b = pa_hashmap_get_first(i->blocks)))
+        memblock_replace_import(b);
+
+    pa_assert(pa_hashmap_size(i->segments) == 0);
+
+    pa_mutex_unlock(i->mutex);
+
+    pa_mutex_lock(i->pool->mutex);
 
     /* If we've exported this block further we need to revoke that export */
     for (e = i->pool->exports; e; e = e->next)
         memexport_revoke_blocks(e, i);
 
-    while ((b = pa_hashmap_get_first(i->blocks)))
-        memblock_replace_import(b);
+    PA_LLIST_REMOVE(pa_memimport, i->pool->imports, i);
 
-    assert(pa_hashmap_size(i->segments) == 0);
+    pa_mutex_unlock(i->pool->mutex);
 
     pa_hashmap_free(i->blocks, NULL, NULL);
     pa_hashmap_free(i->segments, NULL, NULL);
 
-    PA_LLIST_REMOVE(pa_memimport, i->pool->imports, i);
+    pa_mutex_free(i->mutex);
+
     pa_xfree(i);
 }
 
+/* Self-locked */
 pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_id, size_t offset, size_t size) {
-    pa_memblock *b;
+    pa_memblock *b = NULL;
     pa_memimport_segment *seg;
 
-    assert(i);
+    pa_assert(i);
+
+    pa_mutex_lock(i->mutex);
 
     if (pa_hashmap_size(i->blocks) >= PA_MEMIMPORT_SLOTS_MAX)
-        return NULL;
+        goto finish;
 
     if (!(seg = pa_hashmap_get(i->segments, PA_UINT32_TO_PTR(shm_id))))
         if (!(seg = segment_attach(i, shm_id)))
-            return NULL;
+            goto finish;
 
     if (offset+size > seg->memory.size)
-        return NULL;
+        goto finish;
 
-    b = pa_xnew(pa_memblock, 1);
+    if (!(b = pa_flist_pop(PA_STATIC_FLIST_GET(unused_memblocks))))
+        b = pa_xnew(pa_memblock, 1);
+
+    PA_REFCNT_INIT(b);
+    b->pool = i->pool;
     b->type = PA_MEMBLOCK_IMPORTED;
     b->read_only = 1;
-    PA_REFCNT_INIT(b);
+    pa_atomic_ptr_store(&b->data, (uint8_t*) seg->memory.ptr + offset);
     b->length = size;
-    b->data = (uint8_t*) seg->memory.ptr + offset;
-    b->pool = i->pool;
+    pa_atomic_store(&b->n_acquired, 0);
+    pa_atomic_store(&b->please_signal, 0);
     b->per_type.imported.id = block_id;
     b->per_type.imported.segment = seg;
 
@@ -625,6 +898,10 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
 
     seg->n_blocks++;
 
+finish:
+    pa_mutex_unlock(i->mutex);
+
+    if (b)
     stat_add(b);
 
     return b;
@@ -632,26 +909,36 @@ pa_memblock* pa_memimport_get(pa_memimport *i, uint32_t block_id, uint32_t shm_i
 
 int pa_memimport_process_revoke(pa_memimport *i, uint32_t id) {
     pa_memblock *b;
-    assert(i);
+    int ret = 0;
+    pa_assert(i);
 
-    if (!(b = pa_hashmap_get(i->blocks, PA_UINT32_TO_PTR(id))))
-        return -1;
+    pa_mutex_lock(i->mutex);
+
+    if (!(b = pa_hashmap_get(i->blocks, PA_UINT32_TO_PTR(id)))) {
+        ret = -1;
+        goto finish;
+    }
 
     memblock_replace_import(b);
-    return 0;
+
+finish:
+    pa_mutex_unlock(i->mutex);
+
+    return ret;
 }
 
 /* For sending blocks to other nodes */
 pa_memexport* pa_memexport_new(pa_mempool *p, pa_memexport_revoke_cb_t cb, void *userdata) {
     pa_memexport *e;
 
-    assert(p);
-    assert(cb);
+    pa_assert(p);
+    pa_assert(cb);
 
     if (!p->memory.shared)
         return NULL;
 
     e = pa_xnew(pa_memexport, 1);
+    e->mutex = pa_mutex_new(TRUE, TRUE);
     e->pool = p;
     PA_LLIST_HEAD_INIT(struct memexport_slot, e->free_slots);
     PA_LLIST_HEAD_INIT(struct memexport_slot, e->used_slots);
@@ -659,50 +946,75 @@ pa_memexport* pa_memexport_new(pa_mempool *p, pa_memexport_revoke_cb_t cb, void 
     e->revoke_cb = cb;
     e->userdata = userdata;
 
+    pa_mutex_lock(p->mutex);
     PA_LLIST_PREPEND(pa_memexport, p->exports, e);
+    pa_mutex_unlock(p->mutex);
     return e;
 }
 
 void pa_memexport_free(pa_memexport *e) {
-    assert(e);
+    pa_assert(e);
 
+    pa_mutex_lock(e->mutex);
     while (e->used_slots)
         pa_memexport_process_release(e, e->used_slots - e->slots);
+    pa_mutex_unlock(e->mutex);
 
+    pa_mutex_lock(e->pool->mutex);
     PA_LLIST_REMOVE(pa_memexport, e->pool->exports, e);
+    pa_mutex_unlock(e->pool->mutex);
+
+    pa_mutex_free(e->mutex);
     pa_xfree(e);
 }
 
+/* Self-locked */
 int pa_memexport_process_release(pa_memexport *e, uint32_t id) {
-    assert(e);
+    pa_memblock *b;
+
+    pa_assert(e);
+
+    pa_mutex_lock(e->mutex);
 
     if (id >= e->n_init)
-        return -1;
+        goto fail;
 
     if (!e->slots[id].block)
-        return -1;
+        goto fail;
 
-/*     pa_log("Processing release for %u", id); */
-
-    assert(pa_atomic_load(&e->pool->stat.n_exported) > 0);
-    assert(pa_atomic_load(&e->pool->stat.exported_size) >= (int) e->slots[id].block->length);
-
-    pa_atomic_dec(&e->pool->stat.n_exported);
-    pa_atomic_sub(&e->pool->stat.exported_size, e->slots[id].block->length);
-
-    pa_memblock_unref(e->slots[id].block);
+    b = e->slots[id].block;
     e->slots[id].block = NULL;
 
     PA_LLIST_REMOVE(struct memexport_slot, e->used_slots, &e->slots[id]);
     PA_LLIST_PREPEND(struct memexport_slot, e->free_slots, &e->slots[id]);
 
+    pa_mutex_unlock(e->mutex);
+
+/*     pa_log("Processing release for %u", id); */
+
+    pa_assert(pa_atomic_load(&e->pool->stat.n_exported) > 0);
+    pa_assert(pa_atomic_load(&e->pool->stat.exported_size) >= (int) b->length);
+
+    pa_atomic_dec(&e->pool->stat.n_exported);
+    pa_atomic_sub(&e->pool->stat.exported_size, b->length);
+
+    pa_memblock_unref(b);
+
     return 0;
+
+fail:
+    pa_mutex_unlock(e->mutex);
+
+    return -1;
 }
 
+/* Self-locked */
 static void memexport_revoke_blocks(pa_memexport *e, pa_memimport *i) {
     struct memexport_slot *slot, *next;
-    assert(e);
-    assert(i);
+    pa_assert(e);
+    pa_assert(i);
+
+    pa_mutex_lock(e->mutex);
 
     for (slot = e->used_slots; slot; slot = next) {
         uint32_t idx;
@@ -716,49 +1028,57 @@ static void memexport_revoke_blocks(pa_memexport *e, pa_memimport *i) {
         e->revoke_cb(e, idx, e->userdata);
         pa_memexport_process_release(e, idx);
     }
+
+    pa_mutex_unlock(e->mutex);
 }
 
+/* No lock necessary */
 static pa_memblock *memblock_shared_copy(pa_mempool *p, pa_memblock *b) {
     pa_memblock *n;
 
-    assert(p);
-    assert(b);
+    pa_assert(p);
+    pa_assert(b);
 
     if (b->type == PA_MEMBLOCK_IMPORTED ||
         b->type == PA_MEMBLOCK_POOL ||
         b->type == PA_MEMBLOCK_POOL_EXTERNAL) {
-        assert(b->pool == p);
+        pa_assert(b->pool == p);
         return pa_memblock_ref(b);
     }
 
     if (!(n = pa_memblock_new_pool(p, b->length)))
         return NULL;
 
-    memcpy(n->data, b->data, b->length);
+    memcpy(pa_atomic_ptr_load(&n->data), pa_atomic_ptr_load(&b->data), b->length);
     return n;
 }
 
+/* Self-locked */
 int pa_memexport_put(pa_memexport *e, pa_memblock *b, uint32_t *block_id, uint32_t *shm_id, size_t *offset, size_t * size) {
     pa_shm *memory;
     struct memexport_slot *slot;
+    void *data;
 
-    assert(e);
-    assert(b);
-    assert(block_id);
-    assert(shm_id);
-    assert(offset);
-    assert(size);
-    assert(b->pool == e->pool);
+    pa_assert(e);
+    pa_assert(b);
+    pa_assert(block_id);
+    pa_assert(shm_id);
+    pa_assert(offset);
+    pa_assert(size);
+    pa_assert(b->pool == e->pool);
 
     if (!(b = memblock_shared_copy(e->pool, b)))
         return -1;
 
+    pa_mutex_lock(e->mutex);
+
     if (e->free_slots) {
         slot = e->free_slots;
         PA_LLIST_REMOVE(struct memexport_slot, e->free_slots, slot);
-    } else if (e->n_init < PA_MEMEXPORT_SLOTS_MAX) {
+    } else if (e->n_init < PA_MEMEXPORT_SLOTS_MAX)
         slot = &e->slots[e->n_init++];
-    } else {
+    else {
+        pa_mutex_unlock(e->mutex);
         pa_memblock_unref(b);
         return -1;
     }
@@ -767,23 +1087,28 @@ int pa_memexport_put(pa_memexport *e, pa_memblock *b, uint32_t *block_id, uint32
     slot->block = b;
     *block_id = slot - e->slots;
 
+    pa_mutex_unlock(e->mutex);
 /*     pa_log("Got block id %u", *block_id); */
 
+    data = pa_memblock_acquire(b);
+
     if (b->type == PA_MEMBLOCK_IMPORTED) {
-        assert(b->per_type.imported.segment);
+        pa_assert(b->per_type.imported.segment);
         memory = &b->per_type.imported.segment->memory;
     } else {
-        assert(b->type == PA_MEMBLOCK_POOL || b->type == PA_MEMBLOCK_POOL_EXTERNAL);
-        assert(b->pool);
+        pa_assert(b->type == PA_MEMBLOCK_POOL || b->type == PA_MEMBLOCK_POOL_EXTERNAL);
+        pa_assert(b->pool);
         memory = &b->pool->memory;
     }
 
-    assert(b->data >= memory->ptr);
-    assert((uint8_t*) b->data + b->length <= (uint8_t*) memory->ptr + memory->size);
+    pa_assert(data >= memory->ptr);
+    pa_assert((uint8_t*) data + b->length <= (uint8_t*) memory->ptr + memory->size);
 
     *shm_id = memory->id;
-    *offset = (uint8_t*) b->data - (uint8_t*) memory->ptr;
+    *offset = (uint8_t*) data - (uint8_t*) memory->ptr;
     *size = b->length;
+
+    pa_memblock_release(b);
 
     pa_atomic_inc(&e->pool->stat.n_exported);
     pa_atomic_add(&e->pool->stat.exported_size, b->length);

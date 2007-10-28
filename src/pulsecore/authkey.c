@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
@@ -43,21 +42,25 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/random.h>
+#include <pulsecore/macro.h>
 
 #include "authkey.h"
 
 /* Generate a new authorization key, store it in file fd and return it in *data  */
 static int generate(int fd, void *ret_data, size_t length) {
     ssize_t r;
-    assert(fd >= 0 && ret_data && length);
+
+    pa_assert(fd >= 0);
+    pa_assert(ret_data);
+    pa_assert(length > 0);
 
     pa_random(ret_data, length);
 
     lseek(fd, 0, SEEK_SET);
-    ftruncate(fd, 0);
+    (void) ftruncate(fd, 0);
 
     if ((r = pa_loop_write(fd, ret_data, length, NULL)) < 0 || (size_t) r != length) {
-        pa_log("failed to write cookie file: %s", pa_cstrerror(errno));
+        pa_log("Failed to write cookie file: %s", pa_cstrerror(errno));
         return -1;
     }
 
@@ -68,6 +71,10 @@ static int generate(int fd, void *ret_data, size_t length) {
 #define O_BINARY 0
 #endif
 
+#ifndef O_NOCTTY
+#define O_NOCTTY 0
+#endif
+
 /* Load an euthorization cookie from file fn and store it in data. If
  * the cookie file doesn't exist, create it */
 static int load(const char *fn, void *data, size_t length) {
@@ -75,11 +82,15 @@ static int load(const char *fn, void *data, size_t length) {
     int writable = 1;
     int unlock = 0, ret = -1;
     ssize_t r;
-    assert(fn && data && length);
 
-    if ((fd = open(fn, O_RDWR|O_CREAT|O_BINARY, S_IRUSR|S_IWUSR)) < 0) {
-        if (errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY)) < 0) {
-            pa_log("failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
+    pa_assert(fn);
+    pa_assert(data);
+    pa_assert(length > 0);
+
+    if ((fd = open(fn, O_RDWR|O_CREAT|O_BINARY|O_NOCTTY, S_IRUSR|S_IWUSR)) < 0) {
+
+        if (errno != EACCES || (fd = open(fn, O_RDONLY|O_BINARY|O_NOCTTY)) < 0) {
+            pa_log("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
             goto finish;
         } else
             writable = 0;
@@ -88,15 +99,15 @@ static int load(const char *fn, void *data, size_t length) {
     unlock = pa_lock_fd(fd, 1) >= 0;
 
     if ((r = pa_loop_read(fd, data, length, NULL)) < 0) {
-        pa_log("failed to read cookie file '%s': %s", fn, pa_cstrerror(errno));
+        pa_log("Failed to read cookie file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 
     if ((size_t) r != length) {
-        pa_log_debug("got %d bytes from cookie file '%s', expected %d", (int)r, fn, (int)length);
+        pa_log_debug("Got %d bytes from cookie file '%s', expected %d", (int) r, fn, (int) length);
 
         if (!writable) {
-            pa_log("unable to write cookie to read only file");
+            pa_log("Unable to write cookie to read only file");
             goto finish;
         }
 
@@ -113,7 +124,10 @@ finish:
         if (unlock)
             pa_lock_fd(fd, 0);
 
-        close(fd);
+        if (pa_close(fd) < 0) {
+            pa_log_warn("Failed to close cookie file: %s", pa_cstrerror(errno));
+            ret = -1;
+        }
     }
 
     return ret;
@@ -123,13 +137,12 @@ finish:
 int pa_authkey_load(const char *path, void *data, size_t length) {
     int ret;
 
-    assert(path && data && length);
+    pa_assert(path);
+    pa_assert(data);
+    pa_assert(length > 0);
 
-    ret = load(path, data, length);
-
-    if (ret < 0)
-        pa_log("Failed to load authorization key '%s': %s", path,
-               (ret == -1) ? pa_cstrerror(errno) : "file corrupt");
+    if ((ret = load(path, data, length)) < 0)
+        pa_log("Failed to load authorization key '%s': %s", path, (ret < 0) ? pa_cstrerror(errno) : "File corrupt");
 
     return ret;
 }
@@ -137,7 +150,10 @@ int pa_authkey_load(const char *path, void *data, size_t length) {
 /* If the specified file path starts with / return it, otherwise
  * return path prepended with home directory */
 static const char *normalize_path(const char *fn, char *s, size_t l) {
-    assert(fn && s && l > 0);
+
+    pa_assert(fn);
+    pa_assert(s);
+    pa_assert(l > 0);
 
 #ifndef OS_IS_WIN32
     if (fn[0] != '/') {
@@ -145,13 +161,14 @@ static const char *normalize_path(const char *fn, char *s, size_t l) {
     if (strlen(fn) < 3 || !isalpha(fn[0]) || fn[1] != ':' || fn[2] != '\\') {
 #endif
         char homedir[PATH_MAX];
+
         if (!pa_get_home_dir(homedir, sizeof(homedir)))
             return NULL;
 
 #ifndef OS_IS_WIN32
-        snprintf(s, l, "%s/%s", homedir, fn);
+        pa_snprintf(s, l, "%s/%s", homedir, fn);
 #else
-        snprintf(s, l, "%s\\%s", homedir, fn);
+        pa_snprintf(s, l, "%s\\%s", homedir, fn);
 #endif
         return s;
     }
@@ -164,7 +181,10 @@ static const char *normalize_path(const char *fn, char *s, size_t l) {
 int pa_authkey_load_auto(const char *fn, void *data, size_t length) {
     char path[PATH_MAX];
     const char *p;
-    assert(fn && data && length);
+
+    pa_assert(fn);
+    pa_assert(data);
+    pa_assert(length > 0);
 
     if (!(p = normalize_path(fn, path, sizeof(path))))
         return -2;
@@ -179,20 +199,23 @@ int pa_authkey_save(const char *fn, const void *data, size_t length) {
     ssize_t r;
     char path[PATH_MAX];
     const char *p;
-    assert(fn && data && length);
+
+    pa_assert(fn);
+    pa_assert(data);
+    pa_assert(length > 0);
 
     if (!(p = normalize_path(fn, path, sizeof(path))))
         return -2;
 
-    if ((fd = open(p, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR)) < 0) {
-        pa_log("failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
+    if ((fd = open(p, O_RDWR|O_CREAT|O_NOCTTY, S_IRUSR|S_IWUSR)) < 0) {
+        pa_log("Failed to open cookie file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 
     unlock = pa_lock_fd(fd, 1) >= 0;
 
     if ((r = pa_loop_write(fd, data, length, NULL)) < 0 || (size_t) r != length) {
-        pa_log("failed to read cookie file '%s': %s", fn, pa_cstrerror(errno));
+        pa_log("Failed to read cookie file '%s': %s", fn, pa_cstrerror(errno));
         goto finish;
     }
 
@@ -205,7 +228,10 @@ finish:
         if (unlock)
             pa_lock_fd(fd, 0);
 
-        close(fd);
+        if (pa_close(fd) < 0) {
+            pa_log_warn("Failed to close cookie file: %s", pa_cstrerror(errno));
+            ret = -1;
+        }
     }
 
     return ret;

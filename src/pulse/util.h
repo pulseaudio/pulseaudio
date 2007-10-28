@@ -52,7 +52,7 @@ char *pa_get_binary_name(char *s, size_t l);
 
 /** Return a pointer to the filename inside a path (which is the last
  * component). */
-const char *pa_path_get_filename(const char *p);
+char *pa_path_get_filename(const char *p);
 
 /** Wait t milliseconds */
 int pa_msleep(unsigned long t);

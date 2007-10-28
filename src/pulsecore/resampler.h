@@ -24,8 +24,6 @@
   USA.
 ***/
 
-#include <samplerate.h>
-
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulsecore/memblock.h>
@@ -35,12 +33,19 @@ typedef struct pa_resampler pa_resampler;
 
 typedef enum pa_resample_method {
     PA_RESAMPLER_INVALID                 = -1,
-    PA_RESAMPLER_SRC_SINC_BEST_QUALITY   = SRC_SINC_BEST_QUALITY,
-    PA_RESAMPLER_SRC_SINC_MEDIUM_QUALITY = SRC_SINC_MEDIUM_QUALITY,
-    PA_RESAMPLER_SRC_SINC_FASTEST        = SRC_SINC_FASTEST,
-    PA_RESAMPLER_SRC_ZERO_ORDER_HOLD     = SRC_ZERO_ORDER_HOLD,
-    PA_RESAMPLER_SRC_LINEAR              = SRC_LINEAR,
+    PA_RESAMPLER_SRC_SINC_BEST_QUALITY   = 0, /* = SRC_SINC_BEST_QUALITY */
+    PA_RESAMPLER_SRC_SINC_MEDIUM_QUALITY = 1, /* = SRC_SINC_MEDIUM_QUALITY */
+    PA_RESAMPLER_SRC_SINC_FASTEST        = 2, /* = SRC_SINC_FASTEST */
+    PA_RESAMPLER_SRC_ZERO_ORDER_HOLD     = 3, /* = SRC_ZERO_ORDER_HOLD */
+    PA_RESAMPLER_SRC_LINEAR              = 4, /* = SRC_LINEAR */
     PA_RESAMPLER_TRIVIAL,
+    PA_RESAMPLER_SPEEX_FLOAT_BASE,
+    PA_RESAMPLER_SPEEX_FLOAT_MAX = PA_RESAMPLER_SPEEX_FLOAT_BASE + 10,
+    PA_RESAMPLER_SPEEX_FIXED_BASE,
+    PA_RESAMPLER_SPEEX_FIXED_MAX = PA_RESAMPLER_SPEEX_FIXED_BASE + 10,
+    PA_RESAMPLER_FFMPEG,
+    PA_RESAMPLER_AUTO, /* automatic select based on sample format */
+    PA_RESAMPLER_COPY,
     PA_RESAMPLER_MAX
 } pa_resample_method_t;
 
@@ -50,18 +55,25 @@ pa_resampler* pa_resampler_new(
         const pa_channel_map *am,
         const pa_sample_spec *b,
         const pa_channel_map *bm,
-        pa_resample_method_t resample_method);
+        pa_resample_method_t resample_method,
+        int variable_rate);
 
 void pa_resampler_free(pa_resampler *r);
 
 /* Returns the size of an input memory block which is required to return the specified amount of output data */
 size_t pa_resampler_request(pa_resampler *r, size_t out_length);
 
+/* Returns the maximum size of input blocks we can process without needing bounce buffers larger than the mempool tile size. */
+size_t pa_resampler_max_block_size(pa_resampler *r);
+
 /* Pass the specified memory chunk to the resampler and return the newly resampled data */
 void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out);
 
 /* Change the input rate of the resampler object */
 void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate);
+
+/* Change the output rate of the resampler object */
+void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate);
 
 /* Return the resampling method of the resampler object */
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r);
@@ -71,5 +83,8 @@ pa_resample_method_t pa_parse_resample_method(const char *string);
 
 /* return a human readable string for the specified resampling method. Inverse of pa_parse_resample_method() */
 const char *pa_resample_method_to_string(pa_resample_method_t m);
+
+/* Return 1 when the specified resampling method is supported */
+int pa_resample_method_supported(pa_resample_method_t m);
 
 #endif

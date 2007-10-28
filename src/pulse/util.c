@@ -26,7 +26,6 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
@@ -56,19 +55,13 @@
 #include <sys/prctl.h>
 #endif
 
-#include "../pulsecore/winsock.h"
-
+#include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/macro.h>
 
 #include "util.h"
-
-#ifndef OS_IS_WIN32
-#define PATH_SEP '/'
-#else
-#define PATH_SEP '\\'
-#endif
 
 char *pa_get_user_name(char *s, size_t l) {
     char *p;
@@ -78,7 +71,8 @@ char *pa_get_user_name(char *s, size_t l) {
     struct passwd pw, *r;
 #endif
 
-    assert(s && l > 0);
+    pa_assert(s);
+    pa_assert(l > 0);
 
     if (!(p = getenv("USER")) && !(p = getenv("LOGNAME")) && !(p = getenv("USERNAME"))) {
 #ifdef HAVE_PWD_H
@@ -90,7 +84,7 @@ char *pa_get_user_name(char *s, size_t l) {
             * that do not support getpwuid_r. */
         if ((r = getpwuid(getuid())) == NULL) {
 #endif
-            snprintf(s, l, "%lu", (unsigned long) getuid());
+            pa_snprintf(s, l, "%lu", (unsigned long) getuid());
             return s;
         }
 
@@ -113,11 +107,15 @@ char *pa_get_user_name(char *s, size_t l) {
 }
 
 char *pa_get_host_name(char *s, size_t l) {
-    assert(s && l > 0);
+
+    pa_assert(s);
+    pa_assert(l > 0);
+
     if (gethostname(s, l) < 0) {
         pa_log("gethostname(): %s", pa_cstrerror(errno));
         return NULL;
     }
+
     s[l-1] = 0;
     return s;
 }
@@ -130,7 +128,8 @@ char *pa_get_home_dir(char *s, size_t l) {
     struct passwd pw, *r;
 #endif
 
-    assert(s && l);
+    pa_assert(s);
+    pa_assert(l > 0);
 
     if ((e = getenv("HOME")))
         return pa_strlcpy(s, e, l);
@@ -159,8 +158,8 @@ char *pa_get_home_dir(char *s, size_t l) {
 
 char *pa_get_binary_name(char *s, size_t l) {
 
-    assert(s);
-    assert(l);
+    pa_assert(s);
+    pa_assert(l > 0);
 
 #if defined(OS_IS_WIN32)
     {
@@ -171,7 +170,7 @@ char *pa_get_binary_name(char *s, size_t l) {
     }
 #endif
 
-#ifdef HAVE_READLINK
+#ifdef __linux__
     {
         int i;
         char path[PATH_MAX];
@@ -206,13 +205,15 @@ char *pa_get_binary_name(char *s, size_t l) {
     return NULL;
 }
 
-const char *pa_path_get_filename(const char *p) {
+char *pa_path_get_filename(const char *p) {
     char *fn;
 
-    if ((fn = strrchr(p, PATH_SEP)))
+    pa_assert(p);
+
+    if ((fn = strrchr(p, PA_PATH_SEP_CHAR)))
         return fn+1;
 
-    return (const char*) p;
+    return (char*) p;
 }
 
 char *pa_get_fqdn(char *s, size_t l) {
@@ -220,6 +221,9 @@ char *pa_get_fqdn(char *s, size_t l) {
 #ifdef HAVE_GETADDRINFO
     struct addrinfo *a, hints;
 #endif
+
+    pa_assert(s);
+    pa_assert(l > 0);
 
     if (!pa_get_host_name(hn, sizeof(hn)))
         return NULL;

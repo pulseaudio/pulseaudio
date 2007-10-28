@@ -26,7 +26,7 @@ AC_PREREQ(2.57)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
-m4_define(PA_MICRO, [6])
+m4_define(PA_MICRO, [7])
 
 AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzcbylcnhqvb (at) 0pointer (dot) de])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
@@ -34,13 +34,13 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall])
 
 AC_SUBST(PA_MAJORMINOR, "PA_MAJOR.PA_MINOR")
-AC_SUBST(PACKAGE_URL, [http://0pointer.de/lennart/projects/pulseaudio/])
+AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 10)
-AC_SUBST(PA_PROTOCOL_VERSION, 10)
+AC_SUBST(PA_PROTOCOL_VERSION, 11)
 
-AC_SUBST(LIBPULSE_VERSION_INFO, [2:0:2])
-AC_SUBST(LIBPULSECORE_VERSION_INFO, [3:0:0])
+AC_SUBST(LIBPULSE_VERSION_INFO, [3:0:3])
+AC_SUBST(LIBPULSECORE_VERSION_INFO, [4:0:0])
 AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [0:0:0])
 AC_SUBST(LIBPULSE_BROWSE_VERSION_INFO, [1:0:1])
 AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:2:0])
@@ -81,8 +81,8 @@ fi
 # GCC flags
 
 test_gcc_flag() {
-    AC_LANG_CONFTEST([int main() {}])
-    $CC -c conftest.c $CFLAGS $@ > /dev/null 2> /dev/null
+    AC_LANG_CONFTEST([int main(int argc, char*argv[]) {}])
+    $CC -c conftest.c $CFLAGS -o conftest.o > /dev/null 2> /dev/null
     ret=$?
     rm -f conftest.o
     return $ret
@@ -93,28 +93,64 @@ if test "x$GCC" = "xyes" ; then
 
     # We use gnu99 instead of c99 because many have interpreted the standard
     # in a way that int64_t isn't defined on non-64 bit platforms.
-    DESIRED_FLAGS="-std=gnu99 -Wall -W -Wextra -pedantic -pipe -Wformat -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wcast-align -Wwrite-strings -Winline -Wno-unused-parameter"
+    DESIRED_FLAGS="-std=gnu99 -Wall -W -Wextra -pedantic -pipe -Wformat -Wold-style-definition -Wdeclaration-after-statement -Wfloat-equal -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls -Wmissing-noreturn -Wshadow -Wendif-labels -Wpointer-arith -Wcast-align -Wwrite-strings -Winline -Wno-unused-parameter -ffast-math"
 
     for flag in $DESIRED_FLAGS ; do
         AC_MSG_CHECKING([whether $CC accepts $flag])
-        if test_gcc_flag $flag ; then 
+        if test_gcc_flag $flag ; then
            CFLAGS="$CFLAGS $flag"
            AC_MSG_RESULT([yes])
         else
            AC_MSG_RESULT([no])
         fi
-    done 
+    done
+fi
+
+AC_MSG_CHECKING([whether $CC knows __sync_bool_compare_and_swap()])
+AC_LANG_CONFTEST([int main() { int a = 4; __sync_bool_compare_and_swap(&a, 4, 5); }])
+$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
+ret=$?
+rm -f conftest.o conftest
+if test $ret -eq 0 ; then
+    AC_DEFINE([HAVE_ATOMIC_BUILTINS], 1, [Have __sync_bool_compare_and_swap() and friends.])
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+fi
+
+AC_MSG_CHECKING([whether $CC knows __thread])
+AC_LANG_CONFTEST([static __thread int a = 6; int main() { a = 5; }])
+$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
+ret=$?
+rm -f conftest.o conftest
+if test $ret -eq 0 ; then
+    AC_DEFINE([HAVE_TLS_BUILTIN], 1, [Have __thread().])
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+fi
+
+AC_MSG_CHECKING([whether $CC knows _Bool])
+AC_LANG_CONFTEST([int main() { _Bool b; }])
+$CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
+ret=$?
+rm -f conftest.o conftest
+if test $ret -eq 0 ; then
+    AC_DEFINE([HAVE_STD_BOOL], 1, [Have _Bool.])
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
 fi
 
 #### libtool stuff ####
 
 AC_LTDL_ENABLE_INSTALL
 AC_LIBLTDL_INSTALLABLE
-AC_SUBST(LTDLINCL)
-AC_SUBST(LIBLTDL)
 AC_LIBTOOL_DLOPEN
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
+AC_SUBST(LTDLINCL)
+AC_SUBST(LIBLTDL)
 AC_CONFIG_SUBDIRS(libltdl)
 
 if test "x$enable_ltdl_install" = "xno" && test "x$ac_cv_lib_ltdl_lt_dlinit" = "xno" ; then
@@ -149,9 +185,9 @@ AC_HEADER_STDC
 
 # POSIX
 AC_CHECK_HEADERS([arpa/inet.h glob.h grp.h netdb.h netinet/in.h \
-    netinet/in_systm.h netinet/tcp.h pwd.h sched.h \
+    netinet/in_systm.h netinet/tcp.h poll.h pwd.h sched.h \
     sys/mman.h sys/resource.h sys/select.h sys/socket.h sys/wait.h \
-    syslog.h])
+    syslog.h sys/dl.h dlfcn.h linux/sockios.h])
 AC_CHECK_HEADERS([netinet/ip.h], [], [],
 		 [#include <sys/types.h>
 		  #if HAVE_NETINET_IN_H
@@ -166,9 +202,6 @@ AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
 
 AM_CONDITIONAL(HAVE_REGEX, test "x$HAVE_REGEX" = "x1")
 AM_CONDITIONAL(HAVE_AF_UNIX, test "x$HAVE_AF_UNIX" = "x1")
-
-# XPG4-UNIX
-AC_CHECK_HEADERS([sys/poll.h])
 
 # Linux
 AC_CHECK_HEADERS([linux/input.h], [HAVE_EVDEV=1], [HAVE_EVDEV=0])
@@ -185,6 +218,8 @@ AC_CHECK_HEADERS([windows.h winsock2.h ws2tcpip.h])
 
 # Other
 AC_CHECK_HEADERS([sys/ioctl.h])
+AC_CHECK_HEADERS([byteswap.h])
+AC_CHECK_HEADERS([sys/syscall.h])
 
 #### Typdefs, structures, etc. ####
 
@@ -235,13 +270,17 @@ AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 
 #### Check for functions ####
 
+# ISO
+AC_CHECK_FUNCS([lrintf strtof])
+
 # POSIX
 AC_FUNC_FORK
 AC_FUNC_GETGROUPS
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([chmod chown getaddrinfo getgrgid_r getpwuid_r gettimeofday \
-    getuid inet_ntop inet_pton nanosleep pipe posix_memalign setpgid setsid \
-    shm_open sigaction sleep sysconf])
+AC_CHECK_FUNCS([chmod chown clock_gettime getaddrinfo getgrgid_r \
+    getpwuid_r gettimeofday getuid inet_ntop inet_pton mlock nanosleep \
+    pipe posix_fadvise posix_madvise posix_memalign setpgid setsid shm_open \
+    sigaction sleep sysconf])
 AC_CHECK_FUNCS([mkfifo], [HAVE_MKFIFO=1], [HAVE_MKFIFO=0])
 
 AM_CONDITIONAL(HAVE_MKFIFO, test "x$HAVE_MKFIFO" = "x1")
@@ -260,7 +299,22 @@ AC_CHECK_FUNCS([lstat])
 
 # Non-standard
 
-AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid])
+AC_CHECK_FUNCS([setresuid setresgid setreuid setregid seteuid setegid ppoll strsignal sig2str strtof_l])
+
+AC_MSG_CHECKING([for PTHREAD_PRIO_INHERIT])
+AC_LANG_CONFTEST([AC_LANG_SOURCE([[
+#include <pthread.h>
+int main() { int i = PTHREAD_PRIO_INHERIT; }]])])
+$PTHREAD_CC conftest.c $PTHREAD_CFLAGS $CFLAGS $PTHREAD_LIBS -o conftest > /dev/null 2> /dev/null
+ret=$?
+rm -f conftest.o conftest
+
+if test $ret -eq 0 ; then
+    AC_DEFINE([HAVE_PTHREAD_PRIO_INHERIT], 1, [Have PTHREAD_PRIO_INHERIT.])
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+fi
 
 #### Large File-Support (LFS) ####
 
@@ -324,12 +378,6 @@ fi
 
 PKG_PROG_PKG_CONFIG
 
-#### Sample rate conversion ####
-
-PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ])
-AC_SUBST(LIBSAMPLERATE_CFLAGS)
-AC_SUBST(LIBSAMPLERATE_LIBS)
-
 #### Sound file ####
 
 PKG_CHECK_MODULES(LIBSNDFILE, [ sndfile >= 1.0.10 ])
@@ -347,10 +395,45 @@ if test "x$os_is_win32" != "x1" ; then
     LIBS="$LIBS -latomic_ops"
 fi
 
+#### Libsamplerate support (optional) ####
+
+AC_ARG_ENABLE([samplerate],
+    AC_HELP_STRING([--disable-samplerate], [Disable optional libsamplerate support]),
+        [
+            case "${enableval}" in
+                yes) samplerate=yes ;;
+                no) samplerate=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-samplerate) ;;
+            esac
+        ],
+        [samplerate=auto])
+
+if test "x${samplerate}" != xno ; then
+    PKG_CHECK_MODULES(LIBSAMPLERATE, [ samplerate >= 0.1.0 ],
+        HAVE_LIBSAMPLERATE=1,
+        [
+            HAVE_LIBSAMPLERATE=0
+            if test "x$samplerate" = xyes ; then
+                AC_MSG_ERROR([*** Libsamplerate not found])
+            fi
+        ])
+else
+    HAVE_LIBSAMPLERATE=0
+fi
+
+if test "x${HAVE_LIBSAMPLERATE}" = x1 ; then
+   AC_DEFINE([HAVE_LIBSAMPLERATE], 1, [Have libsamplerate?])
+fi
+
+AC_SUBST(LIBSAMPLERATE_CFLAGS)
+AC_SUBST(LIBSAMPLERATE_LIBS)
+AC_SUBST(HAVE_LIBSAMPLERATE)
+AM_CONDITIONAL([HAVE_LIBSAMPLERATE], [test "x$HAVE_LIBSAMPLERATE" = x1])
+
 #### OSS support (optional) ####
 
-AC_ARG_ENABLE([oss], 
-    AC_HELP_STRING([--disable-oss], [Disable optional OSS support]), 
+AC_ARG_ENABLE([oss],
+    AC_HELP_STRING([--disable-oss], [Disable optional OSS support]),
         [
             case "${enableval}" in
                 yes) oss=yes ;;
@@ -382,8 +465,8 @@ AM_CONDITIONAL([HAVE_OSS], [test "x$HAVE_OSS" = x1])
 
 #### ALSA support (optional) ####
 
-AC_ARG_ENABLE([alsa], 
-    AC_HELP_STRING([--disable-alsa], [Disable optional ALSA support]), 
+AC_ARG_ENABLE([alsa],
+    AC_HELP_STRING([--disable-alsa], [Disable optional ALSA support]),
         [
             case "${enableval}" in
                 yes) alsa=yes ;;
@@ -410,14 +493,14 @@ else
 fi
 
 AC_SUBST(ASOUNDLIB_CFLAGS)
-AC_SUBST(ASOUNDLIB_LIBS) 
+AC_SUBST(ASOUNDLIB_LIBS)
 AC_SUBST(HAVE_ALSA)
 AM_CONDITIONAL([HAVE_ALSA], [test "x$HAVE_ALSA" = x1])
 
 #### Solaris audio support (optional) ####
 
-AC_ARG_ENABLE([solaris], 
-    AC_HELP_STRING([--disable-solaris], [Disable optional Solaris audio support]), 
+AC_ARG_ENABLE([solaris],
+    AC_HELP_STRING([--disable-solaris], [Disable optional Solaris audio support]),
         [
             case "${enableval}" in
                 yes) solaris=yes ;;
@@ -448,8 +531,8 @@ AM_CONDITIONAL([HAVE_SOLARIS], [test "x$HAVE_SOLARIS" = x1])
 
 #### GLib 2 support (optional) ####
 
-AC_ARG_ENABLE([glib2], 
-    AC_HELP_STRING([--disable-glib2], [Disable optional GLib 2 support]), 
+AC_ARG_ENABLE([glib2],
+    AC_HELP_STRING([--disable-glib2], [Disable optional GLib 2 support]),
         [
             case "${enableval}" in
                 yes) glib2=yes ;;
@@ -479,8 +562,8 @@ AM_CONDITIONAL([HAVE_GLIB20], [test "x$HAVE_GLIB20" = x1])
 
 #### GConf support (optional) ####
 
-AC_ARG_ENABLE([gconf], 
-    AC_HELP_STRING([--disable-gconf], [Disable optional GConf support]), 
+AC_ARG_ENABLE([gconf],
+    AC_HELP_STRING([--disable-gconf], [Disable optional GConf support]),
         [
             case "${enableval}" in
                 yes) gconf=yes ;;
@@ -510,8 +593,8 @@ AM_CONDITIONAL([HAVE_GCONF], [test "x$HAVE_GCONF" = x1])
 
 #### Avahi support (optional) ####
 
-AC_ARG_ENABLE([avahi], 
-    AC_HELP_STRING([--disable-avahi], [Disable optional Avahi support]), 
+AC_ARG_ENABLE([avahi],
+    AC_HELP_STRING([--disable-avahi], [Disable optional Avahi support]),
         [
             case "${enableval}" in
                 yes) avahi=yes ;;
@@ -547,8 +630,8 @@ AC_SUBST(LIBOIL_LIBS)
 
 ### JACK (optional) ####
 
-AC_ARG_ENABLE([jack], 
-    AC_HELP_STRING([--disable-jack], [Disable optional JACK support]), 
+AC_ARG_ENABLE([jack],
+    AC_HELP_STRING([--disable-jack], [Disable optional JACK support]),
         [
             case "${enableval}" in
                 yes) jack=yes ;;
@@ -578,8 +661,8 @@ AM_CONDITIONAL([HAVE_JACK], [test "x$HAVE_JACK" = x1])
 
 #### Async DNS support (optional) ####
 
-AC_ARG_ENABLE([asyncns], 
-    AC_HELP_STRING([--disable-asyncns], [Disable optional Async DNS support]), 
+AC_ARG_ENABLE([asyncns],
+    AC_HELP_STRING([--disable-asyncns], [Disable optional Async DNS support]),
         [
             case "${enableval}" in
                 yes) asyncns=yes ;;
@@ -613,8 +696,8 @@ fi
 
 #### TCP wrappers (optional) ####
 
-AC_ARG_ENABLE([tcpwrap], 
-    AC_HELP_STRING([--disable-tcpwrap], [Disable optional TCP wrappers support]), 
+AC_ARG_ENABLE([tcpwrap],
+    AC_HELP_STRING([--disable-tcpwrap], [Disable optional TCP wrappers support]),
         [
             case "${enableval}" in
                 yes) tcpwrap=yes ;;
@@ -637,8 +720,8 @@ AC_SUBST(LIBWRAP_LIBS)
 
 #### LIRC support (optional) ####
 
-AC_ARG_ENABLE([lirc], 
-    AC_HELP_STRING([--disable-lirc], [Disable optional LIRC support]), 
+AC_ARG_ENABLE([lirc],
+    AC_HELP_STRING([--disable-lirc], [Disable optional LIRC support]),
         [
             case "${enableval}" in
                 yes) lirc=yes ;;
@@ -663,8 +746,8 @@ AM_CONDITIONAL([HAVE_LIRC], [test "x$HAVE_LIRC" = x1])
 
 #### HAL support (optional) ####
 
-AC_ARG_ENABLE([hal], 
-    AC_HELP_STRING([--disable-hal], [Disable optional HAL support]), 
+AC_ARG_ENABLE([hal],
+    AC_HELP_STRING([--disable-hal], [Disable optional HAL support]),
         [
             case "${enableval}" in
                 yes) hal=yes ;;
@@ -673,7 +756,6 @@ AC_ARG_ENABLE([hal],
             esac
         ],
         [hal=auto])
-
 if test "x${hal}" != xno -a \( "x$HAVE_OSS" = "x1" -o "x$HAVE_ALSA" = "x1" \) ; then
     PKG_CHECK_MODULES(HAL, [ hal >= 0.5.7 ],
         HAVE_HAL=1,
@@ -691,6 +773,49 @@ AC_SUBST(HAL_CFLAGS)
 AC_SUBST(HAL_LIBS)
 AC_SUBST(HAVE_HAL)
 AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
+
+#### D-Bus support (optional) ####
+
+AC_ARG_ENABLE([dbus],
+    AC_HELP_STRING([--disable-dbus], [Disable optional D-Bus support]),
+        [
+            case "${enableval}" in
+                yes) dbus=yes ;;
+                no) dbus=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-dbus) ;;
+            esac
+        ],
+        [dbus=auto])
+
+if test "x$HAVE_HAL" = x1 ; then
+   dbus=yes
+fi
+
+if test "x${dbus}" != xno ; then
+
+    PKG_CHECK_MODULES(DBUS, [ dbus-1 >= 1.0.0 ],
+        [
+            HAVE_DBUS=1
+            saved_LIBS="$LIBS"
+            LIBS="$LIBS $DBUS_LIBS"
+            AC_CHECK_FUNCS(dbus_watch_get_unix_fd)
+            LIBS="$saved_LIBS"
+            AC_DEFINE([HAVE_DBUS], 1, [Have D-Bus.])
+        ],
+        [
+            HAVE_DBUS=0
+            if test "x$dbus" = xyes ; then
+                AC_MSG_ERROR([*** D-Bus support not found])
+            fi
+        ])
+else
+    HAVE_DBUS=0
+fi
+
+AC_SUBST(DBUS_CFLAGS)
+AC_SUBST(DBUS_LIBS)
+AC_SUBST(HAVE_DBUS)
+AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 
 #### PulseAudio system group & user  #####
 
@@ -845,6 +970,11 @@ if test "x${LIBWRAP_LIBS}" != x ; then
    ENABLE_TCPWRAP=yes
 fi
 
+ENABLE_LIBSAMPLERATE=no
+if test "x${HAVE_LIBSAMPLERATE}" = "x1" ; then
+   ENABLE_LIBSAMPLERATE=yes
+fi
+
 echo "
  ---{ $PACKAGE_NAME $VERSION }---
 
@@ -866,6 +996,7 @@ echo "
     Enable LIRC:            ${ENABLE_LIRC}
     Enable HAL:             ${ENABLE_HAL}
     Enable TCP Wrappers:    ${ENABLE_TCPWRAP}
+    Enable libsamplerate:   ${ENABLE_LIBSAMPLERATE}
     System User:            ${PA_SYSTEM_USER}
     System Group:           ${PA_SYSTEM_GROUP}
     Realtime Group:         ${PA_REALTIME_GROUP}

@@ -25,10 +25,10 @@
 #include <config.h>
 #endif
 
-#include <assert.h>
 #include <stdio.h>
 
 #include <pulsecore/gccmacro.h>
+#include <pulsecore/macro.h>
 #include <pulsecore/pstream-util.h>
 
 #include "internal.h"
@@ -40,10 +40,11 @@ void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSE
     pa_subscription_event_type_t e;
     uint32_t idx;
 
-    assert(pd);
-    assert(command == PA_COMMAND_SUBSCRIBE_EVENT);
-    assert(t);
-    assert(c);
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_SUBSCRIBE_EVENT);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     pa_context_ref(c);
 
@@ -67,8 +68,8 @@ pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, pa_c
     pa_tagstruct *t;
     uint32_t tag;
 
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
@@ -83,8 +84,8 @@ pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, pa_c
 }
 
 void pa_context_set_subscribe_callback(pa_context *c, pa_context_subscribe_cb_t cb, void *userdata) {
-    assert(c);
-    assert(c->ref >= 1);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     c->subscribe_callback = cb;
     c->subscribe_userdata = userdata;

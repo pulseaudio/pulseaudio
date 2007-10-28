@@ -27,6 +27,16 @@
 #include <pulsecore/sink.h>
 #include <pulsecore/memblockq.h>
 
+pa_sink_input* pa_memblockq_sink_input_new(
+        pa_sink *sink,
+        const char *name,
+        const pa_sample_spec *ss,
+        const pa_channel_map *map,
+        pa_memblockq *q,
+        pa_cvolume *volume);
+
+void pa_memblockq_sink_input_set_queue(pa_sink_input *i, pa_memblockq *q);
+
 int pa_play_memblockq(
     pa_sink *sink,
     const char *name,

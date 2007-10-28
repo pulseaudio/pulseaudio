@@ -39,10 +39,11 @@ typedef struct pa_mix_info {
     pa_memchunk chunk;
     pa_cvolume volume;
     void *userdata;
+    void *internal; /* Used internally by pa_mix(), should not be initialised when calling pa_mix() */
 } pa_mix_info;
 
 size_t pa_mix(
-    const pa_mix_info channels[],
+    pa_mix_info channels[],
     unsigned nchannels,
     void *data,
     size_t length,
@@ -54,5 +55,12 @@ void pa_volume_memchunk(
     pa_memchunk*c,
     const pa_sample_spec *spec,
     const pa_cvolume *volume);
+
+size_t pa_frame_align(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;
+
+int pa_frame_aligned(size_t l, const pa_sample_spec *ss) PA_GCC_PURE;
+
+void pa_interleave(const void *src[], unsigned channels, void *dst, size_t ss, unsigned n);
+void pa_deinterleave(const void *src, void *dst[], unsigned channels, size_t ss, unsigned n);
 
 #endif

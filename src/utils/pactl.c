@@ -48,8 +48,10 @@
 static pa_context *context = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
 
-static char *device = NULL, *sample_name = NULL, *sink_name = NULL, *source_name = NULL;
+static char *device = NULL, *sample_name = NULL, *sink_name = NULL, *source_name = NULL, *module_name = NULL, *module_args = NULL;
 static uint32_t sink_input_idx = PA_INVALID_INDEX, source_output_idx = PA_INVALID_INDEX;
+static uint32_t module_index;
+static int suspend;
 
 static SNDFILE *sndfile = NULL;
 static pa_stream *sample_stream = NULL;
@@ -69,7 +71,11 @@ static enum {
     REMOVE_SAMPLE,
     LIST,
     MOVE_SINK_INPUT,
-    MOVE_SOURCE_OUTPUT
+    MOVE_SOURCE_OUTPUT,
+    LOAD_MODULE,
+    UNLOAD_MODULE,
+    SUSPEND_SINK,
+    SUSPEND_SOURCE,
 } action = NONE;
 
 static void quit(int ret) {
@@ -354,7 +360,7 @@ static void get_sink_input_info_callback(pa_context *c, const pa_sink_input_info
            i->sink,
            pa_sample_spec_snprint(s, sizeof(s), &i->sample_spec),
            pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map),
-           pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
+           i->mute ? "muted" : pa_cvolume_snprint(cv, sizeof(cv), &i->volume),
            (double) i->buffer_usec,
            (double) i->sink_usec,
            i->resample_method ? i->resample_method : "n/a");
@@ -492,6 +498,18 @@ static void simple_callback(pa_context *c, int success, void *userdata) {
     complete_action();
 }
 
+static void index_callback(pa_context *c, uint32_t idx, void *userdata) {
+    if (idx == PA_INVALID_INDEX) {
+        fprintf(stderr, "Failure: %s\n", pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    printf("%u\n", idx);
+
+    complete_action();
+}
+
 static void stream_state_callback(pa_stream *s, void *userdata) {
     assert(s);
 
@@ -594,6 +612,28 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     pa_operation_unref(pa_context_move_source_output_by_name(c, source_output_idx, source_name, simple_callback, NULL));
                     break;
 
+                case LOAD_MODULE:
+                    pa_operation_unref(pa_context_load_module(c, module_name, module_args, index_callback, NULL));
+                    break;
+
+                case UNLOAD_MODULE:
+                    pa_operation_unref(pa_context_unload_module(c, module_index, simple_callback, NULL));
+                    break;
+
+                case SUSPEND_SINK:
+                    if (sink_name)
+                        pa_operation_unref(pa_context_suspend_sink_by_name(c, sink_name, suspend, simple_callback, NULL));
+                    else
+                        pa_operation_unref(pa_context_suspend_sink_by_index(c, PA_INVALID_INDEX, suspend, simple_callback, NULL));
+                    break;
+
+                case SUSPEND_SOURCE:
+                    if (source_name)
+                        pa_operation_unref(pa_context_suspend_source_by_name(c, source_name, suspend, simple_callback, NULL));
+                    else
+                        pa_operation_unref(pa_context_suspend_source_by_index(c, PA_INVALID_INDEX, suspend, simple_callback, NULL));
+                    break;
+
                 default:
                     assert(0);
             }
@@ -624,12 +664,16 @@ static void help(const char *argv0) {
            "%s [options] play-sample NAME [SINK]\n"
            "%s [options] move-sink-input ID SINK\n"
            "%s [options] move-source-output ID SOURCE\n"
-           "%s [options] remove-sample NAME\n\n"
+           "%s [options] remove-sample NAME\n"
+           "%s [options] load-module NAME [ARGS ...]\n"
+           "%s [options] unload-module ID\n"
+           "%s [options] suspend-sink [SINK] 1|0\n"
+           "%s [options] suspend-source [SOURCE] 1|0\n\n"
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n\n"
            "  -s, --server=SERVER                   The name of the server to connect to\n"
            "  -n, --client-name=NAME                How to call this client on the server\n",
-           argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
+           argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0, argv0);
 }
 
 enum { ARG_VERSION = 256 };
@@ -728,7 +772,7 @@ int main(int argc, char *argv[]) {
             sample_length = sfinfo.frames*pa_frame_size(&sample_spec);
         } else if (!strcmp(argv[optind], "play-sample")) {
             action = PLAY_SAMPLE;
-            if (optind+1 >= argc) {
+            if (argc != optind+2 && argc != optind+3) {
                 fprintf(stderr, "You have to specify a sample name to play\n");
                 goto quit;
             }
@@ -740,7 +784,7 @@ int main(int argc, char *argv[]) {
 
         } else if (!strcmp(argv[optind], "remove-sample")) {
             action = REMOVE_SAMPLE;
-            if (optind+1 >= argc) {
+            if (argc != optind+2) {
                 fprintf(stderr, "You have to specify a sample name to remove\n");
                 goto quit;
             }
@@ -748,7 +792,7 @@ int main(int argc, char *argv[]) {
             sample_name = pa_xstrdup(argv[optind+1]);
         } else if (!strcmp(argv[optind], "move-sink-input")) {
             action = MOVE_SINK_INPUT;
-            if (optind+2 >= argc) {
+            if (argc != optind+3) {
                 fprintf(stderr, "You have to specify a sink input index and a sink\n");
                 goto quit;
             }
@@ -757,13 +801,72 @@ int main(int argc, char *argv[]) {
             sink_name = pa_xstrdup(argv[optind+2]);
         } else if (!strcmp(argv[optind], "move-source-output")) {
             action = MOVE_SOURCE_OUTPUT;
-            if (optind+2 >= argc) {
+            if (argc != optind+3) {
                 fprintf(stderr, "You have to specify a source output index and a source\n");
                 goto quit;
             }
 
             source_output_idx = atoi(argv[optind+1]);
             source_name = pa_xstrdup(argv[optind+2]);
+        } else if (!strcmp(argv[optind], "load-module")) {
+            int i;
+            size_t n = 0;
+            char *p;
+
+            action = LOAD_MODULE;
+
+            if (argc <= optind+1) {
+                fprintf(stderr, "You have to specify a module name and arguments.\n");
+                goto quit;
+            }
+
+            module_name = argv[optind+1];
+
+            for (i = optind+2; i < argc; i++)
+                n += strlen(argv[i])+1;
+
+            if (n > 0) {
+                p = module_args = pa_xnew0(char, n);
+
+                for (i = optind+2; i < argc; i++)
+                    p += sprintf(p, "%s%s", p == module_args ? "" : " ", argv[i]);
+            }
+
+        } else if (!strcmp(argv[optind], "unload-module")) {
+            action = UNLOAD_MODULE;
+
+            if (argc != optind+2) {
+                fprintf(stderr, "You have to specify a module index\n");
+                goto quit;
+            }
+
+            module_index = atoi(argv[optind+1]);
+
+        } else if (!strcmp(argv[optind], "suspend-sink")) {
+            action = SUSPEND_SINK;
+
+            if (argc > optind+3 || optind+1 >= argc) {
+                fprintf(stderr, "You may not specify more than one sink. You have to specify at least one boolean value.\n");
+                goto quit;
+            }
+
+            suspend = !!atoi(argv[argc-1]);
+
+            if (argc > optind+2)
+                sink_name = pa_xstrdup(argv[optind+1]);
+
+        } else if (!strcmp(argv[optind], "suspend-source")) {
+            action = SUSPEND_SOURCE;
+
+            if (argc > optind+3 || optind+1 >= argc) {
+                fprintf(stderr, "You may not specify more than one source. You have to specify at least one boolean value.\n");
+                goto quit;
+            }
+
+            suspend = !!atoi(argv[argc-1]);
+
+            if (argc > optind+2)
+                source_name = pa_xstrdup(argv[optind+1]);
         }
     }
 
@@ -819,6 +922,8 @@ quit:
     pa_xfree(sample_name);
     pa_xfree(sink_name);
     pa_xfree(source_name);
+    pa_xfree(module_args);
+    pa_xfree(client_name);
 
     return ret;
 }

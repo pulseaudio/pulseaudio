@@ -26,12 +26,13 @@
 #endif
 
 #include <ltdl.h>
-#include <assert.h>
 
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/ltdl-helper.h>
 
 #include "modinfo.h"
 
@@ -40,30 +41,24 @@
 #define PA_SYMBOL_USAGE "pa__get_usage"
 #define PA_SYMBOL_VERSION "pa__get_version"
 
-/* lt_dlsym() violates ISO C, so confide the breakage into this function to
- * avoid warnings. */
-typedef void (*fnptr)(void);
-static inline fnptr lt_dlsym_fn(lt_dlhandle handle, const char *symbol) {
-    return (fnptr) (long) lt_dlsym(handle, symbol);
-}
-
-pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl) {
+pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl, const char *module_name) {
     pa_modinfo *i;
     const char* (*func)(void);
-    assert(dl);
+
+    pa_assert(dl);
 
     i = pa_xnew0(pa_modinfo, 1);
 
-    if ((func = (const char* (*)(void)) lt_dlsym_fn(dl, PA_SYMBOL_AUTHOR)))
+    if ((func = (const char* (*)(void)) pa_load_sym(dl, module_name, PA_SYMBOL_AUTHOR)))
         i->author = pa_xstrdup(func());
 
-    if ((func = (const char* (*)(void)) lt_dlsym_fn(dl, PA_SYMBOL_DESCRIPTION)))
+    if ((func = (const char* (*)(void)) pa_load_sym(dl, module_name, PA_SYMBOL_DESCRIPTION)))
         i->description = pa_xstrdup(func());
 
-    if ((func = (const char* (*)(void)) lt_dlsym_fn(dl, PA_SYMBOL_USAGE)))
+    if ((func = (const char* (*)(void)) pa_load_sym(dl, module_name, PA_SYMBOL_USAGE)))
         i->usage = pa_xstrdup(func());
 
-    if ((func = (const char* (*)(void)) lt_dlsym_fn(dl, PA_SYMBOL_VERSION)))
+    if ((func = (const char* (*)(void)) pa_load_sym(dl, module_name, PA_SYMBOL_VERSION)))
         i->version = pa_xstrdup(func());
 
     return i;
@@ -72,21 +67,23 @@ pa_modinfo *pa_modinfo_get_by_handle(lt_dlhandle dl) {
 pa_modinfo *pa_modinfo_get_by_name(const char *name) {
     lt_dlhandle dl;
     pa_modinfo *i;
-    assert(name);
+
+    pa_assert(name);
 
     if (!(dl = lt_dlopenext(name))) {
         pa_log("Failed to open module \"%s\": %s", name, lt_dlerror());
         return NULL;
     }
 
-    i = pa_modinfo_get_by_handle(dl);
+    i = pa_modinfo_get_by_handle(dl, name);
     lt_dlclose(dl);
 
     return i;
 }
 
 void pa_modinfo_free(pa_modinfo *i) {
-    assert(i);
+    pa_assert(i);
+
     pa_xfree(i->author);
     pa_xfree(i->description);
     pa_xfree(i->usage);
