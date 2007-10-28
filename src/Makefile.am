@@ -64,7 +64,7 @@ AM_LIBADD = $(PTHREAD_LIBS)
 AM_LDADD = $(PTHREAD_LIBS)
 
 # Only required on some platforms but defined for all to avoid errors
-AM_LDFLAGS = -no-undefined
+AM_LDFLAGS = -Wl,-no-undefined
 
 if STATIC_BINS
 BINLDFLAGS = -static
@@ -1271,7 +1271,7 @@ liboss_util_la_LIBADD = libpulsecore.la
 
 module_oss_la_SOURCES = modules/module-oss.c
 module_oss_la_LDFLAGS = -module -avoid-version
-module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la
+module_oss_la_LIBADD = $(AM_LIBADD) libiochannel.la liboss-util.la libpulsecore.la
 
 # ALSA
 
