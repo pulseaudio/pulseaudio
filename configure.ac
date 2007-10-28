@@ -253,6 +253,7 @@ AC_SEARCH_LIBS([pow], [m])
 AC_SEARCH_LIBS([sched_setscheduler], [rt])
 AC_SEARCH_LIBS([dlopen], [dl])
 AC_SEARCH_LIBS([shm_open], [rt])
+AC_SEARCH_LIBS([inet_ntop], [nsl])
 
 # BSD
 AC_SEARCH_LIBS([connect], [socket])
