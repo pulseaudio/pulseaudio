@@ -134,7 +134,7 @@ static void do_call(pa_socket_client *c) {
     pa_iochannel *io = NULL;
     int error;
     socklen_t lerror;
-    
+
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(c->callback);
@@ -156,7 +156,7 @@ static void do_call(pa_socket_client *c) {
     }
 
     if (error != 0) {
-        pa_log_debug("connect(): %s", pa_cstrerror(errno));
+        pa_log_debug("connect(): %s", pa_cstrerror(error));
         errno = error;
         goto finish;
     }
@@ -179,7 +179,7 @@ finish:
 
 static void connect_fixed_cb(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
     pa_socket_client *c = userdata;
-    
+
     pa_assert(m);
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
@@ -196,13 +196,13 @@ static void connect_io_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUS
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(c->io_event == e);
     pa_assert(fd >= 0);
-    
+
     do_call(c);
 }
 
 static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t len) {
     int r;
-    
+
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
     pa_assert(sa);
@@ -230,15 +230,15 @@ static int do_connect(pa_socket_client *c, const struct sockaddr *sa, socklen_t 
 
 pa_socket_client* pa_socket_client_new_ipv4(pa_mainloop_api *m, uint32_t address, uint16_t port) {
     struct sockaddr_in sa;
-    
+
     pa_assert(m);
     pa_assert(port > 0);
-    
+
     memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
     sa.sin_addr.s_addr = htonl(address);
-    
+
     return pa_socket_client_new_sockaddr(m, (struct sockaddr*) &sa, sizeof(sa));
 }
 
@@ -246,7 +246,7 @@ pa_socket_client* pa_socket_client_new_ipv4(pa_mainloop_api *m, uint32_t address
 
 pa_socket_client* pa_socket_client_new_unix(pa_mainloop_api *m, const char *filename) {
     struct sockaddr_un sa;
-    
+
     pa_assert(m);
     pa_assert(filename);
 
@@ -307,11 +307,11 @@ static int sockaddr_prepare(pa_socket_client *c, const struct sockaddr *sa, size
 
 pa_socket_client* pa_socket_client_new_sockaddr(pa_mainloop_api *m, const struct sockaddr *sa, size_t salen) {
     pa_socket_client *c;
-    
+
     pa_assert(m);
     pa_assert(sa);
     pa_assert(salen > 0);
-    
+
     pa_assert_se(c = pa_socket_client_new(m));
 
     if (sockaddr_prepare(c, sa, salen) < 0)
@@ -375,7 +375,7 @@ pa_socket_client* pa_socket_client_new_ipv6(pa_mainloop_api *m, uint8_t address[
     pa_assert(m);
     pa_assert(address);
     pa_assert(port > 0);
-    
+
     memset(&sa, 0, sizeof(sa));
     sa.sin6_family = AF_INET6;
     sa.sin6_port = htons(port);
@@ -390,7 +390,7 @@ static void asyncns_cb(pa_mainloop_api*m, pa_io_event *e, int fd, PA_GCC_UNUSED 
     pa_socket_client *c = userdata;
     struct addrinfo *res = NULL;
     int ret;
-        
+
     pa_assert(m);
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
@@ -432,7 +432,7 @@ fail:
 
 static void timeout_cb(pa_mainloop_api *m, pa_time_event *e, const struct timeval *tv, void *userdata) {
     pa_socket_client *c = userdata;
-        
+
     pa_assert(m);
     pa_assert(e);
     pa_assert(tv);
@@ -460,7 +460,7 @@ static void start_timeout(pa_socket_client *c) {
 pa_socket_client* pa_socket_client_new_string(pa_mainloop_api *m, const char*name, uint16_t default_port) {
     pa_socket_client *c = NULL;
     pa_parsed_address a;
-    
+
     pa_assert(m);
     pa_assert(name);
 

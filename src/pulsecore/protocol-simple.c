@@ -69,7 +69,7 @@ typedef struct connection {
 PA_DECLARE_CLASS(connection);
 #define CONNECTION(o) (connection_cast(o))
 static PA_DEFINE_CHECK_TYPE(connection, pa_msgobject);
-                     
+
 struct pa_protocol_simple {
     pa_module *module;
     pa_core *core;
@@ -108,7 +108,7 @@ static void connection_unlink(connection *c) {
 
     if (!c->protocol)
         return;
-    
+
     if (c->sink_input) {
         pa_sink_input_unlink(c->sink_input);
         pa_sink_input_unref(c->sink_input);
@@ -130,7 +130,7 @@ static void connection_unlink(connection *c) {
         pa_iochannel_free(c->io);
         c->io = NULL;
     }
-    
+
     pa_assert_se(pa_idxset_remove_by_data(c->protocol->connections, c, NULL) == c);
     c->protocol = NULL;
     connection_unref(c);
@@ -141,7 +141,7 @@ static void connection_free(pa_object *o) {
     pa_assert(c);
 
     connection_unref(c);
-    
+
     if (c->playback.current_memblock)
         pa_memblock_unref(c->playback.current_memblock);
 
@@ -185,7 +185,7 @@ static int do_read(connection *c) {
 
     if (r <= 0) {
 
-        if (errno == EINTR || errno == EAGAIN)
+        if (r < 0 && (errno == EINTR || errno == EAGAIN))
             return 0;
 
         pa_log_debug("read(): %s", r == 0 ? "EOF" : pa_cstrerror(errno));
@@ -284,7 +284,7 @@ static int connection_process_msg(pa_msgobject *o, int code, void*userdata, int6
         case CONNECTION_MESSAGE_REQUEST_DATA:
             do_work(c);
             break;
-            
+
         case CONNECTION_MESSAGE_POST_DATA:
 /*             pa_log("got data %u", chunk->length); */
             pa_memblockq_push_align(c->output_memblockq, chunk);
@@ -319,7 +319,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
             pa_memblockq_push_align(c->input_memblockq, chunk);
 
 /*             pa_log("got data, %u", pa_memblockq_get_length(c->input_memblockq)); */
-            
+
             return 0;
         }
 
@@ -634,4 +634,3 @@ void pa_protocol_simple_free(pa_protocol_simple *p) {
 
     pa_xfree(p);
 }
-
