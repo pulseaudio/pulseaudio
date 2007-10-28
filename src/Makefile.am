@@ -1196,7 +1196,7 @@ module_esound_compat_spawnpid_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
 module_esound_sink_la_SOURCES = modules/module-esound-sink.c
 module_esound_sink_la_LDFLAGS = -module -avoid-version
-module_esound_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-client.la libauthkey.la
+module_esound_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libiochannel.la libsocket-client.la libauthkey.la libsocket-util.la
 
 # Pipes
 
