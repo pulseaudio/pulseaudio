@@ -1019,7 +1019,8 @@ endif
 
 if HAVE_AVAHI
 modlibexec_LTLIBRARIES += \
-		module-zeroconf-publish.la
+		module-zeroconf-publish.la \
+		module-zeroconf-discover.la
 endif
 
 if HAVE_LIRC
@@ -1084,6 +1085,7 @@ SYMDEF_FILES = \
 		modules/module-null-sink-symdef.h \
 		modules/module-esound-sink-symdef.h \
 		modules/module-zeroconf-publish-symdef.h \
+		modules/module-zeroconf-discover-symdef.h \
 		modules/module-lirc-symdef.h \
 		modules/module-mmkbd-evdev-symdef.h \
 		modules/module-http-protocol-tcp-symdef.h \
@@ -1302,6 +1304,11 @@ module_zeroconf_publish_la_SOURCES = modules/module-zeroconf-publish.c
 module_zeroconf_publish_la_LDFLAGS = -module -avoid-version
 module_zeroconf_publish_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore.la
 module_zeroconf_publish_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
+
+module_zeroconf_discover_la_SOURCES = modules/module-zeroconf-discover.c
+module_zeroconf_discover_la_LDFLAGS = -module -avoid-version
+module_zeroconf_discover_la_LIBADD = $(AM_LIBADD) $(AVAHI_LIBS) libavahi-wrap.la libpulsecore.la
+module_zeroconf_discover_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 
 # LIRC
 
