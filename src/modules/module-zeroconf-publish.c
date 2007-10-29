@@ -335,14 +335,14 @@ static void service_free(struct service *s) {
     pa_xfree(s);
 }
 
-static pa_bool_t is_network(pa_object *o) {
+static pa_bool_t shall_ignore(pa_object *o) {
     pa_object_assert_ref(o);
 
     if (pa_sink_isinstance(o))
         return !!(PA_SINK(o)->flags & PA_SINK_NETWORK);
 
     if (pa_source_isinstance(o))
-        return !!(PA_SOURCE(o)->flags & PA_SOURCE_NETWORK);
+        return PA_SOURCE(o)->monitor_of || (PA_SOURCE(o)->flags & PA_SOURCE_NETWORK);
 
     pa_assert_not_reached();
 }
@@ -351,7 +351,7 @@ static pa_hook_result_t device_new_or_changed_cb(pa_core *c, pa_object *o, struc
     pa_assert(c);
     pa_object_assert_ref(o);
 
-    if (!is_network(o))
+    if (!shall_ignore(o))
         publish_service(get_service(u, o));
 
     return PA_HOOK_OK;
@@ -462,11 +462,11 @@ static int publish_all_services(struct userdata *u) {
     pa_log_debug("Publishing services in Zeroconf");
 
     for (sink = PA_SINK(pa_idxset_first(u->core->sinks, &idx)); sink; sink = PA_SINK(pa_idxset_next(u->core->sinks, &idx)))
-        if (!is_network(PA_OBJECT(sink)))
+        if (!shall_ignore(PA_OBJECT(sink)))
             publish_service(get_service(u, PA_OBJECT(sink)));
 
     for (source = PA_SOURCE(pa_idxset_first(u->core->sources, &idx)); source; source = PA_SOURCE(pa_idxset_next(u->core->sources, &idx)))
-        if (!is_network(PA_OBJECT(source)))
+        if (!shall_ignore(PA_OBJECT(source)))
             publish_service(get_service(u, PA_OBJECT(source)));
 
     if (publish_main_service(u) < 0)
