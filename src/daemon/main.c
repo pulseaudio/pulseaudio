@@ -336,11 +336,14 @@ int main(int argc, char *argv[]) {
     */
 
     if (!getenv("LD_BIND_NOW")) {
-        putenv(pa_xstrdup("LD_BIND_NOW=1"));
+        char *rp;
 
         /* We have to execute ourselves, because the libc caches the
          * value of $LD_BIND_NOW on initialization. */
-        pa_assert_se(execv("/proc/self/exe", argv) == 0);
+
+        putenv(pa_xstrdup("LD_BIND_NOW=1"));
+        pa_assert_se(rp = pa_readlink("/proc/self/exe"));
+        pa_assert_se(execv(rp, argv) == 0);
     }
 #endif
 
