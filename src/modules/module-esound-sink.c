@@ -362,7 +362,7 @@ static int do_write(struct userdata *u) {
 
         pa_make_tcp_socket_low_delay(u->fd);
 
-        pa_log_info("Connection authenticated, handing fd to IO thread...");
+        pa_log_debug("Connection authenticated, handing fd to IO thread...");
 
         pa_asyncmsgq_post(u->thread_mq.inq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_PASS_SOCKET, NULL, 0, NULL, NULL);
         u->state = STATE_RUNNING;
@@ -496,7 +496,7 @@ static void on_connection(PA_GCC_UNUSED pa_socket_client *c, pa_iochannel*io, vo
     u->io = io;
     pa_iochannel_set_callback(u->io, io_callback, u);
 
-    pa_log_info("Connection established, authenticating ...");
+    pa_log_debug("Connection established, authenticating ...");
 }
 
 int pa__init(pa_module*m) {
@@ -553,7 +553,7 @@ int pa__init(pa_module*m) {
     u->latency = 0;
 
     if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, NULL))) {
-        pa_log("failed to create sink.");
+        pa_log("Failed to create sink.");
         goto fail;
     }
 
