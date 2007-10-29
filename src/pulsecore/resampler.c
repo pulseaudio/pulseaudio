@@ -195,7 +195,7 @@ pa_resampler* pa_resampler_new(
     }
 
     if (resample_method == PA_RESAMPLER_AUTO)
-        resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 0;
+        resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 
     r = pa_xnew(pa_resampler, 1);
     r->mempool = pool;
@@ -439,10 +439,10 @@ pa_resample_method_t pa_parse_resample_method(const char *string) {
             return m;
 
     if (!strcmp(string, "speex-fixed"))
-        return PA_RESAMPLER_SPEEX_FIXED_BASE + 0;
+        return PA_RESAMPLER_SPEEX_FIXED_BASE + 3;
 
     if (!strcmp(string, "speex-float"))
-        return PA_RESAMPLER_SPEEX_FLOAT_BASE + 0;
+        return PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 
     return PA_RESAMPLER_INVALID;
 }

@@ -132,7 +132,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, int shared) {
     c->module_idle_time = 20;
     c->scache_idle_time = 20;
 
-    c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE;
+    c->resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 
     c->is_system_instance = 0;
     c->disallow_module_loading = 0;
