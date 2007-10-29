@@ -46,7 +46,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/core-subscribe.h>
-#include <pulsecore/dynarray.h>
+#include <pulsecore/hashmap.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/namereg.h>
 #include <pulsecore/avahi-wrap.h>
@@ -60,8 +60,15 @@ PA_MODULE_VERSION(PACKAGE_VERSION)
 #define SERVICE_TYPE_SINK "_pulse-sink._tcp"
 #define SERVICE_TYPE_SOURCE "_non-monitor._sub._pulse-source._tcp"
 
- static const char* const valid_modargs[] = {
+static const char* const valid_modargs[] = {
     NULL
+};
+
+struct tunnel {
+    AvahiIfIndex interface;
+    AvahiProtocol protocol;
+    char *name, *type, *domain;
+    uint32_t module_index;
 };
 
 struct userdata {
@@ -70,7 +77,61 @@ struct userdata {
     AvahiPoll *avahi_poll;
     AvahiClient *client;
     AvahiServiceBrowser *source_browser, *sink_browser;
+
+    pa_hashmap *tunnels;
 };
+
+static unsigned tunnel_hash(const void *p) {
+    const struct tunnel *t = p;
+
+    return
+        (unsigned) t->interface +
+        (unsigned) t->protocol +
+        pa_idxset_string_hash_func(t->name) +
+        pa_idxset_string_hash_func(t->type) +
+        pa_idxset_string_hash_func(t->domain);
+}
+
+static int tunnel_compare(const void *a, const void *b) {
+    const struct tunnel *ta = a, *tb = b;
+    int r;
+
+    if (ta->interface != tb->interface)
+        return 1;
+    if (ta->protocol != tb->protocol)
+        return 1;
+    if ((r = strcmp(ta->name, tb->name)))
+        return r;
+    if ((r = strcmp(ta->type, tb->type)))
+        return r;
+    if ((r = strcmp(ta->domain, tb->domain)))
+        return r;
+
+    return 0;
+}
+
+static struct tunnel *tunnel_new(
+        AvahiIfIndex interface, AvahiProtocol protocol,
+        const char *name, const char *type, const char *domain) {
+
+    struct tunnel *t;
+    t = pa_xnew(struct tunnel, 1);
+    t->interface = interface;
+    t->protocol = protocol;
+    t->name = pa_xstrdup(name);
+    t->type = pa_xstrdup(type);
+    t->domain = pa_xstrdup(domain);
+    t->module_index = PA_IDXSET_INVALID;
+    return t;
+}
+
+static void tunnel_free(struct tunnel *t) {
+    pa_assert(t);
+    pa_xfree(t->name);
+    pa_xfree(t->type);
+    pa_xfree(t->domain);
+    pa_xfree(t);
+}
 
 static void resolver_cb(
         AvahiServiceResolver *r,
@@ -83,8 +144,11 @@ static void resolver_cb(
         void *userdata) {
 
     struct userdata *u = userdata;
+    struct tunnel *tnl;
 
     pa_assert(u);
+
+    tnl = tunnel_new(interface, protocol, name, type, domain);
 
     if (event != AVAHI_RESOLVER_FOUND)
         pa_log("Resolving of '%s' failed: %s", name, avahi_strerror(avahi_client_errno(u->client)));
@@ -96,6 +160,7 @@ static void resolver_cb(
         pa_channel_map cm;
         AvahiStringList *l;
         pa_bool_t channel_map_set = FALSE;
+        pa_module *m;
 
         ss = u->core->default_sample_spec;
         pa_channel_map_init_auto(&cm, ss.channels, PA_CHANNEL_MAP_DEFAULT);
@@ -169,7 +234,12 @@ static void resolver_cb(
                                  pa_channel_map_snprint(cmt, sizeof(cmt), &cm));
 
         pa_log_debug("Loading module-tunnel-%s with arguments '%s'", module_name, args);
-        pa_module_load(u->core, module_name, args);
+
+        if ((m = pa_module_load(u->core, module_name, args))) {
+            tnl->module_index = m->index;
+            pa_hashmap_put(u->tunnels, tnl, tnl);
+            tnl = NULL;
+        }
 
         pa_xfree(module_name);
         pa_xfree(dname);
@@ -180,6 +250,9 @@ static void resolver_cb(
 finish:
 
     avahi_service_resolver_free(r);
+
+    if (tnl)
+        tunnel_free(tnl);
 }
 
 static void browser_cb(
@@ -191,21 +264,36 @@ static void browser_cb(
         void *userdata) {
 
     struct userdata *u = userdata;
+    struct tunnel *t;
 
     pa_assert(u);
-
-    if (event != AVAHI_BROWSER_NEW)
-        return;
 
     if (flags & AVAHI_LOOKUP_RESULT_LOCAL)
         return;
 
-    if (!(avahi_service_resolver_new(u->client, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0, resolver_cb, u)))
-        pa_log("avahi_service_resolver_new() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
+    t = tunnel_new(interface, protocol, name, type, domain);
 
-    /* We ignore the returned resolver object here, since the we don't
-     * need to attach any special data to it, and we can still destory
-     * it from the callback */
+    if (event == AVAHI_BROWSER_NEW) {
+
+        if (!pa_hashmap_get(u->tunnels, t))
+            if (!(avahi_service_resolver_new(u->client, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0, resolver_cb, u)))
+                pa_log("avahi_service_resolver_new() failed: %s", avahi_strerror(avahi_client_errno(u->client)));
+
+        /* We ignore the returned resolver object here, since the we don't
+         * need to attach any special data to it, and we can still destory
+         * it from the callback */
+
+    } else if (event == AVAHI_BROWSER_REMOVE) {
+        struct tunnel *t2;
+
+        if ((t2 = pa_hashmap_get(u->tunnels, t))) {
+            pa_module_unload_by_index(u->core, t2->module_index);
+            pa_hashmap_remove(u->tunnels, t2);
+            tunnel_free(t2);
+        }
+    }
+
+    tunnel_free(t);
 }
 
 static void client_callback(AvahiClient *c, AvahiClientState state, void *userdata) {
@@ -301,6 +389,8 @@ int pa__init(pa_module*m) {
     u->module = m;
     u->sink_browser = u->source_browser = NULL;
 
+    u->tunnels = pa_hashmap_new(tunnel_hash, tunnel_compare);
+
     u->avahi_poll = pa_avahi_poll_new(m->core->mainloop);
 
     if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
@@ -333,6 +423,17 @@ void pa__done(pa_module*m) {
 
     if (u->avahi_poll)
         pa_avahi_poll_free(u->avahi_poll);
+
+    if (u->tunnels) {
+        struct tunnel *t;
+
+        while ((t = pa_hashmap_steal_first(u->tunnels))) {
+            pa_module_unload_by_index(u->core, t->module_index);
+            tunnel_free(t);
+        }
+
+        pa_hashmap_free(u->tunnels, NULL, NULL);
+    }
 
     pa_xfree(u);
 }
