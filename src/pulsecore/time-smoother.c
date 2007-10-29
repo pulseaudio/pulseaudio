@@ -310,8 +310,9 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
     /* Fix up x value */
     if (s->paused)
         x = s->pause_time;
-    else
-        x -= s->time_offset;
+
+    pa_assert(x >= s->time_offset);
+    x -= s->time_offset;
 
     pa_assert(x >= s->ex);
 
@@ -342,8 +343,9 @@ pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
     /* Fix up x value */
     if (s->paused)
         x = s->pause_time;
-    else
-        x -= s->time_offset;
+
+    pa_assert(x >= s->time_offset);
+    x -= s->time_offset;
 
     pa_assert(x >= s->ex);
 
@@ -372,6 +374,8 @@ void pa_smoother_resume(pa_smoother *s, pa_usec_t x) {
 
     if (!s->paused)
         return;
+
+    pa_assert(x >= s->pause_time);
 
     s->paused = FALSE;
     s->time_offset += x - s->pause_time;
