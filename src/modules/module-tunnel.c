@@ -1087,7 +1087,7 @@ int pa__init(pa_module*m) {
     if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
         dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, dn, 0, &ss, &map))) {
+    if (!(u->sink = pa_sink_new(m->core, __FILE__, dn, 1, &ss, &map))) {
         pa_log("Failed to create sink.");
         goto fail;
     }
@@ -1112,7 +1112,7 @@ int pa__init(pa_module*m) {
     if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "source_name", NULL))))
         dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
 
-    if (!(u->source = pa_source_new(m->core, __FILE__, dn, 0, &ss, &map))) {
+    if (!(u->source = pa_source_new(m->core, __FILE__, dn, 1, &ss, &map))) {
         pa_log("Failed to create source.");
         goto fail;
     }
