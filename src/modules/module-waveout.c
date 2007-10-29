@@ -28,7 +28,6 @@
 
 #include <windows.h>
 #include <mmsystem.h>
-#include <assert.h>
 
 #include <pulse/mainloop-api.h>
 
