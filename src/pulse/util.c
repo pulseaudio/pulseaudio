@@ -55,6 +55,7 @@
 #include <sys/prctl.h>
 #endif
 
+#include <pulse/xmalloc.h>
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
@@ -172,13 +173,13 @@ char *pa_get_binary_name(char *s, size_t l) {
 
 #ifdef __linux__
     {
-        int i;
-        char path[PATH_MAX];
+        char *rp;
         /* This works on Linux only */
 
-        if ((i = readlink("/proc/self/exe", path, sizeof(path)-1)) >= 0) {
-            path[i] = 0;
-            return pa_strlcpy(s, pa_path_get_filename(path), l);
+        if ((rp = pa_readlink("/proc/self/exe"))) {
+            pa_strlcpy(s, pa_path_get_filename(rp), l);
+            pa_xfree(rp);
+            return s;
         }
     }
 

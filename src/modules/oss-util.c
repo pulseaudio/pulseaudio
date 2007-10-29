@@ -293,29 +293,39 @@ int pa_oss_set_volume(int fd, long mixer, const pa_sample_spec *ss, const pa_cvo
 }
 
 static int get_device_number(const char *dev) {
-    char buf[PATH_MAX];
     const char *p, *e;
+    char *rp = NULL;
+    int r;
 
-    if (readlink(dev, buf, sizeof(buf)) < 0) {
-        if (errno != EINVAL && errno != ENOLINK)
-            return -1;
+    if (!(p = rp = pa_readlink(dev))) {
+        if (errno != EINVAL && errno != ENOLINK) {
+            r = -1;
+            goto finish;
+        }
 
         p = dev;
-    } else
-        p = buf;
+    }
 
     if ((e = strrchr(p, '/')))
         p = e+1;
 
-    if (p == 0)
-        return 0;
+    if (p == 0) {
+        r = 0;
+        goto finish;
+    }
 
     p = strchr(p, 0) -1;
 
-    if (*p >= '0' && *p <= '9')
-        return *p - '0';
+    if (*p >= '0' && *p <= '9') {
+        r = *p - '0';
+        goto finish;
+    }
 
-    return -1;
+    r = -1;
+
+finish:
+    pa_xfree(rp);
+    return r;
 }
 
 int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
