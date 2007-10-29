@@ -1100,6 +1100,7 @@ int pa__init(pa_module*m) {
     u->sink->get_mute = sink_get_mute;
     u->sink->set_volume = sink_set_volume;
     u->sink->set_mute = sink_set_mute;
+    u->sink->flags = PA_SINK_NETWORK|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL;
 
     pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
@@ -1121,6 +1122,7 @@ int pa__init(pa_module*m) {
     u->source->userdata = u;
     u->source->set_state = source_set_state;
     u->source->get_latency = source_get_latency;
+    u->source->flags = PA_SOURCE_NETWORK|PA_SOURCE_LATENCY;
 
     pa_source_set_module(u->source, m);
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
