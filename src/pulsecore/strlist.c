@@ -146,3 +146,18 @@ pa_strlist* pa_strlist_parse(const char *s) {
 
     return head;
 }
+
+pa_strlist *pa_strlist_reverse(pa_strlist *l) {
+    pa_strlist *r = NULL;
+
+    while (l) {
+        pa_strlist *n;
+
+        n = l->next;
+        l->next = r;
+        r = l;
+        l = n;
+    }
+
+    return r;
+}

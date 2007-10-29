@@ -46,4 +46,7 @@ pa_strlist* pa_strlist_pop(pa_strlist *l, char **s);
 /* Parse a whitespace separated server list */
 pa_strlist* pa_strlist_parse(const char *s);
 
+/* Reverse string list */
+pa_strlist *pa_strlist_reverse(pa_strlist *l);
+
 #endif
