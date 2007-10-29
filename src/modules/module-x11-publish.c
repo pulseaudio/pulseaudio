@@ -130,7 +130,10 @@ int pa__init(pa_module*m) {
     if (!(l = pa_property_get(m->core, PA_NATIVE_SERVER_PROPERTY_NAME)))
         goto fail;
 
+    l = pa_strlist_reverse(l);
     s = pa_strlist_tostring(l);
+    l = pa_strlist_reverse(l);
+
     pa_x11_set_prop(pa_x11_wrapper_get_display(u->x11_wrapper), "PULSE_SERVER", s);
     pa_xfree(s);
 
@@ -192,4 +195,3 @@ void pa__done(pa_module*m) {
     pa_xfree(u->id);
     pa_xfree(u);
 }
-
