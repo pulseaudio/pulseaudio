@@ -122,4 +122,6 @@ static inline unsigned pa_make_power_of_two(unsigned n) {
 
 void pa_close_pipe(int fds[2]);
 
+char *pa_readlink(const char *p);
+
 #endif

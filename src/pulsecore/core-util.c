@@ -1507,3 +1507,27 @@ void pa_close_pipe(int fds[2]) {
 
     fds[0] = fds[1] = -1;
 }
+
+char *pa_readlink(const char *p) {
+    size_t l = 100;
+
+    for (;;) {
+        char *c;
+        ssize_t n;
+
+        c = pa_xnew(char, l);
+
+        if ((n = readlink(p, c, l-1)) < 0) {
+            pa_xfree(c);
+            return NULL;
+        }
+
+        if (n < l-1) {
+            c[l-1] = 0;
+            return c;
+        }
+
+        pa_xfree(c);
+        l *= 2;
+    }
+}
