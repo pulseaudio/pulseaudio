@@ -56,20 +56,20 @@ static int is_valid_char(char c) {
         c == '_';
 }
 
-static int is_valid_name(const char *name) {
+pa_bool_t pa_namereg_is_valid_name(const char *name) {
     const char *c;
 
     if (*name == 0)
-        return 0;
+        return FALSE;
 
     for (c = name; *c && (c-name < PA_NAME_MAX); c++)
         if (!is_valid_char(*c))
-            return 0;
+            return FALSE;
 
     if (*c)
-        return 0;
+        return FALSE;
 
-    return 1;
+    return TRUE;
 }
 
 static char* cleanup_name(const char *name) {
@@ -111,7 +111,7 @@ const char *pa_namereg_register(pa_core *c, const char *name, pa_namereg_type_t 
         return NULL;
 
     if ((type == PA_NAMEREG_SINK || type == PA_NAMEREG_SOURCE) &&
-        !is_valid_name(name) ) {
+        !pa_namereg_is_valid_name(name) ) {
 
         if (fail)
             return NULL;
@@ -253,7 +253,7 @@ int pa_namereg_set_default(pa_core*c, const char *name, pa_namereg_type_t type) 
     if (name && *s && !strcmp(name, *s))
         return 0;
 
-    if (!is_valid_name(name))
+    if (!pa_namereg_is_valid_name(name))
         return -1;
 
     pa_xfree(*s);
