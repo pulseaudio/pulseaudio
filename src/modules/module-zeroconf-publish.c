@@ -60,10 +60,22 @@ PA_MODULE_USAGE("port=<IP port number>")
 #define SERVICE_TYPE_SINK "_pulse-sink._tcp"
 #define SERVICE_TYPE_SOURCE "_pulse-source._tcp"
 #define SERVICE_TYPE_SERVER "_pulse-server._tcp"
+#define SERVICE_SUBTYPE_SINK_HARDWARE "_hardware._sub."SERVICE_TYPE_SINK
+#define SERVICE_SUBTYPE_SINK_VIRTUAL "_virtual._sub."SERVICE_TYPE_SINK
+#define SERVICE_SUBTYPE_SOURCE_HARDWARE "_hardware._sub."SERVICE_TYPE_SOURCE
+#define SERVICE_SUBTYPE_SOURCE_VIRTUAL "_virtual._sub."SERVICE_TYPE_SOURCE
+#define SERVICE_SUBTYPE_SOURCE_MONITOR "_monitor._sub."SERVICE_TYPE_SOURCE
+#define SERVICE_SUBTYPE_SOURCE_NON_MONITOR "_non-monitor._sub."SERVICE_TYPE_SOURCE
 
 static const char* const valid_modargs[] = {
     "port",
     NULL
+};
+
+enum service_subtype {
+    SUBTYPE_HARDWARE,
+    SUBTYPE_VIRTUAL,
+    SUBTYPE_MONITOR
 };
 
 struct service {
@@ -71,10 +83,12 @@ struct service {
     AvahiEntryGroup *entry_group;
     char *service_name;
     pa_object *device;
+    enum service_subtype subtype;
 };
 
 struct userdata {
     pa_core *core;
+    pa_module *module;
     AvahiPoll *avahi_poll;
     AvahiClient *client;
 
@@ -88,10 +102,11 @@ struct userdata {
     pa_hook_slot *sink_new_slot, *source_new_slot, *sink_unlink_slot, *source_unlink_slot, *sink_changed_slot, *source_changed_slot;
 };
 
-static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_channel_map *ret_map, const char **ret_name, const char **ret_description) {
+static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_channel_map *ret_map, const char **ret_name, const char **ret_description, enum service_subtype *ret_subtype) {
     pa_assert(s);
     pa_assert(ret_ss);
     pa_assert(ret_description);
+    pa_assert(ret_subtype);
 
     if (pa_sink_isinstance(s->device)) {
         pa_sink *sink = PA_SINK(s->device);
@@ -100,6 +115,7 @@ static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_chann
         *ret_map = sink->channel_map;
         *ret_name = sink->name;
         *ret_description = sink->description;
+        *ret_subtype = sink->flags & PA_SINK_HARDWARE ? SUBTYPE_HARDWARE : SUBTYPE_VIRTUAL;
 
     } else if (pa_source_isinstance(s->device)) {
         pa_source *source = PA_SOURCE(s->device);
@@ -108,6 +124,8 @@ static void get_service_data(struct service *s, pa_sample_spec *ret_ss, pa_chann
         *ret_map = source->channel_map;
         *ret_name = source->name;
         *ret_description = source->description;
+        *ret_subtype = source->monitor_of ? SUBTYPE_MONITOR : (source->flags & PA_SOURCE_HARDWARE ? SUBTYPE_HARDWARE : SUBTYPE_VIRTUAL);
+
     } else
         pa_assert_not_reached();
 }
@@ -174,6 +192,13 @@ static int publish_service(struct service *s) {
     pa_sample_spec ss;
     pa_channel_map map;
     char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    enum service_subtype subtype;
+
+    const char * const subtype_text[] = {
+        [SUBTYPE_HARDWARE] = "hardware",
+        [SUBTYPE_VIRTUAL] = "virtual",
+        [SUBTYPE_MONITOR] = "monitor"
+    };
 
     pa_assert(s);
 
@@ -190,12 +215,13 @@ static int publish_service(struct service *s) {
 
     txt = txt_record_server_data(s->userdata->core, txt);
 
-    get_service_data(s, &ss, &map, &name, &description);
+    get_service_data(s, &ss, &map, &name, &description, &subtype);
     txt = avahi_string_list_add_pair(txt, "device", name);
     txt = avahi_string_list_add_printf(txt, "rate=%u", ss.rate);
     txt = avahi_string_list_add_printf(txt, "channels=%u", ss.channels);
     txt = avahi_string_list_add_pair(txt, "format", pa_sample_format_to_string(ss.format));
     txt = avahi_string_list_add_pair(txt, "channel_map", pa_channel_map_snprint(cm, sizeof(cm), &map));
+    txt = avahi_string_list_add_pair(txt, "subtype", subtype_text[subtype]);
 
     if (avahi_entry_group_add_service_strlst(
                 s->entry_group,
@@ -210,6 +236,35 @@ static int publish_service(struct service *s) {
 
         pa_log("avahi_entry_group_add_service_strlst(): %s", avahi_strerror(avahi_client_errno(s->userdata->client)));
         goto finish;
+    }
+
+    if (avahi_entry_group_add_service_subtype(
+                s->entry_group,
+                AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
+                0,
+                s->service_name,
+                pa_sink_isinstance(s->device) ? SERVICE_TYPE_SINK : SERVICE_TYPE_SOURCE,
+                NULL,
+                pa_sink_isinstance(s->device) ? (subtype == SUBTYPE_HARDWARE ? SERVICE_SUBTYPE_SINK_HARDWARE : SERVICE_SUBTYPE_SINK_VIRTUAL) :
+                (subtype == SUBTYPE_HARDWARE ? SERVICE_SUBTYPE_SOURCE_HARDWARE : (subtype == SUBTYPE_VIRTUAL ? SERVICE_SUBTYPE_SOURCE_VIRTUAL : SERVICE_SUBTYPE_SOURCE_MONITOR))) < 0) {
+
+        pa_log("avahi_entry_group_add_service_subtype(): %s", avahi_strerror(avahi_client_errno(s->userdata->client)));
+        goto finish;
+    }
+
+    if (pa_source_isinstance(s->device) && subtype != SUBTYPE_MONITOR) {
+        if (avahi_entry_group_add_service_subtype(
+                    s->entry_group,
+                    AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
+                    0,
+                    s->service_name,
+                    SERVICE_TYPE_SOURCE,
+                    NULL,
+                    SERVICE_SUBTYPE_SOURCE_NON_MONITOR) < 0) {
+
+            pa_log("avahi_entry_group_add_service_subtype(): %s", avahi_strerror(avahi_client_errno(s->userdata->client)));
+            goto finish;
+        }
     }
 
     if (avahi_entry_group_commit(s->entry_group) < 0) {
@@ -468,8 +523,10 @@ static void client_callback(AvahiClient *c, AvahiClientState state, void *userda
                 unpublish_all_services(u, TRUE);
                 avahi_client_free(u->client);
 
-                if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error)))
-                    pa_log("pa_avahi_client_new() failed: %s", avahi_strerror(error));
+                if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
+                    pa_log("avahi_client_new() failed: %s", avahi_strerror(error));
+                    pa_module_unload_request(u->module);
+                }
             }
 
             break;
@@ -487,17 +544,18 @@ int pa__init(pa_module*m) {
     int error;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
-        pa_log("failed to parse module arguments.");
+        pa_log("Failed to parse module arguments.");
         goto fail;
     }
 
     if (pa_modargs_get_value_u32(ma, "port", &port) < 0 || port <= 0 || port > 0xFFFF) {
-        pa_log("invalid port specified.");
+        pa_log("Invalid port specified.");
         goto fail;
     }
 
     m->userdata = u = pa_xnew(struct userdata, 1);
     u->core = m->core;
+    u->module = m;
     u->port = (uint16_t) port;
 
     u->avahi_poll = pa_avahi_poll_new(m->core->mainloop);
@@ -516,7 +574,7 @@ int pa__init(pa_module*m) {
     u->service_name = pa_truncate_utf8(pa_sprintf_malloc("%s@%s", pa_get_user_name(un, sizeof(un)), pa_get_host_name(hn, sizeof(hn))), AVAHI_LABEL_MAX);
 
     if (!(u->client = avahi_client_new(u->avahi_poll, AVAHI_CLIENT_NO_FAIL, client_callback, u, &error))) {
-        pa_log("pa_avahi_client_new() failed: %s", avahi_strerror(error));
+        pa_log("avahi_client_new() failed: %s", avahi_strerror(error));
         goto fail;
     }
 
