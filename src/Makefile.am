@@ -955,9 +955,9 @@ modlibexec_LTLIBRARIES += \
 		module-combine.la \
 		module-remap-sink.la \
 		module-ladspa-sink.la \
-		module-esound-sink.la
-#		module-tunnel-sink.la
-#		module-tunnel-source.la
+		module-esound-sink.la \
+		module-tunnel-sink.la \
+		module-tunnel-source.la
 
 # See comment at librtp.la above
 if !OS_IS_WIN32
@@ -1237,14 +1237,14 @@ module_match_la_SOURCES = modules/module-match.c
 module_match_la_LDFLAGS = -module -avoid-version
 module_match_la_LIBADD = $(AM_LIBADD) libpulsecore.la
 
-#module_tunnel_sink_la_SOURCES = modules/module-tunnel.c
-#module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
-#module_tunnel_sink_la_LDFLAGS = -module -avoid-version
-#module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
+module_tunnel_sink_la_SOURCES = modules/module-tunnel.c
+module_tunnel_sink_la_CFLAGS = -DTUNNEL_SINK=1 $(AM_CFLAGS)
+module_tunnel_sink_la_LDFLAGS = -module -avoid-version
+module_tunnel_sink_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
 
-#module_tunnel_source_la_SOURCES = modules/module-tunnel.c
-#module_tunnel_source_la_LDFLAGS = -module -avoid-version
-#module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
+module_tunnel_source_la_SOURCES = modules/module-tunnel.c
+module_tunnel_source_la_LDFLAGS = -module -avoid-version
+module_tunnel_source_la_LIBADD = $(AM_LIBADD) libpulsecore.la libsocket-client.la libpstream.la libpstream-util.la libpdispatch.la libtagstruct.la libauthkey.la libauthkey-prop.la libsocket-util.la libiochannel.la
 
 # X11
 
