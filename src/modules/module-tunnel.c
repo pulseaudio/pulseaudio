@@ -448,7 +448,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
         if (command == PA_COMMAND_ERROR)
             pa_log("Failed to get latency.");
         else
-            pa_log("Protocol error.");
+            pa_log("Protocol error 1.");
         goto fail;
     }
 
@@ -590,7 +590,7 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
         if (command == PA_COMMAND_ERROR)
             pa_log("Failed to get info.");
         else
-            pa_log("Protocol error.");
+            pa_log("Protocol error 2.");
         goto fail;
     }
 
@@ -695,7 +695,7 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
         if (command == PA_COMMAND_ERROR)
             pa_log("Failed to create stream.");
         else
-            pa_log("Protocol error.");
+            pa_log("Protocol error 3.");
         goto fail;
     }
 
@@ -773,7 +773,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         if (command == PA_COMMAND_ERROR)
             pa_log("Failed to authenticate");
         else
-            pa_log("Protocol error.");
+            pa_log("Protocol error 4.");
 
         goto fail;
     }
@@ -1038,7 +1038,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u = pa_xnew(struct userdata, 1);
+    u = pa_xnew0(struct userdata, 1);
     m->userdata = u;
     u->module = m;
     u->core = m->core;
