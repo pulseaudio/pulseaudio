@@ -575,19 +575,38 @@ static pa_usec_t source_get_latency(pa_source *s) {
 
 static void update_description(struct userdata *u) {
     char *d;
+    char un[128], hn[128];
+    pa_tagstruct *t;
 
     pa_assert(u);
 
     if (!u->server_fqdn || !u->user_name || !u->device_description)
         return;
 
-    d = pa_sprintf_malloc("%s's %s on %s", u->user_name, u->device_description, u->server_fqdn);
+    d = pa_sprintf_malloc("%s on %s@%s", u->device_description, u->user_name, u->server_fqdn);
 
 #ifdef TUNNEL_SINK
     pa_sink_set_description(u->sink, d);
 #else
     pa_source_set_description(u->source, d);
 #endif
+
+    pa_xfree(d);
+
+    d = pa_sprintf_malloc("%s for %s@%s", u->device_description,
+                          pa_get_user_name(un, sizeof(un)),
+                          pa_get_host_name(hn, sizeof(hn)));
+
+    t = pa_tagstruct_new(NULL, 0);
+#ifdef TUNNEL_SINK
+    pa_tagstruct_putu32(t, PA_COMMAND_SET_PLAYBACK_STREAM_NAME);
+#else
+    pa_tagstruct_putu32(t, PA_COMMAND_SET_RECORD_STREAM_NAME);
+#endif
+    pa_tagstruct_putu32(t, u->ctag++);
+    pa_tagstruct_putu32(t, u->channel);
+    pa_tagstruct_puts(t, d);
+    pa_pstream_send_tagstruct(u->pstream, t);
 
     pa_xfree(d);
 }
@@ -989,15 +1008,15 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     }
 
 #ifdef TUNNEL_SINK
-    pa_snprintf(name, sizeof(name), "%s@%s",
-             pa_get_user_name(un, sizeof(un)),
-             pa_get_host_name(hn, sizeof(hn)),
-             u->sink->name);
+    pa_snprintf(name, sizeof(name), "%s for %s@%s",
+                u->sink_name,
+                pa_get_user_name(un, sizeof(un)),
+                pa_get_host_name(hn, sizeof(hn)));
 #else
-    pa_snprintf(name, sizeof(name), "%s@%s",
-             pa_get_user_name(un, sizeof(un)),
-             pa_get_host_name(hn, sizeof(hn)),
-             u->source->name);
+    pa_snprintf(name, sizeof(name), "%s for %s@%s",
+                u->source_name,
+                pa_get_user_name(un, sizeof(un)),
+                pa_get_host_name(hn, sizeof(hn)));
 #endif
 
     reply = pa_tagstruct_new(NULL, 0);
