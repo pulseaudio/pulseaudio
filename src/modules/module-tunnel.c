@@ -123,8 +123,8 @@ enum {
 
 #ifdef TUNNEL_SINK
 static void command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
-static void command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 #endif
+static void command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_overflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_underflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
@@ -132,8 +132,8 @@ static void command_underflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
 #ifdef TUNNEL_SINK
     [PA_COMMAND_REQUEST] = command_request,
-    [PA_COMMAND_SUBSCRIBE_EVENT] = command_subscribe_event,
 #endif
+    [PA_COMMAND_SUBSCRIBE_EVENT] = command_subscribe_event,
     [PA_COMMAND_OVERFLOW] = command_overflow,
     [PA_COMMAND_UNDERFLOW] = command_underflow,
     [PA_COMMAND_PLAYBACK_STREAM_KILLED] = command_stream_killed,
@@ -176,6 +176,10 @@ struct userdata {
     pa_bool_t auth_cookie_in_property;
 
     pa_smoother *smoother;
+
+    char *device_description;
+    char *server_fqdn;
+    char *user_name;
 
     uint32_t maxlength;
 #ifdef TUNNEL_SINK
@@ -414,8 +418,7 @@ static void command_request(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED ui
     pa_assert(u->pdispatch == pd);
 
     if (pa_tagstruct_getu32(t, &channel) < 0 ||
-        pa_tagstruct_getu32(t, &bytes) < 0 ||
-        !pa_tagstruct_eof(t)) {
+        pa_tagstruct_getu32(t, &bytes) < 0) {
         pa_log("Invalid protocol reply");
         goto fail;
     }
@@ -458,8 +461,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, PA_G
         pa_tagstruct_get_timeval(t, &local) < 0 ||
         pa_tagstruct_get_timeval(t, &remote) < 0 ||
         pa_tagstruct_gets64(t, &write_index) < 0 ||
-        pa_tagstruct_gets64(t, &read_index) < 0 ||
-        !pa_tagstruct_eof(t)) {
+        pa_tagstruct_gets64(t, &read_index) < 0) {
         pa_log("Invalid reply. (latency)");
         goto fail;
     }
@@ -571,7 +573,118 @@ static pa_usec_t source_get_latency(pa_source *s) {
 }
 #endif
 
+static void update_description(struct userdata *u) {
+    char *d;
+
+    pa_assert(u);
+
+    if (!u->server_fqdn || !u->user_name || !u->device_description)
+        return;
+
+    d = pa_sprintf_malloc("%s's %s on %s", u->user_name, u->device_description, u->server_fqdn);
+
 #ifdef TUNNEL_SINK
+    pa_sink_set_description(u->sink, d);
+#else
+    pa_source_set_description(u->source, d);
+#endif
+
+    pa_xfree(d);
+}
+
+static void server_info_cb(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    struct userdata *u = userdata;
+    pa_sample_spec ss;
+    const char *server_name, *server_version, *user_name, *host_name, *default_sink_name, *default_source_name;
+    uint32_t cookie;
+
+    pa_assert(pd);
+    pa_assert(u);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (command == PA_COMMAND_ERROR)
+            pa_log("Failed to get info.");
+        else
+            pa_log("Protocol error 6.");
+        goto fail;
+    }
+
+    if (pa_tagstruct_gets(t, &server_name) < 0 ||
+        pa_tagstruct_gets(t, &server_version) < 0 ||
+        pa_tagstruct_gets(t, &user_name) < 0 ||
+        pa_tagstruct_gets(t, &host_name) < 0 ||
+        pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
+        pa_tagstruct_gets(t, &default_sink_name) < 0 ||
+        pa_tagstruct_gets(t, &default_source_name) < 0 ||
+        pa_tagstruct_getu32(t, &cookie) < 0) {
+        pa_log("Invalid reply. (get_server_info)");
+        goto fail;
+    }
+
+    pa_xfree(u->server_fqdn);
+    u->server_fqdn = pa_xstrdup(host_name);
+
+    pa_xfree(u->user_name);
+    u->user_name = pa_xstrdup(user_name);
+
+    update_description(u);
+
+    return;
+
+fail:
+    pa_module_unload_request(u->module);
+}
+
+#ifdef TUNNEL_SINK
+
+static void sink_info_cb(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    struct userdata *u = userdata;
+    uint32_t idx, owner_module, monitor_source, flags;
+    const char *name, *description, *monitor_source_name, *driver;
+    pa_sample_spec ss;
+    pa_channel_map cm;
+    pa_cvolume volume;
+    int mute;
+    pa_usec_t latency;
+
+    pa_assert(pd);
+    pa_assert(u);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (command == PA_COMMAND_ERROR)
+            pa_log("Failed to get info.");
+        else
+            pa_log("Protocol error 5.");
+        goto fail;
+    }
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_gets(t, &description) < 0 ||
+        pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
+        pa_tagstruct_get_channel_map(t, &cm) < 0 ||
+        pa_tagstruct_getu32(t, &owner_module) < 0 ||
+        pa_tagstruct_get_cvolume(t, &volume) < 0 ||
+        pa_tagstruct_get_boolean(t, &mute) < 0 ||
+        pa_tagstruct_getu32(t, &monitor_source) < 0 ||
+        pa_tagstruct_gets(t, &monitor_source_name) < 0 ||
+        pa_tagstruct_get_usec(t, &latency) < 0 ||
+        pa_tagstruct_gets(t, &driver) < 0 ||
+        pa_tagstruct_getu32(t, &flags) < 0) {
+        pa_log("Invalid reply. (get_sink_info)");
+        goto fail;
+    }
+
+    pa_xfree(u->device_description);
+    u->device_description = pa_xstrdup(description);
+
+    update_description(u);
+
+    return;
+
+fail:
+    pa_module_unload_request(u->module);
+}
 
 static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
@@ -606,11 +719,13 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
         pa_tagstruct_get_usec(t, &sink_usec) < 0 ||
         pa_tagstruct_gets(t, &resample_method) < 0 ||
         pa_tagstruct_gets(t, &driver) < 0 ||
-        (u->version >= 11 && pa_tagstruct_get_boolean(t, &mute) < 0) ||
-        !pa_tagstruct_eof(t)) {
+        (u->version >= 11 && pa_tagstruct_get_boolean(t, &mute) < 0)) {
         pa_log("Invalid reply. (get_info)");
         goto fail;
     }
+
+    if (idx != u->device_index)
+        return;
 
     pa_assert(u->sink);
 
@@ -630,17 +745,94 @@ fail:
     pa_module_unload_request(u->module);
 }
 
+#else
+
+static void source_info_cb(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    struct userdata *u = userdata;
+    uint32_t idx, owner_module, monitor_of_sink, flags;
+    const char *name, *description, *monitor_of_sink_name, *driver;
+    pa_sample_spec ss;
+    pa_channel_map cm;
+    pa_cvolume volume;
+    int mute;
+    pa_usec_t latency;
+
+    pa_assert(pd);
+    pa_assert(u);
+
+    if (command != PA_COMMAND_REPLY) {
+        if (command == PA_COMMAND_ERROR)
+            pa_log("Failed to get info.");
+        else
+            pa_log("Protocol error 5.");
+        goto fail;
+    }
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_gets(t, &description) < 0 ||
+        pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
+        pa_tagstruct_get_channel_map(t, &cm) < 0 ||
+        pa_tagstruct_getu32(t, &owner_module) < 0 ||
+        pa_tagstruct_get_cvolume(t, &volume) < 0 ||
+        pa_tagstruct_get_boolean(t, &mute) < 0 ||
+        pa_tagstruct_getu32(t, &monitor_of_sink) < 0 ||
+        pa_tagstruct_gets(t, &monitor_of_sink_name) < 0 ||
+        pa_tagstruct_get_usec(t, &latency) < 0 ||
+        pa_tagstruct_gets(t, &driver) < 0 ||
+        pa_tagstruct_getu32(t, &flags) < 0) {
+        pa_log("Invalid reply. (get_source_info)");
+        goto fail;
+    }
+
+    pa_xfree(u->device_description);
+    u->device_description = pa_xstrdup(description);
+
+    update_description(u);
+
+    return;
+
+fail:
+    pa_module_unload_request(u->module);
+}
+
+#endif
+
 static void request_info(struct userdata *u) {
     pa_tagstruct *t;
     uint32_t tag;
     pa_assert(u);
 
     t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_SERVER_INFO);
+    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_pstream_send_tagstruct(u->pstream, t);
+    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, server_info_cb, u, NULL);
+
+#ifdef TUNNEL_SINK
+    t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INPUT_INFO);
     pa_tagstruct_putu32(t, tag = u->ctag++);
     pa_tagstruct_putu32(t, u->device_index);
     pa_pstream_send_tagstruct(u->pstream, t);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, sink_input_info_cb, u, NULL);
+
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_SINK_INFO);
+    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
+    pa_tagstruct_puts(t, u->sink_name);
+    pa_pstream_send_tagstruct(u->pstream, t);
+    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, sink_info_cb, u, NULL);
+#else
+    t = pa_tagstruct_new(NULL, 0);
+    pa_tagstruct_putu32(t, PA_COMMAND_GET_SOURCE_INFO);
+    pa_tagstruct_putu32(t, tag = u->ctag++);
+    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
+    pa_tagstruct_puts(t, u->source_name);
+    pa_pstream_send_tagstruct(u->pstream, t);
+    pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, source_info_cb, u, NULL);
+#endif
 }
 
 static void command_subscribe_event(pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -654,14 +846,20 @@ static void command_subscribe_event(pa_pdispatch *pd, PA_GCC_UNUSED uint32_t com
     pa_assert(command == PA_COMMAND_SUBSCRIBE_EVENT);
 
     if (pa_tagstruct_getu32(t, &e) < 0 ||
-        pa_tagstruct_getu32(t, &idx) < 0 ||
-        !pa_tagstruct_eof(t)) {
+        pa_tagstruct_getu32(t, &idx) < 0) {
         pa_log("Invalid protocol reply");
         pa_module_unload_request(u->module);
         return;
     }
 
-    if (e != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE))
+    if (e != (PA_SUBSCRIPTION_EVENT_SERVER|PA_SUBSCRIPTION_EVENT_CHANGE) &&
+#ifdef TUNNEL_SINK
+        e != (PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE) &&
+        e != (PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE)
+#else
+        e != (PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE)
+#endif
+        )
         return;
 
     request_info(u);
@@ -675,10 +873,16 @@ static void start_subscribe(struct userdata *u) {
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE);
     pa_tagstruct_putu32(t, tag = u->ctag++);
-    pa_tagstruct_putu32(t, PA_SUBSCRIPTION_MASK_SINK_INPUT);
+    pa_tagstruct_putu32(t, PA_SUBSCRIPTION_MASK_SERVER|
+#ifdef TUNNEL_SINK
+                        PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SINK
+#else
+                        PA_SUBSCRIPTION_MASK_SOURCE
+#endif
+                        );
+
     pa_pstream_send_tagstruct(u->pstream, t);
 }
-#endif
 
 static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
     struct userdata *u = userdata;
@@ -725,13 +929,8 @@ static void create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UN
 #endif
     }
 
-    if (!pa_tagstruct_eof(t))
-        goto parse_error;
-
-#ifdef TUNNEL_SINK
     start_subscribe(u);
     request_info(u);
-#endif
 
     pa_assert(!u->time_event);
     pa_gettimeofday(&ntv);
@@ -768,8 +967,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_assert(u->pdispatch == pd);
 
     if (command != PA_COMMAND_REPLY ||
-        pa_tagstruct_getu32(t, &u->version) < 0 ||
-        !pa_tagstruct_eof(t)) {
+        pa_tagstruct_getu32(t, &u->version) < 0) {
         if (command == PA_COMMAND_ERROR)
             pa_log("Failed to authenticate");
         else
@@ -785,21 +983,21 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     }
 
 #ifdef TUNNEL_SINK
-    pa_snprintf(name, sizeof(name), "Tunnel from host %s, user %s, sink %s",
-             pa_get_host_name(hn, sizeof(hn)),
+    pa_snprintf(name, sizeof(name), "%s@%s",
              pa_get_user_name(un, sizeof(un)),
+             pa_get_host_name(hn, sizeof(hn)),
              u->sink->name);
 #else
-    pa_snprintf(name, sizeof(name), "Tunnel from host %s, user %s, source %s",
-             pa_get_host_name(hn, sizeof(hn)),
+    pa_snprintf(name, sizeof(name), "%s@%s",
              pa_get_user_name(un, sizeof(un)),
+             pa_get_host_name(hn, sizeof(hn)),
              u->source->name);
 #endif
 
     reply = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(reply, PA_COMMAND_SET_CLIENT_NAME);
     pa_tagstruct_putu32(reply, tag = u->ctag++);
-    pa_tagstruct_puts(reply, name);
+    pa_tagstruct_puts(reply, "PulseAudio");
     pa_pstream_send_tagstruct(u->pstream, reply);
     /* We ignore the server's reply here */
 
@@ -1004,7 +1202,7 @@ static int load_key(struct userdata *u, const char*fn) {
     u->auth_cookie_in_property = FALSE;
 
     if (!fn && pa_authkey_prop_get(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0) {
-        pa_log_debug("using already loaded auth cookie.");
+        pa_log_debug("Using already loaded auth cookie.");
         pa_authkey_prop_ref(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME);
         u->auth_cookie_in_property = 1;
         return 0;
@@ -1016,7 +1214,7 @@ static int load_key(struct userdata *u, const char*fn) {
     if (pa_authkey_load_auto(fn, u->auth_cookie, sizeof(u->auth_cookie)) < 0)
         return -1;
 
-    pa_log_debug("loading cookie from disk.");
+    pa_log_debug("Loading cookie from disk.");
 
     if (pa_authkey_prop_put(u->core, PA_NATIVE_COOKIE_PROPERTY_NAME, u->auth_cookie, sizeof(u->auth_cookie)) >= 0)
         u->auth_cookie_in_property = TRUE;
@@ -1108,7 +1306,7 @@ int pa__init(pa_module*m) {
     pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("Tunnel to %s%s%s", u->sink_name ? u->sink_name : "", u->sink_name ? " on " : "", u->server_name));
+    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("%s%s%s", u->sink_name ? u->sink_name : "", u->sink_name ? " on " : "", u->server_name));
     pa_xfree(t);
 
 #else
@@ -1130,7 +1328,7 @@ int pa__init(pa_module*m) {
     pa_source_set_module(u->source, m);
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
-    pa_source_set_description(u->source, t = pa_sprintf_malloc("Tunnel to %s%s%s", u->source_name ? u->source_name : "", u->source_name ? " on " : "", u->server_name));
+    pa_source_set_description(u->source, t = pa_sprintf_malloc("%s%s%s", u->source_name ? u->source_name : "", u->source_name ? " on " : "", u->server_name));
     pa_xfree(t);
 #endif
 
@@ -1236,6 +1434,10 @@ void pa__done(pa_module*m) {
     pa_xfree(u->source_name);
 #endif
     pa_xfree(u->server_name);
+
+    pa_xfree(u->device_description);
+    pa_xfree(u->server_fqdn);
+    pa_xfree(u->user_name);
 
     pa_xfree(u);
 }
