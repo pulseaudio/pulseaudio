@@ -67,10 +67,16 @@ static pa_io_event* io_event = NULL;
 static pa_signal_event *signals = NULL;
 
 static void signal_handler(int sig) {
+    int saved_errno;
+
+    saved_errno = errno;
+
 #ifndef HAVE_SIGACTION
     signal(sig, signal_handler);
 #endif
     pa_write(signal_pipe[1], &sig, sizeof(sig), NULL);
+
+    errno = saved_errno;
 }
 
 static void dispatch(pa_mainloop_api*a, int sig) {
