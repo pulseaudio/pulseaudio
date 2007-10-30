@@ -675,6 +675,9 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint3
         goto fail;
     }
 
+    if (strcmp(name, u->sink_name))
+        return;
+
     pa_xfree(u->device_description);
     u->device_description = pa_xstrdup(description);
 
@@ -784,6 +787,9 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uin
         pa_log("Invalid reply. (get_source_info)");
         goto fail;
     }
+
+    if (strcmp(name, u->source_name))
+        return;
 
     pa_xfree(u->device_description);
     u->device_description = pa_xstrdup(description);
