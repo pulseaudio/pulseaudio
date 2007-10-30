@@ -271,7 +271,7 @@ typedef struct pa_stream pa_stream;
 typedef void (*pa_stream_success_cb_t) (pa_stream*s, int success, void *userdata);
 
 /** A generic request callback */
-typedef void (*pa_stream_request_cb_t)(pa_stream *p, size_t length, void *userdata);
+typedef void (*pa_stream_request_cb_t)(pa_stream *p, size_t bytes, void *userdata);
 
 /** A generic notification callback */
 typedef void (*pa_stream_notify_cb_t)(pa_stream *p, void *userdata);
@@ -327,7 +327,7 @@ int pa_stream_disconnect(pa_stream *s);
 int pa_stream_write(
         pa_stream *p             /**< The stream to use */,
         const void *data         /**< The data to write */,
-        size_t length            /**< The length of the data to write */,
+        size_t bytes             /**< The length of the data to write in bytes*/,
         pa_free_cb_t free_cb     /**< A cleanup routine for the data or NULL to request an internal copy */,
         int64_t offset,          /**< Offset for seeking, must be 0 for upload streams */
         pa_seek_mode_t seek      /**< Seek mode, must be PA_SEEK_RELATIVE for upload streams */);
@@ -340,16 +340,16 @@ int pa_stream_write(
 int pa_stream_peek(
         pa_stream *p                 /**< The stream to use */,
         const void **data            /**< Pointer to pointer that will point to data */,
-        size_t *length              /**< The length of the data read */);
+        size_t *bytes                /**< The length of the data read in bytes */);
 
 /** Remove the current fragment on record streams. It is invalid to do this without first
  * calling pa_stream_peek(). \since 0.8 */
 int pa_stream_drop(pa_stream *p);
 
-/** Return the nember of bytes that may be written using pa_stream_write() */
+/** Return the nember of bytes that may be written using pa_stream_write(), in bytes */
 size_t pa_stream_writable_size(pa_stream *p);
 
-/** Return the number of bytes that may be read using pa_stream_read() \since 0.8 */
+/** Return the number of bytes that may be read using pa_stream_read(), in bytes \since 0.8 */
 size_t pa_stream_readable_size(pa_stream *p);
 
 /** Drain a playback stream. Use this for notification when the buffer is empty */
