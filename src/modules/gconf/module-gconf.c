@@ -365,6 +365,8 @@ static int start_client(const char *n, pid_t *pid) {
         int max_fd, i;
         /* child */
 
+        pa_reset_priority();
+
         close(pipe_fds[0]);
         dup2(pipe_fds[1], 1);
 
