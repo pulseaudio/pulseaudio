@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sched.h>
 
 #include <pulse/xmalloc.h>
 
@@ -53,10 +54,13 @@
 
 static const pa_daemon_conf default_conf = {
     .cmd = PA_CMD_DAEMON,
-    .daemonize = 0,
-    .fail = 1,
-    .high_priority = 0,
-    .disallow_module_loading = 0,
+    .daemonize = FALSE,
+    .fail = TRUE,
+    .high_priority = TRUE,
+    .nice_level = -11,
+    .realtime_scheduling = FALSE,
+    .realtime_priority = 5,  /* Half of JACK's default rtprio */
+    .disallow_module_loading = FALSE,
     .exit_idle_time = -1,
     .module_idle_time = 20,
     .scache_idle_time = 20,
@@ -68,25 +72,31 @@ static const pa_daemon_conf default_conf = {
     .log_level = PA_LOG_NOTICE,
     .resample_method = PA_RESAMPLER_AUTO,
     .config_file = NULL,
-    .use_pid_file = 1,
-    .system_instance = 0,
-    .no_cpu_limit = 0,
-    .disable_shm = 0,
+    .use_pid_file = TRUE,
+    .system_instance = FALSE,
+    .no_cpu_limit = FALSE,
+    .disable_shm = FALSE,
     .default_n_fragments = 4,
     .default_fragment_size_msec = 25,
     .default_sample_spec = { .format = PA_SAMPLE_S16NE, .rate = 44100, .channels = 2 }
 #ifdef HAVE_SYS_RESOURCE_H
-    , .rlimit_as = { .value = 0, .is_set = 0 },
-    .rlimit_core = { .value = 0, .is_set = 0 },
-    .rlimit_data = { .value = 0, .is_set = 0 },
-    .rlimit_fsize = { .value = 0, .is_set = 0 },
-    .rlimit_nofile = { .value = 256, .is_set = 1 },
-    .rlimit_stack = { .value = 0, .is_set = 0 }
+    , .rlimit_as = { .value = 0, .is_set = FALSE },
+    .rlimit_core = { .value = 0, .is_set = FALSE },
+    .rlimit_data = { .value = 0, .is_set = FALSE },
+    .rlimit_fsize = { .value = 0, .is_set = FALSE },
+    .rlimit_nofile = { .value = 256, .is_set = TRUE },
+    .rlimit_stack = { .value = 0, .is_set = FALSE }
 #ifdef RLIMIT_NPROC
-    , .rlimit_nproc = { .value = 0, .is_set = 0 }
+    , .rlimit_nproc = { .value = 0, .is_set = FALSE }
 #endif
 #ifdef RLIMIT_MEMLOCK
-    , .rlimit_memlock = { .value = 16384, .is_set = 1 }
+    , .rlimit_memlock = { .value = 16384, .is_set = TRUE }
+#endif
+#ifdef RLIMIT_NICE
+    , .rlimit_nice = { .value = 31, .is_set = TRUE }     /* nice level of -11 */
+#endif
+#ifdef RLIMIT_RTPRIO
+    , .rlimit_rtprio = { .value = 9, .is_set = TRUE }      /* One below JACK's default for the server */
 #endif
 #endif
 };
@@ -334,6 +344,42 @@ static int parse_fragment_size_msec(const char *filename, unsigned line, const c
     return 0;
 }
 
+static int parse_nice_level(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+    pa_daemon_conf *c = data;
+    int32_t level;
+
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
+
+    if (pa_atoi(rvalue, &level) < 0 || level < -20 || level > 19) {
+        pa_log("[%s:%u] Invalid nice level '%s'.", filename, line, rvalue);
+        return -1;
+    }
+
+    c->nice_level = (int) level;
+    return 0;
+}
+
+static int parse_rtprio(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
+    pa_daemon_conf *c = data;
+    int32_t rtprio;
+
+    pa_assert(filename);
+    pa_assert(lvalue);
+    pa_assert(rvalue);
+    pa_assert(data);
+
+    if (pa_atoi(rvalue, &rtprio) < 0 || rtprio < sched_get_priority_min(SCHED_FIFO) || rtprio > sched_get_priority_max(SCHED_FIFO)) {
+        pa_log("[%s:%u] Invalid realtime priority '%s'.", filename, line, rvalue);
+        return -1;
+    }
+
+    c->realtime_priority = (int) rtprio;
+    return 0;
+}
+
 int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     int r = -1;
     FILE *f = NULL;
@@ -342,25 +388,28 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "daemonize",                  pa_config_parse_bool,     NULL },
         { "fail",                       pa_config_parse_bool,     NULL },
         { "high-priority",              pa_config_parse_bool,     NULL },
+        { "realtime-scheduling",        pa_config_parse_bool,     NULL },
         { "disallow-module-loading",    pa_config_parse_bool,     NULL },
+        { "use-pid-file",               pa_config_parse_bool,     NULL },
+        { "system-instance",            pa_config_parse_bool,     NULL },
+        { "no-cpu-limit",               pa_config_parse_bool,     NULL },
+        { "disable-shm",                pa_config_parse_bool,     NULL },
         { "exit-idle-time",             pa_config_parse_int,      NULL },
         { "module-idle-time",           pa_config_parse_int,      NULL },
         { "scache-idle-time",           pa_config_parse_int,      NULL },
+        { "realtime-priority",          parse_rtprio,             NULL },
         { "dl-search-path",             pa_config_parse_string,   NULL },
         { "default-script-file",        pa_config_parse_string,   NULL },
         { "log-target",                 parse_log_target,         NULL },
         { "log-level",                  parse_log_level,          NULL },
         { "verbose",                    parse_log_level,          NULL },
         { "resample-method",            parse_resample_method,    NULL },
-        { "use-pid-file",               pa_config_parse_bool,     NULL },
-        { "system-instance",            pa_config_parse_bool,     NULL },
-        { "no-cpu-limit",               pa_config_parse_bool,     NULL },
-        { "disable-shm",                pa_config_parse_bool,     NULL },
         { "default-sample-format",      parse_sample_format,      NULL },
         { "default-sample-rate",        parse_sample_rate,        NULL },
         { "default-sample-channels",    parse_sample_channels,    NULL },
         { "default-fragments",          parse_fragments,          NULL },
         { "default-fragment-size-msec", parse_fragment_size_msec, NULL },
+        { "nice-level",                 parse_nice_level,         NULL },
 #ifdef HAVE_SYS_RESOURCE_H
         { "rlimit-as",                  parse_rlimit,             NULL },
         { "rlimit-core",                parse_rlimit,             NULL },
@@ -374,6 +423,12 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
 #ifdef RLIMIT_MEMLOCK
         { "rlimit-memlock",             parse_rlimit,             NULL },
 #endif
+#ifdef RLIMIT_NICE
+        { "rlimit-nice",                parse_rlimit,             NULL },
+#endif
+#ifdef RLIMIT_RTPRIO
+        { "rlimit-rtprio",              parse_rlimit,             NULL },
+#endif
 #endif
         { NULL,                         NULL,                     NULL },
     };
@@ -381,40 +436,55 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[0].data = &c->daemonize;
     table[1].data = &c->fail;
     table[2].data = &c->high_priority;
-    table[3].data = &c->disallow_module_loading;
-    table[4].data = &c->exit_idle_time;
-    table[5].data = &c->module_idle_time;
-    table[6].data = &c->scache_idle_time;
-    table[7].data = &c->dl_search_path;
-    table[8].data = &c->default_script_file;
-    table[9].data = c;
-    table[10].data = c;
-    table[11].data = c;
+    table[3].data = &c->realtime_scheduling;
+    table[4].data = &c->disallow_module_loading;
+    table[5].data = &c->use_pid_file;
+    table[6].data = &c->system_instance;
+    table[7].data = &c->no_cpu_limit;
+    table[8].data = &c->disable_shm;
+    table[9].data = &c->exit_idle_time;
+    table[10].data = &c->module_idle_time;
+    table[11].data = &c->scache_idle_time;
     table[12].data = c;
-    table[13].data = &c->use_pid_file;
-    table[14].data = &c->system_instance;
-    table[15].data = &c->no_cpu_limit;
-    table[16].data = &c->disable_shm;
+    table[13].data = &c->dl_search_path;
+    table[14].data = &c->default_script_file;
+    table[15].data = c;
+    table[16].data = c;
     table[17].data = c;
     table[18].data = c;
     table[19].data = c;
     table[20].data = c;
     table[21].data = c;
+    table[22].data = c;
+    table[23].data = c;
+    table[24].data = c;
 #ifdef HAVE_SYS_RESOURCE_H
-    table[22].data = &c->rlimit_as;
-    table[23].data = &c->rlimit_core;
-    table[24].data = &c->rlimit_data;
-    table[25].data = &c->rlimit_fsize;
-    table[26].data = &c->rlimit_nofile;
-    table[27].data = &c->rlimit_stack;
+    table[25].data = &c->rlimit_as;
+    table[26].data = &c->rlimit_core;
+    table[27].data = &c->rlimit_data;
+    table[28].data = &c->rlimit_fsize;
+    table[29].data = &c->rlimit_nofile;
+    table[30].data = &c->rlimit_stack;
 #ifdef RLIMIT_NPROC
-    table[28].data = &c->rlimit_nproc;
+    table[31].data = &c->rlimit_nproc;
 #endif
 #ifdef RLIMIT_MEMLOCK
 #ifndef RLIMIT_NPROC
 #error "Houston, we have a numbering problem!"
 #endif
-    table[29].data = &c->rlimit_memlock;
+    table[32].data = &c->rlimit_memlock;
+#endif
+#ifdef RLIMIT_NICE
+#ifndef RLIMIT_MEMLOCK
+#error "Houston, we have a numbering problem!"
+#endif
+    table[33].data = &c->rlimit_nice;
+#endif
+#ifdef RLIMIT_RTPRIO
+#ifndef RLIMIT_NICE
+#error "Houston, we have a numbering problem!"
+#endif
+    table[34].data = &c->rlimit_rtprio;
 #endif
 #endif
 
@@ -474,10 +544,17 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
 
     pa_assert(c->log_level <= PA_LOG_LEVEL_MAX);
 
-    pa_strbuf_printf(s, "daemonize = %i\n", !!c->daemonize);
-    pa_strbuf_printf(s, "fail = %i\n", !!c->fail);
-    pa_strbuf_printf(s, "high-priority = %i\n", !!c->high_priority);
-    pa_strbuf_printf(s, "disallow-module-loading = %i\n", !!c->disallow_module_loading);
+    pa_strbuf_printf(s, "daemonize = %s\n", pa_yes_no(c->daemonize));
+    pa_strbuf_printf(s, "fail = %s\n", pa_yes_no(c->fail));
+    pa_strbuf_printf(s, "high-priority = %s\n", pa_yes_no(c->high_priority));
+    pa_strbuf_printf(s, "nice-level = %i\n", c->nice_level);
+    pa_strbuf_printf(s, "realtime-scheduling = %s\n", pa_yes_no(c->realtime_scheduling));
+    pa_strbuf_printf(s, "realtime-priority = %i\n", c->realtime_priority);
+    pa_strbuf_printf(s, "disallow-module-loading = %s\n", pa_yes_no(c->disallow_module_loading));
+    pa_strbuf_printf(s, "use-pid-file = %s\n", pa_yes_no(c->use_pid_file));
+    pa_strbuf_printf(s, "system-instance = %s\n", pa_yes_no(c->system_instance));
+    pa_strbuf_printf(s, "no-cpu-limit = %s\n", pa_yes_no(c->no_cpu_limit));
+    pa_strbuf_printf(s, "disable-shm = %s\n", pa_yes_no(c->disable_shm));
     pa_strbuf_printf(s, "exit-idle-time = %i\n", c->exit_idle_time);
     pa_strbuf_printf(s, "module-idle-time = %i\n", c->module_idle_time);
     pa_strbuf_printf(s, "scache-idle-time = %i\n", c->scache_idle_time);
@@ -486,10 +563,6 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "log-target = %s\n", c->auto_log_target ? "auto" : (c->log_target == PA_LOG_SYSLOG ? "syslog" : "stderr"));
     pa_strbuf_printf(s, "log-level = %s\n", log_level_to_string[c->log_level]);
     pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
-    pa_strbuf_printf(s, "use-pid-file = %i\n", c->use_pid_file);
-    pa_strbuf_printf(s, "system-instance = %i\n", !!c->system_instance);
-    pa_strbuf_printf(s, "no-cpu-limit = %i\n", !!c->no_cpu_limit);
-    pa_strbuf_printf(s, "disable-shm = %i\n", !!c->disable_shm);
     pa_strbuf_printf(s, "default-sample-format = %s\n", pa_sample_format_to_string(c->default_sample_spec.format));
     pa_strbuf_printf(s, "default-sample-rate = %u\n", c->default_sample_spec.rate);
     pa_strbuf_printf(s, "default-sample-channels = %u\n", c->default_sample_spec.channels);
@@ -507,6 +580,12 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
 #endif
 #ifdef RLIMIT_MEMLOCK
     pa_strbuf_printf(s, "rlimit-memlock = %li\n", c->rlimit_memlock.is_set ? (long int) c->rlimit_memlock.value : -1);
+#endif
+#ifdef RLIMIT_NICE
+    pa_strbuf_printf(s, "rlimit-nice = %li\n", c->rlimit_memlock.is_set ? (long int) c->rlimit_nice.value : -1);
+#endif
+#ifdef RLIMIT_RTPRIO
+    pa_strbuf_printf(s, "rlimit-rtprio = %li\n", c->rlimit_memlock.is_set ? (long int) c->rlimit_rtprio.value : -1);
 #endif
 #endif
 

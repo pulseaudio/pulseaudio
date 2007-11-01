@@ -26,6 +26,7 @@
 ***/
 
 #include <pulsecore/log.h>
+#include <pulsecore/macro.h>
 #include <pulse/sample.h>
 
 #ifdef HAVE_SYS_RESOURCE_H
@@ -48,29 +49,32 @@ typedef enum pa_daemon_conf_cmd {
 #ifdef HAVE_SYS_RESOURCE_H
 typedef struct pa_rlimit {
     rlim_t value;
-    int is_set;
+    pa_bool_t is_set;
 } pa_rlimit;
 #endif
 
 /* A structure containing configuration data for the PulseAudio server . */
 typedef struct pa_daemon_conf {
     pa_daemon_conf_cmd_t cmd;
-    int daemonize,
+    pa_bool_t daemonize,
         fail,
         high_priority,
+        realtime_scheduling,
         disallow_module_loading,
-        exit_idle_time,
-        module_idle_time,
-        scache_idle_time,
-        auto_log_target,
         use_pid_file,
         system_instance,
         no_cpu_limit,
         disable_shm;
+    int exit_idle_time,
+        module_idle_time,
+        scache_idle_time,
+        auto_log_target,
+        realtime_priority,
+        nice_level,
+        resample_method;
     char *script_commands, *dl_search_path, *default_script_file;
     pa_log_target_t log_target;
     pa_log_level_t log_level;
-    int resample_method;
     char *config_file;
 
 #ifdef HAVE_SYS_RESOURCE_H
@@ -80,6 +84,12 @@ typedef struct pa_daemon_conf {
 #endif
 #ifdef RLIMIT_MEMLOCK
     pa_rlimit rlimit_memlock;
+#endif
+#ifdef RLIMIT_NICE
+    pa_rlimit rlimit_nice;
+#endif
+#ifdef RLIMIT_RTPRIO
+    pa_rlimit rlimit_rtprio;
 #endif
 #endif
 

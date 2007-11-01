@@ -20,42 +20,58 @@
 ## Configuration file for the pulseaudio daemon. Default values are
 ## commented out.  Use either ; or # for commenting
 
-# Extra verbositiy
-; verbose = 0
-
 ## Daemonize after startup
-; daemonize = 0
+; daemonize = no
 
 ## Quit if startup fails
-; fail = 1
+; fail = yes
 
-## Renice the daemon to level -15 and try to get SCHED_FIFO
-## scheduling. This a good idea if you hear annyoing noise in the
-## playback. However, this is a certain security issue, since it works 
-## when called SUID root only. root is dropped immediately after gaining
-## the nice level and SCHED_FIFO scheduling on startup.
-; high-priority = 0
+## Renice the daemon to level -15. This a good idea if you experience
+## drop-outs in the playback. However, this is a certain security
+## issue, since it works when called SUID root only. root is dropped
+## immediately after gaining the nice level on startup, thus it is
+## presumably safe.
+; high-priority = yes
+
+## Try to acquire SCHED_FIFO scheduling for the IO threads. The same
+## security concerns as mentioned above apply. However, if PA enters
+## an endless loop, realtime scheduling causes a system lockup. Thus,
+## realtime scheduling should only be enabled on trusted machines for
+## now. Please not that only the IO threads of PulseAudio are made
+## real-time. The controlling thread is left a normally scheduled
+## thread. Thus the enabling the high-priority option is orthogonal.
+; realtime-scheduling = no
+
+## The realtime priority to acquire, if realtime-scheduling is
+## enabled. (Note: JACK uses 10 by default, 9 for clients -- some
+## PulseAudio threads might choose a priority a little lower or higher
+## than this value.)
+; realtime-priority = 5
+
+## The nice level to acquire for the daemon, if high-priority is
+## enabled. (Note: on some distributions X11 uses -10 by default.)
+; nice-level = -11
 
 ## Disallow module loading after startup
-; disallow-module-loading = 0
+; disallow-module-loading = no
 
 ## Terminate the daemon after the last client quit and this time
 ## passed. Use a negative value to disable this feature.
 ; exit-idle-time = -1
 
-## Unload autoloaded modules after being idle for this time 
+## Unload autoloaded modules after being idle for this time
 ; module-idle-time = 20
 
-## Unload autoloaded sample cache entries after being idle for this time 
+## Unload autoloaded sample cache entries after being idle for this time
 ; scache-idle-time = 20
 
 ## The path were to look for dynamic shared objects (DSOs aka
 ## plugins).  You may specify more than one path seperated by
-## colons. 
+## colons.
 ; dl-search-path = @PA_DLSEARCHPATH@
 
 ## The default script file to load. Specify an empty string for not
-## loading a default script file. The 
+## loading a default script file. The
 ; default-script-file = @PA_DEFAULT_CONFIG_FILE@
 
 ## The default log target. Use either "stderr", "syslog" or
@@ -63,31 +79,42 @@
 ## true, otherwise to "stderr".
 ; log-target = auto
 
+# Log level, one of debug, info, notice, warning, error. Log messages
+# with a lower log level than specified here are not logged,
+; log-level = notice
+
 ## The resampling algorithm to use. Use one of src-sinc-best-quality,
 ## src-sinc-medium-quality, src-sinc-fastest, src-zero-order-hold,
-## src-linear, trivial. See the documentation of libsamplerate for an
-## explanation for the different methods. The method 'trivial' is the
-## only algorithm implemented without usage of floating point
-## numbers. If you're tight on CPU consider using this. On the other
-## hand it has the worst quality of all.
-; resample-method = sinc-fastest
+## src-linear, trivial, speex-float-N, speex-fixed-N, ffmpeg. See the
+## documentation of libsamplerate for an explanation for the different
+## src- methods. The method 'trivial' is the most basic algorithm
+## implemented. If you're tight on CPU consider using this. On the
+## other hand it has the worst quality of them all. The speex
+## resamplers take an integer quality setting in the range 0..9
+## (bad...good). They exist in two flavours: fixed and float. The
+## former uses fixed point numbers, the latter relies on floating
+## point numbers. On most desktop CPUs the float point resmapler is a
+## lot faster, and it also offers slightly better quality.
+; resample-method = speex-float-3
 
 ## Create a PID file in /tmp/pulseaudio-$USER/pid. Of this is enabled
 ## you may use commands like "pulseaudio --kill" or "pulseaudio
 ## --check". If you are planning to start more than one pulseaudio
 ## process per user, you better disable this option since it
 ## effectively disables multiple instances.
-; use-pid-file = 1
+; use-pid-file = yes
 
 ## Do not install the CPU load limit, even on platforms where it is
-## supported. This option is useful when debugging/profiling 
+## supported. This option is useful when debugging/profiling
 ## PulseAudio to disable disturbing SIGXCPU signals.
-; no-cpu-limit = 0
+; no-cpu-limit = no
 
 ## Run the daemon as system-wide instance, requires root priviliges
-; system-instance = 0
+; system-instance = no
 
-## Resource limits, see getrlimit(2) for more information
+## Resource limits, see getrlimit(2) for more information. Set to -1
+## if PA shouldn't touch the resource limit. Not all resource limits
+## are available on all operating systems.
 ; rlimit-as = -1
 ; rlimit-core = -1
 ; rlimit-data = -1
@@ -96,9 +123,11 @@
 ; rlimit-stack = -1
 ; rlimit-nproc = -1
 ; rlimit-memlock = 16384
+; rlimit-nice = 31
+; rlimit-rtprio = 9
 
-## Disable shared memory data transfer 
-; disable-shm = 0
+## Disable shared memory data transfer
+; disable-shm = no
 
 ## Default sample format
 ; default-sample-format = s16le

@@ -307,6 +307,12 @@ static void set_all_rlimits(const pa_daemon_conf *conf) {
 #ifdef RLIMIT_MEMLOCK
     set_one_rlimit(&conf->rlimit_memlock, RLIMIT_MEMLOCK, "RLIMIT_MEMLOCK");
 #endif
+#ifdef RLIMIT_NICE
+    set_one_rlimit(&conf->rlimit_nice, RLIMIT_NICE, "RLIMIT_NICE");
+#endif
+#ifdef RLIMIT_RTPRIO
+    set_one_rlimit(&conf->rlimit_rtprio, RLIMIT_RTPRIO, "RLIMIT_RTPRIO");
+#endif
 }
 #endif
 
