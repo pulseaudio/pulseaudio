@@ -49,6 +49,7 @@ enum {
     ARG_FAIL,
     ARG_LOG_LEVEL,
     ARG_HIGH_PRIORITY,
+    ARG_REALTIME,
     ARG_DISALLOW_MODULE_LOADING,
     ARG_EXIT_IDLE_TIME,
     ARG_MODULE_IDLE_TIME,
@@ -79,6 +80,7 @@ static struct option long_options[] = {
     {"verbose",                     2, 0, ARG_LOG_LEVEL},
     {"log-level",                   2, 0, ARG_LOG_LEVEL},
     {"high-priority",               2, 0, ARG_HIGH_PRIORITY},
+    {"realtime",                    2, 0, ARG_REALTIME},
     {"disallow-module-loading",     2, 0, ARG_DISALLOW_MODULE_LOADING},
     {"exit-idle-time",              2, 0, ARG_EXIT_IDLE_TIME},
     {"module-idle-time",            2, 0, ARG_MODULE_IDLE_TIME},
@@ -124,8 +126,12 @@ void pa_cmdline_help(const char *argv0) {
            "      --system[=BOOL]                   Run as system-wide instance\n"
            "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
            "      --fail[=BOOL]                     Quit when startup fails\n"
-           "      --high-priority[=BOOL]            Try to set high process priority\n"
-           "                                        (only available as root)\n"
+           "      --high-priority[=BOOL]            Try to set high nice level\n"
+           "                                        (only available as root, when SUID or\n"
+           "                                        with elevated RLIMIT_NICE)\n"
+           "      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+           "                                        (only available as root, when SUID or\n"
+           "                                        with elevated RLIMIT_RTPRIO)\n"
            "      --disallow-module-loading[=BOOL]  Disallow module loading after startup\n"
            "      --exit-idle-time=SECS             Terminate the daemon when idle and this\n"
            "                                        time passed\n"
@@ -224,14 +230,14 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
             case ARG_DAEMONIZE:
             case 'D':
-                if ((conf->daemonize = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                if ((conf->daemonize = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
                     pa_log("--daemonize expects boolean argument");
                     goto fail;
                 }
                 break;
 
             case ARG_FAIL:
-                if ((conf->fail = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                if ((conf->fail = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
                     pa_log("--fail expects boolean argument");
                     goto fail;
                 }
@@ -253,21 +259,28 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                 break;
 
             case ARG_HIGH_PRIORITY:
-                if ((conf->high_priority = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                if ((conf->high_priority = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
                     pa_log("--high-priority expects boolean argument");
                     goto fail;
                 }
                 break;
 
+            case ARG_REALTIME:
+                if ((conf->realtime_scheduling = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
+                    pa_log("--realtime expects boolean argument");
+                    goto fail;
+                }
+                break;
+
             case ARG_DISALLOW_MODULE_LOADING:
-                if ((conf->disallow_module_loading = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                if ((conf->disallow_module_loading = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
                     pa_log("--disallow-module-loading expects boolean argument");
                     goto fail;
                 }
                 break;
 
             case ARG_USE_PID_FILE:
-                if ((conf->use_pid_file = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                if ((conf->use_pid_file = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
                     pa_log("--use-pid-file expects boolean argument");
                     goto fail;
                 }
@@ -311,21 +324,21 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                 break;
 
             case ARG_SYSTEM:
-                if ((conf->system_instance = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                if ((conf->system_instance = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
                     pa_log("--system expects boolean argument");
                     goto fail;
                 }
                 break;
 
             case ARG_NO_CPU_LIMIT:
-                if ((conf->no_cpu_limit = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                if ((conf->no_cpu_limit = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
                     pa_log("--no-cpu-limit expects boolean argument");
                     goto fail;
                 }
                 break;
 
             case ARG_DISABLE_SHM:
-                if ((conf->disable_shm = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                if ((conf->disable_shm = optarg ? pa_parse_boolean(optarg) : TRUE) < 0) {
                     pa_log("--disable-shm expects boolean argument");
                     goto fail;
                 }
