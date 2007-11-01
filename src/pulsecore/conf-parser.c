@@ -169,7 +169,8 @@ int pa_config_parse_int(const char *filename, unsigned line, const char *lvalue,
 }
 
 int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue, const char *rvalue, void *data, PA_GCC_UNUSED void *userdata) {
-    int *b = data, k;
+    int k;
+    pa_bool_t *b = data;
 
     pa_assert(filename);
     pa_assert(lvalue);
@@ -181,7 +182,7 @@ int pa_config_parse_bool(const char *filename, unsigned line, const char *lvalue
         return -1;
     }
 
-    *b = k;
+    *b = !!k;
 
     return 0;
 }
