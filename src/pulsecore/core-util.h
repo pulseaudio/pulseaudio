@@ -31,6 +31,7 @@
 #include <stdio.h>
 
 #include <pulsecore/gccmacro.h>
+#include <pulsecore/macro.h>
 
 struct timeval;
 
@@ -61,6 +62,10 @@ void pa_raise_priority(void);
 void pa_reset_priority(void);
 
 int pa_parse_boolean(const char *s) PA_GCC_PURE;
+
+static inline const char *pa_yes_no(pa_bool_t b) {
+    return b ? "yes" : "no";
+}
 
 char *pa_split(const char *c, const char*delimiters, const char **state);
 char *pa_split_spaces(const char *c, const char **state);
