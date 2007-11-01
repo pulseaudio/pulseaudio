@@ -541,7 +541,7 @@ void pa_make_realtime(void) {
 #define NICE_LEVEL (-11)
 
 /* Raise the priority of the current process as much as possible and
-sensible: set the nice level to -15.*/
+sensible: set the nice level to -11.*/
 void pa_raise_priority(void) {
 
 #ifdef HAVE_SYS_RESOURCE_H
