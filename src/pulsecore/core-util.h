@@ -57,8 +57,8 @@ char *pa_strlcpy(char *b, const char *s, size_t l);
 
 char *pa_parent_dir(const char *fn);
 
-void pa_make_realtime(void);
-void pa_raise_priority(void);
+int pa_make_realtime(int rtprio);
+int pa_raise_priority(int nice_level);
 void pa_reset_priority(void);
 
 int pa_parse_boolean(const char *s) PA_GCC_PURE;

@@ -603,8 +603,8 @@ static void thread_func(void *userdata) {
 
     pa_log_debug("Thread starting up");
 
-    if (u->core->high_priority)
-        pa_make_realtime();
+    if (u->core->realtime_scheduling)
+        pa_make_realtime(u->core->realtime_priority);
 
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);

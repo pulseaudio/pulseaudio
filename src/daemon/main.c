@@ -419,9 +419,9 @@ int main(int argc, char *argv[]) {
     pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target, NULL);
 
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
-        pa_raise_priority();
+        pa_raise_priority(conf->nice_level);
 
-    if (suid_root && (conf->cmd != PA_CMD_DAEMON || !conf->high_priority)) {
+    if (suid_root && (conf->cmd != PA_CMD_DAEMON || !conf->realtime_scheduling)) {
         pa_drop_caps();
         pa_drop_root();
     }
@@ -636,7 +636,6 @@ int main(int argc, char *argv[]) {
     }
 
     c->is_system_instance = !!conf->system_instance;
-    c->high_priority = !!conf->high_priority;
     c->default_sample_spec = conf->default_sample_spec;
     c->default_n_fragments = conf->default_n_fragments;
     c->default_fragment_size_msec = conf->default_fragment_size_msec;
@@ -645,6 +644,8 @@ int main(int argc, char *argv[]) {
     c->module_idle_time = conf->module_idle_time;
     c->scache_idle_time = conf->scache_idle_time;
     c->resample_method = conf->resample_method;
+    c->realtime_priority = conf->realtime_priority;
+    c->realtime_scheduling = !!conf->realtime_scheduling;
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);

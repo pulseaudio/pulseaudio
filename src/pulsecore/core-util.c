@@ -512,8 +512,10 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
     return b;
 }
 
-/* Make the current thread a realtime thread*/
-void pa_make_realtime(void) {
+/* Make the current thread a realtime thread, and acquire the highest
+ * rtprio we can get that is less or equal the specified parameter. If
+ * the thread is already realtime, don't do anything. */
+int pa_make_realtime(int rtprio) {
 
 #ifdef _POSIX_PRIORITY_SCHEDULING
     struct sched_param sp;
@@ -524,50 +526,87 @@ void pa_make_realtime(void) {
 
     if ((r = pthread_getschedparam(pthread_self(), &policy, &sp)) != 0) {
         pa_log("pthread_getschedgetparam(): %s", pa_cstrerror(r));
-        return;
+        return -1;
     }
 
-    sp.sched_priority = 1;
+    if (policy == SCHED_FIFO && sp.sched_priority >= rtprio) {
+        pa_log_info("Thread already being scheduled with SCHED_FIFO with priority %i.", sp.sched_priority);
+        return 0;
+    }
+
+    sp.sched_priority = rtprio;
     if ((r = pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)) != 0) {
+
+        while (sp.sched_priority > 1) {
+            sp.sched_priority --;
+
+            if ((r = pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)) == 0) {
+                pa_log_info("Successfully enabled SCHED_FIFO scheduling for thread, with priority %i, which is lower than the requested %i.", sp.sched_priority, rtprio);
+                return 0;
+            }
+        }
+
         pa_log_warn("pthread_setschedparam(): %s", pa_cstrerror(r));
-        return;
+        return -1;
     }
 
-    pa_log_info("Successfully enabled SCHED_FIFO scheduling for thread.");
+    pa_log_info("Successfully enabled SCHED_FIFO scheduling for thread, with priority %i.", sp.sched_priority);
+    return 0;
+#else
+    return -1;
 #endif
-
 }
 
-#define NICE_LEVEL (-11)
-
-/* Raise the priority of the current process as much as possible and
-sensible: set the nice level to -11.*/
-void pa_raise_priority(void) {
+/* Raise the priority of the current process as much as possible that
+ * is <= the specified nice level..*/
+int pa_raise_priority(int nice_level) {
 
 #ifdef HAVE_SYS_RESOURCE_H
-    if (setpriority(PRIO_PROCESS, 0, NICE_LEVEL) < 0)
+    if (setpriority(PRIO_PROCESS, 0, nice_level) < 0) {
+        int n;
+
+        for (n = nice_level+1; n < 0; n++) {
+
+            if (setpriority(PRIO_PROCESS, 0, n) == 0) {
+                pa_log_info("Successfully acquired nice level %i, which is lower than the requested %i.", n, nice_level);
+                return 0;
+            }
+        }
+
         pa_log_warn("setpriority(): %s", pa_cstrerror(errno));
-    else
-        pa_log_info("Successfully gained nice level %i.", NICE_LEVEL);
+        return -1;
+    }
+
+    pa_log_info("Successfully gained nice level %i.", nice_level);
 #endif
 
 #ifdef OS_IS_WIN32
-    if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
-        pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
-    else
-        pa_log_info("Successfully gained high priority class.");
+    if (nice_level < 0) {
+        if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS)) {
+            pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
+            return .-1;
+        } else
+            pa_log_info("Successfully gained high priority class.");
+    }
 #endif
+
+    return 0;
 }
 
 /* Reset the priority to normal, inverting the changes made by
- * pa_raise_priority() */
+ * pa_raise_priority() and pa_make_realtime()*/
 void pa_reset_priority(void) {
-#ifdef OS_IS_WIN32
-    SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+#ifdef HAVE_SYS_RESOURCE_H
+    struct sched_param sp;
+
+    setpriority(PRIO_PROCESS, 0, 0);
+
+    memset(&sp, 0, sizeof(sp));
+    pa_assert_se(pthread_setschedparam(pthread_self(), SCHED_OTHER, &sp) == 0);
 #endif
 
-#ifdef HAVE_SYS_RESOURCE_H
-    setpriority(PRIO_PROCESS, 0, 0);
+#ifdef OS_IS_WIN32
+    SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
 #endif
 }
 
