@@ -113,6 +113,9 @@ static void write_err(const char *p) {
 
 /* The signal handler, called on every SIGXCPU */
 static void signal_handler(int sig) {
+    int saved_errno;
+
+    saved_errno = errno;
     pa_assert(sig == SIGXCPU);
 
     if (phase == PHASE_IDLE) {
@@ -150,6 +153,8 @@ static void signal_handler(int sig) {
         write_err("Hard CPU time limit exhausted, terminating forcibly.\n");
         _exit(1); /* Forced exit */
     }
+
+    errno = saved_errno;
 }
 
 /* Callback for IO events on the FIFO */
