@@ -639,7 +639,6 @@ int main(int argc, char *argv[]) {
     c->default_sample_spec = conf->default_sample_spec;
     c->default_n_fragments = conf->default_n_fragments;
     c->default_fragment_size_msec = conf->default_fragment_size_msec;
-    c->disallow_module_loading = conf->disallow_module_loading;
     c->exit_idle_time = conf->exit_idle_time;
     c->module_idle_time = conf->module_idle_time;
     c->scache_idle_time = conf->scache_idle_time;
@@ -666,7 +665,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (conf->daemonize)
-        c->running_as_daemon = 1;
+        c->running_as_daemon = TRUE;
 
     oil_init();
 
@@ -681,6 +680,10 @@ int main(int argc, char *argv[]) {
         r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail);
     pa_log_error("%s", s = pa_strbuf_tostring_free(buf));
     pa_xfree(s);
+
+    /* We completed the initial module loading, so let's disable it
+     * from now on, if requested */
+    c->disallow_module_loading = !!conf->disallow_module_loading;
 
     if (r < 0 && conf->fail) {
         pa_log("failed to initialize daemon.");
