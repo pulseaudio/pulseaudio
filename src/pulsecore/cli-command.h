@@ -31,15 +31,15 @@
  * buffer *buf. If *fail is non-zero the function will return -1 when
  * one or more of the executed commands failed. *fail
  * may be modified by the function call. */
-int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, int *fail);
+int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, pa_bool_t *fail);
 
 /* Execute a whole file of CLI commands */
-int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, int *fail);
+int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_bool_t *fail);
 
 /* Split the specified string into lines and run pa_cli_command_execute_line() for each. */
-int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, int *fail);
+int pa_cli_command_execute(pa_core *c, const char *s, pa_strbuf *buf, pa_bool_t *fail);
 
 /* Same as pa_cli_command_execute_line() but also take ifstate var. */
-int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *buf, int *fail, int *ifstate);
+int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *buf, pa_bool_t *fail, int *ifstate);
 
 #endif
