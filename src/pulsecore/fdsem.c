@@ -53,6 +53,10 @@
 #define __NR_eventfd 284
 #endif
 
+#if !defined(__NR_eventfd) && defined(__arm__)
+#define __NR_eventfd (__NR_SYSCALL_BASE+351)
+#endif
+
 #if !defined(SYS_eventfd) && defined(__NR_eventfd)
 #define SYS_eventfd __NR_eventfd
 #endif
