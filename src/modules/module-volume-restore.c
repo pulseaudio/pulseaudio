@@ -64,7 +64,7 @@ static const char* const valid_modargs[] = {
 
 struct rule {
     char* name;
-    int volume_is_set;
+    pa_bool_t volume_is_set;
     pa_cvolume volume;
     char *sink;
     char *source;
@@ -74,7 +74,7 @@ struct userdata {
     pa_hashmap *hashmap;
     pa_subscription *subscription;
     pa_hook_slot *sink_input_hook_slot, *source_output_hook_slot;
-    int modified;
+    pa_bool_t modified;
     char *table_file;
 };
 
@@ -141,7 +141,7 @@ static int load_rules(struct userdata *u) {
     while (!feof(f)) {
         struct rule *rule;
         pa_cvolume v;
-        int v_is_set;
+        pa_bool_t v_is_set;
 
         if (!fgets(ln, sizeof(buf_name), f))
             break;
@@ -176,9 +176,9 @@ static int load_rules(struct userdata *u) {
                 goto finish;
             }
 
-            v_is_set = 1;
+            v_is_set = TRUE;
         } else
-            v_is_set = 0;
+            v_is_set = FALSE;
 
         ln = buf_name;
 
@@ -328,15 +328,15 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             if (!r->volume_is_set || !pa_cvolume_equal(pa_sink_input_get_volume(si), &r->volume)) {
                 pa_log_info("Saving volume for <%s>", r->name);
                 r->volume = *pa_sink_input_get_volume(si);
-                r->volume_is_set = 1;
-                u->modified = 1;
+                r->volume_is_set = TRUE;
+                u->modified = TRUE;
             }
 
             if (!r->sink || strcmp(si->sink->name, r->sink) != 0) {
                 pa_log_info("Saving sink for <%s>", r->name);
                 pa_xfree(r->sink);
                 r->sink = pa_xstrdup(si->sink->name);
-                u->modified = 1;
+                u->modified = TRUE;
             }
         } else {
             pa_assert(so);
@@ -345,7 +345,7 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
                 pa_log_info("Saving source for <%s>", r->name);
                 pa_xfree(r->source);
                 r->source = pa_xstrdup(so->source->name);
-                u->modified = 1;
+                u->modified = TRUE;
             }
         }
 
@@ -357,18 +357,18 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
         if (si) {
             r->volume = *pa_sink_input_get_volume(si);
-            r->volume_is_set = 1;
+            r->volume_is_set = TRUE;
             r->sink = pa_xstrdup(si->sink->name);
             r->source = NULL;
         } else {
             pa_assert(so);
-            r->volume_is_set = 0;
+            r->volume_is_set = FALSE;
             r->sink = NULL;
             r->source = pa_xstrdup(so->source->name);
         }
 
         pa_hashmap_put(u->hashmap, r->name, r);
-        u->modified = 1;
+        u->modified = TRUE;
     }
 }
 
@@ -433,7 +433,7 @@ int pa__init(pa_module*m) {
     u->hashmap = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     u->subscription = NULL;
     u->table_file = pa_xstrdup(pa_modargs_get_value(ma, "table", NULL));
-    u->modified = 0;
+    u->modified = FALSE;
     u->sink_input_hook_slot = u->source_output_hook_slot = NULL;
 
     m->userdata = u;
@@ -493,5 +493,3 @@ void pa__done(pa_module*m) {
     pa_xfree(u->table_file);
     pa_xfree(u);
 }
-
-
