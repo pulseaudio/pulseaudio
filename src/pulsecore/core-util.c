@@ -1562,7 +1562,7 @@ char *pa_readlink(const char *p) {
         }
 
         if ((size_t) n < l-1) {
-            c[l-1] = 0;
+            c[n] = 0;
             return c;
         }
 
