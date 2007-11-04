@@ -506,6 +506,7 @@ int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     char *t;
     const char *espeaker;
+    uint32_t key;
 
     pa_assert(m);
 
@@ -584,7 +585,9 @@ int pa__init(pa_module*m) {
         pa_log("Failed to load cookie");
         goto fail;
     }
-    *(int32_t*) ((uint8_t*) u->write_data + ESD_KEY_LEN) = ESD_ENDIAN_KEY;
+
+    key = ESD_ENDIAN_KEY;
+    memcpy((uint8_t*) u->write_data + ESD_KEY_LEN, &key, sizeof(key));
 
     /* Reserve space for the response */
     u->read_data = pa_xmalloc(u->read_length = sizeof(int32_t));

@@ -267,9 +267,11 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     ssize_t r;
     struct msghdr mh;
     struct iovec iov;
-    uint8_t cmsg_data[CMSG_SPACE(sizeof(struct ucred))];
+    union {
+        struct cmsghdr hdr;
+        uint8_t data[CMSG_SPACE(sizeof(struct ucred))];
+    } cmsg;
     struct ucred *u;
-    struct cmsghdr *cmsg;
 
     pa_assert(io);
     pa_assert(data);
@@ -280,13 +282,12 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     iov.iov_base = (void*) data;
     iov.iov_len = l;
 
-    memset(cmsg_data, 0, sizeof(cmsg_data));
-    cmsg = (struct cmsghdr*)  cmsg_data;
-    cmsg->cmsg_len = CMSG_LEN(sizeof(struct ucred));
-    cmsg->cmsg_level = SOL_SOCKET;
-    cmsg->cmsg_type = SCM_CREDENTIALS;
+    memset(&cmsg, 0, sizeof(cmsg));
+    cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(struct ucred));
+    cmsg.hdr.cmsg_level = SOL_SOCKET;
+    cmsg.hdr.cmsg_type = SCM_CREDENTIALS;
 
-    u = (struct ucred*) CMSG_DATA(cmsg);
+    u = (struct ucred*) CMSG_DATA(&cmsg.hdr);
 
     u->pid = getpid();
     if (ucred) {
@@ -302,8 +303,8 @@ ssize_t pa_iochannel_write_with_creds(pa_iochannel*io, const void*data, size_t l
     mh.msg_namelen = 0;
     mh.msg_iov = &iov;
     mh.msg_iovlen = 1;
-    mh.msg_control = cmsg_data;
-    mh.msg_controllen = sizeof(cmsg_data);
+    mh.msg_control = &cmsg;
+    mh.msg_controllen = sizeof(cmsg);
     mh.msg_flags = 0;
 
     if ((r = sendmsg(io->ofd, &mh, MSG_NOSIGNAL)) >= 0) {
@@ -318,7 +319,10 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
     ssize_t r;
     struct msghdr mh;
     struct iovec iov;
-    uint8_t cmsg_data[CMSG_SPACE(sizeof(struct ucred))];
+    union {
+        struct cmsghdr hdr;
+        uint8_t data[CMSG_SPACE(sizeof(struct ucred))];
+    } cmsg;
 
     pa_assert(io);
     pa_assert(data);
@@ -331,28 +335,28 @@ ssize_t pa_iochannel_read_with_creds(pa_iochannel*io, void*data, size_t l, pa_cr
     iov.iov_base = data;
     iov.iov_len = l;
 
-    memset(cmsg_data, 0, sizeof(cmsg_data));
+    memset(&cmsg, 0, sizeof(cmsg));
 
     memset(&mh, 0, sizeof(mh));
     mh.msg_name = NULL;
     mh.msg_namelen = 0;
     mh.msg_iov = &iov;
     mh.msg_iovlen = 1;
-    mh.msg_control = cmsg_data;
-    mh.msg_controllen = sizeof(cmsg_data);
+    mh.msg_control = &cmsg;
+    mh.msg_controllen = sizeof(cmsg);
     mh.msg_flags = 0;
 
     if ((r = recvmsg(io->ifd, &mh, 0)) >= 0) {
-        struct cmsghdr *cmsg;
+        struct cmsghdr *cmh;
 
         *creds_valid = 0;
 
-        for (cmsg = CMSG_FIRSTHDR(&mh); cmsg; cmsg = CMSG_NXTHDR(&mh, cmsg)) {
+        for (cmh = CMSG_FIRSTHDR(&mh); cmh; cmh = CMSG_NXTHDR(&mh, cmh)) {
 
-            if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_CREDENTIALS) {
+            if (cmh->cmsg_level == SOL_SOCKET && cmh->cmsg_type == SCM_CREDENTIALS) {
                 struct ucred u;
-                pa_assert(cmsg->cmsg_len == CMSG_LEN(sizeof(struct ucred)));
-                memcpy(&u, CMSG_DATA(cmsg), sizeof(struct ucred));
+                pa_assert(cmh->cmsg_len == CMSG_LEN(sizeof(struct ucred)));
+                memcpy(&u, CMSG_DATA(cmh), sizeof(struct ucred));
 
                 creds->gid = u.gid;
                 creds->uid = u.uid;
