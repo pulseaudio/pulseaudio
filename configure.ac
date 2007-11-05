@@ -28,7 +28,7 @@ m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
 m4_define(PA_MICRO, [7])
 
-AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzcbylcnhqvb (at) 0pointer (dot) de])
+AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign -Wall])
@@ -832,6 +832,43 @@ AC_SUBST(DBUS_LIBS)
 AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 
+### Build and Install man pages ###
+AC_ARG_ENABLE(manpages,
+        AS_HELP_STRING([--disable-manpages],[Disable building and installation of man pages]),
+[case "${enableval}" in
+  yes) manpages=yes ;;
+  no)  manpages=no ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --disable-manpages]) ;;
+esac],[manpages=yes])
+
+if test x$manpages = xyes ; then
+    #
+    # XMLTOMAN manpage generation
+    #
+    AC_ARG_ENABLE(xmltoman,
+    AS_HELP_STRING([--disable-xmltoman],[Enable rebuilding of man pages with xmltoman]),
+    [case "${enableval}" in
+      yes) xmltoman=yes ;;
+      no)  xmltoman=no ;;
+      *) AC_MSG_ERROR([bad value ${enableval} for --disable-xmltoman]) ;;
+    esac],[xmltoman=yes])
+
+    if test x$xmltoman = xyes ; then
+        AC_CHECK_PROG(have_xmltoman, xmltoman, yes, no)
+    fi
+
+    if test x$have_xmltoman = xno -o x$xmltoman = xno; then
+        if ! test -e man/pulseaudio.1 ; then
+            AC_MSG_ERROR([*** xmltoman was not found or was disabled, it is required to build the manpages as they have not been pre-built, install xmltoman, pass --disable-manpages or dont pass --disable-xmltoman])
+            exit 1
+        fi
+        AC_MSG_WARN([*** Not rebuilding man pages as xmltoman is not found ***])
+        xmltoman=no
+    fi
+fi
+AM_CONDITIONAL([USE_XMLTOMAN], [test "x$xmltoman" = xyes])
+AM_CONDITIONAL([BUILD_MANPAGES], [test "x$manpages" = xyes])
+
 #### PulseAudio system group & user  #####
 
 AC_ARG_WITH(system_user, AS_HELP_STRING([--with-system-user=<user>],[User for running the PulseAudio daemon as a system-wide instance (pulse)]))
@@ -914,6 +951,7 @@ AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "x1"])
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+man/Makefile
 libpulse.pc
 libpulse-simple.pc
 libpulse-browse.pc

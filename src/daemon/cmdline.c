@@ -144,7 +144,7 @@ void pa_cmdline_help(const char *argv0) {
            "      --log-target={auto,syslog,stderr} Specify the log target\n"
            "  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
            "                                        objects (plugins)\n"
-           "      --resample-method=[METHOD]        Use the specified resampling method\n"
+           "      --resample-method=METHOD          Use the specified resampling method\n"
            "                                        (See --dump-resample-methods for\n"
            "                                        possible values)\n"
            "      --use-pid-file[=BOOL]             Create a PID file\n"

@@ -18,7 +18,7 @@
 # USA.
 
 EXTRA_DIST = bootstrap.sh LICENSE GPL LGPL doxygen/Makefile.am doxygen/Makefile.in doxygen/doxygen.conf.in README todo
-SUBDIRS=src doxygen
+SUBDIRS=src doxygen man
 
 MAINTAINERCLEANFILES =
 noinst_DATA =
