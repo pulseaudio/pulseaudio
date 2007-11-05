@@ -28,6 +28,7 @@ USA.
   <synopsis>
     <cmd>pulseaudio [<arg>options</arg>]</cmd>
     <cmd>pulseaudio <opt>--help</opt></cmd>
+    <cmd>pulseaudio <opt>--version</opt></cmd>
     <cmd>pulseaudio <opt>--dump-conf</opt></cmd>
     <cmd>pulseaudio <opt>--dump-modules</opt></cmd>
     <cmd>pulseaudio <opt>--dump-resample-methods</opt></cmd>
@@ -363,7 +364,73 @@ USA.
   </section>
 
   <section name="Real-time and high-priority scheduling">
-    Blablub
+    <p>To minimize the risk of drop-outs during playback it is
+    recommended to run PulseAudio with real-time scheduling if the
+    underlying platform supports it. This decouples the scheduling
+    latency of the PulseAudio daemon from the system load and is thus
+    the best way to make sure that PulseAudio always gets CPU time
+    when it needs it to refill the hardware playback
+    buffers. Unfortunately this is a security risk on most systems,
+    since PulseAudio runs as user process, and giving realtime
+    scheduling priviliges to a user process always comes with the risk
+    that the user misuses it to lock up the system -- which is
+    possible since making a process real-time effectively disables
+    preemption.</p>
+
+    <p>To minimize the risk PulseAudio by default does not enable
+    real-time scheduling. It is however recommended to enable it
+    on trusted systems. To do that start PulseAudio with
+    <opt>--realtime</opt> (see above) or enabled the appropriate option in
+    <file>daemon.conf</file>. Since acquiring realtime scheduling is a
+    priviliged operation on most systems, some special changes to the
+    system configuration need to be made to allow them to the calling
+    user. Two options are available:</p>
+
+    <p>On newer Linux systems the system resource limit RLIMIT_RTPRIO
+    (see <manref name="setrlimit" section="2"/> for more information)
+    can be used to allow specific users to acquire real-time
+    scheduling. This can be configured in
+    <file>/etc/security/limits.conf</file>, a resource limit of 9 is recommended.</p>
+
+    <p>Alternatively, the SUID root bit can be set for the PulseAudio
+    binary. Then, the daemon will drop root priviliges immediately on
+    startup, however retain the CAP_NICE capability (on systems that
+    support it), but only if the calling user is a member of the
+    <arg>pulse-rt</arg> group (see above). For all other users all
+    capababilities are dropped immediately. The advantage of this
+    solution is that the real-time priviliges are only granted to the
+    PulseAudio daemon -- not to all the user's processes.</p>
+
+    <p>Alternatively, if the risk of locking up the machine is
+    considered too big to enable real-time scheduling, high-priority
+    scheduling can be enabled instead (i.e. negative nice level). This
+    can be enabled by passing <opt>--high-priority</opt> (see above)
+    when starting PulseAudio and may also be enabled with the
+    approriate option in <file>daemon.conf</file>. Negative nice
+    levels can only be enabled when the appropriate resource limit
+    RLIMIT_NICE is set (see <manref name="setrlimit" section="2"/> for
+    more information), possibly configured in
+    <file>/etc/security/limits.conf</file>. A resource limit of 31
+    (corresponding with nice level -11) is recommended.</p>
+  </section>
+
+  <section name="Environment variables">
+
+    <p>The PulseAudio client libraries check for the existance of the
+    following environment variables and change their local configuration accordingly:</p>
+
+    <p><arg>$PULSE_SERVER</arg>: the server string specifying the server to connect to when a client asks for a sound server connection and doesn't explicitly ask for a specific server.</p>
+
+    <p><arg>$PULSE_SINK</arg>: the symbolic name of the sink to connect to when a client creates a playback stream and doesn't explicitly ask for a specific sink.</p>
+
+    <p><arg>$PULSE_SOURCE</arg>: the symbolic name of the source to connect to when a client creates a record stream and doesn't explicitly ask for a specific source.</p>
+
+    <p><arg>$PULSE_BINARY</arg>: path of PulseAudio executable to run when server auto-spawning is used.</p>
+
+    <p><arg>$PULSE_CLIENTCONFIG</arg>: path of file that shall be read instead of <file>client.conf</file> (see above) for client configuration.</p>
+
+    <p>These environment settings take precedence -- if set -- over the configuration settings from <file>client.conf</file> (see above).</p>
+
   </section>
 
   <section name="Authors">

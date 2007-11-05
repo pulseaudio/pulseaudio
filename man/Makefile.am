@@ -22,15 +22,57 @@ pulseconfdir=$(sysconfdir)/pulse
 if BUILD_MANPAGES
 
 man_MANS = \
-	pulseaudio.1
+	pulseaudio.1 \
+	esdcompat.1 \
+	pax11publish.1 \
+	paplay.1 \
+	pacat.1 \
+	pacmd.1 \
+	pactl.1
 
 noinst_DATA = \
-	pulseaudio.1.xml
+	pulseaudio.1.xml \
+	esdcompat.1.xml \
+	pax11publish.1.xml \
+	paplay.1.xml \
+	pacat.1.xml \
+	pacmd.1.xml \
+	pactl.1.xml
 
 CLEANFILES = \
 	$(noinst_DATA)
 
 pulseaudio.1.xml: pulseaudio.1.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+esdcompat.1.xml: esdcompat.1.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+pax11publish.1.xml: pax11publish.1.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+paplay.1.xml: paplay.1.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+pacat.1.xml: pacat.1.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+pacmd.1.xml: pacmd.1.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+pactl.1.xml: pactl.1.xml.in Makefile
 	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
 	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
             -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
@@ -41,6 +83,24 @@ CLEANFILES += \
 	$(man_MANS)
 
 pulseaudio.1: pulseaudio.1.xml Makefile
+	xmltoman $< > $@
+
+esdcompat.1: esdcompat.1.xml Makefile
+	xmltoman $< > $@
+
+pax11publish.1: pax11publish.1.xml Makefile
+	xmltoman $< > $@
+
+paplay.1: paplay.1.xml Makefile
+	xmltoman $< > $@
+
+pacat.1: pacat.1.xml Makefile
+	xmltoman $< > $@
+
+pacmd.1: pacmd.1.xml Makefile
+	xmltoman $< > $@
+
+pactl.1: pactl.1.xml Makefile
 	xmltoman $< > $@
 
 xmllint: $(noinst_DATA)
@@ -54,7 +114,13 @@ endif
 
 EXTRA_DIST = \
 	$(man_MANS) \
-	pulseaudio.1.xml.in
+	pulseaudio.1.xml.in \
+	esdcompat.1.xml.in \
+	pax11publish.1.xml.in \
+	paplay.1.xml.in \
+	pacat.1.xml.in \
+	pacmd.1.xml.in \
+	pactl.1.xml.in \
 	xmltoman.css \
 	xmltoman.xsl \
 	xmltoman.dtd
