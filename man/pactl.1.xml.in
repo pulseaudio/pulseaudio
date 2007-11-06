@@ -26,24 +26,26 @@ USA.
 <manpage name="pactl" section="1" desc="Control a running PulseAudio sound server">
 
   <synopsis>
-    <cmd>pulseaudio [<arg>options</arg>] stat</cmd>
-    <cmd>pulseaudio [<arg>options</arg>] list</cmd>
-    <cmd>pulseaudio [<arg>options</arg>] exit</cmd>
-    <cmd>pulseaudio [<arg>options</arg>] upload-sample <arg>FILENAME</arg> [<arg>NAME</arg>]</cmd>
-    <cmd>pulseaudio [<arg>options</arg>] play-sample <arg>NAME</arg> [<arg>SINK</arg>]</cmd>
-    <cmd>pulseaudio [<arg>options</arg>] remove-sample <arg>NAME</arg></cmd>
-    <cmd>pulseaudio [<arg>options</arg>] move-sink-input <arg>ID</arg> <arg>SINK</arg></cmd>
-    <cmd>pulseaudio [<arg>options</arg>] move-source-input <arg>ID</arg> <arg>SOURCE</arg></cmd>
-    <cmd>pulseaudio [<arg>options</arg>] load-module <arg>NAME</arg> [<arg>ARGUMENTS ...</arg>]</cmd>
-    <cmd>pulseaudio [<arg>options</arg>] unload-module <arg>ID</arg></cmd>
-    <cmd>pulseaudio [<arg>options</arg>] suspend-sink [<arg>SINK</arg>] <arg>1|0</arg></cmd>
-    <cmd>pulseaudio [<arg>options</arg>] suspend-source [<arg>SOURCE</arg>] <arg>1|0</arg></cmd>
-    <cmd>pulseaudio <opt>--help</opt></cmd>
-    <cmd>pulseaudio <opt>--version</opt></cmd>
+    <cmd>pactl [<arg>options</arg>] stat</cmd>
+    <cmd>pactl [<arg>options</arg>] list</cmd>
+    <cmd>pactl [<arg>options</arg>] exit</cmd>
+    <cmd>pactl [<arg>options</arg>] upload-sample <arg>FILENAME</arg> [<arg>NAME</arg>]</cmd>
+    <cmd>pactl [<arg>options</arg>] play-sample <arg>NAME</arg> [<arg>SINK</arg>]</cmd>
+    <cmd>pactl [<arg>options</arg>] remove-sample <arg>NAME</arg></cmd>
+    <cmd>pactl [<arg>options</arg>] move-sink-input <arg>ID</arg> <arg>SINK</arg></cmd>
+    <cmd>pactl [<arg>options</arg>] move-source-input <arg>ID</arg> <arg>SOURCE</arg></cmd>
+    <cmd>pactl [<arg>options</arg>] load-module <arg>NAME</arg> [<arg>ARGUMENTS ...</arg>]</cmd>
+    <cmd>pactl [<arg>options</arg>] unload-module <arg>ID</arg></cmd>
+    <cmd>pactl [<arg>options</arg>] suspend-sink [<arg>SINK</arg>] <arg>1|0</arg></cmd>
+    <cmd>pactl [<arg>options</arg>] suspend-source [<arg>SOURCE</arg>] <arg>1|0</arg></cmd>
+    <cmd>pactl <opt>--help</opt></cmd>
+    <cmd>pactl <opt>--version</opt></cmd>
   </synopsis>
 
   <description>
-    <p>PulseAudio is a networked low-latency sound server for Linux, POSIX and Windows systems.</p>
+    <p><file>pactl</file> can be used to issue control commands to the PulseAudio sound server.</p>
+
+    <p><file>pactl</file> only exposes a subset of the available operations. For the full set use the <manref name="pacmd" section="1"/>.</p>
   </description>
 
   <options>
@@ -128,6 +130,50 @@ USA.
       <p><opt>move-source-output</opt> <arg>ID</arg> <arg>SOURCE</arg></p>
 
       <optdesc><p>Move the specified recording stream (identified by its numerical index) to the specified source (identified by its symbolic name or numerical index).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>load-module</opt> <arg>NAME</arg> [<arg>ARGUMENTS ...</arg>]</p>
+
+      <optdesc><p>Load the specified module with the specified arguments into the running sound server. Prints the numeric index of the module just loaded to STDOUT. You can use it to unload the module later.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>unload-module</opt> <arg>ID</arg></p>
+
+      <optdesc><p>Unload the module instance identified by the specified numeric index.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>unload-module</opt> <arg>ID</arg></p>
+
+      <optdesc><p>Unload the module instance identified by the specified numeric index.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>suspend-sink</opt> <arg>SINK</arg> <arg>1|0</arg></p>
+
+      <optdesc><p>Suspend or resume the specified sink (which my be
+      specified either by its symbolic name, or by its numeric index),
+      depending whether 1 (suspend) or 0 (resume) is passed as last
+      argument. Suspending a sink will pause all playback. Depending
+      on the module implementing the sink this might have the effect
+      that the underlying device is closed, making it available for
+      other applications to use. The exact behaviour depends on the
+      module.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>suspend-source</opt> <arg>SOURCE</arg> <arg>1|0</arg></p>
+
+      <optdesc><p>Suspend or resume the specified source (which my be
+      specified either by its symbolic name, or by its numeric index),
+      depending whether 1 (suspend) or 0 (resume) is passed as last
+      argument. Suspending a source will pause all
+      capturing. Depending on the module implementing the source this
+      might have the effect that the underlying device is closed,
+      making it available for other applications to use. The exact
+      behaviour depends on the module.</p></optdesc>
     </option>
 
   </options>
