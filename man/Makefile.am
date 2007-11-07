@@ -28,7 +28,10 @@ man_MANS = \
 	paplay.1 \
 	pacat.1 \
 	pacmd.1 \
-	pactl.1
+	pactl.1 \
+	pasuspender.1 \
+	padsp.1 \
+	pabrowse.1
 
 noinst_DATA = \
 	pulseaudio.1.xml \
@@ -37,7 +40,10 @@ noinst_DATA = \
 	paplay.1.xml \
 	pacat.1.xml \
 	pacmd.1.xml \
-	pactl.1.xml
+	pactl.1.xml \
+	pasuspender.1.xml \
+	padsp.1.xml \
+	pabrowse.1.xml
 
 CLEANFILES = \
 	$(noinst_DATA)
@@ -77,6 +83,21 @@ pactl.1.xml: pactl.1.xml.in Makefile
 	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
             -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
 
+pasuspender.1.xml: pasuspender.1.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+padsp.1.xml: padsp.1.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+pabrowse.1.xml: pabrowse.1.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
 if USE_XMLTOMAN
 
 CLEANFILES += \
@@ -103,6 +124,15 @@ pacmd.1: pacmd.1.xml Makefile
 pactl.1: pactl.1.xml Makefile
 	xmltoman $< > $@
 
+pasuspender.1: pasuspender.1.xml Makefile
+	xmltoman $< > $@
+
+padsp.1: padsp.1.xml Makefile
+	xmltoman $< > $@
+
+pabrowse.1: pabrowse.1.xml Makefile
+	xmltoman $< > $@
+
 xmllint: $(noinst_DATA)
 	for f in $(noinst_DATA) ; do \
 			xmllint --noout --valid "$$f" || exit 1 ; \
@@ -121,6 +151,9 @@ EXTRA_DIST = \
 	pacat.1.xml.in \
 	pacmd.1.xml.in \
 	pactl.1.xml.in \
+	pasuspender.1.xml.in \
+	padsp.1.xml.in \
+	pabrowse.1.xml.in \
 	xmltoman.css \
 	xmltoman.xsl \
 	xmltoman.dtd
