@@ -850,7 +850,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            suspend = !!atoi(argv[argc-1]);
+            suspend = pa_parse_boolean(argv[argc-1]);
 
             if (argc > optind+2)
                 sink_name = pa_xstrdup(argv[optind+1]);
@@ -863,7 +863,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            suspend = !!atoi(argv[argc-1]);
+            suspend = pa_parse_boolean(argv[argc-1]);
 
             if (argc > optind+2)
                 source_name = pa_xstrdup(argv[optind+1]);
