@@ -17,29 +17,18 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA.
 
-## Configuration file for pulseaudio clients. Default values are
-## commented out.  Use either ; or # for commenting
+## Configuration file for PulseAudio clients. See pulse-client.conf(5) for
+## more information. Default values a commented out.  Use either ; or # for
+## commenting.
 
-## Path to the pulseaudio daemon to run when autospawning.
-; daemon-binary = @PA_BINARY@
-
-## Extra arguments to pass to the pulseaudio daemon
-; extra-arguments = --log-target=syslog --exit-idle-time=5
-
-## The default sink to connect to
-; default-sink = 
-
-## The default source to connect to
+; default-sink =
 ; default-source =
-
-## The default sever to connect to
 ; default-server =
 
-## Autospawn daemons?
-; autospawn = 0
+; autospawn = no
+; daemon-binary = @PA_BINARY@
+; extra-arguments = --log-target=syslog --exit-idle-time=5
 
-### Cookie file
-; cookie-file = 
+; cookie-file =
 
-### Disable shared memory data transfer
-; disable-shm = 0
+; disable-shm = no
