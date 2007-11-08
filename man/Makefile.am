@@ -31,7 +31,10 @@ man_MANS = \
 	pactl.1 \
 	pasuspender.1 \
 	padsp.1 \
-	pabrowse.1
+	pabrowse.1 \
+	pulse-daemon.conf.5 \
+	pulse-client.conf.5 \
+	default.pa.5
 
 noinst_DATA = \
 	pulseaudio.1.xml \
@@ -43,7 +46,10 @@ noinst_DATA = \
 	pactl.1.xml \
 	pasuspender.1.xml \
 	padsp.1.xml \
-	pabrowse.1.xml
+	pabrowse.1.xml \
+	pulse-daemon.conf.5.xml \
+	pulse-client.conf.5.xml \
+	default.pa.5.xml
 
 CLEANFILES = \
 	$(noinst_DATA)
@@ -98,6 +104,21 @@ pabrowse.1.xml: pabrowse.1.xml.in Makefile
 	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
             -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
 
+pulse-daemon.conf.5.xml: pulse-daemon.conf.5.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+pulse-client.conf.5.xml: pulse-client.conf.5.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
+default.pa.5.xml: default.pa.5.xml.in Makefile
+	sed -e 's,@pulseconfdir\@,$(pulseconfdir),g' \
+	    -e 's,@PACKAGE_BUGREPORT\@,$(PACKAGE_BUGREPORT),g' \
+            -e 's,@PACKAGE_URL\@,$(PACKAGE_URL),g' $< > $@
+
 if USE_XMLTOMAN
 
 CLEANFILES += \
@@ -133,6 +154,15 @@ padsp.1: padsp.1.xml Makefile
 pabrowse.1: pabrowse.1.xml Makefile
 	xmltoman $< > $@
 
+pulse-daemon.conf.5: pulse-daemon.conf.5.xml Makefile
+	xmltoman $< > $@
+
+pulse-client.conf.5: pulse-client.conf.5.xml Makefile
+	xmltoman $< > $@
+
+default.pa.5: default.pa.5.xml Makefile
+	xmltoman $< > $@
+
 xmllint: $(noinst_DATA)
 	for f in $(noinst_DATA) ; do \
 			xmllint --noout --valid "$$f" || exit 1 ; \
@@ -154,6 +184,9 @@ EXTRA_DIST = \
 	pasuspender.1.xml.in \
 	padsp.1.xml.in \
 	pabrowse.1.xml.in \
+	pulse-daemon.conf.5.xml.in \
+	pulse-client.conf.5.xml.in \
+	default.pa.5.xml.in \
 	xmltoman.css \
 	xmltoman.xsl \
 	xmltoman.dtd

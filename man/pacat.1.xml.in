@@ -109,11 +109,11 @@ USA.
       <p><opt>--format</opt><arg>=FORMAT</arg></p>
 
       <optdesc><p>Capture or play back audio with the specified sample
-      format. Specify one of <arg>u8</arg>, <arg>s16le</arg>,
-      <arg>s16be</arg>, <arg>float32le</arg>, <arg>float32be</arg>,
-      <arg>ulaw</arg>, <arg>alaw</arg>. Depending on the endianess of
-      the CPU the formats <arg>s16ne</arg>, <arg>s16re</arg>,
-      <arg>float32ne</arg>, <arg>float32re</arg> (for native,
+      format. Specify one of <opt>u8</opt>, <opt>s16le</opt>,
+      <opt>s16be</opt>, <opt>float32le</opt>, <opt>float32be</opt>,
+      <opt>ulaw</opt>, <opt>alaw</opt>. Depending on the endianess of
+      the CPU the formats <opt>s16ne</opt>, <opt>s16re</opt>,
+      <opt>float32ne</opt>, <opt>float32re</opt> (for native,
       resp. reverse endian) are available as aliases. Defaults to
       s16ne.</p></optdesc>
     </option>
@@ -132,17 +132,17 @@ USA.
 
       <optdesc><p>Explicitly choose a channel map when playing back
       this stream. The argument should be a comma separated list of
-      channel names: <arg>front-left</arg>, <arg>front-right</arg>,
-      <arg>mono</arg>, <arg>front-center</arg>, <arg>rear-left</arg>,
-      <arg>rear-right</arg>, <arg>rear-center</arg>, <arg>lfe</arg>,
-      <arg>front-left-of-center</arg>,
-      <arg>front-right-of-center</arg>, <arg>side-left</arg>,
-      <arg>side-right</arg>, <arg>top-center</arg>,
-      <arg>top-front-center</arg>, <arg>top-front-left</arg>,
-      <arg>top-front-right</arg>, <arg>top-rear-left</arg>,
-      <arg>top-rear-right</arg>, <arg>top-rear-center</arg>, or any of
-      the 32 auxiliary channel names <arg>aux0</arg> to
-      <arg>aux31</arg>.</p></optdesc>
+      channel names: <opt>front-left</opt>, <opt>front-right</opt>,
+      <opt>mono</opt>, <opt>front-center</opt>, <opt>rear-left</opt>,
+      <opt>rear-right</opt>, <opt>rear-center</opt>, <opt>lfe</opt>,
+      <opt>front-left-of-center</opt>,
+      <opt>front-right-of-center</opt>, <opt>side-left</opt>,
+      <opt>side-right</opt>, <opt>top-center</opt>,
+      <opt>top-front-center</opt>, <opt>top-front-left</opt>,
+      <opt>top-front-right</opt>, <opt>top-rear-left</opt>,
+      <opt>top-rear-right</opt>, <opt>top-rear-center</opt>, or any of
+      the 32 auxiliary channel names <opt>aux0</opt> to
+      <opt>aux31</opt>.</p></optdesc>
     </option>
 
   </options>
