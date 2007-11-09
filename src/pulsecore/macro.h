@@ -31,6 +31,7 @@
 #include <unistd.h>
 
 #include <pulsecore/log.h>
+#include <pulsecore/gccmacro.h>
 
 #ifndef PACKAGE
 #error "Please include config.h before including this file!"
@@ -73,8 +74,11 @@ static inline size_t pa_page_align(size_t l) {
 #endif
 
 #ifndef CLAMP
-#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+#define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #endif
+
+#define PA_CLAMP_LIKELY(x, low, high) (PA_LIKELY((x) > (high)) ? (high) : PA_LIKELY(((x) < (low)) ? (low) : (x)))
+#define PA_CLAMP_UNLIKELY(x, low, high) (PA_UNLIKELY((x) > (high)) ? (high) : PA_UNLIKELY(((x) < (low)) ? (low) : (x)))
 
 /* This type is not intended to be used in exported APIs! Use classic "int" there! */
 #ifdef HAVE_STD_BOOL
