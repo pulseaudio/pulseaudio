@@ -178,7 +178,7 @@ size_t pa_mix(
                     if (volume->values[channel] != PA_VOLUME_NORM)
                         sum = (int32_t) (sum * pa_sw_volume_to_linear(volume->values[channel]));
 
-                    sum = CLAMP(sum, -0x8000, 0x7FFF);
+                    sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 }
 
                 *((int16_t*) data) = (int16_t) sum;
@@ -225,7 +225,7 @@ size_t pa_mix(
                     if (volume->values[channel] != PA_VOLUME_NORM)
                         sum = (int32_t) (sum * pa_sw_volume_to_linear(volume->values[channel]));
 
-                    sum = CLAMP(sum, -0x8000, 0x7FFF);
+                    sum = PA_CLAMP_UNLIKELY(sum, -0x8000, 0x7FFF);
                 }
 
                 *((int16_t*) data) = PA_INT16_SWAP((int16_t) sum);
@@ -272,7 +272,7 @@ size_t pa_mix(
                     if (volume->values[channel] != PA_VOLUME_NORM)
                         sum = (int32_t) (sum * pa_sw_volume_to_linear(volume->values[channel]));
 
-                    sum = CLAMP(sum, -0x80, 0x7F);
+                    sum = PA_CLAMP_UNLIKELY(sum, -0x80, 0x7F);
                 }
 
                 *((uint8_t*) data) = (uint8_t) (sum + 0x80);

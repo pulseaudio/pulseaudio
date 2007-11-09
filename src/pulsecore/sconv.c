@@ -130,7 +130,7 @@ static void ulaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
 
     for (; n > 0; n--) {
         float v = *(a++);
-        v = CLAMP(v, -1, 1);
+        v = PA_CLAMP_UNLIKELY(v, -1, 1);
         v *= 0x1FFF;
         *(b++) = st_14linear2ulaw((int16_t) v);
     }
@@ -168,7 +168,7 @@ static void alaw_from_float32ne(unsigned n, const float *a, uint8_t *b) {
 
     for (; n > 0; n--, a++, b++) {
         float v = *a;
-        v = CLAMP(v, -1, 1);
+        v = PA_CLAMP_UNLIKELY(v, -1, 1);
         v *= 0xFFF;
         *b = st_13linear2alaw((int16_t) v);
     }

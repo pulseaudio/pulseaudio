@@ -177,14 +177,14 @@ static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chun
             p = src + c;
             q = u->input;
             for (j = 0; j < n; j++, p += u->channels, q++)
-                *q = CLAMP(*p, -1.0, 1.0);
+                *q = PA_CLAMP_UNLIKELY(*p, -1.0, 1.0);
 
             u->descriptor->run(u->handle[c], n);
 
             q = u->output;
             p = dst + c;
             for (j = 0; j < n; j++, q++, p += u->channels)
-                *p = CLAMP(*q, -1.0, 1.0);
+                *p = PA_CLAMP_UNLIKELY(*q, -1.0, 1.0);
         }
 
         pa_memblock_release(tchunk.memblock);
