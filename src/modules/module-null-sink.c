@@ -51,16 +51,17 @@
 
 #include "module-null-sink-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Clocked NULL sink")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("Clocked NULL sink");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
         "sink_name=<name of sink>"
         "channel_map=<channel map>"
-        "description=<description for the sink>")
+        "description=<description for the sink>");
 
 #define DEFAULT_SINK_NAME "null"
 

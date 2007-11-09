@@ -44,10 +44,11 @@
 
 #include "module-x11-bell-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("X11 Bell interceptor")
-PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("sink=<sink to connect to> sample=<sample name> display=<X11 display>")
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("X11 Bell interceptor");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_USAGE("sink=<sink to connect to> sample=<sample name> display=<X11 display>");
 
 struct userdata {
     pa_core *core;

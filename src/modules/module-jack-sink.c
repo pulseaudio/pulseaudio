@@ -64,16 +64,17 @@
  * source support in JACK.
  */
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("JACK Sink")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("JACK Sink");
+PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
         "sink_name=<name of sink> "
         "server_name=<jack server name> "
         "client_name=<jack client name> "
         "channels=<number of channels> "
         "connect=<connect ports?> "
-        "channel_map=<channel map>")
+        "channel_map=<channel map>");
 
 #define DEFAULT_SINK_NAME "jack_out"
 

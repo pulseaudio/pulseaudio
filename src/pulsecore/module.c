@@ -46,6 +46,7 @@
 
 #define PA_SYMBOL_INIT "pa__init"
 #define PA_SYMBOL_DONE "pa__done"
+#define PA_SYMBOL_LOAD_ONCE "pa__load_once"
 
 #define UNLOAD_POLL_TIME 2
 
@@ -66,6 +67,7 @@ static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED 
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
+    pa_bool_t (*load_once)(void);
 
     pa_assert(c);
     pa_assert(name);
@@ -80,6 +82,22 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
     if (!(m->dl = lt_dlopenext(name))) {
         pa_log("Failed to open module \"%s\": %s", name, lt_dlerror());
         goto fail;
+    }
+
+    if ((load_once = (pa_bool_t (*)(void)) pa_load_sym(m->dl, name, PA_SYMBOL_LOAD_ONCE))) {
+
+        if (load_once()) {
+            pa_module *i;
+            uint32_t idx;
+            /* OK, the module only wants to be loaded once, let's make sure it is */
+
+            for (i = pa_idxset_first(c->modules, &idx); i; i = pa_idxset_next(c->modules, &idx)) {
+                if (strcmp(name, i->name) == 0) {
+                    pa_log("Module \"%s\" should be loaded once at most. Refusing to load.", name);
+                    goto fail;
+                }
+            }
+        }
     }
 
     if (!(m->init = (int (*)(pa_module*_m)) pa_load_sym(m->dl, name, PA_SYMBOL_INIT))) {

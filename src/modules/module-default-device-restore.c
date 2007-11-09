@@ -32,9 +32,10 @@
 
 #include "module-default-device-restore-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Automatically restore the default sink and source")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("Automatically restore the default sink and source");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
 
 #define DEFAULT_SINK_FILE "default-sink"
 #define DEFAULT_SOURCE_FILE "default-source"
@@ -98,6 +99,3 @@ void pa__done(pa_module*m) {
         fclose(f);
     }
 }
-
-
-

@@ -76,9 +76,10 @@
 #include "oss-util.h"
 #include "module-oss-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("OSS Sink/Source")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("OSS Sink/Source");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "source_name=<name for the source> "
@@ -91,7 +92,7 @@ PA_MODULE_USAGE(
         "fragments=<number of fragments> "
         "fragment_size=<fragment size> "
         "channel_map=<channel map> "
-        "mmap=<enable memory mapping?>")
+        "mmap=<enable memory mapping?>");
 
 #define DEFAULT_DEVICE "/dev/dsp"
 

@@ -39,10 +39,11 @@
 
 #include "module-sine-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Sine wave generator")
-PA_MODULE_USAGE("sink=<sink to connect to> frequency=<frequency in Hz>")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("Sine wave generator");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_USAGE("sink=<sink to connect to> frequency=<frequency in Hz>");
 
 struct userdata {
     pa_core *core;
@@ -203,4 +204,3 @@ void pa__done(pa_module*m) {
 
     pa_xfree(u);
 }
-

@@ -45,9 +45,10 @@
 #include "module-ladspa-sink-symdef.h"
 #include "ladspa.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Virtual LADSPA sink")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("Virtual LADSPA sink");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "master=<name of sink to remap> "
@@ -57,7 +58,7 @@ PA_MODULE_USAGE(
         "channel_map=<channel map> "
         "plugin=<ladspa plugin name> "
         "label=<ladspa plugin label> "
-        "control=<comma seperated list of input control values>")
+        "control=<comma seperated list of input control values>");
 
 struct userdata {
     pa_core *core;

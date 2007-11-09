@@ -46,10 +46,11 @@
 
 #include "module-mmkbd-evdev-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Multimedia keyboard support via Linux evdev")
-PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("device=<evdev device> sink=<sink name>")
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("Multimedia keyboard support via Linux evdev");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_USAGE("device=<evdev device> sink=<sink name>");
 
 #define DEFAULT_DEVICE "/dev/input/event0"
 

@@ -37,10 +37,11 @@
 
 #include "module-esound-compat-spawnfd-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("ESOUND compatibility module: -spawnfd emulation")
-PA_MODULE_USAGE("fd=<file descriptor>")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("ESOUND compatibility module: -spawnfd emulation");
+PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_USAGE("fd=<file descriptor>");
 
 static const char* const valid_modargs[] = {
     "fd",

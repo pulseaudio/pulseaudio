@@ -76,7 +76,7 @@
   #else
     #include "module-simple-protocol-unix-symdef.h"
   #endif
-  PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION)
+PA_MODULE_DESCRIPTION("Simple protocol "SOCKET_DESCRIPTION);
   PA_MODULE_USAGE("rate=<sample rate> "
                   "format=<sample format> "
                   "channels=<number of channels> "
@@ -84,7 +84,7 @@
                   "source=<source to connect to> "
                   "playback=<enable playback?> "
                   "record=<enable record?> "
-                  SOCKET_USAGE)
+                  SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_CLI)
   #include <pulsecore/protocol-cli.h>
   #define protocol_new pa_protocol_cli_new
@@ -98,8 +98,8 @@
   #else
     #include "module-cli-protocol-unix-symdef.h"
   #endif
-  PA_MODULE_DESCRIPTION("Command line interface protocol "SOCKET_DESCRIPTION)
-  PA_MODULE_USAGE(SOCKET_USAGE)
+  PA_MODULE_DESCRIPTION("Command line interface protocol "SOCKET_DESCRIPTION);
+  PA_MODULE_USAGE(SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_HTTP)
   #include <pulsecore/protocol-http.h>
   #define protocol_new pa_protocol_http_new
@@ -113,8 +113,8 @@
   #else
     #include "module-http-protocol-unix-symdef.h"
   #endif
-  PA_MODULE_DESCRIPTION("HTTP "SOCKET_DESCRIPTION)
-  PA_MODULE_USAGE(SOCKET_USAGE)
+  PA_MODULE_DESCRIPTION("HTTP "SOCKET_DESCRIPTION);
+  PA_MODULE_USAGE(SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_NATIVE)
   #include <pulsecore/protocol-native.h>
   #define protocol_new pa_protocol_native_new
@@ -140,11 +140,11 @@
     #define AUTH_USAGE
   #endif
 
-  PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION)
+  PA_MODULE_DESCRIPTION("Native protocol "SOCKET_DESCRIPTION);
   PA_MODULE_USAGE("auth-anonymous=<don't check for cookies?> "
                   "cookie=<path to cookie file> "
                   AUTH_USAGE
-                  SOCKET_USAGE)
+                  SOCKET_USAGE);
 #elif defined(USE_PROTOCOL_ESOUND)
   #include <pulsecore/protocol-esound.h>
   #include <pulsecore/esound.h>
@@ -167,19 +167,20 @@
     #define AUTH_USAGE
   #endif
 
-  PA_MODULE_DESCRIPTION("ESOUND protocol "SOCKET_DESCRIPTION)
+  PA_MODULE_DESCRIPTION("ESOUND protocol "SOCKET_DESCRIPTION);
   PA_MODULE_USAGE("sink=<sink to connect to> "
                   "source=<source to connect to> "
                   "auth-anonymous=<don't verify cookies?> "
                   "cookie=<path to cookie file> "
                   AUTH_USAGE
-                  SOCKET_USAGE)
+                  SOCKET_USAGE);
 #else
   #error "Broken build system"
 #endif
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_VERSION(PACKAGE_VERSION);
 
 static const char* const valid_modargs[] = {
     MODULE_ARGUMENTS

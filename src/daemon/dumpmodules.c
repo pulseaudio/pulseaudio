@@ -71,6 +71,7 @@ static void long_info(const char *name, const char *path, pa_modinfo *i) {
             printf("Author: %s\n", i->author);
         if (i->usage)
             printf("Usage: %s\n", i->usage);
+        printf("Load Once: %s\n", pa_yes_no(i->load_once));
     }
 
     if (path)

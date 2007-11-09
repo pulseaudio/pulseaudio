@@ -53,15 +53,16 @@
 #include "dbus-util.h"
 #include "module-hal-detect-symdef.h"
 
-PA_MODULE_AUTHOR("Shahms King")
-PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Shahms King");
+PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
 #if defined(HAVE_ALSA) && defined(HAVE_OSS)
-PA_MODULE_USAGE("api=<alsa or oss>")
+PA_MODULE_USAGE("api=<alsa or oss>");
 #elif defined(HAVE_ALSA)
-PA_MODULE_USAGE("api=<alsa>")
+PA_MODULE_USAGE("api=<alsa>");
 #elif defined(HAVE_OSS)
-PA_MODULE_USAGE("api=<oss>")
+PA_MODULE_USAGE("api=<oss>");
 #endif
 
 struct device {

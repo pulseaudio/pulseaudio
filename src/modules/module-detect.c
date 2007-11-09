@@ -47,10 +47,11 @@
 
 #include "module-detect-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers")
-PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("just-one=<boolean>")
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("Detect available audio hardware and load matching drivers");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE("just-one=<boolean>");
 
 static const char* const valid_modargs[] = {
     "just-one",

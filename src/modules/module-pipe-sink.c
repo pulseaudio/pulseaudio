@@ -50,16 +50,17 @@
 
 #include "module-pipe-sink-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("UNIX pipe sink")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("UNIX pipe sink");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "file=<path of the FIFO> "
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate>"
-        "channel_map=<channel map>")
+        "channel_map=<channel map>");
 
 #define DEFAULT_FILE_NAME "/tmp/music.output"
 #define DEFAULT_SINK_NAME "fifo_output"

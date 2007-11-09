@@ -53,10 +53,11 @@
 
 #include "module-x11-publish-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("X11 Credential Publisher")
-PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("display=<X11 display>")
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("X11 Credential Publisher");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
+PA_MODULE_USAGE("display=<X11 display>");
 
 static const char* const valid_modargs[] = {
     "display",

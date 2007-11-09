@@ -48,10 +48,11 @@
 
 #include "module-volume-restore-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Automatically restore the volume and the devices of streams")
-PA_MODULE_USAGE("table=<filename>")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("Automatically restore the volume and the devices of streams");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE("table=<filename>");
 
 #define WHITESPACE "\n\r \t"
 

@@ -62,10 +62,25 @@ void pa_module_unload_request(pa_module *m);
 
 void pa_module_set_used(pa_module*m, int used);
 
-#define PA_MODULE_AUTHOR(s) const char *pa__get_author(void) { return s; }
-#define PA_MODULE_DESCRIPTION(s) const char *pa__get_description(void) { return s; }
-#define PA_MODULE_USAGE(s) const char *pa__get_usage(void) { return s; }
-#define PA_MODULE_VERSION(s) const char * pa__get_version(void) { return s; }
+#define PA_MODULE_AUTHOR(s)                                     \
+    const char *pa__get_author(void) { return s; }              \
+    struct __stupid_useless_struct_to_allow_trailing_semicolon
+
+#define PA_MODULE_DESCRIPTION(s)                                \
+    const char *pa__get_description(void) { return s; }         \
+    struct __stupid_useless_struct_to_allow_trailing_semicolon
+
+#define PA_MODULE_USAGE(s)                                      \
+    const char *pa__get_usage(void) { return s; }               \
+    struct __stupid_useless_struct_to_allow_trailing_semicolon
+
+#define PA_MODULE_VERSION(s)                                    \
+    const char * pa__get_version(void) { return s; }            \
+    struct __stupid_useless_struct_to_allow_trailing_semicolon
+
+#define PA_MODULE_LOAD_ONCE(b)                                  \
+    pa_bool_t pa__load_once(void) { return b; }                 \
+    struct __stupid_useless_struct_to_allow_trailing_semicolon
 
 pa_modinfo *pa_module_get_info(pa_module *m);
 

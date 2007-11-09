@@ -52,10 +52,11 @@
 
 #include "module-zeroconf-publish-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher")
-PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("port=<IP port number>")
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("mDNS/DNS-SD Service Publisher");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE("port=<IP port number>");
 
 #define SERVICE_TYPE_SINK "_pulse-sink._tcp"
 #define SERVICE_TYPE_SOURCE "_pulse-source._tcp"

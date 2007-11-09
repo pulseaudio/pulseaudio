@@ -64,15 +64,16 @@
 
 #include "module-esound-sink-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("ESOUND Sink")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("ESOUND Sink");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "server=<address> cookie=<filename>  "
         "format=<sample format> "
         "channels=<number of channels> "
-        "rate=<sample rate>")
+        "rate=<sample rate>");
 
 #define DEFAULT_SINK_NAME "esound_out"
 

@@ -57,9 +57,10 @@
 #include "sdp.h"
 #include "sap.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Read data from source and send it to the network via RTP/SAP/SDP")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("Read data from source and send it to the network via RTP/SAP/SDP");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "source=<name of the source> "
         "format=<sample format> "
@@ -69,7 +70,7 @@ PA_MODULE_USAGE(
         "port=<port number> "
         "mtu=<maximum transfer unit> "
         "loop=<loopback to local host?>"
-)
+);
 
 #define DEFAULT_PORT 46000
 #define SAP_PORT 9875

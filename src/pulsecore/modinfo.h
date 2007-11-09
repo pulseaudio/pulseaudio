@@ -25,12 +25,14 @@
 ***/
 
 /* Some functions for reading module meta data from PulseAudio modules */
+#include <pulsecore/macro.h>
 
 typedef struct pa_modinfo {
     char *author;
     char *description;
     char *usage;
     char *version;
+    pa_bool_t load_once;
 } pa_modinfo;
 
 /* Read meta data from an libtool handle */

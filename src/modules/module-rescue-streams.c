@@ -36,9 +36,10 @@
 
 #include "module-rescue-streams-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("When a sink/source is removed, try to move their streams to the default sink/source")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("When a sink/source is removed, try to move their streams to the default sink/source");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
 
 static const char* const valid_modargs[] = {
     NULL,

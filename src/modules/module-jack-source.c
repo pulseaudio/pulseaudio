@@ -54,16 +54,17 @@
 /* See module-jack-sink for a few comments how this module basically
  * works */
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("JACK Source")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("JACK Source");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
 PA_MODULE_USAGE(
         "source_name=<name of source> "
         "server_name=<jack server name> "
         "client_name=<jack client name> "
         "channels=<number of channels> "
         "connect=<connect ports?>"
-        "channel_map=<channel map>")
+        "channel_map=<channel map>");
 
 #define DEFAULT_SOURCE_NAME "jack_in"
 

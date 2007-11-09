@@ -50,9 +50,10 @@
 #include "alsa-util.h"
 #include "module-alsa-sink-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("ALSA Sink")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("ALSA Sink");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "device=<ALSA device> "
@@ -62,7 +63,7 @@ PA_MODULE_USAGE(
         "fragments=<number of fragments> "
         "fragment_size=<fragment size> "
         "channel_map=<channel map> "
-        "mmap=<enable memory mapping?>")
+        "mmap=<enable memory mapping?>");
 
 #define DEFAULT_DEVICE "default"
 

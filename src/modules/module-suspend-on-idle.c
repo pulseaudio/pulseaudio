@@ -37,9 +37,10 @@
 
 #include "module-suspend-on-idle-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("When a sink/source is idle for too long, suspend it")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("When a sink/source is idle for too long, suspend it");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
 
 static const char* const valid_modargs[] = {
     "timeout",

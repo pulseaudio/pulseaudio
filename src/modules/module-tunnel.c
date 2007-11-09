@@ -59,7 +59,8 @@
 
 #ifdef TUNNEL_SINK
 #include "module-tunnel-sink-symdef.h"
-PA_MODULE_DESCRIPTION("Tunnel module for sinks")
+PA_MODULE_DESCRIPTION("Tunnel module for sinks");
+PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "server=<address> "
         "sink=<remote sink name> "
@@ -68,10 +69,10 @@ PA_MODULE_USAGE(
         "channels=<number of channels> "
         "rate=<sample rate> "
         "sink_name=<name for the local sink> "
-        "channel_map=<channel map>")
+        "channel_map=<channel map>");
 #else
 #include "module-tunnel-source-symdef.h"
-PA_MODULE_DESCRIPTION("Tunnel module for sources")
+PA_MODULE_DESCRIPTION("Tunnel module for sources");
 PA_MODULE_USAGE(
         "server=<address> "
         "source=<remote source name> "
@@ -80,11 +81,11 @@ PA_MODULE_USAGE(
         "channels=<number of channels> "
         "rate=<sample rate> "
         "source_name=<name for the local source> "
-        "channel_map=<channel map>")
+        "channel_map=<channel map>");
 #endif
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_VERSION(PACKAGE_VERSION);
 
 #define DEFAULT_TLENGTH_MSEC 100
 #define DEFAULT_MINREQ_MSEC 10

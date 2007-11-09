@@ -38,10 +38,11 @@
 
 #include "module-cli-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("Command line interface")
-PA_MODULE_VERSION(PACKAGE_VERSION)
-PA_MODULE_USAGE("exit_on_eof=<exit daemon after EOF?>")
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("Command line interface");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE("exit_on_eof=<exit daemon after EOF?>");
 
 static const char* const valid_modargs[] = {
     "exit_on_eof",

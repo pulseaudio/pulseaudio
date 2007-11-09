@@ -37,10 +37,11 @@
 
 #include "module-esound-compat-spawnpid-symdef.h"
 
-PA_MODULE_AUTHOR("Lennart Poettering")
-PA_MODULE_DESCRIPTION("ESOUND compatibility module: -spawnpid emulation")
-PA_MODULE_USAGE("pid=<process id>")
-PA_MODULE_VERSION(PACKAGE_VERSION)
+PA_MODULE_AUTHOR("Lennart Poettering");
+PA_MODULE_DESCRIPTION("ESOUND compatibility module: -spawnpid emulation");
+PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_LOAD_ONCE(TRUE);
+PA_MODULE_USAGE("pid=<process id>");
 
 static const char* const valid_modargs[] = {
     "pid",
