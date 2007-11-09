@@ -239,7 +239,8 @@ noinst_PROGRAMS = \
 		rtpoll-test \
 		sig2str-test \
 		resampler-test \
-		smoother-test
+		smoother-test \
+		mix-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -388,6 +389,11 @@ resampler_test_SOURCES = tests/resampler-test.c
 resampler_test_LDADD = $(AM_LDADD) libpulsecore.la
 resampler_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 resampler_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+mix_test_SOURCES = tests/mix-test.c
+mix_test_LDADD = $(AM_LDADD) libpulsecore.la
+mix_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+mix_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 smoother_test_SOURCES = tests/smoother-test.c
 smoother_test_LDADD = $(AM_LDADD) libpulsecore.la
