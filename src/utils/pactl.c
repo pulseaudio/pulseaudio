@@ -38,6 +38,7 @@
 #include <sndfile.h>
 
 #include <pulse/pulseaudio.h>
+#include <pulsecore/core-util.h>
 
 #if PA_API_VERSION < 10
 #error Invalid PulseAudio API version
