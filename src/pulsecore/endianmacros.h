@@ -63,8 +63,14 @@
  #define PA_UINT16_FROM_LE(x) PA_UINT16_SWAP(x)
  #define PA_UINT16_FROM_BE(x) ((uint16_t)(x))
 
+ #define PA_UINT16_TO_LE(x) PA_UINT16_SWAP(x)
+ #define PA_UINT16_TO_BE(x) ((uint16_t)(x))
+
  #define PA_INT32_FROM_LE(x) PA_INT32_SWAP(x)
  #define PA_INT32_FROM_BE(x) ((int32_t)(x))
+
+ #define PA_INT32_TO_LE(x) PA_INT32_SWAP(x)
+ #define PA_INT32_TO_BE(x) ((int32_t)(x))
 
  #define PA_UINT32_FROM_LE(x) PA_UINT32_SWAP(x)
  #define PA_UINT32_FROM_BE(x) ((uint32_t)(x))
@@ -81,8 +87,14 @@
  #define PA_UINT16_FROM_LE(x) ((uint16_t)(x))
  #define PA_UINT16_FROM_BE(x) PA_UINT16_SWAP(x)
 
+ #define PA_UINT16_TO_LE(x) ((uint16_t)(x))
+ #define PA_UINT16_TO_BE(x) PA_UINT16_SWAP(x)
+
  #define PA_INT32_FROM_LE(x) ((int32_t)(x))
  #define PA_INT32_FROM_BE(x) PA_INT32_SWAP(x)
+
+ #define PA_INT32_TO_LE(x) ((int32_t)(x))
+ #define PA_INT32_TO_BE(x) PA_INT32_SWAP(x)
 
  #define PA_UINT32_FROM_LE(x) ((uint32_t)(x))
  #define PA_UINT32_FROM_BE(x) PA_UINT32_SWAP(x)
