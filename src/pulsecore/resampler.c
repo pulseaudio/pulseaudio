@@ -240,7 +240,9 @@ pa_resampler* pa_resampler_new(
 
         if (r->map_required || a->format != b->format) {
 
-            if (a->format == PA_SAMPLE_FLOAT32NE || a->format == PA_SAMPLE_FLOAT32RE ||
+            if (a->format == PA_SAMPLE_S32NE || a->format == PA_SAMPLE_S32RE ||
+                a->format == PA_SAMPLE_FLOAT32NE || a->format == PA_SAMPLE_FLOAT32RE ||
+                b->format == PA_SAMPLE_S32NE || b->format == PA_SAMPLE_S32RE ||
                 b->format == PA_SAMPLE_FLOAT32NE || b->format == PA_SAMPLE_FLOAT32RE)
                 r->work_format = PA_SAMPLE_FLOAT32NE;
             else

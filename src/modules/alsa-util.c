@@ -227,15 +227,19 @@ static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_s
         [PA_SAMPLE_S16BE] = SND_PCM_FORMAT_S16_BE,
         [PA_SAMPLE_FLOAT32LE] = SND_PCM_FORMAT_FLOAT_LE,
         [PA_SAMPLE_FLOAT32BE] = SND_PCM_FORMAT_FLOAT_BE,
+        [PA_SAMPLE_S32LE] = SND_PCM_FORMAT_S32_LE,
+        [PA_SAMPLE_S32BE] = SND_PCM_FORMAT_S32_BE,
     };
 
     static const pa_sample_format_t try_order[] = {
-        PA_SAMPLE_S16NE,
-        PA_SAMPLE_S16RE,
         PA_SAMPLE_FLOAT32NE,
         PA_SAMPLE_FLOAT32RE,
-        PA_SAMPLE_ULAW,
+        PA_SAMPLE_S32NE,
+        PA_SAMPLE_S32RE,
+        PA_SAMPLE_S16NE,
+        PA_SAMPLE_S16RE,
         PA_SAMPLE_ALAW,
+        PA_SAMPLE_ULAW,
         PA_SAMPLE_U8,
         PA_SAMPLE_INVALID
     };
@@ -256,6 +260,10 @@ static int set_format(snd_pcm_t *pcm_handle, snd_pcm_hw_params_t *hwparams, pa_s
         *f = PA_SAMPLE_S16LE;
     else if (*f == PA_SAMPLE_S16LE)
         *f = PA_SAMPLE_S16BE;
+    else if (*f == PA_SAMPLE_S32BE)
+        *f = PA_SAMPLE_S32LE;
+    else if (*f == PA_SAMPLE_S32LE)
+        *f = PA_SAMPLE_S32BE;
     else
         goto try_auto;
 

@@ -42,13 +42,15 @@
  *
  * PulseAudio supports the following sample formats:
  *
- * \li PA_SAMPLE_U8 - Unsigned 8 bit PCM.
- * \li PA_SAMPLE_S16LE - Signed 16 bit PCM, little endian.
- * \li PA_SAMPLE_S16BE - Signed 16 bit PCM, big endian.
+ * \li PA_SAMPLE_U8 - Unsigned 8 bit integer PCM.
+ * \li PA_SAMPLE_S16LE - Signed 16 integer bit PCM, little endian.
+ * \li PA_SAMPLE_S16BE - Signed 16 integer bit PCM, big endian.
  * \li PA_SAMPLE_FLOAT32LE - 32 bit IEEE floating point PCM, little endian.
  * \li PA_SAMPLE_FLOAT32BE - 32 bit IEEE floating point PCM, big endian.
  * \li PA_SAMPLE_ALAW - 8 bit a-Law.
  * \li PA_SAMPLE_ULAW - 8 bit mu-Law.
+ * \li PA_SAMPLE_S32LE - Signed 32 bit integer PCM, little endian.
+ * \li PA_SAMPLE_S32BE - Signed 32 bit integer  PCM, big endian.
  *
  * The floating point sample formats have the range from -1 to 1.
  *
@@ -117,6 +119,8 @@ typedef enum pa_sample_format {
     PA_SAMPLE_S16BE,           /**< Signed 16 Bit PCM, big endian */
     PA_SAMPLE_FLOAT32LE,       /**< 32 Bit IEEE floating point, little endian, range -1 to 1 */
     PA_SAMPLE_FLOAT32BE,       /**< 32 Bit IEEE floating point, big endian, range -1 to 1 */
+    PA_SAMPLE_S32LE,           /**< Signed 32 Bit PCM, little endian (PC) */
+    PA_SAMPLE_S32BE,           /**< Signed 32 Bit PCM, big endian (PC) */
     PA_SAMPLE_MAX,             /**< Upper limit of valid sample types */
     PA_SAMPLE_INVALID = -1     /**< An invalid value */
 } pa_sample_format_t;
@@ -126,19 +130,27 @@ typedef enum pa_sample_format {
 #define PA_SAMPLE_S16NE PA_SAMPLE_S16BE
 /** 32 Bit IEEE floating point, native endian */
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32BE
+/** Signed 32 Bit PCM, native endian */
+#define PA_SAMPLE_S32NE PA_SAMPLE_S32BE
 /** Signed 16 Bit PCM reverse endian */
 #define PA_SAMPLE_S16RE PA_SAMPLE_S16LE
 /** 32 Bit IEEE floating point, reverse endian */
 #define PA_SAMPLE_FLOAT32RE PA_SAMPLE_FLOAT32LE
+/** Signed 32 Bit PCM reverse endian */
+#define PA_SAMPLE_S32RE PA_SAMPLE_S32LE
 #else
 /** Signed 16 Bit PCM, native endian */
 #define PA_SAMPLE_S16NE PA_SAMPLE_S16LE
 /** 32 Bit IEEE floating point, native endian */
 #define PA_SAMPLE_FLOAT32NE PA_SAMPLE_FLOAT32LE
+/** Signed 32 Bit PCM, native endian */
+#define PA_SAMPLE_S32NE PA_SAMPLE_S32LE
 /** Signed 16 Bit PCM reverse endian */
 #define PA_SAMPLE_S16RE PA_SAMPLE_S16BE
 /** 32 Bit IEEE floating point, reverse endian */
 #define PA_SAMPLE_FLOAT32RE PA_SAMPLE_FLOAT32BE
+/** Signed 32 Bit PCM reverse endian */
+#define PA_SAMPLE_S32RE PA_SAMPLE_S32BE
 #endif
 
 /** A Shortcut for PA_SAMPLE_FLOAT32NE */
