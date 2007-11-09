@@ -60,7 +60,7 @@
 #endif
 
 #ifndef PA_GCC_PURE
-#ifdef __GNUCC__
+#ifdef __GNUC__
 #define PA_GCC_PURE __attribute__ ((pure))
 #else
 /** This function's return value depends only the arguments list and global state **/
@@ -69,11 +69,21 @@
 #endif
 
 #ifndef PA_GCC_CONST
-#ifdef __GNUCC__
+#ifdef __GNUC__
 #define PA_GCC_CONST __attribute__ ((const))
 #else
 /** This function's return value depends only the arguments list (stricter version of PA_GCC_PURE) **/
 #define PA_GCC_CONST
+#endif
+#endif
+
+#ifndef PA_LIKELY
+#ifdef __GNUC__
+#define PA_LIKELY(x) __builtin_expect((x),1)
+#define PA_UNLIKELY(x) __builtin_expect((x),0)
+#else
+#define PA_LIKELY(x) (x)
+#define PA_UNLIKELY(x) (x)
 #endif
 #endif
 
