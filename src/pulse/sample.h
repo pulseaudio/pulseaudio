@@ -50,7 +50,7 @@
  * \li PA_SAMPLE_ALAW - 8 bit a-Law.
  * \li PA_SAMPLE_ULAW - 8 bit mu-Law.
  * \li PA_SAMPLE_S32LE - Signed 32 bit integer PCM, little endian.
- * \li PA_SAMPLE_S32BE - Signed 32 bit integer  PCM, big endian.
+ * \li PA_SAMPLE_S32BE - Signed 32 bit integer PCM, big endian.
  *
  * The floating point sample formats have the range from -1 to 1.
  *
