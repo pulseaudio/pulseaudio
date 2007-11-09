@@ -77,8 +77,8 @@ static inline size_t pa_page_align(size_t l) {
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #endif
 
-#define PA_CLAMP_LIKELY(x, low, high) (PA_LIKELY((x) > (high)) ? (high) : PA_LIKELY(((x) < (low)) ? (low) : (x)))
-#define PA_CLAMP_UNLIKELY(x, low, high) (PA_UNLIKELY((x) > (high)) ? (high) : PA_UNLIKELY(((x) < (low)) ? (low) : (x)))
+#define PA_CLAMP_LIKELY(x, low, high) (PA_LIKELY((x) > (high)) ? (high) : (PA_LIKELY((x)<(low)) ? (low) : (x)))
+#define PA_CLAMP_UNLIKELY(x, low, high) (PA_UNLIKELY((x) > (high)) ? (high) : (PA_UNLIKELY((x) < (low)) ? (low) : (x)))
 
 /* This type is not intended to be used in exported APIs! Use classic "int" there! */
 #ifdef HAVE_STD_BOOL
