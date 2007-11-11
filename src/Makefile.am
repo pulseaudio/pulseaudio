@@ -240,7 +240,8 @@ noinst_PROGRAMS = \
 		sig2str-test \
 		resampler-test \
 		smoother-test \
-		mix-test
+		mix-test \
+		remix-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -394,6 +395,11 @@ mix_test_SOURCES = tests/mix-test.c
 mix_test_LDADD = $(AM_LDADD) libpulsecore.la
 mix_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 mix_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+remix_test_SOURCES = tests/remix-test.c
+remix_test_LDADD = $(AM_LDADD) libpulsecore.la
+remix_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+remix_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 smoother_test_SOURCES = tests/smoother-test.c
 smoother_test_LDADD = $(AM_LDADD) libpulsecore.la

@@ -49,6 +49,12 @@ typedef enum pa_resample_method {
     PA_RESAMPLER_MAX
 } pa_resample_method_t;
 
+typedef enum pa_resample_flags {
+    PA_RESAMPLER_VARIABLE_RATE = 1,
+    PA_RESAMPLER_NO_REMAP = 2,  /* implies NO_REMIX */
+    PA_RESAMPLER_NO_REMIX = 4
+} pa_resample_flags_t;
+
 pa_resampler* pa_resampler_new(
         pa_mempool *pool,
         const pa_sample_spec *a,
@@ -56,7 +62,7 @@ pa_resampler* pa_resampler_new(
         const pa_sample_spec *b,
         const pa_channel_map *bm,
         pa_resample_method_t resample_method,
-        int variable_rate);
+        pa_resample_flags_t flags);
 
 void pa_resampler_free(pa_resampler *r);
 

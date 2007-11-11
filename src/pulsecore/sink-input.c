@@ -154,7 +154,7 @@ pa_sink_input* pa_sink_input_new(
                       &data->sample_spec, &data->channel_map,
                       &data->sink->sample_spec, &data->sink->channel_map,
                       data->resample_method,
-                      !!(flags & PA_SINK_INPUT_VARIABLE_RATE)))) {
+                      (flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0))) {
             pa_log_warn("Unsupported resampling operation.");
             return NULL;
         }
@@ -750,7 +750,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
                       &i->sample_spec, &i->channel_map,
                       &dest->sample_spec, &dest->channel_map,
                       i->resample_method,
-                      !!(i->flags & PA_SINK_INPUT_VARIABLE_RATE)))) {
+                      (i->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0))) {
             pa_log_warn("Unsupported resampling operation.");
             return -1;
         }

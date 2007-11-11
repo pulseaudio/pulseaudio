@@ -38,6 +38,7 @@
 #include <pulsecore/sconv.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/strbuf.h>
 
 #include "speexwrap.h"
 
@@ -49,7 +50,9 @@
 #define EXTRA_SAMPLES 128
 
 struct pa_resampler {
-    pa_resample_method_t resample_method;
+    pa_resample_method_t method;
+    pa_resample_flags_t flags;
+
     pa_sample_spec i_ss, o_ss;
     pa_channel_map i_cm, o_cm;
     size_t i_fz, o_fz, w_sz;
@@ -63,8 +66,8 @@ struct pa_resampler {
     pa_convert_func_t to_work_format_func;
     pa_convert_func_t from_work_format_func;
 
-    int map_table[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
-    int map_required;
+    float map_table[PA_CHANNELS_MAX][PA_CHANNELS_MAX];
+    pa_bool_t map_required;
 
     void (*impl_free)(pa_resampler *r);
     void (*impl_update_rates)(pa_resampler *r);
@@ -159,8 +162,8 @@ pa_resampler* pa_resampler_new(
         const pa_channel_map *am,
         const pa_sample_spec *b,
         const pa_channel_map *bm,
-        pa_resample_method_t resample_method,
-        int variable_rate) {
+        pa_resample_method_t method,
+        pa_resample_flags_t flags) {
 
     pa_resampler *r = NULL;
 
@@ -169,37 +172,38 @@ pa_resampler* pa_resampler_new(
     pa_assert(b);
     pa_assert(pa_sample_spec_valid(a));
     pa_assert(pa_sample_spec_valid(b));
-    pa_assert(resample_method >= 0);
-    pa_assert(resample_method < PA_RESAMPLER_MAX);
+    pa_assert(method >= 0);
+    pa_assert(method < PA_RESAMPLER_MAX);
 
     /* Fix method */
 
-    if (!variable_rate && a->rate == b->rate) {
+    if (!(flags & PA_RESAMPLER_VARIABLE_RATE) && a->rate == b->rate) {
         pa_log_info("Forcing resampler 'copy', because of fixed, identical sample rates.");
-        resample_method = PA_RESAMPLER_COPY;
+        method = PA_RESAMPLER_COPY;
     }
 
-    if (!pa_resample_method_supported(resample_method)) {
-        pa_log_warn("Support for resampler '%s' not compiled in, reverting to 'auto'.", pa_resample_method_to_string(resample_method));
-        resample_method = PA_RESAMPLER_AUTO;
+    if (!pa_resample_method_supported(method)) {
+        pa_log_warn("Support for resampler '%s' not compiled in, reverting to 'auto'.", pa_resample_method_to_string(method));
+        method = PA_RESAMPLER_AUTO;
     }
 
-    if (resample_method == PA_RESAMPLER_FFMPEG && variable_rate) {
+    if (method == PA_RESAMPLER_FFMPEG && (flags & PA_RESAMPLER_VARIABLE_RATE)) {
         pa_log_info("Resampler 'ffmpeg' cannot do variable rate, reverting to resampler 'auto'.");
-        resample_method = PA_RESAMPLER_AUTO;
+        method = PA_RESAMPLER_AUTO;
     }
 
-    if (resample_method == PA_RESAMPLER_COPY && (variable_rate || a->rate != b->rate)) {
+    if (method == PA_RESAMPLER_COPY && ((flags & PA_RESAMPLER_VARIABLE_RATE) || a->rate != b->rate)) {
         pa_log_info("Resampler 'copy' cannot change sampling rate, reverting to resampler 'auto'.");
-        resample_method = PA_RESAMPLER_AUTO;
+        method = PA_RESAMPLER_AUTO;
     }
 
-    if (resample_method == PA_RESAMPLER_AUTO)
-        resample_method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
+    if (method == PA_RESAMPLER_AUTO)
+        method = PA_RESAMPLER_SPEEX_FLOAT_BASE + 3;
 
     r = pa_xnew(pa_resampler, 1);
     r->mempool = pool;
-    r->resample_method = resample_method;
+    r->method = method;
+    r->flags = flags;
 
     r->impl_free = NULL;
     r->impl_update_rates = NULL;
@@ -231,12 +235,12 @@ pa_resampler* pa_resampler_new(
 
     calc_map_table(r);
 
-    pa_log_info("Using resampler '%s'", pa_resample_method_to_string(resample_method));
+    pa_log_info("Using resampler '%s'", pa_resample_method_to_string(method));
 
-    if ((resample_method >= PA_RESAMPLER_SPEEX_FIXED_BASE && resample_method <= PA_RESAMPLER_SPEEX_FIXED_MAX) ||
-        (resample_method == PA_RESAMPLER_FFMPEG))
+    if ((method >= PA_RESAMPLER_SPEEX_FIXED_BASE && method <= PA_RESAMPLER_SPEEX_FIXED_MAX) ||
+        (method == PA_RESAMPLER_FFMPEG))
         r->work_format = PA_SAMPLE_S16NE;
-    else if (resample_method == PA_RESAMPLER_TRIVIAL || resample_method == PA_RESAMPLER_COPY) {
+    else if (method == PA_RESAMPLER_TRIVIAL || method == PA_RESAMPLER_COPY) {
 
         if (r->map_required || a->format != b->format) {
 
@@ -281,7 +285,7 @@ pa_resampler* pa_resampler_new(
     }
 
     /* initialize implementation */
-    if (init_table[resample_method](r) < 0)
+    if (init_table[method](r) < 0)
         goto fail;
 
     return r;
@@ -373,7 +377,7 @@ size_t pa_resampler_max_block_size(pa_resampler *r) {
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
     pa_assert(r);
 
-    return r->resample_method;
+    return r->method;
 }
 
 static const char * const resample_methods[] = {
@@ -449,36 +453,423 @@ pa_resample_method_t pa_parse_resample_method(const char *string) {
     return PA_RESAMPLER_INVALID;
 }
 
+static pa_bool_t on_left(pa_channel_position_t p) {
+
+    return
+        p == PA_CHANNEL_POSITION_FRONT_LEFT ||
+        p == PA_CHANNEL_POSITION_REAR_LEFT ||
+        p == PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER ||
+        p == PA_CHANNEL_POSITION_SIDE_LEFT ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_LEFT ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_LEFT;
+}
+
+static pa_bool_t on_right(pa_channel_position_t p) {
+
+    return
+        p == PA_CHANNEL_POSITION_FRONT_RIGHT ||
+        p == PA_CHANNEL_POSITION_REAR_RIGHT ||
+        p == PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER ||
+        p == PA_CHANNEL_POSITION_SIDE_RIGHT ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_RIGHT ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_RIGHT;
+}
+
+static pa_bool_t on_center(pa_channel_position_t p) {
+
+    return
+        p == PA_CHANNEL_POSITION_FRONT_CENTER ||
+        p == PA_CHANNEL_POSITION_REAR_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_FRONT_CENTER ||
+        p == PA_CHANNEL_POSITION_TOP_REAR_CENTER;
+}
+
+static pa_bool_t on_lfe(pa_channel_position_t p) {
+    return
+        p == PA_CHANNEL_POSITION_LFE;
+}
+
 static void calc_map_table(pa_resampler *r) {
-    unsigned oc;
+    unsigned oc, ic;
+    pa_bool_t ic_connected[PA_CHANNELS_MAX];
+    pa_bool_t remix;
+    pa_strbuf *s;
+    char *t;
 
     pa_assert(r);
 
-    if (!(r->map_required = (r->i_ss.channels != r->o_ss.channels || !pa_channel_map_equal(&r->i_cm, &r->o_cm))))
+    if (!(r->map_required = (r->i_ss.channels != r->o_ss.channels || (!(r->flags & PA_RESAMPLER_NO_REMAP) && !pa_channel_map_equal(&r->i_cm, &r->o_cm)))))
         return;
 
+    memset(r->map_table, 0, sizeof(r->map_table));
+    memset(ic_connected, 0, sizeof(ic_connected));
+    remix = (r->flags & (PA_RESAMPLER_NO_REMAP|PA_RESAMPLER_NO_REMIX)) == 0;
+
     for (oc = 0; oc < r->o_ss.channels; oc++) {
-        unsigned ic, i = 0;
+        pa_bool_t oc_connected = FALSE;
+        pa_channel_position_t b = r->o_cm.map[oc];
 
         for (ic = 0; ic < r->i_ss.channels; ic++) {
-            pa_channel_position_t a, b;
+            pa_channel_position_t a = r->i_cm.map[ic];
 
-            a = r->i_cm.map[ic];
-            b = r->o_cm.map[oc];
+            if (r->flags & PA_RESAMPLER_NO_REMAP) {
+                /* We shall not do any remapping. Hence, just check by index */
 
-            if (a == b ||
-                (a == PA_CHANNEL_POSITION_MONO && b == PA_CHANNEL_POSITION_LEFT) ||
-                (a == PA_CHANNEL_POSITION_MONO && b == PA_CHANNEL_POSITION_RIGHT) ||
-                (a == PA_CHANNEL_POSITION_LEFT && b == PA_CHANNEL_POSITION_MONO) ||
-                (a == PA_CHANNEL_POSITION_RIGHT && b == PA_CHANNEL_POSITION_MONO))
+                if (ic == oc)
+                    r->map_table[oc][ic] = 1.0;
 
-                r->map_table[oc][i++] = ic;
+                continue;
+            }
+
+            if (r->flags & PA_RESAMPLER_NO_REMIX) {
+                /* We shall not do any remixing. Hence, just check by name */
+
+                if (a == b)
+                    r->map_table[oc][ic] = 1.0;
+
+                continue;
+            }
+
+            pa_assert(remix);
+
+            /* OK, we shall do the full monty: upmixing and
+             * downmixing. Our algorithm is relatively simple, does
+             * not do spacialization, delay elements or apply lowpass
+             * filters for LFE. Patches are always welcome,
+             * though. Oh, and it doesn't do any matrix
+             * decoding. (Which probably wouldn't make any sense
+             * anyway.)
+             *
+             * This code is not idempotent: downmixing an upmixed
+             * stereo stream is not identical to the original. The
+             * volume will not match, and the two channels will be a
+             * linear combination of both.
+             *
+             * This is losely based on random suggestions found on the
+             * Internet, such as this:
+             * http://www.halfgaar.net/surround-sound-in-linux and the
+             * alsa upmix plugin.
+             *
+             * The algorithm works basically like this:
+             *
+             * 1) Connect all channels with matching names.
+             *
+             * 2) Mono Handling:
+             *    S:Mono: Copy into all D:channels
+             *    D:Mono: Copy in all S:channels
+             *
+             * 3) Mix D:Left, D:Right:
+             *    D:Left: If not connected, avg all S:Left
+             *    D:Right: If not connected, avg all S:Right
+             *
+             * 4) Mix D:Center
+             *       If not connected, avg all S:Center
+             *       If still not connected, avg all S:Left, S:Right
+             *
+             * 5) Mix D:LFE
+             *       If not connected, avg all S:*
+             *
+             * 6) Make sure S:Left/S:Right is used: S:Left/S:Right: If
+             *    not connected, mix into all D:left and all D:right
+             *    channels. Gain is 0.1, the current left and right
+             *    should be multiplied by 0.9.
+             *
+             * 7) Make sure S:Center, S:LFE is used:
+             *
+             *    S:Center, S:LFE: If not connected, mix into all
+             *    D:left, all D:right, all D:center channels, gain is
+             *    0.375. The current (as result of 1..6) factors
+             *    should be multiplied by 0.75. (Alt. suggestion: 0.25
+             *    vs. 0.5)
+             *
+             * S: and D: shall relate to the source resp. destination channels.
+             *
+             * Rationale: 1, 2 are probably obvious. For 3: this
+             * copies front to rear if needed. For 4: we try to find
+             * some suitable C source for C, if we don't find any, we
+             * avg L and R. For 5: LFE is mixed from all channels. For
+             * 6: the rear channels should not be dropped entirely,
+             * however have only minimal impact. For 7: movies usually
+             * encode speech on the center channel. Thus we have to
+             * make sure this channel is distributed to L and R if not
+             * available in the output. Also, LFE is used to achieve a
+             * greater dynamic range, and thus we should try to do our
+             * best to pass it to L+R.
+             */
+
+            if (a == b || a == PA_CHANNEL_POSITION_MONO || b == PA_CHANNEL_POSITION_MONO) {
+                r->map_table[oc][ic] = 1.0;
+
+                oc_connected = TRUE;
+                ic_connected[ic] = TRUE;
+            }
         }
 
-        /* Add an end marker */
-        if (i < PA_CHANNELS_MAX)
-            r->map_table[oc][i] = -1;
+        if (!oc_connected && remix) {
+            /* OK, we shall remix */
+
+            if (on_left(b)) {
+                unsigned n = 0;
+
+                /* We are not connected and on the left side, let's
+                 * average all left side input channels. */
+
+                for (ic = 0; ic < r->i_ss.channels; ic++)
+                    if (on_left(r->i_cm.map[ic]))
+                        n++;
+
+                if (n > 0)
+                    for (ic = 0; ic < r->i_ss.channels; ic++)
+                        if (on_left(r->i_cm.map[ic])) {
+                            r->map_table[oc][ic] = 1.0 / n;
+                            ic_connected[ic] = TRUE;
+                        }
+
+                /* We ignore the case where there is no left input
+                 * channel. Something is really wrong in this case
+                 * anyway. */
+
+            } else if (on_right(b)) {
+                unsigned n = 0;
+
+                /* We are not connected and on the right side, let's
+                 * average all right side input channels. */
+
+                for (ic = 0; ic < r->i_ss.channels; ic++)
+                    if (on_right(r->i_cm.map[ic]))
+                        n++;
+
+                if (n > 0)
+                    for (ic = 0; ic < r->i_ss.channels; ic++)
+                        if (on_right(r->i_cm.map[ic])) {
+                            r->map_table[oc][ic] = 1.0 / n;
+                            ic_connected[ic] = TRUE;
+                        }
+
+                /* We ignore the case where there is no right input
+                 * channel. Something is really wrong in this case
+                 * anyway. */
+
+            } else if (on_center(b)) {
+                unsigned n = 0;
+
+                /* We are not connected and at the center. Let's
+                 * average all center input channels. */
+
+                for (ic = 0; ic < r->i_ss.channels; ic++)
+                    if (on_center(r->i_cm.map[ic]))
+                        n++;
+
+                if (n > 0) {
+                    for (ic = 0; ic < r->i_ss.channels; ic++)
+                        if (on_center(r->i_cm.map[ic])) {
+                            r->map_table[oc][ic] = 1.0 / n;
+                            ic_connected[ic] = TRUE;
+                        }
+                } else {
+
+                    /* Hmm, no center channel around, let's synthesize
+                     * it by mixing L and R.*/
+
+                    n = 0;
+
+                    for (ic = 0; ic < r->i_ss.channels; ic++)
+                        if (on_left(r->i_cm.map[ic]) || on_right(r->i_cm.map[ic]))
+                            n++;
+
+                    if (n > 0)
+                        for (ic = 0; ic < r->i_ss.channels; ic++)
+                            if (on_left(r->i_cm.map[ic]) || on_right(r->i_cm.map[ic])) {
+                                r->map_table[oc][ic] = 1.0 / n;
+                                ic_connected[ic] = TRUE;
+                            }
+
+                    /* We ignore the case where there is not even a
+                     * left or right input channel. Something is
+                     * really wrong in this case anyway. */
+                }
+
+            } else if (on_lfe(b)) {
+
+                /* We are not connected and an LFE. Let's average all
+                 * channels for LFE. */
+
+                for (ic = 0; ic < r->i_ss.channels; ic++) {
+                    r->map_table[oc][ic] = 1.0 / r->i_ss.channels;
+
+                    /* Please note that a channel connected to LFE
+                     * doesn't really count as connected. */
+                }
+            }
+        }
     }
+
+    if (remix) {
+        unsigned
+            ic_unconnected_left = 0,
+            ic_unconnected_right = 0,
+            ic_unconnected_center = 0,
+            ic_unconnected_lfe = 0;
+
+        for (ic = 0; ic < r->i_ss.channels; ic++) {
+            pa_channel_position_t a = r->i_cm.map[ic];
+
+            if (ic_connected[ic])
+                continue;
+
+            if (on_left(a))
+                ic_unconnected_left++;
+            else if (on_right(a))
+                ic_unconnected_right++;
+            else if (on_center(a))
+                ic_unconnected_center++;
+            else if (on_lfe(a))
+                ic_unconnected_lfe++;
+        }
+
+        if (ic_unconnected_left > 0) {
+
+            /* OK, so there are unconnected input channels on the
+             * left. Let's multiply all already connected channels on
+             * the left side by .9 and add in our averaged unconnected
+             * channels multplied by .1 */
+
+            for (oc = 0; oc < r->o_ss.channels; oc++) {
+
+                if (!on_left(r->o_cm.map[oc]))
+                    continue;
+
+                for (ic = 0; ic < r->i_ss.channels; ic++) {
+
+                    if (ic_connected[ic]) {
+                        r->map_table[oc][ic] *= .9;
+                        continue;
+                    }
+
+                    if (on_left(r->i_cm.map[ic]))
+                        r->map_table[oc][ic] = .1 / ic_unconnected_left;
+                }
+            }
+        }
+
+        if (ic_unconnected_right > 0) {
+
+            /* OK, so there are unconnected input channels on the
+             * right. Let's multiply all already connected channels on
+             * the right side by .9 and add in our averaged unconnected
+             * channels multplied by .1 */
+
+            for (oc = 0; oc < r->o_ss.channels; oc++) {
+
+                if (!on_right(r->o_cm.map[oc]))
+                    continue;
+
+                for (ic = 0; ic < r->i_ss.channels; ic++) {
+
+                    if (ic_connected[ic]) {
+                        r->map_table[oc][ic] *= .9;
+                        continue;
+                    }
+
+                    if (on_right(r->i_cm.map[ic]))
+                        r->map_table[oc][ic] = .1 / ic_unconnected_right;
+                }
+            }
+        }
+
+        if (ic_unconnected_center > 0) {
+            pa_bool_t mixed_in = FALSE;
+
+            /* OK, so there are unconnected input channels on the
+             * center. Let's multiply all already connected channels on
+             * the center side by .9 and add in our averaged unconnected
+             * channels multplied by .1 */
+
+            for (oc = 0; oc < r->o_ss.channels; oc++) {
+
+                if (!on_center(r->o_cm.map[oc]))
+                    continue;
+
+                for (ic = 0; ic < r->i_ss.channels; ic++)  {
+
+                    if (ic_connected[ic]) {
+                        r->map_table[oc][ic] *= .9;
+                        continue;
+                    }
+
+                    if (on_center(r->i_cm.map[ic])) {
+                        r->map_table[oc][ic] = .1 / ic_unconnected_center;
+                        mixed_in = TRUE;
+                    }
+                }
+            }
+
+            if (!mixed_in) {
+
+                /* Hmm, as it appears there was no center channel we
+                   could mix our center channel in. In this case, mix
+                   it into left and right. Using .375 and 0.75 as
+                   factors. */
+
+                for (oc = 0; oc < r->o_ss.channels; oc++) {
+
+                    if (!on_left(r->o_cm.map[oc]) && !on_right(r->o_cm.map[oc]))
+                        continue;
+
+                    for (ic = 0; ic < r->i_ss.channels; ic++)  {
+
+                        if (ic_connected[ic]) {
+                            r->map_table[oc][ic] *= .75;
+                            continue;
+                        }
+
+                        if (on_center(r->i_cm.map[ic]))
+                            r->map_table[oc][ic] = .375 / ic_unconnected_center;
+                    }
+                }
+            }
+        }
+
+        if (ic_unconnected_lfe > 0) {
+
+            /* OK, so there is an unconnected LFE channel. Let's mix
+             * it into all channels, with factor 0.375 */
+
+            for (ic = 0; ic < r->i_ss.channels; ic++)  {
+
+                if (!on_lfe(r->i_cm.map[ic]))
+                    continue;
+
+                for (oc = 0; oc < r->o_ss.channels; oc++)
+                    r->map_table[oc][ic] = 0.375 / ic_unconnected_lfe;
+            }
+        }
+    }
+
+
+    s = pa_strbuf_new();
+
+    pa_strbuf_printf(s, "     ");
+    for (ic = 0; ic < r->i_ss.channels; ic++)
+        pa_strbuf_printf(s, "  I%02u ", ic);
+    pa_strbuf_puts(s, "\n    +");
+
+    for (ic = 0; ic < r->i_ss.channels; ic++)
+        pa_strbuf_printf(s, "------");
+    pa_strbuf_puts(s, "\n");
+
+    for (oc = 0; oc < r->o_ss.channels; oc++) {
+        pa_strbuf_printf(s, "O%02u |", oc);
+
+        for (ic = 0; ic < r->i_ss.channels; ic++)
+            pa_strbuf_printf(s, " %1.3f", r->map_table[oc][ic]);
+
+        pa_strbuf_puts(s, "\n");
+    }
+
+    pa_log_debug("Channel matrix:\n%s", t = pa_strbuf_tostring_free(s));
+    pa_xfree(t);
 }
 
 static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) {
@@ -516,6 +907,36 @@ static pa_memchunk* convert_to_work_format(pa_resampler *r, pa_memchunk *input) 
     pa_memblock_release(r->buf1.memblock);
 
     return &r->buf1;
+}
+
+static void vectoradd_s16_with_fraction(
+        int16_t *d, int dstr,
+        const int16_t *s1, int sstr1,
+        const int16_t *s2, int sstr2,
+        int n,
+        float s3, float s4) {
+
+    int32_t i3, i4;
+
+    i3 = (int32_t) (s3 * 0x10000);
+    i4 = (int32_t) (s4 * 0x10000);
+
+    for (; n > 0; n--) {
+        int32_t a, b;
+
+        a = *s1;
+        b = *s2;
+
+        a = (a * i3) / 0x10000;
+        b = (b * i4) / 0x10000;
+
+        *d = (int16_t) (a + b);
+
+        s1 = (const int16_t*) ((const uint8_t*) s1 + sstr1);
+        s2 = (const int16_t*) ((const uint8_t*) s2 + sstr2);
+        d = (int16_t*) ((uint8_t*) d + dstr);
+
+    }
 }
 
 static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
@@ -560,16 +981,21 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
         case PA_SAMPLE_FLOAT32NE:
 
             for (oc = 0; oc < r->o_ss.channels; oc++) {
-                unsigned i;
+                unsigned ic;
                 static const float one = 1.0;
 
-                for (i = 0; i < PA_CHANNELS_MAX && r->map_table[oc][i] >= 0; i++)
+                for (ic = 0; ic < r->i_ss.channels; ic++) {
+
+                    if (r->map_table[oc][ic] <= 0.0)
+                        continue;
+
                     oil_vectoradd_f32(
                             (float*) dst + oc, o_skip,
                             (float*) dst + oc, o_skip,
-                            (float*) src + r->map_table[oc][i], i_skip,
+                            (float*) src + ic, i_skip,
                             n_frames,
-                            &one, &one);
+                            &one, &r->map_table[oc][ic]);
+                }
             }
 
             break;
@@ -577,16 +1003,32 @@ static pa_memchunk *remap_channels(pa_resampler *r, pa_memchunk *input) {
         case PA_SAMPLE_S16NE:
 
             for (oc = 0; oc < r->o_ss.channels; oc++) {
-                unsigned i;
-                static const int16_t one = 1;
+                unsigned ic;
 
-                for (i = 0; i < PA_CHANNELS_MAX && r->map_table[oc][i] >= 0; i++)
-                    oil_vectoradd_s16(
-                            (int16_t*) dst + oc, o_skip,
-                            (int16_t*) dst + oc, o_skip,
-                            (int16_t*) src + r->map_table[oc][i], i_skip,
-                            n_frames,
-                            &one, &one);
+                for (ic = 0; ic < r->i_ss.channels; ic++) {
+
+                    if (r->map_table[oc][ic] <= 0.0)
+                        continue;
+
+                    if (r->map_table[oc][ic] >= 1.0) {
+                        static const int16_t one = 1;
+
+                        oil_vectoradd_s16(
+                                (int16_t*) dst + oc, o_skip,
+                                (int16_t*) dst + oc, o_skip,
+                                (int16_t*) src + ic, i_skip,
+                                n_frames,
+                                &one, &one);
+
+                    } else
+
+                        vectoradd_s16_with_fraction(
+                                (int16_t*) dst + oc, o_skip,
+                                (int16_t*) dst + oc, o_skip,
+                                (int16_t*) src + ic, i_skip,
+                                n_frames,
+                                1.0, r->map_table[oc][ic]);
+                }
             }
 
             break;
@@ -751,7 +1193,7 @@ static int libsamplerate_init(pa_resampler *r) {
 
     pa_assert(r);
 
-    if (!(r->src.state = src_new(r->resample_method, r->o_ss.channels, &err)))
+    if (!(r->src.state = src_new(r->method, r->o_ss.channels, &err)))
         return -1;
 
     r->impl_free = libsamplerate_free;
@@ -809,10 +1251,10 @@ static void speex_resample_int(pa_resampler *r, const pa_memchunk *input, unsign
 static void speex_update_rates(pa_resampler *r) {
     pa_assert(r);
 
-    if (r->resample_method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FIXED_MAX)
+    if (r->method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->method <= PA_RESAMPLER_SPEEX_FIXED_MAX)
         pa_assert_se(paspfx_resampler_set_rate(r->speex.state, r->i_ss.rate, r->o_ss.rate) == 0);
     else {
-        pa_assert(r->resample_method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
+        pa_assert(r->method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
         pa_assert_se(paspfl_resampler_set_rate(r->speex.state, r->i_ss.rate, r->o_ss.rate) == 0);
     }
 }
@@ -823,10 +1265,10 @@ static void speex_free(pa_resampler *r) {
     if (!r->speex.state)
         return;
 
-    if (r->resample_method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FIXED_MAX)
+    if (r->method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->method <= PA_RESAMPLER_SPEEX_FIXED_MAX)
         paspfx_resampler_destroy(r->speex.state);
     else {
-        pa_assert(r->resample_method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
+        pa_assert(r->method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
         paspfl_resampler_destroy(r->speex.state);
     }
 }
@@ -839,8 +1281,8 @@ static int speex_init(pa_resampler *r) {
     r->impl_free = speex_free;
     r->impl_update_rates = speex_update_rates;
 
-    if (r->resample_method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FIXED_MAX) {
-        q = r->resample_method - PA_RESAMPLER_SPEEX_FIXED_BASE;
+    if (r->method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->method <= PA_RESAMPLER_SPEEX_FIXED_MAX) {
+        q = r->method - PA_RESAMPLER_SPEEX_FIXED_BASE;
 
         pa_log_info("Choosing speex quality setting %i.", q);
 
@@ -849,8 +1291,8 @@ static int speex_init(pa_resampler *r) {
 
         r->impl_resample = speex_resample_int;
     } else {
-        pa_assert(r->resample_method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->resample_method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
-        q = r->resample_method - PA_RESAMPLER_SPEEX_FLOAT_BASE;
+        pa_assert(r->method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
+        q = r->method - PA_RESAMPLER_SPEEX_FLOAT_BASE;
 
         pa_log_info("Choosing speex quality setting %i.", q);
 

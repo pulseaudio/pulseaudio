@@ -122,7 +122,7 @@ pa_source_output* pa_source_output_new(
                       &data->source->sample_spec, &data->source->channel_map,
                       &data->sample_spec, &data->channel_map,
                       data->resample_method,
-                      !!(flags & PA_SOURCE_OUTPUT_VARIABLE_RATE)))) {
+                      (flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0))) {
             pa_log_warn("Unsupported resampling operation.");
             return NULL;
         }
@@ -415,7 +415,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
                       &dest->sample_spec, &dest->channel_map,
                       &o->sample_spec, &o->channel_map,
                       o->resample_method,
-                      !!(o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE)))) {
+                      (o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0))) {
             pa_log_warn("Unsupported resampling operation.");
             return -1;
         }

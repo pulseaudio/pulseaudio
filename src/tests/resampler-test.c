@@ -222,8 +222,8 @@ int main(int argc, char *argv[]) {
                    pa_sample_format_to_string(b.format),
                    pa_sample_format_to_string(a.format));
 
-            pa_assert_se(forth = pa_resampler_new(pool, &a, NULL, &b, NULL, PA_RESAMPLER_AUTO, FALSE));
-            pa_assert_se(back = pa_resampler_new(pool, &b, NULL, &a, NULL, PA_RESAMPLER_AUTO, FALSE));
+            pa_assert_se(forth = pa_resampler_new(pool, &a, NULL, &b, NULL, PA_RESAMPLER_AUTO, 0));
+            pa_assert_se(back = pa_resampler_new(pool, &b, NULL, &a, NULL, PA_RESAMPLER_AUTO, 0));
 
             i.memblock = generate_block(pool, &a);
             i.length = pa_memblock_get_length(i.memblock);
