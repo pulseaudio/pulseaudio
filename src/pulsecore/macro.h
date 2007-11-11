@@ -152,4 +152,8 @@ typedef int pa_bool_t;
 #define PA_PATH_SEP_CHAR '/'
 #endif
 
+static inline const char *pa_strnull(const char *x) {
+    return x ? x : "(null)";
+}
+
 #endif
