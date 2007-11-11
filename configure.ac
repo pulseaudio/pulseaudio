@@ -789,6 +789,36 @@ AC_SUBST(HAL_LIBS)
 AC_SUBST(HAVE_HAL)
 AM_CONDITIONAL([HAVE_HAL], [test "x$HAVE_HAL" = x1])
 
+#### BlueZ support (optional) ####
+
+AC_ARG_ENABLE([bluez],
+    AC_HELP_STRING([--disable-bluez], [Disable optional BlueZ support]),
+        [
+            case "${enableval}" in
+                yes) bluez=yes ;;
+                no) bluez=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-bluez) ;;
+            esac
+        ],
+        [bluez=auto])
+if test "x${bluez}" != xno ; then
+    PKG_CHECK_MODULES(BLUEZ, [ bluez >= 3.0 ],
+        HAVE_BLUEZ=1,
+        [
+            HAVE_BLUEZ=0
+            if test "x$bluez" = xyes ; then
+                AC_MSG_ERROR([*** BLUEZ support not found])
+            fi
+        ])
+else
+    HAVE_BLUEZ=0
+fi
+
+AC_SUBST(BLUEZ_CFLAGS)
+AC_SUBST(BLUEZ_LIBS)
+AC_SUBST(HAVE_BLUEZ)
+AM_CONDITIONAL([HAVE_BLUEZ], [test "x$HAVE_BLUEZ" = x1])
+
 #### D-Bus support (optional) ####
 
 AC_ARG_ENABLE([dbus],
@@ -1028,6 +1058,11 @@ if test "x${HAVE_LIBSAMPLERATE}" = "x1" ; then
    ENABLE_LIBSAMPLERATE=yes
 fi
 
+ENABLE_BLUEZ=no
+if test "x${HAVE_BLUEZ}" = "x1" ; then
+   ENABLE_BLUEZ=yes
+fi
+
 echo "
  ---{ $PACKAGE_NAME $VERSION }---
 
@@ -1048,6 +1083,7 @@ echo "
     Enable Async DNS:       ${ENABLE_LIBASYNCNS}
     Enable LIRC:            ${ENABLE_LIRC}
     Enable HAL:             ${ENABLE_HAL}
+    Enable BlueZ:           ${ENABLE_BLUEZ}
     Enable TCP Wrappers:    ${ENABLE_TCPWRAP}
     Enable libsamplerate:   ${ENABLE_LIBSAMPLERATE}
     System User:            ${PA_SYSTEM_USER}
