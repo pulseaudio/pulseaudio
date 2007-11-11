@@ -33,23 +33,16 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <dirent.h>
 
-#ifdef HAVE_SYS_PRCTL_H
-#include <sys/prctl.h>
-#endif
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
-
+#include <pulse/xmalloc.h>
 #include <pulsecore/module.h>
 #include <pulsecore/core.h>
 #include <pulsecore/llist.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulse/mainloop-api.h>
-#include <pulse/xmalloc.h>
 #include <pulsecore/core-error.h>
+#include <pulsecore/start-child.h>
 
 #include "module-gconf-symdef.h"
 
@@ -337,119 +330,6 @@ static void io_event_cb(
     }
 }
 
-static int start_client(const char *n, pid_t *pid) {
-    pid_t child;
-    int pipe_fds[2] = { -1, -1 };
-
-    if (pipe(pipe_fds) < 0) {
-        pa_log("pipe() failed: %s", pa_cstrerror(errno));
-        goto fail;
-    }
-
-    if ((child = fork()) == (pid_t) -1) {
-        pa_log("fork() failed: %s", pa_cstrerror(errno));
-        goto fail;
-    } else if (child != 0) {
-
-        /* Parent */
-        close(pipe_fds[1]);
-
-        if (pid)
-            *pid = child;
-
-        return pipe_fds[0];
-    } else {
-#ifdef __linux__
-        DIR* d;
-#endif
-        int max_fd, i;
-        /* child */
-
-        pa_reset_priority();
-
-        close(pipe_fds[0]);
-        dup2(pipe_fds[1], 1);
-
-        if (pipe_fds[1] != 1)
-            close(pipe_fds[1]);
-
-        close(0);
-        open("/dev/null", O_RDONLY);
-
-        close(2);
-        open("/dev/null", O_WRONLY);
-
-#ifdef __linux__
-
-        if ((d = opendir("/proc/self/fd/"))) {
-
-            struct dirent *de;
-
-            while ((de = readdir(d))) {
-                char *e = NULL;
-                int fd;
-
-                if (de->d_name[0] == '.')
-                    continue;
-
-                errno = 0;
-                fd = strtol(de->d_name, &e, 10);
-                pa_assert(errno == 0 && e && *e == 0);
-
-                if (fd >= 3 && dirfd(d) != fd)
-                    close(fd);
-            }
-
-            closedir(d);
-        } else {
-
-#endif
-
-            max_fd = 1024;
-
-#ifdef HAVE_SYS_RESOURCE_H
-            {
-                struct rlimit r;
-                if (getrlimit(RLIMIT_NOFILE, &r) == 0)
-                    max_fd = r.rlim_max;
-            }
-#endif
-
-            for (i = 3; i < max_fd; i++)
-                close(i);
-#
-#ifdef __linux__
-        }
-#endif
-
-#ifdef PR_SET_PDEATHSIG
-        /* On Linux we can use PR_SET_PDEATHSIG to have the helper
-        process killed when the daemon dies abnormally. On non-Linux
-        machines the client will die as soon as it writes data to
-        stdout again (SIGPIPE) */
-
-        prctl(PR_SET_PDEATHSIG, SIGTERM, 0, 0, 0);
-#endif
-
-#ifdef SIGPIPE
-        /* Make sure that SIGPIPE kills the child process */
-        signal(SIGPIPE, SIG_DFL);
-#endif
-
-        execl(n, n, NULL);
-        _exit(1);
-    }
-
-fail:
-    if (pipe_fds[0] >= 0)
-        close(pipe_fds[0]);
-
-    if (pipe_fds[1] >= 0)
-        close(pipe_fds[1]);
-
-    return -1;
-}
-
 int pa__init(pa_module*m) {
     struct userdata *u;
     int r;
@@ -465,7 +345,7 @@ int pa__init(pa_module*m) {
     u->io_event = NULL;
     u->buf_fill = 0;
 
-    if ((u->fd = start_client(PA_GCONF_HELPER, &u->pid)) < 0)
+    if ((u->fd = pa_start_child_for_read(PA_GCONF_HELPER, NULL, &u->pid)) < 0)
         goto fail;
 
     u->io_event = m->core->mainloop->io_new(
@@ -498,16 +378,17 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
-    if (u->io_event)
-        m->core->mainloop->io_free(u->io_event);
-
-    if (u->fd >= 0)
-        close(u->fd);
-
     if (u->pid != (pid_t) -1) {
         kill(u->pid, SIGTERM);
         waitpid(u->pid, NULL, 0);
     }
+
+    if (u->io_event)
+        m->core->mainloop->io_free(u->io_event);
+
+    if (u->fd >= 0)
+        pa_close(u->fd);
+
 
     if (u->module_infos)
         pa_hashmap_free(u->module_infos, module_info_free, u);
