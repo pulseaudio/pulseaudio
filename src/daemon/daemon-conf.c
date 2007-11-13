@@ -90,7 +90,7 @@ static const pa_daemon_conf default_conf = {
     , .rlimit_nproc = { .value = 0, .is_set = FALSE }
 #endif
 #ifdef RLIMIT_MEMLOCK
-    , .rlimit_memlock = { .value = 16384, .is_set = TRUE }
+    , .rlimit_memlock = { .value = 0, .is_set = FALSE }
 #endif
 #ifdef RLIMIT_NICE
     , .rlimit_nice = { .value = 31, .is_set = TRUE }     /* nice level of -11 */

@@ -56,7 +56,7 @@
 ; rlimit-nofile = 256
 ; rlimit-stack = -1
 ; rlimit-nproc = -1
-; rlimit-memlock = 16384
+; rlimit-memlock = -1
 ; rlimit-nice = 31
 ; rlimit-rtprio = 9
 
