@@ -80,7 +80,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
             goto fail;
         }
 
-        pa_msleep(50);
+        pa_msleep(300);
     }
 
     if (i >= 5) {
