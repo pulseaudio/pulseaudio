@@ -71,4 +71,6 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         snd_pcm_uframes_t *period_size,
         pa_bool_t *use_mmap);
 
+int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel_map, snd_mixer_selem_channel_id_t mixer_map[], pa_bool_t playback);
+
 #endif

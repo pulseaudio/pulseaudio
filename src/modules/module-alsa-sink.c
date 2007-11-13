@@ -95,6 +95,8 @@ struct userdata {
     pa_bool_t first;
 
     pa_rtpoll_item *alsa_rtpoll_item;
+
+    snd_mixer_selem_channel_id_t mixer_map[SND_MIXER_SCHN_LAST];
 };
 
 static const char* const valid_modargs[] = {
@@ -505,9 +507,9 @@ static int sink_get_volume_cb(pa_sink *s) {
     for (i = 0; i < s->sample_spec.channels; i++) {
         long set_vol, vol;
 
-        pa_assert(snd_mixer_selem_has_playback_channel(u->mixer_elem, i));
+        pa_assert(snd_mixer_selem_has_playback_channel(u->mixer_elem, u->mixer_map[i]));
 
-        if ((err = snd_mixer_selem_get_playback_volume(u->mixer_elem, i, &vol)) < 0)
+        if ((err = snd_mixer_selem_get_playback_volume(u->mixer_elem, u->mixer_map[i], &vol)) < 0)
             goto fail;
 
         set_vol = (long) roundf(((float) s->volume.values[i] * (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
@@ -539,7 +541,7 @@ static int sink_set_volume_cb(pa_sink *s) {
         long alsa_vol;
         pa_volume_t vol;
 
-        pa_assert(snd_mixer_selem_has_playback_channel(u->mixer_elem, i));
+        pa_assert(snd_mixer_selem_has_playback_channel(u->mixer_elem, u->mixer_map[i]));
 
         vol = s->volume.values[i];
 
@@ -548,7 +550,7 @@ static int sink_set_volume_cb(pa_sink *s) {
 
         alsa_vol = (long) roundf(((float) vol * (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
 
-        if ((err = snd_mixer_selem_set_playback_volume(u->mixer_elem, i, alsa_vol)) < 0)
+        if ((err = snd_mixer_selem_set_playback_volume(u->mixer_elem, u->mixer_map[i], alsa_vol)) < 0)
             goto fail;
     }
 
@@ -826,10 +828,25 @@ int pa__init(pa_module*m) {
     if ((err = snd_mixer_open(&u->mixer_handle, 0)) < 0)
         pa_log_warn("Error opening mixer: %s", snd_strerror(err));
     else {
+        pa_bool_t found = FALSE;
 
-        if ((pa_alsa_prepare_mixer(u->mixer_handle, u->device_name) < 0) ||
-            !(u->mixer_elem = pa_alsa_find_elem(u->mixer_handle, "Master", "PCM"))) {
+        if (pa_alsa_prepare_mixer(u->mixer_handle, u->device_name) >= 0)
+            found = TRUE;
+        else {
+            char *md = pa_sprintf_malloc("hw:%s", dev_id);
 
+            if (strcmp(u->device_name, md))
+                if (pa_alsa_prepare_mixer(u->mixer_handle, md) >= 0)
+                    found = TRUE;
+
+            pa_xfree(md);
+        }
+
+        if (found)
+            if (!(u->mixer_elem = pa_alsa_find_elem(u->mixer_handle, "Master", "PCM")))
+                found = FALSE;
+
+        if (!found) {
             snd_mixer_close(u->mixer_handle);
             u->mixer_handle = NULL;
         }
@@ -863,7 +880,7 @@ int pa__init(pa_module*m) {
                                     use_mmap ? " via DMA" : ""));
     pa_xfree(t);
 
-    u->sink->flags = PA_SINK_HARDWARE|PA_SINK_HW_VOLUME_CTRL|PA_SINK_LATENCY;
+    u->sink->flags = PA_SINK_HARDWARE|PA_SINK_LATENCY;
 
     u->frame_size = frame_size;
     u->fragment_size = frag_size = period_size * frame_size;
@@ -875,35 +892,26 @@ int pa__init(pa_module*m) {
     pa_memchunk_reset(&u->memchunk);
 
     if (u->mixer_handle) {
-        /* Initialize mixer code */
-
         pa_assert(u->mixer_elem);
 
-        if (snd_mixer_selem_has_playback_volume(u->mixer_elem)) {
-            int i;
-
-            for (i = 0; i < ss.channels; i++)
-                if (!snd_mixer_selem_has_playback_channel(u->mixer_elem, i))
-                    break;
-
-            if (i == ss.channels) {
-                pa_log_debug("ALSA device has separate volumes controls for all %u channels.", ss.channels);
+        if (snd_mixer_selem_has_playback_volume(u->mixer_elem))
+            if (pa_alsa_calc_mixer_map(u->mixer_elem, &map, u->mixer_map, TRUE) >= 0) {
                 u->sink->get_volume = sink_get_volume_cb;
                 u->sink->set_volume = sink_set_volume_cb;
                 snd_mixer_selem_get_playback_volume_range(u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max);
-            } else
-                pa_log_info("ALSA device lacks separate volumes controls for all %u channels (%u available), falling back to software volume control.", ss.channels, i+1);
-        }
+                u->sink->flags |= PA_SINK_HW_VOLUME_CTRL;
+            }
 
         if (snd_mixer_selem_has_playback_switch(u->mixer_elem)) {
             u->sink->get_mute = sink_get_mute_cb;
             u->sink->set_mute = sink_set_mute_cb;
+            u->sink->flags |= PA_SINK_HW_VOLUME_CTRL;
         }
 
         u->mixer_fdl = pa_alsa_fdlist_new();
 
         if (pa_alsa_fdlist_set_mixer(u->mixer_fdl, u->mixer_handle, m->core->mainloop) < 0) {
-            pa_log("failed to initialise file descriptor monitoring");
+            pa_log("Failed to initialize file descriptor monitoring");
             goto fail;
         }
 

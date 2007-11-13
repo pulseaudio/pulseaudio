@@ -310,8 +310,10 @@ int pa_alsa_set_hw_params(
 
     buffer_size = *periods * *period_size;
 
-    if ((ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0 ||
-        (ret = snd_pcm_hw_params_set_rate_resample(pcm_handle, hwparams, 0)) < 0)
+    if ((ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0)
+        goto finish;
+
+    if ((ret = snd_pcm_hw_params_set_rate_resample(pcm_handle, hwparams, 0)) < 0)
         goto finish;
 
     if (_use_mmap) {
@@ -627,7 +629,7 @@ int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
     pa_assert(dev);
 
     if ((err = snd_mixer_attach(mixer, dev)) < 0) {
-        pa_log_warn("Unable to attach to mixer %s: %s", dev, snd_strerror(err));
+        pa_log_info("Unable to attach to mixer %s: %s", dev, snd_strerror(err));
         return -1;
     }
 
@@ -640,6 +642,8 @@ int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {
         pa_log_warn("Unable to load mixer: %s", snd_strerror(err));
         return -1;
     }
+
+    pa_log_info("Successfully attached to mixer '%s'", dev);
 
     return 0;
 }
@@ -656,7 +660,7 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
     snd_mixer_selem_id_set_name(sid, name);
 
     if (!(elem = snd_mixer_find_selem(mixer, sid))) {
-        pa_log_warn("Cannot find mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
+        pa_log_info("Cannot find mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
 
         if (fallback) {
             snd_mixer_selem_id_set_name(sid, fallback);
@@ -670,4 +674,124 @@ snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const 
         pa_log_info("Using mixer control \"%s\".", snd_mixer_selem_id_get_name(sid));
 
     return elem;
+}
+
+static const snd_mixer_selem_channel_id_t alsa_channel_ids[PA_CHANNEL_POSITION_MAX] = {
+    [PA_CHANNEL_POSITION_MONO] = SND_MIXER_SCHN_MONO, /* The ALSA name is just an alias! */
+
+    [PA_CHANNEL_POSITION_FRONT_CENTER] = SND_MIXER_SCHN_FRONT_CENTER,
+    [PA_CHANNEL_POSITION_FRONT_LEFT] = SND_MIXER_SCHN_FRONT_LEFT,
+    [PA_CHANNEL_POSITION_FRONT_RIGHT] = SND_MIXER_SCHN_FRONT_RIGHT,
+
+    [PA_CHANNEL_POSITION_REAR_CENTER] = SND_MIXER_SCHN_REAR_CENTER,
+    [PA_CHANNEL_POSITION_REAR_LEFT] = SND_MIXER_SCHN_REAR_LEFT,
+    [PA_CHANNEL_POSITION_REAR_RIGHT] = SND_MIXER_SCHN_REAR_RIGHT,
+
+    [PA_CHANNEL_POSITION_LFE] = SND_MIXER_SCHN_WOOFER,
+
+    [PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER] = SND_MIXER_SCHN_UNKNOWN,
+
+    [PA_CHANNEL_POSITION_SIDE_LEFT] = SND_MIXER_SCHN_SIDE_LEFT,
+    [PA_CHANNEL_POSITION_SIDE_RIGHT] = SND_MIXER_SCHN_SIDE_RIGHT,
+
+    [PA_CHANNEL_POSITION_AUX0] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX1] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX2] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX3] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX4] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX5] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX6] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX7] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX8] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX9] =  SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX10] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX11] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX12] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX13] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX14] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX15] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX16] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX17] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX18] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX19] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX20] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX21] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX22] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX23] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX24] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX25] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX26] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX27] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX28] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX29] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX30] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_AUX31] = SND_MIXER_SCHN_UNKNOWN,
+
+    [PA_CHANNEL_POSITION_TOP_CENTER] = SND_MIXER_SCHN_UNKNOWN,
+
+    [PA_CHANNEL_POSITION_TOP_FRONT_CENTER] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_TOP_FRONT_LEFT] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_TOP_FRONT_RIGHT] = SND_MIXER_SCHN_UNKNOWN,
+
+    [PA_CHANNEL_POSITION_TOP_REAR_CENTER] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_TOP_REAR_LEFT] = SND_MIXER_SCHN_UNKNOWN,
+    [PA_CHANNEL_POSITION_TOP_REAR_RIGHT] = SND_MIXER_SCHN_UNKNOWN
+};
+
+
+int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel_map, snd_mixer_selem_channel_id_t mixer_map[], pa_bool_t playback) {
+    unsigned i;
+    pa_bool_t alsa_channel_used[SND_MIXER_SCHN_LAST];
+    pa_bool_t mono_used = FALSE;
+
+    pa_assert(elem);
+    pa_assert(channel_map);
+    pa_assert(mixer_map);
+
+    memset(&alsa_channel_used, 0, sizeof(alsa_channel_used));
+
+    if (channel_map->channels > 1 &&
+        ((playback && snd_mixer_selem_has_playback_volume_joined(elem)) ||
+         (!playback && snd_mixer_selem_has_capture_volume_joined(elem)))) {
+        pa_log_info("ALSA device lacks independant volume controls for each channel, falling back to software volume control.");
+        return -1;
+    }
+
+    for (i = 0; i < channel_map->channels; i++) {
+        snd_mixer_selem_channel_id_t id;
+        pa_bool_t is_mono;
+
+        is_mono = channel_map->map[i] == PA_CHANNEL_POSITION_MONO;
+        id = alsa_channel_ids[channel_map->map[i]];
+
+        if (!is_mono && id == SND_MIXER_SCHN_UNKNOWN) {
+            pa_log_info("Configured channel map contains channel '%s' that is unknown to the ALSA mixer. Falling back to software volume control.", pa_channel_position_to_string(channel_map->map[i]));
+            return -1;
+        }
+
+        if ((is_mono && mono_used) || (!is_mono && alsa_channel_used[id])) {
+            pa_log_info("Channel map has duplicate channel '%s', failling back to software volume control.", pa_channel_position_to_string(channel_map->map[i]));
+            return -1;
+        }
+
+        if ((playback && (!snd_mixer_selem_has_playback_channel(elem, id) || (is_mono && !snd_mixer_selem_is_playback_mono(elem)))) ||
+            (!playback && (!snd_mixer_selem_has_capture_channel(elem, id) || (is_mono && !snd_mixer_selem_is_capture_mono(elem))))) {
+
+            pa_log_info("ALSA device lacks separate volumes control for channel '%s', falling back to software volume control.", pa_channel_position_to_string(channel_map->map[i]));
+            return -1;
+        }
+
+        if (is_mono) {
+            mixer_map[i] = SND_MIXER_SCHN_MONO;
+            mono_used = TRUE;
+        } else {
+            mixer_map[i] = id;
+            alsa_channel_used[id] = TRUE;
+        }
+    }
+
+    pa_log_info("All %u channels can be mapped to mixer channels. Using hardware volume control.", channel_map->channels);
+
+    return 0;
 }
