@@ -191,12 +191,12 @@ static pa_module* hal_device_load_alsa(struct userdata *u, const char *udi, char
         *sink_name = pa_sprintf_malloc("alsa_output.%s", strip_udi(udi));
 
         module_name = "module-alsa-sink";
-        args = pa_sprintf_malloc("device=hw:%u sink_name=%s", card, *sink_name);
+        args = pa_sprintf_malloc("device_id=%u sink_name=%s", card, *sink_name);
     } else {
         *source_name = pa_sprintf_malloc("alsa_input.%s", strip_udi(udi));
 
         module_name = "module-alsa-source";
-        args = pa_sprintf_malloc("device=hw:%u source_name=%s", card, *source_name);
+        args = pa_sprintf_malloc("device_id=%u source_name=%s", card, *source_name);
     }
 
     pa_log_debug("Loading %s with arguments '%s'", module_name, args);

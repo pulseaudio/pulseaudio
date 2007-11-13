@@ -1139,7 +1139,7 @@ int pa__init(pa_module*m) {
     int fd = -1;
     int nfrags, frag_size;
     int mode, caps;
-    int record = 1, playback = 1, use_mmap = 1;
+    pa_bool_t record = TRUE, playback = TRUE, use_mmap = TRUE;
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;

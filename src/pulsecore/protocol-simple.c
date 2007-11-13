@@ -566,7 +566,7 @@ fail:
 
 pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *server, pa_module *m, pa_modargs *ma) {
     pa_protocol_simple* p = NULL;
-    int enable;
+    pa_bool_t enable;
 
     pa_assert(core);
     pa_assert(server);
@@ -587,7 +587,7 @@ pa_protocol_simple* pa_protocol_simple_new(pa_core *core, pa_socket_server *serv
     p->source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));
     p->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
 
-    enable = 0;
+    enable = FALSE;
     if (pa_modargs_get_value_boolean(ma, "record", &enable) < 0) {
         pa_log("record= expects a numeric argument.");
         goto fail;

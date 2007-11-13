@@ -28,6 +28,7 @@
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulsecore/core.h>
+#include <pulsecore/macro.h>
 
 typedef struct pa_modargs pa_modargs;
 
@@ -44,7 +45,7 @@ const char *pa_modargs_get_value(pa_modargs *ma, const char *key, const char *de
 /* Return a module argument as unsigned 32bit value in *value */
 int pa_modargs_get_value_u32(pa_modargs *ma, const char *key, uint32_t *value);
 int pa_modargs_get_value_s32(pa_modargs *ma, const char *key, int32_t *value);
-int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, int *value);
+int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, pa_bool_t *value);
 
 /* Return sample spec data from the three arguments "rate", "format" and "channels" */
 int pa_modargs_get_sample_spec(pa_modargs *ma, pa_sample_spec *ss);

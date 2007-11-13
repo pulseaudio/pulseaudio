@@ -222,7 +222,8 @@ static int detect_waveout(pa_core *c, int just_one) {
 #endif
 
 int pa__init(pa_module*m) {
-    int just_one = 0, n = 0;
+    pa_bool_t just_one = FALSE;
+    int n = 0;
     pa_modargs *ma;
 
     pa_assert(m);

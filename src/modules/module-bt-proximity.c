@@ -261,7 +261,7 @@ static struct bonding* bonding_new(struct userdata *u, const char *a) {
     dbus_message_unref(m);
     dbus_message_unref(r);
 
-    pa_hashmap_put(u->bondings, a, b);
+    pa_hashmap_put(u->bondings, b->address, b);
 
     return b;
 

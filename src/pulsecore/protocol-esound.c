@@ -1406,7 +1406,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
 pa_protocol_esound* pa_protocol_esound_new(pa_core*core, pa_socket_server *server, pa_module *m, pa_modargs *ma) {
     pa_protocol_esound *p = NULL;
-    int public = 0;
+    pa_bool_t public = FALSE;
     const char *acl;
 
     pa_assert(core);

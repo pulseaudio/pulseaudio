@@ -70,7 +70,7 @@ static void eof_and_exit_cb(pa_cli*c, void *userdata) {
 int pa__init(pa_module*m) {
     pa_iochannel *io;
     pa_modargs *ma;
-    int exit_on_eof = 0;
+    pa_bool_t exit_on_eof = FALSE;
 
     pa_assert(m);
 

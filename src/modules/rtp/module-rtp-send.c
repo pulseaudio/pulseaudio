@@ -179,11 +179,11 @@ int pa__init(pa_module*m) {
     pa_source_output *o = NULL;
     uint8_t payload;
     char *p;
-    int r;
+    int r, j;
     socklen_t k;
     struct timeval tv;
     char hn[128], *n;
-    int loop = 0;
+    pa_bool_t loop = FALSE;
     pa_source_output_new_data data;
 
     pa_assert(m);
@@ -274,8 +274,9 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0 ||
-        setsockopt(sap_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0) {
+    j = !!loop;
+    if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &j, sizeof(j)) < 0 ||
+        setsockopt(sap_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &j, sizeof(j)) < 0) {
         pa_log("IP_MULTICAST_LOOP failed: %s", pa_cstrerror(errno));
         goto fail;
     }

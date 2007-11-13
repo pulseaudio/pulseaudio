@@ -34,6 +34,7 @@
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 
 #include "alsa-util.h"
 
@@ -284,13 +285,21 @@ try_auto:
 
 /* Set the hardware parameters of the given ALSA device. Returns the
  * selected fragment settings in *period and *period_size */
-int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size, int *use_mmap) {
+int pa_alsa_set_hw_params(
+        snd_pcm_t *pcm_handle,
+        pa_sample_spec *ss,
+        uint32_t *periods,
+        snd_pcm_uframes_t *period_size,
+        pa_bool_t *use_mmap,
+        pa_bool_t require_exact_channel_number) {
+
     int ret = -1;
     snd_pcm_uframes_t buffer_size;
     unsigned int r = ss->rate;
     unsigned int c = ss->channels;
     pa_sample_format_t f = ss->format;
     snd_pcm_hw_params_t *hwparams;
+    pa_bool_t _use_mmap = use_mmap && *use_mmap;
 
     pa_assert(pcm_handle);
     pa_assert(ss);
@@ -305,7 +314,7 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         (ret = snd_pcm_hw_params_set_rate_resample(pcm_handle, hwparams, 0)) < 0)
         goto finish;
 
-    if (use_mmap && *use_mmap) {
+    if (_use_mmap) {
         if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_MMAP_INTERLEAVED)) < 0) {
 
             /* mmap() didn't work, fall back to interleaved */
@@ -313,8 +322,7 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
             if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
                 goto finish;
 
-            if (use_mmap)
-                *use_mmap = 0;
+            _use_mmap = FALSE;
         }
 
     } else if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
@@ -326,8 +334,13 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     if ((ret = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &r, NULL)) < 0)
         goto finish;
 
-    if ((ret = snd_pcm_hw_params_set_channels_near(pcm_handle, hwparams, &c)) < 0)
-        goto finish;
+    if (require_exact_channel_number) {
+        if ((ret = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, c)) < 0)
+            goto finish;
+    } else {
+        if ((ret = snd_pcm_hw_params_set_channels_near(pcm_handle, hwparams, &c)) < 0)
+            goto finish;
+    }
 
     if ((*period_size > 0 && (ret = snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, period_size, NULL)) < 0) ||
         (*periods > 0 && (ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0))
@@ -336,23 +349,14 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
     if  ((ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0)
         goto finish;
 
-    if (ss->rate != r) {
+    if (ss->rate != r)
         pa_log_warn("Device %s doesn't support %u Hz, changed to %u Hz.", snd_pcm_name(pcm_handle), ss->rate, r);
 
-        /* If the sample rate deviates too much, we need to resample */
-        if (r < ss->rate*.95 || r > ss->rate*1.05)
-            ss->rate = r;
-    }
-
-    if (ss->channels != c) {
+    if (ss->channels != c)
         pa_log_warn("Device %s doesn't support %u channels, changed to %u.", snd_pcm_name(pcm_handle), ss->channels, c);
-        ss->channels = c;
-    }
 
-    if (ss->format != f) {
+    if (ss->format != f)
         pa_log_warn("Device %s doesn't support sample format %s, changed to %s.", snd_pcm_name(pcm_handle), pa_sample_format_to_string(ss->format), pa_sample_format_to_string(f));
-        ss->format = f;
-    }
 
     if ((ret = snd_pcm_prepare(pcm_handle)) < 0)
         goto finish;
@@ -361,10 +365,19 @@ int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *p
         (ret = snd_pcm_hw_params_get_period_size(hwparams, period_size, NULL)) < 0)
         goto finish;
 
+    /* If the sample rate deviates too much, we need to resample */
+    if (r < ss->rate*.95 || r > ss->rate*1.05)
+        ss->rate = r;
+    ss->channels = c;
+    ss->format = f;
+
     pa_assert(buffer_size > 0);
     pa_assert(*period_size > 0);
     *periods = buffer_size / *period_size;
     pa_assert(*periods > 0);
+
+    if (use_mmap)
+        *use_mmap = _use_mmap;
 
     ret = 0;
 
@@ -402,6 +415,209 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm) {
     }
 
     return 0;
+}
+
+struct device_info {
+    pa_channel_map map;
+    const char *name;
+};
+
+static const struct device_info device_table[] = {
+    {{ 2, { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT } }, "front" },
+
+    {{ 4, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
+            PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT }}, "surround40" },
+
+    {{ 5, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
+            PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
+            PA_CHANNEL_POSITION_LFE }}, "surround41" },
+
+    {{ 5, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
+            PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
+            PA_CHANNEL_POSITION_CENTER }}, "surround50" },
+
+    {{ 6, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
+            PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
+            PA_CHANNEL_POSITION_CENTER, PA_CHANNEL_POSITION_LFE }}, "surround51" },
+
+    {{ 8, { PA_CHANNEL_POSITION_FRONT_LEFT, PA_CHANNEL_POSITION_FRONT_RIGHT,
+            PA_CHANNEL_POSITION_REAR_LEFT, PA_CHANNEL_POSITION_REAR_RIGHT,
+            PA_CHANNEL_POSITION_CENTER, PA_CHANNEL_POSITION_LFE,
+            PA_CHANNEL_POSITION_SIDE_LEFT, PA_CHANNEL_POSITION_SIDE_RIGHT }} , "surround71" },
+
+    {{ 0, { 0 }}, NULL }
+};
+
+static pa_bool_t channel_map_superset(const pa_channel_map *a, const pa_channel_map *b) {
+    pa_bool_t in_a[PA_CHANNEL_POSITION_MAX];
+    unsigned i;
+
+    pa_assert(a);
+    pa_assert(b);
+
+    memset(in_a, 0, sizeof(in_a));
+
+    for (i = 0; i < a->channels; i++)
+        in_a[a->map[i]] = TRUE;
+
+    for (i = 0; i < b->channels; i++)
+        if (!in_a[b->map[i]])
+            return FALSE;
+
+    return TRUE;
+}
+
+snd_pcm_t *pa_alsa_open_by_device_id(
+        const char *dev_id,
+        char **dev,
+        pa_sample_spec *ss,
+        pa_channel_map* map,
+        int mode,
+        uint32_t *nfrags,
+        snd_pcm_uframes_t *period_size,
+        pa_bool_t *use_mmap) {
+
+    int i;
+    int direction = 1;
+    int err;
+    char *d;
+    snd_pcm_t *pcm_handle;
+
+    pa_assert(dev_id);
+    pa_assert(dev);
+    pa_assert(ss);
+    pa_assert(map);
+    pa_assert(nfrags);
+    pa_assert(period_size);
+
+    /* First we try to find a device string with a superset of the
+     * requested channel map and open it without the plug: prefix. We
+     * iterate through our device table from top to bottom and take
+     * the first that matches. If we didn't find a working device that
+     * way, we iterate backwards, and check all devices that do not
+     * provide a superset of the requested channel map.*/
+
+    for (i = 0;; i += direction) {
+        pa_sample_spec try_ss;
+
+        if (i < 0) {
+            pa_assert(direction == -1);
+
+            /* OK, so we iterated backwards, and now are at the
+             * beginning of our list. */
+
+            break;
+
+        } else if (!device_table[i].name) {
+            pa_assert(direction == 1);
+
+            /* OK, so we are at the end of our list. at iterated
+             * forwards. */
+
+            i--;
+            direction = -1;
+        }
+
+        if ((direction > 0) == !channel_map_superset(&device_table[i].map, map))
+            continue;
+
+        d = pa_sprintf_malloc("%s:%s", device_table[i].name, dev_id);
+        pa_log_debug("Trying %s...", d);
+
+        if ((err = snd_pcm_open(&pcm_handle, d, mode, SND_PCM_NONBLOCK)) < 0) {
+            pa_log_info("Couldn't open PCM device %s: %s", d, snd_strerror(err));
+            pa_xfree(d);
+            continue;
+        }
+
+        try_ss.channels = device_table[i].map.channels;
+        try_ss.rate = ss->rate;
+        try_ss.format = ss->format;
+
+        if ((err = pa_alsa_set_hw_params(pcm_handle, &try_ss, nfrags, period_size, use_mmap, TRUE)) < 0) {
+            pa_log_info("PCM device %s refused our hw parameters: %s", d, snd_strerror(err));
+            pa_xfree(d);
+            snd_pcm_close(pcm_handle);
+            continue;
+        }
+
+        *ss = try_ss;
+        *map = device_table[i].map;
+        pa_assert(map->channels == ss->channels);
+        *dev = d;
+        return pcm_handle;
+    }
+
+    /* OK, we didn't find any good device, so let's try the raw hw: stuff */
+
+    d = pa_sprintf_malloc("hw:%s", dev_id);
+    pa_log_debug("Trying %s as last resort...", d);
+    pcm_handle = pa_alsa_open_by_device_string(d, dev, ss, map, mode, nfrags, period_size, use_mmap);
+    pa_xfree(d);
+
+    return pcm_handle;
+}
+
+snd_pcm_t *pa_alsa_open_by_device_string(
+        const char *device,
+        char **dev,
+        pa_sample_spec *ss,
+        pa_channel_map* map,
+        int mode,
+        uint32_t *nfrags,
+        snd_pcm_uframes_t *period_size,
+        pa_bool_t *use_mmap) {
+
+    int err;
+    char *d;
+    snd_pcm_t *pcm_handle;
+
+    pa_assert(device);
+    pa_assert(dev);
+    pa_assert(ss);
+    pa_assert(map);
+    pa_assert(nfrags);
+    pa_assert(period_size);
+
+    d = pa_xstrdup(device);
+
+    for (;;) {
+
+        if ((err = snd_pcm_open(&pcm_handle, d, mode, SND_PCM_NONBLOCK)) < 0) {
+            pa_log("Error opening PCM device %s: %s", d, snd_strerror(err));
+            pa_xfree(d);
+            return NULL;
+        }
+
+        if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, use_mmap, FALSE)) < 0) {
+
+            if (err == -EPERM) {
+                /* Hmm, some hw is very exotic, so we retry with plug, if without it didn't work */
+
+                if (pa_startswith(d, "hw:")) {
+                    char *t = pa_sprintf_malloc("plughw:%s", d+3);
+                    pa_log_debug("Opening the device as '%s' didn't work, retrying with '%s'.", d, t);
+                    pa_xfree(d);
+                    d = t;
+
+                    snd_pcm_close(pcm_handle);
+                    continue;
+                }
+
+                pa_log("Failed to set hardware parameters on %s: %s", d, snd_strerror(err));
+                pa_xfree(d);
+                snd_pcm_close(pcm_handle);
+                return NULL;
+            }
+        }
+
+        *dev = d;
+
+        if (ss->channels != map->channels)
+            pa_channel_map_init_auto(map, ss->channels, PA_CHANNEL_MAP_ALSA);
+
+        return pcm_handle;
+    }
 }
 
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev) {

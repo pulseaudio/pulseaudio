@@ -58,6 +58,7 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "source_name=<name for the source> "
         "device=<ALSA device> "
+        "device_id=<ALSA device id> "
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
@@ -89,13 +90,14 @@ struct userdata {
 
     char *device_name;
 
-    int use_mmap;
+    pa_bool_t use_mmap;
 
     pa_rtpoll_item *alsa_rtpoll_item;
 };
 
 static const char* const valid_modargs[] = {
     "device",
+    "device_id",
     "source_name",
     "channels",
     "rate",
@@ -342,7 +344,8 @@ static int suspend(struct userdata *u) {
 
 static int unsuspend(struct userdata *u) {
     pa_sample_spec ss;
-    int err, b;
+    int err;
+    pa_bool_t b;
     unsigned nfrags;
     snd_pcm_uframes_t period_size;
 
@@ -362,7 +365,7 @@ static int unsuspend(struct userdata *u) {
     period_size = u->fragment_size / u->frame_size;
     b = u->use_mmap;
 
-    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, &b)) < 0) {
+    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, &b, TRUE)) < 0) {
         pa_log("Failed to set hardware parameters: %s", snd_strerror(err));
         goto fail;
     }
@@ -691,10 +694,10 @@ int pa__init(pa_module*m) {
 
     pa_modargs *ma = NULL;
     struct userdata *u = NULL;
-    char *dev;
+    const char *dev_id;
     pa_sample_spec ss;
     pa_channel_map map;
-    unsigned nfrags, frag_size;
+    uint32_t nfrags, frag_size;
     snd_pcm_uframes_t period_size;
     size_t frame_size;
     snd_pcm_info_t *pcm_info = NULL;
@@ -703,7 +706,7 @@ int pa__init(pa_module*m) {
     const char *name;
     char *name_buf = NULL;
     int namereg_fail;
-    int use_mmap = 1, b;
+    pa_bool_t use_mmap = TRUE, b;
 
     snd_pcm_info_alloca(&pcm_info);
 
@@ -750,43 +753,31 @@ int pa__init(pa_module*m) {
 
     snd_config_update_free_global();
 
-    dev = pa_xstrdup(pa_modargs_get_value(ma, "device", DEFAULT_DEVICE));
+    if ((dev_id = pa_modargs_get_value(ma, "device_id", NULL))) {
 
-    for (;;) {
-
-        if ((err = snd_pcm_open(&u->pcm_handle, dev, SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK)) < 0) {
-            pa_log("Error opening PCM device %s: %s", dev, snd_strerror(err));
-            pa_xfree(dev);
+        if (!(u->pcm_handle = pa_alsa_open_by_device_id(
+                      dev_id,
+                      &u->device_name,
+                      &ss, &map,
+                      SND_PCM_STREAM_CAPTURE,
+                      &nfrags, &period_size,
+                      &b)))
             goto fail;
-        }
 
-        b = use_mmap;
-        if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, &b)) < 0) {
+    } else {
 
-            if (err == -EPERM) {
-                /* Hmm, some hw is very exotic, so we retry with plughw, if hw didn't work */
-
-                if (pa_startswith(dev, "hw:")) {
-                    char *d = pa_sprintf_malloc("plughw:%s", dev+3);
-                    pa_log_debug("Opening the device as '%s' didn't work, retrying with '%s'.", dev, d);
-                    pa_xfree(dev);
-                    dev = d;
-
-                    snd_pcm_close(u->pcm_handle);
-                    u->pcm_handle = NULL;
-                    continue;
-                }
-            }
-
-            pa_log("Failed to set hardware parameters: %s", snd_strerror(err));
-            pa_xfree(dev);
+        if (!(u->pcm_handle = pa_alsa_open_by_device_string(
+                      pa_modargs_get_value(ma, "device", DEFAULT_DEVICE),
+                      &u->device_name,
+                      &ss, &map,
+                      SND_PCM_STREAM_CAPTURE,
+                      &nfrags, &period_size,
+                      &b)))
             goto fail;
-        }
-
-        break;
     }
 
-    u->device_name = dev;
+    pa_assert(u->device_name);
+    pa_log_info("Successfully opened device %s.", u->device_name);
 
     if (use_mmap && !b) {
         pa_log_info("Device doesn't support mmap(), falling back to UNIX read/write mode.");
@@ -817,7 +808,7 @@ int pa__init(pa_module*m) {
         pa_log("Error opening mixer: %s", snd_strerror(err));
     else {
 
-        if ((pa_alsa_prepare_mixer(u->mixer_handle, dev) < 0) ||
+        if ((pa_alsa_prepare_mixer(u->mixer_handle, u->device_name) < 0) ||
             !(u->mixer_elem = pa_alsa_find_elem(u->mixer_handle, "Capture", NULL))) {
             snd_mixer_close(u->mixer_handle);
             u->mixer_handle = NULL;
@@ -827,7 +818,7 @@ int pa__init(pa_module*m) {
     if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
         namereg_fail = 1;
     else {
-        name = name_buf = pa_sprintf_malloc("alsa_input.%s", dev);
+        name = name_buf = pa_sprintf_malloc("alsa_input.%s", u->device_name);
         namereg_fail = 0;
     }
 
@@ -847,7 +838,7 @@ int pa__init(pa_module*m) {
     pa_source_set_rtpoll(u->source, u->rtpoll);
     pa_source_set_description(u->source, t = pa_sprintf_malloc(
                                       "ALSA PCM on %s (%s)%s",
-                                      dev,
+                                      u->device_name,
                                       snd_pcm_info_get_name(pcm_info),
                                       use_mmap ? " via DMA" : ""));
     pa_xfree(t);

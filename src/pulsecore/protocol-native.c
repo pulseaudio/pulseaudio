@@ -2956,7 +2956,7 @@ static int load_key(pa_protocol_native*p, const char*fn) {
 
 static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_modargs *ma) {
     pa_protocol_native *p;
-    int public = 0;
+    pa_bool_t public = FALSE;
     const char *acl;
 
     pa_assert(c);
@@ -2976,7 +2976,7 @@ static pa_protocol_native* protocol_new_internal(pa_core *c, pa_module *m, pa_mo
 
 #ifdef HAVE_CREDS
     {
-        int a = 1;
+        pa_bool_t a = 1;
         if (pa_modargs_get_value_boolean(ma, "auth-group-enabled", &a) < 0) {
             pa_log("auth-group-enabled= expects a boolean argument.");
             return NULL;

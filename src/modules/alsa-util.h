@@ -38,10 +38,37 @@ struct pa_alsa_fdlist *pa_alsa_fdlist_new(void);
 void pa_alsa_fdlist_free(struct pa_alsa_fdlist *fdl);
 int pa_alsa_fdlist_set_mixer(struct pa_alsa_fdlist *fdl, snd_mixer_t *mixer_handle, pa_mainloop_api* m);
 
-int pa_alsa_set_hw_params(snd_pcm_t *pcm_handle, pa_sample_spec *ss, uint32_t *periods, snd_pcm_uframes_t *period_size, int *use_mmap);
+int pa_alsa_set_hw_params(
+        snd_pcm_t *pcm_handle,
+        pa_sample_spec *ss,
+        uint32_t *periods,
+        snd_pcm_uframes_t *period_size,
+        pa_bool_t *use_mmap,
+        pa_bool_t require_exact_channel_number);
+
 int pa_alsa_set_sw_params(snd_pcm_t *pcm);
 
 int pa_alsa_prepare_mixer(snd_mixer_t *mixer, const char *dev);
 snd_mixer_elem_t *pa_alsa_find_elem(snd_mixer_t *mixer, const char *name, const char *fallback);
+
+snd_pcm_t *pa_alsa_open_by_device_id(
+        const char *dev_id,
+        char **dev,
+        pa_sample_spec *ss,
+        pa_channel_map* map,
+        int mode,
+        uint32_t *nfrags,
+        snd_pcm_uframes_t *period_size,
+        pa_bool_t *use_mmap);
+
+snd_pcm_t *pa_alsa_open_by_device_string(
+        const char *device,
+        char **dev,
+        pa_sample_spec *ss,
+        pa_channel_map* map,
+        int mode,
+        uint32_t *nfrags,
+        snd_pcm_uframes_t *period_size,
+        pa_bool_t *use_mmap);
 
 #endif

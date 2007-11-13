@@ -225,7 +225,7 @@ int pa_modargs_get_value_s32(pa_modargs *ma, const char *key, int32_t *value) {
     return 0;
 }
 
-int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, int *value) {
+int pa_modargs_get_value_boolean(pa_modargs *ma, const char *key, pa_bool_t *value) {
     const char *v;
     int r;
 
