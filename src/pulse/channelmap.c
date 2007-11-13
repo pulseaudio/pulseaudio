@@ -36,7 +36,7 @@
 
 #include "channelmap.h"
 
-const char *const table[] = {
+const char *const table[PA_CHANNEL_POSITION_MAX] = {
     [PA_CHANNEL_POSITION_MONO] = "mono",
 
     [PA_CHANNEL_POSITION_FRONT_CENTER] = "front-center",
@@ -99,7 +99,7 @@ const char *const table[] = {
     [PA_CHANNEL_POSITION_TOP_REAR_RIGHT] = "top-rear-right"
 };
 
-const char *const pretty_table[] = {
+const char *const pretty_table[PA_CHANNEL_POSITION_MAX] = {
     [PA_CHANNEL_POSITION_MONO] = "Mono",
 
     [PA_CHANNEL_POSITION_FRONT_CENTER] = "Front Center",
@@ -531,4 +531,3 @@ int pa_channel_map_valid(const pa_channel_map *map) {
 
     return 1;
 }
-
