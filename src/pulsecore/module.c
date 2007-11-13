@@ -86,7 +86,7 @@ pa_module* pa_module_load(pa_core *c, const char *name, const char *argument) {
 
     if ((load_once = (pa_bool_t (*)(void)) pa_load_sym(m->dl, name, PA_SYMBOL_LOAD_ONCE))) {
 
-        if (load_once()) {
+        if (load_once() && c->modules) {
             pa_module *i;
             uint32_t idx;
             /* OK, the module only wants to be loaded once, let's make sure it is */
