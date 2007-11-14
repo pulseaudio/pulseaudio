@@ -27,15 +27,20 @@
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/flist.h>
 
 #include "internal.h"
 #include "operation.h"
+
+PA_STATIC_FLIST_DECLARE(operations, 0, pa_xfree);
 
 pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_assert(c);
 
-    o = pa_xnew(pa_operation, 1);
+    if (!(o = pa_flist_pop(PA_STATIC_FLIST_GET(operations))))
+        o = pa_xnew(pa_operation, 1);
+
     PA_REFCNT_INIT(o);
     o->context = c;
     o->stream = s;
@@ -66,7 +71,9 @@ void pa_operation_unref(pa_operation *o) {
     if (PA_REFCNT_DEC(o) <= 0) {
         pa_assert(!o->context);
         pa_assert(!o->stream);
-        pa_xfree(o);
+
+        if (pa_flist_push(PA_STATIC_FLIST_GET(operations), o) < 0)
+            pa_xfree(o);
     }
 }
 
