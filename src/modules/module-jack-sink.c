@@ -273,7 +273,7 @@ int pa__init(pa_module*m) {
     jack_status_t status;
     const char *server_name, *client_name;
     uint32_t channels = 0;
-    int do_connect = 1;
+    pa_bool_t do_connect = TRUE;
     unsigned i;
     const char **ports = NULL, **p;
     char *t;
