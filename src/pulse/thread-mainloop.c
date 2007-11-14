@@ -103,7 +103,7 @@ pa_threaded_mainloop *pa_threaded_mainloop_new(void) {
         return NULL;
     }
 
-    m->mutex = pa_mutex_new(TRUE, FALSE);
+    m->mutex = pa_mutex_new(TRUE, TRUE);
     m->cond = pa_cond_new();
     m->accept_cond = pa_cond_new();
     m->thread = NULL;
