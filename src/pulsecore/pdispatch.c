@@ -38,6 +38,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/refcnt.h>
+#include <pulsecore/flist.h>
 
 #include "pdispatch.h"
 
@@ -98,6 +99,8 @@ static const char *command_names[PA_COMMAND_MAX] = {
 
 #endif
 
+PA_STATIC_FLIST_DECLARE(reply_infos, 0, pa_xfree);
+
 struct reply_info {
     pa_pdispatch *pdispatch;
     PA_LLIST_FIELDS(struct reply_info);
@@ -129,7 +132,8 @@ static void reply_info_free(struct reply_info *r) {
 
     PA_LLIST_REMOVE(struct reply_info, r->pdispatch->replies, r);
 
-    pa_xfree(r);
+    if (pa_flist_push(PA_STATIC_FLIST_GET(reply_infos), r) < 0)
+        pa_xfree(r);
 }
 
 pa_pdispatch* pa_pdispatch_new(pa_mainloop_api *mainloop, const pa_pdispatch_cb_t*table, unsigned entries) {
@@ -273,7 +277,9 @@ void pa_pdispatch_register_reply(pa_pdispatch *pd, uint32_t tag, int timeout, pa
     pa_assert(PA_REFCNT_VALUE(pd) >= 1);
     pa_assert(cb);
 
-    r = pa_xnew(struct reply_info, 1);
+    if (!(r = pa_flist_pop(PA_STATIC_FLIST_GET(reply_infos))))
+        r = pa_xnew(struct reply_info, 1);
+
     r->pdispatch = pd;
     r->callback = cb;
     r->userdata = userdata;
