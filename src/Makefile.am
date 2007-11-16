@@ -102,7 +102,8 @@ EXTRA_DIST = \
 		utils/padsp \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio-module-xsmp.desktop \
-		map-file
+		map-file \
+		daemon/PulseAudio.policy
 
 pulseconf_DATA = \
 		default.pa \
@@ -149,6 +150,17 @@ if FORCE_PREOPEN
 pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlpreopen force $(foreach f,$(PREOPEN_LIBS),-dlpreopen $(f))
 else
 pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
+endif
+
+if HAVE_POLKIT
+
+policy_DATA = daemon/PulseAudio.policy
+
+pulseaudio_SOURCES += daemon/polkit.c daemon/polkit.h
+pulseaudio_CFLAGS += $(POLKIT_CFLAGS)
+pulseaudio_LDADD += $(POLKIT_LIBS)
+
+
 endif
 
 ###################################
