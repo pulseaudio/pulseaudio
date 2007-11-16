@@ -862,6 +862,47 @@ AC_SUBST(DBUS_LIBS)
 AC_SUBST(HAVE_DBUS)
 AM_CONDITIONAL([HAVE_DBUS], [test "x$HAVE_DBUS" = x1])
 
+#### PolicyKit support (optional) ####
+
+AC_ARG_ENABLE([polkit],
+    AC_HELP_STRING([--disable-polkit], [Disable optional PolicyKit support]),
+        [
+            case "${enableval}" in
+                yes) polkit=yes ;;
+                no) polkit=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-polkit) ;;
+            esac
+        ],
+        [polkit=auto])
+
+if test "x${polkit}" != xno ; then
+
+    PKG_CHECK_MODULES(POLKIT, [ polkit-dbus ],
+        [
+            HAVE_POLKIT=1
+            saved_LIBS="$LIBS"
+            LIBS="$LIBS POLKIT_LIBS"
+            AC_CHECK_FUNCS(polkit_context_is_caller_authorized)
+            LIBS="$saved_LIBS"
+            AC_DEFINE([HAVE_POLKIT], 1, [Have PolicyKit])
+            policydir=`pkg-config --variable prefix`/usr/share/PolicyKit/policy/
+            AC_SUBST(policydir)
+        ],
+        [
+            HAVE_POLKIT=0
+            if test "x$polkit" = xyes ; then
+                AC_MSG_ERROR([*** PolicyKit support not found])
+            fi
+        ])
+else
+    HAVE_POLKIT=0
+fi
+
+AC_SUBST(POLKIT_CFLAGS)
+AC_SUBST(POLKIT_LIBS)
+AC_SUBST(HAVE_POLKIT)
+AM_CONDITIONAL([HAVE_POLKIT], [test "x$HAVE_POLKIT" = x1])
+
 ### Build and Install man pages ###
 AC_ARG_ENABLE(manpages,
         AS_HELP_STRING([--disable-manpages],[Disable building and installation of man pages]),
@@ -1063,6 +1104,11 @@ if test "x${HAVE_BLUEZ}" = "x1" ; then
    ENABLE_BLUEZ=yes
 fi
 
+ENABLE_POLKIT=no
+if test "x${HAVE_POLKIT}" = "x1" ; then
+   ENABLE_POLKIT=yes
+fi
+
 echo "
  ---{ $PACKAGE_NAME $VERSION }---
 
@@ -1086,6 +1132,7 @@ echo "
     Enable BlueZ:           ${ENABLE_BLUEZ}
     Enable TCP Wrappers:    ${ENABLE_TCPWRAP}
     Enable libsamplerate:   ${ENABLE_LIBSAMPLERATE}
+    Enable PolicyKit:       ${ENABLE_POLKIT}
     System User:            ${PA_SYSTEM_USER}
     System Group:           ${PA_SYSTEM_GROUP}
     Realtime Group:         ${PA_REALTIME_GROUP}
