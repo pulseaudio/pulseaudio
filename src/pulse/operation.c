@@ -44,6 +44,7 @@ pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t cb
     PA_REFCNT_INIT(o);
     o->context = c;
     o->stream = s;
+    o->private = NULL;
 
     o->state = PA_OPERATION_RUNNING;
     o->callback = cb;
@@ -63,7 +64,6 @@ pa_operation *pa_operation_ref(pa_operation *o) {
     PA_REFCNT_INC(o);
     return o;
 }
-
 void pa_operation_unref(pa_operation *o) {
     pa_assert(o);
     pa_assert(PA_REFCNT_VALUE(o) >= 1);

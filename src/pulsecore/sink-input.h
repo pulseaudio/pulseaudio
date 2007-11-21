@@ -53,7 +53,12 @@ static inline pa_bool_t PA_SINK_INPUT_LINKED(pa_sink_input_state_t x) {
 typedef enum pa_sink_input_flags {
     PA_SINK_INPUT_VARIABLE_RATE = 1,
     PA_SINK_INPUT_DONT_MOVE = 2,
-    PA_SINK_INPUT_START_CORKED = 4
+    PA_SINK_INPUT_START_CORKED = 4,
+    PA_SINK_INPUT_NO_REMAP = 8,
+    PA_SINK_INPUT_NO_REMIX = 16,
+    PA_SINK_INPUT_FIX_FORMAT = 32,
+    PA_SINK_INPUT_FIX_RATE = 64,
+    PA_SINK_INPUT_FIX_CHANNELS = 128
 } pa_sink_input_flags_t;
 
 struct pa_sink_input {
@@ -107,7 +112,11 @@ struct pa_sink_input {
 
     /* If non-NULL called whenever the the sink this input is attached
      * to suspends or resumes. Called from main context */
-    void (*suspend) (pa_sink_input *i, int b);   /* may be NULL */
+    void (*suspend) (pa_sink_input *i, pa_bool_t b);   /* may be NULL */
+
+    /* If non-NULL called whenever the the sink this input is attached
+     * to changes. Called from main context */
+    void (*moved) (pa_sink_input *i);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
      * context. */
@@ -180,6 +189,11 @@ typedef struct pa_sink_input_new_data {
 
     pa_sink_input *sync_base;
 } pa_sink_input_new_data;
+
+typedef struct pa_sink_input_move_hook_data {
+    pa_sink_input *sink_input;
+    pa_sink *destination;
+} pa_sink_input_move_hook_data;
 
 pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data);
 void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const pa_sample_spec *spec);

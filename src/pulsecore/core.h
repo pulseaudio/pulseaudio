@@ -54,6 +54,7 @@ typedef enum pa_core_hook {
     PA_CORE_HOOK_SOURCE_STATE_CHANGED,
     PA_CORE_HOOK_SOURCE_DESCRIPTION_CHANGED,
     PA_CORE_HOOK_SINK_INPUT_NEW,
+    PA_CORE_HOOK_SINK_INPUT_FIXATE,
     PA_CORE_HOOK_SINK_INPUT_PUT,
     PA_CORE_HOOK_SINK_INPUT_UNLINK,
     PA_CORE_HOOK_SINK_INPUT_UNLINK_POST,
@@ -62,6 +63,7 @@ typedef enum pa_core_hook {
     PA_CORE_HOOK_SINK_INPUT_NAME_CHANGED,
     PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED,
     PA_CORE_HOOK_SOURCE_OUTPUT_NEW,
+    PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE,
     PA_CORE_HOOK_SOURCE_OUTPUT_PUT,
     PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK,
     PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK_POST,
@@ -118,6 +120,7 @@ struct pa_core {
     pa_bool_t is_system_instance;
     pa_bool_t realtime_scheduling;
     int realtime_priority;
+    pa_bool_t disable_remixing;
 
     /* hooks */
     pa_hook hooks[PA_CORE_HOOK_MAX];

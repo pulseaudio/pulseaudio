@@ -40,7 +40,7 @@
 
 #define TIME_EVENT_USEC 50000
 
-#if PA_API_VERSION < 9
+#if PA_API_VERSION < 10
 #error Invalid PulseAudio API version
 #endif
 
@@ -68,6 +68,8 @@ static pa_sample_spec sample_spec = {
 
 static pa_channel_map channel_map;
 static int channel_map_set = 0;
+
+static pa_stream_flags_t flags = 0;
 
 /* A shortcut for terminating the application */
 static void quit(int ret) {
@@ -105,7 +107,8 @@ static void do_stream_write(size_t length) {
 
 /* This is called whenever new data may be written to the stream */
 static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
-    assert(s && length);
+    assert(s);
+    assert(length > 0);
 
     if (stdio_event)
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_INPUT);
@@ -119,7 +122,8 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
 /* This is called whenever new data may is available */
 static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
     const void *data;
-    assert(s && length);
+    assert(s);
+    assert(length > 0);
 
     if (stdio_event)
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_OUTPUT);
@@ -130,7 +134,8 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
         return;
     }
 
-    assert(data && length);
+    assert(data);
+    assert(length > 0);
 
     if (buffer) {
         fprintf(stderr, "Buffer overrun, dropping incoming data\n");
@@ -159,6 +164,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
         case PA_STREAM_READY:
             if (verbose) {
                 const pa_buffer_attr *a;
+                char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
 
                 fprintf(stderr, "Stream successfully created.\n");
 
@@ -172,9 +178,16 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
                         assert(mode == RECORD);
                         fprintf(stderr, "Buffer metrics: maxlength=%u, fragsize=%u\n", a->maxlength, a->fragsize);
                     }
-
                 }
 
+                fprintf(stderr, "Using sample spec '%s', channel map '%s'.\n",
+                        pa_sample_spec_snprint(sst, sizeof(sst), pa_stream_get_sample_spec(s)),
+                        pa_channel_map_snprint(cmt, sizeof(cmt), pa_stream_get_channel_map(s)));
+
+                fprintf(stderr, "Connected to device %s (%u, %ssuspended).\n",
+                        pa_stream_get_device_name(s),
+                        pa_stream_get_device_index(s),
+                        pa_stream_is_suspended(s) ? "" : "not ");
             }
 
             break;
@@ -184,6 +197,24 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
             fprintf(stderr, "Stream error: %s\n", pa_strerror(pa_context_errno(pa_stream_get_context(s))));
             quit(1);
     }
+}
+
+static void stream_suspended_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    if (verbose) {
+        if (pa_stream_is_suspended(s))
+            fprintf(stderr, "Stream device suspended.\n");
+        else
+            fprintf(stderr, "Stream device resumed.\n");
+    }
+}
+
+static void stream_moved_callback(pa_stream *s, void *userdata) {
+    assert(s);
+
+    if (verbose)
+        fprintf(stderr, "Stream moved to device %s (%u, %ssuspended).\n", pa_stream_get_device_name(s), pa_stream_get_device_index(s), pa_stream_is_suspended(s) ? "" : "not ");
 }
 
 /* This is called whenever the context status changes */
@@ -199,7 +230,8 @@ static void context_state_callback(pa_context *c, void *userdata) {
         case PA_CONTEXT_READY: {
             int r;
 
-            assert(c && !stream);
+            assert(c);
+            assert(!stream);
 
             if (verbose)
                 fprintf(stderr, "Connection established.\n");
@@ -212,16 +244,18 @@ static void context_state_callback(pa_context *c, void *userdata) {
             pa_stream_set_state_callback(stream, stream_state_callback, NULL);
             pa_stream_set_write_callback(stream, stream_write_callback, NULL);
             pa_stream_set_read_callback(stream, stream_read_callback, NULL);
+            pa_stream_set_suspended_callback(stream, stream_suspended_callback, NULL);
+            pa_stream_set_moved_callback(stream, stream_moved_callback, NULL);
 
             if (mode == PLAYBACK) {
                 pa_cvolume cv;
-                if ((r = pa_stream_connect_playback(stream, device, NULL, 0, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL)) < 0) {
+                if ((r = pa_stream_connect_playback(stream, device, NULL, flags, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL)) < 0) {
                     fprintf(stderr, "pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
 
             } else {
-                if ((r = pa_stream_connect_record(stream, device, NULL, 0)) < 0) {
+                if ((r = pa_stream_connect_record(stream, device, NULL, flags)) < 0) {
                     fprintf(stderr, "pa_stream_connect_record() failed: %s\n", pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
@@ -280,7 +314,10 @@ static void stream_drain_complete(pa_stream*s, int success, void *userdata) {
 static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     size_t l, w = 0;
     ssize_t r;
-    assert(a == mainloop_api && e && stdio_event == e);
+
+    assert(a == mainloop_api);
+    assert(e);
+    assert(stdio_event == e);
 
     if (buffer) {
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_NULL);
@@ -330,7 +367,10 @@ static void stdin_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_even
 /* Some data may be written to STDOUT */
 static void stdout_callback(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
     ssize_t r;
-    assert(a == mainloop_api && e && stdio_event == e);
+
+    assert(a == mainloop_api);
+    assert(e);
+    assert(stdio_event == e);
 
     if (!buffer) {
         mainloop_api->io_enable(stdio_event, PA_IO_EVENT_NULL);
@@ -429,7 +469,16 @@ static void help(const char *argv0) {
            "                                        float32be, ulaw, alaw (defaults to s16ne)\n"
            "      --channels=CHANNELS               The number of channels, 1 for mono, 2 for stereo\n"
            "                                        (defaults to 2)\n"
-           "      --channel-map=CHANNELMAP          Channel map to use instead of the default\n",
+           "      --channel-map=CHANNELMAP          Channel map to use instead of the default\n"
+           "      --fix-format                      Take the sample format from the sink the stream is\n"
+           "                                        being connected to.\n"
+           "      --fix-rate                        Take the sampling rate from the sink the stream is\n"
+           "                                        being connected to.\n"
+           "      --fix-channels                    Take the number of channels and the channel map\n"
+           "                                        from the sink the stream is being connected to.\n"
+           "      --no-remix                        Don't upmix or downmix channels.\n"
+           "      --no-remap                        Map channels by index instead of name.\n"
+           ,
            argv0);
 }
 
@@ -441,6 +490,11 @@ enum {
     ARG_SAMPLEFORMAT,
     ARG_CHANNELS,
     ARG_CHANNELMAP,
+    ARG_FIX_FORMAT,
+    ARG_FIX_RATE,
+    ARG_FIX_CHANNELS,
+    ARG_NO_REMAP,
+    ARG_NO_REMIX
 };
 
 int main(int argc, char *argv[]) {
@@ -464,6 +518,11 @@ int main(int argc, char *argv[]) {
         {"format",      1, NULL, ARG_SAMPLEFORMAT},
         {"channels",    1, NULL, ARG_CHANNELS},
         {"channel-map", 1, NULL, ARG_CHANNELMAP},
+        {"fix-format",  0, NULL, ARG_FIX_FORMAT},
+        {"fix-rate",    0, NULL, ARG_FIX_RATE},
+        {"fix-channels",0, NULL, ARG_FIX_CHANNELS},
+        {"no-remap",    0, NULL, ARG_NO_REMAP},
+        {"no-remix",    0, NULL, ARG_NO_REMIX},
         {NULL,          0, NULL, 0}
     };
 
@@ -547,6 +606,26 @@ int main(int argc, char *argv[]) {
                 }
 
                 channel_map_set = 1;
+                break;
+
+            case ARG_FIX_CHANNELS:
+                flags |= PA_STREAM_FIX_CHANNELS;
+                break;
+
+            case ARG_FIX_RATE:
+                flags |= PA_STREAM_FIX_RATE;
+                break;
+
+            case ARG_FIX_FORMAT:
+                flags |= PA_STREAM_FIX_FORMAT;
+                break;
+
+            case ARG_NO_REMIX:
+                flags |= PA_STREAM_NO_REMIX_CHANNELS;
+                break;
+
+            case ARG_NO_REMAP:
+                flags |= PA_STREAM_NO_REMAP_CHANNELS;
                 break;
 
             default:

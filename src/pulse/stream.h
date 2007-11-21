@@ -295,8 +295,37 @@ pa_stream_state_t pa_stream_get_state(pa_stream *p);
 /** Return the context this stream is attached to */
 pa_context* pa_stream_get_context(pa_stream *p);
 
-/** Return the device (sink input or source output) index this stream is connected to */
+/** Return the sink input resp. source output index this stream is
+ * identified in the server with. This is useful for usage with the
+ * introspection functions, such as pa_context_get_sink_input_info()
+ * resp. pa_context_get_source_output_info(). */
 uint32_t pa_stream_get_index(pa_stream *s);
+
+/** Return the index of the sink or source this stream is connected to
+ * in the server. This is useful for usage with the introspection
+ * functions, such as pa_context_get_sink_info_by_index()
+ * resp. pa_context_get_source_info_by_index(). Please note that
+ * streams may be moved between sinks/sources and thus it is
+ * recommended to use pa_stream_set_moved_callback() to be notified
+ * about this. This function will return with PA_ERR_NOTSUPPORTED when the
+ * server is older than 0.9.8. \since 0.9.8 */
+uint32_t pa_stream_get_device_index(pa_stream *s);
+
+/** Return the name of the sink or source this stream is connected to
+ * in the server. This is useful for usage with the introspection
+ * functions, such as pa_context_get_sink_info_by_name()
+ * resp. pa_context_get_source_info_by_name(). Please note that
+ * streams may be moved between sinks/sources and thus it is
+ * recommended to use pa_stream_set_moved_callback() to be notified
+ * about this. This function will return with PA_ERR_NOTSUPPORTED when the
+ * server is older than 0.9.8. \since 0.9.8 */
+const char *pa_stream_get_device_name(pa_stream *s);
+
+/** Return 1 if the sink or source this stream is connected to has
+ * been suspended. This will return 0 if not, and negative on
+ * error. This function will return with PA_ERR_NOTSUPPORTED when the
+ * server is older than 0.9.8. \since 0.9.8 */
+int pa_stream_is_suspended(pa_stream *s);
 
 /** Connect the stream to a sink */
 int pa_stream_connect_playback(
@@ -346,10 +375,10 @@ int pa_stream_peek(
  * calling pa_stream_peek(). \since 0.8 */
 int pa_stream_drop(pa_stream *p);
 
-/** Return the nember of bytes that may be written using pa_stream_write(), in bytes */
+/** Return the number of bytes that may be written using pa_stream_write() */
 size_t pa_stream_writable_size(pa_stream *p);
 
-/** Return the number of bytes that may be read using pa_stream_read(), in bytes \since 0.8 */
+/** Return the number of bytes that may be read using pa_stream_read() \since 0.8 */
 size_t pa_stream_readable_size(pa_stream *p);
 
 /** Drain a playback stream. Use this for notification when the buffer is empty */
@@ -378,8 +407,27 @@ void pa_stream_set_overflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, voi
 /** Set the callback function that is called when a buffer underflow happens. (Only for playback streams) \since 0.8 */
 void pa_stream_set_underflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
-/** Set the callback function that is called whenever a latency information update happens. Useful on PA_STREAM_AUTO_TIMING_UPDATE streams only. (Only for playback streams) \since 0.8.2 */
+/** Set the callback function that is called whenever a latency
+ * information update happens. Useful on PA_STREAM_AUTO_TIMING_UPDATE
+ * streams only. (Only for playback streams) \since 0.8.2 */
 void pa_stream_set_latency_update_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
+
+/** Set the callback function that is called whenever the stream is
+ * moved to a different sink/source. Use pa_stream_get_device_name()or
+ * pa_stream_get_device_index() to query the new sink/source. This
+ * notification is only generated when the server is at least
+ * 0.9.8. \since 0.9.8 */
+void pa_stream_set_moved_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
+
+/** Set the callback function that is called whenever the sink/source
+ * this stream is connected to is suspended or resumed. Use
+ * pa_stream_is_suspended() to query the new suspend status. Please
+ * note that the suspend status might also change when the stream is
+ * moved between devices. Thus if you call this function you very
+ * likely want to call pa_stream_set_moved_callback, too. This
+ * notification is only generated when the server is at least
+ * 0.9.8. \since 0.9.8 */
+void pa_stream_set_suspended_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
 /** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. \since 0.3 */
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata);
@@ -446,6 +494,21 @@ const pa_channel_map* pa_stream_get_channel_map(pa_stream *s);
  * stream has been connected successfuly and if the server is at least
  * PulseAudio 0.9. \since 0.9.0 */
 const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s);
+
+/** Change the buffer metrics of the stream during playback. The
+ * server might have chosen different buffer metrics then
+ * requested. The selected metrics may be queried with
+ * pa_stream_get_buffer_attr() as soon as the callback is called. Only
+ * valid after the stream has been connected successfully and if the
+ * server is at least PulseAudio 0.9.8. \since 0.9.8 */
+pa_operation *pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr, pa_stream_success_cb_t cb, void *userdata);
+
+/* Change the stream sampling rate during playback. You need to pass
+ * PA_STREAM_VARIABLE_RATE in the flags parameter of
+ * pa_stream_connect() if you plan to use this function. Only valid
+ * after the stream has been connected successfully and if the server
+ * is at least PulseAudio 0.9.8. \since 0.9.8 */
+pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_stream_success_cb_t cb, void *userdata);
 
 PA_C_DECL_END
 

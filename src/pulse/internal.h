@@ -103,6 +103,7 @@ struct pa_stream {
     PA_LLIST_FIELDS(pa_stream);
 
     char *name;
+    pa_bool_t manual_buffer_attr;
     pa_buffer_attr buffer_attr;
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
@@ -110,11 +111,16 @@ struct pa_stream {
     uint32_t channel;
     uint32_t syncid;
     int channel_valid;
-    uint32_t device_index;
+    uint32_t stream_index;
     pa_stream_direction_t direction;
     pa_stream_state_t state;
+    pa_bool_t buffer_attr_not_ready, timing_info_not_ready;
 
     uint32_t requested_bytes;
+
+    uint32_t device_index;
+    char *device_name;
+    pa_bool_t suspended;
 
     pa_memchunk peek_memchunk;
     void *peek_data;
@@ -157,6 +163,10 @@ struct pa_stream {
     void *underflow_userdata;
     pa_stream_notify_cb_t latency_update_callback;
     void *latency_update_userdata;
+    pa_stream_notify_cb_t moved_callback;
+    void *moved_userdata;
+    pa_stream_notify_cb_t suspended_callback;
+    void *suspended_userdata;
 };
 
 typedef void (*pa_operation_cb_t)(void);
@@ -172,12 +182,16 @@ struct pa_operation {
     pa_operation_state_t state;
     void *userdata;
     pa_operation_cb_t callback;
+
+    void *private; /* some operations might need this */
 };
 
 void pa_command_request(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 void pa_command_overflow_or_underflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 pa_operation *pa_operation_new(pa_context *c, pa_stream *s, pa_operation_cb_t callback, void *userdata);
 void pa_operation_done(pa_operation *o);

@@ -71,7 +71,7 @@ pa_source_output* pa_source_output_new(
 
     pa_source_output *o;
     pa_resampler *resampler = NULL;
-    char st[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     pa_assert(core);
     pa_assert(data);
@@ -103,10 +103,27 @@ pa_source_output* pa_source_output_new(
     pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
     pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
 
+    if (flags & PA_SOURCE_OUTPUT_FIX_FORMAT)
+        data->sample_spec.format = data->source->sample_spec.format;
+
+    if (flags & PA_SOURCE_OUTPUT_FIX_RATE)
+        data->sample_spec.rate = data->source->sample_spec.rate;
+
+    if (flags & PA_SOURCE_OUTPUT_FIX_CHANNELS) {
+        data->sample_spec.channels = data->source->sample_spec.channels;
+        data->channel_map = data->source->channel_map;
+    }
+
+    pa_assert(pa_sample_spec_valid(&data->sample_spec));
+    pa_assert(pa_channel_map_valid(&data->channel_map));
+
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
 
     pa_return_null_if_fail(data->resample_method < PA_RESAMPLER_MAX);
+
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_FIXATE], data) < 0)
+        return NULL;
 
     if (pa_idxset_size(data->source->outputs) >= PA_MAX_OUTPUTS_PER_SOURCE) {
         pa_log("Failed to create source output: too many outputs per source.");
@@ -122,7 +139,9 @@ pa_source_output* pa_source_output_new(
                       &data->source->sample_spec, &data->source->channel_map,
                       &data->sample_spec, &data->channel_map,
                       data->resample_method,
-                      (flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0))) {
+                      ((flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                      ((flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                      (core->disable_remixing || (flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
             return NULL;
         }
@@ -153,6 +172,7 @@ pa_source_output* pa_source_output_new(
     o->detach = NULL;
     o->attach = NULL;
     o->suspend = NULL;
+    o->moved = NULL;
     o->userdata = NULL;
 
     o->thread_info.state = o->state;
@@ -163,11 +183,12 @@ pa_source_output* pa_source_output_new(
     pa_assert_se(pa_idxset_put(core->source_outputs, o, &o->index) == 0);
     pa_assert_se(pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL) == 0);
 
-    pa_log_info("Created output %u \"%s\" on %s with sample spec %s",
+    pa_log_info("Created output %u \"%s\" on %s with sample spec %s and channel map %s",
                 o->index,
                 o->name,
                 o->source->name,
-                pa_sample_spec_snprint(st, sizeof(st), &o->sample_spec));
+                pa_sample_spec_snprint(st, sizeof(st), &o->sample_spec),
+                pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map));
 
     /* Don't forget to call pa_source_output_put! */
 
@@ -229,6 +250,7 @@ void pa_source_output_unlink(pa_source_output*o) {
     o->attach = NULL;
     o->detach = NULL;
     o->suspend = NULL;
+    o->moved = NULL;
 
     if (linked) {
         pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_REMOVE, o->index);
@@ -379,6 +401,7 @@ pa_resample_method_t pa_source_output_get_resample_method(pa_source_output *o) {
 int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
     pa_source *origin;
     pa_resampler *new_resampler = NULL;
+    pa_source_output_move_hook_data hook_data;
 
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
@@ -415,13 +438,17 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
                       &dest->sample_spec, &dest->channel_map,
                       &o->sample_spec, &o->channel_map,
                       o->resample_method,
-                      (o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0))) {
+                      ((o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                      ((o->flags & PA_SOURCE_OUTPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                      (o->core->disable_remixing || (o->flags & PA_SOURCE_OUTPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
             return -1;
         }
     }
 
-    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE], o);
+    hook_data.source_output = o;
+    hook_data.destination = dest;
+    pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE], &hook_data);
 
     /* Okey, let's move it */
     pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_REMOVE_OUTPUT, o, 0, NULL);
@@ -446,6 +473,9 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest) {
 
     pa_source_update_status(origin);
     pa_source_update_status(dest);
+
+    if (o->moved)
+        o->moved(o);
 
     pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_POST], o);
 

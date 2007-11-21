@@ -71,6 +71,7 @@ static const pa_daemon_conf default_conf = {
     .log_target = PA_LOG_SYSLOG,
     .log_level = PA_LOG_NOTICE,
     .resample_method = PA_RESAMPLER_AUTO,
+    .disable_remixing = FALSE,
     .config_file = NULL,
     .use_pid_file = TRUE,
     .system_instance = FALSE,
@@ -410,6 +411,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "default-fragments",          parse_fragments,          NULL },
         { "default-fragment-size-msec", parse_fragment_size_msec, NULL },
         { "nice-level",                 parse_nice_level,         NULL },
+        { "disable-remixing",           pa_config_parse_bool,     NULL },
 #ifdef HAVE_SYS_RESOURCE_H
         { "rlimit-as",                  parse_rlimit,             NULL },
         { "rlimit-core",                parse_rlimit,             NULL },
@@ -458,33 +460,34 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     table[22].data = c;
     table[23].data = c;
     table[24].data = c;
+    table[25].data = &c->disable_remixing;
 #ifdef HAVE_SYS_RESOURCE_H
-    table[25].data = &c->rlimit_as;
-    table[26].data = &c->rlimit_core;
-    table[27].data = &c->rlimit_data;
-    table[28].data = &c->rlimit_fsize;
-    table[29].data = &c->rlimit_nofile;
-    table[30].data = &c->rlimit_stack;
+    table[26].data = &c->rlimit_as;
+    table[27].data = &c->rlimit_core;
+    table[28].data = &c->rlimit_data;
+    table[29].data = &c->rlimit_fsize;
+    table[30].data = &c->rlimit_nofile;
+    table[31].data = &c->rlimit_stack;
 #ifdef RLIMIT_NPROC
-    table[31].data = &c->rlimit_nproc;
+    table[32].data = &c->rlimit_nproc;
 #endif
 #ifdef RLIMIT_MEMLOCK
 #ifndef RLIMIT_NPROC
 #error "Houston, we have a numbering problem!"
 #endif
-    table[32].data = &c->rlimit_memlock;
+    table[33].data = &c->rlimit_memlock;
 #endif
 #ifdef RLIMIT_NICE
 #ifndef RLIMIT_MEMLOCK
 #error "Houston, we have a numbering problem!"
 #endif
-    table[33].data = &c->rlimit_nice;
+    table[34].data = &c->rlimit_nice;
 #endif
 #ifdef RLIMIT_RTPRIO
 #ifndef RLIMIT_NICE
 #error "Houston, we have a numbering problem!"
 #endif
-    table[34].data = &c->rlimit_rtprio;
+    table[35].data = &c->rlimit_rtprio;
 #endif
 #endif
 
@@ -563,6 +566,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "log-target = %s\n", c->auto_log_target ? "auto" : (c->log_target == PA_LOG_SYSLOG ? "syslog" : "stderr"));
     pa_strbuf_printf(s, "log-level = %s\n", log_level_to_string[c->log_level]);
     pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
+    pa_strbuf_printf(s, "disable-remixing = %s\n", pa_yes_no(c->disable_remixing));
     pa_strbuf_printf(s, "default-sample-format = %s\n", pa_sample_format_to_string(c->default_sample_spec.format));
     pa_strbuf_printf(s, "default-sample-rate = %u\n", c->default_sample_spec.rate);
     pa_strbuf_printf(s, "default-sample-channels = %u\n", c->default_sample_spec.channels);

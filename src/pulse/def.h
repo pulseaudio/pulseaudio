@@ -122,7 +122,7 @@ typedef enum pa_stream_flags {
                                       * ahead can be corrected
                                       * quickly, without the need to
                                       * wait. */
-    PA_STREAM_AUTO_TIMING_UPDATE = 8 /**< If set timing update requests
+    PA_STREAM_AUTO_TIMING_UPDATE = 8, /**< If set timing update requests
                                        * are issued periodically
                                        * automatically. Combined with
                                        * PA_STREAM_INTERPOLATE_TIMING
@@ -132,6 +132,83 @@ typedef enum pa_stream_flags {
                                        * pa_stream_get_latency() at
                                        * all times without a packet
                                        * round trip.*/
+    PA_STREAM_NO_REMAP_CHANNELS = 16, /**< Don't remap channels by
+                                       * their name, instead map them
+                                       * simply by their
+                                       * index. Implies
+                                       * PA_STREAM_NO_REMIX_CHANNELS. Only
+                                       * supported when the server is
+                                       * at least PA 0.9.8. It is
+                                       * ignored on older
+                                       * servers.\since 0.9.8 */
+    PA_STREAM_NO_REMIX_CHANNELS = 32, /**< When remapping channels by
+                                       * name, don't upmix or downmix
+                                       * them to related
+                                       * channels. Copy them into
+                                       * matching channels of the
+                                       * device 1:1. Only supported
+                                       * when the server is at least
+                                       * PA 0.9.8. It is ignored on
+                                       * older servers. \since
+                                       * 0.9.8 */
+    PA_STREAM_FIX_FORMAT = 64, /**< Use the sample format of the
+                                * sink/device this stream is being
+                                * connected to, and possibly ignore
+                                * the format the sample spec contains
+                                * -- but you still have to pass a
+                                * valid value in it as a hint to
+                                * PulseAudio what would suit your
+                                * stream best. If this is used you
+                                * should query the used sample format
+                                * after creating the stream by using
+                                * pa_stream_get_sample_spec(). Also,
+                                * if you specified manual buffer
+                                * metrics it is recommended to update
+                                * them with
+                                * pa_stream_set_buffer_attr() to
+                                * compensate for the changed frame
+                                * sizes. Only supported when the
+                                * server is at least PA 0.9.8. It is
+                                * ignored on older servers. \since
+                                * 0.9.8 */
+
+    PA_STREAM_FIX_RATE = 128, /**< Use the sample rate of the sink,
+                               * and possibly ignore the rate the
+                               * sample spec contains. Usage similar
+                               * to PA_STREAM_FIX_FORMAT.Only
+                               * supported when the server is at least
+                               * PA 0.9.8. It is ignored on older
+                               * servers. \since 0.9.8 */
+
+    PA_STREAM_FIX_CHANNELS = 256, /**< Use the number of channels and
+                               * the channel map of the sink, and
+                               * possibly ignore the number of
+                               * channels and the map the sample spec
+                               * and the passed channel map
+                               * contains. Usage similar to
+                               * PA_STREAM_FIX_FORMAT. Only supported
+                               * when the server is at least PA
+                               * 0.9.8. It is ignored on older
+                               * servers. \since 0.9.8 */
+    PA_STREAM_DONT_MOVE = 512, /**< Don't allow moving of this stream to
+                              * another sink/device. Useful if you use
+                              * any of the PA_STREAM_FIX_ flags and
+                              * want to make sure that resampling
+                              * never takes place -- which might
+                              * happen if the stream is moved to
+                              * another sink/source whith a different
+                              * sample spec/channel map. Only
+                              * supported when the server is at least
+                              * PA 0.9.8. It is ignored on older
+                              * servers. \since 0.9.8 */
+    PA_STREAM_VARIABLE_RATE = 1024, /**< Allow dynamic changing of the
+                                     * sampling rate during playback
+                                     * with
+                                     * pa_stream_update_sample_rate(). Only
+                                     * supported when the server is at
+                                     * least PA 0.9.8. It is ignored
+                                     * on older servers. \since
+                                     * 0.9.8 */
 } pa_stream_flags_t;
 
 /** Playback and record buffer metrics */

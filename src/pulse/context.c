@@ -86,6 +86,10 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_UNDERFLOW] = pa_command_overflow_or_underflow,
     [PA_COMMAND_PLAYBACK_STREAM_KILLED] = pa_command_stream_killed,
     [PA_COMMAND_RECORD_STREAM_KILLED] = pa_command_stream_killed,
+    [PA_COMMAND_PLAYBACK_STREAM_MOVED] = pa_command_stream_moved,
+    [PA_COMMAND_RECORD_STREAM_MOVED] = pa_command_stream_moved,
+    [PA_COMMAND_PLAYBACK_STREAM_SUSPENDED] = pa_command_stream_suspended,
+    [PA_COMMAND_RECORD_STREAM_SUSPENDED] = pa_command_stream_suspended,
     [PA_COMMAND_SUBSCRIBE_EVENT] = pa_command_subscribe_event
 };
 
@@ -396,7 +400,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
             /* Enable shared memory support if possible */
             if (c->version >= 10 &&
                 pa_mempool_is_shared(c->mempool) &&
-                c->is_local) {
+                c->is_local > 0) {
 
                 /* Only enable SHM if both sides are owned by the same
                  * user. This is a security measure because otherwise
@@ -965,6 +969,9 @@ pa_operation* pa_context_set_default_source(pa_context *c, const char *name, pa_
 
 int pa_context_is_local(pa_context *c) {
     pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_CHECK_VALIDITY(c, c->is_local >= 0, PA_ERR_BADSTATE);
 
     return c->is_local;
 }

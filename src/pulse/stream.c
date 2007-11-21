@@ -51,12 +51,15 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, ss && pa_sample_spec_valid(ss), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 12 || (ss->format != PA_SAMPLE_S32LE || ss->format != PA_SAMPLE_S32NE), PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, !map || (pa_channel_map_valid(map) && map->channels == ss->channels), PA_ERR_INVALID);
 
     s = pa_xnew(pa_stream, 1);
     PA_REFCNT_INIT(s);
     s->context = c;
     s->mainloop = c->mainloop;
+
+    s->buffer_attr_not_ready = s->timing_info_not_ready = FALSE;
 
     s->read_callback = NULL;
     s->read_userdata = NULL;
@@ -70,6 +73,10 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     s->underflow_userdata = NULL;
     s->latency_update_callback = NULL;
     s->latency_update_userdata = NULL;
+    s->moved_callback = NULL;
+    s->moved_userdata = NULL;
+    s->suspended_callback = NULL;
+    s->suspended_userdata = NULL;
 
     s->direction = PA_STREAM_NODIRECTION;
     s->name = pa_xstrdup(name);
@@ -84,10 +91,16 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     s->channel = 0;
     s->channel_valid = 0;
     s->syncid = c->csyncid++;
-    s->device_index = PA_INVALID_INDEX;
+    s->stream_index = PA_INVALID_INDEX;
     s->requested_bytes = 0;
     s->state = PA_STREAM_UNCONNECTED;
+
+    s->manual_buffer_attr = FALSE;
     memset(&s->buffer_attr, 0, sizeof(s->buffer_attr));
+
+    s->device_index = PA_INVALID_INDEX;
+    s->device_name = NULL;
+    s->suspended = FALSE;
 
     s->peek_memchunk.index = 0;
     s->peek_memchunk.length = 0;
@@ -139,6 +152,7 @@ static void stream_free(pa_stream *s) {
         pa_memblockq_free(s->record_memblockq);
 
     pa_xfree(s->name);
+    pa_xfree(s->device_name);
     pa_xfree(s);
 }
 
@@ -178,7 +192,7 @@ uint32_t pa_stream_get_index(pa_stream *s) {
 
     PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE, PA_INVALID_INDEX);
 
-    return s->device_index;
+    return s->stream_index;
 }
 
 void pa_stream_set_state(pa_stream *s, pa_stream_state_t st) {
@@ -257,6 +271,95 @@ void pa_command_stream_killed(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED 
 
     pa_context_set_error(c, PA_ERR_KILLED);
     pa_stream_set_state(s, PA_STREAM_FAILED);
+
+finish:
+    pa_context_unref(c);
+}
+
+void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    pa_stream *s;
+    uint32_t channel;
+    const char *dn;
+    int suspended;
+    uint32_t di;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_PLAYBACK_STREAM_MOVED || command == PA_COMMAND_RECORD_STREAM_MOVED);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    pa_context_ref(c);
+
+    if (c->version < 12) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (pa_tagstruct_getu32(t, &channel) < 0 ||
+        pa_tagstruct_getu32(t, &di) < 0 ||
+        pa_tagstruct_gets(t, &dn) < 0 ||
+        pa_tagstruct_get_boolean(t, &suspended) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (!dn || di == PA_INVALID_INDEX) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_STREAM_MOVED ? c->playback_streams : c->record_streams, channel)))
+        goto finish;
+
+    pa_xfree(s->device_name);
+    s->device_name = pa_xstrdup(dn);
+    s->device_index = di;
+
+    s->suspended = suspended;
+
+    if (s->moved_callback)
+        s->moved_callback(s, s->moved_userdata);
+
+finish:
+    pa_context_unref(c);
+}
+
+void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_context *c = userdata;
+    pa_stream *s;
+    uint32_t channel;
+    int suspended;
+
+    pa_assert(pd);
+    pa_assert(command == PA_COMMAND_PLAYBACK_STREAM_SUSPENDED || command == PA_COMMAND_RECORD_STREAM_SUSPENDED);
+    pa_assert(t);
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    pa_context_ref(c);
+
+    if (c->version < 12) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (pa_tagstruct_getu32(t, &channel) < 0 ||
+        pa_tagstruct_get_boolean(t, &suspended) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        pa_context_fail(c, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (!(s = pa_dynarray_get(command == PA_COMMAND_PLAYBACK_STREAM_SUSPENDED ? c->playback_streams : c->record_streams, channel)))
+        goto finish;
+
+    s->suspended = suspended;
+
+    if (s->suspended_callback)
+        s->suspended_callback(s, s->suspended_userdata);
 
 finish:
     pa_context_unref(c);
@@ -412,6 +515,9 @@ static void create_stream_complete(pa_stream *s) {
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
     pa_assert(s->state == PA_STREAM_CREATING);
 
+    if (s->buffer_attr_not_ready || s->timing_info_not_ready)
+        return;
+
     pa_stream_set_state(s, PA_STREAM_READY);
 
     if (s->requested_bytes > 0 && s->write_callback)
@@ -424,6 +530,17 @@ static void create_stream_complete(pa_stream *s) {
         pa_assert(!s->auto_timing_update_event);
         s->auto_timing_update_event = s->mainloop->time_new(s->mainloop, &tv, &auto_timing_update_callback, s);
     }
+}
+
+static void automatic_buffer_attr(pa_buffer_attr *attr, pa_sample_spec *ss) {
+    pa_assert(attr);
+    pa_assert(ss);
+
+    attr->tlength = pa_bytes_per_second(ss)/2;
+    attr->maxlength = (attr->tlength*3)/2;
+    attr->minreq = attr->tlength/50;
+    attr->prebuf = attr->tlength - attr->minreq;
+    attr->fragsize = attr->tlength/50;
 }
 
 void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -445,13 +562,13 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
     }
 
     if (pa_tagstruct_getu32(t, &s->channel) < 0 ||
-        ((s->direction != PA_STREAM_UPLOAD) && pa_tagstruct_getu32(t, &s->device_index) < 0) ||
+        ((s->direction != PA_STREAM_UPLOAD) && pa_tagstruct_getu32(t, &s->stream_index) < 0) ||
         ((s->direction != PA_STREAM_RECORD) && pa_tagstruct_getu32(t, &s->requested_bytes) < 0)) {
         pa_context_fail(s->context, PA_ERR_PROTOCOL);
         goto finish;
     }
 
-    if (pa_context_get_server_protocol_version(s->context) >= 9) {
+    if (s->context->version >= 9) {
         if (s->direction == PA_STREAM_PLAYBACK) {
             if (pa_tagstruct_getu32(t, &s->buffer_attr.maxlength) < 0 ||
                 pa_tagstruct_getu32(t, &s->buffer_attr.tlength) < 0 ||
@@ -467,6 +584,58 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
                 goto finish;
             }
         }
+    }
+
+    if (s->context->version >= 12) {
+        pa_sample_spec ss;
+        pa_channel_map cm;
+        const char *dn = NULL;
+        int suspended;
+
+        if (pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
+            pa_tagstruct_get_channel_map(t, &cm) < 0 ||
+            pa_tagstruct_getu32(t, &s->device_index) < 0 ||
+            pa_tagstruct_gets(t, &dn) < 0 ||
+            pa_tagstruct_get_boolean(t, &suspended) < 0) {
+            pa_context_fail(s->context, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+
+        if (!dn || s->device_index == PA_INVALID_INDEX ||
+            ss.channels != cm.channels ||
+            !pa_channel_map_valid(&cm) ||
+            !pa_sample_spec_valid(&ss) ||
+            (!(s->flags & PA_STREAM_FIX_FORMAT) && ss.format != s->sample_spec.format) ||
+            (!(s->flags & PA_STREAM_FIX_RATE) && ss.rate != s->sample_spec.rate) ||
+            (!(s->flags & PA_STREAM_FIX_CHANNELS) && !pa_channel_map_equal(&cm, &s->channel_map))) {
+            pa_context_fail(s->context, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+
+        pa_xfree(s->device_name);
+        s->device_name = pa_xstrdup(dn);
+        s->suspended = suspended;
+
+        if (!s->manual_buffer_attr && pa_bytes_per_second(&ss) != pa_bytes_per_second(&s->sample_spec)) {
+            pa_buffer_attr attr;
+            pa_operation *o;
+
+            automatic_buffer_attr(&attr, &ss);
+
+            /* If we need to update the buffer metrics, we wait for
+             * the the OK for that call before we go to
+             * PA_STREAM_READY */
+
+            s->state = PA_STREAM_READY;
+            pa_assert_se(o = pa_stream_set_buffer_attr(s, &attr, NULL, NULL));
+            pa_operation_unref(o);
+            s->state = PA_STREAM_CREATING;
+
+            s->buffer_attr_not_ready = TRUE;
+        }
+
+        s->channel_map = cm;
+        s->sample_spec = ss;
     }
 
     if (!pa_tagstruct_eof(t)) {
@@ -491,15 +660,19 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
     pa_dynarray_put((s->direction == PA_STREAM_RECORD) ? s->context->record_streams : s->context->playback_streams, s->channel, s);
 
     if (s->direction != PA_STREAM_UPLOAD && s->flags & PA_STREAM_AUTO_TIMING_UPDATE) {
+
         /* If automatic timing updates are active, we wait for the
          * first timing update before going to PA_STREAM_READY
          * state */
+
         s->state = PA_STREAM_READY;
         request_auto_timing_update(s, 1);
         s->state = PA_STREAM_CREATING;
 
-    } else
-        create_stream_complete(s);
+        s->timing_info_not_ready = TRUE;
+    }
+
+    create_stream_complete(s);
 
 finish:
     pa_stream_unref(s);
@@ -525,7 +698,13 @@ static int create_stream(
                                                PA_STREAM_START_CORKED|
                                                PA_STREAM_INTERPOLATE_TIMING|
                                                PA_STREAM_NOT_MONOTONOUS|
-                                               PA_STREAM_AUTO_TIMING_UPDATE : 0))), PA_ERR_INVALID);
+                                               PA_STREAM_AUTO_TIMING_UPDATE|
+                                               PA_STREAM_NO_REMAP_CHANNELS|
+                                               PA_STREAM_NO_REMIX_CHANNELS|
+                                               PA_STREAM_FIX_FORMAT|
+                                               PA_STREAM_FIX_RATE|
+                                               PA_STREAM_FIX_CHANNELS|
+                                               PA_STREAM_DONT_MOVE : 0))), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !volume || volume->channels == s->sample_spec.channels, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !sync_stream || (direction == PA_STREAM_PLAYBACK && sync_stream->direction == PA_STREAM_PLAYBACK), PA_ERR_INVALID);
 
@@ -537,15 +716,17 @@ static int create_stream(
     if (sync_stream)
         s->syncid = sync_stream->syncid;
 
-    if (attr)
+    if (attr) {
         s->buffer_attr = *attr;
-    else {
+        s->manual_buffer_attr = TRUE;
+    } else {
         /* half a second, with minimum request of 10 ms */
         s->buffer_attr.tlength = pa_bytes_per_second(&s->sample_spec)/2;
         s->buffer_attr.maxlength = (s->buffer_attr.tlength*3)/2;
         s->buffer_attr.minreq = s->buffer_attr.tlength/50;
         s->buffer_attr.prebuf = s->buffer_attr.tlength - s->buffer_attr.minreq;
         s->buffer_attr.fragsize = s->buffer_attr.tlength/50;
+        s->manual_buffer_attr = FALSE;
     }
 
     if (!dev)
@@ -584,6 +765,19 @@ static int create_stream(
         pa_tagstruct_put_cvolume(t, volume);
     } else
         pa_tagstruct_putu32(t, s->buffer_attr.fragsize);
+
+    if (s->context->version >= 12 && s->direction != PA_STREAM_UPLOAD) {
+        pa_tagstruct_put(
+                t,
+                PA_TAG_BOOLEAN, flags & PA_STREAM_NO_REMAP_CHANNELS,
+                PA_TAG_BOOLEAN, flags & PA_STREAM_NO_REMIX_CHANNELS,
+                PA_TAG_BOOLEAN, flags & PA_STREAM_FIX_FORMAT,
+                PA_TAG_BOOLEAN, flags & PA_STREAM_FIX_RATE,
+                PA_TAG_BOOLEAN, flags & PA_STREAM_FIX_CHANNELS,
+                PA_TAG_BOOLEAN, flags & PA_STREAM_DONT_MOVE,
+                PA_TAG_BOOLEAN, flags & PA_STREAM_VARIABLE_RATE,
+                PA_TAG_INVALID);
+    }
 
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_create_stream_callback, s, NULL);
@@ -921,8 +1115,10 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
     }
 
     /* First, let's complete the initialization, if necessary. */
-    if (o->stream->state == PA_STREAM_CREATING)
+    if (o->stream->state == PA_STREAM_CREATING) {
+        o->stream->timing_info_not_ready = FALSE;
         create_stream_complete(o->stream);
+    }
 
     if (o->stream->latency_update_callback)
         o->stream->latency_update_callback(o->stream, o->stream->latency_update_userdata);
@@ -1082,6 +1278,22 @@ void pa_stream_set_latency_update_callback(pa_stream *s, pa_stream_notify_cb_t c
 
     s->latency_update_callback = cb;
     s->latency_update_userdata = userdata;
+}
+
+void pa_stream_set_moved_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    s->moved_callback = cb;
+    s->moved_userdata = userdata;
+}
+
+void pa_stream_set_suspended_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *userdata) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    s->suspended_callback = cb;
+    s->suspended_userdata = userdata;
 }
 
 void pa_stream_simple_ack_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -1420,8 +1632,208 @@ const pa_buffer_attr* pa_stream_get_buffer_attr(pa_stream *s) {
 
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
     PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY_RETURN_NULL(s->context,
-        pa_context_get_server_protocol_version(s->context) >= 9, PA_ERR_NODATA);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->context->version >= 9, PA_ERR_NODATA);
 
     return &s->buffer_attr;
+}
+
+static void stream_set_buffer_attr_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_operation *o = userdata;
+    int success = 1;
+
+    pa_assert(pd);
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    if (!o->context)
+        goto finish;
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+        success = 0;
+    } else {
+
+        if (o->stream->direction == PA_STREAM_PLAYBACK) {
+            if (pa_tagstruct_getu32(t, &o->stream->buffer_attr.maxlength) < 0 ||
+                pa_tagstruct_getu32(t, &o->stream->buffer_attr.tlength) < 0 ||
+                pa_tagstruct_getu32(t, &o->stream->buffer_attr.prebuf) < 0 ||
+                pa_tagstruct_getu32(t, &o->stream->buffer_attr.minreq) < 0) {
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+        } else if (o->stream->direction == PA_STREAM_RECORD) {
+            if (pa_tagstruct_getu32(t, &o->stream->buffer_attr.maxlength) < 0 ||
+                pa_tagstruct_getu32(t, &o->stream->buffer_attr.fragsize) < 0) {
+                pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+        }
+
+        if (!pa_tagstruct_eof(t)) {
+            pa_context_fail(o->context, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+
+        o->stream->manual_buffer_attr = TRUE;
+    }
+
+    if (o->stream->state == PA_STREAM_CREATING) {
+        o->stream->buffer_attr_not_ready = FALSE;
+        create_stream_complete(o->stream);
+    }
+
+    if (o->callback) {
+        pa_stream_success_cb_t cb = (pa_stream_success_cb_t) o->callback;
+        cb(o->stream, success, o->userdata);
+    }
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
+
+pa_operation* pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr, pa_stream_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+    pa_assert(attr);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->context->version >= 12, PA_ERR_NOTSUPPORTED);
+
+    o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(
+            s->context,
+            s->direction == PA_STREAM_RECORD ? PA_COMMAND_SET_RECORD_STREAM_BUFFER_ATTR : PA_COMMAND_SET_PLAYBACK_STREAM_BUFFER_ATTR,
+            &tag);
+    pa_tagstruct_putu32(t, s->channel);
+
+    pa_tagstruct_putu32(t, attr->maxlength);
+
+    if (s->direction == PA_STREAM_PLAYBACK)
+        pa_tagstruct_put(
+                t,
+                PA_TAG_U32, attr->tlength,
+                PA_TAG_U32, attr->prebuf,
+                PA_TAG_U32, attr->minreq,
+                PA_TAG_INVALID);
+    else
+        pa_tagstruct_putu32(t, attr->fragsize);
+
+    pa_pstream_send_tagstruct(s->context->pstream, t);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_set_buffer_attr_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    return o;
+}
+
+uint32_t pa_stream_get_device_index(pa_stream *s) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE, PA_INVALID_INDEX);
+    PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE, PA_INVALID_INDEX);
+    PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->context->version >= 12, PA_ERR_NOTSUPPORTED, PA_INVALID_INDEX);
+    PA_CHECK_VALIDITY_RETURN_ANY(s->context, s->device_index != PA_INVALID_INDEX, PA_ERR_BADSTATE, PA_INVALID_INDEX);
+
+    return s->device_index;
+}
+
+const char *pa_stream_get_device_name(pa_stream *s) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->context->version >= 12, PA_ERR_NOTSUPPORTED);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->device_name, PA_ERR_BADSTATE);
+
+    return s->device_name;
+}
+
+int pa_stream_is_suspended(pa_stream *s) {
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY(s->context, s->context->version >= 12, PA_ERR_NOTSUPPORTED);
+
+    return s->suspended;
+}
+
+static void stream_update_sample_rate_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_operation *o = userdata;
+    int success = 1;
+
+    pa_assert(pd);
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    if (!o->context)
+        goto finish;
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+        success = 0;
+    } else {
+
+        if (!pa_tagstruct_eof(t)) {
+            pa_context_fail(o->context, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+    }
+
+    o->stream->sample_spec.rate = PA_PTR_TO_UINT(o->private);
+    pa_assert(pa_sample_spec_valid(&o->stream->sample_spec));
+
+    if (o->callback) {
+        pa_stream_success_cb_t cb = (pa_stream_success_cb_t) o->callback;
+        cb(o->stream, success, o->userdata);
+    }
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
+
+pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_stream_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, rate > 0 && rate <= PA_RATE_MAX, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->flags & PA_STREAM_VARIABLE_RATE, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->context->version >= 12, PA_ERR_NOTSUPPORTED);
+
+    o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
+    o->private = PA_UINT_TO_PTR(rate);
+
+    t = pa_tagstruct_command(
+            s->context,
+            s->direction == PA_STREAM_RECORD ? PA_COMMAND_UPDATE_RECORD_STREAM_SAMPLE_RATE : PA_COMMAND_UPDATE_PLAYBACK_STREAM_SAMPLE_RATE,
+            &tag);
+    pa_tagstruct_putu32(t, s->channel);
+    pa_tagstruct_putu32(t, rate);
+
+    pa_pstream_send_tagstruct(s->context->pstream, t);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_update_sample_rate_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    return o;
+
 }

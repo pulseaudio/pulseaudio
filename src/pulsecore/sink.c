@@ -149,23 +149,16 @@ pa_sink* pa_sink_new(
 
 static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
     int ret;
+    pa_bool_t suspend_change;
 
     pa_assert(s);
 
     if (s->state == state)
         return 0;
 
-    if ((s->state == PA_SINK_SUSPENDED && PA_SINK_OPENED(state)) ||
-        (PA_SINK_OPENED(s->state) && state == PA_SINK_SUSPENDED)) {
-        pa_sink_input *i;
-        uint32_t idx;
-
-        /* We're suspending or resuming, tell everyone about it */
-
-        for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx)))
-            if (i->suspend)
-                i->suspend(i, state == PA_SINK_SUSPENDED);
-    }
+    suspend_change =
+        (s->state == PA_SINK_SUSPENDED && PA_SINK_OPENED(state)) ||
+        (PA_SINK_OPENED(s->state) && state == PA_SINK_SUSPENDED);
 
     if (s->set_state)
         if ((ret = s->set_state(s, state)) < 0)
@@ -176,8 +169,20 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
 
     s->state = state;
 
+    if (suspend_change) {
+        pa_sink_input *i;
+        uint32_t idx;
+
+        /* We're suspending or resuming, tell everyone about it */
+
+        for (i = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); i; i = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx)))
+            if (i->suspend)
+                i->suspend(i, state == PA_SINK_SUSPENDED);
+    }
+
     if (state != PA_SINK_UNLINKED) /* if we enter UNLINKED state pa_sink_unlink() will fire the apropriate events */
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], s);
+
     return 0;
 }
 

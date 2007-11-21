@@ -50,7 +50,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
     size_t ibuf_index, ibuf_length, obuf_index, obuf_length;
     fd_set ifds, ofds;
 
-    if (pa_pid_file_check_running(&pid) < 0) {
+    if (pa_pid_file_check_running(&pid, "pulseaudio") < 0) {
         pa_log("no PulseAudio daemon running");
         goto fail;
     }
@@ -75,7 +75,7 @@ int main(PA_GCC_UNUSED int argc, PA_GCC_UNUSED char*argv[]) {
         if (r >= 0)
             break;
 
-        if (pa_pid_file_kill(SIGUSR2, NULL) < 0) {
+        if (pa_pid_file_kill(SIGUSR2, NULL, "pulseaudio") < 0) {
             pa_log("failed to kill PulseAudio daemon.");
             goto fail;
         }

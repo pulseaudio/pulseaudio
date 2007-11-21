@@ -236,7 +236,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
             "    index: %u\n"
             "\tname: '%s'\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s\n"
+            "\tflags: %s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsource: <%u> '%s'\n"
             "\tlatency: <%0.0f usec>\n"
@@ -248,6 +248,11 @@ char *pa_source_output_list_to_string(pa_core *c) {
             o->driver,
             o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE ? "VARIABLE_RATE " : "",
             o->flags & PA_SOURCE_OUTPUT_DONT_MOVE ? "DONT_MOVE " : "",
+            o->flags & PA_SOURCE_OUTPUT_NO_REMAP ? "NO_REMAP " : "",
+            o->flags & PA_SOURCE_OUTPUT_NO_REMIX ? "NO_REMIX " : "",
+            o->flags & PA_SOURCE_OUTPUT_FIX_FORMAT ? "FIX_FORMAT " : "",
+            o->flags & PA_SOURCE_OUTPUT_FIX_RATE ? "FIX_RATE " : "",
+            o->flags & PA_SOURCE_OUTPUT_FIX_CHANNELS ? "FIX_CHANNELS " : "",
             state_table[pa_source_output_get_state(o)],
             o->source->index, o->source->name,
             (double) pa_source_output_get_latency(o),
@@ -289,7 +294,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             "    index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s\n"
+            "\tflags: %s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsink: <%u> '%s'\n"
             "\tvolume: <%s>\n"
@@ -303,6 +308,11 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             i->driver,
             i->flags & PA_SINK_INPUT_VARIABLE_RATE ? "VARIABLE_RATE " : "",
             i->flags & PA_SINK_INPUT_DONT_MOVE ? "DONT_MOVE " : "",
+            i->flags & PA_SINK_INPUT_NO_REMAP ? "NO_REMAP " : "",
+            i->flags & PA_SINK_INPUT_NO_REMIX ? "NO_REMIX " : "",
+            i->flags & PA_SINK_INPUT_FIX_FORMAT ? "FIX_FORMAT " : "",
+            i->flags & PA_SINK_INPUT_FIX_RATE ? "FIX_RATE " : "",
+            i->flags & PA_SINK_INPUT_FIX_CHANNELS ? "FIX_CHANNELS " : "",
             state_table[pa_sink_input_get_state(i)],
             i->sink->index, i->sink->name,
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_input_get_volume(i)),

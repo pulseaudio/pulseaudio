@@ -126,23 +126,16 @@ pa_source* pa_source_new(
 
 static int source_set_state(pa_source *s, pa_source_state_t state) {
     int ret;
+    pa_bool_t suspend_change;
 
     pa_assert(s);
 
     if (s->state == state)
         return 0;
 
-    if ((s->state == PA_SOURCE_SUSPENDED && PA_SOURCE_OPENED(state)) ||
-        (PA_SOURCE_OPENED(s->state) && state == PA_SOURCE_SUSPENDED)) {
-        pa_source_output *o;
-        uint32_t idx;
-
-        /* We're suspending or resuming, tell everyone about it */
-
-        for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx)))
-            if (o->suspend)
-                o->suspend(o, state == PA_SINK_SUSPENDED);
-    }
+    suspend_change =
+        (s->state == PA_SOURCE_SUSPENDED && PA_SOURCE_OPENED(state)) ||
+        (PA_SOURCE_OPENED(s->state) && state == PA_SOURCE_SUSPENDED);
 
     if (s->set_state)
         if ((ret = s->set_state(s, state)) < 0)
@@ -153,8 +146,20 @@ static int source_set_state(pa_source *s, pa_source_state_t state) {
 
     s->state = state;
 
+    if (suspend_change) {
+        pa_source_output *o;
+        uint32_t idx;
+
+        /* We're suspending or resuming, tell everyone about it */
+
+        for (o = PA_SOURCE_OUTPUT(pa_idxset_first(s->outputs, &idx)); o; o = PA_SOURCE_OUTPUT(pa_idxset_next(s->outputs, &idx)))
+            if (o->suspend)
+                o->suspend(o, state == PA_SINK_SUSPENDED);
+    }
+
     if (state != PA_SOURCE_UNLINKED) /* if we enter UNLINKED state pa_source_unlink() will fire the apropriate events */
         pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], s);
+
     return 0;
 }
 

@@ -35,6 +35,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/volume.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/module.h>
@@ -52,14 +53,20 @@ PA_MODULE_AUTHOR("Lennart Poettering");
 PA_MODULE_DESCRIPTION("Automatically restore the volume and the devices of streams");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(TRUE);
-PA_MODULE_USAGE("table=<filename>");
+PA_MODULE_USAGE(
+        "table=<filename> "
+        "restore_device=<Restore the device for each stream?> "
+        "restore_volume=<Restore the volume for each stream?>"
+);
 
 #define WHITESPACE "\n\r \t"
-
 #define DEFAULT_VOLUME_TABLE_FILE "volume-restore.table"
+#define SAVE_INTERVAL 10
 
 static const char* const valid_modargs[] = {
     "table",
+    "restore_device",
+    "restore_volume",
     NULL,
 };
 
@@ -67,16 +74,20 @@ struct rule {
     char* name;
     pa_bool_t volume_is_set;
     pa_cvolume volume;
-    char *sink;
-    char *source;
+    char *sink, *source;
 };
 
 struct userdata {
+    pa_core *core;
     pa_hashmap *hashmap;
     pa_subscription *subscription;
-    pa_hook_slot *sink_input_hook_slot, *source_output_hook_slot;
+    pa_hook_slot
+        *sink_input_new_hook_slot,
+        *sink_input_fixate_hook_slot,
+        *source_output_new_hook_slot;
     pa_bool_t modified;
     char *table_file;
+    pa_time_event *save_time_event;
 };
 
 static pa_cvolume* parse_volume(const char *s, pa_cvolume *v) {
@@ -220,12 +231,17 @@ static int save_rules(struct userdata *u) {
     void *state = NULL;
     struct rule *rule;
 
+    if (!u->modified)
+        return 0;
+
+    pa_log_info("Saving rules...");
+
     f = u->table_file ?
         fopen(u->table_file, "w") :
         pa_open_config_file(NULL, DEFAULT_VOLUME_TABLE_FILE, NULL, &u->table_file, "w");
 
     if (!f) {
-        pa_log("failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
+        pa_log("Failed to open file '%s': %s", u->table_file, pa_cstrerror(errno));
         goto finish;
     }
 
@@ -249,6 +265,8 @@ static int save_rules(struct userdata *u) {
     }
 
     ret = 0;
+    u->modified = FALSE;
+    pa_log_debug("Successfully saved rules...");
 
 finish:
     if (f) {
@@ -287,6 +305,21 @@ static char* client_name(pa_client *c) {
     }
 
     return t;
+}
+
+static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *tv, void *userdata) {
+    struct userdata *u = userdata;
+
+    pa_assert(a);
+    pa_assert(e);
+    pa_assert(tv);
+    pa_assert(u);
+
+    pa_assert(e == u->save_time_event);
+    u->core->mainloop->time_free(u->save_time_event);
+    u->save_time_event = NULL;
+
+    save_rules(u);
 }
 
 static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata) {
@@ -371,24 +404,28 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         pa_hashmap_put(u->hashmap, r->name, r);
         u->modified = TRUE;
     }
+
+    if (u->modified && !u->save_time_event) {
+        struct timeval tv;
+        pa_gettimeofday(&tv);
+        tv.tv_sec += SAVE_INTERVAL;
+        u->save_time_event = u->core->mainloop->time_new(u->core->mainloop, &tv, save_time_callback, u);
+    }
 }
 
-static pa_hook_result_t sink_input_hook_callback(pa_core *c, pa_sink_input_new_data *data, struct userdata *u) {
+static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_new_data *data, struct userdata *u) {
     struct rule *r;
     char *name;
 
     pa_assert(data);
 
+    /* In the NEW hook we only adjust the device. Adjusting the volume
+     * is left for the FIXATE hook */
+
     if (!data->client || !(name = client_name(data->client)))
         return PA_HOOK_OK;
 
     if ((r = pa_hashmap_get(u->hashmap, name))) {
-
-        if (r->volume_is_set && data->sample_spec.channels == r->volume.channels) {
-            pa_log_info("Restoring volume for <%s>", r->name);
-            pa_sink_input_new_data_set_volume(data, &r->volume);
-        }
-
         if (!data->sink && r->sink) {
             if ((data->sink = pa_namereg_get(c, r->sink, PA_NAMEREG_SINK, 1)))
                 pa_log_info("Restoring sink for <%s>", r->name);
@@ -400,7 +437,32 @@ static pa_hook_result_t sink_input_hook_callback(pa_core *c, pa_sink_input_new_d
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t source_output_hook_callback(pa_core *c, pa_source_output_new_data *data, struct userdata *u) {
+static pa_hook_result_t sink_input_fixate_hook_callback(pa_core *c, pa_sink_input_new_data *data, struct userdata *u) {
+    struct rule *r;
+    char *name;
+
+    pa_assert(data);
+
+    /* In the FIXATE hook we only adjust the volum. Adjusting the device
+     * is left for the NEW hook */
+
+    if (!data->client || !(name = client_name(data->client)))
+        return PA_HOOK_OK;
+
+    if ((r = pa_hashmap_get(u->hashmap, name))) {
+
+        if (r->volume_is_set && data->sample_spec.channels == r->volume.channels) {
+            pa_log_info("Restoring volume for <%s>", r->name);
+            pa_sink_input_new_data_set_volume(data, &r->volume);
+        }
+    }
+
+    pa_xfree(name);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_output_new_data *data, struct userdata *u) {
     struct rule *r;
     char *name;
 
@@ -422,6 +484,7 @@ static pa_hook_result_t source_output_hook_callback(pa_core *c, pa_source_output
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
+    pa_bool_t restore_device = TRUE, restore_volume = TRUE;
 
     pa_assert(m);
 
@@ -431,20 +494,39 @@ int pa__init(pa_module*m) {
     }
 
     u = pa_xnew(struct userdata, 1);
+    u->core = m->core;
     u->hashmap = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
-    u->subscription = NULL;
     u->table_file = pa_xstrdup(pa_modargs_get_value(ma, "table", NULL));
     u->modified = FALSE;
-    u->sink_input_hook_slot = u->source_output_hook_slot = NULL;
+    u->subscription = NULL;
+    u->sink_input_new_hook_slot = u->sink_input_fixate_hook_slot = u->source_output_new_hook_slot = NULL;
+    u->save_time_event = NULL;
 
     m->userdata = u;
+
+    if (pa_modargs_get_value_boolean(ma, "restore_device", &restore_device) < 0 ||
+        pa_modargs_get_value_boolean(ma, "restore_volume", &restore_volume) < 0) {
+        pa_log("restore_volume= and restore_device= expect boolean arguments");
+        goto fail;
+    }
+
+    if (!(restore_device || restore_volume)) {
+        pa_log("Both restrong the volume and restoring the device are disabled. There's no point in using this module at all then, failing.");
+        goto fail;
+    }
 
     if (load_rules(u) < 0)
         goto fail;
 
     u->subscription = pa_subscription_new(m->core, PA_SUBSCRIPTION_MASK_SINK_INPUT|PA_SUBSCRIPTION_MASK_SOURCE_OUTPUT, subscribe_callback, u);
-    u->sink_input_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], (pa_hook_cb_t) sink_input_hook_callback, u);
-    u->source_output_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], (pa_hook_cb_t) source_output_hook_callback, u);
+
+    if (restore_device) {
+        u->sink_input_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], (pa_hook_cb_t) sink_input_new_hook_callback, u);
+        u->source_output_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], (pa_hook_cb_t) source_output_new_hook_callback, u);
+    }
+
+    if (restore_volume)
+        u->sink_input_fixate_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], (pa_hook_cb_t) sink_input_fixate_hook_callback, u);
 
     pa_modargs_free(ma);
     return 0;
@@ -478,18 +560,20 @@ void pa__done(pa_module*m) {
     if (u->subscription)
         pa_subscription_free(u->subscription);
 
-    if (u->sink_input_hook_slot)
-        pa_hook_slot_free(u->sink_input_hook_slot);
-    if (u->source_output_hook_slot)
-        pa_hook_slot_free(u->source_output_hook_slot);
+    if (u->sink_input_new_hook_slot)
+        pa_hook_slot_free(u->sink_input_new_hook_slot);
+    if (u->sink_input_fixate_hook_slot)
+        pa_hook_slot_free(u->sink_input_fixate_hook_slot);
+    if (u->source_output_new_hook_slot)
+        pa_hook_slot_free(u->source_output_new_hook_slot);
 
     if (u->hashmap) {
-
-        if (u->modified)
-            save_rules(u);
-
+        save_rules(u);
         pa_hashmap_free(u->hashmap, free_func, NULL);
     }
+
+    if (u->save_time_event)
+        u->core->mainloop->time_free(u->save_time_event);
 
     pa_xfree(u->table_file);
     pa_xfree(u);

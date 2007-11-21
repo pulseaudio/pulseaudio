@@ -49,7 +49,12 @@ static inline pa_bool_t PA_SOURCE_OUTPUT_LINKED(pa_source_output_state_t x) {
 typedef enum pa_source_output_flags {
     PA_SOURCE_OUTPUT_VARIABLE_RATE = 1,
     PA_SOURCE_OUTPUT_DONT_MOVE = 2,
-    PA_SOURCE_OUTPUT_START_CORKED = 4
+    PA_SOURCE_OUTPUT_START_CORKED = 4,
+    PA_SOURCE_OUTPUT_NO_REMAP = 8,
+    PA_SOURCE_OUTPUT_NO_REMIX = 16,
+    PA_SOURCE_OUTPUT_FIX_FORMAT = 32,
+    PA_SOURCE_OUTPUT_FIX_RATE = 64,
+    PA_SOURCE_OUTPUT_FIX_CHANNELS = 128
 } pa_source_output_flags_t;
 
 struct pa_source_output {
@@ -82,8 +87,12 @@ struct pa_source_output {
     void (*detach) (pa_source_output *o);           /* may be NULL */
 
     /* If non-NULL called whenever the the source this output is attached
+     * to changes. Called from main context */
+    void (*moved) (pa_source_output *o);   /* may be NULL */
+
+    /* If non-NULL called whenever the the source this output is attached
      * to suspends or resumes. Called from main context */
-    void (*suspend) (pa_source_output *o, int b);   /* may be NULL */
+    void (*suspend) (pa_source_output *o, pa_bool_t b);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
      * context. */
@@ -134,6 +143,11 @@ typedef struct pa_source_output_new_data {
 
     pa_resample_method_t resample_method;
 } pa_source_output_new_data;
+
+typedef struct pa_source_output_move_hook_data {
+    pa_source_output *source_output;
+    pa_source *destination;
+} pa_source_output_move_hook_data;
 
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
 void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, const pa_sample_spec *spec);

@@ -93,7 +93,7 @@ pa_sink_input* pa_sink_input_new(
 
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
-    char st[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     pa_assert(core);
     pa_assert(data);
@@ -132,6 +132,24 @@ pa_sink_input* pa_sink_input_new(
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
     pa_return_null_if_fail(data->volume.channels == data->sample_spec.channels);
 
+    if (flags & PA_SINK_INPUT_FIX_FORMAT)
+        data->sample_spec.format = data->sink->sample_spec.format;
+
+    if (flags & PA_SINK_INPUT_FIX_RATE)
+        data->sample_spec.rate = data->sink->sample_spec.rate;
+
+    if (flags & PA_SINK_INPUT_FIX_CHANNELS) {
+        data->sample_spec.channels = data->sink->sample_spec.channels;
+        data->channel_map = data->sink->channel_map;
+    }
+
+    pa_assert(pa_sample_spec_valid(&data->sample_spec));
+    pa_assert(pa_channel_map_valid(&data->channel_map));
+
+    /* Due to the fixing of the sample spec the volume might not match anymore */
+    if (data->volume.channels != data->sample_spec.channels)
+        pa_cvolume_set(&data->volume, data->sample_spec.channels, pa_cvolume_avg(&data->volume));
+
     if (!data->muted_is_set)
         data->muted = 0;
 
@@ -139,6 +157,9 @@ pa_sink_input* pa_sink_input_new(
         data->resample_method = core->resample_method;
 
     pa_return_null_if_fail(data->resample_method < PA_RESAMPLER_MAX);
+
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_INPUT_FIXATE], data) < 0)
+        return NULL;
 
     if (pa_idxset_size(data->sink->inputs) >= PA_MAX_INPUTS_PER_SINK) {
         pa_log_warn("Failed to create sink input: too many inputs per sink.");
@@ -154,7 +175,9 @@ pa_sink_input* pa_sink_input_new(
                       &data->sample_spec, &data->channel_map,
                       &data->sink->sample_spec, &data->sink->channel_map,
                       data->resample_method,
-                      (flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0))) {
+                      ((flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                      ((flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                      (core->disable_remixing || (flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
             return NULL;
         }
@@ -199,6 +222,7 @@ pa_sink_input* pa_sink_input_new(
     i->attach = NULL;
     i->detach = NULL;
     i->suspend = NULL;
+    i->moved = NULL;
     i->userdata = NULL;
 
     i->thread_info.state = i->state;
@@ -215,11 +239,12 @@ pa_sink_input* pa_sink_input_new(
     pa_assert_se(pa_idxset_put(core->sink_inputs, pa_sink_input_ref(i), &i->index) == 0);
     pa_assert_se(pa_idxset_put(i->sink->inputs, i, NULL) == 0);
 
-    pa_log_info("Created input %u \"%s\" on %s with sample spec %s",
+    pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s",
                 i->index,
                 i->name,
                 i->sink->name,
-                pa_sample_spec_snprint(st, sizeof(st), &i->sample_spec));
+                pa_sample_spec_snprint(st, sizeof(st), &i->sample_spec),
+                pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map));
 
     /* Don't forget to call pa_sink_input_put! */
 
@@ -307,6 +332,7 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     i->attach = NULL;
     i->detach = NULL;
     i->suspend = NULL;
+    i->moved = NULL;
 
     if (linked) {
         pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_REMOVE, i->index);
@@ -709,6 +735,7 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
     pa_sink *origin;
     pa_usec_t silence_usec = 0;
     pa_sink_input_move_info info;
+    pa_sink_input_move_hook_data hook_data;
 
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_LINKED(i->state));
@@ -750,14 +777,18 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
                       &i->sample_spec, &i->channel_map,
                       &dest->sample_spec, &dest->channel_map,
                       i->resample_method,
-                      (i->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0))) {
+                      ((i->flags & PA_SINK_INPUT_VARIABLE_RATE) ? PA_RESAMPLER_VARIABLE_RATE : 0) |
+                      ((i->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
+                      (i->core->disable_remixing || (i->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0)))) {
             pa_log_warn("Unsupported resampling operation.");
             return -1;
         }
     } else
         new_resampler = NULL;
 
-    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE], i);
+    hook_data.sink_input = i;
+    hook_data.destination = dest;
+    pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE], &hook_data);
 
     memset(&info, 0, sizeof(info));
     info.sink_input = i;
@@ -869,6 +900,9 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
 
     pa_sink_update_status(origin);
     pa_sink_update_status(dest);
+
+    if (i->moved)
+        i->moved(i);
 
     pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_POST], i);
 

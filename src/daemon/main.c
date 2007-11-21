@@ -94,6 +94,7 @@
 #include "dumpmodules.h"
 #include "caps.h"
 #include "ltdl-bind-now.h"
+#include "polkit.h"
 
 #ifdef HAVE_LIBWRAP
 /* Only one instance of these variables */
@@ -281,17 +282,21 @@ static int create_runtime_dir(void) {
 
 #ifdef HAVE_SYS_RESOURCE_H
 
-static void set_one_rlimit(const pa_rlimit *r, int resource, const char *name) {
+static int set_one_rlimit(const pa_rlimit *r, int resource, const char *name) {
     struct rlimit rl;
     pa_assert(r);
 
     if (!r->is_set)
-        return;
+        return 0;
 
     rl.rlim_cur = rl.rlim_max = r->value;
 
-    if (setrlimit(resource, &rl) < 0)
+    if (setrlimit(resource, &rl) < 0) {
         pa_log_warn("setrlimit(%s, (%u, %u)) failed: %s", name, (unsigned) r->value, (unsigned) r->value, pa_cstrerror(errno));
+        return -1;
+    }
+
+    return 0;
 }
 
 static void set_all_rlimits(const pa_daemon_conf *conf) {
@@ -324,9 +329,10 @@ int main(int argc, char *argv[]) {
     char *s;
     int r = 0, retval = 1, d = 0;
     int daemon_pipe[2] = { -1, -1 };
-    int suid_root, real_root;
+    pa_bool_t suid_root, real_root;
     int valid_pid_file = 0;
     gid_t gid = (gid_t) -1;
+    pa_bool_t allow_realtime, allow_high_priority;
 
 #ifdef OS_IS_WIN32
     pa_time_event *timer;
@@ -357,8 +363,8 @@ int main(int argc, char *argv[]) {
     real_root = getuid() == 0;
     suid_root = !real_root && geteuid() == 0;
 #else
-    real_root = 0;
-    suid_root = 0;
+    real_root = FALSE;
+    suid_root = FALSE;
 #endif
 
     if (suid_root) {
@@ -377,29 +383,12 @@ int main(int argc, char *argv[]) {
          * is just too risky tun let PA run as root all the time. */
     }
 
+    /* At this point, we are a normal user, possibly with CAP_NICE if
+     * we were started SUID. If we are started as normal root, than we
+     * still are normal root. */
+
     setlocale(LC_ALL, "");
-
-    if (suid_root && (pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) <= 0)) {
-        pa_log_info("Warning: Called SUID root, but not in group '"PA_REALTIME_GROUP"'. "
-                    "For enabling real-time scheduling please become a member of '"PA_REALTIME_GROUP"' , or increase the RLIMIT_RTPRIO user limit.");
-        pa_drop_caps();
-        pa_drop_root();
-        suid_root = real_root = 0;
-    }
-
-    LTDL_SET_PRELOADED_SYMBOLS();
-
-    pa_ltdl_init();
-
-#ifdef OS_IS_WIN32
-    {
-        WSADATA data;
-        WSAStartup(MAKEWORD(2, 0), &data);
-    }
-#endif
-
-    pa_random_seed();
-
+    pa_log_set_maximal_level(PA_LOG_INFO);
     pa_log_set_ident("pulseaudio");
 
     conf = pa_daemon_conf_new();
@@ -411,23 +400,122 @@ int main(int argc, char *argv[]) {
         goto finish;
 
     if (pa_cmdline_parse(conf, argc, argv, &d) < 0) {
-        pa_log("failed to parse command line.");
+        pa_log("Failed to parse command line.");
         goto finish;
     }
 
     pa_log_set_maximal_level(conf->log_level);
     pa_log_set_target(conf->auto_log_target ? PA_LOG_STDERR : conf->log_target, NULL);
 
+    if (suid_root) {
+        /* Ok, we're suid root, so let's better not enable high prio
+         * or RT by default */
+
+        allow_high_priority = allow_realtime = FALSE;
+
+#ifdef HAVE_POLKIT
+        if (conf->high_priority) {
+            if (pa_polkit_check("org.pulseaudio.acquire-high-priority") > 0) {
+                pa_log_info("PolicyKit grants us acquire-high-priority privilige.");
+                allow_high_priority = TRUE;
+            } else
+                pa_log_info("PolicyKit refuses acquire-high-priority privilige.");
+        }
+
+        if (conf->realtime_scheduling) {
+            if (pa_polkit_check("org.pulseaudio.acquire-real-time") > 0) {
+                pa_log_info("PolicyKit grants us acquire-real-time privilige.");
+                allow_realtime = TRUE;
+            } else
+                pa_log_info("PolicyKit refuses acquire-real-time privilige.");
+        }
+#endif
+
+        if ((conf->high_priority || conf->realtime_scheduling) && pa_own_uid_in_group(PA_REALTIME_GROUP, &gid) > 0) {
+            pa_log_info("We're in the group '"PA_REALTIME_GROUP"', allowing real-time and high-priority scheduling.");
+            allow_realtime = conf->realtime_scheduling;
+            allow_high_priority = conf->high_priority;
+        }
+
+        if (!allow_high_priority && !allow_realtime) {
+
+            /* OK, there's no further need to keep CAP_NICE. Hence
+             * let's give it up early */
+
+            pa_drop_caps();
+            pa_drop_root();
+            suid_root = real_root = FALSE;
+
+            if (conf->high_priority || conf->realtime_scheduling)
+                pa_log_notice("Called SUID root and real-time/high-priority scheduling was requested in the configuration. However, we lack the necessary priviliges:\n"
+                              "We are not in group '"PA_REALTIME_GROUP"' and PolicyKit refuse to grant us priviliges. Dropping SUID again.\n"
+                              "For enabling real-time scheduling please acquire the appropriate PolicyKit priviliges, or become a member of '"PA_REALTIME_GROUP"', or increase the RLIMIT_NICE/RLIMIT_RTPRIO resource limits for this user.");
+        }
+
+    } else {
+
+        /* OK, we're a normal user, so let's allow the user evrything
+         * he asks for, it's now the kernel's job to enforce limits,
+         * not ours anymore */
+        allow_high_priority = allow_realtime = TRUE;
+    }
+
+    if (conf->high_priority && !allow_high_priority) {
+        pa_log_info("High-priority scheduling enabled in configuration but now allowed by policy. Disabling forcibly.");
+        conf->high_priority = FALSE;
+    }
+
+    if (conf->realtime_scheduling && !allow_realtime) {
+        pa_log_info("Real-time scheduling enabled in configuration but now allowed by policy. Disabling forcibly.");
+        conf->realtime_scheduling = FALSE;
+    }
+
     if (conf->high_priority && conf->cmd == PA_CMD_DAEMON)
         pa_raise_priority(conf->nice_level);
 
-    if (suid_root && (conf->cmd != PA_CMD_DAEMON || !conf->realtime_scheduling)) {
-        pa_drop_caps();
-        pa_drop_root();
+    if (suid_root) {
+        pa_bool_t drop;
+
+        drop = conf->cmd != PA_CMD_DAEMON || !conf->realtime_scheduling;
+
+#ifdef RLIMIT_RTPRIO
+        if (!drop) {
+
+            /* At this point we still have CAP_NICE if we were loaded
+             * SUID root. If possible let's acquire RLIMIT_RTPRIO
+             * instead and give CAP_NICE up. */
+
+            const pa_rlimit rl = { 9, TRUE };
+
+            if (set_one_rlimit(&rl, RLIMIT_RTPRIO, "RLIMIT_RTPRIO") >= 0) {
+                pa_log_info("Successfully increased RLIMIT_RTPRIO, giving up CAP_NICE.");
+                drop = TRUE;
+            } else
+                pa_log_warn("RLIMIT_RTPRIO failed: %s", pa_cstrerror(errno));
+        }
+#endif
+
+        if (drop)  {
+            pa_drop_caps();
+            pa_drop_root();
+            suid_root = real_root = FALSE;
+        }
     }
+
+    LTDL_SET_PRELOADED_SYMBOLS();
+    pa_ltdl_init();
 
     if (conf->dl_search_path)
         lt_dlsetsearchpath(conf->dl_search_path);
+
+#ifdef OS_IS_WIN32
+    {
+        WSADATA data;
+        WSAStartup(MAKEWORD(2, 0), &data);
+    }
+#endif
+
+    pa_random_seed();
 
     switch (conf->cmd) {
         case PA_CMD_DUMP_MODULES:
@@ -466,10 +554,10 @@ int main(int argc, char *argv[]) {
         case PA_CMD_CHECK: {
             pid_t pid;
 
-            if (pa_pid_file_check_running(&pid) < 0) {
-                pa_log_info("daemon not running");
-            } else {
-                pa_log_info("daemon running as PID %u", pid);
+            if (pa_pid_file_check_running(&pid, "pulseaudio") < 0)
+                pa_log_info("Daemon not running");
+            else {
+                pa_log_info("Daemon running as PID %u", pid);
                 retval = 0;
             }
 
@@ -478,8 +566,8 @@ int main(int argc, char *argv[]) {
         }
         case PA_CMD_KILL:
 
-            if (pa_pid_file_kill(SIGINT, NULL) < 0)
-                pa_log("failed to kill daemon.");
+            if (pa_pid_file_kill(SIGINT, NULL, "pulseaudio") < 0)
+                pa_log("Failed to kill daemon.");
             else
                 retval = 0;
 
@@ -496,9 +584,9 @@ int main(int argc, char *argv[]) {
             pa_assert(conf->cmd == PA_CMD_DAEMON);
     }
 
-    if (real_root && !conf->system_instance) {
+    if (real_root && !conf->system_instance)
         pa_log_warn("This program is not intended to be run as root (unless --system is specified).");
-    } else if (!real_root && conf->system_instance) {
+    else if (!real_root && conf->system_instance) {
         pa_log("Root priviliges required.");
         goto finish;
     }
@@ -645,6 +733,7 @@ int main(int argc, char *argv[]) {
     c->resample_method = conf->resample_method;
     c->realtime_priority = conf->realtime_priority;
     c->realtime_scheduling = !!conf->realtime_scheduling;
+    c->disable_remixing = !!conf->disable_remixing;
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);
     pa_signal_new(SIGINT, signal_callback, c);

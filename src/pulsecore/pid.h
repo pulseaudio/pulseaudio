@@ -26,7 +26,7 @@
 
 int pa_pid_file_create(void);
 int pa_pid_file_remove(void);
-int pa_pid_file_check_running(pid_t *pid);
-int pa_pid_file_kill(int sig, pid_t *pid);
+int pa_pid_file_check_running(pid_t *pid, const char *binary_name);
+int pa_pid_file_kill(int sig, pid_t *pid, const char *binary_name);
 
 #endif

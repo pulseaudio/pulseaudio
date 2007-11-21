@@ -42,6 +42,7 @@
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/util.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
@@ -260,8 +261,8 @@ fail:
  * exists and the PID therein too. Returns 0 on succcess, -1
  * otherwise. If pid is non-NULL and a running daemon was found,
  * return its PID therein */
-int pa_pid_file_check_running(pid_t *pid) {
-    return pa_pid_file_kill(0, pid);
+int pa_pid_file_check_running(pid_t *pid, const char *binary_name) {
+    return pa_pid_file_kill(0, pid, binary_name);
 }
 
 #ifndef OS_IS_WIN32
@@ -269,12 +270,14 @@ int pa_pid_file_check_running(pid_t *pid) {
 /* Kill a current running daemon. Return non-zero on success, -1
  * otherwise. If successful *pid contains the PID of the daemon
  * process. */
-int pa_pid_file_kill(int sig, pid_t *pid) {
+int pa_pid_file_kill(int sig, pid_t *pid, const char *binary_name) {
     int fd = -1;
     char fn[PATH_MAX];
     int ret = -1;
     pid_t _pid;
-
+#ifdef __linux__
+    char *e = NULL;
+#endif
     if (!pid)
         pid = &_pid;
 
@@ -286,6 +289,23 @@ int pa_pid_file_kill(int sig, pid_t *pid) {
     if ((*pid = read_pid(fn, fd)) == (pid_t) -1)
         goto fail;
 
+#ifdef __linux__
+    if (binary_name) {
+        pa_snprintf(fn, sizeof(fn), "/proc/%lu/exe", (unsigned long) pid);
+
+        if ((e = pa_readlink(fn))) {
+            char *f = pa_path_get_filename(e);
+            if (strcmp(f, binary_name)
+#if defined(__OPTIMIZE__)
+                /* libtool likes to rename our binary names ... */
+                && !(pa_startswith(f, "lt-") && strcmp(f+3, binary_name) == 0)
+#endif
+            )
+                goto fail;
+        }
+    }
+#endif
+
     ret = kill(*pid, sig);
 
 fail:
@@ -295,13 +315,17 @@ fail:
         pa_close(fd);
     }
 
+#ifdef __linux__
+    pa_xfree(e);
+#endif
+
     return ret;
 
 }
 
 #else /* OS_IS_WIN32 */
 
-int pa_pid_file_kill(int sig, pid_t *pid) {
+int pa_pid_file_kill(int sig, pid_t *pid, const char *exe_name) {
     return -1;
 }
 
