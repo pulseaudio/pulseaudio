@@ -1155,7 +1155,7 @@ int pa__init(pa_module*m) {
     }
 
     if (pa_modargs_get_value_boolean(ma, "record", &record) < 0 || pa_modargs_get_value_boolean(ma, "playback", &playback) < 0) {
-        pa_log("record= and playback= expect numeric argument.");
+        pa_log("record= and playback= expect boolean argument.");
         goto fail;
     }
 
