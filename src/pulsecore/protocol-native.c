@@ -1899,16 +1899,38 @@ static void command_remove_sample(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
-static void sink_fill_tagstruct(pa_tagstruct *t, pa_sink *sink) {
+static void fixup_sample_spec(connection *c, pa_sample_spec *fixed, const pa_sample_spec *original) {
+    pa_assert(c);
+    pa_assert(fixed);
+    pa_assert(original);
+
+    *fixed = *original;
+
+    if (c->version < 12) {
+        /* Before protocol version 12 we didn't support S32 samples,
+         * so we need to lie about this to the client */
+
+        if (fixed->format == PA_SAMPLE_S32LE)
+            fixed->format = PA_SAMPLE_FLOAT32LE;
+        if (fixed->format == PA_SAMPLE_S32BE)
+            fixed->format = PA_SAMPLE_FLOAT32BE;
+    }
+}
+
+static void sink_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink *sink) {
+    pa_sample_spec fixed_ss;
+
     pa_assert(t);
     pa_sink_assert_ref(sink);
+
+    fixup_sample_spec(c, &fixed_ss, &sink->sample_spec);
 
     pa_tagstruct_put(
         t,
         PA_TAG_U32, sink->index,
         PA_TAG_STRING, sink->name,
         PA_TAG_STRING, sink->description,
-        PA_TAG_SAMPLE_SPEC, &sink->sample_spec,
+        PA_TAG_SAMPLE_SPEC, &fixed_ss,
         PA_TAG_CHANNEL_MAP, &sink->channel_map,
         PA_TAG_U32, sink->module ? sink->module->index : PA_INVALID_INDEX,
         PA_TAG_CVOLUME, pa_sink_get_volume(sink),
@@ -1921,16 +1943,20 @@ static void sink_fill_tagstruct(pa_tagstruct *t, pa_sink *sink) {
         PA_TAG_INVALID);
 }
 
-static void source_fill_tagstruct(pa_tagstruct *t, pa_source *source) {
+static void source_fill_tagstruct(connection *c, pa_tagstruct *t, pa_source *source) {
+    pa_sample_spec fixed_ss;
+
     pa_assert(t);
     pa_source_assert_ref(source);
+
+    fixup_sample_spec(c, &fixed_ss, &source->sample_spec);
 
     pa_tagstruct_put(
         t,
         PA_TAG_U32, source->index,
         PA_TAG_STRING, source->name,
         PA_TAG_STRING, source->description,
-        PA_TAG_SAMPLE_SPEC, &source->sample_spec,
+        PA_TAG_SAMPLE_SPEC, &fixed_ss,
         PA_TAG_CHANNEL_MAP, &source->channel_map,
         PA_TAG_U32, source->module ? source->module->index : PA_INVALID_INDEX,
         PA_TAG_CVOLUME, pa_source_get_volume(source),
@@ -1965,15 +1991,19 @@ static void module_fill_tagstruct(pa_tagstruct *t, pa_module *module) {
 }
 
 static void sink_input_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink_input *s) {
+    pa_sample_spec fixed_ss;
+
     pa_assert(t);
     pa_sink_input_assert_ref(s);
+
+    fixup_sample_spec(c, &fixed_ss, &s->sample_spec);
 
     pa_tagstruct_putu32(t, s->index);
     pa_tagstruct_puts(t, s->name);
     pa_tagstruct_putu32(t, s->module ? s->module->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->client ? s->client->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->sink->index);
-    pa_tagstruct_put_sample_spec(t, &s->sample_spec);
+    pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
     pa_tagstruct_put_cvolume(t, &s->volume);
     pa_tagstruct_put_usec(t, pa_sink_input_get_latency(s));
@@ -1984,16 +2014,20 @@ static void sink_input_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink_in
         pa_tagstruct_put_boolean(t, pa_sink_input_get_mute(s));
 }
 
-static void source_output_fill_tagstruct(pa_tagstruct *t, pa_source_output *s) {
+static void source_output_fill_tagstruct(connection *c, pa_tagstruct *t, pa_source_output *s) {
+    pa_sample_spec fixed_ss;
+
     pa_assert(t);
     pa_source_output_assert_ref(s);
+
+    fixup_sample_spec(c, &fixed_ss, &s->sample_spec);
 
     pa_tagstruct_putu32(t, s->index);
     pa_tagstruct_puts(t, s->name);
     pa_tagstruct_putu32(t, s->module ? s->module->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->client ? s->client->index : PA_INVALID_INDEX);
     pa_tagstruct_putu32(t, s->source->index);
-    pa_tagstruct_put_sample_spec(t, &s->sample_spec);
+    pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
     pa_tagstruct_put_usec(t, pa_source_output_get_latency(s));
     pa_tagstruct_put_usec(t, pa_source_get_latency(s->source));
@@ -2001,15 +2035,19 @@ static void source_output_fill_tagstruct(pa_tagstruct *t, pa_source_output *s) {
     pa_tagstruct_puts(t, s->driver);
 }
 
-static void scache_fill_tagstruct(pa_tagstruct *t, pa_scache_entry *e) {
+static void scache_fill_tagstruct(connection *c, pa_tagstruct *t, pa_scache_entry *e) {
+    pa_sample_spec fixed_ss;
+
     pa_assert(t);
     pa_assert(e);
+
+    fixup_sample_spec(c, &fixed_ss, &e->sample_spec);
 
     pa_tagstruct_putu32(t, e->index);
     pa_tagstruct_puts(t, e->name);
     pa_tagstruct_put_cvolume(t, &e->volume);
     pa_tagstruct_put_usec(t, pa_bytes_to_usec(e->memchunk.length, &e->sample_spec));
-    pa_tagstruct_put_sample_spec(t, &e->sample_spec);
+    pa_tagstruct_put_sample_spec(t, &fixed_ss);
     pa_tagstruct_put_channel_map(t, &e->channel_map);
     pa_tagstruct_putu32(t, e->memchunk.length);
     pa_tagstruct_put_boolean(t, e->lazy);
@@ -2079,9 +2117,9 @@ static void command_get_info(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, u
 
     reply = reply_new(tag);
     if (sink)
-        sink_fill_tagstruct(reply, sink);
+        sink_fill_tagstruct(c, reply, sink);
     else if (source)
-        source_fill_tagstruct(reply, source);
+        source_fill_tagstruct(c, reply, source);
     else if (client)
         client_fill_tagstruct(reply, client);
     else if (module)
@@ -2089,9 +2127,9 @@ static void command_get_info(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t command, u
     else if (si)
         sink_input_fill_tagstruct(c, reply, si);
     else if (so)
-        source_output_fill_tagstruct(reply, so);
+        source_output_fill_tagstruct(c, reply, so);
     else
-        scache_fill_tagstruct(reply, sce);
+        scache_fill_tagstruct(c, reply, sce);
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -2134,9 +2172,9 @@ static void command_get_info_list(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t comma
     if (i) {
         for (p = pa_idxset_first(i, &idx); p; p = pa_idxset_next(i, &idx)) {
             if (command == PA_COMMAND_GET_SINK_INFO_LIST)
-                sink_fill_tagstruct(reply, p);
+                sink_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_SOURCE_INFO_LIST)
-                source_fill_tagstruct(reply, p);
+                source_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_CLIENT_INFO_LIST)
                 client_fill_tagstruct(reply, p);
             else if (command == PA_COMMAND_GET_MODULE_INFO_LIST)
@@ -2144,10 +2182,10 @@ static void command_get_info_list(PA_GCC_UNUSED pa_pdispatch *pd, uint32_t comma
             else if (command == PA_COMMAND_GET_SINK_INPUT_INFO_LIST)
                 sink_input_fill_tagstruct(c, reply, p);
             else if (command == PA_COMMAND_GET_SOURCE_OUTPUT_INFO_LIST)
-                source_output_fill_tagstruct(reply, p);
+                source_output_fill_tagstruct(c, reply, p);
             else {
                 pa_assert(command == PA_COMMAND_GET_SAMPLE_INFO_LIST);
-                scache_fill_tagstruct(reply, p);
+                scache_fill_tagstruct(c, reply, p);
             }
         }
     }
@@ -2160,6 +2198,7 @@ static void command_get_server_info(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSE
     pa_tagstruct *reply;
     char txt[256];
     const char *n;
+    pa_sample_spec fixed_ss;
 
     connection_assert_ref(c);
     pa_assert(t);
@@ -2176,7 +2215,9 @@ static void command_get_server_info(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSE
     pa_tagstruct_puts(reply, PACKAGE_VERSION);
     pa_tagstruct_puts(reply, pa_get_user_name(txt, sizeof(txt)));
     pa_tagstruct_puts(reply, pa_get_fqdn(txt, sizeof(txt)));
-    pa_tagstruct_put_sample_spec(reply, &c->protocol->core->default_sample_spec);
+
+    fixup_sample_spec(c, &fixed_ss, &c->protocol->core->default_sample_spec);
+    pa_tagstruct_put_sample_spec(reply, &fixed_ss);
 
     n = pa_namereg_get_default_sink_name(c->protocol->core);
     pa_tagstruct_puts(reply, n);
