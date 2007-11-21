@@ -36,8 +36,8 @@ AM_INIT_AUTOMAKE([foreign -Wall])
 AC_SUBST(PA_MAJORMINOR, "PA_MAJOR.PA_MINOR")
 AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
-AC_SUBST(PA_API_VERSION, 10)
-AC_SUBST(PA_PROTOCOL_VERSION, 11)
+AC_SUBST(PA_API_VERSION, 11)
+AC_SUBST(PA_PROTOCOL_VERSION, 12)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
