@@ -142,4 +142,10 @@ size_t pa_memblockq_get_maxlength(pa_memblockq *bq);
 /* Return the prebuffer length in bytes */
 size_t pa_memblockq_get_prebuf(pa_memblockq *bq);
 
+/* Change metrics. */
+void pa_memblockq_set_maxlength(pa_memblockq *memblockq, size_t maxlength);
+void pa_memblockq_set_tlength(pa_memblockq *memblockq, size_t tlength);
+void pa_memblockq_set_prebuf(pa_memblockq *memblockq, size_t prebuf);
+void pa_memblockq_set_minreq(pa_memblockq *memblockq, size_t minreq);
+
 #endif

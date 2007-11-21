@@ -72,7 +72,6 @@ pa_memblockq* pa_memblockq_new(
     pa_memblockq* bq;
 
     pa_assert(base > 0);
-    pa_assert(maxlength >= base);
 
     bq = pa_xnew(pa_memblockq, 1);
     bq->blocks = bq->blocks_tail = NULL;
@@ -84,35 +83,19 @@ pa_memblockq* pa_memblockq_new(
     pa_log_debug("memblockq requested: maxlength=%lu, tlength=%lu, base=%lu, prebuf=%lu, minreq=%lu",
         (unsigned long) maxlength, (unsigned long) tlength, (unsigned long) base, (unsigned long) prebuf, (unsigned long) minreq);
 
-    bq->maxlength = ((maxlength+base-1)/base)*base;
-    pa_assert(bq->maxlength >= base);
+    bq->missing = bq->requested = bq->maxlength = bq->tlength = bq->prebuf = bq->minreq = 0;
+    bq->in_prebuf = TRUE;
 
-    bq->tlength = ((tlength+base-1)/base)*base;
-    if (bq->tlength <= 0 || bq->tlength > bq->maxlength)
-        bq->tlength = bq->maxlength;
-
-    bq->prebuf = (prebuf == (size_t) -1) ? bq->tlength/2 : prebuf;
-    bq->prebuf = ((bq->prebuf+base-1)/base)*base;
-    if (bq->prebuf > bq->maxlength)
-        bq->prebuf = bq->maxlength;
-
-    bq->minreq = (minreq/base)*base;
-
-    if (bq->minreq > bq->tlength - bq->prebuf)
-        bq->minreq = bq->tlength - bq->prebuf;
-
-    if (!bq->minreq)
-        bq->minreq = 1;
+    pa_memblockq_set_maxlength(bq, maxlength);
+    pa_memblockq_set_tlength(bq, tlength);
+    pa_memblockq_set_prebuf(bq, prebuf);
+    pa_memblockq_set_minreq(bq, minreq);
 
     pa_log_debug("memblockq sanitized: maxlength=%lu, tlength=%lu, base=%lu, prebuf=%lu, minreq=%lu",
         (unsigned long)bq->maxlength, (unsigned long)bq->tlength, (unsigned long)bq->base, (unsigned long)bq->prebuf, (unsigned long)bq->minreq);
 
-    bq->in_prebuf = bq->prebuf > 0;
     bq->silence = silence ? pa_memblock_ref(silence) : NULL;
     bq->mcalign = NULL;
-
-    bq->missing = bq->tlength;
-    bq->requested = 0;
 
     return bq;
 }
@@ -687,4 +670,70 @@ size_t pa_memblockq_pop_missing(pa_memblockq *bq) {
     bq->requested += l;
 
     return l;
+}
+
+void pa_memblockq_set_maxlength(pa_memblockq *bq, size_t maxlength) {
+    pa_assert(bq);
+
+    bq->maxlength = ((maxlength+bq->base-1)/bq->base)*bq->base;
+
+    if (bq->maxlength < bq->base)
+        bq->maxlength = bq->base;
+
+    if (bq->tlength > bq->maxlength)
+        pa_memblockq_set_tlength(bq, bq->maxlength);
+
+    if (bq->prebuf > bq->maxlength)
+        pa_memblockq_set_prebuf(bq, bq->maxlength);
+}
+
+void pa_memblockq_set_tlength(pa_memblockq *bq, size_t tlength) {
+    size_t old_tlength;
+    pa_assert(bq);
+
+    old_tlength = bq->tlength;
+
+    if (tlength <= 0)
+        tlength = bq->maxlength;
+
+    bq->tlength = ((tlength+bq->base-1)/bq->base)*bq->base;
+
+    if (bq->tlength > bq->maxlength)
+        bq->tlength = bq->maxlength;
+
+    if (bq->minreq > bq->tlength - bq->prebuf)
+        pa_memblockq_set_minreq(bq, bq->tlength - bq->prebuf);
+
+    bq->missing += (int64_t) bq->tlength - (int64_t) old_tlength;
+}
+
+void pa_memblockq_set_prebuf(pa_memblockq *bq, size_t prebuf) {
+    pa_assert(bq);
+
+    bq->prebuf = (prebuf == (size_t) -1) ? bq->tlength/2 : prebuf;
+    bq->prebuf = ((bq->prebuf+bq->base-1)/bq->base)*bq->base;
+
+    if (prebuf > 0 && bq->prebuf < bq->base)
+        bq->prebuf = bq->base;
+
+    if (bq->prebuf > bq->maxlength)
+        bq->prebuf = bq->maxlength;
+
+    if (bq->prebuf <= 0 || pa_memblockq_get_length(bq) >= bq->prebuf)
+        bq->in_prebuf = FALSE;
+
+    if (bq->minreq > bq->tlength - bq->prebuf)
+        pa_memblockq_set_minreq(bq, bq->tlength - bq->prebuf);
+}
+
+void pa_memblockq_set_minreq(pa_memblockq *bq, size_t minreq) {
+    pa_assert(bq);
+
+    bq->minreq = (minreq/bq->base)*bq->base;
+
+    if (bq->minreq > bq->tlength - bq->prebuf)
+        bq->minreq = bq->tlength - bq->prebuf;
+
+    if (bq->minreq < bq->base)
+        bq->minreq = bq->base;
 }
