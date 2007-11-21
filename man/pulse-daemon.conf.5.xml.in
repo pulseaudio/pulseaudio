@@ -102,6 +102,12 @@ USA.
     </option>
 
     <option>
+      <p><opt>disable-remixing=</opt> Never upmix or downmix channels
+      to different channel maps. Instead, do a simple name-based
+      matching only.</p>
+    </option>
+
+    <option>
       <p><opt>use-pid-file=</opt> Create a PID file in
       <file>/tmp/pulse-$USER/pid</file>. Of this is enabled you may
       use commands like <opt>--kill</opt> or <opt>--check</opt>. If

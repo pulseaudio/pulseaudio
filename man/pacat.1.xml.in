@@ -145,6 +145,31 @@ USA.
       <opt>aux31</opt>.</p></optdesc>
     </option>
 
+    <option>
+      <p><opt>--fix-format</opt></p>
+      <optdesc><p>If passed, the sample format of the stream is changed to the native format of the sink the stream is connected to.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--fix-rate</opt></p>
+      <optdesc><p>If passed, the sampling rate of the stream is changed to the native rate of the sink the stream is connected to.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--fix-channels</opt></p>
+      <optdesc><p>If passed, the number of channels and the channel map of the stream is changed to the native number of channels and the native channel map of the sink the stream is connected to.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--no-remix</opt></p>
+      <optdesc><p>Never upmix or downmix channels.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>--no-remap</opt></p>
+      <optdesc><p>Never remap channels. Instead of mapping channels by their name this will match them solely by their index/order.</p></optdesc>
+    </option>
+
   </options>
 
   <section name="Authors">
