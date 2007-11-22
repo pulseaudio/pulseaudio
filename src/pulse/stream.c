@@ -586,7 +586,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
         }
     }
 
-    if (s->context->version >= 12) {
+    if (s->context->version >= 12 && s->direction != PA_STREAM_UPLOAD) {
         pa_sample_spec ss;
         pa_channel_map cm;
         const char *dn = NULL;
