@@ -79,6 +79,10 @@ esac
 
 #### Checks for programs. ####
 
+# mkdir -p
+
+AC_PROG_MKDIR_P
+
 # CC
 
 AC_PROG_CC
