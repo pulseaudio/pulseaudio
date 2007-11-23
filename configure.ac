@@ -881,11 +881,11 @@ if test "x${polkit}" != xno ; then
         [
             HAVE_POLKIT=1
             saved_LIBS="$LIBS"
-            LIBS="$LIBS POLKIT_LIBS"
+            LIBS="$LIBS $POLKIT_LIBS"
             AC_CHECK_FUNCS(polkit_context_is_caller_authorized)
             LIBS="$saved_LIBS"
             AC_DEFINE([HAVE_POLKIT], 1, [Have PolicyKit])
-            policydir=`pkg-config --variable prefix`/usr/share/PolicyKit/policy/
+            policydir=`pkg-config polkit-dbus --variable prefix`/share/PolicyKit/policy/
             AC_SUBST(policydir)
         ],
         [
