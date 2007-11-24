@@ -253,7 +253,8 @@ noinst_PROGRAMS = \
 		resampler-test \
 		smoother-test \
 		mix-test \
-		remix-test
+		remix-test \
+		envelope-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -417,6 +418,11 @@ smoother_test_SOURCES = tests/smoother-test.c
 smoother_test_LDADD = $(AM_LDADD) libpulsecore.la
 smoother_test_CFLAGS = $(AM_CFLAGS)
 smoother_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
+
+envelope_test_SOURCES = tests/envelope-test.c
+envelope_test_LDADD = $(AM_LDADD) libpulsecore.la
+envelope_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+envelope_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 ###################################
 #         Client library          #
@@ -749,6 +755,7 @@ libpulsecore_la_SOURCES += \
 		pulsecore/once.c pulsecore/once.h \
 		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		pulsecore/start-child.c pulsecore/start-child.h \
+		pulsecore/envelope.c pulsecore/envelope.h \
 		$(PA_THREAD_OBJS)
 
 if OS_IS_WIN32
