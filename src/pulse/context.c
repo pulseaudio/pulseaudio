@@ -50,11 +50,11 @@
 #include <netdb.h>
 #endif
 
-#include "../pulsecore/winsock.h"
-
-#include <pulsecore/core-error.h>
 #include <pulse/version.h>
 #include <pulse/xmalloc.h>
+
+#include <pulsecore/winsock.h>
+#include <pulsecore/core-error.h>
 
 #include <pulsecore/native-common.h>
 #include <pulsecore/pdispatch.h>
