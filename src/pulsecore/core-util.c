@@ -1129,8 +1129,15 @@ FILE *pa_open_config_file(const char *global, const char *local, const char *env
 
         if ((e = getenv("PULSE_CONFIG_PATH")))
             fn = lfn = pa_sprintf_malloc("%s/%s", e, local);
-        else if (pa_get_home_dir(h, sizeof(h)))
+        else if (pa_get_home_dir(h, sizeof(h))) {
+            char *d;
+
+            d = pa_sprintf_malloc("%s/.pulse", h);
+            mkdir(d, 0755);
+            pa_xfree(d);
+
             fn = lfn = pa_sprintf_malloc("%s/.pulse/%s", h, local);
+        }
 
         if (lfn) {
             FILE *f;
