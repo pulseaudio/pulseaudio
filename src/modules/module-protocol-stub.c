@@ -218,7 +218,11 @@ int pa__init(pa_module*m) {
     char tmp[PATH_MAX];
 
 #if defined(USE_PROTOCOL_ESOUND)
-    char tmp2[PATH_MAX];
+#if defined(USE_PERUSER_ESOUND_SOCKET)
+    char esdsocketpath[PATH_MAX];
+#else
+    const char esdsocketpath[] = "/tmp/.esd/socket";
+#endif
 #endif
 #endif
 
@@ -265,8 +269,10 @@ int pa__init(pa_module*m) {
 
 #if defined(USE_PROTOCOL_ESOUND)
 
-    snprintf(tmp2, sizeof(tmp2), "/tmp/.esd-%lu/socket", (unsigned long) getuid());
-    pa_runtime_path(pa_modargs_get_value(ma, "socket", tmp2), tmp, sizeof(tmp));
+#if defined(USE_PERUSER_ESOUND_SOCKET)
+    snprintf(esdsocketpath, sizeof(esdsocketpath), "/tmp/.esd-%lu/socket", (unsigned long) getuid());
+#endif
+    pa_runtime_path(pa_modargs_get_value(ma, "socket", esdsocketpath), tmp, sizeof(tmp));
     u->socket_path = pa_xstrdup(tmp);
 
     /* This socket doesn't reside in our own runtime dir but in

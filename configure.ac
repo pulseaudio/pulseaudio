@@ -982,6 +982,12 @@ fi
 AC_SUBST(PA_ACCESS_GROUP)
 AC_DEFINE_UNQUOTED(PA_ACCESS_GROUP,"$PA_ACCESS_GROUP", [Access group])
 
+AC_ARG_WITH(peruser_esound, AS_HELP_STRING([--with-peruser-esound-socket], [Use per-user esound socket directory, like /tmp/.esd-UID/socket.]))
+
+if test "x$with_peruser_esound" = "xyes"; then
+   AC_DEFINE([USE_PERUSER_ESOUND_SOCKET], [1], [Define this if you want per-user esound socket directories])
+fi
+
 #### PulseAudio system runtime dir ####
 PA_SYSTEM_RUNTIME_PATH="${localstatedir}/run/pulse"
 AC_SUBST(PA_SYSTEM_RUNTIME_PATH)
