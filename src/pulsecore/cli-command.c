@@ -1363,7 +1363,7 @@ int pa_cli_command_execute_line(pa_core *c, const char *s, pa_strbuf *buf, pa_bo
 }
 
 int pa_cli_command_execute_file(pa_core *c, const char *fn, pa_strbuf *buf, pa_bool_t *fail) {
-    char line[256];
+    char line[1024];
     FILE *f = NULL;
     int ifstate = IFSTATE_NONE;
     int ret = -1;
