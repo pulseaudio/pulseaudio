@@ -72,6 +72,7 @@ struct pa_resampler {
     void (*impl_free)(pa_resampler *r);
     void (*impl_update_rates)(pa_resampler *r);
     void (*impl_resample)(pa_resampler *r, const pa_memchunk *in, unsigned in_samples, pa_memchunk *out, unsigned *out_samples);
+    void (*impl_reset)(pa_resampler *r);
 
     struct { /* data specific to the trivial resampler */
         unsigned o_counter;
@@ -208,6 +209,7 @@ pa_resampler* pa_resampler_new(
     r->impl_free = NULL;
     r->impl_update_rates = NULL;
     r->impl_resample = NULL;
+    r->impl_reset = NULL;
 
     /* Fill sample specs */
     r->i_ss = *a;
@@ -372,6 +374,13 @@ size_t pa_resampler_max_block_size(pa_resampler *r) {
     fs = pa_frame_size(&ss);
 
     return (((block_size_max/fs + EXTRA_SAMPLES)*r->i_ss.rate)/ss.rate)*r->i_fz;
+}
+
+void pa_resampler_reset(pa_resampler *r) {
+    pa_assert(r);
+
+    if (r->impl_reset)
+        r->impl_reset(r);
 }
 
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
@@ -1181,6 +1190,12 @@ static void libsamplerate_update_rates(pa_resampler *r) {
     pa_assert_se(src_set_ratio(r->src.state, (double) r->o_ss.rate / r->i_ss.rate) == 0);
 }
 
+static void libsamplerate_reset(pa_resampler *r) {
+    pa_assert(r);
+
+    pa_assert_se(src_reset(r->src.state) == 0);
+}
+
 static void libsamplerate_free(pa_resampler *r) {
     pa_assert(r);
 
@@ -1199,6 +1214,7 @@ static int libsamplerate_init(pa_resampler *r) {
     r->impl_free = libsamplerate_free;
     r->impl_update_rates = libsamplerate_update_rates;
     r->impl_resample = libsamplerate_resample;
+    r->impl_reset = libsamplerate_reset;
 
     return 0;
 }
@@ -1259,6 +1275,17 @@ static void speex_update_rates(pa_resampler *r) {
     }
 }
 
+static void speex_reset(pa_resampler *r) {
+    pa_assert(r);
+
+    if (r->method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->method <= PA_RESAMPLER_SPEEX_FIXED_MAX)
+        pa_assert_se(paspfx_resampler_reset_mem(r->speex.state) == 0);
+    else  {
+        pa_assert(r->method >= PA_RESAMPLER_SPEEX_FLOAT_BASE && r->method <= PA_RESAMPLER_SPEEX_FLOAT_MAX);
+        pa_assert_se(paspfl_resampler_reset_mem(r->speex.state) == 0);
+    }
+}
+
 static void speex_free(pa_resampler *r) {
     pa_assert(r);
 
@@ -1280,6 +1307,7 @@ static int speex_init(pa_resampler *r) {
 
     r->impl_free = speex_free;
     r->impl_update_rates = speex_update_rates;
+    r->impl_reset = speex_reset;
 
     if (r->method >= PA_RESAMPLER_SPEEX_FIXED_BASE && r->method <= PA_RESAMPLER_SPEEX_FIXED_MAX) {
         q = r->method - PA_RESAMPLER_SPEEX_FIXED_BASE;
@@ -1353,7 +1381,7 @@ static void trivial_resample(pa_resampler *r, const pa_memchunk *input, unsigned
     }
 }
 
-static void trivial_update_rates(pa_resampler *r) {
+static void trivial_update_rates_or_reset(pa_resampler *r) {
     pa_assert(r);
 
     r->trivial.i_counter = 0;
@@ -1366,8 +1394,8 @@ static int trivial_init(pa_resampler*r) {
     r->trivial.o_counter = r->trivial.i_counter = 0;
 
     r->impl_resample = trivial_resample;
-    r->impl_update_rates = trivial_update_rates;
-    r->impl_free = NULL;
+    r->impl_update_rates = trivial_update_rates_or_reset;
+    r->impl_reset = trivial_update_rates_or_reset;
 
     return 0;
 }
@@ -1494,10 +1522,6 @@ static int copy_init(pa_resampler *r) {
     pa_assert(r);
 
     pa_assert(r->o_ss.rate == r->i_ss.rate);
-
-    r->impl_free = NULL;
-    r->impl_resample = NULL;
-    r->impl_update_rates = NULL;
 
     return 0;
 }
