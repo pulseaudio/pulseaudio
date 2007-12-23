@@ -254,7 +254,8 @@ noinst_PROGRAMS = \
 		smoother-test \
 		mix-test \
 		remix-test \
-		envelope-test
+		envelope-test \
+		proplist-test
 
 if HAVE_SIGXCPU
 noinst_PROGRAMS += \
@@ -424,6 +425,11 @@ envelope_test_LDADD = $(AM_LDADD) libpulsecore.la
 envelope_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 envelope_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
+proplist_test_SOURCES = tests/proplist-test.c
+proplist_test_LDADD = $(AM_LDADD) libpulse.la
+proplist_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+proplist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
 ###################################
 #         Client library          #
 ###################################
@@ -451,7 +457,8 @@ pulseinclude_HEADERS = \
 		pulse/util.h \
 		pulse/version.h \
 		pulse/volume.h \
-		pulse/xmalloc.h
+		pulse/xmalloc.h \
+		pulse/proplist.h
 
 if HAVE_AVAHI
 pulseinclude_HEADERS += \
@@ -501,7 +508,8 @@ libpulse_la_SOURCES = \
 		pulse/utf8.c pulse/utf8.h \
 		pulse/util.c pulse/util.h \
 		pulse/volume.c pulse/volume.h \
-		pulse/xmalloc.c pulse/xmalloc.h
+		pulse/xmalloc.c pulse/xmalloc.h \
+		pulse/proplist.c pulse/proplist.h
 
 # Internal stuff that is shared with libpulsecore
 libpulse_la_SOURCES += \
