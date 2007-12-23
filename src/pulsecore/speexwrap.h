@@ -39,10 +39,12 @@ SpeexResamplerState *paspfx_resampler_init(spx_uint32_t nb_channels, spx_uint32_
 void paspfx_resampler_destroy(SpeexResamplerState *st);
 int paspfx_resampler_process_interleaved_int(SpeexResamplerState *st, const spx_int16_t *in,  spx_uint32_t *in_len, spx_int16_t *out, spx_uint32_t *out_len);
 int paspfx_resampler_set_rate(SpeexResamplerState *st, spx_uint32_t in_rate, spx_uint32_t out_rate);
+int paspfx_resampler_reset_mem(SpeexResamplerState *st);
 
 SpeexResamplerState *paspfl_resampler_init(spx_uint32_t nb_channels, spx_uint32_t in_rate, spx_uint32_t out_rate,  int quality, int *err);
 void paspfl_resampler_destroy(SpeexResamplerState *st);
 int paspfl_resampler_process_interleaved_float(SpeexResamplerState *st, const float *in,  spx_uint32_t *in_len, float *out, spx_uint32_t *out_len);
 int paspfl_resampler_set_rate(SpeexResamplerState *st, spx_uint32_t in_rate, spx_uint32_t out_rate);
+int paspfl_resampler_reset_mem(SpeexResamplerState *st);
 
 #endif
