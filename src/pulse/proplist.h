@@ -85,4 +85,6 @@ const char *pa_proplist_iterate(pa_proplist *p, void **state);
 
 char *pa_proplist_to_string(pa_proplist *p);
 
+int pa_proplist_contains(pa_proplist *p, const char *key);
+
 #endif

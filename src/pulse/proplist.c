@@ -242,3 +242,16 @@ char *pa_proplist_to_string(pa_proplist *p) {
 
     return pa_strbuf_tostring_free(buf);
 }
+
+int pa_proplist_contains(pa_proplist *p, const char *key) {
+    pa_assert(p);
+    pa_assert(key);
+
+    if (!property_name_valid(key))
+        return -1;
+
+    if (!(pa_hashmap_get(MAKE_HASHMAP(p), key)))
+        return 0;
+
+    return 1;
+}
