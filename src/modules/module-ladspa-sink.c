@@ -470,7 +470,7 @@ int pa__init(pa_module*m) {
             p++;
         }
 
-        if (p > n_control) {
+        if (p > n_control || k) {
             pa_log("Too many control values passed, %lu expected.", n_control);
             goto fail;
         }
