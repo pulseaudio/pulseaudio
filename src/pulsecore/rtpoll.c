@@ -161,8 +161,10 @@ void pa_rtpoll_install(pa_rtpoll *p) {
     p->installed = 1;
 
 #ifdef HAVE_PPOLL
+# ifdef __linux__
     if (p->dont_use_ppoll)
         return;
+# endif
 
     if ((p->rtsig = pa_rtsig_get_for_thread()) < 0) {
         pa_log_warn("Failed to reserve POSIX realtime signal.");
