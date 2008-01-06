@@ -27,6 +27,7 @@
 
 #include <inttypes.h>
 #include <sys/types.h>
+#include <sys/param.h>
 #include <math.h>
 
 #include <pulse/cdecl.h>
@@ -103,6 +104,14 @@
  * Constants and routines for sample type handling */
 
 PA_C_DECL_BEGIN
+
+#if !defined(WORDS_BIGENDIAN)
+#if defined(__BYTE_ORDER)
+#if __BYTE_ORDER == __BIG_ENDIAN
+#define WORDS_BIGENDIAN
+#endif
+#endif
+#endif
 
 /** Maximum number of allowed channels */
 #define PA_CHANNELS_MAX 32
