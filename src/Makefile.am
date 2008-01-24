@@ -226,7 +226,7 @@ pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 #         Test programs           #
 ###################################
 
-noinst_PROGRAMS = \
+check_PROGRAMS = \
 		mainloop-test \
 		mcalign-test \
 		pacat-simple \
@@ -258,13 +258,13 @@ noinst_PROGRAMS = \
 		proplist-test
 
 if HAVE_SIGXCPU
-noinst_PROGRAMS += \
+check_PROGRAMS += \
 		cpulimit-test \
 		cpulimit-test2
 endif
 
 if HAVE_GLIB20
-noinst_PROGRAMS += \
+check_PROGRAMS += \
 		mainloop-test-glib
 endif
 
