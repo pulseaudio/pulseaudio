@@ -5,7 +5,7 @@
 
 # This file is part of PulseAudio.
 #
-# Copyright 2004-2006 Lennart Poettering
+# Copyright 2004-2008 Lennart Poettering
 # Copyright 2006-2007 Pierre Ossman <ossman@cendio.se> for Cendio AB
 #
 # PulseAudio is free software; you can redistribute it and/or modify it
@@ -26,7 +26,7 @@ AC_PREREQ(2.57)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
-m4_define(PA_MICRO, [8])
+m4_define(PA_MICRO, [9])
 
 AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
