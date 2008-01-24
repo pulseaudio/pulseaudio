@@ -63,13 +63,16 @@ void pa_drop_root(void) {
     pa_log_info("Dropping root priviliges.");
 
 #if defined(HAVE_SETRESUID)
-    setresuid(uid, uid, uid);
+    pa_assert_se(setresuid(uid, uid, uid) >= 0);
 #elif defined(HAVE_SETREUID)
-    setreuid(uid, uid);
+    pa_assert_se(setreuid(uid, uid) >= 0);
 #else
-    setuid(uid);
-    seteuid(uid);
+    pa_assert_se(setuid(uid) >= 0);
+    pa_assert_se(seteuid(uid) >= 0);
 #endif
+
+    pa_assert_se(getuid() == uid);
+    pa_assert_se(geteuid() == uid);
 }
 
 #else
@@ -147,4 +150,3 @@ int pa_drop_caps(void) {
 }
 
 #endif
-
