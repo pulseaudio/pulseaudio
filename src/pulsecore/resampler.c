@@ -217,13 +217,13 @@ pa_resampler* pa_resampler_new(
 
     if (am)
         r->i_cm = *am;
-    else
-        pa_channel_map_init_auto(&r->i_cm, r->i_ss.channels, PA_CHANNEL_MAP_DEFAULT);
+    else if (!pa_channel_map_init_auto(&r->i_cm, r->i_ss.channels, PA_CHANNEL_MAP_DEFAULT))
+        goto fail;
 
     if (bm)
         r->o_cm = *bm;
-    else
-        pa_channel_map_init_auto(&r->o_cm, r->o_ss.channels, PA_CHANNEL_MAP_DEFAULT);
+    else if (!pa_channel_map_init_auto(&r->o_cm, r->o_ss.channels, PA_CHANNEL_MAP_DEFAULT))
+        goto fail;
 
     r->i_fz = pa_frame_size(a);
     r->o_fz = pa_frame_size(b);

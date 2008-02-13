@@ -615,8 +615,10 @@ snd_pcm_t *pa_alsa_open_by_device_string(
 
         *dev = d;
 
-        if (ss->channels != map->channels)
+        if (ss->channels != map->channels) {
+            pa_assert_se(pa_channel_map_init_auto(map, ss->channels, PA_CHANNEL_MAP_AUX));
             pa_channel_map_init_auto(map, ss->channels, PA_CHANNEL_MAP_ALSA);
+        }
 
         return pcm_handle;
     }

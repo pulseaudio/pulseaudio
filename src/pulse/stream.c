@@ -46,6 +46,7 @@
 pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map) {
     pa_stream *s;
     int i;
+    pa_channel_map tmap;
 
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
@@ -53,6 +54,9 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     PA_CHECK_VALIDITY_RETURN_NULL(c, ss && pa_sample_spec_valid(ss), PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 12 || (ss->format != PA_SAMPLE_S32LE || ss->format != PA_SAMPLE_S32NE), PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, !map || (pa_channel_map_valid(map) && map->channels == ss->channels), PA_ERR_INVALID);
+
+    if (!map)
+        PA_CHECK_VALIDITY_RETURN_NULL(c, map = pa_channel_map_init_auto(&tmap, ss->channels, PA_CHANNEL_MAP_DEFAULT), PA_ERR_INVALID);
 
     s = pa_xnew(pa_stream, 1);
     PA_REFCNT_INIT(s);
@@ -81,12 +85,8 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     s->direction = PA_STREAM_NODIRECTION;
     s->name = pa_xstrdup(name);
     s->sample_spec = *ss;
+    s->channel_map = *map;
     s->flags = 0;
-
-    if (map)
-        s->channel_map = *map;
-    else
-        pa_channel_map_init_auto(&s->channel_map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
 
     s->channel = 0;
     s->channel_valid = 0;
