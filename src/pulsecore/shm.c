@@ -318,6 +318,7 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
 
 int pa_shm_cleanup(void) {
 
+#ifdef HAVE_SHM_OPEN
 #ifdef SHM_PATH
     DIR *d;
     struct dirent *de;
@@ -375,7 +376,8 @@ int pa_shm_cleanup(void) {
     }
 
     closedir(d);
-#endif
+#endif /* SHM_PATH */
+#endif /* HAVE_SHM_OPEN */
 
     return 0;
 }
