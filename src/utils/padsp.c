@@ -1443,18 +1443,18 @@ fail:
 static int real_open(const char *filename, int flags, mode_t mode) {
     int r, _errno = 0;
 
-    debug(DEBUG_LEVEL_VERBOSE, __FILE__": open(%s)\n", filename);
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": open(%s)\n", filename?filename:"NULL");
 
     if (!function_enter()) {
         LOAD_OPEN_FUNC();
         return _open(filename, flags, mode);
     }
 
-    if (dsp_cloak_enable() && (strcmp(filename, "/dev/dsp") == 0 || strcmp(filename, "/dev/adsp") == 0))
+    if (filename && dsp_cloak_enable() && (strcmp(filename, "/dev/dsp") == 0 || strcmp(filename, "/dev/adsp") == 0))
         r = dsp_open(flags, &_errno);
-    else if (mixer_cloak_enable() && strcmp(filename, "/dev/mixer") == 0)
+    else if (filename && mixer_cloak_enable() && strcmp(filename, "/dev/mixer") == 0)
         r = mixer_open(flags, &_errno);
-    else if (sndstat_cloak_enable() && strcmp(filename, "/dev/sndstat") == 0)
+    else if (filename && sndstat_cloak_enable() && strcmp(filename, "/dev/sndstat") == 0)
         r = sndstat_open(flags, &_errno);
     else {
         function_exit();
@@ -2371,18 +2371,13 @@ int close(int fd) {
 
 int access(const char *pathname, int mode) {
 
-    if (!pathname) {
-        /* Firefox needs this. See #27 */
-        errno = EFAULT;
-        return -1;
-    }
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": access(%s)\n", pathname?pathname:"NULL");
 
-    debug(DEBUG_LEVEL_VERBOSE, __FILE__": access(%s)\n", pathname);
-
-    if (strcmp(pathname, "/dev/dsp") != 0 &&
-        strcmp(pathname, "/dev/adsp") != 0 &&
-        strcmp(pathname, "/dev/sndstat") != 0 &&
-        strcmp(pathname, "/dev/mixer") != 0) {
+    if (!pathname ||
+        ( strcmp(pathname, "/dev/dsp") != 0 &&
+          strcmp(pathname, "/dev/adsp") != 0 &&
+          strcmp(pathname, "/dev/sndstat") != 0 &&
+          strcmp(pathname, "/dev/mixer") != 0 )) {
         LOAD_ACCESS_FUNC();
         return _access(pathname, mode);
     }
@@ -2406,16 +2401,13 @@ int stat(const char *pathname, struct stat *buf) {
 #endif
     int ret;
 
-    if (!pathname || !buf) {
-        errno = EFAULT;
-        return -1;
-    }
-
-    if (strcmp(pathname, "/dev/dsp") != 0 &&
-        strcmp(pathname, "/dev/adsp") != 0 &&
-        strcmp(pathname, "/dev/sndstat") != 0 &&
-        strcmp(pathname, "/dev/mixer") != 0) {
-        debug(DEBUG_LEVEL_VERBOSE, __FILE__": stat(%s)\n", pathname);
+    if (!pathname ||
+        !buf ||
+        ( strcmp(pathname, "/dev/dsp") != 0 &&
+          strcmp(pathname, "/dev/adsp") != 0 &&
+          strcmp(pathname, "/dev/sndstat") != 0 &&
+          strcmp(pathname, "/dev/mixer") != 0 )) {
+        debug(DEBUG_LEVEL_VERBOSE, __FILE__": stat(%s)\n", pathname?pathname:"NULL");
         LOAD_STAT_FUNC();
         return _stat(pathname, buf);
     }
@@ -2464,17 +2456,14 @@ int stat64(const char *pathname, struct stat64 *buf) {
     struct stat oldbuf;
     int ret;
 
-    if (!pathname || !buf) {
-        errno = EFAULT;
-        return -1;
-    }
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": stat64(%s)\n", pathname?pathname:"NULL");
 
-    debug(DEBUG_LEVEL_VERBOSE, __FILE__": stat64(%s)\n", pathname);
-
-    if (strcmp(pathname, "/dev/dsp") != 0 &&
-        strcmp(pathname, "/dev/adsp") != 0 &&
-        strcmp(pathname, "/dev/sndstat") != 0 &&
-        strcmp(pathname, "/dev/mixer") != 0) {
+    if (!pathname ||
+        !buf ||
+        ( strcmp(pathname, "/dev/dsp") != 0 &&
+          strcmp(pathname, "/dev/adsp") != 0 &&
+          strcmp(pathname, "/dev/sndstat") != 0 &&
+          strcmp(pathname, "/dev/mixer") != 0 )) {
         LOAD_STAT64_FUNC();
         return _stat64(pathname, buf);
     }
@@ -2504,7 +2493,7 @@ int open64(const char *filename, int flags, ...) {
     va_list args;
     mode_t mode = 0;
 
-    debug(DEBUG_LEVEL_VERBOSE, __FILE__": open64(%s)\n", filename);
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": open64(%s)\n", filename?filename:"NULL");
 
     if (flags & O_CREAT) {
         va_start(args, flags);
@@ -2515,10 +2504,11 @@ int open64(const char *filename, int flags, ...) {
         va_end(args);
     }
 
-    if (strcmp(filename, "/dev/dsp") != 0 &&
-        strcmp(filename, "/dev/adsp") != 0 &&
-        strcmp(filename, "/dev/sndstat") != 0 &&
-        strcmp(filename, "/dev/mixer") != 0) {
+    if (!filename ||
+        ( strcmp(filename, "/dev/dsp") != 0 &&
+          strcmp(filename, "/dev/adsp") != 0 &&
+          strcmp(filename, "/dev/sndstat") != 0 &&
+          strcmp(filename, "/dev/mixer") != 0 )) {
         LOAD_OPEN64_FUNC();
         return _open64(filename, flags, mode);
     }
@@ -2531,17 +2521,14 @@ int open64(const char *filename, int flags, ...) {
 #ifdef _STAT_VER
 
 int __xstat(int ver, const char *pathname, struct stat *buf) {
-    if (!pathname || !buf) {
-        errno = EFAULT;
-        return -1;
-    }
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": __xstat(%s)\n", pathname?pathname:"NULL");
 
-    debug(DEBUG_LEVEL_VERBOSE, __FILE__": __xstat(%s)\n", pathname);
-
-    if (strcmp(pathname, "/dev/dsp") != 0 &&
-        strcmp(pathname, "/dev/adsp") != 0 &&
-        strcmp(pathname, "/dev/sndstat") != 0 &&
-        strcmp(pathname, "/dev/mixer") != 0) {
+    if (!pathname ||
+        !buf ||
+        ( strcmp(pathname, "/dev/dsp") != 0 &&
+          strcmp(pathname, "/dev/adsp") != 0 &&
+          strcmp(pathname, "/dev/sndstat") != 0 &&
+          strcmp(pathname, "/dev/mixer") != 0 )) {
         LOAD_XSTAT_FUNC();
         return ___xstat(ver, pathname, buf);
     }
@@ -2557,17 +2544,14 @@ int __xstat(int ver, const char *pathname, struct stat *buf) {
 #ifdef HAVE_OPEN64
 
 int __xstat64(int ver, const char *pathname, struct stat64 *buf) {
-    if (!pathname || !buf) {
-        errno = EFAULT;
-        return -1;
-    }
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": __xstat64(%s)\n", pathname?pathname:"NULL");
 
-    debug(DEBUG_LEVEL_VERBOSE, __FILE__": __xstat64(%s)\n", pathname);
-
-    if (strcmp(pathname, "/dev/dsp") != 0 &&
-        strcmp(pathname, "/dev/adsp") != 0 &&
-        strcmp(pathname, "/dev/sndstat") != 0 &&
-        strcmp(pathname, "/dev/mixer") != 0) {
+    if (!pathname ||
+        !buf ||
+        ( strcmp(pathname, "/dev/dsp") != 0 &&
+          strcmp(pathname, "/dev/adsp") != 0 &&
+          strcmp(pathname, "/dev/sndstat") != 0 &&
+          strcmp(pathname, "/dev/mixer") != 0 )) {
         LOAD_XSTAT64_FUNC();
         return ___xstat64(ver, pathname, buf);
     }
@@ -2589,12 +2573,14 @@ FILE* fopen(const char *filename, const char *mode) {
     int fd;
     mode_t m;
 
-    debug(DEBUG_LEVEL_VERBOSE, __FILE__": fopen(%s)\n", filename);
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": fopen(%s)\n", filename?filename:"NULL");
 
-    if (strcmp(filename, "/dev/dsp") != 0 &&
-        strcmp(filename, "/dev/adsp") != 0 &&
-        strcmp(filename, "/dev/sndstat") != 0 &&
-        strcmp(filename, "/dev/mixer") != 0) {
+    if (!filename ||
+        !mode ||
+        ( strcmp(filename, "/dev/dsp") != 0 &&
+          strcmp(filename, "/dev/adsp") != 0 &&
+          strcmp(filename, "/dev/sndstat") != 0 &&
+          strcmp(filename, "/dev/mixer") != 0 )) {
         LOAD_FOPEN_FUNC();
         return _fopen(filename, mode);
     }
@@ -2630,12 +2616,14 @@ FILE* fopen(const char *filename, const char *mode) {
 
 FILE *fopen64(const char *filename, const char *mode) {
 
-    debug(DEBUG_LEVEL_VERBOSE, __FILE__": fopen64(%s)\n", filename);
+    debug(DEBUG_LEVEL_VERBOSE, __FILE__": fopen64(%s)\n", filename?filename:"NULL");
 
-    if (strcmp(filename, "/dev/dsp") != 0 &&
-        strcmp(filename, "/dev/adsp") != 0 &&
-        strcmp(filename, "/dev/sndstat") != 0 &&
-        strcmp(filename, "/dev/mixer") != 0) {
+    if (!filename ||
+        !mode ||
+        ( strcmp(filename, "/dev/dsp") != 0 &&
+          strcmp(filename, "/dev/adsp") != 0 &&
+          strcmp(filename, "/dev/sndstat") != 0 &&
+          strcmp(filename, "/dev/mixer") != 0 )) {
         LOAD_FOPEN64_FUNC();
         return _fopen64(filename, mode);
     }
