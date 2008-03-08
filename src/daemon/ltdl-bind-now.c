@@ -34,6 +34,11 @@
 #include <sys/dl.h>
 #endif
 
+#ifndef HAVE_LT_USER_DLLOADER
+/* Only used with ltdl 2.2 */
+#include <string.h>
+#endif
+
 #include <ltdl.h>
 
 #include <pulsecore/macro.h>
@@ -85,7 +90,11 @@ static const char *libtool_get_error(void) {
   to set $LT_BIND_NOW before starting the pulsaudio binary.
 */
 
+#ifndef HAVE_LT_DLADVISE
 static lt_module bind_now_open(lt_user_data d, const char *fname) {
+#else
+  static lt_module bind_now_open(lt_user_data d, const char *fname, lt_dladvise advise) {
+#endif
     lt_module m;
 
     pa_assert(fname);
@@ -129,19 +138,27 @@ static lt_ptr bind_now_find_sym(lt_user_data d, lt_module m, const char *symbol)
 void pa_ltdl_init(void) {
 
 #ifdef PA_BIND_NOW
+# ifdef HAVE_LT_USER_DLLOADER
     lt_dlloader *place;
     static const struct lt_user_dlloader loader = {
         .module_open = bind_now_open,
         .module_close = bind_now_close,
         .find_sym = bind_now_find_sym
     };
+# else
+    static const lt_dlvtable *dlopen_loader;
+    static lt_dlvtable bindnow_loader;
+# endif
 #endif
 
     pa_assert_se(lt_dlinit() == 0);
     pa_assert_se(libtool_mutex = pa_mutex_new(TRUE, FALSE));
+#ifdef HAVE_LT_DLMUTEX_REGISTER
     pa_assert_se(lt_dlmutex_register(libtool_lock, libtool_unlock, libtool_set_error, libtool_get_error) == 0);
+#endif
 
 #ifdef PA_BIND_NOW
+# ifdef HAVE_LT_USER_DLLOADER
 
     if (!(place = lt_dlloader_find("dlopen")))
         place = lt_dlloader_next(NULL);
@@ -149,6 +166,26 @@ void pa_ltdl_init(void) {
     /* Add our BIND_NOW loader as the default module loader. */
     if (lt_dlloader_add(place, &loader, "bind-now-loader") != 0)
         pa_log_warn("Failed to add bind-now-loader.");
+# else
+    /* Already initialised */
+    if ( dlopen_loader != NULL ) return;
+
+    if (!(dlopen_loader = lt_dlloader_find("dlopen"))) {
+      pa_log_warn("Failed to find original dlopen loader.");
+      return;
+    }
+
+    memcpy(&bindnow_loader, dlopen_loader, sizeof(bindnow_loader));
+    bindnow_loader.name = "bind-now-loader";
+    bindnow_loader.module_open = bind_now_open;
+    bindnow_loader.module_close = bind_now_close;
+    bindnow_loader.find_sym = bind_now_find_sym;
+    bindnow_loader.priority = LT_DLLOADER_PREPEND;
+
+    /* Add our BIND_NOW loader as the default module loader. */
+    if (lt_dlloader_add(&bindnow_loader) != 0)
+        pa_log_warn("Failed to add bind-now-loader.");
+# endif
 #endif
 }
 
