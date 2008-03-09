@@ -34,7 +34,7 @@
 #include <sys/dl.h>
 #endif
 
-#ifndef HAVE_LT_USER_DLLOADER
+#ifndef HAVE_STRUCT_LT_USER_DLLOADER
 /* Only used with ltdl 2.2 */
 #include <string.h>
 #endif
