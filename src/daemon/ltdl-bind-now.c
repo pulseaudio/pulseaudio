@@ -138,7 +138,7 @@ static lt_ptr bind_now_find_sym(lt_user_data d, lt_module m, const char *symbol)
 void pa_ltdl_init(void) {
 
 #ifdef PA_BIND_NOW
-# ifdef HAVE_LT_USER_DLLOADER
+# ifdef HAVE_STRUCT_LT_USER_DLLOADER
     lt_dlloader *place;
     static const struct lt_user_dlloader loader = {
         .module_open = bind_now_open,
@@ -158,7 +158,7 @@ void pa_ltdl_init(void) {
 #endif
 
 #ifdef PA_BIND_NOW
-# ifdef HAVE_LT_USER_DLLOADER
+# ifdef HAVE_STRUCT_LT_USER_DLLOADER
 
     if (!(place = lt_dlloader_find("dlopen")))
         place = lt_dlloader_next(NULL);
