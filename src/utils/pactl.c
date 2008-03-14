@@ -281,7 +281,7 @@ static void get_module_info_callback(pa_context *c, const pa_module_info *i, int
            "Auto unload: %s\n",
            i->index,
            i->name,
-           i->argument,
+           i->argument ? i->argument : "",
            i->n_used != PA_INVALID_INDEX ? t : "n/a",
            i->auto_unload ? "yes" : "no");
 }
