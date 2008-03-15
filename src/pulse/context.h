@@ -30,6 +30,7 @@
 #include <pulse/mainloop-api.h>
 #include <pulse/cdecl.h>
 #include <pulse/operation.h>
+#include <pulse/proplist.h>
 
 /** \page async Asynchronous API
  *
@@ -166,8 +167,14 @@ typedef void (*pa_context_notify_cb_t)(pa_context *c, void *userdata);
 typedef void (*pa_context_success_cb_t) (pa_context *c, int success, void *userdata);
 
 /** Instantiate a new connection context with an abstract mainloop API
- * and an application name */
+ * and an application name. It is recommended to use pa_context_new_with_proplist()
+ * instead and specify some initial properties.*/
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name);
+
+/** Instantiate a new connection context with an abstract mainloop API
+ * and an application name, and specify the the initial client property
+ * list. \since 0.9.10 */
+pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, pa_proplist *proplist);
 
 /** Decrease the reference counter of the context by one */
 void pa_context_unref(pa_context *c);
@@ -227,6 +234,21 @@ uint32_t pa_context_get_protocol_version(pa_context *c);
 
 /** Return the protocol version of the connected server. \since 0.8 */
 uint32_t pa_context_get_server_protocol_version(pa_context *c);
+
+/* Update the property list of the client, adding new entries. Please
+ * note that it is highly recommended to set as much properties
+ * initially via pa_context_new_with_proplist() as possible instead a
+ * posteriori with this function, since that information may then be
+ * used to route streams of the client to the right device. \since 0.9.10 */
+pa_operation *pa_context_proplist_update(pa_context *c, pa_update_mode_t mode, pa_proplist *p, pa_context_success_cb_t cb, void *userdata);
+
+/* Update the property list of the client, remove entries. \since 0.9.10 */
+pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[], pa_context_success_cb_t cb, void *userdata);
+
+/** Return the client index this context is
+ * identified in the server with. This is useful for usage with the
+ * introspection functions, such as pa_context_get_client_info(). \since 0.9.10 */
+uint32_t pa_context_get_index(pa_context *s);
 
 PA_C_DECL_END
 

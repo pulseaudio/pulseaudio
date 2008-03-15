@@ -44,6 +44,10 @@
 #define LATENCY_IPOL_INTERVAL_USEC (100000L)
 
 pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map) {
+    return pa_stream_new_with_proplist(c, name, ss, map, NULL);
+}
+
+pa_stream *pa_stream_new_with_proplist(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map, pa_proplist *p) {
     pa_stream *s;
     int i;
     pa_channel_map tmap;
@@ -54,6 +58,7 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     PA_CHECK_VALIDITY_RETURN_NULL(c, ss && pa_sample_spec_valid(ss), PA_ERR_INVALID);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 12 || (ss->format != PA_SAMPLE_S32LE || ss->format != PA_SAMPLE_S32NE), PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, !map || (pa_channel_map_valid(map) && map->channels == ss->channels), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, name || pa_proplist_contains(p, PA_PROP_MEDIA_NAME), PA_ERR_INVALID);
 
     if (!map)
         PA_CHECK_VALIDITY_RETURN_NULL(c, map = pa_channel_map_init_auto(&tmap, ss->channels, PA_CHANNEL_MAP_DEFAULT), PA_ERR_INVALID);
@@ -83,10 +88,14 @@ pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *
     s->suspended_userdata = NULL;
 
     s->direction = PA_STREAM_NODIRECTION;
-    s->name = pa_xstrdup(name);
     s->sample_spec = *ss;
     s->channel_map = *map;
     s->flags = 0;
+
+    s->proplist = p ? pa_proplist_copy(p) : pa_proplist_new();
+
+    if (name)
+        pa_proplist_sets(c->proplist, PA_PROP_MEDIA_NAME, name);
 
     s->channel = 0;
     s->channel_valid = 0;
@@ -151,7 +160,9 @@ static void stream_free(pa_stream *s) {
     if (s->record_memblockq)
         pa_memblockq_free(s->record_memblockq);
 
-    pa_xfree(s->name);
+    if (s->proplist)
+        pa_proplist_free(s->proplist);
+
     pa_xfree(s->device_name);
     pa_xfree(s);
 }
@@ -653,6 +664,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
                 pa_frame_size(&s->sample_spec),
                 1,
                 0,
+                0,
                 NULL);
     }
 
@@ -692,19 +704,29 @@ static int create_stream(
 
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
+    pa_assert(direction == PA_STREAM_PLAYBACK || direction == PA_STREAM_RECORD);
 
     PA_CHECK_VALIDITY(s->context, s->state == PA_STREAM_UNCONNECTED, PA_ERR_BADSTATE);
-    PA_CHECK_VALIDITY(s->context, !(flags & ~((direction != PA_STREAM_UPLOAD ?
-                                               PA_STREAM_START_CORKED|
-                                               PA_STREAM_INTERPOLATE_TIMING|
-                                               PA_STREAM_NOT_MONOTONOUS|
-                                               PA_STREAM_AUTO_TIMING_UPDATE|
-                                               PA_STREAM_NO_REMAP_CHANNELS|
-                                               PA_STREAM_NO_REMIX_CHANNELS|
-                                               PA_STREAM_FIX_FORMAT|
-                                               PA_STREAM_FIX_RATE|
-                                               PA_STREAM_FIX_CHANNELS|
-                                               PA_STREAM_DONT_MOVE : 0))), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, !(flags & ~(PA_STREAM_START_CORKED|
+                                              PA_STREAM_INTERPOLATE_TIMING|
+                                              PA_STREAM_NOT_MONOTONOUS|
+                                              PA_STREAM_AUTO_TIMING_UPDATE|
+                                              PA_STREAM_NO_REMAP_CHANNELS|
+                                              PA_STREAM_NO_REMIX_CHANNELS|
+                                              PA_STREAM_FIX_FORMAT|
+                                              PA_STREAM_FIX_RATE|
+                                              PA_STREAM_FIX_CHANNELS|
+                                              PA_STREAM_DONT_MOVE|
+                                              PA_STREAM_VARIABLE_RATE|
+                                              PA_STREAM_PEAK_DETECT)), PA_ERR_INVALID);
+
+    PA_CHECK_VALIDITY(s->context, s->context->version >= 12 || !(flags & PA_STREAM_VARIABLE_RATE), PA_ERR_NOTSUPPORTED);
+    PA_CHECK_VALIDITY(s->context, s->context->version >= 13 || !(flags & PA_STREAM_PEAK_DETECT), PA_ERR_NOTSUPPORTED);
+    /* Althought some of the other flags are not supported on older
+     * version, we don't check for them here, because it doesn't hurt
+     * when they are passed but actually not supported. This makes
+     * client development easier */
+
     PA_CHECK_VALIDITY(s->context, !volume || volume->channels == s->sample_spec.channels, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !sync_stream || (direction == PA_STREAM_PLAYBACK && sync_stream->direction == PA_STREAM_PLAYBACK), PA_ERR_INVALID);
 
@@ -737,9 +759,11 @@ static int create_stream(
             s->direction == PA_STREAM_PLAYBACK ? PA_COMMAND_CREATE_PLAYBACK_STREAM : PA_COMMAND_CREATE_RECORD_STREAM,
             &tag);
 
+    if (s->context->version < 13)
+        pa_tagstruct_puts(t, pa_proplist_gets(s->proplist, PA_PROP_MEDIA_NAME));
+
     pa_tagstruct_put(
             t,
-            PA_TAG_STRING, s->name,
             PA_TAG_SAMPLE_SPEC, &s->sample_spec,
             PA_TAG_CHANNEL_MAP, &s->channel_map,
             PA_TAG_U32, PA_INVALID_INDEX,
@@ -766,7 +790,7 @@ static int create_stream(
     } else
         pa_tagstruct_putu32(t, s->buffer_attr.fragsize);
 
-    if (s->context->version >= 12 && s->direction != PA_STREAM_UPLOAD) {
+    if (s->context->version >= 12) {
         pa_tagstruct_put(
                 t,
                 PA_TAG_BOOLEAN, flags & PA_STREAM_NO_REMAP_CHANNELS,
@@ -776,6 +800,17 @@ static int create_stream(
                 PA_TAG_BOOLEAN, flags & PA_STREAM_FIX_CHANNELS,
                 PA_TAG_BOOLEAN, flags & PA_STREAM_DONT_MOVE,
                 PA_TAG_BOOLEAN, flags & PA_STREAM_VARIABLE_RATE,
+                PA_TAG_INVALID);
+    }
+
+    if (s->context->version >= 13) {
+
+        pa_init_proplist(s->proplist);
+
+        pa_tagstruct_put(
+                t,
+                PA_TAG_BOOLEAN, flags & PA_STREAM_PEAK_DETECT,
+                PA_TAG_PROPLIST, s->proplist,
                 PA_TAG_INVALID);
     }
 
@@ -1835,5 +1870,72 @@ pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_strea
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, stream_update_sample_rate_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
+}
 
+pa_operation *pa_stream_proplist_update(pa_stream *s, pa_update_mode_t mode, pa_proplist *p, pa_stream_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, mode == PA_UPDATE_SET || mode == PA_UPDATE_MERGE || mode == PA_UPDATE_REPLACE, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->context->version >= 13, PA_ERR_NOTSUPPORTED);
+
+    o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(
+            s->context,
+            s->direction == PA_STREAM_RECORD ? PA_COMMAND_UPDATE_RECORD_STREAM_PROPLIST : PA_COMMAND_UPDATE_PLAYBACK_STREAM_PROPLIST,
+            &tag);
+    pa_tagstruct_putu32(t, s->channel);
+    pa_tagstruct_putu32(t, (uint32_t) mode);
+    pa_tagstruct_put_proplist(t, p);
+
+    pa_pstream_send_tagstruct(s->context->pstream, t);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    /* Please note that we don't update s->proplist here, because we
+     * don't export that field */
+
+    return o;
+}
+
+pa_operation *pa_stream_proplist_remove(pa_stream *s, const char *const keys[], pa_stream_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+    const char * const*k;
+
+    pa_assert(s);
+    pa_assert(PA_REFCNT_VALUE(s) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, keys && keys[0], PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->state == PA_STREAM_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->direction != PA_STREAM_UPLOAD, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(s->context, s->context->version >= 13, PA_ERR_NOTSUPPORTED);
+
+    o = pa_operation_new(s->context, s, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(
+            s->context,
+            s->direction == PA_STREAM_RECORD ? PA_COMMAND_REMOVE_RECORD_STREAM_PROPLIST : PA_COMMAND_REMOVE_PLAYBACK_STREAM_PROPLIST,
+            &tag);
+    pa_tagstruct_putu32(t, s->channel);
+
+    for (k = keys; *k; k++)
+        pa_tagstruct_puts(t, *k);
+
+    pa_tagstruct_puts(t, NULL);
+
+    pa_pstream_send_tagstruct(s->context->pstream, t);
+    pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_stream_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    /* Please note that we don't update s->proplist here, because we
+     * don't export that field */
+
+    return o;
 }

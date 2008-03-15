@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <limits.h>
+#include <locale.h>
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -52,6 +53,8 @@
 
 #include <pulse/version.h>
 #include <pulse/xmalloc.h>
+#include <pulse/utf8.h>
+#include <pulse/util.h>
 
 #include <pulsecore/winsock.h>
 #include <pulsecore/core-error.h>
@@ -108,20 +111,32 @@ static void unlock_autospawn_lock_file(pa_context *c) {
 static void context_free(pa_context *c);
 
 pa_context *pa_context_new(pa_mainloop_api *mainloop, const char *name) {
+    return pa_context_new_with_proplist(mainloop, name, NULL);
+}
+
+pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, pa_proplist *p) {
     pa_context *c;
 
     pa_assert(mainloop);
-    pa_assert(name);
+
+    if (!name && !pa_proplist_contains(p, PA_PROP_APPLICATION_NAME))
+        return NULL;
 
     c = pa_xnew(pa_context, 1);
     PA_REFCNT_INIT(c);
-    c->name = pa_xstrdup(name);
+
+    c->proplist = p ? pa_proplist_copy(p) : pa_proplist_new();
+
+    if (name)
+        pa_proplist_sets(c->proplist, PA_PROP_APPLICATION_NAME, name);
+
     c->mainloop = mainloop;
     c->client = NULL;
     c->pstream = NULL;
     c->pdispatch = NULL;
     c->playback_streams = pa_dynarray_new();
     c->record_streams = pa_dynarray_new();
+    c->client_index = PA_INVALID_INDEX;
 
     PA_LLIST_HEAD_INIT(pa_stream, c->streams);
     PA_LLIST_HEAD_INIT(pa_operation, c->operations);
@@ -204,7 +219,9 @@ static void context_free(pa_context *c) {
 
     pa_strlist_free(c->server_list);
 
-    pa_xfree(c->name);
+    if (c->proplist)
+        pa_proplist_free(c->proplist);
+
     pa_xfree(c->server);
     pa_xfree(c);
 }
@@ -415,7 +432,13 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
             }
 
             reply = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
-            pa_tagstruct_puts(reply, c->name);
+
+            if (c->version >= 13) {
+                pa_init_proplist(c->proplist);
+                pa_tagstruct_put_proplist(reply, c->proplist);
+            } else
+                pa_tagstruct_puts(reply, pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME));
+
             pa_pstream_send_tagstruct(c->pstream, reply);
             pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, setup_complete_callback, c, NULL);
 
@@ -424,11 +447,19 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         }
 
         case PA_CONTEXT_SETTING_NAME :
+
+            if ((c->version >= 13 && (pa_tagstruct_getu32(t, &c->client_index) < 0 ||
+                                      c->client_index == PA_INVALID_INDEX)) ||
+                !pa_tagstruct_eof(t)) {
+                pa_context_fail(c, PA_ERR_PROTOCOL);
+                goto finish;
+            }
+
             pa_context_set_state(c, PA_CONTEXT_READY);
             break;
 
         default:
-            pa_assert(0);
+            pa_assert_not_reached();
     }
 
 finish:
@@ -987,12 +1018,19 @@ pa_operation* pa_context_set_name(pa_context *c, const char *name, pa_context_su
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
 
-    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+    if (c->version >= 13) {
+        pa_proplist *p = pa_proplist_new();
+        pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, name);
+        o = pa_context_proplist_update(c, PA_UPDATE_REPLACE, p, cb, userdata);
+        pa_proplist_free(p);
 
-    t = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
-    pa_tagstruct_puts(t, name);
-    pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+    } else {
+        o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+        t = pa_tagstruct_command(c, PA_COMMAND_SET_CLIENT_NAME, &tag);
+        pa_tagstruct_puts(t, name);
+        pa_pstream_send_tagstruct(c->pstream, t);
+        pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT,  pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+    }
 
     return o;
 }
@@ -1024,6 +1062,8 @@ uint32_t pa_context_get_server_protocol_version(pa_context *c) {
     pa_assert(c);
     pa_assert(PA_REFCNT_VALUE(c) >= 1);
 
+    PA_CHECK_VALIDITY_RETURN_ANY(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE, PA_INVALID_INDEX);
+
     return c->version;
 }
 
@@ -1038,4 +1078,152 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
     pa_tagstruct_putu32(t, *tag = c->ctag++);
 
     return t;
+}
+
+uint32_t pa_context_get_index(pa_context *c) {
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_ANY(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE, PA_INVALID_INDEX);
+    PA_CHECK_VALIDITY_RETURN_ANY(c, c->version >= 13, PA_ERR_NOTSUPPORTED, PA_INVALID_INDEX);
+
+    return c->client_index;
+}
+
+pa_operation *pa_context_proplist_update(pa_context *c, pa_update_mode_t mode, pa_proplist *p, pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, mode == PA_UPDATE_SET || mode == PA_UPDATE_MERGE || mode == PA_UPDATE_REPLACE, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 13, PA_ERR_NOTSUPPORTED);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_UPDATE_CLIENT_PROPLIST, &tag);
+    pa_tagstruct_putu32(t, (uint32_t) mode);
+    pa_tagstruct_put_proplist(t, p);
+
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    /* Please note that we don't update c->proplist here, because we
+     * don't export that field */
+
+    return o;
+}
+
+pa_operation *pa_context_proplist_remove(pa_context *c, const char *const keys[], pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+    const char * const *k;
+
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, keys && keys[0], PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 13, PA_ERR_NOTSUPPORTED);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_CLIENT_PROPLIST, &tag);
+
+    for (k = keys; *k; k++)
+        pa_tagstruct_puts(t, *k);
+
+    pa_tagstruct_puts(t, NULL);
+
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    /* Please note that we don't update c->proplist here, because we
+     * don't export that field */
+
+    return o;
+}
+
+void pa_init_proplist(pa_proplist *p) {
+    int a, b;
+#ifndef HAVE_DECL_ENVIRON
+    extern char **environ;
+#endif
+    char **e;
+
+    pa_assert(p);
+
+    for (e = environ; *e; e++) {
+
+        if (pa_startswith(*e, "PULSE_PROP_")) {
+            size_t kl = strcspn(*e+11, "=");
+            char *k;
+
+            if ((*e)[11+kl] != '=')
+                continue;
+
+            if (!pa_utf8_valid(*e+11+kl+1))
+                continue;
+
+            k = pa_xstrndup(*e+11, kl);
+
+            if (pa_proplist_contains(p, k)) {
+                pa_xfree(k);
+                continue;
+            }
+
+            pa_proplist_sets(p, k, *e+11+kl+1);
+            pa_xfree(k);
+        }
+    }
+
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_ID)) {
+        char t[32];
+        pa_snprintf(t, sizeof(t), "%lu", (unsigned long) getpid());
+        pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_ID, t);
+    }
+
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_USER)) {
+        char t[64];
+        if (pa_get_user_name(t, sizeof(t))) {
+            char *c = pa_utf8_filter(t);
+            pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_USER, c);
+            pa_xfree(c);
+        }
+    }
+
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_HOST)) {
+        char t[64];
+        if (pa_get_host_name(t, sizeof(t))) {
+            char *c = pa_utf8_filter(t);
+            pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_HOST, c);
+            pa_xfree(c);
+        }
+    }
+
+    if (!(a = pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_BINARY)) ||
+        !(b = pa_proplist_contains(p, PA_PROP_APPLICATION_NAME))) {
+        char t[PATH_MAX];
+        if (pa_get_binary_name(t, sizeof(t))) {
+            char *c = pa_utf8_filter(t);
+
+            if (!a)
+                pa_proplist_sets(p, PA_PROP_APPLICATION_PROCESS_BINARY, c);
+            if (!b)
+                pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, c);
+
+            pa_xfree(c);
+        }
+    }
+
+    if (!pa_proplist_contains(p, PA_PROP_APPLICATION_LANGUAGE)) {
+        const char *l;
+
+        if ((l = setlocale(LC_MESSAGES, NULL)))
+            pa_proplist_sets(p, PA_PROP_APPLICATION_LANGUAGE, l);
+    }
 }

@@ -209,6 +209,8 @@ typedef enum pa_stream_flags {
                                      * least PA 0.9.8. It is ignored
                                      * on older servers. \since
                                      * 0.9.8 */
+    PA_STREAM_PEAK_DETECT = 2048, /**< Find peaks instead of
+                                   * resampling. \since 0.9.9 */
 } pa_stream_flags_t;
 
 /** Playback and record buffer metrics */
@@ -378,7 +380,9 @@ typedef enum pa_sink_flags {
     PA_SINK_HW_VOLUME_CTRL = 1,   /**< Supports hardware volume control */
     PA_SINK_LATENCY = 2,          /**< Supports latency querying */
     PA_SINK_HARDWARE = 4,         /**< Is a hardware sink of some kind, in contrast to "virtual"/software sinks \since 0.9.3 */
-    PA_SINK_NETWORK = 8           /**< Is a networked sink of some kind. \since 0.9.7 */
+    PA_SINK_NETWORK = 8,          /**< Is a networked sink of some kind. \since 0.9.7 */
+    PA_SINK_HW_MUTE_CTRL = 16,    /**< Supports hardware mute control \since 0.9.10 */
+    PA_SINK_DECIBEL_VOLUME = 32   /**< Volume can be translated to dB with pa_sw_volume_to_dB() \since 0.9.10 */
 } pa_sink_flags_t;
 
 /** Special source flags. \since 0.8  */
@@ -386,7 +390,9 @@ typedef enum pa_source_flags {
     PA_SOURCE_HW_VOLUME_CTRL = 1,  /**< Supports hardware volume control */
     PA_SOURCE_LATENCY = 2,         /**< Supports latency querying */
     PA_SOURCE_HARDWARE = 4,        /**< Is a hardware source of some kind, in contrast to "virtual"/software source \since 0.9.3 */
-    PA_SOURCE_NETWORK = 8          /**< Is a networked sink of some kind. \since 0.9.7 */
+    PA_SOURCE_NETWORK = 8,         /**< Is a networked sink of some kind. \since 0.9.7 */
+    PA_SOURCE_HW_MUTE_CTRL = 16,   /**< Supports hardware mute control \since 0.9.10 */
+    PA_SOURCE_DECIBEL_VOLUME = 32  /**< Volume can be translated to dB with pa_sw_volume_to_dB() \since 0.9.10 */
 } pa_source_flags_t;
 
 /** A generic free() like callback prototype */

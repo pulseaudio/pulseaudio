@@ -49,12 +49,22 @@ int pa_stream_connect_upload(pa_stream *s, size_t length) {
     pa_stream_ref(s);
 
     s->direction = PA_STREAM_UPLOAD;
+    s->flags = 0;
 
     t = pa_tagstruct_command(s->context, PA_COMMAND_CREATE_UPLOAD_STREAM, &tag);
-    pa_tagstruct_puts(t, s->name);
+
+    if (s->context->version < 13)
+        pa_tagstruct_puts(t, pa_proplist_gets(s->proplist, PA_PROP_MEDIA_NAME));
+
     pa_tagstruct_put_sample_spec(t, &s->sample_spec);
     pa_tagstruct_put_channel_map(t, &s->channel_map);
     pa_tagstruct_putu32(t, length);
+
+    if (s->context->version >= 13) {
+        pa_init_proplist(s->proplist);
+        pa_tagstruct_put_proplist(t, s->proplist);
+    }
+
     pa_pstream_send_tagstruct(s->context->pstream, t);
     pa_pdispatch_register_reply(s->context->pdispatch, tag, DEFAULT_TIMEOUT, pa_create_stream_callback, s, NULL);
 
@@ -85,6 +95,73 @@ int pa_stream_finish_upload(pa_stream *s) {
     return 0;
 }
 
+static void play_sample_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_operation *o = userdata;
+    int success = 1;
+    uint32_t idx = PA_INVALID_INDEX;
+
+    pa_assert(pd);
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    if (!o->context)
+        goto finish;
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+        success = 0;
+    } else if ((o->context->version >= 13 && pa_tagstruct_getu32(t, &idx) < 0) ||
+               !pa_tagstruct_eof(t)) {
+        pa_context_fail(o->context, PA_ERR_PROTOCOL);
+        goto finish;
+    } else if (o->context->version >= 13 && idx == PA_INVALID_INDEX)
+        success = 0;
+
+    if (o->callback) {
+        pa_context_success_cb_t cb = (pa_context_success_cb_t) o->callback;
+        cb(o->context, success, o->userdata);
+    }
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
+static void play_sample_with_proplist_ack_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_operation *o = userdata;
+    uint32_t idx;
+
+    pa_assert(pd);
+    pa_assert(o);
+    pa_assert(PA_REFCNT_VALUE(o) >= 1);
+
+    if (!o->context)
+        goto finish;
+
+    if (command != PA_COMMAND_REPLY) {
+        if (pa_context_handle_error(o->context, command, t) < 0)
+            goto finish;
+
+        idx = PA_INVALID_INDEX;
+    } else if (pa_tagstruct_getu32(t, &idx) < 0 ||
+               !pa_tagstruct_eof(t)) {
+        pa_context_fail(o->context, PA_ERR_PROTOCOL);
+        goto finish;
+    }
+
+    if (o->callback) {
+        pa_context_play_sample_cb_t cb = (pa_context_play_sample_cb_t) o->callback;
+        cb(o->context, idx, o->userdata);
+    }
+
+finish:
+    pa_operation_done(o);
+    pa_operation_unref(o);
+}
+
+
 pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char *dev, pa_volume_t volume, pa_context_success_cb_t cb, void *userdata) {
     pa_operation *o;
     pa_tagstruct *t;
@@ -107,8 +184,47 @@ pa_operation *pa_context_play_sample(pa_context *c, const char *name, const char
     pa_tagstruct_puts(t, dev);
     pa_tagstruct_putu32(t, volume);
     pa_tagstruct_puts(t, name);
+
+    if (c->version >= 13) {
+        pa_proplist *p = pa_proplist_new();
+        pa_tagstruct_put_proplist(t, p);
+        pa_proplist_free(p);
+    }
+
     pa_pstream_send_tagstruct(c->pstream, t);
-    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, play_sample_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    return o;
+}
+
+pa_operation *pa_context_play_sample_with_proplist(pa_context *c, const char *name, const char *dev, pa_volume_t volume, pa_proplist *p, pa_context_play_sample_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, name && *name, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, !dev || *dev, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, p, PA_ERR_INVALID);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 13, PA_ERR_NOTSUPPORTED);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    if (!dev)
+        dev = c->conf->default_sink;
+
+    t = pa_tagstruct_command(c, PA_COMMAND_PLAY_SAMPLE, &tag);
+    pa_tagstruct_putu32(t, PA_INVALID_INDEX);
+    pa_tagstruct_puts(t, dev);
+    pa_tagstruct_putu32(t, volume);
+    pa_tagstruct_puts(t, name);
+    pa_tagstruct_put_proplist(t, p);
+
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, play_sample_with_proplist_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
@@ -128,9 +244,9 @@ pa_operation* pa_context_remove_sample(pa_context *c, const char *name, pa_conte
 
     t = pa_tagstruct_command(c, PA_COMMAND_REMOVE_SAMPLE, &tag);
     pa_tagstruct_puts(t, name);
+
     pa_pstream_send_tagstruct(c->pstream, t);
     pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
 
     return o;
 }
-

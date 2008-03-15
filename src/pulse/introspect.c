@@ -149,7 +149,9 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
 
         while (!pa_tagstruct_eof(t)) {
             pa_sink_info i;
+
             memset(&i, 0, sizeof(i));
+            i.proplist = pa_proplist_new();
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -163,9 +165,11 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 pa_tagstruct_gets(t, &i.monitor_source_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
-                pa_tagstruct_getu32(t, &flags) < 0) {
+                pa_tagstruct_getu32(t, &flags) < 0 ||
+                (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                pa_proplist_free(i.proplist);
                 goto finish;
             }
 
@@ -175,6 +179,8 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 pa_sink_info_cb_t cb = (pa_sink_info_cb_t) o->callback;
                 cb(o->context, &i, 0, o->userdata);
             }
+
+            pa_proplist_free(i.proplist);
         }
     }
 
@@ -260,7 +266,9 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
         while (!pa_tagstruct_eof(t)) {
             pa_source_info i;
             uint32_t flags;
+
             memset(&i, 0, sizeof(i));
+            i.proplist = pa_proplist_new();
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -274,9 +282,11 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_gets(t, &i.monitor_of_sink_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
-                pa_tagstruct_getu32(t, &flags) < 0) {
+                pa_tagstruct_getu32(t, &flags) < 0 ||
+                (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                pa_proplist_free(i.proplist);
                 goto finish;
             }
 
@@ -286,6 +296,8 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_source_info_cb_t cb = (pa_source_info_cb_t) o->callback;
                 cb(o->context, &i, 0, o->userdata);
             }
+
+            pa_proplist_free(i.proplist);
         }
     }
 
@@ -370,13 +382,18 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
 
         while (!pa_tagstruct_eof(t)) {
             pa_client_info i;
+
             memset(&i, 0, sizeof(i));
+            i.proplist = pa_proplist_new();
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
-                pa_tagstruct_gets(t, &i.driver) < 0 ) {
+                pa_tagstruct_gets(t, &i.driver) < 0 ||
+                (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
+
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                pa_proplist_free(i.proplist);
                 goto finish;
             }
 
@@ -384,6 +401,8 @@ static void context_get_client_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_client_info_cb_t cb = (pa_client_info_cb_t) o->callback;
                 cb(o->context, &i, 0, o->userdata);
             }
+
+            pa_proplist_free(i.proplist);
         }
     }
 
@@ -521,7 +540,9 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
 
         while (!pa_tagstruct_eof(t)) {
             pa_sink_input_info i;
+
             memset(&i, 0, sizeof(i));
+            i.proplist = pa_proplist_new();
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -535,9 +556,11 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
                 pa_tagstruct_get_usec(t, &i.sink_usec) < 0 ||
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
-                (o->context->version >= 11 && pa_tagstruct_get_boolean(t, &i.mute) < 0)) {
+                (o->context->version >= 11 && pa_tagstruct_get_boolean(t, &i.mute) < 0) ||
+                (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                pa_proplist_free(i.proplist);
                 goto finish;
             }
 
@@ -545,6 +568,8 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
                 pa_sink_input_info_cb_t cb = (pa_sink_input_info_cb_t) o->callback;
                 cb(o->context, &i, 0, o->userdata);
             }
+
+            pa_proplist_free(i.proplist);
         }
     }
 
@@ -608,6 +633,7 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
             pa_source_output_info i;
 
             memset(&i, 0, sizeof(i));
+            i.proplist = pa_proplist_new();
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -619,9 +645,11 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
                 pa_tagstruct_get_usec(t, &i.buffer_usec) < 0 ||
                 pa_tagstruct_get_usec(t, &i.source_usec) < 0 ||
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
-                pa_tagstruct_gets(t, &i.driver) < 0) {
+                pa_tagstruct_gets(t, &i.driver) < 0 ||
+                (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
+                pa_proplist_free(i.proplist);
                 goto finish;
             }
 
@@ -629,6 +657,8 @@ static void context_get_source_output_info_callback(pa_pdispatch *pd, uint32_t c
                 pa_source_output_info_cb_t cb = (pa_source_output_info_cb_t) o->callback;
                 cb(o->context, &i, 0, o->userdata);
             }
+
+            pa_proplist_free(i.proplist);
         }
     }
 
@@ -933,6 +963,7 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
             pa_sample_info i;
 
             memset(&i, 0, sizeof(i));
+            i.proplist = pa_proplist_new();
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
@@ -942,7 +973,8 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_getu32(t, &i.bytes) < 0 ||
                 pa_tagstruct_get_boolean(t, &i.lazy) < 0 ||
-                pa_tagstruct_gets(t, &i.filename) < 0) {
+                pa_tagstruct_gets(t, &i.filename) < 0 ||
+                (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
@@ -952,6 +984,8 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_sample_info_cb_t cb = (pa_sample_info_cb_t) o->callback;
                 cb(o->context, &i, 0, o->userdata);
             }
+
+            pa_proplist_free(i.proplist);
         }
     }
 

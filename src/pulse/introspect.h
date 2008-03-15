@@ -32,6 +32,7 @@
 #include <pulse/cdecl.h>
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
+#include <pulse/proplist.h>
 
 /** \page introspect Server Query and Control
  *
@@ -206,6 +207,11 @@
 
 PA_C_DECL_BEGIN
 
+#define PA_PORT_SPDIF "spdif"
+#define PA_PORT_ANALOG_STEREO "analog-stereo"
+#define PA_PORT_ANALOG_5_1 "analog-5-1"
+#define PA_PORT_ANALOG_4_0 "analog-4-0"
+
 /** Stores information about sinks */
 typedef struct pa_sink_info {
     const char *name;                  /**< Name of the sink */
@@ -221,6 +227,7 @@ typedef struct pa_sink_info {
     pa_usec_t latency;                 /**< Length of filled playback buffer of this sink */
     const char *driver;                /**< Driver name. \since 0.8 */
     pa_sink_flags_t flags;             /**< Flags \since 0.8 */
+    pa_proplist *proplist;             /**< Property list \since 0.9.10 */
 } pa_sink_info;
 
 /** Callback prototype for pa_context_get_sink_info_by_name() and friends */
@@ -237,7 +244,7 @@ pa_operation* pa_context_get_sink_info_list(pa_context *c, pa_sink_info_cb_t cb,
 
 /** Stores information about sources */
 typedef struct pa_source_info {
-    const char *name ;                  /**< Name of the source */
+    const char *name;                   /**< Name of the source */
     uint32_t index;                     /**< Index of the source */
     const char *description;            /**< Description of this source */
     pa_sample_spec sample_spec;         /**< Sample spec of this source */
@@ -250,6 +257,7 @@ typedef struct pa_source_info {
     pa_usec_t latency;                  /**< Length of filled record buffer of this source. \since 0.5 */
     const char *driver;                 /**< Driver name \since 0.8 */
     pa_source_flags_t flags;            /**< Flags \since 0.8 */
+    pa_proplist *proplist;              /**< Property list \since 0.9.10 */
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */
@@ -306,6 +314,7 @@ typedef struct pa_client_info {
     const char *name;                    /**< Name of this client */
     uint32_t owner_module;               /**< Index of the owning module, or PA_INVALID_INDEX */
     const char *driver;                  /**< Driver name \since 0.8 */
+    pa_proplist *proplist;               /**< Property list \since 0.9.10 */
 } pa_client_info;
 
 /** Callback prototype for pa_context_get_client_info() and firends*/
@@ -332,6 +341,7 @@ typedef struct pa_sink_input_info {
     const char *resample_method;         /**< Thre resampling method used by this sink input. \since 0.7 */
     const char *driver;                  /**< Driver name \since 0.8 */
     int mute;                            /**< Stream muted \since 0.9.7 */
+    pa_proplist *proplist;               /**< Property list \since 0.9.10 */
 } pa_sink_input_info;
 
 /** Callback prototype for pa_context_get_sink_input_info() and firends*/
@@ -356,6 +366,7 @@ typedef struct pa_source_output_info {
     pa_usec_t source_usec;               /**< Latency of the source device, see pa_latency_info for details. \since 0.5 */
     const char *resample_method;         /**< Thre resampling method used by this source output. \since 0.7 */
     const char *driver;                  /**< Driver name \since 0.8 */
+    pa_proplist *proplist;               /**< Property list \since 0.9.10 */
 } pa_source_output_info;
 
 /** Callback prototype for pa_context_get_source_output_info() and firends*/
@@ -423,6 +434,7 @@ typedef struct pa_sample_info {
     uint32_t bytes;                       /**< Length of this sample in bytes. \since 0.4 */
     int lazy;                             /**< Non-zero when this is a lazy cache entry. \since 0.5 */
     const char *filename;                 /**< In case this is a lazy cache entry, the filename for the sound file to be loaded on demand. \since 0.5 */
+    pa_proplist *proplist;                /**< Property list for this sample. \since 0.9.10 */
 } pa_sample_info;
 
 /** Callback prototype for pa_context_get_sample_info_by_name() and firends */

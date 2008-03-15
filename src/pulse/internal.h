@@ -50,7 +50,7 @@
 struct pa_context {
     PA_REFCNT_DECLARE;
 
-    char *name;
+    pa_proplist *proplist;
     pa_mainloop_api* mainloop;
 
     pa_socket_client *client;
@@ -85,6 +85,8 @@ struct pa_context {
     char *server;
 
     pa_client_conf *conf;
+
+    uint32_t client_index;
 };
 
 #define PA_MAX_WRITE_INDEX_CORRECTIONS 10
@@ -102,7 +104,7 @@ struct pa_stream {
     pa_mainloop_api *mainloop;
     PA_LLIST_FIELDS(pa_stream);
 
-    char *name;
+    pa_proplist *proplist;
     pa_bool_t manual_buffer_attr;
     pa_buffer_attr buffer_attr;
     pa_sample_spec sample_spec;
@@ -226,5 +228,6 @@ pa_tagstruct *pa_tagstruct_command(pa_context *c, uint32_t command, uint32_t *ta
 
 #define PA_CHECK_VALIDITY_RETURN_NULL(context, expression, error) PA_CHECK_VALIDITY_RETURN_ANY(context, expression, error, NULL)
 
+void pa_init_proplist(pa_proplist *p);
 
 #endif

@@ -32,6 +32,7 @@
 
 #include <pulsecore/core-util.h>
 #include <pulsecore/macro.h>
+#include <pulse/timeval.h>
 
 #include "sample.h"
 
@@ -70,13 +71,13 @@ size_t pa_bytes_per_second(const pa_sample_spec *spec) {
 pa_usec_t pa_bytes_to_usec(uint64_t length, const pa_sample_spec *spec) {
     pa_assert(spec);
 
-    return (pa_usec_t) (((double) length/pa_frame_size(spec)*1000000)/spec->rate);
+    return (((pa_usec_t) (length / pa_frame_size(spec)) * PA_USEC_PER_SEC) / spec->rate);
 }
 
 size_t pa_usec_to_bytes(pa_usec_t t, const pa_sample_spec *spec) {
     pa_assert(spec);
 
-    return (size_t) (((double) t * spec->rate / 1000000))*pa_frame_size(spec);
+    return (size_t) (((t * spec->rate) / PA_USEC_PER_SEC)) * pa_frame_size(spec);
 }
 
 int pa_sample_spec_valid(const pa_sample_spec *spec) {
@@ -97,7 +98,10 @@ int pa_sample_spec_equal(const pa_sample_spec*a, const pa_sample_spec*b) {
     pa_assert(a);
     pa_assert(b);
 
-    return (a->format == b->format) && (a->rate == b->rate) && (a->channels == b->channels);
+    return
+        (a->format == b->format) &&
+        (a->rate == b->rate) &&
+        (a->channels == b->channels);
 }
 
 const char *pa_sample_format_to_string(pa_sample_format_t f) {

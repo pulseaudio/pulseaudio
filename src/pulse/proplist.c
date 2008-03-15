@@ -69,16 +69,14 @@ pa_proplist* pa_proplist_new(void) {
 }
 
 void pa_proplist_free(pa_proplist* p) {
-    struct property *prop;
+    pa_assert(p);
 
-    while ((prop = pa_hashmap_steal_first(MAKE_HASHMAP(p))))
-        property_free(prop);
-
+    pa_proplist_clear(p);
     pa_hashmap_free(MAKE_HASHMAP(p), NULL, NULL);
 }
 
 /** Will accept only valid UTF-8 */
-int pa_proplist_puts(pa_proplist *p, const char *key, const char *value) {
+int pa_proplist_sets(pa_proplist *p, const char *key, const char *value) {
     struct property *prop;
     pa_bool_t add = FALSE;
 
@@ -104,7 +102,7 @@ int pa_proplist_puts(pa_proplist *p, const char *key, const char *value) {
     return 0;
 }
 
-int pa_proplist_put(pa_proplist *p, const char *key, const void *data, size_t nbytes) {
+int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nbytes) {
     struct property *prop;
     pa_bool_t add = FALSE;
 
@@ -175,18 +173,27 @@ int pa_proplist_get(pa_proplist *p, const char *key, const void **data, size_t *
     return 0;
 }
 
-void pa_proplist_merge(pa_proplist *p, pa_proplist *other) {
+void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, pa_proplist *other) {
     struct property *prop;
     void *state = NULL;
 
     pa_assert(p);
+    pa_assert(mode == PA_UPDATE_SET || mode == PA_UPDATE_MERGE || mode == PA_UPDATE_REPLACE);
     pa_assert(other);
 
-    while ((prop = pa_hashmap_iterate(MAKE_HASHMAP(other), &state, NULL)))
-        pa_assert_se(pa_proplist_put(p, prop->key, prop->value, prop->nbytes) == 0);
+    if (mode == PA_UPDATE_SET)
+        pa_proplist_clear(p);
+
+    while ((prop = pa_hashmap_iterate(MAKE_HASHMAP(other), &state, NULL))) {
+
+        if (mode == PA_UPDATE_MERGE && pa_proplist_contains(p, prop->key))
+            continue;
+
+        pa_assert_se(pa_proplist_set(p, prop->key, prop->value, prop->nbytes) == 0);
+    }
 }
 
-int pa_proplist_remove(pa_proplist *p, const char *key) {
+int pa_proplist_unset(pa_proplist *p, const char *key) {
     struct property *prop;
 
     pa_assert(p);
@@ -196,10 +203,28 @@ int pa_proplist_remove(pa_proplist *p, const char *key) {
         return -1;
 
     if (!(prop = pa_hashmap_remove(MAKE_HASHMAP(p), key)))
-        return -1;
+        return -2;
 
     property_free(prop);
     return 0;
+}
+
+int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]) {
+    const char * const * k;
+    int n = 0;
+
+    pa_assert(p);
+    pa_assert(keys);
+
+    for (k = keys; *k; k++)
+        if (!property_name_valid(*k))
+            return -1;
+
+    for (k = keys; *k; k++)
+        if (pa_proplist_unset(p, *k) >= 0)
+            n++;
+
+    return n;
 }
 
 const char *pa_proplist_iterate(pa_proplist *p, void **state) {
@@ -254,4 +279,23 @@ int pa_proplist_contains(pa_proplist *p, const char *key) {
         return 0;
 
     return 1;
+}
+
+void pa_proplist_clear(pa_proplist *p) {
+    struct property *prop;
+    pa_assert(p);
+
+    while ((prop = pa_hashmap_steal_first(MAKE_HASHMAP(p))))
+        property_free(prop);
+}
+
+pa_proplist* pa_proplist_copy(pa_proplist *template) {
+    pa_proplist *p;
+
+    pa_assert_se(p = pa_proplist_new());
+
+    if (template)
+        pa_proplist_update(p, PA_UPDATE_REPLACE, template);
+
+    return p;
 }

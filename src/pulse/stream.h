@@ -276,12 +276,24 @@ typedef void (*pa_stream_request_cb_t)(pa_stream *p, size_t bytes, void *userdat
 /** A generic notification callback */
 typedef void (*pa_stream_notify_cb_t)(pa_stream *p, void *userdata);
 
-/** Create a new, unconnected stream with the specified name and sample type */
+/** Create a new, unconnected stream with the specified name and
+ * sample type. It is recommended to use pa_stream_new_with_proplist()
+ * instead and specify some initial properties. */
 pa_stream* pa_stream_new(
         pa_context *c                     /**< The context to create this stream in */,
         const char *name                  /**< A name for this stream */,
         const pa_sample_spec *ss          /**< The desired sample format */,
         const pa_channel_map *map         /**< The desired channel map, or NULL for default */);
+
+/** Create a new, unconnected stream with the specified name and
+ * sample type, and specify the the initial stream property
+ * list. \since 0.9.10 */
+pa_stream* pa_stream_new_with_proplist(
+        pa_context *c                     /**< The context to create this stream in */,
+        const char *name                  /**< A name for this stream */,
+        const pa_sample_spec *ss          /**< The desired sample format */,
+        const pa_channel_map *map         /**< The desired channel map, or NULL for default */,
+        pa_proplist *p                    /**< The initial property list */);
 
 /** Decrease the reference counter by one */
 void pa_stream_unref(pa_stream *s);
@@ -509,6 +521,17 @@ pa_operation *pa_stream_set_buffer_attr(pa_stream *s, const pa_buffer_attr *attr
  * after the stream has been connected successfully and if the server
  * is at least PulseAudio 0.9.8. \since 0.9.8 */
 pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_stream_success_cb_t cb, void *userdata);
+
+/* Update the property list of the sink input/source output of this
+ * stream, adding new entries. Please note that it is highly
+ * recommended to set as much properties initially via
+ * pa_stream_new_with_proplist() as possible instead a posteriori with
+ * this function, since that information may then be used to route
+ * this stream to the right device. \since 0.9.10 */
+pa_operation *pa_stream_proplist_update(pa_stream *s, pa_update_mode_t mode, pa_proplist *p, pa_stream_success_cb_t cb, void *userdata);
+
+/* Update the property list of the sink input/source output of this stream, remove entries. \since 0.9.10 */
+pa_operation *pa_stream_proplist_remove(pa_stream *s, const char *const keys[], pa_stream_success_cb_t cb, void *userdata);
 
 PA_C_DECL_END
 
