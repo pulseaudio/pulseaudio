@@ -133,21 +133,17 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *data, int64_t
 }
 
 /* Called from I/O thread context */
-static int sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
+static int sink_input_pop(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     struct session *s;
     pa_sink_input_assert_ref(i);
     pa_assert_se(s = i->userdata);
 
-    return pa_memblockq_peek(s->memblockq, chunk);
-}
+    if (pa_memblockq_peek(s->memblockq, chunk) < 0)
+        return -1;
 
-/* Called from I/O thread context */
-static void sink_input_drop(pa_sink_input *i, size_t length) {
-    struct session *s;
-    pa_sink_input_assert_ref(i);
-    pa_assert_se(s = i->userdata);
+    pa_memblockq_drop(s->memblockq, chunk->length);
 
-    pa_memblockq_drop(s->memblockq, length);
+    return 0;
 }
 
 /* Called from main context */
@@ -354,12 +350,13 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
     data.driver = __FILE__;
-    data.name = c;
+    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, c);
+    pa_xfree(c);
     data.module = u->module;
     pa_sink_input_new_data_set_sample_spec(&data, &sdp_info->sample_spec);
 
     s->sink_input = pa_sink_input_new(u->module->core, &data, 0);
-    pa_xfree(c);
+    pa_sink_input_new_data_done(&data);
 
     if (!s->sink_input) {
         pa_log("Failed to create sink input.");
@@ -369,8 +366,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
     s->sink_input->userdata = s;
 
     s->sink_input->parent.process_msg = sink_input_process_msg;
-    s->sink_input->peek = sink_input_peek;
-    s->sink_input->drop = sink_input_drop;
+    s->sink_input->pop = sink_input_pop;
     s->sink_input->kill = sink_input_kill;
     s->sink_input->attach = sink_input_attach;
     s->sink_input->detach = sink_input_detach;
@@ -386,6 +382,7 @@ static struct session *session_new(struct userdata *u, const pa_sdp_info *sdp_in
             MEMBLOCKQ_MAXLENGTH,
             pa_frame_size(&s->sink_input->sample_spec),
             pa_bytes_per_second(&s->sink_input->sample_spec)/10+1,
+            0,
             0,
             silence);
 

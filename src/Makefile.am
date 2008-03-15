@@ -695,7 +695,8 @@ libpulsecore_la_SOURCES = \
 		pulse/utf8.c pulse/utf8.h \
 		pulse/util.c pulse/util.h \
 		pulse/volume.c pulse/volume.h \
-		pulse/xmalloc.c pulse/xmalloc.h
+		pulse/xmalloc.c pulse/xmalloc.h \
+		pulse/proplist.c pulse/proplist.h
 
 # Pure core stuff (some are shared in libpulse though).
 libpulsecore_la_SOURCES += \
