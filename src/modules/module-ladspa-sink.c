@@ -78,8 +78,6 @@ struct userdata {
     /* This is a dummy buffer. Every port must be connected, but we don't care
        about control out ports. We connect them all to this single buffer. */
     LADSPA_Data control_out;
-
-    pa_memchunk memchunk;
 };
 
 static const char* const valid_modargs[] = {
@@ -107,7 +105,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             if (PA_MSGOBJECT(u->master)->process_msg(PA_MSGOBJECT(u->master), PA_SINK_MESSAGE_GET_LATENCY, &usec, 0, NULL) < 0)
                 usec = 0;
 
-            *((pa_usec_t*) data) = usec + pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec);
+            *((pa_usec_t*) data) = usec /* + pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec) */;
             return 0;
         }
     }
@@ -129,12 +127,35 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state) {
 }
 
 /* Called from I/O thread context */
+static void sink_request_rewind(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    /* Just hand this one over to the master sink */
+    pa_sink_input_request_rewrite(u->sink_input, s->thread_info.rewind_nbytes);
+}
+
+/* Called from I/O thread context */
+static void sink_update_requested_latency(pa_sink *s) {
+    struct userdata *u;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    /* Just hand this one over to the master sink */
+    u->sink_input->thread_info.requested_sink_latency = pa_sink_get_requested_latency(s);
+    pa_sink_invalidate_requested_latency(u->master);
+}
+
+/* Called from I/O thread context */
 static int sink_input_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK_INPUT(o)->userdata;
 
     switch (code) {
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY:
-            *((pa_usec_t*) data) = pa_bytes_to_usec(u->memchunk.length, &u->sink_input->sample_spec);
+            *((pa_usec_t*) data) = 0 /*pa_bytes_to_usec(u->memchunk.length, &u->sink_input->sample_spec)*/;
 
             /* Fall through, the default handler will add in the extra
              * latency added by the resampler */
@@ -145,87 +166,76 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *data, int64_t
 }
 
 /* Called from I/O thread context */
-static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
+static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
+    float *src, *dst;
+    size_t fs;
+    unsigned n, c;
+    pa_memchunk tchunk;
 
     pa_sink_input_assert_ref(i);
+    pa_assert(chunk);
     pa_assert_se(u = i->userdata);
 
-    if (!u->memchunk.memblock) {
-        pa_memchunk tchunk;
-        float *src, *dst;
-        size_t fs;
-        unsigned n, c;
+    pa_sink_render(u->sink, nbytes, &tchunk);
 
-        pa_sink_render(u->sink, length, &tchunk);
+    fs = pa_frame_size(&i->sample_spec);
+    n = tchunk.length / fs;
 
-        fs = pa_frame_size(&i->sample_spec);
-        n = tchunk.length / fs;
+    pa_assert(n > 0);
 
-        pa_assert(n > 0);
+    chunk->memblock = pa_memblock_new(i->sink->core->mempool, tchunk.length);
+    chunk->index = 0;
+    chunk->length = tchunk.length;
 
-        u->memchunk.memblock = pa_memblock_new(i->sink->core->mempool, tchunk.length);
-        u->memchunk.index = 0;
-        u->memchunk.length = tchunk.length;
+    src = (float*) ((uint8_t*) pa_memblock_acquire(tchunk.memblock) + tchunk.index);
+    dst = (float*) pa_memblock_acquire(chunk->memblock);
 
-        src = (float*) ((uint8_t*) pa_memblock_acquire(tchunk.memblock) + tchunk.index);
-        dst = (float*) pa_memblock_acquire(u->memchunk.memblock);
+    for (c = 0; c < u->channels; c++) {
+        unsigned j;
+        float *p, *q;
 
-        for (c = 0; c < u->channels; c++) {
-            unsigned j;
-            float *p, *q;
+        p = src + c;
+        q = u->input;
+        for (j = 0; j < n; j++, p += u->channels, q++)
+            *q = PA_CLAMP_UNLIKELY(*p, -1.0, 1.0);
 
-            p = src + c;
-            q = u->input;
-            for (j = 0; j < n; j++, p += u->channels, q++)
-                *q = PA_CLAMP_UNLIKELY(*p, -1.0, 1.0);
+        u->descriptor->run(u->handle[c], n);
 
-            u->descriptor->run(u->handle[c], n);
-
-            q = u->output;
-            p = dst + c;
-            for (j = 0; j < n; j++, q++, p += u->channels)
-                *p = PA_CLAMP_UNLIKELY(*q, -1.0, 1.0);
-        }
-
-        pa_memblock_release(tchunk.memblock);
-        pa_memblock_release(u->memchunk.memblock);
-
-        pa_memblock_unref(tchunk.memblock);
+        q = u->output;
+        p = dst + c;
+        for (j = 0; j < n; j++, q++, p += u->channels)
+            *p = PA_CLAMP_UNLIKELY(*q, -1.0, 1.0);
     }
 
-    pa_assert(u->memchunk.length > 0);
-    pa_assert(u->memchunk.memblock);
+    pa_memblock_release(tchunk.memblock);
+    pa_memblock_release(chunk->memblock);
 
-    *chunk = u->memchunk;
-    pa_memblock_ref(chunk->memblock);
+    pa_memblock_unref(tchunk.memblock);
 
     return 0;
 }
 
 /* Called from I/O thread context */
-static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
+static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes) {
     struct userdata *u;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
-    pa_assert(length > 0);
+    pa_assert(nbytes > 0);
 
-    if (u->memchunk.memblock) {
+    u->sink->thread_info.rewind_nbytes = nbytes;
+    pa_sink_process_rewind(u->sink);
+}
 
-        if (length < u->memchunk.length) {
-            u->memchunk.index += length;
-            u->memchunk.length -= length;
-            return;
-        }
+/* Called from I/O thread context */
+static void sink_input_set_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
+    struct userdata *u;
 
-        pa_memblock_unref(u->memchunk.memblock);
-        length -= u->memchunk.length;
-        pa_memchunk_reset(&u->memchunk);
-    }
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
 
-    if (length > 0)
-        pa_sink_skip(u->sink, length);
+    pa_sink_set_max_rewind(u->sink, nbytes);
 }
 
 /* Called from I/O thread context */
@@ -275,8 +285,10 @@ int pa__init(pa_module*m) {
     pa_channel_map map;
     pa_modargs *ma;
     char *t;
+    const char *z;
     pa_sink *master;
-    pa_sink_input_new_data data;
+    pa_sink_input_new_data sink_input_data;
+    pa_sink_new_data sink_data;
     const char *plugin, *label;
     LADSPA_Descriptor_Function descriptor_func;
     const char *e, *cdata;
@@ -284,7 +296,6 @@ int pa__init(pa_module*m) {
     unsigned long input_port, output_port, p, j, n_control;
     unsigned c;
     pa_bool_t *use_default = NULL;
-    char *default_sink_name = NULL;
 
     pa_assert(m);
 
@@ -325,7 +336,8 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->master = master;
-    pa_memchunk_reset(&u->memchunk);
+    u->sink = NULL;
+    u->sink_input = NULL;
 
     if (!(e = getenv("LADSPA_PATH")))
         e = LADSPA_PATH;
@@ -583,40 +595,65 @@ int pa__init(pa_module*m) {
         for (c = 0; c < u->channels; c++)
             d->activate(u->handle[c]);
 
-    default_sink_name = pa_sprintf_malloc("%s.ladspa", master->name);
-
     /* Create sink */
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", default_sink_name), 0, &ss, &map))) {
+    pa_sink_new_data_init(&sink_data);
+    sink_data.driver = __FILE__;
+    sink_data.module = m;
+    if (!(sink_data.name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
+        sink_data.name = pa_sprintf_malloc("%s.ladspa", master->name);
+    sink_data.namereg_fail = FALSE;
+    pa_sink_new_data_set_sample_spec(&sink_data, &ss);
+    pa_sink_new_data_set_channel_map(&sink_data, &map);
+    z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
+    pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, t = pa_sprintf_malloc("LADSPA Plugin %s on %s", label, z ? z : master->name));
+    pa_xfree(t);
+    pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
+    pa_proplist_sets(sink_data.proplist, "device.ladspa.module", plugin);
+    pa_proplist_sets(sink_data.proplist, "device.ladspa.label", d->Label);
+    pa_proplist_sets(sink_data.proplist, "device.ladspa.name", d->Name);
+    pa_proplist_sets(sink_data.proplist, "device.ladspa.maker", d->Maker);
+    pa_proplist_sets(sink_data.proplist, "device.ladspa.copyright", d->Copyright);
+    pa_proplist_sets(sink_data.proplist, "device.ladspa.unique_id", t = pa_sprintf_malloc("%lu", (unsigned long) d->UniqueID));
+    pa_xfree(t);
+
+    u->sink = pa_sink_new(m->core, &sink_data, 0);
+    pa_sink_new_data_done(&sink_data);
+
+    if (!u->sink) {
         pa_log("Failed to create sink.");
         goto fail;
     }
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->set_state = sink_set_state;
+    u->sink->update_requested_latency = sink_update_requested_latency;
+    u->sink->request_rewind = sink_request_rewind;
     u->sink->userdata = u;
     u->sink->flags = PA_SINK_LATENCY;
 
-    pa_sink_set_module(u->sink, m);
-    pa_sink_set_description(u->sink, t = pa_sprintf_malloc("LADSPA plugin '%s' on '%s'", label, master->description));
-    pa_xfree(t);
     pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
     pa_sink_set_rtpoll(u->sink, master->rtpoll);
 
     /* Create sink input */
-    pa_sink_input_new_data_init(&data);
-    data.sink = u->master;
-    data.driver = __FILE__;
-    data.name = "LADSPA Stream";
-    pa_sink_input_new_data_set_sample_spec(&data, &ss);
-    pa_sink_input_new_data_set_channel_map(&data, &map);
-    data.module = m;
+    pa_sink_input_new_data_init(&sink_input_data);
+    sink_input_data.driver = __FILE__;
+    sink_input_data.module = m;
+    sink_input_data.sink = u->master;
+    pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "LADSPA Stream");
+    pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "routing");
+    pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss);
+    pa_sink_input_new_data_set_channel_map(&sink_input_data, &map);
 
-    if (!(u->sink_input = pa_sink_input_new(m->core, &data, PA_SINK_INPUT_DONT_MOVE)))
+    u->sink_input = pa_sink_input_new(m->core, &sink_input_data, PA_SINK_INPUT_DONT_MOVE);
+    pa_sink_input_new_data_done(&sink_input_data);
+
+    if (!u->sink_input)
         goto fail;
 
     u->sink_input->parent.process_msg = sink_input_process_msg;
-    u->sink_input->peek = sink_input_peek_cb;
-    u->sink_input->drop = sink_input_drop_cb;
+    u->sink_input->pop = sink_input_pop_cb;
+    u->sink_input->rewind = sink_input_rewind_cb;
+    u->sink_input->set_max_rewind = sink_input_set_max_rewind_cb;
     u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->attach = sink_input_attach_cb;
     u->sink_input->detach = sink_input_detach_cb;
@@ -628,7 +665,6 @@ int pa__init(pa_module*m) {
     pa_modargs_free(ma);
 
     pa_xfree(use_default);
-    pa_xfree(default_sink_name);
 
     return 0;
 
@@ -637,7 +673,6 @@ fail:
         pa_modargs_free(ma);
 
     pa_xfree(use_default);
-    pa_xfree(default_sink_name);
 
     pa__done(m);
 
@@ -662,9 +697,6 @@ void pa__done(pa_module*m) {
         pa_sink_unlink(u->sink);
         pa_sink_unref(u->sink);
     }
-
-    if (u->memchunk.memblock)
-        pa_memblock_unref(u->memchunk.memblock);
 
     for (c = 0; c < u->channels; c++)
         if (u->handle[c]) {

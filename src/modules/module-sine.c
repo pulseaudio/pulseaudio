@@ -59,44 +59,25 @@ static const char* const valid_modargs[] = {
     NULL,
 };
 
-static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
+static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct userdata *u;
 
-    pa_assert(i);
-    u = i->userdata;
-    pa_assert(u);
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
     pa_assert(chunk);
 
     chunk->memblock = pa_memblock_ref(u->memblock);
-    chunk->index = u->peek_index;
-    chunk->length = pa_memblock_get_length(u->memblock) - u->peek_index;
+    chunk->length = pa_memblock_get_length(chunk->memblock);
+    chunk->index = 0;
 
     return 0;
-}
-
-static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
-    struct userdata *u;
-    size_t l;
-
-    pa_assert(i);
-    u = i->userdata;
-    pa_assert(u);
-    pa_assert(length > 0);
-
-    u->peek_index += length;
-
-    l = pa_memblock_get_length(u->memblock);
-
-    while (u->peek_index >= l)
-        u->peek_index -= l;
 }
 
 static void sink_input_kill_cb(pa_sink_input *i) {
     struct userdata *u;
 
-    pa_assert(i);
-    u = i->userdata;
-    pa_assert(u);
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
 
     pa_sink_input_unlink(u->sink_input);
     pa_sink_input_unref(u->sink_input);
@@ -156,20 +137,23 @@ int pa__init(pa_module*m) {
     calc_sine(p, pa_memblock_get_length(u->memblock), frequency);
     pa_memblock_release(u->memblock);
 
-    pa_snprintf(t, sizeof(t), "Sine Generator at %u Hz", frequency);
+    pa_snprintf(t, sizeof(t), "%u Hz Sine", frequency);
 
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
     data.driver = __FILE__;
-    data.name = t;
+    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_NAME, t);
+    pa_proplist_sets(data.proplist, PA_PROP_MEDIA_ROLE, "abstract");
     pa_sink_input_new_data_set_sample_spec(&data, &ss);
     data.module = m;
 
-    if (!(u->sink_input = pa_sink_input_new(m->core, &data, 0)))
+    u->sink_input = pa_sink_input_new(m->core, &data, 0);
+    pa_sink_input_new_data_done(&data);
+
+    if (!u->sink_input)
         goto fail;
 
-    u->sink_input->peek = sink_input_peek_cb;
-    u->sink_input->drop = sink_input_drop_cb;
+    u->sink_input->pop = sink_input_pop_cb;
     u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->userdata = u;
 

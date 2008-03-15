@@ -66,7 +66,7 @@ PA_MODULE_USAGE(
         "channel_map=<channel map>");
 
 #define DEFAULT_SINK_NAME "combined"
-#define MEMBLOCKQ_MAXLENGTH (1024*170)
+#define MEMBLOCKQ_MAXLENGTH (1024*1024*16)
 
 #define DEFAULT_ADJUST_TIME 10
 
@@ -139,7 +139,7 @@ enum {
 };
 
 enum {
-    SINK_INPUT_MESSAGE_POST = PA_SINK_INPUT_MESSAGE_MAX
+    SINK_INPUT_MESSAGE_POST = PA_SINK_INPUT_MESSAGE_MAX,
 };
 
 static void output_free(struct output *o);
@@ -203,10 +203,10 @@ static void adjust_rates(struct userdata *u) {
             r += (uint32_t) (((((double) o->total_latency - target_latency))/u->adjust_time)*r/PA_USEC_PER_SEC);
 
         if (r < (uint32_t) (base_rate*0.9) || r > (uint32_t) (base_rate*1.1)) {
-            pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", o->sink_input->name, base_rate, r);
+            pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", pa_proplist_gets(o->sink_input->proplist, PA_PROP_MEDIA_NAME), base_rate, r);
             pa_sink_input_set_rate(o->sink_input, base_rate);
         } else {
-            pa_log_info("[%s] new rate is %u Hz; ratio is %0.3f; latency is %0.0f usec.", o->sink_input->name, r, (double) r / base_rate, (float) o->total_latency);
+            pa_log_info("[%s] new rate is %u Hz; ratio is %0.3f; latency is %0.0f usec.", pa_proplist_gets(o->sink_input->proplist, PA_PROP_MEDIA_NAME), r, (double) r / base_rate, (float) o->total_latency);
             pa_sink_input_set_rate(o->sink_input, r);
         }
     }
@@ -249,6 +249,10 @@ static void thread_func(void *userdata) {
         /* If no outputs are connected, render some data and drop it immediately. */
         if (u->sink->thread_info.state == PA_SINK_RUNNING && !u->thread_info.active_outputs) {
             struct timeval now;
+
+            /* Just rewind if necessary, since we are in NULL mode, we
+             * don't have to pass this on */
+            pa_sink_process_rewind(u->sink);
 
             pa_rtclock_get(&now);
 
@@ -354,27 +358,20 @@ static void request_memblock(struct output *o, size_t length) {
 }
 
 /* Called from I/O thread context */
-static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
+static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
     struct output *o;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(o = i->userdata);
 
     /* If necessary, get some new data */
-    request_memblock(o, length);
+    request_memblock(o, nbytes);
 
-    return pa_memblockq_peek(o->memblockq, chunk);
-}
+    if (pa_memblockq_peek(o->memblockq, chunk) < 0)
+        return -1;
 
-/* Called from I/O thread context */
-static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
-    struct output *o;
-
-    pa_sink_input_assert_ref(i);
-    pa_assert(length > 0);
-    pa_assert_se(o = i->userdata);
-
-    pa_memblockq_drop(o->memblockq, length);
+    pa_memblockq_drop(o->memblockq, chunk->length);
+    return 0;
 }
 
 /* Called from I/O thread context */
@@ -440,6 +437,7 @@ static int sink_input_process_msg(pa_msgobject *obj, int code, void *data, int64
                 pa_memblockq_flush(o->memblockq);
 
             break;
+
     }
 
     return pa_sink_input_process_msg(obj, code, data, offset, chunk);
@@ -665,10 +663,10 @@ static void update_description(struct userdata *u) {
         char *e;
 
         if (first) {
-            e = pa_sprintf_malloc("%s %s", t, o->sink->description);
+            e = pa_sprintf_malloc("%s %s", t, pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
             first = 0;
         } else
-            e = pa_sprintf_malloc("%s, %s", t, o->sink->description);
+            e = pa_sprintf_malloc("%s, %s", t, pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
 
         pa_xfree(t);
         t = e;
@@ -723,12 +721,12 @@ static int output_create_sink_input(struct output *o) {
     if (o->sink_input)
         return 0;
 
-    t = pa_sprintf_malloc("Simultaneous output on %s", o->sink->description);
+    t = pa_sprintf_malloc("Simultaneous output on %s", pa_strnull(pa_proplist_gets(o->sink->proplist, PA_PROP_DEVICE_DESCRIPTION)));
 
     pa_sink_input_new_data_init(&data);
     data.sink = o->sink;
     data.driver = __FILE__;
-    data.name = t;
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, t);
     pa_sink_input_new_data_set_sample_spec(&data, &o->userdata->sink->sample_spec);
     pa_sink_input_new_data_set_channel_map(&data, &o->userdata->sink->channel_map);
     data.module = o->userdata->module;
@@ -736,14 +734,15 @@ static int output_create_sink_input(struct output *o) {
 
     o->sink_input = pa_sink_input_new(o->userdata->core, &data, PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE);
 
+    pa_sink_input_new_data_done(&data);
+
     pa_xfree(t);
 
     if (!o->sink_input)
         return -1;
 
     o->sink_input->parent.process_msg = sink_input_process_msg;
-    o->sink_input->peek = sink_input_peek_cb;
-    o->sink_input->drop = sink_input_drop_cb;
+    o->sink_input->pop = sink_input_pop_cb;
     o->sink_input->attach = sink_input_attach_cb;
     o->sink_input->detach = sink_input_detach_cb;
     o->sink_input->kill = sink_input_kill_cb;
@@ -774,6 +773,7 @@ static struct output *output_new(struct userdata *u, pa_sink *sink) {
             MEMBLOCKQ_MAXLENGTH,
             pa_frame_size(&u->sink->sample_spec),
             1,
+            0,
             0,
             NULL);
 
@@ -920,6 +920,7 @@ int pa__init(pa_module*m) {
     pa_channel_map map;
     struct output *o;
     uint32_t idx;
+    pa_sink_new_data data;
 
     pa_assert(m);
 
@@ -1003,7 +1004,19 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
+    pa_sink_new_data_init(&data);
+    data.name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
+    data.namereg_fail = FALSE;
+    data.driver = __FILE__;
+    data.module = m;
+    pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_sink_new_data_set_channel_map(&data, &map);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Simultaneous Output");
+
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
         pa_log("Failed to create sink");
         goto fail;
     }
@@ -1013,9 +1026,6 @@ int pa__init(pa_module*m) {
     u->sink->set_state = sink_set_state;
     u->sink->userdata = u;
 
-    u->sink->flags = PA_SINK_LATENCY;
-    pa_sink_set_module(u->sink, m);
-    pa_sink_set_description(u->sink, "Simultaneous output");
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
 
@@ -1075,7 +1085,7 @@ int pa__init(pa_module*m) {
             }
         }
 
-        u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_NEW_POST], (pa_hook_cb_t) sink_new_hook_cb, u);
+        u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], (pa_hook_cb_t) sink_new_hook_cb, u);
     }
 
     u->sink_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], (pa_hook_cb_t) sink_unlink_hook_cb, u);

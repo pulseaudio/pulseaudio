@@ -115,7 +115,7 @@ static pa_cvolume* parse_volume(const char *s, pa_cvolume *v) {
 
         k = strtol(p, &p, 0);
 
-        if (k < PA_VOLUME_MUTED)
+        if (k < (long) PA_VOLUME_MUTED)
             return NULL;
 
         v->values[i] = (pa_volume_t) k;
@@ -280,10 +280,10 @@ finish:
 static char* client_name(pa_client *c) {
     char *t, *e;
 
-    if (!c->name || !c->driver)
+    if (!pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME) || !c->driver)
         return NULL;
 
-    t = pa_sprintf_malloc("%s$%s", c->driver, c->name);
+    t = pa_sprintf_malloc("%s$%s", c->driver, pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME));
     t[strcspn(t, "\n\r#")] = 0;
 
     if (!*t) {

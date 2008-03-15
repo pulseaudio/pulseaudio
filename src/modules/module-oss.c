@@ -1143,9 +1143,9 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
-    char hwdesc[64], *t;
+    char hwdesc[64];
     const char *name;
-    int namereg_fail;
+    pa_bool_t namereg_fail;
 
     pa_assert(m);
 
@@ -1258,6 +1258,7 @@ int pa__init(pa_module*m) {
     u->out_hwbuf_size = u->out_nfrags * u->out_fragment_size;
 
     if (mode != O_WRONLY) {
+        pa_source_new_data data;
         char *name_buf = NULL;
 
         if (use_mmap) {
@@ -1270,14 +1271,28 @@ int pa__init(pa_module*m) {
         }
 
         if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
-            namereg_fail = 1;
+            namereg_fail = TRUE;
         else {
             name = name_buf = pa_sprintf_malloc("oss_input.%s", pa_path_get_filename(dev));
-            namereg_fail = 0;
+            namereg_fail = FALSE;
         }
 
-        u->source = pa_source_new(m->core, __FILE__, name, namereg_fail, &ss, &map);
+        pa_source_new_data_init(&data);
+        data.driver = __FILE__;
+        data.module = m;
+        pa_source_new_data_set_name(&data, name);
+        data.namereg_fail = namereg_fail;
+        pa_source_new_data_set_sample_spec(&data, &ss);
+        pa_source_new_data_set_channel_map(&data, &map);
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, dev);
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "oss");
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, hwdesc[0] ? hwdesc : dev);
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_ACCESS_MODE, use_mmap ? "mmap" : "serial");
+
+        u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
+        pa_source_new_data_done(&data);
         pa_xfree(name_buf);
+
         if (!u->source) {
             pa_log("Failed to create source object");
             goto fail;
@@ -1286,18 +1301,8 @@ int pa__init(pa_module*m) {
         u->source->parent.process_msg = source_process_msg;
         u->source->userdata = u;
 
-        pa_source_set_module(u->source, m);
         pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
         pa_source_set_rtpoll(u->source, u->rtpoll);
-        pa_source_set_description(u->source, t = pa_sprintf_malloc(
-                                          "OSS PCM on %s%s%s%s%s",
-                                          dev,
-                                          hwdesc[0] ? " (" : "",
-                                          hwdesc[0] ? hwdesc : "",
-                                          hwdesc[0] ? ")" : "",
-                                          use_mmap ? " via DMA" : ""));
-        pa_xfree(t);
-        u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY;
         u->source->refresh_volume = TRUE;
 
         if (use_mmap)
@@ -1305,6 +1310,7 @@ int pa__init(pa_module*m) {
     }
 
     if (mode != O_RDONLY) {
+        pa_sink_new_data data;
         char *name_buf = NULL;
 
         if (use_mmap) {
@@ -1331,8 +1337,22 @@ int pa__init(pa_module*m) {
             namereg_fail = 0;
         }
 
-        u->sink = pa_sink_new(m->core, __FILE__, name, namereg_fail, &ss, &map);
+        pa_sink_new_data_init(&data);
+        data.driver = __FILE__;
+        data.module = m;
+        pa_sink_new_data_set_name(&data, name);
+        data.namereg_fail = namereg_fail;
+        pa_sink_new_data_set_sample_spec(&data, &ss);
+        pa_sink_new_data_set_channel_map(&data, &map);
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, dev);
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "oss");
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, hwdesc[0] ? hwdesc : dev);
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_ACCESS_MODE, use_mmap ? "mmap" : "serial");
+
+        u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE|PA_SINK_LATENCY);
+        pa_sink_new_data_done(&data);
         pa_xfree(name_buf);
+
         if (!u->sink) {
             pa_log("Failed to create sink object");
             goto fail;
@@ -1341,18 +1361,8 @@ int pa__init(pa_module*m) {
         u->sink->parent.process_msg = sink_process_msg;
         u->sink->userdata = u;
 
-        pa_sink_set_module(u->sink, m);
         pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
         pa_sink_set_rtpoll(u->sink, u->rtpoll);
-        pa_sink_set_description(u->sink, t = pa_sprintf_malloc(
-                                        "OSS PCM on %s%s%s%s%s",
-                                        dev,
-                                        hwdesc[0] ? " (" : "",
-                                        hwdesc[0] ? hwdesc : "",
-                                        hwdesc[0] ? ")" : "",
-                                        use_mmap ? " via DMA" : ""));
-        pa_xfree(t);
-        u->sink->flags = PA_SINK_HARDWARE|PA_SINK_LATENCY;
         u->sink->refresh_volume = TRUE;
 
         if (use_mmap)

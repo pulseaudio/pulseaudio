@@ -367,8 +367,8 @@ int pa__init(pa_module*m) {
     for (source = pa_idxset_first(m->core->sources, &idx); source; source = pa_idxset_next(m->core->sources, &idx))
         device_new_hook_cb(m->core, PA_OBJECT(source), u);
 
-    u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_NEW_POST], (pa_hook_cb_t) device_new_hook_cb, u);
-    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_NEW_POST], (pa_hook_cb_t) device_new_hook_cb, u);
+    u->sink_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_PUT], (pa_hook_cb_t) device_new_hook_cb, u);
+    u->source_new_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], (pa_hook_cb_t) device_new_hook_cb, u);
     u->sink_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK_POST], (pa_hook_cb_t) device_unlink_hook_cb, u);
     u->source_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK_POST], (pa_hook_cb_t) device_unlink_hook_cb, u);
     u->sink_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_STATE_CHANGED], (pa_hook_cb_t) device_state_changed_hook_cb, u);

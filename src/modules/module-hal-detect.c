@@ -372,7 +372,7 @@ static int hal_device_add_all(struct userdata *u, const char *capability) {
                 pa_log_debug("Not loaded device %s", udis[i]);
             else {
                 if (d->sink_name)
-                    pa_scache_play_item_by_name(u->core, "pulse-coldplug", d->sink_name, PA_VOLUME_NORM, 0);
+                    pa_scache_play_item_by_name(u->core, "pulse-coldplug", d->sink_name, FALSE, PA_VOLUME_NORM, NULL, NULL);
                 count++;
             }
         }
@@ -412,7 +412,7 @@ static void device_added_time_cb(pa_mainloop_api *ea, pa_time_event *ev, const s
                 pa_log_debug("Not loaded device %s", td->udi);
             else {
                 if (d->sink_name)
-                    pa_scache_play_item_by_name(td->u->core, "pulse-hotplug", d->sink_name, PA_VOLUME_NORM, 0);
+                    pa_scache_play_item_by_name(td->u->core, "pulse-hotplug", d->sink_name, FALSE, PA_VOLUME_NORM, NULL, NULL);
             }
         }
     }
@@ -575,7 +575,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                         if (prev_suspended && !suspend) {
                             /* resume */
                             if (pa_sink_suspend(sink, 0) >= 0)
-                                pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, PA_VOLUME_NORM, 0);
+                                pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, FALSE, PA_VOLUME_NORM, NULL, NULL);
                             else
                                 d->acl_race_fix = 1;
 
@@ -643,7 +643,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *message, vo
                     if (prev_suspended) {
                         /* resume */
                         if (pa_sink_suspend(sink, 0) >= 0)
-                            pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, PA_VOLUME_NORM, 0);
+                            pa_scache_play_item_by_name(u->core, "pulse-access", d->sink_name, FALSE, PA_VOLUME_NORM, NULL, NULL);
                     }
                 }
             }

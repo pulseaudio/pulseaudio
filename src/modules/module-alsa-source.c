@@ -32,6 +32,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core.h>
@@ -47,6 +48,8 @@
 #include <pulsecore/core-error.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
+#include <pulsecore/time-smoother.h>
+#include <pulsecore/rtclock.h>
 
 #include "alsa-util.h"
 #include "module-alsa-source-symdef.h"
@@ -60,14 +63,19 @@ PA_MODULE_USAGE(
         "device=<ALSA device> "
         "device_id=<ALSA device id> "
         "format=<sample format> "
-        "channels=<number of channels> "
         "rate=<sample rate> "
+        "channels=<number of channels> "
+        "channel_map=<channel map> "
         "fragments=<number of fragments> "
         "fragment_size=<fragment size> "
-        "channel_map=<channel map> "
-        "mmap=<enable memory mapping?>");
+        "mmap=<enable memory mapping?> "
+        "tsched=<enable system timer based scheduling mode?> "
+        "tsched_buffer_size=<buffer size when using timer based scheduling> "
+        "tsched_buffer_watermark=<upper fill watermark>");
 
 #define DEFAULT_DEVICE "default"
+#define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)
+#define DEFAULT_TSCHED_WATERMARK_USEC (10*PA_USEC_PER_MSEC)
 
 struct userdata {
     pa_core *core;
@@ -85,29 +93,35 @@ struct userdata {
     snd_mixer_elem_t *mixer_elem;
     long hw_volume_max, hw_volume_min;
 
-    size_t frame_size, fragment_size, hwbuf_size;
+    size_t frame_size, fragment_size, hwbuf_size, tsched_watermark;
     unsigned nfragments;
 
     char *device_name;
 
-    pa_bool_t use_mmap;
+    pa_bool_t use_mmap, use_tsched;
 
     pa_rtpoll_item *alsa_rtpoll_item;
 
     snd_mixer_selem_channel_id_t mixer_map[SND_MIXER_SCHN_LAST];
+
+    pa_smoother *smoother;
+    int64_t frame_index;
 };
 
 static const char* const valid_modargs[] = {
+    "source_name",
     "device",
     "device_id",
-    "source_name",
-    "channels",
-    "rate",
     "format",
+    "rate",
+    "channels",
+    "channel_map",
     "fragments",
     "fragment_size",
-    "channel_map",
     "mmap",
+    "tsched",
+    "tsched_buffer_size",
+    "tsched_buffer_watermark",
     NULL
 };
 
@@ -125,7 +139,7 @@ static int mmap_read(struct userdata *u) {
         pa_memchunk chunk;
         void *p;
 
-        if ((n = snd_pcm_avail_update(u->pcm_handle)) < 0) {
+        if (PA_UNLIKELY((n = snd_pcm_avail_update(u->pcm_handle)) < 0)) {
 
             if (n == -EPIPE)
                 pa_log_debug("snd_pcm_avail_update: Buffer underrun!");
@@ -140,14 +154,12 @@ static int mmap_read(struct userdata *u) {
             return -1;
         }
 
-/*         pa_log("Got request for %i samples", (int) n); */
-
-        if (n <= 0)
+        if (PA_UNLIKELY(n <= 0))
             return work_done;
 
         frames = n;
 
-        if ((err = snd_pcm_mmap_begin(u->pcm_handle, &areas, &offset, &frames)) < 0) {
+        if (PA_UNLIKELY((err = snd_pcm_mmap_begin(u->pcm_handle, &areas, &offset, &frames)) < 0)) {
 
             if (err == -EPIPE)
                 pa_log_debug("snd_pcm_mmap_begin: Buffer underrun!");
@@ -182,7 +194,7 @@ static int mmap_read(struct userdata *u) {
          * a little bit longer around? */
         pa_memblock_unref_fixed(chunk.memblock);
 
-        if ((err = snd_pcm_mmap_commit(u->pcm_handle, offset, frames)) < 0) {
+        if (PA_UNLIKELY((err = snd_pcm_mmap_commit(u->pcm_handle, offset, frames)) < 0)) {
 
             if (err == -EPIPE)
                 pa_log_debug("snd_pcm_mmap_commit: Buffer underrun!");
@@ -199,7 +211,10 @@ static int mmap_read(struct userdata *u) {
 
         work_done = 1;
 
-/*         pa_log("wrote %i samples", (int) frames); */
+        u->frame_index += frames;
+
+        if (PA_LIKELY(frames >= (snd_pcm_uframes_t) n))
+            return work_done;
     }
 }
 
@@ -214,87 +229,98 @@ static int unix_read(struct userdata *u) {
 
     for (;;) {
         void *p;
-        snd_pcm_sframes_t t, k;
-        ssize_t l;
+        snd_pcm_sframes_t n, frames;
         int err;
         pa_memchunk chunk;
 
-        if ((err = snd_pcm_status(u->pcm_handle, status)) < 0) {
+        if (PA_UNLIKELY((err = snd_pcm_status(u->pcm_handle, status)) < 0)) {
             pa_log("Failed to query DSP status data: %s", snd_strerror(err));
             return -1;
         }
 
-        if (snd_pcm_status_get_avail_max(status)*u->frame_size >= u->hwbuf_size)
+        if (PA_UNLIKELY(snd_pcm_status_get_avail_max(status)*u->frame_size >= u->hwbuf_size))
             pa_log_debug("Buffer overrun!");
 
-        l = snd_pcm_status_get_avail(status) * u->frame_size;
+        n = snd_pcm_status_get_avail(status);
 
-        if (l <= 0)
+        if (PA_UNLIKELY(n <= 0))
             return work_done;
 
         chunk.memblock = pa_memblock_new(u->core->mempool, (size_t) -1);
 
-        k = pa_memblock_get_length(chunk.memblock);
+        frames = pa_memblock_get_length(chunk.memblock) / u->frame_size;
 
-        if (k > l)
-            k = l;
-
-        k = (k/u->frame_size)*u->frame_size;
+        if (frames > n)
+            frames = n;
 
         p = pa_memblock_acquire(chunk.memblock);
-        t = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, k / u->frame_size);
+        frames = snd_pcm_readi(u->pcm_handle, (uint8_t*) p, frames);
         pa_memblock_release(chunk.memblock);
 
-/*                     pa_log("wrote %i bytes of %u (%u)", t*u->frame_size, u->memchunk.length, l);   */
+        pa_assert(frames != 0);
 
-        pa_assert(t != 0);
-
-        if (t < 0) {
+        if (PA_UNLIKELY(frames < 0)) {
             pa_memblock_unref(chunk.memblock);
 
-            if ((t = snd_pcm_recover(u->pcm_handle, t, 1)) == 0)
+            if ((frames = snd_pcm_recover(u->pcm_handle, frames, 1)) == 0)
                 continue;
 
-            if (t == -EAGAIN) {
-                pa_log_debug("EAGAIN");
+            if (frames == -EAGAIN)
                 return work_done;
-            } else {
-                pa_log("Failed to read data from DSP: %s", snd_strerror(t));
-                return -1;
-            }
+
+            pa_log("Failed to read data from DSP: %s", snd_strerror(frames));
+            return -1;
         }
 
         chunk.index = 0;
-        chunk.length = t * u->frame_size;
+        chunk.length = frames * u->frame_size;
 
         pa_source_post(u->source, &chunk);
         pa_memblock_unref(chunk.memblock);
 
         work_done = 1;
 
-        if (t * u->frame_size >= (unsigned) l)
+        u->frame_index += frames;
+
+        if (PA_LIKELY(frames >= n))
             return work_done;
     }
 }
 
-static pa_usec_t source_get_latency(struct userdata *u) {
-    pa_usec_t r = 0;
+static int update_smoother(struct userdata *u) {
     snd_pcm_status_t *status;
-    snd_pcm_sframes_t frames = 0;
+    int64_t frames;
     int err;
-
-    snd_pcm_status_alloca(&status);
 
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
-    if ((err = snd_pcm_status(u->pcm_handle, status)) < 0)
-        pa_log("Failed to get delay: %s", snd_strerror(err));
-    else
-        frames = snd_pcm_status_get_delay(status);
+    snd_pcm_status_alloca(&status);
 
-    if (frames > 0)
-        r = pa_bytes_to_usec(frames * u->frame_size, &u->source->sample_spec);
+    /* Let's update the time smoother */
+
+    if (PA_UNLIKELY((err = snd_pcm_status(u->pcm_handle, status)) < 0)) {
+        pa_log("Failed to get delay: %s", snd_strerror(err));
+        return -1;
+    }
+
+    frames = u->frame_index + snd_pcm_status_get_delay(status);
+
+    pa_smoother_put(u->smoother, pa_rtclock_usec(), pa_bytes_to_usec(frames * u->frame_size, &u->source->sample_spec));
+
+    return 0;
+}
+
+static pa_usec_t source_get_latency(struct userdata *u) {
+    pa_usec_t r = 0;
+    int64_t delay;
+
+    pa_assert(u);
+
+    delay = pa_smoother_get(u->smoother, pa_rtclock_usec()) - u->frame_index;
+
+    if (delay > 0)
+        r = pa_bytes_to_usec(delay * u->frame_size, &u->source->sample_spec);
 
     return r;
 }
@@ -330,6 +356,8 @@ static int suspend(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
+    pa_smoother_pause(u->smoother, pa_rtclock_usec());
+
     /* Let's suspend */
     snd_pcm_close(u->pcm_handle);
     u->pcm_handle = NULL;
@@ -344,10 +372,55 @@ static int suspend(struct userdata *u) {
     return 0;
 }
 
+static pa_usec_t hw_sleep_time(struct userdata *u) {
+    pa_usec_t usec;
+
+    pa_assert(u);
+
+    usec = pa_source_get_requested_latency(u->source);
+
+    if (usec <= 0)
+        usec = pa_bytes_to_usec(u->hwbuf_size, &u->source->sample_spec);
+
+    if (usec >= u->tsched_watermark)
+        usec -= u->tsched_watermark;
+    else
+        usec /= 2;
+
+    return usec;
+}
+
+static int update_sw_params(struct userdata *u) {
+    size_t avail_min;
+    int err;
+
+    pa_assert(u);
+
+    if (u->use_tsched) {
+        pa_usec_t usec;
+
+        usec = hw_sleep_time(u);
+
+        avail_min = pa_usec_to_bytes(usec, &u->source->sample_spec);
+
+        if (avail_min <= 0)
+            avail_min = 1;
+
+    } else
+        avail_min = 1;
+
+    if ((err = pa_alsa_set_sw_params(u->pcm_handle, avail_min)) < 0) {
+        pa_log("Failed to set software parameters: %s", snd_strerror(err));
+        return err;
+    }
+
+    return 0;
+}
+
 static int unsuspend(struct userdata *u) {
     pa_sample_spec ss;
     int err;
-    pa_bool_t b;
+    pa_bool_t b, d;
     unsigned nfrags;
     snd_pcm_uframes_t period_size;
 
@@ -366,13 +439,14 @@ static int unsuspend(struct userdata *u) {
     nfrags = u->nfragments;
     period_size = u->fragment_size / u->frame_size;
     b = u->use_mmap;
+    d = u->use_tsched;
 
-    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, &b, TRUE)) < 0) {
+    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &nfrags, &period_size, u->hwbuf_size / u->frame_size, &b, &d, TRUE)) < 0) {
         pa_log("Failed to set hardware parameters: %s", snd_strerror(err));
         goto fail;
     }
 
-    if (b != u->use_mmap) {
+    if (b != u->use_mmap || d != u->use_tsched) {
         pa_log_warn("Resume failed, couldn't get original access mode.");
         goto fail;
     }
@@ -387,17 +461,17 @@ static int unsuspend(struct userdata *u) {
         goto fail;
     }
 
-    if ((err = pa_alsa_set_sw_params(u->pcm_handle)) < 0) {
-        pa_log("Failed to set software parameters: %s", snd_strerror(err));
+    if (update_sw_params(u) < 0)
         goto fail;
-    }
 
     if (build_pollfd(u) < 0)
         goto fail;
 
+    /* FIXME: We need to reload the volume somehow */
+
     snd_pcm_start(u->pcm_handle);
 
-    /* FIXME: We need to reload the volume somehow */
+    pa_smoother_resume(u->smoother, pa_rtclock_usec());
 
     pa_log_info("Resumed successfully...");
 
@@ -609,14 +683,38 @@ static void thread_func(void *userdata) {
 
         /* Read some data and pass it to the sources */
         if (PA_SOURCE_OPENED(u->source->thread_info.state)) {
+            int work_done = 0;
 
             if (u->use_mmap) {
-                if (mmap_read(u) < 0)
+                if ((work_done = mmap_read(u)) < 0)
                     goto fail;
 
             } else {
-                if (unix_read(u) < 0)
+                if ((work_done = unix_read(u) < 0))
                     goto fail;
+            }
+
+            if (update_smoother(u) < 0)
+                goto fail;
+
+            if (u->use_tsched && work_done) {
+                pa_usec_t usec, cusec;
+
+                /* OK, the capture buffer is now empty, let's
+                 * calculate when to wake up next */
+
+                usec = hw_sleep_time(u);
+
+                pa_log_debug("Waking up in %0.2fms (sound card clock).", (double) usec / PA_USEC_PER_MSEC);
+
+                /* Convert from the sound card time domain to the
+                 * system time domain */
+                cusec = pa_smoother_translate(u->smoother, pa_rtclock_usec(), usec);
+
+                pa_log_debug("Waking up in %0.2fms (system clock).", (double) cusec / PA_USEC_PER_MSEC);
+
+                /* We don't trust the conversion, so we wake up whatever comes first */
+                pa_rtpoll_set_timer_relative(u->rtpoll, PA_MIN(usec, cusec));
             }
         }
 
@@ -699,16 +797,22 @@ int pa__init(pa_module*m) {
     const char *dev_id;
     pa_sample_spec ss;
     pa_channel_map map;
-    uint32_t nfrags, frag_size;
-    snd_pcm_uframes_t period_size;
+    uint32_t nfrags, frag_size, tsched_size, tsched_watermark;
+    snd_pcm_uframes_t period_frames, tsched_frames;
     size_t frame_size;
     snd_pcm_info_t *pcm_info = NULL;
     int err;
-    char *t;
     const char *name;
     char *name_buf = NULL;
-    int namereg_fail;
-    pa_bool_t use_mmap = TRUE, b;
+    pa_bool_t namereg_fail;
+    pa_bool_t use_mmap = TRUE, b, use_tsched = TRUE, d;
+    pa_source_new_data data;
+    static const char * const class_table[SND_PCM_CLASS_LAST+1] = {
+        [SND_PCM_CLASS_GENERIC] = "sound",
+        [SND_PCM_CLASS_MULTI] = NULL,
+        [SND_PCM_CLASS_MODEM] = "modem",
+        [SND_PCM_CLASS_DIGITIZER] = NULL
+    };
 
     snd_pcm_info_alloca(&pcm_info);
 
@@ -728,19 +832,36 @@ int pa__init(pa_module*m) {
     frame_size = pa_frame_size(&ss);
 
     nfrags = m->core->default_n_fragments;
-    frag_size = pa_usec_to_bytes(m->core->default_fragment_size_msec*1000, &ss);
+    frag_size = pa_usec_to_bytes(m->core->default_fragment_size_msec*PA_USEC_PER_MSEC, &ss);
     if (frag_size <= 0)
         frag_size = frame_size;
+    tsched_size = pa_usec_to_bytes(DEFAULT_TSCHED_BUFFER_USEC, &ss);
+    tsched_watermark = pa_usec_to_bytes(DEFAULT_TSCHED_WATERMARK_USEC, &ss);
 
-    if (pa_modargs_get_value_u32(ma, "fragments", &nfrags) < 0 || pa_modargs_get_value_u32(ma, "fragment_size", &frag_size) < 0) {
+    if (pa_modargs_get_value_u32(ma, "fragments", &nfrags) < 0 ||
+        pa_modargs_get_value_u32(ma, "fragment_size", &frag_size) < 0 ||
+        pa_modargs_get_value_u32(ma, "tsched_buffer_size", &tsched_size) < 0 ||
+        pa_modargs_get_value_u32(ma, "tsched_buffer_watermark", &tsched_watermark) < 0) {
         pa_log("Failed to parse buffer metrics");
         goto fail;
     }
-    period_size = frag_size/frame_size;
+
+    period_frames = frag_size/frame_size;
+    tsched_frames = tsched_size/frame_size;
 
     if (pa_modargs_get_value_boolean(ma, "mmap", &use_mmap) < 0) {
         pa_log("Failed to parse mmap argument.");
         goto fail;
+    }
+
+    if (pa_modargs_get_value_boolean(ma, "tsched", &use_tsched) < 0) {
+        pa_log("Failed to parse timer_scheduling argument.");
+        goto fail;
+    }
+
+    if (use_tsched && !pa_rtclock_hrtimer()) {
+        pa_log("Disabling timer-based scheduling because high-resolution timers are not available from the kernel.");
+        use_tsched = FALSE;
     }
 
     u = pa_xnew0(struct userdata, 1);
@@ -748,14 +869,18 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->use_mmap = use_mmap;
+    u->use_tsched = use_tsched;
     pa_thread_mq_init(&u->thread_mq, m->core->mainloop);
     u->rtpoll = pa_rtpoll_new();
     u->alsa_rtpoll_item = NULL;
     pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+    u->smoother = pa_smoother_new(DEFAULT_TSCHED_WATERMARK_USEC, DEFAULT_TSCHED_WATERMARK_USEC, TRUE);
+    pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
 
     snd_config_update_free_global();
 
     b = use_mmap;
+    d = use_tsched;
 
     if ((dev_id = pa_modargs_get_value(ma, "device_id", NULL))) {
 
@@ -764,8 +889,8 @@ int pa__init(pa_module*m) {
                       &u->device_name,
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
-                      &nfrags, &period_size,
-                      &b)))
+                      &nfrags, &period_frames, tsched_frames,
+                      &b, &d)))
             goto fail;
 
     } else {
@@ -775,8 +900,8 @@ int pa__init(pa_module*m) {
                       &u->device_name,
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
-                      &nfrags, &period_size,
-                      &b)))
+                      &nfrags, &period_frames, tsched_frames,
+                      &b, &d)))
             goto fail;
     }
 
@@ -788,18 +913,24 @@ int pa__init(pa_module*m) {
         u->use_mmap = use_mmap = b;
     }
 
+    if (use_tsched && (!b || !d)) {
+        pa_log_info("Cannot enabled timer-based scheduling, falling back to sound IRQ scheduling.");
+        u->use_tsched = use_tsched = FALSE;
+    }
+
     if (u->use_mmap)
         pa_log_info("Successfully enabled mmap() mode.");
+
+    if (u->use_tsched)
+        pa_log_info("Successfully enabled timer-based scheduling mode.");
 
     if ((err = snd_pcm_info(u->pcm_handle, pcm_info)) < 0) {
         pa_log("Error fetching PCM info: %s", snd_strerror(err));
         goto fail;
     }
 
-    if ((err = pa_alsa_set_sw_params(u->pcm_handle)) < 0) {
-        pa_log("Failed to set software parameters: %s", snd_strerror(err));
+    if (update_sw_params(u) < 0)
         goto fail;
-    }
 
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
@@ -832,13 +963,31 @@ int pa__init(pa_module*m) {
     }
 
     if ((name = pa_modargs_get_value(ma, "source_name", NULL)))
-        namereg_fail = 1;
+        namereg_fail = TRUE;
     else {
         name = name_buf = pa_sprintf_malloc("alsa_input.%s", u->device_name);
-        namereg_fail = 0;
+        namereg_fail = FALSE;
     }
 
-    u->source = pa_source_new(m->core, __FILE__, name, namereg_fail, &ss, &map);
+    pa_source_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_source_new_data_set_name(&data, name);
+    data.namereg_fail = namereg_fail;
+    pa_source_new_data_set_sample_spec(&data, &ss);
+    pa_source_new_data_set_channel_map(&data, &map);
+
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "alsa");
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, snd_pcm_info_get_name(pcm_info));
+
+    if (class_table[snd_pcm_info_get_class(pcm_info)])
+        pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, class_table[snd_pcm_info_get_class(pcm_info)]);
+
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_ACCESS_MODE, u->use_tsched ? "mmap_rewrite" : (u->use_mmap ? "mmap" : "serial"));
+
+    u->source = pa_source_new(m->core, &data, PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY);
+    pa_source_new_data_done(&data);
     pa_xfree(name_buf);
 
     if (!u->source) {
@@ -849,22 +998,15 @@ int pa__init(pa_module*m) {
     u->source->parent.process_msg = source_process_msg;
     u->source->userdata = u;
 
-    pa_source_set_module(u->source, m);
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
-    pa_source_set_description(u->source, t = pa_sprintf_malloc(
-                                      "ALSA PCM on %s (%s)%s",
-                                      u->device_name,
-                                      snd_pcm_info_get_name(pcm_info),
-                                      use_mmap ? " via DMA" : ""));
-    pa_xfree(t);
-
-    u->source->flags = PA_SOURCE_HARDWARE|PA_SOURCE_LATENCY;
 
     u->frame_size = frame_size;
-    u->fragment_size = frag_size = period_size * frame_size;
+    u->fragment_size = frag_size = period_frames * frame_size;
     u->nfragments = nfrags;
     u->hwbuf_size = u->fragment_size * nfrags;
+    u->tsched_watermark = tsched_watermark;
+    u->frame_index = 0;
 
     pa_log_info("Using %u fragments of size %lu bytes.", nfrags, (long unsigned) u->fragment_size);
 
@@ -960,6 +1102,9 @@ void pa__done(pa_module*m) {
         snd_pcm_drop(u->pcm_handle);
         snd_pcm_close(u->pcm_handle);
     }
+
+    if (u->smoother)
+        pa_smoother_free(u->smoother);
 
     pa_xfree(u->device_name);
     pa_xfree(u);

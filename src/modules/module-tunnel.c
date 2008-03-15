@@ -1294,6 +1294,11 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     char *t, *dn = NULL;
+#ifdef TUNNEL_SINK
+    pa_sink_new_data data;
+#else
+    pa_source_new_data data;
+#endif
 
     pa_assert(m);
 
@@ -1354,7 +1359,18 @@ int pa__init(pa_module*m) {
     if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
         dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, dn, 1, &ss, &map))) {
+    pa_sink_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    data.namereg_fail = TRUE;
+    pa_sink_new_data_set_name(&data, dn);
+    pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_sink_new_data_set_channel_map(&data, &map);
+
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_NETWORK|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
         pa_log("Failed to create sink.");
         goto fail;
     }
@@ -1367,9 +1383,7 @@ int pa__init(pa_module*m) {
     u->sink->get_mute = sink_get_mute;
     u->sink->set_volume = sink_set_volume;
     u->sink->set_mute = sink_set_mute;
-    u->sink->flags = PA_SINK_NETWORK|PA_SINK_LATENCY|PA_SINK_HW_VOLUME_CTRL;
 
-    pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
     pa_sink_set_description(u->sink, t = pa_sprintf_malloc("%s%s%s", u->sink_name ? u->sink_name : "", u->sink_name ? " on " : "", u->server_name));
@@ -1380,7 +1394,18 @@ int pa__init(pa_module*m) {
     if (!(dn = pa_xstrdup(pa_modargs_get_value(ma, "source_name", NULL))))
         dn = pa_sprintf_malloc("tunnel.%s", u->server_name);
 
-    if (!(u->source = pa_source_new(m->core, __FILE__, dn, 1, &ss, &map))) {
+    pa_source_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    data.namereg_fail = TRUE;
+    pa_source_new_data_set_name(&data, dn);
+    pa_source_new_data_set_sample_spec(&data, &ss);
+    pa_source_new_data_set_channel_map(&data, &map);
+
+    u->source = pa_source_new(m->core, &data, PA_SOURCE_NETWORK|PA_SOURCE_LATENCY);
+    pa_source_new_data_done(&data);
+
+    if (!u->source) {
         pa_log("Failed to create source.");
         goto fail;
     }
@@ -1389,9 +1414,7 @@ int pa__init(pa_module*m) {
     u->source->userdata = u;
     u->source->set_state = source_set_state;
     u->source->get_latency = source_get_latency;
-    u->source->flags = PA_SOURCE_NETWORK|PA_SOURCE_LATENCY;
 
-    pa_source_set_module(u->source, m);
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
     pa_source_set_description(u->source, t = pa_sprintf_malloc("%s%s%s", u->source_name ? u->source_name : "", u->source_name ? " on " : "", u->server_name));

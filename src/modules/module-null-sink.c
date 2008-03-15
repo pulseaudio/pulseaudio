@@ -169,6 +169,7 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     pa_modargs *ma = NULL;
+    pa_sink_new_data data;
 
     pa_assert(m);
 
@@ -191,7 +192,18 @@ int pa__init(pa_module*m) {
     u->rtpoll = pa_rtpoll_new();
     pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
 
-    if (!(u->sink = pa_sink_new(m->core, __FILE__, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME), 0, &ss, &map))) {
+    pa_sink_new_data_init(&data);
+    data.driver = __FILE__;
+    data.module = m;
+    pa_sink_new_data_set_name(&data, pa_modargs_get_value(ma, "sink_name", DEFAULT_SINK_NAME));
+    pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_sink_new_data_set_channel_map(&data, &map);
+    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, pa_modargs_get_value(ma, "description", "NULL sink"));
+
+    u->sink = pa_sink_new(m->core, &data, 0);
+    pa_sink_new_data_done(&data);
+
+    if (!u->sink) {
         pa_log("Failed to create sink.");
         goto fail;
     }
@@ -200,10 +212,8 @@ int pa__init(pa_module*m) {
     u->sink->userdata = u;
     u->sink->flags = PA_SINK_LATENCY;
 
-    pa_sink_set_module(u->sink, m);
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
-    pa_sink_set_description(u->sink, pa_modargs_get_value(ma, "description", "NULL sink"));
 
     u->block_size = pa_bytes_per_second(&ss) / 20; /* 50 ms */
     if (u->block_size <= 0)

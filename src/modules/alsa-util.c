@@ -27,6 +27,7 @@
 #endif
 
 #include <sys/types.h>
+#include <limits.h>
 #include <asoundlib.h>
 
 #include <pulse/sample.h>
@@ -290,16 +291,22 @@ int pa_alsa_set_hw_params(
         pa_sample_spec *ss,
         uint32_t *periods,
         snd_pcm_uframes_t *period_size,
+        snd_pcm_uframes_t tsched_size,
         pa_bool_t *use_mmap,
+        pa_bool_t *use_tsched,
         pa_bool_t require_exact_channel_number) {
 
     int ret = -1;
+    snd_pcm_uframes_t _period_size = *period_size;
+    unsigned int _periods = *periods;
     snd_pcm_uframes_t buffer_size;
     unsigned int r = ss->rate;
     unsigned int c = ss->channels;
     pa_sample_format_t f = ss->format;
     snd_pcm_hw_params_t *hwparams;
     pa_bool_t _use_mmap = use_mmap && *use_mmap;
+    pa_bool_t _use_tsched = use_tsched && *use_tsched;
+    int dir;
 
     pa_assert(pcm_handle);
     pa_assert(ss);
@@ -307,8 +314,6 @@ int pa_alsa_set_hw_params(
     pa_assert(period_size);
 
     snd_pcm_hw_params_alloca(&hwparams);
-
-    buffer_size = *periods * *period_size;
 
     if ((ret = snd_pcm_hw_params_any(pcm_handle, hwparams)) < 0)
         goto finish;
@@ -330,11 +335,18 @@ int pa_alsa_set_hw_params(
     } else if ((ret = snd_pcm_hw_params_set_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
         goto finish;
 
+    if (!_use_mmap)
+        _use_tsched = FALSE;
+
     if ((ret = set_format(pcm_handle, hwparams, &f)) < 0)
         goto finish;
 
     if ((ret = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &r, NULL)) < 0)
         goto finish;
+
+    /* Adjust the buffer sizes, if we didn't get the rate we were asking for */
+    _period_size = (snd_pcm_uframes_t) (((uint64_t) _period_size * r) / ss->rate);
+    tsched_size = (snd_pcm_uframes_t) (((uint64_t) tsched_size * r) / ss->rate);
 
     if (require_exact_channel_number) {
         if ((ret = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, c)) < 0)
@@ -344,9 +356,31 @@ int pa_alsa_set_hw_params(
             goto finish;
     }
 
-    if ((*period_size > 0 && (ret = snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, period_size, NULL)) < 0) ||
-        (*periods > 0 && (ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0))
+    if (_use_tsched) {
+        _period_size = tsched_size;
+        _periods = 1;
+
+        pa_assert_se(snd_pcm_hw_params_get_buffer_size_max(hwparams, &buffer_size) == 0);
+        pa_log_debug("Maximum hw buffer size is %u ms", (unsigned) buffer_size * 1000 / r);
+    }
+
+    buffer_size = _periods * _period_size;
+
+    if ((ret = snd_pcm_hw_params_set_periods_integer(pcm_handle, hwparams)) < 0)
         goto finish;
+
+    if (_periods > 0) {
+        dir = 1;
+        if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0) {
+            dir = -1;
+            if ((ret = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &_periods, &dir)) < 0)
+                goto finish;
+        }
+    }
+
+    if (_period_size > 0)
+        if ((ret = snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &buffer_size)) < 0)
+            goto finish;
 
     if  ((ret = snd_pcm_hw_params(pcm_handle, hwparams)) < 0)
         goto finish;
@@ -363,8 +397,8 @@ int pa_alsa_set_hw_params(
     if ((ret = snd_pcm_prepare(pcm_handle)) < 0)
         goto finish;
 
-    if ((ret = snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size)) < 0 ||
-        (ret = snd_pcm_hw_params_get_period_size(hwparams, period_size, NULL)) < 0)
+    if ((ret = snd_pcm_hw_params_get_period_size(hwparams, &_period_size, &dir)) < 0 ||
+        (ret = snd_pcm_hw_params_get_periods(hwparams, &_periods, &dir)) < 0)
         goto finish;
 
     /* If the sample rate deviates too much, we need to resample */
@@ -373,13 +407,17 @@ int pa_alsa_set_hw_params(
     ss->channels = c;
     ss->format = f;
 
-    pa_assert(buffer_size > 0);
-    pa_assert(*period_size > 0);
-    *periods = buffer_size / *period_size;
-    pa_assert(*periods > 0);
+    pa_assert(_periods > 0);
+    pa_assert(_period_size > 0);
+
+    *periods = _periods;
+    *period_size = _period_size;
 
     if (use_mmap)
         *use_mmap = _use_mmap;
+
+    if (use_tsched)
+        *use_tsched = _use_tsched;
 
     ret = 0;
 
@@ -388,7 +426,7 @@ finish:
     return ret;
 }
 
-int pa_alsa_set_sw_params(snd_pcm_t *pcm) {
+int pa_alsa_set_sw_params(snd_pcm_t *pcm, size_t avail_min) {
     snd_pcm_sw_params_t *swparams;
     int err;
 
@@ -408,6 +446,11 @@ int pa_alsa_set_sw_params(snd_pcm_t *pcm) {
 
     if ((err = snd_pcm_sw_params_set_start_threshold(pcm, swparams, (snd_pcm_uframes_t) -1)) < 0) {
         pa_log_warn("Unable to set start threshold: %s\n", snd_strerror(err));
+        return err;
+    }
+
+    if ((err = snd_pcm_sw_params_set_avail_min(pcm, swparams, avail_min)) < 0) {
+        pa_log_error("snd_pcm_sw_params_set_avail_min() failed: %s", snd_strerror(err));
         return err;
     }
 
@@ -477,7 +520,9 @@ snd_pcm_t *pa_alsa_open_by_device_id(
         int mode,
         uint32_t *nfrags,
         snd_pcm_uframes_t *period_size,
-        pa_bool_t *use_mmap) {
+        snd_pcm_uframes_t tsched_size,
+        pa_bool_t *use_mmap,
+        pa_bool_t *use_tsched) {
 
     int i;
     int direction = 1;
@@ -536,7 +581,7 @@ snd_pcm_t *pa_alsa_open_by_device_id(
         try_ss.rate = ss->rate;
         try_ss.format = ss->format;
 
-        if ((err = pa_alsa_set_hw_params(pcm_handle, &try_ss, nfrags, period_size, use_mmap, TRUE)) < 0) {
+        if ((err = pa_alsa_set_hw_params(pcm_handle, &try_ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, TRUE)) < 0) {
             pa_log_info("PCM device %s refused our hw parameters: %s", d, snd_strerror(err));
             pa_xfree(d);
             snd_pcm_close(pcm_handle);
@@ -554,7 +599,7 @@ snd_pcm_t *pa_alsa_open_by_device_id(
 
     d = pa_sprintf_malloc("hw:%s", dev_id);
     pa_log_debug("Trying %s as last resort...", d);
-    pcm_handle = pa_alsa_open_by_device_string(d, dev, ss, map, mode, nfrags, period_size, use_mmap);
+    pcm_handle = pa_alsa_open_by_device_string(d, dev, ss, map, mode, nfrags, period_size, tsched_size, use_mmap, use_tsched);
     pa_xfree(d);
 
     return pcm_handle;
@@ -568,7 +613,9 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         int mode,
         uint32_t *nfrags,
         snd_pcm_uframes_t *period_size,
-        pa_bool_t *use_mmap) {
+        snd_pcm_uframes_t tsched_size,
+        pa_bool_t *use_mmap,
+        pa_bool_t *use_tsched) {
 
     int err;
     char *d;
@@ -591,7 +638,7 @@ snd_pcm_t *pa_alsa_open_by_device_string(
             return NULL;
         }
 
-        if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, use_mmap, FALSE)) < 0) {
+        if ((err = pa_alsa_set_hw_params(pcm_handle, ss, nfrags, period_size, tsched_size, use_mmap, use_tsched, FALSE)) < 0) {
 
             if (err == -EPERM) {
                 /* Hmm, some hw is very exotic, so we retry with plug, if without it didn't work */
@@ -773,7 +820,7 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
         }
 
         if ((is_mono && mono_used) || (!is_mono && alsa_channel_used[id])) {
-            pa_log_info("Channel map has duplicate channel '%s', failling back to software volume control.", pa_channel_position_to_string(channel_map->map[i]));
+            pa_log_info("Channel map has duplicate channel '%s', falling back to software volume control.", pa_channel_position_to_string(channel_map->map[i]));
             return -1;
         }
 
@@ -793,7 +840,57 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
         }
     }
 
-    pa_log_info("All %u channels can be mapped to mixer channels. Using hardware volume control.", channel_map->channels);
+    pa_log_info("All %u channels can be mapped to mixer channels.", channel_map->channels);
 
     return 0;
+}
+
+void pa_alsa_0dB_playback(snd_mixer_elem_t *elem) {
+    long min, max, v;
+
+    pa_assert(elem);
+
+    /* Try to enable 0 dB if possible. If ALSA cannot do dB, then use
+     * raw volume levels and fix them to 75% */
+
+    if (snd_mixer_selem_set_playback_dB_all(elem, 0, -1) >= 0)
+        return;
+
+    if (snd_mixer_selem_set_playback_dB_all(elem, 0, 1) >= 0)
+        return;
+
+    if (snd_mixer_selem_get_playback_volume_range(elem, &min, &max) < 0)
+        return;
+
+    v = min + ((max - min) * 3) / 4; /* 75% */
+
+    if (v <= min)
+        v = max;
+
+    snd_mixer_selem_set_playback_volume_all(elem, v);
+}
+
+void pa_alsa_0dB_capture(snd_mixer_elem_t *elem) {
+    long min, max, v;
+
+    pa_assert(elem);
+
+    /* Try to enable 0 dB if possible. If ALSA cannot do dB, then use
+     * raw volume levels and fix them to 75% */
+
+    if (snd_mixer_selem_set_capture_dB_all(elem, 0, -1) >= 0)
+        return;
+
+    if (snd_mixer_selem_set_capture_dB_all(elem, 0, 1) >= 0)
+        return;
+
+    if (snd_mixer_selem_get_capture_volume_range(elem, &min, &max) < 0)
+        return;
+
+    v = min + ((max - min) * 3) / 4; /* 75% */
+
+    if (v <= min)
+        v = max;
+
+    snd_mixer_selem_set_capture_volume_all(elem, v);
 }
