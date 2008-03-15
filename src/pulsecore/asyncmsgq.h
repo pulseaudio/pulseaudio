@@ -56,6 +56,7 @@ typedef struct pa_asyncmsgq pa_asyncmsgq;
 
 pa_asyncmsgq* pa_asyncmsgq_new(unsigned size);
 pa_asyncmsgq* pa_asyncmsgq_ref(pa_asyncmsgq *q);
+
 void pa_asyncmsgq_unref(pa_asyncmsgq* q);
 
 void pa_asyncmsgq_post(pa_asyncmsgq *q, pa_msgobject *object, int code, const void *userdata, int64_t offset, const pa_memchunk *memchunk, pa_free_cb_t userdata_free_cb);

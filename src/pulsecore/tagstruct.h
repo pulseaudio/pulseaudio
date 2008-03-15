@@ -32,6 +32,7 @@
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
+#include <pulse/proplist.h>
 
 typedef struct pa_tagstruct pa_tagstruct;
 
@@ -51,7 +52,8 @@ enum {
     PA_TAG_TIMEVAL = 'T',
     PA_TAG_USEC = 'U'  /* 64bit unsigned */,
     PA_TAG_CHANNEL_MAP = 'm',
-    PA_TAG_CVOLUME = 'v'
+    PA_TAG_CVOLUME = 'v',
+    PA_TAG_PROPLIST = 'P'
 };
 
 pa_tagstruct *pa_tagstruct_new(const uint8_t* data, size_t length);
@@ -75,6 +77,7 @@ void pa_tagstruct_put_timeval(pa_tagstruct*t, const struct timeval *tv);
 void pa_tagstruct_put_usec(pa_tagstruct*t, pa_usec_t u);
 void pa_tagstruct_put_channel_map(pa_tagstruct *t, const pa_channel_map *map);
 void pa_tagstruct_put_cvolume(pa_tagstruct *t, const pa_cvolume *cvolume);
+void pa_tagstruct_put_proplist(pa_tagstruct *t, pa_proplist *p);
 
 int pa_tagstruct_get(pa_tagstruct *t, ...);
 
@@ -90,6 +93,7 @@ int pa_tagstruct_get_timeval(pa_tagstruct*t, struct timeval *tv);
 int pa_tagstruct_get_usec(pa_tagstruct*t, pa_usec_t *u);
 int pa_tagstruct_get_channel_map(pa_tagstruct *t, pa_channel_map *map);
 int pa_tagstruct_get_cvolume(pa_tagstruct *t, pa_cvolume *v);
+int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p);
 
 
 #endif

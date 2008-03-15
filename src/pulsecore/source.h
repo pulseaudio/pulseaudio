@@ -71,7 +71,8 @@ struct pa_source {
     pa_source_flags_t flags;
 
     char *name;
-    char *description, *driver;              /* may be NULL */
+    char *driver;                             /* may be NULL */
+    pa_proplist *proplist;
 
     pa_module *module;                        /* may be NULL */
 
@@ -87,15 +88,16 @@ struct pa_source {
     pa_bool_t refresh_volume;
     pa_bool_t refresh_muted;
 
+    pa_asyncmsgq *asyncmsgq;
+    pa_rtpoll *rtpoll;
+
     int (*set_state)(pa_source*source, pa_source_state_t state); /* may be NULL */
     int (*set_volume)(pa_source *s);         /* dito */
     int (*get_volume)(pa_source *s);         /* dito */
     int (*set_mute)(pa_source *s);           /* dito */
     int (*get_mute)(pa_source *s);           /* dito */
     pa_usec_t (*get_latency)(pa_source *s);  /* dito */
-
-    pa_asyncmsgq *asyncmsgq;
-    pa_rtpoll *rtpoll;
+    void (*update_requested_latency)(pa_source *s); /* dito */
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -104,6 +106,9 @@ struct pa_source {
         pa_hashmap *outputs;
         pa_cvolume soft_volume;
         pa_bool_t soft_muted;
+
+        pa_bool_t requested_latency_valid;
+        size_t requested_latency;
     } thread_info;
 
     void *userdata;
@@ -127,20 +132,43 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_MAX
 } pa_source_message_t;
 
+typedef struct pa_source_new_data {
+    char *name;
+    pa_bool_t namereg_fail;
+    pa_proplist *proplist;
+
+    const char *driver;
+    pa_module *module;
+
+    pa_sample_spec sample_spec;
+    pa_bool_t sample_spec_is_set;
+    pa_channel_map channel_map;
+    pa_bool_t channel_map_is_set;
+
+    pa_cvolume volume;
+    pa_bool_t volume_is_set;
+    pa_bool_t muted;
+    pa_bool_t muted_is_set;
+} pa_source_new_data;
+
+pa_source_new_data* pa_source_new_data_init(pa_source_new_data *data);
+void pa_source_new_data_set_name(pa_source_new_data *data, const char *name);
+void pa_source_new_data_set_sample_spec(pa_source_new_data *data, const pa_sample_spec *spec);
+void pa_source_new_data_set_channel_map(pa_source_new_data *data, const pa_channel_map *map);
+void pa_source_new_data_set_volume(pa_source_new_data *data, const pa_cvolume *volume);
+void pa_source_new_data_set_muted(pa_source_new_data *data, pa_bool_t mute);
+void pa_source_new_data_done(pa_source_new_data *data);
+
 /* To be called exclusively by the source driver, from main context */
 
 pa_source* pa_source_new(
         pa_core *core,
-        const char *driver,
-        const char *name,
-        int namereg_fail,
-        const pa_sample_spec *spec,
-        const pa_channel_map *map);
+        pa_source_new_data *data,
+        pa_source_flags_t flags);
 
 void pa_source_put(pa_source *s);
 void pa_source_unlink(pa_source *s);
 
-void pa_source_set_module(pa_source *s, pa_module *m);
 void pa_source_set_description(pa_source *s, const char *description);
 void pa_source_set_asyncmsgq(pa_source *s, pa_asyncmsgq *q);
 void pa_source_set_rtpoll(pa_source *s, pa_rtpoll *p);
@@ -175,5 +203,11 @@ int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, int64_t, pa
 
 void pa_source_attach_within_thread(pa_source *s);
 void pa_source_detach_within_thread(pa_source *s);
+
+pa_usec_t pa_source_get_requested_latency(pa_source *s);
+
+/* To be called exclusively by source output drivers, from IO context */
+
+void pa_source_invalidate_requested_latency(pa_source *s);
 
 #endif

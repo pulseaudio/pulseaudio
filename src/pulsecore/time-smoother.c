@@ -332,6 +332,8 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
     s->py = y + s->dp *s->adjust_time;
 
     s->abc_valid = FALSE;
+
+    pa_log_debug("put(%llu | %llu) = %llu", x + s->time_offset, x, y);
 }
 
 pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
@@ -350,6 +352,9 @@ pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
     pa_assert(x >= s->ex);
 
     estimate(s, x, &y, NULL);
+
+    pa_log_debug("get(%llu | %llu) = %llu", x + s->time_offset, x, y);
+
     return y;
 }
 
@@ -357,6 +362,8 @@ void pa_smoother_set_time_offset(pa_smoother *s, pa_usec_t offset) {
     pa_assert(s);
 
     s->time_offset = offset;
+
+    pa_log_debug("offset(%llu)", offset);
 }
 
 void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
@@ -364,6 +371,8 @@ void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
 
     if (s->paused)
         return;
+
+    pa_log_debug("pause(%llu)", x);
 
     s->paused = TRUE;
     s->pause_time = x;
@@ -377,6 +386,31 @@ void pa_smoother_resume(pa_smoother *s, pa_usec_t x) {
 
     pa_assert(x >= s->pause_time);
 
+    pa_log_debug("resume(%llu)", x);
+
     s->paused = FALSE;
     s->time_offset += x - s->pause_time;
+}
+
+pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) {
+    pa_usec_t ney;
+    double nde;
+
+    pa_assert(s);
+    pa_assert(x >= s->time_offset);
+
+    /* Fix up x value */
+    if (s->paused)
+        x = s->pause_time;
+
+    pa_assert(x >= s->time_offset);
+    x -= s->time_offset;
+
+    pa_assert(x >= s->ex);
+
+    estimate(s, x, &ney, &nde);
+
+    pa_log_debug("translate(%llu) = %llu (%0.2f)", (unsigned long long) y_delay, (unsigned long long) ((double) y_delay / s->dp), s->dp);
+
+    return (pa_usec_t) ((double) y_delay / s->dp);
 }

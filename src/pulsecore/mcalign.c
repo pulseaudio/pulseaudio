@@ -197,7 +197,6 @@ int pa_mcalign_pop(pa_mcalign *m, pa_memchunk *c) {
 
     /* There's simply nothing */
     return -1;
-
 }
 
 size_t pa_mcalign_csize(pa_mcalign *m, size_t l) {
@@ -210,4 +209,12 @@ size_t pa_mcalign_csize(pa_mcalign *m, size_t l) {
         l += m->leftover.length;
 
     return (l/m->base)*m->base;
+}
+
+void pa_mcalign_flush(pa_mcalign *m) {
+    pa_memchunk chunk;
+    pa_assert(m);
+
+    while (pa_mcalign_pop(m, &chunk) >= 0)
+        pa_memblock_unref(chunk.memblock);
 }

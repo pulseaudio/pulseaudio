@@ -41,6 +41,7 @@
 #include <pulsecore/core-scache.h>
 #include <pulsecore/autoload.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/core-util.h>
 
 #include "cli-text.h"
 
@@ -78,10 +79,20 @@ char *pa_client_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u client(s) logged in.\n", pa_idxset_size(c->clients));
 
     for (client = pa_idxset_first(c->clients, &idx); client; client = pa_idxset_next(c->clients, &idx)) {
-        pa_strbuf_printf(s, "    index: %u\n\tname: <%s>\n\tdriver: <%s>\n", client->index, client->name, client->driver);
+        char *t;
+        pa_strbuf_printf(
+                s,
+                "    index: %u\n"
+                "\tdriver: <%s>\n",
+                client->index,
+                client->driver);
 
-        if (client->owner)
-            pa_strbuf_printf(s, "\towner module: <%u>\n", client->owner->index);
+        if (client->module)
+            pa_strbuf_printf(s, "\towner module: <%u>\n", client->module->index);
+
+        t = pa_proplist_to_string(client->proplist);
+        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        pa_xfree(t);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -92,6 +103,7 @@ char *pa_sink_list_to_string(pa_core *c) {
     pa_sink *sink;
     uint32_t idx = PA_IDXSET_INVALID;
     static const char* const state_table[] = {
+        [PA_SINK_INIT] = "INIT",
         [PA_SINK_RUNNING] = "RUNNING",
         [PA_SINK_SUSPENDED] = "SUSPENDED",
         [PA_SINK_IDLE] = "IDLE",
@@ -104,14 +116,14 @@ char *pa_sink_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u sink(s) available.\n", pa_idxset_size(c->sinks));
 
     for (sink = pa_idxset_first(c->sinks, &idx); sink; sink = pa_idxset_next(c->sinks, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
 
         pa_strbuf_printf(
             s,
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tvolume: <%s>\n"
             "\tmute: <%i>\n"
@@ -125,7 +137,9 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->index,
             sink->name,
             sink->driver,
+            sink->flags & PA_SINK_HW_MUTE_CTRL ? "HW_MUTE_CTRL " : "",
             sink->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
+            sink->flags & PA_SINK_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
             sink->flags & PA_SINK_HARDWARE ? "HARDWARE " : "",
             sink->flags & PA_SINK_NETWORK ? "NETWORK " : "",
@@ -141,8 +155,10 @@ char *pa_sink_list_to_string(pa_core *c) {
 
         if (sink->module)
             pa_strbuf_printf(s, "\tmodule: <%u>\n", sink->module->index);
-        if (sink->description)
-            pa_strbuf_printf(s, "\tdescription: <%s>\n", sink->description);
+
+        t = pa_proplist_to_string(sink->proplist);
+        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        pa_xfree(t);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -153,6 +169,7 @@ char *pa_source_list_to_string(pa_core *c) {
     pa_source *source;
     uint32_t idx = PA_IDXSET_INVALID;
     static const char* const state_table[] = {
+        [PA_SOURCE_INIT] = "INIT",
         [PA_SOURCE_RUNNING] = "RUNNING",
         [PA_SOURCE_SUSPENDED] = "SUSPENDED",
         [PA_SOURCE_IDLE] = "IDLE",
@@ -165,15 +182,14 @@ char *pa_source_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u source(s) available.\n", pa_idxset_size(c->sources));
 
     for (source = pa_idxset_first(c->sources, &idx); source; source = pa_idxset_next(c->sources, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX];
-
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], *t;
 
         pa_strbuf_printf(
             s,
             "  %c index: %u\n"
             "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tvolume: <%s>\n"
             "\tmute: <%u>\n"
@@ -186,7 +202,9 @@ char *pa_source_list_to_string(pa_core *c) {
             source->index,
             source->name,
             source->driver,
+            source->flags & PA_SOURCE_HW_MUTE_CTRL ? "HW_MUTE_CTRL " : "",
             source->flags & PA_SOURCE_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
+            source->flags & PA_SOURCE_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
             source->flags & PA_SOURCE_HARDWARE ? "HARDWARE " : "",
             source->flags & PA_SOURCE_NETWORK ? "NETWORK " : "",
@@ -203,8 +221,10 @@ char *pa_source_list_to_string(pa_core *c) {
             pa_strbuf_printf(s, "\tmonitor_of: <%u>\n", source->monitor_of->index);
         if (source->module)
             pa_strbuf_printf(s, "\tmodule: <%u>\n", source->module->index);
-        if (source->description)
-            pa_strbuf_printf(s, "\tdescription: <%s>\n", source->description);
+
+        t = pa_proplist_to_string(source->proplist);
+        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        pa_xfree(t);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -216,6 +236,7 @@ char *pa_source_output_list_to_string(pa_core *c) {
     pa_source_output *o;
     uint32_t idx = PA_IDXSET_INVALID;
     static const char* const state_table[] = {
+        [PA_SOURCE_OUTPUT_INIT] = "INIT",
         [PA_SOURCE_OUTPUT_RUNNING] = "RUNNING",
         [PA_SOURCE_OUTPUT_CORKED] = "CORKED",
         [PA_SOURCE_OUTPUT_UNLINKED] = "UNLINKED"
@@ -227,16 +248,15 @@ char *pa_source_output_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u source outputs(s) available.\n", pa_idxset_size(c->source_outputs));
 
     for (o = pa_idxset_first(c->source_outputs, &idx); o; o = pa_idxset_next(c->source_outputs, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
 
         pa_assert(o->source);
 
         pa_strbuf_printf(
             s,
             "    index: %u\n"
-            "\tname: '%s'\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsource: <%u> '%s'\n"
             "\tlatency: <%0.0f usec>\n"
@@ -244,10 +264,10 @@ char *pa_source_output_list_to_string(pa_core *c) {
             "\tchannel map: <%s>\n"
             "\tresample method: %s\n",
             o->index,
-            o->name,
             o->driver,
             o->flags & PA_SOURCE_OUTPUT_VARIABLE_RATE ? "VARIABLE_RATE " : "",
             o->flags & PA_SOURCE_OUTPUT_DONT_MOVE ? "DONT_MOVE " : "",
+            o->flags & PA_SOURCE_OUTPUT_START_CORKED ? "START_CORKED " : "",
             o->flags & PA_SOURCE_OUTPUT_NO_REMAP ? "NO_REMAP " : "",
             o->flags & PA_SOURCE_OUTPUT_NO_REMIX ? "NO_REMIX " : "",
             o->flags & PA_SOURCE_OUTPUT_FIX_FORMAT ? "FIX_FORMAT " : "",
@@ -262,7 +282,11 @@ char *pa_source_output_list_to_string(pa_core *c) {
         if (o->module)
             pa_strbuf_printf(s, "\towner module: <%u>\n", o->module->index);
         if (o->client)
-            pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", o->client->index, o->client->name);
+            pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", o->client->index, pa_strnull(pa_proplist_gets(o->client->proplist, PA_PROP_APPLICATION_NAME)));
+
+        t = pa_proplist_to_string(o->proplist);
+        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        pa_xfree(t);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -273,6 +297,7 @@ char *pa_sink_input_list_to_string(pa_core *c) {
     pa_sink_input *i;
     uint32_t idx = PA_IDXSET_INVALID;
     static const char* const state_table[] = {
+        [PA_SINK_INPUT_INIT] = "INIT",
         [PA_SINK_INPUT_RUNNING] = "RUNNING",
         [PA_SINK_INPUT_DRAINED] = "DRAINED",
         [PA_SINK_INPUT_CORKED] = "CORKED",
@@ -285,16 +310,15 @@ char *pa_sink_input_list_to_string(pa_core *c) {
     pa_strbuf_printf(s, "%u sink input(s) available.\n", pa_idxset_size(c->sink_inputs));
 
     for (i = pa_idxset_first(c->sink_inputs, &idx); i; i = pa_idxset_next(c->sink_inputs, &idx)) {
-        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+        char ss[PA_SAMPLE_SPEC_SNPRINT_MAX], cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX], *t;
 
         pa_assert(i->sink);
 
         pa_strbuf_printf(
             s,
             "    index: %u\n"
-            "\tname: <%s>\n"
             "\tdriver: <%s>\n"
-            "\tflags: %s%s%s%s%s%s%s\n"
+            "\tflags: %s%s%s%s%s%s%s%s\n"
             "\tstate: %s\n"
             "\tsink: <%u> '%s'\n"
             "\tvolume: <%s>\n"
@@ -304,10 +328,10 @@ char *pa_sink_input_list_to_string(pa_core *c) {
             "\tchannel map: <%s>\n"
             "\tresample method: %s\n",
             i->index,
-            i->name,
             i->driver,
             i->flags & PA_SINK_INPUT_VARIABLE_RATE ? "VARIABLE_RATE " : "",
             i->flags & PA_SINK_INPUT_DONT_MOVE ? "DONT_MOVE " : "",
+            i->flags & PA_SINK_INPUT_START_CORKED ? "START_CORKED " : "",
             i->flags & PA_SINK_INPUT_NO_REMAP ? "NO_REMAP " : "",
             i->flags & PA_SINK_INPUT_NO_REMIX ? "NO_REMIX " : "",
             i->flags & PA_SINK_INPUT_FIX_FORMAT ? "FIX_FORMAT " : "",
@@ -325,7 +349,11 @@ char *pa_sink_input_list_to_string(pa_core *c) {
         if (i->module)
             pa_strbuf_printf(s, "\tmodule: <%u>\n", i->module->index);
         if (i->client)
-            pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", i->client->index, i->client->name);
+            pa_strbuf_printf(s, "\tclient: <%u> '%s'\n", i->client->index, pa_strnull(pa_proplist_gets(i->client->proplist, PA_PROP_APPLICATION_NAME)));
+
+        t = pa_proplist_to_string(i->proplist);
+        pa_strbuf_printf(s, "\tproperties:\n%s", t);
+        pa_xfree(t);
     }
 
     return pa_strbuf_tostring_free(s);
@@ -345,7 +373,7 @@ char *pa_scache_list_to_string(pa_core *c) {
 
         for (e = pa_idxset_first(c->scache, &idx); e; e = pa_idxset_next(c->scache, &idx)) {
             double l = 0;
-            char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX] = "n/a";
+            char ss[PA_SAMPLE_SPEC_SNPRINT_MAX] = "n/a", cv[PA_CVOLUME_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX] = "n/a", *t;
 
             if (e->memchunk.memblock) {
                 pa_sample_spec_snprint(ss, sizeof(ss), &e->sample_spec);
@@ -371,8 +399,12 @@ char *pa_scache_list_to_string(pa_core *c) {
                 (long unsigned)(e->memchunk.memblock ? e->memchunk.length : 0),
                 l,
                 pa_cvolume_snprint(cv, sizeof(cv), &e->volume),
-                e->lazy ? "yes" : "no",
+                pa_yes_no(e->lazy),
                 e->filename ? e->filename : "n/a");
+
+            t = pa_proplist_to_string(e->proplist);
+            pa_strbuf_printf(s, "\tproperties:\n%s", t);
+            pa_xfree(t);
         }
     }
 

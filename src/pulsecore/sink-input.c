@@ -41,8 +41,8 @@
 
 #include "sink-input.h"
 
+#define MEMBLOCKQ_MAXLENGTH (16*1024*1024)
 #define CONVERT_BUFFER_LENGTH (PA_PAGE_SIZE)
-#define SILENCE_BUFFER_LENGTH (PA_PAGE_SIZE*12)
 #define MOVE_BUFFER_LENGTH (PA_PAGE_SIZE*256)
 
 static PA_DEFINE_CHECK_TYPE(pa_sink_input, pa_msgobject);
@@ -54,8 +54,16 @@ pa_sink_input_new_data* pa_sink_input_new_data_init(pa_sink_input_new_data *data
 
     memset(data, 0, sizeof(*data));
     data->resample_method = PA_RESAMPLER_INVALID;
+    data->proplist = pa_proplist_new();
 
     return data;
+}
+
+void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const pa_sample_spec *spec) {
+    pa_assert(data);
+
+    if ((data->sample_spec_is_set = !!spec))
+        data->sample_spec = *spec;
 }
 
 void pa_sink_input_new_data_set_channel_map(pa_sink_input_new_data *data, const pa_channel_map *map) {
@@ -72,18 +80,17 @@ void pa_sink_input_new_data_set_volume(pa_sink_input_new_data *data, const pa_cv
         data->volume = *volume;
 }
 
-void pa_sink_input_new_data_set_sample_spec(pa_sink_input_new_data *data, const pa_sample_spec *spec) {
-    pa_assert(data);
-
-    if ((data->sample_spec_is_set = !!spec))
-        data->sample_spec = *spec;
-}
-
 void pa_sink_input_new_data_set_muted(pa_sink_input_new_data *data, pa_bool_t mute) {
     pa_assert(data);
 
     data->muted_is_set = TRUE;
     data->muted = !!mute;
+}
+
+void pa_sink_input_new_data_done(pa_sink_input_new_data *data) {
+    pa_assert(data);
+
+    pa_proplist_free(data->proplist);
 }
 
 pa_sink_input* pa_sink_input_new(
@@ -94,6 +101,7 @@ pa_sink_input* pa_sink_input_new(
     pa_sink_input *i;
     pa_resampler *resampler = NULL;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    pa_memblock *silence;
 
     pa_assert(core);
     pa_assert(data);
@@ -102,7 +110,6 @@ pa_sink_input* pa_sink_input_new(
         return NULL;
 
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
-    pa_return_null_if_fail(!data->name || pa_utf8_valid(data->name));
 
     if (!data->sink)
         data->sink = pa_namereg_get(core, NULL, PA_NAMEREG_SINK, 1);
@@ -132,6 +139,9 @@ pa_sink_input* pa_sink_input_new(
     pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
     pa_return_null_if_fail(data->volume.channels == data->sample_spec.channels);
 
+    if (!data->muted_is_set)
+        data->muted = FALSE;
+
     if (flags & PA_SINK_INPUT_FIX_FORMAT)
         data->sample_spec.format = data->sink->sample_spec.format;
 
@@ -149,9 +159,6 @@ pa_sink_input* pa_sink_input_new(
     /* Due to the fixing of the sample spec the volume might not match anymore */
     if (data->volume.channels != data->sample_spec.channels)
         pa_cvolume_set(&data->volume, data->sample_spec.channels, pa_cvolume_avg(&data->volume));
-
-    if (!data->muted_is_set)
-        data->muted = 0;
 
     if (data->resample_method == PA_RESAMPLER_INVALID)
         data->resample_method = core->resample_method;
@@ -192,7 +199,7 @@ pa_sink_input* pa_sink_input_new(
     i->core = core;
     i->state = PA_SINK_INPUT_INIT;
     i->flags = flags;
-    i->name = pa_xstrdup(data->name);
+    i->proplist = pa_proplist_copy(data->proplist);
     i->driver = pa_xstrdup(data->driver);
     i->module = data->module;
     i->sink = data->sink;
@@ -215,8 +222,9 @@ pa_sink_input* pa_sink_input_new(
     } else
         i->sync_next = i->sync_prev = NULL;
 
-    i->peek = NULL;
-    i->drop = NULL;
+    i->pop = NULL;
+    i->rewind = NULL;
+    i->set_max_rewind = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
     i->attach = NULL;
@@ -226,22 +234,37 @@ pa_sink_input* pa_sink_input_new(
     i->userdata = NULL;
 
     i->thread_info.state = i->state;
+    i->thread_info.attached = FALSE;
     pa_atomic_store(&i->thread_info.drained, 1);
+    pa_atomic_store(&i->thread_info.render_memblockq_is_empty, 0);
     i->thread_info.sample_spec = i->sample_spec;
-    i->thread_info.silence_memblock = NULL;
-    i->thread_info.move_silence = 0;
-    pa_memchunk_reset(&i->thread_info.resampled_chunk);
     i->thread_info.resampler = resampler;
     i->thread_info.volume = i->volume;
     i->thread_info.muted = i->muted;
-    i->thread_info.attached = FALSE;
+    i->thread_info.requested_sink_latency = 0;
+    i->thread_info.rewrite_nbytes = 0;
+    i->thread_info.ignore_rewind = FALSE;
+
+    silence = pa_silence_memblock_new(i->sink->core->mempool, &i->sink->sample_spec, 0);
+
+    i->thread_info.render_memblockq = pa_memblockq_new(
+            0,
+            MEMBLOCKQ_MAXLENGTH,
+            0,
+            pa_frame_size(&i->sink->sample_spec),
+            0,
+            1,
+            0,
+            silence);
+
+    pa_memblock_unref(silence);
 
     pa_assert_se(pa_idxset_put(core->sink_inputs, pa_sink_input_ref(i), &i->index) == 0);
     pa_assert_se(pa_idxset_put(i->sink->inputs, i, NULL) == 0);
 
     pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s",
                 i->index,
-                i->name,
+                pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)),
                 i->sink->name,
                 pa_sample_spec_snprint(st, sizeof(st), &i->sample_spec),
                 pa_channel_map_snprint(cm, sizeof(cm), &i->channel_map));
@@ -325,8 +348,9 @@ void pa_sink_input_unlink(pa_sink_input *i) {
     } else
         i->state = PA_SINK_INPUT_UNLINKED;
 
-    i->peek = NULL;
-    i->drop = NULL;
+    i->pop = NULL;
+    i->rewind = NULL;
+    i->set_max_rewind = NULL;
     i->kill = NULL;
     i->get_latency = NULL;
     i->attach = NULL;
@@ -352,20 +376,19 @@ static void sink_input_free(pa_object *o) {
     if (PA_SINK_INPUT_LINKED(i->state))
         pa_sink_input_unlink(i);
 
-    pa_log_info("Freeing output %u \"%s\"", i->index, i->name);
+    pa_log_info("Freeing input %u \"%s\"", i->index, pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME)));
 
     pa_assert(!i->thread_info.attached);
 
-    if (i->thread_info.resampled_chunk.memblock)
-        pa_memblock_unref(i->thread_info.resampled_chunk.memblock);
+    if (i->thread_info.render_memblockq)
+        pa_memblockq_free(i->thread_info.render_memblockq);
 
     if (i->thread_info.resampler)
         pa_resampler_free(i->thread_info.resampler);
 
-    if (i->thread_info.silence_memblock)
-        pa_memblock_unref(i->thread_info.silence_memblock);
+    if (i->proplist)
+        pa_proplist_free(i->proplist);
 
-    pa_xfree(i->name);
     pa_xfree(i->driver);
     pa_xfree(i);
 }
@@ -374,8 +397,8 @@ void pa_sink_input_put(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
 
     pa_assert(i->state == PA_SINK_INPUT_INIT);
-    pa_assert(i->peek);
-    pa_assert(i->drop);
+    pa_assert(i->pop);
+    pa_assert(i->rewind);
 
     i->thread_info.state = i->state = i->flags & PA_SINK_INPUT_START_CORKED ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING;
     i->thread_info.volume = i->volume;
@@ -384,8 +407,8 @@ void pa_sink_input_put(pa_sink_input *i) {
     if (i->state == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;
 
-    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, i, 0, NULL);
     pa_sink_update_status(i->sink);
+    pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, i, 0, NULL);
 
     pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_NEW, i->index);
     pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], i);
@@ -419,85 +442,83 @@ pa_usec_t pa_sink_input_get_latency(pa_sink_input *i) {
 }
 
 /* Called from thread context */
-int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_cvolume *volume) {
-    int ret = -1;
-    int do_volume_adj_here;
-    int volume_is_norm;
-    size_t block_size_max;
+int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa_memchunk *chunk, pa_cvolume *volume) {
+    pa_bool_t do_volume_adj_here;
+    pa_bool_t volume_is_norm;
+    size_t block_size_max_sink, block_size_max_sink_input;
+    size_t ilength;
 
     pa_sink_input_assert_ref(i);
     pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
-    pa_assert(pa_frame_aligned(length, &i->sink->sample_spec));
+    pa_assert(pa_frame_aligned(slength, &i->sink->sample_spec));
     pa_assert(chunk);
     pa_assert(volume);
 
-    if (!i->peek || !i->drop || i->thread_info.state == PA_SINK_INPUT_CORKED)
-        goto finish;
+    pa_log_debug("peek");
+
+    if (!i->pop || i->thread_info.state == PA_SINK_INPUT_CORKED)
+        return -1;
 
     pa_assert(i->thread_info.state == PA_SINK_INPUT_RUNNING || i->thread_info.state == PA_SINK_INPUT_DRAINED);
 
+    /* If there's still some rewrite request the handle, but the sink
+    didn't do this for us, we do it here. However, since the sink
+    apparently doesn't support rewinding, we pass 0 here. This still
+    allows rewinding through the render buffer. */
+    pa_sink_input_rewind(i, 0);
+
+    block_size_max_sink_input = i->thread_info.resampler ?
+        pa_resampler_max_block_size(i->thread_info.resampler) :
+        pa_frame_align(pa_mempool_block_size_max(i->sink->core->mempool), &i->sample_spec);
+
+    block_size_max_sink = pa_frame_align(pa_mempool_block_size_max(i->sink->core->mempool), &i->sink->sample_spec);
+
     /* Default buffer size */
-    if (length <= 0)
-        length = pa_frame_align(CONVERT_BUFFER_LENGTH, &i->sink->sample_spec);
+    if (slength <= 0)
+        slength = pa_frame_align(CONVERT_BUFFER_LENGTH, &i->sink->sample_spec);
 
-    /* Make sure the buffer fits in the mempool tile */
-    block_size_max = pa_mempool_block_size_max(i->sink->core->mempool);
-    if (length > block_size_max)
-        length = pa_frame_align(block_size_max, &i->sink->sample_spec);
+    if (slength > block_size_max_sink)
+        slength = block_size_max_sink;
 
-    if (i->thread_info.move_silence > 0) {
-        size_t l;
+    if (i->thread_info.resampler) {
+        ilength = pa_resampler_request(i->thread_info.resampler, slength);
 
-        /* We have just been moved and shall play some silence for a
-         * while until the old sink has drained its playback buffer */
+        if (ilength <= 0)
+            ilength = pa_frame_align(CONVERT_BUFFER_LENGTH, &i->sample_spec);
+    } else
+        ilength = slength;
 
-        if (!i->thread_info.silence_memblock)
-            i->thread_info.silence_memblock = pa_silence_memblock_new(
-                    i->sink->core->mempool,
-                    &i->sink->sample_spec,
-                    pa_frame_align(SILENCE_BUFFER_LENGTH, &i->sink->sample_spec));
+    if (ilength > block_size_max_sink_input)
+        ilength = block_size_max_sink_input;
 
-        chunk->memblock = pa_memblock_ref(i->thread_info.silence_memblock);
-        chunk->index = 0;
-        l = pa_memblock_get_length(chunk->memblock);
-        chunk->length = i->thread_info.move_silence < l ? i->thread_info.move_silence : l;
-
-        ret = 0;
-        do_volume_adj_here = 1;
-        goto finish;
-    }
-
-    if (!i->thread_info.resampler) {
-        do_volume_adj_here = 0; /* FIXME??? */
-        ret = i->peek(i, length, chunk);
-        goto finish;
-    }
+    /* If the channel maps of the sink and this stream differ, we need
+     * to adjust the volume *before* we resample. Otherwise we can do
+     * it after and leave it for the sink code */
 
     do_volume_adj_here = !pa_channel_map_equal(&i->channel_map, &i->sink->channel_map);
     volume_is_norm = pa_cvolume_is_norm(&i->thread_info.volume) && !i->thread_info.muted;
 
-    while (!i->thread_info.resampled_chunk.memblock) {
+    while (!pa_memblockq_is_readable(i->thread_info.render_memblockq)) {
         pa_memchunk tchunk;
-        size_t l, rmbs;
 
-        l = pa_resampler_request(i->thread_info.resampler, length);
+        /* There's nothing in our render queue. We need to fill it up
+         * with data from the implementor. */
 
-        if (l <= 0)
-            l = pa_frame_align(CONVERT_BUFFER_LENGTH, &i->sample_spec);
+        if (i->pop(i, ilength, &tchunk) < 0) {
+            pa_atomic_store(&i->thread_info.drained, 1);
 
-        rmbs = pa_resampler_max_block_size(i->thread_info.resampler);
-        if (l > rmbs)
-            l = rmbs;
+            /* OK, we got no data from the implementor, so let's just skip ahead */
+            pa_memblockq_seek(i->thread_info.render_memblockq, slength, PA_SEEK_RELATIVE_ON_READ);
+            break;
+        }
 
-        if ((ret = i->peek(i, l, &tchunk)) < 0)
-            goto finish;
+        pa_atomic_store(&i->thread_info.drained, 0);
 
         pa_assert(tchunk.length > 0);
+        pa_assert(tchunk.memblock);
 
-        if (tchunk.length > l)
-            tchunk.length = l;
-
-        i->drop(i, tchunk.length);
+        if (tchunk.length > block_size_max_sink_input)
+            tchunk.length = block_size_max_sink_input;
 
         /* It might be necessary to adjust the volume here */
         if (do_volume_adj_here && !volume_is_norm) {
@@ -509,137 +530,146 @@ int pa_sink_input_peek(pa_sink_input *i, size_t length, pa_memchunk *chunk, pa_c
                 pa_volume_memchunk(&tchunk, &i->thread_info.sample_spec, &i->thread_info.volume);
         }
 
-        pa_resampler_run(i->thread_info.resampler, &tchunk, &i->thread_info.resampled_chunk);
+        if (!i->thread_info.resampler)
+            pa_memblockq_push_align(i->thread_info.render_memblockq, &tchunk);
+        else {
+            pa_memchunk rchunk;
+            pa_resampler_run(i->thread_info.resampler, &tchunk, &rchunk);
+
+            if (rchunk.memblock) {
+                pa_memblockq_push_align(i->thread_info.render_memblockq, &rchunk);
+                pa_memblock_unref(rchunk.memblock);
+            }
+        }
+
         pa_memblock_unref(tchunk.memblock);
     }
 
-    pa_assert(i->thread_info.resampled_chunk.memblock);
-    pa_assert(i->thread_info.resampled_chunk.length > 0);
+    pa_assert_se(pa_memblockq_peek(i->thread_info.render_memblockq, chunk) >= 0);
 
-    *chunk = i->thread_info.resampled_chunk;
-    pa_memblock_ref(i->thread_info.resampled_chunk.memblock);
+    pa_assert(chunk->length > 0);
+    pa_assert(chunk->memblock);
 
-    ret = 0;
+    if (chunk->length > block_size_max_sink)
+        chunk->length = block_size_max_sink;
 
-finish:
+    /* Let's see if we had to apply the volume adjustment ourselves,
+     * or if this can be done by the sink for us */
 
-    if (ret >= 0)
-        pa_atomic_store(&i->thread_info.drained, 0);
-    else if (ret < 0)
-        pa_atomic_store(&i->thread_info.drained, 1);
+    if (do_volume_adj_here)
+        /* We had different channel maps, so we already did the adjustment */
+        pa_cvolume_reset(volume, i->sink->sample_spec.channels);
+    else if (i->thread_info.muted)
+        /* We've both the same channel map, so let's have the sink do the adjustment for us*/
+        pa_cvolume_mute(volume, i->sink->sample_spec.channels);
+    else
+        *volume = i->thread_info.volume;
 
-    if (ret >= 0) {
-        /* Let's see if we had to apply the volume adjustment
-         * ourselves, or if this can be done by the sink for us */
+    pa_atomic_store(&i->thread_info.render_memblockq_is_empty, pa_memblockq_is_empty(i->thread_info.render_memblockq));
 
-        if (do_volume_adj_here)
-            /* We had different channel maps, so we already did the adjustment */
-            pa_cvolume_reset(volume, i->sink->sample_spec.channels);
-        else if (i->thread_info.muted)
-            /* We've both the same channel map, so let's have the sink do the adjustment for us*/
-            pa_cvolume_mute(volume, i->sink->sample_spec.channels);
-        else
-            *volume = i->thread_info.volume;
-    }
-
-    return ret;
+    return 0;
 }
 
 /* Called from thread context */
-void pa_sink_input_drop(pa_sink_input *i, size_t length) {
-    pa_sink_input_assert_ref(i);
-    pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
-    pa_assert(pa_frame_aligned(length, &i->sink->sample_spec));
-    pa_assert(length > 0);
+void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
 
-    if (!i->peek || !i->drop || i->thread_info.state == PA_SINK_INPUT_CORKED)
+    pa_sink_input_assert_ref(i);
+
+    pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
+    pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
+    pa_assert(nbytes > 0);
+
+    if (i->thread_info.state == PA_SINK_INPUT_CORKED)
         return;
 
-    if (i->thread_info.move_silence > 0) {
+    /* If there's still some rewrite request the handle, but the sink
+    didn't do this for us, we do it here. However, since the sink
+    apparently doesn't support rewinding, we pass 0 here. This still
+    allows rewinding through the render buffer. */
+    if (i->thread_info.rewrite_nbytes > 0)
+        pa_sink_input_rewind(i, 0);
 
-        if (i->thread_info.move_silence >= length) {
-            i->thread_info.move_silence -= length;
-            length = 0;
-        } else {
-            length -= i->thread_info.move_silence;
-            i->thread_info.move_silence = 0;
-        }
+    pa_memblockq_drop(i->thread_info.render_memblockq, nbytes);
 
-        if (i->thread_info.move_silence <= 0) {
-            if (i->thread_info.silence_memblock) {
-                pa_memblock_unref(i->thread_info.silence_memblock);
-                i->thread_info.silence_memblock = NULL;
-            }
-        }
+    pa_atomic_store(&i->thread_info.render_memblockq_is_empty, pa_memblockq_is_empty(i->thread_info.render_memblockq));
+}
 
-        if (length <= 0)
-            return;
+/* Called from thread context */
+void pa_sink_input_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
+    pa_sink_input_assert_ref(i);
+
+    pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
+    pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
+
+    pa_log_debug("rewind(%u, %u)", nbytes, i->thread_info.rewrite_nbytes);
+
+    if (i->thread_info.state == PA_SINK_INPUT_CORKED)
+        return;
+
+    if (i->thread_info.ignore_rewind) {
+        i->thread_info.rewrite_nbytes = 0;
+        i->thread_info.ignore_rewind = FALSE;
+        return;
     }
 
-    if (i->thread_info.resampled_chunk.memblock) {
-        size_t l = length;
+    if (nbytes > 0)
+        pa_log_debug("Have to rewind %u bytes.", nbytes);
 
-        if (l > i->thread_info.resampled_chunk.length)
-            l = i->thread_info.resampled_chunk.length;
+    if (i->thread_info.rewrite_nbytes > 0) {
+        size_t max_rewrite;
 
-        i->thread_info.resampled_chunk.index += l;
-        i->thread_info.resampled_chunk.length -= l;
+        /* Calculate how much make sense to rewrite at most */
+        if ((max_rewrite = nbytes + pa_memblockq_get_length(i->thread_info.render_memblockq)) > 0) {
+            size_t amount, r;
 
-        if (i->thread_info.resampled_chunk.length <= 0) {
-            pa_memblock_unref(i->thread_info.resampled_chunk.memblock);
-            pa_memchunk_reset(&i->thread_info.resampled_chunk);
+            /* Transform into local domain */
+            if (i->thread_info.resampler)
+                max_rewrite = pa_resampler_request(i->thread_info.resampler, max_rewrite);
+
+            /* Calculate how much of the rewinded data should actually be rewritten */
+            amount = PA_MIN(max_rewrite, i->thread_info.rewrite_nbytes);
+
+            /* Convert back to to sink domain */
+            r = i->thread_info.resampler ? pa_resampler_result(i->thread_info.resampler, amount) : amount;
+
+            /* Ok, now update the write pointer */
+            pa_memblockq_seek(i->thread_info.render_memblockq, -r, PA_SEEK_RELATIVE);
+
+            /* Tell the implementor */
+            if (i->rewind)
+                i->rewind(i, amount);
+
+            /* And reset the resampler */
+            if (i->thread_info.resampler)
+                pa_resampler_reset(i->thread_info.resampler);
         }
 
-        length -= l;
+
+        i->thread_info.rewrite_nbytes = 0;
     }
 
-    if (length > 0) {
+    if (nbytes > 0)
+        pa_memblockq_rewind(i->thread_info.render_memblockq, nbytes);
+}
 
-        if (i->thread_info.resampler) {
-            /* So, we have a resampler. To avoid discontinuities we
-             * have to actually read all data that could be read and
-             * pass it through the resampler. */
+/* Called from thread context */
+void pa_sink_input_set_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */) {
+    pa_sink_input_assert_ref(i);
 
-            while (length > 0) {
-                pa_memchunk chunk;
-                pa_cvolume volume;
+    pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
+    pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
 
-                if (pa_sink_input_peek(i, length, &chunk, &volume) >= 0) {
-                    size_t l;
+    pa_memblockq_set_maxrewind(i->thread_info.render_memblockq, nbytes);
 
-                    pa_memblock_unref(chunk.memblock);
+    if (i->set_max_rewind)
+        i->set_max_rewind(i, i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, nbytes) : nbytes);
+}
 
-                    l = chunk.length;
-                    if (l > length)
-                        l = length;
+void pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {
+    pa_sink_input_assert_ref(i);
+    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
-                    pa_sink_input_drop(i, l);
-                    length -= l;
-
-                } else {
-                    size_t l;
-
-                    l = pa_resampler_request(i->thread_info.resampler, length);
-
-                    /* Hmmm, peeking failed, so let's at least drop
-                     * the right amount of data */
-
-                    if (l > 0)
-                        if (i->drop)
-                            i->drop(i, l);
-
-                    break;
-                }
-            }
-
-        } else {
-
-            /* We have no resampler, hence let's just drop the data */
-
-            if (i->drop)
-                i->drop(i, length);
-        }
-    }
+    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY, NULL, (int64_t) usec, NULL, NULL);
 }
 
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {
@@ -707,19 +737,24 @@ int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate) {
 }
 
 void pa_sink_input_set_name(pa_sink_input *i, const char *name) {
+    const char *old;
     pa_sink_input_assert_ref(i);
 
-    if (!i->name && !name)
+    if (!name && !pa_proplist_contains(i->proplist, PA_PROP_MEDIA_NAME))
         return;
 
-    if (i->name && name && !strcmp(i->name, name))
+    old = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_NAME);
+
+    if (old && name && !strcmp(old, name))
         return;
 
-    pa_xfree(i->name);
-    i->name = pa_xstrdup(name);
+    if (name)
+        pa_proplist_sets(i->proplist, PA_PROP_MEDIA_NAME, name);
+    else
+        pa_proplist_unset(i->proplist, PA_PROP_MEDIA_NAME);
 
     if (PA_SINK_INPUT_LINKED(i->state)) {
-        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_NAME_CHANGED], i);
+        pa_hook_fire(&i->sink->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], i);
         pa_subscription_post(i->sink->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
     }
 }
@@ -829,20 +864,29 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
         /* Okey, let's move it */
 
         if (info.buffer_bytes > 0) {
+            pa_proplist *p;
+
+            p = pa_proplist_new();
+            pa_proplist_sets(p, PA_PROP_MEDIA_NAME, "Ghost For Moved Stream");
+            pa_proplist_sets(p, PA_PROP_MEDIA_ROLE, "routing");
 
             info.ghost_sink_input = pa_memblockq_sink_input_new(
                     origin,
-                    "Ghost Stream",
                     &origin->sample_spec,
                     &origin->channel_map,
                     NULL,
-                    NULL);
+                    NULL,
+                    p);
 
-            info.ghost_sink_input->thread_info.state = info.ghost_sink_input->state = PA_SINK_INPUT_RUNNING;
-            info.ghost_sink_input->thread_info.volume = info.ghost_sink_input->volume;
-            info.ghost_sink_input->thread_info.muted = info.ghost_sink_input->muted;
+            pa_proplist_free(p);
 
-            info.buffer = pa_memblockq_new(0, MOVE_BUFFER_LENGTH, 0, pa_frame_size(&origin->sample_spec), 0, 0, NULL);
+            if (info.ghost_sink_input) {
+                info.ghost_sink_input->thread_info.state = info.ghost_sink_input->state = PA_SINK_INPUT_RUNNING;
+                info.ghost_sink_input->thread_info.volume = info.ghost_sink_input->volume;
+                info.ghost_sink_input->thread_info.muted = info.ghost_sink_input->muted;
+
+                info.buffer = pa_memblockq_new(0, MOVE_BUFFER_LENGTH, 0, pa_frame_size(&origin->sample_spec), 0, 0, 0, NULL);
+            }
         }
     }
 
@@ -867,34 +911,26 @@ int pa_sink_input_move_to(pa_sink_input *i, pa_sink *dest, int immediately) {
 
     /* Replace resampler */
     if (new_resampler != i->thread_info.resampler) {
+        pa_memblock *silence;
+
         if (i->thread_info.resampler)
             pa_resampler_free(i->thread_info.resampler);
         i->thread_info.resampler = new_resampler;
 
         /* if the resampler changed, the silence memblock is
          * probably invalid now, too */
-        if (i->thread_info.silence_memblock) {
-            pa_memblock_unref(i->thread_info.silence_memblock);
-            i->thread_info.silence_memblock = NULL;
-        }
+
+        silence = pa_silence_memblock_new(i->sink->core->mempool, &dest->sample_spec, new_resampler ? pa_resampler_max_block_size(new_resampler) : 0);
+        pa_memblockq_set_silence(i->thread_info.render_memblockq, silence);
+        pa_memblock_unref(silence);
+
     }
 
-    /* Dump already resampled data */
-    if (i->thread_info.resampled_chunk.memblock) {
-        /* Hmm, this data has already been added to the ghost queue, presumably, hence let's sleep a little bit longer */
-        silence_usec += pa_bytes_to_usec(i->thread_info.resampled_chunk.length, &origin->sample_spec);
-        pa_memblock_unref(i->thread_info.resampled_chunk.memblock);
-        pa_memchunk_reset(&i->thread_info.resampled_chunk);
-    }
+    pa_memblockq_flush(i->thread_info.render_memblockq);
 
     /* Calculate the new sleeping time */
-    if (immediately)
-        i->thread_info.move_silence = 0;
-    else
-        i->thread_info.move_silence = pa_usec_to_bytes(
-                pa_bytes_to_usec(i->thread_info.move_silence, &origin->sample_spec) +
-                silence_usec,
-                &dest->sample_spec);
+    if (!immediately)
+        pa_memblockq_seek(i->thread_info.render_memblockq, pa_usec_to_bytes(silence_usec, &dest->sample_spec), PA_SEEK_RELATIVE);
 
     pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_ADD_INPUT, i, 0, NULL);
 
@@ -924,20 +960,18 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
     switch (code) {
         case PA_SINK_INPUT_MESSAGE_SET_VOLUME:
             i->thread_info.volume = *((pa_cvolume*) userdata);
+            pa_sink_input_request_rewrite(i, 0);
             return 0;
 
         case PA_SINK_INPUT_MESSAGE_SET_MUTE:
             i->thread_info.muted = PA_PTR_TO_UINT(userdata);
+            pa_sink_input_request_rewrite(i, 0);
             return 0;
 
         case PA_SINK_INPUT_MESSAGE_GET_LATENCY: {
             pa_usec_t *r = userdata;
 
-            if (i->thread_info.resampled_chunk.memblock)
-                *r += pa_bytes_to_usec(i->thread_info.resampled_chunk.length, &i->sink->sample_spec);
-
-            if (i->thread_info.move_silence)
-                *r += pa_bytes_to_usec(i->thread_info.move_silence, &i->sink->sample_spec);
+            *r += pa_bytes_to_usec(pa_memblockq_get_length(i->thread_info.render_memblockq), &i->sink->sample_spec);
 
             return 0;
         }
@@ -974,6 +1008,13 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
 
             return 0;
         }
+
+        case PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY:
+
+            i->thread_info.requested_sink_latency = (pa_usec_t) offset;
+            pa_sink_invalidate_requested_latency(i->sink);
+
+            return 0;
     }
 
     return -1;
@@ -986,4 +1027,39 @@ pa_sink_input_state_t pa_sink_input_get_state(pa_sink_input *i) {
         return pa_atomic_load(&i->thread_info.drained) ? PA_SINK_INPUT_DRAINED : PA_SINK_INPUT_RUNNING;
 
     return i->state;
+}
+
+pa_bool_t pa_sink_input_safe_to_remove(pa_sink_input *i) {
+    pa_sink_input_assert_ref(i);
+
+    if (i->state == PA_SINK_INPUT_RUNNING || i->state == PA_SINK_INPUT_DRAINED || i->state == PA_SINK_INPUT_CORKED)
+        return pa_atomic_load(&i->thread_info.render_memblockq_is_empty);
+
+    return TRUE;
+}
+
+void pa_sink_input_request_rewrite(pa_sink_input *i, size_t nbytes  /* in our sample spec */) {
+    size_t l, lbq;
+
+    pa_sink_input_assert_ref(i);
+
+    lbq = pa_memblockq_get_length(i->thread_info.render_memblockq);
+
+    if (nbytes <= 0) {
+        nbytes =
+            i->thread_info.resampler ?
+            pa_resampler_request(i->thread_info.resampler, i->sink->thread_info.max_rewind + lbq) :
+            (i->sink->thread_info.max_rewind + lbq);
+    }
+
+    i->thread_info.rewrite_nbytes = PA_MAX(nbytes, i->thread_info.rewrite_nbytes);
+
+    /* Transform to sink domain */
+    l = i->thread_info.resampler ? pa_resampler_result(i->thread_info.resampler, nbytes) : nbytes;
+
+    if (l <= 0)
+        return;
+
+    if (l > lbq)
+        pa_sink_request_rewind(i->sink, l - lbq);
 }

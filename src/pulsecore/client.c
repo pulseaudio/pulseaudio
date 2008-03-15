@@ -44,17 +44,19 @@ pa_client *pa_client_new(pa_core *core, const char *driver, const char *name) {
     pa_core_assert_ref(core);
 
     c = pa_xnew(pa_client, 1);
-    c->name = pa_xstrdup(name);
-    c->driver = pa_xstrdup(driver);
-    c->owner = NULL;
     c->core = core;
+    c->proplist = pa_proplist_new();
+    if (name)
+        pa_proplist_sets(c->proplist, PA_PROP_APPLICATION_NAME, name);
+    c->driver = pa_xstrdup(driver);
+    c->module = NULL;
 
     c->kill = NULL;
     c->userdata = NULL;
 
     pa_assert_se(pa_idxset_put(core->clients, c, &c->index) >= 0);
 
-    pa_log_info("Created %u \"%s\"", c->index, c->name);
+    pa_log_info("Created %u \"%s\"", c->index, pa_strnull(name));
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_NEW, c->index);
 
     pa_core_check_quit(core);
@@ -70,9 +72,9 @@ void pa_client_free(pa_client *c) {
 
     pa_core_check_quit(c->core);
 
-    pa_log_info("Freed %u \"%s\"", c->index, c->name);
+    pa_log_info("Freed %u \"%s\"", c->index, pa_strnull(pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME)));
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
-    pa_xfree(c->name);
+    pa_proplist_free(c->proplist);
     pa_xfree(c->driver);
     pa_xfree(c);
 }
@@ -91,10 +93,7 @@ void pa_client_kill(pa_client *c) {
 void pa_client_set_name(pa_client *c, const char *name) {
     pa_assert(c);
 
-    pa_log_info("Client %u changed name from \"%s\" to \"%s\"", c->index, c->name, name);
-
-    pa_xfree(c->name);
-    c->name = pa_xstrdup(name);
-
+    pa_log_info("Client %u changed name from \"%s\" to \"%s\"", c->index, pa_strnull(pa_proplist_gets(c->proplist, PA_PROP_APPLICATION_NAME)), name);
+    pa_proplist_sets(c->proplist, PA_PROP_APPLICATION_NAME, name);
     pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CLIENT|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
 }

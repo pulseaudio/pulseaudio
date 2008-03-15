@@ -779,6 +779,7 @@ static int pa_cli_command_scache_list(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
 static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
     const char *n, *sink_name;
     pa_sink *sink;
+    uint32_t idx;
 
     pa_core_assert_ref(c);
     pa_assert(t);
@@ -795,10 +796,12 @@ static int pa_cli_command_scache_play(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
         return -1;
     }
 
-    if (pa_scache_play_item(c, n, sink, PA_VOLUME_NORM) < 0) {
+    if (pa_scache_play_item(c, n, sink, PA_VOLUME_NORM, NULL, &idx) < 0) {
         pa_strbuf_puts(buf, "Failed to play sample.\n");
         return -1;
     }
+
+    pa_strbuf_printf(buf, "Playing on sink input #%i\n", idx);
 
     return 0;
 }

@@ -99,7 +99,7 @@ struct pa_rtpoll_item {
 
 PA_STATIC_FLIST_DECLARE(items, 0, pa_xfree);
 
-static void signal_handler_noop(int s) { }
+static void signal_handler_noop(int s) { write(2, "signal\n", 7); }
 
 pa_rtpoll *pa_rtpoll_new(void) {
     pa_rtpoll *p;

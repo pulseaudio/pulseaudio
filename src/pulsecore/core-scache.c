@@ -63,7 +63,7 @@
 
 #include "core-scache.h"
 
-#define UNLOAD_POLL_TIME 2
+#define UNLOAD_POLL_TIME 5
 
 static void timeout_callback(pa_mainloop_api *m, pa_time_event*e, PA_GCC_UNUSED const struct timeval *tv, void *userdata) {
     pa_core *c = userdata;
@@ -89,6 +89,8 @@ static void free_entry(pa_scache_entry *e) {
     pa_xfree(e->filename);
     if (e->memchunk.memblock)
         pa_memblock_unref(e->memchunk.memblock);
+    if (e->proplist)
+        pa_proplist_free(e->proplist);
     pa_xfree(e);
 }
 
@@ -103,6 +105,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
             pa_memblock_unref(e->memchunk.memblock);
 
         pa_xfree(e->filename);
+        pa_proplist_clear(e->proplist);
 
         pa_assert(e->core == c);
 
@@ -117,11 +120,10 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
 
         e->name = pa_xstrdup(name);
         e->core = c;
+        e->proplist = pa_proplist_new();
 
-        if (!c->scache) {
+        if (!c->scache)
             c->scache = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-            pa_assert(c->scache);
-        }
 
         pa_idxset_put(c->scache, e, &e->index);
 
@@ -132,7 +134,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     e->memchunk.memblock = NULL;
     e->memchunk.index = e->memchunk.length = 0;
     e->filename = NULL;
-    e->lazy = 0;
+    e->lazy = FALSE;
     e->last_used_time = 0;
 
     memset(&e->sample_spec, 0, sizeof(e->sample_spec));
@@ -142,7 +144,7 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
     return e;
 }
 
-int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map, const pa_memchunk *chunk, uint32_t *idx) {
+int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map, const pa_memchunk *chunk, pa_proplist *p, uint32_t *idx) {
     pa_scache_entry *e;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX];
     pa_channel_map tmap;
@@ -178,6 +180,9 @@ int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, c
         pa_memblock_ref(e->memchunk.memblock);
     }
 
+    if (p)
+        pa_proplist_update(e->proplist, PA_UPDATE_REPLACE, p);
+
     if (idx)
         *idx = e->index;
 
@@ -208,7 +213,7 @@ int pa_scache_add_file(pa_core *c, const char *name, const char *filename, uint3
     if (pa_sound_file_load(c->mempool, filename, &ss, &map, &chunk) < 0)
         return -1;
 
-    r = pa_scache_add_item(c, name, &ss, &map, &chunk, idx);
+    r = pa_scache_add_item(c, name, &ss, &map, &chunk, NULL, idx);
     pa_memblock_unref(chunk.memblock);
 
     return r;
@@ -231,7 +236,7 @@ int pa_scache_add_file_lazy(pa_core *c, const char *name, const char *filename, 
     if (!(e = scache_add_item(c, name)))
         return -1;
 
-    e->lazy = 1;
+    e->lazy = TRUE;
     e->filename = pa_xstrdup(filename);
 
     if (!c->scache_auto_unload_event) {
@@ -285,10 +290,11 @@ void pa_scache_free(pa_core *c) {
         c->mainloop->time_free(c->scache_auto_unload_event);
 }
 
-int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t volume) {
+int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t volume, pa_proplist *p, uint32_t *sink_input_idx) {
     pa_scache_entry *e;
     char *t;
     pa_cvolume r;
+    pa_proplist *merged;
 
     pa_assert(c);
     pa_assert(name);
@@ -312,17 +318,24 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
 
     pa_log_debug("Playing sample \"%s\" on \"%s\"", name, sink->name);
 
-    t = pa_sprintf_malloc("sample:%s", name);
-
     pa_cvolume_set(&r, e->volume.channels, volume);
     pa_sw_cvolume_multiply(&r, &r, &e->volume);
 
-    if (pa_play_memchunk(sink, t, &e->sample_spec, &e->channel_map, &e->memchunk, &r) < 0) {
-        pa_xfree(t);
+    merged = pa_proplist_new();
+
+    t = pa_sprintf_malloc("sample:%s", name);
+    pa_proplist_sets(merged, PA_PROP_MEDIA_NAME, t);
+    pa_xfree(t);
+
+    pa_proplist_update(merged, PA_UPDATE_REPLACE, e->proplist);
+    pa_proplist_update(merged, PA_UPDATE_REPLACE, p);
+
+    if (pa_play_memchunk(sink, &e->sample_spec, &e->channel_map, &e->memchunk, &r, merged, sink_input_idx) < 0) {
+        pa_proplist_free(merged);
         return -1;
     }
 
-    pa_xfree(t);
+    pa_proplist_free(merged);
 
     if (e->lazy)
         time(&e->last_used_time);
@@ -330,7 +343,7 @@ int pa_scache_play_item(pa_core *c, const char *name, pa_sink *sink, pa_volume_t
     return 0;
 }
 
-int pa_scache_play_item_by_name(pa_core *c, const char *name, const char*sink_name, pa_volume_t volume, int autoload) {
+int pa_scache_play_item_by_name(pa_core *c, const char *name, const char*sink_name, pa_bool_t autoload, pa_volume_t volume, pa_proplist *p, uint32_t *sink_input_idx) {
     pa_sink *sink;
 
     pa_assert(c);
@@ -339,10 +352,10 @@ int pa_scache_play_item_by_name(pa_core *c, const char *name, const char*sink_na
     if (!(sink = pa_namereg_get(c, sink_name, PA_NAMEREG_SINK, autoload)))
         return -1;
 
-    return pa_scache_play_item(c, name, sink, volume);
+    return pa_scache_play_item(c, name, sink, volume, p, sink_input_idx);
 }
 
-const char * pa_scache_get_name_by_id(pa_core *c, uint32_t id) {
+const char *pa_scache_get_name_by_id(pa_core *c, uint32_t id) {
     pa_scache_entry *e;
 
     pa_assert(c);
@@ -366,9 +379,10 @@ uint32_t pa_scache_get_id_by_name(pa_core *c, const char *name) {
     return e->index;
 }
 
-uint32_t pa_scache_total_size(pa_core *c) {
+size_t pa_scache_total_size(pa_core *c) {
     pa_scache_entry *e;
-    uint32_t idx, sum = 0;
+    uint32_t idx;
+    size_t sum = 0;
 
     pa_assert(c);
 
@@ -403,8 +417,7 @@ void pa_scache_unload_unused(pa_core *c) {
             continue;
 
         pa_memblock_unref(e->memchunk.memblock);
-        e->memchunk.memblock = NULL;
-        e->memchunk.index = e->memchunk.length = 0;
+        pa_memchunk_reset(&e->memchunk);
 
         pa_subscription_post(c, PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE|PA_SUBSCRIPTION_EVENT_CHANGE, e->index);
     }
@@ -467,8 +480,9 @@ int pa_scache_add_directory_lazy(pa_core *c, const char *pathname) {
             pa_snprintf(p, sizeof(p), "%s/%s", pathname, e->d_name);
             add_file(c, p);
         }
+
+        closedir(dir);
     }
 
-    closedir(dir);
     return 0;
 }

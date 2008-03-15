@@ -34,6 +34,7 @@
 #include <pulsecore/sink-input.h>
 #include <pulsecore/gccmacro.h>
 #include <pulsecore/thread-mq.h>
+#include <pulsecore/sample-util.h>
 
 #include "play-memblockq.h"
 
@@ -59,7 +60,6 @@ static void memblockq_stream_unlink(memblockq_stream *u) {
         return;
 
     pa_sink_input_unlink(u->sink_input);
-
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
 
@@ -69,8 +69,6 @@ static void memblockq_stream_unlink(memblockq_stream *u) {
 static void memblockq_stream_free(pa_object *o) {
     memblockq_stream *u = MEMBLOCKQ_STREAM(o);
     pa_assert(u);
-
-    memblockq_stream_unlink(u);
 
     if (u->memblockq)
         pa_memblockq_free(u->memblockq);
@@ -92,15 +90,19 @@ static int memblockq_stream_process_msg(pa_msgobject *o, int code, void*userdata
 }
 
 static void sink_input_kill_cb(pa_sink_input *i) {
-    pa_sink_input_assert_ref(i);
-
-    memblockq_stream_unlink(MEMBLOCKQ_STREAM(i->userdata));
-}
-
-static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     memblockq_stream *u;
 
-    pa_assert(i);
+    pa_sink_input_assert_ref(i);
+    u = MEMBLOCKQ_STREAM(i->userdata);
+    memblockq_stream_assert_ref(u);
+
+    memblockq_stream_unlink(u);
+}
+
+static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
+    memblockq_stream *u;
+
+    pa_sink_input_assert_ref(i);
     pa_assert(chunk);
     u = MEMBLOCKQ_STREAM(i->userdata);
     memblockq_stream_assert_ref(u);
@@ -109,36 +111,56 @@ static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chun
         return -1;
 
     if (pa_memblockq_peek(u->memblockq, chunk) < 0) {
-        pa_memblockq_free(u->memblockq);
-        u->memblockq = NULL;
-        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u), MEMBLOCKQ_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
+
+        if (pa_sink_input_safe_to_remove(i)) {
+
+            pa_memblockq_free(u->memblockq);
+            u->memblockq = NULL;
+            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u), MEMBLOCKQ_STREAM_MESSAGE_UNLINK, NULL, 0, NULL, NULL);
+        }
+
         return -1;
     }
+
+    pa_memblockq_drop(u->memblockq, chunk->length);
 
     return 0;
 }
 
-static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
+static void sink_input_rewind_cb(pa_sink_input *i, size_t nbytes) {
     memblockq_stream *u;
 
-    pa_assert(i);
-    pa_assert(length > 0);
+    pa_sink_input_assert_ref(i);
+    pa_assert(nbytes > 0);
     u = MEMBLOCKQ_STREAM(i->userdata);
     memblockq_stream_assert_ref(u);
 
     if (!u->memblockq)
         return;
 
-    pa_memblockq_drop(u->memblockq, length);
+    pa_memblockq_rewind(u->memblockq, nbytes);
+}
+
+static void sink_input_set_max_rewind(pa_sink_input *i, size_t nbytes) {
+    memblockq_stream *u;
+
+    pa_sink_input_assert_ref(i);
+    u = MEMBLOCKQ_STREAM(i->userdata);
+    memblockq_stream_assert_ref(u);
+
+    if (!u->memblockq)
+        return;
+
+    pa_memblockq_set_maxrewind(u->memblockq, nbytes);
 }
 
 pa_sink_input* pa_memblockq_sink_input_new(
         pa_sink *sink,
-        const char *name,
         const pa_sample_spec *ss,
         const pa_channel_map *map,
         pa_memblockq *q,
-        pa_cvolume *volume) {
+        pa_cvolume *volume,
+        pa_proplist *p) {
 
     memblockq_stream *u = NULL;
     pa_sink_input_new_data data;
@@ -149,41 +171,35 @@ pa_sink_input* pa_memblockq_sink_input_new(
     /* We allow creating this stream with no q set, so that it can be
      * filled in later */
 
-    if (q && pa_memblockq_get_length(q) <= 0) {
-        pa_memblockq_free(q);
-        return NULL;
-    }
-
-    if (volume && pa_cvolume_is_muted(volume)) {
-        pa_memblockq_free(q);
-        return NULL;
-    }
-
     u = pa_msgobject_new(memblockq_stream);
     u->parent.parent.free = memblockq_stream_free;
     u->parent.process_msg = memblockq_stream_process_msg;
     u->core = sink->core;
     u->sink_input = NULL;
-    u->memblockq = q;
+    u->memblockq = NULL;
 
     pa_sink_input_new_data_init(&data);
     data.sink = sink;
-    data.name = name;
     data.driver = __FILE__;
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
     pa_sink_input_new_data_set_volume(&data, volume);
+    pa_proplist_update(data.proplist, PA_UPDATE_REPLACE, p);
 
-    if (!(u->sink_input = pa_sink_input_new(sink->core, &data, 0)))
+    u->sink_input = pa_sink_input_new(sink->core, &data, 0);
+    pa_sink_input_new_data_done(&data);
+
+    if (!u->sink_input)
         goto fail;
 
-    u->sink_input->peek = sink_input_peek_cb;
-    u->sink_input->drop = sink_input_drop_cb;
+    u->sink_input->pop = sink_input_pop_cb;
+    u->sink_input->rewind = sink_input_rewind_cb;
+    u->sink_input->set_max_rewind = sink_input_set_max_rewind;
     u->sink_input->kill = sink_input_kill_cb;
     u->sink_input->userdata = u;
 
     if (q)
-        pa_memblockq_prebuf_disable(q);
+        pa_memblockq_sink_input_set_queue(u->sink_input, q);
 
     /* The reference to u is dangling here, because we want
      * to keep this stream around until it is fully played. */
@@ -202,11 +218,12 @@ fail:
 
 int pa_play_memblockq(
         pa_sink *sink,
-        const char *name,
         const pa_sample_spec *ss,
         const pa_channel_map *map,
         pa_memblockq *q,
-        pa_cvolume *volume) {
+        pa_cvolume *volume,
+        pa_proplist *p,
+        uint32_t *sink_input_index) {
 
     pa_sink_input *i;
 
@@ -214,10 +231,14 @@ int pa_play_memblockq(
     pa_assert(ss);
     pa_assert(q);
 
-    if (!(i = pa_memblockq_sink_input_new(sink, name, ss, map, q, volume)))
+    if (!(i = pa_memblockq_sink_input_new(sink, ss, map, q, volume, p)))
         return -1;
 
     pa_sink_input_put(i);
+
+    if (sink_input_index)
+        *sink_input_index = i->index;
+
     pa_sink_input_unref(i);
 
     return 0;
@@ -232,5 +253,20 @@ void pa_memblockq_sink_input_set_queue(pa_sink_input *i, pa_memblockq *q) {
 
     if (u->memblockq)
         pa_memblockq_free(u->memblockq);
-    u->memblockq = q;
+
+    if ((u->memblockq = q)) {
+        pa_memblock *silence;
+
+        pa_memblockq_set_prebuf(q, 0);
+
+        silence = pa_silence_memblock_new(
+                i->sink->core->mempool,
+                &i->sample_spec,
+                i->thread_info.resampler ? pa_resampler_max_block_size(i->thread_info.resampler) : 0);
+
+        pa_memblockq_set_silence(q, silence);
+        pa_memblock_unref(silence);
+
+        pa_memblockq_willneed(q);
+    }
 }

@@ -45,35 +45,97 @@ static PA_DEFINE_CHECK_TYPE(pa_source, pa_msgobject);
 
 static void source_free(pa_object *o);
 
+pa_source_new_data* pa_source_new_data_init(pa_source_new_data *data) {
+    pa_assert(data);
+
+    memset(data, 0, sizeof(*data));
+    data->proplist = pa_proplist_new();
+
+    return data;
+}
+
+void pa_source_new_data_set_name(pa_source_new_data *data, const char *name) {
+    pa_assert(data);
+
+    pa_xfree(data->name);
+    data->name = pa_xstrdup(name);
+}
+
+void pa_source_new_data_set_sample_spec(pa_source_new_data *data, const pa_sample_spec *spec) {
+    pa_assert(data);
+
+    if ((data->sample_spec_is_set = !!spec))
+        data->sample_spec = *spec;
+}
+
+void pa_source_new_data_set_channel_map(pa_source_new_data *data, const pa_channel_map *map) {
+    pa_assert(data);
+
+    if ((data->channel_map_is_set = !!map))
+        data->channel_map = *map;
+}
+
+void pa_source_new_data_set_volume(pa_source_new_data *data, const pa_cvolume *volume) {
+    pa_assert(data);
+
+    if ((data->volume_is_set = !!volume))
+        data->volume = *volume;
+}
+
+void pa_source_new_data_set_muted(pa_source_new_data *data, pa_bool_t mute) {
+    pa_assert(data);
+
+    data->muted_is_set = TRUE;
+    data->muted = !!mute;
+}
+
+void pa_source_new_data_done(pa_source_new_data *data) {
+    pa_assert(data);
+
+    pa_xfree(data->name);
+    pa_proplist_free(data->proplist);
+}
+
 pa_source* pa_source_new(
         pa_core *core,
-        const char *driver,
-        const char *name,
-        int fail,
-        const pa_sample_spec *spec,
-        const pa_channel_map *map) {
+        pa_source_new_data *data,
+        pa_source_flags_t flags) {
 
     pa_source *s;
-    char st[256];
-    pa_channel_map tmap;
+    const char *name;
+    char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
     pa_assert(core);
-    pa_assert(name);
-    pa_assert(spec);
 
-    pa_return_null_if_fail(pa_sample_spec_valid(spec));
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_NEW], data) < 0)
+        return NULL;
 
-    if (!map)
-        pa_return_null_if_fail(map = pa_channel_map_init_auto(&tmap, spec->channels, PA_CHANNEL_MAP_DEFAULT));
+    pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
+    pa_return_null_if_fail(data->name && pa_utf8_valid(data->name) && data->name[0]);
 
-    pa_return_null_if_fail(map && pa_channel_map_valid(map));
-    pa_return_null_if_fail(map->channels == spec->channels);
-    pa_return_null_if_fail(!driver || pa_utf8_valid(driver));
-    pa_return_null_if_fail(pa_utf8_valid(name) && *name);
+    pa_return_null_if_fail(data->sample_spec_is_set && pa_sample_spec_valid(&data->sample_spec));
+
+    if (!data->channel_map_is_set)
+        pa_return_null_if_fail(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
+
+    pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
+    pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
+
+    if (!data->volume_is_set)
+        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+
+    pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
+    pa_return_null_if_fail(data->volume.channels == data->sample_spec.channels);
+
+    if (!data->muted_is_set)
+        data->muted = FALSE;
+
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) < 0)
+        return NULL;
 
     s = pa_msgobject_new(pa_source);
 
-    if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SOURCE, s, fail))) {
+    if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SOURCE, s, data->namereg_fail))) {
         pa_xfree(s);
         return NULL;
     }
@@ -83,21 +145,21 @@ pa_source* pa_source_new(
 
     s->core = core;
     s->state = PA_SOURCE_INIT;
-    s->flags = 0;
+    s->flags = flags;
     s->name = pa_xstrdup(name);
-    s->description = NULL;
-    s->driver = pa_xstrdup(driver);
-    s->module = NULL;
+    s->proplist = pa_proplist_copy(data->proplist);
+    s->driver = pa_xstrdup(data->driver);
+    s->module = data->module;
 
-    s->sample_spec = *spec;
-    s->channel_map = *map;
+    s->sample_spec = data->sample_spec;
+    s->channel_map = data->channel_map;
 
     s->outputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
     s->monitor_of = NULL;
 
-    pa_cvolume_reset(&s->volume, spec->channels);
-    s->muted = FALSE;
+    s->volume = data->volume;
+    s->muted = data->muted;
     s->refresh_volume = s->refresh_muted = FALSE;
 
     s->get_latency = NULL;
@@ -106,20 +168,26 @@ pa_source* pa_source_new(
     s->set_mute = NULL;
     s->get_mute = NULL;
     s->set_state = NULL;
+    s->update_requested_latency = NULL;
     s->userdata = NULL;
 
     s->asyncmsgq = NULL;
     s->rtpoll = NULL;
 
-    pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
-
-    pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log_info("Created source %u \"%s\" with sample spec \"%s\"", s->index, s->name, st);
-
     s->thread_info.outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume = s->volume;
     s->thread_info.soft_muted = s->muted;
     s->thread_info.state = s->state;
+    s->thread_info.requested_latency_valid = TRUE;
+    s->thread_info.requested_latency = 0;
+
+    pa_assert_se(pa_idxset_put(core->sources, s, &s->index) >= 0);
+
+    pa_log_info("Created source %u \"%s\" with sample spec %s and channel map %s",
+                s->index,
+                s->name,
+                pa_sample_spec_snprint(st, sizeof(st), &s->sample_spec),
+                pa_channel_map_snprint(cm, sizeof(cm), &s->channel_map));
 
     return s;
 }
@@ -170,10 +238,26 @@ void pa_source_put(pa_source *s) {
     pa_assert(s->rtpoll);
     pa_assert(s->asyncmsgq);
 
+    if (s->get_volume && s->set_volume)
+        s->flags |= PA_SOURCE_HW_VOLUME_CTRL;
+    else {
+        s->get_volume = NULL;
+        s->set_volume = NULL;
+        s->flags = (s->flags & ~PA_SOURCE_HW_VOLUME_CTRL) | PA_SOURCE_DECIBEL_VOLUME;
+    }
+
+    if (s->get_mute && s->set_mute)
+        s->flags |= PA_SOURCE_HW_MUTE_CTRL;
+    else {
+        s->get_mute = NULL;
+        s->set_mute = NULL;
+        s->flags &= ~PA_SOURCE_HW_MUTE_CTRL;
+    }
+
     pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_NEW_POST], s);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PUT], s);
 }
 
 void pa_source_unlink(pa_source *s) {
@@ -211,6 +295,7 @@ void pa_source_unlink(pa_source *s) {
     s->set_mute = NULL;
     s->get_mute = NULL;
     s->set_state = NULL;
+    s->update_requested_latency = NULL;
 
     if (linked) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
@@ -238,8 +323,11 @@ static void source_free(pa_object *o) {
     pa_hashmap_free(s->thread_info.outputs, NULL, NULL);
 
     pa_xfree(s->name);
-    pa_xfree(s->description);
     pa_xfree(s->driver);
+
+    if (s->proplist)
+        pa_proplist_free(s->proplist);
+
     pa_xfree(s);
 }
 
@@ -400,32 +488,25 @@ pa_bool_t pa_source_get_mute(pa_source *s) {
     return s->muted;
 }
 
-void pa_source_set_module(pa_source *s, pa_module *m) {
-    pa_source_assert_ref(s);
-
-    if (m == s->module)
-        return;
-
-    s->module = m;
-
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-}
-
 void pa_source_set_description(pa_source *s, const char *description) {
+    const char *old;
     pa_source_assert_ref(s);
 
-    if (!description && !s->description)
+    if (!description && !pa_proplist_contains(s->proplist, PA_PROP_DEVICE_DESCRIPTION))
         return;
 
-    if (description && s->description && !strcmp(description, s->description))
+    old = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
+    if (old && description && !strcmp(old, description))
         return;
 
-    pa_xfree(s->description);
-    s->description = pa_xstrdup(description);
+    if (description)
+        pa_proplist_sets(s->proplist, PA_PROP_DEVICE_DESCRIPTION, description);
+    else
+        pa_proplist_unset(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
 
     if (PA_SOURCE_LINKED(s->state)) {
-        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_DESCRIPTION_CHANGED], s);
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PROPLIST_CHANGED], s);
     }
 }
 
@@ -470,6 +551,7 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
     switch ((pa_source_message_t) code) {
         case PA_SOURCE_MESSAGE_ADD_OUTPUT: {
             pa_source_output *o = PA_SOURCE_OUTPUT(userdata);
+
             pa_hashmap_put(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index), pa_source_output_ref(o));
 
             pa_assert(!o->thread_info.attached);
@@ -477,6 +559,8 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             if (o->attach)
                 o->attach(o);
+
+            pa_source_invalidate_requested_latency(s);
 
             return 0;
         }
@@ -492,6 +576,8 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
 
             if (pa_hashmap_remove(s->thread_info.outputs, PA_UINT32_TO_PTR(o->index)))
                 pa_source_output_unref(o);
+
+            pa_source_invalidate_requested_latency(s);
 
             return 0;
         }
@@ -590,5 +676,40 @@ void pa_source_attach_within_thread(pa_source *s) {
     while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
         if (o->attach)
             o->attach(o);
+}
 
+pa_usec_t pa_source_get_requested_latency(pa_source *s) {
+    pa_usec_t result = 0;
+    pa_source_output *o;
+    void *state = NULL;
+
+    pa_source_assert_ref(s);
+
+    if (s->thread_info.requested_latency_valid)
+        return s->thread_info.requested_latency;
+
+    while ((o = pa_hashmap_iterate(s->thread_info.outputs, &state, NULL)))
+
+        if (o->thread_info.requested_source_latency > 0 &&
+            (!result || result > o->thread_info.requested_source_latency))
+            result = o->thread_info.requested_source_latency;
+
+    s->thread_info.requested_latency = result;
+    s->thread_info.requested_latency_valid = TRUE;
+
+    return result;
+}
+
+void pa_source_invalidate_requested_latency(pa_source *s) {
+
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_LINKED(s->thread_info.state));
+
+    if (!s->thread_info.requested_latency_valid)
+        return;
+
+    s->thread_info.requested_latency_valid = FALSE;
+
+    if (s->update_requested_latency)
+        s->update_requested_latency(s);
 }

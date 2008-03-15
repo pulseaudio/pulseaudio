@@ -43,26 +43,25 @@
 #define PA_SILENCE_MAX (PA_PAGE_SIZE*16)
 
 pa_memblock *pa_silence_memblock_new(pa_mempool *pool, const pa_sample_spec *spec, size_t length) {
-    size_t fs;
+    pa_memblock *b;
+
     pa_assert(pool);
     pa_assert(spec);
 
     if (length <= 0)
-        length = pa_bytes_per_second(spec)/20; /* 50 ms */
+        length = PA_MIN(pa_bytes_per_second(spec)/20, /* 50 ms */
+                        pa_mempool_block_size_max(pool));
 
     if (length > PA_SILENCE_MAX)
         length = PA_SILENCE_MAX;
 
-    fs = pa_frame_size(spec);
+    length = pa_frame_align(length, spec);
 
-    length = (length+fs-1)/fs;
+    b = pa_silence_memblock(pa_memblock_new(pool, length), spec);
 
-    if (length <= 0)
-        length = 1;
+    pa_memblock_set_is_silence(b, TRUE);
 
-    length *= fs;
-
-    return pa_silence_memblock(pa_memblock_new(pool, length), spec);
+    return b;
 }
 
 pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
@@ -74,6 +73,7 @@ pa_memblock *pa_silence_memblock(pa_memblock* b, const pa_sample_spec *spec) {
     data = pa_memblock_acquire(b);
     pa_silence_memory(data, pa_memblock_get_length(b), spec);
     pa_memblock_release(b);
+
     return b;
 }
 
@@ -630,6 +630,9 @@ void pa_volume_memchunk(
     pa_assert(spec);
     pa_assert(c->length % pa_frame_size(spec) == 0);
     pa_assert(volume);
+
+    if (pa_memblock_is_silence(c->memblock))
+        return;
 
     if (pa_cvolume_channels_equal_to(volume, PA_VOLUME_NORM))
         return;

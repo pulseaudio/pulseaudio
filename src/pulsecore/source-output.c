@@ -32,6 +32,7 @@
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
 
+#include <pulsecore/sample-util.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
 #include <pulsecore/namereg.h>
@@ -47,7 +48,16 @@ pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_d
 
     memset(data, 0, sizeof(*data));
     data->resample_method = PA_RESAMPLER_INVALID;
+    data->proplist = pa_proplist_new();
+
     return data;
+}
+
+void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, const pa_sample_spec *spec) {
+    pa_assert(data);
+
+    if ((data->sample_spec_is_set = !!spec))
+        data->sample_spec = *spec;
 }
 
 void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, const pa_channel_map *map) {
@@ -57,11 +67,10 @@ void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, 
         data->channel_map = *map;
 }
 
-void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, const pa_sample_spec *spec) {
+void pa_source_output_new_data_done(pa_source_output_new_data *data) {
     pa_assert(data);
 
-    if ((data->sample_spec_is_set = !!spec))
-        data->sample_spec = *spec;
+    pa_proplist_free(data->proplist);
 }
 
 pa_source_output* pa_source_output_new(
@@ -80,7 +89,6 @@ pa_source_output* pa_source_output_new(
         return NULL;
 
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
-    pa_return_null_if_fail(!data->name || pa_utf8_valid(data->name));
 
     if (!data->source)
         data->source = pa_namereg_get(core, NULL, PA_NAMEREG_SOURCE, 1);
@@ -156,7 +164,7 @@ pa_source_output* pa_source_output_new(
     o->core = core;
     o->state = PA_SOURCE_OUTPUT_INIT;
     o->flags = flags;
-    o->name = pa_xstrdup(data->name);
+    o->proplist = pa_proplist_copy(data->proplist);
     o->driver = pa_xstrdup(data->driver);
     o->module = data->module;
     o->source = data->source;
@@ -179,13 +187,14 @@ pa_source_output* pa_source_output_new(
     o->thread_info.attached = FALSE;
     o->thread_info.sample_spec = o->sample_spec;
     o->thread_info.resampler = resampler;
+    o->thread_info.requested_source_latency = 0;
 
     pa_assert_se(pa_idxset_put(core->source_outputs, o, &o->index) == 0);
     pa_assert_se(pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL) == 0);
 
     pa_log_info("Created output %u \"%s\" on %s with sample spec %s and channel map %s",
                 o->index,
-                o->name,
+                pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME)),
                 o->source->name,
                 pa_sample_spec_snprint(st, sizeof(st), &o->sample_spec),
                 pa_channel_map_snprint(cm, sizeof(cm), &o->channel_map));
@@ -210,7 +219,6 @@ static int source_output_set_state(pa_source_output *o, pa_source_output_state_t
         o->source->n_corked++;
 
     pa_source_update_status(o->source);
-
     o->state = state;
 
     if (state != PA_SOURCE_OUTPUT_UNLINKED)
@@ -269,14 +277,16 @@ static void source_output_free(pa_object* mo) {
     if (PA_SOURCE_OUTPUT_LINKED(o->state))
         pa_source_output_unlink(o);
 
-    pa_log_info("Freeing output %u \"%s\"", o->index, o->name);
+    pa_log_info("Freeing output %u \"%s\"", o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME)));
 
     pa_assert(!o->thread_info.attached);
 
     if (o->thread_info.resampler)
         pa_resampler_free(o->thread_info.resampler);
 
-    pa_xfree(o->name);
+    if (o->proplist)
+        pa_proplist_free(o->proplist);
+
     pa_xfree(o->driver);
     pa_xfree(o);
 }
@@ -292,11 +302,10 @@ void pa_source_output_put(pa_source_output *o) {
     if (o->state == PA_SOURCE_OUTPUT_CORKED)
         o->source->n_corked++;
 
-    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL);
     pa_source_update_status(o->source);
+    pa_asyncmsgq_send(o->source->asyncmsgq, PA_MSGOBJECT(o->source), PA_SOURCE_MESSAGE_ADD_OUTPUT, o, 0, NULL);
 
     pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_NEW, o->index);
-
     pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], o);
 }
 
@@ -330,7 +339,7 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->thread_info.state));
     pa_assert(chunk);
-    pa_assert(chunk->length);
+    pa_assert(pa_frame_aligned(chunk->length, &o->source->sample_spec));
 
     if (!o->push || o->state == PA_SOURCE_OUTPUT_CORKED)
         return;
@@ -350,6 +359,14 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     o->push(o, &rchunk);
     pa_memblock_unref(rchunk.memblock);
 }
+
+void pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec) {
+    pa_source_output_assert_ref(o);
+    pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
+
+    pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY, NULL, (int64_t) usec, NULL, NULL);
+}
+
 
 void pa_source_output_cork(pa_source_output *o, pa_bool_t b) {
     pa_source_output_assert_ref(o);
@@ -375,19 +392,24 @@ int pa_source_output_set_rate(pa_source_output *o, uint32_t rate) {
 }
 
 void pa_source_output_set_name(pa_source_output *o, const char *name) {
+    const char *old;
     pa_source_output_assert_ref(o);
 
-    if (!o->name && !name)
+    old = pa_proplist_gets(o->proplist, PA_PROP_MEDIA_NAME);
+
+    if (!old && !name)
         return;
 
-    if (o->name && name && !strcmp(o->name, name))
+    if (old && name && !strcmp(old, name))
         return;
 
-    pa_xfree(o->name);
-    o->name = pa_xstrdup(name);
+    if (name)
+        pa_proplist_sets(o->proplist, PA_PROP_MEDIA_NAME, name);
+    else
+        pa_proplist_unset(o->proplist, PA_PROP_MEDIA_NAME);
 
     if (PA_SOURCE_OUTPUT_LINKED(o->state)) {
-        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NAME_CHANGED], o);
+        pa_hook_fire(&o->source->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], o);
         pa_subscription_post(o->source->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT|PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
     }
 }
@@ -509,6 +531,13 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
 
             return 0;
         }
+
+        case PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY:
+
+            o->thread_info.requested_source_latency = (pa_usec_t) offset;
+            pa_source_invalidate_requested_latency(o->source);
+
+            return 0;
     }
 
     return -1;

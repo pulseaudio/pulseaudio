@@ -82,7 +82,7 @@ pa_cli* pa_cli_new(pa_core *core, pa_iochannel *io, pa_module *m) {
     pa_assert_se(c->client = pa_client_new(core, __FILE__, cname));
     c->client->kill = client_kill;
     c->client->userdata = c;
-    c->client->owner = m;
+    c->client->module = m;
 
     pa_ioline_set_callback(c->line, line_callback, c);
     pa_ioline_puts(c->line, "Welcome to PulseAudio! Use \"help\" for usage information.\n"PROMPT);

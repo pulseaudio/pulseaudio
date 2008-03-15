@@ -87,13 +87,13 @@ pa_memblock *pa_memblock_new(pa_mempool *, size_t length);
 pa_memblock *pa_memblock_new_pool(pa_mempool *, size_t length);
 
 /* Allocate a new memory block of type PA_MEMBLOCK_USER */
-pa_memblock *pa_memblock_new_user(pa_mempool *, void *data, size_t length, void (*free_cb)(void *p), int read_only);
+pa_memblock *pa_memblock_new_user(pa_mempool *, void *data, size_t length, pa_free_cb_t free_cb, pa_bool_t read_only);
 
 /* A special case of pa_memblock_new_user: take a memory buffer previously allocated with pa_xmalloc()  */
 #define pa_memblock_new_malloced(p,data,length) pa_memblock_new_user(p, data, length, pa_xfree, 0)
 
 /* Allocate a new memory block of type PA_MEMBLOCK_FIXED */
-pa_memblock *pa_memblock_new_fixed(pa_mempool *, void *data, size_t length, int read_only);
+pa_memblock *pa_memblock_new_fixed(pa_mempool *, void *data, size_t length, pa_bool_t read_only);
 
 void pa_memblock_unref(pa_memblock*b);
 pa_memblock* pa_memblock_ref(pa_memblock*b);
@@ -106,8 +106,11 @@ function is not multiple caller safe, i.e. needs to be locked
 manually if called from more than one thread at the same time.  */
 void pa_memblock_unref_fixed(pa_memblock*b);
 
-int pa_memblock_is_read_only(pa_memblock *b);
-int pa_memblock_ref_is_one(pa_memblock *b);
+pa_bool_t pa_memblock_is_read_only(pa_memblock *b);
+pa_bool_t pa_memblock_is_silence(pa_memblock *b);
+pa_bool_t pa_memblock_ref_is_one(pa_memblock *b);
+void pa_memblock_set_is_silence(pa_memblock *b, pa_bool_t v);
+
 void* pa_memblock_acquire(pa_memblock *b);
 void pa_memblock_release(pa_memblock *b);
 size_t pa_memblock_get_length(pa_memblock *b);
@@ -121,7 +124,7 @@ void pa_mempool_free(pa_mempool *p);
 const pa_mempool_stat* pa_mempool_get_stat(pa_mempool *p);
 void pa_mempool_vacuum(pa_mempool *p);
 int pa_mempool_get_shm_id(pa_mempool *p, uint32_t *id);
-int pa_mempool_is_shared(pa_mempool *p);
+pa_bool_t pa_mempool_is_shared(pa_mempool *p);
 size_t pa_mempool_block_size_max(pa_mempool *p);
 
 /* For recieving blocks from other nodes */

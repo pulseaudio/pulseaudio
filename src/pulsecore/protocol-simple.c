@@ -343,7 +343,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 }
 
 /* Called from thread context */
-static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
+static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     connection *c;
     int r;
 
@@ -352,34 +352,25 @@ static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chun
     connection_assert_ref(c);
     pa_assert(chunk);
 
-    r = pa_memblockq_peek(c->input_memblockq, chunk);
+    if ((r = pa_memblockq_peek(c->input_memblockq, chunk)) < 0) {
 
-/*     pa_log("peeked %u %i", r >= 0 ? chunk->length: 0, r); */
+        if (c->dead && pa_sink_input_safe_to_remove(i))
+            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
 
-    if (c->dead && r < 0)
-        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
+    } else {
+        size_t old, new;
+
+        old = pa_memblockq_missing(c->input_memblockq);
+        pa_memblockq_drop(c->input_memblockq, chunk->length);
+        new = pa_memblockq_missing(c->input_memblockq);
+
+        if (new > old) {
+            if (pa_atomic_add(&c->playback.missing, new - old) <= 0)
+                pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
+        }
+    }
 
     return r;
-}
-
-/* Called from thread context */
-static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
-    connection *c;
-    size_t old, new;
-
-    pa_assert(i);
-    c = CONNECTION(i->userdata);
-    connection_assert_ref(c);
-    pa_assert(length);
-
-    old = pa_memblockq_missing(c->input_memblockq);
-    pa_memblockq_drop(c->input_memblockq, length);
-    new = pa_memblockq_missing(c->input_memblockq);
-
-    if (new > old) {
-        if (pa_atomic_add(&c->playback.missing, new - old) <= 0)
-            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
-    }
 }
 
 /* Called from main context */
@@ -477,29 +468,38 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
 
     pa_iochannel_socket_peer_to_string(io, cname, sizeof(cname));
     pa_assert_se(c->client = pa_client_new(p->core, __FILE__, cname));
-    c->client->owner = p->module;
+    c->client->module = p->module;
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
 
     if (p->mode & PLAYBACK) {
         pa_sink_input_new_data data;
         size_t l;
+        pa_sink *sink;
+
+        if (!(sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, TRUE))) {
+            pa_log("Failed to get sink.");
+            goto fail;
+        }
 
         pa_sink_input_new_data_init(&data);
         data.driver = __FILE__;
-        data.name = c->client->name;
-        pa_sink_input_new_data_set_sample_spec(&data, &p->sample_spec);
         data.module = p->module;
         data.client = c->client;
+        data.sink = sink;
+        pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
+        pa_sink_input_new_data_set_sample_spec(&data, &p->sample_spec);
 
-        if (!(c->sink_input = pa_sink_input_new(p->core, &data, 0))) {
+        c->sink_input = pa_sink_input_new(p->core, &data, 0);
+        pa_sink_input_new_data_done(&data);
+
+        if (!c->sink_input) {
             pa_log("Failed to create sink input.");
             goto fail;
         }
 
         c->sink_input->parent.process_msg = sink_input_process_msg;
-        c->sink_input->peek = sink_input_peek_cb;
-        c->sink_input->drop = sink_input_drop_cb;
+        c->sink_input->pop = sink_input_pop_cb;
         c->sink_input->kill = sink_input_kill_cb;
         c->sink_input->userdata = c;
 
@@ -511,6 +511,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
                 pa_frame_size(&p->sample_spec),
                 (size_t) -1,
                 l/PLAYBACK_BUFFER_FRAGMENTS,
+                0,
                 NULL);
         pa_iochannel_socket_set_rcvbuf(io, l/PLAYBACK_BUFFER_FRAGMENTS*5);
         c->playback.fragment_size = l/PLAYBACK_BUFFER_FRAGMENTS;
@@ -523,15 +524,25 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     if (p->mode & RECORD) {
         pa_source_output_new_data data;
         size_t l;
+        pa_source *source;
+
+        if (!(source = pa_namereg_get(c->protocol->core, c->protocol->source_name, PA_NAMEREG_SOURCE, TRUE))) {
+            pa_log("Failed to get source.");
+            goto fail;
+        }
 
         pa_source_output_new_data_init(&data);
         data.driver = __FILE__;
-        data.name = c->client->name;
-        pa_source_output_new_data_set_sample_spec(&data, &p->sample_spec);
         data.module = p->module;
         data.client = c->client;
+        data.source = source;
+        pa_proplist_update(data.proplist, PA_UPDATE_MERGE, c->client->proplist);
+        pa_source_output_new_data_set_sample_spec(&data, &p->sample_spec);
 
-        if (!(c->source_output = pa_source_output_new(p->core, &data, 0))) {
+        c->source_output = pa_source_output_new(p->core, &data, 0);
+        pa_source_output_new_data_done(&data);
+
+        if (!c->source_output) {
             pa_log("Failed to create source output.");
             goto fail;
         }
@@ -547,6 +558,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
                 0,
                 pa_frame_size(&p->sample_spec),
                 1,
+                0,
                 0,
                 NULL);
         pa_iochannel_socket_set_sndbuf(io, l/RECORD_BUFFER_FRAGMENTS*2);

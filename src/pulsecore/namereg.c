@@ -179,7 +179,7 @@ void pa_namereg_unregister(pa_core *c, const char *name) {
     pa_xfree(e);
 }
 
-void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, int autoload) {
+void* pa_namereg_get(pa_core *c, const char *name, pa_namereg_type_t type, pa_bool_t autoload) {
     struct namereg_entry *e;
     uint32_t idx;
     pa_assert(c);

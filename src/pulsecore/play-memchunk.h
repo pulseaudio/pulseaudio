@@ -29,10 +29,11 @@
 
 int pa_play_memchunk(
     pa_sink *sink,
-    const char *name,
     const pa_sample_spec *ss,
     const pa_channel_map *map,
     const pa_memchunk *chunk,
-    pa_cvolume *cvolume);
+    pa_cvolume *cvolume,
+    pa_proplist *p,
+    uint32_t *sink_input_index);
 
 #endif

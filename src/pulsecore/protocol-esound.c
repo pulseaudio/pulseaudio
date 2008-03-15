@@ -149,8 +149,7 @@ typedef struct proto_handler {
     const char *description;
 } esd_proto_handler_info_t;
 
-static void sink_input_drop_cb(pa_sink_input *i, size_t length);
-static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk);
+static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk);
 static void sink_input_kill_cb(pa_sink_input *i);
 static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 static pa_usec_t source_output_get_latency_cb(pa_source_output *o);
@@ -410,14 +409,16 @@ static int esd_proto_stream_play(connection *c, PA_GCC_UNUSED esd_proto_t reques
     pa_assert(!c->sink_input && !c->input_memblockq);
 
     pa_sink_input_new_data_init(&sdata);
-    sdata.sink = sink;
     sdata.driver = __FILE__;
-    sdata.name = c->client->name;
-    pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
     sdata.module = c->protocol->module;
     sdata.client = c->client;
+    sdata.sink = sink;
+    pa_proplist_update(sdata.proplist, PA_UPDATE_MERGE, c->client->proplist);
+    pa_sink_input_new_data_set_sample_spec(&sdata, &ss);
 
     c->sink_input = pa_sink_input_new(c->protocol->core, &sdata, 0);
+    pa_sink_input_new_data_done(&sdata);
+
     CHECK_VALIDITY(c->sink_input, "Failed to create sink input.");
 
     l = (size_t) (pa_bytes_per_second(&ss)*PLAYBACK_BUFFER_SECONDS);
@@ -428,13 +429,13 @@ static int esd_proto_stream_play(connection *c, PA_GCC_UNUSED esd_proto_t reques
             pa_frame_size(&ss),
             (size_t) -1,
             l/PLAYBACK_BUFFER_FRAGMENTS,
+            0,
             NULL);
     pa_iochannel_socket_set_rcvbuf(c->io, l/PLAYBACK_BUFFER_FRAGMENTS*2);
     c->playback.fragment_size = l/PLAYBACK_BUFFER_FRAGMENTS;
 
     c->sink_input->parent.process_msg = sink_input_process_msg;
-    c->sink_input->peek = sink_input_peek_cb;
-    c->sink_input->drop = sink_input_drop_cb;
+    c->sink_input->pop = sink_input_pop_cb;
     c->sink_input->kill = sink_input_kill_cb;
     c->sink_input->userdata = c;
 
@@ -509,14 +510,16 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
     pa_assert(!c->output_memblockq && !c->source_output);
 
     pa_source_output_new_data_init(&sdata);
-    sdata.source = source;
     sdata.driver = __FILE__;
-    sdata.name = c->client->name;
-    pa_source_output_new_data_set_sample_spec(&sdata, &ss);
     sdata.module = c->protocol->module;
     sdata.client = c->client;
+    sdata.source = source;
+    pa_proplist_update(sdata.proplist, PA_UPDATE_MERGE, c->client->proplist);
+    pa_source_output_new_data_set_sample_spec(&sdata, &ss);
 
-    c->source_output = pa_source_output_new(c->protocol->core, &sdata, 9);
+    c->source_output = pa_source_output_new(c->protocol->core, &sdata, 0);
+    pa_source_output_new_data_done(&sdata);
+
     CHECK_VALIDITY(c->source_output, "Failed to create source_output.");
 
     l = (size_t) (pa_bytes_per_second(&ss)*RECORD_BUFFER_SECONDS);
@@ -526,6 +529,7 @@ static int esd_proto_stream_record(connection *c, esd_proto_t request, const voi
             0,
             pa_frame_size(&ss),
             1,
+            0,
             0,
             NULL);
     pa_iochannel_socket_set_sndbuf(c->io, l/RECORD_BUFFER_FRAGMENTS*2);
@@ -638,8 +642,8 @@ static int esd_proto_all_info(connection *c, esd_proto_t request, const void *da
         memset(name, 0, ESD_NAME_MAX); /* don't leak old data */
         if (conn->original_name)
             strncpy(name, conn->original_name, ESD_NAME_MAX);
-        else if (conn->client && conn->client->name)
-            strncpy(name, conn->client->name, ESD_NAME_MAX);
+        else if (conn->client && pa_proplist_gets(conn->client->proplist, PA_PROP_APPLICATION_NAME))
+            strncpy(name, pa_proplist_gets(conn->client->proplist, PA_PROP_APPLICATION_NAME), ESD_NAME_MAX);
         connection_write(c, name, ESD_NAME_MAX);
 
         /* rate */
@@ -800,7 +804,7 @@ static int esd_proto_sample_cache(connection *c, PA_GCC_UNUSED esd_proto_t reque
 
     c->state = ESD_CACHING_SAMPLE;
 
-    pa_scache_add_item(c->protocol->core, c->scache.name, NULL, NULL, NULL, &idx);
+    pa_scache_add_item(c->protocol->core, c->scache.name, NULL, NULL, NULL, c->client->proplist, &idx);
 
     idx += 1;
     connection_write(c, &idx, sizeof(uint32_t));
@@ -851,7 +855,7 @@ static int esd_proto_sample_free_or_play(connection *c, esd_proto_t request, con
             pa_sink *sink;
 
             if ((sink = pa_namereg_get(c->protocol->core, c->protocol->sink_name, PA_NAMEREG_SINK, 1)))
-                if (pa_scache_play_item(c->protocol->core, name, sink, PA_VOLUME_NORM) >= 0)
+                if (pa_scache_play_item(c->protocol->core, name, sink, PA_VOLUME_NORM, c->client->proplist, NULL) >= 0)
                     ok = idx + 1;
         } else {
             pa_assert(request == ESD_PROTO_SAMPLE_FREE);
@@ -992,7 +996,7 @@ static int do_read(connection *c) {
             uint32_t idx;
 
             c->scache.memchunk.index = 0;
-            pa_scache_add_item(c->protocol->core, c->scache.name, &c->scache.sample_spec, NULL, &c->scache.memchunk, &idx);
+            pa_scache_add_item(c->protocol->core, c->scache.name, &c->scache.sample_spec, NULL, &c->scache.memchunk, c->client->proplist, &idx);
 
             pa_memblock_unref(c->scache.memchunk.memblock);
             c->scache.memchunk.memblock = NULL;
@@ -1237,7 +1241,7 @@ static int sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int
 }
 
 /* Called from thread context */
-static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
+static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk) {
     connection*c;
     int r;
 
@@ -1246,32 +1250,25 @@ static int sink_input_peek_cb(pa_sink_input *i, size_t length, pa_memchunk *chun
     connection_assert_ref(c);
     pa_assert(chunk);
 
-    if ((r = pa_memblockq_peek(c->input_memblockq, chunk)) < 0 && c->dead)
-        pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
+    if ((r = pa_memblockq_peek(c->input_memblockq, chunk)) < 0) {
+
+
+        if (c->dead && pa_sink_input_safe_to_remove(i))
+            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_UNLINK_CONNECTION, NULL, 0, NULL, NULL);
+    } else {
+        size_t old, new;
+
+        old = pa_memblockq_missing(c->input_memblockq);
+        pa_memblockq_drop(c->input_memblockq, chunk->length);
+        new = pa_memblockq_missing(c->input_memblockq);
+
+        if (new > old) {
+            if (pa_atomic_add(&c->playback.missing, new - old) <= 0)
+                pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
+        }
+    }
 
     return r;
-}
-
-/* Called from thread context */
-static void sink_input_drop_cb(pa_sink_input *i, size_t length) {
-    connection*c;
-    size_t old, new;
-
-    pa_assert(i);
-    c = CONNECTION(i->userdata);
-    connection_assert_ref(c);
-    pa_assert(length);
-
-    /*     pa_log("DROP"); */
-
-    old = pa_memblockq_missing(c->input_memblockq);
-    pa_memblockq_drop(c->input_memblockq, length);
-    new = pa_memblockq_missing(c->input_memblockq);
-
-    if (new > old) {
-        if (pa_atomic_add(&c->playback.missing, new - old) <= 0)
-            pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(c), CONNECTION_MESSAGE_REQUEST_DATA, NULL, 0, NULL, NULL);
-    }
 }
 
 static void sink_input_kill_cb(pa_sink_input *i) {
@@ -1349,7 +1346,7 @@ static void on_connection(pa_socket_server*s, pa_iochannel *io, void *userdata) 
     pa_iochannel_socket_peer_to_string(io, pname, sizeof(pname));
     pa_snprintf(cname, sizeof(cname), "EsounD client (%s)", pname);
     c->client = pa_client_new(p->core, __FILE__, cname);
-    c->client->owner = p->module;
+    c->client->module = p->module;
     c->client->kill = client_kill_cb;
     c->client->userdata = c;
 

@@ -78,21 +78,19 @@ struct pa_fdsem {
 #ifdef HAVE_EVENTFD
     int efd;
 #endif
-    pa_atomic_t waiting;
-    pa_atomic_t signalled;
-    pa_atomic_t in_pipe;
+
+    pa_fdsem_data *data;
 };
 
 pa_fdsem *pa_fdsem_new(void) {
     pa_fdsem *f;
 
-    f = pa_xnew(pa_fdsem, 1);
+    f = pa_xmalloc(PA_ALIGN(sizeof(pa_fdsem)) + PA_ALIGN(sizeof(pa_fdsem_data)));
 
 #ifdef HAVE_EVENTFD
     if ((f->efd = eventfd(0)) >= 0) {
         pa_make_fd_cloexec(f->efd);
         f->fds[0] = f->fds[1] = -1;
-
     } else
 #endif
     {
@@ -105,9 +103,57 @@ pa_fdsem *pa_fdsem_new(void) {
         pa_make_fd_cloexec(f->fds[1]);
     }
 
-    pa_atomic_store(&f->waiting, 0);
-    pa_atomic_store(&f->signalled, 0);
-    pa_atomic_store(&f->in_pipe, 0);
+    f->data = (pa_fdsem_data*) ((uint8_t*) f + PA_ALIGN(sizeof(pa_fdsem)));
+
+    pa_atomic_store(&f->data->waiting, 0);
+    pa_atomic_store(&f->data->signalled, 0);
+    pa_atomic_store(&f->data->in_pipe, 0);
+
+    return f;
+}
+
+pa_fdsem *pa_fdsem_open_shm(pa_fdsem_data *data, int event_fd) {
+    pa_fdsem *f = NULL;
+
+    pa_assert(data);
+    pa_assert(event_fd >= 0);
+
+#ifdef HAVE_EVENTFD
+    f = pa_xnew(pa_fdsem, 1);
+
+    f->efd = event_fd;
+    pa_make_fd_cloexec(f->efd);
+    f->fds[0] = f->fds[1] = -1;
+    f->data = data;
+#endif
+
+    return f;
+}
+
+pa_fdsem *pa_fdsem_new_shm(pa_fdsem_data *data, int* event_fd) {
+    pa_fdsem *f = NULL;
+
+    pa_assert(data);
+    pa_assert(event_fd);
+
+#ifdef HAVE_EVENTFD
+
+    f = pa_xnew(pa_fdsem, 1);
+
+    if ((f->efd = eventfd(0)) < 0) {
+        pa_xfree(f);
+        return NULL;
+    }
+
+    pa_make_fd_cloexec(f->efd);
+    f->fds[0] = f->fds[1] = -1;
+    f->data = data;
+
+    pa_atomic_store(&f->data->waiting, 0);
+    pa_atomic_store(&f->data->signalled, 0);
+    pa_atomic_store(&f->data->in_pipe, 0);
+
+#endif
 
     return f;
 }
@@ -128,7 +174,7 @@ static void flush(pa_fdsem *f) {
     ssize_t r;
     pa_assert(f);
 
-    if (pa_atomic_load(&f->in_pipe) <= 0)
+    if (pa_atomic_load(&f->data->in_pipe) <= 0)
         return;
 
     do {
@@ -151,19 +197,19 @@ static void flush(pa_fdsem *f) {
             continue;
         }
 
-    } while (pa_atomic_sub(&f->in_pipe, r) > r);
+    } while (pa_atomic_sub(&f->data->in_pipe, r) > r);
 }
 
 void pa_fdsem_post(pa_fdsem *f) {
     pa_assert(f);
 
-    if (pa_atomic_cmpxchg(&f->signalled, 0, 1)) {
+    if (pa_atomic_cmpxchg(&f->data->signalled, 0, 1)) {
 
-        if (pa_atomic_load(&f->waiting)) {
+        if (pa_atomic_load(&f->data->waiting)) {
             ssize_t r;
             char x = 'x';
 
-            pa_atomic_inc(&f->in_pipe);
+            pa_atomic_inc(&f->data->in_pipe);
 
             for (;;) {
 
@@ -194,12 +240,12 @@ void pa_fdsem_wait(pa_fdsem *f) {
 
     flush(f);
 
-    if (pa_atomic_cmpxchg(&f->signalled, 1, 0))
+    if (pa_atomic_cmpxchg(&f->data->signalled, 1, 0))
         return;
 
-    pa_atomic_inc(&f->waiting);
+    pa_atomic_inc(&f->data->waiting);
 
-    while (!pa_atomic_cmpxchg(&f->signalled, 1, 0)) {
+    while (!pa_atomic_cmpxchg(&f->data->signalled, 1, 0)) {
         char x[10];
         ssize_t r;
 
@@ -221,10 +267,10 @@ void pa_fdsem_wait(pa_fdsem *f) {
             continue;
         }
 
-        pa_atomic_sub(&f->in_pipe, r);
+        pa_atomic_sub(&f->data->in_pipe, r);
     }
 
-    pa_assert_se(pa_atomic_dec(&f->waiting) >= 1);
+    pa_assert_se(pa_atomic_dec(&f->data->waiting) >= 1);
 }
 
 int pa_fdsem_try(pa_fdsem *f) {
@@ -232,7 +278,7 @@ int pa_fdsem_try(pa_fdsem *f) {
 
     flush(f);
 
-    if (pa_atomic_cmpxchg(&f->signalled, 1, 0))
+    if (pa_atomic_cmpxchg(&f->data->signalled, 1, 0))
         return 1;
 
     return 0;
@@ -254,13 +300,13 @@ int pa_fdsem_before_poll(pa_fdsem *f) {
 
     flush(f);
 
-    if (pa_atomic_cmpxchg(&f->signalled, 1, 0))
+    if (pa_atomic_cmpxchg(&f->data->signalled, 1, 0))
         return -1;
 
-    pa_atomic_inc(&f->waiting);
+    pa_atomic_inc(&f->data->waiting);
 
-    if (pa_atomic_cmpxchg(&f->signalled, 1, 0)) {
-        pa_assert_se(pa_atomic_dec(&f->waiting) >= 1);
+    if (pa_atomic_cmpxchg(&f->data->signalled, 1, 0)) {
+        pa_assert_se(pa_atomic_dec(&f->data->waiting) >= 1);
         return -1;
     }
     return 0;
@@ -269,11 +315,11 @@ int pa_fdsem_before_poll(pa_fdsem *f) {
 int pa_fdsem_after_poll(pa_fdsem *f) {
     pa_assert(f);
 
-    pa_assert_se(pa_atomic_dec(&f->waiting) >= 1);
+    pa_assert_se(pa_atomic_dec(&f->data->waiting) >= 1);
 
     flush(f);
 
-    if (pa_atomic_cmpxchg(&f->signalled, 1, 0))
+    if (pa_atomic_cmpxchg(&f->data->signalled, 1, 0))
         return 1;
 
     return 0;

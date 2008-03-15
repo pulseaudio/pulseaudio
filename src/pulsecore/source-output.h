@@ -62,10 +62,12 @@ struct pa_source_output {
 
     uint32_t index;
     pa_core *core;
+
     pa_source_output_state_t state;
     pa_source_output_flags_t flags;
 
-    char *name, *driver;                  /* may be NULL */
+    pa_proplist *proplist;
+    char *driver;                         /* may be NULL */
     pa_module *module;                    /* may be NULL */
     pa_client *client;                    /* may be NULL */
 
@@ -73,6 +75,8 @@ struct pa_source_output {
 
     pa_sample_spec sample_spec;
     pa_channel_map channel_map;
+
+    pa_resample_method_t resample_method;
 
     /* Pushes a new memchunk into the output. Called from IO thread
      * context. */
@@ -87,12 +91,12 @@ struct pa_source_output {
     void (*detach) (pa_source_output *o);           /* may be NULL */
 
     /* If non-NULL called whenever the the source this output is attached
-     * to changes. Called from main context */
-    void (*moved) (pa_source_output *o);   /* may be NULL */
-
-    /* If non-NULL called whenever the the source this output is attached
      * to suspends or resumes. Called from main context */
     void (*suspend) (pa_source_output *o, pa_bool_t b);   /* may be NULL */
+
+    /* If non-NULL called whenever the the source this output is attached
+     * to changes. Called from main context */
+    void (*moved) (pa_source_output *o);   /* may be NULL */
 
     /* Supposed to unlink and destroy this stream. Called from main
      * context. */
@@ -104,8 +108,6 @@ struct pa_source_output {
     thread instead. */
     pa_usec_t (*get_latency) (pa_source_output *o); /* may be NULL */
 
-    pa_resample_method_t resample_method;
-
     struct {
         pa_source_output_state_t state;
 
@@ -114,6 +116,9 @@ struct pa_source_output {
         pa_sample_spec sample_spec;
 
         pa_resampler* resampler;              /* may be NULL */
+
+        /* The requested latency for the source */
+        pa_usec_t requested_source_latency;
     } thread_info;
 
     void *userdata;
@@ -126,11 +131,14 @@ enum {
     PA_SOURCE_OUTPUT_MESSAGE_GET_LATENCY,
     PA_SOURCE_OUTPUT_MESSAGE_SET_RATE,
     PA_SOURCE_OUTPUT_MESSAGE_SET_STATE,
+    PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY,
     PA_SOURCE_OUTPUT_MESSAGE_MAX
 };
 
 typedef struct pa_source_output_new_data {
-    const char *name, *driver;
+    pa_proplist *proplist;
+
+    const char *driver;
     pa_module *module;
     pa_client *client;
 
@@ -152,7 +160,7 @@ typedef struct pa_source_output_move_hook_data {
 pa_source_output_new_data* pa_source_output_new_data_init(pa_source_output_new_data *data);
 void pa_source_output_new_data_set_sample_spec(pa_source_output_new_data *data, const pa_sample_spec *spec);
 void pa_source_output_new_data_set_channel_map(pa_source_output_new_data *data, const pa_channel_map *map);
-void pa_source_output_new_data_set_volume(pa_source_output_new_data *data, const pa_cvolume *volume);
+void pa_source_output_new_data_done(pa_source_output_new_data *data);
 
 /* To be called by the implementing module only */
 
@@ -165,6 +173,8 @@ void pa_source_output_put(pa_source_output *o);
 void pa_source_output_unlink(pa_source_output*o);
 
 void pa_source_output_set_name(pa_source_output *i, const char *name);
+
+void pa_source_output_set_requested_latency(pa_source_output *i, pa_usec_t usec);
 
 /* Callable by everyone */
 
@@ -186,6 +196,7 @@ int pa_source_output_move_to(pa_source_output *o, pa_source *dest);
 /* To be used exclusively by the source driver thread */
 
 void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk);
+
 int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 
 #endif

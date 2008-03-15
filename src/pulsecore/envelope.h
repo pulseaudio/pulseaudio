@@ -29,7 +29,7 @@
 
 #include <pulse/sample.h>
 
-#define PA_ENVELOPE_POINTS_MAX 4
+#define PA_ENVELOPE_POINTS_MAX 4U
 
 typedef struct pa_envelope pa_envelope;
 typedef struct pa_envelope_item pa_envelope_item;

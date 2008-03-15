@@ -374,7 +374,7 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
             i = pa_xnew(struct item_info, 1);
         i->type = PA_PSTREAM_ITEM_MEMBLOCK;
 
-        n = MIN(length, bsm);
+        n = PA_MIN(length, bsm);
         i->chunk.index = chunk->index + idx;
         i->chunk.length = n;
         i->chunk.memblock = pa_memblock_ref(chunk->memblock);

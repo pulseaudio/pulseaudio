@@ -65,19 +65,53 @@ static inline size_t pa_page_align(size_t l) {
 
 #define PA_ELEMENTSOF(x) (sizeof(x)/sizeof((x)[0]))
 
-#ifndef MAX
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
+/* The users of PA_MIN and PA_MAX should be aware that these macros on
+ * non-GCC executed code with side effects twice. It is thus
+ * considered misuse to use code with side effects as arguments to MIN
+ * and MAX. */
+
+#ifdef __GNUC__
+#define PA_MAX(a,b)                             \
+    __extension__ ({ typeof(a) _a = (a);        \
+            typeof(b) _b = (b);                 \
+            _a > _b ? _a : _b;                  \
+        })
+#else
+#define PA_MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#ifdef __GNUC__
+#define PA_MIN(a,b)                             \
+    __extension__ ({ typeof(a) _a = (a);        \
+            typeof(b) _b = (b);                 \
+            _a < _b ? _a : _b;                  \
+        })
+#else
+#define PA_MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
-#ifndef CLAMP
-#define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+#ifdef __GNUC__
+#define PA_CLAMP(x, low, high)                                          \
+    __extension__ ({ typeof(x) _x = (x);                                \
+            typeof(low) _low = (low);                                   \
+            typeof(high) _high = (high);                                \
+            ((_x > _high) ? _high : ((_x < _low) ? _low : _x));         \
+        })
+#else
+#define PA_CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #endif
 
+#ifdef __GNUC__
+#define PA_CLAMP_UNLIKELY(x, low, high)                                 \
+    __extension__ ({ typeof(x) _x = (x);                                \
+            typeof(low) _low = (low);                                   \
+            typeof(high) _high = (high);                                \
+            (PA_UNLIKELY(_x > _high) ? _high : (PA_UNLIKELY(_x < _low) ? _low : _x)); \
+        })
+#else
 #define PA_CLAMP_UNLIKELY(x, low, high) (PA_UNLIKELY((x) > (high)) ? (high) : (PA_UNLIKELY((x) < (low)) ? (low) : (x)))
+#endif
+
 /* We don't define a PA_CLAMP_LIKELY here, because it doesn't really
  * make sense: we cannot know if it is more likely that the values is
  * lower or greater than the boundaries.*/

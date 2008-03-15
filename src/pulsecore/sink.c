@@ -47,42 +47,105 @@
 
 #define MAX_MIX_CHANNELS 32
 #define MIX_BUFFER_LENGTH (PA_PAGE_SIZE)
-#define SILENCE_BUFFER_LENGTH (PA_PAGE_SIZE*12)
 
 static PA_DEFINE_CHECK_TYPE(pa_sink, pa_msgobject);
 
 static void sink_free(pa_object *s);
 
+pa_sink_new_data* pa_sink_new_data_init(pa_sink_new_data *data) {
+    pa_assert(data);
+
+    memset(data, 0, sizeof(*data));
+    data->proplist = pa_proplist_new();
+
+    return data;
+}
+
+void pa_sink_new_data_set_name(pa_sink_new_data *data, const char *name) {
+    pa_assert(data);
+
+    pa_xfree(data->name);
+    data->name = pa_xstrdup(name);
+}
+
+void pa_sink_new_data_set_sample_spec(pa_sink_new_data *data, const pa_sample_spec *spec) {
+    pa_assert(data);
+
+    if ((data->sample_spec_is_set = !!spec))
+        data->sample_spec = *spec;
+}
+
+void pa_sink_new_data_set_channel_map(pa_sink_new_data *data, const pa_channel_map *map) {
+    pa_assert(data);
+
+    if ((data->channel_map_is_set = !!map))
+        data->channel_map = *map;
+}
+
+void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volume) {
+    pa_assert(data);
+
+    if ((data->volume_is_set = !!volume))
+        data->volume = *volume;
+}
+
+void pa_sink_new_data_set_muted(pa_sink_new_data *data, pa_bool_t mute) {
+    pa_assert(data);
+
+    data->muted_is_set = TRUE;
+    data->muted = !!mute;
+}
+
+void pa_sink_new_data_done(pa_sink_new_data *data) {
+    pa_assert(data);
+
+    pa_xfree(data->name);
+    pa_proplist_free(data->proplist);
+}
+
 pa_sink* pa_sink_new(
         pa_core *core,
-        const char *driver,
-        const char *name,
-        int fail,
-        const pa_sample_spec *spec,
-        const pa_channel_map *map) {
+        pa_sink_new_data *data,
+        pa_sink_flags_t flags) {
 
     pa_sink *s;
-    char *n = NULL;
-    char st[256];
-    pa_channel_map tmap;
+    char *d;
+    const char *name;
+    char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+    pa_source_new_data source_data;
 
     pa_assert(core);
-    pa_assert(name);
-    pa_assert(spec);
+    pa_assert(data);
 
-    pa_return_null_if_fail(pa_sample_spec_valid(spec));
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_NEW], data) < 0)
+        return NULL;
 
-    if (!map)
-        pa_return_null_if_fail((map = pa_channel_map_init_auto(&tmap, spec->channels, PA_CHANNEL_MAP_DEFAULT)));
+    pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
+    pa_return_null_if_fail(data->name && pa_utf8_valid(data->name) && data->name[0]);
 
-    pa_return_null_if_fail(map && pa_channel_map_valid(map));
-    pa_return_null_if_fail(map->channels == spec->channels);
-    pa_return_null_if_fail(!driver || pa_utf8_valid(driver));
-    pa_return_null_if_fail(name && pa_utf8_valid(name) && *name);
+    pa_return_null_if_fail(data->sample_spec_is_set && pa_sample_spec_valid(&data->sample_spec));
+
+    if (!data->channel_map_is_set)
+        pa_return_null_if_fail(pa_channel_map_init_auto(&data->channel_map, data->sample_spec.channels, PA_CHANNEL_MAP_DEFAULT));
+
+    pa_return_null_if_fail(pa_channel_map_valid(&data->channel_map));
+    pa_return_null_if_fail(data->channel_map.channels == data->sample_spec.channels);
+
+    if (!data->volume_is_set)
+        pa_cvolume_reset(&data->volume, data->sample_spec.channels);
+
+    pa_return_null_if_fail(pa_cvolume_valid(&data->volume));
+    pa_return_null_if_fail(data->volume.channels == data->sample_spec.channels);
+
+    if (!data->muted_is_set)
+        data->muted = FALSE;
+
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_FIXATE], data) < 0)
+        return NULL;
 
     s = pa_msgobject_new(pa_sink);
 
-    if (!(name = pa_namereg_register(core, name, PA_NAMEREG_SINK, s, fail))) {
+    if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SINK, s, data->namereg_fail))) {
         pa_xfree(s);
         return NULL;
     }
@@ -92,20 +155,20 @@ pa_sink* pa_sink_new(
 
     s->core = core;
     s->state = PA_SINK_INIT;
-    s->flags = 0;
+    s->flags = flags;
     s->name = pa_xstrdup(name);
-    s->description = NULL;
-    s->driver = pa_xstrdup(driver);
-    s->module = NULL;
+    s->proplist = pa_proplist_copy(data->proplist);
+    s->driver = pa_xstrdup(data->driver);
+    s->module = data->module;
 
-    s->sample_spec = *spec;
-    s->channel_map = *map;
+    s->sample_spec = data->sample_spec;
+    s->channel_map = data->channel_map;
 
     s->inputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
 
-    pa_cvolume_reset(&s->volume, spec->channels);
-    s->muted = FALSE;
+    s->volume = data->volume;
+    s->muted = data->muted;
     s->refresh_volume = s->refresh_mute = FALSE;
 
     s->get_latency = NULL;
@@ -114,35 +177,53 @@ pa_sink* pa_sink_new(
     s->set_mute = NULL;
     s->get_mute = NULL;
     s->set_state = NULL;
+    s->request_rewind = NULL;
+    s->update_requested_latency = NULL;
     s->userdata = NULL;
 
     s->asyncmsgq = NULL;
     s->rtpoll = NULL;
-    s->silence = NULL;
-
-    pa_assert_se(pa_idxset_put(core->sinks, s, &s->index) >= 0);
-
-    pa_sample_spec_snprint(st, sizeof(st), spec);
-    pa_log_info("Created sink %u \"%s\" with sample spec \"%s\"", s->index, s->name, st);
-
-    n = pa_sprintf_malloc("%s.monitor", name);
-
-    if (!(s->monitor_source = pa_source_new(core, driver, n, 0, spec, map)))
-        pa_log_warn("Failed to create monitor source.");
-    else {
-        char *d;
-        s->monitor_source->monitor_of = s;
-        d = pa_sprintf_malloc("Monitor Source of %s", s->name);
-        pa_source_set_description(s->monitor_source, d);
-        pa_xfree(d);
-    }
-
-    pa_xfree(n);
+    s->silence = pa_silence_memblock_new(core->mempool, &s->sample_spec, 0);
 
     s->thread_info.inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume = s->volume;
     s->thread_info.soft_muted = s->muted;
     s->thread_info.state = s->state;
+    s->thread_info.rewind_nbytes = 0;
+    s->thread_info.max_rewind = 0;
+    s->thread_info.requested_latency_valid = TRUE;
+    s->thread_info.requested_latency = 0;
+
+    pa_assert_se(pa_idxset_put(core->sinks, s, &s->index) >= 0);
+
+    pa_log_info("Created sink %u \"%s\" with sample spec %s and channel map %s",
+                s->index,
+                s->name,
+                pa_sample_spec_snprint(st, sizeof(st), &s->sample_spec),
+                pa_channel_map_snprint(cm, sizeof(cm), &s->channel_map));
+
+    pa_source_new_data_init(&source_data);
+    pa_source_new_data_set_sample_spec(&source_data, &s->sample_spec);
+    pa_source_new_data_set_channel_map(&source_data, &s->channel_map);
+    source_data.name = pa_sprintf_malloc("%s.monitor", name);
+    source_data.driver = data->driver;
+
+    d = pa_sprintf_malloc("Monitor Source of %s", s->name);
+    pa_proplist_sets(data->proplist, PA_PROP_DEVICE_DESCRIPTION, d);
+    pa_xfree(d);
+    pa_proplist_sets(data->proplist, PA_PROP_DEVICE_CLASS, "monitor");
+
+    s->monitor_source = pa_source_new(core, &source_data, 0);
+
+    pa_source_new_data_done(&source_data);
+
+    if (!s->monitor_source) {
+        pa_sink_unlink(s);
+        pa_sink_unref(s);
+        return NULL;
+    }
+
+    s->monitor_source->monitor_of = s;
 
     return s;
 }
@@ -193,12 +274,22 @@ void pa_sink_put(pa_sink* s) {
     pa_assert(s->asyncmsgq);
     pa_assert(s->rtpoll);
 
+    if (s->get_volume && s->set_volume)
+        s->flags |= PA_SINK_HW_VOLUME_CTRL;
+    else
+        s->flags = (s->flags & ~PA_SINK_HW_VOLUME_CTRL) | PA_SINK_DECIBEL_VOLUME;
+
+    if (s->get_mute && s->set_mute)
+        s->flags |= PA_SINK_HW_MUTE_CTRL;
+    else
+        s->flags &= ~PA_SINK_HW_MUTE_CTRL;
+
     pa_assert_se(sink_set_state(s, PA_SINK_IDLE) == 0);
 
     pa_source_put(s->monitor_source);
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_NEW, s->index);
-    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_NEW_POST], s);
+    pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PUT], s);
 }
 
 void pa_sink_unlink(pa_sink* s) {
@@ -241,6 +332,8 @@ void pa_sink_unlink(pa_sink* s) {
     s->set_mute = NULL;
     s->get_mute = NULL;
     s->set_state = NULL;
+    s->request_rewind = NULL;
+    s->update_requested_latency = NULL;
 
     if (s->monitor_source)
         pa_source_unlink(s->monitor_source);
@@ -279,8 +372,11 @@ static void sink_free(pa_object *o) {
         pa_memblock_unref(s->silence);
 
     pa_xfree(s->name);
-    pa_xfree(s->description);
     pa_xfree(s->driver);
+
+    if (s->proplist)
+        pa_proplist_free(s->proplist);
+
     pa_xfree(s);
 }
 
@@ -330,6 +426,26 @@ void pa_sink_ping(pa_sink *s) {
     pa_asyncmsgq_post(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_PING, NULL, 0, NULL, NULL);
 }
 
+void pa_sink_process_rewind(pa_sink *s) {
+    pa_sink_input *i;
+    void *state = NULL;
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
+
+    if (s->thread_info.rewind_nbytes <= 0)
+        return;
+
+    pa_log_debug("Processing rewind...");
+
+    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL))) {
+        pa_sink_input_assert_ref(i);
+
+        pa_sink_input_rewind(i, s->thread_info.rewind_nbytes);
+    }
+
+    s->thread_info.rewind_nbytes = 0;
+}
+
 static unsigned fill_mix_info(pa_sink *s, size_t length, pa_mix_info *info, unsigned maxinfo) {
     pa_sink_input *i;
     unsigned n = 0;
@@ -343,6 +459,11 @@ static unsigned fill_mix_info(pa_sink *s, size_t length, pa_mix_info *info, unsi
 
         if (pa_sink_input_peek(i, length, &info->chunk, &info->volume) < 0)
             continue;
+
+        if (pa_memblock_is_silence(info->chunk.memblock)) {
+            pa_memblock_unref(info->chunk.memblock);
+            continue;
+        }
 
         info->userdata = pa_sink_input_ref(i);
 
@@ -427,6 +548,8 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
     pa_sink_ref(s);
 
+    s->thread_info.rewind_nbytes = 0;
+
     if (length <= 0)
         length = pa_frame_align(MIX_BUFFER_LENGTH, &s->sample_spec);
 
@@ -440,19 +563,8 @@ void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result) {
 
     if (n == 0) {
 
-        if (length > SILENCE_BUFFER_LENGTH)
-            length = pa_frame_align(SILENCE_BUFFER_LENGTH, &s->sample_spec);
-
-        pa_assert(length > 0);
-
-        if (!s->silence || pa_memblock_get_length(s->silence) < length) {
-            if (s->silence)
-                pa_memblock_unref(s->silence);
-            s->silence = pa_silence_memblock_new(s->core->mempool, &s->sample_spec, length);
-        }
-
         result->memblock = pa_memblock_ref(s->silence);
-        result->length = length;
+        result->length = PA_MIN(pa_memblock_get_length(s->silence), length);
         result->index = 0;
 
     } else if (n == 1) {
@@ -506,11 +618,13 @@ void pa_sink_render_into(pa_sink*s, pa_memchunk *target) {
 
     pa_sink_ref(s);
 
+    s->thread_info.rewind_nbytes = 0;
+
     n = s->thread_info.state == PA_SINK_RUNNING ? fill_mix_info(s, target->length, info, MAX_MIX_CHANNELS) : 0;
 
-    if (n == 0) {
+    if (n == 0)
         pa_silence_memchunk(target, &s->sample_spec);
-    } else if (n == 1) {
+    else if (n == 1) {
         if (target->length > info[0].chunk.length)
             target->length = info[0].chunk.length;
 
@@ -573,6 +687,8 @@ void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target) {
 
     pa_sink_ref(s);
 
+    s->thread_info.rewind_nbytes = 0;
+
     l = target->length;
     d = 0;
     while (l > 0) {
@@ -596,6 +712,8 @@ void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result) {
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
     pa_assert(result);
 
+    s->thread_info.rewind_nbytes = 0;
+
     /*** This needs optimization ***/
 
     result->index = 0;
@@ -613,6 +731,8 @@ void pa_sink_skip(pa_sink *s, size_t length) {
     pa_assert(PA_SINK_OPENED(s->thread_info.state));
     pa_assert(length > 0);
     pa_assert(pa_frame_aligned(length, &s->sample_spec));
+
+    s->thread_info.rewind_nbytes = 0;
 
     if (pa_source_used_by(s->monitor_source)) {
         pa_memchunk chunk;
@@ -643,6 +763,8 @@ pa_usec_t pa_sink_get_latency(pa_sink *s) {
 
     pa_sink_assert_ref(s);
     pa_assert(PA_SINK_LINKED(s->state));
+
+    /* The returned value is supposed to be in the time domain of the sound card! */
 
     if (!PA_SINK_OPENED(s->state))
         return 0;
@@ -735,43 +857,34 @@ pa_bool_t pa_sink_get_mute(pa_sink *s) {
     return s->muted;
 }
 
-void pa_sink_set_module(pa_sink *s, pa_module *m) {
-    pa_sink_assert_ref(s);
-
-    if (s->module == m)
-        return;
-
-    s->module = m;
-
-    if (s->monitor_source)
-        pa_source_set_module(s->monitor_source, m);
-
-    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-}
-
 void pa_sink_set_description(pa_sink *s, const char *description) {
+    const char *old;
     pa_sink_assert_ref(s);
 
-    if (!description && !s->description)
+    if (!description && !pa_proplist_contains(s->proplist, PA_PROP_DEVICE_DESCRIPTION))
         return;
 
-    if (description && s->description && !strcmp(description, s->description))
+    old = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
+
+    if (old && description && !strcmp(old, description))
         return;
 
-    pa_xfree(s->description);
-    s->description = pa_xstrdup(description);
+    if (description)
+        pa_proplist_sets(s->proplist, PA_PROP_DEVICE_DESCRIPTION, description);
+    else
+        pa_proplist_unset(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
 
     if (s->monitor_source) {
         char *n;
 
-        n = pa_sprintf_malloc("Monitor Source of %s", s->description? s->description : s->name);
+        n = pa_sprintf_malloc("Monitor Source of %s", description ? description : s->name);
         pa_source_set_description(s->monitor_source, n);
         pa_xfree(n);
     }
 
     if (PA_SINK_LINKED(s->state)) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
-        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_DESCRIPTION_CHANGED], s);
+        pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PROPLIST_CHANGED], s);
     }
 }
 
@@ -817,6 +930,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
         case PA_SINK_MESSAGE_ADD_INPUT: {
             pa_sink_input *i = PA_SINK_INPUT(userdata);
+
             pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index), pa_sink_input_ref(i));
 
             /* Since the caller sleeps in pa_sink_input_put(), we can
@@ -835,6 +949,8 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 i->thread_info.sync_next->thread_info.sync_prev = i;
             }
 
+            pa_sink_input_set_max_rewind(i, s->thread_info.max_rewind);
+
             pa_assert(!i->thread_info.attached);
             i->thread_info.attached = TRUE;
 
@@ -844,6 +960,11 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             /* If you change anything here, make sure to change the
              * ghost sink input handling a few lines down at
              * PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER, too. */
+
+            pa_sink_invalidate_requested_latency(s);
+
+/*             i->thread_info.ignore_rewind = TRUE; */
+/*             pa_sink_request_rewind(s, 0); */
 
             return 0;
         }
@@ -881,6 +1002,10 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             if (pa_hashmap_remove(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index)))
                 pa_sink_input_unref(i);
 
+            pa_sink_invalidate_requested_latency(s);
+
+/*             pa_sink_request_rewind(s, 0); */
+
             return 0;
         }
 
@@ -899,6 +1024,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             pa_assert(info->sink_input->thread_info.attached);
             info->sink_input->thread_info.attached = FALSE;
+            pa_sink_invalidate_requested_latency(info->sink_input->sink);
 
             if (info->ghost_sink_input) {
                 pa_assert(info->buffer_bytes > 0);
@@ -934,9 +1060,8 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                     info->buffer_bytes -= n;
                 }
 
-                /* Add the remaining already resampled chunk to the buffer */
-                if (info->sink_input->thread_info.resampled_chunk.memblock)
-                    pa_memblockq_push(info->buffer, &info->sink_input->thread_info.resampled_chunk);
+                /* Add the remaining already resampled chunks to the buffer */
+                pa_memblockq_splice(info->buffer, info->sink_input->thread_info.render_memblockq);
 
                 pa_memblockq_sink_input_set_queue(info->ghost_sink_input, info->buffer);
 
@@ -952,22 +1077,33 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 pa_hashmap_put(s->thread_info.inputs, PA_UINT32_TO_PTR(info->ghost_sink_input->index), pa_sink_input_ref(info->ghost_sink_input));
                 info->ghost_sink_input->thread_info.sync_prev = info->ghost_sink_input->thread_info.sync_next = NULL;
 
+                pa_sink_input_set_max_rewind(info->ghost_sink_input, s->thread_info.max_rewind);
+
                 pa_assert(!info->ghost_sink_input->thread_info.attached);
                 info->ghost_sink_input->thread_info.attached = TRUE;
 
                 if (info->ghost_sink_input->attach)
                     info->ghost_sink_input->attach(info->ghost_sink_input);
+
             }
+
+            pa_sink_invalidate_requested_latency(s);
+
+            pa_sink_request_rewind(s, 0);
 
             return 0;
         }
 
         case PA_SINK_MESSAGE_SET_VOLUME:
             s->thread_info.soft_volume = *((pa_cvolume*) userdata);
+
+            pa_sink_request_rewind(s, 0);
             return 0;
 
         case PA_SINK_MESSAGE_SET_MUTE:
             s->thread_info.soft_muted = PA_PTR_TO_UINT(userdata);
+
+            pa_sink_request_rewind(s, 0);
             return 0;
 
         case PA_SINK_MESSAGE_GET_VOLUME:
@@ -1063,4 +1199,74 @@ void pa_sink_attach_within_thread(pa_sink *s) {
 
     if (s->monitor_source)
         pa_source_attach_within_thread(s->monitor_source);
+}
+
+void pa_sink_request_rewind(pa_sink*s, size_t nbytes) {
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+
+    if (nbytes <= 0)
+        nbytes = s->thread_info.max_rewind;
+
+    nbytes = PA_MIN(nbytes, s->thread_info.max_rewind);
+
+    if (nbytes <= s->thread_info.rewind_nbytes)
+        return;
+
+    s->thread_info.rewind_nbytes = nbytes;
+
+    if (s->request_rewind)
+        s->request_rewind(s);
+}
+
+pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
+    pa_usec_t result = 0;
+    pa_sink_input *i;
+    void *state = NULL;
+
+    pa_sink_assert_ref(s);
+
+    if (s->thread_info.requested_latency_valid)
+        return s->thread_info.requested_latency;
+
+    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
+
+        if (i->thread_info.requested_sink_latency > 0 &&
+            (!result || result > i->thread_info.requested_sink_latency))
+            result = i->thread_info.requested_sink_latency;
+
+    s->thread_info.requested_latency = result;
+    s->thread_info.requested_latency_valid = TRUE;
+
+    return result;
+}
+
+void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {
+    pa_sink_input *i;
+    void *state = NULL;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+
+    if (max_rewind == s->thread_info.max_rewind)
+        return;
+
+    s->thread_info.max_rewind = max_rewind;
+
+    while ((i = pa_hashmap_iterate(s->thread_info.inputs, &state, NULL)))
+        pa_sink_input_set_max_rewind(i, s->thread_info.max_rewind);
+}
+
+void pa_sink_invalidate_requested_latency(pa_sink *s) {
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->thread_info.state));
+
+    if (!s->thread_info.requested_latency_valid)
+        return;
+
+    s->thread_info.requested_latency_valid = FALSE;
+
+    if (s->update_requested_latency)
+        s->update_requested_latency(s);
 }

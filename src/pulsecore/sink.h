@@ -69,7 +69,8 @@ struct pa_sink {
     pa_sink_flags_t flags;
 
     char *name;
-    char *description, *driver;            /* may be NULL */
+    char *driver;                           /* may be NULL */
+    pa_proplist *proplist;
 
     pa_module *module;                      /* may be NULL */
 
@@ -85,15 +86,19 @@ struct pa_sink {
     pa_bool_t refresh_volume;
     pa_bool_t refresh_mute;
 
-    int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
-    int (*set_volume)(pa_sink *s);           /* dito */
-    int (*get_volume)(pa_sink *s);           /* dito */
-    int (*get_mute)(pa_sink *s);             /* dito */
-    int (*set_mute)(pa_sink *s);             /* dito */
-    pa_usec_t (*get_latency)(pa_sink *s);    /* dito */
-
     pa_asyncmsgq *asyncmsgq;
     pa_rtpoll *rtpoll;
+
+    pa_memblock *silence;
+
+    int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
+    int (*set_volume)(pa_sink *s);             /* dito */
+    int (*get_volume)(pa_sink *s);             /* dito */
+    int (*get_mute)(pa_sink *s);               /* dito */
+    int (*set_mute)(pa_sink *s);               /* dito */
+    pa_usec_t (*get_latency)(pa_sink *s);      /* dito */
+    void (*request_rewind)(pa_sink *s);        /* dito */
+    void (*update_requested_latency)(pa_sink *s); /* dito */
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -102,9 +107,17 @@ struct pa_sink {
         pa_hashmap *inputs;
         pa_cvolume soft_volume;
         pa_bool_t soft_muted;
-    } thread_info;
 
-    pa_memblock *silence;
+        pa_bool_t requested_latency_valid;
+        size_t requested_latency;
+
+        /* The number of bytes we need keep around to be able to satisfy
+         * every DMA buffer rewrite */
+        size_t max_rewind;
+
+        /* Maximum of what clients requested to rewind in this cycle */
+        size_t rewind_nbytes;
+    } thread_info;
 
     void *userdata;
 };
@@ -128,20 +141,43 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_MAX
 } pa_sink_message_t;
 
+typedef struct pa_sink_new_data {
+    char *name;
+    pa_bool_t namereg_fail;
+    pa_proplist *proplist;
+
+    const char *driver;
+    pa_module *module;
+
+    pa_sample_spec sample_spec;
+    pa_bool_t sample_spec_is_set;
+    pa_channel_map channel_map;
+    pa_bool_t channel_map_is_set;
+
+    pa_cvolume volume;
+    pa_bool_t volume_is_set;
+    pa_bool_t muted;
+    pa_bool_t muted_is_set;
+} pa_sink_new_data;
+
+pa_sink_new_data* pa_sink_new_data_init(pa_sink_new_data *data);
+void pa_sink_new_data_set_name(pa_sink_new_data *data, const char *name);
+void pa_sink_new_data_set_sample_spec(pa_sink_new_data *data, const pa_sample_spec *spec);
+void pa_sink_new_data_set_channel_map(pa_sink_new_data *data, const pa_channel_map *map);
+void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volume);
+void pa_sink_new_data_set_muted(pa_sink_new_data *data, pa_bool_t mute);
+void pa_sink_new_data_done(pa_sink_new_data *data);
+
 /* To be called exclusively by the sink driver, from main context */
 
 pa_sink* pa_sink_new(
         pa_core *core,
-        const char *driver,
-        const char *name,
-        int namereg_fail,
-        const pa_sample_spec *spec,
-        const pa_channel_map *map);
+        pa_sink_new_data *data,
+        pa_sink_flags_t flags);
 
 void pa_sink_put(pa_sink *s);
 void pa_sink_unlink(pa_sink* s);
 
-void pa_sink_set_module(pa_sink *sink, pa_module *m);
 void pa_sink_set_description(pa_sink *s, const char *description);
 void pa_sink_set_asyncmsgq(pa_sink *s, pa_asyncmsgq *q);
 void pa_sink_set_rtpoll(pa_sink *s, pa_rtpoll *p);
@@ -151,11 +187,14 @@ void pa_sink_attach(pa_sink *s);
 
 /* May be called by everyone, from main context */
 
+/* The returned value is supposed to be in the time domain of the sound card! */
 pa_usec_t pa_sink_get_latency(pa_sink *s);
 
 int pa_sink_update_status(pa_sink*s);
 int pa_sink_suspend(pa_sink *s, pa_bool_t suspend);
 int pa_sink_suspend_all(pa_core *c, pa_bool_t suspend);
+
+void pa_sink_rewind(pa_sink *s, size_t length);
 
 /* Sends a ping message to the sink thread, to make it wake up and
  * check for data to process even if there is no real message is
@@ -173,16 +212,27 @@ unsigned pa_sink_used_by(pa_sink *s); /* Number of connected streams which are n
 
 /* To be called exclusively by the sink driver, from IO context */
 
+void pa_sink_process_rewind(pa_sink *s);
+
 void pa_sink_render(pa_sink*s, size_t length, pa_memchunk *result);
 void pa_sink_render_full(pa_sink *s, size_t length, pa_memchunk *result);
 void pa_sink_render_into(pa_sink*s, pa_memchunk *target);
 void pa_sink_render_into_full(pa_sink *s, pa_memchunk *target);
-
 void pa_sink_skip(pa_sink *s, size_t length);
 
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk);
 
 void pa_sink_attach_within_thread(pa_sink *s);
 void pa_sink_detach_within_thread(pa_sink *s);
+
+pa_usec_t pa_sink_get_requested_latency(pa_sink *s);
+
+void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind);
+
+/* To be called exclusively by sink input drivers, from IO context */
+
+void pa_sink_request_rewind(pa_sink*s, size_t nbytes);
+
+void pa_sink_invalidate_requested_latency(pa_sink *s);
 
 #endif
