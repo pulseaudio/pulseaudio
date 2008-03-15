@@ -257,6 +257,7 @@ AC_CHECK_TYPES(ssize_t, , [AC_DEFINE([ssize_t], [signed long],
 AC_TYPE_OFF_T
 AC_TYPE_SIGNAL
 AC_TYPE_UID_T
+AC_CHECK_DECLS(environ)
 
 AC_CHECK_DEFINE([SIGXCPU], [signal.h], [
 HAVE_SIGXCPU=1

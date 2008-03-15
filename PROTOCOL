@@ -78,3 +78,42 @@ New opcodes for notifications:
  PA_COMMAND_CAPTURE_STREAM_SUSPENDED
  PA_COMMAND_PLAYBACK_STREAM_MOVED
  PA_COMMAND_CAPTURE_STREAM_MOVED
+
+### v13, implemented  by >= 0.9.10
+
+New fields for PA_COMMAND_CREATE_PLAYBACK_STREAM, PA_COMMAND_CREATE_RECORD_STREAM request at the end:
+
+ peak_detect (bool)
+
+Replace field "name" for PA_COMMAND_CREATE_PLAYBACK_STREAM, PA_COMMAND_CREATE_RECORD_STREAM at the end:
+
+ proplist
+
+Replace field "name" for PA_COMMAND_SET_CLIENT_NAME request at the end:
+
+ proplist
+
+On response of PA_COMMAND_SET_CLIENT_NAME:
+
+ client_index
+
+New proplist field for sink, source, sink input, source output introspection opcodes and at the end:
+
+ proplist
+
+New opcodes for proplist modifications
+
+  PA_COMMAND_UPDATE_RECORD_STREAM_PROPLIST
+  PA_COMMAND_UPDATE_PLAYBACK_STREAM_PROPLIST
+  PA_COMMAND_UPDATE_CLIENT_PROPLIST
+  PA_COMMAND_REMOVE_RECORD_STREAM_PROPLIST
+  PA_COMMAND_REMOVE_PLAYBACK_STREAM_PROPLIST
+  PA_COMMAND_REMOVE_CLIENT_PROPLIST
+
+New field for PA_COMMAND_PLAY_SAMPLE:
+
+  proplist
+ 
+New field for PA_COMMAND_PLAY_SAMPLE response:
+
+  idx
