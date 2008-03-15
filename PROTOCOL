@@ -1,0 +1,80 @@
+### v8, implemented by >= 0.8
+
+First version supported.
+
+### v9, implemented by >= 0.9.0
+
+Reply for PA_COMMAND_CREATE_PLAYBACK_STREAM,
+PA_COMMAND_CREATE_RECORD_STREAM now returns buffer_attrs that are used:
+
+Four new fields in reply of PA_COMMAND_CREATE_PLAYBACK_STREAM:
+
+   maxlength
+   tlength
+   prebuf
+   minreq
+
+Two new fields in reply of PA_COMMAND_CREATE_RECORD_STREAM:
+
+   maxlength
+   fragsize
+
+### v10, implemented by >= 0.9.5
+
+New opcodes:
+
+ PA_COMMAND_MOVE_SINK_INPUT
+ PA_COMMAND_MOVE_SOURCE_OUTPUT
+
+SHM data transfer support
+
+### v11, implemented by >= 0.9.7
+
+Reply to to PA_COMMAND_GET_SINK_INPUT_INFO, PA_COMMAND_GET_SINK_INPUT_INFO_LIST gets new field at the end:
+
+ mute
+
+New opcodes:
+
+ PA_COMMAND_SET_SINK_INPUT_MUTE
+ PA_COMMAND_SUSPEND_SINK
+ PA_COMMAND_SUSPEND_SOURCE
+
+### v12, implemented by >= 0.9.8
+
+S32LE, S32BE is now known as sample spec.
+
+Gained six new bool fields for PA_COMMAND_CREATE_PLAYBACK_STREAM, PA_COMMAND_CREATE_RECORD_STREAM request at the end:
+
+ no_remap_channels
+ no_remix_channels
+ fix_format
+ fix_rate
+ fix_channels
+ no_move
+ variable_rate
+
+Reply to these opcodes now includes:
+
+ sample_spec
+ channel_map
+ device_index
+ device_name
+ suspended
+
+New opcodes for changing buffer attrs:
+
+ PA_COMMAND_SET_PLAYBACK_STREAM_BUFFER_ATTR
+ PA_COMMAND_SET_RECORD_STREAM_BUFFER_ATTR
+
+New opcodes for changing sampling rate:
+
+ PA_COMMAND_UPDATE_PLAYBACK_STREAM_SAMPLE_RATE
+ PA_COMMAND_UPDATE_RECORD_STREAM_SAMPLE_RATE
+
+New opcodes for notifications:
+
+ PA_COMMAND_PLAYBACK_STREAM_SUSPENDED
+ PA_COMMAND_CAPTURE_STREAM_SUSPENDED
+ PA_COMMAND_PLAYBACK_STREAM_MOVED
+ PA_COMMAND_CAPTURE_STREAM_MOVED

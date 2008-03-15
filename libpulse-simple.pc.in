@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=${prefix}/include
+
+Name: libpulse-simple
+Description: Simplified Synchronous Client Interface to PulseAudio
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lpulse-simple @PTHREAD_LIBS@
+Cflags: -D_REENTRANT -I${includedir}
+Requires: libpulse

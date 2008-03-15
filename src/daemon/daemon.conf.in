@@ -1,0 +1,69 @@
+# $Id$
+#
+# This file is part of PulseAudio.
+#
+# PulseAudio is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# PulseAudio is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with PulseAudio; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+
+## Configuration file for the PulseAudio daemon. See pulse-daemon.conf(5) for
+## more information. Default values a commented out.  Use either ; or # for
+## commenting.
+
+; daemonize = no
+; fail = yes
+; disallow-module-loading = no
+; use-pid-file = yes
+; system-instance = no
+; disable-shm = no
+
+; high-priority = yes
+; nice-level = -11
+
+; realtime-scheduling = no
+; realtime-priority = 5
+
+; exit-idle-time = -1
+; module-idle-time = 20
+; scache-idle-time = 20
+
+; dl-search-path = @PA_DLSEARCHPATH@
+
+; default-script-file = @PA_DEFAULT_CONFIG_FILE@
+
+; log-target = auto
+; log-level = notice
+
+; resample-method = speex-float-3
+; disable-remixing = no
+
+; no-cpu-limit = no
+
+; rlimit-as = -1
+; rlimit-core = -1
+; rlimit-data = -1
+; rlimit-fsize = -1
+; rlimit-nofile = 256
+; rlimit-stack = -1
+; rlimit-nproc = -1
+; rlimit-memlock = -1
+; rlimit-nice = 31
+; rlimit-rtprio = 9
+
+; default-sample-format = s16le
+; default-sample-rate = 44100
+; default-sample-channels = 2
+
+; default-fragments = 4
+; default-fragment-size-msec = 25

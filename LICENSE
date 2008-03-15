@@ -1,0 +1,13 @@
+All PulseAudio source files are licensed under the GNU Lesser General Public
+License. (see file LGPL for details)
+
+However, the server side links to the GPL-only library 'libsamplerate' which
+practically downgrades the license of the server part to GPL (see file GPL for
+details), exercising section 3 of the LGPL.
+
+Hence you should treat the client library ('libpulse') of PulseAudio as being
+LGPL licensed and the server part ('libpulsecore') as being GPL licensed. Since
+the PulseAudio daemon and the modules link to 'libpulsecore' they are of course
+also GPL licensed.
+
+-- Lennart Poettering, April 20th, 2006.
