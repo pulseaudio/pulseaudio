@@ -31,6 +31,30 @@
 #include <pulsecore/memblockq.h>
 #include <pulsecore/log.h>
 
+static void dump(pa_memblockq *bq) {
+    printf(">");
+
+    for (;;) {
+        pa_memchunk out;
+        char *e;
+        size_t n;
+        void *q;
+
+        if (pa_memblockq_peek(bq, &out) < 0)
+            break;
+
+        q = pa_memblock_acquire(out.memblock);
+        for (e = (char*) q + out.index, n = 0; n < out.length; n++)
+            printf("%c", *e);
+        pa_memblock_release(out.memblock);
+
+        pa_memblock_unref(out.memblock);
+        pa_memblockq_drop(bq, out.length);
+    }
+
+    printf("<\n");
+}
+
 int main(int argc, char *argv[]) {
     int ret;
 
@@ -46,7 +70,7 @@ int main(int argc, char *argv[]) {
     silence = pa_memblock_new_fixed(p, (char*)  "__", 2, 1);
     assert(silence);
 
-    bq = pa_memblockq_new(0, 40, 10, 2, 4, 4, silence);
+    bq = pa_memblockq_new(0, 40, 10, 2, 4, 4, 40, silence);
     assert(bq);
 
     chunk1.memblock = pa_memblock_new_fixed(p, (char*) "11", 2, 1);
@@ -72,13 +96,13 @@ int main(int argc, char *argv[]) {
     ret = pa_memblockq_push(bq, &chunk1);
     assert(ret == 0);
 
-    ret = pa_memblockq_push(bq, &chunk1);
-    assert(ret == 0);
-
     ret = pa_memblockq_push(bq, &chunk2);
     assert(ret == 0);
 
-    ret = pa_memblockq_push(bq, &chunk2);
+    ret = pa_memblockq_push(bq, &chunk3);
+    assert(ret == 0);
+
+    ret = pa_memblockq_push(bq, &chunk4);
     assert(ret == 0);
 
     pa_memblockq_seek(bq, -6, 0);
@@ -86,7 +110,7 @@ int main(int argc, char *argv[]) {
     assert(ret == 0);
 
     pa_memblockq_seek(bq, -2, 0);
-    ret = pa_memblockq_push(bq, &chunk3);
+    ret = pa_memblockq_push(bq, &chunk1);
     assert(ret == 0);
 
     pa_memblockq_seek(bq, -10, 0);
@@ -119,28 +143,13 @@ int main(int argc, char *argv[]) {
     ret = pa_memblockq_push(bq, &chunk3);
     assert(ret == 0);
 
-    pa_memblockq_shorten(bq, pa_memblockq_get_length(bq)-2);
+    pa_memblockq_seek(bq, 30, PA_SEEK_RELATIVE);
 
-    printf(">");
+    dump(bq);
 
-    for (;;) {
-        pa_memchunk out;
-        char *e;
-        size_t n;
+    pa_memblockq_rewind(bq, 52);
 
-        if (pa_memblockq_peek(bq, &out) < 0)
-            break;
-
-        p = pa_memblock_acquire(out.memblock);
-        for (e = (char*) p + out.index, n = 0; n < out.length; n++)
-            printf("%c", *e);
-        pa_memblock_release(out.memblock);
-
-        pa_memblock_unref(out.memblock);
-        pa_memblockq_drop(bq, out.length);
-    }
-
-    printf("<\n");
+    dump(bq);
 
     pa_memblockq_free(bq);
     pa_memblock_unref(silence);
@@ -148,6 +157,8 @@ int main(int argc, char *argv[]) {
     pa_memblock_unref(chunk2.memblock);
     pa_memblock_unref(chunk3.memblock);
     pa_memblock_unref(chunk4.memblock);
+
+    pa_mempool_free(p);
 
     return 0;
 }
