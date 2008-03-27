@@ -596,13 +596,13 @@ int main(int argc, char *argv[]) {
         int tty_fd;
 
         if (pa_stdio_acquire() < 0) {
-            pa_log("failed to acquire stdio.");
+            pa_log("Failed to acquire stdio.");
             goto finish;
         }
 
 #ifdef HAVE_FORK
         if (pipe(daemon_pipe) < 0) {
-            pa_log("failed to create pipe.");
+            pa_log("Failed to create pipe.");
             goto finish;
         }
 
@@ -704,6 +704,7 @@ int main(int argc, char *argv[]) {
     signal(SIGPIPE, SIG_IGN);
 #endif
 
+    pa_log_info("This is PulseAudio " PACKAGE_VERSION);
     pa_log_info("Page size is %lu bytes", (unsigned long) PA_PAGE_SIZE);
 
     if (pa_rtclock_hrtimer())
