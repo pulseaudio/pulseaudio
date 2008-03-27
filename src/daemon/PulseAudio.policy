@@ -25,6 +25,9 @@ USA.
 -->
 
 <policyconfig>
+  <vendor>The PulseAudio Project</vendor>
+  <vendor_url>http://pulseaudio.org/</vendor_url>
+  <icon_name>audio-card</icon_name>
 
   <action id="org.pulseaudio.acquire-real-time">
     <description>Real-time scheduling for the PulseAudio daemon</description>
