@@ -38,7 +38,7 @@
 ; module-idle-time = 20
 ; scache-idle-time = 20
 
-; dl-search-path = @PA_DLSEARCHPATH@
+; dl-search-path = (depends on architecture)
 
 ; default-script-file = @PA_DEFAULT_CONFIG_FILE@
 
