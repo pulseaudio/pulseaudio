@@ -836,7 +836,7 @@ if test "x$HAVE_HAL" = x1 ; then
    dbus=yes
 fi
 
-if test "x${dbus}" != xno ; then
+if test "x${dbus}" != xno || test "x${bluez}" != xno || "x${hal}" != xno ; then
 
     PKG_CHECK_MODULES(DBUS, [ dbus-1 >= 1.0.0 ],
         [

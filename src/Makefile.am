@@ -1424,8 +1424,8 @@ module_jack_source_la_CFLAGS = $(AM_CFLAGS) $(JACK_CFLAGS)
 # HAL
 libdbus_util_la_SOURCES = modules/dbus-util.c modules/dbus-util.h
 libdbus_util_la_LDFLAGS = -avoid-version
-libdbus_util_la_LIBADD = $(AM_LIBADD) $(HAL_LIBS) libpulsecore.la
-libdbus_util_la_CFLAGS = $(AM_CFLAGS) $(HAL_CFLAGS)
+libdbus_util_la_LIBADD = $(AM_LIBADD) $(DBUS_LIBS) libpulsecore.la
+libdbus_util_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS)
 
 module_hal_detect_la_SOURCES = modules/module-hal-detect.c
 module_hal_detect_la_LDFLAGS = -module -avoid-version
