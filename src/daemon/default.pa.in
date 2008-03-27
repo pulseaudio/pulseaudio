@@ -80,13 +80,6 @@ load-module module-suspend-on-idle
 ### Load X11 bell module
 #load-module module-x11-bell sample=x11-bell
 
-### Publish connection data in the X11 root window
-.ifexists module-x11-publish@PA_SOEXT@
-.nofail
-load-module module-x11-publish
-.fail
-.endif
-
 ### Register ourselves in the X11 session manager
 # Deactivated by default, to avoid deadlock when PA is started as esd from gnome-session
 # Instead we load this via /etc/xdg/autostart/ and "pactl load-module" now
@@ -98,6 +91,13 @@ load-module module-x11-publish
 .ifexists module-gconf@PA_SOEXT@
 .nofail
 load-module module-gconf
+.fail
+.endif
+
+### Publish connection data in the X11 root window
+.ifexists module-x11-publish@PA_SOEXT@
+.nofail
+load-module module-x11-publish
 .fail
 .endif
 
