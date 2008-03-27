@@ -129,6 +129,8 @@ static void command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t
 static void command_stream_killed(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_overflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 static void command_underflow(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
+static void command_moved(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata);
 
 static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
 #ifdef TUNNEL_SINK
@@ -139,6 +141,10 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_UNDERFLOW] = command_underflow,
     [PA_COMMAND_PLAYBACK_STREAM_KILLED] = command_stream_killed,
     [PA_COMMAND_RECORD_STREAM_KILLED] = command_stream_killed,
+    [PA_COMMAND_PLAYBACK_STREAM_SUSPENDED] = command_suspend,
+    [PA_COMMAND_RECORD_STREAM_SUSPENDED] = command_suspend,
+    [PA_COMMAND_PLAYBACK_STREAM_MOVED] = command_moved,
+    [PA_COMMAND_RECORD_STREAM_MOVED] = command_moved,
 };
 
 struct userdata {
@@ -224,6 +230,28 @@ static void command_underflow(pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, 
     pa_assert(u->pdispatch == pd);
 
     pa_log_warn("Server signalled buffer underrun.");
+}
+
+static void command_suspend(pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    struct userdata *u = userdata;
+
+    pa_assert(pd);
+    pa_assert(t);
+    pa_assert(u);
+    pa_assert(u->pdispatch == pd);
+
+    pa_log_debug("Server reports a stream suspension.");
+}
+
+static void command_moved(pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
+    struct userdata *u = userdata;
+
+    pa_assert(pd);
+    pa_assert(t);
+    pa_assert(u);
+    pa_assert(u->pdispatch == pd);
+
+    pa_log_debug("Server reports a stream move.");
 }
 
 static void stream_cork(struct userdata *u, pa_bool_t cork) {
@@ -1057,6 +1085,18 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     pa_tagstruct_put_boolean(reply, !PA_SOURCE_OPENED(pa_source_get_state(u->source)));
     pa_tagstruct_putu32(reply, u->fragsize);
 #endif
+
+    /* New flags added in 0.9.8 */
+    if (u->version >= 12) {
+        /* TODO: set these to useful values */
+        pa_tagstruct_put_boolean(reply, FALSE); /*no_remap*/
+        pa_tagstruct_put_boolean(reply, FALSE); /*no_remix*/
+        pa_tagstruct_put_boolean(reply, FALSE); /*fix_format*/
+        pa_tagstruct_put_boolean(reply, FALSE); /*fix_rate*/
+        pa_tagstruct_put_boolean(reply, FALSE); /*fix_channels*/
+        pa_tagstruct_put_boolean(reply, FALSE); /*no_move*/
+        pa_tagstruct_put_boolean(reply, FALSE); /*variable_rate*/
+    }
 
     pa_pstream_send_tagstruct(u->pstream, reply);
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, create_stream_callback, u, NULL);
