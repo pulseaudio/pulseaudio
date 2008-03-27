@@ -150,11 +150,11 @@ AC_ARG_ENABLE([atomic-arm-memory-barrier],
 AC_MSG_CHECKING([target operating system])
 case $host in
     	*-*-linux*)
-	    AC_MSG_RESULT([linux]) 
+	    AC_MSG_RESULT([linux])
 	    pulse_target_os=linux
     	;;
 	*)
-	    AC_MSG_RESULT([unknown]) 	   
+	    AC_MSG_RESULT([unknown])
 	    pulse_target_os=unknown
 	;;
 esac
@@ -173,14 +173,14 @@ if test $ret -eq 0 ; then
     need_libatomic_ops=no
 else
     AC_MSG_RESULT([no])
-    # HW specific atomic ops stuff 
+    # HW specific atomic ops stuff
     AC_MSG_CHECKING([architecture for native atomic operations])
-    case $host_cpu in	
+    case $host_cpu in
         arm*)
 	    AC_MSG_RESULT([arm])
 	    AC_MSG_CHECKING([whether we can use Linux kernel helpers])
 	    # The Linux kernel helper functions have been there since 2.6.16. However
-  	    # compile time checking for kernel version in cross compile environment 
+  	    # compile time checking for kernel version in cross compile environment
 	    # (which is usually the case for arm cpu) is tricky (or impossible).
 	    if test "x$pulse_target_os" = "xlinux" && test "x$atomic_arm_linux_helpers" != "xno"; then
 	        AC_MSG_RESULT([yes])
@@ -189,8 +189,8 @@ else
 	    else
 	       AC_MSG_RESULT([no])
 	       AC_MSG_CHECKING([compiler support for arm inline asm atomic operations])
-	       AC_LANG_CONFTEST([[int main() 
-	       { 
+	       AC_LANG_CONFTEST([[int main()
+	       {
                    volatile int a=0;
 	           int o=0, n=1, r;
 	           asm volatile ("ldrex	%0, [%1]\n"
@@ -201,7 +201,7 @@ else
 			 	 : "cc");
                    return (a==1 ? 0 : -1);
 	       }]])
-	       $CC conftest.c $CFLAGS -o conftest > /dev/null 2>&1 
+	       $CC conftest.c $CFLAGS -o conftest > /dev/null 2>&1
 	       ret=$?
 	       rm -f conftest.o conftest
 	       if test $ret -eq 0 ; then
@@ -209,7 +209,7 @@ else
 	    	   AC_MSG_RESULT([yes])
 		   need_libatomic_ops=no
 	       else
-	    	   AC_MSG_RESULT([no])	       
+	    	   AC_MSG_RESULT([no])
                fi
 	   fi
       	;;
@@ -494,7 +494,7 @@ AC_SUBST(LIBSNDFILE_LIBS)
 
 #### atomic-ops ###
 
-AC_MSG_CHECKING([whether we need libatomic_ops])		
+AC_MSG_CHECKING([whether we need libatomic_ops])
 if test "x$need_libatomic_ops" = "xyes"; then
    AC_MSG_RESULT([yes])
    AC_CHECK_HEADERS([atomic_ops.h], [], [
@@ -976,13 +976,9 @@ AC_ARG_ENABLE([polkit],
 
 if test "x${polkit}" != xno ; then
 
-    PKG_CHECK_MODULES(POLKIT, [ polkit-dbus ],
+    PKG_CHECK_MODULES(POLKIT, [ polkit-dbus >= 0.7 ],
         [
             HAVE_POLKIT=1
-            saved_LIBS="$LIBS"
-            LIBS="$LIBS $POLKIT_LIBS"
-            AC_CHECK_FUNCS(polkit_context_is_caller_authorized)
-            LIBS="$saved_LIBS"
             AC_DEFINE([HAVE_POLKIT], 1, [Have PolicyKit])
             policydir=`pkg-config polkit-dbus --variable prefix`/share/PolicyKit/policy/
             AC_SUBST(policydir)
