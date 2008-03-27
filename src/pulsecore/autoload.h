@@ -37,7 +37,7 @@ typedef struct pa_autoload_entry {
     uint32_t index;
     char *name;
     pa_namereg_type_t type; /* Type of the autoload entry */
-    int in_action; /* Currently loaded */
+    int in_action; /* The module is currently being loaded */
     char *module, *argument;
 } pa_autoload_entry;
 
