@@ -396,7 +396,7 @@ int pa__init(pa_module*m) {
             n_control++;
         else {
             pa_assert(LADSPA_IS_PORT_OUTPUT(d->PortDescriptors[p]) && LADSPA_IS_PORT_CONTROL(d->PortDescriptors[p]));
-            pa_log_info("Ignored port \"%s\", because we ignore all control out ports.", d->PortNames[p]);
+            pa_log_debug("Ignored control output port \"%s\".", d->PortNames[p]);
         }
     }
 
