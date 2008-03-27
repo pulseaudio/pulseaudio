@@ -151,7 +151,7 @@ static void signal_handler(int sig) {
 
     } else if (phase == PHASE_SOFT) {
         write_err("Hard CPU time limit exhausted, terminating forcibly.\n");
-        _exit(1); /* Forced exit */
+        abort(); /* Forced exit */
     }
 
     errno = saved_errno;
