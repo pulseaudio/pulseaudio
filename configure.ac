@@ -172,6 +172,12 @@ AC_SUBST(LTDLINCL)
 AC_SUBST(LIBLTDL)
 AC_CONFIG_SUBDIRS(libltdl)
 
+old_LIBS=$LIBS
+LIBS="$LIBS $LIBLTDL"
+AC_CHECK_FUNCS([lt_dlmutex_register])
+LIBS=$old_LIBS
+AC_CHECK_TYPES([struct lt_user_dlloader, lt_dladvise], , , [#include <ltdl.h>])
+
 if test "x$enable_ltdl_install" = "xno" && test "x$ac_cv_lib_ltdl_lt_dlinit" = "xno" ; then
     AC_MSG_ERROR([[
 
