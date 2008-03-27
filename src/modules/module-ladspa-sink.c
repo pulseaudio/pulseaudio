@@ -441,7 +441,7 @@ int pa__init(pa_module*m) {
         use_default = pa_xnew(pa_bool_t, n_control);
         p = 0;
 
-        while ((k = pa_split(cdata, ",", &state))) {
+        while ((k = pa_split(cdata, ",", &state)) && p < n_control) {
             float f;
 
             if (*k == 0) {
@@ -458,13 +458,22 @@ int pa__init(pa_module*m) {
 
             pa_xfree(k);
 
-            if (p >= n_control) {
-                pa_log("Too many control values passed, %lu expected.", n_control);
-                goto fail;
-            }
-
             use_default[p] = FALSE;
             u->control[p++] = f;
+        }
+
+        /* The previous loop doesn't take the last control value into account
+           if it is left empty, so we do it here. */
+        if (*cdata == 0 || cdata[strlen(cdata) - 1] == ',') {
+            if (p < n_control)
+                use_default[p] = TRUE;
+            p++;
+        }
+
+        if (p > n_control || k) {
+            pa_log("Too many control values passed, %lu expected.", n_control);
+            pa_xfree(k);
+            goto fail;
         }
 
         if (p < n_control) {
