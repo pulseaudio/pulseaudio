@@ -103,7 +103,7 @@ EXTRA_DIST = \
 		modules/module-defs.h.m4 \
 		daemon/pulseaudio-module-xsmp.desktop \
 		map-file \
-		daemon/PulseAudio.policy
+		daemon/org.pulseaudio.policy
 
 pulseconf_DATA = \
 		default.pa \
@@ -154,7 +154,7 @@ endif
 
 if HAVE_POLKIT
 
-policy_DATA = daemon/PulseAudio.policy
+policy_DATA = daemon/org.pulseaudio.policy
 
 pulseaudio_SOURCES += daemon/polkit.c daemon/polkit.h
 pulseaudio_CFLAGS += $(POLKIT_CFLAGS)
