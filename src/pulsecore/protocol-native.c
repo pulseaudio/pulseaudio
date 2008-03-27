@@ -1069,6 +1069,9 @@ static void sink_input_suspend_cb(pa_sink_input *i, pa_bool_t suspend) {
     s = PLAYBACK_STREAM(i->userdata);
     playback_stream_assert_ref(s);
 
+    if (s->connection->version < 12)
+      return;
+
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_SUSPENDED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
@@ -1085,6 +1088,9 @@ static void sink_input_moved_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     s = PLAYBACK_STREAM(i->userdata);
     playback_stream_assert_ref(s);
+
+    if (s->connection->version < 12)
+      return;
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_PLAYBACK_STREAM_MOVED);
@@ -1142,6 +1148,9 @@ static void source_output_suspend_cb(pa_source_output *o, pa_bool_t suspend) {
     s = RECORD_STREAM(o->userdata);
     record_stream_assert_ref(s);
 
+    if (s->connection->version < 12)
+      return;
+
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_SUSPENDED);
     pa_tagstruct_putu32(t, (uint32_t) -1); /* tag */
@@ -1158,6 +1167,9 @@ static void source_output_moved_cb(pa_source_output *o) {
     pa_source_output_assert_ref(o);
     s = RECORD_STREAM(o->userdata);
     record_stream_assert_ref(s);
+
+    if (s->connection->version < 12)
+      return;
 
     t = pa_tagstruct_new(NULL, 0);
     pa_tagstruct_putu32(t, PA_COMMAND_RECORD_STREAM_MOVED);
