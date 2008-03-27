@@ -333,6 +333,7 @@ int main(int argc, char *argv[]) {
     int valid_pid_file = 0;
     gid_t gid = (gid_t) -1;
     pa_bool_t allow_realtime, allow_high_priority;
+    pa_bool_t ltdl_init = FALSE;
 
 #ifdef OS_IS_WIN32
     pa_time_event *timer;
@@ -504,6 +505,7 @@ int main(int argc, char *argv[]) {
 
     LTDL_SET_PRELOADED_SYMBOLS();
     pa_ltdl_init();
+    ltdl_init = TRUE;
 
     if (conf->dl_search_path)
         lt_dlsetsearchpath(conf->dl_search_path);
@@ -837,7 +839,8 @@ finish:
     WSACleanup();
 #endif
 
-    pa_ltdl_done();
+    if (ltdl_init)
+        pa_ltdl_done();
 
 #ifdef HAVE_DBUS
     dbus_shutdown();
