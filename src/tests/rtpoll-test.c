@@ -49,7 +49,9 @@ int main(int argc, char *argv[]) {
     pa_rtpoll_item *i, *w;
     struct pollfd *pollfd;
 
+#ifdef SIGRTMIN
     pa_rtsig_configure(SIGRTMIN+10, SIGRTMAX);
+#endif
 
     p = pa_rtpoll_new();
 
