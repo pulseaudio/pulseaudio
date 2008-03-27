@@ -125,6 +125,43 @@ if test "x$GCC" = "xyes" ; then
     done
 fi
 
+# Native atomic operation support
+AC_ARG_ENABLE([atomic-arm-linux-helpers],
+    AC_HELP_STRING([--disable-atomic-arm-linux-helpers], [use inline asm or libatomic_ops instead]),
+        [
+            case "${enableval}" in
+                yes) atomic_arm_linux_helpers=yes ;;
+                no) atomic_arm_linux_helpers=no ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-atomic-arm-linux-helpers) ;;
+            esac
+        ],
+        [atomic_arm_linux_helpers=auto])
+
+AC_ARG_ENABLE([atomic-arm-memory-barrier],
+    AC_HELP_STRING([--enable-atomic-arm-memory-barrier], [only really needed in SMP arm systems]),
+        [
+            case "${enableval}" in
+                yes) AC_DEFINE_UNQUOTED(ATOMIC_ARM_MEMORY_BARRIER_ENABLED, 1, [Enable memory barriers]) ;;
+                no) ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-atomic-arm-linux-helpers) ;;
+            esac
+        ],)
+
+AC_MSG_CHECKING([target operating system])
+case $host in
+    	*-*-linux*)
+	    AC_MSG_RESULT([linux]) 
+	    pulse_target_os=linux
+    	;;
+	*)
+	    AC_MSG_RESULT([unknown]) 	   
+	    pulse_target_os=unknown
+	;;
+esac
+
+# If everything else fails use libatomic_ops
+need_libatomic_ops=yes
+
 AC_MSG_CHECKING([whether $CC knows __sync_bool_compare_and_swap()])
 AC_LANG_CONFTEST([int main() { int a = 4; __sync_bool_compare_and_swap(&a, 4, 5); }])
 $CC conftest.c $CFLAGS -o conftest > /dev/null 2> /dev/null
@@ -133,8 +170,53 @@ rm -f conftest.o conftest
 if test $ret -eq 0 ; then
     AC_DEFINE([HAVE_ATOMIC_BUILTINS], 1, [Have __sync_bool_compare_and_swap() and friends.])
     AC_MSG_RESULT([yes])
+    need_libatomic_ops=no
 else
     AC_MSG_RESULT([no])
+    # HW specific atomic ops stuff 
+    AC_MSG_CHECKING([architecture for native atomic operations])
+    case $host_cpu in	
+        arm*)
+	    AC_MSG_RESULT([arm])
+	    AC_MSG_CHECKING([whether we can use Linux kernel helpers])
+	    # The Linux kernel helper functions have been there since 2.6.16. However
+  	    # compile time checking for kernel version in cross compile environment 
+	    # (which is usually the case for arm cpu) is tricky (or impossible).
+	    if test "x$pulse_target_os" = "xlinux" && test "x$atomic_arm_linux_helpers" != "xno"; then
+	        AC_MSG_RESULT([yes])
+        	AC_DEFINE_UNQUOTED(ATOMIC_ARM_LINUX_HELPERS, 1, [special arm linux implementation])
+    		need_libatomic_ops=no
+	    else
+	       AC_MSG_RESULT([no])
+	       AC_MSG_CHECKING([compiler support for arm inline asm atomic operations])
+	       AC_LANG_CONFTEST([[int main() 
+	       { 
+                   volatile int a=0;
+	           int o=0, n=1, r;
+	           asm volatile ("ldrex	%0, [%1]\n"
+			 	 "subs	%0, %0, %2\n"
+			 	 "strexeq %0, %3, [%1]\n"
+			 	 : "=&r" (r)
+			 	 : "r" (&a), "Ir" (o), "r" (n)
+			 	 : "cc");
+                   return (a==1 ? 0 : -1);
+	       }]])
+	       $CC conftest.c $CFLAGS -o conftest > /dev/null 2>&1 
+	       ret=$?
+	       rm -f conftest.o conftest
+	       if test $ret -eq 0 ; then
+	       	   AC_DEFINE([ATOMIC_ARM_INLINE_ASM], 1, [Have ARMv6 instructions.])
+	    	   AC_MSG_RESULT([yes])
+		   need_libatomic_ops=no
+	       else
+	    	   AC_MSG_RESULT([no])	       
+               fi
+	   fi
+      	;;
+        *)
+	    AC_MSG_RESULT([unknown])
+        ;;
+    esac
 fi
 
 AC_MSG_CHECKING([whether $CC knows __thread])
@@ -412,13 +494,19 @@ AC_SUBST(LIBSNDFILE_LIBS)
 
 #### atomic-ops ###
 
-AC_CHECK_HEADERS([atomic_ops.h], [], [
-AC_MSG_ERROR([*** libatomic-ops headers not found])
-])
+AC_MSG_CHECKING([whether we need libatomic_ops])		
+if test "x$need_libatomic_ops" = "xyes"; then
+   AC_MSG_RESULT([yes])
+   AC_CHECK_HEADERS([atomic_ops.h], [], [
+   AC_MSG_ERROR([*** libatomic-ops headers not found])
+   ])
 
-# Win32 does not need the lib and breaks horribly if we try to include it
-if test "x$os_is_win32" != "x1" ; then
-    LIBS="$LIBS -latomic_ops"
+   # Win32 does not need the lib and breaks horribly if we try to include it
+   if test "x$os_is_win32" != "x1" ; then
+       LIBS="$LIBS -latomic_ops"
+   fi
+else
+   AC_MSG_RESULT([no])
 fi
 
 #### Libsamplerate support (optional) ####
