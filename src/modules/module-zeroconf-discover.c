@@ -164,6 +164,7 @@ static void resolver_cb(
         pa_module *m;
 
         ss = u->core->default_sample_spec;
+        pa_assert_se(pa_channel_map_init_auto(&cm, ss.channels, PA_CHANNEL_MAP_AUX));
         pa_channel_map_init_auto(&cm, ss.channels, PA_CHANNEL_MAP_DEFAULT);
 
         for (l = txt; l; l = l->next) {
@@ -189,8 +190,10 @@ static void resolver_cb(
             avahi_free(value);
         }
 
-        if (!channel_map_set && cm.channels != ss.channels)
+        if (!channel_map_set && cm.channels != ss.channels) {
+            pa_assert_se(pa_channel_map_init_auto(&cm, ss.channels, PA_CHANNEL_MAP_AUX));
             pa_channel_map_init_auto(&cm, ss.channels, PA_CHANNEL_MAP_DEFAULT);
+        }
 
         if (!pa_sample_spec_valid(&ss)) {
             pa_log("Service '%s' contains an invalid sample specification.", name);

@@ -145,9 +145,16 @@ static pa_scache_entry* scache_add_item(pa_core *c, const char *name) {
 int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map, const pa_memchunk *chunk, uint32_t *idx) {
     pa_scache_entry *e;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX];
+    pa_channel_map tmap;
 
     pa_assert(c);
     pa_assert(name);
+    pa_assert(!ss || pa_sample_spec_valid(ss));
+    pa_assert(!map || (pa_channel_map_valid(map) && ss && ss->channels == map->channels));
+
+    if (ss && !map)
+        if (!(map = pa_channel_map_init_auto(&tmap, ss->channels, PA_CHANNEL_MAP_DEFAULT)))
+            return -1;
 
     if (chunk && chunk->length > PA_SCACHE_ENTRY_SIZE_MAX)
         return -1;
@@ -155,9 +162,11 @@ int pa_scache_add_item(pa_core *c, const char *name, const pa_sample_spec *ss, c
     if (!(e = scache_add_item(c, name)))
         return -1;
 
+    memset(&e->sample_spec, 0, sizeof(e->sample_spec));
+    pa_channel_map_init(&e->channel_map);
+
     if (ss) {
         e->sample_spec = *ss;
-        pa_channel_map_init_auto(&e->channel_map, ss->channels, PA_CHANNEL_MAP_DEFAULT);
         e->volume.channels = e->sample_spec.channels;
     }
 

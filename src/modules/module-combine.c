@@ -988,8 +988,10 @@ int pa__init(pa_module*m) {
 
     if (master_sink && ss.channels == master_sink->sample_spec.channels)
         map = master_sink->channel_map;
-    else
+    else {
+        pa_assert_se(pa_channel_map_init_auto(&map, ss.channels, PA_CHANNEL_MAP_AUX));
         pa_channel_map_init_auto(&map, ss.channels, PA_CHANNEL_MAP_DEFAULT);
+    }
 
     if ((pa_modargs_get_channel_map(ma, NULL, &map) < 0)) {
         pa_log("Invalid channel map.");
