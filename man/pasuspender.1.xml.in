@@ -38,6 +38,13 @@ USA.
     applications access them directly. <file>pasuspender</file> will
     suspend access to the audio devices, fork a child process, and
     when the child process terminates, resume access again.</p>
+
+    <p>Make sure to include <opt>--</opt> in
+    your <file>pasuspender</file> command line before passing the
+    subprocess command line (as shown
+    above). Otherwise <file>pasuspender</file> itself might end up
+    interpreting the command line switches and options you intended to
+    pass to the subprocess.</p>
   </description>
 
   <options>
