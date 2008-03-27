@@ -37,17 +37,23 @@
       - Low memory requirement
       - Good *perceptual* quality (and not best SNR)
 
-   The code is working, but it's in a very early stage, so it may have
-   artifacts, noise or subliminal messages from satan. Also, the API
-   isn't stable and I can actually promise that I *will* change the API
-   some time in the future.
+   Warning: This resampler is relatively new. Although I think I got rid of
+   all the major bugs and I don't expect the API to change anymore, there
+   may be something I've missed. So use with caution.
 
-TODO list:
-      - Variable calculation resolution depending on quality setting
-         - Single vs double in float mode
-         - 16-bit vs 32-bit (sinc only) in fixed-point mode
-      - Make sure the filter update works even when changing params
-             after only a few samples procesed
+   This algorithm is based on this original resampling algorithm:
+   Smith, Julius O. Digital Audio Resampling Home Page
+   Center for Computer Research in Music and Acoustics (CCRMA),
+   Stanford University, 2007.
+   Web published at http://www-ccrma.stanford.edu/~jos/resample/.
+
+   There is one main difference, though. This resampler uses cubic
+   interpolation instead of linear interpolation in the above paper. This
+   makes the table much smaller and makes it possible to compute that table
+   on a per-stream basis. In turn, being able to tweak the table for each
+   stream makes it possible to both reduce complexity on simple ratios
+   (e.g. 2/3), and get rid of the rounding operations in the inner loop.
+   The latter both reduces CPU time and makes the algorithm more SIMD-friendly.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -64,7 +70,8 @@ static void speex_free (void *ptr) {free(ptr);}
 #else /* OUTSIDE_SPEEX */
 
 #include "speex/speex_resampler.h"
-#include "misc.h"
+#include "arch.h"
+#include "os_support.h"
 #endif /* OUTSIDE_SPEEX */
 
 #include <math.h>
