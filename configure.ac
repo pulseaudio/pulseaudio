@@ -1073,10 +1073,20 @@ fi
 AC_SUBST(PA_ACCESS_GROUP)
 AC_DEFINE_UNQUOTED(PA_ACCESS_GROUP,"$PA_ACCESS_GROUP", [Access group])
 
-AC_ARG_WITH(peruser_esound, AS_HELP_STRING([--with-peruser-esound-socket], [Use per-user esound socket directory, like /tmp/.esd-UID/socket.]))
+AC_ARG_ENABLE(
+        per_user_esound_socket,
+        AS_HELP_STRING([--disable-per-user-esound-socket], [Use per-user esound socket directory, like /tmp/.esd-UID/socket.]),
+        [
+            case "${enableval}" in
+                yes) per_user_esound_socket=1 ;;
+                no) per_user_esound_socket=0 ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --disable-per-user-esound-socket) ;;
+            esac
+        ],
+        [per_user_esound_socket=1])
 
-if test "x$with_peruser_esound" = "xyes"; then
-   AC_DEFINE([USE_PERUSER_ESOUND_SOCKET], [1], [Define this if you want per-user esound socket directories])
+if test "x$per_user_esound_socket" = "x1"; then
+   AC_DEFINE([USE_PER_USER_ESOUND_SOCKET], [1], [Define this if you want per-user esound socket directories])
 fi
 
 #### PulseAudio system runtime dir ####
@@ -1210,32 +1220,38 @@ if test "x${HAVE_POLKIT}" = "x1" ; then
    ENABLE_POLKIT=yes
 fi
 
+ENABLE_PER_USER_ESOUND_SOCKET=no
+if test "x$per_user_esound_socket" = "x1" ; then
+   ENABLE_PER_USER_ESOUND_SOCKET=yes
+fi
+
 echo "
  ---{ $PACKAGE_NAME $VERSION }---
 
-    prefix:                 ${prefix}
-    sysconfdir:             ${sysconfdir}
-    localstatedir:          ${localstatedir}
-    System Runtime Path:    ${PA_SYSTEM_RUNTIME_PATH}
-    Compiler:               ${CC}
-    CFLAGS:                 ${CFLAGS}
-    Have X11:               ${ENABLE_X11}
-    Enable OSS:             ${ENABLE_OSS}
-    Enable Alsa:            ${ENABLE_ALSA}
-    Enable Solaris:         ${ENABLE_SOLARIS}
-    Enable GLib 2.0:        ${ENABLE_GLIB20}
-    Enable GConf:           ${ENABLE_GCONF}
-    Enable Avahi:           ${ENABLE_AVAHI}
-    Enable Jack:            ${ENABLE_JACK}
-    Enable Async DNS:       ${ENABLE_LIBASYNCNS}
-    Enable LIRC:            ${ENABLE_LIRC}
-    Enable HAL:             ${ENABLE_HAL}
-    Enable BlueZ:           ${ENABLE_BLUEZ}
-    Enable TCP Wrappers:    ${ENABLE_TCPWRAP}
-    Enable libsamplerate:   ${ENABLE_LIBSAMPLERATE}
-    Enable PolicyKit:       ${ENABLE_POLKIT}
-    System User:            ${PA_SYSTEM_USER}
-    System Group:           ${PA_SYSTEM_GROUP}
-    Realtime Group:         ${PA_REALTIME_GROUP}
-    Access Group:           ${PA_ACCESS_GROUP}
+    prefix:                        ${prefix}
+    sysconfdir:                    ${sysconfdir}
+    localstatedir:                 ${localstatedir}
+    System Runtime Path:           ${PA_SYSTEM_RUNTIME_PATH}
+    Compiler:                      ${CC}
+    CFLAGS:                        ${CFLAGS}
+    Have X11:                      ${ENABLE_X11}
+    Enable OSS:                    ${ENABLE_OSS}
+    Enable Alsa:                   ${ENABLE_ALSA}
+    Enable Solaris:                ${ENABLE_SOLARIS}
+    Enable GLib 2.0:               ${ENABLE_GLIB20}
+    Enable GConf:                  ${ENABLE_GCONF}
+    Enable Avahi:                  ${ENABLE_AVAHI}
+    Enable Jack:                   ${ENABLE_JACK}
+    Enable Async DNS:              ${ENABLE_LIBASYNCNS}
+    Enable LIRC:                   ${ENABLE_LIRC}
+    Enable HAL:                    ${ENABLE_HAL}
+    Enable BlueZ:                  ${ENABLE_BLUEZ}
+    Enable TCP Wrappers:           ${ENABLE_TCPWRAP}
+    Enable libsamplerate:          ${ENABLE_LIBSAMPLERATE}
+    Enable PolicyKit:              ${ENABLE_POLKIT}
+    System User:                   ${PA_SYSTEM_USER}
+    System Group:                  ${PA_SYSTEM_GROUP}
+    Realtime Group:                ${PA_REALTIME_GROUP}
+    Access Group:                  ${PA_ACCESS_GROUP}
+    Enable per-user EsounD socket: ${ENABLE_PER_USER_ESOUND_SOCKET}
 "
