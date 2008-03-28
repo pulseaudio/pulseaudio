@@ -242,7 +242,8 @@ static int change_user(void) {
     }
 
     set_env("USER", PA_SYSTEM_USER);
-    set_env("LOGNAME", PA_SYSTEM_GROUP);
+    set_env("USERNAME", PA_SYSTEM_USER);
+    set_env("LOGNAME", PA_SYSTEM_USER);
     set_env("HOME", PA_SYSTEM_RUNTIME_PATH);
 
     /* Relevant for pa_runtime_path() */
