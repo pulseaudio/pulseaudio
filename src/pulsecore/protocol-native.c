@@ -1177,6 +1177,7 @@ static void source_output_moved_cb(pa_source_output *o) {
     pa_tagstruct_putu32(t, s->index);
     pa_tagstruct_putu32(t, o->source->index);
     pa_tagstruct_puts(t, o->source->name);
+    pa_tagstruct_put_boolean(t, pa_source_get_state(o->source) == PA_SOURCE_SUSPENDED);
     pa_pstream_send_tagstruct(s->connection->pstream, t);
 }
 
