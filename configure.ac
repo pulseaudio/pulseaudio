@@ -22,7 +22,7 @@
 # along with PulseAudio; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
-AC_PREREQ(2.57)
+AC_PREREQ(2.60)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
