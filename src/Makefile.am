@@ -64,7 +64,7 @@ AM_LIBADD = $(PTHREAD_LIBS)
 AM_LDADD = $(PTHREAD_LIBS)
 
 # Only required on some platforms but defined for all to avoid errors
-AM_LDFLAGS = -Wl,-no-undefined -ffunction-sections -fdata-sections -Wl,--gc-sections
+AM_LDFLAGS = -Wl,-no-undefined -Wl,--gc-sections
 
 if STATIC_BINS
 BINLDFLAGS = -static
@@ -202,7 +202,7 @@ pactl_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
 pactl_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 pactl_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
-pasuspender_SOURCES = utils/pasuspender.c
+pasuspender_SOURCES = utils/pasuspender.c pulsecore/core-util.c pulsecore/core-util.h pulsecore/core-error.c pulsecore/core-error.h pulsecore/log.c pulsecore/log.h pulsecore/once.c pulsecore/once.h $(PA_THREAD_OBJS)
 pasuspender_LDADD = $(AM_LDADD) libpulse.la $(LIBSNDFILE_LIBS)
 pasuspender_CFLAGS = $(AM_CFLAGS) $(LIBSNDFILE_CFLAGS)
 pasuspender_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
@@ -273,7 +273,7 @@ mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 thread_mainloop_test_SOURCES = tests/thread-mainloop-test.c
 thread_mainloop_test_CFLAGS = $(AM_CFLAGS)
-thread_mainloop_test_LDADD = $(AM_LDADD) libpulse.la
+thread_mainloop_test_LDADD = $(AM_LDADD) libpulsecore.la libpulse.la
 thread_mainloop_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 utf8_test_SOURCES = tests/utf8-test.c
@@ -563,7 +563,14 @@ libpulse_la_CFLAGS += $(LIBASYNCNS_CFLAGS)
 libpulse_la_LIBADD += $(LIBASYNCNS_LIBS)
 endif
 
-libpulse_simple_la_SOURCES = pulse/simple.c pulse/simple.h
+libpulse_simple_la_SOURCES = \
+		pulse/simple.c pulse/simple.h	\
+		pulsecore/log.c pulsecore/log.h \
+		pulsecore/core-util.c pulsecore/core-util.h  \
+		pulsecore/core-error.c pulsecore/core-error.h \
+		pulsecore/once.c pulsecore/once.h \
+		$(PA_THREAD_OBJS)
+
 libpulse_simple_la_CFLAGS = $(AM_CFLAGS)
 libpulse_simple_la_LIBADD = $(AM_LIBADD) libpulse.la
 libpulse_simple_la_LDFLAGS = -version-info $(LIBPULSE_SIMPLE_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
@@ -573,7 +580,13 @@ libpulse_browse_la_CFLAGS = $(AM_CFLAGS) $(AVAHI_CFLAGS)
 libpulse_browse_la_LIBADD = $(AM_LIBADD) libpulse.la $(AVAHI_LIBS)
 libpulse_browse_la_LDFLAGS = -version-info $(LIBPULSE_BROWSE_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
 
-libpulse_mainloop_glib_la_SOURCES = pulse/glib-mainloop.h pulse/glib-mainloop.c
+libpulse_mainloop_glib_la_SOURCES = \
+		pulse/glib-mainloop.h pulse/glib-mainloop.c \
+		pulsecore/log.c pulsecore/log.h \
+		pulsecore/core-util.c pulsecore/core-util.h  \
+		pulsecore/core-error.c pulsecore/core-error.h \
+		pulsecore/once.c pulsecore/once.h \
+		$(PA_THREAD_OBJS)
 libpulse_mainloop_glib_la_CFLAGS = $(AM_CFLAGS) $(GLIB20_CFLAGS)
 libpulse_mainloop_glib_la_LIBADD = $(AM_LIBADD) libpulse.la $(GLIB20_LIBS)
 libpulse_mainloop_glib_la_LDFLAGS = -version-info $(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO) -Wl,-version-script=$(srcdir)/map-file
