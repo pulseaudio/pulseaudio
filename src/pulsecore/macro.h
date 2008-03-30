@@ -29,6 +29,8 @@
 #include <assert.h>
 #include <limits.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/gccmacro.h>
@@ -103,34 +105,46 @@ typedef int pa_bool_t;
 #define PA_PRETTY_FUNCTION ""
 #endif
 
-#define pa_return_if_fail(expr) \
-    do { \
-        if (!(expr)) { \
-            pa_log_debug("%s: Assertion <%s> failed.\n", PA_PRETTY_FUNCTION, #expr ); \
-            return; \
-        } \
-    } while(0)
+#define pa_return_if_fail(expr)                                         \
+    do {                                                                \
+        if (PA_UNLIKELY(!(expr))) {                                     \
+            pa_log_debug("Assertion '%s' failed at %s:%u, function %s.\n", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
+            return;                                                     \
+        }                                                               \
+    } while(FALSE)
 
-#define pa_return_val_if_fail(expr, val) \
-    do { \
-        if (!(expr)) { \
-            pa_log_debug("%s: Assertion <%s> failed.\n", PA_PRETTY_FUNCTION, #expr ); \
-            return (val); \
-        } \
-    } while(0)
+#define pa_return_val_if_fail(expr, val)                                \
+    do {                                                                \
+        if (PA_UNLIKELY(!(expr))) {                                     \
+            pa_log_debug("Assertion '%s' failed at %s:%u, function %s.\n", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
+            return (val);                                               \
+        }                                                               \
+    } while(FALSE)
 
 #define pa_return_null_if_fail(expr) pa_return_val_if_fail(expr, NULL)
 
-#define pa_assert assert
+/* An assert which guarantees side effects of x, i.e. is never
+ * optimized away */
+#define pa_assert_se(expr)                                              \
+    do {                                                                \
+        if (PA_UNLIKELY(!(expr))) {                                     \
+            pa_log_error("Assertion '%s' failed at %s:%u, function %s(). Aborting.", #expr , __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
+            abort();                                                    \
+        }                                                               \
+    } while (FALSE)
 
-#define pa_assert_not_reached() pa_assert(!"Should not be reached.")
-
-/* An assert which guarantees side effects of x */
+/* An assert that may be optimized away by defining NDEBUG */
 #ifdef NDEBUG
-#define pa_assert_se(x) x
+#define pa_assert(expr) do {} while (FALSE)
 #else
-#define pa_assert_se(x) pa_assert(x)
+#define pa_assert(expr) pa_assert_se(expr)
 #endif
+
+#define pa_assert_not_reached()                                         \
+    do {                                                                \
+        pa_log_error("Code should not be reached at %s:%u, function %s(). Aborting.", __FILE__, __LINE__, PA_PRETTY_FUNCTION); \
+        abort();                                                        \
+    } while (FALSE)
 
 #define PA_PTR_TO_UINT(p) ((unsigned int) (unsigned long) (p))
 #define PA_UINT_TO_PTR(u) ((void*) (unsigned long) (u))
