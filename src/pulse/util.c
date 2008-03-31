@@ -65,7 +65,7 @@
 #include "util.h"
 
 char *pa_get_user_name(char *s, size_t l) {
-    char *p;
+    const char *p;
     char buf[1024];
 
 #ifdef HAVE_PWD_H
@@ -75,7 +75,10 @@ char *pa_get_user_name(char *s, size_t l) {
     pa_assert(s);
     pa_assert(l > 0);
 
-    if (!(p = getenv("USER")) && !(p = getenv("LOGNAME")) && !(p = getenv("USERNAME"))) {
+    if (!(p = (getuid() == 0 ? "root" : NULL)) &&
+        !(p = getenv("USER")) &&
+        !(p = getenv("LOGNAME")) &&
+        !(p = getenv("USERNAME"))) {
 #ifdef HAVE_PWD_H
 
 #ifdef HAVE_GETPWUID_R
