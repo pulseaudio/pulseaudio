@@ -38,59 +38,6 @@
 
 #include "polkit.h"
 
-static pa_bool_t show_grant_dialog(const char *action_id) {
-    DBusError dbus_error;
-    DBusConnection *bus = NULL;
-    DBusMessage *m = NULL, *reply = NULL;
-    pa_bool_t r = FALSE;
-    uint32_t xid = 0;
-    int verdict;
-
-    dbus_error_init(&dbus_error);
-
-    if (!(bus = dbus_bus_get(DBUS_BUS_SESSION, &dbus_error))) {
-        pa_log_error("Cannot connect to session bus: %s", dbus_error.message);
-        goto finish;
-    }
-
-    if (!(m = dbus_message_new_method_call("org.gnome.PolicyKit", "/org/gnome/PolicyKit/Manager", "org.gnome.PolicyKit.Manager", "ShowDialog"))) {
-        pa_log_error("Failed to allocate D-Bus message.");
-        goto finish;
-    }
-
-    if (!(dbus_message_append_args(m, DBUS_TYPE_STRING, &action_id, DBUS_TYPE_UINT32, &xid, DBUS_TYPE_INVALID))) {
-        pa_log_error("Failed to append arguments to D-Bus message.");
-        goto finish;
-    }
-
-    if (!(reply = dbus_connection_send_with_reply_and_block(bus, m, -1, &dbus_error))) {
-        pa_log_warn("Failed to show grant dialog: %s", dbus_error.message);
-        goto finish;
-    }
-
-    if (!(dbus_message_get_args(reply, &dbus_error, DBUS_TYPE_BOOLEAN, &verdict, DBUS_TYPE_INVALID))) {
-        pa_log_warn("Malformed response from grant manager: %s", dbus_error.message);
-        goto finish;
-    }
-
-    r = !!verdict;
-
-finish:
-
-    if (bus)
-        dbus_connection_unref(bus);
-
-    dbus_error_free(&dbus_error);
-
-    if (m)
-        dbus_message_unref(m);
-
-    if (reply)
-        dbus_message_unref(reply);
-
-    return r;
-}
-
 int pa_polkit_check(const char *action_id) {
     int ret = -1;
     DBusError dbus_error;
@@ -161,35 +108,32 @@ int pa_polkit_check(const char *action_id) {
 
     for (;;) {
 
-#ifdef HAVE_POLKIT_CONTEXT_IS_CALLER_AUTHORIZED
         polkit_result = polkit_context_is_caller_authorized(context, action, caller, TRUE, &polkit_error);
 
         if (polkit_error_is_set(polkit_error)) {
             pa_log_error("Could not determine whether caller is authorized: %s", polkit_error_get_error_message(polkit_error));
             goto finish;
         }
-#else
-
-        polkit_result = polkit_context_can_caller_do_action(context, action, caller);
-
-#endif
 
         if (polkit_result == POLKIT_RESULT_ONLY_VIA_ADMIN_AUTH ||
             polkit_result == POLKIT_RESULT_ONLY_VIA_ADMIN_AUTH_KEEP_SESSION ||
             polkit_result == POLKIT_RESULT_ONLY_VIA_ADMIN_AUTH_KEEP_ALWAYS ||
-#ifdef POLKIT_RESULT_ONLY_VIA_ADMIN_AUTH_ONE_SHOT
             polkit_result == POLKIT_RESULT_ONLY_VIA_ADMIN_AUTH_ONE_SHOT ||
-#endif
             polkit_result == POLKIT_RESULT_ONLY_VIA_SELF_AUTH ||
             polkit_result == POLKIT_RESULT_ONLY_VIA_SELF_AUTH_KEEP_SESSION ||
-            polkit_result == POLKIT_RESULT_ONLY_VIA_SELF_AUTH_KEEP_ALWAYS
-#ifdef POLKIT_RESULT_ONLY_VIA_SELF_AUTH_ONE_SHOT
-            || polkit_result == POLKIT_RESULT_ONLY_VIA_SELF_AUTH_ONE_SHOT
-#endif
+            polkit_result == POLKIT_RESULT_ONLY_VIA_SELF_AUTH_KEEP_ALWAYS ||
+            polkit_result == POLKIT_RESULT_ONLY_VIA_SELF_AUTH_ONE_SHOT
         ) {
 
-            if (show_grant_dialog(action_id))
-                continue;
+            if (polkit_auth_obtain(action_id, 0, getpid(), &dbus_error)) {
+                polkit_result = POLKIT_RESULT_YES;
+                break;
+            }
+
+            if (dbus_error_is_set(&dbus_error)) {
+                pa_log_error("Cannot obtain auth: %s", dbus_error.message);
+                goto finish;
+            }
         }
 
         break;

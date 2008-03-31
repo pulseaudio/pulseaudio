@@ -25,7 +25,7 @@
 ***/
 
 void pa_drop_root(void);
+void pa_drop_caps(void);
 int pa_limit_caps(void);
-int pa_drop_caps(void);
 
 #endif

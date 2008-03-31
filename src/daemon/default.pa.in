@@ -37,7 +37,7 @@ load-sample-lazy pulse-hotplug /usr/share/sounds/startup3.wav
 #load-module module-pipe-sink
 
 ### Automatically load driver modules depending on the hardware available
-.ifexists @PA_DLSEARCHPATH@/module-hal-detect@PA_SOEXT@
+.ifexists module-hal-detect@PA_SOEXT@
 load-module module-hal-detect
 .else
 ### Alternatively use the static hardware detection module (for systems that
@@ -46,7 +46,9 @@ load-module module-detect
 .endif
 
 ### Load several protocols
+.ifexists module-esound-protocol-unix@PA_SOEXT@
 load-module module-esound-protocol-unix
+.endif
 load-module module-native-protocol-unix
 
 ### Network access (may be configured with paprefs, so leave this commented
@@ -78,11 +80,6 @@ load-module module-suspend-on-idle
 ### Load X11 bell module
 #load-module module-x11-bell sample=x11-bell
 
-### Publish connection data in the X11 root window
-.ifexists @PA_DLSEARCHPATH@/module-x11-publish@PA_SOEXT@
-load-module module-x11-publish
-.endif
-
 ### Register ourselves in the X11 session manager
 # Deactivated by default, to avoid deadlock when PA is started as esd from gnome-session
 # Instead we load this via /etc/xdg/autostart/ and "pactl load-module" now
@@ -91,8 +88,17 @@ load-module module-x11-publish
 ### Load additional modules from GConf settings. This can be configured with the paprefs tool.
 ### Please keep in mind that the modules configured by paprefs might conflict with manually
 ### loaded modules.
-.ifexists @PA_DLSEARCHPATH@/module-gconf@PA_SOEXT@
+.ifexists module-gconf@PA_SOEXT@
+.nofail
 load-module module-gconf
+.fail
+.endif
+
+### Publish connection data in the X11 root window
+.ifexists module-x11-publish@PA_SOEXT@
+.nofail
+load-module module-x11-publish
+.fail
 .endif
 
 ### Make some devices default

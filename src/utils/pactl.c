@@ -486,7 +486,7 @@ static void get_autoload_info_callback(pa_context *c, const pa_autoload_info *i,
            i->name,
            i->type == PA_AUTOLOAD_SINK ? "sink" : "source",
            i->module,
-           i->argument);
+           i->argument ? i->argument : "");
 }
 
 static void simple_callback(pa_context *c, int success, void *userdata) {

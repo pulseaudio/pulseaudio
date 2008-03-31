@@ -242,7 +242,8 @@ static int change_user(void) {
     }
 
     set_env("USER", PA_SYSTEM_USER);
-    set_env("LOGNAME", PA_SYSTEM_GROUP);
+    set_env("USERNAME", PA_SYSTEM_USER);
+    set_env("LOGNAME", PA_SYSTEM_USER);
     set_env("HOME", PA_SYSTEM_RUNTIME_PATH);
 
     /* Relevant for pa_runtime_path() */
@@ -778,7 +779,7 @@ int main(int argc, char *argv[]) {
     c->disallow_module_loading = !!conf->disallow_module_loading;
 
     if (r < 0 && conf->fail) {
-        pa_log("failed to initialize daemon.");
+        pa_log("Failed to initialize daemon.");
 #ifdef HAVE_FORK
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
@@ -792,16 +793,19 @@ int main(int argc, char *argv[]) {
     } else {
 
         retval = 0;
+
+        if (c->default_sink_name &&
+            pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK, 1) == NULL) {
+            pa_log_error("%s : Default sink name (%s) does not exist in name register.", __FILE__, c->default_sink_name);
+            retval = !!conf->fail;
+        }
+
 #ifdef HAVE_FORK
         if (conf->daemonize)
             pa_loop_write(daemon_pipe[1], &retval, sizeof(retval), NULL);
 #endif
 
-        if (c->default_sink_name &&
-            pa_namereg_get(c, c->default_sink_name, PA_NAMEREG_SINK, 1) == NULL) {
-            pa_log_error("%s : Fatal error. Default sink name (%s) does not exist in name register.", __FILE__, c->default_sink_name);
-            retval = 1;
-        } else {
+        if (!retval) {
             pa_log_info("Daemon startup complete.");
             if (pa_mainloop_run(mainloop, &retval) < 0)
                 retval = 1;

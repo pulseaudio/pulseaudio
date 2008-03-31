@@ -218,7 +218,7 @@ int pa__init(pa_module*m) {
     char tmp[PATH_MAX];
 
 #if defined(USE_PROTOCOL_ESOUND)
-#if defined(USE_PERUSER_ESOUND_SOCKET)
+#if defined(USE_PER_USER_ESOUND_SOCKET)
     char esdsocketpath[PATH_MAX];
 #else
     const char esdsocketpath[] = "/tmp/.esd/socket";
@@ -269,9 +269,10 @@ int pa__init(pa_module*m) {
 
 #if defined(USE_PROTOCOL_ESOUND)
 
-#if defined(USE_PERUSER_ESOUND_SOCKET)
+#if defined(USE_PER_USER_ESOUND_SOCKET)
     snprintf(esdsocketpath, sizeof(esdsocketpath), "/tmp/.esd-%lu/socket", (unsigned long) getuid());
 #endif
+
     pa_runtime_path(pa_modargs_get_value(ma, "socket", esdsocketpath), tmp, sizeof(tmp));
     u->socket_path = pa_xstrdup(tmp);
 

@@ -90,8 +90,8 @@ int pa_limit_caps(void) {
     cap_t caps;
     cap_value_t nice_cap = CAP_SYS_NICE;
 
-    caps = cap_init();
-    pa_assert(caps);
+    pa_assert_se(caps = cap_init());
+
     cap_clear(caps);
     cap_set_flag(caps, CAP_EFFECTIVE, 1, &nice_cap, CAP_SET);
     cap_set_flag(caps, CAP_PERMITTED, 1, &nice_cap, CAP_SET);
@@ -113,28 +113,15 @@ fail:
 }
 
 /* Drop all capabilities, effectively becoming a normal user */
-int pa_drop_caps(void) {
+void pa_drop_caps(void) {
     cap_t caps;
-    int r = -1;
 
-    caps = cap_init();
-    pa_assert(caps);
+    pa_assert_se(prctl(PR_SET_KEEPCAPS, 0, 0, 0, 0) == 0);
 
+    pa_assert_se(caps = cap_init());
     cap_clear(caps);
-
-    prctl(PR_SET_KEEPCAPS, 0, 0, 0, 0);
-
-    if (cap_set_proc(caps) < 0) {
-        pa_log("Failed to drop capabilities: %s", pa_cstrerror(errno));
-        goto fail;
-    }
-
-    r = 0;
-
-fail:
+    pa_assert_se(cap_set_proc(caps) == 0);
     cap_free(caps);
-
-    return r;
 }
 
 #else
@@ -144,9 +131,8 @@ int pa_limit_caps(void) {
     return 0;
 }
 
-int pa_drop_caps(void) {
+void pa_drop_caps(void) {
     pa_drop_root();
-    return 0;
 }
 
 #endif
