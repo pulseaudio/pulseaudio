@@ -131,9 +131,8 @@ int pa_limit_caps(void) {
     return 0;
 }
 
-int pa_drop_caps(void) {
+void pa_drop_caps(void) {
     pa_drop_root();
-    return 0;
 }
 
 #endif
