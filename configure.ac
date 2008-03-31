@@ -1075,7 +1075,7 @@ AC_DEFINE_UNQUOTED(PA_ACCESS_GROUP,"$PA_ACCESS_GROUP", [Access group])
 
 AC_ARG_ENABLE(
         per_user_esound_socket,
-        AS_HELP_STRING([--disable-per-user-esound-socket], [Use per-user esound socket directory, like /tmp/.esd-UID/socket.]),
+        AS_HELP_STRING([--disable-per-user-esound-socket], [Use global esound socket directory /tmp/.esd/socket.]),
         [
             case "${enableval}" in
                 yes) per_user_esound_socket=1 ;;
