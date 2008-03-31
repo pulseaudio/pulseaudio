@@ -71,7 +71,7 @@ int main(int argc, char*argv[]) {
             u += 2;
         }
 
-        printf("%llu\t%llu\n", x/PA_USEC_PER_MSEC, pa_smoother_get(s, x)/PA_USEC_PER_MSEC);
+        printf("%llu\t%llu\n", (unsigned long long) (x/PA_USEC_PER_MSEC), (unsigned long long) (pa_smoother_get(s, x)/PA_USEC_PER_MSEC));
     }
 
     pa_smoother_free(s);
