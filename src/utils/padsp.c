@@ -2307,7 +2307,11 @@ fail:
     return ret;
 }
 
+#ifdef sun
+int ioctl(int fd, int request, ...) {
+#else
 int ioctl(int fd, unsigned long request, ...) {
+#endif
     fd_info *i;
     va_list args;
     void *argp;
