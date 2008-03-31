@@ -71,7 +71,7 @@ pa_hashmap *pa_hashmap_new(pa_hash_func_t hash_func, pa_compare_func_t compare_f
     return h;
 }
 
-static void remove(pa_hashmap *h, struct hashmap_entry *e) {
+static void remove_entry(pa_hashmap *h, struct hashmap_entry *e) {
     pa_assert(h);
     pa_assert(e);
 
@@ -103,7 +103,7 @@ void pa_hashmap_free(pa_hashmap*h, void (*free_func)(void *p, void *userdata), v
     while (h->first_entry) {
         if (free_func)
             free_func(h->first_entry->value, userdata);
-        remove(h, h->first_entry);
+        remove_entry(h, h->first_entry);
     }
 
     pa_xfree(h->data);
@@ -182,7 +182,7 @@ void* pa_hashmap_remove(pa_hashmap *h, const void *key) {
         return NULL;
 
     data = e->value;
-    remove(h, e);
+    remove_entry(h, e);
     return data;
 }
 
@@ -220,7 +220,7 @@ void* pa_hashmap_steal_first(pa_hashmap *h) {
         return NULL;
 
     data = h->first_entry->value;
-    remove(h, h->first_entry);
+    remove_entry(h, h->first_entry);
     return data;
 }
 
