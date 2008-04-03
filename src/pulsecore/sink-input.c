@@ -665,11 +665,18 @@ void pa_sink_input_set_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sin
         i->set_max_rewind(i, i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, nbytes) : nbytes);
 }
 
-void pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {
+pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {
     pa_sink_input_assert_ref(i);
-    pa_assert(PA_SINK_INPUT_LINKED(i->state));
 
-    pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY, NULL, (int64_t) usec, NULL, NULL);
+    if (usec < i->sink->min_latency)
+        usec = i->sink->min_latency;
+
+    if (PA_SINK_INPUT_LINKED(i->state))
+        pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY, NULL, (int64_t) usec, NULL, NULL);
+    else
+        i->thread_info.requested_sink_latency = usec;
+
+    return usec;
 }
 
 void pa_sink_input_set_volume(pa_sink_input *i, const pa_cvolume *volume) {

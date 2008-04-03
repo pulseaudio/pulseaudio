@@ -226,7 +226,7 @@ void pa_sink_input_unlink(pa_sink_input* i);
 
 void pa_sink_input_set_name(pa_sink_input *i, const char *name);
 
-void pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec);
+pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec);
 
 /* Request that the specified number of bytes already written out to
 the hw device is rewritten, if possible. If this function is used you

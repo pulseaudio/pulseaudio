@@ -32,6 +32,7 @@
 
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/source-output.h>
 #include <pulsecore/namereg.h>
@@ -40,6 +41,8 @@
 #include <pulsecore/sample-util.h>
 
 #include "source.h"
+
+#define DEFAULT_MIN_LATENCY (4*PA_USEC_PER_MSEC)
 
 static PA_DEFINE_CHECK_TYPE(pa_source, pa_msgobject);
 
@@ -161,6 +164,8 @@ pa_source* pa_source_new(
     s->volume = data->volume;
     s->muted = data->muted;
     s->refresh_volume = s->refresh_muted = FALSE;
+
+    s->min_latency = DEFAULT_MIN_LATENCY;
 
     s->get_latency = NULL;
     s->set_volume = NULL;

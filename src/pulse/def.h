@@ -210,16 +210,68 @@ typedef enum pa_stream_flags {
                                      * on older servers. \since
                                      * 0.9.8 */
     PA_STREAM_PEAK_DETECT = 2048, /**< Find peaks instead of
-                                   * resampling. \since 0.9.9 */
+                                   * resampling. \since 0.9.11 */
+
+    PA_STREAM_START_MUTED = 4096,  /**< Create in muted state. \since 0.9.11 */
+
+
+    PA_STREAM_ADJUST_LATENCY = 8192, /**< Try to adjust the latency of
+                                      * the sink/source based on the
+                                      * requested buffer metrics and
+                                      * adjust buffer metrics
+                                      * accordingly. \since 0.9.11 */
 } pa_stream_flags_t;
 
 /** Playback and record buffer metrics */
 typedef struct pa_buffer_attr {
-    uint32_t maxlength;      /**< Maximum length of the buffer */
-    uint32_t tlength;        /**< Playback only: target length of the buffer. The server tries to assure that at least tlength bytes are always available in the buffer */
-    uint32_t prebuf;         /**< Playback only: pre-buffering. The server does not start with playback before at least prebug bytes are available in the buffer */
-    uint32_t minreq;         /**< Playback only: minimum request. The server does not request less than minreq bytes from the client, instead waints until the buffer is free enough to request more bytes at once */
-    uint32_t fragsize;       /**< Recording only: fragment size. The server sends data in blocks of fragsize bytes size. Large values deminish interactivity with other operations on the connection context but decrease control overhead. */
+    uint32_t maxlength;      /**< Maximum length of the
+                              * buffer. Setting this to 0 will
+                              * initialize this to the maximum value
+                              * supported by server, which is
+                              * recommended. */
+    uint32_t tlength;        /**< Playback only: target length of the
+                              * buffer. The server tries to assure
+                              * that at least tlength bytes are always
+                              * available in the buffer. It is
+                              * recommended to set this to 0, which
+                              * will initialize this to a value that
+                              * is deemed sensible by the
+                              * server. However, this value will
+                              * default to something like 2s, i.e. for
+                              * applications that have specific
+                              * latency requirements this value should
+                              * be set to the maximum latency that the
+                              * application can deal with.  */
+    uint32_t prebuf;         /**< Playback only: pre-buffering. The
+                              * server does not start with playback
+                              * before at least prebug bytes are
+                              * available in the buffer. It is
+                              * recommended to set this to 0, which
+                              * will initialize this to the same value
+                              * as tlength, whatever that may be. */
+    uint32_t minreq;         /**< Playback only: minimum request. The
+                              * server does not request less than
+                              * minreq bytes from the client, instead
+                              * waits until the buffer is free enough
+                              * to request more bytes at once. It is
+                              * recommended to set this to 0, which
+                              * will initialize this to a value that
+                              * is deemed sensible by the server. */
+    uint32_t fragsize;       /**< Recording only: fragment size. The
+                              * server sends data in blocks of
+                              * fragsize bytes size. Large values
+                              * deminish interactivity with other
+                              * operations on the connection context
+                              * but decrease control overhead. It is
+                              * recommended to set this to 0, which
+                              * will initialize this to a value that
+                              * is deemed sensible by the
+                              * server. However, this value will
+                              * default to something like 2s, i.e. for
+                              * applications that have specific
+                              * latency requirements this value should
+                              * be set to the maximum latency that the
+                              * application can deal with. */
 } pa_buffer_attr;
 
 /** Error values as used by pa_context_errno(). Use pa_strerror() to convert these values to human readable strings */
@@ -299,7 +351,9 @@ typedef enum pa_subscription_event_type {
  * source_usec+buffer_usec+transport_usec-sink_usec. (Take care of
  * sign issues!) When connected to a monitor source sink_usec contains
  * the latency of the owning sink. The two latency estimations
- * described here are implemented in pa_stream_get_latency().*/
+ * described here are implemented in pa_stream_get_latency(). Please
+ * note that this structure can be extended as part of evolutionary
+ * API updates at any time in any new release.*/
 typedef struct pa_timing_info {
     struct timeval timestamp; /**< The time when this timing info structure was current */
     int synchronized_clocks;  /**< Non-zero if the local and the
@@ -346,6 +400,11 @@ typedef struct pa_timing_info {
                                * want to use it. Consider using
                                * PA_SEEK_RELATIVE_ON_READ
                                * instead. \since 0.8 */
+
+    pa_usec_t max_sink_usec;   /**< The static configure latency for
+                                * the sink. \since 0.9.10 */
+    pa_usec_t max_source_usec; /**< The static configure latency for
+                                * the source. \since 0.9.10 */
 } pa_timing_info;
 
 /** A structure for the spawn api. This may be used to integrate auto

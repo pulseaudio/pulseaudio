@@ -92,6 +92,8 @@ struct userdata {
     snd_mixer_t *mixer_handle;
     snd_mixer_elem_t *mixer_elem;
     long hw_volume_max, hw_volume_min;
+    long hw_dB_max, hw_dB_min;
+    pa_bool_t hw_dB_supported;
 
     size_t frame_size, fragment_size, hwbuf_size, tsched_watermark;
     unsigned nfragments;
@@ -288,25 +290,28 @@ static int unix_read(struct userdata *u) {
 }
 
 static int update_smoother(struct userdata *u) {
-    snd_pcm_status_t *status;
+    snd_pcm_sframes_t delay = 0;
     int64_t frames;
     int err;
+    pa_usec_t now1, now2;
 
     pa_assert(u);
     pa_assert(u->pcm_handle);
 
-    snd_pcm_status_alloca(&status);
-
     /* Let's update the time smoother */
 
-    if (PA_UNLIKELY((err = snd_pcm_status(u->pcm_handle, status)) < 0)) {
+    snd_pcm_avail_update(u->pcm_handle);
+
+    if (PA_UNLIKELY((err = snd_pcm_delay(u->pcm_handle, &delay)) < 0)) {
         pa_log("Failed to get delay: %s", snd_strerror(err));
         return -1;
     }
 
-    frames = u->frame_index + snd_pcm_status_get_delay(status);
+    frames = u->frame_index + delay;
 
-    pa_smoother_put(u->smoother, pa_rtclock_usec(), pa_bytes_to_usec(frames * u->frame_size, &u->source->sample_spec));
+    now1 = pa_rtclock_usec();
+    now2 = pa_bytes_to_usec(frames * u->frame_size, &u->source->sample_spec);
+    pa_smoother_put(u->smoother, now1, now2);
 
     return 0;
 }
@@ -373,7 +378,7 @@ static int suspend(struct userdata *u) {
 }
 
 static pa_usec_t hw_sleep_time(struct userdata *u) {
-    pa_usec_t usec;
+    pa_usec_t wm, usec;
 
     pa_assert(u);
 
@@ -382,10 +387,16 @@ static pa_usec_t hw_sleep_time(struct userdata *u) {
     if (usec <= 0)
         usec = pa_bytes_to_usec(u->hwbuf_size, &u->source->sample_spec);
 
-    if (usec >= u->tsched_watermark)
-        usec -= u->tsched_watermark;
+    pa_log_debug("hw buffer time: %u ms", (unsigned) (usec / PA_USEC_PER_MSEC));
+
+    wm = pa_bytes_to_usec(u->tsched_watermark, &u->source->sample_spec);
+
+    if (usec >= wm)
+        usec -= wm;
     else
         usec /= 2;
+
+    pa_log_debug("after watermark: %u ms", (unsigned) (usec / PA_USEC_PER_MSEC));
 
     return usec;
 }
@@ -470,7 +481,6 @@ static int unsuspend(struct userdata *u) {
     /* FIXME: We need to reload the volume somehow */
 
     snd_pcm_start(u->pcm_handle);
-
     pa_smoother_resume(u->smoother, pa_rtclock_usec());
 
     pa_log_info("Resumed successfully...");
@@ -568,18 +578,24 @@ static int source_get_volume_cb(pa_source *s) {
     pa_assert(u->mixer_elem);
 
     for (i = 0; i < s->sample_spec.channels; i++) {
-        long set_vol, vol;
+        long alsa_vol;
 
         pa_assert(snd_mixer_selem_has_capture_channel(u->mixer_elem, u->mixer_map[i]));
 
-        if ((err = snd_mixer_selem_get_capture_volume(u->mixer_elem, u->mixer_map[i], &vol)) < 0)
+        if (u->hw_dB_supported) {
+
+            if ((err = snd_mixer_selem_get_capture_dB(u->mixer_elem, u->mixer_map[i], &alsa_vol)) >= 0) {
+                s->volume.values[i] = pa_sw_volume_from_dB(alsa_vol / 100.0);
+                continue;
+            }
+
+            u->hw_dB_supported = FALSE;
+        }
+
+        if ((err = snd_mixer_selem_get_capture_volume(u->mixer_elem, u->mixer_map[i], &alsa_vol)) < 0)
             goto fail;
 
-        set_vol = (long) roundf(((float) s->volume.values[i] * (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
-
-        /* Try to avoid superfluous volume changes */
-        if (set_vol != vol)
-            s->volume.values[i] = (pa_volume_t) roundf(((float) (vol - u->hw_volume_min) * PA_VOLUME_NORM) / (u->hw_volume_max - u->hw_volume_min));
+        s->volume.values[i] = (pa_volume_t) roundf(((float) (alsa_vol - u->hw_volume_min) * PA_VOLUME_NORM) / (u->hw_volume_max - u->hw_volume_min));
     }
 
     return 0;
@@ -587,8 +603,6 @@ static int source_get_volume_cb(pa_source *s) {
 fail:
     pa_log_error("Unable to read volume: %s", snd_strerror(err));
 
-    s->get_volume = NULL;
-    s->set_volume = NULL;
     return -1;
 }
 
@@ -604,17 +618,36 @@ static int source_set_volume_cb(pa_source *s) {
         long alsa_vol;
         pa_volume_t vol;
 
+
         pa_assert(snd_mixer_selem_has_capture_channel(u->mixer_elem, u->mixer_map[i]));
 
-        vol = s->volume.values[i];
+        vol = PA_MIN(s->volume.values[i], PA_VOLUME_NORM);
 
-        if (vol > PA_VOLUME_NORM)
-            vol = PA_VOLUME_NORM;
+        if (u->hw_dB_supported) {
+            alsa_vol = (long) (pa_sw_volume_to_dB(vol) * 100);
+            alsa_vol = PA_CLAMP_UNLIKELY(alsa_vol, u->hw_dB_min, u->hw_dB_max);
+
+
+            if ((err = snd_mixer_selem_set_capture_dB(u->mixer_elem, u->mixer_map[i], alsa_vol, -1)) >= 0) {
+
+                if (snd_mixer_selem_get_capture_dB(u->mixer_elem, u->mixer_map[i], &alsa_vol) >= 0)
+                    s->volume.values[i] = pa_sw_volume_from_dB(alsa_vol / 100.0);
+
+                continue;
+            }
+
+            u->hw_dB_supported = FALSE;
+        }
+
 
         alsa_vol = (long) roundf(((float) vol * (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
+        alsa_vol = PA_CLAMP_UNLIKELY(alsa_vol, u->hw_volume_min, u->hw_volume_max);
 
         if ((err = snd_mixer_selem_set_capture_volume(u->mixer_elem, u->mixer_map[i], alsa_vol)) < 0)
             goto fail;
+
+        if (snd_mixer_selem_get_capture_volume(u->mixer_elem, u->mixer_map[i], &alsa_vol) >= 0)
+            s->volume.values[i] = (pa_volume_t) roundf(((float) (alsa_vol - u->hw_volume_min) * PA_VOLUME_NORM) / (u->hw_volume_max - u->hw_volume_min));
     }
 
     return 0;
@@ -622,8 +655,6 @@ static int source_set_volume_cb(pa_source *s) {
 fail:
     pa_log_error("Unable to set volume: %s", snd_strerror(err));
 
-    s->get_volume = NULL;
-    s->set_volume = NULL;
     return -1;
 }
 
@@ -636,9 +667,6 @@ static int source_get_mute_cb(pa_source *s) {
 
     if ((err = snd_mixer_selem_get_capture_switch(u->mixer_elem, 0, &sw)) < 0) {
         pa_log_error("Unable to get switch: %s", snd_strerror(err));
-
-        s->get_mute = NULL;
-        s->set_mute = NULL;
         return -1;
     }
 
@@ -656,13 +684,18 @@ static int source_set_mute_cb(pa_source *s) {
 
     if ((err = snd_mixer_selem_set_capture_switch_all(u->mixer_elem, !s->muted)) < 0) {
         pa_log_error("Unable to set switch: %s", snd_strerror(err));
-
-        s->get_mute = NULL;
-        s->set_mute = NULL;
         return -1;
     }
 
     return 0;
+}
+
+static void source_update_requested_latency_cb(pa_source *s) {
+    struct userdata *u = s->userdata;
+
+    pa_assert(u);
+
+    update_sw_params(u);
 }
 
 static void thread_func(void *userdata) {
@@ -694,10 +727,11 @@ static void thread_func(void *userdata) {
                     goto fail;
             }
 
-            if (update_smoother(u) < 0)
-                goto fail;
+            if (work_done)
+                if (update_smoother(u) < 0)
+                    goto fail;
 
-            if (u->use_tsched && work_done) {
+            if (u->use_tsched) {
                 pa_usec_t usec, cusec;
 
                 /* OK, the capture buffer is now empty, let's
@@ -716,6 +750,10 @@ static void thread_func(void *userdata) {
                 /* We don't trust the conversion, so we wake up whatever comes first */
                 pa_rtpoll_set_timer_relative(u->rtpoll, PA_MIN(usec, cusec));
             }
+        } else if (u->use_tsched) {
+
+            /* OK, we're in an invalid state, let's disable our timers */
+            pa_rtpoll_set_timer_disabled(u->rtpoll);
         }
 
         /* Hmm, nothing to do. Let's sleep */
@@ -797,7 +835,7 @@ int pa__init(pa_module*m) {
     const char *dev_id;
     pa_sample_spec ss;
     pa_channel_map map;
-    uint32_t nfrags, frag_size, tsched_size, tsched_watermark;
+    uint32_t nfrags, hwbuf_size, frag_size, tsched_size, tsched_watermark;
     snd_pcm_uframes_t period_frames, tsched_frames;
     size_t frame_size;
     snd_pcm_info_t *pcm_info = NULL;
@@ -846,6 +884,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    hwbuf_size = frag_size * nfrags;
     period_frames = frag_size/frame_size;
     tsched_frames = tsched_size/frame_size;
 
@@ -874,6 +913,7 @@ int pa__init(pa_module*m) {
     u->rtpoll = pa_rtpoll_new();
     u->alsa_rtpoll_item = NULL;
     pa_rtpoll_item_new_asyncmsgq(u->rtpoll, PA_RTPOLL_EARLY, u->thread_mq.inq);
+
     u->smoother = pa_smoother_new(DEFAULT_TSCHED_WATERMARK_USEC, DEFAULT_TSCHED_WATERMARK_USEC, TRUE);
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_usec());
 
@@ -928,9 +968,6 @@ int pa__init(pa_module*m) {
         pa_log("Error fetching PCM info: %s", snd_strerror(err));
         goto fail;
     }
-
-    if (update_sw_params(u) < 0)
-        goto fail;
 
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
@@ -996,6 +1033,7 @@ int pa__init(pa_module*m) {
     }
 
     u->source->parent.process_msg = source_process_msg;
+    u->source->update_requested_latency = source_update_requested_latency_cb;
     u->source->userdata = u;
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
@@ -1007,24 +1045,85 @@ int pa__init(pa_module*m) {
     u->hwbuf_size = u->fragment_size * nfrags;
     u->tsched_watermark = tsched_watermark;
     u->frame_index = 0;
+    u->hw_dB_supported = FALSE;
+    u->hw_dB_min = u->hw_dB_max = 0;
+    u->hw_volume_min = u->hw_volume_max = 0;
 
-    pa_log_info("Using %u fragments of size %lu bytes.", nfrags, (long unsigned) u->fragment_size);
+    if (!use_tsched)
+        u->source->min_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
+
+    pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
+                nfrags, (long unsigned) u->fragment_size,
+                (double) pa_bytes_to_usec(u->hwbuf_size, &ss) / PA_USEC_PER_MSEC);
+
+    if (use_tsched)
+        pa_log_info("Time scheduling watermark is %0.2fms",
+                    (double) pa_bytes_to_usec(u->tsched_watermark, &ss) / PA_USEC_PER_MSEC);
+
+    if (update_sw_params(u) < 0)
+        goto fail;
 
     if (u->mixer_handle) {
         pa_assert(u->mixer_elem);
 
         if (snd_mixer_selem_has_capture_volume(u->mixer_elem))
-            if (pa_alsa_calc_mixer_map(u->mixer_elem, &map, u->mixer_map, FALSE) >= 0) {
-                u->source->get_volume = source_get_volume_cb;
-                u->source->set_volume = source_set_volume_cb;
-                snd_mixer_selem_get_capture_volume_range(u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max);
-                u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL;
+            if (pa_alsa_calc_mixer_map(u->mixer_elem, &map, u->mixer_map, FALSE) >= 0 &&
+                snd_mixer_selem_get_capture_volume_range(u->mixer_elem, &u->hw_volume_min, &u->hw_volume_max) >= 0) {
+
+                pa_bool_t suitable = TRUE;
+
+                pa_log_info("Volume ranges from %li to %li.", u->hw_volume_min, u->hw_volume_max);
+
+                if (u->hw_volume_min > u->hw_volume_max) {
+
+                    pa_log_info("Minimal volume %li larger than maximum volume %li. Strange stuff Falling back to software volume control.", u->hw_volume_min, u->hw_volume_max);
+                    suitable = FALSE;
+
+                } else if (u->hw_volume_max - u->hw_volume_min < 3) {
+
+                    pa_log_info("Device has less than 4 volume levels. Falling back to software volume control.");
+                    suitable = FALSE;
+
+                } else if (snd_mixer_selem_get_playback_dB_range(u->mixer_elem, &u->hw_dB_min, &u->hw_dB_max) >= 0) {
+
+                    pa_log_info("Volume ranges from %0.2f dB to %0.2f dB.", u->hw_dB_min/100.0, u->hw_dB_max/100.0);
+
+                    /* Let's see if this thing actually is useful for muting */
+                    if (u->hw_dB_min > -6000) {
+                        pa_log_info("Device cannot attenuate for more than -60 dB (only %0.2f dB supported), falling back to software volume control.", ((double) u->hw_dB_min) / 100);
+
+                        suitable = FALSE;
+                    } else if (u->hw_dB_max < 0) {
+
+                        pa_log_info("Device is still attenuated at maximum volume setting (%0.2f dB is maximum). Strange stuff. Falling back to software volume control.", ((double) u->hw_dB_max) / 100);
+                        suitable = FALSE;
+
+                    } else if (u->hw_dB_min >= u->hw_dB_max) {
+
+                        pa_log_info("Minimal dB (%0.2f) larger or equal to maximum dB (%0.2f). Strange stuff. Falling back to software volume control.", ((double) u->hw_dB_min) / 100, ((double) u->hw_dB_max) / 100);
+                        suitable = FALSE;
+
+                    } else
+                        u->hw_dB_supported = TRUE;
+                }
+
+                if (suitable) {
+                    u->source->get_volume = source_get_volume_cb;
+                    u->source->set_volume = source_set_volume_cb;
+                    u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL | (u->hw_dB_supported ? PA_SOURCE_DECIBEL_VOLUME : 0);
+                    pa_log_info("Using hardware volume control. %s dB scale.", u->hw_dB_supported ? "Using" : "Not using");
+
+                } else {
+                    pa_log_info("Using software volume control. Trying to reset sound card to 0 dB.");
+                    pa_alsa_0dB_capture(u->mixer_elem);
+                }
             }
+
 
         if (snd_mixer_selem_has_capture_switch(u->mixer_elem)) {
             u->source->get_mute = source_get_mute_cb;
             u->source->set_mute = source_set_mute_cb;
-            u->source->flags |= PA_SOURCE_HW_VOLUME_CTRL;
+            u->source->flags |= PA_SOURCE_HW_MUTE_CTRL;
         }
 
         u->mixer_fdl = pa_alsa_fdlist_new();
@@ -1044,10 +1143,21 @@ int pa__init(pa_module*m) {
         goto fail;
     }
     /* Get initial mixer settings */
-    if (u->source->get_volume)
-        u->source->get_volume(u->source);
-    if (u->source->get_mute)
-        u->source->get_mute(u->source);
+    if (data.volume_is_set) {
+        if (u->source->set_volume)
+            u->source->set_volume(u->source);
+    } else {
+        if (u->source->get_volume)
+            u->source->get_volume(u->source);
+    }
+
+    if (data.muted_is_set) {
+        if (u->source->set_mute)
+            u->source->set_mute(u->source);
+    } else {
+        if (u->source->get_mute)
+            u->source->get_mute(u->source);
+    }
 
     pa_source_put(u->source);
 

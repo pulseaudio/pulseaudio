@@ -79,7 +79,7 @@ New opcodes for notifications:
  PA_COMMAND_PLAYBACK_STREAM_MOVED
  PA_COMMAND_CAPTURE_STREAM_MOVED
 
-### v13, implemented  by >= 0.9.10
+### v13, implemented  by >= 0.9.11
 
 New fields for PA_COMMAND_CREATE_PLAYBACK_STREAM, PA_COMMAND_CREATE_RECORD_STREAM request at the end:
 
@@ -113,7 +113,14 @@ New opcodes for proplist modifications
 New field for PA_COMMAND_PLAY_SAMPLE:
 
   proplist
- 
+
 New field for PA_COMMAND_PLAY_SAMPLE response:
 
   idx
+
+New field for PA_COMMAND_CREATE_PLAYBACK_STREAM at the end:
+
+  start_muted
+
+Buffer attributes for PA_COMMAND_CREATE_PLAYBACK_STREAM and
+PA_COMMAND_CREATE_RECORD_STREAM may now be 0 for default values.

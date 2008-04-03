@@ -149,6 +149,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
 
         while (!pa_tagstruct_eof(t)) {
             pa_sink_info i;
+            pa_bool_t mute = FALSE;
 
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
@@ -160,7 +161,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
                 pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
-                pa_tagstruct_get_boolean(t, &i.mute) < 0 ||
+                pa_tagstruct_get_boolean(t, &mute) < 0 ||
                 pa_tagstruct_getu32(t, &i.monitor_source) < 0 ||
                 pa_tagstruct_gets(t, &i.monitor_source_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
@@ -173,6 +174,7 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 goto finish;
             }
 
+            i.mute = (int) mute;
             i.flags = (pa_sink_flags_t) flags;
 
             if (o->callback) {
@@ -266,6 +268,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
         while (!pa_tagstruct_eof(t)) {
             pa_source_info i;
             uint32_t flags;
+            pa_bool_t mute = FALSE;
 
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
@@ -277,7 +280,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_getu32(t, &i.owner_module) < 0 ||
                 pa_tagstruct_get_cvolume(t, &i.volume) < 0 ||
-                pa_tagstruct_get_boolean(t, &i.mute) < 0 ||
+                pa_tagstruct_get_boolean(t, &mute) < 0 ||
                 pa_tagstruct_getu32(t, &i.monitor_of_sink) < 0 ||
                 pa_tagstruct_gets(t, &i.monitor_of_sink_name) < 0 ||
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
@@ -290,6 +293,7 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 goto finish;
             }
 
+            i.mute = (int) mute;
             i.flags = (pa_source_flags_t) flags;
 
             if (o->callback) {
@@ -464,16 +468,19 @@ static void context_get_module_info_callback(pa_pdispatch *pd, uint32_t command,
 
         while (!pa_tagstruct_eof(t)) {
             pa_module_info i;
+            pa_bool_t auto_unload = FALSE;
             memset(&i, 0, sizeof(i));
 
             if (pa_tagstruct_getu32(t, &i.index) < 0 ||
                 pa_tagstruct_gets(t, &i.name) < 0 ||
                 pa_tagstruct_gets(t, &i.argument) < 0 ||
                 pa_tagstruct_getu32(t, &i.n_used) < 0 ||
-                pa_tagstruct_get_boolean(t, &i.auto_unload) < 0) {
+                pa_tagstruct_get_boolean(t, &auto_unload) < 0) {
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
+
+            i.auto_unload = (int) auto_unload;
 
             if (o->callback) {
                 pa_module_info_cb_t cb = (pa_module_info_cb_t) o->callback;
@@ -540,6 +547,7 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
 
         while (!pa_tagstruct_eof(t)) {
             pa_sink_input_info i;
+            pa_bool_t mute = FALSE;
 
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
@@ -556,13 +564,15 @@ static void context_get_sink_input_info_callback(pa_pdispatch *pd, uint32_t comm
                 pa_tagstruct_get_usec(t, &i.sink_usec) < 0 ||
                 pa_tagstruct_gets(t, &i.resample_method) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
-                (o->context->version >= 11 && pa_tagstruct_get_boolean(t, &i.mute) < 0) ||
+                (o->context->version >= 11 && pa_tagstruct_get_boolean(t, &mute) < 0) ||
                 (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
                 goto finish;
             }
+
+            i.mute = (int) mute;
 
             if (o->callback) {
                 pa_sink_input_info_cb_t cb = (pa_sink_input_info_cb_t) o->callback;
@@ -961,6 +971,7 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
 
         while (!pa_tagstruct_eof(t)) {
             pa_sample_info i;
+            pa_bool_t lazy = FALSE;
 
             memset(&i, 0, sizeof(i));
             i.proplist = pa_proplist_new();
@@ -972,13 +983,15 @@ static void context_get_sample_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_get_sample_spec(t, &i.sample_spec) < 0 ||
                 pa_tagstruct_get_channel_map(t, &i.channel_map) < 0 ||
                 pa_tagstruct_getu32(t, &i.bytes) < 0 ||
-                pa_tagstruct_get_boolean(t, &i.lazy) < 0 ||
+                pa_tagstruct_get_boolean(t, &lazy) < 0 ||
                 pa_tagstruct_gets(t, &i.filename) < 0 ||
                 (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 goto finish;
             }
+
+            i.lazy = (int) lazy;
 
             if (o->callback) {
                 pa_sample_info_cb_t cb = (pa_sample_info_cb_t) o->callback;
@@ -1192,6 +1205,8 @@ finish:
     pa_operation_unref(o);
 }
 
+PA_WARN_REFERENCE(pa_context_get_autoload_info_by_name, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+
 pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_autoload_info_cb_t cb, void *userdata) {
     pa_tagstruct *t;
     pa_operation *o;
@@ -1216,6 +1231,8 @@ pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *na
     return o;
 }
 
+PA_WARN_REFERENCE(pa_context_get_autoload_info_by_index, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+
 pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx, pa_autoload_info_cb_t cb, void *userdata) {
     pa_tagstruct *t;
     pa_operation *o;
@@ -1238,9 +1255,14 @@ pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx,
     return o;
 }
 
+
+PA_WARN_REFERENCE(pa_context_get_autoload_info_list, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+
 pa_operation* pa_context_get_autoload_info_list(pa_context *c, pa_autoload_info_cb_t cb, void *userdata) {
     return pa_context_send_simple_command(c, PA_COMMAND_GET_AUTOLOAD_INFO_LIST, context_get_autoload_info_callback, (pa_operation_cb_t) cb, userdata);
 }
+
+PA_WARN_REFERENCE(pa_context_add_autoload, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
 
 pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type_t type, const char *module, const char*argument, pa_context_index_cb_t cb, void* userdata) {
     pa_operation *o;
@@ -1268,6 +1290,8 @@ pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autolo
     return o;
 }
 
+PA_WARN_REFERENCE(pa_context_remove_autoload_by_name, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
+
 pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_context_success_cb_t cb, void* userdata) {
     pa_operation *o;
     pa_tagstruct *t;
@@ -1290,6 +1314,8 @@ pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name
 
     return o;
 }
+
+PA_WARN_REFERENCE(pa_context_remove_autoload_by_index, "Autoload will no longer be implemented by future versions of the PulseAudio server.");
 
 pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void* userdata) {
     pa_operation *o;

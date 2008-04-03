@@ -282,7 +282,9 @@ int pa_shm_attach_ro(pa_shm *m, unsigned id) {
         goto fail;
     }
 
-    if (st.st_size <= 0 || st.st_size > MAX_SHM_SIZE+PA_ALIGN(sizeof(struct shm_marker)) || PA_ALIGN(st.st_size) != st.st_size) {
+    if (st.st_size <= 0 ||
+        st.st_size > (off_t) (MAX_SHM_SIZE+PA_ALIGN(sizeof(struct shm_marker))) ||
+        PA_ALIGN((size_t) st.st_size) != (size_t) st.st_size) {
         pa_log("Invalid shared memory segment size");
         goto fail;
     }

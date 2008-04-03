@@ -204,4 +204,17 @@ static inline const char *pa_strnull(const char *x) {
     return x ? x : "(null)";
 }
 
+#ifdef __GNUC__
+
+#define PA_WARN_REFERENCE(sym,msg)              \
+    __asm__(".section .gnu.warning.sym");       \
+    __asm__(".asciz \"msg\"");                  \
+    __asm__(".previous")
+
+#else
+
+#define PA_WARN_REFERENCE(sym,msg)
+
+#endif
+
 #endif

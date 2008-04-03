@@ -91,6 +91,8 @@ struct pa_source {
     pa_asyncmsgq *asyncmsgq;
     pa_rtpoll *rtpoll;
 
+    pa_usec_t min_latency; /* we won't go below this latency setting */
+
     int (*set_state)(pa_source*source, pa_source_state_t state); /* may be NULL */
     int (*set_volume)(pa_source *s);         /* dito */
     int (*get_volume)(pa_source *s);         /* dito */

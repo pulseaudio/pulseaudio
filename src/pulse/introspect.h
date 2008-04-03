@@ -212,7 +212,11 @@ PA_C_DECL_BEGIN
 #define PA_PORT_ANALOG_5_1 "analog-5-1"
 #define PA_PORT_ANALOG_4_0 "analog-4-0"
 
-/** Stores information about sinks */
+/** @{ \name Sinks */
+
+/** Stores information about sinks. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release. */
 typedef struct pa_sink_info {
     const char *name;                  /**< Name of the sink */
     uint32_t index;                    /**< Index of the sink */
@@ -224,10 +228,11 @@ typedef struct pa_sink_info {
     int mute;                          /**< Mute switch of the sink \since 0.8 */
     uint32_t monitor_source;           /**< Index of the monitor source connected to this sink */
     const char *monitor_source_name;   /**< The name of the monitor source */
-    pa_usec_t latency;                 /**< Length of filled playback buffer of this sink */
+    pa_usec_t latency;                 /**< Length of queued audio in the output buffer. */
     const char *driver;                /**< Driver name. \since 0.8 */
     pa_sink_flags_t flags;             /**< Flags \since 0.8 */
-    pa_proplist *proplist;             /**< Property list \since 0.9.10 */
+    pa_proplist *proplist;             /**< Property list \since 0.9.11 */
+    pa_usec_t max_latency;             /**< The static latency this device has been configured to. \since 0.9.11 */
 } pa_sink_info;
 
 /** Callback prototype for pa_context_get_sink_info_by_name() and friends */
@@ -242,7 +247,31 @@ pa_operation* pa_context_get_sink_info_by_index(pa_context *c, uint32_t id, pa_s
 /** Get the complete sink list */
 pa_operation* pa_context_get_sink_info_list(pa_context *c, pa_sink_info_cb_t cb, void *userdata);
 
-/** Stores information about sources */
+/** Set the volume of a sink device specified by its index */
+pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the volume of a sink device specified by its name */
+pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a sink device specified by its index \since 0.8 */
+pa_operation* pa_context_set_sink_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a sink device specified by its name \since 0.8 */
+pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
+
+/** Suspend/Resume a sink. \since 0.9.7 */
+pa_operation* pa_context_suspend_sink_by_name(pa_context *c, char *sink_name, int suspend, pa_context_success_cb_t cb, void* userdata);
+
+/** Suspend/Resume a sink. If idx is PA_INVALID_INDEX all sinks will be suspended. \since 0.9.7 */
+pa_operation* pa_context_suspend_sink_by_index(pa_context *c, uint32_t idx, int suspend,  pa_context_success_cb_t cb, void* userdata);
+
+/** @} */
+
+/** @{ \name Sources */
+
+/** Stores information about sources. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release. */
 typedef struct pa_source_info {
     const char *name;                   /**< Name of the source */
     uint32_t index;                     /**< Index of the source */
@@ -258,6 +287,7 @@ typedef struct pa_source_info {
     const char *driver;                 /**< Driver name \since 0.8 */
     pa_source_flags_t flags;            /**< Flags \since 0.8 */
     pa_proplist *proplist;              /**< Property list \since 0.9.10 */
+    pa_usec_t max_latency;              /**< The static latency this device has been configured to. \since 0.9.11 */
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */
@@ -272,7 +302,25 @@ pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t id, pa
 /** Get the complete source list */
 pa_operation* pa_context_get_source_info_list(pa_context *c, pa_source_info_cb_t cb, void *userdata);
 
-/** Server information */
+/** Set the volume of a source device specified by its index \since 0.8 */
+pa_operation* pa_context_set_source_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the volume of a source device specified by its name \since 0.8 */
+pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a source device specified by its index \since 0.8 */
+pa_operation* pa_context_set_source_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a source device specified by its name \since 0.8 */
+pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
+
+/** @} */
+
+/** @{ \name Server */
+
+/** Server information. Please note that this structure can be
+ * extended as part of evolutionary API updates at any time in any new
+ * release. */
 typedef struct pa_server_info {
     const char *user_name;              /**< User name of the daemon process */
     const char *host_name;              /**< Host name the daemon is running on */
@@ -290,7 +338,13 @@ typedef void (*pa_server_info_cb_t) (pa_context *c, const pa_server_info*i, void
 /** Get some information about the server */
 pa_operation* pa_context_get_server_info(pa_context *c, pa_server_info_cb_t cb, void *userdata);
 
-/** Stores information about modules */
+/** @} */
+
+/** @{ \name Modules */
+
+/** Stores information about modules. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release. */
 typedef struct pa_module_info {
     uint32_t index;                     /**< Index of the module */
     const char*name,                    /**< Name of the module */
@@ -308,7 +362,22 @@ pa_operation* pa_context_get_module_info(pa_context *c, uint32_t idx, pa_module_
 /** Get the complete list of currently loaded modules */
 pa_operation* pa_context_get_module_info_list(pa_context *c, pa_module_info_cb_t cb, void *userdata);
 
-/** Stores information about clients */
+/** Callback prototype for pa_context_load_module() */
+typedef void (*pa_context_index_cb_t)(pa_context *c, uint32_t idx, void *userdata);
+
+/** Load a module. \since 0.5 */
+pa_operation* pa_context_load_module(pa_context *c, const char*name, const char *argument, pa_context_index_cb_t cb, void *userdata);
+
+/** Unload a module. \since 0.5 */
+pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
+
+/** @} */
+
+/** @{ \name Clients */
+
+/** Stores information about clients. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release. */
 typedef struct pa_client_info {
     uint32_t index;                      /**< Index of this client */
     const char *name;                    /**< Name of this client */
@@ -326,7 +395,16 @@ pa_operation* pa_context_get_client_info(pa_context *c, uint32_t idx, pa_client_
 /** Get the complete client list */
 pa_operation* pa_context_get_client_info_list(pa_context *c, pa_client_info_cb_t cb, void *userdata);
 
-/** Stores information about sink inputs */
+/** Kill a client. \since 0.5 */
+pa_operation* pa_context_kill_client(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
+
+/** @} */
+
+/** @{ \name Sink Inputs */
+
+/** Stores information about sink inputs. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release. */
 typedef struct pa_sink_input_info {
     uint32_t index;                      /**< Index of the sink input */
     const char *name;                    /**< Name of the sink input */
@@ -353,7 +431,28 @@ pa_operation* pa_context_get_sink_input_info(pa_context *c, uint32_t idx, pa_sin
 /** Get the complete sink input list */
 pa_operation* pa_context_get_sink_input_info_list(pa_context *c, pa_sink_input_info_cb_t cb, void *userdata);
 
-/** Stores information about source outputs */
+/** Move the specified sink input to a different sink. \since 0.9.5 */
+pa_operation* pa_context_move_sink_input_by_name(pa_context *c, uint32_t idx, char *sink_name, pa_context_success_cb_t cb, void* userdata);
+
+/** Move the specified sink input to a different sink. \since 0.9.5 */
+pa_operation* pa_context_move_sink_input_by_index(pa_context *c, uint32_t idx, uint32_t sink_idx, pa_context_success_cb_t cb, void* userdata);
+
+/** Set the volume of a sink input stream */
+pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+
+/** Set the mute switch of a sink input stream \since 0.9.7 */
+pa_operation* pa_context_set_sink_input_mute(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
+
+/** Kill a sink input. \since 0.5 */
+pa_operation* pa_context_kill_sink_input(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
+
+/** @} */
+
+/** @{ \name Source Outputs */
+
+/** Stores information about source outputs. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release. */
 typedef struct pa_source_output_info {
     uint32_t index;                      /**< Index of the sink input */
     const char *name;                    /**< Name of the sink input */
@@ -378,37 +477,28 @@ pa_operation* pa_context_get_source_output_info(pa_context *c, uint32_t idx, pa_
 /** Get the complete list of source outputs */
 pa_operation* pa_context_get_source_output_info_list(pa_context *c, pa_source_output_info_cb_t cb, void *userdata);
 
-/** Set the volume of a sink device specified by its index */
-pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+/** Move the specified source output to a different source. \since 0.9.5 */
+pa_operation* pa_context_move_source_output_by_name(pa_context *c, uint32_t idx, char *source_name, pa_context_success_cb_t cb, void* userdata);
 
-/** Set the volume of a sink device specified by its name */
-pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+/** Move the specified source output to a different source. \since 0.9.5 */
+pa_operation* pa_context_move_source_output_by_index(pa_context *c, uint32_t idx, uint32_t source_idx, pa_context_success_cb_t cb, void* userdata);
 
-/** Set the mute switch of a sink device specified by its index \since 0.8 */
-pa_operation* pa_context_set_sink_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
+/** Suspend/Resume a source. \since 0.9.7 */
+pa_operation* pa_context_suspend_source_by_name(pa_context *c, char *source_name, int suspend, pa_context_success_cb_t cb, void* userdata);
 
-/** Set the mute switch of a sink device specified by its name \since 0.8 */
-pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
+/** Suspend/Resume a source. If idx is PA_INVALID_INDEX all sources will be suspended. \since 0.9.7 */
+pa_operation* pa_context_suspend_source_by_index(pa_context *c, uint32_t idx, int suspend, pa_context_success_cb_t cb, void* userdata);
 
-/** Set the volume of a sink input stream */
-pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+/** Kill a source output. \since 0.5 */
+pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
 
-/** Set the mute switch of a sink input stream \since 0.9.7 */
-pa_operation* pa_context_set_sink_input_mute(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
+/** @} */
 
-/** Set the volume of a source device specified by its index \since 0.8 */
-pa_operation* pa_context_set_source_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
+/** @{ \name Statistics */
 
-/** Set the volume of a source device specified by its name \since 0.8 */
-pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
-
-/** Set the mute switch of a source device specified by its index \since 0.8 */
-pa_operation* pa_context_set_source_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
-
-/** Set the mute switch of a source device specified by its name \since 0.8 */
-pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
-
-/** Memory block statistics */
+/** Memory block statistics. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release. */
 typedef struct pa_stat_info {
     uint32_t memblock_total;           /**< Currently allocated memory blocks */
     uint32_t memblock_total_size;      /**< Currentl total size of allocated memory blocks */
@@ -423,7 +513,13 @@ typedef void (*pa_stat_info_cb_t) (pa_context *c, const pa_stat_info *i, void *u
 /** Get daemon memory block statistics */
 pa_operation* pa_context_stat(pa_context *c, pa_stat_info_cb_t cb, void *userdata);
 
-/** Stores information about sample cache entries */
+/** @} */
+
+/** @{ \name Cached Samples */
+
+/** Stores information about sample cache entries. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release. */
 typedef struct pa_sample_info {
     uint32_t index;                       /**< Index of this entry */
     const char *name;                     /**< Name of this entry */
@@ -449,23 +545,11 @@ pa_operation* pa_context_get_sample_info_by_index(pa_context *c, uint32_t idx, p
 /** Get the complete list of samples stored in the daemon. */
 pa_operation* pa_context_get_sample_info_list(pa_context *c, pa_sample_info_cb_t cb, void *userdata);
 
-/** Kill a client. \since 0.5 */
-pa_operation* pa_context_kill_client(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
+/** @} */
 
-/** Kill a sink input. \since 0.5 */
-pa_operation* pa_context_kill_sink_input(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
+/** \cond fulldocs */
 
-/** Kill a source output. \since 0.5 */
-pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
-
-/** Callback prototype for pa_context_load_module() and pa_context_add_autoload() */
-typedef void (*pa_context_index_cb_t)(pa_context *c, uint32_t idx, void *userdata);
-
-/** Load a module. \since 0.5 */
-pa_operation* pa_context_load_module(pa_context *c, const char*name, const char *argument, pa_context_index_cb_t cb, void *userdata);
-
-/** Unload a module. \since 0.5 */
-pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
+/** @{ \name Autoload Entries */
 
 /** Type of an autoload entry. \since 0.5 */
 typedef enum pa_autoload_type {
@@ -473,7 +557,9 @@ typedef enum pa_autoload_type {
     PA_AUTOLOAD_SOURCE = 1
 } pa_autoload_type_t;
 
-/** Stores information about autoload entries. \since 0.5 */
+/** Stores information about autoload entries. Please note that this structure
+ * can be extended as part of evolutionary API updates at any time in
+ * any new release. \since 0.5 */
 typedef struct pa_autoload_info {
     uint32_t index;               /**< Index of this autoload entry */
     const char *name;             /**< Name of the sink or source */
@@ -503,29 +589,9 @@ pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name
 /** Remove an autoload entry. \since 0.6 */
 pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void* userdata);
 
-/** Move the specified sink input to a different sink. \since 0.9.5 */
-pa_operation* pa_context_move_sink_input_by_name(pa_context *c, uint32_t idx, char *sink_name, pa_context_success_cb_t cb, void* userdata);
+/** @} */
 
-/** Move the specified sink input to a different sink. \since 0.9.5 */
-pa_operation* pa_context_move_sink_input_by_index(pa_context *c, uint32_t idx, uint32_t sink_idx, pa_context_success_cb_t cb, void* userdata);
-
-/** Move the specified source output to a different source. \since 0.9.5 */
-pa_operation* pa_context_move_source_output_by_name(pa_context *c, uint32_t idx, char *source_name, pa_context_success_cb_t cb, void* userdata);
-
-/** Move the specified source output to a different source. \since 0.9.5 */
-pa_operation* pa_context_move_source_output_by_index(pa_context *c, uint32_t idx, uint32_t source_idx, pa_context_success_cb_t cb, void* userdata);
-
-/** Suspend/Resume a sink. \since 0.9.7 */
-pa_operation* pa_context_suspend_sink_by_name(pa_context *c, char *sink_name, int suspend, pa_context_success_cb_t cb, void* userdata);
-
-/** Suspend/Resume a sink. If idx is PA_INVALID_INDEX all sinks will be suspended. \since 0.9.7 */
-pa_operation* pa_context_suspend_sink_by_index(pa_context *c, uint32_t idx, int suspend,  pa_context_success_cb_t cb, void* userdata);
-
-/** Suspend/Resume a source. \since 0.9.7 */
-pa_operation* pa_context_suspend_source_by_name(pa_context *c, char *source_name, int suspend, pa_context_success_cb_t cb, void* userdata);
-
-/** Suspend/Resume a source. If idx is PA_INVALID_INDEX all sources will be suspended. \since 0.9.7 */
-pa_operation* pa_context_suspend_source_by_index(pa_context *c, uint32_t idx, int suspend, pa_context_success_cb_t cb, void* userdata);
+/** \endcond */
 
 PA_C_DECL_END
 

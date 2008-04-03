@@ -73,8 +73,8 @@ PA_MODULE_USAGE(
         "tsched_buffer_watermark=<lower fill watermark>");
 
 #define DEFAULT_DEVICE "default"
-#define DEFAULT_TSCHED_BUFFER_USEC (3*PA_USEC_PER_SEC)
-#define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)
+#define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)
+#define DEFAULT_TSCHED_WATERMARK_USEC (10*PA_USEC_PER_MSEC)
 
 struct userdata {
     pa_core *core;
@@ -325,7 +325,7 @@ static int unix_write(struct userdata *u) {
 }
 
 static int update_smoother(struct userdata *u) {
-    snd_pcm_sframes_t delay;
+    snd_pcm_sframes_t delay  = 0;
     int64_t frames;
     int err;
     pa_usec_t now1, now2;
@@ -334,6 +334,7 @@ static int update_smoother(struct userdata *u) {
     pa_assert(u->pcm_handle);
 
     /* Let's update the time smoother */
+
     snd_pcm_avail_update(u->pcm_handle);
 
     if (PA_UNLIKELY((err = snd_pcm_delay(u->pcm_handle, &delay)) < 0)) {
@@ -441,6 +442,31 @@ static pa_usec_t hw_sleep_time(struct userdata *u) {
     return usec;
 }
 
+static void update_hwbuf_unused_frames(struct userdata *u) {
+    pa_usec_t usec;
+    size_t b;
+
+    pa_assert(u);
+
+    if ((usec = pa_sink_get_requested_latency(u->sink)) <= 0) {
+        /* Use the full buffer if noone asked us for anything
+         * specific */
+        u->hwbuf_unused_frames = 0;
+        return;
+    }
+
+    b = pa_usec_to_bytes(usec, &u->sink->sample_spec);
+
+    /* We need at least one sample in our buffer */
+
+    if (PA_UNLIKELY(b < u->frame_size))
+        b = u->frame_size;
+
+    u->hwbuf_unused_frames =
+        PA_LIKELY(b < u->hwbuf_size) ?
+        ((u->hwbuf_size - b) / u->frame_size) : 0;
+}
+
 static int update_sw_params(struct userdata *u) {
     size_t avail_min;
     int err;
@@ -464,6 +490,8 @@ static int update_sw_params(struct userdata *u) {
         pa_log("Failed to set software parameters: %s", snd_strerror(err));
         return err;
     }
+
+    update_hwbuf_unused_frames(u);
 
     return 0;
 }
@@ -535,29 +563,6 @@ fail:
     return -1;
 }
 
-static void update_hwbuf_unused_frames(struct userdata *u) {
-    pa_usec_t usec;
-    size_t b;
-
-    pa_assert(u);
-
-    if ((usec = pa_sink_get_requested_latency(u->sink)) <= 0) {
-        /* Use the full buffer if noone asked us for anything
-         * specific */
-        u->hwbuf_unused_frames = 0;
-        return;
-    }
-
-    b = pa_usec_to_bytes(usec, &u->sink->sample_spec);
-
-    /* We need at least one sample in our buffer */
-
-    if (PA_UNLIKELY(b < u->frame_size))
-        b = u->frame_size;
-
-    u->hwbuf_unused_frames = PA_LIKELY(b < u->hwbuf_size) ? ((u->hwbuf_size - b) / u->frame_size) : 0;
-}
-
 static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SINK(o)->userdata;
 
@@ -608,13 +613,13 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             break;
 
-        case PA_SINK_MESSAGE_ADD_INPUT:
-        case PA_SINK_MESSAGE_REMOVE_INPUT:
-        case PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER: {
-            int r = pa_sink_process_msg(o, code, data, offset, chunk);
-            update_hwbuf_unused_frames(u);
-            return r;
-        }
+/*         case PA_SINK_MESSAGE_ADD_INPUT: */
+/*         case PA_SINK_MESSAGE_REMOVE_INPUT: */
+/*         case PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER: { */
+/*             int r = pa_sink_process_msg(o, code, data, offset, chunk); */
+/*             update_hwbuf_unused_frames(u); */
+/*             return r; */
+/*         } */
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
@@ -703,6 +708,7 @@ static int sink_set_volume_cb(pa_sink *s) {
             }
 
             u->hw_dB_supported = FALSE;
+
         }
 
         alsa_vol = (long) roundf(((float) vol * (u->hw_volume_max - u->hw_volume_min)) / PA_VOLUME_NORM) + u->hw_volume_min;
@@ -776,7 +782,7 @@ static void thread_func(void *userdata) {
     pa_thread_mq_install(&u->thread_mq);
     pa_rtpoll_install(u->rtpoll);
 
-    update_hwbuf_unused_frames(u);
+/*     update_hwbuf_unused_frames(u); */
 
     for (;;) {
         int ret;
@@ -1173,6 +1179,9 @@ int pa__init(pa_module*m) {
     u->hw_volume_min = u->hw_volume_max = 0;
 
     u->sink->thread_info.max_rewind = use_tsched ? u->hwbuf_size : 0;
+
+    if (!use_tsched)
+        u->sink->min_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
 
     pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
                 nfrags, (long unsigned) u->fragment_size,

@@ -292,7 +292,7 @@ void pa_command_stream_moved(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED u
     pa_stream *s;
     uint32_t channel;
     const char *dn;
-    int suspended;
+    pa_bool_t suspended;
     uint32_t di;
 
     pa_assert(pd);
@@ -342,7 +342,7 @@ void pa_command_stream_suspended(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUS
     pa_context *c = userdata;
     pa_stream *s;
     uint32_t channel;
-    int suspended;
+    pa_bool_t suspended;
 
     pa_assert(pd);
     pa_assert(command == PA_COMMAND_PLAYBACK_STREAM_SUSPENDED || command == PA_COMMAND_RECORD_STREAM_SUSPENDED);
@@ -543,15 +543,31 @@ static void create_stream_complete(pa_stream *s) {
     }
 }
 
-static void automatic_buffer_attr(pa_buffer_attr *attr, pa_sample_spec *ss) {
+static void automatic_buffer_attr(pa_stream *s, pa_buffer_attr *attr, const pa_sample_spec *ss) {
+    pa_assert(s);
     pa_assert(attr);
     pa_assert(ss);
 
-    attr->tlength = pa_bytes_per_second(ss)/2;
-    attr->maxlength = (attr->tlength*3)/2;
-    attr->minreq = attr->tlength/50;
-    attr->prebuf = attr->tlength - attr->minreq;
-    attr->fragsize = attr->tlength/50;
+    if (s->context->version >= 13)
+        return;
+
+    /* Version older than 0.9.10 didn't do server side buffer_attr
+     * selection, hence we have to fake it on the client side */
+
+    if (!attr->maxlength <= 0)
+        attr->maxlength = 4*1024*1024; /* 4MB is the maximum queue length PulseAudio <= 0.9.9 supported. */
+
+    if (!attr->tlength <= 0)
+        attr->tlength = pa_bytes_per_second(ss)*2; /* 2s of buffering */
+
+    if (!attr->minreq <= 0)
+        attr->minreq = (9*attr->tlength)/10; /* Ask for more data when there are only 200ms left in the playback buffer */
+
+    if (!attr->prebuf)
+        attr->prebuf = attr->tlength; /* Start to play only when the playback is fully filled up once */
+
+    if (!attr->fragsize)
+        attr->fragsize  = attr->tlength; /* Pass data to the app only when the buffer is filled up once */
 }
 
 void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED uint32_t tag, pa_tagstruct *t, void *userdata) {
@@ -601,7 +617,7 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
         pa_sample_spec ss;
         pa_channel_map cm;
         const char *dn = NULL;
-        int suspended;
+        pa_bool_t suspended;
 
         if (pa_tagstruct_get_sample_spec(t, &ss) < 0 ||
             pa_tagstruct_get_channel_map(t, &cm) < 0 ||
@@ -631,7 +647,8 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
             pa_buffer_attr attr;
             pa_operation *o;
 
-            automatic_buffer_attr(&attr, &ss);
+            memset(&attr, 0, sizeof(attr));
+            automatic_buffer_attr(s, &attr, &ss);
 
             /* If we need to update the buffer metrics, we wait for
              * the the OK for that call before we go to
@@ -718,7 +735,9 @@ static int create_stream(
                                               PA_STREAM_FIX_CHANNELS|
                                               PA_STREAM_DONT_MOVE|
                                               PA_STREAM_VARIABLE_RATE|
-                                              PA_STREAM_PEAK_DETECT)), PA_ERR_INVALID);
+                                              PA_STREAM_PEAK_DETECT|
+                                              PA_STREAM_START_MUTED|
+                                              PA_STREAM_ADJUST_LATENCY)), PA_ERR_INVALID);
 
     PA_CHECK_VALIDITY(s->context, s->context->version >= 12 || !(flags & PA_STREAM_VARIABLE_RATE), PA_ERR_NOTSUPPORTED);
     PA_CHECK_VALIDITY(s->context, s->context->version >= 13 || !(flags & PA_STREAM_PEAK_DETECT), PA_ERR_NOTSUPPORTED);
@@ -727,6 +746,8 @@ static int create_stream(
      * when they are passed but actually not supported. This makes
      * client development easier */
 
+    PA_CHECK_VALIDITY(s->context, direction != PA_STREAM_PLAYBACK || !(flags & (PA_STREAM_START_MUTED)), PA_ERR_INVALID);
+    PA_CHECK_VALIDITY(s->context, direction != PA_STREAM_RECORD || !(flags & (PA_STREAM_PEAK_DETECT)), PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !volume || volume->channels == s->sample_spec.channels, PA_ERR_INVALID);
     PA_CHECK_VALIDITY(s->context, !sync_stream || (direction == PA_STREAM_PLAYBACK && sync_stream->direction == PA_STREAM_PLAYBACK), PA_ERR_INVALID);
 
@@ -742,14 +763,11 @@ static int create_stream(
         s->buffer_attr = *attr;
         s->manual_buffer_attr = TRUE;
     } else {
-        /* half a second, with minimum request of 10 ms */
-        s->buffer_attr.tlength = pa_bytes_per_second(&s->sample_spec)/2;
-        s->buffer_attr.maxlength = (s->buffer_attr.tlength*3)/2;
-        s->buffer_attr.minreq = s->buffer_attr.tlength/50;
-        s->buffer_attr.prebuf = s->buffer_attr.tlength - s->buffer_attr.minreq;
-        s->buffer_attr.fragsize = s->buffer_attr.tlength/50;
+        memset(&s->buffer_attr, 0, sizeof(s->buffer_attr));
         s->manual_buffer_attr = FALSE;
     }
+
+    automatic_buffer_attr(s, &s->buffer_attr, &s->sample_spec);
 
     if (!dev)
         dev = s->direction == PA_STREAM_PLAYBACK ? s->context->conf->default_sink : s->context->conf->default_source;
@@ -805,11 +823,16 @@ static int create_stream(
 
     if (s->context->version >= 13) {
 
+        if (s->direction == PA_STREAM_PLAYBACK)
+            pa_tagstruct_put_boolean(t, flags & PA_STREAM_START_MUTED);
+        else
+            pa_tagstruct_put_boolean(t, flags & PA_STREAM_PEAK_DETECT);
+
         pa_init_proplist(s->proplist);
 
         pa_tagstruct_put(
                 t,
-                PA_TAG_BOOLEAN, flags & PA_STREAM_PEAK_DETECT,
+                PA_TAG_BOOLEAN, flags & PA_STREAM_ADJUST_LATENCY,
                 PA_TAG_PROPLIST, s->proplist,
                 PA_TAG_INVALID);
     }
@@ -1023,6 +1046,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
     pa_operation *o = userdata;
     struct timeval local, remote, now;
     pa_timing_info *i;
+    pa_bool_t playing = FALSE;
 
     pa_assert(pd);
     pa_assert(o);
@@ -1047,7 +1071,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
     } else if (pa_tagstruct_get_usec(t, &i->sink_usec) < 0 ||
                pa_tagstruct_get_usec(t, &i->source_usec) < 0 ||
-               pa_tagstruct_get_boolean(t, &i->playing) < 0 ||
+               pa_tagstruct_get_boolean(t, &playing) < 0 ||
                pa_tagstruct_get_timeval(t, &local) < 0 ||
                pa_tagstruct_get_timeval(t, &remote) < 0 ||
                pa_tagstruct_gets64(t, &i->write_index) < 0 ||
@@ -1058,6 +1082,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
     } else {
         o->stream->timing_info_valid = 1;
+        i->playing = (int) playing;
 
         pa_gettimeofday(&now);
 

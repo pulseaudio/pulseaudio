@@ -155,10 +155,10 @@ static const struct command commands[] = {
     { "load-sample-dir-lazy",    pa_cli_command_scache_load_dir,    "Lazily load all files in a directory into the sample cache (args: pathname)", 2},
     { "play-file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
     { "list-autoload",           pa_cli_command_autoload_list,      "List autoload entries", 1},
-    { "add-autoload-sink",       pa_cli_command_autoload_add,       "Add autoload entry for a sink (args: sink, module name, arguments)", 4},
-    { "add-autoload-source",     pa_cli_command_autoload_add,       "Add autoload entry for a source (args: source, module name, arguments)", 4},
-    { "remove-autoload-sink",    pa_cli_command_autoload_remove,    "Remove autoload entry for a sink (args: name)", 2},
-    { "remove-autoload-source",  pa_cli_command_autoload_remove,    "Remove autoload entry for a source (args: name)", 2},
+    { "add-autoload-sink",       pa_cli_command_autoload_add,       NULL /*"Add autoload entry for a sink (args: sink, module name, arguments)"*/, 4},
+    { "add-autoload-source",     pa_cli_command_autoload_add,       NULL /*"Add autoload entry for a source (args: source, module name, arguments)"*/, 4},
+    { "remove-autoload-sink",    pa_cli_command_autoload_remove,    NULL /*"Remove autoload entry for a sink (args: name)"*/, 2},
+    { "remove-autoload-source",  pa_cli_command_autoload_remove,    NULL /*"Remove autoload entry for a source (args: name)"*/, 2},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
     { "list-props",              pa_cli_command_list_props,         NULL, 1},
     { "move-sink-input",         pa_cli_command_move_sink_input,    "Move sink input to another sink (args: index, sink)", 3},
@@ -367,7 +367,7 @@ static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
     pa_cli_command_sink_inputs(c, t, buf, fail);
     pa_cli_command_source_outputs(c, t, buf, fail);
     pa_cli_command_scache_list(c, t, buf, fail);
-    pa_cli_command_autoload_list(c, t, buf, fail);
+/*     pa_cli_command_autoload_list(c, t, buf, fail); */
     return 0;
 }
 
@@ -905,6 +905,8 @@ static int pa_cli_command_autoload_add(pa_core *c, pa_tokenizer *t, pa_strbuf *b
     pa_assert(buf);
     pa_assert(fail);
 
+    pa_log_warn("Autoload will no longer be implemented by future versions of the PulseAudio server.");
+
     if (!(a = pa_tokenizer_get(t, 1)) || !(b = pa_tokenizer_get(t, 2))) {
         pa_strbuf_puts(buf, "You need to specify a device name, a filename or a module name and optionally module arguments\n");
         return -1;
@@ -922,6 +924,8 @@ static int pa_cli_command_autoload_remove(pa_core *c, pa_tokenizer *t, pa_strbuf
     pa_assert(t);
     pa_assert(buf);
     pa_assert(fail);
+
+    pa_log_warn("Autoload will no longer be implemented by future versions of the PulseAudio server.");
 
     if (!(name = pa_tokenizer_get(t, 1))) {
         pa_strbuf_puts(buf, "You need to specify a device name\n");
@@ -943,6 +947,8 @@ static int pa_cli_command_autoload_list(pa_core *c, pa_tokenizer *t, pa_strbuf *
     pa_assert(t);
     pa_assert(buf);
     pa_assert(fail);
+
+    pa_log_warn("Autoload will no longer be implemented by future versions of the PulseAudio server.");
 
     pa_assert_se(s = pa_autoload_list_to_string(c));
     pa_strbuf_puts(buf, s);

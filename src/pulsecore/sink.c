@@ -33,6 +33,7 @@
 #include <pulse/introspect.h>
 #include <pulse/utf8.h>
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/sink-input.h>
 #include <pulsecore/namereg.h>
@@ -47,6 +48,7 @@
 
 #define MAX_MIX_CHANNELS 32
 #define MIX_BUFFER_LENGTH (PA_PAGE_SIZE)
+#define DEFAULT_MIN_LATENCY (4*PA_USEC_PER_MSEC)
 
 static PA_DEFINE_CHECK_TYPE(pa_sink, pa_msgobject);
 
@@ -184,6 +186,8 @@ pa_sink* pa_sink_new(
     s->asyncmsgq = NULL;
     s->rtpoll = NULL;
     s->silence = pa_silence_memblock_new(core->mempool, &s->sample_spec, 0);
+
+    s->min_latency = DEFAULT_MIN_LATENCY;
 
     s->thread_info.inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume = s->volume;

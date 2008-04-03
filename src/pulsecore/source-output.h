@@ -174,7 +174,7 @@ void pa_source_output_unlink(pa_source_output*o);
 
 void pa_source_output_set_name(pa_source_output *i, const char *name);
 
-void pa_source_output_set_requested_latency(pa_source_output *i, pa_usec_t usec);
+pa_usec_t pa_source_output_set_requested_latency(pa_source_output *i, pa_usec_t usec);
 
 /* Callable by everyone */
 

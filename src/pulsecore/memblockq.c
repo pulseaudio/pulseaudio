@@ -138,7 +138,7 @@ static void fix_current_read(pa_memblockq *bq) {
             break;
 
     /* Scan right */
-    while (PA_LIKELY(bq->current_read != NULL) && PA_UNLIKELY(bq->current_read->index + bq->current_read->chunk.length <= bq->read_index))
+    while (PA_LIKELY(bq->current_read != NULL) && PA_UNLIKELY(bq->current_read->index + (int64_t) bq->current_read->chunk.length <= bq->read_index))
         bq->current_read = bq->current_read->next;
 
     /* At this point current_read will either point at or left of the
@@ -158,7 +158,7 @@ static void fix_current_write(pa_memblockq *bq) {
         bq->current_write = bq->blocks_tail;
 
     /* Scan right */
-    while (PA_UNLIKELY(bq->current_write->index + bq->current_write->chunk.length <= bq->write_index))
+    while (PA_UNLIKELY(bq->current_write->index + (int64_t) bq->current_write->chunk.length <= bq->write_index))
 
         if (bq->current_write->next)
             bq->current_write = bq->current_write->next;
@@ -214,7 +214,7 @@ static void drop_backlog(pa_memblockq *bq) {
 
     boundary = bq->read_index - bq->maxrewind;
 
-    while (bq->blocks && (bq->blocks->index + bq->blocks->chunk.length <= boundary))
+    while (bq->blocks && (bq->blocks->index + (int64_t) bq->blocks->chunk.length <= boundary))
         drop_block(bq, bq->blocks);
 }
 
@@ -232,10 +232,10 @@ static pa_bool_t can_push(pa_memblockq *bq, size_t l) {
             return TRUE;
     }
 
-    end = bq->blocks_tail ? bq->blocks_tail->index + bq->blocks_tail->chunk.length : bq->write_index;
+    end = bq->blocks_tail ? bq->blocks_tail->index + (int64_t) bq->blocks_tail->chunk.length : bq->write_index;
 
     /* Make sure that the list doesn't get too long */
-    if (bq->write_index + l > end)
+    if (bq->write_index + (int64_t) l > end)
         if (bq->write_index + l - bq->read_index > bq->maxlength)
             return FALSE;
 
@@ -269,7 +269,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
      * write to */
 
     if (q) {
-        while (bq->write_index + chunk.length > q->index)
+        while (bq->write_index + (int64_t) chunk.length > q->index)
             if (q->next)
                 q = q->next;
             else
@@ -284,10 +284,10 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
 
     while (q) {
 
-        if (bq->write_index >= q->index + q->chunk.length)
+        if (bq->write_index >= q->index + (int64_t) q->chunk.length)
             /* We found the entry where we need to place the new entry immediately after */
             break;
-        else if (bq->write_index + chunk.length <= q->index) {
+        else if (bq->write_index + (int64_t) chunk.length <= q->index) {
             /* This entry isn't touched at all, let's skip it */
             q = q->prev;
         } else if (bq->write_index <= q->index &&
@@ -407,7 +407,7 @@ finish:
 
     delta = bq->write_index - old;
 
-    if (delta >= bq->requested) {
+    if (delta >= (int64_t) bq->requested) {
         delta -= bq->requested;
         bq->requested = 0;
     } else {
@@ -526,7 +526,7 @@ void pa_memblockq_drop(pa_memblockq *bq, size_t length) {
             pa_assert(p >= bq->read_index);
             d = p - bq->read_index;
 
-            if (d > length)
+            if (d > (int64_t) length)
                 d = length;
 
             bq->read_index += d;
@@ -606,7 +606,7 @@ void pa_memblockq_seek(pa_memblockq *bq, int64_t offset, pa_seek_mode_t seek) {
 
     delta = bq->write_index - old;
 
-    if (delta >= bq->requested) {
+    if (delta >= (int64_t) bq->requested) {
         delta -= bq->requested;
         bq->requested = 0;
     } else if (delta >= 0) {
@@ -633,7 +633,7 @@ void pa_memblockq_flush(pa_memblockq *bq) {
 
     delta = bq->write_index - old;
 
-    if (delta >= bq->requested) {
+    if (delta >= (int64_t) bq->requested) {
         delta -= bq->requested;
         bq->requested = 0;
     } else if (delta >= 0) {

@@ -91,6 +91,8 @@ struct pa_sink {
 
     pa_memblock *silence;
 
+    pa_usec_t min_latency; /* we won't go below this latency setting */
+
     int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
     int (*set_volume)(pa_sink *s);             /* dito */
     int (*get_volume)(pa_sink *s);             /* dito */

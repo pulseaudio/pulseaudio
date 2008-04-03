@@ -360,13 +360,20 @@ void pa_source_output_push(pa_source_output *o, const pa_memchunk *chunk) {
     pa_memblock_unref(rchunk.memblock);
 }
 
-void pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec) {
+pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t usec) {
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
 
-    pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY, NULL, (int64_t) usec, NULL, NULL);
-}
+    if (usec < o->source->min_latency)
+        usec = o->source->min_latency;
 
+    if (PA_SOURCE_OUTPUT_LINKED(o->state))
+        pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY, NULL, (int64_t) usec, NULL, NULL);
+    else
+        o->thread_info.requested_source_latency = usec;
+
+    return usec;
+}
 
 void pa_source_output_cork(pa_source_output *o, pa_bool_t b) {
     pa_source_output_assert_ref(o);

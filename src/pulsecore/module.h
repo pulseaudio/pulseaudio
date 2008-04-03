@@ -45,10 +45,10 @@ struct pa_module {
     void *userdata;
 
     int n_used;
-    int auto_unload;
+    pa_bool_t auto_unload;
     time_t last_used_time;
 
-    int unload_requested;
+    pa_bool_t unload_requested;
 };
 
 pa_module* pa_module_load(pa_core *c, const char *name, const char*argument);

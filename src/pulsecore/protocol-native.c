@@ -71,6 +71,8 @@
 #define MAX_CONNECTIONS 64
 
 #define MAX_MEMBLOCKQ_LENGTH (4*1024*1024) /* 4MB */
+#define DEFAULT_TLENGTH_MSEC 2000 /* 2s */
+#define DEFAULT_FRAGSIZE_MSEC DEFAULT_TLENGTH_MSEC
 
 typedef struct connection connection;
 struct pa_protocol_native;
@@ -469,9 +471,10 @@ static record_stream* record_stream_new(
         pa_channel_map *map,
         const char *name,
         uint32_t *maxlength,
-        uint32_t fragment_size,
+        uint32_t *fragsize,
         pa_source_output_flags_t flags,
-        pa_proplist *p) {
+        pa_proplist *p,
+        pa_bool_t adjust_latency) {
 
     record_stream *s;
     pa_source_output *source_output;
@@ -482,7 +485,6 @@ static record_stream* record_stream_new(
     pa_assert(ss);
     pa_assert(name);
     pa_assert(maxlength);
-    pa_assert(*maxlength > 0);
     pa_assert(p);
 
     pa_source_output_new_data_init(&data);
@@ -508,6 +510,7 @@ static record_stream* record_stream_new(
     s->parent.process_msg = record_stream_process_msg;
     s->connection = c;
     s->source_output = source_output;
+
     s->source_output->push = source_output_push_cb;
     s->source_output->kill = source_output_kill_cb;
     s->source_output->get_latency = source_output_get_latency_cb;
@@ -515,11 +518,36 @@ static record_stream* record_stream_new(
     s->source_output->suspend = source_output_suspend_cb;
     s->source_output->userdata = s;
 
+    if (*maxlength <= 0 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
+        *maxlength = MAX_MEMBLOCKQ_LENGTH;
+    if (*fragsize <= 0)
+        *fragsize = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*1000, &source_output->sample_spec);
+
+    if (adjust_latency) {
+        pa_usec_t fragsize_usec, source_latency;
+
+        /* So, the user asked us to adjust the latency according to
+         * the what the source can provide. Half the latency will be
+         * spent on the hw buffer, half of it in the async buffer
+         * queue we maintain for each client. */
+
+        fragsize_usec = pa_bytes_to_usec(*fragsize, &source_output->sample_spec);
+
+        source_latency = pa_source_output_set_requested_latency(source_output, fragsize_usec/2);
+
+        if (fragsize_usec >= source_latency*2)
+            fragsize_usec -= source_latency;
+        else
+            fragsize_usec = source_latency;
+
+        *fragsize = pa_usec_to_bytes(fragsize_usec, &source_output->sample_spec);
+    }
+
     s->memblockq = pa_memblockq_new(
             0,
             *maxlength,
             0,
-            base = pa_frame_size(&s->source_output->sample_spec),
+            base = pa_frame_size(&source_output->sample_spec),
             1,
             0,
             0,
@@ -527,12 +555,14 @@ static record_stream* record_stream_new(
 
     *maxlength = pa_memblockq_get_maxlength(s->memblockq);
 
-    s->fragment_size = (fragment_size/base)*base;
+    s->fragment_size = (*fragsize/base)*base;
     if (s->fragment_size <= 0)
         s->fragment_size = base;
 
     if (s->fragment_size > *maxlength)
         s->fragment_size = *maxlength;
+
+    *fragsize = s->fragment_size;
 
     *ss = s->source_output->sample_spec;
     *map = s->source_output->channel_map;
@@ -658,10 +688,12 @@ static playback_stream* playback_stream_new(
         uint32_t *prebuf,
         uint32_t *minreq,
         pa_cvolume *volume,
+        pa_bool_t muted,
         uint32_t syncid,
         uint32_t *missing,
         pa_sink_input_flags_t flags,
-        pa_proplist *p) {
+        pa_proplist *p,
+        pa_bool_t adjust_latency) {
 
     playback_stream *s, *ssync;
     pa_sink_input *sink_input;
@@ -674,6 +706,11 @@ static playback_stream* playback_stream_new(
     pa_assert(ss);
     pa_assert(name);
     pa_assert(maxlength);
+    pa_assert(tlength);
+    pa_assert(prebuf);
+    pa_assert(minreq);
+    pa_assert(volume);
+    pa_assert(missing);
     pa_assert(p);
 
     /* Find syncid group */
@@ -706,6 +743,7 @@ static playback_stream* playback_stream_new(
     pa_sink_input_new_data_set_sample_spec(&data, ss);
     pa_sink_input_new_data_set_channel_map(&data, map);
     pa_sink_input_new_data_set_volume(&data, volume);
+    pa_sink_input_new_data_set_muted(&data, muted);
     data.sync_base = ssync ? ssync->sink_input : NULL;
 
     sink_input = pa_sink_input_new(c->protocol->core, &data, flags);
@@ -732,13 +770,49 @@ static playback_stream* playback_stream_new(
 
     start_index = ssync ? pa_memblockq_get_read_index(ssync->memblockq) : 0;
 
-    silence = pa_silence_memblock_new(c->protocol->core->mempool, &s->sink_input->sample_spec, 0);
+    if (*maxlength <= 0 || *maxlength > MAX_MEMBLOCKQ_LENGTH)
+        *maxlength = MAX_MEMBLOCKQ_LENGTH;
+    if (*tlength <= 0)
+        *tlength = pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*1000, &sink_input->sample_spec);
+    if (*minreq <= 0)
+        *minreq = (*tlength*9)/10;
+    if (*prebuf <= 0)
+        *prebuf = *tlength;
+
+    if (adjust_latency) {
+        pa_usec_t tlength_usec, minreq_usec, sink_latency;
+
+        /* So, the user asked us to adjust the latency according to
+         * the what the sink can provide. Half the latency will be
+         * spent on the hw buffer, half of it in the async buffer
+         * queue we maintain for each client. */
+
+        tlength_usec = pa_bytes_to_usec(*tlength, &sink_input->sample_spec);
+        minreq_usec = pa_bytes_to_usec(*minreq, &sink_input->sample_spec);
+
+        sink_latency = pa_sink_input_set_requested_latency(sink_input, tlength_usec/2);
+
+        if (tlength_usec >= sink_latency*2)
+            tlength_usec -= sink_latency;
+        else
+            tlength_usec = sink_latency;
+
+        if (minreq_usec >= sink_latency*2)
+            minreq_usec -= sink_latency;
+        else
+            minreq_usec = sink_latency;
+
+        *tlength = pa_usec_to_bytes(tlength_usec, &sink_input->sample_spec);
+        *minreq = pa_usec_to_bytes(minreq_usec, &sink_input->sample_spec);
+    }
+
+    silence = pa_silence_memblock_new(c->protocol->core->mempool, &sink_input->sample_spec, 0);
 
     s->memblockq = pa_memblockq_new(
             start_index,
             *maxlength,
             *tlength,
-            pa_frame_size(&s->sink_input->sample_spec),
+            pa_frame_size(&sink_input->sample_spec),
             *prebuf,
             *minreq,
             0,
@@ -762,7 +836,6 @@ static playback_stream* playback_stream_new(
     pa_idxset_put(c->output_streams, s, &s->index);
 
     pa_sink_input_put(s->sink_input);
-
     return s;
 }
 
@@ -1230,8 +1303,18 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     pa_tagstruct *reply;
     pa_sink *sink = NULL;
     pa_cvolume volume;
-    int corked;
-    int no_remap = 0, no_remix = 0, fix_format = 0, fix_rate = 0, fix_channels = 0, no_move = 0, variable_rate = 0;
+    pa_bool_t
+        corked = FALSE,
+        no_remap = FALSE,
+        no_remix = FALSE,
+        fix_format = FALSE,
+        fix_rate = FALSE,
+        fix_channels = FALSE,
+        no_move = FALSE,
+        variable_rate = FALSE,
+        muted = FALSE,
+        adjust_latency = FALSE;
+
     pa_sink_input_flags_t flags = 0;
     pa_proplist *p;
 
@@ -1264,8 +1347,6 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
     CHECK_VALIDITY(c->pstream, pa_sample_spec_valid(&ss), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, pa_cvolume_valid(&volume), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels && volume.channels == ss.channels, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, maxlength > 0, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
 
     p = pa_proplist_new();
 
@@ -1291,7 +1372,9 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
 
     if (c->version >= 13) {
 
-        if (pa_tagstruct_get_proplist(t, p) < 0) {
+        if (pa_tagstruct_get_boolean(t, &muted) < 0 ||
+            pa_tagstruct_get_boolean(t, &adjust_latency) < 0 ||
+            pa_tagstruct_get_proplist(t, p) < 0) {
             protocol_error(c);
             pa_proplist_free(p);
             return;
@@ -1331,7 +1414,7 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
         (no_move ?  PA_SINK_INPUT_DONT_MOVE : 0) |
         (variable_rate ?  PA_SINK_INPUT_VARIABLE_RATE : 0);
 
-    s = playback_stream_new(c, sink, &ss, &map, name, &maxlength, &tlength, &prebuf, &minreq, &volume, syncid, &missing, flags, p);
+    s = playback_stream_new(c, sink, &ss, &map, name, &maxlength, &tlength, &prebuf, &minreq, &volume, muted, syncid, &missing, flags, p, adjust_latency);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
@@ -1438,8 +1521,16 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     pa_channel_map map;
     pa_tagstruct *reply;
     pa_source *source = NULL;
-    int corked;
-    int no_remap = 0, no_remix = 0, fix_format = 0, fix_rate = 0, fix_channels = 0, no_move = 0, variable_rate = 0;
+    pa_bool_t
+        corked = FALSE,
+        no_remap = FALSE,
+        no_remix = FALSE,
+        fix_format = FALSE,
+        fix_rate = FALSE,
+        fix_channels = FALSE,
+        no_move = FALSE,
+        variable_rate = FALSE,
+        adjust_latency = FALSE;
     pa_source_output_flags_t flags = 0;
     pa_proplist *p;
 
@@ -1463,8 +1554,6 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
     CHECK_VALIDITY(c->pstream, pa_channel_map_valid(&map), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, source_index != PA_INVALID_INDEX || !source_name || (*source_name && pa_utf8_valid(source_name)), tag, PA_ERR_INVALID);
     CHECK_VALIDITY(c->pstream, map.channels == ss.channels, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, maxlength > 0, tag, PA_ERR_INVALID);
-    CHECK_VALIDITY(c->pstream, maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
 
     p = pa_proplist_new();
 
@@ -1490,7 +1579,8 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
 
     if (c->version >= 13) {
 
-        if (pa_tagstruct_get_proplist(t, p) < 0) {
+        if (pa_tagstruct_get_boolean(t, &adjust_latency) < 0 ||
+            pa_tagstruct_get_proplist(t, p) < 0) {
             protocol_error(c);
             pa_proplist_free(p);
             return;
@@ -1530,7 +1620,7 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         (no_move ?  PA_SOURCE_OUTPUT_DONT_MOVE : 0) |
         (variable_rate ?  PA_SOURCE_OUTPUT_VARIABLE_RATE : 0);
 
-    s = record_stream_new(c, source, &ss, &map, name, &maxlength, fragment_size, flags, p);
+    s = record_stream_new(c, source, &ss, &map, name, &maxlength, &fragment_size, flags, p, adjust_latency);
     pa_proplist_free(p);
 
     CHECK_VALIDITY(c->pstream, s, tag, PA_ERR_INVALID);
@@ -1544,7 +1634,7 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
         /* Since 0.9 we support sending the buffer metrics back to the client */
 
         pa_tagstruct_putu32(reply, (uint32_t) maxlength);
-        pa_tagstruct_putu32(reply, (uint32_t) s->fragment_size);
+        pa_tagstruct_putu32(reply, (uint32_t) fragment_size);
     }
 
     if (c->version >= 12) {
@@ -1873,7 +1963,7 @@ static void command_get_record_latency(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
     reply = reply_new(tag);
     pa_tagstruct_put_usec(reply, s->source_output->source->monitor_of ? pa_sink_get_latency(s->source_output->source->monitor_of) : 0);
     pa_tagstruct_put_usec(reply, pa_source_get_latency(s->source_output->source));
-    pa_tagstruct_put_boolean(reply, 0);
+    pa_tagstruct_put_boolean(reply, FALSE);
     pa_tagstruct_put_timeval(reply, &tv);
     pa_tagstruct_put_timeval(reply, pa_gettimeofday(&now));
     pa_tagstruct_puts64(reply, pa_memblockq_get_write_index(s->memblockq));
@@ -2511,7 +2601,7 @@ static void command_set_mute(
 
     connection *c = CONNECTION(userdata);
     uint32_t idx;
-    int mute;
+    pa_bool_t mute;
     pa_sink *sink = NULL;
     pa_source *source = NULL;
     pa_sink_input *si = NULL;
@@ -2574,7 +2664,7 @@ static void command_set_mute(
 static void command_cork_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSED uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     connection *c = CONNECTION(userdata);
     uint32_t idx;
-    int b;
+    pa_bool_t b;
     playback_stream *s;
 
     connection_assert_ref(c);
@@ -2641,7 +2731,7 @@ static void command_cork_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UN
     connection *c = CONNECTION(userdata);
     uint32_t idx;
     record_stream *s;
-    int b;
+    pa_bool_t b;
 
     connection_assert_ref(c);
     pa_assert(t);
@@ -2719,8 +2809,14 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
             return;
         }
 
-        CHECK_VALIDITY(c->pstream, maxlength > 0, tag, PA_ERR_INVALID);
-        CHECK_VALIDITY(c->pstream, maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
+        if (maxlength <= 0 || maxlength > MAX_MEMBLOCKQ_LENGTH)
+            maxlength = MAX_MEMBLOCKQ_LENGTH;
+        if (tlength <= 0)
+            tlength = pa_usec_to_bytes(DEFAULT_TLENGTH_MSEC*1000, &s->sink_input->sample_spec);
+        if (minreq <= 0)
+            minreq = (tlength*9)/10;
+        if (prebuf <= 0)
+            prebuf = tlength;
 
         pa_memblockq_set_maxlength(s->memblockq, maxlength);
         pa_memblockq_set_tlength(s->memblockq, tlength);
@@ -2751,8 +2847,10 @@ static void command_set_stream_buffer_attr(pa_pdispatch *pd, uint32_t command, u
             return;
         }
 
-        CHECK_VALIDITY(c->pstream, maxlength > 0, tag, PA_ERR_INVALID);
-        CHECK_VALIDITY(c->pstream, maxlength <= MAX_MEMBLOCKQ_LENGTH, tag, PA_ERR_INVALID);
+        if (maxlength <= 0 || maxlength > MAX_MEMBLOCKQ_LENGTH)
+            maxlength = MAX_MEMBLOCKQ_LENGTH;
+        if (fragsize <= 0)
+            fragsize = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*1000, &s->source_output->sample_spec);
 
         pa_memblockq_set_maxlength(s->memblockq, maxlength);
 
@@ -3336,7 +3434,7 @@ static void command_suspend(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa
     connection *c = CONNECTION(userdata);
     uint32_t idx = PA_INVALID_INDEX;
     const char *name = NULL;
-    int b;
+    pa_bool_t b;
 
     connection_assert_ref(c);
     pa_assert(t);
