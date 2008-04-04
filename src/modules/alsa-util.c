@@ -426,7 +426,7 @@ finish:
     return ret;
 }
 
-int pa_alsa_set_sw_params(snd_pcm_t *pcm, size_t avail_min) {
+int pa_alsa_set_sw_params(snd_pcm_t *pcm, snd_pcm_uframes_t avail_min) {
     snd_pcm_sw_params_t *swparams;
     int err;
 

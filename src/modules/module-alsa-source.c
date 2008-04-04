@@ -979,7 +979,7 @@ int pa__init(pa_module*m) {
 
         if (pa_alsa_prepare_mixer(u->mixer_handle, u->device_name) >= 0)
             found = TRUE;
-        else {
+        else if (dev_id) {
             char *md = pa_sprintf_malloc("hw:%s", dev_id);
 
             if (strcmp(u->device_name, md))

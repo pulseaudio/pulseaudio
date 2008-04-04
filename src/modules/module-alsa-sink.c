@@ -74,7 +74,7 @@ PA_MODULE_USAGE(
 
 #define DEFAULT_DEVICE "default"
 #define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)
-#define DEFAULT_TSCHED_WATERMARK_USEC (10*PA_USEC_PER_MSEC)
+#define DEFAULT_TSCHED_WATERMARK_USEC (100*PA_USEC_PER_MSEC)
 
 struct userdata {
     pa_core *core;
@@ -160,8 +160,10 @@ static int mmap_write(struct userdata *u) {
             if ((err = snd_pcm_recover(u->pcm_handle, n, 1)) == 0)
                 continue;
 
-            if (err == -EAGAIN)
+            if (err == -EAGAIN) {
+                pa_log_debug("EAGAIN");
                 return work_done;
+            }
 
             pa_log("snd_pcm_avail_update: %s", snd_strerror(err));
             return -1;
@@ -187,8 +189,10 @@ static int mmap_write(struct userdata *u) {
             if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) == 0)
                 continue;
 
-            if (err == -EAGAIN)
+            if (err == -EAGAIN) {
+                pa_log_debug("EAGAIN");
                 return work_done;
+            }
 
             pa_log("Failed to write data to DSP: %s", snd_strerror(err));
             return -1;
@@ -226,8 +230,10 @@ static int mmap_write(struct userdata *u) {
             if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) == 0)
                 continue;
 
-            if (err == -EAGAIN)
+            if (err == -EAGAIN) {
+                pa_log_debug("EAGAIN");
                 return work_done;
+            }
 
             pa_log("Failed to write data to DSP: %s", snd_strerror(err));
             return -1;
@@ -300,8 +306,10 @@ static int unix_write(struct userdata *u) {
             if ((frames = snd_pcm_recover(u->pcm_handle, frames, 1)) == 0)
                 continue;
 
-            if (frames == -EAGAIN)
+            if (frames == -EAGAIN) {
+                pa_log_debug("EAGAIN");
                 return work_done;
+            }
 
             pa_log("Failed to write data to DSP: %s", snd_strerror(frames));
             return -1;
@@ -468,7 +476,7 @@ static void update_hwbuf_unused_frames(struct userdata *u) {
 }
 
 static int update_sw_params(struct userdata *u) {
-    size_t avail_min;
+    snd_pcm_uframes_t avail_min;
     int err;
 
     pa_assert(u);
@@ -478,7 +486,7 @@ static int update_sw_params(struct userdata *u) {
 
         usec = hw_sleep_time(u);
 
-        avail_min = pa_usec_to_bytes(usec, &u->sink->sample_spec);
+        avail_min = pa_usec_to_bytes(usec, &u->sink->sample_spec) / u->frame_size;
 
         if (avail_min <= 0)
             avail_min = 1;
@@ -486,12 +494,18 @@ static int update_sw_params(struct userdata *u) {
     } else
         avail_min = 1;
 
+    avail_min = (snd_pcm_uframes_t) -1;
+
+    pa_log("setting avail_min=%lu", (unsigned long) avail_min);
+
     if ((err = pa_alsa_set_sw_params(u->pcm_handle, avail_min)) < 0) {
         pa_log("Failed to set software parameters: %s", snd_strerror(err));
         return err;
     }
 
     update_hwbuf_unused_frames(u);
+
+    pa_log("hwbuf_unused_frames=%lu", (unsigned long) u->hwbuf_unused_frames);
 
     return 0;
 }
@@ -810,19 +824,26 @@ static void thread_func(void *userdata) {
                 if (frames > limit)
                     frames = limit;
 
-                pa_log_debug("Limited to %lu bytes.", (unsigned long) frames * u->frame_size);
+                frames = 0;
 
-                if ((frames = snd_pcm_rewind(u->pcm_handle, frames)) < 0) {
-                    pa_log("snd_pcm_rewind() failed: %s", snd_strerror(frames));
-                    goto fail;
-                }
+                if (frames > 0) {
 
-                if ((u->sink->thread_info.rewind_nbytes = frames * u->frame_size) <= 0)
-                    pa_log_info("Tried rewind, but was apparently not possible.");
-                else {
-                    u->frame_index -= frames;
-                    pa_log_debug("Rewound %lu bytes.", (unsigned long) u->sink->thread_info.rewind_nbytes);
-                    pa_sink_process_rewind(u->sink);
+                    pa_log_debug("Limited to %lu bytes.", (unsigned long) frames * u->frame_size);
+
+                    if ((frames = snd_pcm_rewind(u->pcm_handle, frames)) < 0) {
+                        pa_log("snd_pcm_rewind() failed: %s", snd_strerror(frames));
+                        goto fail;
+                    }
+
+                    if ((u->sink->thread_info.rewind_nbytes = frames * u->frame_size) <= 0)
+                        pa_log_info("Tried rewind, but was apparently not possible.");
+                    else {
+                        u->frame_index -= frames;
+                        pa_log_debug("Rewound %lu bytes.", (unsigned long) u->sink->thread_info.rewind_nbytes);
+                        pa_sink_process_rewind(u->sink);
+                    }
+                } else {
+                    pa_log_debug("Mhmm, actually there is nothing to rewind.");
                 }
             }
 
@@ -851,7 +872,7 @@ static void thread_func(void *userdata) {
             }
 
             if (u->use_tsched) {
-                pa_usec_t usec, cusec;
+                pa_usec_t usec, cusec, sleep_usec;
 
                 /* OK, the playback buffer is now full, let's
                  * calculate when to wake up next */
@@ -866,8 +887,12 @@ static void thread_func(void *userdata) {
 
                 pa_log_debug("Waking up in %0.2fms (system clock).", (double) cusec / PA_USEC_PER_MSEC);
 
+                sleep_usec = PA_MIN(usec, cusec);
+
+                pa_log_debug("Waking up in %0.2fms (smaller value).", (double) sleep_usec / PA_USEC_PER_MSEC);
+
                 /* We don't trust the conversion, so we wake up whatever comes first */
-                pa_rtpoll_set_timer_relative(u->rtpoll, PA_MIN(usec, cusec));
+                pa_rtpoll_set_timer_relative(u->rtpoll, sleep_usec);
             }
 
         } else if (u->use_tsched) {
@@ -1107,7 +1132,7 @@ int pa__init(pa_module*m) {
 
         if (pa_alsa_prepare_mixer(u->mixer_handle, u->device_name) >= 0)
             found = TRUE;
-        else {
+        else if (dev_id) {
             char *md = pa_sprintf_malloc("hw:%s", dev_id);
 
             if (strcmp(u->device_name, md))
