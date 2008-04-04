@@ -313,9 +313,14 @@ static void client_callback(AvahiClient *s, AvahiClientState state, void *userda
 
 static void browser_free(pa_browser *b);
 
+
+PA_WARN_REFERENCE(pa_browser_new, "libpulse-browse is being phased out.");
+
 pa_browser *pa_browser_new(pa_mainloop_api *mainloop) {
     return pa_browser_new_full(mainloop, PA_BROWSE_FOR_SERVERS|PA_BROWSE_FOR_SINKS|PA_BROWSE_FOR_SOURCES, NULL);
 }
+
+PA_WARN_REFERENCE(pa_browser_new_full, "libpulse-browse is being phased out.");
 
 pa_browser *pa_browser_new_full(pa_mainloop_api *mainloop, pa_browse_flags_t flags, const char **error_string) {
     pa_browser *b;
@@ -420,6 +425,8 @@ static void browser_free(pa_browser *b) {
     pa_xfree(b);
 }
 
+PA_WARN_REFERENCE(pa_browser_ref, "libpulse-browse is being phased out.");
+
 pa_browser *pa_browser_ref(pa_browser *b) {
     pa_assert(b);
     pa_assert(PA_REFCNT_VALUE(b) >= 1);
@@ -427,6 +434,8 @@ pa_browser *pa_browser_ref(pa_browser *b) {
     PA_REFCNT_INC(b);
     return b;
 }
+
+PA_WARN_REFERENCE(pa_browser_unref, "libpulse-browse is being phased out.");
 
 void pa_browser_unref(pa_browser *b) {
     pa_assert(b);
@@ -436,6 +445,8 @@ void pa_browser_unref(pa_browser *b) {
         browser_free(b);
 }
 
+PA_WARN_REFERENCE(pa_browser_set_callback, "libpulse-browse is being phased out.");
+
 void pa_browser_set_callback(pa_browser *b, pa_browse_cb_t cb, void *userdata) {
     pa_assert(b);
     pa_assert(PA_REFCNT_VALUE(b) >= 1);
@@ -443,6 +454,8 @@ void pa_browser_set_callback(pa_browser *b, pa_browse_cb_t cb, void *userdata) {
     b->callback = cb;
     b->userdata = userdata;
 }
+
+PA_WARN_REFERENCE(pa_browser_set_error_callback, "libpulse-browse is being phased out.");
 
 void pa_browser_set_error_callback(pa_browser *b, pa_browser_error_cb_t cb, void *userdata) {
     pa_assert(b);
