@@ -75,7 +75,6 @@ void pa_rtpoll_install(pa_rtpoll *p);
 int pa_rtpoll_run(pa_rtpoll *f, pa_bool_t wait);
 
 void pa_rtpoll_set_timer_absolute(pa_rtpoll *p, const struct timeval *ts);
-void pa_rtpoll_set_timer_periodic(pa_rtpoll *p, pa_usec_t usec);
 void pa_rtpoll_set_timer_relative(pa_rtpoll *p, pa_usec_t usec);
 void pa_rtpoll_set_timer_disabled(pa_rtpoll *p);
 
