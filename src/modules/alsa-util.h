@@ -82,4 +82,7 @@ int pa_alsa_calc_mixer_map(snd_mixer_elem_t *elem, const pa_channel_map *channel
 void pa_alsa_0dB_playback(snd_mixer_elem_t *elem);
 void pa_alsa_0dB_capture(snd_mixer_elem_t *elem);
 
+void pa_alsa_dump(snd_pcm_t *pcm);
+void pa_alsa_dump_status(snd_pcm_t *pcm);
+
 #endif

@@ -894,3 +894,46 @@ void pa_alsa_0dB_capture(snd_mixer_elem_t *elem) {
 
     snd_mixer_selem_set_capture_volume_all(elem, v);
 }
+
+void pa_alsa_dump(snd_pcm_t *pcm) {
+    int err;
+    snd_output_t *out;
+
+    pa_assert(pcm);
+
+    pa_assert_se(snd_output_buffer_open(&out) == 0);
+
+    if ((err = snd_pcm_dump(pcm, out)) < 0)
+        pa_log_debug("snd_pcm_dump(): %s", snd_strerror(err));
+    else {
+        char *s = NULL;
+        snd_output_buffer_string(out, &s);
+        pa_log_debug("snd_pcm_dump():\n%s", pa_strnull(s));
+    }
+
+    pa_assert_se(snd_output_close(out) == 0);
+}
+
+void pa_alsa_dump_status(snd_pcm_t *pcm) {
+    int err;
+    snd_output_t *out;
+    snd_pcm_status_t *status;
+
+    pa_assert(pcm);
+
+    snd_pcm_status_alloca(&status);
+
+    pa_assert_se(snd_output_buffer_open(&out) == 0);
+
+    pa_assert_se(snd_pcm_status(pcm, status) == 0);
+
+    if ((err = snd_pcm_status_dump(status, out)) < 0)
+        pa_log_debug("snd_pcm_dump(): %s", snd_strerror(err));
+    else {
+        char *s = NULL;
+        snd_output_buffer_string(out, &s);
+        pa_log_debug("snd_pcm_dump():\n%s", pa_strnull(s));
+    }
+
+    pa_assert_se(snd_output_close(out) == 0);
+}
