@@ -517,29 +517,38 @@ int pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink frames */, pa
         pa_assert(tchunk.length > 0);
         pa_assert(tchunk.memblock);
 
-        if (tchunk.length > block_size_max_sink_input)
-            tchunk.length = block_size_max_sink_input;
+        while (tchunk.length > 0) {
+            pa_memchunk wchunk;
 
-        /* It might be necessary to adjust the volume here */
-        if (do_volume_adj_here && !volume_is_norm) {
-            pa_memchunk_make_writable(&tchunk, 0);
+            wchunk = tchunk;
 
-            if (i->thread_info.muted)
-                pa_silence_memchunk(&tchunk, &i->thread_info.sample_spec);
-            else
-                pa_volume_memchunk(&tchunk, &i->thread_info.sample_spec, &i->thread_info.volume);
-        }
+            if (wchunk.length > block_size_max_sink_input)
+                wchunk.length = block_size_max_sink_input;
 
-        if (!i->thread_info.resampler)
-            pa_memblockq_push_align(i->thread_info.render_memblockq, &tchunk);
-        else {
-            pa_memchunk rchunk;
-            pa_resampler_run(i->thread_info.resampler, &tchunk, &rchunk);
+            /* It might be necessary to adjust the volume here */
+            if (do_volume_adj_here && !volume_is_norm) {
+                pa_memchunk_make_writable(&wchunk, 0);
 
-            if (rchunk.memblock) {
-                pa_memblockq_push_align(i->thread_info.render_memblockq, &rchunk);
-                pa_memblock_unref(rchunk.memblock);
+                if (i->thread_info.muted)
+                    pa_silence_memchunk(&wchunk, &i->thread_info.sample_spec);
+                else
+                    pa_volume_memchunk(&wchunk, &i->thread_info.sample_spec, &i->thread_info.volume);
             }
+
+            if (!i->thread_info.resampler)
+                pa_memblockq_push_align(i->thread_info.render_memblockq, &wchunk);
+            else {
+                pa_memchunk rchunk;
+                pa_resampler_run(i->thread_info.resampler, &wchunk, &rchunk);
+
+                if (rchunk.memblock) {
+                    pa_memblockq_push_align(i->thread_info.render_memblockq, &rchunk);
+                    pa_memblock_unref(rchunk.memblock);
+                }
+            }
+
+            tchunk.index += wchunk.length;
+            tchunk.length -= wchunk.length;
         }
 
         pa_memblock_unref(tchunk.memblock);
