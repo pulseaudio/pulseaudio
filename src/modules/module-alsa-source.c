@@ -141,18 +141,26 @@ static int mmap_read(struct userdata *u) {
         pa_memchunk chunk;
         void *p;
 
+        snd_pcm_hwsync(u->pcm_handle);
+
         if (PA_UNLIKELY((n = snd_pcm_avail_update(u->pcm_handle)) < 0)) {
+
+            pa_log_debug("snd_pcm_avail_update: %s", snd_strerror(n));
+
+            if (err == -EAGAIN) {
+                pa_log_debug("EAGAIN");
+                return work_done;
+            }
 
             if (n == -EPIPE)
                 pa_log_debug("snd_pcm_avail_update: Buffer underrun!");
 
-            if ((err = snd_pcm_recover(u->pcm_handle, n, 1)) == 0)
+            if ((err = snd_pcm_recover(u->pcm_handle, n, 1)) == 0) {
+                snd_pcm_start(u->pcm_handle);
                 continue;
+            }
 
-            if (err == -EAGAIN)
-                return work_done;
-
-            pa_log("snd_pcm_avail_update: %s", snd_strerror(err));
+            pa_log("snd_pcm_recover: %s", snd_strerror(err));
             return -1;
         }
 
@@ -163,14 +171,20 @@ static int mmap_read(struct userdata *u) {
 
         if (PA_UNLIKELY((err = snd_pcm_mmap_begin(u->pcm_handle, &areas, &offset, &frames)) < 0)) {
 
+            pa_log_debug("snd_pcm_mmap_begin: %s", snd_strerror(err));
+
+            if (err == -EAGAIN) {
+                pa_log_debug("EAGAIN");
+                return work_done;
+            }
+
             if (err == -EPIPE)
                 pa_log_debug("snd_pcm_mmap_begin: Buffer underrun!");
 
-            if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) == 0)
+            if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) == 0) {
+                snd_pcm_start(u->pcm_handle);
                 continue;
-
-            if (err == -EAGAIN)
-                return work_done;
+            }
 
             pa_log("Failed to write data to DSP: %s", snd_strerror(err));
             return -1;
@@ -198,14 +212,20 @@ static int mmap_read(struct userdata *u) {
 
         if (PA_UNLIKELY((err = snd_pcm_mmap_commit(u->pcm_handle, offset, frames)) < 0)) {
 
+            pa_log_debug("snd_pcm_mmap_commit: %s", snd_strerror(err));
+
+            if (err == -EAGAIN) {
+                pa_log_debug("EAGAIN");
+                return work_done;
+            }
+
             if (err == -EPIPE)
                 pa_log_debug("snd_pcm_mmap_commit: Buffer underrun!");
 
-            if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) == 0)
+            if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) == 0) {
+                snd_pcm_start(u->pcm_handle);
                 continue;
-
-            if (err == -EAGAIN)
-                return work_done;
+            }
 
             pa_log("Failed to write data to DSP: %s", snd_strerror(err));
             return -1;
@@ -214,6 +234,8 @@ static int mmap_read(struct userdata *u) {
         work_done = 1;
 
         u->frame_index += frames;
+
+        pa_log_debug("read %llu frames", (unsigned long long) frames);
 
         if (PA_LIKELY(frames >= (snd_pcm_uframes_t) n))
             return work_done;
@@ -234,6 +256,8 @@ static int unix_read(struct userdata *u) {
         snd_pcm_sframes_t n, frames;
         int err;
         pa_memchunk chunk;
+
+        snd_pcm_hwsync(u->pcm_handle);
 
         if (PA_UNLIKELY((err = snd_pcm_status(u->pcm_handle, status)) < 0)) {
             pa_log("Failed to query DSP status data: %s", snd_strerror(err));
@@ -264,11 +288,17 @@ static int unix_read(struct userdata *u) {
         if (PA_UNLIKELY(frames < 0)) {
             pa_memblock_unref(chunk.memblock);
 
-            if ((frames = snd_pcm_recover(u->pcm_handle, frames, 1)) == 0)
-                continue;
-
-            if (frames == -EAGAIN)
+            if (frames == -EAGAIN) {
+                pa_log_debug("EAGAIN");
                 return work_done;
+            }
+
+            if (frames == -EPIPE)
+                pa_log_debug("snd_pcm_avail_update: Buffer overrun!");
+
+            if ((frames = snd_pcm_recover(u->pcm_handle, frames, 1)) == 0)
+                snd_pcm_start(u->pcm_handle);
+                continue;
 
             pa_log("Failed to read data from DSP: %s", snd_strerror(frames));
             return -1;
@@ -289,7 +319,7 @@ static int unix_read(struct userdata *u) {
     }
 }
 
-static int update_smoother(struct userdata *u) {
+static void update_smoother(struct userdata *u) {
     snd_pcm_sframes_t delay = 0;
     int64_t frames;
     int err;
@@ -300,11 +330,12 @@ static int update_smoother(struct userdata *u) {
 
     /* Let's update the time smoother */
 
+    snd_pcm_hwsync(u->pcm_handle);
     snd_pcm_avail_update(u->pcm_handle);
 
     if (PA_UNLIKELY((err = snd_pcm_delay(u->pcm_handle, &delay)) < 0)) {
-        pa_log("Failed to get delay: %s", snd_strerror(err));
-        return -1;
+        pa_log_warn("Failed to get delay: %s", snd_strerror(err));
+        return;
     }
 
     frames = u->frame_index + delay;
@@ -312,8 +343,6 @@ static int update_smoother(struct userdata *u) {
     now1 = pa_rtclock_usec();
     now2 = pa_bytes_to_usec(frames * u->frame_size, &u->source->sample_spec);
     pa_smoother_put(u->smoother, now1, now2);
-
-    return 0;
 }
 
 static pa_usec_t source_get_latency(struct userdata *u) {
@@ -728,8 +757,7 @@ static void thread_func(void *userdata) {
             }
 
             if (work_done)
-                if (update_smoother(u) < 0)
-                    goto fail;
+                update_smoother(u);
 
             if (u->use_tsched) {
                 pa_usec_t usec, cusec;
@@ -750,11 +778,10 @@ static void thread_func(void *userdata) {
                 /* We don't trust the conversion, so we wake up whatever comes first */
                 pa_rtpoll_set_timer_relative(u->rtpoll, PA_MIN(usec, cusec));
             }
-        } else if (u->use_tsched) {
+        } else if (u->use_tsched)
 
             /* OK, we're in an invalid state, let's disable our timers */
             pa_rtpoll_set_timer_disabled(u->rtpoll);
-        }
 
         /* Hmm, nothing to do. Let's sleep */
         if ((ret = pa_rtpoll_run(u->rtpoll, 1)) < 0)
@@ -778,6 +805,7 @@ static void thread_func(void *userdata) {
             }
 
             if (revents & (POLLERR|POLLNVAL|POLLHUP)) {
+                snd_pcm_state_t state;
 
                 if (revents & POLLERR)
                     pa_log_warn("Got POLLERR from ALSA");
@@ -786,9 +814,12 @@ static void thread_func(void *userdata) {
                 if (revents & POLLHUP)
                     pa_log_warn("Got POLLHUP from ALSA");
 
+                state = snd_pcm_state(u->pcm_handle);
+                pa_log_warn("PCM state is %s", snd_pcm_state_name(state));
+
                 /* Try to recover from this error */
 
-                switch (snd_pcm_state(u->pcm_handle)) {
+                switch (state) {
 
                     case SND_PCM_STATE_XRUN:
                         if ((err = snd_pcm_recover(u->pcm_handle, -EPIPE, 1)) != 0) {
@@ -814,6 +845,8 @@ static void thread_func(void *userdata) {
                         }
                         break;
                 }
+
+                snd_pcm_start(u->pcm_handle);
             }
         }
     }
@@ -979,14 +1012,25 @@ int pa__init(pa_module*m) {
 
         if (pa_alsa_prepare_mixer(u->mixer_handle, u->device_name) >= 0)
             found = TRUE;
-        else if (dev_id) {
-            char *md = pa_sprintf_malloc("hw:%s", dev_id);
+        else {
+            snd_pcm_info_t* info;
 
-            if (strcmp(u->device_name, md))
-                if (pa_alsa_prepare_mixer(u->mixer_handle, md) >= 0)
-                    found = TRUE;
+            snd_pcm_info_alloca(&info);
 
-            pa_xfree(md);
+            if (snd_pcm_info(u->pcm_handle, info) >= 0) {
+                char *md;
+                int card;
+
+                if ((card = snd_pcm_info_get_card(info)) >= 0) {
+
+                    md = pa_sprintf_malloc("hw:%i", card);
+
+                    if (strcmp(u->device_name, md))
+                        if (pa_alsa_prepare_mixer(u->mixer_handle, md) >= 0)
+                            found = TRUE;
+                    pa_xfree(md);
+                }
+            }
         }
 
         if (found)
@@ -1137,6 +1181,8 @@ int pa__init(pa_module*m) {
         snd_mixer_elem_set_callback_private(u->mixer_elem, u);
     } else
         u->mixer_fdl = NULL;
+
+    pa_alsa_dump(u->pcm_handle);
 
     if (!(u->thread = pa_thread_new(thread_func, u))) {
         pa_log("Failed to create thread.");
