@@ -67,7 +67,7 @@ typedef enum pa_operation_state {
 /** An invalid index */
 #define PA_INVALID_INDEX ((uint32_t) -1)
 
-/** Some special flags for contexts. \since 0.8 */
+/** Some special flags for contexts. */
 typedef enum pa_context_flags {
     PA_CONTEXT_NOAUTOSPAWN = 1 /**< Disabled autospawning of the PulseAudio daemon if required */
 } pa_context_flags_t;
@@ -80,7 +80,7 @@ typedef enum pa_stream_direction {
     PA_STREAM_UPLOAD         /**< Sample upload stream */
 } pa_stream_direction_t;
 
-/** Some special flags for stream connections. \since 0.6 */
+/** Some special flags for stream connections. */
 typedef enum pa_stream_flags {
     PA_STREAM_START_CORKED = 1,       /**< Create the stream corked, requiring an explicit pa_stream_cork() call to uncork it. */
     PA_STREAM_INTERPOLATE_TIMING = 2, /**< Interpolate the latency for
@@ -293,8 +293,8 @@ enum {
     PA_ERR_MODINITFAILED,          /**< Module initialization failed */
     PA_ERR_BADSTATE,               /**< Bad state */
     PA_ERR_NODATA,                 /**< No data */
-    PA_ERR_VERSION,                /**< Incompatible protocol version \since 0.8 */
-    PA_ERR_TOOLARGE,               /**< Data too large \since 0.8.1 */
+    PA_ERR_VERSION,                /**< Incompatible protocol version */
+    PA_ERR_TOOLARGE,               /**< Data too large */
     PA_ERR_NOTSUPPORTED,           /**< Operation not supported \since 0.9.5 */
     PA_ERR_MAX                     /**< Not really an error but the first invalid error code */
 };
@@ -309,9 +309,9 @@ typedef enum pa_subscription_mask {
     PA_SUBSCRIPTION_MASK_MODULE = 16,            /**< Module events */
     PA_SUBSCRIPTION_MASK_CLIENT = 32,            /**< Client events */
     PA_SUBSCRIPTION_MASK_SAMPLE_CACHE = 64,      /**< Sample cache events */
-    PA_SUBSCRIPTION_MASK_SERVER = 128,           /**< Other global server changes. \since 0.4 */
-    PA_SUBSCRIPTION_MASK_AUTOLOAD = 256,         /**< Autoload table events. \since 0.5 */
-    PA_SUBSCRIPTION_MASK_ALL = 511               /**< Catch all events \since 0.8 */
+    PA_SUBSCRIPTION_MASK_SERVER = 128,           /**< Other global server changes. */
+    PA_SUBSCRIPTION_MASK_AUTOLOAD = 256,         /**< Autoload table events. */
+    PA_SUBSCRIPTION_MASK_ALL = 511               /**< Catch all events */
 } pa_subscription_mask_t;
 
 /** Subscription event types, as used by pa_context_subscribe() */
@@ -323,8 +323,8 @@ typedef enum pa_subscription_event_type {
     PA_SUBSCRIPTION_EVENT_MODULE = 4,         /**< Event type: Module */
     PA_SUBSCRIPTION_EVENT_CLIENT = 5,         /**< Event type: Client */
     PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE = 6,   /**< Event type: Sample cache item */
-    PA_SUBSCRIPTION_EVENT_SERVER = 7,         /**< Event type: Global server change, only occuring with PA_SUBSCRIPTION_EVENT_CHANGE. \since 0.4  */
-    PA_SUBSCRIPTION_EVENT_AUTOLOAD = 8,       /**< Event type: Autoload table changes. \since 0.5 */
+    PA_SUBSCRIPTION_EVENT_SERVER = 7,         /**< Event type: Global server change, only occuring with PA_SUBSCRIPTION_EVENT_CHANGE. */
+    PA_SUBSCRIPTION_EVENT_AUTOLOAD = 8,       /**< Event type: Autoload table changes. */
     PA_SUBSCRIPTION_EVENT_FACILITY_MASK = 15, /**< A mask to extract the event type from an event value */
 
     PA_SUBSCRIPTION_EVENT_NEW = 0,            /**< A new object was created */
@@ -362,12 +362,11 @@ typedef struct pa_timing_info {
                                * detected transport_usec becomes much
                                * more reliable. However, the code that
                                * detects synchronized clocks is very
-                               * limited und unreliable itself. \since
-                               * 0.5 */
+                               * limited und unreliable itself. */
 
     pa_usec_t sink_usec;      /**< Time in usecs a sample takes to be played on the sink. For playback streams and record streams connected to a monitor source. */
-    pa_usec_t source_usec;    /**< Time in usecs a sample takes from being recorded to being delivered to the application. Only for record streams. \since 0.5*/
-    pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to/from the daemon. For both playback and record streams. \since 0.5 */
+    pa_usec_t source_usec;    /**< Time in usecs a sample takes from being recorded to being delivered to the application. Only for record streams. */
+    pa_usec_t transport_usec; /**< Estimated time in usecs a sample takes to be transferred to/from the daemon. For both playback and record streams. */
 
     int playing;              /**< Non-zero when the stream is currently playing. Only for playback streams. */
 
@@ -378,20 +377,19 @@ typedef struct pa_timing_info {
                                * info was current . Only write
                                * commands with SEEK_RELATIVE_ON_READ
                                * and SEEK_RELATIVE_END can corrupt
-                               * write_index. \since 0.8 */
+                               * write_index. */
     int64_t write_index;      /**< Current write index into the
                                * playback buffer in bytes. Think twice before
                                * using this for seeking purposes: it
                                * might be out of date a the time you
                                * want to use it. Consider using
-                               * PA_SEEK_RELATIVE instead. \since
-                               * 0.8 */
+                               * PA_SEEK_RELATIVE instead.  */
 
     int read_index_corrupt;   /**< Non-zero if read_index is not
                                * up-to-date because a local pause or
                                * flush request that corrupted it has
                                * been issued in the time since this
-                               * latency info was current. \since 0.8  */
+                               * latency info was current. */
 
     int64_t read_index;       /**< Current read index into the
                                * playback buffer in bytes. Think twice before
@@ -399,12 +397,12 @@ typedef struct pa_timing_info {
                                * might be out of date a the time you
                                * want to use it. Consider using
                                * PA_SEEK_RELATIVE_ON_READ
-                               * instead. \since 0.8 */
+                               * instead. */
 
-    pa_usec_t max_sink_usec;   /**< The static configure latency for
-                                * the sink. \since 0.9.10 */
-    pa_usec_t max_source_usec; /**< The static configure latency for
-                                * the source. \since 0.9.10 */
+    pa_usec_t configured_sink_usec;   /**< The static configured latency for
+                                * the sink. \since 0.9.11 */
+    pa_usec_t configured_source_usec; /**< The static configured latency for
+                                * the source. \since 0.9.11 */
 } pa_timing_info;
 
 /** A structure for the spawn api. This may be used to integrate auto
@@ -413,7 +411,7 @@ typedef struct pa_timing_info {
  * waitpid() is used on the child's PID. The spawn routine will not
  * block or ignore SIGCHLD signals, since this cannot be done in a
  * thread compatible way. You might have to do this in
- * prefork/postfork. \since 0.4 */
+ * prefork/postfork. */
 typedef struct pa_spawn_api {
     void (*prefork)(void);     /**< Is called just before the fork in the parent process. May be NULL. */
     void (*postfork)(void);    /**< Is called immediately after the fork in the parent process. May be NULL.*/
@@ -426,7 +424,7 @@ typedef struct pa_spawn_api {
                                 * passed to the new process. */
 } pa_spawn_api;
 
-/** Seek type for pa_stream_write(). \since 0.8*/
+/** Seek type for pa_stream_write(). */
 typedef enum pa_seek_mode {
     PA_SEEK_RELATIVE = 0,           /**< Seek relatively to the write index */
     PA_SEEK_ABSOLUTE = 1,           /**< Seek relatively to the start of the buffer queue */
@@ -434,24 +432,24 @@ typedef enum pa_seek_mode {
     PA_SEEK_RELATIVE_END = 3        /**< Seek relatively to the current end of the buffer queue. */
 } pa_seek_mode_t;
 
-/** Special sink flags. \since 0.8  */
+/** Special sink flags. */
 typedef enum pa_sink_flags {
     PA_SINK_HW_VOLUME_CTRL = 1,   /**< Supports hardware volume control */
     PA_SINK_LATENCY = 2,          /**< Supports latency querying */
     PA_SINK_HARDWARE = 4,         /**< Is a hardware sink of some kind, in contrast to "virtual"/software sinks \since 0.9.3 */
     PA_SINK_NETWORK = 8,          /**< Is a networked sink of some kind. \since 0.9.7 */
-    PA_SINK_HW_MUTE_CTRL = 16,    /**< Supports hardware mute control \since 0.9.10 */
-    PA_SINK_DECIBEL_VOLUME = 32   /**< Volume can be translated to dB with pa_sw_volume_to_dB() \since 0.9.10 */
+    PA_SINK_HW_MUTE_CTRL = 16,    /**< Supports hardware mute control \since 0.9.11 */
+    PA_SINK_DECIBEL_VOLUME = 32   /**< Volume can be translated to dB with pa_sw_volume_to_dB() \since 0.9.11 */
 } pa_sink_flags_t;
 
-/** Special source flags. \since 0.8  */
+/** Special source flags.  */
 typedef enum pa_source_flags {
     PA_SOURCE_HW_VOLUME_CTRL = 1,  /**< Supports hardware volume control */
     PA_SOURCE_LATENCY = 2,         /**< Supports latency querying */
     PA_SOURCE_HARDWARE = 4,        /**< Is a hardware source of some kind, in contrast to "virtual"/software source \since 0.9.3 */
     PA_SOURCE_NETWORK = 8,         /**< Is a networked sink of some kind. \since 0.9.7 */
-    PA_SOURCE_HW_MUTE_CTRL = 16,   /**< Supports hardware mute control \since 0.9.10 */
-    PA_SOURCE_DECIBEL_VOLUME = 32  /**< Volume can be translated to dB with pa_sw_volume_to_dB() \since 0.9.10 */
+    PA_SOURCE_HW_MUTE_CTRL = 16,   /**< Supports hardware mute control \since 0.9.11 */
+    PA_SOURCE_DECIBEL_VOLUME = 32  /**< Volume can be translated to dB with pa_sw_volume_to_dB() \since 0.9.11 */
 } pa_source_flags_t;
 
 /** A generic free() like callback prototype */

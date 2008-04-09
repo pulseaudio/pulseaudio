@@ -151,22 +151,22 @@ pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) PA_GCC_CONST;
 /** Multiply to per-channel volumes and return the result in *dest. This is only valid for software volumes! */
 pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b) PA_GCC_PURE;
 
-/** Convert a decibel value to a volume. This is only valid for software volumes! \since 0.4 */
+/** Convert a decibel value to a volume. This is only valid for software volumes! */
 pa_volume_t pa_sw_volume_from_dB(double f) PA_GCC_CONST;
 
-/** Convert a volume to a decibel value. This is only valid for software volumes! \since 0.4 */
+/** Convert a volume to a decibel value. This is only valid for software volumes! */
 double pa_sw_volume_to_dB(pa_volume_t v) PA_GCC_CONST;
 
-/** Convert a linear factor to a volume. This is only valid for software volumes! \since 0.8 */
+/** Convert a linear factor to a volume. This is only valid for software volumes! */
 pa_volume_t pa_sw_volume_from_linear(double v) PA_GCC_CONST;
 
-/** Convert a volume to a linear factor. This is only valid for software volumes! \since 0.8 */
+/** Convert a volume to a linear factor. This is only valid for software volumes! */
 double pa_sw_volume_to_linear(pa_volume_t v) PA_GCC_CONST;
 
 #ifdef INFINITY
 #define PA_DECIBEL_MININFTY (-INFINITY)
 #else
-/** This value is used as minus infinity when using pa_volume_{to,from}_dB(). \since 0.4 */
+/** This value is used as minus infinity when using pa_volume_{to,from}_dB(). */
 #define PA_DECIBEL_MININFTY (-200)
 #endif
 

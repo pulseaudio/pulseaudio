@@ -81,7 +81,7 @@ PA_C_DECL_BEGIN
 
 /** Callback prototype for pa_context_play_sample_with_proplist(). The
  * idx value is the index of the sink input object, or
- * PA_INVALID_INDEX on failure. \since 0.9.10*/
+ * PA_INVALID_INDEX on failure. \since 0.9.11 */
 typedef void (*pa_context_play_sample_cb_t)(pa_context *c, uint32_t idx, void *userdata);
 
 /** Make this stream a sample upload stream */
@@ -109,7 +109,7 @@ pa_operation* pa_context_play_sample(
 /** Play a sample from the sample cache to the specified device,
  * allowing specification of a property list for the playback
  * stream. If the latter is NULL use the default sink. Returns an
- * operation object. \since 0.9.10 */
+ * operation object. \since 0.9.11 */
 pa_operation* pa_context_play_sample_with_proplist(
         pa_context *c                   /**< Context */,
         const char *name                /**< Name of the sample to play */,

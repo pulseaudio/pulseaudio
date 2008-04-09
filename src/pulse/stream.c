@@ -119,7 +119,8 @@ pa_stream *pa_stream_new_with_proplist(pa_context *c, const char *name, const pa
     s->record_memblockq = NULL;
 
     s->previous_time = 0;
-    s->timing_info_valid = 0;
+    memset(&s->timing_info, 0, sizeof(s->timing_info));
+    s->timing_info_valid = FALSE;
     s->read_index_not_before = 0;
     s->write_index_not_before = 0;
 
@@ -462,7 +463,7 @@ static void request_auto_timing_update(pa_stream *s, int force) {
 
         if ((o = pa_stream_update_timing_info(s, NULL, NULL))) {
             pa_operation_unref(o);
-            s->auto_timing_update_requested = 1;
+            s->auto_timing_update_requested = TRUE;
         }
     }
 
@@ -664,6 +665,20 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, PA_GCC_UNUSED
 
         s->channel_map = cm;
         s->sample_spec = ss;
+    }
+
+    if (s->context->version >= 13 && s->direction != PA_STREAM_UPLOAD) {
+        pa_usec_t usec;
+
+        if (pa_tagstruct_get_usec(t, &usec) < 0) {
+            pa_context_fail(s->context, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+
+        if (s->direction == PA_STREAM_RECORD)
+            s->timing_info.configured_source_usec = usec;
+        else
+            s->timing_info.configured_sink_usec = usec;
     }
 
     if (!pa_tagstruct_eof(t)) {
@@ -1059,7 +1074,7 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
 /*     pa_log("pre corrupt w:%u r:%u\n", !o->stream->timing_info_valid || i->write_index_corrupt,!o->stream->timing_info_valid || i->read_index_corrupt); */
 
-    o->stream->timing_info_valid = 0;
+    o->stream->timing_info_valid = FALSE;
     i->write_index_corrupt = 0;
     i->read_index_corrupt = 0;
 

@@ -8,17 +8,17 @@
 
   Copyright 2004-2006 Lennart Poettering
   Copyright 2006 Pierre Ossman <ossman@cendio.se> for Cendio AB
- 
+
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published
   by the Free Software Foundation; either version 2 of the License,
   or (at your option) any later version.
- 
+
   PulseAudio is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
   General Public License for more details.
- 
+
   You should have received a copy of the GNU Lesser General Public License
   along with PulseAudio; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -39,7 +39,8 @@ a macro and not a function, so it is impossible to get the pointer of
 it. */
 #define pa_get_headers_version() ("@PACKAGE_VERSION@")
 
-/** Return the version of the library the current application is linked to. */
+/** Return the version of the library the current application is
+ * linked to. */
 const char* pa_get_library_version(void);
 
 /** The current API version. Version 6 relates to Polypaudio
@@ -47,8 +48,8 @@ const char* pa_get_library_version(void);
  * PA_API_VERSION undefined.  */
 #define PA_API_VERSION @PA_API_VERSION@
 
-/** The current protocol version. Version 8 relates to Polypaudio 0.8/PulseAudio 0.9.
- * \since 0.8 */
+/** The current protocol version. Version 8 relates to Polypaudio
+ * 0.8/PulseAudio 0.9. */
 #define PA_PROTOCOL_VERSION @PA_PROTOCOL_VERSION@
 
 PA_C_DECL_END

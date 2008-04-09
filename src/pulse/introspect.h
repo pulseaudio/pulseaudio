@@ -207,7 +207,7 @@
 
 PA_C_DECL_BEGIN
 
-#define PA_PORT_SPDIF "spdif"
+#define PA_PORT_DIGITAL "spdif"
 #define PA_PORT_ANALOG_STEREO "analog-stereo"
 #define PA_PORT_ANALOG_5_1 "analog-5-1"
 #define PA_PORT_ANALOG_4_0 "analog-4-0"
@@ -222,17 +222,17 @@ typedef struct pa_sink_info {
     uint32_t index;                    /**< Index of the sink */
     const char *description;           /**< Description of this sink */
     pa_sample_spec sample_spec;        /**< Sample spec of this sink */
-    pa_channel_map channel_map;        /**< Channel map \since 0.8 */
+    pa_channel_map channel_map;        /**< Channel map */
     uint32_t owner_module;             /**< Index of the owning module of this sink, or PA_INVALID_INDEX */
     pa_cvolume volume;                 /**< Volume of the sink */
-    int mute;                          /**< Mute switch of the sink \since 0.8 */
+    int mute;                          /**< Mute switch of the sink */
     uint32_t monitor_source;           /**< Index of the monitor source connected to this sink */
     const char *monitor_source_name;   /**< The name of the monitor source */
     pa_usec_t latency;                 /**< Length of queued audio in the output buffer. */
-    const char *driver;                /**< Driver name. \since 0.8 */
-    pa_sink_flags_t flags;             /**< Flags \since 0.8 */
+    const char *driver;                /**< Driver name. */
+    pa_sink_flags_t flags;             /**< Flags */
     pa_proplist *proplist;             /**< Property list \since 0.9.11 */
-    pa_usec_t max_latency;             /**< The static latency this device has been configured to. \since 0.9.11 */
+    pa_usec_t configured_latency;      /**< The latency this device has been configured to. \since 0.9.11 */
 } pa_sink_info;
 
 /** Callback prototype for pa_context_get_sink_info_by_name() and friends */
@@ -253,10 +253,10 @@ pa_operation* pa_context_set_sink_volume_by_index(pa_context *c, uint32_t idx, c
 /** Set the volume of a sink device specified by its name */
 pa_operation* pa_context_set_sink_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
 
-/** Set the mute switch of a sink device specified by its index \since 0.8 */
+/** Set the mute switch of a sink device specified by its index */
 pa_operation* pa_context_set_sink_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
 
-/** Set the mute switch of a sink device specified by its name \since 0.8 */
+/** Set the mute switch of a sink device specified by its name */
 pa_operation* pa_context_set_sink_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
 
 /** Suspend/Resume a sink. \since 0.9.7 */
@@ -277,17 +277,17 @@ typedef struct pa_source_info {
     uint32_t index;                     /**< Index of the source */
     const char *description;            /**< Description of this source */
     pa_sample_spec sample_spec;         /**< Sample spec of this source */
-    pa_channel_map channel_map;         /**< Channel map \since 0.8 */
+    pa_channel_map channel_map;         /**< Channel map */
     uint32_t owner_module;              /**< Owning module index, or PA_INVALID_INDEX */
-    pa_cvolume volume;                  /**< Volume of the source \since 0.8 */
-    int mute;                           /**< Mute switch of the sink \since 0.8 */
+    pa_cvolume volume;                  /**< Volume of the source */
+    int mute;                           /**< Mute switch of the sink */
     uint32_t monitor_of_sink;           /**< If this is a monitor source the index of the owning sink, otherwise PA_INVALID_INDEX */
     const char *monitor_of_sink_name;   /**< Name of the owning sink, or PA_INVALID_INDEX */
-    pa_usec_t latency;                  /**< Length of filled record buffer of this source. \since 0.5 */
-    const char *driver;                 /**< Driver name \since 0.8 */
-    pa_source_flags_t flags;            /**< Flags \since 0.8 */
-    pa_proplist *proplist;              /**< Property list \since 0.9.10 */
-    pa_usec_t max_latency;              /**< The static latency this device has been configured to. \since 0.9.11 */
+    pa_usec_t latency;                  /**< Length of filled record buffer of this source. */
+    const char *driver;                 /**< Driver name */
+    pa_source_flags_t flags;            /**< Flags */
+    pa_proplist *proplist;              /**< Property list \since 0.9.11 */
+    pa_usec_t configured_latency;       /**< The latency this device has been configured to. \since 0.9.11 */
 } pa_source_info;
 
 /** Callback prototype for pa_context_get_source_info_by_name() and friends */
@@ -302,16 +302,16 @@ pa_operation* pa_context_get_source_info_by_index(pa_context *c, uint32_t id, pa
 /** Get the complete source list */
 pa_operation* pa_context_get_source_info_list(pa_context *c, pa_source_info_cb_t cb, void *userdata);
 
-/** Set the volume of a source device specified by its index \since 0.8 */
+/** Set the volume of a source device specified by its index */
 pa_operation* pa_context_set_source_volume_by_index(pa_context *c, uint32_t idx, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
 
-/** Set the volume of a source device specified by its name \since 0.8 */
+/** Set the volume of a source device specified by its name */
 pa_operation* pa_context_set_source_volume_by_name(pa_context *c, const char *name, const pa_cvolume *volume, pa_context_success_cb_t cb, void *userdata);
 
-/** Set the mute switch of a source device specified by its index \since 0.8 */
+/** Set the mute switch of a source device specified by its index */
 pa_operation* pa_context_set_source_mute_by_index(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
 
-/** Set the mute switch of a source device specified by its name \since 0.8 */
+/** Set the mute switch of a source device specified by its name */
 pa_operation* pa_context_set_source_mute_by_name(pa_context *c, const char *name, int mute, pa_context_success_cb_t cb, void *userdata);
 
 /** @} */
@@ -327,9 +327,9 @@ typedef struct pa_server_info {
     const char *server_version;         /**< Version string of the daemon */
     const char *server_name;            /**< Server package name (usually "pulseaudio") */
     pa_sample_spec sample_spec;         /**< Default sample specification */
-    const char *default_sink_name;      /**< Name of default sink. \since 0.4 */
-    const char *default_source_name;    /**< Name of default sink. \since 0.4*/
-    uint32_t cookie;                    /**< A random cookie for identifying this instance of PulseAudio. \since 0.8 */
+    const char *default_sink_name;      /**< Name of default sink. */
+    const char *default_source_name;    /**< Name of default sink. */
+    uint32_t cookie;                    /**< A random cookie for identifying this instance of PulseAudio. */
 } pa_server_info;
 
 /** Callback prototype for pa_context_get_server_info() */
@@ -365,10 +365,10 @@ pa_operation* pa_context_get_module_info_list(pa_context *c, pa_module_info_cb_t
 /** Callback prototype for pa_context_load_module() */
 typedef void (*pa_context_index_cb_t)(pa_context *c, uint32_t idx, void *userdata);
 
-/** Load a module. \since 0.5 */
+/** Load a module. */
 pa_operation* pa_context_load_module(pa_context *c, const char*name, const char *argument, pa_context_index_cb_t cb, void *userdata);
 
-/** Unload a module. \since 0.5 */
+/** Unload a module. */
 pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
 
 /** @} */
@@ -382,8 +382,8 @@ typedef struct pa_client_info {
     uint32_t index;                      /**< Index of this client */
     const char *name;                    /**< Name of this client */
     uint32_t owner_module;               /**< Index of the owning module, or PA_INVALID_INDEX */
-    const char *driver;                  /**< Driver name \since 0.8 */
-    pa_proplist *proplist;               /**< Property list \since 0.9.10 */
+    const char *driver;                  /**< Driver name */
+    pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_client_info;
 
 /** Callback prototype for pa_context_get_client_info() and firends*/
@@ -395,7 +395,7 @@ pa_operation* pa_context_get_client_info(pa_context *c, uint32_t idx, pa_client_
 /** Get the complete client list */
 pa_operation* pa_context_get_client_info_list(pa_context *c, pa_client_info_cb_t cb, void *userdata);
 
-/** Kill a client. \since 0.5 */
+/** Kill a client. */
 pa_operation* pa_context_kill_client(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
 
 /** @} */
@@ -416,10 +416,10 @@ typedef struct pa_sink_input_info {
     pa_cvolume volume;                   /**< The volume of this sink input */
     pa_usec_t buffer_usec;               /**< Latency due to buffering in sink input, see pa_latency_info for details */
     pa_usec_t sink_usec;                 /**< Latency of the sink device, see pa_latency_info for details */
-    const char *resample_method;         /**< Thre resampling method used by this sink input. \since 0.7 */
-    const char *driver;                  /**< Driver name \since 0.8 */
+    const char *resample_method;         /**< Thre resampling method used by this sink input. */
+    const char *driver;                  /**< Driver name */
     int mute;                            /**< Stream muted \since 0.9.7 */
-    pa_proplist *proplist;               /**< Property list \since 0.9.10 */
+    pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_sink_input_info;
 
 /** Callback prototype for pa_context_get_sink_input_info() and firends*/
@@ -443,7 +443,7 @@ pa_operation* pa_context_set_sink_input_volume(pa_context *c, uint32_t idx, cons
 /** Set the mute switch of a sink input stream \since 0.9.7 */
 pa_operation* pa_context_set_sink_input_mute(pa_context *c, uint32_t idx, int mute, pa_context_success_cb_t cb, void *userdata);
 
-/** Kill a sink input. \since 0.5 */
+/** Kill a sink input. */
 pa_operation* pa_context_kill_sink_input(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
 
 /** @} */
@@ -461,11 +461,11 @@ typedef struct pa_source_output_info {
     uint32_t source;                     /**< Index of the connected source */
     pa_sample_spec sample_spec;          /**< The sample specification of the source output */
     pa_channel_map channel_map;          /**< Channel map */
-    pa_usec_t buffer_usec;               /**< Latency due to buffering in the source output, see pa_latency_info for details. \since 0.5 */
-    pa_usec_t source_usec;               /**< Latency of the source device, see pa_latency_info for details. \since 0.5 */
-    const char *resample_method;         /**< Thre resampling method used by this source output. \since 0.7 */
-    const char *driver;                  /**< Driver name \since 0.8 */
-    pa_proplist *proplist;               /**< Property list \since 0.9.10 */
+    pa_usec_t buffer_usec;               /**< Latency due to buffering in the source output, see pa_latency_info for details. */
+    pa_usec_t source_usec;               /**< Latency of the source device, see pa_latency_info for details. */
+    const char *resample_method;         /**< Thre resampling method used by this source output. */
+    const char *driver;                  /**< Driver name */
+    pa_proplist *proplist;               /**< Property list \since 0.9.11 */
 } pa_source_output_info;
 
 /** Callback prototype for pa_context_get_source_output_info() and firends*/
@@ -489,7 +489,7 @@ pa_operation* pa_context_suspend_source_by_name(pa_context *c, char *source_name
 /** Suspend/Resume a source. If idx is PA_INVALID_INDEX all sources will be suspended. \since 0.9.7 */
 pa_operation* pa_context_suspend_source_by_index(pa_context *c, uint32_t idx, int suspend, pa_context_success_cb_t cb, void* userdata);
 
-/** Kill a source output. \since 0.5 */
+/** Kill a source output. */
 pa_operation* pa_context_kill_source_output(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
 
 /** @} */
@@ -504,7 +504,7 @@ typedef struct pa_stat_info {
     uint32_t memblock_total_size;      /**< Currentl total size of allocated memory blocks */
     uint32_t memblock_allocated;       /**< Allocated memory blocks during the whole lifetime of the daemon */
     uint32_t memblock_allocated_size;  /**< Total size of all memory blocks allocated during the whole lifetime of the daemon */
-    uint32_t scache_size;              /**< Total size of all sample cache entries. \since 0.4 */
+    uint32_t scache_size;              /**< Total size of all sample cache entries. */
 } pa_stat_info;
 
 /** Callback prototype for pa_context_stat() */
@@ -527,10 +527,10 @@ typedef struct pa_sample_info {
     pa_sample_spec sample_spec;           /**< Sample specification of the sample */
     pa_channel_map channel_map;           /**< The channel map */
     pa_usec_t duration;                   /**< Duration of this entry */
-    uint32_t bytes;                       /**< Length of this sample in bytes. \since 0.4 */
-    int lazy;                             /**< Non-zero when this is a lazy cache entry. \since 0.5 */
-    const char *filename;                 /**< In case this is a lazy cache entry, the filename for the sound file to be loaded on demand. \since 0.5 */
-    pa_proplist *proplist;                /**< Property list for this sample. \since 0.9.10 */
+    uint32_t bytes;                       /**< Length of this sample in bytes. */
+    int lazy;                             /**< Non-zero when this is a lazy cache entry. */
+    const char *filename;                 /**< In case this is a lazy cache entry, the filename for the sound file to be loaded on demand. */
+    pa_proplist *proplist;                /**< Property list for this sample. \since 0.9.11 */
 } pa_sample_info;
 
 /** Callback prototype for pa_context_get_sample_info_by_name() and firends */
@@ -551,7 +551,7 @@ pa_operation* pa_context_get_sample_info_list(pa_context *c, pa_sample_info_cb_t
 
 /** @{ \name Autoload Entries */
 
-/** Type of an autoload entry. \since 0.5 */
+/** Type of an autoload entry. */
 typedef enum pa_autoload_type {
     PA_AUTOLOAD_SINK = 0,
     PA_AUTOLOAD_SOURCE = 1
@@ -559,7 +559,7 @@ typedef enum pa_autoload_type {
 
 /** Stores information about autoload entries. Please note that this structure
  * can be extended as part of evolutionary API updates at any time in
- * any new release. \since 0.5 */
+ * any new release. */
 typedef struct pa_autoload_info {
     uint32_t index;               /**< Index of this autoload entry */
     const char *name;             /**< Name of the sink or source */
@@ -571,22 +571,22 @@ typedef struct pa_autoload_info {
 /** Callback prototype for pa_context_get_autoload_info_by_name() and firends */
 typedef void (*pa_autoload_info_cb_t)(pa_context *c, const pa_autoload_info *i, int eol, void *userdata);
 
-/** Get info about a specific autoload entry. \since 0.6 */
+/** Get info about a specific autoload entry. */
 pa_operation* pa_context_get_autoload_info_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_autoload_info_cb_t cb, void *userdata);
 
-/** Get info about a specific autoload entry. \since 0.6 */
+/** Get info about a specific autoload entry. */
 pa_operation* pa_context_get_autoload_info_by_index(pa_context *c, uint32_t idx, pa_autoload_info_cb_t cb, void *userdata);
 
-/** Get the complete list of autoload entries. \since 0.5 */
+/** Get the complete list of autoload entries. */
 pa_operation* pa_context_get_autoload_info_list(pa_context *c, pa_autoload_info_cb_t cb, void *userdata);
 
-/** Add a new autoload entry. \since 0.5 */
+/** Add a new autoload entry. */
 pa_operation* pa_context_add_autoload(pa_context *c, const char *name, pa_autoload_type_t type, const char *module, const char*argument, pa_context_index_cb_t, void* userdata);
 
-/** Remove an autoload entry. \since 0.6 */
+/** Remove an autoload entry. */
 pa_operation* pa_context_remove_autoload_by_name(pa_context *c, const char *name, pa_autoload_type_t type, pa_context_success_cb_t cb, void* userdata);
 
-/** Remove an autoload entry. \since 0.6 */
+/** Remove an autoload entry. */
 pa_operation* pa_context_remove_autoload_by_index(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void* userdata);
 
 /** @} */

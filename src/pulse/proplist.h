@@ -102,39 +102,40 @@
 #define PA_PROP_DEVICE_MASTER_DEVICE        "device.master_device"
 
 /** A property list object. Basically a dictionary with UTF-8 strings
- * as keys and arbitrary data as values. \since 0.9.10 */
+ * as keys and arbitrary data as values. \since 0.9.11 */
 typedef struct pa_proplist pa_proplist;
 
-/** Allocate a property list. \since 0.9.10 */
+/** Allocate a property list. \since 0.9.11 */
 pa_proplist* pa_proplist_new(void);
 
-/** Free the property list. \since 0.9.10 */
+/** Free the property list. \since 0.9.11 */
 void pa_proplist_free(pa_proplist* p);
 
 /** Append a new string entry to the property list, possibly
  * overwriting an already existing entry with the same key. An
  * internal copy of the data passed is made. Will accept only valid
- * UTF-8. \since 0.9.10 */
+ * UTF-8. \since 0.9.11 */
 int pa_proplist_sets(pa_proplist *p, const char *key, const char *value);
 
 /** Append a new arbitrary data entry to the property list, possibly
  * overwriting an already existing entry with the same key. An
- * internal copy of the data passed is made. \since 0.9.10 */
+ * internal copy of the data passed is made. \since 0.9.11 */
 int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nbytes);
 
 /* Return a string entry for the specified key. Will return NULL if
  * the data is not valid UTF-8. Will return a NUL-terminated string in
  * an internally allocated buffer. The caller should make a copy of
- * the data before accessing the property list again. \since 0.9.10*/
+ * the data before accessing the property list again. \since 0.9.11 */
 const char *pa_proplist_gets(pa_proplist *p, const char *key);
 
 /** Return the the value for the specified key. Will return a
  * NUL-terminated string for string entries. The pointer returned will
  * point to an internally allocated buffer. The caller should make a
- * copy of the data before the property list is accessed again. \since 0.9.10 */
+ * copy of the data before the property list is accessed again. \since
+ * 0.9.11 */
 int pa_proplist_get(pa_proplist *p, const char *key, const void **data, size_t *nbytes);
 
-/** Update mode enum for pa_proplist_update(). \since 0.9.10 */
+/** Update mode enum for pa_proplist_update(). \since 0.9.11 */
 typedef enum pa_update_mode {
     PA_UPDATE_SET,  /*< Replace the entirey property list with the new one. Don't keep any of the old data around */
     PA_UPDATE_MERGE, /*< Merge new property list into the existing one, not replacing any old entries if they share a common key with the new property list. */
@@ -142,18 +143,18 @@ typedef enum pa_update_mode {
 } pa_update_mode_t;
 
 /** Merge property list "other" into "p", adhering the merge mode as
- * specified in "mode". \since 0.9.10 */
+ * specified in "mode". \since 0.9.11 */
 void pa_proplist_update(pa_proplist *p, pa_update_mode_t mode, pa_proplist *other);
 
 /** Removes a single entry from the property list, identified be the
- * specified key name. \since 0.9.10 */
+ * specified key name. \since 0.9.11 */
 int pa_proplist_unset(pa_proplist *p, const char *key);
 
 /** Similar to pa_proplist_remove() but takes an array of keys to
  * remove. The array should be terminated by a NULL pointer. Return -1
  * on failure, otherwise the number of entries actually removed (which
  * might even be 0, if there where no matching entries to
- * remove). \since 0.9.10 */
+ * remove). \since 0.9.11 */
 int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]);
 
 /** Iterate through the property list. The user should allocate a
@@ -163,19 +164,22 @@ int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]);
  * signifies EOL. The property list should not be modified during
  * iteration through the list. On each invication this function will
  * return the key string for the next entry. The keys in the property
- * list do not have any particular order. \since 0.9.10 */
+ * list do not have any particular order. \since 0.9.11 */
 const char *pa_proplist_iterate(pa_proplist *p, void **state);
 
-/** Format the property list nicely as a human readable string. \since 0.9.10 */
+/** Format the property list nicely as a human readable string. \since
+ * 0.9.11 */
 char *pa_proplist_to_string(pa_proplist *p);
 
-/** Returns 1 if an entry for the specified key is existant in the property list. \since 0.9.10 */
+/** Returns 1 if an entry for the specified key is existant in the
+ * property list. \since 0.9.11 */
 int pa_proplist_contains(pa_proplist *p, const char *key);
 
-/** Remove all entries from the property list object. \since 0.9.10 */
+/** Remove all entries from the property list object. \since 0.9.11 */
 void pa_proplist_clear(pa_proplist *p);
 
-/** Allocate a new property list and copy over every single entry from the specific list. \since 0.9.10 */
+/** Allocate a new property list and copy over every single entry from
+ * the specific list. \since 0.9.11 */
 pa_proplist* pa_proplist_copy(pa_proplist *template);
 
 #endif

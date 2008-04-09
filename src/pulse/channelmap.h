@@ -183,7 +183,7 @@ const char* pa_channel_position_to_pretty_string(pa_channel_position_t pos);
 /** Make a humand readable string from the specified channel map */
 char* pa_channel_map_snprint(char *s, size_t l, const pa_channel_map *map);
 
-/** Parse a channel position list into a channel map structure. \since 0.8.1 */
+/** Parse a channel position list into a channel map structure. */
 pa_channel_map *pa_channel_map_parse(pa_channel_map *map, const char *s);
 
 /** Compare two channel maps. Return 1 if both match. */

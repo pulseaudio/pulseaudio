@@ -167,7 +167,9 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, P
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
                 pa_tagstruct_getu32(t, &flags) < 0 ||
-                (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
+                (o->context->version >= 13 &&
+                 (pa_tagstruct_get_proplist(t, i.proplist) < 0 ||
+                  pa_tagstruct_get_usec(t, &i.configured_latency) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);
@@ -286,7 +288,9 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                 pa_tagstruct_get_usec(t, &i.latency) < 0 ||
                 pa_tagstruct_gets(t, &i.driver) < 0 ||
                 pa_tagstruct_getu32(t, &flags) < 0 ||
-                (o->context->version >= 13 && pa_tagstruct_get_proplist(t, i.proplist) < 0)) {
+                (o->context->version >= 13 &&
+                 (pa_tagstruct_get_proplist(t, i.proplist) < 0 ||
+                  pa_tagstruct_get_usec(t, &i.configured_latency) < 0))) {
 
                 pa_context_fail(o->context, PA_ERR_PROTOCOL);
                 pa_proplist_free(i.proplist);

@@ -287,7 +287,7 @@ pa_stream* pa_stream_new(
 
 /** Create a new, unconnected stream with the specified name and
  * sample type, and specify the the initial stream property
- * list. \since 0.9.10 */
+ * list. \since 0.9.11 */
 pa_stream* pa_stream_new_with_proplist(
         pa_context *c                     /**< The context to create this stream in */,
         const char *name                  /**< A name for this stream */,
@@ -377,20 +377,20 @@ int pa_stream_write(
  * data will point to the actual data and length will contain the size
  * of the data in bytes (which can be less than a complete framgnet).
  * Use pa_stream_drop() to actually remove the data from the
- * buffer. If no data is available will return a NULL pointer  \since 0.8 */
+ * buffer. If no data is available will return a NULL pointer */
 int pa_stream_peek(
         pa_stream *p                 /**< The stream to use */,
         const void **data            /**< Pointer to pointer that will point to data */,
         size_t *bytes                /**< The length of the data read in bytes */);
 
 /** Remove the current fragment on record streams. It is invalid to do this without first
- * calling pa_stream_peek(). \since 0.8 */
+ * calling pa_stream_peek(). */
 int pa_stream_drop(pa_stream *p);
 
 /** Return the number of bytes that may be written using pa_stream_write() */
 size_t pa_stream_writable_size(pa_stream *p);
 
-/** Return the number of bytes that may be read using pa_stream_read() \since 0.8 */
+/** Return the number of bytes that may be read using pa_stream_read()*/
 size_t pa_stream_readable_size(pa_stream *p);
 
 /** Drain a playback stream. Use this for notification when the buffer is empty */
@@ -410,18 +410,18 @@ void pa_stream_set_state_callback(pa_stream *s, pa_stream_notify_cb_t cb, void *
 void pa_stream_set_write_callback(pa_stream *p, pa_stream_request_cb_t cb, void *userdata);
 
 /** Set the callback function that is called when new data is available from the stream.
- * Return the number of bytes read. \since 0.8 */
+ * Return the number of bytes read.*/
 void pa_stream_set_read_callback(pa_stream *p, pa_stream_request_cb_t cb, void *userdata);
 
-/** Set the callback function that is called when a buffer overflow happens. (Only for playback streams) \since 0.8 */
+/** Set the callback function that is called when a buffer overflow happens. (Only for playback streams) */
 void pa_stream_set_overflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
-/** Set the callback function that is called when a buffer underflow happens. (Only for playback streams) \since 0.8 */
+/** Set the callback function that is called when a buffer underflow happens. (Only for playback streams) */
 void pa_stream_set_underflow_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
 /** Set the callback function that is called whenever a latency
  * information update happens. Useful on PA_STREAM_AUTO_TIMING_UPDATE
- * streams only. (Only for playback streams) \since 0.8.2 */
+ * streams only. (Only for playback streams) */
 void pa_stream_set_latency_update_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
 /** Set the callback function that is called whenever the stream is
@@ -441,24 +441,25 @@ void pa_stream_set_moved_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *
  * 0.9.8. \since 0.9.8 */
 void pa_stream_set_suspended_callback(pa_stream *p, pa_stream_notify_cb_t cb, void *userdata);
 
-/** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. \since 0.3 */
+/** Pause (or resume) playback of this stream temporarily. Available on both playback and recording streams. */
 pa_operation* pa_stream_cork(pa_stream *s, int b, pa_stream_success_cb_t cb, void *userdata);
 
 /** Flush the playback buffer of this stream. Most of the time you're
- * better off using the parameter delta of pa_stream_write() instead of this
- * function. Available on both playback and recording streams. \since 0.3 */
+ * better off using the parameter delta of pa_stream_write() instead
+ * of this function. Available on both playback and recording
+ * streams. */
 pa_operation* pa_stream_flush(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
 /** Reenable prebuffering as specified in the pa_buffer_attr
- * structure. Available for playback streams only. \since 0.6 */
+ * structure. Available for playback streams only. */
 pa_operation* pa_stream_prebuf(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
 /** Request immediate start of playback on this stream. This disables
- * prebuffering as specified in the pa_buffer_attr
- * structure, temporarily. Available for playback streams only. \since 0.3 */
+ * prebuffering as specified in the pa_buffer_attr structure,
+ * temporarily. Available for playback streams only. */
 pa_operation* pa_stream_trigger(pa_stream *s, pa_stream_success_cb_t cb, void *userdata);
 
-/** Rename the stream. \since 0.5 */
+/** Rename the stream. */
 pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_success_cb_t cb, void *userdata);
 
 /** Return the current playback/recording time. This is based on the
@@ -475,13 +476,13 @@ pa_operation* pa_stream_set_name(pa_stream *s, const char *name, pa_stream_succe
  * be disabled by using PA_STREAM_NOT_MONOTONOUS. This may be
  * desirable to deal better with bad estimations of transport
  * latencies, but may have strange effects if the application is not
- * able to deal with time going 'backwards'. \since 0.6 */
+ * able to deal with time going 'backwards'. */
 int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec);
 
 /** Return the total stream latency. This function is based on
  * pa_stream_get_time(). In case the stream is a monitoring stream the
  * result can be negative, i.e. the captured samples are not yet
- * played. In this case *negative is set to 1. \since 0.6 */
+ * played. In this case *negative is set to 1. */
 int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
 
 /** Return the latest raw timing data structure. The returned pointer
@@ -493,13 +494,13 @@ int pa_stream_get_latency(pa_stream *s, pa_usec_t *r_usec, int *negative);
  * function will fail with PA_ERR_NODATA. Please note that the
  * write_index member field (and only this field) is updated on each
  * pa_stream_write() call, not just when a timing update has been
- * recieved. \since 0.8 */
+ * recieved. */
 const pa_timing_info* pa_stream_get_timing_info(pa_stream *s);
 
-/** Return a pointer to the stream's sample specification. \since 0.6 */
+/** Return a pointer to the stream's sample specification. */
 const pa_sample_spec* pa_stream_get_sample_spec(pa_stream *s);
 
-/** Return a pointer to the stream's channel map. \since 0.8 */
+/** Return a pointer to the stream's channel map. */
 const pa_channel_map* pa_stream_get_channel_map(pa_stream *s);
 
 /** Return the buffer metrics of the stream. Only valid after the
@@ -527,10 +528,11 @@ pa_operation *pa_stream_update_sample_rate(pa_stream *s, uint32_t rate, pa_strea
  * recommended to set as much properties initially via
  * pa_stream_new_with_proplist() as possible instead a posteriori with
  * this function, since that information may then be used to route
- * this stream to the right device. \since 0.9.10 */
+ * this stream to the right device. \since 0.9.11 */
 pa_operation *pa_stream_proplist_update(pa_stream *s, pa_update_mode_t mode, pa_proplist *p, pa_stream_success_cb_t cb, void *userdata);
 
-/* Update the property list of the sink input/source output of this stream, remove entries. \since 0.9.10 */
+/* Update the property list of the sink input/source output of this
+ * stream, remove entries. \since 0.9.11 */
 pa_operation *pa_stream_proplist_remove(pa_stream *s, const char *const keys[], pa_stream_success_cb_t cb, void *userdata);
 
 PA_C_DECL_END
