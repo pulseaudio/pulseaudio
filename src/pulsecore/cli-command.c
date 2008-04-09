@@ -90,6 +90,7 @@ static int pa_cli_command_stat(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_b
 static int pa_cli_command_info(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_load(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
+static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
 static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail);
@@ -136,6 +137,7 @@ static const struct command commands[] = {
     { "list",                    pa_cli_command_info,               NULL,                           1 },
     { "load-module",             pa_cli_command_load,               "Load a module (args: name, arguments)", 3},
     { "unload-module",           pa_cli_command_unload,             "Unload a module (args: index)", 2},
+    { "describe-module",         pa_cli_command_describe,           "Describe a module (arg: name)", 2},
     { "set-sink-volume",         pa_cli_command_sink_volume,        "Set the volume of a sink (args: index|name, volume)", 3},
     { "set-sink-input-volume",   pa_cli_command_sink_input_volume,  "Set the volume of a sink input (args: index, volume)", 3},
     { "set-source-volume",       pa_cli_command_source_volume,      "Set the volume of a source (args: index|name, volume)", 3},
@@ -416,6 +418,45 @@ static int pa_cli_command_unload(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa
     }
 
     pa_module_unload_request(m);
+    return 0;
+}
+
+static int pa_cli_command_describe(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, pa_bool_t *fail) {
+    const char *name;
+    pa_modinfo *i;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(name = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify the module name.\n");
+        return -1;
+    }
+
+    if ((i = pa_modinfo_get_by_name(name))) {
+
+        pa_strbuf_printf(buf, "Name: %s\n", name);
+
+        if (!i->description && !i->version && !i->author && !i->usage)
+            pa_strbuf_printf(buf, "No module information available\n");
+        else {
+            if (i->version)
+                pa_strbuf_printf(buf, "Version: %s\n", i->version);
+            if (i->description)
+                pa_strbuf_printf(buf, "Description: %s\n", i->description);
+            if (i->author)
+                pa_strbuf_printf(buf, "Author: %s\n", i->author);
+            if (i->usage)
+                pa_strbuf_printf(buf, "Usage: %s\n", i->usage);
+            pa_strbuf_printf(buf, "Load Once: %s\n", pa_yes_no(i->load_once));
+        }
+
+        pa_modinfo_free(i);
+    } else
+        pa_strbuf_puts(buf, "Failed to open module.\n");
+
     return 0;
 }
 
