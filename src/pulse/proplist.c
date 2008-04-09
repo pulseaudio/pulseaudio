@@ -102,6 +102,28 @@ int pa_proplist_sets(pa_proplist *p, const char *key, const char *value) {
     return 0;
 }
 
+/** Will accept only valid UTF-8 */
+int pa_proplist_setf(pa_proplist *p, const char *key, const char *format, ...) {
+    va_list ap;
+    int r;
+    char *t;
+
+    pa_assert(p);
+    pa_assert(key);
+
+    if (!property_name_valid(key) || !pa_utf8_valid(format))
+        return -1;
+
+    va_start(ap, format);
+    t = pa_vsprintf_malloc(format, ap);
+    va_end(ap);
+
+    r = pa_proplist_sets(p, key, t);
+
+    pa_xfree(t);
+    return r;
+}
+
 int pa_proplist_set(pa_proplist *p, const char *key, const void *data, size_t nbytes) {
     struct property *prop;
     pa_bool_t add = FALSE;

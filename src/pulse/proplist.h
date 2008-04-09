@@ -100,6 +100,8 @@
 #define PA_PROP_DEVICE_CONNECTOR            "device.connector"
 #define PA_PROP_DEVICE_ACCESS_MODE          "device.access_mode"
 #define PA_PROP_DEVICE_MASTER_DEVICE        "device.master_device"
+#define PA_PROP_DEVICE_BUFFER_NFRAGMENTS    "device.buffer.nfragments"
+#define PA_PROP_DEVICE_BUFFER_FRAGMENT_SIZE "device.buffer.fragment_size"
 
 /** A property list object. Basically a dictionary with UTF-8 strings
  * as keys and arbitrary data as values. \since 0.9.11 */
@@ -116,6 +118,13 @@ void pa_proplist_free(pa_proplist* p);
  * internal copy of the data passed is made. Will accept only valid
  * UTF-8. \since 0.9.11 */
 int pa_proplist_sets(pa_proplist *p, const char *key, const char *value);
+
+/** Append a new string entry to the property list, possibly
+ * overwriting an already existing entry with the same key. An
+ * internal copy of the data passed is made. Will accept only valid
+ * UTF-8. The data can be passed as printf()-style format string with
+ * arguments. \since 0.9.11 */
+int pa_proplist_setf(pa_proplist *p, const char *key, const char *format, ...) PA_GCC_PRINTF_ATTR(3,4);
 
 /** Append a new arbitrary data entry to the property list, possibly
  * overwriting an already existing entry with the same key. An
