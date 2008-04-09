@@ -26,7 +26,7 @@ AC_PREREQ(2.60)
 
 m4_define(PA_MAJOR, [0])
 m4_define(PA_MINOR, [9])
-m4_define(PA_MICRO, [10])
+m4_define(PA_MICRO, [11])
 
 AC_INIT([pulseaudio], PA_MAJOR.PA_MINOR.PA_MICRO,[mzchyfrnhqvb (at) 0pointer (dot) net])
 AC_CONFIG_SRCDIR([src/daemon/main.c])
@@ -37,7 +37,7 @@ AC_SUBST(PA_MAJORMINOR, "PA_MAJOR.PA_MINOR")
 AC_SUBST(PACKAGE_URL, [http://pulseaudio.org/])
 
 AC_SUBST(PA_API_VERSION, 11)
-AC_SUBST(PA_PROTOCOL_VERSION, 12)
+AC_SUBST(PA_PROTOCOL_VERSION, 13)
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold y=z
