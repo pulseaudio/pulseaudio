@@ -128,6 +128,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             "\tvolume: <%s>\n"
             "\tmute: <%i>\n"
             "\tlatency: <%0.0f usec>\n"
+            "\tconfigured latency: <%0.0f usec> from range <%0.0f usec> .. <%0.0f usec>\n"
             "\tmonitor source: <%u>\n"
             "\tsample spec: <%s>\n"
             "\tchannel map: <%s>\n"
@@ -147,6 +148,7 @@ char *pa_sink_list_to_string(pa_core *c) {
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink)),
             !!pa_sink_get_mute(sink),
             (double) pa_sink_get_latency(sink),
+            (double) pa_sink_get_requested_latency(sink), (double) sink->min_latency, (double) sink->max_latency,
             sink->monitor_source ? sink->monitor_source->index : PA_INVALID_INDEX,
             pa_sample_spec_snprint(ss, sizeof(ss), &sink->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &sink->channel_map),
@@ -194,6 +196,7 @@ char *pa_source_list_to_string(pa_core *c) {
             "\tvolume: <%s>\n"
             "\tmute: <%u>\n"
             "\tlatency: <%0.0f usec>\n"
+            "\tconfigured latency: <%0.0f usec> from range <%0.0f usec> .. <%0.0f usec>\n"
             "\tsample spec: <%s>\n"
             "\tchannel map: <%s>\n"
             "\tused by: <%u>\n"
@@ -212,6 +215,7 @@ char *pa_source_list_to_string(pa_core *c) {
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source)),
             !!pa_source_get_mute(source),
             (double) pa_source_get_latency(source),
+            (double) pa_source_get_requested_latency(source), (double) source->min_latency, (double) source->max_latency,
             pa_sample_spec_snprint(ss, sizeof(ss), &source->sample_spec),
             pa_channel_map_snprint(cm, sizeof(cm), &source->channel_map),
             pa_source_used_by(source),
