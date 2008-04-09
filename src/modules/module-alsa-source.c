@@ -411,7 +411,7 @@ static pa_usec_t hw_sleep_time(struct userdata *u) {
 
     pa_assert(u);
 
-    usec = pa_source_get_requested_latency(u->source);
+    usec = pa_source_get_requested_latency_within_thread(u->source);
 
     if (usec <= 0)
         usec = pa_bytes_to_usec(u->hwbuf_size, &u->source->sample_spec);
@@ -1093,8 +1093,10 @@ int pa__init(pa_module*m) {
     u->hw_dB_min = u->hw_dB_max = 0;
     u->hw_volume_min = u->hw_volume_max = 0;
 
+    u->source->max_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
+
     if (!use_tsched)
-        u->source->min_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
+        u->source->min_latency = u->source->max_latency;
 
     pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
                 nfrags, (long unsigned) u->fragment_size,

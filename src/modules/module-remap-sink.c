@@ -123,7 +123,7 @@ static void sink_update_requested_latency(pa_sink *s) {
     pa_assert_se(u = s->userdata);
 
     /* Just hand this one over to the master sink */
-    u->sink_input->thread_info.requested_sink_latency = pa_sink_get_requested_latency(s);
+    u->sink_input->thread_info.requested_sink_latency = pa_sink_get_requested_latency_within_thread(s);
     pa_sink_invalidate_requested_latency(u->master);
 }
 

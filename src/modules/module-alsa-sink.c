@@ -436,7 +436,7 @@ static pa_usec_t hw_sleep_time(struct userdata *u) {
 
     pa_assert(u);
 
-    usec = pa_sink_get_requested_latency(u->sink);
+    usec = pa_sink_get_requested_latency_within_thread(u->sink);
 
     if (usec <= 0)
         usec = pa_bytes_to_usec(u->hwbuf_size, &u->sink->sample_spec);
@@ -461,7 +461,7 @@ static void update_hwbuf_unused_frames(struct userdata *u) {
 
     pa_assert(u);
 
-    if ((usec = pa_sink_get_requested_latency(u->sink)) <= 0) {
+    if ((usec = pa_sink_get_requested_latency_within_thread(u->sink)) <= 0) {
         /* Use the full buffer if noone asked us for anything
          * specific */
         u->hwbuf_unused_frames = 0;
@@ -498,8 +498,6 @@ static int update_sw_params(struct userdata *u) {
 
     } else
         avail_min = 1;
-
-    avail_min = (snd_pcm_uframes_t) -1;
 
     pa_log("setting avail_min=%lu", (unsigned long) avail_min);
 
@@ -1222,8 +1220,10 @@ int pa__init(pa_module*m) {
 
     u->sink->thread_info.max_rewind = use_tsched ? u->hwbuf_size : 0;
 
+    u->sink->max_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
+
     if (!use_tsched)
-        u->sink->min_latency = pa_bytes_to_usec(u->hwbuf_size, &ss);
+        u->sink->min_latency = u->sink->max_latency;
 
     pa_log_info("Using %u fragments of size %lu bytes, buffer time is %0.2fms",
                 nfrags, (long unsigned) u->fragment_size,
