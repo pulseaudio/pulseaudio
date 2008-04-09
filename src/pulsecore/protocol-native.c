@@ -86,6 +86,7 @@ typedef struct record_stream {
     pa_source_output *source_output;
     pa_memblockq *memblockq;
     size_t fragment_size;
+    pa_usec_t source_latency;
 } record_stream;
 
 typedef struct output_stream {
@@ -107,6 +108,7 @@ typedef struct playback_stream {
 
     pa_atomic_t missing;
     size_t minreq;
+    pa_usec_t sink_latency;
 
     /* Only updated after SINK_INPUT_MESSAGE_UPDATE_LATENCY */
     int64_t read_index, write_index;
@@ -524,7 +526,7 @@ static record_stream* record_stream_new(
         *fragsize = pa_usec_to_bytes(DEFAULT_FRAGSIZE_MSEC*1000, &source_output->sample_spec);
 
     if (adjust_latency) {
-        pa_usec_t fragsize_usec, source_latency;
+        pa_usec_t fragsize_usec;
 
         /* So, the user asked us to adjust the latency according to
          * the what the source can provide. Half the latency will be
@@ -533,12 +535,12 @@ static record_stream* record_stream_new(
 
         fragsize_usec = pa_bytes_to_usec(*fragsize, &source_output->sample_spec);
 
-        source_latency = pa_source_output_set_requested_latency(source_output, fragsize_usec/2);
+        s->source_latency = pa_source_output_set_requested_latency(source_output, fragsize_usec/2);
 
-        if (fragsize_usec >= source_latency*2)
-            fragsize_usec -= source_latency;
+        if (fragsize_usec >= s->source_latency*2)
+            fragsize_usec -= s->source_latency;
         else
-            fragsize_usec = source_latency;
+            fragsize_usec = s->source_latency;
 
         *fragsize = pa_usec_to_bytes(fragsize_usec, &source_output->sample_spec);
     }
@@ -780,7 +782,7 @@ static playback_stream* playback_stream_new(
         *prebuf = *tlength;
 
     if (adjust_latency) {
-        pa_usec_t tlength_usec, minreq_usec, sink_latency;
+        pa_usec_t tlength_usec, minreq_usec;
 
         /* So, the user asked us to adjust the latency according to
          * the what the sink can provide. Half the latency will be
@@ -790,17 +792,17 @@ static playback_stream* playback_stream_new(
         tlength_usec = pa_bytes_to_usec(*tlength, &sink_input->sample_spec);
         minreq_usec = pa_bytes_to_usec(*minreq, &sink_input->sample_spec);
 
-        sink_latency = pa_sink_input_set_requested_latency(sink_input, tlength_usec/2);
+        s->sink_latency = pa_sink_input_set_requested_latency(sink_input, tlength_usec/2);
 
-        if (tlength_usec >= sink_latency*2)
-            tlength_usec -= sink_latency;
+        if (tlength_usec >= s->sink_latency*2)
+            tlength_usec -= s->sink_latency;
         else
-            tlength_usec = sink_latency;
+            tlength_usec = s->sink_latency;
 
-        if (minreq_usec >= sink_latency*2)
-            minreq_usec -= sink_latency;
+        if (minreq_usec >= s->sink_latency*2)
+            minreq_usec -= s->sink_latency;
         else
-            minreq_usec = sink_latency;
+            minreq_usec = s->sink_latency;
 
         *tlength = pa_usec_to_bytes(tlength_usec, &sink_input->sample_spec);
         *minreq = pa_usec_to_bytes(minreq_usec, &sink_input->sample_spec);
@@ -1450,6 +1452,9 @@ static void command_create_playback_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GC
         pa_tagstruct_put_boolean(reply, pa_sink_get_state(s->sink_input->sink) == PA_SINK_SUSPENDED);
     }
 
+    if (c->version >= 13)
+        pa_tagstruct_put_usec(reply, s->sink_latency);
+
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
 
@@ -1650,6 +1655,9 @@ static void command_create_record_stream(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_
 
         pa_tagstruct_put_boolean(reply, pa_source_get_state(s->source_output->source) == PA_SOURCE_SUSPENDED);
     }
+
+    if (c->version >= 13)
+        pa_tagstruct_put_usec(reply, s->source_latency);
 
     pa_pstream_send_tagstruct(c->pstream, reply);
 }
@@ -2258,8 +2266,10 @@ static void sink_input_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink_in
     pa_tagstruct_puts(t, s->driver);
     if (c->version >= 11)
         pa_tagstruct_put_boolean(t, pa_sink_input_get_mute(s));
-    if (c->version >= 13)
+    if (c->version >= 13) {
         pa_tagstruct_put_proplist(t, s->proplist);
+        pa_tagstruct_put_usec(t, pa_sink_get_requested_latency(s->sink));
+    }
 }
 
 static void source_output_fill_tagstruct(connection *c, pa_tagstruct *t, pa_source_output *s) {
@@ -2282,8 +2292,10 @@ static void source_output_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sour
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_source_output_get_resample_method(s)));
     pa_tagstruct_puts(t, s->driver);
 
-    if (c->version >= 13)
+    if (c->version >= 13) {
         pa_tagstruct_put_proplist(t, s->proplist);
+        pa_tagstruct_put_usec(t, pa_source_get_requested_latency(s->source));
+    }
 }
 
 static void scache_fill_tagstruct(connection *c, pa_tagstruct *t, pa_scache_entry *e) {
