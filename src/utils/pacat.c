@@ -71,6 +71,8 @@ static int channel_map_set = 0;
 
 static pa_stream_flags_t flags = 0;
 
+static size_t latency = 0;
+
 /* A shortcut for terminating the application */
 static void quit(int ret) {
     assert(mainloop_api);
@@ -229,6 +231,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
         case PA_CONTEXT_READY: {
             int r;
+            pa_buffer_attr buffer_attr;
 
             assert(c);
             assert(!stream);
@@ -247,15 +250,21 @@ static void context_state_callback(pa_context *c, void *userdata) {
             pa_stream_set_suspended_callback(stream, stream_suspended_callback, NULL);
             pa_stream_set_moved_callback(stream, stream_moved_callback, NULL);
 
+            if (latency > 0) {
+                memset(&buffer_attr, 0, sizeof(buffer_attr));
+                buffer_attr.tlength = latency;
+                flags |= PA_STREAM_ADJUST_LATENCY;
+            }
+
             if (mode == PLAYBACK) {
                 pa_cvolume cv;
-                if ((r = pa_stream_connect_playback(stream, device, NULL, flags, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL)) < 0) {
+                if ((r = pa_stream_connect_playback(stream, device, latency > 0 ? &buffer_attr : NULL, flags, pa_cvolume_set(&cv, sample_spec.channels, volume), NULL)) < 0) {
                     fprintf(stderr, "pa_stream_connect_playback() failed: %s\n", pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
 
             } else {
-                if ((r = pa_stream_connect_record(stream, device, NULL, flags)) < 0) {
+                if ((r = pa_stream_connect_record(stream, device, latency > 0 ? &buffer_attr : NULL, flags)) < 0) {
                     fprintf(stderr, "pa_stream_connect_record() failed: %s\n", pa_strerror(pa_context_errno(c)));
                     goto fail;
                 }
@@ -478,6 +487,7 @@ static void help(const char *argv0) {
            "                                        from the sink the stream is being connected to.\n"
            "      --no-remix                        Don't upmix or downmix channels.\n"
            "      --no-remap                        Map channels by index instead of name.\n"
+           "      --latency=BYTES                   Request the specified latency in bytes.\n"
            ,
            argv0);
 }
@@ -494,7 +504,8 @@ enum {
     ARG_FIX_RATE,
     ARG_FIX_CHANNELS,
     ARG_NO_REMAP,
-    ARG_NO_REMIX
+    ARG_NO_REMIX,
+    ARG_LATENCY
 };
 
 int main(int argc, char *argv[]) {
@@ -523,6 +534,7 @@ int main(int argc, char *argv[]) {
         {"fix-channels",0, NULL, ARG_FIX_CHANNELS},
         {"no-remap",    0, NULL, ARG_NO_REMAP},
         {"no-remix",    0, NULL, ARG_NO_REMIX},
+        {"latency",     0, NULL, ARG_LATENCY},
         {NULL,          0, NULL, 0}
     };
 
@@ -601,7 +613,7 @@ int main(int argc, char *argv[]) {
 
             case ARG_CHANNELMAP:
                 if (!pa_channel_map_parse(&channel_map, optarg)) {
-                    fprintf(stderr, "Invalid channel map\n");
+                    fprintf(stderr, "Invalid channel map '%s'\n", optarg);
                     goto quit;
                 }
 
@@ -626,6 +638,13 @@ int main(int argc, char *argv[]) {
 
             case ARG_NO_REMAP:
                 flags |= PA_STREAM_NO_REMAP_CHANNELS;
+                break;
+
+            case ARG_LATENCY:
+                if (((latency = atoi(optarg))) <= 0) {
+                    fprintf(stderr, "Invallid latency specification '%s'\n", optarg);
+                    goto quit;
+                }
                 break;
 
             default:
