@@ -364,13 +364,22 @@ pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t 
     pa_source_output_assert_ref(o);
     pa_assert(PA_SOURCE_OUTPUT_LINKED(o->state));
 
-    if (usec < o->source->min_latency)
-        usec = o->source->min_latency;
+    if (usec > 0) {
+
+        if (o->source->max_latency > 0 && usec > o->source->max_latency)
+            usec = o->source->max_latency;
+
+        if (o->source->min_latency > 0 && usec < o->source->min_latency)
+            usec = o->source->min_latency;
+
+    }
 
     if (PA_SOURCE_OUTPUT_LINKED(o->state))
         pa_asyncmsgq_post(o->source->asyncmsgq, PA_MSGOBJECT(o), PA_SOURCE_OUTPUT_MESSAGE_SET_REQUESTED_LATENCY, NULL, (int64_t) usec, NULL, NULL);
-    else
+    else {
         o->thread_info.requested_source_latency = usec;
+        o->source->thread_info.requested_latency_valid = FALSE;
+    }
 
     return usec;
 }

@@ -92,6 +92,7 @@ struct pa_source {
     pa_rtpoll *rtpoll;
 
     pa_usec_t min_latency; /* we won't go below this latency setting */
+    pa_usec_t max_latency; /* An upper limit for the latencies */
 
     int (*set_state)(pa_source*source, pa_source_state_t state); /* may be NULL */
     int (*set_volume)(pa_source *s);         /* dito */
@@ -127,6 +128,7 @@ typedef enum pa_source_message {
     PA_SOURCE_MESSAGE_GET_MUTE,
     PA_SOURCE_MESSAGE_SET_MUTE,
     PA_SOURCE_MESSAGE_GET_LATENCY,
+    PA_SOURCE_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SOURCE_MESSAGE_SET_STATE,
     PA_SOURCE_MESSAGE_PING,
     PA_SOURCE_MESSAGE_ATTACH,
@@ -181,6 +183,7 @@ void pa_source_attach(pa_source *s);
 /* May be called by everyone, from main context */
 
 pa_usec_t pa_source_get_latency(pa_source *s);
+pa_usec_t pa_source_get_requested_latency(pa_source *s);
 
 int pa_source_update_status(pa_source*s);
 int pa_source_suspend(pa_source *s, pa_bool_t suspend);
@@ -206,7 +209,7 @@ int pa_source_process_msg(pa_msgobject *o, int code, void *userdata, int64_t, pa
 void pa_source_attach_within_thread(pa_source *s);
 void pa_source_detach_within_thread(pa_source *s);
 
-pa_usec_t pa_source_get_requested_latency(pa_source *s);
+pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s);
 
 /* To be called exclusively by source output drivers, from IO context */
 

@@ -677,13 +677,21 @@ void pa_sink_input_set_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sin
 pa_usec_t pa_sink_input_set_requested_latency(pa_sink_input *i, pa_usec_t usec) {
     pa_sink_input_assert_ref(i);
 
-    if (usec < i->sink->min_latency)
-        usec = i->sink->min_latency;
+    if (usec > 0) {
+
+        if (i->sink->max_latency > 0 && usec > i->sink->max_latency)
+            usec = i->sink->max_latency;
+
+        if (i->sink->min_latency > 0 && usec < i->sink->min_latency)
+            usec = i->sink->min_latency;
+    }
 
     if (PA_SINK_INPUT_LINKED(i->state))
         pa_asyncmsgq_post(i->sink->asyncmsgq, PA_MSGOBJECT(i), PA_SINK_INPUT_MESSAGE_SET_REQUESTED_LATENCY, NULL, (int64_t) usec, NULL, NULL);
-    else
+    else {
         i->thread_info.requested_sink_latency = usec;
+        i->sink->thread_info.requested_latency_valid = FALSE;
+    }
 
     return usec;
 }

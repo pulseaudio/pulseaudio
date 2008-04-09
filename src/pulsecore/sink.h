@@ -91,7 +91,8 @@ struct pa_sink {
 
     pa_memblock *silence;
 
-    pa_usec_t min_latency; /* we won't go below this latency setting */
+    pa_usec_t min_latency; /* we won't go below this latency */
+    pa_usec_t max_latency; /* An upper limit for the latencies */
 
     int (*set_state)(pa_sink *s, pa_sink_state_t state); /* may be NULL */
     int (*set_volume)(pa_sink *s);             /* dito */
@@ -135,6 +136,7 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_GET_MUTE,
     PA_SINK_MESSAGE_SET_MUTE,
     PA_SINK_MESSAGE_GET_LATENCY,
+    PA_SINK_MESSAGE_GET_REQUESTED_LATENCY,
     PA_SINK_MESSAGE_SET_STATE,
     PA_SINK_MESSAGE_PING,
     PA_SINK_MESSAGE_REMOVE_INPUT_AND_BUFFER,
@@ -191,6 +193,7 @@ void pa_sink_attach(pa_sink *s);
 
 /* The returned value is supposed to be in the time domain of the sound card! */
 pa_usec_t pa_sink_get_latency(pa_sink *s);
+pa_usec_t pa_sink_get_requested_latency(pa_sink *s);
 
 int pa_sink_update_status(pa_sink*s);
 int pa_sink_suspend(pa_sink *s, pa_bool_t suspend);
@@ -227,7 +230,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 void pa_sink_attach_within_thread(pa_sink *s);
 void pa_sink_detach_within_thread(pa_sink *s);
 
-pa_usec_t pa_sink_get_requested_latency(pa_sink *s);
+pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s);
 
 void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind);
 

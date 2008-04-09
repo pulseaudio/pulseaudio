@@ -188,6 +188,7 @@ pa_sink* pa_sink_new(
     s->silence = pa_silence_memblock_new(core->mempool, &s->sample_spec, 0);
 
     s->min_latency = DEFAULT_MIN_LATENCY;
+    s->max_latency = s->min_latency;
 
     s->thread_info.inputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     s->thread_info.soft_volume = s->volume;
@@ -277,6 +278,8 @@ void pa_sink_put(pa_sink* s) {
     pa_assert(s->state == PA_SINK_INIT);
     pa_assert(s->asyncmsgq);
     pa_assert(s->rtpoll);
+
+    pa_assert(!s->min_latency || !s->max_latency || s->min_latency <= s->max_latency);
 
     if (s->get_volume && s->set_volume)
         s->flags |= PA_SINK_HW_VOLUME_CTRL;
@@ -1132,13 +1135,20 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
              * asyncmsgq and rtpoll fields can be changed without
              * problems */
             pa_sink_detach_within_thread(s);
-            break;
+            return 0;
 
         case PA_SINK_MESSAGE_ATTACH:
 
             /* Reattach all streams */
             pa_sink_attach_within_thread(s);
-            break;
+            return 0;
+
+        case PA_SINK_MESSAGE_GET_REQUESTED_LATENCY: {
+
+            pa_usec_t *usec = userdata;
+            *usec = pa_sink_get_requested_latency_within_thread(s);
+            return 0;
+        }
 
         case PA_SINK_MESSAGE_GET_LATENCY:
         case PA_SINK_MESSAGE_MAX:
@@ -1223,7 +1233,7 @@ void pa_sink_request_rewind(pa_sink*s, size_t nbytes) {
         s->request_rewind(s);
 }
 
-pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
+pa_usec_t pa_sink_get_requested_latency_within_thread(pa_sink *s) {
     pa_usec_t result = 0;
     pa_sink_input *i;
     void *state = NULL;
@@ -1239,10 +1249,33 @@ pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
             (!result || result > i->thread_info.requested_sink_latency))
             result = i->thread_info.requested_sink_latency;
 
+    if (result > 0) {
+        if (s->max_latency > 0 && result > s->max_latency)
+            result = s->max_latency;
+
+        if (s->min_latency > 0 && result < s->min_latency)
+            result = s->min_latency;
+    }
+
     s->thread_info.requested_latency = result;
     s->thread_info.requested_latency_valid = TRUE;
 
     return result;
+}
+
+pa_usec_t pa_sink_get_requested_latency(pa_sink *s) {
+    pa_usec_t usec = 0;
+
+    pa_sink_assert_ref(s);
+    pa_assert(PA_SINK_LINKED(s->state));
+
+    if (!PA_SINK_OPENED(s->state))
+        return 0;
+
+    if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) < 0)
+        return 0;
+
+    return usec;
 }
 
 void pa_sink_set_max_rewind(pa_sink *s, size_t max_rewind) {

@@ -166,6 +166,7 @@ pa_source* pa_source_new(
     s->refresh_volume = s->refresh_muted = FALSE;
 
     s->min_latency = DEFAULT_MIN_LATENCY;
+    s->max_latency = s->min_latency;
 
     s->get_latency = NULL;
     s->set_volume = NULL;
@@ -242,6 +243,8 @@ void pa_source_put(pa_source *s) {
     pa_assert(s->state == PA_SINK_INIT);
     pa_assert(s->rtpoll);
     pa_assert(s->asyncmsgq);
+
+    pa_assert(!s->min_latency || !s->max_latency || s->min_latency <= s->max_latency);
 
     if (s->get_volume && s->set_volume)
         s->flags |= PA_SOURCE_HW_VOLUME_CTRL;
@@ -616,13 +619,20 @@ int pa_source_process_msg(pa_msgobject *object, int code, void *userdata, int64_
              * asyncmsgq and rtpoll fields can be changed without
              * problems */
             pa_source_detach_within_thread(s);
-            break;
+            return 0;
 
         case PA_SOURCE_MESSAGE_ATTACH:
 
             /* Reattach all streams */
             pa_source_attach_within_thread(s);
-            break;
+            return 0;
+
+        case PA_SOURCE_MESSAGE_GET_REQUESTED_LATENCY: {
+
+            pa_usec_t *usec = userdata;
+            *usec = pa_source_get_requested_latency_within_thread(s);
+            return 0;
+        }
 
         case PA_SOURCE_MESSAGE_GET_LATENCY:
         case PA_SOURCE_MESSAGE_MAX:
@@ -683,7 +693,7 @@ void pa_source_attach_within_thread(pa_source *s) {
             o->attach(o);
 }
 
-pa_usec_t pa_source_get_requested_latency(pa_source *s) {
+pa_usec_t pa_source_get_requested_latency_within_thread(pa_source *s) {
     pa_usec_t result = 0;
     pa_source_output *o;
     void *state = NULL;
@@ -699,10 +709,33 @@ pa_usec_t pa_source_get_requested_latency(pa_source *s) {
             (!result || result > o->thread_info.requested_source_latency))
             result = o->thread_info.requested_source_latency;
 
+    if (result > 0) {
+        if (s->max_latency > 0 && result > s->max_latency)
+            result = s->max_latency;
+
+        if (s->min_latency > 0 && result < s->min_latency)
+            result = s->min_latency;
+    }
+
     s->thread_info.requested_latency = result;
     s->thread_info.requested_latency_valid = TRUE;
 
     return result;
+}
+
+pa_usec_t pa_source_get_requested_latency(pa_source *s) {
+    pa_usec_t usec;
+
+    pa_source_assert_ref(s);
+    pa_assert(PA_SOURCE_LINKED(s->state));
+
+    if (!PA_SOURCE_OPENED(s->state))
+        return 0;
+
+    if (pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SOURCE_MESSAGE_GET_REQUESTED_LATENCY, &usec, 0, NULL) < 0)
+        return 0;
+
+    return usec;
 }
 
 void pa_source_invalidate_requested_latency(pa_source *s) {
