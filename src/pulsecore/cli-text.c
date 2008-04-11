@@ -57,12 +57,12 @@ char *pa_module_list_to_string(pa_core *c) {
 
     for (m = pa_idxset_first(c->modules, &idx); m; m = pa_idxset_next(c->modules, &idx)) {
         pa_strbuf_printf(s, "    index: %u\n"
-            "\tname: <%s>\n"
-            "\targument: <%s>\n"
-            "\tused: %i\n"
-            "\tauto unload: %s\n",
-            m->index, m->name, m->argument ? m->argument : "", m->n_used,
-            m->auto_unload ? "yes" : "no");
+                         "\tname: <%s>\n"
+                         "\targument: <%s>\n"
+                         "\tused: %i\n"
+                         "\tauto unload: %s\n",
+                         m->index, m->name, m->argument ? m->argument : "", m->n_used,
+                         pa_yes_no(m->auto_unload));
     }
 
     return pa_strbuf_tostring_free(s);
@@ -138,12 +138,12 @@ char *pa_sink_list_to_string(pa_core *c) {
             sink->index,
             sink->name,
             sink->driver,
+            sink->flags & PA_SINK_HARDWARE ? "HARDWARE " : "",
+            sink->flags & PA_SINK_NETWORK ? "NETWORK " : "",
             sink->flags & PA_SINK_HW_MUTE_CTRL ? "HW_MUTE_CTRL " : "",
             sink->flags & PA_SINK_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             sink->flags & PA_SINK_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             sink->flags & PA_SINK_LATENCY ? "LATENCY " : "",
-            sink->flags & PA_SINK_HARDWARE ? "HARDWARE " : "",
-            sink->flags & PA_SINK_NETWORK ? "NETWORK " : "",
             state_table[pa_sink_get_state(sink)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_sink_get_volume(sink)),
             !!pa_sink_get_mute(sink),
@@ -205,12 +205,12 @@ char *pa_source_list_to_string(pa_core *c) {
             source->index,
             source->name,
             source->driver,
+            source->flags & PA_SOURCE_HARDWARE ? "HARDWARE " : "",
+            source->flags & PA_SOURCE_NETWORK ? "NETWORK " : "",
             source->flags & PA_SOURCE_HW_MUTE_CTRL ? "HW_MUTE_CTRL " : "",
             source->flags & PA_SOURCE_HW_VOLUME_CTRL ? "HW_VOLUME_CTRL " : "",
             source->flags & PA_SOURCE_DECIBEL_VOLUME ? "DECIBEL_VOLUME " : "",
             source->flags & PA_SOURCE_LATENCY ? "LATENCY " : "",
-            source->flags & PA_SOURCE_HARDWARE ? "HARDWARE " : "",
-            source->flags & PA_SOURCE_NETWORK ? "NETWORK " : "",
             state_table[pa_source_get_state(source)],
             pa_cvolume_snprint(cv, sizeof(cv), pa_source_get_volume(source)),
             !!pa_source_get_mute(source),
