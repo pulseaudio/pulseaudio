@@ -477,7 +477,7 @@ static int pa_cli_command_sink_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     }
 
     if (!(v = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x10000 is normal volume)\n");
         return -1;
     }
 
@@ -519,7 +519,7 @@ static int pa_cli_command_sink_input_volume(pa_core *c, pa_tokenizer *t, pa_strb
     }
 
     if (!(v = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x10000 is normal volume)\n");
         return -1;
     }
 
@@ -555,7 +555,7 @@ static int pa_cli_command_source_volume(pa_core *c, pa_tokenizer *t, pa_strbuf *
     }
 
     if (!(v = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x10000 is normal volume)\n");
         return -1;
     }
 
@@ -664,7 +664,7 @@ static int pa_cli_command_sink_input_mute(pa_core *c, pa_tokenizer *t, pa_strbuf
     }
 
     if (!(v = pa_tokenizer_get(t, 2))) {
-        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x100 is normal volume)\n");
+        pa_strbuf_puts(buf, "You need to specify a volume >= 0. (0 is muted, 0x10000 is normal volume)\n");
         return -1;
     }
 
