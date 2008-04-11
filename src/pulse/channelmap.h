@@ -27,6 +27,7 @@
 
 #include <pulse/sample.h>
 #include <pulse/cdecl.h>
+#include <pulse/gccmacro.h>
 
 /** \page channelmap Channel Maps
  *

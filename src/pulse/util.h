@@ -28,6 +28,7 @@
 #include <stddef.h>
 
 #include <pulse/cdecl.h>
+#include <pulse/gccmacro.h>
 
 /** \file
  * Assorted utility functions */

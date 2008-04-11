@@ -24,9 +24,10 @@
   USA.
 ***/
 
-#include <pulsecore/llist.h>
 #include <pulse/xmalloc.h>
-#include <pulsecore/gccmacro.h>
+#include <pulse/gccmacro.h>
+
+#include <pulsecore/llist.h>
 
 typedef struct pa_hook_slot pa_hook_slot;
 typedef struct pa_hook pa_hook;

@@ -53,8 +53,8 @@
 #endif
 
 #include <pulse/pulseaudio.h>
+#include <pulse/gccmacro.h>
 #include <pulsecore/llist.h>
-#include <pulsecore/gccmacro.h>
 
 /* On some systems SIOCINQ isn't defined, but FIONREAD is just an alias */
 #if !defined(SIOCINQ) && defined(FIONREAD)

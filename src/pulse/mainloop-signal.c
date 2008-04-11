@@ -39,11 +39,11 @@
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/gccmacro.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
-#include <pulsecore/gccmacro.h>
 #include <pulsecore/macro.h>
 
 #include "mainloop-signal.h"

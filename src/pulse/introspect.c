@@ -27,8 +27,8 @@
 #endif
 
 #include <pulse/context.h>
+#include <pulse/gccmacro.h>
 
-#include <pulsecore/gccmacro.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/pstream-util.h>
 

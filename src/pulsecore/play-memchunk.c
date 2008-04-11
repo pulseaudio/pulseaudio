@@ -30,9 +30,9 @@
 #include <string.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/gccmacro.h>
 
 #include <pulsecore/sink-input.h>
-#include <pulsecore/gccmacro.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/play-memblockq.h>
 

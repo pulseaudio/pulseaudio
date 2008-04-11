@@ -30,8 +30,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <pulse/gccmacro.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/gccmacro.h>
 #include <pulsecore/macro.h>
 
 #include "xmalloc.h"

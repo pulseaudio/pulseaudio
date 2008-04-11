@@ -26,6 +26,7 @@
 ***/
 
 #include <pulse/cdecl.h>
+#include <pulse/gccmacro.h>
 
 /** \file
  * UTF8 Validation functions

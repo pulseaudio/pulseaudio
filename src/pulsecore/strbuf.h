@@ -24,7 +24,7 @@
   USA.
 ***/
 
-#include <pulsecore/gccmacro.h>
+#include <pulse/gccmacro.h>
 
 typedef struct pa_strbuf pa_strbuf;
 

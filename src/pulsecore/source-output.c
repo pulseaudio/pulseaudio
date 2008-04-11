@@ -36,6 +36,7 @@
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/core-util.h>
 
 #include "source-output.h"
 

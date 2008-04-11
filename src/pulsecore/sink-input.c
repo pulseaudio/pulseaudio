@@ -38,6 +38,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/play-memblockq.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/core-util.h>
 
 #include "sink-input.h"
 
