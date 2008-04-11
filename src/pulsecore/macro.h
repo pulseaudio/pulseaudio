@@ -33,10 +33,20 @@
 #include <stdlib.h>
 
 #include <pulsecore/log.h>
-#include <pulsecore/gccmacro.h>
+#include <pulse/gccmacro.h>
 
 #ifndef PACKAGE
 #error "Please include config.h before including this file!"
+#endif
+
+#ifndef PA_LIKELY
+#ifdef __GNUC__
+#define PA_LIKELY(x) (__builtin_expect(!!(x),1))
+#define PA_UNLIKELY(x) (__builtin_expect((x),0))
+#else
+#define PA_LIKELY(x) (x)
+#define PA_UNLIKELY(x) (x)
+#endif
 #endif
 
 #if defined(PAGE_SIZE)
@@ -200,20 +210,16 @@ typedef int pa_bool_t;
 #define PA_PATH_SEP_CHAR '/'
 #endif
 
-static inline const char *pa_strnull(const char *x) {
-    return x ? x : "(null)";
-}
-
 #ifdef __GNUC__
 
-#define PA_WARN_REFERENCE(sym,msg)              \
-    __asm__(".section .gnu.warning.sym");       \
-    __asm__(".asciz \"msg\"");                  \
+#define PA_WARN_REFERENCE(sym, msg)                  \
+    __asm__(".section .gnu.warning." #sym);          \
+    __asm__(".asciz \"" msg "\"");                   \
     __asm__(".previous")
 
 #else
 
-#define PA_WARN_REFERENCE(sym,msg)
+#define PA_WARN_REFERENCE(sym, msg)
 
 #endif
 
