@@ -73,10 +73,10 @@
 struct shm_marker {
     pa_atomic_t marker; /* 0xbeefcafe */
     pa_atomic_t pid;
-    void *_reserverd1;
-    void *_reserverd2;
-    void *_reserverd3;
-    void *_reserverd4;
+    uint64_t *_reserverd1;
+    uint64_t *_reserverd2;
+    uint64_t *_reserverd3;
+    uint64_t *_reserverd4;
 };
 
 static char *segment_name(char *fn, size_t l, unsigned id) {
