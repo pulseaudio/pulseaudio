@@ -60,7 +60,7 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "sink_name=<name for the sink> "
         "device=<ALSA device> "
-        "device_id=<ALSA device id> "
+        "device_id=<ALSA card index> "
         "format=<sample format> "
         "rate=<sample rate> "
         "channels=<number of channels> "
@@ -74,7 +74,7 @@ PA_MODULE_USAGE(
 
 #define DEFAULT_DEVICE "default"
 #define DEFAULT_TSCHED_BUFFER_USEC (2*PA_USEC_PER_SEC)
-#define DEFAULT_TSCHED_WATERMARK_USEC (10*PA_USEC_PER_MSEC)
+#define DEFAULT_TSCHED_WATERMARK_USEC (20*PA_USEC_PER_MSEC)
 
 struct userdata {
     pa_core *core;
@@ -267,6 +267,7 @@ static int unix_write(struct userdata *u) {
         int err;
 
         snd_pcm_hwsync(u->pcm_handle);
+        snd_pcm_avail_update(u->pcm_handle);
 
         if (PA_UNLIKELY((err = snd_pcm_status(u->pcm_handle, status)) < 0)) {
             pa_log("Failed to query DSP status data: %s", snd_strerror(err));
@@ -343,6 +344,10 @@ static void update_smoother(struct userdata *u) {
     int64_t frames;
     int err;
     pa_usec_t now1, now2;
+/*     struct timeval timestamp; */
+    snd_pcm_status_t *status;
+
+    snd_pcm_status_alloca(&status);
 
     pa_assert(u);
     pa_assert(u->pcm_handle);
@@ -352,14 +357,18 @@ static void update_smoother(struct userdata *u) {
     snd_pcm_hwsync(u->pcm_handle);
     snd_pcm_avail_update(u->pcm_handle);
 
-    if (PA_UNLIKELY((err = snd_pcm_delay(u->pcm_handle, &delay)) < 0)) {
-        pa_log_warn("Failed to get delay: %s", snd_strerror(err));
+    if (PA_UNLIKELY((err = snd_pcm_status(u->pcm_handle, status)) < 0)) {
+        pa_log("Failed to query DSP status data: %s", snd_strerror(err));
         return;
     }
 
+    delay = snd_pcm_status_get_delay(status);
     frames = u->frame_index - delay;
-
     pa_log_debug("frame_index = %llu, delay = %llu, p = %llu", (unsigned long long) u->frame_index, (unsigned long long) delay, (unsigned long long) frames);
+
+/*     snd_pcm_status_get_tstamp(status, &timestamp); */
+/*     pa_rtclock_from_wallclock(&timestamp); */
+/*     now1 = pa_timeval_load(&timestamp); */
 
     now1 = pa_rtclock_usec();
     now2 = pa_bytes_to_usec(frames * u->frame_size, &u->sink->sample_spec);
@@ -1008,6 +1017,8 @@ int pa__init(pa_module*m) {
 
     pa_assert(m);
 
+    pa_alsa_redirect_errors_inc();
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
         goto fail;
@@ -1185,6 +1196,8 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "alsa");
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, snd_pcm_info_get_name(pcm_info));
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (period_frames * frame_size * nfrags));
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (period_frames * frame_size));
 
     if (class_table[snd_pcm_info_get_class(pcm_info)])
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, class_table[snd_pcm_info_get_class(pcm_info)]);
@@ -1366,8 +1379,10 @@ void pa__done(pa_module*m) {
 
     pa_assert(m);
 
-    if (!(u = m->userdata))
+    if (!(u = m->userdata)) {
+        pa_alsa_redirect_errors_dec();
         return;
+    }
 
     if (u->sink)
         pa_sink_unlink(u->sink);
@@ -1409,4 +1424,6 @@ void pa__done(pa_module*m) {
     pa_xfree(u);
 
     snd_config_update_free_global();
+
+    pa_alsa_redirect_errors_dec();
 }

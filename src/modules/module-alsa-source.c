@@ -61,7 +61,7 @@ PA_MODULE_LOAD_ONCE(FALSE);
 PA_MODULE_USAGE(
         "source_name=<name for the source> "
         "device=<ALSA device> "
-        "device_id=<ALSA device id> "
+        "device_id=<ALSA card index> "
         "format=<sample format> "
         "rate=<sample rate> "
         "channels=<number of channels> "
@@ -889,6 +889,8 @@ int pa__init(pa_module*m) {
 
     pa_assert(m);
 
+    pa_alsa_redirect_errors_inc();
+
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
         goto fail;
@@ -1061,6 +1063,8 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, u->device_name);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "alsa");
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_DESCRIPTION, snd_pcm_info_get_name(pcm_info));
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%lu", (unsigned long) (period_frames * frame_size * nfrags));
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%lu", (unsigned long) (period_frames * frame_size));
 
     if (class_table[snd_pcm_info_get_class(pcm_info)])
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_CLASS, class_table[snd_pcm_info_get_class(pcm_info)]);
@@ -1228,8 +1232,10 @@ void pa__done(pa_module*m) {
 
     pa_assert(m);
 
-    if (!(u = m->userdata))
+    if (!(u = m->userdata)) {
+        pa_alsa_redirect_errors_dec();
         return;
+    }
 
     if (u->source)
         pa_source_unlink(u->source);
@@ -1268,4 +1274,5 @@ void pa__done(pa_module*m) {
     pa_xfree(u);
 
     snd_config_update_free_global();
+    pa_alsa_redirect_errors_dec();
 }
