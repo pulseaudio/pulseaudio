@@ -667,6 +667,7 @@ void pa_tagstruct_put(pa_tagstruct *t, ...) {
 
             case PA_TAG_PROPLIST:
                 pa_tagstruct_put_proplist(t, va_arg(va, pa_proplist *));
+                break;
 
             default:
                 pa_assert_not_reached();
@@ -741,6 +742,7 @@ int pa_tagstruct_get(pa_tagstruct *t, ...) {
 
             case PA_TAG_PROPLIST:
                 ret = pa_tagstruct_get_proplist(t, va_arg(va, pa_proplist *));
+                break;
 
             default:
                 pa_assert_not_reached();
