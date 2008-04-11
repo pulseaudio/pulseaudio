@@ -570,10 +570,11 @@ int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p) {
         return -1;
 
     saved_rindex = t->rindex;
+    t->rindex++;
 
     for (;;) {
         const char *k;
-        void *d;
+        const void *d;
         uint32_t length;
 
         if (pa_tagstruct_gets(t, &k) < 0)
@@ -588,17 +589,11 @@ int pa_tagstruct_get_proplist(pa_tagstruct *t, pa_proplist *p) {
         if (length > MAX_TAG_SIZE)
             goto fail;
 
-        d = pa_xmalloc(length);
-
-        if (pa_tagstruct_get_arbitrary(t, d, length) < 0)
+        if (pa_tagstruct_get_arbitrary(t, &d, length) < 0)
             goto fail;
 
-        if (pa_proplist_set(p, k, d, length) < 0) {
-            pa_xfree(d);
+        if (pa_proplist_set(p, k, d, length) < 0)
             goto fail;
-        }
-
-        pa_xfree(d);
     }
 
     return 0;

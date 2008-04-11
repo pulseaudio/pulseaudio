@@ -33,6 +33,9 @@
 #include <pulse/channelmap.h>
 #include <pulse/volume.h>
 #include <pulse/proplist.h>
+#include <pulse/gccmacro.h>
+
+#include <pulsecore/macro.h>
 
 typedef struct pa_tagstruct pa_tagstruct;
 
