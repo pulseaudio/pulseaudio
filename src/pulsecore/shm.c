@@ -42,6 +42,7 @@
 #endif
 
 #include <pulse/xmalloc.h>
+#include <pulse/gccmacro.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/log.h>
@@ -69,8 +70,9 @@
 
 #define SHM_MARKER ((int) 0xbeefcafe)
 
-/* We now put this SHM marker at the end of each segment. It's optional to not require a reboot when upgrading, though */
-struct shm_marker {
+/* We now put this SHM marker at the end of each segment. It's
+ * optional, to not require a reboot when upgrading, though */
+struct shm_marker PA_GCC_PACKED {
     pa_atomic_t marker; /* 0xbeefcafe */
     pa_atomic_t pid;
     uint64_t *_reserverd1;
