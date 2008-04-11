@@ -1093,6 +1093,35 @@ int pa_unlock_lockfile(const char *fn, int fd) {
     return r;
 }
 
+char *pa_get_state_dir(void) {
+    const char *e;
+    char *d;
+
+    if ((e = getenv("PULSE_STATE_PATH")))
+        d = pa_xstrdup(e);
+    else {
+        char h[PATH_MAX];
+
+        if (!pa_get_home_dir(h, sizeof(h))) {
+            pa_log_error("Failed to get home directory.");
+            return NULL;
+        }
+
+        d = pa_sprintf_malloc("%s/.pulse", h);
+    }
+
+    mkdir(d, 0755);
+
+    if (access(d, W_OK) == 0)
+        return d;
+
+    pa_log_error("Failed to set up state directory %s", d);
+
+    pa_xfree(d);
+
+    return NULL;
+}
+
 /* Try to open a configuration file. If "env" is specified, open the
  * value of the specified environment variable. Otherwise look for a
  * file "local" in the home directory or a file "global" in global

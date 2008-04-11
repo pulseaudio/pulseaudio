@@ -30,7 +30,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <pulsecore/gccmacro.h>
+#include <pulse/gccmacro.h>
 #include <pulsecore/macro.h>
 
 struct timeval;
@@ -65,6 +65,10 @@ int pa_parse_boolean(const char *s) PA_GCC_PURE;
 
 static inline const char *pa_yes_no(pa_bool_t b) {
     return b ? "yes" : "no";
+}
+
+static inline const char *pa_strnull(const char *x) {
+    return x ? x : "(null)";
 }
 
 char *pa_split(const char *c, const char*delimiters, const char **state);
@@ -128,5 +132,7 @@ static inline unsigned pa_make_power_of_two(unsigned n) {
 void pa_close_pipe(int fds[2]);
 
 char *pa_readlink(const char *p);
+
+char *pa_get_state_dir(void);
 
 #endif
