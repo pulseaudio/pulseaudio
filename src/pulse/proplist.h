@@ -24,7 +24,10 @@
   USA.
 ***/
 
-#include <pulsecore/macro.h>
+#include <pulse/cdecl.h>
+#include <pulse/gccmacro.h>
+
+PA_C_DECL_BEGIN
 
 /* Defined properties:
  *
@@ -65,43 +68,43 @@
  *    device.buffer_size
  */
 
-#define PA_PROP_MEDIA_NAME                  "media.name"
-#define PA_PROP_MEDIA_TITLE                 "media.title"
-#define PA_PROP_MEDIA_ARTIST                "media.artist"
-#define PA_PROP_MEDIA_LANGUAGE              "media.language"
-#define PA_PROP_MEDIA_FILENAME              "media.filename"
-#define PA_PROP_MEDIA_ICON                  "media.icon"
-#define PA_PROP_MEDIA_ICON_NAME             "media.icon_name"
-#define PA_PROP_MEDIA_ROLE                  "media.role"
-#define PA_PROP_EVENT_ID                    "event.id"
-#define PA_PROP_EVENT_X11_DISPLAY           "event.x11.display"
-#define PA_PROP_EVENT_X11_XID               "event.x11.xid"
-#define PA_PROP_EVENT_MOUSE_X               "event.mouse.x"
-#define PA_PROP_EVENT_MOUSE_Y               "event.mouse.y"
-#define PA_PROP_EVENT_MOUSE_BUTTON          "event.mouse.button"
-#define PA_PROP_APPLICATION_NAME            "application.name"
-#define PA_PROP_APPLICATION_ID              "application.id"
-#define PA_PROP_APPLICATION_VERSION         "application.version"
-#define PA_PROP_APPLICATION_ICON            "application.icon"
-#define PA_PROP_APPLICATION_ICON_NAME       "application.icon_name"
-#define PA_PROP_APPLICATION_LANGUAGE        "application.language"
-#define PA_PROP_APPLICATION_PROCESS_ID      "application.process.id"
-#define PA_PROP_APPLICATION_PROCESS_BINARY  "application.process.binary"
-#define PA_PROP_APPLICATION_PROCESS_USER    "application.process.user"
-#define PA_PROP_APPLICATION_PROCESS_HOST    "application.process.host"
-#define PA_PROP_DEVICE_STRING               "device.string"
-#define PA_PROP_DEVICE_API                  "device.api"
-#define PA_PROP_DEVICE_DESCRIPTION          "device.description"
-#define PA_PROP_DEVICE_BUS_PATH             "device.bus_path"
-#define PA_PROP_DEVICE_SERIAL               "device.serial"
-#define PA_PROP_DEVICE_VENDOR_PRODUCT_ID    "device.vendor_product_id"
-#define PA_PROP_DEVICE_CLASS                "device.class"
-#define PA_PROP_DEVICE_FORM_FACTOR          "device.form_factor"
-#define PA_PROP_DEVICE_CONNECTOR            "device.connector"
-#define PA_PROP_DEVICE_ACCESS_MODE          "device.access_mode"
-#define PA_PROP_DEVICE_MASTER_DEVICE        "device.master_device"
-#define PA_PROP_DEVICE_BUFFER_NFRAGMENTS    "device.buffer.nfragments"
-#define PA_PROP_DEVICE_BUFFER_FRAGMENT_SIZE "device.buffer.fragment_size"
+#define PA_PROP_MEDIA_NAME                     "media.name"
+#define PA_PROP_MEDIA_TITLE                    "media.title"
+#define PA_PROP_MEDIA_ARTIST                   "media.artist"
+#define PA_PROP_MEDIA_LANGUAGE                 "media.language"
+#define PA_PROP_MEDIA_FILENAME                 "media.filename"
+#define PA_PROP_MEDIA_ICON                     "media.icon"
+#define PA_PROP_MEDIA_ICON_NAME                "media.icon_name"
+#define PA_PROP_MEDIA_ROLE                     "media.role"
+#define PA_PROP_EVENT_ID                       "event.id"
+#define PA_PROP_EVENT_X11_DISPLAY              "event.x11.display"
+#define PA_PROP_EVENT_X11_XID                  "event.x11.xid"
+#define PA_PROP_EVENT_MOUSE_X                  "event.mouse.x"
+#define PA_PROP_EVENT_MOUSE_Y                  "event.mouse.y"
+#define PA_PROP_EVENT_MOUSE_BUTTON             "event.mouse.button"
+#define PA_PROP_APPLICATION_NAME               "application.name"
+#define PA_PROP_APPLICATION_ID                 "application.id"
+#define PA_PROP_APPLICATION_VERSION            "application.version"
+#define PA_PROP_APPLICATION_ICON               "application.icon"
+#define PA_PROP_APPLICATION_ICON_NAME          "application.icon_name"
+#define PA_PROP_APPLICATION_LANGUAGE           "application.language"
+#define PA_PROP_APPLICATION_PROCESS_ID         "application.process.id"
+#define PA_PROP_APPLICATION_PROCESS_BINARY     "application.process.binary"
+#define PA_PROP_APPLICATION_PROCESS_USER       "application.process.user"
+#define PA_PROP_APPLICATION_PROCESS_HOST       "application.process.host"
+#define PA_PROP_DEVICE_STRING                  "device.string"
+#define PA_PROP_DEVICE_API                     "device.api"
+#define PA_PROP_DEVICE_DESCRIPTION             "device.description"
+#define PA_PROP_DEVICE_BUS_PATH                "device.bus_path"
+#define PA_PROP_DEVICE_SERIAL                  "device.serial"
+#define PA_PROP_DEVICE_VENDOR_PRODUCT_ID       "device.vendor_product_id"
+#define PA_PROP_DEVICE_CLASS                   "device.class"
+#define PA_PROP_DEVICE_FORM_FACTOR             "device.form_factor"
+#define PA_PROP_DEVICE_CONNECTOR               "device.connector"
+#define PA_PROP_DEVICE_ACCESS_MODE             "device.access_mode"
+#define PA_PROP_DEVICE_MASTER_DEVICE           "device.master_device"
+#define PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE   "device.buffering.buffer_size"
+#define PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE "device.buffering.fragment_size"
 
 /** A property list object. Basically a dictionary with UTF-8 strings
  * as keys and arbitrary data as values. \since 0.9.11 */
@@ -176,7 +179,7 @@ int pa_proplist_unset_many(pa_proplist *p, const char * const keys[]);
  * list do not have any particular order. \since 0.9.11 */
 const char *pa_proplist_iterate(pa_proplist *p, void **state);
 
-/** Format the property list nicely as a human readable string. \since
+/** Format the property list nicely as a human readable string. Call pa_xfree() on the result. \since
  * 0.9.11 */
 char *pa_proplist_to_string(pa_proplist *p);
 
@@ -190,5 +193,7 @@ void pa_proplist_clear(pa_proplist *p);
 /** Allocate a new property list and copy over every single entry from
  * the specific list. \since 0.9.11 */
 pa_proplist* pa_proplist_copy(pa_proplist *template);
+
+PA_C_DECL_END
 
 #endif
