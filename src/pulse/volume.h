@@ -26,7 +26,9 @@
 ***/
 
 #include <inttypes.h>
+
 #include <pulse/cdecl.h>
+#include <pulse/gccmacro.h>
 #include <pulse/sample.h>
 
 /** \page volume Volume Control
@@ -149,7 +151,7 @@ int pa_cvolume_channels_equal_to(const pa_cvolume *a, pa_volume_t v) PA_GCC_PURE
 pa_volume_t pa_sw_volume_multiply(pa_volume_t a, pa_volume_t b) PA_GCC_CONST;
 
 /** Multiply to per-channel volumes and return the result in *dest. This is only valid for software volumes! */
-pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b) PA_GCC_PURE;
+pa_cvolume *pa_sw_cvolume_multiply(pa_cvolume *dest, const pa_cvolume *a, const pa_cvolume *b);
 
 /** Convert a decibel value to a volume. This is only valid for software volumes! */
 pa_volume_t pa_sw_volume_from_dB(double f) PA_GCC_CONST;
