@@ -36,6 +36,7 @@
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/atomic.h>
 
 #include "alsa-util.h"
 
@@ -571,7 +572,11 @@ snd_pcm_t *pa_alsa_open_by_device_id(
         d = pa_sprintf_malloc("%s:%s", device_table[i].name, dev_id);
         pa_log_debug("Trying %s...", d);
 
-        if ((err = snd_pcm_open(&pcm_handle, d, mode, SND_PCM_NONBLOCK)) < 0) {
+        if ((err = snd_pcm_open(&pcm_handle, d, mode,
+                                SND_PCM_NONBLOCK|
+                                SND_PCM_NO_AUTO_RESAMPLE|
+                                SND_PCM_NO_AUTO_CHANNELS|
+                                SND_PCM_NO_AUTO_FORMAT)) < 0) {
             pa_log_info("Couldn't open PCM device %s: %s", d, snd_strerror(err));
             pa_xfree(d);
             continue;
@@ -595,9 +600,9 @@ snd_pcm_t *pa_alsa_open_by_device_id(
         return pcm_handle;
     }
 
-    /* OK, we didn't find any good device, so let's try the raw hw: stuff */
+    /* OK, we didn't find any good device, so let's try the raw plughw: stuff */
 
-    d = pa_sprintf_malloc("hw:%s", dev_id);
+    d = pa_sprintf_malloc("plughw:%s", dev_id);
     pa_log_debug("Trying %s as last resort...", d);
     pcm_handle = pa_alsa_open_by_device_string(d, dev, ss, map, mode, nfrags, period_size, tsched_size, use_mmap, use_tsched);
     pa_xfree(d);
@@ -632,7 +637,10 @@ snd_pcm_t *pa_alsa_open_by_device_string(
 
     for (;;) {
 
-        if ((err = snd_pcm_open(&pcm_handle, d, mode, SND_PCM_NONBLOCK)) < 0) {
+        if ((err = snd_pcm_open(&pcm_handle, d, mode, SND_PCM_NONBLOCK|
+                                SND_PCM_NO_AUTO_RESAMPLE|
+                                SND_PCM_NO_AUTO_CHANNELS|
+                                SND_PCM_NO_AUTO_FORMAT)) < 0) {
             pa_log("Error opening PCM device %s: %s", d, snd_strerror(err));
             pa_xfree(d);
             return NULL;
@@ -936,4 +944,32 @@ void pa_alsa_dump_status(snd_pcm_t *pcm) {
     }
 
     pa_assert_se(snd_output_close(out) == 0);
+}
+
+static void alsa_error_handler(const char *file, int line, const char *function, int err, const char *fmt,...) {
+    va_list ap;
+
+    va_start(ap, fmt);
+
+    pa_log_levelv_meta(PA_LOG_WARN, file, line, function, fmt, ap);
+
+    va_end(ap);
+}
+
+static pa_atomic_t n_error_handler_installed = PA_ATOMIC_INIT(0);
+
+void pa_alsa_redirect_errors_inc(void) {
+    /* This is not really thread safe, but we do our best */
+
+    if (pa_atomic_inc(&n_error_handler_installed) == 0)
+        snd_lib_error_set_handler(alsa_error_handler);
+}
+
+void pa_alsa_redirect_errors_dec(void) {
+    int r;
+
+    pa_assert_se((r = pa_atomic_dec(&n_error_handler_installed)) >= 1);
+
+    if (r == 1)
+        snd_lib_error_set_handler(NULL);
 }
