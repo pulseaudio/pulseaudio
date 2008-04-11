@@ -86,4 +86,13 @@
 #endif
 #endif
 
+#ifndef PA_GCC_PACKED
+#ifdef __GNUCC__
+#define PA_GCC_PACKED __attribute__ ((packed))
+#else
+/** Structure shall be packed in memory **/
+#define PA_GCC_PACKED
+#endif
+#endif
+
 #endif
