@@ -110,8 +110,18 @@ pa_source* pa_source_new(
 
     pa_assert(core);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_NEW], data) < 0)
+    s = pa_msgobject_new(pa_source);
+
+    if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SOURCE, s, data->namereg_fail))) {
+        pa_xfree(s);
         return NULL;
+    }
+
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_NEW], data) < 0) {
+        pa_xfree(s);
+        pa_namereg_unregister(core, name);
+        return NULL;
+    }
 
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
     pa_return_null_if_fail(data->name && pa_utf8_valid(data->name) && data->name[0]);
@@ -133,13 +143,9 @@ pa_source* pa_source_new(
     if (!data->muted_is_set)
         data->muted = FALSE;
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) < 0)
-        return NULL;
-
-    s = pa_msgobject_new(pa_source);
-
-    if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SOURCE, s, data->namereg_fail))) {
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SOURCE_FIXATE], data) < 0) {
         pa_xfree(s);
+        pa_namereg_unregister(core, name);
         return NULL;
     }
 
@@ -246,21 +252,8 @@ void pa_source_put(pa_source *s) {
 
     pa_assert(!s->min_latency || !s->max_latency || s->min_latency <= s->max_latency);
 
-    if (s->get_volume && s->set_volume)
-        s->flags |= PA_SOURCE_HW_VOLUME_CTRL;
-    else {
-        s->get_volume = NULL;
-        s->set_volume = NULL;
-        s->flags = (s->flags & ~PA_SOURCE_HW_VOLUME_CTRL) | PA_SOURCE_DECIBEL_VOLUME;
-    }
-
-    if (s->get_mute && s->set_mute)
-        s->flags |= PA_SOURCE_HW_MUTE_CTRL;
-    else {
-        s->get_mute = NULL;
-        s->set_mute = NULL;
-        s->flags &= ~PA_SOURCE_HW_MUTE_CTRL;
-    }
+    if (!(s->flags & PA_SOURCE_HW_VOLUME_CTRL))
+        s->flags |= PA_SOURCE_DECIBEL_VOLUME;
 
     pa_assert_se(source_set_state(s, PA_SOURCE_IDLE) == 0);
 

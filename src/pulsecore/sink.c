@@ -118,9 +118,22 @@ pa_sink* pa_sink_new(
 
     pa_assert(core);
     pa_assert(data);
+    pa_assert(data->name);
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_NEW], data) < 0)
+    s = pa_msgobject_new(pa_sink);
+
+    if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SINK, s, data->namereg_fail))) {
+        pa_xfree(s);
         return NULL;
+    }
+
+    pa_sink_new_data_set_name(data, name);
+
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_NEW], data) < 0) {
+        pa_xfree(s);
+        pa_namereg_unregister(core, name);
+        return NULL;
+    }
 
     pa_return_null_if_fail(!data->driver || pa_utf8_valid(data->driver));
     pa_return_null_if_fail(data->name && pa_utf8_valid(data->name) && data->name[0]);
@@ -142,13 +155,9 @@ pa_sink* pa_sink_new(
     if (!data->muted_is_set)
         data->muted = FALSE;
 
-    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_FIXATE], data) < 0)
-        return NULL;
-
-    s = pa_msgobject_new(pa_sink);
-
-    if (!(name = pa_namereg_register(core, data->name, PA_NAMEREG_SINK, s, data->namereg_fail))) {
+    if (pa_hook_fire(&core->hooks[PA_CORE_HOOK_SINK_FIXATE], data) < 0) {
         pa_xfree(s);
+        pa_namereg_unregister(core, name);
         return NULL;
     }
 
@@ -212,11 +221,12 @@ pa_sink* pa_sink_new(
     pa_source_new_data_set_channel_map(&source_data, &s->channel_map);
     source_data.name = pa_sprintf_malloc("%s.monitor", name);
     source_data.driver = data->driver;
+    source_data.module = data->module;
 
     d = pa_sprintf_malloc("Monitor Source of %s", s->name);
-    pa_proplist_sets(data->proplist, PA_PROP_DEVICE_DESCRIPTION, d);
+    pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, d);
     pa_xfree(d);
-    pa_proplist_sets(data->proplist, PA_PROP_DEVICE_CLASS, "monitor");
+    pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "monitor");
 
     s->monitor_source = pa_source_new(core, &source_data, 0);
 
@@ -281,15 +291,8 @@ void pa_sink_put(pa_sink* s) {
 
     pa_assert(!s->min_latency || !s->max_latency || s->min_latency <= s->max_latency);
 
-    if (s->get_volume && s->set_volume)
-        s->flags |= PA_SINK_HW_VOLUME_CTRL;
-    else
-        s->flags = (s->flags & ~PA_SINK_HW_VOLUME_CTRL) | PA_SINK_DECIBEL_VOLUME;
-
-    if (s->get_mute && s->set_mute)
-        s->flags |= PA_SINK_HW_MUTE_CTRL;
-    else
-        s->flags &= ~PA_SINK_HW_MUTE_CTRL;
+    if (!(s->flags & PA_SINK_HW_VOLUME_CTRL))
+        s->flags |= PA_SINK_DECIBEL_VOLUME;
 
     pa_assert_se(sink_set_state(s, PA_SINK_IDLE) == 0);
 
