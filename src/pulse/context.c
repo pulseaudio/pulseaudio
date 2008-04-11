@@ -1205,8 +1205,10 @@ void pa_init_proplist(pa_proplist *p) {
         }
     }
 
-    if (!(a = pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_BINARY)) ||
-        !(b = pa_proplist_contains(p, PA_PROP_APPLICATION_NAME))) {
+    a = pa_proplist_contains(p, PA_PROP_APPLICATION_PROCESS_BINARY);
+    b = pa_proplist_contains(p, PA_PROP_APPLICATION_NAME);
+
+    if (!a || !b) {
         char t[PATH_MAX];
         if (pa_get_binary_name(t, sizeof(t))) {
             char *c = pa_utf8_filter(t);
