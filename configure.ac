@@ -377,6 +377,9 @@ AC_SEARCH_LIBS([connect], [socket])
 # build, disabling its ability to make dlls.
 AC_CHECK_FUNCS([getopt_long], [], [AC_CHECK_LIB([iberty], [getopt_long])])
 
+AC_CHECK_LIB(gdbm, gdbm_open)
+AC_CHECK_HEADERS(gdbm.h)
+
 #### Check for functions ####
 
 # ISO
@@ -592,7 +595,7 @@ AC_ARG_ENABLE([alsa],
         [alsa=auto])
 
 if test "x${alsa}" != xno ; then
-    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.0 ],
+    PKG_CHECK_MODULES(ASOUNDLIB, [ alsa >= 1.0.16 ],
         [
             HAVE_ALSA=1
             AC_DEFINE([HAVE_ALSA], 1, [Have ALSA?])
