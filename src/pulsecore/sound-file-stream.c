@@ -247,6 +247,7 @@ int pa_play_file(
     u->sink_input = NULL;
     u->sndfile = NULL;
     u->readf_function = NULL;
+    u->memblockq = NULL;
 
     memset(&sfinfo, 0, sizeof(sfinfo));
 
