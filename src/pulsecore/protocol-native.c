@@ -2186,8 +2186,10 @@ static void sink_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink *sink) {
         PA_TAG_U32, sink->flags,
         PA_TAG_INVALID);
 
-    if (c->version >= 13)
+    if (c->version >= 13) {
         pa_tagstruct_put_proplist(t, sink->proplist);
+        pa_tagstruct_put_usec(t, pa_sink_get_requested_latency(sink));
+    }
 }
 
 static void source_fill_tagstruct(connection *c, pa_tagstruct *t, pa_source *source) {
@@ -2215,9 +2217,12 @@ static void source_fill_tagstruct(connection *c, pa_tagstruct *t, pa_source *sou
         PA_TAG_U32, source->flags,
         PA_TAG_INVALID);
 
-    if (c->version >= 13)
+    if (c->version >= 13) {
         pa_tagstruct_put_proplist(t, source->proplist);
+        pa_tagstruct_put_usec(t, pa_source_get_requested_latency(source));
+    }
 }
+
 
 static void client_fill_tagstruct(connection *c, pa_tagstruct *t, pa_client *client) {
     pa_assert(t);
@@ -2266,10 +2271,8 @@ static void sink_input_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sink_in
     pa_tagstruct_puts(t, s->driver);
     if (c->version >= 11)
         pa_tagstruct_put_boolean(t, pa_sink_input_get_mute(s));
-    if (c->version >= 13) {
+    if (c->version >= 13)
         pa_tagstruct_put_proplist(t, s->proplist);
-        pa_tagstruct_put_usec(t, pa_sink_get_requested_latency(s->sink));
-    }
 }
 
 static void source_output_fill_tagstruct(connection *c, pa_tagstruct *t, pa_source_output *s) {
@@ -2292,10 +2295,8 @@ static void source_output_fill_tagstruct(connection *c, pa_tagstruct *t, pa_sour
     pa_tagstruct_puts(t, pa_resample_method_to_string(pa_source_output_get_resample_method(s)));
     pa_tagstruct_puts(t, s->driver);
 
-    if (c->version >= 13) {
+    if (c->version >= 13)
         pa_tagstruct_put_proplist(t, s->proplist);
-        pa_tagstruct_put_usec(t, pa_source_get_requested_latency(s->source));
-    }
 }
 
 static void scache_fill_tagstruct(connection *c, pa_tagstruct *t, pa_scache_entry *e) {
@@ -2480,7 +2481,7 @@ static void command_get_server_info(PA_GCC_UNUSED pa_pdispatch *pd, PA_GCC_UNUSE
     pa_tagstruct_puts(reply, PACKAGE_NAME);
     pa_tagstruct_puts(reply, PACKAGE_VERSION);
     pa_tagstruct_puts(reply, pa_get_user_name(txt, sizeof(txt)));
-    pa_tagstruct_puts(reply, pa_get_fqdn(txt, sizeof(txt)));
+    pa_tagstruct_puts(reply, pa_get_host_name(txt, sizeof(txt)));
 
     fixup_sample_spec(c, &fixed_ss, &c->protocol->core->default_sample_spec);
     pa_tagstruct_put_sample_spec(reply, &fixed_ss);
