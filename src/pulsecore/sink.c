@@ -973,8 +973,8 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             pa_sink_invalidate_requested_latency(s);
 
-/*             i->thread_info.ignore_rewind = TRUE; */
-/*             pa_sink_request_rewind(s, 0); */
+            i->thread_info.ignore_rewind = TRUE;
+            pa_sink_request_rewind(s, 0);
 
             return 0;
         }
@@ -1014,7 +1014,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             pa_sink_invalidate_requested_latency(s);
 
-/*             pa_sink_request_rewind(s, 0); */
+            pa_sink_request_rewind(s, 0);
 
             return 0;
         }
