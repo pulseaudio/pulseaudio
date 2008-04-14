@@ -399,7 +399,6 @@ void pa_sink_input_put(pa_sink_input *i) {
 
     pa_assert(i->state == PA_SINK_INPUT_INIT);
     pa_assert(i->pop);
-    pa_assert(i->rewind);
 
     i->thread_info.state = i->state = i->flags & PA_SINK_INPUT_START_CORKED ? PA_SINK_INPUT_CORKED : PA_SINK_INPUT_RUNNING;
     i->thread_info.volume = i->volume;
@@ -611,7 +610,7 @@ void pa_sink_input_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec
     pa_assert(PA_SINK_INPUT_LINKED(i->thread_info.state));
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
 
-    pa_log_debug("rewind(%u, %u)", nbytes, i->thread_info.rewrite_nbytes);
+    pa_log_debug("rewind(%lu, %lu)", (unsigned long) nbytes, (unsigned long) i->thread_info.rewrite_nbytes);
 
     if (i->thread_info.state == PA_SINK_INPUT_CORKED)
         return;
@@ -623,7 +622,7 @@ void pa_sink_input_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec
     }
 
     if (nbytes > 0)
-        pa_log_debug("Have to rewind %u bytes.", nbytes);
+        pa_log_debug("Have to rewind %lu bytes.", (unsigned long) nbytes);
 
     if (i->thread_info.rewrite_nbytes > 0) {
         size_t max_rewrite;

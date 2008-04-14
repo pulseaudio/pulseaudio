@@ -103,7 +103,7 @@ struct pa_sink_input {
      * before peek() if it is called at all. Only called if the sink
      * input driver ever plans to call
      * pa_sink_input_request_rewrite(). Called from IO context. */
-    void (*rewind) (pa_sink_input *i, size_t nbytes);
+    void (*rewind) (pa_sink_input *i, size_t nbytes);     /* may be NULL */
 
     /* Called whenever the maximum rewindable size of the sink
      * changes. Called from UI context. */
