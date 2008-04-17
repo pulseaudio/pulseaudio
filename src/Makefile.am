@@ -226,7 +226,7 @@ pabrowse_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 #         Test programs           #
 ###################################
 
-check_PROGRAMS = \
+noinst_PROGRAMS = \
 		mainloop-test \
 		mcalign-test \
 		pacat-simple \
@@ -255,16 +255,17 @@ check_PROGRAMS = \
 		mix-test \
 		remix-test \
 		envelope-test \
-		proplist-test
+		proplist-test \
+		rtstutter
 
 if HAVE_SIGXCPU
-check_PROGRAMS += \
+noinst_PROGRAMS += \
 		cpulimit-test \
 		cpulimit-test2
 endif
 
 if HAVE_GLIB20
-check_PROGRAMS += \
+noinst_PROGRAMS += \
 		mainloop-test-glib
 endif
 
@@ -426,9 +427,14 @@ envelope_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 envelope_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 proplist_test_SOURCES = tests/proplist-test.c
-proplist_test_LDADD = $(AM_LDADD) libpulse.la
+proplist_test_LDADD = $(AM_LDADD) libpulsecore.la
 proplist_test_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
 proplist_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
+
+rtstutter_SOURCES = tests/rtstutter.c
+rtstutter_LDADD = $(AM_LDADD) libpulsecore.la
+rtstutter_CFLAGS = $(AM_CFLAGS) $(LIBOIL_CFLAGS)
+rtstutter_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBOIL_LIBS)
 
 ###################################
 #         Client library          #
