@@ -95,7 +95,7 @@ pa_stream *pa_stream_new_with_proplist(pa_context *c, const char *name, const pa
     s->proplist = p ? pa_proplist_copy(p) : pa_proplist_new();
 
     if (name)
-        pa_proplist_sets(c->proplist, PA_PROP_MEDIA_NAME, name);
+        pa_proplist_sets(s->proplist, PA_PROP_MEDIA_NAME, name);
 
     s->channel = 0;
     s->channel_valid = 0;
@@ -842,8 +842,6 @@ static int create_stream(
             pa_tagstruct_put_boolean(t, flags & PA_STREAM_START_MUTED);
         else
             pa_tagstruct_put_boolean(t, flags & PA_STREAM_PEAK_DETECT);
-
-        pa_init_proplist(s->proplist);
 
         pa_tagstruct_put(
                 t,
