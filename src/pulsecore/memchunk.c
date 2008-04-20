@@ -90,3 +90,23 @@ pa_memchunk *pa_memchunk_will_need(const pa_memchunk *c) {
 
     return (pa_memchunk*) c;
 }
+
+pa_memchunk* pa_memchunk_memcpy(pa_memchunk *dst, pa_memchunk *src) {
+    void *p, *q;
+
+    pa_assert(dst);
+    pa_assert(src);
+    pa_assert(dst->length == src->length);
+
+    p = pa_memblock_acquire(dst->memblock);
+    q = pa_memblock_acquire(src->memblock);
+
+    memmove((uint8_t*) p + dst->index,
+            (uint8_t*) q + src->index,
+            dst->length);
+
+    pa_memblock_release(dst->memblock);
+    pa_memblock_release(src->memblock);
+
+    return dst;
+}

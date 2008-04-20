@@ -49,4 +49,7 @@ pa_memchunk* pa_memchunk_reset(pa_memchunk *c);
 /* Map a memory chunk back into memory if it was swapped out */
 pa_memchunk *pa_memchunk_will_need(const pa_memchunk *c);
 
+/* Copy the data in the src memchunk to the dst memchunk */
+pa_memchunk* pa_memchunk_memcpy(pa_memchunk *dst, pa_memchunk *src);
+
 #endif
