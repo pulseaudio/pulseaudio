@@ -427,7 +427,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
                 const pa_creds *creds;
                 if ((creds = pa_pdispatch_creds(pd)))
                     if (getuid() == creds->uid)
-                        pa_pstream_use_shm(c->pstream, 1);
+                        pa_pstream_enable_shm(c->pstream, TRUE);
 #endif
             }
 
