@@ -896,6 +896,10 @@ int pa_stream_write(
         pa_seek_mode_t seek) {
 
     pa_memchunk chunk;
+    pa_seek_mode_t t_seek;
+    int64_t t_offset;
+    size_t t_length;
+    const void *t_data;
 
     pa_assert(s);
     pa_assert(PA_REFCNT_VALUE(s) >= 1);
@@ -909,21 +913,42 @@ int pa_stream_write(
     if (length <= 0)
         return 0;
 
-    if (free_cb)
-        chunk.memblock = pa_memblock_new_user(s->context->mempool, (void*) data, length, free_cb, 1);
-    else {
-        void *tdata;
-        chunk.memblock = pa_memblock_new(s->context->mempool, length);
-        tdata = pa_memblock_acquire(chunk.memblock);
-        memcpy(tdata, data, length);
-        pa_memblock_release(chunk.memblock);
+    t_seek = seek;
+    t_offset = offset;
+    t_length = length;
+    t_data = data;
+
+    while (t_length > 0) {
+
+        chunk.index = 0;
+
+        if (free_cb && !pa_pstream_get_shm(s->context->pstream)) {
+            chunk.memblock = pa_memblock_new_user(s->context->mempool, (void*) t_data, t_length, free_cb, 1);
+            chunk.length = t_length;
+        } else {
+            void *d;
+
+            chunk.length = PA_MIN(t_length, pa_mempool_block_size_max(s->context->mempool));
+            chunk.memblock = pa_memblock_new(s->context->mempool, chunk.length);
+
+            d = pa_memblock_acquire(chunk.memblock);
+            memcpy(d, t_data, chunk.length);
+            pa_memblock_release(chunk.memblock);
+        }
+
+        pa_pstream_send_memblock(s->context->pstream, s->channel, t_offset, t_seek, &chunk);
+
+        t_offset = 0;
+        t_seek = PA_SEEK_RELATIVE;
+
+        t_data = (const uint8_t*) t_data + chunk.length;
+        t_length -= chunk.length;
+
+        pa_memblock_unref(chunk.memblock);
     }
 
-    chunk.index = 0;
-    chunk.length = length;
-
-    pa_pstream_send_memblock(s->context->pstream, s->channel, offset, seek, &chunk);
-    pa_memblock_unref(chunk.memblock);
+    if (free_cb && pa_pstream_get_shm(s->context->pstream))
+        free_cb((void*) data);
 
     if (length < s->requested_bytes)
         s->requested_bytes -= length;
