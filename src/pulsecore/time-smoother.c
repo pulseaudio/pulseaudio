@@ -333,7 +333,7 @@ void pa_smoother_put(pa_smoother *s, pa_usec_t x, pa_usec_t y) {
 
     s->abc_valid = FALSE;
 
-    pa_log_debug("put(%llu | %llu) = %llu", x + s->time_offset, x, y);
+/*     pa_log_debug("put(%llu | %llu) = %llu", (unsigned long long)  (x + s->time_offset), (unsigned long long) x, (unsigned long long) y); */
 }
 
 pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
@@ -353,7 +353,7 @@ pa_usec_t pa_smoother_get(pa_smoother *s, pa_usec_t x) {
 
     estimate(s, x, &y, NULL);
 
-    pa_log_debug("get(%llu | %llu) = %llu", x + s->time_offset, x, y);
+/*     pa_log_debug("get(%llu | %llu) = %llu", (unsigned long long) (x + s->time_offset), (unsigned long long) x, (unsigned long long) y); */
 
     return y;
 }
@@ -363,7 +363,7 @@ void pa_smoother_set_time_offset(pa_smoother *s, pa_usec_t offset) {
 
     s->time_offset = offset;
 
-    pa_log_debug("offset(%llu)", offset);
+/*     pa_log_debug("offset(%llu)", (unsigned long long) offset); */
 }
 
 void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
@@ -372,7 +372,7 @@ void pa_smoother_pause(pa_smoother *s, pa_usec_t x) {
     if (s->paused)
         return;
 
-    pa_log_debug("pause(%llu)", x);
+/*     pa_log_debug("pause(%llu)", (unsigned long long)  x); */
 
     s->paused = TRUE;
     s->pause_time = x;
@@ -386,7 +386,7 @@ void pa_smoother_resume(pa_smoother *s, pa_usec_t x) {
 
     pa_assert(x >= s->pause_time);
 
-    pa_log_debug("resume(%llu)", x);
+/*     pa_log_debug("resume(%llu)", (unsigned long long) x); */
 
     s->paused = FALSE;
     s->time_offset += x - s->pause_time;
@@ -410,7 +410,7 @@ pa_usec_t pa_smoother_translate(pa_smoother *s, pa_usec_t x, pa_usec_t y_delay) 
 
     estimate(s, x, &ney, &nde);
 
-    pa_log_debug("translate(%llu) = %llu (%0.2f)", (unsigned long long) y_delay, (unsigned long long) ((double) y_delay / s->dp), s->dp);
+/*     pa_log_debug("translate(%llu) = %llu (%0.2f)", (unsigned long long) y_delay, (unsigned long long) ((double) y_delay / s->dp), s->dp); */
 
     return (pa_usec_t) ((double) y_delay / s->dp);
 }
