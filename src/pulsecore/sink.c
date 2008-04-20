@@ -124,10 +124,10 @@ pa_sink* pa_sink_new(
         pa_sink_flags_t flags) {
 
     pa_sink *s;
-    char *d;
     const char *name;
     char st[PA_SAMPLE_SPEC_SNPRINT_MAX], cm[PA_CHANNEL_MAP_SNPRINT_MAX];
     pa_source_new_data source_data;
+    const char *dn;
 
     pa_assert(core);
     pa_assert(data);
@@ -235,9 +235,8 @@ pa_sink* pa_sink_new(
     source_data.driver = data->driver;
     source_data.module = data->module;
 
-    d = pa_sprintf_malloc("Monitor Source of %s", s->name);
-    pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, d);
-    pa_xfree(d);
+    dn = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
+    pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Monitor Source of %s", dn ? dn : s->name);
     pa_proplist_sets(source_data.proplist, PA_PROP_DEVICE_CLASS, "monitor");
 
     s->monitor_source = pa_source_new(core, &source_data, 0);
