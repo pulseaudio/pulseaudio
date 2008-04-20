@@ -46,8 +46,8 @@
 
 #include "memblock.h"
 
-#define PA_MEMPOOL_SLOTS_MAX 128
-#define PA_MEMPOOL_SLOT_SIZE (16*1024)
+#define PA_MEMPOOL_SLOTS_MAX 512
+#define PA_MEMPOOL_SLOT_SIZE (32*1024)
 
 #define PA_MEMEXPORT_SLOTS_MAX 128
 
@@ -253,7 +253,7 @@ static struct mempool_slot* mempool_allocate_slot(pa_mempool *p) {
             slot = (struct mempool_slot*) ((uint8_t*) p->memory.ptr + (p->block_size * idx));
 
         if (!slot) {
-            pa_log_debug("Pool full");
+            pa_log_info("Pool full");
             pa_atomic_inc(&p->stat.n_pool_full);
             return NULL;
         }
